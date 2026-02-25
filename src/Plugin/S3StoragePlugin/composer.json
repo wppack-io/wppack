@@ -1,0 +1,18 @@
+{
+    "name": "wppack/s3-storage-plugin",
+    "description": "WordPress plugin for S3-based media storage",
+    "type": "wordpress-plugin",
+    "license": "MIT",
+    "require": {
+        "php": "^8.1",
+        "wppack/hook": "^1.0",
+        "wppack/media": "^1.0",
+        "wppack/messenger": "^1.0",
+        "async-aws/s3": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpPack\\Plugin\\S3StoragePlugin\\": ""
+        }
+    }
+}

@@ -1,0 +1,398 @@
+# SiteHealth コンポーネント
+
+**パッケージ:** `wppack/site-health`
+**名前空間:** `WpPack\Component\SiteHealth\`
+**レイヤー:** Application
+
+WordPress のサイトヘルスチェック機能（`site_status_tests` フィルター、`debug_information` フィルター）をアトリビュートベースで登録・管理するコンポーネントです。
+
+## インストール
+
+```bash
+composer require wppack/site-health
+```
+
+## 従来の WordPress と WpPack の比較
+
+### Before（従来の WordPress）
+
+```php
+add_filter('site_status_tests', 'my_custom_site_health_tests');
+function my_custom_site_health_tests($tests) {
+    $tests['direct']['my_custom_test'] = [
+        'label' => __('My Custom Test'),
+        'test' => 'my_custom_health_check_function',
+    ];
+    return $tests;
+}
+
+function my_custom_health_check_function() {
+    $result = [
+        'label' => __('My Custom Check'),
+        'status' => 'good',
+        'badge' => [
+            'label' => __('Performance'),
+            'color' => 'green',
+        ],
+        'description' => '<p>' . __('The custom check passed.') . '</p>',
+        'actions' => '',
+        'test' => 'my_custom_test',
+    ];
+
+    if (some_condition_fails()) {
+        $result['status'] = 'critical';
+        $result['badge']['color'] = 'red';
+        $result['description'] = '<p>' . __('The check failed!') . '</p>';
+    }
+
+    return $result;
+}
+```
+
+### After（WpPack）
+
+```php
+use WpPack\Component\SiteHealth\AbstractHealthCheck;
+use WpPack\Component\SiteHealth\Attribute\AsHealthCheck;
+use WpPack\Component\SiteHealth\Result;
+
+#[AsHealthCheck(
+    id: 'my_custom_test',
+    label: 'My Custom Test',
+    category: 'performance',
+)]
+class MyCustomCheck extends AbstractHealthCheck
+{
+    public function run(): Result
+    {
+        if (some_condition_fails()) {
+            return Result::critical(
+                label: __('The check failed!', 'my-plugin'),
+                description: __('Please fix this issue.', 'my-plugin'),
+            );
+        }
+
+        return Result::good(
+            label: __('My Custom Check', 'my-plugin'),
+            description: __('The custom check passed.', 'my-plugin'),
+        );
+    }
+}
+```
+
+## クイックスタート
+
+### カスタムヘルスチェックの登録
+
+```php
+use WpPack\Component\SiteHealth\AbstractHealthCheck;
+use WpPack\Component\SiteHealth\Attribute\AsHealthCheck;
+use WpPack\Component\SiteHealth\Result;
+
+#[AsHealthCheck(
+    id: 'database_optimization',
+    label: 'Database Optimization',
+    category: 'performance',
+)]
+class DatabaseOptimizationCheck extends AbstractHealthCheck
+{
+    public function run(): Result
+    {
+        global $wpdb;
+
+        $overhead = $wpdb->get_var(
+            "SELECT SUM(DATA_FREE) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE()"
+        );
+
+        $overheadMb = round($overhead / 1024 / 1024, 2);
+
+        if ($overheadMb > 100) {
+            return Result::critical(
+                label: __('Database needs optimization', 'my-plugin'),
+                description: sprintf(
+                    __('Your database has %sMB of overhead.', 'my-plugin'),
+                    $overheadMb
+                ),
+                actions: sprintf(
+                    '<a href="%s">%s</a>',
+                    admin_url('tools.php'),
+                    __('Optimize Database', 'my-plugin')
+                ),
+            );
+        }
+
+        if ($overheadMb > 50) {
+            return Result::recommended(
+                label: __('Database could be optimized', 'my-plugin'),
+                description: sprintf(
+                    __('Your database has %sMB of overhead.', 'my-plugin'),
+                    $overheadMb
+                ),
+            );
+        }
+
+        return Result::good(
+            label: __('Database is optimized', 'my-plugin'),
+            description: __('No significant overhead detected.', 'my-plugin'),
+        );
+    }
+}
+```
+
+### 非同期ヘルスチェック
+
+WordPress は非同期テスト（`async` カテゴリ）もサポートしています：
+
+```php
+#[AsHealthCheck(
+    id: 'external_api_connectivity',
+    label: 'External API Connectivity',
+    category: 'security',
+    async: true,
+)]
+class ExternalApiCheck extends AbstractHealthCheck
+{
+    public function run(): Result
+    {
+        $response = wp_remote_get('https://api.example.com/health');
+
+        if (is_wp_error($response)) {
+            return Result::recommended(
+                label: __('Cannot reach external API', 'my-plugin'),
+                description: $response->get_error_message(),
+            );
+        }
+
+        return Result::good(
+            label: __('External API is reachable', 'my-plugin'),
+            description: __('Connection to external API is working.', 'my-plugin'),
+        );
+    }
+}
+```
+
+### デバッグ情報の追加
+
+WordPress の「サイトヘルス情報」タブにカスタムセクションを追加します（`debug_information` フィルター）：
+
+```php
+use WpPack\Component\SiteHealth\Attribute\AsDebugInfo;
+use WpPack\Component\SiteHealth\DebugSection;
+
+#[AsDebugInfo(
+    section: 'my-plugin',
+    label: 'My Plugin',
+)]
+class MyPluginDebugInfo extends DebugSection
+{
+    public function getFields(): array
+    {
+        return [
+            'version' => [
+                'label' => __('Version', 'my-plugin'),
+                'value' => MY_PLUGIN_VERSION,
+            ],
+            'cache_backend' => [
+                'label' => __('Cache Backend', 'my-plugin'),
+                'value' => $this->getCacheBackend(),
+            ],
+            'api_status' => [
+                'label' => __('API Status', 'my-plugin'),
+                'value' => $this->getApiStatus(),
+                'private' => true,
+            ],
+        ];
+    }
+}
+```
+
+### 依存性注入を使用したチェック
+
+```php
+#[AsHealthCheck(
+    id: 'cache_status',
+    label: 'Object Cache Status',
+    category: 'performance',
+)]
+class CacheStatusCheck extends AbstractHealthCheck
+{
+    public function __construct(
+        private readonly CacheManager $cache,
+    ) {}
+
+    public function run(): Result
+    {
+        if (!wp_using_ext_object_cache()) {
+            return Result::recommended(
+                label: __('No persistent object cache', 'my-plugin'),
+                description: __('Consider installing a persistent object cache for better performance.', 'my-plugin'),
+            );
+        }
+
+        return Result::good(
+            label: __('Persistent object cache is active', 'my-plugin'),
+            description: __('Your site is using a persistent object cache.', 'my-plugin'),
+        );
+    }
+}
+```
+
+## Result クラス
+
+`Result` クラスは WordPress のヘルスチェック結果配列をオブジェクト指向でラップします：
+
+```php
+// ステータス別のファクトリメソッド
+Result::good(label: '...', description: '...');
+Result::recommended(label: '...', description: '...');
+Result::critical(label: '...', description: '...');
+
+// アクション（修正方法のリンク）を含む
+Result::critical(
+    label: '...',
+    description: '...',
+    actions: '<a href="...">Fix this</a>',
+);
+```
+
+WordPress のステータス値に直接マッピング：
+
+| メソッド | WordPress ステータス | バッジカラー |
+|---------|-------------------|------------|
+| `Result::good()` | `good` | `green` |
+| `Result::recommended()` | `recommended` | `orange` |
+| `Result::critical()` | `critical` | `red` |
+
+## Named Hook アトリビュート
+
+### #[SiteStatusTestsFilter(priority?: int = 10)]
+
+**WordPress フック:** `site_status_tests`
+
+テストの一覧を変更します（テストの追加・削除・変更）。
+
+```php
+use WpPack\Component\SiteHealth\Attribute\SiteStatusTestsFilter;
+
+class HealthCheckManager
+{
+    #[SiteStatusTestsFilter]
+    public function modifyTests(array $tests): array
+    {
+        // 不要なコアテストを除外
+        unset($tests['direct']['php_extensions']);
+
+        return $tests;
+    }
+}
+```
+
+### #[SiteStatusTestResultFilter(priority?: int = 10)]
+
+**WordPress フック:** `site_status_test_result`
+
+個別テストの結果を変更します。
+
+```php
+use WpPack\Component\SiteHealth\Attribute\SiteStatusTestResultFilter;
+
+class HealthCheckModifier
+{
+    #[SiteStatusTestResultFilter]
+    public function modifyTestResult(array $result): array
+    {
+        if ($result['test'] === 'php_version' && $result['status'] === 'recommended') {
+            $result['actions'] .= '<p>' . __('Contact hosting provider for PHP upgrade.', 'my-plugin') . '</p>';
+        }
+
+        return $result;
+    }
+}
+```
+
+### #[DebugInformationFilter(priority?: int = 10)]
+
+**WordPress フック:** `debug_information`
+
+サイトヘルス情報タブのデバッグ情報を変更します。
+
+```php
+use WpPack\Component\SiteHealth\Attribute\DebugInformationFilter;
+
+class DebugInfoProvider
+{
+    #[DebugInformationFilter]
+    public function addDebugInfo(array $info): array
+    {
+        $info['my-plugin'] = [
+            'label' => __('My Plugin', 'my-plugin'),
+            'fields' => [
+                'version' => [
+                    'label' => 'Version',
+                    'value' => MY_PLUGIN_VERSION,
+                ],
+            ],
+        ];
+
+        return $info;
+    }
+}
+```
+
+## Hook アトリビュートリファレンス
+
+```php
+// テスト管理
+#[SiteStatusTestsFilter(priority?: int = 10)]        // site_status_tests — テスト一覧の変更
+#[SiteStatusTestResultFilter(priority?: int = 10)]    // site_status_test_result — テスト結果の変更
+
+// デバッグ情報
+#[DebugInformationFilter(priority?: int = 10)]        // debug_information — デバッグ情報の追加
+
+// サイトヘルスナビゲーション
+#[SiteHealthNavigationTabsFilter(priority?: int = 10)] // site_health_navigation_tabs — タブの変更
+```
+
+## ヘルスチェック登録
+
+```php
+add_action('init', function () {
+    $container = new WpPack\Container();
+    $container->register([
+        DatabaseOptimizationCheck::class,
+        CacheStatusCheck::class,
+        ExternalApiCheck::class,
+        MyPluginDebugInfo::class,
+    ]);
+});
+```
+
+## このコンポーネントの使用場面
+
+**最適な用途：**
+- プラグインの状態をサイトヘルスに統合する場合
+- サーバー環境の要件チェック
+- データベースや外部サービスの接続状態監視
+- デバッグ情報の提供
+
+**代替を検討すべき場合：**
+- サイトヘルスに表示する必要がない内部チェック
+- リアルタイムの監視が必要な場合（外部監視ツールを使用）
+
+## 主要クラス
+
+| クラス | 説明 |
+|-------|------|
+| `AbstractHealthCheck` | ヘルスチェックの基底クラス |
+| `Result` | テスト結果のラッパー |
+| `DebugSection` | デバッグ情報セクションの基底クラス |
+| `Attribute\AsHealthCheck` | ヘルスチェック登録アトリビュート |
+| `Attribute\AsDebugInfo` | デバッグ情報登録アトリビュート |
+
+## 依存関係
+
+### 必須
+- **Hook コンポーネント** — フィルター登録用
+
+### 推奨
+- **DependencyInjection コンポーネント** — サービス注入用

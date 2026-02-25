@@ -1,0 +1,16 @@
+{
+    "name": "wppack/amazon-mailer-plugin",
+    "description": "WordPress plugin for SES-based email delivery",
+    "type": "wordpress-plugin",
+    "license": "MIT",
+    "require": {
+        "php": "^8.1",
+        "wppack/amazon-mailer": "^1.0",
+        "wppack/hook": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpPack\\Plugin\\AmazonMailerPlugin\\": ""
+        }
+    }
+}

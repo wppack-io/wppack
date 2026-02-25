@@ -1,0 +1,17 @@
+{
+    "name": "wppack/scheduler",
+    "description": "Symfony-like scheduler with EventBridge sync for WordPress",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.1",
+        "wppack/messenger": "^1.0",
+        "async-aws/scheduler": "^1.0",
+        "dragonmantank/cron-expression": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpPack\\Component\\Scheduler\\": ""
+        }
+    }
+}

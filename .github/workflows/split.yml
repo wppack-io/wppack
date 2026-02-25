@@ -1,0 +1,80 @@
+name: Split Packages
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+
+jobs:
+  split:
+    name: Split Packages
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package:
+          # Component packages
+          - { local_path: 'src/Component/Hook', split_repository: 'hook' }
+          - { local_path: 'src/Component/DependencyInjection', split_repository: 'dependency-injection' }
+          - { local_path: 'src/Component/Config', split_repository: 'config' }
+          - { local_path: 'src/Component/EventDispatcher', split_repository: 'event-dispatcher' }
+          - { local_path: 'src/Component/Filesystem', split_repository: 'filesystem' }
+          - { local_path: 'src/Component/Kernel', split_repository: 'kernel' }
+          - { local_path: 'src/Component/Mailer', split_repository: 'mailer' }
+          - { local_path: 'src/Component/Messenger', split_repository: 'messenger' }
+          - { local_path: 'src/Component/Scheduler', split_repository: 'scheduler' }
+          - { local_path: 'src/Component/Media', split_repository: 'media' }
+          - { local_path: 'src/Component/Admin', split_repository: 'admin' }
+          - { local_path: 'src/Component/Rest', split_repository: 'rest' }
+          - { local_path: 'src/Component/PostType', split_repository: 'post-type' }
+          - { local_path: 'src/Component/Query', split_repository: 'query' }
+          - { local_path: 'src/Component/Command', split_repository: 'command' }
+          - { local_path: 'src/Component/Cache', split_repository: 'cache' }
+          - { local_path: 'src/Component/Database', split_repository: 'database' }
+          - { local_path: 'src/Component/Security', split_repository: 'security' }
+          - { local_path: 'src/Component/Sanitizer', split_repository: 'sanitizer' }
+          - { local_path: 'src/Component/Validator', split_repository: 'validator' }
+          - { local_path: 'src/Component/HttpClient', split_repository: 'http-client' }
+          - { local_path: 'src/Component/HttpFoundation', split_repository: 'http-foundation' }
+          - { local_path: 'src/Component/Plugin', split_repository: 'plugin' }
+          - { local_path: 'src/Component/Theme', split_repository: 'theme' }
+          - { local_path: 'src/Component/Widget', split_repository: 'widget' }
+          - { local_path: 'src/Component/Setting', split_repository: 'setting' }
+          - { local_path: 'src/Component/User', split_repository: 'user' }
+          - { local_path: 'src/Component/Block', split_repository: 'block' }
+          - { local_path: 'src/Component/Comment', split_repository: 'comment' }
+          - { local_path: 'src/Component/Taxonomy', split_repository: 'taxonomy' }
+          - { local_path: 'src/Component/Role', split_repository: 'role' }
+          - { local_path: 'src/Component/Templating', split_repository: 'templating' }
+          - { local_path: 'src/Component/Logger', split_repository: 'logger' }
+          - { local_path: 'src/Component/Option', split_repository: 'option' }
+          - { local_path: 'src/Component/Transient', split_repository: 'transient' }
+          - { local_path: 'src/Component/Nonce', split_repository: 'nonce' }
+          - { local_path: 'src/Component/Shortcode', split_repository: 'shortcode' }
+          - { local_path: 'src/Component/Routing', split_repository: 'routing' }
+          - { local_path: 'src/Component/Ajax', split_repository: 'ajax' }
+          - { local_path: 'src/Component/Debug', split_repository: 'debug' }
+          - { local_path: 'src/Component/NavigationMenu', split_repository: 'navigation-menu' }
+          - { local_path: 'src/Component/Feed', split_repository: 'feed' }
+          - { local_path: 'src/Component/OEmbed', split_repository: 'oembed' }
+          - { local_path: 'src/Component/SiteHealth', split_repository: 'site-health' }
+          - { local_path: 'src/Component/DashboardWidget', split_repository: 'dashboard-widget' }
+          - { local_path: 'src/Component/Translation', split_repository: 'translation' }
+          # Plugin packages
+          - { local_path: 'src/Plugin/SchedulerPlugin', split_repository: 'scheduler-plugin' }
+          - { local_path: 'src/Plugin/S3StoragePlugin', split_repository: 's3-storage-plugin' }
+          - { local_path: 'src/Plugin/AmazonMailerPlugin', split_repository: 'amazon-mailer-plugin' }
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Split package
+        uses: danharrin/monorepo-split-github-action@v2.3.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.SPLIT_TOKEN }}
+        with:
+          package_directory: ${{ matrix.package.local_path }}
+          repository_organization: wppack-io
+          repository_name: ${{ matrix.package.split_repository }}
+          tag: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
