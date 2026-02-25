@@ -50,7 +50,7 @@ $archive = new WpressArchive('/path/to/backup.wpress');
 foreach ($archive->getEntries() as $entry) {
     echo $entry->getPath();     // wp-content/uploads/2024/01/image.jpg
     echo $entry->getSize();     // 102400
-    echo $entry->isDirectory(); // false
+    echo $entry->getMTime();    // 1706140800
 }
 
 // 特定のエントリを取得
@@ -63,10 +63,11 @@ $stream = $entry->getStream();
 // エントリ数
 echo $archive->count(); // 1234
 
-// メタ情報（package.json）
-$meta = $archive->getMeta();
-echo $meta->getSiteUrl();
-echo $meta->getWpVersion();
+// メタ情報（package.json はエントリとして取得し json_decode する）
+$entry = $archive->getEntry('package.json');
+$meta = json_decode($entry->getContents(), true);
+echo $meta['SiteURL'];          // https://example.com
+echo $meta['WordPress']['Version']; // 6.4.2
 ```
 
 ### エントリの展開
@@ -119,10 +120,10 @@ $archive->close();
 $archive = new WpressArchive('/path/to/new.wpress', WpressArchive::CREATE);
 
 $archive->addFromString('package.json', json_encode([
-    'SiteUrl' => get_site_url(),
-    'HomeUrl' => get_home_url(),
-    'WPVersion' => get_bloginfo('version'),
-    'PHPVersion' => PHP_VERSION,
+    'SiteURL' => get_site_url(),
+    'HomeURL' => get_home_url(),
+    'WordPress' => ['Version' => get_bloginfo('version')],
+    'PHP' => ['Version' => PHP_VERSION],
 ]));
 
 $archive->addFile('/path/to/dump.sql', 'database.sql');
@@ -137,8 +138,12 @@ $archive->close();
 | クラス | 説明 |
 |-------|------|
 | `WpressArchive` | `.wpress` アーカイブの読み書き・操作 |
-| `WpressEntry` | アーカイブ内の個別エントリ |
-| `WpressMeta` | `package.json` のメタ情報 |
+| `WpressEntry` | アーカイブ内の個別エントリ（name, size, mtime, prefix, コンテンツ） |
+
+## 関連仕様書
+
+- [.wpress ファイルフォーマット仕様](../specifications/wpress-format.md) — バイナリ形式の詳細
+- [All-in-One WP Migration バックアップ仕様](../specifications/all-in-one-wp-migration.md) — エクスポート/インポートの動作仕様
 
 ## 依存関係
 
