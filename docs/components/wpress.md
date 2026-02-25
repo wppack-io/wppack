@@ -143,7 +143,7 @@ $archive->close();
 ## 関連仕様書
 
 - [.wpress ファイルフォーマット仕様](../specifications/wpress-format.md) — バイナリ形式の詳細
-- [All-in-One WP Migration バックアップ仕様](../specifications/all-in-one-wp-migration.md) — エクスポート/インポートの動作仕様
+- [All-in-One WP Migration バックアップ仕様](../specifications/all-in-one-wp-migration/all-in-one-wp-migration.md) — エクスポート/インポートの動作仕様
 
 ## 依存関係
 
