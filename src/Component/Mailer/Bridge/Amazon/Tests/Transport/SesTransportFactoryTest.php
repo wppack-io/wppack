@@ -29,6 +29,49 @@ final class SesTransportFactoryTest extends TestCase
         self::assertSame($expected, $factory->supports($dsn));
     }
 
+    #[Test]
+    public function createReturnsSesTransportForDefaultScheme(): void
+    {
+        $factory = new SesTransportFactory();
+        $dsn = Dsn::fromString('ses://AKID:SECRET@default?region=us-east-1');
+
+        $transport = $factory->create($dsn);
+
+        self::assertSame('ses://', (string) $transport);
+    }
+
+    #[Test]
+    public function createReturnsSesApiTransportForApiScheme(): void
+    {
+        $factory = new SesTransportFactory();
+        $dsn = Dsn::fromString('ses+api://AKID:SECRET@default?region=us-east-1');
+
+        $transport = $factory->create($dsn);
+
+        self::assertSame('ses+api://', (string) $transport);
+    }
+
+    #[Test]
+    public function createReturnsSesSmtpTransportForSmtpScheme(): void
+    {
+        $factory = new SesTransportFactory();
+        $dsn = Dsn::fromString('ses+smtp://user:pass@default?region=us-east-1');
+
+        $transport = $factory->create($dsn);
+
+        self::assertSame('ses+smtp://', (string) $transport);
+    }
+
+    #[Test]
+    public function createThrowsForUnsupportedScheme(): void
+    {
+        $factory = new SesTransportFactory();
+        $dsn = Dsn::fromString('unsupported://default');
+
+        $this->expectException(\WpPack\Component\Mailer\Exception\UnsupportedSchemeException::class);
+        $factory->create($dsn);
+    }
+
     /** @return iterable<string, array{string, bool}> */
     public static function supportedSchemes(): iterable
     {
@@ -39,5 +82,7 @@ final class SesTransportFactoryTest extends TestCase
         yield 'ses+smtps' => ['ses+smtps://user:pass@default', true];
         yield 'native' => ['native://default', false];
         yield 'smtp' => ['smtp://localhost', false];
+        yield 'azure' => ['azure://endpoint:key@default', false];
+        yield 'sendgrid' => ['sendgrid://key@default', false];
     }
 }

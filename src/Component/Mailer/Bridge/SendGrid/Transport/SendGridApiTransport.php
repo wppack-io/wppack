@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Mailer\Bridge\SendGrid\Transport;
 
+use WpPack\Component\Mailer\Exception\TransportException;
 use WpPack\Component\Mailer\Transport\AbstractApiTransport;
 use WpPack\Component\Mailer\WpPackPhpMailer;
 
@@ -43,7 +44,7 @@ final class SendGridApiTransport extends AbstractApiTransport
         $body = wp_json_encode($payload);
 
         if ($body === false) {
-            throw new \RuntimeException('Failed to encode email payload as JSON.');
+            throw new TransportException('Failed to encode email payload as JSON.');
         }
 
         /** @var array{body: string, response: array{code: int}, headers: \WpOrg\Requests\Utility\CaseInsensitiveDictionary}|\WP_Error $response */
@@ -57,12 +58,12 @@ final class SendGridApiTransport extends AbstractApiTransport
         ]);
 
         if (is_wp_error($response)) {
-            throw new \RuntimeException(sprintf('SendGrid email send failed: %s', $response->get_error_message()));
+            throw new TransportException(sprintf('SendGrid email send failed: %s', $response->get_error_message()));
         }
 
         $statusCode = (int) wp_remote_retrieve_response_code($response);
         if ($statusCode < 200 || $statusCode >= 300) {
-            throw new \RuntimeException(sprintf(
+            throw new TransportException(sprintf(
                 'SendGrid email send failed with status %d: %s',
                 $statusCode,
                 wp_remote_retrieve_body($response),
@@ -73,7 +74,7 @@ final class SendGridApiTransport extends AbstractApiTransport
         $messageId = wp_remote_retrieve_header($response, 'x-message-id');
 
         if (!\is_string($messageId) || $messageId === '') {
-            throw new \RuntimeException('SendGrid email send succeeded but no message ID was returned.');
+            throw new TransportException('SendGrid email send succeeded but no message ID was returned.');
         }
 
         return $messageId;

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Mailer\Bridge\Azure\Transport;
 
+use WpPack\Component\Mailer\Exception\TransportException;
 use WpPack\Component\Mailer\WpPackPhpMailer;
 
 /**
@@ -11,6 +12,33 @@ use WpPack\Component\Mailer\WpPackPhpMailer;
  */
 trait AzureRequestTrait
 {
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildPayload(WpPackPhpMailer $phpMailer): array
+    {
+        $payload = [
+            'senderAddress' => $phpMailer->From,
+            'content' => $this->buildContent($phpMailer),
+            'recipients' => $this->buildRecipients($phpMailer),
+        ];
+
+        $replyTo = $phpMailer->getReplyToAddresses();
+        if (!empty($replyTo)) {
+            $payload['replyTo'] = array_map(
+                fn(array $addr): array => $this->formatRecipient($addr),
+                $replyTo,
+            );
+        }
+
+        $attachments = $this->buildAttachments($phpMailer);
+        if (!empty($attachments)) {
+            $payload['attachments'] = $attachments;
+        }
+
+        return $payload;
+    }
+
     /**
      * @return array{subject: string, plainText?: string, html?: string}
      */
@@ -123,7 +151,7 @@ trait AzureRequestTrait
         $decodedKey = base64_decode($accessKey, true);
 
         if ($decodedKey === false) {
-            throw new \RuntimeException('Failed to decode Azure access key.');
+            throw new TransportException('Failed to decode Azure access key.');
         }
 
         $signature = base64_encode(hash_hmac('sha256', $stringToSign, $decodedKey, true));
@@ -157,12 +185,12 @@ trait AzureRequestTrait
         ]);
 
         if (is_wp_error($response)) {
-            throw new \RuntimeException(sprintf('Azure email send failed: %s', $response->get_error_message()));
+            throw new TransportException(sprintf('Azure email send failed: %s', $response->get_error_message()));
         }
 
         $statusCode = (int) wp_remote_retrieve_response_code($response);
         if ($statusCode < 200 || $statusCode >= 300) {
-            throw new \RuntimeException(sprintf(
+            throw new TransportException(sprintf(
                 'Azure email send failed with status %d: %s',
                 $statusCode,
                 wp_remote_retrieve_body($response),

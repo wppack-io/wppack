@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Mailer\Bridge\Azure\Transport;
 
+use WpPack\Component\Mailer\Exception\TransportException;
 use WpPack\Component\Mailer\Transport\AbstractApiTransport;
 use WpPack\Component\Mailer\WpPackPhpMailer;
 
@@ -26,34 +27,16 @@ final class AzureApiTransport extends AbstractApiTransport
 
     protected function doSendApi(WpPackPhpMailer $phpMailer): string
     {
-        $payload = [
-            'senderAddress' => $phpMailer->From,
-            'content' => $this->buildContent($phpMailer),
-            'recipients' => $this->buildRecipients($phpMailer),
-        ];
-
-        $replyTo = $phpMailer->getReplyToAddresses();
-        if (!empty($replyTo)) {
-            $payload['replyTo'] = array_map(
-                fn(array $addr): array => $this->formatRecipient($addr),
-                $replyTo,
-            );
-        }
-
-        $attachments = $this->buildAttachments($phpMailer);
-        if (!empty($attachments)) {
-            $payload['attachments'] = $attachments;
-        }
-
+        $payload = $this->buildPayload($phpMailer);
         $body = wp_json_encode($payload);
 
         if ($body === false) {
-            throw new \RuntimeException('Failed to encode email payload as JSON.');
+            throw new TransportException('Failed to encode email payload as JSON.');
         }
 
         $result = $this->sendAzureRequest($this->endpoint, $this->apiVersion, $this->accessKey, $body);
 
-        return isset($result['id']) && $result['id'] !== '' ? $result['id'] : throw new \RuntimeException(
+        return isset($result['id']) && $result['id'] !== '' ? $result['id'] : throw new TransportException(
             'Azure email send succeeded but no message ID was returned.',
         );
     }
