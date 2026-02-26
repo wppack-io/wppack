@@ -55,7 +55,7 @@ WordPress API やデータアクセスを抽象化し、テスト可能にする
 | Validator | `wppack/validator` | バリデーション |
 | HttpClient | `wppack/http-client` | HTTP クライアント抽象化 |
 | HttpFoundation | `wppack/http-foundation` | Request/Response 抽象化 |
-| [Mailer](./mailer.md) | `wppack/mailer` | メール送信抽象化、TransportInterface |
+| [Mailer](./mailer/) | `wppack/mailer` | メール送信抽象化、TransportInterface |
 | [Messenger](./messenger.md) | `wppack/messenger` | 非同期メッセージバス（SQS/Lambda） |
 | Debug | `wppack/debug` | デバッグツール |
 

@@ -1,6 +1,11 @@
+includes:
+    - vendor/phpstan/phpstan-phpunit/extension.neon
+
 parameters:
     level: 6
     paths:
         - src/
-    # scanDirectories:
-    #     - vendor/php-stubs/wordpress-stubs/
+    scanDirectories:
+        - vendor/php-stubs/wordpress-stubs/
+    ignoreErrors:
+        - identifier: trait.unused

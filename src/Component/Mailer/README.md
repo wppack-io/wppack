@@ -13,9 +13,10 @@ composer require wppack/mailer
 ```php
 use WpPack\Component\Mailer\Mailer;
 use WpPack\Component\Mailer\Email;
-use WpPack\Component\Mailer\Transport\PhpMailerTransport;
 
-$mailer = new Mailer(new PhpMailerTransport());
+// DSN string — transport is resolved automatically
+$mailer = new Mailer('smtp://user:pass@smtp.example.com:587?encryption=tls');
+$mailer->boot(); // Register WordPress hooks
 
 $email = (new Email())
     ->from('admin@example.com')
@@ -28,40 +29,40 @@ $mailer->send($email);
 
 ## TransportInterface
 
-All mail delivery goes through `TransportInterface`, making it easy to swap transports:
+All transports implement `TransportInterface::configure()`, which applies transport-specific
+settings to the `WpPackPhpMailer` instance:
 
 ```php
 use WpPack\Component\Mailer\Transport\TransportInterface;
-use WpPack\Component\Mailer\Email;
-use WpPack\Component\Mailer\SentMessage;
+use WpPack\Component\Mailer\WpPackPhpMailer;
 
 interface TransportInterface
 {
-    public function send(Email $email): SentMessage;
+    public function configure(WpPackPhpMailer $phpMailer): void;
+    public function __toString(): string;
 }
 ```
 
 Built-in transports:
 
-- `PhpMailerTransport` - WordPress PHPMailer wrapper (default)
-- `SmtpTransport` - Direct SMTP delivery
-- `NullTransport` - For testing (no-op)
+- `NativeTransport` — PHP `mail()` function (`native://default`)
+- `SmtpTransport` — SMTP delivery (`smtp://user:pass@host:port`)
+- `NullTransport` — No-op for testing (`null://default`)
 
-For Amazon SES, use `wppack/amazon-mailer-plugin`.
+For Amazon SES, install `wppack/amazon-mailer`.
 
 ## wp_mail() Integration
 
-Redirect all `wp_mail()` calls through WpPack Mailer:
+Call `boot()` to redirect all `wp_mail()` calls through the configured transport:
 
 ```php
-use WpPack\Component\Mailer\WordPress\WpMailIntegration;
-
-WpMailIntegration::override($mailer);
+$mailer = new Mailer(MAILER_DSN);
+$mailer->boot();
 ```
 
 ## Documentation
 
-See [docs/components/mailer.md](../../docs/components/mailer.md) for full documentation.
+See [docs/components/mailer/](../../../docs/components/mailer/) for full documentation.
 
 ## License
 

@@ -382,12 +382,49 @@ if (file_exists(__DIR__ . '/cache/container.php')) {
 }
 ```
 
+## コンポーネント連携: Mailer
+
+Mailer コンポーネントは `RegisterTransportFactoriesPass` コンパイラーパスを提供し、`mailer.transport_factory` タグ付きサービスを `Transport` に自動注入します。
+
+```php
+use WpPack\Component\Mailer\DependencyInjection\RegisterTransportFactoriesPass;
+use WpPack\Component\Mailer\Transport\Transport;
+use WpPack\Component\Mailer\Transport\TransportInterface;
+use WpPack\Component\Mailer\Mailer;
+
+$builder = new ContainerBuilder();
+
+// コンパイラーパスを登録
+$builder->addCompilerPass(new RegisterTransportFactoriesPass());
+
+// トランスポートファクトリを登録（タグ付き）
+// #[AsService(tags: ['mailer.transport_factory'])] でも可
+$builder->register(NativeTransportFactory::class)->addTag('mailer.transport_factory');
+$builder->register(SesTransportFactory::class)->addTag('mailer.transport_factory');
+
+// Transport サービス
+$builder->register(Transport::class);
+
+// TransportInterface をファクトリ経由で解決
+$builder->register(TransportInterface::class)
+    ->setFactory([new Reference(Transport::class), 'fromString'])
+    ->addArgument(MAILER_DSN);
+
+// Mailer サービス
+$builder->register(Mailer::class)
+    ->addArgument(new Reference(TransportInterface::class));
+```
+
+詳細は [Mailer コンポーネント](../mailer/) を参照。
+
 ## 主要クラス
 
 | クラス | 説明 |
 |-------|------|
 | `Container` | コンパイル済みサービスコンテナ |
 | `ContainerBuilder` | コンテナビルダー |
+| `Definition` | サービス定義（fluent API） |
+| `Reference` | サービス参照値オブジェクト |
 | `Attribute\AsService` | サービス登録マーカー |
 | `Attribute\Autowire` | パラメータインジェクション |
 | `Attribute\AsAlias` | インターフェースエイリアス |
