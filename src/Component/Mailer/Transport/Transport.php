@@ -11,6 +11,8 @@ final class Transport
     /** @var array<class-string<TransportFactoryInterface>> */
     private const FACTORY_CLASSES = [
         \WpPack\Component\Mailer\Bridge\Amazon\Transport\SesTransportFactory::class,
+        \WpPack\Component\Mailer\Bridge\Azure\Transport\AzureTransportFactory::class,
+        \WpPack\Component\Mailer\Bridge\SendGrid\Transport\SendGridTransportFactory::class,
     ];
 
     /** @param iterable<TransportFactoryInterface> $factories */

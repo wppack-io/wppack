@@ -2,18 +2,19 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Mailer\Tests\Bridge\Amazon\Transport;
+namespace WpPack\Component\Mailer\Bridge\Amazon\Tests\Transport;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Mailer\Bridge\Amazon\Transport\SesTransportFactory;
 use WpPack\Component\Mailer\Transport\Dsn;
 
 final class SesTransportFactoryTest extends TestCase
 {
     protected function setUp(): void
     {
-        if (!class_exists(\WpPack\Component\Mailer\Bridge\Amazon\Transport\SesTransportFactory::class)) {
+        if (!class_exists(SesTransportFactory::class)) {
             self::markTestSkipped('AmazonMailer Bridge is not available.');
         }
     }
@@ -22,7 +23,7 @@ final class SesTransportFactoryTest extends TestCase
     #[DataProvider('supportedSchemes')]
     public function supportsExpectedSchemes(string $dsnString, bool $expected): void
     {
-        $factory = new \WpPack\Component\Mailer\Bridge\Amazon\Transport\SesTransportFactory();
+        $factory = new SesTransportFactory();
         $dsn = Dsn::fromString($dsnString);
 
         self::assertSame($expected, $factory->supports($dsn));

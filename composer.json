@@ -66,6 +66,8 @@
             "WpPack\\Plugin\\SchedulerPlugin\\": "src/Plugin/SchedulerPlugin/",
             "WpPack\\Plugin\\S3StoragePlugin\\": "src/Plugin/S3StoragePlugin/",
             "WpPack\\Component\\Mailer\\Bridge\\Amazon\\": "src/Component/Mailer/Bridge/Amazon/",
+            "WpPack\\Component\\Mailer\\Bridge\\Azure\\": "src/Component/Mailer/Bridge/Azure/",
+            "WpPack\\Component\\Mailer\\Bridge\\SendGrid\\": "src/Component/Mailer/Bridge/SendGrid/",
             "WpPack\\Plugin\\AmazonMailerPlugin\\": "src/Plugin/AmazonMailerPlugin/"
         }
     },
@@ -122,6 +124,8 @@
         "wppack/scheduler-plugin": "self.version",
         "wppack/s3-storage-plugin": "self.version",
         "wppack/amazon-mailer": "self.version",
+        "wppack/azure-mailer": "self.version",
+        "wppack/sendgrid-mailer": "self.version",
         "wppack/amazon-mailer-plugin": "self.version"
     },
     "scripts": {

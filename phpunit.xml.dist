@@ -9,6 +9,9 @@
         <testsuite name="Component">
             <directory>src/Component/*/Tests</directory>
         </testsuite>
+        <testsuite name="Bridge">
+            <directory>src/Component/*/Bridge/*/Tests</directory>
+        </testsuite>
         <testsuite name="Plugin">
             <directory>src/Plugin/*/Tests</directory>
         </testsuite>

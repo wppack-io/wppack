@@ -49,6 +49,8 @@ WordPress プラグインとして配布。Component を利用。
 | HttpFoundation | wppack/http-foundation | Request/Response |
 | Mailer | wppack/mailer | メール抽象化（Transport基盤含む） |
 | AmazonMailer | wppack/amazon-mailer | SES トランスポート実装 |
+| AzureMailer | wppack/azure-mailer | Azure Communication Services トランスポート実装 |
+| SendGridMailer | wppack/sendgrid-mailer | SendGrid トランスポート実装 |
 | Messenger | wppack/messenger | メッセージングバス（SQS/Lambda） |
 | Debug | wppack/debug | デバッグ・プロファイリング |
 
@@ -110,6 +112,14 @@ wppack/amazon-mailer
     ↓ requires
 wppack/mailer
     + async-aws/ses
+
+wppack/azure-mailer
+    ↓ requires
+wppack/mailer
+
+wppack/sendgrid-mailer
+    ↓ requires
+wppack/mailer
 
 wppack/amazon-mailer-plugin
     ↓ requires
