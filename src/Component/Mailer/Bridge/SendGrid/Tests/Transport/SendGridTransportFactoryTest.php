@@ -52,6 +52,26 @@ final class SendGridTransportFactoryTest extends TestCase
     }
 
     #[Test]
+    public function createThrowsForMissingApiKey(): void
+    {
+        $factory = new SendGridTransportFactory();
+        $dsn = Dsn::fromString('sendgrid://default');
+
+        $this->expectException(\WpPack\Component\Mailer\Exception\InvalidArgumentException::class);
+        $factory->create($dsn);
+    }
+
+    #[Test]
+    public function createThrowsForMissingSmtpPassword(): void
+    {
+        $factory = new SendGridTransportFactory();
+        $dsn = Dsn::fromString('sendgrid+smtp://apikey@default');
+
+        $this->expectException(\WpPack\Component\Mailer\Exception\InvalidArgumentException::class);
+        $factory->create($dsn);
+    }
+
+    #[Test]
     public function createThrowsForUnsupportedScheme(): void
     {
         $factory = new SendGridTransportFactory();

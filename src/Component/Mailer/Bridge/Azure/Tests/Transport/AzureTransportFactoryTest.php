@@ -52,6 +52,16 @@ final class AzureTransportFactoryTest extends TestCase
     }
 
     #[Test]
+    public function createThrowsForMissingCredentials(): void
+    {
+        $factory = new AzureTransportFactory();
+        $dsn = Dsn::fromString('azure://default');
+
+        $this->expectException(\WpPack\Component\Mailer\Exception\InvalidArgumentException::class);
+        $factory->create($dsn);
+    }
+
+    #[Test]
     public function createThrowsForUnsupportedScheme(): void
     {
         $factory = new AzureTransportFactory();

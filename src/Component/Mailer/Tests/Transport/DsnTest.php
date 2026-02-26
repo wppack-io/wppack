@@ -62,7 +62,7 @@ final class DsnTest extends TestCase
     {
         $dsn = Dsn::fromString('ses+api://ACCESS_KEY:SECRET_KEY@default?region=ap-northeast-1');
 
-        self::assertSame('ses+api://ACCESS_KEY:****@default', (string) $dsn);
+        self::assertSame('ses+api://ACCESS_KEY:****@default?region=ap-northeast-1', (string) $dsn);
         self::assertStringNotContainsString('SECRET_KEY', (string) $dsn);
     }
 
@@ -105,5 +105,23 @@ final class DsnTest extends TestCase
 
         self::assertSame('user@domain', $dsn->getUser());
         self::assertSame('p@ss#word', $dsn->getPassword());
+    }
+
+    #[Test]
+    public function toStringUrlEncodesUser(): void
+    {
+        $dsn = Dsn::fromString('smtp://user%40domain:pass@smtp.example.com:587');
+
+        self::assertSame('smtp://user%40domain:****@smtp.example.com:587', (string) $dsn);
+    }
+
+    #[Test]
+    public function toStringIncludesOptions(): void
+    {
+        $dsn = Dsn::fromString('ses+api://KEY:SECRET@default?region=us-east-1&configuration_set=my-set');
+
+        $string = (string) $dsn;
+        self::assertStringContainsString('region=us-east-1', $string);
+        self::assertStringContainsString('configuration_set=my-set', $string);
     }
 }

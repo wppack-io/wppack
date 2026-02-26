@@ -199,7 +199,12 @@ trait AzureRequestTrait
             ));
         }
 
-        /** @var array<string, mixed> */
-        return json_decode(wp_remote_retrieve_body($response), true) ?: [];
+        $decoded = json_decode(wp_remote_retrieve_body($response), true);
+
+        if (!\is_array($decoded)) {
+            throw new TransportException('Azure email send succeeded but returned invalid JSON response.');
+        }
+
+        return $decoded;
     }
 }

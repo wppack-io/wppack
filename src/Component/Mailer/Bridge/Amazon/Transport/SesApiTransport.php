@@ -6,6 +6,7 @@ namespace WpPack\Component\Mailer\Bridge\Amazon\Transport;
 
 use AsyncAws\Ses\Input\SendEmailRequest;
 use AsyncAws\Ses\SesClient;
+use WpPack\Component\Mailer\Exception\TransportException;
 use WpPack\Component\Mailer\Transport\AbstractApiTransport;
 use WpPack\Component\Mailer\WpPackPhpMailer;
 
@@ -51,7 +52,9 @@ final class SesApiTransport extends AbstractApiTransport
             $request['ConfigurationSetName'] = $this->configurationSet;
         }
 
-        return $this->sesClient->sendEmail(new SendEmailRequest($request))->getMessageId();
+        return $this->extractMessageId(
+            $this->sesClient->sendEmail(new SendEmailRequest($request)),
+        );
     }
 
     private function sendRawFallback(WpPackPhpMailer $phpMailer): string
@@ -66,7 +69,20 @@ final class SesApiTransport extends AbstractApiTransport
             $request['ConfigurationSetName'] = $this->configurationSet;
         }
 
-        return $this->sesClient->sendEmail(new SendEmailRequest($request))->getMessageId();
+        return $this->extractMessageId(
+            $this->sesClient->sendEmail(new SendEmailRequest($request)),
+        );
+    }
+
+    private function extractMessageId(\AsyncAws\Ses\Result\SendEmailResponse $result): string
+    {
+        $messageId = $result->getMessageId();
+
+        if ($messageId === '' || $messageId === null) {
+            throw new TransportException('SES email send succeeded but no message ID was returned.');
+        }
+
+        return $messageId;
     }
 
     /**

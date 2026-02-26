@@ -93,11 +93,12 @@ final class Dsn
         $userInfo = '';
         if ($this->user !== null) {
             $password = $this->password !== null ? ':****' : '';
-            $userInfo = $this->user . $password . '@';
+            $userInfo = urlencode($this->user) . $password . '@';
         }
 
         $port = $this->port !== null ? ':' . $this->port : '';
+        $query = $this->options !== [] ? '?' . http_build_query($this->options) : '';
 
-        return sprintf('%s://%s%s%s', $this->scheme, $userInfo, $this->host, $port);
+        return sprintf('%s://%s%s%s%s', $this->scheme, $userInfo, $this->host, $port, $query);
     }
 }

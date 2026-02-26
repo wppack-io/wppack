@@ -6,6 +6,7 @@ namespace WpPack\Component\Mailer\Bridge\Amazon\Transport;
 
 use AsyncAws\Ses\Input\SendEmailRequest;
 use AsyncAws\Ses\SesClient;
+use WpPack\Component\Mailer\Exception\TransportException;
 use WpPack\Component\Mailer\Transport\AbstractTransport;
 use WpPack\Component\Mailer\WpPackPhpMailer;
 
@@ -33,8 +34,13 @@ final class SesTransport extends AbstractTransport
             $request['ConfigurationSetName'] = $this->configurationSet;
         }
 
-        $result = $this->sesClient->sendEmail(new SendEmailRequest($request));
-        $phpMailer->setLastMessageId('<' . $result->getMessageId() . '>');
+        $messageId = $this->sesClient->sendEmail(new SendEmailRequest($request))->getMessageId();
+
+        if ($messageId === '' || $messageId === null) {
+            throw new TransportException('SES email send succeeded but no message ID was returned.');
+        }
+
+        $phpMailer->setLastMessageId('<' . $messageId . '>');
     }
 
     public function __toString(): string

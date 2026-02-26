@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Mailer\Bridge\Azure\Transport;
 
+use WpPack\Component\Mailer\Exception\InvalidArgumentException;
 use WpPack\Component\Mailer\Exception\UnsupportedSchemeException;
 use WpPack\Component\Mailer\Transport\Dsn;
 use WpPack\Component\Mailer\Transport\TransportFactoryInterface;
@@ -13,8 +14,17 @@ final class AzureTransportFactory implements TransportFactoryInterface
 {
     public function create(Dsn $dsn): TransportInterface
     {
+        if (!$this->supports($dsn)) {
+            throw new UnsupportedSchemeException($dsn);
+        }
+
         $endpoint = $dsn->getUser() ?? '';
         $accessKey = $dsn->getPassword() ?? '';
+
+        if ($endpoint === '' || $accessKey === '') {
+            throw new InvalidArgumentException(sprintf('Azure DSN "%s" must contain an endpoint (user) and access key (password).', $dsn));
+        }
+
         $apiVersion = $dsn->getOption('api_version', '2024-07-01-preview');
 
         return match ($dsn->getScheme()) {
@@ -23,12 +33,11 @@ final class AzureTransportFactory implements TransportFactoryInterface
                 accessKey: $accessKey,
                 apiVersion: $apiVersion,
             ),
-            'azure', 'azure+https' => new AzureTransport(
+            default => new AzureTransport(
                 endpoint: $endpoint,
                 accessKey: $accessKey,
                 apiVersion: $apiVersion,
             ),
-            default => throw new UnsupportedSchemeException($dsn),
         };
     }
 
