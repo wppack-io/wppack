@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Mailer;
 
+use PHPMailer\PHPMailer\PHPMailer;
 use WpPack\Component\Mailer\Exception\TransportException;
 use WpPack\Component\Mailer\Transport\Transport;
 use WpPack\Component\Mailer\Transport\TransportInterface;
@@ -56,7 +57,7 @@ final class Mailer
         return $args;
     }
 
-    public function onPhpMailerInit(\PHPMailer\PHPMailer\PHPMailer &$phpmailer): void
+    public function onPhpMailerInit(PHPMailer &$phpmailer): void
     {
         if ($phpmailer instanceof WpPackPhpMailer) {
             $this->transport->configure($phpmailer);
