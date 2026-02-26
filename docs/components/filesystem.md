@@ -370,3 +370,12 @@ class FileOperationsTest extends TestCase
 | `Attribute\FileIsDisplayableImageFilter` | `file_is_displayable_image` フィルター |
 | `Attribute\WpUploadBitsFilter` | `wp_upload_bits` フィルター |
 | `Attribute\LoadImageToEditPathFilter` | `load_image_to_edit_path` フィルター |
+
+## 依存関係
+
+### 必須
+- **なし** - WordPress `WP_Filesystem` API のみで動作
+
+### 推奨
+- **Hook コンポーネント** - ファイルシステムフック登録用
+- **Security コンポーネント** - ファイルパスのサニタイズ用

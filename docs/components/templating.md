@@ -293,3 +293,12 @@ class TemplateRenderingTest extends TestCase
 | `TemplateContext` | テンプレート内のコンテキスト（エスケープヘルパー付き） |
 | `EscapingEngine` | 出力エスケープエンジン |
 | `WordPress\ThemeTemplating` | WordPress テーマ統合 |
+
+## 依存関係
+
+### 必須
+- **なし** - WordPress テンプレート関数のみで動作
+
+### 推奨
+- **Hook コンポーネント** - テンプレート登録フック用
+- **Config コンポーネント** - テンプレートパス設定用
