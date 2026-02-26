@@ -9,6 +9,7 @@ use PHPUnit\Framework\TestCase;
 use WpPack\Component\Mailer\Address;
 use WpPack\Component\Mailer\Attachment;
 use WpPack\Component\Mailer\Email;
+use WpPack\Component\Mailer\Exception\InvalidArgumentException;
 
 final class EmailTest extends TestCase
 {
@@ -280,5 +281,29 @@ final class EmailTest extends TestCase
         $result = $email->embed($file, 'cid');
 
         self::assertSame($email, $result);
+    }
+
+    #[Test]
+    public function priorityTooHighThrows(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        (new Email())->priority(0);
+    }
+
+    #[Test]
+    public function priorityTooLowThrows(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        (new Email())->priority(6);
+    }
+
+    #[Test]
+    public function priorityBoundsAccepted(): void
+    {
+        $email = (new Email())->priority(Email::PRIORITY_HIGHEST);
+        self::assertSame(1, $email->getPriority());
+
+        $email = (new Email())->priority(Email::PRIORITY_LOWEST);
+        self::assertSame(5, $email->getPriority());
     }
 }

@@ -38,6 +38,16 @@ final class EnvelopeTest extends TestCase
     }
 
     #[Test]
+    public function createFromEmailWithoutRecipientsThrowsException(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('at least one recipient');
+
+        $email = (new Email())->from('sender@example.com');
+        Envelope::create($email);
+    }
+
+    #[Test]
     public function constructWithExplicitValues(): void
     {
         $sender = new Address('sender@example.com');

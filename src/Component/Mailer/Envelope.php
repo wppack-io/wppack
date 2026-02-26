@@ -27,6 +27,10 @@ final class Envelope
             $email->getBcc(),
         );
 
+        if ($recipients === []) {
+            throw new Exception\InvalidArgumentException('An email must have at least one recipient (To, Cc, or Bcc).');
+        }
+
         return new self($from, $recipients);
     }
 

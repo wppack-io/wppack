@@ -132,6 +132,15 @@ class Email
 
     public function priority(int $priority): static
     {
+        if ($priority < self::PRIORITY_HIGHEST || $priority > self::PRIORITY_LOWEST) {
+            throw new Exception\InvalidArgumentException(sprintf(
+                'Priority must be between %d and %d, %d given.',
+                self::PRIORITY_HIGHEST,
+                self::PRIORITY_LOWEST,
+                $priority,
+            ));
+        }
+
         $this->priority = $priority;
         return $this;
     }

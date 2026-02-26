@@ -43,6 +43,16 @@ final class Mailer
         self::$booted = true;
     }
 
+    /**
+     * Reset the boot state. Intended for testing only.
+     *
+     * @internal
+     */
+    public static function reset(): void
+    {
+        self::$booted = false;
+    }
+
     // --- Path 1: wp_mail hooks ---
 
     /**
