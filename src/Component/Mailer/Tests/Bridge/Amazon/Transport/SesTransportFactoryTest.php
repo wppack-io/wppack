@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Tests\Component\Mailer\Bridge\Amazon\Transport;
+namespace WpPack\Component\Mailer\Tests\Bridge\Amazon\Transport;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;

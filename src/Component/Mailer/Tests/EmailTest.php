@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Tests\Component\Mailer;
+namespace WpPack\Component\Mailer\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;

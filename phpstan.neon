@@ -1,11 +1,14 @@
 includes:
     - vendor/phpstan/phpstan-phpunit/extension.neon
+    - vendor/szepeviktor/phpstan-wordpress/extension.neon
 
 parameters:
     level: 6
     paths:
         - src/
+    excludePaths:
+        - */Tests/*
     scanDirectories:
-        - vendor/php-stubs/wordpress-stubs/
+        - vendor/roots/wordpress-no-content/wp-includes/
     ignoreErrors:
         - identifier: trait.unused

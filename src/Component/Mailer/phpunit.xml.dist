@@ -6,17 +6,18 @@
          cacheDirectory=".phpunit.cache"
 >
     <testsuites>
-        <testsuite name="Component">
-            <directory>src/Component/*/Tests</directory>
-        </testsuite>
-        <testsuite name="Plugin">
-            <directory>src/Plugin/*/Tests</directory>
+        <testsuite name="Mailer Component Test Suite">
+            <directory>./Tests/</directory>
         </testsuite>
     </testsuites>
 
     <source>
         <include>
-            <directory>src/</directory>
+            <directory>.</directory>
         </include>
+        <exclude>
+            <directory>./Tests</directory>
+            <directory>./vendor</directory>
+        </exclude>
     </source>
 </phpunit>
