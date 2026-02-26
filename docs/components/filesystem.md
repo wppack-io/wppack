@@ -4,7 +4,7 @@
 **Namespace:** `WpPack\Component\Filesystem\`
 **Layer:** Infrastructure
 
-WordPress のファイル操作をモダンなオブジェクト指向 API でラップするコンポーネントです。`WP_Filesystem` の初期化を自動化し、ファイルの読み書き・コピー・移動・削除などの基本操作、`wp_handle_upload()` によるファイルアップロード処理、WordPress アップロードディレクトリの統合、バリデーション、Named Hook Attributes を提供します。
+WordPress のファイル操作をモダンなオブジェクト指向 API でラップするコンポーネントです。`WP_Filesystem` の初期化を自動化し、ファイルの読み書き・コピー・移動・削除などの基本操作、WordPress アップロードディレクトリの統合、Named Hook Attributes を提供します。
 
 ## インストール
 
@@ -93,41 +93,6 @@ $directories = $filesystem->directories('path/to/directory');
 $all = $filesystem->listContents('path/to/directory', recursive: true);
 ```
 
-## オブジェクト指向ファイル操作
-
-ファイルをオブジェクトとして扱います：
-
-```php
-use WpPack\Component\Filesystem\File;
-
-$file = $filesystem->file('document.pdf');
-
-// ファイル操作
-$content = $file->read();
-$file->write($newContent);
-$file->append($additionalContent);
-$file->delete();
-$file->move('new/location/document.pdf');
-$file->copy('backup/document.pdf');
-
-// ファイルプロパティ
-echo $file->name();          // document.pdf
-echo $file->basename();      // document
-echo $file->extension();     // pdf
-echo $file->size();          // バイト数
-echo $file->sizeForHumans(); // 1.5 MB
-echo $file->mimeType();      // application/pdf
-echo $file->path();          // フルパス
-echo $file->directory();     // 親ディレクトリ
-
-// ファイル状態チェック
-if ($file->exists()) {
-    if ($file->isReadable() && $file->isWritable()) {
-        $file->chmod(0644);
-    }
-}
-```
-
 ## WordPress アップロードディレクトリ統合
 
 ```php
@@ -146,173 +111,6 @@ $currentUrl = $uploadPath->getCurrentUrl();    // https://example.com/wp-content
 // カスタムサブディレクトリ
 $customPath = $uploadPath->subdir('exports');
 // /var/www/html/wp-content/uploads/exports
-```
-
-## TempFile
-
-自動クリーンアップ付きの一時ファイル作成：
-
-```php
-use WpPack\Component\Filesystem\TempFile;
-
-// 一時ファイル作成（スコープ終了時に自動削除）
-$temp = TempFile::create(prefix: 'wppack_');
-$filesystem->write($temp->getPath(), $content);
-
-// 処理...
-
-// $temp がスコープ外になると自動削除
-```
-
-## ファイルアップロード処理
-
-### シンプルなアップロード
-
-```php
-$file = $filesystem->upload($_FILES['file'])
-    ->to('uploads/documents')
-    ->validate([
-        'mimeTypes' => ['application/pdf', 'image/jpeg', 'image/png'],
-        'maxSize' => '5M',
-    ])
-    ->filename(function ($file) {
-        return date('Y-m-d') . '-' . uniqid() . '-' . $file->getClientOriginalName();
-    })
-    ->store();
-```
-
-### 複数ファイルアップロード
-
-```php
-use WpPack\Component\Filesystem\Upload\UploadedFile;
-
-$files = $filesystem->upload($_FILES['documents'])
-    ->each(function (UploadedFile $file) {
-        return $file->validate(['maxSize' => '5M']);
-    })
-    ->to('uploads/batch')
-    ->store();
-```
-
-### アップロード時の画像処理
-
-```php
-$image = $filesystem->upload($_FILES['avatar'])
-    ->process(function ($path) {
-        $image = wp_get_image_editor($path);
-        if (!is_wp_error($image)) {
-            $image->resize(200, 200, true);
-            $image->save($path);
-        }
-    })
-    ->to('uploads/avatars')
-    ->store();
-```
-
-### WordPress AJAX アップロードハンドラー
-
-```php
-#[Action('wp_ajax_upload_file', priority: 10)]
-#[Action('wp_ajax_nopriv_upload_file', priority: 10)]
-public function ajaxUploadHandler(): void
-{
-    if (!wp_verify_nonce($_POST['_wpnonce'], 'file_upload')) {
-        wp_send_json_error('Security check failed');
-    }
-
-    try {
-        $file = $this->filesystem->upload($_FILES['file'])
-            ->to('uploads/documents')
-            ->validate([
-                'mimeTypes' => ['application/pdf'],
-                'maxSize' => '10M',
-            ])
-            ->store();
-
-        wp_send_json_success([
-            'name' => $file->name(),
-            'path' => $file->path(),
-            'size' => $file->sizeForHumans(),
-        ]);
-    } catch (\Exception $e) {
-        wp_send_json_error($e->getMessage());
-    }
-}
-```
-
-## ファイルバリデーション
-
-```php
-use WpPack\Component\Filesystem\Validation\FileValidator;
-
-$validator = $filesystem->validator()
-    ->mimeTypes(['image/jpeg', 'image/png', 'image/gif'])
-    ->extensions(['jpg', 'jpeg', 'png', 'gif'])
-    ->maxSize('5M')
-    ->minSize('10K')
-    ->dimensions([
-        'min_width' => 100,
-        'min_height' => 100,
-        'max_width' => 2000,
-        'max_height' => 2000,
-    ]);
-
-if ($validator->validate('path/to/image.jpg')) {
-    echo "File is valid";
-} else {
-    $errors = $validator->errors();
-    foreach ($errors as $error) {
-        echo "Validation error: {$error}\n";
-    }
-}
-
-// バリデーション失敗時に例外をスロー
-try {
-    $validator->validateOrFail('path/to/image.jpg');
-} catch (ValidationException $e) {
-    echo "Validation failed: " . $e->getMessage();
-}
-
-// カスタムバリデーションルール
-$validator->addRule('no_php_code', function ($path) {
-    $content = file_get_contents($path);
-    return strpos($content, '<?php') === false;
-});
-```
-
-## WordPress 固有機能
-
-```php
-// WordPress アップロード統合
-$filesystem->wordpress()->upload($_FILES['media'])
-    ->asAttachment() // WordPress アタッチメントを作成
-    ->withMetadata([
-        'title' => 'My Document',
-        'description' => 'Important document',
-    ])
-    ->toMediaLibrary();
-
-// WordPress ディレクトリの取得
-$uploadDir = $filesystem->wordpress()->uploadsDirectory();
-$uploadUrl = $filesystem->wordpress()->uploadsUrl();
-$themeDir = $filesystem->wordpress()->themeDirectory();
-$pluginDir = $filesystem->wordpress()->pluginDirectory('my-plugin');
-
-// WordPress アタッチメントの操作
-$attachment = $filesystem->wordpress()->attachment(123);
-$file = $attachment->file();
-$metadata = $attachment->metadata();
-$thumbnails = $attachment->thumbnails();
-
-// テーマのファイルシステム操作
-$theme = $filesystem->theme();
-$template = $theme->read('templates/header.php');
-$theme->write('custom/style.css', $css);
-
-// プラグインのファイルシステム操作
-$plugin = $filesystem->plugin('my-plugin');
-$config = $plugin->readJson('config.json');
-$plugin->writeJson('settings.json', $settings);
 ```
 
 ## Named Hook Attributes
@@ -562,11 +360,13 @@ class FileOperationsTest extends TestCase
 | クラス | 説明 |
 |-------|------|
 | `Filesystem` | ファイル操作のエントリーポイント |
-| `File` | オブジェクト指向ファイル表現 |
-| `TempFile` | 一時ファイル管理 |
 | `WordPress\UploadPath` | WordPress アップロードパス統合 |
-| `Upload\UploadedFile` | アップロードファイル処理 |
-| `Validation\FileValidator` | ファイルバリデーション |
 | `Attribute\FilesystemMethodFilter` | `filesystem_method` フィルター |
+| `Attribute\FilesystemMethodFileFilter` | `filesystem_method_file` フィルター |
 | `Attribute\UploadDirFilter` | `upload_dir` フィルター |
 | `Attribute\WpUniqueFilenameFilter` | `wp_unique_filename` フィルター |
+| `Attribute\WpHandleSideloadPrefilterFilter` | `wp_handle_sideload_prefilter` フィルター |
+| `Attribute\WpDeleteFileFilter` | `wp_delete_file` フィルター |
+| `Attribute\FileIsDisplayableImageFilter` | `file_is_displayable_image` フィルター |
+| `Attribute\WpUploadBitsFilter` | `wp_upload_bits` フィルター |
+| `Attribute\LoadImageToEditPathFilter` | `load_image_to_edit_path` フィルター |

@@ -1,10 +1,10 @@
-# Templating Component
+# Templating コンポーネント
 
-**Package:** `wppack/templating`
-**Namespace:** `WpPack\Component\Templating\`
-**Layer:** Infrastructure
+**パッケージ:** `wppack/templating`
+**名前空間:** `WpPack\Component\Templating\`
+**レイヤー:** Infrastructure
 
-WordPress のテンプレート関数 `get_template_part()` / `locate_template()` をモダンな PHP でラップするコンポーネントです。型安全なデータの受け渡し、自動出力エスケープ、テンプレートの検索と解決、再利用可能なコンポーネント、WordPress テーマとの統合を提供します。
+WordPress のテンプレート関数 `get_template_part()` / `locate_template()` をモダンな PHP でラップするコンポーネントです。型安全なデータの受け渡し、自動出力エスケープ、テンプレートの検索と解決を提供します。
 
 ## インストール
 
@@ -175,10 +175,9 @@ echo $escaper->escape($value, 'url');              // esc_url()
 
 // JavaScript エスケープ
 echo $escaper->escape($value, 'js');               // esc_js()
-
-// テンプレート内での自動エスケープ
-// resources/views/template-parts/card.php
 ```
+
+テンプレート内での自動エスケープ：
 
 ```php
 <?php
@@ -192,82 +191,6 @@ echo $escaper->escape($value, 'js');               // esc_js()
     </a>
     <!-- HTML コンテンツはエスケープなしで出力（明示的に指定） -->
     <div class="card-content"><?= $this->raw($content) ?></div>
-</div>
-```
-
-## 再利用可能なコンポーネント
-
-### コンポーネントの定義
-
-```php
-use WpPack\Component\Templating\Component;
-
-final class CardComponent extends Component
-{
-    public function __construct(
-        public readonly string $title,
-        public readonly string $excerpt = '',
-        public readonly ?string $imageUrl = null,
-        public readonly ?string $linkUrl = null,
-        public readonly string $linkText = 'Read More',
-        public readonly string $cssClass = '',
-    ) {}
-
-    public function templatePath(): string
-    {
-        return 'template-parts/components/card';
-    }
-}
-```
-
-### コンポーネントの使用
-
-```php
-use WpPack\Component\Templating\ComponentRenderer;
-
-$componentRenderer = $container->get(ComponentRenderer::class);
-
-// コンポーネントをレンダリング
-echo $componentRenderer->render(new CardComponent(
-    title: get_the_title(),
-    excerpt: get_the_excerpt(),
-    imageUrl: get_the_post_thumbnail_url(null, 'medium'),
-    linkUrl: get_permalink(),
-    cssClass: 'post-card',
-));
-```
-
-### コンポーネントテンプレート
-
-`template-parts/components/card.php`:
-
-```php
-<?php
-/** @var WpPack\Component\Templating\TemplateContext $this */
-/** @var CardComponent $component */
-?>
-<div class="card <?= $this->e($component->cssClass) ?>">
-    <?php if ($component->imageUrl): ?>
-        <div class="card-image">
-            <img src="<?= $this->e($component->imageUrl, 'url') ?>"
-                 alt="<?= $this->e($component->title, 'attr') ?>"
-                 loading="lazy">
-        </div>
-    <?php endif; ?>
-
-    <div class="card-content">
-        <h3 class="card-title"><?= $this->e($component->title) ?></h3>
-
-        <?php if ($component->excerpt): ?>
-            <p class="card-excerpt"><?= $this->e($component->excerpt) ?></p>
-        <?php endif; ?>
-
-        <?php if ($component->linkUrl): ?>
-            <a href="<?= $this->e($component->linkUrl, 'url') ?>" class="card-link">
-                <?= $this->e($component->linkText) ?>
-            </a>
-        <?php endif; ?>
-    </div>
 </div>
 ```
 
@@ -309,38 +232,6 @@ echo $componentRenderer->render(new CardComponent(
         <p>投稿が見つかりませんでした。</p>
     <?php endif; ?>
 </div>
-```
-
-## カスタムテンプレート関数
-
-テンプレート内で使用できるヘルパー関数を登録します：
-
-```php
-final class TemplateHelpers
-{
-    public function __construct(
-        private readonly TemplateRenderer $renderer,
-    ) {}
-
-    #[Action('init', priority: 10)]
-    public function onInit(): void
-    {
-        $this->renderer->registerHelper('asset', [$this, 'assetUrl']);
-        $this->renderer->registerHelper('route', [$this, 'generateRoute']);
-    }
-
-    public function assetUrl(string $path): string
-    {
-        return get_template_directory_uri() . '/assets/' . ltrim($path, '/');
-    }
-}
-```
-
-テンプレート内での使用：
-
-```php
-<?php /** @var WpPack\Component\Templating\TemplateContext $this */ ?>
-<img src="<?= $this->helper('asset', 'images/logo.png') ?>" alt="Logo">
 ```
 
 ## テスト
@@ -401,6 +292,4 @@ class TemplateRenderingTest extends TestCase
 | `TemplateLocator` | テンプレートファイルの検索・解決 |
 | `TemplateContext` | テンプレート内のコンテキスト（エスケープヘルパー付き） |
 | `EscapingEngine` | 出力エスケープエンジン |
-| `Component` | 再利用可能なテンプレートコンポーネント基底クラス |
-| `ComponentRenderer` | コンポーネントのレンダリング |
 | `WordPress\ThemeTemplating` | WordPress テーマ統合 |

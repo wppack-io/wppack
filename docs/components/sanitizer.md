@@ -1,22 +1,10 @@
 # Sanitizer コンポーネント
 
-Sanitizer コンポーネントは、WordPress におけるデータサニタイズに対して、カスタムサニタイザー、セキュリティ重視のデータ処理を備えた包括的で型安全なアプローチを提供します。
+**パッケージ:** `wppack/sanitizer`
+**名前空間:** `WpPack\Component\Sanitizer\`
+**レイヤー:** Abstraction
 
-## このコンポーネントの機能
-
-Sanitizer コンポーネントは、WordPress のデータサニタイズを以下の機能で変革します：
-
-- **型安全なデータサニタイズ** - 厳密に型付けされたルール
-- **組み込みサニタイズルール** - 一般的なデータ型向け
-- **カスタムサニタイザー登録** - ドメイン固有のニーズに対応
-- **入出力フィルタリング** - チェーン可能な操作
-- **HTML 浄化** - 許可タグの設定可能
-- **ファイルパスサニタイズ** - 安全なファイル処理
-- **URL バリデーションとサニタイズ** - プロトコル制御付き
-- **メールサニタイズ** - フォーマットバリデーション付き
-- **データベースクエリサニタイズ** - SQL 安全性確保
-- **フォームデータサニタイズ** - ネストフィールド対応
-- **JSON サニタイズ** - 構造バリデーション付き
+WordPress のサニタイズ関数を型安全にラップし、サニタイズ関連の WordPress フックを Named Hook アトリビュートとして提供するコンポーネントです。
 
 ## インストール
 
@@ -24,469 +12,248 @@ Sanitizer コンポーネントは、WordPress のデータサニタイズを以
 composer require wppack/sanitizer
 ```
 
-## 従来の WordPress vs WpPack
+## 従来の WordPress と WpPack の比較
 
 ### Before（従来の WordPress）
 
 ```php
-// Traditional WordPress - manual sanitization for each data type
+// 個別のサニタイズ関数を直接呼び出し
 $title = sanitize_text_field($_POST['title'] ?? '');
 $content = wp_kses_post($_POST['content'] ?? '');
-$url = esc_url_raw($_POST['url'] ?? '');
 $email = sanitize_email($_POST['email'] ?? '');
+$url = esc_url_raw($_POST['url'] ?? '');
 $filename = sanitize_file_name($_POST['filename'] ?? '');
-
-if (empty($title)) {
-    wp_die('Title is required');
-}
-
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    wp_die('Invalid email');
-}
-
-$tags = [];
-if (isset($_POST['tags']) && is_array($_POST['tags'])) {
-    foreach ($_POST['tags'] as $tag) {
-        $tags[] = sanitize_text_field($tag);
-    }
-}
 ```
 
 ### After（WpPack）
 
 ```php
-use WpPack\Component\Sanitize\Sanitizer;
+use WpPack\Component\Sanitizer\Sanitizer;
 
-class FormSanitizer
-{
-    public function __construct(private Sanitizer $sanitizer) {}
+$sanitizer = $container->get(Sanitizer::class);
 
-    public function sanitizeFormData(array $data): array
-    {
-        $rules = [
-            'title' => ['text', 'trim'],
-            'content' => ['html', 'allow_tags:p,br,strong,em'],
-            'url' => ['url', 'validate_protocol:http,https'],
-            'email' => ['email', 'lowercase'],
-            'filename' => ['filename', 'lowercase', 'max:255'],
-            'price' => ['float', 'min:0', 'max:99999.99'],
-            'quantity' => ['int', 'min:1', 'max:1000'],
-            'tags' => ['array'],
-            'tags.*' => ['text', 'trim', 'lowercase'],
-            'metadata' => ['json'],
-            'slug' => ['slug']
-        ];
-
-        return $this->sanitizer->sanitize($data, $rules);
-    }
-}
+$title = $sanitizer->text($_POST['title'] ?? '');
+$content = $sanitizer->html($_POST['content'] ?? '');
+$email = $sanitizer->email($_POST['email'] ?? '');
+$url = $sanitizer->url($_POST['url'] ?? '');
+$filename = $sanitizer->filename($_POST['filename'] ?? '');
 ```
 
-## コア機能
+## Sanitizer クラス
 
-### ルールベースサニタイズ
-
-```php
-use WpPack\Component\Sanitize\Rules\SanitizationRules;
-
-$rules = SanitizationRules::make([
-    'name' => 'text|trim|max:255',
-    'description' => 'html|allow_tags:p,br,ul,ol,li,strong,em',
-    'price' => 'float|min:0|max:999999.99',
-    'sku' => 'text|uppercase|regex:/^[A-Z0-9-]+$/',
-    'categories' => 'array',
-    'categories.*' => 'int',
-    'attributes.*.name' => 'text',
-    'attributes.*.value' => 'text',
-    'images' => 'array|max:10',
-    'images.*' => 'url',
-    'status' => 'text|in:draft,published,archived',
-]);
-
-$sanitized = $this->sanitizer->sanitize($data, $rules);
-```
-
-### HTML サニタイズ
+WordPress のサニタイズ関数を型安全にラップするサービスクラスです。
 
 ```php
-use WpPack\Component\Sanitize\HtmlSanitizer;
-use WpPack\Component\Sanitize\HtmlConfig;
+use WpPack\Component\Sanitizer\Sanitizer;
 
-$config = new HtmlConfig();
-$config->allowElement('p');
-$config->allowElement('br');
-$config->allowElement('strong');
-$config->allowElement('em');
-$config->allowElement('a', ['href', 'title', 'target']);
-$config->allowElement('img', ['src', 'alt', 'width', 'height']);
+$sanitizer = new Sanitizer();
 
-$config->allowProtocol('https');
-$config->allowProtocol('http');
-$config->allowProtocol('mailto');
-
-$config->filterAttribute('a', 'href', function($value) {
-    if (parse_url($value, PHP_URL_HOST) !== parse_url(home_url(), PHP_URL_HOST)) {
-        $this->setAttribute('target', '_blank');
-        $this->setAttribute('rel', 'noopener noreferrer');
-    }
-    return $value;
-});
-
-$clean = $this->htmlSanitizer->sanitize($html, $config);
-```
-
-### カスタムサニタイザー
-
-```php
-use WpPack\Component\Sanitize\AbstractSanitizer;
-use WpPack\Component\Sanitize\Attribute\CustomSanitizer;
-
-#[CustomSanitizer('color')]
-class ColorSanitizer extends AbstractSanitizer
-{
-    public function sanitize($value): string
-    {
-        $color = preg_replace('/[^a-fA-F0-9#]/', '', (string)$value);
-
-        if (strpos($color, '#') !== 0) {
-            $color = '#' . $color;
-        }
-
-        if (preg_match('/^#([a-fA-F0-9]{3}|[a-fA-F0-9]{6})$/', $color)) {
-            if (strlen($color) === 4) {
-                $color = '#' . $color[1] . $color[1] . $color[2] . $color[2] . $color[3] . $color[3];
-            }
-            return strtoupper($color);
-        }
-
-        return '#000000';
-    }
-}
-
-$sanitizer->register(new ColorSanitizer());
-$clean = $sanitizer->sanitize(['theme_color' => 'ff6600'], [
-    'theme_color' => ['color']
-]);
-// Result: ['theme_color' => '#FF6600']
-```
-
-### モデルサニタイズ
-
-```php
-use WpPack\Component\Sanitize\Attribute\Sanitize;
-
-class UserModel
-{
-    #[Sanitize(['text', 'trim'])]
-    public string $username;
-
-    #[Sanitize(['email', 'lowercase'])]
-    public string $email;
-
-    #[Sanitize(['text', 'trim'])]
-    public ?string $firstName = null;
-
-    #[Sanitize(['url', 'validate_protocol:http,https'])]
-    public ?string $website = null;
-
-    #[Sanitize(['html', 'strip_tags'])]
-    public ?string $bio = null;
-}
-
-$user = new UserModel();
-$user->username = '  JohnDoe123  ';
-$user->email = 'JOHN@EXAMPLE.COM';
-$sanitizer->sanitizeModel($user);
-// $user->username = 'JohnDoe123'
-// $user->email = 'john@example.com'
-```
-
-## クイックスタート
-
-### 基本的なデータサニタイズ
-
-```php
-class FormHandler
-{
-    public function __construct(private Sanitizer $sanitizer) {}
-
-    public function handleSubmit(array $data): array
-    {
-        $rules = [
-            'name' => 'text|trim',
-            'email' => 'email',
-            'age' => 'int|min:18|max:120',
-            'bio' => 'text|strip_tags|max:500',
-            'website' => 'url'
-        ];
-
-        return $this->sanitizer->sanitize($data, $rules);
-    }
-}
-```
-
-### 組み込みサニタイザー
-
-```php
+// テキスト - sanitize_text_field() をラップ
 $sanitizer->text('  Hello <script>alert("XSS")</script>  ');  // "Hello"
-$sanitizer->email('JOHN@EXAMPLE.COM');                          // "john@example.com"
-$sanitizer->url('http://example.com/<script>');                 // "http://example.com/"
-$sanitizer->int('123.45');                                      // 123
-$sanitizer->bool('yes');                                        // true
+
+// HTML - wp_kses_post() をラップ
+$sanitizer->html('<p>Hello</p><script>alert("XSS")</script>');  // "<p>Hello</p>"
+
+// メール - sanitize_email() をラップ
+$sanitizer->email('JOHN@EXAMPLE.COM');  // "john@example.com"
+
+// URL - esc_url_raw() をラップ
+$sanitizer->url('http://example.com/<script>');  // "http://example.com/"
+
+// ファイル名 - sanitize_file_name() をラップ
+$sanitizer->filename('my file (1).pdf');  // "my-file-1.pdf"
+
+// キー - sanitize_key() をラップ
+$sanitizer->key('My_Option-KEY!');  // "my_option-key"
+
+// タイトル - sanitize_title() をラップ
+$sanitizer->title('Hello World!');  // "hello-world"
+
+// スラッグ - sanitize_title_with_dashes() をラップ
+$sanitizer->slug('Hello World!');  // "hello-world"
 ```
 
-### お問い合わせフォームの例
+### Sanitizer メソッド一覧
 
-```php
-class ContactFormService
-{
-    public function __construct(
-        private Sanitizer $sanitizer,
-        private Mailer $mailer
-    ) {}
+| メソッド | WordPress API | 説明 |
+|---------|--------------|------|
+| `text(string $value): string` | `sanitize_text_field()` | テキストフィールドをサニタイズ |
+| `html(string $value): string` | `wp_kses_post()` | 投稿に許可された HTML タグのみ保持 |
+| `email(string $value): string` | `sanitize_email()` | メールアドレスをサニタイズ |
+| `url(string $value): string` | `esc_url_raw()` | URL をサニタイズ（DB 保存用） |
+| `filename(string $value): string` | `sanitize_file_name()` | ファイル名をサニタイズ |
+| `key(string $value): string` | `sanitize_key()` | キー文字列をサニタイズ |
+| `title(string $value): string` | `sanitize_title()` | タイトルをサニタイズ |
+| `slug(string $value): string` | `sanitize_title_with_dashes()` | スラッグをサニタイズ |
 
-    public function processForm(array $data): bool
-    {
-        $rules = [
-            'name' => 'text|trim|max:100',
-            'email' => 'email',
-            'subject' => 'text|trim|max:200',
-            'message' => 'text|trim|min:10|max:1000',
-            'phone' => 'text|regex:/^[\d\s\-\+\(\)]+$/'
-        ];
+## Named Hook Attributes
 
-        $clean = $this->sanitizer->sanitize($data, $rules);
+### メタサニタイズフック
 
-        return $this->mailer->send([
-            'to' => get_option('admin_email'),
-            'subject' => 'Contact Form: ' . $clean['subject'],
-            'body' => $this->formatMessage($clean),
-            'reply_to' => $clean['email']
-        ]);
-    }
-}
-```
+#### `#[SanitizePostMetaFilter]`
 
-### 商品フォームの例
+**WordPress Hook:** `sanitize_post_meta_{$meta_key}`
 
-```php
-class ProductService
-{
-    public function __construct(private Sanitizer $sanitizer) {}
-
-    public function saveProduct(array $data): int
-    {
-        $rules = [
-            'title' => 'text|trim|max:200',
-            'description' => 'html|allow_tags:p,br,ul,ol,li,strong,em',
-            'price' => 'float|min:0|max:999999.99',
-            'sale_price' => 'float|min:0|lt:price',
-            'sku' => 'text|uppercase|regex:/^[A-Z0-9\-]+$/',
-            'stock' => 'int|min:0',
-            'categories' => 'array',
-            'categories.*' => 'int',
-            'featured' => 'bool',
-            'status' => 'text|in:publish,draft,pending'
-        ];
-
-        $clean = $this->sanitizer->sanitize($data, $rules);
-
-        return $this->createProduct($clean);
-    }
-}
-```
-
-## 高度な機能
-
-### フォームサニタイズビルダー
-
-```php
-use WpPack\Component\Sanitize\FormRules;
-
-$rules = FormRules::create()
-    ->field('name')
-        ->text()
-        ->trim()
-        ->maxLength(100)
-        ->pattern('/^[a-zA-Z\s]+$/')
-    ->field('email')
-        ->email()
-        ->lowercase()
-    ->field('phone')
-        ->text()
-        ->transform(function($value) {
-            return preg_replace('/[^0-9+\-\(\)\s]/', '', $value);
-        });
-```
-
-### データベースサニタイズ
-
-```php
-use WpPack\Component\Sanitize\DatabaseSanitizer;
-
-class QuerySanitizer
-{
-    public function __construct(private DatabaseSanitizer $dbSanitizer) {}
-
-    public function sanitizeSearchQuery(string $search): string
-    {
-        return $this->dbSanitizer->like($search); // Escapes %, _, and \
-    }
-
-    public function sanitizeIdentifier(string $column): string
-    {
-        return $this->dbSanitizer->identifier($column); // Only alphanumeric and underscore
-    }
-}
-```
-
-### バッチ処理
-
-```php
-use WpPack\Component\Sanitize\BatchSanitizer;
-
-$rules = [
-    'username' => 'text|trim|lowercase',
-    'email' => 'email',
-    'role' => 'text|in:subscriber,contributor,author'
-];
-
-$results = $this->batchSanitizer->process($users, $rules, [
-    'batch_size' => 100,
-    'stop_on_error' => false,
-    'collect_errors' => true
-]);
-
-$errors = $this->batchSanitizer->getErrors();
-$processed = $this->batchSanitizer->getProcessedCount();
-```
-
-## Named Hook アトリビュート
-
-### メタサニタイズ
-
-```php
-#[SanitizePostMetaFilter(priority?: int = 10)]       // 投稿メタをサニタイズ
-#[SanitizeUserMetaFilter(priority?: int = 10)]       // ユーザーメタをサニタイズ
-#[SanitizeTermMetaFilter(priority?: int = 10)]       // タームメタをサニタイズ
-#[SanitizeCommentMetaFilter(priority?: int = 10)]    // コメントメタをサニタイズ
-```
-
-### フィールドサニタイズ
-
-```php
-#[SanitizeTextFieldFilter(priority?: int = 10)]      // テキストフィールドをサニタイズ
-#[SanitizeTitleFilter(priority?: int = 10)]          // タイトル/スラッグをサニタイズ
-#[SanitizeFileNameFilter(priority?: int = 10)]       // ファイル名をサニタイズ
-#[SanitizeEmailFilter(priority?: int = 10)]          // メールアドレスをサニタイズ
-#[SanitizeKeyFilter(priority?: int = 10)]            // キーをサニタイズ
-```
-
-### 出力エスケープ
-
-```php
-#[EscHtmlFilter(priority?: int = 10)]                // HTML をエスケープ
-#[EscAttrFilter(priority?: int = 10)]                // 属性をエスケープ
-#[CleanUrlFilter(priority?: int = 10)]                // URL をエスケープ（esc_url）
-#[JsEscapeFilter(priority?: int = 10)]               // JavaScript をエスケープ（esc_js）
-```
-
-### バリデーション
-
-```php
-#[PreCommentApprovedFilter(priority?: int = 10)]     // コメントをバリデーション
-#[PreInsertTermFilter(priority?: int = 10)]          // タームをバリデーション
-#[PreUserLoginFilter(priority?: int = 10)]           // ログインをバリデーション
-```
-
-### 使用例：投稿メタサニタイズ
+投稿メタの保存時にサニタイズ処理を適用します。
 
 ```php
 use WpPack\Component\Sanitizer\Attribute\SanitizePostMetaFilter;
 
-class PostMetaSanitizer
+final class PostMetaSanitizer
 {
-    public function __construct(private SanitizerInterface $sanitizer) {}
+    public function __construct(private readonly Sanitizer $sanitizer) {}
 
     #[SanitizePostMetaFilter(metaKey: 'price')]
-    public function sanitizePrice($meta_value, string $meta_key, string $object_type)
+    public function sanitizePrice(mixed $meta_value, string $meta_key, string $object_type): float
     {
-        return $this->sanitizer->decimal($meta_value, 2);
+        return (float) $meta_value;
     }
 
     #[SanitizePostMetaFilter(metaKey: 'email')]
-    public function sanitizeEmail($meta_value, string $meta_key, string $object_type)
+    public function sanitizeEmail(mixed $meta_value, string $meta_key, string $object_type): string
     {
-        return $this->sanitizer->email($meta_value);
-    }
-
-    #[SanitizePostMetaFilter(metaKey: 'product_data')]
-    public function sanitizeProductData($meta_value, string $meta_key, string $object_type)
-    {
-        if (!is_array($meta_value)) {
-            return [];
-        }
-
-        return [
-            'sku' => sanitize_text_field($meta_value['sku'] ?? ''),
-            'stock' => $this->sanitizer->integer($meta_value['stock'] ?? 0),
-            'weight' => $this->sanitizer->decimal($meta_value['weight'] ?? 0, 3),
-        ];
+        return $this->sanitizer->email((string) $meta_value);
     }
 }
 ```
 
-## クイックリファレンス
+### フィールドサニタイズフック
 
-### 一般的なルール
+#### `#[SanitizeTextFieldFilter]`
 
-```php
-'text|trim|min:3|max:100'
-'email'
-'int|min:0|max:100'
-'float|min:0.01|max:999.99'
-'array|min:1|max:10'
-'bool'
-'url|validate_protocol:https'
-```
-
-### 組み込みサニタイザー
+**WordPress Hook:** `sanitize_text_field`
 
 ```php
-$sanitizer->text($value);        // プレーンテキスト
-$sanitizer->email($value);       // メールアドレス
-$sanitizer->url($value);         // URL
-$sanitizer->int($value);         // 整数
-$sanitizer->float($value);       // 浮動小数点数
-$sanitizer->bool($value);        // 真偽値
-$sanitizer->array($value);       // 配列
-$sanitizer->json($value);        // JSON
-$sanitizer->slug($value);        // URL スラッグ
-$sanitizer->filename($value);    // ファイル名
+use WpPack\Component\Sanitizer\Attribute\SanitizeTextFieldFilter;
+
+final class TextFieldSanitizer
+{
+    #[SanitizeTextFieldFilter(priority: 10)]
+    public function sanitizeTextField(string $filtered, string $str): string
+    {
+        // 追加のサニタイズ処理
+        return trim($filtered);
+    }
+}
 ```
 
-## このコンポーネントの使用場面
+#### `#[SanitizeTitleFilter]`
 
-**最適な用途：**
-- ユーザー入力を処理するアプリケーション
-- データサニタイズが必要なフォーム
-- API 入力のサニタイズ
-- コンテンツ管理システム
-- EC アプリケーション
-- セキュリティ重視のアプリケーション
+**WordPress Hook:** `sanitize_title`
 
-**代替を検討すべき場合：**
-- テキストのみのシンプルなフォーム
-- WordPress の基本関数で十分な場合
-- 読み取り専用のアプリケーション
+```php
+use WpPack\Component\Sanitizer\Attribute\SanitizeTitleFilter;
+
+final class TitleSanitizer
+{
+    #[SanitizeTitleFilter(priority: 10)]
+    public function sanitizeTitle(string $title, string $raw_title, string $context): string
+    {
+        // 日本語スラッグ対応
+        if (preg_match('/[\x{3000}-\x{9FFF}]/u', $raw_title)) {
+            return urlencode($raw_title);
+        }
+
+        return $title;
+    }
+}
+```
+
+#### `#[SanitizeFileNameFilter]`
+
+**WordPress Hook:** `sanitize_file_name`
+
+```php
+use WpPack\Component\Sanitizer\Attribute\SanitizeFileNameFilter;
+
+final class FileNameSanitizer
+{
+    #[SanitizeFileNameFilter(priority: 10)]
+    public function sanitizeFileName(string $filename, string $filename_raw): string
+    {
+        // ファイル名を小文字に統一
+        return strtolower($filename);
+    }
+}
+```
+
+#### `#[SanitizeEmailFilter]`
+
+**WordPress Hook:** `sanitize_email`
+
+```php
+use WpPack\Component\Sanitizer\Attribute\SanitizeEmailFilter;
+
+final class EmailSanitizer
+{
+    #[SanitizeEmailFilter(priority: 10)]
+    public function sanitizeEmail(string $sanitized_email, string $email, string $message): string
+    {
+        return strtolower($sanitized_email);
+    }
+}
+```
+
+### 出力エスケープフック
+
+#### `#[EscHtmlFilter]`
+
+**WordPress Hook:** `esc_html`
+
+```php
+use WpPack\Component\Sanitizer\Attribute\EscHtmlFilter;
+
+final class HtmlEscaper
+{
+    #[EscHtmlFilter(priority: 10)]
+    public function escapeHtml(string $safe_text, string $text): string
+    {
+        return $safe_text;
+    }
+}
+```
+
+#### `#[CleanUrlFilter]`
+
+**WordPress Hook:** `clean_url`
+
+URL エスケープ（`esc_url()`）のフィルターです。
+
+```php
+use WpPack\Component\Sanitizer\Attribute\CleanUrlFilter;
+
+final class UrlCleaner
+{
+    #[CleanUrlFilter(priority: 10)]
+    public function cleanUrl(string $good_protocol_url, string $original_url, string $_context): string
+    {
+        return $good_protocol_url;
+    }
+}
+```
+
+## Hook Attribute リファレンス
+
+| Attribute | WordPress Hook | 説明 |
+|-----------|---------------|------|
+| `#[SanitizePostMetaFilter(metaKey: 'key')]` | `sanitize_post_meta_{$meta_key}` | 投稿メタをサニタイズ |
+| `#[SanitizeTextFieldFilter(priority: 10)]` | `sanitize_text_field` | テキストフィールドをサニタイズ |
+| `#[SanitizeTitleFilter(priority: 10)]` | `sanitize_title` | タイトルをサニタイズ |
+| `#[SanitizeFileNameFilter(priority: 10)]` | `sanitize_file_name` | ファイル名をサニタイズ |
+| `#[SanitizeEmailFilter(priority: 10)]` | `sanitize_email` | メールアドレスをサニタイズ |
+| `#[EscHtmlFilter(priority: 10)]` | `esc_html` | HTML をエスケープ |
+| `#[CleanUrlFilter(priority: 10)]` | `clean_url` | URL をエスケープ（`esc_url`） |
+
+## WordPress 統合
+
+Sanitizer コンポーネントは WordPress のサニタイズ関数を直接呼び出すため、WordPress のフィルターフックが適用された結果が返されます。例えば `$sanitizer->text()` は内部で `sanitize_text_field()` を呼び出すので、`sanitize_text_field` フィルターに登録された処理が自動的に適用されます。
+
+Named Hook Attributes を使用するには、Hook コンポーネントによるアトリビュート解析が必要です。
 
 ## 依存関係
 
 ### 必須
-なし - Sanitizer コンポーネントはスタンドアロンです。
+なし -- WordPress のサニタイズ関数をそのまま利用
 
 ### 推奨
-- **Validator コンポーネント** - サニタイズ前後のデータバリデーション
-- **Security コンポーネント** - 強化されたセキュリティバリデーション
-- **Database コンポーネント** - データベース操作
-- **Hook コンポーネント** - WordPress 統合
+- **Hook コンポーネント** -- Attribute ベースのフック登録

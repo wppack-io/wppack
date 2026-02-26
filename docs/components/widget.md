@@ -4,7 +4,7 @@
 **名前空間:** `WpPack\Component\Widget\`
 **レイヤー:** Application
 
-アトリビュートベースの設定、自動フォーム生成、強化されたウィジェット管理機能を備えた、WordPress ウィジェット開発のためのモダンなオブジェクト指向フレームワーク。
+WordPress ウィジェット API のアクション・フィルターフックを Named Hook アトリビュートで型安全に登録するためのコンポーネントです。`AbstractWidget` と `#[Widget]` アトリビュートによるウィジェット登録も提供します。
 
 ## インストール
 
@@ -14,7 +14,7 @@ composer require wppack/widget
 
 ## 基本コンセプト
 
-### 従来の WordPress コード
+### Before（従来の WordPress）
 
 ```php
 class My_Widget extends WP_Widget {
@@ -43,12 +43,11 @@ add_action('widgets_init', function() {
 });
 ```
 
-### WpPack コード
+### After（WpPack）
 
 ```php
 use WpPack\Component\Widget\AbstractWidget;
 use WpPack\Component\Widget\Attribute\Widget;
-use WpPack\Component\Widget\Attribute\WidgetField;
 
 #[Widget(
     id: 'recent_posts',
@@ -57,472 +56,24 @@ use WpPack\Component\Widget\Attribute\WidgetField;
 )]
 class RecentPostsWidget extends AbstractWidget
 {
-    #[WidgetField(type: 'text', label: 'Title', default: 'Recent Posts')]
-    protected string $title;
-
-    #[WidgetField(type: 'number', label: 'Number of posts', default: 5)]
-    protected int $count;
-
     public function render(array $args): string
     {
-        $posts = get_posts(['numberposts' => $this->count]);
-
-        return $this->renderTemplate('recent-posts', [
-            'title' => $this->title,
-            'posts' => $posts,
-            'args' => $args
-        ]);
-    }
-}
-```
-
-## 機能
-
-- **型安全なウィジェットプロパティ** - PHP 8 アトリビュートによる定義
-- **自動フォーム生成** - プロパティ定義からの自動生成
-- **依存性注入** - サービスやリポジトリの注入
-- **組み込みキャッシュ** - パフォーマンス最適化
-- **テンプレートサポート** - 複雑なウィジェット出力に対応
-- **表示制御** - 条件付き表示
-- **ブロックエディタウィジェットエリア** - 互換性対応
-
-## クイックスタート
-
-### 最初のウィジェット
-
-選択した投稿をカスタマイズ可能なオプション付きで表示する「Featured Post」ウィジェットを作成しましょう：
-
-```php
-<?php
-use WpPack\Component\Widget\AbstractWidget;
-use WpPack\Component\Widget\Attribute\Widget;
-use WpPack\Component\Widget\Attribute\WidgetField;
-
-#[Widget(
-    id: 'featured_post',
-    name: 'Featured Post',
-    description: 'Display a featured post with custom styling'
-)]
-class FeaturedPostWidget extends AbstractWidget
-{
-    #[WidgetField(
-        type: 'text',
-        label: 'Widget Title',
-        default: 'Featured Post'
-    )]
-    protected string $title;
-
-    #[WidgetField(
-        type: 'select',
-        label: 'Select Post',
-        options: 'getPostOptions'
-    )]
-    protected int $postId;
-
-    #[WidgetField(
-        type: 'checkbox',
-        label: 'Show Featured Image',
-        default: true
-    )]
-    protected bool $showImage;
-
-    #[WidgetField(
-        type: 'checkbox',
-        label: 'Show Excerpt',
-        default: false
-    )]
-    protected bool $showExcerpt;
-
-    public function render(array $args): string
-    {
-        if (!$this->postId) {
-            return '';
-        }
-
-        $post = get_post($this->postId);
-        if (!$post) {
-            return '';
-        }
+        $posts = get_posts(['numberposts' => 5]);
 
         ob_start();
-        ?>
-        <?php echo $args['before_widget']; ?>
+        echo $args['before_widget'];
+        echo $args['before_title'] . 'Recent Posts' . $args['after_title'];
 
-        <?php if ($this->title): ?>
-            <?php echo $args['before_title'] . esc_html($this->title) . $args['after_title']; ?>
-        <?php endif; ?>
+        echo '<ul>';
+        foreach ($posts as $post) {
+            printf('<li><a href="%s">%s</a></li>', get_permalink($post), esc_html($post->post_title));
+        }
+        echo '</ul>';
 
-        <div class="featured-post-widget">
-            <?php if ($this->showImage && has_post_thumbnail($post)): ?>
-                <div class="featured-post-image">
-                    <?php echo get_the_post_thumbnail($post, 'medium'); ?>
-                </div>
-            <?php endif; ?>
-
-            <h3 class="featured-post-title">
-                <a href="<?php echo get_permalink($post); ?>">
-                    <?php echo esc_html($post->post_title); ?>
-                </a>
-            </h3>
-
-            <?php if ($this->showExcerpt): ?>
-                <div class="featured-post-excerpt">
-                    <?php echo wp_trim_words($post->post_content, 20); ?>
-                </div>
-            <?php endif; ?>
-
-            <a href="<?php echo get_permalink($post); ?>" class="featured-post-link">
-                Read More
-            </a>
-        </div>
-
-        <?php echo $args['after_widget']; ?>
-        <?php
-
+        echo $args['after_widget'];
         return ob_get_clean();
     }
-
-    protected function getPostOptions(): array
-    {
-        $posts = get_posts([
-            'numberposts' => 20,
-            'post_status' => 'publish'
-        ]);
-
-        $options = [];
-        foreach ($posts as $post) {
-            $options[$post->ID] = $post->post_title;
-        }
-
-        return $options;
-    }
 }
-```
-
-### ウィジェットの登録
-
-```php
-<?php
-add_action('widgets_init', function() {
-    $container = new WpPack\Container();
-    $container->register(FeaturedPostWidget::class);
-});
-```
-
-### キャッシュの追加
-
-```php
-use WpPack\Component\Widget\Attribute\Cache;
-
-#[Widget(id: 'featured_post', name: 'Featured Post')]
-#[Cache(duration: 3600)] // 1時間キャッシュ
-class FeaturedPostWidget extends AbstractWidget
-{
-    // Your widget code...
-}
-```
-
-### テンプレートの使用
-
-```php
-public function render(array $args): string
-{
-    return $this->renderTemplate('featured-post', [
-        'post' => get_post($this->postId),
-        'title' => $this->title,
-        'showImage' => $this->showImage,
-        'args' => $args
-    ]);
-}
-```
-
-## フィールドタイプ
-
-WpPack ウィジェットで利用可能なすべてのフィールドタイプの完全ガイドです。各フィールドタイプは適切なフォーム入力を自動生成し、データバリデーションを処理します。
-
-### 基本入力フィールド
-
-#### Text フィールド
-
-```php
-#[WidgetField(
-    type: 'text',
-    label: 'Widget Title',
-    default: 'My Widget',
-    placeholder: 'Enter title...'
-)]
-protected string $title;
-```
-
-**オプション:** `placeholder`, `maxlength`
-
-#### Textarea フィールド
-
-```php
-#[WidgetField(
-    type: 'textarea',
-    label: 'Description',
-    rows: 4,
-    default: 'Enter description...'
-)]
-protected string $description;
-```
-
-**オプション:** `rows`, `cols`
-
-#### Number フィールド
-
-```php
-#[WidgetField(
-    type: 'number',
-    label: 'Number of Items',
-    min: 1,
-    max: 20,
-    step: 1,
-    default: 5
-)]
-protected int $count;
-```
-
-**オプション:** `min`, `max`, `step`
-
-#### Email フィールド
-
-```php
-#[WidgetField(
-    type: 'email',
-    label: 'Contact Email',
-    placeholder: 'admin@example.com'
-)]
-protected string $email;
-```
-
-#### URL フィールド
-
-```php
-#[WidgetField(
-    type: 'url',
-    label: 'Website URL',
-    placeholder: 'https://example.com'
-)]
-protected string $website;
-```
-
-#### Password フィールド
-
-```php
-#[WidgetField(
-    type: 'password',
-    label: 'API Secret Key'
-)]
-protected string $apiSecret;
-```
-
-### 選択フィールド
-
-#### チェックボックス
-
-```php
-#[WidgetField(
-    type: 'checkbox',
-    label: 'Show Featured Image',
-    default: true
-)]
-protected bool $showImage;
-```
-
-#### セレクトドロップダウン
-
-```php
-#[WidgetField(
-    type: 'select',
-    label: 'Post Order',
-    options: [
-        'date' => 'Date Published',
-        'title' => 'Title',
-        'menu_order' => 'Menu Order',
-        'rand' => 'Random'
-    ],
-    default: 'date'
-)]
-protected string $orderBy;
-```
-
-**動的オプション:**
-
-```php
-#[WidgetField(
-    type: 'select',
-    label: 'Category',
-    options: 'getCategoryOptions'
-)]
-protected int $categoryId;
-
-protected function getCategoryOptions(): array
-{
-    $categories = get_categories();
-    $options = [];
-
-    foreach ($categories as $category) {
-        $options[$category->term_id] = $category->name;
-    }
-
-    return $options;
-}
-```
-
-#### マルチセレクト
-
-```php
-#[WidgetField(
-    type: 'multiselect',
-    label: 'Post Types',
-    options: [
-        'post' => 'Posts',
-        'page' => 'Pages',
-        'product' => 'Products'
-    ]
-)]
-protected array $postTypes = ['post'];
-```
-
-#### ラジオボタン
-
-```php
-#[WidgetField(
-    type: 'radio',
-    label: 'Layout Style',
-    options: [
-        'list' => 'List View',
-        'grid' => 'Grid View',
-        'carousel' => 'Carousel'
-    ],
-    default: 'list'
-)]
-protected string $layout;
-```
-
-### 日付と時間フィールド
-
-```php
-#[WidgetField(type: 'date', label: 'Event Date')]
-protected string $eventDate;
-
-#[WidgetField(type: 'time', label: 'Event Time')]
-protected string $eventTime;
-
-#[WidgetField(type: 'datetime', label: 'Event Start')]
-protected string $eventStart;
-```
-
-### メディアとカラーフィールド
-
-#### カラーピッカー
-
-```php
-#[WidgetField(
-    type: 'color',
-    label: 'Background Color',
-    default: '#ffffff'
-)]
-protected string $backgroundColor;
-```
-
-#### メディアアップロード
-
-```php
-#[WidgetField(
-    type: 'media',
-    label: 'Featured Image',
-    mediaType: 'image',
-    buttonText: 'Select Image'
-)]
-protected int $featuredImageId;
-```
-
-**オプション:** `mediaType` ('image', 'video', 'audio', 'file'), `buttonText`
-
-#### 画像アップロード
-
-```php
-#[WidgetField(
-    type: 'image',
-    label: 'Logo',
-    previewSize: 'thumbnail'
-)]
-protected int $logoId;
-```
-
-### 条件付きフィールド
-
-他のフィールドの値に基づいてフィールドの表示/非表示を制御します：
-
-```php
-#[WidgetField(type: 'checkbox', label: 'Enable Custom Styling')]
-protected bool $enableStyling = false;
-
-#[WidgetField(type: 'color', label: 'Custom Color')]
-protected string $customColor = '#333333';
-
-#[WidgetField(
-    type: 'select',
-    label: 'Display Mode',
-    options: ['simple' => 'Simple', 'advanced' => 'Advanced']
-)]
-protected string $displayMode = 'simple';
-
-#[WidgetField(type: 'number', label: 'Max Items', min: 1, max: 50)]
-protected int $maxItems = 10;
-```
-
-### フィールドバリデーション
-
-```php
-use WpPack\Component\Widget\Attribute\Validate;
-
-#[WidgetField(type: 'text', label: 'Username')]
-#[Validate('required|alphanumeric|min:3|max:20')]
-protected string $username;
-
-#[WidgetField(type: 'email', label: 'Email')]
-#[Validate('required|email')]
-protected string $email;
-```
-
-### フィールドスタイリング
-
-```php
-#[WidgetField(
-    type: 'text',
-    label: 'Title',
-    cssClass: 'large-text',
-    description: 'This will be displayed as the widget title',
-    helpText: 'Leave empty to hide the title section'
-)]
-protected string $title;
-```
-
-### カスタムフィールドタイプ
-
-```php
-use WpPack\Component\Widget\Fields\AbstractField;
-
-class ColorSchemeField extends AbstractField
-{
-    public function render(array $args): string
-    {
-        return '<div class="color-scheme-picker">...</div>';
-    }
-
-    public function sanitize($value): array
-    {
-        return $this->sanitizeColorScheme($value);
-    }
-}
-
-// Use in widget
-#[WidgetField(type: ColorSchemeField::class, label: 'Color Scheme')]
-protected array $colorScheme;
 ```
 
 ## Named Hook アトリビュート
@@ -763,9 +314,8 @@ class SidebarRegistrar
     #[RegisterSidebarAction]
     public function onSidebarRegistered(array $sidebar): void
     {
-        // サイドバー登録後の処理
         if ($sidebar['id'] === 'main-sidebar') {
-            // 追加の初期化処理
+            // additional initialization
         }
     }
 }
@@ -792,22 +342,7 @@ class SidebarRegistrar
 #[WidgetTitleFilter(priority?: int = 10)]            // ウィジェットタイトルのフィルター
 #[WidgetTextFilter(priority?: int = 10)]             // テキストウィジェットコンテンツのフィルター
 #[WidgetContentFilter(priority?: int = 10)]          // カスタム HTML ウィジェットコンテンツのフィルター
-
-// ウィジェット管理
 ```
-
-## このコンポーネントの使用場面
-
-**最適な用途：**
-- 再利用可能なコンテンツブロックの作成
-- 管理画面から設定可能な表示コンポーネントの構築
-- テーマに依存しない機能の開発
-- ブロックエディタとの互換性の追加
-
-**代替を検討すべき場合：**
-- 単純な静的コンテンツ（代わりにブロックを使用）
-- 管理画面専用の機能（管理コンポーネントを使用）
-- 複雑なインタラクティブ機能（カスタムソリューションが必要な場合）
 
 ## WordPress 統合
 

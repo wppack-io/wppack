@@ -45,7 +45,6 @@ WordPress プラグインとして配布。Component を利用。
 | Query | wppack/query | クエリビルダー |
 | Security | wppack/security | セキュリティユーティリティ |
 | Sanitizer | wppack/sanitizer | データサニタイズ |
-| Validator | wppack/validator | データバリデーション |
 | HttpClient | wppack/http-client | HTTPクライアント |
 | HttpFoundation | wppack/http-foundation | Request/Response |
 | Mailer | wppack/mailer | メール抽象化（Transport基盤含む） |

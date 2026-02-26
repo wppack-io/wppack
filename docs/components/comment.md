@@ -1,148 +1,10 @@
 # Comment コンポーネント
 
-Comment コンポーネントは、型安全性、モデレーションワークフロー、拡張されたコメント機能を備えた、WordPress コメント管理をモダンなオブジェクト指向で行うためのコンポーネントです。
+**パッケージ:** `wppack/comment`
+**名前空間:** `WpPack\Component\Comment\`
+**レイヤー:** Application
 
-## このコンポーネントの機能
-
-Comment コンポーネントは以下の機能で WordPress コメント管理を変革します：
-
-- **オブジェクト指向のコメント管理** - 型付きプロパティとメソッド
-- **アトリビュートベースのコメント操作** - 宣言的な設定
-- **型安全なコメントプロパティ** - 自動メタフィールド処理
-- **アトリビュートによるコメントメタ管理** - 構造化データ
-- **コメントスレッドと階層** - ネスト会話対応
-- **コメントバリデーションとサニタイズ** - データ整合性
-- **一括コメント操作** - 効率的な管理
-
-## クイック例
-
-従来の WordPress コメント処理の代わりに：
-
-```php
-// 従来の WordPress - 手動のコメント管理
-$comment_data = [
-    'comment_post_ID' => 123,
-    'comment_author' => 'John Doe',
-    'comment_author_email' => 'john@example.com',
-    'comment_content' => 'Great article!',
-    'comment_approved' => 0,
-];
-
-$comment_id = wp_insert_comment($comment_data);
-if (!$comment_id) {
-    error_log('Failed to insert comment');
-    return;
-}
-
-// メタを手動で更新
-update_comment_meta($comment_id, 'rating', 5);
-update_comment_meta($comment_id, 'is_verified', true);
-
-// コメントを取得
-$comment = get_comment($comment_id);
-if ($comment->comment_approved == '1') {
-    // 承認されたコメントを処理
-}
-
-// コメントを手動でクエリ
-$comments = get_comments([
-    'post_id' => 123,
-    'status' => 'approve',
-    'meta_query' => [
-        [
-            'key' => 'rating',
-            'value' => 4,
-            'compare' => '>='
-        ]
-    ]
-]);
-```
-
-モダンな WpPack アプローチを使用します：
-
-```php
-use WpPack\Component\Comment\AbstractComment;
-use WpPack\Component\Comment\Attribute\Comment;
-use WpPack\Component\Comment\Attribute\CommentMeta;
-
-#[Comment(
-    type: 'review',
-    requiresApproval: true,
-    allowReplies: true
-)]
-class ProductReview extends AbstractComment
-{
-    #[CommentMeta('rating', type: 'integer', min: 1, max: 5)]
-    public int $rating;
-
-    #[CommentMeta('is_verified', type: 'boolean')]
-    public bool $isVerified = false;
-
-    #[CommentMeta('helpful_votes', type: 'integer')]
-    public int $helpfulVotes = 0;
-
-    public function validate(): array
-    {
-        $errors = [];
-
-        if (empty($this->content)) {
-            $errors[] = 'Review content is required';
-        }
-
-        if ($this->rating < 1 || $this->rating > 5) {
-            $errors[] = 'Rating must be between 1 and 5';
-        }
-
-        return $errors;
-    }
-
-    public function approve(): void
-    {
-        if ($this->isApproved()) {
-            return;
-        }
-
-        $this->setStatus('approved');
-        $this->save();
-    }
-
-    public function markHelpful(): void
-    {
-        $this->helpfulVotes++;
-        $this->save();
-    }
-
-    public function isHighRated(): bool
-    {
-        return $this->rating >= 4;
-    }
-}
-
-// リポジトリでの使用
-$commentRepository = $container->get(CommentRepository::class);
-
-// レビューを作成して保存
-$review = new ProductReview();
-$review->postId = 123;
-$review->authorName = 'John Doe';
-$review->authorEmail = 'john@example.com';
-$review->content = 'Excellent product! Highly recommend.';
-$review->rating = 5;
-
-$errors = $review->validate();
-if (empty($errors)) {
-    $commentRepository->save($review);
-}
-
-// Fluent API でレビューをクエリ
-$highRatedReviews = $commentRepository
-    ->ofType(ProductReview::class)
-    ->wherePostId(123)
-    ->whereMeta('rating', '>=', 4)
-    ->whereStatus('approved')
-    ->orderBy('created', 'desc')
-    ->get();
-```
+WordPress コメント関連フックを Named Hook アトリビュートで型安全に利用するためのコンポーネントです。
 
 ## インストール
 
@@ -150,177 +12,133 @@ $highRatedReviews = $commentRepository
 composer require wppack/comment
 ```
 
-## コア機能
+## 基本コンセプト
 
-### 型付きコメントクラス
-
-完全な型安全性と自動メタ処理でコメントタイプを定義します：
+### Before（従来の WordPress）
 
 ```php
-#[Comment(type: 'testimonial')]
-class Testimonial extends AbstractComment
+add_filter('comment_text', 'filter_comment_text', 10, 2);
+function filter_comment_text(string $comment_text, ?WP_Comment $comment): string {
+    return wpautop($comment_text);
+}
+
+add_filter('pre_comment_approved', 'moderate_comment', 10, 2);
+function moderate_comment($approved, array $commentdata) {
+    if (str_contains($commentdata['comment_content'], 'spam')) {
+        return 'spam';
+    }
+    return $approved;
+}
+
+add_action('comment_post', 'after_comment_post', 10, 3);
+function after_comment_post(int $comment_id, $approved, array $commentdata): void {
+    // Send notification
+}
+```
+
+### After（WpPack）
+
+```php
+use WpPack\Component\Comment\Attribute\CommentTextFilter;
+use WpPack\Component\Comment\Attribute\PreCommentApprovedFilter;
+use WpPack\Component\Comment\Attribute\CommentPostAction;
+
+class CommentHandler
 {
-    #[CommentMeta('company', required: true)]
-    public string $company;
-
-    #[CommentMeta('position')]
-    public string $position;
-
-    #[CommentMeta('rating', type: 'integer', min: 1, max: 10)]
-    public int $rating = 10;
-
-    #[CommentMeta('featured', type: 'boolean')]
-    public bool $featured = false;
-
-    #[CommentMeta('image_url')]
-    public ?string $imageUrl = null;
-
-    public function markAsFeatured(): void
+    #[CommentTextFilter]
+    public function filterCommentText(string $commentText, ?\WP_Comment $comment): string
     {
-        $this->featured = true;
-        $this->save();
+        return wpautop($commentText);
     }
 
-    public function getAuthorInfo(): string
+    #[PreCommentApprovedFilter]
+    public function moderateComment(int|string $approved, array $commentdata): int|string
     {
-        $info = $this->authorName;
-
-        if ($this->position) {
-            $info .= ', ' . $this->position;
+        if (str_contains($commentdata['comment_content'], 'spam')) {
+            return 'spam';
         }
-
-        if ($this->company) {
-            $info .= ' at ' . $this->company;
-        }
-
-        return $info;
+        return $approved;
     }
 
-    public function validate(): array
+    #[CommentPostAction]
+    public function afterCommentPost(int $commentId, int|string $approved, array $commentdata): void
     {
-        $errors = [];
-
-        if (empty($this->content)) {
-            $errors[] = 'Testimonial content is required';
-        }
-
-        if (empty($this->company)) {
-            $errors[] = 'Company name is required';
-        }
-
-        if (strlen($this->content) < 20) {
-            $errors[] = 'Testimonial must be at least 20 characters';
-        }
-
-        return $errors;
+        // Send notification
     }
 }
 ```
 
-### 高度なコメントスレッド
+## Named Hook アトリビュート
 
-ネストされたコメント会話をスレッドサポートで処理します：
+### コメント表示フック
+
+#### #[CommentTextFilter]
+
+**WordPress フック:** `comment_text`
+
+コメント本文の表示時にテキストを加工するフィルターです。
 
 ```php
-#[Comment(allowReplies: true, maxDepth: 3)]
-class ThreadedComment extends AbstractComment
+use WpPack\Component\Comment\Attribute\CommentTextFilter;
+
+class CommentFormatter
 {
-    #[CommentMeta('thread_depth', type: 'integer')]
-    public int $threadDepth = 0;
-
-    #[CommentMeta('reply_count', type: 'integer')]
-    public int $replyCount = 0;
-
-    public function getReplies(): array
+    #[CommentTextFilter]
+    public function formatCommentText(string $commentText, ?\WP_Comment $comment): string
     {
-        return $this->comments
-            ->whereParentId($this->getId())
-            ->whereStatus('approved')
-            ->orderBy('created', 'asc')
-            ->get();
-    }
+        // メンション（@username）をリンクに変換
+        $commentText = preg_replace(
+            '/@([a-zA-Z0-9_]+)/',
+            '<a href="/author/$1" class="mention">@$1</a>',
+            $commentText
+        );
 
-    public function getParent(): ?ThreadedComment
-    {
-        if (!$this->parentId) {
-            return null;
-        }
+        // インラインコードをハイライト
+        $commentText = preg_replace(
+            '/`([^`]+)`/',
+            '<code>$1</code>',
+            $commentText
+        );
 
-        return $this->comments->find($this->parentId, ThreadedComment::class);
-    }
-
-    public function addReply(ThreadedComment $reply): void
-    {
-        $reply->parentId = $this->getId();
-        $reply->threadDepth = $this->threadDepth + 1;
-
-        if ($reply->threadDepth > 3) {
-            throw new Exception('Maximum thread depth exceeded');
-        }
-
-        $this->comments->save($reply);
-
-        // 返信数を更新
-        $this->replyCount++;
-        $this->save();
-    }
-
-    public function canReply(): bool
-    {
-        return $this->threadDepth < 3 && $this->isApproved();
+        return $commentText;
     }
 }
 ```
 
-### コメントリポジトリとクエリ
+### コメント承認フック
 
-コメント管理のための強力なリポジトリパターン：
+#### #[PreCommentApprovedFilter]
+
+**WordPress フック:** `pre_comment_approved`
+
+コメントの承認状態を決定するフィルターです。スパム判定や自動承認のロジックを実装できます。
 
 ```php
-class CommentService
+use WpPack\Component\Comment\Attribute\PreCommentApprovedFilter;
+
+class CommentModerator
 {
-    public function __construct(
-        private CommentRepository $comments
-    ) {}
-
-    public function createComment(int $postId, array $data): AbstractComment
+    #[PreCommentApprovedFilter]
+    public function moderateComment(int|string $approved, array $commentdata): int|string
     {
-        $comment = new Comment();
-        $comment->postId = $postId;
-        $comment->authorName = $data['author_name'];
-        $comment->authorEmail = $data['author_email'];
-        $comment->content = $data['content'];
+        // 過去に承認済みのメールアドレスからのコメントは自動承認
+        $previousCount = get_comments([
+            'author_email' => $commentdata['comment_author_email'],
+            'status' => 'approve',
+            'count' => true,
+        ]);
 
-        // コメントをバリデーション
-        $errors = $comment->validate();
-        if (!empty($errors)) {
-            throw new ValidationException($errors);
+        if ($previousCount >= 3) {
+            return 1;
         }
 
-        $this->comments->save($comment);
+        // スパムワードが含まれている場合はスパムとして処理
+        $spamWords = ['buy now', 'free money', 'click here'];
+        $content = strtolower($commentdata['comment_content']);
 
-        return $comment;
-    }
-
-    public function getApprovedComments(int $postId): array
-    {
-        return $this->comments
-            ->wherePostId($postId)
-            ->whereStatus('approved')
-            ->orderBy('created', 'asc')
-            ->get();
-    }
-
-    public function bulkApprove(array $commentIds): int
-    {
-        $approved = 0;
-
-        foreach ($commentIds as $id) {
-            $comment = $this->comments->find($id);
-
-            if ($comment && $comment->isPending()) {
-                $comment->approve();
-                $approved++;
+        foreach ($spamWords as $word) {
+            if (str_contains($content, $word)) {
+                return 'spam';
             }
         }
 
@@ -329,606 +147,275 @@ class CommentService
 }
 ```
 
-## クイックスタート
+### コメントフォームフック
 
-### 1. 基本的なコメントクラスの作成
+#### #[CommentFormDefaultFieldsFilter]
+
+**WordPress フック:** `comment_form_default_fields`
+
+コメントフォームのデフォルトフィールド（名前・メール・URL）をカスタマイズするフィルターです。
 
 ```php
-use WpPack\Component\Comment\AbstractComment;
-use WpPack\Component\Comment\Attribute\Comment;
-use WpPack\Component\Comment\Attribute\CommentMeta;
+use WpPack\Component\Comment\Attribute\CommentFormDefaultFieldsFilter;
 
-#[Comment(type: 'product_review')]
-class ProductReview extends AbstractComment
+class CommentFormCustomizer
 {
-    #[CommentMeta('rating', type: 'integer', min: 1, max: 5)]
-    public int $rating = 5;
-
-    #[CommentMeta('recommend', type: 'boolean')]
-    public bool $recommend = true;
-
-    #[CommentMeta('verified_purchase', type: 'boolean')]
-    public bool $verifiedPurchase = false;
-
-    #[CommentMeta('helpful_count', type: 'integer')]
-    public int $helpfulCount = 0;
-
-    public function validate(): array
+    #[CommentFormDefaultFieldsFilter]
+    public function customizeFormFields(array $fields): array
     {
-        $errors = [];
+        // URL フィールドを削除
+        unset($fields['url']);
 
-        if (empty($this->content)) {
-            $errors[] = 'Review content is required';
-        }
+        // 電話番号フィールドを追加
+        $fields['phone'] = sprintf(
+            '<p class="comment-form-phone"><label for="phone">%s</label>' .
+            '<input id="phone" name="phone" type="tel" value="" size="30" /></p>',
+            __('Phone (optional)', 'wppack')
+        );
 
-        if (strlen($this->content) < 10) {
-            $errors[] = 'Review must be at least 10 characters long';
-        }
-
-        if ($this->rating < 1 || $this->rating > 5) {
-            $errors[] = 'Rating must be between 1 and 5 stars';
-        }
-
-        return $errors;
-    }
-
-    public function markHelpful(): void
-    {
-        $this->helpfulCount++;
-        $this->save();
-    }
-
-    public function isHighRated(): bool
-    {
-        return $this->rating >= 4;
-    }
-
-    public function getStarDisplay(): string
-    {
-        return str_repeat('★', $this->rating) . str_repeat('☆', 5 - $this->rating);
+        return $fields;
     }
 }
 ```
 
-### 2. コメントサービスの作成
+#### #[CommentFormFieldCommentFilter]
+
+**WordPress フック:** `comment_form_field_comment`
+
+コメント本文のテキストエリアフィールドをカスタマイズするフィルターです。
 
 ```php
-class ProductReviewService
+use WpPack\Component\Comment\Attribute\CommentFormFieldCommentFilter;
+
+class CommentFieldCustomizer
 {
-    public function __construct(
-        private CommentRepository $comments
-    ) {}
-
-    public function createReview(int $productId, array $data): ProductReview
+    #[CommentFormFieldCommentFilter]
+    public function customizeCommentField(string $field): string
     {
-        $review = new ProductReview();
-        $review->postId = $productId;
-        $review->authorName = $data['author_name'];
-        $review->authorEmail = $data['author_email'];
-        $review->content = $data['content'];
-        $review->rating = (int) $data['rating'];
-        $review->recommend = isset($data['recommend']) && $data['recommend'];
-        $review->verifiedPurchase = $this->isVerifiedPurchase($productId, $data['author_email']);
+        // プレースホルダーを追加
+        $field = str_replace(
+            '<textarea ',
+            '<textarea placeholder="' . esc_attr__('Write your comment here...', 'wppack') . '" ',
+            $field
+        );
 
-        // レビューをバリデーション
-        $errors = $review->validate();
-        if (!empty($errors)) {
-            throw new ValidationException('Review validation failed', $errors);
+        // 最大文字数を設定
+        $field = str_replace(
+            '<textarea ',
+            '<textarea maxlength="2000" ',
+            $field
+        );
+
+        return $field;
+    }
+}
+```
+
+### コメント前処理フック
+
+#### #[PreCommentOnPostAction]
+
+**WordPress フック:** `pre_comment_on_post`
+
+コメントが投稿に紐付けられる前に実行されるアクションです。投稿のコメント可否チェックなどに利用できます。
+
+```php
+use WpPack\Component\Comment\Attribute\PreCommentOnPostAction;
+
+class CommentPreCheck
+{
+    #[PreCommentOnPostAction]
+    public function checkBeforeComment(int $postId): void
+    {
+        $post = get_post($postId);
+
+        // 公開から90日以上経過した投稿へのコメントを禁止
+        $publishedDate = strtotime($post->post_date);
+        $daysOld = (time() - $publishedDate) / DAY_IN_SECONDS;
+
+        if ($daysOld > 90) {
+            wp_die(
+                __('This post is too old to accept new comments.', 'wppack'),
+                __('Comments Closed', 'wppack'),
+                ['response' => 403]
+            );
+        }
+    }
+}
+```
+
+### コメント投稿フック
+
+#### #[CommentPostAction]
+
+**WordPress フック:** `comment_post`
+
+コメントがデータベースに保存された直後に実行されるアクションです。通知送信やメタデータの追加に利用できます。
+
+```php
+use WpPack\Component\Comment\Attribute\CommentPostAction;
+
+class CommentNotifier
+{
+    #[CommentPostAction]
+    public function onCommentPost(int $commentId, int|string $approved, array $commentdata): void
+    {
+        $comment = get_comment($commentId);
+        if (!$comment) {
+            return;
         }
 
-        // レビューを保存
-        $this->comments->save($review);
-
-        return $review;
-    }
-
-    public function getProductReviews(int $productId, string $status = 'approved'): array
-    {
-        return $this->comments
-            ->ofType(ProductReview::class)
-            ->wherePostId($productId)
-            ->whereStatus($status)
-            ->orderBy('created', 'desc')
-            ->get();
-    }
-
-    public function getAverageRating(int $productId): float
-    {
-        $reviews = $this->comments
-            ->ofType(ProductReview::class)
-            ->wherePostId($productId)
-            ->whereStatus('approved')
-            ->get();
-
-        if (empty($reviews)) {
-            return 0.0;
+        // 投稿者に通知
+        $post = get_post($comment->comment_post_ID);
+        if ($post && $post->post_author) {
+            $author = get_userdata($post->post_author);
+            wp_mail(
+                $author->user_email,
+                sprintf(__('New comment on "%s"', 'wppack'), $post->post_title),
+                sprintf(__('%s left a new comment.', 'wppack'), $comment->comment_author)
+            );
         }
 
-        $totalRating = array_sum(array_map(fn($review) => $review->rating, $reviews));
-        return round($totalRating / count($reviews), 1);
-    }
-
-    private function isVerifiedPurchase(int $productId, string $email): bool
-    {
-        // ユーザーがこの商品を購入済みかチェック
-        $orders = wc_get_orders([
-            'billing_email' => $email,
-            'status' => 'completed',
-            'limit' => -1
-        ]);
-
-        foreach ($orders as $order) {
-            foreach ($order->get_items() as $item) {
-                if ($item->get_product_id() == $productId) {
-                    return true;
-                }
+        // 親コメントの作者に返信通知
+        if ($comment->comment_parent) {
+            $parent = get_comment($comment->comment_parent);
+            if ($parent && $parent->comment_author_email) {
+                wp_mail(
+                    $parent->comment_author_email,
+                    __('New reply to your comment', 'wppack'),
+                    sprintf(__('%s replied to your comment.', 'wppack'), $comment->comment_author)
+                );
             }
         }
-
-        return false;
     }
 }
 ```
 
-### 3. WordPress との統合
+#### #[WpInsertCommentAction]
+
+**WordPress フック:** `wp_insert_comment`
+
+`wp_insert_comment()` でコメントが挿入されたときに実行されるアクションです。コメントオブジェクトが引数として渡されます。
 
 ```php
-class ReviewFormHandler
-{
-    public function __construct(
-        private ProductReviewService $reviewService
-    ) {}
+use WpPack\Component\Comment\Attribute\WpInsertCommentAction;
 
-    #[Action('wp_ajax_submit_review')]
-    #[Action('wp_ajax_nopriv_submit_review')]
-    public function onWpAjaxSubmitReview(): void
+class CommentStatisticsUpdater
+{
+    #[WpInsertCommentAction]
+    public function onInsertComment(int $commentId, \WP_Comment $comment): void
     {
-        // nonce を検証
-        if (!wp_verify_nonce($_POST['_wpnonce'], 'submit_review')) {
-            wp_send_json_error('Security check failed');
+        // コメント統計を更新
+        $postId = $comment->comment_post_ID;
+        $count = wp_count_comments($postId);
+        update_post_meta($postId, '_approved_comment_count', $count->approved);
+
+        // 最新コメント日時を記録
+        update_post_meta($postId, '_last_comment_date', $comment->comment_date);
+    }
+}
+```
+
+### コメントステータスフック
+
+#### #[TransitionCommentStatusAction]
+
+**WordPress フック:** `transition_comment_status`
+
+コメントのステータスが変更されたときに実行されるアクションです。承認・スパム判定・ゴミ箱移動などの状態遷移を追跡できます。
+
+```php
+use WpPack\Component\Comment\Attribute\TransitionCommentStatusAction;
+
+class CommentStatusHandler
+{
+    #[TransitionCommentStatusAction]
+    public function onStatusChange(string $newStatus, string $oldStatus, \WP_Comment $comment): void
+    {
+        // 承認時にコメント投稿者に通知
+        if ($newStatus === 'approved' && $oldStatus !== 'approved') {
+            wp_mail(
+                $comment->comment_author_email,
+                __('Your comment has been approved', 'wppack'),
+                sprintf(
+                    __('Your comment on "%s" has been approved and is now visible.', 'wppack'),
+                    get_the_title($comment->comment_post_ID)
+                )
+            );
         }
 
-        $productId = intval($_POST['product_id']);
-        $data = [
-            'author_name' => sanitize_text_field($_POST['author_name']),
-            'author_email' => sanitize_email($_POST['author_email']),
-            'content' => wp_kses_post($_POST['content']),
-            'rating' => intval($_POST['rating']),
-            'recommend' => isset($_POST['recommend'])
+        // スパム判定時にログを記録
+        if ($newStatus === 'spam') {
+            update_comment_meta($comment->comment_ID, '_marked_spam_at', current_time('mysql'));
+            update_comment_meta($comment->comment_ID, '_previous_status', $oldStatus);
+        }
+
+        // コメントカウントキャッシュを更新
+        clean_post_cache($comment->comment_post_ID);
+    }
+}
+```
+
+### コメント編集フック
+
+#### #[EditCommentAction]
+
+**WordPress フック:** `edit_comment`
+
+管理画面でコメントが編集されたときに実行されるアクションです。編集履歴の追跡などに利用できます。
+
+```php
+use WpPack\Component\Comment\Attribute\EditCommentAction;
+
+class CommentEditTracker
+{
+    #[EditCommentAction]
+    public function onEditComment(int $commentId, array $data): void
+    {
+        // 編集履歴を記録
+        $editHistory = get_comment_meta($commentId, '_edit_history', true) ?: [];
+        $editHistory[] = [
+            'edited_by' => get_current_user_id(),
+            'edited_at' => current_time('mysql'),
         ];
+        update_comment_meta($commentId, '_edit_history', $editHistory);
 
-        try {
-            $review = $this->reviewService->createReview($productId, $data);
-
-            wp_send_json_success([
-                'message' => 'Review submitted successfully!',
-                'review_id' => $review->getId(),
-                'status' => $review->getStatus()
-            ]);
-
-        } catch (ValidationException $e) {
-            wp_send_json_error([
-                'message' => 'Please correct the errors below:',
-                'errors' => $e->getErrors()
-            ]);
-        } catch (Exception $e) {
-            wp_send_json_error('An error occurred while submitting your review.');
-        }
+        // 編集回数を更新
+        $editCount = count($editHistory);
+        update_comment_meta($commentId, '_edit_count', $editCount);
     }
 }
 ```
 
-### 4. フロントエンドレビューフォーム
-
-```html
-<form id="review-form" method="post">
-    <?php wp_nonce_field('submit_review'); ?>
-    <input type="hidden" name="action" value="submit_review">
-    <input type="hidden" name="product_id" value="<?php echo get_the_ID(); ?>">
-
-    <div class="form-group">
-        <label for="author_name">Your Name *</label>
-        <input type="text" id="author_name" name="author_name" required>
-    </div>
-
-    <div class="form-group">
-        <label for="author_email">Your Email *</label>
-        <input type="email" id="author_email" name="author_email" required>
-    </div>
-
-    <div class="form-group">
-        <label for="rating">Rating *</label>
-        <div class="star-rating">
-            <input type="radio" id="star5" name="rating" value="5">
-            <label for="star5">★</label>
-            <input type="radio" id="star4" name="rating" value="4">
-            <label for="star4">★</label>
-            <input type="radio" id="star3" name="rating" value="3">
-            <label for="star3">★</label>
-            <input type="radio" id="star2" name="rating" value="2">
-            <label for="star2">★</label>
-            <input type="radio" id="star1" name="rating" value="1">
-            <label for="star1">★</label>
-        </div>
-    </div>
-
-    <div class="form-group">
-        <label for="content">Your Review *</label>
-        <textarea id="content" name="content" rows="4" required></textarea>
-    </div>
-
-    <div class="form-group">
-        <label>
-            <input type="checkbox" name="recommend" value="1">
-            I would recommend this product
-        </label>
-    </div>
-
-    <button type="submit">Submit Review</button>
-</form>
-
-<script>
-document.getElementById('review-form').addEventListener('submit', async function(e) {
-    e.preventDefault();
-
-    const formData = new FormData(this);
-
-    try {
-        const response = await fetch(ajaxurl, {
-            method: 'POST',
-            body: formData
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-            alert(result.data.message);
-            this.reset();
-            location.reload();
-        } else {
-            if (result.data.errors) {
-                let errorMsg = result.data.message + '\n';
-                result.data.errors.forEach(error => errorMsg += '- ' + error + '\n');
-                alert(errorMsg);
-            } else {
-                alert(result.data);
-            }
-        }
-    } catch (error) {
-        alert('Network error. Please try again.');
-    }
-});
-</script>
-```
-
-## コメントスレッドの例
-
-### 1. スレッドコメントクラスの作成
-
-```php
-#[Comment(allowReplies: true, maxDepth: 3)]
-class ThreadedComment extends AbstractComment
-{
-    #[CommentMeta('thread_depth', type: 'integer')]
-    public int $threadDepth = 0;
-
-    #[CommentMeta('reply_count', type: 'integer')]
-    public int $replyCount = 0;
-
-    public function addReply(ThreadedComment $reply): void
-    {
-        if ($this->threadDepth >= 3) {
-            throw new Exception('Maximum thread depth exceeded');
-        }
-
-        $reply->parentId = $this->getId();
-        $reply->threadDepth = $this->threadDepth + 1;
-
-        $this->comments->save($reply);
-
-        // 返信数を更新
-        $this->replyCount++;
-        $this->save();
-    }
-
-    public function getReplies(): array
-    {
-        return $this->comments
-            ->whereParentId($this->getId())
-            ->whereStatus('approved')
-            ->orderBy('created', 'asc')
-            ->get();
-    }
-
-    public function canReply(): bool
-    {
-        return $this->threadDepth < 3 && $this->isApproved();
-    }
-
-    public function getThread(): array
-    {
-        $thread = [];
-        $current = $this;
-
-        // すべての祖先を取得
-        while ($current->parentId) {
-            $parent = $this->comments->find($current->parentId, ThreadedComment::class);
-            if (!$parent) break;
-
-            array_unshift($thread, $parent);
-            $current = $parent;
-        }
-
-        // 現在のコメントを追加
-        $thread[] = $this;
-
-        return $thread;
-    }
-}
-```
-
-### 2. スレッドコメントの表示
-
-```php
-function display_threaded_comments($postId) {
-    $commentService = $container->get(CommentService::class);
-    $comments = $commentService->getApprovedComments($postId);
-
-    // 親でグループ化
-    $parentComments = array_filter($comments, fn($c) => $c->parentId === 0);
-    $childComments = array_filter($comments, fn($c) => $c->parentId > 0);
-
-    // 子を親でグループ化
-    $grouped = [];
-    foreach ($childComments as $child) {
-        $grouped[$child->parentId][] = $child;
-    }
-
-    echo '<div class="comments-list">';
-    foreach ($parentComments as $comment) {
-        display_comment($comment, $grouped);
-    }
-    echo '</div>';
-}
-
-function display_comment($comment, $grouped, $depth = 0) {
-    $indent = str_repeat('  ', $depth);
-
-    echo "<div class='comment depth-{$depth}' style='margin-left: " . ($depth * 20) . "px;'>";
-    echo "<div class='comment-content'>";
-    echo "<strong>" . esc_html($comment->authorName) . "</strong>";
-    echo "<p>" . esc_html($comment->content) . "</p>";
-
-    if ($comment->canReply()) {
-        echo "<button onclick='showReplyForm({$comment->getId()})'>Reply</button>";
-    }
-
-    echo "</div>";
-
-    // 返信を表示
-    if (isset($grouped[$comment->getId()])) {
-        foreach ($grouped[$comment->getId()] as $reply) {
-            display_comment($reply, $grouped, $depth + 1);
-        }
-    }
-
-    echo "</div>";
-}
-```
-
-## 高度な機能
-
-### 一括操作
-
-コメント管理のための効率的な一括操作：
-
-```php
-class BulkCommentOperations
-{
-    public function bulkApprove(array $commentIds): array
-    {
-        $results = [];
-
-        foreach ($commentIds as $id) {
-            try {
-                $comment = $this->comments->find($id);
-
-                if ($comment && $comment->isPending()) {
-                    $comment->approve();
-                    $results[$id] = ['success' => true];
-                } else {
-                    $results[$id] = ['success' => false, 'reason' => 'Not pending'];
-                }
-            } catch (Exception $e) {
-                $results[$id] = ['success' => false, 'reason' => $e->getMessage()];
-            }
-        }
-
-        return $results;
-    }
-
-    public function deleteSpamComments(int $olderThanDays = 30): int
-    {
-        $cutoffDate = (new DateTime())->sub(new DateInterval("P{$olderThanDays}D"));
-
-        $spamComments = $this->comments
-            ->whereStatus('spam')
-            ->whereDate('created', '<', $cutoffDate->format('Y-m-d'))
-            ->get();
-
-        $deletedCount = 0;
-
-        foreach ($spamComments as $comment) {
-            try {
-                $this->comments->delete($comment, true);
-                $deletedCount++;
-            } catch (Exception $e) {
-                error_log("Failed to delete spam comment: " . $e->getMessage());
-            }
-        }
-
-        return $deletedCount;
-    }
-}
-```
-
-## コメントのテスト
-
-### ユニットテスト
-
-```php
-use WpPack\Component\Comment\Testing\CommentTestCase;
-
-class ProductReviewTest extends CommentTestCase
-{
-    public function testCreateReview(): void
-    {
-        $review = new ProductReview();
-        $review->postId = 123;
-        $review->authorName = 'John Doe';
-        $review->authorEmail = 'john@example.com';
-        $review->content = 'Great product! Highly recommend.';
-        $review->rating = 5;
-        $review->recommend = true;
-
-        $errors = $review->validate();
-        $this->assertEmpty($errors);
-
-        $this->assertTrue($review->isHighRated());
-        $this->assertEquals('★★★★★☆☆☆☆☆', $review->getStarDisplay());
-    }
-
-    public function testReviewValidation(): void
-    {
-        $review = new ProductReview();
-        $review->content = 'Short'; // 短すぎる
-        $review->rating = 6; // 無効な評価
-
-        $errors = $review->validate();
-
-        $this->assertNotEmpty($errors);
-        $this->assertContains('Review must be at least 10 characters long', $errors);
-        $this->assertContains('Rating must be between 1 and 5 stars', $errors);
-    }
-
-    public function testHelpfulVotes(): void
-    {
-        $review = $this->createComment(ProductReview::class);
-        $initialCount = $review->helpfulCount;
-
-        $review->markHelpful();
-
-        $this->assertEquals($initialCount + 1, $review->helpfulCount);
-    }
-}
-
-class ThreadedCommentTest extends CommentTestCase
-{
-    public function testAddReply(): void
-    {
-        $parent = $this->createComment(ThreadedComment::class);
-        $reply = new ThreadedComment();
-        $reply->content = 'This is a reply';
-        $reply->authorName = 'Replier';
-        $reply->authorEmail = 'reply@example.com';
-
-        $parent->addReply($reply);
-
-        $this->assertEquals($parent->getId(), $reply->parentId);
-        $this->assertEquals(1, $reply->threadDepth);
-        $this->assertEquals(1, $parent->replyCount);
-    }
-
-    public function testMaxDepthRestriction(): void
-    {
-        $parent = $this->createComment(ThreadedComment::class);
-        $parent->threadDepth = 3;
-
-        $reply = new ThreadedComment();
-
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage('Maximum thread depth exceeded');
-
-        $parent->addReply($reply);
-    }
-}
-```
-
-## このコンポーネントの使用場面
-
-**最適な用途：**
-- 高度なコメント管理が必要な WordPress サイト
-- 商品レビューと評価を持つ EC サイト
-- カスタムコメントタイプ（レビュー、テスティモニアルなど）を持つプロジェクト
-- コメントスレッドと階層が必要なシステム
-
-**代替を検討すべき場合：**
-- 基本的なコメント機能で十分なシンプルな WordPress サイト
-- WordPress デフォルトのコメント機能のみを使用するサイト
-- カスタムコメント要件のないプロジェクト
-
-## パフォーマンス機能
-
-### 効率的なクエリ
-
-スマートキャッシュを備えた最適化されたデータベースクエリ：
-
-```php
-// 効率的なコメントクエリ
-$comments = $this->comments
-    ->wherePostId($postId)
-    ->whereStatus('approved')
-    ->with(['meta', 'replies'])
-    ->cache(3600)
-    ->get();
-```
+## Hook アトリビュートリファレンス
+
+| アトリビュート | WordPress フック | 種別 | 説明 |
+|---|---|---|---|
+| `#[CommentTextFilter]` | `comment_text` | Filter | コメントテキストの表示を変更 |
+| `#[PreCommentApprovedFilter]` | `pre_comment_approved` | Filter | コメントの承認状態を判定 |
+| `#[CommentFormDefaultFieldsFilter]` | `comment_form_default_fields` | Filter | フォームのデフォルトフィールドをカスタマイズ |
+| `#[CommentFormFieldCommentFilter]` | `comment_form_field_comment` | Filter | コメント本文フィールドをカスタマイズ |
+| `#[PreCommentOnPostAction]` | `pre_comment_on_post` | Action | コメント投稿前の検証処理 |
+| `#[CommentPostAction]` | `comment_post` | Action | コメント投稿後の処理 |
+| `#[WpInsertCommentAction]` | `wp_insert_comment` | Action | コメント挿入後の処理 |
+| `#[TransitionCommentStatusAction]` | `transition_comment_status` | Action | コメントステータス変更時の処理 |
+| `#[EditCommentAction]` | `edit_comment` | Action | コメント編集後の処理 |
+
+すべてのアトリビュートは `priority` パラメータ（デフォルト: `10`）をサポートします。
+
+## WordPress 統合
+
+- **WordPress コメントシステム**との完全な互換性を維持
+- **WordPress ディスカッション設定**（コメント承認、スレッド表示等）と連携
+- **Akismet** などのスパム対策プラグインと共存可能
+- **WordPress のユーザーロールと権限**（`moderate_comments` など）と互換性あり
+- **マルチサイトネットワーク**でのサイトごとのコメント設定に対応
 
 ## 依存関係
 
 ### 必須
-- **なし** - WordPress 組み込みのコメント関数で独立して動作
+- **Hook コンポーネント** - Named Hook アトリビュートの基盤
 
 ### 推奨
+- **Mailer コンポーネント** - コメント通知メール送信用
 - **EventDispatcher コンポーネント** - コメントライフサイクルイベント用
-- **Mailer コンポーネント** - コメント通知用
-- **Cache コンポーネント** - コメントデータキャッシュ用
-
-## クイックリファレンス
-
-### 基本的なコメント構造
-
-```php
-#[Comment(type: 'my_comment')]
-class MyComment extends AbstractComment
-{
-    #[CommentMeta('field_name', type: 'string')]
-    public string $fieldName;
-
-    public function validate(): array
-    {
-        // バリデーションロジック
-        return [];
-    }
-}
-```
-
-### コメントリポジトリメソッド
-
-```php
-$comments = $repository
-    ->ofType(MyComment::class)
-    ->wherePostId($postId)
-    ->whereStatus('approved')
-    ->whereMeta('field', 'value')
-    ->orderBy('created', 'desc')
-    ->get();
-```
-
-### コメントメタタイプ
-
-```php
-#[CommentMeta('string_field', type: 'string')]
-#[CommentMeta('int_field', type: 'integer', min: 1, max: 10)]
-#[CommentMeta('bool_field', type: 'boolean')]
-#[CommentMeta('array_field', type: 'array')]
-```
