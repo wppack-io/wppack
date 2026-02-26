@@ -9,6 +9,9 @@
         <testsuite name="Mailer Component Test Suite">
             <directory>./Tests/</directory>
         </testsuite>
+        <testsuite name="Bridge">
+            <directory>./Bridge/*/Tests</directory>
+        </testsuite>
     </testsuites>
 
     <source>
@@ -17,6 +20,7 @@
         </include>
         <exclude>
             <directory>./Tests</directory>
+            <directory>./Bridge/*/Tests</directory>
             <directory>./vendor</directory>
         </exclude>
     </source>

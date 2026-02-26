@@ -75,11 +75,27 @@ final class DsnTest extends TestCase
     }
 
     #[Test]
+    public function toStringIncludesPort(): void
+    {
+        $dsn = Dsn::fromString('smtp://user:pass@smtp.example.com:587');
+
+        self::assertSame('smtp://user:****@smtp.example.com:587', (string) $dsn);
+    }
+
+    #[Test]
     public function invalidDsnThrowsException(): void
     {
         $this->expectException(InvalidArgumentException::class);
 
         Dsn::fromString('not-a-valid-dsn');
+    }
+
+    #[Test]
+    public function emptyHostThrowsException(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        Dsn::fromString('null://');
     }
 
     #[Test]

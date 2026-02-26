@@ -36,9 +36,11 @@ final class AzureTransport extends AbstractTransport
 
         $result = $this->sendAzureRequest($this->endpoint, $this->apiVersion, $this->accessKey, $body);
 
-        if (isset($result['id']) && $result['id'] !== '') {
-            $phpMailer->setLastMessageId('<' . $result['id'] . '>');
+        if (!isset($result['id']) || $result['id'] === '') {
+            throw new TransportException('Azure email send succeeded but no message ID was returned.');
         }
+
+        $phpMailer->setLastMessageId('<' . $result['id'] . '>');
     }
 
     public function __toString(): string

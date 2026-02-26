@@ -131,27 +131,33 @@ final class SendGridApiTransport extends AbstractApiTransport
     }
 
     /**
-     * @return list<array{content: string, filename: string, type: string, disposition: string}>
+     * @return list<array{content: string, filename: string, type: string, disposition: string, content_id?: string}>
      */
     private function buildAttachments(WpPackPhpMailer $phpMailer): array
     {
         $attachments = [];
 
         foreach ($phpMailer->getAttachments() as $attachment) {
-            [$pathOrContent, , $name, , $type, $isString, $disposition] = $attachment;
+            [$pathOrContent, , $name, , $type, $isString, $disposition, $cid] = $attachment;
 
             $data = $isString ? $pathOrContent : file_get_contents($pathOrContent);
 
             if ($data === false) {
-                continue;
+                throw new TransportException(sprintf('Failed to read attachment file: %s', $pathOrContent));
             }
 
-            $attachments[] = [
+            $entry = [
                 'content' => base64_encode($data),
                 'filename' => $name,
                 'type' => $type,
                 'disposition' => $disposition,
             ];
+
+            if ($disposition === 'inline' && $cid !== '') {
+                $entry['content_id'] = $cid;
+            }
+
+            $attachments[] = $entry;
         }
 
         return $attachments;

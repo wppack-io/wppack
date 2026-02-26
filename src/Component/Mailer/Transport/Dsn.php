@@ -30,7 +30,7 @@ final class Dsn
             throw new InvalidArgumentException(sprintf('The "%s" mailer DSN must contain a scheme.', $dsn));
         }
 
-        if (!isset($parsedDsn['host'])) {
+        if (!isset($parsedDsn['host']) || $parsedDsn['host'] === '') {
             throw new InvalidArgumentException(sprintf('The "%s" mailer DSN must contain a host.', $dsn));
         }
 
@@ -96,6 +96,8 @@ final class Dsn
             $userInfo = $this->user . $password . '@';
         }
 
-        return sprintf('%s://%s%s', $this->scheme, $userInfo, $this->host);
+        $port = $this->port !== null ? ':' . $this->port : '';
+
+        return sprintf('%s://%s%s%s', $this->scheme, $userInfo, $this->host, $port);
     }
 }

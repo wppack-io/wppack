@@ -12,6 +12,7 @@ use WpPack\Component\Mailer\Transport\TransportInterface;
 final class Mailer
 {
     private static bool $booted = false;
+    private static ?self $bootedInstance = null;
 
     private readonly TransportInterface $transport;
     private ?WpPackPhpMailer $phpMailer = null;
@@ -41,6 +42,7 @@ final class Mailer
         add_filter('wp_mail', [$this, 'onWpMail'], PHP_INT_MIN);
         add_action('phpmailer_init', [$this, 'onPhpMailerInit'], PHP_INT_MAX);
         self::$booted = true;
+        self::$bootedInstance = $this;
     }
 
     /**
@@ -50,7 +52,13 @@ final class Mailer
      */
     public static function reset(): void
     {
+        if (self::$bootedInstance !== null && function_exists('remove_filter')) {
+            remove_filter('wp_mail', [self::$bootedInstance, 'onWpMail'], PHP_INT_MIN);
+            remove_action('phpmailer_init', [self::$bootedInstance, 'onPhpMailerInit'], PHP_INT_MAX);
+        }
+
         self::$booted = false;
+        self::$bootedInstance = null;
     }
 
     // --- Path 1: wp_mail hooks ---
@@ -160,6 +168,9 @@ final class Mailer
         $phpMailer->FromName = 'Root User';
         $phpMailer->Sender = '';
         $phpMailer->Priority = null;
+        $phpMailer->ContentType = PHPMailer::CONTENT_TYPE_PLAINTEXT;
+        $phpMailer->CharSet = PHPMailer::CHARSET_UTF8;
+        $phpMailer->Encoding = PHPMailer::ENCODING_8BIT;
     }
 
     /**

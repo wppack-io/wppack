@@ -104,30 +104,32 @@ trait AzureRequestTrait
     }
 
     /**
-     * @return list<array{name: string, contentType: string, contentInBase64: string}>
+     * @return list<array{name: string, contentType: string, contentInBase64: string, contentId?: string}>
      */
     private function buildAttachments(WpPackPhpMailer $phpMailer): array
     {
         $attachments = [];
 
         foreach ($phpMailer->getAttachments() as $attachment) {
-            [$pathOrContent, , $name, , $type, $isString, $disposition] = $attachment;
-
-            if ($disposition === 'inline') {
-                continue;
-            }
+            [$pathOrContent, , $name, , $type, $isString, $disposition, $cid] = $attachment;
 
             $data = $isString ? $pathOrContent : file_get_contents($pathOrContent);
 
             if ($data === false) {
-                continue;
+                throw new TransportException(sprintf('Failed to read attachment file: %s', $pathOrContent));
             }
 
-            $attachments[] = [
+            $entry = [
                 'name' => $name,
                 'contentType' => $type,
                 'contentInBase64' => base64_encode($data),
             ];
+
+            if ($disposition === 'inline' && $cid !== '') {
+                $entry['contentId'] = $cid;
+            }
+
+            $attachments[] = $entry;
         }
 
         return $attachments;
