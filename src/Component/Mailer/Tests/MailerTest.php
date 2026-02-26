@@ -224,7 +224,7 @@ final class MailerTest extends TestCase
             self::markTestSkipped('WordPress functions are not available.');
         }
 
-        $renderer = new class () implements TemplateRendererInterface {
+        $renderer = new class implements TemplateRendererInterface {
             public function render(string $template, array $context = []): string
             {
                 return '<p>Rendered: ' . $template . '</p>';

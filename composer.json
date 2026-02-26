@@ -5,7 +5,10 @@
     "license": "MIT",
     "require": {
         "php": "^8.1",
-        "async-aws/ses": "^1.14"
+        "async-aws/ses": "^1.14",
+        "psr/http-client": "^1.0",
+        "psr/http-factory": "^1.0",
+        "psr/http-message": "^2.0"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.68",
