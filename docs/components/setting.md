@@ -29,21 +29,29 @@ function my_plugin_settings_init() {
 ### After（WpPack）
 
 ```php
-use WpPack\Component\Setting\AbstractSettings;
-use WpPack\Component\Setting\Attribute\Setting;
-use WpPack\Component\Setting\Attribute\SettingField;
-use WpPack\Component\Setting\Attribute\SettingValidate;
+use WpPack\Component\Setting\Attribute\SettingsPageAction;
+use WpPack\Component\Setting\SettingsRegistrar;
 
-#[Setting(
-    id: 'my_plugin_settings',
-    label: 'My Plugin Settings',
-    menuTitle: 'My Plugin'
-)]
-class PluginSettings extends AbstractSettings
+class PluginSettingsManager
 {
-    #[SettingField(type: 'text', label: 'API Key')]
-    #[SettingValidate('required|alphanumeric|length:32')]
-    protected string $apiKey = '';
+    public function __construct(
+        private readonly SettingsRegistrar $settings,
+    ) {}
+
+    #[SettingsPageAction(page: 'settings_page_my-plugin')]
+    public function registerSettings(): void
+    {
+        $this->settings->register('my_plugin_settings', 'my_plugin_options', [
+            'sanitize_callback' => [$this, 'sanitize'],
+        ]);
+
+        $this->settings->addSection('general', 'General Settings', 'my_plugin_settings');
+
+        $this->settings->addField('api_key', 'API Key', 'my_plugin_settings', 'general', [
+            'type' => 'text',
+            'label_for' => 'api_key',
+        ]);
+    }
 }
 ```
 
