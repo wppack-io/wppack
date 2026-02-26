@@ -20,6 +20,6 @@ final class NullTransport extends AbstractTransport
 
     public function __toString(): string
     {
-        return 'null://default';
+        return 'null://null';
     }
 }

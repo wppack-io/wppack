@@ -26,6 +26,6 @@ final class SesSmtpTransport extends SmtpTransport
 
     public function __toString(): string
     {
-        return 'ses+smtp://';
+        return 'ses+smtp://default';
     }
 }

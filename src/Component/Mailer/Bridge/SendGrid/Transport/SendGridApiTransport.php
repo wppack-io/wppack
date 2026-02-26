@@ -178,6 +178,6 @@ final class SendGridApiTransport extends AbstractApiTransport
 
     public function __toString(): string
     {
-        return 'sendgrid+api://';
+        return 'sendgrid+api://default';
     }
 }

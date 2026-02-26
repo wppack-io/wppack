@@ -37,7 +37,7 @@ final class SesTransportFactoryTest extends TestCase
 
         $transport = $factory->create($dsn);
 
-        self::assertSame('ses://', (string) $transport);
+        self::assertSame('ses://default', (string) $transport);
     }
 
     #[Test]
@@ -48,7 +48,7 @@ final class SesTransportFactoryTest extends TestCase
 
         $transport = $factory->create($dsn);
 
-        self::assertSame('ses+api://', (string) $transport);
+        self::assertSame('ses+api://default', (string) $transport);
     }
 
     #[Test]
@@ -59,7 +59,7 @@ final class SesTransportFactoryTest extends TestCase
 
         $transport = $factory->create($dsn);
 
-        self::assertSame('ses+smtp://', (string) $transport);
+        self::assertSame('ses+smtp://default', (string) $transport);
     }
 
     #[Test]

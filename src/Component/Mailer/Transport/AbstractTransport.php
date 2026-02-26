@@ -40,6 +40,6 @@ abstract class AbstractTransport implements TransportInterface
 
     public function __toString(): string
     {
-        return $this->getMailerName() . '://';
+        return $this->getMailerName() . '://default';
     }
 }

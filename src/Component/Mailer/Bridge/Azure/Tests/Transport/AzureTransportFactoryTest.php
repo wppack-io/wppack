@@ -37,7 +37,7 @@ final class AzureTransportFactoryTest extends TestCase
 
         $transport = $factory->create($dsn);
 
-        self::assertSame('azure://', (string) $transport);
+        self::assertSame('azure://default', (string) $transport);
     }
 
     #[Test]
@@ -48,7 +48,7 @@ final class AzureTransportFactoryTest extends TestCase
 
         $transport = $factory->create($dsn);
 
-        self::assertSame('azure+api://', (string) $transport);
+        self::assertSame('azure+api://default', (string) $transport);
     }
 
     #[Test]

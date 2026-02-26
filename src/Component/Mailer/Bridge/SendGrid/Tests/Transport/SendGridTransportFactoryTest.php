@@ -37,7 +37,7 @@ final class SendGridTransportFactoryTest extends TestCase
 
         $transport = $factory->create($dsn);
 
-        self::assertSame('sendgrid+api://', (string) $transport);
+        self::assertSame('sendgrid+api://default', (string) $transport);
     }
 
     #[Test]
@@ -48,7 +48,7 @@ final class SendGridTransportFactoryTest extends TestCase
 
         $transport = $factory->create($dsn);
 
-        self::assertSame('sendgrid+smtp://', (string) $transport);
+        self::assertSame('sendgrid+smtp://default', (string) $transport);
     }
 
     #[Test]

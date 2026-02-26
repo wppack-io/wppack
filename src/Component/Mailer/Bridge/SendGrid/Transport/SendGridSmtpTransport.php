@@ -24,6 +24,6 @@ final class SendGridSmtpTransport extends SmtpTransport
 
     public function __toString(): string
     {
-        return 'sendgrid+smtp://';
+        return 'sendgrid+smtp://default';
     }
 }

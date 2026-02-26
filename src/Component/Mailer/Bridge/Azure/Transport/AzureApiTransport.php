@@ -43,6 +43,6 @@ final class AzureApiTransport extends AbstractApiTransport
 
     public function __toString(): string
     {
-        return 'azure+api://';
+        return 'azure+api://default';
     }
 }

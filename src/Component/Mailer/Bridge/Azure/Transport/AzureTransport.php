@@ -45,6 +45,6 @@ final class AzureTransport extends AbstractTransport
 
     public function __toString(): string
     {
-        return 'azure://';
+        return 'azure://default';
     }
 }

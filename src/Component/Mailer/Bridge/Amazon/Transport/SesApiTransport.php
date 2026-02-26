@@ -121,6 +121,6 @@ final class SesApiTransport extends AbstractApiTransport
 
     public function __toString(): string
     {
-        return 'ses+api://';
+        return 'ses+api://default';
     }
 }

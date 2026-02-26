@@ -39,6 +39,6 @@ final class SesTransport extends AbstractTransport
 
     public function __toString(): string
     {
-        return 'ses://';
+        return 'ses://default';
     }
 }
