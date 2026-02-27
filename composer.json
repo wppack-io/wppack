@@ -80,7 +80,8 @@
             "WpPack\\Component\\Mailer\\Bridge\\Amazon\\Tests\\": "src/Component/Mailer/Bridge/Amazon/tests/",
             "WpPack\\Component\\Mailer\\Bridge\\Azure\\Tests\\": "src/Component/Mailer/Bridge/Azure/tests/",
             "WpPack\\Component\\Mailer\\Bridge\\SendGrid\\Tests\\": "src/Component/Mailer/Bridge/SendGrid/tests/",
-            "WpPack\\Component\\HttpClient\\Tests\\": "src/Component/HttpClient/tests/"
+            "WpPack\\Component\\HttpClient\\Tests\\": "src/Component/HttpClient/tests/",
+            "WpPack\\Component\\SiteHealth\\Tests\\": "src/Component/SiteHealth/tests/"
         }
     },
     "replace": {
