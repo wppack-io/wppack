@@ -222,4 +222,68 @@ final class StreamTest extends TestCase
         self::assertSame([], $stream->getMetadata());
         self::assertNull($stream->getMetadata('mode'));
     }
+
+    #[Test]
+    public function getSizeReturnsNullAfterDetach(): void
+    {
+        $stream = new Stream('hello');
+        $stream->detach();
+
+        self::assertNull($stream->getSize());
+    }
+
+    #[Test]
+    public function eofReturnsTrueAfterDetach(): void
+    {
+        $stream = new Stream('hello');
+        $stream->detach();
+
+        self::assertTrue($stream->eof());
+    }
+
+    #[Test]
+    public function isReadableReturnsFalseAfterDetach(): void
+    {
+        $stream = new Stream('hello');
+        $stream->detach();
+
+        self::assertFalse($stream->isReadable());
+    }
+
+    #[Test]
+    public function isWritableReturnsFalseAfterDetach(): void
+    {
+        $stream = new Stream('hello');
+        $stream->detach();
+
+        self::assertFalse($stream->isWritable());
+    }
+
+    #[Test]
+    public function isSeekableReturnsFalseAfterDetach(): void
+    {
+        $stream = new Stream('hello');
+        $stream->detach();
+
+        self::assertFalse($stream->isSeekable());
+    }
+
+    #[Test]
+    public function closeOnAlreadyClosedStreamIsNoop(): void
+    {
+        $stream = new Stream('hello');
+        $stream->close();
+        $stream->close();
+
+        self::assertSame('', (string) $stream);
+    }
+
+    #[Test]
+    public function seekFromEnd(): void
+    {
+        $stream = new Stream('hello');
+
+        $stream->seek(-2, \SEEK_END);
+        self::assertSame('lo', $stream->getContents());
+    }
 }

@@ -262,4 +262,97 @@ final class ResponseTest extends TestCase
             self::assertSame(422, $e->response->getStatusCode());
         }
     }
+
+    #[Test]
+    public function throwOnClientErrorWithRequest(): void
+    {
+        $request = new \WpPack\Component\HttpClient\Request('GET', 'https://example.com');
+        $response = new Response(404);
+
+        try {
+            $response->throw($request);
+            self::fail('Expected RequestException');
+        } catch (RequestException $e) {
+            self::assertSame($response, $e->response);
+            self::assertSame($request, $e->getRequest());
+        }
+    }
+
+    #[Test]
+    public function throwExceptionRequestIsNullByDefault(): void
+    {
+        $response = new Response(500);
+
+        try {
+            $response->throw();
+            self::fail('Expected RequestException');
+        } catch (RequestException $e) {
+            self::assertNull($e->getRequest());
+        }
+    }
+
+    #[Test]
+    public function withAddedHeaderCreatesNewHeader(): void
+    {
+        $response = new Response();
+        $new = $response->withAddedHeader('X-New', 'value');
+
+        self::assertFalse($response->hasHeader('X-New'));
+        self::assertSame(['value'], $new->getHeader('X-New'));
+    }
+
+    #[Test]
+    public function withHeaderReplacesExistingHeader(): void
+    {
+        $response = new Response(headers: ['Content-Type' => 'text/html']);
+        $new = $response->withHeader('Content-Type', 'application/json');
+
+        self::assertSame(['text/html'], $response->getHeader('Content-Type'));
+        self::assertSame(['application/json'], $new->getHeader('Content-Type'));
+    }
+
+    #[Test]
+    public function withHeaderAcceptsArrayValue(): void
+    {
+        $response = new Response();
+        $new = $response->withHeader('Accept', ['text/html', 'application/json']);
+
+        self::assertSame(['text/html', 'application/json'], $new->getHeader('Accept'));
+    }
+
+    #[Test]
+    public function withAddedHeaderAcceptsArrayValue(): void
+    {
+        $response = new Response(headers: ['Accept' => 'text/html']);
+        $new = $response->withAddedHeader('Accept', ['application/json', 'text/xml']);
+
+        self::assertSame(['text/html', 'application/json', 'text/xml'], $new->getHeader('Accept'));
+    }
+
+    #[Test]
+    public function withoutHeaderOnNonExistentHeaderReturnsClone(): void
+    {
+        $response = new Response();
+        $new = $response->withoutHeader('X-Missing');
+
+        self::assertNotSame($response, $new);
+        self::assertFalse($new->hasHeader('X-Missing'));
+    }
+
+    #[Test]
+    public function getHeaderReturnsEmptyArrayForMissingHeader(): void
+    {
+        $response = new Response();
+
+        self::assertSame([], $response->getHeader('X-Missing'));
+    }
+
+    #[Test]
+    public function constructWithArrayHeaderValues(): void
+    {
+        $response = new Response(headers: ['Accept' => ['text/html', 'application/json']]);
+
+        self::assertSame(['text/html', 'application/json'], $response->getHeader('Accept'));
+        self::assertSame('text/html, application/json', $response->getHeaderLine('Accept'));
+    }
 }
