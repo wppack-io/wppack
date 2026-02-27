@@ -308,6 +308,87 @@ class PaymentServiceTest extends TestCase
 }
 ```
 
+## DI コンテナ統合
+
+`wppack/dependency-injection` と組み合わせて、チャンネルベースのロガー注入を自動化できます。
+
+### 基本設定
+
+```php
+use WpPack\Component\DependencyInjection\ContainerBuilder;
+use WpPack\Component\DependencyInjection\Reference;
+use WpPack\Component\Logger\LoggerFactory;
+use WpPack\Component\Logger\Handler\ErrorLogHandler;
+use WpPack\Component\Logger\DependencyInjection\RegisterLoggerPass;
+use Psr\Log\LoggerInterface;
+
+$builder = new ContainerBuilder();
+
+// LoggerFactory をデフォルトハンドラー付きで登録
+$builder->register(LoggerFactory::class)
+    ->addArgument([new ErrorLogHandler()]);
+
+// デフォルトロガー（channel: 'app'）
+$builder->register(LoggerInterface::class)
+    ->setFactory([new Reference(LoggerFactory::class), 'create'])
+    ->setArgument(0, 'app');
+
+// #[LoggerChannel] アトリビュートの自動解決
+$builder->addCompilerPass(new RegisterLoggerPass());
+```
+
+### チャンネル注入
+
+`#[LoggerChannel]` アトリビュートをコンストラクタの `LoggerInterface` パラメータに付与すると、`RegisterLoggerPass` が自動的にチャンネル別ロガーを注入します：
+
+```php
+use Psr\Log\LoggerInterface;
+use WpPack\Component\Logger\Attribute\LoggerChannel;
+
+final class PaymentService
+{
+    public function __construct(
+        #[LoggerChannel('payment')]
+        private readonly LoggerInterface $logger,
+    ) {}
+}
+
+final class SecurityService
+{
+    public function __construct(
+        #[LoggerChannel('security')]
+        private readonly LoggerInterface $logger,
+    ) {}
+}
+
+// PaymentService には channel='payment' のロガーが注入される
+// SecurityService には channel='security' のロガーが注入される
+```
+
+### Monolog への差し替え
+
+PSR-3 準拠のため、`LoggerInterface` のタイプヒントを変更せずに Monolog 等の実装に差し替えられます：
+
+```php
+use Monolog\Logger as MonologLogger;
+use Monolog\Handler\ErrorLogHandler as MonologErrorLogHandler;
+use Monolog\Processor\PsrLogMessageProcessor;
+use Psr\Log\LoggerInterface;
+
+$builder = new ContainerBuilder();
+
+// Monolog を LoggerInterface として登録
+$builder->register(LoggerInterface::class)
+    ->setFactory(function () {
+        $logger = new MonologLogger('app');
+        $logger->pushHandler(new MonologErrorLogHandler());
+        $logger->pushProcessor(new PsrLogMessageProcessor());
+        return $logger;
+    });
+```
+
+Monolog を使用する場合、`#[LoggerChannel]` によるチャンネル自動注入は利用できません。チャンネル別ロガーが必要な場合は、各チャンネルを個別にサービス登録してください。
+
 ## 主要クラス
 
 | クラス | 説明 |
@@ -317,3 +398,5 @@ class PaymentServiceTest extends TestCase
 | `Handler\ErrorLogHandler` | PHP `error_log()` ハンドラー |
 | `Context\LoggerContext` | 永続的なロギングコンテキスト |
 | `Test\TestHandler` | テスト用ハンドラー |
+| `Attribute\LoggerChannel` | DI チャンネル指定アトリビュート |
+| `DependencyInjection\RegisterLoggerPass` | チャンネルロガー自動登録コンパイラーパス |
