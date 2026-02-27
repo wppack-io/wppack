@@ -355,6 +355,30 @@ class DebugInfoProvider
 
 ## ヘルスチェック登録
 
+### SiteHealthRegistry（スタンドアロン）
+
+DI コンテナを使わずに、`SiteHealthRegistry` でヘルスチェックとデバッグ情報を直接登録できます。
+
+```php
+use WpPack\Component\SiteHealth\SiteHealthRegistry;
+
+add_action('init', function () {
+    $registry = new SiteHealthRegistry();
+    $registry
+        ->register(new DatabaseOptimizationCheck())
+        ->register(new CacheStatusCheck())
+        ->register(new ExternalApiCheck())
+        ->register(new MyPluginDebugInfo())
+        ->bind();
+});
+```
+
+`register()` はフルエントインターフェースを提供し、`AbstractHealthCheck` と `DebugSection` の両方を受け付けます。各オブジェクトには対応するアトリビュート（`#[AsHealthCheck]` / `#[AsDebugInfo]`）が必要です。
+
+`bind()` は内部で `add_filter('site_status_tests', ...)` と `add_filter('debug_information', ...)` を登録します。冪等なので複数回呼んでも安全です。
+
+### DI コンテナ使用時
+
 ```php
 add_action('init', function () {
     $container = new WpPack\Container();
@@ -386,6 +410,7 @@ add_action('init', function () {
 | `AbstractHealthCheck` | ヘルスチェックの基底クラス |
 | `Result` | テスト結果のラッパー |
 | `DebugSection` | デバッグ情報セクションの基底クラス |
+| `SiteHealthRegistry` | スタンドアロン登録（非DI） |
 | `Attribute\AsHealthCheck` | ヘルスチェック登録アトリビュート |
 | `Attribute\AsDebugInfo` | デバッグ情報登録アトリビュート |
 
