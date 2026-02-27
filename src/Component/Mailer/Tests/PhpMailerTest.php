@@ -5,81 +5,118 @@ declare(strict_types=1);
 namespace WpPack\Component\Mailer\Tests;
 
 use PHPMailer\PHPMailer\Exception as PHPMailerException;
-use PHPMailer\PHPMailer\PHPMailer as BasePhpMailer;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Mailer\PhpMailer;
+use WpPack\Component\Mailer\Transport\TransportInterface;
 
 final class PhpMailerTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        if (!class_exists(BasePhpMailer::class)) {
-            self::markTestSkipped('PHPMailer is not installed.');
-        }
-    }
 
     #[Test]
-    public function registerAndCallCustomMailer(): void
+    public function setTransportAndPostSend(): void
     {
         $phpMailer = new PhpMailer(true);
         $called = false;
 
-        $phpMailer->registerCustomMailer('test', function (PhpMailer $mailer) use (&$called): bool {
-            $called = true;
-            return true;
-        });
+        $transport = new class ($called) implements TransportInterface {
+            public function __construct(private bool &$called) {}
 
-        $phpMailer->Mailer = 'test';
+            public function getName(): string
+            {
+                return 'test';
+            }
+
+            public function send(PhpMailer $phpMailer): void
+            {
+                $this->called = true;
+            }
+        };
+
+        $phpMailer->setTransport($transport);
         $result = $phpMailer->postSend();
 
         self::assertTrue($called);
         self::assertTrue($result);
+        self::assertSame('test', $phpMailer->Mailer);
     }
 
     #[Test]
     public function unregisteredMailerCallsParent(): void
     {
         $phpMailer = new PhpMailer(true);
-        // When using default 'mail' mailer without actually sending,
-        // parent::postSend() would try to call mail() which would fail.
-        // We just verify no custom mailer is invoked.
         $phpMailer->Mailer = 'mail';
 
         // postSend will fail because we haven't called preSend,
-        // but it should NOT call any custom mailer
+        // but it should NOT call any transport
         try {
             $phpMailer->postSend();
         } catch (PHPMailerException) {
             // Expected - parent postSend fails without preSend
         }
 
-        // Test passes if no custom mailer was called
         self::assertTrue(true);
     }
 
     #[Test]
-    public function multipleCustomMailers(): void
+    public function setTransportReplacesExisting(): void
     {
         $phpMailer = new PhpMailer(true);
-        $calledMailer = '';
+        $calledTransport = '';
 
-        $phpMailer->registerCustomMailer('ses', function () use (&$calledMailer): bool {
-            $calledMailer = 'ses';
-            return true;
-        });
+        $transport1 = new class ($calledTransport) implements TransportInterface {
+            public function __construct(private string &$calledTransport) {}
 
-        $phpMailer->registerCustomMailer('null', function () use (&$calledMailer): bool {
-            $calledMailer = 'null';
-            return true;
-        });
+            public function getName(): string
+            {
+                return 'ses';
+            }
 
-        $phpMailer->Mailer = 'null';
+            public function send(PhpMailer $phpMailer): void
+            {
+                $this->calledTransport = 'ses';
+            }
+        };
+
+        $transport2 = new class ($calledTransport) implements TransportInterface {
+            public function __construct(private string &$calledTransport) {}
+
+            public function getName(): string
+            {
+                return 'null';
+            }
+
+            public function send(PhpMailer $phpMailer): void
+            {
+                $this->calledTransport = 'null';
+            }
+        };
+
+        $phpMailer->setTransport($transport1);
+        $phpMailer->setTransport($transport2);
+
+        // Second setTransport replaces first — only 'null' transport is active
         $phpMailer->postSend();
-        self::assertSame('null', $calledMailer);
+        self::assertSame('null', $calledTransport);
+        self::assertSame('null', $phpMailer->Mailer);
+    }
 
-        $phpMailer->Mailer = 'ses';
-        $phpMailer->postSend();
-        self::assertSame('ses', $calledMailer);
+    #[Test]
+    public function setTransportSetsMailerToTransportName(): void
+    {
+        $phpMailer = new PhpMailer(true);
+
+        $transport = new class implements TransportInterface {
+            public function getName(): string
+            {
+                return 'custom';
+            }
+
+            public function send(PhpMailer $phpMailer): void {}
+        };
+
+        $phpMailer->setTransport($transport);
+
+        self::assertSame('custom', $phpMailer->Mailer);
     }
 }

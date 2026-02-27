@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Mailer\Tests\Transport;
 
-use PHPMailer\PHPMailer\PHPMailer as BasePhpMailer;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Mailer\PhpMailer;
@@ -12,12 +11,6 @@ use WpPack\Component\Mailer\Transport\AbstractApiTransport;
 
 final class AbstractApiTransportTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        if (!class_exists(BasePhpMailer::class)) {
-            self::markTestSkipped('PHPMailer is not installed.');
-        }
-    }
 
     private function createTransport(string $messageId = 'test-message-id'): AbstractApiTransport
     {
@@ -31,7 +24,7 @@ final class AbstractApiTransportTest extends TestCase
                 return $this->messageId;
             }
 
-            protected function getMailerName(): string
+            public function getName(): string
             {
                 return 'test-api';
             }
@@ -133,28 +126,37 @@ final class AbstractApiTransportTest extends TestCase
     {
         $transport = $this->createTransport();
 
-        // empty() treats null as empty
         $result = $transport->testFormatAddress(['user@example.com', '']);
 
         self::assertSame('user@example.com', $result);
     }
 
     #[Test]
-    public function configureRegistersCustomMailer(): void
+    public function doSendDoesNotDoubleWrapMessageId(): void
+    {
+        $transport = $this->createTransport('<already-wrapped-id>');
+        $phpMailer = new PhpMailer(true);
+
+        $transport->testDoSend($phpMailer);
+
+        self::assertSame('<already-wrapped-id>', $phpMailer->getLastMessageID());
+    }
+
+    #[Test]
+    public function sendRegistersTransport(): void
     {
         $transport = $this->createTransport('msg-id');
         $phpMailer = new PhpMailer(true);
-
-        $transport->configure($phpMailer);
+        $phpMailer->setTransport($transport);
 
         self::assertSame('test-api', $phpMailer->Mailer);
     }
 
     #[Test]
-    public function toStringReturnsMailerName(): void
+    public function getNameReturnsExpected(): void
     {
         $transport = $this->createTransport();
 
-        self::assertSame('test-api://', (string) $transport);
+        self::assertSame('test-api', $transport->getName());
     }
 }

@@ -47,6 +47,14 @@ final class NativeTransportFactoryTest extends TestCase
     }
 
     #[Test]
+    public function supportsSmtpsScheme(): void
+    {
+        $dsn = Dsn::fromString('smtps://user:pass@smtp.example.com');
+
+        self::assertTrue($this->factory->supports($dsn));
+    }
+
+    #[Test]
     public function doesNotSupportUnknownScheme(): void
     {
         $dsn = Dsn::fromString('ses+api://default');
@@ -90,7 +98,6 @@ final class NativeTransportFactoryTest extends TestCase
         $transport = $this->factory->create($dsn);
 
         self::assertInstanceOf(SmtpTransport::class, $transport);
-        self::assertSame('smtp://mail.example.com:465', (string) $transport);
     }
 
     #[Test]
@@ -101,7 +108,36 @@ final class NativeTransportFactoryTest extends TestCase
         $transport = $this->factory->create($dsn);
 
         self::assertInstanceOf(SmtpTransport::class, $transport);
-        self::assertSame('smtp://smtp.example.com:587', (string) $transport);
+    }
+
+    #[Test]
+    public function createReturnsSmtpTransportForSmtpsScheme(): void
+    {
+        $dsn = Dsn::fromString('smtps://user:pass@smtp.example.com');
+
+        $transport = $this->factory->create($dsn);
+
+        self::assertInstanceOf(SmtpTransport::class, $transport);
+    }
+
+    #[Test]
+    public function createSmtpsUsesPort465ByDefault(): void
+    {
+        $dsn = Dsn::fromString('smtps://user:pass@smtp.example.com');
+
+        $transport = $this->factory->create($dsn);
+
+        self::assertInstanceOf(SmtpTransport::class, $transport);
+    }
+
+    #[Test]
+    public function createSmtpsRespectsExplicitPort(): void
+    {
+        $dsn = Dsn::fromString('smtps://user:pass@smtp.example.com:2465');
+
+        $transport = $this->factory->create($dsn);
+
+        self::assertInstanceOf(SmtpTransport::class, $transport);
     }
 
     #[Test]

@@ -7,6 +7,7 @@ namespace WpPack\Component\Mailer\Bridge\Azure\Tests\Transport;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Mailer\Bridge\Azure\Transport\AzureApiTransport;
 use WpPack\Component\Mailer\Bridge\Azure\Transport\AzureTransportFactory;
 use WpPack\Component\Mailer\Transport\Dsn;
 
@@ -30,14 +31,14 @@ final class AzureTransportFactoryTest extends TestCase
     }
 
     #[Test]
-    public function createReturnsAzureTransportForDefaultScheme(): void
+    public function createReturnsAzureApiTransportForDefaultScheme(): void
     {
         $factory = new AzureTransportFactory();
         $dsn = Dsn::fromString('azure://my-resource.communication.azure.com:accesskey123@default');
 
         $transport = $factory->create($dsn);
 
-        self::assertSame('azure://default', (string) $transport);
+        self::assertInstanceOf(AzureApiTransport::class, $transport);
     }
 
     #[Test]
@@ -48,7 +49,7 @@ final class AzureTransportFactoryTest extends TestCase
 
         $transport = $factory->create($dsn);
 
-        self::assertSame('azure+api://default', (string) $transport);
+        self::assertInstanceOf(AzureApiTransport::class, $transport);
     }
 
     #[Test]
@@ -76,7 +77,7 @@ final class AzureTransportFactoryTest extends TestCase
     {
         yield 'azure' => ['azure://endpoint:key@default', true];
         yield 'azure+api' => ['azure+api://endpoint:key@default', true];
-        yield 'azure+https' => ['azure+https://endpoint:key@default', true];
+        yield 'azure+https' => ['azure+https://endpoint:key@default', false];
         yield 'native' => ['native://default', false];
         yield 'smtp' => ['smtp://localhost', false];
         yield 'ses' => ['ses://default', false];

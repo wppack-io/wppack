@@ -4,74 +4,96 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Mailer\Tests\Transport;
 
-use PHPMailer\PHPMailer\PHPMailer as BasePhpMailer;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Mailer\Exception\TransportException;
 use WpPack\Component\Mailer\PhpMailer;
 use WpPack\Component\Mailer\Transport\SmtpTransport;
 
 final class SmtpTransportTest extends TestCase
 {
-    protected function setUp(): void
+
+    #[Test]
+    public function getNameReturnsSmtp(): void
     {
-        if (!class_exists(BasePhpMailer::class)) {
-            self::markTestSkipped('PHPMailer is not installed.');
-        }
+        $transport = new SmtpTransport('smtp.example.com');
+
+        self::assertSame('smtp', $transport->getName());
     }
 
     #[Test]
-    public function configureSetsSMTPMode(): void
+    public function sendConfiguresSMTPAndThrowsOnFailure(): void
     {
         $transport = new SmtpTransport('smtp.example.com');
         $phpMailer = new PhpMailer(true);
-        $transport->configure($phpMailer);
 
-        self::assertSame('smtp', $phpMailer->Mailer);
+        // send() will configure SMTP settings and then call nativePostSend(),
+        // which will fail because we haven't called preSend()
+        $this->expectException(TransportException::class);
+        $this->expectExceptionMessage('SMTP send failed');
+        $transport->send($phpMailer);
     }
 
     #[Test]
-    public function configureSetsHostAndPort(): void
+    public function sendSetsHostAndPort(): void
     {
         $transport = new SmtpTransport('mail.example.com', 465);
         $phpMailer = new PhpMailer(true);
-        $transport->configure($phpMailer);
+
+        try {
+            $transport->send($phpMailer);
+        } catch (TransportException) {
+            // Expected - nativePostSend fails without preSend
+        }
 
         self::assertSame('mail.example.com', $phpMailer->Host);
         self::assertSame(465, $phpMailer->Port);
     }
 
     #[Test]
-    public function configureSetsEncryption(): void
+    public function sendSetsEncryption(): void
     {
         $transport = new SmtpTransport('smtp.example.com', 465, encryption: 'ssl');
         $phpMailer = new PhpMailer(true);
-        $transport->configure($phpMailer);
+
+        try {
+            $transport->send($phpMailer);
+        } catch (TransportException) {
+        }
 
         self::assertSame('ssl', $phpMailer->SMTPSecure);
     }
 
     #[Test]
-    public function configureDefaultEncryptionIsTls(): void
+    public function sendDefaultEncryptionIsTls(): void
     {
         $transport = new SmtpTransport('smtp.example.com');
         $phpMailer = new PhpMailer(true);
-        $transport->configure($phpMailer);
+
+        try {
+            $transport->send($phpMailer);
+        } catch (TransportException) {
+        }
 
         self::assertSame('tls', $phpMailer->SMTPSecure);
     }
 
     #[Test]
-    public function configureDefaultPortIs587(): void
+    public function sendDefaultPortIs587(): void
     {
         $transport = new SmtpTransport('smtp.example.com');
         $phpMailer = new PhpMailer(true);
-        $transport->configure($phpMailer);
+
+        try {
+            $transport->send($phpMailer);
+        } catch (TransportException) {
+        }
 
         self::assertSame(587, $phpMailer->Port);
     }
 
     #[Test]
-    public function configureWithAuthSetsCredentials(): void
+    public function sendWithAuthSetsCredentials(): void
     {
         $transport = new SmtpTransport(
             'smtp.example.com',
@@ -80,7 +102,11 @@ final class SmtpTransportTest extends TestCase
             'secret-password',
         );
         $phpMailer = new PhpMailer(true);
-        $transport->configure($phpMailer);
+
+        try {
+            $transport->send($phpMailer);
+        } catch (TransportException) {
+        }
 
         self::assertTrue($phpMailer->SMTPAuth);
         self::assertSame('user@example.com', $phpMailer->Username);
@@ -88,7 +114,7 @@ final class SmtpTransportTest extends TestCase
     }
 
     #[Test]
-    public function configureWithUsernameOnlySetsEmptyPassword(): void
+    public function sendWithUsernameOnlySetsEmptyPassword(): void
     {
         $transport = new SmtpTransport(
             'smtp.example.com',
@@ -96,7 +122,11 @@ final class SmtpTransportTest extends TestCase
             'user@example.com',
         );
         $phpMailer = new PhpMailer(true);
-        $transport->configure($phpMailer);
+
+        try {
+            $transport->send($phpMailer);
+        } catch (TransportException) {
+        }
 
         self::assertTrue($phpMailer->SMTPAuth);
         self::assertSame('user@example.com', $phpMailer->Username);
@@ -104,36 +134,17 @@ final class SmtpTransportTest extends TestCase
     }
 
     #[Test]
-    public function configureWithoutAuthDoesNotSetSMTPAuth(): void
+    public function sendWithoutAuthDoesNotSetSMTPAuth(): void
     {
         $transport = new SmtpTransport('smtp.example.com');
         $phpMailer = new PhpMailer(true);
-        $transport->configure($phpMailer);
+
+        try {
+            $transport->send($phpMailer);
+        } catch (TransportException) {
+        }
 
         self::assertFalse($phpMailer->SMTPAuth);
     }
 
-    #[Test]
-    public function toStringReturnsSmtpUri(): void
-    {
-        $transport = new SmtpTransport('smtp.example.com', 587);
-
-        self::assertSame('smtp://smtp.example.com:587', (string) $transport);
-    }
-
-    #[Test]
-    public function toStringWithCustomPort(): void
-    {
-        $transport = new SmtpTransport('mail.example.com', 465);
-
-        self::assertSame('smtp://mail.example.com:465', (string) $transport);
-    }
-
-    #[Test]
-    public function toStringWithDefaultPort(): void
-    {
-        $transport = new SmtpTransport('smtp.example.com');
-
-        self::assertSame('smtp://smtp.example.com:587', (string) $transport);
-    }
 }

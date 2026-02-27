@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Mailer\Tests;
 
-use PHPMailer\PHPMailer\PHPMailer as BasePhpMailer;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Mailer\Email;
@@ -14,16 +13,11 @@ use WpPack\Component\Mailer\PhpMailer;
 use WpPack\Component\Mailer\TemplatedEmail;
 use WpPack\Component\Mailer\TemplateRendererInterface;
 use WpPack\Component\Mailer\Transport\NullTransport;
-use WpPack\Component\Mailer\Transport\TransportInterface;
 
 final class MailerTest extends TestCase
 {
     protected function setUp(): void
     {
-        if (!class_exists(BasePhpMailer::class)) {
-            self::markTestSkipped('PHPMailer is not installed.');
-        }
-
         Mailer::reset();
     }
 
@@ -45,6 +39,15 @@ final class MailerTest extends TestCase
     public function constructWithDsnString(): void
     {
         $mailer = new Mailer('null://default');
+
+        self::assertInstanceOf(Mailer::class, $mailer);
+    }
+
+    #[Test]
+    public function constructWithCustomPhpMailer(): void
+    {
+        $phpMailer = new PhpMailer(true);
+        $mailer = new Mailer(new NullTransport(), $phpMailer);
 
         self::assertInstanceOf(Mailer::class, $mailer);
     }
@@ -84,58 +87,6 @@ final class MailerTest extends TestCase
     }
 
     #[Test]
-    public function onPhpMailerInitConfiguresPhpMailer(): void
-    {
-        $configured = false;
-        $transport = new class ($configured) implements TransportInterface {
-            public function __construct(private bool &$configured) {}
-
-            public function configure(PhpMailer $phpMailer): void
-            {
-                $this->configured = true;
-            }
-
-            public function __toString(): string
-            {
-                return 'test://';
-            }
-        };
-
-        $mailer = new Mailer($transport);
-        $wpPackMailer = new PhpMailer(true);
-
-        $mailer->onPhpMailerInit($wpPackMailer);
-
-        self::assertTrue($configured);
-    }
-
-    #[Test]
-    public function onPhpMailerInitIgnoresRegularPhpMailer(): void
-    {
-        $configured = false;
-        $transport = new class ($configured) implements TransportInterface {
-            public function __construct(private bool &$configured) {}
-
-            public function configure(PhpMailer $phpMailer): void
-            {
-                $this->configured = true;
-            }
-
-            public function __toString(): string
-            {
-                return 'test://';
-            }
-        };
-
-        $mailer = new Mailer($transport);
-        $regularMailer = new PHPMailer(true);
-
-        $mailer->onPhpMailerInit($regularMailer);
-
-        self::assertFalse($configured);
-    }
-
-    #[Test]
     public function onWpMailReplacesGlobalPhpMailer(): void
     {
         global $phpmailer;
@@ -159,11 +110,38 @@ final class MailerTest extends TestCase
     }
 
     #[Test]
+    public function onWpMailUsesInjectedPhpMailer(): void
+    {
+        global $phpmailer;
+        $originalMailer = $phpmailer;
+
+        $customPhpMailer = new PhpMailer(true);
+        $mailer = new Mailer(new NullTransport(), $customPhpMailer);
+
+        $mailer->onWpMail([
+            'to' => 'user@example.com',
+            'subject' => 'Test',
+            'message' => 'Hello',
+            'headers' => '',
+            'attachments' => [],
+        ]);
+
+        self::assertSame($customPhpMailer, $phpmailer);
+
+        $phpmailer = $originalMailer;
+    }
+
+    #[Test]
     public function sendWithNullTransport(): void
     {
         if (!function_exists('do_action_ref_array')) {
             self::markTestSkipped('WordPress functions are not available.');
         }
+
+        $succeededData = null;
+        add_action('wp_mail_succeeded', static function (array $data) use (&$succeededData): void {
+            $succeededData = $data;
+        });
 
         $mailer = new Mailer(new NullTransport());
         $email = (new Email())
@@ -172,8 +150,12 @@ final class MailerTest extends TestCase
             ->subject('Test Subject')
             ->text('Hello World');
 
-        $sentMessage = $mailer->send($email);
+        $mailer->send($email);
 
+        self::assertNotNull($succeededData);
+        self::assertArrayHasKey('sent_message', $succeededData);
+        $sentMessage = $succeededData['sent_message'];
+        self::assertInstanceOf(\WpPack\Component\Mailer\SentMessage::class, $sentMessage);
         self::assertSame('sender@example.com', $sentMessage->getEnvelope()->getSender()->address);
         self::assertCount(1, $sentMessage->getEnvelope()->getRecipients());
         self::assertSame('user@example.com', $sentMessage->getEnvelope()->getRecipients()[0]->address);
@@ -186,6 +168,11 @@ final class MailerTest extends TestCase
             self::markTestSkipped('WordPress functions are not available.');
         }
 
+        $succeededData = null;
+        add_action('wp_mail_succeeded', static function (array $data) use (&$succeededData): void {
+            $succeededData = $data;
+        });
+
         $mailer = new Mailer(new NullTransport());
         $email = (new Email())
             ->from('sender@example.com')
@@ -194,9 +181,10 @@ final class MailerTest extends TestCase
             ->html('<h1>Hello</h1>')
             ->text('Hello plain');
 
-        $sentMessage = $mailer->send($email);
+        $mailer->send($email);
 
-        self::assertSame('HTML Test', $sentMessage->getEmail()->getSubject());
+        self::assertNotNull($succeededData);
+        self::assertSame('HTML Test', $succeededData['sent_message']->getEmail()->getSubject());
     }
 
     #[Test]
@@ -224,6 +212,11 @@ final class MailerTest extends TestCase
             self::markTestSkipped('WordPress functions are not available.');
         }
 
+        $succeededData = null;
+        add_action('wp_mail_succeeded', static function (array $data) use (&$succeededData): void {
+            $succeededData = $data;
+        });
+
         $renderer = new class implements TemplateRendererInterface {
             public function render(string $template, array $context = []): string
             {
@@ -240,9 +233,83 @@ final class MailerTest extends TestCase
             ->subject('Templated')
             ->htmlTemplate('email/welcome.html.twig');
 
-        $sentMessage = $mailer->send($email);
+        $mailer->send($email);
 
-        self::assertSame('<p>Rendered: email/welcome.html.twig</p>', $sentMessage->getEmail()->getHtml());
+        self::assertNotNull($succeededData);
+        self::assertSame('<p>Rendered: email/welcome.html.twig</p>', $succeededData['sent_message']->getEmail()->getHtml());
+    }
+
+    #[Test]
+    public function sendThrowsTransportExceptionOnFailure(): void
+    {
+        if (!function_exists('do_action_ref_array')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $failingTransport = new class implements \WpPack\Component\Mailer\Transport\TransportInterface {
+            public function getName(): string
+            {
+                return 'failing';
+            }
+
+            public function send(PhpMailer $phpMailer): void
+            {
+                throw new \WpPack\Component\Mailer\Exception\TransportException('Connection refused');
+            }
+        };
+
+        $mailer = new Mailer($failingTransport);
+        $email = (new Email())
+            ->from('sender@example.com')
+            ->to('user@example.com')
+            ->subject('Test')
+            ->text('Hello');
+
+        $this->expectException(\WpPack\Component\Mailer\Exception\TransportException::class);
+        $this->expectExceptionMessage('Connection refused');
+        $mailer->send($email);
+    }
+
+    #[Test]
+    public function sendFiresWpMailFailedOnFailure(): void
+    {
+        if (!function_exists('do_action_ref_array')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $failingTransport = new class implements \WpPack\Component\Mailer\Transport\TransportInterface {
+            public function getName(): string
+            {
+                return 'failing';
+            }
+
+            public function send(PhpMailer $phpMailer): void
+            {
+                throw new \WpPack\Component\Mailer\Exception\TransportException('Send failed');
+            }
+        };
+
+        $failedError = null;
+        add_action('wp_mail_failed', static function (\WP_Error $error) use (&$failedError): void {
+            $failedError = $error;
+        });
+
+        $mailer = new Mailer($failingTransport);
+        $email = (new Email())
+            ->from('sender@example.com')
+            ->to('user@example.com')
+            ->subject('Failure Test')
+            ->text('Hello');
+
+        try {
+            $mailer->send($email);
+        } catch (\WpPack\Component\Mailer\Exception\TransportException) {
+            // Expected
+        }
+
+        self::assertInstanceOf(\WP_Error::class, $failedError);
+        self::assertSame('wp_mail_failed', $failedError->get_error_code());
+        self::assertSame('Send failed', $failedError->get_error_message());
     }
 
     #[Test]
@@ -251,6 +318,11 @@ final class MailerTest extends TestCase
         if (!function_exists('do_action_ref_array')) {
             self::markTestSkipped('WordPress functions are not available.');
         }
+
+        $succeededData = null;
+        add_action('wp_mail_succeeded', static function (array $data) use (&$succeededData): void {
+            $succeededData = $data;
+        });
 
         $mailer = new Mailer(new NullTransport());
         $email = (new Email())
@@ -261,8 +333,9 @@ final class MailerTest extends TestCase
             ->subject('Multi-recipient')
             ->text('Hello');
 
-        $sentMessage = $mailer->send($email);
+        $mailer->send($email);
 
-        self::assertCount(3, $sentMessage->getEnvelope()->getRecipients());
+        self::assertNotNull($succeededData);
+        self::assertCount(3, $succeededData['sent_message']->getEnvelope()->getRecipients());
     }
 }

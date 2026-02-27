@@ -7,6 +7,9 @@ namespace WpPack\Component\Mailer\Bridge\Amazon\Tests\Transport;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Mailer\Bridge\Amazon\Transport\SesApiTransport;
+use WpPack\Component\Mailer\Bridge\Amazon\Transport\SesHttpTransport;
+use WpPack\Component\Mailer\Bridge\Amazon\Transport\SesSmtpTransport;
 use WpPack\Component\Mailer\Bridge\Amazon\Transport\SesTransportFactory;
 use WpPack\Component\Mailer\Transport\Dsn;
 
@@ -30,14 +33,14 @@ final class SesTransportFactoryTest extends TestCase
     }
 
     #[Test]
-    public function createReturnsSesTransportForDefaultScheme(): void
+    public function createReturnsSesApiTransportForDefaultScheme(): void
     {
         $factory = new SesTransportFactory();
         $dsn = Dsn::fromString('ses://AKID:SECRET@default?region=us-east-1');
 
         $transport = $factory->create($dsn);
 
-        self::assertSame('ses://default', (string) $transport);
+        self::assertInstanceOf(SesApiTransport::class, $transport);
     }
 
     #[Test]
@@ -48,7 +51,18 @@ final class SesTransportFactoryTest extends TestCase
 
         $transport = $factory->create($dsn);
 
-        self::assertSame('ses+api://default', (string) $transport);
+        self::assertInstanceOf(SesApiTransport::class, $transport);
+    }
+
+    #[Test]
+    public function createReturnsSesHttpTransportForHttpsScheme(): void
+    {
+        $factory = new SesTransportFactory();
+        $dsn = Dsn::fromString('ses+https://AKID:SECRET@default?region=us-east-1');
+
+        $transport = $factory->create($dsn);
+
+        self::assertInstanceOf(SesHttpTransport::class, $transport);
     }
 
     #[Test]
@@ -59,7 +73,7 @@ final class SesTransportFactoryTest extends TestCase
 
         $transport = $factory->create($dsn);
 
-        self::assertSame('ses+smtp://default', (string) $transport);
+        self::assertInstanceOf(SesSmtpTransport::class, $transport);
     }
 
     #[Test]

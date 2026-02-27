@@ -58,31 +58,6 @@ final class DsnTest extends TestCase
     }
 
     #[Test]
-    public function toStringMasksPassword(): void
-    {
-        $dsn = Dsn::fromString('ses+api://ACCESS_KEY:SECRET_KEY@default?region=ap-northeast-1');
-
-        self::assertSame('ses+api://ACCESS_KEY:****@default?region=ap-northeast-1', (string) $dsn);
-        self::assertStringNotContainsString('SECRET_KEY', (string) $dsn);
-    }
-
-    #[Test]
-    public function toStringWithoutPassword(): void
-    {
-        $dsn = Dsn::fromString('native://default');
-
-        self::assertSame('native://default', (string) $dsn);
-    }
-
-    #[Test]
-    public function toStringIncludesPort(): void
-    {
-        $dsn = Dsn::fromString('smtp://user:pass@smtp.example.com:587');
-
-        self::assertSame('smtp://user:****@smtp.example.com:587', (string) $dsn);
-    }
-
-    #[Test]
     public function invalidDsnThrowsException(): void
     {
         $this->expectException(InvalidArgumentException::class);
@@ -107,21 +82,4 @@ final class DsnTest extends TestCase
         self::assertSame('p@ss#word', $dsn->getPassword());
     }
 
-    #[Test]
-    public function toStringUrlEncodesUser(): void
-    {
-        $dsn = Dsn::fromString('smtp://user%40domain:pass@smtp.example.com:587');
-
-        self::assertSame('smtp://user%40domain:****@smtp.example.com:587', (string) $dsn);
-    }
-
-    #[Test]
-    public function toStringIncludesOptions(): void
-    {
-        $dsn = Dsn::fromString('ses+api://KEY:SECRET@default?region=us-east-1&configuration_set=my-set');
-
-        $string = (string) $dsn;
-        self::assertStringContainsString('region=us-east-1', $string);
-        self::assertStringContainsString('configuration_set=my-set', $string);
-    }
 }
