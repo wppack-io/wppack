@@ -19,4 +19,22 @@ final class NativeTransportTest extends TestCase
         self::assertSame('mail', $transport->getName());
     }
 
+    #[Test]
+    public function sendCallsNativePostSend(): void
+    {
+        $transport = new NativeTransport();
+        $phpMailer = new PhpMailer(true);
+        $phpMailer->setFrom('sender@example.com', 'Sender');
+        $phpMailer->addAddress('user@example.com', 'User');
+        $phpMailer->Subject = 'Test';
+        $phpMailer->Body = 'Hello';
+        $phpMailer->Mailer = 'mail';
+
+        // nativePostSend() calls PHP's mail(). On most test systems the call
+        // succeeds (mail is handed off to the local MTA), so we simply verify
+        // no exception is thrown.
+        $transport->send($phpMailer);
+
+        self::assertTrue(true);
+    }
 }

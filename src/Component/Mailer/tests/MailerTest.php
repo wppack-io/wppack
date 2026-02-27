@@ -338,4 +338,178 @@ final class MailerTest extends TestCase
         self::assertNotNull($succeededData);
         self::assertCount(3, $succeededData['sent_message']->getEnvelope()->getRecipients());
     }
+
+    #[Test]
+    public function sendWithAttachments(): void
+    {
+        if (!function_exists('do_action_ref_array')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $file = tempnam(sys_get_temp_dir(), 'wppack_mailer_test_');
+        file_put_contents($file, 'attachment content');
+
+        try {
+            $succeededData = null;
+            add_action('wp_mail_succeeded', static function (array $data) use (&$succeededData): void {
+                $succeededData = $data;
+            });
+
+            $mailer = new Mailer(new NullTransport());
+            $email = (new Email())
+                ->from('sender@example.com')
+                ->to('user@example.com')
+                ->subject('With Attachment')
+                ->text('See attached')
+                ->attach($file, 'report.pdf', 'application/pdf');
+
+            $mailer->send($email);
+
+            self::assertNotNull($succeededData);
+            self::assertSame([$file], $succeededData['attachments']);
+        } finally {
+            unlink($file);
+        }
+    }
+
+    #[Test]
+    public function sendWithReturnPath(): void
+    {
+        if (!function_exists('do_action_ref_array')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $succeededData = null;
+        add_action('wp_mail_succeeded', static function (array $data) use (&$succeededData): void {
+            $succeededData = $data;
+        });
+
+        $mailer = new Mailer(new NullTransport());
+        $email = (new Email())
+            ->from('sender@example.com')
+            ->to('user@example.com')
+            ->subject('Return Path Test')
+            ->text('Hello')
+            ->returnPath('bounce@example.com');
+
+        $mailer->send($email);
+
+        self::assertNotNull($succeededData);
+    }
+
+    #[Test]
+    public function sendWithReplyTo(): void
+    {
+        if (!function_exists('do_action_ref_array')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $succeededData = null;
+        add_action('wp_mail_succeeded', static function (array $data) use (&$succeededData): void {
+            $succeededData = $data;
+        });
+
+        $mailer = new Mailer(new NullTransport());
+        $email = (new Email())
+            ->from('sender@example.com')
+            ->to('user@example.com')
+            ->subject('Reply-To Test')
+            ->text('Hello')
+            ->replyTo('reply@example.com');
+
+        $mailer->send($email);
+
+        self::assertNotNull($succeededData);
+    }
+
+    #[Test]
+    public function sendWithCustomHeaders(): void
+    {
+        if (!function_exists('do_action_ref_array')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $succeededData = null;
+        add_action('wp_mail_succeeded', static function (array $data) use (&$succeededData): void {
+            $succeededData = $data;
+        });
+
+        $mailer = new Mailer(new NullTransport());
+        $email = (new Email())
+            ->from('sender@example.com')
+            ->to('user@example.com')
+            ->subject('Custom Headers')
+            ->text('Hello')
+            ->addHeader('X-Campaign', 'spring-sale');
+
+        $mailer->send($email);
+
+        self::assertNotNull($succeededData);
+        self::assertNotEmpty($succeededData['headers']);
+    }
+
+    #[Test]
+    public function sendWrapsNonTransportException(): void
+    {
+        if (!function_exists('do_action_ref_array')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $throwingTransport = new class implements \WpPack\Component\Mailer\Transport\TransportInterface {
+            public function getName(): string
+            {
+                return 'throwing';
+            }
+
+            public function send(PhpMailer $phpMailer): void
+            {
+                throw new \RuntimeException('Unexpected error');
+            }
+        };
+
+        $mailer = new Mailer($throwingTransport);
+        $email = (new Email())
+            ->from('sender@example.com')
+            ->to('user@example.com')
+            ->subject('Test')
+            ->text('Hello');
+
+        $this->expectException(\WpPack\Component\Mailer\Exception\TransportException::class);
+        $this->expectExceptionMessage('Unexpected error');
+        $mailer->send($email);
+    }
+
+    #[Test]
+    public function sendTemplatedEmailRendersTextTemplate(): void
+    {
+        if (!function_exists('do_action_ref_array')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $succeededData = null;
+        add_action('wp_mail_succeeded', static function (array $data) use (&$succeededData): void {
+            $succeededData = $data;
+        });
+
+        $renderer = new class implements TemplateRendererInterface {
+            public function render(string $template, array $context = []): string
+            {
+                return 'Rendered: ' . $template;
+            }
+        };
+
+        $mailer = new Mailer(new NullTransport());
+        $mailer->setTemplateRenderer($renderer);
+
+        $email = (new TemplatedEmail())
+            ->from('sender@example.com')
+            ->to('user@example.com')
+            ->subject('Text Template')
+            ->textTemplate('email/welcome.txt');
+
+        $mailer->send($email);
+
+        self::assertNotNull($succeededData);
+        self::assertSame('Rendered: email/welcome.txt', $succeededData['sent_message']->getEmail()->getText());
+    }
 }
