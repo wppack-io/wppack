@@ -6,7 +6,10 @@ namespace WpPack\Component\HttpClient\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\HttpClient\Exception\ConnectionException;
 use WpPack\Component\HttpClient\HttpClient;
+use WpPack\Component\HttpClient\Request;
+use WpPack\Component\HttpClient\Response;
 
 final class HttpClientTest extends TestCase
 {
@@ -113,5 +116,200 @@ final class HttpClientTest extends TestCase
             ->query(['page' => '1']);
 
         self::assertNotSame($client, $configured);
+    }
+
+    #[Test]
+    public function sendRequestReturnsResponse(): void
+    {
+        if (!function_exists('wp_remote_request')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $client = new HttpClient();
+        $request = new Request('GET', 'https://httpbin.org/get');
+
+        $response = $client->sendRequest($request);
+
+        self::assertInstanceOf(Response::class, $response);
+        self::assertSame(200, $response->getStatusCode());
+    }
+
+    #[Test]
+    public function sendRequestThrowsConnectionExceptionOnWpError(): void
+    {
+        if (!function_exists('wp_remote_request')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $client = new HttpClient()->timeout(1);
+        $request = new Request('GET', 'https://invalid.domain.that.does.not.exist.example');
+
+        $this->expectException(ConnectionException::class);
+        $client->sendRequest($request);
+    }
+
+    #[Test]
+    public function getRequestSendsGetMethod(): void
+    {
+        if (!function_exists('wp_remote_request')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $client = new HttpClient();
+        $response = $client->get('https://httpbin.org/get');
+
+        self::assertInstanceOf(Response::class, $response);
+        self::assertSame(200, $response->getStatusCode());
+    }
+
+    #[Test]
+    public function postRequestSendsPostMethod(): void
+    {
+        if (!function_exists('wp_remote_request')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $client = new HttpClient();
+        $response = $client->post('https://httpbin.org/post', ['body' => 'test=value']);
+
+        self::assertInstanceOf(Response::class, $response);
+        self::assertSame(200, $response->getStatusCode());
+    }
+
+    #[Test]
+    public function postRequestWithJsonBody(): void
+    {
+        if (!function_exists('wp_remote_request')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $client = new HttpClient()->asJson();
+        $response = $client->post('https://httpbin.org/post', ['json' => ['key' => 'value']]);
+
+        self::assertSame(200, $response->getStatusCode());
+        $json = $response->json();
+        self::assertArrayHasKey('json', $json);
+    }
+
+    #[Test]
+    public function postRequestWithFormBody(): void
+    {
+        if (!function_exists('wp_remote_request')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $client = new HttpClient()->asForm();
+        $response = $client->post('https://httpbin.org/post', ['form_params' => ['key' => 'value']]);
+
+        self::assertSame(200, $response->getStatusCode());
+    }
+
+    #[Test]
+    public function baseUriIsPrepended(): void
+    {
+        if (!function_exists('wp_remote_request')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $client = new HttpClient()->baseUri('https://httpbin.org');
+        $response = $client->get('/get');
+
+        self::assertSame(200, $response->getStatusCode());
+    }
+
+    #[Test]
+    public function queryParamsAreAppended(): void
+    {
+        if (!function_exists('wp_remote_request')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $client = new HttpClient()->query(['foo' => 'bar']);
+        $response = $client->get('https://httpbin.org/get');
+
+        self::assertSame(200, $response->getStatusCode());
+        $json = $response->json();
+        self::assertSame('bar', $json['args']['foo'] ?? null);
+    }
+
+    #[Test]
+    public function putRequestSendsPutMethod(): void
+    {
+        if (!function_exists('wp_remote_request')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $client = new HttpClient();
+        $response = $client->put('https://httpbin.org/put', ['body' => 'data']);
+
+        self::assertSame(200, $response->getStatusCode());
+    }
+
+    #[Test]
+    public function deleteRequestSendsDeleteMethod(): void
+    {
+        if (!function_exists('wp_remote_request')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $client = new HttpClient();
+        $response = $client->delete('https://httpbin.org/delete');
+
+        self::assertSame(200, $response->getStatusCode());
+    }
+
+    #[Test]
+    public function headRequestSendsHeadMethod(): void
+    {
+        if (!function_exists('wp_remote_request')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $client = new HttpClient();
+        $response = $client->head('https://httpbin.org/get');
+
+        self::assertSame(200, $response->getStatusCode());
+        self::assertSame('', $response->body());
+    }
+
+    #[Test]
+    public function patchRequestSendsPatchMethod(): void
+    {
+        if (!function_exists('wp_remote_request')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $client = new HttpClient();
+        $response = $client->patch('https://httpbin.org/patch', ['body' => 'data']);
+
+        self::assertSame(200, $response->getStatusCode());
+    }
+
+    #[Test]
+    public function requestWithCustomHeaders(): void
+    {
+        if (!function_exists('wp_remote_request')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $client = new HttpClient()->withHeaders(['X-Custom' => 'test-value']);
+        $response = $client->get('https://httpbin.org/headers');
+
+        self::assertSame(200, $response->getStatusCode());
+        $json = $response->json();
+        self::assertSame('test-value', $json['headers']['X-Custom'] ?? null);
+    }
+
+    #[Test]
+    public function requestWithTimeout(): void
+    {
+        if (!function_exists('wp_remote_request')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $client = new HttpClient()->timeout(30);
+        $response = $client->get('https://httpbin.org/get');
+
+        self::assertSame(200, $response->getStatusCode());
     }
 }
