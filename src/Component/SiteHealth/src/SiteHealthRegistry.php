@@ -11,15 +11,15 @@ use WpPack\Component\SiteHealth\Exception\LogicException;
 
 final class SiteHealthRegistry
 {
-    /** @var list<array{check: AbstractHealthCheck, attribute: AsHealthCheck}> */
+    /** @var list<array{check: HealthCheckInterface, attribute: AsHealthCheck}> */
     private array $healthChecks = [];
 
-    /** @var list<array{section: DebugSection, attribute: AsDebugInfo}> */
+    /** @var list<array{section: DebugSectionInterface, attribute: AsDebugInfo}> */
     private array $debugSections = [];
 
     private bool $bound = false;
 
-    public function register(AbstractHealthCheck|DebugSection $object): self
+    public function register(HealthCheckInterface|DebugSectionInterface $object): self
     {
         if ($this->bound) {
             throw new LogicException('Cannot register after bind() has been called.');
@@ -27,7 +27,7 @@ final class SiteHealthRegistry
 
         $reflection = new \ReflectionClass($object);
 
-        if ($object instanceof AbstractHealthCheck) {
+        if ($object instanceof HealthCheckInterface) {
             $attributes = $reflection->getAttributes(AsHealthCheck::class);
 
             if ($attributes === []) {

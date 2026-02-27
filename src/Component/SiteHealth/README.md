@@ -11,15 +11,15 @@ composer require wppack/site-health
 ## Usage
 
 ```php
-use WpPack\Component\SiteHealth\AbstractHealthCheck;
 use WpPack\Component\SiteHealth\Attribute\AsHealthCheck;
 use WpPack\Component\SiteHealth\Attribute\AsDebugInfo;
-use WpPack\Component\SiteHealth\DebugSection;
+use WpPack\Component\SiteHealth\DebugSectionInterface;
+use WpPack\Component\SiteHealth\HealthCheckInterface;
 use WpPack\Component\SiteHealth\Result;
 use WpPack\Component\SiteHealth\SiteHealthRegistry;
 
 #[AsHealthCheck(id: 'php_version', label: 'PHP Version', category: 'security')]
-class PhpVersionCheck extends AbstractHealthCheck
+class PhpVersionCheck implements HealthCheckInterface
 {
     public function run(): Result
     {
@@ -32,7 +32,7 @@ class PhpVersionCheck extends AbstractHealthCheck
 }
 
 #[AsDebugInfo(section: 'my-plugin', label: 'My Plugin')]
-class MyPluginDebugInfo extends DebugSection
+class MyPluginDebugInfo implements DebugSectionInterface
 {
     public function getFields(): array
     {

@@ -6,17 +6,17 @@ namespace WpPack\Component\SiteHealth\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\SiteHealth\AbstractHealthCheck;
 use WpPack\Component\SiteHealth\Attribute\AsDebugInfo;
 use WpPack\Component\SiteHealth\Attribute\AsHealthCheck;
-use WpPack\Component\SiteHealth\DebugSection;
+use WpPack\Component\SiteHealth\DebugSectionInterface;
+use WpPack\Component\SiteHealth\HealthCheckInterface;
 use WpPack\Component\SiteHealth\Exception\InvalidArgumentException;
 use WpPack\Component\SiteHealth\Exception\LogicException;
 use WpPack\Component\SiteHealth\Result;
 use WpPack\Component\SiteHealth\SiteHealthRegistry;
 
 #[AsHealthCheck(id: 'test_direct', label: 'Direct Test', category: 'performance')]
-final class DirectHealthCheckStub extends AbstractHealthCheck
+final class DirectHealthCheckStub implements HealthCheckInterface
 {
     public function run(): Result
     {
@@ -25,7 +25,7 @@ final class DirectHealthCheckStub extends AbstractHealthCheck
 }
 
 #[AsHealthCheck(id: 'test_async', label: 'Async Test', category: 'security', async: true)]
-final class AsyncHealthCheckStub extends AbstractHealthCheck
+final class AsyncHealthCheckStub implements HealthCheckInterface
 {
     public function run(): Result
     {
@@ -34,7 +34,7 @@ final class AsyncHealthCheckStub extends AbstractHealthCheck
 }
 
 #[AsDebugInfo(section: 'test-section', label: 'Test Section')]
-final class DebugSectionStub extends DebugSection
+final class DebugSectionStub implements DebugSectionInterface
 {
     public function getFields(): array
     {
@@ -48,7 +48,7 @@ final class DebugSectionStub extends DebugSection
 }
 
 #[AsDebugInfo(section: 'detailed-section', label: 'Detailed', description: 'A detailed section', showCount: true, private: true)]
-final class DetailedDebugSectionStub extends DebugSection
+final class DetailedDebugSectionStub implements DebugSectionInterface
 {
     public function getFields(): array
     {
@@ -65,7 +65,7 @@ final class DetailedDebugSectionStub extends DebugSection
     }
 }
 
-final class NoAttributeHealthCheck extends AbstractHealthCheck
+final class NoAttributeHealthCheck implements HealthCheckInterface
 {
     public function run(): Result
     {
@@ -73,7 +73,7 @@ final class NoAttributeHealthCheck extends AbstractHealthCheck
     }
 }
 
-final class NoAttributeDebugSection extends DebugSection
+final class NoAttributeDebugSection implements DebugSectionInterface
 {
     public function getFields(): array
     {
