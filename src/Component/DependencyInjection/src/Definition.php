@@ -132,6 +132,11 @@ class Definition
         return array_keys($this->symfonyDefinition->getTags());
     }
 
+    public function hasTag(string $tag): bool
+    {
+        return $this->symfonyDefinition->hasTag($tag);
+    }
+
     public function autowire(): self
     {
         $this->symfonyDefinition->setAutowired(true);

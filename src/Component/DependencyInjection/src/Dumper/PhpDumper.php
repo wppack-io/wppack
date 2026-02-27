@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace WpPack\Component\DependencyInjection\Dumper;
 
-use Symfony\Component\DependencyInjection\ContainerBuilder as SymfonyContainerBuilder;
 use Symfony\Component\DependencyInjection\Dumper\PhpDumper as SymfonyPhpDumper;
+use WpPack\Component\DependencyInjection\ContainerBuilder;
 
-final class PhpDumper
+class PhpDumper
 {
     private readonly SymfonyPhpDumper $dumper;
 
-    public function __construct(SymfonyContainerBuilder $container)
+    public function __construct(ContainerBuilder $builder)
     {
-        $this->dumper = new SymfonyPhpDumper($container);
+        $this->dumper = new SymfonyPhpDumper($builder->getSymfonyBuilder());
     }
 
     /**

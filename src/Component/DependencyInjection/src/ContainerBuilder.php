@@ -8,6 +8,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder as SymfonyContainerBu
 use WpPack\Component\DependencyInjection\Compiler\CompilerPassAdapter;
 use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use WpPack\Component\DependencyInjection\Exception\ParameterNotFoundException;
+use WpPack\Component\DependencyInjection\Exception\ServiceNotFoundException;
 
 class ContainerBuilder
 {
@@ -59,7 +60,7 @@ class ContainerBuilder
             return $definition;
         }
 
-        throw new \InvalidArgumentException(sprintf('Service "%s" is not defined.', $id));
+        throw new ServiceNotFoundException($id);
     }
 
     public function hasDefinition(string $id): bool
