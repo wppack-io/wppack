@@ -1,0 +1,10 @@
+<?php
+
+declare(strict_types=1);
+
+namespace WpPack\Component\DependencyInjection\Tests\Fixtures;
+
+interface SampleInterface
+{
+    public function getValue(): string;
+}

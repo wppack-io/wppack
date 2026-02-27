@@ -1,0 +1,22 @@
+{
+    "name": "wppack/dependency-injection",
+    "description": "Dependency Injection component for WordPress",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.1",
+        "psr/container": "^2.0",
+        "symfony/dependency-injection": "^6.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpPack\\Component\\DependencyInjection\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Component\\DependencyInjection\\Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "stable"
+}
