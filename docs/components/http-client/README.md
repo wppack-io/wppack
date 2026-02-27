@@ -95,10 +95,10 @@ class ExternalApiService
 
 | PSR | インターフェース | WpPack 実装 |
 |-----|----------------|------------|
-| PSR-7 | `RequestInterface` | `WpPackRequest` |
-| PSR-7 | `ResponseInterface` | `WpPackResponse` |
-| PSR-7 | `UriInterface` | `WpPackUri` |
-| PSR-17 | `RequestFactoryInterface` | `WpPackRequestFactory` |
+| PSR-7 | `RequestInterface` | `Request` |
+| PSR-7 | `ResponseInterface` | `Response` |
+| PSR-7 | `UriInterface` | `Uri` |
+| PSR-17 | `RequestFactoryInterface` | `RequestFactory` |
 | PSR-18 | `ClientInterface` | `HttpClient` |
 
 内部トランスポートは `wp_remote_request()` を使用するため、WordPress のフィルターフック（`pre_http_request` 等）がそのまま利用できます。
@@ -417,9 +417,9 @@ $response->getHeaders();
 | クラス | 説明 |
 |-------|------|
 | `HttpClient` | PSR-18 準拠の HTTP クライアント（`ClientInterface` 実装） |
-| `WpPackRequest` | PSR-7 `RequestInterface` 実装 |
-| `WpPackResponse` | PSR-7 `ResponseInterface` 実装 + Fluent ヘルパー |
-| `WpPackRequestFactory` | PSR-17 `RequestFactoryInterface` 実装 |
+| `Request` | PSR-7 `RequestInterface` 実装 |
+| `Response` | PSR-7 `ResponseInterface` 実装 + Fluent ヘルパー |
+| `RequestFactory` | PSR-17 `RequestFactoryInterface` 実装 |
 | `RequestException` | HTTP エラー例外 |
 | `ConnectionException` | ネットワークエラー例外 |
 

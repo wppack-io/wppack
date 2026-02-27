@@ -6,7 +6,7 @@ namespace WpPack\Component\HttpClient;
 
 use Psr\Http\Message\UriInterface;
 
-final class WpPackUri implements UriInterface
+final class Uri implements UriInterface
 {
     private string $scheme;
 

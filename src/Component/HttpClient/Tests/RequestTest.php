@@ -7,15 +7,15 @@ namespace WpPack\Component\HttpClient\Tests;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\HttpClient\Stream;
-use WpPack\Component\HttpClient\WpPackRequest;
-use WpPack\Component\HttpClient\WpPackUri;
+use WpPack\Component\HttpClient\Request;
+use WpPack\Component\HttpClient\Uri;
 
-final class WpPackRequestTest extends TestCase
+final class RequestTest extends TestCase
 {
     #[Test]
     public function constructWithStringUri(): void
     {
-        $request = new WpPackRequest('GET', 'https://example.com/path');
+        $request = new Request('GET', 'https://example.com/path');
 
         self::assertSame('GET', $request->getMethod());
         self::assertSame('https://example.com/path', (string) $request->getUri());
@@ -24,8 +24,8 @@ final class WpPackRequestTest extends TestCase
     #[Test]
     public function constructWithUriObject(): void
     {
-        $uri = new WpPackUri('https://example.com');
-        $request = new WpPackRequest('POST', $uri);
+        $uri = new Uri('https://example.com');
+        $request = new Request('POST', $uri);
 
         self::assertSame('POST', $request->getMethod());
         self::assertSame($uri, $request->getUri());
@@ -34,7 +34,7 @@ final class WpPackRequestTest extends TestCase
     #[Test]
     public function constructWithHeaders(): void
     {
-        $request = new WpPackRequest('GET', 'https://example.com', [
+        $request = new Request('GET', 'https://example.com', [
             'Content-Type' => 'application/json',
             'Accept' => ['text/html', 'application/json'],
         ]);
@@ -46,7 +46,7 @@ final class WpPackRequestTest extends TestCase
     #[Test]
     public function constructWithStringBody(): void
     {
-        $request = new WpPackRequest('POST', 'https://example.com', body: '{"key":"value"}');
+        $request = new Request('POST', 'https://example.com', body: '{"key":"value"}');
 
         self::assertSame('{"key":"value"}', (string) $request->getBody());
     }
@@ -55,7 +55,7 @@ final class WpPackRequestTest extends TestCase
     public function constructWithStreamBody(): void
     {
         $stream = new Stream('stream body');
-        $request = new WpPackRequest('POST', 'https://example.com', body: $stream);
+        $request = new Request('POST', 'https://example.com', body: $stream);
 
         self::assertSame('stream body', (string) $request->getBody());
     }
@@ -63,7 +63,7 @@ final class WpPackRequestTest extends TestCase
     #[Test]
     public function methodIsUppercased(): void
     {
-        $request = new WpPackRequest('get', 'https://example.com');
+        $request = new Request('get', 'https://example.com');
 
         self::assertSame('GET', $request->getMethod());
     }
@@ -71,7 +71,7 @@ final class WpPackRequestTest extends TestCase
     #[Test]
     public function hostHeaderAutoSet(): void
     {
-        $request = new WpPackRequest('GET', 'https://example.com:8080');
+        $request = new Request('GET', 'https://example.com:8080');
 
         self::assertTrue($request->hasHeader('Host'));
         self::assertSame('example.com:8080', $request->getHeaderLine('Host'));
@@ -80,7 +80,7 @@ final class WpPackRequestTest extends TestCase
     #[Test]
     public function hostHeaderNotAutoSetForEmptyHost(): void
     {
-        $request = new WpPackRequest('GET', '/relative');
+        $request = new Request('GET', '/relative');
 
         self::assertFalse($request->hasHeader('Host'));
     }
@@ -88,7 +88,7 @@ final class WpPackRequestTest extends TestCase
     #[Test]
     public function withMethod(): void
     {
-        $request = new WpPackRequest('GET', 'https://example.com');
+        $request = new Request('GET', 'https://example.com');
         $new = $request->withMethod('POST');
 
         self::assertSame('GET', $request->getMethod());
@@ -98,8 +98,8 @@ final class WpPackRequestTest extends TestCase
     #[Test]
     public function withUri(): void
     {
-        $request = new WpPackRequest('GET', 'https://example.com');
-        $newUri = new WpPackUri('https://other.com');
+        $request = new Request('GET', 'https://example.com');
+        $newUri = new Uri('https://other.com');
         $new = $request->withUri($newUri);
 
         self::assertSame('https://example.com', (string) $request->getUri());
@@ -110,8 +110,8 @@ final class WpPackRequestTest extends TestCase
     #[Test]
     public function withUriPreserveHost(): void
     {
-        $request = new WpPackRequest('GET', 'https://example.com');
-        $newUri = new WpPackUri('https://other.com');
+        $request = new Request('GET', 'https://example.com');
+        $newUri = new Uri('https://other.com');
         $new = $request->withUri($newUri, preserveHost: true);
 
         self::assertSame('example.com', $new->getHeaderLine('Host'));
@@ -120,7 +120,7 @@ final class WpPackRequestTest extends TestCase
     #[Test]
     public function getRequestTarget(): void
     {
-        $request = new WpPackRequest('GET', 'https://example.com/path?query=1');
+        $request = new Request('GET', 'https://example.com/path?query=1');
 
         self::assertSame('/path?query=1', $request->getRequestTarget());
     }
@@ -128,7 +128,7 @@ final class WpPackRequestTest extends TestCase
     #[Test]
     public function getRequestTargetDefaultsToSlash(): void
     {
-        $request = new WpPackRequest('GET', 'https://example.com');
+        $request = new Request('GET', 'https://example.com');
 
         self::assertSame('/', $request->getRequestTarget());
     }
@@ -136,7 +136,7 @@ final class WpPackRequestTest extends TestCase
     #[Test]
     public function withRequestTarget(): void
     {
-        $request = new WpPackRequest('GET', 'https://example.com');
+        $request = new Request('GET', 'https://example.com');
         $new = $request->withRequestTarget('/custom');
 
         self::assertSame('/', $request->getRequestTarget());
@@ -146,7 +146,7 @@ final class WpPackRequestTest extends TestCase
     #[Test]
     public function getProtocolVersion(): void
     {
-        $request = new WpPackRequest('GET', 'https://example.com', protocolVersion: '2.0');
+        $request = new Request('GET', 'https://example.com', protocolVersion: '2.0');
 
         self::assertSame('2.0', $request->getProtocolVersion());
     }
@@ -154,7 +154,7 @@ final class WpPackRequestTest extends TestCase
     #[Test]
     public function withProtocolVersion(): void
     {
-        $request = new WpPackRequest('GET', 'https://example.com');
+        $request = new Request('GET', 'https://example.com');
         $new = $request->withProtocolVersion('2.0');
 
         self::assertSame('1.1', $request->getProtocolVersion());
@@ -164,7 +164,7 @@ final class WpPackRequestTest extends TestCase
     #[Test]
     public function withHeader(): void
     {
-        $request = new WpPackRequest('GET', 'https://example.com');
+        $request = new Request('GET', 'https://example.com');
         $new = $request->withHeader('X-Custom', 'value');
 
         self::assertFalse($request->hasHeader('X-Custom'));
@@ -174,7 +174,7 @@ final class WpPackRequestTest extends TestCase
     #[Test]
     public function withHeaderReplacesExisting(): void
     {
-        $request = new WpPackRequest('GET', 'https://example.com', ['X-Custom' => 'old']);
+        $request = new Request('GET', 'https://example.com', ['X-Custom' => 'old']);
         $new = $request->withHeader('X-Custom', 'new');
 
         self::assertSame(['new'], $new->getHeader('X-Custom'));
@@ -183,7 +183,7 @@ final class WpPackRequestTest extends TestCase
     #[Test]
     public function headersCaseInsensitive(): void
     {
-        $request = new WpPackRequest('GET', 'https://example.com', ['Content-Type' => 'text/html']);
+        $request = new Request('GET', 'https://example.com', ['Content-Type' => 'text/html']);
 
         self::assertTrue($request->hasHeader('content-type'));
         self::assertSame(['text/html'], $request->getHeader('CONTENT-TYPE'));
@@ -192,7 +192,7 @@ final class WpPackRequestTest extends TestCase
     #[Test]
     public function withAddedHeader(): void
     {
-        $request = new WpPackRequest('GET', 'https://example.com', ['Accept' => 'text/html']);
+        $request = new Request('GET', 'https://example.com', ['Accept' => 'text/html']);
         $new = $request->withAddedHeader('Accept', 'application/json');
 
         self::assertSame(['text/html', 'application/json'], $new->getHeader('Accept'));
@@ -201,7 +201,7 @@ final class WpPackRequestTest extends TestCase
     #[Test]
     public function withAddedHeaderNewHeader(): void
     {
-        $request = new WpPackRequest('GET', 'https://example.com');
+        $request = new Request('GET', 'https://example.com');
         $new = $request->withAddedHeader('X-New', 'value');
 
         self::assertSame(['value'], $new->getHeader('X-New'));
@@ -210,7 +210,7 @@ final class WpPackRequestTest extends TestCase
     #[Test]
     public function withoutHeader(): void
     {
-        $request = new WpPackRequest('GET', 'https://example.com', ['X-Remove' => 'value']);
+        $request = new Request('GET', 'https://example.com', ['X-Remove' => 'value']);
         $new = $request->withoutHeader('X-Remove');
 
         self::assertTrue($request->hasHeader('X-Remove'));
@@ -220,7 +220,7 @@ final class WpPackRequestTest extends TestCase
     #[Test]
     public function withBody(): void
     {
-        $request = new WpPackRequest('POST', 'https://example.com', body: 'old');
+        $request = new Request('POST', 'https://example.com', body: 'old');
         $new = $request->withBody(new Stream('new'));
 
         self::assertSame('old', (string) $request->getBody());
@@ -230,7 +230,7 @@ final class WpPackRequestTest extends TestCase
     #[Test]
     public function getHeaderLine(): void
     {
-        $request = new WpPackRequest('GET', 'https://example.com', [
+        $request = new Request('GET', 'https://example.com', [
             'Accept' => ['text/html', 'application/json'],
         ]);
 
@@ -240,7 +240,7 @@ final class WpPackRequestTest extends TestCase
     #[Test]
     public function getHeaderLineNonExistent(): void
     {
-        $request = new WpPackRequest('GET', 'https://example.com');
+        $request = new Request('GET', 'https://example.com');
 
         self::assertSame('', $request->getHeaderLine('X-Missing'));
     }
@@ -248,7 +248,7 @@ final class WpPackRequestTest extends TestCase
     #[Test]
     public function getNonExistentHeader(): void
     {
-        $request = new WpPackRequest('GET', 'https://example.com');
+        $request = new Request('GET', 'https://example.com');
 
         self::assertSame([], $request->getHeader('X-Missing'));
     }
@@ -256,7 +256,7 @@ final class WpPackRequestTest extends TestCase
     #[Test]
     public function getHeaders(): void
     {
-        $request = new WpPackRequest('GET', 'https://example.com', [
+        $request = new Request('GET', 'https://example.com', [
             'Content-Type' => 'application/json',
             'Accept' => 'text/html',
         ]);

@@ -21,8 +21,6 @@ Abstraction  → Infrastructure
 Infrastructure → (外部ライブラリのみ)
 ```
 
----
-
 ## Infrastructure Layer（インフラ層）
 
 WordPress の基盤機能をラップし、型安全でテスタブルなインターフェースを提供する。
@@ -53,7 +51,7 @@ WordPress API やデータアクセスを抽象化し、テスト可能にする
 | Security | `wppack/security` | セキュリティユーティリティ |
 | Sanitizer | `wppack/sanitizer` | サニタイゼーション |
 | Validator | `wppack/validator` | バリデーション |
-| HttpClient | `wppack/http-client` | HTTP クライアント抽象化 |
+| [HttpClient](./http-client/) | `wppack/http-client` | HTTP クライアント抽象化 |
 | HttpFoundation | `wppack/http-foundation` | Request/Response 抽象化 |
 | [Mailer](./mailer/) | `wppack/mailer` | メール送信抽象化、TransportInterface |
 | [Messenger](./messenger.md) | `wppack/messenger` | 非同期メッセージバス（SQS/Lambda） |

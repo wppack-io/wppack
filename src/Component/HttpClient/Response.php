@@ -9,7 +9,7 @@ use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\RequestInterface;
 use WpPack\Component\HttpClient\Exception\RequestException;
 
-final class WpPackResponse implements ResponseInterface
+final class Response implements ResponseInterface
 {
     private int $statusCode;
 

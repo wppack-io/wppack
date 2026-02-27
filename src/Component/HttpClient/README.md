@@ -69,7 +69,7 @@ use Psr\Http\Client\ClientInterface;
 
 function fetchData(ClientInterface $client): array
 {
-    $factory = new \WpPack\Component\HttpClient\WpPackRequestFactory();
+    $factory = new \WpPack\Component\HttpClient\RequestFactory();
     $request = $factory->createRequest('GET', 'https://api.example.com/data');
 
     $response = $client->sendRequest($request);
@@ -121,7 +121,7 @@ try {
 
 ## ドキュメント
 
-詳細は [docs/components/http-client.md](../../docs/components/http-client.md) を参照してください。
+詳細は [docs/components/http-client/](../../docs/components/http-client/) を参照してください。
 
 ## リソース
 

@@ -6,12 +6,12 @@ namespace WpPack\Component\HttpClient\Exception;
 
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Message\RequestInterface;
-use WpPack\Component\HttpClient\WpPackResponse;
+use WpPack\Component\HttpClient\Response;
 
 final class RequestException extends \RuntimeException implements ExceptionInterface, ClientExceptionInterface
 {
     public function __construct(
-        public readonly WpPackResponse $response,
+        public readonly Response $response,
         private readonly ?RequestInterface $request = null,
     ) {
         parent::__construct(

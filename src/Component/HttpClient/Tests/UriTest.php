@@ -6,14 +6,14 @@ namespace WpPack\Component\HttpClient\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\HttpClient\WpPackUri;
+use WpPack\Component\HttpClient\Uri;
 
-final class WpPackUriTest extends TestCase
+final class UriTest extends TestCase
 {
     #[Test]
     public function parseFullUri(): void
     {
-        $uri = new WpPackUri('https://user:pass@example.com:8080/path?query=1#fragment');
+        $uri = new Uri('https://user:pass@example.com:8080/path?query=1#fragment');
 
         self::assertSame('https', $uri->getScheme());
         self::assertSame('user:pass', $uri->getUserInfo());
@@ -27,7 +27,7 @@ final class WpPackUriTest extends TestCase
     #[Test]
     public function emptyUri(): void
     {
-        $uri = new WpPackUri();
+        $uri = new Uri();
 
         self::assertSame('', $uri->getScheme());
         self::assertSame('', $uri->getHost());
@@ -41,7 +41,7 @@ final class WpPackUriTest extends TestCase
     #[Test]
     public function defaultPortIsOmitted(): void
     {
-        $uri = new WpPackUri('https://example.com:443/path');
+        $uri = new Uri('https://example.com:443/path');
 
         self::assertNull($uri->getPort());
         self::assertSame('https://example.com/path', (string) $uri);
@@ -50,7 +50,7 @@ final class WpPackUriTest extends TestCase
     #[Test]
     public function nonDefaultPortIsKept(): void
     {
-        $uri = new WpPackUri('https://example.com:8443/path');
+        $uri = new Uri('https://example.com:8443/path');
 
         self::assertSame(8443, $uri->getPort());
         self::assertSame('https://example.com:8443/path', (string) $uri);
@@ -59,7 +59,7 @@ final class WpPackUriTest extends TestCase
     #[Test]
     public function httpDefaultPortIsOmitted(): void
     {
-        $uri = new WpPackUri('http://example.com:80/path');
+        $uri = new Uri('http://example.com:80/path');
 
         self::assertNull($uri->getPort());
     }
@@ -67,7 +67,7 @@ final class WpPackUriTest extends TestCase
     #[Test]
     public function getAuthority(): void
     {
-        $uri = new WpPackUri('https://user:pass@example.com:8080/path');
+        $uri = new Uri('https://user:pass@example.com:8080/path');
 
         self::assertSame('user:pass@example.com:8080', $uri->getAuthority());
     }
@@ -75,7 +75,7 @@ final class WpPackUriTest extends TestCase
     #[Test]
     public function getAuthorityWithoutUserInfo(): void
     {
-        $uri = new WpPackUri('https://example.com/path');
+        $uri = new Uri('https://example.com/path');
 
         self::assertSame('example.com', $uri->getAuthority());
     }
@@ -83,7 +83,7 @@ final class WpPackUriTest extends TestCase
     #[Test]
     public function getAuthorityEmptyHost(): void
     {
-        $uri = new WpPackUri('/relative/path');
+        $uri = new Uri('/relative/path');
 
         self::assertSame('', $uri->getAuthority());
     }
@@ -91,7 +91,7 @@ final class WpPackUriTest extends TestCase
     #[Test]
     public function withScheme(): void
     {
-        $uri = new WpPackUri('https://example.com');
+        $uri = new Uri('https://example.com');
         $new = $uri->withScheme('http');
 
         self::assertSame('https', $uri->getScheme());
@@ -101,7 +101,7 @@ final class WpPackUriTest extends TestCase
     #[Test]
     public function withUserInfo(): void
     {
-        $uri = new WpPackUri('https://example.com');
+        $uri = new Uri('https://example.com');
         $new = $uri->withUserInfo('user', 'pass');
 
         self::assertSame('', $uri->getUserInfo());
@@ -111,7 +111,7 @@ final class WpPackUriTest extends TestCase
     #[Test]
     public function withUserInfoWithoutPassword(): void
     {
-        $uri = new WpPackUri('https://example.com');
+        $uri = new Uri('https://example.com');
         $new = $uri->withUserInfo('user');
 
         self::assertSame('user', $new->getUserInfo());
@@ -120,7 +120,7 @@ final class WpPackUriTest extends TestCase
     #[Test]
     public function withHost(): void
     {
-        $uri = new WpPackUri('https://example.com');
+        $uri = new Uri('https://example.com');
         $new = $uri->withHost('other.com');
 
         self::assertSame('example.com', $uri->getHost());
@@ -130,7 +130,7 @@ final class WpPackUriTest extends TestCase
     #[Test]
     public function withPort(): void
     {
-        $uri = new WpPackUri('https://example.com');
+        $uri = new Uri('https://example.com');
         $new = $uri->withPort(9090);
 
         self::assertNull($uri->getPort());
@@ -140,7 +140,7 @@ final class WpPackUriTest extends TestCase
     #[Test]
     public function withPortNull(): void
     {
-        $uri = new WpPackUri('https://example.com:9090');
+        $uri = new Uri('https://example.com:9090');
         $new = $uri->withPort(null);
 
         self::assertNull($new->getPort());
@@ -149,7 +149,7 @@ final class WpPackUriTest extends TestCase
     #[Test]
     public function withPath(): void
     {
-        $uri = new WpPackUri('https://example.com/old');
+        $uri = new Uri('https://example.com/old');
         $new = $uri->withPath('/new');
 
         self::assertSame('/old', $uri->getPath());
@@ -159,7 +159,7 @@ final class WpPackUriTest extends TestCase
     #[Test]
     public function withQuery(): void
     {
-        $uri = new WpPackUri('https://example.com?old=1');
+        $uri = new Uri('https://example.com?old=1');
         $new = $uri->withQuery('new=2');
 
         self::assertSame('old=1', $uri->getQuery());
@@ -169,7 +169,7 @@ final class WpPackUriTest extends TestCase
     #[Test]
     public function withFragment(): void
     {
-        $uri = new WpPackUri('https://example.com#old');
+        $uri = new Uri('https://example.com#old');
         $new = $uri->withFragment('new');
 
         self::assertSame('old', $uri->getFragment());
@@ -179,7 +179,7 @@ final class WpPackUriTest extends TestCase
     #[Test]
     public function toStringFullUri(): void
     {
-        $uri = new WpPackUri('https://user:pass@example.com:8080/path?query=1#frag');
+        $uri = new Uri('https://user:pass@example.com:8080/path?query=1#frag');
 
         self::assertSame('https://user:pass@example.com:8080/path?query=1#frag', (string) $uri);
     }
@@ -187,7 +187,7 @@ final class WpPackUriTest extends TestCase
     #[Test]
     public function toStringRelativePath(): void
     {
-        $uri = new WpPackUri('/path?query=1');
+        $uri = new Uri('/path?query=1');
 
         self::assertSame('/path?query=1', (string) $uri);
     }
@@ -195,7 +195,7 @@ final class WpPackUriTest extends TestCase
     #[Test]
     public function schemeCaseInsensitive(): void
     {
-        $uri = new WpPackUri('HTTPS://example.com');
+        $uri = new Uri('HTTPS://example.com');
 
         self::assertSame('https', $uri->getScheme());
     }
@@ -203,7 +203,7 @@ final class WpPackUriTest extends TestCase
     #[Test]
     public function hostCaseInsensitive(): void
     {
-        $uri = new WpPackUri('https://EXAMPLE.COM');
+        $uri = new Uri('https://EXAMPLE.COM');
 
         self::assertSame('example.com', $uri->getHost());
     }
@@ -213,7 +213,7 @@ final class WpPackUriTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
 
-        new WpPackUri('http:///invalid');
+        new Uri('http:///invalid');
     }
 
     #[Test]
@@ -221,13 +221,13 @@ final class WpPackUriTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
 
-        (new WpPackUri('https://example.com'))->withPort(70000);
+        (new Uri('https://example.com'))->withPort(70000);
     }
 
     #[Test]
     public function pathPrefixedWithSlashWhenAuthorityPresent(): void
     {
-        $uri = (new WpPackUri())
+        $uri = (new Uri())
             ->withScheme('https')
             ->withHost('example.com')
             ->withPath('relative');

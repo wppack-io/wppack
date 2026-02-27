@@ -8,14 +8,14 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\HttpClient\Exception\RequestException;
 use WpPack\Component\HttpClient\Stream;
-use WpPack\Component\HttpClient\WpPackResponse;
+use WpPack\Component\HttpClient\Response;
 
-final class WpPackResponseTest extends TestCase
+final class ResponseTest extends TestCase
 {
     #[Test]
     public function defaults(): void
     {
-        $response = new WpPackResponse();
+        $response = new Response();
 
         self::assertSame(200, $response->getStatusCode());
         self::assertSame('', $response->getReasonPhrase());
@@ -26,7 +26,7 @@ final class WpPackResponseTest extends TestCase
     #[Test]
     public function constructWithAll(): void
     {
-        $response = new WpPackResponse(
+        $response = new Response(
             statusCode: 404,
             headers: ['Content-Type' => 'text/html'],
             body: 'Not Found',
@@ -45,7 +45,7 @@ final class WpPackResponseTest extends TestCase
     public function constructWithStreamBody(): void
     {
         $stream = new Stream('stream content');
-        $response = new WpPackResponse(body: $stream);
+        $response = new Response(body: $stream);
 
         self::assertSame('stream content', (string) $response->getBody());
     }
@@ -53,7 +53,7 @@ final class WpPackResponseTest extends TestCase
     #[Test]
     public function withStatus(): void
     {
-        $response = new WpPackResponse(200);
+        $response = new Response(200);
         $new = $response->withStatus(301, 'Moved Permanently');
 
         self::assertSame(200, $response->getStatusCode());
@@ -64,7 +64,7 @@ final class WpPackResponseTest extends TestCase
     #[Test]
     public function withProtocolVersion(): void
     {
-        $response = new WpPackResponse();
+        $response = new Response();
         $new = $response->withProtocolVersion('2.0');
 
         self::assertSame('1.1', $response->getProtocolVersion());
@@ -74,7 +74,7 @@ final class WpPackResponseTest extends TestCase
     #[Test]
     public function withHeader(): void
     {
-        $response = new WpPackResponse();
+        $response = new Response();
         $new = $response->withHeader('X-Custom', 'value');
 
         self::assertFalse($response->hasHeader('X-Custom'));
@@ -84,7 +84,7 @@ final class WpPackResponseTest extends TestCase
     #[Test]
     public function withAddedHeader(): void
     {
-        $response = new WpPackResponse(headers: ['Accept' => 'text/html']);
+        $response = new Response(headers: ['Accept' => 'text/html']);
         $new = $response->withAddedHeader('Accept', 'application/json');
 
         self::assertSame(['text/html', 'application/json'], $new->getHeader('Accept'));
@@ -93,7 +93,7 @@ final class WpPackResponseTest extends TestCase
     #[Test]
     public function withoutHeader(): void
     {
-        $response = new WpPackResponse(headers: ['X-Remove' => 'value']);
+        $response = new Response(headers: ['X-Remove' => 'value']);
         $new = $response->withoutHeader('X-Remove');
 
         self::assertTrue($response->hasHeader('X-Remove'));
@@ -103,7 +103,7 @@ final class WpPackResponseTest extends TestCase
     #[Test]
     public function withBody(): void
     {
-        $response = new WpPackResponse(body: 'old');
+        $response = new Response(body: 'old');
         $new = $response->withBody(new Stream('new'));
 
         self::assertSame('old', (string) $response->getBody());
@@ -113,7 +113,7 @@ final class WpPackResponseTest extends TestCase
     #[Test]
     public function headersCaseInsensitive(): void
     {
-        $response = new WpPackResponse(headers: ['Content-Type' => 'text/html']);
+        $response = new Response(headers: ['Content-Type' => 'text/html']);
 
         self::assertTrue($response->hasHeader('content-type'));
         self::assertSame(['text/html'], $response->getHeader('CONTENT-TYPE'));
@@ -123,7 +123,7 @@ final class WpPackResponseTest extends TestCase
     #[Test]
     public function getHeaderLineNonExistent(): void
     {
-        $response = new WpPackResponse();
+        $response = new Response();
 
         self::assertSame('', $response->getHeaderLine('X-Missing'));
     }
@@ -133,7 +133,7 @@ final class WpPackResponseTest extends TestCase
     #[Test]
     public function statusHelper(): void
     {
-        $response = new WpPackResponse(201);
+        $response = new Response(201);
 
         self::assertSame(201, $response->status());
     }
@@ -141,7 +141,7 @@ final class WpPackResponseTest extends TestCase
     #[Test]
     public function headers(): void
     {
-        $response = new WpPackResponse(headers: ['X-Foo' => 'bar']);
+        $response = new Response(headers: ['X-Foo' => 'bar']);
 
         $headers = $response->headers();
         self::assertArrayHasKey('X-Foo', $headers);
@@ -151,7 +151,7 @@ final class WpPackResponseTest extends TestCase
     #[Test]
     public function header(): void
     {
-        $response = new WpPackResponse(headers: ['Content-Type' => 'application/json']);
+        $response = new Response(headers: ['Content-Type' => 'application/json']);
 
         self::assertSame('application/json', $response->header('Content-Type'));
         self::assertNull($response->header('X-Missing'));
@@ -160,7 +160,7 @@ final class WpPackResponseTest extends TestCase
     #[Test]
     public function body(): void
     {
-        $response = new WpPackResponse(body: 'hello world');
+        $response = new Response(body: 'hello world');
 
         self::assertSame('hello world', $response->body());
     }
@@ -168,7 +168,7 @@ final class WpPackResponseTest extends TestCase
     #[Test]
     public function json(): void
     {
-        $response = new WpPackResponse(body: '{"key":"value","num":42}');
+        $response = new Response(body: '{"key":"value","num":42}');
 
         self::assertSame(['key' => 'value', 'num' => 42], $response->json());
     }
@@ -176,7 +176,7 @@ final class WpPackResponseTest extends TestCase
     #[Test]
     public function jsonInvalidReturnsEmptyArray(): void
     {
-        $response = new WpPackResponse(body: 'not json');
+        $response = new Response(body: 'not json');
 
         self::assertSame([], $response->json());
     }
@@ -184,49 +184,49 @@ final class WpPackResponseTest extends TestCase
     #[Test]
     public function successful(): void
     {
-        self::assertTrue((new WpPackResponse(200))->successful());
-        self::assertTrue((new WpPackResponse(201))->successful());
-        self::assertTrue((new WpPackResponse(299))->successful());
-        self::assertFalse((new WpPackResponse(300))->successful());
-        self::assertFalse((new WpPackResponse(400))->successful());
-        self::assertFalse((new WpPackResponse(500))->successful());
+        self::assertTrue((new Response(200))->successful());
+        self::assertTrue((new Response(201))->successful());
+        self::assertTrue((new Response(299))->successful());
+        self::assertFalse((new Response(300))->successful());
+        self::assertFalse((new Response(400))->successful());
+        self::assertFalse((new Response(500))->successful());
     }
 
     #[Test]
     public function failed(): void
     {
-        self::assertFalse((new WpPackResponse(200))->failed());
-        self::assertFalse((new WpPackResponse(301))->failed());
-        self::assertTrue((new WpPackResponse(400))->failed());
-        self::assertTrue((new WpPackResponse(404))->failed());
-        self::assertTrue((new WpPackResponse(500))->failed());
-        self::assertTrue((new WpPackResponse(599))->failed());
+        self::assertFalse((new Response(200))->failed());
+        self::assertFalse((new Response(301))->failed());
+        self::assertTrue((new Response(400))->failed());
+        self::assertTrue((new Response(404))->failed());
+        self::assertTrue((new Response(500))->failed());
+        self::assertTrue((new Response(599))->failed());
     }
 
     #[Test]
     public function clientError(): void
     {
-        self::assertFalse((new WpPackResponse(200))->clientError());
-        self::assertTrue((new WpPackResponse(400))->clientError());
-        self::assertTrue((new WpPackResponse(404))->clientError());
-        self::assertTrue((new WpPackResponse(499))->clientError());
-        self::assertFalse((new WpPackResponse(500))->clientError());
+        self::assertFalse((new Response(200))->clientError());
+        self::assertTrue((new Response(400))->clientError());
+        self::assertTrue((new Response(404))->clientError());
+        self::assertTrue((new Response(499))->clientError());
+        self::assertFalse((new Response(500))->clientError());
     }
 
     #[Test]
     public function serverError(): void
     {
-        self::assertFalse((new WpPackResponse(200))->serverError());
-        self::assertFalse((new WpPackResponse(400))->serverError());
-        self::assertTrue((new WpPackResponse(500))->serverError());
-        self::assertTrue((new WpPackResponse(503))->serverError());
-        self::assertTrue((new WpPackResponse(599))->serverError());
+        self::assertFalse((new Response(200))->serverError());
+        self::assertFalse((new Response(400))->serverError());
+        self::assertTrue((new Response(500))->serverError());
+        self::assertTrue((new Response(503))->serverError());
+        self::assertTrue((new Response(599))->serverError());
     }
 
     #[Test]
     public function throwOnSuccess(): void
     {
-        $response = new WpPackResponse(200);
+        $response = new Response(200);
 
         self::assertSame($response, $response->throw());
     }
@@ -234,7 +234,7 @@ final class WpPackResponseTest extends TestCase
     #[Test]
     public function throwOnClientError(): void
     {
-        $response = new WpPackResponse(404);
+        $response = new Response(404);
 
         $this->expectException(RequestException::class);
         $response->throw();
@@ -243,7 +243,7 @@ final class WpPackResponseTest extends TestCase
     #[Test]
     public function throwOnServerError(): void
     {
-        $response = new WpPackResponse(500);
+        $response = new Response(500);
 
         $this->expectException(RequestException::class);
         $response->throw();
@@ -252,7 +252,7 @@ final class WpPackResponseTest extends TestCase
     #[Test]
     public function throwExceptionContainsResponse(): void
     {
-        $response = new WpPackResponse(422, body: '{"error":"validation"}');
+        $response = new Response(422, body: '{"error":"validation"}');
 
         try {
             $response->throw();

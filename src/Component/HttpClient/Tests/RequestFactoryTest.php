@@ -9,15 +9,15 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UriInterface;
-use WpPack\Component\HttpClient\WpPackRequestFactory;
+use WpPack\Component\HttpClient\RequestFactory;
 
-final class WpPackRequestFactoryTest extends TestCase
+final class RequestFactoryTest extends TestCase
 {
-    private WpPackRequestFactory $factory;
+    private RequestFactory $factory;
 
     protected function setUp(): void
     {
-        $this->factory = new WpPackRequestFactory();
+        $this->factory = new RequestFactory();
     }
 
     #[Test]

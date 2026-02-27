@@ -8,7 +8,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UriInterface;
 
-final class WpPackRequest implements RequestInterface
+final class Request implements RequestInterface
 {
     private string $method;
 
@@ -37,7 +37,7 @@ final class WpPackRequest implements RequestInterface
         string $protocolVersion = '1.1',
     ) {
         $this->method = strtoupper($method);
-        $this->uri = $uri instanceof UriInterface ? $uri : new WpPackUri($uri);
+        $this->uri = $uri instanceof UriInterface ? $uri : new Uri($uri);
         $this->protocolVersion = $protocolVersion;
         $this->requestTarget = null;
 

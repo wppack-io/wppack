@@ -11,11 +11,11 @@ use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UriFactoryInterface;
 use Psr\Http\Message\UriInterface;
 
-final class WpPackRequestFactory implements RequestFactoryInterface, StreamFactoryInterface, UriFactoryInterface
+final class RequestFactory implements RequestFactoryInterface, StreamFactoryInterface, UriFactoryInterface
 {
     public function createRequest(string $method, $uri): RequestInterface
     {
-        return new WpPackRequest($method, $uri instanceof UriInterface ? $uri : new WpPackUri($uri));
+        return new Request($method, $uri instanceof UriInterface ? $uri : new Uri($uri));
     }
 
     public function createStream(string $content = ''): StreamInterface
@@ -44,6 +44,6 @@ final class WpPackRequestFactory implements RequestFactoryInterface, StreamFacto
 
     public function createUri(string $uri = ''): UriInterface
     {
-        return new WpPackUri($uri);
+        return new Uri($uri);
     }
 }

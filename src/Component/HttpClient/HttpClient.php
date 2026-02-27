@@ -80,7 +80,7 @@ final class HttpClient implements ClientInterface
 
         $body = $result['body'] ?? '';
 
-        return new WpPackResponse(
+        return new Response(
             statusCode: $statusCode,
             headers: $responseHeaders,
             body: $body,
@@ -182,7 +182,7 @@ final class HttpClient implements ClientInterface
     /**
      * @param array<string, mixed> $options
      */
-    public function get(string $url, array $options = []): WpPackResponse
+    public function get(string $url, array $options = []): Response
     {
         return $this->request('GET', $url, $options);
     }
@@ -190,7 +190,7 @@ final class HttpClient implements ClientInterface
     /**
      * @param array<string, mixed> $options
      */
-    public function post(string $url, array $options = []): WpPackResponse
+    public function post(string $url, array $options = []): Response
     {
         return $this->request('POST', $url, $options);
     }
@@ -198,7 +198,7 @@ final class HttpClient implements ClientInterface
     /**
      * @param array<string, mixed> $options
      */
-    public function put(string $url, array $options = []): WpPackResponse
+    public function put(string $url, array $options = []): Response
     {
         return $this->request('PUT', $url, $options);
     }
@@ -206,7 +206,7 @@ final class HttpClient implements ClientInterface
     /**
      * @param array<string, mixed> $options
      */
-    public function patch(string $url, array $options = []): WpPackResponse
+    public function patch(string $url, array $options = []): Response
     {
         return $this->request('PATCH', $url, $options);
     }
@@ -214,7 +214,7 @@ final class HttpClient implements ClientInterface
     /**
      * @param array<string, mixed> $options
      */
-    public function delete(string $url, array $options = []): WpPackResponse
+    public function delete(string $url, array $options = []): Response
     {
         return $this->request('DELETE', $url, $options);
     }
@@ -222,7 +222,7 @@ final class HttpClient implements ClientInterface
     /**
      * @param array<string, mixed> $options
      */
-    public function head(string $url, array $options = []): WpPackResponse
+    public function head(string $url, array $options = []): Response
     {
         return $this->request('HEAD', $url, $options);
     }
@@ -230,7 +230,7 @@ final class HttpClient implements ClientInterface
     /**
      * @param array<string, mixed> $options
      */
-    private function request(string $method, string $url, array $options = []): WpPackResponse
+    private function request(string $method, string $url, array $options = []): Response
     {
         $url = $this->buildUrl($url);
 
@@ -258,9 +258,9 @@ final class HttpClient implements ClientInterface
             }
         }
 
-        $request = new WpPackRequest($method, $url, $headers, $body);
+        $request = new Request($method, $url, $headers, $body);
 
-        /** @var WpPackResponse */
+        /** @var Response */
         return $this->sendRequest($request);
     }
 
