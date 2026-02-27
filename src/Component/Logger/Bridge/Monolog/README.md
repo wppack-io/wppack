@@ -1,5 +1,8 @@
 # Monolog Logger
 
+**パッケージ:** `wppack/monolog-logger`
+**名前空間:** `WpPack\Component\Logger\Bridge\Monolog\`
+
 WpPack Logger の Monolog ブリッジ。`MonologLoggerFactory` を使って Monolog を PSR-3 `LoggerInterface` として利用できます。
 
 ## インストール

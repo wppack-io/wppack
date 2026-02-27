@@ -16,11 +16,11 @@ composer require wppack/monolog-logger
 
 ```php
 use WpPack\Component\Logger\Bridge\Monolog\MonologLoggerFactory;
-use Monolog\Handler\ErrorLogHandler;
+use Monolog\Handler\ErrorLogHandler as MonologErrorLogHandler;
 use Monolog\Processor\PsrLogMessageProcessor;
 
 $factory = new MonologLoggerFactory(
-    defaultHandlers: [new ErrorLogHandler()],
+    defaultHandlers: [new MonologErrorLogHandler()],
     defaultProcessors: [new PsrLogMessageProcessor()],
 );
 
@@ -53,7 +53,7 @@ public function __construct(
 
 ```php
 $factory = new MonologLoggerFactory(
-    defaultHandlers: [new ErrorLogHandler()],
+    defaultHandlers: [new MonologErrorLogHandler()],
 );
 
 $appLogger = $factory->create('app');
@@ -72,14 +72,14 @@ $apiLogger->info('API request', ['endpoint' => '/users', 'method' => 'GET']);
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\Logger\Bridge\Monolog\MonologLoggerFactory;
-use Monolog\Handler\ErrorLogHandler;
+use Monolog\Handler\ErrorLogHandler as MonologErrorLogHandler;
 use Psr\Log\LoggerInterface;
 
 $builder = new ContainerBuilder();
 
 // MonologLoggerFactory を登録
 $builder->register(MonologLoggerFactory::class)
-    ->addArgument([new ErrorLogHandler()]);
+    ->addArgument([new MonologErrorLogHandler()]);
 
 // デフォルトロガー
 $builder->register(LoggerInterface::class)
@@ -92,14 +92,14 @@ $builder->register(LoggerInterface::class)
 Monolog が提供する豊富なハンドラーを活用できます：
 
 ```php
-use Monolog\Handler\ErrorLogHandler;
+use Monolog\Handler\ErrorLogHandler as MonologErrorLogHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\RotatingFileHandler;
 use Monolog\Level;
 
 // PHP error_log() に出力
 $factory = new MonologLoggerFactory(
-    defaultHandlers: [new ErrorLogHandler()],
+    defaultHandlers: [new MonologErrorLogHandler()],
 );
 
 // ファイルに出力
@@ -115,7 +115,7 @@ $factory = new MonologLoggerFactory(
 // 複数ハンドラーの組み合わせ
 $factory = new MonologLoggerFactory(
     defaultHandlers: [
-        new ErrorLogHandler(level: Level::Warning),
+        new MonologErrorLogHandler(level: Level::Warning),
         new StreamHandler('/path/to/app.log', Level::Debug),
     ],
 );
