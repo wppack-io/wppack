@@ -40,6 +40,14 @@ class ContainerBuilder
     }
 
     /**
+     * @return array<string, Definition>
+     */
+    public function getDefinitions(): array
+    {
+        return $this->definitions;
+    }
+
+    /**
      * @return array<string, list<array<string, mixed>>>
      */
     public function findTaggedServiceIds(string $tag): array
