@@ -156,13 +156,13 @@ use WpPack\Component\HttpClient\Exception\ConnectionException;
 class ExternalApiCheck extends AbstractHealthCheck
 {
     public function __construct(
-        private readonly HttpClient $http,
+        private readonly HttpClient $httpClient,
     ) {}
 
     public function run(): Result
     {
         try {
-            $response = $this->http->get('https://api.example.com/health');
+            $response = $this->httpClient->get('https://api.example.com/health');
         } catch (ConnectionException $e) {
             return Result::recommended(
                 label: __('Cannot reach external API', 'my-plugin'),
