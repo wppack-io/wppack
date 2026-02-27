@@ -6,10 +6,12 @@
     "require": {
         "php": "^8.1",
         "async-aws/ses": "^1.14",
+        "psr/container": "^2.0",
         "psr/http-client": "^1.0",
         "psr/http-factory": "^1.0",
         "psr/http-message": "^2.0",
-        "psr/log": "^3.0"
+        "psr/log": "^3.0",
+        "symfony/dependency-injection": "^6.4"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.68",
@@ -86,6 +88,7 @@
             "WpPack\\Component\\Mailer\\Bridge\\SendGrid\\Tests\\": "src/Component/Mailer/Bridge/SendGrid/tests/",
             "WpPack\\Component\\HttpClient\\Tests\\": "src/Component/HttpClient/tests/",
             "WpPack\\Component\\SiteHealth\\Tests\\": "src/Component/SiteHealth/tests/",
+            "WpPack\\Component\\DependencyInjection\\Tests\\": "src/Component/DependencyInjection/tests/",
             "WpPack\\Component\\Logger\\Tests\\": "src/Component/Logger/tests/"
         }
     },
