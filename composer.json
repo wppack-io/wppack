@@ -89,7 +89,8 @@
             "WpPack\\Component\\HttpClient\\Tests\\": "src/Component/HttpClient/tests/",
             "WpPack\\Component\\SiteHealth\\Tests\\": "src/Component/SiteHealth/tests/",
             "WpPack\\Component\\DependencyInjection\\Tests\\": "src/Component/DependencyInjection/tests/",
-            "WpPack\\Component\\Logger\\Tests\\": "src/Component/Logger/tests/"
+            "WpPack\\Component\\Logger\\Tests\\": "src/Component/Logger/tests/",
+            "WpPack\\Component\\Kernel\\Tests\\": "src/Component/Kernel/tests/"
         }
     },
     "replace": {
