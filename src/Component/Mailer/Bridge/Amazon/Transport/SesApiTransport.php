@@ -6,9 +6,10 @@ namespace WpPack\Component\Mailer\Bridge\Amazon\Transport;
 
 use AsyncAws\Ses\Input\SendEmailRequest;
 use AsyncAws\Ses\SesClient;
+use PHPMailer\PHPMailer\PHPMailer as BasePhpMailer;
 use WpPack\Component\Mailer\Exception\TransportException;
+use WpPack\Component\Mailer\PhpMailer;
 use WpPack\Component\Mailer\Transport\AbstractApiTransport;
-use WpPack\Component\Mailer\WpPackPhpMailer;
 
 final class SesApiTransport extends AbstractApiTransport
 {
@@ -22,7 +23,7 @@ final class SesApiTransport extends AbstractApiTransport
         return 'sesapi';
     }
 
-    protected function doSendApi(WpPackPhpMailer $phpMailer): string
+    protected function doSendApi(PhpMailer $phpMailer): string
     {
         // Fall back to Raw for attachments (Simple doesn't support them)
         if (!empty($phpMailer->getAttachments())) {
@@ -57,7 +58,7 @@ final class SesApiTransport extends AbstractApiTransport
         );
     }
 
-    private function sendRawFallback(WpPackPhpMailer $phpMailer): string
+    private function sendRawFallback(PhpMailer $phpMailer): string
     {
         $mime = $phpMailer->getSentMIMEMessage();
 
@@ -88,7 +89,7 @@ final class SesApiTransport extends AbstractApiTransport
     /**
      * @return array{ToAddresses: list<string>, CcAddresses?: list<string>, BccAddresses?: list<string>}
      */
-    private function buildDestination(WpPackPhpMailer $phpMailer): array
+    private function buildDestination(PhpMailer $phpMailer): array
     {
         $dest = [
             'ToAddresses' => array_map(
@@ -119,11 +120,11 @@ final class SesApiTransport extends AbstractApiTransport
     /**
      * @return array{Html?: array{Data: string, Charset: string}, Text?: array{Data: string, Charset: string}}
      */
-    private function buildSimpleBody(WpPackPhpMailer $phpMailer): array
+    private function buildSimpleBody(PhpMailer $phpMailer): array
     {
         $body = [];
 
-        if ($phpMailer->ContentType === \PHPMailer\PHPMailer\PHPMailer::CONTENT_TYPE_TEXT_HTML) {
+        if ($phpMailer->ContentType === BasePhpMailer::CONTENT_TYPE_TEXT_HTML) {
             $body['Html'] = ['Data' => $phpMailer->Body, 'Charset' => $phpMailer->CharSet];
             if (!empty($phpMailer->AltBody)) {
                 $body['Text'] = ['Data' => $phpMailer->AltBody, 'Charset' => $phpMailer->CharSet];

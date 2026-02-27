@@ -8,7 +8,7 @@ use AsyncAws\Ses\Input\SendEmailRequest;
 use AsyncAws\Ses\SesClient;
 use WpPack\Component\Mailer\Exception\TransportException;
 use WpPack\Component\Mailer\Transport\AbstractTransport;
-use WpPack\Component\Mailer\WpPackPhpMailer;
+use WpPack\Component\Mailer\PhpMailer;
 
 final class SesTransport extends AbstractTransport
 {
@@ -22,7 +22,7 @@ final class SesTransport extends AbstractTransport
         return 'ses';
     }
 
-    protected function doSend(WpPackPhpMailer $phpMailer): void
+    protected function doSend(PhpMailer $phpMailer): void
     {
         $mime = $phpMailer->getSentMIMEMessage();
 

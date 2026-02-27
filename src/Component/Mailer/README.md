@@ -30,15 +30,15 @@ $mailer->send($email);
 ## TransportInterface
 
 All transports implement `TransportInterface::configure()`, which applies transport-specific
-settings to the `WpPackPhpMailer` instance:
+settings to the `PhpMailer` instance:
 
 ```php
 use WpPack\Component\Mailer\Transport\TransportInterface;
-use WpPack\Component\Mailer\WpPackPhpMailer;
+use WpPack\Component\Mailer\PhpMailer;
 
 interface TransportInterface
 {
-    public function configure(WpPackPhpMailer $phpMailer): void;
+    public function configure(PhpMailer $phpMailer): void;
     public function __toString(): string;
 }
 ```

@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Mailer\Tests\Transport;
 
+use PHPMailer\PHPMailer\PHPMailer as BasePhpMailer;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Mailer\PhpMailer;
 use WpPack\Component\Mailer\Transport\AbstractApiTransport;
-use WpPack\Component\Mailer\WpPackPhpMailer;
 
 final class AbstractApiTransportTest extends TestCase
 {
     protected function setUp(): void
     {
-        if (!class_exists(\PHPMailer\PHPMailer\PHPMailer::class)) {
+        if (!class_exists(BasePhpMailer::class)) {
             self::markTestSkipped('PHPMailer is not installed.');
         }
     }
@@ -25,7 +26,7 @@ final class AbstractApiTransportTest extends TestCase
                 private readonly string $messageId,
             ) {}
 
-            protected function doSendApi(WpPackPhpMailer $phpMailer): string
+            protected function doSendApi(PhpMailer $phpMailer): string
             {
                 return $this->messageId;
             }
@@ -48,7 +49,7 @@ final class AbstractApiTransportTest extends TestCase
             /**
              * Expose protected doSend for testing.
              */
-            public function testDoSend(WpPackPhpMailer $phpMailer): void
+            public function testDoSend(PhpMailer $phpMailer): void
             {
                 $this->doSend($phpMailer);
             }
@@ -59,7 +60,7 @@ final class AbstractApiTransportTest extends TestCase
     public function doSendSetsMessageIdWithAngleBrackets(): void
     {
         $transport = $this->createTransport('abc-123-def');
-        $phpMailer = new WpPackPhpMailer(true);
+        $phpMailer = new PhpMailer(true);
 
         $transport->testDoSend($phpMailer);
 
@@ -70,7 +71,7 @@ final class AbstractApiTransportTest extends TestCase
     public function doSendSetsMessageIdFromDoSendApi(): void
     {
         $transport = $this->createTransport('unique-id-456');
-        $phpMailer = new WpPackPhpMailer(true);
+        $phpMailer = new PhpMailer(true);
 
         $transport->testDoSend($phpMailer);
 
@@ -142,7 +143,7 @@ final class AbstractApiTransportTest extends TestCase
     public function configureRegistersCustomMailer(): void
     {
         $transport = $this->createTransport('msg-id');
-        $phpMailer = new WpPackPhpMailer(true);
+        $phpMailer = new PhpMailer(true);
 
         $transport->configure($phpMailer);
 

@@ -4,23 +4,23 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Mailer\Tests;
 
-use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\PHPMailer as BasePhpMailer;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Mailer\Email;
 use WpPack\Component\Mailer\Exception\InvalidArgumentException;
 use WpPack\Component\Mailer\Mailer;
+use WpPack\Component\Mailer\PhpMailer;
 use WpPack\Component\Mailer\TemplatedEmail;
 use WpPack\Component\Mailer\TemplateRendererInterface;
 use WpPack\Component\Mailer\Transport\NullTransport;
 use WpPack\Component\Mailer\Transport\TransportInterface;
-use WpPack\Component\Mailer\WpPackPhpMailer;
 
 final class MailerTest extends TestCase
 {
     protected function setUp(): void
     {
-        if (!class_exists(PHPMailer::class)) {
+        if (!class_exists(BasePhpMailer::class)) {
             self::markTestSkipped('PHPMailer is not installed.');
         }
 
@@ -84,13 +84,13 @@ final class MailerTest extends TestCase
     }
 
     #[Test]
-    public function onPhpMailerInitConfiguresWpPackPhpMailer(): void
+    public function onPhpMailerInitConfiguresPhpMailer(): void
     {
         $configured = false;
         $transport = new class ($configured) implements TransportInterface {
             public function __construct(private bool &$configured) {}
 
-            public function configure(WpPackPhpMailer $phpMailer): void
+            public function configure(PhpMailer $phpMailer): void
             {
                 $this->configured = true;
             }
@@ -102,7 +102,7 @@ final class MailerTest extends TestCase
         };
 
         $mailer = new Mailer($transport);
-        $wpPackMailer = new WpPackPhpMailer(true);
+        $wpPackMailer = new PhpMailer(true);
 
         $mailer->onPhpMailerInit($wpPackMailer);
 
@@ -116,7 +116,7 @@ final class MailerTest extends TestCase
         $transport = new class ($configured) implements TransportInterface {
             public function __construct(private bool &$configured) {}
 
-            public function configure(WpPackPhpMailer $phpMailer): void
+            public function configure(PhpMailer $phpMailer): void
             {
                 $this->configured = true;
             }
@@ -152,7 +152,7 @@ final class MailerTest extends TestCase
 
         $result = $mailer->onWpMail($args);
 
-        self::assertInstanceOf(WpPackPhpMailer::class, $phpmailer);
+        self::assertInstanceOf(PhpMailer::class, $phpmailer);
         self::assertSame($args, $result);
 
         $phpmailer = $originalMailer;

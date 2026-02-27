@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Mailer\Transport;
 
-use WpPack\Component\Mailer\WpPackPhpMailer;
+use WpPack\Component\Mailer\PhpMailer;
 
 class SmtpTransport implements TransportInterface
 {
@@ -16,7 +16,7 @@ class SmtpTransport implements TransportInterface
         private readonly string $encryption = 'tls',
     ) {}
 
-    public function configure(WpPackPhpMailer $phpMailer): void
+    public function configure(PhpMailer $phpMailer): void
     {
         $phpMailer->isSMTP();
         $phpMailer->Host = $this->host;

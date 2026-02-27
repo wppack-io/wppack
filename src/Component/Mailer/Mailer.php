@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Mailer;
 
-use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\PHPMailer as BasePhpMailer;
 use WpPack\Component\Mailer\Exception\TransportException;
 use WpPack\Component\Mailer\Transport\Transport;
 use WpPack\Component\Mailer\Transport\TransportInterface;
@@ -15,7 +15,7 @@ final class Mailer
     private static ?self $bootedInstance = null;
 
     private readonly TransportInterface $transport;
-    private ?WpPackPhpMailer $phpMailer = null;
+    private ?PhpMailer $phpMailer = null;
     private ?TemplateRendererInterface $renderer = null;
 
     public function __construct(string|TransportInterface $transport)
@@ -75,9 +75,9 @@ final class Mailer
         return $args;
     }
 
-    public function onPhpMailerInit(PHPMailer &$phpmailer): void
+    public function onPhpMailerInit(BasePhpMailer &$phpmailer): void
     {
-        if ($phpmailer instanceof WpPackPhpMailer) {
+        if ($phpmailer instanceof PhpMailer) {
             $this->transport->configure($phpmailer);
         }
     }
@@ -100,7 +100,7 @@ final class Mailer
         // 2. Create envelope
         $envelope ??= Envelope::create($email);
 
-        // 3. Get WpPackPhpMailer and clear previous message state
+        // 3. Get PhpMailer and clear previous message state
         $phpMailer = $this->getPhpMailer();
         $this->clearPhpMailer($phpMailer);
 
@@ -143,10 +143,10 @@ final class Mailer
 
     // --- Internal helpers ---
 
-    private function getPhpMailer(): WpPackPhpMailer
+    private function getPhpMailer(): PhpMailer
     {
         if ($this->phpMailer === null) {
-            $this->phpMailer = new WpPackPhpMailer(true);
+            $this->phpMailer = new PhpMailer(true);
         }
 
         return $this->phpMailer;
@@ -155,7 +155,7 @@ final class Mailer
     /**
      * Clear per-message state (same as WordPress wp_mail() does before each send).
      */
-    private function clearPhpMailer(WpPackPhpMailer $phpMailer): void
+    private function clearPhpMailer(PhpMailer $phpMailer): void
     {
         $phpMailer->clearAllRecipients();
         $phpMailer->clearAttachments();
@@ -168,9 +168,9 @@ final class Mailer
         $phpMailer->FromName = 'Root User';
         $phpMailer->Sender = '';
         $phpMailer->Priority = null;
-        $phpMailer->ContentType = PHPMailer::CONTENT_TYPE_PLAINTEXT;
-        $phpMailer->CharSet = PHPMailer::CHARSET_UTF8;
-        $phpMailer->Encoding = PHPMailer::ENCODING_8BIT;
+        $phpMailer->ContentType = BasePhpMailer::CONTENT_TYPE_PLAINTEXT;
+        $phpMailer->CharSet = BasePhpMailer::CHARSET_UTF8;
+        $phpMailer->Encoding = BasePhpMailer::ENCODING_8BIT;
     }
 
     /**
@@ -205,7 +205,7 @@ final class Mailer
         }
     }
 
-    private function populatePhpMailer(WpPackPhpMailer $phpMailer, Email $email): void
+    private function populatePhpMailer(PhpMailer $phpMailer, Email $email): void
     {
         // From
         $from = $email->getFrom();

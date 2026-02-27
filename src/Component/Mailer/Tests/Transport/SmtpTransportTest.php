@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Mailer\Tests\Transport;
 
+use PHPMailer\PHPMailer\PHPMailer as BasePhpMailer;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Mailer\PhpMailer;
 use WpPack\Component\Mailer\Transport\SmtpTransport;
-use WpPack\Component\Mailer\WpPackPhpMailer;
 
 final class SmtpTransportTest extends TestCase
 {
     protected function setUp(): void
     {
-        if (!class_exists(\PHPMailer\PHPMailer\PHPMailer::class)) {
+        if (!class_exists(BasePhpMailer::class)) {
             self::markTestSkipped('PHPMailer is not installed.');
         }
     }
@@ -22,7 +23,7 @@ final class SmtpTransportTest extends TestCase
     public function configureSetsSMTPMode(): void
     {
         $transport = new SmtpTransport('smtp.example.com');
-        $phpMailer = new WpPackPhpMailer(true);
+        $phpMailer = new PhpMailer(true);
         $transport->configure($phpMailer);
 
         self::assertSame('smtp', $phpMailer->Mailer);
@@ -32,7 +33,7 @@ final class SmtpTransportTest extends TestCase
     public function configureSetsHostAndPort(): void
     {
         $transport = new SmtpTransport('mail.example.com', 465);
-        $phpMailer = new WpPackPhpMailer(true);
+        $phpMailer = new PhpMailer(true);
         $transport->configure($phpMailer);
 
         self::assertSame('mail.example.com', $phpMailer->Host);
@@ -43,7 +44,7 @@ final class SmtpTransportTest extends TestCase
     public function configureSetsEncryption(): void
     {
         $transport = new SmtpTransport('smtp.example.com', 465, encryption: 'ssl');
-        $phpMailer = new WpPackPhpMailer(true);
+        $phpMailer = new PhpMailer(true);
         $transport->configure($phpMailer);
 
         self::assertSame('ssl', $phpMailer->SMTPSecure);
@@ -53,7 +54,7 @@ final class SmtpTransportTest extends TestCase
     public function configureDefaultEncryptionIsTls(): void
     {
         $transport = new SmtpTransport('smtp.example.com');
-        $phpMailer = new WpPackPhpMailer(true);
+        $phpMailer = new PhpMailer(true);
         $transport->configure($phpMailer);
 
         self::assertSame('tls', $phpMailer->SMTPSecure);
@@ -63,7 +64,7 @@ final class SmtpTransportTest extends TestCase
     public function configureDefaultPortIs587(): void
     {
         $transport = new SmtpTransport('smtp.example.com');
-        $phpMailer = new WpPackPhpMailer(true);
+        $phpMailer = new PhpMailer(true);
         $transport->configure($phpMailer);
 
         self::assertSame(587, $phpMailer->Port);
@@ -78,7 +79,7 @@ final class SmtpTransportTest extends TestCase
             'user@example.com',
             'secret-password',
         );
-        $phpMailer = new WpPackPhpMailer(true);
+        $phpMailer = new PhpMailer(true);
         $transport->configure($phpMailer);
 
         self::assertTrue($phpMailer->SMTPAuth);
@@ -94,7 +95,7 @@ final class SmtpTransportTest extends TestCase
             587,
             'user@example.com',
         );
-        $phpMailer = new WpPackPhpMailer(true);
+        $phpMailer = new PhpMailer(true);
         $transport->configure($phpMailer);
 
         self::assertTrue($phpMailer->SMTPAuth);
@@ -106,7 +107,7 @@ final class SmtpTransportTest extends TestCase
     public function configureWithoutAuthDoesNotSetSMTPAuth(): void
     {
         $transport = new SmtpTransport('smtp.example.com');
-        $phpMailer = new WpPackPhpMailer(true);
+        $phpMailer = new PhpMailer(true);
         $transport->configure($phpMailer);
 
         self::assertFalse($phpMailer->SMTPAuth);

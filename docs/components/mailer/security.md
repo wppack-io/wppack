@@ -168,11 +168,11 @@ try {
 
 ## PHPMailer セキュリティ設定
 
-WpPackPhpMailer は常に例外モード（`true`）で初期化されます。
+PhpMailer は常に例外モード（`true`）で初期化されます。
 
 ```php
-// WpPackPhpMailer は常に例外モードで動作
-$phpMailer = new WpPackPhpMailer(true);
+// PhpMailer は常に例外モードで動作
+$phpMailer = new PhpMailer(true);
 ```
 
 ## 推奨設定チェックリスト

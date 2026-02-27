@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Mailer\Tests\Transport;
 
+use PHPMailer\PHPMailer\PHPMailer as BasePhpMailer;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Mailer\PhpMailer;
 use WpPack\Component\Mailer\Transport\NativeTransport;
-use WpPack\Component\Mailer\WpPackPhpMailer;
 
 final class NativeTransportTest extends TestCase
 {
     protected function setUp(): void
     {
-        if (!class_exists(\PHPMailer\PHPMailer\PHPMailer::class)) {
+        if (!class_exists(BasePhpMailer::class)) {
             self::markTestSkipped('PHPMailer is not installed.');
         }
     }
@@ -22,7 +23,7 @@ final class NativeTransportTest extends TestCase
     public function configureDoesNotModifyMailer(): void
     {
         $transport = new NativeTransport();
-        $phpMailer = new WpPackPhpMailer(true);
+        $phpMailer = new PhpMailer(true);
 
         $originalMailer = $phpMailer->Mailer;
         $transport->configure($phpMailer);

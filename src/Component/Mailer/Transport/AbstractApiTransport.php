@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Mailer\Transport;
 
-use WpPack\Component\Mailer\WpPackPhpMailer;
+use WpPack\Component\Mailer\PhpMailer;
 
 abstract class AbstractApiTransport extends AbstractTransport
 {
@@ -13,9 +13,9 @@ abstract class AbstractApiTransport extends AbstractTransport
      *
      * @return string Message ID
      */
-    abstract protected function doSendApi(WpPackPhpMailer $phpMailer): string;
+    abstract protected function doSendApi(PhpMailer $phpMailer): string;
 
-    protected function doSend(WpPackPhpMailer $phpMailer): void
+    protected function doSend(PhpMailer $phpMailer): void
     {
         $messageId = $this->doSendApi($phpMailer);
         $phpMailer->setLastMessageId('<' . $messageId . '>');

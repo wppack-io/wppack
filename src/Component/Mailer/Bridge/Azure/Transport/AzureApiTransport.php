@@ -6,7 +6,7 @@ namespace WpPack\Component\Mailer\Bridge\Azure\Transport;
 
 use WpPack\Component\Mailer\Exception\TransportException;
 use WpPack\Component\Mailer\Transport\AbstractApiTransport;
-use WpPack\Component\Mailer\WpPackPhpMailer;
+use WpPack\Component\Mailer\PhpMailer;
 
 final class AzureApiTransport extends AbstractApiTransport
 {
@@ -25,7 +25,7 @@ final class AzureApiTransport extends AbstractApiTransport
         return 'azureapi';
     }
 
-    protected function doSendApi(WpPackPhpMailer $phpMailer): string
+    protected function doSendApi(PhpMailer $phpMailer): string
     {
         $payload = $this->buildPayload($phpMailer);
         $body = wp_json_encode($payload);

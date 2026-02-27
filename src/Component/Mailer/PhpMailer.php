@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Mailer;
 
-final class WpPackPhpMailer extends \PHPMailer\PHPMailer\PHPMailer
+use PHPMailer\PHPMailer\PHPMailer as BasePhpMailer;
+
+final class PhpMailer extends BasePhpMailer
 {
     /** @var array<string, \Closure(self): bool> */
     private array $customMailers = [];

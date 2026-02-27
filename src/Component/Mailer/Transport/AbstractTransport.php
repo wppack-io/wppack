@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Mailer\Transport;
 
-use WpPack\Component\Mailer\WpPackPhpMailer;
+use PHPMailer\PHPMailer\Exception as PHPMailerException;
+use WpPack\Component\Mailer\PhpMailer;
 
 abstract class AbstractTransport implements TransportInterface
 {
@@ -17,19 +18,19 @@ abstract class AbstractTransport implements TransportInterface
      * Custom send logic. Called after PHPMailer has built MIME via preSend().
      * Set $phpMailer->lastMessageID if a message ID is obtained.
      */
-    abstract protected function doSend(WpPackPhpMailer $phpMailer): void;
+    abstract protected function doSend(PhpMailer $phpMailer): void;
 
-    public function configure(WpPackPhpMailer $phpMailer): void
+    public function configure(PhpMailer $phpMailer): void
     {
         $phpMailer->registerCustomMailer(
             $this->getMailerName(),
-            function (WpPackPhpMailer $mailer): bool {
+            function (PhpMailer $mailer): bool {
                 try {
                     $this->doSend($mailer);
-                } catch (\PHPMailer\PHPMailer\Exception $e) {
+                } catch (PHPMailerException $e) {
                     throw $e;
                 } catch (\Throwable $e) {
-                    throw new \PHPMailer\PHPMailer\Exception($e->getMessage(), 0, $e);
+                    throw new PHPMailerException($e->getMessage(), 0, $e);
                 }
 
                 return true;

@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Mailer\Tests;
 
+use PHPMailer\PHPMailer\Exception as PHPMailerException;
+use PHPMailer\PHPMailer\PHPMailer as BasePhpMailer;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Mailer\WpPackPhpMailer;
+use WpPack\Component\Mailer\PhpMailer;
 
-final class WpPackPhpMailerTest extends TestCase
+final class PhpMailerTest extends TestCase
 {
     protected function setUp(): void
     {
-        if (!class_exists(\PHPMailer\PHPMailer\PHPMailer::class)) {
+        if (!class_exists(BasePhpMailer::class)) {
             self::markTestSkipped('PHPMailer is not installed.');
         }
     }
@@ -20,10 +22,10 @@ final class WpPackPhpMailerTest extends TestCase
     #[Test]
     public function registerAndCallCustomMailer(): void
     {
-        $phpMailer = new WpPackPhpMailer(true);
+        $phpMailer = new PhpMailer(true);
         $called = false;
 
-        $phpMailer->registerCustomMailer('test', function (WpPackPhpMailer $mailer) use (&$called): bool {
+        $phpMailer->registerCustomMailer('test', function (PhpMailer $mailer) use (&$called): bool {
             $called = true;
             return true;
         });
@@ -38,7 +40,7 @@ final class WpPackPhpMailerTest extends TestCase
     #[Test]
     public function unregisteredMailerCallsParent(): void
     {
-        $phpMailer = new WpPackPhpMailer(true);
+        $phpMailer = new PhpMailer(true);
         // When using default 'mail' mailer without actually sending,
         // parent::postSend() would try to call mail() which would fail.
         // We just verify no custom mailer is invoked.
@@ -48,7 +50,7 @@ final class WpPackPhpMailerTest extends TestCase
         // but it should NOT call any custom mailer
         try {
             $phpMailer->postSend();
-        } catch (\PHPMailer\PHPMailer\Exception) {
+        } catch (PHPMailerException) {
             // Expected - parent postSend fails without preSend
         }
 
@@ -59,7 +61,7 @@ final class WpPackPhpMailerTest extends TestCase
     #[Test]
     public function multipleCustomMailers(): void
     {
-        $phpMailer = new WpPackPhpMailer(true);
+        $phpMailer = new PhpMailer(true);
         $calledMailer = '';
 
         $phpMailer->registerCustomMailer('ses', function () use (&$calledMailer): bool {

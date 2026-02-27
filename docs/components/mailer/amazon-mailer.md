@@ -103,7 +103,7 @@ final class SesTransport extends AbstractTransport
 
     protected function getMailerName(): string { return 'ses'; }
 
-    protected function doSend(WpPackPhpMailer $phpMailer): void
+    protected function doSend(PhpMailer $phpMailer): void
     {
         $mime = $phpMailer->getSentMIMEMessage();
         // SES Content.Raw API で送信
@@ -120,7 +120,7 @@ final class SesApiTransport extends AbstractApiTransport
 {
     protected function getMailerName(): string { return 'sesapi'; }
 
-    protected function doSendApi(WpPackPhpMailer $phpMailer): string
+    protected function doSendApi(PhpMailer $phpMailer): string
     {
         if (!empty($phpMailer->getAttachments())) {
             return $this->sendRawFallback($phpMailer);

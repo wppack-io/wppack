@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Mailer\Bridge\Azure\Transport;
 
+use PHPMailer\PHPMailer\PHPMailer as BasePhpMailer;
+use WpPack\Component\HttpClient\HttpClient;
+use WpPack\Component\HttpClient\Exception\ConnectionException;
 use WpPack\Component\Mailer\Exception\TransportException;
-use WpPack\Component\Mailer\WpPackPhpMailer;
+use WpPack\Component\Mailer\PhpMailer;
 
 /**
  * Shared functionality for Azure Communication Services Email transports.
@@ -15,7 +18,7 @@ trait AzureRequestTrait
     /**
      * @return array<string, mixed>
      */
-    private function buildPayload(WpPackPhpMailer $phpMailer): array
+    private function buildPayload(PhpMailer $phpMailer): array
     {
         $payload = [
             'senderAddress' => $phpMailer->From,
@@ -42,11 +45,11 @@ trait AzureRequestTrait
     /**
      * @return array{subject: string, plainText?: string, html?: string}
      */
-    private function buildContent(WpPackPhpMailer $phpMailer): array
+    private function buildContent(PhpMailer $phpMailer): array
     {
         $content = ['subject' => $phpMailer->Subject];
 
-        if ($phpMailer->ContentType === \PHPMailer\PHPMailer\PHPMailer::CONTENT_TYPE_TEXT_HTML) {
+        if ($phpMailer->ContentType === BasePhpMailer::CONTENT_TYPE_TEXT_HTML) {
             $content['html'] = $phpMailer->Body;
             if (!empty($phpMailer->AltBody)) {
                 $content['plainText'] = $phpMailer->AltBody;
@@ -61,7 +64,7 @@ trait AzureRequestTrait
     /**
      * @return array{to: list<array{address: string, displayName?: string}>, cc?: list<array{address: string, displayName?: string}>, bcc?: list<array{address: string, displayName?: string}>}
      */
-    private function buildRecipients(WpPackPhpMailer $phpMailer): array
+    private function buildRecipients(PhpMailer $phpMailer): array
     {
         $recipients = [
             'to' => array_map(
@@ -106,7 +109,7 @@ trait AzureRequestTrait
     /**
      * @return list<array{name: string, contentType: string, contentInBase64: string, contentId?: string}>
      */
-    private function buildAttachments(WpPackPhpMailer $phpMailer): array
+    private function buildAttachments(PhpMailer $phpMailer): array
     {
         $attachments = [];
 
@@ -179,29 +182,26 @@ trait AzureRequestTrait
         $url = sprintf('https://%s/emails:send?api-version=%s', $endpoint, $apiVersion);
         $headers = $this->buildAzureAuthHeaders($url, $body, $accessKey);
 
-        /** @var array{body: string, response: array{code: int}}|\WP_Error $response */
-        $response = wp_remote_post($url, [
-            'headers' => $headers,
-            'body' => $body,
-            'timeout' => 30,
-        ]);
-
-        if (is_wp_error($response)) {
-            throw new TransportException(sprintf('Azure email send failed: %s', $response->get_error_message()));
+        try {
+            $response = (new HttpClient())
+                ->withHeaders($headers)
+                ->timeout(30)
+                ->post($url, ['body' => $body]);
+        } catch (ConnectionException $e) {
+            throw new TransportException(sprintf('Azure email send failed: %s', $e->getMessage()), 0, $e);
         }
 
-        $statusCode = (int) wp_remote_retrieve_response_code($response);
-        if ($statusCode < 200 || $statusCode >= 300) {
+        if ($response->failed()) {
             throw new TransportException(sprintf(
                 'Azure email send failed with status %d: %s',
-                $statusCode,
-                wp_remote_retrieve_body($response),
+                $response->status(),
+                $response->body(),
             ));
         }
 
-        $decoded = json_decode(wp_remote_retrieve_body($response), true);
+        $decoded = $response->json();
 
-        if (!\is_array($decoded)) {
+        if ($decoded === []) {
             throw new TransportException('Azure email send succeeded but returned invalid JSON response.');
         }
 

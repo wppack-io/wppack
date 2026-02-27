@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Mailer\Bridge\SendGrid\Transport;
 
+use PHPMailer\PHPMailer\PHPMailer as BasePhpMailer;
+use WpPack\Component\HttpClient\Exception\ConnectionException;
+use WpPack\Component\HttpClient\HttpClient;
 use WpPack\Component\Mailer\Exception\TransportException;
 use WpPack\Component\Mailer\Transport\AbstractApiTransport;
-use WpPack\Component\Mailer\WpPackPhpMailer;
+use WpPack\Component\Mailer\PhpMailer;
 
 final class SendGridApiTransport extends AbstractApiTransport
 {
@@ -21,7 +24,7 @@ final class SendGridApiTransport extends AbstractApiTransport
         return 'sendgridapi';
     }
 
-    protected function doSendApi(WpPackPhpMailer $phpMailer): string
+    protected function doSendApi(PhpMailer $phpMailer): string
     {
         $payload = [
             'personalizations' => [$this->buildPersonalization($phpMailer)],
@@ -47,33 +50,30 @@ final class SendGridApiTransport extends AbstractApiTransport
             throw new TransportException('Failed to encode email payload as JSON.');
         }
 
-        /** @var array{body: string, response: array{code: int}, headers: \WpOrg\Requests\Utility\CaseInsensitiveDictionary}|\WP_Error $response */
-        $response = wp_remote_post(self::API_ENDPOINT, [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $this->apiKey,
-                'Content-Type' => 'application/json',
-            ],
-            'body' => $body,
-            'timeout' => 30,
-        ]);
-
-        if (is_wp_error($response)) {
-            throw new TransportException(sprintf('SendGrid email send failed: %s', $response->get_error_message()));
+        try {
+            $response = (new HttpClient())
+                ->withHeaders([
+                    'Authorization' => 'Bearer ' . $this->apiKey,
+                    'Content-Type' => 'application/json',
+                ])
+                ->timeout(30)
+                ->post(self::API_ENDPOINT, ['body' => $body]);
+        } catch (ConnectionException $e) {
+            throw new TransportException(sprintf('SendGrid email send failed: %s', $e->getMessage()), 0, $e);
         }
 
-        $statusCode = (int) wp_remote_retrieve_response_code($response);
-        if ($statusCode < 200 || $statusCode >= 300) {
+        if ($response->failed()) {
             throw new TransportException(sprintf(
                 'SendGrid email send failed with status %d: %s',
-                $statusCode,
-                wp_remote_retrieve_body($response),
+                $response->status(),
+                $response->body(),
             ));
         }
 
         // SendGrid returns the message ID in the X-Message-Id header
-        $messageId = wp_remote_retrieve_header($response, 'x-message-id');
+        $messageId = $response->header('X-Message-Id');
 
-        if (!\is_string($messageId) || $messageId === '') {
+        if ($messageId === null || $messageId === '') {
             throw new TransportException('SendGrid email send succeeded but no message ID was returned.');
         }
 
@@ -83,7 +83,7 @@ final class SendGridApiTransport extends AbstractApiTransport
     /**
      * @return array{to: list<array{email: string, name?: string}>, cc?: list<array{email: string, name?: string}>, bcc?: list<array{email: string, name?: string}>}
      */
-    private function buildPersonalization(WpPackPhpMailer $phpMailer): array
+    private function buildPersonalization(PhpMailer $phpMailer): array
     {
         $personalization = [
             'to' => array_map(
@@ -114,11 +114,11 @@ final class SendGridApiTransport extends AbstractApiTransport
     /**
      * @return list<array{type: string, value: string}>
      */
-    private function buildContent(WpPackPhpMailer $phpMailer): array
+    private function buildContent(PhpMailer $phpMailer): array
     {
         $content = [];
 
-        if ($phpMailer->ContentType === \PHPMailer\PHPMailer\PHPMailer::CONTENT_TYPE_TEXT_HTML) {
+        if ($phpMailer->ContentType === BasePhpMailer::CONTENT_TYPE_TEXT_HTML) {
             if (!empty($phpMailer->AltBody)) {
                 $content[] = ['type' => 'text/plain', 'value' => $phpMailer->AltBody];
             }
@@ -133,7 +133,7 @@ final class SendGridApiTransport extends AbstractApiTransport
     /**
      * @return list<array{content: string, filename: string, type: string, disposition: string, content_id?: string}>
      */
-    private function buildAttachments(WpPackPhpMailer $phpMailer): array
+    private function buildAttachments(PhpMailer $phpMailer): array
     {
         $attachments = [];
 

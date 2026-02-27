@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Mailer\Transport;
 
-use WpPack\Component\Mailer\WpPackPhpMailer;
+use WpPack\Component\Mailer\PhpMailer;
 
 final class NullTransport extends AbstractTransport
 {
@@ -13,7 +13,7 @@ final class NullTransport extends AbstractTransport
         return 'null';
     }
 
-    protected function doSend(WpPackPhpMailer $phpMailer): void
+    protected function doSend(PhpMailer $phpMailer): void
     {
         // no-op
     }
