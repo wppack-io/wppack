@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace WpPack\Component\DependencyInjection;
 
+use Symfony\Component\DependencyInjection\Reference as SymfonyReference;
+
 final class Reference
 {
     public function __construct(
@@ -18,5 +20,15 @@ final class Reference
     public function __toString(): string
     {
         return $this->id;
+    }
+
+    public function toSymfony(): SymfonyReference
+    {
+        return new SymfonyReference($this->id);
+    }
+
+    public static function fromSymfony(SymfonyReference $reference): self
+    {
+        return new self((string) $reference);
     }
 }

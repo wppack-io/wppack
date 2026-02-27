@@ -4,22 +4,42 @@ declare(strict_types=1);
 
 namespace WpPack\Component\DependencyInjection;
 
+use Symfony\Component\DependencyInjection\ContainerBuilder as SymfonyContainerBuilder;
+use WpPack\Component\DependencyInjection\Compiler\CompilerPassAdapter;
 use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use WpPack\Component\DependencyInjection\Exception\ParameterNotFoundException;
 
 class ContainerBuilder
 {
+    private const INTERNAL_SERVICE_IDS = ['service_container'];
+
+    private readonly SymfonyContainerBuilder $symfonyBuilder;
+
     /** @var array<string, Definition> */
     private array $definitions = [];
-
-    /** @var array<string, array<string, list<array<string, mixed>>>> */
-    private array $tags = [];
 
     /** @var CompilerPassInterface[] */
     private array $compilerPasses = [];
 
-    public function register(string $id): Definition
+    public function __construct(?SymfonyContainerBuilder $symfonyBuilder = null)
     {
-        $definition = new Definition($id);
+        $this->symfonyBuilder = $symfonyBuilder ?? new SymfonyContainerBuilder();
+    }
+
+    /**
+     * @internal
+     */
+    public function getSymfonyBuilder(): SymfonyContainerBuilder
+    {
+        return $this->symfonyBuilder;
+    }
+
+    public function register(string $id, ?string $class = null): Definition
+    {
+        $symfonyDefinition = $this->symfonyBuilder->register($id, $class);
+        $symfonyDefinition->setPublic(true);
+
+        $definition = Definition::wrap($id, $symfonyDefinition);
         $this->definitions[$id] = $definition;
 
         return $definition;
@@ -27,16 +47,24 @@ class ContainerBuilder
 
     public function findDefinition(string $id): Definition
     {
-        if (!isset($this->definitions[$id])) {
-            throw new \InvalidArgumentException(sprintf('Service "%s" is not defined.', $id));
+        if (isset($this->definitions[$id])) {
+            return $this->definitions[$id];
         }
 
-        return $this->definitions[$id];
+        if ($this->symfonyBuilder->hasDefinition($id)) {
+            $symfonyDefinition = $this->symfonyBuilder->findDefinition($id);
+            $definition = Definition::wrap($id, $symfonyDefinition);
+            $this->definitions[$id] = $definition;
+
+            return $definition;
+        }
+
+        throw new \InvalidArgumentException(sprintf('Service "%s" is not defined.', $id));
     }
 
     public function hasDefinition(string $id): bool
     {
-        return isset($this->definitions[$id]);
+        return isset($this->definitions[$id]) || $this->symfonyBuilder->hasDefinition($id);
     }
 
     /**
@@ -44,6 +72,15 @@ class ContainerBuilder
      */
     public function getDefinitions(): array
     {
+        foreach ($this->symfonyBuilder->getDefinitions() as $id => $symfonyDefinition) {
+            if (\in_array($id, self::INTERNAL_SERVICE_IDS, true)) {
+                continue;
+            }
+            if (!isset($this->definitions[$id])) {
+                $this->definitions[$id] = Definition::wrap($id, $symfonyDefinition);
+            }
+        }
+
         return $this->definitions;
     }
 
@@ -52,20 +89,13 @@ class ContainerBuilder
      */
     public function findTaggedServiceIds(string $tag): array
     {
-        return $this->tags[$tag] ?? [];
-    }
-
-    /**
-     * @param list<array<string, mixed>> $attributes
-     */
-    public function addTag(string $serviceId, string $tag, array $attributes = []): void
-    {
-        $this->tags[$tag][$serviceId][] = $attributes;
+        return $this->symfonyBuilder->findTaggedServiceIds($tag);
     }
 
     public function addCompilerPass(CompilerPassInterface $pass): self
     {
         $this->compilerPasses[] = $pass;
+        $this->symfonyBuilder->addCompilerPass(new CompilerPassAdapter($pass, $this));
 
         return $this;
     }
@@ -76,5 +106,47 @@ class ContainerBuilder
     public function getCompilerPasses(): array
     {
         return $this->compilerPasses;
+    }
+
+    public function compile(): Container
+    {
+        $this->symfonyBuilder->compile();
+
+        return new Container($this->symfonyBuilder);
+    }
+
+    public function setParameter(string $name, mixed $value): self
+    {
+        $this->symfonyBuilder->setParameter($name, $value);
+
+        return $this;
+    }
+
+    public function getParameter(string $name): mixed
+    {
+        if (!$this->symfonyBuilder->hasParameter($name)) {
+            throw new ParameterNotFoundException($name);
+        }
+
+        return $this->symfonyBuilder->getParameter($name);
+    }
+
+    public function hasParameter(string $name): bool
+    {
+        return $this->symfonyBuilder->hasParameter($name);
+    }
+
+    public function setAlias(string $alias, string $id): self
+    {
+        $this->symfonyBuilder->setAlias($alias, $id)->setPublic(true);
+
+        return $this;
+    }
+
+    public function addServiceProvider(ServiceProviderInterface $provider): self
+    {
+        $provider->register($this);
+
+        return $this;
     }
 }
