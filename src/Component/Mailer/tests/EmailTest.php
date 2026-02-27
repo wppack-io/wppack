@@ -306,4 +306,101 @@ final class EmailTest extends TestCase
         $email = (new Email())->priority(Email::PRIORITY_LOWEST);
         self::assertSame(5, $email->getPriority());
     }
+
+    #[Test]
+    public function bccReplacesRecipients(): void
+    {
+        $email = (new Email())
+            ->bcc('first@example.com')
+            ->bcc('second@example.com');
+
+        self::assertCount(1, $email->getBcc());
+        self::assertSame('second@example.com', $email->getBcc()[0]->address);
+    }
+
+    #[Test]
+    public function addBccAppendsRecipients(): void
+    {
+        $email = (new Email())
+            ->bcc('first@example.com')
+            ->addBcc('second@example.com');
+
+        self::assertCount(2, $email->getBcc());
+        self::assertSame('first@example.com', $email->getBcc()[0]->address);
+        self::assertSame('second@example.com', $email->getBcc()[1]->address);
+    }
+
+    #[Test]
+    public function replyToReplacesRecipients(): void
+    {
+        $email = (new Email())
+            ->replyTo('first@example.com')
+            ->replyTo('second@example.com');
+
+        self::assertCount(1, $email->getReplyTo());
+        self::assertSame('second@example.com', $email->getReplyTo()[0]->address);
+    }
+
+    #[Test]
+    public function addReplyToAppendsRecipients(): void
+    {
+        $email = (new Email())
+            ->replyTo('first@example.com')
+            ->addReplyTo('second@example.com');
+
+        self::assertCount(2, $email->getReplyTo());
+        self::assertSame('first@example.com', $email->getReplyTo()[0]->address);
+        self::assertSame('second@example.com', $email->getReplyTo()[1]->address);
+    }
+
+    #[Test]
+    public function returnPathWithAddressObject(): void
+    {
+        $address = new Address('bounce@example.com', 'Bounce');
+        $email = (new Email())->returnPath($address);
+
+        self::assertSame('bounce@example.com', $email->getReturnPath()->address);
+    }
+
+    #[Test]
+    public function multipleCcRecipients(): void
+    {
+        $email = (new Email())
+            ->cc('a@example.com', 'b@example.com');
+
+        self::assertCount(2, $email->getCc());
+        self::assertSame('a@example.com', $email->getCc()[0]->address);
+        self::assertSame('b@example.com', $email->getCc()[1]->address);
+    }
+
+    #[Test]
+    public function multipleBccRecipients(): void
+    {
+        $email = (new Email())
+            ->bcc('a@example.com', 'b@example.com');
+
+        self::assertCount(2, $email->getBcc());
+    }
+
+    #[Test]
+    public function multipleReplyToRecipients(): void
+    {
+        $email = (new Email())
+            ->replyTo('a@example.com', 'b@example.com');
+
+        self::assertCount(2, $email->getReplyTo());
+    }
+
+    #[Test]
+    public function addToWithAddressObject(): void
+    {
+        $address = new Address('user@example.com', 'User');
+        $email = (new Email())
+            ->to('first@example.com')
+            ->addTo($address);
+
+        self::assertCount(2, $email->getTo());
+        self::assertSame('user@example.com', $email->getTo()[1]->address);
+        self::assertSame('User', $email->getTo()[1]->name);
+    }
 }

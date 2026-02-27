@@ -82,4 +82,32 @@ final class DsnTest extends TestCase
         self::assertSame('p@ss#word', $dsn->getPassword());
     }
 
+    #[Test]
+    public function optionReturnsValueWhenKeyExists(): void
+    {
+        $dsn = Dsn::fromString('smtp://user:pass@smtp.example.com:587?encryption=tls&timeout=30');
+
+        self::assertSame('tls', $dsn->getOption('encryption'));
+        self::assertSame('30', $dsn->getOption('timeout'));
+    }
+
+    #[Test]
+    public function optionReturnsNullForMissingKeyWithoutDefault(): void
+    {
+        $dsn = Dsn::fromString('native://default');
+
+        self::assertNull($dsn->getOption('nonexistent'));
+    }
+
+    #[Test]
+    public function parseDsnWithNoCredentials(): void
+    {
+        $dsn = Dsn::fromString('null://default');
+
+        self::assertSame('null', $dsn->getScheme());
+        self::assertSame('default', $dsn->getHost());
+        self::assertNull($dsn->getUser());
+        self::assertNull($dsn->getPassword());
+        self::assertNull($dsn->getPort());
+    }
 }
