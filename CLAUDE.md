@@ -148,7 +148,6 @@ wppack/logger
 
 - PER Coding Style (PSR-12後継) に準拠
 - 厳格な型宣言 (`declare(strict_types=1)`)
-- finalクラスを優先
 - readonly プロパティを活用
 - Symfony のパターンに従う
 - コンストラクタプロパティプロモーションを活用
