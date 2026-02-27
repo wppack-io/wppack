@@ -13,6 +13,7 @@
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.68",
+        "monolog/monolog": "^3.10",
         "phpstan/phpstan": "^2.1",
         "phpstan/phpstan-phpunit": "^2.0",
         "phpunit/phpunit": "^11.5",
@@ -69,6 +70,7 @@
             "WpPack\\Component\\Translation\\": "src/Component/Translation/src/",
             "WpPack\\Plugin\\SchedulerPlugin\\": "src/Plugin/SchedulerPlugin/src/",
             "WpPack\\Plugin\\S3StoragePlugin\\": "src/Plugin/S3StoragePlugin/src/",
+            "WpPack\\Component\\Logger\\Bridge\\Monolog\\": "src/Component/Logger/Bridge/Monolog/src/",
             "WpPack\\Component\\Mailer\\Bridge\\Amazon\\": "src/Component/Mailer/Bridge/Amazon/src/",
             "WpPack\\Component\\Mailer\\Bridge\\Azure\\": "src/Component/Mailer/Bridge/Azure/src/",
             "WpPack\\Component\\Mailer\\Bridge\\SendGrid\\": "src/Component/Mailer/Bridge/SendGrid/src/",
@@ -78,6 +80,7 @@
     "autoload-dev": {
         "psr-4": {
             "WpPack\\Component\\Mailer\\Tests\\": "src/Component/Mailer/tests/",
+            "WpPack\\Component\\Logger\\Bridge\\Monolog\\Tests\\": "src/Component/Logger/Bridge/Monolog/tests/",
             "WpPack\\Component\\Mailer\\Bridge\\Amazon\\Tests\\": "src/Component/Mailer/Bridge/Amazon/tests/",
             "WpPack\\Component\\Mailer\\Bridge\\Azure\\Tests\\": "src/Component/Mailer/Bridge/Azure/tests/",
             "WpPack\\Component\\Mailer\\Bridge\\SendGrid\\Tests\\": "src/Component/Mailer/Bridge/SendGrid/tests/",
@@ -138,7 +141,8 @@
         "wppack/amazon-mailer": "self.version",
         "wppack/azure-mailer": "self.version",
         "wppack/sendgrid-mailer": "self.version",
-        "wppack/amazon-mailer-plugin": "self.version"
+        "wppack/amazon-mailer-plugin": "self.version",
+        "wppack/monolog-logger": "self.version"
     },
     "scripts": {
         "phpstan": "phpstan analyse",

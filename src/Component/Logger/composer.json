@@ -8,7 +8,7 @@
         "psr/log": "^3.0"
     },
     "suggest": {
-        "monolog/monolog": "For advanced logging features (handlers, formatters, processors)",
+        "wppack/monolog-logger": "For Monolog integration with advanced logging features",
         "wppack/dependency-injection": "For DI container integration with channel-based injection"
     },
     "autoload": {

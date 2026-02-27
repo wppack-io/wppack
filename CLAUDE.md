@@ -36,6 +36,7 @@ WordPress プラグインとして配布。Component を利用。
 | Role | wppack/role | ユーザーロール管理 |
 | Templating | wppack/templating | テンプレートエンジン |
 | Logger | wppack/logger | PSR-3 ロギング |
+| MonologLogger | wppack/monolog-logger | Monolog ブリッジ |
 
 ### Abstraction Layer
 | Component | パッケージ名 | 説明 |
@@ -124,6 +125,11 @@ wppack/mailer
 wppack/amazon-mailer-plugin
     ↓ requires
 wppack/amazon-mailer, wppack/hook
+
+wppack/monolog-logger
+    ↓ requires
+wppack/logger
+    + monolog/monolog
 ```
 
 ## 開発ガイドライン
