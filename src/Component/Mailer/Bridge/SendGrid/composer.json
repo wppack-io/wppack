@@ -10,7 +10,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Mailer\\Bridge\\SendGrid\\": ""
+            "WpPack\\Component\\Mailer\\Bridge\\SendGrid\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Component\\Mailer\\Bridge\\SendGrid\\Tests\\": "tests/"
         }
     }
 }

@@ -10,7 +10,7 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Messenger\\": ""
+            "WpPack\\Component\\Messenger\\": "src/"
         }
     }
 }

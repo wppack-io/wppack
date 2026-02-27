@@ -11,7 +11,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\HttpClient\\": ""
+            "WpPack\\Component\\HttpClient\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Component\\HttpClient\\Tests\\": "tests/"
         }
     }
 }

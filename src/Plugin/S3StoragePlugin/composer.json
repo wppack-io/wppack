@@ -12,7 +12,7 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Plugin\\S3StoragePlugin\\": ""
+            "WpPack\\Plugin\\S3StoragePlugin\\": "src/"
         }
     }
 }

@@ -8,7 +8,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Mailer\\": ""
+            "WpPack\\Component\\Mailer\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Component\\Mailer\\Tests\\": "tests/"
         }
     }
 }

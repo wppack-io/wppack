@@ -10,7 +10,7 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Plugin\\AmazonMailerPlugin\\": ""
+            "WpPack\\Plugin\\AmazonMailerPlugin\\": "src/"
         }
     }
 }

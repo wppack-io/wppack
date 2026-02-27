@@ -10,7 +10,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Component\\Mailer\\Bridge\\Azure\\": ""
+            "WpPack\\Component\\Mailer\\Bridge\\Azure\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Component\\Mailer\\Bridge\\Azure\\Tests\\": "tests/"
         }
     }
 }
