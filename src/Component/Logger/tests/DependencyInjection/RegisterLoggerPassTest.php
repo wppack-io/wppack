@@ -101,6 +101,20 @@ final class RegisterLoggerPassTest extends TestCase
     }
 
     #[Test]
+    public function skipsServiceWithoutConstructor(): void
+    {
+        $builder = new ContainerBuilder();
+        $builder->register(LoggerFactory::class);
+        $builder->register(Fixtures\NoConstructorService::class);
+
+        $pass = new RegisterLoggerPass();
+        $pass->process($builder);
+
+        $definitions = $builder->getDefinitions();
+        self::assertCount(2, $definitions); // LoggerFactory + NoConstructorService only
+    }
+
+    #[Test]
     public function ignoresServicesWithoutLoggerChannel(): void
     {
         $builder = new ContainerBuilder();
