@@ -29,8 +29,8 @@ $mailer->send($email);
 
 ## TransportInterface
 
-All transports implement `TransportInterface::configure()`, which applies transport-specific
-settings to the `PhpMailer` instance:
+All transports implement `TransportInterface`, which provides the transport name and
+sends email through the `PhpMailer` instance:
 
 ```php
 use WpPack\Component\Mailer\Transport\TransportInterface;
@@ -38,15 +38,15 @@ use WpPack\Component\Mailer\PhpMailer;
 
 interface TransportInterface
 {
-    public function configure(PhpMailer $phpMailer): void;
-    public function __toString(): string;
+    public function getName(): string;
+    public function send(PhpMailer $phpMailer): void;
 }
 ```
 
 Built-in transports:
 
 - `NativeTransport` — PHP `mail()` function (`native://default`)
-- `SmtpTransport` — SMTP delivery (`smtp://user:pass@host:port`)
+- `SmtpTransport` — SMTP delivery (`smtp://user:pass@host:port` or `smtps://user:pass@host`)
 - `NullTransport` — No-op for testing (`null://default`)
 
 For Amazon SES, install `wppack/amazon-mailer`.

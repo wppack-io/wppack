@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Mailer\Bridge\Azure\Transport;
 
+use WpPack\Component\HttpClient\HttpClient;
 use WpPack\Component\Mailer\Exception\TransportException;
 use WpPack\Component\Mailer\Transport\AbstractApiTransport;
 use WpPack\Component\Mailer\PhpMailer;
@@ -18,9 +19,10 @@ final class AzureApiTransport extends AbstractApiTransport
         private readonly string $endpoint,
         private readonly string $accessKey,
         private readonly string $apiVersion = self::DEFAULT_API_VERSION,
+        private readonly ?HttpClient $httpClient = null,
     ) {}
 
-    protected function getMailerName(): string
+    public function getName(): string
     {
         return 'azureapi';
     }
@@ -34,15 +36,11 @@ final class AzureApiTransport extends AbstractApiTransport
             throw new TransportException('Failed to encode email payload as JSON.');
         }
 
-        $result = $this->sendAzureRequest($this->endpoint, $this->apiVersion, $this->accessKey, $body);
+        $result = $this->sendAzureRequest($this->endpoint, $this->apiVersion, $this->accessKey, $body, $this->httpClient);
 
         return isset($result['id']) && $result['id'] !== '' ? $result['id'] : throw new TransportException(
             'Azure email send succeeded but no message ID was returned.',
         );
     }
 
-    public function __toString(): string
-    {
-        return 'azure+api://default';
-    }
 }

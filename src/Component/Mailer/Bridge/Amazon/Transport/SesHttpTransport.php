@@ -10,16 +10,16 @@ use WpPack\Component\Mailer\Exception\TransportException;
 use WpPack\Component\Mailer\Transport\AbstractTransport;
 use WpPack\Component\Mailer\PhpMailer;
 
-final class SesTransport extends AbstractTransport
+final class SesHttpTransport extends AbstractTransport
 {
     public function __construct(
         private readonly SesClient $sesClient,
         private readonly ?string $configurationSet = null,
     ) {}
 
-    protected function getMailerName(): string
+    public function getName(): string
     {
-        return 'ses';
+        return 'ses+https';
     }
 
     protected function doSend(PhpMailer $phpMailer): void
@@ -40,11 +40,11 @@ final class SesTransport extends AbstractTransport
             throw new TransportException('SES email send succeeded but no message ID was returned.');
         }
 
-        $phpMailer->setLastMessageId('<' . $messageId . '>');
+        if (!str_starts_with($messageId, '<')) {
+            $messageId = '<' . $messageId . '>';
+        }
+
+        $phpMailer->setLastMessageId($messageId);
     }
 
-    public function __toString(): string
-    {
-        return 'ses://default';
-    }
 }

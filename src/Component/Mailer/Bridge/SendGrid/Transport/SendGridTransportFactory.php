@@ -20,12 +20,12 @@ final class SendGridTransportFactory implements TransportFactoryInterface
 
         return match ($dsn->getScheme()) {
             'sendgrid+smtp', 'sendgrid+smtps' => new SendGridSmtpTransport(
-                apiKey: $dsn->getPassword() ?? throw new InvalidArgumentException(sprintf('SendGrid SMTP DSN "%s" must contain an API key (password).', $dsn)),
+                apiKey: $dsn->getPassword() ?? throw new InvalidArgumentException(sprintf('SendGrid "%s" DSN must contain an API key (password).', $dsn->getScheme())),
                 encryption: $dsn->getScheme() === 'sendgrid+smtps' ? 'ssl' : 'tls',
                 port: $dsn->getPort() ?? ($dsn->getScheme() === 'sendgrid+smtps' ? 465 : 587),
             ),
             default => new SendGridApiTransport(
-                apiKey: $dsn->getUser() ?? throw new InvalidArgumentException(sprintf('SendGrid API DSN "%s" must contain an API key (user).', $dsn)),
+                apiKey: $dsn->getUser() ?? throw new InvalidArgumentException(sprintf('SendGrid "%s" DSN must contain an API key (user).', $dsn->getScheme())),
             ),
         };
     }
@@ -34,7 +34,6 @@ final class SendGridTransportFactory implements TransportFactoryInterface
     {
         return in_array($dsn->getScheme(), [
             'sendgrid',
-            'sendgrid+https',
             'sendgrid+api',
             'sendgrid+smtp',
             'sendgrid+smtps',

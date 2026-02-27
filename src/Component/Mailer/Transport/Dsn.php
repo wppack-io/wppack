@@ -87,18 +87,4 @@ final class Dsn
     {
         return $this->options[$key] ?? $default;
     }
-
-    public function __toString(): string
-    {
-        $userInfo = '';
-        if ($this->user !== null) {
-            $password = $this->password !== null ? ':****' : '';
-            $userInfo = urlencode($this->user) . $password . '@';
-        }
-
-        $port = $this->port !== null ? ':' . $this->port : '';
-        $query = $this->options !== [] ? '?' . http_build_query($this->options) : '';
-
-        return sprintf('%s://%s%s%s%s', $this->scheme, $userInfo, $this->host, $port, $query);
-    }
 }

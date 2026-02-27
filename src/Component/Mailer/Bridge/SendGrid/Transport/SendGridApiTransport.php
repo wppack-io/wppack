@@ -17,9 +17,10 @@ final class SendGridApiTransport extends AbstractApiTransport
 
     public function __construct(
         private readonly string $apiKey,
+        private readonly ?HttpClient $httpClient = null,
     ) {}
 
-    protected function getMailerName(): string
+    public function getName(): string
     {
         return 'sendgridapi';
     }
@@ -35,8 +36,16 @@ final class SendGridApiTransport extends AbstractApiTransport
 
         $replyTo = $phpMailer->getReplyToAddresses();
         if (!empty($replyTo)) {
-            $first = array_values($replyTo)[0];
-            $payload['reply_to'] = $this->formatEmailAddress($first[0], $first[1]);
+            $replyToList = array_map(
+                fn(array $addr): array => $this->formatEmailAddress($addr[0], $addr[1]),
+                array_values($replyTo),
+            );
+
+            if (count($replyToList) === 1) {
+                $payload['reply_to'] = $replyToList[0];
+            } else {
+                $payload['reply_to_list'] = $replyToList;
+            }
         }
 
         $attachments = $this->buildAttachments($phpMailer);
@@ -51,7 +60,7 @@ final class SendGridApiTransport extends AbstractApiTransport
         }
 
         try {
-            $response = (new HttpClient())
+            $response = ($this->httpClient ?? new HttpClient())
                 ->withHeaders([
                     'Authorization' => 'Bearer ' . $this->apiKey,
                     'Content-Type' => 'application/json',
@@ -176,8 +185,4 @@ final class SendGridApiTransport extends AbstractApiTransport
         return $address;
     }
 
-    public function __toString(): string
-    {
-        return 'sendgrid+api://default';
-    }
 }

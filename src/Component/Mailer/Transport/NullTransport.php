@@ -8,7 +8,7 @@ use WpPack\Component\Mailer\PhpMailer;
 
 final class NullTransport extends AbstractTransport
 {
-    protected function getMailerName(): string
+    public function getName(): string
     {
         return 'null';
     }
@@ -18,8 +18,4 @@ final class NullTransport extends AbstractTransport
         // no-op
     }
 
-    public function __toString(): string
-    {
-        return 'null://null';
-    }
 }

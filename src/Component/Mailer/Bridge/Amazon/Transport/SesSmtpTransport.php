@@ -24,8 +24,9 @@ final class SesSmtpTransport extends SmtpTransport
         );
     }
 
-    public function __toString(): string
+    public function getName(): string
     {
-        return 'ses+smtp://default';
+        return 'ses+smtp';
     }
+
 }

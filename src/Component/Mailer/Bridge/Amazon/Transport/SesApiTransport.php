@@ -18,26 +18,28 @@ final class SesApiTransport extends AbstractApiTransport
         private readonly ?string $configurationSet = null,
     ) {}
 
-    protected function getMailerName(): string
+    public function getName(): string
     {
         return 'sesapi';
     }
 
     protected function doSendApi(PhpMailer $phpMailer): string
     {
-        // Fall back to Raw for attachments (Simple doesn't support them)
-        if (!empty($phpMailer->getAttachments())) {
-            return $this->sendRawFallback($phpMailer);
+        $simple = [
+            'Subject' => ['Data' => $phpMailer->Subject, 'Charset' => $phpMailer->CharSet],
+            'Body' => $this->buildSimpleBody($phpMailer),
+        ];
+
+        $attachments = $this->buildAttachments($phpMailer);
+        if (!empty($attachments)) {
+            $simple['Attachments'] = $attachments;
         }
 
         $request = [
             'FromEmailAddress' => $this->formatAddress([$phpMailer->From, $phpMailer->FromName]),
             'Destination' => $this->buildDestination($phpMailer),
             'Content' => [
-                'Simple' => [
-                    'Subject' => ['Data' => $phpMailer->Subject, 'Charset' => $phpMailer->CharSet],
-                    'Body' => $this->buildSimpleBody($phpMailer),
-                ],
+                'Simple' => $simple,
             ],
         ];
 
@@ -48,23 +50,6 @@ final class SesApiTransport extends AbstractApiTransport
                 $replyTo,
             );
         }
-
-        if ($this->configurationSet !== null) {
-            $request['ConfigurationSetName'] = $this->configurationSet;
-        }
-
-        return $this->extractMessageId(
-            $this->sesClient->sendEmail(new SendEmailRequest($request)),
-        );
-    }
-
-    private function sendRawFallback(PhpMailer $phpMailer): string
-    {
-        $mime = $phpMailer->getSentMIMEMessage();
-
-        $request = [
-            'Content' => ['Raw' => ['Data' => $mime]],
-        ];
 
         if ($this->configurationSet !== null) {
             $request['ConfigurationSetName'] = $this->configurationSet;
@@ -136,8 +121,35 @@ final class SesApiTransport extends AbstractApiTransport
         return $body;
     }
 
-    public function __toString(): string
+    /**
+     * @return list<array{RawContent: string, FileName: string, ContentType?: string, ContentDisposition?: string, ContentId?: string}>
+     */
+    private function buildAttachments(PhpMailer $phpMailer): array
     {
-        return 'ses+api://default';
+        $attachments = [];
+
+        foreach ($phpMailer->getAttachments() as $att) {
+            $content = $att[5] ? $att[0] : file_get_contents($att[0]);
+
+            if ($content === false) {
+                throw new TransportException(sprintf('Failed to read attachment file: %s', $att[0]));
+            }
+
+            $entry = [
+                'RawContent' => $content,
+                'FileName' => $att[2],
+                'ContentType' => $att[4],
+                'ContentDisposition' => strtoupper($att[6]),
+            ];
+
+            if (!empty($att[7])) {
+                $entry['ContentId'] = $att[7];
+            }
+
+            $attachments[] = $entry;
+        }
+
+        return $attachments;
     }
+
 }

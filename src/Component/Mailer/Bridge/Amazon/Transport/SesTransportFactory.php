@@ -15,11 +15,11 @@ final class SesTransportFactory implements TransportFactoryInterface
     public function create(Dsn $dsn): TransportInterface
     {
         return match ($dsn->getScheme()) {
-            'ses+api' => new SesApiTransport(
+            'ses', 'ses+api' => new SesApiTransport(
                 sesClient: $this->createSesClient($dsn),
                 configurationSet: $dsn->getOption('configuration_set'),
             ),
-            'ses', 'ses+https' => new SesTransport(
+            'ses+https' => new SesHttpTransport(
                 sesClient: $this->createSesClient($dsn),
                 configurationSet: $dsn->getOption('configuration_set'),
             ),

@@ -4,17 +4,27 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Mailer\Transport;
 
+use WpPack\Component\Mailer\Exception\TransportException;
 use WpPack\Component\Mailer\PhpMailer;
 
-final class NativeTransport implements TransportInterface
+final class NativeTransport extends AbstractTransport
 {
-    public function configure(PhpMailer $phpMailer): void
+    public function getName(): string
     {
-        // No-op: use whatever WordPress and other plugins configured.
+        return 'mail';
     }
 
-    public function __toString(): string
+    protected function doSend(PhpMailer $phpMailer): void
     {
-        return 'native://default';
+        try {
+            if (!$phpMailer->nativePostSend()) {
+                throw new TransportException('Native send failed: ' . $phpMailer->ErrorInfo);
+            }
+        } catch (TransportException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            throw new TransportException('Native send failed: ' . $e->getMessage(), 0, $e);
+        }
     }
+
 }

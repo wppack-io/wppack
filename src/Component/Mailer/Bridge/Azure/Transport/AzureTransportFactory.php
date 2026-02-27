@@ -22,27 +22,20 @@ final class AzureTransportFactory implements TransportFactoryInterface
         $accessKey = $dsn->getPassword() ?? '';
 
         if ($endpoint === '' || $accessKey === '') {
-            throw new InvalidArgumentException(sprintf('Azure DSN "%s" must contain an endpoint (user) and access key (password).', $dsn));
+            throw new InvalidArgumentException(sprintf('Azure "%s" DSN must contain an endpoint (user) and access key (password).', $dsn->getScheme()));
         }
 
         $apiVersion = $dsn->getOption('api_version', '2024-07-01-preview');
 
-        return match ($dsn->getScheme()) {
-            'azure+api' => new AzureApiTransport(
-                endpoint: $endpoint,
-                accessKey: $accessKey,
-                apiVersion: $apiVersion,
-            ),
-            default => new AzureTransport(
-                endpoint: $endpoint,
-                accessKey: $accessKey,
-                apiVersion: $apiVersion,
-            ),
-        };
+        return new AzureApiTransport(
+            endpoint: $endpoint,
+            accessKey: $accessKey,
+            apiVersion: $apiVersion,
+        );
     }
 
     public function supports(Dsn $dsn): bool
     {
-        return in_array($dsn->getScheme(), ['azure', 'azure+api', 'azure+https'], true);
+        return in_array($dsn->getScheme(), ['azure', 'azure+api'], true);
     }
 }

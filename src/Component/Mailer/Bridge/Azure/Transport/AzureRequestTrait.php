@@ -177,13 +177,13 @@ trait AzureRequestTrait
      *
      * @return array<string, mixed>
      */
-    private function sendAzureRequest(string $endpoint, string $apiVersion, string $accessKey, string $body): array
+    private function sendAzureRequest(string $endpoint, string $apiVersion, string $accessKey, string $body, ?HttpClient $httpClient = null): array
     {
         $url = sprintf('https://%s/emails:send?api-version=%s', $endpoint, $apiVersion);
         $headers = $this->buildAzureAuthHeaders($url, $body, $accessKey);
 
         try {
-            $response = (new HttpClient())
+            $response = ($httpClient ?? new HttpClient())
                 ->withHeaders($headers)
                 ->timeout(30)
                 ->post($url, ['body' => $body]);

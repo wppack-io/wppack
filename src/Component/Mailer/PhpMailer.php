@@ -5,15 +5,16 @@ declare(strict_types=1);
 namespace WpPack\Component\Mailer;
 
 use PHPMailer\PHPMailer\PHPMailer as BasePhpMailer;
+use WpPack\Component\Mailer\Transport\TransportInterface;
 
-final class PhpMailer extends BasePhpMailer
+class PhpMailer extends BasePhpMailer
 {
-    /** @var array<string, \Closure(self): bool> */
-    private array $customMailers = [];
+    private ?TransportInterface $transport = null;
 
-    public function registerCustomMailer(string $name, \Closure $callback): void
+    public function setTransport(TransportInterface $transport): void
     {
-        $this->customMailers[$name] = $callback;
+        $this->transport = $transport;
+        $this->Mailer = $transport->getName();
     }
 
     public function setLastMessageId(string $messageId): void
@@ -23,10 +24,28 @@ final class PhpMailer extends BasePhpMailer
 
     public function postSend(): bool
     {
-        if (isset($this->customMailers[$this->Mailer])) {
-            return ($this->customMailers[$this->Mailer])($this);
+        if ($this->transport !== null) {
+            try {
+                $this->transport->send($this);
+            } catch (\Throwable $e) {
+                $this->setError($e->getMessage());
+                $this->edebug($e->getMessage());
+
+                throw $e;
+            }
+
+            return true;
         }
 
+        return parent::postSend();
+    }
+
+    /**
+     * Expose parent's postSend() for transports that delegate
+     * to PHPMailer's built-in mailers (SMTP, mail, sendmail).
+     */
+    public function nativePostSend(): bool
+    {
         return parent::postSend();
     }
 }

@@ -18,7 +18,12 @@ abstract class AbstractApiTransport extends AbstractTransport
     protected function doSend(PhpMailer $phpMailer): void
     {
         $messageId = $this->doSendApi($phpMailer);
-        $phpMailer->setLastMessageId('<' . $messageId . '>');
+
+        if (!str_starts_with($messageId, '<')) {
+            $messageId = '<' . $messageId . '>';
+        }
+
+        $phpMailer->setLastMessageId($messageId);
     }
 
     /**

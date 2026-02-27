@@ -12,12 +12,12 @@ final class NativeTransportFactory implements TransportFactoryInterface
     {
         return match ($dsn->getScheme()) {
             'native' => new NativeTransport(),
-            'smtp' => new SmtpTransport(
+            'smtp', 'smtps' => new SmtpTransport(
                 host: $dsn->getHost(),
-                port: $dsn->getPort() ?? 587,
+                port: $dsn->getPort() ?? ($dsn->getScheme() === 'smtps' ? 465 : 587),
                 username: $dsn->getUser(),
                 password: $dsn->getPassword(),
-                encryption: $dsn->getOption('encryption', 'tls'),
+                encryption: $dsn->getScheme() === 'smtps' ? 'ssl' : $dsn->getOption('encryption', 'tls'),
             ),
             'null' => new NullTransport(),
             default => throw new UnsupportedSchemeException($dsn),
@@ -26,6 +26,6 @@ final class NativeTransportFactory implements TransportFactoryInterface
 
     public function supports(Dsn $dsn): bool
     {
-        return in_array($dsn->getScheme(), ['native', 'smtp', 'null'], true);
+        return in_array($dsn->getScheme(), ['native', 'smtp', 'smtps', 'null'], true);
     }
 }

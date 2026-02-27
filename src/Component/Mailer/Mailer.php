@@ -14,15 +14,21 @@ final class Mailer
     private static bool $booted = false;
     private static ?self $bootedInstance = null;
 
-    private readonly TransportInterface $transport;
-    private ?PhpMailer $phpMailer = null;
+    private readonly PhpMailer $phpMailer;
     private ?TemplateRendererInterface $renderer = null;
 
-    public function __construct(string|TransportInterface $transport)
-    {
+    private readonly TransportInterface $transport;
+
+    public function __construct(
+        string|TransportInterface $transport,
+        ?PhpMailer $phpMailer = null,
+    ) {
         $this->transport = \is_string($transport)
             ? Transport::fromDsn($transport)
             : $transport;
+
+        $this->phpMailer = $phpMailer ?? new PhpMailer(true);
+        $this->phpMailer->setTransport($this->transport);
     }
 
     public function setTemplateRenderer(TemplateRendererInterface $renderer): void
@@ -40,7 +46,6 @@ final class Mailer
         }
 
         add_filter('wp_mail', [$this, 'onWpMail'], PHP_INT_MIN);
-        add_action('phpmailer_init', [$this, 'onPhpMailerInit'], PHP_INT_MAX);
         self::$booted = true;
         self::$bootedInstance = $this;
     }
@@ -54,7 +59,6 @@ final class Mailer
     {
         if (self::$bootedInstance !== null && function_exists('remove_filter')) {
             remove_filter('wp_mail', [self::$bootedInstance, 'onWpMail'], PHP_INT_MIN);
-            remove_action('phpmailer_init', [self::$bootedInstance, 'onPhpMailerInit'], PHP_INT_MAX);
         }
 
         self::$booted = false;
@@ -70,16 +74,9 @@ final class Mailer
     public function onWpMail(array $args): array
     {
         global $phpmailer;
-        $phpmailer = $this->getPhpMailer();
+        $phpmailer = $this->phpMailer;
 
         return $args;
-    }
-
-    public function onPhpMailerInit(BasePhpMailer &$phpmailer): void
-    {
-        if ($phpmailer instanceof PhpMailer) {
-            $this->transport->configure($phpmailer);
-        }
     }
 
     // --- Path 2: Direct send (Symfony style) ---
@@ -90,7 +87,7 @@ final class Mailer
      *
      * @throws TransportException On send failure
      */
-    public function send(Email $email, ?Envelope $envelope = null): SentMessage
+    public function send(Email $email, ?Envelope $envelope = null): void
     {
         // 1. Render templates if needed
         if ($email instanceof TemplatedEmail) {
@@ -100,22 +97,19 @@ final class Mailer
         // 2. Create envelope
         $envelope ??= Envelope::create($email);
 
-        // 3. Get PhpMailer and clear previous message state
-        $phpMailer = $this->getPhpMailer();
-        $this->clearPhpMailer($phpMailer);
+        // 3. Clear previous message state
+        $this->clearPhpMailer($this->phpMailer);
 
         // 4. Populate PHPMailer from Email
-        $this->populatePhpMailer($phpMailer, $email);
+        $this->populatePhpMailer($this->phpMailer, $email);
 
-        // 5. Apply transport-specific configuration
-        $this->transport->configure($phpMailer);
-
-        // 6. Fire phpmailer_init action (plugin compatibility)
+        // 5. Fire phpmailer_init action (plugin compatibility)
+        $phpMailer = $this->phpMailer;
         do_action_ref_array('phpmailer_init', [&$phpMailer]);
 
-        // 7. Send
+        // 6. Send
         try {
-            $phpMailer->send();
+            $this->phpMailer->send();
         } catch (\Throwable $e) {
             $errorData = [
                 'to' => array_map(static fn(Address $a): string => $a->toString(), $envelope->getRecipients()),
@@ -128,7 +122,7 @@ final class Mailer
             throw $e instanceof TransportException ? $e : new TransportException($e->getMessage(), 0, $e);
         }
 
-        $sentMessage = new SentMessage($email, $envelope, $phpMailer->getLastMessageID());
+        $sentMessage = new SentMessage($email, $envelope, $this->phpMailer->getLastMessageID());
 
         do_action('wp_mail_succeeded', [
             'to' => array_map(static fn(Address $a): string => $a->toString(), $envelope->getRecipients()),
@@ -136,21 +130,11 @@ final class Mailer
             'message' => $email->getText() ?? $email->getHtml() ?? '',
             'headers' => $this->flattenHeaders($email->getHeaders()),
             'attachments' => array_map(static fn(Attachment $a): string => $a->path, $email->getAttachments()),
+            'sent_message' => $sentMessage,
         ]);
-
-        return $sentMessage;
     }
 
     // --- Internal helpers ---
-
-    private function getPhpMailer(): PhpMailer
-    {
-        if ($this->phpMailer === null) {
-            $this->phpMailer = new PhpMailer(true);
-        }
-
-        return $this->phpMailer;
-    }
 
     /**
      * Clear per-message state (same as WordPress wp_mail() does before each send).
