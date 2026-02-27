@@ -141,6 +141,102 @@ final class SesApiTransportTest extends TestCase
         $transport->send($phpMailer);
     }
 
+    #[Test]
+    public function sendWithBccRecipients(): void
+    {
+        $capturedRequest = null;
+        $sesClient = $this->createMock(SesClient::class);
+        $sesClient->method('sendEmail')
+            ->willReturnCallback(function (SendEmailRequest $request) use (&$capturedRequest) {
+                $capturedRequest = $request;
+                $response = $this->createMock(SendEmailResponse::class);
+                $response->method('getMessageId')->willReturn('msg-bcc');
+
+                return $response;
+            });
+
+        $transport = new SesApiTransport($sesClient);
+        $phpMailer = $this->createConfiguredPhpMailer();
+        $phpMailer->addBCC('bcc@example.com', 'BCC User');
+
+        $transport->send($phpMailer);
+
+        self::assertNotNull($capturedRequest);
+        self::assertSame('<msg-bcc>', $phpMailer->getLastMessageID());
+    }
+
+    #[Test]
+    public function sendWithMultipleReplyTo(): void
+    {
+        $capturedRequest = null;
+        $sesClient = $this->createMock(SesClient::class);
+        $sesClient->method('sendEmail')
+            ->willReturnCallback(function (SendEmailRequest $request) use (&$capturedRequest) {
+                $capturedRequest = $request;
+                $response = $this->createMock(SendEmailResponse::class);
+                $response->method('getMessageId')->willReturn('msg-multi-reply');
+
+                return $response;
+            });
+
+        $transport = new SesApiTransport($sesClient);
+        $phpMailer = $this->createConfiguredPhpMailer();
+        $phpMailer->addReplyTo('reply1@example.com', 'Reply1');
+        $phpMailer->addReplyTo('reply2@example.com', 'Reply2');
+
+        $transport->send($phpMailer);
+
+        self::assertNotNull($capturedRequest);
+    }
+
+    #[Test]
+    public function sendWithCcRecipients(): void
+    {
+        $capturedRequest = null;
+        $sesClient = $this->createMock(SesClient::class);
+        $sesClient->method('sendEmail')
+            ->willReturnCallback(function (SendEmailRequest $request) use (&$capturedRequest) {
+                $capturedRequest = $request;
+                $response = $this->createMock(SendEmailResponse::class);
+                $response->method('getMessageId')->willReturn('msg-cc');
+
+                return $response;
+            });
+
+        $transport = new SesApiTransport($sesClient);
+        $phpMailer = $this->createConfiguredPhpMailer();
+        $phpMailer->addCC('cc@example.com', 'CC User');
+
+        $transport->send($phpMailer);
+
+        self::assertNotNull($capturedRequest);
+    }
+
+    #[Test]
+    public function sendWithHtmlContent(): void
+    {
+        $capturedRequest = null;
+        $sesClient = $this->createMock(SesClient::class);
+        $sesClient->method('sendEmail')
+            ->willReturnCallback(function (SendEmailRequest $request) use (&$capturedRequest) {
+                $capturedRequest = $request;
+                $response = $this->createMock(SendEmailResponse::class);
+                $response->method('getMessageId')->willReturn('msg-html');
+
+                return $response;
+            });
+
+        $transport = new SesApiTransport($sesClient);
+        $phpMailer = $this->createConfiguredPhpMailer();
+        $phpMailer->isHTML(true);
+        $phpMailer->Body = '<h1>Hello</h1>';
+        $phpMailer->AltBody = 'Hello';
+
+        $transport->send($phpMailer);
+
+        self::assertNotNull($capturedRequest);
+    }
+
     private function createConfiguredPhpMailer(): PhpMailer
     {
         $phpMailer = new PhpMailer(true);
