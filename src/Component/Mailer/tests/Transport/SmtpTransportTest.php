@@ -12,7 +12,6 @@ use WpPack\Component\Mailer\Transport\SmtpTransport;
 
 final class SmtpTransportTest extends TestCase
 {
-
     #[Test]
     public function getNameReturnsSmtp(): void
     {

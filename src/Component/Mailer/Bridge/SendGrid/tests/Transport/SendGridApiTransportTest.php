@@ -11,7 +11,6 @@ use WpPack\Component\Mailer\PhpMailer;
 
 final class SendGridApiTransportTest extends TestCase
 {
-
     #[Test]
     public function getNameReturnsSendgridApi(): void
     {

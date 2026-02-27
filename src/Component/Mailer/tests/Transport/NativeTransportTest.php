@@ -11,7 +11,6 @@ use WpPack\Component\Mailer\Transport\NativeTransport;
 
 final class NativeTransportTest extends TestCase
 {
-
     #[Test]
     public function getNameReturnsMail(): void
     {

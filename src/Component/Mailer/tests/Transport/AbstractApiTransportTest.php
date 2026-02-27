@@ -11,7 +11,6 @@ use WpPack\Component\Mailer\Transport\AbstractApiTransport;
 
 final class AbstractApiTransportTest extends TestCase
 {
-
     private function createTransport(string $messageId = 'test-message-id'): AbstractApiTransport
     {
         return new class ($messageId) extends AbstractApiTransport {

@@ -12,7 +12,6 @@ use WpPack\Component\Mailer\Transport\TransportInterface;
 
 final class PhpMailerTest extends TestCase
 {
-
     #[Test]
     public function setTransportAndPostSend(): void
     {

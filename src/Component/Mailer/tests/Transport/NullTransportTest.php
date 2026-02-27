@@ -11,7 +11,6 @@ use WpPack\Component\Mailer\Transport\NullTransport;
 
 final class NullTransportTest extends TestCase
 {
-
     #[Test]
     public function getNameReturnsNull(): void
     {
