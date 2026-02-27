@@ -226,6 +226,20 @@ final class LoggerTest extends TestCase
     }
 
     #[Test]
+    public function logAcceptsStringableMessage(): void
+    {
+        $stringable = new class implements \Stringable {
+            public function __toString(): string
+            {
+                return 'stringable-message';
+            }
+        };
+
+        $this->logger->info($stringable);
+        self::assertTrue($this->handler->hasInfo('stringable-message'));
+    }
+
+    #[Test]
     public function getLevelSeverity(): void
     {
         self::assertSame(0, Logger::getLevelSeverity('emergency'));

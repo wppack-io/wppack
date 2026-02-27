@@ -101,6 +101,27 @@ final class RegisterLoggerPassTest extends TestCase
     }
 
     #[Test]
+    public function handlesMultipleLoggerParametersInSameService(): void
+    {
+        $builder = new ContainerBuilder();
+        $builder->register(LoggerFactory::class);
+        $builder->register(Fixtures\MultiLoggerService::class);
+
+        $pass = new RegisterLoggerPass();
+        $pass->process($builder);
+
+        self::assertTrue($builder->hasDefinition('logger.payment'));
+        self::assertTrue($builder->hasDefinition('logger.audit'));
+
+        $definition = $builder->findDefinition(Fixtures\MultiLoggerService::class);
+        $arguments = $definition->getArguments();
+        self::assertInstanceOf(Reference::class, $arguments[0]);
+        self::assertSame('logger.payment', $arguments[0]->getId());
+        self::assertInstanceOf(Reference::class, $arguments[1]);
+        self::assertSame('logger.audit', $arguments[1]->getId());
+    }
+
+    #[Test]
     public function skipsServiceWithoutConstructor(): void
     {
         $builder = new ContainerBuilder();
