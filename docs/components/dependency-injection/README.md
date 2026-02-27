@@ -79,6 +79,115 @@ $container = $builder->compile();
 $postService = $container->get(PostService::class);
 ```
 
+## WordPress ライフサイクルとコンテナ
+
+WordPress 全体で **1つのコンテナ** を使用します。コンテナのライフサイクルは3つのフェーズに分かれます：
+
+| フェーズ | オブジェクト | 操作 | タイミング |
+|---------|------------|------|----------|
+| 登録 | ContainerBuilder | register, discover, addCompilerPass | 〜 after_setup_theme |
+| コンパイル | ContainerBuilder → Container | compile() | init |
+| 実行 | Container（読み取り専用） | get, has | init 以降 |
+
+### WordPress フック実行順との対応
+
+```
+WordPress コア読み込み         $wpdb 等が利用可能
+MU プラグイン読み込み       ─┐
+各プラグインファイル実行     │ 登録フェーズ
+plugins_loaded              │ Kernel 初期化 & Plugin/Theme 登録
+テーマ functions.php 実行    │
+after_setup_theme          ─┘
+init                        ← compile() → Container 確定
+wp_loaded 以降               実行フェーズ（boot 実行）
+```
+
+### Kernel による管理
+
+Kernel がコンテナのライフサイクルを管理します。各プラグインは `PluginInterface`、テーマは `ThemeInterface` として Kernel に登録します：
+
+```php
+Kernel::registerPlugin(new MyPlugin());
+Kernel::registerTheme(new MyTheme());
+```
+
+### PluginInterface
+
+`ServiceProviderInterface` を拡張し、コンパイラーパスの提供・ブート処理・アクティベーション/ディアクティベーションのフックを追加します：
+
+```php
+use WpPack\Component\DependencyInjection\ContainerBuilder;
+use WpPack\Component\DependencyInjection\Container;
+use WpPack\Component\DependencyInjection\ServiceDiscovery;
+use WpPack\Component\Kernel\PluginInterface;
+
+final class MyPlugin implements PluginInterface
+{
+    public function register(ContainerBuilder $builder): void
+    {
+        $discovery = new ServiceDiscovery($builder);
+        $discovery->discover(__DIR__ . '/src', 'MyPlugin\\');
+    }
+
+    public function getCompilerPasses(): array
+    {
+        return [new RegisterHandlersPass()];
+    }
+
+    public function boot(Container $container): void
+    {
+        // Container 確定後の初期化処理
+    }
+
+    public function onActivate(): void
+    {
+        // プラグイン有効化時の処理
+    }
+
+    public function onDeactivate(): void
+    {
+        // プラグイン無効化時の処理
+    }
+}
+```
+
+### ThemeInterface
+
+`ServiceProviderInterface` を拡張し、コンパイラーパスの提供・ブート処理を追加します：
+
+```php
+use WpPack\Component\DependencyInjection\ContainerBuilder;
+use WpPack\Component\DependencyInjection\Container;
+use WpPack\Component\DependencyInjection\ServiceDiscovery;
+use WpPack\Component\Kernel\ThemeInterface;
+
+final class MyTheme implements ThemeInterface
+{
+    public function register(ContainerBuilder $builder): void
+    {
+        $discovery = new ServiceDiscovery($builder);
+        $discovery->discover(__DIR__ . '/src', 'MyTheme\\');
+    }
+
+    public function getCompilerPasses(): array
+    {
+        return [];
+    }
+
+    public function boot(Container $container): void
+    {
+        // Container 確定後の初期化処理
+    }
+}
+```
+
+### 注意事項
+
+- `compile()` 後は Container が読み取り専用になり、サービスの登録・変更はできません
+- `init` より前にすべての登録を完了してください
+- 本番環境では PhpDumper でキャッシュし compile をスキップ可能です（「[本番環境用のコンテナコンパイル](#本番環境用のコンテナコンパイル)」を参照）
+- `PluginInterface` / `ThemeInterface` の詳細は Kernel コンポーネントを参照してください
+
 ## オートワイヤリング
 
 コンストラクタの型ヒントを使用して依存関係を自動的に解決します：
@@ -735,30 +844,27 @@ try {
 
 ## 実践例
 
-プラグインブートストラップの完全なワークフロー例です：
+`PluginInterface` を使ったプラグインの完全なワークフロー例です：
 
 ```php
+// my-plugin.php（プラグインメインファイル）
+use WpPack\Component\Kernel\Kernel;
+
+Kernel::registerPlugin(new MyPlugin());
+```
+
+```php
+// MyPlugin.php
 use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Dumper\PhpDumper;
+use WpPack\Component\DependencyInjection\Container;
 use WpPack\Component\DependencyInjection\ServiceDiscovery;
 use WpPack\Component\DependencyInjection\WordPress\WordPressServiceProvider;
+use WpPack\Component\Kernel\PluginInterface;
 
-final class MyPlugin
+final class MyPlugin implements PluginInterface
 {
-    private \Psr\Container\ContainerInterface $container;
-
-    public function boot(): void
+    public function register(ContainerBuilder $builder): void
     {
-        $cachePath = WP_CONTENT_DIR . '/cache/my-plugin-container.php';
-
-        if (file_exists($cachePath) && !WP_DEBUG) {
-            require_once $cachePath;
-            $this->container = new \MyPluginContainer();
-            return;
-        }
-
-        $builder = new ContainerBuilder();
-
         // WordPress サービスの登録
         $builder->addServiceProvider(new WordPressServiceProvider());
 
@@ -772,25 +878,29 @@ final class MyPlugin
             __DIR__ . '/src',
             'MyPlugin\\',
         );
-
-        // コンパイラーパスの登録
-        $builder->addCompilerPass(new RegisterHooksPass());
-        $builder->addCompilerPass(new RegisterShortcodesPass());
-
-        // コンパイル
-        $this->container = $builder->compile();
-
-        // 本番環境ではコンテナをキャッシュ
-        if (!WP_DEBUG) {
-            $dumper = new PhpDumper($builder);
-            $code = $dumper->dump(['class' => 'MyPluginContainer']);
-            file_put_contents($cachePath, $code);
-        }
     }
 
-    public function getContainer(): \Psr\Container\ContainerInterface
+    public function getCompilerPasses(): array
     {
-        return $this->container;
+        return [
+            new RegisterHooksPass(),
+            new RegisterShortcodesPass(),
+        ];
+    }
+
+    public function boot(Container $container): void
+    {
+        // Container 確定後の初期化処理
+    }
+
+    public function onActivate(): void
+    {
+        // プラグイン有効化時の処理（テーブル作成等）
+    }
+
+    public function onDeactivate(): void
+    {
+        // プラグイン無効化時の処理
     }
 }
 ```
