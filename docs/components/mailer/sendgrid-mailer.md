@@ -4,7 +4,7 @@
 **名前空間:** `WpPack\Component\Mailer\Bridge\SendGrid\`
 **レイヤー:** Abstraction
 
-Mailer コンポーネントの SendGrid トランスポート実装。SendGrid v3 Mail Send API および SMTP 経由でのメール送信を提供します。外部 SDK 不要で、API は `wp_remote_post()` で直接呼び出します。
+Mailer コンポーネントの SendGrid トランスポート実装。SendGrid v3 Mail Send API および SMTP 経由でのメール送信を提供します。外部 SDK 不要で、API は `wppack/http-client` 経由で呼び出します。
 
 ## インストール
 
@@ -71,7 +71,7 @@ define('MAILER_DSN', 'sendgrid+smtp://apikey:SG.xxxxxxxxxxxxx@default');
 
 ### SendGridApiTransport
 
-`AbstractApiTransport` を継承。SendGrid v3 Mail Send API（`POST https://api.sendgrid.com/v3/mail/send`）を `wp_remote_post()` で送信。添付ファイル対応。
+`AbstractApiTransport` を継承。SendGrid v3 Mail Send API（`POST https://api.sendgrid.com/v3/mail/send`）を `HttpClient` 経由で送信。添付ファイル対応。
 
 ```php
 final class SendGridApiTransport extends AbstractApiTransport
@@ -82,7 +82,7 @@ final class SendGridApiTransport extends AbstractApiTransport
 
     protected function getMailerName(): string { return 'sendgridapi'; }
 
-    protected function doSendApi(WpPackPhpMailer $phpMailer): string
+    protected function doSendApi(PhpMailer $phpMailer): string
     {
         // SendGrid v3 API で送信
     }
@@ -148,3 +148,4 @@ wp_mail('user@example.com', 'Hello', 'World');
 
 ### 必須
 - **wppack/mailer** -- トランスポート基盤（`TransportInterface`, `AbstractApiTransport`, `SmtpTransport`）
+- **wppack/http-client** -- HTTP クライアント

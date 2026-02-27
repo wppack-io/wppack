@@ -28,11 +28,12 @@ define('MAILER_DSN', 'sendgrid+smtp://apikey:API_KEY@default');
 | `sendgrid+smtp://` | SendGridSmtpTransport | SMTP TLS（ポート 587） |
 | `sendgrid+smtps://` | SendGridSmtpTransport | SMTP SSL（ポート 465） |
 
-外部 SDK 不要。API は `wp_remote_post()` で直接呼び出します。
+外部 SDK 不要。API は `wppack/http-client` 経由で呼び出します。
 
 ## 依存関係
 
 - `wppack/mailer` ^1.0
+- `wppack/http-client` ^1.0
 
 ## ドキュメント
 

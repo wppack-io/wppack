@@ -21,11 +21,12 @@ define('MAILER_DSN', 'azure://my-resource.communication.azure.com:ACCESS_KEY@def
 | `azure+https://` | AzureTransport | `azure://` のエイリアス |
 | `azure+api://` | AzureApiTransport | 構造化 API 送信 |
 
-外部 SDK 不要。`wp_remote_post()` で Azure REST API を直接呼び出します。
+外部 SDK 不要。`wppack/http-client` 経由で Azure REST API を呼び出します。
 
 ## 依存関係
 
 - `wppack/mailer` ^1.0
+- `wppack/http-client` ^1.0
 
 ## ドキュメント
 

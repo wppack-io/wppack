@@ -4,7 +4,7 @@
 **名前空間:** `WpPack\Component\Mailer\Bridge\Azure\`
 **レイヤー:** Abstraction
 
-Mailer コンポーネントの Azure Communication Services Email トランスポート実装。Azure の REST API を使ったメール送信を提供します。外部 SDK 不要で、`wp_remote_post()` で直接 API を呼び出します。
+Mailer コンポーネントの Azure Communication Services Email トランスポート実装。Azure の REST API を使ったメール送信を提供します。外部 SDK 不要で、`wppack/http-client` 経由で API を呼び出します。
 
 ## インストール
 
@@ -81,7 +81,7 @@ final class AzureTransport extends AbstractTransport
 
     protected function getMailerName(): string { return 'azure'; }
 
-    protected function doSend(WpPackPhpMailer $phpMailer): void
+    protected function doSend(PhpMailer $phpMailer): void
     {
         // Azure REST API で送信（添付ファイル対応）
     }
@@ -97,7 +97,7 @@ final class AzureApiTransport extends AbstractApiTransport
 {
     protected function getMailerName(): string { return 'azureapi'; }
 
-    protected function doSendApi(WpPackPhpMailer $phpMailer): string
+    protected function doSendApi(PhpMailer $phpMailer): string
     {
         // Azure 構造化 API で送信
     }
@@ -152,3 +152,4 @@ wp_mail('user@example.com', 'Hello', 'World');
 
 ### 必須
 - **wppack/mailer** -- トランスポート基盤（`TransportInterface`, `AbstractTransport`, `AbstractApiTransport`）
+- **wppack/http-client** -- HTTP クライアント
