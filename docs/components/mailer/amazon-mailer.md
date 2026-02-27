@@ -17,11 +17,14 @@ composer require wppack/amazon-mailer
 ```php
 // wp-config.php
 
-// SES Raw MIME（添付・HTML・マルチパートすべて対応、推奨）
+// SES 構造化 API（デフォルト、推奨）
 define('MAILER_DSN', 'ses://ACCESS_KEY:SECRET_KEY@default?region=ap-northeast-1');
 
-// SES 構造化 API（シンプルなテキスト/HTML メール向け）
+// SES 構造化 API（明示的）
 define('MAILER_DSN', 'ses+api://ACCESS_KEY:SECRET_KEY@default?region=ap-northeast-1');
+
+// SES Raw MIME（PHPMailer が構築した MIME メッセージを送信）
+define('MAILER_DSN', 'ses+https://ACCESS_KEY:SECRET_KEY@default?region=ap-northeast-1');
 
 // SES SMTP（async-aws SDK 不要）
 define('MAILER_DSN', 'ses+smtp://SMTP_USER:SMTP_PASS@default?region=ap-northeast-1');
@@ -34,21 +37,21 @@ define('MAILER_DSN', 'ses://KEY:SECRET@default?region=ap-northeast-1&configurati
 
 | DSN | トランスポート | 送信方式 |
 |-----|-------------|---------|
-| `ses://` | SesTransport | **Raw MIME**: PHPMailer が構築した MIME メッセージ全体をそのまま SES に渡す |
-| `ses+https://` | SesTransport | `ses://` のエイリアス |
-| `ses+api://` | SesApiTransport | **構造化 API**: From/To/Subject/Body を個別フィールドで SES に渡す |
+| `ses://` | SesApiTransport | **構造化 API**: デフォルト（`ses+api://` のエイリアス） |
+| `ses+api://` | SesApiTransport | **構造化 API**: From/To/Subject/Body/Attachments を個別フィールドで SES に渡す |
+| `ses+https://` | SesHttpTransport | **Raw MIME**: PHPMailer が構築した MIME メッセージ全体をそのまま SES に渡す |
 | `ses+smtp://` | SesSmtpTransport | **SMTP 接続**: SES SMTP エンドポイントに接続 |
-| `ses+smtps://` | SesSmtpTransport | `ses+smtp://` の TLS 強制版（ポート 465） |
+| `ses+smtps://` | SesSmtpTransport | `ses+smtp://` の SSL 版（ポート 465） |
 
 ### 構造化 API vs Raw MIME
 
-| | 構造化 API（`ses+api://`） | Raw MIME（`ses://`） |
+| | 構造化 API（`ses://`, `ses+api://`） | Raw MIME（`ses+https://`） |
 |---|---|---|
 | MIME 構築 | SES サーバー側 | PHPMailer（クライアント側） |
-| 添付ファイル | 非対応（Raw にフォールバック） | 対応 |
-| インライン画像 | 非対応（Raw にフォールバック） | 対応 |
+| 添付ファイル | 対応（Simple Message Attachments） | 対応 |
+| インライン画像 | 対応（ContentId で指定） | 対応 |
 | カスタムヘッダー | 一部のみ | すべて対応 |
-| 用途 | シンプルなテキスト/HTML メール | 全機能が必要な場合 |
+| 用途 | 一般的なメール送信（推奨） | カスタムヘッダー等が必要な場合 |
 
 ### DSN オプション
 
@@ -89,31 +92,9 @@ define('MAILER_DSN', 'ses://KEY:SECRET@default?region=ap-northeast-1&session_tok
 
 ## トランスポートクラス
 
-### SesTransport
-
-`AbstractTransport` を継承。PHPMailer が構築した MIME メッセージ全体を SES `Content.Raw` API で送信。
-
-```php
-final class SesTransport extends AbstractTransport
-{
-    public function __construct(
-        private readonly SesClient $sesClient,
-        private readonly ?string $configurationSet = null,
-    ) {}
-
-    protected function getMailerName(): string { return 'ses'; }
-
-    protected function doSend(PhpMailer $phpMailer): void
-    {
-        $mime = $phpMailer->getSentMIMEMessage();
-        // SES Content.Raw API で送信
-    }
-}
-```
-
 ### SesApiTransport
 
-`AbstractApiTransport` を継承。PHPMailer のプロパティから構造化リクエストを構築して SES `Content.Simple` API で送信。添付ファイルがある場合は自動的に `Content.Raw` にフォールバック。
+`AbstractApiTransport` を継承。PHPMailer のプロパティから構造化リクエストを構築して SES `Content.Simple` API で送信。添付ファイルは Simple Message の `Attachments` フィールドで対応。
 
 ```php
 final class SesApiTransport extends AbstractApiTransport
@@ -122,10 +103,29 @@ final class SesApiTransport extends AbstractApiTransport
 
     protected function doSendApi(PhpMailer $phpMailer): string
     {
-        if (!empty($phpMailer->getAttachments())) {
-            return $this->sendRawFallback($phpMailer);
-        }
-        // SES Content.Simple API で送信
+        // SES Content.Simple API + Attachments で送信
+    }
+}
+```
+
+### SesHttpTransport
+
+`AbstractTransport` を継承。PHPMailer が構築した MIME メッセージ全体を SES `Content.Raw` API で送信。
+
+```php
+final class SesHttpTransport extends AbstractTransport
+{
+    public function __construct(
+        private readonly SesClient $sesClient,
+        private readonly ?string $configurationSet = null,
+    ) {}
+
+    protected function getMailerName(): string { return 'ses+https'; }
+
+    protected function doSend(PhpMailer $phpMailer): void
+    {
+        $mime = $phpMailer->getSentMIMEMessage();
+        // SES Content.Raw API で送信
     }
 }
 ```
@@ -221,16 +221,15 @@ $email = (new Email())
     ->subject('Welcome')
     ->html('<h1>Welcome!</h1>');
 
-$sentMessage = $mailer->send($email);
-echo $sentMessage->getMessageId(); // SES メッセージ ID
+$mailer->send($email);
 ```
 
 ## クラス一覧
 
 | クラス | 説明 |
 |-------|------|
-| `Transport\SesTransport` | Raw MIME トランスポート（`ses://`） |
-| `Transport\SesApiTransport` | 構造化 API トランスポート（`ses+api://`） |
+| `Transport\SesApiTransport` | 構造化 API トランスポート（`ses://`, `ses+api://`） |
+| `Transport\SesHttpTransport` | Raw MIME トランスポート（`ses+https://`） |
 | `Transport\SesSmtpTransport` | SMTP トランスポート（`ses+smtp://`） |
 | `Transport\SesTransportFactory` | DSN ファクトリ |
 

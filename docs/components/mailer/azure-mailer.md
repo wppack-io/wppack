@@ -17,10 +17,10 @@ composer require wppack/azure-mailer
 ```php
 // wp-config.php
 
-// Azure REST API（添付・HTML・マルチパートすべて対応、推奨）
+// Azure REST API（推奨）
 define('MAILER_DSN', 'azure://my-resource.communication.azure.com:ACCESS_KEY@default');
 
-// Azure 構造化 API
+// Azure 構造化 API（明示的）
 define('MAILER_DSN', 'azure+api://my-resource.communication.azure.com:ACCESS_KEY@default');
 
 // API バージョンを指定
@@ -31,15 +31,13 @@ define('MAILER_DSN', 'azure://ENDPOINT:KEY@default?api_version=2024-07-01-previe
 
 | DSN | トランスポート | 送信方式 |
 |-----|-------------|---------|
-| `azure://` | AzureTransport | **REST API**: PHPMailer のデータから完全なリクエストを構築して送信（添付対応） |
-| `azure+https://` | AzureTransport | `azure://` のエイリアス |
-| `azure+api://` | AzureApiTransport | **構造化 API**: From/To/Subject/Body を個別フィールドで送信 |
+| `azure://` | AzureApiTransport | **構造化 API**: デフォルト（`azure+api://` のエイリアス） |
+| `azure+api://` | AzureApiTransport | **構造化 API**: From/To/Subject/Body を個別フィールドで送信（添付対応） |
 
 ### DSN 形式
 
 ```
 azure://ENDPOINT:ACCESS_KEY@default
-azure+https://ENDPOINT:ACCESS_KEY@default
 azure+api://ENDPOINT:ACCESS_KEY@default
 ```
 
@@ -66,47 +64,32 @@ define('MAILER_DSN', 'azure://my-resource.communication.azure.com:BASE64_ACCESS_
 
 ## トランスポートクラス
 
-### AzureTransport
+### AzureApiTransport
 
-`AbstractTransport` を継承。PHPMailer のデータからリクエストを構築し、Azure Communication Services Email REST API で送信。添付ファイルを含むすべてのメール機能に対応。
+`AbstractApiTransport` を継承。PHPMailer のデータからリクエストを構築し、Azure Communication Services Email REST API で送信。添付ファイルを含むすべてのメール機能に対応。
 
 ```php
-final class AzureTransport extends AbstractTransport
+final class AzureApiTransport extends AbstractApiTransport
 {
     public function __construct(
         private readonly string $endpoint,
         private readonly string $accessKey,
         private readonly string $apiVersion = '2024-07-01-preview',
+        private readonly ?HttpClient $httpClient = null,
     ) {}
 
-    protected function getMailerName(): string { return 'azure'; }
+    protected function getMailerName(): string { return 'azureapi'; }
 
-    protected function doSend(PhpMailer $phpMailer): void
+    protected function doSendApi(PhpMailer $phpMailer): string
     {
         // Azure REST API で送信（添付ファイル対応）
     }
 }
 ```
 
-### AzureApiTransport
-
-`AbstractApiTransport` を継承。PHPMailer のプロパティから構造化リクエストを構築して Azure REST API で送信。
-
-```php
-final class AzureApiTransport extends AbstractApiTransport
-{
-    protected function getMailerName(): string { return 'azureapi'; }
-
-    protected function doSendApi(PhpMailer $phpMailer): string
-    {
-        // Azure 構造化 API で送信
-    }
-}
-```
-
 ### AzureTransportFactory
 
-DSN から適切な Azure トランスポートを生成するファクトリ。
+DSN から Azure トランスポートを生成するファクトリ。
 
 ```php
 // wppack/azure-mailer がインストールされていれば fromDsn() で自動検出
@@ -144,12 +127,11 @@ wp_mail('user@example.com', 'Hello', 'World');
 
 | クラス | 説明 |
 |-------|------|
-| `Transport\AzureTransport` | REST API トランスポート（`azure://`） |
-| `Transport\AzureApiTransport` | 構造化 API トランスポート（`azure+api://`） |
+| `Transport\AzureApiTransport` | 構造化 API トランスポート（`azure://`, `azure+api://`） |
 | `Transport\AzureTransportFactory` | DSN ファクトリ |
 
 ## 依存関係
 
 ### 必須
-- **wppack/mailer** -- トランスポート基盤（`TransportInterface`, `AbstractTransport`, `AbstractApiTransport`）
+- **wppack/mailer** -- トランスポート基盤（`TransportInterface`, `AbstractApiTransport`）
 - **wppack/http-client** -- HTTP クライアント

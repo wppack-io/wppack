@@ -20,6 +20,9 @@ composer require wppack/sendgrid-mailer
 // SendGrid v3 API（推奨）
 define('MAILER_DSN', 'sendgrid://API_KEY@default');
 
+// SendGrid v3 API（明示的）
+define('MAILER_DSN', 'sendgrid+api://API_KEY@default');
+
 // SendGrid SMTP
 define('MAILER_DSN', 'sendgrid+smtp://apikey:API_KEY@default');
 
@@ -31,9 +34,8 @@ define('MAILER_DSN', 'sendgrid+smtps://apikey:API_KEY@default');
 
 | DSN | トランスポート | 送信方式 |
 |-----|-------------|---------|
-| `sendgrid://` | SendGridApiTransport | **v3 Mail Send API**（デフォルト） |
-| `sendgrid+https://` | SendGridApiTransport | `sendgrid://` のエイリアス |
-| `sendgrid+api://` | SendGridApiTransport | `sendgrid://` のエイリアス |
+| `sendgrid://` | SendGridApiTransport | **v3 Mail Send API**: デフォルト（`sendgrid+api://` のエイリアス） |
+| `sendgrid+api://` | SendGridApiTransport | **v3 Mail Send API** |
 | `sendgrid+smtp://` | SendGridSmtpTransport | **SMTP TLS 接続**（ポート 587） |
 | `sendgrid+smtps://` | SendGridSmtpTransport | **SMTP SSL 接続**（ポート 465） |
 
@@ -42,7 +44,6 @@ define('MAILER_DSN', 'sendgrid+smtps://apikey:API_KEY@default');
 ```
 # API（推奨）
 sendgrid://API_KEY@default
-sendgrid+https://API_KEY@default
 sendgrid+api://API_KEY@default
 
 # SMTP
@@ -71,13 +72,14 @@ define('MAILER_DSN', 'sendgrid+smtp://apikey:SG.xxxxxxxxxxxxx@default');
 
 ### SendGridApiTransport
 
-`AbstractApiTransport` を継承。SendGrid v3 Mail Send API（`POST https://api.sendgrid.com/v3/mail/send`）を `HttpClient` 経由で送信。添付ファイル対応。
+`AbstractApiTransport` を継承。SendGrid v3 Mail Send API（`POST https://api.sendgrid.com/v3/mail/send`）を `HttpClient` 経由で送信。添付ファイル対応。複数の reply-to アドレスに対応（`reply_to_list` フィールドを使用）。
 
 ```php
 final class SendGridApiTransport extends AbstractApiTransport
 {
     public function __construct(
         private readonly string $apiKey,
+        private readonly ?HttpClient $httpClient = null,
     ) {}
 
     protected function getMailerName(): string { return 'sendgridapi'; }
@@ -140,7 +142,7 @@ wp_mail('user@example.com', 'Hello', 'World');
 
 | クラス | 説明 |
 |-------|------|
-| `Transport\SendGridApiTransport` | v3 API トランスポート（`sendgrid://`） |
+| `Transport\SendGridApiTransport` | v3 API トランスポート（`sendgrid://`, `sendgrid+api://`） |
 | `Transport\SendGridSmtpTransport` | SMTP トランスポート（`sendgrid+smtp://`） |
 | `Transport\SendGridTransportFactory` | DSN ファクトリ |
 
