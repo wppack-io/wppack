@@ -37,7 +37,12 @@ final class ErrorLogHandler implements HandlerInterface
         );
 
         if ($filteredContext !== []) {
-            $formatted .= ' ' . json_encode($filteredContext, \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE);
+            try {
+                $json = json_encode($filteredContext, \JSON_UNESCAPED_SLASHES | \JSON_UNESCAPED_UNICODE | \JSON_THROW_ON_ERROR);
+                $formatted .= ' ' . $json;
+            } catch (\JsonException) {
+                $formatted .= ' [context not serializable]';
+            }
         }
 
         error_log($formatted);

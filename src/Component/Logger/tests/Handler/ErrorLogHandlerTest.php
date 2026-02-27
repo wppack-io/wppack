@@ -111,6 +111,39 @@ final class ErrorLogHandlerTest extends TestCase
     }
 
     #[Test]
+    public function handleFallsBackWhenContextNotSerializable(): void
+    {
+        $tempFile = tempnam(sys_get_temp_dir(), 'logger_test_');
+        $originalErrorLog = ini_set('error_log', $tempFile);
+
+        try {
+            $handler = new ErrorLogHandler();
+
+            // Create circular reference that json_encode cannot serialize
+            $a = new \stdClass();
+            $b = new \stdClass();
+            $a->ref = $b;
+            $b->ref = $a;
+
+            $handler->handle('error', 'Bad context', [
+                '_channel' => 'app',
+                'object' => $a,
+            ]);
+
+            $output = file_get_contents($tempFile);
+            self::assertStringContainsString('[app.ERROR] Bad context', $output);
+            self::assertStringContainsString('[context not serializable]', $output);
+        } finally {
+            if ($originalErrorLog !== false) {
+                ini_set('error_log', $originalErrorLog);
+            } else {
+                ini_restore('error_log');
+            }
+            @unlink($tempFile);
+        }
+    }
+
+    #[Test]
     public function handleUsesDefaultChannelWhenMissing(): void
     {
         $tempFile = tempnam(sys_get_temp_dir(), 'logger_test_');
