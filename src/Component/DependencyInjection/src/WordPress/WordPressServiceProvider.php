@@ -15,8 +15,6 @@ final class WordPressServiceProvider implements ServiceProviderInterface
             ->setFactory([self::class, 'getWpdb'])
             ->setPublic(true);
 
-        $builder->setAlias(\wpdb::class, 'wpdb');
-
         $builder->register('wp_filesystem', \WP_Filesystem_Base::class)
             ->setFactory([self::class, 'getWpFilesystem'])
             ->setPublic(true);

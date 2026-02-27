@@ -10,6 +10,7 @@ use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\Definition;
 use WpPack\Component\DependencyInjection\Exception\ParameterNotFoundException;
+use WpPack\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
 
@@ -49,7 +50,7 @@ final class ContainerBuilderTest extends TestCase
     {
         $builder = new ContainerBuilder();
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(ServiceNotFoundException::class);
         $builder->findDefinition('missing.service');
     }
 
@@ -262,5 +263,39 @@ final class ContainerBuilderTest extends TestCase
         $args = $def->getArguments();
         self::assertInstanceOf(Reference::class, $args[0]);
         self::assertSame('factory.service', $args[0]->getId());
+    }
+
+    #[Test]
+    public function parameterNotFoundExceptionContainsParameterName(): void
+    {
+        $builder = new ContainerBuilder();
+
+        try {
+            $builder->getParameter('my.missing.param');
+            self::fail('Expected ParameterNotFoundException');
+        } catch (ParameterNotFoundException $e) {
+            self::assertStringContainsString('my.missing.param', $e->getMessage());
+        }
+    }
+
+    #[Test]
+    public function registerSameIdTwiceOverwritesDefinition(): void
+    {
+        $builder = new ContainerBuilder();
+        $builder->register('my.service', \stdClass::class);
+        $builder->register('my.service', \ArrayObject::class);
+
+        $definition = $builder->findDefinition('my.service');
+        self::assertSame(\ArrayObject::class, $definition->getClass());
+    }
+
+    #[Test]
+    public function compilesEmptyContainer(): void
+    {
+        $builder = new ContainerBuilder();
+
+        $container = $builder->compile();
+
+        self::assertFalse($container->has('any.service'));
     }
 }

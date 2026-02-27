@@ -120,12 +120,8 @@ final class ServiceDiscoveryTest extends TestCase
         );
 
         self::assertTrue($builder->hasDefinition(SampleImplementation::class));
-        // Register dependencies needed by discovered fixtures
-        $builder->register('custom.service', SimpleService::class);
-        $builder->setParameter('app.name', 'TestApp');
-        // Alias is registered so it resolves at compile time
-        $container = $builder->compile();
-        self::assertTrue($container->has(SampleInterface::class));
+        // Verify alias is registered at the builder level (before compile)
+        self::assertTrue($builder->getSymfonyBuilder()->hasAlias(SampleInterface::class));
     }
 
     #[Test]

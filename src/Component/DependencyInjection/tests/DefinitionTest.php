@@ -188,6 +188,43 @@ final class DefinitionTest extends TestCase
     }
 
     #[Test]
+    public function checksIfHasTag(): void
+    {
+        $definition = new Definition('my.service');
+        $definition->addTag('app.handler');
+
+        self::assertTrue($definition->hasTag('app.handler'));
+        self::assertFalse($definition->hasTag('missing.tag'));
+    }
+
+    #[Test]
+    public function setsAbstract(): void
+    {
+        $definition = new Definition('my.service');
+        $result = $definition->setAbstract(true);
+
+        self::assertSame($definition, $result);
+    }
+
+    #[Test]
+    public function setsDecoratedService(): void
+    {
+        $definition = new Definition('my.service');
+        $result = $definition->setDecoratedService('decorated.service');
+
+        self::assertSame($definition, $result);
+    }
+
+    #[Test]
+    public function setsDecoratedServiceWithRenamedIdAndPriority(): void
+    {
+        $definition = new Definition('my.service');
+        $result = $definition->setDecoratedService('decorated.service', 'inner.service', 5);
+
+        self::assertSame($definition, $result);
+    }
+
+    #[Test]
     public function fluentApi(): void
     {
         $definition = new Definition('my.service');
