@@ -7,7 +7,8 @@ parameters:
     paths:
         - src/
     excludePaths:
-        - */Tests/*
+        - */tests/*
+        - src/*/vendor/*
     scanDirectories:
         - vendor/roots/wordpress-no-content/wp-includes/
     ignoreErrors:

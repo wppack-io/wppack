@@ -7,19 +7,21 @@
 >
     <testsuites>
         <testsuite name="Component">
-            <directory>src/Component/*/Tests</directory>
+            <directory>src/Component/*/tests</directory>
         </testsuite>
         <testsuite name="Bridge">
-            <directory>src/Component/*/Bridge/*/Tests</directory>
+            <directory>src/Component/*/Bridge/*/tests</directory>
         </testsuite>
         <testsuite name="Plugin">
-            <directory>src/Plugin/*/Tests</directory>
+            <directory>src/Plugin/*/tests</directory>
         </testsuite>
     </testsuites>
 
     <source>
         <include>
-            <directory>src/</directory>
+            <directory suffix=".php">src/Component/*/src</directory>
+            <directory suffix=".php">src/Component/*/Bridge/*/src</directory>
+            <directory suffix=".php">src/Plugin/*/src</directory>
         </include>
     </source>
 </phpunit>

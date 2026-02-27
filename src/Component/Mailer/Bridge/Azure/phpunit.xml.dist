@@ -7,17 +7,13 @@
 >
     <testsuites>
         <testsuite name="Azure Mailer Bridge Test Suite">
-            <directory>./Tests/</directory>
+            <directory>./tests/</directory>
         </testsuite>
     </testsuites>
 
     <source>
         <include>
-            <directory>.</directory>
+            <directory>./src</directory>
         </include>
-        <exclude>
-            <directory>./Tests</directory>
-            <directory>./vendor</directory>
-        </exclude>
     </source>
 </phpunit>
