@@ -9,7 +9,7 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use WpPack\Component\HttpClient\Exception\ConnectionException;
 
-final class HttpClient implements ClientInterface
+class HttpClient implements ClientInterface
 {
     /** @var array<string, string> */
     private array $headers = [];

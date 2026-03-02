@@ -1,0 +1,11 @@
+services:
+  mysql:
+    image: mysql:8.0
+    platform: linux/amd64
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: wppack_test
+    ports:
+      - '3306:3306'
+    tmpfs:
+      - /var/lib/mysql

@@ -6,14 +6,54 @@ namespace WpPack\Component\Mailer\Bridge\SendGrid\Tests\Transport;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\HttpClient\HttpClient;
-use WpPack\Component\HttpClient\Response;
 use WpPack\Component\Mailer\Bridge\SendGrid\Transport\SendGridApiTransport;
 use WpPack\Component\Mailer\Exception\TransportException;
 use WpPack\Component\Mailer\PhpMailer;
 
 final class SendGridApiTransportTest extends TestCase
 {
+    /** @var array<string, mixed>|null */
+    private ?array $mockResponse = null;
+
+    private ?string $capturedBody = null;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        if (function_exists('add_filter')) {
+            add_filter('pre_http_request', [$this, 'mockHttpResponse'], 10, 3);
+        }
+    }
+
+    protected function tearDown(): void
+    {
+        if (function_exists('remove_filter')) {
+            remove_filter('pre_http_request', [$this, 'mockHttpResponse'], 10);
+        }
+        $this->mockResponse = null;
+        $this->capturedBody = null;
+        parent::tearDown();
+    }
+
+    /**
+     * @param mixed                $preempt
+     * @param array<string, mixed> $parsedArgs
+     * @return array<string, mixed>
+     */
+    public function mockHttpResponse(mixed $preempt, array $parsedArgs, string $url): array
+    {
+        $this->capturedBody = $parsedArgs['body'] ?? '';
+
+        return $this->mockResponse ?? [
+            'headers' => [],
+            'body' => '',
+            'response' => ['code' => 200, 'message' => 'OK'],
+            'cookies' => [],
+            'filename' => null,
+        ];
+    }
+
     #[Test]
     public function getNameReturnsSendgridApi(): void
     {
@@ -36,33 +76,26 @@ final class SendGridApiTransportTest extends TestCase
     #[Test]
     public function sendBuildsApiPayload(): void
     {
-        if (!function_exists('wp_json_encode') || !function_exists('wp_remote_request')) {
+        if (!function_exists('wp_json_encode')) {
             self::markTestSkipped('WordPress functions are not available.');
         }
 
-        $capturedBody = null;
-        $httpClient = new class extends HttpClient {
-            public ?string $capturedBody = null;
+        $this->mockResponse = [
+            'headers' => ['X-Message-Id' => 'sg-test-id-123'],
+            'body' => '',
+            'response' => ['code' => 202, 'message' => 'Accepted'],
+            'cookies' => [],
+            'filename' => null,
+        ];
 
-            public function post(string $url, array $options = []): Response
-            {
-                $this->capturedBody = $options['body'] ?? '';
-
-                return new Response(
-                    statusCode: 202,
-                    headers: ['X-Message-Id' => 'sg-test-id-123'],
-                );
-            }
-        };
-
-        $transport = new SendGridApiTransport('SG.test-key', $httpClient);
+        $transport = new SendGridApiTransport('SG.test-key');
         $phpMailer = $this->createConfiguredPhpMailer();
 
         $transport->send($phpMailer);
 
         self::assertSame('<sg-test-id-123>', $phpMailer->getLastMessageID());
 
-        $payload = json_decode($httpClient->capturedBody, true);
+        $payload = json_decode((string) $this->capturedBody, true);
         self::assertArrayHasKey('personalizations', $payload);
         self::assertArrayHasKey('from', $payload);
         self::assertSame('sender@example.com', $payload['from']['email']);
@@ -72,31 +105,25 @@ final class SendGridApiTransportTest extends TestCase
     #[Test]
     public function sendWithReplyTo(): void
     {
-        if (!function_exists('wp_json_encode') || !function_exists('wp_remote_request')) {
+        if (!function_exists('wp_json_encode')) {
             self::markTestSkipped('WordPress functions are not available.');
         }
 
-        $httpClient = new class extends HttpClient {
-            public ?string $capturedBody = null;
+        $this->mockResponse = [
+            'headers' => ['X-Message-Id' => 'sg-reply-id'],
+            'body' => '',
+            'response' => ['code' => 202, 'message' => 'Accepted'],
+            'cookies' => [],
+            'filename' => null,
+        ];
 
-            public function post(string $url, array $options = []): Response
-            {
-                $this->capturedBody = $options['body'] ?? '';
-
-                return new Response(
-                    statusCode: 202,
-                    headers: ['X-Message-Id' => 'sg-reply-id'],
-                );
-            }
-        };
-
-        $transport = new SendGridApiTransport('SG.test-key', $httpClient);
+        $transport = new SendGridApiTransport('SG.test-key');
         $phpMailer = $this->createConfiguredPhpMailer();
         $phpMailer->addReplyTo('reply@example.com', 'Reply');
 
         $transport->send($phpMailer);
 
-        $payload = json_decode($httpClient->capturedBody, true);
+        $payload = json_decode((string) $this->capturedBody, true);
         self::assertArrayHasKey('reply_to', $payload);
         self::assertSame('reply@example.com', $payload['reply_to']['email']);
     }
@@ -104,32 +131,26 @@ final class SendGridApiTransportTest extends TestCase
     #[Test]
     public function sendWithMultipleReplyTo(): void
     {
-        if (!function_exists('wp_json_encode') || !function_exists('wp_remote_request')) {
+        if (!function_exists('wp_json_encode')) {
             self::markTestSkipped('WordPress functions are not available.');
         }
 
-        $httpClient = new class extends HttpClient {
-            public ?string $capturedBody = null;
+        $this->mockResponse = [
+            'headers' => ['X-Message-Id' => 'sg-multi-reply-id'],
+            'body' => '',
+            'response' => ['code' => 202, 'message' => 'Accepted'],
+            'cookies' => [],
+            'filename' => null,
+        ];
 
-            public function post(string $url, array $options = []): Response
-            {
-                $this->capturedBody = $options['body'] ?? '';
-
-                return new Response(
-                    statusCode: 202,
-                    headers: ['X-Message-Id' => 'sg-multi-reply-id'],
-                );
-            }
-        };
-
-        $transport = new SendGridApiTransport('SG.test-key', $httpClient);
+        $transport = new SendGridApiTransport('SG.test-key');
         $phpMailer = $this->createConfiguredPhpMailer();
         $phpMailer->addReplyTo('reply1@example.com', 'Reply1');
         $phpMailer->addReplyTo('reply2@example.com', 'Reply2');
 
         $transport->send($phpMailer);
 
-        $payload = json_decode($httpClient->capturedBody, true);
+        $payload = json_decode((string) $this->capturedBody, true);
         self::assertArrayHasKey('reply_to_list', $payload);
         self::assertCount(2, $payload['reply_to_list']);
     }
@@ -137,31 +158,25 @@ final class SendGridApiTransportTest extends TestCase
     #[Test]
     public function sendWithAttachments(): void
     {
-        if (!function_exists('wp_json_encode') || !function_exists('wp_remote_request')) {
+        if (!function_exists('wp_json_encode')) {
             self::markTestSkipped('WordPress functions are not available.');
         }
 
-        $httpClient = new class extends HttpClient {
-            public ?string $capturedBody = null;
+        $this->mockResponse = [
+            'headers' => ['X-Message-Id' => 'sg-att-id'],
+            'body' => '',
+            'response' => ['code' => 202, 'message' => 'Accepted'],
+            'cookies' => [],
+            'filename' => null,
+        ];
 
-            public function post(string $url, array $options = []): Response
-            {
-                $this->capturedBody = $options['body'] ?? '';
-
-                return new Response(
-                    statusCode: 202,
-                    headers: ['X-Message-Id' => 'sg-att-id'],
-                );
-            }
-        };
-
-        $transport = new SendGridApiTransport('SG.test-key', $httpClient);
+        $transport = new SendGridApiTransport('SG.test-key');
         $phpMailer = $this->createConfiguredPhpMailer();
         $phpMailer->addStringAttachment('file content', 'test.txt', 'base64', 'text/plain');
 
         $transport->send($phpMailer);
 
-        $payload = json_decode($httpClient->capturedBody, true);
+        $payload = json_decode((string) $this->capturedBody, true);
         self::assertArrayHasKey('attachments', $payload);
         self::assertCount(1, $payload['attachments']);
         self::assertSame('test.txt', $payload['attachments'][0]['filename']);
@@ -170,18 +185,19 @@ final class SendGridApiTransportTest extends TestCase
     #[Test]
     public function sendThrowsOnApiError(): void
     {
-        if (!function_exists('wp_json_encode') || !function_exists('wp_remote_request')) {
+        if (!function_exists('wp_json_encode')) {
             self::markTestSkipped('WordPress functions are not available.');
         }
 
-        $httpClient = new class extends HttpClient {
-            public function post(string $url, array $options = []): Response
-            {
-                return new Response(statusCode: 400, body: '{"errors":[{"message":"Bad Request"}]}');
-            }
-        };
+        $this->mockResponse = [
+            'headers' => [],
+            'body' => '{"errors":[{"message":"Bad Request"}]}',
+            'response' => ['code' => 400, 'message' => 'Bad Request'],
+            'cookies' => [],
+            'filename' => null,
+        ];
 
-        $transport = new SendGridApiTransport('SG.test-key', $httpClient);
+        $transport = new SendGridApiTransport('SG.test-key');
         $phpMailer = $this->createConfiguredPhpMailer();
 
         $this->expectException(TransportException::class);
@@ -192,18 +208,19 @@ final class SendGridApiTransportTest extends TestCase
     #[Test]
     public function sendThrowsOnMissingMessageId(): void
     {
-        if (!function_exists('wp_json_encode') || !function_exists('wp_remote_request')) {
+        if (!function_exists('wp_json_encode')) {
             self::markTestSkipped('WordPress functions are not available.');
         }
 
-        $httpClient = new class extends HttpClient {
-            public function post(string $url, array $options = []): Response
-            {
-                return new Response(statusCode: 202);
-            }
-        };
+        $this->mockResponse = [
+            'headers' => [],
+            'body' => '',
+            'response' => ['code' => 202, 'message' => 'Accepted'],
+            'cookies' => [],
+            'filename' => null,
+        ];
 
-        $transport = new SendGridApiTransport('SG.test-key', $httpClient);
+        $transport = new SendGridApiTransport('SG.test-key');
         $phpMailer = $this->createConfiguredPhpMailer();
 
         $this->expectException(TransportException::class);
@@ -214,32 +231,26 @@ final class SendGridApiTransportTest extends TestCase
     #[Test]
     public function sendWithCcAndBcc(): void
     {
-        if (!function_exists('wp_json_encode') || !function_exists('wp_remote_request')) {
+        if (!function_exists('wp_json_encode')) {
             self::markTestSkipped('WordPress functions are not available.');
         }
 
-        $httpClient = new class extends HttpClient {
-            public ?string $capturedBody = null;
+        $this->mockResponse = [
+            'headers' => ['X-Message-Id' => 'sg-cc-bcc-id'],
+            'body' => '',
+            'response' => ['code' => 202, 'message' => 'Accepted'],
+            'cookies' => [],
+            'filename' => null,
+        ];
 
-            public function post(string $url, array $options = []): Response
-            {
-                $this->capturedBody = $options['body'] ?? '';
-
-                return new Response(
-                    statusCode: 202,
-                    headers: ['X-Message-Id' => 'sg-cc-bcc-id'],
-                );
-            }
-        };
-
-        $transport = new SendGridApiTransport('SG.test-key', $httpClient);
+        $transport = new SendGridApiTransport('SG.test-key');
         $phpMailer = $this->createConfiguredPhpMailer();
         $phpMailer->addCC('cc@example.com', 'CC User');
         $phpMailer->addBCC('bcc@example.com', 'BCC User');
 
         $transport->send($phpMailer);
 
-        $payload = json_decode($httpClient->capturedBody, true);
+        $payload = json_decode((string) $this->capturedBody, true);
         $personalization = $payload['personalizations'][0];
         self::assertArrayHasKey('cc', $personalization);
         self::assertArrayHasKey('bcc', $personalization);
@@ -250,25 +261,19 @@ final class SendGridApiTransportTest extends TestCase
     #[Test]
     public function sendWithHtmlContent(): void
     {
-        if (!function_exists('wp_json_encode') || !function_exists('wp_remote_request')) {
+        if (!function_exists('wp_json_encode')) {
             self::markTestSkipped('WordPress functions are not available.');
         }
 
-        $httpClient = new class extends HttpClient {
-            public ?string $capturedBody = null;
+        $this->mockResponse = [
+            'headers' => ['X-Message-Id' => 'sg-html-id'],
+            'body' => '',
+            'response' => ['code' => 202, 'message' => 'Accepted'],
+            'cookies' => [],
+            'filename' => null,
+        ];
 
-            public function post(string $url, array $options = []): Response
-            {
-                $this->capturedBody = $options['body'] ?? '';
-
-                return new Response(
-                    statusCode: 202,
-                    headers: ['X-Message-Id' => 'sg-html-id'],
-                );
-            }
-        };
-
-        $transport = new SendGridApiTransport('SG.test-key', $httpClient);
+        $transport = new SendGridApiTransport('SG.test-key');
         $phpMailer = $this->createConfiguredPhpMailer();
         $phpMailer->isHTML(true);
         $phpMailer->Body = '<h1>Hello</h1>';
@@ -276,7 +281,7 @@ final class SendGridApiTransportTest extends TestCase
 
         $transport->send($phpMailer);
 
-        $payload = json_decode($httpClient->capturedBody, true);
+        $payload = json_decode((string) $this->capturedBody, true);
         $content = $payload['content'];
         self::assertCount(2, $content);
         self::assertSame('text/plain', $content[0]['type']);

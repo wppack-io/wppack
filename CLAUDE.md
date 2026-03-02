@@ -169,6 +169,52 @@ composer cs-check   # コードスタイルチェック
 composer test       # テスト実行
 ```
 
+### テスト
+
+#### テスト構成
+
+テストは wp-phpunit + MySQL による WordPress 統合テスト環境に対応。`tests/wp-config.php` の有無で動作が切り替わる:
+
+- **`tests/wp-config.php` あり**: WordPress をロードし全テスト実行（スキップなし）
+- **`tests/wp-config.php` なし**: PHPMailer のみロード、WordPress 依存テストはスキップ
+
+#### ローカルでの統合テスト実行
+
+```bash
+docker compose up -d --wait                        # MySQL 起動
+cp tests/wp-config.php.dist tests/wp-config.php    # 設定ファイル配置
+composer test                                      # 全テスト実行
+docker compose down                                # MySQL 停止
+```
+
+#### テストでの WordPress 関数モック
+
+WordPress 関数に依存するテストでは `pre_http_request` フィルターで HTTP 呼び出しをモックする。`HttpClient` を匿名クラスで拡張するパターンは使用しない（clone ベースの immutability と相性が悪い）。
+
+```php
+// setUp() でフィルター登録
+if (function_exists('add_filter')) {
+    add_filter('pre_http_request', [$this, 'mockHttpResponse'], 10, 3);
+}
+
+// tearDown() でフィルター解除
+if (function_exists('remove_filter')) {
+    remove_filter('pre_http_request', [$this, 'mockHttpResponse'], 10);
+}
+```
+
+WordPress が利用不可な環境では `function_exists` ガードでスキップ:
+
+```php
+if (!function_exists('wp_remote_request')) {
+    self::markTestSkipped('WordPress functions are not available.');
+}
+```
+
+#### テストファイル配置
+
+各コンポーネントのテストは `src/Component/{Name}/tests/` に配置。
+
 ### モノレポ開発フロー
 - ルート `composer.json` で全パッケージを管理
 - `replace` セクションで自パッケージを宣言

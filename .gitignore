@@ -4,3 +4,4 @@ composer.lock
 .php-cs-fixer.cache
 .phpunit.cache/
 /docs/specifications/
+tests/wp-config.php

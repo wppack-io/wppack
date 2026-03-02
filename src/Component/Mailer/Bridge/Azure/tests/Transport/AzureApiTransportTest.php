@@ -6,19 +6,52 @@ namespace WpPack\Component\Mailer\Bridge\Azure\Tests\Transport;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\HttpClient\HttpClient;
-use WpPack\Component\HttpClient\Response;
 use WpPack\Component\Mailer\Bridge\Azure\Transport\AzureApiTransport;
 use WpPack\Component\Mailer\Exception\TransportException;
 use WpPack\Component\Mailer\PhpMailer;
 
 final class AzureApiTransportTest extends TestCase
 {
+    /** @var array<string, mixed>|null */
+    private ?array $mockResponse = null;
+
+    private ?string $capturedBody = null;
+
     protected function setUp(): void
     {
         if (!function_exists('wp_json_encode')) {
             self::markTestSkipped('WordPress functions are not available.');
         }
+
+        add_filter('pre_http_request', [$this, 'mockHttpResponse'], 10, 3);
+    }
+
+    protected function tearDown(): void
+    {
+        if (function_exists('remove_filter')) {
+            remove_filter('pre_http_request', [$this, 'mockHttpResponse'], 10);
+        }
+        $this->mockResponse = null;
+        $this->capturedBody = null;
+        parent::tearDown();
+    }
+
+    /**
+     * @param mixed                $preempt
+     * @param array<string, mixed> $parsedArgs
+     * @return array<string, mixed>
+     */
+    public function mockHttpResponse(mixed $preempt, array $parsedArgs, string $url): array
+    {
+        $this->capturedBody = $parsedArgs['body'] ?? '';
+
+        return $this->mockResponse ?? [
+            'headers' => [],
+            'body' => '',
+            'response' => ['code' => 200, 'message' => 'OK'],
+            'cookies' => [],
+            'filename' => null,
+        ];
     }
 
     #[Test]
@@ -44,29 +77,17 @@ final class AzureApiTransportTest extends TestCase
     #[Test]
     public function sendBuildsApiPayload(): void
     {
-        if (!function_exists('wp_remote_request')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
-        $httpClient = new class extends HttpClient {
-            public ?string $capturedBody = null;
-
-            public function post(string $url, array $options = []): Response
-            {
-                $this->capturedBody = $options['body'] ?? '';
-
-                return new Response(
-                    statusCode: 202,
-                    body: json_encode(['id' => 'azure-msg-id-123']),
-                );
-            }
-        };
+        $this->mockResponse = [
+            'headers' => ['content-type' => 'application/json'],
+            'body' => (string) json_encode(['id' => 'azure-msg-id-123']),
+            'response' => ['code' => 202, 'message' => 'Accepted'],
+            'cookies' => [],
+            'filename' => null,
+        ];
 
         $transport = new AzureApiTransport(
             'test.communication.azure.com',
             base64_encode('test-key'),
-            '2024-07-01-preview',
-            $httpClient,
         );
         $phpMailer = $this->createConfiguredPhpMailer();
 
@@ -74,7 +95,7 @@ final class AzureApiTransportTest extends TestCase
 
         self::assertSame('<azure-msg-id-123>', $phpMailer->getLastMessageID());
 
-        $payload = json_decode($httpClient->capturedBody, true);
+        $payload = json_decode((string) $this->capturedBody, true);
         self::assertArrayHasKey('senderAddress', $payload);
         self::assertSame('sender@example.com', $payload['senderAddress']);
         self::assertArrayHasKey('recipients', $payload);
@@ -84,25 +105,17 @@ final class AzureApiTransportTest extends TestCase
     #[Test]
     public function sendThrowsOnEmptyMessageId(): void
     {
-        if (!function_exists('wp_remote_request')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
-        $httpClient = new class extends HttpClient {
-            public function post(string $url, array $options = []): Response
-            {
-                return new Response(
-                    statusCode: 202,
-                    body: json_encode(['status' => 'Running']),
-                );
-            }
-        };
+        $this->mockResponse = [
+            'headers' => ['content-type' => 'application/json'],
+            'body' => (string) json_encode(['status' => 'Running']),
+            'response' => ['code' => 202, 'message' => 'Accepted'],
+            'cookies' => [],
+            'filename' => null,
+        ];
 
         $transport = new AzureApiTransport(
             'test.communication.azure.com',
             base64_encode('test-key'),
-            '2024-07-01-preview',
-            $httpClient,
         );
         $phpMailer = $this->createConfiguredPhpMailer();
 
@@ -114,22 +127,17 @@ final class AzureApiTransportTest extends TestCase
     #[Test]
     public function sendThrowsOnApiError(): void
     {
-        if (!function_exists('wp_remote_request')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
-        $httpClient = new class extends HttpClient {
-            public function post(string $url, array $options = []): Response
-            {
-                return new Response(statusCode: 400, body: '{"error":"Bad Request"}');
-            }
-        };
+        $this->mockResponse = [
+            'headers' => ['content-type' => 'application/json'],
+            'body' => '{"error":"Bad Request"}',
+            'response' => ['code' => 400, 'message' => 'Bad Request'],
+            'cookies' => [],
+            'filename' => null,
+        ];
 
         $transport = new AzureApiTransport(
             'test.communication.azure.com',
             base64_encode('test-key'),
-            '2024-07-01-preview',
-            $httpClient,
         );
         $phpMailer = $this->createConfiguredPhpMailer();
 
@@ -141,29 +149,17 @@ final class AzureApiTransportTest extends TestCase
     #[Test]
     public function sendWithCcAndBcc(): void
     {
-        if (!function_exists('wp_remote_request')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
-        $httpClient = new class extends HttpClient {
-            public ?string $capturedBody = null;
-
-            public function post(string $url, array $options = []): Response
-            {
-                $this->capturedBody = $options['body'] ?? '';
-
-                return new Response(
-                    statusCode: 202,
-                    body: json_encode(['id' => 'azure-cc-bcc-id']),
-                );
-            }
-        };
+        $this->mockResponse = [
+            'headers' => ['content-type' => 'application/json'],
+            'body' => (string) json_encode(['id' => 'azure-cc-bcc-id']),
+            'response' => ['code' => 202, 'message' => 'Accepted'],
+            'cookies' => [],
+            'filename' => null,
+        ];
 
         $transport = new AzureApiTransport(
             'test.communication.azure.com',
             base64_encode('test-key'),
-            '2024-07-01-preview',
-            $httpClient,
         );
         $phpMailer = $this->createConfiguredPhpMailer();
         $phpMailer->addCC('cc@example.com', 'CC User');
@@ -171,7 +167,7 @@ final class AzureApiTransportTest extends TestCase
 
         $transport->send($phpMailer);
 
-        $payload = json_decode($httpClient->capturedBody, true);
+        $payload = json_decode((string) $this->capturedBody, true);
         $recipients = $payload['recipients'];
         self::assertArrayHasKey('cc', $recipients);
         self::assertArrayHasKey('bcc', $recipients);
@@ -182,36 +178,24 @@ final class AzureApiTransportTest extends TestCase
     #[Test]
     public function sendWithReplyTo(): void
     {
-        if (!function_exists('wp_remote_request')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
-        $httpClient = new class extends HttpClient {
-            public ?string $capturedBody = null;
-
-            public function post(string $url, array $options = []): Response
-            {
-                $this->capturedBody = $options['body'] ?? '';
-
-                return new Response(
-                    statusCode: 202,
-                    body: json_encode(['id' => 'azure-reply-id']),
-                );
-            }
-        };
+        $this->mockResponse = [
+            'headers' => ['content-type' => 'application/json'],
+            'body' => (string) json_encode(['id' => 'azure-reply-id']),
+            'response' => ['code' => 202, 'message' => 'Accepted'],
+            'cookies' => [],
+            'filename' => null,
+        ];
 
         $transport = new AzureApiTransport(
             'test.communication.azure.com',
             base64_encode('test-key'),
-            '2024-07-01-preview',
-            $httpClient,
         );
         $phpMailer = $this->createConfiguredPhpMailer();
         $phpMailer->addReplyTo('reply@example.com', 'Reply');
 
         $transport->send($phpMailer);
 
-        $payload = json_decode($httpClient->capturedBody, true);
+        $payload = json_decode((string) $this->capturedBody, true);
         self::assertArrayHasKey('replyTo', $payload);
     }
 

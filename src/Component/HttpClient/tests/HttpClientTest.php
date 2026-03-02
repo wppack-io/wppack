@@ -13,6 +13,70 @@ use WpPack\Component\HttpClient\Response;
 
 final class HttpClientTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        if (function_exists('add_filter')) {
+            add_filter('pre_http_request', [$this, 'mockHttpResponse'], 10, 3);
+        }
+    }
+
+    protected function tearDown(): void
+    {
+        if (function_exists('remove_filter')) {
+            remove_filter('pre_http_request', [$this, 'mockHttpResponse'], 10);
+        }
+
+        parent::tearDown();
+    }
+
+    /**
+     * Mock HTTP responses via WordPress pre_http_request filter.
+     *
+     * Simulates httpbin.org-like behavior by reflecting request details
+     * (method, headers, query params, body) back in the response.
+     *
+     * @param mixed               $preempt
+     * @param array<string, mixed> $parsedArgs
+     * @return array<string, mixed>|\WP_Error
+     */
+    public function mockHttpResponse(mixed $preempt, array $parsedArgs, string $url): array|\WP_Error
+    {
+        if (str_contains($url, 'invalid.domain.that.does.not.exist')) {
+            return new \WP_Error('http_request_failed', 'Could not resolve host');
+        }
+
+        $method = $parsedArgs['method'] ?? 'GET';
+        $body = $parsedArgs['body'] ?? '';
+        $requestHeaders = $parsedArgs['headers'] ?? [];
+
+        $parsed = parse_url($url);
+        parse_str($parsed['query'] ?? '', $queryArgs);
+
+        $responseData = [
+            'args' => $queryArgs,
+            'headers' => $requestHeaders,
+            'url' => $url,
+        ];
+
+        if ($body !== '' && $body !== null) {
+            $responseData['data'] = $body;
+            $decoded = json_decode((string) $body, true);
+            if ($decoded !== null) {
+                $responseData['json'] = $decoded;
+            }
+        }
+
+        return [
+            'headers' => ['content-type' => 'application/json'],
+            'body' => $method === 'HEAD' ? '' : (string) json_encode($responseData),
+            'response' => ['code' => 200, 'message' => 'OK'],
+            'cookies' => [],
+            'filename' => null,
+        ];
+    }
+
     #[Test]
     public function withHeadersReturnsNewInstance(): void
     {
