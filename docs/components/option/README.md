@@ -36,19 +36,19 @@ use WpPack\Component\Option\SiteOptionManager;
 
 // DI コンテナ経由で注入
 public function __construct(
-    private readonly OptionManager $optionManager,
-    private readonly SiteOptionManager $siteOptionManager,
+    private readonly OptionManager $option,
+    private readonly SiteOptionManager $siteOption,
 ) {}
 
 // サイトオプション
-$value = $this->optionManager->get('my_plugin_settings', []);
-$this->optionManager->update('my_plugin_settings', ['key' => 'value']);
-$this->optionManager->add('my_plugin_new_option', 'default');
-$this->optionManager->delete('my_plugin_old_option');
+$value = $this->option->get('my_plugin_settings', []);
+$this->option->update('my_plugin_settings', ['key' => 'value']);
+$this->option->add('my_plugin_new_option', 'default');
+$this->option->delete('my_plugin_old_option');
 
 // マルチサイト（ネットワークオプション）
-$networkValue = $this->siteOptionManager->get('network_settings');
-$this->siteOptionManager->update('network_settings', ['key' => 'value']);
+$networkValue = $this->siteOption->get('network_settings');
+$this->siteOption->update('network_settings', ['key' => 'value']);
 ```
 
 ## OptionManager
@@ -69,24 +69,24 @@ $this->siteOptionManager->update('network_settings', ['key' => 'value']);
 ```php
 use WpPack\Component\Option\OptionManager;
 
-$manager = new OptionManager();
+$option = new OptionManager();
 
 // 値の取得（存在しなければデフォルト値）
-$settings = $manager->get('my_plugin_settings', []);
+$settings = $option->get('my_plugin_settings', []);
 
 // 新規追加（既に存在する場合は false を返す）
-$manager->add('my_plugin_version', '1.0.0');
+$option->add('my_plugin_version', '1.0.0');
 
 // 更新（存在しなければ作成）
-$manager->update('my_plugin_settings', ['debug' => true]);
+$option->update('my_plugin_settings', ['debug' => true]);
 
 // autoload を制御
-$manager->add('my_large_data', $data, false);       // autoload しない
-$manager->update('my_setting', 'value', true);       // autoload する
-$manager->update('my_setting', 'value');              // autoload を変更しない
+$option->add('my_large_data', $data, false);       // autoload しない
+$option->update('my_setting', 'value', true);       // autoload する
+$option->update('my_setting', 'value');              // autoload を変更しない
 
 // 削除
-$manager->delete('my_plugin_old_setting');
+$option->delete('my_plugin_old_setting');
 ```
 
 ## SiteOptionManager
@@ -108,16 +108,16 @@ $manager->delete('my_plugin_old_setting');
 ```php
 use WpPack\Component\Option\SiteOptionManager;
 
-$manager = new SiteOptionManager();
+$siteOption = new SiteOptionManager();
 
 // ネットワーク全体の設定を取得
-$networkSettings = $manager->get('network_settings', []);
+$networkSettings = $siteOption->get('network_settings', []);
 
 // 更新（存在しなければ作成）
-$manager->update('network_settings', ['maintenance' => false]);
+$siteOption->update('network_settings', ['maintenance' => false]);
 
 // 削除
-$manager->delete('network_old_setting');
+$siteOption->delete('network_old_setting');
 ```
 
 ## 名前付きフックアトリビュート

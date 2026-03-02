@@ -38,7 +38,7 @@ use WpPack\Component\Nonce\Attribute\IsNonceValid;
 class PostController
 {
     public function __construct(
-        private readonly NonceManager $nonceManager,
+        private readonly NonceManager $nonce,
     ) {}
 
     // Attribute で自動検証（Controller のみで有効）
@@ -51,7 +51,7 @@ class PostController
     public function renderDeleteButton(int $postId): string
     {
         // wp_nonce_url() のラッパー
-        $url = $this->nonceManager->url(
+        $url = $this->nonce->url(
             admin_url('admin-post.php?action=delete&id=' . $postId),
             'delete-post',
         );
@@ -71,26 +71,26 @@ use WpPack\Component\Nonce\NonceManager;
 class MyService
 {
     public function __construct(
-        private readonly NonceManager $nonceManager,
+        private readonly NonceManager $nonce,
     ) {}
 
     public function example(): void
     {
         // wp_create_nonce() のラッパー
-        $nonce = $this->nonceManager->create('my-action');
+        $token = $this->nonce->create('my-action');
 
         // wp_verify_nonce() のラッパー
-        $valid = $this->nonceManager->verify($nonce, 'my-action');
+        $valid = $this->nonce->verify($token, 'my-action');
 
         // wp_nonce_field() のラッパー（HTML 文字列を返す）
-        $field = $this->nonceManager->field('my-action');
-        $field = $this->nonceManager->field('my-action', 'my_nonce_name');
+        $field = $this->nonce->field('my-action');
+        $field = $this->nonce->field('my-action', 'my_nonce_name');
 
         // wp_nonce_url() のラッパー
-        $url = $this->nonceManager->url('https://example.com/action', 'my-action');
+        $url = $this->nonce->url('https://example.com/action', 'my-action');
 
         // wp_nonce_tick() のラッパー
-        $tick = $this->nonceManager->tick();
+        $tick = $this->nonce->tick();
     }
 }
 ```
@@ -149,7 +149,7 @@ use WpPack\Component\Nonce\NonceManager;
 class ContactForm
 {
     public function __construct(
-        private readonly NonceManager $nonceManager,
+        private readonly NonceManager $nonce,
     ) {}
 
     public function render(): void
@@ -157,7 +157,7 @@ class ContactForm
         ?>
         <form method="post" action="<?php echo admin_url('admin-post.php'); ?>">
             <input type="hidden" name="action" value="submit_contact">
-            <?php echo $this->nonceManager->field('contact-form-submit'); ?>
+            <?php echo $this->nonce->field('contact-form-submit'); ?>
 
             <input type="text" name="name" required>
             <input type="email" name="email" required>
@@ -210,13 +210,13 @@ class ContactFormHandler
 class PostActions
 {
     public function __construct(
-        private readonly NonceManager $nonceManager,
+        private readonly NonceManager $nonce,
     ) {}
 
     public function getDeleteLink(int $postId): string
     {
         $url = admin_url('admin-post.php?action=delete_post&post_id=' . $postId);
-        return $this->nonceManager->url($url, 'delete-post_' . $postId);
+        return $this->nonce->url($url, 'delete-post_' . $postId);
     }
 
     #[Action('admin_post_delete_post')]
@@ -265,12 +265,12 @@ class NonceLifetimeCustomizer
 ### NonceManager
 
 ```php
-$nonceManager->create('action');                     // nonce を作成
-$nonceManager->verify($nonce, 'action');             // nonce を検証
-$nonceManager->field('action');                      // hidden input を出力
-$nonceManager->field('action', 'custom_name');       // カスタム名で hidden input
-$nonceManager->url($url, 'action');                  // nonce 付き URL
-$nonceManager->tick();                               // nonce tick 値を取得
+$nonce->create('action');                     // nonce を作成
+$nonce->verify($token, 'action');             // nonce を検証
+$nonce->field('action');                      // hidden input を出力
+$nonce->field('action', 'custom_name');       // カスタム名で hidden input
+$nonce->url($url, 'action');                  // nonce 付き URL
+$nonce->tick();                               // nonce tick 値を取得
 ```
 
 ### Attribute

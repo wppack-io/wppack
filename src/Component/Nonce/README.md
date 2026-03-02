@@ -13,17 +13,17 @@ composer require wppack/nonce
 ```php
 use WpPack\Component\Nonce\NonceManager;
 
-$nonceManager = new NonceManager();
+$nonce = new NonceManager();
 
 // Create and verify nonces
-$nonce = $nonceManager->create('my-action');
-$valid = $nonceManager->verify($nonce, 'my-action');
+$token = $nonce->create('my-action');
+$valid = $nonce->verify($token, 'my-action');
 
 // Generate hidden input
-$field = $nonceManager->field('my-action');
+$field = $nonce->field('my-action');
 
 // Generate nonce URL
-$url = $nonceManager->url('https://example.com/action', 'my-action');
+$url = $nonce->url('https://example.com/action', 'my-action');
 ```
 
 ## Named Hook Attributes

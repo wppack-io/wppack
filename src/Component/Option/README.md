@@ -15,19 +15,19 @@ composer require wppack/option
 ```php
 use WpPack\Component\Option\OptionManager;
 
-$manager = new OptionManager();
+$option = new OptionManager();
 
 // Get an option value
-$value = $manager->get('my_plugin_settings', []);
+$value = $option->get('my_plugin_settings', []);
 
 // Add a new option (fails if already exists)
-$manager->add('my_plugin_version', '1.0.0');
+$option->add('my_plugin_version', '1.0.0');
 
 // Update an option (creates if not exists)
-$manager->update('my_plugin_settings', ['debug' => true]);
+$option->update('my_plugin_settings', ['debug' => true]);
 
 // Delete an option
-$manager->delete('my_plugin_old_setting');
+$option->delete('my_plugin_old_setting');
 ```
 
 ### SiteOptionManager (Multisite)
@@ -35,16 +35,16 @@ $manager->delete('my_plugin_old_setting');
 ```php
 use WpPack\Component\Option\SiteOptionManager;
 
-$manager = new SiteOptionManager();
+$siteOption = new SiteOptionManager();
 
 // Get a network-wide option
-$value = $manager->get('network_settings', []);
+$value = $siteOption->get('network_settings', []);
 
 // Update (creates if not exists)
-$manager->update('network_settings', ['maintenance' => false]);
+$siteOption->update('network_settings', ['maintenance' => false]);
 
 // Delete
-$manager->delete('network_old_setting');
+$siteOption->delete('network_old_setting');
 ```
 
 ### Named Hook Attributes
