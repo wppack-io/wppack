@@ -6,7 +6,8 @@ Symfony Scheduler ライクなスケジュール定義と AWS EventBridge Schedu
 
 SchedulerPlugin は PHP アトリビュートによる宣言的なスケジュール定義を WordPress に導入します。定義されたスケジュールは [Action Scheduler](https://actionscheduler.org/)（Automattic 社製のサードパーティライブラリ）を一次データソースとし、EventBridge Scheduler にリアルタイム同期されます。指定時刻に SQS 経由でメッセージが配信され、Lambda (Bref) 上でハンドラが実行されます。
 
-> **Note:** Action Scheduler は WordPress コアには含まれていません。WooCommerce に同梱されているほか、単独でも利用可能です。SchedulerPlugin は Action Scheduler をバンドルしています。
+> [!NOTE]
+> Action Scheduler は WordPress コアには含まれていません。WooCommerce に同梱されているほか、単独でも利用可能です。SchedulerPlugin は Action Scheduler をバンドルしています。
 
 ## アーキテクチャ
 

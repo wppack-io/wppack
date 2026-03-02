@@ -200,4 +200,5 @@ composer require wppack/hook
 | **DashboardWidget** | `WpDashboardSetupAction`, `WpNetworkDashboardSetupAction` 等 |
 | **Setting** | `SettingsPageAction` 等 |
 
-> **Note:** 完全な一覧は [docs/architecture/attributes.md](../../architecture/attributes.md) の Section 4「Named Hook Attributes（コンポーネント別）」を参照してください。
+> [!NOTE]
+> 完全な一覧は [docs/architecture/attributes.md](../../architecture/attributes.md) の Section 4「Named Hook Attributes（コンポーネント別）」を参照してください。

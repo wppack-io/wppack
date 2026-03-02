@@ -575,7 +575,8 @@ final class MyPlugin implements PluginInterface
 
 `Kernel::registerPlugin(new MyPlugin())` を呼ぶだけで、`PluginInterface::getPluginFile()` が返すパスを使って `onActivate()` / `onDeactivate()` が WordPress の有効化・無効化フックに自動登録されます。手動で `register_activation_hook()` / `register_deactivation_hook()` を呼ぶ必要はありません。
 
-> **Note:** `onActivate()` / `onDeactivate()` はコンテナのブート前に呼ばれるため、DI コンテナに依存しない処理を記述してください。
+> [!NOTE]
+> `onActivate()` / `onDeactivate()` はコンテナのブート前に呼ばれるため、DI コンテナに依存しない処理を記述してください。
 
 ## 実践例：設定ページ付きプラグイン
 

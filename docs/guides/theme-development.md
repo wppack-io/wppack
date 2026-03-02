@@ -34,7 +34,8 @@ Kernel::registerTheme(new MyTheme());
 
 `Kernel::registerTheme()` は `Kernel::registerPlugin()` と同様に、初回呼び出し時に Kernel インスタンスを自動生成し、`init` フック（priority 0）で `boot()` をスケジュールします。
 
-> **Note:** プラグインが常にテーマより先に登録・ブートされます。テーマはプラグインが登録したサービスをオーバーライドしたり拡張したりできます。
+> [!NOTE]
+> プラグインが常にテーマより先に登録・ブートされます。テーマはプラグインが登録したサービスをオーバーライドしたり拡張したりできます。
 
 ### ThemeInterface の実装
 

@@ -101,7 +101,8 @@ $option->delete('my_plugin_old_setting');
 | `update(string $option, mixed $value): bool` | サイトオプションを更新（存在しなければ作成） | `update_site_option()` |
 | `delete(string $option): bool` | サイトオプションを削除 | `delete_site_option()` |
 
-> **Note:** `SiteOptionManager` には `add()` メソッドはありません。`update_site_option()` は存在しない場合に自動的に作成するため不要です。
+> [!NOTE]
+> `SiteOptionManager` には `add()` メソッドはありません。`update_site_option()` は存在しない場合に自動的に作成するため不要です。
 
 ### 使用例
 

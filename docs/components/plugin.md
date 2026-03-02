@@ -6,7 +6,8 @@
 
 WordPress プラグインライフサイクルに関連するフック（`plugins_loaded`、`activated_plugin`、`deactivated_plugin`、`plugin_action_links_{plugin}` など）を Named Hook Attributes でラップするコンポーネントです。
 
-> **Note:** プラグインのブートストラップ、サービスコンテナ、サービスプロバイダーパターンなどのフレームワーク機能は [Kernel コンポーネント](kernel/README.md) が提供します。
+> [!NOTE]
+> プラグインのブートストラップ、サービスコンテナ、サービスプロバイダーパターンなどのフレームワーク機能は [Kernel コンポーネント](kernel/README.md) が提供します。
 
 ## インストール
 
@@ -18,7 +19,8 @@ composer require wppack/plugin
 
 Plugin コンポーネントは、WordPress プラグイン関連フックのための Named Hook アトリビュートを提供します。
 
-> **Note:** プラグイン自身の初期化は `PluginInterface::boot()`、有効化/無効化は `PluginInterface::onActivate()` / `onDeactivate()` で行います。ここで紹介するフックは、他プラグインのイベントへの反応やプラグイン管理画面の拡張に使用します。
+> [!NOTE]
+> プラグイン自身の初期化は `PluginInterface::boot()`、有効化/無効化は `PluginInterface::onActivate()` / `onDeactivate()` で行います。ここで紹介するフックは、他プラグインのイベントへの反応やプラグイン管理画面の拡張に使用します。
 
 ### プラグインライフサイクルフック
 

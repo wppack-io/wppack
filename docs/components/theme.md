@@ -6,7 +6,8 @@
 
 テーマ関連の WordPress フックを Named Hook アトリビュートとして提供するコンポーネントです。
 
-> **Note:** テーマのブートストラップ、`add_theme_support()` / `register_nav_menus()` / `register_sidebar()` などのセットアップは [Kernel コンポーネント](kernel/README.md) の `ThemeInterface` が提供します。
+> [!NOTE]
+> テーマのブートストラップ、`add_theme_support()` / `register_nav_menus()` / `register_sidebar()` などのセットアップは [Kernel コンポーネント](kernel/README.md) の `ThemeInterface` が提供します。
 
 ## インストール
 
@@ -91,7 +92,8 @@ class ThemeAssets
 
 **WordPress フック:** `after_setup_theme`
 
-> **Note:** テーマの基本セットアップ（`add_theme_support()`、`register_nav_menus()` 等）は `ThemeInterface::boot()` で行います。`#[AfterSetupThemeAction]` は `after_setup_theme` タイミングで実行する必要がある処理に使用します。
+> [!NOTE]
+> テーマの基本セットアップ（`add_theme_support()`、`register_nav_menus()` 等）は `ThemeInterface::boot()` で行います。`#[AfterSetupThemeAction]` は `after_setup_theme` タイミングで実行する必要がある処理に使用します。
 
 ```php
 use WpPack\Component\Theme\Attribute\AfterSetupThemeAction;

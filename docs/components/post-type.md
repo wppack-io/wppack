@@ -87,6 +87,7 @@ class Product extends AbstractPostType
 }
 ```
 
+> [!IMPORTANT]
 > **メタプロパティの初期値について:** `#[Meta]` アトリビュートが付与されたプロパティには、必ずデフォルト値を設定してください（例: `protected float $price = 0.0;`）。`AbstractPostType` は投稿のロード時にリフレクションを使って `#[Meta]` プロパティを自動的にデータベースの値で初期化しますが、新規投稿の作成時やメタ値が未保存の場合に備え、デフォルト値が必要です。
 
 ## クイックスタート

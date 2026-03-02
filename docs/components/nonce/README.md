@@ -111,7 +111,8 @@ class MyService
 
 メソッド実行前に nonce を自動検証する Attribute です。検証失敗時は `wp_die()` を呼びます。
 
-> **注意:** この Attribute は Controller のみで有効です。Controller コンポーネント実装後に利用可能になります。
+> [!CAUTION]
+> この Attribute は Controller のみで有効です。Controller コンポーネント実装後に利用可能になります。
 
 ```php
 use WpPack\Component\Nonce\Attribute\IsNonceValid;
