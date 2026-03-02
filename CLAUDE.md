@@ -164,9 +164,9 @@ WpPack\Plugin\{Name}\     - プラグイン
 ### 静的解析・CI
 
 ```bash
-composer phpstan    # 静的解析
-composer cs-check   # コードスタイルチェック
-composer test       # テスト実行
+vendor/bin/phpstan analyse                      # 静的解析
+vendor/bin/php-cs-fixer fix --dry-run --diff    # コードスタイルチェック
+vendor/bin/phpunit                              # テスト実行
 ```
 
 ### テスト
@@ -183,7 +183,7 @@ composer test       # テスト実行
 ```bash
 docker compose up -d --wait                        # MySQL 起動
 cp tests/wp-config.php.dist tests/wp-config.php    # 設定ファイル配置
-composer test                                      # 全テスト実行
+vendor/bin/phpunit                                 # 全テスト実行
 docker compose down                                # MySQL 停止
 ```
 

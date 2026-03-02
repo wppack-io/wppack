@@ -151,12 +151,6 @@
         "wppack/amazon-mailer-plugin": "self.version",
         "wppack/monolog-logger": "self.version"
     },
-    "scripts": {
-        "phpstan": "phpstan analyse",
-        "cs-check": "php-cs-fixer fix --dry-run --diff",
-        "cs-fix": "php-cs-fixer fix",
-        "test": "phpunit"
-    },
     "config": {
         "sort-packages": true
     },
