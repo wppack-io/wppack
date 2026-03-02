@@ -1,4 +1,5 @@
 <?php
+
 /**
  * WpPack Object Cache Drop-in
  *
