@@ -1,0 +1,215 @@
+comment:
+  layout: "header, diff, flags, components"
+
+component_management:
+  default_rules:
+    statuses:
+      - type: project
+        target: auto
+
+  individual_components:
+    # Infrastructure Layer
+    - component_id: hook
+      name: Hook
+      paths:
+        - src/Component/Hook/src/**
+    - component_id: dependency_injection
+      name: DependencyInjection
+      paths:
+        - src/Component/DependencyInjection/src/**
+    - component_id: config
+      name: Config
+      paths:
+        - src/Component/Config/src/**
+    - component_id: event_dispatcher
+      name: EventDispatcher
+      paths:
+        - src/Component/EventDispatcher/src/**
+    - component_id: filesystem
+      name: Filesystem
+      paths:
+        - src/Component/Filesystem/src/**
+    - component_id: kernel
+      name: Kernel
+      paths:
+        - src/Component/Kernel/src/**
+    - component_id: option
+      name: Option
+      paths:
+        - src/Component/Option/src/**
+    - component_id: transient
+      name: Transient
+      paths:
+        - src/Component/Transient/src/**
+    - component_id: role
+      name: Role
+      paths:
+        - src/Component/Role/src/**
+    - component_id: templating
+      name: Templating
+      paths:
+        - src/Component/Templating/src/**
+    - component_id: logger
+      name: Logger
+      paths:
+        - src/Component/Logger/src/**
+
+    # Abstraction Layer
+    - component_id: cache
+      name: Cache
+      paths:
+        - src/Component/Cache/src/**
+    - component_id: database
+      name: Database
+      paths:
+        - src/Component/Database/src/**
+    - component_id: query
+      name: Query
+      paths:
+        - src/Component/Query/src/**
+    - component_id: security
+      name: Security
+      paths:
+        - src/Component/Security/src/**
+    - component_id: sanitizer
+      name: Sanitizer
+      paths:
+        - src/Component/Sanitizer/src/**
+    - component_id: http_client
+      name: HttpClient
+      paths:
+        - src/Component/HttpClient/src/**
+    - component_id: http_foundation
+      name: HttpFoundation
+      paths:
+        - src/Component/HttpFoundation/src/**
+    - component_id: mailer
+      name: Mailer
+      paths:
+        - src/Component/Mailer/src/**
+    - component_id: messenger
+      name: Messenger
+      paths:
+        - src/Component/Messenger/src/**
+    - component_id: debug
+      name: Debug
+      paths:
+        - src/Component/Debug/src/**
+
+    # Feature Layer
+    - component_id: admin
+      name: Admin
+      paths:
+        - src/Component/Admin/src/**
+    - component_id: rest
+      name: Rest
+      paths:
+        - src/Component/Rest/src/**
+    - component_id: routing
+      name: Routing
+      paths:
+        - src/Component/Routing/src/**
+    - component_id: post_type
+      name: PostType
+      paths:
+        - src/Component/PostType/src/**
+    - component_id: scheduler
+      name: Scheduler
+      paths:
+        - src/Component/Scheduler/src/**
+    - component_id: command
+      name: Command
+      paths:
+        - src/Component/Command/src/**
+    - component_id: shortcode
+      name: Shortcode
+      paths:
+        - src/Component/Shortcode/src/**
+    - component_id: nonce
+      name: Nonce
+      paths:
+        - src/Component/Nonce/src/**
+    - component_id: ajax
+      name: Ajax
+      paths:
+        - src/Component/Ajax/src/**
+
+    # Application Layer
+    - component_id: plugin
+      name: Plugin
+      paths:
+        - src/Component/Plugin/src/**
+    - component_id: theme
+      name: Theme
+      paths:
+        - src/Component/Theme/src/**
+    - component_id: widget
+      name: Widget
+      paths:
+        - src/Component/Widget/src/**
+    - component_id: setting
+      name: Setting
+      paths:
+        - src/Component/Setting/src/**
+    - component_id: user
+      name: User
+      paths:
+        - src/Component/User/src/**
+    - component_id: block
+      name: Block
+      paths:
+        - src/Component/Block/src/**
+    - component_id: media
+      name: Media
+      paths:
+        - src/Component/Media/src/**
+    - component_id: comment
+      name: Comment
+      paths:
+        - src/Component/Comment/src/**
+    - component_id: taxonomy
+      name: Taxonomy
+      paths:
+        - src/Component/Taxonomy/src/**
+    - component_id: navigation_menu
+      name: NavigationMenu
+      paths:
+        - src/Component/NavigationMenu/src/**
+    - component_id: feed
+      name: Feed
+      paths:
+        - src/Component/Feed/src/**
+    - component_id: oembed
+      name: OEmbed
+      paths:
+        - src/Component/OEmbed/src/**
+    - component_id: site_health
+      name: SiteHealth
+      paths:
+        - src/Component/SiteHealth/src/**
+    - component_id: dashboard_widget
+      name: DashboardWidget
+      paths:
+        - src/Component/DashboardWidget/src/**
+    - component_id: translation
+      name: Translation
+      paths:
+        - src/Component/Translation/src/**
+    - component_id: validator
+      name: Validator
+      paths:
+        - src/Component/Validator/src/**
+
+    # Plugins
+    - component_id: scheduler_plugin
+      name: SchedulerPlugin
+      paths:
+        - src/Plugin/SchedulerPlugin/src/**
+    - component_id: s3_storage_plugin
+      name: S3StoragePlugin
+      paths:
+        - src/Plugin/S3StoragePlugin/src/**
+    - component_id: amazon_mailer_plugin
+      name: AmazonMailerPlugin
+      paths:
+        - src/Plugin/AmazonMailerPlugin/src/**
