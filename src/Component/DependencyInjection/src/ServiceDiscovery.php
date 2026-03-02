@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\DependencyInjection;
 
+use WpPack\Component\Config\Attribute\AsConfig;
 use WpPack\Component\DependencyInjection\Attribute\AsAlias;
 use WpPack\Component\DependencyInjection\Attribute\AsService;
 use WpPack\Component\DependencyInjection\Attribute\Autowire;
@@ -49,6 +50,13 @@ final class ServiceDiscovery
         $reflection = new \ReflectionClass($className);
 
         if ($reflection->isAbstract() || $reflection->isInterface()) {
+            return;
+        }
+
+        $configAttributes = $reflection->getAttributes(AsConfig::class);
+        if ($configAttributes !== []) {
+            $this->registerConfigClass($className, $configAttributes[0]->newInstance());
+
             return;
         }
 
@@ -112,6 +120,13 @@ final class ServiceDiscovery
                 );
             }
         }
+    }
+
+    private function registerConfigClass(string $className, AsConfig $asConfig): void
+    {
+        $definition = $this->builder->register($className, $className);
+        $definition->setPublic(true);
+        $definition->addTag('config.class');
     }
 
     /**
