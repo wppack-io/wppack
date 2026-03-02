@@ -1,0 +1,21 @@
+{
+    "name": "wppack/apcu-cache",
+    "description": "APCu cache adapter for WpPack Cache",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "ext-apcu": "*",
+        "wppack/cache": "^0.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpPack\\Component\\Cache\\Bridge\\Apcu\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Component\\Cache\\Bridge\\Apcu\\Tests\\": "tests/"
+        }
+    }
+}

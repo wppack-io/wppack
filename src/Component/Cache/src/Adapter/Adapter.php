@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Cache\Adapter;
 
+use WpPack\Component\Cache\Bridge\Apcu\ApcuAdapterFactory;
 use WpPack\Component\Cache\Bridge\DynamoDb\DynamoDbAdapterFactory;
+use WpPack\Component\Cache\Bridge\Memcached\MemcachedAdapterFactory;
 use WpPack\Component\Cache\Bridge\Redis\Adapter\RedisAdapterFactory;
 use WpPack\Component\Cache\Exception\UnsupportedSchemeException;
 
@@ -14,6 +16,8 @@ final class Adapter
     private const FACTORY_CLASSES = [
         RedisAdapterFactory::class,
         DynamoDbAdapterFactory::class,
+        MemcachedAdapterFactory::class,
+        ApcuAdapterFactory::class,
     ];
 
     /** @param iterable<AdapterFactoryInterface> $factories */

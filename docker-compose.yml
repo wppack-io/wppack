@@ -21,3 +21,7 @@ services:
       - '8000:8000'
     tmpfs:
       - /home/dynamodblocal/data
+  memcached:
+    image: memcached:1.6
+    ports:
+      - '11211:11211'

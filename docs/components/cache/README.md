@@ -252,6 +252,8 @@ WpPack の Object Cache ドロップインは Mailer コンポーネントと同
 |------------|-----------------|---------|---------------|
 | Redis / Valkey | [`wppack/redis-cache`](redis-cache.md) | `redis://`, `rediss://`, `valkey://`, `valkeys://` | ext-redis, Relay, Predis |
 | DynamoDB | [`wppack/dynamodb-cache`](dynamodb-cache.md) | `dynamodb://` | async-aws/dynamo-db |
+| Memcached | [`wppack/memcached-cache`](memcached-cache.md) | `memcached://` | ext-memcached |
+| APCu | [`wppack/apcu-cache`](apcu-cache.md) | `apcu://` | ext-apcu |
 
 ### クライアント自動検出
 
@@ -337,6 +339,22 @@ class CacheInvalidator
 ### ドロップイン利用時
 - Redis / Valkey: `wppack/redis-cache`（ext-redis, ext-relay, または predis/predis のいずれかが必要）
 - DynamoDB: `wppack/dynamodb-cache`（`async-aws/dynamo-db` が必要。[詳細](dynamodb-cache.md)）
+- Memcached: `wppack/memcached-cache`（`ext-memcached` が必要。[詳細](memcached-cache.md)）
+- APCu: `wppack/apcu-cache`（`ext-apcu` が必要。[詳細](apcu-cache.md)）
 
 ### オプション
 - AWS ElastiCache IAM 認証: `wppack/elasticache-auth`（`async-aws/core` が必要。[詳細](elasticache-auth.md)）
+
+## バックエンド比較
+
+| 項目 | APCu | Redis | Memcached | DynamoDB |
+|------|------|-------|-----------|----------|
+| レイテンシ | 最低（共有メモリ） | 低い（ネットワーク） | 低い（ネットワーク） | 中程度（HTTP） |
+| サーバー間共有 | 不可 | 可能 | 可能 | 可能 |
+| 永続化 | なし | RDB/AOF | なし | テーブル |
+| 外部サーバー | 不要 | 必要 | 必要 | 不要（サーバーレス） |
+| スケーラビリティ | 単一サーバー | クラスター対応 | 分散可能 | 自動スケール |
+| AWS マネージドサービス | — | ElastiCache, MemoryDB | ElastiCache | DynamoDB |
+| コスト | 無料 | サーバーコスト | サーバーコスト | 従量課金 |
+| TTL の精度 | GC 依存 | 正確 | 正確 | DynamoDB TTL |
+| プレフィックス削除 | APCUIterator | SCAN | 制限あり | クエリ |

@@ -82,6 +82,8 @@
             "WpPack\\Component\\Cache\\Bridge\\ElastiCacheAuth\\": "src/Component/Cache/Bridge/ElastiCacheAuth/src/",
             "WpPack\\Component\\Cache\\Bridge\\Redis\\": "src/Component/Cache/Bridge/Redis/src/",
             "WpPack\\Component\\Cache\\Bridge\\DynamoDb\\": "src/Component/Cache/Bridge/DynamoDb/src/",
+            "WpPack\\Component\\Cache\\Bridge\\Memcached\\": "src/Component/Cache/Bridge/Memcached/src/",
+            "WpPack\\Component\\Cache\\Bridge\\Apcu\\": "src/Component/Cache/Bridge/Apcu/src/",
             "WpPack\\Plugin\\AmazonMailerPlugin\\": "src/Plugin/AmazonMailerPlugin/src/"
         }
     },
@@ -130,7 +132,9 @@
             "WpPack\\Component\\Widget\\Tests\\": "src/Component/Widget/tests/",
             "WpPack\\Component\\Cache\\Bridge\\ElastiCacheAuth\\Tests\\": "src/Component/Cache/Bridge/ElastiCacheAuth/tests/",
             "WpPack\\Component\\Cache\\Bridge\\Redis\\Tests\\": "src/Component/Cache/Bridge/Redis/tests/",
-            "WpPack\\Component\\Cache\\Bridge\\DynamoDb\\Tests\\": "src/Component/Cache/Bridge/DynamoDb/tests/"
+            "WpPack\\Component\\Cache\\Bridge\\DynamoDb\\Tests\\": "src/Component/Cache/Bridge/DynamoDb/tests/",
+            "WpPack\\Component\\Cache\\Bridge\\Memcached\\Tests\\": "src/Component/Cache/Bridge/Memcached/tests/",
+            "WpPack\\Component\\Cache\\Bridge\\Apcu\\Tests\\": "src/Component/Cache/Bridge/Apcu/tests/"
         }
     },
     "replace": {
@@ -188,7 +192,9 @@
         "wppack/monolog-logger": "self.version",
         "wppack/redis-cache": "self.version",
         "wppack/dynamodb-cache": "self.version",
-        "wppack/elasticache-auth": "self.version"
+        "wppack/elasticache-auth": "self.version",
+        "wppack/memcached-cache": "self.version",
+        "wppack/apcu-cache": "self.version"
     },
     "config": {
         "sort-packages": true

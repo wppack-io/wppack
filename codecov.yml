@@ -71,6 +71,14 @@ component_management:
       name: DynamoDbCache
       paths:
         - src/Component/Cache/Bridge/DynamoDb/src/**
+    - component_id: memcached_cache
+      name: MemcachedCache
+      paths:
+        - src/Component/Cache/Bridge/Memcached/src/**
+    - component_id: apcu_cache
+      name: ApcuCache
+      paths:
+        - src/Component/Cache/Bridge/Apcu/src/**
     - component_id: database
       name: Database
       paths:
