@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Hook\Attribute\Action;
+namespace WpPack\Component\Ajax\Attribute\Action;
 
 use WpPack\Component\Hook\Attribute\Action;
 

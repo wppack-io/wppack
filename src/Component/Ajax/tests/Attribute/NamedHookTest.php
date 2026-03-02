@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Hook\Tests\Attribute\Action;
+namespace WpPack\Component\Ajax\Tests\Attribute;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Hook\Attribute\Action;
-use WpPack\Component\Hook\Attribute\Action\WpAjaxAction;
-use WpPack\Component\Hook\Attribute\Action\WpAjaxNoprivAction;
 use WpPack\Component\Hook\Hook;
 use WpPack\Component\Hook\HookType;
+use WpPack\Component\Ajax\Attribute\Action\WpAjaxAction;
+use WpPack\Component\Ajax\Attribute\Action\WpAjaxNoprivAction;
 
-final class WpAjaxActionTest extends TestCase
+final class NamedHookTest extends TestCase
 {
     #[Test]
     public function wpAjaxActionHasCorrectHookName(): void

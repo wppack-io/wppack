@@ -84,6 +84,7 @@
     "autoload-dev": {
         "psr-4": {
             "WpPack\\Component\\Admin\\Tests\\": "src/Component/Admin/tests/",
+            "WpPack\\Component\\Ajax\\Tests\\": "src/Component/Ajax/tests/",
             "WpPack\\Component\\Block\\Tests\\": "src/Component/Block/tests/",
             "WpPack\\Component\\Comment\\Tests\\": "src/Component/Comment/tests/",
             "WpPack\\Component\\Config\\Tests\\": "src/Component/Config/tests/",
