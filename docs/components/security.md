@@ -204,7 +204,7 @@ class ContactFormHandler
 ### Nonce フック
 
 ```php
-#[CheckAdminRefererAction(priority: 10)]    // 管理画面 Nonce チェック（Nonce コンポーネント）
+#[CheckAdminRefererAction(priority: 10)]    // 管理画面 Nonce チェック（Admin コンポーネント）
 ```
 
 ```php

@@ -169,21 +169,20 @@ composer require wppack/hook
 | **Hook** | `InitAction`, `AdminInitAction`, `PluginsLoadedAction`, `AfterSetupThemeAction`, `WpLoadedAction` |
 | **PostType** | `SavePostAction`, `DeletePostAction`, `TransitionPostStatusAction` |
 | **Query** | `PreGetPostsAction`, `ParseQueryAction`, `PostsWhereFilter`, `PostsJoinFilter`, `PostsOrderbyFilter` 等 |
-| **Admin** | `AdminMenuAction`, `AdminEnqueueScriptsAction`, `AdminNoticesAction`, `AdminHeadAction` 等 |
+| **Admin** | `AdminMenuAction`, `AdminEnqueueScriptsAction`, `AdminNoticesAction`, `AdminHeadAction`, `CheckAdminRefererAction` 等 |
 | **Theme** | `WpEnqueueScriptsAction`, `WpHeadAction`, `WpFooterAction`, `BodyClassFilter`, `PostClassFilter` 等 |
 | **Templating** | `TheContentFilter`, `TheTitleFilter` |
 | **REST** | `RestApiInitAction`, `RestAuthenticationErrorsFilter` 等 |
 | **Widget** | `WidgetsInitAction`, `DynamicSidebarBeforeAction` 等 |
 | **Media** | `UploadMimesFilter`, `WpHandleUploadFilter` 等 |
 | **Mailer** | `WpMailFilter`, `WpMailFromFilter` 等 |
-| **Ajax** | `WpAjaxAction`, `WpAjaxNoprivAction` |
+| **Ajax** | `WpAjaxAction`, `WpAjaxNoprivAction`, `CheckAjaxRefererAction` |
 | **Option** | `PreOptionFilter`, `OptionFilter` 等 |
 | **Transient** | `PreTransientFilter`, `TransientFilter` 等 |
 | **Taxonomy** | `CreateTermAction`, `EditTermAction` 等 |
 | **Block** | `EnqueueBlockEditorAssetsAction`, `RenderBlockFilter` 等 |
 | **Security** | `WpLoginAction`, `AuthenticateFilter`, `DetermineCurrentUserFilter`, `CheckPasswordFilter` 等 |
-| **Nonce** | `CheckAdminRefererAction`, `NonceLifeFilter` 等 |
-| **Ajax** | `WpAjaxAction`, `WpAjaxNoprivAction`, `CheckAjaxRefererAction` |
+| **Nonce** | `NonceLifeFilter`, `NonceUserLoggedOutFilter` |
 | **Routing** | `RewriteRulesArrayFilter`, `TemplateRedirectAction`, `ParseRequestAction`, `QueryVarsFilter` 等 |
 | **Scheduler** | `CronSchedulesFilter`, `ScheduledEventAction` 等 |
 | **Database** | `QueryFilter`, `DbDeltaQueriesFilter` 等 |

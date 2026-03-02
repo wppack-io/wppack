@@ -12,6 +12,7 @@ use WpPack\Component\Hook\Hook;
 use WpPack\Component\Hook\HookType;
 use WpPack\Component\Admin\Attribute\Action\AdminBarMenuAction;
 use WpPack\Component\Admin\Attribute\Action\AdminEnqueueScriptsAction;
+use WpPack\Component\Admin\Attribute\Action\CheckAdminRefererAction;
 use WpPack\Component\Admin\Attribute\Action\AdminFooterAction;
 use WpPack\Component\Admin\Attribute\Action\AdminHeadAction;
 use WpPack\Component\Admin\Attribute\Action\AdminMenuAction;
@@ -33,6 +34,24 @@ use WpPack\Component\Admin\Attribute\Filter\ManageUsersColumnsFilter;
 
 final class NamedHookTest extends TestCase
 {
+    #[Test]
+    public function checkAdminRefererActionHasCorrectHookName(): void
+    {
+        $action = new CheckAdminRefererAction();
+
+        self::assertSame('check_admin_referer', $action->hook);
+        self::assertSame(HookType::Action, $action->type);
+        self::assertSame(10, $action->priority);
+    }
+
+    #[Test]
+    public function checkAdminRefererActionAcceptsCustomPriority(): void
+    {
+        $action = new CheckAdminRefererAction(priority: 5);
+
+        self::assertSame(5, $action->priority);
+    }
+
     #[Test]
     public function adminBarMenuActionHasCorrectHookName(): void
     {
@@ -207,6 +226,7 @@ final class NamedHookTest extends TestCase
     #[Test]
     public function allActionsExtendAction(): void
     {
+        self::assertInstanceOf(Action::class, new CheckAdminRefererAction());
         self::assertInstanceOf(Action::class, new AdminBarMenuAction());
         self::assertInstanceOf(Action::class, new AdminEnqueueScriptsAction());
         self::assertInstanceOf(Action::class, new AdminFooterAction());

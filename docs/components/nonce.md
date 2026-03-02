@@ -105,7 +105,6 @@ class MyService
 | `field(string $action, string $name = '_wpnonce'): string` | `wp_nonce_field()` | hidden input を生成 |
 | `url(string $url, string $action): string` | `wp_nonce_url()` | nonce 付き URL を生成 |
 | `verifyRequest(string $action, string $name = '_wpnonce'): bool` | `wp_verify_nonce()` | `$_REQUEST` から nonce を取得して検証 |
-| `checkAdminReferer(string $action, string $name = '_wpnonce'): void` | `check_admin_referer()` | 管理画面リファラーチェック |
 
 ## Attribute
 
@@ -248,9 +247,6 @@ class PostActions
     {
         $postId = (int) ($_GET['post_id'] ?? 0);
 
-        // check_admin_referer() のラッパー
-        $this->nonces->checkAdminReferer('delete-post_' . $postId);
-
         if (!current_user_can('delete_post', $postId)) {
             wp_die('Permission denied');
         }
@@ -263,12 +259,6 @@ class PostActions
 ```
 
 ## Named Hook Attributes
-
-### Nonce 検証フック
-
-```php
-#[CheckAdminRefererAction(priority: 10)]      // check_admin_referer 実行時
-```
 
 ### Nonce 生成フック
 
@@ -304,7 +294,6 @@ $nonces->field('action');                      // hidden input を出力
 $nonces->field('action', 'custom_name');       // カスタム名で hidden input
 $nonces->url($url, 'action');                  // nonce 付き URL
 $nonces->verifyRequest('action');              // $_REQUEST から検証
-$nonces->checkAdminReferer('action');          // 管理画面リファラーチェック
 ```
 
 ### Attribute
