@@ -201,16 +201,6 @@ class ContactFormHandler
 #[MapMetaCapFilter(priority: 10)]           // メタ権限のマッピング
 ```
 
-### Nonce フック
-
-```php
-#[CheckAdminRefererAction(priority: 10)]    // 管理画面 Nonce チェック（Admin コンポーネント）
-```
-
-```php
-#[CheckAjaxRefererAction(priority: 10)]     // AJAX Nonce チェック（Ajax コンポーネント）
-```
-
 ### 使用例：認証セキュリティシステム
 
 ```php
