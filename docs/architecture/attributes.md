@@ -61,25 +61,17 @@ WordPress のフックに直接対応する名前付き Attribute。全て `prio
 
 ### Hook コンポーネント
 
-#### アクション
+WordPress ライフサイクルフックと AJAX フックを提供します。ドメイン固有フックは各コンポーネントが所有します（[Named Hook 連携規約](../components/hook/named-hook-conventions.md) 参照）。
+
+#### ライフサイクルアクション
 
 | Attribute | 追加パラメータ | WordPress フック |
 |-----------|--------------|-----------------|
 | `#[InitAction]` | - | `init` |
 | `#[AdminInitAction]` | - | `admin_init` |
-| `#[AdminMenuAction]` | - | `admin_menu` |
-| `#[SavePostAction]` | `postType?: string` | `save_post` / `save_post_{post_type}` |
-| `#[DeletePostAction]` | - | `delete_post` |
-| `#[TransitionPostStatusAction]` | - | `transition_post_status` |
-| `#[PreGetPostsAction]` | - | `pre_get_posts` |
-| `#[WpEnqueueScriptsAction]` | `condition?: string` | `wp_enqueue_scripts` |
-| `#[AdminEnqueueScriptsAction]` | - | `admin_enqueue_scripts` |
-| `#[RestApiInitAction]` | - | `rest_api_init` |
-| `#[WidgetsInitAction]` | - | `widgets_init` |
-| `#[WpHeadAction]` | - | `wp_head` |
-| `#[WpFooterAction]` | - | `wp_footer` |
 | `#[PluginsLoadedAction]` | - | `plugins_loaded` |
 | `#[AfterSetupThemeAction]` | - | `after_setup_theme` |
+| `#[WpLoadedAction]` | - | `wp_loaded` |
 
 #### AJAX アクション
 
@@ -88,16 +80,20 @@ WordPress のフックに直接対応する名前付き Attribute。全て `prio
 | `#[WpAjaxAction]` | `action: string` | `wp_ajax_{action}` |
 | `#[WpAjaxNoprivAction]` | `action: string` | `wp_ajax_nopriv_{action}` |
 
-#### フィルター
+### PostType コンポーネント
 
 | Attribute | 追加パラメータ | WordPress フック |
 |-----------|--------------|-----------------|
-| `#[TheContentFilter]` | - | `the_content` |
-| `#[TheTitleFilter]` | - | `the_title` |
-| `#[BodyClassFilter]` | - | `body_class` |
-| `#[UploadMimesFilter]` | - | `upload_mimes` |
-| `#[WpMailFilter]` | - | `wp_mail` |
-| `#[PostsWhereFilter]` | - | `posts_where` |
+| `#[SavePostAction]` | `postType?: string` | `save_post` / `save_post_{post_type}` |
+| `#[DeletePostAction]` | - | `delete_post` |
+| `#[TransitionPostStatusAction]` | - | `transition_post_status` |
+
+### Templating コンポーネント
+
+| Attribute | WordPress フック |
+|-----------|-----------------|
+| `#[TheContentFilter]` | `the_content` |
+| `#[TheTitleFilter]` | `the_title` |
 
 ### Admin コンポーネント
 
@@ -548,12 +544,24 @@ WordPress のフックに直接対応する名前付き Attribute。全て `prio
 
 ## 5. 条件 Attributes
 
-フック登録の条件を制御する Attribute。
+フック登録の条件を制御する仕組み。`ConditionInterface` を実装したカスタム条件アトリビュートを作成できます。
 
-| Attribute | パラメータ | 提供元 | 説明 |
-|-----------|-----------|--------|------|
-| `#[IsAdmin]` | _(なし)_ | Hook | 管理画面でのみフックを登録 |
-| `#[IsFrontend]` | _(なし)_ | Hook | フロントエンドでのみフックを登録 |
+| インターフェース | 提供元 | 説明 |
+|----------------|--------|------|
+| `ConditionInterface` | Hook | フック登録条件の契約。`isSatisfied(): bool` を実装 |
+
+カスタム条件の例:
+
+```php
+#[\Attribute(\Attribute::TARGET_METHOD)]
+final class IsAdmin implements ConditionInterface
+{
+    public function isSatisfied(): bool
+    {
+        return is_admin();
+    }
+}
+```
 
 ## 6. データ定義 Attributes
 

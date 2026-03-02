@@ -154,6 +154,15 @@ wppack/logger
 - match式を活用
 - Named argumentsを適切に使用
 
+### Named Hook 規約
+
+各 component が WordPress フック用の named hook アトリビュートを定義する際の規約:
+- 詳細: [docs/components/hook/named-hook-conventions.md](docs/components/hook/named-hook-conventions.md)
+- Hook component はライフサイクルフックのみ所有（`init`, `admin_init` 等）
+- ドメイン固有フックは各 component が所有（PostType → `SavePostAction` 等）
+- 名前空間: `WpPack\Component\{Name}\Attribute\Action\` / `Attribute\Filter\`
+- 自動検出: `ReflectionAttribute::IS_INSTANCEOF` により追加設定不要
+
 ### 名前空間
 
 ```
