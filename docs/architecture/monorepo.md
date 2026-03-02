@@ -89,7 +89,7 @@ jobs:
     "name": "wppack/wppack",
     "type": "project",
     "require": {
-        "php": ">=8.1"
+        "php": ">=8.2"
     },
     "autoload": {
         "psr-4": {
@@ -123,7 +123,7 @@ jobs:
     "name": "wppack/messenger",
     "type": "library",
     "require": {
-        "php": ">=8.1"
+        "php": ">=8.2"
     },
     "autoload": {
         "psr-4": {
@@ -170,13 +170,13 @@ wppack/messenger
 
 ```bash
 # 全パッケージのテストを実行
-composer test
+vendor/bin/phpunit
 
 # 静的解析
-composer phpstan
+vendor/bin/phpstan analyse
 
 # コードスタイルチェック
-composer cs-check
+vendor/bin/php-cs-fixer fix --dry-run --diff
 ```
 
 ### リリース

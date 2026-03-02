@@ -10,7 +10,7 @@ composer require wppack/amazon-mailer-plugin
 
 ## Requirements
 
-- PHP 8.1+
+- PHP 8.2+
 - WordPress 6.x
 - AWS account with SES
 

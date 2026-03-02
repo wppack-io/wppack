@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![PHP Version](https://img.shields.io/badge/PHP-8.2%2B-777BB4.svg)](https://php.net)
 
-WpPack brings modern PHP development practices to WordPress. Built on PHP 8.1+ with
+WpPack brings modern PHP development practices to WordPress. Built on PHP 8.2+ with
 Symfony-inspired patterns, it provides a set of decoupled components and plugins that
 replace traditional WordPress APIs with type-safe, testable, and well-structured
 alternatives.
@@ -99,7 +99,7 @@ See the [docs/](docs/) directory for detailed documentation on each package.
 
 ## Requirements
 
-- PHP 8.1 or higher
+- PHP 8.2 or higher
 - WordPress 6.0 or higher
 
 ## Development

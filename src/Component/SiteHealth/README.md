@@ -23,8 +23,8 @@ class PhpVersionCheck implements HealthCheckInterface
 {
     public function run(): Result
     {
-        if (version_compare(PHP_VERSION, '8.1', '<')) {
-            return Result::critical('PHP version is outdated', 'Please upgrade to PHP 8.1 or later.');
+        if (version_compare(PHP_VERSION, '8.2', '<')) {
+            return Result::critical('PHP version is outdated', 'Please upgrade to PHP 8.2 or later.');
         }
 
         return Result::good('PHP version is up to date', 'Running PHP ' . PHP_VERSION);

@@ -10,7 +10,7 @@ composer require wppack/scheduler-plugin
 
 ## Requirements
 
-- PHP 8.1+
+- PHP 8.2+
 - WordPress 6.x
 - Action Scheduler 3.x
 - AWS account with EventBridge Scheduler and SQS

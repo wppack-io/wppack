@@ -34,7 +34,7 @@ WordPress プラグインパッケージの詳細ドキュメント。
 
 ### 必要要件
 
-- PHP 8.1 以上
+- PHP 8.2 以上
 - Composer 2.x
 - WordPress 6.x
 
@@ -64,7 +64,7 @@ composer install
 ### CI コマンド
 
 ```bash
-composer phpstan    # 静的解析
-composer cs-check   # コードスタイルチェック
-composer test       # テスト実行
+vendor/bin/phpstan analyse              # 静的解析
+vendor/bin/php-cs-fixer fix --dry-run --diff  # コードスタイルチェック
+vendor/bin/phpunit                      # テスト実行
 ```
