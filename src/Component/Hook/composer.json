@@ -10,5 +10,10 @@
         "psr-4": {
             "WpPack\\Component\\Hook\\": "src/"
         }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Component\\Hook\\Tests\\": "tests/"
+        }
     }
 }

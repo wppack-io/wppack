@@ -9,9 +9,17 @@
         "async-aws/scheduler": "^1.0",
         "dragonmantank/cron-expression": "^3.0"
     },
+    "require-dev": {
+        "wppack/hook": "^1.0"
+    },
     "autoload": {
         "psr-4": {
             "WpPack\\Component\\Scheduler\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Component\\Scheduler\\Tests\\": "tests/"
         }
     }
 }

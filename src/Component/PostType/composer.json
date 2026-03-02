@@ -1,0 +1,22 @@
+{
+    "name": "wppack/post-type",
+    "description": "Custom post type management for WordPress",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2"
+    },
+    "require-dev": {
+        "wppack/hook": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpPack\\Component\\PostType\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Component\\PostType\\Tests\\": "tests/"
+        }
+    }
+}

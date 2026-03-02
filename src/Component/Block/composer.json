@@ -1,0 +1,22 @@
+{
+    "name": "wppack/block",
+    "description": "Gutenberg block framework for WordPress",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2"
+    },
+    "require-dev": {
+        "wppack/hook": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpPack\\Component\\Block\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Component\\Block\\Tests\\": "tests/"
+        }
+    }
+}

@@ -1,0 +1,16 @@
+<?php
+
+declare(strict_types=1);
+
+namespace WpPack\Component\Theme\Attribute\Filter;
+
+use WpPack\Component\Hook\Attribute\Filter;
+
+#[\Attribute(\Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
+final class BodyClassFilter extends Filter
+{
+    public function __construct(int $priority = 10)
+    {
+        parent::__construct('body_class', $priority);
+    }
+}

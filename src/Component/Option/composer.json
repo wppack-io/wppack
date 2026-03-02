@@ -1,0 +1,22 @@
+{
+    "name": "wppack/option",
+    "description": "WordPress options wrapper",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2"
+    },
+    "require-dev": {
+        "wppack/hook": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpPack\\Component\\Option\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Component\\Option\\Tests\\": "tests/"
+        }
+    }
+}

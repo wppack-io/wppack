@@ -1,0 +1,22 @@
+{
+    "name": "wppack/dashboard-widget",
+    "description": "Dashboard widget for WordPress",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2"
+    },
+    "require-dev": {
+        "wppack/hook": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpPack\\Component\\DashboardWidget\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Component\\DashboardWidget\\Tests\\": "tests/"
+        }
+    }
+}

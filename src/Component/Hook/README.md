@@ -16,7 +16,6 @@ composer require wppack/hook
 use WpPack\Component\Hook\Attribute\Action;
 use WpPack\Component\Hook\Attribute\Filter;
 use WpPack\Component\Hook\Attribute\Action\InitAction;
-use WpPack\Component\Hook\Attribute\Action\SavePostAction;
 
 final class ContentHooks
 {
@@ -32,7 +31,7 @@ final class ContentHooks
         return $content . '<p>Appended</p>';
     }
 
-    #[SavePostAction]
+    #[Action('save_post')]
     public function onSavePost(int $postId, \WP_Post $post, bool $update): void
     {
         // Runs on 'save_post' action
@@ -44,9 +43,40 @@ final class ContentHooks
 
 Frequently used hooks have dedicated attributes for type safety:
 
-- `#[InitAction]`, `#[AdminInitAction]`, `#[SavePostAction]`
-- `#[WpEnqueueScriptsAction]`, `#[PluginsLoadedAction]`
-- `#[TheContentFilter]`, `#[TheTitleFilter]`, `#[BodyClassFilter]`
+#### Lifecycle Actions
+
+- `#[InitAction]`, `#[AdminInitAction]`, `#[PluginsLoadedAction]`
+- `#[AfterSetupThemeAction]`, `#[WpLoadedAction]`
+
+#### AJAX Actions
+
+```php
+use WpPack\Component\Hook\Attribute\Action\WpAjaxAction;
+use WpPack\Component\Hook\Attribute\Action\WpAjaxNoprivAction;
+
+final class AjaxHandler
+{
+    #[WpAjaxAction('load_more_posts')]
+    public function handleLoadMore(): void
+    {
+        check_ajax_referer('load_more_nonce', 'nonce');
+        // Handle authenticated AJAX request
+        wp_send_json_success(['items' => []]);
+    }
+
+    #[WpAjaxNoprivAction('submit_contact')]
+    public function handleContact(): void
+    {
+        check_ajax_referer('contact_nonce', 'nonce');
+        // Handle public AJAX request
+        wp_send_json_success(['message' => 'Thank you!']);
+    }
+}
+```
+
+#### Component-Specific Named Hooks
+
+Each WpPack component provides its own named hook attributes. See [Named Hook Conventions](../../../docs/components/hook/named-hook-conventions.md) for details.
 
 ### Auto-Discovery
 
@@ -61,22 +91,9 @@ $discovery->register(new ContentHooks());
 $registry->bind();
 ```
 
-### Conditional Registration
-
-```php
-use WpPack\Component\Hook\Attribute\Condition\IsAdmin;
-
-#[Action('init')]
-#[IsAdmin]
-public function adminOnlyInit(): void
-{
-    // Runs only in admin context
-}
-```
-
 ## Documentation
 
-See [docs/components/hook.md](../../docs/components/hook.md) for full documentation.
+See [docs/components/hook/README.md](../../../docs/components/hook/README.md) for full documentation.
 
 ## License
 

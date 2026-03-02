@@ -1,0 +1,170 @@
+<?php
+
+declare(strict_types=1);
+
+namespace WpPack\Component\Filesystem\Tests\Attribute;
+
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+use WpPack\Component\Hook\Attribute\Action;
+use WpPack\Component\Hook\Attribute\Filter;
+use WpPack\Component\Hook\Hook;
+use WpPack\Component\Hook\HookType;
+use WpPack\Component\Filesystem\Attribute\Action\WpFilesystemInitAction;
+use WpPack\Component\Filesystem\Attribute\Filter\FileIsDisplayableImageFilter;
+use WpPack\Component\Filesystem\Attribute\Filter\FilesystemMethodFileFilter;
+use WpPack\Component\Filesystem\Attribute\Filter\FilesystemMethodFilter;
+use WpPack\Component\Filesystem\Attribute\Filter\LoadImageToEditPathFilter;
+use WpPack\Component\Filesystem\Attribute\Filter\UploadDirFilter;
+use WpPack\Component\Filesystem\Attribute\Filter\WpDeleteFileFilter;
+use WpPack\Component\Filesystem\Attribute\Filter\WpHandleSideloadPrefilterFilter;
+use WpPack\Component\Filesystem\Attribute\Filter\WpMkdirModeFilter;
+use WpPack\Component\Filesystem\Attribute\Filter\WpUniqueFilenameFilter;
+use WpPack\Component\Filesystem\Attribute\Filter\WpUploadBitsFilter;
+
+final class NamedHookTest extends TestCase
+{
+    #[Test]
+    public function wpFilesystemInitActionHasCorrectHookName(): void
+    {
+        $action = new WpFilesystemInitAction();
+
+        self::assertSame('wp_filesystem_init', $action->hook);
+        self::assertSame(HookType::Action, $action->type);
+        self::assertSame(10, $action->priority);
+    }
+
+    #[Test]
+    public function wpFilesystemInitActionAcceptsCustomPriority(): void
+    {
+        $action = new WpFilesystemInitAction(priority: 5);
+
+        self::assertSame(5, $action->priority);
+    }
+
+    #[Test]
+    public function fileIsDisplayableImageFilterHasCorrectHookName(): void
+    {
+        $filter = new FileIsDisplayableImageFilter();
+
+        self::assertSame('file_is_displayable_image', $filter->hook);
+        self::assertSame(HookType::Filter, $filter->type);
+        self::assertSame(10, $filter->priority);
+    }
+
+    #[Test]
+    public function filesystemMethodFileFilterHasCorrectHookName(): void
+    {
+        $filter = new FilesystemMethodFileFilter();
+
+        self::assertSame('filesystem_method_file', $filter->hook);
+    }
+
+    #[Test]
+    public function filesystemMethodFilterHasCorrectHookName(): void
+    {
+        $filter = new FilesystemMethodFilter();
+
+        self::assertSame('filesystem_method', $filter->hook);
+    }
+
+    #[Test]
+    public function loadImageToEditPathFilterHasCorrectHookName(): void
+    {
+        $filter = new LoadImageToEditPathFilter();
+
+        self::assertSame('load_image_to_edit_path', $filter->hook);
+    }
+
+    #[Test]
+    public function uploadDirFilterHasCorrectHookName(): void
+    {
+        $filter = new UploadDirFilter();
+
+        self::assertSame('upload_dir', $filter->hook);
+    }
+
+    #[Test]
+    public function wpDeleteFileFilterHasCorrectHookName(): void
+    {
+        $filter = new WpDeleteFileFilter();
+
+        self::assertSame('wp_delete_file', $filter->hook);
+    }
+
+    #[Test]
+    public function wpHandleSideloadPrefilterFilterHasCorrectHookName(): void
+    {
+        $filter = new WpHandleSideloadPrefilterFilter();
+
+        self::assertSame('wp_handle_sideload_prefilter', $filter->hook);
+    }
+
+    #[Test]
+    public function wpMkdirModeFilterHasCorrectHookName(): void
+    {
+        $filter = new WpMkdirModeFilter();
+
+        self::assertSame('wp_mkdir_mode', $filter->hook);
+    }
+
+    #[Test]
+    public function wpUniqueFilenameFilterHasCorrectHookName(): void
+    {
+        $filter = new WpUniqueFilenameFilter();
+
+        self::assertSame('wp_unique_filename', $filter->hook);
+    }
+
+    #[Test]
+    public function wpUploadBitsFilterHasCorrectHookName(): void
+    {
+        $filter = new WpUploadBitsFilter();
+
+        self::assertSame('wp_upload_bits', $filter->hook);
+    }
+
+    #[Test]
+    public function allActionsExtendAction(): void
+    {
+        self::assertInstanceOf(Action::class, new WpFilesystemInitAction());
+    }
+
+    #[Test]
+    public function allFiltersExtendFilter(): void
+    {
+        self::assertInstanceOf(Filter::class, new FileIsDisplayableImageFilter());
+        self::assertInstanceOf(Filter::class, new FilesystemMethodFileFilter());
+        self::assertInstanceOf(Filter::class, new FilesystemMethodFilter());
+        self::assertInstanceOf(Filter::class, new LoadImageToEditPathFilter());
+        self::assertInstanceOf(Filter::class, new UploadDirFilter());
+        self::assertInstanceOf(Filter::class, new WpDeleteFileFilter());
+        self::assertInstanceOf(Filter::class, new WpHandleSideloadPrefilterFilter());
+        self::assertInstanceOf(Filter::class, new WpMkdirModeFilter());
+        self::assertInstanceOf(Filter::class, new WpUniqueFilenameFilter());
+        self::assertInstanceOf(Filter::class, new WpUploadBitsFilter());
+    }
+
+    #[Test]
+    public function namedHooksAreDetectedByIsInstanceof(): void
+    {
+        $class = new class {
+            #[WpFilesystemInitAction]
+            public function onWpFilesystemInit(): void {}
+
+            #[UploadDirFilter(priority: 5)]
+            public function onUploadDir(): void {}
+        };
+
+        $actionMethod = new \ReflectionMethod($class, 'onWpFilesystemInit');
+        $attributes = $actionMethod->getAttributes(Hook::class, \ReflectionAttribute::IS_INSTANCEOF);
+        self::assertCount(1, $attributes);
+        self::assertSame('wp_filesystem_init', $attributes[0]->newInstance()->hook);
+
+        $filterMethod = new \ReflectionMethod($class, 'onUploadDir');
+        $attributes = $filterMethod->getAttributes(Hook::class, \ReflectionAttribute::IS_INSTANCEOF);
+        self::assertCount(1, $attributes);
+        self::assertSame('upload_dir', $attributes[0]->newInstance()->hook);
+        self::assertSame(5, $attributes[0]->newInstance()->priority);
+    }
+}
