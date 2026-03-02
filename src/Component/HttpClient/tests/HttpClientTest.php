@@ -247,7 +247,7 @@ final class HttpClientTest extends TestCase
             self::markTestSkipped('WordPress functions are not available.');
         }
 
-        $client = new HttpClient()->asJson();
+        $client = (new HttpClient())->asJson();
         $response = $client->post('https://httpbin.org/post', ['json' => ['key' => 'value']]);
 
         self::assertSame(200, $response->getStatusCode());
@@ -262,7 +262,7 @@ final class HttpClientTest extends TestCase
             self::markTestSkipped('WordPress functions are not available.');
         }
 
-        $client = new HttpClient()->asForm();
+        $client = (new HttpClient())->asForm();
         $response = $client->post('https://httpbin.org/post', ['form_params' => ['key' => 'value']]);
 
         self::assertSame(200, $response->getStatusCode());
@@ -275,7 +275,7 @@ final class HttpClientTest extends TestCase
             self::markTestSkipped('WordPress functions are not available.');
         }
 
-        $client = new HttpClient()->baseUri('https://httpbin.org');
+        $client = (new HttpClient())->baseUri('https://httpbin.org');
         $response = $client->get('/get');
 
         self::assertSame(200, $response->getStatusCode());
@@ -288,7 +288,7 @@ final class HttpClientTest extends TestCase
             self::markTestSkipped('WordPress functions are not available.');
         }
 
-        $client = new HttpClient()->query(['foo' => 'bar']);
+        $client = (new HttpClient())->query(['foo' => 'bar']);
         $response = $client->get('https://httpbin.org/get');
 
         self::assertSame(200, $response->getStatusCode());
@@ -356,7 +356,7 @@ final class HttpClientTest extends TestCase
             self::markTestSkipped('WordPress functions are not available.');
         }
 
-        $client = new HttpClient()->withHeaders(['X-Custom' => 'test-value']);
+        $client = (new HttpClient())->withHeaders(['X-Custom' => 'test-value']);
         $response = $client->get('https://httpbin.org/headers');
 
         self::assertSame(200, $response->getStatusCode());
@@ -371,7 +371,7 @@ final class HttpClientTest extends TestCase
             self::markTestSkipped('WordPress functions are not available.');
         }
 
-        $client = new HttpClient()->timeout(30);
+        $client = (new HttpClient())->timeout(30);
         $response = $client->get('https://httpbin.org/get');
 
         self::assertSame(200, $response->getStatusCode());
