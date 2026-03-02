@@ -19,7 +19,8 @@ use WpPack\Component\Cache\Adapter\Adapter;
 use WpPack\Component\Cache\Adapter\AdapterInterface;
 use WpPack\Component\Cache\ObjectCache;
 
-// Locate and load Composer autoloader
+// Locate and load Composer autoloader.
+// Wrapped in an IIFE to avoid leaking variables into the global scope.
 (static function (): void {
     $candidates = [
         // Bedrock / standard vendor in project root
