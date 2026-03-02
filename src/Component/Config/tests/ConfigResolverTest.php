@@ -11,6 +11,12 @@ use WpPack\Component\Config\Exception\ConfigResolverException;
 use WpPack\Component\Config\Tests\Fixtures\DefaultConfig;
 use WpPack\Component\Config\Tests\Fixtures\EnvConfig;
 use WpPack\Component\Config\Tests\Fixtures\MixedConfig;
+use WpPack\Component\Config\Tests\Fixtures\NoAttributeRequiredConfig;
+use WpPack\Component\Config\Tests\Fixtures\NoAttributeWithDefaultConfig;
+use WpPack\Component\Config\Tests\Fixtures\NoConstructorConfig;
+use WpPack\Component\Config\Tests\Fixtures\OptionalConstantConfig;
+use WpPack\Component\Config\Tests\Fixtures\RequiredConstantConfig;
+use WpPack\Component\Config\Tests\Fixtures\UnionTypeConfig;
 
 final class ConfigResolverTest extends TestCase
 {
@@ -31,7 +37,10 @@ final class ConfigResolverTest extends TestCase
             $_ENV['DEFAULT_PORT'],
             $_ENV['DEFAULT_DEBUG'],
             $_ENV['DEFAULT_RATE'],
+            $_ENV['UNION_VALUE'],
         );
+
+        putenv('GETENV_ONLY_NAME');
     }
 
     #[Test]
@@ -180,5 +189,69 @@ final class ConfigResolverTest extends TestCase
         $config = $this->resolver->resolve(MixedConfig::class);
 
         self::assertSame('my-secret-key', $config->apiKey);
+    }
+
+    #[Test]
+    public function resolvesClassWithNoConstructor(): void
+    {
+        $config = $this->resolver->resolve(NoConstructorConfig::class);
+
+        self::assertInstanceOf(NoConstructorConfig::class, $config);
+    }
+
+    #[Test]
+    public function resolvesParameterWithNoAttributeUsingDefault(): void
+    {
+        $config = $this->resolver->resolve(NoAttributeWithDefaultConfig::class);
+
+        self::assertSame('default-name', $config->name);
+    }
+
+    #[Test]
+    public function throwsExceptionForParameterWithNoAttributeAndNoDefault(): void
+    {
+        $this->expectException(ConfigResolverException::class);
+        $this->expectExceptionMessage('No config attribute');
+
+        $this->resolver->resolve(NoAttributeRequiredConfig::class);
+    }
+
+    #[Test]
+    public function resolvesEnvViaGetenvFallback(): void
+    {
+        putenv('APP_NAME=FromGetenv');
+
+        $config = $this->resolver->resolve(EnvConfig::class);
+
+        self::assertSame('FromGetenv', $config->appName);
+
+        putenv('APP_NAME');
+    }
+
+    #[Test]
+    public function throwsExceptionForMissingRequiredConstant(): void
+    {
+        $this->expectException(ConfigResolverException::class);
+        $this->expectExceptionMessage('REQUIRED_CONSTANT_VALUE');
+
+        $this->resolver->resolve(RequiredConstantConfig::class);
+    }
+
+    #[Test]
+    public function usesDefaultWhenConstantNotDefined(): void
+    {
+        $config = $this->resolver->resolve(OptionalConstantConfig::class);
+
+        self::assertSame('fallback', $config->value);
+    }
+
+    #[Test]
+    public function resolvesUnionTypeWithoutCasting(): void
+    {
+        $_ENV['UNION_VALUE'] = '42';
+
+        $config = $this->resolver->resolve(UnionTypeConfig::class);
+
+        self::assertSame('42', $config->value);
     }
 }

@@ -7,7 +7,10 @@ namespace WpPack\Component\Config\Tests;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Config\ConfigResolver;
+use WpPack\Component\Config\Exception\ConfigResolverException;
 use WpPack\Component\Config\Tests\Fixtures\OptionConfig;
+use WpPack\Component\Config\Tests\Fixtures\RequiredDotOptionConfig;
+use WpPack\Component\Config\Tests\Fixtures\RequiredOptionConfig;
 
 final class ConfigResolverOptionTest extends TestCase
 {
@@ -76,5 +79,50 @@ final class ConfigResolverOptionTest extends TestCase
         $config = $this->resolver->resolve(OptionConfig::class);
 
         self::assertSame('https://api.example.com', $config->apiEndpoint);
+    }
+
+    #[Test]
+    public function throwsExceptionForMissingRequiredOption(): void
+    {
+        delete_option('required_option');
+
+        $this->expectException(ConfigResolverException::class);
+        $this->expectExceptionMessage('required_option');
+
+        $this->resolver->resolve(RequiredOptionConfig::class);
+    }
+
+    #[Test]
+    public function throwsExceptionForMissingRequiredDotNotationKey(): void
+    {
+        update_option('my_settings', ['nested' => ['other' => 'value']]);
+
+        $this->expectException(ConfigResolverException::class);
+        $this->expectExceptionMessage('my_settings.nested.key');
+
+        $this->resolver->resolve(RequiredDotOptionConfig::class);
+    }
+
+    #[Test]
+    public function throwsExceptionWhenIntermediatePathIsNotArray(): void
+    {
+        update_option('my_settings', ['nested' => 'not-an-array']);
+
+        $this->expectException(ConfigResolverException::class);
+        $this->expectExceptionMessage('my_settings.nested.key');
+
+        $this->resolver->resolve(RequiredDotOptionConfig::class);
+    }
+
+    #[Test]
+    public function resolvesDeepNestedDotNotation(): void
+    {
+        update_option('my_settings', [
+            'nested' => ['key' => 'deep-value'],
+        ]);
+
+        $config = $this->resolver->resolve(RequiredDotOptionConfig::class);
+
+        self::assertSame('deep-value', $config->value);
     }
 }
