@@ -7,6 +7,4 @@ namespace WpPack\Component\Config\Tests\Fixtures;
 use WpPack\Component\Config\Attribute\AsConfig;
 
 #[AsConfig]
-final class NoConstructorConfig
-{
-}
+final class NoConstructorConfig {}
