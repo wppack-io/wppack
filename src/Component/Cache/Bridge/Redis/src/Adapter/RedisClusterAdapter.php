@@ -209,13 +209,13 @@ final class RedisClusterAdapter extends AbstractAdapter
             name: $persistent ? 'wppack' : null,
             seeds: $seeds,
             timeout: $timeout,
-            readTimeout: $readTimeout, // @phpstan-ignore argument.unknown
+            read_timeout: $readTimeout,
             persistent: $persistent,
             auth: $password,
         );
 
         $redis->setOption(\RedisCluster::OPT_SLAVE_FAILOVER, $failover);
-        $redis->setOption(\RedisCluster::OPT_SERIALIZER, \Redis::SERIALIZER_NONE); // @phpstan-ignore classConstant.notFound
+        $redis->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_NONE);
 
         return $redis;
     }
