@@ -10,10 +10,8 @@ use WpPack\Component\Hook\Attribute\Action;
 use WpPack\Component\Hook\Attribute\Filter;
 use WpPack\Component\Hook\Hook;
 use WpPack\Component\Hook\HookType;
-use WpPack\Component\Theme\Attribute\Action\AfterSetupThemeAction;
 use WpPack\Component\Theme\Attribute\Action\CustomizePreviewInitAction;
 use WpPack\Component\Theme\Attribute\Action\CustomizeRegisterAction;
-use WpPack\Component\Theme\Attribute\Action\TemplateRedirectAction;
 use WpPack\Component\Theme\Attribute\Action\WpBodyOpenAction;
 use WpPack\Component\Theme\Attribute\Action\WpEnqueueScriptsAction;
 use WpPack\Component\Theme\Attribute\Action\WpFooterAction;
@@ -27,16 +25,6 @@ use WpPack\Component\Theme\Attribute\Filter\StyleLoaderTagFilter;
 
 final class NamedHookTest extends TestCase
 {
-    #[Test]
-    public function afterSetupThemeActionHasCorrectHookName(): void
-    {
-        $action = new AfterSetupThemeAction();
-
-        self::assertSame('after_setup_theme', $action->hook);
-        self::assertSame(HookType::Action, $action->type);
-        self::assertSame(10, $action->priority);
-    }
-
     #[Test]
     public function customizePreviewInitActionHasCorrectHookName(): void
     {
@@ -52,15 +40,6 @@ final class NamedHookTest extends TestCase
         $action = new CustomizeRegisterAction();
 
         self::assertSame('customize_register', $action->hook);
-        self::assertSame(HookType::Action, $action->type);
-    }
-
-    #[Test]
-    public function templateRedirectActionHasCorrectHookName(): void
-    {
-        $action = new TemplateRedirectAction();
-
-        self::assertSame('template_redirect', $action->hook);
         self::assertSame(HookType::Action, $action->type);
     }
 
@@ -156,9 +135,9 @@ final class NamedHookTest extends TestCase
     }
 
     #[Test]
-    public function afterSetupThemeActionAcceptsCustomPriority(): void
+    public function customizePreviewInitActionAcceptsCustomPriority(): void
     {
-        $action = new AfterSetupThemeAction(priority: 5);
+        $action = new CustomizePreviewInitAction(priority: 5);
 
         self::assertSame(5, $action->priority);
     }
@@ -166,10 +145,8 @@ final class NamedHookTest extends TestCase
     #[Test]
     public function allActionsExtendAction(): void
     {
-        self::assertInstanceOf(Action::class, new AfterSetupThemeAction());
         self::assertInstanceOf(Action::class, new CustomizePreviewInitAction());
         self::assertInstanceOf(Action::class, new CustomizeRegisterAction());
-        self::assertInstanceOf(Action::class, new TemplateRedirectAction());
         self::assertInstanceOf(Action::class, new WpBodyOpenAction());
         self::assertInstanceOf(Action::class, new WpEnqueueScriptsAction());
         self::assertInstanceOf(Action::class, new WpFooterAction());

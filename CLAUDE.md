@@ -67,7 +67,6 @@ WordPress プラグインとして配布。Component を利用。
 | Shortcode | wppack/shortcode | ショートコードフレームワーク |
 | Nonce | wppack/nonce | CSRF トークン管理 |
 | Ajax | wppack/ajax | Ajax ハンドラー |
-| Wpress | wppack/wpress | .wpress バックアップファイル操作 |
 
 ### Application Layer
 | Component | パッケージ名 | 説明 |

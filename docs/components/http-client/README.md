@@ -332,8 +332,8 @@ $thirdPartyService = new SomeExternalSdk(
 ### 使用例：リクエストインターセプター
 
 ```php
-use WpPack\Component\HttpClient\Attribute\PreHttpRequestFilter;
-use WpPack\Component\HttpClient\Attribute\HttpResponseFilter;
+use WpPack\Component\HttpClient\Attribute\Filter\PreHttpRequestFilter;
+use WpPack\Component\HttpClient\Attribute\Filter\HttpResponseFilter;
 
 class HttpRequestHandler
 {

@@ -13,7 +13,6 @@ use WpPack\Component\Sanitizer\Attribute\Filter\EscAttrFilter;
 use WpPack\Component\Sanitizer\Attribute\Filter\EscHtmlFilter;
 use WpPack\Component\Sanitizer\Attribute\Filter\EscJsFilter;
 use WpPack\Component\Sanitizer\Attribute\Filter\EscUrlFilter;
-use WpPack\Component\Sanitizer\Attribute\Filter\PreCommentApprovedFilter;
 use WpPack\Component\Sanitizer\Attribute\Filter\PreInsertTermFilter;
 use WpPack\Component\Sanitizer\Attribute\Filter\PreUserLoginFilter;
 use WpPack\Component\Sanitizer\Attribute\Filter\SanitizeCommentMetaFilter;
@@ -60,14 +59,6 @@ final class NamedHookTest extends TestCase
         $filter = new EscUrlFilter();
 
         self::assertSame('esc_url', $filter->hook);
-    }
-
-    #[Test]
-    public function preCommentApprovedFilterHasCorrectHookName(): void
-    {
-        $filter = new PreCommentApprovedFilter();
-
-        self::assertSame('pre_comment_approved', $filter->hook);
     }
 
     #[Test]
@@ -173,7 +164,6 @@ final class NamedHookTest extends TestCase
         self::assertInstanceOf(Filter::class, new EscHtmlFilter());
         self::assertInstanceOf(Filter::class, new EscJsFilter());
         self::assertInstanceOf(Filter::class, new EscUrlFilter());
-        self::assertInstanceOf(Filter::class, new PreCommentApprovedFilter());
         self::assertInstanceOf(Filter::class, new PreInsertTermFilter());
         self::assertInstanceOf(Filter::class, new PreUserLoginFilter());
         self::assertInstanceOf(Filter::class, new SanitizeCommentMetaFilter());

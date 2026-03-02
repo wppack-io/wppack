@@ -10,8 +10,6 @@ use WpPack\Component\Hook\Attribute\Action;
 use WpPack\Component\Hook\Attribute\Filter;
 use WpPack\Component\Hook\Hook;
 use WpPack\Component\Hook\HookType;
-use WpPack\Component\Security\Attribute\Action\CheckAdminRefererAction;
-use WpPack\Component\Security\Attribute\Action\CheckAjaxRefererAction;
 use WpPack\Component\Security\Attribute\Action\PasswordResetAction;
 use WpPack\Component\Security\Attribute\Action\RetrievePasswordAction;
 use WpPack\Component\Security\Attribute\Action\WpLoginAction;
@@ -20,29 +18,9 @@ use WpPack\Component\Security\Attribute\Action\WpLogoutAction;
 use WpPack\Component\Security\Attribute\Filter\AuthenticateFilter;
 use WpPack\Component\Security\Attribute\Filter\CheckPasswordFilter;
 use WpPack\Component\Security\Attribute\Filter\DetermineCurrentUserFilter;
-use WpPack\Component\Security\Attribute\Filter\MapMetaCapFilter;
-use WpPack\Component\Security\Attribute\Filter\UserHasCapFilter;
 
 final class NamedHookTest extends TestCase
 {
-    #[Test]
-    public function checkAdminRefererActionHasCorrectHookName(): void
-    {
-        $action = new CheckAdminRefererAction();
-
-        self::assertSame('check_admin_referer', $action->hook);
-        self::assertSame(HookType::Action, $action->type);
-        self::assertSame(10, $action->priority);
-    }
-
-    #[Test]
-    public function checkAjaxRefererActionHasCorrectHookName(): void
-    {
-        $action = new CheckAjaxRefererAction();
-
-        self::assertSame('check_ajax_referer', $action->hook);
-    }
-
     #[Test]
     public function passwordResetActionHasCorrectHookName(): void
     {
@@ -118,26 +96,8 @@ final class NamedHookTest extends TestCase
     }
 
     #[Test]
-    public function mapMetaCapFilterHasCorrectHookName(): void
-    {
-        $filter = new MapMetaCapFilter();
-
-        self::assertSame('map_meta_cap', $filter->hook);
-    }
-
-    #[Test]
-    public function userHasCapFilterHasCorrectHookName(): void
-    {
-        $filter = new UserHasCapFilter();
-
-        self::assertSame('user_has_cap', $filter->hook);
-    }
-
-    #[Test]
     public function allActionsExtendAction(): void
     {
-        self::assertInstanceOf(Action::class, new CheckAdminRefererAction());
-        self::assertInstanceOf(Action::class, new CheckAjaxRefererAction());
         self::assertInstanceOf(Action::class, new PasswordResetAction());
         self::assertInstanceOf(Action::class, new RetrievePasswordAction());
         self::assertInstanceOf(Action::class, new WpLoginAction());
@@ -151,8 +111,6 @@ final class NamedHookTest extends TestCase
         self::assertInstanceOf(Filter::class, new AuthenticateFilter());
         self::assertInstanceOf(Filter::class, new CheckPasswordFilter());
         self::assertInstanceOf(Filter::class, new DetermineCurrentUserFilter());
-        self::assertInstanceOf(Filter::class, new MapMetaCapFilter());
-        self::assertInstanceOf(Filter::class, new UserHasCapFilter());
     }
 
     #[Test]

@@ -11,7 +11,6 @@ use WpPack\Component\Hook\Attribute\Filter;
 use WpPack\Component\Hook\Hook;
 use WpPack\Component\Hook\HookType;
 use WpPack\Component\Rest\Attribute\Action\RestApiInitAction;
-use WpPack\Component\Rest\Attribute\Filter\DetermineCurrentUserFilter;
 use WpPack\Component\Rest\Attribute\Filter\RestAuthenticationErrorsFilter;
 use WpPack\Component\Rest\Attribute\Filter\RestPreDispatchFilter;
 use WpPack\Component\Rest\Attribute\Filter\RestPreServeRequestFilter;
@@ -36,16 +35,6 @@ final class NamedHookTest extends TestCase
         $action = new RestApiInitAction(priority: 5);
 
         self::assertSame(5, $action->priority);
-    }
-
-    #[Test]
-    public function determineCurrentUserFilterHasCorrectHookName(): void
-    {
-        $filter = new DetermineCurrentUserFilter();
-
-        self::assertSame('determine_current_user', $filter->hook);
-        self::assertSame(HookType::Filter, $filter->type);
-        self::assertSame(10, $filter->priority);
     }
 
     #[Test]
@@ -97,7 +86,6 @@ final class NamedHookTest extends TestCase
     #[Test]
     public function allFiltersExtendFilter(): void
     {
-        self::assertInstanceOf(Filter::class, new DetermineCurrentUserFilter());
         self::assertInstanceOf(Filter::class, new RestAuthenticationErrorsFilter());
         self::assertInstanceOf(Filter::class, new RestPreDispatchFilter());
         self::assertInstanceOf(Filter::class, new RestPreServeRequestFilter());

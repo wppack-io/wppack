@@ -11,7 +11,6 @@ use WpPack\Component\Hook\Attribute\Filter;
 use WpPack\Component\Hook\Hook;
 use WpPack\Component\Hook\HookType;
 use WpPack\Component\Query\Attribute\Action\ParseQueryAction;
-use WpPack\Component\Query\Attribute\Action\ParseRequestAction;
 use WpPack\Component\Query\Attribute\Action\PreGetPostsAction;
 use WpPack\Component\Query\Attribute\Filter\FoundPostsFilter;
 use WpPack\Component\Query\Attribute\Filter\FoundPostsQueryFilter;
@@ -29,7 +28,6 @@ use WpPack\Component\Query\Attribute\Filter\PostsSearchFilter;
 use WpPack\Component\Query\Attribute\Filter\PostsSearchOrderbyFilter;
 use WpPack\Component\Query\Attribute\Filter\PostsWhereFilter;
 use WpPack\Component\Query\Attribute\Filter\PostsWherePagedFilter;
-use WpPack\Component\Query\Attribute\Filter\QueryVarsFilter;
 use WpPack\Component\Query\Attribute\Filter\ThePostsFilter;
 use WpPack\Component\Query\Attribute\Filter\UpdatePostMetaCacheFilter;
 use WpPack\Component\Query\Attribute\Filter\UpdatePostTermCacheFilter;
@@ -44,14 +42,6 @@ final class NamedHookTest extends TestCase
         self::assertSame('parse_query', $action->hook);
         self::assertSame(HookType::Action, $action->type);
         self::assertSame(10, $action->priority);
-    }
-
-    #[Test]
-    public function parseRequestActionHasCorrectHookName(): void
-    {
-        $action = new ParseRequestAction();
-
-        self::assertSame('parse_request', $action->hook);
     }
 
     #[Test]
@@ -201,14 +191,6 @@ final class NamedHookTest extends TestCase
     }
 
     #[Test]
-    public function queryVarsFilterHasCorrectHookName(): void
-    {
-        $filter = new QueryVarsFilter();
-
-        self::assertSame('query_vars', $filter->hook);
-    }
-
-    #[Test]
     public function thePostsFilterHasCorrectHookName(): void
     {
         $filter = new ThePostsFilter();
@@ -236,7 +218,6 @@ final class NamedHookTest extends TestCase
     public function allActionsExtendAction(): void
     {
         self::assertInstanceOf(Action::class, new ParseQueryAction());
-        self::assertInstanceOf(Action::class, new ParseRequestAction());
         self::assertInstanceOf(Action::class, new PreGetPostsAction());
     }
 
@@ -259,7 +240,6 @@ final class NamedHookTest extends TestCase
         self::assertInstanceOf(Filter::class, new PostsSearchOrderbyFilter());
         self::assertInstanceOf(Filter::class, new PostsWhereFilter());
         self::assertInstanceOf(Filter::class, new PostsWherePagedFilter());
-        self::assertInstanceOf(Filter::class, new QueryVarsFilter());
         self::assertInstanceOf(Filter::class, new ThePostsFilter());
         self::assertInstanceOf(Filter::class, new UpdatePostMetaCacheFilter());
         self::assertInstanceOf(Filter::class, new UpdatePostTermCacheFilter());

@@ -14,7 +14,6 @@ use WpPack\Component\Admin\Attribute\Action\AdminBarMenuAction;
 use WpPack\Component\Admin\Attribute\Action\AdminEnqueueScriptsAction;
 use WpPack\Component\Admin\Attribute\Action\AdminFooterAction;
 use WpPack\Component\Admin\Attribute\Action\AdminHeadAction;
-use WpPack\Component\Admin\Attribute\Action\AdminInitAction;
 use WpPack\Component\Admin\Attribute\Action\AdminMenuAction;
 use WpPack\Component\Admin\Attribute\Action\AdminNoticesAction;
 use WpPack\Component\Admin\Attribute\Action\AdminPrintFooterScriptsAction;
@@ -28,8 +27,6 @@ use WpPack\Component\Admin\Attribute\Action\NetworkAdminNoticesAction;
 use WpPack\Component\Admin\Attribute\Action\UserAdminMenuAction;
 use WpPack\Component\Admin\Attribute\Action\UserAdminNoticesAction;
 use WpPack\Component\Admin\Attribute\Action\WpBeforeAdminBarRenderAction;
-use WpPack\Component\Admin\Attribute\Action\WpDashboardSetupAction;
-use WpPack\Component\Admin\Attribute\Action\WpNetworkDashboardSetupAction;
 use WpPack\Component\Admin\Attribute\Filter\ManagePagesColumnsFilter;
 use WpPack\Component\Admin\Attribute\Filter\ManagePostsColumnsFilter;
 use WpPack\Component\Admin\Attribute\Filter\ManageUsersColumnsFilter;
@@ -76,14 +73,6 @@ final class NamedHookTest extends TestCase
         $action = new AdminHeadAction();
 
         self::assertSame('admin_head', $action->hook);
-    }
-
-    #[Test]
-    public function adminInitActionHasCorrectHookName(): void
-    {
-        $action = new AdminInitAction();
-
-        self::assertSame('admin_init', $action->hook);
     }
 
     #[Test]
@@ -191,22 +180,6 @@ final class NamedHookTest extends TestCase
     }
 
     #[Test]
-    public function wpDashboardSetupActionHasCorrectHookName(): void
-    {
-        $action = new WpDashboardSetupAction();
-
-        self::assertSame('wp_dashboard_setup', $action->hook);
-    }
-
-    #[Test]
-    public function wpNetworkDashboardSetupActionHasCorrectHookName(): void
-    {
-        $action = new WpNetworkDashboardSetupAction();
-
-        self::assertSame('wp_network_dashboard_setup', $action->hook);
-    }
-
-    #[Test]
     public function managePagesColumnsFilterHasCorrectHookName(): void
     {
         $filter = new ManagePagesColumnsFilter();
@@ -238,7 +211,6 @@ final class NamedHookTest extends TestCase
         self::assertInstanceOf(Action::class, new AdminEnqueueScriptsAction());
         self::assertInstanceOf(Action::class, new AdminFooterAction());
         self::assertInstanceOf(Action::class, new AdminHeadAction());
-        self::assertInstanceOf(Action::class, new AdminInitAction());
         self::assertInstanceOf(Action::class, new AdminMenuAction());
         self::assertInstanceOf(Action::class, new AdminNoticesAction());
         self::assertInstanceOf(Action::class, new AdminPrintFooterScriptsAction());
@@ -252,8 +224,6 @@ final class NamedHookTest extends TestCase
         self::assertInstanceOf(Action::class, new UserAdminMenuAction());
         self::assertInstanceOf(Action::class, new UserAdminNoticesAction());
         self::assertInstanceOf(Action::class, new WpBeforeAdminBarRenderAction());
-        self::assertInstanceOf(Action::class, new WpDashboardSetupAction());
-        self::assertInstanceOf(Action::class, new WpNetworkDashboardSetupAction());
     }
 
     #[Test]

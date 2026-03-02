@@ -16,7 +16,6 @@ use WpPack\Component\Plugin\Attribute\Action\DeactivatedPluginAction;
 use WpPack\Component\Plugin\Attribute\Action\MuPluginsLoadedAction;
 use WpPack\Component\Plugin\Attribute\Action\NetworkPluginsLoadedAction;
 use WpPack\Component\Plugin\Attribute\Action\PluginLoadedAction;
-use WpPack\Component\Plugin\Attribute\Action\PluginsLoadedAction;
 use WpPack\Component\Plugin\Attribute\Action\UpgraderProcessCompleteAction;
 use WpPack\Component\Plugin\Attribute\Filter\NetworkPluginActionLinksFilter;
 use WpPack\Component\Plugin\Attribute\Filter\PluginActionLinksFilter;
@@ -78,15 +77,6 @@ final class NamedHookTest extends TestCase
         $action = new PluginLoadedAction();
 
         self::assertSame('plugin_loaded', $action->hook);
-        self::assertSame(HookType::Action, $action->type);
-    }
-
-    #[Test]
-    public function pluginsLoadedActionHasCorrectHookName(): void
-    {
-        $action = new PluginsLoadedAction();
-
-        self::assertSame('plugins_loaded', $action->hook);
         self::assertSame(HookType::Action, $action->type);
     }
 
@@ -164,7 +154,6 @@ final class NamedHookTest extends TestCase
         self::assertInstanceOf(Action::class, new MuPluginsLoadedAction());
         self::assertInstanceOf(Action::class, new NetworkPluginsLoadedAction());
         self::assertInstanceOf(Action::class, new PluginLoadedAction());
-        self::assertInstanceOf(Action::class, new PluginsLoadedAction());
         self::assertInstanceOf(Action::class, new UpgraderProcessCompleteAction());
     }
 
@@ -182,17 +171,17 @@ final class NamedHookTest extends TestCase
     public function namedHooksAreDetectedByIsInstanceof(): void
     {
         $class = new class {
-            #[PluginsLoadedAction]
-            public function onPluginsLoaded(): void {}
+            #[ActivatedPluginAction]
+            public function onActivatedPlugin(): void {}
 
             #[PluginRowMetaFilter]
             public function onPluginRowMeta(): void {}
         };
 
-        $actionMethod = new \ReflectionMethod($class, 'onPluginsLoaded');
+        $actionMethod = new \ReflectionMethod($class, 'onActivatedPlugin');
         $attributes = $actionMethod->getAttributes(Hook::class, \ReflectionAttribute::IS_INSTANCEOF);
         self::assertCount(1, $attributes);
-        self::assertSame('plugins_loaded', $attributes[0]->newInstance()->hook);
+        self::assertSame('activated_plugin', $attributes[0]->newInstance()->hook);
 
         $filterMethod = new \ReflectionMethod($class, 'onPluginRowMeta');
         $attributes = $filterMethod->getAttributes(Hook::class, \ReflectionAttribute::IS_INSTANCEOF);
