@@ -1,0 +1,82 @@
+# WpPack Option
+
+Object-oriented wrapper for the WordPress Options API. Provides simple manager classes for option CRUD operations.
+
+## Installation
+
+```bash
+composer require wppack/option
+```
+
+## Usage
+
+### OptionManager
+
+```php
+use WpPack\Component\Option\OptionManager;
+
+$manager = new OptionManager();
+
+// Get an option value
+$value = $manager->get('my_plugin_settings', []);
+
+// Add a new option (fails if already exists)
+$manager->add('my_plugin_version', '1.0.0');
+
+// Update an option (creates if not exists)
+$manager->update('my_plugin_settings', ['debug' => true]);
+
+// Delete an option
+$manager->delete('my_plugin_old_setting');
+```
+
+### SiteOptionManager (Multisite)
+
+```php
+use WpPack\Component\Option\SiteOptionManager;
+
+$manager = new SiteOptionManager();
+
+// Get a network-wide option
+$value = $manager->get('network_settings', []);
+
+// Update (creates if not exists)
+$manager->update('network_settings', ['maintenance' => false]);
+
+// Delete
+$manager->delete('network_old_setting');
+```
+
+### Named Hook Attributes
+
+```php
+use WpPack\Component\Option\Attribute\Filter\PreOptionFilter;
+use WpPack\Component\Option\Attribute\Action\UpdateOptionAction;
+
+final class OptionHooks
+{
+    #[PreOptionFilter('blogname', priority: 10)]
+    public function filterSiteName(mixed $preValue): mixed
+    {
+        if (defined('SITE_NAME_OVERRIDE')) {
+            return SITE_NAME_OVERRIDE;
+        }
+
+        return false;
+    }
+
+    #[UpdateOptionAction('my_plugin_settings', priority: 10)]
+    public function onSettingsUpdated(mixed $oldValue, mixed $newValue, string $option): void
+    {
+        wp_cache_flush_group('my_plugin');
+    }
+}
+```
+
+## Documentation
+
+See [docs/components/option/](../../../docs/components/option/) for full documentation.
+
+## License
+
+MIT
