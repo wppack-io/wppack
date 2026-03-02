@@ -17,10 +17,6 @@ component_management:
       name: DependencyInjection
       paths:
         - src/Component/DependencyInjection/src/**
-    - component_id: config
-      name: Config
-      paths:
-        - src/Component/Config/src/**
     - component_id: event_dispatcher
       name: EventDispatcher
       paths:
@@ -53,6 +49,10 @@ component_management:
       name: Logger
       paths:
         - src/Component/Logger/src/**
+    - component_id: monolog_logger
+      name: MonologLogger
+      paths:
+        - src/Component/Logger/Bridge/Monolog/src/**
 
     # Abstraction Layer
     - component_id: cache
@@ -87,6 +87,18 @@ component_management:
       name: Mailer
       paths:
         - src/Component/Mailer/src/**
+    - component_id: amazon_mailer
+      name: AmazonMailer
+      paths:
+        - src/Component/Mailer/Bridge/Amazon/src/**
+    - component_id: azure_mailer
+      name: AzureMailer
+      paths:
+        - src/Component/Mailer/Bridge/Azure/src/**
+    - component_id: sendgrid_mailer
+      name: SendGridMailer
+      paths:
+        - src/Component/Mailer/Bridge/SendGrid/src/**
     - component_id: messenger
       name: Messenger
       paths:
@@ -195,11 +207,6 @@ component_management:
       name: Translation
       paths:
         - src/Component/Translation/src/**
-    - component_id: validator
-      name: Validator
-      paths:
-        - src/Component/Validator/src/**
-
     # Plugins
     - component_id: scheduler_plugin
       name: SchedulerPlugin
