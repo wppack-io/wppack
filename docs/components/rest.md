@@ -19,7 +19,7 @@ composer require wppack/rest
 - **レスポンス変換** - 一貫したデータフォーマット
 - **API バージョニングサポート** - 後方互換性の維持
 
-## 従来の WordPress vs WpPack
+## 基本コンセプト
 
 ### Before（従来の WordPress）
 

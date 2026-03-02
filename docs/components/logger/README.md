@@ -14,18 +14,20 @@ composer require wppack/logger
 
 ## 基本コンセプト
 
-### 従来の WordPress と WpPack の比較
+### Before（従来の WordPress）
 
 ```php
-// 従来の WordPress - 非構造化な error_log
 error_log('User login failed for: ' . $username);
 error_log('API request failed: ' . print_r($response, true));
 
 if (WP_DEBUG_LOG) {
     error_log('[' . date('Y-m-d H:i:s') . '] Payment processed: $' . $amount);
 }
+```
 
-// WpPack Logger - PSR-3 準拠、構造化ロギング
+### After（WpPack）
+
+```php
 use Psr\Log\LoggerInterface;
 
 final class PaymentService

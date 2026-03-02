@@ -22,7 +22,7 @@ composer require wppack/shortcode
 - **キャッシュとパフォーマンス最適化** - ページ読み込み時間の改善
 - **セキュリティ強化** - 自動入力サニタイズとバリデーション
 
-## 従来の WordPress vs WpPack
+## 基本コンセプト
 
 ### Before（従来の WordPress）
 

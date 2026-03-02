@@ -12,7 +12,7 @@ WordPress の Nonce API（`wp_create_nonce()` / `wp_verify_nonce()` 等）をオ
 composer require wppack/nonce
 ```
 
-## 従来の WordPress と WpPack の比較
+## 基本コンセプト
 
 ### Before（従来の WordPress）
 

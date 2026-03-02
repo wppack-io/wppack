@@ -14,10 +14,9 @@ composer require wppack/templating
 
 ## 基本コンセプト
 
-### 従来の WordPress と WpPack の比較
+### Before（従来の WordPress）
 
 ```php
-// 従来の WordPress - 手動エスケープ、型安全でないデータ渡し
 <?php get_header(); ?>
 <div class="content">
     <h1><?php echo esc_html(get_the_title()); ?></h1>
@@ -30,8 +29,11 @@ composer require wppack/templating
     </div>
 </div>
 <?php get_footer(); ?>
+```
 
-// WpPack Templating - 型安全、自動エスケープ
+### After（WpPack）
+
+```php
 use WpPack\Component\Templating\TemplateRenderer;
 
 $renderer = $container->get(TemplateRenderer::class);

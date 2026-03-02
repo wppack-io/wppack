@@ -14,7 +14,7 @@ composer require wppack/translation
 
 ## 基本コンセプト
 
-### 従来の WordPress コード
+### Before（従来の WordPress）
 
 ```php
 add_action('init', function() {
@@ -30,7 +30,7 @@ echo sprintf(
 echo _x('Post', 'verb', 'my-plugin');
 ```
 
-### WpPack コード
+### After（WpPack）
 
 ```php
 use WpPack\Component\Translation\Translator;

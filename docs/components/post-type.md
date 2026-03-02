@@ -21,7 +21,7 @@ composer require wppack/post-type
 - **カスタムフィールド管理** — UI の自動生成
 - **階層的な投稿タイプ** — 親子関係のサポート
 
-## 従来の WordPress vs WpPack
+## 基本コンセプト
 
 ### Before（従来の WordPress）
 

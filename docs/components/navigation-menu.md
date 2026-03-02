@@ -14,7 +14,7 @@ composer require wppack/navigation-menu
 
 ## 基本コンセプト
 
-### 従来の WordPress コード
+### Before（従来の WordPress）
 
 ```php
 // Traditional WordPress - procedural and scattered
@@ -44,7 +44,7 @@ wp_nav_menu([
 ]);
 ```
 
-### WpPack コード
+### After（WpPack）
 
 ```php
 use WpPack\Component\Hook\Attribute\AfterSetupThemeAction;

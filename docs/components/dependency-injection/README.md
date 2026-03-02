@@ -14,10 +14,9 @@ composer require wppack/dependency-injection
 
 ## 基本コンセプト
 
-### 従来の WordPress vs WpPack
+### Before（従来の WordPress）
 
 ```php
-// 従来の WordPress - グローバル変数とシングルトン
 global $wpdb;
 
 class UserRepository {
@@ -37,8 +36,11 @@ class UserRepository {
         ));
     }
 }
+```
 
-// WpPack - オートワイヤリングによる依存性注入
+### After（WpPack）
+
+```php
 final class UserRepository
 {
     public function __construct(

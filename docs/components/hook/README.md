@@ -14,10 +14,9 @@ composer require wppack/hook
 
 ## 基本コンセプト
 
-### 従来のWordPress vs WpPack
+### Before（従来の WordPress）
 
 ```php
-// 従来のWordPress - 手続き的に散らばったフック
 add_action('init', 'my_init_function', 10);
 add_filter('the_content', 'my_content_filter', 20);
 add_action('wp_enqueue_scripts', 'my_enqueue_function');
@@ -33,8 +32,11 @@ function my_content_filter($content) {
 function my_enqueue_function() {
     wp_enqueue_style('theme-style', get_stylesheet_uri());
 }
+```
 
-// WpPack - アトリビュートベースの整理されたフック
+### After（WpPack）
+
+```php
 use WpPack\Component\Hook\Attribute\Action\InitAction;
 use WpPack\Component\Templating\Attribute\Filter\TheContentFilter;
 use WpPack\Component\Theme\Attribute\Action\WpEnqueueScriptsAction;

@@ -14,7 +14,7 @@ composer require wppack/taxonomy
 
 ## 基本コンセプト
 
-### 従来の WordPress コード
+### Before（従来の WordPress）
 
 ```php
 // Traditional WordPress - procedural taxonomy registration
@@ -41,7 +41,7 @@ add_action('pre_get_terms', function($query) {
 });
 ```
 
-### WpPack コード
+### After（WpPack）
 
 ```php
 use WpPack\Component\Hook\Attribute\InitAction;

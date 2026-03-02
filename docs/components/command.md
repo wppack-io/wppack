@@ -22,7 +22,7 @@ composer require wppack/command
 - **テストユーティリティ** - 信頼性のあるコマンドテスト
 - **コマンドの自動検出と登録** - 自動セットアップ
 
-## 従来の WordPress vs WpPack
+## 基本コンセプト
 
 ### Before（従来の WordPress）
 

@@ -22,7 +22,7 @@ $headers = ['Content-Type: text/html; charset=UTF-8'];
 wp_mail('user@example.com', 'Welcome', '<h1>Hello</h1>', $headers);
 ```
 
-### After（WpPack Mailer）
+### After（WpPack）
 
 ```php
 use WpPack\Component\Mailer\Mailer;

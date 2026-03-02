@@ -14,10 +14,9 @@ composer require wppack/event-dispatcher
 
 ## 基本コンセプト
 
-### 従来の WordPress と WpPack の比較
+### Before（従来の WordPress）
 
 ```php
-// 従来の WordPress - 手続き的なイベント処理
 add_action('user_registered', 'send_welcome_email', 10, 2);
 add_action('user_registered', 'add_to_newsletter', 20, 2);
 
@@ -34,8 +33,11 @@ function add_to_newsletter($user_id, $userdata) {
 
 // 任意のデータでイベントを発火
 do_action('user_registered', $user_id, $userdata);
+```
 
-// WpPack EventDispatcher - 型安全なイベント処理
+### After（WpPack）
+
+```php
 use WpPack\Component\EventDispatcher\Event;
 use WpPack\Component\EventDispatcher\Attribute\EventListener;
 

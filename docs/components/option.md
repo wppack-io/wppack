@@ -14,7 +14,7 @@ composer require wppack/option
 
 ## 基本コンセプト
 
-### 従来の WordPress と WpPack の比較
+### Before（従来の WordPress）
 
 ```php
 // 従来の WordPress - 型なし、散在するオプションアクセス
@@ -24,8 +24,11 @@ $debug = $settings['debug'] ?? false;
 $maxRetries = isset($settings['max_retries']) ? (int) $settings['max_retries'] : 3;
 
 update_option('my_plugin_settings', array_merge($settings, ['api_key' => 'new-key']));
+```
 
-// WpPack Option - 型安全で構造化されたオプション管理
+### After（WpPack）
+
+```php
 use WpPack\Component\Option\AbstractOption;
 use WpPack\Component\Option\Attribute\Property;
 

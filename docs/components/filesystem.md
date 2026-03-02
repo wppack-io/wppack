@@ -14,7 +14,7 @@ composer require wppack/filesystem
 
 ## 基本コンセプト
 
-### 従来の WordPress と WpPack の比較
+### Before（従来の WordPress）
 
 ```php
 // 従来の WordPress - WP_Filesystem の初期化が複雑
@@ -38,8 +38,11 @@ if ($content === false) {
 if (!$wp_filesystem->put_contents('/path/to/file.txt', $data, FS_CHMOD_FILE)) {
     // 書き込み失敗
 }
+```
 
-// WpPack Filesystem - シンプルで自動初期化
+### After（WpPack）
+
+```php
 use WpPack\Component\Filesystem\Filesystem;
 
 $filesystem = $container->get(Filesystem::class);

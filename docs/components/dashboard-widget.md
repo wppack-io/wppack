@@ -12,7 +12,7 @@ WordPress のダッシュボードウィジェット機能（`wp_add_dashboard_w
 composer require wppack/dashboard-widget
 ```
 
-## 従来の WordPress と WpPack の比較
+## 基本コンセプト
 
 ### Before（従来の WordPress）
 

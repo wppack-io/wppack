@@ -21,7 +21,7 @@ composer require wppack/ajax
 - **エラーハンドリング** - 一貫したエラーレスポンス
 - **テストユーティリティ** - 信頼性の高い AJAX ハンドラーテスト
 
-## 従来の WordPress と WpPack の比較
+## 基本コンセプト
 
 ### Before（従来の WordPress）
 

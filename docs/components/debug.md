@@ -22,7 +22,7 @@ Debug コンポーネントは以下の機能で WordPress のデバッグを変
 composer require wppack/debug
 ```
 
-## 従来の WordPress vs WpPack
+## 基本コンセプト
 
 ### Before（従来の WordPress）
 

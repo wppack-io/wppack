@@ -14,7 +14,7 @@ composer require wppack/block
 
 ## 基本コンセプト
 
-### 従来の WordPress コード
+### Before（従来の WordPress）
 
 ```php
 add_action('init', function() {
@@ -34,7 +34,7 @@ function render_featured_posts_block($attributes, $content) {
 }
 ```
 
-### WpPack コード
+### After（WpPack）
 
 ```php
 use WpPack\Component\Block\AbstractBlock;

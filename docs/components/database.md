@@ -23,7 +23,7 @@ WpPack では、データベース操作を2つのコンポーネントに分割
 composer require wppack/database
 ```
 
-## 従来の WordPress との比較
+## 基本コンセプト
 
 ### Before（従来の WordPress）
 

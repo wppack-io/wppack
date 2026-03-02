@@ -16,7 +16,7 @@ composer require wppack/transient
 
 ## 基本コンセプト
 
-### 従来の WordPress と WpPack の比較
+### Before（従来の WordPress）
 
 ```php
 // 従来の WordPress - 型安全でない、PSR 非準拠
@@ -26,8 +26,11 @@ if ($data === false) {
     $data = wp_remote_retrieve_body($data);
     set_transient('api_response', $data, HOUR_IN_SECONDS);
 }
+```
 
-// WpPack Transient - PSR-16 準拠、型安全
+### After（WpPack）
+
+```php
 use WpPack\Component\Transient\CacheInterface;
 
 final class ApiClient

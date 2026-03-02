@@ -31,7 +31,7 @@ composer require wppack/query
 - **投稿タイプオブジェクトマッピング** — 強い型付けのオブジェクトを返却
 - **統一インターフェース** — 投稿・ユーザー・タームに対する一貫した API
 
-## 従来の WordPress vs WpPack
+## 基本コンセプト
 
 ### Before（従来の WordPress）
 

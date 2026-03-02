@@ -12,7 +12,7 @@ WordPress のセキュリティ関数（`current_user_can()`、Nonce、サニタ
 composer require wppack/security
 ```
 
-## 従来の WordPress と WpPack の比較
+## 基本コンセプト
 
 ### Before（従来の WordPress）
 

@@ -12,7 +12,7 @@ WordPress のロール・権限管理関数（`add_role()` / `add_cap()` / `curr
 composer require wppack/role
 ```
 
-## 従来の WordPress と WpPack の比較
+## 基本コンセプト
 
 ### Before（従来の WordPress）
 

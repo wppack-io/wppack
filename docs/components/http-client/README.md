@@ -12,7 +12,7 @@ WordPress の HTTP API（`wp_remote_get()` / `wp_remote_post()`）を PSR-18 準
 composer require wppack/http-client
 ```
 
-## 従来の WordPress と WpPack の比較
+## 基本コンセプト
 
 ### Before（従来の WordPress）
 

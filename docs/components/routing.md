@@ -12,7 +12,7 @@ WordPress のリライトルール API（`add_rewrite_rule()` / `add_rewrite_tag
 composer require wppack/routing
 ```
 
-## 従来の WordPress と WpPack の比較
+## 基本コンセプト
 
 ### Before（従来の WordPress）
 

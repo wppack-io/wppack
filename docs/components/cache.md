@@ -33,7 +33,7 @@ composer require wppack/cache
 
 ## 基本コンセプト
 
-### 従来の WordPress と WpPack の比較
+### Before（従来の WordPress）
 
 ```php
 // 従来の WordPress - 手動のキャッシュ管理
@@ -51,8 +51,11 @@ function get_expensive_data(int $id): mixed {
 
     return $data;
 }
+```
 
-// WpPack Cache - PSR 準拠、型安全
+### After（WpPack）
+
+```php
 use WpPack\Component\Cache\CacheManager;
 
 final class DataService

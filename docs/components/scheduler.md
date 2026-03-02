@@ -41,7 +41,7 @@ composer require wppack/scheduler
 └────────────────────────────────────────────────────┘
 ```
 
-## 従来の WordPress との比較
+## 基本コンセプト
 
 ### Before（従来の WordPress）
 
