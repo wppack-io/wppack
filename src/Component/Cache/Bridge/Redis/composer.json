@@ -5,7 +5,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
-        "wppack/cache": "^1.0"
+        "wppack/cache": "^0.1"
     },
     "suggest": {
         "ext-redis": "For using native Redis extension (recommended, highest performance)",

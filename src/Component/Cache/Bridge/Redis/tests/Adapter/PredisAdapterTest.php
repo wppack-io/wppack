@@ -193,4 +193,40 @@ final class PredisAdapterTest extends TestCase
         self::assertTrue($this->adapter->add('wppack_test:ttl_add', 'value', 10));
         self::assertSame('value', $this->adapter->get('wppack_test:ttl_add'));
     }
+
+    #[Test]
+    public function setWithNegativeTtlDeletesKey(): void
+    {
+        $this->adapter->set('wppack_test:neg', 'value');
+        self::assertSame('value', $this->adapter->get('wppack_test:neg'));
+
+        self::assertTrue($this->adapter->set('wppack_test:neg', 'new', -1));
+        self::assertFalse($this->adapter->get('wppack_test:neg'));
+    }
+
+    #[Test]
+    public function setMultipleWithNegativeTtlDeletesKeys(): void
+    {
+        $this->adapter->set('wppack_test:neg1', 'value1');
+        $this->adapter->set('wppack_test:neg2', 'value2');
+
+        $results = $this->adapter->setMultiple([
+            'wppack_test:neg1' => 'new1',
+            'wppack_test:neg2' => 'new2',
+        ], -1);
+
+        self::assertTrue($results['wppack_test:neg1']);
+        self::assertTrue($results['wppack_test:neg2']);
+        self::assertFalse($this->adapter->get('wppack_test:neg1'));
+        self::assertFalse($this->adapter->get('wppack_test:neg2'));
+    }
+
+    #[Test]
+    public function addWithNegativeTtlIsNoop(): void
+    {
+        $this->adapter->set('wppack_test:existing', 'old');
+
+        self::assertTrue($this->adapter->add('wppack_test:existing', 'new', -1));
+        self::assertSame('old', $this->adapter->get('wppack_test:existing'));
+    }
 }

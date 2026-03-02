@@ -1,4 +1,4 @@
-# RedisCache コンポーネント
+# Redis Cache Bridge
 
 **パッケージ:** `wppack/redis-cache`
 **名前空間:** `WpPack\Component\Cache\Bridge\Redis\`

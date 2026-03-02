@@ -8,8 +8,6 @@ use WpPack\Component\Cache\Adapter\AbstractAdapter;
 
 final class ApcuAdapter extends AbstractAdapter
 {
-    public function __construct() {}
-
     public function getName(): string
     {
         return 'apcu';

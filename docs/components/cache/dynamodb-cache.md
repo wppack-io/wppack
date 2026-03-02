@@ -1,4 +1,4 @@
-# DynamoDbCache コンポーネント
+# DynamoDB Cache Bridge
 
 **パッケージ:** `wppack/dynamodb-cache`
 **名前空間:** `WpPack\Component\Cache\Bridge\DynamoDb\`

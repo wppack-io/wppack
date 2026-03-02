@@ -41,6 +41,7 @@ WordPress プラグインとして配布。Component を利用。
 | Component | パッケージ名 | 説明 |
 |-----------|-------------|------|
 | Cache | wppack/cache | キャッシュインターフェース |
+| RedisCache | wppack/redis-cache | Redis / Valkey キャッシュ |
 | ElastiCacheAuth | wppack/elasticache-auth | ElastiCache IAM 認証 |
 | DynamoDbCache | wppack/dynamodb-cache | DynamoDB キャッシュ |
 | MemcachedCache | wppack/memcached-cache | Memcached キャッシュ |
@@ -113,6 +114,11 @@ wppack/media, wppack/filesystem, wppack/hook
 
 wppack/elasticache-auth
     + async-aws/core
+
+wppack/redis-cache
+    ↓ requires
+wppack/cache
+    + ext-redis / ext-relay / predis/predis
 
 wppack/dynamodb-cache
     ↓ requires
