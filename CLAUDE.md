@@ -6,6 +6,23 @@
 
 WpPackは、WordPressをモダンPHPで拡張するコンポーネントライブラリのモノレポです。
 
+## アーキテクチャ方針
+
+### マルチクラウド対応（AWS / GCP / Azure）
+
+コアインターフェース（Abstraction Layer）はクラウド非依存。プロバイダ固有の実装は Bridge パッケージとして分離する。AWS ファーストで開発し、GCP・Azure に順次拡大。
+
+- 例: Mailer（コア） → AmazonMailer / AzureMailer / SendGridMailer
+- 例: Cache（コア） → RedisCache / DynamoDbCache / MemcachedCache / ApcuCache
+- Bridge 命名: `wppack/{provider}-{component}`
+
+### サーバーレス環境対応
+
+Lambda・Cloud Functions 等のサーバーレス環境をファーストクラスでサポート。ローカル / サーバーフル環境でも動作するグレースフルフォールバックを提供する。
+
+- 例: Messenger（SQS/Lambda → 同期フォールバック）、Scheduler（EventBridge → WP-Cron フォールバック）
+- 詳細: [docs/architecture/infrastructure.md](docs/architecture/infrastructure.md)
+
 ## パッケージカテゴリ
 
 ### Component（ライブラリ）
