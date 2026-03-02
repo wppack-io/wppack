@@ -227,6 +227,14 @@ add_action('init', function () {
 });
 ```
 
+## Named Hook Attributes
+
+### AJAX リファラーチェック
+
+```php
+#[CheckAjaxRefererAction(priority: 10)]       // check_ajax_referer 実行時
+```
+
 ## このコンポーネントを使用すべき場面
 
 **最適な用途：**
