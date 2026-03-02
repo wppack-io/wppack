@@ -7,6 +7,7 @@ namespace WpPack\Component\Cache\Bridge\Redis\Adapter;
 use WpPack\Component\Cache\Adapter\AdapterFactoryInterface;
 use WpPack\Component\Cache\Adapter\AdapterInterface;
 use WpPack\Component\Cache\Adapter\Dsn;
+use WpPack\Component\Cache\Bridge\ElastiCacheAuth\ElastiCacheIamTokenGenerator;
 use WpPack\Component\Cache\Exception\AdapterException;
 use WpPack\Component\Cache\Exception\UnsupportedSchemeException;
 
@@ -133,12 +134,18 @@ final class RedisAdapterFactory implements AdapterFactoryInterface
         }
 
         // String options
-        $stringOptions = ['persistent_id', 'failover'];
+        $stringOptions = ['persistent_id', 'failover', 'iam_region', 'iam_user_id'];
         foreach ($stringOptions as $optName) {
             $value = $dsn->getOption($optName);
             if ($value !== null) {
                 $params[$optName] = $value;
             }
+        }
+
+        // iam_auth (boolean/string)
+        $iamAuthValue = $dsn->getOption('iam_auth');
+        if ($iamAuthValue !== null) {
+            $params['iam_auth'] = $iamAuthValue;
         }
 
         // Cluster / Sentinel flags
@@ -171,6 +178,37 @@ final class RedisAdapterFactory implements AdapterFactoryInterface
                 continue;
             }
             $params[$key] = $value;
+        }
+
+        // IAM authentication shortcut
+        $iamAuth = $params['iam_auth'] ?? null;
+
+        if ($iamAuth !== null && $iamAuth !== '' && $iamAuth !== '0' && $iamAuth !== 'false' && $iamAuth !== false) {
+            if (!class_exists(ElastiCacheIamTokenGenerator::class)) {
+                throw new AdapterException(
+                    'IAM authentication requires the wppack/elasticache-auth package. '
+                    . 'Run: composer require wppack/elasticache-auth',
+                );
+            }
+
+            $iamRegion = $params['iam_region']
+                ?? throw new AdapterException('iam_region is required when iam_auth is enabled.');
+            $iamUserId = $params['iam_user_id']
+                ?? throw new AdapterException('iam_user_id is required when iam_auth is enabled.');
+
+            if (!$tls) {
+                throw new AdapterException('IAM authentication requires TLS. Use rediss:// or valkeys:// scheme.');
+            }
+
+            $host = $params['host']
+                ?? throw new AdapterException('Host is required for IAM authentication.');
+            $port = (int) ($params['port'] ?? 6379);
+
+            $generator = new ElastiCacheIamTokenGenerator($iamRegion, $iamUserId);
+            $params['credential_provider'] = $generator->createProvider($host . ':' . $port);
+
+            // Remove static auth if set (IAM replaces it)
+            unset($params['auth']);
         }
 
         return $params;

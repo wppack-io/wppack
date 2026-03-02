@@ -204,7 +204,7 @@ final class RedisAdapter extends AbstractAdapter
         $persistent = (bool) ($this->connectionParams['persistent'] ?? false);
         $persistentId = $this->connectionParams['persistent_id'] ?? '';
         $retryInterval = (int) ($this->connectionParams['retry_interval'] ?? 0);
-        $password = $this->connectionParams['auth'] ?? null;
+        $password = $this->resolvePassword();
         $dbindex = (int) ($this->connectionParams['dbindex'] ?? 0);
         $tls = (bool) ($this->connectionParams['tls'] ?? false);
         $tcpKeepalive = (float) ($this->connectionParams['tcp_keepalive'] ?? 0);
@@ -318,6 +318,21 @@ final class RedisAdapter extends AbstractAdapter
         $redis->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_NONE);
 
         return $redis;
+    }
+
+    private function resolvePassword(): ?string
+    {
+        /** @var (\Closure(): string)|null $provider */
+        $provider = $this->connectionParams['credential_provider'] ?? null;
+
+        if ($provider !== null) {
+            return $provider();
+        }
+
+        /** @var string|null $auth */
+        $auth = $this->connectionParams['auth'] ?? null;
+
+        return ($auth !== null && $auth !== '') ? $auth : null;
     }
 
     private function deleteByPrefix(\Redis $redis, string $prefix): bool

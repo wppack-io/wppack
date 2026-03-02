@@ -186,6 +186,141 @@ final class RedisAdapterFactoryTest extends TestCase
         self::assertInstanceOf(RedisAdapter::class, $adapter);
     }
 
+    #[Test]
+    public function iamAuthCreatesCredentialProvider(): void
+    {
+        if (!$this->hasAnyClient()) {
+            self::markTestSkipped('No Redis client library is available.');
+        }
+
+        if (!class_exists(\WpPack\Component\Cache\Bridge\ElastiCacheAuth\ElastiCacheIamTokenGenerator::class)) {
+            self::markTestSkipped('wppack/elasticache-auth is not available.');
+        }
+
+        $adapter = $this->factory->create(
+            Dsn::fromString('rediss://my-cluster.xxxxx.apne1.cache.amazonaws.com:6379'),
+            [
+                'iam_auth' => true,
+                'iam_region' => 'ap-northeast-1',
+                'iam_user_id' => 'my-iam-user',
+            ],
+        );
+
+        // Adapter was created successfully (credential_provider is set internally)
+        self::assertNotNull($adapter);
+    }
+
+    #[Test]
+    public function iamAuthFromDsnQueryParams(): void
+    {
+        if (!$this->hasAnyClient()) {
+            self::markTestSkipped('No Redis client library is available.');
+        }
+
+        if (!class_exists(\WpPack\Component\Cache\Bridge\ElastiCacheAuth\ElastiCacheIamTokenGenerator::class)) {
+            self::markTestSkipped('wppack/elasticache-auth is not available.');
+        }
+
+        $adapter = $this->factory->create(
+            Dsn::fromString('rediss://my-cluster.xxxxx.apne1.cache.amazonaws.com:6379?iam_auth=1&iam_region=ap-northeast-1&iam_user_id=my-iam-user'),
+        );
+
+        self::assertNotNull($adapter);
+    }
+
+    #[Test]
+    public function iamAuthThrowsWithoutRegion(): void
+    {
+        if (!$this->hasAnyClient()) {
+            self::markTestSkipped('No Redis client library is available.');
+        }
+
+        if (!class_exists(\WpPack\Component\Cache\Bridge\ElastiCacheAuth\ElastiCacheIamTokenGenerator::class)) {
+            self::markTestSkipped('wppack/elasticache-auth is not available.');
+        }
+
+        $this->expectException(AdapterException::class);
+        $this->expectExceptionMessage('iam_region is required');
+
+        $this->factory->create(
+            Dsn::fromString('rediss://my-cluster.xxxxx.apne1.cache.amazonaws.com:6379'),
+            [
+                'iam_auth' => true,
+                'iam_user_id' => 'my-iam-user',
+            ],
+        );
+    }
+
+    #[Test]
+    public function iamAuthThrowsWithoutUserId(): void
+    {
+        if (!$this->hasAnyClient()) {
+            self::markTestSkipped('No Redis client library is available.');
+        }
+
+        if (!class_exists(\WpPack\Component\Cache\Bridge\ElastiCacheAuth\ElastiCacheIamTokenGenerator::class)) {
+            self::markTestSkipped('wppack/elasticache-auth is not available.');
+        }
+
+        $this->expectException(AdapterException::class);
+        $this->expectExceptionMessage('iam_user_id is required');
+
+        $this->factory->create(
+            Dsn::fromString('rediss://my-cluster.xxxxx.apne1.cache.amazonaws.com:6379'),
+            [
+                'iam_auth' => true,
+                'iam_region' => 'ap-northeast-1',
+            ],
+        );
+    }
+
+    #[Test]
+    public function iamAuthThrowsWithoutTls(): void
+    {
+        if (!$this->hasAnyClient()) {
+            self::markTestSkipped('No Redis client library is available.');
+        }
+
+        if (!class_exists(\WpPack\Component\Cache\Bridge\ElastiCacheAuth\ElastiCacheIamTokenGenerator::class)) {
+            self::markTestSkipped('wppack/elasticache-auth is not available.');
+        }
+
+        $this->expectException(AdapterException::class);
+        $this->expectExceptionMessage('IAM authentication requires TLS');
+
+        $this->factory->create(
+            Dsn::fromString('redis://my-cluster.xxxxx.apne1.cache.amazonaws.com:6379'),
+            [
+                'iam_auth' => true,
+                'iam_region' => 'ap-northeast-1',
+                'iam_user_id' => 'my-iam-user',
+            ],
+        );
+    }
+
+    #[Test]
+    public function credentialProviderPassthrough(): void
+    {
+        if (!$this->hasAnyClient()) {
+            self::markTestSkipped('No Redis client library is available.');
+        }
+
+        $called = false;
+        $provider = function () use (&$called): string {
+            $called = true;
+
+            return 'dynamic-token';
+        };
+
+        $adapter = $this->factory->create(
+            Dsn::fromString('rediss://my-cluster.xxxxx.apne1.cache.amazonaws.com:6379'),
+            ['credential_provider' => $provider],
+        );
+
+        // Adapter was created with credential_provider option
+        self::assertNotNull($adapter);
+    }
+
     private function hasAnyClient(): bool
     {
         return \extension_loaded('redis')

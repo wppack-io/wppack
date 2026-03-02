@@ -59,6 +59,14 @@ component_management:
       name: Cache
       paths:
         - src/Component/Cache/src/**
+    - component_id: redis_cache
+      name: RedisCache
+      paths:
+        - src/Component/Cache/Bridge/Redis/src/**
+    - component_id: elasticache_auth
+      name: ElastiCacheAuth
+      paths:
+        - src/Component/Cache/Bridge/ElastiCacheAuth/src/**
     - component_id: database
       name: Database
       paths:

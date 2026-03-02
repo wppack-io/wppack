@@ -335,3 +335,6 @@ class CacheInvalidator
 
 ### ドロップイン利用時
 - Redis / Valkey: `wppack/redis-cache`（ext-redis, ext-relay, または predis/predis のいずれかが必要）
+
+### オプション
+- AWS ElastiCache IAM 認証: `wppack/elasticache-auth`（`async-aws/core` が必要。[詳細](elasticache-auth.md)）

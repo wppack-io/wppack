@@ -41,6 +41,7 @@ WordPress プラグインとして配布。Component を利用。
 | Component | パッケージ名 | 説明 |
 |-----------|-------------|------|
 | Cache | wppack/cache | キャッシュインターフェース |
+| ElastiCacheAuth | wppack/elasticache-auth | ElastiCache IAM 認証 |
 | Database | wppack/database | データベース抽象化 |
 | Query | wppack/query | クエリビルダー |
 | Security | wppack/security | セキュリティユーティリティ |
@@ -106,6 +107,9 @@ wppack/s3-storage-plugin
     ↓ requires
 wppack/media, wppack/filesystem, wppack/hook
     + async-aws/s3
+
+wppack/elasticache-auth
+    + async-aws/core
 
 wppack/amazon-mailer
     ↓ requires
@@ -227,6 +231,15 @@ if (!function_exists('wp_remote_request')) {
 - `replace` セクションで自パッケージを宣言
 - splitsh-lite で各パッケージリポジトリに分割公開
 - GitHub Actions で CI/CD 実行
+
+### コンポーネント追加時のチェックリスト
+
+新しいコンポーネント / Bridge パッケージを追加する際は、以下のファイルをすべて更新すること:
+
+1. **ルート `composer.json`** — `autoload.psr-4`、`autoload-dev.psr-4`、`replace` に追加
+2. **`codecov.yml`** — `individual_components` に `component_id` / `name` / `paths` を追加
+3. **`CLAUDE.md`** — コンポーネント一覧テーブル、主要な依存関係に追加
+4. **`docs/`** — 該当コンポーネントのドキュメント作成・更新
 
 ### ディレクトリ構造
 

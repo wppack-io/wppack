@@ -1,0 +1,15 @@
+{
+    "name": "wppack/elasticache-auth",
+    "description": "AWS ElastiCache IAM authentication for WpPack Cache",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "async-aws/core": "^1.28"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpPack\\Component\\Cache\\Bridge\\ElastiCacheAuth\\": "src/"
+        }
+    }
+}

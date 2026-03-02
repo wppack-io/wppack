@@ -326,6 +326,27 @@ define('WPPACK_CACHE_DSN', 'rediss:?host[my-cluster.xxxxx.clustercfg.apne1.cache
 define('WPPACK_CACHE_DSN', 'redis:?host[my-cluster.xxxxx.clustercfg.apne1.cache.amazonaws.com:6379]&redis_cluster=1&failover=distribute');
 ```
 
+### IAM 認証
+
+ElastiCache の IAM 認証を使用する場合は、`wppack/elasticache-auth` パッケージをインストールしてください。IAM 認証では静的パスワードの代わりに、SigV4 署名付きトークンが接続ごとに動的に生成されます。
+
+```bash
+composer require wppack/elasticache-auth
+```
+
+```php
+// wp-config.php
+define('WPPACK_CACHE_DSN', 'rediss://my-cluster.xxxxx.apne1.cache.amazonaws.com:6379');
+define('WPPACK_CACHE_OPTIONS', [
+    'iam_auth' => true,
+    'iam_region' => 'ap-northeast-1',
+    'iam_user_id' => 'my-iam-user',
+]);
+```
+
+> [!TIP]
+> IAM 認証の詳細な設定方法、AWS IAM ポリシー、トラブルシューティングについては [elasticache-auth.md](elasticache-auth.md) を参照してください。
+
 ### 推奨オプション
 
 ```php

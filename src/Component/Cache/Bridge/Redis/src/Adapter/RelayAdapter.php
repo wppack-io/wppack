@@ -203,7 +203,7 @@ final class RelayAdapter extends AbstractAdapter
         $persistent = (bool) ($this->connectionParams['persistent'] ?? false);
         $persistentId = $this->connectionParams['persistent_id'] ?? '';
         $retryInterval = (int) ($this->connectionParams['retry_interval'] ?? 0);
-        $password = $this->connectionParams['auth'] ?? null;
+        $password = $this->resolvePassword();
         $dbindex = (int) ($this->connectionParams['dbindex'] ?? 0);
         $tls = (bool) ($this->connectionParams['tls'] ?? false);
         $tcpKeepalive = (float) ($this->connectionParams['tcp_keepalive'] ?? 0);
@@ -317,6 +317,21 @@ final class RelayAdapter extends AbstractAdapter
         $relay->setOption(\Relay\Relay::OPT_SERIALIZER, \Relay\Relay::SERIALIZER_NONE);
 
         return $relay;
+    }
+
+    private function resolvePassword(): ?string
+    {
+        /** @var (\Closure(): string)|null $provider */
+        $provider = $this->connectionParams['credential_provider'] ?? null;
+
+        if ($provider !== null) {
+            return $provider();
+        }
+
+        /** @var string|null $auth */
+        $auth = $this->connectionParams['auth'] ?? null;
+
+        return ($auth !== null && $auth !== '') ? $auth : null;
     }
 
     private function deleteByPrefix(\Relay\Relay $relay, string $prefix): bool

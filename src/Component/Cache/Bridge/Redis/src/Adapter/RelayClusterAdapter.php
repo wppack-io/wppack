@@ -185,7 +185,7 @@ final class RelayClusterAdapter extends AbstractAdapter
         $timeout = (float) ($this->connectionParams['timeout'] ?? 30);
         $readTimeout = (float) ($this->connectionParams['read_timeout'] ?? 0);
         $persistent = (bool) ($this->connectionParams['persistent'] ?? false);
-        $password = $this->connectionParams['auth'] ?? null;
+        $password = $this->resolvePassword();
         $tls = (bool) ($this->connectionParams['tls'] ?? false);
 
         $seeds = [];
@@ -217,6 +217,21 @@ final class RelayClusterAdapter extends AbstractAdapter
         $relay->setOption(\Relay\Relay::OPT_SERIALIZER, \Relay\Relay::SERIALIZER_NONE);
 
         return $relay;
+    }
+
+    private function resolvePassword(): ?string
+    {
+        /** @var (\Closure(): string)|null $provider */
+        $provider = $this->connectionParams['credential_provider'] ?? null;
+
+        if ($provider !== null) {
+            return $provider();
+        }
+
+        /** @var string|null $auth */
+        $auth = $this->connectionParams['auth'] ?? null;
+
+        return ($auth !== null && $auth !== '') ? $auth : null;
     }
 
     private function deleteByPrefix(\Relay\Cluster $relay, string $prefix): bool

@@ -197,6 +197,14 @@ final class PredisAdapter extends AbstractAdapter
     private function connect(): Client
     {
         $params = $this->connectionParams;
+        $password = $this->resolvePassword();
+
+        if ($password !== null) {
+            $params['auth'] = $password;
+        } else {
+            unset($params['auth']);
+        }
+
         $connectionParams = $this->buildPredisConnectionParams($params);
         $clientOptions = [];
 
@@ -294,6 +302,21 @@ final class PredisAdapter extends AbstractAdapter
         }
 
         return $connection;
+    }
+
+    private function resolvePassword(): ?string
+    {
+        /** @var (\Closure(): string)|null $provider */
+        $provider = $this->connectionParams['credential_provider'] ?? null;
+
+        if ($provider !== null) {
+            return $provider();
+        }
+
+        /** @var string|null $auth */
+        $auth = $this->connectionParams['auth'] ?? null;
+
+        return ($auth !== null && $auth !== '') ? $auth : null;
     }
 
     private function deleteByPrefix(Client $client, string $prefix): bool
