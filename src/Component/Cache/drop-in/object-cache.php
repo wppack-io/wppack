@@ -50,6 +50,8 @@ function wp_cache_init(): void
     if (\defined('WPPACK_CACHE_DSN') && WPPACK_CACHE_DSN !== '') {
         try {
             $options = \defined('WPPACK_CACHE_OPTIONS') ? WPPACK_CACHE_OPTIONS : [];
+            $prefix = \defined('WPPACK_CACHE_PREFIX') ? WPPACK_CACHE_PREFIX : 'wp:';
+            $options['key_prefix'] ??= $prefix;
             $adapter = Adapter::fromDsn(WPPACK_CACHE_DSN, $options);
 
             if (!$adapter->isAvailable()) {

@@ -15,3 +15,9 @@ services:
       - '6379:6379'
     tmpfs:
       - /data
+  dynamodb:
+    image: amazon/dynamodb-local:latest
+    ports:
+      - '8000:8000'
+    tmpfs:
+      - /home/dynamodblocal/data

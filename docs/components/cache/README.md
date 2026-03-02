@@ -251,6 +251,7 @@ WpPack の Object Cache ドロップインは Mailer コンポーネントと同
 | バックエンド | Bridge パッケージ | スキーム | 対応クライアント |
 |------------|-----------------|---------|---------------|
 | Redis / Valkey | [`wppack/redis-cache`](redis-cache.md) | `redis://`, `rediss://`, `valkey://`, `valkeys://` | ext-redis, Relay, Predis |
+| DynamoDB | [`wppack/dynamodb-cache`](dynamodb-cache.md) | `dynamodb://` | async-aws/dynamo-db |
 
 ### クライアント自動検出
 
@@ -335,6 +336,7 @@ class CacheInvalidator
 
 ### ドロップイン利用時
 - Redis / Valkey: `wppack/redis-cache`（ext-redis, ext-relay, または predis/predis のいずれかが必要）
+- DynamoDB: `wppack/dynamodb-cache`（`async-aws/dynamo-db` が必要。[詳細](dynamodb-cache.md)）
 
 ### オプション
 - AWS ElastiCache IAM 認証: `wppack/elasticache-auth`（`async-aws/core` が必要。[詳細](elasticache-auth.md)）

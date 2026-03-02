@@ -67,6 +67,10 @@ component_management:
       name: ElastiCacheAuth
       paths:
         - src/Component/Cache/Bridge/ElastiCacheAuth/src/**
+    - component_id: dynamodb_cache
+      name: DynamoDbCache
+      paths:
+        - src/Component/Cache/Bridge/DynamoDb/src/**
     - component_id: database
       name: Database
       paths:

@@ -42,6 +42,7 @@ WordPress プラグインとして配布。Component を利用。
 |-----------|-------------|------|
 | Cache | wppack/cache | キャッシュインターフェース |
 | ElastiCacheAuth | wppack/elasticache-auth | ElastiCache IAM 認証 |
+| DynamoDbCache | wppack/dynamodb-cache | DynamoDB キャッシュ |
 | Database | wppack/database | データベース抽象化 |
 | Query | wppack/query | クエリビルダー |
 | Security | wppack/security | セキュリティユーティリティ |
@@ -110,6 +111,11 @@ wppack/media, wppack/filesystem, wppack/hook
 
 wppack/elasticache-auth
     + async-aws/core
+
+wppack/dynamodb-cache
+    ↓ requires
+wppack/cache
+    + async-aws/dynamo-db
 
 wppack/amazon-mailer
     ↓ requires

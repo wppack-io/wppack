@@ -5,6 +5,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "async-aws/dynamo-db": "^3.0",
         "async-aws/ses": "^1.14",
         "psr/container": "^2.0",
         "psr/http-client": "^1.0",
@@ -80,6 +81,7 @@
             "WpPack\\Component\\Mailer\\Bridge\\SendGrid\\": "src/Component/Mailer/Bridge/SendGrid/src/",
             "WpPack\\Component\\Cache\\Bridge\\ElastiCacheAuth\\": "src/Component/Cache/Bridge/ElastiCacheAuth/src/",
             "WpPack\\Component\\Cache\\Bridge\\Redis\\": "src/Component/Cache/Bridge/Redis/src/",
+            "WpPack\\Component\\Cache\\Bridge\\DynamoDb\\": "src/Component/Cache/Bridge/DynamoDb/src/",
             "WpPack\\Plugin\\AmazonMailerPlugin\\": "src/Plugin/AmazonMailerPlugin/src/"
         }
     },
@@ -127,7 +129,8 @@
             "WpPack\\Component\\User\\Tests\\": "src/Component/User/tests/",
             "WpPack\\Component\\Widget\\Tests\\": "src/Component/Widget/tests/",
             "WpPack\\Component\\Cache\\Bridge\\ElastiCacheAuth\\Tests\\": "src/Component/Cache/Bridge/ElastiCacheAuth/tests/",
-            "WpPack\\Component\\Cache\\Bridge\\Redis\\Tests\\": "src/Component/Cache/Bridge/Redis/tests/"
+            "WpPack\\Component\\Cache\\Bridge\\Redis\\Tests\\": "src/Component/Cache/Bridge/Redis/tests/",
+            "WpPack\\Component\\Cache\\Bridge\\DynamoDb\\Tests\\": "src/Component/Cache/Bridge/DynamoDb/tests/"
         }
     },
     "replace": {
@@ -184,6 +187,7 @@
         "wppack/amazon-mailer-plugin": "self.version",
         "wppack/monolog-logger": "self.version",
         "wppack/redis-cache": "self.version",
+        "wppack/dynamodb-cache": "self.version",
         "wppack/elasticache-auth": "self.version"
     },
     "config": {
