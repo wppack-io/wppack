@@ -78,11 +78,19 @@ jobs:
         run: cp tests/wp-config.php.dist tests/wp-config.php
 
       - name: Run tests
-        run: vendor/bin/phpunit --coverage-clover coverage.xml
+        run: vendor/bin/phpunit --coverage-clover coverage.xml --log-junit junit.xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
           files: coverage.xml
+          flags: php${{ matrix.php }}
+          use_oidc: true
+
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v5
+        with:
+          files: junit.xml
           flags: php${{ matrix.php }}
           use_oidc: true
