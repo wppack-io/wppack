@@ -22,6 +22,11 @@ final class NativeTransportTest extends TestCase
     #[Test]
     public function sendCallsNativePostSend(): void
     {
+        $sendmailPath = ini_get('sendmail_path');
+        if (!$sendmailPath || !is_executable(explode(' ', $sendmailPath)[0])) {
+            self::markTestSkipped('sendmail is not available.');
+        }
+
         $transport = new NativeTransport();
         $phpMailer = new PhpMailer(true);
         $phpMailer->setFrom('sender@example.com', 'Sender');
@@ -30,14 +35,7 @@ final class NativeTransportTest extends TestCase
         $phpMailer->Body = 'Hello';
         $phpMailer->Mailer = 'mail';
 
-        // nativePostSend() calls PHP's mail(). On CI without sendmail the call
-        // fails, so we catch the expected exception in that environment.
-        try {
-            $transport->send($phpMailer);
-            self::assertTrue(true);
-        } catch (\WpPack\Component\Mailer\Exception\TransportException $e) {
-            // Expected on systems without a local MTA (e.g. CI)
-            self::assertStringContainsString('mail function', $e->getMessage());
-        }
+        $transport->send($phpMailer);
+        self::assertTrue(true);
     }
 }
