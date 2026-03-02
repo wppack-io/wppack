@@ -43,6 +43,14 @@ class Kernel
     public static function registerPlugin(PluginInterface $plugin): void
     {
         self::getInstance()->addPlugin($plugin);
+
+        $pluginFile = $plugin->getPluginFile();
+        if (\function_exists('register_activation_hook')) {
+            register_activation_hook($pluginFile, [$plugin, 'onActivate']);
+        }
+        if (\function_exists('register_deactivation_hook')) {
+            register_deactivation_hook($pluginFile, [$plugin, 'onDeactivate']);
+        }
     }
 
     public static function registerTheme(ThemeInterface $theme): void

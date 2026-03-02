@@ -128,6 +128,11 @@ final class KernelTest extends TestCase
                 return [$this->pass];
             }
 
+            public function getPluginFile(): string
+            {
+                return __FILE__;
+            }
+
             public function boot(Container $container): void {}
 
             public function onActivate(): void {}
@@ -164,6 +169,11 @@ final class KernelTest extends TestCase
         $plugin = new class ($order) implements PluginInterface {
             /** @param list<string> $order */
             public function __construct(private array &$order) {}
+
+            public function getPluginFile(): string
+            {
+                return __FILE__;
+            }
 
             public function register(ContainerBuilder $builder): void
             {

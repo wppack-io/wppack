@@ -57,7 +57,9 @@ use WpPack\Component\Kernel\Kernel;
 Kernel::registerTheme(new MyTheme());
 ```
 
-`registerPlugin()` / `registerTheme()` は初回呼び出し時に共有の Kernel インスタンスを自動生成し、`init` フックで `boot()` をスケジュールします。各プラグイン/テーマは互いの存在を意識する必要がありません。
+`registerPlugin()` は初回呼び出し時に共有の Kernel インスタンスを自動生成し、`init` フックで `boot()` をスケジュールします。`PluginInterface::getPluginFile()` が返すプラグインメインファイルのパスを使って `register_activation_hook()` / `register_deactivation_hook()` が自動登録されるため、エントリーポイントで手動登録する必要はありません。
+
+`registerTheme()` も同様に Kernel インスタンスの自動生成と `boot()` のスケジュールを行います。各プラグイン/テーマは互いの存在を意識する必要がありません。
 
 ### コンストラクタオプション
 
@@ -95,6 +97,11 @@ use WpPack\Component\Kernel\PluginInterface;
 
 final class MyPlugin implements PluginInterface
 {
+    public function getPluginFile(): string
+    {
+        return dirname(__DIR__) . '/my-plugin.php';
+    }
+
     public function register(ContainerBuilder $builder): void
     {
         $discovery = new ServiceDiscovery($builder);
@@ -208,6 +215,8 @@ use WpPack\Component\Kernel\Kernel;
 Kernel::registerPlugin(new MyPlugin());
 ```
 
+`Kernel::registerPlugin()` を呼ぶだけで、`PluginInterface::getPluginFile()` が返すパスを使って `onActivate()` / `onDeactivate()` が WordPress の有効化・無効化フックに自動登録されます。
+
 ```php
 // MyPlugin.php
 use WpPack\Component\DependencyInjection\ContainerBuilder;
@@ -218,6 +227,11 @@ use WpPack\Component\Kernel\PluginInterface;
 
 final class MyPlugin implements PluginInterface
 {
+    public function getPluginFile(): string
+    {
+        return dirname(__DIR__) . '/my-plugin.php';
+    }
+
     public function register(ContainerBuilder $builder): void
     {
         // WordPress サービスの登録
@@ -289,7 +303,7 @@ class CachedKernel extends Kernel
 
 | メソッド | 戻り値 | 説明 |
 |---------|--------|------|
-| `registerPlugin(PluginInterface $plugin)` | `void` | 共有インスタンスにプラグインを登録 |
+| `registerPlugin(PluginInterface $plugin)` | `void` | 共有インスタンスにプラグインを登録し、有効化・無効化フックを自動登録 |
 | `registerTheme(ThemeInterface $theme)` | `void` | 共有インスタンスにテーマを登録 |
 | `getInstance()` | `self` | 共有インスタンスを取得（初回呼び出し時に自動生成） |
 
@@ -313,6 +327,7 @@ class CachedKernel extends Kernel
 
 | メソッド | 戻り値 | 説明 |
 |---------|--------|------|
+| `getPluginFile()` | `string` | プラグインメインファイルのパスを返す |
 | `register(ContainerBuilder $builder)` | `void` | サービスを ContainerBuilder に登録 |
 | `getCompilerPasses()` | `CompilerPassInterface[]` | コンパイラーパスを返す |
 | `boot(Container $container)` | `void` | コンテナ確定後の初期化処理 |
