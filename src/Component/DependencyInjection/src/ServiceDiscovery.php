@@ -190,9 +190,10 @@ final class ServiceDiscovery
                 }
 
                 throw new \RuntimeException(sprintf(
-                    'Unable to resolve option "%s" for parameter "$%s": option is not set and no default value is provided.',
+                    'Unable to resolve option "%s" for parameter "$%s": nested key "%s" not found and no default value is provided.',
                     $name,
                     $parameter->getName(),
+                    $key,
                 ));
             }
 

@@ -204,7 +204,7 @@ $builder->register(PostService::class)->autowire();
 
 ### 自動登録
 
-スキャン対象ディレクトリ内のすべてのクラスは、Symfony と同様にデフォルトでサービスとして登録されます。`#[AsService]` のような登録マーカーは不要です：
+スキャン対象ディレクトリ内のすべてのクラスは、Symfony と同様にデフォルトでサービスとして登録されます。特別な登録マーカーは不要です：
 
 ```php
 final class PostRepository
@@ -336,10 +336,7 @@ $discovery->discover(
 $discovery->discover(
     __DIR__ . '/src',
     'App\\',
-    excludes: [
-        __DIR__ . '/src/Dto/',
-        __DIR__ . '/src/Entity/',
-    ],
+    excludes: ['Dto/*', 'Entity/*'],
 );
 ```
 
@@ -401,7 +398,7 @@ return static function (ContainerConfigurator $services): void {
 
     // load() - ディレクトリスキャン
     $services->load('App\\', dirname(__DIR__) . '/src/')
-        ->exclude([dirname(__DIR__) . '/src/Dto/']);
+        ->exclude('Dto/*');
 
     // set() - 個別サービスの設定
     $services->set(MyService::class)

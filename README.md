@@ -18,7 +18,6 @@ alternatives.
 |---------|-------------|
 | `wppack/hook` | Type-safe hook (action/filter) registration via attributes |
 | `wppack/dependency-injection` | PSR-11 compatible dependency injection container |
-| `wppack/config` | Configuration management |
 | `wppack/event-dispatcher` | PSR-14 compatible event dispatcher |
 | `wppack/filesystem` | Filesystem abstraction |
 | `wppack/kernel` | Application kernel and bootstrap |
@@ -88,7 +87,7 @@ Feature Layer       wppack/messenger, wppack/scheduler, wppack/mailer, ...
                          |
 Abstraction Layer   wppack/hook, wppack/event-dispatcher, wppack/cache, ...
                          |
-Infrastructure      wppack/kernel, wppack/dependency-injection, wppack/config
+Infrastructure      wppack/kernel, wppack/dependency-injection
                          |
                     WordPress Core
 ```
