@@ -204,8 +204,11 @@ class ContactFormHandler
 ### Nonce フック
 
 ```php
-#[CheckAdminRefererAction(priority: 10)]    // 管理画面 Nonce チェック
-#[CheckAjaxRefererAction(priority: 10)]     // AJAX Nonce チェック
+#[CheckAdminRefererAction(priority: 10)]    // 管理画面 Nonce チェック（Nonce コンポーネント）
+```
+
+```php
+#[CheckAjaxRefererAction(priority: 10)]     // AJAX Nonce チェック（Ajax コンポーネント）
 ```
 
 ### 使用例：認証セキュリティシステム

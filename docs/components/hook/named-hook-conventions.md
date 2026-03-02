@@ -182,7 +182,8 @@ composer require wppack/hook
 | **Taxonomy** | `CreateTermAction`, `EditTermAction` 等 |
 | **Block** | `EnqueueBlockEditorAssetsAction`, `RenderBlockFilter` 等 |
 | **Security** | `WpLoginAction`, `AuthenticateFilter`, `DetermineCurrentUserFilter`, `CheckPasswordFilter` 等 |
-| **Nonce** | `CheckAdminRefererAction`, `CheckAjaxRefererAction`, `NonceLifeFilter` 等 |
+| **Nonce** | `CheckAdminRefererAction`, `NonceLifeFilter` 等 |
+| **Ajax** | `WpAjaxAction`, `WpAjaxNoprivAction`, `CheckAjaxRefererAction` |
 | **Routing** | `RewriteRulesArrayFilter`, `TemplateRedirectAction`, `ParseRequestAction`, `QueryVarsFilter` 等 |
 | **Scheduler** | `CronSchedulesFilter`, `ScheduledEventAction` 等 |
 | **Database** | `QueryFilter`, `DbDeltaQueriesFilter` 等 |

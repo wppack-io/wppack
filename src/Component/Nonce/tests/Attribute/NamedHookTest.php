@@ -11,7 +11,6 @@ use WpPack\Component\Hook\Attribute\Filter;
 use WpPack\Component\Hook\Hook;
 use WpPack\Component\Hook\HookType;
 use WpPack\Component\Nonce\Attribute\Action\CheckAdminRefererAction;
-use WpPack\Component\Nonce\Attribute\Action\CheckAjaxRefererAction;
 use WpPack\Component\Nonce\Attribute\Filter\NonceLifeFilter;
 use WpPack\Component\Nonce\Attribute\Filter\NonceUserLoggedOutFilter;
 
@@ -25,14 +24,6 @@ final class NamedHookTest extends TestCase
         self::assertSame('check_admin_referer', $action->hook);
         self::assertSame(HookType::Action, $action->type);
         self::assertSame(10, $action->priority);
-    }
-
-    #[Test]
-    public function checkAjaxRefererActionHasCorrectHookName(): void
-    {
-        $action = new CheckAjaxRefererAction();
-
-        self::assertSame('check_ajax_referer', $action->hook);
     }
 
     #[Test]
@@ -65,7 +56,6 @@ final class NamedHookTest extends TestCase
     public function allActionsExtendAction(): void
     {
         self::assertInstanceOf(Action::class, new CheckAdminRefererAction());
-        self::assertInstanceOf(Action::class, new CheckAjaxRefererAction());
     }
 
     #[Test]
