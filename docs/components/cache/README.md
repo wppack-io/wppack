@@ -235,6 +235,9 @@ Symfony Cache 互換の DSN 形式をサポートします。
 
 ### アダプタアーキテクチャ
 
+> [!TIP]
+> アダプタの内部設計、Bridge パッケージの構成、新しい Bridge の追加手順については [adapter-architecture.md](adapter-architecture.md) を参照してください。
+
 WpPack の Object Cache ドロップインは Mailer コンポーネントと同じ Bridge パターンを採用しています:
 
 - **`ObjectCache`**: WP_Object_Cache エンジン。ランタイムキャッシュ、グループ管理、シリアライズ、マルチサイト対応を担当
