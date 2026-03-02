@@ -96,6 +96,22 @@ final class ServiceDiscoveryTest extends TestCase
     }
 
     #[Test]
+    public function absolutePathExcludeDoesNotMatch(): void
+    {
+        $builder = new ContainerBuilder();
+        $discovery = new ServiceDiscovery($builder);
+
+        $discovery->discover(
+            __DIR__ . '/Fixtures',
+            'WpPack\\Component\\DependencyInjection\\Tests\\Fixtures',
+            [__DIR__ . '/Fixtures/LazyService.php'],
+        );
+
+        // Absolute paths don't match relative paths in fnmatch(), so nothing is excluded
+        self::assertTrue($builder->hasDefinition(LazyService::class));
+    }
+
+    #[Test]
     public function registersAliases(): void
     {
         $builder = new ContainerBuilder();
