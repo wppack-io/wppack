@@ -6,6 +6,7 @@ namespace WpPack\Component\Config\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Config\Attribute\AsConfig;
 use WpPack\Component\Config\ConfigResolver;
 use WpPack\Component\Config\Exception\ConfigResolverException;
 use WpPack\Component\Config\Tests\Fixtures\DefaultConfig;
@@ -189,6 +190,22 @@ final class ConfigResolverTest extends TestCase
         $config = $this->resolver->resolve(MixedConfig::class);
 
         self::assertSame('my-secret-key', $config->apiKey);
+    }
+
+    #[Test]
+    public function asConfigAttributeDefaultPrefix(): void
+    {
+        $attr = new AsConfig();
+
+        self::assertSame('', $attr->prefix);
+    }
+
+    #[Test]
+    public function asConfigAttributeCustomPrefix(): void
+    {
+        $attr = new AsConfig(prefix: 'app');
+
+        self::assertSame('app', $attr->prefix);
     }
 
     #[Test]
