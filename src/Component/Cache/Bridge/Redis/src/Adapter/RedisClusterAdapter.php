@@ -48,6 +48,12 @@ final class RedisClusterAdapter extends AbstractAdapter
 
     protected function doSet(string $key, string $value, int $ttl = 0): bool
     {
+        if ($ttl < 0) {
+            $this->getConnection()->del($key);
+
+            return true;
+        }
+
         $redis = $this->getConnection();
 
         if ($ttl > 0) {
@@ -59,6 +65,16 @@ final class RedisClusterAdapter extends AbstractAdapter
 
     protected function doSetMultiple(array $values, int $ttl = 0): array
     {
+        if ($ttl < 0) {
+            $redis = $this->getConnection();
+
+            foreach (array_keys($values) as $key) {
+                $redis->del($key);
+            }
+
+            return array_fill_keys(array_keys($values), true);
+        }
+
         $redis = $this->getConnection();
         $results = [];
 
@@ -75,6 +91,10 @@ final class RedisClusterAdapter extends AbstractAdapter
 
     protected function doAdd(string $key, string $value, int $ttl = 0): bool
     {
+        if ($ttl < 0) {
+            return true;
+        }
+
         $redis = $this->getConnection();
 
         if ($ttl > 0) {

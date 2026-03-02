@@ -49,6 +49,12 @@ final class PredisAdapter extends AbstractAdapter
 
     protected function doSet(string $key, string $value, int $ttl = 0): bool
     {
+        if ($ttl < 0) {
+            $this->getConnection()->del($key);
+
+            return true;
+        }
+
         $client = $this->getConnection();
 
         if ($ttl > 0) {
@@ -62,6 +68,20 @@ final class PredisAdapter extends AbstractAdapter
 
     protected function doSetMultiple(array $values, int $ttl = 0): array
     {
+        if ($ttl < 0) {
+            $keys = array_keys($values);
+
+            if ($keys !== []) {
+                $this->getConnection()->pipeline(function ($pipe) use ($keys): void {
+                    foreach ($keys as $key) {
+                        $pipe->del($key);
+                    }
+                });
+            }
+
+            return array_fill_keys($keys, true);
+        }
+
         $client = $this->getConnection();
         $results = [];
 
@@ -87,6 +107,10 @@ final class PredisAdapter extends AbstractAdapter
 
     protected function doAdd(string $key, string $value, int $ttl = 0): bool
     {
+        if ($ttl < 0) {
+            return true;
+        }
+
         $client = $this->getConnection();
 
         if ($ttl > 0) {

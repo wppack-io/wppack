@@ -247,23 +247,39 @@ final class DynamoDbAdapterTest extends TestCase
     }
 
     #[Test]
-    public function expiredItemReturnsFalse(): void
+    public function setWithNegativeTtlDeletesKey(): void
     {
-        // Set with TTL of 1 second in the past (simulating expired item)
-        $this->adapter->set('wppack_test:1:posts:expired', 'value', -1);
+        $this->adapter->set('wppack_test:1:posts:neg', 'value');
+        self::assertSame('value', $this->adapter->get('wppack_test:1:posts:neg'));
 
-        self::assertFalse($this->adapter->get('wppack_test:1:posts:expired'));
+        self::assertTrue($this->adapter->set('wppack_test:1:posts:neg', 'new', -1));
+        self::assertFalse($this->adapter->get('wppack_test:1:posts:neg'));
     }
 
     #[Test]
-    public function addSucceedsForExpiredItem(): void
+    public function setMultipleWithNegativeTtlDeletesKeys(): void
     {
-        // Set with expired TTL
-        $this->adapter->set('wppack_test:1:posts:expired', 'old', -1);
+        $this->adapter->set('wppack_test:1:posts:neg1', 'value1');
+        $this->adapter->set('wppack_test:1:posts:neg2', 'value2');
 
-        // add should succeed because existing item is expired
-        self::assertTrue($this->adapter->add('wppack_test:1:posts:expired', 'new'));
-        self::assertSame('new', $this->adapter->get('wppack_test:1:posts:expired'));
+        $results = $this->adapter->setMultiple([
+            'wppack_test:1:posts:neg1' => 'new1',
+            'wppack_test:1:posts:neg2' => 'new2',
+        ], -1);
+
+        self::assertTrue($results['wppack_test:1:posts:neg1']);
+        self::assertTrue($results['wppack_test:1:posts:neg2']);
+        self::assertFalse($this->adapter->get('wppack_test:1:posts:neg1'));
+        self::assertFalse($this->adapter->get('wppack_test:1:posts:neg2'));
+    }
+
+    #[Test]
+    public function addWithNegativeTtlIsNoop(): void
+    {
+        $this->adapter->set('wppack_test:1:posts:existing', 'old');
+
+        self::assertTrue($this->adapter->add('wppack_test:1:posts:existing', 'new', -1));
+        self::assertSame('old', $this->adapter->get('wppack_test:1:posts:existing'));
     }
 
     #[Test]

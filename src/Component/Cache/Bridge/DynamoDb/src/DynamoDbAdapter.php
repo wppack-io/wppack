@@ -79,6 +79,12 @@ final class DynamoDbAdapter extends AbstractAdapter
 
     protected function doSet(string $key, string $value, int $ttl = 0): bool
     {
+        if ($ttl < 0) {
+            $this->doDelete($key);
+
+            return true;
+        }
+
         [$pk, $sk] = $this->splitKey($key);
 
         $item = [
@@ -87,7 +93,7 @@ final class DynamoDbAdapter extends AbstractAdapter
             'v' => new AttributeValue(['S' => $value]),
         ];
 
-        if ($ttl !== 0) {
+        if ($ttl > 0) {
             $item['t'] = new AttributeValue(['N' => (string) (time() + $ttl)]);
         }
 
@@ -108,6 +114,10 @@ final class DynamoDbAdapter extends AbstractAdapter
         $results = [];
         $requests = [];
 
+        if ($ttl < 0) {
+            return $this->doDeleteMultiple(array_keys($values));
+        }
+
         foreach ($values as $key => $value) {
             [$pk, $sk] = $this->splitKey($key);
 
@@ -117,7 +127,7 @@ final class DynamoDbAdapter extends AbstractAdapter
                 'v' => new AttributeValue(['S' => $value]),
             ];
 
-            if ($ttl !== 0) {
+            if ($ttl > 0) {
                 $item['t'] = new AttributeValue(['N' => (string) (time() + $ttl)]);
             }
 
@@ -139,6 +149,10 @@ final class DynamoDbAdapter extends AbstractAdapter
 
     protected function doAdd(string $key, string $value, int $ttl = 0): bool
     {
+        if ($ttl < 0) {
+            return true;
+        }
+
         [$pk, $sk] = $this->splitKey($key);
 
         $item = [

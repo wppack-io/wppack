@@ -48,6 +48,12 @@ final class RelayClusterAdapter extends AbstractAdapter
 
     protected function doSet(string $key, string $value, int $ttl = 0): bool
     {
+        if ($ttl < 0) {
+            $this->getConnection()->del($key);
+
+            return true;
+        }
+
         $relay = $this->getConnection();
 
         if ($ttl > 0) {
@@ -59,6 +65,16 @@ final class RelayClusterAdapter extends AbstractAdapter
 
     protected function doSetMultiple(array $values, int $ttl = 0): array
     {
+        if ($ttl < 0) {
+            $relay = $this->getConnection();
+
+            foreach (array_keys($values) as $key) {
+                $relay->del($key);
+            }
+
+            return array_fill_keys(array_keys($values), true);
+        }
+
         $relay = $this->getConnection();
         $results = [];
 
@@ -75,6 +91,10 @@ final class RelayClusterAdapter extends AbstractAdapter
 
     protected function doAdd(string $key, string $value, int $ttl = 0): bool
     {
+        if ($ttl < 0) {
+            return true;
+        }
+
         $relay = $this->getConnection();
 
         if ($ttl > 0) {
