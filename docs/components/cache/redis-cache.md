@@ -245,6 +245,113 @@ define('WPPACK_CACHE_DSN', 'redis://127.0.0.1:6379?class=Predis%5CClient');
 | リモート Redis（AWS ElastiCache 等） | Relay > PhpRedis | ネットワーク I/O でのパフォーマンス差が顕著 |
 | ローカル Redis（同一サーバー） | いずれも可 | ローカル接続ではパフォーマンス差は小さい |
 
+## AWS での利用
+
+### Amazon ElastiCache デプロイオプション
+
+AWS で Redis / Valkey を利用する場合、Amazon ElastiCache の2つのデプロイオプションから選択します。
+
+| | Serverless | ノードベース（Self-designed） |
+|---|---|---|
+| **概要** | 自動スケーリング、容量管理不要 | ノードタイプ・台数・配置を自分で制御 |
+| **セットアップ** | 名前を指定して1分以内に作成 | ノードタイプ、レプリカ数、AZ 配置を設計 |
+| **スケーリング** | 自動（垂直・水平） | 手動または Auto Scaling（スケジュール / メトリクスベース） |
+| **可用性** | 常に Multi-AZ、3 AZ 冗長、99.99% SLA | Multi-AZ はオプション |
+| **クラスタモード** | `cluster mode enabled` のみ | 有効 / 無効を選択可能 |
+| **TLS** | **常に有効**（必須） | オプション |
+| **保存時暗号化** | 常に有効 | オプション |
+| **料金体系** | 従量課金（ストレージ GB-hours + 処理 ECPUs） | ノード時間課金（リザーブドノードで最大55%割引） |
+| **最低コスト** | Valkey で月額 $6〜 | ノードタイプに依存 |
+| **Valkey 割引** | Redis OSS 比 33% 低価格 | Redis OSS 比 20% 低価格 |
+| **Global Datastore** | 非対応 | 対応（クロスリージョンレプリケーション） |
+| **Data Tiering** | 非対応 | 対応（r6gd ノード + SSD） |
+| **エンドポイント** | 単一エンドポイント（トポロジ変更は透過的） | ノード個別接続（トポロジ変更時に再検出が必要） |
+
+### 選び方の指針
+
+| シナリオ | 推奨オプション | 理由 |
+|---------|-------------|------|
+| 新規プロジェクト・トラフィック予測困難 | Serverless | 自動スケーリング、管理不要 |
+| 開発・ステージング環境 | Serverless | 低コストで開始、使った分だけ課金 |
+| トラフィックが予測可能な本番環境 | ノードベース | リザーブドノードでコスト最適化 |
+| グローバル展開（複数リージョン） | ノードベース | Global Datastore が必要 |
+| 大規模データ（メモリ + SSD） | ノードベース | Data Tiering が必要 |
+
+### DSN 設定例
+
+#### Serverless
+
+ElastiCache Serverless は **TLS が常に有効**（`rediss://` または `valkeys://`）で、**cluster mode enabled のみ**です。
+
+```php
+// wp-config.php
+
+// Serverless Valkey（TLS 必須、クラスタモード）
+define('WPPACK_CACHE_DSN', 'valkeys://my-cache-xxxxx.serverless.apne1.cache.amazonaws.com:6379?redis_cluster=1');
+
+// 認証トークンを使用する場合
+define('WPPACK_CACHE_DSN', 'valkeys://my-auth-token@my-cache-xxxxx.serverless.apne1.cache.amazonaws.com:6379?redis_cluster=1');
+```
+
+> [!IMPORTANT]
+> Serverless は cluster mode enabled のみのため、`redis_cluster=1` が必須です。クライアントは Redis Cluster プロトコルをサポートする必要があります（ext-redis の `\RedisCluster`、ext-relay の `\Relay\Cluster`、Predis の cluster オプション）。
+
+#### ノードベース — Standalone（cluster mode disabled）
+
+```php
+// wp-config.php
+
+// プライマリエンドポイント（TLS なし）
+define('WPPACK_CACHE_DSN', 'redis://my-cluster.xxxxx.0001.apne1.cache.amazonaws.com:6379');
+
+// TLS 有効
+define('WPPACK_CACHE_DSN', 'rediss://my-cluster.xxxxx.0001.apne1.cache.amazonaws.com:6379');
+
+// 認証トークン + TLS
+define('WPPACK_CACHE_DSN', 'rediss://my-auth-token@my-cluster.xxxxx.0001.apne1.cache.amazonaws.com:6379');
+```
+
+#### ノードベース — Cluster（cluster mode enabled）
+
+```php
+// wp-config.php
+
+// Configuration Endpoint を使用
+define('WPPACK_CACHE_DSN', 'redis:?host[my-cluster.xxxxx.clustercfg.apne1.cache.amazonaws.com:6379]&redis_cluster=1');
+
+// TLS + 認証
+define('WPPACK_CACHE_DSN', 'rediss:?host[my-cluster.xxxxx.clustercfg.apne1.cache.amazonaws.com:6379]&redis_cluster=1&auth=my-auth-token');
+
+// フェイルオーバー戦略（リードレプリカにリード分散）
+define('WPPACK_CACHE_DSN', 'redis:?host[my-cluster.xxxxx.clustercfg.apne1.cache.amazonaws.com:6379]&redis_cluster=1&failover=distribute');
+```
+
+### 推奨オプション
+
+```php
+// wp-config.php
+
+define('WPPACK_CACHE_OPTIONS', [
+    'timeout' => 5,         // 接続タイムアウト（VPC 内なので短めに）
+    'read_timeout' => 3,    // 読み取りタイムアウト
+    'persistent' => 1,      // 持続的接続（PHP-FPM 環境で推奨）
+    'tcp_keepalive' => 60,  // TCP keepalive（NAT/ELB タイムアウト対策）
+]);
+```
+
+### Valkey と Redis OSS の選択
+
+AWS は ElastiCache で **Valkey** と **Redis OSS** の両方をサポートしています。
+
+| | Valkey | Redis OSS |
+|---|---|---|
+| **ライセンス** | BSD-3-Clause（完全オープンソース） | SSPL / RSAL（Redis 7.4+） |
+| **AWS 料金** | Serverless: 33% 低価格 / ノードベース: 20% 低価格 | 基準価格 |
+| **互換性** | Redis 7.2 互換 | Redis 7.1+ |
+| **AWS の推奨** | 新規キャッシュのデフォルト | 既存環境の互換性維持 |
+
+新規プロジェクトでは **Valkey** を推奨します。WpPack は `valkey://` / `valkeys://` スキームで Valkey に対応しており、DSN のスキームを変更するだけで切り替え可能です。
+
 ## アダプタクラス
 
 ### RedisAdapter
