@@ -1,6 +1,6 @@
 # WpPack - Modern WordPress Component Library
 
-[![CI](https://github.com/wppack-io/wppack/actions/workflows/ci.yml/badge.svg)](https://github.com/wppack-io/wppack/actions/workflows/ci.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/wppack-io/wppack/ci.yml?branch=master)](https://github.com/wppack-io/wppack/actions/workflows/ci.yml)
 [![Codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack)](https://codecov.io/gh/wppack-io/wppack)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![PHP Version](https://img.shields.io/badge/PHP-8.1%2B-777BB4.svg)](https://php.net)
