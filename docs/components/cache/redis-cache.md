@@ -4,7 +4,7 @@
 **名前空間:** `WpPack\Component\Cache\Bridge\Redis\`
 **レイヤー:** Abstraction
 
-Cache コンポーネントの Redis / Valkey アダプタ実装。Symfony Cache の DSN 形式に準拠し、ext-redis を使用した高性能な永続キャッシュを提供します。
+Cache コンポーネントの Redis / Valkey アダプタ実装。Symfony Cache の DSN 形式に準拠し、複数の Redis クライアントライブラリをサポートする高性能な永続キャッシュを提供します。
 
 ## インストール
 
@@ -12,7 +12,18 @@ Cache コンポーネントの Redis / Valkey アダプタ実装。Symfony Cache
 composer require wppack/redis-cache
 ```
 
-`ext-redis` PHP 拡張が必要です。
+以下のいずれかの Redis クライアントが必要です:
+
+```bash
+# ext-redis（推奨、最も広く利用されている）
+pecl install redis
+
+# ext-relay（最高のパフォーマンス、インプロセスキャッシュ）
+pecl install relay
+
+# Predis（Pure PHP、拡張不要）
+composer require predis/predis
+```
 
 ## DSN 設定
 
@@ -165,6 +176,75 @@ define('WPPACK_CACHE_DSN', 'redis:?host[sentinel1:26379]&host[sentinel2:26379]&r
 define('WPPACK_CACHE_DSN', 'redis://master-pass@?host[sentinel1:26379]&host[sentinel2:26379]&redis_sentinel=mymaster');
 ```
 
+## クライアントライブラリ
+
+### 対応クライアント一覧
+
+| アダプタ | クライアント | 拡張 / ライブラリ |
+|---------|------------|----------------|
+| `RedisAdapter` | `\Redis` | ext-redis |
+| `RedisClusterAdapter` | `\RedisCluster` | ext-redis |
+| `RelayAdapter` | `\Relay\Relay` | ext-relay |
+| `RelayClusterAdapter` | `\Relay\Cluster` | ext-relay |
+| `PredisAdapter` | `\Predis\Client` | predis/predis |
+
+### クライアント自動検出
+
+`RedisAdapterFactory` は以下の優先順位で利用可能なクライアントを自動検出します:
+
+1. **ext-redis** — `extension_loaded('redis')` が `true` の場合
+2. **Relay** — `extension_loaded('relay')` が `true` の場合
+3. **Predis** — `class_exists(\Predis\Client::class)` が `true` の場合
+
+### `class` オプションによるクライアント指定
+
+Symfony 互換の `class` オプションでクライアントを明示的に指定できます:
+
+```php
+// wp-config.php — オプション配列で指定
+define('WPPACK_CACHE_OPTIONS', ['class' => \Relay\Relay::class]);
+
+// DSN クエリパラメータで指定
+define('WPPACK_CACHE_DSN', 'redis://127.0.0.1:6379?class=Predis%5CClient');
+```
+
+指定可能なクラス名:
+
+| `class` 値 | 使用されるアダプタ |
+|------------|----------------|
+| `Redis` | `RedisAdapter` |
+| `RedisCluster` | `RedisClusterAdapter` |
+| `Relay\Relay` | `RelayAdapter` |
+| `Relay\Cluster` | `RelayClusterAdapter` |
+| `Predis\Client` | `PredisAdapter` |
+| `Predis\ClientInterface` | `PredisAdapter` |
+
+### クライアントライブラリ比較
+
+| | PhpRedis (ext-redis) | Relay (ext-relay) | Predis |
+|---|---|---|---|
+| **種類** | C 拡張 | C 拡張 | Pure PHP ライブラリ |
+| **インストール** | `pecl install redis` | `pecl install relay` | `composer require predis/predis` |
+| **PHP 拡張が必要** | はい | はい | いいえ |
+| **パフォーマンス** | 高速（C 実装） | 最速（インプロセスキャッシュ） | 標準（Pure PHP） |
+| **データ圧縮** | 対応 | 対応 | 非対応 |
+| **インプロセスキャッシュ** | なし | あり | なし |
+| **クラスタ対応** | `\RedisCluster` | `\Relay\Cluster` | `['cluster' => 'redis']` |
+| **Sentinel 対応** | 手動実装 | 手動実装 | `['replication' => 'sentinel']` |
+| **共有ホスティング** | 拡張不可の場合あり | 拡張不可の場合あり | 常に利用可能 |
+| **ライセンス** | PHP License | Proprietary（無料利用可） | MIT |
+
+### 選び方の指針
+
+| シナリオ | 推奨クライアント | 理由 |
+|---------|---------------|------|
+| 本番環境（拡張インストール可能） | Relay | 最高のパフォーマンス、インプロセスキャッシュ |
+| 本番環境（Relay 非対応） | PhpRedis | C 拡張の速度、データ圧縮 |
+| 共有ホスティング | Predis | 拡張不要、Composer のみで利用可能 |
+| 開発環境 | PhpRedis または Predis | 開発時はパフォーマンス差は軽微 |
+| リモート Redis（AWS ElastiCache 等） | Relay > PhpRedis | ネットワーク I/O でのパフォーマンス差が顕著 |
+| ローカル Redis（同一サーバー） | いずれも可 | ローカル接続ではパフォーマンス差は小さい |
+
 ## アダプタクラス
 
 ### RedisAdapter
@@ -199,13 +279,64 @@ final class RedisClusterAdapter extends AbstractAdapter
 }
 ```
 
-### RedisAdapterFactory
+### RelayAdapter
 
-DSN から適切な Redis アダプタを生成するファクトリ。`redis_cluster` パラメータの有無で `RedisClusterAdapter` / `RedisAdapter` を分岐します。`redis_sentinel` が指定された場合は `RedisAdapter` に Sentinel 設定を渡します。
+`AbstractAdapter` を継承。ext-relay の `\Relay\Relay` クラスを使用します。`RedisAdapter` と同構造で、API 互換のドロップインリプレースメントです。
 
 ```php
-// wppack/redis-cache がインストールされていれば Adapter::fromDsn() で自動検出
+final class RelayAdapter extends AbstractAdapter
+{
+    /** @param array<string, mixed> $connectionParams */
+    public function __construct(
+        private readonly array $connectionParams,
+    ) {}
+
+    public function getName(): string { return 'relay'; }
+}
+```
+
+### RelayClusterAdapter
+
+`AbstractAdapter` を継承。ext-relay の `\Relay\Cluster` クラスを使用します。`RedisClusterAdapter` と同構造です。
+
+```php
+final class RelayClusterAdapter extends AbstractAdapter
+{
+    /** @param array<string, mixed> $connectionParams */
+    public function __construct(
+        private readonly array $connectionParams,
+    ) {}
+
+    public function getName(): string { return 'relay-cluster'; }
+}
+```
+
+### PredisAdapter
+
+`AbstractAdapter` を継承。`predis/predis` パッケージの `\Predis\Client` を使用します。Predis 固有の API 差異（`null` → `false` 変換、パイプラインのコールバック構文、SCAN の引数形式）を内部で吸収します。クラスタ / Sentinel は `\Predis\Client` のオプションで自動処理されるため、専用クラスタアダプタは不要です。
+
+```php
+final class PredisAdapter extends AbstractAdapter
+{
+    /** @param array<string, mixed> $connectionParams */
+    public function __construct(
+        private readonly array $connectionParams,
+    ) {}
+
+    public function getName(): string { return 'predis'; }
+}
+```
+
+### RedisAdapterFactory
+
+DSN から適切な Redis アダプタを生成するファクトリ。利用可能なクライアントライブラリを自動検出し、`class` オプションでクライアントを明示的に指定することも可能です。`redis_cluster` パラメータの有無でクラスタアダプタに分岐し、`redis_sentinel` が指定された場合は Sentinel 設定を渡します。
+
+```php
+// 自動検出（ext-redis → Relay → Predis）
 $adapter = Adapter::fromDsn('redis://127.0.0.1:6379');
+
+// クライアント指定
+$adapter = Adapter::fromDsn('redis://127.0.0.1:6379', ['class' => \Relay\Relay::class]);
 ```
 
 ## クイックスタート
@@ -261,12 +392,19 @@ docker compose down valkey
 
 | クラス | 説明 |
 |-------|------|
-| `Adapter\RedisAdapter` | Redis Standalone / Sentinel アダプタ（`redis://`, `rediss://`, `valkey://`, `valkeys://`） |
-| `Adapter\RedisClusterAdapter` | Redis Cluster アダプタ（`redis_cluster=1`） |
-| `Adapter\RedisAdapterFactory` | DSN ファクトリ |
+| `Adapter\RedisAdapter` | ext-redis Standalone / Sentinel アダプタ |
+| `Adapter\RedisClusterAdapter` | ext-redis Cluster アダプタ |
+| `Adapter\RelayAdapter` | Relay Standalone / Sentinel アダプタ |
+| `Adapter\RelayClusterAdapter` | Relay Cluster アダプタ |
+| `Adapter\PredisAdapter` | Predis アダプタ（Standalone / Cluster / Sentinel） |
+| `Adapter\RedisAdapterFactory` | DSN ファクトリ（自動検出 + `class` オプション） |
 
 ## 依存関係
 
 ### 必須
 - **wppack/cache** -- アダプタ基盤（`AdapterInterface`, `AbstractAdapter`, `Dsn`）
-- **ext-redis** -- Redis PHP 拡張
+
+### いずれか1つが必要
+- **ext-redis** -- Redis PHP 拡張（推奨）
+- **ext-relay** -- Relay PHP 拡張（最高性能）
+- **predis/predis** -- Pure PHP Redis クライアント（拡張不要）

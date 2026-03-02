@@ -245,9 +245,27 @@ WpPack の Object Cache ドロップインは Mailer コンポーネントと同
 
 ### 対応バックエンド
 
-| バックエンド | Bridge パッケージ | スキーム |
-|------------|-----------------|---------|
-| Redis / Valkey | [`wppack/redis-cache`](redis-cache.md) | `redis://`, `rediss://`, `valkey://`, `valkeys://` |
+| バックエンド | Bridge パッケージ | スキーム | 対応クライアント |
+|------------|-----------------|---------|---------------|
+| Redis / Valkey | [`wppack/redis-cache`](redis-cache.md) | `redis://`, `rediss://`, `valkey://`, `valkeys://` | ext-redis, Relay, Predis |
+
+### クライアント自動検出
+
+`wppack/redis-cache` は複数の Redis クライアントライブラリを単一ブリッジ内でサポートします。`RedisAdapterFactory` が以下の優先順位で利用可能なクライアントを自動検出します:
+
+1. **ext-redis** — PHP Redis 拡張（最も広く使われている、高性能）
+2. **Relay** — インプロセスキャッシュ付き PHP 拡張（最高性能）
+3. **Predis** — Pure PHP ライブラリ（拡張不要）
+
+特定のクライアントを強制する場合は `class` オプションを使用:
+
+```php
+// wp-config.php
+define('WPPACK_CACHE_OPTIONS', ['class' => \Relay\Relay::class]);
+
+// または DSN クエリパラメータで指定
+define('WPPACK_CACHE_DSN', 'redis://127.0.0.1:6379?class=Predis%5CClient');
+```
 
 ### 動作確認
 
@@ -313,4 +331,4 @@ class CacheInvalidator
 - なし（WordPress ネイティブの Object Cache API を使用）
 
 ### ドロップイン利用時
-- Redis / Valkey: `wppack/redis-cache`（`ext-redis` が必要）
+- Redis / Valkey: `wppack/redis-cache`（ext-redis, ext-relay, または predis/predis のいずれかが必要）

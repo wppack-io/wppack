@@ -7,9 +7,13 @@ namespace WpPack\Component\Cache\Bridge\Redis\Tests\Adapter;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Cache\Adapter\Dsn;
+use WpPack\Component\Cache\Bridge\Redis\Adapter\PredisAdapter;
 use WpPack\Component\Cache\Bridge\Redis\Adapter\RedisAdapter;
 use WpPack\Component\Cache\Bridge\Redis\Adapter\RedisAdapterFactory;
 use WpPack\Component\Cache\Bridge\Redis\Adapter\RedisClusterAdapter;
+use WpPack\Component\Cache\Bridge\Redis\Adapter\RelayAdapter;
+use WpPack\Component\Cache\Bridge\Redis\Adapter\RelayClusterAdapter;
+use WpPack\Component\Cache\Exception\AdapterException;
 use WpPack\Component\Cache\Exception\UnsupportedSchemeException;
 
 final class RedisAdapterFactoryTest extends TestCase
@@ -18,16 +22,16 @@ final class RedisAdapterFactoryTest extends TestCase
 
     protected function setUp(): void
     {
-        if (!\extension_loaded('redis')) {
-            self::markTestSkipped('ext-redis is not available.');
-        }
-
         $this->factory = new RedisAdapterFactory();
     }
 
     #[Test]
     public function supportsRedisSchemes(): void
     {
+        if (!$this->hasAnyClient()) {
+            self::markTestSkipped('No Redis client library is available.');
+        }
+
         self::assertTrue($this->factory->supports(Dsn::fromString('redis://localhost')));
         self::assertTrue($this->factory->supports(Dsn::fromString('rediss://localhost')));
         self::assertTrue($this->factory->supports(Dsn::fromString('valkey://localhost')));
@@ -43,6 +47,10 @@ final class RedisAdapterFactoryTest extends TestCase
     #[Test]
     public function createsRedisAdapterForStandalone(): void
     {
+        if (!\extension_loaded('redis')) {
+            self::markTestSkipped('ext-redis is not available.');
+        }
+
         $adapter = $this->factory->create(Dsn::fromString('redis://127.0.0.1:6379'));
 
         self::assertInstanceOf(RedisAdapter::class, $adapter);
@@ -52,6 +60,10 @@ final class RedisAdapterFactoryTest extends TestCase
     #[Test]
     public function createsRedisClusterAdapterForCluster(): void
     {
+        if (!\extension_loaded('redis')) {
+            self::markTestSkipped('ext-redis is not available.');
+        }
+
         $adapter = $this->factory->create(
             Dsn::fromString('redis:?host[node1:6379]&host[node2:6379]&redis_cluster=1'),
         );
@@ -71,11 +83,113 @@ final class RedisAdapterFactoryTest extends TestCase
     #[Test]
     public function passesOptionsToAdapter(): void
     {
+        if (!\extension_loaded('redis')) {
+            self::markTestSkipped('ext-redis is not available.');
+        }
+
         $adapter = $this->factory->create(
             Dsn::fromString('redis://127.0.0.1:6379'),
             ['timeout' => 5, 'read_timeout' => 3],
         );
 
         self::assertInstanceOf(RedisAdapter::class, $adapter);
+    }
+
+    #[Test]
+    public function classOptionCreatesRelayAdapter(): void
+    {
+        if (!\extension_loaded('relay')) {
+            self::markTestSkipped('ext-relay is not available.');
+        }
+
+        $adapter = $this->factory->create(
+            Dsn::fromString('redis://127.0.0.1:6379'),
+            ['class' => \Relay\Relay::class],
+        );
+
+        self::assertInstanceOf(RelayAdapter::class, $adapter);
+        self::assertSame('relay', $adapter->getName());
+    }
+
+    #[Test]
+    public function classOptionCreatesRelayClusterAdapter(): void
+    {
+        if (!\extension_loaded('relay')) {
+            self::markTestSkipped('ext-relay is not available.');
+        }
+
+        $adapter = $this->factory->create(
+            Dsn::fromString('redis:?host[node1:6379]&host[node2:6379]&redis_cluster=1'),
+            ['class' => \Relay\Cluster::class],
+        );
+
+        self::assertInstanceOf(RelayClusterAdapter::class, $adapter);
+        self::assertSame('relay-cluster', $adapter->getName());
+    }
+
+    #[Test]
+    public function classOptionCreatesPredisAdapter(): void
+    {
+        if (!\class_exists(\Predis\Client::class)) {
+            self::markTestSkipped('predis/predis is not available.');
+        }
+
+        $adapter = $this->factory->create(
+            Dsn::fromString('redis://127.0.0.1:6379'),
+            ['class' => \Predis\Client::class],
+        );
+
+        self::assertInstanceOf(PredisAdapter::class, $adapter);
+        self::assertSame('predis', $adapter->getName());
+    }
+
+    #[Test]
+    public function classOptionFromDsnQuery(): void
+    {
+        if (!\class_exists(\Predis\Client::class)) {
+            self::markTestSkipped('predis/predis is not available.');
+        }
+
+        $adapter = $this->factory->create(
+            Dsn::fromString('redis://127.0.0.1:6379?class=Predis%5CClient'),
+        );
+
+        self::assertInstanceOf(PredisAdapter::class, $adapter);
+    }
+
+    #[Test]
+    public function throwsForUnsupportedClientClass(): void
+    {
+        if (!$this->hasAnyClient()) {
+            self::markTestSkipped('No Redis client library is available.');
+        }
+
+        $this->expectException(AdapterException::class);
+        $this->expectExceptionMessage('Unsupported Redis client class');
+
+        $this->factory->create(
+            Dsn::fromString('redis://127.0.0.1:6379'),
+            ['class' => 'NonExistent\Client'],
+        );
+    }
+
+    #[Test]
+    public function autoDetectsExtRedis(): void
+    {
+        if (!\extension_loaded('redis')) {
+            self::markTestSkipped('ext-redis is not available.');
+        }
+
+        $adapter = $this->factory->create(Dsn::fromString('redis://127.0.0.1:6379'));
+
+        // ext-redis should be preferred when available
+        self::assertInstanceOf(RedisAdapter::class, $adapter);
+    }
+
+    private function hasAnyClient(): bool
+    {
+        return \extension_loaded('redis')
+            || \extension_loaded('relay')
+            || \class_exists(\Predis\Client::class);
     }
 }

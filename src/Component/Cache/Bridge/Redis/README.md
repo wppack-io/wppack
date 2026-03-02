@@ -1,6 +1,16 @@
 # WpPack Redis Cache
 
-Redis adapter for the WpPack Cache Object Cache drop-in. Provides `RedisAdapter` (standalone/sentinel) and `RedisClusterAdapter` using the ext-redis extension.
+Redis adapter for the WpPack Cache Object Cache drop-in. Supports multiple Redis client libraries within a single bridge package.
+
+## Supported Clients
+
+| Adapter | Client | Extension / Library |
+|---------|--------|-------------------|
+| `RedisAdapter` | `\Redis` | ext-redis |
+| `RedisClusterAdapter` | `\RedisCluster` | ext-redis |
+| `RelayAdapter` | `\Relay\Relay` | ext-relay |
+| `RelayClusterAdapter` | `\Relay\Cluster` | ext-relay |
+| `PredisAdapter` | `\Predis\Client` | predis/predis |
 
 ## Installation
 
@@ -8,7 +18,18 @@ Redis adapter for the WpPack Cache Object Cache drop-in. Provides `RedisAdapter`
 composer require wppack/redis-cache
 ```
 
-Requires `ext-redis` PHP extension.
+Install at least one Redis client:
+
+```bash
+# Option 1: ext-redis (recommended)
+pecl install redis
+
+# Option 2: ext-relay (highest performance with in-process caching)
+pecl install relay
+
+# Option 3: Predis (pure PHP, no extension required)
+composer require predis/predis
+```
 
 ## Configuration
 
@@ -32,6 +53,20 @@ define('WPPACK_CACHE_DSN', 'redis:?host[node1:6379]&host[node2:6379]&redis_clust
 
 // Sentinel
 define('WPPACK_CACHE_DSN', 'redis:?host[sentinel1:26379]&host[sentinel2:26379]&redis_sentinel=mymaster');
+```
+
+### Client Selection
+
+By default, the factory auto-detects: ext-redis → Relay → Predis (in priority order).
+
+To force a specific client:
+
+```php
+// Via options array
+define('WPPACK_CACHE_OPTIONS', ['class' => \Relay\Relay::class]);
+
+// Via DSN query parameter
+define('WPPACK_CACHE_DSN', 'redis://127.0.0.1:6379?class=Relay%5CRelay');
 ```
 
 ## Supported Schemes

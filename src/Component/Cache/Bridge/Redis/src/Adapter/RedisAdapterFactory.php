@@ -7,6 +7,7 @@ namespace WpPack\Component\Cache\Bridge\Redis\Adapter;
 use WpPack\Component\Cache\Adapter\AdapterFactoryInterface;
 use WpPack\Component\Cache\Adapter\AdapterInterface;
 use WpPack\Component\Cache\Adapter\Dsn;
+use WpPack\Component\Cache\Exception\AdapterException;
 use WpPack\Component\Cache\Exception\UnsupportedSchemeException;
 
 final class RedisAdapterFactory implements AdapterFactoryInterface
@@ -20,17 +21,51 @@ final class RedisAdapterFactory implements AdapterFactoryInterface
         }
 
         $params = $this->buildConnectionParams($dsn, $options);
+        $class = $options['class'] ?? $dsn->getOption('class') ?? null;
+        $isCluster = !empty($params['redis_cluster']);
 
-        if (!empty($params['redis_cluster'])) {
-            return new RedisClusterAdapter($params);
+        // Explicit client class specified
+        if ($class !== null) {
+            return $this->createForClient(ltrim($class, '\\'), $params);
         }
 
-        return new RedisAdapter($params);
+        // Auto-detection: ext-redis → Relay → Predis
+        if (\extension_loaded('redis')) {
+            return $isCluster ? new RedisClusterAdapter($params) : new RedisAdapter($params);
+        }
+
+        if (\extension_loaded('relay')) {
+            return $isCluster ? new RelayClusterAdapter($params) : new RelayAdapter($params);
+        }
+
+        if (\class_exists(\Predis\Client::class)) {
+            return new PredisAdapter($params);
+        }
+
+        throw new AdapterException('No Redis client library found. Install ext-redis, ext-relay, or predis/predis.');
     }
 
     public function supports(Dsn $dsn): bool
     {
-        return \in_array($dsn->getScheme(), self::SUPPORTED_SCHEMES, true);
+        return \in_array($dsn->getScheme(), self::SUPPORTED_SCHEMES, true)
+            && (\extension_loaded('redis') || \extension_loaded('relay') || \class_exists(\Predis\Client::class));
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    private function createForClient(string $class, array $params): AdapterInterface
+    {
+        $isCluster = !empty($params['redis_cluster']);
+
+        return match ($class) {
+            'Redis' => new RedisAdapter($params),
+            'RedisCluster' => new RedisClusterAdapter($params),
+            'Relay\Relay' => new RelayAdapter($params),
+            'Relay\Cluster' => new RelayClusterAdapter($params),
+            'Predis\Client', 'Predis\ClientInterface' => new PredisAdapter($params),
+            default => throw new AdapterException(sprintf('Unsupported Redis client class "%s".', $class)),
+        };
     }
 
     /**
@@ -130,8 +165,11 @@ final class RedisAdapterFactory implements AdapterFactoryInterface
             }
         }
 
-        // Options array overrides DSN query params
+        // Options array overrides DSN query params (except 'class' which is handled separately)
         foreach ($options as $key => $value) {
+            if ($key === 'class') {
+                continue;
+            }
             $params[$key] = $value;
         }
 

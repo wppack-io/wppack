@@ -5,8 +5,12 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
-        "ext-redis": "*",
         "wppack/cache": "^1.0"
+    },
+    "suggest": {
+        "ext-redis": "For using native Redis extension (recommended, highest performance)",
+        "ext-relay": "For using Relay with in-process caching",
+        "predis/predis": "For pure PHP Redis client (no extension required)"
     },
     "autoload": {
         "psr-4": {
