@@ -30,11 +30,14 @@ final class NativeTransportTest extends TestCase
         $phpMailer->Body = 'Hello';
         $phpMailer->Mailer = 'mail';
 
-        // nativePostSend() calls PHP's mail(). On most test systems the call
-        // succeeds (mail is handed off to the local MTA), so we simply verify
-        // no exception is thrown.
-        $transport->send($phpMailer);
-
-        self::assertTrue(true);
+        // nativePostSend() calls PHP's mail(). On CI without sendmail the call
+        // fails, so we catch the expected exception in that environment.
+        try {
+            $transport->send($phpMailer);
+            self::assertTrue(true);
+        } catch (\WpPack\Component\Mailer\Exception\TransportException $e) {
+            // Expected on systems without a local MTA (e.g. CI)
+            self::assertStringContainsString('mail function', $e->getMessage());
+        }
     }
 }

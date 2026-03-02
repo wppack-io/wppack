@@ -4,7 +4,7 @@
     "type": "wordpress-plugin",
     "license": "MIT",
     "require": {
-        "php": "^8.1",
+        "php": "^8.2",
         "wppack/hook": "^1.0",
         "wppack/media": "^1.0",
         "wppack/messenger": "^1.0",

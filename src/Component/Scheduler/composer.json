@@ -4,7 +4,7 @@
     "type": "library",
     "license": "MIT",
     "require": {
-        "php": "^8.1",
+        "php": "^8.2",
         "wppack/messenger": "^1.0",
         "async-aws/scheduler": "^1.0",
         "dragonmantank/cron-expression": "^3.0"

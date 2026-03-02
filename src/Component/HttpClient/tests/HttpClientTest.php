@@ -205,7 +205,7 @@ final class HttpClientTest extends TestCase
             self::markTestSkipped('WordPress functions are not available.');
         }
 
-        $client = new HttpClient()->timeout(1);
+        $client = (new HttpClient())->timeout(1);
         $request = new Request('GET', 'https://invalid.domain.that.does.not.exist.example');
 
         $this->expectException(ConnectionException::class);
