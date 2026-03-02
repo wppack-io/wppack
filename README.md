@@ -109,16 +109,16 @@ See the [docs/](docs/) directory for detailed documentation on each package.
 composer install
 
 # Run static analysis
-composer phpstan
+vendor/bin/phpstan analyse
 
 # Check coding standards
-composer cs-check
+vendor/bin/php-cs-fixer fix --dry-run --diff
 
 # Fix coding standards
-composer cs-fix
+vendor/bin/php-cs-fixer fix
 
 # Run tests
-composer test
+vendor/bin/phpunit
 ```
 
 ## License
