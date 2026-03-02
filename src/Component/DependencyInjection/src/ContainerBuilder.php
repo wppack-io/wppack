@@ -7,6 +7,7 @@ namespace WpPack\Component\DependencyInjection;
 use Symfony\Component\DependencyInjection\ContainerBuilder as SymfonyContainerBuilder;
 use WpPack\Component\DependencyInjection\Compiler\CompilerPassAdapter;
 use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use WpPack\Component\DependencyInjection\Configurator\ContainerConfigurator;
 use WpPack\Component\DependencyInjection\Exception\ParameterNotFoundException;
 use WpPack\Component\DependencyInjection\Exception\ServiceNotFoundException;
 
@@ -147,6 +148,18 @@ class ContainerBuilder
     public function addServiceProvider(ServiceProviderInterface $provider): self
     {
         $provider->register($this);
+
+        return $this;
+    }
+
+    public function loadConfig(string $path): self
+    {
+        $configurator = new ContainerConfigurator($this);
+
+        /** @var \Closure(ContainerConfigurator): void $callback */
+        $callback = require $path;
+        $callback($configurator);
+        $configurator->process();
 
         return $this;
     }

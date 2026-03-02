@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace WpPack\Component\DependencyInjection\Tests\Attribute\Fixtures;
 
-use WpPack\Component\DependencyInjection\Attribute\AsService;
 use WpPack\Component\DependencyInjection\Attribute\Autowire;
 
-#[AsService(lazy: true, tags: ['test.tag'])]
 final class AnnotatedService
 {
     public function __construct(

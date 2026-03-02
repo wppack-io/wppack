@@ -129,26 +129,26 @@ class OrderService
 ### デバッグ設定
 
 ```php
-use WpPack\Component\Config\AbstractConfig;
+use WpPack\Component\DependencyInjection\Attribute\Env;
 
-#[Config('debug')]
-class DebugConfig extends AbstractConfig
+final readonly class DebugConfig
 {
-    #[Env('WPPACK_DEBUG_ENABLED', false)]
-    public bool $enabled = false;
+    public function __construct(
+        #[Env('WPPACK_DEBUG_ENABLED')]
+        public bool $enabled = false,
 
-    #[Env('WPPACK_DEBUG_BAR_ENABLED', false)]
-    public bool $showDebugBar = false;
+        #[Env('WPPACK_DEBUG_BAR_ENABLED')]
+        public bool $showDebugBar = false,
 
-    public array $collectors = [
-        'database',
-        'request',
-        'memory',
-        'templates'
-    ];
+        /** @var list<string> */
+        public array $collectors = ['database', 'request', 'memory', 'templates'],
 
-    public array $ipWhitelist = ['127.0.0.1', '::1'];
-    public array $userRoleWhitelist = ['administrator'];
+        /** @var list<string> */
+        public array $ipWhitelist = ['127.0.0.1', '::1'],
+
+        /** @var list<string> */
+        public array $userRoleWhitelist = ['administrator'],
+    ) {}
 
     public function isEnabled(): bool
     {
@@ -629,6 +629,6 @@ WPPACK_DEBUG_BAR_ENABLED=true
 - **DependencyInjection コンポーネント** - サービスコンテナとオートワイヤリング用
 
 ### 推奨
-- **Config コンポーネント** - デバッグ設定管理用
+- **DependencyInjection コンポーネント** - デバッグ設定管理用（`#[Env]` アトリビュート）
 - **Database コンポーネント** - データベースクエリプロファイリングと分析用
 - **Cache コンポーネント** - キャッシュ操作デバッグ用

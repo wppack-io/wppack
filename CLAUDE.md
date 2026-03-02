@@ -26,8 +26,7 @@ WordPress プラグインとして配布。Component を利用。
 | Component | パッケージ名 | 説明 |
 |-----------|-------------|------|
 | Hook | wppack/hook | アトリビュートベースのアクション/フィルター |
-| DependencyInjection | wppack/dependency-injection | サービスコンテナ |
-| Config | wppack/config | 設定管理 |
+| DependencyInjection | wppack/dependency-injection | サービスコンテナ + 設定管理 |
 | EventDispatcher | wppack/event-dispatcher | イベントシステム |
 | Filesystem | wppack/filesystem | ファイル操作 |
 | Kernel | wppack/kernel | アプリケーションブートストラップ |

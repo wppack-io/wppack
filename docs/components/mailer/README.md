@@ -554,16 +554,15 @@ $resolved = $transport->fromString('ses+api://KEY:SECRET@default?region=ap-north
 `Transport` コンストラクタは `iterable<TransportFactoryInterface>` を受け取ります。DI コンテナのタグ付きサービスでファクトリを自動注入できます。
 
 ```php
-use WpPack\Component\DependencyInjection\Attribute\AsService;
 use WpPack\Component\Mailer\Transport\TransportFactoryInterface;
 use WpPack\Component\Mailer\Transport\NativeTransportFactory;
 use WpPack\Component\Mailer\Bridge\Amazon\Transport\SesTransportFactory;
 
-// ファクトリをタグ付きサービスとして登録
-#[AsService(tags: ['mailer.transport_factory'])]
+// services.php でタグ付きサービスとして登録
+// $services->set(NativeTransportFactory::class)->tag('mailer.transport_factory');
+// $services->set(SesTransportFactory::class)->tag('mailer.transport_factory');
 final class NativeTransportFactory implements TransportFactoryInterface { /* ... */ }
 
-#[AsService(tags: ['mailer.transport_factory'])]
 final class SesTransportFactory implements TransportFactoryInterface { /* ... */ }
 ```
 
@@ -709,7 +708,7 @@ final class MyTransportFactory implements TransportFactoryInterface
 }
 ```
 
-DI 環境では `#[AsService(tags: ['mailer.transport_factory'])]` を付けるだけで自動登録されます。
+DI 環境では `services.php` で `->tag('mailer.transport_factory')` を付けるだけで自動登録されます。
 
 ## クラス一覧
 

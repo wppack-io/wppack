@@ -4,7 +4,7 @@
 **名前空間:** `WpPack\Component\DependencyInjection\`
 **レイヤー:** Infrastructure
 
-PSR-11 準拠のサービスコンテナです。オートワイヤリング、アトリビュートベースのサービス登録、インターフェースバインディング、タグ付きサービス、コンパイラーパス、ファクトリサービス、サービスデコレーション、遅延サービス、WordPress グローバルのインジェクタブルサービスとしての提供などを提供します。
+PSR-11 準拠のサービスコンテナです。ディレクトリスキャンによる自動サービス登録、オートワイヤリング、Symfony スタイルの `ContainerConfigurator`、インターフェースバインディング、タグ付きサービス、コンパイラーパス、ファクトリサービス、サービスデコレーション、遅延サービス、WordPress グローバルのインジェクタブルサービスとしての提供などを提供します。
 
 ## インストール
 
@@ -39,9 +39,6 @@ class UserRepository {
 }
 
 // WpPack - オートワイヤリングによる依存性注入
-use WpPack\Component\DependencyInjection\Attribute\AsService;
-
-#[AsService]
 final class UserRepository
 {
     public function __construct(
@@ -118,15 +115,13 @@ Kernel::registerTheme(new MyTheme());
 ```php
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\Container;
-use WpPack\Component\DependencyInjection\ServiceDiscovery;
 use WpPack\Component\Kernel\PluginInterface;
 
 final class MyPlugin implements PluginInterface
 {
     public function register(ContainerBuilder $builder): void
     {
-        $discovery = new ServiceDiscovery($builder);
-        $discovery->discover(__DIR__ . '/src', 'MyPlugin\\');
+        $builder->loadConfig(__DIR__ . '/config/services.php');
     }
 
     public function getCompilerPasses(): array
@@ -158,15 +153,13 @@ final class MyPlugin implements PluginInterface
 ```php
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\Container;
-use WpPack\Component\DependencyInjection\ServiceDiscovery;
 use WpPack\Component\Kernel\ThemeInterface;
 
 final class MyTheme implements ThemeInterface
 {
     public function register(ContainerBuilder $builder): void
     {
-        $discovery = new ServiceDiscovery($builder);
-        $discovery->discover(__DIR__ . '/src', 'MyTheme\\');
+        $builder->loadConfig(__DIR__ . '/config/services.php');
     }
 
     public function getCompilerPasses(): array
@@ -207,14 +200,13 @@ final class PostService
 $builder->register(PostService::class)->autowire();
 ```
 
-## アトリビュートベースのサービス登録
+## アトリビュートベースのサービス設定
 
-### `#[AsService]`
+### 自動登録
+
+スキャン対象ディレクトリ内のすべてのクラスは、Symfony と同様にデフォルトでサービスとして登録されます。`#[AsService]` のような登録マーカーは不要です：
 
 ```php
-use WpPack\Component\DependencyInjection\Attribute\AsService;
-
-#[AsService]
 final class PostRepository
 {
     public function __construct(
@@ -228,17 +220,20 @@ final class PostRepository
 }
 ```
 
-### `#[AsService]` オプション
+### `#[Exclude]`
+
+サービスとして登録したくないクラスに使用します：
 
 ```php
-#[AsService(
-    public: true,           // コンテナから直接取得可能
-    lazy: true,             // 遅延初期化
-    tags: ['repository'],   // 一括操作用のタグ
-)]
-final class PostRepository
+use WpPack\Component\DependencyInjection\Attribute\Exclude;
+
+#[Exclude]
+final class PostDto
 {
-    // ...
+    public function __construct(
+        public readonly int $id,
+        public readonly string $title,
+    ) {}
 }
 ```
 
@@ -249,7 +244,6 @@ final class PostRepository
 ```php
 use WpPack\Component\DependencyInjection\Attribute\Autowire;
 
-#[AsService]
 final class S3Client
 {
     public function __construct(
@@ -261,9 +255,45 @@ final class S3Client
 
         #[Autowire(param: 'app.debug')]
         private readonly bool $debug,
+
+        #[Autowire(option: 'my_plugin_settings.region')]
+        private readonly string $settingsRegion,
+
+        #[Autowire(constant: 'MY_PLUGIN_VERSION')]
+        private readonly string $version,
     ) {}
 }
 ```
+
+### ショートハンドアトリビュート
+
+`#[Autowire]` の代わりに、よく使うパターンにはショートハンドアトリビュートを使用できます。これらは `#[Autowire]` を拡張しています：
+
+```php
+use WpPack\Component\DependencyInjection\Attribute\Env;
+use WpPack\Component\DependencyInjection\Attribute\Option;
+use WpPack\Component\DependencyInjection\Attribute\Constant;
+
+final readonly class PluginConfig
+{
+    public function __construct(
+        #[Env('MY_PLUGIN_API_KEY')]
+        public string $apiKey = '',
+
+        #[Option('my_plugin_settings.email')]
+        public string $email = '',
+
+        #[Constant('MY_PLUGIN_DEBUG')]
+        public bool $debug = false,
+    ) {}
+}
+```
+
+| アトリビュート | 同等の `#[Autowire]` | 説明 |
+|--------------|---------------------|------|
+| `#[Env('NAME')]` | `#[Autowire(env: 'NAME')]` | 環境変数を注入 |
+| `#[Option('NAME')]` | `#[Autowire(option: 'NAME')]` | WordPress option を注入 |
+| `#[Constant('NAME')]` | `#[Autowire(constant: 'NAME')]` | PHP 定数を注入 |
 
 ### `#[AsAlias]`
 
@@ -272,7 +302,6 @@ final class S3Client
 ```php
 use WpPack\Component\DependencyInjection\Attribute\AsAlias;
 
-#[AsService]
 #[AsAlias(CacheInterface::class)]
 final class WordPressTransientCache implements CacheInterface
 {
@@ -290,22 +319,99 @@ final class WordPressTransientCache implements CacheInterface
 
 ## サービスディスカバリー
 
-`#[AsService]` やその他のマーカーアトリビュートを持つサービスをディレクトリから自動スキャンします：
+ディレクトリ内のすべてのクラスをサービスとして自動登録します。`#[Exclude]` が付与されたクラスは除外されます：
 
 ```php
 use WpPack\Component\DependencyInjection\ServiceDiscovery;
 
-$discovery = new ServiceDiscovery($builder);
+$discovery = new ServiceDiscovery($builder, autowire: true, public: true);
 
-// ディレクトリをスキャン
+// ディレクトリをスキャン（全クラスが登録される）
 $discovery->discover(
     __DIR__ . '/src',
     'App\\',
 );
 
-// 以下のアトリビュートを自動検出：
-// #[AsService], #[AsHookSubscriber], #[AsMessageHandler],
-// #[AsSchedule], #[AsEventListener], #[AsConfig], etc.
+// 特定のクラスを除外
+$discovery->discover(
+    __DIR__ . '/src',
+    'App\\',
+    excludes: [
+        __DIR__ . '/src/Dto/',
+        __DIR__ . '/src/Entity/',
+    ],
+);
+```
+
+`#[Exclude]` アトリビュートを付与したクラスも自動的に除外されます。
+
+## ContainerConfigurator
+
+Symfony スタイルの `services.php` 設定ファイルでサービスを構成します。`ContainerConfigurator` を使用すると、サービスの登録・デフォルト設定・パラメータ設定をひとつのファイルにまとめられます：
+
+```php
+// config/services.php
+use WpPack\Component\DependencyInjection\Configurator\ContainerConfigurator;
+use WpPack\Component\Hook\HookRegistry;
+
+return static function (ContainerConfigurator $services): void {
+    // デフォルト設定（全サービスに適用）
+    $services->defaults()->autowire()->public();
+
+    // ディレクトリスキャンによる一括登録
+    $services->load('MyPlugin\\', dirname(__DIR__) . '/src/');
+
+    // 個別サービスの追加設定
+    $services->set(HookRegistry::class);
+
+    // パラメータの設定
+    $services->param('my_plugin.dir', dirname(__DIR__, 2));
+};
+```
+
+### ContainerBuilder での読み込み
+
+`loadConfig()` メソッドで設定ファイルを読み込みます：
+
+```php
+use WpPack\Component\DependencyInjection\ContainerBuilder;
+use WpPack\Component\Kernel\PluginInterface;
+
+final class MyPlugin implements PluginInterface
+{
+    public function register(ContainerBuilder $builder): void
+    {
+        $builder->loadConfig(__DIR__ . '/config/services.php');
+    }
+
+    // ...
+}
+```
+
+### Configurator API
+
+`ContainerConfigurator` は以下のメソッドチェーンを提供します：
+
+```php
+return static function (ContainerConfigurator $services): void {
+    // defaults() - 全サービスのデフォルト設定
+    $services->defaults()
+        ->autowire()    // オートワイヤリングを有効化
+        ->public();     // パブリックに設定
+
+    // load() - ディレクトリスキャン
+    $services->load('App\\', dirname(__DIR__) . '/src/')
+        ->exclude([dirname(__DIR__) . '/src/Dto/']);
+
+    // set() - 個別サービスの設定
+    $services->set(MyService::class)
+        ->arg('$apiKey', '%env(API_KEY)%')
+        ->tag('app.handler')
+        ->lazy();
+
+    // param() - パラメータの設定
+    $services->param('app.debug', true);
+};
 ```
 
 ## タグ付きサービスとコンパイラーパス
@@ -314,8 +420,20 @@ $discovery->discover(
 
 一括操作のために関連するサービスをグループ化します：
 
+タグ付けは `ContainerConfigurator` またはコンパイラーパス内で行います：
+
 ```php
-#[AsService(tags: ['notification.channel'])]
+// config/services.php
+return static function (ContainerConfigurator $services): void {
+    $services->defaults()->autowire()->public();
+    $services->load('MyPlugin\\', dirname(__DIR__) . '/src/');
+
+    $services->set(EmailNotification::class)->tag('notification.channel');
+    $services->set(SlackNotification::class)->tag('notification.channel');
+};
+```
+
+```php
 final class EmailNotification implements NotificationChannel
 {
     public function send(string $to, string $message): bool
@@ -324,7 +442,6 @@ final class EmailNotification implements NotificationChannel
     }
 }
 
-#[AsService(tags: ['notification.channel'])]
 final class SlackNotification implements NotificationChannel
 {
     public function send(string $to, string $message): bool
@@ -380,7 +497,6 @@ final class OverrideLogLevelPass implements CompilerPassInterface
 複雑なサービス生成を処理します：
 
 ```php
-#[AsService]
 final class LoggerFactory
 {
     public function __construct(
@@ -403,7 +519,6 @@ final class LoggerFactory
 既存のサービスを変更せずに拡張します：
 
 ```php
-#[AsService]
 final class CacheLogger implements CacheInterface
 {
     public function __construct(
@@ -464,7 +579,6 @@ $builder->register(S3Client::class)
 `#[Autowire]` アトリビュートでも同様に使用できます：
 
 ```php
-#[AsService]
 final class S3Client
 {
     public function __construct(
@@ -537,7 +651,6 @@ $builder->addServiceProvider(new WordPressServiceProvider());
 ### カスタム WordPress ファクトリ
 
 ```php
-#[AsService]
 final class WordPressFactory
 {
     public function getWpdb(): \wpdb
@@ -555,10 +668,19 @@ final class WordPressFactory
 
 ## 遅延サービス
 
-初回使用時にのみインスタンス化されるサービス：
+初回使用時にのみインスタンス化されるサービス。`ContainerConfigurator` で `lazy()` を指定します：
 
 ```php
-#[AsService(lazy: true)]
+// config/services.php
+return static function (ContainerConfigurator $services): void {
+    $services->defaults()->autowire()->public();
+    $services->load('MyPlugin\\', dirname(__DIR__) . '/src/');
+
+    $services->set(HeavyService::class)->lazy();
+};
+```
+
+```php
 final class HeavyService
 {
     public function __construct(
@@ -637,7 +759,6 @@ $builder = new ContainerBuilder();
 $builder->addCompilerPass(new RegisterTransportFactoriesPass());
 
 // トランスポートファクトリを登録（タグ付き）
-// #[AsService(tags: ['mailer.transport_factory'])] でも可
 $builder->register(NativeTransportFactory::class)->addTag('mailer.transport_factory');
 $builder->register(SesTransportFactory::class)->addTag('mailer.transport_factory');
 
@@ -689,7 +810,6 @@ $builder->addCompilerPass(new RegisterLoggerPass());
 use Psr\Log\LoggerInterface;
 use WpPack\Component\Logger\Attribute\LoggerChannel;
 
-#[AsService]
 final class PaymentService
 {
     public function __construct(
@@ -854,10 +974,23 @@ Kernel::registerPlugin(new MyPlugin());
 ```
 
 ```php
+// config/services.php
+use WpPack\Component\DependencyInjection\Configurator\ContainerConfigurator;
+use WpPack\Component\DependencyInjection\WordPress\WordPressServiceProvider;
+
+return static function (ContainerConfigurator $services): void {
+    $services->defaults()->autowire()->public();
+    $services->load('MyPlugin\\', dirname(__DIR__) . '/src/');
+
+    $services->param('plugin.dir', dirname(__DIR__));
+    $services->param('plugin.url', plugin_dir_url(dirname(__DIR__) . '/my-plugin.php'));
+};
+```
+
+```php
 // MyPlugin.php
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\Container;
-use WpPack\Component\DependencyInjection\ServiceDiscovery;
 use WpPack\Component\DependencyInjection\WordPress\WordPressServiceProvider;
 use WpPack\Component\Kernel\PluginInterface;
 
@@ -868,16 +1001,8 @@ final class MyPlugin implements PluginInterface
         // WordPress サービスの登録
         $builder->addServiceProvider(new WordPressServiceProvider());
 
-        // パラメータの設定
-        $builder->setParameter('plugin.dir', __DIR__);
-        $builder->setParameter('plugin.url', plugin_dir_url(__FILE__));
-
-        // サービスの自動検出
-        $discovery = new ServiceDiscovery($builder);
-        $discovery->discover(
-            __DIR__ . '/src',
-            'MyPlugin\\',
-        );
+        // サービス設定の読み込み
+        $builder->loadConfig(__DIR__ . '/config/services.php');
     }
 
     public function getCompilerPasses(): array
@@ -919,6 +1044,7 @@ final class MyPlugin implements PluginInterface
 | `addCompilerPass(CompilerPassInterface $pass)` | `self` | コンパイラーパスを追加 |
 | `getCompilerPasses()` | `CompilerPassInterface[]` | コンパイラーパス一覧 |
 | `compile()` | `Container` | コンテナをコンパイル |
+| `loadConfig(string $path)` | `self` | services.php 設定ファイルを読み込み |
 | `setParameter(string $name, mixed $value)` | `self` | パラメータを設定 |
 | `getParameter(string $name)` | `mixed` | パラメータを取得（未設定時は `ParameterNotFoundException`） |
 | `hasParameter(string $name)` | `bool` | パラメータが存在するか |
@@ -970,8 +1096,15 @@ final class MyPlugin implements PluginInterface
 | `ServiceDiscovery` | サービス自動検出 |
 | `ServiceProviderInterface` | サービス登録カプセル化用インターフェース |
 | `Dumper\PhpDumper` | コンパイル済みコンテナの PHP コード生成 |
-| `Attribute\AsService` | サービス登録マーカー |
+| `Configurator\ContainerConfigurator` | Symfony スタイルのサービス設定 |
+| `Configurator\DefaultsConfigurator` | デフォルト設定の構成 |
+| `Configurator\ServiceConfigurator` | 個別サービスの構成 |
+| `Configurator\PrototypeConfigurator` | ディレクトリスキャンの構成 |
+| `Attribute\Exclude` | サービス登録除外マーカー |
 | `Attribute\Autowire` | パラメータインジェクション |
+| `Attribute\Env` | 環境変数インジェクション（`Autowire` 拡張） |
+| `Attribute\Option` | WordPress option インジェクション（`Autowire` 拡張） |
+| `Attribute\Constant` | PHP 定数インジェクション（`Autowire` 拡張） |
 | `Attribute\AsAlias` | インターフェースエイリアス |
 | `Compiler\CompilerPassInterface` | コンパイラーパスインターフェース |
 | `WordPress\WordPressServiceProvider` | WordPress サービス登録 |
