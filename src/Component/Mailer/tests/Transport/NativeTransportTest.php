@@ -20,22 +20,34 @@ final class NativeTransportTest extends TestCase
     }
 
     #[Test]
-    public function sendCallsNativePostSend(): void
+    public function sendDelegatesToNativePostSend(): void
     {
-        $sendmailPath = ini_get('sendmail_path');
-        if (!$sendmailPath || !is_executable(explode(' ', $sendmailPath)[0])) {
-            self::markTestSkipped('sendmail is not available.');
-        }
+        $called = false;
+        $phpMailer = new class (true) extends PhpMailer {
+            public function __construct(
+                bool $exceptions,
+                private bool &$called = false,
+            ) {
+                parent::__construct($exceptions);
+            }
+
+            public function setCalled(bool &$called): void
+            {
+                $this->called = &$called;
+            }
+
+            public function nativePostSend(): bool
+            {
+                $this->called = true;
+
+                return true;
+            }
+        };
+        $phpMailer->setCalled($called);
 
         $transport = new NativeTransport();
-        $phpMailer = new PhpMailer(true);
-        $phpMailer->setFrom('sender@example.com', 'Sender');
-        $phpMailer->addAddress('user@example.com', 'User');
-        $phpMailer->Subject = 'Test';
-        $phpMailer->Body = 'Hello';
-        $phpMailer->Mailer = 'mail';
-
         $transport->send($phpMailer);
-        self::assertTrue(true);
+
+        self::assertTrue($called);
     }
 }

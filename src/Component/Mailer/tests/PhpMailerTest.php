@@ -43,18 +43,23 @@ final class PhpMailerTest extends TestCase
     #[Test]
     public function unregisteredMailerCallsParent(): void
     {
-        $phpMailer = new PhpMailer(true);
+        $parentCalled = false;
+        $phpMailer = new class (true) extends PhpMailer {
+            public bool $parentCalled = false;
+
+            protected function mailSend($header, $body)
+            {
+                $this->parentCalled = true;
+
+                return true;
+            }
+        };
         $phpMailer->Mailer = 'mail';
 
-        // postSend will fail because we haven't called preSend,
-        // but it should NOT call any transport
-        try {
-            $phpMailer->postSend();
-        } catch (PHPMailerException) {
-            // Expected - parent postSend fails without preSend
-        }
+        // No transport set — postSend should delegate to parent::postSend()
+        $phpMailer->postSend();
 
-        self::assertTrue(true);
+        self::assertTrue($phpMailer->parentCalled);
     }
 
     #[Test]
