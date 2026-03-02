@@ -37,7 +37,6 @@ WordPress プラグインパッケージの詳細ドキュメント。
 - PHP 8.1 以上
 - Composer 2.x
 - WordPress 6.x
-- Action Scheduler 3.x
 
 ### インストール
 

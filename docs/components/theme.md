@@ -4,7 +4,9 @@
 **名前空間:** `WpPack\Component\Theme\`
 **レイヤー:** Application
 
-WordPress のテーマセットアップ関数 `add_theme_support()` / `register_nav_menus()` / `register_sidebar()` をアトリビュートでラップし、テーマ関連の WordPress フックを Named Hook アトリビュートとして提供するコンポーネントです。
+テーマ関連の WordPress フックを Named Hook アトリビュートとして提供するコンポーネントです。
+
+> **Note:** テーマのブートストラップ、`add_theme_support()` / `register_nav_menus()` / `register_sidebar()` などのセットアップは [Kernel コンポーネント](kernel/README.md) の `ThemeInterface` が提供します。
 
 ## インストール
 
@@ -14,66 +16,70 @@ composer require wppack/theme
 
 ## 基本コンセプト
 
-### 従来の WordPress コード
+テーマのセットアップ（`add_theme_support()`、`register_nav_menus()`、`register_sidebar()` など）は Kernel コンポーネントの `ThemeInterface` を実装して行います。Theme コンポーネントはテーマ関連の WordPress フックを Named Hook Attributes として提供します。
 
 ```php
-// functions.php - procedural code with global functions
-add_action('after_setup_theme', 'my_theme_setup');
-function my_theme_setup() {
-    add_theme_support('post-thumbnails');
-    add_theme_support('automatic-feed-links');
-    add_theme_support('title-tag');
-    register_nav_menus(array(
-        'primary' => __('Primary Menu', 'my-theme'),
-        'footer' => __('Footer Menu', 'my-theme')
-    ));
+// テーマのセットアップは ThemeInterface を実装（→ Kernel コンポーネント参照）
+use WpPack\Component\Kernel\Kernel;
+use WpPack\Component\Kernel\ThemeInterface;
+use WpPack\Component\DependencyInjection\Container;
+use WpPack\Component\DependencyInjection\ContainerBuilder;
+
+class MyTheme implements ThemeInterface
+{
+    public function register(ContainerBuilder $container): void
+    {
+        $container->discover(
+            namespace: 'MyTheme\\',
+            directory: __DIR__ . '/src',
+        );
+    }
+
+    public function getCompilerPasses(): array
+    {
+        return [];
+    }
+
+    public function boot(Container $container): void
+    {
+        add_theme_support('post-thumbnails');
+        add_theme_support('title-tag');
+        add_theme_support('html5', [
+            'search-form', 'comment-form', 'comment-list', 'gallery', 'caption',
+        ]);
+
+        register_nav_menus([
+            'primary' => 'Primary Navigation',
+            'footer' => 'Footer Navigation',
+        ]);
+    }
 }
 
-add_action('widgets_init', 'my_theme_sidebars');
-function my_theme_sidebars() {
-    register_sidebar(array(
-        'name' => __('Main Sidebar', 'my-theme'),
-        'id' => 'main-sidebar',
-    ));
-}
-
-add_action('wp_enqueue_scripts', 'my_theme_scripts');
-function my_theme_scripts() {
-    wp_enqueue_style('my-theme-style', get_stylesheet_uri(), array(), '1.0.0');
-    wp_enqueue_script('my-theme-script', get_template_directory_uri() . '/js/script.js', array('jquery'), '1.0.0', true);
-}
+// functions.php で：
+Kernel::registerTheme(new MyTheme());
 ```
 
-### WpPack コード
+Theme コンポーネントの Named Hook Attributes を使って、テーマ関連フックを宣言的に扱います：
 
 ```php
-namespace MyTheme;
+use WpPack\Component\Theme\Attribute\WpEnqueueScriptsAction;
+use WpPack\Component\Theme\Attribute\BodyClassFilter;
 
-use WpPack\Component\Theme\AbstractTheme;
-use WpPack\Component\Theme\Attribute\Theme;
-use WpPack\Component\Theme\Attribute\ThemeSupport;
-use WpPack\Component\Theme\Attribute\Menu;
-use WpPack\Component\Theme\Attribute\Sidebar;
-
-#[Theme(
-    textDomain: 'my-theme',
-    version: '1.0.0'
-)]
-#[ThemeSupport('post-thumbnails')]
-#[ThemeSupport('automatic-feed-links')]
-#[ThemeSupport('title-tag')]
-#[ThemeSupport('html5', ['search-form', 'comment-form', 'comment-list', 'gallery', 'caption'])]
-#[ThemeSupport('custom-logo', [
-    'height' => 100,
-    'width' => 400,
-    'flex-height' => true,
-    'flex-width' => true
-])]
-#[Menu('primary', 'Primary Menu')]
-#[Menu('footer', 'Footer Menu')]
-#[Sidebar('main', 'Main Sidebar', 'The main widget area')]
-class Theme extends AbstractTheme
+class ThemeAssets
 {
+    #[WpEnqueueScriptsAction]
+    public function enqueueFrontendAssets(): void
+    {
+        $theme_version = wp_get_theme()->get('Version');
+        wp_enqueue_style('my-theme-style', get_stylesheet_uri(), [], $theme_version);
+    }
+
+    #[BodyClassFilter]
+    public function addCustomBodyClasses(array $classes): array
+    {
+        $classes[] = 'scheme-' . get_theme_mod('color_scheme', 'light');
+        return $classes;
+    }
 }
 ```
 
@@ -85,26 +91,13 @@ class Theme extends AbstractTheme
 
 **WordPress フック:** `after_setup_theme`
 
+> **Note:** テーマの基本セットアップ（`add_theme_support()`、`register_nav_menus()` 等）は `ThemeInterface::boot()` で行います。`#[AfterSetupThemeAction]` は `after_setup_theme` タイミングで実行する必要がある処理に使用します。
+
 ```php
 use WpPack\Component\Theme\Attribute\AfterSetupThemeAction;
 
-class ThemeSetup
+class ThemeTextDomain
 {
-    #[AfterSetupThemeAction]
-    public function setupTheme(): void
-    {
-        add_theme_support('post-thumbnails');
-        add_theme_support('html5', [
-            'search-form', 'comment-form', 'comment-list',
-            'gallery', 'caption', 'script', 'style',
-        ]);
-        add_image_size('hero-banner', 1920, 600, true);
-        register_nav_menus([
-            'primary' => __('Primary Menu', 'wppack-theme'),
-            'footer' => __('Footer Menu', 'wppack-theme'),
-        ]);
-    }
-
     #[AfterSetupThemeAction(priority: 0)]
     public function loadTextDomain(): void
     {
@@ -203,7 +196,7 @@ class ThemeCustomizer
 
         $wp_customize->add_setting('color_scheme', [
             'default' => 'light',
-            'sanitize_callback' => [$this, 'sanitizeColorScheme'],
+            'sanitize_callback' => 'sanitize_text_field',
         ]);
 
         $wp_customize->add_control('color_scheme', [
@@ -213,7 +206,6 @@ class ThemeCustomizer
             'choices' => [
                 'light' => __('Light', 'wppack-theme'),
                 'dark' => __('Dark', 'wppack-theme'),
-                'auto' => __('Auto (System)', 'wppack-theme'),
             ],
         ]);
     }
@@ -300,14 +292,14 @@ class ThemePerformance
 #[StyleLoaderTagFilter(priority?: int = 10)]          // style タグの変更
 ```
 
-## テーマアトリビュートクイックリファレンス
+## このコンポーネントの使用場面
 
-```php
-#[Theme(textDomain: 'text-domain', version: '1.0.0')]
-#[ThemeSupport('feature-name', ['options'])]
-#[Menu('location', 'Description')]
-#[Sidebar('id', 'Name', 'Description')]
-```
+**最適な用途：**
+- アセット管理（`wp_enqueue_scripts`）、テンプレート出力（`wp_head`、`wp_footer`）、カスタマイザーなどのフックを宣言的に扱いたい場合
+- `body_class`、`script_loader_tag` などのフィルターを型安全に扱いたい場合
+
+**代替を検討すべき場合：**
+- テーマの基本セットアップ（`add_theme_support()`、`register_nav_menus()` 等） → `ThemeInterface::boot()`（[Kernel コンポーネント](kernel/README.md)）を使用
 
 ## 依存関係
 

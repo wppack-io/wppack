@@ -6,7 +6,7 @@
 
 WordPress プラグインライフサイクルに関連するフック（`plugins_loaded`、`activated_plugin`、`deactivated_plugin`、`plugin_action_links_{plugin}` など）を Named Hook Attributes でラップするコンポーネントです。
 
-> **Note:** プラグインのブートストラップ、サービスコンテナ、サービスプロバイダーパターンなどのフレームワーク機能は [Kernel コンポーネント](kernel.md) が提供します。
+> **Note:** プラグインのブートストラップ、サービスコンテナ、サービスプロバイダーパターンなどのフレームワーク機能は [Kernel コンポーネント](kernel/README.md) が提供します。
 
 ## インストール
 
@@ -16,7 +16,9 @@ composer require wppack/plugin
 
 ## Named Hook アトリビュート
 
-Plugin コンポーネントは、WordPress プラグインライフサイクル管理のための Named Hook アトリビュートを提供します。
+Plugin コンポーネントは、WordPress プラグイン関連フックのための Named Hook アトリビュートを提供します。
+
+> **Note:** プラグイン自身の初期化は `PluginInterface::boot()`、有効化/無効化は `PluginInterface::onActivate()` / `onDeactivate()` で行います。ここで紹介するフックは、他プラグインのイベントへの反応やプラグイン管理画面の拡張に使用します。
 
 ### プラグインライフサイクルフック
 
@@ -27,33 +29,17 @@ Plugin コンポーネントは、WordPress プラグインライフサイクル
 ```php
 use WpPack\Component\Plugin\Attribute\PluginsLoadedAction;
 
-class PluginInitializer
+class WooCommerceIntegration
 {
     #[PluginsLoadedAction]
-    public function initializePlugin(): void
+    public function registerIntegration(): void
     {
-        load_plugin_textdomain(
-            'wppack-plugin',
-            false,
-            dirname(plugin_basename(WPPACK_PLUGIN_FILE)) . '/languages'
-        );
-
-        $this->initializeComponents();
-
-        if (!$this->checkDependencies()) {
-            add_action('admin_notices', [$this, 'showDependencyNotice']);
+        if (!class_exists('WooCommerce')) {
             return;
         }
 
-        do_action('wppack_plugin_initialized');
-    }
-
-    #[PluginsLoadedAction(priority: 5)]
-    public function earlyInitialization(): void
-    {
-        if (!defined('WPPACK_PLUGIN_URL')) {
-            define('WPPACK_PLUGIN_URL', plugin_dir_url(WPPACK_PLUGIN_FILE));
-        }
+        // WooCommerce が利用可能な場合のみ統合を登録
+        add_filter('woocommerce_payment_gateways', [$this, 'addGateway']);
     }
 }
 ```
@@ -62,17 +48,18 @@ class PluginInitializer
 
 **WordPress フック:** `activated_plugin`
 
+他のプラグインが有効化された際のイベントを購読します。自プラグインの有効化処理は `PluginInterface::onActivate()` を使用してください。
+
 ```php
 use WpPack\Component\Plugin\Attribute\ActivatedPluginAction;
 
-class PluginActivation
+class PluginCompatibility
 {
     #[ActivatedPluginAction]
-    public function onPluginActivated(string $plugin, bool $network_wide): void
+    public function onOtherPluginActivated(string $plugin, bool $network_wide): void
     {
-        if ($plugin === plugin_basename(WPPACK_PLUGIN_FILE)) {
-            set_transient('wppack_activation_redirect', true, 30);
-            wp_schedule_single_event(time() + 10, 'wppack_complete_activation');
+        if (str_contains($plugin, 'woocommerce')) {
+            delete_transient('wppack_compatibility_cache');
         }
     }
 }
@@ -82,17 +69,18 @@ class PluginActivation
 
 **WordPress フック:** `deactivated_plugin`
 
+他のプラグインが無効化された際のイベントを購読します。自プラグインの無効化処理は `PluginInterface::onDeactivate()` を使用してください。
+
 ```php
 use WpPack\Component\Plugin\Attribute\DeactivatedPluginAction;
 
-class PluginDeactivation
+class PluginCompatibility
 {
     #[DeactivatedPluginAction]
-    public function onPluginDeactivated(string $plugin, bool $network_wide): void
+    public function onOtherPluginDeactivated(string $plugin, bool $network_wide): void
     {
-        if ($plugin === plugin_basename(WPPACK_PLUGIN_FILE)) {
-            wp_clear_scheduled_hook('wppack_daily_cleanup');
-            flush_rewrite_rules();
+        if (str_contains($plugin, 'woocommerce')) {
+            delete_transient('wppack_compatibility_cache');
         }
     }
 }
@@ -169,23 +157,10 @@ class PluginUpdater
             return;
         }
 
-        $our_plugin = plugin_basename(WPPACK_PLUGIN_FILE);
-
-        if (isset($options['plugins']) && in_array($our_plugin, $options['plugins'])) {
-            $this->runUpdateRoutine();
-        }
-    }
-
-    private function runUpdateRoutine(): void
-    {
-        $current_version = WPPACK_VERSION;
-        $previous_version = get_option('wppack_version', '0.0.0');
-
-        if (version_compare($previous_version, '2.0.0', '<')) {
-            $this->updateTo200();
+        if (!isset($options['plugins']) || !in_array('my-plugin/my-plugin.php', $options['plugins'])) {
+            return;
         }
 
-        update_option('wppack_version', $current_version);
         wp_cache_flush();
     }
 }
@@ -196,6 +171,7 @@ class PluginUpdater
 ```php
 // プラグインライフサイクル
 #[PluginsLoadedAction(priority?: int = 10)]          // 全プラグイン読み込み完了
+#[NetworkPluginsLoadedAction(priority?: int = 10)]   // ネットワークプラグイン読み込み完了
 #[MuPluginsLoadedAction(priority?: int = 10)]        // Must-Use プラグイン読み込み完了
 
 // プラグイン管理
@@ -218,12 +194,12 @@ class PluginUpdater
 ## このコンポーネントの使用場面
 
 **最適な用途：**
-- プラグインライフサイクルフックを Named Hook Attributes で宣言的に使いたい場合
-- `plugins_loaded`、`activated_plugin`、`plugin_action_links` などのフックを型安全に扱いたい場合
-- プラグイン更新処理をアトリビュートで管理したい場合
+- プラグイン管理画面の拡張（アクションリンク、行メタ）を宣言的に行いたい場合
+- 他プラグインの有効化/無効化/更新イベントに反応したい場合
+- `plugin_action_links`、`plugin_row_meta`、`upgrader_process_complete` などのフックを型安全に扱いたい場合
 
 **代替を検討すべき場合：**
-- プラグインのブートストラップやサービスコンテナが必要な場合 → [Kernel コンポーネント](kernel.md) を使用
+- プラグイン自身の初期化・有効化・無効化 → `PluginInterface`（[Kernel コンポーネント](kernel/README.md)）を使用
 
 ## 依存関係
 
