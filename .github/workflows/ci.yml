@@ -46,6 +46,8 @@ jobs:
   tests:
     name: Tests (PHP ${{ matrix.php }})
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     services:
       mysql:
         image: mysql:8.0
@@ -58,7 +60,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: ['8.2', '8.3', '8.4']
+        php: ['8.2', '8.3', '8.4', '8.5']
     steps:
       - uses: actions/checkout@v4
 
@@ -76,4 +78,11 @@ jobs:
         run: cp tests/wp-config.php.dist tests/wp-config.php
 
       - name: Run tests
-        run: composer test
+        run: vendor/bin/phpunit --coverage-clover coverage.xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: coverage.xml
+          flags: php${{ matrix.php }}
+          use_oidc: true
