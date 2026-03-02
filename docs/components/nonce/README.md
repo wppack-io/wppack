@@ -33,16 +33,16 @@ $url = wp_nonce_url(admin_url('admin-post.php?action=delete&id=' . $id), 'delete
 
 ```php
 use WpPack\Component\Nonce\NonceManager;
-use WpPack\Component\Nonce\Attribute\NonceProtected;
+use WpPack\Component\Nonce\Attribute\IsNonceValid;
 
 class PostController
 {
     public function __construct(
-        private readonly NonceManager $nonces,
+        private readonly NonceManager $nonceManager,
     ) {}
 
-    // Attribute で自動検証
-    #[NonceProtected('delete-post')]
+    // Attribute で自動検証（Controller のみで有効）
+    #[IsNonceValid('delete-post')]
     public function deletePost(int $postId): void
     {
         wp_delete_post($postId);
@@ -51,7 +51,7 @@ class PostController
     public function renderDeleteButton(int $postId): string
     {
         // wp_nonce_url() のラッパー
-        $url = $this->nonces->url(
+        $url = $this->nonceManager->url(
             admin_url('admin-post.php?action=delete&id=' . $postId),
             'delete-post',
         );
@@ -71,27 +71,26 @@ use WpPack\Component\Nonce\NonceManager;
 class MyService
 {
     public function __construct(
-        private readonly NonceManager $nonces,
+        private readonly NonceManager $nonceManager,
     ) {}
 
     public function example(): void
     {
         // wp_create_nonce() のラッパー
-        $nonce = $this->nonces->create('my-action');
+        $nonce = $this->nonceManager->create('my-action');
 
         // wp_verify_nonce() のラッパー
-        $valid = $this->nonces->verify($nonce, 'my-action');
+        $valid = $this->nonceManager->verify($nonce, 'my-action');
 
         // wp_nonce_field() のラッパー（HTML 文字列を返す）
-        $field = $this->nonces->field('my-action');
-        $field = $this->nonces->field('my-action', 'my_nonce_name');
+        $field = $this->nonceManager->field('my-action');
+        $field = $this->nonceManager->field('my-action', 'my_nonce_name');
 
         // wp_nonce_url() のラッパー
-        $url = $this->nonces->url('https://example.com/action', 'my-action');
+        $url = $this->nonceManager->url('https://example.com/action', 'my-action');
 
-        // $_REQUEST から nonce を取得して検証
-        $valid = $this->nonces->verifyRequest('my-action');
-        $valid = $this->nonces->verifyRequest('my-action', 'custom_nonce_field');
+        // wp_nonce_tick() のラッパー
+        $tick = $this->nonceManager->tick();
     }
 }
 ```
@@ -104,27 +103,29 @@ class MyService
 | `verify(string $nonce, string $action): bool` | `wp_verify_nonce()` | nonce を検証 |
 | `field(string $action, string $name = '_wpnonce'): string` | `wp_nonce_field()` | hidden input を生成 |
 | `url(string $url, string $action): string` | `wp_nonce_url()` | nonce 付き URL を生成 |
-| `verifyRequest(string $action, string $name = '_wpnonce'): bool` | `wp_verify_nonce()` | `$_REQUEST` から nonce を取得して検証 |
+| `tick(): int` | `wp_nonce_tick()` | nonce 生成用の時間依存値を取得 |
 
 ## Attribute
 
-### `#[NonceProtected]`
+### `#[IsNonceValid]`
 
 メソッド実行前に nonce を自動検証する Attribute です。検証失敗時は `wp_die()` を呼びます。
 
+> **注意:** この Attribute は Controller のみで有効です。Controller コンポーネント実装後に利用可能になります。
+
 ```php
-use WpPack\Component\Nonce\Attribute\NonceProtected;
+use WpPack\Component\Nonce\Attribute\IsNonceValid;
 
 class SettingsController
 {
-    #[NonceProtected('update-settings')]
+    #[IsNonceValid('update-settings')]
     public function updateSettings(array $settings): void
     {
         // nonce が有効な場合のみ実行される
         update_option('my_settings', $settings);
     }
 
-    #[NonceProtected('delete-item', name: 'delete_nonce')]
+    #[IsNonceValid('delete-item', name: 'delete_nonce')]
     public function deleteItem(int $id): void
     {
         // カスタムフィールド名で nonce を検証
@@ -138,30 +139,6 @@ class SettingsController
 | `action` | `string` | _(必須)_ | nonce アクション名 |
 | `name` | `string` | `'_wpnonce'` | リクエストパラメータ名 |
 
-### `#[RequiresNonce]`
-
-HTTP メソッドの制約も加えた nonce 検証 Attribute です。
-
-```php
-use WpPack\Component\Nonce\Attribute\RequiresNonce;
-
-class AdminController
-{
-    #[RequiresNonce('delete-user', method: 'POST')]
-    public function deleteUser(int $userId): void
-    {
-        // POST リクエストかつ有効な nonce の場合のみ実行
-        wp_delete_user($userId);
-    }
-}
-```
-
-| パラメータ | 型 | デフォルト | 説明 |
-|-----------|-----|----------|------|
-| `action` | `string` | _(必須)_ | nonce アクション名 |
-| `method` | `string\|null` | `null` | 許可する HTTP メソッド（`'GET'`, `'POST'` 等） |
-| `name` | `string` | `'_wpnonce'` | リクエストパラメータ名 |
-
 ## クイックスタート
 
 ### セキュアフォーム
@@ -172,7 +149,7 @@ use WpPack\Component\Nonce\NonceManager;
 class ContactForm
 {
     public function __construct(
-        private readonly NonceManager $nonces,
+        private readonly NonceManager $nonceManager,
     ) {}
 
     public function render(): void
@@ -180,7 +157,7 @@ class ContactForm
         ?>
         <form method="post" action="<?php echo admin_url('admin-post.php'); ?>">
             <input type="hidden" name="action" value="submit_contact">
-            <?php echo $this->nonces->field('contact-form-submit'); ?>
+            <?php echo $this->nonceManager->field('contact-form-submit'); ?>
 
             <input type="text" name="name" required>
             <input type="email" name="email" required>
@@ -196,7 +173,7 @@ class ContactForm
 ### フォーム送信ハンドラー
 
 ```php
-use WpPack\Component\Nonce\Attribute\NonceProtected;
+use WpPack\Component\Nonce\Attribute\IsNonceValid;
 use WpPack\Component\Hook\Attribute\Action;
 
 class ContactFormHandler
@@ -207,7 +184,7 @@ class ContactFormHandler
 
     #[Action('admin_post_submit_contact')]
     #[Action('admin_post_nopriv_submit_contact')]
-    #[NonceProtected('contact-form-submit')]
+    #[IsNonceValid('contact-form-submit')]
     public function handleSubmit(): void
     {
         // nonce は Attribute で自動検証済み
@@ -233,13 +210,13 @@ class ContactFormHandler
 class PostActions
 {
     public function __construct(
-        private readonly NonceManager $nonces,
+        private readonly NonceManager $nonceManager,
     ) {}
 
     public function getDeleteLink(int $postId): string
     {
         $url = admin_url('admin-post.php?action=delete_post&post_id=' . $postId);
-        return $this->nonces->url($url, 'delete-post_' . $postId);
+        return $this->nonceManager->url($url, 'delete-post_' . $postId);
     }
 
     #[Action('admin_post_delete_post')]
@@ -288,20 +265,19 @@ class NonceLifetimeCustomizer
 ### NonceManager
 
 ```php
-$nonces->create('action');                     // nonce を作成
-$nonces->verify($nonce, 'action');             // nonce を検証
-$nonces->field('action');                      // hidden input を出力
-$nonces->field('action', 'custom_name');       // カスタム名で hidden input
-$nonces->url($url, 'action');                  // nonce 付き URL
-$nonces->verifyRequest('action');              // $_REQUEST から検証
+$nonceManager->create('action');                     // nonce を作成
+$nonceManager->verify($nonce, 'action');             // nonce を検証
+$nonceManager->field('action');                      // hidden input を出力
+$nonceManager->field('action', 'custom_name');       // カスタム名で hidden input
+$nonceManager->url($url, 'action');                  // nonce 付き URL
+$nonceManager->tick();                               // nonce tick 値を取得
 ```
 
 ### Attribute
 
 ```php
-#[NonceProtected('action')]                    // 自動 nonce 検証
-#[NonceProtected('action', name: 'my_nonce')]  // カスタムフィールド名
-#[RequiresNonce('action', method: 'POST')]     // HTTP メソッド制約付き
+#[IsNonceValid('action')]                      // 自動 nonce 検証（Controller のみ）
+#[IsNonceValid('action', name: 'my_nonce')]    // カスタムフィールド名
 ```
 
 ## 利用シーン

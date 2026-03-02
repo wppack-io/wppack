@@ -705,8 +705,7 @@ WordPress のバリデーション・サニタイズ機能をラップする Att
 | Attribute | パラメータ | 提供元 | 説明 | WordPress API |
 |-----------|-----------|--------|------|--------------|
 | `#[RequiresCapability]` | `capability: string` | Security / Role | ケイパビリティによるアクセス制御 | `current_user_can()` |
-| `#[RequiresNonce]` | `action: string`, `method?: string`, `name?: string = '_wpnonce'` | Security / Nonce | HTTP メソッド制約付き nonce 検証 | `wp_verify_nonce()` |
-| `#[NonceProtected]` | `action: string`, `name?: string = '_wpnonce'` | Nonce | nonce 自動検証 | `wp_verify_nonce()` |
+| `#[IsNonceValid]` | `action: string`, `name?: string = '_wpnonce'` | Nonce | nonce 自動検証（Controller のみで有効） | `wp_verify_nonce()` |
 
 ## 8. ルーティング Attributes
 
