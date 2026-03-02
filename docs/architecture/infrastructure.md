@@ -18,11 +18,11 @@
 
 | 機能 | コアインターフェース | AWS | GCP | Azure | その他 |
 |------|---------------------|-----|-----|-------|--------|
-| メール送信 | Mailer | AmazonMailer (SES) | — | AzureMailer (ACS) | SendGridMailer |
-| キャッシュ | Cache | DynamoDbCache, ElastiCacheAuth | — | — | RedisCache, MemcachedCache, ApcuCache |
-| メッセージング | Messenger | SQS/Lambda | — | — | — |
-| スケジューラー | Scheduler | EventBridge | — | — | — |
-| ストレージ | Media/Filesystem | S3StoragePlugin | — | — | — |
+| メール送信 | Mailer | Amazon SES (API, SMTP) | — | Azure Communication Services (API) | SendGrid (API, SMTP) |
+| キャッシュ | Cache | Amazon DynamoDB, Amazon ElastiCache (Redis/Valkey, Memcached) | — | — | Redis/Valkey, Memcached, APCu |
+| メッセージング | Messenger | Amazon SQS + AWS Lambda | — | — | — |
+| スケジューラー | Scheduler | Amazon EventBridge | — | — | — |
+| ストレージ | Media/Filesystem | Amazon S3 | — | — | — |
 
 ### AWS SDK
 
