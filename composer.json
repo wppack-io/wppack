@@ -77,6 +77,7 @@
             "WpPack\\Component\\Mailer\\Bridge\\Amazon\\": "src/Component/Mailer/Bridge/Amazon/src/",
             "WpPack\\Component\\Mailer\\Bridge\\Azure\\": "src/Component/Mailer/Bridge/Azure/src/",
             "WpPack\\Component\\Mailer\\Bridge\\SendGrid\\": "src/Component/Mailer/Bridge/SendGrid/src/",
+            "WpPack\\Component\\Cache\\Bridge\\Redis\\": "src/Component/Cache/Bridge/Redis/src/",
             "WpPack\\Plugin\\AmazonMailerPlugin\\": "src/Plugin/AmazonMailerPlugin/src/"
         }
     },
@@ -122,7 +123,8 @@
             "WpPack\\Component\\Theme\\Tests\\": "src/Component/Theme/tests/",
             "WpPack\\Component\\Transient\\Tests\\": "src/Component/Transient/tests/",
             "WpPack\\Component\\User\\Tests\\": "src/Component/User/tests/",
-            "WpPack\\Component\\Widget\\Tests\\": "src/Component/Widget/tests/"
+            "WpPack\\Component\\Widget\\Tests\\": "src/Component/Widget/tests/",
+            "WpPack\\Component\\Cache\\Bridge\\Redis\\Tests\\": "src/Component/Cache/Bridge/Redis/tests/"
         }
     },
     "replace": {
@@ -177,7 +179,8 @@
         "wppack/azure-mailer": "self.version",
         "wppack/sendgrid-mailer": "self.version",
         "wppack/amazon-mailer-plugin": "self.version",
-        "wppack/monolog-logger": "self.version"
+        "wppack/monolog-logger": "self.version",
+        "wppack/redis-cache": "self.version"
     },
     "config": {
         "sort-packages": true

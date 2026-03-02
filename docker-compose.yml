@@ -9,3 +9,9 @@ services:
       - '3306:3306'
     tmpfs:
       - /var/lib/mysql
+  valkey:
+    image: valkey/valkey:8
+    ports:
+      - '6379:6379'
+    tmpfs:
+      - /data

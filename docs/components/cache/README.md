@@ -158,25 +158,103 @@ $cache->decrement('page_views', 1, 'stats');
 
 ## Object Cache ドロップイン
 
-WordPress は `wp-content/object-cache.php` に配置されたドロップインファイルにより、Object Cache のバックエンドを Redis / Valkey / DynamoDB / APCu 等に切り替えることができます。
+WpPack は `object-cache.php` ドロップインを提供し、WordPress のオブジェクトキャッシュバックエンドを Redis / Valkey 等に差し替えることができます。`CacheManager` はドロップインの有無にかかわらず同じインターフェースで動作します。
 
-ドロップインはサードパーティプラグイン（Redis Object Cache、W3 Total Cache 等）や独自実装で提供されます。`CacheManager` はドロップインの有無にかかわらず同じインターフェースで動作します。
+> [!NOTE]
+> Object Cache ドロップインの WordPress 内部での仕組みについては [docs/specifications/object-cache-dropin.md](../../specifications/object-cache-dropin.md) を参照してください。
 
-### 対応バックエンドの例
+### セットアップ
 
-| バックエンド | 追加パッケージ |
-|------------|--------------|
-| Redis / Valkey | `ext-redis` または `predis/predis` |
-| DynamoDB | `async-aws/dynamo-db` |
-| APCu | `ext-apcu` |
+**1. Redis Bridge のインストール**
 
-ドロップインを配置しない場合、WordPress デフォルトのリクエスト内メモリキャッシュが使用されます。
+```bash
+composer require wppack/redis-cache
+```
+
+**2. wp-config.php の設定**
+
+```php
+// Redis Standalone
+define('WPPACK_CACHE_DSN', 'redis://127.0.0.1:6379');
+
+// プレフィックス（オプション、デフォルト 'wp:'）
+define('WPPACK_CACHE_PREFIX', 'wp:');
+
+// オプション配列（オプション、DSN パラメータを上書き/補完）
+define('WPPACK_CACHE_OPTIONS', [
+    'timeout' => 5,
+    'read_timeout' => 3,
+    'persistent' => 1,
+]);
+```
+
+**3. ドロップインの配置**
+
+```bash
+cp vendor/wppack/cache/drop-in/object-cache.php wp-content/object-cache.php
+```
+
+### DSN 形式
+
+Symfony Cache 互換の DSN 形式をサポートします。
+
+```php
+// Standalone
+'redis://127.0.0.1:6379'
+'redis://127.0.0.1:6379/2'                     // DB index 2
+'redis://secret@127.0.0.1:6379'                // パスワード認証
+
+// TLS
+'rediss://127.0.0.1:6380'
+
+// Valkey
+'valkey://127.0.0.1:6379'
+
+// Unix ソケット
+'redis:///var/run/redis.sock'
+
+// Cluster
+'redis:?host[node1:6379]&host[node2:6379]&host[node3:6379]&redis_cluster=1'
+
+// Sentinel
+'redis:?host[sentinel1:26379]&host[sentinel2:26379]&redis_sentinel=mymaster'
+```
+
+### DSN クエリパラメータ
+
+| パラメータ | 型 | デフォルト | 説明 |
+|-----------|-----|-----------|------|
+| `auth` | string | — | パスワード |
+| `dbindex` | int | `0` | DB 番号 |
+| `timeout` | int | `30` | 接続タイムアウト(秒) |
+| `read_timeout` | int | `0` | 読み取りタイムアウト(秒) |
+| `persistent` | int | `0` | 持続的接続 |
+| `redis_cluster` | bool | `false` | Cluster モード |
+| `redis_sentinel` | string | — | Sentinel サービス名 |
+| `failover` | string | `none` | フェイルオーバー戦略 |
+
+### アダプタアーキテクチャ
+
+WpPack の Object Cache ドロップインは Mailer コンポーネントと同じ Bridge パターンを採用しています:
+
+- **`ObjectCache`**: WP_Object_Cache エンジン。ランタイムキャッシュ、グループ管理、シリアライズ、マルチサイト対応を担当
+- **`AdapterInterface`**: 純粋な永続化レイヤー（生文字列の保存/取得のみ）
+- **`Adapter::fromDsn()`**: DSN からアダプタを自動検出・生成するレジストリ
+
+`ObjectCache` は `?AdapterInterface`（nullable）を受け取り、アダプタが `null` の場合はランタイム配列のみで動作します（グレースフルデグラデーション）。
+
+### 対応バックエンド
+
+| バックエンド | Bridge パッケージ | スキーム |
+|------------|-----------------|---------|
+| Redis / Valkey | [`wppack/redis-cache`](redis-cache.md) | `redis://`, `rediss://`, `valkey://`, `valkeys://` |
 
 ### 動作確認
 
-WP-CLI でキャッシュの状態を確認できます。
-
 ```bash
+# WP-CLI でキャッシュタイプを確認
+wp cache type
+
 # キャッシュのテスト
 wp cache set test_key test_value
 wp cache get test_key
@@ -223,6 +301,11 @@ class CacheInvalidator
 | クラス | 説明 |
 |-------|------|
 | `CacheManager` | WordPress Object Cache API のラッパー |
+| `ObjectCache` | WP_Object_Cache エンジン（ドロップイン用） |
+| `ObjectCacheMetrics` | キャッシュヒット/ミス統計（readonly VO） |
+| `Adapter\AdapterInterface` | 永続化アダプタのコントラクト |
+| `Adapter\Adapter` | DSN からアダプタを自動検出するレジストリ |
+| `Adapter\Dsn` | DSN パーサー |
 
 ## 依存関係
 
@@ -230,6 +313,4 @@ class CacheInvalidator
 - なし（WordPress ネイティブの Object Cache API を使用）
 
 ### ドロップイン利用時
-- Redis / Valkey: `ext-redis` または `predis/predis`
-- DynamoDB: `async-aws/dynamo-db`
-- APCu: `ext-apcu`
+- Redis / Valkey: `wppack/redis-cache`（`ext-redis` が必要）

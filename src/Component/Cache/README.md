@@ -33,6 +33,23 @@ $cache->flush();
 $cache->flushGroup('my_app');
 ```
 
+## Object Cache Drop-in
+
+WpPack provides an `object-cache.php` drop-in that replaces WordPress's default in-memory object cache with a persistent backend (Redis, Valkey, etc.).
+
+```bash
+# Install Redis bridge
+composer require wppack/redis-cache
+
+# Configure in wp-config.php
+# define('WPPACK_CACHE_DSN', 'redis://127.0.0.1:6379');
+
+# Deploy drop-in
+cp vendor/wppack/cache/drop-in/object-cache.php wp-content/object-cache.php
+```
+
+The drop-in uses the Adapter/Bridge pattern — `ObjectCache` handles runtime cache, groups, serialization, and multisite, while `AdapterInterface` implementations handle persistence.
+
 ## Documentation
 
 See [docs/components/cache/](../../../docs/components/cache/) for full documentation.
