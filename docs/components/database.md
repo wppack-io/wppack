@@ -76,6 +76,7 @@ $this->db->insert('custom_table', [
 | `prepare(string, mixed...): string` | `prepare()` | プリペアドステートメント |
 | `query(string): int\|bool` | `query()` | 生 SQL を実行 |
 | `prefix(): string` | `$wpdb->prefix` | テーブルプレフィックスを取得 |
+| `charsetCollate(): string` | `$wpdb->get_charset_collate()` | 文字セット・照合順序を取得 |
 | `lastInsertId(): int` | `$wpdb->insert_id` | 最後の挿入 ID を取得 |
 | `lastError(): string` | `$wpdb->last_error` | 最後のエラーメッセージを取得 |
 
@@ -145,15 +146,15 @@ class AnalyticsRepository
 
 ```php
 use WpPack\Component\Database\Attribute\Table;
+use WpPack\Component\Database\DatabaseManager;
 
 #[Table('analytics')]
 class AnalyticsTable
 {
-    public static function schema(): string
+    public function schema(DatabaseManager $db): string
     {
-        global $wpdb;
-        $tableName = $wpdb->prefix . 'analytics';
-        $charsetCollate = $wpdb->get_charset_collate();
+        $tableName = $db->prefix() . 'analytics';
+        $charsetCollate = $db->charsetCollate();
 
         return "CREATE TABLE {$tableName} (
             id bigint(20) NOT NULL AUTO_INCREMENT,
@@ -170,7 +171,7 @@ class AnalyticsTable
 }
 ```
 
-プラグインの有効化時に `dbDelta()` を通じてテーブルが自動的に作成・更新されます。
+フレームワークが `schema(DatabaseManager)` を呼び出すため、`global $wpdb` は不要です。プラグインの有効化時に `dbDelta()` を通じてテーブルが自動的に作成・更新されます。
 
 ## Named Hook Attributes
 
