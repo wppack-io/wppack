@@ -229,4 +229,58 @@ final class PredisAdapterTest extends TestCase
         self::assertTrue($this->adapter->add('wppack_test:existing', 'new', -1));
         self::assertSame('old', $this->adapter->get('wppack_test:existing'));
     }
+
+    #[Test]
+    public function getMultipleEmpty(): void
+    {
+        self::assertSame([], $this->adapter->getMultiple([]));
+    }
+
+    #[Test]
+    public function deleteMultipleEmpty(): void
+    {
+        self::assertSame([], $this->adapter->deleteMultiple([]));
+    }
+
+    #[Test]
+    public function setMultipleWithTtl(): void
+    {
+        $results = $this->adapter->setMultiple([
+            'wppack_test:ttl1' => 'value1',
+            'wppack_test:ttl2' => 'value2',
+        ], 10);
+
+        self::assertTrue($results['wppack_test:ttl1']);
+        self::assertTrue($results['wppack_test:ttl2']);
+        self::assertSame('value1', $this->adapter->get('wppack_test:ttl1'));
+        self::assertSame('value2', $this->adapter->get('wppack_test:ttl2'));
+    }
+
+    #[Test]
+    public function decrementReturnsFalseForMissing(): void
+    {
+        self::assertFalse($this->adapter->decrement('wppack_test:nonexistent'));
+    }
+
+    #[Test]
+    public function flushAll(): void
+    {
+        $this->adapter->set('wppack_test:a', '1');
+        $this->adapter->set('wppack_test:b', '2');
+
+        $this->adapter->flush();
+
+        self::assertFalse($this->adapter->get('wppack_test:a'));
+        self::assertFalse($this->adapter->get('wppack_test:b'));
+    }
+
+    #[Test]
+    public function closeAndReconnect(): void
+    {
+        $this->adapter->set('wppack_test:before', 'value');
+        $this->adapter->close();
+
+        self::assertTrue($this->adapter->set('wppack_test:after', 'value'));
+        self::assertSame('value', $this->adapter->get('wppack_test:after'));
+    }
 }

@@ -170,7 +170,15 @@ final class RedisClusterAdapter extends AbstractAdapter
         try {
             $redis = $this->getConnection();
 
-            return $redis->ping('pong') === 'pong';
+            $masters = $redis->_masters();
+
+            if ($masters === []) {
+                return false;
+            }
+
+            $redis->ping($masters[0]);
+
+            return true;
         } catch (\Throwable) {
             return false;
         }

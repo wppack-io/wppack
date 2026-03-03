@@ -94,6 +94,18 @@ jobs:
       - name: Setup WordPress test config
         run: cp tests/wp-config.php.dist tests/wp-config.php
 
+      - name: Start Valkey Cluster
+        run: |
+          for port in 7010 7011 7012; do
+            docker run -d --name valkey-$port --network host valkey/valkey:8 \
+              valkey-server --port $port --cluster-enabled yes \
+              --cluster-config-file nodes-$port.conf --cluster-node-timeout 5000
+          done
+          sleep 2
+          docker run --rm --network host valkey/valkey:8 \
+            valkey-cli --cluster create 127.0.0.1:7010 127.0.0.1:7011 127.0.0.1:7012 \
+            --cluster-replicas 0 --cluster-yes
+
       - name: Run tests
         run: vendor/bin/phpunit --coverage-clover coverage.xml --log-junit junit.xml
 

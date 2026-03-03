@@ -21,6 +21,23 @@ services:
       - '8000:8000'
     tmpfs:
       - /home/dynamodblocal/data
+  valkey-cluster:
+    image: valkey/valkey:8
+    ports:
+      - '7010:7010'
+      - '7011:7011'
+      - '7012:7012'
+    entrypoint: >
+      sh -c "
+        valkey-server --port 7010 --cluster-enabled yes --cluster-config-file nodes-7010.conf --cluster-node-timeout 5000 --daemonize yes &&
+        valkey-server --port 7011 --cluster-enabled yes --cluster-config-file nodes-7011.conf --cluster-node-timeout 5000 --daemonize yes &&
+        valkey-server --port 7012 --cluster-enabled yes --cluster-config-file nodes-7012.conf --cluster-node-timeout 5000 --daemonize yes &&
+        sleep 1 &&
+        valkey-cli --cluster create 127.0.0.1:7010 127.0.0.1:7011 127.0.0.1:7012 --cluster-replicas 0 --cluster-yes &&
+        tail -f /dev/null
+      "
+    tmpfs:
+      - /data
   memcached:
     image: memcached:1.6
     ports:
