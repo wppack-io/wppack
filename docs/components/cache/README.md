@@ -220,19 +220,6 @@ Symfony Cache 互換の DSN 形式をサポートします。
 'redis:?host[sentinel1:26379]&host[sentinel2:26379]&redis_sentinel=mymaster'
 ```
 
-### DSN クエリパラメータ
-
-| パラメータ | 型 | デフォルト | 説明 |
-|-----------|-----|-----------|------|
-| `auth` | string | — | パスワード |
-| `dbindex` | int | `0` | DB 番号 |
-| `timeout` | int | `30` | 接続タイムアウト(秒) |
-| `read_timeout` | int | `0` | 読み取りタイムアウト(秒) |
-| `persistent` | int | `0` | 持続的接続 |
-| `redis_cluster` | bool | `false` | Cluster モード |
-| `redis_sentinel` | string | — | Sentinel サービス名 |
-| `failover` | string | `none` | フェイルオーバー戦略 |
-
 ### アダプタアーキテクチャ
 
 > [!TIP]
