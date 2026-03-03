@@ -114,17 +114,20 @@ jobs:
             valkey-server --port 6381 --replicaof 127.0.0.1 6380
           sleep 2
           for port in 26379 26380 26381; do
-            printf "port $port\nsentinel monitor mymaster 127.0.0.1 6380 2\nsentinel down-after-milliseconds mymaster 5000\nsentinel failover-timeout mymaster 10000\n" > /tmp/sentinel-$port.conf
+            dir="/tmp/sentinel-$port"
+            mkdir -p "$dir"
+            chmod 777 "$dir"
+            printf "port $port\ndir $dir\nsentinel monitor mymaster 127.0.0.1 6380 2\nsentinel down-after-milliseconds mymaster 5000\nsentinel failover-timeout mymaster 10000\n" > "$dir/sentinel.conf"
+            chmod 666 "$dir/sentinel.conf"
             docker run -d --name valkey-sentinel-$port --network host \
-              -v /tmp/sentinel-$port.conf:/etc/sentinel.conf \
-              valkey/valkey:8 valkey-server /etc/sentinel.conf --sentinel
+              -v "$dir:$dir" \
+              valkey/valkey:8 valkey-server "$dir/sentinel.conf" --sentinel
           done
           echo "Waiting for Sentinel to discover master..."
           for i in $(seq 1 30); do
             result=$(docker exec valkey-sentinel-26379 valkey-cli -p 26379 SENTINEL get-master-addr-by-name mymaster 2>&1) || true
-            echo "  attempt $i: $result"
             if echo "$result" | grep -q '6380'; then
-              echo "Sentinel is ready."
+              echo "Sentinel is ready (attempt $i)."
               break
             fi
             sleep 1
