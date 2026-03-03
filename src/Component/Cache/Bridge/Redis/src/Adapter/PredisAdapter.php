@@ -195,6 +195,17 @@ final class PredisAdapter extends AbstractAdapter
     {
         try {
             $client = $this->getConnection();
+            $connection = $client->getConnection();
+
+            if ($connection instanceof RedisCluster) {
+                foreach ($connection as $node) {
+                    $response = $node->executeCommand(RawCommand::create('PING'));
+
+                    return (string) $response === 'PONG';
+                }
+
+                return false;
+            }
 
             return (string) $client->ping() === 'PONG';
         } catch (\Throwable) {
