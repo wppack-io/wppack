@@ -241,6 +241,10 @@ class ProcessImagesCommand extends AbstractCommand
 #[Command('myapp db:cleanup', description: 'Clean up database tables')]
 class DatabaseCleanupCommand extends AbstractCommand
 {
+    public function __construct(
+        private readonly DatabaseManager $db,
+    ) {}
+
     #[Option(description: 'Clean post revisions')]
     private bool $revisions = true;
 
@@ -255,28 +259,26 @@ class DatabaseCleanupCommand extends AbstractCommand
 
     public function handle(): void
     {
-        global $wpdb;
-
         $this->info('Starting database cleanup...');
         $results = [];
 
         if ($this->revisions) {
-            $count = $wpdb->query(
-                "DELETE FROM {$wpdb->posts} WHERE post_type = 'revision'"
+            $count = $this->db->query(
+                "DELETE FROM {$this->db->posts} WHERE post_type = 'revision'"
             );
             $results[] = ['Post Revisions', $count];
         }
 
         if ($this->spam) {
-            $count = $wpdb->query(
-                "DELETE FROM {$wpdb->comments} WHERE comment_approved = 'spam'"
+            $count = $this->db->query(
+                "DELETE FROM {$this->db->comments} WHERE comment_approved = 'spam'"
             );
             $results[] = ['Spam Comments', $count];
         }
 
         if ($this->transients) {
-            $count = $wpdb->query(
-                "DELETE FROM {$wpdb->options}
+            $count = $this->db->query(
+                "DELETE FROM {$this->db->options}
                  WHERE option_name LIKE '_transient_timeout_%'
                  AND option_value < UNIX_TIMESTAMP()"
             );
@@ -287,7 +289,7 @@ class DatabaseCleanupCommand extends AbstractCommand
 
         if ($this->optimize) {
             $this->info('Optimizing tables...');
-            $wpdb->query("OPTIMIZE TABLE {$wpdb->posts}, {$wpdb->comments}, {$wpdb->options}");
+            $this->db->query("OPTIMIZE TABLE {$this->db->posts}, {$this->db->comments}, {$this->db->options}");
             $this->success('Tables optimized.');
         }
 

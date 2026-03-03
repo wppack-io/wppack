@@ -227,13 +227,15 @@ use WpPack\Component\Taxonomy\Attribute\TermsClausesFilter;
 
 class TermQueryOptimizer
 {
+    public function __construct(
+        private readonly DatabaseManager $db,
+    ) {}
+
     #[TermsClausesFilter]
     public function optimizeTermQueries(array $clauses, array $taxonomies, array $args): array
     {
-        global $wpdb;
-
         if (!empty($args['orderby_menu_order'])) {
-            $clauses['join'] .= " LEFT JOIN {$wpdb->termmeta} AS tm_order
+            $clauses['join'] .= " LEFT JOIN {$this->db->termmeta} AS tm_order
                                   ON (t.term_id = tm_order.term_id
                                   AND tm_order.meta_key = 'menu_order')";
             $clauses['orderby'] = "CAST(tm_order.meta_value AS SIGNED) ASC, " . $clauses['orderby'];

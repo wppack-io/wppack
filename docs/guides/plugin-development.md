@@ -536,19 +536,22 @@ final class MyPlugin implements PluginInterface
 {
     // ...
 
+    public function __construct(
+        private readonly DatabaseManager $db,
+    ) {}
+
     public function onActivate(): void
     {
         // カスタムテーブルの作成
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'my_plugin_logs';
-        $charset_collate = $wpdb->get_charset_collate();
+        $tableName = $this->db->prefix() . 'my_plugin_logs';
+        $charsetCollate = $this->db->charsetCollate();
 
-        $sql = "CREATE TABLE {$table_name} (
+        $sql = "CREATE TABLE {$tableName} (
             id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
             message text NOT NULL,
             created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (id)
-        ) {$charset_collate};";
+        ) {$charsetCollate};";
 
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
         dbDelta($sql);

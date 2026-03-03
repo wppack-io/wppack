@@ -213,11 +213,13 @@ public function addBodyClass(array $classes): array
 public function filterPostsWhere(string $where, \WP_Query $query): string
 {
     if ($query->get('featured_only')) {
-        global $wpdb;
-        $where .= " AND {$wpdb->posts}.ID IN (
-            SELECT post_id FROM {$wpdb->postmeta}
-            WHERE meta_key = 'featured' AND meta_value = '1'
-        )";
+        $where .= $this->db->prepare(
+            " AND {$this->db->posts}.ID IN (
+                SELECT post_id FROM {$this->db->postmeta}
+                WHERE meta_key = 'featured' AND meta_value = %s
+            )",
+            '1',
+        );
     }
     return $where;
 }

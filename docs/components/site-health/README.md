@@ -96,11 +96,13 @@ use WpPack\Component\SiteHealth\Result;
 )]
 class DatabaseOptimizationCheck implements HealthCheckInterface
 {
+    public function __construct(
+        private readonly DatabaseManager $db,
+    ) {}
+
     public function run(): Result
     {
-        global $wpdb;
-
-        $overhead = $wpdb->get_var(
+        $overhead = $this->db->getVar(
             "SELECT SUM(DATA_FREE) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE()"
         );
 

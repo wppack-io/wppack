@@ -463,15 +463,17 @@ use WpPack\Component\Query\Attribute\PostsWhereFilter;
 
 class QueryWhereModifier
 {
+    public function __construct(
+        private readonly DatabaseManager $db,
+    ) {}
+
     #[PostsWhereFilter(priority: 10)]
     public function customizeWhereClause(string $where, \WP_Query $query): string
     {
-        global $wpdb;
-
-        if ($date_after = $query->get('wppack_date_after')) {
-            $where .= $wpdb->prepare(
-                " AND {$wpdb->posts}.post_date > %s",
-                $date_after
+        if ($dateAfter = $query->get('wppack_date_after')) {
+            $where .= $this->db->prepare(
+                " AND {$this->db->posts}.post_date > %s",
+                $dateAfter,
             );
         }
 
@@ -490,14 +492,16 @@ use WpPack\Component\Query\Attribute\PostsJoinFilter;
 
 class QueryJoinManager
 {
+    public function __construct(
+        private readonly DatabaseManager $db,
+    ) {}
+
     #[PostsJoinFilter(priority: 10)]
     public function addCustomJoins(string $join, \WP_Query $query): string
     {
-        global $wpdb;
-
         if ($query->get('orderby') === 'wppack_popularity') {
-            $join .= " LEFT JOIN {$wpdb->prefix}wppack_post_stats AS stats
-                      ON {$wpdb->posts}.ID = stats.post_id";
+            $join .= " LEFT JOIN {$this->db->prefix()}wppack_post_stats AS stats
+                      ON {$this->db->posts}.ID = stats.post_id";
         }
 
         return $join;

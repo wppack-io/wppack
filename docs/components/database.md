@@ -80,6 +80,24 @@ $this->db->insert('custom_table', [
 | `lastInsertId(): int` | `$wpdb->insert_id` | 最後の挿入 ID を取得 |
 | `lastError(): string` | `$wpdb->last_error` | 最後のエラーメッセージを取得 |
 
+### コアテーブル名プロパティ
+
+WordPress コアテーブルのフルネーム（プレフィックス付き）を readonly プロパティで提供します。`$wpdb->posts` 等と同等です。
+
+| プロパティ | `$wpdb` プロパティ | 値の例 |
+|-----------|-------------------|--------|
+| `$db->posts` | `$wpdb->posts` | `wp_posts` |
+| `$db->postmeta` | `$wpdb->postmeta` | `wp_postmeta` |
+| `$db->comments` | `$wpdb->comments` | `wp_comments` |
+| `$db->commentmeta` | `$wpdb->commentmeta` | `wp_commentmeta` |
+| `$db->options` | `$wpdb->options` | `wp_options` |
+| `$db->users` | `$wpdb->users` | `wp_users` |
+| `$db->usermeta` | `$wpdb->usermeta` | `wp_usermeta` |
+| `$db->terms` | `$wpdb->terms` | `wp_terms` |
+| `$db->termmeta` | `$wpdb->termmeta` | `wp_termmeta` |
+| `$db->termTaxonomy` | `$wpdb->term_taxonomy` | `wp_term_taxonomy` |
+| `$db->termRelationships` | `$wpdb->term_relationships` | `wp_term_relationships` |
+
 ### 使用例
 
 ```php
