@@ -48,7 +48,8 @@ WordPress API やデータアクセスを抽象化し、テスト可能にする
 | Database | `wppack/database` | `$wpdb` の型安全ラッパー、マイグレーション |
 | Query | `wppack/query` | `WP_Query` ビルダー |
 | Security | `wppack/security` | セキュリティユーティリティ |
-| Sanitizer | `wppack/sanitizer` | サニタイゼーション |
+| [Sanitizer](./sanitizer/) | `wppack/sanitizer` | 入力サニタイズ |
+| [Escaper](./escaper/) | `wppack/escaper` | 出力エスケープ |
 | Validator | `wppack/validator` | バリデーション |
 | [HttpClient](./http-client/) | `wppack/http-client` | HTTP クライアント抽象化 |
 | HttpFoundation | `wppack/http-foundation` | Request/Response 抽象化 |
