@@ -13,10 +13,11 @@ final class AzureApiTransport extends AbstractApiTransport
 {
     use AzureRequestTrait;
 
+    private const HOST = '%s.communication.azure.com';
     private const DEFAULT_API_VERSION = '2024-07-01-preview';
 
     public function __construct(
-        private readonly string $endpoint,
+        private readonly string $resourceName,
         private readonly string $accessKey,
         private readonly string $apiVersion = self::DEFAULT_API_VERSION,
         private readonly ?HttpClient $httpClient = null,
@@ -36,7 +37,9 @@ final class AzureApiTransport extends AbstractApiTransport
             throw new TransportException('Failed to encode email payload as JSON.');
         }
 
-        $result = $this->sendAzureRequest($this->endpoint, $this->apiVersion, $this->accessKey, $body, $this->httpClient);
+        $endpoint = sprintf(self::HOST, $this->resourceName);
+
+        $result = $this->sendAzureRequest($endpoint, $this->apiVersion, $this->accessKey, $body, $this->httpClient);
 
         return isset($result['id']) && $result['id'] !== '' ? $result['id'] : throw new TransportException(
             'Azure email send succeeded but no message ID was returned.',

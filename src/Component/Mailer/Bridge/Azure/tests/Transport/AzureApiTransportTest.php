@@ -57,7 +57,7 @@ final class AzureApiTransportTest extends TestCase
     #[Test]
     public function getNameReturnsAzureApi(): void
     {
-        $transport = new AzureApiTransport('test.communication.azure.com', 'dGVzdC1rZXk=');
+        $transport = new AzureApiTransport('test', 'dGVzdC1rZXk=');
 
         self::assertSame('azureapi', $transport->getName());
     }
@@ -66,7 +66,7 @@ final class AzureApiTransportTest extends TestCase
     public function constructorAcceptsOptionalHttpClient(): void
     {
         $transport = new AzureApiTransport(
-            endpoint: 'test.communication.azure.com',
+            resourceName: 'test',
             accessKey: 'dGVzdC1rZXk=',
             httpClient: null,
         );
@@ -86,7 +86,7 @@ final class AzureApiTransportTest extends TestCase
         ];
 
         $transport = new AzureApiTransport(
-            'test.communication.azure.com',
+            'test',
             base64_encode('test-key'),
         );
         $phpMailer = $this->createConfiguredPhpMailer();
@@ -114,7 +114,7 @@ final class AzureApiTransportTest extends TestCase
         ];
 
         $transport = new AzureApiTransport(
-            'test.communication.azure.com',
+            'test',
             base64_encode('test-key'),
         );
         $phpMailer = $this->createConfiguredPhpMailer();
@@ -136,7 +136,7 @@ final class AzureApiTransportTest extends TestCase
         ];
 
         $transport = new AzureApiTransport(
-            'test.communication.azure.com',
+            'test',
             base64_encode('test-key'),
         );
         $phpMailer = $this->createConfiguredPhpMailer();
@@ -158,7 +158,7 @@ final class AzureApiTransportTest extends TestCase
         ];
 
         $transport = new AzureApiTransport(
-            'test.communication.azure.com',
+            'test',
             base64_encode('test-key'),
         );
         $phpMailer = $this->createConfiguredPhpMailer();
@@ -187,7 +187,7 @@ final class AzureApiTransportTest extends TestCase
         ];
 
         $transport = new AzureApiTransport(
-            'test.communication.azure.com',
+            'test',
             base64_encode('test-key'),
         );
         $phpMailer = $this->createConfiguredPhpMailer();

@@ -34,7 +34,7 @@ final class AzureTransportFactoryTest extends TestCase
     public function createReturnsAzureApiTransportForDefaultScheme(): void
     {
         $factory = new AzureTransportFactory();
-        $dsn = Dsn::fromString('azure://my-resource.communication.azure.com:accesskey123@default');
+        $dsn = Dsn::fromString('azure://my-resource:accesskey123@default');
 
         $transport = $factory->create($dsn);
 
@@ -45,7 +45,7 @@ final class AzureTransportFactoryTest extends TestCase
     public function createReturnsAzureApiTransportForApiScheme(): void
     {
         $factory = new AzureTransportFactory();
-        $dsn = Dsn::fromString('azure+api://my-resource.communication.azure.com:accesskey123@default');
+        $dsn = Dsn::fromString('azure+api://my-resource:accesskey123@default');
 
         $transport = $factory->create($dsn);
 

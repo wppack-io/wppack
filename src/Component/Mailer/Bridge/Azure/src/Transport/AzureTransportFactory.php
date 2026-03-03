@@ -18,17 +18,17 @@ final class AzureTransportFactory implements TransportFactoryInterface
             throw new UnsupportedSchemeException($dsn);
         }
 
-        $endpoint = $dsn->getUser() ?? '';
+        $resourceName = $dsn->getUser() ?? '';
         $accessKey = $dsn->getPassword() ?? '';
 
-        if ($endpoint === '' || $accessKey === '') {
-            throw new InvalidArgumentException(sprintf('Azure "%s" DSN must contain an endpoint (user) and access key (password).', $dsn->getScheme()));
+        if ($resourceName === '' || $accessKey === '') {
+            throw new InvalidArgumentException(sprintf('Azure "%s" DSN must contain a resource name (user) and access key (password).', $dsn->getScheme()));
         }
 
         $apiVersion = $dsn->getOption('api_version', '2024-07-01-preview');
 
         return new AzureApiTransport(
-            endpoint: $endpoint,
+            resourceName: $resourceName,
             accessKey: $accessKey,
             apiVersion: $apiVersion,
         );
