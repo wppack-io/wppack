@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace WpPack\Component\Cache\Bridge\Redis\Adapter;
 
 use Predis\Client;
+use Predis\Command\RawCommand;
+use Predis\Connection\Cluster\RedisCluster;
 use WpPack\Component\Cache\Adapter\AbstractAdapter;
 
 final class PredisAdapter extends AbstractAdapter
@@ -174,6 +176,11 @@ final class PredisAdapter extends AbstractAdapter
     protected function doFlush(string $prefix = ''): bool
     {
         $client = $this->getConnection();
+        $connection = $client->getConnection();
+
+        if ($connection instanceof RedisCluster) {
+            return $this->flushCluster($connection, $prefix);
+        }
 
         if ($prefix === '') {
             $client->flushdb();
@@ -341,6 +348,42 @@ final class PredisAdapter extends AbstractAdapter
         $auth = $this->connectionParams['auth'] ?? null;
 
         return ($auth !== null && $auth !== '') ? $auth : null;
+    }
+
+    private function flushCluster(RedisCluster $cluster, string $prefix): bool
+    {
+        foreach ($cluster as $node) {
+            if ($prefix === '') {
+                $node->executeCommand(RawCommand::create('FLUSHDB'));
+            } else {
+                $this->deleteByPrefixOnNode($node, $prefix);
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @param \Predis\Connection\NodeConnectionInterface $node
+     */
+    private function deleteByPrefixOnNode(mixed $node, string $prefix): void
+    {
+        $cursor = '0';
+        $pattern = $prefix . '*';
+
+        do {
+            $response = $node->executeCommand(
+                RawCommand::create('SCAN', $cursor, 'MATCH', $pattern, 'COUNT', '100'),
+            );
+
+            /** @var array{0: string, 1: list<string>} $response */
+            $cursor = (string) $response[0];
+            $keys = $response[1];
+
+            foreach ($keys as $key) {
+                $node->executeCommand(RawCommand::create('DEL', $key));
+            }
+        } while ($cursor !== '0');
     }
 
     private function deleteByPrefix(Client $client, string $prefix): bool
