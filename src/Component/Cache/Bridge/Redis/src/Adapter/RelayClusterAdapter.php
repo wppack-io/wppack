@@ -169,7 +169,15 @@ final class RelayClusterAdapter extends AbstractAdapter
         try {
             $relay = $this->getConnection();
 
-            return $relay->ping('pong') === 'pong';
+            $masters = $relay->_masters();
+
+            if ($masters === []) {
+                return false;
+            }
+
+            $relay->ping($masters[0]);
+
+            return true;
         } catch (\Throwable) {
             return false;
         }
