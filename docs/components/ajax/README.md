@@ -1,0 +1,415 @@
+# Ajax コンポーネント
+
+**パッケージ:** `wppack/ajax`
+**名前空間:** `WpPack\Component\Ajax\`
+**レイヤー:** Feature
+
+WordPress の AJAX ハンドリングをモダン化するコンポーネントです。従来の手続き的なコールバックを、型安全で自動セキュリティ機能を備えたオブジェクト指向のアトリビュートベースハンドラーに置き換えます。
+
+## インストール
+
+```bash
+composer require wppack/ajax
+```
+
+## このコンポーネントの機能
+
+- **アトリビュートベースの AJAX ハンドラー定義** — `#[AjaxHandler]` で宣言的にハンドラーを定義
+- **3種類のアクセス制御** — `Access` enum でログイン/未ログイン/全ユーザーを切り替え
+- **自動セキュリティ機能** — 組み込みの nonce 検証と権限チェック
+- **型安全なレスポンス** — `JsonResponse` による `wp_send_json_*` ラッパー
+- **Named Hook アトリビュート** — 低レベルの WordPress AJAX フック用
+
+## 基本コンセプト
+
+### Before（従来の WordPress）
+
+```php
+// 全ユーザー対応には2つのアクションを手動登録
+add_action('wp_ajax_my_search', 'handle_search_ajax');
+add_action('wp_ajax_nopriv_my_search', 'handle_search_ajax');
+
+function handle_search_ajax() {
+    if (!wp_verify_nonce($_POST['nonce'], 'my_nonce')) {
+        wp_die('Security check failed');
+    }
+
+    $query = sanitize_text_field($_POST['query']);
+    $results = get_posts(['s' => $query, 'post_type' => 'product']);
+
+    $data = [];
+    foreach ($results as $post) {
+        $data[] = [
+            'id' => $post->ID,
+            'title' => $post->post_title,
+        ];
+    }
+
+    wp_send_json_success($data);
+}
+```
+
+### After（WpPack）
+
+```php
+use WpPack\Component\Ajax\Attribute\AjaxHandler;
+use WpPack\Component\Ajax\Response\JsonResponse;
+
+class ProductController
+{
+    #[AjaxHandler(action: 'my_search', checkReferer: 'my_nonce')]
+    public function search(): JsonResponse
+    {
+        $query = sanitize_text_field($_POST['query']);
+        $results = get_posts(['s' => $query, 'post_type' => 'product']);
+
+        return JsonResponse::success(array_map(fn ($post) => [
+            'id' => $post->ID,
+            'title' => $post->post_title,
+        ], $results));
+    }
+}
+```
+
+### アクセス制御の Before/After
+
+```php
+// Before: ログインユーザーのみ
+add_action('wp_ajax_update_product', 'handle_update');
+// wp_ajax_nopriv_ を登録しないことでゲストを除外
+
+// Before: 未ログインユーザーのみ
+add_action('wp_ajax_nopriv_get_preview', 'handle_preview');
+// wp_ajax_ を登録しないことでログインユーザーを除外
+
+// Before: 全ユーザー
+add_action('wp_ajax_search', 'handle_search');
+add_action('wp_ajax_nopriv_search', 'handle_search');
+```
+
+```php
+use WpPack\Component\Ajax\Access;
+use WpPack\Component\Ajax\Attribute\AjaxHandler;
+
+// After: Access enum で明示的に指定
+#[AjaxHandler(action: 'update_product', access: Access::Authenticated)]
+public function update(): JsonResponse { /* ... */ }
+
+#[AjaxHandler(action: 'get_preview', access: Access::Guest)]
+public function preview(): JsonResponse { /* ... */ }
+
+#[AjaxHandler(action: 'search')]  // デフォルトは Access::Public
+public function search(): JsonResponse { /* ... */ }
+```
+
+## コアクラス
+
+### Access enum
+
+3種類のアクセスレベルを表す enum です。WordPress の AJAX フック登録に対応します。
+
+| ケース | 説明 | 登録されるフック |
+|--------|------|----------------|
+| `Access::Public` | 全ユーザー（デフォルト） | `wp_ajax_{action}` + `wp_ajax_nopriv_{action}` |
+| `Access::Authenticated` | ログインユーザーのみ | `wp_ajax_{action}` のみ |
+| `Access::Guest` | 未ログインユーザーのみ | `wp_ajax_nopriv_{action}` のみ |
+
+### AjaxHandler アトリビュート
+
+メソッドレベルのアトリビュートで、AJAX ハンドラーを宣言的に定義します。
+
+| パラメータ | 型 | デフォルト | 説明 |
+|-----------|------|-----------|------|
+| `action` | `string` | （必須） | WordPress AJAX アクション名 |
+| `access` | `Access` | `Access::Public` | アクセスレベル |
+| `capability` | `?string` | `null` | 権限チェック（例: `'edit_posts'`） |
+| `checkReferer` | `?string` | `null` | nonce アクション名。設定時に `check_ajax_referer()` で検証 |
+| `priority` | `int` | `10` | フック優先度 |
+
+#### 基本的な使用例
+
+```php
+use WpPack\Component\Ajax\Attribute\AjaxHandler;
+use WpPack\Component\Ajax\Response\JsonResponse;
+
+class ProductController
+{
+    // 全ユーザーがアクセス可能
+    #[AjaxHandler(action: 'get_products')]
+    public function getProducts(): JsonResponse
+    {
+        $products = get_posts(['post_type' => 'product']);
+
+        return JsonResponse::success($products);
+    }
+}
+```
+
+#### 認証付きハンドラー
+
+```php
+#[AjaxHandler(action: 'update_product', access: Access::Authenticated)]
+public function updateProduct(): JsonResponse
+{
+    $result = wp_update_post([
+        'ID' => (int) $_POST['product_id'],
+        'post_title' => sanitize_text_field($_POST['title']),
+    ]);
+
+    return $result ? JsonResponse::success() : JsonResponse::error('Update failed.');
+}
+```
+
+#### nonce + capability 付きハンドラー
+
+```php
+#[AjaxHandler(
+    action: 'delete_product',
+    access: Access::Authenticated,
+    capability: 'delete_posts',
+    checkReferer: 'delete_product_nonce',
+)]
+public function deleteProduct(): JsonResponse
+{
+    // nonce と権限は AjaxHandlerRegistry が自動検証
+    wp_delete_post((int) $_POST['product_id']);
+
+    return JsonResponse::success();
+}
+```
+
+#### Guest のみのハンドラー
+
+```php
+#[AjaxHandler(action: 'get_preview', access: Access::Guest)]
+public function getPreview(): JsonResponse
+{
+    return JsonResponse::success(['message' => 'Preview for guests']);
+}
+```
+
+### JsonResponse
+
+`wp_send_json_success()` / `wp_send_json_error()` のラッパーです。
+
+```php
+use WpPack\Component\Ajax\Response\JsonResponse;
+
+// 成功レスポンス
+$response = JsonResponse::success(['key' => 'value']);           // 200
+$response = JsonResponse::success(['created' => true], 201);    // カスタムステータス
+
+// エラーレスポンス
+$response = JsonResponse::error('Something went wrong');         // 400
+$response = JsonResponse::error('Not found', 404);              // カスタムステータス
+
+// send(): never — WordPress の wp_send_json_* を呼び出し（die() により処理終了）
+$response->send();
+```
+
+| メソッド | WordPress 関数 | デフォルトステータス |
+|---------|---------------|-------------------|
+| `JsonResponse::success()` | `wp_send_json_success()` | 200 |
+| `JsonResponse::error()` | `wp_send_json_error()` | 400 |
+| `$response->send()` | 上記を実行して `die()`（戻り型: `never`） | — |
+
+### AjaxHandlerRegistry
+
+`#[AjaxHandler]` アトリビュートを読み取り、WordPress フックに登録するサービスクラスです。
+
+#### register() の動作フロー
+
+1. `ReflectionClass` でメソッドをスキャン
+2. `#[AjaxHandler]` アトリビュートを検出
+3. `Access` に応じてフック登録:
+   - `Public` → `add_action('wp_ajax_{action}', ...)` + `add_action('wp_ajax_nopriv_{action}', ...)`
+   - `Authenticated` → `add_action('wp_ajax_{action}', ...)` のみ
+   - `Guest` → `add_action('wp_ajax_nopriv_{action}', ...)` のみ
+4. コールバック実行時:
+   - `checkReferer` 設定あり → `check_ajax_referer()` 検証
+   - `capability` 設定あり → `current_user_can()` 検証（失敗時は 403 エラー）
+   - メソッド呼び出し
+   - 戻り値が `JsonResponse` なら `->send()`
+
+```php
+use WpPack\Component\Ajax\AjaxHandlerRegistry;
+
+$registry = new AjaxHandlerRegistry();
+$registry->register(new ProductController());
+$registry->register(new UserController());
+```
+
+#### DI コンテナとの統合
+
+```php
+use WpPack\Component\Ajax\AjaxHandlerRegistry;
+
+// サービスプロバイダで登録
+$container->singleton(AjaxHandlerRegistry::class);
+
+// init フックでハンドラーを登録
+add_action('init', function () use ($container) {
+    $registry = $container->get(AjaxHandlerRegistry::class);
+    $registry->register($container->get(ProductController::class));
+});
+```
+
+## セキュリティ
+
+### checkReferer — nonce 検証
+
+`checkReferer` は WordPress の `check_ajax_referer($action)` に渡す **nonce アクション名**（文字列）です。
+
+WordPress の nonce は「アクション名」をキーにして生成・検証する仕組みです。`checkReferer` に文字列を設定すると、ハンドラー実行前に `check_ajax_referer()` が自動で呼ばれ、リクエストに含まれる nonce トークン（`_ajax_nonce` または `_wpnonce` パラメータ）を検証します。`null`（デフォルト）なら検証をスキップします。
+
+nonce アクション名は AJAX アクション名と一致する必要はなく、開発者が自由に決められます。同じ nonce アクション名を複数のハンドラーで共有することも可能です。
+
+```php
+// PHP 側 — nonce 生成（テンプレートで出力）
+wp_create_nonce('delete_product_nonce')  // → "a1b2c3d4e5"
+
+// PHP 側 — ハンドラー定義
+#[AjaxHandler(action: 'delete_product', checkReferer: 'delete_product_nonce')]
+public function delete(): JsonResponse { /* ... */ }
+// → AjaxHandlerRegistry が check_ajax_referer('delete_product_nonce') を自動実行
+```
+
+```javascript
+// JavaScript 側 — nonce をリクエストに含める
+jQuery.post(ajaxurl, {
+    action: 'delete_product',
+    _ajax_nonce: '<?= wp_create_nonce("delete_product_nonce") ?>',
+    product_id: 123,
+});
+```
+
+nonce + 権限チェックの組み合わせ:
+
+```php
+#[AjaxHandler(
+    action: 'publish_post',
+    access: Access::Authenticated,
+    capability: 'publish_posts',
+    checkReferer: 'publish_post_nonce',
+)]
+```
+
+### 推奨パターン
+
+| ユースケース | access | capability | checkReferer |
+|-------------|--------|-----------|-------------|
+| 公開検索 | `Public` | - | - |
+| ログインユーザーのデータ取得 | `Authenticated` | - | - |
+| データ変更操作 | `Authenticated` | `edit_posts` | 設定推奨 |
+| 削除操作 | `Authenticated` | `delete_posts` | 設定必須 |
+| 管理者専用操作 | `Authenticated` | `manage_options` | 設定必須 |
+
+## JavaScript 連携
+
+```javascript
+// jQuery を使用
+jQuery.post(ajaxurl, {
+    action: 'search_products',
+    _ajax_nonce: wppackAjax.nonce,
+    query: 'laptop',
+}, function (response) {
+    if (response.success) {
+        console.log(response.data);
+    }
+});
+
+// Fetch API を使用
+const formData = new FormData();
+formData.append('action', 'search_products');
+formData.append('_ajax_nonce', wppackAjax.nonce);
+formData.append('query', 'laptop');
+
+const response = await fetch(ajaxurl, {
+    method: 'POST',
+    body: formData,
+});
+const result = await response.json();
+```
+
+## Named Hook Attributes
+
+低レベルの WordPress AJAX フックを直接使用する場合のアトリビュートです。`#[AjaxHandler]` がカバーしない高度なユースケースで使用します。
+
+```php
+use WpPack\Component\Ajax\Attribute\Action\WpAjaxAction;
+use WpPack\Component\Ajax\Attribute\Action\WpAjaxNoprivAction;
+use WpPack\Component\Ajax\Attribute\Action\CheckAjaxRefererAction;
+
+final class LowLevelAjaxHandler
+{
+    #[WpAjaxAction(action: 'my_custom_action')]
+    public function handleAuthenticated(): void
+    {
+        // wp_ajax_my_custom_action フックのコールバック
+        wp_send_json_success(['message' => 'OK']);
+    }
+
+    #[WpAjaxNoprivAction(action: 'my_public_action')]
+    public function handlePublic(): void
+    {
+        // wp_ajax_nopriv_my_public_action フックのコールバック
+        wp_send_json_success(['message' => 'Public OK']);
+    }
+
+    #[CheckAjaxRefererAction]
+    public function onRefererCheck(): void
+    {
+        // check_ajax_referer アクション実行時
+    }
+}
+```
+
+### #[AjaxHandler] vs Named Hook Attributes
+
+| 機能 | `#[AjaxHandler]` | Named Hook Attributes |
+|------|-------------------|----------------------|
+| アクセス制御 | `Access` enum で自動 | 手動でフック選択 |
+| nonce 検証 | `checkReferer` で自動 | 手動実装 |
+| 権限チェック | `capability` で自動 | 手動実装 |
+| レスポンス処理 | `JsonResponse` 自動送信 | 手動で `wp_send_json_*` |
+| 推奨用途 | 一般的な AJAX ハンドラー | 高度なカスタマイズ |
+
+```php
+// Action アトリビュート
+#[WpAjaxAction(action: string, priority?: int = 10)]       // wp_ajax_{action}
+#[WpAjaxNoprivAction(action: string, priority?: int = 10)] // wp_ajax_nopriv_{action}
+#[CheckAjaxRefererAction(priority?: int = 10)]              // check_ajax_referer
+```
+
+## クラスリファレンス
+
+| クラス | 説明 |
+|-------|------|
+| `Access` | 3種類のアクセスレベル enum（Public / Authenticated / Guest） |
+| `Attribute\AjaxHandler` | メソッドレベル AJAX ハンドラーアトリビュート |
+| `Response\JsonResponse` | `wp_send_json_success/error` ラッパー |
+| `AjaxHandlerRegistry` | アトリビュートスキャン + フック登録サービス |
+
+## このコンポーネントを使用すべき場面
+
+**最適な用途：**
+- リアルタイム更新を伴う動的な管理画面インターフェース
+- フロントエンドの検索とフィルタリング
+- ページリロードなしのフォーム送信
+- ライブコンテンツの読み込みと無限スクロール
+- インタラクティブなダッシュボード
+
+**代替を検討すべき場合：**
+- 完全な REST API エンドポイント（REST コンポーネントを使用）
+- サーバーサイドのフォーム処理
+- シンプルなページナビゲーション
+
+## 依存関係
+
+### 必須
+- **Hook コンポーネント** — Named Hook アトリビュートの基盤
+
+### 推奨
+- **Security コンポーネント** — nonce と権限管理用
+- **Cache コンポーネント** — レスポンスキャッシュ用
+- **Logger コンポーネント** — リクエストログ用

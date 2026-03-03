@@ -71,7 +71,7 @@ WordPress の機能領域をモダンなパターンで扱う。
 | Command | `wppack/command` | WP-CLI コマンド登録 |
 | Shortcode | `wppack/shortcode` | ショートコード登録 |
 | Nonce | `wppack/nonce` | Nonce 管理 |
-| Ajax | `wppack/ajax` | Admin Ajax ハンドラー |
+| [Ajax](./ajax/) | `wppack/ajax` | Admin Ajax ハンドラー |
 
 ## Application Layer（アプリケーション層）
 
