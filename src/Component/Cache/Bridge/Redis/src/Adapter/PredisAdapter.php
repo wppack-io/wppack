@@ -275,6 +275,14 @@ final class PredisAdapter extends AbstractAdapter
                 if (isset($params['auth']) && $params['auth'] !== '') {
                     $node['password'] = $params['auth'];
                 }
+                $timeout = $params['timeout'] ?? null;
+                if ($timeout !== null) {
+                    $node['timeout'] = (float) $timeout;
+                }
+                $readTimeout = $params['read_timeout'] ?? null;
+                if ($readTimeout !== null) {
+                    $node['read_write_timeout'] = (float) $readTimeout;
+                }
                 $nodes[] = $node;
             }
 
