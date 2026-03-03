@@ -5,8 +5,6 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
-        "async-aws/dynamo-db": "^3.0",
-        "async-aws/ses": "^1.14",
         "psr/container": "^2.0",
         "psr/http-client": "^1.0",
         "psr/http-factory": "^1.0",
@@ -15,6 +13,8 @@
         "symfony/dependency-injection": "^6.4"
     },
     "require-dev": {
+        "async-aws/dynamo-db": "^3.0",
+        "async-aws/ses": "^1.14",
         "friendsofphp/php-cs-fixer": "^3.68",
         "monolog/monolog": "^3.10",
         "phpstan/phpstan": "^2.1",
