@@ -15,8 +15,24 @@ final class FilesystemTest extends TestCase
 
     protected function setUp(): void
     {
+        if (!defined('ABSPATH')) {
+            self::markTestSkipped('WordPress is not available.');
+        }
+
+        if (!defined('FS_CHMOD_DIR')) {
+            define('FS_CHMOD_DIR', 0755);
+        }
+
+        if (!defined('FS_CHMOD_FILE')) {
+            define('FS_CHMOD_FILE', 0644);
+        }
+
+        if (!class_exists(\WP_Filesystem_Base::class)) {
+            require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
+        }
+
         if (!class_exists(\WP_Filesystem_Direct::class)) {
-            self::markTestSkipped('WordPress Filesystem API is not available.');
+            require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
         }
 
         $this->filesystem = new Filesystem(new \WP_Filesystem_Direct(null));
@@ -110,7 +126,8 @@ final class FilesystemTest extends TestCase
     #[Test]
     public function deleteNonExistentFile(): void
     {
-        self::assertFalse($this->filesystem->delete($this->testDir . '/nonexistent.txt'));
+        // WP_Filesystem_Direct::delete() returns true for non-existent files
+        self::assertTrue($this->filesystem->delete($this->testDir . '/nonexistent.txt'));
     }
 
     #[Test]
@@ -129,7 +146,8 @@ final class FilesystemTest extends TestCase
     #[Test]
     public function deleteDirectoryNonExistent(): void
     {
-        self::assertFalse($this->filesystem->deleteDirectory($this->testDir . '/nonexistent'));
+        // WP_Filesystem_Direct::rmdir() returns true for non-existent directories
+        self::assertTrue($this->filesystem->deleteDirectory($this->testDir . '/nonexistent'));
     }
 
     #[Test]
@@ -286,6 +304,33 @@ final class FilesystemTest extends TestCase
     public function lastModifiedNonExistentFile(): void
     {
         self::assertFalse($this->filesystem->lastModified($this->testDir . '/nonexistent.txt'));
+    }
+
+    #[Test]
+    public function mkdirRecursiveOnExistingDirectory(): void
+    {
+        $dir = $this->testDir . '/already_exists';
+        mkdir($dir, 0755, true);
+
+        self::assertTrue($this->filesystem->mkdir($dir, recursive: true));
+    }
+
+    #[Test]
+    public function filesOnNonExistentDirectory(): void
+    {
+        self::assertSame([], $this->filesystem->files($this->testDir . '/nonexistent'));
+    }
+
+    #[Test]
+    public function directoriesOnNonExistentDirectory(): void
+    {
+        self::assertSame([], $this->filesystem->directories($this->testDir . '/nonexistent'));
+    }
+
+    #[Test]
+    public function listContentsOnNonExistentDirectory(): void
+    {
+        self::assertSame([], $this->filesystem->listContents($this->testDir . '/nonexistent'));
     }
 
     private function removeDirectory(string $path): void
