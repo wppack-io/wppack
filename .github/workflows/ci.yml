@@ -119,6 +119,15 @@ jobs:
               -v /tmp/sentinel-$port.conf:/etc/sentinel.conf \
               valkey/valkey:8 valkey-server /etc/sentinel.conf --sentinel
           done
+          echo "Waiting for Sentinel to discover master..."
+          for i in $(seq 1 30); do
+            if docker run --rm --network host valkey/valkey:8 \
+              valkey-cli -p 26379 SENTINEL get-master-addr-by-name mymaster 2>/dev/null | grep -q '6380'; then
+              echo "Sentinel is ready."
+              break
+            fi
+            sleep 1
+          done
 
       - name: Run tests
         run: vendor/bin/phpunit --coverage-clover coverage.xml --log-junit junit.xml
