@@ -121,8 +121,9 @@ jobs:
           done
           echo "Waiting for Sentinel to discover master..."
           for i in $(seq 1 30); do
-            if docker exec valkey-sentinel-26379 \
-              valkey-cli -p 26379 SENTINEL get-master-addr-by-name mymaster 2>/dev/null | grep -q '6380'; then
+            result=$(docker exec valkey-sentinel-26379 valkey-cli -p 26379 SENTINEL get-master-addr-by-name mymaster 2>&1) || true
+            echo "  attempt $i: $result"
+            if echo "$result" | grep -q '6380'; then
               echo "Sentinel is ready."
               break
             fi
