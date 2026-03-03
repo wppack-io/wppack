@@ -1,0 +1,15 @@
+<?php
+
+declare(strict_types=1);
+
+namespace WpPack\Component\Widget\Attribute;
+
+#[\Attribute(\Attribute::TARGET_CLASS)]
+final class Widget
+{
+    public function __construct(
+        public readonly string $id,
+        public readonly string $name,
+        public readonly string $description = '',
+    ) {}
+}

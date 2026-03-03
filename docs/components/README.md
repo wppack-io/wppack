@@ -81,7 +81,7 @@ WordPress のアプリケーション構成要素を抽象化する。
 |---------------|-----------|------|
 | Plugin | `wppack/plugin` | プラグインライフサイクル管理 |
 | Theme | `wppack/theme` | テーマ機能 |
-| Widget | `wppack/widget` | ウィジェット定義 |
+| [Widget](./widget/) | `wppack/widget` | ウィジェット定義 |
 | Setting | `wppack/setting` | Settings API ラッパー |
 | User | `wppack/user` | ユーザー管理 |
 | Block | `wppack/block` | ブロックエディタ統合 |

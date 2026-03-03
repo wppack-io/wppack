@@ -56,7 +56,7 @@ use WpPack\Component\Widget\Attribute\Widget;
 )]
 class RecentPostsWidget extends AbstractWidget
 {
-    public function render(array $args): string
+    protected function render(array $args, array $instance): string
     {
         $posts = get_posts(['numberposts' => 5]);
 
@@ -76,6 +76,68 @@ class RecentPostsWidget extends AbstractWidget
 }
 ```
 
+## コアクラス
+
+### AbstractWidget
+
+`WP_Widget` を拡張する抽象基底クラスです。`#[Widget]` アトリビュートからメタデータ（id / name / description）を自動解決し、`parent::__construct()` に渡します。
+
+```php
+use WpPack\Component\Widget\AbstractWidget;
+use WpPack\Component\Widget\Attribute\Widget;
+
+#[Widget(id: 'social_links', name: 'Social Links', description: 'Social media links')]
+class SocialLinksWidget extends AbstractWidget
+{
+    protected function render(array $args, array $instance): string
+    {
+        return $args['before_widget'] . '<ul class="social-links">...</ul>' . $args['after_widget'];
+    }
+
+    // form() と update() はオプション — デフォルト実装あり
+    public function form($instance): void
+    {
+        $title = $instance['title'] ?? '';
+        printf('<input type="text" name="%s" value="%s">', $this->get_field_name('title'), esc_attr($title));
+    }
+
+    public function update($newInstance, $oldInstance): array
+    {
+        return ['title' => sanitize_text_field($newInstance['title'] ?? '')];
+    }
+}
+```
+
+`#[Widget]` アトリビュートなしでインスタンス化すると `LogicException` がスローされます。
+
+### WidgetRegistry
+
+WordPress のウィジェット・サイドバー登録関数をラップするサービスクラスです。DI コンテナから注入できます。
+
+```php
+use WpPack\Component\Widget\WidgetRegistry;
+
+$registry = new WidgetRegistry();
+
+// ウィジェット登録
+$registry->register(RecentPostsWidget::class);
+$registry->register(SocialLinksWidget::class);
+
+// ウィジェット登録解除
+$registry->unregister(SocialLinksWidget::class);
+
+// サイドバー登録
+$registry->registerSidebar([
+    'name' => 'Main Sidebar',
+    'id' => 'main-sidebar',
+    'description' => 'The primary widget area',
+    'before_widget' => '<section id="%1$s" class="widget %2$s">',
+    'after_widget' => '</section>',
+    'before_title' => '<h3 class="widget-title">',
+    'after_title' => '</h3>',
+]);
+```
+
 ## Named Hook アトリビュート
 
 Widget コンポーネントは、WordPress ウィジェット機能のための Named Hook アトリビュートを提供します。
@@ -87,7 +149,7 @@ Widget コンポーネントは、WordPress ウィジェット機能のための
 **WordPress フック:** `widgets_init`
 
 ```php
-use WpPack\Component\Widget\Attribute\WidgetsInitAction;
+use WpPack\Component\Widget\Attribute\Action\WidgetsInitAction;
 use WpPack\Component\Widget\WidgetRegistry;
 
 class WidgetManager
@@ -134,7 +196,7 @@ class WidgetManager
 **WordPress フック:** `dynamic_sidebar_before`
 
 ```php
-use WpPack\Component\Widget\Attribute\DynamicSidebarBeforeAction;
+use WpPack\Component\Widget\Attribute\Action\DynamicSidebarBeforeAction;
 
 class SidebarManager
 {
@@ -153,7 +215,7 @@ class SidebarManager
 **WordPress フック:** `dynamic_sidebar_after`
 
 ```php
-use WpPack\Component\Widget\Attribute\DynamicSidebarAfterAction;
+use WpPack\Component\Widget\Attribute\Action\DynamicSidebarAfterAction;
 
 class SidebarEnhancer
 {
@@ -178,7 +240,7 @@ class SidebarEnhancer
 **WordPress フック:** `dynamic_sidebar_params`
 
 ```php
-use WpPack\Component\Widget\Attribute\DynamicSidebarParamsFilter;
+use WpPack\Component\Widget\Attribute\Filter\DynamicSidebarParamsFilter;
 
 class WidgetCustomizer
 {
@@ -210,7 +272,7 @@ class WidgetCustomizer
 **WordPress フック:** `widget_update_callback`
 
 ```php
-use WpPack\Component\Widget\Attribute\WidgetUpdateCallbackFilter;
+use WpPack\Component\Widget\Attribute\Filter\WidgetUpdateCallbackFilter;
 
 class WidgetValidator
 {
@@ -233,7 +295,7 @@ class WidgetValidator
 **WordPress フック:** `widget_form_callback`
 
 ```php
-use WpPack\Component\Widget\Attribute\WidgetFormCallbackFilter;
+use WpPack\Component\Widget\Attribute\Filter\WidgetFormCallbackFilter;
 
 class WidgetFormEnhancer
 {
@@ -257,7 +319,7 @@ class WidgetFormEnhancer
 **WordPress フック:** `widget_display_callback`
 
 ```php
-use WpPack\Component\Widget\Attribute\WidgetDisplayCallbackFilter;
+use WpPack\Component\Widget\Attribute\Filter\WidgetDisplayCallbackFilter;
 
 class WidgetVisibility
 {
@@ -284,7 +346,7 @@ class WidgetVisibility
 **WordPress フック:** `widget_title`
 
 ```php
-use WpPack\Component\Widget\Attribute\WidgetTitleFilter;
+use WpPack\Component\Widget\Attribute\Filter\WidgetTitleFilter;
 
 class WidgetTitleFormatter
 {
@@ -302,21 +364,23 @@ class WidgetTitleFormatter
 
 ### サイドバー登録フック
 
-#### #[RegisterSidebarAction]
+#### #[RegisterSidebarFilter]
 
 **WordPress フック:** `register_sidebar`
 
 ```php
-use WpPack\Component\Widget\Attribute\RegisterSidebarAction;
+use WpPack\Component\Widget\Attribute\Filter\RegisterSidebarFilter;
 
 class SidebarRegistrar
 {
-    #[RegisterSidebarAction]
-    public function onSidebarRegistered(array $sidebar): void
+    #[RegisterSidebarFilter]
+    public function onSidebarRegistered(array $sidebar): array
     {
         if ($sidebar['id'] === 'main-sidebar') {
             // additional initialization
         }
+
+        return $sidebar;
     }
 }
 ```
@@ -326,7 +390,7 @@ class SidebarRegistrar
 ```php
 // ウィジェット登録
 #[WidgetsInitAction(priority?: int = 10)]            // ウィジェットとサイドバーの登録
-#[RegisterSidebarAction(priority?: int = 10)]        // サイドバー登録後のアクション
+#[RegisterSidebarFilter(priority?: int = 10)]         // サイドバー登録後のフィルター
 
 // ウィジェット表示
 #[DynamicSidebarBeforeAction(priority?: int = 10)]   // サイドバー表示前
@@ -342,7 +406,20 @@ class SidebarRegistrar
 #[WidgetTitleFilter(priority?: int = 10)]            // ウィジェットタイトルのフィルター
 #[WidgetTextFilter(priority?: int = 10)]             // テキストウィジェットコンテンツのフィルター
 #[WidgetContentFilter(priority?: int = 10)]          // カスタム HTML ウィジェットコンテンツのフィルター
+
+// その他
+#[DynamicSidebarHasWidgetsFilter(priority?: int = 10)] // サイドバーのウィジェット有無
+#[WidgetAreaPreviewFilter(priority?: int = 10)]        // ウィジェットエリアプレビュー
+#[WidgetsPrefetchingFilter(priority?: int = 10)]       // ウィジェットプリフェッチ
 ```
+
+## クラスリファレンス
+
+| クラス | 説明 |
+|-------|------|
+| `AbstractWidget` | `WP_Widget` 抽象ラッパー。`#[Widget]` からメタデータ自動解決 |
+| `WidgetRegistry` | ウィジェット/サイドバー登録サービス |
+| `Attribute\Widget` | クラスレベルアトリビュート（id / name / description） |
 
 ## WordPress 統合
 
@@ -354,9 +431,9 @@ class SidebarRegistrar
 ## 依存関係
 
 ### 必須
-- **Hook コンポーネント** - WordPress ウィジェット登録用
+- **Hook コンポーネント** — WordPress ウィジェット登録用
 
 ### 推奨
-- **Cache コンポーネント** - パフォーマンス最適化用
-- **Security コンポーネント** - フォームフィールドのサニタイズ用
-- **Option コンポーネント** - 拡張設定ストレージ用
+- **Cache コンポーネント** — パフォーマンス最適化用
+- **Security コンポーネント** — フォームフィールドのサニタイズ用
+- **Option コンポーネント** — 拡張設定ストレージ用
