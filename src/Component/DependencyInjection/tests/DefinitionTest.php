@@ -241,4 +241,23 @@ final class DefinitionTest extends TestCase
 
         self::assertSame($definition, $result);
     }
+
+    #[Test]
+    public function getSymfonyDefinitionReturnsWrappedInstance(): void
+    {
+        $symfonyDef = new SymfonyDefinition('App\\Service');
+        $definition = Definition::wrap('my.service', $symfonyDef);
+
+        self::assertSame($symfonyDef, $definition->getSymfonyDefinition());
+    }
+
+    #[Test]
+    public function getFactoryReturnsNullForNonArrayFactory(): void
+    {
+        $symfonyDef = new SymfonyDefinition();
+        $symfonyDef->setFactory('globalFunction');
+        $definition = Definition::wrap('my.service', $symfonyDef);
+
+        self::assertNull($definition->getFactory());
+    }
 }
