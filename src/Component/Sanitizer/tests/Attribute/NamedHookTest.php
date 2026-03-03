@@ -9,10 +9,6 @@ use PHPUnit\Framework\TestCase;
 use WpPack\Component\Hook\Attribute\Filter;
 use WpPack\Component\Hook\Hook;
 use WpPack\Component\Hook\HookType;
-use WpPack\Component\Sanitizer\Attribute\Filter\EscAttrFilter;
-use WpPack\Component\Sanitizer\Attribute\Filter\EscHtmlFilter;
-use WpPack\Component\Sanitizer\Attribute\Filter\EscJsFilter;
-use WpPack\Component\Sanitizer\Attribute\Filter\EscUrlFilter;
 use WpPack\Component\Sanitizer\Attribute\Filter\PreInsertTermFilter;
 use WpPack\Component\Sanitizer\Attribute\Filter\PreUserLoginFilter;
 use WpPack\Component\Sanitizer\Attribute\Filter\SanitizeCommentMetaFilter;
@@ -28,45 +24,13 @@ use WpPack\Component\Sanitizer\Attribute\Filter\SanitizeUserMetaFilter;
 final class NamedHookTest extends TestCase
 {
     #[Test]
-    public function escAttrFilterHasCorrectHookName(): void
-    {
-        $filter = new EscAttrFilter();
-
-        self::assertSame('esc_attr', $filter->hook);
-        self::assertSame(HookType::Filter, $filter->type);
-        self::assertSame(10, $filter->priority);
-    }
-
-    #[Test]
-    public function escHtmlFilterHasCorrectHookName(): void
-    {
-        $filter = new EscHtmlFilter();
-
-        self::assertSame('esc_html', $filter->hook);
-    }
-
-    #[Test]
-    public function escJsFilterHasCorrectHookName(): void
-    {
-        $filter = new EscJsFilter();
-
-        self::assertSame('esc_js', $filter->hook);
-    }
-
-    #[Test]
-    public function escUrlFilterHasCorrectHookName(): void
-    {
-        $filter = new EscUrlFilter();
-
-        self::assertSame('esc_url', $filter->hook);
-    }
-
-    #[Test]
     public function preInsertTermFilterHasCorrectHookName(): void
     {
         $filter = new PreInsertTermFilter();
 
         self::assertSame('pre_insert_term', $filter->hook);
+        self::assertSame(HookType::Filter, $filter->type);
+        self::assertSame(10, $filter->priority);
     }
 
     #[Test]
@@ -80,9 +44,9 @@ final class NamedHookTest extends TestCase
     #[Test]
     public function sanitizeCommentMetaFilterHasCorrectHookName(): void
     {
-        $filter = new SanitizeCommentMetaFilter();
+        $filter = new SanitizeCommentMetaFilter(metaKey: 'rating');
 
-        self::assertSame('sanitize_comment_meta', $filter->hook);
+        self::assertSame('sanitize_comment_meta_rating', $filter->hook);
     }
 
     #[Test]
@@ -112,17 +76,17 @@ final class NamedHookTest extends TestCase
     #[Test]
     public function sanitizePostMetaFilterHasCorrectHookName(): void
     {
-        $filter = new SanitizePostMetaFilter();
+        $filter = new SanitizePostMetaFilter(metaKey: 'price');
 
-        self::assertSame('sanitize_post_meta', $filter->hook);
+        self::assertSame('sanitize_post_meta_price', $filter->hook);
     }
 
     #[Test]
     public function sanitizeTermMetaFilterHasCorrectHookName(): void
     {
-        $filter = new SanitizeTermMetaFilter();
+        $filter = new SanitizeTermMetaFilter(metaKey: 'color');
 
-        self::assertSame('sanitize_term_meta', $filter->hook);
+        self::assertSame('sanitize_term_meta_color', $filter->hook);
     }
 
     #[Test]
@@ -144,9 +108,9 @@ final class NamedHookTest extends TestCase
     #[Test]
     public function sanitizeUserMetaFilterHasCorrectHookName(): void
     {
-        $filter = new SanitizeUserMetaFilter();
+        $filter = new SanitizeUserMetaFilter(metaKey: 'nickname');
 
-        self::assertSame('sanitize_user_meta', $filter->hook);
+        self::assertSame('sanitize_user_meta_nickname', $filter->hook);
     }
 
     #[Test]
@@ -158,23 +122,28 @@ final class NamedHookTest extends TestCase
     }
 
     #[Test]
+    public function metaFiltersAcceptCustomPriority(): void
+    {
+        $filter = new SanitizePostMetaFilter(metaKey: 'price', priority: 5);
+
+        self::assertSame(5, $filter->priority);
+        self::assertSame('sanitize_post_meta_price', $filter->hook);
+    }
+
+    #[Test]
     public function allFiltersExtendFilter(): void
     {
-        self::assertInstanceOf(Filter::class, new EscAttrFilter());
-        self::assertInstanceOf(Filter::class, new EscHtmlFilter());
-        self::assertInstanceOf(Filter::class, new EscJsFilter());
-        self::assertInstanceOf(Filter::class, new EscUrlFilter());
         self::assertInstanceOf(Filter::class, new PreInsertTermFilter());
         self::assertInstanceOf(Filter::class, new PreUserLoginFilter());
-        self::assertInstanceOf(Filter::class, new SanitizeCommentMetaFilter());
+        self::assertInstanceOf(Filter::class, new SanitizeCommentMetaFilter(metaKey: 'test'));
         self::assertInstanceOf(Filter::class, new SanitizeEmailFilter());
         self::assertInstanceOf(Filter::class, new SanitizeFileNameFilter());
         self::assertInstanceOf(Filter::class, new SanitizeKeyFilter());
-        self::assertInstanceOf(Filter::class, new SanitizePostMetaFilter());
-        self::assertInstanceOf(Filter::class, new SanitizeTermMetaFilter());
+        self::assertInstanceOf(Filter::class, new SanitizePostMetaFilter(metaKey: 'test'));
+        self::assertInstanceOf(Filter::class, new SanitizeTermMetaFilter(metaKey: 'test'));
         self::assertInstanceOf(Filter::class, new SanitizeTextFieldFilter());
         self::assertInstanceOf(Filter::class, new SanitizeTitleFilter());
-        self::assertInstanceOf(Filter::class, new SanitizeUserMetaFilter());
+        self::assertInstanceOf(Filter::class, new SanitizeUserMetaFilter(metaKey: 'test'));
     }
 
     #[Test]

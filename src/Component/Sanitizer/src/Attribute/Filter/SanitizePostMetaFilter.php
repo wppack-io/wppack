@@ -9,8 +9,8 @@ use WpPack\Component\Hook\Attribute\Filter;
 #[\Attribute(\Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
 final class SanitizePostMetaFilter extends Filter
 {
-    public function __construct(int $priority = 10)
+    public function __construct(string $metaKey, int $priority = 10)
     {
-        parent::__construct('sanitize_post_meta', $priority);
+        parent::__construct("sanitize_post_meta_{$metaKey}", $priority);
     }
 }

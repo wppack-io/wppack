@@ -1,0 +1,22 @@
+{
+    "name": "wppack/escaper",
+    "description": "Output escaping for WordPress",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2"
+    },
+    "require-dev": {
+        "wppack/hook": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpPack\\Component\\Escaper\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Component\\Escaper\\Tests\\": "tests/"
+        }
+    }
+}

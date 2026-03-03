@@ -95,6 +95,10 @@ component_management:
       name: Sanitizer
       paths:
         - src/Component/Sanitizer/src/**
+    - component_id: escaper
+      name: Escaper
+      paths:
+        - src/Component/Escaper/src/**
     - component_id: http_client
       name: HttpClient
       paths:
