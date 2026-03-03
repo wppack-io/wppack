@@ -283,4 +283,27 @@ final class RedisAdapterTest extends TestCase
         self::assertTrue($this->adapter->set('wppack_test:after', 'value'));
         self::assertSame('value', $this->adapter->get('wppack_test:after'));
     }
+
+    #[Test]
+    public function connectViaSentinel(): void
+    {
+        $adapter = new RedisAdapter([
+            'redis_sentinel' => 'mymaster',
+            'sentinel_hosts' => [
+                ['host' => '127.0.0.1', 'port' => 26379],
+                ['host' => '127.0.0.1', 'port' => 26380],
+                ['host' => '127.0.0.1', 'port' => 26381],
+            ],
+        ]);
+
+        if (!$adapter->isAvailable()) {
+            self::markTestSkipped('Redis Sentinel is not available.');
+        }
+
+        self::assertTrue($adapter->set('wppack_test:sentinel', 'value'));
+        self::assertSame('value', $adapter->get('wppack_test:sentinel'));
+
+        $adapter->delete('wppack_test:sentinel');
+        $adapter->close();
+    }
 }

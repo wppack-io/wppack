@@ -38,6 +38,32 @@ services:
       "
     tmpfs:
       - /data
+  valkey-sentinel:
+    image: valkey/valkey:8
+    ports:
+      - '6380:6380'
+      - '6381:6381'
+      - '26379:26379'
+      - '26380:26380'
+      - '26381:26381'
+    entrypoint: >
+      sh -c "
+        valkey-server --port 6380 --daemonize yes &&
+        valkey-server --port 6381 --replicaof 127.0.0.1 6380 --daemonize yes &&
+        sleep 1 &&
+        for p in 26379 26380 26381; do
+          echo port $$p > /tmp/s-$$p.conf;
+          echo sentinel monitor mymaster 127.0.0.1 6380 2 >> /tmp/s-$$p.conf;
+          echo sentinel down-after-milliseconds mymaster 5000 >> /tmp/s-$$p.conf;
+          echo sentinel failover-timeout mymaster 10000 >> /tmp/s-$$p.conf;
+        done &&
+        valkey-server /tmp/s-26379.conf --sentinel --daemonize yes &&
+        valkey-server /tmp/s-26380.conf --sentinel --daemonize yes &&
+        valkey-server /tmp/s-26381.conf --sentinel --daemonize yes &&
+        tail -f /dev/null
+      "
+    tmpfs:
+      - /data
   memcached:
     image: memcached:1.6
     ports:

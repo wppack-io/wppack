@@ -321,6 +321,21 @@ final class RedisAdapterFactoryTest extends TestCase
         self::assertNotNull($adapter);
     }
 
+    #[Test]
+    public function createsRedisAdapterForSentinel(): void
+    {
+        if (!\extension_loaded('redis')) {
+            self::markTestSkipped('ext-redis is not available.');
+        }
+
+        $adapter = $this->factory->create(
+            Dsn::fromString('redis:?host[127.0.0.1:26379]&host[127.0.0.1:26380]&redis_sentinel=mymaster'),
+        );
+
+        self::assertInstanceOf(RedisAdapter::class, $adapter);
+        self::assertSame('redis', $adapter->getName());
+    }
+
     private function hasAnyClient(): bool
     {
         return \extension_loaded('redis')
