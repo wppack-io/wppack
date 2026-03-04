@@ -126,6 +126,70 @@ final class NamedHookTest extends TestCase
     }
 
     #[Test]
+    public function templateRedirectActionAcceptsCustomPriority(): void
+    {
+        $action = new TemplateRedirectAction(priority: 5);
+
+        self::assertSame(5, $action->priority);
+    }
+
+    #[Test]
+    public function pageRewriteRulesFilterAcceptsCustomPriority(): void
+    {
+        $filter = new PageRewriteRulesFilter(priority: 20);
+
+        self::assertSame(20, $filter->priority);
+    }
+
+    #[Test]
+    public function postRewriteRulesFilterAcceptsCustomPriority(): void
+    {
+        $filter = new PostRewriteRulesFilter(priority: 15);
+
+        self::assertSame(15, $filter->priority);
+    }
+
+    #[Test]
+    public function queryVarsFilterAcceptsCustomPriority(): void
+    {
+        $filter = new QueryVarsFilter(priority: 5);
+
+        self::assertSame(5, $filter->priority);
+    }
+
+    #[Test]
+    public function requestFilterAcceptsCustomPriority(): void
+    {
+        $filter = new RequestFilter(priority: 99);
+
+        self::assertSame(99, $filter->priority);
+    }
+
+    #[Test]
+    public function rewriteRulesArrayFilterAcceptsCustomPriority(): void
+    {
+        $filter = new RewriteRulesArrayFilter(priority: 1);
+
+        self::assertSame(1, $filter->priority);
+    }
+
+    #[Test]
+    public function rootRewriteRulesFilterAcceptsCustomPriority(): void
+    {
+        $filter = new RootRewriteRulesFilter(priority: 50);
+
+        self::assertSame(50, $filter->priority);
+    }
+
+    #[Test]
+    public function templateIncludeFilterAcceptsCustomPriority(): void
+    {
+        $filter = new TemplateIncludeFilter(priority: 30);
+
+        self::assertSame(30, $filter->priority);
+    }
+
+    #[Test]
     public function namedHooksAreDetectedByIsInstanceof(): void
     {
         $class = new class {
