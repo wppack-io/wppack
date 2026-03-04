@@ -4,7 +4,7 @@
 **名前空間:** `WpPack\Component\OEmbed\`
 **レイヤー:** Application
 
-WordPress oEmbed 関連フックを Named Hook アトリビュートで型安全に利用するためのコンポーネントです。
+WordPress oEmbed API をモダンな PHP でラップし、プロバイダー自動登録と oEmbed 関連の Named Hook アトリビュートを提供するコンポーネントです。
 
 ## インストール
 
@@ -17,11 +17,19 @@ composer require wppack/oembed
 ### Before（従来の WordPress）
 
 ```php
-wp_oembed_add_provider(
-    'https://example.com/videos/*',
-    'https://example.com/oembed',
-    false
-);
+// Traditional WordPress - procedural and scattered
+add_action('init', function() {
+    wp_oembed_add_provider(
+        'https://example.com/videos/*',
+        'https://example.com/oembed',
+        false
+    );
+    wp_oembed_add_provider(
+        '#https?://custom\.site/.*#i',
+        'https://custom.site/oembed',
+        true
+    );
+});
 
 add_filter('oembed_result', function ($html, $url, $args) {
     if (str_contains($url, 'youtube.com')) {
@@ -34,22 +42,25 @@ add_filter('oembed_result', function ($html, $url, $args) {
 ### After（WpPack）
 
 ```php
-use WpPack\Component\OEmbed\Attribute\OembedProvidersFilter;
-use WpPack\Component\OEmbed\Attribute\OembedResultFilter;
+use WpPack\Component\OEmbed\OEmbedProviderDefinition;
+use WpPack\Component\OEmbed\OEmbedProviderInterface;
+use WpPack\Component\OEmbed\Attribute\Filter\OembedResultFilter;
+
+class MyOEmbedProviders implements OEmbedProviderInterface
+{
+    public function getProviders(): array
+    {
+        return [
+            new OEmbedProviderDefinition('https://example.com/videos/*', 'https://example.com/oembed'),
+            new OEmbedProviderDefinition('#https?://custom\.site/.*#i', 'https://custom.site/oembed', regex: true),
+        ];
+    }
+}
+
+// DI コンテナで auto-tag → OEmbedProviderRegistry に自動収集
 
 final class VideoEmbedCustomizer
 {
-    #[OembedProvidersFilter]
-    public function addProvider(array $providers): array
-    {
-        $providers['#https?://example\.com/videos/([0-9]+)#i'] = [
-            'https://example.com/oembed',
-            true,
-        ];
-
-        return $providers;
-    }
-
     #[OembedResultFilter]
     public function wrapYouTube(string|false $html, string $url, array $args, int $postId): string|false
     {
@@ -62,6 +73,111 @@ final class VideoEmbedCustomizer
 }
 ```
 
+## 主要クラス
+
+| クラス | 説明 |
+|--------|------|
+| `OEmbedProviderDefinition` | oEmbed プロバイダー定義（値オブジェクト） |
+| `OEmbedProviderInterface` | プロバイダーを提供するインターフェース |
+| `OEmbedProviderRegistry` | プロバイダーの登録・管理 |
+
+## OEmbedProviderInterface
+
+DI コンテナで auto-tag し、`OEmbedProviderRegistry` に自動収集されるパターンです。
+
+```php
+use WpPack\Component\OEmbed\OEmbedProviderDefinition;
+use WpPack\Component\OEmbed\OEmbedProviderInterface;
+
+class CustomProviders implements OEmbedProviderInterface
+{
+    public function getProviders(): array
+    {
+        return [
+            new OEmbedProviderDefinition('https://example.com/*', 'https://example.com/oembed'),
+            new OEmbedProviderDefinition('#https?://custom\.site/.*#i', 'https://custom.site/oembed', regex: true),
+        ];
+    }
+}
+```
+
+## OEmbedProviderRegistry
+
+プロバイダーの登録・管理を行うレジストリです。
+
+### プロバイダー経由の一括登録
+
+`addProvider()` でプロバイダーを収集し、`register()` で `init` のタイミングに一括登録します。
+
+```php
+use WpPack\Component\OEmbed\OEmbedProviderRegistry;
+
+$registry = new OEmbedProviderRegistry();
+$registry->addProvider(new CustomProviders());
+$registry->register(); // wp_oembed_add_provider() が呼ばれる
+```
+
+### 直接登録
+
+```php
+use WpPack\Component\Hook\Attribute\Action\InitAction;
+use WpPack\Component\OEmbed\OEmbedProviderRegistry;
+
+class OEmbedManager
+{
+    public function __construct(
+        private readonly OEmbedProviderRegistry $registry,
+    ) {}
+
+    #[InitAction]
+    public function registerProviders(): void
+    {
+        $this->registry->addDefinition(
+            'https://example.com/*',
+            'https://example.com/oembed',
+        );
+
+        $this->registry->addDefinition(
+            '#https?://custom\.site/.*#i',
+            'https://custom.site/oembed',
+            regex: true,
+        );
+    }
+}
+```
+
+### API リファレンス
+
+```php
+$registry->addProvider(OEmbedProviderInterface $provider): void
+$registry->register(): void                          // プロバイダーの定義を一括登録
+$registry->addDefinition(string $format, string $endpoint, bool $regex = false): void
+$registry->removeProvider(string $format): void
+$registry->hasProvider(string $format): bool
+$registry->getRegisteredProviders(): array           // list<OEmbedProviderDefinition>
+```
+
+## OEmbedProviderDefinition
+
+oEmbed プロバイダーの定義を表す値オブジェクトです。
+
+```php
+use WpPack\Component\OEmbed\OEmbedProviderDefinition;
+
+// ワイルドカードパターン
+$wildcard = new OEmbedProviderDefinition(
+    format: 'https://example.com/*',
+    endpoint: 'https://example.com/oembed',
+);
+
+// 正規表現パターン
+$regex = new OEmbedProviderDefinition(
+    format: '#https?://custom\.site/.*#i',
+    endpoint: 'https://custom.site/oembed',
+    regex: true,
+);
+```
+
 ## Named Hook アトリビュート
 
 ### #[OembedProvidersFilter(priority?: int = 10)]
@@ -71,7 +187,7 @@ final class VideoEmbedCustomizer
 oEmbed プロバイダーの追加・変更を行います。
 
 ```php
-use WpPack\Component\OEmbed\Attribute\OembedProvidersFilter;
+use WpPack\Component\OEmbed\Attribute\Filter\OembedProvidersFilter;
 
 final class CustomProviderRegistrar
 {
@@ -99,7 +215,7 @@ final class CustomProviderRegistrar
 oEmbed リクエスト URL を変更します。
 
 ```php
-use WpPack\Component\OEmbed\Attribute\OembedFetchUrlFilter;
+use WpPack\Component\OEmbed\Attribute\Filter\OembedFetchUrlFilter;
 
 final class OEmbedRequestCustomizer
 {
@@ -122,7 +238,7 @@ final class OEmbedRequestCustomizer
 oEmbed レスポンス HTML を加工します。
 
 ```php
-use WpPack\Component\OEmbed\Attribute\OembedResultFilter;
+use WpPack\Component\OEmbed\Attribute\Filter\OembedResultFilter;
 
 final class OEmbedResponseProcessor
 {
@@ -146,7 +262,7 @@ final class OEmbedResponseProcessor
 キャッシュされた oEmbed HTML を出力前にフィルタリングします。
 
 ```php
-use WpPack\Component\OEmbed\Attribute\EmbedOembedHtmlFilter;
+use WpPack\Component\OEmbed\Attribute\Filter\EmbedOembedHtmlFilter;
 
 final class EmbedDisplayFilter
 {
@@ -171,7 +287,7 @@ final class EmbedDisplayFilter
 サイトの `<head>` に出力される oEmbed ディスカバリーリンクをカスタマイズします。
 
 ```php
-use WpPack\Component\OEmbed\Attribute\OembedDiscoveryLinksFilter;
+use WpPack\Component\OEmbed\Attribute\Filter\OembedDiscoveryLinksFilter;
 
 final class DiscoveryLinksCustomizer
 {
