@@ -32,12 +32,19 @@ add_action('rss2_item', function () {
 ### After（WpPack）
 
 ```php
+use WpPack\Component\Feed\AbstractFeed;
 use WpPack\Component\Feed\Attribute\AsFeed;
-use WpPack\Component\Feed\Attribute\Rss2ItemAction;
+use WpPack\Component\Feed\Attribute\Action\Rss2ItemAction;
 
 #[AsFeed(slug: 'products', title: 'Product Feed')]
-class ProductFeed
+class ProductFeed extends AbstractFeed
 {
+    public function render(): void
+    {
+        header('Content-Type: application/rss+xml; charset=' . get_option('blog_charset'));
+        load_template(ABSPATH . 'wp-includes/feed-rss2.php');
+    }
+
     #[Rss2ItemAction]
     public function addProductPrice(): void
     {
@@ -50,15 +57,18 @@ class ProductFeed
 }
 ```
 
-## クイックスタート
+## 使い方
 
-### カスタムフィードの登録
+### 1. カスタムフィード登録（AbstractFeed + AsFeed）
+
+`AbstractFeed` を継承し `#[AsFeed]` アトリビュートでメタデータを指定します。`render()` メソッドでフィード出力を実装します。
 
 ```php
+use WpPack\Component\Feed\AbstractFeed;
 use WpPack\Component\Feed\Attribute\AsFeed;
 
 #[AsFeed(slug: 'products', title: 'Product Feed')]
-class ProductFeed
+class ProductFeed extends AbstractFeed
 {
     public function render(): void
     {
@@ -74,12 +84,37 @@ class ProductFeed
 }
 ```
 
-### フィードコンテンツの変更
+#### AsFeed アトリビュート
+
+| パラメータ | 型 | 必須 | デフォルト | 説明 |
+|-----------|------|------|-----------|------|
+| `slug` | `string` | はい | — | フィード URL スラッグ（`/feed/{slug}/`） |
+| `title` | `string` | いいえ | `''` | フィードタイトル（メタデータ用） |
+
+#### FeedRegistry
+
+`FeedRegistry` で複数のフィードを一括管理できます。
 
 ```php
-use WpPack\Component\Feed\Attribute\Rss2ItemAction;
-use WpPack\Component\Feed\Attribute\Rss2HeadAction;
-use WpPack\Component\Feed\Attribute\TheExcerptRssFilter;
+use WpPack\Component\Feed\FeedRegistry;
+
+$registry = new FeedRegistry();
+$registry->register(new ProductFeed());
+$registry->register(new EventFeed());
+
+// 登録確認
+$registry->has('products');           // true
+$registry->getRegisteredFeeds();      // ['products' => ProductFeed, 'events' => EventFeed]
+```
+
+### 2. 既存フィード修正（Named Hook アトリビュート）
+
+既存の RSS/Atom フィードを Named Hook アトリビュートで修正できます。`AbstractFeed` の継承は不要です。
+
+```php
+use WpPack\Component\Feed\Attribute\Action\Rss2HeadAction;
+use WpPack\Component\Feed\Attribute\Action\Rss2ItemAction;
+use WpPack\Component\Feed\Attribute\Filter\TheExcerptRssFilter;
 
 class FeedCustomizer
 {
@@ -130,16 +165,29 @@ class FeedQueryModifier
 
 ## Named Hook アトリビュート
 
+### Action
+
 ```php
-// フィードヘッダー
+// RSS 2.0
 #[Rss2HeadAction(priority?: int = 10)]           // rss2_head — RSS 2.0 ヘッダー
-#[AtomHeadAction(priority?: int = 10)]            // atom_head — Atom ヘッダー
+#[Rss2ItemAction(priority?: int = 10)]            // rss2_item — RSS 2.0 アイテム
 #[Rss2NsAction(priority?: int = 10)]              // rss2_ns — RSS 2.0 名前空間
 
-// フィードアイテム
-#[Rss2ItemAction(priority?: int = 10)]            // rss2_item — RSS 2.0 アイテム
+// RSS 1.0
+#[RssChannelAction(priority?: int = 10)]          // rss_channel — RSS チャンネル
+#[RssItemAction(priority?: int = 10)]             // rss_item — RSS アイテム
+
+// Atom
+#[AtomHeadAction(priority?: int = 10)]            // atom_head — Atom ヘッダー
 #[AtomEntryAction(priority?: int = 10)]           // atom_entry — Atom エントリ
 
+// コメントフィード
+#[CommentFeedRssAction(priority?: int = 10)]      // comment_feed_rss — コメントフィード
+```
+
+### Filter
+
+```php
 // コンテンツフィルター
 #[TheContentFeedFilter(priority?: int = 10)]      // the_content_feed — フィードコンテンツ
 #[TheExcerptRssFilter(priority?: int = 10)]       // the_excerpt_rss — フィード抜粋
@@ -147,11 +195,21 @@ class FeedQueryModifier
 
 // フィード設定
 #[BloginfoRssFilter(priority?: int = 10)]         // bloginfo_rss — ブログ情報
+#[FeedContentTypeFilter(priority?: int = 10)]     // feed_content_type — コンテンツタイプ
+#[FeedLinksExtraFilter(priority?: int = 10)]      // feed_links_extra — 追加フィードリンク
 #[FeedLinkFilter(priority?: int = 10)]            // feed_link — フィードリンク
 #[SelfLinkFilter(priority?: int = 10)]            // self_link — 自己参照リンク
 ```
 
+## 主要クラス
+
+| クラス | 説明 |
+|--------|------|
+| `AbstractFeed` | カスタムフィードの基底クラス。`#[AsFeed]` でメタデータ指定、`render()` で出力 |
+| `AsFeed` | クラスレベルアトリビュート。`slug`（必須）と `title`（オプション）を指定 |
+| `FeedRegistry` | フィードの一括登録・管理。`register()`, `has()`, `getRegisteredFeeds()` |
+
 ## 依存関係
 
 ### 必須
-- **Hook コンポーネント** — フック登録用
+- **Hook コンポーネント** — Named Hook アトリビュート用
