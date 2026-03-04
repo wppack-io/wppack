@@ -34,12 +34,9 @@ echo _x('Post', 'verb', 'my-plugin');
 
 ```php
 use WpPack\Component\Translation\Translator;
-use WpPack\Component\Translation\Attribute\TextDomain;
+use WpPack\Component\Translation\Attribute\PluginTextDomain;
 
-#[TextDomain(
-    domain: 'my-plugin',
-    path: 'languages'
-)]
+#[PluginTextDomain(domain: 'my-plugin', path: 'my-plugin/languages')]
 class MyPluginTranslator extends Translator
 {
     public function welcome(): string
@@ -67,82 +64,174 @@ class MyPluginTranslator extends Translator
 }
 ```
 
-## テキストドメインの登録
+## テキストドメインアトリビュート
 
-`#[TextDomain]` アトリビュートで `load_plugin_textdomain()` / `load_theme_textdomain()` を自動化します。
+プラグインとテーマで異なるアトリビュートを使用します（WordPress API が異なるため）。
+
+### PluginTextDomain — プラグイン用
 
 ```php
-// プラグイン用
-#[TextDomain(domain: 'my-plugin', path: 'languages')]
-class PluginTranslator extends Translator {}
+use WpPack\Component\Translation\Attribute\PluginTextDomain;
 
-// テーマ用
-#[TextDomain(domain: 'my-theme', path: 'languages', type: 'theme')]
+#[PluginTextDomain(domain: 'my-plugin', path: 'my-plugin/languages')]
+class PluginTranslator extends Translator {}
+```
+
+- `path`: `WP_PLUGIN_DIR` からの相対パス。空の場合は `{domain}/languages` がデフォルト
+
+### ThemeTextDomain — テーマ用
+
+```php
+use WpPack\Component\Translation\Attribute\ThemeTextDomain;
+
+#[ThemeTextDomain(domain: 'my-theme', path: 'languages')]
 class ThemeTranslator extends Translator {}
 ```
 
+- `path`: テーマディレクトリからの相対パス。デフォルトは `languages`
+
 内部的には以下の WordPress 関数を呼び出します：
 
-- `load_plugin_textdomain($domain, false, $path)` -- プラグイン用
-- `load_theme_textdomain($domain, $path)` -- テーマ用
+- `load_plugin_textdomain($domain, false, $path)` — プラグイン用
+- `load_theme_textdomain($domain, $path)` — テーマ用
 
 ## Translator クラス
 
-`Translator` は WordPress の翻訳関数をラップしたメソッドを提供します。
+`Translator` は非 abstract クラスで、直接インスタンス化もサブクラス化も可能です。
 
-### translate() -- __() のラッパー
+### 直接使用
 
 ```php
-// WordPress: __('Hello', 'my-plugin')
+$translator = new Translator('my-plugin');
 $text = $translator->translate('Hello');
 ```
 
-### echo() -- _e() のラッパー
+### サブクラスでの使用
 
 ```php
-// WordPress: _e('Hello', 'my-plugin')
+#[PluginTextDomain(domain: 'my-shop', path: 'my-shop/languages')]
+final class ShopTranslator extends Translator
+{
+    public function addToCart(): string
+    {
+        return $this->translate('Add to Cart');
+    }
+}
+```
+
+### translate() — __() のラッパー
+
+```php
+$text = $translator->translate('Hello');
+```
+
+### echo() — _e() のラッパー
+
+```php
 $translator->echo('Hello');
 ```
 
-### plural() -- _n() のラッパー
+### plural() — _n() のラッパー
 
 ```php
-// WordPress: _n('One item', '%d items', $count, 'my-plugin')
 $text = $translator->plural('One item', '%d items', $count);
-
-// printf 形式のプレースホルダーを使用
-echo sprintf($translator->plural('%d item', '%d items', $count), $count);
 ```
 
-### translateWithContext() -- _x() のラッパー
+### translateWithContext() — _x() のラッパー
 
 ```php
-// WordPress: _x('Post', 'verb', 'my-plugin')
 $text = $translator->translateWithContext('Post', 'verb');
-
-// WordPress: _x('Post', 'noun', 'my-plugin')
-$text = $translator->translateWithContext('Post', 'noun');
 ```
 
-### pluralWithContext() -- _nx() のラッパー
+### pluralWithContext() — _nx() のラッパー
 
 ```php
-// WordPress: _nx('One item', '%d items', $count, 'cart items', 'my-plugin')
 $text = $translator->pluralWithContext('One item', '%d items', $count, 'cart items');
 ```
 
-### escHtml() -- esc_html__() のラッパー
+### escHtml() — esc_html__() のラッパー
 
 ```php
-// WordPress: esc_html__('User input here', 'my-plugin')
 $safe = $translator->escHtml('User input here');
 ```
 
-### escAttr() -- esc_attr__() のラッパー
+### escAttr() — esc_attr__() のラッパー
 
 ```php
-// WordPress: esc_attr__('Title text', 'my-plugin')
 $safe = $translator->escAttr('Title text');
+```
+
+## TextDomainRegistry
+
+テキストドメインの登録状態を管理するレジストリです。**Translator に限らず、任意のオブジェクト**を受け付けます。
+
+### register() — アトリビュートからテキストドメインを登録
+
+```php
+$registry = new TextDomainRegistry();
+
+// Translator サブクラス
+$registry->register(new ShopTranslator());
+
+// Translator 以外のオブジェクトも可
+#[PluginTextDomain(domain: 'my-plugin', path: 'my-plugin/languages')]
+class MyPlugin {}
+$registry->register(new MyPlugin());
+```
+
+### static convenience メソッド — アトリビュート不要
+
+```php
+// プラグイン用
+TextDomainRegistry::loadPlugin('my-plugin', 'my-plugin/languages');
+
+// テーマ用
+TextDomainRegistry::loadTheme('my-theme', 'languages');
+```
+
+### 状態確認
+
+```php
+$registry->has('my-plugin');          // bool
+$registry->getRegisteredDomains();    // array<string, PluginTextDomain|ThemeTextDomain>
+```
+
+## Named Hook アトリビュート
+
+Translation 関連の WordPress フックに対応する Named Hook アトリビュートを提供します。Hook コンポーネントはオプション依存です。
+
+### Action
+
+| アトリビュート | WordPress フック |
+|---|---|
+| `LoadTextdomainAction` | `load_textdomain` |
+| `UnloadTextdomainAction` | `unload_textdomain` |
+
+### Filter
+
+| アトリビュート | WordPress フック |
+|---|---|
+| `LocaleFilter` | `locale` |
+| `DetermineLocaleFilter` | `determine_locale` |
+| `GettextFilter` | `gettext` |
+
+### 使用例
+
+```php
+use WpPack\Component\Translation\Attribute\Filter\GettextFilter;
+
+class TranslationCustomizer
+{
+    #[GettextFilter(priority: 20)]
+    public function customizeTranslation(string $translation, string $text, string $domain): string
+    {
+        if ($domain === 'my-plugin' && $text === 'Submit') {
+            return 'Send';
+        }
+
+        return $translation;
+    }
+}
 ```
 
 ## 実践的な例
@@ -156,9 +245,9 @@ declare(strict_types=1);
 namespace MyPlugin\Translation;
 
 use WpPack\Component\Translation\Translator;
-use WpPack\Component\Translation\Attribute\TextDomain;
+use WpPack\Component\Translation\Attribute\PluginTextDomain;
 
-#[TextDomain(domain: 'my-shop', path: 'languages')]
+#[PluginTextDomain(domain: 'my-shop', path: 'my-shop/languages')]
 final class ShopTranslator extends Translator
 {
     public function productCount(int $count): string
@@ -258,7 +347,8 @@ class ShopAdmin
 ## 依存関係
 
 ### 必須
-- **Hook コンポーネント** - テキストドメイン読み込みのフック登録用
+- なし（PHP 8.2 のみ）
 
-### 推奨
-- **DependencyInjection コンポーネント** - Translator のインジェクション用
+### オプション
+- **Hook コンポーネント** — Named Hook アトリビュート使用時のみ必要
+- **DependencyInjection コンポーネント** — Translator のインジェクション用

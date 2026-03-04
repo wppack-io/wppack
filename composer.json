@@ -140,7 +140,8 @@
             "WpPack\\Component\\Cache\\Bridge\\Redis\\Tests\\": "src/Component/Cache/Bridge/Redis/tests/",
             "WpPack\\Component\\Cache\\Bridge\\DynamoDb\\Tests\\": "src/Component/Cache/Bridge/DynamoDb/tests/",
             "WpPack\\Component\\Cache\\Bridge\\Memcached\\Tests\\": "src/Component/Cache/Bridge/Memcached/tests/",
-            "WpPack\\Component\\Cache\\Bridge\\Apcu\\Tests\\": "src/Component/Cache/Bridge/Apcu/tests/"
+            "WpPack\\Component\\Cache\\Bridge\\Apcu\\Tests\\": "src/Component/Cache/Bridge/Apcu/tests/",
+            "WpPack\\Component\\Translation\\Tests\\": "src/Component/Translation/tests/"
         }
     },
     "replace": {
