@@ -18,6 +18,7 @@ abstract class AbstractSettingsPage
     public readonly ?string $icon;
     public readonly ?int $position;
 
+    private ?SettingsRenderer $renderer = null;
     private ?bool $hasValidateOverride = null;
     private ?bool $hasSanitizeOverride = null;
 
@@ -56,16 +57,19 @@ abstract class AbstractSettingsPage
         return $input;
     }
 
+    public function getRenderer(): SettingsRenderer
+    {
+        return $this->renderer ??= $this->createRenderer();
+    }
+
+    protected function createRenderer(): SettingsRenderer
+    {
+        return new SettingsRenderer();
+    }
+
     public function render(): void
     {
-        echo '<div class="wrap">';
-        echo '<h1>' . esc_html(get_admin_page_title()) . '</h1>';
-        echo '<form method="post" action="options.php">';
-        settings_fields($this->optionGroup);
-        do_settings_sections($this->slug);
-        submit_button();
-        echo '</form>';
-        echo '</div>';
+        $this->getRenderer()->renderPage($this);
     }
 
     /**
@@ -108,7 +112,7 @@ abstract class AbstractSettingsPage
 
     public function initSettings(): void
     {
-        $configurator = new SettingsConfigurator();
+        $configurator = new SettingsConfigurator($this);
         $this->configure($configurator);
 
         $args = [];

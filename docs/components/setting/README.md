@@ -19,8 +19,9 @@ composer require wppack/setting
 | `AsSettingsPage` | 設定ページを定義するクラスレベルアトリビュート |
 | `AbstractSettingsPage` | 設定ページの基底クラス |
 | `SettingsConfigurator` | セクション・フィールドを定義するビルダー |
-| `SectionDefinition` | セクション定義（フルーエント API） |
+| `SectionDefinition` | セクション定義（フルーエント API + 組み込みフィールドタイプ） |
 | `FieldDefinition` | フィールド定義（値オブジェクト） |
+| `SettingsRenderer` | ページ・フィールドテンプレートの統合レンダラー |
 | `ValidationContext` | バリデーションエラー・警告・情報の通知 |
 | `SettingsRegistry` | 設定ページの自動登録レジストリ |
 
@@ -59,9 +60,9 @@ class MyPluginSettings extends AbstractSettingsPage
     protected function configure(SettingsConfigurator $settings): void
     {
         $settings->section('general', __('General', 'my-plugin'))
-            ->field('api_key', __('API Key', 'my-plugin'), $this->renderApiKey(...))
-            ->field('debug', __('Debug Mode', 'my-plugin'), $this->renderDebug(...))
-            ->field('cache_ttl', __('Cache TTL', 'my-plugin'), $this->renderCacheTtl(...));
+            ->text('api_key', __('API Key', 'my-plugin'), placeholder: 'Enter your key')
+            ->checkbox('debug', __('Debug Mode', 'my-plugin'), label: 'Enable debug mode')
+            ->number('cache_ttl', __('Cache TTL', 'my-plugin'), min: 0, step: 60, description: 'Seconds');
     }
 
     protected function sanitize(array $input): array
@@ -87,18 +88,6 @@ class MyPluginSettings extends AbstractSettingsPage
 
         return $input;
     }
-
-    private function renderApiKey(array $args): void
-    {
-        printf(
-            '<input type="text" id="api_key" name="%s[api_key]" value="%s" class="regular-text" />',
-            esc_attr($this->optionName),
-            esc_attr($this->getOption('api_key', '')),
-        );
-    }
-
-    private function renderDebug(array $args): void { /* ... */ }
-    private function renderCacheTtl(array $args): void { /* ... */ }
 }
 ```
 
@@ -134,26 +123,62 @@ class MyPluginSettings extends AbstractSettingsPage
 
 - `sanitize(array $input): array` — サニタイズ（型変換・正規化）
 - `validate(array $input, ValidationContext $context): array` — バリデーション（エラー通知）
-- `render(): void` — ページレンダリング（デフォルト実装あり）
+- `render(): void` — ページレンダリング（`SettingsRenderer` に委譲）
+- `createRenderer(): SettingsRenderer` — レンダラーの生成（サブクラスでオーバーライド可能）
 
 #### ヘルパーメソッド
 
 - `getOption(string $key, mixed $default = null): mixed` — 保存されたオプション値の取得
+- `getRenderer(): SettingsRenderer` — レンダラーインスタンスの取得（遅延初期化）
 
 ### SettingsConfigurator
 
-フルーエント API でセクション・フィールドを定義します。
+フルーエント API でセクション・フィールドを定義します。組み込みフィールドタイプを使うと HTML を手書きする必要がありません。
 
 ```php
 protected function configure(SettingsConfigurator $settings): void
 {
     $settings->section('general', 'General Settings')
-        ->field('field_1', 'Field 1', $this->renderField1(...))
-        ->field('field_2', 'Field 2', $this->renderField2(...), ['label_for' => 'field_2']);
+        ->text('api_key', 'API Key', placeholder: 'Enter your key')
+        ->checkbox('debug', 'Debug Mode', label: 'Enable debug mode')
+        ->number('cache_ttl', 'Cache TTL', min: 0, step: 60, description: 'Seconds')
+        ->select('log_level', 'Log Level', choices: ['debug' => 'Debug', 'info' => 'Info']);
 
     $settings->section('advanced', 'Advanced', fn () => echo '<p>Description</p>')
-        ->field('field_3', 'Field 3', $this->renderField3(...));
+        ->textarea('bio', 'Bio', rows: 5)
+        ->field('special', 'Special', fn(array $args) => printf('<div>Custom</div>'));
 }
+```
+
+### 組み込みフィールドタイプ
+
+`SectionDefinition` には 9 種類の組み込みフィールドタイプメソッドがあります。
+
+| メソッド | デフォルト CSS | label_for |
+|---------|-------------|-----------|
+| `text()` | `regular-text` | Yes |
+| `password()` | `regular-text` | Yes |
+| `url()` | `regular-text code` | Yes |
+| `email()` | `regular-text` | Yes |
+| `number()` | `small-text` | Yes |
+| `textarea()` | `large-text` | Yes |
+| `checkbox()` | — | No |
+| `select()` | — | Yes |
+| `radio()` | — | No |
+
+各メソッドは `SettingsRenderer` の同名メソッドに委譲してHTMLを出力します。
+
+#### field() メソッド
+
+`field()` は `\Closure` と `string` の両方を受け付けます。
+
+```php
+$settings->section('general', 'General')
+    // クロージャ → そのまま使用（レンダラーを通さない）
+    ->field('special', 'Special', fn(array $args) => printf('Custom HTML'))
+    // 文字列 → レンダラーの同名メソッドに委譲
+    ->field('content', 'Content', 'wysiwyg')    // → renderer->wysiwyg(context)
+    ->field('color', 'Theme Color', 'color');    // → renderer->color(context)
 ```
 
 ### 2段階サニタイズ/バリデーション パイプライン
@@ -241,6 +266,69 @@ $registry->register(new MyPluginSettings());
     position: 80,
 )]
 class MyPluginSettings extends AbstractSettingsPage { /* ... */ }
+```
+
+### SettingsRenderer
+
+ページとフィールドのテンプレートを一つのクラスに集約するレンダラーです。`AbstractSettingsPage::render()` は `SettingsRenderer::renderPage()` に委譲します。
+
+デフォルトの `SettingsRenderer` は WordPress Admin 標準のHTMLを出力します。サブクラス化してプラグインごとにカスタマイズできます。
+
+```php
+use WpPack\Component\Setting\SettingsRenderer;
+
+class MyPluginRenderer extends SettingsRenderer
+{
+    // ページヘッダーにタブを追加
+    public function renderHeader(AbstractSettingsPage $page): void
+    {
+        parent::renderHeader($page);
+        echo '<nav class="nav-tab-wrapper">';
+        echo '<a class="nav-tab nav-tab-active">General</a>';
+        echo '<a class="nav-tab">Advanced</a>';
+        echo '</nav>';
+    }
+
+    // テキストフィールドのテンプレート変更
+    public function text(array $context): void
+    {
+        printf(
+            '<div class="my-field"><input type="text" id="%s" name="%s" value="%s" /></div>',
+            esc_attr($context['id']),
+            esc_attr($context['name']),
+            esc_attr($context['value']),
+        );
+    }
+
+    // カスタムフィールドタイプを同名メソッドとして定義
+    public function wysiwyg(array $context): void
+    {
+        wp_editor($context['value'], $context['id'], [
+            'textarea_name' => $context['name'],
+        ]);
+    }
+}
+```
+
+設定ページで `createRenderer()` をオーバーライドしてカスタムレンダラーを使用します。
+
+```php
+#[AsSettingsPage(slug: 'my-plugin', title: 'My Plugin')]
+class MyPluginSettings extends AbstractSettingsPage
+{
+    protected function createRenderer(): SettingsRenderer
+    {
+        return new MyPluginRenderer();
+    }
+
+    protected function configure(SettingsConfigurator $settings): void
+    {
+        $settings->section('general', 'General')
+            ->text('api_key', 'API Key')               // MyPluginRenderer::text()
+            ->checkbox('debug', 'Debug Mode')            // SettingsRenderer::checkbox()（デフォルト）
+            ->field('content', 'Content', 'wysiwyg');    // MyPluginRenderer::wysiwyg()
+    }
+}
 ```
 
 ## Named Hook アトリビュート
