@@ -33,6 +33,26 @@ final class SettingsRegistryTest extends TestCase
 
         self::assertTrue(true);
     }
+
+    #[Test]
+    public function registerAddsAdminMenuHook(): void
+    {
+        $page = new RegistryTestSettingsPage();
+
+        $this->registry->register($page);
+
+        self::assertNotFalse(has_action('admin_menu'));
+    }
+
+    #[Test]
+    public function registerAddsAdminInitHook(): void
+    {
+        $page = new RegistryTestSettingsPage();
+
+        $this->registry->register($page);
+
+        self::assertNotFalse(has_action('admin_init'));
+    }
 }
 
 #[AsSettingsPage(slug: 'registry-test', title: 'Registry Test')]

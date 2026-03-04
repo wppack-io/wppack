@@ -240,6 +240,86 @@ final class SectionDefinitionTest extends TestCase
 
         self::assertSame($choices, $context['choices']);
     }
+
+    #[Test]
+    public function passwordContextContainsCorrectName(): void
+    {
+        $page = new FieldTypeTestSettingsPage();
+        $configurator = new SettingsConfigurator($page);
+
+        $section = $configurator->section('general', 'General');
+        $section->password('secret', 'Secret Key');
+
+        $fields = $section->getFields();
+        $context = $fields[0]->args['context'];
+
+        self::assertSame('secret', $context['id']);
+        self::assertSame('field_type_test[secret]', $context['name']);
+        self::assertSame('regular-text', $context['class']);
+    }
+
+    #[Test]
+    public function urlContextContainsCorrectDefaults(): void
+    {
+        $page = new FieldTypeTestSettingsPage();
+        $configurator = new SettingsConfigurator($page);
+
+        $section = $configurator->section('general', 'General');
+        $section->url('webhook', 'Webhook URL');
+
+        $fields = $section->getFields();
+        $context = $fields[0]->args['context'];
+
+        self::assertSame('regular-text code', $context['class']);
+    }
+
+    #[Test]
+    public function emailContextContainsCorrectName(): void
+    {
+        $page = new FieldTypeTestSettingsPage();
+        $configurator = new SettingsConfigurator($page);
+
+        $section = $configurator->section('general', 'General');
+        $section->email('notify', 'Notify Email');
+
+        $fields = $section->getFields();
+        $context = $fields[0]->args['context'];
+
+        self::assertSame('notify', $context['id']);
+        self::assertSame('field_type_test[notify]', $context['name']);
+    }
+
+    #[Test]
+    public function textareaContextContainsRowsAndCols(): void
+    {
+        $page = new FieldTypeTestSettingsPage();
+        $configurator = new SettingsConfigurator($page);
+
+        $section = $configurator->section('general', 'General');
+        $section->textarea('bio', 'Biography');
+
+        $fields = $section->getFields();
+        $context = $fields[0]->args['context'];
+
+        self::assertSame(5, $context['rows']);
+        self::assertSame(50, $context['cols']);
+    }
+
+    #[Test]
+    public function radioContextContainsChoices(): void
+    {
+        $page = new FieldTypeTestSettingsPage();
+        $configurator = new SettingsConfigurator($page);
+        $choices = ['get' => 'GET', 'post' => 'POST', 'put' => 'PUT'];
+
+        $section = $configurator->section('general', 'General');
+        $section->radio('method', 'HTTP Method', $choices);
+
+        $fields = $section->getFields();
+        $context = $fields[0]->args['context'];
+
+        self::assertSame($choices, $context['choices']);
+    }
 }
 
 #[AsSettingsPage(slug: 'field-type-test', title: 'Field Type Test')]

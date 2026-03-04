@@ -324,6 +324,58 @@ final class SettingsRendererTest extends TestCase
     }
 
     #[Test]
+    public function renderPageOutputsFullPage(): void
+    {
+        $page = new CustomRendererTestSettingsPage();
+
+        ob_start();
+        $this->renderer->renderPage($page);
+        $output = ob_get_clean();
+
+        self::assertStringContainsString('<div class="wrap">', $output);
+        self::assertStringContainsString('<h1>', $output);
+        self::assertStringContainsString('<form', $output);
+        self::assertStringContainsString('</form>', $output);
+        self::assertStringContainsString('</div>', $output);
+    }
+
+    #[Test]
+    public function renderHeaderOutputsWrapAndTitle(): void
+    {
+        $page = new CustomRendererTestSettingsPage();
+
+        ob_start();
+        $this->renderer->renderHeader($page);
+        $output = ob_get_clean();
+
+        self::assertStringContainsString('<div class="wrap">', $output);
+        self::assertStringContainsString('<h1>', $output);
+    }
+
+    #[Test]
+    public function renderFormOutputsFormTag(): void
+    {
+        $page = new CustomRendererTestSettingsPage();
+
+        ob_start();
+        $this->renderer->renderForm($page);
+        $output = ob_get_clean();
+
+        self::assertStringContainsString('<form', $output);
+        self::assertStringContainsString('</form>', $output);
+    }
+
+    #[Test]
+    public function renderFooterOutputsClosingDiv(): void
+    {
+        ob_start();
+        $this->renderer->renderFooter();
+        $output = ob_get_clean();
+
+        self::assertStringContainsString('</div>', $output);
+    }
+
+    #[Test]
     public function customRendererMethodCalledViaFieldString(): void
     {
         $page = new CustomRendererTestSettingsPage();

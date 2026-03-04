@@ -42,6 +42,41 @@ final class DashboardWidgetRegistryTest extends TestCase
         // If no exception was thrown, removal succeeded
         self::assertTrue(true);
     }
+
+    #[Test]
+    public function registerRegistersWidgetInMetaBoxes(): void
+    {
+        if (function_exists('set_current_screen')) {
+            set_current_screen('dashboard');
+        }
+
+        global $wp_meta_boxes;
+
+        $widget = new RegistryTestDashboardWidget();
+        $this->registry->register($widget);
+
+        self::assertArrayHasKey('dashboard', $wp_meta_boxes);
+        self::assertArrayHasKey($widget->id, $wp_meta_boxes['dashboard'][$widget->context][$widget->priority]);
+    }
+
+    #[Test]
+    public function removeRemovesWidgetFromMetaBoxes(): void
+    {
+        if (function_exists('set_current_screen')) {
+            set_current_screen('dashboard');
+        }
+
+        global $wp_meta_boxes;
+
+        $widget = new RegistryTestDashboardWidget();
+        $this->registry->register($widget);
+
+        self::assertArrayHasKey($widget->id, $wp_meta_boxes['dashboard'][$widget->context][$widget->priority]);
+
+        $this->registry->remove($widget->id);
+
+        self::assertFalse($wp_meta_boxes['dashboard'][$widget->context][$widget->priority][$widget->id]);
+    }
 }
 
 #[AsDashboardWidget(id: 'test_registry_widget', title: 'Registry Test Widget')]

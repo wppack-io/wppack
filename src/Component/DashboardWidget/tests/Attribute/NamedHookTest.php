@@ -57,12 +57,28 @@ final class NamedHookTest extends TestCase
     }
 
     #[Test]
+    public function wpNetworkDashboardSetupActionAcceptsCustomPriority(): void
+    {
+        $action = new WpNetworkDashboardSetupAction(priority: 5);
+
+        self::assertSame(5, $action->priority);
+    }
+
+    #[Test]
     public function updateUserOptionActionOptionPropertyIsAccessible(): void
     {
         $action = new UpdateUserOptionAction(option: 'metaboxhidden_dashboard');
 
         self::assertSame('update_user_option', $action->hook);
         self::assertSame('metaboxhidden_dashboard', $action->option);
+    }
+
+    #[Test]
+    public function updateUserOptionActionAcceptsCustomPriority(): void
+    {
+        $action = new UpdateUserOptionAction(option: 'dashboard_widget_order', priority: 20);
+
+        self::assertSame(20, $action->priority);
     }
 
     #[Test]

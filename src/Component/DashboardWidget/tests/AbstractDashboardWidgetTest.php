@@ -147,6 +147,110 @@ final class AbstractDashboardWidgetTest extends TestCase
 
         self::assertSame('<input type="text" name="setting">', $output);
     }
+
+    #[Test]
+    public function registerCallsWpAddDashboardWidget(): void
+    {
+        if (!function_exists('wp_add_dashboard_widget')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        if (function_exists('set_current_screen')) {
+            set_current_screen('dashboard');
+        }
+
+        global $wp_meta_boxes;
+
+        $widget = new ConcreteTestDashboardWidget();
+        $widget->register();
+
+        self::assertArrayHasKey('dashboard', $wp_meta_boxes);
+        self::assertArrayHasKey($widget->id, $wp_meta_boxes['dashboard'][$widget->context][$widget->priority]);
+    }
+
+    #[Test]
+    public function registerPassesCorrectParameters(): void
+    {
+        if (!function_exists('wp_add_dashboard_widget')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        if (function_exists('set_current_screen')) {
+            set_current_screen('dashboard');
+        }
+
+        global $wp_meta_boxes;
+
+        $widget = new ConcreteTestDashboardWidget();
+        $widget->register();
+
+        $entry = $wp_meta_boxes['dashboard'][$widget->context][$widget->priority][$widget->id];
+        self::assertSame('test_dashboard_widget', $entry['id']);
+        self::assertSame('Test Dashboard Widget', $entry['title']);
+    }
+
+    #[Test]
+    public function registerWithoutCapabilityRegisters(): void
+    {
+        if (!function_exists('wp_add_dashboard_widget')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        if (function_exists('set_current_screen')) {
+            set_current_screen('dashboard');
+        }
+
+        global $wp_meta_boxes;
+
+        $widget = new ConcreteTestDashboardWidget();
+        self::assertNull($widget->capability);
+        $widget->register();
+
+        self::assertArrayHasKey($widget->id, $wp_meta_boxes['dashboard'][$widget->context][$widget->priority]);
+    }
+
+    #[Test]
+    public function registerWithConfigureOverridePassesCallback(): void
+    {
+        if (!function_exists('wp_add_dashboard_widget')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        if (function_exists('set_current_screen')) {
+            set_current_screen('dashboard');
+        }
+        if (function_exists('wp_set_current_user')) {
+            wp_set_current_user(1);
+        }
+
+        global $wp_dashboard_control_callbacks;
+
+        $widget = new ConfigurableTestDashboardWidget();
+        $widget->register();
+
+        self::assertArrayHasKey($widget->id, $wp_dashboard_control_callbacks);
+        self::assertIsCallable($wp_dashboard_control_callbacks[$widget->id]);
+    }
+
+    #[Test]
+    public function registerWithoutConfigureOverridePassesNull(): void
+    {
+        if (!function_exists('wp_add_dashboard_widget')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        if (function_exists('set_current_screen')) {
+            set_current_screen('dashboard');
+        }
+
+        global $wp_dashboard_control_callbacks;
+        $wp_dashboard_control_callbacks = [];
+
+        $widget = new ConcreteTestDashboardWidget();
+        $widget->register();
+
+        self::assertArrayNotHasKey($widget->id, $wp_dashboard_control_callbacks);
+    }
 }
 
 #[AsDashboardWidget(id: 'test_dashboard_widget', title: 'Test Dashboard Widget')]

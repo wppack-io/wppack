@@ -9,6 +9,7 @@ use PHPUnit\Framework\TestCase;
 use WpPack\Component\Setting\AbstractSettingsPage;
 use WpPack\Component\Setting\Attribute\AsSettingsPage;
 use WpPack\Component\Setting\SettingsConfigurator;
+use WpPack\Component\Setting\SettingsRenderer;
 use WpPack\Component\Setting\ValidationContext;
 
 final class AbstractSettingsPageTest extends TestCase
@@ -186,6 +187,211 @@ final class AbstractSettingsPageTest extends TestCase
         self::assertNull($page->icon);
         self::assertNull($page->position);
     }
+
+    #[Test]
+    public function getRendererReturnsSettingsRendererByDefault(): void
+    {
+        $page = new MinimalTestSettingsPage();
+
+        self::assertInstanceOf(SettingsRenderer::class, $page->getRenderer());
+    }
+
+    #[Test]
+    public function getRendererReturnsSameInstance(): void
+    {
+        $page = new MinimalTestSettingsPage();
+
+        $renderer1 = $page->getRenderer();
+        $renderer2 = $page->getRenderer();
+
+        self::assertSame($renderer1, $renderer2);
+    }
+
+    #[Test]
+    public function createRendererCanBeOverridden(): void
+    {
+        $page = new RendererOverrideTestSettingsPage();
+
+        self::assertInstanceOf(OverrideTestRenderer::class, $page->getRenderer());
+    }
+
+    #[Test]
+    public function renderDelegatesToRenderer(): void
+    {
+        if (!function_exists('settings_fields')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $page = new MinimalTestSettingsPage();
+
+        ob_start();
+        $page->render();
+        $output = ob_get_clean();
+
+        self::assertStringContainsString('<div class="wrap">', $output);
+        self::assertStringContainsString('<form', $output);
+        self::assertStringContainsString('</div>', $output);
+    }
+
+    #[Test]
+    public function getOptionReturnsStoredValue(): void
+    {
+        if (!function_exists('get_option')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $page = new MinimalTestSettingsPage();
+
+        update_option($page->optionName, ['api_key' => 'test-key']);
+
+        self::assertSame('test-key', $page->getOption('api_key'));
+
+        delete_option($page->optionName);
+    }
+
+    #[Test]
+    public function getOptionReturnsDefaultWhenKeyMissing(): void
+    {
+        if (!function_exists('get_option')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $page = new MinimalTestSettingsPage();
+
+        update_option($page->optionName, ['other_key' => 'value']);
+
+        self::assertSame('default-value', $page->getOption('nonexistent', 'default-value'));
+
+        delete_option($page->optionName);
+    }
+
+    #[Test]
+    public function getOptionReturnsDefaultWhenOptionNotArray(): void
+    {
+        if (!function_exists('get_option')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $page = new MinimalTestSettingsPage();
+
+        update_option($page->optionName, 'not-an-array');
+
+        self::assertSame('fallback', $page->getOption('any_key', 'fallback'));
+
+        delete_option($page->optionName);
+    }
+
+    #[Test]
+    public function addMenuPageRegistersSubmenuPage(): void
+    {
+        if (!function_exists('add_submenu_page')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        if (function_exists('wp_set_current_user')) {
+            wp_set_current_user(1);
+        }
+
+        global $submenu;
+
+        $page = new ConcreteTestSettingsPage();
+        $page->addMenuPage();
+
+        self::assertArrayHasKey($page->parent, $submenu);
+
+        $found = false;
+        foreach ($submenu[$page->parent] as $item) {
+            if ($item[2] === $page->slug) {
+                $found = true;
+                break;
+            }
+        }
+        self::assertTrue($found, 'Submenu page should be registered in $submenu global');
+    }
+
+    #[Test]
+    public function addMenuPageRegistersTopLevelPage(): void
+    {
+        if (!function_exists('add_menu_page')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        global $menu;
+
+        $page = new TopLevelTestSettingsPage();
+        $page->addMenuPage();
+
+        $found = false;
+        foreach ($menu as $item) {
+            if ($item[2] === $page->slug) {
+                $found = true;
+                break;
+            }
+        }
+        self::assertTrue($found, 'Top-level menu page should be registered in $menu global');
+    }
+
+    #[Test]
+    public function initSettingsRegistersSetting(): void
+    {
+        if (!function_exists('register_setting')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $page = new ConcreteTestSettingsPage();
+        $page->initSettings();
+
+        $settings = get_registered_settings();
+        self::assertArrayHasKey($page->optionName, $settings);
+    }
+
+    #[Test]
+    public function initSettingsRegistersSection(): void
+    {
+        if (!function_exists('add_settings_section')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        global $wp_settings_sections;
+
+        $page = new ConcreteTestSettingsPage();
+        $page->initSettings();
+
+        self::assertArrayHasKey($page->slug, $wp_settings_sections);
+        self::assertArrayHasKey('general', $wp_settings_sections[$page->slug]);
+    }
+
+    #[Test]
+    public function initSettingsRegistersFields(): void
+    {
+        if (!function_exists('add_settings_field')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        global $wp_settings_fields;
+
+        $page = new ConcreteTestSettingsPage();
+        $page->initSettings();
+
+        self::assertArrayHasKey($page->slug, $wp_settings_fields);
+        self::assertArrayHasKey('general', $wp_settings_fields[$page->slug]);
+        self::assertArrayHasKey('api_key', $wp_settings_fields[$page->slug]['general']);
+    }
+
+    #[Test]
+    public function initSettingsWithSanitizeCallback(): void
+    {
+        if (!function_exists('register_setting')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $page = new SanitizeTestSettingsPage();
+        $page->initSettings();
+
+        $settings = get_registered_settings();
+        self::assertArrayHasKey($page->optionName, $settings);
+        self::assertIsCallable($settings[$page->optionName]['sanitize_callback']);
+    }
 }
 
 #[AsSettingsPage(
@@ -265,4 +471,17 @@ class SanitizeTestSettingsPage extends AbstractSettingsPage
 class FullAttributeTestSettingsPage extends AbstractSettingsPage
 {
     protected function configure(SettingsConfigurator $settings): void {}
+}
+
+class OverrideTestRenderer extends SettingsRenderer {}
+
+#[AsSettingsPage(slug: 'renderer-override', title: 'Renderer Override')]
+class RendererOverrideTestSettingsPage extends AbstractSettingsPage
+{
+    protected function configure(SettingsConfigurator $settings): void {}
+
+    protected function createRenderer(): SettingsRenderer
+    {
+        return new OverrideTestRenderer();
+    }
 }
