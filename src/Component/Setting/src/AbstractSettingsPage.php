@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Setting;
 
-use WpPack\Component\OptionsResolver\OptionsResolver;
 use WpPack\Component\Setting\Attribute\AsSettingsPage;
 
 abstract class AbstractSettingsPage
@@ -19,8 +18,7 @@ abstract class AbstractSettingsPage
     public readonly ?string $icon;
     public readonly ?int $position;
 
-    private ?OptionsResolver $cachedResolver = null;
-    private ?bool $hasConfigureOptionsOverride = null;
+    private ?bool $hasValidateOverride = null;
     private ?bool $hasSanitizeOverride = null;
 
     public function __construct()
@@ -40,13 +38,20 @@ abstract class AbstractSettingsPage
 
     abstract protected function configure(SettingsConfigurator $settings): void;
 
-    protected function configureOptions(OptionsResolver $resolver): void {}
-
     /**
      * @param array<string, mixed> $input
      * @return array<string, mixed>
      */
     protected function sanitize(array $input): array
+    {
+        return $input;
+    }
+
+    /**
+     * @param array<string, mixed> $input
+     * @return array<string, mixed>
+     */
+    protected function validate(array $input, ValidationContext $context): array
     {
         return $input;
     }
@@ -103,16 +108,16 @@ abstract class AbstractSettingsPage
 
     public function initSettings(): void
     {
+        $configurator = new SettingsConfigurator();
+        $this->configure($configurator);
+
         $args = [];
 
-        if ($this->hasConfigureOptionsOverride() || $this->hasSanitizeOverride()) {
+        if ($this->hasSanitizeOverride() || $this->hasValidateOverride()) {
             $args['sanitize_callback'] = $this->sanitizeCallback(...);
         }
 
         register_setting($this->optionGroup, $this->optionName, $args);
-
-        $configurator = new SettingsConfigurator();
-        $this->configure($configurator);
 
         foreach ($configurator->getSections() as $section) {
             add_settings_section(
@@ -141,37 +146,27 @@ abstract class AbstractSettingsPage
      */
     private function sanitizeCallback(array $input): array
     {
-        if ($this->hasConfigureOptionsOverride()) {
-            $resolver = $this->getOptionsResolver();
-            $input = $resolver->resolve($input);
-        }
-
         if ($this->hasSanitizeOverride()) {
             $input = $this->sanitize($input);
+        }
+
+        if ($this->hasValidateOverride()) {
+            $context = new ValidationContext($this->optionGroup, $this->optionName);
+            $input = $this->validate($input, $context);
         }
 
         return $input;
     }
 
-    private function getOptionsResolver(): OptionsResolver
-    {
-        if ($this->cachedResolver === null) {
-            $this->cachedResolver = new OptionsResolver();
-            $this->configureOptions($this->cachedResolver);
-        }
-
-        return $this->cachedResolver;
-    }
-
     /** @internal */
-    public function hasConfigureOptionsOverride(): bool
+    public function hasValidateOverride(): bool
     {
-        if ($this->hasConfigureOptionsOverride === null) {
-            $method = new \ReflectionMethod($this, 'configureOptions');
-            $this->hasConfigureOptionsOverride = $method->getDeclaringClass()->getName() !== self::class;
+        if ($this->hasValidateOverride === null) {
+            $method = new \ReflectionMethod($this, 'validate');
+            $this->hasValidateOverride = $method->getDeclaringClass()->getName() !== self::class;
         }
 
-        return $this->hasConfigureOptionsOverride;
+        return $this->hasValidateOverride;
     }
 
     /** @internal */

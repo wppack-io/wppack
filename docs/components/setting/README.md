@@ -21,6 +21,7 @@ composer require wppack/setting
 | `SettingsConfigurator` | セクション・フィールドを定義するビルダー |
 | `SectionDefinition` | セクション定義（フルーエント API） |
 | `FieldDefinition` | フィールド定義（値オブジェクト） |
+| `ValidationContext` | バリデーションエラー・警告・情報の通知 |
 | `SettingsRegistry` | 設定ページの自動登録レジストリ |
 
 ## 基本コンセプト
@@ -42,10 +43,10 @@ add_action('admin_init', function () {
 ### After（WpPack）
 
 ```php
-use WpPack\Component\OptionsResolver\OptionsResolver;
 use WpPack\Component\Setting\AbstractSettingsPage;
 use WpPack\Component\Setting\Attribute\AsSettingsPage;
 use WpPack\Component\Setting\SettingsConfigurator;
+use WpPack\Component\Setting\ValidationContext;
 
 #[AsSettingsPage(
     slug: 'my-plugin',
@@ -59,19 +60,32 @@ class MyPluginSettings extends AbstractSettingsPage
     {
         $settings->section('general', __('General', 'my-plugin'))
             ->field('api_key', __('API Key', 'my-plugin'), $this->renderApiKey(...))
-            ->field('debug', __('Debug Mode', 'my-plugin'), $this->renderDebug(...));
-
-        $settings->section('advanced', __('Advanced', 'my-plugin'))
+            ->field('debug', __('Debug Mode', 'my-plugin'), $this->renderDebug(...))
             ->field('cache_ttl', __('Cache TTL', 'my-plugin'), $this->renderCacheTtl(...));
     }
 
-    protected function configureOptions(OptionsResolver $resolver): void
+    protected function sanitize(array $input): array
     {
-        $resolver->setDefault('api_key', '');
-        $resolver->setAllowedTypes('api_key', 'string');
+        $input['api_key'] = trim((string) ($input['api_key'] ?? ''));
+        $input['debug'] = !empty($input['debug']);
+        $input['cache_ttl'] = absint($input['cache_ttl'] ?? 0);
 
-        $resolver->setDefault('debug', false);
-        $resolver->setAllowedTypes('debug', 'bool');
+        return $input;
+    }
+
+    protected function validate(array $input, ValidationContext $context): array
+    {
+        if ($input['api_key'] === '') {
+            $context->error('api_key_required', __('API Key is required.', 'my-plugin'));
+            $input['api_key'] = $context->oldValue('api_key', '');
+        }
+
+        if ($input['cache_ttl'] < 60) {
+            $context->warning('cache_ttl_min', __('Cache TTL must be at least 60 seconds.', 'my-plugin'));
+            $input['cache_ttl'] = 60;
+        }
+
+        return $input;
     }
 
     private function renderApiKey(array $args): void
@@ -118,8 +132,8 @@ class MyPluginSettings extends AbstractSettingsPage
 
 #### オプションメソッド
 
-- `configureOptions(OptionsResolver $resolver): void` — OptionsResolver による型バリデーション・デフォルト値
-- `sanitize(array $input): array` — カスタムサニタイズロジック
+- `sanitize(array $input): array` — サニタイズ（型変換・正規化）
+- `validate(array $input, ValidationContext $context): array` — バリデーション（エラー通知）
 - `render(): void` — ページレンダリング（デフォルト実装あり）
 
 #### ヘルパーメソッド
@@ -142,6 +156,67 @@ protected function configure(SettingsConfigurator $settings): void
 }
 ```
 
+### 2段階サニタイズ/バリデーション パイプライン
+
+フォーム送信時、以下の2段階で入力値が処理されます。
+
+```
+フォーム送信 → sanitizeCallback()
+  ├─ 1. sanitize（sanitize() オーバーライド / 型変換・正規化）
+  └─ 2. validate（validate() + ValidationContext / エラー通知）
+```
+
+#### 1. sanitize
+
+`sanitize()` メソッドをオーバーライドすると、入力値の型変換・正規化を実行できます。
+
+```php
+protected function sanitize(array $input): array
+{
+    $input['api_key'] = trim((string) ($input['api_key'] ?? ''));
+    $input['debug'] = !empty($input['debug']);
+    $input['cache_ttl'] = absint($input['cache_ttl'] ?? 0);
+
+    return $input;
+}
+```
+
+#### 2. validate
+
+`validate()` メソッドをオーバーライドすると、バリデーションとエラー通知を行えます。
+
+```php
+protected function validate(array $input, ValidationContext $context): array
+{
+    if ($input['api_key'] === '') {
+        $context->error('api_key_required', __('API Key is required.', 'my-plugin'));
+        $input['api_key'] = $context->oldValue('api_key', '');
+    }
+
+    return $input;
+}
+```
+
+### ValidationContext
+
+`validate()` メソッドで受け取るコンテキストオブジェクトです。WordPress の `add_settings_error()` をラップし、以前の値へのアクセスを提供します。
+
+| メソッド | 説明 |
+|--------|------|
+| `error(string $code, string $message): void` | エラー通知を追加 |
+| `warning(string $code, string $message): void` | 警告通知を追加 |
+| `info(string $code, string $message): void` | 情報通知を追加 |
+| `oldValue(string $key, mixed $default = null): mixed` | 保存済みの値を取得 |
+
+### パイプライン動作表
+
+| sanitize() | validate() | 動作 |
+|:---:|:---:|:---|
+| なし | なし | WordPress デフォルト（sanitize_callback なし） |
+| あり | なし | sanitize のみ |
+| なし | あり | validate のみ |
+| あり | あり | sanitize → validate の順で適用 |
+
 ### SettingsRegistry
 
 設定ページを WordPress に自動登録します。`admin_menu` と `admin_init` フックに自動的にバインドします。
@@ -152,33 +227,6 @@ $registry->register(new MyPluginSettings());
 // admin_menu → addMenuPage() が自動呼び出し
 // admin_init → initSettings() が自動呼び出し
 ```
-
-### OptionsResolver 統合
-
-`configureOptions()` をオーバーライドすると、保存時に OptionsResolver による型バリデーションとデフォルト値の適用が自動的に行われます。
-
-```php
-protected function configureOptions(OptionsResolver $resolver): void
-{
-    $resolver->setDefault('api_key', '');
-    $resolver->setAllowedTypes('api_key', 'string');
-
-    $resolver->setDefault('debug', false);
-    $resolver->setAllowedTypes('debug', 'bool');
-
-    $resolver->setDefault('cache_ttl', 3600);
-    $resolver->setAllowedTypes('cache_ttl', 'int');
-}
-```
-
-### サニタイズの仕組み
-
-| configureOptions() | sanitize() | 動作 |
-|:---:|:---:|:---|
-| なし | なし | WordPress デフォルト（sanitize_callback なし） |
-| あり | なし | OptionsResolver でバリデーション + 型キャスト |
-| なし | あり | カスタムサニタイズのみ |
-| あり | あり | OptionsResolver → sanitize() の順で適用 |
 
 ### トップレベルメニュー
 
@@ -233,7 +281,7 @@ class SettingsPageManager
 ## 依存関係
 
 ### 必須
-- **OptionsResolver コンポーネント** - `configureOptions()` による型バリデーション
+- なし
 
 ### 推奨
 - **Hook コンポーネント** - Named Hook アトリビュートの利用

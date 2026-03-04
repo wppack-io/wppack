@@ -20,7 +20,8 @@ composer require wppack/setting
 | `AbstractSettingsPage` | 設定ページの基底クラス |
 | `SettingsConfigurator` | セクション・フィールドを定義するビルダー |
 | `SectionDefinition` | セクション定義 |
-| `FieldDefinition` | フィールド定義 |
+| `FieldDefinition` | フィールド定義（値オブジェクト） |
+| `ValidationContext` | バリデーションエラー・警告・情報の通知 |
 | `SettingsRegistry` | 設定ページの自動登録レジストリ |
 
 ## ドキュメント

@@ -6,10 +6,10 @@ namespace WpPack\Component\Setting\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\OptionsResolver\OptionsResolver;
 use WpPack\Component\Setting\AbstractSettingsPage;
 use WpPack\Component\Setting\Attribute\AsSettingsPage;
 use WpPack\Component\Setting\SettingsConfigurator;
+use WpPack\Component\Setting\ValidationContext;
 
 final class AbstractSettingsPageTest extends TestCase
 {
@@ -127,19 +127,19 @@ final class AbstractSettingsPageTest extends TestCase
     }
 
     #[Test]
-    public function hasConfigureOptionsOverrideReturnsFalseByDefault(): void
+    public function hasValidateOverrideReturnsFalseByDefault(): void
     {
         $page = new MinimalTestSettingsPage();
 
-        self::assertFalse($page->hasConfigureOptionsOverride());
+        self::assertFalse($page->hasValidateOverride());
     }
 
     #[Test]
-    public function hasConfigureOptionsOverrideReturnsTrueWhenOverridden(): void
+    public function hasValidateOverrideReturnsTrueWhenOverridden(): void
     {
-        $page = new ConfiguredOptionsTestSettingsPage();
+        $page = new ValidateTestSettingsPage();
 
-        self::assertTrue($page->hasConfigureOptionsOverride());
+        self::assertTrue($page->hasValidateOverride());
     }
 
     #[Test]
@@ -227,15 +227,18 @@ class NoAttributeTestSettingsPage extends AbstractSettingsPage
     protected function configure(SettingsConfigurator $settings): void {}
 }
 
-#[AsSettingsPage(slug: 'configured-options', title: 'Configured Options')]
-class ConfiguredOptionsTestSettingsPage extends AbstractSettingsPage
+#[AsSettingsPage(slug: 'validate-test', title: 'Validate Test')]
+class ValidateTestSettingsPage extends AbstractSettingsPage
 {
     protected function configure(SettingsConfigurator $settings): void {}
 
-    protected function configureOptions(OptionsResolver $resolver): void
+    protected function validate(array $input, ValidationContext $context): array
     {
-        $resolver->setDefault('api_key', '');
-        $resolver->setAllowedTypes('api_key', 'string');
+        if ($input['api_key'] === '') {
+            $context->error('api_key_required', 'API Key is required.');
+        }
+
+        return $input;
     }
 }
 
