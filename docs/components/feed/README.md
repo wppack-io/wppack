@@ -211,5 +211,5 @@ class FeedQueryModifier
 
 ## 依存関係
 
-### 必須
-- **Hook コンポーネント** — Named Hook アトリビュート用
+### オプション
+- **Hook コンポーネント** — Named Hook アトリビュート使用時のみ必要
