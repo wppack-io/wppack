@@ -4,7 +4,8 @@
     "type": "library",
     "license": "MIT",
     "require": {
-        "php": "^8.2"
+        "php": "^8.2",
+        "wppack/options-resolver": "^1.0"
     },
     "require-dev": {
         "wppack/hook": "^1.0"
