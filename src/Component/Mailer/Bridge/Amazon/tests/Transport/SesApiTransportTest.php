@@ -26,7 +26,7 @@ final class SesApiTransportTest extends TestCase
     {
         $transport = new SesApiTransport($this->createMock(SesClient::class));
 
-        self::assertSame('sesapi', $transport->getName());
+        self::assertSame('ses+api', $transport->getName());
     }
 
     #[Test]

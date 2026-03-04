@@ -59,7 +59,7 @@ final class SendGridApiTransportTest extends TestCase
     {
         $transport = new SendGridApiTransport('SG.test-key');
 
-        self::assertSame('sendgridapi', $transport->getName());
+        self::assertSame('sendgrid+api', $transport->getName());
     }
 
     #[Test]

@@ -6,7 +6,6 @@ namespace WpPack\Component\Mailer\Bridge\Amazon\Transport;
 
 use AsyncAws\Ses\Input\SendEmailRequest;
 use AsyncAws\Ses\SesClient;
-use PHPMailer\PHPMailer\PHPMailer as BasePhpMailer;
 use WpPack\Component\Mailer\Exception\TransportException;
 use WpPack\Component\Mailer\PhpMailer;
 use WpPack\Component\Mailer\Transport\AbstractApiTransport;
@@ -20,7 +19,7 @@ final class SesApiTransport extends AbstractApiTransport
 
     public function getName(): string
     {
-        return 'sesapi';
+        return 'ses+api';
     }
 
     protected function doSendApi(PhpMailer $phpMailer): string
@@ -109,7 +108,7 @@ final class SesApiTransport extends AbstractApiTransport
     {
         $body = [];
 
-        if ($phpMailer->ContentType === BasePhpMailer::CONTENT_TYPE_TEXT_HTML) {
+        if ($phpMailer->ContentType === PhpMailer::CONTENT_TYPE_TEXT_HTML) {
             $body['Html'] = ['Data' => $phpMailer->Body, 'Charset' => $phpMailer->CharSet];
             if (!empty($phpMailer->AltBody)) {
                 $body['Text'] = ['Data' => $phpMailer->AltBody, 'Charset' => $phpMailer->CharSet];

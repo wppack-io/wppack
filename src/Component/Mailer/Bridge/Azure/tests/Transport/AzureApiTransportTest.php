@@ -59,7 +59,7 @@ final class AzureApiTransportTest extends TestCase
     {
         $transport = new AzureApiTransport('test', 'dGVzdC1rZXk=');
 
-        self::assertSame('azureapi', $transport->getName());
+        self::assertSame('azure+api', $transport->getName());
     }
 
     #[Test]
@@ -197,6 +197,127 @@ final class AzureApiTransportTest extends TestCase
 
         $payload = json_decode((string) $this->capturedBody, true);
         self::assertArrayHasKey('replyTo', $payload);
+    }
+
+    #[Test]
+    public function sendWithHtmlContent(): void
+    {
+        $this->mockResponse = [
+            'headers' => ['content-type' => 'application/json'],
+            'body' => (string) json_encode(['id' => 'azure-html-id']),
+            'response' => ['code' => 202, 'message' => 'Accepted'],
+            'cookies' => [],
+            'filename' => null,
+        ];
+
+        $transport = new AzureApiTransport(
+            'test',
+            base64_encode('test-key'),
+        );
+        $phpMailer = $this->createConfiguredPhpMailer();
+        $phpMailer->isHTML(true);
+        $phpMailer->Body = '<h1>Hello</h1>';
+        $phpMailer->AltBody = 'Hello';
+
+        $transport->send($phpMailer);
+
+        $payload = json_decode((string) $this->capturedBody, true);
+        $content = $payload['content'];
+        self::assertSame('<h1>Hello</h1>', $content['html']);
+        self::assertSame('Hello', $content['plainText']);
+    }
+
+    #[Test]
+    public function sendWithAttachments(): void
+    {
+        $this->mockResponse = [
+            'headers' => ['content-type' => 'application/json'],
+            'body' => (string) json_encode(['id' => 'azure-att-id']),
+            'response' => ['code' => 202, 'message' => 'Accepted'],
+            'cookies' => [],
+            'filename' => null,
+        ];
+
+        $transport = new AzureApiTransport(
+            'test',
+            base64_encode('test-key'),
+        );
+        $phpMailer = $this->createConfiguredPhpMailer();
+        $phpMailer->addStringAttachment('file content', 'test.txt', 'base64', 'text/plain');
+
+        $transport->send($phpMailer);
+
+        $payload = json_decode((string) $this->capturedBody, true);
+        self::assertArrayHasKey('attachments', $payload);
+        self::assertCount(1, $payload['attachments']);
+        self::assertSame('test.txt', $payload['attachments'][0]['name']);
+        self::assertSame('text/plain', $payload['attachments'][0]['contentType']);
+        self::assertSame(base64_encode('file content'), $payload['attachments'][0]['contentInBase64']);
+    }
+
+    #[Test]
+    public function sendWithRecipientWithoutDisplayName(): void
+    {
+        $this->mockResponse = [
+            'headers' => ['content-type' => 'application/json'],
+            'body' => (string) json_encode(['id' => 'azure-no-name-id']),
+            'response' => ['code' => 202, 'message' => 'Accepted'],
+            'cookies' => [],
+            'filename' => null,
+        ];
+
+        $transport = new AzureApiTransport(
+            'test',
+            base64_encode('test-key'),
+        );
+        $phpMailer = new PhpMailer(true);
+        $phpMailer->setFrom('sender@example.com');
+        $phpMailer->addAddress('user@example.com');
+        $phpMailer->Subject = 'Test';
+        $phpMailer->Body = 'Body';
+
+        $transport->send($phpMailer);
+
+        $payload = json_decode((string) $this->capturedBody, true);
+        $to = $payload['recipients']['to'][0];
+        self::assertSame('user@example.com', $to['address']);
+        self::assertArrayNotHasKey('displayName', $to);
+    }
+
+    #[Test]
+    public function sendThrowsOnInvalidAccessKey(): void
+    {
+        $transport = new AzureApiTransport(
+            'test',
+            '!!!invalid-base64!!!',
+        );
+        $phpMailer = $this->createConfiguredPhpMailer();
+
+        $this->expectException(TransportException::class);
+        $this->expectExceptionMessage('Failed to decode Azure access key');
+        $transport->send($phpMailer);
+    }
+
+    #[Test]
+    public function sendThrowsOnInvalidJsonResponse(): void
+    {
+        $this->mockResponse = [
+            'headers' => ['content-type' => 'application/json'],
+            'body' => '',
+            'response' => ['code' => 202, 'message' => 'Accepted'],
+            'cookies' => [],
+            'filename' => null,
+        ];
+
+        $transport = new AzureApiTransport(
+            'test',
+            base64_encode('test-key'),
+        );
+        $phpMailer = $this->createConfiguredPhpMailer();
+
+        $this->expectException(TransportException::class);
+        $this->expectExceptionMessage('invalid JSON');
+        $transport->send($phpMailer);
     }
 
     private function createConfiguredPhpMailer(): PhpMailer

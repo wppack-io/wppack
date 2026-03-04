@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Mailer;
 
-use PHPMailer\PHPMailer\PHPMailer as BasePhpMailer;
 use WpPack\Component\Mailer\Exception\TransportException;
 use WpPack\Component\Mailer\Transport\Transport;
 use WpPack\Component\Mailer\Transport\TransportInterface;
@@ -152,9 +151,9 @@ final class Mailer
         $phpMailer->FromName = 'Root User';
         $phpMailer->Sender = '';
         $phpMailer->Priority = null;
-        $phpMailer->ContentType = BasePhpMailer::CONTENT_TYPE_PLAINTEXT;
-        $phpMailer->CharSet = BasePhpMailer::CHARSET_UTF8;
-        $phpMailer->Encoding = BasePhpMailer::ENCODING_8BIT;
+        $phpMailer->ContentType = PhpMailer::CONTENT_TYPE_PLAINTEXT;
+        $phpMailer->CharSet = PhpMailer::CHARSET_UTF8;
+        $phpMailer->Encoding = PhpMailer::ENCODING_8BIT;
     }
 
     /**

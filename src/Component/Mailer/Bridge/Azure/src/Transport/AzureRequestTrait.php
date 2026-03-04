@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Mailer\Bridge\Azure\Transport;
 
-use PHPMailer\PHPMailer\PHPMailer as BasePhpMailer;
 use WpPack\Component\HttpClient\HttpClient;
 use WpPack\Component\HttpClient\Exception\ConnectionException;
 use WpPack\Component\Mailer\Exception\TransportException;
@@ -49,7 +48,7 @@ trait AzureRequestTrait
     {
         $content = ['subject' => $phpMailer->Subject];
 
-        if ($phpMailer->ContentType === BasePhpMailer::CONTENT_TYPE_TEXT_HTML) {
+        if ($phpMailer->ContentType === PhpMailer::CONTENT_TYPE_TEXT_HTML) {
             $content['html'] = $phpMailer->Body;
             if (!empty($phpMailer->AltBody)) {
                 $content['plainText'] = $phpMailer->AltBody;

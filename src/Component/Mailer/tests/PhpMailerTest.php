@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Mailer\Tests;
 
-use PHPMailer\PHPMailer\Exception as PHPMailerException;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Mailer\Exception\TransportException;
 use WpPack\Component\Mailer\PhpMailer;
 use WpPack\Component\Mailer\Transport\TransportInterface;
 
@@ -122,5 +122,63 @@ final class PhpMailerTest extends TestCase
         $phpMailer->setTransport($transport);
 
         self::assertSame('custom', $phpMailer->Mailer);
+    }
+
+    #[Test]
+    public function setLastMessageIdSetsProperty(): void
+    {
+        $phpMailer = new PhpMailer(true);
+
+        $phpMailer->setLastMessageId('<test-id-123>');
+
+        self::assertSame('<test-id-123>', $phpMailer->getLastMessageID());
+    }
+
+    #[Test]
+    public function postSendSetsErrorAndRethrowsOnTransportException(): void
+    {
+        $phpMailer = new PhpMailer(true);
+
+        $transport = new class implements TransportInterface {
+            public function getName(): string
+            {
+                return 'failing';
+            }
+
+            public function send(PhpMailer $phpMailer): void
+            {
+                throw new TransportException('Transport failed');
+            }
+        };
+
+        $phpMailer->setTransport($transport);
+
+        try {
+            $phpMailer->postSend();
+            self::fail('Expected TransportException was not thrown');
+        } catch (TransportException $e) {
+            self::assertSame('Transport failed', $e->getMessage());
+            self::assertStringContainsString('Transport failed', $phpMailer->ErrorInfo);
+        }
+    }
+
+    #[Test]
+    public function nativePostSendDelegatesToParent(): void
+    {
+        $phpMailer = new class (true) extends PhpMailer {
+            public bool $parentCalled = false;
+
+            protected function mailSend($header, $body)
+            {
+                $this->parentCalled = true;
+
+                return true;
+            }
+        };
+        $phpMailer->Mailer = 'mail';
+
+        $phpMailer->nativePostSend();
+
+        self::assertTrue($phpMailer->parentCalled);
     }
 }

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Mailer\Bridge\SendGrid\Transport;
 
-use PHPMailer\PHPMailer\PHPMailer as BasePhpMailer;
 use WpPack\Component\HttpClient\Exception\ConnectionException;
 use WpPack\Component\HttpClient\HttpClient;
 use WpPack\Component\Mailer\Exception\TransportException;
@@ -22,7 +21,7 @@ final class SendGridApiTransport extends AbstractApiTransport
 
     public function getName(): string
     {
-        return 'sendgridapi';
+        return 'sendgrid+api';
     }
 
     protected function doSendApi(PhpMailer $phpMailer): string
@@ -127,7 +126,7 @@ final class SendGridApiTransport extends AbstractApiTransport
     {
         $content = [];
 
-        if ($phpMailer->ContentType === BasePhpMailer::CONTENT_TYPE_TEXT_HTML) {
+        if ($phpMailer->ContentType === PhpMailer::CONTENT_TYPE_TEXT_HTML) {
             if (!empty($phpMailer->AltBody)) {
                 $content[] = ['type' => 'text/plain', 'value' => $phpMailer->AltBody];
             }

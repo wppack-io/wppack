@@ -25,7 +25,7 @@ final class AzureApiTransport extends AbstractApiTransport
 
     public function getName(): string
     {
-        return 'azureapi';
+        return 'azure+api';
     }
 
     protected function doSendApi(PhpMailer $phpMailer): string
