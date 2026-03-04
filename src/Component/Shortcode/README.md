@@ -12,20 +12,27 @@ composer require wppack/shortcode
 
 ### ショートコード定義
 
+`configureAttributes()` をオーバーライドして、デフォルト値・バリデーションを宣言的に定義できます。`render()` には解決済みのアトリビュートが渡されます。内部で `shortcode_atts()` も呼ばれるため、`shortcode_atts_{shortcode}` フィルターとの互換性も維持されます。
+
 ```php
+use WpPack\Component\OptionsResolver\OptionsResolver;
 use WpPack\Component\Shortcode\AbstractShortcode;
 use WpPack\Component\Shortcode\Attribute\AsShortcode;
 
 #[AsShortcode(name: 'button', description: 'Styled button shortcode')]
 class ButtonShortcode extends AbstractShortcode
 {
-    public function render(array $atts, string $content): string
+    protected function configureAttributes(OptionsResolver $resolver): void
     {
-        $atts = shortcode_atts([
+        $resolver->setDefaults([
             'url' => '#',
             'style' => 'primary',
-        ], $atts, $this->name);
+        ]);
+        $resolver->setAllowedValues('style', ['primary', 'secondary', 'danger']);
+    }
 
+    public function render(array $atts, string $content): string
+    {
         return sprintf(
             '<a href="%s" class="btn btn-%s">%s</a>',
             esc_url($atts['url']),
@@ -46,13 +53,16 @@ class RecentPostsShortcode extends AbstractShortcode
         private PostRepository $postRepository,
     ) {}
 
+    protected function configureAttributes(OptionsResolver $resolver): void
+    {
+        $resolver->setDefaults([
+            'count' => '5',
+            'category' => '',
+        ]);
+    }
+
     public function render(array $atts, string $content): string
     {
-        $atts = shortcode_atts([
-            'count' => 5,
-            'category' => '',
-        ], $atts, $this->name);
-
         $posts = $this->postRepository->getRecent((int) $atts['count']);
 
         $html = '<ul>';

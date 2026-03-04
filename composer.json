@@ -10,7 +10,8 @@
         "psr/http-factory": "^1.0",
         "psr/http-message": "^2.0",
         "psr/log": "^3.0",
-        "symfony/dependency-injection": "^6.4"
+        "symfony/dependency-injection": "^6.4",
+        "symfony/options-resolver": "^7.0 || ^8.0"
     },
     "require-dev": {
         "async-aws/dynamo-db": "^3.0",
@@ -64,6 +65,7 @@
             "WpPack\\Component\\Option\\": "src/Component/Option/src/",
             "WpPack\\Component\\Transient\\": "src/Component/Transient/src/",
             "WpPack\\Component\\Nonce\\": "src/Component/Nonce/src/",
+            "WpPack\\Component\\OptionsResolver\\": "src/Component/OptionsResolver/src/",
             "WpPack\\Component\\Shortcode\\": "src/Component/Shortcode/src/",
             "WpPack\\Component\\Routing\\": "src/Component/Routing/src/",
             "WpPack\\Component\\Ajax\\": "src/Component/Ajax/src/",
@@ -114,6 +116,7 @@
             "WpPack\\Component\\Nonce\\Tests\\": "src/Component/Nonce/tests/",
             "WpPack\\Component\\OEmbed\\Tests\\": "src/Component/OEmbed/tests/",
             "WpPack\\Component\\Option\\Tests\\": "src/Component/Option/tests/",
+            "WpPack\\Component\\OptionsResolver\\Tests\\": "src/Component/OptionsResolver/tests/",
             "WpPack\\Component\\Plugin\\Tests\\": "src/Component/Plugin/tests/",
             "WpPack\\Component\\PostType\\Tests\\": "src/Component/PostType/tests/",
             "WpPack\\Component\\Query\\Tests\\": "src/Component/Query/tests/",
@@ -177,6 +180,7 @@
         "wppack/option": "self.version",
         "wppack/transient": "self.version",
         "wppack/nonce": "self.version",
+        "wppack/options-resolver": "self.version",
         "wppack/shortcode": "self.version",
         "wppack/routing": "self.version",
         "wppack/ajax": "self.version",

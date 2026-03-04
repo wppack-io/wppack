@@ -75,6 +75,7 @@ WordPress プラグインとして配布。Component を利用。
 | AzureMailer | wppack/azure-mailer | Azure Communication Services トランスポート実装 |
 | SendGridMailer | wppack/sendgrid-mailer | SendGrid トランスポート実装 |
 | Messenger | wppack/messenger | メッセージングバス（SQS/Lambda） |
+| OptionsResolver | wppack/options-resolver | オプション解決（Symfony OptionsResolver 拡張） |
 | Debug | wppack/debug | デバッグ・プロファイリング |
 
 ### Feature Layer

@@ -8,10 +8,14 @@ final class ShortcodeRegistry
 {
     public function register(AbstractShortcode $shortcode): void
     {
-        add_shortcode($shortcode->name, static fn(array|string $atts, ?string $content): string => $shortcode->render(
-            \is_array($atts) ? $atts : [],
-            $content ?? '',
-        ));
+        add_shortcode($shortcode->name, static function (array|string $atts, ?string $content) use ($shortcode): string {
+            $rawAtts = \is_array($atts) ? $atts : [];
+
+            return $shortcode->render(
+                $shortcode->resolveAttributes($rawAtts),
+                $content ?? '',
+            );
+        });
     }
 
     public function unregister(string $shortcodeName): void

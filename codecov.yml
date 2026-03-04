@@ -55,6 +55,10 @@ component_management:
         - src/Component/Logger/Bridge/Monolog/src/**
 
     # Abstraction Layer
+    - component_id: options_resolver
+      name: OptionsResolver
+      paths:
+        - src/Component/OptionsResolver/src/**
     - component_id: cache
       name: Cache
       paths:

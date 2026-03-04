@@ -51,20 +51,24 @@ function my_gallery_shortcode($atts, $content = null) {
 ### After（WpPack）
 
 ```php
+use WpPack\Component\OptionsResolver\OptionsResolver;
 use WpPack\Component\Shortcode\AbstractShortcode;
 use WpPack\Component\Shortcode\Attribute\AsShortcode;
 
 #[AsShortcode(name: 'gallery', description: 'Display an image gallery')]
 class GalleryShortcode extends AbstractShortcode
 {
+    protected function configureAttributes(OptionsResolver $resolver): void
+    {
+        $resolver->setDefaults([
+            'ids' => '',
+            'columns' => '3',
+            'size' => 'thumbnail',
+        ]);
+    }
+
     public function render(array $atts, string $content): string
     {
-        $atts = shortcode_atts([
-            'ids' => '',
-            'columns' => 3,
-            'size' => 'thumbnail',
-        ], $atts, $this->name);
-
         $ids = array_filter(explode(',', $atts['ids']));
         $columns = max(1, (int) $atts['columns']);
 
@@ -86,22 +90,30 @@ class GalleryShortcode extends AbstractShortcode
 
 ### 基本的なショートコード
 
+`configureAttributes()` をオーバーライドして、デフォルト値・バリデーションを宣言的に定義します。`render()` には解決済みのアトリビュートが渡されます。内部で `shortcode_atts()` も呼ばれるため、`shortcode_atts_{shortcode}` フィルターとの互換性も維持されます。
+
 ```php
+use WpPack\Component\OptionsResolver\OptionsResolver;
 use WpPack\Component\Shortcode\AbstractShortcode;
 use WpPack\Component\Shortcode\Attribute\AsShortcode;
 
 #[AsShortcode(name: 'button', description: 'Styled button shortcode')]
 class ButtonShortcode extends AbstractShortcode
 {
-    public function render(array $atts, string $content): string
+    protected function configureAttributes(OptionsResolver $resolver): void
     {
-        $atts = shortcode_atts([
+        $resolver->setDefaults([
             'url' => '#',
             'style' => 'primary',
             'size' => 'medium',
             'new_tab' => 'false',
-        ], $atts, $this->name);
+        ]);
+        $resolver->setAllowedValues('style', ['primary', 'secondary', 'danger']);
+        $resolver->setAllowedValues('size', ['small', 'medium', 'large']);
+    }
 
+    public function render(array $atts, string $content): string
+    {
         $target = $atts['new_tab'] === 'true'
             ? ' target="_blank" rel="noopener noreferrer"'
             : '';
@@ -126,6 +138,8 @@ class ButtonShortcode extends AbstractShortcode
 ### 依存性注入を使用したショートコード
 
 ```php
+use WpPack\Component\OptionsResolver\OptionsResolver;
+
 #[AsShortcode(name: 'recent_posts', description: 'Display recent posts')]
 class RecentPostsShortcode extends AbstractShortcode
 {
@@ -133,13 +147,16 @@ class RecentPostsShortcode extends AbstractShortcode
         private PostRepository $postRepository,
     ) {}
 
+    protected function configureAttributes(OptionsResolver $resolver): void
+    {
+        $resolver->setDefaults([
+            'count' => '5',
+            'category' => '',
+        ]);
+    }
+
     public function render(array $atts, string $content): string
     {
-        $atts = shortcode_atts([
-            'count' => 5,
-            'category' => '',
-        ], $atts, $this->name);
-
         $posts = $this->postRepository->getRecent(
             count: (int) $atts['count'],
             category: $atts['category'] ?: null,
@@ -252,3 +269,4 @@ final class ShortcodeHooks
 
 ### 必須
 - **Hook コンポーネント** - Named Hook Attributes の基底クラス提供
+- **OptionsResolver コンポーネント** - アトリビュートの解決・型キャスト
