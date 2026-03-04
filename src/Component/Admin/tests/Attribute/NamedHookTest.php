@@ -28,6 +28,9 @@ use WpPack\Component\Admin\Attribute\Action\NetworkAdminNoticesAction;
 use WpPack\Component\Admin\Attribute\Action\UserAdminMenuAction;
 use WpPack\Component\Admin\Attribute\Action\UserAdminNoticesAction;
 use WpPack\Component\Admin\Attribute\Action\WpBeforeAdminBarRenderAction;
+use WpPack\Component\Admin\Attribute\Filter\AdminBodyClassFilter;
+use WpPack\Component\Admin\Attribute\Filter\AdminFooterTextFilter;
+use WpPack\Component\Admin\Attribute\Filter\AdminTitleFilter;
 use WpPack\Component\Admin\Attribute\Filter\ManagePagesColumnsFilter;
 use WpPack\Component\Admin\Attribute\Filter\ManagePostsColumnsFilter;
 use WpPack\Component\Admin\Attribute\Filter\ManageUsersColumnsFilter;
@@ -79,11 +82,27 @@ final class NamedHookTest extends TestCase
     }
 
     #[Test]
+    public function adminEnqueueScriptsActionAcceptsCustomPriority(): void
+    {
+        $action = new AdminEnqueueScriptsAction(priority: 5);
+
+        self::assertSame(5, $action->priority);
+    }
+
+    #[Test]
     public function adminFooterActionHasCorrectHookName(): void
     {
         $action = new AdminFooterAction();
 
         self::assertSame('admin_footer', $action->hook);
+    }
+
+    #[Test]
+    public function adminFooterActionAcceptsCustomPriority(): void
+    {
+        $action = new AdminFooterAction(priority: 5);
+
+        self::assertSame(5, $action->priority);
     }
 
     #[Test]
@@ -95,11 +114,27 @@ final class NamedHookTest extends TestCase
     }
 
     #[Test]
+    public function adminHeadActionAcceptsCustomPriority(): void
+    {
+        $action = new AdminHeadAction(priority: 5);
+
+        self::assertSame(5, $action->priority);
+    }
+
+    #[Test]
     public function adminMenuActionHasCorrectHookName(): void
     {
         $action = new AdminMenuAction();
 
         self::assertSame('admin_menu', $action->hook);
+    }
+
+    #[Test]
+    public function adminMenuActionAcceptsCustomPriority(): void
+    {
+        $action = new AdminMenuAction(priority: 5);
+
+        self::assertSame(5, $action->priority);
     }
 
     #[Test]
@@ -111,11 +146,27 @@ final class NamedHookTest extends TestCase
     }
 
     #[Test]
+    public function adminNoticesActionAcceptsCustomPriority(): void
+    {
+        $action = new AdminNoticesAction(priority: 5);
+
+        self::assertSame(5, $action->priority);
+    }
+
+    #[Test]
     public function adminPrintFooterScriptsActionHasCorrectHookName(): void
     {
         $action = new AdminPrintFooterScriptsAction();
 
         self::assertSame('admin_print_footer_scripts', $action->hook);
+    }
+
+    #[Test]
+    public function adminPrintFooterScriptsActionAcceptsCustomPriority(): void
+    {
+        $action = new AdminPrintFooterScriptsAction(priority: 5);
+
+        self::assertSame(5, $action->priority);
     }
 
     #[Test]
@@ -127,11 +178,27 @@ final class NamedHookTest extends TestCase
     }
 
     #[Test]
+    public function adminPrintScriptsActionAcceptsCustomPriority(): void
+    {
+        $action = new AdminPrintScriptsAction(priority: 5);
+
+        self::assertSame(5, $action->priority);
+    }
+
+    #[Test]
     public function adminPrintStylesActionHasCorrectHookName(): void
     {
         $action = new AdminPrintStylesAction();
 
         self::assertSame('admin_print_styles', $action->hook);
+    }
+
+    #[Test]
+    public function adminPrintStylesActionAcceptsCustomPriority(): void
+    {
+        $action = new AdminPrintStylesAction(priority: 5);
+
+        self::assertSame(5, $action->priority);
     }
 
     #[Test]
@@ -143,11 +210,27 @@ final class NamedHookTest extends TestCase
     }
 
     #[Test]
+    public function allAdminNoticesActionAcceptsCustomPriority(): void
+    {
+        $action = new AllAdminNoticesAction(priority: 5);
+
+        self::assertSame(5, $action->priority);
+    }
+
+    #[Test]
     public function currentScreenActionHasCorrectHookName(): void
     {
         $action = new CurrentScreenAction();
 
         self::assertSame('current_screen', $action->hook);
+    }
+
+    #[Test]
+    public function currentScreenActionAcceptsCustomPriority(): void
+    {
+        $action = new CurrentScreenAction(priority: 5);
+
+        self::assertSame(5, $action->priority);
     }
 
     #[Test]
@@ -159,11 +242,27 @@ final class NamedHookTest extends TestCase
     }
 
     #[Test]
+    public function managePostsCustomColumnActionAcceptsCustomPriority(): void
+    {
+        $action = new ManagePostsCustomColumnAction(priority: 5);
+
+        self::assertSame(5, $action->priority);
+    }
+
+    #[Test]
     public function networkAdminMenuActionHasCorrectHookName(): void
     {
         $action = new NetworkAdminMenuAction();
 
         self::assertSame('network_admin_menu', $action->hook);
+    }
+
+    #[Test]
+    public function networkAdminMenuActionAcceptsCustomPriority(): void
+    {
+        $action = new NetworkAdminMenuAction(priority: 5);
+
+        self::assertSame(5, $action->priority);
     }
 
     #[Test]
@@ -175,11 +274,27 @@ final class NamedHookTest extends TestCase
     }
 
     #[Test]
+    public function networkAdminNoticesActionAcceptsCustomPriority(): void
+    {
+        $action = new NetworkAdminNoticesAction(priority: 5);
+
+        self::assertSame(5, $action->priority);
+    }
+
+    #[Test]
     public function userAdminMenuActionHasCorrectHookName(): void
     {
         $action = new UserAdminMenuAction();
 
         self::assertSame('user_admin_menu', $action->hook);
+    }
+
+    #[Test]
+    public function userAdminMenuActionAcceptsCustomPriority(): void
+    {
+        $action = new UserAdminMenuAction(priority: 5);
+
+        self::assertSame(5, $action->priority);
     }
 
     #[Test]
@@ -191,11 +306,27 @@ final class NamedHookTest extends TestCase
     }
 
     #[Test]
+    public function userAdminNoticesActionAcceptsCustomPriority(): void
+    {
+        $action = new UserAdminNoticesAction(priority: 5);
+
+        self::assertSame(5, $action->priority);
+    }
+
+    #[Test]
     public function wpBeforeAdminBarRenderActionHasCorrectHookName(): void
     {
         $action = new WpBeforeAdminBarRenderAction();
 
         self::assertSame('wp_before_admin_bar_render', $action->hook);
+    }
+
+    #[Test]
+    public function wpBeforeAdminBarRenderActionAcceptsCustomPriority(): void
+    {
+        $action = new WpBeforeAdminBarRenderAction(priority: 5);
+
+        self::assertSame(5, $action->priority);
     }
 
     #[Test]
@@ -208,6 +339,14 @@ final class NamedHookTest extends TestCase
     }
 
     #[Test]
+    public function managePagesColumnsFilterAcceptsCustomPriority(): void
+    {
+        $filter = new ManagePagesColumnsFilter(priority: 5);
+
+        self::assertSame(5, $filter->priority);
+    }
+
+    #[Test]
     public function managePostsColumnsFilterHasCorrectHookName(): void
     {
         $filter = new ManagePostsColumnsFilter();
@@ -216,11 +355,81 @@ final class NamedHookTest extends TestCase
     }
 
     #[Test]
+    public function managePostsColumnsFilterAcceptsCustomPriority(): void
+    {
+        $filter = new ManagePostsColumnsFilter(priority: 5);
+
+        self::assertSame(5, $filter->priority);
+    }
+
+    #[Test]
     public function manageUsersColumnsFilterHasCorrectHookName(): void
     {
         $filter = new ManageUsersColumnsFilter();
 
         self::assertSame('manage_users_columns', $filter->hook);
+    }
+
+    #[Test]
+    public function manageUsersColumnsFilterAcceptsCustomPriority(): void
+    {
+        $filter = new ManageUsersColumnsFilter(priority: 5);
+
+        self::assertSame(5, $filter->priority);
+    }
+
+    #[Test]
+    public function adminBodyClassFilterHasCorrectHookName(): void
+    {
+        $filter = new AdminBodyClassFilter();
+
+        self::assertSame('admin_body_class', $filter->hook);
+        self::assertSame(HookType::Filter, $filter->type);
+        self::assertSame(10, $filter->priority);
+    }
+
+    #[Test]
+    public function adminBodyClassFilterAcceptsCustomPriority(): void
+    {
+        $filter = new AdminBodyClassFilter(priority: 5);
+
+        self::assertSame(5, $filter->priority);
+    }
+
+    #[Test]
+    public function adminFooterTextFilterHasCorrectHookName(): void
+    {
+        $filter = new AdminFooterTextFilter();
+
+        self::assertSame('admin_footer_text', $filter->hook);
+        self::assertSame(HookType::Filter, $filter->type);
+        self::assertSame(10, $filter->priority);
+    }
+
+    #[Test]
+    public function adminFooterTextFilterAcceptsCustomPriority(): void
+    {
+        $filter = new AdminFooterTextFilter(priority: 5);
+
+        self::assertSame(5, $filter->priority);
+    }
+
+    #[Test]
+    public function adminTitleFilterHasCorrectHookName(): void
+    {
+        $filter = new AdminTitleFilter();
+
+        self::assertSame('admin_title', $filter->hook);
+        self::assertSame(HookType::Filter, $filter->type);
+        self::assertSame(10, $filter->priority);
+    }
+
+    #[Test]
+    public function adminTitleFilterAcceptsCustomPriority(): void
+    {
+        $filter = new AdminTitleFilter(priority: 5);
+
+        self::assertSame(5, $filter->priority);
     }
 
     #[Test]
@@ -249,6 +458,9 @@ final class NamedHookTest extends TestCase
     #[Test]
     public function allFiltersExtendFilter(): void
     {
+        self::assertInstanceOf(Filter::class, new AdminBodyClassFilter());
+        self::assertInstanceOf(Filter::class, new AdminFooterTextFilter());
+        self::assertInstanceOf(Filter::class, new AdminTitleFilter());
         self::assertInstanceOf(Filter::class, new ManagePagesColumnsFilter());
         self::assertInstanceOf(Filter::class, new ManagePostsColumnsFilter());
         self::assertInstanceOf(Filter::class, new ManageUsersColumnsFilter());
@@ -263,6 +475,9 @@ final class NamedHookTest extends TestCase
 
             #[ManagePostsColumnsFilter(priority: 5)]
             public function onColumns(): void {}
+
+            #[AdminBodyClassFilter]
+            public function onBodyClass(): void {}
         };
 
         $actionMethod = new \ReflectionMethod($class, 'onAdminMenu');
@@ -275,5 +490,10 @@ final class NamedHookTest extends TestCase
         self::assertCount(1, $attributes);
         self::assertSame('manage_posts_columns', $attributes[0]->newInstance()->hook);
         self::assertSame(5, $attributes[0]->newInstance()->priority);
+
+        $bodyClassMethod = new \ReflectionMethod($class, 'onBodyClass');
+        $attributes = $bodyClassMethod->getAttributes(Hook::class, \ReflectionAttribute::IS_INSTANCEOF);
+        self::assertCount(1, $attributes);
+        self::assertSame('admin_body_class', $attributes[0]->newInstance()->hook);
     }
 }
