@@ -4,226 +4,17 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Cache\Bridge\Redis\Adapter;
 
-use WpPack\Component\Cache\Adapter\AbstractAdapter;
 use WpPack\Component\Cache\Exception\AdapterException;
 
-final class RedisAdapter extends AbstractAdapter
+final class RedisAdapter extends AbstractNativeAdapter
 {
-    private ?\Redis $redis = null;
-
-    /**
-     * @param array<string, mixed> $connectionParams
-     */
-    public function __construct(
-        private readonly array $connectionParams,
-    ) {}
-
     public function getName(): string
     {
         return 'redis';
     }
 
-    protected function doGet(string $key): string|false
+    protected function createConnection(): \Redis
     {
-        $result = $this->getConnection()->get($key);
-
-        return $result === false ? false : (string) $result;
-    }
-
-    protected function doGetMultiple(array $keys): array
-    {
-        if ($keys === []) {
-            return [];
-        }
-
-        $values = $this->getConnection()->mGet($keys);
-        $results = [];
-
-        foreach ($keys as $i => $key) {
-            $value = $values[$i] ?? false;
-            $results[$key] = $value === false ? false : (string) $value;
-        }
-
-        return $results;
-    }
-
-    protected function doSet(string $key, string $value, int $ttl = 0): bool
-    {
-        if ($ttl < 0) {
-            $this->getConnection()->del($key);
-
-            return true;
-        }
-
-        $redis = $this->getConnection();
-
-        if ($ttl > 0) {
-            return $redis->setex($key, $ttl, $value);
-        }
-
-        return $redis->set($key, $value);
-    }
-
-    protected function doSetMultiple(array $values, int $ttl = 0): array
-    {
-        if ($ttl < 0) {
-            $keys = array_keys($values);
-
-            if ($keys !== []) {
-                $redis = $this->getConnection();
-                $pipeline = $redis->pipeline();
-
-                foreach ($keys as $key) {
-                    $pipeline->del($key);
-                }
-
-                $pipeline->exec();
-            }
-
-            return array_fill_keys($keys, true);
-        }
-
-        $redis = $this->getConnection();
-        $results = [];
-
-        $pipeline = $redis->pipeline();
-
-        foreach ($values as $key => $value) {
-            if ($ttl > 0) {
-                $pipeline->setex($key, $ttl, $value);
-            } else {
-                $pipeline->set($key, $value);
-            }
-        }
-
-        $pipelineResults = $pipeline->exec();
-
-        $i = 0;
-        foreach ($values as $key => $value) {
-            $results[$key] = (bool) ($pipelineResults[$i] ?? false);
-            ++$i;
-        }
-
-        return $results;
-    }
-
-    protected function doAdd(string $key, string $value, int $ttl = 0): bool
-    {
-        if ($ttl < 0) {
-            return true;
-        }
-
-        $redis = $this->getConnection();
-
-        if ($ttl > 0) {
-            // SET NX with expiry
-            $result = $redis->set($key, $value, ['nx', 'ex' => $ttl]);
-        } else {
-            $result = $redis->setnx($key, $value);
-        }
-
-        return (bool) $result;
-    }
-
-    protected function doDelete(string $key): bool
-    {
-        return $this->getConnection()->del($key) >= 0;
-    }
-
-    protected function doDeleteMultiple(array $keys): array
-    {
-        if ($keys === []) {
-            return [];
-        }
-
-        $redis = $this->getConnection();
-        $pipeline = $redis->pipeline();
-
-        foreach ($keys as $key) {
-            $pipeline->del($key);
-        }
-
-        $pipelineResults = $pipeline->exec();
-        $results = [];
-
-        foreach ($keys as $i => $key) {
-            $results[$key] = ($pipelineResults[$i] ?? 0) >= 0;
-        }
-
-        return $results;
-    }
-
-    protected function doIncrement(string $key, int $offset = 1): int|false
-    {
-        $redis = $this->getConnection();
-
-        if (!$redis->exists($key)) {
-            return false;
-        }
-
-        return $redis->incrBy($key, $offset);
-    }
-
-    protected function doDecrement(string $key, int $offset = 1): int|false
-    {
-        $redis = $this->getConnection();
-
-        if (!$redis->exists($key)) {
-            return false;
-        }
-
-        return $redis->decrBy($key, $offset);
-    }
-
-    protected function doFlush(string $prefix = ''): bool
-    {
-        $redis = $this->getConnection();
-
-        if ($prefix === '') {
-            return $redis->flushDb();
-        }
-
-        return $this->deleteByPrefix($redis, $prefix);
-    }
-
-    public function isAvailable(): bool
-    {
-        try {
-            $redis = $this->getConnection();
-
-            return $redis->ping() !== false;
-        } catch (\Throwable) {
-            return false;
-        }
-    }
-
-    public function close(): void
-    {
-        if ($this->redis !== null) {
-            try {
-                $this->redis->close();
-            } catch (\Throwable) {
-                // Ignore close errors
-            }
-            $this->redis = null;
-        }
-    }
-
-    private function getConnection(): \Redis
-    {
-        if ($this->redis !== null) {
-            return $this->redis;
-        }
-
-        $this->redis = $this->connect();
-
-        return $this->redis;
-    }
-
-    private function connect(): \Redis
-    {
-        $redis = new \Redis();
-
         $host = $this->connectionParams['host'] ?? '127.0.0.1';
         $port = (int) ($this->connectionParams['port'] ?? 6379);
         $timeout = (float) ($this->connectionParams['timeout'] ?? 30);
@@ -253,6 +44,8 @@ final class RedisAdapter extends AbstractAdapter
                 $retryInterval,
             );
         }
+
+        $redis = new \Redis();
 
         $connectHost = $socket ?? ($tls ? 'tls://' . $host : $host);
         $connectPort = $socket !== null ? 0 : $port;
@@ -345,36 +138,5 @@ final class RedisAdapter extends AbstractAdapter
         $redis->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_NONE);
 
         return $redis;
-    }
-
-    private function resolvePassword(): ?string
-    {
-        /** @var (\Closure(): string)|null $provider */
-        $provider = $this->connectionParams['credential_provider'] ?? null;
-
-        if ($provider !== null) {
-            return $provider();
-        }
-
-        /** @var string|null $auth */
-        $auth = $this->connectionParams['auth'] ?? null;
-
-        return ($auth !== null && $auth !== '') ? $auth : null;
-    }
-
-    private function deleteByPrefix(\Redis $redis, string $prefix): bool
-    {
-        $cursor = null;
-        $pattern = $prefix . '*';
-
-        do {
-            $keys = $redis->scan($cursor, $pattern, 100);
-
-            if ($keys !== false && $keys !== []) {
-                $redis->del(...$keys);
-            }
-        } while ($cursor > 0);
-
-        return true;
     }
 }
