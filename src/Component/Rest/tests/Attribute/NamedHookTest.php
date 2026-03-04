@@ -115,4 +115,44 @@ final class NamedHookTest extends TestCase
         self::assertSame('rest_authentication_errors', $attributes[0]->newInstance()->hook);
         self::assertSame(5, $attributes[0]->newInstance()->priority);
     }
+
+    #[Test]
+    public function restAuthenticationErrorsFilterAcceptsCustomPriority(): void
+    {
+        $filter = new RestAuthenticationErrorsFilter(priority: 5);
+
+        self::assertSame(5, $filter->priority);
+    }
+
+    #[Test]
+    public function restPreDispatchFilterAcceptsCustomPriority(): void
+    {
+        $filter = new RestPreDispatchFilter(priority: 20);
+
+        self::assertSame(20, $filter->priority);
+    }
+
+    #[Test]
+    public function restPreServeRequestFilterAcceptsCustomPriority(): void
+    {
+        $filter = new RestPreServeRequestFilter(priority: 15);
+
+        self::assertSame(15, $filter->priority);
+    }
+
+    #[Test]
+    public function restPreparePostFilterAcceptsCustomPriority(): void
+    {
+        $filter = new RestPreparePostFilter(priority: 99);
+
+        self::assertSame(99, $filter->priority);
+    }
+
+    #[Test]
+    public function restRequestAfterCallbacksFilterAcceptsCustomPriority(): void
+    {
+        $filter = new RestRequestAfterCallbacksFilter(priority: 1);
+
+        self::assertSame(1, $filter->priority);
+    }
 }
