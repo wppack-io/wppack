@@ -132,6 +132,7 @@
             "WpPack\\Component\\Transient\\Tests\\": "src/Component/Transient/tests/",
             "WpPack\\Component\\User\\Tests\\": "src/Component/User/tests/",
             "WpPack\\Component\\Widget\\Tests\\": "src/Component/Widget/tests/",
+            "WpPack\\Component\\Shortcode\\Tests\\": "src/Component/Shortcode/tests/",
             "WpPack\\Component\\Cache\\Bridge\\ElastiCacheAuth\\Tests\\": "src/Component/Cache/Bridge/ElastiCacheAuth/tests/",
             "WpPack\\Component\\Cache\\Bridge\\Redis\\Tests\\": "src/Component/Cache/Bridge/Redis/tests/",
             "WpPack\\Component\\Cache\\Bridge\\DynamoDb\\Tests\\": "src/Component/Cache/Bridge/DynamoDb/tests/",
