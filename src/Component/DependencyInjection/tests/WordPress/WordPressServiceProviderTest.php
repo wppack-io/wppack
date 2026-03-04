@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
+use WpPack\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
 use WpPack\Component\DependencyInjection\WordPress\WordPressServiceProvider;
 
@@ -101,9 +102,9 @@ final class WordPressServiceProviderTest extends TestCase
         $builder = new ContainerBuilder();
         (new WordPressServiceProvider())->register($builder);
 
-        $definition = $builder->findDefinition($serviceId);
+        $container = $builder->compile();
 
-        self::assertNotNull($definition);
+        self::assertTrue($container->has($className));
     }
 
     /**
@@ -165,5 +166,115 @@ final class WordPressServiceProviderTest extends TestCase
 
         self::assertSame('getWpQuery', $queryFactory[1]);
         self::assertSame('getWpTheQuery', $theQueryFactory[1]);
+    }
+
+    #[Test]
+    #[DataProvider('serviceIdProvider')]
+    public function allServicesArePublic(string $serviceId): void
+    {
+        $builder = new ContainerBuilder();
+        (new WordPressServiceProvider())->register($builder);
+
+        $definition = $builder->findDefinition($serviceId);
+
+        self::assertTrue($definition->isPublic());
+    }
+
+    #[Test]
+    #[DataProvider('serviceClassProvider')]
+    public function registersCorrectClass(string $serviceId, string $expectedClass): void
+    {
+        $builder = new ContainerBuilder();
+        (new WordPressServiceProvider())->register($builder);
+
+        $definition = $builder->findDefinition($serviceId);
+
+        self::assertSame($expectedClass, $definition->getClass());
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function serviceClassProvider(): iterable
+    {
+        yield 'wpdb' => ['wpdb', \wpdb::class];
+        yield 'wp_filesystem' => ['wp_filesystem', \WP_Filesystem_Base::class];
+        yield 'wp' => ['wp', \WP::class];
+        yield 'wp_rewrite' => ['wp_rewrite', \WP_Rewrite::class];
+        yield 'wp_the_query' => ['wp_the_query', \WP_Query::class];
+        yield 'wp_query' => ['wp_query', \WP_Query::class];
+        yield 'wp_roles' => ['wp_roles', \WP_Roles::class];
+        yield 'wp_locale' => ['wp_locale', \WP_Locale::class];
+        yield 'wp_locale_switcher' => ['wp_locale_switcher', \WP_Locale_Switcher::class];
+        yield 'wp_object_cache' => ['wp_object_cache', \WP_Object_Cache::class];
+        yield 'wp_embed' => ['wp_embed', \WP_Embed::class];
+        yield 'wp_widget_factory' => ['wp_widget_factory', \WP_Widget_Factory::class];
+        yield 'wp_textdomain_registry' => ['wp_textdomain_registry', \WP_Textdomain_Registry::class];
+        yield 'wp_scripts' => ['wp_scripts', \WP_Scripts::class];
+        yield 'wp_styles' => ['wp_styles', \WP_Styles::class];
+        yield 'wp_admin_bar' => ['wp_admin_bar', \WP_Admin_Bar::class];
+        yield 'wp_customize' => ['wp_customize', \WP_Customize_Manager::class];
+    }
+
+    #[Test]
+    public function wpQueryClassNameHasNoAlias(): void
+    {
+        $builder = new ContainerBuilder();
+        (new WordPressServiceProvider())->register($builder);
+
+        self::assertTrue($builder->hasDefinition('wp_query'));
+        self::assertTrue($builder->hasDefinition('wp_the_query'));
+
+        $this->expectException(ServiceNotFoundException::class);
+        $builder->findDefinition(\WP_Query::class);
+    }
+
+    #[Test]
+    #[DataProvider('factoryGlobalProvider')]
+    public function factoryMethodReturnsGlobalVariable(string $factoryMethod, string $globalName, string $className): void
+    {
+        if (!class_exists($className, false) && !class_exists($className)) {
+            self::markTestSkipped(sprintf('WordPress class %s is not available.', $className));
+        }
+
+        $mock = $this->createMock($className);
+
+        $original = $GLOBALS[$globalName] ?? null;
+        $GLOBALS[$globalName] = $mock;
+
+        try {
+            $result = WordPressServiceProvider::$factoryMethod();
+            self::assertSame($mock, $result);
+        } finally {
+            if ($original === null) {
+                unset($GLOBALS[$globalName]);
+            } else {
+                $GLOBALS[$globalName] = $original;
+            }
+        }
+    }
+
+    /**
+     * @return iterable<string, array{string, string, string}>
+     */
+    public static function factoryGlobalProvider(): iterable
+    {
+        yield 'getWpdb' => ['getWpdb', 'wpdb', \wpdb::class];
+        yield 'getWpFilesystem' => ['getWpFilesystem', 'wp_filesystem', \WP_Filesystem_Base::class];
+        yield 'getWp' => ['getWp', 'wp', \WP::class];
+        yield 'getWpRewrite' => ['getWpRewrite', 'wp_rewrite', \WP_Rewrite::class];
+        yield 'getWpTheQuery' => ['getWpTheQuery', 'wp_the_query', \WP_Query::class];
+        yield 'getWpQuery' => ['getWpQuery', 'wp_query', \WP_Query::class];
+        yield 'getWpRoles' => ['getWpRoles', 'wp_roles', \WP_Roles::class];
+        yield 'getWpLocale' => ['getWpLocale', 'wp_locale', \WP_Locale::class];
+        yield 'getWpLocaleSwitcher' => ['getWpLocaleSwitcher', 'wp_locale_switcher', \WP_Locale_Switcher::class];
+        yield 'getWpObjectCache' => ['getWpObjectCache', 'wp_object_cache', \WP_Object_Cache::class];
+        yield 'getWpEmbed' => ['getWpEmbed', 'wp_embed', \WP_Embed::class];
+        yield 'getWpWidgetFactory' => ['getWpWidgetFactory', 'wp_widget_factory', \WP_Widget_Factory::class];
+        yield 'getWpTextdomainRegistry' => ['getWpTextdomainRegistry', 'wp_textdomain_registry', \WP_Textdomain_Registry::class];
+        yield 'getWpScripts' => ['getWpScripts', 'wp_scripts', \WP_Scripts::class];
+        yield 'getWpStyles' => ['getWpStyles', 'wp_styles', \WP_Styles::class];
+        yield 'getWpAdminBar' => ['getWpAdminBar', 'wp_admin_bar', \WP_Admin_Bar::class];
+        yield 'getWpCustomize' => ['getWpCustomize', 'wp_customize', \WP_Customize_Manager::class];
     }
 }
