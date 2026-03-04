@@ -4,7 +4,7 @@
 **名前空間:** `WpPack\Component\Widget\`
 **レイヤー:** Application
 
-WordPress ウィジェット API のアクション・フィルターフックを Named Hook アトリビュートで型安全に登録するためのコンポーネントです。`AbstractWidget` と `#[Widget]` アトリビュートによるウィジェット登録も提供します。
+WordPress ウィジェット API のアクション・フィルターフックを Named Hook アトリビュートで型安全に登録するためのコンポーネントです。`AbstractWidget` と `#[AsWidget]` アトリビュートによるウィジェット登録も提供します。
 
 ## インストール
 
@@ -47,9 +47,9 @@ add_action('widgets_init', function() {
 
 ```php
 use WpPack\Component\Widget\AbstractWidget;
-use WpPack\Component\Widget\Attribute\Widget;
+use WpPack\Component\Widget\Attribute\AsWidget;
 
-#[Widget(
+#[AsWidget(
     id: 'recent_posts',
     name: 'Recent Posts',
     description: 'Display your most recent posts'
@@ -80,13 +80,13 @@ class RecentPostsWidget extends AbstractWidget
 
 ### AbstractWidget
 
-`WP_Widget` を拡張する抽象基底クラスです。`#[Widget]` アトリビュートからメタデータ（id / name / description）を自動解決し、`parent::__construct()` に渡します。
+`WP_Widget` を拡張する抽象基底クラスです。`#[AsWidget]` アトリビュートからメタデータ（id / name / description）を自動解決し、`parent::__construct()` に渡します。
 
 ```php
 use WpPack\Component\Widget\AbstractWidget;
-use WpPack\Component\Widget\Attribute\Widget;
+use WpPack\Component\Widget\Attribute\AsWidget;
 
-#[Widget(id: 'social_links', name: 'Social Links', description: 'Social media links')]
+#[AsWidget(id: 'social_links', name: 'Social Links', description: 'Social media links')]
 class SocialLinksWidget extends AbstractWidget
 {
     protected function render(array $args, array $instance): string
@@ -108,7 +108,7 @@ class SocialLinksWidget extends AbstractWidget
 }
 ```
 
-`#[Widget]` アトリビュートなしでインスタンス化すると `LogicException` がスローされます。
+`#[AsWidget]` アトリビュートなしでインスタンス化すると `LogicException` がスローされます。
 
 ### WidgetRegistry
 
@@ -417,9 +417,9 @@ class SidebarRegistrar
 
 | クラス | 説明 |
 |-------|------|
-| `AbstractWidget` | `WP_Widget` 抽象ラッパー。`#[Widget]` からメタデータ自動解決 |
+| `AbstractWidget` | `WP_Widget` 抽象ラッパー。`#[AsWidget]` からメタデータ自動解決 |
 | `WidgetRegistry` | ウィジェット/サイドバー登録サービス |
-| `Attribute\Widget` | クラスレベルアトリビュート（id / name / description） |
+| `Attribute\AsWidget` | クラスレベルアトリビュート（id / name / description） |
 
 ## WordPress 統合
 

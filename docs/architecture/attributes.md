@@ -557,8 +557,7 @@ WordPress のデータ構造を定義するための Attribute。
 
 | Attribute | パラメータ | WordPress API |
 |-----------|-----------|--------------|
-| `#[Widget]` | `id: string`, `name: string`, `description: string` | `register_widget()` |
-| `#[WidgetField]` | `type: string`, `label: string`, `default?: mixed`, `placeholder?: string`, `maxlength?: int`, `rows?: int`, `cols?: int`, `min?: int`, `max?: int`, `step?: int`, `options?: array`, `showIf?: array`, `cssClass?: string`, `helpText?: string` | Widget API |
+| `#[AsWidget]` | `id: string`, `name: string`, `description: string` | `register_widget()` |
 
 ### コメント（Comment コンポーネント）
 

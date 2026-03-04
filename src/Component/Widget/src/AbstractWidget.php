@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Widget;
 
-use WpPack\Component\Widget\Attribute\Widget;
+use WpPack\Component\Widget\Attribute\AsWidget;
 
 abstract class AbstractWidget extends \WP_Widget
 {
@@ -49,14 +49,14 @@ abstract class AbstractWidget extends \WP_Widget
         return $newInstance;
     }
 
-    private function resolveWidgetAttribute(): Widget
+    private function resolveWidgetAttribute(): AsWidget
     {
         $reflection = new \ReflectionClass($this);
-        $attributes = $reflection->getAttributes(Widget::class);
+        $attributes = $reflection->getAttributes(AsWidget::class);
 
         if ($attributes === []) {
             throw new \LogicException(sprintf(
-                'Class "%s" must have the #[Widget] attribute.',
+                'Class "%s" must have the #[AsWidget] attribute.',
                 static::class,
             ));
         }

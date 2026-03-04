@@ -1,6 +1,6 @@
 # WpPack Widget
 
-WordPress ウィジェットシステムのコンポーネント。`AbstractWidget` + `#[Widget]` アトリビュートによるウィジェット定義と、Named Hook アトリビュートを提供します。
+WordPress ウィジェットシステムのコンポーネント。`AbstractWidget` + `#[AsWidget]` アトリビュートによるウィジェット定義と、Named Hook アトリビュートを提供します。
 
 ## Installation
 
@@ -14,9 +14,9 @@ composer require wppack/widget
 
 ```php
 use WpPack\Component\Widget\AbstractWidget;
-use WpPack\Component\Widget\Attribute\Widget;
+use WpPack\Component\Widget\Attribute\AsWidget;
 
-#[Widget(id: 'recent_posts', name: 'Recent Posts', description: 'Display recent posts')]
+#[AsWidget(id: 'recent_posts', name: 'Recent Posts', description: 'Display recent posts')]
 class RecentPostsWidget extends AbstractWidget
 {
     protected function render(array $args, array $instance): string

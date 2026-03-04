@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Widget\Attribute;
 
 #[\Attribute(\Attribute::TARGET_CLASS)]
-final class Widget
+final class AsWidget
 {
     public function __construct(
         public readonly string $id,

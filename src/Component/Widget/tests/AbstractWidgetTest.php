@@ -7,7 +7,7 @@ namespace WpPack\Component\Widget\Tests;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Widget\AbstractWidget;
-use WpPack\Component\Widget\Attribute\Widget;
+use WpPack\Component\Widget\Attribute\AsWidget;
 
 final class AbstractWidgetTest extends TestCase
 {
@@ -68,13 +68,13 @@ final class AbstractWidgetTest extends TestCase
     public function throwsLogicExceptionWithoutAttribute(): void
     {
         $this->expectException(\LogicException::class);
-        $this->expectExceptionMessage('must have the #[Widget] attribute');
+        $this->expectExceptionMessage('must have the #[AsWidget] attribute');
 
         new NoAttributeTestWidget();
     }
 }
 
-#[Widget(id: 'test_widget', name: 'Test Widget', description: 'A test widget')]
+#[AsWidget(id: 'test_widget', name: 'Test Widget', description: 'A test widget')]
 class ConcreteTestWidget extends AbstractWidget
 {
     protected function render(array $args, array $instance): string
