@@ -10,13 +10,19 @@ use WpPack\Component\Hook\Attribute\Action;
 use WpPack\Component\Hook\Attribute\Filter;
 use WpPack\Component\Hook\Hook;
 use WpPack\Component\Hook\HookType;
+use WpPack\Component\NavigationMenu\Attribute\Action\WpCreateNavMenuAction;
+use WpPack\Component\NavigationMenu\Attribute\Action\WpDeleteNavMenuAction;
 use WpPack\Component\NavigationMenu\Attribute\Action\WpNavMenuItemCustomFieldsAction;
+use WpPack\Component\NavigationMenu\Attribute\Action\WpUpdateNavMenuAction;
 use WpPack\Component\NavigationMenu\Attribute\Action\WpUpdateNavMenuItemAction;
 use WpPack\Component\NavigationMenu\Attribute\Filter\NavMenuCssClassFilter;
 use WpPack\Component\NavigationMenu\Attribute\Filter\PreWpNavMenuFilter;
+use WpPack\Component\NavigationMenu\Attribute\Filter\NavMenuItemIdFilter;
+use WpPack\Component\NavigationMenu\Attribute\Filter\NavMenuLinkAttributesFilter;
 use WpPack\Component\NavigationMenu\Attribute\Filter\WpNavMenuArgsFilter;
 use WpPack\Component\NavigationMenu\Attribute\Filter\WpNavMenuItemsFilter;
 use WpPack\Component\NavigationMenu\Attribute\Filter\WpNavMenuObjectsFilter;
+use WpPack\Component\NavigationMenu\Attribute\Filter\WpSetupNavMenuItemFilter;
 
 final class NamedHookTest extends TestCase
 {
@@ -94,10 +100,73 @@ final class NamedHookTest extends TestCase
     }
 
     #[Test]
+    public function wpSetupNavMenuItemFilterHasCorrectHookName(): void
+    {
+        $filter = new WpSetupNavMenuItemFilter();
+
+        self::assertSame('wp_setup_nav_menu_item', $filter->hook);
+        self::assertSame(HookType::Filter, $filter->type);
+        self::assertSame(10, $filter->priority);
+    }
+
+    #[Test]
+    public function navMenuItemIdFilterHasCorrectHookName(): void
+    {
+        $filter = new NavMenuItemIdFilter();
+
+        self::assertSame('nav_menu_item_id', $filter->hook);
+        self::assertSame(HookType::Filter, $filter->type);
+        self::assertSame(10, $filter->priority);
+    }
+
+    #[Test]
+    public function navMenuLinkAttributesFilterHasCorrectHookName(): void
+    {
+        $filter = new NavMenuLinkAttributesFilter();
+
+        self::assertSame('nav_menu_link_attributes', $filter->hook);
+        self::assertSame(HookType::Filter, $filter->type);
+        self::assertSame(10, $filter->priority);
+    }
+
+    #[Test]
+    public function wpCreateNavMenuActionHasCorrectHookName(): void
+    {
+        $action = new WpCreateNavMenuAction();
+
+        self::assertSame('wp_create_nav_menu', $action->hook);
+        self::assertSame(HookType::Action, $action->type);
+        self::assertSame(10, $action->priority);
+    }
+
+    #[Test]
+    public function wpUpdateNavMenuActionHasCorrectHookName(): void
+    {
+        $action = new WpUpdateNavMenuAction();
+
+        self::assertSame('wp_update_nav_menu', $action->hook);
+        self::assertSame(HookType::Action, $action->type);
+        self::assertSame(10, $action->priority);
+    }
+
+    #[Test]
+    public function wpDeleteNavMenuActionHasCorrectHookName(): void
+    {
+        $action = new WpDeleteNavMenuAction();
+
+        self::assertSame('wp_delete_nav_menu', $action->hook);
+        self::assertSame(HookType::Action, $action->type);
+        self::assertSame(10, $action->priority);
+    }
+
+    #[Test]
     public function allActionsExtendAction(): void
     {
         self::assertInstanceOf(Action::class, new WpNavMenuItemCustomFieldsAction());
         self::assertInstanceOf(Action::class, new WpUpdateNavMenuItemAction());
+        self::assertInstanceOf(Action::class, new WpCreateNavMenuAction());
+        self::assertInstanceOf(Action::class, new WpUpdateNavMenuAction());
+        self::assertInstanceOf(Action::class, new WpDeleteNavMenuAction());
     }
 
     #[Test]
@@ -108,6 +177,9 @@ final class NamedHookTest extends TestCase
         self::assertInstanceOf(Filter::class, new WpNavMenuArgsFilter());
         self::assertInstanceOf(Filter::class, new WpNavMenuItemsFilter());
         self::assertInstanceOf(Filter::class, new WpNavMenuObjectsFilter());
+        self::assertInstanceOf(Filter::class, new WpSetupNavMenuItemFilter());
+        self::assertInstanceOf(Filter::class, new NavMenuItemIdFilter());
+        self::assertInstanceOf(Filter::class, new NavMenuLinkAttributesFilter());
     }
 
     #[Test]

@@ -4,7 +4,7 @@
 **名前空間:** `WpPack\Component\NavigationMenu\`
 **レイヤー:** Application
 
-WordPress のメニュー関数 `register_nav_menus()` / `wp_nav_menu()` をモダンな PHP でラップし、メニュー関連の WordPress フックを Named Hook アトリビュートとして提供するコンポーネントです。
+WordPress のメニュー関数 `register_nav_menus()` / `wp_nav_menu()` をモダンな PHP でラップし、メニューロケーション自動登録とメニュー関連の Named Hook アトリビュートを提供するコンポーネントです。
 
 ## インストール
 
@@ -48,7 +48,7 @@ wp_nav_menu([
 
 ```php
 use WpPack\Component\Hook\Attribute\AfterSetupThemeAction;
-use WpPack\Component\NavigationMenu\Attribute\WpNavMenuItemsFilter;
+use WpPack\Component\NavigationMenu\Attribute\Filter\WpNavMenuItemsFilter;
 use WpPack\Component\NavigationMenu\MenuRegistry;
 
 class NavigationManager
@@ -60,7 +60,7 @@ class NavigationManager
     #[AfterSetupThemeAction]
     public function registerMenus(): void
     {
-        $this->menus->register([
+        $this->menus->registerLocations([
             'primary' => __('Primary Menu', 'wppack'),
             'footer' => __('Footer Menu', 'wppack'),
         ]);
@@ -75,6 +75,85 @@ class NavigationManager
         return $items;
     }
 }
+```
+
+## 主要クラス
+
+| クラス | 説明 |
+|--------|------|
+| `MenuLocationProviderInterface` | メニューロケーションを提供するインターフェース |
+| `MenuRegistry` | メニューロケーションの登録・管理 |
+
+## MenuLocationProviderInterface
+
+DI コンテナで auto-tag し、`MenuRegistry` に自動収集されるパターンです。
+
+```php
+use WpPack\Component\NavigationMenu\MenuLocationProviderInterface;
+
+class ThemeMenuProvider implements MenuLocationProviderInterface
+{
+    public function getMenuLocations(): array
+    {
+        return [
+            'primary' => __('Primary Menu', 'my-theme'),
+            'footer' => __('Footer Menu', 'my-theme'),
+            'mobile' => __('Mobile Navigation', 'my-theme'),
+        ];
+    }
+}
+```
+
+## MenuRegistry
+
+メニューロケーションの登録・管理を行うレジストリです。
+
+### プロバイダー経由の一括登録
+
+`addProvider()` でプロバイダーを収集し、`register()` で `after_setup_theme` のタイミングに一括登録します。
+
+```php
+use WpPack\Component\NavigationMenu\MenuRegistry;
+
+$registry = new MenuRegistry();
+$registry->addProvider(new ThemeMenuProvider());
+$registry->register(); // register_nav_menus() が呼ばれる
+```
+
+### 直接登録
+
+```php
+use WpPack\Component\Hook\Attribute\AfterSetupThemeAction;
+use WpPack\Component\NavigationMenu\MenuRegistry;
+
+class MenuManager
+{
+    public function __construct(
+        private readonly MenuRegistry $menus,
+    ) {}
+
+    #[AfterSetupThemeAction]
+    public function registerMenuLocations(): void
+    {
+        $this->menus->registerLocations([
+            'primary' => __('Primary Navigation', 'wppack'),
+            'footer' => __('Footer Menu', 'wppack'),
+            'mobile' => __('Mobile Navigation', 'wppack'),
+        ]);
+    }
+}
+```
+
+### API リファレンス
+
+```php
+$registry->addProvider(MenuLocationProviderInterface $provider): void
+$registry->register(): void                          // プロバイダーのロケーションを一括登録
+$registry->registerLocation(string $location, string $description): void
+$registry->registerLocations(array $locations): void
+$registry->unregisterLocation(string $location): void
+$registry->hasLocation(string $location): bool
+$registry->getRegisteredLocations(): array           // ['location' => 'description']
 ```
 
 ## Named Hook アトリビュート
