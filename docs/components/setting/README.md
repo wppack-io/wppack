@@ -333,6 +333,8 @@ class MyPluginSettings extends AbstractSettingsPage
 
 ## Named Hook アトリビュート
 
+> Named Hook を使用するサブスクライバーの推奨配置先: `src/Setting/Subscriber/`
+
 ### #[SettingsPageAction(page: string, priority?: int)]
 
 **WordPress フック:** `load-{$page}`
@@ -365,6 +367,21 @@ class SettingsPageManager
 - **マルチサイトネットワーク**でのネットワーク全体の設定に対応
 - **WordPress Settings API**との互換性を維持
 - **WordPress 管理画面のカラースキーム**とレスポンシブデザインに対応
+
+## プラグイン / テーマでの配置
+
+プラグインやテーマで設定ページクラスを作成する場合、以下のディレクトリ構成を推奨します。
+
+```
+src/
+└── Setting/
+    └── Page/
+        ├── GeneralSettings.php
+        ├── AdvancedSettings.php
+        └── DisplaySettings.php
+```
+
+> 詳細は[プラグイン開発ガイド](../../guides/plugin-development.md)、[テーマ開発ガイド](../../guides/theme-development.md)を参照してください。
 
 ## 依存関係
 

@@ -95,6 +95,8 @@ $sanitizer->url($url);  // "http://example.com/?a=1&b=2"
 
 ## Named Hook Attributes
 
+> Named Hook を使用するサブスクライバーの推奨配置先: `src/Escaper/Subscriber/`
+
 ### `#[EscHtmlFilter]`
 
 **WordPress Hook:** `esc_html`

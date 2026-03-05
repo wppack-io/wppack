@@ -70,6 +70,8 @@ class CommentHandler
 
 ## Named Hook アトリビュート
 
+> Named Hook を使用するサブスクライバーの推奨配置先: `src/Comment/Subscriber/`
+
 ### コメント表示フック
 
 #### #[CommentTextFilter]

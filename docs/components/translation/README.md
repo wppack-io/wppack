@@ -198,6 +198,8 @@ $registry->getRegisteredDomains();    // array<string, PluginTextDomain|ThemeTex
 
 ## Named Hook アトリビュート
 
+> Named Hook を使用するサブスクライバーの推奨配置先: `src/Translation/Subscriber/`
+
 Translation 関連の WordPress フックに対応する Named Hook アトリビュートを提供します。Hook コンポーネントはオプション依存です。
 
 ### Action

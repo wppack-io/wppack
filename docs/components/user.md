@@ -70,6 +70,8 @@ class UserHandler
 
 ## Named Hook アトリビュート
 
+> Named Hook を使用するサブスクライバーの推奨配置先: `src/User/Subscriber/`
+
 ### ユーザー登録フック
 
 #### #[UserRegisterAction]

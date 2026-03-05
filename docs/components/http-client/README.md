@@ -299,6 +299,8 @@ $thirdPartyService = new SomeExternalSdk(
 
 ## Named Hook Attributes
 
+> Named Hook を使用するサブスクライバーの推奨配置先: `src/HttpClient/Subscriber/`
+
 ### HTTP リクエストフック
 
 ```php

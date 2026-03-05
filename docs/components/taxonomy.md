@@ -87,6 +87,8 @@ class ProductTaxonomy
 
 ## Named Hook アトリビュート
 
+> Named Hook を使用するサブスクライバーの推奨配置先: `src/Taxonomy/Subscriber/`
+
 ### タクソノミー登録フック
 
 タクソノミー登録には、Hook コンポーネントの `#[InitAction]` アトリビュートを使用します。

@@ -174,6 +174,8 @@ $customPath = $uploadPath->subdir('exports');
 
 ## Named Hook Attributes
 
+> Named Hook を使用するサブスクライバーの推奨配置先: `src/Filesystem/Subscriber/`
+
 ### Filesystem Method フック
 
 #### `#[FilesystemMethodFilter]`

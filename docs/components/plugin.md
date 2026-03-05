@@ -17,6 +17,8 @@ composer require wppack/plugin
 
 ## Named Hook アトリビュート
 
+> Named Hook を使用するサブスクライバーの推奨配置先: `src/Plugin/Subscriber/`
+
 Plugin コンポーネントは、WordPress プラグイン関連フックのための Named Hook アトリビュートを提供します。
 
 > [!NOTE]

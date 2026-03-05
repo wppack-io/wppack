@@ -199,6 +199,8 @@ class OrderService
 
 ## Named Hook Attributes
 
+> Named Hook を使用するサブスクライバーの推奨配置先: `src/Role/Subscriber/`
+
 ### 権限フィルタリング
 
 #### #[UserHasCapFilter]

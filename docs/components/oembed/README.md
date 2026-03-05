@@ -180,6 +180,8 @@ $regex = new OEmbedProviderDefinition(
 
 ## Named Hook アトリビュート
 
+> Named Hook を使用するサブスクライバーの推奨配置先: `src/OEmbed/Subscriber/`
+
 ### #[OembedProvidersFilter(priority?: int = 10)]
 
 **WordPress フック:** `oembed_providers`

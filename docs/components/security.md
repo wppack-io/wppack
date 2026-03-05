@@ -176,6 +176,8 @@ class ContactFormHandler
 
 ## Named Hook Attributes
 
+> Named Hook を使用するサブスクライバーの推奨配置先: `src/Security/Subscriber/`
+
 ### 認証フック
 
 ```php

@@ -127,6 +127,8 @@ $siteTransient->delete('network_status');
 
 ## Named Hook Attributes
 
+> Named Hook を使用するサブスクライバーの推奨配置先: `src/Transient/Subscriber/`
+
 Transient コンポーネントは WordPress のトランジェントフックに対応する Named Hook Attributes を提供します。
 
 ### トランジェント読み取りフック

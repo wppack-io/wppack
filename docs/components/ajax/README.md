@@ -333,6 +333,8 @@ const result = await response.json();
 
 ## Named Hook Attributes
 
+> Named Hook を使用するサブスクライバーの推奨配置先: `src/Ajax/Subscriber/`
+
 低レベルの WordPress AJAX フックを直接使用する場合のアトリビュートです。`#[AjaxHandler]` がカバーしない高度なユースケースで使用します。
 
 ```php
@@ -403,6 +405,21 @@ final class LowLevelAjaxHandler
 - 完全な REST API エンドポイント（REST コンポーネントを使用）
 - サーバーサイドのフォーム処理
 - シンプルなページナビゲーション
+
+## プラグイン / テーマでの配置
+
+プラグインやテーマで AJAX ハンドラーを作成する場合、以下のディレクトリ構成を推奨します。
+
+```
+src/
+└── Ajax/
+    └── Handler/
+        ├── SearchHandler.php
+        ├── FilterHandler.php
+        └── FormHandler.php
+```
+
+> 詳細は[プラグイン開発ガイド](../../guides/plugin-development.md)、[テーマ開発ガイド](../../guides/theme-development.md)を参照してください。
 
 ## 依存関係
 

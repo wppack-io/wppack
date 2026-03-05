@@ -210,6 +210,8 @@ add_action('init', function () use ($container) {
 
 ## Named Hook Attributes
 
+> Named Hook を使用するサブスクライバーの推奨配置先: `src/Shortcode/Subscriber/`
+
 ショートコード関連の WordPress フックに対応する Named Hook Attributes を提供します。
 
 ### フィルター
@@ -264,6 +266,20 @@ final class ShortcodeHooks
 **代替を検討すべき場合：**
 - Gutenberg ブロックのみを対象とする新規プロジェクト
 - 動的要素のないシンプルなコンテンツ
+
+## プラグイン / テーマでの配置
+
+プラグインやテーマでショートコードクラスを作成する場合、以下のディレクトリ構成を推奨します。
+
+```
+src/
+└── Shortcode/
+    ├── ButtonShortcode.php
+    ├── GalleryShortcode.php
+    └── MapShortcode.php
+```
+
+> 詳細は[プラグイン開発ガイド](../../guides/plugin-development.md)、[テーマ開発ガイド](../../guides/theme-development.md)を参照してください。
 
 ## 依存関係
 

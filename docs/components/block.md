@@ -441,6 +441,8 @@ class ContactFormBlock extends AbstractBlock
 
 ## Named Hook アトリビュート
 
+> Named Hook を使用するサブスクライバーの推奨配置先: `src/Block/Subscriber/`
+
 ### ブロック登録
 
 #### #[RegisterBlockTypeArgsFilter(priority?: int = 10)]

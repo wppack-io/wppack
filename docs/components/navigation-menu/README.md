@@ -158,6 +158,8 @@ $registry->getRegisteredLocations(): array           // ['location' => 'descript
 
 ## Named Hook アトリビュート
 
+> Named Hook を使用するサブスクライバーの推奨配置先: `src/NavigationMenu/Subscriber/`
+
 ### メニュー登録フック
 
 メニューロケーション登録には、Hook コンポーネントの `#[AfterSetupThemeAction]` アトリビュートを使用します。

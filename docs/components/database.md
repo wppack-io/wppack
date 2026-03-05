@@ -193,6 +193,8 @@ class AnalyticsTable
 
 ## Named Hook Attributes
 
+> Named Hook を使用するサブスクライバーの推奨配置先: `src/Database/Subscriber/`
+
 ### クエリフック
 
 #### `#[QueryFilter]`

@@ -477,6 +477,8 @@ register_activation_hook(__FILE__, fn() => $registry->flush());
 
 ## Named Hook アトリビュート
 
+> Named Hook を使用するサブスクライバーの推奨配置先: `src/Routing/Subscriber/`
+
 低レベルフック操作用。Controller と併用可能。
 
 **Actions（2）:**
@@ -497,6 +499,23 @@ register_activation_hook(__FILE__, fn() => $registry->flush());
 | `QueryVarsFilter` | `query_vars` |
 | `RequestFilter` | `request` |
 | `TemplateIncludeFilter` | `template_include` |
+
+## プラグイン / テーマでの配置
+
+プラグインやテーマでフロントページコントローラーを作成する場合、以下のディレクトリ構成を推奨します。
+
+```
+src/
+└── Routing/
+    └── Controller/
+        ├── ProductPageController.php
+        ├── EventController.php
+        └── ArchiveController.php
+```
+
+REST API コントローラー（`src/Rest/Controller/`）とは別のディレクトリに配置します。
+
+> 詳細は[プラグイン開発ガイド](../../guides/plugin-development.md)、[テーマ開発ガイド](../../guides/theme-development.md)を参照してください。
 
 ## 依存関係
 

@@ -29,9 +29,21 @@ my-plugin/
 │   ├── MyPlugin.php       # PluginInterface 実装
 │   ├── Config/            # 設定クラス（通常のサービスとして自動登録）
 │   ├── Service/           # ビジネスロジック
-│   ├── Hook/              # フックサブスクライバー
-│   ├── Admin/             # 管理画面
-│   ├── Rest/              # REST API
+│   ├── Admin/
+│   │   └── Page/          # 管理画面ページ
+│   ├── Ajax/
+│   │   └── Handler/       # AJAX ハンドラー
+│   ├── DashboardWidget/   # ダッシュボードウィジェット
+│   ├── Hook/
+│   │   └── Subscriber/    # フックサブスクライバー
+│   ├── Rest/
+│   │   └── Controller/    # REST API コントローラー
+│   ├── Routing/
+│   │   └── Controller/    # フロントページコントローラー
+│   ├── Setting/
+│   │   └── Page/          # 設定ページ
+│   ├── Shortcode/         # ショートコード
+│   ├── Widget/            # ウィジェット
 │   └── Command/           # WP-CLI
 └── tests/
 ```

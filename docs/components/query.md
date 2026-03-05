@@ -414,6 +414,8 @@ class OptimizedBlogService
 
 ## Named Hook アトリビュート
 
+> Named Hook を使用するサブスクライバーの推奨配置先: `src/Query/Subscriber/`
+
 Query コンポーネントは、WordPress のクエリ機能に対する Named Hook アトリビュートを提供します。すべての Named Hook アトリビュートはオプションの `priority` パラメータ（デフォルト: `10`）を受け取ります。
 
 ### クエリ変更フック

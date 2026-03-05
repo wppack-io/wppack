@@ -219,6 +219,8 @@ class CustomizableWidget extends AbstractDashboardWidget
 
 ## Named Hook アトリビュート
 
+> Named Hook を使用するサブスクライバーの推奨配置先: `src/DashboardWidget/Subscriber/`
+
 ```php
 // ダッシュボードセットアップ
 #[WpDashboardSetupAction(priority?: int = 10)]           // wp_dashboard_setup — ウィジェット登録
@@ -259,6 +261,20 @@ add_action('init', function () {
 |-------|------|
 | `AbstractDashboardWidget` | ダッシュボードウィジェットの基底クラス |
 | `Attribute\AsDashboardWidget` | ウィジェット登録アトリビュート |
+
+## プラグイン / テーマでの配置
+
+プラグインやテーマでダッシュボードウィジェットを作成する場合、以下のディレクトリ構成を推奨します。
+
+```
+src/
+└── DashboardWidget/
+    ├── SiteStatsWidget.php
+    ├── RecentActivityWidget.php
+    └── QuickActionsWidget.php
+```
+
+> 詳細は[プラグイン開発ガイド](../../guides/plugin-development.md)、[テーマ開発ガイド](../../guides/theme-development.md)を参照してください。
 
 ## 依存関係
 

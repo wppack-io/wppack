@@ -74,6 +74,8 @@ class MediaHandler
 
 ## Named Hook アトリビュート
 
+> Named Hook を使用するサブスクライバーの推奨配置先: `src/Media/Subscriber/`
+
 ### アップロードフック
 
 #### #[WpHandleUploadFilter]

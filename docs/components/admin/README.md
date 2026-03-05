@@ -120,6 +120,8 @@ $registry->removeSubmenu('my-plugin', 'my-plugin-settings');
 
 ## Named Hook アトリビュート
 
+> Named Hook を使用するサブスクライバーの推奨配置先: `src/Admin/Subscriber/`
+
 Admin コンポーネントは、WordPress 管理画面機能用の Named Hook アトリビュートを提供します。Hook コンポーネントの `Action` / `Filter` を継承しており、`ReflectionAttribute::IS_INSTANCEOF` で自動検出されます。
 
 ### メニュー管理
@@ -302,6 +304,21 @@ use WpPack\Component\Hook\Attribute\Action\AdminInitAction;
 ## ダッシュボードウィジェットについて
 
 ダッシュボードウィジェット機能は DashboardWidget コンポーネント（`wppack/dashboard-widget`）が提供しています。`AbstractDashboardWidget` + `#[AsDashboardWidget]` でクラスベースのウィジェット定義が可能です。
+
+## プラグイン / テーマでの配置
+
+プラグインやテーマで管理ページクラスを作成する場合、以下のディレクトリ構成を推奨します。
+
+```
+src/
+└── Admin/
+    └── Page/
+        ├── ProductsPage.php
+        ├── ReportsPage.php
+        └── ImportPage.php
+```
+
+> 詳細は[プラグイン開発ガイド](../../guides/plugin-development.md)、[テーマ開発ガイド](../../guides/theme-development.md)を参照してください。
 
 ## 依存関係
 

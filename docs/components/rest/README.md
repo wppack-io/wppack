@@ -194,6 +194,8 @@ throw new ForbiddenException('Access denied.');         // 403
 
 ## Named Hook アトリビュート
 
+> Named Hook を使用するサブスクライバーの推奨配置先: `src/Rest/Subscriber/`
+
 REST API 関連の WordPress フックを Named Hook として提供。
 
 ### アクション
@@ -243,3 +245,18 @@ class MyRestSubscriber
 | エラー処理 | null で WordPress に委譲 | `throw HttpException` → `WP_Error` |
 | リクエスト | `get_query_var()` | `Request`（`WP_REST_Request` ラッパー） |
 | パーミッション | なし | `#[Permission]` 必須 |
+
+## プラグイン / テーマでの配置
+
+プラグインやテーマで REST コントローラーを作成する場合、以下のディレクトリ構成を推奨します。
+
+```
+src/
+└── Rest/
+    └── Controller/
+        ├── ProductController.php
+        ├── UserController.php
+        └── OrderController.php
+```
+
+> 詳細は[プラグイン開発ガイド](../../guides/plugin-development.md)、[テーマ開発ガイド](../../guides/theme-development.md)を参照してください。

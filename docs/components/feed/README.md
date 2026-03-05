@@ -165,6 +165,8 @@ class FeedQueryModifier
 
 ## Named Hook アトリビュート
 
+> Named Hook を使用するサブスクライバーの推奨配置先: `src/Feed/Subscriber/`
+
 ### Action
 
 ```php

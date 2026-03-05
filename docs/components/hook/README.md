@@ -482,3 +482,18 @@ final class ExpensiveHookHandler
 | `Attribute\Condition\ConditionInterface` | フック登録条件の契約 |
 | `HookRegistry` | フック登録管理 |
 | `HookDiscovery` | アトリビュートベースのフック自動ディスカバリ |
+
+## プラグイン / テーマでの配置
+
+プラグインやテーマでフックサブスクライバーを作成する場合、以下のディレクトリ構成を推奨します。
+
+```
+src/
+└── Hook/
+    └── Subscriber/
+        ├── AssetSubscriber.php
+        ├── SecuritySubscriber.php
+        └── SeoSubscriber.php
+```
+
+> 詳細は[プラグイン開発ガイド](../../guides/plugin-development.md)、[テーマ開発ガイド](../../guides/theme-development.md)を参照してください。

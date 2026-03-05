@@ -238,6 +238,8 @@ class PostActions
 
 ## Named Hook Attributes
 
+> Named Hook を使用するサブスクライバーの推奨配置先: `src/Nonce/Subscriber/`
+
 ### Nonce 生成フック
 
 ```php

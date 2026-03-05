@@ -281,6 +281,8 @@ WordPress のステータス値に直接マッピング：
 
 ## Named Hook アトリビュート
 
+> Named Hook を使用するサブスクライバーの推奨配置先: `src/SiteHealth/Subscriber/`
+
 ### #[SiteStatusTestsFilter(priority?: int = 10)]
 
 **WordPress フック:** `site_status_tests`

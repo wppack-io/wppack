@@ -140,6 +140,8 @@ $registry->registerSidebar([
 
 ## Named Hook アトリビュート
 
+> Named Hook を使用するサブスクライバーの推奨配置先: `src/Widget/Subscriber/`
+
 Widget コンポーネントは、WordPress ウィジェット機能のための Named Hook アトリビュートを提供します。
 
 ### ウィジェット登録フック
@@ -427,6 +429,20 @@ class SidebarRegistrar
 - **ブロックエディタのウィジェットエリア** と互換性があります
 - すべての **ウィジェット対応テーマ** で動作します
 - **WordPress ウィジェット API** との互換性を維持します
+
+## プラグイン / テーマでの配置
+
+プラグインやテーマでウィジェットクラスを作成する場合、以下のディレクトリ構成を推奨します。
+
+```
+src/
+└── Widget/
+    ├── RecentPostsWidget.php
+    ├── SocialLinksWidget.php
+    └── NewsletterWidget.php
+```
+
+> 詳細は[プラグイン開発ガイド](../../guides/plugin-development.md)、[テーマ開発ガイド](../../guides/theme-development.md)を参照してください。
 
 ## 依存関係
 
