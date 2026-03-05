@@ -7,6 +7,7 @@ namespace WpPack\Component\Mailer\Tests\Transport;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Mailer\Exception\UnsupportedSchemeException;
+use WpPack\Component\Mailer\Transport\Dsn;
 use WpPack\Component\Mailer\Transport\NativeTransport;
 use WpPack\Component\Mailer\Transport\NativeTransportFactory;
 use WpPack\Component\Mailer\Transport\NullTransport;
@@ -75,5 +76,14 @@ final class TransportTest extends TestCase
         $transport = new Transport($factories);
 
         self::assertInstanceOf(NativeTransport::class, $transport->fromString('native://default'));
+    }
+
+    #[Test]
+    public function createWithDsnObjectDirectly(): void
+    {
+        $transport = new Transport([new NativeTransportFactory()]);
+        $dsn = Dsn::fromString('native://default');
+
+        self::assertInstanceOf(NativeTransport::class, $transport->create($dsn));
     }
 }

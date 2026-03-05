@@ -53,6 +53,35 @@ final class SettingsRegistryTest extends TestCase
 
         self::assertNotFalse(has_action('admin_init'));
     }
+
+    #[Test]
+    public function registerMultiplePagesAddsMultipleHooks(): void
+    {
+        global $wp_filter;
+
+        $countCallbacks = static function (string $hook) use (&$wp_filter): int {
+            if (!isset($wp_filter[$hook])) {
+                return 0;
+            }
+            $count = 0;
+            foreach ($wp_filter[$hook]->callbacks as $priorityCallbacks) {
+                $count += \count($priorityCallbacks);
+            }
+            return $count;
+        };
+
+        $adminMenuBefore = $countCallbacks('admin_menu');
+        $adminInitBefore = $countCallbacks('admin_init');
+
+        $page1 = new RegistryTestSettingsPage();
+        $page2 = new RegistryTestSecondSettingsPage();
+
+        $this->registry->register($page1);
+        $this->registry->register($page2);
+
+        self::assertSame($adminMenuBefore + 2, $countCallbacks('admin_menu'));
+        self::assertSame($adminInitBefore + 2, $countCallbacks('admin_init'));
+    }
 }
 
 #[AsSettingsPage(slug: 'registry-test', title: 'Registry Test')]
@@ -62,5 +91,15 @@ class RegistryTestSettingsPage extends AbstractSettingsPage
     {
         $settings->section('general', 'General')
             ->field('test_field', 'Test Field', fn(array $args) => null);
+    }
+}
+
+#[AsSettingsPage(slug: 'registry-test-second', title: 'Registry Test Second')]
+class RegistryTestSecondSettingsPage extends AbstractSettingsPage
+{
+    protected function configure(SettingsConfigurator $settings): void
+    {
+        $settings->section('options', 'Options')
+            ->field('another_field', 'Another Field', fn(array $args) => null);
     }
 }

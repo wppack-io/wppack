@@ -286,4 +286,41 @@ final class StreamTest extends TestCase
         $stream->seek(-2, \SEEK_END);
         self::assertSame('lo', $stream->getContents());
     }
+
+    #[Test]
+    public function readOnlyResourceIsNotWritable(): void
+    {
+        $file = tempnam(sys_get_temp_dir(), 'stream_test_');
+        file_put_contents($file, 'test data');
+
+        try {
+            $resource = fopen($file, 'r');
+            $stream = new Stream($resource);
+
+            self::assertFalse($stream->isWritable());
+
+            $this->expectException(\RuntimeException::class);
+            $stream->write('data');
+        } finally {
+            unlink($file);
+        }
+    }
+
+    #[Test]
+    public function writeOnlyResourceIsNotReadable(): void
+    {
+        $file = tempnam(sys_get_temp_dir(), 'stream_test_');
+
+        try {
+            $resource = fopen($file, 'w');
+            $stream = new Stream($resource);
+
+            self::assertFalse($stream->isReadable());
+
+            $this->expectException(\RuntimeException::class);
+            $stream->read(1);
+        } finally {
+            unlink($file);
+        }
+    }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Routing\Tests;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Routing\Response\JsonResponse;
@@ -338,6 +339,18 @@ final class RouteEntryTest extends TestCase
         );
 
         self::assertSame($tags, $entry->rewriteTags);
+    }
+
+    #[Test]
+    public function routePositionTopHasCorrectValue(): void
+    {
+        self::assertSame('top', RoutePosition::Top->value);
+    }
+
+    #[Test]
+    public function routePositionBottomHasCorrectValue(): void
+    {
+        self::assertSame('bottom', RoutePosition::Bottom->value);
     }
 
     #[Test]

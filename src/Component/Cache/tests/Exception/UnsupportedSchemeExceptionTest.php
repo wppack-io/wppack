@@ -1,0 +1,46 @@
+<?php
+
+declare(strict_types=1);
+
+namespace WpPack\Component\Cache\Tests\Exception;
+
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+use WpPack\Component\Cache\Adapter\Dsn;
+use WpPack\Component\Cache\Exception\UnsupportedSchemeException;
+
+#[CoversClass(UnsupportedSchemeException::class)]
+final class UnsupportedSchemeExceptionTest extends TestCase
+{
+    #[Test]
+    public function messageContainsScheme(): void
+    {
+        $dsn = Dsn::fromString('foo://localhost');
+        $exception = new UnsupportedSchemeException($dsn);
+
+        self::assertStringContainsString('"foo"', $exception->getMessage());
+        self::assertStringContainsString('not supported', $exception->getMessage());
+    }
+
+    #[Test]
+    public function messageContainsNameAndSupportedSchemes(): void
+    {
+        $dsn = Dsn::fromString('bar://localhost');
+        $exception = new UnsupportedSchemeException($dsn, 'BarAdapter', ['redis', 'valkey']);
+
+        self::assertStringContainsString('"bar"', $exception->getMessage());
+        self::assertStringContainsString('"BarAdapter"', $exception->getMessage());
+        self::assertStringContainsString('redis, valkey', $exception->getMessage());
+    }
+
+    #[Test]
+    public function messageOmitsSupportedWhenNameIsNull(): void
+    {
+        $dsn = Dsn::fromString('baz://localhost');
+        $exception = new UnsupportedSchemeException($dsn, null, ['redis']);
+
+        self::assertStringContainsString('"baz"', $exception->getMessage());
+        self::assertStringNotContainsString('Supported schemes', $exception->getMessage());
+    }
+}

@@ -158,6 +158,26 @@ final class HookDiscoveryTest extends TestCase
     }
 
     #[Test]
+    public function registerWithNoHookAttributesAddsNothing(): void
+    {
+        $registry = new HookRegistry();
+        $discovery = new HookDiscovery($registry);
+
+        $subscriber = new class {
+            public function regularMethod(): void {}
+
+            public function anotherMethod(string $value): string
+            {
+                return $value;
+            }
+        };
+
+        $discovery->register($subscriber);
+
+        self::assertCount(0, $registry->all());
+    }
+
+    #[Test]
     public function callbackIsBindToSubscriberInstance(): void
     {
         $registry = new HookRegistry();

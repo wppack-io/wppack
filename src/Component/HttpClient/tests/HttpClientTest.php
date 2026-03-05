@@ -376,4 +376,35 @@ final class HttpClientTest extends TestCase
 
         self::assertSame(200, $response->getStatusCode());
     }
+
+    #[Test]
+    public function queryParamsAppendedToUrlWithExistingQuery(): void
+    {
+        if (!function_exists('wp_remote_request')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $client = (new HttpClient())->query(['bar' => 'baz']);
+        $response = $client->get('https://httpbin.org/get?foo=1');
+
+        self::assertSame(200, $response->getStatusCode());
+        $json = $response->json();
+        self::assertSame('1', $json['args']['foo'] ?? null);
+        self::assertSame('baz', $json['args']['bar'] ?? null);
+    }
+
+    #[Test]
+    public function baseUriNotPrependedWhenUrlHasScheme(): void
+    {
+        if (!function_exists('wp_remote_request')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $client = (new HttpClient())->baseUri('https://ignored.example.com');
+        $response = $client->get('https://httpbin.org/get');
+
+        self::assertSame(200, $response->getStatusCode());
+        $json = $response->json();
+        self::assertStringContainsString('httpbin.org', $json['url']);
+    }
 }

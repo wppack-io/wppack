@@ -109,4 +109,24 @@ final class ValidationContextTest extends TestCase
         self::assertNull($context->oldValue('any_key'));
         self::assertSame('default', $context->oldValue('any_key', 'default'));
     }
+
+    #[Test]
+    public function multipleErrorsAndWarningsAccumulate(): void
+    {
+        global $wp_settings_errors;
+        $wp_settings_errors = [];
+
+        $context = new ValidationContext('my_group', 'my_option');
+        $context->error('err_one', 'First error.');
+        $context->error('err_two', 'Second error.');
+        $context->warning('warn_one', 'First warning.');
+
+        self::assertCount(3, $wp_settings_errors);
+        self::assertSame('error', $wp_settings_errors[0]['type']);
+        self::assertSame('err_one', $wp_settings_errors[0]['code']);
+        self::assertSame('error', $wp_settings_errors[1]['type']);
+        self::assertSame('err_two', $wp_settings_errors[1]['code']);
+        self::assertSame('warning', $wp_settings_errors[2]['type']);
+        self::assertSame('warn_one', $wp_settings_errors[2]['code']);
+    }
 }

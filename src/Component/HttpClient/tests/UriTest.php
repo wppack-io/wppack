@@ -225,6 +225,22 @@ final class UriTest extends TestCase
     }
 
     #[Test]
+    public function negativePortThrowsInvalidArgumentException(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        (new Uri('https://example.com'))->withPort(-1);
+    }
+
+    #[Test]
+    public function portAbove65535ThrowsInvalidArgumentException(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        (new Uri('https://example.com'))->withPort(70000);
+    }
+
+    #[Test]
     public function pathPrefixedWithSlashWhenAuthorityPresent(): void
     {
         $uri = (new Uri())

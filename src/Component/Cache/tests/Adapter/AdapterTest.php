@@ -92,4 +92,29 @@ final class AdapterTest extends TestCase
 
         self::assertSame('first', $result->getName());
     }
+
+    #[Test]
+    public function createWithDsnObject(): void
+    {
+        $mockAdapter = $this->createMock(AdapterInterface::class);
+        $mockAdapter->method('getName')->willReturn('test');
+
+        $factory = $this->createMock(AdapterFactoryInterface::class);
+        $factory->method('supports')->willReturn(true);
+        $factory->method('create')->willReturn($mockAdapter);
+
+        $adapter = new Adapter([$factory]);
+        $dsn = Dsn::fromString('test://localhost');
+        $result = $adapter->create($dsn);
+
+        self::assertSame('test', $result->getName());
+    }
+
+    #[Test]
+    public function fromDsnStaticMethodThrowsForUnsupportedScheme(): void
+    {
+        $this->expectException(UnsupportedSchemeException::class);
+
+        Adapter::fromDsn('unsupported://localhost');
+    }
 }

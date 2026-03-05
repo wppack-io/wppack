@@ -189,4 +189,17 @@ final class MailerAssertionsTest extends TestCase
         $this->expectException(AssertionFailedError::class);
         $this->getLastSentEmail();
     }
+
+    #[Test]
+    public function assertEmailSentToMatchesMultipleRecipients(): void
+    {
+        $this->testMailer->sendEmail(
+            (new Email())
+                ->from('sender@example.com')
+                ->to('alice@example.com', 'bob@example.com'),
+        );
+
+        $this->assertEmailSentTo('alice@example.com');
+        $this->assertEmailSentTo('bob@example.com');
+    }
 }
