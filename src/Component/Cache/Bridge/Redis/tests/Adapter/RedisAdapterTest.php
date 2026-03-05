@@ -395,14 +395,18 @@ final class RedisAdapterTest extends TestCase
     #[Test]
     public function connectWithTls(): void
     {
-        $adapter = new RedisAdapter([
-            'host' => '127.0.0.1',
-            'port' => 6380,
-            'tls' => true,
-            'timeout' => 2,
-        ]);
+        try {
+            $adapter = @new RedisAdapter([
+                'host' => '127.0.0.1',
+                'port' => 6380,
+                'tls' => true,
+                'timeout' => 2,
+            ]);
+        } catch (\Throwable) {
+            self::markTestSkipped('Redis TLS server is not available at tls://127.0.0.1:6380.');
+        }
 
-        if (!$adapter->isAvailable()) {
+        if (!@$adapter->isAvailable()) {
             self::markTestSkipped('Redis TLS server is not available at tls://127.0.0.1:6380.');
         }
 

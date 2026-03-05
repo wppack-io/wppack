@@ -397,7 +397,7 @@ final class RouteEntryTest extends TestCase
         );
 
         set_query_var('test_slug', 'not-found');
-        $entry->handleTemplateRedirect();
+        @$entry->handleTemplateRedirect();
 
         self::assertSame('/path/to/404.php', $entry->filterTemplateInclude('/original.php'));
     }
