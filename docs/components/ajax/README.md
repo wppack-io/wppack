@@ -331,7 +331,7 @@ const response = await fetch(ajaxurl, {
 const result = await response.json();
 ```
 
-## Named Hook Attributes
+## Named Hook アトリビュート
 
 > Named Hook を使用するサブスクライバーの推奨配置先: `src/Ajax/Subscriber/`
 

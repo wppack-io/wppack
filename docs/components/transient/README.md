@@ -125,7 +125,7 @@ $status = $siteTransient->get('network_status');
 $siteTransient->delete('network_status');
 ```
 
-## Named Hook Attributes
+## Named Hook アトリビュート
 
 > Named Hook を使用するサブスクライバーの推奨配置先: `src/Transient/Subscriber/`
 

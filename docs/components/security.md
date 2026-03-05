@@ -174,7 +174,7 @@ class ContactFormHandler
 }
 ```
 
-## Named Hook Attributes
+## Named Hook アトリビュート
 
 > Named Hook を使用するサブスクライバーの推奨配置先: `src/Security/Subscriber/`
 

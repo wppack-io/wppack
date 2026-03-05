@@ -208,7 +208,7 @@ add_action('init', function () use ($container) {
 });
 ```
 
-## Named Hook Attributes
+## Named Hook アトリビュート
 
 > Named Hook を使用するサブスクライバーの推奨配置先: `src/Shortcode/Subscriber/`
 

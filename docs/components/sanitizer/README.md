@@ -135,7 +135,7 @@ $sanitizer->url($url);  // "http://example.com/?a=1&b=2"
 $escaper->url($url);    // "http://example.com/?a=1&#038;b=2"
 ```
 
-## Named Hook Attributes
+## Named Hook アトリビュート
 
 > Named Hook を使用するサブスクライバーの推奨配置先: `src/Sanitizer/Subscriber/`
 

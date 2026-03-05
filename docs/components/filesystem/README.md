@@ -172,7 +172,7 @@ $customPath = $uploadPath->subdir('exports');
 // /var/www/html/wp-content/uploads/exports
 ```
 
-## Named Hook Attributes
+## Named Hook アトリビュート
 
 > Named Hook を使用するサブスクライバーの推奨配置先: `src/Filesystem/Subscriber/`
 

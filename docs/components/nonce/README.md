@@ -236,7 +236,7 @@ class PostActions
 }
 ```
 
-## Named Hook Attributes
+## Named Hook アトリビュート
 
 > Named Hook を使用するサブスクライバーの推奨配置先: `src/Nonce/Subscriber/`
 

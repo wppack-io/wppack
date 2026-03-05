@@ -191,7 +191,7 @@ class AnalyticsTable
 
 フレームワークが `schema(DatabaseManager)` を呼び出すため、`global $wpdb` は不要です。プラグインの有効化時に `dbDelta()` を通じてテーブルが自動的に作成・更新されます。
 
-## Named Hook Attributes
+## Named Hook アトリビュート
 
 > Named Hook を使用するサブスクライバーの推奨配置先: `src/Database/Subscriber/`
 
