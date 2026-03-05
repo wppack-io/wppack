@@ -6,6 +6,7 @@ namespace WpPack\Component\Mailer\Tests\Transport;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Mailer\Exception\InvalidArgumentException;
 use WpPack\Component\Mailer\Exception\UnsupportedSchemeException;
 use WpPack\Component\Mailer\Transport\Dsn;
 use WpPack\Component\Mailer\Transport\NativeTransport;
@@ -85,5 +86,37 @@ final class TransportTest extends TestCase
         $dsn = Dsn::fromString('native://default');
 
         self::assertInstanceOf(NativeTransport::class, $transport->create($dsn));
+    }
+
+    #[Test]
+    public function nativeTransportGetNameReturnsMail(): void
+    {
+        $transport = new NativeTransport();
+
+        self::assertSame('mail', $transport->getName());
+    }
+
+    #[Test]
+    public function smtpTransportGetNameReturnsSmtp(): void
+    {
+        $transport = new SmtpTransport('smtp.example.com');
+
+        self::assertSame('smtp', $transport->getName());
+    }
+
+    #[Test]
+    public function dsnFromStringThrowsOnMissingHost(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        Dsn::fromString('smtp://');
+    }
+
+    #[Test]
+    public function dsnFromStringThrowsOnInvalidUrl(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        Dsn::fromString('://');
     }
 }

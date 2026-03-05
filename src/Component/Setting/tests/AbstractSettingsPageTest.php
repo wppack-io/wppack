@@ -397,6 +397,99 @@ final class AbstractSettingsPageTest extends TestCase
         self::assertArrayHasKey($page->optionName, $settings);
         self::assertIsCallable($settings[$page->optionName]['sanitize_callback']);
     }
+
+    #[Test]
+    public function initSettingsWithSanitizeOverrideExecutesSanitizeCallback(): void
+    {
+        if (!function_exists('register_setting')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $page = new SanitizeTestSettingsPage();
+        $page->initSettings();
+
+        $settings = get_registered_settings();
+        $callback = $settings[$page->optionName]['sanitize_callback'];
+
+        $result = $callback(['name' => '  trimmed  ', 'value' => '  data  ']);
+
+        self::assertSame('trimmed', $result['name']);
+        self::assertSame('data', $result['value']);
+    }
+
+    #[Test]
+    public function initSettingsWithValidateOverrideExecutesValidateCallback(): void
+    {
+        if (!function_exists('register_setting')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $page = new ValidateTestSettingsPage();
+        $page->initSettings();
+
+        $settings = get_registered_settings();
+        $callback = $settings[$page->optionName]['sanitize_callback'];
+
+        $result = $callback(['api_key' => '']);
+
+        self::assertSame(['api_key' => ''], $result);
+
+        $errors = get_settings_errors($page->optionGroup);
+        $found = false;
+        foreach ($errors as $error) {
+            if ($error['code'] === 'api_key_required') {
+                $found = true;
+                break;
+            }
+        }
+        self::assertTrue($found, 'Validation error should be registered');
+    }
+
+    #[Test]
+    public function initSettingsWithBothOverridesExecutesBoth(): void
+    {
+        if (!function_exists('register_setting')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $page = new SanitizeAndValidateTestSettingsPage();
+        $page->initSettings();
+
+        $settings = get_registered_settings();
+        $callback = $settings[$page->optionName]['sanitize_callback'];
+
+        $result = $callback(['api_key' => '  ', 'name' => '  test  ']);
+
+        // sanitize trims first
+        self::assertSame('', $result['api_key']);
+        self::assertSame('test', $result['name']);
+
+        // validate catches empty api_key
+        $errors = get_settings_errors($page->optionGroup);
+        $found = false;
+        foreach ($errors as $error) {
+            if ($error['code'] === 'api_key_empty') {
+                $found = true;
+                break;
+            }
+        }
+        self::assertTrue($found, 'Validation error should be registered after sanitize');
+    }
+
+    #[Test]
+    public function initSettingsWithoutOverridesHasNoSanitizeCallback(): void
+    {
+        if (!function_exists('register_setting')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $page = new MinimalTestSettingsPage();
+        $page->initSettings();
+
+        $settings = get_registered_settings();
+        self::assertArrayHasKey($page->optionName, $settings);
+        self::assertEmpty($settings[$page->optionName]['sanitize_callback']);
+    }
 }
 
 #[AsSettingsPage(
@@ -488,5 +581,25 @@ class RendererOverrideTestSettingsPage extends AbstractSettingsPage
     protected function createRenderer(): SettingsRenderer
     {
         return new OverrideTestRenderer();
+    }
+}
+
+#[AsSettingsPage(slug: 'sanitize-validate-test', title: 'Sanitize & Validate Test')]
+class SanitizeAndValidateTestSettingsPage extends AbstractSettingsPage
+{
+    protected function configure(SettingsConfigurator $settings): void {}
+
+    protected function sanitize(array $input): array
+    {
+        return array_map('trim', $input);
+    }
+
+    protected function validate(array $input, ValidationContext $context): array
+    {
+        if (($input['api_key'] ?? '') === '') {
+            $context->error('api_key_empty', 'API Key must not be empty.');
+        }
+
+        return $input;
     }
 }

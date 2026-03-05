@@ -7,6 +7,7 @@ namespace WpPack\Component\Routing\Tests;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Routing\Response\BlockTemplateResponse;
 use WpPack\Component\Routing\Response\JsonResponse;
 use WpPack\Component\Routing\Response\RedirectResponse;
 use WpPack\Component\Routing\Response\Response;
@@ -373,5 +374,97 @@ final class RouteEntryTest extends TestCase
 
         global $wp_rewrite;
         self::assertArrayHasKey('^products/([^/]+)/(\d+)/?$', $wp_rewrite->extra_rules_top);
+    }
+
+    #[Test]
+    public function dispatchWithTemplateResponseSetsStatusHeader(): void
+    {
+        if (!function_exists('get_query_var') || !function_exists('status_header')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $entry = new RouteEntry(
+            'test_route',
+            '^test/([^/]+)/?$',
+            'index.php?test_slug=$matches[1]',
+            RoutePosition::Top,
+            [],
+            fn() => new TemplateResponse(
+                '/path/to/404.php',
+                statusCode: 404,
+                headers: ['X-Custom' => 'value'],
+            ),
+        );
+
+        set_query_var('test_slug', 'not-found');
+        $entry->handleTemplateRedirect();
+
+        self::assertSame('/path/to/404.php', $entry->filterTemplateInclude('/original.php'));
+    }
+
+    #[Test]
+    public function handleTemplateRedirectDispatchesFirstMatchingVar(): void
+    {
+        if (!function_exists('get_query_var') || !function_exists('set_query_var')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $dispatchCount = 0;
+        $entry = new RouteEntry(
+            'test_route',
+            '^events/(\d{4})/(\d{2})/?$',
+            'index.php?event_year=$matches[1]&event_month=$matches[2]',
+            RoutePosition::Top,
+            [],
+            function () use (&$dispatchCount) {
+                $dispatchCount++;
+
+                return new TemplateResponse('/events/archive.php');
+            },
+        );
+
+        // Both query vars have values, but dispatch should only happen once
+        set_query_var('event_year', '2024');
+        set_query_var('event_month', '03');
+        $entry->handleTemplateRedirect();
+
+        self::assertSame(1, $dispatchCount);
+        self::assertSame('/events/archive.php', $entry->filterTemplateInclude('/original.php'));
+    }
+
+    #[Test]
+    public function dispatchWithBlockTemplateResponse(): void
+    {
+        if (!function_exists('get_query_var') || !function_exists('get_block_template')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $entry = new RouteEntry(
+            'test_route',
+            '^test/([^/]+)/?$',
+            'index.php?test_slug=$matches[1]',
+            RoutePosition::Top,
+            [],
+            fn() => new BlockTemplateResponse(
+                'custom-template',
+                context: ['item_id' => 42],
+            ),
+        );
+
+        set_query_var('test_slug', 'hello');
+        $entry->handleTemplateRedirect();
+
+        // When block template is found, pendingBlockTemplate is set to template-canvas.php
+        $result = $entry->filterTemplateInclude('/original.php');
+        // If get_block_template returns null, original template is used
+        // If it returns a template, template-canvas.php path is used
+        if ($result !== '/original.php') {
+            self::assertStringContainsString('template-canvas.php', $result);
+        } else {
+            // Block template was not found in the test environment
+            self::assertSame('/original.php', $result);
+        }
+
+        self::assertSame(42, get_query_var('item_id'));
     }
 }

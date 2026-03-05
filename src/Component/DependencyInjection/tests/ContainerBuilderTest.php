@@ -13,6 +13,7 @@ use WpPack\Component\DependencyInjection\Exception\ParameterNotFoundException;
 use WpPack\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
+use WpPack\Component\DependencyInjection\Tests\Fixtures\SimpleService;
 
 final class ContainerBuilderTest extends TestCase
 {
@@ -297,5 +298,29 @@ final class ContainerBuilderTest extends TestCase
         $container = $builder->compile();
 
         self::assertFalse($container->has('any.service'));
+    }
+
+    #[Test]
+    public function loadConfigRegistersServicesFromFile(): void
+    {
+        $builder = new ContainerBuilder();
+
+        $result = $builder->loadConfig(__DIR__ . '/Fixtures/Config/test_services.php');
+
+        self::assertSame($builder, $result);
+        self::assertTrue($builder->hasDefinition(SimpleService::class));
+        self::assertSame('TestApp', $builder->getParameter('app.name'));
+    }
+
+    #[Test]
+    public function loadConfigCallsConfiguratorProcess(): void
+    {
+        $builder = new ContainerBuilder();
+
+        $builder->loadConfig(__DIR__ . '/Fixtures/Config/test_services.php');
+
+        $definition = $builder->findDefinition(SimpleService::class);
+        self::assertTrue($definition->isAutowired());
+        self::assertTrue($definition->isPublic());
     }
 }

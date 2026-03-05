@@ -86,6 +86,28 @@ final class SesTransportFactoryTest extends TestCase
         $factory->create($dsn);
     }
 
+    #[Test]
+    public function createWithSessionToken(): void
+    {
+        $factory = new SesTransportFactory();
+        $dsn = Dsn::fromString('ses+api://AKID:SECRET@default?region=us-east-1&session_token=TOKEN');
+
+        $transport = $factory->create($dsn);
+
+        self::assertInstanceOf(SesApiTransport::class, $transport);
+    }
+
+    #[Test]
+    public function createWithCustomEndpoint(): void
+    {
+        $factory = new SesTransportFactory();
+        $dsn = Dsn::fromString('ses+api://AKID:SECRET@custom-host.example.com:8443?region=us-east-1');
+
+        $transport = $factory->create($dsn);
+
+        self::assertInstanceOf(SesApiTransport::class, $transport);
+    }
+
     /** @return iterable<string, array{string, bool}> */
     public static function supportedSchemes(): iterable
     {

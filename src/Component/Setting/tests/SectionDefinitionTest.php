@@ -320,6 +320,99 @@ final class SectionDefinitionTest extends TestCase
 
         self::assertSame($choices, $context['choices']);
     }
+
+    #[Test]
+    public function rendererFieldCallbackRendersNonCheckboxField(): void
+    {
+        if (!function_exists('get_option')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $page = new FieldTypeTestSettingsPage();
+        $configurator = new SettingsConfigurator($page);
+
+        update_option($page->optionName, ['api_key' => 'stored-value']);
+
+        $section = $configurator->section('general', 'General');
+        $section->text('api_key', 'API Key');
+
+        $fields = $section->getFields();
+        $callback = $fields[0]->renderCallback;
+
+        ob_start();
+        $callback($fields[0]->args);
+        $output = ob_get_clean();
+
+        self::assertStringContainsString('type="text"', $output);
+        self::assertStringContainsString('value="stored-value"', $output);
+        self::assertStringContainsString('id="api_key"', $output);
+
+        delete_option($page->optionName);
+    }
+
+    #[Test]
+    public function rendererFieldCallbackRendersCheckboxField(): void
+    {
+        if (!function_exists('get_option')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $page = new FieldTypeTestSettingsPage();
+        $configurator = new SettingsConfigurator($page);
+
+        update_option($page->optionName, ['debug' => true]);
+
+        $section = $configurator->section('general', 'General');
+        $section->checkbox('debug', 'Debug Mode', label: 'Enable');
+
+        $fields = $section->getFields();
+        $callback = $fields[0]->renderCallback;
+
+        ob_start();
+        $callback($fields[0]->args);
+        $output = ob_get_clean();
+
+        self::assertStringContainsString('type="checkbox"', $output);
+        self::assertStringContainsString('checked="checked"', $output);
+        self::assertStringContainsString('Enable', $output);
+
+        delete_option($page->optionName);
+    }
+
+    #[Test]
+    public function fieldWithStringTypeCallbackInvokesRenderer(): void
+    {
+        if (!function_exists('get_option')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $page = new FieldTypeTestSettingsPage();
+        $configurator = new SettingsConfigurator($page);
+
+        update_option($page->optionName, ['api_key' => 'my-key']);
+
+        $section = $configurator->section('general', 'General');
+        $section->field('api_key', 'API Key', 'text', [
+            'id' => 'api_key',
+            'name' => 'field_type_test[api_key]',
+            'default' => '',
+            'class' => 'regular-text',
+            'placeholder' => '',
+            'description' => '',
+        ]);
+
+        $fields = $section->getFields();
+        $callback = $fields[0]->renderCallback;
+
+        ob_start();
+        $callback($fields[0]->args);
+        $output = ob_get_clean();
+
+        self::assertStringContainsString('type="text"', $output);
+        self::assertStringContainsString('value="my-key"', $output);
+
+        delete_option($page->optionName);
+    }
 }
 
 #[AsSettingsPage(slug: 'field-type-test', title: 'Field Type Test')]

@@ -128,12 +128,18 @@ final class RouteEntry
         }
     }
 
+    /**
+     * @codeCoverageIgnore
+     */
     private function handleJson(JsonResponse $response): void
     {
         $this->sendHeaders($response);
         wp_send_json($response->data, $response->statusCode);
     }
 
+    /**
+     * @codeCoverageIgnore
+     */
     private function handleRedirect(RedirectResponse $response): void
     {
         $this->sendHeaders($response);

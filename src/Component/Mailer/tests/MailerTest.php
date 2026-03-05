@@ -512,4 +512,67 @@ final class MailerTest extends TestCase
         self::assertNotNull($succeededData);
         self::assertSame('Rendered: email/welcome.txt', $succeededData['sent_message']->getEmail()->getText());
     }
+
+    #[Test]
+    public function sendWithInlineAttachment(): void
+    {
+        if (!function_exists('do_action_ref_array')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $file = tempnam(sys_get_temp_dir(), 'wppack_mailer_inline_');
+        file_put_contents($file, 'image-data');
+
+        try {
+            $succeededData = null;
+            add_action('wp_mail_succeeded', static function (array $data) use (&$succeededData): void {
+                $succeededData = $data;
+            });
+
+            $mailer = new Mailer(new NullTransport());
+            $email = (new Email())
+                ->from('sender@example.com')
+                ->to('user@example.com')
+                ->subject('Inline Image')
+                ->html('<img src="cid:logo">')
+                ->embed($file, 'logo', 'image/png');
+
+            $mailer->send($email);
+
+            self::assertNotNull($succeededData);
+            $attachments = $succeededData['sent_message']->getEmail()->getAttachments();
+            self::assertCount(1, $attachments);
+            self::assertTrue($attachments[0]->inline);
+            self::assertSame('logo', $attachments[0]->name);
+        } finally {
+            unlink($file);
+        }
+    }
+
+    #[Test]
+    public function sendWithHtmlOnlyNoTextBody(): void
+    {
+        if (!function_exists('do_action_ref_array')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $succeededData = null;
+        add_action('wp_mail_succeeded', static function (array $data) use (&$succeededData): void {
+            $succeededData = $data;
+        });
+
+        $mailer = new Mailer(new NullTransport());
+        $email = (new Email())
+            ->from('sender@example.com')
+            ->to('user@example.com')
+            ->subject('HTML Only')
+            ->html('<h1>Hello</h1>');
+
+        $mailer->send($email);
+
+        self::assertNotNull($succeededData);
+        $sentEmail = $succeededData['sent_message']->getEmail();
+        self::assertSame('<h1>Hello</h1>', $sentEmail->getHtml());
+        self::assertNull($sentEmail->getText());
+    }
 }

@@ -290,6 +290,36 @@ final class SendGridApiTransportTest extends TestCase
         self::assertSame('<h1>Hello</h1>', $content[1]['value']);
     }
 
+    #[Test]
+    public function sendWithInlineAttachment(): void
+    {
+        if (!function_exists('wp_json_encode')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $this->mockResponse = [
+            'headers' => ['X-Message-Id' => 'sg-inline-id'],
+            'body' => '',
+            'response' => ['code' => 202, 'message' => 'Accepted'],
+            'cookies' => [],
+            'filename' => null,
+        ];
+
+        $transport = new SendGridApiTransport('SG.test-key');
+        $phpMailer = $this->createConfiguredPhpMailer();
+        $phpMailer->isHTML(true);
+        $phpMailer->Body = '<img src="cid:logo">';
+        $phpMailer->addStringEmbeddedImage('image-data', 'logo', 'logo.png', 'base64', 'image/png');
+
+        $transport->send($phpMailer);
+
+        $payload = json_decode((string) $this->capturedBody, true);
+        self::assertArrayHasKey('attachments', $payload);
+        self::assertCount(1, $payload['attachments']);
+        self::assertSame('inline', $payload['attachments'][0]['disposition']);
+        self::assertSame('logo', $payload['attachments'][0]['content_id']);
+    }
+
     private function createConfiguredPhpMailer(): PhpMailer
     {
         $phpMailer = new PhpMailer(true);

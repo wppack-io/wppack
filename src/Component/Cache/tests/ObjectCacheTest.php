@@ -389,4 +389,193 @@ final class ObjectCacheTest extends TestCase
         $this->cache->close();
         self::assertTrue(true);
     }
+
+    // --- increment from adapter ---
+
+    #[Test]
+    public function incrementFetchesFromAdapterWhenNotInRuntime(): void
+    {
+        // Store value directly in adapter (bypassing runtime cache)
+        $fullKey = 'wp:0:default:counter';
+        $this->adapter->set($fullKey, serialize(10));
+
+        // increment should fetch from adapter since runtime is empty
+        $result = $this->cache->increment('counter');
+
+        self::assertSame(11, $result);
+    }
+
+    #[Test]
+    public function incrementReturnsFalseForNonNumericValue(): void
+    {
+        $this->cache->set('key', 'not-a-number');
+
+        self::assertFalse($this->cache->increment('key'));
+    }
+
+    #[Test]
+    public function decrementByOffset(): void
+    {
+        $this->cache->set('counter', 20);
+
+        self::assertSame(17, $this->cache->decrement('counter', 3));
+    }
+
+    #[Test]
+    public function decrementClampsToZero(): void
+    {
+        $this->cache->set('counter', 2);
+
+        self::assertSame(0, $this->cache->decrement('counter', 10));
+    }
+
+    // --- getMultiple with force ---
+
+    #[Test]
+    public function getMultipleWithForceBypassesRuntime(): void
+    {
+        $this->cache->set('key1', 'original1');
+        $this->cache->set('key2', 'original2');
+
+        // Modify adapter directly
+        $this->adapter->set('wp:0:default:key1', serialize('modified1'));
+
+        // Without force, returns runtime
+        $results = $this->cache->getMultiple(['key1', 'key2']);
+        self::assertSame('original1', $results['key1']);
+
+        // With force, re-fetches from adapter
+        $results = $this->cache->getMultiple(['key1', 'key2'], 'default', true);
+        self::assertSame('modified1', $results['key1']);
+        self::assertSame('original2', $results['key2']);
+    }
+
+    // --- setMultiple on non-persistent group ---
+
+    #[Test]
+    public function setMultipleOnNonPersistentGroup(): void
+    {
+        $this->cache->addNonPersistentGroups(['temp']);
+
+        $results = $this->cache->setMultiple(['k1' => 'v1', 'k2' => 'v2'], 'temp');
+
+        self::assertTrue($results['k1']);
+        self::assertTrue($results['k2']);
+        self::assertSame('v1', $this->cache->get('k1', 'temp'));
+        self::assertSame('v2', $this->cache->get('k2', 'temp'));
+
+        // Flush runtime — values should be gone (no adapter fallback)
+        $this->cache->flushRuntime();
+        self::assertFalse($this->cache->get('k1', 'temp'));
+    }
+
+    // --- deleteMultiple on non-persistent group ---
+
+    #[Test]
+    public function deleteMultipleOnNonPersistentGroup(): void
+    {
+        $this->cache->addNonPersistentGroups(['temp']);
+
+        $this->cache->set('k1', 'v1', 'temp');
+        $this->cache->set('k2', 'v2', 'temp');
+
+        $results = $this->cache->deleteMultiple(['k1', 'k2'], 'temp');
+
+        self::assertTrue($results['k1']);
+        self::assertTrue($results['k2']);
+        self::assertFalse($this->cache->get('k1', 'temp'));
+        self::assertFalse($this->cache->get('k2', 'temp'));
+    }
+
+    // --- flushGroup on non-persistent group ---
+
+    #[Test]
+    public function flushGroupOnNonPersistentGroup(): void
+    {
+        $this->cache->addNonPersistentGroups(['temp']);
+
+        $this->cache->set('k1', 'v1', 'temp');
+        $this->cache->set('k2', 'v2', 'temp');
+
+        self::assertTrue($this->cache->flushGroup('temp'));
+        self::assertFalse($this->cache->get('k1', 'temp'));
+        self::assertFalse($this->cache->get('k2', 'temp'));
+    }
+
+    // --- Null adapter edge cases ---
+
+    #[Test]
+    public function flushWithNullAdapter(): void
+    {
+        $cache = new ObjectCache(null);
+        $cache->set('key', 'value');
+
+        self::assertTrue($cache->flush());
+        self::assertFalse($cache->get('key'));
+    }
+
+    #[Test]
+    public function closeWithNullAdapter(): void
+    {
+        $cache = new ObjectCache(null);
+
+        // close on null adapter should not throw
+        $cache->close();
+        self::assertTrue(true);
+    }
+
+    // --- switchToBlog ---
+
+    #[Test]
+    public function switchToBlogChangesKeyPrefix(): void
+    {
+        $this->cache->switchToBlog(1);
+        $this->cache->set('key', 'blog1-value');
+
+        $this->cache->switchToBlog(3);
+        $this->cache->set('key', 'blog3-value');
+
+        // Verify blog 3 value
+        self::assertSame('blog3-value', $this->cache->get('key'));
+
+        // Switch back to blog 1 — runtime cache is separate
+        $this->cache->switchToBlog(1);
+        self::assertSame('blog1-value', $this->cache->get('key'));
+    }
+
+    // --- add with adapter failure ---
+
+    #[Test]
+    public function addReturnsFalseWhenAdapterReturnsFalse(): void
+    {
+        // First add succeeds — key is now in adapter
+        self::assertTrue($this->cache->add('key', 'first'));
+
+        // Clear runtime so the second add won't be caught by runtime check
+        $this->cache->flushRuntime();
+
+        // Second add should fail because key exists in adapter
+        self::assertFalse($this->cache->add('key', 'second'));
+
+        // Value should not be in runtime after failed add
+        // Force fetch from adapter to verify original value persists
+        $found = false;
+        $result = $this->cache->get('key', 'default', true, $found);
+        self::assertTrue($found);
+        self::assertSame('first', $result);
+    }
+
+    // --- replace checks adapter ---
+
+    #[Test]
+    public function replaceChecksAdapterWhenNotInRuntime(): void
+    {
+        // Store value directly in adapter (bypassing runtime cache)
+        $fullKey = 'wp:0:default:key';
+        $this->adapter->set($fullKey, serialize('adapter-value'));
+
+        // replace should find the key in adapter and succeed
+        self::assertTrue($this->cache->replace('key', 'new-value'));
+        self::assertSame('new-value', $this->cache->get('key'));
+    }
 }

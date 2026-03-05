@@ -173,4 +173,82 @@ final class DsnTest extends TestCase
         self::assertSame('master-pass', $dsn->getUser());
         self::assertSame('mymaster', $dsn->getOption('redis_sentinel'));
     }
+
+    #[Test]
+    public function parsesUnixSocketWithQueryString(): void
+    {
+        $dsn = Dsn::fromString('redis:///var/run/redis.sock?db=2');
+
+        self::assertSame('redis', $dsn->getScheme());
+        self::assertNull($dsn->getHost());
+        self::assertSame('/var/run/redis.sock', $dsn->getPath());
+        self::assertSame('2', $dsn->getOption('db'));
+    }
+
+    #[Test]
+    public function parsesHostWithNonNumericPortSuffix(): void
+    {
+        $dsn = Dsn::fromString('redis://hostname:notaport/2');
+
+        self::assertSame('redis', $dsn->getScheme());
+        self::assertSame('hostname:notaport', $dsn->getHost());
+        self::assertNull($dsn->getPort());
+        self::assertSame('/2', $dsn->getPath());
+    }
+
+    #[Test]
+    public function parsesUserWithPassword(): void
+    {
+        $dsn = Dsn::fromString('redis://user:password@127.0.0.1:6379');
+
+        self::assertSame('user', $dsn->getUser());
+        self::assertSame('password', $dsn->getPassword());
+        self::assertSame('127.0.0.1', $dsn->getHost());
+        self::assertSame(6379, $dsn->getPort());
+    }
+
+    #[Test]
+    public function throwsOnMalformedDsnWithoutScheme(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        Dsn::fromString('invalid-dsn');
+    }
+
+    #[Test]
+    public function parsesQueryWithKeyOnly(): void
+    {
+        $dsn = Dsn::fromString('redis://127.0.0.1?flag');
+
+        self::assertSame('', $dsn->getOption('flag'));
+    }
+
+    #[Test]
+    public function parsesHostWithoutPortOrPath(): void
+    {
+        $dsn = Dsn::fromString('redis://hostname');
+
+        self::assertSame('redis', $dsn->getScheme());
+        self::assertSame('hostname', $dsn->getHost());
+        self::assertNull($dsn->getPort());
+        self::assertNull($dsn->getPath());
+    }
+
+    #[Test]
+    public function parsesEmptyPairsInQuery(): void
+    {
+        $dsn = Dsn::fromString('redis://host?&timeout=5&');
+
+        self::assertSame('5', $dsn->getOption('timeout'));
+        self::assertNull($dsn->getOption(''));
+    }
+
+    #[Test]
+    public function existingScalarConvertedToArrayInQuery(): void
+    {
+        $dsn = Dsn::fromString('redis://host?timeout=5&timeout[]=3');
+
+        self::assertSame(['5', '3'], $dsn->getArrayOption('timeout'));
+        self::assertNull($dsn->getOption('timeout'));
+    }
 }

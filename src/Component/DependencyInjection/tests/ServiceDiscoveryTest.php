@@ -7,6 +7,7 @@ namespace WpPack\Component\DependencyInjection\Tests;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
+use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\DependencyInjection\ServiceDiscovery;
 use WpPack\Component\DependencyInjection\Tests\Fixtures\AbstractService;
 use WpPack\Component\DependencyInjection\Tests\Fixtures\DependentService;
@@ -306,6 +307,197 @@ final class ServiceDiscoveryTest extends TestCase
             self::assertFalse($args['$value']);
         } finally {
             unset($_ENV['TEST_ENV_BOOL']);
+        }
+    }
+
+    #[Test]
+    public function resolvesServiceAutowireAttribute(): void
+    {
+        $builder = new ContainerBuilder();
+        $discovery = new ServiceDiscovery($builder);
+
+        $discovery->discover(
+            __DIR__ . '/AutowireFixtures',
+            'WpPack\\Component\\DependencyInjection\\Tests\\AutowireFixtures',
+        );
+
+        $definition = $builder->findDefinition(AutowireFixtures\ServiceAutowireService::class);
+        $args = $definition->getArguments();
+        self::assertInstanceOf(Reference::class, $args['$service']);
+        self::assertSame('some.service', $args['$service']->getId());
+    }
+
+    #[Test]
+    public function resolvesParamAutowireAttribute(): void
+    {
+        $builder = new ContainerBuilder();
+        $discovery = new ServiceDiscovery($builder);
+
+        $discovery->discover(
+            __DIR__ . '/AutowireFixtures',
+            'WpPack\\Component\\DependencyInjection\\Tests\\AutowireFixtures',
+        );
+
+        $definition = $builder->findDefinition(AutowireFixtures\ParamAutowireService::class);
+        $args = $definition->getArguments();
+        self::assertSame('%some.param%', $args['$value']);
+    }
+
+    #[Test]
+    public function envNotSetWithoutDefaultUsesEnvPlaceholder(): void
+    {
+        // Ensure env var is not set
+        unset($_ENV['UNDEFINED_ENV_VAR']);
+        putenv('UNDEFINED_ENV_VAR');
+
+        $builder = new ContainerBuilder();
+        $discovery = new ServiceDiscovery($builder);
+
+        $discovery->discover(
+            __DIR__ . '/AutowireFixtures',
+            'WpPack\\Component\\DependencyInjection\\Tests\\AutowireFixtures',
+        );
+
+        $definition = $builder->findDefinition(AutowireFixtures\EnvNoDefaultService::class);
+        $args = $definition->getArguments();
+        self::assertSame('%env(UNDEFINED_ENV_VAR)%', $args['$value']);
+    }
+
+    #[Test]
+    public function constantNotDefinedWithoutDefaultThrows(): void
+    {
+        $builder = new ContainerBuilder();
+        $discovery = new ServiceDiscovery($builder);
+
+        $method = new \ReflectionMethod($discovery, 'resolveConstant');
+
+        // Use a parameter without a default value
+        $paramReflection = (new \ReflectionClass(AutowireFixtures\EnvNoDefaultService::class))
+            ->getConstructor()
+            ->getParameters()[0];
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('NONEXISTENT_CONSTANT');
+
+        $method->invoke($discovery, 'NONEXISTENT_CONSTANT', $paramReflection);
+    }
+
+    #[Test]
+    public function envWithFloatTypeCastsToFloat(): void
+    {
+        $_ENV['TEST_FLOAT'] = '3.14';
+
+        try {
+            $builder = new ContainerBuilder();
+            $discovery = new ServiceDiscovery($builder);
+
+            $discovery->discover(
+                __DIR__ . '/AutowireFixtures',
+                'WpPack\\Component\\DependencyInjection\\Tests\\AutowireFixtures',
+            );
+
+            $definition = $builder->findDefinition(AutowireFixtures\FloatEnvService::class);
+            $args = $definition->getArguments();
+            self::assertSame(3.14, $args['$value']);
+        } finally {
+            unset($_ENV['TEST_FLOAT']);
+        }
+    }
+
+    #[Test]
+    public function envWithArrayTypeCastsToArray(): void
+    {
+        $_ENV['TEST_ARRAY'] = 'test_value';
+
+        try {
+            $builder = new ContainerBuilder();
+            $discovery = new ServiceDiscovery($builder);
+
+            $discovery->discover(
+                __DIR__ . '/AutowireFixtures',
+                'WpPack\\Component\\DependencyInjection\\Tests\\AutowireFixtures',
+            );
+
+            $definition = $builder->findDefinition(AutowireFixtures\ArrayEnvService::class);
+            $args = $definition->getArguments();
+            self::assertIsArray($args['$value']);
+        } finally {
+            unset($_ENV['TEST_ARRAY']);
+        }
+    }
+
+    #[Test]
+    public function castBoolWithNonStringValue(): void
+    {
+        // Use int env value to test (bool) cast path for non-string
+        $_ENV['TEST_ENV_BOOL'] = '1';
+
+        try {
+            $builder = new ContainerBuilder();
+            $discovery = new ServiceDiscovery($builder);
+
+            $discovery->discover(
+                __DIR__ . '/Fixtures/Config',
+                'WpPack\\Component\\DependencyInjection\\Tests\\Fixtures\\Config',
+            );
+
+            $definition = $builder->findDefinition(Fixtures\Config\BoolConfig::class);
+            $args = $definition->getArguments();
+            self::assertTrue($args['$value']);
+        } finally {
+            unset($_ENV['TEST_ENV_BOOL']);
+        }
+    }
+
+    #[Test]
+    public function optionNotSetWithoutDefaultThrows(): void
+    {
+        if (!function_exists('get_option')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $builder = new ContainerBuilder();
+        $discovery = new ServiceDiscovery($builder);
+
+        $method = new \ReflectionMethod($discovery, 'resolveOption');
+
+        // Use a parameter without a default value
+        $paramReflection = (new \ReflectionClass(AutowireFixtures\EnvNoDefaultService::class))
+            ->getConstructor()
+            ->getParameters()[0];
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('option is not set');
+
+        $method->invoke($discovery, 'nonexistent_option_name', $paramReflection);
+    }
+
+    #[Test]
+    public function optionNestedKeyNotFoundWithoutDefaultThrows(): void
+    {
+        if (!function_exists('get_option')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        update_option('test_nested_opt', ['existing' => 'value']);
+
+        try {
+            $builder = new ContainerBuilder();
+            $discovery = new ServiceDiscovery($builder);
+
+            $method = new \ReflectionMethod($discovery, 'resolveOption');
+
+            // Use a parameter without a default value
+            $paramReflection = (new \ReflectionClass(AutowireFixtures\EnvNoDefaultService::class))
+                ->getConstructor()
+                ->getParameters()[0];
+
+            $this->expectException(\RuntimeException::class);
+            $this->expectExceptionMessage('nested key');
+
+            $method->invoke($discovery, 'test_nested_opt.missing_key', $paramReflection);
+        } finally {
+            delete_option('test_nested_opt');
         }
     }
 }
