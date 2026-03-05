@@ -7,7 +7,10 @@
 テーマ関連の WordPress フックを Named Hook アトリビュートとして提供するコンポーネントです。
 
 > [!NOTE]
-> テーマのブートストラップ、`add_theme_support()` / `register_nav_menus()` / `register_sidebar()` などのセットアップは [Kernel コンポーネント](kernel/README.md) の `ThemeInterface` が提供します。
+> テーマのブートストラップ、`add_theme_support()` / `register_nav_menus()` / `register_sidebar()` などのセットアップは [Kernel コンポーネント](../kernel/README.md) の `ThemeInterface` が提供します。
+
+> [!NOTE]
+> `after_setup_theme` フックは Hook コンポーネントの `AfterSetupThemeAction` を使用してください。Theme コンポーネントはアセット管理・テンプレート出力・カスタマイザーに特化した Named Hook を提供します。
 
 ## インストール
 
@@ -63,8 +66,8 @@ Kernel::registerTheme(new MyTheme());
 Theme コンポーネントの Named Hook Attributes を使って、テーマ関連フックを宣言的に扱います：
 
 ```php
-use WpPack\Component\Theme\Attribute\WpEnqueueScriptsAction;
-use WpPack\Component\Theme\Attribute\BodyClassFilter;
+use WpPack\Component\Theme\Attribute\Action\WpEnqueueScriptsAction;
+use WpPack\Component\Theme\Attribute\Filter\BodyClassFilter;
 
 class ThemeAssets
 {
@@ -88,60 +91,14 @@ class ThemeAssets
 
 > Named Hook を使用するサブスクライバーの推奨配置先: `src/Theme/Subscriber/`
 
-### テーマセットアップフック
-
-#### #[AfterSetupThemeAction]
-
-**WordPress フック:** `after_setup_theme`
-
-> [!NOTE]
-> テーマの基本セットアップ（`add_theme_support()`、`register_nav_menus()` 等）は `ThemeInterface::boot()` で行います。`#[AfterSetupThemeAction]` は `after_setup_theme` タイミングで実行する必要がある処理に使用します。
-
-```php
-use WpPack\Component\Theme\Attribute\AfterSetupThemeAction;
-
-class ThemeTextDomain
-{
-    #[AfterSetupThemeAction(priority: 0)]
-    public function loadTextDomain(): void
-    {
-        load_theme_textdomain('wppack-theme', get_template_directory() . '/languages');
-    }
-}
-```
-
-#### #[WidgetsInitAction]
-
-**WordPress フック:** `widgets_init`
-
-```php
-use WpPack\Component\Theme\Attribute\WidgetsInitAction;
-
-class WidgetAreas
-{
-    #[WidgetsInitAction]
-    public function registerSidebars(): void
-    {
-        register_sidebar([
-            'name' => __('Primary Sidebar', 'wppack-theme'),
-            'id' => 'primary-sidebar',
-            'before_widget' => '<section id="%1$s" class="widget %2$s">',
-            'after_widget' => '</section>',
-            'before_title' => '<h3 class="widget-title">',
-            'after_title' => '</h3>',
-        ]);
-    }
-}
-```
-
 ### アセット管理フック
 
-#### #[WpEnqueueScriptsAction]
+#### #[WpEnqueueScriptsAction(priority?: int = 10)]
 
 **WordPress フック:** `wp_enqueue_scripts`
 
 ```php
-use WpPack\Component\Theme\Attribute\WpEnqueueScriptsAction;
+use WpPack\Component\Theme\Attribute\Action\WpEnqueueScriptsAction;
 
 class ThemeAssets
 {
@@ -155,13 +112,58 @@ class ThemeAssets
 }
 ```
 
-### テンプレートと出力フック
+#### #[WpPrintStylesAction(priority?: int = 10)]
 
-#### #[WpHeadAction] / #[WpFooterAction] / #[WpBodyOpenAction]
+**WordPress フック:** `wp_print_styles`
+
+スタイルシートが出力される直前に実行されます。インラインスタイルの追加などに使用します。
 
 ```php
-use WpPack\Component\Theme\Attribute\WpHeadAction;
-use WpPack\Component\Theme\Attribute\WpFooterAction;
+use WpPack\Component\Theme\Attribute\Action\WpPrintStylesAction;
+
+class ThemeInlineStyles
+{
+    #[WpPrintStylesAction]
+    public function addInlineStyles(): void
+    {
+        $color_scheme = get_theme_mod('color_scheme', 'light');
+        $primary_color = $color_scheme === 'dark' ? '#bb86fc' : '#0073aa';
+
+        printf('<style>:root { --primary-color: %s; }</style>', esc_attr($primary_color));
+    }
+}
+```
+
+#### #[WpPrintScriptsAction(priority?: int = 10)]
+
+**WordPress フック:** `wp_print_scripts`
+
+スクリプトが出力される直前に実行されます。インラインスクリプトの追加などに使用します。
+
+```php
+use WpPack\Component\Theme\Attribute\Action\WpPrintScriptsAction;
+
+class ThemeInlineScripts
+{
+    #[WpPrintScriptsAction]
+    public function addInlineConfig(): void
+    {
+        printf(
+            '<script>window.themeConfig = %s;</script>',
+            wp_json_encode(['ajaxUrl' => admin_url('admin-ajax.php')])
+        );
+    }
+}
+```
+
+### テンプレートと出力フック
+
+#### #[WpHeadAction(priority?: int = 10)] / #[WpFooterAction(priority?: int = 10)] / #[WpBodyOpenAction(priority?: int = 10)]
+
+```php
+use WpPack\Component\Theme\Attribute\Action\WpHeadAction;
+use WpPack\Component\Theme\Attribute\Action\WpFooterAction;
+use WpPack\Component\Theme\Attribute\Action\WpBodyOpenAction;
 
 class ThemeOutput
 {
@@ -169,6 +171,12 @@ class ThemeOutput
     public function addMetaTags(): void
     {
         echo '<meta name="theme-color" content="#0073aa">';
+    }
+
+    #[WpBodyOpenAction]
+    public function addSkipLink(): void
+    {
+        echo '<a class="skip-link screen-reader-text" href="#content">Skip to content</a>';
     }
 
     #[WpFooterAction(priority: 100)]
@@ -181,12 +189,12 @@ class ThemeOutput
 
 ### カスタマイザーフック
 
-#### #[CustomizeRegisterAction]
+#### #[CustomizeRegisterAction(priority?: int = 10)]
 
 **WordPress フック:** `customize_register`
 
 ```php
-use WpPack\Component\Theme\Attribute\CustomizeRegisterAction;
+use WpPack\Component\Theme\Attribute\Action\CustomizeRegisterAction;
 
 class ThemeCustomizer
 {
@@ -216,12 +224,37 @@ class ThemeCustomizer
 }
 ```
 
-### フィルターフック
+#### #[CustomizePreviewInitAction(priority?: int = 10)]
 
-#### #[BodyClassFilter] / #[PostClassFilter]
+**WordPress フック:** `customize_preview_init`
+
+カスタマイザーのプレビュー画面でスクリプトを読み込みます。
 
 ```php
-use WpPack\Component\Theme\Attribute\BodyClassFilter;
+use WpPack\Component\Theme\Attribute\Action\CustomizePreviewInitAction;
+
+class ThemeCustomizer
+{
+    #[CustomizePreviewInitAction]
+    public function enqueuePreviewScript(): void
+    {
+        wp_enqueue_script(
+            'my-theme-customizer-preview',
+            get_template_directory_uri() . '/assets/js/customizer-preview.js',
+            ['customize-preview'],
+            wp_get_theme()->get('Version'),
+            true,
+        );
+    }
+}
+```
+
+### フィルターフック
+
+#### #[BodyClassFilter(priority?: int = 10)] / #[PostClassFilter(priority?: int = 10)]
+
+```php
+use WpPack\Component\Theme\Attribute\Filter\BodyClassFilter;
 
 class ThemeBodyClass
 {
@@ -242,10 +275,10 @@ class ThemeBodyClass
 }
 ```
 
-#### #[ScriptLoaderTagFilter] / #[StyleLoaderTagFilter]
+#### #[ScriptLoaderTagFilter(priority?: int = 10)] / #[StyleLoaderTagFilter(priority?: int = 10)]
 
 ```php
-use WpPack\Component\Theme\Attribute\ScriptLoaderTagFilter;
+use WpPack\Component\Theme\Attribute\Filter\ScriptLoaderTagFilter;
 
 class ThemePerformance
 {
@@ -270,10 +303,6 @@ class ThemePerformance
 ## Hook アトリビュートリファレンス
 
 ```php
-// テーマセットアップ
-#[AfterSetupThemeAction(priority?: int = 10)]      // テーマの初期化
-#[WidgetsInitAction(priority?: int = 10)]           // ウィジェットエリアの登録
-
 // アセット管理
 #[WpEnqueueScriptsAction(priority?: int = 10)]      // フロントエンドのスクリプトとスタイル
 #[WpPrintStylesAction(priority?: int = 10)]          // スタイルの直接出力
@@ -282,19 +311,22 @@ class ThemePerformance
 // テンプレート出力
 #[WpHeadAction(priority?: int = 10)]                 // <head> セクションのコンテンツ
 #[WpFooterAction(priority?: int = 10)]               // </body> 前のコンテンツ
-#[WpBodyOpenAction(priority?: int = 10)]              // <body> タグ直後のコンテンツ
-#[TemplateRedirectAction(priority?: int = 10)]        // テンプレートルーティングロジック
+#[WpBodyOpenAction(priority?: int = 10)]             // <body> タグ直後のコンテンツ
 
 // カスタマイザー
-#[CustomizeRegisterAction(priority?: int = 10)]       // カスタマイザーオプションの登録
-#[CustomizePreviewInitAction(priority?: int = 10)]    // プレビュースクリプト
+#[CustomizeRegisterAction(priority?: int = 10)]      // カスタマイザーオプションの登録
+#[CustomizePreviewInitAction(priority?: int = 10)]   // プレビュースクリプト
 
 // フィルター
-#[BodyClassFilter(priority?: int = 10)]               // Body の CSS クラス
-#[PostClassFilter(priority?: int = 10)]               // 投稿の CSS クラス
-#[ScriptLoaderTagFilter(priority?: int = 10)]         // script タグの変更
-#[StyleLoaderTagFilter(priority?: int = 10)]          // style タグの変更
+#[BodyClassFilter(priority?: int = 10)]              // Body の CSS クラス
+#[PostClassFilter(priority?: int = 10)]              // 投稿の CSS クラス
+#[ScriptLoaderTagFilter(priority?: int = 10)]        // script タグの変更
+#[StyleLoaderTagFilter(priority?: int = 10)]         // style タグの変更
 ```
+
+> [!NOTE]
+> `after_setup_theme` フックは Hook コンポーネントの [`AfterSetupThemeAction`](../hook/README.md) を使用してください。
+> `widgets_init` フックの Named Hook は現在実装されていません。汎用の `#[Action('widgets_init')]` を使用してください。
 
 ## このコンポーネントの使用場面
 
@@ -303,7 +335,7 @@ class ThemePerformance
 - `body_class`、`script_loader_tag` などのフィルターを型安全に扱いたい場合
 
 **代替を検討すべき場合：**
-- テーマの基本セットアップ（`add_theme_support()`、`register_nav_menus()` 等） → `ThemeInterface::boot()`（[Kernel コンポーネント](kernel/README.md)）を使用
+- テーマの基本セットアップ（`add_theme_support()`、`register_nav_menus()` 等） → `ThemeInterface::boot()`（[Kernel コンポーネント](../kernel/README.md)）を使用
 
 ## 依存関係
 
@@ -312,5 +344,4 @@ class ThemePerformance
 
 ### 推奨
 - **DependencyInjection コンポーネント** - サービスコンテナ
-- **Config コンポーネント** - 設定管理
 - **Filesystem コンポーネント** - テンプレート操作
