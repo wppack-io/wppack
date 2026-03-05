@@ -146,4 +146,80 @@ final class SmtpTransportTest extends TestCase
         self::assertFalse($phpMailer->SMTPAuth);
     }
 
+    #[Test]
+    public function sendThrowsTransportExceptionWhenNativePostSendReturnsFalse(): void
+    {
+        $phpMailer = new class (true) extends PhpMailer {
+            public function nativePostSend(): bool
+            {
+                $this->ErrorInfo = 'SMTP connection refused';
+
+                return false;
+            }
+        };
+
+        $transport = new SmtpTransport('smtp.example.com');
+
+        $this->expectException(TransportException::class);
+        $this->expectExceptionMessage('SMTP send failed: SMTP connection refused');
+        $transport->send($phpMailer);
+    }
+
+    #[Test]
+    public function sendRethrowsTransportException(): void
+    {
+        $original = new TransportException('Original SMTP error');
+        $phpMailer = new class (true, $original) extends PhpMailer {
+            public function __construct(
+                bool $exceptions,
+                private readonly TransportException $exception,
+            ) {
+                parent::__construct($exceptions);
+            }
+
+            public function nativePostSend(): bool
+            {
+                throw $this->exception;
+            }
+        };
+
+        $transport = new SmtpTransport('smtp.example.com');
+
+        try {
+            $transport->send($phpMailer);
+            self::fail('Expected TransportException was not thrown');
+        } catch (TransportException $e) {
+            self::assertSame($original, $e);
+            self::assertSame('Original SMTP error', $e->getMessage());
+        }
+    }
+
+    #[Test]
+    public function sendWrapsGenericThrowable(): void
+    {
+        $original = new \RuntimeException('Unexpected SMTP error');
+        $phpMailer = new class (true, $original) extends PhpMailer {
+            public function __construct(
+                bool $exceptions,
+                private readonly \RuntimeException $exception,
+            ) {
+                parent::__construct($exceptions);
+            }
+
+            public function nativePostSend(): bool
+            {
+                throw $this->exception;
+            }
+        };
+
+        $transport = new SmtpTransport('smtp.example.com');
+
+        try {
+            $transport->send($phpMailer);
+            self::fail('Expected TransportException was not thrown');
+        } catch (TransportException $e) {
+            self::assertStringContainsString('SMTP send failed: Unexpected SMTP error', $e->getMessage());
+            self::assertSame($original, $e->getPrevious());
+        }
+    }
 }

@@ -336,6 +336,28 @@ final class RedisAdapterFactoryTest extends TestCase
         self::assertSame('redis', $adapter->getName());
     }
 
+    #[Test]
+    public function buildConnectionParamsWithSocketPath(): void
+    {
+        $method = new \ReflectionMethod(RedisAdapterFactory::class, 'buildConnectionParams');
+
+        $params = $method->invoke($this->factory, Dsn::fromString('redis:///var/run/redis.sock'), []);
+
+        self::assertSame('/var/run/redis.sock', $params['socket']);
+        self::assertArrayNotHasKey('host', $params);
+    }
+
+    #[Test]
+    public function buildConnectionParamsWithAuthFromUser(): void
+    {
+        $method = new \ReflectionMethod(RedisAdapterFactory::class, 'buildConnectionParams');
+
+        $params = $method->invoke($this->factory, Dsn::fromString('redis://mypassword@localhost'), []);
+
+        self::assertSame('mypassword', $params['auth']);
+        self::assertSame('localhost', $params['host']);
+    }
+
     private function hasAnyClient(): bool
     {
         return \extension_loaded('redis')

@@ -473,6 +473,26 @@ final class ServiceDiscoveryTest extends TestCase
     }
 
     #[Test]
+    public function discoverSkipsNonExistentClass(): void
+    {
+        $builder = new ContainerBuilder();
+        $discovery = new ServiceDiscovery($builder);
+
+        $discovery->discover(
+            __DIR__ . '/Fixtures/NonAutoloaded',
+            'WpPack\\Component\\DependencyInjection\\Tests\\Fixtures\\NonAutoloaded',
+        );
+
+        // The file exists but the class namespace doesn't match autoloading,
+        // so class_exists() returns false and the class is skipped.
+        self::assertFalse(
+            $builder->hasDefinition(
+                'WpPack\\Component\\DependencyInjection\\Tests\\Fixtures\\NonAutoloaded\\MissingClass',
+            ),
+        );
+    }
+
+    #[Test]
     public function optionNestedKeyNotFoundWithoutDefaultThrows(): void
     {
         if (!function_exists('get_option')) {

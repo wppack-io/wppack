@@ -299,6 +299,81 @@ final class DynamoDbAdapterTest extends TestCase
         self::assertSame('15', $this->adapter->get('wppack_test:1:posts:counter_ttl'));
     }
 
+    #[Test]
+    public function getReturnsFalseForExpiredItem(): void
+    {
+        $this->adapter->set('wppack_test:1:posts:expire', 'value', 1);
+        self::assertSame('value', $this->adapter->get('wppack_test:1:posts:expire'));
+
+        sleep(2);
+
+        self::assertFalse($this->adapter->get('wppack_test:1:posts:expire'));
+    }
+
+    #[Test]
+    public function splitKeyWithNoSecondColon(): void
+    {
+        // Key like "wppack_test:nosecondcolon" has only one colon after prefix.
+        // splitKey returns [$fullKey, ''] when there is no second colon.
+        // DynamoDB does not allow empty string sort keys, so an exception is expected.
+        $this->expectException(\WpPack\Component\Cache\Exception\AdapterException::class);
+
+        $this->adapter->set('wppack_test:nosecondcolon', 'value');
+    }
+
+    #[Test]
+    public function setMultipleBatchesOver25(): void
+    {
+        $values = [];
+        for ($i = 0; $i < 26; $i++) {
+            $values[sprintf('wppack_test:1:posts:batch_set_%d', $i)] = sprintf('value_%d', $i);
+        }
+
+        $results = $this->adapter->setMultiple($values);
+
+        self::assertCount(26, $results);
+        foreach ($results as $result) {
+            self::assertTrue($result);
+        }
+
+        // Verify a few items were stored correctly
+        self::assertSame('value_0', $this->adapter->get('wppack_test:1:posts:batch_set_0'));
+        self::assertSame('value_25', $this->adapter->get('wppack_test:1:posts:batch_set_25'));
+    }
+
+    #[Test]
+    public function deleteMultipleBatchesOver25(): void
+    {
+        $values = [];
+        $keys = [];
+        for ($i = 0; $i < 26; $i++) {
+            $key = sprintf('wppack_test:1:posts:batch_del_%d', $i);
+            $values[$key] = sprintf('value_%d', $i);
+            $keys[] = $key;
+        }
+
+        $this->adapter->setMultiple($values);
+
+        $results = $this->adapter->deleteMultiple($keys);
+
+        self::assertCount(26, $results);
+        foreach ($results as $result) {
+            self::assertTrue($result);
+        }
+
+        // Verify items were deleted
+        self::assertFalse($this->adapter->get('wppack_test:1:posts:batch_del_0'));
+        self::assertFalse($this->adapter->get('wppack_test:1:posts:batch_del_25'));
+    }
+
+    #[Test]
+    public function getMultipleEmpty(): void
+    {
+        $results = $this->adapter->getMultiple([]);
+
+        self::assertSame([], $results);
+    }
+
     private function ensureTableExists(): void
     {
         try {

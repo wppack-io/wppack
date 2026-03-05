@@ -282,4 +282,64 @@ final class RedisClusterAdapterTest extends TestCase
         self::assertTrue($this->adapter->set('{wppack_test}:after', 'value'));
         self::assertSame('value', $this->adapter->get('{wppack_test}:after'));
     }
+
+    #[Test]
+    public function connectWithFailoverError(): void
+    {
+        $adapter = new RedisClusterAdapter([
+            'hosts' => ['127.0.0.1:7010', '127.0.0.1:7011', '127.0.0.1:7012'],
+            'timeout' => 2,
+            'failover' => 'error',
+        ]);
+
+        if (!$adapter->isAvailable()) {
+            self::markTestSkipped('Redis Cluster is not available at 127.0.0.1:7010-7012.');
+        }
+
+        self::assertTrue($adapter->set('{wppack_test}:failover_error', 'value'));
+        self::assertSame('value', $adapter->get('{wppack_test}:failover_error'));
+
+        $adapter->delete('{wppack_test}:failover_error');
+        $adapter->close();
+    }
+
+    #[Test]
+    public function connectWithFailoverDistribute(): void
+    {
+        $adapter = new RedisClusterAdapter([
+            'hosts' => ['127.0.0.1:7010', '127.0.0.1:7011', '127.0.0.1:7012'],
+            'timeout' => 2,
+            'failover' => 'distribute',
+        ]);
+
+        if (!$adapter->isAvailable()) {
+            self::markTestSkipped('Redis Cluster is not available at 127.0.0.1:7010-7012.');
+        }
+
+        self::assertTrue($adapter->set('{wppack_test}:failover_dist', 'value'));
+        self::assertSame('value', $adapter->get('{wppack_test}:failover_dist'));
+
+        $adapter->delete('{wppack_test}:failover_dist');
+        $adapter->close();
+    }
+
+    #[Test]
+    public function connectWithPersistentCluster(): void
+    {
+        $adapter = new RedisClusterAdapter([
+            'hosts' => ['127.0.0.1:7010', '127.0.0.1:7011', '127.0.0.1:7012'],
+            'timeout' => 2,
+            'persistent' => true,
+        ]);
+
+        if (!$adapter->isAvailable()) {
+            self::markTestSkipped('Redis Cluster is not available at 127.0.0.1:7010-7012.');
+        }
+
+        self::assertTrue($adapter->set('{wppack_test}:persistent', 'value'));
+        self::assertSame('value', $adapter->get('{wppack_test}:persistent'));
+
+        $adapter->delete('{wppack_test}:persistent');
+        $adapter->close();
+    }
 }

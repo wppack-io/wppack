@@ -182,6 +182,37 @@ final class ApcuAdapterTest extends TestCase
     }
 
     #[Test]
+    public function getMultipleReturnsAllFalseForMissing(): void
+    {
+        $results = $this->adapter->getMultiple(['wppack_test:missing1', 'wppack_test:missing2']);
+
+        self::assertFalse($results['wppack_test:missing1']);
+        self::assertFalse($results['wppack_test:missing2']);
+    }
+
+    #[Test]
+    public function deleteMultipleEmpty(): void
+    {
+        $results = $this->adapter->deleteMultiple([]);
+
+        self::assertSame([], $results);
+    }
+
+    #[Test]
+    public function flushWithPrefixDeletesMatchingKeys(): void
+    {
+        $this->adapter->set('wppack_test:a', '1');
+        $this->adapter->set('wppack_test:b', '2');
+        $this->adapter->set('wppack_other:c', '3');
+
+        $this->adapter->flush('wppack_test:');
+
+        self::assertFalse($this->adapter->get('wppack_test:a'));
+        self::assertFalse($this->adapter->get('wppack_test:b'));
+        self::assertSame('3', $this->adapter->get('wppack_other:c'));
+    }
+
+    #[Test]
     public function setWithNegativeTtlDeletesKey(): void
     {
         $this->adapter->set('wppack_test:neg', 'value');

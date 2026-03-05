@@ -209,6 +209,22 @@ final class MemcachedAdapterTest extends TestCase
     }
 
     #[Test]
+    public function getMultipleReturnsAllFalseWhenEmpty(): void
+    {
+        $results = $this->adapter->getMultiple([]);
+
+        self::assertSame([], $results);
+    }
+
+    #[Test]
+    public function deleteMultipleEmpty(): void
+    {
+        $results = $this->adapter->deleteMultiple([]);
+
+        self::assertSame([], $results);
+    }
+
+    #[Test]
     public function setWithNegativeTtlDeletesKey(): void
     {
         $this->adapter->set('wppack_test:neg', 'value');

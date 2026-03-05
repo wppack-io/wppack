@@ -252,4 +252,69 @@ final class RelayAdapterTest extends TestCase
         $adapter->delete('wppack_test:sentinel');
         $adapter->close();
     }
+
+    #[Test]
+    public function connectWithPersistent(): void
+    {
+        $adapter = new RelayAdapter([
+            'host' => '127.0.0.1',
+            'port' => 6379,
+            'persistent' => true,
+        ]);
+
+        if (!$adapter->isAvailable()) {
+            self::markTestSkipped('Redis server is not available at 127.0.0.1:6379.');
+        }
+
+        self::assertTrue($adapter->set('wppack_test:persistent', 'value'));
+        self::assertSame('value', $adapter->get('wppack_test:persistent'));
+
+        $adapter->delete('wppack_test:persistent');
+        $adapter->close();
+    }
+
+    #[Test]
+    public function connectWithPasswordAndDbindex(): void
+    {
+        $adapter = new RelayAdapter([
+            'host' => '127.0.0.1',
+            'port' => 6379,
+            'auth' => 'invalid_password_for_test',
+            'dbindex' => 2,
+        ]);
+
+        try {
+            if (!$adapter->isAvailable()) {
+                self::markTestSkipped('Redis server with auth is not available.');
+            }
+        } catch (\Throwable) {
+            self::markTestSkipped('Redis server does not support auth or connection failed.');
+        }
+
+        self::assertTrue($adapter->set('wppack_test:authdb', 'value'));
+        self::assertSame('value', $adapter->get('wppack_test:authdb'));
+
+        $adapter->delete('wppack_test:authdb');
+        $adapter->close();
+    }
+
+    #[Test]
+    public function connectWithReadTimeout(): void
+    {
+        $adapter = new RelayAdapter([
+            'host' => '127.0.0.1',
+            'port' => 6379,
+            'read_timeout' => 5,
+        ]);
+
+        if (!$adapter->isAvailable()) {
+            self::markTestSkipped('Redis server is not available at 127.0.0.1:6379.');
+        }
+
+        self::assertTrue($adapter->set('wppack_test:readtimeout', 'value'));
+        self::assertSame('value', $adapter->get('wppack_test:readtimeout'));
+
+        $adapter->delete('wppack_test:readtimeout');
+        $adapter->close();
+    }
 }
