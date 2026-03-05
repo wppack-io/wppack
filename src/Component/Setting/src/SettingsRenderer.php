@@ -17,6 +17,9 @@ class SettingsRenderer
 
     public function renderHeader(AbstractSettingsPage $page): void
     {
+        global $plugin_page;
+        $plugin_page ??= '';
+
         echo '<div class="wrap">';
         echo '<h1>' . esc_html(get_admin_page_title()) . '</h1>';
     }
