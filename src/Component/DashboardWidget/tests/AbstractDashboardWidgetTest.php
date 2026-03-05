@@ -251,6 +251,95 @@ final class AbstractDashboardWidgetTest extends TestCase
 
         self::assertArrayNotHasKey($widget->id, $wp_dashboard_control_callbacks);
     }
+
+    #[Test]
+    public function hasConfigureOverrideReturnsTrueForOverride(): void
+    {
+        $widget = new ConfigurableTestDashboardWidget();
+
+        $method = new \ReflectionMethod($widget, 'hasConfigureOverride');
+
+        self::assertTrue($method->invoke($widget));
+    }
+
+    #[Test]
+    public function hasConfigureOverrideReturnsFalseForDefault(): void
+    {
+        $widget = new ConcreteTestDashboardWidget();
+
+        $method = new \ReflectionMethod($widget, 'hasConfigureOverride');
+
+        self::assertFalse($method->invoke($widget));
+    }
+
+    #[Test]
+    public function resolveAttributeThrowsForMissingAttributeWithClassName(): void
+    {
+        try {
+            new NoAttributeTestDashboardWidget();
+            self::fail('Expected LogicException');
+        } catch (\LogicException $e) {
+            self::assertStringContainsString('NoAttributeTestDashboardWidget', $e->getMessage());
+            self::assertStringContainsString('#[AsDashboardWidget]', $e->getMessage());
+        }
+    }
+
+    #[Test]
+    public function widgetPropertiesAreReadonly(): void
+    {
+        $widget = new ConcreteTestDashboardWidget();
+        $reflection = new \ReflectionClass($widget);
+
+        foreach (['id', 'title', 'capability', 'context', 'priority'] as $prop) {
+            self::assertTrue($reflection->getProperty($prop)->isReadOnly());
+        }
+    }
+
+    #[Test]
+    public function configureDefaultDoesNotProduceOutput(): void
+    {
+        $widget = new ConcreteTestDashboardWidget();
+
+        ob_start();
+        $widget->configure();
+        $output = ob_get_clean();
+
+        self::assertEmpty($output);
+    }
+
+    #[Test]
+    public function renderOutputsExpectedContent(): void
+    {
+        $widget = new FullAttributeTestDashboardWidget();
+
+        ob_start();
+        $widget->render();
+        $output = ob_get_clean();
+
+        self::assertSame('<p>full widget</p>', $output);
+    }
+
+    #[Test]
+    public function registerWithCapabilityChecksUserPermission(): void
+    {
+        if (!function_exists('wp_add_dashboard_widget') || !function_exists('wp_set_current_user')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        if (function_exists('set_current_screen')) {
+            set_current_screen('dashboard');
+        }
+
+        global $wp_meta_boxes;
+
+        // Set up admin user with manage_options capability
+        wp_set_current_user(1);
+
+        $widget = new FullAttributeTestDashboardWidget();
+        $widget->register();
+
+        self::assertArrayHasKey($widget->id, $wp_meta_boxes['dashboard'][$widget->context][$widget->priority]);
+    }
 }
 
 #[AsDashboardWidget(id: 'test_dashboard_widget', title: 'Test Dashboard Widget')]

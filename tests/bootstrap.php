@@ -14,6 +14,23 @@ if (file_exists($wpConfigPath)) {
 
     require_once $_tests_dir . '/includes/functions.php';
     require_once $_tests_dir . '/includes/bootstrap.php';
+
+    // Load admin/core includes required by component tests
+    $extraIncludes = [
+        // Admin includes (DashboardWidget, etc.)
+        ABSPATH . 'wp-admin/includes/dashboard.php',
+        ABSPATH . 'wp-admin/includes/template.php',
+        ABSPATH . 'wp-admin/includes/screen.php',
+        // DependencyInjection: WP_Filesystem_Base
+        ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php',
+        // DependencyInjection: WP_Admin_Bar
+        ABSPATH . WPINC . '/class-wp-admin-bar.php',
+    ];
+    foreach ($extraIncludes as $file) {
+        if (file_exists($file)) {
+            require_once $file;
+        }
+    }
 } else {
     // Unit tests only: load PHPMailer from roots/wordpress-no-content
     $wpIncludesDir = __DIR__ . '/../vendor/roots/wordpress-no-content/wp-includes';

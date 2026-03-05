@@ -20,6 +20,13 @@ final class DashboardWidgetRegistryTest extends TestCase
             self::markTestSkipped('WordPress dashboard functions are not available.');
         }
 
+        if (function_exists('set_current_screen')) {
+            set_current_screen('dashboard');
+        }
+
+        global $wp_meta_boxes;
+        $wp_meta_boxes = [];
+
         $this->registry = new DashboardWidgetRegistry();
     }
 
@@ -46,10 +53,6 @@ final class DashboardWidgetRegistryTest extends TestCase
     #[Test]
     public function registerRegistersWidgetInMetaBoxes(): void
     {
-        if (function_exists('set_current_screen')) {
-            set_current_screen('dashboard');
-        }
-
         global $wp_meta_boxes;
 
         $widget = new RegistryTestDashboardWidget();
@@ -62,10 +65,6 @@ final class DashboardWidgetRegistryTest extends TestCase
     #[Test]
     public function removeRemovesWidgetFromMetaBoxes(): void
     {
-        if (function_exists('set_current_screen')) {
-            set_current_screen('dashboard');
-        }
-
         global $wp_meta_boxes;
 
         $widget = new RegistryTestDashboardWidget();
@@ -76,6 +75,33 @@ final class DashboardWidgetRegistryTest extends TestCase
         $this->registry->remove($widget->id);
 
         self::assertFalse($wp_meta_boxes['dashboard'][$widget->context][$widget->priority][$widget->id]);
+    }
+
+    #[Test]
+    public function registerAndRemoveRoundTrip(): void
+    {
+        global $wp_meta_boxes;
+
+        $widget = new RegistryTestDashboardWidget();
+
+        $this->registry->register($widget);
+        self::assertArrayHasKey($widget->id, $wp_meta_boxes['dashboard'][$widget->context][$widget->priority]);
+
+        $this->registry->remove($widget->id);
+        self::assertFalse($wp_meta_boxes['dashboard'][$widget->context][$widget->priority][$widget->id]);
+    }
+
+    #[Test]
+    public function registerPassesWidgetPropertiesToMetaBox(): void
+    {
+        global $wp_meta_boxes;
+
+        $widget = new RegistryTestDashboardWidget();
+        $this->registry->register($widget);
+
+        $entry = $wp_meta_boxes['dashboard'][$widget->context][$widget->priority][$widget->id];
+        self::assertSame('test_registry_widget', $entry['id']);
+        self::assertSame('Registry Test Widget', $entry['title']);
     }
 }
 

@@ -121,4 +121,83 @@ final class RequestTest extends TestCase
 
         self::assertSame($wpRequest, $request->getWpRequest());
     }
+
+    #[Test]
+    public function getHeadersReturnsAll(): void
+    {
+        if (!class_exists(\WP_REST_Request::class)) {
+            self::markTestSkipped('WordPress classes are not available.');
+        }
+
+        $wpRequest = new \WP_REST_Request('GET', '/test');
+        $wpRequest->set_header('X-First', 'one');
+        $wpRequest->set_header('X-Second', 'two');
+        $request = new Request($wpRequest);
+
+        $headers = $request->getHeaders();
+        self::assertArrayHasKey('x_first', $headers);
+        self::assertArrayHasKey('x_second', $headers);
+    }
+
+    #[Test]
+    public function getJsonParamsReturnsDecodedBody(): void
+    {
+        if (!class_exists(\WP_REST_Request::class)) {
+            self::markTestSkipped('WordPress classes are not available.');
+        }
+
+        $wpRequest = new \WP_REST_Request('POST', '/test');
+        $wpRequest->set_header('Content-Type', 'application/json');
+        $wpRequest->set_body('{"title":"Hello","count":5}');
+        $request = new Request($wpRequest);
+
+        $params = $request->getJsonParams();
+        self::assertSame('Hello', $params['title']);
+        self::assertSame(5, $params['count']);
+    }
+
+    #[Test]
+    public function getFileParamsReturnsFiles(): void
+    {
+        if (!class_exists(\WP_REST_Request::class)) {
+            self::markTestSkipped('WordPress classes are not available.');
+        }
+
+        $wpRequest = new \WP_REST_Request('POST', '/test');
+        $wpRequest->set_file_params(['file' => ['name' => 'test.txt', 'size' => 100]]);
+        $request = new Request($wpRequest);
+
+        $files = $request->getFileParams();
+        self::assertSame('test.txt', $files['file']['name']);
+    }
+
+    #[Test]
+    public function getUrlParamsReturnsUrlParams(): void
+    {
+        if (!class_exists(\WP_REST_Request::class)) {
+            self::markTestSkipped('WordPress classes are not available.');
+        }
+
+        $wpRequest = new \WP_REST_Request('GET', '/test');
+        $wpRequest->set_url_params(['id' => '42']);
+        $request = new Request($wpRequest);
+
+        self::assertSame(['id' => '42'], $request->getUrlParams());
+    }
+
+    #[Test]
+    public function getBodyParamsReturnsBodyParams(): void
+    {
+        if (!class_exists(\WP_REST_Request::class)) {
+            self::markTestSkipped('WordPress classes are not available.');
+        }
+
+        $wpRequest = new \WP_REST_Request('POST', '/test');
+        $wpRequest->set_body_params(['name' => 'John', 'age' => '30']);
+        $request = new Request($wpRequest);
+
+        $params = $request->getBodyParams();
+        self::assertSame('John', $params['name']);
+        self::assertSame('30', $params['age']);
+    }
 }

@@ -266,6 +266,90 @@ final class RouteRegistryTest extends TestCase
         self::assertNotFalse(has_filter('template_include'));
     }
 
+    #[Test]
+    public function getRegisteredRoutesReturnsEmptyByDefault(): void
+    {
+        $registry = new RouteRegistry();
+
+        self::assertSame([], $registry->getRegisteredRoutes());
+    }
+
+    #[Test]
+    public function flushCallsFlushRewriteRules(): void
+    {
+        if (!function_exists('flush_rewrite_rules')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $registry = new RouteRegistry();
+        $registry->flush();
+
+        // flush_rewrite_rules() does not throw and resets rewrite rules
+        self::assertTrue(true);
+    }
+
+    #[Test]
+    public function resolvesRoutePositionFromAttribute(): void
+    {
+        $controller = new #[Route(name: 'bottom_route', regex: '^bottom/?$', query: 'index.php?page=$matches[1]', position: RoutePosition::Bottom, )] class {
+            public function __invoke(): ?TemplateResponse
+            {
+                return null;
+            }
+        };
+
+        $registry = $this->createRegistryWithoutWordPress();
+        $registry->register($controller);
+
+        $routes = $registry->getRegisteredRoutes();
+        self::assertSame(RoutePosition::Bottom, $routes['bottom_route']->position);
+    }
+
+    #[Test]
+    public function multiActionControllerSkipsInvokeMethod(): void
+    {
+        $controller = new class {
+            public function __invoke(): ?TemplateResponse
+            {
+                return null;
+            }
+
+            #[Route(
+                name: 'method_route',
+                regex: '^method/?$',
+                query: 'index.php?method_page=$matches[1]',
+            )]
+            public function show(): ?TemplateResponse
+            {
+                return null;
+            }
+        };
+
+        $registry = $this->createRegistryWithoutWordPress();
+        $registry->register($controller);
+
+        // Only the method with #[Route] should be registered, not __invoke
+        self::assertCount(1, $registry->getRegisteredRoutes());
+        self::assertTrue($registry->has('method_route'));
+    }
+
+    #[Test]
+    public function registeredRouteEntryHasCorrectQueryVars(): void
+    {
+        $controller = new #[Route(name: 'detail_route', regex: '^items/(\d+)/([^/]+)/?$', query: 'index.php?item_id=$matches[1]&item_slug=$matches[2]', )] class {
+            public function __invoke(): ?TemplateResponse
+            {
+                return null;
+            }
+        };
+
+        $registry = $this->createRegistryWithoutWordPress();
+        $registry->register($controller);
+
+        $routes = $registry->getRegisteredRoutes();
+        self::assertSame(['item_id', 'item_slug'], $routes['detail_route']->queryVars);
+    }
+
     /**
      * Creates a RouteRegistry that bypasses WordPress hook functions for unit testing.
      *

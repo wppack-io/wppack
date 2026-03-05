@@ -123,4 +123,26 @@ final class RestParamEntryTest extends TestCase
         self::assertTrue($args['required']);
         self::assertArrayNotHasKey('default', $args);
     }
+
+    #[Test]
+    public function toArgsIncludesEnumValues(): void
+    {
+        $param = new Param(enum: ['draft', 'publish', 'pending']);
+        $entry = new RestParamEntry('status', 'string', true, null, $param);
+
+        $args = $entry->toArgs();
+
+        self::assertSame(['draft', 'publish', 'pending'], $args['enum']);
+    }
+
+    #[Test]
+    public function toArgsOmitsDefaultWhenNull(): void
+    {
+        $entry = new RestParamEntry('filter', 'string', false, null, null);
+
+        $args = $entry->toArgs();
+
+        self::assertFalse($args['required']);
+        self::assertArrayNotHasKey('default', $args);
+    }
 }
