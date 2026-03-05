@@ -19,7 +19,7 @@ final class RegisteredHookTest extends TestCase
     {
         $hook = new RegisteredHook(
             hook: new Action('init'),
-            callback: fn () => 'executed',
+            callback: fn() => 'executed',
             acceptedArgs: 0,
         );
 
@@ -31,7 +31,7 @@ final class RegisteredHookTest extends TestCase
     {
         $hook = new RegisteredHook(
             hook: new Action('init'),
-            callback: fn () => 'executed',
+            callback: fn() => 'executed',
             acceptedArgs: 0,
             conditions: [new AlwaysTrueCondition()],
         );
@@ -44,7 +44,7 @@ final class RegisteredHookTest extends TestCase
     {
         $hook = new RegisteredHook(
             hook: new Action('init'),
-            callback: fn () => 'should not execute',
+            callback: fn() => 'should not execute',
             acceptedArgs: 0,
             conditions: [new AlwaysFalseCondition()],
         );
@@ -57,7 +57,7 @@ final class RegisteredHookTest extends TestCase
     {
         $hook = new RegisteredHook(
             hook: new Filter('the_content'),
-            callback: fn (string $content) => 'modified',
+            callback: fn(string $content) => 'modified',
             acceptedArgs: 1,
             conditions: [new AlwaysFalseCondition()],
         );
@@ -70,7 +70,7 @@ final class RegisteredHookTest extends TestCase
     {
         $hook = new RegisteredHook(
             hook: new Filter('the_content'),
-            callback: fn () => 'modified',
+            callback: fn() => 'modified',
             acceptedArgs: 0,
             conditions: [new AlwaysFalseCondition()],
         );
@@ -83,7 +83,7 @@ final class RegisteredHookTest extends TestCase
     {
         $hook = new RegisteredHook(
             hook: new Action('init'),
-            callback: fn () => 'should not execute',
+            callback: fn() => 'should not execute',
             acceptedArgs: 0,
             conditions: [new AlwaysTrueCondition(), new AlwaysFalseCondition()],
         );
@@ -96,7 +96,7 @@ final class RegisteredHookTest extends TestCase
     {
         $hook = new RegisteredHook(
             hook: new Action('save_post'),
-            callback: fn (int $postId, object $post, bool $update) => [$postId, $post, $update],
+            callback: fn(int $postId, object $post, bool $update) => [$postId, $post, $update],
             acceptedArgs: 3,
         );
 
