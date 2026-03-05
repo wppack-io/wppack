@@ -326,6 +326,9 @@ final class SettingsRendererTest extends TestCase
     #[Test]
     public function renderPageOutputsFullPage(): void
     {
+        global $title;
+        $title = 'Test Page';
+
         $page = new CustomRendererTestSettingsPage();
 
         ob_start();
@@ -342,6 +345,9 @@ final class SettingsRendererTest extends TestCase
     #[Test]
     public function renderHeaderOutputsWrapAndTitle(): void
     {
+        global $title;
+        $title = 'Test Page';
+
         $page = new CustomRendererTestSettingsPage();
 
         ob_start();

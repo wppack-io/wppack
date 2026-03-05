@@ -222,6 +222,11 @@ final class AbstractSettingsPageTest extends TestCase
             self::markTestSkipped('WordPress functions are not available.');
         }
 
+        // Set $title global so get_admin_page_title() returns early
+        // without calling get_plugin_page_hookname() with null $plugin_page
+        global $title;
+        $title = 'Test Page';
+
         $page = new MinimalTestSettingsPage();
 
         ob_start();
