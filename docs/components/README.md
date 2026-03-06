@@ -46,7 +46,7 @@ WordPress API やデータアクセスを抽象化し、テスト可能にする
 | コンポーネント | パッケージ | 説明 |
 |---------------|-----------|------|
 | [Cache](./cache/) | `wppack/cache` | PSR-6/PSR-16 キャッシュ抽象化 |
-| [Database](./database.md) | `wppack/database` | `$wpdb` の型安全ラッパー、マイグレーション |
+| [Database](./database/) | `wppack/database` | `$wpdb` の型安全ラッパー、マイグレーション |
 | [Query](./query.md) | `wppack/query` | `WP_Query` ビルダー |
 | [Security](./security.md) | `wppack/security` | セキュリティユーティリティ |
 | [Sanitizer](./sanitizer/) | `wppack/sanitizer` | 入力サニタイズ |
