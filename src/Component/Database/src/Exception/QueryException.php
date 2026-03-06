@@ -6,7 +6,7 @@ namespace WpPack\Component\Database\Exception;
 
 final class QueryException extends \RuntimeException implements ExceptionInterface
 {
-    private const int MAX_QUERY_LENGTH = 200;
+    private const MAX_QUERY_LENGTH = 200;
 
     public function __construct(
         public readonly string $query,

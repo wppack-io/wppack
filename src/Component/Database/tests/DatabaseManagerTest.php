@@ -124,7 +124,7 @@ final class DatabaseManagerTest extends TestCase
             ['count_test'],
         );
 
-        self::assertSame('1', $count);
+        self::assertEquals(1, $count);
     }
 
     #[Test]
