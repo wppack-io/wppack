@@ -51,7 +51,7 @@ $dispatcher->addListener('save_post', function (WordPressEvent $event): void {
 ```php
 class SavePostEvent extends WordPressEvent
 {
-    public const string HOOK_NAME = 'save_post';
+    public const HOOK_NAME = 'save_post';
 
     protected array $argMap = [
         'postId' => 0,

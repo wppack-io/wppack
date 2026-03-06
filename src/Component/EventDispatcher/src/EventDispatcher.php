@@ -59,9 +59,10 @@ final class EventDispatcher implements EventDispatcherInterface
             $class = $eventClass ?? ($isWpEventSubclass ? $event : WordPressEvent::class);
 
             $wrapped = static function () use ($hookName, $class, $listener): mixed {
-                $listener(new $class($hookName, func_get_args()));
+                $event = new $class($hookName, func_get_args());
+                $listener($event);
 
-                return func_get_arg(0);
+                return $event->filterValue;
             };
 
             $this->wrappedListeners[$hookName][$priority][] = [

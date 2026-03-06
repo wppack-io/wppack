@@ -6,10 +6,16 @@ namespace WpPack\Component\EventDispatcher;
 
 class WordPressEvent extends Event
 {
-    public const string HOOK_NAME = '';
+    public const HOOK_NAME = '';
 
     /** @var array<string, int> Argument name to index mapping */
     protected array $argMap = [];
+
+    /**
+     * The filter return value. Listeners can modify this to change the
+     * value returned by apply_filters(). Initialized to args[0].
+     */
+    public mixed $filterValue;
 
     /**
      * @param list<mixed> $args
@@ -17,7 +23,9 @@ class WordPressEvent extends Event
     public function __construct(
         public readonly string $hookName,
         public readonly array $args,
-    ) {}
+    ) {
+        $this->filterValue = $args[0] ?? null;
+    }
 
     /**
      * Proxy getXxx() calls to $this->args via $argMap.

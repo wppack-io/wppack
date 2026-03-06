@@ -262,7 +262,7 @@ class TestWordPressEvent extends WordPressEvent
 
 class SavePostTestEvent extends WordPressEvent
 {
-    public const string HOOK_NAME = 'save_post';
+    public const HOOK_NAME = 'save_post';
 
     protected array $argMap = [
         'postId' => 0,

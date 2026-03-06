@@ -97,7 +97,7 @@ final class WordPressEventTest extends TestCase
     public function subclassCanOverrideHookName(): void
     {
         $class = new class ('test', []) extends WordPressEvent {
-            public const string HOOK_NAME = 'custom_hook';
+            public const HOOK_NAME = 'custom_hook';
         };
 
         self::assertSame('custom_hook', $class::HOOK_NAME);
