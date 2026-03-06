@@ -8,6 +8,7 @@ use WpPack\Component\Database\Exception\QueryException;
 
 final class DatabaseManager
 {
+    public readonly DatabaseEngine $engine;
     public readonly string $posts;
     public readonly string $postmeta;
     public readonly string $comments;
@@ -27,6 +28,11 @@ final class DatabaseManager
         global $wpdb;
 
         $this->wpdb = $wpdb;
+        $this->engine = match (true) {
+            $wpdb->dbh instanceof \mysqli => DatabaseEngine::MySQL,
+            $wpdb->dbh instanceof \PgSql\Connection => DatabaseEngine::PostgreSQL,
+            default => DatabaseEngine::SQLite,
+        };
         $this->posts = $wpdb->posts;
         $this->postmeta = $wpdb->postmeta;
         $this->comments = $wpdb->comments;
@@ -45,11 +51,17 @@ final class DatabaseManager
      *
      * Use fetch methods to retrieve results after calling this method.
      *
+     * @param list<mixed> $params
+     *
      * @throws QueryException
      */
-    public function executeQuery(string $query, mixed ...$args): int|bool
+    public function executeQuery(string $query, array $params = []): int|bool
     {
-        $sql = $this->prepareIfNeeded($query, $args);
+        if ($this->engine === DatabaseEngine::MySQL && $params !== []) {
+            return $this->executePreparedStatement($query, $params);
+        }
+
+        $sql = $this->prepareIfNeeded($query, $params);
         $result = $this->wpdb->query($sql);
 
         if ($result === false) {
@@ -62,11 +74,17 @@ final class DatabaseManager
     /**
      * Execute an INSERT, UPDATE, or DELETE statement and return the number of affected rows.
      *
+     * @param list<mixed> $params
+     *
      * @throws QueryException
      */
-    public function executeStatement(string $query, mixed ...$args): int
+    public function executeStatement(string $query, array $params = []): int
     {
-        $sql = $this->prepareIfNeeded($query, $args);
+        if ($this->engine === DatabaseEngine::MySQL && $params !== []) {
+            return (int) $this->executePreparedStatement($query, $params);
+        }
+
+        $sql = $this->prepareIfNeeded($query, $params);
         $result = $this->wpdb->query($sql);
 
         if ($result === false) {
@@ -79,13 +97,19 @@ final class DatabaseManager
     /**
      * Fetch all rows as an array of associative arrays.
      *
+     * @param list<mixed> $params
+     *
      * @return list<array<string, mixed>>
      *
      * @throws QueryException
      */
-    public function fetchAllAssociative(string $query, mixed ...$args): array
+    public function fetchAllAssociative(string $query, array $params = []): array
     {
-        $sql = $this->prepareIfNeeded($query, $args);
+        if ($this->engine === DatabaseEngine::MySQL && $params !== []) {
+            return $this->fetchPrepared($query, $params, 'all');
+        }
+
+        $sql = $this->prepareIfNeeded($query, $params);
         $this->wpdb->suppress_errors(true);
         $results = $this->wpdb->get_results($sql, ARRAY_A);
         $this->wpdb->suppress_errors(false);
@@ -101,13 +125,21 @@ final class DatabaseManager
     /**
      * Fetch a single row as an associative array.
      *
+     * @param list<mixed> $params
+     *
      * @return array<string, mixed>|false
      *
      * @throws QueryException
      */
-    public function fetchAssociative(string $query, mixed ...$args): array|false
+    public function fetchAssociative(string $query, array $params = []): array|false
     {
-        $sql = $this->prepareIfNeeded($query, $args);
+        if ($this->engine === DatabaseEngine::MySQL && $params !== []) {
+            $rows = $this->fetchPrepared($query, $params, 'row');
+
+            return $rows === [] ? false : $rows[0];
+        }
+
+        $sql = $this->prepareIfNeeded($query, $params);
         $this->wpdb->suppress_errors(true);
         $row = $this->wpdb->get_row($sql, ARRAY_A);
         $this->wpdb->suppress_errors(false);
@@ -122,11 +154,23 @@ final class DatabaseManager
     /**
      * Fetch a single scalar value.
      *
+     * @param list<mixed> $params
+     *
      * @throws QueryException
      */
-    public function fetchOne(string $query, mixed ...$args): mixed
+    public function fetchOne(string $query, array $params = []): mixed
     {
-        $sql = $this->prepareIfNeeded($query, $args);
+        if ($this->engine === DatabaseEngine::MySQL && $params !== []) {
+            $rows = $this->fetchPrepared($query, $params, 'row');
+
+            if ($rows === []) {
+                return null;
+            }
+
+            return reset($rows[0]);
+        }
+
+        $sql = $this->prepareIfNeeded($query, $params);
         $this->wpdb->suppress_errors(true);
         $value = $this->wpdb->get_var($sql);
         $this->wpdb->suppress_errors(false);
@@ -141,13 +185,21 @@ final class DatabaseManager
     /**
      * Fetch the first column of all rows.
      *
+     * @param list<mixed> $params
+     *
      * @return list<mixed>
      *
      * @throws QueryException
      */
-    public function fetchFirstColumn(string $query, mixed ...$args): array
+    public function fetchFirstColumn(string $query, array $params = []): array
     {
-        $sql = $this->prepareIfNeeded($query, $args);
+        if ($this->engine === DatabaseEngine::MySQL && $params !== []) {
+            $rows = $this->fetchPrepared($query, $params, 'all');
+
+            return array_map(static fn(array $row): mixed => reset($row), $rows);
+        }
+
+        $sql = $this->prepareIfNeeded($query, $params);
         $this->wpdb->suppress_errors(true);
         $results = $this->wpdb->get_col($sql);
         $this->wpdb->suppress_errors(false);
@@ -316,14 +368,173 @@ final class DatabaseManager
     }
 
     /**
-     * @param list<mixed> $args
+     * Execute a native mysqli prepared statement.
+     *
+     * @param list<mixed> $params
+     *
+     * @throws QueryException
      */
-    private function prepareIfNeeded(string $query, array $args): string
+    private function executePreparedStatement(string $query, array $params): int
     {
-        if ($args === []) {
+        [$sql, $types, $values] = $this->convertPlaceholders($query, $params);
+
+        $interpolatedQuery = $this->wpdb->prepare($query, ...$params);
+
+        /** @var string */
+        $filteredQuery = apply_filters('query', $interpolatedQuery);
+
+        $startTime = microtime(true);
+
+        /** @phpstan-ignore property.protected */
+        $dbh = $this->wpdb->dbh;
+        \assert($dbh instanceof \mysqli);
+        $stmt = $dbh->prepare($sql);
+
+        if ($stmt === false) {
+            throw new QueryException($sql, $dbh->error);
+        }
+
+        try {
+            if ($values !== []) {
+                $stmt->bind_param($types, ...$values);
+            }
+
+            if (!$stmt->execute()) {
+                throw new QueryException($sql, $stmt->error);
+            }
+
+            $result = $stmt->affected_rows;
+        } finally {
+            $stmt->close();
+        }
+
+        $this->recordQuery($filteredQuery, $startTime);
+
+        return $result;
+    }
+
+    /**
+     * Execute a native mysqli prepared statement and fetch results.
+     *
+     * @param list<mixed> $params
+     * @param 'all'|'row' $mode
+     *
+     * @return list<array<string, mixed>>
+     *
+     * @throws QueryException
+     */
+    private function fetchPrepared(string $query, array $params, string $mode): array
+    {
+        [$sql, $types, $values] = $this->convertPlaceholders($query, $params);
+
+        $interpolatedQuery = $this->wpdb->prepare($query, ...$params);
+
+        /** @var string */
+        $filteredQuery = apply_filters('query', $interpolatedQuery);
+
+        $startTime = microtime(true);
+
+        /** @phpstan-ignore property.protected */
+        $dbh = $this->wpdb->dbh;
+        \assert($dbh instanceof \mysqli);
+        $stmt = $dbh->prepare($sql);
+
+        if ($stmt === false) {
+            throw new QueryException($sql, $dbh->error);
+        }
+
+        try {
+            if ($values !== []) {
+                $stmt->bind_param($types, ...$values);
+            }
+
+            if (!$stmt->execute()) {
+                throw new QueryException($sql, $stmt->error);
+            }
+
+            $mysqliResult = $stmt->get_result();
+
+            if ($mysqliResult === false) {
+                throw new QueryException($sql, $stmt->error);
+            }
+
+            /** @var list<array<string, mixed>> */
+            $rows = $mode === 'row'
+                ? (($row = $mysqliResult->fetch_assoc()) !== null ? [$row] : [])
+                : $mysqliResult->fetch_all(MYSQLI_ASSOC);
+
+            $mysqliResult->free();
+        } finally {
+            $stmt->close();
+        }
+
+        $this->recordQuery($filteredQuery, $startTime);
+
+        /** @var list<array<string, mixed>> */
+        return $rows;
+    }
+
+    /**
+     * Convert wpdb-style placeholders (%s, %d, %f) to native mysqli placeholders (?).
+     *
+     * @param list<mixed> $params
+     *
+     * @return array{string, string, list<mixed>} [$sql, $types, $values]
+     */
+    private function convertPlaceholders(string $query, array $params): array
+    {
+        $types = '';
+        $values = [];
+        $paramIndex = 0;
+
+        $sql = preg_replace_callback(
+            '/%%|%([sdf])/',
+            function (array $matches) use ($params, &$types, &$values, &$paramIndex): string {
+                if ($matches[0] === '%%') {
+                    return '%';
+                }
+
+                $value = $params[$paramIndex] ?? null;
+                ++$paramIndex;
+
+                match ($matches[1]) {
+                    's' => $types .= 's',
+                    'd' => $types .= 'i',
+                    'f' => $types .= 'd',
+                };
+
+                $values[] = $value;
+
+                return '?';
+            },
+            $query,
+        );
+
+        return [$sql, $types, $values];
+    }
+
+    /**
+     * Record the query in $wpdb->queries when SAVEQUERIES is enabled.
+     */
+    private function recordQuery(string $query, float $startTime): void
+    {
+        if (!defined('SAVEQUERIES') || !SAVEQUERIES) {
+            return;
+        }
+
+        $elapsed = microtime(true) - $startTime;
+        $this->wpdb->queries[] = [$query, $elapsed, ''];
+    }
+
+    /**
+     * @param list<mixed> $params
+     */
+    private function prepareIfNeeded(string $query, array $params): string
+    {
+        if ($params === []) {
             return $query;
         }
 
-        return $this->wpdb->prepare($query, ...$args);
+        return $this->wpdb->prepare($query, ...$params);
     }
 }

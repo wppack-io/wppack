@@ -15,20 +15,20 @@ use WpPack\Component\Database\DatabaseManager;
 
 $db = new DatabaseManager();
 
-// Doctrine DBAL 風のフェッチ API
+// Doctrine DBAL 風のフェッチ API（配列パラメータ）
 $rows = $db->fetchAllAssociative(
     "SELECT * FROM {$db->prefix()}analytics WHERE status = %s",
-    'active',
+    ['active'],
 );
 
 $row = $db->fetchAssociative(
     "SELECT * FROM {$db->prefix()}analytics WHERE id = %d",
-    $id,
+    [$id],
 );
 
 $count = $db->fetchOne(
     "SELECT COUNT(*) FROM {$db->prefix()}analytics WHERE status = %s",
-    'active',
+    ['active'],
 );
 
 // テーブル操作（自動プレフィックス付与）

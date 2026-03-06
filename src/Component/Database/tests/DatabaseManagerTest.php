@@ -7,6 +7,7 @@ namespace WpPack\Component\Database\Tests;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Database\DatabaseEngine;
 use WpPack\Component\Database\DatabaseManager;
 use WpPack\Component\Database\Exception\QueryException;
 
@@ -59,6 +60,13 @@ final class DatabaseManagerTest extends TestCase
     }
 
     #[Test]
+    public function enginePropertyIsSet(): void
+    {
+        self::assertInstanceOf(DatabaseEngine::class, $this->db->engine);
+        self::assertSame(DatabaseEngine::MySQL, $this->db->engine);
+    }
+
+    #[Test]
     public function prefixReturnsNonEmptyString(): void
     {
         self::assertNotEmpty($this->db->prefix());
@@ -83,7 +91,7 @@ final class DatabaseManagerTest extends TestCase
 
         $row = $this->db->fetchAssociative(
             "SELECT * FROM {$this->db->prefix()}wppack_test WHERE id = %d",
-            $id,
+            [$id],
         );
 
         self::assertIsArray($row);
@@ -113,7 +121,7 @@ final class DatabaseManagerTest extends TestCase
 
         $count = $this->db->fetchOne(
             "SELECT COUNT(*) FROM {$this->db->prefix()}wppack_test WHERE name = %s",
-            'count_test',
+            ['count_test'],
         );
 
         self::assertSame('1', $count);
@@ -137,7 +145,7 @@ final class DatabaseManagerTest extends TestCase
     {
         $row = $this->db->fetchAssociative(
             "SELECT * FROM {$this->db->prefix()}wppack_test WHERE id = %d",
-            999999,
+            [999999],
         );
 
         self::assertFalse($row);
@@ -159,7 +167,7 @@ final class DatabaseManagerTest extends TestCase
 
         $row = $this->db->fetchAssociative(
             "SELECT * FROM {$this->db->prefix()}wppack_test WHERE id = %d",
-            $id,
+            [$id],
         );
 
         self::assertSame('new', $row['value']);
@@ -177,7 +185,7 @@ final class DatabaseManagerTest extends TestCase
 
         $row = $this->db->fetchAssociative(
             "SELECT * FROM {$this->db->prefix()}wppack_test WHERE id = %d",
-            $id,
+            [$id],
         );
 
         self::assertFalse($row);
@@ -191,7 +199,7 @@ final class DatabaseManagerTest extends TestCase
 
         $affected = $this->db->executeStatement(
             "DELETE FROM {$this->db->prefix()}wppack_test WHERE value = %s",
-            'x',
+            ['x'],
         );
 
         self::assertSame(2, $affected);
@@ -206,7 +214,7 @@ final class DatabaseManagerTest extends TestCase
 
         $row = $this->db->fetchAssociative(
             "SELECT * FROM {$this->db->prefix()}wppack_test WHERE name = %s",
-            'tx_commit',
+            ['tx_commit'],
         );
 
         self::assertIsArray($row);
@@ -222,7 +230,7 @@ final class DatabaseManagerTest extends TestCase
 
         $row = $this->db->fetchAssociative(
             "SELECT * FROM {$this->db->prefix()}wppack_test WHERE name = %s",
-            'tx_rollback',
+            ['tx_rollback'],
         );
 
         self::assertFalse($row);
@@ -247,5 +255,85 @@ final class DatabaseManagerTest extends TestCase
         $sql = $this->db->prepare('SELECT * FROM wp_posts WHERE ID = %d', 1);
 
         self::assertStringContainsString('1', $sql);
+    }
+
+    #[Test]
+    public function fetchAllAssociativeWithParams(): void
+    {
+        $this->db->insert('wppack_test', ['name' => 'param_a', 'value' => 'target']);
+        $this->db->insert('wppack_test', ['name' => 'param_b', 'value' => 'other']);
+
+        $rows = $this->db->fetchAllAssociative(
+            "SELECT * FROM {$this->db->prefix()}wppack_test WHERE value = %s",
+            ['target'],
+        );
+
+        self::assertCount(1, $rows);
+        self::assertSame('param_a', $rows[0]['name']);
+    }
+
+    #[Test]
+    public function fetchOneReturnsNullWhenNotFound(): void
+    {
+        $value = $this->db->fetchOne(
+            "SELECT name FROM {$this->db->prefix()}wppack_test WHERE id = %d",
+            [999999],
+        );
+
+        self::assertNull($value);
+    }
+
+    #[Test]
+    public function fetchFirstColumnWithParams(): void
+    {
+        $this->db->insert('wppack_test', ['name' => 'fc_a', 'value' => 'match']);
+        $this->db->insert('wppack_test', ['name' => 'fc_b', 'value' => 'match']);
+        $this->db->insert('wppack_test', ['name' => 'fc_c', 'value' => 'other']);
+
+        $names = $this->db->fetchFirstColumn(
+            "SELECT name FROM {$this->db->prefix()}wppack_test WHERE value = %s ORDER BY name ASC",
+            ['match'],
+        );
+
+        self::assertSame(['fc_a', 'fc_b'], $names);
+    }
+
+    #[Test]
+    public function executeQueryWithParams(): void
+    {
+        $this->db->insert('wppack_test', ['name' => 'eq_test', 'value' => 'v']);
+
+        $result = $this->db->executeQuery(
+            "SELECT * FROM {$this->db->prefix()}wppack_test WHERE name = %s",
+            ['eq_test'],
+        );
+
+        self::assertNotFalse($result);
+    }
+
+    #[Test]
+    public function multipleParamTypes(): void
+    {
+        $this->db->insert('wppack_test', ['name' => 'multi', 'value' => 'test']);
+        $id = $this->db->lastInsertId();
+
+        $row = $this->db->fetchAssociative(
+            "SELECT * FROM {$this->db->prefix()}wppack_test WHERE id = %d AND name = %s",
+            [$id, 'multi'],
+        );
+
+        self::assertIsArray($row);
+        self::assertSame('multi', $row['name']);
+    }
+
+    #[Test]
+    public function paramsWithNoResults(): void
+    {
+        $rows = $this->db->fetchAllAssociative(
+            "SELECT * FROM {$this->db->prefix()}wppack_test WHERE name = %s",
+            ['nonexistent'],
+        );
+
+        self::assertSame([], $rows);
     }
 }
