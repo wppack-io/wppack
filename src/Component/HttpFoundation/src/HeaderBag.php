@@ -73,7 +73,7 @@ class HeaderBag implements \Countable
             return $default;
         }
 
-        $date = \DateTimeImmutable::createFromFormat(\DateTimeInterface::RFC7231, $value);
+        $date = \DateTimeImmutable::createFromFormat('D, d M Y H:i:s \G\M\T', $value);
 
         if ($date === false) {
             return $default;
