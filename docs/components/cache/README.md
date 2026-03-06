@@ -161,7 +161,7 @@ $cache->decrement('page_views', 1, 'stats');
 WpPack は `object-cache.php` ドロップインを提供し、WordPress のオブジェクトキャッシュバックエンドを Redis / Valkey 等に差し替えることができます。`CacheManager` はドロップインの有無にかかわらず同じインターフェースで動作します。
 
 > [!NOTE]
-> Object Cache ドロップインの WordPress 内部での仕組みについては [docs/specifications/object-cache-dropin.md](../../specifications/object-cache-dropin.md) を参照してください。
+> Object Cache ドロップインの WordPress 内部での仕組みについては [docs/wordpress/object-cache-dropin.md](../../wordpress/object-cache-dropin.md) を参照してください。
 
 ### セットアップ
 

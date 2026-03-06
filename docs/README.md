@@ -37,6 +37,13 @@ WordPress プラグインパッケージの詳細ドキュメント。
 - [plugin-development.md](./guides/plugin-development.md) - プラグイン開発ガイド
 - [theme-development.md](./guides/theme-development.md) - テーマ開発ガイド
 
+### [wordpress/](./wordpress/) - WordPress コア仕様
+
+WordPress 内部実装のリファレンス。
+
+- [hooks.md](./wordpress/hooks.md) - フックシステム（action / filter）
+- [object-cache-dropin.md](./wordpress/object-cache-dropin.md) - Object Cache ドロップイン
+
 ## Getting Started
 
 ### 必要要件
