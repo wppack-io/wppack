@@ -1,0 +1,19 @@
+{
+    "name": "wppack/http-foundation",
+    "description": "HTTP request and response abstraction for WordPress",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpPack\\Component\\HttpFoundation\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Component\\HttpFoundation\\Tests\\": "tests/"
+        }
+    }
+}

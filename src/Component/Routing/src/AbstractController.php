@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Routing;
 
-use WpPack\Component\Routing\Response\BinaryFileResponse;
+use WpPack\Component\HttpFoundation\BinaryFileResponse;
+use WpPack\Component\HttpFoundation\JsonResponse;
+use WpPack\Component\HttpFoundation\RedirectResponse;
 use WpPack\Component\Routing\Response\BlockTemplateResponse;
-use WpPack\Component\Routing\Response\JsonResponse;
-use WpPack\Component\Routing\Response\RedirectResponse;
 use WpPack\Component\Routing\Response\TemplateResponse;
 
 abstract class AbstractController

@@ -6,8 +6,8 @@ namespace WpPack\Component\Routing\Tests\Response;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Routing\Response\BlockTemplateResponse;
-use WpPack\Component\Routing\Response\RouteResponse;
 use WpPack\Component\Routing\Response\TemplateResponse;
 
 final class TemplateResponseTest extends TestCase
@@ -26,7 +26,7 @@ final class TemplateResponseTest extends TestCase
         self::assertSame(['product' => 'Widget'], $response->context);
         self::assertSame(201, $response->statusCode);
         self::assertSame(['X-Custom' => 'value'], $response->headers);
-        self::assertInstanceOf(RouteResponse::class, $response);
+        self::assertInstanceOf(Response::class, $response);
     }
 
     #[Test]
@@ -54,7 +54,7 @@ final class TemplateResponseTest extends TestCase
         self::assertSame(['portfolio_slug' => 'my-project'], $response->context);
         self::assertSame(201, $response->statusCode);
         self::assertSame(['X-Block' => 'yes'], $response->headers);
-        self::assertInstanceOf(RouteResponse::class, $response);
+        self::assertInstanceOf(Response::class, $response);
     }
 
     #[Test]

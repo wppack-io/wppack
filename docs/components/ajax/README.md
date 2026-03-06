@@ -53,7 +53,7 @@ function handle_search_ajax() {
 
 ```php
 use WpPack\Component\Ajax\Attribute\AjaxHandler;
-use WpPack\Component\Ajax\Response\JsonResponse;
+use WpPack\Component\HttpFoundation\JsonResponse;
 
 class ProductController
 {
@@ -63,7 +63,7 @@ class ProductController
         $query = sanitize_text_field($_POST['query']);
         $results = get_posts(['s' => $query, 'post_type' => 'product']);
 
-        return JsonResponse::success(array_map(fn ($post) => [
+        return new JsonResponse(array_map(fn ($post) => [
             'id' => $post->ID,
             'title' => $post->post_title,
         ], $results));
@@ -130,7 +130,7 @@ public function search(): JsonResponse { /* ... */ }
 
 ```php
 use WpPack\Component\Ajax\Attribute\AjaxHandler;
-use WpPack\Component\Ajax\Response\JsonResponse;
+use WpPack\Component\HttpFoundation\JsonResponse;
 
 class ProductController
 {
@@ -140,7 +140,7 @@ class ProductController
     {
         $products = get_posts(['post_type' => 'product']);
 
-        return JsonResponse::success($products);
+        return new JsonResponse($products);
     }
 }
 ```
@@ -156,7 +156,7 @@ public function updateProduct(): JsonResponse
         'post_title' => sanitize_text_field($_POST['title']),
     ]);
 
-    return $result ? JsonResponse::success() : JsonResponse::error('Update failed.');
+    return $result ? new JsonResponse(['success' => true]) : new JsonResponse(['error' => 'Update failed.'], 400);
 }
 ```
 
@@ -174,7 +174,7 @@ public function deleteProduct(): JsonResponse
     // nonce と権限は AjaxHandlerRegistry が自動検証
     wp_delete_post((int) $_POST['product_id']);
 
-    return JsonResponse::success();
+    return new JsonResponse(['success' => true]);
 }
 ```
 
@@ -184,34 +184,30 @@ public function deleteProduct(): JsonResponse
 #[AjaxHandler(action: 'get_preview', access: Access::Guest)]
 public function getPreview(): JsonResponse
 {
-    return JsonResponse::success(['message' => 'Preview for guests']);
+    return new JsonResponse(['message' => 'Preview for guests']);
 }
 ```
 
 ### JsonResponse
 
-`wp_send_json_success()` / `wp_send_json_error()` のラッパーです。
+`HttpFoundation\JsonResponse` を返すと、`AjaxHandlerRegistry` がステータスコードに基づいて自動的に `wp_send_json_success()` / `wp_send_json_error()` を呼び分けます。
 
 ```php
-use WpPack\Component\Ajax\Response\JsonResponse;
+use WpPack\Component\HttpFoundation\JsonResponse;
 
-// 成功レスポンス
-$response = JsonResponse::success(['key' => 'value']);           // 200
-$response = JsonResponse::success(['created' => true], 201);    // カスタムステータス
+// 成功レスポンス（statusCode < 400）
+$response = new JsonResponse(['key' => 'value']);                // 200 → wp_send_json_success
+$response = new JsonResponse(['created' => true], 201);         // 201 → wp_send_json_success
 
-// エラーレスポンス
-$response = JsonResponse::error('Something went wrong');         // 400
-$response = JsonResponse::error('Not found', 404);              // カスタムステータス
-
-// send(): never — WordPress の wp_send_json_* を呼び出し（die() により処理終了）
-$response->send();
+// エラーレスポンス（statusCode >= 400）
+$response = new JsonResponse(['error' => 'Something went wrong'], 400);  // → wp_send_json_error
+$response = new JsonResponse(['error' => 'Not found'], 404);            // → wp_send_json_error
 ```
 
-| メソッド | WordPress 関数 | デフォルトステータス |
-|---------|---------------|-------------------|
-| `JsonResponse::success()` | `wp_send_json_success()` | 200 |
-| `JsonResponse::error()` | `wp_send_json_error()` | 400 |
-| `$response->send()` | 上記を実行して `die()`（戻り型: `never`） | — |
+| ステータスコード | WordPress 関数 | 判定 |
+|----------------|---------------|------|
+| < 400 | `wp_send_json_success()` | 成功 |
+| >= 400 | `wp_send_json_error()` | エラー |
 
 ### AjaxHandlerRegistry
 

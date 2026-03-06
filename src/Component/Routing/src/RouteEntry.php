@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Routing;
 
-use WpPack\Component\Routing\Response\BinaryFileResponse;
+use WpPack\Component\HttpFoundation\BinaryFileResponse;
+use WpPack\Component\HttpFoundation\JsonResponse;
+use WpPack\Component\HttpFoundation\RedirectResponse;
+use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Routing\Response\BlockTemplateResponse;
-use WpPack\Component\Routing\Response\JsonResponse;
-use WpPack\Component\Routing\Response\RedirectResponse;
-use WpPack\Component\Routing\Response\Response;
-use WpPack\Component\Routing\Response\RouteResponse;
 use WpPack\Component\Routing\Response\TemplateResponse;
 
 /** @internal */
@@ -96,7 +95,7 @@ final class RouteEntry
         };
     }
 
-    private function sendHeaders(RouteResponse $response): void
+    private function sendHeaders(Response $response): void
     {
         status_header($response->statusCode);
         foreach ($response->headers as $name => $value) {

@@ -6,6 +6,7 @@ namespace WpPack\Component\Kernel;
 
 use WpPack\Component\DependencyInjection\Container;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
+use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Kernel\Exception\KernelAlreadyBootedException;
 
 class Kernel
@@ -129,6 +130,13 @@ class Kernel
 
         $builder = new ContainerBuilder();
 
+        // Register Request as a synthetic service
+        $request = Request::createFromGlobals();
+        $builder->getSymfonyBuilder()
+            ->register(Request::class, Request::class)
+            ->setSynthetic(true)
+            ->setPublic(true);
+
         // 1. Register all plugins, then themes
         foreach ($this->plugins as $plugin) {
             $plugin->register($builder);
@@ -153,6 +161,9 @@ class Kernel
 
         // 3. Compile the container
         $this->container = $builder->compile();
+
+        // Set the synthetic Request service instance
+        $builder->getSymfonyBuilder()->set(Request::class, $request);
 
         // 4. Boot all plugins and themes
         foreach ($this->plugins as $plugin) {

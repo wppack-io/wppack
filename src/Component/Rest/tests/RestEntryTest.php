@@ -64,7 +64,7 @@ final class RestEntryTest extends TestCase
             self::markTestSkipped('WordPress classes are not available.');
         }
 
-        $response = new \WpPack\Component\Rest\Response\Response(['key' => 'value'], 200, ['X-Custom' => 'yes']);
+        $response = new \WpPack\Component\HttpFoundation\Response('', 200, ['X-Custom' => 'yes']);
         $entry = new RestEntry(
             'test/v1',
             '/response-items',
@@ -82,7 +82,7 @@ final class RestEntryTest extends TestCase
         $result = call_user_func($route['callback'], $request);
 
         self::assertInstanceOf(\WP_REST_Response::class, $result);
-        self::assertSame(['key' => 'value'], $result->get_data());
+        self::assertNull($result->get_data());
         self::assertSame(200, $result->get_status());
     }
 
@@ -93,7 +93,7 @@ final class RestEntryTest extends TestCase
             self::markTestSkipped('WordPress classes are not available.');
         }
 
-        $response = new \WpPack\Component\Rest\Response\JsonResponse(['id' => 1], 201);
+        $response = new \WpPack\Component\HttpFoundation\JsonResponse(['id' => 1], 201);
         $entry = new RestEntry(
             'test/v1',
             '/created',
@@ -183,7 +183,7 @@ final class RestEntryTest extends TestCase
             new Permission(public: true),
             [],
             static function (\WP_REST_Request $request): never {
-                throw new \WpPack\Component\Rest\Exception\NotFoundException('Item not found.');
+                throw new \WpPack\Component\HttpFoundation\Exception\NotFoundException('Item not found.');
             },
         );
 
@@ -195,7 +195,7 @@ final class RestEntryTest extends TestCase
         $result = call_user_func($route['callback'], $request);
 
         self::assertInstanceOf(\WP_Error::class, $result);
-        self::assertSame('rest_not_found', $result->get_error_code());
+        self::assertSame('http_not_found', $result->get_error_code());
         self::assertSame('Item not found.', $result->get_error_message());
         self::assertSame(['status' => 404], $result->get_error_data());
     }
@@ -207,7 +207,7 @@ final class RestEntryTest extends TestCase
             self::markTestSkipped('WordPress classes are not available.');
         }
 
-        $response = new \WpPack\Component\Rest\Response\Response(null, 200, ['X-Rate-Limit' => '100']);
+        $response = new \WpPack\Component\HttpFoundation\Response('', 200, ['X-Rate-Limit' => '100']);
         $entry = new RestEntry(
             'test/v1',
             '/headers',

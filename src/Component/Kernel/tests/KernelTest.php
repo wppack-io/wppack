@@ -9,6 +9,7 @@ use PHPUnit\Framework\TestCase;
 use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use WpPack\Component\DependencyInjection\Container;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
+use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Kernel\Exception\KernelAlreadyBootedException;
 use WpPack\Component\Kernel\Kernel;
 use WpPack\Component\Kernel\PluginInterface;
@@ -412,5 +413,16 @@ final class KernelTest extends TestCase
         Kernel::autoBoot();
 
         self::assertTrue(Kernel::getInstance()->isBooted());
+    }
+
+    #[Test]
+    public function bootRegistersRequestAsSyntheticService(): void
+    {
+        $kernel = new Kernel();
+
+        $container = $kernel->boot();
+
+        self::assertTrue($container->has(Request::class));
+        self::assertInstanceOf(Request::class, $container->get(Request::class));
     }
 }

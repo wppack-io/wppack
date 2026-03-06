@@ -104,6 +104,7 @@
             "WpPack\\Component\\Filesystem\\Tests\\": "src/Component/Filesystem/tests/",
             "WpPack\\Component\\Hook\\Tests\\": "src/Component/Hook/tests/",
             "WpPack\\Component\\HttpClient\\Tests\\": "src/Component/HttpClient/tests/",
+            "WpPack\\Component\\HttpFoundation\\Tests\\": "src/Component/HttpFoundation/tests/",
             "WpPack\\Component\\Kernel\\Tests\\": "src/Component/Kernel/tests/",
             "WpPack\\Component\\Logger\\Tests\\": "src/Component/Logger/tests/",
             "WpPack\\Component\\Logger\\Bridge\\Monolog\\Tests\\": "src/Component/Logger/Bridge/Monolog/tests/",

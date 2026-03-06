@@ -1,0 +1,91 @@
+# HttpFoundation Component
+
+An object-oriented layer for HTTP request handling in WordPress. Provides type-safe access to superglobals (`$_GET`, `$_POST`, `$_FILES`, etc.) and base response classes used across all WpPack components.
+
+## Installation
+
+```bash
+composer require wppack/http-foundation
+```
+
+## Usage
+
+### Request
+
+```php
+use WpPack\Component\HttpFoundation\Request;
+
+$request = Request::createFromGlobals();
+
+// Type-safe parameter access
+$page = $request->query->getInt('page', 1);
+$name = $request->post->getString('name');
+$active = $request->query->getBoolean('active', true);
+
+// Request information
+$method = $request->getMethod();
+$isAjax = $request->isAjax();
+$isSecure = $request->isSecure();
+$clientIp = $request->getClientIp();
+
+// JSON body
+if ($request->isJson()) {
+    $data = $request->toArray();
+}
+```
+
+### Response
+
+```php
+use WpPack\Component\HttpFoundation\Response;
+use WpPack\Component\HttpFoundation\JsonResponse;
+use WpPack\Component\HttpFoundation\RedirectResponse;
+use WpPack\Component\HttpFoundation\BinaryFileResponse;
+
+$response = new Response('Hello', 200, ['X-Custom' => 'value']);
+$json = new JsonResponse(['key' => 'value'], 200);
+$redirect = new RedirectResponse('/new-url', 302);
+$file = new BinaryFileResponse('/path/to/file.pdf');
+```
+
+### File
+
+```php
+use WpPack\Component\HttpFoundation\File\File;
+
+$file = new File('/path/to/document.pdf');
+$mimeType = $file->getMimeType();     // Detected from disk
+$extension = $file->guessExtension(); // 'pdf'
+$moved = $file->move('/new/directory', 'renamed.pdf');
+```
+
+### File Uploads
+
+```php
+$file = $request->files->get('upload');
+
+if ($file !== null && $file->isValid()) {
+    $mimeType = $file->getMimeType();           // Detected from disk
+    $clientMime = $file->getClientMimeType();   // Client-provided MIME
+    $name = $file->getClientOriginalName();     // Original filename
+    $result = $file->wpHandleUpload(['test_form' => false]);
+}
+```
+
+### HTTP Exceptions
+
+```php
+use WpPack\Component\HttpFoundation\Exception\NotFoundException;
+use WpPack\Component\HttpFoundation\Exception\ForbiddenException;
+
+throw new NotFoundException('Resource not found.');
+throw new ForbiddenException('Access denied.');
+```
+
+## Kernel Integration
+
+When using the Kernel component, `Request` is automatically registered as a synthetic service in the DI container during `Kernel::boot()`.
+
+## Resources
+
+- [Documentation (Japanese)](../../../docs/components/http-foundation/README.md)

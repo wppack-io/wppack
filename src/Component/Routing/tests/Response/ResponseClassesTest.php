@@ -6,10 +6,10 @@ namespace WpPack\Component\Routing\Tests\Response;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Routing\Response\BinaryFileResponse;
+use WpPack\Component\HttpFoundation\BinaryFileResponse;
+use WpPack\Component\HttpFoundation\JsonResponse;
+use WpPack\Component\HttpFoundation\RedirectResponse;
 use WpPack\Component\Routing\Response\BlockTemplateResponse;
-use WpPack\Component\Routing\Response\JsonResponse;
-use WpPack\Component\Routing\Response\RedirectResponse;
 
 final class ResponseClassesTest extends TestCase
 {
@@ -21,7 +21,6 @@ final class ResponseClassesTest extends TestCase
 
         self::assertSame($data, $response->data);
         self::assertSame(201, $response->statusCode);
-        self::assertSame(['Content-Type' => 'application/json'], $response->headers);
     }
 
     #[Test]

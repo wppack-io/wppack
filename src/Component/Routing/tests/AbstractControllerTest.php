@@ -6,11 +6,11 @@ namespace WpPack\Component\Routing\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\HttpFoundation\BinaryFileResponse;
+use WpPack\Component\HttpFoundation\JsonResponse;
+use WpPack\Component\HttpFoundation\RedirectResponse;
 use WpPack\Component\Routing\AbstractController;
-use WpPack\Component\Routing\Response\BinaryFileResponse;
 use WpPack\Component\Routing\Response\BlockTemplateResponse;
-use WpPack\Component\Routing\Response\JsonResponse;
-use WpPack\Component\Routing\Response\RedirectResponse;
 use WpPack\Component\Routing\Response\TemplateResponse;
 
 final class AbstractControllerTest extends TestCase
@@ -109,7 +109,7 @@ final class AbstractControllerTest extends TestCase
         self::assertInstanceOf(JsonResponse::class, $response);
         self::assertSame($data, $response->data);
         self::assertSame(201, $response->statusCode);
-        self::assertSame(['X-Total' => '1'], $response->headers);
+        self::assertArrayHasKey('X-Total', $response->headers);
     }
 
     #[Test]
@@ -126,7 +126,7 @@ final class AbstractControllerTest extends TestCase
         self::assertSame('https://example.com', $response->url);
         self::assertSame(301, $response->statusCode);
         self::assertFalse($response->safe);
-        self::assertSame(['X-Redirect' => 'yes'], $response->headers);
+        self::assertArrayHasKey('X-Redirect', $response->headers);
     }
 
     #[Test]

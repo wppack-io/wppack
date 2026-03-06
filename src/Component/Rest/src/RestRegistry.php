@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Rest;
 
+use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Rest\Attribute\Param;
 use WpPack\Component\Rest\Attribute\Permission;
 use WpPack\Component\Rest\Attribute\Route;
@@ -140,7 +141,7 @@ final class RestRegistry
             if ($type instanceof \ReflectionNamedType) {
                 $typeName = $type->getName();
                 if ($typeName === Request::class) {
-                    $requestParamIndex = ['index' => $index, 'type' => 'custom'];
+                    $requestParamIndex = ['index' => $index, 'type' => 'httpfoundation'];
                 } elseif ($typeName === \WP_REST_Request::class) {
                     $requestParamIndex = ['index' => $index, 'type' => 'native'];
                 }
@@ -149,8 +150,8 @@ final class RestRegistry
 
         return static function (\WP_REST_Request $wpRequest, mixed ...$paramValues) use ($controller, $methodName, $requestParamIndex): mixed {
             if ($requestParamIndex !== null) {
-                $inject = $requestParamIndex['type'] === 'custom'
-                    ? new Request($wpRequest)
+                $inject = $requestParamIndex['type'] === 'httpfoundation'
+                    ? Request::createFromGlobals()
                     : $wpRequest;
 
                 array_splice($paramValues, $requestParamIndex['index'], 0, [$inject]);

@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 use WpPack\Component\Ajax\Access;
 use WpPack\Component\Ajax\AjaxHandlerRegistry;
 use WpPack\Component\Ajax\Attribute\AjaxHandler;
-use WpPack\Component\Ajax\Response\JsonResponse;
+use WpPack\Component\HttpFoundation\JsonResponse;
 
 final class AjaxHandlerRegistryTest extends TestCase
 {
@@ -123,7 +123,7 @@ final class AjaxHandlerRegistryTest extends TestCase
             #[AjaxHandler(action: 'test_json_success')]
             public function handle(): JsonResponse
             {
-                return JsonResponse::success(['msg' => 'ok']);
+                return new JsonResponse(['msg' => 'ok']);
             }
         };
 
@@ -147,7 +147,7 @@ final class AjaxHandlerRegistryTest extends TestCase
             {
                 $this->called = true;
 
-                return JsonResponse::success();
+                return new JsonResponse(['ok' => true]);
             }
         };
 
@@ -174,7 +174,7 @@ final class AjaxHandlerRegistryTest extends TestCase
             {
                 $this->called = true;
 
-                return JsonResponse::success(['ok' => true]);
+                return new JsonResponse(['ok' => true]);
             }
         };
 

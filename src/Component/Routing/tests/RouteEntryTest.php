@@ -8,9 +8,6 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Routing\Response\BlockTemplateResponse;
-use WpPack\Component\Routing\Response\JsonResponse;
-use WpPack\Component\Routing\Response\RedirectResponse;
-use WpPack\Component\Routing\Response\Response;
 use WpPack\Component\Routing\Response\TemplateResponse;
 use WpPack\Component\Routing\RouteEntry;
 use WpPack\Component\Routing\RoutePosition;
@@ -264,7 +261,7 @@ final class RouteEntryTest extends TestCase
             self::markTestSkipped('WordPress functions are not available.');
         }
 
-        $unsupportedResponse = new class extends \WpPack\Component\Routing\Response\RouteResponse {};
+        $unsupportedResponse = new \stdClass();
 
         $entry = new RouteEntry(
             'test_route',

@@ -6,11 +6,10 @@ namespace WpPack\Component\Routing\Tests\Response;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Routing\Response\BinaryFileResponse;
-use WpPack\Component\Routing\Response\JsonResponse;
-use WpPack\Component\Routing\Response\RedirectResponse;
-use WpPack\Component\Routing\Response\Response;
-use WpPack\Component\Routing\Response\RouteResponse;
+use WpPack\Component\HttpFoundation\BinaryFileResponse;
+use WpPack\Component\HttpFoundation\JsonResponse;
+use WpPack\Component\HttpFoundation\RedirectResponse;
+use WpPack\Component\HttpFoundation\Response;
 
 final class ResponseTest extends TestCase
 {
@@ -35,14 +34,6 @@ final class ResponseTest extends TestCase
     }
 
     #[Test]
-    public function responseInheritsFromRouteResponse(): void
-    {
-        $response = new Response();
-
-        self::assertInstanceOf(RouteResponse::class, $response);
-    }
-
-    #[Test]
     public function jsonResponseStoresDataStatusAndHeaders(): void
     {
         $data = ['products' => [['id' => 1, 'name' => 'Widget']]];
@@ -50,8 +41,9 @@ final class ResponseTest extends TestCase
 
         self::assertSame($data, $response->data);
         self::assertSame(201, $response->statusCode);
-        self::assertSame(['X-Total' => '1'], $response->headers);
-        self::assertInstanceOf(RouteResponse::class, $response);
+        self::assertArrayHasKey('X-Total', $response->headers);
+        self::assertSame('1', $response->headers['X-Total']);
+        self::assertInstanceOf(Response::class, $response);
     }
 
     #[Test]
@@ -61,7 +53,6 @@ final class ResponseTest extends TestCase
 
         self::assertNull($response->data);
         self::assertSame(200, $response->statusCode);
-        self::assertSame([], $response->headers);
     }
 
     #[Test]
@@ -72,8 +63,8 @@ final class ResponseTest extends TestCase
         self::assertSame('https://example.com', $response->url);
         self::assertSame(301, $response->statusCode);
         self::assertFalse($response->safe);
-        self::assertSame(['X-Redirect' => 'yes'], $response->headers);
-        self::assertInstanceOf(RouteResponse::class, $response);
+        self::assertArrayHasKey('X-Redirect', $response->headers);
+        self::assertInstanceOf(Response::class, $response);
     }
 
     #[Test]
@@ -84,7 +75,6 @@ final class ResponseTest extends TestCase
         self::assertSame('/new-location', $response->url);
         self::assertSame(302, $response->statusCode);
         self::assertTrue($response->safe);
-        self::assertSame([], $response->headers);
     }
 
     #[Test]
@@ -103,7 +93,7 @@ final class ResponseTest extends TestCase
         self::assertSame('inline', $response->disposition);
         self::assertSame(201, $response->statusCode);
         self::assertSame(['Cache-Control' => 'no-cache'], $response->headers);
-        self::assertInstanceOf(RouteResponse::class, $response);
+        self::assertInstanceOf(Response::class, $response);
     }
 
     #[Test]

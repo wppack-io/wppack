@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Rest;
 
-use WpPack\Component\Rest\Response\JsonResponse;
-use WpPack\Component\Rest\Response\Response;
+use WpPack\Component\HttpFoundation\JsonResponse;
+use WpPack\Component\HttpFoundation\Response;
 
 abstract class AbstractRestController
 {
@@ -30,7 +30,7 @@ abstract class AbstractRestController
      */
     protected function noContent(array $headers = []): Response
     {
-        return new Response(null, 204, $headers);
+        return new Response('', 204, $headers);
     }
 
     /**
@@ -38,6 +38,8 @@ abstract class AbstractRestController
      */
     protected function response(mixed $data = null, int $statusCode = 200, array $headers = []): Response
     {
-        return new Response($data, $statusCode, $headers);
+        $content = $data !== null ? (is_string($data) ? $data : (string) json_encode($data)) : '';
+
+        return new Response($content, $statusCode, $headers);
     }
 }

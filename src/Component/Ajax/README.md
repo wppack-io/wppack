@@ -15,7 +15,7 @@ composer require wppack/ajax
 ```php
 use WpPack\Component\Ajax\Access;
 use WpPack\Component\Ajax\Attribute\AjaxHandler;
-use WpPack\Component\Ajax\Response\JsonResponse;
+use WpPack\Component\HttpFoundation\JsonResponse;
 
 class ProductController
 {
@@ -24,7 +24,7 @@ class ProductController
     {
         $results = get_posts(['s' => $_POST['query'], 'post_type' => 'product']);
 
-        return JsonResponse::success($results);
+        return new JsonResponse($results);
     }
 
     #[AjaxHandler(action: 'delete_product', access: Access::Authenticated, capability: 'delete_posts', checkReferer: 'delete_product_nonce')]
@@ -32,7 +32,7 @@ class ProductController
     {
         wp_delete_post((int) $_POST['product_id']);
 
-        return JsonResponse::success();
+        return new JsonResponse();
     }
 }
 ```

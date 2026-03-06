@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace WpPack\Component\Ajax;
 
 use WpPack\Component\Ajax\Attribute\AjaxHandler;
-use WpPack\Component\Ajax\Response\JsonResponse;
+use WpPack\Component\HttpFoundation\Exception\ForbiddenException;
+use WpPack\Component\HttpFoundation\Exception\HttpException;
+use WpPack\Component\HttpFoundation\JsonResponse;
 
 final class AjaxHandlerRegistry
 {
@@ -34,18 +36,26 @@ final class AjaxHandlerRegistry
     private function createCallback(object $subscriber, string $method, AjaxHandler $handler): \Closure
     {
         return static function () use ($subscriber, $method, $handler): void {
-            if ($handler->checkReferer !== null) {
-                check_ajax_referer($handler->checkReferer);
-            }
+            try {
+                if ($handler->checkReferer !== null) {
+                    check_ajax_referer($handler->checkReferer);
+                }
 
-            if ($handler->capability !== null && !current_user_can($handler->capability)) {
-                $result = JsonResponse::error('Insufficient permissions.', 403);
-            } else {
+                if ($handler->capability !== null && !current_user_can($handler->capability)) {
+                    throw new ForbiddenException('Insufficient permissions.');
+                }
+
                 $result = $subscriber->{$method}();
-            }
 
-            if ($result instanceof JsonResponse) {
-                $result->send();
+                if ($result instanceof JsonResponse) {
+                    if ($result->statusCode < 400) {
+                        wp_send_json_success($result->data, $result->statusCode);
+                    } else {
+                        wp_send_json_error($result->data, $result->statusCode);
+                    }
+                }
+            } catch (HttpException $e) {
+                wp_send_json_error($e->getMessage(), $e->getStatusCode());
             }
         };
     }

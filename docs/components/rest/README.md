@@ -17,10 +17,10 @@ use WpPack\Component\Rest\AbstractRestController;
 use WpPack\Component\Rest\Attribute\Route;
 use WpPack\Component\Rest\Attribute\Param;
 use WpPack\Component\Rest\Attribute\Permission;
-use WpPack\Component\Rest\Exception\NotFoundException;
+use WpPack\Component\HttpFoundation\Exception\NotFoundException;
 use WpPack\Component\Rest\HttpMethod;
-use WpPack\Component\Rest\Request;
-use WpPack\Component\Rest\Response\JsonResponse;
+use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\HttpFoundation\JsonResponse;
 
 #[Route('/products', namespace: 'my-plugin/v1')]
 #[Permission(public: true)]
@@ -171,9 +171,9 @@ public function show(\WP_REST_Request $request): JsonResponse
 `HttpException` を throw すると自動的に `WP_Error` に変換される。
 
 ```php
-use WpPack\Component\Rest\Exception\NotFoundException;
-use WpPack\Component\Rest\Exception\BadRequestException;
-use WpPack\Component\Rest\Exception\ForbiddenException;
+use WpPack\Component\HttpFoundation\Exception\NotFoundException;
+use WpPack\Component\HttpFoundation\Exception\BadRequestException;
+use WpPack\Component\HttpFoundation\Exception\ForbiddenException;
 
 throw new NotFoundException('Product not found.');      // 404
 throw new BadRequestException('Invalid input.');        // 400

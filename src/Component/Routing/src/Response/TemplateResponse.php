@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Routing\Response;
 
-final class TemplateResponse extends RouteResponse
+use WpPack\Component\HttpFoundation\Response;
+
+final class TemplateResponse extends Response
 {
     /**
      * @param array<string, mixed> $context
@@ -16,6 +18,6 @@ final class TemplateResponse extends RouteResponse
         int $statusCode = 200,
         array $headers = [],
     ) {
-        parent::__construct($statusCode, $headers);
+        parent::__construct('', $statusCode, $headers);
     }
 }

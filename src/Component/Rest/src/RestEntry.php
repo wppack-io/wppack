@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Rest;
 
+use WpPack\Component\HttpFoundation\Exception\HttpException;
+use WpPack\Component\HttpFoundation\JsonResponse;
+use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Rest\Attribute\Permission;
-use WpPack\Component\Rest\Exception\HttpException;
-use WpPack\Component\Rest\Response\RestResponse;
 
 /** @internal */
 final class RestEntry
@@ -56,8 +57,17 @@ final class RestEntry
                     return new \WP_REST_Response(null, 204);
                 }
 
-                if ($response instanceof RestResponse) {
-                    $wpResponse = new \WP_REST_Response($response->data ?? null, $response->statusCode);
+                if ($response instanceof JsonResponse) {
+                    $wpResponse = new \WP_REST_Response($response->data, $response->statusCode);
+                    foreach ($response->headers as $name => $value) {
+                        $wpResponse->header($name, $value);
+                    }
+
+                    return $wpResponse;
+                }
+
+                if ($response instanceof Response) {
+                    $wpResponse = new \WP_REST_Response(null, $response->statusCode);
                     foreach ($response->headers as $name => $value) {
                         $wpResponse->header($name, $value);
                     }

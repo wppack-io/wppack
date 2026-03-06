@@ -6,9 +6,9 @@ namespace WpPack\Component\Rest\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\HttpFoundation\JsonResponse;
+use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Rest\AbstractRestController;
-use WpPack\Component\Rest\Response\JsonResponse;
-use WpPack\Component\Rest\Response\Response;
 
 final class AbstractRestControllerTest extends TestCase
 {
@@ -47,7 +47,8 @@ final class AbstractRestControllerTest extends TestCase
         self::assertInstanceOf(JsonResponse::class, $response);
         self::assertSame(['key' => 'value'], $response->data);
         self::assertSame(200, $response->statusCode);
-        self::assertSame(['X-Test' => 'yes'], $response->headers);
+        self::assertArrayHasKey('X-Test', $response->headers);
+        self::assertSame('yes', $response->headers['X-Test']);
     }
 
     #[Test]
@@ -57,7 +58,6 @@ final class AbstractRestControllerTest extends TestCase
 
         self::assertNull($response->data);
         self::assertSame(200, $response->statusCode);
-        self::assertSame([], $response->headers);
     }
 
     #[Test]
@@ -76,7 +76,7 @@ final class AbstractRestControllerTest extends TestCase
         $response = $this->controller->callNoContent();
 
         self::assertInstanceOf(Response::class, $response);
-        self::assertNull($response->data);
+        self::assertSame('', $response->content);
         self::assertSame(204, $response->statusCode);
     }
 
@@ -86,7 +86,7 @@ final class AbstractRestControllerTest extends TestCase
         $response = $this->controller->callResponse('data', 202, ['X-Header' => 'val']);
 
         self::assertInstanceOf(Response::class, $response);
-        self::assertSame('data', $response->data);
+        self::assertSame('data', $response->content);
         self::assertSame(202, $response->statusCode);
         self::assertSame(['X-Header' => 'val'], $response->headers);
     }

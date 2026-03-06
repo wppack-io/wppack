@@ -6,11 +6,11 @@ namespace WpPack\Component\Rest\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Rest\Attribute\Param;
 use WpPack\Component\Rest\Attribute\Permission;
 use WpPack\Component\Rest\Attribute\Route;
 use WpPack\Component\Rest\HttpMethod;
-use WpPack\Component\Rest\Request;
 use WpPack\Component\Rest\RestEntry;
 use WpPack\Component\Rest\RestRegistry;
 
@@ -206,7 +206,7 @@ final class RestRegistryTest extends TestCase
     {
         $controller = new #[Route('/items', namespace: 'test/v1')] #[Permission(public: true)] class {
             #[Route(methods: HttpMethod::POST)]
-            public function create(string $title, Request $request): array
+            public function create(string $title, \WpPack\Component\HttpFoundation\Request $request): array
             {
                 return [];
             }
@@ -503,10 +503,10 @@ final class RestRegistryTest extends TestCase
         }
 
         $controller = new #[Route('/inject-request', namespace: 'test/v1')] #[Permission(public: true)] class {
-            public ?Request $capturedRequest = null;
+            public ?\WpPack\Component\HttpFoundation\Request $capturedRequest = null;
 
             #[Route(methods: HttpMethod::GET)]
-            public function index(Request $request): array
+            public function index(\WpPack\Component\HttpFoundation\Request $request): array
             {
                 $this->capturedRequest = $request;
 

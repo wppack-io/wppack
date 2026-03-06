@@ -8,7 +8,6 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Routing\Attribute\RewriteTag;
 use WpPack\Component\Routing\Attribute\Route;
-use WpPack\Component\Routing\Response\JsonResponse;
 use WpPack\Component\Routing\Response\TemplateResponse;
 use WpPack\Component\Routing\RouteEntry;
 use WpPack\Component\Routing\RoutePosition;
