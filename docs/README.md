@@ -4,45 +4,132 @@ WordPress をモダンに扱うためのコンポーネントライブラリ。S
 
 ## プロジェクト概要
 
-WpPack は以下の特徴を持つ PHP コンポーネントライブラリです:
+WpPack は、WordPress のグローバル関数・手続き型 API を、型安全な OOP インターフェースでラップするコンポーネントライブラリです。Symfony のパターンを WordPress に持ち込み、`declare(strict_types=1)` の世界で WordPress 開発を行えるようにします。
 
-- **コンポーネントライブラリ**: フレームワークではなく、必要なパッケージだけを選んで使える
-- **Symfony インスパイア**: Symfony のパターンと規約を WordPress に適用
-- **WordPress ファースト**: WordPress の仕組みを尊重しつつ、モダンな開発体験を提供
-- **サーバレス対応**: AWS Lambda (Bref) + SQS + EventBridge による非同期処理
+### Before / After
+
+#### フック登録
+
+**WordPress 標準**
+
+```php
+add_action('init', 'my_register_post_type');
+add_action('save_post', 'my_clear_cache', 10, 2);
+
+function my_register_post_type(): void {
+    register_post_type('book', ['public' => true]);
+}
+
+function my_clear_cache(int $postId, \WP_Post $post): void {
+    wp_cache_delete("book_{$postId}");
+}
+```
+
+**WpPack — Attribute で宣言的に定義**
+
+```php
+#[AsHookSubscriber]
+final class BookSubscriber
+{
+    #[InitAction]
+    public function registerPostType(): void {
+        register_post_type('book', ['public' => true]);
+    }
+
+    #[Action('save_post', priority: 10)]
+    public function clearCache(int $postId, \WP_Post $post): void {
+        wp_cache_delete("book_{$postId}");
+    }
+}
+```
+
+#### 設定読み込み
+
+**WordPress 標準**
+
+```php
+$api_key = get_option('my_plugin_api_key', '');
+$settings = get_option('my_plugin_settings');
+$endpoint = $settings['api']['endpoint'] ?? 'https://default.example.com';
+```
+
+**WpPack — `#[Option]` でコンストラクタに注入**
+
+```php
+final readonly class ApiConfig
+{
+    public function __construct(
+        #[Option('my_plugin_api_key')]
+        public string $apiKey = '',
+
+        #[Option('my_plugin_settings.api.endpoint')]
+        public string $endpoint = 'https://default.example.com',
+    ) {}
+}
+```
+
+#### サービス管理
+
+**WordPress 標準**
+
+```php
+// グローバル関数を直接呼び出し、依存関係は暗黙的
+function my_send_notification(int $postId): void {
+    $post = get_post($postId);
+    $to = get_option('admin_email');
+    wp_mail($to, "Updated: {$post->post_title}", '...');
+}
+add_action('save_post', 'my_send_notification');
+```
+
+**WpPack — DI コンテナによるコンストラクタインジェクション**
+
+```php
+#[AsHookSubscriber]
+final readonly class PostNotifier
+{
+    public function __construct(
+        private MailerInterface $mailer,
+        #[Option('admin_email')]
+        private string $adminEmail,
+    ) {}
+
+    #[Action('save_post')]
+    public function notify(int $postId, \WP_Post $post): void {
+        $this->mailer->send($this->adminEmail, "Updated: {$post->post_title}", '...');
+    }
+}
+```
+
+### 主な特徴
+
+- **PHP Attributes による宣言的 API** — フック、ルート、ショートコード等を Attribute で定義
+- **DI コンテナ** — Symfony スタイルのオートワイヤリングとサービス自動検出
+- **型安全なラッパー** — WordPress API を `declare(strict_types=1)` で扱える
+- **コンポーネント単位の導入** — 必要なパッケージだけ `composer require`
+- **マルチクラウド対応** — コアは抽象インターフェース、AWS / GCP / Azure は Bridge パッケージで分離
 
 ## ドキュメント構成
 
 ### [architecture/](./architecture/) - アーキテクチャ
 
-プロジェクト全体の設計思想と構造。
-
-- [overview.md](./architecture/overview.md) - レイヤー構造と設計原則
-- [monorepo.md](./architecture/monorepo.md) - モノレポ構造と開発フロー
-- [serverless.md](./architecture/serverless.md) - サーバレスアーキテクチャ
-- [testing.md](./architecture/testing.md) - テスト戦略と実行方法
+プロジェクト全体の設計思想と構造。詳細は [architecture/README.md](./architecture/README.md) を参照。
 
 ### [components/](./components/) - コンポーネント
 
-各コンポーネントパッケージの詳細ドキュメント。
+各コンポーネントパッケージの詳細ドキュメント。詳細は [components/README.md](./components/README.md) を参照。
 
 ### [plugins/](./plugins/) - プラグイン
 
-WordPress プラグインパッケージの詳細ドキュメント。
+WordPress プラグインパッケージの詳細ドキュメント。詳細は [plugins/README.md](./plugins/README.md) を参照。
 
 ### [guides/](./guides/) - ガイド
 
-実践的な開発ガイド。
-
-- [plugin-development.md](./guides/plugin-development.md) - プラグイン開発ガイド
-- [theme-development.md](./guides/theme-development.md) - テーマ開発ガイド
+実践的な開発ガイド。詳細は [guides/README.md](./guides/README.md) を参照。
 
 ### [wordpress/](./wordpress/) - WordPress コア仕様
 
-WordPress 内部実装のリファレンス。
-
-- [hooks.md](./wordpress/hooks.md) - フックシステム（action / filter）
-- [object-cache-dropin.md](./wordpress/object-cache-dropin.md) - Object Cache ドロップイン
+WordPress 内部実装のリファレンス。詳細は [wordpress/README.md](./wordpress/README.md) を参照。
 
 ## Getting Started
 
