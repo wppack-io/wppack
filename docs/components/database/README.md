@@ -88,7 +88,7 @@ $rows = $db->fetchAllAssociative(
 |------|------|
 | MySQL（`mysqli`） | `mysqli_prepare()` による native prepared statement |
 | SQLite（SQLite Database Integration プラグイン） | `$wpdb->prepare()` フォールバック |
-| PostgreSQL（PostgreSQL プラグイン） | `$wpdb->prepare()` フォールバック |
+| PostgreSQL（PG4WP） | `$wpdb->prepare()` フォールバック |
 
 エンジン種別は `DatabaseEngine` enum と `$engine` プロパティで判定できます:
 
@@ -195,7 +195,7 @@ DB エンジン種別を表す enum です。`$db->engine` プロパティで現
 |------|---|------|
 | `DatabaseEngine::MySQL` | `'mysql'` | MySQL / MariaDB（`$wpdb->dbh` が `mysqli`） |
 | `DatabaseEngine::SQLite` | `'sqlite'` | SQLite（SQLite Database Integration プラグイン） |
-| `DatabaseEngine::PostgreSQL` | `'pgsql'` | PostgreSQL（PostgreSQL プラグイン） |
+| `DatabaseEngine::PostgreSQL` | `'pgsql'` | PostgreSQL（PG4WP） |
 
 ### 使用例
 
