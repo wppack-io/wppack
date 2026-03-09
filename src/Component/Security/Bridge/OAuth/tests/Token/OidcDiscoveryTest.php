@@ -146,7 +146,7 @@ final class OidcDiscoveryTest extends TestCase
         ];
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('OIDC discovery failed');
+        $this->expectExceptionMessage('OIDC discovery failed.');
 
         $this->discovery->discover(
             'https://idp.example.com/.well-known/openid-configuration',
@@ -163,7 +163,7 @@ final class OidcDiscoveryTest extends TestCase
         ];
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('invalid JSON');
+        $this->expectExceptionMessage('OIDC discovery returned invalid JSON.');
 
         $this->discovery->discover(
             'https://idp.example.com/.well-known/openid-configuration',

@@ -60,6 +60,13 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
 
         if ($email !== null) {
             $email = function_exists('sanitize_email') ? sanitize_email($email) : $email;
+
+            if ($email === '' || !filter_var($email, \FILTER_VALIDATE_EMAIL)) {
+                $email = null;
+            }
+        }
+
+        if ($email !== null) {
             $user = get_user_by('email', $email);
 
             if ($user instanceof \WP_User) {

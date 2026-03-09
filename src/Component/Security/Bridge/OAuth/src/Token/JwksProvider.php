@@ -8,8 +8,8 @@ use WpPack\Component\HttpClient\HttpClient;
 
 final class JwksProvider
 {
-    private const int CACHE_TTL = 3600; // 1 hour
-    private const string TRANSIENT_PREFIX = '_wppack_oauth_jwks_';
+    private const CACHE_TTL = 3600; // 1 hour
+    private const TRANSIENT_PREFIX = '_wppack_oauth_jwks_';
 
     public function __construct(
         private readonly HttpClient $httpClient,
@@ -33,24 +33,20 @@ final class JwksProvider
             }
         }
 
+        if (!str_starts_with($jwksUri, 'https://')) {
+            throw new \RuntimeException('JWKS URI must use HTTPS.');
+        }
+
         $response = $this->httpClient->get($jwksUri);
 
         if (!$response->successful()) {
-            throw new \RuntimeException(\sprintf(
-                'JWKS fetch failed for "%s" with status %d: %s',
-                $jwksUri,
-                $response->getStatusCode(),
-                $response->body(),
-            ));
+            throw new \RuntimeException('JWKS fetch failed.');
         }
 
         $data = $response->json();
 
         if (!isset($data['keys']) || !\is_array($data['keys'])) {
-            throw new \RuntimeException(\sprintf(
-                'JWKS response from "%s" does not contain a valid "keys" array.',
-                $jwksUri,
-            ));
+            throw new \RuntimeException('JWKS response does not contain a valid "keys" array.');
         }
 
         /** @var array<int, array<string, mixed>> $keys */

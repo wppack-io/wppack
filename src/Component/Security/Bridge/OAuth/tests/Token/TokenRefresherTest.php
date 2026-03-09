@@ -104,6 +104,20 @@ final class TokenRefresherTest extends TestCase
     }
 
     #[Test]
+    public function refreshThrowsOnHttpEndpoint(): void
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Token endpoint must use HTTPS.');
+
+        $this->refresher->refresh(
+            'http://idp.example.com/token',
+            'refresh-token',
+            'client-id',
+            'client-secret',
+        );
+    }
+
+    #[Test]
     public function refreshThrowsOnHttpError(): void
     {
         $this->mockResponse = [
@@ -113,7 +127,7 @@ final class TokenRefresherTest extends TestCase
         ];
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Token refresh failed with status 400');
+        $this->expectExceptionMessage('Token refresh failed.');
 
         $this->refresher->refresh(
             'https://idp.example.com/token',
@@ -136,7 +150,7 @@ final class TokenRefresherTest extends TestCase
         ];
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('invalid_grant');
+        $this->expectExceptionMessage('Token refresh failed.');
 
         $this->refresher->refresh(
             'https://idp.example.com/token',

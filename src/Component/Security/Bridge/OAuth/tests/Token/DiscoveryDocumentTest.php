@@ -103,4 +103,72 @@ final class DiscoveryDocumentTest extends TestCase
         self::assertNull($doc->getEndSessionEndpoint());
         self::assertNull($doc->getRevocationEndpoint());
     }
+
+    #[Test]
+    public function fromArrayRejectsHttpAuthorizationEndpoint(): void
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Endpoint "authorization_endpoint" must use HTTPS.');
+
+        DiscoveryDocument::fromArray([
+            'issuer' => 'https://idp.example.com',
+            'authorization_endpoint' => 'http://idp.example.com/authorize',
+            'token_endpoint' => 'https://idp.example.com/token',
+        ]);
+    }
+
+    #[Test]
+    public function fromArrayRejectsHttpTokenEndpoint(): void
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Endpoint "token_endpoint" must use HTTPS.');
+
+        DiscoveryDocument::fromArray([
+            'issuer' => 'https://idp.example.com',
+            'authorization_endpoint' => 'https://idp.example.com/authorize',
+            'token_endpoint' => 'http://idp.example.com/token',
+        ]);
+    }
+
+    #[Test]
+    public function fromArrayRejectsHttpJwksUri(): void
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Endpoint "jwks_uri" must use HTTPS.');
+
+        DiscoveryDocument::fromArray([
+            'issuer' => 'https://idp.example.com',
+            'authorization_endpoint' => 'https://idp.example.com/authorize',
+            'token_endpoint' => 'https://idp.example.com/token',
+            'jwks_uri' => 'http://idp.example.com/.well-known/jwks.json',
+        ]);
+    }
+
+    #[Test]
+    public function fromArrayRejectsHttpUserinfoEndpoint(): void
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Endpoint "userinfo_endpoint" must use HTTPS.');
+
+        DiscoveryDocument::fromArray([
+            'issuer' => 'https://idp.example.com',
+            'authorization_endpoint' => 'https://idp.example.com/authorize',
+            'token_endpoint' => 'https://idp.example.com/token',
+            'userinfo_endpoint' => 'http://idp.example.com/userinfo',
+        ]);
+    }
+
+    #[Test]
+    public function fromArrayRejectsHttpEndSessionEndpoint(): void
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Endpoint "end_session_endpoint" must use HTTPS.');
+
+        DiscoveryDocument::fromArray([
+            'issuer' => 'https://idp.example.com',
+            'authorization_endpoint' => 'https://idp.example.com/authorize',
+            'token_endpoint' => 'https://idp.example.com/token',
+            'end_session_endpoint' => 'http://idp.example.com/logout',
+        ]);
+    }
 }

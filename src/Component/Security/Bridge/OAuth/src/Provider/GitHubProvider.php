@@ -8,9 +8,9 @@ use WpPack\Component\Security\Bridge\OAuth\Configuration\OAuthConfiguration;
 
 final class GitHubProvider implements ProviderInterface
 {
-    private const string DEFAULT_AUTHORIZATION_ENDPOINT = 'https://github.com/login/oauth/authorize';
-    private const string DEFAULT_TOKEN_ENDPOINT = 'https://github.com/login/oauth/access_token';
-    private const string DEFAULT_USERINFO_ENDPOINT = 'https://api.github.com/user';
+    private const DEFAULT_AUTHORIZATION_ENDPOINT = 'https://github.com/login/oauth/authorize';
+    private const DEFAULT_TOKEN_ENDPOINT = 'https://github.com/login/oauth/access_token';
+    private const DEFAULT_USERINFO_ENDPOINT = 'https://api.github.com/user';
 
     public function __construct(
         private readonly OAuthConfiguration $configuration,

@@ -541,7 +541,9 @@ GitHub Settings での設定:
 | アカウント乗っ取り | サブジェクト ID バインディング | `OAuthUserResolver` |
 | XSS / プロフィール改ざん | クレームのサニタイズ（`sanitize_text_field()` / `sanitize_email()`） | `OAuthUserResolver` |
 | セッション固定 | 認証成功時に既存セッションクリア→再発行 | `OAuthAuthenticator` |
-| 情報漏洩 | エラーメッセージ汎用化、詳細はフック経由 | `OAuthAuthenticator` |
+| 情報漏洩（エラーメッセージ） | 全コンポーネントでエラーメッセージ汎用化 | `JwksProvider`, `OidcDiscovery`, `IdTokenValidator`, `TokenExchanger`, `TokenRefresher` |
+| MITM / ダウングレード攻撃 | 全エンドポイントで HTTPS 強制 | `TokenExchanger`, `TokenRefresher`, `OidcDiscovery`, `JwksProvider`, `DiscoveryDocument` |
+| 不正メール形式によるユーザー解決エラー | `filter_var()` によるメール形式検証 | `OAuthUserResolver` |
 | クロスサイト攻撃 | `allowedHosts` + HMAC 署名トークン + HTTPS 強制 | `CrossSiteRedirector` |
 | Workspace ドメイン詐称 | `hd` クレームのサーバーサイド検証 | `GoogleProvider` |
 | ユーザー列挙 | 認証失敗時の一律エラーページ | `onAuthenticationFailure()` |

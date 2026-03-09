@@ -36,26 +36,22 @@ final class TokenRefresher
             $params['scope'] = implode(' ', $scopes);
         }
 
+        if (!str_starts_with($tokenEndpoint, 'https://')) {
+            throw new \RuntimeException('Token endpoint must use HTTPS.');
+        }
+
         $response = $this->httpClient->asForm()->post($tokenEndpoint, [
             'form_params' => $params,
         ]);
 
         if (!$response->successful()) {
-            throw new \RuntimeException(\sprintf(
-                'Token refresh failed with status %d: %s',
-                $response->getStatusCode(),
-                $response->body(),
-            ));
+            throw new \RuntimeException('Token refresh failed.');
         }
 
         $data = $response->json();
 
         if (isset($data['error'])) {
-            throw new \RuntimeException(\sprintf(
-                'Token refresh error: %s (%s)',
-                $data['error_description'] ?? $data['error'],
-                $data['error'],
-            ));
+            throw new \RuntimeException('Token refresh failed.');
         }
 
         return OAuthTokenSet::fromArray($data);

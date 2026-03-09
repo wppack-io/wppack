@@ -57,7 +57,11 @@ final class CrossSiteRedirector
         $timestamp = time();
 
         $payload = $userId . '|' . $timestamp . '|' . $token;
-        $hmac = function_exists('wp_hash') ? wp_hash($payload) : hash_hmac('sha256', $payload, 'fallback-key');
+        if (!function_exists('wp_hash')) {
+            throw new \RuntimeException('Cross-site redirect requires WordPress.');
+        }
+
+        $hmac = wp_hash($payload);
 
         if (function_exists('set_transient')) {
             set_transient(
@@ -96,9 +100,6 @@ final class CrossSiteRedirector
         $key = self::TRANSIENT_PREFIX . hash('sha256', $token);
         $data = get_transient($key);
 
-        // One-time use: delete immediately
-        delete_transient($key);
-
         if (!\is_array($data)) {
             return null;
         }
@@ -109,16 +110,24 @@ final class CrossSiteRedirector
 
         // Check expiry
         if ((time() - $createdAt) > self::TOKEN_TTL) {
+            delete_transient($key);
             return null;
         }
 
         // Verify HMAC
+        if (!function_exists('wp_hash')) {
+            throw new \RuntimeException('Cross-site redirect requires WordPress.');
+        }
+
         $payload = $userId . '|' . $createdAt . '|' . $token;
-        $expectedHmac = function_exists('wp_hash') ? wp_hash($payload) : hash_hmac('sha256', $payload, 'fallback-key');
+        $expectedHmac = wp_hash($payload);
 
         if (!hash_equals($expectedHmac, $storedHmac)) {
             return null;
         }
+
+        // One-time use: delete after successful verification
+        delete_transient($key);
 
         return $userId > 0 ? $userId : null;
     }

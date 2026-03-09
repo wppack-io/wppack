@@ -98,7 +98,7 @@ final class IdTokenValidatorTest extends TestCase
         $token = $this->createIdToken(['exp' => time() - 3600]);
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Expired token');
+        $this->expectExceptionMessage('ID token validation failed.');
 
         $this->validator->validate(
             $token,
@@ -115,7 +115,7 @@ final class IdTokenValidatorTest extends TestCase
         $token = $this->createIdToken();
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('nonce');
+        $this->expectExceptionMessage('nonce validation failed');
 
         $this->validator->validate(
             $token,
@@ -132,7 +132,7 @@ final class IdTokenValidatorTest extends TestCase
         $token = $this->createIdToken();
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('issuer');
+        $this->expectExceptionMessage('issuer validation failed');
 
         $this->validator->validate(
             $token,
@@ -149,7 +149,7 @@ final class IdTokenValidatorTest extends TestCase
         $token = $this->createIdToken();
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('audience');
+        $this->expectExceptionMessage('audience validation failed');
 
         $this->validator->validate(
             $token,
@@ -173,7 +173,7 @@ final class IdTokenValidatorTest extends TestCase
         $token = JWT::encode($payload, $this->privateKey, 'RS256', $this->kid);
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('nonce');
+        $this->expectExceptionMessage('nonce validation failed');
 
         $this->validator->validate(
             $token,
@@ -190,7 +190,7 @@ final class IdTokenValidatorTest extends TestCase
         $token = $this->createIdToken(['iat' => time() + 600]);
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('iat');
+        $this->expectExceptionMessage('ID token validation failed.');
 
         $this->validator->validate(
             $token,
@@ -247,7 +247,7 @@ final class IdTokenValidatorTest extends TestCase
         ]);
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('authorized party');
+        $this->expectExceptionMessage('authorized party validation failed');
 
         $this->validator->validate(
             $token,
@@ -264,7 +264,7 @@ final class IdTokenValidatorTest extends TestCase
         $token = $this->createIdToken();
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('decoding failed');
+        $this->expectExceptionMessage('ID token validation failed.');
 
         $this->validator->validate(
             $token,

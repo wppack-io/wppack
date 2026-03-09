@@ -9,7 +9,7 @@ use Firebase\JWT\JWT;
 
 final class IdTokenValidator
 {
-    private const int IAT_LEEWAY_SECONDS = 300; // 5 minutes
+    private const IAT_LEEWAY_SECONDS = 300; // 5 minutes
 
     /**
      * Validate and decode an ID token.
@@ -29,7 +29,7 @@ final class IdTokenValidator
             $keySet = JWK::parseKeySet(['keys' => $jwks]);
             $decoded = JWT::decode($idToken, $keySet);
         } catch (\Exception $e) {
-            throw new \RuntimeException('ID token decoding failed: ' . $e->getMessage(), 0, $e);
+            throw new \RuntimeException('ID token validation failed.', 0, $e);
         }
 
         /** @var array<string, mixed> $claims */
@@ -51,11 +51,7 @@ final class IdTokenValidator
     private function validateIssuer(array $claims, string $issuer): void
     {
         if (!isset($claims['iss']) || $claims['iss'] !== $issuer) {
-            throw new \RuntimeException(\sprintf(
-                'Invalid issuer: expected "%s", got "%s".',
-                $issuer,
-                $claims['iss'] ?? '(missing)',
-            ));
+            throw new \RuntimeException('ID token issuer validation failed.');
         }
     }
 
@@ -71,10 +67,7 @@ final class IdTokenValidator
         $audiences = \is_array($claims['aud']) ? $claims['aud'] : [$claims['aud']];
 
         if (!\in_array($clientId, $audiences, true)) {
-            throw new \RuntimeException(\sprintf(
-                'Client ID "%s" is not in the token audience.',
-                $clientId,
-            ));
+            throw new \RuntimeException('ID token audience validation failed.');
         }
     }
 
@@ -111,12 +104,8 @@ final class IdTokenValidator
      */
     private function validateNonce(array $claims, string $nonce): void
     {
-        if (!isset($claims['nonce']) || $claims['nonce'] !== $nonce) {
-            throw new \RuntimeException(\sprintf(
-                'Invalid nonce: expected "%s", got "%s".',
-                $nonce,
-                $claims['nonce'] ?? '(missing)',
-            ));
+        if (!isset($claims['nonce']) || !hash_equals($nonce, (string) $claims['nonce'])) {
+            throw new \RuntimeException('ID token nonce validation failed.');
         }
     }
 
@@ -132,11 +121,7 @@ final class IdTokenValidator
         $audiences = \is_array($claims['aud']) ? $claims['aud'] : [$claims['aud']];
 
         if (\count($audiences) > 1 && $claims['azp'] !== $clientId) {
-            throw new \RuntimeException(\sprintf(
-                'Invalid authorized party: expected "%s", got "%s".',
-                $clientId,
-                $claims['azp'],
-            ));
+            throw new \RuntimeException('ID token authorized party validation failed.');
         }
     }
 }

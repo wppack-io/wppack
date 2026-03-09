@@ -56,6 +56,20 @@ final readonly class DiscoveryDocument
      */
     public static function fromArray(array $data): self
     {
+        $httpsEndpoints = [
+            'authorization_endpoint',
+            'token_endpoint',
+            'userinfo_endpoint',
+            'jwks_uri',
+            'end_session_endpoint',
+        ];
+
+        foreach ($httpsEndpoints as $key) {
+            if (isset($data[$key]) && !str_starts_with($data[$key], 'https://')) {
+                throw new \RuntimeException(\sprintf('Endpoint "%s" must use HTTPS.', $key));
+            }
+        }
+
         return new self(
             issuer: $data['issuer'],
             authorizationEndpoint: $data['authorization_endpoint'],

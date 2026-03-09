@@ -8,8 +8,8 @@ use WpPack\Component\HttpClient\HttpClient;
 
 final class OidcDiscovery
 {
-    private const int CACHE_TTL = 86400; // 24 hours
-    private const string TRANSIENT_PREFIX = '_wppack_oidc_discovery_';
+    private const CACHE_TTL = 86400; // 24 hours
+    private const TRANSIENT_PREFIX = '_wppack_oidc_discovery_';
 
     public function __construct(
         private readonly HttpClient $httpClient,
@@ -32,24 +32,20 @@ final class OidcDiscovery
             }
         }
 
+        if (!str_starts_with($discoveryUrl, 'https://')) {
+            throw new \RuntimeException('Discovery URL must use HTTPS.');
+        }
+
         $response = $this->httpClient->get($discoveryUrl);
 
         if (!$response->successful()) {
-            throw new \RuntimeException(\sprintf(
-                'OIDC discovery failed for "%s" with status %d: %s',
-                $discoveryUrl,
-                $response->getStatusCode(),
-                $response->body(),
-            ));
+            throw new \RuntimeException('OIDC discovery failed.');
         }
 
         $data = $response->json();
 
         if ($data === []) {
-            throw new \RuntimeException(\sprintf(
-                'OIDC discovery returned invalid JSON from "%s".',
-                $discoveryUrl,
-            ));
+            throw new \RuntimeException('OIDC discovery returned invalid JSON.');
         }
 
         $document = DiscoveryDocument::fromArray($data);

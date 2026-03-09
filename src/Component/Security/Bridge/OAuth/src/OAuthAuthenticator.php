@@ -189,11 +189,17 @@ final class OAuthAuthenticator implements AuthenticatorInterface
             $subject = (string) ($claims['sub'] ?? '');
         } else {
             // For non-OIDC (e.g., GitHub): fetch userinfo
-            if ($this->httpClient !== null && $this->provider->getUserInfoEndpoint() !== null) {
+            $userInfoEndpoint = $this->provider->getUserInfoEndpoint();
+
+            if ($userInfoEndpoint !== null && !str_starts_with($userInfoEndpoint, 'https://')) {
+                throw new AuthenticationException('OAuth authentication failed.');
+            }
+
+            if ($this->httpClient !== null && $userInfoEndpoint !== null) {
                 $response = $this->httpClient->withHeaders([
                     'Authorization' => 'Bearer ' . $tokenSet->getAccessToken(),
                     'Accept' => 'application/json',
-                ])->get($this->provider->getUserInfoEndpoint());
+                ])->get($userInfoEndpoint);
 
                 /** @var array<string, mixed> $rawClaims */
                 $rawClaims = json_decode($response->body(), true) ?? [];

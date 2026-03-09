@@ -37,26 +37,22 @@ final class TokenExchanger
             $params['code_verifier'] = $codeVerifier;
         }
 
+        if (!str_starts_with($tokenEndpoint, 'https://')) {
+            throw new \RuntimeException('Token endpoint must use HTTPS.');
+        }
+
         $response = $this->httpClient->asForm()->post($tokenEndpoint, [
             'form_params' => $params,
         ]);
 
         if (!$response->successful()) {
-            throw new \RuntimeException(\sprintf(
-                'Token exchange failed with status %d: %s',
-                $response->getStatusCode(),
-                $response->body(),
-            ));
+            throw new \RuntimeException('Token exchange failed.');
         }
 
         $data = $response->json();
 
         if (isset($data['error'])) {
-            throw new \RuntimeException(\sprintf(
-                'Token exchange error: %s (%s)',
-                $data['error_description'] ?? $data['error'],
-                $data['error'],
-            ));
+            throw new \RuntimeException('Token exchange failed.');
         }
 
         return OAuthTokenSet::fromArray($data);

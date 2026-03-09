@@ -108,6 +108,21 @@ final class TokenExchangerTest extends TestCase
     }
 
     #[Test]
+    public function exchangeThrowsOnHttpEndpoint(): void
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Token endpoint must use HTTPS.');
+
+        $this->exchanger->exchange(
+            'http://idp.example.com/token',
+            'auth-code-abc',
+            'https://example.com/callback',
+            'client-id',
+            'client-secret',
+        );
+    }
+
+    #[Test]
     public function exchangeThrowsOnHttpError(): void
     {
         $this->mockResponse = [
@@ -117,7 +132,7 @@ final class TokenExchangerTest extends TestCase
         ];
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Token exchange failed with status 500');
+        $this->expectExceptionMessage('Token exchange failed.');
 
         $this->exchanger->exchange(
             'https://idp.example.com/token',
@@ -141,7 +156,7 @@ final class TokenExchangerTest extends TestCase
         ];
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('invalid_grant');
+        $this->expectExceptionMessage('Token exchange failed.');
 
         $this->exchanger->exchange(
             'https://idp.example.com/token',

@@ -19,7 +19,7 @@ final class AzureProviderTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->tenantId = 'test-tenant-id';
+        $this->tenantId = '550e8400-e29b-41d4-a716-446655440000';
         $this->configuration = new OAuthConfiguration(
             clientId: 'azure-client-id',
             clientSecret: 'azure-client-secret',
@@ -57,19 +57,19 @@ final class AzureProviderTest extends TestCase
         $provider = new AzureProvider($this->configuration, $this->tenantId);
 
         self::assertSame(
-            'https://login.microsoftonline.com/test-tenant-id/oauth2/v2.0/token',
+            'https://login.microsoftonline.com/550e8400-e29b-41d4-a716-446655440000/oauth2/v2.0/token',
             $provider->getTokenEndpoint(),
         );
         self::assertSame(
-            'https://login.microsoftonline.com/test-tenant-id/discovery/v2.0/keys',
+            'https://login.microsoftonline.com/550e8400-e29b-41d4-a716-446655440000/discovery/v2.0/keys',
             $provider->getJwksUri(),
         );
         self::assertSame(
-            'https://login.microsoftonline.com/test-tenant-id/v2.0',
+            'https://login.microsoftonline.com/550e8400-e29b-41d4-a716-446655440000/v2.0',
             $provider->getIssuer(),
         );
         self::assertSame(
-            'https://login.microsoftonline.com/test-tenant-id/oauth2/v2.0/logout',
+            'https://login.microsoftonline.com/550e8400-e29b-41d4-a716-446655440000/oauth2/v2.0/logout',
             $provider->getEndSessionEndpoint(),
         );
     }
@@ -93,7 +93,7 @@ final class AzureProviderTest extends TestCase
 
         $url = $provider->getAuthorizationUrl('state', 'nonce');
         self::assertStringStartsWith(
-            'https://login.microsoftonline.com/test-tenant-id/oauth2/v2.0/authorize?',
+            'https://login.microsoftonline.com/550e8400-e29b-41d4-a716-446655440000/oauth2/v2.0/authorize?',
             $url,
         );
     }
@@ -104,7 +104,7 @@ final class AzureProviderTest extends TestCase
         $provider = new AzureProvider($this->configuration, $this->tenantId);
 
         self::assertSame(
-            'https://login.microsoftonline.com/test-tenant-id/v2.0/.well-known/openid-configuration',
+            'https://login.microsoftonline.com/550e8400-e29b-41d4-a716-446655440000/v2.0/.well-known/openid-configuration',
             $provider->getDiscoveryUrl(),
         );
     }
@@ -132,7 +132,7 @@ final class AzureProviderTest extends TestCase
         $provider = new AzureProvider($this->configuration, $this->tenantId);
 
         self::assertSame(
-            'https://login.microsoftonline.com/test-tenant-id/oauth2/v2.0/token',
+            'https://login.microsoftonline.com/550e8400-e29b-41d4-a716-446655440000/oauth2/v2.0/token',
             $provider->getTokenEndpoint(),
         );
 
@@ -176,6 +176,39 @@ final class AzureProviderTest extends TestCase
         $data = ['sub' => '123', 'name' => 'Test', 'email' => 'test@example.com'];
 
         self::assertSame($data, $provider->normalizeUserInfo($data));
+    }
+
+    #[Test]
+    public function invalidTenantIdThrowsException(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid Azure tenant ID format.');
+
+        new AzureProvider($this->configuration, '../malicious-path');
+    }
+
+    #[Test]
+    public function commonTenantIdIsAccepted(): void
+    {
+        $provider = new AzureProvider($this->configuration, 'common');
+
+        self::assertStringContainsString('common', $provider->getTokenEndpoint());
+    }
+
+    #[Test]
+    public function organizationsTenantIdIsAccepted(): void
+    {
+        $provider = new AzureProvider($this->configuration, 'organizations');
+
+        self::assertStringContainsString('organizations', $provider->getTokenEndpoint());
+    }
+
+    #[Test]
+    public function consumersTenantIdIsAccepted(): void
+    {
+        $provider = new AzureProvider($this->configuration, 'consumers');
+
+        self::assertStringContainsString('consumers', $provider->getTokenEndpoint());
     }
 
     #[Test]

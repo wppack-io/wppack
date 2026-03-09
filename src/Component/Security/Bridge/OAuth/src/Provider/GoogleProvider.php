@@ -9,13 +9,13 @@ use WpPack\Component\Security\Bridge\OAuth\Token\DiscoveryDocument;
 
 final class GoogleProvider implements ProviderInterface
 {
-    public const string DISCOVERY_URL = 'https://accounts.google.com/.well-known/openid-configuration';
+    public const DISCOVERY_URL = 'https://accounts.google.com/.well-known/openid-configuration';
 
-    private const string DEFAULT_AUTHORIZATION_ENDPOINT = 'https://accounts.google.com/o/oauth2/v2/auth';
-    private const string DEFAULT_TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
-    private const string DEFAULT_USERINFO_ENDPOINT = 'https://openidconnect.googleapis.com/v1/userinfo';
-    private const string DEFAULT_JWKS_URI = 'https://www.googleapis.com/oauth2/v3/certs';
-    private const string DEFAULT_ISSUER = 'https://accounts.google.com';
+    private const DEFAULT_AUTHORIZATION_ENDPOINT = 'https://accounts.google.com/o/oauth2/v2/auth';
+    private const DEFAULT_TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
+    private const DEFAULT_USERINFO_ENDPOINT = 'https://openidconnect.googleapis.com/v1/userinfo';
+    private const DEFAULT_JWKS_URI = 'https://www.googleapis.com/oauth2/v3/certs';
+    private const DEFAULT_ISSUER = 'https://accounts.google.com';
 
     private ?DiscoveryDocument $discoveryDocument = null;
 

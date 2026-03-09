@@ -140,7 +140,7 @@ final class JwksProviderTest extends TestCase
         ];
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('JWKS fetch failed');
+        $this->expectExceptionMessage('JWKS fetch failed.');
 
         $this->provider->getKeys('https://idp.example.com/.well-known/jwks.json');
     }
@@ -155,7 +155,7 @@ final class JwksProviderTest extends TestCase
         ];
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('does not contain a valid "keys" array');
+        $this->expectExceptionMessage('JWKS response does not contain a valid "keys" array.');
 
         $this->provider->getKeys('https://idp.example.com/.well-known/jwks.json');
     }

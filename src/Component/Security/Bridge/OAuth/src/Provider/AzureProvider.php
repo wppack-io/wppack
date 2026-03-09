@@ -9,7 +9,7 @@ use WpPack\Component\Security\Bridge\OAuth\Token\DiscoveryDocument;
 
 final class AzureProvider implements ProviderInterface
 {
-    private const string BASE_URL = 'https://login.microsoftonline.com';
+    private const BASE_URL = 'https://login.microsoftonline.com';
 
     private ?DiscoveryDocument $discoveryDocument = null;
 
@@ -18,6 +18,10 @@ final class AzureProvider implements ProviderInterface
         private readonly string $tenantId,
         ?DiscoveryDocument $discoveryDocument = null,
     ) {
+        if (!preg_match('/^[a-f0-9\-]{36}$|^(common|organizations|consumers)$/i', $this->tenantId)) {
+            throw new \InvalidArgumentException('Invalid Azure tenant ID format.');
+        }
+
         $this->discoveryDocument = $discoveryDocument;
     }
 
