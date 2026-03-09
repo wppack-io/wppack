@@ -1,14 +1,14 @@
 # SamlSecurity
 
-SAML 2.0 SP（Service Provider）認証ブリッジ。`onelogin/php-saml` をラップし、外部 IdP（Okta, Azure AD, Google Workspace 等）による SSO 認証を WpPack Security コンポーネントに統合します。
+SAML 2.0 Service Provider (SP) authentication bridge for WpPack Security. Wraps `onelogin/php-saml` to integrate external IdP (Okta, Azure AD, Google Workspace, etc.) SSO authentication with the WpPack Security component.
 
-## インストール
+## Installation
 
 ```bash
 composer require wppack/saml-security
 ```
 
-## 基本設定
+## Configuration
 
 ```php
 use WpPack\Component\Security\Bridge\SAML\Configuration\IdpSettings;
@@ -31,7 +31,7 @@ $spSettings = new SpSettings(
 $configuration = new SamlConfiguration($idpSettings, $spSettings);
 ```
 
-## 使用例
+## Usage
 
 ### SP-Initiated SSO
 
@@ -42,14 +42,14 @@ use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
 $factory = new SamlAuthFactory($configuration);
 $entryPoint = new SamlEntryPoint($factory);
 
-// IdP にリダイレクト
+// Redirect to IdP
 $entryPoint->start(returnTo: admin_url());
 
-// URL のみ取得
+// Get login URL only
 $loginUrl = $entryPoint->getLoginUrl();
 ```
 
-### ACS（Assertion Consumer Service）
+### Assertion Consumer Service (ACS)
 
 ```php
 use WpPack\Component\Security\Bridge\SAML\SamlAuthenticator;
@@ -62,13 +62,13 @@ $authenticator = new SamlAuthenticator(
 );
 ```
 
-### SP メタデータ
+### SP Metadata
 
 ```php
 use WpPack\Component\Security\Bridge\SAML\SamlMetadataController;
 
 $metadata = new SamlMetadataController($configuration);
-$metadata->serve(); // XML レスポンスを出力
+$metadata->serve(); // Outputs XML response
 ```
 
 ### Single Logout
@@ -80,7 +80,7 @@ $logoutHandler = new SamlLogoutHandler($factory, redirectAfterLogout: home_url()
 $logoutHandler->initiateLogout($nameId, $sessionIndex);
 ```
 
-## ユーザー解決（JIT プロビジョニング）
+## User Resolution (JIT Provisioning)
 
 ```php
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolver;
@@ -99,9 +99,9 @@ $userResolver = new SamlUserResolver(
 );
 ```
 
-## マルチサイト対応
+## Multisite Support
 
-### クロスサイト SSO
+### Cross-Site SSO
 
 ```php
 use WpPack\Component\Security\Bridge\SAML\Multisite\CrossSiteRedirector;
@@ -118,18 +118,18 @@ $authenticator = new SamlAuthenticator(
 );
 ```
 
-## 依存関係
+## Dependencies
 
 - `wppack/security` ^1.0
 - `onelogin/php-saml` ^4.0
 
-## ドキュメント
+## Documentation
 
-詳細は [docs/components/security/saml-security.md](../../../../docs/components/security/saml-security.md) を参照してください。
+See [docs/components/security/saml-security.md](../../../../docs/components/security/saml-security.md) for full documentation.
 
-## リソース
+## Resources
 
 - [Issues](https://github.com/wppack-io/wppack/issues)
 - [Pull Requests](https://github.com/wppack-io/wppack/pulls)
 
-メインリポジトリ [wppack-io/wppack](https://github.com/wppack-io/wppack) で開発しています。
+Developed in the main repository [wppack-io/wppack](https://github.com/wppack-io/wppack).
