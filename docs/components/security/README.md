@@ -172,6 +172,38 @@ public function onAuthenticationSuccess(Request $request, TokenInterface $token)
 }
 ```
 
+### SSO 専用構成（OAuth / SAML のみ）
+
+WordPress のデフォルトフォーム認証を無効化し、OAuth / SAML のみで認証する構成も可能です。
+
+**ポイント:**
+- `FormLoginAuthenticator` を登録しない
+- `login_url` フィルターで `wp-login.php` を IdP へリダイレクト
+- `CookieAuthenticator` はセッション維持に必要なため残す
+
+```php
+// 1. AuthenticationManager に OAuth/SAML + Cookie のみ登録
+$manager->addAuthenticator($oauthAuthenticator);  // or $samlAuthenticator
+$manager->addAuthenticator($cookieAuthenticator);
+// FormLoginAuthenticator は登録しない
+
+// 2. wp-login.php アクセスを IdP にリダイレクト（OAuth の例）
+add_filter('login_url', function (string $loginUrl, string $redirect) use ($entryPoint): string {
+    return $entryPoint->getLoginUrl($redirect);
+}, 10, 2);
+
+// 3. wp-login.php への直接アクセスもリダイレクト
+add_action('login_init', function () use ($entryPoint): void {
+    if ($_SERVER['REQUEST_METHOD'] === 'GET' && !isset($_GET['action'])) {
+        $entryPoint->start();
+    }
+});
+```
+
+EntryPoint の詳細は各 Bridge ドキュメントを参照してください:
+- OAuth: [OAuthEntryPoint](./oauth-security.md)
+- SAML: [SamlEntryPoint](./saml-security.md)
+
 ### カスタム Authenticator
 
 ```php
