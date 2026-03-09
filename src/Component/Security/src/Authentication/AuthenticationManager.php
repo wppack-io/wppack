@@ -6,6 +6,7 @@ namespace WpPack\Component\Security\Authentication;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
 use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Security\Authentication\Token\TokenInterface;
 use WpPack\Component\Security\Event\AuthenticationFailureEvent;
 use WpPack\Component\Security\Event\AuthenticationSuccessEvent;
@@ -61,12 +62,18 @@ final class AuthenticationManager implements AuthenticationManagerInterface
                 $this->token = $token;
 
                 $this->dispatcher->dispatch(new AuthenticationSuccessEvent($token));
-                $authenticator->onAuthenticationSuccess($request, $token);
+                $response = $authenticator->onAuthenticationSuccess($request, $token);
+
+                if ($response !== null) {
+                    $this->establishAuthSession($token);
+                    $response->send();
+                }
 
                 return $token->getUser();
             } catch (AuthenticationException $e) {
                 $this->dispatcher->dispatch(new AuthenticationFailureEvent($e));
-                $authenticator->onAuthenticationFailure($request, $e);
+                $response = $authenticator->onAuthenticationFailure($request, $e);
+                $response?->send();
 
                 return new \WP_Error('authentication_failed', $e->getSafeMessage());
             }
@@ -107,12 +114,18 @@ final class AuthenticationManager implements AuthenticationManagerInterface
                 $this->token = $token;
 
                 $this->dispatcher->dispatch(new AuthenticationSuccessEvent($token));
-                $authenticator->onAuthenticationSuccess($request, $token);
+                $response = $authenticator->onAuthenticationSuccess($request, $token);
+
+                if ($response !== null) {
+                    $this->establishAuthSession($token);
+                    $response->send();
+                }
 
                 return $token->getUser()->ID;
             } catch (AuthenticationException $e) {
                 $this->dispatcher->dispatch(new AuthenticationFailureEvent($e));
-                $authenticator->onAuthenticationFailure($request, $e);
+                $response = $authenticator->onAuthenticationFailure($request, $e);
+                $response?->send();
                 // For stateless auth, silently continue to next authenticator
                 continue;
             }
@@ -124,6 +137,23 @@ final class AuthenticationManager implements AuthenticationManagerInterface
     public function getToken(): ?TokenInterface
     {
         return $this->token;
+    }
+
+    private function establishAuthSession(TokenInterface $token): void
+    {
+        if (headers_sent()) {
+            return;
+        }
+
+        $user = $token->getUser();
+
+        if (function_exists('wp_clear_auth_cookie')) {
+            wp_clear_auth_cookie();
+        }
+
+        if (function_exists('wp_set_auth_cookie')) {
+            wp_set_auth_cookie($user->ID, false, is_ssl());
+        }
     }
 
     /**

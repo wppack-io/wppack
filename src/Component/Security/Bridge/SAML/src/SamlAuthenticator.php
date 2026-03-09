@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace WpPack\Component\Security\Bridge\SAML;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
+use WpPack\Component\HttpFoundation\RedirectResponse;
 use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Security\Authentication\AuthenticatorInterface;
 use WpPack\Component\Security\Authentication\Passport\Badge\UserBadge;
 use WpPack\Component\Security\Authentication\Passport\Passport;
@@ -106,17 +108,9 @@ final class SamlAuthenticator implements AuthenticatorInterface
         );
     }
 
-    public function onAuthenticationSuccess(Request $request, TokenInterface $token): void
+    public function onAuthenticationSuccess(Request $request, TokenInterface $token): Response
     {
         $user = $token->getUser();
-
-        if (function_exists('wp_clear_auth_cookie')) {
-            wp_clear_auth_cookie();
-        }
-
-        if (function_exists('wp_set_auth_cookie')) {
-            wp_set_auth_cookie($user->ID, false, is_ssl());
-        }
 
         if ($this->addUserToBlog && function_exists('is_multisite') && is_multisite()) {
             if (function_exists('is_user_member_of_blog') && !is_user_member_of_blog($user->ID)) {
@@ -136,12 +130,10 @@ final class SamlAuthenticator implements AuthenticatorInterface
             $redirect = $fallback;
         }
 
-        if (function_exists('wp_safe_redirect')) {
-            wp_safe_redirect($redirect);
-        }
+        return new RedirectResponse($redirect);
     }
 
-    public function onAuthenticationFailure(Request $request, AuthenticationException $exception): void
+    public function onAuthenticationFailure(Request $request, AuthenticationException $exception): Response
     {
         if (function_exists('do_action')) {
             do_action('wppack_saml_authentication_failed', $exception);
@@ -149,9 +141,7 @@ final class SamlAuthenticator implements AuthenticatorInterface
 
         $loginUrl = function_exists('wp_login_url') ? wp_login_url() : '/wp-login.php';
 
-        if (function_exists('wp_safe_redirect')) {
-            wp_safe_redirect($loginUrl . '?saml_error=1');
-        }
+        return new RedirectResponse($loginUrl . '?saml_error=1');
     }
 
     private function isSameOrigin(string $url): bool

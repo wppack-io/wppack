@@ -9,6 +9,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
+use WpPack\Component\HttpFoundation\RedirectResponse;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Security\Authentication\Passport\Badge\UserBadge;
 use WpPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
@@ -213,10 +214,6 @@ final class SamlAuthenticatorTest extends TestCase
     #[Test]
     public function onAuthenticationFailure(): void
     {
-        if (!function_exists('wp_login_url')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $authenticator = $this->createAuthenticator();
 
         $request = new Request(
@@ -225,16 +222,17 @@ final class SamlAuthenticatorTest extends TestCase
 
         $exception = new AuthenticationException('SAML authentication failed');
 
-        $authenticator->onAuthenticationFailure($request, $exception);
+        $response = $authenticator->onAuthenticationFailure($request, $exception);
 
-        self::assertTrue(true);
+        self::assertInstanceOf(RedirectResponse::class, $response);
+        self::assertStringContainsString('saml_error=1', $response->url);
     }
 
     #[Test]
     public function onAuthenticationSuccess(): void
     {
-        if (!function_exists('wp_set_auth_cookie')) {
-            self::markTestSkipped('WordPress functions are not available.');
+        if (!class_exists(\WP_User::class)) {
+            self::markTestSkipped('WordPress is not available.');
         }
 
         $user = $this->createMock(\WP_User::class);
@@ -249,8 +247,9 @@ final class SamlAuthenticatorTest extends TestCase
             server: ['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/saml/acs'],
         );
 
-        $authenticator->onAuthenticationSuccess($request, $token);
+        $response = $authenticator->onAuthenticationSuccess($request, $token);
 
-        self::assertTrue(true);
+        self::assertInstanceOf(RedirectResponse::class, $response);
+        self::assertStringContainsString('/wp-admin', $response->url);
     }
 }

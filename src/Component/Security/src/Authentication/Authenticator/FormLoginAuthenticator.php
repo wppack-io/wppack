@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Security\Authentication\Authenticator;
 
 use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Security\Authentication\AuthenticatorInterface;
 use WpPack\Component\Security\Authentication\Passport\Badge\CredentialsBadge;
 use WpPack\Component\Security\Authentication\Passport\Badge\RememberMeBadge;
@@ -44,14 +45,16 @@ final class FormLoginAuthenticator implements AuthenticatorInterface
         return new PostAuthenticationToken($user, $user->roles, $blogId);
     }
 
-    public function onAuthenticationSuccess(Request $request, TokenInterface $token): void
+    public function onAuthenticationSuccess(Request $request, TokenInterface $token): ?Response
     {
         // Remember me cookie handling is delegated to WordPress
         // via wp_set_auth_cookie which is called by the WordPress login flow
+        return null;
     }
 
-    public function onAuthenticationFailure(Request $request, AuthenticationException $exception): void
+    public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
     {
         // Failure handling is done by returning WP_Error from AuthenticationManager
+        return null;
     }
 }

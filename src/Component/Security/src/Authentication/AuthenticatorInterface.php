@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Security\Authentication;
 
 use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Security\Authentication\Passport\Passport;
 use WpPack\Component\Security\Authentication\Token\TokenInterface;
 use WpPack\Component\Security\Exception\AuthenticationException;
@@ -17,7 +18,7 @@ interface AuthenticatorInterface
 
     public function createToken(Passport $passport): TokenInterface;
 
-    public function onAuthenticationSuccess(Request $request, TokenInterface $token): void;
+    public function onAuthenticationSuccess(Request $request, TokenInterface $token): ?Response;
 
-    public function onAuthenticationFailure(Request $request, AuthenticationException $exception): void;
+    public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response;
 }

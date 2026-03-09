@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Security\Authentication\Authenticator;
 
 use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Security\Authentication\Passport\Badge\UserBadge;
 use WpPack\Component\Security\Authentication\Passport\Passport;
 use WpPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
@@ -58,13 +59,15 @@ final class ApplicationPasswordAuthenticator implements StatelessAuthenticatorIn
         return new PostAuthenticationToken($user, $user->roles, $blogId);
     }
 
-    public function onAuthenticationSuccess(Request $request, TokenInterface $token): void
+    public function onAuthenticationSuccess(Request $request, TokenInterface $token): ?Response
     {
         // Application password authentication is passive
+        return null;
     }
 
-    public function onAuthenticationFailure(Request $request, AuthenticationException $exception): void
+    public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
     {
         // Application password authentication is passive
+        return null;
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Security\Authentication\Authenticator;
 
 use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Security\Authentication\Passport\Badge\UserBadge;
 use WpPack\Component\Security\Authentication\Passport\Passport;
 use WpPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
@@ -57,13 +58,15 @@ final class CookieAuthenticator implements StatelessAuthenticatorInterface
         return new PostAuthenticationToken($user, $user->roles, $blogId);
     }
 
-    public function onAuthenticationSuccess(Request $request, TokenInterface $token): void
+    public function onAuthenticationSuccess(Request $request, TokenInterface $token): ?Response
     {
         // Cookie authentication is passive - no action needed on success
+        return null;
     }
 
-    public function onAuthenticationFailure(Request $request, AuthenticationException $exception): void
+    public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
     {
         // Cookie authentication is passive - no action needed on failure
+        return null;
     }
 }

@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Security\Authentication\AuthenticationManager;
 use WpPack\Component\Security\Authentication\AuthenticatorInterface;
 use WpPack\Component\Security\Authentication\Passport\Badge\CredentialsBadge;
@@ -207,9 +208,15 @@ final class AuthenticationManagerTest extends TestCase
                 return new PostAuthenticationToken($user, $user->roles);
             }
 
-            public function onAuthenticationSuccess(Request $request, TokenInterface $token): void {}
+            public function onAuthenticationSuccess(Request $request, TokenInterface $token): ?Response
+            {
+                return null;
+            }
 
-            public function onAuthenticationFailure(Request $request, AuthenticationException $exception): void {}
+            public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
+            {
+                return null;
+            }
         };
     }
 
@@ -240,9 +247,15 @@ final class AuthenticationManagerTest extends TestCase
                 return new PostAuthenticationToken($user, $user->roles);
             }
 
-            public function onAuthenticationSuccess(Request $request, TokenInterface $token): void {}
+            public function onAuthenticationSuccess(Request $request, TokenInterface $token): ?Response
+            {
+                return null;
+            }
 
-            public function onAuthenticationFailure(Request $request, AuthenticationException $exception): void {}
+            public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
+            {
+                return null;
+            }
         };
     }
 
@@ -264,9 +277,15 @@ final class AuthenticationManagerTest extends TestCase
                 throw new \LogicException('Should not be called.');
             }
 
-            public function onAuthenticationSuccess(Request $request, TokenInterface $token): void {}
+            public function onAuthenticationSuccess(Request $request, TokenInterface $token): ?Response
+            {
+                return null;
+            }
 
-            public function onAuthenticationFailure(Request $request, AuthenticationException $exception): void {}
+            public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
+            {
+                return null;
+            }
         };
     }
 }
