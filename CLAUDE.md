@@ -66,6 +66,7 @@ WordPress プラグインとして配布。Component を利用。
 | Database | wppack/database | データベース抽象化 |
 | Query | wppack/query | クエリビルダー |
 | Security | wppack/security | セキュリティユーティリティ |
+| SamlSecurity | wppack/saml-security | SAML 2.0 SP 認証 |
 | Sanitizer | wppack/sanitizer | 入力サニタイズ |
 | Escaper | wppack/escaper | 出力エスケープ |
 | HttpClient | wppack/http-client | HTTPクライアント |
@@ -170,6 +171,11 @@ wppack/mailer
 wppack/amazon-mailer-plugin
     ↓ requires
 wppack/amazon-mailer, wppack/hook
+
+wppack/saml-security
+    ↓ requires
+wppack/security
+    + onelogin/php-saml
 
 wppack/monolog-logger
     ↓ requires

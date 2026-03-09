@@ -1,0 +1,215 @@
+<?php
+
+declare(strict_types=1);
+
+namespace WpPack\Component\Security\Bridge\SAML\Tests;
+
+use OneLogin\Saml2\Auth;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+use Psr\EventDispatcher\EventDispatcherInterface;
+use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Security\Authentication\Passport\Badge\UserBadge;
+use WpPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
+use WpPack\Component\Security\Authentication\Token\PostAuthenticationToken;
+use WpPack\Component\Security\Bridge\SAML\Badge\SamlAttributesBadge;
+use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
+use WpPack\Component\Security\Bridge\SAML\SamlAuthenticator;
+use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolverInterface;
+use WpPack\Component\Security\Exception\AuthenticationException;
+
+#[CoversClass(SamlAuthenticator::class)]
+final class SamlAuthenticatorTest extends TestCase
+{
+    private SamlAuthFactory $factory;
+    private SamlUserResolverInterface $userResolver;
+    private EventDispatcherInterface $eventDispatcher;
+
+    protected function setUp(): void
+    {
+        $this->factory = $this->createMock(SamlAuthFactory::class);
+        $this->userResolver = $this->createMock(SamlUserResolverInterface::class);
+        $this->eventDispatcher = $this->createMock(EventDispatcherInterface::class);
+    }
+
+    private function createAuthenticator(string $acsPath = '/saml/acs'): SamlAuthenticator
+    {
+        return new SamlAuthenticator(
+            $this->factory,
+            $this->userResolver,
+            $this->eventDispatcher,
+            $acsPath,
+        );
+    }
+
+    #[Test]
+    public function supportsWithValidRequest(): void
+    {
+        $authenticator = $this->createAuthenticator();
+
+        $request = new Request(
+            post: ['SAMLResponse' => 'base64encodedresponse'],
+            server: ['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/saml/acs'],
+        );
+
+        self::assertTrue($authenticator->supports($request));
+    }
+
+    #[Test]
+    public function supportsWithGetRequest(): void
+    {
+        $authenticator = $this->createAuthenticator();
+
+        $request = new Request(
+            server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/saml/acs'],
+        );
+
+        self::assertFalse($authenticator->supports($request));
+    }
+
+    #[Test]
+    public function supportsWithoutSamlResponse(): void
+    {
+        $authenticator = $this->createAuthenticator();
+
+        $request = new Request(
+            post: ['action' => 'login'],
+            server: ['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/saml/acs'],
+        );
+
+        self::assertFalse($authenticator->supports($request));
+    }
+
+    #[Test]
+    public function supportsWithWrongPath(): void
+    {
+        $authenticator = $this->createAuthenticator();
+
+        $request = new Request(
+            post: ['SAMLResponse' => 'base64encodedresponse'],
+            server: ['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/login'],
+        );
+
+        self::assertFalse($authenticator->supports($request));
+    }
+
+    #[Test]
+    public function authenticate(): void
+    {
+        $auth = $this->createMock(Auth::class);
+        $auth->method('processResponse')->willReturn(null);
+        $auth->method('getErrors')->willReturn([]);
+        $auth->method('getNameId')->willReturn('user@example.com');
+        $auth->method('getAttributes')->willReturn(['email' => ['user@example.com']]);
+        $auth->method('getSessionIndex')->willReturn('_session123');
+
+        $this->factory->method('create')->willReturn($auth);
+
+        $authenticator = $this->createAuthenticator();
+
+        $request = new Request(
+            post: ['SAMLResponse' => 'base64encodedresponse'],
+            server: ['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/saml/acs'],
+        );
+
+        $passport = $authenticator->authenticate($request);
+
+        self::assertInstanceOf(SelfValidatingPassport::class, $passport);
+        self::assertTrue($passport->hasBadge(UserBadge::class));
+        self::assertTrue($passport->hasBadge(SamlAttributesBadge::class));
+
+        $samlBadge = $passport->getBadge(SamlAttributesBadge::class);
+        self::assertInstanceOf(SamlAttributesBadge::class, $samlBadge);
+        self::assertSame('user@example.com', $samlBadge->getNameId());
+        self::assertSame(['email' => ['user@example.com']], $samlBadge->getAttributes());
+        self::assertSame('_session123', $samlBadge->getSessionIndex());
+    }
+
+    #[Test]
+    public function authenticateWithErrors(): void
+    {
+        $auth = $this->createMock(Auth::class);
+        $auth->method('processResponse')->willReturn(null);
+        $auth->method('getErrors')->willReturn(['invalid_response']);
+        $auth->method('getLastErrorReason')->willReturn('Signature validation failed');
+
+        $this->factory->method('create')->willReturn($auth);
+
+        $authenticator = $this->createAuthenticator();
+
+        $request = new Request(
+            post: ['SAMLResponse' => 'invalidresponse'],
+            server: ['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/saml/acs'],
+        );
+
+        $this->expectException(AuthenticationException::class);
+
+        $authenticator->authenticate($request);
+    }
+
+    #[Test]
+    public function createToken(): void
+    {
+        if (!class_exists(\WP_User::class)) {
+            self::markTestSkipped('WordPress is not available.');
+        }
+
+        $user = $this->createMock(\WP_User::class);
+        $user->ID = 1;
+        $user->roles = ['subscriber'];
+
+        $authenticator = $this->createAuthenticator();
+
+        $userBadge = new UserBadge('user@example.com', fn() => $user);
+        $passport = new SelfValidatingPassport($userBadge);
+
+        $token = $authenticator->createToken($passport);
+
+        self::assertInstanceOf(PostAuthenticationToken::class, $token);
+    }
+
+    #[Test]
+    public function onAuthenticationFailure(): void
+    {
+        if (!function_exists('wp_login_url')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $authenticator = $this->createAuthenticator();
+
+        $request = new Request(
+            server: ['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/saml/acs'],
+        );
+
+        $exception = new AuthenticationException('SAML authentication failed');
+
+        $authenticator->onAuthenticationFailure($request, $exception);
+
+        self::assertTrue(true);
+    }
+
+    #[Test]
+    public function onAuthenticationSuccess(): void
+    {
+        if (!function_exists('wp_set_auth_cookie')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $user = $this->createMock(\WP_User::class);
+        $user->ID = 1;
+        $user->roles = ['subscriber'];
+
+        $token = new PostAuthenticationToken($user, ['subscriber']);
+
+        $authenticator = $this->createAuthenticator();
+
+        $request = new Request(
+            server: ['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/saml/acs'],
+        );
+
+        $authenticator->onAuthenticationSuccess($request, $token);
+
+        self::assertTrue(true);
+    }
+}

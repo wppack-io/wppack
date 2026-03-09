@@ -527,7 +527,7 @@ OAuth / SAML / 2FA は `AuthenticatorInterface` を実装する Bridge パッケ
 // wppack/oauth-security
 final class OAuthAuthenticator implements AuthenticatorInterface { /* ... */ }
 
-// wppack/saml-security
+// wppack/saml-security (実装済み)
 final class SamlAuthenticator implements AuthenticatorInterface { /* ... */ }
 
 // wppack/two-factor-security

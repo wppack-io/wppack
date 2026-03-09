@@ -127,6 +127,10 @@ component_management:
       name: SendGridMailer
       paths:
         - src/Component/Mailer/Bridge/SendGrid/src/**
+    - component_id: saml_security
+      name: SamlSecurity
+      paths:
+        - src/Component/Security/Bridge/SAML/src/**
     - component_id: messenger
       name: Messenger
       paths:
