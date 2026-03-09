@@ -79,6 +79,13 @@ authenticator->createToken($passport) → TokenInterface
     ↓
 dispatch(AuthenticationSuccessEvent)
     ↓
+authenticator->onAuthenticationSuccess($request, $token) → ?Response
+    ↓
+Response を返した場合:
+    AuthenticationManager が Cookie 設定 + レスポンス送信
+null を返した場合:
+    WordPress のデフォルトフローに委譲
+    ↓
 return WP_User ← WordPress に渡す
 ```
 
@@ -137,6 +144,33 @@ $passport = new SelfValidatingPassport(
 | `FormLoginAuthenticator` | `wp-login.php` フォーム認証 | `authenticate` |
 | `CookieAuthenticator` | Cookie ベースセッション認証 | `determine_current_user` |
 | `ApplicationPasswordAuthenticator` | REST API Application Password | `determine_current_user` |
+
+### レスポンス制御と WordPress デフォルトフロー
+
+`onAuthenticationSuccess` / `onAuthenticationFailure` の戻り値で、認証後の動作が分岐します:
+
+| 戻り値 | 動作 | 対象 |
+|--------|------|------|
+| `Response` | `AuthenticationManager` が Cookie 設定（`wp_set_auth_cookie`）とレスポンス送信を実行 | OAuth, SAML |
+| `null` | WordPress のデフォルトフローに委譲（`wp_signon()` が Cookie・リダイレクトを処理） | FormLogin, Cookie, ApplicationPassword |
+
+WordPress 標準の `wp-login.php` を使う場合（`FormLoginAuthenticator`）は、認証の検証のみ Security コンポーネントが担当し、Cookie 設定やリダイレクトは WordPress 側で行われます。OAuth / SAML のように `wp_signon()` をバイパスする認証方式では、Authenticator が `RedirectResponse` を返し、`AuthenticationManager` が Cookie 設定を一元管理します。
+
+```php
+// WordPress デフォルトフローに委譲する場合（FormLogin 等）
+public function onAuthenticationSuccess(Request $request, TokenInterface $token): ?Response
+{
+    return null; // WordPress が Cookie 設定・リダイレクトを処理
+}
+
+// 独自にレスポンスを制御する場合（OAuth / SAML 等）
+public function onAuthenticationSuccess(Request $request, TokenInterface $token): Response
+{
+    // Multisite 処理等の Authenticator 固有ロジック
+    return new RedirectResponse($redirectUrl);
+    // AuthenticationManager が Cookie 設定後にレスポンスを送信
+}
+```
 
 ### カスタム Authenticator
 
