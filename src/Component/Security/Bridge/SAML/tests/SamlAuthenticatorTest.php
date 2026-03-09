@@ -97,7 +97,7 @@ final class SamlAuthenticatorTest extends TestCase
     #[Test]
     public function supportsWithSubdirectoryInstall(): void
     {
-        $authenticator = $this->createAuthenticator();
+        $authenticator = $this->createAuthenticator(acsPath: '/wp/saml/acs');
 
         $request = new Request(
             post: ['SAMLResponse' => 'base64encodedresponse'],
