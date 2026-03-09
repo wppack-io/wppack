@@ -425,4 +425,120 @@ final class OAuthUserResolverTest extends TestCase
 
         self::assertInstanceOf(\WP_User::class, $user);
     }
+
+    #[Test]
+    public function resolveUserRejectsNullByteInSubject(): void
+    {
+        $resolver = new OAuthUserResolver(providerName: 'google');
+
+        $this->expectException(AuthenticationException::class);
+        $this->expectExceptionMessage('Invalid OAuth subject identifier');
+
+        // Subject consisting only of null bytes becomes empty after sanitize_user()
+        $resolver->resolveUser(
+            "\0\0\0",
+            ['email' => 'test@example.com'],
+        );
+    }
+
+    #[Test]
+    public function resolveUserWithInvalidEmailFormatSkipsEmailLookup(): void
+    {
+        $login = 'oauth_invalidemail_' . uniqid();
+        $userId = wp_insert_user([
+            'user_login' => $login,
+            'user_email' => 'oauth-invalidemail-' . uniqid() . '@example.com',
+            'user_pass' => wp_generate_password(),
+        ]);
+
+        self::assertIsInt($userId);
+
+        $resolver = new OAuthUserResolver(providerName: 'google');
+
+        // Invalid email format should be skipped, resolver falls through to login lookup
+        $user = $resolver->resolveUser(
+            $login,
+            ['email' => 'not-an-email'],
+        );
+
+        self::assertInstanceOf(\WP_User::class, $user);
+        self::assertSame($userId, $user->ID);
+    }
+
+    #[Test]
+    public function autoProvisionWithXssInDisplayName(): void
+    {
+        if (!function_exists('wp_insert_user')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $subject = 'provisioned_xss_' . uniqid();
+        $resolver = new OAuthUserResolver(providerName: 'google', autoProvision: true);
+
+        $user = $resolver->resolveUser(
+            $subject,
+            [
+                'email' => 'xss-' . uniqid() . '@example.com',
+                'name' => '<script>alert("xss")</script>',
+                'given_name' => '<img src=x onerror=alert(1)>',
+                'family_name' => '<b>bold</b>',
+            ],
+        );
+
+        self::assertInstanceOf(\WP_User::class, $user);
+
+        $refreshed = get_user_by('id', $user->ID);
+        self::assertInstanceOf(\WP_User::class, $refreshed);
+        self::assertStringNotContainsString('<script>', $refreshed->display_name);
+        self::assertStringNotContainsString('<img', $refreshed->first_name);
+        self::assertStringNotContainsString('<b>', $refreshed->last_name);
+    }
+
+    #[Test]
+    public function roleMapUnmatchedRoleKeepsExisting(): void
+    {
+        $login = 'oauth_unmatched_role_' . uniqid();
+        $userId = wp_insert_user([
+            'user_login' => $login,
+            'user_email' => 'oauth-unmatched-' . uniqid() . '@example.com',
+            'user_pass' => wp_generate_password(),
+            'role' => 'editor',
+        ]);
+
+        self::assertIsInt($userId);
+
+        $resolver = new OAuthUserResolver(
+            providerName: 'google',
+            roleMapping: ['admin_group' => 'administrator'],
+            roleClaim: 'role',
+        );
+
+        $user = $resolver->resolveUser(
+            $login,
+            ['role' => 'unknown_group'],
+        );
+
+        self::assertContains('editor', $user->roles);
+    }
+
+    #[Test]
+    public function resolveUserByLoginBindsSubject(): void
+    {
+        $login = 'oauth_login_bind_' . uniqid();
+        $userId = wp_insert_user([
+            'user_login' => $login,
+            'user_email' => 'oauth-loginbind-' . uniqid() . '@example.com',
+            'user_pass' => wp_generate_password(),
+        ]);
+
+        self::assertIsInt($userId);
+
+        $resolver = new OAuthUserResolver(providerName: 'google');
+
+        // Resolve by login (no email or bound subject)
+        $user = $resolver->resolveUser($login, []);
+
+        self::assertInstanceOf(\WP_User::class, $user);
+        self::assertSame($login, get_user_meta($userId, '_wppack_oauth_sub_google', true));
+    }
 }

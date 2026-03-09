@@ -43,6 +43,13 @@ final class SamlUserResolver implements SamlUserResolverInterface
 
         if ($email !== null) {
             $email = function_exists('sanitize_email') ? sanitize_email($email) : $email;
+
+            if ($email === '' || !filter_var($email, \FILTER_VALIDATE_EMAIL)) {
+                $email = null;
+            }
+        }
+
+        if ($email !== null) {
             $user = get_user_by('email', $email);
 
             if ($user instanceof \WP_User) {
@@ -120,11 +127,11 @@ final class SamlUserResolver implements SamlUserResolverInterface
         $userId = wp_insert_user($userdata);
 
         if ($userId instanceof \WP_Error) {
-            throw new AuthenticationException(\sprintf(
-                'Failed to provision user "%s": %s',
-                $nameId,
-                $userId->get_error_message(),
-            ));
+            if (function_exists('do_action')) {
+                do_action('wppack_saml_user_provision_failed', $nameId, $userId);
+            }
+
+            throw new AuthenticationException('User provisioning failed.');
         }
 
         $user = get_user_by('id', $userId);

@@ -189,11 +189,11 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
         $userId = wp_insert_user($userdata);
 
         if ($userId instanceof \WP_Error) {
-            throw new AuthenticationException(\sprintf(
-                'Failed to provision user "%s": %s',
-                $subject,
-                $userId->get_error_message(),
-            ));
+            if (function_exists('do_action')) {
+                do_action('wppack_oauth_user_provision_failed', $subject, $userId);
+            }
+
+            throw new AuthenticationException('User provisioning failed.');
         }
 
         $user = get_user_by('id', $userId);

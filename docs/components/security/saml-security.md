@@ -77,7 +77,7 @@ use WpPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
 $configuration = new SamlConfiguration(
     idpSettings: $idpSettings,
     spSettings: $spSettings,
-    strict: true,                   // 厳格モード（本番環境では true 推奨）
+    strict: true,                   // 厳格モード（本番環境では true 必須）
     debug: false,                   // デバッグモード
     wantAssertionsSigned: true,     // 署名付きアサーション要求
     wantNameIdEncrypted: false,     // NameID 暗号化要求
@@ -493,11 +493,12 @@ Google Admin での設定:
 | セッション固定 | 認証成功時に既存セッションをクリアしてから再発行 | `SamlAuthenticator` |
 | 情報漏洩 | エラーメッセージを汎用化、詳細はフック経由で通知 | `SamlAuthenticator` |
 | クロスサイト攻撃 | `allowedHosts` でリダイレクト先を制限、HTTPS 強制 | `CrossSiteRedirector` |
+| プロビジョニング失敗時の情報漏洩防止 | `wp_insert_user()` のエラー詳細を例外に含めず、`wppack_saml_user_provision_failed` フックで通知 | `SamlUserResolver` |
 | ユーザー列挙 | 認証失敗時の一律エラーページ | `onAuthenticationFailure()` |
 | 権限昇格 | JIT プロビジョニング時のデフォルトロール制限 | `SamlUserResolver` |
 
-本番環境では以下の設定を推奨:
-- `strict: true`（必須 — CSRF 対策として SAML 署名検証を強制）
+本番環境では以下の設定を**必須**:
+- `strict: true`（**必須** — 署名検証・InResponseTo 検証を強制。`false` にするとリプレイ攻撃や署名偽造に対して脆弱になる）
 - `wantAssertionsSigned: true`（必須）
 - `debug: false`
 - HTTPS の使用（ACS URL、SLO URL）
@@ -512,6 +513,7 @@ Google Admin での設定:
 | `wppack_saml_authentication_failed` | 認証失敗時 | `$exception` |
 | `wppack_saml_authentication_error` | SAML レスポンス検証エラー時 | `$errors`, `$lastErrorReason` |
 | `wppack_saml_user_provisioned` | JIT プロビジョニングでユーザー作成時 | `$user`, `$nameId`, `$attributes` |
+| `wppack_saml_user_provision_failed` | JIT ユーザー作成失敗時 | `$nameId`, `$wpError` |
 | `wppack_saml_user_updated` | 既存ユーザーの属性同期更新時 | `$user`, `$attributes` |
 | `wppack_saml_cross_site_redirect` | クロスサイトリダイレクト実行時 | `$targetUrl` |
 

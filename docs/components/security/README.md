@@ -154,7 +154,7 @@ $passport = new SelfValidatingPassport(
 | `Response` | `AuthenticationManager` が Cookie 設定（`wp_set_auth_cookie`）とレスポンス送信を実行 | OAuth, SAML |
 | `null` | WordPress のデフォルトフローに委譲（`wp_signon()` が Cookie・リダイレクトを処理） | FormLogin, Cookie, ApplicationPassword |
 
-WordPress 標準の `wp-login.php` を使う場合（`FormLoginAuthenticator`）は、認証の検証のみ Security コンポーネントが担当し、Cookie 設定やリダイレクトは WordPress 側で行われます。OAuth / SAML のように `wp_signon()` をバイパスする認証方式では、Authenticator が `RedirectResponse` を返し、`AuthenticationManager` が Cookie 設定を一元管理します。
+WordPress 標準の `wp-login.php` を使う場合（`FormLoginAuthenticator`）は、認証の検証のみ Security コンポーネントが担当し、Cookie 設定やリダイレクトは WordPress 側で行われます。OAuth / SAML のように `wp_signon()` をバイパスする認証方式では、Authenticator が `RedirectResponse` を返し、`AuthenticationManager` が Cookie 設定（`wp_set_auth_cookie()`）を一元管理します。各 Authenticator は Cookie を直接操作せず、セッション確立は `AuthenticationManager` に委譲します。
 
 ```php
 // WordPress デフォルトフローに委譲する場合（FormLogin 等）
@@ -179,7 +179,7 @@ WordPress のデフォルトフォーム認証を無効化し、OAuth / SAML の
 **ポイント:**
 - `FormLoginAuthenticator` を登録しない
 - `EntryPoint::register()` で `wp-login.php` を IdP へリダイレクト
-- `CookieAuthenticator` はセッション維持に必要なため残す
+- `CookieAuthenticator` はセッション維持に必要なため**必ず残す**（OAuth/SAML の初回認証後、以降のリクエストは Cookie ベースで認証されるため）
 
 ```php
 // 1. AuthenticationManager に OAuth/SAML + Cookie のみ登録
@@ -617,6 +617,7 @@ final class TwoFactorListener { /* ... */ }
 | 権限昇格 | DENY 優先の Voter チェーン | `AccessDecisionManager` |
 | 未検証 Badge | `ensureAllBadgesResolved()` で全 Badge 検証 | `AuthenticationManager` |
 | Cookie 改ざん | `wp_validate_auth_cookie()` に委譲 | `CookieAuthenticator` |
+| アカウント乗っ取り（SSO） | NameID / Subject ID バインディングで既存ユーザーのメール一致時にも IdP 側 ID を検証 | `OAuthUserResolver`, `SamlUserResolver`（[詳細](./oauth-security.md#サブジェクト-id-バインディング)） |
 
 ## 依存関係
 

@@ -323,4 +323,89 @@ final class OAuthAuthenticatorTest extends TestCase
         self::assertInstanceOf(SelfValidatingPassport::class, $passport);
         self::assertSame($user->ID, $passport->getUser()->ID);
     }
+
+    #[Test]
+    public function supportsReturnsFalseForPostWithoutToken(): void
+    {
+        $authenticator = $this->createAuthenticator();
+
+        $request = new Request(
+            post: ['other_param' => 'value'],
+            server: ['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/oauth/verify'],
+        );
+
+        self::assertFalse($authenticator->supports($request));
+    }
+
+    #[Test]
+    public function supportsReturnsFalseForDeleteMethod(): void
+    {
+        $authenticator = $this->createAuthenticator();
+
+        $request = new Request(
+            query: ['code' => 'auth-code', 'state' => 'random-state'],
+            server: ['REQUEST_METHOD' => 'DELETE', 'REQUEST_URI' => '/oauth/callback'],
+        );
+
+        self::assertFalse($authenticator->supports($request));
+    }
+
+    #[Test]
+    public function authenticateWithEmptyCode(): void
+    {
+        $authenticator = $this->createAuthenticator();
+
+        $request = new Request(
+            query: ['code' => '', 'state' => 'some-state'],
+            server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/oauth/callback'],
+        );
+
+        $this->expectException(AuthenticationException::class);
+        $this->expectExceptionMessage('OAuth authentication failed.');
+
+        $authenticator->authenticate($request);
+    }
+
+    #[Test]
+    public function authenticateWithEmptyState(): void
+    {
+        $authenticator = $this->createAuthenticator();
+
+        $request = new Request(
+            query: ['code' => 'auth-code', 'state' => ''],
+            server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/oauth/callback'],
+        );
+
+        $this->expectException(AuthenticationException::class);
+        $this->expectExceptionMessage('OAuth authentication failed.');
+
+        $authenticator->authenticate($request);
+    }
+
+    #[Test]
+    public function onAuthenticationSuccessIgnoresNonSameOriginReturnTo(): void
+    {
+        if (!class_exists(\WP_User::class)) {
+            self::markTestSkipped('WordPress is not available.');
+        }
+
+        $user = $this->createMock(\WP_User::class);
+        $user->ID = 1;
+        $user->roles = ['subscriber'];
+
+        $token = new PostAuthenticationToken($user, ['subscriber']);
+
+        $authenticator = $this->createAuthenticator();
+
+        $request = new Request(
+            post: ['returnTo' => 'https://evil.example.com/phishing'],
+            server: ['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/oauth/verify'],
+        );
+
+        $response = $authenticator->onAuthenticationSuccess($request, $token);
+
+        self::assertInstanceOf(RedirectResponse::class, $response);
+        self::assertStringNotContainsString('evil.example.com', $response->url);
+        self::assertStringContainsString('/wp-admin', $response->url);
+    }
 }

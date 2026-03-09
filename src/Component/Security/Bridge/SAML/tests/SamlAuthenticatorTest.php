@@ -252,4 +252,31 @@ final class SamlAuthenticatorTest extends TestCase
         self::assertInstanceOf(RedirectResponse::class, $response);
         self::assertStringContainsString('/wp-admin', $response->url);
     }
+
+    #[Test]
+    public function onAuthenticationSuccessIgnoresNonSameOriginRelayState(): void
+    {
+        if (!class_exists(\WP_User::class)) {
+            self::markTestSkipped('WordPress is not available.');
+        }
+
+        $user = $this->createMock(\WP_User::class);
+        $user->ID = 1;
+        $user->roles = ['subscriber'];
+
+        $token = new PostAuthenticationToken($user, ['subscriber']);
+
+        $authenticator = $this->createAuthenticator();
+
+        $request = new Request(
+            post: ['RelayState' => 'https://evil.example.com/phishing'],
+            server: ['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/saml/acs'],
+        );
+
+        $response = $authenticator->onAuthenticationSuccess($request, $token);
+
+        self::assertInstanceOf(RedirectResponse::class, $response);
+        self::assertStringNotContainsString('evil.example.com', $response->url);
+        self::assertStringContainsString('/wp-admin', $response->url);
+    }
 }

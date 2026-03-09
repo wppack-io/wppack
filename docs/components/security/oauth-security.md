@@ -564,6 +564,7 @@ GitHub Settings での設定:
 | 不正メール形式によるユーザー解決エラー | `filter_var()` によるメール形式検証 | `OAuthUserResolver` |
 | クロスサイト攻撃 | `allowedHosts` + HMAC 署名トークン + HTTPS 強制 | `CrossSiteRedirector` |
 | Workspace ドメイン詐称 | `hd` クレームのサーバーサイド検証 | `GoogleProvider` |
+| プロビジョニング失敗時の情報漏洩防止 | `wp_insert_user()` のエラー詳細を例外に含めず、`wppack_oauth_user_provision_failed` フックで通知 | `OAuthUserResolver` |
 | ユーザー列挙 | 認証失敗時の一律エラーページ | `onAuthenticationFailure()` |
 
 ## セキュリティイベントフック
@@ -574,6 +575,7 @@ GitHub Settings での設定:
 | `wppack_oauth_authentication_failed` | 認証失敗時 | `$exception` |
 | `wppack_oauth_authentication_error` | トークン/検証エラー時 | `$errorCode`, `$errorDescription` |
 | `wppack_oauth_user_provisioned` | JIT ユーザー作成時 | `$user`, `$subject`, `$claims` |
+| `wppack_oauth_user_provision_failed` | JIT ユーザー作成失敗時 | `$subject`, `$wpError` |
 | `wppack_oauth_user_updated` | 属性同期更新時 | `$user`, `$claims` |
 | `wppack_oauth_cross_site_redirect` | クロスサイトリダイレクト時 | `$targetUrl` |
 | `wppack_oauth_token_refreshed` | トークンリフレッシュ成功時 | `$userId`, `$tokenSet` |

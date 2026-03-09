@@ -152,9 +152,11 @@ final class SamlAuthenticator implements AuthenticatorInterface
             return false;
         }
 
-        $siteHost = function_exists('home_url')
-            ? parse_url(home_url(), \PHP_URL_HOST)
-            : ($_SERVER['HTTP_HOST'] ?? null);
+        if (!function_exists('home_url')) {
+            return false;
+        }
+
+        $siteHost = parse_url(home_url(), \PHP_URL_HOST);
 
         return $siteHost !== null && $host === $siteHost;
     }

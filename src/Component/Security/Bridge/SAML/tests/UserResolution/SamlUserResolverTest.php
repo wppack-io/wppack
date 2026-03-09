@@ -147,4 +147,99 @@ final class SamlUserResolverTest extends TestCase
         self::assertSame($email, $user->user_email);
         self::assertSame($nameId, get_user_meta($user->ID, '_wppack_saml_nameid', true));
     }
+
+    #[Test]
+    public function resolveUserRejectsNullByteInNameId(): void
+    {
+        $resolver = new SamlUserResolver();
+
+        $this->expectException(AuthenticationException::class);
+        $this->expectExceptionMessage('Invalid SAML NameID');
+
+        // NameID consisting only of null bytes becomes empty after sanitize_user()
+        $resolver->resolveUser(
+            "\0\0\0",
+            ['email' => ['test@example.com']],
+        );
+    }
+
+    #[Test]
+    public function resolveUserWithInvalidEmailSkipsEmailLookup(): void
+    {
+        $login = 'saml_invalidemail_' . uniqid();
+        $userId = wp_insert_user([
+            'user_login' => $login,
+            'user_email' => 'saml-invalidemail-' . uniqid() . '@example.com',
+            'user_pass' => wp_generate_password(),
+        ]);
+
+        self::assertIsInt($userId);
+
+        $resolver = new SamlUserResolver();
+
+        // Invalid email format should be skipped, resolver falls through to login lookup
+        $user = $resolver->resolveUser(
+            $login,
+            ['email' => ['not-an-email']],
+        );
+
+        self::assertInstanceOf(\WP_User::class, $user);
+        self::assertSame($userId, $user->ID);
+    }
+
+    #[Test]
+    public function autoProvisionWithXssInAttributes(): void
+    {
+        if (!function_exists('wp_insert_user')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $nameId = 'provisioned_xss_' . uniqid();
+        $resolver = new SamlUserResolver(autoProvision: true);
+
+        $user = $resolver->resolveUser(
+            $nameId,
+            [
+                'email' => ['xss-' . uniqid() . '@example.com'],
+                'displayName' => ['<script>alert("xss")</script>'],
+                'firstName' => ['<img src=x onerror=alert(1)>'],
+                'lastName' => ['<b>bold</b>'],
+            ],
+        );
+
+        self::assertInstanceOf(\WP_User::class, $user);
+
+        $refreshed = get_user_by('id', $user->ID);
+        self::assertInstanceOf(\WP_User::class, $refreshed);
+        self::assertStringNotContainsString('<script>', $refreshed->display_name);
+        self::assertStringNotContainsString('<img', $refreshed->first_name);
+        self::assertStringNotContainsString('<b>', $refreshed->last_name);
+    }
+
+    #[Test]
+    public function roleMapFirstMatchWins(): void
+    {
+        $login = 'saml_role_first_' . uniqid();
+        $userId = wp_insert_user([
+            'user_login' => $login,
+            'user_email' => 'saml-role-first-' . uniqid() . '@example.com',
+            'user_pass' => wp_generate_password(),
+            'role' => 'subscriber',
+        ]);
+
+        self::assertIsInt($userId);
+
+        $resolver = new SamlUserResolver(
+            roleMapping: ['Admin' => 'administrator', 'Editor' => 'editor'],
+            roleAttribute: 'groups',
+        );
+
+        $user = $resolver->resolveUser(
+            $login,
+            ['groups' => ['Editor', 'Admin']],
+        );
+
+        // First match (Editor) should win
+        self::assertContains('editor', $user->roles);
+    }
 }
