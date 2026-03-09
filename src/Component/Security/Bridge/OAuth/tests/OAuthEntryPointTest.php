@@ -15,6 +15,12 @@ use WpPack\Component\Security\Bridge\OAuth\State\OAuthStateStore;
 #[CoversClass(OAuthEntryPoint::class)]
 final class OAuthEntryPointTest extends TestCase
 {
+    protected function tearDown(): void
+    {
+        if (function_exists('remove_all_filters')) {
+            remove_all_filters('login_url');
+        }
+    }
     private function createConfiguration(bool $pkceEnabled = false): OAuthConfiguration
     {
         return new OAuthConfiguration(
@@ -85,5 +91,53 @@ final class OAuthEntryPointTest extends TestCase
         $url = $entryPoint->getLoginUrl('https://app.example.com/dashboard');
 
         self::assertSame('https://idp.example.com/authorize', $url);
+    }
+
+    #[Test]
+    public function registerAddsLoginUrlFilter(): void
+    {
+        if (!function_exists('add_filter')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $provider = $this->createMock(ProviderInterface::class);
+        $provider->method('getAuthorizationUrl')
+            ->willReturn('https://idp.example.com/authorize?client_id=test&state=abc');
+
+        $entryPoint = new OAuthEntryPoint(
+            $provider,
+            $this->createConfiguration(pkceEnabled: false),
+            new OAuthStateStore(),
+        );
+
+        $entryPoint->register();
+
+        $result = apply_filters('login_url', 'https://example.com/wp-login.php', '', false);
+
+        self::assertSame('https://idp.example.com/authorize?client_id=test&state=abc', $result);
+    }
+
+    #[Test]
+    public function registerAddsLoginUrlFilterWithRedirect(): void
+    {
+        if (!function_exists('add_filter')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $provider = $this->createMock(ProviderInterface::class);
+        $provider->method('getAuthorizationUrl')
+            ->willReturn('https://idp.example.com/authorize');
+
+        $entryPoint = new OAuthEntryPoint(
+            $provider,
+            $this->createConfiguration(pkceEnabled: false),
+            new OAuthStateStore(),
+        );
+
+        $entryPoint->register();
+
+        $result = apply_filters('login_url', 'https://example.com/wp-login.php', 'https://example.com/wp-admin/', false);
+
+        self::assertSame('https://idp.example.com/authorize', $result);
     }
 }

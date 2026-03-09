@@ -206,6 +206,24 @@ $loginUrl = $entryPoint->getLoginUrl(returnTo: admin_url());
 echo '<a href="' . esc_attr($loginUrl) . '">OAuth ログイン</a>';
 ```
 
+#### SSO 専用構成（register）
+
+`register()` を呼ぶと、WordPress のフォームログインを無効化し、`wp-login.php` へのアクセスを IdP にリダイレクトします:
+
+```php
+// 一行で SSO 専用化
+$entryPoint->register();
+```
+
+内部で登録されるフック:
+
+| フック | 説明 |
+|--------|------|
+| `login_url` フィルター | `wp-login.php` の URL を IdP 認可 URL に差し替え |
+| `login_init` アクション | `wp-login.php` への GET アクセスを IdP にリダイレクト |
+
+`$_GET['action']` がある場合（`logout`, `lostpassword` 等）はリダイレクトをスキップし、WordPress 標準フローを維持します。
+
 ### OAuthAuthenticator
 
 Security コンポーネントの `AuthenticatorInterface` を実装する中核クラスです:

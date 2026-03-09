@@ -178,7 +178,7 @@ WordPress のデフォルトフォーム認証を無効化し、OAuth / SAML の
 
 **ポイント:**
 - `FormLoginAuthenticator` を登録しない
-- `login_url` フィルターで `wp-login.php` を IdP へリダイレクト
+- `EntryPoint::register()` で `wp-login.php` を IdP へリダイレクト
 - `CookieAuthenticator` はセッション維持に必要なため残す
 
 ```php
@@ -187,18 +187,16 @@ $manager->addAuthenticator($oauthAuthenticator);  // or $samlAuthenticator
 $manager->addAuthenticator($cookieAuthenticator);
 // FormLoginAuthenticator は登録しない
 
-// 2. wp-login.php アクセスを IdP にリダイレクト（OAuth の例）
-add_filter('login_url', function (string $loginUrl, string $redirect) use ($entryPoint): string {
-    return $entryPoint->getLoginUrl($redirect);
-}, 10, 2);
-
-// 3. wp-login.php への直接アクセスもリダイレクト
-add_action('login_init', function () use ($entryPoint): void {
-    if ($_SERVER['REQUEST_METHOD'] === 'GET' && !isset($_GET['action'])) {
-        $entryPoint->start();
-    }
-});
+// 2. EntryPoint を登録（login_url フィルター + login_init リダイレクト）
+$entryPoint->register();
 ```
+
+`register()` は内部で以下の WordPress フックを登録します:
+
+- **`login_url` フィルター**: `wp-login.php` の URL を IdP ログイン URL に差し替え
+- **`login_init` アクション**: `wp-login.php` への直接 GET アクセスを IdP にリダイレクト
+
+`login_init` では `$_GET['action']` がある場合（`logout`, `lostpassword` 等）はリダイレクトしません。これにより WordPress 標準のログアウト・パスワードリセットフローを維持します。
 
 EntryPoint の詳細は各 Bridge ドキュメントを参照してください:
 - OAuth: [OAuthEntryPoint](./oauth-security.md)

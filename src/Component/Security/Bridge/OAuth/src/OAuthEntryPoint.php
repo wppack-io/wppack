@@ -34,6 +34,26 @@ final class OAuthEntryPoint
         exit;
     }
 
+    /**
+     * Register WordPress hooks for SSO-only configuration.
+     *
+     * Replaces wp-login.php with IdP login:
+     * - login_url filter: returns IdP authorization URL
+     * - login_init action: redirects GET requests to IdP (skips ?action= for logout/lostpassword)
+     */
+    public function register(): void
+    {
+        add_filter('login_url', function (string $loginUrl, string $redirect): string {
+            return $this->getLoginUrl($redirect !== '' ? $redirect : null);
+        }, 10, 2);
+
+        add_action('login_init', function (): void {
+            if ($_SERVER['REQUEST_METHOD'] === 'GET' && !isset($_GET['action'])) {
+                $this->start();
+            }
+        });
+    }
+
     public function getLoginUrl(?string $returnTo = null): string
     {
         $state = bin2hex(random_bytes(32));
