@@ -11,6 +11,7 @@ final class CrossSiteRedirector
      */
     public function __construct(
         private readonly array $allowedHosts = [],
+        private readonly string $acsPath = '/sso/verify',
     ) {}
 
     public function needsRedirect(string $targetUrl): bool
@@ -103,7 +104,7 @@ final class CrossSiteRedirector
         $host = $parsed['host'] ?? '';
         $port = isset($parsed['port']) ? ':' . $parsed['port'] : '';
 
-        return $scheme . '://' . $host . $port . '/sso/verify';
+        return $scheme . '://' . $host . $port . $this->acsPath;
     }
 
     private function buildAutoSubmitForm(string $actionUrl, string $samlResponse, string $relayState): string

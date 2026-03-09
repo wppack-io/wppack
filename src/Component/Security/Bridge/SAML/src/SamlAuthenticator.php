@@ -34,7 +34,7 @@ final class SamlAuthenticator implements AuthenticatorInterface
     {
         return $request->isMethod('POST')
             && $request->post->has('SAMLResponse')
-            && $request->getPathInfo() === $this->acsPath;
+            && str_ends_with($request->getPathInfo(), $this->acsPath);
     }
 
     public function authenticate(Request $request): Passport
