@@ -1,0 +1,53 @@
+<?php
+
+declare(strict_types=1);
+
+namespace WpPack\Component\Security\Tests\Authentication\Authenticator;
+
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Security\Authentication\Authenticator\CookieAuthenticator;
+
+final class CookieAuthenticatorTest extends TestCase
+{
+    private CookieAuthenticator $authenticator;
+
+    protected function setUp(): void
+    {
+        $this->authenticator = new CookieAuthenticator();
+    }
+
+    #[Test]
+    public function supportsRequestWithAuthCookie(): void
+    {
+        if (!defined('COOKIEHASH')) {
+            self::markTestSkipped('WordPress constants are not available.');
+        }
+
+        $cookieName = defined('LOGGED_IN_COOKIE')
+            ? LOGGED_IN_COOKIE
+            : 'wordpress_logged_in_' . COOKIEHASH;
+
+        $request = new Request(
+            cookies: [$cookieName => 'some_cookie_value'],
+            server: ['REQUEST_METHOD' => 'GET'],
+        );
+
+        self::assertTrue($this->authenticator->supports($request));
+    }
+
+    #[Test]
+    public function doesNotSupportRequestWithoutCookie(): void
+    {
+        if (!defined('COOKIEHASH')) {
+            self::markTestSkipped('WordPress constants are not available.');
+        }
+
+        $request = new Request(
+            server: ['REQUEST_METHOD' => 'GET'],
+        );
+
+        self::assertFalse($this->authenticator->supports($request));
+    }
+}

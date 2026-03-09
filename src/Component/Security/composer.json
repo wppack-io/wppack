@@ -1,13 +1,20 @@
 {
     "name": "wppack/security",
-    "description": "Security utilities for WordPress",
+    "description": "Authentication and authorization framework for WordPress",
     "type": "library",
     "license": "MIT",
     "require": {
-        "php": "^8.2"
+        "php": "^8.2",
+        "wppack/http-foundation": "^1.0",
+        "wppack/event-dispatcher": "^1.0"
     },
     "require-dev": {
-        "wppack/hook": "^1.0"
+        "wppack/hook": "^1.0",
+        "wppack/dependency-injection": "^1.0"
+    },
+    "suggest": {
+        "wppack/hook": "For Named Hook attribute support (WpLoginAction, AuthenticateFilter, etc.)",
+        "wppack/dependency-injection": "For DI container integration with automatic authenticator and voter registration"
     },
     "autoload": {
         "psr-4": {

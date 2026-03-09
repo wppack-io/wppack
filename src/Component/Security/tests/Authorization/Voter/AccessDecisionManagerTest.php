@@ -1,0 +1,81 @@
+<?php
+
+declare(strict_types=1);
+
+namespace WpPack\Component\Security\Tests\Authorization\Voter;
+
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+use WpPack\Component\Security\Authentication\Token\NullToken;
+use WpPack\Component\Security\Authentication\Token\TokenInterface;
+use WpPack\Component\Security\Authorization\Voter\AccessDecisionManager;
+use WpPack\Component\Security\Authorization\Voter\VoterInterface;
+
+final class AccessDecisionManagerTest extends TestCase
+{
+    #[Test]
+    public function grantedWhenVoterGrants(): void
+    {
+        $voter = $this->createVoter(VoterInterface::ACCESS_GRANTED);
+        $adm = new AccessDecisionManager([$voter]);
+
+        self::assertTrue($adm->decide(new NullToken(), 'some_attribute'));
+    }
+
+    #[Test]
+    public function deniedWhenVoterDenies(): void
+    {
+        $voter = $this->createVoter(VoterInterface::ACCESS_DENIED);
+        $adm = new AccessDecisionManager([$voter]);
+
+        self::assertFalse($adm->decide(new NullToken(), 'some_attribute'));
+    }
+
+    #[Test]
+    public function denyOverridesGrant(): void
+    {
+        $grant = $this->createVoter(VoterInterface::ACCESS_GRANTED);
+        $deny = $this->createVoter(VoterInterface::ACCESS_DENIED);
+        $adm = new AccessDecisionManager([$grant, $deny]);
+
+        self::assertFalse($adm->decide(new NullToken(), 'some_attribute'));
+    }
+
+    #[Test]
+    public function allAbstainDeniedByDefault(): void
+    {
+        $abstain = $this->createVoter(VoterInterface::ACCESS_ABSTAIN);
+        $adm = new AccessDecisionManager([$abstain]);
+
+        self::assertFalse($adm->decide(new NullToken(), 'some_attribute'));
+    }
+
+    #[Test]
+    public function allAbstainAllowedWhenConfigured(): void
+    {
+        $abstain = $this->createVoter(VoterInterface::ACCESS_ABSTAIN);
+        $adm = new AccessDecisionManager([$abstain], allowIfAllAbstain: true);
+
+        self::assertTrue($adm->decide(new NullToken(), 'some_attribute'));
+    }
+
+    #[Test]
+    public function noVotersDefaultsDeny(): void
+    {
+        $adm = new AccessDecisionManager();
+
+        self::assertFalse($adm->decide(new NullToken(), 'some_attribute'));
+    }
+
+    private function createVoter(int $result): VoterInterface
+    {
+        return new class ($result) implements VoterInterface {
+            public function __construct(private readonly int $result) {}
+
+            public function vote(TokenInterface $token, string $attribute, mixed $subject = null): int
+            {
+                return $this->result;
+            }
+        };
+    }
+}

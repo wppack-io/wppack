@@ -15,9 +15,13 @@ use WpPack\Component\Security\Attribute\Action\RetrievePasswordAction;
 use WpPack\Component\Security\Attribute\Action\WpLoginAction;
 use WpPack\Component\Security\Attribute\Action\WpLoginFailedAction;
 use WpPack\Component\Security\Attribute\Action\WpLogoutAction;
+use WpPack\Component\Security\Attribute\AsAuthenticator;
+use WpPack\Component\Security\Attribute\AsVoter;
 use WpPack\Component\Security\Attribute\Filter\AuthenticateFilter;
 use WpPack\Component\Security\Attribute\Filter\CheckPasswordFilter;
 use WpPack\Component\Security\Attribute\Filter\DetermineCurrentUserFilter;
+use WpPack\Component\Security\Attribute\Filter\MapMetaCapFilter;
+use WpPack\Component\Security\Attribute\Filter\UserHasCapFilter;
 
 final class NamedHookTest extends TestCase
 {
@@ -106,11 +110,85 @@ final class NamedHookTest extends TestCase
     }
 
     #[Test]
+    public function userHasCapFilterHasCorrectHookName(): void
+    {
+        $filter = new UserHasCapFilter();
+
+        self::assertSame('user_has_cap', $filter->hook);
+        self::assertSame(HookType::Filter, $filter->type);
+    }
+
+    #[Test]
+    public function mapMetaCapFilterHasCorrectHookName(): void
+    {
+        $filter = new MapMetaCapFilter();
+
+        self::assertSame('map_meta_cap', $filter->hook);
+        self::assertSame(HookType::Filter, $filter->type);
+    }
+
+    #[Test]
     public function allFiltersExtendFilter(): void
     {
         self::assertInstanceOf(Filter::class, new AuthenticateFilter());
         self::assertInstanceOf(Filter::class, new CheckPasswordFilter());
         self::assertInstanceOf(Filter::class, new DetermineCurrentUserFilter());
+        self::assertInstanceOf(Filter::class, new UserHasCapFilter());
+        self::assertInstanceOf(Filter::class, new MapMetaCapFilter());
+    }
+
+    #[Test]
+    public function asAuthenticatorAttributeHasDefaultPriority(): void
+    {
+        $attr = new AsAuthenticator();
+
+        self::assertSame(0, $attr->priority);
+    }
+
+    #[Test]
+    public function asAuthenticatorAttributeAcceptsCustomPriority(): void
+    {
+        $attr = new AsAuthenticator(priority: 10);
+
+        self::assertSame(10, $attr->priority);
+    }
+
+    #[Test]
+    public function asAuthenticatorTargetsClass(): void
+    {
+        $reflection = new \ReflectionClass(AsAuthenticator::class);
+        $attributes = $reflection->getAttributes(\Attribute::class);
+
+        self::assertCount(1, $attributes);
+        $attrInstance = $attributes[0]->newInstance();
+        self::assertSame(\Attribute::TARGET_CLASS, $attrInstance->flags);
+    }
+
+    #[Test]
+    public function asVoterAttributeHasDefaultPriority(): void
+    {
+        $attr = new AsVoter();
+
+        self::assertSame(0, $attr->priority);
+    }
+
+    #[Test]
+    public function asVoterAttributeAcceptsCustomPriority(): void
+    {
+        $attr = new AsVoter(priority: 5);
+
+        self::assertSame(5, $attr->priority);
+    }
+
+    #[Test]
+    public function asVoterTargetsClass(): void
+    {
+        $reflection = new \ReflectionClass(AsVoter::class);
+        $attributes = $reflection->getAttributes(\Attribute::class);
+
+        self::assertCount(1, $attributes);
+        $attrInstance = $attributes[0]->newInstance();
+        self::assertSame(\Attribute::TARGET_CLASS, $attrInstance->flags);
     }
 
     #[Test]

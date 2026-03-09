@@ -1,0 +1,476 @@
+# Security Component
+
+**パッケージ:** `wppack/security`
+**名前空間:** `WpPack\Component\Security\`
+**レイヤー:** Abstraction
+
+WordPress 上でプラガブルな認証・認可フレームワークを提供するコンポーネントです。Authenticator パターンによるリクエストベース認証、Passport/Badge による認証要件の値オブジェクト化、Voter ベースの認可チェックを提供します。OAuth / SAML / 2FA は Bridge パッケージとして拡張可能です。
+
+## インストール
+
+```bash
+composer require wppack/security
+```
+
+## 基本コンセプト
+
+### アーキテクチャ概要
+
+| 概念 | 説明 |
+|---|---|
+| Authenticator | リクエストベースの認証（`supports()` → `authenticate()` → `createToken()`） |
+| Passport + Badge | 認証要件の値オブジェクト（UserBadge, CredentialsBadge 等） |
+| Token | `PostAuthenticationToken`（`\WP_User` をラップ） |
+| UserProvider | `WordPressUserProvider`（`get_user_by()` ラッパー） |
+| Voter | `CapabilityVoter`（`user_can()` ラッパー）, `RoleVoter` |
+| EventDispatcher | `CheckPassportEvent`, `AuthenticationSuccessEvent` 等 |
+
+### Before（従来の WordPress）
+
+```php
+// 手動の認証・認可チェック
+add_filter('authenticate', function ($user, $username, $password) {
+    // カスタム認証ロジック...
+    return $user;
+}, 10, 3);
+
+if (!current_user_can('edit_posts')) {
+    wp_die('Unauthorized');
+}
+```
+
+### After（WpPack Security）
+
+```php
+use WpPack\Component\Security\Security;
+
+// 認可チェック
+$security->denyAccessUnlessGranted('edit_posts');
+
+// ユーザー取得
+$user = $security->getUser();
+
+// ロールチェック
+if ($security->isGranted('ROLE_ADMINISTRATOR')) {
+    // 管理者のみの処理
+}
+```
+
+## 認証（Authentication）
+
+### 認証フロー
+
+```
+[リクエスト着信]
+    ↓
+authenticate フィルター (priority 10)
+    ↓
+AuthenticationManager::handleAuthentication()
+    ↓ 各 Authenticator を順に試行
+authenticator->supports($request) ?
+    ↓ yes
+authenticator->authenticate($request) → Passport
+    ↓
+dispatch(CheckPassportEvent) ← Badge 検証（パスワード照合等）
+    ↓
+passport->ensureAllBadgesResolved()
+    ↓
+authenticator->createToken($passport) → TokenInterface
+    ↓
+dispatch(AuthenticationSuccessEvent)
+    ↓
+return WP_User ← WordPress に渡す
+```
+
+### AuthenticatorInterface
+
+認証方式ごとに Authenticator を実装します:
+
+```php
+use WpPack\Component\Security\Authentication\AuthenticatorInterface;
+use WpPack\Component\HttpFoundation\Request;
+
+interface AuthenticatorInterface
+{
+    public function supports(Request $request): bool;
+    public function authenticate(Request $request): Passport;
+    public function createToken(Passport $passport): TokenInterface;
+    public function onAuthenticationSuccess(Request $request, TokenInterface $token): void;
+    public function onAuthenticationFailure(Request $request, AuthenticationException $exception): void;
+}
+```
+
+### Passport と Badge
+
+Passport は認証に必要な情報（Badge）を集約する値オブジェクトです:
+
+```php
+use WpPack\Component\Security\Authentication\Passport\Passport;
+use WpPack\Component\Security\Authentication\Passport\Badge\UserBadge;
+use WpPack\Component\Security\Authentication\Passport\Badge\CredentialsBadge;
+use WpPack\Component\Security\Authentication\Passport\Badge\RememberMeBadge;
+
+// フォームログイン認証の例
+$passport = new Passport(
+    new UserBadge($username),
+    new CredentialsBadge($password),
+    [new RememberMeBadge(true)],
+);
+```
+
+外部認証（OAuth / SAML）では `SelfValidatingPassport` を使用:
+
+```php
+use WpPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
+
+// OAuth で検証済みのユーザー
+$passport = new SelfValidatingPassport(
+    new UserBadge($oauthUserId, fn(string $id) => $this->findUserByOAuthId($id)),
+);
+```
+
+### 組み込み Authenticator
+
+| Authenticator | 説明 | フィルター |
+|---|---|---|
+| `FormLoginAuthenticator` | `wp-login.php` フォーム認証 | `authenticate` |
+| `CookieAuthenticator` | Cookie ベースセッション認証 | `determine_current_user` |
+| `ApplicationPasswordAuthenticator` | REST API Application Password | `determine_current_user` |
+
+### カスタム Authenticator
+
+```php
+use WpPack\Component\Security\Attribute\AsAuthenticator;
+use WpPack\Component\Security\Authentication\AuthenticatorInterface;
+
+#[AsAuthenticator]
+final class CustomLoginAuthenticator implements AuthenticatorInterface
+{
+    public function supports(Request $request): bool
+    {
+        return $request->isMethod('POST')
+            && $request->getPathInfo() === '/my-login';
+    }
+
+    public function authenticate(Request $request): Passport
+    {
+        $email = $request->post->getString('email');
+        $password = $request->post->getString('password');
+
+        return new Passport(
+            new UserBadge($email),
+            new CredentialsBadge($password),
+        );
+    }
+
+    public function createToken(Passport $passport): TokenInterface
+    {
+        $user = $passport->getUser();
+        return new PostAuthenticationToken($user, $user->roles);
+    }
+
+    public function onAuthenticationSuccess(Request $request, TokenInterface $token): void
+    {
+        // リダイレクト等
+    }
+
+    public function onAuthenticationFailure(Request $request, AuthenticationException $exception): void
+    {
+        // エラーハンドリング
+    }
+}
+```
+
+### ステートレス認証（API）
+
+`StatelessAuthenticatorInterface` を実装すると `determine_current_user` フィルター経由で毎リクエスト検証されます:
+
+```php
+use WpPack\Component\Security\Authentication\StatelessAuthenticatorInterface;
+
+final class JwtAuthenticator implements StatelessAuthenticatorInterface
+{
+    public function supports(Request $request): bool
+    {
+        return str_starts_with($request->headers->get('Authorization', ''), 'Bearer ');
+    }
+
+    public function authenticate(Request $request): Passport
+    {
+        $token = substr($request->headers->get('Authorization'), 7);
+        $payload = $this->jwtDecoder->decode($token);
+
+        return new SelfValidatingPassport(
+            new UserBadge($payload->sub, fn(string $id) => get_user_by('id', (int) $id)),
+        );
+    }
+    // ...
+}
+```
+
+### イベント
+
+認証プロセスの各段階でイベントが発行されます:
+
+| イベント | タイミング |
+|---|---|
+| `CheckPassportEvent` | Passport 作成後、Badge 検証前 |
+| `AuthenticationSuccessEvent` | 認証成功時 |
+| `AuthenticationFailureEvent` | 認証失敗時 |
+| `LoginSuccessEvent` | `wp_login` フック後 |
+| `LogoutEvent` | `wp_logout` フック後 |
+
+```php
+use WpPack\Component\Security\Event\CheckPassportEvent;
+
+// 2FA 検証リスナーの例
+final class TwoFactorListener
+{
+    public function __invoke(CheckPassportEvent $event): void
+    {
+        $user = $event->getPassport()->getUser();
+        if ($this->has2faEnabled($user)) {
+            // 2FA バッジの検証
+        }
+    }
+}
+```
+
+## 認可（Authorization）
+
+### Voter パターン
+
+認可チェックは Voter チェーンで判定されます:
+
+```php
+use WpPack\Component\Security\Authorization\Voter\VoterInterface;
+
+interface VoterInterface
+{
+    public const ACCESS_GRANTED = 1;
+    public const ACCESS_DENIED = -1;
+    public const ACCESS_ABSTAIN = 0;
+
+    public function vote(TokenInterface $token, string $attribute, mixed $subject = null): int;
+}
+```
+
+### 組み込み Voter
+
+| Voter | 説明 | 属性形式 |
+|---|---|---|
+| `CapabilityVoter` | `user_can()` ラッパー | `'edit_posts'`, `'manage_options'` |
+| `RoleVoter` | ロールベースチェック | `'ROLE_ADMINISTRATOR'`, `'ROLE_EDITOR'` |
+
+### AccessDecisionManager
+
+デフォルトの **affirmative** ストラテジー:
+
+- いずれかの Voter が `ACCESS_DENIED` → 即時拒否
+- いずれかの Voter が `ACCESS_GRANTED` → 許可
+- 全 Voter が `ACCESS_ABSTAIN` → 拒否（`allowIfAllAbstain` で変更可能）
+
+### カスタム Voter
+
+```php
+use WpPack\Component\Security\Attribute\AsVoter;
+use WpPack\Component\Security\Authorization\Voter\VoterInterface;
+
+#[AsVoter]
+final class PostOwnerVoter implements VoterInterface
+{
+    public function vote(TokenInterface $token, string $attribute, mixed $subject = null): int
+    {
+        if ($attribute !== 'EDIT_OWN_POST' || !$subject instanceof \WP_Post) {
+            return self::ACCESS_ABSTAIN;
+        }
+
+        if (!$token->isAuthenticated()) {
+            return self::ACCESS_DENIED;
+        }
+
+        return $subject->post_author === $token->getUser()->ID
+            ? self::ACCESS_GRANTED
+            : self::ACCESS_DENIED;
+    }
+}
+```
+
+## Security ファサード
+
+`Security` クラスは認証・認可の統合的なインターフェースを提供します:
+
+```php
+use WpPack\Component\Security\Security;
+
+final class Security
+{
+    // 権限チェック
+    public function isGranted(string $attribute, mixed $subject = null): bool;
+
+    // 現在の認証済みユーザー取得（未認証なら null）
+    public function getUser(): ?\WP_User;
+
+    // 権限がなければ AccessDeniedException をスロー
+    public function denyAccessUnlessGranted(
+        string $attribute,
+        mixed $subject = null,
+        string $message = 'Access Denied.',
+    ): void;
+}
+```
+
+### 使用例
+
+```php
+class PostController
+{
+    public function __construct(private Security $security) {}
+
+    public function editPost(\WP_Post $post): void
+    {
+        // Capability チェック
+        $this->security->denyAccessUnlessGranted('edit_post', $post->ID);
+
+        // ロールチェック
+        if ($this->security->isGranted('ROLE_ADMINISTRATOR')) {
+            // 管理者のみの処理
+        }
+
+        // 現在のユーザー取得
+        $user = $this->security->getUser();
+    }
+}
+```
+
+## Named Hook アトリビュート
+
+> Named Hook を使用するサブスクライバーの推奨配置先: `src/Security/Subscriber/`
+
+### 認証フック
+
+```php
+#[WpLoginAction(priority: 10)]              // ログイン成功後
+#[WpLoginFailedAction(priority: 10)]        // ログイン失敗後
+#[AuthenticateFilter(priority: 10)]         // 認証プロセスの変更
+#[WpLogoutAction(priority: 10)]             // ログアウト前
+#[DetermineCurrentUserFilter(priority: 10)] // 現在のユーザーをフィルタ
+```
+
+### パスワードフック
+
+```php
+#[PasswordResetAction(priority: 10)]        // パスワードリセット後
+#[RetrievePasswordAction(priority: 10)]     // パスワードリセット要求時
+#[CheckPasswordFilter(priority: 10)]        // パスワード強度の検証
+```
+
+### 権限フック
+
+```php
+#[UserHasCapFilter(priority: 10)]           // ユーザー権限のフィルタ
+#[MapMetaCapFilter(priority: 10)]           // メタ権限のマッピング
+```
+
+### 使用例：認証セキュリティシステム
+
+```php
+use WpPack\Component\Security\Attribute\Action\WpLoginAction;
+use WpPack\Component\Security\Attribute\Action\WpLoginFailedAction;
+use WpPack\Component\Security\Attribute\Filter\AuthenticateFilter;
+use WpPack\Component\Security\Attribute\Filter\UserHasCapFilter;
+
+class SecuritySystem
+{
+    #[AuthenticateFilter(priority: 10)]
+    public function enforceRateLimiting($user, string $username, string $password)
+    {
+        $ip = $this->getClientIp();
+        if ($this->rateLimiter->isBlocked($ip)) {
+            return new \WP_Error('rate_limit', 'Too many login attempts.');
+        }
+        return $user;
+    }
+
+    #[WpLoginAction(priority: 10)]
+    public function onSuccessfulLogin(string $userLogin, \WP_User $user): void
+    {
+        $this->rateLimiter->clear($this->getClientIp());
+    }
+
+    #[WpLoginFailedAction(priority: 10)]
+    public function onFailedLogin(string $username, \WP_Error $error): void
+    {
+        $this->rateLimiter->recordFailure($this->getClientIp());
+    }
+
+    #[UserHasCapFilter(priority: 10)]
+    public function enforceCapabilitySecurity(
+        array $allcaps,
+        array $caps,
+        array $args,
+        \WP_User $user,
+    ): array {
+        $sensitiveCaps = ['delete_plugins', 'delete_themes', 'edit_users'];
+        if (array_intersect($caps, $sensitiveCaps)) {
+            if (!$this->hasRecentVerification($user->ID)) {
+                return [];
+            }
+        }
+        return $allcaps;
+    }
+}
+```
+
+## DI 統合
+
+```php
+use WpPack\Component\Security\DependencyInjection\SecurityServiceProvider;
+use WpPack\Component\Security\DependencyInjection\RegisterAuthenticatorsPass;
+use WpPack\Component\Security\DependencyInjection\RegisterVotersPass;
+
+// サービスプロバイダー登録
+$builder->registerServiceProvider(new SecurityServiceProvider());
+
+// コンパイラパス登録（#[AsAuthenticator] / #[AsVoter] 自動検出）
+$builder->addCompilerPass(new RegisterAuthenticatorsPass());
+$builder->addCompilerPass(new RegisterVotersPass());
+```
+
+## Bridge パッケージ拡張ポイント
+
+OAuth / SAML / 2FA は `AuthenticatorInterface` を実装する Bridge パッケージとして追加:
+
+```php
+// wppack/oauth-security
+final class OAuthAuthenticator implements AuthenticatorInterface { /* ... */ }
+
+// wppack/saml-security
+final class SamlAuthenticator implements AuthenticatorInterface { /* ... */ }
+
+// wppack/two-factor-security
+// CheckPassportEvent リスナーで 2FA バッジを検証
+final class TwoFactorListener { /* ... */ }
+```
+
+## セキュリティ対策
+
+| 脅威 | 対策 | 実装箇所 |
+|------|------|---------|
+| タイミング攻撃 | `wp_check_password()` 内部の `hash_equals()` | `CheckCredentialsListener` |
+| ブルートフォース | `AuthenticationFailureEvent` で試行追跡可能 | `AuthenticationManager` |
+| ユーザー列挙 | 一律エラーメッセージ（`getSafeMessage()`） | `AuthenticationException` |
+| 権限昇格 | DENY 優先の Voter チェーン | `AccessDecisionManager` |
+| 未検証 Badge | `ensureAllBadgesResolved()` で全 Badge 検証 | `AuthenticationManager` |
+| Cookie 改ざん | `wp_validate_auth_cookie()` に委譲 | `CookieAuthenticator` |
+
+## 依存関係
+
+### 必須
+- **wppack/http-foundation** — Request オブジェクト
+- **wppack/event-dispatcher** — イベントディスパッチ
+
+### 推奨
+- **wppack/hook** — Named Hook アトリビュート（WpLoginAction, AuthenticateFilter 等）
+- **wppack/dependency-injection** — DI コンテナ統合
+- **Nonce Component** — CSRF 保護
