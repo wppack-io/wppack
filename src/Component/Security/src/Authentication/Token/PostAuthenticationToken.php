@@ -12,6 +12,7 @@ final readonly class PostAuthenticationToken implements TokenInterface
     public function __construct(
         private \WP_User $user,
         private array $roles,
+        private ?int $blogId = null,
     ) {}
 
     public function getUser(): \WP_User
@@ -27,5 +28,10 @@ final readonly class PostAuthenticationToken implements TokenInterface
     public function isAuthenticated(): bool
     {
         return true;
+    }
+
+    public function getBlogId(): ?int
+    {
+        return $this->blogId;
     }
 }

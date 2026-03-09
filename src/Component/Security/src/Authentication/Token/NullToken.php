@@ -20,4 +20,9 @@ final class NullToken implements TokenInterface
     {
         return false;
     }
+
+    public function getBlogId(): ?int
+    {
+        return null;
+    }
 }

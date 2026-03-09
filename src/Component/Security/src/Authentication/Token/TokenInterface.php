@@ -12,4 +12,10 @@ interface TokenInterface
     public function getRoles(): array;
 
     public function isAuthenticated(): bool;
+
+    /**
+     * Returns the blog ID where the authentication occurred.
+     * null means the current blog (or single-site environment).
+     */
+    public function getBlogId(): ?int;
 }

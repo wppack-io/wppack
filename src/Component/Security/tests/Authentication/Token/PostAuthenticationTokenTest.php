@@ -71,4 +71,34 @@ final class PostAuthenticationTokenTest extends TestCase
 
         $token->getUser();
     }
+
+    #[Test]
+    public function blogIdIsNullByDefault(): void
+    {
+        $user = new \WP_User();
+        $user->ID = 1;
+
+        $token = new PostAuthenticationToken($user, ['administrator']);
+
+        self::assertNull($token->getBlogId());
+    }
+
+    #[Test]
+    public function blogIdIsReturnedWhenSet(): void
+    {
+        $user = new \WP_User();
+        $user->ID = 1;
+
+        $token = new PostAuthenticationToken($user, ['administrator'], 2);
+
+        self::assertSame(2, $token->getBlogId());
+    }
+
+    #[Test]
+    public function nullTokenBlogIdIsNull(): void
+    {
+        $token = new NullToken();
+
+        self::assertNull($token->getBlogId());
+    }
 }

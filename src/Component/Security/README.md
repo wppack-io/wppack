@@ -76,6 +76,20 @@ class SecuritySubscriber
 }
 ```
 
+### マルチサイト
+
+Super Admin チェックとブログコンテキストをサポート:
+
+```php
+// Super Admin チェック
+if ($security->isGranted('ROLE_SUPER_ADMIN')) {
+    // ネットワーク管理者のみ
+}
+
+// トークンから認証時のブログ ID を取得
+$blogId = $security->getToken()->getBlogId();
+```
+
 ## ドキュメント
 
 詳細は [docs/components/security.md](../../docs/components/security.md) を参照してください。

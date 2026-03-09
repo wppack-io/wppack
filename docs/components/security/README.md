@@ -437,6 +437,88 @@ $builder->addCompilerPass(new RegisterAuthenticatorsPass());
 $builder->addCompilerPass(new RegisterVotersPass());
 ```
 
+## マルチサイト対応
+
+Security コンポーネントは WordPress マルチサイト環境をサポートしています。
+
+### ブログコンテキスト
+
+認証トークンは認証が行われたブログ ID を保持します:
+
+```php
+$token = $security->getToken();
+$blogId = $token->getBlogId(); // int（認証時のブログ ID）or null（シングルサイト）
+```
+
+組み込み Authenticator（`FormLoginAuthenticator`、`CookieAuthenticator`、`ApplicationPasswordAuthenticator`）は `get_current_blog_id()` を使用してトークンにブログ ID を自動設定します。カスタム Authenticator でも同様に設定できます:
+
+```php
+public function createToken(Passport $passport): TokenInterface
+{
+    $user = $passport->getUser();
+    $blogId = function_exists('get_current_blog_id') ? get_current_blog_id() : null;
+
+    return new PostAuthenticationToken($user, $user->roles, $blogId);
+}
+```
+
+### Super Admin チェック
+
+`RoleVoter` は `ROLE_SUPER_ADMIN` 属性をサポートし、WordPress の `is_super_admin()` に委譲します:
+
+```php
+// Super Admin かどうかチェック
+if ($security->isGranted('ROLE_SUPER_ADMIN')) {
+    // ネットワーク管理者のみの処理
+}
+```
+
+- **マルチサイト**: `is_super_admin()` がネットワークの Super Admin リストを参照
+- **シングルサイト**: `is_super_admin()` が `delete_users` ケイパビリティを持つかで判定（管理者は true）
+
+### CapabilityVoter のマルチサイト動作
+
+`CapabilityVoter` は WordPress の `user_can()` に委譲しており、マルチサイト環境でもそのまま動作します。`user_can()` は現在のブログコンテキストに基づいてケイパビリティを評価します。
+
+### クロスブログ権限チェック
+
+別のブログでの権限をチェックするには、Database コンポーネントの `switch_to_blog()` と組み合わせます:
+
+```php
+use WpPack\Component\Database\DatabaseManager;
+
+// ブログ 2 での権限チェック
+$db->switchToBlog(2, function () use ($security) {
+    if ($security->isGranted('edit_posts')) {
+        // ブログ 2 で投稿編集可能
+    }
+});
+```
+
+### Named Hook 連携
+
+Role コンポーネントの `GrantSuperAdminAction` / `RevokeSuperAdminAction` と連携して Super Admin の変更を監視できます:
+
+```php
+use WpPack\Component\Role\Attribute\Action\GrantSuperAdminAction;
+use WpPack\Component\Role\Attribute\Action\RevokeSuperAdminAction;
+
+class SuperAdminMonitor
+{
+    #[GrantSuperAdminAction]
+    public function onGrantSuperAdmin(int $userId): void
+    {
+        // Super Admin 付与時の処理（監査ログ等）
+    }
+
+    #[RevokeSuperAdminAction]
+    public function onRevokeSuperAdmin(int $userId): void
+    {
+        // Super Admin 剥奪時の処理
+    }
+}
+```
+
 ## Bridge パッケージ拡張ポイント
 
 OAuth / SAML / 2FA は `AuthenticatorInterface` を実装する Bridge パッケージとして追加:

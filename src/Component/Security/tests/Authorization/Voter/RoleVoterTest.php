@@ -60,6 +60,57 @@ final class RoleVoterTest extends TestCase
         self::assertSame(VoterInterface::ACCESS_GRANTED, $this->voter->vote($token, 'ROLE_ADMINISTRATOR'));
     }
 
+    #[Test]
+    public function superAdminDeniedWhenWordPressNotAvailable(): void
+    {
+        if (\function_exists('is_super_admin')) {
+            self::markTestSkipped('is_super_admin() is available; tested in integration test.');
+        }
+
+        $token = $this->createTokenWithRoles(['administrator']);
+
+        self::assertSame(VoterInterface::ACCESS_DENIED, $this->voter->vote($token, 'ROLE_SUPER_ADMIN'));
+    }
+
+    #[Test]
+    public function superAdminGrantedForAdminOnSingleSite(): void
+    {
+        if (!\function_exists('is_super_admin')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $userId = wp_insert_user([
+            'user_login' => 'test_admin_' . uniqid(),
+            'user_pass' => wp_generate_password(),
+            'role' => 'administrator',
+        ]);
+        $user = new \WP_User($userId);
+
+        $token = $this->createTokenWithUser($user);
+
+        // On single-site, administrators have delete_users capability, so is_super_admin() returns true
+        self::assertSame(VoterInterface::ACCESS_GRANTED, $this->voter->vote($token, 'ROLE_SUPER_ADMIN'));
+    }
+
+    #[Test]
+    public function superAdminDeniedForSubscriber(): void
+    {
+        if (!\function_exists('is_super_admin')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $userId = wp_insert_user([
+            'user_login' => 'test_subscriber_' . uniqid(),
+            'user_pass' => wp_generate_password(),
+            'role' => 'subscriber',
+        ]);
+        $user = new \WP_User($userId);
+
+        $token = $this->createTokenWithUser($user);
+
+        self::assertSame(VoterInterface::ACCESS_DENIED, $this->voter->vote($token, 'ROLE_SUPER_ADMIN'));
+    }
+
     /**
      * @param list<string> $roles
      */
@@ -82,6 +133,38 @@ final class RoleVoterTest extends TestCase
             public function isAuthenticated(): bool
             {
                 return true;
+            }
+
+            public function getBlogId(): ?int
+            {
+                return null;
+            }
+        };
+    }
+
+    private function createTokenWithUser(\WP_User $user): TokenInterface
+    {
+        return new class ($user) implements TokenInterface {
+            public function __construct(private readonly \WP_User $user) {}
+
+            public function getUser(): \WP_User
+            {
+                return $this->user;
+            }
+
+            public function getRoles(): array
+            {
+                return $this->user->roles;
+            }
+
+            public function isAuthenticated(): bool
+            {
+                return true;
+            }
+
+            public function getBlogId(): ?int
+            {
+                return null;
             }
         };
     }

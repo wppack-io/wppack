@@ -52,8 +52,9 @@ final class CookieAuthenticator implements StatelessAuthenticatorInterface
     public function createToken(Passport $passport): TokenInterface
     {
         $user = $passport->getUser();
+        $blogId = \function_exists('get_current_blog_id') ? get_current_blog_id() : null;
 
-        return new PostAuthenticationToken($user, $user->roles);
+        return new PostAuthenticationToken($user, $user->roles, $blogId);
     }
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token): void
