@@ -1,6 +1,6 @@
 # WpPack Ajax
 
-WordPress AJAX ハンドリングのコンポーネント。`#[AjaxHandler]` アトリビュートによるハンドラー定義、`Access` enum による3種類のアクセス制御、`JsonResponse` による型安全なレスポンス、Named Hook アトリビュートを提供します。
+A component for WordPress AJAX handling. Provides handler definition via `#[AjaxHandler]` attribute, three types of access control via the `Access` enum, type-safe responses with `JsonResponse`, and Named Hook attributes.
 
 ## Installation
 
@@ -10,7 +10,7 @@ composer require wppack/ajax
 
 ## Usage
 
-### AjaxHandler アトリビュート
+### AjaxHandler Attribute
 
 ```php
 use WpPack\Component\Ajax\Access;
@@ -37,14 +37,14 @@ class ProductController
 }
 ```
 
-### Access enum
+### Access Enum
 
 ```php
 use WpPack\Component\Ajax\Access;
 
-#[AjaxHandler(action: 'public_action')]                          // Public（デフォルト）
-#[AjaxHandler(action: 'auth_action', access: Access::Authenticated)]  // ログインユーザーのみ
-#[AjaxHandler(action: 'guest_action', access: Access::Guest)]         // 未ログインユーザーのみ
+#[AjaxHandler(action: 'public_action')]                          // Public (default)
+#[AjaxHandler(action: 'auth_action', access: Access::Authenticated)]  // Authenticated users only
+#[AjaxHandler(action: 'guest_action', access: Access::Guest)]         // Unauthenticated users only
 ```
 
 ### AjaxHandlerRegistry
@@ -80,7 +80,7 @@ final class AjaxHooks
     #[CheckAjaxRefererAction]
     public function onRefererCheck(): void
     {
-        // check_ajax_referer 実行時
+        // When check_ajax_referer is executed
     }
 }
 ```

@@ -1,18 +1,18 @@
 # WpPack OptionsResolver
 
-WordPress 向け OptionsResolver。Symfony OptionsResolver を拡張し、`setAllowedTypes()` で単一の型（`'int'`、`'float'`、`'bool'`）を指定した場合に文字列からの自動キャストを行います。
+An OptionsResolver for WordPress. Extends Symfony OptionsResolver to automatically cast values from strings when a single type (`'int'`, `'float'`, `'bool'`) is specified via `setAllowedTypes()`.
 
-## インストール
+## Installation
 
 ```bash
 composer require wppack/options-resolver
 ```
 
-## 使い方
+## Usage
 
-### 基本
+### Basic
 
-Symfony OptionsResolver のすべての機能がそのまま利用可能です。
+All features of Symfony OptionsResolver are available as-is.
 
 ```php
 use WpPack\Component\OptionsResolver\OptionsResolver;
@@ -28,9 +28,9 @@ $resolved = $resolver->resolve(['title' => 'Hello', 'style' => 'danger']);
 // ['title' => 'Hello', 'style' => 'danger']
 ```
 
-### 型指定による自動キャスト
+### Automatic Casting by Type Specification
 
-`setAllowedTypes()` で単一の型を指定すると、文字列からの自動キャスト normalizer が登録されます。WordPress の shortcode 属性のように、すべての値が文字列で渡される場面で有用です。
+When a single type is specified via `setAllowedTypes()`, an automatic casting normalizer is registered for string-to-type conversion. This is useful in scenarios where all values are passed as strings, such as WordPress shortcode attributes.
 
 ```php
 $resolver = new OptionsResolver();
@@ -47,18 +47,18 @@ $resolved = $resolver->resolve(['count' => '10', 'ratio' => '3.14', 'enabled' =>
 // ['count' => 10, 'ratio' => 3.14, 'enabled' => true]
 ```
 
-| 指定型 | 変換 |
-|-------|------|
-| `'int'` | `(int)` キャスト |
-| `'float'` | `(float)` キャスト |
-| `'bool'` | `'true'`/`'1'`/`'yes'` → `true`、それ以外 → `false` |
+| Type | Conversion |
+|------|------------|
+| `'int'` | `(int)` cast |
+| `'float'` | `(float)` cast |
+| `'bool'` | `'true'`/`'1'`/`'yes'` → `true`, all others → `false` |
 
-配列で複数型を指定した場合（`['int', 'string']`）は自動キャストされません。
+When multiple types are specified as an array (e.g., `['int', 'string']`), automatic casting is not applied.
 
-## Shortcode コンポーネントとの統合
+## Integration with the Shortcode Component
 
-`wppack/shortcode` コンポーネントと組み合わせて使用する場合は、`configureAttributes()` メソッドで宣言的にアトリビュートを定義できます。詳細は [Shortcode ドキュメント](../../../docs/components/shortcode/) を参照してください。
+When used in combination with the `wppack/shortcode` component, you can declaratively define attributes using the `configureAttributes()` method. See the [Shortcode documentation](../../../docs/components/shortcode/) for details.
 
-## ライセンス
+## License
 
 MIT

@@ -1,17 +1,17 @@
 # Monolog Logger
 
-**パッケージ:** `wppack/monolog-logger`
-**名前空間:** `WpPack\Component\Logger\Bridge\Monolog\`
+**Package:** `wppack/monolog-logger`
+**Namespace:** `WpPack\Component\Logger\Bridge\Monolog\`
 
-WpPack Logger の Monolog ブリッジ。`MonologLoggerFactory` を使って Monolog を PSR-3 `LoggerInterface` として利用できます。
+A Monolog bridge for WpPack Logger. Use `MonologLoggerFactory` to leverage Monolog as a PSR-3 `LoggerInterface`.
 
-## インストール
+## Installation
 
 ```bash
 composer require wppack/monolog-logger
 ```
 
-## 使い方
+## Usage
 
 ```php
 use WpPack\Component\Logger\Bridge\Monolog\MonologLoggerFactory;
@@ -27,18 +27,18 @@ $logger = $factory->create('app');
 $logger->info('Hello {name}', ['name' => 'World']);
 ```
 
-## 依存関係
+## Dependencies
 
 - `wppack/logger` ^1.0
 - `monolog/monolog` ^3.0
 
-## ドキュメント
+## Documentation
 
-詳細は [docs/components/logger/monolog-logger.md](../../../../docs/components/logger/monolog-logger.md) を参照してください。
+See [docs/components/logger/monolog-logger.md](../../../../docs/components/logger/monolog-logger.md) for details.
 
-## リソース
+## Resources
 
 - [Issues](https://github.com/wppack-io/wppack/issues)
 - [Pull Requests](https://github.com/wppack-io/wppack/pulls)
 
-メインリポジトリ [wppack-io/wppack](https://github.com/wppack-io/wppack) で開発しています。
+Developed in the main repository [wppack-io/wppack](https://github.com/wppack-io/wppack).

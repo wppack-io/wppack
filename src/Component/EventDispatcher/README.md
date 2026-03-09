@@ -1,22 +1,22 @@
-# EventDispatcher コンポーネント
+# EventDispatcher Component
 
-WordPress フックシステム（`$wp_filter`）をバックエンドとして使う PSR-14 準拠のイベントディスパッチャー。
+A PSR-14 compliant event dispatcher that uses the WordPress hook system (`$wp_filter`) as its backend.
 
-## インストール
+## Installation
 
 ```bash
 composer require wppack/event-dispatcher
 ```
 
-## 基本的な使い方
+## Basic Usage
 
-### カスタムイベントのディスパッチ
+### Dispatching Custom Events
 
 ```php
 use WpPack\Component\EventDispatcher\Event;
 use WpPack\Component\EventDispatcher\EventDispatcher;
 
-// イベントクラスを定義
+// Define an event class
 class OrderPlacedEvent extends Event
 {
     public function __construct(
@@ -26,27 +26,27 @@ class OrderPlacedEvent extends Event
 
 $dispatcher = new EventDispatcher();
 
-// リスナーを登録
+// Register a listener
 $dispatcher->addListener(OrderPlacedEvent::class, function (OrderPlacedEvent $event): void {
-    // 注文処理...
+    // Handle the order...
 });
 
-// イベントをディスパッチ
+// Dispatch the event
 $event = $dispatcher->dispatch(new OrderPlacedEvent(orderId: 42));
 ```
 
-### WordPress フックのリスニング
+### Listening to WordPress Hooks
 
 ```php
 use WpPack\Component\EventDispatcher\WordPressEvent;
 
 $dispatcher->addListener('save_post', function (WordPressEvent $event): void {
     [$postId, $post, $update] = $event->args;
-    // 保存処理...
+    // Handle save...
 }, acceptedArgs: 3);
 ```
 
-### 拡張イベントクラス
+### Extended Event Classes
 
 ```php
 class SavePostEvent extends WordPressEvent
@@ -71,7 +71,7 @@ $dispatcher->addListener(
 );
 ```
 
-### `#[AsEventListener]` 属性
+### `#[AsEventListener]` Attribute
 
 ```php
 use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
@@ -81,7 +81,7 @@ final class SendOrderConfirmation
 {
     public function __invoke(OrderPlacedEvent $event): void
     {
-        // メール送信...
+        // Send email...
     }
 }
 
@@ -95,7 +95,7 @@ final class OrderHandler
 }
 ```
 
-### サブスクライバー
+### Subscribers
 
 ```php
 use WpPack\Component\EventDispatcher\EventSubscriberInterface;
@@ -117,7 +117,7 @@ class OrderSubscriber implements EventSubscriberInterface
 }
 ```
 
-## DI 統合
+## DI Integration
 
 ```php
 use WpPack\Component\EventDispatcher\DependencyInjection\EventDispatcherServiceProvider;
@@ -127,11 +127,11 @@ $builder->addServiceProvider(new EventDispatcherServiceProvider());
 $builder->addCompilerPass(new RegisterEventListenersPass());
 ```
 
-`RegisterEventListenersPass` は以下を自動検出します:
-- `#[AsEventListener]` 属性が付与されたサービス
-- `EventSubscriberInterface` を実装したサービス
+`RegisterEventListenersPass` automatically discovers:
+- Services annotated with the `#[AsEventListener]` attribute
+- Services implementing `EventSubscriberInterface`
 
-## テストユーティリティ
+## Test Utilities
 
 ```php
 use WpPack\Component\EventDispatcher\Test\EventDispatcherTestTrait;

@@ -1,13 +1,13 @@
-# Translation コンポーネント
+# Translation Component
 
-WordPress の国際化（i18n）関数を型安全かつオブジェクト指向でラップするコンポーネントです。
+A component that wraps WordPress internationalization (i18n) functions in a type-safe, object-oriented manner.
 
-## インストール
+## Installation
 
 ```bash
 composer require wppack/translation
 ```
 
-## ドキュメント
+## Documentation
 
-詳細は [docs/components/translation/README.md](../../../docs/components/translation/README.md) を参照してください。
+See [docs/components/translation/README.md](../../../docs/components/translation/README.md) for details.

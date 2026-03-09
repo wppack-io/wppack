@@ -1,18 +1,18 @@
 # WpPack Security
 
-WordPress 上でプラガブルな認証・認可フレームワークを提供するコンポーネント。Authenticator パターンによるリクエストベース認証、Passport/Badge による認証要件の値オブジェクト化、Voter ベースの認可チェックをサポート。
+A component that provides a pluggable authentication and authorization framework on WordPress. Supports request-based authentication via the Authenticator pattern, value-object representation of authentication requirements through Passport/Badge, and Voter-based authorization checks.
 
-## インストール
+## Installation
 
 ```bash
 composer require wppack/security
 ```
 
-## 使い方
+## Usage
 
-### 認証（Authentication）
+### Authentication
 
-Authenticator パターンでリクエストを認証:
+Authenticate requests using the Authenticator pattern:
 
 ```php
 use WpPack\Component\Security\Authentication\AuthenticatorInterface;
@@ -39,9 +39,9 @@ final class MyAuthenticator implements AuthenticatorInterface
 }
 ```
 
-### 認可（Authorization）
+### Authorization
 
-Voter パターンで権限チェック:
+Check permissions using the Voter pattern:
 
 ```php
 use WpPack\Component\Security\Security;
@@ -49,11 +49,11 @@ use WpPack\Component\Security\Security;
 $security->denyAccessUnlessGranted('edit_posts');
 
 if ($security->isGranted('ROLE_ADMINISTRATOR')) {
-    // 管理者のみ
+    // Administrators only
 }
 ```
 
-### Named Hook アトリビュート
+### Named Hook Attributes
 
 ```php
 use WpPack\Component\Security\Attribute\Action\WpLoginAction;
@@ -64,43 +64,43 @@ class SecuritySubscriber
     #[AuthenticateFilter(priority: 5)]
     public function onAuthenticate($user, string $username, string $password)
     {
-        // カスタム認証ロジック
+        // Custom authentication logic
         return $user;
     }
 
     #[WpLoginAction]
     public function onLogin(string $userLogin, \WP_User $user): void
     {
-        // ログイン後の処理
+        // Post-login processing
     }
 }
 ```
 
-### マルチサイト
+### Multisite
 
-Super Admin チェックとブログコンテキストをサポート:
+Supports Super Admin checks and blog context:
 
 ```php
-// Super Admin チェック
+// Super Admin check
 if ($security->isGranted('ROLE_SUPER_ADMIN')) {
-    // ネットワーク管理者のみ
+    // Network administrators only
 }
 
-// トークンから認証時のブログ ID を取得
+// Get the blog ID at the time of authentication from the token
 $blogId = $security->getToken()->getBlogId();
 ```
 
-## ドキュメント
+## Documentation
 
-詳細は [docs/components/security.md](../../docs/components/security.md) を参照してください。
+For details, see [docs/components/security.md](../../docs/components/security.md).
 
-## リソース
+## Resources
 
 - [Issues](https://github.com/wppack-io/wppack/issues)
 - [Pull Requests](https://github.com/wppack-io/wppack/pulls)
 
-メインリポジトリ [wppack-io/wppack](https://github.com/wppack-io/wppack) で開発しています。
+Development takes place in the main repository [wppack-io/wppack](https://github.com/wppack-io/wppack).
 
-## ライセンス
+## License
 
 MIT

@@ -1,14 +1,14 @@
 # Query Component
 
-WordPress のネイティブクエリ（`WP_Query`、`WP_User_Query`、`WP_Term_Query`）に対する型安全で流暢なクエリビルダー。
+A type-safe, fluent query builder for WordPress native queries (`WP_Query`, `WP_User_Query`, `WP_Term_Query`).
 
-## インストール
+## Installation
 
 ```bash
 composer require wppack/query
 ```
 
-## 使い方
+## Usage
 
 ```php
 use WpPack\Component\Query\QueryFactory;
@@ -36,14 +36,14 @@ class ProductService
 }
 ```
 
-## 主な機能
+## Key Features
 
-- **DI ファースト** — `QueryFactory` をコンストラクタ注入
-- **WQL（WordPress Query Language）** — `where('(m.a = :a OR m.b = :b) AND m.c = :c')` で複合条件を単一文字列で表現
-- **プレフィックスルーティング** — `m.` で meta_query、`t.` / `tax.` / `taxonomy.` で tax_query を自動ルーティング
-- **実行メソッド** — `get()`, `first()`, `getIds()`, `count()`, `exists()`
-- **Named Hook アトリビュート** — `PreGetPostsAction`, `PostsWhereFilter` 等
+- **DI First** -- Inject `QueryFactory` via constructor
+- **WQL (WordPress Query Language)** -- Express compound conditions in a single string with `where('(m.a = :a OR m.b = :b) AND m.c = :c')`
+- **Prefix Routing** -- `m.` auto-routes to meta_query, `t.` / `tax.` / `taxonomy.` auto-routes to tax_query
+- **Execution Methods** -- `get()`, `first()`, `getIds()`, `count()`, `exists()`
+- **Named Hook Attributes** -- `PreGetPostsAction`, `PostsWhereFilter`, etc.
 
-## ドキュメント
+## Documentation
 
-詳細は [docs/components/query/](../../../docs/components/query/) を参照してください。
+For details, see [docs/components/query/](../../../docs/components/query/).

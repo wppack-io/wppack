@@ -1,14 +1,14 @@
 # WpPack Logger
 
-PSR-3 準拠のロギングコンポーネント。WordPress の `error_log()` を構造化されたインターフェースでラップします。
+A PSR-3 compliant logging component. Wraps WordPress's `error_log()` with a structured interface.
 
-## インストール
+## Installation
 
 ```bash
 composer require wppack/logger
 ```
 
-## 使い方
+## Usage
 
 ```php
 use WpPack\Component\Logger\Logger;
@@ -21,10 +21,10 @@ $logger->info('User {username} logged in', [
     'username' => 'john',
     'ip' => '127.0.0.1',
 ]);
-// 出力: [app.INFO] User john logged in {"ip":"127.0.0.1"}
+// Output: [app.INFO] User john logged in {"ip":"127.0.0.1"}
 ```
 
-## チャンネルベースロギング
+## Channel-Based Logging
 
 ```php
 use WpPack\Component\Logger\LoggerFactory;
@@ -36,10 +36,10 @@ $appLogger = $factory->create('app');
 $securityLogger = $factory->create('security');
 
 $securityLogger->warning('Failed login attempt', ['username' => 'admin']);
-// 出力: [security.WARNING] Failed login attempt {"username":"admin"}
+// Output: [security.WARNING] Failed login attempt {"username":"admin"}
 ```
 
-## テスト
+## Testing
 
 ```php
 use WpPack\Component\Logger\Logger;
@@ -55,10 +55,10 @@ $handler->hasInfo('Payment successful');           // true
 $handler->hasInfoThatContains('Payment', ['amount' => 100]); // true
 ```
 
-## ドキュメント
+## Documentation
 
-詳細は [docs/components/logger/](../../../docs/components/logger/) を参照してください。
+For details, see [docs/components/logger/](../../../docs/components/logger/).
 
-## ライセンス
+## License
 
 MIT

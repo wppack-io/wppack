@@ -1,21 +1,21 @@
-# Database コンポーネント
+# Database Component
 
-WordPress の `$wpdb` を型安全にラップし、例外ベースのエラーハンドリングと `dbDelta()` によるカスタムテーブルのスキーマ管理を提供するコンポーネントです。
+A component that provides a type-safe wrapper around WordPress `$wpdb`, with exception-based error handling and custom table schema management via `dbDelta()`.
 
-## インストール
+## Installation
 
 ```bash
 composer require wppack/database
 ```
 
-## 基本的な使い方
+## Basic Usage
 
 ```php
 use WpPack\Component\Database\DatabaseManager;
 
 $db = new DatabaseManager();
 
-// Doctrine DBAL 風のフェッチ API（配列パラメータ）
+// Doctrine DBAL-style fetch API (array parameters)
 $rows = $db->fetchAllAssociative(
     "SELECT * FROM {$db->prefix()}analytics WHERE status = %s",
     ['active'],
@@ -31,12 +31,12 @@ $count = $db->fetchOne(
     ['active'],
 );
 
-// テーブル操作（自動プレフィックス付与）
+// Table operations (automatic prefix applied)
 $db->insert('analytics', ['name' => 'test', 'status' => 'active']);
 $db->update('analytics', ['status' => 'inactive'], ['id' => 1]);
 $db->delete('analytics', ['id' => 1]);
 
-// トランザクション
+// Transactions
 $db->beginTransaction();
 try {
     $db->insert('analytics', ['name' => 'tx_test']);
@@ -47,6 +47,6 @@ try {
 }
 ```
 
-## ドキュメント
+## Documentation
 
-詳細は [docs/components/database/](../../docs/components/database/) を参照してください。
+For details, see [docs/components/database/](../../docs/components/database/).

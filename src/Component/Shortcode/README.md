@@ -1,18 +1,18 @@
 # WpPack Shortcode
 
-WordPress ショートコードをオブジェクト指向で定義するコンポーネント。`AbstractShortcode` + `#[AsShortcode]` アトリビュートによるショートコード定義、および Named Hook Attributes を提供します。
+A component for defining WordPress shortcodes in an object-oriented manner. Provides shortcode definitions via `AbstractShortcode` + `#[AsShortcode]` attributes, along with Named Hook Attributes.
 
-## インストール
+## Installation
 
 ```bash
 composer require wppack/shortcode
 ```
 
-## 使い方
+## Usage
 
-### ショートコード定義
+### Shortcode Definition
 
-`configureAttributes()` をオーバーライドして、デフォルト値・バリデーションを宣言的に定義できます。`render()` には解決済みのアトリビュートが渡されます。内部で `shortcode_atts()` も呼ばれるため、`shortcode_atts_{shortcode}` フィルターとの互換性も維持されます。
+Override `configureAttributes()` to declaratively define default values and validation. The `render()` method receives the resolved attributes. Since `shortcode_atts()` is also called internally, compatibility with the `shortcode_atts_{shortcode}` filter is maintained.
 
 ```php
 use WpPack\Component\OptionsResolver\OptionsResolver;
@@ -43,7 +43,7 @@ class ButtonShortcode extends AbstractShortcode
 }
 ```
 
-### 依存性注入を使用したショートコード
+### Shortcode with Dependency Injection
 
 ```php
 #[AsShortcode(name: 'recent_posts', description: 'Display recent posts')]
@@ -133,16 +133,16 @@ final class ShortcodeHooks
 ```
 
 **Filter Attributes:**
-- `#[ShortcodeAttsFilter]` — `shortcode_atts_{shortcode}`（動的フック名、`shortcode: string` パラメータ）
+- `#[ShortcodeAttsFilter]` — `shortcode_atts_{shortcode}` (dynamic hook name, `shortcode: string` parameter)
 - `#[DoShortcodeTagFilter]` — `do_shortcode_tag`
 - `#[PreDoShortcodeTagFilter]` — `pre_do_shortcode_tag`
 - `#[NoTexturizeShortcodesFilter]` — `no_texturize_shortcodes`
 - `#[StripShortcodesTagNamesFilter]` — `strip_shortcodes_tag_names`
 
-## ドキュメント
+## Documentation
 
-詳細は [docs/components/shortcode/](../../../docs/components/shortcode/) を参照してください。
+See [docs/components/shortcode/](../../../docs/components/shortcode/) for details.
 
-## ライセンス
+## License
 
 MIT

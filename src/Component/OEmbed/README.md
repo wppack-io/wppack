@@ -1,16 +1,16 @@
 # WpPack OEmbed
 
-WordPress の oEmbed をモダンな PHP で管理するコンポーネントです。`OEmbedProviderInterface` によるプロバイダー自動登録と、Named Hook アトリビュートを提供します。
+A component for managing WordPress oEmbed with modern PHP. Provides automatic provider registration via `OEmbedProviderInterface` and Named Hook attributes.
 
-## インストール
+## Installation
 
 ```bash
 composer require wppack/oembed
 ```
 
-## 使い方
+## Usage
 
-### OEmbedProviderInterface（DI 自動収集）
+### OEmbedProviderInterface (DI Auto-Collection)
 
 ```php
 use WpPack\Component\OEmbed\OEmbedProviderDefinition;
@@ -28,7 +28,7 @@ class MyOEmbedProviders implements OEmbedProviderInterface
 }
 ```
 
-### OEmbedProviderRegistry（直接使用）
+### OEmbedProviderRegistry (Direct Usage)
 
 ```php
 use WpPack\Component\OEmbed\OEmbedProviderRegistry;
@@ -84,9 +84,9 @@ final class VideoEmbedCustomizer
 - `#[EmbedHandlersFilter]` — `embed_handlers`
 - `#[OembedWhitelistFilter]` — `oembed_whitelist`
 
-## ドキュメント
+## Documentation
 
-詳細は [docs/components/oembed/](../../../docs/components/oembed/) を参照してください。
+See [docs/components/oembed/](../../../docs/components/oembed/) for details.
 
 ## License
 

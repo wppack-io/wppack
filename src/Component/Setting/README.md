@@ -1,29 +1,29 @@
-# Setting コンポーネント
+# Setting Component
 
-**パッケージ:** `wppack/setting`
-**名前空間:** `WpPack\Component\Setting\`
-**レイヤー:** Application
+**Package:** `wppack/setting`
+**Namespace:** `WpPack\Component\Setting\`
+**Layer:** Application
 
-WordPress Settings API をモダンな PHP で扱うためのコンポーネントです。アトリビュートベースの設定ページ定義と Named Hook アトリビュートを提供します。
+A component for working with the WordPress Settings API using modern PHP. Provides attribute-based settings page definition and Named Hook attributes.
 
-## インストール
+## Installation
 
 ```bash
 composer require wppack/setting
 ```
 
-## 主要クラス
+## Key Classes
 
-| クラス | 説明 |
-|--------|------|
-| `AsSettingsPage` | 設定ページを定義するクラスレベルアトリビュート |
-| `AbstractSettingsPage` | 設定ページの基底クラス |
-| `SettingsConfigurator` | セクション・フィールドを定義するビルダー |
-| `SectionDefinition` | セクション定義 |
-| `FieldDefinition` | フィールド定義（値オブジェクト） |
-| `ValidationContext` | バリデーションエラー・警告・情報の通知 |
-| `SettingsRegistry` | 設定ページの自動登録レジストリ |
+| Class | Description |
+|-------|-------------|
+| `AsSettingsPage` | Class-level attribute for defining a settings page |
+| `AbstractSettingsPage` | Base class for settings pages |
+| `SettingsConfigurator` | Builder for defining sections and fields |
+| `SectionDefinition` | Section definition |
+| `FieldDefinition` | Field definition (value object) |
+| `ValidationContext` | Notification for validation errors, warnings, and info |
+| `SettingsRegistry` | Auto-registration registry for settings pages |
 
-## ドキュメント
+## Documentation
 
-詳細は [docs/components/setting/](../../../docs/components/setting/) を参照してください。
+See [docs/components/setting/](../../../docs/components/setting/) for details.

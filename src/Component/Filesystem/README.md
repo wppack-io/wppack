@@ -15,7 +15,7 @@ composer require wppack/filesystem
 ```php
 use WpPack\Component\Filesystem\Filesystem;
 
-// WP_Filesystem_Base を注入（必須）
+// Inject WP_Filesystem_Base (required)
 $filesystem = new Filesystem($wp_filesystem);
 
 // Read / write

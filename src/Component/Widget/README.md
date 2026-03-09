@@ -1,6 +1,6 @@
 # WpPack Widget
 
-WordPress ウィジェットシステムのコンポーネント。`AbstractWidget` + `#[AsWidget]` アトリビュートによるウィジェット定義と、Named Hook アトリビュートを提供します。
+A WordPress widget system component. Provides widget definitions via `AbstractWidget` + `#[AsWidget]` attributes, along with Named Hook Attributes.
 
 ## Installation
 
@@ -10,7 +10,7 @@ composer require wppack/widget
 
 ## Usage
 
-### ウィジェット定義
+### Widget Definition
 
 ```php
 use WpPack\Component\Widget\AbstractWidget;
@@ -55,7 +55,7 @@ final class WidgetHooks
     #[WidgetsInitAction]
     public function registerWidgets(): void
     {
-        // ウィジェット登録
+        // Register widgets
     }
 
     #[WidgetTitleFilter(priority: 5)]
@@ -66,12 +66,12 @@ final class WidgetHooks
 }
 ```
 
-**Action アトリビュート:**
+**Action Attributes:**
 - `#[WidgetsInitAction]` — `widgets_init`
 - `#[DynamicSidebarBeforeAction]` — `dynamic_sidebar_before`
 - `#[DynamicSidebarAfterAction]` — `dynamic_sidebar_after`
 
-**Filter アトリビュート:**
+**Filter Attributes:**
 - `#[DynamicSidebarHasWidgetsFilter]` — `dynamic_sidebar_has_widgets`
 - `#[DynamicSidebarParamsFilter]` — `dynamic_sidebar_params`
 - `#[RegisterSidebarFilter]` — `register_sidebar`

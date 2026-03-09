@@ -1,16 +1,16 @@
 # WpPack NavigationMenu
 
-WordPress のナビゲーションメニューをモダンな PHP で管理するコンポーネントです。`MenuLocationProviderInterface` によるメニューロケーション自動登録と、Named Hook アトリビュートを提供します。
+A component for managing WordPress navigation menus with modern PHP. Provides automatic menu location registration via `MenuLocationProviderInterface` and Named Hook attributes.
 
-## インストール
+## Installation
 
 ```bash
 composer require wppack/navigation-menu
 ```
 
-## 使い方
+## Usage
 
-### MenuLocationProviderInterface（DI 自動収集）
+### MenuLocationProviderInterface (DI Auto-Collection)
 
 ```php
 use WpPack\Component\NavigationMenu\MenuLocationProviderInterface;
@@ -27,7 +27,7 @@ class ThemeMenuProvider implements MenuLocationProviderInterface
 }
 ```
 
-### MenuRegistry（直接使用）
+### MenuRegistry (Direct Usage)
 
 ```php
 use WpPack\Component\NavigationMenu\MenuRegistry;
@@ -90,9 +90,9 @@ final class MenuCustomizer
 - `#[NavMenuItemIdFilter]` — `nav_menu_item_id`
 - `#[NavMenuLinkAttributesFilter]` — `nav_menu_link_attributes`
 
-## ドキュメント
+## Documentation
 
-詳細は [docs/components/navigation-menu.md](../../../docs/components/navigation-menu.md) を参照してください。
+See [docs/components/navigation-menu.md](../../../docs/components/navigation-menu.md) for details.
 
 ## License
 

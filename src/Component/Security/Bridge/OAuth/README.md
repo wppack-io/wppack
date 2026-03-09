@@ -1,36 +1,36 @@
 # OAuthSecurity
 
-OAuth 2.0 / OpenID Connect 認証ブリッジ（WpPack Security Bridge）
+OAuth 2.0 / OpenID Connect authentication bridge (WpPack Security Bridge)
 
-## 概要
+## Overview
 
-外部 IdP（Google, Azure AD, Okta, GitHub 等）による OAuth 2.0 / OpenID Connect SSO 認証を WordPress に統合します。
+Integrates OAuth 2.0 / OpenID Connect SSO authentication with external IdPs (Google, Azure AD, Okta, GitHub, etc.) into WordPress.
 
-## インストール
+## Installation
 
 ```bash
 composer require wppack/oauth-security
 ```
 
-## 要件
+## Requirements
 
 - PHP 8.2+
 - wppack/security ^1.0
 - firebase/php-jwt ^7.0
 
-## 対応プロバイダー
+## Supported Providers
 
-| プロバイダー | OIDC | RP-Initiated Logout | PKCE |
-|-------------|------|---------------------|------|
+| Provider | OIDC | RP-Initiated Logout | PKCE |
+|----------|------|---------------------|------|
 | Google | Yes | No | Yes |
 | Azure AD | Yes | Yes | Yes |
 | GitHub | No | No | No |
 | Generic OIDC | Yes | Yes (if supported) | Yes |
 
-## ドキュメント
+## Documentation
 
-詳細なドキュメントは [docs/components/security/oauth-security.md](../../../../docs/components/security/oauth-security.md) を参照してください。
+For detailed documentation, see [docs/components/security/oauth-security.md](../../../../docs/components/security/oauth-security.md).
 
-## ライセンス
+## License
 
 MIT
