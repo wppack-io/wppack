@@ -17,6 +17,7 @@
     "require-dev": {
         "async-aws/dynamo-db": "^3.0",
         "async-aws/ses": "^1.14",
+        "firebase/php-jwt": "^7.0",
         "friendsofphp/php-cs-fixer": "^3.68",
         "monolog/monolog": "^3.10",
         "onelogin/php-saml": "^4.0",
@@ -90,7 +91,8 @@
             "WpPack\\Component\\Cache\\Bridge\\Memcached\\": "src/Component/Cache/Bridge/Memcached/src/",
             "WpPack\\Component\\Cache\\Bridge\\Apcu\\": "src/Component/Cache/Bridge/Apcu/src/",
             "WpPack\\Plugin\\AmazonMailerPlugin\\": "src/Plugin/AmazonMailerPlugin/src/",
-            "WpPack\\Component\\Security\\Bridge\\SAML\\": "src/Component/Security/Bridge/SAML/src/"
+            "WpPack\\Component\\Security\\Bridge\\SAML\\": "src/Component/Security/Bridge/SAML/src/",
+            "WpPack\\Component\\Security\\Bridge\\OAuth\\": "src/Component/Security/Bridge/OAuth/src/"
         }
     },
     "autoload-dev": {
@@ -147,7 +149,8 @@
             "WpPack\\Component\\Cache\\Bridge\\DynamoDb\\Tests\\": "src/Component/Cache/Bridge/DynamoDb/tests/",
             "WpPack\\Component\\Cache\\Bridge\\Memcached\\Tests\\": "src/Component/Cache/Bridge/Memcached/tests/",
             "WpPack\\Component\\Cache\\Bridge\\Apcu\\Tests\\": "src/Component/Cache/Bridge/Apcu/tests/",
-            "WpPack\\Component\\Translation\\Tests\\": "src/Component/Translation/tests/"
+            "WpPack\\Component\\Translation\\Tests\\": "src/Component/Translation/tests/",
+            "WpPack\\Component\\Security\\Bridge\\OAuth\\Tests\\": "src/Component/Security/Bridge/OAuth/tests/"
         }
     },
     "replace": {
@@ -210,7 +213,8 @@
         "wppack/elasticache-auth": "self.version",
         "wppack/memcached-cache": "self.version",
         "wppack/apcu-cache": "self.version",
-        "wppack/saml-security": "self.version"
+        "wppack/saml-security": "self.version",
+        "wppack/oauth-security": "self.version"
     },
     "config": {
         "sort-packages": true

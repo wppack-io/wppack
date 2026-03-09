@@ -131,6 +131,10 @@ component_management:
       name: SamlSecurity
       paths:
         - src/Component/Security/Bridge/SAML/src/**
+    - component_id: oauth_security
+      name: OAuthSecurity
+      paths:
+        - src/Component/Security/Bridge/OAuth/src/**
     - component_id: messenger
       name: Messenger
       paths:

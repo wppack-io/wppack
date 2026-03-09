@@ -1,0 +1,148 @@
+<?php
+
+declare(strict_types=1);
+
+namespace WpPack\Component\Security\Bridge\OAuth\Tests\Token;
+
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+use WpPack\Component\HttpClient\HttpClient;
+use WpPack\Component\Security\Bridge\OAuth\Token\OAuthTokenSet;
+use WpPack\Component\Security\Bridge\OAuth\Token\TokenRefresher;
+
+#[CoversClass(TokenRefresher::class)]
+final class TokenRefresherTest extends TestCase
+{
+    private HttpClient $httpClient;
+    private TokenRefresher $refresher;
+
+    /** @var array{body: string, headers: array<string, string>, response: array{code: int, message: string}}|null */
+    private ?array $mockResponse = null;
+
+    protected function setUp(): void
+    {
+        if (!\function_exists('wp_remote_request')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $this->httpClient = new HttpClient();
+        $this->refresher = new TokenRefresher($this->httpClient);
+
+        add_filter('pre_http_request', [$this, 'mockHttpResponse'], 10, 3);
+    }
+
+    protected function tearDown(): void
+    {
+        if (\function_exists('remove_filter')) {
+            remove_filter('pre_http_request', [$this, 'mockHttpResponse'], 10);
+        }
+    }
+
+    /**
+     * @param false|array<string, mixed> $response
+     * @param array<string, mixed> $parsedArgs
+     */
+    public function mockHttpResponse(mixed $response, array $parsedArgs, string $url): mixed
+    {
+        if ($this->mockResponse !== null) {
+            return $this->mockResponse;
+        }
+
+        return $response;
+    }
+
+    #[Test]
+    public function refreshReturnsNewTokenSet(): void
+    {
+        $this->mockResponse = [
+            'response' => ['code' => 200, 'message' => 'OK'],
+            'headers' => ['content-type' => 'application/json'],
+            'body' => json_encode([
+                'access_token' => 'new-access-token',
+                'token_type' => 'Bearer',
+                'refresh_token' => 'new-refresh-token',
+                'expires_in' => 7200,
+            ]),
+        ];
+
+        $tokenSet = $this->refresher->refresh(
+            'https://idp.example.com/token',
+            'old-refresh-token',
+            'client-id',
+            'client-secret',
+        );
+
+        self::assertSame('new-access-token', $tokenSet->getAccessToken());
+        self::assertSame('new-refresh-token', $tokenSet->getRefreshToken());
+        self::assertSame(7200, $tokenSet->getExpiresIn());
+    }
+
+    #[Test]
+    public function refreshWithScopes(): void
+    {
+        $this->mockResponse = [
+            'response' => ['code' => 200, 'message' => 'OK'],
+            'headers' => ['content-type' => 'application/json'],
+            'body' => json_encode([
+                'access_token' => 'scoped-access-token',
+                'token_type' => 'Bearer',
+                'scope' => 'openid profile',
+            ]),
+        ];
+
+        $tokenSet = $this->refresher->refresh(
+            'https://idp.example.com/token',
+            'refresh-token',
+            'client-id',
+            'client-secret',
+            ['openid', 'profile'],
+        );
+
+        self::assertSame('scoped-access-token', $tokenSet->getAccessToken());
+        self::assertSame('openid profile', $tokenSet->getScope());
+    }
+
+    #[Test]
+    public function refreshThrowsOnHttpError(): void
+    {
+        $this->mockResponse = [
+            'response' => ['code' => 400, 'message' => 'Bad Request'],
+            'headers' => [],
+            'body' => 'Bad Request',
+        ];
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Token refresh failed with status 400');
+
+        $this->refresher->refresh(
+            'https://idp.example.com/token',
+            'invalid-refresh-token',
+            'client-id',
+            'client-secret',
+        );
+    }
+
+    #[Test]
+    public function refreshThrowsOnErrorInResponse(): void
+    {
+        $this->mockResponse = [
+            'response' => ['code' => 200, 'message' => 'OK'],
+            'headers' => ['content-type' => 'application/json'],
+            'body' => json_encode([
+                'error' => 'invalid_grant',
+                'error_description' => 'The refresh token has been revoked.',
+            ]),
+        ];
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('invalid_grant');
+
+        $this->refresher->refresh(
+            'https://idp.example.com/token',
+            'revoked-refresh-token',
+            'client-id',
+            'client-secret',
+        );
+    }
+}

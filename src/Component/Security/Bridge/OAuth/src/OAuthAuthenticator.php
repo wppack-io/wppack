@@ -1,0 +1,283 @@
+<?php
+
+declare(strict_types=1);
+
+namespace WpPack\Component\Security\Bridge\OAuth;
+
+use Psr\EventDispatcher\EventDispatcherInterface;
+use WpPack\Component\HttpClient\HttpClient;
+use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Security\Authentication\AuthenticatorInterface;
+use WpPack\Component\Security\Authentication\Passport\Badge\UserBadge;
+use WpPack\Component\Security\Authentication\Passport\Passport;
+use WpPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
+use WpPack\Component\Security\Authentication\Token\PostAuthenticationToken;
+use WpPack\Component\Security\Authentication\Token\TokenInterface;
+use WpPack\Component\Security\Bridge\OAuth\Badge\OAuthTokenBadge;
+use WpPack\Component\Security\Bridge\OAuth\Configuration\OAuthConfiguration;
+use WpPack\Component\Security\Bridge\OAuth\Event\OAuthResponseReceivedEvent;
+use WpPack\Component\Security\Bridge\OAuth\Multisite\CrossSiteRedirector;
+use WpPack\Component\Security\Bridge\OAuth\Provider\ProviderInterface;
+use WpPack\Component\Security\Bridge\OAuth\State\OAuthStateStore;
+use WpPack\Component\Security\Bridge\OAuth\Token\IdTokenValidator;
+use WpPack\Component\Security\Bridge\OAuth\Token\JwksProvider;
+use WpPack\Component\Security\Bridge\OAuth\Token\TokenExchanger;
+use WpPack\Component\Security\Bridge\OAuth\UserResolution\OAuthUserResolverInterface;
+use WpPack\Component\Security\Exception\AuthenticationException;
+
+final class OAuthAuthenticator implements AuthenticatorInterface
+{
+    public function __construct(
+        private readonly ProviderInterface $provider,
+        private readonly OAuthConfiguration $configuration,
+        private readonly OAuthStateStore $stateStore,
+        private readonly TokenExchanger $tokenExchanger,
+        private readonly OAuthUserResolverInterface $userResolver,
+        private readonly EventDispatcherInterface $dispatcher,
+        private readonly string $callbackPath = '/oauth/callback',
+        private readonly ?IdTokenValidator $idTokenValidator = null,
+        private readonly ?JwksProvider $jwksProvider = null,
+        private readonly ?CrossSiteRedirector $crossSiteRedirector = null,
+        private readonly ?HttpClient $httpClient = null,
+        private readonly bool $addUserToBlog = true,
+        private readonly string $verifyPath = '/oauth/verify',
+    ) {}
+
+    public function supports(Request $request): bool
+    {
+        // Pattern 1: IdP callback (GET + code + state, exact path match)
+        if ($request->isMethod('GET') && $request->query->has('code') && $request->query->has('state')) {
+            return $request->getPathInfo() === $this->callbackPath;
+        }
+
+        // Pattern 2: Cross-site transfer (POST + _wppack_oauth_token, exact path match)
+        if ($request->isMethod('POST') && $request->post->has('_wppack_oauth_token')) {
+            return $request->getPathInfo() === $this->verifyPath;
+        }
+
+        return false;
+    }
+
+    public function authenticate(Request $request): Passport
+    {
+        // Handle error response from IdP
+        if ($request->query->has('error')) {
+            $error = $request->query->get('error', '');
+            $desc = $request->query->get('error_description', '');
+
+            if (function_exists('do_action')) {
+                do_action('wppack_oauth_authentication_error', $error, $desc);
+            }
+
+            throw new AuthenticationException('OAuth authentication failed.');
+        }
+
+        // Pattern 2: Cross-site token verification
+        if ($request->isMethod('POST') && $request->post->has('_wppack_oauth_token')) {
+            return $this->handleCrossSiteVerification($request);
+        }
+
+        // Pattern 1: Normal OAuth callback
+        return $this->handleOAuthCallback($request);
+    }
+
+    public function createToken(Passport $passport): TokenInterface
+    {
+        $user = $passport->getUser();
+
+        $blogId = null;
+
+        if ($this->crossSiteRedirector !== null && function_exists('is_multisite') && is_multisite()) {
+            $blogId = function_exists('get_current_blog_id') ? get_current_blog_id() : null;
+        }
+
+        return new PostAuthenticationToken(
+            $user,
+            $user->roles,
+            $blogId,
+        );
+    }
+
+    public function onAuthenticationSuccess(Request $request, TokenInterface $token): void
+    {
+        $user = $token->getUser();
+
+        if (function_exists('wp_clear_auth_cookie')) {
+            wp_clear_auth_cookie();
+        }
+
+        if (function_exists('wp_set_auth_cookie')) {
+            wp_set_auth_cookie($user->ID, false, is_ssl());
+        }
+
+        if ($this->addUserToBlog && function_exists('is_multisite') && is_multisite()) {
+            if (function_exists('is_user_member_of_blog') && !is_user_member_of_blog($user->ID)) {
+                if (function_exists('add_user_to_blog') && function_exists('get_current_blog_id')) {
+                    $role = !empty($user->roles) ? $user->roles[0] : 'subscriber';
+                    add_user_to_blog(get_current_blog_id(), $user->ID, $role);
+                }
+            }
+        }
+
+        // For cross-site: use returnTo from POST
+        $returnTo = $request->post->get('returnTo');
+        $fallback = function_exists('admin_url') ? admin_url() : '/wp-admin/';
+
+        if ($returnTo !== null && $this->isSameOrigin($returnTo) && function_exists('wp_validate_redirect')) {
+            $redirect = wp_validate_redirect($returnTo, $fallback);
+        } else {
+            $redirect = $fallback;
+        }
+
+        if (function_exists('wp_safe_redirect')) {
+            wp_safe_redirect($redirect);
+        }
+    }
+
+    public function onAuthenticationFailure(Request $request, AuthenticationException $exception): void
+    {
+        if (function_exists('do_action')) {
+            do_action('wppack_oauth_authentication_failed', $exception);
+        }
+
+        $loginUrl = function_exists('wp_login_url') ? wp_login_url() : '/wp-login.php';
+
+        if (function_exists('wp_safe_redirect')) {
+            wp_safe_redirect($loginUrl . '?oauth_error=1');
+        }
+    }
+
+    private function handleOAuthCallback(Request $request): Passport
+    {
+        $code = $request->query->get('code', '');
+        $state = $request->query->get('state', '');
+
+        // Retrieve and validate state
+        $storedState = $this->stateStore->retrieve($state);
+
+        if ($storedState === null) {
+            throw new AuthenticationException('OAuth authentication failed.');
+        }
+
+        // Exchange code for tokens
+        $tokenSet = $this->tokenExchanger->exchange(
+            $this->provider->getTokenEndpoint(),
+            $code,
+            $this->configuration->getRedirectUri(),
+            $this->configuration->getClientId(),
+            $this->configuration->getClientSecret(),
+            $storedState->getCodeVerifier(),
+        );
+
+        // If OIDC with ID token, validate it
+        $claims = [];
+        $subject = '';
+
+        if ($tokenSet->getIdToken() !== null && $this->provider->supportsOidc()) {
+            if ($this->idTokenValidator === null || $this->jwksProvider === null) {
+                throw new AuthenticationException('OAuth authentication failed.');
+            }
+
+            $jwks = $this->jwksProvider->getKeys($this->provider->getJwksUri());
+            $claims = $this->idTokenValidator->validate(
+                $tokenSet->getIdToken(),
+                $storedState->getNonce(),
+                $this->configuration->getClientId(),
+                $this->provider->getIssuer(),
+                $jwks,
+            );
+            $subject = (string) ($claims['sub'] ?? '');
+        } else {
+            // For non-OIDC (e.g., GitHub): fetch userinfo
+            if ($this->httpClient !== null && $this->provider->getUserInfoEndpoint() !== null) {
+                $response = $this->httpClient->withHeaders([
+                    'Authorization' => 'Bearer ' . $tokenSet->getAccessToken(),
+                    'Accept' => 'application/json',
+                ])->get($this->provider->getUserInfoEndpoint());
+
+                /** @var array<string, mixed> $rawClaims */
+                $rawClaims = json_decode($response->body(), true) ?? [];
+                $claims = $this->provider->normalizeUserInfo($rawClaims);
+            }
+
+            $subject = (string) ($claims['sub'] ?? $claims['id'] ?? '');
+        }
+
+        if ($subject === '') {
+            throw new AuthenticationException('OAuth authentication failed.');
+        }
+
+        // Check if cross-site redirect needed
+        $returnTo = $storedState->getReturnTo();
+
+        if ($this->crossSiteRedirector !== null && $returnTo !== null) {
+            if ($this->crossSiteRedirector->needsRedirect($returnTo)) {
+                $user = $this->userResolver->resolveUser($subject, $claims);
+                $this->crossSiteRedirector->redirect($returnTo, $user->ID, $returnTo);
+            }
+        }
+
+        // Dispatch event
+        $this->dispatcher->dispatch(new OAuthResponseReceivedEvent($subject, $claims, $tokenSet));
+
+        if (function_exists('do_action')) {
+            do_action('wppack_oauth_authenticated', $subject, $claims);
+        }
+
+        $userResolver = $this->userResolver;
+
+        return new SelfValidatingPassport(
+            new UserBadge(
+                $subject,
+                static fn(string $identifier): \WP_User => $userResolver->resolveUser($identifier, $claims),
+            ),
+            [new OAuthTokenBadge($subject, $claims, $tokenSet)],
+        );
+    }
+
+    private function handleCrossSiteVerification(Request $request): Passport
+    {
+        if ($this->crossSiteRedirector === null) {
+            throw new AuthenticationException('OAuth authentication failed.');
+        }
+
+        $token = $request->post->get('_wppack_oauth_token', '');
+        $userId = $this->crossSiteRedirector->verifyToken($token);
+
+        if ($userId === null) {
+            throw new AuthenticationException('OAuth authentication failed.');
+        }
+
+        if (!function_exists('get_user_by')) {
+            throw new AuthenticationException('OAuth authentication failed.');
+        }
+
+        $user = get_user_by('id', $userId);
+
+        if (!$user instanceof \WP_User) {
+            throw new AuthenticationException('OAuth authentication failed.');
+        }
+
+        return new SelfValidatingPassport(
+            new UserBadge(
+                (string) $user->ID,
+                static fn(): \WP_User => $user,
+            ),
+        );
+    }
+
+    private function isSameOrigin(string $url): bool
+    {
+        $host = parse_url($url, \PHP_URL_HOST);
+
+        if ($host === null || $host === false) {
+            return false;
+        }
+
+        $siteHost = function_exists('home_url')
+            ? parse_url(home_url(), \PHP_URL_HOST)
+            : ($_SERVER['HTTP_HOST'] ?? null);
+
+        return $siteHost !== null && $host === $siteHost;
+    }
+}
