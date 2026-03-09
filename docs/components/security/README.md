@@ -89,14 +89,15 @@ return WP_User ← WordPress に渡す
 ```php
 use WpPack\Component\Security\Authentication\AuthenticatorInterface;
 use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\HttpFoundation\Response;
 
 interface AuthenticatorInterface
 {
     public function supports(Request $request): bool;
     public function authenticate(Request $request): Passport;
     public function createToken(Passport $passport): TokenInterface;
-    public function onAuthenticationSuccess(Request $request, TokenInterface $token): void;
-    public function onAuthenticationFailure(Request $request, AuthenticationException $exception): void;
+    public function onAuthenticationSuccess(Request $request, TokenInterface $token): ?Response;
+    public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response;
 }
 ```
 
@@ -169,14 +170,16 @@ final class CustomLoginAuthenticator implements AuthenticatorInterface
         return new PostAuthenticationToken($user, $user->roles);
     }
 
-    public function onAuthenticationSuccess(Request $request, TokenInterface $token): void
+    public function onAuthenticationSuccess(Request $request, TokenInterface $token): ?Response
     {
-        // リダイレクト等
+        // リダイレクト等（null を返すと WordPress のデフォルトフローに委譲）
+        return null;
     }
 
-    public function onAuthenticationFailure(Request $request, AuthenticationException $exception): void
+    public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
     {
-        // エラーハンドリング
+        // エラーハンドリング（null を返すと WordPress のデフォルトフローに委譲）
+        return null;
     }
 }
 ```
@@ -523,11 +526,16 @@ class SuperAdminMonitor
 
 OAuth / SAML / 2FA は `AuthenticatorInterface` を実装する Bridge パッケージとして追加:
 
+| Bridge | パッケージ名 | ドキュメント |
+|--------|-------------|-------------|
+| OAuth 2.0 / OpenID Connect | `wppack/oauth-security` | [oauth-security.md](./oauth-security.md) |
+| SAML 2.0 SP | `wppack/saml-security` | [saml-security.md](./saml-security.md) |
+
 ```php
 // wppack/oauth-security
 final class OAuthAuthenticator implements AuthenticatorInterface { /* ... */ }
 
-// wppack/saml-security (実装済み)
+// wppack/saml-security
 final class SamlAuthenticator implements AuthenticatorInterface { /* ... */ }
 
 // wppack/two-factor-security
