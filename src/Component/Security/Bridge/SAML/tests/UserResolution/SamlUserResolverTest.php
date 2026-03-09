@@ -23,6 +23,7 @@ final class SamlUserResolverTest extends TestCase
     #[Test]
     public function resolveUserByEmail(): void
     {
+        $nameId = 'saml-nameid-' . uniqid();
         $userId = wp_insert_user([
             'user_login' => 'saml_test_email_' . uniqid(),
             'user_email' => 'saml-test-' . uniqid() . '@example.com',
@@ -36,13 +37,43 @@ final class SamlUserResolverTest extends TestCase
 
         $resolver = new SamlUserResolver();
 
+        // First resolve binds the NameID
         $user = $resolver->resolveUser(
-            'some-name-id',
+            $nameId,
             ['email' => [$createdUser->user_email]],
         );
 
         self::assertInstanceOf(\WP_User::class, $user);
         self::assertSame($userId, $user->ID);
+        self::assertSame($nameId, get_user_meta($userId, '_wppack_saml_nameid', true));
+    }
+
+    #[Test]
+    public function resolveUserByEmailRejectsNameIdMismatch(): void
+    {
+        $userId = wp_insert_user([
+            'user_login' => 'saml_test_mismatch_' . uniqid(),
+            'user_email' => 'saml-mismatch-' . uniqid() . '@example.com',
+            'user_pass' => wp_generate_password(),
+        ]);
+
+        self::assertIsInt($userId);
+
+        // Bind a different NameID
+        update_user_meta($userId, '_wppack_saml_nameid', 'original-nameid');
+
+        $createdUser = get_user_by('id', $userId);
+        self::assertInstanceOf(\WP_User::class, $createdUser);
+
+        $resolver = new SamlUserResolver();
+
+        $this->expectException(AuthenticationException::class);
+        $this->expectExceptionMessage('NameID mismatch');
+
+        $resolver->resolveUser(
+            'different-nameid',
+            ['email' => [$createdUser->user_email]],
+        );
     }
 
     #[Test]
@@ -82,6 +113,21 @@ final class SamlUserResolverTest extends TestCase
     }
 
     #[Test]
+    public function resolveUserRejectsEmptyNameId(): void
+    {
+        $resolver = new SamlUserResolver();
+
+        $this->expectException(AuthenticationException::class);
+        $this->expectExceptionMessage('Invalid SAML NameID');
+
+        // Characters that sanitize_user(, true) strips entirely
+        $resolver->resolveUser(
+            '   ',
+            ['email' => ['test@example.com']],
+        );
+    }
+
+    #[Test]
     public function autoProvision(): void
     {
         if (!function_exists('wp_insert_user')) {
@@ -89,14 +135,16 @@ final class SamlUserResolverTest extends TestCase
         }
 
         $email = 'saml-provision-' . uniqid() . '@example.com';
+        $nameId = 'provisioned_user_' . uniqid();
         $resolver = new SamlUserResolver(autoProvision: true);
 
         $user = $resolver->resolveUser(
-            'provisioned_user_' . uniqid(),
+            $nameId,
             ['email' => [$email]],
         );
 
         self::assertInstanceOf(\WP_User::class, $user);
         self::assertSame($email, $user->user_email);
+        self::assertSame($nameId, get_user_meta($user->ID, '_wppack_saml_nameid', true));
     }
 }

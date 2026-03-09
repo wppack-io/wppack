@@ -157,8 +157,36 @@ final class SamlAuthenticatorTest extends TestCase
         );
 
         $this->expectException(AuthenticationException::class);
+        $this->expectExceptionMessage('SAML authentication failed.');
 
         $authenticator->authenticate($request);
+    }
+
+    #[Test]
+    public function authenticateWithErrorsDoesNotLeakDetails(): void
+    {
+        $auth = $this->createMock(Auth::class);
+        $auth->method('processResponse')->willReturn(null);
+        $auth->method('getErrors')->willReturn(['invalid_response']);
+        $auth->method('getLastErrorReason')->willReturn('Signature validation failed. Certificate mismatch.');
+
+        $this->factory->method('create')->willReturn($auth);
+
+        $authenticator = $this->createAuthenticator();
+
+        $request = new Request(
+            post: ['SAMLResponse' => 'invalidresponse'],
+            server: ['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/saml/acs'],
+        );
+
+        try {
+            $authenticator->authenticate($request);
+            self::fail('Expected AuthenticationException was not thrown.');
+        } catch (AuthenticationException $e) {
+            self::assertStringNotContainsString('Signature validation failed', $e->getMessage());
+            self::assertStringNotContainsString('Certificate', $e->getMessage());
+            self::assertStringNotContainsString('invalid_response', $e->getMessage());
+        }
     }
 
     #[Test]

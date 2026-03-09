@@ -57,10 +57,11 @@ final class SamlAuthenticator implements AuthenticatorInterface
         $errors = $auth->getErrors();
 
         if ($errors !== []) {
-            throw new AuthenticationException(\sprintf(
-                'SAML authentication error: %s',
-                implode(', ', $errors),
-            ));
+            if (function_exists('do_action')) {
+                do_action('wppack_saml_authentication_error', $errors, $auth->getLastErrorReason());
+            }
+
+            throw new AuthenticationException('SAML authentication failed.');
         }
 
         $nameId = $auth->getNameId();
@@ -72,6 +73,10 @@ final class SamlAuthenticator implements AuthenticatorInterface
             $attributes,
             $sessionIndex,
         ));
+
+        if (function_exists('do_action')) {
+            do_action('wppack_saml_authenticated', $nameId, $attributes);
+        }
 
         $userResolver = $this->userResolver;
 
@@ -105,8 +110,12 @@ final class SamlAuthenticator implements AuthenticatorInterface
     {
         $user = $token->getUser();
 
+        if (function_exists('wp_clear_auth_cookie')) {
+            wp_clear_auth_cookie();
+        }
+
         if (function_exists('wp_set_auth_cookie')) {
-            wp_set_auth_cookie($user->ID);
+            wp_set_auth_cookie($user->ID, false, is_ssl());
         }
 
         if ($this->addUserToBlog && function_exists('is_multisite') && is_multisite()) {
@@ -119,11 +128,12 @@ final class SamlAuthenticator implements AuthenticatorInterface
         }
 
         $relayState = $request->post->get('RelayState');
+        $fallback = function_exists('admin_url') ? admin_url() : '/wp-admin/';
 
-        if ($relayState !== null && function_exists('wp_validate_redirect')) {
-            $redirect = wp_validate_redirect($relayState, home_url());
+        if ($relayState !== null && $this->isSameOrigin($relayState) && function_exists('wp_validate_redirect')) {
+            $redirect = wp_validate_redirect($relayState, $fallback);
         } else {
-            $redirect = function_exists('admin_url') ? admin_url() : '/wp-admin/';
+            $redirect = $fallback;
         }
 
         if (function_exists('wp_safe_redirect')) {
@@ -133,10 +143,29 @@ final class SamlAuthenticator implements AuthenticatorInterface
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): void
     {
+        if (function_exists('do_action')) {
+            do_action('wppack_saml_authentication_failed', $exception);
+        }
+
         $loginUrl = function_exists('wp_login_url') ? wp_login_url() : '/wp-login.php';
 
         if (function_exists('wp_safe_redirect')) {
             wp_safe_redirect($loginUrl . '?saml_error=1');
         }
+    }
+
+    private function isSameOrigin(string $url): bool
+    {
+        $host = parse_url($url, \PHP_URL_HOST);
+
+        if ($host === null || $host === false) {
+            return false;
+        }
+
+        $siteHost = function_exists('home_url')
+            ? parse_url(home_url(), \PHP_URL_HOST)
+            : ($_SERVER['HTTP_HOST'] ?? null);
+
+        return $siteHost !== null && $host === $siteHost;
     }
 }

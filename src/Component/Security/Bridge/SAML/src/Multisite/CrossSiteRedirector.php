@@ -45,6 +45,10 @@ final class CrossSiteRedirector
             throw new \RuntimeException(\sprintf('Host "%s" is not allowed for cross-site redirect.', $targetHost));
         }
 
+        if (function_exists('do_action')) {
+            do_action('wppack_saml_cross_site_redirect', $targetUrl);
+        }
+
         $targetAcsUrl = $this->resolveAcsUrl($targetUrl);
 
         echo $this->buildAutoSubmitForm($targetAcsUrl, $samlResponse, $relayState);
@@ -80,10 +84,6 @@ final class CrossSiteRedirector
             return true;
         }
 
-        if (str_ends_with($host, '.local') || str_ends_with($host, '.localhost')) {
-            return true;
-        }
-
         if (function_exists('is_multisite') && is_multisite() && function_exists('get_sites')) {
             $sites = get_sites(['number' => 0]);
 
@@ -100,11 +100,10 @@ final class CrossSiteRedirector
     private function resolveAcsUrl(string $targetUrl): string
     {
         $parsed = parse_url($targetUrl);
-        $scheme = $parsed['scheme'] ?? 'https';
         $host = $parsed['host'] ?? '';
         $port = isset($parsed['port']) ? ':' . $parsed['port'] : '';
 
-        return $scheme . '://' . $host . $port . $this->acsPath;
+        return 'https://' . $host . $port . $this->acsPath;
     }
 
     private function buildAutoSubmitForm(string $actionUrl, string $samlResponse, string $relayState): string

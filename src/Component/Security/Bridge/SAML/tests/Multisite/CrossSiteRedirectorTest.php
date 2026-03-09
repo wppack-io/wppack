@@ -82,4 +82,65 @@ final class CrossSiteRedirectorTest extends TestCase
 
         $redirector->redirect('https://evil.example.com/acs', 'SAMLResponse', 'RelayState');
     }
+
+    #[Test]
+    public function redirectThrowsForLocalDomain(): void
+    {
+        $redirector = new CrossSiteRedirector();
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('is not allowed');
+
+        $redirector->redirect('https://evil.local/acs', 'SAMLResponse', 'RelayState');
+    }
+
+    #[Test]
+    public function redirectThrowsForLocalhostDomain(): void
+    {
+        $redirector = new CrossSiteRedirector();
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('is not allowed');
+
+        $redirector->redirect('https://evil.localhost/acs', 'SAMLResponse', 'RelayState');
+    }
+
+    #[Test]
+    public function localDomainAllowedWhenExplicitlyConfigured(): void
+    {
+        $redirector = new CrossSiteRedirector(
+            allowedHosts: ['myapp.local'],
+            acsPath: '/sso/verify',
+        );
+
+        // Should not throw — the host is explicitly allowed
+        // (will exit, so we test via reflection instead)
+        $method = new \ReflectionMethod($redirector, 'isHostAllowed');
+
+        self::assertTrue($method->invoke($redirector, 'myapp.local'));
+    }
+
+    #[Test]
+    public function resolveAcsUrlEnforcesHttps(): void
+    {
+        $redirector = new CrossSiteRedirector(acsPath: '/sso/verify');
+
+        $method = new \ReflectionMethod($redirector, 'resolveAcsUrl');
+
+        // Even if target uses http, the resolved ACS URL should be https
+        $result = $method->invoke($redirector, 'http://example.com/path');
+        self::assertStringStartsWith('https://', $result);
+        self::assertSame('https://example.com/sso/verify', $result);
+    }
+
+    #[Test]
+    public function resolveAcsUrlPreservesPort(): void
+    {
+        $redirector = new CrossSiteRedirector(acsPath: '/sso/verify');
+
+        $method = new \ReflectionMethod($redirector, 'resolveAcsUrl');
+
+        $result = $method->invoke($redirector, 'https://example.com:8443/path');
+        self::assertSame('https://example.com:8443/sso/verify', $result);
+    }
 }

@@ -22,6 +22,8 @@ final class SamlUserResolver implements SamlUserResolverInterface
         private readonly ?string $roleAttribute = null,
     ) {}
 
+    private const SAML_NAMEID_META_KEY = '_wppack_saml_nameid';
+
     /**
      * @param array<string, list<string>> $attributes
      */
@@ -31,12 +33,23 @@ final class SamlUserResolver implements SamlUserResolverInterface
             throw new \RuntimeException('WordPress functions are not available.');
         }
 
+        $sanitizedNameId = function_exists('sanitize_user') ? sanitize_user($nameId, true) : $nameId;
+
+        if ($sanitizedNameId === '') {
+            throw new AuthenticationException('Invalid SAML NameID.');
+        }
+
         $email = $this->getAttributeValue($attributes, $this->emailAttribute);
 
         if ($email !== null) {
+            $email = function_exists('sanitize_email') ? sanitize_email($email) : $email;
             $user = get_user_by('email', $email);
 
             if ($user instanceof \WP_User) {
+                if (!$this->isNameIdBound($user, $sanitizedNameId)) {
+                    throw new AuthenticationException('SAML NameID mismatch for existing user.');
+                }
+
                 $this->syncUserAttributes($user, $attributes);
                 $this->mapUserRole($user, $attributes);
 
@@ -44,9 +57,10 @@ final class SamlUserResolver implements SamlUserResolverInterface
             }
         }
 
-        $user = get_user_by('login', $nameId);
+        $user = get_user_by('login', $sanitizedNameId);
 
         if ($user instanceof \WP_User) {
+            $this->bindNameId($user, $sanitizedNameId);
             $this->syncUserAttributes($user, $attributes);
             $this->mapUserRole($user, $attributes);
 
@@ -56,11 +70,11 @@ final class SamlUserResolver implements SamlUserResolverInterface
         if (!$this->autoProvision) {
             throw new AuthenticationException(\sprintf(
                 'User "%s" not found and auto-provisioning is disabled.',
-                $nameId,
+                $sanitizedNameId,
             ));
         }
 
-        return $this->provisionUser($nameId, $email, $attributes);
+        return $this->provisionUser($sanitizedNameId, $email, $attributes);
     }
 
     /**
@@ -79,7 +93,8 @@ final class SamlUserResolver implements SamlUserResolverInterface
             $firstName = $this->getAttributeValue($attributes, $this->firstNameAttribute);
 
             if ($firstName !== null) {
-                $userdata['first_name'] = $firstName;
+                $userdata['first_name'] = function_exists('sanitize_text_field')
+                    ? sanitize_text_field($firstName) : $firstName;
             }
         }
 
@@ -87,7 +102,8 @@ final class SamlUserResolver implements SamlUserResolverInterface
             $lastName = $this->getAttributeValue($attributes, $this->lastNameAttribute);
 
             if ($lastName !== null) {
-                $userdata['last_name'] = $lastName;
+                $userdata['last_name'] = function_exists('sanitize_text_field')
+                    ? sanitize_text_field($lastName) : $lastName;
             }
         }
 
@@ -95,7 +111,8 @@ final class SamlUserResolver implements SamlUserResolverInterface
             $displayName = $this->getAttributeValue($attributes, $this->displayNameAttribute);
 
             if ($displayName !== null) {
-                $userdata['display_name'] = $displayName;
+                $userdata['display_name'] = function_exists('sanitize_text_field')
+                    ? sanitize_text_field($displayName) : $displayName;
             }
         }
 
@@ -116,7 +133,12 @@ final class SamlUserResolver implements SamlUserResolverInterface
             throw new AuthenticationException(\sprintf('Failed to retrieve provisioned user "%s".', $nameId));
         }
 
+        $this->bindNameId($user, $nameId);
         $this->mapUserRole($user, $attributes);
+
+        if (function_exists('do_action')) {
+            do_action('wppack_saml_user_provisioned', $user, $nameId, $attributes);
+        }
 
         return $user;
     }
@@ -136,32 +158,48 @@ final class SamlUserResolver implements SamlUserResolverInterface
         if ($this->firstNameAttribute !== null) {
             $firstName = $this->getAttributeValue($attributes, $this->firstNameAttribute);
 
-            if ($firstName !== null && $firstName !== $user->first_name) {
-                $userdata['first_name'] = $firstName;
-                $needsUpdate = true;
+            if ($firstName !== null) {
+                $firstName = function_exists('sanitize_text_field') ? sanitize_text_field($firstName) : $firstName;
+
+                if ($firstName !== $user->first_name) {
+                    $userdata['first_name'] = $firstName;
+                    $needsUpdate = true;
+                }
             }
         }
 
         if ($this->lastNameAttribute !== null) {
             $lastName = $this->getAttributeValue($attributes, $this->lastNameAttribute);
 
-            if ($lastName !== null && $lastName !== $user->last_name) {
-                $userdata['last_name'] = $lastName;
-                $needsUpdate = true;
+            if ($lastName !== null) {
+                $lastName = function_exists('sanitize_text_field') ? sanitize_text_field($lastName) : $lastName;
+
+                if ($lastName !== $user->last_name) {
+                    $userdata['last_name'] = $lastName;
+                    $needsUpdate = true;
+                }
             }
         }
 
         if ($this->displayNameAttribute !== null) {
             $displayName = $this->getAttributeValue($attributes, $this->displayNameAttribute);
 
-            if ($displayName !== null && $displayName !== $user->display_name) {
-                $userdata['display_name'] = $displayName;
-                $needsUpdate = true;
+            if ($displayName !== null) {
+                $displayName = function_exists('sanitize_text_field') ? sanitize_text_field($displayName) : $displayName;
+
+                if ($displayName !== $user->display_name) {
+                    $userdata['display_name'] = $displayName;
+                    $needsUpdate = true;
+                }
             }
         }
 
         if ($needsUpdate) {
             wp_update_user($userdata);
+
+            if (function_exists('do_action')) {
+                do_action('wppack_saml_user_updated', $user, $attributes);
+            }
         }
     }
 
@@ -182,6 +220,30 @@ final class SamlUserResolver implements SamlUserResolverInterface
 
                 return;
             }
+        }
+    }
+
+    private function isNameIdBound(\WP_User $user, string $nameId): bool
+    {
+        if (!function_exists('get_user_meta')) {
+            return true;
+        }
+
+        $storedNameId = get_user_meta($user->ID, self::SAML_NAMEID_META_KEY, true);
+
+        if ($storedNameId === '' || $storedNameId === false) {
+            $this->bindNameId($user, $nameId);
+
+            return true;
+        }
+
+        return $storedNameId === $nameId;
+    }
+
+    private function bindNameId(\WP_User $user, string $nameId): void
+    {
+        if (function_exists('update_user_meta')) {
+            update_user_meta($user->ID, self::SAML_NAMEID_META_KEY, $nameId);
         }
     }
 
