@@ -6,22 +6,43 @@ namespace WpPack\Component\Database;
 
 use WpPack\Component\Database\Exception\QueryException;
 
+/**
+ * @property-read string $posts
+ * @property-read string $postmeta
+ * @property-read string $comments
+ * @property-read string $commentmeta
+ * @property-read string $options
+ * @property-read string $terms
+ * @property-read string $termmeta
+ * @property-read string $termTaxonomy
+ * @property-read string $termRelationships
+ */
 final class DatabaseManager
 {
     public readonly DatabaseEngine $engine;
-    public readonly string $posts;
-    public readonly string $postmeta;
-    public readonly string $comments;
-    public readonly string $commentmeta;
-    public readonly string $options;
     public readonly string $users;
     public readonly string $usermeta;
-    public readonly string $terms;
-    public readonly string $termmeta;
-    public readonly string $termTaxonomy;
-    public readonly string $termRelationships;
 
     private \wpdb $wpdb;
+
+    /**
+     * Map of DatabaseManager property names (camelCase) to wpdb property names (snake_case).
+     *
+     * These are blog-specific tables whose names change on switch_to_blog().
+     *
+     * @var array<string, string>
+     */
+    private const TABLE_MAP = [
+        'posts' => 'posts',
+        'postmeta' => 'postmeta',
+        'comments' => 'comments',
+        'commentmeta' => 'commentmeta',
+        'options' => 'options',
+        'terms' => 'terms',
+        'termmeta' => 'termmeta',
+        'termTaxonomy' => 'term_taxonomy',
+        'termRelationships' => 'term_relationships',
+    ];
 
     public function __construct()
     {
@@ -33,17 +54,27 @@ final class DatabaseManager
             $wpdb->dbh instanceof \PgSql\Connection => DatabaseEngine::PostgreSQL,
             default => DatabaseEngine::SQLite,
         };
-        $this->posts = $wpdb->posts;
-        $this->postmeta = $wpdb->postmeta;
-        $this->comments = $wpdb->comments;
-        $this->commentmeta = $wpdb->commentmeta;
-        $this->options = $wpdb->options;
         $this->users = $wpdb->users;
         $this->usermeta = $wpdb->usermeta;
-        $this->terms = $wpdb->terms;
-        $this->termmeta = $wpdb->termmeta;
-        $this->termTaxonomy = $wpdb->term_taxonomy;
-        $this->termRelationships = $wpdb->term_relationships;
+    }
+
+    /**
+     * Proxy blog-specific table names to $wpdb for multisite switch_to_blog() support.
+     */
+    public function __get(string $name): string
+    {
+        if (!isset(self::TABLE_MAP[$name])) {
+            throw new \InvalidArgumentException(
+                sprintf('Undefined property: %s::$%s', self::class, $name),
+            );
+        }
+
+        return $this->wpdb->{self::TABLE_MAP[$name]};
+    }
+
+    public function __isset(string $name): bool
+    {
+        return isset(self::TABLE_MAP[$name]);
     }
 
     /**
