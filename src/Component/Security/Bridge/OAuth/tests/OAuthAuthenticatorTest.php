@@ -276,4 +276,52 @@ final class OAuthAuthenticatorTest extends TestCase
 
         self::assertTrue(true);
     }
+
+    #[Test]
+    public function authenticateCrossSiteWithValidToken(): void
+    {
+        if (!function_exists('set_transient') || !function_exists('wp_hash') || !function_exists('get_user_by')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $user = get_user_by('id', 1);
+
+        if (!$user instanceof \WP_User) {
+            self::markTestSkipped('No user with ID 1 found in test database.');
+        }
+
+        $token = 'test-crosssite-auth-token';
+        $timestamp = time();
+        $payload = $user->ID . '|' . $timestamp . '|' . $token;
+        $hmac = wp_hash($payload);
+
+        set_transient(
+            '_wppack_oauth_xsite_' . hash('sha256', $token),
+            [
+                'user_id' => $user->ID,
+                'hmac' => $hmac,
+                'created_at' => $timestamp,
+            ],
+            120,
+        );
+
+        $crossSiteRedirector = new CrossSiteRedirector(
+            allowedHosts: ['example.com'],
+            verifyPath: '/oauth/verify',
+        );
+
+        $authenticator = $this->createAuthenticator(
+            crossSiteRedirector: $crossSiteRedirector,
+        );
+
+        $request = new Request(
+            post: ['_wppack_oauth_token' => $token],
+            server: ['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/oauth/verify'],
+        );
+
+        $passport = $authenticator->authenticate($request);
+
+        self::assertInstanceOf(SelfValidatingPassport::class, $passport);
+        self::assertSame($user->ID, $passport->getUser()->ID);
+    }
 }

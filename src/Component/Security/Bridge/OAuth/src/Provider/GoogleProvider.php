@@ -68,21 +68,21 @@ final class GoogleProvider implements ProviderInterface
             ?? self::DEFAULT_TOKEN_ENDPOINT;
     }
 
-    public function getUserInfoEndpoint(): ?string
+    public function getUserInfoEndpoint(): string
     {
         return $this->discoveryDocument?->getUserinfoEndpoint()
             ?? $this->configuration->getUserinfoEndpoint()
             ?? self::DEFAULT_USERINFO_ENDPOINT;
     }
 
-    public function getJwksUri(): ?string
+    public function getJwksUri(): string
     {
         return $this->discoveryDocument?->getJwksUri()
             ?? $this->configuration->getJwksUri()
             ?? self::DEFAULT_JWKS_URI;
     }
 
-    public function getIssuer(): ?string
+    public function getIssuer(): string
     {
         return $this->discoveryDocument?->getIssuer()
             ?? $this->configuration->getIssuer()

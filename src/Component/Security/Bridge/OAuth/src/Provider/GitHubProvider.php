@@ -41,7 +41,7 @@ final class GitHubProvider implements ProviderInterface
             ?? self::DEFAULT_TOKEN_ENDPOINT;
     }
 
-    public function getUserInfoEndpoint(): ?string
+    public function getUserInfoEndpoint(): string
     {
         return $this->configuration->getUserinfoEndpoint()
             ?? self::DEFAULT_USERINFO_ENDPOINT;

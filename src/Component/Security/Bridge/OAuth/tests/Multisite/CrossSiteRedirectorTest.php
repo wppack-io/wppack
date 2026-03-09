@@ -137,6 +137,120 @@ final class CrossSiteRedirectorTest extends TestCase
     }
 
     #[Test]
+    public function verifyTokenSucceedsWithValidToken(): void
+    {
+        if (!function_exists('set_transient') || !function_exists('wp_hash')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $token = 'test-valid-token-abc123';
+        $userId = 42;
+        $timestamp = time();
+        $payload = $userId . '|' . $timestamp . '|' . $token;
+        $hmac = wp_hash($payload);
+
+        set_transient(
+            '_wppack_oauth_xsite_' . hash('sha256', $token),
+            [
+                'user_id' => $userId,
+                'hmac' => $hmac,
+                'created_at' => $timestamp,
+            ],
+            120,
+        );
+
+        $redirector = new CrossSiteRedirector();
+
+        self::assertSame($userId, $redirector->verifyToken($token));
+    }
+
+    #[Test]
+    public function verifyTokenReturnsNullForExpiredToken(): void
+    {
+        if (!function_exists('set_transient') || !function_exists('wp_hash')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $token = 'test-expired-token-abc123';
+        $userId = 42;
+        $timestamp = time() - 121;
+        $payload = $userId . '|' . $timestamp . '|' . $token;
+        $hmac = wp_hash($payload);
+
+        $key = '_wppack_oauth_xsite_' . hash('sha256', $token);
+
+        set_transient(
+            $key,
+            [
+                'user_id' => $userId,
+                'hmac' => $hmac,
+                'created_at' => $timestamp,
+            ],
+            300,
+        );
+
+        $redirector = new CrossSiteRedirector();
+
+        self::assertNull($redirector->verifyToken($token));
+        self::assertFalse(get_transient($key));
+    }
+
+    #[Test]
+    public function verifyTokenEnforcesOneTimeUse(): void
+    {
+        if (!function_exists('set_transient') || !function_exists('wp_hash')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $token = 'test-onetime-token-abc123';
+        $userId = 42;
+        $timestamp = time();
+        $payload = $userId . '|' . $timestamp . '|' . $token;
+        $hmac = wp_hash($payload);
+
+        set_transient(
+            '_wppack_oauth_xsite_' . hash('sha256', $token),
+            [
+                'user_id' => $userId,
+                'hmac' => $hmac,
+                'created_at' => $timestamp,
+            ],
+            120,
+        );
+
+        $redirector = new CrossSiteRedirector();
+
+        self::assertSame($userId, $redirector->verifyToken($token));
+        self::assertNull($redirector->verifyToken($token));
+    }
+
+    #[Test]
+    public function verifyTokenReturnsNullForTamperedHmac(): void
+    {
+        if (!function_exists('set_transient') || !function_exists('wp_hash')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $token = 'test-tampered-token-abc123';
+        $userId = 42;
+        $timestamp = time();
+
+        set_transient(
+            '_wppack_oauth_xsite_' . hash('sha256', $token),
+            [
+                'user_id' => $userId,
+                'hmac' => 'tampered-invalid-hmac-value',
+                'created_at' => $timestamp,
+            ],
+            120,
+        );
+
+        $redirector = new CrossSiteRedirector();
+
+        self::assertNull($redirector->verifyToken($token));
+    }
+
+    #[Test]
     public function resolveBlogIdReturnsNullWhenNotMultisite(): void
     {
         if (!function_exists('is_multisite')) {

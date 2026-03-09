@@ -71,21 +71,21 @@ final class AzureProvider implements ProviderInterface
             ?? $this->configuration->getUserinfoEndpoint();
     }
 
-    public function getJwksUri(): ?string
+    public function getJwksUri(): string
     {
         return $this->discoveryDocument?->getJwksUri()
             ?? $this->configuration->getJwksUri()
             ?? \sprintf('%s/%s/discovery/v2.0/keys', self::BASE_URL, $this->tenantId);
     }
 
-    public function getIssuer(): ?string
+    public function getIssuer(): string
     {
         return $this->discoveryDocument?->getIssuer()
             ?? $this->configuration->getIssuer()
             ?? \sprintf('%s/%s/v2.0', self::BASE_URL, $this->tenantId);
     }
 
-    public function getEndSessionEndpoint(): ?string
+    public function getEndSessionEndpoint(): string
     {
         return $this->discoveryDocument?->getEndSessionEndpoint()
             ?? $this->configuration->getEndSessionEndpoint()
