@@ -28,8 +28,8 @@ composer require wppack/query
 
 - **DI ファースト** — `QueryFactory` をコンストラクタ注入して使用
 - **流暢なクエリビルダー** — チェーン可能なメソッドで可読性の高いコード
-- **Doctrine ORM 式の where** — `where()` / `andWhere()` / `orWhere()` で meta_query を構築
-- **専用メソッド** — taxonomy、author、date 等は専用メソッドで明示的に指定
+- **Doctrine DQL 式の where** — `where('m.key = :val')` / `setParameter()` で meta_query・tax_query を統一的に構築
+- **プレフィックスルーティング** — `m.` で meta_query、`t.` / `tax.` / `taxonomy.` で tax_query を自動ルーティング
 - **統一インターフェース** — 投稿・ユーザー・タームに対する一貫した API
 - **実行メソッドで取得形式を選択** — `get()`, `first()`, `getIds()`, `count()`, `exists()`
 
@@ -84,10 +84,13 @@ use WpPack\Component\Query\QueryFactory;
 public function __construct(private readonly QueryFactory $query) {}
 
 $result = $this->query->posts('product')
-    ->published()
-    ->where('featured', true)
-    ->andWhere('price', 100, '<=')
-    ->taxonomy('product_category', ['electronics'], TaxField::Slug)
+    ->status(PostStatus::Publish)
+    ->where('m.featured = :feat')
+    ->andWhere('m.price:numeric <= :price')
+    ->andWhere('t.product_category:slug IN :cats')
+    ->setParameter('feat', true)
+    ->setParameter('price', 100)
+    ->setParameter('cats', ['electronics'])
     ->orderByMeta('price', Order::Asc, MetaType::Numeric)
     ->limit(10)
     ->get();
@@ -113,8 +116,9 @@ class ProductService
     public function getFeaturedProducts(): PostQueryResult
     {
         return $this->query->posts('product')
-            ->published()
-            ->where('featured', true)
+            ->status(PostStatus::Publish)
+            ->where('m.featured = :feat')
+            ->setParameter('feat', true)
             ->limit(10)
             ->get();
     }
@@ -138,69 +142,174 @@ $this->query->terms(['category', 'post_tag']); // 複数 taxonomy
 $this->query->terms();                  // taxonomy 未指定
 ```
 
-## where / andWhere / orWhere（meta_query）
+## where / andWhere / orWhere（式パース + setParameter）
 
-`where()` は meta 条件の追加。Doctrine ORM の `where`/`andWhere`/`orWhere` に相当します。
+Doctrine DQL ライクな式文字列で meta_query と tax_query を統一的に構築します。
+
+### 式の構文
+
+```
+<prefix>.<key>[:<hint>] <operator> [:<placeholder>]
+```
+
+| 要素 | 説明 | 例 |
+|------|------|-----|
+| prefix | `m` / `meta` = meta_query, `t` / `tax` / `taxonomy` = tax_query | `m.price`, `t.category` |
+| key | meta キーまたはタクソノミー名 | `price`, `category`, `post_tag` |
+| hint | meta → type (numeric, date 等), tax → field (slug, name 等) | `m.price:numeric`, `t.category:slug` |
+| operator | 比較演算子 | `=`, `!=`, `>`, `>=`, `<`, `<=`, `LIKE`, `NOT LIKE`, `IN`, `NOT IN`, `BETWEEN`, `NOT BETWEEN`, `EXISTS`, `NOT EXISTS`, `REGEXP`, `NOT REGEXP`, `AND` |
+| placeholder | `:name` で値を参照 | `:price`, `:cats` |
+
+### ヒントのデフォルト値
+
+| prefix | hint 省略時のデフォルト |
+|--------|----------------------|
+| `m.` (meta) | type なし（WordPress デフォルト = CHAR） |
+| `t.` (tax) | field = `term_id` |
+
+### setParameter()
+
+式中の `:placeholder` に対応する値を `setParameter()` でバインドします:
+
+```php
+->where('m.price:numeric <= :price')
+->setParameter('price', 100)
+```
 
 ### AND 条件
 
 ```php
 // where() と andWhere() は同等
 $this->query->posts('product')
-    ->where('featured', true)              // meta: featured = 1
-    ->andWhere('price', 100, '<=')         // AND meta: price <= 100
+    ->where('m.featured = :feat')
+    ->andWhere('m.price:numeric <= :price')
+    ->setParameter('feat', true)
+    ->setParameter('price', 100)
     ->get();
 
-// → meta_query: ['relation' => 'AND', {featured=1}, {price<=100}]
+// → meta_query: ['relation' => 'AND', {featured=1}, {price<=100, type=NUMERIC}]
 ```
 
 ### OR 条件
 
 ```php
 $this->query->posts('product')
-    ->orWhere('featured', true)
-    ->orWhere('on_sale', true)
+    ->orWhere('m.featured = :feat')
+    ->orWhere('m.on_sale = :sale')
+    ->setParameter('feat', true)
+    ->setParameter('sale', true)
     ->get();
 
 // → meta_query: ['relation' => 'OR', {featured=1}, {on_sale=1}]
 ```
 
-### 複合条件（ネスト）
+### 複合条件（WQL 式）
+
+単一の式文字列で AND / OR / 括弧を使った複合条件を表現できます:
 
 ```php
-use WpPack\Component\Query\Condition\MetaConditionGroup;
-
-// WHERE status = 'active' AND (featured = 1 OR on_sale = 1)
+// 括弧で優先順位を制御
 $this->query->posts('product')
-    ->where('status', 'active')
-    ->andWhere(function (MetaConditionGroup $group): void {
-        $group->where('featured', true)
-              ->orWhere('on_sale', true);
-    })
+    ->where('(m.featured = :feat OR m.on_sale = :sale) AND m.status = :status')
+    ->setParameter('feat', true)
+    ->setParameter('sale', true)
+    ->setParameter('status', 'active')
+    ->get();
+
+// AND は OR より優先（SQL 準拠）
+// m.a OR m.b AND m.c → m.a OR (m.b AND m.c)
+$this->query->posts('product')
+    ->where('m.a = :a OR m.b = :b AND m.c = :c')
+    ->setParameter('a', 1)->setParameter('b', 2)->setParameter('c', 3)
     ->get();
 ```
 
-### 比較演算子
+#### WQL 式の文法
 
-文字列または `MetaCompare` enum で指定:
-
-```php
-use WpPack\Component\Query\Enum\MetaCompare;
-
-->where('price', 100, '<=')                    // 文字列
-->where('price', 100, MetaCompare::LessThanOrEqual)  // enum
-->where('stock', [10, 50], MetaCompare::Between)
-->whereExists('thumbnail')                     // EXISTS
-->whereNotExists('deleted_at')                 // NOT EXISTS
+```
+expression = or_expr
+or_expr    = and_expr ( 'OR' and_expr )*
+and_expr   = primary ( 'AND' primary )*
+primary    = '(' expression ')' | condition
+condition  = <prefix>.<key>[:<hint>] <operator> [:<placeholder>]
 ```
 
-### 型指定
+#### プレフィックス混在ルール
+
+| コンテキスト | 例 | 許可 | 理由 |
+|------------|---|------|------|
+| トップレベル AND | `m.a = :a AND t.b IN :b` | OK | meta_query + tax_query に分割 |
+| トップレベル OR | `m.a = :a OR t.b IN :b` | **NG** | WP で OR 横断不可 |
+| 括弧内（同一プレフィックス） | `(m.a = :a OR m.b = :b)` | OK | 同一プレフィックス |
+| 括弧内（混在） | `(m.a = :a OR t.b IN :b)` | **NG** | WP で表現不可 |
+
+### 複合条件（Closure ネスト）
+
+Closure ベースのネストも引き続き使用可能です:
 
 ```php
-use WpPack\Component\Query\Enum\MetaType;
+use WpPack\Component\Query\Condition\ConditionGroup;
 
-->where('price', 100, '<=', MetaType::Numeric)
-->where('event_date', '2024-01-01', '>=', MetaType::Date)
+// WHERE status = 'active' AND (featured = 1 OR on_sale = 1)
+$this->query->posts('product')
+    ->where('m.status = :status')
+    ->andWhere(function (ConditionGroup $group): void {
+        $group->where('m.featured = :feat')
+              ->orWhere('m.on_sale = :sale');
+    })
+    ->setParameter('status', 'active')
+    ->setParameter('feat', true)
+    ->setParameter('sale', true)
+    ->get();
+```
+
+### EXISTS / NOT EXISTS
+
+プレースホルダー不要で使用可能:
+
+```php
+->where('m.thumbnail EXISTS')
+->andWhere('m.deleted_at NOT EXISTS')
+```
+
+## タクソノミー条件（tax_query）
+
+`t.` / `tax.` / `taxonomy.` プレフィックスで tax_query を構築します:
+
+```php
+// 基本（term_id 指定）
+->where('t.category IN :cats')
+->setParameter('cats', [1, 2])
+
+// slug 指定
+->where('t.product_category:slug IN :cats')
+->setParameter('cats', ['electronics'])
+
+// 複数条件（AND）
+->where('t.category IN :cats')
+->andWhere('t.post_tag:slug IN :tags')
+->setParameter('cats', [1])
+->setParameter('tags', ['sale'])
+
+// 複数条件（OR）
+->orWhere('t.category IN :cats')
+->orWhere('t.post_tag:slug IN :tags')
+->setParameter('cats', [1])
+->setParameter('tags', ['sale'])
+
+// ネスト
+->where('t.category IN :cats')
+->andWhere(function (ConditionGroup $group): void {
+    $group->where('t.post_tag:slug IN :sale_tags')
+          ->orWhere('t.post_tag:slug IN :clearance_tags');
+})
+->setParameter('cats', [1])
+->setParameter('sale_tags', ['sale'])
+->setParameter('clearance_tags', ['clearance'])
+
+// EXISTS / NOT EXISTS
+->where('t.category EXISTS')
+->andWhere('t.post_tag NOT EXISTS')
 ```
 
 ## 投稿クエリ（PostQueryBuilder）
@@ -210,9 +319,9 @@ use WpPack\Component\Query\Enum\MetaType;
 ```php
 $this->query->posts('product')
     ->type('product')           // post_type（上書き）
-    ->status('publish')         // post_status（上書き）
-    ->published()               // status('publish') のショートハンド
-    ->draft()                   // status('draft') のショートハンド
+    ->status(PostStatus::Publish)  // post_status（enum）
+    ->status('publish')         // post_status（文字列）
+    ->status([PostStatus::Publish, PostStatus::Draft])  // 複数ステータス
     ->author(5)                 // author = 5
     ->author([5, 10])           // author__in = [5, 10]
     ->authorNotIn([3])          // author__not_in = [3]
@@ -230,25 +339,6 @@ $this->query->posts('product')
     ->before('2024-12-31')      // date_query
 ```
 
-### タクソノミー条件
-
-```php
-use WpPack\Component\Query\Enum\TaxField;
-use WpPack\Component\Query\Enum\TaxOperator;
-
-// 単一条件
-->taxonomy('product_category', ['electronics'], TaxField::Slug)
-
-// 複数条件（デフォルト AND）
-->taxonomy('product_category', ['electronics'])
-->taxonomy('product_tag', ['sale'])
-
-// OR に変更
-->taxonomy('product_category', ['electronics'])
-->taxonomy('product_tag', ['sale'])
-->taxRelation('OR')
-```
-
 ### ソート
 
 ```php
@@ -264,7 +354,7 @@ use WpPack\Component\Query\Enum\MetaType;
 
 ```php
 $this->query->posts('product')
-    ->published()
+    ->status(PostStatus::Publish)
     ->noMetaCache()    // update_post_meta_cache = false
     ->noTermCache()    // update_post_term_cache = false
     ->withoutCount()   // no_found_rows = true（total/totalPages が 0 になる）
@@ -281,7 +371,7 @@ $this->query->posts('product')
 ### 実行メソッド
 
 ```php
-$builder = $this->query->posts('product')->published()->limit(10)->page(2);
+$builder = $this->query->posts('product')->status(PostStatus::Publish)->limit(10)->page(2);
 
 $result = $builder->get();       // PostQueryResult（WP_Post[] + pagination）
 $post   = $builder->first();     // ?WP_Post（1件取得）
@@ -314,7 +404,8 @@ foreach ($result as $post) { ... }  // IteratorAggregate
 ```php
 $result = $this->query->users()
     ->role('author')
-    ->where('company', 'Acme')
+    ->where('m.company = :company')
+    ->setParameter('company', 'Acme')
     ->hasPublishedPosts()
     ->orderBy('display_name')
     ->limit(10)
@@ -328,12 +419,16 @@ $count  = $builder->count();     // int
 $exists = $builder->exists();    // bool
 ```
 
+> [!NOTE]
+> UserQueryBuilder では `m.`（meta）プレフィックスのみ使用可能です。`t.`（tax）プレフィックスは使用できません。
+
 ## タームクエリ（TermQueryBuilder）
 
 ```php
 $result = $this->query->terms('category')
     ->hideEmpty()
-    ->where('featured', true)
+    ->where('m.featured = :feat')
+    ->setParameter('feat', true)
     ->orderBy('count', Order::Desc)
     ->limit(10)
     ->get();
@@ -345,6 +440,9 @@ $ids    = $builder->getIds();    // list<int>
 $count  = $builder->count();     // int
 $exists = $builder->exists();    // bool
 ```
+
+> [!NOTE]
+> TermQueryBuilder では `m.`（meta）プレフィックスのみ使用可能です。`t.`（tax）プレフィックスは使用できません。`taxonomy()` メソッドは検索対象のタクソノミーを指定するもので、`t.` プレフィックスの条件とは別概念です。
 
 ## クイックスタート
 
@@ -364,7 +462,7 @@ class BlogService
     public function getRecentPosts(int $limit = 10): PostQueryResult
     {
         return $this->query->posts('post')
-            ->published()
+            ->status(PostStatus::Publish)
             ->orderBy('date', Order::Desc)
             ->limit($limit)
             ->get();
@@ -373,9 +471,11 @@ class BlogService
     public function getFeaturedPosts(string $category, int $limit = 5): PostQueryResult
     {
         return $this->query->posts('post')
-            ->published()
-            ->where('featured', true)
-            ->taxonomy('category', [$category], TaxField::Slug)
+            ->status(PostStatus::Publish)
+            ->where('m.featured = :feat')
+            ->andWhere('t.category:slug IN :cats')
+            ->setParameter('feat', true)
+            ->setParameter('cats', [$category])
             ->orderBy('date', Order::Desc)
             ->limit($limit)
             ->get();
@@ -384,7 +484,7 @@ class BlogService
     public function getAuthorPosts(int $authorId, int $limit = 20): PostQueryResult
     {
         return $this->query->posts('post')
-            ->published()
+            ->status(PostStatus::Publish)
             ->author($authorId)
             ->orderBy('date', Order::Desc)
             ->limit($limit)
@@ -394,7 +494,7 @@ class BlogService
     public function searchPosts(string $searchTerm, int $limit = 15): PostQueryResult
     {
         return $this->query->posts('post')
-            ->published()
+            ->status(PostStatus::Publish)
             ->search($searchTerm)
             ->limit($limit)
             ->get();
@@ -407,7 +507,7 @@ class BlogService
 ```php
 <?php
 
-use WpPack\Component\Query\Condition\MetaConditionGroup;
+use WpPack\Component\Query\Condition\ConditionGroup;
 use WpPack\Component\Query\QueryFactory;
 
 class ProductService
@@ -419,23 +519,28 @@ class ProductService
     public function getProducts(array $filters = []): PostQueryResult
     {
         $builder = $this->query->posts('product')
-            ->published()
-            ->where('status', 'active');
+            ->status(PostStatus::Publish)
+            ->where('m.status = :status')
+            ->setParameter('status', 'active');
 
         if (isset($filters['min_price'])) {
-            $builder->andWhere('price', $filters['min_price'], '>=');
+            $builder->andWhere('m.price:numeric >= :min_price')
+                ->setParameter('min_price', $filters['min_price']);
         }
 
         if (isset($filters['max_price'])) {
-            $builder->andWhere('price', $filters['max_price'], '<=');
+            $builder->andWhere('m.price:numeric <= :max_price')
+                ->setParameter('max_price', $filters['max_price']);
         }
 
         if (!empty($filters['categories'])) {
-            $builder->taxonomy('product_category', $filters['categories'], TaxField::Slug);
+            $builder->andWhere('t.product_category:slug IN :cats')
+                ->setParameter('cats', $filters['categories']);
         }
 
         if ($filters['in_stock_only'] ?? false) {
-            $builder->andWhere('stock_quantity', 0, '>');
+            $builder->andWhere('m.stock_quantity:numeric > :min_stock')
+                ->setParameter('min_stock', 0);
         }
 
         return $builder
@@ -448,12 +553,15 @@ class ProductService
     {
         // WHERE status = 'active' AND (featured = 1 OR on_sale = 1)
         return $this->query->posts('product')
-            ->published()
-            ->where('status', 'active')
-            ->andWhere(function (MetaConditionGroup $group): void {
-                $group->where('featured', true)
-                      ->orWhere('on_sale', true);
+            ->status(PostStatus::Publish)
+            ->where('m.status = :status')
+            ->andWhere(function (ConditionGroup $group): void {
+                $group->where('m.featured = :feat')
+                      ->orWhere('m.on_sale = :sale');
             })
+            ->setParameter('status', 'active')
+            ->setParameter('feat', true)
+            ->setParameter('sale', true)
             ->limit(24)
             ->get();
     }
@@ -602,12 +710,11 @@ class QueryWhereModifier
 ## 2層設計（PostType との関係）
 
 ```
-PostType (高レベル)  : Product::query()->where('price', 50, '<=')->get()  → Product[]
+PostType (高レベル)  : Product::query()->where('m.price:numeric <= :price')->setParameter('price', 50)->get()
                        #[Meta] フィールドを知っているので where() = meta condition
                        ↓ 内部で PostQueryBuilder を利用
-Query    (低レベル)  : $this->query->posts('product')->where('price', 50, '<=')->get()  → WP_Post[]
-                       where/andWhere/orWhere = meta_query（Doctrine ORM 式）
-                       taxonomy/author 等は専用メソッド
+Query    (低レベル)  : $this->query->posts('product')->where('m.price:numeric <= :price')->setParameter('price', 50)->get()
+                       where/andWhere/orWhere = 式パース + setParameter で meta_query / tax_query を統一構築
 ```
 
 ## このコンポーネントの使用場面

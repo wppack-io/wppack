@@ -22,10 +22,13 @@ class ProductService
     public function getFeaturedProducts(): PostQueryResult
     {
         return $this->query->posts('product')
-            ->published()
-            ->where('featured', true)
-            ->andWhere('price', 100, '<=')
-            ->taxonomy('product_category', ['electronics'], TaxField::Slug)
+            ->status(PostStatus::Publish)
+            ->where('m.featured = :feat')
+            ->andWhere('m.price:numeric <= :price')
+            ->andWhere('t.product_category:slug IN :cats')
+            ->setParameter('feat', true)
+            ->setParameter('price', 100)
+            ->setParameter('cats', ['electronics'])
             ->orderByMeta('price', Order::Asc, MetaType::Numeric)
             ->limit(10)
             ->get();
@@ -36,8 +39,8 @@ class ProductService
 ## 主な機能
 
 - **DI ファースト** — `QueryFactory` をコンストラクタ注入
-- **Doctrine ORM 式の where** — `where()` / `andWhere()` / `orWhere()` で meta_query を構築
-- **専用メソッド** — taxonomy、author、date 等は専用メソッドで明示的に指定
+- **WQL（WordPress Query Language）** — `where('(m.a = :a OR m.b = :b) AND m.c = :c')` で複合条件を単一文字列で表現
+- **プレフィックスルーティング** — `m.` で meta_query、`t.` / `tax.` / `taxonomy.` で tax_query を自動ルーティング
 - **実行メソッド** — `get()`, `first()`, `getIds()`, `count()`, `exists()`
 - **Named Hook アトリビュート** — `PreGetPostsAction`, `PostsWhereFilter` 等
 

@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Query\Builder;
 
-use WpPack\Component\Query\Condition\MetaConditionGroup;
-use WpPack\Component\Query\Enum\MetaCompare;
-use WpPack\Component\Query\Enum\MetaType;
+use WpPack\Component\Query\Condition\ConditionGroup;
 use WpPack\Component\Query\Enum\Order;
 use WpPack\Component\Query\Result\UserQueryResult;
 
@@ -15,11 +13,14 @@ final class UserQueryBuilder
     /** @var array<string, mixed> */
     private array $args = [];
 
-    private MetaConditionGroup $metaConditions;
+    private ConditionGroup $conditions;
+
+    /** @var array<string, mixed> */
+    private array $parameters = [];
 
     public function __construct()
     {
-        $this->metaConditions = new MetaConditionGroup();
+        $this->conditions = new ConditionGroup(allowedPrefixes: ['meta']);
     }
 
     /**
@@ -87,25 +88,32 @@ final class UserQueryBuilder
         return $this;
     }
 
-    // ── Meta conditions ──
+    // ── Conditions ──
 
-    public function where(string $key, mixed $value = null, MetaCompare|string $compare = '=', MetaType|string|null $type = null): self
+    public function where(string $expression): self
     {
-        $this->metaConditions->where($key, $value, $compare, $type);
+        $this->conditions->where($expression);
 
         return $this;
     }
 
-    public function andWhere(string|\Closure $keyOrGroup, mixed $value = null, MetaCompare|string $compare = '=', MetaType|string|null $type = null): self
+    public function andWhere(string|\Closure $expressionOrCallback): self
     {
-        $this->metaConditions->andWhere($keyOrGroup, $value, $compare, $type);
+        $this->conditions->andWhere($expressionOrCallback);
 
         return $this;
     }
 
-    public function orWhere(string|\Closure $keyOrGroup, mixed $value = null, MetaCompare|string $compare = '=', MetaType|string|null $type = null): self
+    public function orWhere(string|\Closure $expressionOrCallback): self
     {
-        $this->metaConditions->orWhere($keyOrGroup, $value, $compare, $type);
+        $this->conditions->orWhere($expressionOrCallback);
+
+        return $this;
+    }
+
+    public function setParameter(string $name, mixed $value): self
+    {
+        $this->parameters[$name] = $value;
 
         return $this;
     }
@@ -224,7 +232,7 @@ final class UserQueryBuilder
     {
         $args = $this->args;
 
-        $metaQuery = $this->metaConditions->toMetaQuery();
+        $metaQuery = $this->conditions->toMetaQuery($this->parameters);
         if ($metaQuery !== []) {
             $args['meta_query'] = $metaQuery;
         }

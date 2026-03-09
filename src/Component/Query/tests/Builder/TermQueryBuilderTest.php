@@ -7,7 +7,7 @@ namespace WpPack\Component\Query\Tests\Builder;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Query\Builder\TermQueryBuilder;
-use WpPack\Component\Query\Condition\MetaConditionGroup;
+use WpPack\Component\Query\Condition\ConditionGroup;
 use WpPack\Component\Query\Enum\Order;
 
 final class TermQueryBuilderTest extends TestCase
@@ -126,7 +126,10 @@ final class TermQueryBuilderTest extends TestCase
     public function whereAddsMetaCondition(): void
     {
         $builder = new TermQueryBuilder();
-        $args = $builder->where('color', 'red')->toArray();
+        $args = $builder
+            ->where('m.color = :color')
+            ->setParameter('color', 'red')
+            ->toArray();
 
         self::assertSame([
             'relation' => 'AND',
@@ -139,8 +142,10 @@ final class TermQueryBuilderTest extends TestCase
     {
         $builder = new TermQueryBuilder();
         $args = $builder
-            ->orWhere('color', 'red')
-            ->orWhere('color', 'blue')
+            ->orWhere('m.color = :red')
+            ->orWhere('m.color = :blue')
+            ->setParameter('red', 'red')
+            ->setParameter('blue', 'blue')
             ->toArray();
 
         self::assertSame('OR', $args['meta_query']['relation']);
@@ -151,14 +156,28 @@ final class TermQueryBuilderTest extends TestCase
     {
         $builder = new TermQueryBuilder();
         $args = $builder
-            ->where('featured', true)
-            ->andWhere(function (MetaConditionGroup $group): void {
-                $group->where('priority', 1)
-                    ->orWhere('priority', 2);
+            ->where('m.featured = :feat')
+            ->andWhere(function (ConditionGroup $group): void {
+                $group->where('m.priority = :p1')
+                    ->orWhere('m.priority = :p2');
             })
+            ->setParameter('feat', true)
+            ->setParameter('p1', 1)
+            ->setParameter('p2', 2)
             ->toArray();
 
         self::assertSame('AND', $args['meta_query']['relation']);
+    }
+
+    #[Test]
+    public function taxPrefixIsRejected(): void
+    {
+        $builder = new TermQueryBuilder();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Prefix "tax" is not allowed');
+
+        $builder->where('t.category IN :cats');
     }
 
     // ── Ordering ──
@@ -222,7 +241,8 @@ final class TermQueryBuilderTest extends TestCase
         $args = $builder
             ->taxonomy('category')
             ->hideEmpty()
-            ->where('featured', true)
+            ->where('m.featured = :feat')
+            ->setParameter('feat', true)
             ->orderBy('count', Order::Desc)
             ->limit(10)
             ->toArray();

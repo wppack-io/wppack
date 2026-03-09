@@ -7,8 +7,7 @@ namespace WpPack\Component\Query\Tests\Builder;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Query\Builder\UserQueryBuilder;
-use WpPack\Component\Query\Condition\MetaConditionGroup;
-use WpPack\Component\Query\Enum\MetaCompare;
+use WpPack\Component\Query\Condition\ConditionGroup;
 use WpPack\Component\Query\Enum\Order;
 
 final class UserQueryBuilderTest extends TestCase
@@ -100,7 +99,10 @@ final class UserQueryBuilderTest extends TestCase
     public function whereAddsMetaCondition(): void
     {
         $builder = new UserQueryBuilder();
-        $args = $builder->where('company', 'Acme')->toArray();
+        $args = $builder
+            ->where('m.company = :company')
+            ->setParameter('company', 'Acme')
+            ->toArray();
 
         self::assertSame([
             'relation' => 'AND',
@@ -113,8 +115,10 @@ final class UserQueryBuilderTest extends TestCase
     {
         $builder = new UserQueryBuilder();
         $args = $builder
-            ->orWhere('role_type', 'admin')
-            ->orWhere('role_type', 'manager')
+            ->orWhere('m.role_type = :admin')
+            ->orWhere('m.role_type = :manager')
+            ->setParameter('admin', 'admin')
+            ->setParameter('manager', 'manager')
             ->toArray();
 
         self::assertSame('OR', $args['meta_query']['relation']);
@@ -125,14 +129,28 @@ final class UserQueryBuilderTest extends TestCase
     {
         $builder = new UserQueryBuilder();
         $args = $builder
-            ->where('active', true)
-            ->andWhere(function (MetaConditionGroup $group): void {
-                $group->where('department', 'engineering')
-                    ->orWhere('department', 'design');
+            ->where('m.active = :active')
+            ->andWhere(function (ConditionGroup $group): void {
+                $group->where('m.department = :eng')
+                    ->orWhere('m.department = :design');
             })
+            ->setParameter('active', true)
+            ->setParameter('eng', 'engineering')
+            ->setParameter('design', 'design')
             ->toArray();
 
         self::assertSame('AND', $args['meta_query']['relation']);
+    }
+
+    #[Test]
+    public function taxPrefixIsRejected(): void
+    {
+        $builder = new UserQueryBuilder();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Prefix "tax" is not allowed');
+
+        $builder->where('t.category IN :cats');
     }
 
     // ── Ordering ──
@@ -204,7 +222,8 @@ final class UserQueryBuilderTest extends TestCase
         $builder = new UserQueryBuilder();
         $args = $builder
             ->role('author')
-            ->where('company', 'Acme')
+            ->where('m.company = :company')
+            ->setParameter('company', 'Acme')
             ->orderBy('display_name')
             ->limit(10)
             ->page(2)

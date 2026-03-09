@@ -7,13 +7,10 @@ namespace WpPack\Component\Query\Tests\Builder;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Query\Builder\PostQueryBuilder;
-use WpPack\Component\Query\Condition\MetaConditionGroup;
-use WpPack\Component\Query\Enum\MetaCompare;
+use WpPack\Component\Query\Condition\ConditionGroup;
 use WpPack\Component\Query\Enum\MetaType;
 use WpPack\Component\Query\Enum\Order;
 use WpPack\Component\Query\Enum\PostStatus;
-use WpPack\Component\Query\Enum\TaxField;
-use WpPack\Component\Query\Enum\TaxOperator;
 
 final class PostQueryBuilderTest extends TestCase
 {
@@ -71,31 +68,16 @@ final class PostQueryBuilderTest extends TestCase
         self::assertSame(['publish', 'draft'], $args['post_status']);
     }
 
-    #[Test]
-    public function publishedShorthand(): void
-    {
-        $builder = new PostQueryBuilder();
-        $args = $builder->published()->toArray();
-
-        self::assertSame('publish', $args['post_status']);
-    }
-
-    #[Test]
-    public function draftShorthand(): void
-    {
-        $builder = new PostQueryBuilder();
-        $args = $builder->draft()->toArray();
-
-        self::assertSame('draft', $args['post_status']);
-    }
-
     // ── Meta conditions ──
 
     #[Test]
     public function whereAddsMetaCondition(): void
     {
         $builder = new PostQueryBuilder();
-        $args = $builder->where('featured', true)->toArray();
+        $args = $builder
+            ->where('m.featured = :feat')
+            ->setParameter('feat', true)
+            ->toArray();
 
         self::assertSame([
             'relation' => 'AND',
@@ -104,10 +86,13 @@ final class PostQueryBuilderTest extends TestCase
     }
 
     #[Test]
-    public function whereWithCompareEnum(): void
+    public function whereWithCompareOperator(): void
     {
         $builder = new PostQueryBuilder();
-        $args = $builder->where('price', 100, MetaCompare::LessThanOrEqual)->toArray();
+        $args = $builder
+            ->where('m.price <= :price')
+            ->setParameter('price', 100)
+            ->toArray();
 
         self::assertSame([
             'relation' => 'AND',
@@ -116,22 +101,13 @@ final class PostQueryBuilderTest extends TestCase
     }
 
     #[Test]
-    public function whereWithCompareString(): void
+    public function whereWithTypeHint(): void
     {
         $builder = new PostQueryBuilder();
-        $args = $builder->where('price', 100, '<=')->toArray();
-
-        self::assertSame([
-            'relation' => 'AND',
-            ['key' => 'price', 'value' => 100, 'compare' => '<='],
-        ], $args['meta_query']);
-    }
-
-    #[Test]
-    public function whereWithTypeEnum(): void
-    {
-        $builder = new PostQueryBuilder();
-        $args = $builder->where('price', 100, '<=', MetaType::Numeric)->toArray();
+        $args = $builder
+            ->where('m.price:numeric <= :price')
+            ->setParameter('price', 100)
+            ->toArray();
 
         self::assertSame([
             'relation' => 'AND',
@@ -144,8 +120,10 @@ final class PostQueryBuilderTest extends TestCase
     {
         $builder = new PostQueryBuilder();
         $args = $builder
-            ->where('featured', true)
-            ->andWhere('price', 100, '<=')
+            ->where('m.featured = :feat')
+            ->andWhere('m.price:numeric <= :price')
+            ->setParameter('feat', true)
+            ->setParameter('price', 100)
             ->toArray();
 
         self::assertSame('AND', $args['meta_query']['relation']);
@@ -157,8 +135,10 @@ final class PostQueryBuilderTest extends TestCase
     {
         $builder = new PostQueryBuilder();
         $args = $builder
-            ->orWhere('featured', true)
-            ->orWhere('on_sale', true)
+            ->orWhere('m.featured = :feat')
+            ->orWhere('m.on_sale = :sale')
+            ->setParameter('feat', true)
+            ->setParameter('sale', true)
             ->toArray();
 
         self::assertSame('OR', $args['meta_query']['relation']);
@@ -170,12 +150,13 @@ final class PostQueryBuilderTest extends TestCase
     {
         $builder = new PostQueryBuilder();
         $args = $builder
-            ->where('status', 'active')
-            ->orWhere('featured', true)
+            ->where('m.status = :status')
+            ->orWhere('m.featured = :feat')
+            ->setParameter('status', 'active')
+            ->setParameter('feat', true)
             ->toArray();
 
         self::assertSame('AND', $args['meta_query']['relation']);
-        // Should have AND clause + nested OR group
         self::assertArrayHasKey('relation', $args['meta_query']);
     }
 
@@ -184,21 +165,24 @@ final class PostQueryBuilderTest extends TestCase
     {
         $builder = new PostQueryBuilder();
         $args = $builder
-            ->where('status', 'active')
-            ->andWhere(function (MetaConditionGroup $group): void {
-                $group->where('featured', true)
-                    ->orWhere('on_sale', true);
+            ->where('m.status = :status')
+            ->andWhere(function (ConditionGroup $group): void {
+                $group->where('m.featured = :feat')
+                    ->orWhere('m.on_sale = :sale');
             })
+            ->setParameter('status', 'active')
+            ->setParameter('feat', true)
+            ->setParameter('sale', true)
             ->toArray();
 
         self::assertSame('AND', $args['meta_query']['relation']);
     }
 
     #[Test]
-    public function whereExistsAddsExistsCondition(): void
+    public function whereExistsViaExpression(): void
     {
         $builder = new PostQueryBuilder();
-        $args = $builder->whereExists('thumbnail')->toArray();
+        $args = $builder->where('m.thumbnail EXISTS')->toArray();
 
         self::assertSame([
             'relation' => 'AND',
@@ -207,10 +191,10 @@ final class PostQueryBuilderTest extends TestCase
     }
 
     #[Test]
-    public function whereNotExistsAddsNotExistsCondition(): void
+    public function whereNotExistsViaExpression(): void
     {
         $builder = new PostQueryBuilder();
-        $args = $builder->whereNotExists('thumbnail')->toArray();
+        $args = $builder->where('m.thumbnail NOT EXISTS')->toArray();
 
         self::assertSame([
             'relation' => 'AND',
@@ -218,55 +202,107 @@ final class PostQueryBuilderTest extends TestCase
         ], $args['meta_query']);
     }
 
-    // ── Taxonomy ──
+    // ── Taxonomy via expression ──
 
     #[Test]
-    public function taxonomyAddsTaxQuery(): void
+    public function taxonomyViaExpression(): void
     {
         $builder = new PostQueryBuilder();
-        $args = $builder->taxonomy('category', [5, 10])->toArray();
+        $args = $builder
+            ->where('t.category IN :cats')
+            ->setParameter('cats', [5, 10])
+            ->toArray();
 
-        self::assertCount(1, $args['tax_query']);
+        self::assertCount(2, $args['tax_query']); // relation + 1 condition
         self::assertSame('category', $args['tax_query'][0]['taxonomy']);
         self::assertSame([5, 10], $args['tax_query'][0]['terms']);
+        self::assertSame('term_id', $args['tax_query'][0]['field']);
     }
 
     #[Test]
-    public function taxonomyWithCustomFieldAndOperator(): void
+    public function taxonomyWithSlugHint(): void
     {
         $builder = new PostQueryBuilder();
-        $args = $builder->taxonomy('category', ['electronics'], TaxField::Slug, TaxOperator::In)->toArray();
+        $args = $builder
+            ->where('t.category:slug IN :cats')
+            ->setParameter('cats', ['electronics'])
+            ->toArray();
 
         self::assertSame('slug', $args['tax_query'][0]['field']);
         self::assertSame('IN', $args['tax_query'][0]['operator']);
     }
 
     #[Test]
-    public function multipleTaxonomyQueriesAccumulate(): void
+    public function multipleTaxonomyConditionsAnd(): void
     {
         $builder = new PostQueryBuilder();
         $args = $builder
-            ->taxonomy('category', ['electronics'])
-            ->taxonomy('tag', ['sale'])
+            ->where('t.category IN :cats')
+            ->andWhere('t.post_tag:slug IN :tags')
+            ->setParameter('cats', [1])
+            ->setParameter('tags', ['sale'])
             ->toArray();
 
-        // 2 tax conditions + 'relation' key
         self::assertSame('AND', $args['tax_query']['relation']);
         self::assertSame('category', $args['tax_query'][0]['taxonomy']);
-        self::assertSame('tag', $args['tax_query'][1]['taxonomy']);
+        self::assertSame('post_tag', $args['tax_query'][1]['taxonomy']);
     }
 
     #[Test]
-    public function taxRelationSetsOrRelation(): void
+    public function multipleTaxonomyConditionsOr(): void
     {
         $builder = new PostQueryBuilder();
         $args = $builder
-            ->taxonomy('category', ['electronics'])
-            ->taxonomy('tag', ['sale'])
-            ->taxRelation('OR')
+            ->orWhere('t.category IN :cats')
+            ->orWhere('t.post_tag:slug IN :tags')
+            ->setParameter('cats', [1])
+            ->setParameter('tags', ['sale'])
             ->toArray();
 
         self::assertSame('OR', $args['tax_query']['relation']);
+    }
+
+    #[Test]
+    public function taxonomyExistsViaExpression(): void
+    {
+        $builder = new PostQueryBuilder();
+        $args = $builder->where('t.category EXISTS')->toArray();
+
+        self::assertSame([
+            'relation' => 'AND',
+            ['taxonomy' => 'category', 'operator' => 'EXISTS'],
+        ], $args['tax_query']);
+    }
+
+    #[Test]
+    public function taxonomyNotExistsViaExpression(): void
+    {
+        $builder = new PostQueryBuilder();
+        $args = $builder->where('t.category NOT EXISTS')->toArray();
+
+        self::assertSame([
+            'relation' => 'AND',
+            ['taxonomy' => 'category', 'operator' => 'NOT EXISTS'],
+        ], $args['tax_query']);
+    }
+
+    // ── Mixed meta and tax ──
+
+    #[Test]
+    public function mixedMetaAndTaxConditions(): void
+    {
+        $builder = new PostQueryBuilder();
+        $args = $builder
+            ->where('m.featured = :feat')
+            ->andWhere('t.category:slug IN :cats')
+            ->setParameter('feat', true)
+            ->setParameter('cats', ['electronics'])
+            ->toArray();
+
+        self::assertArrayHasKey('meta_query', $args);
+        self::assertArrayHasKey('tax_query', $args);
+        self::assertSame('featured', $args['meta_query'][0]['key']);
+        self::assertSame('category', $args['tax_query'][0]['taxonomy']);
     }
 
     // ── Author ──
@@ -523,10 +559,13 @@ final class PostQueryBuilderTest extends TestCase
         $builder = new PostQueryBuilder();
         $args = $builder
             ->type('product')
-            ->published()
-            ->where('featured', true)
-            ->andWhere('price', 100, '<=')
-            ->taxonomy('category', ['electronics'], TaxField::Slug)
+            ->status(PostStatus::Publish)
+            ->where('m.featured = :feat')
+            ->andWhere('m.price:numeric <= :price')
+            ->andWhere('t.category:slug IN :cats')
+            ->setParameter('feat', true)
+            ->setParameter('price', 100)
+            ->setParameter('cats', ['electronics'])
             ->author(5)
             ->limit(10)
             ->page(2)
@@ -582,6 +621,110 @@ final class PostQueryBuilderTest extends TestCase
         self::assertArrayNotHasKey('date_query', $args);
     }
 
+    // ── setParameter ──
+
+    #[Test]
+    public function setParameterOverwritesPreviousValue(): void
+    {
+        $builder = new PostQueryBuilder();
+        $args = $builder
+            ->where('m.price:numeric <= :price')
+            ->setParameter('price', 100)
+            ->setParameter('price', 200)
+            ->toArray();
+
+        self::assertSame(200, $args['meta_query'][0]['value']);
+    }
+
+    // ── WQL compound expressions ──
+
+    #[Test]
+    public function compoundAndExpression(): void
+    {
+        $builder = new PostQueryBuilder();
+        $args = $builder
+            ->where('m.featured = :feat AND m.on_sale = :sale')
+            ->setParameter('feat', true)
+            ->setParameter('sale', true)
+            ->toArray();
+
+        self::assertArrayHasKey('meta_query', $args);
+        self::assertSame('AND', $args['meta_query']['relation']);
+        // Compound expression becomes a nested AND group
+        $nested = $args['meta_query'][0];
+        self::assertSame('AND', $nested['relation']);
+        self::assertSame('featured', $nested[0]['key']);
+        self::assertSame('on_sale', $nested[1]['key']);
+    }
+
+    #[Test]
+    public function compoundOrExpression(): void
+    {
+        $builder = new PostQueryBuilder();
+        $args = $builder
+            ->where('m.featured = :feat OR m.on_sale = :sale')
+            ->setParameter('feat', true)
+            ->setParameter('sale', true)
+            ->toArray();
+
+        self::assertArrayHasKey('meta_query', $args);
+    }
+
+    #[Test]
+    public function compoundExpressionWithParentheses(): void
+    {
+        $builder = new PostQueryBuilder();
+        $args = $builder
+            ->where('(m.featured = :feat OR m.on_sale = :sale) AND m.status = :status')
+            ->setParameter('feat', true)
+            ->setParameter('sale', true)
+            ->setParameter('status', 'active')
+            ->toArray();
+
+        self::assertArrayHasKey('meta_query', $args);
+        self::assertSame('AND', $args['meta_query']['relation']);
+    }
+
+    #[Test]
+    public function compoundExpressionWithMixedPrefixAnd(): void
+    {
+        $builder = new PostQueryBuilder();
+        $args = $builder
+            ->where('m.featured = :feat AND t.category IN :cats')
+            ->setParameter('feat', true)
+            ->setParameter('cats', [1, 2])
+            ->toArray();
+
+        self::assertArrayHasKey('meta_query', $args);
+        self::assertArrayHasKey('tax_query', $args);
+    }
+
+    #[Test]
+    public function compoundExpressionWithMixedPrefixOrThrows(): void
+    {
+        $builder = new PostQueryBuilder();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Cannot mix prefixes');
+
+        $builder->where('m.featured = :feat OR t.category IN :cats');
+    }
+
+    #[Test]
+    public function compoundExpressionPrecedence(): void
+    {
+        // m.a OR m.b AND m.c → m.a OR (m.b AND m.c)
+        $builder = new PostQueryBuilder();
+        $args = $builder
+            ->where('m.a = :a OR m.b = :b AND m.c = :c')
+            ->setParameter('a', 1)
+            ->setParameter('b', 2)
+            ->setParameter('c', 3)
+            ->toArray();
+
+        self::assertArrayHasKey('meta_query', $args);
+    }
+
     // ── Execution methods (WordPress integration) ──
 
     #[Test]
@@ -593,7 +736,7 @@ final class PostQueryBuilderTest extends TestCase
 
         $result = (new PostQueryBuilder())
             ->type('post')
-            ->published()
+            ->status(PostStatus::Publish)
             ->limit(5)
             ->get();
 
@@ -624,7 +767,7 @@ final class PostQueryBuilderTest extends TestCase
 
         $ids = (new PostQueryBuilder())
             ->type('post')
-            ->published()
+            ->status(PostStatus::Publish)
             ->limit(5)
             ->getIds();
 
@@ -640,7 +783,7 @@ final class PostQueryBuilderTest extends TestCase
 
         $count = (new PostQueryBuilder())
             ->type('post')
-            ->published()
+            ->status(PostStatus::Publish)
             ->count();
 
         self::assertIsInt($count);
