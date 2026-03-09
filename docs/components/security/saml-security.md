@@ -108,8 +108,9 @@ SelfValidatingPassport を返却
 SamlAuthenticator::createToken()
     ↓
 SamlAuthenticator::onAuthenticationSuccess()
+    ↓ wp_clear_auth_cookie() で既存セッションクリア
     ↓ wp_set_auth_cookie() でセッション確立
-    ↓ RelayState にリダイレクト
+    ↓ RelayState（同一オリジンのみ）にリダイレクト
 ```
 
 ### IdP-Initiated SSO
@@ -141,8 +142,8 @@ $authenticator = new SamlAuthenticator(
 - `supports()`: POST リクエストかつ `SAMLResponse` パラメータが存在し、パスが `acsPath` に一致する場合に `true`
 - `authenticate()`: `onelogin/php-saml` で SAMLResponse を検証し、`SelfValidatingPassport` を返却
 - `createToken()`: `PostAuthenticationToken` を生成（マルチサイトではブログ ID を付与）
-- `onAuthenticationSuccess()`: `wp_set_auth_cookie()` でセッションを確立し、`RelayState` にリダイレクト
-- `onAuthenticationFailure()`: `wp-login.php?saml_error=1` にリダイレクト
+- `onAuthenticationSuccess()`: 既存セッションクリア後に `wp_set_auth_cookie()` でセッションを確立し、同一オリジンの `RelayState` にリダイレクト
+- `onAuthenticationFailure()`: `wp-login.php?saml_error=1` にリダイレクト（エラー詳細はフック経由でのみ通知）
 
 ### SamlEntryPoint
 
@@ -292,9 +293,21 @@ $userResolver = new SamlUserResolver(
 
 `autoProvision: true` を設定すると、SAML 認証成功時にユーザーが存在しない場合、WordPress ユーザーを自動作成します:
 
-1. `email` 属性でメールアドレス検索
-2. `nameId` でログイン名検索
+1. `email` 属性（`sanitize_email()` 済み）でメールアドレス検索
+2. NameID（`sanitize_user()` 済み）でログイン名検索
 3. いずれも見つからない場合、`wp_insert_user()` で新規作成
+
+#### NameID バインディング
+
+初回ログイン時、SAML NameID がユーザーメタ（`_wppack_saml_nameid`）に保存されます。以降のログインでは、メールアドレスで既存ユーザーが見つかった場合でも、保存済み NameID との一致を検証します。これにより、IdP 側でメールアドレスを変更してもアカウント乗っ取りを防止します。
+
+#### 属性サニタイズ
+
+すべての SAML 属性は WordPress 関数でサニタイズされてからデータベースに保存されます:
+
+- NameID: `sanitize_user($nameId, true)` — 空文字になる場合は認証エラー
+- メールアドレス: `sanitize_email()`
+- 名前系フィールド（first_name, last_name, display_name）: `sanitize_text_field()`
 
 既存ユーザーの場合は、SAML 属性に基づいてプロフィール情報（名前、表示名）を同期更新します。
 
@@ -379,9 +392,10 @@ SamlAuthenticator（sub.example.com）
 ```
 
 `CrossSiteRedirector` は以下の方法でホストを許可します:
-- `allowedHosts` に明示的に指定
-- `.local` / `.localhost` で終わるホスト（開発環境）
+- `allowedHosts` に明示的に指定（開発環境のドメインもここに追加）
 - マルチサイトの `get_sites()` に登録されたホスト
+
+> **注意**: リダイレクト先の ACS URL は常に HTTPS が強制されます。
 
 ## IdP 設定ガイド
 
@@ -455,16 +469,44 @@ Google Admin での設定:
 | リプレイ攻撃 | `onelogin/php-saml` が InResponseTo を検証 | `strict: true` |
 | 署名偽造 | アサーション署名の検証 | `wantAssertionsSigned: true` |
 | NameID 傍受 | NameID の暗号化 | `wantNameIdEncrypted: true` |
-| オープンリダイレクト | `wp_validate_redirect()` で RelayState を検証 | `SamlAuthenticator` |
-| クロスサイト攻撃 | `allowedHosts` でリダイレクト先を制限 | `CrossSiteRedirector` |
+| オープンリダイレクト | 同一オリジンチェック + `wp_validate_redirect()` で RelayState を検証 | `SamlAuthenticator` |
+| アカウント乗っ取り | NameID バインディングによるメール照合の安全性確保 | `SamlUserResolver` |
+| XSS / プロフィール改ざん | SAML 属性を `sanitize_text_field()` / `sanitize_email()` でサニタイズ | `SamlUserResolver` |
+| セッション固定 | 認証成功時に既存セッションをクリアしてから再発行 | `SamlAuthenticator` |
+| 情報漏洩 | エラーメッセージを汎用化、詳細はフック経由で通知 | `SamlAuthenticator` |
+| クロスサイト攻撃 | `allowedHosts` でリダイレクト先を制限、HTTPS 強制 | `CrossSiteRedirector` |
 | ユーザー列挙 | 認証失敗時の一律エラーページ | `onAuthenticationFailure()` |
 | 権限昇格 | JIT プロビジョニング時のデフォルトロール制限 | `SamlUserResolver` |
 
 本番環境では以下の設定を推奨:
-- `strict: true`（必須）
+- `strict: true`（必須 — CSRF 対策として SAML 署名検証を強制）
 - `wantAssertionsSigned: true`（必須）
 - `debug: false`
 - HTTPS の使用（ACS URL、SLO URL）
+
+### セキュリティイベントフック
+
+監査ログやモニタリングのために、以下の WordPress アクションフックが発火されます:
+
+| フック名 | 発火タイミング | パラメータ |
+|---------|-------------|-----------|
+| `wppack_saml_authenticated` | SAML 認証成功時 | `$nameId`, `$attributes` |
+| `wppack_saml_authentication_failed` | 認証失敗時 | `$exception` |
+| `wppack_saml_authentication_error` | SAML レスポンス検証エラー時 | `$errors`, `$lastErrorReason` |
+| `wppack_saml_user_provisioned` | JIT プロビジョニングでユーザー作成時 | `$user`, `$nameId`, `$attributes` |
+| `wppack_saml_user_updated` | 既存ユーザーの属性同期更新時 | `$user`, `$attributes` |
+| `wppack_saml_cross_site_redirect` | クロスサイトリダイレクト実行時 | `$targetUrl` |
+
+```php
+// 使用例: 認証イベントのロギング
+add_action('wppack_saml_authenticated', function (string $nameId, array $attributes): void {
+    error_log(sprintf('SAML login: %s', $nameId));
+});
+
+add_action('wppack_saml_authentication_error', function (array $errors, ?string $reason): void {
+    error_log(sprintf('SAML error: %s (%s)', implode(', ', $errors), $reason ?? 'unknown'));
+});
+```
 
 ## 依存関係
 
