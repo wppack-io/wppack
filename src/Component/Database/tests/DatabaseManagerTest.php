@@ -336,4 +336,170 @@ final class DatabaseManagerTest extends TestCase
 
         self::assertSame([], $rows);
     }
+
+    // --- Error paths ---
+
+    #[Test]
+    public function executeQueryThrowsQueryExceptionOnError(): void
+    {
+        $this->expectException(QueryException::class);
+
+        $this->db->executeQuery('SELECT * FROM nonexistent_table_wppack_xyz');
+    }
+
+    #[Test]
+    public function executeStatementThrowsQueryExceptionOnError(): void
+    {
+        $this->expectException(QueryException::class);
+
+        $this->db->executeStatement('DELETE FROM nonexistent_table_wppack_xyz WHERE id = 1');
+    }
+
+    #[Test]
+    public function insertThrowsQueryExceptionOnError(): void
+    {
+        $this->expectException(QueryException::class);
+
+        $this->db->insert('nonexistent_table_wppack_xyz', ['name' => 'test']);
+    }
+
+    // --- Magic methods ---
+
+    #[Test]
+    public function getInvalidPropertyThrowsInvalidArgumentException(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        $this->db->nonExistentProperty;
+    }
+
+    #[Test]
+    public function issetReturnsTrueForMappedProperties(): void
+    {
+        self::assertTrue(isset($this->db->posts));
+        self::assertTrue(isset($this->db->termTaxonomy));
+    }
+
+    #[Test]
+    public function issetReturnsFalseForUnmappedProperties(): void
+    {
+        self::assertFalse(isset($this->db->nonExistent));
+    }
+
+    // --- Utility methods ---
+
+    #[Test]
+    public function lastErrorReturnsEmptyStringAfterSuccess(): void
+    {
+        $this->db->insert('wppack_test', ['name' => 'err_ok', 'value' => 'v']);
+
+        self::assertSame('', $this->db->lastError());
+    }
+
+    #[Test]
+    public function lastErrorReturnsErrorAfterFailedQuery(): void
+    {
+        try {
+            $this->db->executeQuery('SELECT * FROM nonexistent_table_wppack_xyz');
+        } catch (QueryException) {
+            // expected
+        }
+
+        self::assertNotSame('', $this->db->lastError());
+    }
+
+    #[Test]
+    public function lastInsertIdReturnsIncrementingIds(): void
+    {
+        $this->db->insert('wppack_test', ['name' => 'inc1', 'value' => 'a']);
+        $id1 = $this->db->lastInsertId();
+
+        $this->db->insert('wppack_test', ['name' => 'inc2', 'value' => 'b']);
+        $id2 = $this->db->lastInsertId();
+
+        self::assertGreaterThan($id1, $id2);
+    }
+
+    // --- Format parameters ---
+
+    #[Test]
+    public function insertWithExplicitFormat(): void
+    {
+        $this->db->insert('wppack_test', [
+            'name' => 'fmt_test',
+            'value' => 'formatted',
+        ], ['%s', '%s']);
+
+        $row = $this->db->fetchAssociative(
+            "SELECT * FROM {$this->db->prefix()}wppack_test WHERE name = %s",
+            ['fmt_test'],
+        );
+
+        self::assertIsArray($row);
+        self::assertSame('formatted', $row['value']);
+    }
+
+    #[Test]
+    public function updateWithFormatAndWhereFormat(): void
+    {
+        $this->db->insert('wppack_test', ['name' => 'fmt_upd', 'value' => 'old']);
+        $id = $this->db->lastInsertId();
+
+        $affected = $this->db->update(
+            'wppack_test',
+            ['value' => 'new'],
+            ['id' => $id],
+            ['%s'],
+            ['%d'],
+        );
+
+        self::assertSame(1, $affected);
+
+        $row = $this->db->fetchAssociative(
+            "SELECT * FROM {$this->db->prefix()}wppack_test WHERE id = %d",
+            [$id],
+        );
+
+        self::assertSame('new', $row['value']);
+    }
+
+    #[Test]
+    public function deleteWithWhereFormat(): void
+    {
+        $this->db->insert('wppack_test', ['name' => 'fmt_del', 'value' => 'gone']);
+        $id = $this->db->lastInsertId();
+
+        $affected = $this->db->delete('wppack_test', ['id' => $id], ['%d']);
+
+        self::assertSame(1, $affected);
+
+        $row = $this->db->fetchAssociative(
+            "SELECT * FROM {$this->db->prefix()}wppack_test WHERE id = %d",
+            [$id],
+        );
+
+        self::assertFalse($row);
+    }
+
+    // --- Empty result edge cases ---
+
+    #[Test]
+    public function fetchAllAssociativeReturnsEmptyArrayForNoResults(): void
+    {
+        $rows = $this->db->fetchAllAssociative(
+            "SELECT * FROM {$this->db->prefix()}wppack_test WHERE name = 'does_not_exist_at_all'",
+        );
+
+        self::assertSame([], $rows);
+    }
+
+    #[Test]
+    public function fetchFirstColumnReturnsEmptyArrayForNoResults(): void
+    {
+        $names = $this->db->fetchFirstColumn(
+            "SELECT name FROM {$this->db->prefix()}wppack_test WHERE name = 'does_not_exist_at_all'",
+        );
+
+        self::assertSame([], $names);
+    }
 }
