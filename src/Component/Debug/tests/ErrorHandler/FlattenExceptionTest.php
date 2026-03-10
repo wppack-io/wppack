@@ -145,6 +145,10 @@ final class FlattenExceptionTest extends TestCase
             self::assertNotNull($targetFrame, 'Could not find throwWithArgs frame in trace');
             $args = $targetFrame['args'];
 
+            if ($args === []) {
+                self::markTestSkipped('Trace args not available (zend.exception_ignore_args may be enabled).');
+            }
+
             self::assertSame('null', $args[0]);
             self::assertSame('true', $args[1]);
             self::assertSame('42', $args[2]);

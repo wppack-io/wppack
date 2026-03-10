@@ -32,6 +32,10 @@ final class EventDataCollectorTest extends TestCase
     #[Test]
     public function collectWithoutWordPressReturnsDefaults(): void
     {
+        if (function_exists('add_action')) {
+            self::markTestSkipped('WordPress hooks are active; firings and counts are non-zero.');
+        }
+
         $this->collector->collect();
         $data = $this->collector->getData();
 

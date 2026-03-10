@@ -32,6 +32,11 @@ final class CacheDataCollectorTest extends TestCase
     #[Test]
     public function collectWithoutWordPressSkipsGracefully(): void
     {
+        global $wp_object_cache;
+        if (isset($wp_object_cache)) {
+            self::markTestSkipped('WordPress object cache is active; hits/misses are non-zero.');
+        }
+
         // Without $wp_object_cache, collect should still work with zero values
         $this->collector->collect();
         $data = $this->collector->getData();

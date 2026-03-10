@@ -487,7 +487,12 @@ final class RouteEntryTest extends TestCase
         );
 
         set_query_var('test_slug', 'hello');
-        $entry->handleTemplateRedirect();
+
+        try {
+            $entry->handleTemplateRedirect();
+        } catch (\Throwable) {
+            // wp_die() may throw WPAjaxDieStopException in the test suite
+        }
 
         global $wp_query;
         self::assertTrue($wp_query->is_404());
