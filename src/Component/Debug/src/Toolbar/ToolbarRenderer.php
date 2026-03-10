@@ -10,6 +10,7 @@ use WpPack\Component\Debug\Profiler\Profile;
 final class ToolbarRenderer
 {
     private const ICONS = [
+        'performance' => "\xF0\x9F\x9A\x80",
         'request' => "\xF0\x9F\x8C\x90",
         'database' => "\xF0\x9F\x92\xBE",
         'memory' => "\xF0\x9F\x93\x8A",
@@ -47,6 +48,11 @@ final class ToolbarRenderer
             $panels .= $this->renderPanel($collector);
         }
 
+        $perfBadge = $this->renderPerformanceBadge($profile);
+        $perfPanel = $this->renderPerformancePanel($profile);
+        $badges = $perfBadge . $badges;
+        $panels = $perfPanel . $panels;
+
         $requestInfo = $this->esc($profile->getMethod()) . ' ' . $this->esc((string) $profile->getStatusCode());
         $totalTime = $this->formatMs($profile->getTime());
 
@@ -57,20 +63,22 @@ final class ToolbarRenderer
         <div id="wppack-debug">
         <style>{$css}</style>
         {$panels}
+        <div class="wpd-mini" title="Show WpPack Debug Toolbar">
+            <span class="wpd-mini-logo">WP</span>
+        </div>
         <div class="wpd-bar">
-            <div class="wpd-bar-inner">
-                <div class="wpd-logo" title="WpPack Debug">
-                    <span class="wpd-logo-text">WP</span>
-                </div>
-                {$badges}
-                <div class="wpd-bar-spacer"></div>
-                <div class="wpd-bar-meta">
-                    <span class="wpd-meta-item">{$requestInfo}</span>
-                    <span class="wpd-meta-sep">|</span>
-                    <span class="wpd-meta-item">{$totalTime}</span>
-                </div>
-                <button class="wpd-toggle-btn" data-action="minimize" title="Minimize toolbar">&#x25BC;</button>
+            <div class="wpd-bar-logo" title="WpPack Debug">
+                <span class="wpd-logo-text">WP</span>
             </div>
+            <div class="wpd-bar-badges">
+                {$badges}
+            </div>
+            <div class="wpd-bar-meta">
+                <span class="wpd-meta-item">{$requestInfo}</span>
+                <span class="wpd-meta-sep">|</span>
+                <span class="wpd-meta-item">{$totalTime}</span>
+            </div>
+            <button class="wpd-close-btn" data-action="minimize" title="Close toolbar">&times;</button>
         </div>
         <script>{$js}</script>
         </div>
@@ -89,7 +97,6 @@ final class ToolbarRenderer
         return <<<HTML
         <button class="wpd-badge" data-panel="{$name}" title="{$label}">
             <span class="wpd-badge-icon">{$icon}</span>
-            <span class="wpd-badge-label">{$label}</span>
             <span class="wpd-badge-value" style="color:{$color}">{$value}</span>
         </button>
         HTML;
@@ -1161,6 +1168,251 @@ final class ToolbarRenderer
         return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     }
 
+    /**
+     * @return array<string, mixed>
+     */
+    private function getCollectorData(Profile $profile, string $name): array
+    {
+        try {
+            return $profile->getCollector($name)->getData();
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    private function renderPerformanceBadge(Profile $profile): string
+    {
+        $totalTime = $profile->getTime();
+        $value = $this->formatMs($totalTime);
+        $icon = self::ICONS['performance'];
+
+        $memoryData = $this->getCollectorData($profile, 'memory');
+        $usagePercentage = (float) ($memoryData['usage_percentage'] ?? 0.0);
+
+        $dbData = $this->getCollectorData($profile, 'database');
+        $slowQueries = (int) ($dbData['slow_count'] ?? 0);
+
+        $color = match (true) {
+            $usagePercentage >= 90, $slowQueries > 0, $totalTime >= 1000 => self::BADGE_COLORS['red'],
+            $totalTime >= 200 => self::BADGE_COLORS['yellow'],
+            default => self::BADGE_COLORS['green'],
+        };
+
+        return <<<HTML
+        <button class="wpd-badge" data-panel="performance" title="Performance">
+            <span class="wpd-badge-icon">{$icon}</span>
+            <span class="wpd-badge-value" style="color:{$color}">{$value}</span>
+        </button>
+        HTML;
+    }
+
+    private function renderPerformancePanel(Profile $profile): string
+    {
+        $icon = self::ICONS['performance'];
+        $content = $this->renderPerformancePanelContent($profile);
+
+        return <<<HTML
+        <div class="wpd-panel" id="wpd-panel-performance" style="display:none">
+            <div class="wpd-panel-header">
+                <span class="wpd-panel-title">{$icon} Performance</span>
+                <button class="wpd-panel-close" data-action="close-panel" title="Close">&times;</button>
+            </div>
+            <div class="wpd-panel-body">
+                {$content}
+            </div>
+        </div>
+        HTML;
+    }
+
+    private function renderPerformancePanelContent(Profile $profile): string
+    {
+        $timeData = $this->getCollectorData($profile, 'time');
+        $memoryData = $this->getCollectorData($profile, 'memory');
+        $dbData = $this->getCollectorData($profile, 'database');
+        $cacheData = $this->getCollectorData($profile, 'cache');
+        $httpData = $this->getCollectorData($profile, 'http_client');
+        $eventData = $this->getCollectorData($profile, 'event');
+
+        $totalTime = (float) ($timeData['total_time'] ?? $profile->getTime());
+        $peakMemory = (int) ($memoryData['peak'] ?? 0);
+        $memoryLimit = (int) ($memoryData['limit'] ?? 0);
+        $usagePercentage = (float) ($memoryData['usage_percentage'] ?? 0.0);
+        $dbCount = (int) ($dbData['total_count'] ?? 0);
+        $dbTime = (float) ($dbData['total_time'] ?? 0.0);
+        $cacheHitRate = (float) ($cacheData['hit_rate'] ?? 0.0);
+        $httpCount = (int) ($httpData['total_count'] ?? 0);
+        $httpTime = (float) ($httpData['total_time'] ?? 0.0);
+        $hookFirings = (int) ($eventData['total_firings'] ?? 0);
+
+        $html = '';
+
+        // Section 1: Overview cards
+        $html .= '<div class="wpd-section">';
+        $html .= '<h4 class="wpd-section-title">Overview</h4>';
+        $html .= '<div class="wpd-perf-cards">';
+
+        $html .= $this->renderPerfCard('Total Time', $this->formatMs($totalTime), '');
+
+        $memorySub = '';
+        if ($memoryLimit > 0) {
+            $memorySub = $this->esc(sprintf('%.0f%%', $usagePercentage)) . ' of ' . $this->formatBytes($memoryLimit);
+        }
+        $html .= $this->renderPerfCard('Peak Memory', $peakMemory > 0 ? $this->formatBytes($peakMemory) : 'N/A', $memorySub);
+
+        $dbSub = $dbCount > 0 ? $this->formatMs($dbTime * 1000) . ' total' : '';
+        $html .= $this->renderPerfCard('Database', $dbCount > 0 ? $this->esc((string) $dbCount) . ' queries' : 'N/A', $dbSub);
+
+        $html .= $this->renderPerfCard('Cache Hit Rate', $cacheData !== [] ? $this->esc(sprintf('%.1f%%', $cacheHitRate)) : 'N/A', '');
+
+        $httpSub = $httpCount > 0 ? $this->formatMs($httpTime * 1000) . ' total' : '';
+        $html .= $this->renderPerfCard('HTTP Client', $httpCount > 0 ? $this->esc((string) $httpCount) . ' requests' : 'N/A', $httpSub);
+
+        $html .= $this->renderPerfCard('Hook Firings', $eventData !== [] ? $this->esc((string) $hookFirings) : 'N/A', '');
+
+        $html .= '</div>';
+        $html .= '</div>';
+
+        // Section 2: Time Distribution
+        if ($totalTime > 0) {
+            $dbTimeMs = $dbTime * 1000;
+            $httpTimeMs = $httpTime * 1000;
+            $phpTime = max(0.0, $totalTime - $dbTimeMs - $httpTimeMs);
+
+            $phpPct = ($phpTime / $totalTime) * 100;
+            $dbPct = ($dbTimeMs / $totalTime) * 100;
+            $httpPct = ($httpTimeMs / $totalTime) * 100;
+
+            $html .= '<div class="wpd-section">';
+            $html .= '<h4 class="wpd-section-title">Time Distribution</h4>';
+
+            $html .= '<div class="wpd-perf-dist-bar">';
+            if ($phpPct > 0) {
+                $html .= '<div class="wpd-perf-dist-segment" style="width:' . $this->esc(sprintf('%.2f', $phpPct)) . '%;background:#89b4fa"></div>';
+            }
+            if ($dbPct > 0) {
+                $html .= '<div class="wpd-perf-dist-segment" style="width:' . $this->esc(sprintf('%.2f', $dbPct)) . '%;background:#f9e2af"></div>';
+            }
+            if ($httpPct > 0) {
+                $html .= '<div class="wpd-perf-dist-segment" style="width:' . $this->esc(sprintf('%.2f', $httpPct)) . '%;background:#cba6f7"></div>';
+            }
+            $html .= '</div>';
+
+            $html .= '<div class="wpd-perf-dist-legend">';
+            $html .= '<span class="wpd-perf-legend-item"><span class="wpd-perf-legend-color" style="background:#89b4fa"></span> PHP ' . $this->formatMs($phpTime) . ' (' . $this->esc(sprintf('%.1f%%', $phpPct)) . ')</span>';
+            $html .= '<span class="wpd-perf-legend-item"><span class="wpd-perf-legend-color" style="background:#f9e2af"></span> Database ' . $this->formatMs($dbTimeMs) . ' (' . $this->esc(sprintf('%.1f%%', $dbPct)) . ')</span>';
+            $html .= '<span class="wpd-perf-legend-item"><span class="wpd-perf-legend-color" style="background:#cba6f7"></span> HTTP Client ' . $this->formatMs($httpTimeMs) . ' (' . $this->esc(sprintf('%.1f%%', $httpPct)) . ')</span>';
+            $html .= '</div>';
+
+            $html .= '</div>';
+        }
+
+        // Section 3: WordPress Lifecycle (waterfall)
+        /** @var array<string, float> $phases */
+        $phases = $timeData['phases'] ?? [];
+        if ($phases !== []) {
+            $html .= '<div class="wpd-section">';
+            $html .= '<h4 class="wpd-section-title">WordPress Lifecycle</h4>';
+            $html .= '<div class="wpd-perf-waterfall">';
+
+            $phaseEntries = [];
+            $previousTime = 0.0;
+            foreach ($phases as $phaseName => $phaseTime) {
+                $phaseEntries[] = [
+                    'name' => $phaseName,
+                    'start' => $previousTime,
+                    'duration' => $phaseTime - $previousTime,
+                ];
+                $previousTime = $phaseTime;
+            }
+
+            foreach ($phaseEntries as $entry) {
+                $left = $totalTime > 0 ? ($entry['start'] / $totalTime) * 100 : 0;
+                $width = $totalTime > 0 ? ($entry['duration'] / $totalTime) * 100 : 0;
+                $width = max($width, 0.3);
+
+                $html .= '<div class="wpd-perf-wf-row">';
+                $html .= '<div class="wpd-perf-wf-label" title="' . $this->esc($entry['name']) . '">' . $this->esc($entry['name']) . '</div>';
+                $html .= '<div class="wpd-perf-wf-track">';
+                $html .= '<div class="wpd-perf-wf-bar" style="left:' . $this->esc(sprintf('%.2f', $left)) . '%;width:' . $this->esc(sprintf('%.2f', $width)) . '%"></div>';
+                $html .= '</div>';
+                $html .= '<div class="wpd-perf-wf-value">' . $this->formatMs($entry['duration']) . '</div>';
+                $html .= '</div>';
+            }
+
+            $html .= '</div>';
+            $html .= '</div>';
+        }
+
+        // Section 4: Stopwatch Events (waterfall)
+        /** @var array<string, array{name: string, category: string, duration: float, memory: int, start_time: float, end_time: float}> $events */
+        $events = $timeData['events'] ?? [];
+        $customEvents = array_filter($events, static fn(array $e): bool => $e['category'] !== 'wp_lifecycle');
+
+        if ($customEvents !== []) {
+            $categoryColors = [
+                'default' => '#74c7ec',
+                'controller' => '#a6e3a1',
+                'template' => '#f9e2af',
+                'security' => '#f38ba8',
+            ];
+
+            $minStart = PHP_FLOAT_MAX;
+            $maxEnd = 0.0;
+            foreach ($customEvents as $event) {
+                $start = (float) $event['start_time'];
+                $end = (float) $event['end_time'];
+                if ($start < $minStart) {
+                    $minStart = $start;
+                }
+                if ($end > $maxEnd) {
+                    $maxEnd = $end;
+                }
+            }
+            $span = $maxEnd - $minStart;
+
+            $html .= '<div class="wpd-section">';
+            $html .= '<h4 class="wpd-section-title">Stopwatch Events</h4>';
+            $html .= '<div class="wpd-perf-waterfall">';
+
+            foreach ($customEvents as $event) {
+                $start = (float) $event['start_time'];
+                $duration = (float) $event['duration'];
+                $category = $event['category'];
+                $color = $categoryColors[$category] ?? $categoryColors['default'];
+
+                $left = $span > 0 ? (($start - $minStart) / $span) * 100 : 0;
+                $width = $span > 0 ? ($duration / $span) * 100 : 100;
+                $width = max($width, 0.3);
+
+                $html .= '<div class="wpd-perf-wf-row">';
+                $html .= '<div class="wpd-perf-wf-label" title="' . $this->esc($event['name']) . '">' . $this->esc($event['name']) . '</div>';
+                $html .= '<div class="wpd-perf-wf-track">';
+                $html .= '<div class="wpd-perf-wf-bar" style="left:' . $this->esc(sprintf('%.2f', $left)) . '%;width:' . $this->esc(sprintf('%.2f', $width)) . '%;background:' . $this->esc($color) . '"></div>';
+                $html .= '</div>';
+                $html .= '<div class="wpd-perf-wf-value">' . $this->formatMs($duration) . '</div>';
+                $html .= '</div>';
+            }
+
+            $html .= '</div>';
+            $html .= '</div>';
+        }
+
+        return $html;
+    }
+
+    private function renderPerfCard(string $label, string $value, string $sub): string
+    {
+        $html = '<div class="wpd-perf-card">';
+        $html .= '<div class="wpd-perf-card-value">' . $value . '</div>';
+        $html .= '<div class="wpd-perf-card-label">' . $this->esc($label) . '</div>';
+        if ($sub !== '') {
+            $html .= '<div class="wpd-perf-card-sub">' . $sub . '</div>';
+        }
+        $html .= '</div>';
+
+        return $html;
+    }
+
     private function renderCss(): string
     {
         return <<<'CSS'
@@ -1185,36 +1437,24 @@ final class ToolbarRenderer
 
         /* ---- Summary bar ---- */
         #wppack-debug .wpd-bar {
+            display: flex;
+            align-items: center;
             background: #1e1e2e;
             border-top: 1px solid #313244;
             height: 36px;
             width: 100%;
         }
-        #wppack-debug .wpd-bar-inner {
-            display: flex;
-            align-items: center;
-            height: 100%;
-            padding: 0 8px;
-            gap: 2px;
-            overflow-x: auto;
-            overflow-y: hidden;
-            scrollbar-width: none;
-        }
-        #wppack-debug .wpd-bar-inner::-webkit-scrollbar {
-            display: none;
-        }
 
-        /* ---- Logo ---- */
-        #wppack-debug .wpd-logo {
+        /* ---- Logo (fixed left, does not scroll) ---- */
+        #wppack-debug .wpd-bar-logo {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 32px;
-            height: 24px;
+            width: 36px;
+            height: 36px;
             background: linear-gradient(135deg, #89b4fa, #cba6f7);
-            border-radius: 4px;
             flex-shrink: 0;
-            margin-right: 6px;
+            cursor: default;
         }
         #wppack-debug .wpd-logo-text {
             font-size: 10px;
@@ -1223,23 +1463,41 @@ final class ToolbarRenderer
             letter-spacing: -0.5px;
         }
 
+        /* ---- Badges container ---- */
+        #wppack-debug .wpd-bar-badges {
+            display: flex;
+            align-items: center;
+            height: 100%;
+            flex: 1 1 auto;
+            min-width: 0;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scrollbar-width: none;
+        }
+        #wppack-debug .wpd-bar-badges::-webkit-scrollbar {
+            display: none;
+        }
+
         /* ---- Badges ---- */
         #wppack-debug .wpd-badge {
             display: flex;
             align-items: center;
-            gap: 5px;
-            padding: 3px 10px;
+            gap: 4px;
+            padding: 0 10px;
             background: transparent;
             border: none;
-            border-radius: 4px;
+            border-right: 1px solid #313244;
             color: #cdd6f4;
             cursor: pointer;
             font-family: inherit;
             font-size: 12px;
             white-space: nowrap;
             flex-shrink: 0;
-            height: 28px;
+            height: 100%;
             transition: background 0.15s ease;
+        }
+        #wppack-debug .wpd-badge:last-child {
+            border-right: none;
         }
         #wppack-debug .wpd-badge:hover {
             background: #313244;
@@ -1252,27 +1510,21 @@ final class ToolbarRenderer
             font-size: 14px;
             line-height: 1;
         }
-        #wppack-debug .wpd-badge-label {
-            font-size: 11px;
-            color: #a6adc8;
-        }
         #wppack-debug .wpd-badge-value {
             font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
             font-size: 12px;
             font-weight: 600;
         }
 
-        /* ---- Bar spacer & meta ---- */
-        #wppack-debug .wpd-bar-spacer {
-            flex: 1 1 auto;
-            min-width: 8px;
-        }
+        /* ---- Bar meta ---- */
         #wppack-debug .wpd-bar-meta {
             display: flex;
             align-items: center;
             gap: 6px;
             flex-shrink: 0;
-            margin-right: 4px;
+            padding: 0 10px;
+            height: 100%;
+            border-left: 1px solid #313244;
         }
         #wppack-debug .wpd-meta-item {
             font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
@@ -1284,32 +1536,62 @@ final class ToolbarRenderer
             font-size: 11px;
         }
 
-        /* ---- Toggle button ---- */
-        #wppack-debug .wpd-toggle-btn {
+        /* ---- Close button ---- */
+        #wppack-debug .wpd-close-btn {
             background: transparent;
             border: none;
+            border-left: 1px solid #313244;
             color: #6c7086;
             cursor: pointer;
-            font-size: 12px;
-            padding: 4px 6px;
-            border-radius: 3px;
+            font-size: 16px;
+            padding: 0 10px;
+            height: 100%;
             flex-shrink: 0;
+            line-height: 1;
             transition: color 0.15s ease, background 0.15s ease;
         }
-        #wppack-debug .wpd-toggle-btn:hover {
-            color: #cdd6f4;
+        #wppack-debug .wpd-close-btn:hover {
+            color: #f38ba8;
             background: #313244;
         }
 
+        /* ---- Minimized state button ---- */
+        #wppack-debug .wpd-mini {
+            display: none;
+            position: fixed;
+            bottom: 6px;
+            right: 6px;
+            z-index: 99999;
+            width: 36px;
+            height: 36px;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #89b4fa, #cba6f7);
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        #wppack-debug .wpd-mini:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+        #wppack-debug .wpd-mini-logo {
+            font-size: 10px;
+            font-weight: 800;
+            color: #1e1e2e;
+            letter-spacing: -0.5px;
+        }
+
         /* ---- Minimized state ---- */
-        #wppack-debug.wpd-minimized .wpd-bar-inner > *:not(.wpd-logo):not(.wpd-toggle-btn) {
+        #wppack-debug.wpd-minimized .wpd-bar {
             display: none;
         }
-        #wppack-debug.wpd-minimized .wpd-bar {
-            height: 28px;
+        #wppack-debug.wpd-minimized .wpd-panel {
+            display: none !important;
         }
-        #wppack-debug.wpd-minimized .wpd-logo {
-            margin-right: 0;
+        #wppack-debug.wpd-minimized .wpd-mini {
+            display: flex;
         }
 
         /* ---- Panels ---- */
@@ -1615,6 +1897,119 @@ final class ToolbarRenderer
             font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
             font-size: 12px;
         }
+
+        /* ---- Performance cards ---- */
+        #wppack-debug .wpd-perf-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        #wppack-debug .wpd-perf-card {
+            background: #181825;
+            border: 1px solid #313244;
+            border-radius: 6px;
+            padding: 12px;
+            text-align: center;
+        }
+        #wppack-debug .wpd-perf-card-value {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            font-size: 18px;
+            font-weight: 700;
+            color: #cdd6f4;
+        }
+        #wppack-debug .wpd-perf-card-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #a6adc8;
+            letter-spacing: 0.3px;
+            margin-top: 4px;
+        }
+        #wppack-debug .wpd-perf-card-sub {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            font-size: 11px;
+            color: #6c7086;
+            margin-top: 2px;
+        }
+
+        /* ---- Time Distribution ---- */
+        #wppack-debug .wpd-perf-dist-bar {
+            display: flex;
+            height: 20px;
+            background: #262637;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        #wppack-debug .wpd-perf-dist-segment {
+            min-width: 2px;
+        }
+        #wppack-debug .wpd-perf-dist-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-top: 8px;
+        }
+        #wppack-debug .wpd-perf-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            font-size: 12px;
+            color: #a6adc8;
+        }
+        #wppack-debug .wpd-perf-legend-color {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        /* ---- Waterfall ---- */
+        #wppack-debug .wpd-perf-waterfall {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        #wppack-debug .wpd-perf-wf-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        #wppack-debug .wpd-perf-wf-label {
+            width: 180px;
+            flex-shrink: 0;
+            text-align: right;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            font-size: 12px;
+            color: #a6adc8;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        #wppack-debug .wpd-perf-wf-track {
+            flex: 1;
+            height: 16px;
+            position: relative;
+            background: #262637;
+            border-radius: 3px;
+        }
+        #wppack-debug .wpd-perf-wf-bar {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            background: linear-gradient(90deg, #89b4fa, #cba6f7);
+            border-radius: 3px;
+            min-width: 2px;
+        }
+        #wppack-debug .wpd-perf-wf-value {
+            width: 80px;
+            flex-shrink: 0;
+            text-align: right;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            font-size: 11px;
+            color: #6c7086;
+            white-space: nowrap;
+        }
         CSS;
     }
 
@@ -1650,8 +2045,15 @@ final class ToolbarRenderer
                 }
             }
 
-            // Badge click handlers
             root.addEventListener('click', function(e) {
+                // Mini button — restore toolbar
+                var miniBtn = e.target.closest('.wpd-mini');
+                if (miniBtn) {
+                    root.classList.remove('wpd-minimized');
+                    return;
+                }
+
+                // Badge click — toggle panel
                 var badge = e.target.closest('.wpd-badge');
                 if (badge) {
                     var panel = badge.getAttribute('data-panel');
@@ -1663,21 +2065,18 @@ final class ToolbarRenderer
                     return;
                 }
 
-                // Close button
+                // Close button in panel header
                 var closeBtn = e.target.closest('[data-action="close-panel"]');
                 if (closeBtn) {
                     closeAllPanels();
                     return;
                 }
 
-                // Toggle (minimize/restore)
-                var toggleBtn = e.target.closest('[data-action="minimize"]');
-                if (toggleBtn) {
+                // Close/minimize toolbar
+                var minimizeBtn = e.target.closest('[data-action="minimize"]');
+                if (minimizeBtn) {
                     closeAllPanels();
-                    root.classList.toggle('wpd-minimized');
-                    var isMinimized = root.classList.contains('wpd-minimized');
-                    toggleBtn.innerHTML = isMinimized ? '&#x25B2;' : '&#x25BC;';
-                    toggleBtn.title = isMinimized ? 'Restore toolbar' : 'Minimize toolbar';
+                    root.classList.add('wpd-minimized');
                 }
             });
 

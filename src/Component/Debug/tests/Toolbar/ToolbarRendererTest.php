@@ -126,6 +126,74 @@ final class ToolbarRendererTest extends TestCase
         self::assertStringContainsString('id="wpd-panel-wordpress"', $html);
     }
 
+    #[Test]
+    public function renderOutputContainsPerformanceBadge(): void
+    {
+        $profile = $this->createProfileWithCollectors();
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('data-panel="performance"', $html);
+    }
+
+    #[Test]
+    public function renderOutputContainsPerformancePanel(): void
+    {
+        $profile = $this->createProfileWithCollectors();
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('id="wpd-panel-performance"', $html);
+    }
+
+    #[Test]
+    public function renderPerformancePanelShowsOverviewCards(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('time', 'Time', '198 ms', 'green', [
+            'total_time' => 198.0,
+            'phases' => ['muplugins_loaded' => 20.0, 'plugins_loaded' => 45.0, 'init' => 80.0, 'wp_loaded' => 120.0, 'template_redirect' => 198.0],
+            'events' => [],
+        ]));
+        $profile->addCollector($this->createCollector('memory', 'Memory', '42.5 MB', 'yellow', [
+            'peak' => 44564480,
+            'limit' => 268435456,
+            'usage_percentage' => 16.6,
+        ]));
+        $profile->addCollector($this->createCollector('database', 'Database', '24', 'default', [
+            'total_count' => 24,
+            'total_time' => 0.035,
+            'queries' => [],
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('Total Time', $html);
+        self::assertStringContainsString('Peak Memory', $html);
+        self::assertStringContainsString('Database', $html);
+        self::assertStringContainsString('24 queries', $html);
+        self::assertStringContainsString('Cache Hit Rate', $html);
+        self::assertStringContainsString('HTTP Client', $html);
+        self::assertStringContainsString('Hook Firings', $html);
+    }
+
+    #[Test]
+    public function renderPerformancePanelHandlesMissingCollectors(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('time', 'Time', '50 ms', 'green', [
+            'total_time' => 50.0,
+            'phases' => [],
+            'events' => [],
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('id="wpd-panel-performance"', $html);
+        self::assertStringContainsString('Total Time', $html);
+        self::assertStringContainsString('N/A', $html);
+    }
+
     private function createProfileWithCollectors(): Profile
     {
         $profile = new Profile('test-token');
