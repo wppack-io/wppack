@@ -9,7 +9,7 @@ use WpPack\Component\Debug\Attribute\AsDataCollector;
 #[AsDataCollector(name: 'mail', priority: 75)]
 final class MailDataCollector extends AbstractDataCollector
 {
-    /** @var list<array{to: string|list<string>, subject: string, headers: string|list<string>, message: string, attachments: list<string>, status: string, error: string}> */
+    /** @var list<array{to: string|list<string>, subject: string, headers: string|list<string>, message: string, attachments: list<string>, status: string, error: string, from: string, cc: list<string>, bcc: list<string>, reply_to: string, content_type: string, charset: string, attachment_details: list<array{filename: string, size: int}>}> */
     private array $emails = [];
 
     public function __construct()
@@ -35,6 +35,9 @@ final class MailDataCollector extends AbstractDataCollector
      */
     public function captureMailAttempt(array $args): array
     {
+        $parsedHeaders = $this->parseHeaders($args['headers']);
+        $attachmentDetails = $this->getAttachmentDetails($args['attachments']);
+
         $this->emails[] = [
             'to' => $args['to'],
             'subject' => $args['subject'],
@@ -43,6 +46,13 @@ final class MailDataCollector extends AbstractDataCollector
             'attachments' => $args['attachments'],
             'status' => 'pending',
             'error' => '',
+            'from' => $parsedHeaders['from'],
+            'cc' => $parsedHeaders['cc'],
+            'bcc' => $parsedHeaders['bcc'],
+            'reply_to' => $parsedHeaders['reply_to'],
+            'content_type' => $parsedHeaders['content_type'],
+            'charset' => $parsedHeaders['charset'],
+            'attachment_details' => $attachmentDetails,
         ];
 
         return $args;
@@ -92,7 +102,7 @@ final class MailDataCollector extends AbstractDataCollector
         foreach ($this->emails as $email) {
             $masked = $email;
             $masked['to'] = $this->maskRecipients($email['to']);
-            $masked['message'] = mb_substr($email['message'], 0, 500);
+            $masked['message'] = mb_substr($email['message'], 0, 2000);
 
             $emails[] = $masked;
 
@@ -151,6 +161,88 @@ final class MailDataCollector extends AbstractDataCollector
             add_action('wp_mail_succeeded', [$this, 'captureMailSuccess'], 10, 1);
             add_action('wp_mail_failed', [$this, 'captureMailFailure'], 10, 1);
         }
+    }
+
+    /**
+     * Parse email headers to extract structured data.
+     *
+     * @param string|list<string> $headers
+     * @return array{from: string, cc: list<string>, bcc: list<string>, reply_to: string, content_type: string, charset: string}
+     */
+    private function parseHeaders(string|array $headers): array
+    {
+        $result = [
+            'from' => '',
+            'cc' => [],
+            'bcc' => [],
+            'reply_to' => '',
+            'content_type' => '',
+            'charset' => '',
+        ];
+
+        $headerLines = is_array($headers) ? $headers : explode("\n", $headers);
+
+        foreach ($headerLines as $header) {
+            $header = trim((string) $header);
+            if ($header === '') {
+                continue;
+            }
+
+            $colonPos = strpos($header, ':');
+            if ($colonPos === false) {
+                continue;
+            }
+
+            $name = strtolower(trim(substr($header, 0, $colonPos)));
+            $value = trim(substr($header, $colonPos + 1));
+
+            match ($name) {
+                'from' => $result['from'] = $value,
+                'cc' => $result['cc'][] = $value,
+                'bcc' => $result['bcc'][] = $value,
+                'reply-to' => $result['reply_to'] = $value,
+                'content-type' => $this->parseContentType($value, $result),
+                default => null,
+            };
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param array{from: string, cc: list<string>, bcc: list<string>, reply_to: string, content_type: string, charset: string} $result
+     */
+    private function parseContentType(string $value, array &$result): void
+    {
+        $parts = explode(';', $value);
+        $result['content_type'] = trim($parts[0]);
+
+        foreach ($parts as $part) {
+            $part = trim($part);
+            if (stripos($part, 'charset=') === 0) {
+                $result['charset'] = trim(substr($part, 8), '"\'');
+            }
+        }
+    }
+
+    /**
+     * Get details for each attachment file.
+     *
+     * @param list<string> $attachments
+     * @return list<array{filename: string, size: int}>
+     */
+    private function getAttachmentDetails(array $attachments): array
+    {
+        $details = [];
+
+        foreach ($attachments as $path) {
+            $details[] = [
+                'filename' => basename($path),
+                'size' => file_exists($path) ? (int) filesize($path) : 0,
+            ];
+        }
+
+        return $details;
     }
 
     /**

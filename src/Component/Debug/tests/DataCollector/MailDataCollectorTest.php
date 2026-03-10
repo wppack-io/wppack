@@ -200,7 +200,7 @@ final class MailDataCollectorTest extends TestCase
     #[Test]
     public function collectTruncatesMessageBody(): void
     {
-        $longMessage = str_repeat('x', 1000);
+        $longMessage = str_repeat('x', 3000);
 
         $args = [
             'to' => 'long@example.com',
@@ -214,7 +214,80 @@ final class MailDataCollectorTest extends TestCase
         $this->collector->collect();
         $data = $this->collector->getData();
 
-        self::assertSame(500, mb_strlen($data['emails'][0]['message']));
+        self::assertSame(2000, mb_strlen($data['emails'][0]['message']));
+    }
+
+    #[Test]
+    public function captureMailAttemptParsesHeaders(): void
+    {
+        $args = [
+            'to' => 'user@example.com',
+            'subject' => 'Test',
+            'message' => 'Body',
+            'headers' => "From: sender@example.com\nCc: cc1@example.com\nBcc: bcc1@example.com\nReply-To: reply@example.com\nContent-Type: text/html; charset=UTF-8",
+            'attachments' => [],
+        ];
+
+        $this->collector->captureMailAttempt($args);
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        $email = $data['emails'][0];
+        self::assertSame('sender@example.com', $email['from']);
+        self::assertSame(['cc1@example.com'], $email['cc']);
+        self::assertSame(['bcc1@example.com'], $email['bcc']);
+        self::assertSame('reply@example.com', $email['reply_to']);
+        self::assertSame('text/html', $email['content_type']);
+        self::assertSame('UTF-8', $email['charset']);
+    }
+
+    #[Test]
+    public function captureMailAttemptParsesArrayHeaders(): void
+    {
+        $args = [
+            'to' => 'user@example.com',
+            'subject' => 'Test',
+            'message' => 'Body',
+            'headers' => ['From: sender@example.com', 'Cc: cc1@example.com'],
+            'attachments' => [],
+        ];
+
+        $this->collector->captureMailAttempt($args);
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        $email = $data['emails'][0];
+        self::assertSame('sender@example.com', $email['from']);
+        self::assertSame(['cc1@example.com'], $email['cc']);
+    }
+
+    #[Test]
+    public function captureMailAttemptCollectsAttachmentDetails(): void
+    {
+        $tempFile = tempnam(sys_get_temp_dir(), 'wpd_test_');
+        self::assertNotFalse($tempFile);
+        file_put_contents($tempFile, 'test content');
+
+        try {
+            $args = [
+                'to' => 'user@example.com',
+                'subject' => 'With attachment',
+                'message' => 'See attached',
+                'headers' => '',
+                'attachments' => [$tempFile],
+            ];
+
+            $this->collector->captureMailAttempt($args);
+            $this->collector->collect();
+            $data = $this->collector->getData();
+
+            $email = $data['emails'][0];
+            self::assertCount(1, $email['attachment_details']);
+            self::assertSame(basename($tempFile), $email['attachment_details'][0]['filename']);
+            self::assertSame(12, $email['attachment_details'][0]['size']); // "test content" = 12 bytes
+        } finally {
+            @unlink($tempFile);
+        }
     }
 
     #[Test]
