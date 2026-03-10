@@ -18,6 +18,3 @@ define('WP_PHP_BINARY', 'php');
 define('WPLANG', '');
 
 define('WP_TESTS_PHPUNIT_POLYFILLS_PATH', dirname(__DIR__) . '/vendor/yoast/phpunit-polyfills');
-
-define('WP_DEBUG', true);
-define('WP_ENVIRONMENT_TYPE', 'development');

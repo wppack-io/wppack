@@ -79,12 +79,8 @@ final class ExceptionHandlerTest extends TestCase
     {
         $config = new DebugConfig(enabled: true);
 
-        if (!$config->isEnabled()) {
-            self::markTestSkipped('Debug is not enabled in this environment (WP_DEBUG=false or production).');
-        }
-
-        if (function_exists('current_user_can') && !current_user_can('administrator')) {
-            self::markTestSkipped('No administrator user is logged in; role check fails.');
+        if (!$config->isAccessAllowed()) {
+            self::markTestSkipped('isAccessAllowed() is false in this environment.');
         }
 
         $handler = new ExceptionHandler(new ErrorRenderer(), $config);
@@ -106,12 +102,8 @@ final class ExceptionHandlerTest extends TestCase
     {
         $config = new DebugConfig(enabled: true);
 
-        if (!$config->isEnabled()) {
-            self::markTestSkipped('Debug is not enabled in this environment (WP_DEBUG=false or production).');
-        }
-
-        if (function_exists('current_user_can') && !current_user_can('administrator')) {
-            self::markTestSkipped('No administrator user is logged in; role check fails.');
+        if (!$config->isAccessAllowed()) {
+            self::markTestSkipped('isAccessAllowed() is false in this environment.');
         }
 
         $handler = new ExceptionHandler(new ErrorRenderer(), $config);
@@ -174,17 +166,12 @@ final class ExceptionHandlerTest extends TestCase
     #[Test]
     public function handleExceptionRendersWhenIpIsAllowed(): void
     {
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
         $config = new DebugConfig(enabled: true, ipWhitelist: ['127.0.0.1']);
 
-        if (!$config->isEnabled()) {
-            self::markTestSkipped('Debug is not enabled in this environment (WP_DEBUG=false or production).');
+        if (!$config->isAccessAllowed()) {
+            self::markTestSkipped('isAccessAllowed() is false in this environment.');
         }
-
-        if (function_exists('current_user_can') && !current_user_can('administrator')) {
-            self::markTestSkipped('No administrator user is logged in; role check fails.');
-        }
-
-        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
 
         $handler = new ExceptionHandler(new ErrorRenderer(), $config);
 
