@@ -6,7 +6,7 @@ namespace WpPack\Component\Query\Wql;
 
 final class ExpressionParser
 {
-    private const PREFIX_MAP = [
+    private const DEFAULT_PREFIX_MAP = [
         'm' => 'meta',
         'meta' => 'meta',
         't' => 'tax',
@@ -23,6 +23,17 @@ final class ExpressionParser
         'REGEXP', 'NOT REGEXP',
         'AND',
     ];
+
+    /** @var array<string, string> */
+    private readonly array $prefixMap;
+
+    /**
+     * @param array<string, string>|null $prefixMap Custom prefix map. Defaults to meta/tax prefixes.
+     */
+    public function __construct(?array $prefixMap = null)
+    {
+        $this->prefixMap = $prefixMap ?? self::DEFAULT_PREFIX_MAP;
+    }
 
     /**
      * Parse an expression string into a ParsedExpression value object.
@@ -52,9 +63,10 @@ final class ExpressionParser
         $hint = $matches[3] !== '' ? $matches[3] : null;
         $remainder = trim($matches[4]);
 
-        $prefix = self::PREFIX_MAP[$rawPrefix] ?? null;
+        $prefix = $this->prefixMap[$rawPrefix] ?? null;
         if ($prefix === null) {
-            throw new \InvalidArgumentException(sprintf('Unknown prefix "%s". Allowed: m, meta, t, tax, taxonomy.', $rawPrefix));
+            $allowed = implode(', ', array_unique(array_keys($this->prefixMap)));
+            throw new \InvalidArgumentException(sprintf('Unknown prefix "%s". Allowed: %s.', $rawPrefix, $allowed));
         }
 
         // Parse operator and optional placeholder from remainder

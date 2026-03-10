@@ -18,7 +18,7 @@ final class QueryFactory
         $builder = new PostQueryBuilder();
 
         if ($postType !== null) {
-            $builder->type($postType);
+            $builder->arg('post_type', $postType);
         }
 
         return $builder;
@@ -37,7 +37,7 @@ final class QueryFactory
         $builder = new TermQueryBuilder();
 
         if ($taxonomy !== null) {
-            $builder->taxonomy($taxonomy);
+            $builder->arg('taxonomy', $taxonomy);
         }
 
         return $builder;

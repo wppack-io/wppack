@@ -8,64 +8,167 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Query\Builder\PostQueryBuilder;
 use WpPack\Component\Query\Condition\ConditionGroup;
-use WpPack\Component\Query\Enum\MetaType;
 use WpPack\Component\Query\Enum\Order;
 use WpPack\Component\Query\Enum\PostStatus;
 
 final class PostQueryBuilderTest extends TestCase
 {
+    // ── Standard field conditions via where() ──
+
     #[Test]
-    public function typeSetsSinglePostType(): void
+    public function wherePostTypeEquals(): void
     {
         $builder = new PostQueryBuilder();
-        $args = $builder->type('product')->toArray();
+        $args = $builder
+            ->where('p.type = :type')
+            ->setParameter('type', 'product')
+            ->toArray();
 
         self::assertSame('product', $args['post_type']);
     }
 
     #[Test]
-    public function typeOverwritesPreviousValue(): void
+    public function wherePostTypeIn(): void
     {
         $builder = new PostQueryBuilder();
-        $args = $builder->type('post')->type('product')->toArray();
-
-        self::assertSame('product', $args['post_type']);
-    }
-
-    #[Test]
-    public function typeSetsArrayOfPostTypes(): void
-    {
-        $builder = new PostQueryBuilder();
-        $args = $builder->type(['post', 'page'])->toArray();
+        $args = $builder
+            ->where('p.type IN :types')
+            ->setParameter('types', ['post', 'page'])
+            ->toArray();
 
         self::assertSame(['post', 'page'], $args['post_type']);
     }
 
     #[Test]
-    public function statusSetsWithEnum(): void
+    public function wherePostTypeWithLongPrefix(): void
     {
         $builder = new PostQueryBuilder();
-        $args = $builder->status(PostStatus::Publish)->toArray();
+        $args = $builder
+            ->where('post.type = :type')
+            ->setParameter('type', 'product')
+            ->toArray();
+
+        self::assertSame('product', $args['post_type']);
+    }
+
+    #[Test]
+    public function wherePostStatusEquals(): void
+    {
+        $builder = new PostQueryBuilder();
+        $args = $builder
+            ->where('p.status = :status')
+            ->setParameter('status', 'publish')
+            ->toArray();
 
         self::assertSame('publish', $args['post_status']);
     }
 
     #[Test]
-    public function statusSetsWithString(): void
+    public function wherePostStatusIn(): void
     {
         $builder = new PostQueryBuilder();
-        $args = $builder->status('draft')->toArray();
+        $args = $builder
+            ->where('p.status IN :statuses')
+            ->setParameter('statuses', ['publish', 'draft'])
+            ->toArray();
 
-        self::assertSame('draft', $args['post_status']);
+        self::assertSame(['publish', 'draft'], $args['post_status']);
     }
 
     #[Test]
-    public function statusSetsArrayOfStatuses(): void
+    public function whereAuthorEquals(): void
     {
         $builder = new PostQueryBuilder();
-        $args = $builder->status([PostStatus::Publish, PostStatus::Draft])->toArray();
+        $args = $builder
+            ->where('p.author = :author')
+            ->setParameter('author', 5)
+            ->toArray();
 
-        self::assertSame(['publish', 'draft'], $args['post_status']);
+        self::assertSame(5, $args['author']);
+    }
+
+    #[Test]
+    public function whereAuthorIn(): void
+    {
+        $builder = new PostQueryBuilder();
+        $args = $builder
+            ->where('p.author IN :authors')
+            ->setParameter('authors', [5, 10])
+            ->toArray();
+
+        self::assertSame([5, 10], $args['author__in']);
+    }
+
+    #[Test]
+    public function whereAuthorNotIn(): void
+    {
+        $builder = new PostQueryBuilder();
+        $args = $builder
+            ->where('p.author NOT IN :authors')
+            ->setParameter('authors', [3, 7])
+            ->toArray();
+
+        self::assertSame([3, 7], $args['author__not_in']);
+    }
+
+    #[Test]
+    public function whereIdEquals(): void
+    {
+        $builder = new PostQueryBuilder();
+        $args = $builder
+            ->where('p.id = :id')
+            ->setParameter('id', 42)
+            ->toArray();
+
+        self::assertSame(42, $args['p']);
+    }
+
+    #[Test]
+    public function whereIdIn(): void
+    {
+        $builder = new PostQueryBuilder();
+        $args = $builder
+            ->where('p.id IN :ids')
+            ->setParameter('ids', [1, 2, 3])
+            ->toArray();
+
+        self::assertSame([1, 2, 3], $args['post__in']);
+    }
+
+    #[Test]
+    public function whereIdNotIn(): void
+    {
+        $builder = new PostQueryBuilder();
+        $args = $builder
+            ->where('p.id NOT IN :ids')
+            ->setParameter('ids', [99])
+            ->toArray();
+
+        self::assertSame([99], $args['post__not_in']);
+    }
+
+    #[Test]
+    public function whereParentEquals(): void
+    {
+        $builder = new PostQueryBuilder();
+        $args = $builder
+            ->where('p.parent = :parent')
+            ->setParameter('parent', 10)
+            ->toArray();
+
+        self::assertSame(10, $args['post_parent']);
+    }
+
+    #[Test]
+    public function whereParentIn(): void
+    {
+        $builder = new PostQueryBuilder();
+        $args = $builder
+            ->where('p.parent IN :parents')
+            ->setParameter('parents', [10, 20])
+            ->toArray();
+
+        self::assertSame([10, 20], $args['post_parent__in']);
     }
 
     // ── Meta conditions ──
@@ -305,80 +408,43 @@ final class PostQueryBuilderTest extends TestCase
         self::assertSame('category', $args['tax_query'][0]['taxonomy']);
     }
 
-    // ── Author ──
+    // ── Mixed standard fields and meta/tax ──
 
     #[Test]
-    public function authorSetsSingleAuthor(): void
+    public function standardFieldsAndMetaConditions(): void
     {
         $builder = new PostQueryBuilder();
-        $args = $builder->author(5)->toArray();
+        $args = $builder
+            ->where('p.type = :type')
+            ->andWhere('p.status = :status')
+            ->andWhere('m.featured = :feat')
+            ->andWhere('t.category:slug IN :cats')
+            ->setParameter('type', 'product')
+            ->setParameter('status', 'publish')
+            ->setParameter('feat', true)
+            ->setParameter('cats', ['electronics'])
+            ->toArray();
 
-        self::assertSame(5, $args['author']);
+        self::assertSame('product', $args['post_type']);
+        self::assertSame('publish', $args['post_status']);
+        self::assertArrayHasKey('meta_query', $args);
+        self::assertArrayHasKey('tax_query', $args);
     }
 
-    #[Test]
-    public function authorSetsArrayOfAuthors(): void
-    {
-        $builder = new PostQueryBuilder();
-        $args = $builder->author([5, 10])->toArray();
-
-        self::assertSame([5, 10], $args['author__in']);
-    }
+    // ── setParameters (batch) ──
 
     #[Test]
-    public function authorNotInSetsExclusion(): void
+    public function setParametersBatch(): void
     {
         $builder = new PostQueryBuilder();
-        $args = $builder->authorNotIn([3, 7])->toArray();
+        $args = $builder
+            ->where('p.type = :type')
+            ->andWhere('p.status = :status')
+            ->setParameters(['type' => 'product', 'status' => 'publish'])
+            ->toArray();
 
-        self::assertSame([3, 7], $args['author__not_in']);
-    }
-
-    // ── Post identification ──
-
-    #[Test]
-    public function idSetsSinglePostId(): void
-    {
-        $builder = new PostQueryBuilder();
-        $args = $builder->id(42)->toArray();
-
-        self::assertSame(42, $args['p']);
-    }
-
-    #[Test]
-    public function idSetsArrayOfPostIds(): void
-    {
-        $builder = new PostQueryBuilder();
-        $args = $builder->id([1, 2, 3])->toArray();
-
-        self::assertSame([1, 2, 3], $args['post__in']);
-    }
-
-    #[Test]
-    public function notInSetsExcludedPostIds(): void
-    {
-        $builder = new PostQueryBuilder();
-        $args = $builder->notIn([99])->toArray();
-
-        self::assertSame([99], $args['post__not_in']);
-    }
-
-    #[Test]
-    public function parentSetsPostParent(): void
-    {
-        $builder = new PostQueryBuilder();
-        $args = $builder->parent(10)->toArray();
-
-        self::assertSame(10, $args['post_parent']);
-    }
-
-    #[Test]
-    public function parentInSetsPostParentIn(): void
-    {
-        $builder = new PostQueryBuilder();
-        $args = $builder->parentIn([10, 20])->toArray();
-
-        self::assertSame([10, 20], $args['post_parent__in']);
+        self::assertSame('product', $args['post_type']);
+        self::assertSame('publish', $args['post_status']);
     }
 
     // ── Search ──
@@ -392,33 +458,34 @@ final class PostQueryBuilderTest extends TestCase
         self::assertSame('keyword', $args['s']);
     }
 
-    // ── Pagination ──
+    // ── Pagination (Doctrine naming) ──
 
     #[Test]
-    public function limitSetsPostsPerPage(): void
+    public function setMaxResultsSetsPostsPerPage(): void
     {
         $builder = new PostQueryBuilder();
-        $args = $builder->limit(10)->toArray();
+        $args = $builder->setMaxResults(10)->toArray();
 
         self::assertSame(10, $args['posts_per_page']);
     }
 
     #[Test]
-    public function pageSetsPaged(): void
+    public function setFirstResultSetsOffset(): void
     {
         $builder = new PostQueryBuilder();
-        $args = $builder->page(2)->toArray();
+        $args = $builder->setFirstResult(5)->toArray();
 
-        self::assertSame(2, $args['paged']);
+        self::assertSame(5, $args['offset']);
     }
 
     #[Test]
-    public function offsetSetsOffset(): void
+    public function setMaxResultsAndSetFirstResultCombine(): void
     {
         $builder = new PostQueryBuilder();
-        $args = $builder->offset(5)->toArray();
+        $args = $builder->setMaxResults(10)->setFirstResult(20)->toArray();
 
-        self::assertSame(5, $args['offset']);
+        self::assertSame(10, $args['posts_per_page']);
+        self::assertSame(20, $args['offset']);
     }
 
     // ── Ordering ──
@@ -452,25 +519,125 @@ final class PostQueryBuilderTest extends TestCase
         self::assertSame('ASC', $args['order']);
     }
 
+    // ── WQL ORDER BY ──
+
     #[Test]
-    public function orderByMetaSetsMetaKeyAndOrderBy(): void
+    public function orderByWqlSingleField(): void
     {
         $builder = new PostQueryBuilder();
-        $args = $builder->orderByMeta('price', Order::Asc)->toArray();
+        $args = $builder->orderBy('p.date', Order::Desc)->toArray();
 
-        self::assertSame('price', $args['meta_key']);
-        self::assertSame('meta_value', $args['orderby']);
-        self::assertSame('ASC', $args['order']);
+        self::assertSame('date', $args['orderby']);
+        self::assertSame('DESC', $args['order']);
     }
 
     #[Test]
-    public function orderByMetaWithNumericType(): void
+    public function orderByWqlSingleFieldWithoutPrefix(): void
     {
         $builder = new PostQueryBuilder();
-        $args = $builder->orderByMeta('price', Order::Asc, MetaType::Numeric)->toArray();
+        $args = $builder->orderBy('date', Order::Desc)->toArray();
 
+        self::assertSame('date', $args['orderby']);
+        self::assertSame('DESC', $args['order']);
+    }
+
+    #[Test]
+    public function orderByWqlMeta(): void
+    {
+        $builder = new PostQueryBuilder();
+        $args = $builder->orderBy('m.price:numeric', Order::Desc)->toArray();
+
+        self::assertSame('price', $args['meta_key']);
         self::assertSame('meta_value_num', $args['orderby']);
         self::assertSame('NUMERIC', $args['meta_type']);
+        self::assertSame('DESC', $args['order']);
+    }
+
+    #[Test]
+    public function orderByWqlMultiple(): void
+    {
+        $builder = new PostQueryBuilder();
+        $args = $builder
+            ->orderBy('p.date', Order::Desc)
+            ->addOrderBy('p.title', Order::Asc)
+            ->toArray();
+
+        self::assertSame(['date' => 'DESC', 'title' => 'ASC'], $args['orderby']);
+    }
+
+    #[Test]
+    public function orderByWqlMixedMetaAndStandard(): void
+    {
+        $builder = new PostQueryBuilder();
+        $args = $builder
+            ->orderBy('m.price:numeric', Order::Desc)
+            ->addOrderBy('p.date', Order::Asc)
+            ->toArray();
+
+        self::assertSame([
+            '__wppack_ob_price' => 'DESC',
+            'date' => 'ASC',
+        ], $args['orderby']);
+
+        self::assertArrayHasKey('meta_query', $args);
+        self::assertArrayHasKey('__wppack_ob_price', $args['meta_query']);
+    }
+
+    #[Test]
+    public function addOrderByAppends(): void
+    {
+        $builder = new PostQueryBuilder();
+        $args = $builder
+            ->orderBy('p.date', Order::Desc)
+            ->addOrderBy('p.title', Order::Asc)
+            ->toArray();
+
+        self::assertSame(['date' => 'DESC', 'title' => 'ASC'], $args['orderby']);
+    }
+
+    #[Test]
+    public function orderByReplacesAdd(): void
+    {
+        $builder = new PostQueryBuilder();
+        $args = $builder
+            ->addOrderBy('p.title', Order::Asc)
+            ->orderBy('p.date', Order::Desc)
+            ->toArray();
+
+        self::assertSame('date', $args['orderby']);
+        self::assertSame('DESC', $args['order']);
+    }
+
+    #[Test]
+    public function orderByWqlWithWhereMetaQuery(): void
+    {
+        $builder = new PostQueryBuilder();
+        $args = $builder
+            ->where('m.featured = :feat')
+            ->setParameter('feat', true)
+            ->orderBy('m.price:numeric', Order::Desc)
+            ->addOrderBy('p.date', Order::Asc)
+            ->toArray();
+
+        // orderby uses array format with named clause
+        self::assertSame([
+            '__wppack_ob_price' => 'DESC',
+            'date' => 'ASC',
+        ], $args['orderby']);
+
+        // meta_query contains both WHERE condition and ORDER BY named clause
+        self::assertArrayHasKey('meta_query', $args);
+        self::assertArrayHasKey('__wppack_ob_price', $args['meta_query']);
+    }
+
+    #[Test]
+    public function orderByBackwardCompatible(): void
+    {
+        $builder = new PostQueryBuilder();
+        $args = $builder->orderBy('date', Order::Desc)->toArray();
+
+        self::assertSame('date', $args['orderby']);
+        self::assertSame('DESC', $args['order']);
     }
 
     // ── Date ──
@@ -558,28 +725,33 @@ final class PostQueryBuilderTest extends TestCase
     {
         $builder = new PostQueryBuilder();
         $args = $builder
-            ->type('product')
-            ->status(PostStatus::Publish)
-            ->where('m.featured = :feat')
+            ->where('p.type = :type')
+            ->andWhere('p.status = :status')
+            ->andWhere('m.featured = :feat')
             ->andWhere('m.price:numeric <= :price')
             ->andWhere('t.category:slug IN :cats')
-            ->setParameter('feat', true)
-            ->setParameter('price', 100)
-            ->setParameter('cats', ['electronics'])
-            ->author(5)
-            ->limit(10)
-            ->page(2)
+            ->andWhere('p.author = :author')
+            ->setParameters([
+                'type' => 'product',
+                'status' => 'publish',
+                'feat' => true,
+                'price' => 100,
+                'cats' => ['electronics'],
+                'author' => 5,
+            ])
+            ->setMaxResults(10)
+            ->setFirstResult(10)
             ->orderBy('date', Order::Desc)
             ->noMetaCache()
             ->toArray();
 
         self::assertSame('product', $args['post_type']);
         self::assertSame('publish', $args['post_status']);
+        self::assertSame(5, $args['author']);
         self::assertArrayHasKey('meta_query', $args);
         self::assertArrayHasKey('tax_query', $args);
-        self::assertSame(5, $args['author']);
         self::assertSame(10, $args['posts_per_page']);
-        self::assertSame(2, $args['paged']);
+        self::assertSame(10, $args['offset']);
         self::assertSame('date', $args['orderby']);
         self::assertSame('DESC', $args['order']);
         self::assertFalse($args['update_post_meta_cache']);
@@ -598,7 +770,10 @@ final class PostQueryBuilderTest extends TestCase
     public function noMetaQueryWhenNoConditions(): void
     {
         $builder = new PostQueryBuilder();
-        $args = $builder->type('post')->toArray();
+        $args = $builder
+            ->where('p.type = :type')
+            ->setParameter('type', 'post')
+            ->toArray();
 
         self::assertArrayNotHasKey('meta_query', $args);
     }
@@ -607,7 +782,10 @@ final class PostQueryBuilderTest extends TestCase
     public function noTaxQueryWhenNoConditions(): void
     {
         $builder = new PostQueryBuilder();
-        $args = $builder->type('post')->toArray();
+        $args = $builder
+            ->where('p.type = :type')
+            ->setParameter('type', 'post')
+            ->toArray();
 
         self::assertArrayNotHasKey('tax_query', $args);
     }
@@ -616,7 +794,10 @@ final class PostQueryBuilderTest extends TestCase
     public function noDateQueryWhenNoConditions(): void
     {
         $builder = new PostQueryBuilder();
-        $args = $builder->type('post')->toArray();
+        $args = $builder
+            ->where('p.type = :type')
+            ->setParameter('type', 'post')
+            ->toArray();
 
         self::assertArrayNotHasKey('date_query', $args);
     }
@@ -725,6 +906,83 @@ final class PostQueryBuilderTest extends TestCase
         self::assertArrayHasKey('meta_query', $args);
     }
 
+    // ── Standard field error cases ──
+
+    #[Test]
+    public function orWhereWithStandardFieldThrows(): void
+    {
+        $builder = new PostQueryBuilder();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('cannot be used in orWhere');
+
+        $builder->orWhere('p.status = :status');
+    }
+
+    #[Test]
+    public function compoundOrWithStandardFieldThrows(): void
+    {
+        $builder = new PostQueryBuilder();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('cannot be used in OR expressions');
+
+        $builder->where('p.status = :s OR p.type = :t');
+    }
+
+    #[Test]
+    public function unknownPostFieldThrows(): void
+    {
+        $builder = new PostQueryBuilder();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unknown post field "unknown"');
+
+        $builder
+            ->where('p.unknown = :val')
+            ->setParameter('val', 'test')
+            ->toArray();
+    }
+
+    #[Test]
+    public function unsupportedOperatorForPostStatusThrows(): void
+    {
+        $builder = new PostQueryBuilder();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unsupported operator "LIKE" for field "post.status"');
+
+        $builder
+            ->where('p.status LIKE :val')
+            ->setParameter('val', 'pub%')
+            ->toArray();
+    }
+
+    #[Test]
+    public function unsupportedOperatorForPostTypeThrows(): void
+    {
+        $builder = new PostQueryBuilder();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unsupported operator ">" for field "post.type"');
+
+        $builder
+            ->where('p.type > :val')
+            ->setParameter('val', 'post')
+            ->toArray();
+    }
+
+    #[Test]
+    public function userPrefixNotAllowedInPostBuilder(): void
+    {
+        $builder = new PostQueryBuilder();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unknown prefix "u"');
+
+        $builder->where('u.role = :role');
+    }
+
     // ── Execution methods (WordPress integration) ──
 
     #[Test]
@@ -735,9 +993,10 @@ final class PostQueryBuilderTest extends TestCase
         }
 
         $result = (new PostQueryBuilder())
-            ->type('post')
-            ->status(PostStatus::Publish)
-            ->limit(5)
+            ->where('p.type = :type')
+            ->andWhere('p.status = :status')
+            ->setParameters(['type' => 'post', 'status' => 'publish'])
+            ->setMaxResults(5)
             ->get();
 
         self::assertInstanceOf(\WpPack\Component\Query\Result\PostQueryResult::class, $result);
@@ -751,8 +1010,9 @@ final class PostQueryBuilderTest extends TestCase
         }
 
         $post = (new PostQueryBuilder())
-            ->type('post')
-            ->id(999999)
+            ->where('p.type = :type')
+            ->andWhere('p.id = :id')
+            ->setParameters(['type' => 'post', 'id' => 999999])
             ->first();
 
         self::assertNull($post);
@@ -766,9 +1026,10 @@ final class PostQueryBuilderTest extends TestCase
         }
 
         $ids = (new PostQueryBuilder())
-            ->type('post')
-            ->status(PostStatus::Publish)
-            ->limit(5)
+            ->where('p.type = :type')
+            ->andWhere('p.status = :status')
+            ->setParameters(['type' => 'post', 'status' => 'publish'])
+            ->setMaxResults(5)
             ->getIds();
 
         self::assertIsArray($ids);
@@ -782,8 +1043,9 @@ final class PostQueryBuilderTest extends TestCase
         }
 
         $count = (new PostQueryBuilder())
-            ->type('post')
-            ->status(PostStatus::Publish)
+            ->where('p.type = :type')
+            ->andWhere('p.status = :status')
+            ->setParameters(['type' => 'post', 'status' => 'publish'])
             ->count();
 
         self::assertIsInt($count);
@@ -797,8 +1059,9 @@ final class PostQueryBuilderTest extends TestCase
         }
 
         $exists = (new PostQueryBuilder())
-            ->type('post')
-            ->id(999999)
+            ->where('p.type = :type')
+            ->andWhere('p.id = :id')
+            ->setParameters(['type' => 'post', 'id' => 999999])
             ->exists();
 
         self::assertFalse($exists);

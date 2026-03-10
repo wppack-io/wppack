@@ -7,7 +7,7 @@ namespace WpPack\Component\Query\Wql;
 final readonly class ParsedExpression implements ExpressionNode
 {
     /**
-     * @param 'meta'|'tax' $prefix
+     * @param 'meta'|'tax'|'post'|'user'|'term' $prefix
      */
     public function __construct(
         public string $prefix,

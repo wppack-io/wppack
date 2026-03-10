@@ -20,10 +20,10 @@ final class WqlParser
     private readonly Tokenizer $tokenizer;
     private readonly ExpressionParser $expressionParser;
 
-    public function __construct()
+    public function __construct(?ExpressionParser $expressionParser = null)
     {
         $this->tokenizer = new Tokenizer();
-        $this->expressionParser = new ExpressionParser();
+        $this->expressionParser = $expressionParser ?? new ExpressionParser();
     }
 
     /**

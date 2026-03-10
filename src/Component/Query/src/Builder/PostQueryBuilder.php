@@ -5,17 +5,32 @@ declare(strict_types=1);
 namespace WpPack\Component\Query\Builder;
 
 use WpPack\Component\Query\Condition\ConditionGroup;
-use WpPack\Component\Query\Enum\MetaType;
+use WpPack\Component\Query\Condition\OrderByGroup;
 use WpPack\Component\Query\Enum\Order;
-use WpPack\Component\Query\Enum\PostStatus;
 use WpPack\Component\Query\Result\PostQueryResult;
+use WpPack\Component\Query\Wql\ExpressionParser;
+use WpPack\Component\Query\Wql\WqlParser;
 
 final class PostQueryBuilder
 {
+    private const PREFIX_MAP = [
+        'm' => 'meta',
+        'meta' => 'meta',
+        't' => 'tax',
+        'tax' => 'tax',
+        'taxonomy' => 'tax',
+        'p' => 'post',
+        'post' => 'post',
+    ];
+
+    private const ALLOWED_PREFIXES = ['meta', 'tax', 'post'];
+
     /** @var array<string, mixed> */
     private array $args = [];
 
     private ConditionGroup $conditions;
+
+    private OrderByGroup $orderByGroup;
 
     /** @var array<string, mixed> */
     private array $parameters = [];
@@ -25,34 +40,9 @@ final class PostQueryBuilder
 
     public function __construct()
     {
-        $this->conditions = new ConditionGroup();
-    }
-
-    /**
-     * @param string|list<string> $postType
-     */
-    public function type(string|array $postType): self
-    {
-        $this->args['post_type'] = $postType;
-
-        return $this;
-    }
-
-    /**
-     * @param PostStatus|string|list<PostStatus|string> $status
-     */
-    public function status(PostStatus|string|array $status): self
-    {
-        if (\is_array($status)) {
-            $this->args['post_status'] = array_map(
-                static fn(PostStatus|string $s): string => $s instanceof PostStatus ? $s->value : $s,
-                $status,
-            );
-        } else {
-            $this->args['post_status'] = $status instanceof PostStatus ? $status->value : $status;
-        }
-
-        return $this;
+        $parser = new WqlParser(new ExpressionParser(self::PREFIX_MAP));
+        $this->conditions = new ConditionGroup(allowedPrefixes: self::ALLOWED_PREFIXES, parser: $parser);
+        $this->orderByGroup = new OrderByGroup();
     }
 
     // ── Conditions (where/andWhere/orWhere) ──
@@ -85,71 +75,14 @@ final class PostQueryBuilder
         return $this;
     }
 
-    // ── Author ──
-
     /**
-     * @param int|list<int> $author
+     * @param array<string, mixed> $parameters
      */
-    public function author(int|array $author): self
+    public function setParameters(array $parameters): self
     {
-        if (\is_array($author)) {
-            $this->args['author__in'] = $author;
-        } else {
-            $this->args['author'] = $author;
+        foreach ($parameters as $name => $value) {
+            $this->parameters[$name] = $value;
         }
-
-        return $this;
-    }
-
-    /**
-     * @param list<int> $authorIds
-     */
-    public function authorNotIn(array $authorIds): self
-    {
-        $this->args['author__not_in'] = $authorIds;
-
-        return $this;
-    }
-
-    // ── Post identification ──
-
-    /**
-     * @param int|list<int> $id
-     */
-    public function id(int|array $id): self
-    {
-        if (\is_array($id)) {
-            $this->args['post__in'] = $id;
-        } else {
-            $this->args['p'] = $id;
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param list<int> $ids
-     */
-    public function notIn(array $ids): self
-    {
-        $this->args['post__not_in'] = $ids;
-
-        return $this;
-    }
-
-    public function parent(int $parentId): self
-    {
-        $this->args['post_parent'] = $parentId;
-
-        return $this;
-    }
-
-    /**
-     * @param list<int> $parentIds
-     */
-    public function parentIn(array $parentIds): self
-    {
-        $this->args['post_parent__in'] = $parentIds;
 
         return $this;
     }
@@ -165,21 +98,14 @@ final class PostQueryBuilder
 
     // ── Pagination ──
 
-    public function limit(int $limit): self
+    public function setMaxResults(int $limit): self
     {
         $this->args['posts_per_page'] = $limit;
 
         return $this;
     }
 
-    public function page(int $page): self
-    {
-        $this->args['paged'] = $page;
-
-        return $this;
-    }
-
-    public function offset(int $offset): self
+    public function setFirstResult(int $offset): self
     {
         $this->args['offset'] = $offset;
 
@@ -193,27 +119,22 @@ final class PostQueryBuilder
      */
     public function orderBy(string|array $orderBy, Order|string $order = Order::Desc): self
     {
-        $this->args['orderby'] = $orderBy;
-        if (\is_string($orderBy)) {
-            $this->args['order'] = $order instanceof Order ? $order->value : $order;
+        if (\is_array($orderBy)) {
+            $this->args['orderby'] = $orderBy;
+
+            return $this;
         }
+
+        $direction = $order instanceof Order ? $order : Order::from($order);
+        $this->orderByGroup->set($orderBy, $direction);
 
         return $this;
     }
 
-    public function orderByMeta(string $metaKey, Order|string $order = Order::Desc, MetaType|string|null $metaType = null): self
+    public function addOrderBy(string $orderBy, Order|string $order = Order::Desc): self
     {
-        $this->args['meta_key'] = $metaKey;
-        $this->args['orderby'] = 'meta_value';
-        $this->args['order'] = $order instanceof Order ? $order->value : $order;
-
-        if ($metaType !== null) {
-            $type = $metaType instanceof MetaType ? $metaType->value : $metaType;
-            if (\in_array($type, ['NUMERIC', 'DECIMAL', 'SIGNED', 'UNSIGNED'], true)) {
-                $this->args['orderby'] = 'meta_value_num';
-            }
-            $this->args['meta_type'] = $type;
-        }
+        $direction = $order instanceof Order ? $order : Order::from($order);
+        $this->orderByGroup->add($orderBy, $direction);
 
         return $this;
     }
@@ -348,7 +269,17 @@ final class PostQueryBuilder
     {
         $args = $this->args;
 
+        // Resolve standard post field conditions
+        $fieldArgs = $this->conditions->toFieldArgs('post', $this->parameters, $this->resolvePostField(...));
+        $args = array_merge($args, $fieldArgs);
+
         $metaQuery = $this->conditions->toMetaQuery($this->parameters);
+
+        if (!$this->orderByGroup->isEmpty()) {
+            $orderByArgs = $this->orderByGroup->toArgs($metaQuery);
+            $args = array_merge($args, $orderByArgs);
+        }
+
         if ($metaQuery !== []) {
             $args['meta_query'] = $metaQuery;
         }
@@ -363,5 +294,40 @@ final class PostQueryBuilder
         }
 
         return $args;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function resolvePostField(string $field, string $operator, mixed $value): array
+    {
+        return match ($field) {
+            'type' => match ($operator) {
+                '=', 'IN' => ['post_type' => $value],
+                default => throw new \InvalidArgumentException(sprintf('Unsupported operator "%s" for field "post.type". Use "=" or "IN".', $operator)),
+            },
+            'status' => match ($operator) {
+                '=', 'IN' => ['post_status' => $value],
+                default => throw new \InvalidArgumentException(sprintf('Unsupported operator "%s" for field "post.status". Use "=" or "IN".', $operator)),
+            },
+            'author' => match ($operator) {
+                '=' => ['author' => $value],
+                'IN' => ['author__in' => $value],
+                'NOT IN' => ['author__not_in' => $value],
+                default => throw new \InvalidArgumentException(sprintf('Unsupported operator "%s" for field "post.author". Use "=", "IN", or "NOT IN".', $operator)),
+            },
+            'id' => match ($operator) {
+                '=' => ['p' => $value],
+                'IN' => ['post__in' => $value],
+                'NOT IN' => ['post__not_in' => $value],
+                default => throw new \InvalidArgumentException(sprintf('Unsupported operator "%s" for field "post.id". Use "=", "IN", or "NOT IN".', $operator)),
+            },
+            'parent' => match ($operator) {
+                '=' => ['post_parent' => $value],
+                'IN' => ['post_parent__in' => $value],
+                default => throw new \InvalidArgumentException(sprintf('Unsupported operator "%s" for field "post.parent". Use "=" or "IN".', $operator)),
+            },
+            default => throw new \InvalidArgumentException(sprintf('Unknown post field "%s". Supported fields: type, status, author, id, parent.', $field)),
+        };
     }
 }

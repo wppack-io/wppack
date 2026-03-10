@@ -6,12 +6,13 @@ namespace WpPack\Component\Query\Condition;
 
 use WpPack\Component\Query\Wql\CompoundExpression;
 use WpPack\Component\Query\Wql\ExpressionNode;
+use WpPack\Component\Query\Wql\ExpressionParser;
 use WpPack\Component\Query\Wql\ParsedExpression;
 use WpPack\Component\Query\Wql\WqlParser;
 
 final class ConditionGroup
 {
-    private static ?WqlParser $parser = null;
+    private readonly WqlParser $parser;
 
     /**
      * @var list<array{type: 'and'|'or', expression: ParsedExpression}|array{type: 'nested_and'|'nested_or', group: ConditionGroup}>
@@ -23,7 +24,10 @@ final class ConditionGroup
      */
     public function __construct(
         private readonly ?array $allowedPrefixes = null,
-    ) {}
+        ?WqlParser $parser = null,
+    ) {
+        $this->parser = $parser ?? new WqlParser();
+    }
 
     public function where(string $expression): self
     {
@@ -33,7 +37,7 @@ final class ConditionGroup
     public function andWhere(string|\Closure $expressionOrCallback): self
     {
         if ($expressionOrCallback instanceof \Closure) {
-            $group = new self($this->allowedPrefixes);
+            $group = new self($this->allowedPrefixes, $this->parser);
             $expressionOrCallback($group);
             $this->entries[] = ['type' => 'nested_and', 'group' => $group];
 
@@ -46,7 +50,7 @@ final class ConditionGroup
     public function orWhere(string|\Closure $expressionOrCallback): self
     {
         if ($expressionOrCallback instanceof \Closure) {
-            $group = new self($this->allowedPrefixes);
+            $group = new self($this->allowedPrefixes, $this->parser);
             $expressionOrCallback($group);
             $this->entries[] = ['type' => 'nested_or', 'group' => $group];
 
@@ -74,6 +78,37 @@ final class ConditionGroup
     public function toTaxQuery(array $parameters): array
     {
         return $this->toQuery('tax', $parameters);
+    }
+
+    /**
+     * Convert standard field conditions to WP query args.
+     *
+     * @param callable(string $field, string $operator, mixed $value): array<string, mixed> $resolver
+     * @param array<string, mixed> $parameters
+     *
+     * @return array<string, mixed>
+     */
+    public function toFieldArgs(string $prefix, array $parameters, callable $resolver): array
+    {
+        $args = [];
+
+        foreach ($this->entries as $entry) {
+            if ($entry['type'] === 'and' || $entry['type'] === 'or') {
+                $expr = $entry['expression'];
+                if ($expr->prefix !== $prefix) {
+                    continue;
+                }
+
+                $value = $this->resolveFieldValue($expr, $parameters);
+                $resolved = $resolver($expr->key, $expr->operator, $value);
+                $args = array_merge($args, $resolved);
+            } else {
+                $nested = $entry['group']->toFieldArgs($prefix, $parameters, $resolver);
+                $args = array_merge($args, $nested);
+            }
+        }
+
+        return $args;
     }
 
     /**
@@ -227,14 +262,29 @@ final class ConditionGroup
     }
 
     /**
+     * Resolve the value for a standard field expression.
+     *
+     * @param array<string, mixed> $parameters
+     */
+    private function resolveFieldValue(ParsedExpression $expr, array $parameters): mixed
+    {
+        if ($expr->operator === 'EXISTS' || $expr->operator === 'NOT EXISTS') {
+            return null;
+        }
+
+        return $this->resolveParameter($expr->placeholder, $parameters);
+    }
+
+    /**
      * @param 'and'|'or' $type
      */
     private function addExpression(string $type, string $expression): self
     {
-        $parsed = self::getParser()->parse($expression);
+        $parsed = $this->parser->parse($expression);
 
         if ($parsed instanceof ParsedExpression) {
             $this->validatePrefix($parsed);
+            $this->validateStandardFieldOrType($parsed, $type);
             $this->entries[] = ['type' => $type, 'expression' => $parsed];
 
             return $this;
@@ -254,7 +304,7 @@ final class ConditionGroup
      */
     private function buildGroupFromCompound(CompoundExpression $compound): self
     {
-        $group = new self($this->allowedPrefixes);
+        $group = new self($this->allowedPrefixes, $this->parser);
         $prefixes = [];
 
         foreach ($compound->children as $i => $child) {
@@ -263,6 +313,7 @@ final class ConditionGroup
 
             if ($child instanceof ParsedExpression) {
                 $group->validatePrefix($child);
+                $this->validateStandardFieldInCompound($child, $compound->operator);
                 $group->entries[] = ['type' => $childType, 'expression' => $child];
                 $prefixes[] = $child->prefix;
             } else {
@@ -319,8 +370,36 @@ final class ConditionGroup
         }
     }
 
-    private static function getParser(): WqlParser
+    /**
+     * Validate that standard field prefixes are not used in OR conditions.
+     */
+    private function validateStandardFieldOrType(ParsedExpression $expr, string $type): void
     {
-        return self::$parser ??= new WqlParser();
+        if ($type === 'or' && $this->isStandardFieldPrefix($expr->prefix)) {
+            throw new \InvalidArgumentException(sprintf(
+                'Standard field "%s.%s" cannot be used in orWhere(). WordPress does not support OR conditions for standard fields.',
+                $expr->prefix,
+                $expr->key,
+            ));
+        }
+    }
+
+    /**
+     * Validate that standard field prefixes are not used in compound OR expressions.
+     */
+    private function validateStandardFieldInCompound(ParsedExpression $expr, string $compoundOperator): void
+    {
+        if ($compoundOperator === 'OR' && $this->isStandardFieldPrefix($expr->prefix)) {
+            throw new \InvalidArgumentException(sprintf(
+                'Standard field "%s.%s" cannot be used in OR expressions. WordPress does not support OR conditions for standard fields.',
+                $expr->prefix,
+                $expr->key,
+            ));
+        }
+    }
+
+    private function isStandardFieldPrefix(string $prefix): bool
+    {
+        return \in_array($prefix, ['post', 'user', 'term'], true);
     }
 }

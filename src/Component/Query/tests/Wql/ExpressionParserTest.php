@@ -323,4 +323,66 @@ final class ExpressionParserTest extends TestCase
 
         self::assertSame('my_value', $expr->placeholder);
     }
+
+    // ── Custom prefix map ──
+
+    #[Test]
+    public function customPrefixMapParsesPostPrefix(): void
+    {
+        $parser = new ExpressionParser([
+            'm' => 'meta',
+            'meta' => 'meta',
+            'p' => 'post',
+            'post' => 'post',
+            't' => 'tax',
+        ]);
+        $expr = $parser->parse('p.type = :type');
+
+        self::assertSame('post', $expr->prefix);
+        self::assertSame('type', $expr->key);
+        self::assertSame('=', $expr->operator);
+        self::assertSame('type', $expr->placeholder);
+    }
+
+    #[Test]
+    public function customPrefixMapParsesUserPrefix(): void
+    {
+        $parser = new ExpressionParser([
+            'm' => 'meta',
+            'u' => 'user',
+            'user' => 'user',
+        ]);
+        $expr = $parser->parse('u.role = :role');
+
+        self::assertSame('user', $expr->prefix);
+        self::assertSame('role', $expr->key);
+    }
+
+    #[Test]
+    public function customPrefixMapParsesTermPrefix(): void
+    {
+        $parser = new ExpressionParser([
+            'm' => 'meta',
+            't' => 'term',
+            'term' => 'term',
+        ]);
+        $expr = $parser->parse('t.taxonomy = :tax');
+
+        self::assertSame('term', $expr->prefix);
+        self::assertSame('taxonomy', $expr->key);
+    }
+
+    #[Test]
+    public function customPrefixMapRejectsUnknown(): void
+    {
+        $parser = new ExpressionParser([
+            'm' => 'meta',
+            'u' => 'user',
+        ]);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unknown prefix "p"');
+
+        $parser->parse('p.type = :type');
+    }
 }

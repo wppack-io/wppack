@@ -7,6 +7,8 @@ namespace WpPack\Component\Query\Tests\Condition;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Query\Condition\ConditionGroup;
+use WpPack\Component\Query\Wql\ExpressionParser;
+use WpPack\Component\Query\Wql\WqlParser;
 
 final class ConditionGroupTest extends TestCase
 {
@@ -523,5 +525,91 @@ final class ConditionGroupTest extends TestCase
         // The compound expression is in the OR group
         $orGroup = $result[1];
         self::assertSame('OR', $orGroup['relation']);
+    }
+
+    // ── toFieldArgs ──
+
+    #[Test]
+    public function toFieldArgsReturnsEmptyForNoMatchingPrefix(): void
+    {
+        $group = new ConditionGroup();
+        $group->where('m.featured = :feat');
+
+        $result = $group->toFieldArgs('post', ['feat' => true], fn() => []);
+
+        self::assertSame([], $result);
+    }
+
+    #[Test]
+    public function toFieldArgsCallsResolverForMatchingPrefix(): void
+    {
+        $parser = new WqlParser(new ExpressionParser([
+            'm' => 'meta',
+            'meta' => 'meta',
+            'p' => 'post',
+            'post' => 'post',
+        ]));
+        $group = new ConditionGroup(allowedPrefixes: ['meta', 'post'], parser: $parser);
+        $group->where('p.type = :type')
+            ->andWhere('m.featured = :feat');
+
+        $result = $group->toFieldArgs('post', ['type' => 'product', 'feat' => true], function (string $field, string $operator, mixed $value): array {
+            return ['post_type' => $value];
+        });
+
+        self::assertSame(['post_type' => 'product'], $result);
+    }
+
+    // ── Standard field OR validation ──
+
+    #[Test]
+    public function orWhereWithStandardFieldThrows(): void
+    {
+        $parser = new WqlParser(new ExpressionParser([
+            'm' => 'meta',
+            'p' => 'post',
+        ]));
+        $group = new ConditionGroup(allowedPrefixes: ['meta', 'post'], parser: $parser);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('cannot be used in orWhere');
+
+        $group->orWhere('p.status = :status');
+    }
+
+    #[Test]
+    public function compoundOrWithStandardFieldThrows(): void
+    {
+        $parser = new WqlParser(new ExpressionParser([
+            'm' => 'meta',
+            'p' => 'post',
+        ]));
+        $group = new ConditionGroup(allowedPrefixes: ['meta', 'post'], parser: $parser);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('cannot be used in OR expressions');
+
+        $group->where('p.status = :s OR p.type = :t');
+    }
+
+    #[Test]
+    public function andWhereWithStandardFieldIsAllowed(): void
+    {
+        $parser = new WqlParser(new ExpressionParser([
+            'm' => 'meta',
+            'p' => 'post',
+        ]));
+        $group = new ConditionGroup(allowedPrefixes: ['meta', 'post'], parser: $parser);
+        $group->where('p.type = :type')
+            ->andWhere('p.status = :status');
+
+        $result = $group->toFieldArgs('post', ['type' => 'post', 'status' => 'publish'], function (string $field, string $operator, mixed $value): array {
+            return match ($field) {
+                'type' => ['post_type' => $value],
+                'status' => ['post_status' => $value],
+            };
+        });
+
+        self::assertSame(['post_type' => 'post', 'post_status' => 'publish'], $result);
     }
 }

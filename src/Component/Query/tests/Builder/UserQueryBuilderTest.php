@@ -12,56 +12,88 @@ use WpPack\Component\Query\Enum\Order;
 
 final class UserQueryBuilderTest extends TestCase
 {
+    // ── Standard field conditions via where() ──
+
     #[Test]
-    public function roleSetsRole(): void
+    public function whereRoleEquals(): void
     {
         $builder = new UserQueryBuilder();
-        $args = $builder->role('author')->toArray();
+        $args = $builder
+            ->where('u.role = :role')
+            ->setParameter('role', 'author')
+            ->toArray();
 
         self::assertSame('author', $args['role']);
     }
 
     #[Test]
-    public function roleArraySetsRoleIn(): void
+    public function whereRoleIn(): void
     {
         $builder = new UserQueryBuilder();
-        $args = $builder->role(['author', 'editor'])->toArray();
+        $args = $builder
+            ->where('u.role IN :roles')
+            ->setParameter('roles', ['author', 'editor'])
+            ->toArray();
 
         self::assertSame(['author', 'editor'], $args['role__in']);
     }
 
     #[Test]
-    public function roleNotInSetsExclusion(): void
+    public function whereRoleNotIn(): void
     {
         $builder = new UserQueryBuilder();
-        $args = $builder->roleNotIn(['subscriber'])->toArray();
+        $args = $builder
+            ->where('u.role NOT IN :roles')
+            ->setParameter('roles', ['subscriber'])
+            ->toArray();
 
         self::assertSame(['subscriber'], $args['role__not_in']);
     }
 
     #[Test]
-    public function idSetsSingleUserId(): void
+    public function whereRoleWithLongPrefix(): void
     {
         $builder = new UserQueryBuilder();
-        $args = $builder->id(5)->toArray();
+        $args = $builder
+            ->where('user.role = :role')
+            ->setParameter('role', 'editor')
+            ->toArray();
+
+        self::assertSame('editor', $args['role']);
+    }
+
+    #[Test]
+    public function whereIdEquals(): void
+    {
+        $builder = new UserQueryBuilder();
+        $args = $builder
+            ->where('u.id = :id')
+            ->setParameter('id', 5)
+            ->toArray();
 
         self::assertSame([5], $args['include']);
     }
 
     #[Test]
-    public function idSetsArrayOfUserIds(): void
+    public function whereIdIn(): void
     {
         $builder = new UserQueryBuilder();
-        $args = $builder->id([5, 10])->toArray();
+        $args = $builder
+            ->where('u.id IN :ids')
+            ->setParameter('ids', [5, 10])
+            ->toArray();
 
         self::assertSame([5, 10], $args['include']);
     }
 
     #[Test]
-    public function notInSetsExcludedUserIds(): void
+    public function whereIdNotIn(): void
     {
         $builder = new UserQueryBuilder();
-        $args = $builder->notIn([3])->toArray();
+        $args = $builder
+            ->where('u.id NOT IN :ids')
+            ->setParameter('ids', [3])
+            ->toArray();
 
         self::assertSame([3], $args['exclude']);
     }
@@ -91,6 +123,22 @@ final class UserQueryBuilderTest extends TestCase
         $args = $builder->hasPublishedPosts('product')->toArray();
 
         self::assertSame('product', $args['has_published_posts']);
+    }
+
+    // ── setParameters (batch) ──
+
+    #[Test]
+    public function setParametersBatch(): void
+    {
+        $builder = new UserQueryBuilder();
+        $args = $builder
+            ->where('u.role = :role')
+            ->andWhere('m.company = :company')
+            ->setParameters(['role' => 'author', 'company' => 'Acme'])
+            ->toArray();
+
+        self::assertSame('author', $args['role']);
+        self::assertArrayHasKey('meta_query', $args);
     }
 
     // ── Meta conditions ──
@@ -148,9 +196,68 @@ final class UserQueryBuilderTest extends TestCase
         $builder = new UserQueryBuilder();
 
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Prefix "tax" is not allowed');
+        $this->expectExceptionMessage('Unknown prefix "t"');
 
         $builder->where('t.category IN :cats');
+    }
+
+    // ── Standard field error cases ──
+
+    #[Test]
+    public function orWhereWithStandardFieldThrows(): void
+    {
+        $builder = new UserQueryBuilder();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('cannot be used in orWhere');
+
+        $builder->orWhere('u.role = :role');
+    }
+
+    #[Test]
+    public function unknownUserFieldThrows(): void
+    {
+        $builder = new UserQueryBuilder();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unknown user field "unknown"');
+
+        $builder
+            ->where('u.unknown = :val')
+            ->setParameter('val', 'test')
+            ->toArray();
+    }
+
+    #[Test]
+    public function unsupportedOperatorForRoleThrows(): void
+    {
+        $builder = new UserQueryBuilder();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unsupported operator "LIKE" for field "user.role"');
+
+        $builder
+            ->where('u.role LIKE :val')
+            ->setParameter('val', 'auth%')
+            ->toArray();
+    }
+
+    // ── Mixed standard fields and meta ──
+
+    #[Test]
+    public function standardFieldsAndMetaConditions(): void
+    {
+        $builder = new UserQueryBuilder();
+        $args = $builder
+            ->where('u.role = :role')
+            ->andWhere('m.company = :company')
+            ->setParameter('role', 'author')
+            ->setParameter('company', 'Acme')
+            ->toArray();
+
+        self::assertSame('author', $args['role']);
+        self::assertArrayHasKey('meta_query', $args);
+        self::assertSame('company', $args['meta_query'][0]['key']);
     }
 
     // ── Ordering ──
@@ -174,31 +281,57 @@ final class UserQueryBuilderTest extends TestCase
         self::assertSame('ASC', $args['order']);
     }
 
-    // ── Pagination ──
+    // ── WQL ORDER BY ──
 
     #[Test]
-    public function limitSetsNumber(): void
+    public function orderByWqlSingleField(): void
     {
         $builder = new UserQueryBuilder();
-        $args = $builder->limit(20)->toArray();
+        $args = $builder->orderBy('u.display_name', Order::Asc)->toArray();
+
+        self::assertSame('display_name', $args['orderby']);
+        self::assertSame('ASC', $args['order']);
+    }
+
+    #[Test]
+    public function orderByWqlMeta(): void
+    {
+        $builder = new UserQueryBuilder();
+        $args = $builder->orderBy('m.last_login', Order::Desc)->toArray();
+
+        self::assertSame('last_login', $args['meta_key']);
+        self::assertSame('meta_value', $args['orderby']);
+        self::assertSame('DESC', $args['order']);
+    }
+
+    #[Test]
+    public function addOrderByAppends(): void
+    {
+        $builder = new UserQueryBuilder();
+        $args = $builder
+            ->orderBy('u.display_name', Order::Asc)
+            ->addOrderBy('u.user_registered', Order::Desc)
+            ->toArray();
+
+        self::assertSame(['display_name' => 'ASC', 'user_registered' => 'DESC'], $args['orderby']);
+    }
+
+    // ── Pagination (Doctrine naming) ──
+
+    #[Test]
+    public function setMaxResultsSetsNumber(): void
+    {
+        $builder = new UserQueryBuilder();
+        $args = $builder->setMaxResults(20)->toArray();
 
         self::assertSame(20, $args['number']);
     }
 
     #[Test]
-    public function pageSetsPaged(): void
+    public function setFirstResultSetsOffset(): void
     {
         $builder = new UserQueryBuilder();
-        $args = $builder->page(3)->toArray();
-
-        self::assertSame(3, $args['paged']);
-    }
-
-    #[Test]
-    public function offsetSetsOffset(): void
-    {
-        $builder = new UserQueryBuilder();
-        $args = $builder->offset(10)->toArray();
+        $args = $builder->setFirstResult(10)->toArray();
 
         self::assertSame(10, $args['offset']);
     }
@@ -221,19 +354,19 @@ final class UserQueryBuilderTest extends TestCase
     {
         $builder = new UserQueryBuilder();
         $args = $builder
-            ->role('author')
-            ->where('m.company = :company')
-            ->setParameter('company', 'Acme')
+            ->where('u.role = :role')
+            ->andWhere('m.company = :company')
+            ->setParameters(['role' => 'author', 'company' => 'Acme'])
             ->orderBy('display_name')
-            ->limit(10)
-            ->page(2)
+            ->setMaxResults(10)
+            ->setFirstResult(20)
             ->toArray();
 
         self::assertSame('author', $args['role']);
         self::assertArrayHasKey('meta_query', $args);
         self::assertSame('display_name', $args['orderby']);
         self::assertSame(10, $args['number']);
-        self::assertSame(2, $args['paged']);
+        self::assertSame(20, $args['offset']);
     }
 
     #[Test]
@@ -249,7 +382,10 @@ final class UserQueryBuilderTest extends TestCase
     public function noMetaQueryWhenNoConditions(): void
     {
         $builder = new UserQueryBuilder();
-        $args = $builder->role('author')->toArray();
+        $args = $builder
+            ->where('u.role = :role')
+            ->setParameter('role', 'author')
+            ->toArray();
 
         self::assertArrayNotHasKey('meta_query', $args);
     }
@@ -264,8 +400,9 @@ final class UserQueryBuilderTest extends TestCase
         }
 
         $result = (new UserQueryBuilder())
-            ->role('author')
-            ->limit(5)
+            ->where('u.role = :role')
+            ->setParameter('role', 'author')
+            ->setMaxResults(5)
             ->get();
 
         self::assertInstanceOf(\WpPack\Component\Query\Result\UserQueryResult::class, $result);
@@ -279,7 +416,8 @@ final class UserQueryBuilderTest extends TestCase
         }
 
         $user = (new UserQueryBuilder())
-            ->id(999999)
+            ->where('u.id = :id')
+            ->setParameter('id', 999999)
             ->first();
 
         self::assertNull($user);

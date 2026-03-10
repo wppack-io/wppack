@@ -5,70 +5,38 @@ declare(strict_types=1);
 namespace WpPack\Component\Query\Builder;
 
 use WpPack\Component\Query\Condition\ConditionGroup;
+use WpPack\Component\Query\Condition\OrderByGroup;
 use WpPack\Component\Query\Enum\Order;
 use WpPack\Component\Query\Result\UserQueryResult;
+use WpPack\Component\Query\Wql\ExpressionParser;
+use WpPack\Component\Query\Wql\WqlParser;
 
 final class UserQueryBuilder
 {
+    private const PREFIX_MAP = [
+        'm' => 'meta',
+        'meta' => 'meta',
+        'u' => 'user',
+        'user' => 'user',
+    ];
+
+    private const ALLOWED_PREFIXES = ['meta', 'user'];
+
     /** @var array<string, mixed> */
     private array $args = [];
 
     private ConditionGroup $conditions;
+
+    private OrderByGroup $orderByGroup;
 
     /** @var array<string, mixed> */
     private array $parameters = [];
 
     public function __construct()
     {
-        $this->conditions = new ConditionGroup(allowedPrefixes: ['meta']);
-    }
-
-    /**
-     * @param string|list<string> $role
-     */
-    public function role(string|array $role): self
-    {
-        if (\is_array($role)) {
-            $this->args['role__in'] = $role;
-        } else {
-            $this->args['role'] = $role;
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param list<string> $roles
-     */
-    public function roleNotIn(array $roles): self
-    {
-        $this->args['role__not_in'] = $roles;
-
-        return $this;
-    }
-
-    /**
-     * @param int|list<int> $id
-     */
-    public function id(int|array $id): self
-    {
-        if (\is_array($id)) {
-            $this->args['include'] = $id;
-        } else {
-            $this->args['include'] = [$id];
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param list<int> $ids
-     */
-    public function notIn(array $ids): self
-    {
-        $this->args['exclude'] = $ids;
-
-        return $this;
+        $parser = new WqlParser(new ExpressionParser(self::PREFIX_MAP));
+        $this->conditions = new ConditionGroup(allowedPrefixes: self::ALLOWED_PREFIXES, parser: $parser);
+        $this->orderByGroup = new OrderByGroup();
     }
 
     public function search(string $keyword): self
@@ -118,33 +86,46 @@ final class UserQueryBuilder
         return $this;
     }
 
+    /**
+     * @param array<string, mixed> $parameters
+     */
+    public function setParameters(array $parameters): self
+    {
+        foreach ($parameters as $name => $value) {
+            $this->parameters[$name] = $value;
+        }
+
+        return $this;
+    }
+
     // ── Ordering ──
 
     public function orderBy(string $orderBy, Order|string $order = Order::Asc): self
     {
-        $this->args['orderby'] = $orderBy;
-        $this->args['order'] = $order instanceof Order ? $order->value : $order;
+        $direction = $order instanceof Order ? $order : Order::from($order);
+        $this->orderByGroup->set($orderBy, $direction);
+
+        return $this;
+    }
+
+    public function addOrderBy(string $orderBy, Order|string $order = Order::Asc): self
+    {
+        $direction = $order instanceof Order ? $order : Order::from($order);
+        $this->orderByGroup->add($orderBy, $direction);
 
         return $this;
     }
 
     // ── Pagination ──
 
-    public function limit(int $limit): self
+    public function setMaxResults(int $limit): self
     {
         $this->args['number'] = $limit;
 
         return $this;
     }
 
-    public function page(int $page): self
-    {
-        $this->args['paged'] = $page;
-
-        return $this;
-    }
-
-    public function offset(int $offset): self
+    public function setFirstResult(int $offset): self
     {
         $this->args['offset'] = $offset;
 
@@ -232,11 +213,43 @@ final class UserQueryBuilder
     {
         $args = $this->args;
 
+        // Resolve standard user field conditions
+        $fieldArgs = $this->conditions->toFieldArgs('user', $this->parameters, $this->resolveUserField(...));
+        $args = array_merge($args, $fieldArgs);
+
         $metaQuery = $this->conditions->toMetaQuery($this->parameters);
+
+        if (!$this->orderByGroup->isEmpty()) {
+            $orderByArgs = $this->orderByGroup->toArgs($metaQuery);
+            $args = array_merge($args, $orderByArgs);
+        }
+
         if ($metaQuery !== []) {
             $args['meta_query'] = $metaQuery;
         }
 
         return $args;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function resolveUserField(string $field, string $operator, mixed $value): array
+    {
+        return match ($field) {
+            'role' => match ($operator) {
+                '=' => ['role' => $value],
+                'IN' => ['role__in' => $value],
+                'NOT IN' => ['role__not_in' => $value],
+                default => throw new \InvalidArgumentException(sprintf('Unsupported operator "%s" for field "user.role". Use "=", "IN", or "NOT IN".', $operator)),
+            },
+            'id' => match ($operator) {
+                '=' => ['include' => [$value]],
+                'IN' => ['include' => $value],
+                'NOT IN' => ['exclude' => $value],
+                default => throw new \InvalidArgumentException(sprintf('Unsupported operator "%s" for field "user.id". Use "=", "IN", or "NOT IN".', $operator)),
+            },
+            default => throw new \InvalidArgumentException(sprintf('Unknown user field "%s". Supported fields: role, id.', $field)),
+        };
     }
 }
