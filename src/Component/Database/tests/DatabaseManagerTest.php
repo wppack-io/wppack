@@ -344,6 +344,7 @@ final class DatabaseManagerTest extends TestCase
     {
         $this->expectException(QueryException::class);
 
+        $this->db->wpdb()->suppress_errors(true);
         $this->db->executeQuery('SELECT * FROM nonexistent_table_wppack_xyz');
     }
 
@@ -352,6 +353,7 @@ final class DatabaseManagerTest extends TestCase
     {
         $this->expectException(QueryException::class);
 
+        $this->db->wpdb()->suppress_errors(true);
         $this->db->executeStatement('DELETE FROM nonexistent_table_wppack_xyz WHERE id = 1');
     }
 
@@ -360,6 +362,7 @@ final class DatabaseManagerTest extends TestCase
     {
         $this->expectException(QueryException::class);
 
+        $this->db->wpdb()->suppress_errors(true);
         $this->db->insert('nonexistent_table_wppack_xyz', ['name' => 'test']);
     }
 
@@ -399,6 +402,8 @@ final class DatabaseManagerTest extends TestCase
     #[Test]
     public function lastErrorReturnsErrorAfterFailedQuery(): void
     {
+        $this->db->wpdb()->suppress_errors(true);
+
         try {
             $this->db->executeQuery('SELECT * FROM nonexistent_table_wppack_xyz');
         } catch (QueryException) {
