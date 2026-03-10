@@ -39,8 +39,11 @@ final class DatabaseDataCollector extends AbstractDataCollector
         $slowCount = 0;
         $suggestions = [];
 
+        // Convert query times from seconds to milliseconds
+        $queriesMs = [];
         foreach ($queries as $query) {
-            $totalTime += $query['time'];
+            $timeMs = $query['time'] * 1000;
+            $totalTime += $timeMs;
 
             $sql = $query['sql'];
             if (!isset($duplicates[$sql])) {
@@ -48,9 +51,14 @@ final class DatabaseDataCollector extends AbstractDataCollector
             }
             $duplicates[$sql]++;
 
-            if ($query['time'] * 1000 > self::SLOW_QUERY_THRESHOLD_MS) {
+            if ($timeMs > self::SLOW_QUERY_THRESHOLD_MS) {
                 $slowCount++;
             }
+
+            $queriesMs[] = [
+                ...$query,
+                'time' => $timeMs,
+            ];
         }
 
         $duplicateCount = 0;
@@ -83,7 +91,7 @@ final class DatabaseDataCollector extends AbstractDataCollector
         }
 
         $this->data = [
-            'queries' => $queries,
+            'queries' => $queriesMs,
             'total_count' => $totalCount,
             'total_time' => $totalTime,
             'duplicate_count' => $duplicateCount,

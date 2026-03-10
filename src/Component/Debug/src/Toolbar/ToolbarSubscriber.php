@@ -30,10 +30,11 @@ final class ToolbarSubscriber
             return;
         }
 
-        add_action('wp_footer', $this->onWpFooter(...), 9999);
+        add_action('wp_footer', $this->onFooter(...), 9999);
+        add_action('admin_footer', $this->onFooter(...), 9999);
     }
 
-    public function onWpFooter(): void
+    public function onFooter(): void
     {
         if (!$this->config->shouldShowToolbar()) {
             return;

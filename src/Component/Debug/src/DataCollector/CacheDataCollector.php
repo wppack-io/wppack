@@ -12,6 +12,9 @@ final class CacheDataCollector extends AbstractDataCollector
     private int $transientSets = 0;
     private int $transientDeletes = 0;
 
+    /** @var list<array{name: string, operation: string, expiration: int, caller: string, time: float}> */
+    private array $transientOperations = [];
+
     public function __construct()
     {
         $this->registerHooks();
@@ -53,6 +56,9 @@ final class CacheDataCollector extends AbstractDataCollector
             'hit_rate' => $hitRate,
             'transient_sets' => $this->transientSets,
             'transient_deletes' => $this->transientDeletes,
+            'transient_operations' => $this->transientOperations,
+            'object_cache_dropin' => $this->detectDropin(),
+            'cache_groups' => $this->collectGroupStats(),
         ];
     }
 
@@ -75,19 +81,33 @@ final class CacheDataCollector extends AbstractDataCollector
     }
 
     /**
-     * Hook callback for setted_transient.
+     * Hook callback for setted_transient / setted_site_transient.
      */
-    public function onTransientSet(): void
+    public function onTransientSet(string $transient = '', mixed $value = null, int $expiration = 0): void
     {
         $this->transientSets++;
+        $this->transientOperations[] = [
+            'name' => $transient,
+            'operation' => 'set',
+            'expiration' => $expiration,
+            'caller' => $this->captureCaller(),
+            'time' => $this->getElapsedMs(),
+        ];
     }
 
     /**
-     * Hook callback for deleted_transient.
+     * Hook callback for deleted_transient / deleted_site_transient.
      */
-    public function onTransientDeleted(): void
+    public function onTransientDeleted(string $transient = ''): void
     {
         $this->transientDeletes++;
+        $this->transientOperations[] = [
+            'name' => $transient,
+            'operation' => 'delete',
+            'expiration' => 0,
+            'caller' => $this->captureCaller(),
+            'time' => $this->getElapsedMs(),
+        ];
     }
 
     public function reset(): void
@@ -95,6 +115,94 @@ final class CacheDataCollector extends AbstractDataCollector
         parent::reset();
         $this->transientSets = 0;
         $this->transientDeletes = 0;
+        $this->transientOperations = [];
+    }
+
+    private function getElapsedMs(): float
+    {
+        $requestTimeFloat = $_SERVER['REQUEST_TIME_FLOAT'] ?? 0.0;
+        if ((float) $requestTimeFloat <= 0.0) {
+            return 0.0;
+        }
+
+        return (microtime(true) - (float) $requestTimeFloat) * 1000;
+    }
+
+    private function captureCaller(): string
+    {
+        $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 15);
+        $skipClasses = [self::class, AbstractDataCollector::class];
+
+        foreach ($trace as $frame) {
+            $class = $frame['class'] ?? '';
+            $function = $frame['function'];
+
+            // Skip our own frames and WordPress hook internals
+            if (in_array($class, $skipClasses, true)) {
+                continue;
+            }
+            if ($function === 'do_action' || $function === 'apply_filters') {
+                continue;
+            }
+            if (str_starts_with($function, 'call_user_func')) {
+                continue;
+            }
+
+            if ($class !== '') {
+                return $class . '::' . $function;
+            }
+
+            return $function;
+        }
+
+        return 'unknown';
+    }
+
+    private function detectDropin(): string
+    {
+        global $wp_object_cache;
+
+        if (!isset($wp_object_cache) || !is_object($wp_object_cache)) {
+            return 'none';
+        }
+
+        $class = $wp_object_cache::class;
+
+        return match (true) {
+            str_contains($class, 'Redis') => 'Redis',
+            str_contains($class, 'Memcache') => 'Memcached',
+            str_contains($class, 'Apcu'), str_contains($class, 'APCu') => 'APCu',
+            str_contains($class, 'Relay') => 'Relay',
+            $class === 'WP_Object_Cache' => 'Default (WordPress)',
+            default => $class,
+        };
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    private function collectGroupStats(): array
+    {
+        global $wp_object_cache;
+
+        if (!isset($wp_object_cache) || !is_object($wp_object_cache)) {
+            return [];
+        }
+
+        if (!property_exists($wp_object_cache, 'cache') || !is_array($wp_object_cache->cache)) {
+            return [];
+        }
+
+        $stats = [];
+        foreach ($wp_object_cache->cache as $group => $entries) {
+            if (is_array($entries)) {
+                $stats[(string) $group] = count($entries);
+            }
+        }
+
+        arsort($stats);
+
+        return $stats;
     }
 
     private function registerHooks(): void
@@ -103,7 +211,9 @@ final class CacheDataCollector extends AbstractDataCollector
             return;
         }
 
-        add_action('setted_transient', [$this, 'onTransientSet'], 10, 0);
-        add_action('deleted_transient', [$this, 'onTransientDeleted'], 10, 0);
+        add_action('setted_transient', [$this, 'onTransientSet'], 10, 3);
+        add_action('deleted_transient', [$this, 'onTransientDeleted'], 10, 1);
+        add_action('setted_site_transient', [$this, 'onTransientSet'], 10, 3);
+        add_action('deleted_site_transient', [$this, 'onTransientDeleted'], 10, 1);
     }
 }

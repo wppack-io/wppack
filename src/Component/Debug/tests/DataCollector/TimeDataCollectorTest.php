@@ -137,4 +137,73 @@ final class TimeDataCollectorTest extends TestCase
 
         self::assertEmpty($this->collector->getData());
     }
+
+    #[Test]
+    public function frontendPhasesAreRecorded(): void
+    {
+        $_SERVER['REQUEST_TIME_FLOAT'] = microtime(true);
+
+        $this->collector->onMuPluginsLoaded();
+        $this->collector->onPluginsLoaded();
+        $this->collector->onInit();
+        $this->collector->onWpLoaded();
+        $this->collector->onWp();
+        $this->collector->onTemplateRedirect();
+        $this->collector->onWpHead();
+        $this->collector->onWpFooter();
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertArrayHasKey('wp', $data['phases']);
+        self::assertArrayHasKey('wp_head', $data['phases']);
+        self::assertArrayHasKey('wp_footer', $data['phases']);
+    }
+
+    #[Test]
+    public function adminPhasesAreRecorded(): void
+    {
+        $_SERVER['REQUEST_TIME_FLOAT'] = microtime(true);
+
+        $this->collector->onMuPluginsLoaded();
+        $this->collector->onPluginsLoaded();
+        $this->collector->onInit();
+        $this->collector->onWpLoaded();
+        $this->collector->onAdminInit();
+        $this->collector->onAdminMenu();
+        $this->collector->onAdminEnqueueScripts();
+        $this->collector->onAdminHead();
+        $this->collector->onAdminFooter();
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertArrayHasKey('admin_init', $data['phases']);
+        self::assertArrayHasKey('admin_menu', $data['phases']);
+        self::assertArrayHasKey('admin_enqueue_scripts', $data['phases']);
+        self::assertArrayHasKey('admin_head', $data['phases']);
+        self::assertArrayHasKey('admin_footer', $data['phases']);
+    }
+
+    #[Test]
+    public function phasesAreOrderedChronologically(): void
+    {
+        $_SERVER['REQUEST_TIME_FLOAT'] = microtime(true);
+
+        $this->collector->onMuPluginsLoaded();
+        usleep(100);
+        $this->collector->onPluginsLoaded();
+        usleep(100);
+        $this->collector->onInit();
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        $phases = $data['phases'];
+        $values = array_values($phases);
+
+        for ($i = 1; $i < count($values); $i++) {
+            self::assertGreaterThanOrEqual($values[$i - 1], $values[$i], 'Phases should be in chronological order');
+        }
+    }
 }

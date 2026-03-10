@@ -182,6 +182,49 @@ final class ToolbarRenderer
         }
 
         if ($queries !== []) {
+            // Caller grouping
+            $callerStats = [];
+            foreach ($queries as $query) {
+                $caller = $query['caller'];
+                $callerStats[$caller] ??= ['count' => 0, 'total_time' => 0.0];
+                $callerStats[$caller]['count']++;
+                $callerStats[$caller]['total_time'] += $query['time'];
+            }
+            uasort($callerStats, static fn(array $a, array $b): int => $b['total_time'] <=> $a['total_time']);
+
+            $html .= '<div class="wpd-section">';
+            $html .= '<h4 class="wpd-section-title">Queries by Caller</h4>';
+            $html .= '<table class="wpd-table wpd-table-full">';
+            $html .= '<thead><tr>';
+            $html .= '<th>Caller</th>';
+            $html .= '<th>Count</th>';
+            $html .= '<th>Total Time</th>';
+            $html .= '<th>Avg Time</th>';
+            $html .= '</tr></thead>';
+            $html .= '<tbody>';
+
+            foreach ($callerStats as $caller => $stats) {
+                $avgTime = $stats['total_time'] / $stats['count'];
+                $countClass = $stats['count'] > 5 ? 'wpd-text-yellow' : '';
+
+                // Show only the last entry for long caller strings
+                $shortCaller = $caller;
+                $parts = preg_split('/,\s*/', $caller);
+                if ($parts !== false && count($parts) > 1) {
+                    $shortCaller = end($parts);
+                }
+
+                $html .= '<tr>';
+                $html .= '<td title="' . $this->esc($caller) . '"><span class="wpd-caller">' . $this->esc($shortCaller) . '</span></td>';
+                $html .= '<td class="' . $countClass . '">' . $this->esc((string) $stats['count']) . '</td>';
+                $html .= '<td>' . $this->formatMs($stats['total_time']) . '</td>';
+                $html .= '<td>' . $this->formatMs($avgTime) . '</td>';
+                $html .= '</tr>';
+            }
+
+            $html .= '</tbody></table>';
+            $html .= '</div>';
+
             // Count duplicates for highlighting
             $sqlCounts = [];
             foreach ($queries as $query) {
@@ -202,7 +245,7 @@ final class ToolbarRenderer
 
             foreach ($queries as $index => $query) {
                 $sql = $query['sql'];
-                $timeMs = $query['time'] * 1000;
+                $timeMs = (float) $query['time'];
                 $isSlow = $timeMs > 100.0;
                 $isDuplicate = ($sqlCounts[$sql] ?? 0) > 1;
 
@@ -253,31 +296,6 @@ final class ToolbarRenderer
         $html .= $this->renderTableRow('Total Time', $this->formatMs($totalTime));
         $html .= '</table>';
         $html .= '</div>';
-
-        if ($phases !== []) {
-            $html .= '<div class="wpd-section">';
-            $html .= '<h4 class="wpd-section-title">WordPress Lifecycle</h4>';
-            $html .= '<div class="wpd-timeline">';
-
-            $previousTime = 0.0;
-            foreach ($phases as $phaseName => $phaseTime) {
-                $delta = $phaseTime - $previousTime;
-                $barWidth = $totalTime > 0 ? min(($phaseTime / $totalTime) * 100, 100) : 0;
-
-                $html .= '<div class="wpd-timeline-row">';
-                $html .= '<div class="wpd-timeline-label">' . $this->esc($phaseName) . '</div>';
-                $html .= '<div class="wpd-timeline-bar-wrap">';
-                $html .= '<div class="wpd-timeline-bar" style="width:' . $this->esc(sprintf('%.1f', $barWidth)) . '%"></div>';
-                $html .= '</div>';
-                $html .= '<div class="wpd-timeline-value">' . $this->formatMs($phaseTime) . ' (+' . $this->formatMs($delta) . ')</div>';
-                $html .= '</div>';
-
-                $previousTime = $phaseTime;
-            }
-
-            $html .= '</div>';
-            $html .= '</div>';
-        }
 
         if ($events !== []) {
             $html .= '<div class="wpd-section">';
@@ -456,10 +474,18 @@ final class ToolbarRenderer
         $hitRate = (float) ($data['hit_rate'] ?? 0.0);
         $transientSets = (int) ($data['transient_sets'] ?? 0);
         $transientDeletes = (int) ($data['transient_deletes'] ?? 0);
+        $dropin = (string) ($data['object_cache_dropin'] ?? '');
+        /** @var list<array{name: string, operation: string, expiration: int, caller: string}> $transientOps */
+        $transientOps = $data['transient_operations'] ?? [];
+        /** @var array<string, int> $cacheGroups */
+        $cacheGroups = $data['cache_groups'] ?? [];
 
         $html = '<div class="wpd-section">';
         $html .= '<h4 class="wpd-section-title">Object Cache</h4>';
         $html .= '<table class="wpd-table wpd-table-kv">';
+        if ($dropin !== '') {
+            $html .= $this->renderTableRow('Drop-in', $this->esc($dropin));
+        }
         $html .= $this->renderTableRow('Cache Hits', (string) $hits);
         $html .= $this->renderTableRow('Cache Misses', (string) $misses);
         $html .= $this->renderTableRow('Hit Rate', sprintf('%.1f%%', $hitRate));
@@ -476,13 +502,66 @@ final class ToolbarRenderer
         $html .= '</div>';
         $html .= '</div>';
 
+        // Transients section
         $html .= '<div class="wpd-section">';
         $html .= '<h4 class="wpd-section-title">Transients</h4>';
-        $html .= '<table class="wpd-table wpd-table-kv">';
-        $html .= $this->renderTableRow('Transient Sets', (string) $transientSets);
-        $html .= $this->renderTableRow('Transient Deletes', (string) $transientDeletes);
-        $html .= '</table>';
+
+        if ($transientOps !== []) {
+            $html .= '<table class="wpd-table wpd-table-full">';
+            $html .= '<thead><tr>';
+            $html .= '<th class="wpd-col-num">#</th>';
+            $html .= '<th>Name</th>';
+            $html .= '<th>Operation</th>';
+            $html .= '<th>Expiration</th>';
+            $html .= '<th>Caller</th>';
+            $html .= '</tr></thead>';
+            $html .= '<tbody>';
+
+            foreach ($transientOps as $index => $op) {
+                $expDisplay = match (true) {
+                    $op['operation'] === 'delete' => "\xe2\x80\x94",
+                    $op['expiration'] === 0 => 'none',
+                    default => $this->esc((string) $op['expiration']) . 's',
+                };
+                $opTag = $op['operation'] === 'set'
+                    ? '<span class="wpd-query-tag" style="background:rgba(166,227,161,0.2);color:#a6e3a1">SET</span>'
+                    : '<span class="wpd-query-tag" style="background:rgba(243,139,168,0.2);color:#f38ba8">DELETE</span>';
+
+                $html .= '<tr>';
+                $html .= '<td class="wpd-col-num">' . $this->esc((string) ($index + 1)) . '</td>';
+                $html .= '<td><code>' . $this->esc($op['name']) . '</code></td>';
+                $html .= '<td>' . $opTag . '</td>';
+                $html .= '<td>' . $expDisplay . '</td>';
+                $html .= '<td><span class="wpd-caller">' . $this->esc($op['caller']) . '</span></td>';
+                $html .= '</tr>';
+            }
+
+            $html .= '</tbody></table>';
+        } else {
+            $html .= '<table class="wpd-table wpd-table-kv">';
+            $html .= $this->renderTableRow('Transient Sets', (string) $transientSets);
+            $html .= $this->renderTableRow('Transient Deletes', (string) $transientDeletes);
+            $html .= '</table>';
+        }
+
         $html .= '</div>';
+
+        // Cache Groups section
+        if ($cacheGroups !== []) {
+            $html .= '<div class="wpd-section">';
+            $html .= '<h4 class="wpd-section-title">Cache Groups</h4>';
+            $html .= '<table class="wpd-table wpd-table-full">';
+            $html .= '<thead><tr><th>Group</th><th>Entries</th></tr></thead>';
+            $html .= '<tbody>';
+            foreach ($cacheGroups as $group => $count) {
+                $html .= '<tr>';
+                $html .= '<td><code>' . $this->esc($group) . '</code></td>';
+                $html .= '<td>' . $this->esc((string) $count) . '</td>';
+                $html .= '</tr>';
+            }
+            $html .= '</tbody></table>';
+            $html .= '</div>';
+        }
 
         return $html;
     }
@@ -1259,12 +1338,12 @@ final class ToolbarRenderer
         }
         $html .= $this->renderPerfCard('Peak Memory', $peakMemory > 0 ? $this->formatBytes($peakMemory) : 'N/A', $memorySub);
 
-        $dbSub = $dbCount > 0 ? $this->formatMs($dbTime * 1000) . ' total' : '';
+        $dbSub = $dbCount > 0 ? $this->formatMs($dbTime) . ' total' : '';
         $html .= $this->renderPerfCard('Database', $dbCount > 0 ? $this->esc((string) $dbCount) . ' queries' : 'N/A', $dbSub);
 
         $html .= $this->renderPerfCard('Cache Hit Rate', $cacheData !== [] ? $this->esc(sprintf('%.1f%%', $cacheHitRate)) : 'N/A', '');
 
-        $httpSub = $httpCount > 0 ? $this->formatMs($httpTime * 1000) . ' total' : '';
+        $httpSub = $httpCount > 0 ? $this->formatMs($httpTime) . ' total' : '';
         $html .= $this->renderPerfCard('HTTP Client', $httpCount > 0 ? $this->esc((string) $httpCount) . ' requests' : 'N/A', $httpSub);
 
         $html .= $this->renderPerfCard('Hook Firings', $eventData !== [] ? $this->esc((string) $hookFirings) : 'N/A', '');
@@ -1273,127 +1352,258 @@ final class ToolbarRenderer
         $html .= '</div>';
 
         // Section 2: Time Distribution
-        if ($totalTime > 0) {
-            $dbTimeMs = $dbTime * 1000;
-            $httpTimeMs = $httpTime * 1000;
-            $phpTime = max(0.0, $totalTime - $dbTimeMs - $httpTimeMs);
+        /** @var array<string, array{name: string, category: string, duration: float, memory: int, start_time: float, end_time: float}> $events */
+        $events = $timeData['events'] ?? [];
+        $customEvents = array_filter($events, static fn(array $e): bool => $e['category'] !== 'wp_lifecycle');
 
-            $phpPct = ($phpTime / $totalTime) * 100;
-            $dbPct = ($dbTimeMs / $totalTime) * 100;
-            $httpPct = ($httpTimeMs / $totalTime) * 100;
+        if ($totalTime > 0) {
+            $dbTimeMs = $dbTime;
+            $httpTimeMs = $httpTime;
+
+            // Aggregate custom stopwatch event durations by category
+            $categoryTimes = [];
+            foreach ($customEvents as $event) {
+                $cat = $event['category'];
+                $categoryTimes[$cat] = ($categoryTimes[$cat] ?? 0.0) + (float) $event['duration'];
+            }
+
+            // Aggregate transient operation times as "cache" category
+            /** @var list<array{name: string, operation: string, expiration: int, caller: string, time?: float}> $transientOps */
+            $transientOps = $cacheData['transient_operations'] ?? [];
+            $cacheTimeMs = 0.0;
+            foreach ($transientOps as $op) {
+                if (isset($op['time'])) {
+                    $cacheTimeMs += 0.5; // approximate per-operation cost
+                }
+            }
+
+            $customTotal = array_sum($categoryTimes) + $cacheTimeMs;
+            $phpTime = max(0.0, $totalTime - $dbTimeMs - $httpTimeMs - $customTotal);
+
+            // Build segments: fixed categories first, then dynamic
+            $segments = [];
+            $segments[] = ['label' => 'PHP', 'time' => $phpTime, 'color' => '#89b4fa'];
+            $segments[] = ['label' => 'Database', 'time' => $dbTimeMs, 'color' => '#f9e2af'];
+            $segments[] = ['label' => 'HTTP Client', 'time' => $httpTimeMs, 'color' => '#cba6f7'];
+
+            if ($cacheTimeMs > 0) {
+                $segments[] = ['label' => 'Cache', 'time' => $cacheTimeMs, 'color' => '#a6e3a1'];
+            }
+
+            $dynamicCategoryColors = [
+                'template' => '#fab387',
+                'controller' => '#94e2d5',
+            ];
+            foreach ($categoryTimes as $cat => $catTime) {
+                $color = $dynamicCategoryColors[$cat] ?? '#74c7ec';
+                $label = ucfirst($cat);
+                $segments[] = ['label' => $label, 'time' => $catTime, 'color' => $color];
+            }
 
             $html .= '<div class="wpd-section">';
             $html .= '<h4 class="wpd-section-title">Time Distribution</h4>';
 
             $html .= '<div class="wpd-perf-dist-bar">';
-            if ($phpPct > 0) {
-                $html .= '<div class="wpd-perf-dist-segment" style="width:' . $this->esc(sprintf('%.2f', $phpPct)) . '%;background:#89b4fa"></div>';
-            }
-            if ($dbPct > 0) {
-                $html .= '<div class="wpd-perf-dist-segment" style="width:' . $this->esc(sprintf('%.2f', $dbPct)) . '%;background:#f9e2af"></div>';
-            }
-            if ($httpPct > 0) {
-                $html .= '<div class="wpd-perf-dist-segment" style="width:' . $this->esc(sprintf('%.2f', $httpPct)) . '%;background:#cba6f7"></div>';
+            foreach ($segments as $seg) {
+                $pct = ($seg['time'] / $totalTime) * 100;
+                if ($pct > 0) {
+                    $html .= '<div class="wpd-perf-dist-segment" style="width:' . $this->esc(sprintf('%.2f', $pct)) . '%;background:' . $this->esc($seg['color']) . '"></div>';
+                }
             }
             $html .= '</div>';
 
             $html .= '<div class="wpd-perf-dist-legend">';
-            $html .= '<span class="wpd-perf-legend-item"><span class="wpd-perf-legend-color" style="background:#89b4fa"></span> PHP ' . $this->formatMs($phpTime) . ' (' . $this->esc(sprintf('%.1f%%', $phpPct)) . ')</span>';
-            $html .= '<span class="wpd-perf-legend-item"><span class="wpd-perf-legend-color" style="background:#f9e2af"></span> Database ' . $this->formatMs($dbTimeMs) . ' (' . $this->esc(sprintf('%.1f%%', $dbPct)) . ')</span>';
-            $html .= '<span class="wpd-perf-legend-item"><span class="wpd-perf-legend-color" style="background:#cba6f7"></span> HTTP Client ' . $this->formatMs($httpTimeMs) . ' (' . $this->esc(sprintf('%.1f%%', $httpPct)) . ')</span>';
+            foreach ($segments as $seg) {
+                if ($seg['time'] > 0) {
+                    $pct = ($seg['time'] / $totalTime) * 100;
+                    $html .= '<span class="wpd-perf-legend-item"><span class="wpd-perf-legend-color" style="background:' . $this->esc($seg['color']) . '"></span> ' . $this->esc($seg['label']) . ' ' . $this->formatMs($seg['time']) . ' (' . $this->esc(sprintf('%.1f%%', $pct)) . ')</span>';
+                }
+            }
             $html .= '</div>';
 
             $html .= '</div>';
         }
 
-        // Section 3: WordPress Lifecycle (waterfall)
+        // Section 3: Unified Timeline (waterfall)
         /** @var array<string, float> $phases */
         $phases = $timeData['phases'] ?? [];
-        if ($phases !== []) {
-            $html .= '<div class="wpd-section">';
-            $html .= '<h4 class="wpd-section-title">WordPress Lifecycle</h4>';
-            $html .= '<div class="wpd-perf-waterfall">';
+        $requestTimeFloat = (float) ($timeData['request_time_float'] ?? 0.0);
 
-            $phaseEntries = [];
-            $previousTime = 0.0;
-            foreach ($phases as $phaseName => $phaseTime) {
-                $phaseEntries[] = [
-                    'name' => $phaseName,
-                    'start' => $previousTime,
-                    'duration' => $phaseTime - $previousTime,
-                ];
-                $previousTime = $phaseTime;
-            }
+        $categoryColors = [
+            'lifecycle' => '#89b4fa',
+            'database' => '#f9e2af',
+            'cache' => '#a6e3a1',
+            'http' => '#cba6f7',
+            'default' => '#74c7ec',
+            'controller' => '#94e2d5',
+            'template' => '#fab387',
+            'security' => '#f38ba8',
+        ];
 
-            foreach ($phaseEntries as $entry) {
-                $left = $totalTime > 0 ? ($entry['start'] / $totalTime) * 100 : 0;
-                $width = $totalTime > 0 ? ($entry['duration'] / $totalTime) * 100 : 0;
-                $width = max($width, 0.3);
+        // Build unified timeline entries
+        $timelineEntries = [];
 
-                $html .= '<div class="wpd-perf-wf-row">';
-                $html .= '<div class="wpd-perf-wf-label" title="' . $this->esc($entry['name']) . '">' . $this->esc($entry['name']) . '</div>';
-                $html .= '<div class="wpd-perf-wf-track">';
-                $html .= '<div class="wpd-perf-wf-bar" style="left:' . $this->esc(sprintf('%.2f', $left)) . '%;width:' . $this->esc(sprintf('%.2f', $width)) . '%"></div>';
-                $html .= '</div>';
-                $html .= '<div class="wpd-perf-wf-value">' . $this->formatMs($entry['duration']) . '</div>';
-                $html .= '</div>';
-            }
-
-            $html .= '</div>';
-            $html .= '</div>';
+        // 1. Lifecycle phases
+        $previousTime = 0.0;
+        foreach ($phases as $phaseName => $phaseTime) {
+            $timelineEntries[] = [
+                'name' => $phaseName,
+                'start' => $previousTime,
+                'duration' => $phaseTime - $previousTime,
+                'category' => 'lifecycle',
+                'title' => $phaseName,
+            ];
+            $previousTime = $phaseTime;
         }
 
-        // Section 4: Stopwatch Events (waterfall)
-        /** @var array<string, array{name: string, category: string, duration: float, memory: int, start_time: float, end_time: float}> $events */
-        $events = $timeData['events'] ?? [];
-        $customEvents = array_filter($events, static fn(array $e): bool => $e['category'] !== 'wp_lifecycle');
-
-        if ($customEvents !== []) {
-            $categoryColors = [
-                'default' => '#74c7ec',
-                'controller' => '#a6e3a1',
-                'template' => '#f9e2af',
-                'security' => '#f38ba8',
-            ];
-
-            $minStart = PHP_FLOAT_MAX;
-            $maxEnd = 0.0;
-            foreach ($customEvents as $event) {
-                $start = (float) $event['start_time'];
-                $end = (float) $event['end_time'];
-                if ($start < $minStart) {
-                    $minStart = $start;
-                }
-                if ($end > $maxEnd) {
-                    $maxEnd = $end;
-                }
+        // 2. DB queries — single row with individual ticks per query
+        /** @var list<array{sql: string, time: float, caller: string, start?: float}> $queries */
+        $queries = $dbData['queries'] ?? [];
+        $dbBars = [];
+        $dbTotalMs = 0.0;
+        foreach ($queries as $query) {
+            if (!isset($query['start'])) {
+                continue;
             }
-            $span = $maxEnd - $minStart;
+            $startMs = ((float) $query['start'] - $requestTimeFloat) * 1000;
+            $durationMs = (float) $query['time'];
+            $dbTotalMs += $durationMs;
+            $dbBars[] = ['start' => $startMs, 'duration' => $durationMs];
+        }
+        if ($dbBars !== []) {
+            $dbLabel = sprintf('Database (%d queries)', count($dbBars));
+            $timelineEntries[] = [
+                'name' => $dbLabel,
+                'start' => $dbBars[0]['start'],
+                'duration' => 0.0,
+                'category' => 'database',
+                'title' => $dbLabel . ' — ' . $this->formatMs($dbTotalMs) . ' total',
+                'value' => $dbTotalMs,
+                'bars' => $dbBars,
+            ];
+        }
 
+        // 3. Transient operations — single row with individual ticks
+        /** @var list<array{name: string, operation: string, expiration: int, caller: string, time?: float}> $transientOps */
+        $transientOps = $cacheData['transient_operations'] ?? [];
+        $cacheBars = [];
+        foreach ($transientOps as $op) {
+            if (!isset($op['time'])) {
+                continue;
+            }
+            $cacheBars[] = ['start' => (float) $op['time'], 'duration' => 0.5];
+        }
+        if ($cacheBars !== []) {
+            $cacheLabel = sprintf('Cache (%d ops)', count($cacheBars));
+            $timelineEntries[] = [
+                'name' => $cacheLabel,
+                'start' => $cacheBars[0]['start'],
+                'duration' => 0.0,
+                'category' => 'cache',
+                'title' => $cacheLabel,
+                'bars' => $cacheBars,
+            ];
+        }
+
+        // 4. HTTP Client requests — single row with individual ticks
+        /** @var list<array{url: string, method: string, status_code: int, duration: float, start?: float, response_size?: int, error?: string}> $httpRequests */
+        $httpRequests = $httpData['requests'] ?? [];
+        $httpBars = [];
+        $httpTotalMs = 0.0;
+        foreach ($httpRequests as $req) {
+            if (!isset($req['start'])) {
+                continue;
+            }
+            $startMs = ((float) $req['start'] - $requestTimeFloat) * 1000;
+            $durationMs = (float) $req['duration'];
+            $httpTotalMs += $durationMs;
+            $httpBars[] = ['start' => $startMs, 'duration' => $durationMs];
+        }
+        if ($httpBars !== []) {
+            $httpLabel = sprintf('HTTP Client (%d requests)', count($httpBars));
+            $timelineEntries[] = [
+                'name' => $httpLabel,
+                'start' => $httpBars[0]['start'],
+                'duration' => 0.0,
+                'category' => 'http',
+                'title' => $httpLabel . ' — ' . $this->formatMs($httpTotalMs) . ' total',
+                'value' => $httpTotalMs,
+                'bars' => $httpBars,
+            ];
+        }
+
+        // 5. Custom stopwatch events (excluding wp_lifecycle)
+        foreach ($customEvents as $event) {
+            $timelineEntries[] = [
+                'name' => $event['name'],
+                'start' => (float) $event['start_time'],
+                'duration' => (float) $event['duration'],
+                'category' => $event['category'],
+                'title' => $event['name'],
+            ];
+        }
+
+        // Sort by start time
+        usort($timelineEntries, static fn(array $a, array $b): int => $a['start'] <=> $b['start']);
+
+        if ($timelineEntries !== []) {
             $html .= '<div class="wpd-section">';
-            $html .= '<h4 class="wpd-section-title">Stopwatch Events</h4>';
+            $html .= '<h4 class="wpd-section-title">Timeline</h4>';
             $html .= '<div class="wpd-perf-waterfall">';
 
-            foreach ($customEvents as $event) {
-                $start = (float) $event['start_time'];
-                $duration = (float) $event['duration'];
-                $category = $event['category'];
-                $color = $categoryColors[$category] ?? $categoryColors['default'];
-
-                $left = $span > 0 ? (($start - $minStart) / $span) * 100 : 0;
-                $width = $span > 0 ? ($duration / $span) * 100 : 100;
-                $width = max($width, 0.3);
+            foreach ($timelineEntries as $entry) {
+                $color = $categoryColors[$entry['category']] ?? $categoryColors['default'];
 
                 $html .= '<div class="wpd-perf-wf-row">';
-                $html .= '<div class="wpd-perf-wf-label" title="' . $this->esc($event['name']) . '">' . $this->esc($event['name']) . '</div>';
+                $html .= '<div class="wpd-perf-wf-label" title="' . $this->esc($entry['title']) . '">' . $this->esc($entry['name']) . '</div>';
                 $html .= '<div class="wpd-perf-wf-track">';
-                $html .= '<div class="wpd-perf-wf-bar" style="left:' . $this->esc(sprintf('%.2f', $left)) . '%;width:' . $this->esc(sprintf('%.2f', $width)) . '%;background:' . $this->esc($color) . '"></div>';
+
+                /** @var non-empty-list<array{start: float, duration: float}>|null $bars */
+                $bars = $entry['bars'] ?? null;
+                if ($bars !== null) {
+                    // Multi-bar: render individual ticks
+                    foreach ($bars as $bar) {
+                        $left = $totalTime > 0 ? ($bar['start'] / $totalTime) * 100 : 0;
+                        $width = $totalTime > 0 ? ($bar['duration'] / $totalTime) * 100 : 0;
+                        $width = max($width, 0.3);
+                        $html .= '<div class="wpd-perf-wf-bar" style="left:' . $this->esc(sprintf('%.2f', $left)) . '%;width:' . $this->esc(sprintf('%.2f', $width)) . '%;background:' . $this->esc($color) . '"></div>';
+                    }
+                } else {
+                    // Single bar
+                    $left = $totalTime > 0 ? ($entry['start'] / $totalTime) * 100 : 0;
+                    $width = $totalTime > 0 ? ($entry['duration'] / $totalTime) * 100 : 0;
+                    $width = max($width, 0.3);
+                    $html .= '<div class="wpd-perf-wf-bar" style="left:' . $this->esc(sprintf('%.2f', $left)) . '%;width:' . $this->esc(sprintf('%.2f', $width)) . '%;background:' . $this->esc($color) . '"></div>';
+                }
+
                 $html .= '</div>';
-                $html .= '<div class="wpd-perf-wf-value">' . $this->formatMs($duration) . '</div>';
+                $displayValue = (float) ($entry['value'] ?? $entry['duration']);
+                $html .= '<div class="wpd-perf-wf-value">' . $this->formatMs($displayValue) . '</div>';
                 $html .= '</div>';
             }
 
             $html .= '</div>';
+
+            // Category legend
+            $usedCategories = array_unique(array_column($timelineEntries, 'category'));
+            $categoryLabels = [
+                'lifecycle' => 'Lifecycle',
+                'database' => 'Database',
+                'cache' => 'Cache',
+                'http' => 'HTTP Client',
+                'default' => 'Default',
+                'controller' => 'Controller',
+                'template' => 'Template',
+                'security' => 'Security',
+            ];
+            $html .= '<div class="wpd-perf-dist-legend" style="margin-top:8px">';
+            foreach ($usedCategories as $cat) {
+                $color = $categoryColors[$cat] ?? $categoryColors['default'];
+                $label = $categoryLabels[$cat] ?? ucfirst($cat);
+                $html .= '<span class="wpd-perf-legend-item"><span class="wpd-perf-legend-color" style="background:' . $this->esc($color) . '"></span> ' . $this->esc($label) . '</span>';
+            }
+            $html .= '</div>';
+
             $html .= '</div>';
         }
 
@@ -1808,7 +2018,7 @@ final class ToolbarRenderer
         }
         #wppack-debug .wpd-timeline-bar {
             height: 100%;
-            background: linear-gradient(90deg, #89b4fa, #cba6f7);
+            background: #89b4fa;
             border-radius: 3px;
             min-width: 2px;
             transition: width 0.3s ease;
@@ -1997,7 +2207,7 @@ final class ToolbarRenderer
             position: absolute;
             top: 0;
             height: 100%;
-            background: linear-gradient(90deg, #89b4fa, #cba6f7);
+            background: #89b4fa;
             border-radius: 3px;
             min-width: 2px;
         }

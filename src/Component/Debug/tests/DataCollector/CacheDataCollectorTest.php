@@ -46,6 +46,7 @@ final class CacheDataCollectorTest extends TestCase
         self::assertSame(0.0, $data['hit_rate']);
         self::assertSame(0, $data['transient_sets']);
         self::assertSame(0, $data['transient_deletes']);
+        self::assertSame([], $data['transient_operations']);
     }
 
     #[Test]
@@ -121,9 +122,9 @@ final class CacheDataCollectorTest extends TestCase
     public function resetClearsTransientCounters(): void
     {
         // Simulate transient operations
-        $this->collector->onTransientSet();
-        $this->collector->onTransientSet();
-        $this->collector->onTransientDeleted();
+        $this->collector->onTransientSet('key1', 'value1', 3600);
+        $this->collector->onTransientSet('key2', 'value2', 7200);
+        $this->collector->onTransientDeleted('key3');
 
         $this->collector->collect();
         $data = $this->collector->getData();
@@ -136,5 +137,85 @@ final class CacheDataCollectorTest extends TestCase
 
         self::assertSame(0, $data['transient_sets']);
         self::assertSame(0, $data['transient_deletes']);
+        self::assertSame([], $data['transient_operations']);
+    }
+
+    #[Test]
+    public function onTransientSetRecordsDetailedOperation(): void
+    {
+        $this->collector->onTransientSet('my_cache', 'some_value', 3600);
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertCount(1, $data['transient_operations']);
+        $op = $data['transient_operations'][0];
+        self::assertSame('my_cache', $op['name']);
+        self::assertSame('set', $op['operation']);
+        self::assertSame(3600, $op['expiration']);
+        self::assertNotEmpty($op['caller']);
+        self::assertArrayHasKey('time', $op);
+        self::assertIsFloat($op['time']);
+    }
+
+    #[Test]
+    public function onTransientDeletedRecordsDetailedOperation(): void
+    {
+        $this->collector->onTransientDeleted('old_cache');
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertCount(1, $data['transient_operations']);
+        $op = $data['transient_operations'][0];
+        self::assertSame('old_cache', $op['name']);
+        self::assertSame('delete', $op['operation']);
+        self::assertSame(0, $op['expiration']);
+        self::assertNotEmpty($op['caller']);
+        self::assertArrayHasKey('time', $op);
+        self::assertIsFloat($op['time']);
+    }
+
+    #[Test]
+    public function collectIncludesObjectCacheDropinInfo(): void
+    {
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertArrayHasKey('object_cache_dropin', $data);
+        self::assertIsString($data['object_cache_dropin']);
+    }
+
+    #[Test]
+    public function collectIncludesCacheGroups(): void
+    {
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertArrayHasKey('cache_groups', $data);
+        self::assertIsArray($data['cache_groups']);
+    }
+
+    #[Test]
+    public function multipleTransientOperationsAreTracked(): void
+    {
+        $this->collector->onTransientSet('key1', 'val1', 3600);
+        $this->collector->onTransientSet('key2', 'val2', 0);
+        $this->collector->onTransientDeleted('key3');
+        $this->collector->onTransientSet('key4', 'val4', 86400);
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertSame(3, $data['transient_sets']);
+        self::assertSame(1, $data['transient_deletes']);
+        self::assertCount(4, $data['transient_operations']);
+
+        self::assertSame('key1', $data['transient_operations'][0]['name']);
+        self::assertSame('set', $data['transient_operations'][0]['operation']);
+        self::assertSame(3600, $data['transient_operations'][0]['expiration']);
+
+        self::assertSame('key3', $data['transient_operations'][2]['name']);
+        self::assertSame('delete', $data['transient_operations'][2]['operation']);
     }
 }

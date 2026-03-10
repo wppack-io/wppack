@@ -10,6 +10,33 @@ use WpPack\Component\Debug\Profiler\Stopwatch;
 #[AsDataCollector(name: 'time', priority: 70)]
 final class TimeDataCollector extends AbstractDataCollector
 {
+    private const FRONTEND_PHASES = [
+        'muplugins_loaded',
+        'plugins_loaded',
+        'setup_theme',
+        'after_setup_theme',
+        'init',
+        'wp_loaded',
+        'wp',
+        'template_redirect',
+        'wp_head',
+        'wp_footer',
+    ];
+
+    private const ADMIN_PHASES = [
+        'muplugins_loaded',
+        'plugins_loaded',
+        'setup_theme',
+        'after_setup_theme',
+        'init',
+        'wp_loaded',
+        'admin_init',
+        'admin_menu',
+        'admin_enqueue_scripts',
+        'admin_head',
+        'admin_footer',
+    ];
+
     /** @var array<string, float> */
     private array $phases = [];
 
@@ -128,6 +155,14 @@ final class TimeDataCollector extends AbstractDataCollector
     }
 
     /**
+     * Hook callback for wp.
+     */
+    public function onWp(): void
+    {
+        $this->markPhase('wp');
+    }
+
+    /**
      * Hook callback for template_redirect.
      */
     public function onTemplateRedirect(): void
@@ -136,11 +171,59 @@ final class TimeDataCollector extends AbstractDataCollector
     }
 
     /**
+     * Hook callback for wp_head.
+     */
+    public function onWpHead(): void
+    {
+        $this->markPhase('wp_head');
+    }
+
+    /**
      * Hook callback for wp_footer.
      */
     public function onWpFooter(): void
     {
         $this->markPhase('wp_footer');
+    }
+
+    /**
+     * Hook callback for admin_init.
+     */
+    public function onAdminInit(): void
+    {
+        $this->markPhase('admin_init');
+    }
+
+    /**
+     * Hook callback for admin_menu.
+     */
+    public function onAdminMenu(): void
+    {
+        $this->markPhase('admin_menu');
+    }
+
+    /**
+     * Hook callback for admin_enqueue_scripts.
+     */
+    public function onAdminEnqueueScripts(): void
+    {
+        $this->markPhase('admin_enqueue_scripts');
+    }
+
+    /**
+     * Hook callback for admin_head.
+     */
+    public function onAdminHead(): void
+    {
+        $this->markPhase('admin_head');
+    }
+
+    /**
+     * Hook callback for admin_footer.
+     */
+    public function onAdminFooter(): void
+    {
+        $this->markPhase('admin_footer');
     }
 
     public function reset(): void
@@ -166,16 +249,7 @@ final class TimeDataCollector extends AbstractDataCollector
 
     private function findPreviousPhase(string $current): ?string
     {
-        $phaseOrder = [
-            'muplugins_loaded',
-            'plugins_loaded',
-            'setup_theme',
-            'after_setup_theme',
-            'init',
-            'wp_loaded',
-            'template_redirect',
-            'wp_footer',
-        ];
+        $phaseOrder = $this->getActivePhaseOrder();
 
         $currentIndex = array_search($current, $phaseOrder, true);
         if ($currentIndex === false || $currentIndex === 0) {
@@ -189,22 +263,23 @@ final class TimeDataCollector extends AbstractDataCollector
 
     private function stopRunningPhases(): void
     {
-        $phaseOrder = [
-            'muplugins_loaded',
-            'plugins_loaded',
-            'setup_theme',
-            'after_setup_theme',
-            'init',
-            'wp_loaded',
-            'template_redirect',
-            'wp_footer',
-        ];
+        $allPhases = array_unique([...self::FRONTEND_PHASES, ...self::ADMIN_PHASES]);
 
-        foreach ($phaseOrder as $phase) {
+        foreach ($allPhases as $phase) {
             if ($this->stopwatch->isStarted($phase)) {
                 $this->stopwatch->stop($phase);
             }
         }
+    }
+
+    /**
+     * Determine active phase order based on recorded phases.
+     *
+     * @return list<string>
+     */
+    private function getActivePhaseOrder(): array
+    {
+        return isset($this->phases['admin_init']) ? self::ADMIN_PHASES : self::FRONTEND_PHASES;
     }
 
     private function registerHooks(): void
@@ -213,13 +288,25 @@ final class TimeDataCollector extends AbstractDataCollector
             return;
         }
 
+        // Common phases
         add_action('muplugins_loaded', [$this, 'onMuPluginsLoaded'], PHP_INT_MIN);
         add_action('plugins_loaded', [$this, 'onPluginsLoaded'], PHP_INT_MIN);
         add_action('setup_theme', [$this, 'onSetupTheme'], PHP_INT_MIN);
         add_action('after_setup_theme', [$this, 'onAfterSetupTheme'], PHP_INT_MIN);
         add_action('init', [$this, 'onInit'], PHP_INT_MIN);
         add_action('wp_loaded', [$this, 'onWpLoaded'], PHP_INT_MIN);
+
+        // Frontend phases
+        add_action('wp', [$this, 'onWp'], PHP_INT_MIN);
         add_action('template_redirect', [$this, 'onTemplateRedirect'], PHP_INT_MIN);
+        add_action('wp_head', [$this, 'onWpHead'], PHP_INT_MIN);
         add_action('wp_footer', [$this, 'onWpFooter'], PHP_INT_MIN);
+
+        // Admin phases
+        add_action('admin_init', [$this, 'onAdminInit'], PHP_INT_MIN);
+        add_action('admin_menu', [$this, 'onAdminMenu'], PHP_INT_MIN);
+        add_action('admin_enqueue_scripts', [$this, 'onAdminEnqueueScripts'], PHP_INT_MIN);
+        add_action('admin_head', [$this, 'onAdminHead'], PHP_INT_MIN);
+        add_action('admin_footer', [$this, 'onAdminFooter'], PHP_INT_MIN);
     }
 }

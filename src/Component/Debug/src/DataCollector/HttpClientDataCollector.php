@@ -20,7 +20,7 @@ final class HttpClientDataCollector extends AbstractDataCollector
     /** @var array<string, float> */
     private array $pendingRequests = [];
 
-    /** @var list<array{url: string, method: string, status_code: int, duration: float, request_headers: array<string, string>, response_headers: array<string, string>, response_size: int, error: string}> */
+    /** @var list<array{url: string, method: string, status_code: int, duration: float, start: float, request_headers: array<string, string>, response_headers: array<string, string>, response_size: int, error: string}> */
     private array $requests = [];
 
     public function __construct()
@@ -66,7 +66,7 @@ final class HttpClientDataCollector extends AbstractDataCollector
     {
         $duration = 0.0;
         if (isset($this->pendingRequests[$url])) {
-            $duration = microtime(true) - $this->pendingRequests[$url];
+            $duration = (microtime(true) - $this->pendingRequests[$url]) * 1000;
         }
 
         $args = is_array($parsedArgs) ? $parsedArgs : [];
@@ -94,11 +94,14 @@ final class HttpClientDataCollector extends AbstractDataCollector
 
         $responseHeaders = $this->extractResponseHeaders($response);
 
+        $startTime = $this->pendingRequests[$url] ?? microtime(true) - $duration;
+
         $this->requests[] = [
             'url' => $url,
             'method' => $method,
             'status_code' => $statusCode,
             'duration' => $duration,
+            'start' => $startTime,
             'request_headers' => $requestHeaders,
             'response_headers' => $responseHeaders,
             'response_size' => $responseSize,
@@ -119,7 +122,7 @@ final class HttpClientDataCollector extends AbstractDataCollector
             if ($req['error'] !== '' || $req['status_code'] >= 400) {
                 $errorCount++;
             }
-            if ($req['duration'] > 1.0) {
+            if ($req['duration'] > 1000.0) {
                 $slowCount++;
             }
         }
@@ -146,7 +149,7 @@ final class HttpClientDataCollector extends AbstractDataCollector
         $totalTime = $this->data['total_time'] ?? 0.0;
         $slowCount = $this->data['slow_count'] ?? 0;
 
-        if ($errorCount > 0 || $totalTime > 5.0) {
+        if ($errorCount > 0 || $totalTime > 5000.0) {
             return 'red';
         }
 

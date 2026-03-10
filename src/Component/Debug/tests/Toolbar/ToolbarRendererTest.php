@@ -162,7 +162,7 @@ final class ToolbarRendererTest extends TestCase
         ]));
         $profile->addCollector($this->createCollector('database', 'Database', '24', 'default', [
             'total_count' => 24,
-            'total_time' => 0.035,
+            'total_time' => 35.0,
             'queries' => [],
         ]));
 
@@ -175,6 +175,135 @@ final class ToolbarRendererTest extends TestCase
         self::assertStringContainsString('Cache Hit Rate', $html);
         self::assertStringContainsString('HTTP Client', $html);
         self::assertStringContainsString('Hook Firings', $html);
+    }
+
+    #[Test]
+    public function renderPerformancePanelShowsTimelineLabel(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('time', 'Time', '198 ms', 'green', [
+            'total_time' => 198.0,
+            'request_time_float' => microtime(true) - 0.198,
+            'phases' => ['muplugins_loaded' => 20.0],
+            'events' => [
+                'my_event' => ['name' => 'my_event', 'category' => 'default', 'duration' => 10.0, 'memory' => 1024, 'start_time' => 0.0, 'end_time' => 10.0],
+            ],
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('Timeline', $html);
+        // Lifecycle phases and custom events appear in unified timeline
+        self::assertStringContainsString('muplugins_loaded', $html);
+        self::assertStringContainsString('my_event', $html);
+    }
+
+    #[Test]
+    public function renderPerformancePanelShowsDbAndCacheInTimeline(): void
+    {
+        $requestTimeFloat = microtime(true) - 0.198;
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('time', 'Time', '198 ms', 'green', [
+            'total_time' => 198.0,
+            'request_time_float' => $requestTimeFloat,
+            'phases' => ['muplugins_loaded' => 20.0],
+            'events' => [],
+        ]));
+        $profile->addCollector($this->createCollector('database', 'Database', '2', 'green', [
+            'total_count' => 2,
+            'total_time' => 3.0,
+            'queries' => [
+                ['sql' => 'SELECT * FROM wp_posts', 'time' => 1.5, 'caller' => 'test', 'start' => $requestTimeFloat + 0.030, 'data' => []],
+            ],
+        ]));
+        $profile->addCollector($this->createCollector('cache', 'Cache', '90%', 'green', [
+            'hit_rate' => 90.0,
+            'transient_operations' => [
+                ['name' => 'my_key', 'operation' => 'set', 'expiration' => 3600, 'caller' => 'test', 'time' => 95.0],
+            ],
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('Timeline', $html);
+        // DB queries aggregated into single row
+        self::assertStringContainsString('Database (1 queries)', $html);
+        // Transient operations aggregated into single row
+        self::assertStringContainsString('Cache (1 ops)', $html);
+    }
+
+    #[Test]
+    public function renderDatabasePanelShowsCallerGrouping(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('database', 'Database', '4', 'green', [
+            'total_count' => 4,
+            'total_time' => 10.0,
+            'queries' => [
+                ['sql' => 'SELECT 1', 'time' => 1.0, 'caller' => 'wp_load_alloptions'],
+                ['sql' => 'SELECT 2', 'time' => 2.0, 'caller' => 'wp_load_alloptions'],
+                ['sql' => 'SELECT 3', 'time' => 3.0, 'caller' => 'WP_Post::get_instance'],
+                ['sql' => 'SELECT 4', 'time' => 4.0, 'caller' => 'get_terms'],
+            ],
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('Queries by Caller', $html);
+        self::assertStringContainsString('wp_load_alloptions', $html);
+        self::assertStringContainsString('Avg Time', $html);
+    }
+
+    #[Test]
+    public function renderCachePanelShowsTransientOperations(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('cache', 'Cache', '90.0%', 'green', [
+            'hits' => 100,
+            'misses' => 10,
+            'hit_rate' => 90.0,
+            'transient_sets' => 2,
+            'transient_deletes' => 1,
+            'object_cache_dropin' => 'Redis',
+            'transient_operations' => [
+                ['name' => 'my_cache', 'operation' => 'set', 'expiration' => 3600, 'caller' => 'MyPlugin::refresh'],
+                ['name' => 'api_data', 'operation' => 'set', 'expiration' => 86400, 'caller' => 'fetch_api'],
+                ['name' => 'old_key', 'operation' => 'delete', 'expiration' => 0, 'caller' => 'MyPlugin::clear'],
+            ],
+            'cache_groups' => ['options' => 50, 'posts' => 20],
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('Drop-in', $html);
+        self::assertStringContainsString('Redis', $html);
+        self::assertStringContainsString('my_cache', $html);
+        self::assertStringContainsString('SET', $html);
+        self::assertStringContainsString('DELETE', $html);
+        self::assertStringContainsString('3600s', $html);
+        self::assertStringContainsString('Cache Groups', $html);
+        self::assertStringContainsString('options', $html);
+    }
+
+    #[Test]
+    public function renderCachePanelFallsBackToCountsWhenNoOperations(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('cache', 'Cache', '90.0%', 'green', [
+            'hits' => 100,
+            'misses' => 10,
+            'hit_rate' => 90.0,
+            'transient_sets' => 5,
+            'transient_deletes' => 2,
+            'transient_operations' => [],
+            'cache_groups' => [],
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('Transient Sets', $html);
+        self::assertStringContainsString('Transient Deletes', $html);
+        self::assertStringNotContainsString('Cache Groups', $html);
     }
 
     #[Test]
