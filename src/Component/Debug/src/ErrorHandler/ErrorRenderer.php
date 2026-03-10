@@ -154,12 +154,6 @@ final readonly class ErrorRenderer
             align-items: center;
             gap: .5rem;
         }
-        .code-snippet-title .dot {
-            width: 8px; height: 8px; border-radius: 50%; display: inline-block;
-        }
-        .code-snippet-title .dot-red { background: var(--red); }
-        .code-snippet-title .dot-yellow { background: var(--yellow); }
-        .code-snippet-title .dot-green { background: var(--green); }
         .code-table {
             width: 100%;
             border-collapse: collapse;
@@ -540,9 +534,6 @@ final readonly class ErrorRenderer
         return <<<HTML
         <div class="code-snippet">
           <div class="code-snippet-title">
-            <span class="dot dot-red"></span>
-            <span class="dot dot-yellow"></span>
-            <span class="dot dot-green"></span>
             {$this->escape($shortFile)} : {$line}
           </div>
           <div style="overflow-x:auto">

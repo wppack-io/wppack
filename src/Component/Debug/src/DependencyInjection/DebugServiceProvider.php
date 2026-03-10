@@ -23,6 +23,7 @@ use WpPack\Component\Debug\DataCollector\WordPressDataCollector;
 use WpPack\Component\Debug\DebugConfig;
 use WpPack\Component\Debug\ErrorHandler\ErrorRenderer;
 use WpPack\Component\Debug\ErrorHandler\ExceptionHandler;
+use WpPack\Component\Debug\ErrorHandler\WpDieHandler;
 use WpPack\Component\Debug\Profiler\Profile;
 use WpPack\Component\Debug\Profiler\Profiler;
 use WpPack\Component\Debug\Profiler\Stopwatch;
@@ -43,6 +44,7 @@ final class DebugServiceProvider implements ServiceProviderInterface
         $builder->register(ToolbarRenderer::class);
         $builder->register(ErrorRenderer::class);
         $builder->register(ExceptionHandler::class)->autowire();
+        $builder->register(WpDieHandler::class)->autowire();
         $builder->register(ToolbarSubscriber::class)->autowire();
 
         // Built-in collectors

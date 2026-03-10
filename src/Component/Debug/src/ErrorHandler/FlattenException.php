@@ -27,10 +27,15 @@ final class FlattenException
             $statusCode = $exception->getStatusCode();
         }
 
+        $class = $exception::class;
+        if (method_exists($exception, 'getDisplayClass')) {
+            $class = $exception->getDisplayClass();
+        }
+
         $trace = self::buildTrace($exception);
 
         $flat = new self(
-            class: $exception::class,
+            class: $class,
             message: $exception->getMessage(),
             code: $exception->getCode(),
             file: $exception->getFile(),
@@ -41,7 +46,7 @@ final class FlattenException
 
         // Build exception chain
         $flat->chain[] = [
-            'class' => $exception::class,
+            'class' => $class,
             'message' => $exception->getMessage(),
             'code' => $exception->getCode(),
             'file' => $exception->getFile(),
