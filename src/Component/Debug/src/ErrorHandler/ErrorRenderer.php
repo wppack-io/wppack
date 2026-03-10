@@ -552,6 +552,9 @@ final readonly class ErrorRenderer
         HTML;
     }
 
+    /**
+     * @param list<array<string, mixed>> $trace
+     */
     private function renderTrace(array $trace, string $exceptionFile, int $exceptionLine): string
     {
         if ($trace === []) {
@@ -634,6 +637,9 @@ final readonly class ErrorRenderer
         return $html;
     }
 
+    /**
+     * @param list<array<string, mixed>> $chain
+     */
     private function renderChain(array $chain): string
     {
         // Skip the first entry (it's the main exception)
