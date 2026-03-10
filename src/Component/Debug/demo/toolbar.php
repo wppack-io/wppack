@@ -259,15 +259,18 @@ $collectors[] = new FakeCollector('user', 'User', 'admin', 'green', [
 
 // Event — hook_timings start values must match lifecycle phase start times
 //
+// wp_enqueue_scripts fires inside wp_head (priority 1), so it is merged into
+// wp_head for timeline consistency. Plugin load times shown on plugins_loaded.
+//
 // Per-hook total_time breakdown (plugin+theme+core must fit within total_time):
-//   after_setup_theme: 5.5ms total → Theme 4.5 + Core 1.0
-//   init:             24.0ms total → WC 15.0(+12ms HTTP) + Yoast 2.5 + Akismet 2.5 + CF7 1.2 + Core 2.8
-//   wp_loaded:         2.5ms total → WC 1.5 + Core 1.0
-//   template_redirect: 4.0ms total → Akismet 1.8 + Core 2.2
-//   wp_enqueue_scripts:6.5ms total → WC 3.0 + CF7 1.5 + Theme 2.0
-//   wp_head:          28.0ms total → WC 5.5 + Yoast 10.0(+8ms HTTP) + Akismet 0.8 + Theme 2.5 + Core 9.2
-//   the_content:       5.5ms total → WC 1.5 + Yoast 2.0 + Theme 1.5 + Core 0.5
-//   wp_footer:        22.0ms total → WC 3.5 + Yoast 1.5 + CF7 0.5 + Theme 1.5 + Core 15.0
+//   plugins_loaded:    57.5ms phase → individual plugin load times shown as bars
+//   after_setup_theme:  5.5ms total → Theme 4.5 + Core 1.0
+//   init:              24.0ms total → WC 15.0(+12ms HTTP) + Yoast 2.5 + Akismet 2.5 + CF7 1.2 + Core 2.8
+//   wp_loaded:          2.5ms total → WC 1.5 + Core 1.0
+//   template_redirect:  4.0ms total → Akismet 1.8 + Core 2.2
+//   wp_head:           34.5ms total → WC 8.5 + Yoast 10.0(+8ms HTTP) + Akismet 0.8 + CF7 1.5 + Theme 4.5 + Core 9.2
+//   the_content:        5.5ms total → WC 1.5 + Yoast 2.0 + Theme 1.5 + Core 0.5
+//   wp_footer:         22.0ms total → WC 3.5 + Yoast 1.5 + CF7 0.5 + Theme 1.5 + Core 15.0
 //
 $collectors[] = new FakeCollector('event', 'Event', '847', 'green', [
     'total_firings' => 847,
@@ -276,16 +279,15 @@ $collectors[] = new FakeCollector('event', 'Event', '847', 'green', [
     'orphan_hooks' => 8,
     'listener_counts' => [
         'init' => 42,
-        'wp_head' => 28,
+        'wp_head' => 36,
         'wp_footer' => 15,
         'the_content' => 8,
-        'wp_enqueue_scripts' => 8,
         'template_redirect' => 6,
         'after_setup_theme' => 5,
         'wp_loaded' => 4,
         'wp' => 3,
-        'setup_theme' => 1,
         'plugins_loaded' => 3,
+        'setup_theme' => 1,
     ],
     'top_hooks' => [
         'esc_html' => 186,
@@ -308,7 +310,6 @@ $collectors[] = new FakeCollector('event', 'Event', '847', 'green', [
         'wp_footer' => 1,
         'init' => 1,
         'wp_loaded' => 1,
-        'wp_enqueue_scripts' => 1,
         'template_redirect' => 1,
         'after_setup_theme' => 1,
         'setup_theme' => 1,
@@ -325,26 +326,25 @@ $collectors[] = new FakeCollector('event', 'Event', '847', 'green', [
         'wp_loaded'         => ['count' =>  4, 'total_time' =>  2.5, 'start' =>  98.0],
         'wp'                => ['count' =>  3, 'total_time' =>  1.5, 'start' => 112.0],
         'template_redirect' => ['count' =>  6, 'total_time' =>  4.0, 'start' => 112.0],
-        'wp_enqueue_scripts' => ['count' => 8, 'total_time' =>  6.5, 'start' => 125.0],
-        'wp_head'           => ['count' => 28, 'total_time' => 28.0, 'start' => 118.0],
+        'wp_head'           => ['count' => 36, 'total_time' => 34.5, 'start' => 118.0],
         'the_content'       => ['count' =>  8, 'total_time' =>  5.5, 'start' => 145.0],
         'wp_footer'         => ['count' => 15, 'total_time' => 22.0, 'start' => 155.0],
     ],
     'component_hooks' => [
-        'woocommerce' => ['init' => 3, 'wp_loaded' => 1, 'wp_enqueue_scripts' => 2, 'wp_head' => 4, 'the_content' => 1, 'wp_footer' => 2],
+        'woocommerce' => ['init' => 3, 'wp_loaded' => 1, 'wp_head' => 6, 'the_content' => 1, 'wp_footer' => 2],
         'wordpress-seo' => ['init' => 2, 'wp_head' => 3, 'the_content' => 1, 'wp_footer' => 1],
         'akismet' => ['init' => 1, 'template_redirect' => 1, 'wp_head' => 1],
-        'contact-form-7' => ['init' => 1, 'wp_enqueue_scripts' => 1, 'wp_footer' => 1],
-        'theme:flavor' => ['after_setup_theme' => 2, 'wp_enqueue_scripts' => 2, 'wp_head' => 3, 'the_content' => 1, 'wp_footer' => 2],
-        'core' => ['init' => 35, 'wp_head' => 17, 'wp_footer' => 9, 'the_content' => 5, 'wp_loaded' => 3, 'template_redirect' => 5, 'after_setup_theme' => 3],
+        'contact-form-7' => ['init' => 1, 'wp_head' => 1, 'wp_footer' => 1],
+        'theme:flavor' => ['after_setup_theme' => 2, 'wp_head' => 5, 'the_content' => 1, 'wp_footer' => 2],
+        'core' => ['init' => 35, 'wp_head' => 20, 'wp_footer' => 9, 'the_content' => 5, 'wp_loaded' => 3, 'template_redirect' => 5, 'after_setup_theme' => 3],
     ],
     'component_summary' => [
-        'woocommerce' => ['type' => 'plugin', 'hooks' => 6, 'listeners' => 13, 'total_time' => 30.0],
+        'woocommerce' => ['type' => 'plugin', 'hooks' => 5, 'listeners' => 13, 'total_time' => 30.0],
         'wordpress-seo' => ['type' => 'plugin', 'hooks' => 4, 'listeners' => 7, 'total_time' => 16.0],
         'akismet' => ['type' => 'plugin', 'hooks' => 3, 'listeners' => 3, 'total_time' => 5.1],
         'contact-form-7' => ['type' => 'plugin', 'hooks' => 3, 'listeners' => 3, 'total_time' => 3.2],
-        'theme:flavor' => ['type' => 'theme', 'hooks' => 5, 'listeners' => 10, 'total_time' => 12.0],
-        'core' => ['type' => 'core', 'hooks' => 7, 'listeners' => 77, 'total_time' => 32.0],
+        'theme:flavor' => ['type' => 'theme', 'hooks' => 4, 'listeners' => 10, 'total_time' => 12.0],
+        'core' => ['type' => 'core', 'hooks' => 7, 'listeners' => 80, 'total_time' => 32.0],
     ],
 ]);
 
@@ -362,15 +362,15 @@ $collectors[] = new FakeCollector('logger', 'Logger', '3', 'yellow', [
 
 // HttpClient — requests happen WITHIN plugin hook callbacks (blocking I/O)
 //   Request 1: WooCommerce update check during init → within WC's init bar (70→85ms)
-//   Request 2: Yoast SEO indexing API during wp_head → within Yoast's wp_head bar (123.5→133.5ms)
+//   Request 2: Yoast SEO indexing API during wp_head → within Yoast's wp_head bar (126.5→136.5ms)
 $collectors[] = new FakeCollector('http_client', 'HTTP Client', '2', 'green', [
     'total_count' => 2,
     'total_time' => 20.0,
     'error_count' => 0,
     'slow_count' => 0,
     'requests' => [
-        ['method' => 'GET', 'url' => 'https://api.wordpress.org/plugins/update-check/1.1/', 'status_code' => 200, 'duration' => 12.0, 'start' => $requestTimeFloat + 0.075, 'response_size' => 4521, 'error' => ''],
-        ['method' => 'POST', 'url' => 'https://wpseo-api.yoast.com/indexables/check', 'status_code' => 200, 'duration' => 8.0, 'start' => $requestTimeFloat + 0.125, 'response_size' => 1280, 'error' => ''],
+        ['method' => 'GET', 'url' => 'https://api.wordpress.org/plugins/update-check/1.1/', 'status_code' => 200, 'duration' => 12.0, 'start' => $requestTimeFloat + 0.073, 'response_size' => 4521, 'error' => ''],
+        ['method' => 'POST', 'url' => 'https://wpseo-api.yoast.com/indexables/check', 'status_code' => 200, 'duration' => 8.0, 'start' => $requestTimeFloat + 0.128, 'response_size' => 1280, 'error' => ''],
     ],
 ]);
 
@@ -451,16 +451,16 @@ $collectors[] = new FakeCollector('dump', 'Dump', '3', 'yellow', [
     ],
 ]);
 
-// Plugin — hook_time includes blocking HTTP wait time where applicable
+// Plugin — wp_enqueue_scripts merged into wp_head; load_time shown on plugins_loaded
 //
 // Sequential within each hook (renderer applies offsets):
-//   init (24.0ms):  WC 15.0(+12ms HTTP) → Yoast 2.5 → Akismet 2.5 → CF7 1.2  (21.2ms, rest=core)
-//   wp_loaded:      WC 1.5                                                       (1.5ms of 2.5ms)
-//   template_redir: Akismet 1.8                                                  (1.8ms of 4.0ms)
-//   wp_enq_scripts: WC 3.0 → CF7 1.5                                            (4.5ms, +Theme 2.0 = 6.5ms)
-//   wp_head:        WC 5.5 → Yoast 10.0(+8ms HTTP) → Akismet 0.8               (16.3ms, +Theme 2.5 = 18.8ms of 28.0ms)
-//   the_content:    WC 1.5 → Yoast 2.0                                          (3.5ms, +Theme 1.5 = 5.0ms of 5.5ms)
-//   wp_footer:      WC 3.5 → Yoast 1.5 → CF7 0.5                               (5.5ms, +Theme 1.5 = 7.0ms of 22.0ms)
+//   plugins_loaded:    WC 28.5 → Yoast 10.8 → Akismet 3.2 → CF7 2.1  (load bars)
+//   init (24.0ms):     WC 15.0(+12ms HTTP) → Yoast 2.5 → Akismet 2.5 → CF7 1.2
+//   wp_loaded:         WC 1.5
+//   template_redirect: Akismet 1.8
+//   wp_head (34.5ms):  WC 8.5 → Yoast 10.0(+8ms HTTP) → Akismet 0.8 → CF7 1.5 → Theme 4.5
+//   the_content:       WC 1.5 → Yoast 2.0 → Theme 1.5
+//   wp_footer:         WC 3.5 → Yoast 1.5 → CF7 0.5 → Theme 1.5
 //
 $collectors[] = new FakeCollector('plugin', 'Plugins', '4', 'green', [
     'plugins' => [
@@ -468,7 +468,7 @@ $collectors[] = new FakeCollector('plugin', 'Plugins', '4', 'green', [
             'name' => 'WooCommerce',
             'version' => '8.5.0',
             'load_time' => 28.5,
-            'hook_count' => 6,
+            'hook_count' => 5,
             'listener_count' => 13,
             'hook_time' => 30.0,
             'query_count' => 8,
@@ -476,8 +476,7 @@ $collectors[] = new FakeCollector('plugin', 'Plugins', '4', 'green', [
             'hooks' => [
                 ['hook' => 'init', 'listeners' => 3, 'time' => 15.0, 'start' => 0.0],
                 ['hook' => 'wp_loaded', 'listeners' => 1, 'time' => 1.5, 'start' => 0.0],
-                ['hook' => 'wp_enqueue_scripts', 'listeners' => 2, 'time' => 3.0, 'start' => 0.0],
-                ['hook' => 'wp_head', 'listeners' => 4, 'time' => 5.5, 'start' => 0.0],
+                ['hook' => 'wp_head', 'listeners' => 6, 'time' => 8.5, 'start' => 0.0],
                 ['hook' => 'the_content', 'listeners' => 1, 'time' => 1.5, 'start' => 0.0],
                 ['hook' => 'wp_footer', 'listeners' => 2, 'time' => 3.5, 'start' => 0.0],
             ],
@@ -524,7 +523,7 @@ $collectors[] = new FakeCollector('plugin', 'Plugins', '4', 'green', [
             'query_time' => 0.0,
             'hooks' => [
                 ['hook' => 'init', 'listeners' => 1, 'time' => 1.2, 'start' => 0.0],
-                ['hook' => 'wp_enqueue_scripts', 'listeners' => 1, 'time' => 1.5, 'start' => 0.0],
+                ['hook' => 'wp_head', 'listeners' => 1, 'time' => 1.5, 'start' => 0.0],
                 ['hook' => 'wp_footer', 'listeners' => 1, 'time' => 0.5, 'start' => 0.0],
             ],
         ],
@@ -562,13 +561,12 @@ $collectors[] = new FakeCollector('theme', 'Theme', 'Flavor', 'default', [
     'enqueued_scripts' => ['jquery', 'flavor-main', 'wp-embed'],
     'setup_time' => 6.5,
     'render_time' => 43.0,
-    'hook_count' => 5,
+    'hook_count' => 4,
     'listener_count' => 10,
     'hook_time' => 12.0,
     'hooks' => [
         ['hook' => 'after_setup_theme', 'listeners' => 2, 'time' => 4.5],
-        ['hook' => 'wp_enqueue_scripts', 'listeners' => 2, 'time' => 2.0],
-        ['hook' => 'wp_head', 'listeners' => 3, 'time' => 2.5],
+        ['hook' => 'wp_head', 'listeners' => 5, 'time' => 4.5],
         ['hook' => 'the_content', 'listeners' => 1, 'time' => 1.5],
         ['hook' => 'wp_footer', 'listeners' => 2, 'time' => 1.5],
     ],

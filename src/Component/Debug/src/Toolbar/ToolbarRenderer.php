@@ -1983,7 +1983,7 @@ final class ToolbarRenderer
             ];
         }
 
-        // 6. Plugin hook processing bars
+        // 6. Plugin hook processing bars (including load time during plugins_loaded)
         // Plugins share hooks — within each hook, their processing is sequential.
         // Track per-hook cumulative offset so bars don't overlap.
         $pluginData = $this->getCollectorData($profile, 'plugin');
@@ -1996,14 +1996,41 @@ final class ToolbarRenderer
         /** @var array<string, float> $hookOffsets per-hook cumulative offset in ms */
         $hookOffsets = [];
 
+        // Pre-calculate plugin load offsets during plugins_loaded phase
+        /** @var list<string> $loadOrder */
+        $loadOrder = $pluginData['load_order'] ?? [];
+        /** @var array<string, float> $pluginLoadStarts slug → ms from plugins_loaded start */
+        $pluginLoadStarts = [];
+        $loadOffset = 0.0;
+
+        // plugins_loaded phase start from lifecycle events
+        $pluginsLoadedStart = 0.0;
+        foreach ($events as $event) {
+            if ($event['name'] === 'plugins_loaded') {
+                $pluginsLoadedStart = (float) $event['start_time'];
+                break;
+            }
+        }
+
+        foreach ($loadOrder as $pluginFile) {
+            $pluginLoadStarts[$pluginFile] = $loadOffset;
+            $loadTime = (float) ($pluginEntries[$pluginFile]['load_time'] ?? 0.0);
+            $loadOffset += $loadTime;
+        }
+
         foreach ($pluginEntries as $slug => $info) {
             /** @var list<array{hook: string, listeners: int, time: float, start?: float}> $pluginHooks */
             $pluginHooks = $info['hooks'] ?? [];
-            if ($pluginHooks === []) {
-                continue;
-            }
 
             $pluginBars = [];
+
+            // Add plugin load time bar during plugins_loaded phase
+            $loadTime = (float) ($info['load_time'] ?? 0.0);
+            if ($loadTime > 0 && $pluginsLoadedStart > 0) {
+                $loadStart = $pluginsLoadedStart + ($pluginLoadStarts[$slug] ?? 0.0);
+                $pluginBars[] = ['start' => $loadStart, 'duration' => $loadTime];
+            }
+
             foreach ($pluginHooks as $hookInfo) {
                 $hookName = $hookInfo['hook'];
                 $hookTiming = $hookTimings[$hookName] ?? null;
