@@ -323,6 +323,149 @@ final class ToolbarRendererTest extends TestCase
         self::assertStringContainsString('N/A', $html);
     }
 
+    #[Test]
+    public function renderPluginPanelShowsPluginData(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('plugin', 'Plugins', '3', 'green', [
+            'total_plugins' => 3,
+            'total_hook_time' => 35.0,
+            'slowest_plugin' => 'woocommerce/woocommerce.php',
+            'plugins' => [
+                'woocommerce/woocommerce.php' => [
+                    'name' => 'WooCommerce',
+                    'version' => '8.5.0',
+                    'load_time' => 12.5,
+                    'hook_count' => 5,
+                    'listener_count' => 13,
+                    'hook_time' => 23.5,
+                    'query_count' => 8,
+                    'query_time' => 5.3,
+                    'hooks' => [
+                        ['hook' => 'init', 'listeners' => 3, 'time' => 8.2],
+                    ],
+                ],
+            ],
+            'mu_plugins' => ['loader.php'],
+            'dropins' => ['object-cache.php'],
+            'load_order' => ['woocommerce/woocommerce.php'],
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('id="wpd-panel-plugin"', $html);
+        self::assertStringContainsString('data-panel="plugin"', $html);
+        self::assertStringContainsString('WooCommerce', $html);
+        self::assertStringContainsString('MU Plugins', $html);
+        self::assertStringContainsString('loader.php', $html);
+        self::assertStringContainsString('Drop-ins', $html);
+        self::assertStringContainsString('object-cache.php', $html);
+    }
+
+    #[Test]
+    public function renderThemePanelShowsThemeData(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('theme', 'Theme', 'Twenty Twenty-Four', 'default', [
+            'name' => 'Twenty Twenty-Four',
+            'version' => '1.2',
+            'is_child_theme' => false,
+            'is_block_theme' => true,
+            'setup_time' => 5.2,
+            'render_time' => 35.0,
+            'hook_count' => 4,
+            'listener_count' => 12,
+            'hook_time' => 12.0,
+            'template_file' => '/var/www/html/wp-content/themes/flavor/single.php',
+            'template_parts' => ['header', 'footer'],
+            'body_classes' => ['single', 'logged-in'],
+            'conditional_tags' => ['is_single' => true, 'is_page' => false],
+            'enqueued_styles' => ['theme-style'],
+            'enqueued_scripts' => ['jquery'],
+            'hooks' => [
+                ['hook' => 'wp_head', 'listeners' => 5, 'time' => 6.5],
+            ],
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('id="wpd-panel-theme"', $html);
+        self::assertStringContainsString('data-panel="theme"', $html);
+        self::assertStringContainsString('Twenty Twenty-Four', $html);
+        self::assertStringContainsString('Setup Time', $html);
+        self::assertStringContainsString('Render Time', $html);
+        self::assertStringContainsString('Hook Breakdown', $html);
+        self::assertStringContainsString('Conditional Tags', $html);
+        self::assertStringContainsString('is_single', $html);
+        self::assertStringContainsString('Enqueued Assets', $html);
+        self::assertStringContainsString('theme-style', $html);
+    }
+
+    #[Test]
+    public function renderSchedulerPanelShowsCronData(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('scheduler', 'Scheduler', '3', 'green', [
+            'cron_total' => 3,
+            'cron_overdue' => 1,
+            'action_scheduler_available' => true,
+            'action_scheduler_version' => '3.7.0',
+            'as_pending' => 5,
+            'as_failed' => 1,
+            'as_complete' => 120,
+            'as_recent_actions' => [],
+            'cron_disabled' => false,
+            'alternate_cron' => false,
+            'cron_events' => [
+                ['hook' => 'wp_scheduled_delete', 'schedule' => 'daily', 'next_run' => time() + 3600, 'next_run_relative' => 'in 1 hour', 'is_overdue' => false, 'callbacks' => 1],
+                ['hook' => 'expired_event', 'schedule' => 'hourly', 'next_run' => time() - 600, 'next_run_relative' => '10 minutes ago', 'is_overdue' => true, 'callbacks' => 1],
+            ],
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('id="wpd-panel-scheduler"', $html);
+        self::assertStringContainsString('data-panel="scheduler"', $html);
+        self::assertStringContainsString('WP-Cron Events', $html);
+        self::assertStringContainsString('wp_scheduled_delete', $html);
+        self::assertStringContainsString('OVERDUE', $html);
+        self::assertStringContainsString('Action Scheduler', $html);
+        self::assertStringContainsString('DISABLE_WP_CRON', $html);
+    }
+
+    #[Test]
+    public function renderPerformancePanelShowsPluginTimelineEntries(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('time', 'Time', '198 ms', 'green', [
+            'total_time' => 198.0,
+            'request_time_float' => microtime(true) - 0.198,
+            'phases' => ['muplugins_loaded' => 20.0],
+            'events' => [],
+        ]));
+        $profile->addCollector($this->createCollector('event', 'Event', '100', 'green', [
+            'hook_timings' => [
+                'init' => ['count' => 10, 'total_time' => 15.0, 'start' => 57.9],
+            ],
+        ]));
+        $profile->addCollector($this->createCollector('plugin', 'Plugins', '1', 'green', [
+            'plugins' => [
+                'test/test.php' => [
+                    'name' => 'TestPlugin',
+                    'hook_time' => 10.0,
+                    'hooks' => [
+                        ['hook' => 'init', 'listeners' => 3, 'time' => 10.0],
+                    ],
+                ],
+            ],
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('Plugins', $html);
+        self::assertStringContainsString('TestPlugin', $html);
+    }
+
     private function createProfileWithCollectors(): Profile
     {
         $profile = new Profile('test-token');

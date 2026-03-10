@@ -231,18 +231,53 @@ $collectors[] = new FakeCollector('user', 'User', 'admin', 'green', [
     'is_super_admin' => false,
 ]);
 
-// Event
+// Event (enhanced with hook_timings, component_hooks, component_summary)
 $collectors[] = new FakeCollector('event', 'Event', '847', 'green', [
     'total_firings' => 847,
     'unique_hooks' => 312,
-    'total_listeners' => 524,
+    'registered_hooks' => 280,
     'orphan_hooks' => 5,
-    'top_hooks' => [
+    'listener_counts' => [
         'init' => 45,
         'wp_head' => 28,
         'the_content' => 12,
         'wp_enqueue_scripts' => 8,
         'template_redirect' => 6,
+        'wp_loaded' => 4,
+        'wp_footer' => 15,
+        'after_setup_theme' => 5,
+    ],
+    'top_hooks' => [
+        'init' => 45,
+        'wp_head' => 28,
+        'wp_footer' => 15,
+        'the_content' => 12,
+        'wp_enqueue_scripts' => 8,
+    ],
+    'hook_timings' => [
+        'init' => ['count' => 45, 'total_time' => 15.0, 'start' => 57.9],
+        'wp_head' => ['count' => 28, 'total_time' => 25.0, 'start' => 122.5],
+        'wp_footer' => ['count' => 15, 'total_time' => 18.0, 'start' => 158.3],
+        'the_content' => ['count' => 12, 'total_time' => 8.5, 'start' => 130.0],
+        'wp_enqueue_scripts' => ['count' => 8, 'total_time' => 5.2, 'start' => 110.0],
+        'wp_loaded' => ['count' => 4, 'total_time' => 2.1, 'start' => 81.3],
+        'template_redirect' => ['count' => 6, 'total_time' => 3.0, 'start' => 100.4],
+        'after_setup_theme' => ['count' => 5, 'total_time' => 4.5, 'start' => 20.0],
+        'plugins_loaded' => ['count' => 3, 'total_time' => 2.0, 'start' => 12.3],
+    ],
+    'component_hooks' => [
+        'woocommerce' => ['init' => 3, 'wp_loaded' => 1, 'wp_head' => 5, 'wp_footer' => 2, 'wp_enqueue_scripts' => 2],
+        'akismet' => ['init' => 1, 'template_redirect' => 1],
+        'yoast-seo' => ['init' => 2, 'wp_head' => 3, 'the_content' => 1],
+        'theme:flavor' => ['after_setup_theme' => 2, 'wp_head' => 5, 'wp_footer' => 3, 'wp_enqueue_scripts' => 2],
+        'core' => ['init' => 12, 'wp_head' => 8, 'wp_footer' => 5],
+    ],
+    'component_summary' => [
+        'woocommerce' => ['type' => 'plugin', 'hooks' => 5, 'listeners' => 13, 'total_time' => 23.5],
+        'yoast-seo' => ['type' => 'plugin', 'hooks' => 3, 'listeners' => 6, 'total_time' => 12.0],
+        'theme:flavor' => ['type' => 'theme', 'hooks' => 4, 'listeners' => 12, 'total_time' => 12.0],
+        'akismet' => ['type' => 'plugin', 'hooks' => 2, 'listeners' => 2, 'total_time' => 5.1],
+        'core' => ['type' => 'core', 'hooks' => 3, 'listeners' => 25, 'total_time' => 45.0],
     ],
 ]);
 
@@ -282,13 +317,47 @@ $collectors[] = new FakeCollector('translation', 'Translation', '2', 'yellow', [
     ],
 ]);
 
-// Mail
-$collectors[] = new FakeCollector('mail', 'Mail', '0', 'green', [
-    'total_count' => 0,
-    'success_count' => 0,
-    'failure_count' => 0,
-    'pending_count' => 0,
-    'emails' => [],
+// Mail (enhanced with structured headers and attachment details)
+$collectors[] = new FakeCollector('mail', 'Mail', '2', 'green', [
+    'total_count' => 2,
+    'success_count' => 1,
+    'failure_count' => 1,
+    'emails' => [
+        [
+            'to' => 'a***@example.com',
+            'subject' => 'Welcome to Our Site!',
+            'headers' => 'From: noreply@example.com',
+            'message' => "Hello Alice,\n\nWelcome to our site! We're glad to have you.\n\nBest regards,\nThe Team",
+            'attachments' => ['/var/www/html/wp-content/uploads/welcome.pdf'],
+            'status' => 'sent',
+            'error' => '',
+            'from' => 'noreply@example.com',
+            'cc' => [],
+            'bcc' => ['a***@internal.com'],
+            'reply_to' => 'support@example.com',
+            'content_type' => 'text/html',
+            'charset' => 'UTF-8',
+            'attachment_details' => [
+                ['filename' => 'welcome.pdf', 'size' => 245760],
+            ],
+        ],
+        [
+            'to' => 'b***@example.com',
+            'subject' => 'Password Reset Request',
+            'headers' => '',
+            'message' => "A password reset was requested for your account.\n\nIf you did not request this, please ignore this email.",
+            'attachments' => [],
+            'status' => 'failed',
+            'error' => 'SMTP connection failed: Connection timed out',
+            'from' => 'noreply@example.com',
+            'cc' => [],
+            'bcc' => [],
+            'reply_to' => '',
+            'content_type' => 'text/plain',
+            'charset' => 'UTF-8',
+            'attachment_details' => [],
+        ],
+    ],
 ]);
 
 // Dump
@@ -311,6 +380,135 @@ $collectors[] = new FakeCollector('dump', 'Dump', '3', 'yellow', [
             'line' => 156,
         ],
     ],
+]);
+
+// Plugin
+$collectors[] = new FakeCollector('plugin', 'Plugins', '4', 'green', [
+    'plugins' => [
+        'woocommerce/woocommerce.php' => [
+            'name' => 'WooCommerce',
+            'version' => '8.5.0',
+            'load_time' => 12.5,
+            'hook_count' => 5,
+            'listener_count' => 13,
+            'hook_time' => 23.5,
+            'query_count' => 8,
+            'query_time' => 5.3,
+            'hooks' => [
+                ['hook' => 'init', 'listeners' => 3, 'time' => 8.2, 'start' => 57.9],
+                ['hook' => 'wp_head', 'listeners' => 5, 'time' => 6.8, 'start' => 122.5],
+                ['hook' => 'wp_footer', 'listeners' => 2, 'time' => 4.3, 'start' => 158.3],
+                ['hook' => 'wp_loaded', 'listeners' => 1, 'time' => 2.1, 'start' => 81.3],
+                ['hook' => 'wp_enqueue_scripts', 'listeners' => 2, 'time' => 2.1, 'start' => 110.0],
+            ],
+        ],
+        'wordpress-seo/wp-seo.php' => [
+            'name' => 'Yoast SEO',
+            'version' => '22.0',
+            'load_time' => 8.3,
+            'hook_count' => 3,
+            'listener_count' => 6,
+            'hook_time' => 12.0,
+            'query_count' => 3,
+            'query_time' => 2.1,
+            'hooks' => [
+                ['hook' => 'wp_head', 'listeners' => 3, 'time' => 7.5, 'start' => 122.5],
+                ['hook' => 'init', 'listeners' => 2, 'time' => 3.0, 'start' => 57.9],
+                ['hook' => 'the_content', 'listeners' => 1, 'time' => 1.5, 'start' => 130.0],
+            ],
+        ],
+        'akismet/akismet.php' => [
+            'name' => 'Akismet Anti-spam',
+            'version' => '5.3',
+            'load_time' => 3.2,
+            'hook_count' => 2,
+            'listener_count' => 2,
+            'hook_time' => 5.1,
+            'query_count' => 2,
+            'query_time' => 1.0,
+            'hooks' => [
+                ['hook' => 'init', 'listeners' => 1, 'time' => 3.0, 'start' => 57.9],
+                ['hook' => 'template_redirect', 'listeners' => 1, 'time' => 2.1, 'start' => 100.4],
+            ],
+        ],
+        'contact-form-7/wp-contact-form-7.php' => [
+            'name' => 'Contact Form 7',
+            'version' => '5.9',
+            'load_time' => 2.1,
+            'hook_count' => 2,
+            'listener_count' => 3,
+            'hook_time' => 3.2,
+            'query_count' => 0,
+            'query_time' => 0.0,
+            'hooks' => [
+                ['hook' => 'init', 'listeners' => 2, 'time' => 2.0, 'start' => 57.9],
+                ['hook' => 'wp_enqueue_scripts', 'listeners' => 1, 'time' => 1.2, 'start' => 110.0],
+            ],
+        ],
+    ],
+    'total_plugins' => 4,
+    'mu_plugins' => ['loader.php'],
+    'dropins' => ['advanced-cache.php', 'object-cache.php'],
+    'load_order' => ['akismet/akismet.php', 'contact-form-7/wp-contact-form-7.php', 'woocommerce/woocommerce.php', 'wordpress-seo/wp-seo.php'],
+    'slowest_plugin' => 'woocommerce/woocommerce.php',
+    'total_hook_time' => 43.8,
+]);
+
+// Theme
+$collectors[] = new FakeCollector('theme', 'Theme', 'Flavor', 'default', [
+    'name' => 'Flavor',
+    'version' => '2.1.0',
+    'is_child_theme' => true,
+    'child_theme' => 'flavor-child',
+    'parent_theme' => 'flavor',
+    'is_block_theme' => true,
+    'template_file' => '/var/www/html/wp-content/themes/flavor/templates/single.html',
+    'template_parts' => ['header', 'footer', 'sidebar'],
+    'body_classes' => ['single', 'single-post', 'postid-42', 'logged-in', 'admin-bar', 'wp-embed-responsive'],
+    'conditional_tags' => [
+        'is_single' => true,
+        'is_page' => false,
+        'is_archive' => false,
+        'is_home' => false,
+        'is_front_page' => false,
+        'is_admin' => false,
+        'is_search' => false,
+        'is_404' => false,
+    ],
+    'enqueued_styles' => ['flavor-style', 'flavor-child-style', 'wp-block-library'],
+    'enqueued_scripts' => ['jquery', 'flavor-main', 'wp-embed'],
+    'setup_time' => 5.2,
+    'render_time' => 35.0,
+    'hook_count' => 4,
+    'listener_count' => 12,
+    'hook_time' => 12.0,
+    'hooks' => [
+        ['hook' => 'wp_head', 'listeners' => 5, 'time' => 6.5],
+        ['hook' => 'wp_footer', 'listeners' => 3, 'time' => 3.0],
+        ['hook' => 'after_setup_theme', 'listeners' => 2, 'time' => 1.5],
+        ['hook' => 'wp_enqueue_scripts', 'listeners' => 2, 'time' => 1.0],
+    ],
+]);
+
+// Scheduler
+$collectors[] = new FakeCollector('scheduler', 'Scheduler', '5', 'green', [
+    'cron_events' => [
+        ['hook' => 'wp_scheduled_delete', 'schedule' => 'daily', 'next_run' => time() + 7200, 'next_run_relative' => 'in 2 hours', 'is_overdue' => false, 'callbacks' => 1],
+        ['hook' => 'wp_update_plugins', 'schedule' => 'twicedaily', 'next_run' => time() + 3600, 'next_run_relative' => 'in 1 hour', 'is_overdue' => false, 'callbacks' => 1],
+        ['hook' => 'wp_update_themes', 'schedule' => 'twicedaily', 'next_run' => time() + 3600, 'next_run_relative' => 'in 1 hour', 'is_overdue' => false, 'callbacks' => 1],
+        ['hook' => 'wc_cleanup_sessions', 'schedule' => 'twicedaily', 'next_run' => time() - 600, 'next_run_relative' => '10 minutes ago', 'is_overdue' => true, 'callbacks' => 1],
+        ['hook' => 'wp_privacy_delete_old_export_files', 'schedule' => 'hourly', 'next_run' => time() + 1800, 'next_run_relative' => 'in 30 minutes', 'is_overdue' => false, 'callbacks' => 1],
+    ],
+    'cron_total' => 5,
+    'cron_overdue' => 1,
+    'action_scheduler_available' => true,
+    'action_scheduler_version' => '3.7.0',
+    'as_pending' => 5,
+    'as_failed' => 1,
+    'as_complete' => 120,
+    'as_recent_actions' => [],
+    'cron_disabled' => false,
+    'alternate_cron' => false,
 ]);
 
 // --- Build profile and render ---
