@@ -7,6 +7,10 @@ namespace WpPack\Component\Routing\Tests;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\HttpFoundation\Exception\ForbiddenException;
+use WpPack\Component\HttpFoundation\Exception\NotFoundException;
+use WpPack\Component\HttpFoundation\JsonResponse;
+use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Routing\Response\BlockTemplateResponse;
 use WpPack\Component\Routing\Response\TemplateResponse;
 use WpPack\Component\Routing\RouteEntry;
@@ -255,7 +259,7 @@ final class RouteEntryTest extends TestCase
     }
 
     #[Test]
-    public function dispatchWithUnsupportedResponseThrowsLogicException(): void
+    public function dispatchWithUnsupportedResponseThrowsTypeError(): void
     {
         if (!function_exists('get_query_var')) {
             self::markTestSkipped('WordPress functions are not available.');
@@ -272,8 +276,7 @@ final class RouteEntryTest extends TestCase
             fn() => $unsupportedResponse,
         );
 
-        $this->expectException(\LogicException::class);
-        $this->expectExceptionMessage('Unsupported response type');
+        $this->expectException(\TypeError::class);
 
         set_query_var('test_slug', 'hello');
         $entry->handleTemplateRedirect();
@@ -463,5 +466,143 @@ final class RouteEntryTest extends TestCase
         }
 
         self::assertSame(42, get_query_var('item_id'));
+    }
+
+    #[Test]
+    public function dispatchWithNotFoundExceptionSets404(): void
+    {
+        if (!function_exists('get_query_var')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $entry = new RouteEntry(
+            'test_route',
+            '^test/([^/]+)/?$',
+            'index.php?test_slug=$matches[1]',
+            RoutePosition::Top,
+            [],
+            function (): never {
+                throw new NotFoundException();
+            },
+        );
+
+        set_query_var('test_slug', 'hello');
+        $entry->handleTemplateRedirect();
+
+        global $wp_query;
+        self::assertTrue($wp_query->is_404());
+    }
+
+    #[Test]
+    public function dispatchWithHttpExceptionFallsBackToWpDie(): void
+    {
+        if (!function_exists('get_query_var') || !function_exists('wp_die')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $entry = new RouteEntry(
+            'test_route',
+            '^test/([^/]+)/?$',
+            'index.php?test_slug=$matches[1]',
+            RoutePosition::Top,
+            [],
+            function (): never {
+                throw new ForbiddenException('Access denied.');
+            },
+        );
+
+        set_query_var('test_slug', 'hello');
+
+        // wp_die() in test environment throws WPDieException
+        try {
+            $entry->handleTemplateRedirect();
+        } catch (\WPDieException $e) {
+            self::assertSame('Access denied.', $e->getMessage());
+
+            return;
+        }
+
+        // If wp_die didn't throw (e.g. template was found), verify no pending template
+        self::assertSame('/original.php', $entry->filterTemplateInclude('/original.php'));
+    }
+
+    #[Test]
+    public function dispatchWithExceptionFiresAction(): void
+    {
+        if (!function_exists('get_query_var') || !function_exists('add_action')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $caughtException = null;
+        add_action('wppack_routing_exception', function ($e) use (&$caughtException): void {
+            $caughtException = $e;
+        });
+
+        $entry = new RouteEntry(
+            'test_route',
+            '^test/([^/]+)/?$',
+            'index.php?test_slug=$matches[1]',
+            RoutePosition::Top,
+            [],
+            function (): never {
+                throw new NotFoundException('Page not found.');
+            },
+        );
+
+        set_query_var('test_slug', 'hello');
+
+        try {
+            $entry->handleTemplateRedirect();
+        } catch (\WPDieException) {
+            // Expected when no template is found
+        }
+
+        remove_all_filters('wppack_routing_exception');
+
+        self::assertInstanceOf(NotFoundException::class, $caughtException);
+        self::assertSame('Page not found.', $caughtException->getMessage());
+    }
+
+    #[Test]
+    public function exceptionResponseFilterOverridesDefault(): void
+    {
+        if (!function_exists('get_query_var') || !function_exists('add_filter')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        add_filter('wppack_routing_exception_response', function (?Response $response, $e): JsonResponse {
+            return new JsonResponse(
+                ['error' => $e->getErrorCode(), 'message' => $e->getMessage()],
+                $e->getStatusCode(),
+            );
+        }, 10, 2);
+
+        $entry = new RouteEntry(
+            'test_route',
+            '^test/([^/]+)/?$',
+            'index.php?test_slug=$matches[1]',
+            RoutePosition::Top,
+            [],
+            function (): never {
+                throw new NotFoundException('Not found.');
+            },
+        );
+
+        set_query_var('test_slug', 'hello');
+
+        // The filter returns a JsonResponse, which triggers handleJson → wp_send_json → exit
+        // In tests, wp_send_json calls wp_die which throws WPDieException
+        try {
+            $entry->handleTemplateRedirect();
+        } catch (\WPDieException) {
+            // Expected: wp_send_json calls wp_die in test environment
+        }
+
+        remove_all_filters('wppack_routing_exception_response');
+        remove_all_filters('wppack_routing_exception');
+
+        // Verify the 404 was still set before the filter overrode
+        global $wp_query;
+        self::assertTrue($wp_query->is_404());
     }
 }

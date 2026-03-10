@@ -282,6 +282,117 @@ class EventController extends AbstractController
 }
 ```
 
+## エラーハンドリング
+
+Controller から `HttpException` を throw すると、Routing コンポーネントが自動的にキャッチして適切なエラーページを表示します。
+
+### 基本的な使い方
+
+```php
+use WpPack\Component\HttpFoundation\Exception\NotFoundException;
+use WpPack\Component\HttpFoundation\Exception\ForbiddenException;
+
+#[Route(name: 'product_detail', regex: '^products/([^/]+)/?$', query: 'index.php?product_slug=$matches[1]')]
+class ShowProductController
+{
+    public function __invoke(): TemplateResponse
+    {
+        $slug = get_query_var('product_slug');
+        $product = $this->findProduct($slug);
+
+        if (!$product) {
+            throw new NotFoundException('Product not found.');
+        }
+
+        if (!current_user_can('read_product', $product->id)) {
+            throw new ForbiddenException('Access denied.');
+        }
+
+        return new TemplateResponse(
+            get_template_directory() . '/templates/single-product.php',
+            ['product' => $product],
+        );
+    }
+}
+```
+
+`AbstractController` を使用する場合も同様に throw できます:
+
+```php
+class ProductController extends AbstractController
+{
+    #[Route(name: 'product_detail', regex: '^products/([^/]+)/?$', query: 'index.php?product_slug=$matches[1]')]
+    public function show(): TemplateResponse
+    {
+        $product = $this->findProduct(get_query_var('product_slug'));
+
+        if (!$product) {
+            throw new NotFoundException();
+        }
+
+        return $this->render(
+            get_template_directory() . '/templates/single-product.php',
+            ['product' => $product],
+        );
+    }
+}
+```
+
+### テンプレート探索順序
+
+例外発生時、以下の順序でエラーテンプレートを探索します:
+
+1. **FSE ブロックテンプレート** — `templates/{statusCode}.html`（例: `templates/404.html`, `templates/403.html`）
+2. **クラシックテンプレート** — `{statusCode}.php`（例: `404.php`, `403.php`）
+3. **`wp_die()` フォールバック** — テンプレートが見つからない場合
+
+`NotFoundException` の場合は WordPress の `$wp_query->set_404()` も呼ばれ、テーマの 404 テンプレートと一貫した動作になります。
+
+### テーマ側のエラーテンプレート
+
+テンプレートには `exception` 変数（`HttpException` オブジェクト）が `set_query_var()` で渡されます。
+
+**クラシックテーマ:**
+
+テーマルートに `403.php`, `500.php` 等を配置:
+
+```php
+<?php
+// 403.php
+$exception = get_query_var('exception');
+get_header();
+?>
+<h1>アクセスが拒否されました</h1>
+<p><?= esc_html($exception->getMessage()) ?></p>
+<?php get_footer(); ?>
+```
+
+**ブロックテーマ:**
+
+`templates/403.html`, `templates/500.html` 等を配置し、サイトエディタまたは HTML ファイルで編集。
+
+### フックポイント
+
+| フック | 種別 | 引数 | 用途 |
+|--------|------|------|------|
+| `wppack_routing_exception` | action | `HttpException $e` | ログ・モニタリング |
+| `wppack_routing_exception_response` | filter | `null`, `HttpException $e` → `?Response` | カスタムレスポンスで上書き |
+
+```php
+// ログ出力
+add_action('wppack_routing_exception', function (HttpException $e): void {
+    error_log(sprintf('[%d] %s', $e->getStatusCode(), $e->getMessage()));
+});
+
+// 全エラーを JSON で返す（API 用途）
+add_filter('wppack_routing_exception_response', function (?Response $response, HttpException $e): JsonResponse {
+    return new JsonResponse(
+        ['error' => $e->getErrorCode(), 'message' => $e->getMessage()],
+        $e->getStatusCode(),
+    );
+}, 10, 2);
+```
+
 ## 単一アクション Controller（\_\_invoke）
 
 Symfony と同様、`__invoke()` メソッドを持つクラスに `#[Route]` をクラスレベルで付与。

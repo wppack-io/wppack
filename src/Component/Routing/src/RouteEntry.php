@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace WpPack\Component\Routing;
 
 use WpPack\Component\HttpFoundation\BinaryFileResponse;
+use WpPack\Component\HttpFoundation\Exception\HttpException;
+use WpPack\Component\HttpFoundation\Exception\NotFoundException;
 use WpPack\Component\HttpFoundation\JsonResponse;
 use WpPack\Component\HttpFoundation\RedirectResponse;
 use WpPack\Component\HttpFoundation\Response;
@@ -78,21 +80,80 @@ final class RouteEntry
 
     private function dispatch(): void
     {
-        $response = ($this->handler)();
+        try {
+            $response = ($this->handler)();
+        } catch (HttpException $e) {
+            $this->handleException($e);
+
+            return;
+        }
 
         if ($response === null) {
             return;
         }
 
+        $this->sendResponse($response);
+    }
+
+    private function sendResponse(Response $response): void
+    {
         match (true) {
             $response instanceof TemplateResponse => $this->handleTemplate($response),
             $response instanceof BlockTemplateResponse => $this->handleBlockTemplate($response),
             $response instanceof JsonResponse => $this->handleJson($response),
             $response instanceof RedirectResponse => $this->handleRedirect($response),
             $response instanceof BinaryFileResponse => $this->handleFile($response),
-            $response instanceof Response => $this->handleHtml($response),
-            default => throw new \LogicException(sprintf('Unsupported response type "%s".', $response::class)),
+            default => $this->handleHtml($response),
         };
+    }
+
+    private function handleException(HttpException $e): void
+    {
+        if ($e instanceof NotFoundException) {
+            global $wp_query;
+            $wp_query->set_404();
+        }
+
+        do_action('wppack_routing_exception', $e);
+
+        $response = apply_filters('wppack_routing_exception_response', null, $e);
+        if ($response instanceof Response) {
+            $this->sendResponse($response);
+
+            return;
+        }
+
+        nocache_headers();
+
+        $blockTemplate = get_block_template(
+            get_stylesheet() . '//' . $e->getStatusCode(),
+        );
+        if ($blockTemplate !== null) {
+            $this->handleBlockTemplate(new BlockTemplateResponse(
+                (string) $e->getStatusCode(),
+                ['exception' => $e],
+                $e->getStatusCode(),
+            ));
+
+            return;
+        }
+
+        $template = locate_template([sprintf('%d.php', $e->getStatusCode())]);
+        if ($template !== '') {
+            $this->handleTemplate(new TemplateResponse(
+                $template,
+                ['exception' => $e],
+                $e->getStatusCode(),
+            ));
+
+            return;
+        }
+
+        wp_die(
+            $e->getMessage(),
+            $e->getErrorCode(),
+            ['response' => $e->getStatusCode()],
+        );
     }
 
     private function sendHeaders(Response $response): void
