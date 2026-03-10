@@ -58,7 +58,7 @@ WordPress API やデータアクセスを抽象化し、テスト可能にする
 | [Mailer](./mailer/) | `wppack/mailer` | メール送信抽象化、TransportInterface |
 | [Messenger](./messenger.md) | `wppack/messenger` | 非同期メッセージバス（SQS/Lambda） |
 | [OptionsResolver](./options-resolver/) | `wppack/options-resolver` | オプション解決（Symfony OptionsResolver 拡張） |
-| [Debug](./debug.md) | `wppack/debug` | デバッグツール |
+| [Debug](./debug/) | `wppack/debug` | デバッグツール |
 
 ## Feature Layer（機能層）
 
