@@ -16,6 +16,14 @@ final class ToolbarRenderer
         'time' => "\xE2\x8F\xB1\xEF\xB8\x8F",
         'cache' => "\xF0\x9F\x93\xA6",
         'wordpress' => "\xE2\x9A\x99\xEF\xB8\x8F",
+        'user' => "\xF0\x9F\x91\xA4",
+        'mail' => "\xE2\x9C\x89\xEF\xB8\x8F",
+        'event' => "\xF0\x9F\x94\x94",
+        'logger' => "\xF0\x9F\x93\x9D",
+        'router' => "\xF0\x9F\x9B\xA4\xEF\xB8\x8F",
+        'http_client' => "\xF0\x9F\x94\x97",
+        'translation' => "\xF0\x9F\x94\xA0",
+        'dump' => "\xF0\x9F\x93\x8C",
     ];
 
     private const DEFAULT_ICON = "\xF0\x9F\x93\x8B";
@@ -119,6 +127,14 @@ final class ToolbarRenderer
             'request' => $this->renderRequestPanel($data),
             'cache' => $this->renderCachePanel($data),
             'wordpress' => $this->renderWordPressPanel($data),
+            'user' => $this->renderUserPanel($data),
+            'mail' => $this->renderMailPanel($data),
+            'event' => $this->renderEventPanel($data),
+            'logger' => $this->renderLoggerPanel($data),
+            'router' => $this->renderRouterPanel($data),
+            'http_client' => $this->renderHttpClientPanel($data),
+            'translation' => $this->renderTranslationPanel($data),
+            'dump' => $this->renderDumpPanel($data),
             default => $this->renderGenericPanel($data),
         };
     }
@@ -476,6 +492,22 @@ final class ToolbarRenderer
         $html .= $this->renderTableRow('PHP Version', (string) ($data['php_version'] ?? 'N/A'));
         $html .= $this->renderTableRow('Environment', (string) ($data['environment_type'] ?? 'N/A'));
         $html .= $this->renderTableRow('Theme', (string) ($data['theme'] ?? 'N/A'));
+
+        $isBlockTheme = (bool) ($data['is_block_theme'] ?? false);
+        $themeTypeLabel = $isBlockTheme ? 'Block (FSE)' : 'Classic';
+        $html .= $this->renderTableRow('Theme Type', '<span class="wpd-tag">' . $this->esc($themeTypeLabel) . '</span>');
+
+        $isChildTheme = (bool) ($data['is_child_theme'] ?? false);
+        if ($isChildTheme) {
+            $html .= $this->renderTableRow('Child Theme', $this->esc((string) ($data['child_theme'] ?? '')));
+            $html .= $this->renderTableRow('Parent Theme', $this->esc((string) ($data['parent_theme'] ?? '')));
+        }
+
+        $themeVersion = (string) ($data['theme_version'] ?? '');
+        if ($themeVersion !== '') {
+            $html .= $this->renderTableRow('Theme Version', $this->esc($themeVersion));
+        }
+
         $html .= $this->renderTableRow('Multisite', ($data['is_multisite'] ?? false) ? 'Yes' : 'No');
         $html .= '</table>';
         $html .= '</div>';
@@ -523,6 +555,523 @@ final class ToolbarRenderer
             $html .= '</div>';
             $html .= '</div>';
         }
+
+        return $html;
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function renderUserPanel(array $data): string
+    {
+        $isLoggedIn = (bool) ($data['is_logged_in'] ?? false);
+        $username = (string) ($data['username'] ?? '');
+        $displayName = (string) ($data['display_name'] ?? '');
+        $email = (string) ($data['email'] ?? '');
+        /** @var list<string> $roles */
+        $roles = $data['roles'] ?? [];
+        $isSuperAdmin = (bool) ($data['is_super_admin'] ?? false);
+        $auth = (string) ($data['authentication'] ?? 'none');
+
+        $html = '<div class="wpd-section">';
+        $html .= '<h4 class="wpd-section-title">User</h4>';
+        $html .= '<table class="wpd-table wpd-table-kv">';
+        $html .= $this->renderTableRow('Logged In', $this->formatValue($isLoggedIn));
+        $html .= $this->renderTableRow('Username', $this->esc($username ?: '-'));
+        $html .= $this->renderTableRow('Display Name', $this->esc($displayName ?: '-'));
+        $html .= $this->renderTableRow('Email', $this->esc($email ?: '-'));
+        $html .= $this->renderTableRow('Authentication', $this->esc($auth));
+        if ($isSuperAdmin) {
+            $html .= $this->renderTableRow('Super Admin', '<span class="wpd-text-yellow">Yes</span>');
+        }
+        $html .= '</table>';
+        $html .= '</div>';
+
+        if ($roles !== []) {
+            $html .= '<div class="wpd-section">';
+            $html .= '<h4 class="wpd-section-title">Roles</h4>';
+            $html .= '<div class="wpd-tag-list">';
+            foreach ($roles as $role) {
+                $html .= '<span class="wpd-tag">' . $this->esc($role) . '</span>';
+            }
+            $html .= '</div>';
+            $html .= '</div>';
+        }
+
+        /** @var array<string, bool> $capabilities */
+        $capabilities = $data['capabilities'] ?? [];
+        if ($capabilities !== []) {
+            $html .= '<div class="wpd-section">';
+            $html .= '<h4 class="wpd-section-title">Capabilities (' . $this->esc((string) count($capabilities)) . ')</h4>';
+            $html .= '<div class="wpd-tag-list">';
+            foreach ($capabilities as $cap => $granted) {
+                $color = $granted ? 'wpd-text-green' : 'wpd-text-red';
+                $html .= '<span class="wpd-tag ' . $color . '">' . $this->esc($cap) . '</span>';
+            }
+            $html .= '</div>';
+            $html .= '</div>';
+        }
+
+        return $html;
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function renderMailPanel(array $data): string
+    {
+        $totalCount = (int) ($data['total_count'] ?? 0);
+        $successCount = (int) ($data['success_count'] ?? 0);
+        $failureCount = (int) ($data['failure_count'] ?? 0);
+        /** @var list<array<string, mixed>> $emails */
+        $emails = $data['emails'] ?? [];
+
+        $html = '<div class="wpd-section">';
+        $html .= '<h4 class="wpd-section-title">Summary</h4>';
+        $html .= '<table class="wpd-table wpd-table-kv">';
+        $html .= $this->renderTableRow('Total Emails', (string) $totalCount);
+        $html .= $this->renderTableRow('Sent', (string) $successCount, $successCount > 0 ? 'wpd-text-green' : '');
+        $html .= $this->renderTableRow('Failed', (string) $failureCount, $failureCount > 0 ? 'wpd-text-red' : '');
+        $html .= '</table>';
+        $html .= '</div>';
+
+        if ($emails !== []) {
+            $html .= '<div class="wpd-section">';
+            $html .= '<h4 class="wpd-section-title">Emails</h4>';
+            $html .= '<table class="wpd-table wpd-table-full">';
+            $html .= '<thead><tr>';
+            $html .= '<th class="wpd-col-num">#</th>';
+            $html .= '<th>To</th>';
+            $html .= '<th>Subject</th>';
+            $html .= '<th>Status</th>';
+            $html .= '</tr></thead>';
+            $html .= '<tbody>';
+
+            foreach ($emails as $index => $email) {
+                $statusTag = match ($email['status'] ?? 'pending') {
+                    'sent' => '<span class="wpd-query-tag" style="background:rgba(166,227,161,0.2);color:#a6e3a1">SENT</span>',
+                    'failed' => '<span class="wpd-query-tag" style="background:rgba(243,139,168,0.2);color:#f38ba8">FAILED</span>',
+                    default => '<span class="wpd-query-tag" style="background:rgba(249,226,175,0.2);color:#f9e2af">PENDING</span>',
+                };
+                $error = ($email['error'] ?? '') !== '' ? '<br><small class="wpd-text-red">' . $this->esc($email['error']) . '</small>' : '';
+
+                $html .= '<tr>';
+                $html .= '<td class="wpd-col-num">' . $this->esc((string) ($index + 1)) . '</td>';
+                $html .= '<td><code>' . $this->esc((string) ($email['to'] ?? '')) . '</code></td>';
+                $html .= '<td>' . $this->esc((string) ($email['subject'] ?? '')) . '</td>';
+                $html .= '<td>' . $statusTag . $error . '</td>';
+                $html .= '</tr>';
+            }
+
+            $html .= '</tbody></table>';
+            $html .= '</div>';
+        }
+
+        return $html;
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function renderEventPanel(array $data): string
+    {
+        $totalFirings = (int) ($data['total_firings'] ?? 0);
+        $uniqueHooks = (int) ($data['unique_hooks'] ?? 0);
+        $registeredHooks = (int) ($data['registered_hooks'] ?? 0);
+        $orphanHooks = (int) ($data['orphan_hooks'] ?? 0);
+        /** @var array<string, int> $topHooks */
+        $topHooks = $data['top_hooks'] ?? [];
+
+        $html = '<div class="wpd-section">';
+        $html .= '<h4 class="wpd-section-title">Summary</h4>';
+        $html .= '<table class="wpd-table wpd-table-kv">';
+        $html .= $this->renderTableRow('Total Firings', (string) $totalFirings);
+        $html .= $this->renderTableRow('Unique Hooks', (string) $uniqueHooks);
+        $html .= $this->renderTableRow('Registered Hooks', (string) $registeredHooks);
+        $html .= $this->renderTableRow('Orphan Hooks', (string) $orphanHooks, $orphanHooks > 0 ? 'wpd-text-yellow' : '');
+        $html .= '</table>';
+        $html .= '</div>';
+
+        if ($topHooks !== []) {
+            $html .= '<div class="wpd-section">';
+            $html .= '<h4 class="wpd-section-title">Top Hooks</h4>';
+            $html .= '<table class="wpd-table wpd-table-full">';
+            $html .= '<thead><tr>';
+            $html .= '<th class="wpd-col-num">#</th>';
+            $html .= '<th>Hook</th>';
+            $html .= '<th>Firings</th>';
+            $html .= '</tr></thead>';
+            $html .= '<tbody>';
+
+            $index = 0;
+            foreach ($topHooks as $hook => $count) {
+                $html .= '<tr>';
+                $html .= '<td class="wpd-col-num">' . $this->esc((string) (++$index)) . '</td>';
+                $html .= '<td><code>' . $this->esc($hook) . '</code></td>';
+                $html .= '<td>' . $this->esc((string) $count) . '</td>';
+                $html .= '</tr>';
+            }
+
+            $html .= '</tbody></table>';
+            $html .= '</div>';
+        }
+
+        return $html;
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function renderLoggerPanel(array $data): string
+    {
+        $totalCount = (int) ($data['total_count'] ?? 0);
+        $errorCount = (int) ($data['error_count'] ?? 0);
+        /** @var array<string, int> $levelCounts */
+        $levelCounts = $data['level_counts'] ?? [];
+        /** @var list<array<string, mixed>> $logs */
+        $logs = $data['logs'] ?? [];
+
+        $html = '<div class="wpd-section">';
+        $html .= '<h4 class="wpd-section-title">Summary</h4>';
+        $html .= '<table class="wpd-table wpd-table-kv">';
+        $html .= $this->renderTableRow('Total Entries', (string) $totalCount);
+        $html .= $this->renderTableRow('Errors', (string) $errorCount, $errorCount > 0 ? 'wpd-text-red' : '');
+        $html .= '</table>';
+
+        if ($levelCounts !== []) {
+            $html .= '<div style="margin-top:8px" class="wpd-tag-list">';
+            foreach ($levelCounts as $level => $count) {
+                $color = match ($level) {
+                    'emergency', 'alert', 'critical', 'error' => 'wpd-text-red',
+                    'warning' => 'wpd-text-yellow',
+                    default => '',
+                };
+                $html .= '<span class="wpd-tag ' . $color . '">' . $this->esc($level) . ': ' . $this->esc((string) $count) . '</span>';
+            }
+            $html .= '</div>';
+        }
+        $html .= '</div>';
+
+        if ($logs !== []) {
+            $html .= '<div class="wpd-section">';
+            $html .= '<h4 class="wpd-section-title">Log Entries</h4>';
+            $html .= '<table class="wpd-table wpd-table-full">';
+            $html .= '<thead><tr>';
+            $html .= '<th class="wpd-col-num">#</th>';
+            $html .= '<th>Level</th>';
+            $html .= '<th>Channel</th>';
+            $html .= '<th>Message</th>';
+            $html .= '</tr></thead>';
+            $html .= '<tbody>';
+
+            foreach ($logs as $index => $log) {
+                $levelColor = match ($log['level'] ?? 'debug') {
+                    'emergency', 'alert', 'critical', 'error' => 'wpd-text-red',
+                    'warning' => 'wpd-text-yellow',
+                    'info' => 'wpd-text-green',
+                    default => 'wpd-text-dim',
+                };
+
+                $html .= '<tr>';
+                $html .= '<td class="wpd-col-num">' . $this->esc((string) ($index + 1)) . '</td>';
+                $html .= '<td><span class="wpd-tag ' . $levelColor . '">' . $this->esc($log['level'] ?? '') . '</span></td>';
+                $html .= '<td>' . $this->esc($log['channel'] ?? 'app') . '</td>';
+                $html .= '<td><code>' . $this->esc($log['message'] ?? '') . '</code></td>';
+                $html .= '</tr>';
+            }
+
+            $html .= '</tbody></table>';
+            $html .= '</div>';
+        }
+
+        return $html;
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function renderRouterPanel(array $data): string
+    {
+        $template = (string) ($data['template'] ?? '');
+        $templatePath = (string) ($data['template_path'] ?? '');
+        $matchedRule = (string) ($data['matched_rule'] ?? '');
+        $matchedQuery = (string) ($data['matched_query'] ?? '');
+        $queryType = (string) ($data['query_type'] ?? '');
+        $is404 = (bool) ($data['is_404'] ?? false);
+        $rewriteRulesCount = (int) ($data['rewrite_rules_count'] ?? 0);
+        $isBlockTheme = (bool) ($data['is_block_theme'] ?? false);
+
+        $html = '';
+
+        // Template section — FSE vs Classic
+        if ($isBlockTheme) {
+            /** @var array<string, mixed> $blockTemplate */
+            $blockTemplate = $data['block_template'] ?? [];
+            $slug = (string) ($blockTemplate['slug'] ?? '');
+            $templateId = (string) ($blockTemplate['id'] ?? '');
+            $source = (string) ($blockTemplate['source'] ?? '');
+            $hasThemeFile = (bool) ($blockTemplate['has_theme_file'] ?? false);
+            $filePath = (string) ($blockTemplate['file_path'] ?? '');
+
+            $sourceLabel = $source === 'theme' ? 'Theme file' : ($source !== '' ? 'User customized (DB)' : '-');
+
+            $html .= '<div class="wpd-section">';
+            $html .= '<h4 class="wpd-section-title">Block Template (FSE)</h4>';
+            $html .= '<table class="wpd-table wpd-table-kv">';
+            $html .= $this->renderTableRow('Template Slug', $this->esc($slug ?: '-'));
+            $html .= $this->renderTableRow('Template ID', $templateId !== '' ? '<code>' . $this->esc($templateId) . '</code>' : '-');
+            $html .= $this->renderTableRow('Source', $this->esc($sourceLabel));
+            $html .= $this->renderTableRow('Has Theme File', $this->formatValue($hasThemeFile));
+            $html .= $this->renderTableRow('File Path', $this->esc($filePath ?: '-'));
+            $html .= '</table>';
+            $html .= '</div>';
+
+            /** @var list<array<string, mixed>> $parts */
+            $parts = $blockTemplate['parts'] ?? [];
+            if ($parts !== []) {
+                $html .= '<div class="wpd-section">';
+                $html .= '<h4 class="wpd-section-title">Template Parts</h4>';
+                $html .= '<table class="wpd-table wpd-table-full">';
+                $html .= '<thead><tr><th>Slug</th><th>Area</th><th>Source</th></tr></thead>';
+                $html .= '<tbody>';
+                foreach ($parts as $part) {
+                    $partSource = (string) ($part['source'] ?? '');
+                    $partSourceLabel = $partSource === 'theme' ? 'Theme file' : ($partSource !== '' ? 'User customized (DB)' : '-');
+                    $html .= '<tr>';
+                    $html .= '<td><code>' . $this->esc((string) ($part['slug'] ?? '')) . '</code></td>';
+                    $html .= '<td>' . $this->esc((string) ($part['area'] ?? '')) . '</td>';
+                    $html .= '<td>' . $this->esc($partSourceLabel) . '</td>';
+                    $html .= '</tr>';
+                }
+                $html .= '</tbody></table>';
+                $html .= '</div>';
+            }
+        } else {
+            $html .= '<div class="wpd-section">';
+            $html .= '<h4 class="wpd-section-title">Template (Classic)</h4>';
+            $html .= '<table class="wpd-table wpd-table-kv">';
+            $html .= $this->renderTableRow('Template', $this->esc($template ?: '-'));
+            $html .= $this->renderTableRow('Template Path', $this->esc($templatePath ?: '-'));
+            $html .= '</table>';
+            $html .= '</div>';
+        }
+
+        // Route section
+        $html .= '<div class="wpd-section">';
+        $html .= '<h4 class="wpd-section-title">Route</h4>';
+        $html .= '<table class="wpd-table wpd-table-kv">';
+        $html .= $this->renderTableRow('Query Type', $this->esc($queryType ?: '-'));
+        $html .= $this->renderTableRow('Matched Rule', $matchedRule !== '' ? '<code>' . $this->esc($matchedRule) . '</code>' : '-');
+        $html .= $this->renderTableRow('Matched Query', $this->esc($matchedQuery ?: '-'));
+        $html .= $this->renderTableRow('404', $this->formatValue($is404));
+        $html .= $this->renderTableRow('Rewrite Rules', (string) $rewriteRulesCount);
+        $html .= '</table>';
+        $html .= '</div>';
+
+        /** @var array<string, string> $queryVars */
+        $queryVars = $data['query_vars'] ?? [];
+        if ($queryVars !== []) {
+            $html .= $this->renderKeyValueSection('Query Variables', $queryVars);
+        }
+
+        // Conditional tags
+        $conditionals = [];
+        if ($data['is_front_page'] ?? false) {
+            $conditionals[] = 'is_front_page';
+        }
+        if ($data['is_singular'] ?? false) {
+            $conditionals[] = 'is_singular';
+        }
+        if ($data['is_archive'] ?? false) {
+            $conditionals[] = 'is_archive';
+        }
+        if ($is404) {
+            $conditionals[] = 'is_404';
+        }
+        if ($conditionals !== []) {
+            $html .= '<div class="wpd-section">';
+            $html .= '<h4 class="wpd-section-title">Conditional Tags</h4>';
+            $html .= '<div class="wpd-tag-list">';
+            foreach ($conditionals as $tag) {
+                $html .= '<span class="wpd-tag wpd-text-green">' . $this->esc($tag) . '</span>';
+            }
+            $html .= '</div>';
+            $html .= '</div>';
+        }
+
+        return $html;
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function renderHttpClientPanel(array $data): string
+    {
+        $totalCount = (int) ($data['total_count'] ?? 0);
+        $totalTime = (float) ($data['total_time'] ?? 0.0);
+        $errorCount = (int) ($data['error_count'] ?? 0);
+        $slowCount = (int) ($data['slow_count'] ?? 0);
+        /** @var list<array<string, mixed>> $requests */
+        $requests = $data['requests'] ?? [];
+
+        $html = '<div class="wpd-section">';
+        $html .= '<h4 class="wpd-section-title">Summary</h4>';
+        $html .= '<table class="wpd-table wpd-table-kv">';
+        $html .= $this->renderTableRow('Total Requests', (string) $totalCount);
+        $html .= $this->renderTableRow('Total Time', $this->formatMs($totalTime));
+        $html .= $this->renderTableRow('Errors', (string) $errorCount, $errorCount > 0 ? 'wpd-text-red' : '');
+        $html .= $this->renderTableRow('Slow Requests', (string) $slowCount, $slowCount > 0 ? 'wpd-text-yellow' : '');
+        $html .= '</table>';
+        $html .= '</div>';
+
+        if ($requests !== []) {
+            $html .= '<div class="wpd-section">';
+            $html .= '<h4 class="wpd-section-title">Requests</h4>';
+            $html .= '<table class="wpd-table wpd-table-full">';
+            $html .= '<thead><tr>';
+            $html .= '<th class="wpd-col-num">#</th>';
+            $html .= '<th>Method</th>';
+            $html .= '<th>URL</th>';
+            $html .= '<th>Status</th>';
+            $html .= '<th>Duration</th>';
+            $html .= '<th>Size</th>';
+            $html .= '</tr></thead>';
+            $html .= '<tbody>';
+
+            foreach ($requests as $index => $request) {
+                $statusCode = (int) ($request['status_code'] ?? 0);
+                $statusColor = match (true) {
+                    $statusCode >= 200 && $statusCode < 300 => 'wpd-text-green',
+                    $statusCode >= 300 && $statusCode < 400 => 'wpd-text-yellow',
+                    $statusCode === 0 => 'wpd-text-dim',
+                    default => 'wpd-text-red',
+                };
+                $error = ($request['error'] ?? '') !== '' ? '<br><small class="wpd-text-red">' . $this->esc($request['error']) . '</small>' : '';
+
+                $html .= '<tr>';
+                $html .= '<td class="wpd-col-num">' . $this->esc((string) ($index + 1)) . '</td>';
+                $html .= '<td><span class="wpd-tag">' . $this->esc($request['method'] ?? 'GET') . '</span></td>';
+                $html .= '<td><code>' . $this->esc($request['url'] ?? '') . '</code></td>';
+                $html .= '<td class="' . $statusColor . '">' . ($statusCode > 0 ? $this->esc((string) $statusCode) : '-') . $error . '</td>';
+                $html .= '<td>' . $this->formatMs((float) ($request['duration'] ?? 0.0)) . '</td>';
+                $html .= '<td>' . $this->formatBytes((int) ($request['response_size'] ?? 0)) . '</td>';
+                $html .= '</tr>';
+            }
+
+            $html .= '</tbody></table>';
+            $html .= '</div>';
+        }
+
+        return $html;
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function renderTranslationPanel(array $data): string
+    {
+        $totalLookups = (int) ($data['total_lookups'] ?? 0);
+        $missingCount = (int) ($data['missing_count'] ?? 0);
+        /** @var list<string> $loadedDomains */
+        $loadedDomains = $data['loaded_domains'] ?? [];
+        /** @var array<string, int> $domainUsage */
+        $domainUsage = $data['domain_usage'] ?? [];
+        /** @var list<array<string, string>> $missing */
+        $missing = $data['missing_translations'] ?? [];
+
+        $html = '<div class="wpd-section">';
+        $html .= '<h4 class="wpd-section-title">Summary</h4>';
+        $html .= '<table class="wpd-table wpd-table-kv">';
+        $html .= $this->renderTableRow('Total Lookups', (string) $totalLookups);
+        $html .= $this->renderTableRow('Loaded Domains', (string) count($loadedDomains));
+        $html .= $this->renderTableRow('Missing Translations', (string) $missingCount, $missingCount > 0 ? 'wpd-text-yellow' : '');
+        $html .= '</table>';
+        $html .= '</div>';
+
+        if ($loadedDomains !== []) {
+            $html .= '<div class="wpd-section">';
+            $html .= '<h4 class="wpd-section-title">Loaded Domains</h4>';
+            $html .= '<div class="wpd-tag-list">';
+            foreach ($loadedDomains as $domain) {
+                $html .= '<span class="wpd-tag">' . $this->esc($domain) . '</span>';
+            }
+            $html .= '</div>';
+            $html .= '</div>';
+        }
+
+        if ($domainUsage !== []) {
+            arsort($domainUsage);
+            $html .= '<div class="wpd-section">';
+            $html .= '<h4 class="wpd-section-title">Domain Usage</h4>';
+            $html .= '<table class="wpd-table wpd-table-full">';
+            $html .= '<thead><tr><th>Domain</th><th>Lookups</th></tr></thead>';
+            $html .= '<tbody>';
+            foreach ($domainUsage as $domain => $count) {
+                $html .= '<tr>';
+                $html .= '<td><code>' . $this->esc((string) $domain) . '</code></td>';
+                $html .= '<td>' . $this->esc((string) $count) . '</td>';
+                $html .= '</tr>';
+            }
+            $html .= '</tbody></table>';
+            $html .= '</div>';
+        }
+
+        if ($missing !== []) {
+            $html .= '<div class="wpd-section">';
+            $html .= '<h4 class="wpd-section-title">Missing Translations</h4>';
+            $html .= '<table class="wpd-table wpd-table-full">';
+            $html .= '<thead><tr>';
+            $html .= '<th class="wpd-col-num">#</th>';
+            $html .= '<th>Original</th>';
+            $html .= '<th>Domain</th>';
+            $html .= '</tr></thead>';
+            $html .= '<tbody>';
+            foreach ($missing as $index => $entry) {
+                $html .= '<tr>';
+                $html .= '<td class="wpd-col-num">' . $this->esc((string) ($index + 1)) . '</td>';
+                $html .= '<td><code>' . $this->esc($entry['original'] ?? '') . '</code></td>';
+                $html .= '<td>' . $this->esc($entry['domain'] ?? '') . '</td>';
+                $html .= '</tr>';
+            }
+            $html .= '</tbody></table>';
+            $html .= '</div>';
+        }
+
+        return $html;
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function renderDumpPanel(array $data): string
+    {
+        /** @var list<array<string, mixed>> $dumps */
+        $dumps = $data['dumps'] ?? [];
+        $totalCount = (int) ($data['total_count'] ?? 0);
+
+        if ($dumps === []) {
+            return '<div class="wpd-section"><p class="wpd-text-dim">No dump() calls recorded.</p></div>';
+        }
+
+        $html = '<div class="wpd-section">';
+        $html .= '<h4 class="wpd-section-title">Dumps (' . $this->esc((string) $totalCount) . ')</h4>';
+
+        foreach ($dumps as $index => $dump) {
+            $file = $dump['file'] ?? 'unknown';
+            $line = $dump['line'] ?? 0;
+            $dumpData = $dump['data'] ?? '';
+
+            $html .= '<div style="margin-bottom:12px">';
+            $html .= '<div class="wpd-text-dim" style="font-size:11px;margin-bottom:4px">';
+            $html .= '#' . $this->esc((string) ($index + 1)) . ' ' . $this->esc($file) . ':' . $this->esc((string) $line);
+            $html .= '</div>';
+            $html .= '<pre style="background:#181825;padding:8px 12px;border-radius:4px;overflow-x:auto;font-size:12px;color:#cdd6f4;margin:0">';
+            $html .= $this->esc($dumpData);
+            $html .= '</pre>';
+            $html .= '</div>';
+        }
+
+        $html .= '</div>';
 
         return $html;
     }

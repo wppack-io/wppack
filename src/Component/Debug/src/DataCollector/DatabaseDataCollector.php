@@ -10,6 +10,7 @@ use WpPack\Component\Debug\Attribute\AsDataCollector;
 final class DatabaseDataCollector extends AbstractDataCollector
 {
     private const SLOW_QUERY_THRESHOLD_MS = 100.0;
+    private const MASKED_VALUE = '********';
 
     /** @var list<array{sql: string, time: float, caller: string, start: float, data: array<string, mixed>}> */
     private array $realtimeQueries = [];
@@ -120,7 +121,7 @@ final class DatabaseDataCollector extends AbstractDataCollector
     public function captureQueryData(array $queryData, string $sql, float $time, string $caller, float $start): array
     {
         $this->realtimeQueries[] = [
-            'sql' => $sql,
+            'sql' => $this->maskQueryValues($sql),
             'time' => $time,
             'caller' => $caller,
             'start' => $start,
@@ -167,7 +168,7 @@ final class DatabaseDataCollector extends AbstractDataCollector
             }
 
             $queries[] = [
-                'sql' => (string) $query[0],
+                'sql' => $this->maskQueryValues((string) $query[0]),
                 'time' => (float) $query[1],
                 'caller' => (string) $query[2],
                 'start' => isset($query[3]) ? (float) $query[3] : 0.0,
@@ -176,5 +177,20 @@ final class DatabaseDataCollector extends AbstractDataCollector
         }
 
         return $queries;
+    }
+
+    private function maskQueryValues(string $sql): string
+    {
+        // Mask VALUES clauses: VALUES ('...', '...') → VALUES (********)
+        $sql = preg_replace('/VALUES\s*\(.*?\)/is', 'VALUES (' . self::MASKED_VALUE . ')', $sql) ?? $sql;
+
+        // Mask sensitive column assignments: password = '...' → password = ********
+        $sql = preg_replace(
+            "/(password|passwd|pwd|secret|token|api_key|apikey|private_key|access_token|refresh_token)\s*=\s*'[^']*'/i",
+            '$1 = ' . self::MASKED_VALUE,
+            $sql,
+        ) ?? $sql;
+
+        return $sql;
     }
 }

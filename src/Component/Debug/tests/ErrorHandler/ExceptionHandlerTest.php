@@ -14,8 +14,13 @@ final class ExceptionHandlerTest extends TestCase
 {
     private ?\Closure $savedHandler = null;
 
+    /** @var array<string, mixed> */
+    private array $originalServer;
+
     protected function setUp(): void
     {
+        $this->originalServer = $_SERVER;
+
         // Save the current exception handler so we can restore it
         $previous = set_exception_handler(null);
         restore_exception_handler();
@@ -26,6 +31,8 @@ final class ExceptionHandlerTest extends TestCase
 
     protected function tearDown(): void
     {
+        $_SERVER = $this->originalServer;
+
         // Restore the original exception handler
         // Clear any handler set during the test
         set_exception_handler(null);
@@ -132,5 +139,39 @@ final class ExceptionHandlerTest extends TestCase
 
         self::assertTrue($previousCalled, 'Expected previous handler to be called');
         self::assertSame($exception, $capturedThrowable);
+    }
+
+    #[Test]
+    public function handleExceptionThrowsWhenIpNotAllowed(): void
+    {
+        $_SERVER['REMOTE_ADDR'] = '203.0.113.1';
+
+        $handler = new ExceptionHandler(
+            new ErrorRenderer(),
+            new DebugConfig(enabled: true, ipWhitelist: ['127.0.0.1']),
+        );
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('ip not allowed');
+
+        $handler->handleException(new \RuntimeException('ip not allowed'));
+    }
+
+    #[Test]
+    public function handleExceptionRendersWhenIpIsAllowed(): void
+    {
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+
+        $handler = new ExceptionHandler(
+            new ErrorRenderer(),
+            new DebugConfig(enabled: true, ipWhitelist: ['127.0.0.1']),
+        );
+
+        ob_start();
+        @$handler->handleException(new \RuntimeException('ip allowed test'));
+        $output = ob_get_clean();
+
+        self::assertIsString($output);
+        self::assertStringContainsString('ip allowed test', $output);
     }
 }

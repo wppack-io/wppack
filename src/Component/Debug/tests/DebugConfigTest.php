@@ -87,4 +87,72 @@ final class DebugConfigTest extends TestCase
 
         self::assertContains('administrator', $config->roleWhitelist);
     }
+
+    #[Test]
+    public function isAllowedRoleReturnsTrueWhenWordPressNotLoaded(): void
+    {
+        // When current_user_can is not available, role check is skipped
+        $config = new DebugConfig(roleWhitelist: ['administrator']);
+
+        self::assertTrue($config->isAllowedRole());
+    }
+
+    #[Test]
+    public function isAccessAllowedReturnsFalseWhenDisabled(): void
+    {
+        $config = new DebugConfig(enabled: false);
+
+        self::assertFalse($config->isAccessAllowed());
+    }
+
+    #[Test]
+    public function isAccessAllowedReturnsTrueWhenEnabledWithLocalhostIp(): void
+    {
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+        $config = new DebugConfig(enabled: true);
+
+        self::assertTrue($config->isAccessAllowed());
+    }
+
+    #[Test]
+    public function isAccessAllowedReturnsFalseForNonWhitelistedIp(): void
+    {
+        $_SERVER['REMOTE_ADDR'] = '203.0.113.1';
+        $config = new DebugConfig(enabled: true, ipWhitelist: ['127.0.0.1']);
+
+        self::assertFalse($config->isAccessAllowed());
+    }
+
+    #[Test]
+    public function isAccessAllowedReturnsTrueWhenRemoteAddrIsEmpty(): void
+    {
+        // CLI context — no REMOTE_ADDR, IP check is skipped
+        unset($_SERVER['REMOTE_ADDR']);
+        $config = new DebugConfig(enabled: true);
+
+        self::assertTrue($config->isAccessAllowed());
+    }
+
+    #[Test]
+    public function shouldShowToolbarUsesAccessAllowed(): void
+    {
+        $_SERVER['REMOTE_ADDR'] = '203.0.113.1';
+        $config = new DebugConfig(enabled: true, showToolbar: true, ipWhitelist: ['127.0.0.1']);
+
+        // Even though showToolbar is true, non-whitelisted IP should block
+        self::assertFalse($config->shouldShowToolbar());
+    }
+
+    protected function setUp(): void
+    {
+        $this->originalServer = $_SERVER;
+    }
+
+    protected function tearDown(): void
+    {
+        $_SERVER = $this->originalServer;
+    }
+
+    /** @var array<string, mixed> */
+    private array $originalServer;
 }

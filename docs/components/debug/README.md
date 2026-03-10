@@ -1,5 +1,13 @@
 # Debug コンポーネント
 
+> [!WARNING]
+> **このコンポーネントは開発環境専用です。**
+>
+> - **本番環境での利用は絶対に避けてください。** `wp_get_environment_type() === 'production'` の場合は自動的に無効化されます。
+> - 収集データにはリクエストヘッダー、POST パラメータ、データベースクエリ等の**機密情報が含まれる可能性**があります。パスワードやトークン等の既知の機密キーは自動的にマスクされますが、すべてのケースをカバーするものではありません。
+> - `ipWhitelist` と `roleWhitelist` を適切に設定し、アクセスを制限してください。
+> - ステージング環境では `enabled: false` をデフォルトとし、必要時のみ有効化することを推奨します。
+
 Debug コンポーネントは、Symfony スタイルの Web デバッグツールバーと美麗なエラーページを WordPress 環境で提供します。完全オリジナルの UI を `wp_footer` にレンダリングし、拡張可能なコレクターシステムによるプロファイリング・モニタリング機能を備えています。
 
 ## このコンポーネントの機能
@@ -80,9 +88,11 @@ $config = new DebugConfig(
     roleWhitelist: ['administrator'],               // 許可ロール
 );
 
-$config->isEnabled();           // enabled + WP_DEBUG チェック
-$config->shouldShowToolbar();   // isEnabled + showToolbar + !ajax/cron/REST
+$config->isEnabled();           // enabled + WP_DEBUG + !production チェック
+$config->isAccessAllowed();    // isEnabled + IP ホワイトリスト + ロールホワイトリスト
+$config->shouldShowToolbar();   // isAccessAllowed + showToolbar + !ajax/cron/REST
 $config->isAllowedIp($ip);     // IP ホワイトリストチェック
+$config->isAllowedRole();      // ロールホワイトリストチェック
 ```
 
 ### Stopwatch（タイマー計測）
@@ -165,11 +175,19 @@ echo $profile->getTime();
 | コレクター | 名前 | アイコン | Badge 表示 | 説明 |
 |-----------|------|---------|-----------|------|
 | `RequestDataCollector` | request | 🌐 | Method + Status | HTTP リクエスト/レスポンス情報 |
+| `HttpClientDataCollector` | http_client | 🔗 | リクエスト数 | 外部 HTTP リクエスト（タイミング/ステータス） |
 | `DatabaseDataCollector` | database | 💾 | クエリ数 | クエリ分析（重複/スロー検出） |
+| `EventDataCollector` | event | 🔔 | フック発火数 | WordPress フックモニタリング |
 | `MemoryDataCollector` | memory | 📊 | Peak memory | メモリ使用量スナップショット |
+| `MailDataCollector` | mail | ✉️ | メール数 | wp_mail() 送信メール追跡 |
 | `TimeDataCollector` | time | ⏱️ | Total time | WP ライフサイクルフェーズ別タイミング |
+| `UserDataCollector` | user | 👤 | ユーザー名 | 現在のユーザー・ロール・権限 |
 | `CacheDataCollector` | cache | 📦 | Hit rate | オブジェクトキャッシュ統計 |
+| `RouterDataCollector` | router | 🛤️ | テンプレート名 | マッチしたルール・テンプレート・クエリ変数（FSE/クラシック両対応） |
 | `WordPressDataCollector` | wordpress | ⚙️ | WP version | 環境情報（PHP, WP, プラグイン） |
+| `LoggerDataCollector` | logger | 📝 | ログ数 | ログメッセージ・非推奨警告 |
+| `TranslationDataCollector` | translation | 🔠 | 未翻訳数 | テキストドメイン・翻訳漏れ検出 |
+| `DumpDataCollector` | dump | 📌 | dump数 | dump() 呼び出しキャプチャ |
 
 ### RequestDataCollector
 
@@ -179,6 +197,7 @@ HTTP リクエスト/レスポンス情報を収集。
 - `status_header` フィルターでステータスコードをキャプチャ
 - `wp_headers` フィルターでレスポンスヘッダーをキャプチャ
 - `http_api_debug` アクションで外部 HTTP API 呼び出しも追跡
+- 機密データ自動マスク: `$_POST` / `$_COOKIE` 内のパスワード・トークン・API キー等、`Authorization` / `Cookie` 等のヘッダー
 - Badge 色: green（2xx）、yellow（3xx）、red（4xx/5xx）
 
 ### DatabaseDataCollector
@@ -230,6 +249,82 @@ WordPress オブジェクトキャッシュの統計を収集。
 - `$wp_object_cache->cache_hits` / `cache_misses` から取得
 - `setted_transient`, `deleted_transient` フックでトランジェント操作も追跡
 - Badge 色: green（>=80%）、yellow（>=50%）、red（<50%）
+
+### UserDataCollector
+
+現在のユーザー情報を収集。Symfony SecurityDataCollector に相当。
+
+- `wp_get_current_user()` でユーザー情報取得
+- ロール・権限一覧、認証方法（cookie / application_password）
+- メールアドレスはマスク表示（`***@example.com`）
+- Badge 色: green（ログイン済み）、yellow（super_admin）、default（匿名）
+
+### MailDataCollector
+
+`wp_mail()` で送信されたメールを追跡。Symfony MessageDataCollector に相当。
+
+- `wp_mail` フィルターでメール送信をキャプチャ
+- `wp_mail_succeeded` / `wp_mail_failed` アクションで送信結果を記録
+- 宛先アドレスのマスク、メッセージ本文の切り詰め
+- Badge 色: green（全件成功）、yellow（保留あり）、red（失敗あり）
+
+### EventDataCollector
+
+WordPress フック（アクション/フィルター）の発火を監視。Symfony EventDataCollector に相当。
+
+- `all` フックでリアルタイム監視
+- フック発火回数、ユニークフック数、リスナー数
+- 上位 20 フック一覧
+- 孤立フック（リスナーなしで発火）検出
+- Badge 色: green（<500）、yellow（<1000）、red（>=1000）
+
+### LoggerDataCollector
+
+ログメッセージと WordPress 非推奨警告を収集。
+
+- `log()` メソッドで外部からログ注入可能
+- `deprecated_function_run`, `deprecated_argument_run`, `deprecated_hook_run`, `doing_it_wrong_run` アクションで非推奨警告をキャプチャ
+- ログレベル別集計
+- Badge 色: red（error 以上あり）、yellow（warning あり）、green（info/debug のみ）
+
+### RouterDataCollector
+
+WordPress ルーティング情報を収集。Symfony RouterDataCollector に相当。FSE（ブロックテーマ）とクラシックテーマの両方に対応。
+
+- `parse_request` アクションでマッチしたリライトルールをキャプチャ
+- `template_include` フィルターでテンプレートファイルをキャプチャ（クラシックテーマ）
+- `wp_is_block_theme()` でブロックテーマを検出し、`$_wp_current_template_id`（WP 6.4+）+ `get_block_template()` でブロックテンプレート情報を収集（FSE）
+- テンプレートコンテンツから `wp:template-part` を正規表現で抽出し、各パーツの slug/area/source を表示
+- `is_front_page()`, `is_singular()`, `is_archive()`, `is_404()` 等の条件タグ
+- Badge 表示: クラシックテーマは PHP ファイル名（例: `single.php`）、FSE はテンプレートスラッグ（例: `single`）
+- Badge 色: red（404）、green（ルールマッチ）、default（その他）
+
+### HttpClientDataCollector
+
+外部 HTTP リクエスト（WP_Http）を追跡。Symfony HttpClientDataCollector に相当。
+
+- `pre_http_request` フィルターでリクエスト開始時刻を記録
+- `http_api_debug` アクションでレスポンスをキャプチャ
+- リクエスト/レスポンスヘッダーの機密情報マスク
+- Badge 色: red（エラーあり or 合計 >5000ms）、yellow（スロー >1000ms あり）、green（その他）
+
+### TranslationDataCollector
+
+翻訳（i18n）の使用状況を監視。Symfony TranslationDataCollector に相当。
+
+- `gettext`, `gettext_with_context`, `ngettext` フィルターで翻訳ルックアップを追跡
+- `load_textdomain`, `unload_textdomain` アクションでドメインロードを監視
+- 未翻訳文字列の検出（原文 === 翻訳文）
+- Badge 色: red（>20 未翻訳）、yellow（>0 未翻訳）、green（0）
+
+### DumpDataCollector
+
+`dump()` 呼び出しをキャプチャしツールバーに表示。Symfony VarDumper 統合に相当。
+
+- `capture()` メソッドで変数ダンプを記録
+- `debug_backtrace()` で呼び出し元ファイル・行番号を取得
+- 長い出力は自動切り詰め
+- Badge 色: yellow（dump あり — 本番前に削除推奨）、default（0）
 
 ### カスタムコレクターの作成
 

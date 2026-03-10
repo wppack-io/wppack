@@ -9,6 +9,23 @@ use WpPack\Component\Debug\Attribute\AsDataCollector;
 #[AsDataCollector(name: 'request', priority: 100)]
 final class RequestDataCollector extends AbstractDataCollector
 {
+    private const MASKED_VALUE = '********';
+
+    /** @var list<string> */
+    private const SENSITIVE_KEYS = [
+        'password', 'passwd', 'pwd', 'secret', 'token',
+        'api_key', 'apikey', 'api-key',
+        'authorization', 'auth',
+        'credit_card', 'card_number', 'cvv', 'ssn',
+        'private_key', 'access_token', 'refresh_token',
+    ];
+
+    /** @var list<string> */
+    private const SENSITIVE_HEADERS = [
+        'authorization', 'cookie', 'x-api-key', 'x-auth-token',
+        'proxy-authorization',
+    ];
+
     private int $statusCode = 200;
 
     /** @var array<string, string> */
@@ -41,13 +58,13 @@ final class RequestDataCollector extends AbstractDataCollector
             'method' => $method,
             'url' => $url,
             'status_code' => $this->statusCode,
-            'request_headers' => $this->collectRequestHeaders(),
+            'request_headers' => $this->maskSensitiveHeaders($this->collectRequestHeaders()),
             'response_headers' => $this->responseHeaders,
             'get_params' => $_GET,
-            'post_params' => $_POST,
-            'cookies' => $_COOKIE,
+            'post_params' => $this->maskSensitiveData($_POST),
+            'cookies' => $this->maskSensitiveData($_COOKIE),
             'server_vars' => $this->collectServerVars(),
-            'http_api_calls' => $this->httpApiCalls,
+            'http_api_calls' => $this->maskHttpApiCalls($this->httpApiCalls),
         ];
     }
 
@@ -115,6 +132,72 @@ final class RequestDataCollector extends AbstractDataCollector
             'args' => is_array($parsedArgs) ? $parsedArgs : [],
             'response' => $response,
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
+    private function maskSensitiveData(array $data): array
+    {
+        $masked = [];
+        foreach ($data as $key => $value) {
+            if ($this->isSensitiveKey((string) $key)) {
+                $masked[$key] = self::MASKED_VALUE;
+            } elseif (is_array($value)) {
+                $masked[$key] = $this->maskSensitiveData($value);
+            } else {
+                $masked[$key] = $value;
+            }
+        }
+
+        return $masked;
+    }
+
+    /**
+     * @param array<string, string> $headers
+     * @return array<string, string>
+     */
+    private function maskSensitiveHeaders(array $headers): array
+    {
+        $masked = [];
+        foreach ($headers as $name => $value) {
+            $lower = strtolower($name);
+            if (in_array($lower, self::SENSITIVE_HEADERS, true)) {
+                $masked[$name] = self::MASKED_VALUE;
+            } else {
+                $masked[$name] = $value;
+            }
+        }
+
+        return $masked;
+    }
+
+    /**
+     * @param list<array{url: string, args: array<string, mixed>, response: mixed}> $calls
+     * @return list<array{url: string, args: array<string, mixed>, response: mixed}>
+     */
+    private function maskHttpApiCalls(array $calls): array
+    {
+        $masked = [];
+        foreach ($calls as $call) {
+            $call['args'] = $this->maskSensitiveData($call['args']);
+            $masked[] = $call;
+        }
+
+        return $masked;
+    }
+
+    private function isSensitiveKey(string $key): bool
+    {
+        $lower = strtolower($key);
+        foreach (self::SENSITIVE_KEYS as $sensitive) {
+            if ($lower === $sensitive || str_contains($lower, $sensitive)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function registerHooks(): void

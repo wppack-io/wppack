@@ -47,7 +47,7 @@ final class DebugBarPanelAdapter extends AbstractDataCollector
 
             $panelData[] = [
                 'title' => $panel->title(),
-                'html' => $html ?: '',
+                'html' => $this->sanitizeHtml($html ?: ''),
             ];
         }
 
@@ -62,5 +62,14 @@ final class DebugBarPanelAdapter extends AbstractDataCollector
         $count = $this->data['panel_count'] ?? 0;
 
         return $count > 0 ? (string) $count : '';
+    }
+
+    private function sanitizeHtml(string $html): string
+    {
+        if (function_exists('wp_kses_post')) {
+            return wp_kses_post($html);
+        }
+
+        return htmlspecialchars(strip_tags($html), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     }
 }

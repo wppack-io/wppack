@@ -78,6 +78,36 @@ final class WordPressDataCollectorTest extends TestCase
     }
 
     #[Test]
+    public function collectIncludesThemeTypeFields(): void
+    {
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertArrayHasKey('is_block_theme', $data);
+        self::assertArrayHasKey('is_child_theme', $data);
+        self::assertArrayHasKey('child_theme', $data);
+        self::assertArrayHasKey('parent_theme', $data);
+        self::assertArrayHasKey('theme_version', $data);
+    }
+
+    #[Test]
+    public function collectReturnsDefaultThemeInfoWithoutWordPress(): void
+    {
+        if (function_exists('wp_get_theme')) {
+            self::markTestSkipped('WordPress functions are available; this test is for non-WP environments.');
+        }
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertFalse($data['is_block_theme']);
+        self::assertFalse($data['is_child_theme']);
+        self::assertSame('', $data['child_theme']);
+        self::assertSame('', $data['parent_theme']);
+        self::assertSame('', $data['theme_version']);
+    }
+
+    #[Test]
     public function collectGathersDebugConstants(): void
     {
         $this->collector->collect();
@@ -108,7 +138,7 @@ final class WordPressDataCollectorTest extends TestCase
     #[Test]
     public function collectReturnsEmptyThemeWithoutWordPress(): void
     {
-        if (function_exists('get_template')) {
+        if (function_exists('wp_get_theme')) {
             self::markTestSkipped('WordPress functions are available; this test is for non-WP environments.');
         }
 

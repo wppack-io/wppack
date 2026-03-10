@@ -8,9 +8,17 @@ use WpPack\Component\Debug\Adapter\DebugBarPanelAdapter;
 use WpPack\Component\Debug\Adapter\QueryMonitorCollectorAdapter;
 use WpPack\Component\Debug\DataCollector\CacheDataCollector;
 use WpPack\Component\Debug\DataCollector\DatabaseDataCollector;
+use WpPack\Component\Debug\DataCollector\DumpDataCollector;
+use WpPack\Component\Debug\DataCollector\EventDataCollector;
+use WpPack\Component\Debug\DataCollector\HttpClientDataCollector;
+use WpPack\Component\Debug\DataCollector\LoggerDataCollector;
+use WpPack\Component\Debug\DataCollector\MailDataCollector;
 use WpPack\Component\Debug\DataCollector\MemoryDataCollector;
 use WpPack\Component\Debug\DataCollector\RequestDataCollector;
+use WpPack\Component\Debug\DataCollector\RouterDataCollector;
 use WpPack\Component\Debug\DataCollector\TimeDataCollector;
+use WpPack\Component\Debug\DataCollector\TranslationDataCollector;
+use WpPack\Component\Debug\DataCollector\UserDataCollector;
 use WpPack\Component\Debug\DataCollector\WordPressDataCollector;
 use WpPack\Component\Debug\DebugConfig;
 use WpPack\Component\Debug\ErrorHandler\ErrorRenderer;
@@ -44,6 +52,14 @@ final class DebugServiceProvider implements ServiceProviderInterface
         $builder->register(TimeDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG)->autowire();
         $builder->register(CacheDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
         $builder->register(WordPressDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
+        $builder->register(UserDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
+        $builder->register(MailDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
+        $builder->register(EventDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
+        $builder->register(LoggerDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
+        $builder->register(RouterDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
+        $builder->register(HttpClientDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
+        $builder->register(TranslationDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
+        $builder->register(DumpDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
 
         // Adapters
         $builder->register(DebugBarPanelAdapter::class)->addTag(RegisterDataCollectorsPass::TAG);

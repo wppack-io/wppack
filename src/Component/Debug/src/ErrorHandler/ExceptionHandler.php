@@ -25,7 +25,7 @@ final class ExceptionHandler
 
     public function handleException(\Throwable $e): void
     {
-        if (!$this->config->isEnabled()) {
+        if (!$this->config->isAccessAllowed()) {
             if ($this->previousHandler !== null) {
                 ($this->previousHandler)($e);
                 return;

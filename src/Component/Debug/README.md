@@ -1,5 +1,8 @@
 # WpPack Debug
 
+> [!WARNING]
+> **This component is intended for development environments only.** It is automatically disabled when `wp_get_environment_type()` returns `'production'`. Sensitive data (passwords, tokens, API keys) in POST parameters, cookies, headers, and SQL queries is automatically masked, but configure `ipWhitelist` and `roleWhitelist` to restrict access.
+
 Web debug toolbar and error handler for WordPress. Provides a Symfony-inspired profiling toolbar, data collectors, stopwatch, and a styled exception handler.
 
 ## Installation
@@ -77,12 +80,20 @@ Built-in collectors gather profiling data and display it in the toolbar:
 
 | Collector | Badge | Description |
 |-----------|-------|-------------|
-| `RequestDataCollector` | Method + status code | HTTP method, URL, headers, GET/POST params, cookies, HTTP API calls |
+| `RequestDataCollector` | Method + status code | HTTP method, URL, headers, GET/POST params, cookies |
+| `HttpClientDataCollector` | Request count | Outgoing HTTP requests with timing, status, response size |
 | `DatabaseDataCollector` | Query count | SQL queries, execution time, duplicate/slow query detection |
+| `EventDataCollector` | Hook firings | WordPress hooks monitoring, top hooks, orphan hooks |
 | `MemoryDataCollector` | Peak memory | Current/peak memory, limit, lifecycle snapshots |
+| `MailDataCollector` | Email count | Emails sent via wp_mail(), success/failure tracking |
 | `TimeDataCollector` | Total time | Request duration, WordPress lifecycle phases, stopwatch events |
+| `UserDataCollector` | Username | Current user, roles, capabilities, authentication method |
 | `CacheDataCollector` | Hit rate | Object cache hits/misses, transient set/delete counts |
+| `RouterDataCollector` | Template name | Matched rewrite rule, template, query vars, conditional tags (FSE/classic) |
 | `WordPressDataCollector` | WP version | WordPress/PHP version, active theme/plugins, debug constants |
+| `LoggerDataCollector` | Log count | Log messages, WordPress deprecation/doing_it_wrong notices |
+| `TranslationDataCollector` | Missing count | Text domains, translation lookups, missing translation detection |
+| `DumpDataCollector` | Dump count | Captured dump() calls with file/line info |
 
 ## Custom Data Collector
 

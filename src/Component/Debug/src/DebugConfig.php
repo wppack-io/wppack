@@ -27,12 +27,40 @@ final readonly class DebugConfig
             return false;
         }
 
+        // Hard-block in production environment
+        if (function_exists('wp_get_environment_type') && wp_get_environment_type() === 'production') {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Check if the current request is allowed to access debug features.
+     *
+     * Combines isEnabled(), IP whitelist, and role whitelist checks.
+     */
+    public function isAccessAllowed(): bool
+    {
+        if (!$this->isEnabled()) {
+            return false;
+        }
+
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+        if ($ip !== '' && !$this->isAllowedIp($ip)) {
+            return false;
+        }
+
+        if (!$this->isAllowedRole()) {
+            return false;
+        }
+
         return true;
     }
 
     public function shouldShowToolbar(): bool
     {
-        if (!$this->isEnabled()) {
+        if (!$this->isAccessAllowed()) {
             return false;
         }
 
@@ -58,5 +86,20 @@ final readonly class DebugConfig
     public function isAllowedIp(string $ip): bool
     {
         return in_array($ip, $this->ipWhitelist, true);
+    }
+
+    public function isAllowedRole(): bool
+    {
+        if (!function_exists('current_user_can')) {
+            return true; // WordPress not loaded — skip role check
+        }
+
+        foreach ($this->roleWhitelist as $role) {
+            if (current_user_can($role)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
