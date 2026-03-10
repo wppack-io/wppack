@@ -1,20 +1,17 @@
 # Debug コンポーネント
 
-Debug コンポーネントは、高度なプロファイリング、ロギング、パフォーマンスモニタリング機能を備えた、WordPress アプリケーション向けの Symfony スタイルのデバッグインターフェースを提供します。
+Debug コンポーネントは、Symfony スタイルの Web デバッグツールバーと美麗なエラーページを WordPress 環境で提供します。完全オリジナルの UI を `wp_footer` にレンダリングし、拡張可能なコレクターシステムによるプロファイリング・モニタリング機能を備えています。
 
 ## このコンポーネントの機能
 
-Debug コンポーネントは以下の機能で WordPress のデバッグを変革します：
-
-- **モダンな Web デバッグツールバー** - Symfony スタイルのインターフェース
-- **パフォーマンスプロファイリングとモニタリング** - メソッドレベルのタイミングとメモリトラッキング
-- **データベースクエリ分析と最適化** - 重複検出とスロークエリ警告
-- **メモリ使用量トラッキング** - スナップショットとリーク検出
-- **リクエスト/レスポンスインスペクション** - 詳細な HTTP 分析
-- **カスタムコレクターシステム** - 拡張可能なデバッグ機能
-- **エラーハンドリングとスタックトレース** - 包括的なエラートラッキング
-- **テンプレートデバッグ** - レンダリング分析と最適化提案
-- **キャッシュデバッグ** - オペレーショントラッキングとヒット率分析
+- **オリジナル Web デバッグツールバー** — ページ下部に固定表示、インライン CSS/JS で外部アセット不要
+- **美麗なエラーページ** — ダークテーマ、コードコンテキスト付きスタックトレース、リクエスト/環境情報タブ
+- **データベースクエリ分析** — クエリ数、合計時間、重複・スロークエリ検出、最適化サジェスチョン
+- **メモリ使用量トラッキング** — スナップショットベースの計測、メモリリミットとの比率表示
+- **実行時間計測** — WordPress ライフサイクルフェーズ別タイミング、Stopwatch によるカスタム計測
+- **キャッシュ統計** — オブジェクトキャッシュのヒット率、トランジェント操作追跡
+- **拡張可能なコレクターシステム** — `#[AsDataCollector]` アトリビュートによるカスタムコレクター登録
+- **サードパーティ拡張統合** — Debug Bar パネル拡張・QM コレクター拡張をアダプター経由で取り込み表示
 
 ## インストール
 
@@ -27,608 +24,443 @@ composer require wppack/debug
 ### Before（従来の WordPress）
 
 ```php
-// 従来の WordPress - 限定的な情報での基本的なデバッグ
+// 限定的な情報での基本的なデバッグ
 define('WP_DEBUG', true);
-define('WP_DEBUG_LOG', true);
-define('WP_DEBUG_DISPLAY', false);
-define('SCRIPT_DEBUG', true);
 define('SAVEQUERIES', true);
 
-error_log('Debug message');
-
 global $wpdb;
-$wpdb->show_errors();
 print_r($wpdb->queries);
 
 echo 'Memory: ' . memory_get_usage(true);
-echo 'Peak: ' . memory_get_peak_usage(true);
 
 $start = microtime(true);
 // Some code
-$end = microtime(true);
-echo 'Time: ' . ($end - $start);
+echo 'Time: ' . (microtime(true) - $start);
 ```
 
-### After（WpPack）
+### After（WpPack Debug）
 
 ```php
-use WpPack\Component\Debug\AbstractDebugCollector;
-use WpPack\Component\Debug\Attribute\DebugCollector;
-use WpPack\Component\Debug\Attribute\Profile;
-use WpPack\Component\Debug\DebugBar;
-use WpPack\Component\Debug\Profiler;
+use WpPack\Component\Debug\DebugConfig;
+use WpPack\Component\Debug\Profiler\Profiler;
+use WpPack\Component\Debug\Profiler\Stopwatch;
+use WpPack\Component\Debug\Toolbar\ToolbarSubscriber;
 
-#[DebugCollector('database')]
-class DatabaseCollector extends AbstractDebugCollector
-{
-    private array $queries = [];
-    private float $totalTime = 0;
+// 設定 — 環境変数 or コンストラクタ引数
+$config = new DebugConfig(enabled: true, showToolbar: true);
 
-    public function __construct(
-        private DatabaseInterface $database,
-        private LoggerInterface $logger
-    ) {}
+// Stopwatch で任意の処理を計測
+$stopwatch = new Stopwatch();
+$stopwatch->start('my_operation', 'business');
+// ... some work ...
+$event = $stopwatch->stop('my_operation');
+echo $event->duration; // ms
 
-    #[Profile('database.query')]
-    public function collectQuery(string $sql, array $bindings, float $time): void
-    {
-        $this->queries[] = [
-            'sql' => $sql,
-            'bindings' => $bindings,
-            'time' => $time,
-            'stack_trace' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10),
-            'duplicates' => $this->findDuplicates($sql)
-        ];
+// Profiler でクロージャをプロファイリング
+$profiler = new Profiler($stopwatch);
+$result = $profiler->profile('order.create', function () {
+    return createOrder($data);
+});
 
-        $this->totalTime += $time;
-
-        if ($time > 100) {
-            $this->logger->warning('Slow query detected', [
-                'sql' => $sql,
-                'time' => $time
-            ]);
-        }
-    }
-
-    public function getData(): array
-    {
-        return [
-            'queries' => $this->queries,
-            'total_time' => $this->totalTime,
-            'count' => count($this->queries),
-            'duplicates' => $this->getDuplicateQueries(),
-            'slow_queries' => $this->getSlowQueries(),
-            'suggestions' => $this->getOptimizationSuggestions()
-        ];
-    }
-}
-
-// アトリビュートによるパフォーマンスプロファイリング
-class OrderService
-{
-    #[Profile('order.create')]
-    public function createOrder(array $data): Order
-    {
-        return $this->profiler->profile('order.create', function() use ($data) {
-            $user = $this->profiler->profile('order.user_lookup', function() use ($data) {
-                return $this->db->find('users', $data['user_id']);
-            });
-
-            $order = $this->profiler->profile('order.save', function() use ($data) {
-                return $this->db->save('orders', $data);
-            });
-
-            return $order;
-        });
-    }
-}
+// ツールバーは wp_footer で自動レンダリング
+// エラーページは set_exception_handler で自動表示
 ```
 
 ## コア機能
 
-### デバッグ設定
+### デバッグ設定（DebugConfig）
 
 ```php
-use WpPack\Component\DependencyInjection\Attribute\Env;
+use WpPack\Component\Debug\DebugConfig;
 
-final readonly class DebugConfig
-{
-    public function __construct(
-        #[Env('WPPACK_DEBUG_ENABLED')]
-        public bool $enabled = false,
+$config = new DebugConfig(
+    enabled: true,                                  // デバッグ有効化
+    showToolbar: true,                              // ツールバー表示
+    ipWhitelist: ['127.0.0.1', '::1'],             // 許可 IP
+    roleWhitelist: ['administrator'],               // 許可ロール
+);
 
-        #[Env('WPPACK_DEBUG_BAR_ENABLED')]
-        public bool $showDebugBar = false,
-
-        /** @var list<string> */
-        public array $collectors = ['database', 'request', 'memory', 'templates'],
-
-        /** @var list<string> */
-        public array $ipWhitelist = ['127.0.0.1', '::1'],
-
-        /** @var list<string> */
-        public array $userRoleWhitelist = ['administrator'],
-    ) {}
-
-    public function isEnabled(): bool
-    {
-        if (!$this->enabled) {
-            return false;
-        }
-
-        if (wp_get_environment_type() === 'production' && !$this->isIpWhitelisted()) {
-            return false;
-        }
-
-        return $this->hasPermission();
-    }
-
-    public function shouldShowDebugBar(): bool
-    {
-        return $this->isEnabled() && $this->showDebugBar && !wp_doing_ajax();
-    }
-}
+$config->isEnabled();           // enabled + WP_DEBUG チェック
+$config->shouldShowToolbar();   // isEnabled + showToolbar + !ajax/cron/REST
+$config->isAllowedIp($ip);     // IP ホワイトリストチェック
 ```
 
-### デバッグバーの初期化
+### Stopwatch（タイマー計測）
 
 ```php
-class DebugService
-{
-    public function __construct(
-        private DebugBar $debugBar,
-        private DebugConfig $config
-    ) {}
+use WpPack\Component\Debug\Profiler\Stopwatch;
 
-    #[Action('init')]
-    public function onInit(): void
-    {
-        if (!$this->config->isEnabled()) {
-            return;
-        }
+$stopwatch = new Stopwatch();
 
-        $this->debugBar->addCollector(new DatabaseCollector());
-        $this->debugBar->addCollector(new RequestCollector());
-        $this->debugBar->addCollector(new MemoryCollector());
-        $this->debugBar->addCollector(new TemplateCollector());
-    }
+// 計測開始・停止
+$stopwatch->start('database.query', 'database');
+// ... execute query ...
+$event = $stopwatch->stop('database.query');
 
-    #[Action('wp_footer')]
-    public function renderDebugBar(): void
-    {
-        if (!$this->config->shouldShowDebugBar()) {
-            return;
-        }
+echo $event->name;       // 'database.query'
+echo $event->category;   // 'database'
+echo $event->duration;   // ms（float）
+echo $event->memory;     // bytes（stop 時点）
 
-        echo $this->debugBar->render();
-    }
-}
+// 複数の計測を並行実行
+$stopwatch->start('cache.get');
+$stopwatch->start('template.render');
+$stopwatch->stop('cache.get');
+$stopwatch->stop('template.render');
+
+// 全イベント取得
+$events = $stopwatch->getEvents();
 ```
 
-### データベースプロファイリング
+### Profiler（クロージャプロファイリング）
 
 ```php
-#[DebugCollector('database')]
-class DatabaseCollector extends AbstractDebugCollector
-{
-    private array $queries = [];
-    private float $totalTime = 0;
+use WpPack\Component\Debug\Profiler\Profiler;
+use WpPack\Component\Debug\Profiler\Stopwatch;
 
-    public function collectQuery(string $sql, array $bindings, float $time): void
-    {
-        $this->queries[] = [
-            'sql' => $sql,
-            'bindings' => $bindings,
-            'time' => $time,
-            'stack_trace' => debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10),
-            'duplicates' => $this->findDuplicates($sql),
-            'formatted_sql' => $this->formatSql($sql),
-            'explain' => $this->explainQuery($sql, $bindings)
-        ];
+$profiler = new Profiler(new Stopwatch());
 
-        $this->totalTime += $time;
+// 戻り値はクロージャの結果
+$user = $profiler->profile('user.fetch', function () use ($id) {
+    return $database->find('users', $id);
+});
 
-        if ($time > 100) {
-            $this->logger->warning('Slow query detected', [
-                'sql' => $sql,
-                'time' => $time . 'ms'
-            ]);
-        }
-    }
+// ネストも可能
+$result = $profiler->profile('order.create', function () use ($profiler, $data) {
+    $user = $profiler->profile('order.user_lookup', function () use ($data) {
+        return findUser($data['user_id']);
+    });
 
-    public function getData(): array
-    {
-        return [
-            'queries' => $this->queries,
-            'total_time' => $this->totalTime,
-            'count' => count($this->queries),
-            'duplicates' => $this->getDuplicateQueries(),
-            'slow_queries' => $this->getSlowQueries(),
-            'average_time' => count($this->queries) > 0
-                ? $this->totalTime / count($this->queries) : 0,
-            'suggestions' => $this->getOptimizationSuggestions()
-        ];
-    }
+    return $profiler->profile('order.save', function () use ($data) {
+        return saveOrder($data);
+    });
+});
 
-    private function getOptimizationSuggestions(): array
-    {
-        $suggestions = [];
-
-        if (count($this->getDuplicateQueries()) > 0) {
-            $suggestions[] = 'Consider caching duplicate queries to improve performance';
-        }
-
-        if (count($this->getSlowQueries()) > 0) {
-            $suggestions[] = 'Optimize slow queries with proper indexes';
-        }
-
-        if ($this->totalTime > 1000) {
-            $suggestions[] = 'Total query time is high - consider overall database optimization';
-        }
-
-        if (count($this->queries) > 50) {
-            $suggestions[] = 'High number of queries detected - consider query consolidation';
-        }
-
-        return $suggestions;
-    }
-}
+// Stopwatch イベントを取得
+$events = $profiler->getStopwatch()->getEvents();
 ```
 
-### メモリ使用量分析
+### Profile（リクエストプロファイルデータ）
 
 ```php
-#[DebugCollector('memory')]
-class MemoryCollector extends AbstractDebugCollector
-{
-    private array $snapshots = [];
-    private int $peakMemory = 0;
+use WpPack\Component\Debug\Profiler\Profile;
 
-    public function takeSnapshot(string $label): void
-    {
-        $current = memory_get_usage(true);
-        $peak = memory_get_peak_usage(true);
+$profile = new Profile(token: 'abc123');
+$profile->setUrl('/wp-admin/edit.php');
+$profile->setMethod('GET');
+$profile->setStatusCode(200);
 
-        $this->snapshots[] = [
-            'label' => $label,
-            'memory' => $current,
-            'peak' => $peak,
-            'time' => microtime(true),
-            'formatted' => $this->formatBytes($current),
-            'peak_formatted' => $this->formatBytes($peak)
-        ];
+// コレクターを追加
+$profile->addCollector($requestCollector);
+$profile->addCollector($databaseCollector);
 
-        if (count($this->snapshots) > 1) {
-            $growth = $current - $this->snapshots[0]['memory'];
-            if ($growth > 50 * 1024 * 1024) {
-                $this->logger->warning('Potential memory leak detected', [
-                    'growth' => $this->formatBytes($growth)
-                ]);
-            }
-        }
-    }
-
-    public function getData(): array
-    {
-        $this->takeSnapshot('final');
-
-        return [
-            'snapshots' => $this->snapshots,
-            'peak_memory' => $this->peakMemory,
-            'peak_formatted' => $this->formatBytes($this->peakMemory),
-            'memory_limit' => $this->parseMemoryLimit(),
-            'usage_percentage' => round(($this->peakMemory / $this->parseMemoryLimit()) * 100, 2),
-            'memory_growth' => $this->calculateMemoryGrowth(),
-            'suggestions' => $this->getMemorySuggestions()
-        ];
-    }
-}
+// 経過時間（REQUEST_TIME_FLOAT からの ms）
+echo $profile->getTime();
 ```
 
-### 自動メモリスナップショット
+## データコレクター
+
+### 組み込みコレクター
+
+| コレクター | 名前 | アイコン | Badge 表示 | 説明 |
+|-----------|------|---------|-----------|------|
+| `RequestDataCollector` | request | 🌐 | Method + Status | HTTP リクエスト/レスポンス情報 |
+| `DatabaseDataCollector` | database | 💾 | クエリ数 | クエリ分析（重複/スロー検出） |
+| `MemoryDataCollector` | memory | 📊 | Peak memory | メモリ使用量スナップショット |
+| `TimeDataCollector` | time | ⏱️ | Total time | WP ライフサイクルフェーズ別タイミング |
+| `CacheDataCollector` | cache | 📦 | Hit rate | オブジェクトキャッシュ統計 |
+| `WordPressDataCollector` | wordpress | ⚙️ | WP version | 環境情報（PHP, WP, プラグイン） |
+
+### RequestDataCollector
+
+HTTP リクエスト/レスポンス情報を収集。
+
+- `$_SERVER`, `$_GET`, `$_POST`, `$_COOKIE` を収集
+- `status_header` フィルターでステータスコードをキャプチャ
+- `wp_headers` フィルターでレスポンスヘッダーをキャプチャ
+- `http_api_debug` アクションで外部 HTTP API 呼び出しも追跡
+- Badge 色: green（2xx）、yellow（3xx）、red（4xx/5xx）
+
+### DatabaseDataCollector
+
+WordPress クエリログを分析。`SAVEQUERIES` 有効時に動作。
+
+- `log_query_custom_data` フィルターでリアルタイム収集
+- `$wpdb->queries` からのフォールバック一括収集
+- 重複クエリ検出（同一 SQL が複数回実行）
+- スロークエリ検出（>100ms）
+- 最適化サジェスチョン自動生成
+- Badge 色: green（<20）、yellow（<50）、red（>=50）
+
+### MemoryDataCollector
+
+メモリ使用量をスナップショットベースで計測。
 
 ```php
-class MemoryDebugService
-{
-    public function __construct(
-        private MemoryCollector $collector
-    ) {}
+use WpPack\Component\Debug\DataCollector\MemoryDataCollector;
 
-    #[Action('wp_loaded')]
-    public function wpLoadedSnapshot(): void
-    {
-        $this->collector->takeSnapshot('wp_loaded');
-    }
+$collector = new MemoryDataCollector();
 
-    #[Action('template_redirect')]
-    public function templateRedirectSnapshot(): void
-    {
-        $this->collector->takeSnapshot('template_redirect');
-    }
+// 手動スナップショット
+$collector->takeSnapshot('before_heavy_operation');
+// ... heavy operation ...
+$collector->takeSnapshot('after_heavy_operation');
 
-    #[Action('wp_footer')]
-    public function wpFooterSnapshot(): void
-    {
-        $this->collector->takeSnapshot('wp_footer');
-    }
-
-    #[Action('shutdown')]
-    public function shutdownSnapshot(): void
-    {
-        $this->collector->takeSnapshot('shutdown');
-    }
-}
+// WordPress フック経由の自動スナップショット:
+// wp_loaded, template_redirect, wp_footer, shutdown
 ```
 
-### アトリビュートによるパフォーマンスプロファイリング
+- Badge 色: green（<70% of limit）、yellow（<90%）、red（>=90%）
+
+### TimeDataCollector
+
+WordPress ライフサイクルフェーズ別のタイミングを自動計測。
+
+計測フェーズ:
+`muplugins_loaded` → `plugins_loaded` → `setup_theme` → `after_setup_theme` → `init` → `wp_loaded` → `template_redirect` → `wp_footer`
+
+- Stopwatch を注入して使用
+- `$_SERVER['REQUEST_TIME_FLOAT']` からのトータル時間
+- Badge 色: green（<200ms）、yellow（<1000ms）、red（>=1000ms）
+
+### CacheDataCollector
+
+WordPress オブジェクトキャッシュの統計を収集。
+
+- `$wp_object_cache->cache_hits` / `cache_misses` から取得
+- `setted_transient`, `deleted_transient` フックでトランジェント操作も追跡
+- Badge 色: green（>=80%）、yellow（>=50%）、red（<50%）
+
+### カスタムコレクターの作成
 
 ```php
-use WpPack\Component\Debug\Attribute\Profile;
-use WpPack\Component\Debug\Profiler;
+use WpPack\Component\Debug\Attribute\AsDataCollector;
+use WpPack\Component\Debug\DataCollector\AbstractDataCollector;
 
-class ProductService
+#[AsDataCollector(name: 'api_calls', priority: 40)]
+final class ApiCallsDataCollector extends AbstractDataCollector
 {
-    public function __construct(
-        private DatabaseInterface $database,
-        private CacheInterface $cache,
-        private Profiler $profiler
-    ) {}
+    /** @var list<array{url: string, method: string, time: float, status: int}> */
+    private array $calls = [];
 
-    #[Profile('product.fetch')]
-    public function getProduct(int $id): ?Product
+    public function getName(): string
     {
-        return $this->profiler->profile('product.cache_check', function() use ($id) {
-            $cached = $this->cache->get("product:{$id}");
-            if ($cached) {
-                return $cached;
-            }
-
-            return $this->profiler->profile('product.database_fetch', function() use ($id) {
-                $product = $this->database->find('products', $id);
-
-                if ($product) {
-                    $this->cache->set("product:{$id}", $product, 3600);
-                }
-
-                return $product;
-            });
-        });
+        return 'api_calls';
     }
 
-    #[Profile('product.search')]
-    public function searchProducts(string $query, array $filters = []): array
+    public function trackCall(string $url, string $method, float $time, int $status): void
     {
-        return $this->profiler->profile('product.search_execution', function() use ($query, $filters) {
-            $searchQuery = $this->profiler->profile('product.build_query', function() use ($query, $filters) {
-                return $this->buildSearchQuery($query, $filters);
-            });
-
-            $results = $this->profiler->profile('product.execute_search', function() use ($searchQuery) {
-                return $this->database->query($searchQuery);
-            });
-
-            return $this->profiler->profile('product.process_results', function() use ($results) {
-                return array_map([$this, 'processSearchResult'], $results);
-            });
-        });
-    }
-}
-```
-
-### テンプレートパフォーマンスデバッグ
-
-```php
-#[DebugCollector('templates')]
-class TemplateCollector extends AbstractDebugCollector
-{
-    private array $templates = [];
-
-    #[Action('template_include', priority: 999)]
-    public function trackTemplate(string $template): string
-    {
-        $this->templates[] = [
-            'file' => $template,
-            'type' => $this->getTemplateType(),
-            'hierarchy' => $this->getTemplateHierarchy(),
-            'time' => microtime(true),
-            'memory_before' => memory_get_usage(true)
-        ];
-
-        return $template;
-    }
-}
-```
-
-### キャッシュ操作モニタリング
-
-```php
-#[DebugCollector('cache')]
-class CacheCollector extends AbstractDebugCollector
-{
-    private array $stats = [
-        'hits' => 0,
-        'misses' => 0,
-        'sets' => 0,
-        'deletes' => 0
-    ];
-
-    public function recordOperation(string $operation, string $key, $value = null, bool $hit = null): void
-    {
-        switch ($operation) {
-            case 'get':
-                $this->stats[$hit ? 'hits' : 'misses']++;
-                break;
-            case 'set':
-                $this->stats['sets']++;
-                break;
-            case 'delete':
-                $this->stats['deletes']++;
-                break;
-        }
+        $this->calls[] = compact('url', 'method', 'time', 'status');
     }
 
-    public function getCacheSuggestions(): array
+    public function collect(): void
     {
-        $suggestions = [];
+        $totalTime = array_sum(array_column($this->calls, 'time'));
 
-        $total = $this->stats['hits'] + $this->stats['misses'];
-        $hitRate = $total > 0 ? ($this->stats['hits'] / $total) * 100 : 0;
-
-        if ($hitRate < 70) {
-            $suggestions[] = 'Cache hit rate is low - consider caching more data or longer TTL';
-        }
-
-        return $suggestions;
-    }
-}
-```
-
-### カスタムデバッグコレクター
-
-```php
-#[DebugCollector('wordpress')]
-class WordPressCollector extends AbstractDebugCollector
-{
-    public function getData(): array
-    {
-        return [
-            'hooks' => $this->collectHookData(),
-            'plugins' => get_option('active_plugins'),
-            'theme' => get_template(),
-            'wp_version' => get_bloginfo('version'),
-            'php_version' => PHP_VERSION,
-            'environment' => wp_get_environment_type(),
-            'performance_suggestions' => $this->getPerformanceSuggestions()
+        $this->data = [
+            'calls' => $this->calls,
+            'total_count' => count($this->calls),
+            'total_time' => $totalTime,
         ];
     }
+
+    public function getBadgeValue(): string
+    {
+        return (string) ($this->data['total_count'] ?? 0);
+    }
+
+    public function getBadgeColor(): string
+    {
+        $count = $this->data['total_count'] ?? 0;
+
+        return match (true) {
+            $count < 5 => 'green',
+            $count < 15 => 'yellow',
+            default => 'red',
+        };
+    }
 }
 ```
+
+## エラーハンドラー
+
+### 美麗なエラーページ
+
+`WP_DEBUG` 有効時、例外発生時にダークテーマの HTML エラーページを表示:
+
+1. 例外クラス名 + メッセージ + ファイル:行
+2. コードスニペット（エラー行ハイライト、±10行コンテキスト）
+3. 折りたたみ可能なスタックトレース（各フレームにコードスニペット）
+4. Previous exception チェーン
+5. Request タブ（URL, method, headers, GET, POST, cookies, server vars）
+6. Environment タブ（PHP, WP, extensions, constants）
+7. Performance タブ（メモリ/時間情報）
+
+```php
+use WpPack\Component\Debug\DebugConfig;
+use WpPack\Component\Debug\ErrorHandler\ErrorRenderer;
+use WpPack\Component\Debug\ErrorHandler\ExceptionHandler;
+
+$config = new DebugConfig(enabled: true);
+$renderer = new ErrorRenderer();
+$handler = new ExceptionHandler($renderer, $config);
+
+// PHP 例外ハンドラーとして登録
+$handler->register();
+
+// Routing コンポーネントの wppack_routing_exception アクションにもフック可能
+add_action('wppack_routing_exception', [$handler, 'onRoutingException']);
+```
+
+本番環境（`isEnabled() === false`）では WordPress デフォルトに委譲。
+
+### FlattenException
+
+例外をレンダリング可能な形式に変換:
+
+```php
+use WpPack\Component\Debug\ErrorHandler\FlattenException;
+
+$flat = FlattenException::createFromThrowable($exception);
+
+$flat->getClass();      // 例外クラス名
+$flat->getMessage();    // メッセージ
+$flat->getFile();       // ファイルパス
+$flat->getLine();       // 行番号
+$flat->getStatusCode(); // HTTP ステータスコード（HttpException 対応）
+$flat->getTrace();      // コードコンテキスト付きトレース
+$flat->getChain();      // Previous exception チェーン
+```
+
+## ツールバー
+
+### ToolbarRenderer
+
+ページ下部に固定表示するオリジナルデバッグツールバー:
+
+- **サマリーバー**: 各コレクターのバッジ（アイコン + 値）を横並び表示
+- **パネル**: バッジクリックで展開するドロップアップパネル
+- インライン CSS/JS（外部アセット不要）
+- CSS は `#wppack-debug` スコープで名前衝突回避
+- z-index: 99999 で常に最前面
+- ダークテーマ（#1e1e2e 背景）
+
+### ToolbarSubscriber
+
+WordPress フックと統合して自動表示:
+
+```php
+use WpPack\Component\Debug\DebugConfig;
+use WpPack\Component\Debug\Profiler\Profile;
+use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
+use WpPack\Component\Debug\Toolbar\ToolbarSubscriber;
+
+$subscriber = new ToolbarSubscriber(
+    config: $config,
+    renderer: new ToolbarRenderer(),
+    profile: new Profile(),
+    collectors: $collectors,  // iterable<DataCollectorInterface>
+);
+
+// wp_footer (priority: 9999) にフック
+$subscriber->register();
+```
+
+## アダプター（サードパーティ拡張統合）
+
+Debug Bar / Query Monitor プラグイン自体の UI には出さず（競合関係）、サードパーティ製の拡張パネル/コレクターをアダプター経由で WpPack ツールバーに取り込み表示。
+
+### DebugBarPanelAdapter
+
+```php
+// Debug_Bar_Panel を継承したサードパーティクラスを DataCollectorInterface に変換
+// class_exists('Debug_Bar_Panel') ガードで安全に動作
+// debug_bar_panels フィルターから登録済みパネルを取得
+```
+
+### QueryMonitorCollectorAdapter
+
+```php
+// QM_Collector を継承したサードパーティクラスを DataCollectorInterface に変換
+// class_exists('QM_Collector') ガードで安全に動作
+// qm/collectors フィルターから登録済みコレクターを取得
+```
+
+## DI 統合
+
+### DebugServiceProvider
+
+```php
+use WpPack\Component\Debug\DependencyInjection\DebugServiceProvider;
+use WpPack\Component\Debug\DependencyInjection\RegisterDataCollectorsPass;
+use WpPack\Component\DependencyInjection\ContainerBuilder;
+
+$builder = new ContainerBuilder();
+$builder->addServiceProvider(new DebugServiceProvider());
+$builder->addCompilerPass(new RegisterDataCollectorsPass());
+$container = $builder->compile();
+```
+
+### RegisterDataCollectorsPass
+
+`#[AsDataCollector]` アトリビュートまたは `debug.data_collector` タグを持つサービスを自動検出し、`Profile` に priority 順で注入。
 
 ## テスト
 
 ```php
-use WpPack\Component\Debug\Testing\DebugTestCase;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+use WpPack\Component\Debug\Profiler\Stopwatch;
 
-class DebugSetupTest extends DebugTestCase
+final class StopwatchTest extends TestCase
 {
-    protected function setUp(): void
+    #[Test]
+    public function startAndStop(): void
     {
-        parent::setUp();
-        $this->enableDebug();
-    }
+        $stopwatch = new Stopwatch();
+        $stopwatch->start('test');
 
-    public function testDebugBarRenders(): void
-    {
-        $debugBar = $this->getDebugBar();
-        $debugBar->addCollector(new DatabaseCollector($this->createMock(LoggerInterface::class)));
+        $event = $stopwatch->stop('test');
 
-        $output = $debugBar->render();
-
-        $this->assertStringContains('wppack-debug-bar', $output);
-        $this->assertStringContains('Database', $output);
-    }
-
-    public function testDatabaseCollector(): void
-    {
-        $collector = new DatabaseCollector($this->createMock(LoggerInterface::class));
-
-        $collector->collectQuery('SELECT * FROM posts', [], 50.0);
-        $collector->collectQuery('SELECT * FROM posts', [], 25.0);
-
-        $data = $collector->getData();
-
-        $this->assertEquals(2, $data['count']);
-        $this->assertEquals(75.0, $data['total_time']);
-        $this->assertCount(1, $data['duplicates']);
-    }
-
-    public function testProfilerIntegration(): void
-    {
-        $profiler = $this->getProfiler();
-
-        $result = $profiler->profile('test.operation', function() {
-            usleep(1000);
-            return 'test result';
-        });
-
-        $this->assertEquals('test result', $result);
-
-        $profile = $profiler->getProfile('test.operation');
-        $this->assertGreaterThan(0, $profile['duration']);
+        self::assertGreaterThan(0, $event->duration);
+        self::assertSame('test', $event->name);
+        self::assertSame('default', $event->category);
     }
 }
 ```
 
-## クイックリファレンス
+## 設定リファレンス
 
-### 基本的なデバッグセットアップ
-
-```php
-class DebugService
-{
-    #[Action('init')]
-    public function onInit(): void
-    {
-        if (!WP_DEBUG) return;
-
-        $this->debugBar->addCollector(new DatabaseCollector());
-        $this->debugBar->addCollector(new MemoryCollector());
-    }
-
-    #[Action('wp_footer')]
-    public function renderDebugBar(): void
-    {
-        echo $this->debugBar->render();
-    }
-}
-```
-
-### プロファイリングメソッド
-
-```php
-#[Profile('operation.name')]
-public function myMethod(): string
-{
-    return $this->profiler->profile('nested.operation', function() {
-        return 'result';
-    });
-}
-```
-
-### メモリスナップショット
-
-```php
-$collector->takeSnapshot('custom_checkpoint');
-```
-
-### 環境変数
-
-```env
-WPPACK_DEBUG_ENABLED=true
-WPPACK_DEBUG_BAR_ENABLED=true
-```
+| パラメータ | 型 | デフォルト | 説明 |
+|-----------|------|-----------|------|
+| `enabled` | `bool` | `false` | デバッグ有効化 |
+| `showToolbar` | `bool` | `false` | ツールバー表示 |
+| `ipWhitelist` | `list<string>` | `['127.0.0.1', '::1']` | 許可 IP リスト |
+| `roleWhitelist` | `list<string>` | `['administrator']` | 許可ロールリスト |
 
 ## このコンポーネントの使用場面
 
 **最適な用途：**
-- 高度なデバッグ機能が必要な WordPress アプリケーション
-- 包括的なプロファイリングツールが必要な開発チーム
-- パフォーマンス最適化が必要なサイト
-- カスタム機能を持つ複雑な WordPress アプリケーション
-- Symfony スタイルのデバッグ体験を求めるチーム
+- Symfony スタイルのデバッグ体験を WordPress で実現したい場合
+- パフォーマンスプロファイリングが必要な開発環境
+- データベースクエリの最適化分析
+- カスタムコレクターによる独自のデバッグ情報収集
+- サードパーティ Debug Bar / QM 拡張の統合表示
 
 **代替を検討すべき場合：**
-- 基本的なデバッグで十分なシンプルな WordPress サイト
-- パフォーマンス要件のない本番サイト
-- WordPress デフォルトのデバッグのみを使用するプロジェクト
+- 基本的な `WP_DEBUG` で十分なシンプルなサイト
+- 本番環境のみのデプロイ（開発環境でのみ使用推奨）
 
 ## 依存関係
 
 ### 必須
-- **Hook コンポーネント** - WordPress アクション/フィルター登録用
-- **DependencyInjection コンポーネント** - サービスコンテナとオートワイヤリング用
+- PHP 8.2+
 
-### 推奨
-- **DependencyInjection コンポーネント** - デバッグ設定管理用（`#[Env]` アトリビュート）
-- **Database コンポーネント** - データベースクエリプロファイリングと分析用
-- **Cache コンポーネント** - キャッシュ操作デバッグ用
+### 開発時推奨
+- **Hook コンポーネント** — WordPress アクション/フィルター登録用
+- **DependencyInjection コンポーネント** — サービスコンテナと `#[AsDataCollector]` 自動検出用
+- **HttpFoundation コンポーネント** — `HttpException` ステータスコード取得用
+
+### オプション
+- **Database コンポーネント** — データベースクエリプロファイリング用
+- **Cache コンポーネント** — キャッシュ操作モニタリング用

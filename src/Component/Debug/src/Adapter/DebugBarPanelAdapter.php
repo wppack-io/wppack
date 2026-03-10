@@ -1,0 +1,66 @@
+<?php
+
+declare(strict_types=1);
+
+namespace WpPack\Component\Debug\Adapter;
+
+use WpPack\Component\Debug\Attribute\AsDataCollector;
+use WpPack\Component\Debug\DataCollector\AbstractDataCollector;
+
+#[AsDataCollector(name: 'debug_bar_panel', priority: -100)]
+final class DebugBarPanelAdapter extends AbstractDataCollector
+{
+    public function getName(): string
+    {
+        return 'debug_bar_panel';
+    }
+
+    public function getLabel(): string
+    {
+        return 'Debug Bar';
+    }
+
+    public function collect(): void
+    {
+        // Guard: only run if Debug Bar plugin is active
+        if (!class_exists('Debug_Bar_Panel')) {
+            return;
+        }
+
+        // Get registered panels via debug_bar_panels filter
+        if (!function_exists('apply_filters')) {
+            return;
+        }
+
+        /** @var list<object> $panels */
+        $panels = apply_filters('debug_bar_panels', []);
+
+        $panelData = [];
+        foreach ($panels as $panel) {
+            if (!method_exists($panel, 'render') || !method_exists($panel, 'title')) {
+                continue;
+            }
+
+            ob_start();
+            $panel->render();
+            $html = ob_get_clean();
+
+            $panelData[] = [
+                'title' => $panel->title(),
+                'html' => $html ?: '',
+            ];
+        }
+
+        $this->data = [
+            'panels' => $panelData,
+            'panel_count' => count($panelData),
+        ];
+    }
+
+    public function getBadgeValue(): string
+    {
+        $count = $this->data['panel_count'] ?? 0;
+
+        return $count > 0 ? (string) $count : '';
+    }
+}

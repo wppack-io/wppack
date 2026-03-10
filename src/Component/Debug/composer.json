@@ -1,0 +1,28 @@
+{
+    "name": "wppack/debug",
+    "description": "Web debug toolbar and error handler for WordPress",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2"
+    },
+    "require-dev": {
+        "wppack/hook": "^1.0",
+        "wppack/dependency-injection": "^1.0",
+        "wppack/http-foundation": "^1.0"
+    },
+    "suggest": {
+        "wppack/database": "For database query profiling",
+        "wppack/cache": "For cache operation monitoring"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpPack\\Component\\Debug\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Component\\Debug\\Tests\\": "tests/"
+        }
+    }
+}

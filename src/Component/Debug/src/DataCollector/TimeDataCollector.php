@@ -1,0 +1,225 @@
+<?php
+
+declare(strict_types=1);
+
+namespace WpPack\Component\Debug\DataCollector;
+
+use WpPack\Component\Debug\Attribute\AsDataCollector;
+use WpPack\Component\Debug\Profiler\Stopwatch;
+
+#[AsDataCollector(name: 'time', priority: 70)]
+final class TimeDataCollector extends AbstractDataCollector
+{
+    /** @var array<string, float> */
+    private array $phases = [];
+
+    public function __construct(
+        private readonly Stopwatch $stopwatch,
+    ) {
+        $this->registerHooks();
+    }
+
+    public function getName(): string
+    {
+        return 'time';
+    }
+
+    public function getLabel(): string
+    {
+        return 'Time';
+    }
+
+    public function collect(): void
+    {
+        $requestTimeFloat = $_SERVER['REQUEST_TIME_FLOAT'] ?? microtime(true);
+        $totalTime = (microtime(true) - (float) $requestTimeFloat) * 1000;
+
+        // Stop any phases that are still running
+        $this->stopRunningPhases();
+
+        $events = [];
+        foreach ($this->stopwatch->getEvents() as $name => $event) {
+            $events[$name] = [
+                'name' => $event->name,
+                'category' => $event->category,
+                'duration' => $event->duration,
+                'memory' => $event->memory,
+                'start_time' => $event->startTime,
+                'end_time' => $event->endTime,
+            ];
+        }
+
+        $this->data = [
+            'total_time' => round($totalTime, 2),
+            'request_time_float' => (float) $requestTimeFloat,
+            'events' => $events,
+            'phases' => $this->phases,
+        ];
+    }
+
+    public function getBadgeValue(): string
+    {
+        $totalTime = $this->data['total_time'] ?? 0.0;
+
+        if ($totalTime >= 1000) {
+            return sprintf('%.1f s', $totalTime / 1000);
+        }
+
+        return sprintf('%d ms', (int) $totalTime);
+    }
+
+    public function getBadgeColor(): string
+    {
+        $totalTime = $this->data['total_time'] ?? 0.0;
+
+        return match (true) {
+            $totalTime >= 1000 => 'red',
+            $totalTime >= 200 => 'yellow',
+            default => 'green',
+        };
+    }
+
+    /**
+     * Hook callback for muplugins_loaded.
+     */
+    public function onMuPluginsLoaded(): void
+    {
+        $this->markPhase('muplugins_loaded');
+    }
+
+    /**
+     * Hook callback for plugins_loaded.
+     */
+    public function onPluginsLoaded(): void
+    {
+        $this->markPhase('plugins_loaded');
+    }
+
+    /**
+     * Hook callback for setup_theme.
+     */
+    public function onSetupTheme(): void
+    {
+        $this->markPhase('setup_theme');
+    }
+
+    /**
+     * Hook callback for after_setup_theme.
+     */
+    public function onAfterSetupTheme(): void
+    {
+        $this->markPhase('after_setup_theme');
+    }
+
+    /**
+     * Hook callback for init.
+     */
+    public function onInit(): void
+    {
+        $this->markPhase('init');
+    }
+
+    /**
+     * Hook callback for wp_loaded.
+     */
+    public function onWpLoaded(): void
+    {
+        $this->markPhase('wp_loaded');
+    }
+
+    /**
+     * Hook callback for template_redirect.
+     */
+    public function onTemplateRedirect(): void
+    {
+        $this->markPhase('template_redirect');
+    }
+
+    /**
+     * Hook callback for wp_footer.
+     */
+    public function onWpFooter(): void
+    {
+        $this->markPhase('wp_footer');
+    }
+
+    public function reset(): void
+    {
+        parent::reset();
+        $this->phases = [];
+        $this->stopwatch->reset();
+    }
+
+    private function markPhase(string $name): void
+    {
+        $requestTimeFloat = $_SERVER['REQUEST_TIME_FLOAT'] ?? microtime(true);
+        $this->phases[$name] = round((microtime(true) - (float) $requestTimeFloat) * 1000, 2);
+
+        // Stop previous phase and start new one in the stopwatch
+        $previousPhase = $this->findPreviousPhase($name);
+        if ($previousPhase !== null && $this->stopwatch->isStarted($previousPhase)) {
+            $this->stopwatch->stop($previousPhase);
+        }
+
+        $this->stopwatch->start($name, 'wp_lifecycle');
+    }
+
+    private function findPreviousPhase(string $current): ?string
+    {
+        $phaseOrder = [
+            'muplugins_loaded',
+            'plugins_loaded',
+            'setup_theme',
+            'after_setup_theme',
+            'init',
+            'wp_loaded',
+            'template_redirect',
+            'wp_footer',
+        ];
+
+        $currentIndex = array_search($current, $phaseOrder, true);
+        if ($currentIndex === false || $currentIndex === 0) {
+            return null;
+        }
+
+        $previousName = $phaseOrder[$currentIndex - 1];
+
+        return isset($this->phases[$previousName]) ? $previousName : null;
+    }
+
+    private function stopRunningPhases(): void
+    {
+        $phaseOrder = [
+            'muplugins_loaded',
+            'plugins_loaded',
+            'setup_theme',
+            'after_setup_theme',
+            'init',
+            'wp_loaded',
+            'template_redirect',
+            'wp_footer',
+        ];
+
+        foreach ($phaseOrder as $phase) {
+            if ($this->stopwatch->isStarted($phase)) {
+                $this->stopwatch->stop($phase);
+            }
+        }
+    }
+
+    private function registerHooks(): void
+    {
+        if (!function_exists('add_action')) {
+            return;
+        }
+
+        add_action('muplugins_loaded', [$this, 'onMuPluginsLoaded'], PHP_INT_MIN);
+        add_action('plugins_loaded', [$this, 'onPluginsLoaded'], PHP_INT_MIN);
+        add_action('setup_theme', [$this, 'onSetupTheme'], PHP_INT_MIN);
+        add_action('after_setup_theme', [$this, 'onAfterSetupTheme'], PHP_INT_MIN);
+        add_action('init', [$this, 'onInit'], PHP_INT_MIN);
+        add_action('wp_loaded', [$this, 'onWpLoaded'], PHP_INT_MIN);
+        add_action('template_redirect', [$this, 'onTemplateRedirect'], PHP_INT_MIN);
+        add_action('wp_footer', [$this, 'onWpFooter'], PHP_INT_MIN);
+    }
+}

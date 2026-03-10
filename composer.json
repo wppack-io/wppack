@@ -104,6 +104,7 @@
             "WpPack\\Component\\Comment\\Tests\\": "src/Component/Comment/tests/",
             "WpPack\\Component\\DashboardWidget\\Tests\\": "src/Component/DashboardWidget/tests/",
             "WpPack\\Component\\Database\\Tests\\": "src/Component/Database/tests/",
+            "WpPack\\Component\\Debug\\Tests\\": "src/Component/Debug/tests/",
             "WpPack\\Component\\DependencyInjection\\Tests\\": "src/Component/DependencyInjection/tests/",
             "WpPack\\Component\\Feed\\Tests\\": "src/Component/Feed/tests/",
             "WpPack\\Component\\Filesystem\\Tests\\": "src/Component/Filesystem/tests/",
