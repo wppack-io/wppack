@@ -46,12 +46,16 @@ final class EventDataCollectorTest extends TestCase
         self::assertSame(0, $data['registered_hooks']);
         self::assertSame(0, $data['orphan_hooks']);
         self::assertSame([], $data['listener_counts']);
+        self::assertSame([], $data['hook_timings']);
+        self::assertSame([], $data['component_hooks']);
+        self::assertSame([], $data['component_summary']);
     }
 
     #[Test]
     public function captureHookFiredIncrementsCount(): void
     {
-        // Without WordPress, current_filter() is not available,
+        // Without WordPress or when called outside a hook context,
+        // current_filter() is not available or returns false,
         // so captureHookFired() should return early (fallback behavior).
         $this->collector->captureHookFired();
         $this->collector->captureHookFired();
@@ -59,14 +63,10 @@ final class EventDataCollectorTest extends TestCase
         $this->collector->collect();
         $data = $this->collector->getData();
 
-        if (!function_exists('current_filter')) {
-            // Without WordPress, the guard causes early return — no hooks captured
-            self::assertSame(0, $data['total_firings']);
-            self::assertSame(0, $data['unique_hooks']);
-        } else {
-            // With WordPress, hooks would be captured
-            self::assertGreaterThan(0, $data['total_firings']);
-        }
+        // When called outside an actual hook execution, current_filter()
+        // either doesn't exist or returns false — no hooks are captured
+        self::assertSame(0, $data['total_firings']);
+        self::assertSame(0, $data['unique_hooks']);
     }
 
     #[Test]
@@ -185,5 +185,10 @@ final class EventDataCollectorTest extends TestCase
         self::assertSame(0, $data['total_firings']);
         self::assertSame(0, $data['unique_hooks']);
         self::assertSame([], $data['hooks']);
+        self::assertSame([], $data['hook_timings']);
+
+        // component_hooks/component_summary depend on global $wp_filter which persists
+        self::assertIsArray($data['component_hooks']);
+        self::assertIsArray($data['component_summary']);
     }
 }
