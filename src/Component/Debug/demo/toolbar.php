@@ -135,7 +135,7 @@ $collectors[] = new FakeCollector('time', 'Time', '198 ms', 'green', [
     'total_time' => 198.0,
     'request_time_float' => $requestTimeFloat,
     'events' => [
-        'muplugins_loaded'  => ['name' => 'muplugins_loaded',  'category' => 'wp_lifecycle', 'duration' =>  4.5, 'memory' => (int) ( 8.0 * 1024 * 1024), 'start_time' =>   0.0, 'end_time' =>   4.5],
+        'muplugins_loaded'  => ['name' => 'muplugins_loaded',  'category' => 'wp_lifecycle', 'duration' =>  4.5, 'memory' => (int) (8.0 * 1024 * 1024), 'start_time' =>   0.0, 'end_time' =>   4.5],
         'plugins_loaded'    => ['name' => 'plugins_loaded',    'category' => 'wp_lifecycle', 'duration' => 57.5, 'memory' => (int) (22.0 * 1024 * 1024), 'start_time' =>   4.5, 'end_time' =>  62.0],
         'setup_theme'       => ['name' => 'setup_theme',       'category' => 'wp_lifecycle', 'duration' =>  1.5, 'memory' => (int) (22.5 * 1024 * 1024), 'start_time' =>  62.0, 'end_time' =>  63.5],
         'after_setup_theme' => ['name' => 'after_setup_theme', 'category' => 'wp_lifecycle', 'duration' =>  6.5, 'memory' => (int) (24.0 * 1024 * 1024), 'start_time' =>  63.5, 'end_time' =>  70.0],
