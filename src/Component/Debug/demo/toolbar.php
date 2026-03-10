@@ -24,11 +24,30 @@ final class FakeCollector extends AbstractDataCollector
         private readonly array $fakeData,
     ) {}
 
-    public function getName(): string { return $this->fakeName; }
-    public function getLabel(): string { return $this->fakeLabel; }
-    public function getBadgeValue(): string { return $this->fakeBadgeValue; }
-    public function getBadgeColor(): string { return $this->fakeBadgeColor; }
-    public function collect(): void { $this->data = $this->fakeData; }
+    public function getName(): string
+    {
+        return $this->fakeName;
+    }
+
+    public function getLabel(): string
+    {
+        return $this->fakeLabel;
+    }
+
+    public function getBadgeValue(): string
+    {
+        return $this->fakeBadgeValue;
+    }
+
+    public function getBadgeColor(): string
+    {
+        return $this->fakeBadgeColor;
+    }
+
+    public function collect(): void
+    {
+        $this->data = $this->fakeData;
+    }
 }
 
 // --- Build sample collectors ---
@@ -54,6 +73,7 @@ $collectors[] = new FakeCollector('request', 'Request', 'GET 200', 'green', [
 ]);
 
 // Database
+$requestTimeFloat = microtime(true) - 0.198; // 198ms ago
 $collectors[] = new FakeCollector('database', 'Database', '24', 'green', [
     'total_queries' => 24,
     'total_time' => 12.45,
@@ -61,10 +81,17 @@ $collectors[] = new FakeCollector('database', 'Database', '24', 'green', [
     'slow_count' => 0,
     'savequeries' => true,
     'queries' => [
-        ['sql' => 'SELECT option_name, option_value FROM wp_options WHERE autoload = \'yes\'', 'time' => 1.23, 'caller' => 'wp_load_alloptions'],
-        ['sql' => 'SELECT * FROM wp_posts WHERE ID = 42 LIMIT 1', 'time' => 0.45, 'caller' => 'WP_Post::get_instance'],
-        ['sql' => 'SELECT * FROM wp_users WHERE ID = 1 LIMIT 1', 'time' => 0.32, 'caller' => 'WP_User::get_data_by'],
-        ['sql' => 'SELECT t.*, tt.* FROM wp_terms INNER JOIN wp_term_taxonomy AS tt ON t.term_id = tt.term_id WHERE tt.taxonomy = \'category\'', 'time' => 0.56, 'caller' => 'get_terms'],
+        ['sql' => 'SELECT option_name, option_value FROM wp_options WHERE autoload = \'yes\'', 'time' => 1.23, 'caller' => 'wp_load_alloptions', 'start' => $requestTimeFloat + 0.015, 'data' => []],
+        ['sql' => 'SELECT option_name, option_value FROM wp_options WHERE autoload = \'yes\'', 'time' => 0.98, 'caller' => 'wp_load_alloptions', 'start' => $requestTimeFloat + 0.025, 'data' => []],
+        ['sql' => 'SELECT option_name, option_value FROM wp_options WHERE autoload = \'yes\'', 'time' => 0.13, 'caller' => 'wp_load_alloptions', 'start' => $requestTimeFloat + 0.035, 'data' => []],
+        ['sql' => 'SELECT * FROM wp_posts WHERE ID = 42 LIMIT 1', 'time' => 0.45, 'caller' => 'WP_Post::get_instance', 'start' => $requestTimeFloat + 0.060, 'data' => []],
+        ['sql' => 'SELECT * FROM wp_posts WHERE ID = 15 LIMIT 1', 'time' => 0.38, 'caller' => 'WP_Post::get_instance', 'start' => $requestTimeFloat + 0.070, 'data' => []],
+        ['sql' => 'SELECT * FROM wp_posts WHERE ID = 7 LIMIT 1', 'time' => 0.29, 'caller' => 'WP_Post::get_instance', 'start' => $requestTimeFloat + 0.085, 'data' => []],
+        ['sql' => 'SELECT * FROM wp_posts WHERE ID = 3 LIMIT 1', 'time' => 0.35, 'caller' => 'WP_Post::get_instance', 'start' => $requestTimeFloat + 0.100, 'data' => []],
+        ['sql' => 'SELECT * FROM wp_posts WHERE ID = 99 LIMIT 1', 'time' => 0.33, 'caller' => 'WP_Post::get_instance', 'start' => $requestTimeFloat + 0.110, 'data' => []],
+        ['sql' => 'SELECT * FROM wp_users WHERE ID = 1 LIMIT 1', 'time' => 0.32, 'caller' => 'WP_User::get_data_by', 'start' => $requestTimeFloat + 0.125, 'data' => []],
+        ['sql' => 'SELECT t.*, tt.* FROM wp_terms INNER JOIN wp_term_taxonomy AS tt ON t.term_id = tt.term_id WHERE tt.taxonomy = \'category\'', 'time' => 0.56, 'caller' => 'get_terms', 'start' => $requestTimeFloat + 0.140, 'data' => []],
+        ['sql' => 'SELECT t.*, tt.* FROM wp_terms INNER JOIN wp_term_taxonomy AS tt ON t.term_id = tt.term_id WHERE tt.taxonomy = \'post_tag\'', 'time' => 0.48, 'caller' => 'get_terms', 'start' => $requestTimeFloat + 0.155, 'data' => []],
     ],
     'suggestions' => ['2 duplicate queries detected — consider caching results'],
 ]);
@@ -87,13 +114,25 @@ $collectors[] = new FakeCollector('time', 'Time', '198 ms', 'green', [
     'total_time' => 198.3,
     'request_time_float' => microtime(true) - 0.198,
     'events' => [
-        'muplugins_loaded' => ['name' => 'muplugins_loaded', 'category' => 'wordpress', 'duration' => 12.3, 'memory' => 8 * 1024 * 1024, 'start_time' => 0, 'end_time' => 12.3],
-        'plugins_loaded' => ['name' => 'plugins_loaded', 'category' => 'wordpress', 'duration' => 45.6, 'memory' => 18 * 1024 * 1024, 'start_time' => 12.3, 'end_time' => 57.9],
-        'init' => ['name' => 'init', 'category' => 'wordpress', 'duration' => 23.4, 'memory' => 22 * 1024 * 1024, 'start_time' => 57.9, 'end_time' => 81.3],
-        'wp_loaded' => ['name' => 'wp_loaded', 'category' => 'wordpress', 'duration' => 3.9, 'memory' => 28 * 1024 * 1024, 'start_time' => 81.3, 'end_time' => 85.2],
-        'template_redirect' => ['name' => 'template_redirect', 'category' => 'wordpress', 'duration' => 57.3, 'memory' => 36 * 1024 * 1024, 'start_time' => 85.2, 'end_time' => 142.5],
+        'muplugins_loaded' => ['name' => 'muplugins_loaded', 'category' => 'wp_lifecycle', 'duration' => 12.3, 'memory' => 8 * 1024 * 1024, 'start_time' => 0, 'end_time' => 12.3],
+        'plugins_loaded' => ['name' => 'plugins_loaded', 'category' => 'wp_lifecycle', 'duration' => 45.6, 'memory' => 18 * 1024 * 1024, 'start_time' => 12.3, 'end_time' => 57.9],
+        'init' => ['name' => 'init', 'category' => 'wp_lifecycle', 'duration' => 23.4, 'memory' => 22 * 1024 * 1024, 'start_time' => 57.9, 'end_time' => 81.3],
+        'wp_loaded' => ['name' => 'wp_loaded', 'category' => 'wp_lifecycle', 'duration' => 3.9, 'memory' => 28 * 1024 * 1024, 'start_time' => 81.3, 'end_time' => 85.2],
+        'wp' => ['name' => 'wp', 'category' => 'wp_lifecycle', 'duration' => 15.2, 'memory' => 30 * 1024 * 1024, 'start_time' => 85.2, 'end_time' => 100.4],
+        'template_redirect' => ['name' => 'template_redirect', 'category' => 'wp_lifecycle', 'duration' => 22.1, 'memory' => 33 * 1024 * 1024, 'start_time' => 100.4, 'end_time' => 122.5],
+        'wp_head' => ['name' => 'wp_head', 'category' => 'wp_lifecycle', 'duration' => 35.8, 'memory' => 38 * 1024 * 1024, 'start_time' => 122.5, 'end_time' => 158.3],
+        'wp_footer' => ['name' => 'wp_footer', 'category' => 'wp_lifecycle', 'duration' => 40.0, 'memory' => 42 * 1024 * 1024, 'start_time' => 158.3, 'end_time' => 198.3],
     ],
-    'phases' => [],
+    'phases' => [
+        'muplugins_loaded' => 12.3,
+        'plugins_loaded' => 57.9,
+        'init' => 81.3,
+        'wp_loaded' => 85.2,
+        'wp' => 100.4,
+        'template_redirect' => 122.5,
+        'wp_head' => 158.3,
+        'wp_footer' => 198.3,
+    ],
 ]);
 
 // Cache
@@ -102,7 +141,22 @@ $collectors[] = new FakeCollector('cache', 'Cache', '92.4%', 'green', [
     'misses' => 20,
     'hit_rate' => 92.45,
     'transient_sets' => 3,
-    'transient_deletes' => 0,
+    'transient_deletes' => 1,
+    'object_cache_dropin' => 'Redis',
+    'transient_operations' => [
+        ['name' => 'my_plugin_data', 'operation' => 'set', 'expiration' => 3600, 'caller' => 'MyPlugin::refresh_cache', 'time' => 95.0],
+        ['name' => 'external_api_response', 'operation' => 'set', 'expiration' => 86400, 'caller' => 'fetch_api_data', 'time' => 130.0],
+        ['name' => 'theme_update_check', 'operation' => 'set', 'expiration' => 43200, 'caller' => 'wp_update_themes', 'time' => 145.0],
+        ['name' => 'old_cache_key', 'operation' => 'delete', 'expiration' => 0, 'caller' => 'MyPlugin::clear_cache', 'time' => 170.0],
+    ],
+    'cache_groups' => [
+        'options' => 156,
+        'posts' => 42,
+        'terms' => 28,
+        'post_meta' => 24,
+        'users' => 8,
+        'site-options' => 5,
+    ],
 ]);
 
 // Router — FSE block theme scenario
@@ -207,12 +261,12 @@ $collectors[] = new FakeCollector('logger', 'Logger', '3', 'yellow', [
 // HttpClient
 $collectors[] = new FakeCollector('http_client', 'HTTP Client', '2', 'green', [
     'total_count' => 2,
-    'total_time' => 342.5,
+    'total_time' => 34.3,
     'error_count' => 0,
     'slow_count' => 0,
     'requests' => [
-        ['method' => 'GET', 'url' => 'https://api.wordpress.org/plugins/update-check/1.1/', 'status_code' => 200, 'duration' => 234.5, 'response_size' => 4521, 'error' => ''],
-        ['method' => 'POST', 'url' => 'https://api.wordpress.org/themes/update-check/1.1/', 'status_code' => 200, 'duration' => 108.0, 'response_size' => 1280, 'error' => ''],
+        ['method' => 'GET', 'url' => 'https://api.wordpress.org/plugins/update-check/1.1/', 'status_code' => 200, 'duration' => 23.5, 'start' => $requestTimeFloat + 0.050, 'response_size' => 4521, 'error' => ''],
+        ['method' => 'POST', 'url' => 'https://api.wordpress.org/themes/update-check/1.1/', 'status_code' => 200, 'duration' => 10.8, 'start' => $requestTimeFloat + 0.120, 'response_size' => 1280, 'error' => ''],
     ],
 ]);
 
