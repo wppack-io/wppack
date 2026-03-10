@@ -100,6 +100,10 @@ final class DebugConfigTest extends TestCase
     #[Test]
     public function isAllowedRoleReturnsTrueWhenWordPressNotLoaded(): void
     {
+        if (function_exists('current_user_can')) {
+            self::markTestSkipped('WordPress is loaded; current_user_can() exists.');
+        }
+
         // When current_user_can is not available, role check is skipped
         $config = new DebugConfig(roleWhitelist: ['administrator']);
 

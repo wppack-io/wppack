@@ -36,10 +36,16 @@ function renderSinglePost(int $postId): void
 }
 
 // Capture the exception
+$exception = null;
 try {
     renderSinglePost(42);
 } catch (\Throwable $e) {
     $exception = $e;
+}
+
+if ($exception === null) {
+    echo 'No exception was thrown.';
+    exit(0);
 }
 
 // Render the exception page

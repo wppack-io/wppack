@@ -13,7 +13,10 @@ if (!function_exists('do_action')) {
     function do_action(string $hook_name, mixed ...$args): void {}
 }
 if (!function_exists('has_filter')) {
-    function has_filter(string $hook_name, mixed $callback = false): bool { return false; }
+    function has_filter(string $hook_name, mixed $callback = false): bool
+    {
+        return false;
+    }
 }
 if (!class_exists('WP_Error')) {
     require_once __DIR__ . '/../../../../vendor/roots/wordpress-no-content/wp-includes/class-wp-error.php';
