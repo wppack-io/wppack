@@ -54,19 +54,23 @@ final class EventDataCollectorTest extends TestCase
     #[Test]
     public function captureHookFiredIncrementsCount(): void
     {
-        // Without WordPress or when called outside a hook context,
-        // current_filter() is not available or returns false,
-        // so captureHookFired() should return early (fallback behavior).
         $this->collector->captureHookFired();
         $this->collector->captureHookFired();
 
         $this->collector->collect();
         $data = $this->collector->getData();
 
-        // When called outside an actual hook execution, current_filter()
-        // either doesn't exist or returns false — no hooks are captured
-        self::assertSame(0, $data['total_firings']);
-        self::assertSame(0, $data['unique_hooks']);
+        if (function_exists('current_filter') && current_filter() !== false) {
+            // WordPress is active and we're within a hook context —
+            // captureHookFired() records firings normally.
+            self::assertSame(2, $data['total_firings']);
+            self::assertSame(1, $data['unique_hooks']);
+        } else {
+            // Without WordPress or outside hook context, current_filter()
+            // doesn't exist or returns false — no hooks are captured.
+            self::assertSame(0, $data['total_firings']);
+            self::assertSame(0, $data['unique_hooks']);
+        }
     }
 
     #[Test]
