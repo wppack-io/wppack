@@ -6,7 +6,7 @@ namespace WpPack\Component\Debug\DataCollector;
 
 use WpPack\Component\Debug\Attribute\AsDataCollector;
 
-#[AsDataCollector(name: 'plugin', priority: 55)]
+#[AsDataCollector(name: 'plugin', priority: 145)]
 final class PluginDataCollector extends AbstractDataCollector
 {
     /** @var array<string, float> */

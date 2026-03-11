@@ -6,7 +6,7 @@ namespace WpPack\Component\Debug\DataCollector;
 
 use WpPack\Component\Debug\Attribute\AsDataCollector;
 
-#[AsDataCollector(name: 'user', priority: 65)]
+#[AsDataCollector(name: 'user', priority: 85)]
 final class UserDataCollector extends AbstractDataCollector
 {
     public function getName(): string

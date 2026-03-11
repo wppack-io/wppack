@@ -6,7 +6,7 @@ namespace WpPack\Component\Debug\DataCollector;
 
 use WpPack\Component\Debug\Attribute\AsDataCollector;
 
-#[AsDataCollector(name: 'scheduler', priority: 57)]
+#[AsDataCollector(name: 'scheduler', priority: 50)]
 final class SchedulerDataCollector extends AbstractDataCollector
 {
     public function __construct()

@@ -6,7 +6,7 @@ namespace WpPack\Component\Debug\DataCollector;
 
 use WpPack\Component\Debug\Attribute\AsDataCollector;
 
-#[AsDataCollector(name: 'wordpress', priority: 50)]
+#[AsDataCollector(name: 'wordpress', priority: 40)]
 final class WordPressDataCollector extends AbstractDataCollector
 {
     public function getName(): string

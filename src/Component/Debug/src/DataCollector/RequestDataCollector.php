@@ -6,7 +6,7 @@ namespace WpPack\Component\Debug\DataCollector;
 
 use WpPack\Component\Debug\Attribute\AsDataCollector;
 
-#[AsDataCollector(name: 'request', priority: 100)]
+#[AsDataCollector(name: 'request', priority: 255)]
 final class RequestDataCollector extends AbstractDataCollector
 {
     private const MASKED_VALUE = '********';

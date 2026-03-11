@@ -6,7 +6,7 @@ namespace WpPack\Component\Debug\DataCollector;
 
 use WpPack\Component\Debug\Attribute\AsDataCollector;
 
-#[AsDataCollector(name: 'logger', priority: 45)]
+#[AsDataCollector(name: 'logger', priority: 100)]
 final class LoggerDataCollector extends AbstractDataCollector
 {
     /** @var list<string> */

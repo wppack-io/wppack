@@ -6,7 +6,7 @@ namespace WpPack\Component\Debug\DataCollector;
 
 use WpPack\Component\Debug\Attribute\AsDataCollector;
 
-#[AsDataCollector(name: 'dump', priority: 35)]
+#[AsDataCollector(name: 'dump', priority: 95)]
 final class DumpDataCollector extends AbstractDataCollector
 {
     /** @var list<array{data: string, file: string, line: int, timestamp: float}> */

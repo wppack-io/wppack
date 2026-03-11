@@ -6,7 +6,7 @@ namespace WpPack\Component\Debug\DataCollector;
 
 use WpPack\Component\Debug\Attribute\AsDataCollector;
 
-#[AsDataCollector(name: 'router', priority: 55)]
+#[AsDataCollector(name: 'router', priority: 150)]
 final class RouterDataCollector extends AbstractDataCollector
 {
     private string $matchedRule = '';

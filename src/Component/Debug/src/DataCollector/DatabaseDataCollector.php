@@ -6,7 +6,7 @@ namespace WpPack\Component\Debug\DataCollector;
 
 use WpPack\Component\Debug\Attribute\AsDataCollector;
 
-#[AsDataCollector(name: 'database', priority: 90)]
+#[AsDataCollector(name: 'database', priority: 200)]
 final class DatabaseDataCollector extends AbstractDataCollector
 {
     private const SLOW_QUERY_THRESHOLD_MS = 100.0;

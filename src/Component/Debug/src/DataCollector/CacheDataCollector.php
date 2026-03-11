@@ -6,7 +6,7 @@ namespace WpPack\Component\Debug\DataCollector;
 
 use WpPack\Component\Debug\Attribute\AsDataCollector;
 
-#[AsDataCollector(name: 'cache', priority: 60)]
+#[AsDataCollector(name: 'cache', priority: 195)]
 final class CacheDataCollector extends AbstractDataCollector
 {
     private int $transientSets = 0;

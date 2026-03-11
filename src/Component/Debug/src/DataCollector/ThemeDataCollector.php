@@ -6,7 +6,7 @@ namespace WpPack\Component\Debug\DataCollector;
 
 use WpPack\Component\Debug\Attribute\AsDataCollector;
 
-#[AsDataCollector(name: 'theme', priority: 56)]
+#[AsDataCollector(name: 'theme', priority: 140)]
 final class ThemeDataCollector extends AbstractDataCollector
 {
     private float $setupStart = 0.0;

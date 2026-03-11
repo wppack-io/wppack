@@ -6,7 +6,7 @@ namespace WpPack\Component\Debug\DataCollector;
 
 use WpPack\Component\Debug\Attribute\AsDataCollector;
 
-#[AsDataCollector(name: 'translation', priority: 40)]
+#[AsDataCollector(name: 'translation', priority: 45)]
 final class TranslationDataCollector extends AbstractDataCollector
 {
     /** @var array<string, int> */

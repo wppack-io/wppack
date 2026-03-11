@@ -6,7 +6,7 @@ namespace WpPack\Component\Debug\DataCollector;
 
 use WpPack\Component\Debug\Attribute\AsDataCollector;
 
-#[AsDataCollector(name: 'memory', priority: 80)]
+#[AsDataCollector(name: 'memory', priority: 245)]
 final class MemoryDataCollector extends AbstractDataCollector
 {
     /** @var array<string, int> */

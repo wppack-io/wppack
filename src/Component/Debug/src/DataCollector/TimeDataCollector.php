@@ -7,7 +7,7 @@ namespace WpPack\Component\Debug\DataCollector;
 use WpPack\Component\Debug\Attribute\AsDataCollector;
 use WpPack\Component\Debug\Profiler\Stopwatch;
 
-#[AsDataCollector(name: 'time', priority: 70)]
+#[AsDataCollector(name: 'time', priority: 250)]
 final class TimeDataCollector extends AbstractDataCollector
 {
     private const FRONTEND_PHASES = [

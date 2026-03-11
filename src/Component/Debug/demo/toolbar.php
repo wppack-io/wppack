@@ -71,6 +71,8 @@ $collectors = [];
 
 $requestTimeFloat = microtime(true) - 0.198; // 198ms ago
 
+// --- Group 1: Core Performance (255–245) ---
+
 // Request
 $collectors[] = new FakeCollector('request', 'Request', 'GET 200', 'green', [
     'method' => 'GET',
@@ -87,47 +89,6 @@ $collectors[] = new FakeCollector('request', 'Request', 'GET 200', 'green', [
     'post_params' => [],
     'cookies' => ['wordpress_logged_in_xxx' => '***'],
     'content_type' => 'text/html; charset=UTF-8',
-]);
-
-// Database — queries spread across lifecycle phases
-$collectors[] = new FakeCollector('database', 'Database', '24', 'green', [
-    'total_count' => 24,
-    'total_time' => 12.45,
-    'duplicate_count' => 2,
-    'slow_count' => 0,
-    'savequeries' => true,
-    'queries' => [
-        // Early bootstrap — autoload options (during muplugins_loaded → plugins_loaded)
-        ['sql' => 'SELECT option_name, option_value FROM wp_options WHERE autoload = \'yes\'', 'time' => 1.23, 'caller' => 'wp_load_alloptions', 'start' => $requestTimeFloat + 0.003, 'data' => []],
-        ['sql' => 'SELECT option_name, option_value FROM wp_options WHERE autoload = \'yes\'', 'time' => 0.98, 'caller' => 'wp_load_alloptions', 'start' => $requestTimeFloat + 0.008, 'data' => []],
-        // User auth check (during plugins_loaded)
-        ['sql' => 'SELECT * FROM wp_users WHERE ID = 1 LIMIT 1', 'time' => 0.32, 'caller' => 'WP_User::get_data_by', 'start' => $requestTimeFloat + 0.045, 'data' => []],
-        ['sql' => 'SELECT meta_key, meta_value FROM wp_usermeta WHERE user_id = 1', 'time' => 0.28, 'caller' => 'get_user_meta', 'start' => $requestTimeFloat + 0.048, 'data' => []],
-        // WooCommerce init queries
-        ['sql' => 'SELECT option_value FROM wp_options WHERE option_name = \'woocommerce_queue_flush_rewrite_rules\'', 'time' => 0.15, 'caller' => 'WC_Post_Types::register_post_types', 'start' => $requestTimeFloat + 0.075, 'data' => []],
-        ['sql' => 'SELECT option_value FROM wp_options WHERE option_name = \'woocommerce_db_version\'', 'time' => 0.12, 'caller' => 'WooCommerce::init', 'start' => $requestTimeFloat + 0.080, 'data' => []],
-        // Main query (during wp phase — parse_request → WP_Query)
-        ['sql' => 'SELECT * FROM wp_posts WHERE post_name = \'hello-world\' AND post_type = \'post\' LIMIT 1', 'time' => 0.45, 'caller' => 'WP_Query::get_posts', 'start' => $requestTimeFloat + 0.104, 'data' => []],
-        ['sql' => 'SELECT * FROM wp_posts WHERE ID = 42 LIMIT 1', 'time' => 0.35, 'caller' => 'WP_Post::get_instance', 'start' => $requestTimeFloat + 0.106, 'data' => []],
-        ['sql' => 'SELECT meta_key, meta_value FROM wp_postmeta WHERE post_id = 42', 'time' => 0.25, 'caller' => 'get_post_meta', 'start' => $requestTimeFloat + 0.108, 'data' => []],
-        // Taxonomy queries (during template rendering)
-        ['sql' => 'SELECT t.*, tt.* FROM wp_terms INNER JOIN wp_term_taxonomy AS tt ON t.term_id = tt.term_id WHERE tt.taxonomy = \'category\' AND t.term_id IN (5)', 'time' => 0.56, 'caller' => 'get_the_terms', 'start' => $requestTimeFloat + 0.135, 'data' => []],
-        ['sql' => 'SELECT t.*, tt.* FROM wp_terms INNER JOIN wp_term_taxonomy AS tt ON t.term_id = tt.term_id WHERE tt.taxonomy = \'post_tag\' AND t.term_id IN (8, 12)', 'time' => 0.48, 'caller' => 'get_the_terms', 'start' => $requestTimeFloat + 0.140, 'data' => []],
-    ],
-    'suggestions' => ['2 duplicate queries detected — consider caching results'],
-]);
-
-// Memory
-$collectors[] = new FakeCollector('memory', 'Memory', '44.0 MB', 'green', [
-    'current' => (int) (44.0 * 1024 * 1024),
-    'peak' => (int) (46.5 * 1024 * 1024),
-    'limit' => 256 * 1024 * 1024,
-    'usage_percentage' => 17.19,
-    'snapshots' => [
-        'wp_loaded' => (int) (30.0 * 1024 * 1024),
-        'template_redirect' => (int) (36.0 * 1024 * 1024),
-        'wp_footer' => (int) (44.0 * 1024 * 1024),
-    ],
 ]);
 
 // Time — lifecycle phases consistent with the timeline above
@@ -160,6 +121,49 @@ $collectors[] = new FakeCollector('time', 'Time', '198 ms', 'green', [
     ],
 ]);
 
+// Memory
+$collectors[] = new FakeCollector('memory', 'Memory', '44.0 MB', 'green', [
+    'current' => (int) (44.0 * 1024 * 1024),
+    'peak' => (int) (46.5 * 1024 * 1024),
+    'limit' => 256 * 1024 * 1024,
+    'usage_percentage' => 17.19,
+    'snapshots' => [
+        'wp_loaded' => (int) (30.0 * 1024 * 1024),
+        'template_redirect' => (int) (36.0 * 1024 * 1024),
+        'wp_footer' => (int) (44.0 * 1024 * 1024),
+    ],
+]);
+
+// --- Group 2: Data & I/O (200–190) ---
+
+// Database — queries spread across lifecycle phases
+$collectors[] = new FakeCollector('database', 'Database', '24', 'green', [
+    'total_count' => 24,
+    'total_time' => 12.45,
+    'duplicate_count' => 2,
+    'slow_count' => 0,
+    'savequeries' => true,
+    'queries' => [
+        // Early bootstrap — autoload options (during muplugins_loaded → plugins_loaded)
+        ['sql' => 'SELECT option_name, option_value FROM wp_options WHERE autoload = \'yes\'', 'time' => 1.23, 'caller' => 'wp_load_alloptions', 'start' => $requestTimeFloat + 0.003, 'data' => []],
+        ['sql' => 'SELECT option_name, option_value FROM wp_options WHERE autoload = \'yes\'', 'time' => 0.98, 'caller' => 'wp_load_alloptions', 'start' => $requestTimeFloat + 0.008, 'data' => []],
+        // User auth check (during plugins_loaded)
+        ['sql' => 'SELECT * FROM wp_users WHERE ID = 1 LIMIT 1', 'time' => 0.32, 'caller' => 'WP_User::get_data_by', 'start' => $requestTimeFloat + 0.045, 'data' => []],
+        ['sql' => 'SELECT meta_key, meta_value FROM wp_usermeta WHERE user_id = 1', 'time' => 0.28, 'caller' => 'get_user_meta', 'start' => $requestTimeFloat + 0.048, 'data' => []],
+        // WooCommerce init queries
+        ['sql' => 'SELECT option_value FROM wp_options WHERE option_name = \'woocommerce_queue_flush_rewrite_rules\'', 'time' => 0.15, 'caller' => 'WC_Post_Types::register_post_types', 'start' => $requestTimeFloat + 0.075, 'data' => []],
+        ['sql' => 'SELECT option_value FROM wp_options WHERE option_name = \'woocommerce_db_version\'', 'time' => 0.12, 'caller' => 'WooCommerce::init', 'start' => $requestTimeFloat + 0.080, 'data' => []],
+        // Main query (during wp phase — parse_request → WP_Query)
+        ['sql' => 'SELECT * FROM wp_posts WHERE post_name = \'hello-world\' AND post_type = \'post\' LIMIT 1', 'time' => 0.45, 'caller' => 'WP_Query::get_posts', 'start' => $requestTimeFloat + 0.104, 'data' => []],
+        ['sql' => 'SELECT * FROM wp_posts WHERE ID = 42 LIMIT 1', 'time' => 0.35, 'caller' => 'WP_Post::get_instance', 'start' => $requestTimeFloat + 0.106, 'data' => []],
+        ['sql' => 'SELECT meta_key, meta_value FROM wp_postmeta WHERE post_id = 42', 'time' => 0.25, 'caller' => 'get_post_meta', 'start' => $requestTimeFloat + 0.108, 'data' => []],
+        // Taxonomy queries (during template rendering)
+        ['sql' => 'SELECT t.*, tt.* FROM wp_terms INNER JOIN wp_term_taxonomy AS tt ON t.term_id = tt.term_id WHERE tt.taxonomy = \'category\' AND t.term_id IN (5)', 'time' => 0.56, 'caller' => 'get_the_terms', 'start' => $requestTimeFloat + 0.135, 'data' => []],
+        ['sql' => 'SELECT t.*, tt.* FROM wp_terms INNER JOIN wp_term_taxonomy AS tt ON t.term_id = tt.term_id WHERE tt.taxonomy = \'post_tag\' AND t.term_id IN (8, 12)', 'time' => 0.48, 'caller' => 'get_the_terms', 'start' => $requestTimeFloat + 0.140, 'data' => []],
+    ],
+    'suggestions' => ['2 duplicate queries detected — consider caching results'],
+]);
+
 // Cache
 $collectors[] = new FakeCollector('cache', 'Cache', '92.4%', 'green', [
     'hits' => 245,
@@ -183,6 +187,22 @@ $collectors[] = new FakeCollector('cache', 'Cache', '92.4%', 'green', [
         'site-options' => 5,
     ],
 ]);
+
+// HttpClient — requests happen WITHIN plugin hook callbacks (blocking I/O)
+//   Request 1: WooCommerce update check during init → within WC's init bar (70→85ms)
+//   Request 2: Yoast SEO indexing API during wp_head → within Yoast's wp_head bar (126.5→136.5ms)
+$collectors[] = new FakeCollector('http_client', 'HTTP Client', '2', 'green', [
+    'total_count' => 2,
+    'total_time' => 20.0,
+    'error_count' => 0,
+    'slow_count' => 0,
+    'requests' => [
+        ['method' => 'GET', 'url' => 'https://api.wordpress.org/plugins/update-check/1.1/', 'status_code' => 200, 'duration' => 12.0, 'start' => $requestTimeFloat + 0.073, 'response_size' => 4521, 'error' => ''],
+        ['method' => 'POST', 'url' => 'https://wpseo-api.yoast.com/indexables/check', 'status_code' => 200, 'duration' => 8.0, 'start' => $requestTimeFloat + 0.128, 'response_size' => 1280, 'error' => ''],
+    ],
+]);
+
+// --- Group 3: WordPress Context (150–135) ---
 
 // Router — FSE block theme scenario
 $collectors[] = new FakeCollector('router', 'Router', 'single', 'green', [
@@ -211,268 +231,6 @@ $collectors[] = new FakeCollector('router', 'Router', 'single', 'green', [
             ['slug' => 'header', 'source' => 'theme', 'area' => 'header'],
             ['slug' => 'footer', 'source' => 'custom', 'area' => 'footer'],
             ['slug' => 'sidebar', 'source' => 'theme', 'area' => 'uncategorized'],
-        ],
-    ],
-]);
-
-// WordPress
-$collectors[] = new FakeCollector('wordpress', 'WordPress', '6.7.1', 'default', [
-    'wp_version' => '6.7.1',
-    'php_version' => PHP_VERSION,
-    'theme' => 'Flavor',
-    'is_block_theme' => true,
-    'is_child_theme' => true,
-    'child_theme' => 'flavor-child',
-    'parent_theme' => 'flavor',
-    'theme_version' => '2.1.0',
-    'environment_type' => 'development',
-    'is_multisite' => false,
-    'active_plugins' => [
-        'woocommerce/woocommerce.php',
-        'wordpress-seo/wp-seo.php',
-        'akismet/akismet.php',
-        'contact-form-7/wp-contact-form-7.php',
-    ],
-    'extensions' => get_loaded_extensions(),
-    'constants' => [
-        'WP_DEBUG' => true,
-        'SAVEQUERIES' => true,
-        'SCRIPT_DEBUG' => true,
-        'WP_DEBUG_LOG' => true,
-        'WP_DEBUG_DISPLAY' => false,
-        'WP_CACHE' => false,
-    ],
-]);
-
-// User
-$collectors[] = new FakeCollector('user', 'User', 'admin', 'green', [
-    'is_logged_in' => true,
-    'user_id' => 1,
-    'username' => 'admin',
-    'display_name' => 'Site Administrator',
-    'email' => '***@example.com',
-    'roles' => ['administrator'],
-    'capabilities' => ['manage_options' => true, 'edit_posts' => true, 'delete_posts' => true, 'publish_posts' => true, 'edit_pages' => true],
-    'auth_method' => 'cookie',
-    'is_super_admin' => false,
-]);
-
-// Event — hook_timings start values must match lifecycle phase start times
-//
-// wp_enqueue_scripts fires inside wp_head (priority 1), so it is merged into
-// wp_head for timeline consistency. Plugin load times shown on plugins_loaded.
-//
-// Per-hook total_time breakdown (plugin+theme+core must fit within total_time):
-//   plugins_loaded:    57.5ms phase → individual plugin load times shown as bars
-//   after_setup_theme:  5.5ms total → Theme 4.5 + Core 1.0
-//   init:              24.0ms total → WC 15.0(+12ms HTTP) + Yoast 2.5 + Akismet 2.5 + CF7 1.2 + Core 2.8
-//   wp_loaded:          2.5ms total → WC 1.5 + Core 1.0
-//   template_redirect:  4.0ms total → Akismet 1.8 + Core 2.2
-//   wp_head:           34.5ms total → WC 8.5 + Yoast 10.0(+8ms HTTP) + Akismet 0.8 + CF7 1.5 + Theme 4.5 + Core 9.2
-//   the_content:        5.5ms total → WC 1.5 + Yoast 2.0 + Theme 1.5 + Core 0.5
-//   wp_footer:         22.0ms total → WC 3.5 + Yoast 1.5 + CF7 0.5 + Theme 1.5 + Core 15.0
-//
-$collectors[] = new FakeCollector('event', 'Event', '847', 'green', [
-    'total_firings' => 847,
-    'unique_hooks' => 312,
-    'registered_hooks' => 320,
-    'orphan_hooks' => 8,
-    'listener_counts' => [
-        'init' => 42,
-        'wp_head' => 36,
-        'wp_footer' => 15,
-        'the_content' => 8,
-        'template_redirect' => 6,
-        'after_setup_theme' => 5,
-        'wp_loaded' => 4,
-        'wp' => 3,
-        'plugins_loaded' => 3,
-        'setup_theme' => 1,
-    ],
-    'top_hooks' => [
-        'esc_html' => 186,
-        'esc_attr' => 142,
-        'get_post_metadata' => 48,
-        'sanitize_title' => 35,
-        'the_title' => 28,
-    ],
-    'hooks' => [
-        'esc_html' => 186,
-        'esc_attr' => 142,
-        'get_post_metadata' => 48,
-        'sanitize_title' => 35,
-        'the_title' => 28,
-        'map_meta_cap' => 22,
-        'option_siteurl' => 18,
-        'option_home' => 15,
-        'the_content' => 1,
-        'wp_head' => 1,
-        'wp_footer' => 1,
-        'init' => 1,
-        'wp_loaded' => 1,
-        'template_redirect' => 1,
-        'after_setup_theme' => 1,
-        'setup_theme' => 1,
-        'plugins_loaded' => 1,
-        'wp' => 1,
-        'muplugins_loaded' => 1,
-    ],
-    'hook_timings' => [
-        'muplugins_loaded'  => ['count' =>  1, 'total_time' =>  1.2, 'start' =>   4.5],
-        'plugins_loaded'    => ['count' =>  3, 'total_time' =>  2.0, 'start' =>  62.0],
-        'setup_theme'       => ['count' =>  1, 'total_time' =>  0.8, 'start' =>  62.0],
-        'after_setup_theme' => ['count' =>  5, 'total_time' =>  5.5, 'start' =>  63.5],
-        'init'              => ['count' => 42, 'total_time' => 24.0, 'start' =>  70.0],
-        'wp_loaded'         => ['count' =>  4, 'total_time' =>  2.5, 'start' =>  98.0],
-        'wp'                => ['count' =>  3, 'total_time' =>  1.5, 'start' => 112.0],
-        'template_redirect' => ['count' =>  6, 'total_time' =>  4.0, 'start' => 112.0],
-        'wp_head'           => ['count' => 36, 'total_time' => 34.5, 'start' => 118.0],
-        'the_content'       => ['count' =>  8, 'total_time' =>  5.5, 'start' => 145.0],
-        'wp_footer'         => ['count' => 15, 'total_time' => 22.0, 'start' => 155.0],
-    ],
-    'component_hooks' => [
-        'woocommerce' => ['init' => 3, 'wp_loaded' => 1, 'wp_head' => 6, 'the_content' => 1, 'wp_footer' => 2],
-        'wordpress-seo' => ['init' => 2, 'wp_head' => 3, 'the_content' => 1, 'wp_footer' => 1],
-        'akismet' => ['init' => 1, 'template_redirect' => 1, 'wp_head' => 1],
-        'contact-form-7' => ['init' => 1, 'wp_head' => 1, 'wp_footer' => 1],
-        'theme:flavor' => ['after_setup_theme' => 2, 'wp_head' => 5, 'the_content' => 1, 'wp_footer' => 2],
-        'core' => ['init' => 35, 'wp_head' => 20, 'wp_footer' => 9, 'the_content' => 5, 'wp_loaded' => 3, 'template_redirect' => 5, 'after_setup_theme' => 3],
-    ],
-    'component_summary' => [
-        'woocommerce' => ['type' => 'plugin', 'hooks' => 5, 'listeners' => 13, 'total_time' => 30.0],
-        'wordpress-seo' => ['type' => 'plugin', 'hooks' => 4, 'listeners' => 7, 'total_time' => 16.0],
-        'akismet' => ['type' => 'plugin', 'hooks' => 3, 'listeners' => 3, 'total_time' => 5.1],
-        'contact-form-7' => ['type' => 'plugin', 'hooks' => 3, 'listeners' => 3, 'total_time' => 3.2],
-        'theme:flavor' => ['type' => 'theme', 'hooks' => 4, 'listeners' => 10, 'total_time' => 12.0],
-        'core' => ['type' => 'core', 'hooks' => 7, 'listeners' => 80, 'total_time' => 32.0],
-    ],
-]);
-
-// Logger — Symfony Profiler style with multiple channels, levels, file/line info
-//
-// Timestamps spread across the request lifecycle (198ms total):
-//   +0ms    debug   — Route matched (during template_redirect)
-//   +5ms    deprecation — mysql_connect (during plugins_loaded)
-//   +18ms   deprecation — get_bloginfo (during init)
-//   +25ms   deprecation — login_headertitle hook (during init)
-//   +42ms   info    — User login (during init)
-//   +68ms   warning — Undefined array key (during template rendering)
-//   +75ms   notice  — Undefined variable (during template rendering)
-//   +82ms   warning — Rate limit (during wp_head HTTP call)
-//   +105ms  info    — Cache cleared (during template rendering)
-//   +130ms  info    — Email sent (during wp_footer)
-//   +145ms  error   — Payment failure (during wp_footer)
-//   +160ms  debug   — Template resolved (during wp_footer)
-//
-$logBaseTime = $requestTimeFloat + 0.005;
-$collectors[] = new FakeCollector('logger', 'Logger', '12', 'red', [
-    'total_count' => 12,
-    'error_count' => 1,
-    'deprecation_count' => 3,
-    'logs' => [
-        ['level' => 'debug', 'message' => 'Route matched: single.html', 'context' => [], 'channel' => 'routing', 'file' => '', 'line' => 0, 'timestamp' => $logBaseTime],
-        ['level' => 'deprecation', 'message' => 'Function mysql_connect() is deprecated', 'context' => ['_error_type' => 'E_DEPRECATED'], 'channel' => 'php', 'file' => '/var/www/html/wp-content/plugins/legacy-plugin/legacy-db.php', 'line' => 15, 'timestamp' => $logBaseTime + 0.005],
-        ['level' => 'deprecation', 'message' => 'get_bloginfo(\'url\') is deprecated since version 3.0. Use home_url() instead.', 'context' => ['type' => 'deprecation', 'function' => 'get_bloginfo', 'replacement' => 'home_url', 'version' => '3.0'], 'channel' => 'wordpress', 'file' => '/var/www/html/wp-includes/functions.php', 'line' => 42, 'timestamp' => $logBaseTime + 0.018],
-        ['level' => 'deprecation', 'message' => 'Hook \'login_headertitle\' is deprecated since version 5.2. Use login_headertext instead.', 'context' => ['type' => 'deprecated_hook', 'hook' => 'login_headertitle', 'replacement' => 'login_headertext', 'version' => '5.2'], 'channel' => 'wordpress', 'file' => '/var/www/html/wp-includes/pluggable.php', 'line' => 128, 'timestamp' => $logBaseTime + 0.025],
-        ['level' => 'info', 'message' => 'User "admin" logged in from 192.168.1.100', 'context' => ['user' => 'admin', 'ip' => '192.168.1.100'], 'channel' => 'security', 'file' => '', 'line' => 0, 'timestamp' => $logBaseTime + 0.042],
-        ['level' => 'warning', 'message' => 'Undefined array key "thumbnail" in template', 'context' => ['_error_type' => 'E_WARNING'], 'channel' => 'php', 'file' => '/var/www/html/wp-content/themes/flavor/template.php', 'line' => 67, 'timestamp' => $logBaseTime + 0.068],
-        ['level' => 'notice', 'message' => 'Undefined variable $sidebar in archive template', 'context' => ['_error_type' => 'E_NOTICE'], 'channel' => 'php', 'file' => '/var/www/html/wp-content/themes/flavor/archive.php', 'line' => 34, 'timestamp' => $logBaseTime + 0.075],
-        ['level' => 'warning', 'message' => 'Rate limit approaching for API key: 95% of 1000 req/min quota used', 'context' => ['current_usage' => 950, 'limit' => 1000, 'window' => '1min'], 'channel' => 'app', 'file' => '/var/www/html/wp-content/plugins/wppack/src/Component/HttpClient/ApiClient.php', 'line' => 203, 'timestamp' => $logBaseTime + 0.082],
-        ['level' => 'info', 'message' => 'Cache cleared for post_id=42', 'context' => ['post_id' => 42], 'channel' => 'app', 'file' => '', 'line' => 0, 'timestamp' => $logBaseTime + 0.105],
-        ['level' => 'info', 'message' => 'Email sent to user@example.com (Welcome to Our Site!)', 'context' => [], 'channel' => 'mailer', 'file' => '', 'line' => 0, 'timestamp' => $logBaseTime + 0.130],
-        ['level' => 'error', 'message' => 'Failed to process payment for order #1042: Gateway timeout', 'context' => ['order_id' => 1042, 'gateway' => 'stripe', 'error_code' => 'timeout'], 'channel' => 'app', 'file' => '/var/www/html/wp-content/plugins/wppack/src/Component/Payment/PaymentGateway.php', 'line' => 89, 'timestamp' => $logBaseTime + 0.145],
-        ['level' => 'debug', 'message' => 'Template resolved: single-post.php', 'context' => [], 'channel' => 'app', 'file' => '', 'line' => 0, 'timestamp' => $logBaseTime + 0.160],
-    ],
-    'level_counts' => ['error' => 1, 'deprecation' => 3, 'warning' => 2, 'notice' => 1, 'info' => 3, 'debug' => 2],
-]);
-
-// HttpClient — requests happen WITHIN plugin hook callbacks (blocking I/O)
-//   Request 1: WooCommerce update check during init → within WC's init bar (70→85ms)
-//   Request 2: Yoast SEO indexing API during wp_head → within Yoast's wp_head bar (126.5→136.5ms)
-$collectors[] = new FakeCollector('http_client', 'HTTP Client', '2', 'green', [
-    'total_count' => 2,
-    'total_time' => 20.0,
-    'error_count' => 0,
-    'slow_count' => 0,
-    'requests' => [
-        ['method' => 'GET', 'url' => 'https://api.wordpress.org/plugins/update-check/1.1/', 'status_code' => 200, 'duration' => 12.0, 'start' => $requestTimeFloat + 0.073, 'response_size' => 4521, 'error' => ''],
-        ['method' => 'POST', 'url' => 'https://wpseo-api.yoast.com/indexables/check', 'status_code' => 200, 'duration' => 8.0, 'start' => $requestTimeFloat + 0.128, 'response_size' => 1280, 'error' => ''],
-    ],
-]);
-
-// Translation
-$collectors[] = new FakeCollector('translation', 'Translation', '2', 'yellow', [
-    'missing_count' => 2,
-    'total_lookups' => 156,
-    'loaded_domains' => ['default', 'flavor', 'woocommerce'],
-    'domain_usage' => ['default' => 98, 'flavor' => 32, 'woocommerce' => 26],
-    'missing_translations' => [
-        ['original' => 'Read more...', 'domain' => 'flavor'],
-        ['original' => 'Share this post', 'domain' => 'flavor'],
-    ],
-]);
-
-// Mail (enhanced with structured headers and attachment details)
-$collectors[] = new FakeCollector('mail', 'Mail', '2', 'green', [
-    'total_count' => 2,
-    'success_count' => 1,
-    'failure_count' => 1,
-    'emails' => [
-        [
-            'to' => 'a***@example.com',
-            'subject' => 'Welcome to Our Site!',
-            'headers' => 'From: noreply@example.com',
-            'message' => "Hello Alice,\n\nWelcome to our site! We're glad to have you.\n\nBest regards,\nThe Team",
-            'attachments' => ['/var/www/html/wp-content/uploads/welcome.pdf'],
-            'status' => 'sent',
-            'error' => '',
-            'from' => 'noreply@example.com',
-            'cc' => [],
-            'bcc' => ['a***@internal.com'],
-            'reply_to' => 'support@example.com',
-            'content_type' => 'text/html',
-            'charset' => 'UTF-8',
-            'attachment_details' => [
-                ['filename' => 'welcome.pdf', 'size' => 245760],
-            ],
-        ],
-        [
-            'to' => 'b***@example.com',
-            'subject' => 'Password Reset Request',
-            'headers' => '',
-            'message' => "A password reset was requested for your account.\n\nIf you did not request this, please ignore this email.",
-            'attachments' => [],
-            'status' => 'failed',
-            'error' => 'SMTP connection failed: Connection timed out',
-            'from' => 'noreply@example.com',
-            'cc' => [],
-            'bcc' => [],
-            'reply_to' => '',
-            'content_type' => 'text/plain',
-            'charset' => 'UTF-8',
-            'attachment_details' => [],
-        ],
-    ],
-]);
-
-// Dump
-$collectors[] = new FakeCollector('dump', 'Dump', '3', 'yellow', [
-    'total_count' => 3,
-    'dumps' => [
-        [
-            'data' => "array(2) {\n  [\"title\"] => string(11) \"Hello World\"\n  [\"status\"] => string(7) \"publish\"\n}",
-            'file' => '/var/www/html/wp-content/themes/flavor/functions.php',
-            'line' => 42,
-        ],
-        [
-            'data' => "WP_Post Object\n(\n    [ID] => 42\n    [post_author] => \"1\"\n    [post_date] => \"2024-03-15 10:30:00\"\n    [post_title] => \"Hello World\"\n    [post_status] => \"publish\"\n    [post_type] => \"post\"\n    [comment_count] => \"3\"\n)",
-            'file' => '/var/www/html/wp-content/themes/flavor/single.php',
-            'line' => 18,
-        ],
-        [
-            'data' => "string(45) \"SELECT * FROM wp_posts WHERE post_status = 'publish' ORDER BY post_date DESC LIMIT 10\"",
-            'file' => '/var/www/html/wp-content/plugins/wppack/src/Component/Query/QueryBuilder.php',
-            'line' => 156,
         ],
     ],
 ]);
@@ -598,6 +356,217 @@ $collectors[] = new FakeCollector('theme', 'Theme', 'Flavor', 'default', [
     ],
 ]);
 
+// Event — hook_timings start values must match lifecycle phase start times
+//
+// wp_enqueue_scripts fires inside wp_head (priority 1), so it is merged into
+// wp_head for timeline consistency. Plugin load times shown on plugins_loaded.
+//
+// Per-hook total_time breakdown (plugin+theme+core must fit within total_time):
+//   plugins_loaded:    57.5ms phase → individual plugin load times shown as bars
+//   after_setup_theme:  5.5ms total → Theme 4.5 + Core 1.0
+//   init:              24.0ms total → WC 15.0(+12ms HTTP) + Yoast 2.5 + Akismet 2.5 + CF7 1.2 + Core 2.8
+//   wp_loaded:          2.5ms total → WC 1.5 + Core 1.0
+//   template_redirect:  4.0ms total → Akismet 1.8 + Core 2.2
+//   wp_head:           34.5ms total → WC 8.5 + Yoast 10.0(+8ms HTTP) + Akismet 0.8 + CF7 1.5 + Theme 4.5 + Core 9.2
+//   the_content:        5.5ms total → WC 1.5 + Yoast 2.0 + Theme 1.5 + Core 0.5
+//   wp_footer:         22.0ms total → WC 3.5 + Yoast 1.5 + CF7 0.5 + Theme 1.5 + Core 15.0
+//
+$collectors[] = new FakeCollector('event', 'Event', '847', 'green', [
+    'total_firings' => 847,
+    'unique_hooks' => 312,
+    'registered_hooks' => 320,
+    'orphan_hooks' => 8,
+    'listener_counts' => [
+        'init' => 42,
+        'wp_head' => 36,
+        'wp_footer' => 15,
+        'the_content' => 8,
+        'template_redirect' => 6,
+        'after_setup_theme' => 5,
+        'wp_loaded' => 4,
+        'wp' => 3,
+        'plugins_loaded' => 3,
+        'setup_theme' => 1,
+    ],
+    'top_hooks' => [
+        'esc_html' => 186,
+        'esc_attr' => 142,
+        'get_post_metadata' => 48,
+        'sanitize_title' => 35,
+        'the_title' => 28,
+    ],
+    'hooks' => [
+        'esc_html' => 186,
+        'esc_attr' => 142,
+        'get_post_metadata' => 48,
+        'sanitize_title' => 35,
+        'the_title' => 28,
+        'map_meta_cap' => 22,
+        'option_siteurl' => 18,
+        'option_home' => 15,
+        'the_content' => 1,
+        'wp_head' => 1,
+        'wp_footer' => 1,
+        'init' => 1,
+        'wp_loaded' => 1,
+        'template_redirect' => 1,
+        'after_setup_theme' => 1,
+        'setup_theme' => 1,
+        'plugins_loaded' => 1,
+        'wp' => 1,
+        'muplugins_loaded' => 1,
+    ],
+    'hook_timings' => [
+        'muplugins_loaded'  => ['count' =>  1, 'total_time' =>  1.2, 'start' =>   4.5],
+        'plugins_loaded'    => ['count' =>  3, 'total_time' =>  2.0, 'start' =>  62.0],
+        'setup_theme'       => ['count' =>  1, 'total_time' =>  0.8, 'start' =>  62.0],
+        'after_setup_theme' => ['count' =>  5, 'total_time' =>  5.5, 'start' =>  63.5],
+        'init'              => ['count' => 42, 'total_time' => 24.0, 'start' =>  70.0],
+        'wp_loaded'         => ['count' =>  4, 'total_time' =>  2.5, 'start' =>  98.0],
+        'wp'                => ['count' =>  3, 'total_time' =>  1.5, 'start' => 112.0],
+        'template_redirect' => ['count' =>  6, 'total_time' =>  4.0, 'start' => 112.0],
+        'wp_head'           => ['count' => 36, 'total_time' => 34.5, 'start' => 118.0],
+        'the_content'       => ['count' =>  8, 'total_time' =>  5.5, 'start' => 145.0],
+        'wp_footer'         => ['count' => 15, 'total_time' => 22.0, 'start' => 155.0],
+    ],
+    'component_hooks' => [
+        'woocommerce' => ['init' => 3, 'wp_loaded' => 1, 'wp_head' => 6, 'the_content' => 1, 'wp_footer' => 2],
+        'wordpress-seo' => ['init' => 2, 'wp_head' => 3, 'the_content' => 1, 'wp_footer' => 1],
+        'akismet' => ['init' => 1, 'template_redirect' => 1, 'wp_head' => 1],
+        'contact-form-7' => ['init' => 1, 'wp_head' => 1, 'wp_footer' => 1],
+        'theme:flavor' => ['after_setup_theme' => 2, 'wp_head' => 5, 'the_content' => 1, 'wp_footer' => 2],
+        'core' => ['init' => 35, 'wp_head' => 20, 'wp_footer' => 9, 'the_content' => 5, 'wp_loaded' => 3, 'template_redirect' => 5, 'after_setup_theme' => 3],
+    ],
+    'component_summary' => [
+        'woocommerce' => ['type' => 'plugin', 'hooks' => 5, 'listeners' => 13, 'total_time' => 30.0],
+        'wordpress-seo' => ['type' => 'plugin', 'hooks' => 4, 'listeners' => 7, 'total_time' => 16.0],
+        'akismet' => ['type' => 'plugin', 'hooks' => 3, 'listeners' => 3, 'total_time' => 5.1],
+        'contact-form-7' => ['type' => 'plugin', 'hooks' => 3, 'listeners' => 3, 'total_time' => 3.2],
+        'theme:flavor' => ['type' => 'theme', 'hooks' => 4, 'listeners' => 10, 'total_time' => 12.0],
+        'core' => ['type' => 'core', 'hooks' => 7, 'listeners' => 80, 'total_time' => 32.0],
+    ],
+]);
+
+// --- Group 4: Diagnostics (100–85) ---
+
+// Logger — Symfony Profiler style with multiple channels, levels, file/line info
+//
+// Timestamps spread across the request lifecycle (198ms total):
+//   +0ms    debug   — Route matched (during template_redirect)
+//   +5ms    deprecation — mysql_connect (during plugins_loaded)
+//   +18ms   deprecation — get_bloginfo (during init)
+//   +25ms   deprecation — login_headertitle hook (during init)
+//   +42ms   info    — User login (during init)
+//   +68ms   warning — Undefined array key (during template rendering)
+//   +75ms   notice  — Undefined variable (during template rendering)
+//   +82ms   warning — Rate limit (during wp_head HTTP call)
+//   +105ms  info    — Cache cleared (during template rendering)
+//   +130ms  info    — Email sent (during wp_footer)
+//   +145ms  error   — Payment failure (during wp_footer)
+//   +160ms  debug   — Template resolved (during wp_footer)
+//
+$logBaseTime = $requestTimeFloat + 0.005;
+$collectors[] = new FakeCollector('logger', 'Logger', '12', 'red', [
+    'total_count' => 12,
+    'error_count' => 1,
+    'deprecation_count' => 3,
+    'logs' => [
+        ['level' => 'debug', 'message' => 'Route matched: single.html', 'context' => [], 'channel' => 'routing', 'file' => '', 'line' => 0, 'timestamp' => $logBaseTime],
+        ['level' => 'deprecation', 'message' => 'Function mysql_connect() is deprecated', 'context' => ['_error_type' => 'E_DEPRECATED'], 'channel' => 'php', 'file' => '/var/www/html/wp-content/plugins/legacy-plugin/legacy-db.php', 'line' => 15, 'timestamp' => $logBaseTime + 0.005],
+        ['level' => 'deprecation', 'message' => 'get_bloginfo(\'url\') is deprecated since version 3.0. Use home_url() instead.', 'context' => ['type' => 'deprecation', 'function' => 'get_bloginfo', 'replacement' => 'home_url', 'version' => '3.0'], 'channel' => 'wordpress', 'file' => '/var/www/html/wp-includes/functions.php', 'line' => 42, 'timestamp' => $logBaseTime + 0.018],
+        ['level' => 'deprecation', 'message' => 'Hook \'login_headertitle\' is deprecated since version 5.2. Use login_headertext instead.', 'context' => ['type' => 'deprecated_hook', 'hook' => 'login_headertitle', 'replacement' => 'login_headertext', 'version' => '5.2'], 'channel' => 'wordpress', 'file' => '/var/www/html/wp-includes/pluggable.php', 'line' => 128, 'timestamp' => $logBaseTime + 0.025],
+        ['level' => 'info', 'message' => 'User "admin" logged in from 192.168.1.100', 'context' => ['user' => 'admin', 'ip' => '192.168.1.100'], 'channel' => 'security', 'file' => '', 'line' => 0, 'timestamp' => $logBaseTime + 0.042],
+        ['level' => 'warning', 'message' => 'Undefined array key "thumbnail" in template', 'context' => ['_error_type' => 'E_WARNING'], 'channel' => 'php', 'file' => '/var/www/html/wp-content/themes/flavor/template.php', 'line' => 67, 'timestamp' => $logBaseTime + 0.068],
+        ['level' => 'notice', 'message' => 'Undefined variable $sidebar in archive template', 'context' => ['_error_type' => 'E_NOTICE'], 'channel' => 'php', 'file' => '/var/www/html/wp-content/themes/flavor/archive.php', 'line' => 34, 'timestamp' => $logBaseTime + 0.075],
+        ['level' => 'warning', 'message' => 'Rate limit approaching for API key: 95% of 1000 req/min quota used', 'context' => ['current_usage' => 950, 'limit' => 1000, 'window' => '1min'], 'channel' => 'app', 'file' => '/var/www/html/wp-content/plugins/wppack/src/Component/HttpClient/ApiClient.php', 'line' => 203, 'timestamp' => $logBaseTime + 0.082],
+        ['level' => 'info', 'message' => 'Cache cleared for post_id=42', 'context' => ['post_id' => 42], 'channel' => 'app', 'file' => '', 'line' => 0, 'timestamp' => $logBaseTime + 0.105],
+        ['level' => 'info', 'message' => 'Email sent to user@example.com (Welcome to Our Site!)', 'context' => [], 'channel' => 'mailer', 'file' => '', 'line' => 0, 'timestamp' => $logBaseTime + 0.130],
+        ['level' => 'error', 'message' => 'Failed to process payment for order #1042: Gateway timeout', 'context' => ['order_id' => 1042, 'gateway' => 'stripe', 'error_code' => 'timeout'], 'channel' => 'app', 'file' => '/var/www/html/wp-content/plugins/wppack/src/Component/Payment/PaymentGateway.php', 'line' => 89, 'timestamp' => $logBaseTime + 0.145],
+        ['level' => 'debug', 'message' => 'Template resolved: single-post.php', 'context' => [], 'channel' => 'app', 'file' => '', 'line' => 0, 'timestamp' => $logBaseTime + 0.160],
+    ],
+    'level_counts' => ['error' => 1, 'deprecation' => 3, 'warning' => 2, 'notice' => 1, 'info' => 3, 'debug' => 2],
+]);
+
+// Dump
+$collectors[] = new FakeCollector('dump', 'Dump', '3', 'yellow', [
+    'total_count' => 3,
+    'dumps' => [
+        [
+            'data' => "array(2) {\n  [\"title\"] => string(11) \"Hello World\"\n  [\"status\"] => string(7) \"publish\"\n}",
+            'file' => '/var/www/html/wp-content/themes/flavor/functions.php',
+            'line' => 42,
+        ],
+        [
+            'data' => "WP_Post Object\n(\n    [ID] => 42\n    [post_author] => \"1\"\n    [post_date] => \"2024-03-15 10:30:00\"\n    [post_title] => \"Hello World\"\n    [post_status] => \"publish\"\n    [post_type] => \"post\"\n    [comment_count] => \"3\"\n)",
+            'file' => '/var/www/html/wp-content/themes/flavor/single.php',
+            'line' => 18,
+        ],
+        [
+            'data' => "string(45) \"SELECT * FROM wp_posts WHERE post_status = 'publish' ORDER BY post_date DESC LIMIT 10\"",
+            'file' => '/var/www/html/wp-content/plugins/wppack/src/Component/Query/QueryBuilder.php',
+            'line' => 156,
+        ],
+    ],
+]);
+
+// Mail (enhanced with structured headers and attachment details)
+$collectors[] = new FakeCollector('mail', 'Mail', '2', 'green', [
+    'total_count' => 2,
+    'success_count' => 1,
+    'failure_count' => 1,
+    'emails' => [
+        [
+            'to' => 'a***@example.com',
+            'subject' => 'Welcome to Our Site!',
+            'headers' => 'From: noreply@example.com',
+            'message' => "Hello Alice,\n\nWelcome to our site! We're glad to have you.\n\nBest regards,\nThe Team",
+            'attachments' => ['/var/www/html/wp-content/uploads/welcome.pdf'],
+            'status' => 'sent',
+            'error' => '',
+            'from' => 'noreply@example.com',
+            'cc' => [],
+            'bcc' => ['a***@internal.com'],
+            'reply_to' => 'support@example.com',
+            'content_type' => 'text/html',
+            'charset' => 'UTF-8',
+            'attachment_details' => [
+                ['filename' => 'welcome.pdf', 'size' => 245760],
+            ],
+        ],
+        [
+            'to' => 'b***@example.com',
+            'subject' => 'Password Reset Request',
+            'headers' => '',
+            'message' => "A password reset was requested for your account.\n\nIf you did not request this, please ignore this email.",
+            'attachments' => [],
+            'status' => 'failed',
+            'error' => 'SMTP connection failed: Connection timed out',
+            'from' => 'noreply@example.com',
+            'cc' => [],
+            'bcc' => [],
+            'reply_to' => '',
+            'content_type' => 'text/plain',
+            'charset' => 'UTF-8',
+            'attachment_details' => [],
+        ],
+    ],
+]);
+
+// User
+$collectors[] = new FakeCollector('user', 'User', 'admin', 'green', [
+    'is_logged_in' => true,
+    'user_id' => 1,
+    'username' => 'admin',
+    'display_name' => 'Site Administrator',
+    'email' => '***@example.com',
+    'roles' => ['administrator'],
+    'capabilities' => ['manage_options' => true, 'edit_posts' => true, 'delete_posts' => true, 'publish_posts' => true, 'edit_pages' => true],
+    'auth_method' => 'cookie',
+    'is_super_admin' => false,
+]);
+
+// --- Group 5: Environment (50–40) ---
+
 // Scheduler
 $collectors[] = new FakeCollector('scheduler', 'Scheduler', '5', 'green', [
     'cron_events' => [
@@ -617,6 +586,47 @@ $collectors[] = new FakeCollector('scheduler', 'Scheduler', '5', 'green', [
     'as_recent_actions' => [],
     'cron_disabled' => false,
     'alternate_cron' => false,
+]);
+
+// Translation
+$collectors[] = new FakeCollector('translation', 'Translation', '2', 'yellow', [
+    'missing_count' => 2,
+    'total_lookups' => 156,
+    'loaded_domains' => ['default', 'flavor', 'woocommerce'],
+    'domain_usage' => ['default' => 98, 'flavor' => 32, 'woocommerce' => 26],
+    'missing_translations' => [
+        ['original' => 'Read more...', 'domain' => 'flavor'],
+        ['original' => 'Share this post', 'domain' => 'flavor'],
+    ],
+]);
+
+// WordPress
+$collectors[] = new FakeCollector('wordpress', 'WordPress', '6.7.1', 'default', [
+    'wp_version' => '6.7.1',
+    'php_version' => PHP_VERSION,
+    'theme' => 'Flavor',
+    'is_block_theme' => true,
+    'is_child_theme' => true,
+    'child_theme' => 'flavor-child',
+    'parent_theme' => 'flavor',
+    'theme_version' => '2.1.0',
+    'environment_type' => 'development',
+    'is_multisite' => false,
+    'active_plugins' => [
+        'woocommerce/woocommerce.php',
+        'wordpress-seo/wp-seo.php',
+        'akismet/akismet.php',
+        'contact-form-7/wp-contact-form-7.php',
+    ],
+    'extensions' => get_loaded_extensions(),
+    'constants' => [
+        'WP_DEBUG' => true,
+        'SAVEQUERIES' => true,
+        'SCRIPT_DEBUG' => true,
+        'WP_DEBUG_LOG' => true,
+        'WP_DEBUG_DISPLAY' => false,
+        'WP_CACHE' => false,
+    ],
 ]);
 
 // --- Build profile and render ---

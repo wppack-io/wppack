@@ -6,7 +6,7 @@ namespace WpPack\Component\Debug\DataCollector;
 
 use WpPack\Component\Debug\Attribute\AsDataCollector;
 
-#[AsDataCollector(name: 'event', priority: 85)]
+#[AsDataCollector(name: 'event', priority: 135)]
 final class EventDataCollector extends AbstractDataCollector
 {
     /** @var array<string, int> */

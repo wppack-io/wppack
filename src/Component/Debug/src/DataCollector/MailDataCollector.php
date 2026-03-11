@@ -6,7 +6,7 @@ namespace WpPack\Component\Debug\DataCollector;
 
 use WpPack\Component\Debug\Attribute\AsDataCollector;
 
-#[AsDataCollector(name: 'mail', priority: 75)]
+#[AsDataCollector(name: 'mail', priority: 90)]
 final class MailDataCollector extends AbstractDataCollector
 {
     /** @var list<array{to: string|list<string>, subject: string, headers: string|list<string>, message: string, attachments: list<string>, status: string, error: string, from: string, cc: list<string>, bcc: list<string>, reply_to: string, content_type: string, charset: string, attachment_details: list<array{filename: string, size: int}>}> */
