@@ -184,7 +184,7 @@ final class ToolbarAssets
             align-items: center;
             gap: 8px;
             font-size: 11px;
-            color: #9ca3af;
+            color: #6b7280;
             white-space: nowrap;
         }
         #wppack-debug .wpd-env-sep {

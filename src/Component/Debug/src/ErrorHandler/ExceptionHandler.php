@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace WpPack\Component\Debug\ErrorHandler;
 
 use WpPack\Component\Debug\DebugConfig;
+use WpPack\Component\Debug\Profiler\Profile;
+use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
 
 final class ExceptionHandler
 {
@@ -13,7 +15,14 @@ final class ExceptionHandler
     public function __construct(
         private readonly ErrorRenderer $renderer,
         private readonly DebugConfig $config,
+        private readonly ?ToolbarRenderer $toolbarRenderer = null,
+        private ?Profile $profile = null,
     ) {}
+
+    public function setProfile(Profile $profile): void
+    {
+        $this->profile = $profile;
+    }
 
     public function register(): void
     {
@@ -34,7 +43,8 @@ final class ExceptionHandler
         }
 
         $flat = FlattenException::createFromThrowable($e);
-        $html = $this->renderer->render($flat);
+        $toolbarHtml = $this->renderToolbar();
+        $html = $this->renderer->render($flat, $toolbarHtml);
 
         if (!headers_sent()) {
             http_response_code($flat->getStatusCode());
@@ -47,5 +57,14 @@ final class ExceptionHandler
     public function onRoutingException(\Throwable $e): void
     {
         $this->handleException($e);
+    }
+
+    private function renderToolbar(): string
+    {
+        if ($this->toolbarRenderer === null || $this->profile === null) {
+            return '';
+        }
+
+        return $this->toolbarRenderer->render($this->profile);
     }
 }

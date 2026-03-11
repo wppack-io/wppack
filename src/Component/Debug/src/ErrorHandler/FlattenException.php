@@ -54,16 +54,20 @@ final class FlattenException
             'trace' => $trace,
         ];
 
+        $previousTrace = $trace;
         $previous = $exception->getPrevious();
         while ($previous !== null) {
+            $currentTrace = self::buildTrace($previous);
+            $trimmedTrace = self::trimCommonFrames($currentTrace, $previousTrace);
             $flat->chain[] = [
                 'class' => $previous::class,
                 'message' => $previous->getMessage(),
                 'code' => $previous->getCode(),
                 'file' => $previous->getFile(),
                 'line' => $previous->getLine(),
-                'trace' => self::buildTrace($previous),
+                'trace' => $trimmedTrace,
             ];
+            $previousTrace = $currentTrace;
             $previous = $previous->getPrevious();
         }
 
@@ -119,6 +123,26 @@ final class FlattenException
     {
         $result = [];
 
+        // Prepend the throw location as frame #0
+        $throwFile = $exception->getFile();
+        $throwLine = $exception->getLine();
+        $throwContext = [];
+        $throwHighlight = 0;
+        if ($throwFile !== '' && $throwLine > 0 && is_file($throwFile) && is_readable($throwFile)) {
+            $throwContext = self::getCodeContext($throwFile, $throwLine, 10);
+            $throwHighlight = $throwLine;
+        }
+        $result[] = [
+            'file' => $throwFile,
+            'line' => $throwLine,
+            'function' => '',
+            'class' => '',
+            'type' => '',
+            'args' => [],
+            'code_context' => $throwContext,
+            'highlight_line' => $throwHighlight,
+        ];
+
         foreach ($exception->getTrace() as $frame) {
             $file = $frame['file'] ?? '';
             $line = $frame['line'] ?? 0;
@@ -172,6 +196,35 @@ final class FlattenException
         }
 
         return $result;
+    }
+
+    /**
+     * Remove trailing frames from $trace that are identical to trailing frames in $parentTrace.
+     *
+     * @param list<array{file: string, line: int, function: string, class: string, type: string, args: list<string>, code_context: list<string>, highlight_line: int}> $trace
+     * @param list<array{file: string, line: int, function: string, class: string, type: string, args: list<string>, code_context: list<string>, highlight_line: int}> $parentTrace
+     *
+     * @return list<array{file: string, line: int, function: string, class: string, type: string, args: list<string>, code_context: list<string>, highlight_line: int}>
+     */
+    private static function trimCommonFrames(array $trace, array $parentTrace): array
+    {
+        $ti = count($trace) - 1;
+        $pi = count($parentTrace) - 1;
+
+        while ($ti >= 0 && $pi >= 0) {
+            if (
+                $trace[$ti]['file'] !== $parentTrace[$pi]['file']
+                || $trace[$ti]['line'] !== $parentTrace[$pi]['line']
+                || $trace[$ti]['function'] !== $parentTrace[$pi]['function']
+                || $trace[$ti]['class'] !== $parentTrace[$pi]['class']
+            ) {
+                break;
+            }
+            --$ti;
+            --$pi;
+        }
+
+        return \array_slice($trace, 0, $ti + 1);
     }
 
     private static function formatArg(mixed $arg): string

@@ -4,9 +4,18 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../../../vendor/autoload.php';
 
+use WpPack\Component\Debug\DataCollector\AbstractDataCollector;
 use WpPack\Component\Debug\DebugConfig;
 use WpPack\Component\Debug\ErrorHandler\ErrorRenderer;
 use WpPack\Component\Debug\ErrorHandler\WpDieHandler;
+use WpPack\Component\Debug\Profiler\Profile;
+use WpPack\Component\Debug\Toolbar\Panel\DatabasePanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\EnvironmentPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\LoggerPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\MemoryPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\RequestPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\WordPressPanelRenderer;
+use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
 
 // Stub WordPress functions required by WP_Error
 if (!function_exists('do_action')) {
@@ -22,11 +31,136 @@ if (!class_exists('WP_Error')) {
     require_once __DIR__ . '/../../../../vendor/roots/wordpress-no-content/wp-includes/class-wp-error.php';
 }
 
-// --- Simulate realistic wp_die() call chains ---
-// WpDieHandler.handleHtml() captures debug_backtrace() internally,
-// so the code snippet and stack trace reflect the actual call site.
+/**
+ * Fake collector that injects pre-built data for demo purposes.
+ */
+if (!class_exists('FakeCollector')) {
+    final class FakeCollector extends AbstractDataCollector
+    {
+        /**
+         * @param array<string, mixed> $fakeData
+         */
+        public function __construct(
+            private readonly string $fakeName,
+            private readonly string $fakeLabel,
+            private readonly string $fakeBadgeValue,
+            private readonly string $fakeBadgeColor,
+            private readonly array $fakeData,
+        ) {}
 
-$handler = new WpDieHandler(new ErrorRenderer(), new DebugConfig(enabled: true));
+        public function getName(): string
+        {
+            return $this->fakeName;
+        }
+
+        public function getLabel(): string
+        {
+            return $this->fakeLabel;
+        }
+
+        public function getBadgeValue(): string
+        {
+            return $this->fakeBadgeValue;
+        }
+
+        public function getBadgeColor(): string
+        {
+            return $this->fakeBadgeColor;
+        }
+
+        public function collect(): void
+        {
+            $this->data = $this->fakeData;
+        }
+    }
+}
+
+// --- Build toolbar ---
+
+$collectors = [];
+
+$collectors[] = new FakeCollector('request', 'Request', 'GET 500', 'red', [
+    'method' => 'GET',
+    'status_code' => 500,
+    'url' => '/wp-admin/options-general.php',
+    'route' => 'admin',
+    'content_type' => 'text/html; charset=UTF-8',
+    'headers' => [
+        'request' => ['Host' => 'example.com', 'Accept' => 'text/html'],
+        'response' => ['Content-Type' => 'text/html; charset=UTF-8'],
+    ],
+]);
+
+$collectors[] = new FakeCollector('database', 'Database', '3', 'default', [
+    'queries' => [
+        ['sql' => 'SELECT option_value FROM wp_options WHERE option_name = %s', 'time' => 0.45, 'params' => ['siteurl'], 'caller' => 'get_option()'],
+    ],
+    'total_time' => 0.45,
+    'query_count' => 3,
+]);
+
+$collectors[] = new FakeCollector('memory', 'Memory', '12.0 MB', 'default', [
+    'usage' => memory_get_usage(true),
+    'peak' => memory_get_peak_usage(true),
+    'limit' => 268435456,
+]);
+
+$collectors[] = new FakeCollector('logger', 'Logs', '1', 'red', [
+    'logs' => [
+        ['level' => 'error', 'message' => 'wp_die() called', 'context' => [], 'channel' => 'wordpress', 'timestamp' => time()],
+    ],
+    'count_by_level' => ['error' => 1],
+    'deprecation_count' => 0,
+    'deprecation_logs' => [],
+]);
+
+$collectors[] = new FakeCollector('wordpress', 'WordPress', '', 'default', [
+    'version' => '6.7.2',
+    'db_version' => '58975',
+    'php_version' => PHP_VERSION,
+    'server_software' => $_SERVER['SERVER_SOFTWARE'] ?? 'PHP ' . PHP_VERSION . ' Development Server',
+    'site_url' => 'https://example.com',
+    'is_multisite' => false,
+    'active_theme' => 'flavor',
+    'active_plugins' => ['wppack/debug'],
+    'wp_debug' => true,
+    'WP_CACHE' => false,
+]);
+
+$collectors[] = new FakeCollector('environment', 'Environment', '', 'default', [
+    'php_version' => PHP_VERSION,
+    'php_sapi' => PHP_SAPI,
+    'php_extensions' => get_loaded_extensions(),
+    'wp_version' => '6.7.2',
+    'wp_debug' => true,
+    'wp_debug_log' => false,
+    'wp_debug_display' => true,
+    'server_software' => $_SERVER['SERVER_SOFTWARE'] ?? 'PHP ' . PHP_VERSION . ' Development Server',
+    'os' => PHP_OS . ' (' . php_uname('r') . ')',
+]);
+
+$profile = new Profile(token: 'wp-die-demo-' . bin2hex(random_bytes(4)));
+$profile->setUrl('/wp-admin/options-general.php');
+$profile->setMethod('GET');
+$profile->setStatusCode(500);
+
+foreach ($collectors as $collector) {
+    $collector->collect();
+    $profile->addCollector($collector);
+}
+
+$toolbarRenderer = new ToolbarRenderer();
+$toolbarRenderer->addPanelRenderer(new DatabasePanelRenderer());
+$toolbarRenderer->addPanelRenderer(new MemoryPanelRenderer());
+$toolbarRenderer->addPanelRenderer(new RequestPanelRenderer());
+$toolbarRenderer->addPanelRenderer(new WordPressPanelRenderer());
+$toolbarRenderer->addPanelRenderer(new LoggerPanelRenderer());
+$toolbarRenderer->addPanelRenderer(new EnvironmentPanelRenderer());
+
+// --- Simulate wp_die() scenarios ---
+
+$renderer = new ErrorRenderer();
+$handler = new WpDieHandler($renderer, new DebugConfig(enabled: true), $toolbarRenderer, $profile);
 $handler->registerHtmlHandler('_default_wp_die_handler');
 
 $scenario = $_GET['scenario'] ?? 'permission';
