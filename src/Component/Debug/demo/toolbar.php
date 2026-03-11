@@ -737,7 +737,7 @@ $collectors[] = new FakeCollector('asset', 'Assets', '18', 'default', [
 ]);
 
 // REST API — simulating a REST request to GET /wp/v2/posts/42
-$collectors[] = new FakeCollector('rest', 'REST API', 'GET /wp/v2/posts/(?P<id>[\\d]+)', 'green', [
+$collectors[] = new FakeCollector('rest', 'REST API', '', 'green', [
     'is_rest_request' => true,
     'current_request' => [
         'method' => 'GET',

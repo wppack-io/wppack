@@ -15,11 +15,12 @@ use WpPack\Component\Debug\Toolbar\Panel\ToolbarIcons;
 
 final class ToolbarRenderer
 {
+    /** @var array<string, array{bg: string, fg: string}> */
     private const BADGE_COLORS = [
-        'green' => '#008a20',
-        'yellow' => '#996800',
-        'red' => '#cc1818',
-        'default' => '#50575e',
+        'green' => ['bg' => 'rgba(0,138,32,0.12)', 'fg' => '#008a20'],
+        'yellow' => ['bg' => 'rgba(153,104,0,0.12)', 'fg' => '#996800'],
+        'red' => ['bg' => 'rgba(204,24,24,0.12)', 'fg' => '#cc1818'],
+        'default' => ['bg' => 'transparent', 'fg' => '#50575e'],
     ];
 
     /** Badge display order in the toolbar bar. */
@@ -279,16 +280,19 @@ final class ToolbarRenderer
         $label = $this->esc($collector->getLabel());
         $value = $collector->getBadgeValue();
         $colorKey = $collector->getBadgeColor();
-        $color = self::BADGE_COLORS[$colorKey] ?? self::BADGE_COLORS['default'];
+        $colors = self::BADGE_COLORS[$colorKey] ?? self::BADGE_COLORS['default'];
         $icon = ToolbarIcons::svg($collector->getName());
 
         $valueHtml = $value !== ''
-            ? ' <span class="wpd-badge-value" style="color:' . $color . '">' . $this->esc($value) . '</span>'
+            ? ' <span class="wpd-badge-value" style="color:' . $colors['fg'] . '">' . $this->esc($value) . '</span>'
             : '';
 
+        $bgStyle = $colors['bg'] !== 'transparent' ? ' style="background:' . $colors['bg'] . '"' : '';
+        $iconStyle = $colors['fg'] !== '#50575e' ? ' style="color:' . $colors['fg'] . '"' : '';
+
         return <<<HTML
-        <button class="wpd-badge" data-panel="{$name}" data-tooltip="{$label}">
-            <span class="wpd-badge-icon">{$icon}</span>{$valueHtml}
+        <button class="wpd-badge" data-panel="{$name}" data-tooltip="{$label}"{$bgStyle}>
+            <span class="wpd-badge-icon"{$iconStyle}>{$icon}</span>{$valueHtml}
         </button>
         HTML;
     }

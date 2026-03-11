@@ -83,7 +83,7 @@ final class SecurityPanelRenderer extends AbstractPanelRenderer implements Panel
         if ($nonceOps !== []) {
             $html .= '<table class="wpd-table wpd-table-full" style="margin-top:8px">';
             $html .= '<thead><tr>';
-            $html .= '<th class="wpd-col-right">Time</th>';
+            $html .= '<th class="wpd-col-reltime">Time</th>';
             $html .= '<th>Action</th>';
             $html .= '<th>Operation</th>';
             $html .= '<th>Result</th>';
@@ -96,7 +96,7 @@ final class SecurityPanelRenderer extends AbstractPanelRenderer implements Panel
                     : '<span class="wpd-text-red">fail</span>';
 
                 $html .= '<tr>';
-                $html .= '<td class="wpd-col-right wpd-text-dim">' . $this->formatRelativeTime($op['timestamp']) . '</td>';
+                $html .= '<td class="wpd-col-reltime wpd-text-dim">' . $this->formatRelativeTime($op['timestamp']) . '</td>';
                 $html .= '<td><code>' . $this->esc($op['action']) . '</code></td>';
                 $html .= '<td>' . $this->esc($op['operation']) . '</td>';
                 $html .= '<td>' . $resultHtml . '</td>';

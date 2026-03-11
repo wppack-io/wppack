@@ -33,16 +33,18 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer
         $slowQueries = (int) ($dbData['slow_count'] ?? 0);
 
         $badgeColors = self::getBadgeColors();
-        $color = match (true) {
+        $colors = match (true) {
             $usagePercentage >= 90, $slowQueries > 0, $totalTime >= 1000 => $badgeColors['red'],
             $totalTime >= 200 => $badgeColors['yellow'],
             default => $badgeColors['default'],
         };
 
+        $bgStyle = $colors['bg'] !== 'transparent' ? ' style="background:' . $colors['bg'] . '"' : '';
+
         return <<<HTML
-        <button class="wpd-badge" data-panel="performance" data-tooltip="Performance">
-            <span class="wpd-badge-icon">{$icon}</span>
-            <span class="wpd-badge-value" style="color:{$color}">{$value}</span>
+        <button class="wpd-badge" data-panel="performance" data-tooltip="Performance"{$bgStyle}>
+            <span class="wpd-badge-icon" style="color:{$colors['fg']}">{$icon}</span>
+            <span class="wpd-badge-value" style="color:{$colors['fg']}">{$value}</span>
         </button>
         HTML;
     }

@@ -129,7 +129,7 @@ final class ToolbarAssets
             display: flex;
             align-items: center;
             line-height: 1;
-            color: #9ca3af;
+            color: #50575e;
         }
         #wppack-debug .wpd-icon {
             display: inline-block;
@@ -139,6 +139,7 @@ final class ToolbarAssets
         #wppack-debug .wpd-badge-value {
             font-size: 12px;
             font-weight: 400;
+            color: #50575e;
         }
 
         /* ---- Environment info ---- */

@@ -6,11 +6,12 @@ namespace WpPack\Component\Debug\Toolbar\Panel;
 
 abstract class AbstractPanelRenderer
 {
+    /** @var array<string, array{bg: string, fg: string}> */
     private const BADGE_COLORS = [
-        'green' => '#008a20',
-        'yellow' => '#996800',
-        'red' => '#cc1818',
-        'default' => '#50575e',
+        'green' => ['bg' => 'rgba(0,138,32,0.12)', 'fg' => '#008a20'],
+        'yellow' => ['bg' => 'rgba(153,104,0,0.12)', 'fg' => '#996800'],
+        'red' => ['bg' => 'rgba(204,24,24,0.12)', 'fg' => '#cc1818'],
+        'default' => ['bg' => 'transparent', 'fg' => '#50575e'],
     ];
 
     protected float $requestTimeFloat = 0.0;

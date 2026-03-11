@@ -89,16 +89,7 @@ final class RestDataCollector extends AbstractDataCollector
 
     public function getBadgeValue(): string
     {
-        if ($this->data['is_rest_request'] ?? false) {
-            $current = $this->data['current_request'] ?? null;
-            if (is_array($current)) {
-                return ($current['method'] ?? '') . ' ' . ($current['route'] ?? '');
-            }
-        }
-
-        $count = (int) ($this->data['total_routes'] ?? 0);
-
-        return $count > 0 ? (string) $count : '';
+        return '';
     }
 
     public function getBadgeColor(): string
