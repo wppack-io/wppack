@@ -251,7 +251,7 @@ final class ToolbarRenderer
             $html .= '<table class="wpd-table wpd-table-full">';
             $html .= '<thead><tr>';
             $html .= '<th class="wpd-col-num">#</th>';
-            $html .= '<th>Time</th>';
+            $html .= '<th class="wpd-col-reltime">Time</th>';
             $html .= '<th class="wpd-col-sql">SQL</th>';
             $html .= '<th class="wpd-col-time">Duration</th>';
             $html .= '<th class="wpd-col-caller">Caller</th>';
@@ -284,7 +284,7 @@ final class ToolbarRenderer
 
                 $html .= '<tr class="' . $rowClass . '">';
                 $html .= '<td class="wpd-col-num">' . $this->esc((string) ($index + 1)) . '</td>';
-                $html .= '<td class="wpd-text-dim" style="white-space:nowrap">' . $relTime . '</td>';
+                $html .= '<td class="wpd-col-reltime wpd-text-dim">' . $relTime . '</td>';
                 $html .= '<td class="wpd-col-sql"><code>' . $this->esc($sql) . '</code>' . $badges . '</td>';
                 $html .= '<td class="wpd-col-time">' . $this->formatMs($timeMs) . '</td>';
                 $html .= '<td class="wpd-col-caller"><span class="wpd-caller">' . $this->esc($query['caller']) . '</span></td>';
@@ -323,15 +323,19 @@ final class ToolbarRenderer
             $html .= '<thead><tr>';
             $html .= '<th>Event</th>';
             $html .= '<th>Category</th>';
+            $html .= '<th>Time</th>';
             $html .= '<th>Duration</th>';
             $html .= '<th>Memory</th>';
             $html .= '</tr></thead>';
             $html .= '<tbody>';
 
             foreach ($events as $event) {
+                $startTime = $this->formatMs((float) $event['start_time']);
+
                 $html .= '<tr>';
                 $html .= '<td>' . $this->esc($event['name']) . '</td>';
                 $html .= '<td><span class="wpd-tag">' . $this->esc($event['category']) . '</span></td>';
+                $html .= '<td class="wpd-col-reltime wpd-text-dim">' . $startTime . '</td>';
                 $html .= '<td>' . $this->formatMs($event['duration']) . '</td>';
                 $html .= '<td>' . $this->formatBytes($event['memory']) . '</td>';
                 $html .= '</tr>';
@@ -920,7 +924,7 @@ final class ToolbarRenderer
                 $html .= '<td><code>' . $this->esc($hook) . '</code></td>';
                 $html .= '<td>' . $this->esc((string) $count) . '</td>';
                 $html .= '<td>' . $this->esc((string) $listeners) . '</td>';
-                $html .= '<td class="wpd-text-dim" style="white-space:nowrap">' . $hookStart . '</td>';
+                $html .= '<td class="wpd-col-reltime wpd-text-dim">' . $hookStart . '</td>';
                 $html .= '<td>' . $duration . '</td>';
                 $html .= '</tr>';
             }
@@ -1048,7 +1052,7 @@ final class ToolbarRenderer
 
                 $html .= '<tr data-log-level="' . $this->esc($level) . '"' . $rowClass . '>';
                 $html .= '<td class="wpd-col-num">' . $this->esc((string) ($index + 1)) . '</td>';
-                $html .= '<td class="wpd-text-dim" style="white-space:nowrap">' . $this->esc($timeDisplay) . '</td>';
+                $html .= '<td class="wpd-col-reltime wpd-text-dim">' . $this->esc($timeDisplay) . '</td>';
                 $html .= '<td><span class="wpd-tag ' . $levelColor . '">' . $this->esc($level) . '</span></td>';
                 $html .= '<td>' . $this->esc($log['channel'] ?? 'app') . '</td>';
                 $html .= '<td><code>' . $this->esc($log['message'] ?? '') . '</code></td>';
@@ -1236,7 +1240,7 @@ final class ToolbarRenderer
 
                 $html .= '<tr>';
                 $html .= '<td class="wpd-col-num">' . $this->esc((string) ($index + 1)) . '</td>';
-                $html .= '<td class="wpd-text-dim" style="white-space:nowrap">' . $relTime . '</td>';
+                $html .= '<td class="wpd-col-reltime wpd-text-dim">' . $relTime . '</td>';
                 $html .= '<td><span class="wpd-tag">' . $this->esc($request['method'] ?? 'GET') . '</span></td>';
                 $html .= '<td><code>' . $this->esc($request['url'] ?? '') . '</code></td>';
                 $html .= '<td class="' . $statusColor . '">' . ($statusCode > 0 ? $this->esc((string) $statusCode) : '-') . $error . '</td>';
@@ -2605,6 +2609,11 @@ final class ToolbarRenderer
         }
 
         /* Full-width table columns */
+        #wppack-debug .wpd-col-reltime {
+            width: 70px;
+            white-space: nowrap;
+            font-size: 12px;
+        }
         #wppack-debug .wpd-col-num {
             width: 40px;
             text-align: center;
