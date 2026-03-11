@@ -171,6 +171,58 @@ final class RequestDataCollectorTest extends TestCase
     }
 
     #[Test]
+    public function collectIncludesContentType(): void
+    {
+        $this->collector->captureResponseHeaders(['Content-Type' => 'application/json']);
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertSame('application/json', $data['content_type']);
+    }
+
+    #[Test]
+    public function collectIncludesContentTypeEmptyWhenNoHeaders(): void
+    {
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertArrayHasKey('content_type', $data);
+    }
+
+    #[Test]
+    public function collectIncludesScriptFilenameInServerVars(): void
+    {
+        $_SERVER['SCRIPT_FILENAME'] = '/var/www/html/index.php';
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertSame('/var/www/html/index.php', $data['server_vars']['SCRIPT_FILENAME']);
+    }
+
+    #[Test]
+    public function collectIncludesGatewayInterfaceInServerVars(): void
+    {
+        $_SERVER['GATEWAY_INTERFACE'] = 'CGI/1.1';
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertSame('CGI/1.1', $data['server_vars']['GATEWAY_INTERFACE']);
+    }
+
+    #[Test]
+    public function collectIncludesScriptNameInServerVars(): void
+    {
+        $_SERVER['SCRIPT_NAME'] = '/index.php';
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertSame('/index.php', $data['server_vars']['SCRIPT_NAME']);
+    }
+
+    #[Test]
     public function collectMasksSensitiveHttpApiCallArgs(): void
     {
         $this->collector->captureHttpApiCall(

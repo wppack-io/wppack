@@ -58,6 +58,7 @@ final class RequestDataCollector extends AbstractDataCollector
             'method' => $method,
             'url' => $url,
             'status_code' => $this->statusCode,
+            'content_type' => $this->resolveContentType(),
             'request_headers' => $this->maskSensitiveHeaders($this->collectRequestHeaders()),
             'response_headers' => $this->responseHeaders,
             'get_params' => $_GET,
@@ -256,6 +257,10 @@ final class RequestDataCollector extends AbstractDataCollector
             'HTTPS',
             'CONTENT_TYPE',
             'CONTENT_LENGTH',
+            'SCRIPT_FILENAME',
+            'GATEWAY_INTERFACE',
+            'PATH_INFO',
+            'SCRIPT_NAME',
         ];
 
         $vars = [];
@@ -266,6 +271,23 @@ final class RequestDataCollector extends AbstractDataCollector
         }
 
         return $vars;
+    }
+
+    private function resolveContentType(): string
+    {
+        foreach ($this->responseHeaders as $name => $value) {
+            if (strtolower($name) === 'content-type') {
+                return $value;
+            }
+        }
+
+        foreach (headers_list() as $header) {
+            if (str_starts_with(strtolower($header), 'content-type:')) {
+                return trim(substr($header, 13));
+            }
+        }
+
+        return '';
     }
 
     private function buildCurrentUrl(): string

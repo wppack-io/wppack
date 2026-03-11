@@ -76,19 +76,48 @@ $requestTimeFloat = microtime(true) - 0.198; // 198ms ago
 // Request
 $collectors[] = new FakeCollector('request', 'Request', 'GET 200', 'green', [
     'method' => 'GET',
-    'url' => '/2024/03/hello-world/',
+    'url' => 'https://example.local/2024/03/hello-world/',
     'status_code' => 200,
-    'headers' => [
+    'content_type' => 'text/html; charset=UTF-8',
+    'request_headers' => [
         'Host' => 'example.local',
         'Accept' => 'text/html,application/xhtml+xml',
         'User-Agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
         'Accept-Language' => 'ja,en;q=0.9',
-        'Cookie' => '***',
+        'Cookie' => '********',
+    ],
+    'response_headers' => [
+        'Content-Type' => 'text/html; charset=UTF-8',
+        'X-Powered-By' => 'WpPack',
+        'Cache-Control' => 'no-cache, must-revalidate, max-age=0',
+        'X-Content-Type-Options' => 'nosniff',
+        'X-Frame-Options' => 'SAMEORIGIN',
     ],
     'get_params' => [],
     'post_params' => [],
-    'cookies' => ['wordpress_logged_in_xxx' => '***'],
-    'content_type' => 'text/html; charset=UTF-8',
+    'cookies' => [
+        'wordpress_logged_in_xxx' => '********',
+        'wp-settings-1' => 'libraryContent=browse',
+        'wp-settings-time-1' => '1710500400',
+    ],
+    'server_vars' => [
+        'SERVER_NAME' => 'example.local',
+        'SERVER_ADDR' => '127.0.0.1',
+        'SERVER_PORT' => '443',
+        'SERVER_SOFTWARE' => 'nginx/1.25.3',
+        'SERVER_PROTOCOL' => 'HTTP/2.0',
+        'DOCUMENT_ROOT' => '/var/www/html',
+        'REMOTE_ADDR' => '192.168.1.100',
+        'REQUEST_URI' => '/2024/03/hello-world/',
+        'REQUEST_METHOD' => 'GET',
+        'REQUEST_TIME_FLOAT' => $requestTimeFloat,
+        'QUERY_STRING' => '',
+        'HTTPS' => 'on',
+        'SCRIPT_FILENAME' => '/var/www/html/index.php',
+        'GATEWAY_INTERFACE' => 'CGI/1.1',
+        'SCRIPT_NAME' => '/index.php',
+    ],
+    'http_api_calls' => [],
 ]);
 
 // Time — lifecycle phases consistent with the timeline above

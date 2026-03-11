@@ -428,12 +428,51 @@ final class ToolbarRenderer
      */
     private function renderRequestPanel(array $data): string
     {
+        /** @var array<string, mixed> $serverVars */
+        $serverVars = $data['server_vars'] ?? [];
+
+        // Request section — enriched with Script, Remote Address, Time
         $html = '<div class="wpd-section">';
         $html .= '<h4 class="wpd-section-title">Request</h4>';
         $html .= '<table class="wpd-table wpd-table-kv">';
         $html .= $this->renderTableRow('Method', (string) ($data['method'] ?? ''));
         $html .= $this->renderTableRow('URL', (string) ($data['url'] ?? ''));
-        $html .= $this->renderTableRow('Status Code', (string) ($data['status_code'] ?? ''));
+
+        $script = (string) ($serverVars['SCRIPT_FILENAME'] ?? '');
+        if ($script !== '') {
+            $html .= $this->renderTableRow('Script', $script);
+        }
+
+        $remoteAddr = (string) ($serverVars['REMOTE_ADDR'] ?? '');
+        if ($remoteAddr !== '') {
+            $html .= $this->renderTableRow('Remote Address', $remoteAddr);
+        }
+
+        $requestTimeFloat = $serverVars['REQUEST_TIME_FLOAT'] ?? null;
+        if ($requestTimeFloat !== null) {
+            $html .= $this->renderTableRow('Time', date('Y-m-d H:i:s', (int) $requestTimeFloat));
+        }
+
+        $html .= '</table>';
+        $html .= '</div>';
+
+        // Response section — Status Code (colored) and Content-Type
+        $statusCode = (int) ($data['status_code'] ?? 200);
+        $contentType = (string) ($data['content_type'] ?? '');
+
+        $statusColorClass = match (true) {
+            $statusCode >= 200 && $statusCode < 300 => 'wpd-text-green',
+            $statusCode >= 300 && $statusCode < 400 => 'wpd-text-yellow',
+            default => 'wpd-text-red',
+        };
+
+        $html .= '<div class="wpd-section">';
+        $html .= '<h4 class="wpd-section-title">Response</h4>';
+        $html .= '<table class="wpd-table wpd-table-kv">';
+        $html .= $this->renderTableRow('Status Code', (string) $statusCode, $statusColorClass);
+        if ($contentType !== '') {
+            $html .= $this->renderTableRow('Content-Type', $contentType);
+        }
         $html .= '</table>';
         $html .= '</div>';
 
@@ -461,10 +500,17 @@ final class ToolbarRenderer
             $html .= $this->renderKeyValueSection('POST Parameters', $postParams);
         }
 
-        /** @var array<string, mixed> $serverVars */
-        $serverVars = $data['server_vars'] ?? [];
-        if ($serverVars !== []) {
-            $html .= $this->renderKeyValueSection('Server Variables', $serverVars);
+        /** @var array<string, mixed> $cookies */
+        $cookies = $data['cookies'] ?? [];
+        if ($cookies !== []) {
+            $html .= $this->renderKeyValueSection('Cookies', $cookies);
+        }
+
+        // Server Variables — exclude keys already shown in Request section
+        $excludeFromServerVars = ['SCRIPT_FILENAME', 'REMOTE_ADDR', 'REQUEST_TIME_FLOAT'];
+        $filteredServerVars = array_diff_key($serverVars, array_flip($excludeFromServerVars));
+        if ($filteredServerVars !== []) {
+            $html .= $this->renderKeyValueSection('Server Variables', $filteredServerVars);
         }
 
         /** @var list<array{url: string, args: array<string, mixed>, response: mixed}> $httpApiCalls */
@@ -1995,12 +2041,13 @@ final class ToolbarRenderer
         // 1. Lifecycle phases
         $previousTime = 0.0;
         foreach ($phases as $phaseName => $phaseTime) {
+            $duration = $phaseTime - $previousTime;
             $timelineEntries[] = [
                 'name' => $phaseName,
                 'start' => $previousTime,
-                'duration' => $phaseTime - $previousTime,
+                'duration' => $duration,
                 'category' => 'lifecycle',
-                'title' => $phaseName,
+                'title' => $phaseName . "\n" . $this->formatMs($previousTime) . ' → ' . $this->formatMs($phaseTime) . ' (' . $this->formatMs($duration) . ')',
             ];
             $previousTime = $phaseTime;
         }
@@ -2017,7 +2064,12 @@ final class ToolbarRenderer
             $startMs = ((float) $query['start'] - $requestTimeFloat) * 1000;
             $durationMs = (float) $query['time'];
             $dbTotalMs += $durationMs;
-            $dbBars[] = ['start' => $startMs, 'duration' => $durationMs];
+            $sql = mb_strimwidth($query['sql'], 0, 80, '…');
+            $dbBars[] = [
+                'start' => $startMs,
+                'duration' => $durationMs,
+                'title' => $sql . "\n" . $this->formatMs($durationMs) . ' — ' . $query['caller'],
+            ];
         }
         if ($dbBars !== []) {
             $dbLabel = sprintf('Database (%d queries)', count($dbBars));
@@ -2040,7 +2092,11 @@ final class ToolbarRenderer
             if (!isset($op['time'])) {
                 continue;
             }
-            $cacheBars[] = ['start' => (float) $op['time'], 'duration' => 0.5];
+            $cacheBars[] = [
+                'start' => (float) $op['time'],
+                'duration' => 0.5,
+                'title' => strtoupper($op['operation']) . ' ' . $op['name'] . "\n" . $op['caller'],
+            ];
         }
         if ($cacheBars !== []) {
             $cacheLabel = sprintf('Cache (%d ops)', count($cacheBars));
@@ -2066,7 +2122,11 @@ final class ToolbarRenderer
             $startMs = ((float) $req['start'] - $requestTimeFloat) * 1000;
             $durationMs = (float) $req['duration'];
             $httpTotalMs += $durationMs;
-            $httpBars[] = ['start' => $startMs, 'duration' => $durationMs];
+            $httpBars[] = [
+                'start' => $startMs,
+                'duration' => $durationMs,
+                'title' => $req['method'] . ' ' . $req['url'] . "\n" . $this->formatMs($durationMs) . ' — ' . $req['status_code'],
+            ];
         }
         if ($httpBars !== []) {
             $httpLabel = sprintf('HTTP Client (%d requests)', count($httpBars));
@@ -2083,12 +2143,14 @@ final class ToolbarRenderer
 
         // 5. Custom stopwatch events (excluding wp_lifecycle)
         foreach ($customEvents as $event) {
+            $eventStart = (float) $event['start_time'];
+            $eventDuration = (float) $event['duration'];
             $timelineEntries[] = [
                 'name' => $event['name'],
-                'start' => (float) $event['start_time'],
-                'duration' => (float) $event['duration'],
+                'start' => $eventStart,
+                'duration' => $eventDuration,
                 'category' => $event['category'],
-                'title' => $event['name'],
+                'title' => $event['name'] . "\n+" . $this->formatMs($eventStart) . ' — ' . $this->formatMs($eventDuration),
             ];
         }
 
@@ -2134,10 +2196,15 @@ final class ToolbarRenderer
             $pluginBars = [];
 
             // Add plugin load time bar during plugins_loaded phase
+            $pluginName = (string) ($info['name'] ?? $slug);
             $loadTime = (float) ($info['load_time'] ?? 0.0);
             if ($loadTime > 0 && $pluginsLoadedStart > 0) {
                 $loadStart = $pluginsLoadedStart + ($pluginLoadStarts[$slug] ?? 0.0);
-                $pluginBars[] = ['start' => $loadStart, 'duration' => $loadTime];
+                $pluginBars[] = [
+                    'start' => $loadStart,
+                    'duration' => $loadTime,
+                    'title' => "load\n" . $this->formatMs($loadTime),
+                ];
             }
 
             foreach ($pluginHooks as $hookInfo) {
@@ -2146,7 +2213,11 @@ final class ToolbarRenderer
                 if ($hookTiming !== null && $hookTiming['start'] > 0) {
                     $offset = $hookOffsets[$hookName] ?? 0.0;
                     $duration = max($hookInfo['time'], 0.5);
-                    $pluginBars[] = ['start' => $hookTiming['start'] + $offset, 'duration' => $duration];
+                    $pluginBars[] = [
+                        'start' => $hookTiming['start'] + $offset,
+                        'duration' => $duration,
+                        'title' => $hookName . "\n" . $this->formatMs($hookInfo['time']) . ' (' . $hookInfo['listeners'] . ' listeners)',
+                    ];
                     $hookOffsets[$hookName] = $offset + $duration;
                 }
             }
@@ -2173,6 +2244,7 @@ final class ToolbarRenderer
         $themeTimelineEntries = [];
 
         if ($themeHooks !== []) {
+            $themeName = (string) ($themeData['name'] ?? 'Theme');
             $themeBars = [];
             foreach ($themeHooks as $hookInfo) {
                 $hookName = $hookInfo['hook'];
@@ -2180,14 +2252,17 @@ final class ToolbarRenderer
                 if ($hookTiming !== null && $hookTiming['start'] > 0) {
                     $offset = $hookOffsets[$hookName] ?? 0.0;
                     $duration = max($hookInfo['time'], 0.5);
-                    $themeBars[] = ['start' => $hookTiming['start'] + $offset, 'duration' => $duration];
+                    $themeBars[] = [
+                        'start' => $hookTiming['start'] + $offset,
+                        'duration' => $duration,
+                        'title' => $hookName . "\n" . $this->formatMs($hookInfo['time']) . ' (' . $hookInfo['listeners'] . ' listeners)',
+                    ];
                     $hookOffsets[$hookName] = $offset + $duration;
                 }
             }
 
             if ($themeBars !== []) {
                 $themeHookTime = (float) ($themeData['hook_time'] ?? 0.0);
-                $themeName = (string) ($themeData['name'] ?? 'Theme');
                 $themeTimelineEntries[] = [
                     'name' => $themeName,
                     'start' => $themeBars[0]['start'],
@@ -2288,20 +2363,23 @@ final class ToolbarRenderer
         $html .= '<div class="wpd-perf-wf-label" title="' . $this->esc((string) ($entry['title'] ?? '')) . '">' . $this->esc((string) ($entry['name'] ?? '')) . '</div>';
         $html .= '<div class="wpd-perf-wf-track">';
 
-        /** @var non-empty-list<array{start: float, duration: float}>|null $bars */
+        /** @var non-empty-list<array{start: float, duration: float, title?: string}>|null $bars */
         $bars = $entry['bars'] ?? null;
         if ($bars !== null) {
             foreach ($bars as $bar) {
                 $left = $totalTime > 0 ? ($bar['start'] / $totalTime) * 100 : 0;
                 $width = $totalTime > 0 ? ($bar['duration'] / $totalTime) * 100 : 0;
                 $width = max($width, 0.3);
-                $html .= '<div class="wpd-perf-wf-bar" style="left:' . $this->esc(sprintf('%.2f', $left)) . '%;width:' . $this->esc(sprintf('%.2f', $width)) . '%;background:' . $this->esc($color) . '"></div>';
+                $tooltipAttr = isset($bar['title']) ? ' data-tooltip="' . $this->esc($bar['title']) . '"' : '';
+                $html .= '<div class="wpd-perf-wf-bar"' . $tooltipAttr . ' style="left:' . $this->esc(sprintf('%.2f', $left)) . '%;width:' . $this->esc(sprintf('%.2f', $width)) . '%;background:' . $this->esc($color) . '"></div>';
             }
         } else {
             $left = $totalTime > 0 ? ((float) ($entry['start'] ?? 0.0) / $totalTime) * 100 : 0;
             $width = $totalTime > 0 ? ((float) ($entry['duration'] ?? 0.0) / $totalTime) * 100 : 0;
             $width = max($width, 0.3);
-            $html .= '<div class="wpd-perf-wf-bar" style="left:' . $this->esc(sprintf('%.2f', $left)) . '%;width:' . $this->esc(sprintf('%.2f', $width)) . '%;background:' . $this->esc($color) . '"></div>';
+            $barTitle = (string) ($entry['title'] ?? '');
+            $tooltipAttr = $barTitle !== '' ? ' data-tooltip="' . $this->esc($barTitle) . '"' : '';
+            $html .= '<div class="wpd-perf-wf-bar"' . $tooltipAttr . ' style="left:' . $this->esc(sprintf('%.2f', $left)) . '%;width:' . $this->esc(sprintf('%.2f', $width)) . '%;background:' . $this->esc($color) . '"></div>';
         }
 
         $html .= '</div>';
@@ -2906,6 +2984,27 @@ final class ToolbarRenderer
             border-radius: 3px;
             min-width: 2px;
         }
+        #wppack-debug .wpd-perf-wf-bar[data-tooltip] {
+            cursor: pointer;
+        }
+        #wppack-debug .wpd-tooltip {
+            position: fixed;
+            z-index: 100001;
+            background: #1e1e2e;
+            color: #cdd6f4;
+            font-size: 11px;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            line-height: 1.5;
+            padding: 6px 10px;
+            border-radius: 4px;
+            border: 1px solid #45475a;
+            white-space: pre;
+            pointer-events: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            max-width: 400px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
         #wppack-debug .wpd-perf-wf-value {
             width: 80px;
             flex-shrink: 0;
@@ -3082,6 +3181,31 @@ final class ToolbarRenderer
                 if (e.key === 'Escape' && activePanel !== null) {
                     closeAllPanels();
                 }
+            });
+
+            // Timeline bar tooltips
+            var tooltip = document.createElement('div');
+            tooltip.className = 'wpd-tooltip';
+            tooltip.style.display = 'none';
+            root.appendChild(tooltip);
+
+            root.addEventListener('mouseover', function(e) {
+                var bar = e.target.closest('.wpd-perf-wf-bar[data-tooltip]');
+                if (!bar) return;
+                tooltip.textContent = bar.getAttribute('data-tooltip');
+                tooltip.style.display = '';
+                var rect = bar.getBoundingClientRect();
+                var tipRect = tooltip.getBoundingClientRect();
+                var left = rect.left + rect.width / 2 - tipRect.width / 2;
+                if (left < 4) left = 4;
+                if (left + tipRect.width > window.innerWidth - 4) left = window.innerWidth - 4 - tipRect.width;
+                tooltip.style.left = left + 'px';
+                tooltip.style.top = (rect.top - tipRect.height - 6) + 'px';
+            });
+
+            root.addEventListener('mouseout', function(e) {
+                var bar = e.target.closest('.wpd-perf-wf-bar[data-tooltip]');
+                if (bar) tooltip.style.display = 'none';
             });
         })();
         JS;
