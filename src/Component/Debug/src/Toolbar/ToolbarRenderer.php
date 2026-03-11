@@ -321,8 +321,8 @@ final class ToolbarRenderer
             $html .= '<h4 class="wpd-section-title">Stopwatch Events</h4>';
             $html .= '<table class="wpd-table wpd-table-full">';
             $html .= '<thead><tr>';
-            $html .= '<th>Event</th>';
             $html .= '<th class="wpd-col-reltime">Time</th>';
+            $html .= '<th>Event</th>';
             $html .= '<th>Category</th>';
             $html .= '<th>Duration</th>';
             $html .= '<th>Memory</th>';
@@ -334,8 +334,8 @@ final class ToolbarRenderer
                 $relTime = $this->esc('+' . number_format(max(0, $startMs), 0) . ' ms');
 
                 $html .= '<tr>';
-                $html .= '<td>' . $this->esc($event['name']) . '</td>';
                 $html .= '<td class="wpd-col-reltime wpd-text-dim">' . $relTime . '</td>';
+                $html .= '<td>' . $this->esc($event['name']) . '</td>';
                 $html .= '<td><span class="wpd-tag">' . $this->esc($event['category']) . '</span></td>';
                 $html .= '<td>' . $this->formatMs($event['duration']) . '</td>';
                 $html .= '<td>' . $this->formatBytes($event['memory']) . '</td>';
