@@ -230,7 +230,17 @@ final class PluginDataCollector extends AbstractDataCollector
 
     public function getBadgeColor(): string
     {
-        return 'default';
+        $totalPlugins = $this->data['total_plugins'] ?? 0;
+
+        if ($totalPlugins >= 40) {
+            return 'red';
+        }
+
+        if ($totalPlugins >= 20) {
+            return 'yellow';
+        }
+
+        return 'green';
     }
 
     public function reset(): void

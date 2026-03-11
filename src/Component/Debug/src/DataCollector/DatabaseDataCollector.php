@@ -107,7 +107,17 @@ final class DatabaseDataCollector extends AbstractDataCollector
 
     public function getBadgeColor(): string
     {
-        return 'default';
+        $totalCount = $this->data['total_count'] ?? 0;
+
+        if ($totalCount >= 50) {
+            return 'red';
+        }
+
+        if ($totalCount >= 20) {
+            return 'yellow';
+        }
+
+        return 'green';
     }
 
     /**

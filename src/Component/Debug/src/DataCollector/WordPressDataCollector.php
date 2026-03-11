@@ -29,6 +29,7 @@ final class WordPressDataCollector extends AbstractDataCollector
             'theme' => $themeInfo['theme'],
             'is_block_theme' => $themeInfo['is_block_theme'],
             'is_child_theme' => $themeInfo['is_child_theme'],
+            'child_theme' => $themeInfo['child_theme'],
             'parent_theme' => $themeInfo['parent_theme'],
             'theme_version' => $themeInfo['theme_version'],
             'active_plugins' => $this->getActivePlugins(),
@@ -62,7 +63,7 @@ final class WordPressDataCollector extends AbstractDataCollector
     }
 
     /**
-     * @return array{theme: string, is_block_theme: bool, is_child_theme: bool, parent_theme: string, theme_version: string}
+     * @return array{theme: string, is_block_theme: bool, is_child_theme: bool, child_theme: string, parent_theme: string, theme_version: string}
      */
     private function getThemeInfo(): array
     {
@@ -70,6 +71,7 @@ final class WordPressDataCollector extends AbstractDataCollector
             'theme' => '',
             'is_block_theme' => false,
             'is_child_theme' => false,
+            'child_theme' => '',
             'parent_theme' => '',
             'theme_version' => '',
         ];
@@ -87,6 +89,7 @@ final class WordPressDataCollector extends AbstractDataCollector
             $template = get_template();
             $info['is_child_theme'] = $stylesheet !== $template;
             if ($info['is_child_theme']) {
+                $info['child_theme'] = $stylesheet;
                 $info['parent_theme'] = $template;
             }
         }

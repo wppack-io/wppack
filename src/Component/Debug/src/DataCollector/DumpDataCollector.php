@@ -61,7 +61,9 @@ final class DumpDataCollector extends AbstractDataCollector
 
     public function getBadgeColor(): string
     {
-        return 'default';
+        $totalCount = $this->data['total_count'] ?? 0;
+
+        return $totalCount > 0 ? 'yellow' : 'default';
     }
 
     public function reset(): void

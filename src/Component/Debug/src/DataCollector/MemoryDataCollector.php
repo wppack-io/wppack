@@ -57,7 +57,17 @@ final class MemoryDataCollector extends AbstractDataCollector
 
     public function getBadgeColor(): string
     {
-        return 'default';
+        $usagePercentage = $this->data['usage_percentage'] ?? 0.0;
+
+        if ($usagePercentage >= 90.0) {
+            return 'red';
+        }
+
+        if ($usagePercentage >= 70.0) {
+            return 'yellow';
+        }
+
+        return 'green';
     }
 
     public function reset(): void

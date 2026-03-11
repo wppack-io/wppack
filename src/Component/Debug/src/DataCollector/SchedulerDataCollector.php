@@ -145,7 +145,18 @@ final class SchedulerDataCollector extends AbstractDataCollector
 
     public function getBadgeColor(): string
     {
-        return 'default';
+        $overdue = $this->data['cron_overdue'] ?? 0;
+        $total = $this->data['cron_total'] ?? 0;
+
+        if ($overdue > 0) {
+            return 'red';
+        }
+
+        if ($total >= 50) {
+            return 'yellow';
+        }
+
+        return 'green';
     }
 
     public function reset(): void

@@ -189,7 +189,15 @@ final class EventDataCollector extends AbstractDataCollector
 
     public function getBadgeColor(): string
     {
-        return 'default';
+        if ($this->totalFirings >= 1000) {
+            return 'red';
+        }
+
+        if ($this->totalFirings >= 500) {
+            return 'yellow';
+        }
+
+        return 'green';
     }
 
     public function reset(): void

@@ -188,7 +188,7 @@ abstract class AbstractPanelRenderer
     }
 
     /**
-     * @return array<string, string>
+     * @return array<string, array{bg: string, fg: string}>
      */
     protected static function getBadgeColors(): array
     {

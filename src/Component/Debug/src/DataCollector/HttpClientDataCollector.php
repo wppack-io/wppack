@@ -145,7 +145,9 @@ final class HttpClientDataCollector extends AbstractDataCollector
 
     public function getBadgeColor(): string
     {
-        return 'default';
+        $errorCount = $this->data['error_count'] ?? 0;
+
+        return $errorCount > 0 ? 'red' : 'default';
     }
 
     public function reset(): void

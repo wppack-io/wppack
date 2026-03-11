@@ -148,6 +148,10 @@ final class MailDataCollector extends AbstractDataCollector
             return 'yellow';
         }
 
+        if ($totalCount > 0 && $totalCount === $successCount) {
+            return 'green';
+        }
+
         return 'default';
     }
 
