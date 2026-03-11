@@ -212,8 +212,8 @@ final class ToolbarRenderer
             $html .= '<thead><tr>';
             $html .= '<th>Caller</th>';
             $html .= '<th class="wpd-col-right">Count</th>';
-            $html .= '<th class="wpd-col-right">Total Time (ms)</th>';
-            $html .= '<th class="wpd-col-right">Avg Time (ms)</th>';
+            $html .= '<th class="wpd-col-right">Total Time</th>';
+            $html .= '<th class="wpd-col-right">Avg Time</th>';
             $html .= '</tr></thead>';
             $html .= '<tbody>';
 
@@ -231,8 +231,8 @@ final class ToolbarRenderer
                 $html .= '<tr>';
                 $html .= '<td title="' . $this->esc($caller) . '"><span class="wpd-caller">' . $this->esc($shortCaller) . '</span></td>';
                 $html .= '<td class="wpd-col-right' . $countClass . '">' . $this->esc((string) $stats['count']) . '</td>';
-                $html .= '<td class="wpd-col-right">' . $this->formatMsNumeric($stats['total_time']) . '</td>';
-                $html .= '<td class="wpd-col-right">' . $this->formatMsNumeric($avgTime) . '</td>';
+                $html .= '<td class="wpd-col-right">' . $this->formatMs($stats['total_time']) . '</td>';
+                $html .= '<td class="wpd-col-right">' . $this->formatMs($avgTime) . '</td>';
                 $html .= '</tr>';
             }
 
@@ -324,8 +324,8 @@ final class ToolbarRenderer
             $html .= '<th class="wpd-col-reltime">Time</th>';
             $html .= '<th>Event</th>';
             $html .= '<th>Category</th>';
-            $html .= '<th>Duration</th>';
-            $html .= '<th>Memory</th>';
+            $html .= '<th class="wpd-col-right">Duration</th>';
+            $html .= '<th class="wpd-col-right">Memory</th>';
             $html .= '</tr></thead>';
             $html .= '<tbody>';
 
@@ -337,8 +337,8 @@ final class ToolbarRenderer
                 $html .= '<td class="wpd-col-reltime wpd-text-dim">' . $relTime . '</td>';
                 $html .= '<td>' . $this->esc($event['name']) . '</td>';
                 $html .= '<td><span class="wpd-tag">' . $this->esc($event['category']) . '</span></td>';
-                $html .= '<td>' . $this->formatMs($event['duration']) . '</td>';
-                $html .= '<td>' . $this->formatBytes($event['memory']) . '</td>';
+                $html .= '<td class="wpd-col-right">' . $this->formatMs($event['duration']) . '</td>';
+                $html .= '<td class="wpd-col-right">' . $this->formatBytes($event['memory']) . '</td>';
                 $html .= '</tr>';
             }
 
@@ -396,8 +396,8 @@ final class ToolbarRenderer
             $html .= '<table class="wpd-table wpd-table-full">';
             $html .= '<thead><tr>';
             $html .= '<th>Checkpoint</th>';
-            $html .= '<th>Memory</th>';
-            $html .= '<th>Delta</th>';
+            $html .= '<th class="wpd-col-right">Memory</th>';
+            $html .= '<th class="wpd-col-right">Delta</th>';
             $html .= '</tr></thead>';
             $html .= '<tbody>';
 
@@ -405,12 +405,12 @@ final class ToolbarRenderer
             foreach ($snapshots as $snapshotLabel => $snapshotMemory) {
                 $delta = $previousMemory > 0 ? $snapshotMemory - $previousMemory : 0;
                 $deltaSign = $delta >= 0 ? '+' : '';
-                $deltaClass = $delta > 1024 * 1024 ? 'wpd-text-yellow' : '';
+                $deltaClass = $delta > 1024 * 1024 ? ' wpd-text-yellow' : '';
 
                 $html .= '<tr>';
                 $html .= '<td>' . $this->esc($snapshotLabel) . '</td>';
-                $html .= '<td>' . $this->formatBytes($snapshotMemory) . '</td>';
-                $html .= '<td class="' . $deltaClass . '">' . $deltaSign . $this->formatBytes(abs($delta)) . '</td>';
+                $html .= '<td class="wpd-col-right">' . $this->formatBytes($snapshotMemory) . '</td>';
+                $html .= '<td class="wpd-col-right' . $deltaClass . '">' . $deltaSign . $this->formatBytes(abs($delta)) . '</td>';
                 $html .= '</tr>';
 
                 $previousMemory = $snapshotMemory;
@@ -582,7 +582,7 @@ final class ToolbarRenderer
             $html .= '<th class="wpd-col-num">#</th>';
             $html .= '<th>Name</th>';
             $html .= '<th>Operation</th>';
-            $html .= '<th>Expiration</th>';
+            $html .= '<th class="wpd-col-right">Expiration</th>';
             $html .= '<th>Caller</th>';
             $html .= '</tr></thead>';
             $html .= '<tbody>';
@@ -591,7 +591,7 @@ final class ToolbarRenderer
                 $expDisplay = match (true) {
                     $op['operation'] === 'delete' => "\xe2\x80\x94",
                     $op['expiration'] === 0 => 'none',
-                    default => $this->esc((string) $op['expiration']) . 's',
+                    default => $this->esc((string) $op['expiration']) . ' s',
                 };
                 $opTag = $op['operation'] === 'set'
                     ? '<span class="wpd-query-tag" style="background:rgba(166,227,161,0.2);color:#a6e3a1">SET</span>'
@@ -601,7 +601,7 @@ final class ToolbarRenderer
                 $html .= '<td class="wpd-col-num">' . $this->esc((string) ($index + 1)) . '</td>';
                 $html .= '<td><code>' . $this->esc($op['name']) . '</code></td>';
                 $html .= '<td>' . $opTag . '</td>';
-                $html .= '<td>' . $expDisplay . '</td>';
+                $html .= '<td class="wpd-col-right">' . $expDisplay . '</td>';
                 $html .= '<td><span class="wpd-caller">' . $this->esc($op['caller']) . '</span></td>';
                 $html .= '</tr>';
             }
@@ -621,12 +621,12 @@ final class ToolbarRenderer
             $html .= '<div class="wpd-section">';
             $html .= '<h4 class="wpd-section-title">Cache Groups</h4>';
             $html .= '<table class="wpd-table wpd-table-full">';
-            $html .= '<thead><tr><th>Group</th><th>Entries</th></tr></thead>';
+            $html .= '<thead><tr><th>Group</th><th class="wpd-col-right">Entries</th></tr></thead>';
             $html .= '<tbody>';
             foreach ($cacheGroups as $group => $count) {
                 $html .= '<tr>';
                 $html .= '<td><code>' . $this->esc($group) . '</code></td>';
-                $html .= '<td>' . $this->esc((string) $count) . '</td>';
+                $html .= '<td class="wpd-col-right">' . $this->esc((string) $count) . '</td>';
                 $html .= '</tr>';
             }
             $html .= '</tbody></table>';
@@ -920,7 +920,7 @@ final class ToolbarRenderer
             $html .= '<th>Type</th>';
             $html .= '<th class="wpd-col-right">Hooks</th>';
             $html .= '<th class="wpd-col-right">Listeners</th>';
-            $html .= '<th class="wpd-col-right">Duration (ms)</th>';
+            $html .= '<th class="wpd-col-right">Duration</th>';
             $html .= '</tr></thead>';
             $html .= '<tbody>';
 
@@ -937,7 +937,7 @@ final class ToolbarRenderer
                 $html .= '<td>' . $typeTag . '</td>';
                 $html .= '<td class="wpd-col-right">' . $this->esc((string) $summary['hooks']) . '</td>';
                 $html .= '<td class="wpd-col-right">' . $this->esc((string) $summary['listeners']) . '</td>';
-                $html .= '<td class="wpd-col-right">' . $this->formatMsNumeric((float) $summary['total_time']) . '</td>';
+                $html .= '<td class="wpd-col-right">' . $this->formatMs((float) $summary['total_time']) . '</td>';
                 $html .= '</tr>';
             }
 
@@ -955,7 +955,7 @@ final class ToolbarRenderer
             $html .= '<th class="wpd-col-right">Firings</th>';
             $html .= '<th class="wpd-col-right">Listeners</th>';
             $html .= '<th class="wpd-col-right">Time</th>';
-            $html .= '<th class="wpd-col-right">Duration (ms)</th>';
+            $html .= '<th class="wpd-col-right">Duration</th>';
             $html .= '</tr></thead>';
             $html .= '<tbody>';
 
@@ -963,7 +963,7 @@ final class ToolbarRenderer
             foreach ($topHooks as $hook => $count) {
                 $listeners = $listenerCounts[$hook] ?? 0;
                 $timing = $hookTimings[$hook] ?? null;
-                $duration = $timing !== null ? $this->formatMsNumeric($timing['total_time']) : '-';
+                $duration = $timing !== null ? $this->formatMs($timing['total_time']) : '-';
                 $hookStart = $timing !== null ? $this->esc('+' . number_format(max(0, $timing['start']), 0)) : '-';
 
                 $html .= '<tr>';
@@ -1266,8 +1266,8 @@ final class ToolbarRenderer
             $html .= '<th class="wpd-col-right">Time</th>';
             $html .= '<th>Method</th>';
             $html .= '<th>URL</th>';
-            $html .= '<th class="wpd-col-right">Status</th>';
-            $html .= '<th class="wpd-col-right">Duration (ms)</th>';
+            $html .= '<th>Status</th>';
+            $html .= '<th class="wpd-col-right">Duration</th>';
             $html .= '<th class="wpd-col-right">Size</th>';
             $html .= '</tr></thead>';
             $html .= '<tbody>';
@@ -1290,8 +1290,8 @@ final class ToolbarRenderer
                 $html .= '<td class="wpd-col-reltime wpd-text-dim">' . $relTime . '</td>';
                 $html .= '<td><span class="wpd-tag">' . $this->esc($request['method'] ?? 'GET') . '</span></td>';
                 $html .= '<td><code>' . $this->esc($request['url'] ?? '') . '</code></td>';
-                $html .= '<td class="wpd-col-right ' . $statusColor . '">' . ($statusCode > 0 ? $this->esc((string) $statusCode) : '-') . $error . '</td>';
-                $html .= '<td class="wpd-col-right">' . $this->formatMsNumeric((float) ($request['duration'] ?? 0.0)) . '</td>';
+                $html .= '<td class="' . $statusColor . '">' . ($statusCode > 0 ? $this->esc((string) $statusCode) : '-') . $error . '</td>';
+                $html .= '<td class="wpd-col-right">' . $this->formatMs((float) ($request['duration'] ?? 0.0)) . '</td>';
                 $html .= '<td class="wpd-col-right">' . $this->formatBytes((int) ($request['response_size'] ?? 0)) . '</td>';
                 $html .= '</tr>';
             }
@@ -1451,8 +1451,8 @@ final class ToolbarRenderer
             $html .= '<thead><tr>';
             $html .= '<th>Plugin</th>';
             $html .= '<th>Version</th>';
-            $html .= '<th class="wpd-col-right">Load (ms)</th>';
-            $html .= '<th class="wpd-col-right">Hook Time (ms)</th>';
+            $html .= '<th class="wpd-col-right">Load</th>';
+            $html .= '<th class="wpd-col-right">Hook Time</th>';
             $html .= '<th class="wpd-col-right">Queries</th>';
             $html .= '</tr></thead>';
             $html .= '<tbody>';
@@ -1467,8 +1467,8 @@ final class ToolbarRenderer
                 $html .= '<tr>';
                 $html .= '<td><span class="wpd-plugin-detail-link" data-plugin="' . $this->esc($slug) . '">' . $this->esc($name) . '</span></td>';
                 $html .= '<td>' . ($version !== '' ? $this->esc($version) : '-') . '</td>';
-                $html .= '<td class="wpd-col-right">' . ($loadTime > 0 ? $this->formatMsNumeric($loadTime) : '-') . '</td>';
-                $html .= '<td class="wpd-col-right">' . $this->formatMsNumeric($hookTime) . '</td>';
+                $html .= '<td class="wpd-col-right">' . ($loadTime > 0 ? $this->formatMs($loadTime) : '-') . '</td>';
+                $html .= '<td class="wpd-col-right">' . $this->formatMs($hookTime) . '</td>';
                 $html .= '<td class="wpd-col-right">' . ($queryCount > 0 ? $this->esc((string) $queryCount) : '-') . '</td>';
                 $html .= '</tr>';
             }
@@ -1563,13 +1563,13 @@ final class ToolbarRenderer
             $html .= '<div class="wpd-section">';
             $html .= '<h4 class="wpd-section-title">Hook Breakdown</h4>';
             $html .= '<table class="wpd-table wpd-table-full">';
-            $html .= '<thead><tr><th>Hook</th><th class="wpd-col-right">Listeners</th><th class="wpd-col-right">Time (ms)</th></tr></thead>';
+            $html .= '<thead><tr><th>Hook</th><th class="wpd-col-right">Listeners</th><th class="wpd-col-right">Time</th></tr></thead>';
             $html .= '<tbody>';
             foreach ($hooks as $hookInfo) {
                 $html .= '<tr>';
                 $html .= '<td><code>' . $this->esc($hookInfo['hook']) . '</code></td>';
                 $html .= '<td class="wpd-col-right">' . $this->esc((string) $hookInfo['listeners']) . '</td>';
-                $html .= '<td class="wpd-col-right">' . $this->formatMsNumeric((float) $hookInfo['time']) . '</td>';
+                $html .= '<td class="wpd-col-right">' . $this->formatMs((float) $hookInfo['time']) . '</td>';
                 $html .= '</tr>';
             }
             $html .= '</tbody></table>';
@@ -1664,13 +1664,13 @@ final class ToolbarRenderer
             $html .= '<div class="wpd-section">';
             $html .= '<h4 class="wpd-section-title">Hook Breakdown</h4>';
             $html .= '<table class="wpd-table wpd-table-full">';
-            $html .= '<thead><tr><th>Hook</th><th class="wpd-col-right">Listeners</th><th class="wpd-col-right">Time (ms)</th></tr></thead>';
+            $html .= '<thead><tr><th>Hook</th><th class="wpd-col-right">Listeners</th><th class="wpd-col-right">Time</th></tr></thead>';
             $html .= '<tbody>';
             foreach ($hooks as $hookInfo) {
                 $html .= '<tr>';
                 $html .= '<td><code>' . $this->esc($hookInfo['hook']) . '</code></td>';
                 $html .= '<td class="wpd-col-right">' . $this->esc((string) $hookInfo['listeners']) . '</td>';
-                $html .= '<td class="wpd-col-right">' . $this->formatMsNumeric($hookInfo['time']) . '</td>';
+                $html .= '<td class="wpd-col-right">' . $this->formatMs($hookInfo['time']) . '</td>';
                 $html .= '</tr>';
             }
             $html .= '</tbody></table>';
@@ -1884,19 +1884,6 @@ final class ToolbarRenderer
         }
 
         return $this->esc(sprintf('%.1f ms', $ms));
-    }
-
-    /**
-     * Format milliseconds as a numeric-only string (no unit suffix).
-     * Used in table cells where the column header already shows the unit.
-     */
-    private function formatMsNumeric(float $ms): string
-    {
-        if ($ms >= 1000) {
-            return $this->esc(sprintf('%.0f', $ms));
-        }
-
-        return $this->esc(sprintf('%.1f', $ms));
     }
 
     /**

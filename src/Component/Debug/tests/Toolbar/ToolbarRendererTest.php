@@ -280,7 +280,7 @@ final class ToolbarRendererTest extends TestCase
         self::assertStringContainsString('my_cache', $html);
         self::assertStringContainsString('SET', $html);
         self::assertStringContainsString('DELETE', $html);
-        self::assertStringContainsString('3600s', $html);
+        self::assertStringContainsString('3600 s', $html);
         self::assertStringContainsString('Cache Groups', $html);
         self::assertStringContainsString('options', $html);
     }
