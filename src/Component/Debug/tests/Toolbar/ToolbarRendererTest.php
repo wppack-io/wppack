@@ -341,6 +341,8 @@ final class ToolbarRendererTest extends TestCase
                     'hook_time' => 23.5,
                     'query_count' => 8,
                     'query_time' => 5.3,
+                    'enqueued_styles' => ['woocommerce-layout'],
+                    'enqueued_scripts' => ['wc-cart-fragments'],
                     'hooks' => [
                         ['hook' => 'init', 'listeners' => 3, 'time' => 8.2],
                     ],
@@ -355,18 +357,29 @@ final class ToolbarRendererTest extends TestCase
 
         self::assertStringContainsString('id="wpd-panel-plugin"', $html);
         self::assertStringContainsString('data-panel="plugin"', $html);
+        // List view
+        self::assertStringContainsString('wpd-plugin-list', $html);
+        self::assertStringContainsString('wpd-plugin-detail-link', $html);
         self::assertStringContainsString('WooCommerce', $html);
         self::assertStringContainsString('MU Plugins', $html);
         self::assertStringContainsString('loader.php', $html);
         self::assertStringContainsString('Drop-ins', $html);
         self::assertStringContainsString('object-cache.php', $html);
+        // Detail view
+        self::assertStringContainsString('wpd-plugin-detail', $html);
+        self::assertStringContainsString('data-action="plugin-back"', $html);
+        self::assertStringContainsString('Plugin Info', $html);
+        self::assertStringContainsString('Hook Breakdown', $html);
+        self::assertStringContainsString('Enqueued Assets', $html);
+        self::assertStringContainsString('woocommerce-layout', $html);
+        self::assertStringContainsString('wc-cart-fragments', $html);
     }
 
     #[Test]
     public function renderThemePanelShowsThemeData(): void
     {
         $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('theme', 'Theme', 'Twenty Twenty-Four', 'default', [
+        $profile->addCollector($this->createCollector('theme', 'Theme', '', 'default', [
             'name' => 'Twenty Twenty-Four',
             'version' => '1.2',
             'is_child_theme' => false,

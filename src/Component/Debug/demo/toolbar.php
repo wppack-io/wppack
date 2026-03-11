@@ -286,6 +286,8 @@ $collectors[] = new FakeCollector('plugin', 'Plugins', '4', 'green', [
             'hook_time' => 30.0,
             'query_count' => 8,
             'query_time' => 5.3,
+            'enqueued_styles' => ['woocommerce-layout', 'woocommerce-smallscreen', 'woocommerce-general'],
+            'enqueued_scripts' => ['wc-cart-fragments', 'woocommerce', 'wc-add-to-cart'],
             'hooks' => [
                 ['hook' => 'init', 'listeners' => 3, 'time' => 15.0, 'start' => 0.0],
                 ['hook' => 'wp_loaded', 'listeners' => 1, 'time' => 1.5, 'start' => 0.0],
@@ -303,6 +305,8 @@ $collectors[] = new FakeCollector('plugin', 'Plugins', '4', 'green', [
             'hook_time' => 16.0,
             'query_count' => 3,
             'query_time' => 2.1,
+            'enqueued_styles' => ['yoast-seo-adminbar'],
+            'enqueued_scripts' => ['yoast-seo-adminbar'],
             'hooks' => [
                 ['hook' => 'init', 'listeners' => 2, 'time' => 2.5, 'start' => 0.0],
                 ['hook' => 'wp_head', 'listeners' => 3, 'time' => 10.0, 'start' => 0.0],
@@ -319,6 +323,8 @@ $collectors[] = new FakeCollector('plugin', 'Plugins', '4', 'green', [
             'hook_time' => 5.1,
             'query_count' => 2,
             'query_time' => 1.0,
+            'enqueued_styles' => [],
+            'enqueued_scripts' => ['akismet-form'],
             'hooks' => [
                 ['hook' => 'init', 'listeners' => 1, 'time' => 2.5, 'start' => 0.0],
                 ['hook' => 'template_redirect', 'listeners' => 1, 'time' => 1.8, 'start' => 0.0],
@@ -334,6 +340,8 @@ $collectors[] = new FakeCollector('plugin', 'Plugins', '4', 'green', [
             'hook_time' => 3.2,
             'query_count' => 0,
             'query_time' => 0.0,
+            'enqueued_styles' => ['contact-form-7'],
+            'enqueued_scripts' => ['contact-form-7', 'wpcf7-recaptcha'],
             'hooks' => [
                 ['hook' => 'init', 'listeners' => 1, 'time' => 1.2, 'start' => 0.0],
                 ['hook' => 'wp_head', 'listeners' => 1, 'time' => 1.5, 'start' => 0.0],
@@ -350,7 +358,7 @@ $collectors[] = new FakeCollector('plugin', 'Plugins', '4', 'green', [
 ]);
 
 // Theme — hook_time totals continue sequentially after plugin bars within each hook
-$collectors[] = new FakeCollector('theme', 'Theme', 'Flavor', 'default', [
+$collectors[] = new FakeCollector('theme', 'Theme', '', 'default', [
     'name' => 'Flavor',
     'version' => '2.1.0',
     'is_child_theme' => true,

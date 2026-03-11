@@ -184,7 +184,7 @@ final class ThemeDataCollector extends AbstractDataCollector
 
     public function getBadgeValue(): string
     {
-        return (string) ($this->data['name'] ?? '');
+        return '';
     }
 
     public function getBadgeColor(): string

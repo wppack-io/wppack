@@ -1429,7 +1429,10 @@ final class ToolbarRenderer
         /** @var list<string> $dropins */
         $dropins = $data['dropins'] ?? [];
 
-        $html = '<div class="wpd-section">';
+        // === List view ===
+        $html = '<div class="wpd-plugin-list">';
+
+        $html .= '<div class="wpd-section">';
         $html .= '<h4 class="wpd-section-title">Summary</h4>';
         $html .= '<table class="wpd-table wpd-table-kv">';
         $html .= $this->renderTableRow('Active Plugins', (string) $totalPlugins);
@@ -1447,55 +1450,27 @@ final class ToolbarRenderer
             $html .= '<table class="wpd-table wpd-table-full">';
             $html .= '<thead><tr>';
             $html .= '<th>Plugin</th>';
+            $html .= '<th>Version</th>';
             $html .= '<th>Load</th>';
             $html .= '<th>Hook Time</th>';
-            $html .= '<th>Hooks</th>';
-            $html .= '<th>Listeners</th>';
             $html .= '<th>Queries</th>';
-            $html .= '<th>Query Time</th>';
             $html .= '</tr></thead>';
             $html .= '<tbody>';
 
             foreach ($plugins as $slug => $info) {
                 $name = (string) ($info['name'] ?? $slug);
+                $version = (string) ($info['version'] ?? '');
                 $loadTime = (float) ($info['load_time'] ?? 0.0);
                 $hookTime = (float) ($info['hook_time'] ?? 0.0);
-                $hookCount = (int) ($info['hook_count'] ?? 0);
-                $listenerCount = (int) ($info['listener_count'] ?? 0);
                 $queryCount = (int) ($info['query_count'] ?? 0);
-                $queryTime = (float) ($info['query_time'] ?? 0.0);
 
                 $html .= '<tr>';
-                $html .= '<td><strong>' . $this->esc($name) . '</strong></td>';
+                $html .= '<td><span class="wpd-plugin-detail-link" data-plugin="' . $this->esc($slug) . '">' . $this->esc($name) . '</span></td>';
+                $html .= '<td>' . ($version !== '' ? $this->esc($version) : '-') . '</td>';
                 $html .= '<td>' . ($loadTime > 0 ? $this->formatMs($loadTime) : '-') . '</td>';
                 $html .= '<td>' . $this->formatMs($hookTime) . '</td>';
-                $html .= '<td>' . $this->esc((string) $hookCount) . '</td>';
-                $html .= '<td>' . $this->esc((string) $listenerCount) . '</td>';
                 $html .= '<td>' . ($queryCount > 0 ? $this->esc((string) $queryCount) : '-') . '</td>';
-                $html .= '<td>' . ($queryTime > 0 ? $this->formatMs($queryTime) : '-') . '</td>';
                 $html .= '</tr>';
-
-                // Expandable hook detail rows
-                /** @var list<array{hook: string, listeners: int, time: float}> $hooks */
-                $hooks = $info['hooks'] ?? [];
-                if ($hooks !== []) {
-                    $html .= '<tr class="wpd-row-duplicate"><td colspan="7" style="padding:0">';
-                    $html .= '<table class="wpd-table wpd-table-full" style="margin:0;background:rgba(0,0,0,0.15)">';
-                    $html .= '<thead><tr><th style="padding-left:32px">Hook</th><th>Listeners</th><th>Time</th></tr></thead>';
-                    $html .= '<tbody>';
-                    foreach (array_slice($hooks, 0, 10) as $hookInfo) {
-                        $html .= '<tr>';
-                        $html .= '<td style="padding-left:32px"><code>' . $this->esc($hookInfo['hook']) . '</code></td>';
-                        $html .= '<td>' . $this->esc((string) $hookInfo['listeners']) . '</td>';
-                        $html .= '<td>' . $this->formatMs((float) $hookInfo['time']) . '</td>';
-                        $html .= '</tr>';
-                    }
-                    if (count($hooks) > 10) {
-                        $html .= '<tr><td colspan="3" class="wpd-text-dim" style="padding-left:32px">... and ' . $this->esc((string) (count($hooks) - 10)) . ' more hooks</td></tr>';
-                    }
-                    $html .= '</tbody></table>';
-                    $html .= '</td></tr>';
-                }
             }
 
             $html .= '</tbody></table>';
@@ -1523,6 +1498,108 @@ final class ToolbarRenderer
             $html .= '</ul>';
             $html .= '</div>';
         }
+
+        $html .= '</div>'; // .wpd-plugin-list
+
+        // === Detail views (one per plugin, hidden by default) ===
+        foreach ($plugins as $slug => $info) {
+            $html .= $this->renderPluginDetailView($slug, $info);
+        }
+
+        return $html;
+    }
+
+    /**
+     * Render a single plugin's detail view.
+     *
+     * @param array<string, mixed> $info
+     */
+    private function renderPluginDetailView(string $slug, array $info): string
+    {
+        $name = (string) ($info['name'] ?? $slug);
+        $version = (string) ($info['version'] ?? '');
+        $loadTime = (float) ($info['load_time'] ?? 0.0);
+        $hookTime = (float) ($info['hook_time'] ?? 0.0);
+        $queryTime = (float) ($info['query_time'] ?? 0.0);
+        $hookCount = (int) ($info['hook_count'] ?? 0);
+        $listenerCount = (int) ($info['listener_count'] ?? 0);
+        /** @var list<array{hook: string, listeners: int, time: float}> $hooks */
+        $hooks = $info['hooks'] ?? [];
+        /** @var list<string> $enqueuedStyles */
+        $enqueuedStyles = $info['enqueued_styles'] ?? [];
+        /** @var list<string> $enqueuedScripts */
+        $enqueuedScripts = $info['enqueued_scripts'] ?? [];
+
+        $html = '<div class="wpd-plugin-detail" data-plugin="' . $this->esc($slug) . '" style="display:none">';
+
+        // Back button
+        $html .= '<div style="margin-bottom:12px">';
+        $html .= '<button class="wpd-plugin-back" data-action="plugin-back">&larr; Back to Plugins</button>';
+        $html .= '</div>';
+
+        // Plugin Info
+        $html .= '<div class="wpd-section">';
+        $html .= '<h4 class="wpd-section-title">Plugin Info</h4>';
+        $html .= '<table class="wpd-table wpd-table-kv">';
+        $html .= $this->renderTableRow('Name', $this->esc($name));
+        if ($version !== '') {
+            $html .= $this->renderTableRow('Version', $this->esc($version));
+        }
+        $html .= '</table>';
+        $html .= '</div>';
+
+        // Timing cards
+        $html .= '<div class="wpd-section">';
+        $html .= '<h4 class="wpd-section-title">Timing</h4>';
+        $html .= '<div class="wpd-perf-cards">';
+        $html .= $this->renderPerfCard('Load Time', $loadTime > 0 ? $this->formatMs($loadTime) : '-', '');
+        $html .= $this->renderPerfCard('Hook Time', $this->formatMs($hookTime), $this->esc((string) $hookCount) . ' hooks, ' . $this->esc((string) $listenerCount) . ' listeners');
+        $html .= $this->renderPerfCard('Query Time', $queryTime > 0 ? $this->formatMs($queryTime) : '-', '');
+        $html .= '</div>';
+        $html .= '</div>';
+
+        // Hook Breakdown
+        if ($hooks !== []) {
+            $html .= '<div class="wpd-section">';
+            $html .= '<h4 class="wpd-section-title">Hook Breakdown</h4>';
+            $html .= '<table class="wpd-table wpd-table-full">';
+            $html .= '<thead><tr><th>Hook</th><th>Listeners</th><th>Time</th></tr></thead>';
+            $html .= '<tbody>';
+            foreach ($hooks as $hookInfo) {
+                $html .= '<tr>';
+                $html .= '<td><code>' . $this->esc($hookInfo['hook']) . '</code></td>';
+                $html .= '<td>' . $this->esc((string) $hookInfo['listeners']) . '</td>';
+                $html .= '<td>' . $this->formatMs((float) $hookInfo['time']) . '</td>';
+                $html .= '</tr>';
+            }
+            $html .= '</tbody></table>';
+            $html .= '</div>';
+        }
+
+        // Enqueued Assets
+        if ($enqueuedStyles !== [] || $enqueuedScripts !== []) {
+            $html .= '<div class="wpd-section">';
+            $html .= '<h4 class="wpd-section-title">Enqueued Assets</h4>';
+            if ($enqueuedStyles !== []) {
+                $html .= '<div style="margin-bottom:4px"><strong style="color:#a6adc8;font-size:11px">Styles</strong></div>';
+                $html .= '<div class="wpd-tag-list" style="margin-bottom:8px">';
+                foreach ($enqueuedStyles as $style) {
+                    $html .= '<span class="wpd-tag">' . $this->esc($style) . '</span>';
+                }
+                $html .= '</div>';
+            }
+            if ($enqueuedScripts !== []) {
+                $html .= '<div style="margin-bottom:4px"><strong style="color:#a6adc8;font-size:11px">Scripts</strong></div>';
+                $html .= '<div class="wpd-tag-list">';
+                foreach ($enqueuedScripts as $script) {
+                    $html .= '<span class="wpd-tag">' . $this->esc($script) . '</span>';
+                }
+                $html .= '</div>';
+            }
+            $html .= '</div>';
+        }
+
+        $html .= '</div>'; // .wpd-plugin-detail
 
         return $html;
     }
@@ -1557,7 +1634,7 @@ final class ToolbarRenderer
 
         // Theme Info
         $html = '<div class="wpd-section">';
-        $html .= '<h4 class="wpd-section-title">Theme Info</h4>';
+        $html .= '<h4 class="wpd-section-title">Info</h4>';
         $html .= '<table class="wpd-table wpd-table-kv">';
         $html .= $this->renderTableRow('Name', $this->esc($name ?: '-'));
         if ($version !== '') {
@@ -3074,6 +3151,31 @@ final class ToolbarRenderer
         #wppack-debug .wpd-log-toggle:hover {
             background: #313244;
         }
+
+        /* ---- Plugin detail navigation ---- */
+        #wppack-debug .wpd-plugin-detail-link {
+            color: #89b4fa;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        #wppack-debug .wpd-plugin-detail-link:hover {
+            text-decoration: underline;
+        }
+        #wppack-debug .wpd-plugin-back {
+            background: transparent;
+            border: 1px solid #45475a;
+            border-radius: 4px;
+            color: #89b4fa;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+            padding: 4px 12px;
+            transition: background 0.15s ease, border-color 0.15s ease;
+        }
+        #wppack-debug .wpd-plugin-back:hover {
+            background: #313244;
+            border-color: #89b4fa;
+        }
         CSS;
     }
 
@@ -3096,6 +3198,18 @@ final class ToolbarRenderer
                     badges[i].classList.remove('wpd-active');
                 }
                 activePanel = null;
+                resetPluginDetailView();
+            }
+
+            function resetPluginDetailView() {
+                var lists = root.querySelectorAll('.wpd-plugin-list');
+                for (var i = 0; i < lists.length; i++) {
+                    lists[i].style.display = '';
+                }
+                var details = root.querySelectorAll('.wpd-plugin-detail');
+                for (var i = 0; i < details.length; i++) {
+                    details[i].style.display = 'none';
+                }
             }
 
             function openPanel(name) {
@@ -3133,6 +3247,35 @@ final class ToolbarRenderer
                 var closeBtn = e.target.closest('[data-action="close-panel"]');
                 if (closeBtn) {
                     closeAllPanels();
+                    return;
+                }
+
+                // Plugin detail link
+                var pluginLink = e.target.closest('.wpd-plugin-detail-link');
+                if (pluginLink) {
+                    var pluginSlug = pluginLink.getAttribute('data-plugin');
+                    var panel = pluginLink.closest('.wpd-panel-body');
+                    if (panel) {
+                        var list = panel.querySelector('.wpd-plugin-list');
+                        if (list) list.style.display = 'none';
+                        var detail = panel.querySelector('.wpd-plugin-detail[data-plugin="' + pluginSlug + '"]');
+                        if (detail) detail.style.display = '';
+                    }
+                    return;
+                }
+
+                // Plugin back button
+                var backBtn = e.target.closest('[data-action="plugin-back"]');
+                if (backBtn) {
+                    var panel = backBtn.closest('.wpd-panel-body');
+                    if (panel) {
+                        var details = panel.querySelectorAll('.wpd-plugin-detail');
+                        for (var i = 0; i < details.length; i++) {
+                            details[i].style.display = 'none';
+                        }
+                        var list = panel.querySelector('.wpd-plugin-list');
+                        if (list) list.style.display = '';
+                    }
                     return;
                 }
 

@@ -58,12 +58,12 @@ final class ThemeDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeValueReturnsThemeName(): void
+    public function getBadgeValueReturnsEmptyString(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, ['name' => 'Twenty Twenty-Four']);
 
-        self::assertSame('Twenty Twenty-Four', $this->collector->getBadgeValue());
+        self::assertSame('', $this->collector->getBadgeValue());
     }
 
     #[Test]
