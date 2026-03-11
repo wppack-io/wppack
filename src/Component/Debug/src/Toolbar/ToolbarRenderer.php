@@ -2778,7 +2778,7 @@ final class ToolbarRenderer
         }
 
         /* Right-aligned numeric columns */
-        #wppack-debug .wpd-col-right {
+        #wppack-debug .wpd-table .wpd-col-right {
             text-align: right;
             font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
             font-size: 12px;
