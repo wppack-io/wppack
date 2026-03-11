@@ -103,12 +103,12 @@ final class MailPanelRenderer extends AbstractPanelRenderer implements PanelRend
                 if ($attachmentDetails !== []) {
                     $html .= '<div class="wpd-mail-attachments">';
                     $html .= '<table class="wpd-table wpd-table-full">';
-                    $html .= '<thead><tr><th>Attachment</th><th>Size</th></tr></thead>';
+                    $html .= '<thead><tr><th>Attachment</th><th class="wpd-col-right">Size</th></tr></thead>';
                     $html .= '<tbody>';
                     foreach ($attachmentDetails as $att) {
                         $html .= '<tr>';
                         $html .= '<td><code>' . $this->esc($att['filename']) . '</code></td>';
-                        $html .= '<td>' . $this->formatBytes($att['size']) . '</td>';
+                        $html .= '<td class="wpd-col-right">' . $this->formatBytes($att['size']) . '</td>';
                         $html .= '</tr>';
                     }
                     $html .= '</tbody></table>';

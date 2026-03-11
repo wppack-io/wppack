@@ -221,17 +221,19 @@ final class LoggerDataCollector extends AbstractDataCollector
     public function getBadgeColor(): string
     {
         $errorCount = $this->data['error_count'] ?? 0;
-        $deprecationCount = $this->data['deprecation_count'] ?? 0;
+        /** @var array<string, int> $levelCounts */
+        $levelCounts = $this->data['level_counts'] ?? [];
+        $warningCount = ($levelCounts['warning'] ?? 0) + ($levelCounts['notice'] ?? 0);
 
         if ($errorCount > 0) {
             return 'red';
         }
 
-        if ($deprecationCount > 0) {
+        if ($warningCount > 0) {
             return 'yellow';
         }
 
-        return 'green';
+        return 'default';
     }
 
     public function reset(): void

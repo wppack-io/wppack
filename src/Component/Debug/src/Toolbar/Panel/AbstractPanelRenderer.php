@@ -7,7 +7,7 @@ namespace WpPack\Component\Debug\Toolbar\Panel;
 abstract class AbstractPanelRenderer
 {
     private const BADGE_COLORS = [
-        'green' => '#1e1e1e',
+        'green' => '#008a20',
         'yellow' => '#996800',
         'red' => '#cc1818',
         'default' => '#50575e',

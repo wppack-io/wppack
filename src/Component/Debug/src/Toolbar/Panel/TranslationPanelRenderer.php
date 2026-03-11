@@ -50,12 +50,12 @@ final class TranslationPanelRenderer extends AbstractPanelRenderer implements Pa
             $html .= '<div class="wpd-section">';
             $html .= '<h4 class="wpd-section-title">Domain Usage</h4>';
             $html .= '<table class="wpd-table wpd-table-full">';
-            $html .= '<thead><tr><th>Domain</th><th>Lookups</th></tr></thead>';
+            $html .= '<thead><tr><th>Domain</th><th class="wpd-col-right">Lookups</th></tr></thead>';
             $html .= '<tbody>';
             foreach ($domainUsage as $domain => $count) {
                 $html .= '<tr>';
                 $html .= '<td><code>' . $this->esc((string) $domain) . '</code></td>';
-                $html .= '<td>' . $this->esc((string) $count) . '</td>';
+                $html .= '<td class="wpd-col-right">' . $this->esc((string) $count) . '</td>';
                 $html .= '</tr>';
             }
             $html .= '</tbody></table>';

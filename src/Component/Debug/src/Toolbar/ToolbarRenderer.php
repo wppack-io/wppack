@@ -16,7 +16,7 @@ use WpPack\Component\Debug\Toolbar\Panel\ToolbarIcons;
 final class ToolbarRenderer
 {
     private const BADGE_COLORS = [
-        'green' => '#1e1e1e',
+        'green' => '#008a20',
         'yellow' => '#996800',
         'red' => '#cc1818',
         'default' => '#50575e',
@@ -24,18 +24,18 @@ final class ToolbarRenderer
 
     /** Badge display order in the toolbar bar. */
     private const BADGE_ORDER = [
-        'plugin', 'theme', 'router',
+        'plugin', 'theme',
         'performance',
-        'request', 'time', 'memory', 'database', 'cache', 'http_client',
+        'request', 'router', 'time', 'memory', 'database', 'cache', 'http_client',
         'event', 'logger', 'mail', 'scheduler', 'translation', 'user',
         'dump',
     ];
 
     /** Sidebar panel order, grouped by category. */
     private const SIDEBAR_GROUPS = [
-        ['wordpress', 'plugin', 'theme', 'router'],
+        ['wordpress', 'plugin', 'theme'],
         ['performance'],
-        ['request', 'time', 'memory', 'database', 'cache', 'http_client'],
+        ['request', 'router', 'time', 'memory', 'database', 'cache', 'http_client'],
         ['event', 'logger', 'mail', 'scheduler', 'translation', 'user'],
         ['dump'],
     ];
@@ -281,9 +281,8 @@ final class ToolbarRenderer
             : '';
 
         return <<<HTML
-        <button class="wpd-badge" data-panel="{$name}">
+        <button class="wpd-badge" data-panel="{$name}" data-tooltip="{$label}">
             <span class="wpd-badge-icon">{$icon}</span>{$valueHtml}
-            <span class="wpd-badge-tooltip">{$label}</span>
         </button>
         HTML;
     }
@@ -338,14 +337,20 @@ final class ToolbarRenderer
             }
         }
 
-        $label = $this->esc(implode(' | ', $parts));
+        $labelParts = '';
+        foreach ($parts as $i => $part) {
+            if ($i > 0) {
+                $labelParts .= '<span class="wpd-env-sep"></span>';
+            }
+            $labelParts .= $this->esc($part);
+        }
         $tooltipHtml = '';
         foreach ($tooltipLines as $line) {
             $tooltipHtml .= '<div>' . $this->esc($line) . '</div>';
         }
 
         return '<div class="wpd-bar-env">'
-            . '<span class="wpd-env-label">' . $label . '</span>'
+            . '<span class="wpd-env-label">' . $labelParts . '</span>'
             . '<div class="wpd-env-tooltip">' . $tooltipHtml . '</div>'
             . '</div>';
     }

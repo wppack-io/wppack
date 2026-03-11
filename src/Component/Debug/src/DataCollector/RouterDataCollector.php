@@ -97,14 +97,6 @@ final class RouterDataCollector extends AbstractDataCollector
 
     public function getBadgeColor(): string
     {
-        if ($this->data['is_404'] ?? false) {
-            return 'red';
-        }
-
-        if (($this->data['matched_rule'] ?? '') !== '') {
-            return 'green';
-        }
-
         return 'default';
     }
 

@@ -97,13 +97,7 @@ final class TimeDataCollector extends AbstractDataCollector
 
     public function getBadgeColor(): string
     {
-        $totalTime = $this->data['total_time'] ?? 0.0;
-
-        return match (true) {
-            $totalTime >= 1000 => 'red',
-            $totalTime >= 200 => 'yellow',
-            default => 'green',
-        };
+        return 'default';
     }
 
     /**

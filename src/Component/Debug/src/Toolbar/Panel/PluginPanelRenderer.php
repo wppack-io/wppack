@@ -34,10 +34,6 @@ final class PluginPanelRenderer extends AbstractPanelRenderer implements PanelRe
         $html .= '<table class="wpd-table wpd-table-kv">';
         $html .= $this->renderTableRow('Active Plugins', (string) $totalPlugins);
         $html .= $this->renderTableRow('Total Hook Time', $this->formatMs($totalHookTime));
-        if ($slowestPlugin !== '') {
-            $slowestName = (string) ($plugins[$slowestPlugin]['name'] ?? $slowestPlugin);
-            $html .= $this->renderTableRow('Slowest Plugin', $this->esc($slowestName), 'wpd-text-yellow');
-        }
         $html .= '</table>';
         $html .= '</div>';
 
@@ -64,7 +60,8 @@ final class PluginPanelRenderer extends AbstractPanelRenderer implements PanelRe
                 $muTag = $isMu ? ' <span class="wpd-query-tag" style="background:rgba(56,88,233,0.08);color:#3858e9">MU</span>' : '';
 
                 $html .= '<tr>';
-                $html .= '<td><span class="wpd-plugin-detail-link" data-plugin="' . $this->esc($slug) . '">' . $this->esc($name) . '</span>' . $muTag . '</td>';
+                $slowTag = ($slug === $slowestPlugin) ? ' <span class="wpd-query-tag" style="background:rgba(153,104,0,0.08);color:#996800">Slow</span>' : '';
+                $html .= '<td><span class="wpd-plugin-detail-link" data-plugin="' . $this->esc($slug) . '">' . $this->esc($name) . '</span>' . $muTag . $slowTag . '</td>';
                 $html .= '<td>' . ($version !== '' ? $this->esc($version) : '-') . '</td>';
                 $html .= '<td class="wpd-col-right">' . ($loadTime > 0 ? $this->formatMs($loadTime) : '-') . '</td>';
                 $html .= '<td class="wpd-col-right">' . $this->formatMs($hookTime) . '</td>';

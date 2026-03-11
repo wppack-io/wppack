@@ -83,8 +83,8 @@ final class LoggerPanelRenderer extends AbstractPanelRenderer implements PanelRe
             $html .= '<div class="wpd-log-tabs">';
             $html .= '<button class="wpd-log-tab wpd-active" data-log-filter="all">All (' . $this->esc((string) count($logs)) . ')</button>';
             $html .= '<button class="wpd-log-tab" data-log-filter="error">Errors (' . $this->esc((string) $errorTabCount) . ')</button>';
-            $html .= '<button class="wpd-log-tab" data-log-filter="deprecation">Deprecations (' . $this->esc((string) $deprecationTabCount) . ')</button>';
             $html .= '<button class="wpd-log-tab" data-log-filter="warning">Warnings (' . $this->esc((string) $warningTabCount) . ')</button>';
+            $html .= '<button class="wpd-log-tab" data-log-filter="deprecation">Deprecations (' . $this->esc((string) $deprecationTabCount) . ')</button>';
             $html .= '<button class="wpd-log-tab" data-log-filter="info">Info (' . $this->esc((string) $infoTabCount) . ')</button>';
             $html .= '<button class="wpd-log-tab" data-log-filter="debug">Debug (' . $this->esc((string) $debugTabCount) . ')</button>';
             $html .= '</div>';
@@ -97,6 +97,7 @@ final class LoggerPanelRenderer extends AbstractPanelRenderer implements PanelRe
             $html .= '<th>Channel</th>';
             $html .= '<th>Message</th>';
             $html .= '<th>File</th>';
+            $html .= '<th></th>';
             $html .= '</tr></thead>';
             $html .= '<tbody>';
 
@@ -104,7 +105,6 @@ final class LoggerPanelRenderer extends AbstractPanelRenderer implements PanelRe
                 $level = $log['level'] ?? 'debug';
                 $levelColor = match ($level) {
                     'emergency', 'alert', 'critical', 'error' => 'wpd-text-red',
-                    'deprecation' => 'wpd-text-orange',
                     'warning' => 'wpd-text-yellow',
                     'info' => 'wpd-text-green',
                     default => 'wpd-text-dim',
@@ -125,6 +125,7 @@ final class LoggerPanelRenderer extends AbstractPanelRenderer implements PanelRe
                 $hasContext = is_array($context) && $context !== [];
                 $rowClass = $hasContext ? ' class="wpd-log-toggle"' : '';
 
+                $toggleIcon = $hasContext ? '<span class="wpd-log-indicator">+</span>' : '';
                 $html .= '<tr data-log-level="' . $this->esc($level) . '"' . $rowClass . '>';
                 $html .= '<td class="wpd-col-num">' . $this->esc((string) ($index + 1)) . '</td>';
                 $html .= '<td class="wpd-col-reltime wpd-text-dim">' . $this->esc($timeDisplay) . '</td>';
@@ -132,11 +133,12 @@ final class LoggerPanelRenderer extends AbstractPanelRenderer implements PanelRe
                 $html .= '<td>' . $this->esc($log['channel'] ?? 'app') . '</td>';
                 $html .= '<td><code>' . $this->esc($log['message'] ?? '') . '</code></td>';
                 $html .= '<td title="' . $this->esc($file) . '">' . $this->esc($fileDisplay) . '</td>';
+                $html .= '<td class="wpd-col-toggle">' . $toggleIcon . '</td>';
                 $html .= '</tr>';
 
                 if ($hasContext) {
                     $html .= '<tr class="wpd-log-context" style="display:none" data-log-level="' . $this->esc($level) . '">';
-                    $html .= '<td colspan="6"><pre>' . $this->esc(json_encode($context, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}') . '</pre></td>';
+                    $html .= '<td colspan="7"><pre>' . $this->esc(json_encode($context, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}') . '</pre></td>';
                     $html .= '</tr>';
                 }
             }

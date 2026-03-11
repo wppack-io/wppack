@@ -138,7 +138,7 @@ $collectors[] = new FakeCollector('request', 'Request', 'GET 200', 'green', [
 ]);
 
 // Time — lifecycle phases consistent with the timeline above
-$collectors[] = new FakeCollector('time', 'Time', '198 ms', 'green', [
+$collectors[] = new FakeCollector('time', 'Time', '198 ms', 'default', [
     'total_time' => 198.0,
     'request_time_float' => $requestTimeFloat,
     'events' => [
@@ -168,7 +168,7 @@ $collectors[] = new FakeCollector('time', 'Time', '198 ms', 'green', [
 ]);
 
 // Memory
-$collectors[] = new FakeCollector('memory', 'Memory', '44.0 MB', 'green', [
+$collectors[] = new FakeCollector('memory', 'Memory', '44.0 MB', 'default', [
     'current' => (int) (44.0 * 1024 * 1024),
     'peak' => (int) (46.5 * 1024 * 1024),
     'limit' => 256 * 1024 * 1024,
@@ -183,7 +183,7 @@ $collectors[] = new FakeCollector('memory', 'Memory', '44.0 MB', 'green', [
 // --- Group 2: Data & I/O (200–190) ---
 
 // Database — queries spread across lifecycle phases
-$collectors[] = new FakeCollector('database', 'Database', '24', 'green', [
+$collectors[] = new FakeCollector('database', 'Database', '24', 'default', [
     'total_count' => 24,
     'total_time' => 12.45,
     'duplicate_count' => 2,
@@ -211,7 +211,7 @@ $collectors[] = new FakeCollector('database', 'Database', '24', 'green', [
 ]);
 
 // Cache
-$collectors[] = new FakeCollector('cache', 'Cache', '92.4%', 'green', [
+$collectors[] = new FakeCollector('cache', 'Cache', '92.4%', 'default', [
     'hits' => 245,
     'misses' => 20,
     'hit_rate' => 92.45,
@@ -237,7 +237,7 @@ $collectors[] = new FakeCollector('cache', 'Cache', '92.4%', 'green', [
 // HttpClient — requests happen WITHIN plugin hook callbacks (blocking I/O)
 //   Request 1: WooCommerce update check during init → within WC's init bar (70→85ms)
 //   Request 2: Yoast SEO indexing API during wp_head → within Yoast's wp_head bar (126.5→136.5ms)
-$collectors[] = new FakeCollector('http_client', 'HTTP Client', '2', 'green', [
+$collectors[] = new FakeCollector('http_client', 'HTTP Client', '2', 'default', [
     'total_count' => 2,
     'total_time' => 20.0,
     'error_count' => 0,
@@ -251,7 +251,7 @@ $collectors[] = new FakeCollector('http_client', 'HTTP Client', '2', 'green', [
 // --- Group 3: WordPress Context (150–135) ---
 
 // Router — FSE block theme scenario
-$collectors[] = new FakeCollector('router', 'Router', 'single', 'green', [
+$collectors[] = new FakeCollector('router', 'Router', 'single', 'default', [
     'matched_rule' => '([^/]+)(?:/([0-9]+))?/?$',
     'matched_query' => 'name=hello-world&page=',
     'query_vars' => ['name' => 'hello-world', 'page' => ''],
@@ -292,7 +292,7 @@ $collectors[] = new FakeCollector('router', 'Router', 'single', 'green', [
 //   the_content:       WC 1.5 → Yoast 2.0 → Theme 1.5
 //   wp_footer:         WC 3.5 → Yoast 1.5 → CF7 0.5 → Theme 1.5
 //
-$collectors[] = new FakeCollector('plugin', 'Plugins', '4', 'green', [
+$collectors[] = new FakeCollector('plugin', 'Plugins', '4', 'default', [
     'plugins' => [
         'woocommerce/woocommerce.php' => [
             'name' => 'WooCommerce',
@@ -441,7 +441,7 @@ $collectors[] = new FakeCollector('theme', 'Theme', '', 'default', [
 //   the_content:        5.5ms total → WC 1.5 + Yoast 2.0 + Theme 1.5 + Core 0.5
 //   wp_footer:         22.0ms total → WC 3.5 + Yoast 1.5 + CF7 0.5 + Theme 1.5 + Core 15.0
 //
-$collectors[] = new FakeCollector('event', 'Event', '847', 'green', [
+$collectors[] = new FakeCollector('event', 'Event', '847', 'default', [
     'total_firings' => 847,
     'unique_hooks' => 312,
     'registered_hooks' => 320,
@@ -580,7 +580,7 @@ $collectors[] = new FakeCollector('dump', 'Dump', '3', 'yellow', [
 ]);
 
 // Mail (enhanced with structured headers and attachment details)
-$collectors[] = new FakeCollector('mail', 'Mail', '2', 'green', [
+$collectors[] = new FakeCollector('mail', 'Mail', '2', 'red', [
     'total_count' => 2,
     'success_count' => 1,
     'failure_count' => 1,
@@ -623,7 +623,7 @@ $collectors[] = new FakeCollector('mail', 'Mail', '2', 'green', [
 ]);
 
 // User
-$collectors[] = new FakeCollector('user', 'User', 'admin', 'green', [
+$collectors[] = new FakeCollector('user', 'User', 'admin', 'default', [
     'is_logged_in' => true,
     'user_id' => 1,
     'username' => 'admin',
@@ -638,7 +638,7 @@ $collectors[] = new FakeCollector('user', 'User', 'admin', 'green', [
 // --- Group 5: Environment (50–40) ---
 
 // Scheduler
-$collectors[] = new FakeCollector('scheduler', 'Scheduler', '5', 'green', [
+$collectors[] = new FakeCollector('scheduler', 'Scheduler', '5', 'default', [
     'cron_events' => [
         ['hook' => 'wp_scheduled_delete', 'schedule' => 'daily', 'next_run' => time() + 7200, 'next_run_relative' => 'in 2 hours', 'is_overdue' => false, 'callbacks' => 1],
         ['hook' => 'wp_update_plugins', 'schedule' => 'twicedaily', 'next_run' => time() + 3600, 'next_run_relative' => 'in 1 hour', 'is_overdue' => false, 'callbacks' => 1],

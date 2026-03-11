@@ -99,7 +99,6 @@ final class ToolbarAssets
 
         /* ---- Badges ---- */
         #wppack-debug .wpd-badge {
-            position: relative;
             display: flex;
             align-items: center;
             gap: 4px;
@@ -130,6 +129,7 @@ final class ToolbarAssets
             display: flex;
             align-items: center;
             line-height: 1;
+            color: #9ca3af;
         }
         #wppack-debug .wpd-icon {
             display: inline-block;
@@ -139,26 +139,6 @@ final class ToolbarAssets
         #wppack-debug .wpd-badge-value {
             font-size: 12px;
             font-weight: 400;
-        }
-        #wppack-debug .wpd-badge .wpd-badge-tooltip {
-            display: none;
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            margin-bottom: 4px;
-            background: #1f2937;
-            color: #e5e7eb;
-            font-size: 11px;
-            line-height: 1;
-            padding: 5px 8px;
-            border-radius: 4px;
-            white-space: nowrap;
-            z-index: 100001;
-            pointer-events: none;
-        }
-        #wppack-debug .wpd-badge:hover .wpd-badge-tooltip {
-            display: block;
         }
 
         /* ---- Environment info ---- */
@@ -173,9 +153,20 @@ final class ToolbarAssets
             cursor: default;
         }
         #wppack-debug .wpd-env-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
             font-size: 11px;
             color: #9ca3af;
             white-space: nowrap;
+        }
+        #wppack-debug .wpd-env-sep {
+            display: inline-block;
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background: #d1d5db;
+            flex-shrink: 0;
         }
         #wppack-debug .wpd-env-tooltip {
             display: none;
@@ -186,7 +177,7 @@ final class ToolbarAssets
             background: #1f2937;
             color: #e5e7eb;
             font-size: 11px;
-            font-family: Menlo, Consolas, Monaco, 'Liberation Mono', 'Lucida Console', monospace;
+            font-family: inherit;
             line-height: 1.7;
             padding: 8px 12px;
             border-radius: 6px;
@@ -446,13 +437,16 @@ final class ToolbarAssets
             color: #6b7280;
             text-transform: uppercase;
             letter-spacing: 0.3px;
-            background: #ffffff;
+            background: #fafafa;
             position: sticky;
             top: 0;
             z-index: 1;
         }
+        #wppack-debug .wpd-table-kv thead th {
+            background: #ffffff;
+        }
         #wppack-debug .wpd-table tbody tr:hover {
-            background: #f3f4f6;
+            background: #fafafa;
         }
 
         /* Key-value table */
@@ -627,12 +621,17 @@ final class ToolbarAssets
             padding: 0;
         }
         #wppack-debug .wpd-list li {
-            padding: 4px 0;
+            padding: 6px 12px;
             border-bottom: 1px solid #e5e7eb;
+            border-left: 1px solid #e5e7eb;
+            border-right: 1px solid #e5e7eb;
             font-size: 12px;
         }
-        #wppack-debug .wpd-list li:last-child {
-            border-bottom: none;
+        #wppack-debug .wpd-list li:first-child {
+            border-top: 1px solid #e5e7eb;
+        }
+        #wppack-debug .wpd-list li:hover {
+            background: #fafafa;
         }
         #wppack-debug .wpd-list code {
             font-family: Menlo, Consolas, Monaco, 'Liberation Mono', 'Lucida Console', monospace;
@@ -681,26 +680,30 @@ final class ToolbarAssets
             text-align: center;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-        }
-        #wppack-debug .wpd-perf-card-value {
-            font-family: Menlo, Consolas, Monaco, 'Liberation Mono', 'Lucida Console', monospace;
-            font-size: 18px;
-            font-weight: 500;
-            color: #374151;
-        }
-        #wppack-debug .wpd-perf-card-unit {
-            font-size: 12px;
-            font-weight: 400;
-            color: #9ca3af;
-            margin-left: 2px;
         }
         #wppack-debug .wpd-perf-card-label {
             font-size: 11px;
             text-transform: uppercase;
             color: #6b7280;
             letter-spacing: 0.3px;
-            margin-top: 4px;
+            order: -1;
+            margin-bottom: 4px;
+        }
+        #wppack-debug .wpd-perf-card-value {
+            font-family: Menlo, Consolas, Monaco, 'Liberation Mono', 'Lucida Console', monospace;
+            font-size: 18px;
+            font-weight: 500;
+            color: #374151;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #wppack-debug .wpd-perf-card-unit {
+            font-size: 12px;
+            font-weight: 400;
+            color: #9ca3af;
+            margin-left: 2px;
         }
         #wppack-debug .wpd-perf-card-sub {
             font-size: 11px;
@@ -785,12 +788,12 @@ final class ToolbarAssets
             background: #1f2937;
             color: #e5e7eb;
             font-size: 11px;
-            font-family: Menlo, Consolas, Monaco, 'Liberation Mono', 'Lucida Console', monospace;
+            font-family: inherit;
             line-height: 1.5;
-            padding: 8px 12px;
+            padding: 5px 8px;
             border-radius: 4px;
             border: 1px solid #4b5563;
-            white-space: pre;
+            white-space: nowrap;
             pointer-events: none;
             box-shadow: 0 4px 12px rgba(0,0,0,0.4);
             max-width: 400px;
@@ -863,6 +866,28 @@ final class ToolbarAssets
         #wppack-debug .wpd-log-toggle {
             cursor: pointer;
         }
+        #wppack-debug .wpd-col-toggle {
+            width: 24px;
+            text-align: center;
+            padding-left: 0;
+            padding-right: 0;
+        }
+        #wppack-debug .wpd-log-indicator {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 14px;
+            height: 14px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #9ca3af;
+            border: 1px solid #d1d5db;
+            border-radius: 3px;
+        }
+        #wppack-debug .wpd-log-toggle:hover .wpd-log-indicator {
+            color: #3858e9;
+            border-color: #3858e9;
+        }
 
         /* ---- Plugin detail navigation ---- */
         #wppack-debug .wpd-plugin-detail-link {
@@ -896,9 +921,9 @@ final class ToolbarAssets
             margin-bottom: 0;
         }
         #wppack-debug .wpd-dump-file {
-            font-size: 11px;
-            color: #9ca3af;
-            font-style: italic;
+            font-size: 12px;
+            color: #6b7280;
+            font-family: Menlo, Consolas, Monaco, 'Liberation Mono', 'Lucida Console', monospace;
             margin-bottom: 4px;
         }
         #wppack-debug .wpd-dump-code {
@@ -1231,7 +1256,10 @@ final class ToolbarAssets
                 if (toggle) {
                     var ctx = toggle.nextElementSibling;
                     if (ctx && ctx.classList.contains('wpd-log-context')) {
-                        ctx.style.display = ctx.style.display === 'none' ? '' : 'none';
+                        var opening = ctx.style.display === 'none';
+                        ctx.style.display = opening ? '' : 'none';
+                        var indicator = toggle.querySelector('.wpd-log-indicator');
+                        if (indicator) indicator.textContent = opening ? '\u2212' : '+';
                     }
                 }
             });
@@ -1250,11 +1278,11 @@ final class ToolbarAssets
             root.appendChild(tooltip);
 
             root.addEventListener('mouseover', function(e) {
-                var bar = e.target.closest('.wpd-perf-wf-bar[data-tooltip]');
-                if (!bar) return;
-                tooltip.textContent = bar.getAttribute('data-tooltip');
+                var el = e.target.closest('[data-tooltip]');
+                if (!el) return;
+                tooltip.textContent = el.getAttribute('data-tooltip');
                 tooltip.style.display = '';
-                var rect = bar.getBoundingClientRect();
+                var rect = el.getBoundingClientRect();
                 var tipRect = tooltip.getBoundingClientRect();
                 var left = rect.left + rect.width / 2 - tipRect.width / 2;
                 if (left < 4) left = 4;
@@ -1264,8 +1292,8 @@ final class ToolbarAssets
             });
 
             root.addEventListener('mouseout', function(e) {
-                var bar = e.target.closest('.wpd-perf-wf-bar[data-tooltip]');
-                if (bar) tooltip.style.display = 'none';
+                var el = e.target.closest('[data-tooltip]');
+                if (el) tooltip.style.display = 'none';
             });
         })();
         JS;

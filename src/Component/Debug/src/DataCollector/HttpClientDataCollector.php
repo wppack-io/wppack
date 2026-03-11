@@ -145,19 +145,7 @@ final class HttpClientDataCollector extends AbstractDataCollector
 
     public function getBadgeColor(): string
     {
-        $errorCount = $this->data['error_count'] ?? 0;
-        $totalTime = $this->data['total_time'] ?? 0.0;
-        $slowCount = $this->data['slow_count'] ?? 0;
-
-        if ($errorCount > 0 || $totalTime > 5000.0) {
-            return 'red';
-        }
-
-        if ($slowCount > 0) {
-            return 'yellow';
-        }
-
-        return 'green';
+        return 'default';
     }
 
     public function reset(): void

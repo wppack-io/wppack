@@ -142,7 +142,7 @@ final class MailDataCollector extends AbstractDataCollector
             return 'yellow';
         }
 
-        return 'green';
+        return 'default';
     }
 
     public function reset(): void

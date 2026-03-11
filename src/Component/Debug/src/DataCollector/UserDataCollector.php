@@ -53,15 +53,7 @@ final class UserDataCollector extends AbstractDataCollector
 
     public function getBadgeColor(): string
     {
-        if (!($this->data['is_logged_in'] ?? false)) {
-            return 'default';
-        }
-
-        if ($this->data['is_super_admin'] ?? false) {
-            return 'yellow';
-        }
-
-        return 'green';
+        return 'default';
     }
 
     /**

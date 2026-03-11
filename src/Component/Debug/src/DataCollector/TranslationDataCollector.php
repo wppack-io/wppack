@@ -125,13 +125,7 @@ final class TranslationDataCollector extends AbstractDataCollector
 
     public function getBadgeColor(): string
     {
-        $missingCount = $this->data['missing_count'] ?? 0;
-
-        return match (true) {
-            $missingCount > 20 => 'red',
-            $missingCount > 0 => 'yellow',
-            default => 'green',
-        };
+        return 'default';
     }
 
     public function reset(): void

@@ -82,9 +82,9 @@ final class RequestDataCollector extends AbstractDataCollector
         $statusCode = $this->data['status_code'] ?? 200;
 
         return match (true) {
-            $statusCode >= 200 && $statusCode < 300 => 'green',
-            $statusCode >= 300 && $statusCode < 400 => 'yellow',
-            default => 'red',
+            $statusCode >= 400 => 'red',
+            $statusCode >= 300 => 'yellow',
+            default => 'green',
         };
     }
 
