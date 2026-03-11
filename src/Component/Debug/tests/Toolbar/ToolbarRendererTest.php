@@ -466,6 +466,50 @@ final class ToolbarRendererTest extends TestCase
         self::assertStringContainsString('TestPlugin', $html);
     }
 
+    #[Test]
+    public function renderLoggerPanelShowsFilterTabs(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('logger', 'Logs', '5', 'red', [
+            'total_count' => 5,
+            'error_count' => 1,
+            'deprecation_count' => 2,
+            'level_counts' => ['error' => 1, 'deprecation' => 2, 'info' => 1, 'debug' => 1],
+            'logs' => [
+                ['level' => 'error', 'message' => 'Error message', 'context' => ['key' => 'value'], 'channel' => 'app', 'file' => '/path/to/File.php', 'line' => 42],
+                ['level' => 'deprecation', 'message' => 'Deprecated function', 'context' => [], 'channel' => 'php', 'file' => '/path/to/legacy.php', 'line' => 10],
+                ['level' => 'deprecation', 'message' => 'Deprecated hook', 'context' => [], 'channel' => 'wordpress', 'file' => '', 'line' => 0],
+                ['level' => 'info', 'message' => 'Info message', 'context' => [], 'channel' => 'app', 'file' => '', 'line' => 0],
+                ['level' => 'debug', 'message' => 'Debug message', 'context' => [], 'channel' => 'routing', 'file' => '', 'line' => 0],
+            ],
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        // Filter tabs
+        self::assertStringContainsString('data-log-filter="all"', $html);
+        self::assertStringContainsString('data-log-filter="error"', $html);
+        self::assertStringContainsString('data-log-filter="deprecation"', $html);
+        self::assertStringContainsString('data-log-filter="warning"', $html);
+        self::assertStringContainsString('data-log-filter="info"', $html);
+        self::assertStringContainsString('data-log-filter="debug"', $html);
+
+        // data-log-level attributes on rows
+        self::assertStringContainsString('data-log-level="error"', $html);
+        self::assertStringContainsString('data-log-level="deprecation"', $html);
+        self::assertStringContainsString('data-log-level="info"', $html);
+        self::assertStringContainsString('data-log-level="debug"', $html);
+
+        // File column
+        self::assertStringContainsString('File.php:42', $html);
+
+        // Context row (expandable)
+        self::assertStringContainsString('wpd-log-context', $html);
+
+        // Deprecation count in summary
+        self::assertStringContainsString('Deprecations', $html);
+    }
+
     private function createProfileWithCollectors(): Profile
     {
         $profile = new Profile('test-token');

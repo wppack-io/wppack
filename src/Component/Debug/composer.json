@@ -13,7 +13,8 @@
     },
     "suggest": {
         "wppack/database": "For database query profiling",
-        "wppack/cache": "For cache operation monitoring"
+        "wppack/cache": "For cache operation monitoring",
+        "wppack/logger": "For automatic Logger component integration with Debug toolbar"
     },
     "autoload": {
         "psr-4": {

@@ -923,58 +923,122 @@ final class ToolbarRenderer
     {
         $totalCount = (int) ($data['total_count'] ?? 0);
         $errorCount = (int) ($data['error_count'] ?? 0);
+        $deprecationCount = (int) ($data['deprecation_count'] ?? 0);
         /** @var array<string, int> $levelCounts */
         $levelCounts = $data['level_counts'] ?? [];
         /** @var list<array<string, mixed>> $logs */
         $logs = $data['logs'] ?? [];
 
+        $warningCount = (int) ($levelCounts['warning'] ?? 0);
+
+        // Collect unique channels
+        $channels = [];
+        foreach ($logs as $log) {
+            $ch = $log['channel'] ?? 'app';
+            if (!in_array($ch, $channels, true)) {
+                $channels[] = $ch;
+            }
+        }
+
+        // Summary section
         $html = '<div class="wpd-section">';
         $html .= '<h4 class="wpd-section-title">Summary</h4>';
         $html .= '<table class="wpd-table wpd-table-kv">';
         $html .= $this->renderTableRow('Total Entries', (string) $totalCount);
         $html .= $this->renderTableRow('Errors', (string) $errorCount, $errorCount > 0 ? 'wpd-text-red' : '');
+        $html .= $this->renderTableRow('Deprecations', (string) $deprecationCount, $deprecationCount > 0 ? 'wpd-text-orange' : '');
+        $html .= $this->renderTableRow('Warnings', (string) $warningCount, $warningCount > 0 ? 'wpd-text-yellow' : '');
         $html .= '</table>';
 
-        if ($levelCounts !== []) {
+        if ($channels !== []) {
             $html .= '<div style="margin-top:8px" class="wpd-tag-list">';
-            foreach ($levelCounts as $level => $count) {
-                $color = match ($level) {
-                    'emergency', 'alert', 'critical', 'error' => 'wpd-text-red',
-                    'warning' => 'wpd-text-yellow',
-                    default => '',
-                };
-                $html .= '<span class="wpd-tag ' . $color . '">' . $this->esc($level) . ': ' . $this->esc((string) $count) . '</span>';
+            foreach ($channels as $ch) {
+                $html .= '<span class="wpd-tag">' . $this->esc($ch) . '</span>';
             }
             $html .= '</div>';
         }
         $html .= '</div>';
 
         if ($logs !== []) {
+            // Count entries per tab
+            $errorTabCount = 0;
+            $deprecationTabCount = 0;
+            $warningTabCount = 0;
+            $infoTabCount = 0;
+            $debugTabCount = 0;
+            foreach ($logs as $log) {
+                $lvl = $log['level'] ?? 'debug';
+                if (in_array($lvl, ['emergency', 'alert', 'critical', 'error'], true)) {
+                    $errorTabCount++;
+                } elseif ($lvl === 'deprecation') {
+                    $deprecationTabCount++;
+                } elseif (in_array($lvl, ['warning', 'notice'], true)) {
+                    $warningTabCount++;
+                } elseif ($lvl === 'info') {
+                    $infoTabCount++;
+                } else {
+                    $debugTabCount++;
+                }
+            }
+
             $html .= '<div class="wpd-section">';
             $html .= '<h4 class="wpd-section-title">Log Entries</h4>';
+
+            // Filter tabs
+            $html .= '<div class="wpd-log-tabs">';
+            $html .= '<button class="wpd-log-tab wpd-active" data-log-filter="all">All (' . $this->esc((string) count($logs)) . ')</button>';
+            $html .= '<button class="wpd-log-tab" data-log-filter="error">Errors (' . $this->esc((string) $errorTabCount) . ')</button>';
+            $html .= '<button class="wpd-log-tab" data-log-filter="deprecation">Deprecations (' . $this->esc((string) $deprecationTabCount) . ')</button>';
+            $html .= '<button class="wpd-log-tab" data-log-filter="warning">Warnings (' . $this->esc((string) $warningTabCount) . ')</button>';
+            $html .= '<button class="wpd-log-tab" data-log-filter="info">Info (' . $this->esc((string) $infoTabCount) . ')</button>';
+            $html .= '<button class="wpd-log-tab" data-log-filter="debug">Debug (' . $this->esc((string) $debugTabCount) . ')</button>';
+            $html .= '</div>';
+
             $html .= '<table class="wpd-table wpd-table-full">';
             $html .= '<thead><tr>';
             $html .= '<th class="wpd-col-num">#</th>';
             $html .= '<th>Level</th>';
             $html .= '<th>Channel</th>';
             $html .= '<th>Message</th>';
+            $html .= '<th>File</th>';
             $html .= '</tr></thead>';
             $html .= '<tbody>';
 
             foreach ($logs as $index => $log) {
-                $levelColor = match ($log['level'] ?? 'debug') {
+                $level = $log['level'] ?? 'debug';
+                $levelColor = match ($level) {
                     'emergency', 'alert', 'critical', 'error' => 'wpd-text-red',
+                    'deprecation' => 'wpd-text-orange',
                     'warning' => 'wpd-text-yellow',
                     'info' => 'wpd-text-green',
                     default => 'wpd-text-dim',
                 };
 
-                $html .= '<tr>';
+                $file = (string) ($log['file'] ?? '');
+                $line = (int) ($log['line'] ?? 0);
+                $fileDisplay = '';
+                if ($file !== '') {
+                    $basename = basename($file);
+                    $fileDisplay = $line > 0 ? $basename . ':' . $line : $basename;
+                }
+
+                $context = $log['context'] ?? [];
+                $hasContext = is_array($context) && $context !== [];
+                $rowClass = $hasContext ? ' class="wpd-log-toggle"' : '';
+
+                $html .= '<tr data-log-level="' . $this->esc($level) . '"' . $rowClass . '>';
                 $html .= '<td class="wpd-col-num">' . $this->esc((string) ($index + 1)) . '</td>';
-                $html .= '<td><span class="wpd-tag ' . $levelColor . '">' . $this->esc($log['level'] ?? '') . '</span></td>';
+                $html .= '<td><span class="wpd-tag ' . $levelColor . '">' . $this->esc($level) . '</span></td>';
                 $html .= '<td>' . $this->esc($log['channel'] ?? 'app') . '</td>';
                 $html .= '<td><code>' . $this->esc($log['message'] ?? '') . '</code></td>';
+                $html .= '<td title="' . $this->esc($file) . '">' . $this->esc($fileDisplay) . '</td>';
                 $html .= '</tr>';
+
+                if ($hasContext) {
+                    $html .= '<tr class="wpd-log-context" style="display:none" data-log-level="' . $this->esc($level) . '">';
+                    $html .= '<td colspan="5"><pre>' . $this->esc(json_encode($context, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}') . '</pre></td>';
+                    $html .= '</tr>';
+                }
             }
 
             $html .= '</tbody></table>';
@@ -2680,6 +2744,7 @@ final class ToolbarRenderer
         #wppack-debug .wpd-text-green { color: #a6e3a1; }
         #wppack-debug .wpd-text-yellow { color: #f9e2af; }
         #wppack-debug .wpd-text-red { color: #f38ba8; }
+        #wppack-debug .wpd-text-orange { color: #fab387; }
         #wppack-debug .wpd-text-dim { color: #6c7086; font-style: italic; }
 
         /* ---- Code blocks ---- */
@@ -2820,6 +2885,46 @@ final class ToolbarRenderer
             height: 1px;
             background: #313244;
         }
+
+        /* ---- Log filter tabs ---- */
+        #wppack-debug .wpd-log-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #313244;
+        }
+        #wppack-debug .wpd-log-tab {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: #6c7086;
+            padding: 6px 14px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+        }
+        #wppack-debug .wpd-log-tab:hover {
+            color: #cdd6f4;
+        }
+        #wppack-debug .wpd-log-tab.wpd-active {
+            color: #89b4fa;
+            border-bottom-color: #89b4fa;
+        }
+        #wppack-debug .wpd-log-context pre {
+            background: #181825;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #a6adc8;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        #wppack-debug .wpd-log-toggle {
+            cursor: pointer;
+        }
+        #wppack-debug .wpd-log-toggle:hover {
+            background: #313244;
+        }
         CSS;
     }
 
@@ -2887,6 +2992,38 @@ final class ToolbarRenderer
                 if (minimizeBtn) {
                     closeAllPanels();
                     root.classList.add('wpd-minimized');
+                }
+            });
+
+            // Log filter tabs
+            root.addEventListener('click', function(e) {
+                var tab = e.target.closest('.wpd-log-tab');
+                if (tab) {
+                    var tabs = tab.closest('.wpd-log-tabs');
+                    tabs.querySelectorAll('.wpd-log-tab').forEach(function(t) { t.classList.remove('wpd-active'); });
+                    tab.classList.add('wpd-active');
+                    var filter = tab.getAttribute('data-log-filter');
+                    var section = tabs.closest('.wpd-section');
+                    section.querySelectorAll('tr[data-log-level]').forEach(function(row) {
+                        var level = row.getAttribute('data-log-level');
+                        var show = false;
+                        if (filter === 'all') { show = true; }
+                        else if (filter === 'error') { show = (['emergency','alert','critical','error'].indexOf(level) !== -1); }
+                        else if (filter === 'deprecation') { show = level === 'deprecation'; }
+                        else if (filter === 'warning') { show = (['warning','notice'].indexOf(level) !== -1); }
+                        else if (filter === 'info') { show = level === 'info'; }
+                        else if (filter === 'debug') { show = level === 'debug'; }
+                        row.style.display = show ? '' : 'none';
+                    });
+                    return;
+                }
+                // Context toggle
+                var toggle = e.target.closest('.wpd-log-toggle');
+                if (toggle) {
+                    var ctx = toggle.nextElementSibling;
+                    if (ctx && ctx.classList.contains('wpd-log-context')) {
+                        ctx.style.display = ctx.style.display === 'none' ? '' : 'none';
+                    }
                 }
             });
 

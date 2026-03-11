@@ -17,6 +17,12 @@ final class LoggerDataCollectorTest extends TestCase
         $this->collector = new LoggerDataCollector();
     }
 
+    protected function tearDown(): void
+    {
+        // Ensure error handler is always restored
+        $this->collector->reset();
+    }
+
     #[Test]
     public function getNameReturnsLogger(): void
     {
@@ -88,7 +94,22 @@ final class LoggerDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function captureDeprecationStoresWarning(): void
+    public function logEntryIncludesFileAndLine(): void
+    {
+        $this->collector->log('info', 'With file', ['_file' => '/path/to/file.php', '_line' => 42]);
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertSame('/path/to/file.php', $data['logs'][0]['file']);
+        self::assertSame(42, $data['logs'][0]['line']);
+        // _file and _line should be stripped from context
+        self::assertArrayNotHasKey('_file', $data['logs'][0]['context']);
+        self::assertArrayNotHasKey('_line', $data['logs'][0]['context']);
+    }
+
+    #[Test]
+    public function captureDeprecationStoresDeprecation(): void
     {
         $this->collector->captureDeprecation('old_function', 'new_function', '5.0');
 
@@ -96,7 +117,7 @@ final class LoggerDataCollectorTest extends TestCase
         $data = $this->collector->getData();
 
         self::assertSame(1, $data['total_count']);
-        self::assertSame('warning', $data['logs'][0]['level']);
+        self::assertSame('deprecation', $data['logs'][0]['level']);
         self::assertStringContainsString('old_function', $data['logs'][0]['message']);
         self::assertStringContainsString('deprecated', $data['logs'][0]['message']);
         self::assertStringContainsString('5.0', $data['logs'][0]['message']);
@@ -117,7 +138,7 @@ final class LoggerDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function captureDeprecatedHookStoresWarning(): void
+    public function captureDeprecatedHookStoresDeprecation(): void
     {
         $this->collector->captureDeprecatedHook('old_hook', 'new_hook', '5.0', '');
 
@@ -125,7 +146,7 @@ final class LoggerDataCollectorTest extends TestCase
         $data = $this->collector->getData();
 
         self::assertSame(1, $data['total_count']);
-        self::assertSame('warning', $data['logs'][0]['level']);
+        self::assertSame('deprecation', $data['logs'][0]['level']);
         self::assertStringContainsString('old_hook', $data['logs'][0]['message']);
         self::assertStringContainsString('deprecated', $data['logs'][0]['message']);
         self::assertSame('wordpress', $data['logs'][0]['channel']);
@@ -133,7 +154,7 @@ final class LoggerDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function captureDoingItWrongStoresWarning(): void
+    public function captureDoingItWrongStoresDeprecation(): void
     {
         $this->collector->captureDoingItWrong('some_function', 'You are doing it wrong.', '5.0');
 
@@ -141,7 +162,7 @@ final class LoggerDataCollectorTest extends TestCase
         $data = $this->collector->getData();
 
         self::assertSame(1, $data['total_count']);
-        self::assertSame('warning', $data['logs'][0]['level']);
+        self::assertSame('deprecation', $data['logs'][0]['level']);
         self::assertStringContainsString('some_function', $data['logs'][0]['message']);
         self::assertStringContainsString('incorrectly', $data['logs'][0]['message']);
         self::assertStringContainsString('5.0', $data['logs'][0]['message']);
@@ -210,14 +231,25 @@ final class LoggerDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeColorReturnsYellowForWarningsOnly(): void
+    public function getBadgeColorReturnsYellowForDeprecations(): void
+    {
+        $this->collector->log('deprecation', 'A deprecation notice');
+        $this->collector->log('info', 'Some info');
+
+        $this->collector->collect();
+
+        self::assertSame('yellow', $this->collector->getBadgeColor());
+    }
+
+    #[Test]
+    public function getBadgeColorReturnsGreenForWarningsOnly(): void
     {
         $this->collector->log('warning', 'A warning');
         $this->collector->log('info', 'Some info');
 
         $this->collector->collect();
 
-        self::assertSame('yellow', $this->collector->getBadgeColor());
+        self::assertSame('green', $this->collector->getBadgeColor());
     }
 
     #[Test]
@@ -264,6 +296,20 @@ final class LoggerDataCollectorTest extends TestCase
 
         self::assertCount(200, $data['logs']);
         self::assertSame(250, $data['total_count']);
+    }
+
+    #[Test]
+    public function collectCountsDeprecationsCorrectly(): void
+    {
+        $this->collector->log('deprecation', 'Deprecated 1');
+        $this->collector->log('deprecation', 'Deprecated 2');
+        $this->collector->log('warning', 'A warning');
+        $this->collector->log('info', 'Some info');
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertSame(2, $data['deprecation_count']);
     }
 
     #[Test]
@@ -354,5 +400,92 @@ final class LoggerDataCollectorTest extends TestCase
 
         self::assertGreaterThanOrEqual($before, $data['logs'][0]['timestamp']);
         self::assertLessThanOrEqual($after, $data['logs'][0]['timestamp']);
+    }
+
+    #[Test]
+    public function registerErrorHandlerCapturesDeprecation(): void
+    {
+        $method = new \ReflectionMethod($this->collector, 'handlePhpError');
+
+        // Ensure error_reporting includes user-level errors
+        $previousLevel = error_reporting(E_ALL);
+
+        $method->invoke($this->collector, E_USER_DEPRECATED, 'Test deprecated function', '/test/file.php', 10);
+
+        error_reporting($previousLevel);
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertSame(1, $data['total_count']);
+        self::assertSame('deprecation', $data['logs'][0]['level']);
+        self::assertSame('php', $data['logs'][0]['channel']);
+        self::assertStringContainsString('Test deprecated function', $data['logs'][0]['message']);
+        self::assertSame('/test/file.php', $data['logs'][0]['file']);
+        self::assertSame(10, $data['logs'][0]['line']);
+    }
+
+    #[Test]
+    public function registerErrorHandlerCapturesWarning(): void
+    {
+        $method = new \ReflectionMethod($this->collector, 'handlePhpError');
+
+        $previousLevel = error_reporting(E_ALL);
+
+        $method->invoke($this->collector, E_USER_WARNING, 'Test warning', '/test/warn.php', 20);
+
+        error_reporting($previousLevel);
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertSame(1, $data['total_count']);
+        self::assertSame('warning', $data['logs'][0]['level']);
+        self::assertSame('php', $data['logs'][0]['channel']);
+    }
+
+    #[Test]
+    public function registerErrorHandlerCapturesNotice(): void
+    {
+        $method = new \ReflectionMethod($this->collector, 'handlePhpError');
+
+        $previousLevel = error_reporting(E_ALL);
+
+        $method->invoke($this->collector, E_USER_NOTICE, 'Test notice', '/test/notice.php', 30);
+
+        error_reporting($previousLevel);
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertSame(1, $data['total_count']);
+        self::assertSame('notice', $data['logs'][0]['level']);
+        self::assertSame('php', $data['logs'][0]['channel']);
+    }
+
+    #[Test]
+    public function registerErrorHandlerRespectsAtSuppression(): void
+    {
+        $method = new \ReflectionMethod($this->collector, 'handlePhpError');
+
+        // Simulate @ suppression by temporarily setting error_reporting to 0
+        $previousLevel = error_reporting(0);
+        $method->invoke($this->collector, E_USER_WARNING, 'Suppressed error', '/test/file.php', 1);
+        error_reporting($previousLevel);
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertSame(0, $data['total_count']);
+    }
+
+    #[Test]
+    public function restoreErrorHandlerRestoresPrevious(): void
+    {
+        $this->collector->registerErrorHandler();
+        $this->collector->restoreErrorHandler();
+
+        // After restoring, our collector should not capture new errors
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertSame(0, $data['total_count']);
     }
 }

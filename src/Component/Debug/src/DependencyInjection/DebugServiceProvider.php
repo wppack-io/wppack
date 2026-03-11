@@ -13,6 +13,7 @@ use WpPack\Component\Debug\DataCollector\EventDataCollector;
 use WpPack\Component\Debug\DataCollector\HttpClientDataCollector;
 use WpPack\Component\Debug\DataCollector\LoggerDataCollector;
 use WpPack\Component\Debug\DataCollector\MailDataCollector;
+use WpPack\Component\Debug\Handler\DebugHandler;
 use WpPack\Component\Debug\DataCollector\MemoryDataCollector;
 use WpPack\Component\Debug\DataCollector\RequestDataCollector;
 use WpPack\Component\Debug\DataCollector\RouterDataCollector;
@@ -62,6 +63,11 @@ final class DebugServiceProvider implements ServiceProviderInterface
         $builder->register(HttpClientDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
         $builder->register(TranslationDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
         $builder->register(DumpDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
+
+        // Logger Component integration (optional)
+        if (class_exists(\WpPack\Component\Logger\Handler\HandlerInterface::class)) {
+            $builder->register(DebugHandler::class)->autowire();
+        }
 
         // Adapters
         $builder->register(DebugBarPanelAdapter::class)->addTag(RegisterDataCollectorsPass::TAG);
