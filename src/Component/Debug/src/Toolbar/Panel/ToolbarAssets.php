@@ -40,22 +40,46 @@ final class ToolbarAssets
             z-index: 2;
         }
 
-        /* ---- Logo (fixed left, does not scroll) ---- */
+        /* ---- Logo + version (clickable, opens WordPress panel) ---- */
+        #wppack-debug .wpd-bar-wp {
+            display: flex;
+            align-items: center;
+            height: 100%;
+            border: none;
+            padding: 0;
+            background: transparent;
+            cursor: pointer;
+            flex-shrink: 0;
+            font-family: inherit;
+        }
+        #wppack-debug .wpd-bar-wp.wpd-active .wpd-bar-version {
+            box-shadow: inset 0 -2px 0 #3858e9;
+        }
         #wppack-debug .wpd-bar-logo {
             display: flex;
             align-items: center;
             justify-content: center;
             width: 40px;
-            height: 40px;
+            height: 100%;
             background: #3858e9;
-            flex-shrink: 0;
-            cursor: default;
-        }
-        #wppack-debug .wpd-logo-text {
-            font-size: 11px;
-            font-weight: 800;
             color: #ffffff;
-            letter-spacing: -0.5px;
+            flex-shrink: 0;
+        }
+        #wppack-debug .wpd-bar-version {
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            height: 100%;
+            font-size: 11px;
+            font-weight: 600;
+            color: #3858e9;
+            border-right: 1px solid #e5e7eb;
+            flex-shrink: 0;
+            white-space: nowrap;
+            transition: background 0.15s ease;
+        }
+        #wppack-debug .wpd-bar-wp:hover .wpd-bar-version {
+            background: #f3f4f6;
         }
 
         /* ---- Badges container ---- */
@@ -75,6 +99,7 @@ final class ToolbarAssets
 
         /* ---- Badges ---- */
         #wppack-debug .wpd-badge {
+            position: relative;
             display: flex;
             align-items: center;
             gap: 4px;
@@ -115,24 +140,62 @@ final class ToolbarAssets
             font-size: 12px;
             font-weight: 400;
         }
+        #wppack-debug .wpd-badge .wpd-badge-tooltip {
+            display: none;
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-bottom: 4px;
+            background: #1f2937;
+            color: #e5e7eb;
+            font-size: 11px;
+            line-height: 1;
+            padding: 5px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+            z-index: 100001;
+            pointer-events: none;
+        }
+        #wppack-debug .wpd-badge:hover .wpd-badge-tooltip {
+            display: block;
+        }
 
-        /* ---- Bar meta ---- */
-        #wppack-debug .wpd-bar-meta {
+        /* ---- Environment info ---- */
+        #wppack-debug .wpd-bar-env {
+            position: relative;
             display: flex;
             align-items: center;
-            gap: 8px;
-            flex-shrink: 0;
             padding: 0 12px;
             height: 100%;
             border-left: 1px solid #e5e7eb;
+            flex-shrink: 0;
+            cursor: default;
         }
-        #wppack-debug .wpd-meta-item {
+        #wppack-debug .wpd-env-label {
             font-size: 11px;
             color: #9ca3af;
+            white-space: nowrap;
         }
-        #wppack-debug .wpd-meta-sep {
-            color: #d1d5db;
+        #wppack-debug .wpd-env-tooltip {
+            display: none;
+            position: absolute;
+            bottom: 100%;
+            right: 0;
+            margin-bottom: 4px;
+            background: #1f2937;
+            color: #e5e7eb;
             font-size: 11px;
+            font-family: Menlo, Consolas, Monaco, 'Liberation Mono', 'Lucida Console', monospace;
+            line-height: 1.7;
+            padding: 8px 12px;
+            border-radius: 6px;
+            white-space: nowrap;
+            z-index: 100001;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        #wppack-debug .wpd-bar-env:hover .wpd-env-tooltip {
+            display: block;
         }
 
         /* ---- Close button ---- */
@@ -177,11 +240,8 @@ final class ToolbarAssets
             transform: scale(1.1);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
         }
-        #wppack-debug .wpd-mini-logo {
-            font-size: 11px;
-            font-weight: 800;
+        #wppack-debug .wpd-mini {
             color: #ffffff;
-            letter-spacing: -0.5px;
         }
 
         /* ---- Minimized state ---- */
@@ -211,7 +271,7 @@ final class ToolbarAssets
 
         /* ---- Sidebar ---- */
         #wppack-debug .wpd-sidebar {
-            width: 220px;
+            width: 180px;
             flex-shrink: 0;
             background: #fafafa;
             border-right: 1px solid #e5e7eb;
@@ -936,7 +996,10 @@ final class ToolbarAssets
             #wppack-debug .wpd-badge-value {
                 display: none;
             }
-            #wppack-debug .wpd-bar-meta {
+            #wppack-debug .wpd-bar-env {
+                display: none;
+            }
+            #wppack-debug .wpd-bar-version {
                 display: none;
             }
             #wppack-debug .wpd-perf-cards {
@@ -979,6 +1042,8 @@ final class ToolbarAssets
                 for (var i = 0; i < items.length; i++) {
                     items[i].classList.remove('wpd-active');
                 }
+                var wpBtn = root.querySelector('.wpd-bar-wp');
+                if (wpBtn) wpBtn.classList.remove('wpd-active');
                 activePanel = null;
                 resetPluginDetailView();
             }
@@ -1037,6 +1102,16 @@ final class ToolbarAssets
                     }
                 }
 
+                // Highlight logo/version button for wordpress panel
+                var wpBtn = root.querySelector('.wpd-bar-wp');
+                if (wpBtn) {
+                    if (name === 'wordpress') {
+                        wpBtn.classList.add('wpd-active');
+                    } else {
+                        wpBtn.classList.remove('wpd-active');
+                    }
+                }
+
                 activePanel = name;
                 resetPluginDetailView();
             }
@@ -1047,6 +1122,18 @@ final class ToolbarAssets
                 if (miniBtn) {
                     root.classList.remove('wpd-minimized');
                     localStorage.removeItem(STORAGE_KEY);
+                    return;
+                }
+
+                // Logo/version click — toggle WordPress panel
+                var wpBtn = e.target.closest('.wpd-bar-wp');
+                if (wpBtn) {
+                    var panel = wpBtn.getAttribute('data-panel');
+                    if (activePanel === panel) {
+                        closeOverlay();
+                    } else {
+                        openPanel(panel);
+                    }
                     return;
                 }
 

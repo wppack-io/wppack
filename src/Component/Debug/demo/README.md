@@ -42,16 +42,8 @@ http://localhost:8080/wp-die.php?scenario=nonce
 
 ### toolbar.php — デバッグツールバー
 
-全 DataCollector をフェイクデータで表示するツールバーデモ。画面下部のバッジをクリックしてパネルを展開。
+全 DataCollector をフェイクデータで表示するツールバーデモ。L字レイアウト（左サイドバー + コンテンツエリア + ボトムバー）で Gutenberg スタイルのデザイン。
 
 ```
 http://localhost:8080/toolbar.php
-```
-
-### toolbar-l-shape.php — L字レイアウト ツールバー（モック）
-
-Symfony Profiler 風の L字レイアウト（左サイドバー + コンテンツエリア + ボトムバー）のモック。Gutenberg スタイルのデザイン。
-
-```
-http://localhost:8080/toolbar-l-shape.php
 ```

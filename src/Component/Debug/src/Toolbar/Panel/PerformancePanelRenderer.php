@@ -40,9 +40,10 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer
         };
 
         return <<<HTML
-        <button class="wpd-badge" data-panel="performance" title="Performance">
+        <button class="wpd-badge" data-panel="performance">
             <span class="wpd-badge-icon">{$icon}</span>
             <span class="wpd-badge-value" style="color:{$color}">{$value}</span>
+            <span class="wpd-badge-tooltip">Performance</span>
         </button>
         HTML;
     }

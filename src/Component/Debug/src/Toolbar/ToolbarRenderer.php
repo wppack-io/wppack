@@ -22,12 +22,22 @@ final class ToolbarRenderer
         'default' => '#50575e',
     ];
 
+    /** Badge display order in the toolbar bar. */
+    private const BADGE_ORDER = [
+        'plugin', 'theme', 'router',
+        'performance',
+        'request', 'time', 'memory', 'database', 'cache', 'http_client',
+        'event', 'logger', 'mail', 'scheduler', 'translation', 'user',
+        'dump',
+    ];
+
     /** Sidebar panel order, grouped by category. */
     private const SIDEBAR_GROUPS = [
+        ['wordpress', 'plugin', 'theme', 'router'],
         ['performance'],
         ['request', 'time', 'memory', 'database', 'cache', 'http_client'],
-        ['wordpress', 'plugin', 'theme', 'router'],
-        ['event', 'logger', 'dump', 'mail', 'scheduler', 'translation', 'user'],
+        ['event', 'logger', 'mail', 'scheduler', 'translation', 'user'],
+        ['dump'],
     ];
 
     /** @var array<string, AbstractPanelRenderer&PanelRendererInterface> */
@@ -69,21 +79,31 @@ final class ToolbarRenderer
         $this->performanceRenderer->setRequestTimeFloat($requestTimeFloat);
         $this->genericRenderer->setRequestTimeFloat($requestTimeFloat);
 
-        // Build badges
-        $badges = '';
-        foreach ($collectors as $collector) {
-            $badges .= $this->renderBadge($collector);
-        }
-        $perfBadge = $this->performanceRenderer->renderBadge($profile);
-        $badges = $perfBadge . $badges;
+        // Build ordered badges (wordpress group first)
+        $badges = $this->renderOrderedBadges($profile, $collectors);
+
+        // Determine default panel (wordpress if available, else performance)
+        $defaultPanel = isset($collectors['wordpress']) ? 'wordpress' : 'performance';
 
         // Build sidebar and content panels
         $collectorNames = array_keys($collectors);
         $sidebarHtml = $this->renderSidebar($collectorNames, $collectors);
-        $contentPanels = $this->renderContentPanels($profile, $collectors);
+        $contentPanels = $this->renderContentPanels($profile, $collectors, $defaultPanel);
 
-        $requestInfo = $this->esc($profile->getMethod()) . ' ' . $this->esc((string) $profile->getStatusCode());
-        $totalTime = $this->formatMs($profile->getTime());
+        // Logo & version (clickable — opens WordPress panel)
+        $wpIcon = ToolbarIcons::svg('wordpress', 18);
+        $wpMiniIcon = ToolbarIcons::svg('wordpress', 16);
+        $wpVersion = $this->getWpVersion($collectors);
+        $wpBtnContent = '<span class="wpd-bar-logo">' . $wpIcon . '</span>';
+        if ($wpVersion !== '') {
+            $wpBtnContent .= '<span class="wpd-bar-version">' . $this->esc($wpVersion) . '</span>';
+        }
+
+        // Environment info
+        $envHtml = $this->renderEnvironmentInfo($collectors);
+
+        // Default panel title
+        $defaultTitle = $this->esc($this->getPanelLabel($defaultPanel, $collectors));
 
         $css = $this->assets->renderCss();
         $js = $this->assets->renderJs();
@@ -98,7 +118,7 @@ final class ToolbarRenderer
             </div>
             <div class="wpd-content">
                 <div class="wpd-content-header">
-                    <span class="wpd-panel-title">Performance</span>
+                    <span class="wpd-panel-title">{$defaultTitle}</span>
                     <button class="wpd-panel-close" data-action="close-panel" title="Close">{$closeIcon}</button>
                 </div>
                 <div class="wpd-content-body">
@@ -107,20 +127,16 @@ final class ToolbarRenderer
             </div>
         </div>
         <div class="wpd-mini" title="Show WpPack Debug Toolbar">
-            <span class="wpd-mini-logo">WP</span>
+            {$wpMiniIcon}
         </div>
         <div class="wpd-bar">
-            <div class="wpd-bar-logo" title="WpPack Debug">
-                <span class="wpd-logo-text">WP</span>
-            </div>
+            <button class="wpd-bar-wp" data-panel="wordpress" title="WordPress">
+                {$wpBtnContent}
+            </button>
             <div class="wpd-bar-badges">
                 {$badges}
             </div>
-            <div class="wpd-bar-meta">
-                <span class="wpd-meta-item">{$requestInfo}</span>
-                <span class="wpd-meta-sep">|</span>
-                <span class="wpd-meta-item">{$totalTime}</span>
-            </div>
+            {$envHtml}
             <button class="wpd-close-btn" data-action="minimize" title="Close toolbar">{$closeIcon}</button>
         </div>
         <script>{$js}</script>
@@ -188,7 +204,7 @@ final class ToolbarRenderer
     /**
      * @param array<string, DataCollectorInterface> $collectors
      */
-    private function renderContentPanels(Profile $profile, array $collectors): string
+    private function renderContentPanels(Profile $profile, array $collectors, string $defaultPanel): string
     {
         $html = '';
 
@@ -208,7 +224,7 @@ final class ToolbarRenderer
         }
 
         foreach ($orderedNames as $key) {
-            $display = ($key === 'performance') ? '' : ' style="display:none"';
+            $display = ($key === $defaultPanel) ? '' : ' style="display:none"';
 
             if ($key === 'performance') {
                 $content = $this->performanceRenderer->renderContent($profile);
@@ -223,19 +239,51 @@ final class ToolbarRenderer
         return $html;
     }
 
+    /**
+     * @param array<string, DataCollectorInterface> $collectors
+     */
+    private function renderOrderedBadges(Profile $profile, array $collectors): string
+    {
+        $badges = '';
+        $rendered = [];
+
+        foreach (self::BADGE_ORDER as $name) {
+            if ($name === 'performance') {
+                $badges .= $this->performanceRenderer->renderBadge($profile);
+                $rendered[] = 'performance';
+            } elseif (isset($collectors[$name])) {
+                $badges .= $this->renderBadge($collectors[$name]);
+                $rendered[] = $name;
+            }
+        }
+
+        // Unknown collectors at the end (skip wordpress — handled by logo button)
+        foreach ($collectors as $name => $collector) {
+            if ($name !== 'wordpress' && !\in_array($name, $rendered, true)) {
+                $badges .= $this->renderBadge($collector);
+            }
+        }
+
+        return $badges;
+    }
+
     private function renderBadge(DataCollectorInterface $collector): string
     {
         $name = $this->esc($collector->getName());
         $label = $this->esc($collector->getLabel());
-        $value = $this->esc($collector->getBadgeValue());
+        $value = $collector->getBadgeValue();
         $colorKey = $collector->getBadgeColor();
         $color = self::BADGE_COLORS[$colorKey] ?? self::BADGE_COLORS['default'];
         $icon = ToolbarIcons::svg($collector->getName());
 
+        $valueHtml = $value !== ''
+            ? ' <span class="wpd-badge-value" style="color:' . $color . '">' . $this->esc($value) . '</span>'
+            : '';
+
         return <<<HTML
-        <button class="wpd-badge" data-panel="{$name}" title="{$label}">
-            <span class="wpd-badge-icon">{$icon}</span>
-            <span class="wpd-badge-value" style="color:{$color}">{$value}</span>
+        <button class="wpd-badge" data-panel="{$name}">
+            <span class="wpd-badge-icon">{$icon}</span>{$valueHtml}
+            <span class="wpd-badge-tooltip">{$label}</span>
         </button>
         HTML;
     }
@@ -250,6 +298,61 @@ final class ToolbarRenderer
     /**
      * @param array<string, DataCollectorInterface> $collectors
      */
+    private function renderEnvironmentInfo(array $collectors): string
+    {
+        $parts = [];
+        $tooltipLines = [];
+
+        // PHP version
+        $parts[] = 'PHP ' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION;
+        $tooltipLines[] = 'PHP ' . PHP_VERSION;
+
+        // Server software
+        if (isset($collectors['request'])) {
+            $requestData = $collectors['request']->getData();
+            $serverSoftware = (string) ($requestData['server_vars']['SERVER_SOFTWARE'] ?? '');
+            if ($serverSoftware !== '' && preg_match('/^([a-zA-Z]+)/', $serverSoftware, $m)) {
+                $parts[] = ucfirst(strtolower($m[1]));
+                $tooltipLines[] = $serverSoftware;
+            }
+        }
+
+        // Additional tooltip info
+        if (isset($collectors['wordpress'])) {
+            $wpData = $collectors['wordpress']->getData();
+            $wpVersion = (string) ($wpData['wp_version'] ?? '');
+            if ($wpVersion !== '') {
+                $tooltipLines[] = 'WordPress ' . $wpVersion;
+            }
+            $envType = (string) ($wpData['environment_type'] ?? '');
+            if ($envType !== '') {
+                $tooltipLines[] = 'Env: ' . $envType;
+            }
+        }
+
+        if (isset($collectors['memory'])) {
+            $memData = $collectors['memory']->getData();
+            $limit = (int) ($memData['limit'] ?? 0);
+            if ($limit > 0) {
+                $tooltipLines[] = 'Memory Limit: ' . $this->formatBytes($limit);
+            }
+        }
+
+        $label = $this->esc(implode(' | ', $parts));
+        $tooltipHtml = '';
+        foreach ($tooltipLines as $line) {
+            $tooltipHtml .= '<div>' . $this->esc($line) . '</div>';
+        }
+
+        return '<div class="wpd-bar-env">'
+            . '<span class="wpd-env-label">' . $label . '</span>'
+            . '<div class="wpd-env-tooltip">' . $tooltipHtml . '</div>'
+            . '</div>';
+    }
+
+    /**
+     * @param array<string, DataCollectorInterface> $collectors
+     */
     private function getPanelLabel(string $name, array $collectors): string
     {
         if ($name === 'performance') {
@@ -259,17 +362,33 @@ final class ToolbarRenderer
         return $collectors[$name]->getLabel();
     }
 
+    /**
+     * @param array<string, DataCollectorInterface> $collectors
+     */
+    private function getWpVersion(array $collectors): string
+    {
+        if (!isset($collectors['wordpress'])) {
+            return '';
+        }
+
+        return (string) ($collectors['wordpress']->getData()['wp_version'] ?? '');
+    }
+
     private function esc(string $value): string
     {
         return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     }
 
-    private function formatMs(float $ms): string
+    private function formatBytes(int $bytes): string
     {
-        if ($ms >= 1000) {
-            return $this->esc(sprintf('%.2f s', $ms / 1000));
+        if ($bytes >= 1073741824) {
+            return sprintf('%.1f GB', $bytes / 1073741824);
         }
 
-        return $this->esc(sprintf('%.1f ms', $ms));
+        if ($bytes >= 1048576) {
+            return sprintf('%d MB', (int) ($bytes / 1048576));
+        }
+
+        return sprintf('%d KB', (int) ($bytes / 1024));
     }
 }
