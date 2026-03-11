@@ -7,10 +7,10 @@ namespace WpPack\Component\Debug\Toolbar\Panel;
 abstract class AbstractPanelRenderer
 {
     private const BADGE_COLORS = [
-        'green' => '#a6e3a1',
-        'yellow' => '#f9e2af',
-        'red' => '#f38ba8',
-        'default' => '#cdd6f4',
+        'green' => '#1e1e1e',
+        'yellow' => '#996800',
+        'red' => '#cc1818',
+        'default' => '#50575e',
     ];
 
     protected float $requestTimeFloat = 0.0;
@@ -46,10 +46,14 @@ abstract class AbstractPanelRenderer
         return $html;
     }
 
-    protected function renderPerfCard(string $label, string $value, string $sub): string
+    protected function renderPerfCard(string $label, string $value, string $unit, string $sub): string
     {
         $html = '<div class="wpd-perf-card">';
-        $html .= '<div class="wpd-perf-card-value">' . $value . '</div>';
+        $html .= '<div class="wpd-perf-card-value">' . $value;
+        if ($unit !== '') {
+            $html .= '<span class="wpd-perf-card-unit">' . $this->esc($unit) . '</span>';
+        }
+        $html .= '</div>';
         $html .= '<div class="wpd-perf-card-label">' . $this->esc($label) . '</div>';
         if ($sub !== '') {
             $html .= '<div class="wpd-perf-card-sub">' . $sub . '</div>';
@@ -60,12 +64,41 @@ abstract class AbstractPanelRenderer
     }
 
     /**
+     * @return array{string, string}
+     */
+    protected function formatMsCard(float $ms): array
+    {
+        if ($ms >= 1000) {
+            return [sprintf('%.2f', $ms / 1000), 's'];
+        }
+
+        return [sprintf('%.1f', $ms), 'ms'];
+    }
+
+    /**
+     * @return array{string, string}
+     */
+    protected function formatBytesCard(int $bytes): array
+    {
+        if ($bytes === 0) {
+            return ['0', 'B'];
+        }
+
+        $units = ['B', 'KB', 'MB', 'GB'];
+        $power = (int) floor(log($bytes, 1024));
+        $power = min($power, count($units) - 1);
+        $value = $bytes / (1024 ** $power);
+
+        return [sprintf('%.1f', round($value, 1)), $units[$power]];
+    }
+
+    /**
      * @param array<string, mixed> $entry
      */
     protected function renderTimelineRow(array $entry, string $color, float $totalTime): string
     {
         $html = '<div class="wpd-perf-wf-row">';
-        $html .= '<div class="wpd-perf-wf-label" title="' . $this->esc((string) ($entry['title'] ?? '')) . '">' . $this->esc((string) ($entry['name'] ?? '')) . '</div>';
+        $html .= '<div class="wpd-perf-wf-label">' . $this->esc((string) ($entry['name'] ?? '')) . '</div>';
         $html .= '<div class="wpd-perf-wf-track">';
 
         /** @var non-empty-list<array{start: float, duration: float, title?: string}>|null $bars */

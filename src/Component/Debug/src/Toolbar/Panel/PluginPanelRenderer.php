@@ -61,7 +61,7 @@ final class PluginPanelRenderer extends AbstractPanelRenderer implements PanelRe
                 $hookTime = (float) ($info['hook_time'] ?? 0.0);
                 $queryCount = (int) ($info['query_count'] ?? 0);
                 $isMu = (bool) ($info['is_mu'] ?? false);
-                $muTag = $isMu ? ' <span class="wpd-query-tag" style="background:rgba(137,180,250,0.2);color:#89b4fa">MU</span>' : '';
+                $muTag = $isMu ? ' <span class="wpd-query-tag" style="background:rgba(56,88,233,0.08);color:#3858e9">MU</span>' : '';
 
                 $html .= '<tr>';
                 $html .= '<td><span class="wpd-plugin-detail-link" data-plugin="' . $this->esc($slug) . '">' . $this->esc($name) . '</span>' . $muTag . '</td>';
@@ -140,9 +140,20 @@ final class PluginPanelRenderer extends AbstractPanelRenderer implements PanelRe
         $html .= '<div class="wpd-section">';
         $html .= '<h4 class="wpd-section-title">Timing</h4>';
         $html .= '<div class="wpd-perf-cards">';
-        $html .= $this->renderPerfCard('Load Time', $loadTime > 0 ? $this->formatMs($loadTime) : '-', '');
-        $html .= $this->renderPerfCard('Hook Time', $this->formatMs($hookTime), $this->esc((string) $hookCount) . ' hooks, ' . $this->esc((string) $listenerCount) . ' listeners');
-        $html .= $this->renderPerfCard('Query Time', $queryTime > 0 ? $this->formatMs($queryTime) : '-', '');
+        if ($loadTime > 0) {
+            [$lv, $lu] = $this->formatMsCard($loadTime);
+            $html .= $this->renderPerfCard('Load Time', $lv, $lu, '');
+        } else {
+            $html .= $this->renderPerfCard('Load Time', '-', '', '');
+        }
+        [$hv, $hu] = $this->formatMsCard($hookTime);
+        $html .= $this->renderPerfCard('Hook Time', $hv, $hu, $this->esc((string) $hookCount) . ' hooks, ' . $this->esc((string) $listenerCount) . ' listeners');
+        if ($queryTime > 0) {
+            [$qv, $qu] = $this->formatMsCard($queryTime);
+            $html .= $this->renderPerfCard('Query Time', $qv, $qu, '');
+        } else {
+            $html .= $this->renderPerfCard('Query Time', '-', '', '');
+        }
         $html .= '</div>';
         $html .= '</div>';
 
@@ -169,7 +180,7 @@ final class PluginPanelRenderer extends AbstractPanelRenderer implements PanelRe
             $html .= '<div class="wpd-section">';
             $html .= '<h4 class="wpd-section-title">Enqueued Assets</h4>';
             if ($enqueuedStyles !== []) {
-                $html .= '<div style="margin-bottom:4px"><strong style="color:#a6adc8;font-size:11px">Styles</strong></div>';
+                $html .= '<div style="margin-bottom:4px"><strong style="color:#757575;font-size:11px">Styles</strong></div>';
                 $html .= '<div class="wpd-tag-list" style="margin-bottom:8px">';
                 foreach ($enqueuedStyles as $style) {
                     $html .= '<span class="wpd-tag">' . $this->esc($style) . '</span>';
@@ -177,7 +188,7 @@ final class PluginPanelRenderer extends AbstractPanelRenderer implements PanelRe
                 $html .= '</div>';
             }
             if ($enqueuedScripts !== []) {
-                $html .= '<div style="margin-bottom:4px"><strong style="color:#a6adc8;font-size:11px">Scripts</strong></div>';
+                $html .= '<div style="margin-bottom:4px"><strong style="color:#757575;font-size:11px">Scripts</strong></div>';
                 $html .= '<div class="wpd-tag-list">';
                 foreach ($enqueuedScripts as $script) {
                     $html .= '<span class="wpd-tag">' . $this->esc($script) . '</span>';

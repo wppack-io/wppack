@@ -9,13 +9,6 @@ use WpPack\Component\Debug\Attribute\AsPanelRenderer;
 #[AsPanelRenderer(name: 'memory')]
 final class MemoryPanelRenderer extends AbstractPanelRenderer implements PanelRendererInterface
 {
-    private const BADGE_COLORS = [
-        'green' => '#a6e3a1',
-        'yellow' => '#f9e2af',
-        'red' => '#f38ba8',
-        'default' => '#cdd6f4',
-    ];
-
     public function getName(): string
     {
         return 'memory';
@@ -50,9 +43,9 @@ final class MemoryPanelRenderer extends AbstractPanelRenderer implements PanelRe
         // Memory usage bar
         $html .= '<div class="wpd-memory-bar-wrap">';
         $barColor = match (true) {
-            $usagePercentage >= 90 => self::BADGE_COLORS['red'],
-            $usagePercentage >= 70 => self::BADGE_COLORS['yellow'],
-            default => self::BADGE_COLORS['green'],
+            $usagePercentage >= 90 => '#cc1818',
+            $usagePercentage >= 70 => '#996800',
+            default => '#008a20',
         };
         $barWidth = min($usagePercentage, 100);
         $html .= '<div class="wpd-memory-bar" style="width:' . $this->esc(sprintf('%.1f', $barWidth)) . '%;background:' . $this->esc($barColor) . '"></div>';

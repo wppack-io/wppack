@@ -55,7 +55,7 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer
         return <<<HTML
         <div class="wpd-panel" id="wpd-panel-performance" style="display:none">
             <div class="wpd-panel-header">
-                <span class="wpd-panel-title">{$icon} Performance</span>
+                <span class="wpd-panel-title">Performance</span>
                 <button class="wpd-panel-close" data-action="close-panel" title="Close">&times;</button>
             </div>
             <div class="wpd-panel-body">
@@ -92,23 +92,29 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer
         $html .= '<h4 class="wpd-section-title">Overview</h4>';
         $html .= '<div class="wpd-perf-cards">';
 
-        $html .= $this->renderPerfCard('Total Time', $this->formatMs($totalTime), '');
+        [$timeVal, $timeUnit] = $this->formatMsCard($totalTime);
+        $html .= $this->renderPerfCard('Total Time', $timeVal, $timeUnit, '');
 
         $memorySub = '';
         if ($memoryLimit > 0) {
             $memorySub = $this->esc(sprintf('%.0f%%', $usagePercentage)) . ' of ' . $this->formatBytes($memoryLimit);
         }
-        $html .= $this->renderPerfCard('Peak Memory', $peakMemory > 0 ? $this->formatBytes($peakMemory) : 'N/A', $memorySub);
+        if ($peakMemory > 0) {
+            [$memVal, $memUnit] = $this->formatBytesCard($peakMemory);
+            $html .= $this->renderPerfCard('Peak Memory', $memVal, $memUnit, $memorySub);
+        } else {
+            $html .= $this->renderPerfCard('Peak Memory', 'N/A', '', $memorySub);
+        }
 
         $dbSub = $dbCount > 0 ? $this->formatMs($dbTime) . ' total' : '';
-        $html .= $this->renderPerfCard('Database', $dbCount > 0 ? $this->esc((string) $dbCount) . ' queries' : 'N/A', $dbSub);
+        $html .= $this->renderPerfCard('Database', $dbCount > 0 ? $this->esc((string) $dbCount) : 'N/A', $dbCount > 0 ? 'queries' : '', $dbSub);
 
-        $html .= $this->renderPerfCard('Cache Hit Rate', $cacheData !== [] ? $this->esc(sprintf('%.1f%%', $cacheHitRate)) : 'N/A', '');
+        $html .= $this->renderPerfCard('Cache Hit Rate', $cacheData !== [] ? $this->esc(sprintf('%.1f', $cacheHitRate)) : 'N/A', $cacheData !== [] ? '%' : '', '');
 
         $httpSub = $httpCount > 0 ? $this->formatMs($httpTime) . ' total' : '';
-        $html .= $this->renderPerfCard('HTTP Client', $httpCount > 0 ? $this->esc((string) $httpCount) . ' requests' : 'N/A', $httpSub);
+        $html .= $this->renderPerfCard('HTTP Client', $httpCount > 0 ? $this->esc((string) $httpCount) : 'N/A', $httpCount > 0 ? 'requests' : '', $httpSub);
 
-        $html .= $this->renderPerfCard('Hook Firings', $eventData !== [] ? $this->esc((string) $hookFirings) : 'N/A', '');
+        $html .= $this->renderPerfCard('Hook Firings', $eventData !== [] ? number_format($hookFirings) : 'N/A', '', '');
 
         $html .= '</div>';
         $html .= '</div>';
@@ -144,20 +150,20 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer
 
             // Build segments: fixed categories first, then dynamic
             $segments = [];
-            $segments[] = ['label' => 'PHP', 'time' => $phpTime, 'color' => '#89b4fa'];
-            $segments[] = ['label' => 'Database', 'time' => $dbTimeMs, 'color' => '#f9e2af'];
-            $segments[] = ['label' => 'HTTP Client', 'time' => $httpTimeMs, 'color' => '#cba6f7'];
+            $segments[] = ['label' => 'PHP', 'time' => $phpTime, 'color' => '#3858e9'];
+            $segments[] = ['label' => 'Database', 'time' => $dbTimeMs, 'color' => '#f0c33c'];
+            $segments[] = ['label' => 'HTTP Client', 'time' => $httpTimeMs, 'color' => '#9b8afb'];
 
             if ($cacheTimeMs > 0) {
-                $segments[] = ['label' => 'Cache', 'time' => $cacheTimeMs, 'color' => '#a6e3a1'];
+                $segments[] = ['label' => 'Cache', 'time' => $cacheTimeMs, 'color' => '#4ab866'];
             }
 
             $dynamicCategoryColors = [
-                'template' => '#fab387',
-                'controller' => '#94e2d5',
+                'template' => '#e26f56',
+                'controller' => '#3fcf8e',
             ];
             foreach ($categoryTimes as $cat => $catTime) {
-                $color = $dynamicCategoryColors[$cat] ?? '#74c7ec';
+                $color = $dynamicCategoryColors[$cat] ?? '#5b9fe6';
                 $label = ucfirst($cat);
                 $segments[] = ['label' => $label, 'time' => $catTime, 'color' => $color];
             }
@@ -192,14 +198,14 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer
         $requestTimeFloat = (float) ($timeData['request_time_float'] ?? 0.0);
 
         $categoryColors = [
-            'wordpress' => '#89b4fa',
-            'database' => '#f9e2af',
-            'cache' => '#a6e3a1',
-            'http' => '#cba6f7',
-            'default' => '#74c7ec',
-            'controller' => '#94e2d5',
-            'template' => '#fab387',
-            'security' => '#f38ba8',
+            'wordpress' => '#3858e9',
+            'database' => '#f0c33c',
+            'cache' => '#4ab866',
+            'http' => '#9b8afb',
+            'default' => '#5b9fe6',
+            'controller' => '#3fcf8e',
+            'template' => '#e26f56',
+            'security' => '#e65054',
         ];
 
         // Build unified timeline entries
@@ -443,8 +449,8 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer
         usort($timelineEntries, static fn(array $a, array $b): int => $a['start'] <=> $b['start']);
 
         // Add category colors for new types
-        $categoryColors['plugin'] = '#f5c2e7';
-        $categoryColors['theme_hooks'] = '#fab387';
+        $categoryColors['plugin'] = '#d97ae6';
+        $categoryColors['theme_hooks'] = '#e26f56';
 
         if ($timelineEntries !== [] || $pluginTimelineEntries !== [] || $themeTimelineEntries !== []) {
             $html .= '<div class="wpd-section">';

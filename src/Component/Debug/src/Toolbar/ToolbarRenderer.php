@@ -38,10 +38,10 @@ final class ToolbarRenderer
     private const DEFAULT_ICON = "\xF0\x9F\x93\x8B";
 
     private const BADGE_COLORS = [
-        'green' => '#a6e3a1',
-        'yellow' => '#f9e2af',
-        'red' => '#f38ba8',
-        'default' => '#cdd6f4',
+        'green' => '#1e1e1e',
+        'yellow' => '#996800',
+        'red' => '#cc1818',
+        'default' => '#50575e',
     ];
 
     /** @var array<string, AbstractPanelRenderer&PanelRendererInterface> */
@@ -155,7 +155,7 @@ final class ToolbarRenderer
         return <<<HTML
         <div class="wpd-panel" id="wpd-panel-{$name}" style="display:none">
             <div class="wpd-panel-header">
-                <span class="wpd-panel-title">{$icon} {$label}</span>
+                <span class="wpd-panel-title">{$label}</span>
                 <button class="wpd-panel-close" data-action="close-panel" title="Close">&times;</button>
             </div>
             <div class="wpd-panel-body">

@@ -205,7 +205,7 @@ final class ToolbarRendererTest extends TestCase
         self::assertStringContainsString('Total Time', $html);
         self::assertStringContainsString('Peak Memory', $html);
         self::assertStringContainsString('Database', $html);
-        self::assertStringContainsString('24 queries', $html);
+        self::assertStringContainsString('24<span class="wpd-perf-card-unit">queries</span>', $html);
         self::assertStringContainsString('Cache Hit Rate', $html);
         self::assertStringContainsString('HTTP Client', $html);
         self::assertStringContainsString('Hook Firings', $html);

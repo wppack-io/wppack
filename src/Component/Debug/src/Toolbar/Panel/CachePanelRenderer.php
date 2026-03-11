@@ -9,13 +9,6 @@ use WpPack\Component\Debug\Attribute\AsPanelRenderer;
 #[AsPanelRenderer(name: 'cache')]
 final class CachePanelRenderer extends AbstractPanelRenderer implements PanelRendererInterface
 {
-    private const BADGE_COLORS = [
-        'green' => '#a6e3a1',
-        'yellow' => '#f9e2af',
-        'red' => '#f38ba8',
-        'default' => '#cdd6f4',
-    ];
-
     public function getName(): string
     {
         return 'cache';
@@ -48,9 +41,9 @@ final class CachePanelRenderer extends AbstractPanelRenderer implements PanelRen
         // Hit rate bar
         $html .= '<div class="wpd-memory-bar-wrap">';
         $barColor = match (true) {
-            $hitRate >= 80 => self::BADGE_COLORS['green'],
-            $hitRate >= 50 => self::BADGE_COLORS['yellow'],
-            default => self::BADGE_COLORS['red'],
+            $hitRate >= 80 => '#008a20',
+            $hitRate >= 50 => '#996800',
+            default => '#cc1818',
         };
         $html .= '<div class="wpd-memory-bar" style="width:' . $this->esc(sprintf('%.1f', min($hitRate, 100))) . '%;background:' . $this->esc($barColor) . '"></div>';
         $html .= '</div>';
@@ -78,8 +71,8 @@ final class CachePanelRenderer extends AbstractPanelRenderer implements PanelRen
                     default => $this->esc((string) $op['expiration']) . ' s',
                 };
                 $opTag = $op['operation'] === 'set'
-                    ? '<span class="wpd-query-tag" style="background:rgba(166,227,161,0.2);color:#a6e3a1">SET</span>'
-                    : '<span class="wpd-query-tag" style="background:rgba(243,139,168,0.2);color:#f38ba8">DELETE</span>';
+                    ? '<span class="wpd-query-tag" style="background:rgba(0,163,42,0.08);color:#008a20">SET</span>'
+                    : '<span class="wpd-query-tag" style="background:rgba(204,24,24,0.08);color:#cc1818">DELETE</span>';
 
                 $html .= '<tr>';
                 $html .= '<td class="wpd-col-num">' . $this->esc((string) ($index + 1)) . '</td>';

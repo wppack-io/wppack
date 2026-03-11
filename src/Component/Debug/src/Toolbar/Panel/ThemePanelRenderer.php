@@ -60,9 +60,12 @@ final class ThemePanelRenderer extends AbstractPanelRenderer implements PanelRen
         $html .= '<div class="wpd-section">';
         $html .= '<h4 class="wpd-section-title">Timing</h4>';
         $html .= '<div class="wpd-perf-cards">';
-        $html .= $this->renderPerfCard('Setup Time', $this->formatMs($setupTime), '');
-        $html .= $this->renderPerfCard('Render Time', $this->formatMs($renderTime), '');
-        $html .= $this->renderPerfCard('Hook Time', $this->formatMs($hookTime), $this->esc((string) $hookCount) . ' hooks, ' . $this->esc((string) $listenerCount) . ' listeners');
+        [$sv, $su] = $this->formatMsCard($setupTime);
+        $html .= $this->renderPerfCard('Setup Time', $sv, $su, '');
+        [$rv, $ru] = $this->formatMsCard($renderTime);
+        $html .= $this->renderPerfCard('Render Time', $rv, $ru, '');
+        [$hv, $hu] = $this->formatMsCard($hookTime);
+        $html .= $this->renderPerfCard('Hook Time', $hv, $hu, $this->esc((string) $hookCount) . ' hooks, ' . $this->esc((string) $listenerCount) . ' listeners');
         $html .= '</div>';
         $html .= '</div>';
 
@@ -117,7 +120,7 @@ final class ThemePanelRenderer extends AbstractPanelRenderer implements PanelRen
             $html .= '<div class="wpd-section">';
             $html .= '<h4 class="wpd-section-title">Enqueued Assets</h4>';
             if ($enqueuedStyles !== []) {
-                $html .= '<div style="margin-bottom:4px"><strong style="color:#a6adc8;font-size:11px">Styles</strong></div>';
+                $html .= '<div style="margin-bottom:4px"><strong style="color:#757575;font-size:11px">Styles</strong></div>';
                 $html .= '<div class="wpd-tag-list" style="margin-bottom:8px">';
                 foreach ($enqueuedStyles as $style) {
                     $html .= '<span class="wpd-tag">' . $this->esc($style) . '</span>';
@@ -125,7 +128,7 @@ final class ThemePanelRenderer extends AbstractPanelRenderer implements PanelRen
                 $html .= '</div>';
             }
             if ($enqueuedScripts !== []) {
-                $html .= '<div style="margin-bottom:4px"><strong style="color:#a6adc8;font-size:11px">Scripts</strong></div>';
+                $html .= '<div style="margin-bottom:4px"><strong style="color:#757575;font-size:11px">Scripts</strong></div>';
                 $html .= '<div class="wpd-tag-list">';
                 foreach ($enqueuedScripts as $script) {
                     $html .= '<span class="wpd-tag">' . $this->esc($script) . '</span>';

@@ -47,3 +47,11 @@ http://localhost:8080/wp-die.php?scenario=nonce
 ```
 http://localhost:8080/toolbar.php
 ```
+
+### toolbar-l-shape.php — L字レイアウト ツールバー（モック）
+
+Symfony Profiler 風の L字レイアウト（左サイドバー + コンテンツエリア + ボトムバー）のモック。Gutenberg スタイルのデザイン。
+
+```
+http://localhost:8080/toolbar-l-shape.php
+```

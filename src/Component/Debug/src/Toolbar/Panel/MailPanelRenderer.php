@@ -34,9 +34,9 @@ final class MailPanelRenderer extends AbstractPanelRenderer implements PanelRend
         if ($emails !== []) {
             foreach ($emails as $index => $email) {
                 $statusTag = match ($email['status'] ?? 'pending') {
-                    'sent' => '<span class="wpd-query-tag" style="background:rgba(166,227,161,0.2);color:#a6e3a1">SENT</span>',
-                    'failed' => '<span class="wpd-query-tag" style="background:rgba(243,139,168,0.2);color:#f38ba8">FAILED</span>',
-                    default => '<span class="wpd-query-tag" style="background:rgba(249,226,175,0.2);color:#f9e2af">PENDING</span>',
+                    'sent' => '<span class="wpd-status-tag wpd-status-sent">SENT</span>',
+                    'failed' => '<span class="wpd-status-tag wpd-status-failed">FAILED</span>',
+                    default => '<span class="wpd-status-tag wpd-status-pending">PENDING</span>',
                 };
 
                 $html .= '<div class="wpd-section">';
@@ -90,8 +90,8 @@ final class MailPanelRenderer extends AbstractPanelRenderer implements PanelRend
                 // Body preview
                 $message = (string) ($email['message'] ?? '');
                 if ($message !== '') {
-                    $html .= '<div style="margin-top:8px">';
-                    $html .= '<pre style="background:#181825;padding:8px 12px;border-radius:4px;overflow-x:auto;font-size:12px;color:#cdd6f4;margin:0;max-height:200px;overflow-y:auto">';
+                    $html .= '<div class="wpd-mail-body">';
+                    $html .= '<pre class="wpd-dump-code">';
                     $html .= $this->esc($message);
                     $html .= '</pre>';
                     $html .= '</div>';
@@ -101,7 +101,7 @@ final class MailPanelRenderer extends AbstractPanelRenderer implements PanelRend
                 /** @var list<array{filename: string, size: int}> $attachmentDetails */
                 $attachmentDetails = $email['attachment_details'] ?? [];
                 if ($attachmentDetails !== []) {
-                    $html .= '<div style="margin-top:8px">';
+                    $html .= '<div class="wpd-mail-attachments">';
                     $html .= '<table class="wpd-table wpd-table-full">';
                     $html .= '<thead><tr><th>Attachment</th><th>Size</th></tr></thead>';
                     $html .= '<tbody>';
