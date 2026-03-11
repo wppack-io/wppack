@@ -323,19 +323,20 @@ final class ToolbarRenderer
             $html .= '<thead><tr>';
             $html .= '<th>Event</th>';
             $html .= '<th>Category</th>';
-            $html .= '<th>Time</th>';
+            $html .= '<th class="wpd-col-reltime">Time</th>';
             $html .= '<th>Duration</th>';
             $html .= '<th>Memory</th>';
             $html .= '</tr></thead>';
             $html .= '<tbody>';
 
             foreach ($events as $event) {
-                $startTime = $this->formatMs((float) $event['start_time']);
+                $startMs = (float) $event['start_time'];
+                $relTime = $this->esc('+' . number_format(max(0, $startMs), 0) . ' ms');
 
                 $html .= '<tr>';
                 $html .= '<td>' . $this->esc($event['name']) . '</td>';
                 $html .= '<td><span class="wpd-tag">' . $this->esc($event['category']) . '</span></td>';
-                $html .= '<td class="wpd-col-reltime wpd-text-dim">' . $startTime . '</td>';
+                $html .= '<td class="wpd-col-reltime wpd-text-dim">' . $relTime . '</td>';
                 $html .= '<td>' . $this->formatMs($event['duration']) . '</td>';
                 $html .= '<td>' . $this->formatBytes($event['memory']) . '</td>';
                 $html .= '</tr>';
@@ -917,7 +918,7 @@ final class ToolbarRenderer
                 $listeners = $listenerCounts[$hook] ?? 0;
                 $timing = $hookTimings[$hook] ?? null;
                 $duration = $timing !== null ? $this->formatMs($timing['total_time']) : '-';
-                $hookStart = $timing !== null ? $this->formatMs($timing['start']) : '-';
+                $hookStart = $timing !== null ? $this->esc('+' . number_format(max(0, $timing['start']), 0) . ' ms') : '-';
 
                 $html .= '<tr>';
                 $html .= '<td class="wpd-col-num">' . $this->esc((string) (++$index)) . '</td>';
