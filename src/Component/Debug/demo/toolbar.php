@@ -138,7 +138,7 @@ $collectors[] = new FakeCollector('request', 'Request', 'GET 200', 'green', [
 ]);
 
 // Time — lifecycle phases consistent with the timeline above
-$collectors[] = new FakeCollector('time', 'Time', '198 ms', 'default', [
+$collectors[] = new FakeCollector('time', 'Time', '', 'default', [
     'total_time' => 198.0,
     'request_time_float' => $requestTimeFloat,
     'events' => [
@@ -211,7 +211,7 @@ $collectors[] = new FakeCollector('database', 'Database', '24', 'default', [
 ]);
 
 // Cache
-$collectors[] = new FakeCollector('cache', 'Cache', '92.4%', 'default', [
+$collectors[] = new FakeCollector('cache', 'Cache', '92.4%', 'green', [
     'hits' => 245,
     'misses' => 20,
     'hit_rate' => 92.45,

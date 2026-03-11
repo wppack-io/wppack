@@ -592,7 +592,7 @@ final class ToolbarAssets
             background: #f3f4f6;
             border-radius: 4px;
             overflow: hidden;
-            margin-top: 8px;
+            margin-top: 12px;
         }
         #wppack-debug .wpd-memory-bar {
             height: 100%;
@@ -702,12 +702,12 @@ final class ToolbarAssets
         #wppack-debug .wpd-perf-card-unit {
             font-size: 12px;
             font-weight: 400;
-            color: #9ca3af;
+            color: #6b7280;
             margin-left: 2px;
         }
         #wppack-debug .wpd-perf-card-sub {
             font-size: 11px;
-            color: #9ca3af;
+            color: #6b7280;
             margin-top: 2px;
         }
 

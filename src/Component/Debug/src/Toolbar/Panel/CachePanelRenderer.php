@@ -35,7 +35,12 @@ final class CachePanelRenderer extends AbstractPanelRenderer implements PanelRen
         }
         $html .= $this->renderTableRow('Cache Hits', (string) $hits);
         $html .= $this->renderTableRow('Cache Misses', (string) $misses);
-        $html .= $this->renderTableRow('Hit Rate', sprintf('%.1f%%', $hitRate));
+        $hitRateColor = match (true) {
+            $hitRate >= 80 => 'wpd-text-green',
+            $hitRate >= 50 => 'wpd-text-yellow',
+            default => 'wpd-text-red',
+        };
+        $html .= $this->renderTableRow('Hit Rate', '<span class="' . $hitRateColor . '">' . $this->esc(sprintf('%.1f%%', $hitRate)) . '</span>');
         $html .= '</table>';
 
         // Hit rate bar

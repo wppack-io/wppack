@@ -86,13 +86,7 @@ final class TimeDataCollector extends AbstractDataCollector
 
     public function getBadgeValue(): string
     {
-        $totalTime = $this->data['total_time'] ?? 0.0;
-
-        if ($totalTime >= 1000) {
-            return sprintf('%.1f s', $totalTime / 1000);
-        }
-
-        return sprintf('%d ms', (int) $totalTime);
+        return '';
     }
 
     public function getBadgeColor(): string

@@ -71,7 +71,13 @@ final class CacheDataCollector extends AbstractDataCollector
 
     public function getBadgeColor(): string
     {
-        return 'default';
+        $hitRate = $this->data['hit_rate'] ?? 0.0;
+
+        return match (true) {
+            $hitRate >= 80 => 'green',
+            $hitRate >= 50 => 'yellow',
+            default => 'red',
+        };
     }
 
     /**
