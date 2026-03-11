@@ -44,6 +44,7 @@ final class ToolbarRenderer
         ['event', 'security', 'logger', 'container'],
         ['asset', 'widget', 'shortcode', 'admin'],
         ['mail', 'scheduler', 'translation', 'feed'],
+        ['environment'],
         ['dump'],
     ];
 

@@ -9,6 +9,7 @@ use WpPack\Component\Debug\Profiler\Profile;
 use WpPack\Component\Debug\Toolbar\Panel\CachePanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\DatabasePanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\DumpPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\EnvironmentPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\EventPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\HttpClientPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\LoggerPanelRenderer;
@@ -565,6 +566,64 @@ $collectors[] = new FakeCollector('logger', 'Logger', '12', 'red', [
     'level_counts' => ['error' => 1, 'deprecation' => 3, 'warning' => 2, 'notice' => 1, 'info' => 3, 'debug' => 2],
 ]);
 
+// Environment
+$collectors[] = new FakeCollector('environment', 'Environment', '', 'default', [
+    'php' => [
+        'version' => '8.3.15',
+        'major_minor' => '8.3',
+        'zts' => false,
+        'debug' => false,
+        'gc_enabled' => true,
+        'zend_version' => '4.3.15',
+    ],
+    'extensions' => [
+        'apcu', 'bcmath', 'calendar', 'Core', 'ctype', 'curl', 'date', 'dom',
+        'exif', 'fileinfo', 'filter', 'gd', 'hash', 'iconv', 'igbinary',
+        'intl', 'json', 'libxml', 'mbstring', 'memcached', 'msgpack', 'mysqli',
+        'mysqlnd', 'openssl', 'pcntl', 'pcre', 'PDO', 'pdo_mysql', 'pdo_sqlite',
+        'Phar', 'posix', 'readline', 'redis', 'Reflection', 'session', 'SimpleXML',
+        'sockets', 'sodium', 'SPL', 'sqlite3', 'standard', 'tokenizer', 'xml',
+        'xmlreader', 'xmlwriter', 'xsl', 'Zend OPcache', 'zip', 'zlib',
+    ],
+    'ini' => [
+        'memory_limit' => '256M',
+        'max_execution_time' => '30',
+        'max_input_time' => '60',
+        'post_max_size' => '64M',
+        'upload_max_filesize' => '64M',
+        'max_file_uploads' => '20',
+        'max_input_vars' => '1000',
+        'default_charset' => 'UTF-8',
+        'date.timezone' => 'Asia/Tokyo',
+        'display_errors' => '1',
+        'error_reporting' => '32767',
+        'log_errors' => '1',
+        'error_log' => '/var/log/php/error.log',
+        'session.gc_maxlifetime' => '1440',
+        'session.cookie_lifetime' => '0',
+        'session.cookie_secure' => '1',
+        'session.cookie_httponly' => '1',
+        'realpath_cache_size' => '4096K',
+        'realpath_cache_ttl' => '120',
+        'allow_url_fopen' => '1',
+        'disable_functions' => 'exec,passthru,shell_exec,system,proc_open,popen',
+    ],
+    'opcache' => [
+        'enabled' => true,
+        'jit' => true,
+        'used_memory' => 78643200,
+        'free_memory' => 55574528,
+        'wasted_percentage' => 1.2,
+        'cached_scripts' => 423,
+        'hit_rate' => 98.7,
+        'oom_restarts' => 0,
+    ],
+    'sapi' => 'fpm-fcgi',
+    'os' => 'Linux',
+    'architecture' => 64,
+    'hostname' => 'web-prod-01',
+]);
+
 // Dump
 $collectors[] = new FakeCollector('dump', 'Dump', '3', 'yellow', [
     'total_count' => 3,
@@ -970,6 +1029,7 @@ $renderer->addPanelRenderer(new AjaxPanelRenderer());
 $renderer->addPanelRenderer(new AdminPanelRenderer());
 $renderer->addPanelRenderer(new ContainerPanelRenderer());
 $renderer->addPanelRenderer(new FeedPanelRenderer());
+$renderer->addPanelRenderer(new EnvironmentPanelRenderer());
 $html = $renderer->render($profile);
 ?>
 <!DOCTYPE html>

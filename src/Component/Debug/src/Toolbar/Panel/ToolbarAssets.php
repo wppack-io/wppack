@@ -48,39 +48,34 @@ final class ToolbarAssets
             height: 100%;
             border: none;
             padding: 0;
-            background: transparent;
+            background: #3858e9;
+            color: #ffffff;
             cursor: pointer;
             flex-shrink: 0;
             font-family: inherit;
+            transition: background 0.15s ease;
         }
-        #wppack-debug .wpd-bar-wp.wpd-active .wpd-bar-version {
-            box-shadow: inset 0 -2px 0 #3858e9;
+        #wppack-debug .wpd-bar-wp:hover {
+            background: #2d4ad6;
         }
         #wppack-debug .wpd-bar-logo {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 40px;
+            width: 36px;
             height: 100%;
-            background: #3858e9;
-            color: #ffffff;
             flex-shrink: 0;
         }
         #wppack-debug .wpd-bar-version {
             display: flex;
             align-items: center;
-            padding: 0 10px;
+            padding-right: 10px;
             height: 100%;
             font-size: 11px;
             font-weight: 600;
-            color: #3858e9;
-            border-right: 1px solid #e5e7eb;
+            color: rgba(255,255,255,0.9);
             flex-shrink: 0;
             white-space: nowrap;
-            transition: background 0.15s ease;
-        }
-        #wppack-debug .wpd-bar-wp:hover .wpd-bar-version {
-            background: #f3f4f6;
         }
 
         /* ---- Badges container ---- */
@@ -301,7 +296,6 @@ final class ToolbarAssets
             width: 180px;
             flex-shrink: 0;
             background: #fafafa;
-            border-right: 1px solid #e5e7eb;
             overflow-y: auto;
             overflow-x: hidden;
             scrollbar-width: thin;
@@ -360,6 +354,7 @@ final class ToolbarAssets
         }
         #wppack-debug .wpd-sidebar-divider {
             height: 1px;
+            flex-shrink: 0;
             background: #e5e7eb;
             margin: 4px 16px;
         }

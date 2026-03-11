@@ -22,6 +22,7 @@ use WpPack\Component\Debug\DataCollector\AdminDataCollector;
 use WpPack\Component\Debug\DataCollector\AjaxDataCollector;
 use WpPack\Component\Debug\DataCollector\AssetDataCollector;
 use WpPack\Component\Debug\DataCollector\ContainerDataCollector;
+use WpPack\Component\Debug\DataCollector\EnvironmentDataCollector;
 use WpPack\Component\Debug\DataCollector\FeedDataCollector;
 use WpPack\Component\Debug\DataCollector\RestDataCollector;
 use WpPack\Component\Debug\DataCollector\SecurityDataCollector;
@@ -54,6 +55,7 @@ use WpPack\Component\Debug\Toolbar\Panel\AdminPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\AjaxPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\AssetPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\ContainerPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\EnvironmentPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\FeedPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\RestPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\SecurityPanelRenderer;
@@ -104,6 +106,7 @@ final class DebugServiceProvider implements ServiceProviderInterface
         $builder->register(RestDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
         $builder->register(ContainerDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
         $builder->register(AjaxDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
+        $builder->register(EnvironmentDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
 
         // Logger Component integration (optional)
         if (class_exists(\WpPack\Component\Logger\Handler\HandlerInterface::class)) {
@@ -140,5 +143,6 @@ final class DebugServiceProvider implements ServiceProviderInterface
         $builder->register(RestPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
         $builder->register(ContainerPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
         $builder->register(AjaxPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
+        $builder->register(EnvironmentPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
     }
 }
