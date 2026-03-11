@@ -1463,9 +1463,11 @@ final class ToolbarRenderer
                 $loadTime = (float) ($info['load_time'] ?? 0.0);
                 $hookTime = (float) ($info['hook_time'] ?? 0.0);
                 $queryCount = (int) ($info['query_count'] ?? 0);
+                $isMu = (bool) ($info['is_mu'] ?? false);
+                $muTag = $isMu ? ' <span class="wpd-query-tag" style="background:rgba(137,180,250,0.2);color:#89b4fa">MU</span>' : '';
 
                 $html .= '<tr>';
-                $html .= '<td><span class="wpd-plugin-detail-link" data-plugin="' . $this->esc($slug) . '">' . $this->esc($name) . '</span></td>';
+                $html .= '<td><span class="wpd-plugin-detail-link" data-plugin="' . $this->esc($slug) . '">' . $this->esc($name) . '</span>' . $muTag . '</td>';
                 $html .= '<td>' . ($version !== '' ? $this->esc($version) : '-') . '</td>';
                 $html .= '<td class="wpd-col-right">' . ($loadTime > 0 ? $this->formatMs($loadTime) : '-') . '</td>';
                 $html .= '<td class="wpd-col-right">' . $this->formatMs($hookTime) . '</td>';
@@ -1474,17 +1476,6 @@ final class ToolbarRenderer
             }
 
             $html .= '</tbody></table>';
-            $html .= '</div>';
-        }
-
-        if ($muPlugins !== []) {
-            $html .= '<div class="wpd-section">';
-            $html .= '<h4 class="wpd-section-title">MU Plugins</h4>';
-            $html .= '<ul class="wpd-list">';
-            foreach ($muPlugins as $muPlugin) {
-                $html .= '<li><code>' . $this->esc($muPlugin) . '</code></li>';
-            }
-            $html .= '</ul>';
             $html .= '</div>';
         }
 
@@ -1538,8 +1529,10 @@ final class ToolbarRenderer
         $html .= '</div>';
 
         // Plugin Info
+        $isMu = (bool) ($info['is_mu'] ?? false);
+        $infoTitle = $isMu ? 'MU Plugin Info' : 'Plugin Info';
         $html .= '<div class="wpd-section">';
-        $html .= '<h4 class="wpd-section-title">Plugin Info</h4>';
+        $html .= '<h4 class="wpd-section-title">' . $infoTitle . '</h4>';
         $html .= '<table class="wpd-table wpd-table-kv">';
         $html .= $this->renderTableRow('Name', $this->esc($name));
         if ($version !== '') {

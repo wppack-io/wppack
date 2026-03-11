@@ -329,7 +329,7 @@ final class ToolbarRendererTest extends TestCase
         $profile = new Profile('test-token');
         $profile->addCollector($this->createCollector('plugin', 'Plugins', '3', 'green', [
             'total_plugins' => 3,
-            'total_hook_time' => 35.0,
+            'total_hook_time' => 35.8,
             'slowest_plugin' => 'woocommerce/woocommerce.php',
             'plugins' => [
                 'woocommerce/woocommerce.php' => [
@@ -347,6 +347,22 @@ final class ToolbarRendererTest extends TestCase
                         ['hook' => 'init', 'listeners' => 3, 'time' => 8.2],
                     ],
                 ],
+                'loader.php' => [
+                    'name' => 'Custom Loader',
+                    'version' => '1.0.0',
+                    'load_time' => 1.2,
+                    'is_mu' => true,
+                    'hook_count' => 1,
+                    'listener_count' => 2,
+                    'hook_time' => 0.8,
+                    'query_count' => 0,
+                    'query_time' => 0.0,
+                    'enqueued_styles' => [],
+                    'enqueued_scripts' => [],
+                    'hooks' => [
+                        ['hook' => 'muplugins_loaded', 'listeners' => 2, 'time' => 0.8],
+                    ],
+                ],
             ],
             'mu_plugins' => ['loader.php'],
             'dropins' => ['object-cache.php'],
@@ -361,14 +377,17 @@ final class ToolbarRendererTest extends TestCase
         self::assertStringContainsString('wpd-plugin-list', $html);
         self::assertStringContainsString('wpd-plugin-detail-link', $html);
         self::assertStringContainsString('WooCommerce', $html);
-        self::assertStringContainsString('MU Plugins', $html);
-        self::assertStringContainsString('loader.php', $html);
+        // MU plugin in table with MU tag
+        self::assertStringContainsString('Custom Loader', $html);
+        self::assertStringContainsString('>MU</span>', $html);
+        // Drop-ins
         self::assertStringContainsString('Drop-ins', $html);
         self::assertStringContainsString('object-cache.php', $html);
         // Detail view
         self::assertStringContainsString('wpd-plugin-detail', $html);
         self::assertStringContainsString('data-action="plugin-back"', $html);
         self::assertStringContainsString('Plugin Info', $html);
+        self::assertStringContainsString('MU Plugin Info', $html);
         self::assertStringContainsString('Hook Breakdown', $html);
         self::assertStringContainsString('Enqueued Assets', $html);
         self::assertStringContainsString('woocommerce-layout', $html);

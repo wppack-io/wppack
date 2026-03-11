@@ -125,6 +125,69 @@ final class PluginDataCollectorTest extends TestCase
     }
 
     #[Test]
+    public function captureMuPluginLoadedRecordsLoadOrder(): void
+    {
+        $this->collector->captureMuPluginLoaded('/var/www/html/wp-content/mu-plugins/loader.php');
+        $this->collector->captureMuPluginLoaded('/var/www/html/wp-content/mu-plugins/custom.php');
+
+        $reflection = new \ReflectionProperty($this->collector, 'loadOrder');
+        $loadOrder = $reflection->getValue($this->collector);
+
+        self::assertSame(['loader.php', 'custom.php'], $loadOrder);
+    }
+
+    #[Test]
+    public function captureMuPluginLoadedRecordsTimings(): void
+    {
+        $this->collector->captureMuPluginLoaded('/var/www/html/wp-content/mu-plugins/first.php');
+        usleep(1000); // 1ms
+        $this->collector->captureMuPluginLoaded('/var/www/html/wp-content/mu-plugins/second.php');
+
+        $reflection = new \ReflectionProperty($this->collector, 'pluginLoadTimes');
+        $loadTimes = $reflection->getValue($this->collector);
+
+        // First MU plugin's load time should be recorded when second starts
+        self::assertArrayHasKey('first.php', $loadTimes);
+        self::assertGreaterThan(0.0, $loadTimes['first.php']);
+    }
+
+    #[Test]
+    public function captureMuPluginsLoadedFinalizesLastMuPlugin(): void
+    {
+        $this->collector->captureMuPluginLoaded('/var/www/html/wp-content/mu-plugins/only.php');
+        usleep(1000);
+        $this->collector->captureMuPluginsLoaded();
+
+        $reflection = new \ReflectionProperty($this->collector, 'pluginLoadTimes');
+        $loadTimes = $reflection->getValue($this->collector);
+
+        self::assertArrayHasKey('only.php', $loadTimes);
+        self::assertGreaterThan(0.0, $loadTimes['only.php']);
+    }
+
+    #[Test]
+    public function captureMuThenRegularPluginsRecordsSeparately(): void
+    {
+        // Simulate MU plugin loading
+        $this->collector->captureMuPluginLoaded('/var/www/html/wp-content/mu-plugins/loader.php');
+        usleep(1000);
+        $this->collector->captureMuPluginsLoaded();
+
+        // Simulate regular plugin loading
+        $this->collector->capturePluginLoaded('akismet/akismet.php');
+        usleep(1000);
+        $this->collector->capturePluginsLoaded();
+
+        $reflection = new \ReflectionProperty($this->collector, 'pluginLoadTimes');
+        $loadTimes = $reflection->getValue($this->collector);
+
+        self::assertArrayHasKey('loader.php', $loadTimes);
+        self::assertArrayHasKey('akismet/akismet.php', $loadTimes);
+        self::assertGreaterThan(0.0, $loadTimes['loader.php']);
+        self::assertGreaterThan(0.0, $loadTimes['akismet/akismet.php']);
+    }
+
+    #[Test]
     public function resetClearsData(): void
     {
         $this->collector->capturePluginLoaded('test/test.php');

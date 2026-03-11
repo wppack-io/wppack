@@ -52,6 +52,39 @@ final class PluginDataCollector extends AbstractDataCollector
     }
 
     /**
+     * Capture individual MU plugin load time (WP 6.7+).
+     *
+     * MU plugins use full file paths instead of relative plugin-dir/file.php format.
+     */
+    public function captureMuPluginLoaded(string $muPluginFile): void
+    {
+        $now = microtime(true);
+
+        // Record the previous MU plugin's load time
+        if ($this->lastPluginSlug !== '' && $this->lastPluginLoadStart > 0) {
+            $this->pluginLoadTimes[$this->lastPluginSlug] = ($now - $this->lastPluginLoadStart) * 1000;
+        }
+
+        $slug = basename($muPluginFile);
+        $this->lastPluginSlug = $slug;
+        $this->lastPluginLoadStart = $now;
+        $this->loadOrder[] = $slug;
+    }
+
+    /**
+     * Finalize timing for the last MU plugin loaded.
+     */
+    public function captureMuPluginsLoaded(): void
+    {
+        $now = microtime(true);
+        if ($this->lastPluginSlug !== '' && $this->lastPluginLoadStart > 0) {
+            $this->pluginLoadTimes[$this->lastPluginSlug] = ($now - $this->lastPluginLoadStart) * 1000;
+        }
+        $this->lastPluginSlug = '';
+        $this->lastPluginLoadStart = 0.0;
+    }
+
+    /**
      * Finalize timing for the last plugin loaded.
      */
     public function capturePluginsLoaded(): void
@@ -137,6 +170,43 @@ final class PluginDataCollector extends AbstractDataCollector
             }
         }
 
+        // MU plugins — process with the same pipeline as regular plugins
+        $muPluginData = function_exists('get_mu_plugins') ? get_mu_plugins() : [];
+        foreach ($muPluginData as $muFile => $muInfo) {
+            $slug = basename($muFile);
+
+            $hooks = $pluginHooks[$slug] ?? [];
+            $hookTime = 0.0;
+            $listenerCount = 0;
+            foreach ($hooks as $hookInfo) {
+                $hookTime += $hookInfo['time'];
+                $listenerCount += $hookInfo['listeners'];
+            }
+
+            $queryInfo = $pluginQueries[$slug] ?? ['count' => 0, 'time' => 0.0];
+
+            $pluginData = [
+                'name' => $muInfo['Name'] ?? $muFile,
+                'version' => $muInfo['Version'] ?? '',
+                'load_time' => round($this->pluginLoadTimes[$muFile] ?? 0.0, 2),
+                'is_mu' => true,
+                'hook_count' => count($hooks),
+                'listener_count' => $listenerCount,
+                'hook_time' => round($hookTime, 2),
+                'query_count' => $queryInfo['count'],
+                'query_time' => round($queryInfo['time'], 2),
+                'hooks' => $hooks,
+            ];
+
+            $plugins[$muFile] = $pluginData;
+            $totalHookTime += $hookTime;
+
+            if ($hookTime > $slowestTime) {
+                $slowestTime = $hookTime;
+                $slowestPlugin = $muFile;
+            }
+        }
+
         // Sort by hook_time descending
         uasort($plugins, static fn(array $a, array $b): int => $b['hook_time'] <=> $a['hook_time']);
 
@@ -187,7 +257,9 @@ final class PluginDataCollector extends AbstractDataCollector
     private function buildPluginHookAttribution(array $wpFilter): array
     {
         $pluginDir = defined('WP_PLUGIN_DIR') ? WP_PLUGIN_DIR : '';
-        if ($pluginDir === '') {
+        $muPluginDir = defined('WPMU_PLUGIN_DIR') ? WPMU_PLUGIN_DIR : '';
+
+        if ($pluginDir === '' && $muPluginDir === '') {
             return [];
         }
 
@@ -198,13 +270,11 @@ final class PluginDataCollector extends AbstractDataCollector
                 continue;
             }
 
-            $totalListeners = 0;
             $pluginListeners = [];
 
             foreach ($hookObj->callbacks as $priority => $funcs) {
                 foreach ($funcs as $func) {
-                    $totalListeners++;
-                    $slug = $this->getPluginSlugFromCallback($func['function'] ?? null, $pluginDir);
+                    $slug = $this->getPluginSlugFromCallback($func['function'] ?? null, $pluginDir, $muPluginDir);
                     if ($slug !== null) {
                         $pluginListeners[$slug] = ($pluginListeners[$slug] ?? 0) + 1;
                     }
@@ -228,7 +298,7 @@ final class PluginDataCollector extends AbstractDataCollector
         return $pluginHooks;
     }
 
-    private function getPluginSlugFromCallback(mixed $callback, string $pluginDir): ?string
+    private function getPluginSlugFromCallback(mixed $callback, string $pluginDir, string $muPluginDir): ?string
     {
         try {
             $fileName = $this->getCallbackFileName($callback);
@@ -236,14 +306,24 @@ final class PluginDataCollector extends AbstractDataCollector
             return null;
         }
 
-        if ($fileName === null || !str_starts_with($fileName, $pluginDir)) {
+        if ($fileName === null) {
             return null;
         }
 
-        $relative = substr($fileName, strlen($pluginDir) + 1);
-        $parts = explode('/', $relative, 2);
+        // Check regular plugin directory
+        if ($pluginDir !== '' && str_starts_with($fileName, $pluginDir)) {
+            $relative = substr($fileName, strlen($pluginDir) + 1);
+            $parts = explode('/', $relative, 2);
 
-        return $parts[0];
+            return $parts[0];
+        }
+
+        // Check MU plugin directory — single-file structure, use basename
+        if ($muPluginDir !== '' && str_starts_with($fileName, $muPluginDir)) {
+            return basename($fileName);
+        }
+
+        return null;
     }
 
     private function getCallbackFileName(mixed $callback): ?string
@@ -278,7 +358,9 @@ final class PluginDataCollector extends AbstractDataCollector
         }
 
         $pluginDir = defined('WP_PLUGIN_DIR') ? WP_PLUGIN_DIR : '';
-        if ($pluginDir === '') {
+        $muPluginDir = defined('WPMU_PLUGIN_DIR') ? WPMU_PLUGIN_DIR : '';
+
+        if ($pluginDir === '' && $muPluginDir === '') {
             return [];
         }
 
@@ -291,8 +373,8 @@ final class PluginDataCollector extends AbstractDataCollector
             $caller = (string) ($query[2] ?? '');
             $time = (float) ($query[1] ?? 0.0);
 
-            if (str_contains($caller, $pluginDir)) {
-                // Extract plugin slug from caller trace
+            // Check regular plugin directory
+            if ($pluginDir !== '' && str_contains($caller, $pluginDir)) {
                 $pos = strpos($caller, $pluginDir);
                 if ($pos !== false) {
                     $relative = substr($caller, $pos + strlen($pluginDir) + 1);
@@ -301,7 +383,22 @@ final class PluginDataCollector extends AbstractDataCollector
 
                     $result[$slug] ??= ['count' => 0, 'time' => 0.0];
                     $result[$slug]['count']++;
-                    $result[$slug]['time'] += $time * 1000; // Convert to ms
+                    $result[$slug]['time'] += $time * 1000;
+                }
+            }
+
+            // Check MU plugin directory
+            if ($muPluginDir !== '' && str_contains($caller, $muPluginDir)) {
+                $pos = strpos($caller, $muPluginDir);
+                if ($pos !== false) {
+                    $relative = substr($caller, $pos + strlen($muPluginDir) + 1);
+                    // MU plugins are single files — basename as slug
+                    $parts = explode('/', $relative, 2);
+                    $slug = $parts[0];
+
+                    $result[$slug] ??= ['count' => 0, 'time' => 0.0];
+                    $result[$slug]['count']++;
+                    $result[$slug]['time'] += $time * 1000;
                 }
             }
         }
@@ -315,6 +412,8 @@ final class PluginDataCollector extends AbstractDataCollector
             return;
         }
 
+        add_action('mu_plugin_loaded', [$this, 'captureMuPluginLoaded'], \PHP_INT_MIN, 1);
+        add_action('muplugins_loaded', [$this, 'captureMuPluginsLoaded'], \PHP_INT_MAX, 0);
         add_action('plugin_loaded', [$this, 'capturePluginLoaded'], \PHP_INT_MIN, 1);
         add_action('plugins_loaded', [$this, 'capturePluginsLoaded'], \PHP_INT_MAX, 0);
     }
