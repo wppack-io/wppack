@@ -322,8 +322,8 @@ final class ToolbarRenderer
             $html .= '<table class="wpd-table wpd-table-full">';
             $html .= '<thead><tr>';
             $html .= '<th>Event</th>';
-            $html .= '<th>Category</th>';
             $html .= '<th class="wpd-col-reltime">Time</th>';
+            $html .= '<th>Category</th>';
             $html .= '<th>Duration</th>';
             $html .= '<th>Memory</th>';
             $html .= '</tr></thead>';
@@ -335,8 +335,8 @@ final class ToolbarRenderer
 
                 $html .= '<tr>';
                 $html .= '<td>' . $this->esc($event['name']) . '</td>';
-                $html .= '<td><span class="wpd-tag">' . $this->esc($event['category']) . '</span></td>';
                 $html .= '<td class="wpd-col-reltime wpd-text-dim">' . $relTime . '</td>';
+                $html .= '<td><span class="wpd-tag">' . $this->esc($event['category']) . '</span></td>';
                 $html .= '<td>' . $this->formatMs($event['duration']) . '</td>';
                 $html .= '<td>' . $this->formatBytes($event['memory']) . '</td>';
                 $html .= '</tr>';
