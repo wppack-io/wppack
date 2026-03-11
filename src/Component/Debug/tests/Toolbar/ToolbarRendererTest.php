@@ -8,6 +8,23 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Debug\DataCollector\DataCollectorInterface;
 use WpPack\Component\Debug\Profiler\Profile;
+use WpPack\Component\Debug\Toolbar\Panel\CachePanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\DatabasePanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\DumpPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\EventPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\HttpClientPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\LoggerPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\MailPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\MemoryPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\PluginPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\RequestPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\RouterPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\SchedulerPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\ThemePanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\TimePanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\TranslationPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\UserPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\WordPressPanelRenderer;
 use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
 
 final class ToolbarRendererTest extends TestCase
@@ -17,6 +34,23 @@ final class ToolbarRendererTest extends TestCase
     protected function setUp(): void
     {
         $this->renderer = new ToolbarRenderer();
+        $this->renderer->addPanelRenderer(new DatabasePanelRenderer());
+        $this->renderer->addPanelRenderer(new TimePanelRenderer());
+        $this->renderer->addPanelRenderer(new MemoryPanelRenderer());
+        $this->renderer->addPanelRenderer(new RequestPanelRenderer());
+        $this->renderer->addPanelRenderer(new CachePanelRenderer());
+        $this->renderer->addPanelRenderer(new WordPressPanelRenderer());
+        $this->renderer->addPanelRenderer(new UserPanelRenderer());
+        $this->renderer->addPanelRenderer(new MailPanelRenderer());
+        $this->renderer->addPanelRenderer(new EventPanelRenderer());
+        $this->renderer->addPanelRenderer(new LoggerPanelRenderer());
+        $this->renderer->addPanelRenderer(new RouterPanelRenderer());
+        $this->renderer->addPanelRenderer(new HttpClientPanelRenderer());
+        $this->renderer->addPanelRenderer(new TranslationPanelRenderer());
+        $this->renderer->addPanelRenderer(new DumpPanelRenderer());
+        $this->renderer->addPanelRenderer(new PluginPanelRenderer());
+        $this->renderer->addPanelRenderer(new ThemePanelRenderer());
+        $this->renderer->addPanelRenderer(new SchedulerPanelRenderer());
     }
 
     #[Test]

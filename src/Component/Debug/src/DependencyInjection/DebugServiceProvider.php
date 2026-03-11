@@ -28,6 +28,23 @@ use WpPack\Component\Debug\ErrorHandler\WpDieHandler;
 use WpPack\Component\Debug\Profiler\Profile;
 use WpPack\Component\Debug\Profiler\Profiler;
 use WpPack\Component\Debug\Profiler\Stopwatch;
+use WpPack\Component\Debug\Toolbar\Panel\CachePanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\DatabasePanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\DumpPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\EventPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\HttpClientPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\LoggerPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\MailPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\MemoryPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\PluginPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\RequestPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\RouterPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\SchedulerPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\ThemePanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\TimePanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\TranslationPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\UserPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\WordPressPanelRenderer;
 use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
 use WpPack\Component\Debug\Toolbar\ToolbarSubscriber;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
@@ -72,5 +89,24 @@ final class DebugServiceProvider implements ServiceProviderInterface
         // Adapters
         $builder->register(DebugBarPanelAdapter::class)->addTag(RegisterDataCollectorsPass::TAG);
         $builder->register(QueryMonitorCollectorAdapter::class)->addTag(RegisterDataCollectorsPass::TAG);
+
+        // Built-in panel renderers
+        $builder->register(DatabasePanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
+        $builder->register(TimePanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
+        $builder->register(MemoryPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
+        $builder->register(RequestPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
+        $builder->register(CachePanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
+        $builder->register(WordPressPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
+        $builder->register(UserPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
+        $builder->register(MailPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
+        $builder->register(EventPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
+        $builder->register(LoggerPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
+        $builder->register(RouterPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
+        $builder->register(HttpClientPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
+        $builder->register(TranslationPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
+        $builder->register(DumpPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
+        $builder->register(PluginPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
+        $builder->register(ThemePanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
+        $builder->register(SchedulerPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
     }
 }

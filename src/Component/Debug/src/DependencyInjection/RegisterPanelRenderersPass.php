@@ -1,0 +1,61 @@
+<?php
+
+declare(strict_types=1);
+
+namespace WpPack\Component\Debug\DependencyInjection;
+
+use WpPack\Component\Debug\Attribute\AsPanelRenderer;
+use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
+use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use WpPack\Component\DependencyInjection\ContainerBuilder;
+use WpPack\Component\DependencyInjection\Reference;
+
+final class RegisterPanelRenderersPass implements CompilerPassInterface
+{
+    public const TAG = 'debug.panel_renderer';
+
+    public function process(ContainerBuilder $builder): void
+    {
+        if (!$builder->hasDefinition(ToolbarRenderer::class)) {
+            return;
+        }
+
+        $toolbarDefinition = $builder->findDefinition(ToolbarRenderer::class);
+
+        $renderers = [];
+
+        foreach ($builder->getDefinitions() as $definition) {
+            $class = $definition->getClass() ?? $definition->getId();
+
+            if (!class_exists($class)) {
+                continue;
+            }
+
+            $reflection = new \ReflectionClass($class);
+            $attributes = $reflection->getAttributes(AsPanelRenderer::class);
+
+            $isRenderer = $definition->hasTag(self::TAG) || $attributes !== [];
+
+            if (!$isRenderer) {
+                continue;
+            }
+
+            $priority = 0;
+            if ($attributes !== []) {
+                $attr = $attributes[0]->newInstance();
+                $priority = $attr->priority;
+            }
+
+            $renderers[] = [
+                'id' => $definition->getId(),
+                'priority' => $priority,
+            ];
+        }
+
+        usort($renderers, static fn(array $a, array $b): int => $b['priority'] <=> $a['priority']);
+
+        foreach ($renderers as $renderer) {
+            $toolbarDefinition->addMethodCall('addPanelRenderer', [new Reference($renderer['id'])]);
+        }
+    }
+}

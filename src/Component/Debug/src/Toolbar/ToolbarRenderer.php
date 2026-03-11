@@ -7,27 +7,10 @@ namespace WpPack\Component\Debug\Toolbar;
 use WpPack\Component\Debug\DataCollector\DataCollectorInterface;
 use WpPack\Component\Debug\Profiler\Profile;
 use WpPack\Component\Debug\Toolbar\Panel\AbstractPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\CachePanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\DatabasePanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\DumpPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\EventPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\GenericPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\HttpClientPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\LoggerPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\MailPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\MemoryPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\PanelRendererInterface;
 use WpPack\Component\Debug\Toolbar\Panel\PerformancePanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\PluginPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\RequestPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\RouterPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\SchedulerPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\ThemePanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\TimePanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\ToolbarAssets;
-use WpPack\Component\Debug\Toolbar\Panel\TranslationPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\UserPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\WordPressPanelRenderer;
 
 final class ToolbarRenderer
 {
@@ -62,7 +45,7 @@ final class ToolbarRenderer
     ];
 
     /** @var array<string, AbstractPanelRenderer&PanelRendererInterface> */
-    private readonly array $panelRenderers;
+    private array $panelRenderers = [];
 
     private readonly PerformancePanelRenderer $performanceRenderer;
 
@@ -72,35 +55,14 @@ final class ToolbarRenderer
 
     public function __construct()
     {
-        $renderers = [
-            new DatabasePanelRenderer(),
-            new TimePanelRenderer(),
-            new MemoryPanelRenderer(),
-            new RequestPanelRenderer(),
-            new CachePanelRenderer(),
-            new WordPressPanelRenderer(),
-            new UserPanelRenderer(),
-            new MailPanelRenderer(),
-            new EventPanelRenderer(),
-            new LoggerPanelRenderer(),
-            new RouterPanelRenderer(),
-            new HttpClientPanelRenderer(),
-            new TranslationPanelRenderer(),
-            new DumpPanelRenderer(),
-            new PluginPanelRenderer(),
-            new ThemePanelRenderer(),
-            new SchedulerPanelRenderer(),
-        ];
-
-        $map = [];
-        foreach ($renderers as $r) {
-            $map[$r->getName()] = $r;
-        }
-
-        $this->panelRenderers = $map;
         $this->performanceRenderer = new PerformancePanelRenderer();
         $this->genericRenderer = new GenericPanelRenderer();
         $this->assets = new ToolbarAssets();
+    }
+
+    public function addPanelRenderer(AbstractPanelRenderer&PanelRendererInterface $renderer): void
+    {
+        $this->panelRenderers[$renderer->getName()] = $renderer;
     }
 
     public function render(Profile $profile): string

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
+use WpPack\Component\Debug\Attribute\AsPanelRenderer;
+
+#[AsPanelRenderer(name: 'database')]
 final class DatabasePanelRenderer extends AbstractPanelRenderer implements PanelRendererInterface
 {
     public function getName(): string

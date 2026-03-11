@@ -6,6 +6,23 @@ require_once __DIR__ . '/../../../../vendor/autoload.php';
 
 use WpPack\Component\Debug\DataCollector\AbstractDataCollector;
 use WpPack\Component\Debug\Profiler\Profile;
+use WpPack\Component\Debug\Toolbar\Panel\CachePanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\DatabasePanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\DumpPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\EventPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\HttpClientPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\LoggerPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\MailPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\MemoryPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\PluginPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\RequestPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\RouterPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\SchedulerPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\ThemePanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\TimePanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\TranslationPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\UserPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\WordPressPanelRenderer;
 use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
 
 /**
@@ -695,6 +712,23 @@ foreach ($collectors as $collector) {
 }
 
 $renderer = new ToolbarRenderer();
+$renderer->addPanelRenderer(new DatabasePanelRenderer());
+$renderer->addPanelRenderer(new TimePanelRenderer());
+$renderer->addPanelRenderer(new MemoryPanelRenderer());
+$renderer->addPanelRenderer(new RequestPanelRenderer());
+$renderer->addPanelRenderer(new CachePanelRenderer());
+$renderer->addPanelRenderer(new WordPressPanelRenderer());
+$renderer->addPanelRenderer(new UserPanelRenderer());
+$renderer->addPanelRenderer(new MailPanelRenderer());
+$renderer->addPanelRenderer(new EventPanelRenderer());
+$renderer->addPanelRenderer(new LoggerPanelRenderer());
+$renderer->addPanelRenderer(new RouterPanelRenderer());
+$renderer->addPanelRenderer(new HttpClientPanelRenderer());
+$renderer->addPanelRenderer(new TranslationPanelRenderer());
+$renderer->addPanelRenderer(new DumpPanelRenderer());
+$renderer->addPanelRenderer(new PluginPanelRenderer());
+$renderer->addPanelRenderer(new ThemePanelRenderer());
+$renderer->addPanelRenderer(new SchedulerPanelRenderer());
 $html = $renderer->render($profile);
 ?>
 <!DOCTYPE html>

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
+use WpPack\Component\Debug\Attribute\AsPanelRenderer;
+
+#[AsPanelRenderer(name: 'cache')]
 final class CachePanelRenderer extends AbstractPanelRenderer implements PanelRendererInterface
 {
     private const BADGE_COLORS = [
