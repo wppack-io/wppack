@@ -36,6 +36,8 @@ final class ToolbarAssets
             border-top: 1px solid #e5e7eb;
             height: 40px;
             width: 100%;
+            position: relative;
+            z-index: 2;
         }
 
         /* ---- Logo (fixed left, does not scroll) ---- */
@@ -100,8 +102,14 @@ final class ToolbarAssets
             box-shadow: inset 0 -2px 0 #3858e9;
         }
         #wppack-debug .wpd-badge-icon {
-            font-size: 15px;
+            display: flex;
+            align-items: center;
             line-height: 1;
+        }
+        #wppack-debug .wpd-icon {
+            display: inline-block;
+            vertical-align: middle;
+            flex-shrink: 0;
         }
         #wppack-debug .wpd-badge-value {
             font-size: 12px;
@@ -129,12 +137,14 @@ final class ToolbarAssets
 
         /* ---- Close button ---- */
         #wppack-debug .wpd-close-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
             background: transparent;
             border: none;
             border-left: 1px solid #e5e7eb;
             color: #9ca3af;
             cursor: pointer;
-            font-size: 16px;
             padding: 0 12px;
             height: 100%;
             flex-shrink: 0;
@@ -178,46 +188,111 @@ final class ToolbarAssets
         #wppack-debug.wpd-minimized .wpd-bar {
             display: none;
         }
-        #wppack-debug.wpd-minimized .wpd-panel {
+        #wppack-debug.wpd-minimized .wpd-overlay {
             display: none !important;
         }
         #wppack-debug.wpd-minimized .wpd-mini {
             display: flex;
         }
 
-        /* ---- Panels ---- */
-        #wppack-debug .wpd-panel {
+        /* ================================================================
+           L-Shape Overlay
+           ================================================================ */
+        #wppack-debug .wpd-overlay {
             position: absolute;
             bottom: 40px;
             left: 0;
             right: 0;
-            background: #ffffff;
+            height: min(75vh, calc(100vh - 40px));
+            display: flex;
+            z-index: 1;
             border-top: 1px solid #e5e7eb;
-            max-height: 55vh;
+        }
+
+        /* ---- Sidebar ---- */
+        #wppack-debug .wpd-sidebar {
+            width: 220px;
+            flex-shrink: 0;
+            background: #fafafa;
+            border-right: 1px solid #e5e7eb;
             overflow-y: auto;
+            overflow-x: hidden;
             scrollbar-width: thin;
             scrollbar-color: #d1d5db transparent;
+            display: flex;
+            flex-direction: column;
+            padding: 4px 0;
         }
-        #wppack-debug .wpd-panel::-webkit-scrollbar {
-            width: 6px;
+        #wppack-debug .wpd-sidebar::-webkit-scrollbar {
+            width: 4px;
         }
-        #wppack-debug .wpd-panel::-webkit-scrollbar-track {
+        #wppack-debug .wpd-sidebar::-webkit-scrollbar-track {
             background: transparent;
         }
-        #wppack-debug .wpd-panel::-webkit-scrollbar-thumb {
+        #wppack-debug .wpd-sidebar::-webkit-scrollbar-thumb {
             background: #d1d5db;
-            border-radius: 4px;
+            border-radius: 2px;
         }
-        #wppack-debug .wpd-panel-header {
+        #wppack-debug .wpd-sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            padding: 8px 12px 8px 16px;
+            background: transparent;
+            border: none;
+            border-left: 3px solid transparent;
+            color: #6b7280;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+            text-align: left;
+            transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+        }
+        #wppack-debug .wpd-sidebar-item:hover {
+            background: #ffffff;
+            color: #1f2937;
+        }
+        #wppack-debug .wpd-sidebar-item.wpd-active {
+            background: #ffffff;
+            color: #1f2937;
+            border-left-color: #3858e9;
+            font-weight: 600;
+        }
+        #wppack-debug .wpd-sidebar-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            flex-shrink: 0;
+        }
+        #wppack-debug .wpd-sidebar-label {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #wppack-debug .wpd-sidebar-divider {
+            height: 1px;
+            background: #e5e7eb;
+            margin: 4px 16px;
+        }
+
+        /* ---- Content area ---- */
+        #wppack-debug .wpd-content {
+            flex: 1;
+            min-width: 0;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+        }
+        #wppack-debug .wpd-content-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 12px 16px;
             background: #ffffff;
             border-bottom: 1px solid #e5e7eb;
-            position: sticky;
-            top: 0;
-            z-index: 1;
+            flex-shrink: 0;
         }
         #wppack-debug .wpd-panel-title {
             font-size: 15px;
@@ -225,10 +300,12 @@ final class ToolbarAssets
             color: #1f2937;
         }
         #wppack-debug .wpd-panel-close {
+            display: flex;
+            align-items: center;
+            justify-content: center;
             background: transparent;
             border: none;
             color: #9ca3af;
-            font-size: 20px;
             cursor: pointer;
             padding: 2px 8px;
             border-radius: 4px;
@@ -239,8 +316,22 @@ final class ToolbarAssets
             color: #cc1818;
             background: transparent;
         }
-        #wppack-debug .wpd-panel-body {
+        #wppack-debug .wpd-content-body {
+            flex: 1;
+            overflow-y: auto;
             padding: 20px 16px;
+            scrollbar-width: thin;
+            scrollbar-color: #d1d5db transparent;
+        }
+        #wppack-debug .wpd-content-body::-webkit-scrollbar {
+            width: 6px;
+        }
+        #wppack-debug .wpd-content-body::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        #wppack-debug .wpd-content-body::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 4px;
         }
 
         /* ---- Sections ---- */
@@ -297,7 +388,7 @@ final class ToolbarAssets
             letter-spacing: 0.3px;
             background: #ffffff;
             position: sticky;
-            top: 47px;
+            top: 0;
             z-index: 1;
         }
         #wppack-debug .wpd-table tbody tr:hover {
@@ -796,6 +887,69 @@ final class ToolbarAssets
             background: rgba(153, 104, 0, 0.08);
             color: #996800;
         }
+
+        /* ================================================================
+           Responsive
+           ================================================================ */
+
+        /* Tablet: icon-only sidebar */
+        @media (max-width: 1024px) {
+            #wppack-debug .wpd-sidebar {
+                width: 52px;
+            }
+            #wppack-debug .wpd-sidebar-label {
+                display: none;
+            }
+            #wppack-debug .wpd-sidebar-item {
+                justify-content: center;
+                padding: 8px;
+            }
+        }
+
+        /* Mobile: no sidebar */
+        @media (max-width: 768px) {
+            #wppack-debug .wpd-sidebar {
+                display: none;
+            }
+            #wppack-debug .wpd-overlay {
+                height: min(60vh, calc(100vh - 40px));
+            }
+            #wppack-debug .wpd-perf-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            #wppack-debug .wpd-perf-wf-label {
+                width: 100px;
+            }
+            #wppack-debug .wpd-timeline-label {
+                width: 100px;
+            }
+            #wppack-debug .wpd-table .wpd-col-caller {
+                width: 160px;
+            }
+        }
+
+        /* Small mobile */
+        @media (max-width: 480px) {
+            #wppack-debug .wpd-badge {
+                padding: 0 8px;
+            }
+            #wppack-debug .wpd-badge-value {
+                display: none;
+            }
+            #wppack-debug .wpd-bar-meta {
+                display: none;
+            }
+            #wppack-debug .wpd-perf-cards {
+                grid-template-columns: 1fr;
+            }
+            #wppack-debug .wpd-perf-wf-label {
+                width: 70px;
+                font-size: 11px;
+            }
+            #wppack-debug .wpd-perf-wf-value {
+                width: 60px;
+            }
+        }
         CSS;
     }
 
@@ -811,16 +965,19 @@ final class ToolbarAssets
                 root.classList.add('wpd-minimized');
             }
 
+            var overlay = root.querySelector('.wpd-overlay');
+            var contentHeader = root.querySelector('.wpd-content-header .wpd-panel-title');
             var activePanel = null;
 
-            function closeAllPanels() {
-                var panels = root.querySelectorAll('.wpd-panel');
-                for (var i = 0; i < panels.length; i++) {
-                    panels[i].style.display = 'none';
-                }
+            function closeOverlay() {
+                overlay.style.display = 'none';
                 var badges = root.querySelectorAll('.wpd-badge');
                 for (var i = 0; i < badges.length; i++) {
                     badges[i].classList.remove('wpd-active');
+                }
+                var items = root.querySelectorAll('.wpd-sidebar-item');
+                for (var i = 0; i < items.length; i++) {
+                    items[i].classList.remove('wpd-active');
                 }
                 activePanel = null;
                 resetPluginDetailView();
@@ -838,14 +995,50 @@ final class ToolbarAssets
             }
 
             function openPanel(name) {
-                closeAllPanels();
-                var panel = root.querySelector('#wpd-panel-' + name);
-                if (panel) {
-                    panel.style.display = 'block';
-                    activePanel = name;
-                    var badge = root.querySelector('.wpd-badge[data-panel="' + name + '"]');
-                    if (badge) badge.classList.add('wpd-active');
+                // Show overlay
+                overlay.style.display = 'flex';
+
+                // Switch content
+                var contents = root.querySelectorAll('.wpd-panel-content');
+                for (var i = 0; i < contents.length; i++) {
+                    contents[i].style.display = 'none';
                 }
+                var target = root.querySelector('#wpd-pc-' + name);
+                if (target) target.style.display = '';
+
+                // Scroll content to top
+                var body = root.querySelector('.wpd-content-body');
+                if (body) body.scrollTop = 0;
+
+                // Update header title from sidebar label
+                var sidebarItem = root.querySelector('.wpd-sidebar-item[data-panel="' + name + '"]');
+                if (sidebarItem && contentHeader) {
+                    var label = sidebarItem.querySelector('.wpd-sidebar-label');
+                    contentHeader.textContent = label ? label.textContent : name;
+                }
+
+                // Highlight sidebar item
+                var items = root.querySelectorAll('.wpd-sidebar-item');
+                for (var i = 0; i < items.length; i++) {
+                    if (items[i].getAttribute('data-panel') === name) {
+                        items[i].classList.add('wpd-active');
+                    } else {
+                        items[i].classList.remove('wpd-active');
+                    }
+                }
+
+                // Highlight badge
+                var badges = root.querySelectorAll('.wpd-badge');
+                for (var i = 0; i < badges.length; i++) {
+                    if (badges[i].getAttribute('data-panel') === name) {
+                        badges[i].classList.add('wpd-active');
+                    } else {
+                        badges[i].classList.remove('wpd-active');
+                    }
+                }
+
+                activePanel = name;
+                resetPluginDetailView();
             }
 
             root.addEventListener('click', function(e) {
@@ -857,22 +1050,32 @@ final class ToolbarAssets
                     return;
                 }
 
+                // Sidebar item click — always switch, never close
+                var sidebarItem = e.target.closest('.wpd-sidebar-item');
+                if (sidebarItem) {
+                    var panel = sidebarItem.getAttribute('data-panel');
+                    if (activePanel !== panel) {
+                        openPanel(panel);
+                    }
+                    return;
+                }
+
                 // Badge click — toggle panel
                 var badge = e.target.closest('.wpd-badge');
                 if (badge) {
                     var panel = badge.getAttribute('data-panel');
                     if (activePanel === panel) {
-                        closeAllPanels();
+                        closeOverlay();
                     } else {
                         openPanel(panel);
                     }
                     return;
                 }
 
-                // Close button in panel header
+                // Close button in content header
                 var closeBtn = e.target.closest('[data-action="close-panel"]');
                 if (closeBtn) {
-                    closeAllPanels();
+                    closeOverlay();
                     return;
                 }
 
@@ -880,11 +1083,11 @@ final class ToolbarAssets
                 var pluginLink = e.target.closest('.wpd-plugin-detail-link');
                 if (pluginLink) {
                     var pluginSlug = pluginLink.getAttribute('data-plugin');
-                    var panel = pluginLink.closest('.wpd-panel-body');
-                    if (panel) {
-                        var list = panel.querySelector('.wpd-plugin-list');
+                    var panelContent = pluginLink.closest('.wpd-panel-content');
+                    if (panelContent) {
+                        var list = panelContent.querySelector('.wpd-plugin-list');
                         if (list) list.style.display = 'none';
-                        var detail = panel.querySelector('.wpd-plugin-detail[data-plugin="' + pluginSlug + '"]');
+                        var detail = panelContent.querySelector('.wpd-plugin-detail[data-plugin="' + pluginSlug + '"]');
                         if (detail) detail.style.display = '';
                     }
                     return;
@@ -893,13 +1096,13 @@ final class ToolbarAssets
                 // Plugin back button
                 var backBtn = e.target.closest('[data-action="plugin-back"]');
                 if (backBtn) {
-                    var panel = backBtn.closest('.wpd-panel-body');
-                    if (panel) {
-                        var details = panel.querySelectorAll('.wpd-plugin-detail');
+                    var panelContent = backBtn.closest('.wpd-panel-content');
+                    if (panelContent) {
+                        var details = panelContent.querySelectorAll('.wpd-plugin-detail');
                         for (var i = 0; i < details.length; i++) {
                             details[i].style.display = 'none';
                         }
-                        var list = panel.querySelector('.wpd-plugin-list');
+                        var list = panelContent.querySelector('.wpd-plugin-list');
                         if (list) list.style.display = '';
                     }
                     return;
@@ -908,7 +1111,7 @@ final class ToolbarAssets
                 // Close/minimize toolbar
                 var minimizeBtn = e.target.closest('[data-action="minimize"]');
                 if (minimizeBtn) {
-                    closeAllPanels();
+                    closeOverlay();
                     root.classList.add('wpd-minimized');
                     localStorage.setItem(STORAGE_KEY, '1');
                 }
@@ -946,10 +1149,10 @@ final class ToolbarAssets
                 }
             });
 
-            // Escape key closes panel
+            // Escape key closes overlay
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape' && activePanel !== null) {
-                    closeAllPanels();
+                    closeOverlay();
                 }
             });
 

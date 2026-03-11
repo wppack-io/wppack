@@ -156,8 +156,8 @@ final class ToolbarRendererTest extends TestCase
 
         $html = $this->renderer->render($profile);
 
-        self::assertStringContainsString('id="wpd-panel-cache"', $html);
-        self::assertStringContainsString('id="wpd-panel-wordpress"', $html);
+        self::assertStringContainsString('id="wpd-pc-cache"', $html);
+        self::assertStringContainsString('id="wpd-pc-wordpress"', $html);
     }
 
     #[Test]
@@ -177,7 +177,7 @@ final class ToolbarRendererTest extends TestCase
 
         $html = $this->renderer->render($profile);
 
-        self::assertStringContainsString('id="wpd-panel-performance"', $html);
+        self::assertStringContainsString('id="wpd-pc-performance"', $html);
     }
 
     #[Test]
@@ -352,7 +352,7 @@ final class ToolbarRendererTest extends TestCase
 
         $html = $this->renderer->render($profile);
 
-        self::assertStringContainsString('id="wpd-panel-performance"', $html);
+        self::assertStringContainsString('id="wpd-pc-performance"', $html);
         self::assertStringContainsString('Total Time', $html);
         self::assertStringContainsString('N/A', $html);
     }
@@ -405,7 +405,7 @@ final class ToolbarRendererTest extends TestCase
 
         $html = $this->renderer->render($profile);
 
-        self::assertStringContainsString('id="wpd-panel-plugin"', $html);
+        self::assertStringContainsString('id="wpd-pc-plugin"', $html);
         self::assertStringContainsString('data-panel="plugin"', $html);
         // List view
         self::assertStringContainsString('wpd-plugin-list', $html);
@@ -455,7 +455,7 @@ final class ToolbarRendererTest extends TestCase
 
         $html = $this->renderer->render($profile);
 
-        self::assertStringContainsString('id="wpd-panel-theme"', $html);
+        self::assertStringContainsString('id="wpd-pc-theme"', $html);
         self::assertStringContainsString('data-panel="theme"', $html);
         self::assertStringContainsString('Twenty Twenty-Four', $html);
         self::assertStringContainsString('Setup Time', $html);
@@ -490,7 +490,7 @@ final class ToolbarRendererTest extends TestCase
 
         $html = $this->renderer->render($profile);
 
-        self::assertStringContainsString('id="wpd-panel-scheduler"', $html);
+        self::assertStringContainsString('id="wpd-pc-scheduler"', $html);
         self::assertStringContainsString('data-panel="scheduler"', $html);
         self::assertStringContainsString('WP-Cron Events', $html);
         self::assertStringContainsString('wp_scheduled_delete', $html);

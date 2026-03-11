@@ -181,6 +181,10 @@ $builder->addCompilerPass(new RegisterDataCollectorsPass());
 
 See [docs/components/debug/](../../../docs/components/debug/) for full documentation.
 
+## Third-party Notices
+
+This component includes SVG icon data from [Lucide Icons](https://lucide.dev), licensed under the [ISC License](https://github.com/lucide-icons/lucide/blob/main/LICENSE).
+
 ## License
 
 MIT

@@ -24,7 +24,7 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer
     {
         $totalTime = $profile->getTime();
         $value = $this->formatMs($totalTime);
-        $icon = "\xF0\x9F\x9A\x80";
+        $icon = ToolbarIcons::svg('performance');
 
         $memoryData = $this->getCollectorData($profile, 'memory');
         $usagePercentage = (float) ($memoryData['usage_percentage'] ?? 0.0);
@@ -49,14 +49,14 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer
 
     public function renderPanel(Profile $profile): string
     {
-        $icon = "\xF0\x9F\x9A\x80";
-        $content = $this->renderPanelContent($profile);
+        $content = $this->renderContent($profile);
+        $closeIcon = ToolbarIcons::svg('close', 14);
 
         return <<<HTML
         <div class="wpd-panel" id="wpd-panel-performance" style="display:none">
             <div class="wpd-panel-header">
                 <span class="wpd-panel-title">Performance</span>
-                <button class="wpd-panel-close" data-action="close-panel" title="Close">&times;</button>
+                <button class="wpd-panel-close" data-action="close-panel" title="Close">{$closeIcon}</button>
             </div>
             <div class="wpd-panel-body">
                 {$content}
@@ -65,7 +65,7 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer
         HTML;
     }
 
-    private function renderPanelContent(Profile $profile): string
+    public function renderContent(Profile $profile): string
     {
         $timeData = $this->getCollectorData($profile, 'time');
         $memoryData = $this->getCollectorData($profile, 'memory');

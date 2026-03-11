@@ -26,6 +26,7 @@ use WpPack\Component\Debug\Toolbar\Panel\ThemePanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\TimePanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\TranslationPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\UserPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\ToolbarIcons;
 use WpPack\Component\Debug\Toolbar\Panel\WordPressPanelRenderer;
 
 /**
@@ -682,27 +683,6 @@ foreach ($profile->getCollectors() as $name => $collector) {
 
 // --- Panel definitions for sidebar ---
 
-$icons = [
-    'performance' => "\xF0\x9F\x9A\x80",
-    'request' => "\xF0\x9F\x8C\x90",
-    'time' => "\xE2\x8F\xB1\xEF\xB8\x8F",
-    'memory' => "\xF0\x9F\x93\x8A",
-    'database' => "\xF0\x9F\x92\xBE",
-    'cache' => "\xF0\x9F\x93\xA6",
-    'http_client' => "\xF0\x9F\x94\x97",
-    'router' => "\xF0\x9F\x9B\xA4\xEF\xB8\x8F",
-    'plugin' => "\xF0\x9F\x94\x8C",
-    'theme' => "\xF0\x9F\x8E\xA8",
-    'wordpress' => "\xE2\x9A\x99\xEF\xB8\x8F",
-    'event' => "\xF0\x9F\x94\x94",
-    'logger' => "\xF0\x9F\x93\x9D",
-    'dump' => "\xF0\x9F\x93\x8C",
-    'mail' => "\xE2\x9C\x89\xEF\xB8\x8F",
-    'scheduler' => "\xE2\x8F\xB0",
-    'translation' => "\xF0\x9F\x94\xA0",
-    'user' => "\xF0\x9F\x91\xA4",
-];
-
 $labels = [
     'performance' => 'Performance',
     'request' => 'Request',
@@ -762,7 +742,7 @@ foreach ($sidebarGroups as $group) {
         $sidebarHtml .= '<div class="wpd-sidebar-divider"></div>';
     }
     foreach ($group as $key) {
-        $icon = $icons[$key] ?? '';
+        $icon = ToolbarIcons::svg($key, 18);
         $label = esc($labels[$key] ?? $key);
         $sidebarHtml .= '<button class="wpd-sidebar-item" data-panel="' . esc($key) . '">'
             . '<span class="wpd-sidebar-icon">' . $icon . '</span>'
@@ -787,12 +767,12 @@ $badgesHtml = '';
 $totalTime = $profile->getTime();
 $perfColor = $totalTime >= 1000 ? $badgeColors['red'] : ($totalTime >= 200 ? $badgeColors['yellow'] : $badgeColors['green']);
 $badgesHtml .= '<button class="wpd-badge" data-panel="performance" title="Performance">'
-    . '<span class="wpd-badge-icon">' . ($icons['performance'] ?? '') . '</span>'
+    . '<span class="wpd-badge-icon">' . ToolbarIcons::svg('performance') . '</span>'
     . '<span class="wpd-badge-value" style="color:' . $perfColor . '">' . formatMs($totalTime) . '</span>'
     . '</button>';
 
 foreach ($profile->getCollectors() as $name => $collector) {
-    $icon = $icons[$name] ?? "\xF0\x9F\x93\x8B";
+    $icon = ToolbarIcons::svg($name);
     $colorKey = $collector->getBadgeColor();
     $color = $badgeColors[$colorKey] ?? $badgeColors['default'];
     $badgesHtml .= '<button class="wpd-badge" data-panel="' . esc($name) . '" title="' . esc($collector->getLabel()) . '">'
@@ -805,7 +785,6 @@ $requestInfo = esc($profile->getMethod()) . ' ' . esc((string) $profile->getStat
 $totalTimeFormatted = formatMs($profile->getTime());
 
 // Initial active panel title
-$firstIcon = $icons['performance'] ?? '';
 $firstName = $labels['performance'] ?? 'Performance';
 ?>
 <!DOCTYPE html>
@@ -953,8 +932,14 @@ p { line-height: 1.8; color: #666; }
     box-shadow: inset 0 -2px 0 #3858e9;
 }
 #wppack-debug .wpd-badge-icon {
-    font-size: 15px;
+    display: flex;
+    align-items: center;
     line-height: 1;
+}
+#wppack-debug .wpd-icon {
+    display: inline-block;
+    vertical-align: middle;
+    flex-shrink: 0;
 }
 #wppack-debug .wpd-badge-value {
     font-size: 12px;
@@ -982,12 +967,14 @@ p { line-height: 1.8; color: #666; }
 
 /* --- Close button --- */
 #wppack-debug .wpd-close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background: transparent;
     border: none;
     border-left: 1px solid #e5e7eb;
     color: #9ca3af;
     cursor: pointer;
-    font-size: 16px;
     padding: 0 12px;
     height: 100%;
     flex-shrink: 0;
@@ -1104,10 +1091,10 @@ p { line-height: 1.8; color: #666; }
     font-weight: 600;
 }
 #wppack-debug .wpd-sidebar-icon {
-    font-size: 16px;
-    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 20px;
-    text-align: center;
     flex-shrink: 0;
 }
 #wppack-debug .wpd-sidebar-label {
@@ -1146,10 +1133,12 @@ p { line-height: 1.8; color: #666; }
     color: #1f2937;
 }
 #wppack-debug .wpd-panel-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background: transparent;
     border: none;
     color: #9ca3af;
-    font-size: 20px;
     cursor: pointer;
     padding: 2px 8px;
     border-radius: 4px;
@@ -1736,6 +1725,69 @@ p { line-height: 1.8; color: #666; }
     background: rgba(153, 104, 0, 0.08);
     color: #996800;
 }
+
+/* ================================================================
+   Responsive
+   ================================================================ */
+
+/* Tablet: icon-only sidebar */
+@media (max-width: 1024px) {
+    #wppack-debug .wpd-sidebar {
+        width: 52px;
+    }
+    #wppack-debug .wpd-sidebar-label {
+        display: none;
+    }
+    #wppack-debug .wpd-sidebar-item {
+        justify-content: center;
+        padding: 8px;
+    }
+}
+
+/* Mobile: no sidebar */
+@media (max-width: 768px) {
+    #wppack-debug .wpd-sidebar {
+        display: none;
+    }
+    #wppack-debug .wpd-overlay {
+        height: min(60vh, calc(100vh - 40px));
+    }
+    #wppack-debug .wpd-perf-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    #wppack-debug .wpd-perf-wf-label {
+        width: 100px;
+    }
+    #wppack-debug .wpd-timeline-label {
+        width: 100px;
+    }
+    #wppack-debug .wpd-table .wpd-col-caller {
+        width: 160px;
+    }
+}
+
+/* Small mobile */
+@media (max-width: 480px) {
+    #wppack-debug .wpd-badge {
+        padding: 0 8px;
+    }
+    #wppack-debug .wpd-badge-value {
+        display: none;
+    }
+    #wppack-debug .wpd-bar-meta {
+        display: none;
+    }
+    #wppack-debug .wpd-perf-cards {
+        grid-template-columns: 1fr;
+    }
+    #wppack-debug .wpd-perf-wf-label {
+        width: 70px;
+        font-size: 11px;
+    }
+    #wppack-debug .wpd-perf-wf-value {
+        width: 60px;
+    }
+}
 </style>
 
 <!-- L-shape overlay (initially hidden) -->
@@ -1746,7 +1798,7 @@ p { line-height: 1.8; color: #666; }
     <div class="wpd-content">
         <div class="wpd-content-header">
             <span class="wpd-panel-title"><?= esc($firstName) ?></span>
-            <button class="wpd-panel-close" data-action="close-panel" title="Close">&times;</button>
+            <button class="wpd-panel-close" data-action="close-panel" title="Close"><?= ToolbarIcons::svg('close', 14) ?></button>
         </div>
         <div class="wpd-content-body">
             <?= $contentDivs ?>
@@ -1772,7 +1824,7 @@ p { line-height: 1.8; color: #666; }
         <span class="wpd-meta-sep">|</span>
         <span class="wpd-meta-item"><?= $totalTimeFormatted ?></span>
     </div>
-    <button class="wpd-close-btn" data-action="minimize" title="Close toolbar">&times;</button>
+    <button class="wpd-close-btn" data-action="minimize" title="Close toolbar"><?= ToolbarIcons::svg('close', 14) ?></button>
 </div>
 
 <script>
@@ -1789,8 +1841,8 @@ p { line-height: 1.8; color: #666; }
     var contentHeader = root.querySelector('.wpd-content-header .wpd-panel-title');
     var activePanel = null;
 
-    var panelInfo = <?= json_encode(array_map(function($key) use ($icons, $labels) {
-        return ['icon' => $icons[$key] ?? '', 'label' => $labels[$key] ?? $key];
+    var panelInfo = <?= json_encode(array_map(function($key) use ($labels) {
+        return ['label' => $labels[$key] ?? $key];
     }, array_combine($sidebarOrder, $sidebarOrder)), JSON_UNESCAPED_UNICODE) ?>;
 
     function closeOverlay() {

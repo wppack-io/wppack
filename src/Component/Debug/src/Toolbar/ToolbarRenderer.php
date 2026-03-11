@@ -11,37 +11,23 @@ use WpPack\Component\Debug\Toolbar\Panel\GenericPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\PanelRendererInterface;
 use WpPack\Component\Debug\Toolbar\Panel\PerformancePanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\ToolbarAssets;
+use WpPack\Component\Debug\Toolbar\Panel\ToolbarIcons;
 
 final class ToolbarRenderer
 {
-    private const ICONS = [
-        'performance' => "\xF0\x9F\x9A\x80",
-        'request' => "\xF0\x9F\x8C\x90",
-        'database' => "\xF0\x9F\x92\xBE",
-        'memory' => "\xF0\x9F\x93\x8A",
-        'time' => "\xE2\x8F\xB1\xEF\xB8\x8F",
-        'cache' => "\xF0\x9F\x93\xA6",
-        'wordpress' => "\xE2\x9A\x99\xEF\xB8\x8F",
-        'user' => "\xF0\x9F\x91\xA4",
-        'mail' => "\xE2\x9C\x89\xEF\xB8\x8F",
-        'event' => "\xF0\x9F\x94\x94",
-        'logger' => "\xF0\x9F\x93\x9D",
-        'router' => "\xF0\x9F\x9B\xA4\xEF\xB8\x8F",
-        'http_client' => "\xF0\x9F\x94\x97",
-        'translation' => "\xF0\x9F\x94\xA0",
-        'dump' => "\xF0\x9F\x93\x8C",
-        'plugin' => "\xF0\x9F\x94\x8C",
-        'theme' => "\xF0\x9F\x8E\xA8",
-        'scheduler' => "\xE2\x8F\xB0",
-    ];
-
-    private const DEFAULT_ICON = "\xF0\x9F\x93\x8B";
-
     private const BADGE_COLORS = [
         'green' => '#1e1e1e',
         'yellow' => '#996800',
         'red' => '#cc1818',
         'default' => '#50575e',
+    ];
+
+    /** Sidebar panel order, grouped by category. */
+    private const SIDEBAR_GROUPS = [
+        ['performance'],
+        ['request', 'time', 'memory', 'database', 'cache', 'http_client'],
+        ['wordpress', 'plugin', 'theme', 'router'],
+        ['event', 'logger', 'dump', 'mail', 'scheduler', 'translation', 'user'],
     ];
 
     /** @var array<string, AbstractPanelRenderer&PanelRendererInterface> */
@@ -83,29 +69,43 @@ final class ToolbarRenderer
         $this->performanceRenderer->setRequestTimeFloat($requestTimeFloat);
         $this->genericRenderer->setRequestTimeFloat($requestTimeFloat);
 
+        // Build badges
         $badges = '';
-        $panels = '';
-
-        foreach ($collectors as $name => $collector) {
+        foreach ($collectors as $collector) {
             $badges .= $this->renderBadge($collector);
-            $panels .= $this->renderPanel($collector);
         }
-
         $perfBadge = $this->performanceRenderer->renderBadge($profile);
-        $perfPanel = $this->performanceRenderer->renderPanel($profile);
         $badges = $perfBadge . $badges;
-        $panels = $perfPanel . $panels;
+
+        // Build sidebar and content panels
+        $collectorNames = array_keys($collectors);
+        $sidebarHtml = $this->renderSidebar($collectorNames, $collectors);
+        $contentPanels = $this->renderContentPanels($profile, $collectors);
 
         $requestInfo = $this->esc($profile->getMethod()) . ' ' . $this->esc((string) $profile->getStatusCode());
         $totalTime = $this->formatMs($profile->getTime());
 
         $css = $this->assets->renderCss();
         $js = $this->assets->renderJs();
+        $closeIcon = ToolbarIcons::svg('close', 14);
 
         return <<<HTML
         <div id="wppack-debug">
         <style>{$css}</style>
-        {$panels}
+        <div class="wpd-overlay" style="display:none">
+            <div class="wpd-sidebar">
+                {$sidebarHtml}
+            </div>
+            <div class="wpd-content">
+                <div class="wpd-content-header">
+                    <span class="wpd-panel-title">Performance</span>
+                    <button class="wpd-panel-close" data-action="close-panel" title="Close">{$closeIcon}</button>
+                </div>
+                <div class="wpd-content-body">
+                    {$contentPanels}
+                </div>
+            </div>
+        </div>
         <div class="wpd-mini" title="Show WpPack Debug Toolbar">
             <span class="wpd-mini-logo">WP</span>
         </div>
@@ -121,11 +121,106 @@ final class ToolbarRenderer
                 <span class="wpd-meta-sep">|</span>
                 <span class="wpd-meta-item">{$totalTime}</span>
             </div>
-            <button class="wpd-close-btn" data-action="minimize" title="Close toolbar">&times;</button>
+            <button class="wpd-close-btn" data-action="minimize" title="Close toolbar">{$closeIcon}</button>
         </div>
         <script>{$js}</script>
         </div>
         HTML;
+    }
+
+    /**
+     * @param list<string> $collectorNames
+     * @param array<string, DataCollectorInterface> $collectors
+     */
+    private function renderSidebar(array $collectorNames, array $collectors): string
+    {
+        $knownNames = array_merge(...self::SIDEBAR_GROUPS);
+        $html = '';
+        $groupIndex = 0;
+
+        foreach (self::SIDEBAR_GROUPS as $group) {
+            $visibleItems = [];
+            foreach ($group as $name) {
+                if ($name === 'performance' || \in_array($name, $collectorNames, true)) {
+                    $visibleItems[] = $name;
+                }
+            }
+
+            if ($visibleItems === []) {
+                continue;
+            }
+
+            if ($groupIndex > 0) {
+                $html .= '<div class="wpd-sidebar-divider"></div>';
+            }
+
+            foreach ($visibleItems as $key) {
+                $icon = ToolbarIcons::svg($key, 18);
+                $label = $this->getPanelLabel($key, $collectors);
+                $html .= '<button class="wpd-sidebar-item" data-panel="' . $this->esc($key) . '">'
+                    . '<span class="wpd-sidebar-icon">' . $icon . '</span>'
+                    . '<span class="wpd-sidebar-label">' . $this->esc($label) . '</span>'
+                    . '</button>';
+            }
+
+            $groupIndex++;
+        }
+
+        // Collectors not in any sidebar group
+        $unknownNames = array_diff($collectorNames, $knownNames);
+        if ($unknownNames !== []) {
+            if ($groupIndex > 0) {
+                $html .= '<div class="wpd-sidebar-divider"></div>';
+            }
+            foreach ($unknownNames as $key) {
+                $icon = ToolbarIcons::svg($key, 18);
+                $label = $collectors[$key]->getLabel();
+                $html .= '<button class="wpd-sidebar-item" data-panel="' . $this->esc($key) . '">'
+                    . '<span class="wpd-sidebar-icon">' . $icon . '</span>'
+                    . '<span class="wpd-sidebar-label">' . $this->esc($label) . '</span>'
+                    . '</button>';
+            }
+        }
+
+        return $html;
+    }
+
+    /**
+     * @param array<string, DataCollectorInterface> $collectors
+     */
+    private function renderContentPanels(Profile $profile, array $collectors): string
+    {
+        $html = '';
+
+        // Build ordered panel list from sidebar groups
+        $knownNames = array_merge(...self::SIDEBAR_GROUPS);
+        $orderedNames = [];
+        foreach ($knownNames as $name) {
+            if ($name === 'performance' || isset($collectors[$name])) {
+                $orderedNames[] = $name;
+            }
+        }
+        // Add unknown collectors at the end
+        foreach ($collectors as $name => $collector) {
+            if (!\in_array($name, $orderedNames, true)) {
+                $orderedNames[] = $name;
+            }
+        }
+
+        foreach ($orderedNames as $key) {
+            $display = ($key === 'performance') ? '' : ' style="display:none"';
+
+            if ($key === 'performance') {
+                $content = $this->performanceRenderer->renderContent($profile);
+            } else {
+                $content = $this->renderPanelContent($collectors[$key]);
+            }
+
+            $html .= '<div class="wpd-panel-content" id="wpd-pc-' . $this->esc($key) . '"' . $display . '>'
+                . $content . '</div>';
+        }
+
+        return $html;
     }
 
     private function renderBadge(DataCollectorInterface $collector): string
@@ -135,7 +230,7 @@ final class ToolbarRenderer
         $value = $this->esc($collector->getBadgeValue());
         $colorKey = $collector->getBadgeColor();
         $color = self::BADGE_COLORS[$colorKey] ?? self::BADGE_COLORS['default'];
-        $icon = self::ICONS[$collector->getName()] ?? self::DEFAULT_ICON;
+        $icon = ToolbarIcons::svg($collector->getName());
 
         return <<<HTML
         <button class="wpd-badge" data-panel="{$name}" title="{$label}">
@@ -145,31 +240,23 @@ final class ToolbarRenderer
         HTML;
     }
 
-    private function renderPanel(DataCollectorInterface $collector): string
-    {
-        $name = $this->esc($collector->getName());
-        $label = $this->esc($collector->getLabel());
-        $icon = self::ICONS[$collector->getName()] ?? self::DEFAULT_ICON;
-        $content = $this->renderPanelContent($collector);
-
-        return <<<HTML
-        <div class="wpd-panel" id="wpd-panel-{$name}" style="display:none">
-            <div class="wpd-panel-header">
-                <span class="wpd-panel-title">{$label}</span>
-                <button class="wpd-panel-close" data-action="close-panel" title="Close">&times;</button>
-            </div>
-            <div class="wpd-panel-body">
-                {$content}
-            </div>
-        </div>
-        HTML;
-    }
-
     private function renderPanelContent(DataCollectorInterface $collector): string
     {
         $renderer = $this->panelRenderers[$collector->getName()] ?? $this->genericRenderer;
 
         return $renderer->render($collector->getData());
+    }
+
+    /**
+     * @param array<string, DataCollectorInterface> $collectors
+     */
+    private function getPanelLabel(string $name, array $collectors): string
+    {
+        if ($name === 'performance') {
+            return 'Performance';
+        }
+
+        return $collectors[$name]->getLabel();
     }
 
     private function esc(string $value): string
