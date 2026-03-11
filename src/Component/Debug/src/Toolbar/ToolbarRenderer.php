@@ -994,9 +994,20 @@ final class ToolbarRenderer
             $html .= '<button class="wpd-log-tab" data-log-filter="debug">Debug (' . $this->esc((string) $debugTabCount) . ')</button>';
             $html .= '</div>';
 
+            // Determine base timestamp for relative time display
+            $baseTimestamp = 0.0;
+            foreach ($logs as $log) {
+                $ts = (float) ($log['timestamp'] ?? 0);
+                if ($ts > 0) {
+                    $baseTimestamp = $ts;
+                    break;
+                }
+            }
+
             $html .= '<table class="wpd-table wpd-table-full">';
             $html .= '<thead><tr>';
             $html .= '<th class="wpd-col-num">#</th>';
+            $html .= '<th>Time</th>';
             $html .= '<th>Level</th>';
             $html .= '<th>Channel</th>';
             $html .= '<th>Message</th>';
@@ -1022,12 +1033,21 @@ final class ToolbarRenderer
                     $fileDisplay = $line > 0 ? $basename . ':' . $line : $basename;
                 }
 
+                // Relative time from first log entry
+                $timestamp = (float) ($log['timestamp'] ?? 0);
+                $timeDisplay = '';
+                if ($timestamp > 0 && $baseTimestamp > 0) {
+                    $relativeMs = ($timestamp - $baseTimestamp) * 1000;
+                    $timeDisplay = '+' . number_format($relativeMs, 0) . ' ms';
+                }
+
                 $context = $log['context'] ?? [];
                 $hasContext = is_array($context) && $context !== [];
                 $rowClass = $hasContext ? ' class="wpd-log-toggle"' : '';
 
                 $html .= '<tr data-log-level="' . $this->esc($level) . '"' . $rowClass . '>';
                 $html .= '<td class="wpd-col-num">' . $this->esc((string) ($index + 1)) . '</td>';
+                $html .= '<td class="wpd-text-dim" style="white-space:nowrap">' . $this->esc($timeDisplay) . '</td>';
                 $html .= '<td><span class="wpd-tag ' . $levelColor . '">' . $this->esc($level) . '</span></td>';
                 $html .= '<td>' . $this->esc($log['channel'] ?? 'app') . '</td>';
                 $html .= '<td><code>' . $this->esc($log['message'] ?? '') . '</code></td>';
@@ -1036,7 +1056,7 @@ final class ToolbarRenderer
 
                 if ($hasContext) {
                     $html .= '<tr class="wpd-log-context" style="display:none" data-log-level="' . $this->esc($level) . '">';
-                    $html .= '<td colspan="5"><pre>' . $this->esc(json_encode($context, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}') . '</pre></td>';
+                    $html .= '<td colspan="6"><pre>' . $this->esc(json_encode($context, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}') . '</pre></td>';
                     $html .= '</tr>';
                 }
             }
