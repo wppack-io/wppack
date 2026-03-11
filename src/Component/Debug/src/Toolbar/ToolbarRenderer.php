@@ -171,7 +171,7 @@ final class ToolbarRenderer
         $slowCount = (int) ($data['slow_count'] ?? 0);
         /** @var list<string> $suggestions */
         $suggestions = $data['suggestions'] ?? [];
-        /** @var list<array{sql: string, time: float, caller: string, start: float, data: array<string, mixed>}> $queries */
+        /** @var list<array{sql: string, time: float, caller: string, start?: float, data: array<string, mixed>}> $queries */
         $queries = $data['queries'] ?? [];
 
         $html = '<div class="wpd-section">';
