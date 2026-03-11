@@ -96,7 +96,7 @@ final readonly class ErrorRenderer
         .exception-message {
             font-size: 14px;
             color: var(--text);
-            margin-top: 2px;
+            margin-top: 6px;
             line-height: 1.3;
             word-break: break-word;
         }
