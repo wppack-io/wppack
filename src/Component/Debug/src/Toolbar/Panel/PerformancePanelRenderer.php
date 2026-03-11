@@ -116,7 +116,7 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer
         // Section 2: Time Distribution
         /** @var array<string, array{name: string, category: string, duration: float, memory: int, start_time: float, end_time: float}> $events */
         $events = $timeData['events'] ?? [];
-        $customEvents = array_filter($events, static fn(array $e): bool => $e['category'] !== 'wp_lifecycle');
+        $customEvents = array_filter($events, static fn(array $e): bool => $e['category'] !== 'wordpress');
 
         if ($totalTime > 0) {
             $dbTimeMs = $dbTime;
@@ -192,7 +192,7 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer
         $requestTimeFloat = (float) ($timeData['request_time_float'] ?? 0.0);
 
         $categoryColors = [
-            'lifecycle' => '#89b4fa',
+            'wordpress' => '#89b4fa',
             'database' => '#f9e2af',
             'cache' => '#a6e3a1',
             'http' => '#cba6f7',
@@ -213,7 +213,7 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer
                 'name' => $phaseName,
                 'start' => $previousTime,
                 'duration' => $duration,
-                'category' => 'lifecycle',
+                'category' => 'wordpress',
                 'title' => $phaseName . "\n" . $this->formatMs($previousTime) . ' → ' . $this->formatMs($phaseTime) . ' (' . $this->formatMs($duration) . ')',
             ];
             $previousTime = $phaseTime;

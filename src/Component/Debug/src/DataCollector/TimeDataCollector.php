@@ -244,7 +244,7 @@ final class TimeDataCollector extends AbstractDataCollector
             $this->stopwatch->stop($previousPhase);
         }
 
-        $this->stopwatch->start($name, 'wp_lifecycle');
+        $this->stopwatch->start($name, 'wordpress');
     }
 
     private function findPreviousPhase(string $current): ?string
