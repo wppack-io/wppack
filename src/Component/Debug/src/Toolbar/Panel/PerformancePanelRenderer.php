@@ -308,7 +308,7 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer
             ];
         }
 
-        // 5. Custom stopwatch events (excluding wp_lifecycle)
+        // 5. Custom stopwatch events (excluding wordpress)
         foreach ($customEvents as $event) {
             $eventStart = (float) $event['start_time'];
             $eventDuration = (float) $event['duration'];
