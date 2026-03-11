@@ -34,6 +34,7 @@ final class ToolbarAssets
             align-items: center;
             background: #ffffff;
             border-top: 1px solid #e5e7eb;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.08);
             height: 40px;
             width: 100%;
             position: relative;
@@ -237,6 +238,9 @@ final class ToolbarAssets
         }
 
         /* ---- Minimized state ---- */
+        #wppack-debug.wpd-panel-open .wpd-bar {
+            box-shadow: none;
+        }
         #wppack-debug.wpd-minimized .wpd-bar {
             display: none;
         }
@@ -259,6 +263,7 @@ final class ToolbarAssets
             display: flex;
             z-index: 1;
             border-top: 1px solid #e5e7eb;
+            box-shadow: 0 -6px 20px rgba(0,0,0,0.10);
         }
 
         /* ---- Sidebar ---- */
@@ -1064,6 +1069,7 @@ final class ToolbarAssets
 
             function closeOverlay() {
                 overlay.style.display = 'none';
+                root.classList.remove('wpd-panel-open');
                 var badges = root.querySelectorAll('.wpd-badge');
                 for (var i = 0; i < badges.length; i++) {
                     badges[i].classList.remove('wpd-active');
@@ -1092,6 +1098,7 @@ final class ToolbarAssets
             function openPanel(name) {
                 // Show overlay
                 overlay.style.display = 'flex';
+                root.classList.add('wpd-panel-open');
 
                 // Switch content
                 var contents = root.querySelectorAll('.wpd-panel-content');
