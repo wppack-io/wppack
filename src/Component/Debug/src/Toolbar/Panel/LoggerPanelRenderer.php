@@ -84,9 +84,9 @@ final class LoggerPanelRenderer extends AbstractPanelRenderer implements PanelRe
             $html .= '<button class="wpd-log-tab wpd-active" data-log-filter="all">All (' . $this->esc((string) count($logs)) . ')</button>';
             $html .= '<button class="wpd-log-tab" data-log-filter="error">Errors (' . $this->esc((string) $errorTabCount) . ')</button>';
             $html .= '<button class="wpd-log-tab" data-log-filter="warning">Warnings (' . $this->esc((string) $warningTabCount) . ')</button>';
-            $html .= '<button class="wpd-log-tab" data-log-filter="deprecation">Deprecations (' . $this->esc((string) $deprecationTabCount) . ')</button>';
             $html .= '<button class="wpd-log-tab" data-log-filter="info">Info (' . $this->esc((string) $infoTabCount) . ')</button>';
             $html .= '<button class="wpd-log-tab" data-log-filter="debug">Debug (' . $this->esc((string) $debugTabCount) . ')</button>';
+            $html .= '<button class="wpd-log-tab" data-log-filter="deprecation">Deprecations (' . $this->esc((string) $deprecationTabCount) . ')</button>';
             $html .= '</div>';
 
             $html .= '<table class="wpd-table wpd-table-full">';
@@ -104,12 +104,17 @@ final class LoggerPanelRenderer extends AbstractPanelRenderer implements PanelRe
             foreach ($logs as $index => $log) {
                 $level = $log['level'] ?? 'debug';
                 $levelColor = match ($level) {
-                    'emergency', 'alert', 'critical', 'error' => 'wpd-text-red',
-                    'warning' => 'wpd-text-yellow',
-                    'info' => 'wpd-text-green',
-                    default => 'wpd-text-dim',
+                    'emergency' => 'wpd-log-critical',
+                    'alert' => 'wpd-log-critical',
+                    'critical' => 'wpd-log-critical',
+                    'error' => 'wpd-log-error',
+                    'warning' => 'wpd-log-warning',
+                    'notice' => 'wpd-log-notice',
+                    'info' => 'wpd-log-info',
+                    'debug' => 'wpd-log-debug',
+                    'deprecation' => 'wpd-log-deprecation',
+                    default => 'wpd-log-debug',
                 };
-
                 $file = (string) ($log['file'] ?? '');
                 $line = (int) ($log['line'] ?? 0);
                 $fileDisplay = '';

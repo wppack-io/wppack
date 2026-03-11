@@ -140,8 +140,10 @@ final class ToolbarRenderer
             <button class="wpd-bar-wp" data-panel="wordpress" title="WordPress">
                 {$wpBtnContent}
             </button>
-            <div class="wpd-bar-badges">
-                {$badges}
+            <div class="wpd-bar-badges-wrap">
+                <div class="wpd-bar-badges">
+                    {$badges}
+                </div>
             </div>
             {$envHtml}
             <button class="wpd-close-btn" data-action="minimize" title="Close toolbar">{$closeIcon}</button>

@@ -84,12 +84,42 @@ final class ToolbarAssets
         }
 
         /* ---- Badges container ---- */
+        #wppack-debug .wpd-bar-badges-wrap {
+            position: relative;
+            flex: 1 1 auto;
+            min-width: 0;
+            height: 100%;
+        }
+        #wppack-debug .wpd-bar-badges-wrap::before,
+        #wppack-debug .wpd-bar-badges-wrap::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 48px;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+        #wppack-debug .wpd-bar-badges-wrap::before {
+            left: 0;
+            background: linear-gradient(to right, #ffffff 10%, transparent);
+        }
+        #wppack-debug .wpd-bar-badges-wrap::after {
+            right: 0;
+            background: linear-gradient(to left, #ffffff 10%, transparent);
+        }
+        #wppack-debug .wpd-bar-badges-wrap.wpd-fade-left::before {
+            opacity: 1;
+        }
+        #wppack-debug .wpd-bar-badges-wrap.wpd-fade-right::after {
+            opacity: 1;
+        }
         #wppack-debug .wpd-bar-badges {
             display: flex;
             align-items: center;
             height: 100%;
-            flex: 1 1 auto;
-            min-width: 0;
             overflow-x: auto;
             overflow-y: hidden;
             scrollbar-width: none;
@@ -624,6 +654,34 @@ final class ToolbarAssets
             flex-wrap: wrap;
             gap: 4px;
         }
+        #wppack-debug .wpd-log-critical {
+            background: rgba(153,0,0,0.12);
+            color: #990000;
+        }
+        #wppack-debug .wpd-log-error {
+            background: rgba(204,24,24,0.10);
+            color: #cc1818;
+        }
+        #wppack-debug .wpd-log-warning {
+            background: rgba(153,104,0,0.10);
+            color: #996800;
+        }
+        #wppack-debug .wpd-log-notice {
+            background: rgba(37,99,235,0.10);
+            color: #2563eb;
+        }
+        #wppack-debug .wpd-log-info {
+            background: rgba(0,138,32,0.10);
+            color: #008a20;
+        }
+        #wppack-debug .wpd-log-deprecation {
+            background: rgba(161,98,7,0.10);
+            color: #a16207;
+        }
+        #wppack-debug .wpd-log-debug {
+            background: rgba(107,114,128,0.10);
+            color: #4b5563;
+        }
 
         /* ---- Lists ---- */
         #wppack-debug .wpd-list {
@@ -1066,6 +1124,25 @@ final class ToolbarAssets
             var overlay = root.querySelector('.wpd-overlay');
             var contentHeader = root.querySelector('.wpd-content-header .wpd-panel-title');
             var activePanel = null;
+
+            // Badge scroll fade
+            var badgesWrap = root.querySelector('.wpd-bar-badges-wrap');
+            var badgesScroll = root.querySelector('.wpd-bar-badges');
+            function updateBadgeFade() {
+                if (!badgesWrap || !badgesScroll) return;
+                var sl = badgesScroll.scrollLeft;
+                var maxSl = badgesScroll.scrollWidth - badgesScroll.clientWidth;
+                if (maxSl <= 0) {
+                    badgesWrap.classList.remove('wpd-fade-left', 'wpd-fade-right');
+                    return;
+                }
+                badgesWrap.classList.toggle('wpd-fade-left', sl > 2);
+                badgesWrap.classList.toggle('wpd-fade-right', sl < maxSl - 2);
+            }
+            if (badgesScroll) {
+                badgesScroll.addEventListener('scroll', updateBadgeFade);
+                updateBadgeFade();
+            }
 
             function closeOverlay() {
                 overlay.style.display = 'none';
