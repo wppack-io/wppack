@@ -1300,6 +1300,98 @@ final class ToolbarAssets
                 if (el) tooltip.style.display = 'none';
             });
         })();
+
+        // --- Ajax request tracking ---
+        (function(){
+            var ajaxCount = 0;
+            function isAdminAjax(url){
+                try { return new URL(url, location.origin).pathname.indexOf('admin-ajax.php') !== -1; } catch(e){ return false; }
+            }
+            function extractAction(url, body){
+                try {
+                    var u = new URL(url, location.origin);
+                    var a = u.searchParams.get('action');
+                    if(a) return a;
+                } catch(e){}
+                if(body){
+                    if(typeof body === 'string'){
+                        try { var p = new URLSearchParams(body); var a2 = p.get('action'); if(a2) return a2; } catch(e){}
+                    }
+                    if(typeof FormData !== 'undefined' && body instanceof FormData){
+                        var a3 = body.get('action'); if(a3) return String(a3);
+                    }
+                }
+                return '(unknown)';
+            }
+            function addAjaxRow(action, method, status, duration, size){
+                var tbody = document.getElementById('wpd-ajax-tbody');
+                var empty = document.getElementById('wpd-ajax-empty');
+                if(!tbody) return;
+                if(empty) empty.style.display = 'none';
+                ajaxCount++;
+                var tr = document.createElement('tr');
+                var statusColor = status >= 200 && status < 300 ? '#008a20' : (status >= 400 ? '#cc1818' : '#996800');
+                tr.innerHTML = '<td><code>' + action + '</code></td>'
+                    + '<td>' + method + '</td>'
+                    + '<td><span style="color:' + statusColor + '">' + status + '</span></td>'
+                    + '<td class="wpd-col-right">' + duration.toFixed(0) + ' ms</td>'
+                    + '<td class="wpd-col-right">' + (size > 0 ? (size > 1024 ? (size/1024).toFixed(1) + ' KB' : size + ' B') : '-') + '</td>';
+                tbody.appendChild(tr);
+                // Update badge
+                var badges = document.querySelectorAll('.wpd-badge[data-panel="ajax"] .wpd-badge-value');
+                badges.forEach(function(b){ b.textContent = String(ajaxCount); });
+            }
+
+            // Patch XMLHttpRequest
+            var origOpen = XMLHttpRequest.prototype.open;
+            var origSend = XMLHttpRequest.prototype.send;
+            XMLHttpRequest.prototype.open = function(method, url){
+                this._wpdMethod = method;
+                this._wpdUrl = String(url);
+                return origOpen.apply(this, arguments);
+            };
+            XMLHttpRequest.prototype.send = function(body){
+                if(this._wpdUrl && isAdminAjax(this._wpdUrl)){
+                    var self = this;
+                    var action = extractAction(self._wpdUrl, body);
+                    var method = (self._wpdMethod || 'GET').toUpperCase();
+                    var start = performance.now();
+                    self.addEventListener('loadend', function(){
+                        var dur = performance.now() - start;
+                        var size = 0;
+                        try { var r = self.responseText; if(r) size = r.length; } catch(e){}
+                        addAjaxRow(action, method, self.status, dur, size);
+                    });
+                }
+                return origSend.apply(this, arguments);
+            };
+
+            // Patch fetch
+            var origFetch = window.fetch;
+            if(origFetch){
+                window.fetch = function(input, init){
+                    var url = typeof input === 'string' ? input : (input && input.url ? input.url : '');
+                    if(!isAdminAjax(url)) return origFetch.apply(this, arguments);
+                    var method = ((init && init.method) || 'GET').toUpperCase();
+                    var body = (init && init.body) || null;
+                    var action = extractAction(url, body);
+                    var start = performance.now();
+                    return origFetch.apply(this, arguments).then(function(response){
+                        var dur = performance.now() - start;
+                        var clone = response.clone();
+                        clone.text().then(function(text){
+                            addAjaxRow(action, method, response.status, dur, text.length);
+                        }).catch(function(){
+                            addAjaxRow(action, method, response.status, dur, 0);
+                        });
+                        return response;
+                    }).catch(function(err){
+                        addAjaxRow(action, method, 0, performance.now() - start, 0);
+                        throw err;
+                    });
+                };
+            }
+        })();
         JS;
     }
 }
