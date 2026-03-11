@@ -1064,7 +1064,7 @@ final class ToolbarRenderer
             $html .= '<table class="wpd-table wpd-table-full">';
             $html .= '<thead><tr>';
             $html .= '<th class="wpd-col-num">#</th>';
-            $html .= '<th>Time</th>';
+            $html .= '<th class="wpd-col-reltime">Time</th>';
             $html .= '<th>Level</th>';
             $html .= '<th>Channel</th>';
             $html .= '<th>Message</th>';
@@ -1263,7 +1263,7 @@ final class ToolbarRenderer
             $html .= '<table class="wpd-table wpd-table-full">';
             $html .= '<thead><tr>';
             $html .= '<th class="wpd-col-num">#</th>';
-            $html .= '<th>Time</th>';
+            $html .= '<th class="wpd-col-right">Time</th>';
             $html .= '<th>Method</th>';
             $html .= '<th>URL</th>';
             $html .= '<th class="wpd-col-right">Status</th>';
