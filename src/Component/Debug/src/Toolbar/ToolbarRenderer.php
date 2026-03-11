@@ -1451,9 +1451,9 @@ final class ToolbarRenderer
             $html .= '<thead><tr>';
             $html .= '<th>Plugin</th>';
             $html .= '<th>Version</th>';
-            $html .= '<th>Load</th>';
-            $html .= '<th>Hook Time</th>';
-            $html .= '<th>Queries</th>';
+            $html .= '<th class="wpd-col-right">Load (ms)</th>';
+            $html .= '<th class="wpd-col-right">Hook Time (ms)</th>';
+            $html .= '<th class="wpd-col-right">Queries</th>';
             $html .= '</tr></thead>';
             $html .= '<tbody>';
 
@@ -1467,9 +1467,9 @@ final class ToolbarRenderer
                 $html .= '<tr>';
                 $html .= '<td><span class="wpd-plugin-detail-link" data-plugin="' . $this->esc($slug) . '">' . $this->esc($name) . '</span></td>';
                 $html .= '<td>' . ($version !== '' ? $this->esc($version) : '-') . '</td>';
-                $html .= '<td>' . ($loadTime > 0 ? $this->formatMs($loadTime) : '-') . '</td>';
-                $html .= '<td>' . $this->formatMs($hookTime) . '</td>';
-                $html .= '<td>' . ($queryCount > 0 ? $this->esc((string) $queryCount) : '-') . '</td>';
+                $html .= '<td class="wpd-col-right">' . ($loadTime > 0 ? $this->formatMsNumeric($loadTime) : '-') . '</td>';
+                $html .= '<td class="wpd-col-right">' . $this->formatMsNumeric($hookTime) . '</td>';
+                $html .= '<td class="wpd-col-right">' . ($queryCount > 0 ? $this->esc((string) $queryCount) : '-') . '</td>';
                 $html .= '</tr>';
             }
 
@@ -1884,6 +1884,19 @@ final class ToolbarRenderer
         }
 
         return $this->esc(sprintf('%.1f ms', $ms));
+    }
+
+    /**
+     * Format milliseconds as a numeric-only string (no unit suffix).
+     * Used in table cells where the column header already shows the unit.
+     */
+    private function formatMsNumeric(float $ms): string
+    {
+        if ($ms >= 1000) {
+            return $this->esc(sprintf('%.0f', $ms));
+        }
+
+        return $this->esc(sprintf('%.1f', $ms));
     }
 
     /**
@@ -2762,6 +2775,14 @@ final class ToolbarRenderer
             font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
             font-size: 12px;
             word-break: break-all;
+        }
+
+        /* Right-aligned numeric columns */
+        #wppack-debug .wpd-col-right {
+            text-align: right;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            font-size: 12px;
+            white-space: nowrap;
         }
 
         /* Full-width table columns */
