@@ -211,15 +211,15 @@ final class ToolbarRenderer
             $html .= '<table class="wpd-table wpd-table-full">';
             $html .= '<thead><tr>';
             $html .= '<th>Caller</th>';
-            $html .= '<th>Count</th>';
-            $html .= '<th>Total Time</th>';
-            $html .= '<th>Avg Time</th>';
+            $html .= '<th class="wpd-col-right">Count</th>';
+            $html .= '<th class="wpd-col-right">Total Time (ms)</th>';
+            $html .= '<th class="wpd-col-right">Avg Time (ms)</th>';
             $html .= '</tr></thead>';
             $html .= '<tbody>';
 
             foreach ($callerStats as $caller => $stats) {
                 $avgTime = $stats['total_time'] / $stats['count'];
-                $countClass = $stats['count'] > 5 ? 'wpd-text-yellow' : '';
+                $countClass = $stats['count'] > 5 ? ' wpd-text-yellow' : '';
 
                 // Show only the last entry for long caller strings
                 $shortCaller = $caller;
@@ -230,9 +230,9 @@ final class ToolbarRenderer
 
                 $html .= '<tr>';
                 $html .= '<td title="' . $this->esc($caller) . '"><span class="wpd-caller">' . $this->esc($shortCaller) . '</span></td>';
-                $html .= '<td class="' . $countClass . '">' . $this->esc((string) $stats['count']) . '</td>';
-                $html .= '<td>' . $this->formatMs($stats['total_time']) . '</td>';
-                $html .= '<td>' . $this->formatMs($avgTime) . '</td>';
+                $html .= '<td class="wpd-col-right' . $countClass . '">' . $this->esc((string) $stats['count']) . '</td>';
+                $html .= '<td class="wpd-col-right">' . $this->formatMsNumeric($stats['total_time']) . '</td>';
+                $html .= '<td class="wpd-col-right">' . $this->formatMsNumeric($avgTime) . '</td>';
                 $html .= '</tr>';
             }
 
@@ -918,9 +918,9 @@ final class ToolbarRenderer
             $html .= '<thead><tr>';
             $html .= '<th>Component</th>';
             $html .= '<th>Type</th>';
-            $html .= '<th>Hooks</th>';
-            $html .= '<th>Listeners</th>';
-            $html .= '<th>Duration</th>';
+            $html .= '<th class="wpd-col-right">Hooks</th>';
+            $html .= '<th class="wpd-col-right">Listeners</th>';
+            $html .= '<th class="wpd-col-right">Duration (ms)</th>';
             $html .= '</tr></thead>';
             $html .= '<tbody>';
 
@@ -935,9 +935,9 @@ final class ToolbarRenderer
                 $html .= '<tr>';
                 $html .= '<td><code>' . $this->esc((string) $component) . '</code></td>';
                 $html .= '<td>' . $typeTag . '</td>';
-                $html .= '<td>' . $this->esc((string) $summary['hooks']) . '</td>';
-                $html .= '<td>' . $this->esc((string) $summary['listeners']) . '</td>';
-                $html .= '<td>' . $this->formatMs((float) $summary['total_time']) . '</td>';
+                $html .= '<td class="wpd-col-right">' . $this->esc((string) $summary['hooks']) . '</td>';
+                $html .= '<td class="wpd-col-right">' . $this->esc((string) $summary['listeners']) . '</td>';
+                $html .= '<td class="wpd-col-right">' . $this->formatMsNumeric((float) $summary['total_time']) . '</td>';
                 $html .= '</tr>';
             }
 
@@ -952,10 +952,10 @@ final class ToolbarRenderer
             $html .= '<thead><tr>';
             $html .= '<th class="wpd-col-num">#</th>';
             $html .= '<th>Hook</th>';
-            $html .= '<th>Firings</th>';
-            $html .= '<th>Listeners</th>';
-            $html .= '<th>Time</th>';
-            $html .= '<th>Duration</th>';
+            $html .= '<th class="wpd-col-right">Firings</th>';
+            $html .= '<th class="wpd-col-right">Listeners</th>';
+            $html .= '<th class="wpd-col-right">Time</th>';
+            $html .= '<th class="wpd-col-right">Duration (ms)</th>';
             $html .= '</tr></thead>';
             $html .= '<tbody>';
 
@@ -963,16 +963,16 @@ final class ToolbarRenderer
             foreach ($topHooks as $hook => $count) {
                 $listeners = $listenerCounts[$hook] ?? 0;
                 $timing = $hookTimings[$hook] ?? null;
-                $duration = $timing !== null ? $this->formatMs($timing['total_time']) : '-';
-                $hookStart = $timing !== null ? $this->esc('+' . number_format(max(0, $timing['start']), 0) . ' ms') : '-';
+                $duration = $timing !== null ? $this->formatMsNumeric($timing['total_time']) : '-';
+                $hookStart = $timing !== null ? $this->esc('+' . number_format(max(0, $timing['start']), 0)) : '-';
 
                 $html .= '<tr>';
                 $html .= '<td class="wpd-col-num">' . $this->esc((string) (++$index)) . '</td>';
                 $html .= '<td><code>' . $this->esc($hook) . '</code></td>';
-                $html .= '<td>' . $this->esc((string) $count) . '</td>';
-                $html .= '<td>' . $this->esc((string) $listeners) . '</td>';
-                $html .= '<td class="wpd-col-reltime wpd-text-dim">' . $hookStart . '</td>';
-                $html .= '<td>' . $duration . '</td>';
+                $html .= '<td class="wpd-col-right">' . $this->esc((string) $count) . '</td>';
+                $html .= '<td class="wpd-col-right">' . $this->esc((string) $listeners) . '</td>';
+                $html .= '<td class="wpd-col-right wpd-text-dim">' . $hookStart . '</td>';
+                $html .= '<td class="wpd-col-right">' . $duration . '</td>';
                 $html .= '</tr>';
             }
 
@@ -1266,9 +1266,9 @@ final class ToolbarRenderer
             $html .= '<th>Time</th>';
             $html .= '<th>Method</th>';
             $html .= '<th>URL</th>';
-            $html .= '<th>Status</th>';
-            $html .= '<th>Duration</th>';
-            $html .= '<th>Size</th>';
+            $html .= '<th class="wpd-col-right">Status</th>';
+            $html .= '<th class="wpd-col-right">Duration (ms)</th>';
+            $html .= '<th class="wpd-col-right">Size</th>';
             $html .= '</tr></thead>';
             $html .= '<tbody>';
 
@@ -1290,9 +1290,9 @@ final class ToolbarRenderer
                 $html .= '<td class="wpd-col-reltime wpd-text-dim">' . $relTime . '</td>';
                 $html .= '<td><span class="wpd-tag">' . $this->esc($request['method'] ?? 'GET') . '</span></td>';
                 $html .= '<td><code>' . $this->esc($request['url'] ?? '') . '</code></td>';
-                $html .= '<td class="' . $statusColor . '">' . ($statusCode > 0 ? $this->esc((string) $statusCode) : '-') . $error . '</td>';
-                $html .= '<td>' . $this->formatMs((float) ($request['duration'] ?? 0.0)) . '</td>';
-                $html .= '<td>' . $this->formatBytes((int) ($request['response_size'] ?? 0)) . '</td>';
+                $html .= '<td class="wpd-col-right ' . $statusColor . '">' . ($statusCode > 0 ? $this->esc((string) $statusCode) : '-') . $error . '</td>';
+                $html .= '<td class="wpd-col-right">' . $this->formatMsNumeric((float) ($request['duration'] ?? 0.0)) . '</td>';
+                $html .= '<td class="wpd-col-right">' . $this->formatBytes((int) ($request['response_size'] ?? 0)) . '</td>';
                 $html .= '</tr>';
             }
 
@@ -1563,13 +1563,13 @@ final class ToolbarRenderer
             $html .= '<div class="wpd-section">';
             $html .= '<h4 class="wpd-section-title">Hook Breakdown</h4>';
             $html .= '<table class="wpd-table wpd-table-full">';
-            $html .= '<thead><tr><th>Hook</th><th>Listeners</th><th>Time</th></tr></thead>';
+            $html .= '<thead><tr><th>Hook</th><th class="wpd-col-right">Listeners</th><th class="wpd-col-right">Time (ms)</th></tr></thead>';
             $html .= '<tbody>';
             foreach ($hooks as $hookInfo) {
                 $html .= '<tr>';
                 $html .= '<td><code>' . $this->esc($hookInfo['hook']) . '</code></td>';
-                $html .= '<td>' . $this->esc((string) $hookInfo['listeners']) . '</td>';
-                $html .= '<td>' . $this->formatMs((float) $hookInfo['time']) . '</td>';
+                $html .= '<td class="wpd-col-right">' . $this->esc((string) $hookInfo['listeners']) . '</td>';
+                $html .= '<td class="wpd-col-right">' . $this->formatMsNumeric((float) $hookInfo['time']) . '</td>';
                 $html .= '</tr>';
             }
             $html .= '</tbody></table>';
@@ -1664,13 +1664,13 @@ final class ToolbarRenderer
             $html .= '<div class="wpd-section">';
             $html .= '<h4 class="wpd-section-title">Hook Breakdown</h4>';
             $html .= '<table class="wpd-table wpd-table-full">';
-            $html .= '<thead><tr><th>Hook</th><th>Listeners</th><th>Time</th></tr></thead>';
+            $html .= '<thead><tr><th>Hook</th><th class="wpd-col-right">Listeners</th><th class="wpd-col-right">Time (ms)</th></tr></thead>';
             $html .= '<tbody>';
             foreach ($hooks as $hookInfo) {
                 $html .= '<tr>';
                 $html .= '<td><code>' . $this->esc($hookInfo['hook']) . '</code></td>';
-                $html .= '<td>' . $this->esc((string) $hookInfo['listeners']) . '</td>';
-                $html .= '<td>' . $this->formatMs($hookInfo['time']) . '</td>';
+                $html .= '<td class="wpd-col-right">' . $this->esc((string) $hookInfo['listeners']) . '</td>';
+                $html .= '<td class="wpd-col-right">' . $this->formatMsNumeric($hookInfo['time']) . '</td>';
                 $html .= '</tr>';
             }
             $html .= '</tbody></table>';
@@ -1793,7 +1793,7 @@ final class ToolbarRenderer
             $html .= '<th>Hook</th>';
             $html .= '<th>Schedule</th>';
             $html .= '<th>Next Run</th>';
-            $html .= '<th>Callbacks</th>';
+            $html .= '<th class="wpd-col-right">Callbacks</th>';
             $html .= '</tr></thead>';
             $html .= '<tbody>';
 
@@ -1809,7 +1809,7 @@ final class ToolbarRenderer
                     $html .= ' <span class="wpd-query-tag wpd-tag-slow">OVERDUE</span>';
                 }
                 $html .= '</td>';
-                $html .= '<td>' . $this->esc((string) ($event['callbacks'] ?? 0)) . '</td>';
+                $html .= '<td class="wpd-col-right">' . $this->esc((string) ($event['callbacks'] ?? 0)) . '</td>';
                 $html .= '</tr>';
             }
 
@@ -2789,6 +2789,7 @@ final class ToolbarRenderer
         #wppack-debug .wpd-col-reltime {
             width: 70px;
             white-space: nowrap;
+            text-align: right;
             font-size: 12px;
         }
         #wppack-debug .wpd-col-num {
@@ -2812,6 +2813,7 @@ final class ToolbarRenderer
         #wppack-debug .wpd-col-time {
             width: 90px;
             white-space: nowrap;
+            text-align: right;
             font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
             font-size: 12px;
         }
