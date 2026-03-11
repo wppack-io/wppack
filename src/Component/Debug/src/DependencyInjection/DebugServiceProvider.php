@@ -17,9 +17,17 @@ use WpPack\Component\Debug\Handler\DebugHandler;
 use WpPack\Component\Debug\DataCollector\MemoryDataCollector;
 use WpPack\Component\Debug\DataCollector\RequestDataCollector;
 use WpPack\Component\Debug\DataCollector\RouterDataCollector;
-use WpPack\Component\Debug\DataCollector\TimeDataCollector;
+use WpPack\Component\Debug\DataCollector\StopwatchDataCollector;
+use WpPack\Component\Debug\DataCollector\AdminDataCollector;
+use WpPack\Component\Debug\DataCollector\AjaxDataCollector;
+use WpPack\Component\Debug\DataCollector\AssetDataCollector;
+use WpPack\Component\Debug\DataCollector\ContainerDataCollector;
+use WpPack\Component\Debug\DataCollector\FeedDataCollector;
+use WpPack\Component\Debug\DataCollector\RestDataCollector;
+use WpPack\Component\Debug\DataCollector\SecurityDataCollector;
+use WpPack\Component\Debug\DataCollector\ShortcodeDataCollector;
 use WpPack\Component\Debug\DataCollector\TranslationDataCollector;
-use WpPack\Component\Debug\DataCollector\UserDataCollector;
+use WpPack\Component\Debug\DataCollector\WidgetDataCollector;
 use WpPack\Component\Debug\DataCollector\WordPressDataCollector;
 use WpPack\Component\Debug\DebugConfig;
 use WpPack\Component\Debug\ErrorHandler\ErrorRenderer;
@@ -27,7 +35,7 @@ use WpPack\Component\Debug\ErrorHandler\ExceptionHandler;
 use WpPack\Component\Debug\ErrorHandler\WpDieHandler;
 use WpPack\Component\Debug\Profiler\Profile;
 use WpPack\Component\Debug\Profiler\Profiler;
-use WpPack\Component\Debug\Profiler\Stopwatch;
+use WpPack\Component\Stopwatch\Stopwatch;
 use WpPack\Component\Debug\Toolbar\Panel\CachePanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\DatabasePanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\DumpPanelRenderer;
@@ -41,9 +49,17 @@ use WpPack\Component\Debug\Toolbar\Panel\RequestPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\RouterPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\SchedulerPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\ThemePanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\TimePanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\StopwatchPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\AdminPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\AjaxPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\AssetPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\ContainerPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\FeedPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\RestPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\SecurityPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\ShortcodePanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\TranslationPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\UserPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\WidgetPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\WordPressPanelRenderer;
 use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
 use WpPack\Component\Debug\Toolbar\ToolbarSubscriber;
@@ -69,10 +85,10 @@ final class DebugServiceProvider implements ServiceProviderInterface
         $builder->register(RequestDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
         $builder->register(DatabaseDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
         $builder->register(MemoryDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
-        $builder->register(TimeDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG)->autowire();
+        $builder->register(StopwatchDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG)->autowire();
         $builder->register(CacheDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
         $builder->register(WordPressDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
-        $builder->register(UserDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
+        $builder->register(SecurityDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
         $builder->register(MailDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
         $builder->register(EventDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
         $builder->register(LoggerDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
@@ -80,6 +96,14 @@ final class DebugServiceProvider implements ServiceProviderInterface
         $builder->register(HttpClientDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
         $builder->register(TranslationDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
         $builder->register(DumpDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
+        $builder->register(WidgetDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
+        $builder->register(AssetDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
+        $builder->register(AdminDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
+        $builder->register(ShortcodeDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
+        $builder->register(FeedDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
+        $builder->register(RestDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
+        $builder->register(ContainerDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
+        $builder->register(AjaxDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
 
         // Logger Component integration (optional)
         if (class_exists(\WpPack\Component\Logger\Handler\HandlerInterface::class)) {
@@ -92,12 +116,12 @@ final class DebugServiceProvider implements ServiceProviderInterface
 
         // Built-in panel renderers
         $builder->register(DatabasePanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
-        $builder->register(TimePanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
+        $builder->register(StopwatchPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
         $builder->register(MemoryPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
         $builder->register(RequestPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
         $builder->register(CachePanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
         $builder->register(WordPressPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
-        $builder->register(UserPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
+        $builder->register(SecurityPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
         $builder->register(MailPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
         $builder->register(EventPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
         $builder->register(LoggerPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
@@ -108,5 +132,13 @@ final class DebugServiceProvider implements ServiceProviderInterface
         $builder->register(PluginPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
         $builder->register(ThemePanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
         $builder->register(SchedulerPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
+        $builder->register(WidgetPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
+        $builder->register(AssetPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
+        $builder->register(AdminPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
+        $builder->register(ShortcodePanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
+        $builder->register(FeedPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
+        $builder->register(RestPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
+        $builder->register(ContainerPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
+        $builder->register(AjaxPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
     }
 }

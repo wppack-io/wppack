@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Debug\Tests\Profiler;
+namespace WpPack\Component\Stopwatch\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Debug\Profiler\StopwatchEvent;
+use WpPack\Component\Stopwatch\StopwatchEvent;
 
 final class StopwatchEventTest extends TestCase
 {

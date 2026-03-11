@@ -15,13 +15,13 @@ composer require wppack/debug
 
 ```php
 use WpPack\Component\Debug\DebugConfig;
-use WpPack\Component\Debug\Profiler\Stopwatch;
+use WpPack\Component\Stopwatch\Stopwatch;
 use WpPack\Component\Debug\Profiler\Profile;
 use WpPack\Component\Debug\Profiler\Profiler;
 use WpPack\Component\Debug\DataCollector\RequestDataCollector;
 use WpPack\Component\Debug\DataCollector\DatabaseDataCollector;
 use WpPack\Component\Debug\DataCollector\MemoryDataCollector;
-use WpPack\Component\Debug\DataCollector\TimeDataCollector;
+use WpPack\Component\Debug\DataCollector\StopwatchDataCollector;
 use WpPack\Component\Debug\DataCollector\CacheDataCollector;
 use WpPack\Component\Debug\DataCollector\WordPressDataCollector;
 use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
@@ -57,7 +57,7 @@ $collectors = [
     new RequestDataCollector(),
     new DatabaseDataCollector(),
     new MemoryDataCollector(),
-    new TimeDataCollector($stopwatch),
+    new StopwatchDataCollector($stopwatch),
     new CacheDataCollector(),
     new WordPressDataCollector(),
 ];
@@ -86,8 +86,8 @@ Built-in collectors gather profiling data and display it in the toolbar:
 | `EventDataCollector` | Hook firings | WordPress hooks monitoring, top hooks, orphan hooks |
 | `MemoryDataCollector` | Peak memory | Current/peak memory, limit, lifecycle snapshots |
 | `MailDataCollector` | Email count | Emails sent via wp_mail(), success/failure tracking |
-| `TimeDataCollector` | Total time | Request duration, WordPress lifecycle phases, stopwatch events |
-| `UserDataCollector` | Username | Current user, roles, capabilities, authentication method |
+| `StopwatchDataCollector` | Total time | Request duration, WordPress lifecycle phases, stopwatch events (name: `stopwatch`) |
+| `SecurityDataCollector` | Username | Current user, roles, capabilities, authentication, nonce tracking |
 | `CacheDataCollector` | Hit rate | Object cache hits/misses, transient set/delete counts |
 | `RouterDataCollector` | Template name | Matched rewrite rule, template, query vars, conditional tags (FSE/classic) |
 | `WordPressDataCollector` | WP version | WordPress/PHP version, active theme/plugins, debug constants |

@@ -67,12 +67,13 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer
 
     public function renderContent(Profile $profile): string
     {
-        $timeData = $this->getCollectorData($profile, 'time');
+        $timeData = $this->getCollectorData($profile, 'stopwatch');
         $memoryData = $this->getCollectorData($profile, 'memory');
         $dbData = $this->getCollectorData($profile, 'database');
         $cacheData = $this->getCollectorData($profile, 'cache');
         $httpData = $this->getCollectorData($profile, 'http_client');
         $eventData = $this->getCollectorData($profile, 'event');
+        $mailData = $this->getCollectorData($profile, 'mail');
 
         $totalTime = (float) ($timeData['total_time'] ?? $profile->getTime());
         $peakMemory = (int) ($memoryData['peak'] ?? 0);
@@ -145,7 +146,15 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer
                 }
             }
 
-            $customTotal = array_sum($categoryTimes) + $cacheTimeMs;
+            // Aggregate mail send times
+            /** @var list<array{duration?: float}> $mailEmailsDist */
+            $mailEmailsDist = $mailData['emails'] ?? [];
+            $mailTimeMs = 0.0;
+            foreach ($mailEmailsDist as $mailEmail) {
+                $mailTimeMs += (float) ($mailEmail['duration'] ?? 0.0);
+            }
+
+            $customTotal = array_sum($categoryTimes) + $cacheTimeMs + $mailTimeMs;
             $phpTime = max(0.0, $totalTime - $dbTimeMs - $httpTimeMs - $customTotal);
 
             // Build segments: fixed categories first, then dynamic
@@ -153,6 +162,10 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer
             $segments[] = ['label' => 'PHP', 'time' => $phpTime, 'color' => '#3858e9'];
             $segments[] = ['label' => 'Database', 'time' => $dbTimeMs, 'color' => '#f0c33c'];
             $segments[] = ['label' => 'HTTP Client', 'time' => $httpTimeMs, 'color' => '#9b8afb'];
+
+            if ($mailTimeMs > 0) {
+                $segments[] = ['label' => 'Mail', 'time' => $mailTimeMs, 'color' => '#e65490'];
+            }
 
             if ($cacheTimeMs > 0) {
                 $segments[] = ['label' => 'Cache', 'time' => $cacheTimeMs, 'color' => '#4ab866'];
@@ -445,14 +458,114 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer
             }
         }
 
+        // 8. Widget sidebar render bars (main timeline)
+        $widgetData = $this->getCollectorData($profile, 'widget');
+        /** @var list<array{sidebar: string, name: string, start: float, duration: float}> $sidebarTimings */
+        $sidebarTimings = $widgetData['sidebar_timings'] ?? [];
+
+        if ($sidebarTimings !== []) {
+            $widgetBars = [];
+            $widgetTotalTime = 0.0;
+            foreach ($sidebarTimings as $timing) {
+                $startMs = ((float) $timing['start'] - $requestTimeFloat) * 1000;
+                $durationMs = (float) $timing['duration'];
+                $widgetTotalTime += $durationMs;
+                $widgetBars[] = [
+                    'start' => $startMs,
+                    'duration' => max($durationMs, 0.5),
+                    'title' => $timing['name'] . "\n" . $this->formatMs($durationMs),
+                ];
+            }
+
+            $widgetLabel = sprintf('Widgets (%d sidebars)', count($sidebarTimings));
+            $timelineEntries[] = [
+                'name' => $widgetLabel,
+                'start' => $widgetBars[0]['start'],
+                'duration' => 0.0,
+                'category' => 'widget',
+                'title' => $widgetLabel . ' — ' . $this->formatMs($widgetTotalTime),
+                'value' => $widgetTotalTime,
+                'bars' => $widgetBars,
+            ];
+        }
+
+        // 9. Shortcode execution bars (main timeline)
+        $shortcodeData = $this->getCollectorData($profile, 'shortcode');
+        /** @var list<array{tag: string, start: float, duration: float}> $shortcodeExecutions */
+        $shortcodeExecutions = $shortcodeData['executions'] ?? [];
+
+        if ($shortcodeExecutions !== []) {
+            $shortcodeBars = [];
+            $shortcodeTotalTime = 0.0;
+            foreach ($shortcodeExecutions as $exec) {
+                $startMs = ((float) $exec['start'] - $requestTimeFloat) * 1000;
+                $durationMs = (float) $exec['duration'];
+                $shortcodeTotalTime += $durationMs;
+                $shortcodeBars[] = [
+                    'start' => $startMs,
+                    'duration' => max($durationMs, 0.5),
+                    'title' => '[' . $exec['tag'] . "]\n" . $this->formatMs($durationMs),
+                ];
+            }
+
+            $shortcodeLabel = sprintf('Shortcodes (%d executions)', count($shortcodeExecutions));
+            $timelineEntries[] = [
+                'name' => $shortcodeLabel,
+                'start' => $shortcodeBars[0]['start'],
+                'duration' => 0.0,
+                'category' => 'shortcode',
+                'title' => $shortcodeLabel . ' — ' . $this->formatMs($shortcodeTotalTime),
+                'value' => $shortcodeTotalTime,
+                'bars' => $shortcodeBars,
+            ];
+        }
+
+        // 10. Mail send bars (main timeline)
+        $mailData = $this->getCollectorData($profile, 'mail');
+        /** @var list<array{subject: string, status: string, start?: float, duration?: float}> $mailEmails */
+        $mailEmails = $mailData['emails'] ?? [];
+        $mailBars = [];
+        $mailTotalMs = 0.0;
+        foreach ($mailEmails as $email) {
+            if (!isset($email['start'])) {
+                continue;
+            }
+            $startMs = ((float) $email['start'] - $requestTimeFloat) * 1000;
+            $durationMs = (float) ($email['duration'] ?? 0.0);
+            $mailTotalMs += $durationMs;
+            $statusLabel = $email['status'] === 'sent' ? 'sent' : $email['status'];
+            $mailBars[] = [
+                'start' => $startMs,
+                'duration' => max($durationMs, 0.5),
+                'title' => $email['subject'] . ' (' . $statusLabel . ")\n" . $this->formatMs($durationMs),
+            ];
+        }
+        if ($mailBars !== []) {
+            $mailLabel = sprintf('Mail (%d emails)', count($mailBars));
+            $timelineEntries[] = [
+                'name' => $mailLabel,
+                'start' => $mailBars[0]['start'],
+                'duration' => 0.0,
+                'category' => 'mail',
+                'title' => $mailLabel . ' — ' . $this->formatMs($mailTotalMs) . ' total',
+                'value' => $mailTotalMs,
+                'bars' => $mailBars,
+            ];
+        }
+
         // Sort by start time
         usort($timelineEntries, static fn(array $a, array $b): int => $a['start'] <=> $b['start']);
 
         // Add category colors for new types
         $categoryColors['plugin'] = '#d97ae6';
         $categoryColors['theme_hooks'] = '#e26f56';
+        $categoryColors['widget'] = '#4ab866';
+        $categoryColors['shortcode'] = '#e6a23c';
+        $categoryColors['mail'] = '#e65490';
 
-        if ($timelineEntries !== [] || $pluginTimelineEntries !== [] || $themeTimelineEntries !== []) {
+        $hasTimeline = $timelineEntries !== [] || $pluginTimelineEntries !== [] || $themeTimelineEntries !== [];
+
+        if ($hasTimeline) {
             $html .= '<div class="wpd-section">';
             $html .= '<h4 class="wpd-section-title">Timeline</h4>';
             $html .= '<div class="wpd-perf-waterfall">';
@@ -496,6 +609,9 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer
                 'security' => 'Security',
                 'plugin' => 'Plugin',
                 'theme_hooks' => 'Theme',
+                'widget' => 'Widget',
+                'shortcode' => 'Shortcode',
+                'mail' => 'Mail',
             ];
             $html .= '<div class="wpd-perf-dist-legend">';
             foreach ($usedCategories as $cat) {

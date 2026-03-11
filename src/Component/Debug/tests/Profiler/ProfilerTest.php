@@ -7,7 +7,7 @@ namespace WpPack\Component\Debug\Tests\Profiler;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Debug\Profiler\Profiler;
-use WpPack\Component\Debug\Profiler\Stopwatch;
+use WpPack\Component\Stopwatch\Stopwatch;
 
 final class ProfilerTest extends TestCase
 {

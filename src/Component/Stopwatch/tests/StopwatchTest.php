@@ -2,13 +2,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Debug\Tests\Profiler;
+namespace WpPack\Component\Stopwatch\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Debug\Exception\LogicException;
-use WpPack\Component\Debug\Profiler\Stopwatch;
-use WpPack\Component\Debug\Profiler\StopwatchEvent;
+use WpPack\Component\Stopwatch\Stopwatch;
+use WpPack\Component\Stopwatch\StopwatchEvent;
 
 final class StopwatchTest extends TestCase
 {
@@ -33,7 +32,7 @@ final class StopwatchTest extends TestCase
     #[Test]
     public function stopWithoutStartThrowsLogicException(): void
     {
-        self::expectException(LogicException::class);
+        self::expectException(\LogicException::class);
         self::expectExceptionMessage('Event "nonexistent" is not started.');
 
         $this->stopwatch->stop('nonexistent');
@@ -72,7 +71,7 @@ final class StopwatchTest extends TestCase
     #[Test]
     public function getEventForNonExistentThrowsLogicException(): void
     {
-        self::expectException(LogicException::class);
+        self::expectException(\LogicException::class);
         self::expectExceptionMessage('Event "unknown" is not available. Did you forget to stop it?');
 
         $this->stopwatch->getEvent('unknown');

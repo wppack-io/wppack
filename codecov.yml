@@ -139,6 +139,10 @@ component_management:
       name: Messenger
       paths:
         - src/Component/Messenger/src/**
+    - component_id: stopwatch
+      name: Stopwatch
+      paths:
+        - src/Component/Stopwatch/src/**
     - component_id: debug
       name: Debug
       paths:

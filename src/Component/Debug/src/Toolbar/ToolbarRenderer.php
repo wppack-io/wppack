@@ -26,8 +26,11 @@ final class ToolbarRenderer
     private const BADGE_ORDER = [
         'plugin', 'theme',
         'performance',
-        'request', 'router', 'time', 'memory', 'database', 'cache', 'http_client',
-        'event', 'logger', 'mail', 'scheduler', 'translation', 'user',
+        'request', 'router', 'rest', 'ajax', 'http_client',
+        'stopwatch', 'memory', 'database', 'cache',
+        'event', 'security', 'logger', 'container',
+        'asset', 'widget', 'shortcode', 'admin',
+        'mail', 'scheduler', 'translation', 'feed',
         'dump',
     ];
 
@@ -35,8 +38,11 @@ final class ToolbarRenderer
     private const SIDEBAR_GROUPS = [
         ['wordpress', 'plugin', 'theme'],
         ['performance'],
-        ['request', 'router', 'time', 'memory', 'database', 'cache', 'http_client'],
-        ['event', 'logger', 'mail', 'scheduler', 'translation', 'user'],
+        ['request', 'router', 'rest', 'ajax', 'http_client'],
+        ['stopwatch', 'memory', 'database', 'cache'],
+        ['event', 'security', 'logger', 'container'],
+        ['asset', 'widget', 'shortcode', 'admin'],
+        ['mail', 'scheduler', 'translation', 'feed'],
         ['dump'],
     ];
 
@@ -67,8 +73,8 @@ final class ToolbarRenderer
 
         // Extract request_time_float for relative time display across panels
         $requestTimeFloat = 0.0;
-        if (isset($collectors['time'])) {
-            $timeData = $collectors['time']->getData();
+        if (isset($collectors['stopwatch'])) {
+            $timeData = $collectors['stopwatch']->getData();
             $requestTimeFloat = (float) ($timeData['request_time_float'] ?? 0.0);
         }
 

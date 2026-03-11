@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace WpPack\Component\Debug\DataCollector;
 
 use WpPack\Component\Debug\Attribute\AsDataCollector;
-use WpPack\Component\Debug\Profiler\Stopwatch;
+use WpPack\Component\Stopwatch\Stopwatch;
 
-#[AsDataCollector(name: 'time', priority: 250)]
-final class TimeDataCollector extends AbstractDataCollector
+#[AsDataCollector(name: 'stopwatch', priority: 250)]
+final class StopwatchDataCollector extends AbstractDataCollector
 {
     private const FRONTEND_PHASES = [
         'muplugins_loaded',
@@ -48,12 +48,12 @@ final class TimeDataCollector extends AbstractDataCollector
 
     public function getName(): string
     {
-        return 'time';
+        return 'stopwatch';
     }
 
     public function getLabel(): string
     {
-        return 'Time';
+        return 'Stopwatch';
     }
 
     public function collect(): void

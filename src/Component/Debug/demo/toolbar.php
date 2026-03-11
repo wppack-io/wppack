@@ -19,9 +19,17 @@ use WpPack\Component\Debug\Toolbar\Panel\RequestPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\RouterPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\SchedulerPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\ThemePanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\TimePanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\StopwatchPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\AdminPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\AjaxPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\AssetPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\ContainerPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\FeedPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\RestPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\SecurityPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\ShortcodePanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\TranslationPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\UserPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\WidgetPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\WordPressPanelRenderer;
 use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
 
@@ -137,8 +145,8 @@ $collectors[] = new FakeCollector('request', 'Request', 'GET 200', 'green', [
     'http_api_calls' => [],
 ]);
 
-// Time — lifecycle phases consistent with the timeline above
-$collectors[] = new FakeCollector('time', 'Time', '', 'default', [
+// Stopwatch — lifecycle phases consistent with the timeline above
+$collectors[] = new FakeCollector('stopwatch', 'Stopwatch', '', 'default', [
     'total_time' => 198.0,
     'request_time_float' => $requestTimeFloat,
     'events' => [
@@ -602,6 +610,8 @@ $collectors[] = new FakeCollector('mail', 'Mail', '2', 'red', [
             'attachment_details' => [
                 ['filename' => 'welcome.pdf', 'size' => 245760],
             ],
+            'start' => $requestTimeFloat + 0.105,
+            'duration' => 8.4,
         ],
         [
             'to' => 'b***@example.com',
@@ -618,12 +628,14 @@ $collectors[] = new FakeCollector('mail', 'Mail', '2', 'red', [
             'content_type' => 'text/plain',
             'charset' => 'UTF-8',
             'attachment_details' => [],
+            'start' => $requestTimeFloat + 0.148,
+            'duration' => 12.1,
         ],
     ],
 ]);
 
-// User
-$collectors[] = new FakeCollector('user', 'User', 'admin', 'default', [
+// Security (replaces User — adds nonce tracking)
+$collectors[] = new FakeCollector('security', 'Security', 'admin', 'default', [
     'is_logged_in' => true,
     'user_id' => 1,
     'username' => 'admin',
@@ -631,8 +643,225 @@ $collectors[] = new FakeCollector('user', 'User', 'admin', 'default', [
     'email' => '***@example.com',
     'roles' => ['administrator'],
     'capabilities' => ['manage_options' => true, 'edit_posts' => true, 'delete_posts' => true, 'publish_posts' => true, 'edit_pages' => true],
-    'auth_method' => 'cookie',
+    'authentication' => 'cookie',
     'is_super_admin' => false,
+    'nonce_operations' => [
+        ['action' => 'wp_rest', 'operation' => 'verify', 'result' => true, 'timestamp' => $requestTimeFloat + 0.050],
+        ['action' => 'save-post_42', 'operation' => 'verify', 'result' => true, 'timestamp' => $requestTimeFloat + 0.085],
+    ],
+    'nonce_verify_count' => 2,
+    'nonce_verify_failures' => 0,
+]);
+
+// Widget
+$collectors[] = new FakeCollector('widget', 'Widget', '8', 'default', [
+    'sidebars' => [
+        'sidebar-1' => [
+            'name' => 'Main Sidebar',
+            'widgets' => ['Search', 'Recent Posts', 'Categories', 'Archives'],
+        ],
+        'footer-1' => [
+            'name' => 'Footer 1',
+            'widgets' => ['Text', 'Custom HTML'],
+        ],
+        'footer-2' => [
+            'name' => 'Footer 2',
+            'widgets' => ['Navigation Menu', 'Meta'],
+        ],
+    ],
+    'total_widgets' => 8,
+    'total_sidebars' => 3,
+    'active_widgets' => 8,
+    'render_time' => 12.45,
+    'sidebar_timings' => [
+        ['sidebar' => 'sidebar-1', 'name' => 'Main Sidebar', 'start' => $requestTimeFloat + 0.155, 'duration' => 6.82],
+        ['sidebar' => 'footer-1', 'name' => 'Footer 1', 'start' => $requestTimeFloat + 0.170, 'duration' => 3.21],
+        ['sidebar' => 'footer-2', 'name' => 'Footer 2', 'start' => $requestTimeFloat + 0.178, 'duration' => 2.42],
+    ],
+]);
+
+// Shortcode
+$collectors[] = new FakeCollector('shortcode', 'Shortcode', '12', 'default', [
+    'shortcodes' => [
+        'gallery' => ['tag' => 'gallery', 'callback' => 'gallery_shortcode', 'used' => true],
+        'caption' => ['tag' => 'caption', 'callback' => 'img_caption_shortcode', 'used' => false],
+        'embed' => ['tag' => 'embed', 'callback' => 'WP_Embed::run_shortcode', 'used' => false],
+        'audio' => ['tag' => 'audio', 'callback' => 'wp_audio_shortcode', 'used' => false],
+        'video' => ['tag' => 'video', 'callback' => 'wp_video_shortcode', 'used' => false],
+        'playlist' => ['tag' => 'playlist', 'callback' => 'wp_playlist_shortcode', 'used' => false],
+        'woocommerce_cart' => ['tag' => 'woocommerce_cart', 'callback' => 'WC_Shortcodes::cart', 'used' => false],
+        'woocommerce_checkout' => ['tag' => 'woocommerce_checkout', 'callback' => 'WC_Shortcodes::checkout', 'used' => false],
+        'contact-form-7' => ['tag' => 'contact-form-7', 'callback' => 'WPCF7_ContactForm::shortcode', 'used' => true],
+        'wpcf7' => ['tag' => 'wpcf7', 'callback' => 'WPCF7_ContactForm::shortcode', 'used' => false],
+        'product' => ['tag' => 'product', 'callback' => 'WC_Shortcodes::product', 'used' => false],
+        'products' => ['tag' => 'products', 'callback' => 'WC_Shortcodes::products', 'used' => false],
+    ],
+    'total_count' => 12,
+    'used_count' => 2,
+    'used_shortcodes' => ['gallery', 'contact-form-7'],
+    'execution_time' => 8.24,
+    'executions' => [
+        ['tag' => 'gallery', 'start' => $requestTimeFloat + 0.130, 'duration' => 5.12],
+        ['tag' => 'contact-form-7', 'start' => $requestTimeFloat + 0.142, 'duration' => 3.12],
+    ],
+]);
+
+// Asset (Scripts & Styles)
+$collectors[] = new FakeCollector('asset', 'Assets', '18', 'default', [
+    'scripts' => [
+        'jquery-core' => ['handle' => 'jquery-core', 'src' => '/wp-includes/js/jquery/jquery.min.js', 'version' => '3.7.1', 'in_footer' => false, 'deps' => [], 'enqueued' => true],
+        'jquery-migrate' => ['handle' => 'jquery-migrate', 'src' => '/wp-includes/js/jquery/jquery-migrate.min.js', 'version' => '3.4.1', 'in_footer' => false, 'deps' => ['jquery-core'], 'enqueued' => true],
+        'wp-embed' => ['handle' => 'wp-embed', 'src' => '/wp-includes/js/wp-embed.min.js', 'version' => '6.7.1', 'in_footer' => true, 'deps' => [], 'enqueued' => true],
+        'wc-cart-fragments' => ['handle' => 'wc-cart-fragments', 'src' => '/wp-content/plugins/woocommerce/assets/js/frontend/cart-fragments.min.js', 'version' => '8.5.0', 'in_footer' => true, 'deps' => ['jquery'], 'enqueued' => true],
+        'contact-form-7' => ['handle' => 'contact-form-7', 'src' => '/wp-content/plugins/contact-form-7/includes/js/index.js', 'version' => '5.9', 'in_footer' => true, 'deps' => [], 'enqueued' => true],
+        'flavor-main' => ['handle' => 'flavor-main', 'src' => '/wp-content/themes/flavor/assets/js/main.js', 'version' => '2.1.0', 'in_footer' => true, 'deps' => ['jquery'], 'enqueued' => true],
+        'akismet-form' => ['handle' => 'akismet-form', 'src' => '/wp-content/plugins/akismet/akismet-frontend.js', 'version' => '5.3', 'in_footer' => true, 'deps' => [], 'enqueued' => true],
+    ],
+    'styles' => [
+        'wp-block-library' => ['handle' => 'wp-block-library', 'src' => '/wp-includes/css/dist/block-library/style.min.css', 'version' => '6.7.1', 'media' => 'all', 'deps' => [], 'enqueued' => true],
+        'woocommerce-layout' => ['handle' => 'woocommerce-layout', 'src' => '/wp-content/plugins/woocommerce/assets/css/woocommerce-layout.css', 'version' => '8.5.0', 'media' => 'all', 'deps' => [], 'enqueued' => true],
+        'woocommerce-general' => ['handle' => 'woocommerce-general', 'src' => '/wp-content/plugins/woocommerce/assets/css/woocommerce.css', 'version' => '8.5.0', 'media' => 'all', 'deps' => [], 'enqueued' => true],
+        'contact-form-7' => ['handle' => 'contact-form-7', 'src' => '/wp-content/plugins/contact-form-7/includes/css/styles.css', 'version' => '5.9', 'media' => 'all', 'deps' => [], 'enqueued' => true],
+        'flavor-style' => ['handle' => 'flavor-style', 'src' => '/wp-content/themes/flavor/style.css', 'version' => '2.1.0', 'media' => 'all', 'deps' => ['wp-block-library'], 'enqueued' => true],
+        'flavor-child-style' => ['handle' => 'flavor-child-style', 'src' => '/wp-content/themes/flavor-child/style.css', 'version' => '1.0.0', 'media' => 'all', 'deps' => ['flavor-style'], 'enqueued' => true],
+        'yoast-seo-adminbar' => ['handle' => 'yoast-seo-adminbar', 'src' => '/wp-content/plugins/wordpress-seo/css/dist/adminbar.css', 'version' => '22.0', 'media' => 'all', 'deps' => [], 'enqueued' => true],
+        'dashicons' => ['handle' => 'dashicons', 'src' => '/wp-includes/css/dashicons.min.css', 'version' => '6.7.1', 'media' => 'all', 'deps' => [], 'enqueued' => true],
+        'admin-bar' => ['handle' => 'admin-bar', 'src' => '/wp-includes/css/admin-bar.min.css', 'version' => '6.7.1', 'media' => 'all', 'deps' => ['dashicons'], 'enqueued' => true],
+        'wp-block-library-theme' => ['handle' => 'wp-block-library-theme', 'src' => '/wp-includes/css/dist/block-library/theme.min.css', 'version' => '6.7.1', 'media' => 'all', 'deps' => [], 'enqueued' => true],
+        'global-styles' => ['handle' => 'global-styles', 'src' => '', 'version' => '6.7.1', 'media' => 'all', 'deps' => [], 'enqueued' => true],
+    ],
+    'enqueued_scripts' => 7,
+    'enqueued_styles' => 11,
+    'registered_scripts' => 42,
+    'registered_styles' => 35,
+]);
+
+// REST API — simulating a REST request to GET /wp/v2/posts/42
+$collectors[] = new FakeCollector('rest', 'REST API', 'GET /wp/v2/posts/(?P<id>[\\d]+)', 'green', [
+    'is_rest_request' => true,
+    'current_request' => [
+        'method' => 'GET',
+        'route' => '/wp/v2/posts/(?P<id>[\\d]+)',
+        'path' => '/wp/v2/posts/42',
+        'namespace' => 'wp/v2',
+        'callback' => 'WP_REST_Posts_Controller::get_item',
+        'params' => ['id' => '42', '_embed' => 'true', 'context' => 'view'],
+        'status' => 200,
+        'authentication' => 'nonce',
+    ],
+    'routes' => [
+        'wp/v2' => [
+            ['route' => '/wp/v2/posts', 'methods' => ['GET', 'POST'], 'callback' => 'WP_REST_Posts_Controller::get_items'],
+            ['route' => '/wp/v2/posts/(?P<id>[\\d]+)', 'methods' => ['GET', 'PUT', 'PATCH', 'DELETE'], 'callback' => 'WP_REST_Posts_Controller::get_item'],
+            ['route' => '/wp/v2/pages', 'methods' => ['GET', 'POST'], 'callback' => 'WP_REST_Posts_Controller::get_items'],
+            ['route' => '/wp/v2/media', 'methods' => ['GET', 'POST'], 'callback' => 'WP_REST_Attachments_Controller::get_items'],
+            ['route' => '/wp/v2/users', 'methods' => ['GET'], 'callback' => 'WP_REST_Users_Controller::get_items'],
+        ],
+        'wc/v3' => [
+            ['route' => '/wc/v3/products', 'methods' => ['GET', 'POST'], 'callback' => 'WC_REST_Products_Controller::get_items'],
+            ['route' => '/wc/v3/orders', 'methods' => ['GET', 'POST'], 'callback' => 'WC_REST_Orders_Controller::get_items'],
+            ['route' => '/wc/v3/customers', 'methods' => ['GET'], 'callback' => 'WC_REST_Customers_Controller::get_items'],
+        ],
+    ],
+    'namespaces' => ['wp/v2', 'wc/v3', 'wp-site-health/v1', 'wp/v2/block-renderer'],
+    'total_routes' => 68,
+    'total_namespaces' => 4,
+]);
+
+// Ajax
+$collectors[] = new FakeCollector('ajax', 'Ajax', '0', 'default', [
+    'registered_actions' => [
+        'heartbeat' => ['callback' => 'wp_ajax_heartbeat', 'nopriv' => false],
+        'query-attachments' => ['callback' => 'wp_ajax_query_attachments', 'nopriv' => false],
+        'save-attachment' => ['callback' => 'wp_ajax_save_attachment', 'nopriv' => false],
+        'woocommerce_apply_coupon' => ['callback' => 'WC_AJAX::apply_coupon', 'nopriv' => true],
+        'woocommerce_get_refreshed_fragments' => ['callback' => 'WC_AJAX::get_refreshed_fragments', 'nopriv' => true],
+        'cf7_submit' => ['callback' => 'WPCF7_ContactForm::ajax_submit', 'nopriv' => true],
+    ],
+    'total_actions' => 6,
+    'nopriv_count' => 3,
+]);
+
+// Admin
+$collectors[] = new FakeCollector('admin', 'Admin', 'edit-post', 'default', [
+    'is_admin' => true,
+    'page_hook' => 'edit.php',
+    'screen' => ['id' => 'edit-post', 'base' => 'edit', 'post_type' => 'post', 'taxonomy' => ''],
+    'admin_menus' => [
+        ['title' => 'Dashboard', 'slug' => 'index.php', 'capability' => 'read'],
+        ['title' => 'Posts', 'slug' => 'edit.php', 'capability' => 'edit_posts', 'submenu' => [
+            ['title' => 'All Posts', 'slug' => 'edit.php'],
+            ['title' => 'Add New', 'slug' => 'post-new.php'],
+            ['title' => 'Categories', 'slug' => 'edit-tags.php?taxonomy=category'],
+            ['title' => 'Tags', 'slug' => 'edit-tags.php?taxonomy=post_tag'],
+        ]],
+        ['title' => 'Media', 'slug' => 'upload.php', 'capability' => 'upload_files'],
+        ['title' => 'Pages', 'slug' => 'edit.php?post_type=page', 'capability' => 'edit_pages'],
+        ['title' => 'Appearance', 'slug' => 'themes.php', 'capability' => 'switch_themes', 'submenu' => [
+            ['title' => 'Themes', 'slug' => 'themes.php'],
+            ['title' => 'Editor', 'slug' => 'site-editor.php'],
+        ]],
+        ['title' => 'Plugins', 'slug' => 'plugins.php', 'capability' => 'activate_plugins'],
+        ['title' => 'Settings', 'slug' => 'options-general.php', 'capability' => 'manage_options', 'submenu' => [
+            ['title' => 'General', 'slug' => 'options-general.php'],
+            ['title' => 'Writing', 'slug' => 'options-writing.php'],
+            ['title' => 'Reading', 'slug' => 'options-reading.php'],
+        ]],
+    ],
+    'admin_bar_nodes' => [
+        ['id' => 'wp-logo', 'title' => 'WordPress'],
+        ['id' => 'site-name', 'title' => 'Example Site'],
+        ['id' => 'new-content', 'title' => 'New'],
+        ['id' => 'my-account', 'title' => 'Howdy, admin'],
+    ],
+    'total_menus' => 7,
+    'total_submenus' => 9,
+]);
+
+// Container (DI)
+$collectors[] = new FakeCollector('container', 'Container', '24', 'default', [
+    'service_count' => 24,
+    'public_count' => 8,
+    'private_count' => 16,
+    'autowired_count' => 20,
+    'lazy_count' => 3,
+    'services' => [
+        'app.mailer' => ['class' => 'WpPack\\Component\\Mailer\\Mailer', 'public' => true, 'autowired' => true, 'lazy' => false, 'tags' => []],
+        'app.cache' => ['class' => 'WpPack\\Component\\Cache\\CachePool', 'public' => true, 'autowired' => true, 'lazy' => true, 'tags' => ['cache.pool']],
+        'app.event_dispatcher' => ['class' => 'WpPack\\Component\\EventDispatcher\\EventDispatcher', 'public' => true, 'autowired' => true, 'lazy' => false, 'tags' => []],
+        'app.http_client' => ['class' => 'WpPack\\Component\\HttpClient\\HttpClient', 'public' => true, 'autowired' => true, 'lazy' => true, 'tags' => ['http_client']],
+        'app.logger' => ['class' => 'WpPack\\Component\\Logger\\Logger', 'public' => true, 'autowired' => true, 'lazy' => false, 'tags' => ['monolog.logger']],
+    ],
+    'compiler_passes' => [
+        'WpPack\\Component\\DependencyInjection\\CompilerPass\\RegisterHooksPass',
+        'WpPack\\Component\\DependencyInjection\\CompilerPass\\AutowirePass',
+        'WpPack\\Component\\DependencyInjection\\CompilerPass\\ResolveTaggedPass',
+    ],
+    'tagged_services' => [
+        'cache.pool' => ['app.cache'],
+        'http_client' => ['app.http_client'],
+        'monolog.logger' => ['app.logger'],
+        'event_subscriber' => ['app.wc_subscriber', 'app.seo_subscriber'],
+    ],
+    'parameters' => [
+        'kernel.environment' => 'development',
+        'kernel.debug' => true,
+        'mailer.dsn' => 'ses+api://default',
+    ],
+]);
+
+// Feed
+$collectors[] = new FakeCollector('feed', 'Feed', '5', 'default', [
+    'feeds' => [
+        ['type' => 'rss2', 'url' => 'https://example.local/feed/', 'is_custom' => false],
+        ['type' => 'atom', 'url' => 'https://example.local/feed/atom/', 'is_custom' => false],
+        ['type' => 'rdf', 'url' => 'https://example.local/feed/rdf/', 'is_custom' => false],
+        ['type' => 'comments-rss2', 'url' => 'https://example.local/comments/feed/', 'is_custom' => false],
+        ['type' => 'product-feed', 'url' => 'https://example.local/feed/product-feed/', 'is_custom' => true],
+    ],
+    'total_count' => 5,
+    'custom_count' => 1,
+    'feed_discovery' => true,
 ]);
 
 // --- Group 5: Environment (50–40) ---
@@ -717,12 +946,12 @@ foreach ($collectors as $collector) {
 
 $renderer = new ToolbarRenderer();
 $renderer->addPanelRenderer(new DatabasePanelRenderer());
-$renderer->addPanelRenderer(new TimePanelRenderer());
+$renderer->addPanelRenderer(new StopwatchPanelRenderer());
 $renderer->addPanelRenderer(new MemoryPanelRenderer());
 $renderer->addPanelRenderer(new RequestPanelRenderer());
 $renderer->addPanelRenderer(new CachePanelRenderer());
 $renderer->addPanelRenderer(new WordPressPanelRenderer());
-$renderer->addPanelRenderer(new UserPanelRenderer());
+$renderer->addPanelRenderer(new SecurityPanelRenderer());
 $renderer->addPanelRenderer(new MailPanelRenderer());
 $renderer->addPanelRenderer(new EventPanelRenderer());
 $renderer->addPanelRenderer(new LoggerPanelRenderer());
@@ -733,6 +962,14 @@ $renderer->addPanelRenderer(new DumpPanelRenderer());
 $renderer->addPanelRenderer(new PluginPanelRenderer());
 $renderer->addPanelRenderer(new ThemePanelRenderer());
 $renderer->addPanelRenderer(new SchedulerPanelRenderer());
+$renderer->addPanelRenderer(new WidgetPanelRenderer());
+$renderer->addPanelRenderer(new ShortcodePanelRenderer());
+$renderer->addPanelRenderer(new AssetPanelRenderer());
+$renderer->addPanelRenderer(new RestPanelRenderer());
+$renderer->addPanelRenderer(new AjaxPanelRenderer());
+$renderer->addPanelRenderer(new AdminPanelRenderer());
+$renderer->addPanelRenderer(new ContainerPanelRenderer());
+$renderer->addPanelRenderer(new FeedPanelRenderer());
 $html = $renderer->render($profile);
 ?>
 <!DOCTYPE html>

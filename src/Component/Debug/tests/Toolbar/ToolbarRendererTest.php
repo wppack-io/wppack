@@ -21,9 +21,17 @@ use WpPack\Component\Debug\Toolbar\Panel\RequestPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\RouterPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\SchedulerPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\ThemePanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\TimePanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\StopwatchPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\AdminPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\AjaxPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\AssetPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\ContainerPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\FeedPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\RestPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\SecurityPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\ShortcodePanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\TranslationPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\UserPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\WidgetPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\WordPressPanelRenderer;
 use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
 
@@ -35,12 +43,12 @@ final class ToolbarRendererTest extends TestCase
     {
         $this->renderer = new ToolbarRenderer();
         $this->renderer->addPanelRenderer(new DatabasePanelRenderer());
-        $this->renderer->addPanelRenderer(new TimePanelRenderer());
+        $this->renderer->addPanelRenderer(new StopwatchPanelRenderer());
         $this->renderer->addPanelRenderer(new MemoryPanelRenderer());
         $this->renderer->addPanelRenderer(new RequestPanelRenderer());
         $this->renderer->addPanelRenderer(new CachePanelRenderer());
         $this->renderer->addPanelRenderer(new WordPressPanelRenderer());
-        $this->renderer->addPanelRenderer(new UserPanelRenderer());
+        $this->renderer->addPanelRenderer(new SecurityPanelRenderer());
         $this->renderer->addPanelRenderer(new MailPanelRenderer());
         $this->renderer->addPanelRenderer(new EventPanelRenderer());
         $this->renderer->addPanelRenderer(new LoggerPanelRenderer());
@@ -51,6 +59,14 @@ final class ToolbarRendererTest extends TestCase
         $this->renderer->addPanelRenderer(new PluginPanelRenderer());
         $this->renderer->addPanelRenderer(new ThemePanelRenderer());
         $this->renderer->addPanelRenderer(new SchedulerPanelRenderer());
+        $this->renderer->addPanelRenderer(new WidgetPanelRenderer());
+        $this->renderer->addPanelRenderer(new ShortcodePanelRenderer());
+        $this->renderer->addPanelRenderer(new AssetPanelRenderer());
+        $this->renderer->addPanelRenderer(new RestPanelRenderer());
+        $this->renderer->addPanelRenderer(new AjaxPanelRenderer());
+        $this->renderer->addPanelRenderer(new AdminPanelRenderer());
+        $this->renderer->addPanelRenderer(new ContainerPanelRenderer());
+        $this->renderer->addPanelRenderer(new FeedPanelRenderer());
     }
 
     #[Test]
@@ -92,14 +108,14 @@ final class ToolbarRendererTest extends TestCase
     {
         $profile = new Profile('test-token');
         $profile->addCollector($this->createCollector('memory', 'Memory', '12.3 MB', 'green'));
-        $profile->addCollector($this->createCollector('time', 'Time', '150 ms', 'yellow'));
+        $profile->addCollector($this->createCollector('stopwatch', 'Stopwatch', '150 ms', 'yellow'));
         $profile->addCollector($this->createCollector('database', 'Database', '25', 'default'));
 
         $html = $this->renderer->render($profile);
 
         // Each collector should have a badge button with data-panel attribute
         self::assertStringContainsString('data-panel="memory"', $html);
-        self::assertStringContainsString('data-panel="time"', $html);
+        self::assertStringContainsString('data-panel="stopwatch"', $html);
         self::assertStringContainsString('data-panel="database"', $html);
     }
 
@@ -184,7 +200,7 @@ final class ToolbarRendererTest extends TestCase
     public function renderPerformancePanelShowsOverviewCards(): void
     {
         $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('time', 'Time', '198 ms', 'green', [
+        $profile->addCollector($this->createCollector('stopwatch', 'Stopwatch', '198 ms', 'green', [
             'total_time' => 198.0,
             'phases' => ['muplugins_loaded' => 20.0, 'plugins_loaded' => 45.0, 'init' => 80.0, 'wp_loaded' => 120.0, 'template_redirect' => 198.0],
             'events' => [],
@@ -215,7 +231,7 @@ final class ToolbarRendererTest extends TestCase
     public function renderPerformancePanelShowsTimelineLabel(): void
     {
         $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('time', 'Time', '198 ms', 'green', [
+        $profile->addCollector($this->createCollector('stopwatch', 'Stopwatch', '198 ms', 'green', [
             'total_time' => 198.0,
             'request_time_float' => microtime(true) - 0.198,
             'phases' => ['muplugins_loaded' => 20.0],
@@ -237,7 +253,7 @@ final class ToolbarRendererTest extends TestCase
     {
         $requestTimeFloat = microtime(true) - 0.198;
         $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('time', 'Time', '198 ms', 'green', [
+        $profile->addCollector($this->createCollector('stopwatch', 'Stopwatch', '198 ms', 'green', [
             'total_time' => 198.0,
             'request_time_float' => $requestTimeFloat,
             'phases' => ['muplugins_loaded' => 20.0],
@@ -344,7 +360,7 @@ final class ToolbarRendererTest extends TestCase
     public function renderPerformancePanelHandlesMissingCollectors(): void
     {
         $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('time', 'Time', '50 ms', 'green', [
+        $profile->addCollector($this->createCollector('stopwatch', 'Stopwatch', '50 ms', 'green', [
             'total_time' => 50.0,
             'phases' => [],
             'events' => [],
@@ -411,9 +427,9 @@ final class ToolbarRendererTest extends TestCase
         self::assertStringContainsString('wpd-plugin-list', $html);
         self::assertStringContainsString('wpd-plugin-detail-link', $html);
         self::assertStringContainsString('WooCommerce', $html);
-        // MU plugin in table with MU tag
+        // MU plugin in separate section
         self::assertStringContainsString('Custom Loader', $html);
-        self::assertStringContainsString('>MU</span>', $html);
+        self::assertStringContainsString('Must-Use Plugins', $html);
         // Drop-ins
         self::assertStringContainsString('Drop-ins', $html);
         self::assertStringContainsString('object-cache.php', $html);
@@ -503,7 +519,7 @@ final class ToolbarRendererTest extends TestCase
     public function renderPerformancePanelShowsPluginTimelineEntries(): void
     {
         $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('time', 'Time', '198 ms', 'green', [
+        $profile->addCollector($this->createCollector('stopwatch', 'Stopwatch', '198 ms', 'green', [
             'total_time' => 198.0,
             'request_time_float' => microtime(true) - 0.198,
             'phases' => ['muplugins_loaded' => 20.0],
@@ -580,7 +596,7 @@ final class ToolbarRendererTest extends TestCase
     {
         $profile = new Profile('test-token');
         $profile->addCollector($this->createCollector('memory', 'Memory', '10 MB', 'green'));
-        $profile->addCollector($this->createCollector('time', 'Time', '120 ms', 'default'));
+        $profile->addCollector($this->createCollector('stopwatch', 'Stopwatch', '120 ms', 'default'));
 
         return $profile;
     }

@@ -6,12 +6,12 @@ namespace WpPack\Component\Debug\Toolbar\Panel;
 
 use WpPack\Component\Debug\Attribute\AsPanelRenderer;
 
-#[AsPanelRenderer(name: 'time')]
-final class TimePanelRenderer extends AbstractPanelRenderer implements PanelRendererInterface
+#[AsPanelRenderer(name: 'stopwatch')]
+final class StopwatchPanelRenderer extends AbstractPanelRenderer implements PanelRendererInterface
 {
     public function getName(): string
     {
-        return 'time';
+        return 'stopwatch';
     }
 
     public function render(array $data): string

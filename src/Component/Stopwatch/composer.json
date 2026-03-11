@@ -1,0 +1,19 @@
+{
+    "name": "wppack/stopwatch",
+    "description": "Stopwatch component for measuring code execution time",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpPack\\Component\\Stopwatch\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Component\\Stopwatch\\Tests\\": "tests/"
+        }
+    }
+}

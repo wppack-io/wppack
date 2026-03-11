@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Debug\Profiler;
-
-use WpPack\Component\Debug\Exception\LogicException;
+namespace WpPack\Component\Stopwatch;
 
 final class Stopwatch
 {
@@ -26,7 +24,7 @@ final class Stopwatch
     public function stop(string $name): StopwatchEvent
     {
         if (!isset($this->started[$name])) {
-            throw new LogicException(sprintf('Event "%s" is not started.', $name));
+            throw new \LogicException(sprintf('Event "%s" is not started.', $name));
         }
 
         $endTime = hrtime(true) / 1e6;
@@ -57,7 +55,7 @@ final class Stopwatch
     public function getEvent(string $name): StopwatchEvent
     {
         if (!isset($this->events[$name])) {
-            throw new LogicException(sprintf('Event "%s" is not available. Did you forget to stop it?', $name));
+            throw new \LogicException(sprintf('Event "%s" is not available. Did you forget to stop it?', $name));
         }
 
         return $this->events[$name];

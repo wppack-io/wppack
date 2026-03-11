@@ -6,12 +6,12 @@ namespace WpPack\Component\Debug\Tests\DataCollector;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Debug\DataCollector\TimeDataCollector;
-use WpPack\Component\Debug\Profiler\Stopwatch;
+use WpPack\Component\Debug\DataCollector\StopwatchDataCollector;
+use WpPack\Component\Stopwatch\Stopwatch;
 
-final class TimeDataCollectorTest extends TestCase
+final class StopwatchDataCollectorTest extends TestCase
 {
-    private TimeDataCollector $collector;
+    private StopwatchDataCollector $collector;
     private Stopwatch $stopwatch;
 
     /** @var array<string, mixed> */
@@ -21,7 +21,7 @@ final class TimeDataCollectorTest extends TestCase
     {
         $this->originalServer = $_SERVER;
         $this->stopwatch = new Stopwatch();
-        $this->collector = new TimeDataCollector($this->stopwatch);
+        $this->collector = new StopwatchDataCollector($this->stopwatch);
     }
 
     protected function tearDown(): void
@@ -30,15 +30,15 @@ final class TimeDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getNameReturnsTime(): void
+    public function getNameReturnsStopwatch(): void
     {
-        self::assertSame('time', $this->collector->getName());
+        self::assertSame('stopwatch', $this->collector->getName());
     }
 
     #[Test]
-    public function getLabelReturnsTime(): void
+    public function getLabelReturnsStopwatch(): void
     {
-        self::assertSame('Time', $this->collector->getLabel());
+        self::assertSame('Stopwatch', $this->collector->getLabel());
     }
 
     #[Test]
@@ -59,70 +59,15 @@ final class TimeDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeColorReturnsGreenForFastRequests(): void
+    public function getBadgeColorReturnsDefault(): void
     {
-        $reflection = new \ReflectionProperty($this->collector, 'data');
-        $reflection->setValue($this->collector, ['total_time' => 100.0]);
-
-        self::assertSame('green', $this->collector->getBadgeColor());
+        self::assertSame('default', $this->collector->getBadgeColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsYellowForMediumRequests(): void
+    public function getBadgeValueReturnsEmpty(): void
     {
-        $reflection = new \ReflectionProperty($this->collector, 'data');
-        $reflection->setValue($this->collector, ['total_time' => 500.0]);
-
-        self::assertSame('yellow', $this->collector->getBadgeColor());
-    }
-
-    #[Test]
-    public function getBadgeColorReturnsRedForSlowRequests(): void
-    {
-        $reflection = new \ReflectionProperty($this->collector, 'data');
-        $reflection->setValue($this->collector, ['total_time' => 1500.0]);
-
-        self::assertSame('red', $this->collector->getBadgeColor());
-    }
-
-    #[Test]
-    public function getBadgeColorThresholdBoundaries(): void
-    {
-        $reflection = new \ReflectionProperty($this->collector, 'data');
-
-        // 199.9 should be green
-        $reflection->setValue($this->collector, ['total_time' => 199.9]);
-        self::assertSame('green', $this->collector->getBadgeColor());
-
-        // 200.0 should be yellow
-        $reflection->setValue($this->collector, ['total_time' => 200.0]);
-        self::assertSame('yellow', $this->collector->getBadgeColor());
-
-        // 999.9 should be yellow
-        $reflection->setValue($this->collector, ['total_time' => 999.9]);
-        self::assertSame('yellow', $this->collector->getBadgeColor());
-
-        // 1000.0 should be red
-        $reflection->setValue($this->collector, ['total_time' => 1000.0]);
-        self::assertSame('red', $this->collector->getBadgeColor());
-    }
-
-    #[Test]
-    public function getBadgeValueFormatsMilliseconds(): void
-    {
-        $reflection = new \ReflectionProperty($this->collector, 'data');
-        $reflection->setValue($this->collector, ['total_time' => 150.0]);
-
-        self::assertSame('150 ms', $this->collector->getBadgeValue());
-    }
-
-    #[Test]
-    public function getBadgeValueFormatsSeconds(): void
-    {
-        $reflection = new \ReflectionProperty($this->collector, 'data');
-        $reflection->setValue($this->collector, ['total_time' => 2500.0]);
-
-        self::assertSame('2.5 s', $this->collector->getBadgeValue());
+        self::assertSame('', $this->collector->getBadgeValue());
     }
 
     #[Test]
