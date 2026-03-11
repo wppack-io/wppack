@@ -497,7 +497,7 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer
                 'plugin' => 'Plugin',
                 'theme_hooks' => 'Theme',
             ];
-            $html .= '<div class="wpd-perf-dist-legend" style="margin-top:8px">';
+            $html .= '<div class="wpd-perf-dist-legend">';
             foreach ($usedCategories as $cat) {
                 $color = $categoryColors[$cat] ?? $categoryColors['default'];
                 $label = $categoryLabels[$cat] ?? ucfirst($cat);

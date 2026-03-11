@@ -240,7 +240,7 @@ final class ToolbarAssets
             background: transparent;
         }
         #wppack-debug .wpd-panel-body {
-            padding: 12px 16px;
+            padding: 20px 16px;
         }
 
         /* ---- Sections ---- */
@@ -262,7 +262,7 @@ final class ToolbarAssets
             color: #1f2937;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 10px;
+            margin-bottom: 14px;
         }
 
         /* ---- Tables ---- */
@@ -534,9 +534,9 @@ final class ToolbarAssets
         }
         #wppack-debug .wpd-perf-card-value {
             font-family: Menlo, Consolas, Monaco, 'Liberation Mono', 'Lucida Console', monospace;
-            font-size: 20px;
-            font-weight: 600;
-            color: #1f2937;
+            font-size: 18px;
+            font-weight: 500;
+            color: #374151;
         }
         #wppack-debug .wpd-perf-card-unit {
             font-size: 12px;
@@ -572,7 +572,7 @@ final class ToolbarAssets
             display: flex;
             flex-wrap: wrap;
             gap: 16px;
-            margin-top: 8px;
+            margin-top: 12px;
         }
         #wppack-debug .wpd-perf-legend-item {
             display: flex;
@@ -699,14 +699,15 @@ final class ToolbarAssets
             color: #3858e9;
             border-bottom-color: #3858e9;
         }
-        #wppack-debug .wpd-log-context pre {
+        #wppack-debug .wpd-log-context td {
             background: #fafafa;
-            padding: 8px 12px;
-            border-radius: 4px;
+        }
+        #wppack-debug .wpd-log-context pre {
             font-size: 11px;
             color: #6b7280;
             white-space: pre-wrap;
             word-break: break-all;
+            margin: 0;
         }
         #wppack-debug .wpd-log-toggle {
             cursor: pointer;
@@ -723,18 +724,17 @@ final class ToolbarAssets
         }
         #wppack-debug .wpd-plugin-back {
             background: transparent;
-            border: 1px solid #d1d5db;
+            border: 1px solid #3858e9;
             border-radius: 4px;
             color: #3858e9;
             cursor: pointer;
             font-family: inherit;
             font-size: 12px;
             padding: 4px 12px;
-            transition: background 0.15s ease, border-color 0.15s ease;
+            transition: background 0.15s ease;
         }
         #wppack-debug .wpd-plugin-back:hover {
             background: #f3f4f6;
-            border-color: #3858e9;
         }
 
         /* ---- Dump / code preview ---- */
@@ -806,6 +806,11 @@ final class ToolbarAssets
             var root = document.getElementById('wppack-debug');
             if (!root) return;
 
+            var STORAGE_KEY = 'wppack-debug-minimized';
+            if (localStorage.getItem(STORAGE_KEY) === '1') {
+                root.classList.add('wpd-minimized');
+            }
+
             var activePanel = null;
 
             function closeAllPanels() {
@@ -848,6 +853,7 @@ final class ToolbarAssets
                 var miniBtn = e.target.closest('.wpd-mini');
                 if (miniBtn) {
                     root.classList.remove('wpd-minimized');
+                    localStorage.removeItem(STORAGE_KEY);
                     return;
                 }
 
@@ -904,6 +910,7 @@ final class ToolbarAssets
                 if (minimizeBtn) {
                     closeAllPanels();
                     root.classList.add('wpd-minimized');
+                    localStorage.setItem(STORAGE_KEY, '1');
                 }
             });
 
