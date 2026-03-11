@@ -39,9 +39,17 @@ final class ToolbarRenderer
         'default' => '#cdd6f4',
     ];
 
+    private float $requestTimeFloat = 0.0;
+
     public function render(Profile $profile): string
     {
         $collectors = $profile->getCollectors();
+
+        // Extract request_time_float for relative time display across panels
+        if (isset($collectors['time'])) {
+            $timeData = $collectors['time']->getData();
+            $this->requestTimeFloat = (float) ($timeData['request_time_float'] ?? 0.0);
+        }
 
         $badges = '';
         $panels = '';
@@ -243,8 +251,9 @@ final class ToolbarRenderer
             $html .= '<table class="wpd-table wpd-table-full">';
             $html .= '<thead><tr>';
             $html .= '<th class="wpd-col-num">#</th>';
+            $html .= '<th>Time</th>';
             $html .= '<th class="wpd-col-sql">SQL</th>';
-            $html .= '<th class="wpd-col-time">Time</th>';
+            $html .= '<th class="wpd-col-time">Duration</th>';
             $html .= '<th class="wpd-col-caller">Caller</th>';
             $html .= '</tr></thead>';
             $html .= '<tbody>';
@@ -270,8 +279,12 @@ final class ToolbarRenderer
                     $badges .= '<span class="wpd-query-tag wpd-tag-dup">DUP</span>';
                 }
 
+                $startTime = (float) ($query['start'] ?? 0);
+                $relTime = $this->formatRelativeTime($startTime);
+
                 $html .= '<tr class="' . $rowClass . '">';
                 $html .= '<td class="wpd-col-num">' . $this->esc((string) ($index + 1)) . '</td>';
+                $html .= '<td class="wpd-text-dim" style="white-space:nowrap">' . $relTime . '</td>';
                 $html .= '<td class="wpd-col-sql"><code>' . $this->esc($sql) . '</code>' . $badges . '</td>';
                 $html .= '<td class="wpd-col-time">' . $this->formatMs($timeMs) . '</td>';
                 $html .= '<td class="wpd-col-caller"><span class="wpd-caller">' . $this->esc($query['caller']) . '</span></td>';
@@ -856,7 +869,7 @@ final class ToolbarRenderer
             $html .= '<th>Type</th>';
             $html .= '<th>Hooks</th>';
             $html .= '<th>Listeners</th>';
-            $html .= '<th>Time</th>';
+            $html .= '<th>Duration</th>';
             $html .= '</tr></thead>';
             $html .= '<tbody>';
 
@@ -890,6 +903,7 @@ final class ToolbarRenderer
             $html .= '<th>Hook</th>';
             $html .= '<th>Firings</th>';
             $html .= '<th>Listeners</th>';
+            $html .= '<th>Time</th>';
             $html .= '<th>Duration</th>';
             $html .= '</tr></thead>';
             $html .= '<tbody>';
@@ -899,12 +913,14 @@ final class ToolbarRenderer
                 $listeners = $listenerCounts[$hook] ?? 0;
                 $timing = $hookTimings[$hook] ?? null;
                 $duration = $timing !== null ? $this->formatMs($timing['total_time']) : '-';
+                $hookStart = $timing !== null ? $this->formatMs($timing['start']) : '-';
 
                 $html .= '<tr>';
                 $html .= '<td class="wpd-col-num">' . $this->esc((string) (++$index)) . '</td>';
                 $html .= '<td><code>' . $this->esc($hook) . '</code></td>';
                 $html .= '<td>' . $this->esc((string) $count) . '</td>';
                 $html .= '<td>' . $this->esc((string) $listeners) . '</td>';
+                $html .= '<td class="wpd-text-dim" style="white-space:nowrap">' . $hookStart . '</td>';
                 $html .= '<td>' . $duration . '</td>';
                 $html .= '</tr>';
             }
@@ -994,16 +1010,6 @@ final class ToolbarRenderer
             $html .= '<button class="wpd-log-tab" data-log-filter="debug">Debug (' . $this->esc((string) $debugTabCount) . ')</button>';
             $html .= '</div>';
 
-            // Determine base timestamp for relative time display
-            $baseTimestamp = 0.0;
-            foreach ($logs as $log) {
-                $ts = (float) ($log['timestamp'] ?? 0);
-                if ($ts > 0) {
-                    $baseTimestamp = $ts;
-                    break;
-                }
-            }
-
             $html .= '<table class="wpd-table wpd-table-full">';
             $html .= '<thead><tr>';
             $html .= '<th class="wpd-col-num">#</th>';
@@ -1033,13 +1039,8 @@ final class ToolbarRenderer
                     $fileDisplay = $line > 0 ? $basename . ':' . $line : $basename;
                 }
 
-                // Relative time from first log entry
                 $timestamp = (float) ($log['timestamp'] ?? 0);
-                $timeDisplay = '';
-                if ($timestamp > 0 && $baseTimestamp > 0) {
-                    $relativeMs = ($timestamp - $baseTimestamp) * 1000;
-                    $timeDisplay = '+' . number_format($relativeMs, 0) . ' ms';
-                }
+                $timeDisplay = $this->formatRelativeTime($timestamp);
 
                 $context = $log['context'] ?? [];
                 $hasContext = is_array($context) && $context !== [];
@@ -1211,6 +1212,7 @@ final class ToolbarRenderer
             $html .= '<table class="wpd-table wpd-table-full">';
             $html .= '<thead><tr>';
             $html .= '<th class="wpd-col-num">#</th>';
+            $html .= '<th>Time</th>';
             $html .= '<th>Method</th>';
             $html .= '<th>URL</th>';
             $html .= '<th>Status</th>';
@@ -1229,8 +1231,12 @@ final class ToolbarRenderer
                 };
                 $error = ($request['error'] ?? '') !== '' ? '<br><small class="wpd-text-red">' . $this->esc($request['error']) . '</small>' : '';
 
+                $startTime = (float) ($request['start'] ?? 0);
+                $relTime = $this->formatRelativeTime($startTime);
+
                 $html .= '<tr>';
                 $html .= '<td class="wpd-col-num">' . $this->esc((string) ($index + 1)) . '</td>';
+                $html .= '<td class="wpd-text-dim" style="white-space:nowrap">' . $relTime . '</td>';
                 $html .= '<td><span class="wpd-tag">' . $this->esc($request['method'] ?? 'GET') . '</span></td>';
                 $html .= '<td><code>' . $this->esc($request['url'] ?? '') . '</code></td>';
                 $html .= '<td class="' . $statusColor . '">' . ($statusCode > 0 ? $this->esc((string) $statusCode) : '-') . $error . '</td>';
@@ -1750,6 +1756,20 @@ final class ToolbarRenderer
         }
 
         return $this->esc(sprintf('%.1f ms', $ms));
+    }
+
+    /**
+     * Format an absolute timestamp as relative time from request start (+N ms).
+     */
+    private function formatRelativeTime(float $absoluteTimestamp): string
+    {
+        if ($absoluteTimestamp <= 0 || $this->requestTimeFloat <= 0) {
+            return '';
+        }
+
+        $relativeMs = ($absoluteTimestamp - $this->requestTimeFloat) * 1000;
+
+        return $this->esc('+' . number_format(max(0, $relativeMs), 0) . ' ms');
     }
 
     private function formatBytes(int $bytes): string
