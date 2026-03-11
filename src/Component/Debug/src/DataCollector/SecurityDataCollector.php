@@ -6,24 +6,31 @@ namespace WpPack\Component\Debug\DataCollector;
 
 use WpPack\Component\Debug\Attribute\AsDataCollector;
 
-#[AsDataCollector(name: 'user', priority: 85)]
-final class UserDataCollector extends AbstractDataCollector
+#[AsDataCollector(name: 'security', priority: 85)]
+final class SecurityDataCollector extends AbstractDataCollector
 {
+    /** @var list<array{action: string, operation: string, result: bool, timestamp: float}> */
+    private array $nonceOperations = [];
+
+    public function __construct()
+    {
+        $this->registerHooks();
+    }
+
     public function getName(): string
     {
-        return 'user';
+        return 'security';
     }
 
     public function getLabel(): string
     {
-        return 'User';
+        return 'Security';
     }
 
     public function collect(): void
     {
         if (!function_exists('is_user_logged_in') || !is_user_logged_in()) {
             $this->data = $this->getAnonymousDefaults();
-
             return;
         }
 
@@ -39,6 +46,9 @@ final class UserDataCollector extends AbstractDataCollector
             'capabilities' => $user->allcaps,
             'is_super_admin' => $this->isSuperAdmin(),
             'authentication' => $this->detectAuthentication(),
+            'nonce_operations' => $this->nonceOperations,
+            'nonce_verify_count' => count($this->nonceOperations),
+            'nonce_verify_failures' => count(array_filter($this->nonceOperations, static fn(array $op): bool => !$op['result'])),
         ];
     }
 
@@ -53,12 +63,11 @@ final class UserDataCollector extends AbstractDataCollector
 
     public function getBadgeColor(): string
     {
-        return 'default';
+        $failures = (int) ($this->data['nonce_verify_failures'] ?? 0);
+
+        return $failures > 0 ? 'red' : 'default';
     }
 
-    /**
-     * Mask an email address to show only the domain part.
-     */
     public function maskEmail(string $email): string
     {
         $parts = explode('@', $email, 2);
@@ -68,6 +77,41 @@ final class UserDataCollector extends AbstractDataCollector
         }
 
         return '***@' . $parts[1];
+    }
+
+    /**
+     * @param bool $result The nonce verification result.
+     */
+    public function captureNonceVerify(bool $result, string $action): void
+    {
+        $this->nonceOperations[] = [
+            'action' => $action,
+            'operation' => 'verify',
+            'result' => $result,
+            'timestamp' => microtime(true),
+        ];
+    }
+
+    /**
+     * @param false|int $result
+     * @return false|int
+     */
+    public function filterNonceVerify(false|int $result, string $nonce, string $action): false|int
+    {
+        $this->nonceOperations[] = [
+            'action' => $action,
+            'operation' => 'verify',
+            'result' => $result !== false,
+            'timestamp' => microtime(true),
+        ];
+
+        return $result;
+    }
+
+    public function reset(): void
+    {
+        parent::reset();
+        $this->nonceOperations = [];
     }
 
     /**
@@ -85,15 +129,14 @@ final class UserDataCollector extends AbstractDataCollector
             'capabilities' => [],
             'is_super_admin' => false,
             'authentication' => 'none',
+            'nonce_operations' => $this->nonceOperations,
+            'nonce_verify_count' => count($this->nonceOperations),
+            'nonce_verify_failures' => count(array_filter($this->nonceOperations, static fn(array $op): bool => !$op['result'])),
         ];
     }
 
-    /**
-     * Detect the authentication method used for the current request.
-     */
     private function detectAuthentication(): string
     {
-        // Check for application password via HTTP_AUTHORIZATION header
         if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
             $authHeader = $_SERVER['HTTP_AUTHORIZATION'];
             if (is_string($authHeader) && str_starts_with(strtolower($authHeader), 'basic ')) {
@@ -101,7 +144,6 @@ final class UserDataCollector extends AbstractDataCollector
             }
         }
 
-        // Check for REDIRECT_HTTP_AUTHORIZATION (used by some server configurations)
         if (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
             $authHeader = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
             if (is_string($authHeader) && str_starts_with(strtolower($authHeader), 'basic ')) {
@@ -119,5 +161,14 @@ final class UserDataCollector extends AbstractDataCollector
         }
 
         return false;
+    }
+
+    private function registerHooks(): void
+    {
+        if (!function_exists('add_filter')) {
+            return;
+        }
+
+        add_filter('wp_verify_nonce', [$this, 'filterNonceVerify'], \PHP_INT_MAX, 3);
     }
 }

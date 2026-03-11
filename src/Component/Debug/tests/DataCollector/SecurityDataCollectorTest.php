@@ -6,27 +6,27 @@ namespace WpPack\Component\Debug\Tests\DataCollector;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Debug\DataCollector\UserDataCollector;
+use WpPack\Component\Debug\DataCollector\SecurityDataCollector;
 
-final class UserDataCollectorTest extends TestCase
+final class SecurityDataCollectorTest extends TestCase
 {
-    private UserDataCollector $collector;
+    private SecurityDataCollector $collector;
 
     protected function setUp(): void
     {
-        $this->collector = new UserDataCollector();
+        $this->collector = new SecurityDataCollector();
     }
 
     #[Test]
-    public function getNameReturnsUser(): void
+    public function getNameReturnsSecurity(): void
     {
-        self::assertSame('user', $this->collector->getName());
+        self::assertSame('security', $this->collector->getName());
     }
 
     #[Test]
-    public function getLabelReturnsUser(): void
+    public function getLabelReturnsSecurity(): void
     {
-        self::assertSame('User', $this->collector->getLabel());
+        self::assertSame('Security', $this->collector->getLabel());
     }
 
     #[Test]
@@ -48,6 +48,9 @@ final class UserDataCollectorTest extends TestCase
         self::assertSame([], $data['capabilities']);
         self::assertFalse($data['is_super_admin']);
         self::assertSame('none', $data['authentication']);
+        self::assertSame([], $data['nonce_operations']);
+        self::assertSame(0, $data['nonce_verify_count']);
+        self::assertSame(0, $data['nonce_verify_failures']);
     }
 
     #[Test]
@@ -63,7 +66,7 @@ final class UserDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeColorReturnsDefaultWhenNotLoggedIn(): void
+    public function getBadgeColorReturnsDefaultWhenNoFailures(): void
     {
         if (function_exists('is_user_logged_in')) {
             self::markTestSkipped('WordPress functions are available; this test is for non-WP environments.');

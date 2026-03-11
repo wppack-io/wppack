@@ -23,7 +23,16 @@ final class RequestPanelRenderer extends AbstractPanelRenderer implements PanelR
         $html = '<div class="wpd-section">';
         $html .= '<h4 class="wpd-section-title">Request</h4>';
         $html .= '<table class="wpd-table wpd-table-kv">';
-        $html .= $this->renderTableRow('Method', (string) ($data['method'] ?? ''));
+        $method = (string) ($data['method'] ?? '');
+        $methodColor = match ($method) {
+            'GET' => 'background:rgba(0,138,32,0.08);color:#008a20',
+            'POST' => 'background:rgba(56,88,233,0.08);color:#3858e9',
+            'PUT', 'PATCH' => 'background:rgba(153,104,0,0.08);color:#996800',
+            'DELETE' => 'background:rgba(204,24,24,0.08);color:#cc1818',
+            default => 'background:rgba(80,87,94,0.08);color:#50575e',
+        };
+        $methodTag = '<span class="wpd-query-tag" style="' . $methodColor . '">' . $this->esc($method) . '</span>';
+        $html .= $this->renderTableRow('Method', $methodTag);
         $html .= $this->renderTableRow('URL', (string) ($data['url'] ?? ''));
 
         $script = (string) ($serverVars['SCRIPT_FILENAME'] ?? '');

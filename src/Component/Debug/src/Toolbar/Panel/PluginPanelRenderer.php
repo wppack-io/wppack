@@ -37,7 +37,45 @@ final class PluginPanelRenderer extends AbstractPanelRenderer implements PanelRe
         $html .= '</table>';
         $html .= '</div>';
 
-        if ($plugins !== []) {
+        // Split plugins into MU and regular
+        $muPluginsList = array_filter($plugins, static fn(array $info): bool => (bool) ($info['is_mu'] ?? false));
+        $regularPluginsList = array_filter($plugins, static fn(array $info): bool => !((bool) ($info['is_mu'] ?? false)));
+
+        if ($muPluginsList !== []) {
+            $html .= '<div class="wpd-section">';
+            $html .= '<h4 class="wpd-section-title">Must-Use Plugins</h4>';
+            $html .= '<table class="wpd-table wpd-table-full">';
+            $html .= '<thead><tr>';
+            $html .= '<th>Plugin</th>';
+            $html .= '<th>Version</th>';
+            $html .= '<th class="wpd-col-right">Load</th>';
+            $html .= '<th class="wpd-col-right">Hook Time</th>';
+            $html .= '<th class="wpd-col-right">Queries</th>';
+            $html .= '</tr></thead>';
+            $html .= '<tbody>';
+
+            foreach ($muPluginsList as $slug => $info) {
+                $name = (string) ($info['name'] ?? $slug);
+                $version = (string) ($info['version'] ?? '');
+                $loadTime = (float) ($info['load_time'] ?? 0.0);
+                $hookTime = (float) ($info['hook_time'] ?? 0.0);
+                $queryCount = (int) ($info['query_count'] ?? 0);
+
+                $html .= '<tr>';
+                $slowTag = ($slug === $slowestPlugin) ? ' <span class="wpd-query-tag" style="background:rgba(153,104,0,0.08);color:#996800">Slow</span>' : '';
+                $html .= '<td><span class="wpd-plugin-detail-link" data-plugin="' . $this->esc($slug) . '">' . $this->esc($name) . '</span>' . $slowTag . '</td>';
+                $html .= '<td>' . ($version !== '' ? $this->esc($version) : '-') . '</td>';
+                $html .= '<td class="wpd-col-right">' . ($loadTime > 0 ? $this->formatMs($loadTime) : '-') . '</td>';
+                $html .= '<td class="wpd-col-right">' . $this->formatMs($hookTime) . '</td>';
+                $html .= '<td class="wpd-col-right">' . ($queryCount > 0 ? $this->esc((string) $queryCount) : '-') . '</td>';
+                $html .= '</tr>';
+            }
+
+            $html .= '</tbody></table>';
+            $html .= '</div>';
+        }
+
+        if ($regularPluginsList !== []) {
             $html .= '<div class="wpd-section">';
             $html .= '<h4 class="wpd-section-title">Plugins</h4>';
             $html .= '<table class="wpd-table wpd-table-full">';
@@ -50,18 +88,16 @@ final class PluginPanelRenderer extends AbstractPanelRenderer implements PanelRe
             $html .= '</tr></thead>';
             $html .= '<tbody>';
 
-            foreach ($plugins as $slug => $info) {
+            foreach ($regularPluginsList as $slug => $info) {
                 $name = (string) ($info['name'] ?? $slug);
                 $version = (string) ($info['version'] ?? '');
                 $loadTime = (float) ($info['load_time'] ?? 0.0);
                 $hookTime = (float) ($info['hook_time'] ?? 0.0);
                 $queryCount = (int) ($info['query_count'] ?? 0);
-                $isMu = (bool) ($info['is_mu'] ?? false);
-                $muTag = $isMu ? ' <span class="wpd-query-tag" style="background:rgba(56,88,233,0.08);color:#3858e9">MU</span>' : '';
 
                 $html .= '<tr>';
                 $slowTag = ($slug === $slowestPlugin) ? ' <span class="wpd-query-tag" style="background:rgba(153,104,0,0.08);color:#996800">Slow</span>' : '';
-                $html .= '<td><span class="wpd-plugin-detail-link" data-plugin="' . $this->esc($slug) . '">' . $this->esc($name) . '</span>' . $muTag . $slowTag . '</td>';
+                $html .= '<td><span class="wpd-plugin-detail-link" data-plugin="' . $this->esc($slug) . '">' . $this->esc($name) . '</span>' . $slowTag . '</td>';
                 $html .= '<td>' . ($version !== '' ? $this->esc($version) : '-') . '</td>';
                 $html .= '<td class="wpd-col-right">' . ($loadTime > 0 ? $this->formatMs($loadTime) : '-') . '</td>';
                 $html .= '<td class="wpd-col-right">' . $this->formatMs($hookTime) . '</td>';

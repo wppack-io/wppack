@@ -9,7 +9,7 @@ use WpPack\Component\Debug\Attribute\AsDataCollector;
 #[AsDataCollector(name: 'mail', priority: 90)]
 final class MailDataCollector extends AbstractDataCollector
 {
-    /** @var list<array{to: string|list<string>, subject: string, headers: string|list<string>, message: string, attachments: list<string>, status: string, error: string, from: string, cc: list<string>, bcc: list<string>, reply_to: string, content_type: string, charset: string, attachment_details: list<array{filename: string, size: int}>}> */
+    /** @var list<array{to: string|list<string>, subject: string, headers: string|list<string>, message: string, attachments: list<string>, status: string, error: string, from: string, cc: list<string>, bcc: list<string>, reply_to: string, content_type: string, charset: string, attachment_details: list<array{filename: string, size: int}>, start: float, duration: float}> */
     private array $emails = [];
 
     public function __construct()
@@ -53,6 +53,8 @@ final class MailDataCollector extends AbstractDataCollector
             'content_type' => $parsedHeaders['content_type'],
             'charset' => $parsedHeaders['charset'],
             'attachment_details' => $attachmentDetails,
+            'start' => microtime(true),
+            'duration' => 0.0,
         ];
 
         return $args;
@@ -65,9 +67,11 @@ final class MailDataCollector extends AbstractDataCollector
      */
     public function captureMailSuccess(array $mailData): void
     {
+        $now = microtime(true);
         for ($i = count($this->emails) - 1; $i >= 0; $i--) {
             if ($this->emails[$i]['status'] === 'pending') {
                 $this->emails[$i]['status'] = 'sent';
+                $this->emails[$i]['duration'] = ($now - $this->emails[$i]['start']) * 1000;
                 break;
             }
         }
@@ -84,10 +88,12 @@ final class MailDataCollector extends AbstractDataCollector
             $errorMessage = $error->get_error_message();
         }
 
+        $now = microtime(true);
         for ($i = count($this->emails) - 1; $i >= 0; $i--) {
             if ($this->emails[$i]['status'] === 'pending') {
                 $this->emails[$i]['status'] = 'failed';
                 $this->emails[$i]['error'] = $errorMessage;
+                $this->emails[$i]['duration'] = ($now - $this->emails[$i]['start']) * 1000;
                 break;
             }
         }
