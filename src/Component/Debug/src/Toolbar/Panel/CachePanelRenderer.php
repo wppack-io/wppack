@@ -40,18 +40,15 @@ final class CachePanelRenderer extends AbstractPanelRenderer implements PanelRen
             $hitRate >= 50 => 'wpd-text-yellow',
             default => 'wpd-text-red',
         };
-        $html .= $this->renderTableRow('Hit Rate', '<span class="' . $hitRateColor . '">' . $this->esc(sprintf('%.1f%%', $hitRate)) . '</span>');
-        $html .= '</table>';
-
-        // Hit rate bar
-        $html .= '<div class="wpd-memory-bar-wrap">';
         $barColor = match (true) {
             $hitRate >= 80 => '#008a20',
             $hitRate >= 50 => '#996800',
             default => '#cc1818',
         };
-        $html .= '<div class="wpd-memory-bar" style="width:' . $this->esc(sprintf('%.1f', min($hitRate, 100))) . '%;background:' . $this->esc($barColor) . '"></div>';
-        $html .= '</div>';
+        $hitRateValue = '<span class="wpd-inline-bar"><span class="wpd-inline-bar-fill" style="width:' . $this->esc(sprintf('%.1f', min($hitRate, 100))) . '%;background:' . $this->esc($barColor) . '"></span></span>'
+            . '<span class="' . $hitRateColor . '">' . $this->esc(sprintf('%.1f%%', $hitRate)) . '</span>';
+        $html .= $this->renderTableRow('Hit Rate', $hitRateValue);
+        $html .= '</table>';
         $html .= '</div>';
 
         // Transients section

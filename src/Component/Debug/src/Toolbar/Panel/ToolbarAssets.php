@@ -586,17 +586,21 @@ final class ToolbarAssets
             flex-shrink: 0;
         }
 
-        /* ---- Memory bar ---- */
-        #wppack-debug .wpd-memory-bar-wrap {
-            height: 8px;
+        /* ---- Inline bar (compact progress bar next to value) ---- */
+        #wppack-debug .wpd-inline-bar {
+            display: inline-block;
+            vertical-align: middle;
+            width: 160px;
+            height: 6px;
             background: #f3f4f6;
-            border-radius: 4px;
+            border-radius: 3px;
             overflow: hidden;
-            margin-top: 12px;
+            margin-right: 6px;
         }
-        #wppack-debug .wpd-memory-bar {
+        #wppack-debug .wpd-inline-bar-fill {
+            display: block;
             height: 100%;
-            border-radius: 4px;
+            border-radius: 3px;
             transition: width 0.3s ease;
         }
 

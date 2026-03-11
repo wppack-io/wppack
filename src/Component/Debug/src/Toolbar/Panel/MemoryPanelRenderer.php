@@ -29,27 +29,20 @@ final class MemoryPanelRenderer extends AbstractPanelRenderer implements PanelRe
         $html .= $this->renderTableRow('Current Usage', $this->formatBytes($current));
         $html .= $this->renderTableRow('Peak Usage', $this->formatBytes($peak));
         $html .= $this->renderTableRow('Memory Limit', $limit > 0 ? $this->formatBytes($limit) : 'Unlimited');
-        $html .= $this->renderTableRow(
-            'Usage',
-            $this->esc(sprintf('%.1f%%', $usagePercentage)),
-            match (true) {
-                $usagePercentage >= 90 => 'wpd-text-red',
-                $usagePercentage >= 70 => 'wpd-text-yellow',
-                default => 'wpd-text-green',
-            },
-        );
-        $html .= '</table>';
-
-        // Memory usage bar
-        $html .= '<div class="wpd-memory-bar-wrap">';
+        $usageColor = match (true) {
+            $usagePercentage >= 90 => 'wpd-text-red',
+            $usagePercentage >= 70 => 'wpd-text-yellow',
+            default => 'wpd-text-green',
+        };
         $barColor = match (true) {
             $usagePercentage >= 90 => '#cc1818',
             $usagePercentage >= 70 => '#996800',
             default => '#008a20',
         };
-        $barWidth = min($usagePercentage, 100);
-        $html .= '<div class="wpd-memory-bar" style="width:' . $this->esc(sprintf('%.1f', $barWidth)) . '%;background:' . $this->esc($barColor) . '"></div>';
-        $html .= '</div>';
+        $usageValue = '<span class="wpd-inline-bar"><span class="wpd-inline-bar-fill" style="width:' . $this->esc(sprintf('%.1f', min($usagePercentage, 100))) . '%;background:' . $this->esc($barColor) . '"></span></span>'
+            . '<span class="' . $usageColor . '">' . $this->esc(sprintf('%.1f%%', $usagePercentage)) . '</span>';
+        $html .= $this->renderTableRow('Usage', $usageValue);
+        $html .= '</table>';
         $html .= '</div>';
 
         if ($snapshots !== []) {

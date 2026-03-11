@@ -29,10 +29,10 @@ final class WordPressDataCollector extends AbstractDataCollector
             'theme' => $themeInfo['theme'],
             'is_block_theme' => $themeInfo['is_block_theme'],
             'is_child_theme' => $themeInfo['is_child_theme'],
-            'child_theme' => $themeInfo['child_theme'],
             'parent_theme' => $themeInfo['parent_theme'],
             'theme_version' => $themeInfo['theme_version'],
             'active_plugins' => $this->getActivePlugins(),
+            'mu_plugins' => $this->getMuPlugins(),
             'environment_type' => $this->getEnvironmentType(),
             'is_multisite' => $this->isMultisite(),
             'extensions' => get_loaded_extensions(),
@@ -62,7 +62,7 @@ final class WordPressDataCollector extends AbstractDataCollector
     }
 
     /**
-     * @return array{theme: string, is_block_theme: bool, is_child_theme: bool, child_theme: string, parent_theme: string, theme_version: string}
+     * @return array{theme: string, is_block_theme: bool, is_child_theme: bool, parent_theme: string, theme_version: string}
      */
     private function getThemeInfo(): array
     {
@@ -70,7 +70,6 @@ final class WordPressDataCollector extends AbstractDataCollector
             'theme' => '',
             'is_block_theme' => false,
             'is_child_theme' => false,
-            'child_theme' => '',
             'parent_theme' => '',
             'theme_version' => '',
         ];
@@ -88,7 +87,6 @@ final class WordPressDataCollector extends AbstractDataCollector
             $template = get_template();
             $info['is_child_theme'] = $stylesheet !== $template;
             if ($info['is_child_theme']) {
-                $info['child_theme'] = $stylesheet;
                 $info['parent_theme'] = $template;
             }
         }
@@ -101,11 +99,11 @@ final class WordPressDataCollector extends AbstractDataCollector
     }
 
     /**
-     * @return list<string>
+     * @return array<string, string>
      */
     private function getActivePlugins(): array
     {
-        if (!function_exists('get_option')) {
+        if (!function_exists('get_option') || !function_exists('get_plugin_data')) {
             return [];
         }
 
@@ -115,7 +113,43 @@ final class WordPressDataCollector extends AbstractDataCollector
             return [];
         }
 
-        return array_values($plugins);
+        $result = [];
+        $pluginDir = defined('WP_PLUGIN_DIR') ? WP_PLUGIN_DIR : '';
+        foreach ($plugins as $pluginFile) {
+            $name = $pluginFile;
+            if ($pluginDir !== '') {
+                $file = $pluginDir . '/' . $pluginFile;
+                if (is_file($file)) {
+                    $data = get_plugin_data($file, false, false);
+                    if ($data['Name'] !== '') {
+                        $name = $data['Name'];
+                    }
+                }
+            }
+            $result[$pluginFile] = $name;
+        }
+
+        return $result;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function getMuPlugins(): array
+    {
+        if (!function_exists('get_mu_plugins')) {
+            return [];
+        }
+
+        $muPlugins = get_mu_plugins();
+
+        $result = [];
+        foreach ($muPlugins as $file => $data) {
+            $name = $data['Name'] !== '' ? $data['Name'] : $file;
+            $result[$file] = $name;
+        }
+
+        return $result;
     }
 
     private function getEnvironmentType(): string
