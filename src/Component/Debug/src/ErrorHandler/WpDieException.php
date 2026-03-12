@@ -41,16 +41,12 @@ final class WpDieException extends \RuntimeException
     /**
      * Display class for the debug page header.
      *
-     * Shows "WP_Error (code)" when the source was a WP_Error object,
-     * or "wp_die()" for plain string messages.
+     * Always returns "wp_die()" for a unified appearance,
+     * regardless of whether the source was a WP_Error or plain string.
      * Detected by FlattenException::createFromThrowable() via method_exists().
      */
     public function getDisplayClass(): string
     {
-        if ($this->wpErrorCodes !== []) {
-            return 'WP_Error (' . implode(', ', $this->wpErrorCodes) . ')';
-        }
-
         return 'wp_die()';
     }
 

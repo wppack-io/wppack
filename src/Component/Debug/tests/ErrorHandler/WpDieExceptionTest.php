@@ -61,7 +61,7 @@ final class WpDieExceptionTest extends TestCase
             wpErrorCodes: ['db_connect_fail'],
         );
 
-        self::assertSame('WP_Error (db_connect_fail)', $exception->getDisplayClass());
+        self::assertSame('wp_die()', $exception->getDisplayClass());
     }
 
     #[Test]
@@ -75,7 +75,7 @@ final class WpDieExceptionTest extends TestCase
             wpErrorCodes: ['forbidden', 'capability_missing'],
         );
 
-        self::assertSame('WP_Error (forbidden, capability_missing)', $exception->getDisplayClass());
+        self::assertSame('wp_die()', $exception->getDisplayClass());
     }
 
     #[Test]
@@ -104,7 +104,7 @@ final class WpDieExceptionTest extends TestCase
 
         $flat = FlattenException::createFromThrowable($exception);
 
-        self::assertSame('WP_Error (db_connect_fail)', $flat->getClass());
+        self::assertSame('wp_die()', $flat->getClass());
     }
 
     #[Test]
@@ -135,7 +135,7 @@ final class WpDieExceptionTest extends TestCase
 
         $flat = FlattenException::createFromThrowable($exception);
 
-        self::assertSame('WP_Error (db_error)', $flat->getChain()[0]['class']);
+        self::assertSame('wp_die()', $flat->getChain()[0]['class']);
     }
 
     #[Test]
