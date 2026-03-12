@@ -94,9 +94,9 @@ final readonly class ErrorRenderer
             font-weight: 400;
         }
         .exception-message {
-            font-size: 14px;
+            font-size: 12px;
             color: var(--text);
-            margin-top: 6px;
+            margin-top: 4px;
             line-height: 1.3;
             word-break: break-word;
         }
@@ -224,15 +224,14 @@ final readonly class ErrorRenderer
         }
         .chain-item:last-child { margin-bottom: 0; }
         .chain-item-class {
-            font-size: 16px;
+            font-size: 18px;
             color: var(--red);
             font-weight: 600;
-            margin-bottom: 2px;
         }
         .chain-item-message {
             color: var(--text);
-            font-size: 13px;
-            margin-bottom: 2px;
+            font-size: 12px;
+            margin-top: 4px;
             word-break: break-word;
         }
         .chain-item-trace { margin-top: 12px; }
