@@ -121,4 +121,44 @@ final class ErrorRendererTest extends TestCase
 
         self::assertStringContainsString('404', $html);
     }
+
+    #[Test]
+    public function renderShowsChainedExceptions(): void
+    {
+        $inner = new \LogicException('inner cause');
+        $outer = new \RuntimeException('outer error', 0, $inner);
+        $flat = FlattenException::createFromThrowable($outer);
+
+        $html = $this->renderer->render($flat);
+
+        self::assertStringContainsString('RuntimeException', $html);
+        self::assertStringContainsString('outer error', $html);
+        self::assertStringContainsString('Previous Exceptions', $html);
+        self::assertStringContainsString('LogicException', $html);
+        self::assertStringContainsString('inner cause', $html);
+    }
+
+    #[Test]
+    public function renderAppendsToolbarHtml(): void
+    {
+        $exception = new \RuntimeException('toolbar test');
+        $flat = FlattenException::createFromThrowable($exception);
+        $toolbarHtml = '<div id="wppack-debug">toolbar content</div>';
+
+        $html = $this->renderer->render($flat, $toolbarHtml);
+
+        self::assertStringContainsString('wppack-debug', $html);
+        self::assertStringContainsString('toolbar content', $html);
+    }
+
+    #[Test]
+    public function renderShowsExceptionCode(): void
+    {
+        $exception = new \RuntimeException('coded error', 42);
+        $flat = FlattenException::createFromThrowable($exception);
+
+        $html = $this->renderer->render($flat);
+
+        self::assertStringContainsString('code 42', $html);
+    }
 }

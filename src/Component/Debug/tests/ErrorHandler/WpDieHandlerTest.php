@@ -9,6 +9,8 @@ use PHPUnit\Framework\TestCase;
 use WpPack\Component\Debug\DebugConfig;
 use WpPack\Component\Debug\ErrorHandler\ErrorRenderer;
 use WpPack\Component\Debug\ErrorHandler\WpDieHandler;
+use WpPack\Component\Debug\Profiler\Profile;
+use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
 
 final class WpDieHandlerTest extends TestCase
 {
@@ -245,5 +247,105 @@ final class WpDieHandlerTest extends TestCase
 
         self::assertIsString($output);
         self::assertStringContainsString('HTTP 500', $output);
+    }
+
+    #[Test]
+    public function registerAjaxHandlerReturnsSelfCallable(): void
+    {
+        $handler = new WpDieHandler(
+            new ErrorRenderer(),
+            new DebugConfig(enabled: true),
+        );
+
+        $result = $handler->registerAjaxHandler('_default_wp_die_handler');
+
+        self::assertIsCallable($result);
+    }
+
+    #[Test]
+    public function registerJsonHandlerReturnsSelfCallable(): void
+    {
+        $handler = new WpDieHandler(
+            new ErrorRenderer(),
+            new DebugConfig(enabled: true),
+        );
+
+        $result = $handler->registerJsonHandler('_default_wp_die_handler');
+
+        self::assertIsCallable($result);
+    }
+
+    #[Test]
+    public function handleAjaxWithWpErrorReturnsErrorCodes(): void
+    {
+        if (!class_exists(\WP_Error::class)) {
+            self::markTestSkipped('WP_Error class is not available.');
+        }
+
+        $config = new DebugConfig(enabled: true);
+
+        if (!$config->isAccessAllowed()) {
+            self::markTestSkipped('isAccessAllowed() is false in this environment.');
+        }
+
+        $handler = new WpDieHandler(new ErrorRenderer(), $config);
+        $handler->registerAjaxHandler('_default_wp_die_handler');
+
+        $wpError = new \WP_Error('invalid_nonce', 'The nonce is invalid');
+
+        ob_start();
+        @$handler->handleAjax($wpError, 'Nonce Error', ['response' => 403, 'exit' => false]);
+        $output = ob_get_clean();
+
+        self::assertIsString($output);
+
+        $data = json_decode($output, true);
+        self::assertIsArray($data);
+        self::assertTrue($data['error']);
+        self::assertSame(403, $data['status']);
+        self::assertContains('invalid_nonce', $data['wp_error_codes']);
+    }
+
+    #[Test]
+    public function setProfileUpdatesProfile(): void
+    {
+        $config = new DebugConfig(enabled: true);
+
+        if (!$config->isAccessAllowed()) {
+            self::markTestSkipped('isAccessAllowed() is false in this environment.');
+        }
+
+        $toolbarRenderer = new ToolbarRenderer();
+        $handler = new WpDieHandler(new ErrorRenderer(), $config, $toolbarRenderer);
+        $handler->setProfile(new Profile('test'));
+        $handler->registerHtmlHandler('_default_wp_die_handler');
+
+        ob_start();
+        @$handler->handleHtml('toolbar test', 'Error', ['response' => 500, 'exit' => false]);
+        $output = ob_get_clean();
+
+        self::assertIsString($output);
+        self::assertStringContainsString('wppack-debug', $output);
+    }
+
+    #[Test]
+    public function handleHtmlStripsHtmlTags(): void
+    {
+        $config = new DebugConfig(enabled: true);
+
+        if (!$config->isAccessAllowed()) {
+            self::markTestSkipped('isAccessAllowed() is false in this environment.');
+        }
+
+        $handler = new WpDieHandler(new ErrorRenderer(), $config);
+        $handler->registerHtmlHandler('_default_wp_die_handler');
+
+        ob_start();
+        @$handler->handleHtml('<strong>Bold</strong> message with <a href="#">link</a>', 'Error', ['response' => 500, 'exit' => false]);
+        $output = ob_get_clean();
+
+        self::assertIsString($output);
+        // strip_tags removes HTML, so the rendered output should contain the plain text
+        self::assertStringContainsString('Bold message with link', $output);
     }
 }

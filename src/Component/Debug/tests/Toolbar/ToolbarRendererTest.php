@@ -592,6 +592,712 @@ final class ToolbarRendererTest extends TestCase
         self::assertStringContainsString('Deprecations', $html);
     }
 
+    #[Test]
+    public function renderAdminPanelShowsAdminData(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('admin', 'Admin', '5', 'default', [
+            'is_admin' => true,
+            'page_hook' => 'toplevel_page_my-plugin',
+            'screen' => ['id' => 'toplevel_page_my-plugin', 'base' => 'toplevel_page_my-plugin', 'post_type' => '', 'taxonomy' => ''],
+            'admin_menus' => [
+                ['title' => 'Dashboard', 'slug' => 'index.php', 'capability' => 'read', 'submenu' => [
+                    ['title' => 'Home', 'slug' => 'index.php'],
+                ]],
+            ],
+            'admin_bar_nodes' => [
+                ['id' => 'wp-logo', 'title' => 'About WordPress'],
+            ],
+            'total_menus' => 5,
+            'total_submenus' => 12,
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('Current Screen', $html);
+        self::assertStringContainsString('toplevel_page_my-plugin', $html);
+        self::assertStringContainsString('Admin Menus', $html);
+        self::assertStringContainsString('Dashboard', $html);
+        self::assertStringContainsString('Home', $html);
+        self::assertStringContainsString('Admin Bar Nodes', $html);
+        self::assertStringContainsString('wp-logo', $html);
+    }
+
+    #[Test]
+    public function renderAdminPanelShowsNonAdminMessage(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('admin', 'Admin', '-', 'default', [
+            'is_admin' => false,
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('Not in admin context.', $html);
+    }
+
+    #[Test]
+    public function renderAjaxPanelShowsActions(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('ajax', 'Ajax', '3', 'default', [
+            'total_actions' => 3,
+            'nopriv_count' => 1,
+            'registered_actions' => [
+                'heartbeat' => ['callback' => 'wp_ajax_heartbeat', 'nopriv' => false],
+                'my_action' => ['callback' => 'MyPlugin::handle', 'nopriv' => true],
+            ],
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('Registered Actions', $html);
+        self::assertStringContainsString('heartbeat', $html);
+        self::assertStringContainsString('wp_ajax_heartbeat', $html);
+        self::assertStringContainsString('my_action', $html);
+        self::assertStringContainsString('NoPriv', $html);
+        self::assertStringContainsString('Client-Side Requests', $html);
+    }
+
+    #[Test]
+    public function renderAssetPanelShowsScriptsAndStyles(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('asset', 'Assets', '5/3', 'default', [
+            'enqueued_scripts' => 5,
+            'enqueued_styles' => 3,
+            'registered_scripts' => 20,
+            'registered_styles' => 15,
+            'scripts' => [
+                'jquery-core' => ['enqueued' => true, 'src' => '/wp-includes/js/jquery/jquery.min.js', 'version' => '3.7.1', 'in_footer' => false],
+            ],
+            'styles' => [
+                'wp-block-library' => ['enqueued' => true, 'src' => '/wp-includes/css/dist/block-library/style.min.css', 'version' => '6.4', 'media' => 'all'],
+            ],
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('Enqueued Scripts', $html);
+        self::assertStringContainsString('jquery-core', $html);
+        self::assertStringContainsString('3.7.1', $html);
+        self::assertStringContainsString('Enqueued Styles', $html);
+        self::assertStringContainsString('wp-block-library', $html);
+        self::assertStringContainsString('all', $html);
+    }
+
+    #[Test]
+    public function renderContainerPanelShowsServices(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('container', 'Container', '10', 'default', [
+            'service_count' => 10,
+            'public_count' => 4,
+            'private_count' => 6,
+            'autowired_count' => 8,
+            'lazy_count' => 2,
+            'services' => [
+                'app.mailer' => ['class' => 'App\\Mailer', 'public' => true, 'autowired' => true, 'lazy' => false],
+            ],
+            'compiler_passes' => ['App\\DI\\MyCompilerPass'],
+            'tagged_services' => [
+                'event.listener' => ['app.listener.foo', 'app.listener.bar'],
+            ],
+            'parameters' => ['app.debug' => true],
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('Services', $html);
+        self::assertStringContainsString('app.mailer', $html);
+        self::assertStringContainsString('public', $html);
+        self::assertStringContainsString('autowired', $html);
+        self::assertStringContainsString('Compiler Passes', $html);
+        self::assertStringContainsString('MyCompilerPass', $html);
+        self::assertStringContainsString('Tagged Services', $html);
+        self::assertStringContainsString('event.listener', $html);
+        self::assertStringContainsString('Parameters', $html);
+    }
+
+    #[Test]
+    public function renderDumpPanelShowsDumps(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('dump', 'Dumps', '2', 'yellow', [
+            'dumps' => [
+                ['file' => '/app/src/Controller.php', 'line' => 42, 'data' => 'string(5) "hello"'],
+                ['file' => '/app/src/Service.php', 'line' => 100, 'data' => 'int(42)'],
+            ],
+            'total_count' => 2,
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('Dumps (2)', $html);
+        self::assertStringContainsString('Controller.php', $html);
+        self::assertStringContainsString(':42', $html);
+        self::assertStringContainsString('string(5) &quot;hello&quot;', $html);
+    }
+
+    #[Test]
+    public function renderDumpPanelShowsEmptyMessage(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('dump', 'Dumps', '0', 'default', [
+            'dumps' => [],
+            'total_count' => 0,
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('No dump() calls recorded.', $html);
+    }
+
+    #[Test]
+    public function renderFeedPanelShowsFeeds(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('feed', 'Feed', '3', 'default', [
+            'total_count' => 3,
+            'custom_count' => 1,
+            'feed_discovery' => true,
+            'feeds' => [
+                ['type' => 'rss2', 'url' => 'https://example.com/feed/', 'is_custom' => false],
+                ['type' => 'atom', 'url' => 'https://example.com/feed/atom/', 'is_custom' => false],
+                ['type' => 'rss2', 'url' => 'https://example.com/custom-feed/', 'is_custom' => true],
+            ],
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('Total Feeds', $html);
+        self::assertStringContainsString('Custom Feeds', $html);
+        self::assertStringContainsString('Feed Discovery', $html);
+        self::assertStringContainsString('rss2', $html);
+        self::assertStringContainsString('atom', $html);
+        self::assertStringContainsString('example.com/feed/', $html);
+    }
+
+    #[Test]
+    public function renderHttpClientPanelShowsRequests(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('http_client', 'HTTP Client', '2', 'green', [
+            'total_count' => 2,
+            'total_time' => 350.5,
+            'error_count' => 1,
+            'slow_count' => 0,
+            'requests' => [
+                ['method' => 'GET', 'url' => 'https://api.example.com/data', 'status_code' => 200, 'duration' => 150.2, 'response_size' => 4096, 'start' => 0, 'error' => ''],
+                ['method' => 'POST', 'url' => 'https://api.example.com/submit', 'status_code' => 500, 'duration' => 200.3, 'response_size' => 128, 'start' => 0, 'error' => 'Internal Server Error'],
+            ],
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('Total Requests', $html);
+        self::assertStringContainsString('Errors', $html);
+        self::assertStringContainsString('Slow Requests', $html);
+        self::assertStringContainsString('api.example.com/data', $html);
+        self::assertStringContainsString('200', $html);
+        self::assertStringContainsString('500', $html);
+        self::assertStringContainsString('Internal Server Error', $html);
+    }
+
+    #[Test]
+    public function renderMailPanelShowsEmails(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('mail', 'Mail', '2', 'default', [
+            'total_count' => 2,
+            'success_count' => 1,
+            'failure_count' => 1,
+            'emails' => [
+                [
+                    'to' => 'user@example.com',
+                    'subject' => 'Welcome Email',
+                    'from' => 'noreply@example.com',
+                    'cc' => ['cc@example.com'],
+                    'bcc' => [],
+                    'reply_to' => '',
+                    'content_type' => 'text/html',
+                    'charset' => 'UTF-8',
+                    'status' => 'sent',
+                    'error' => '',
+                    'message' => 'Hello World',
+                    'attachment_details' => [
+                        ['filename' => 'report.pdf', 'size' => 102400],
+                    ],
+                ],
+                [
+                    'to' => 'admin@example.com',
+                    'subject' => 'Alert',
+                    'from' => '',
+                    'cc' => [],
+                    'bcc' => [],
+                    'reply_to' => '',
+                    'content_type' => '',
+                    'charset' => '',
+                    'status' => 'failed',
+                    'error' => 'SMTP connection failed',
+                    'message' => '',
+                    'attachment_details' => [],
+                ],
+            ],
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('Email #1', $html);
+        self::assertStringContainsString('Email #2', $html);
+        self::assertStringContainsString('user@example.com', $html);
+        self::assertStringContainsString('Welcome Email', $html);
+        self::assertStringContainsString('noreply@example.com', $html);
+        self::assertStringContainsString('cc@example.com', $html);
+        self::assertStringContainsString('SENT', $html);
+        self::assertStringContainsString('FAILED', $html);
+        self::assertStringContainsString('SMTP connection failed', $html);
+        self::assertStringContainsString('Hello World', $html);
+        self::assertStringContainsString('report.pdf', $html);
+    }
+
+    #[Test]
+    public function renderRestPanelShowsRoutes(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('rest', 'REST', '25', 'default', [
+            'is_rest_request' => true,
+            'current_request' => [
+                'method' => 'GET',
+                'route' => '/wp/v2/posts',
+                'path' => '/wp-json/wp/v2/posts',
+                'namespace' => 'wp/v2',
+                'callback' => 'WP_REST_Posts_Controller::get_items',
+                'status' => 200,
+                'authentication' => 'nonce',
+                'params' => ['per_page' => 10],
+            ],
+            'total_routes' => 25,
+            'total_namespaces' => 3,
+            'routes' => [
+                'wp/v2' => [
+                    ['route' => '/wp/v2/posts', 'methods' => ['GET', 'POST'], 'callback' => 'WP_REST_Posts_Controller'],
+                ],
+            ],
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('Current Request', $html);
+        self::assertStringContainsString('/wp/v2/posts', $html);
+        self::assertStringContainsString('WP_REST_Posts_Controller::get_items', $html);
+        self::assertStringContainsString('Request Parameters', $html);
+        self::assertStringContainsString('per_page', $html);
+        self::assertStringContainsString('wp/v2', $html);
+        self::assertStringContainsString('GET', $html);
+        self::assertStringContainsString('POST', $html);
+    }
+
+    #[Test]
+    public function renderRouterPanelShowsClassicTemplate(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('router', 'Router', '', 'default', [
+            'is_block_theme' => false,
+            'template' => 'single.php',
+            'template_path' => '/var/www/html/wp-content/themes/flavor/single.php',
+            'matched_rule' => '([^/]+)(?:/([0-9]+))?/?$',
+            'matched_query' => 'name=hello-world&page=',
+            'query_type' => 'single',
+            'is_404' => false,
+            'rewrite_rules_count' => 120,
+            'query_vars' => ['name' => 'hello-world'],
+            'is_singular' => true,
+            'is_front_page' => false,
+            'is_archive' => false,
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('Template (Classic)', $html);
+        self::assertStringContainsString('single.php', $html);
+        self::assertStringContainsString('Matched Rule', $html);
+        self::assertStringContainsString('Query Variables', $html);
+        self::assertStringContainsString('hello-world', $html);
+        self::assertStringContainsString('Conditional Tags', $html);
+        self::assertStringContainsString('is_singular', $html);
+    }
+
+    #[Test]
+    public function renderRouterPanelShowsBlockTemplate(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('router', 'Router', '', 'default', [
+            'is_block_theme' => true,
+            'template' => '',
+            'template_path' => '',
+            'matched_rule' => '',
+            'matched_query' => '',
+            'query_type' => 'front_page',
+            'is_404' => false,
+            'rewrite_rules_count' => 120,
+            'block_template' => [
+                'slug' => 'front-page',
+                'id' => 'flavor//front-page',
+                'source' => 'theme',
+                'has_theme_file' => true,
+                'file_path' => '/var/www/html/wp-content/themes/flavor/templates/front-page.html',
+                'parts' => [
+                    ['slug' => 'header', 'area' => 'header', 'source' => 'theme'],
+                    ['slug' => 'footer', 'area' => 'footer', 'source' => 'custom'],
+                ],
+            ],
+            'is_front_page' => true,
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('Block Template (FSE)', $html);
+        self::assertStringContainsString('front-page', $html);
+        self::assertStringContainsString('flavor//front-page', $html);
+        self::assertStringContainsString('Template Parts', $html);
+        self::assertStringContainsString('header', $html);
+        self::assertStringContainsString('footer', $html);
+        self::assertStringContainsString('is_front_page', $html);
+    }
+
+    #[Test]
+    public function renderSecurityPanelShowsUserAndNonces(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('security', 'Security', '', 'default', [
+            'is_logged_in' => true,
+            'username' => 'admin',
+            'display_name' => 'Administrator',
+            'email' => 'admin@example.com',
+            'roles' => ['administrator', 'editor'],
+            'is_super_admin' => false,
+            'authentication' => 'cookie',
+            'capabilities' => ['manage_options' => true, 'edit_posts' => true],
+            'nonce_operations' => [
+                ['action' => 'wp_rest', 'operation' => 'verify', 'result' => true, 'timestamp' => 0.0],
+            ],
+            'nonce_verify_count' => 1,
+            'nonce_verify_failures' => 0,
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('User', $html);
+        self::assertStringContainsString('admin', $html);
+        self::assertStringContainsString('Roles', $html);
+        self::assertStringContainsString('administrator', $html);
+        self::assertStringContainsString('editor', $html);
+        self::assertStringContainsString('Capabilities', $html);
+        self::assertStringContainsString('manage_options', $html);
+        self::assertStringContainsString('Nonce Operations', $html);
+        self::assertStringContainsString('wp_rest', $html);
+    }
+
+    #[Test]
+    public function renderShortcodePanelShowsShortcodes(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('shortcode', 'Shortcode', '5/2', 'default', [
+            'total_count' => 5,
+            'used_count' => 2,
+            'execution_time' => 15.3,
+            'used_shortcodes' => ['gallery', 'contact-form'],
+            'shortcodes' => [
+                ['tag' => 'gallery', 'callback' => 'gallery_shortcode', 'used' => true],
+                ['tag' => 'contact-form', 'callback' => 'cf_shortcode', 'used' => true],
+                ['tag' => 'caption', 'callback' => 'img_caption_shortcode', 'used' => false],
+            ],
+            'executions' => [
+                ['tag' => 'gallery', 'start' => 0.0, 'duration' => 10.2],
+                ['tag' => 'contact-form', 'start' => 0.0, 'duration' => 5.1],
+            ],
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('Execution Times', $html);
+        self::assertStringContainsString('[gallery]', $html);
+        self::assertStringContainsString('[contact-form]', $html);
+        self::assertStringContainsString('Used in Current Page', $html);
+        self::assertStringContainsString('All Shortcodes', $html);
+        self::assertStringContainsString('gallery_shortcode', $html);
+    }
+
+    #[Test]
+    public function renderTranslationPanelShowsTranslations(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('translation', 'Translation', '150', 'default', [
+            'total_lookups' => 150,
+            'missing_count' => 2,
+            'loaded_domains' => ['default', 'woocommerce', 'my-plugin'],
+            'domain_usage' => ['default' => 80, 'woocommerce' => 50, 'my-plugin' => 20],
+            'missing_translations' => [
+                ['original' => 'Untranslated text', 'domain' => 'my-plugin'],
+                ['original' => 'Another missing', 'domain' => 'my-plugin'],
+            ],
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('Total Lookups', $html);
+        self::assertStringContainsString('Loaded Domains', $html);
+        self::assertStringContainsString('woocommerce', $html);
+        self::assertStringContainsString('Domain Usage', $html);
+        self::assertStringContainsString('Missing Translations', $html);
+        self::assertStringContainsString('Untranslated text', $html);
+    }
+
+    #[Test]
+    public function renderWidgetPanelShowsWidgets(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('widget', 'Widget', '8', 'default', [
+            'total_widgets' => 8,
+            'total_sidebars' => 3,
+            'active_widgets' => 6,
+            'render_time' => 12.5,
+            'sidebars' => [
+                'sidebar-1' => ['name' => 'Main Sidebar', 'widgets' => ['recent-posts-2', 'search-1']],
+                'sidebar-2' => ['name' => 'Footer', 'widgets' => []],
+            ],
+            'sidebar_timings' => [
+                ['sidebar' => 'sidebar-1', 'name' => 'Main Sidebar', 'start' => 0.0, 'duration' => 8.3],
+                ['sidebar' => 'sidebar-2', 'name' => 'Footer', 'start' => 0.0, 'duration' => 4.2],
+            ],
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('Total Sidebars', $html);
+        self::assertStringContainsString('Total Widgets', $html);
+        self::assertStringContainsString('Sidebar Render Times', $html);
+        self::assertStringContainsString('Main Sidebar', $html);
+        self::assertStringContainsString('recent-posts-2', $html);
+        self::assertStringContainsString('empty', $html);
+    }
+
+    #[Test]
+    public function renderWordPressPanelShowsWpData(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('wordpress', 'WordPress', '6.4', 'default', [
+            'wp_version' => '6.4.2',
+            'php_version' => '8.2.13',
+            'environment_type' => 'local',
+            'is_multisite' => false,
+            'constants' => ['WP_DEBUG' => true, 'WP_DEBUG_LOG' => false, 'SCRIPT_DEBUG' => null],
+            'theme' => 'Twenty Twenty-Four',
+            'is_block_theme' => true,
+            'is_child_theme' => false,
+            'parent_theme' => '',
+            'theme_version' => '1.2',
+            'mu_plugins' => ['loader.php'],
+            'active_plugins' => ['woocommerce/woocommerce.php', 'akismet/akismet.php'],
+            'extensions' => ['curl', 'mbstring', 'openssl'],
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('6.4.2', $html);
+        self::assertStringContainsString('8.2.13', $html);
+        self::assertStringContainsString('local', $html);
+        self::assertStringContainsString('Debug Constants', $html);
+        self::assertStringContainsString('WP_DEBUG', $html);
+        self::assertStringContainsString('Active Theme', $html);
+        self::assertStringContainsString('Twenty Twenty-Four', $html);
+        self::assertStringContainsString('Must-Use Plugins', $html);
+        self::assertStringContainsString('Active Plugins', $html);
+        self::assertStringContainsString('PHP Extensions', $html);
+        self::assertStringContainsString('curl', $html);
+    }
+
+    #[Test]
+    public function renderMemoryPanelShowsSnapshots(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('memory', 'Memory', '42.5 MB', 'yellow', [
+            'current' => 20971520,
+            'peak' => 44564480,
+            'limit' => 268435456,
+            'usage_percentage' => 16.6,
+            'snapshots' => [
+                'plugins_loaded' => 10485760,
+                'init' => 15728640,
+                'template_redirect' => 20971520,
+            ],
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('Current Usage', $html);
+        self::assertStringContainsString('Peak Usage', $html);
+        self::assertStringContainsString('Memory Limit', $html);
+        self::assertStringContainsString('Memory Snapshots', $html);
+        self::assertStringContainsString('plugins_loaded', $html);
+        self::assertStringContainsString('init', $html);
+        self::assertStringContainsString('template_redirect', $html);
+    }
+
+    #[Test]
+    public function renderRequestPanelShowsRequestData(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('request', 'Request', 'GET 200', 'green', [
+            'method' => 'GET',
+            'url' => 'https://example.com/hello-world/',
+            'status_code' => 200,
+            'content_type' => 'text/html; charset=UTF-8',
+            'request_headers' => ['Host' => 'example.com', 'Accept' => 'text/html'],
+            'response_headers' => ['Content-Type' => 'text/html; charset=UTF-8'],
+            'get_params' => ['s' => 'search query'],
+            'post_params' => [],
+            'cookies' => ['wp_lang' => 'en_US'],
+            'server_vars' => ['SCRIPT_FILENAME' => '/var/www/html/index.php', 'REMOTE_ADDR' => '127.0.0.1', 'REQUEST_TIME_FLOAT' => microtime(true), 'SERVER_SOFTWARE' => 'Apache/2.4'],
+            'http_api_calls' => [],
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('Request', $html);
+        self::assertStringContainsString('GET', $html);
+        self::assertStringContainsString('example.com/hello-world/', $html);
+        self::assertStringContainsString('200', $html);
+        self::assertStringContainsString('Response', $html);
+        self::assertStringContainsString('Request Headers', $html);
+        self::assertStringContainsString('Response Headers', $html);
+        self::assertStringContainsString('GET Parameters', $html);
+        self::assertStringContainsString('search query', $html);
+        self::assertStringContainsString('Cookies', $html);
+        self::assertStringContainsString('Server Variables', $html);
+    }
+
+    #[Test]
+    public function renderRequestPanelShowsPostParamsAndHttpApiCalls(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('request', 'Request', 'POST 302', 'yellow', [
+            'method' => 'POST',
+            'url' => 'https://example.com/wp-admin/post.php',
+            'status_code' => 302,
+            'content_type' => '',
+            'request_headers' => [],
+            'response_headers' => [],
+            'get_params' => [],
+            'post_params' => ['action' => 'editpost', 'post_ID' => '42'],
+            'cookies' => [],
+            'server_vars' => [],
+            'http_api_calls' => [
+                ['url' => 'https://api.wordpress.org/plugins/info/', 'args' => [], 'response' => ''],
+            ],
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('POST', $html);
+        self::assertStringContainsString('POST Parameters', $html);
+        self::assertStringContainsString('editpost', $html);
+        self::assertStringContainsString('HTTP API Calls', $html);
+        self::assertStringContainsString('api.wordpress.org/plugins/info/', $html);
+    }
+
+    #[Test]
+    public function renderRestPanelShowsNonRestSummary(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('rest', 'REST', '25', 'default', [
+            'is_rest_request' => false,
+            'current_request' => null,
+            'total_routes' => 25,
+            'total_namespaces' => 3,
+            'routes' => [],
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('REST Request', $html);
+        self::assertStringContainsString('false', $html);
+        self::assertStringNotContainsString('Current Request', $html);
+    }
+
+    #[Test]
+    public function renderDatabasePanelShowsSlowAndDuplicateQueries(): void
+    {
+        $requestTimeFloat = microtime(true) - 0.198;
+        $profile = new Profile('test-token');
+        $queries = [
+            ['sql' => 'SELECT * FROM wp_posts WHERE ID = 1', 'time' => 0.5, 'caller' => 'WP_Post::get_instance', 'start' => $requestTimeFloat + 0.01, 'data' => []],
+            ['sql' => 'SELECT * FROM wp_posts WHERE ID = 1', 'time' => 0.3, 'caller' => 'WP_Post::get_instance', 'start' => $requestTimeFloat + 0.02, 'data' => []],
+            ['sql' => 'SELECT * FROM wp_postmeta WHERE post_id = 1', 'time' => 150.0, 'caller' => 'get_post_meta, WP_Query::get_posts', 'start' => $requestTimeFloat + 0.03, 'data' => []],
+        ];
+        // Add 6 queries from same caller to trigger >5 warning
+        for ($i = 0; $i < 4; $i++) {
+            $queries[] = ['sql' => 'SELECT option_value FROM wp_options WHERE option_name = "opt' . $i . '"', 'time' => 0.2, 'caller' => 'wp_load_alloptions', 'start' => $requestTimeFloat + 0.04 + ($i * 0.001), 'data' => []];
+        }
+        $profile->addCollector($this->createCollector('database', 'Database', '7', 'yellow', [
+            'total_count' => 7,
+            'total_time' => 152.0,
+            'duplicate_count' => 1,
+            'slow_count' => 1,
+            'suggestions' => ['Consider adding an index on wp_postmeta.meta_key'],
+            'queries' => $queries,
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('Queries by Caller', $html);
+        self::assertStringContainsString('wp_postmeta', $html);
+        // Comma-separated caller shows only last entry
+        self::assertStringContainsString('WP_Query::get_posts', $html);
+        self::assertStringContainsString('Suggestions', $html);
+        // Slow query has SLOW badge
+        self::assertStringContainsString('SLOW', $html);
+        // Duplicate query has DUP badge
+        self::assertStringContainsString('DUP', $html);
+        self::assertStringContainsString('wpd-row-slow', $html);
+        self::assertStringContainsString('wpd-row-duplicate', $html);
+    }
+
+    #[Test]
+    public function renderEventPanelShowsHookData(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('event', 'Events', '250', 'default', [
+            'total_firings' => 250,
+            'unique_hooks' => 80,
+            'registered_hooks' => 120,
+            'orphan_hooks' => 5,
+            'top_hooks' => ['init' => 30, 'wp_head' => 20, 'the_content' => 15],
+            'hook_timings' => [
+                'init' => ['count' => 30, 'total_time' => 45.5, 'start' => 50.0],
+                'wp_head' => ['count' => 20, 'total_time' => 22.3, 'start' => 100.0],
+            ],
+            'listener_counts' => ['init' => 15, 'wp_head' => 25, 'the_content' => 8],
+            'component_summary' => [
+                'WooCommerce' => ['type' => 'plugin', 'hooks' => 12, 'listeners' => 30, 'total_time' => 25.0],
+                'Twenty Twenty-Four' => ['type' => 'theme', 'hooks' => 5, 'listeners' => 10, 'total_time' => 8.0],
+            ],
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        self::assertStringContainsString('Total Firings', $html);
+        self::assertStringContainsString('Unique Hooks', $html);
+        self::assertStringContainsString('Orphan Hooks', $html);
+        self::assertStringContainsString('Component Summary', $html);
+        self::assertStringContainsString('WooCommerce', $html);
+        self::assertStringContainsString('plugin', $html);
+        self::assertStringContainsString('Top Hooks', $html);
+        self::assertStringContainsString('init', $html);
+        self::assertStringContainsString('wp_head', $html);
+    }
+
     private function createProfileWithCollectors(): Profile
     {
         $profile = new Profile('test-token');

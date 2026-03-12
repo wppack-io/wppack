@@ -9,6 +9,8 @@ use PHPUnit\Framework\TestCase;
 use WpPack\Component\Debug\DebugConfig;
 use WpPack\Component\Debug\ErrorHandler\ErrorRenderer;
 use WpPack\Component\Debug\ErrorHandler\ExceptionHandler;
+use WpPack\Component\Debug\Profiler\Profile;
+use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
 
 final class ExceptionHandlerTest extends TestCase
 {
@@ -181,5 +183,68 @@ final class ExceptionHandlerTest extends TestCase
 
         self::assertIsString($output);
         self::assertStringContainsString('ip allowed test', $output);
+    }
+
+    #[Test]
+    public function handleExceptionWithToolbarRendersToolbar(): void
+    {
+        $config = new DebugConfig(enabled: true);
+
+        if (!$config->isAccessAllowed()) {
+            self::markTestSkipped('isAccessAllowed() is false in this environment.');
+        }
+
+        $toolbarRenderer = new ToolbarRenderer();
+        $profile = new Profile('test-token');
+
+        $handler = new ExceptionHandler(new ErrorRenderer(), $config, $toolbarRenderer, $profile);
+
+        ob_start();
+        @$handler->handleException(new \RuntimeException('toolbar test'));
+        $output = ob_get_clean();
+
+        self::assertIsString($output);
+        self::assertStringContainsString('toolbar test', $output);
+        self::assertStringContainsString('wppack-debug', $output);
+    }
+
+    #[Test]
+    public function handleExceptionWithoutToolbarRendererReturnsNoToolbar(): void
+    {
+        $config = new DebugConfig(enabled: true);
+
+        if (!$config->isAccessAllowed()) {
+            self::markTestSkipped('isAccessAllowed() is false in this environment.');
+        }
+
+        $handler = new ExceptionHandler(new ErrorRenderer(), $config);
+
+        ob_start();
+        @$handler->handleException(new \RuntimeException('no toolbar'));
+        $output = ob_get_clean();
+
+        self::assertIsString($output);
+        self::assertStringContainsString('no toolbar', $output);
+    }
+
+    #[Test]
+    public function setProfileUpdatesProfile(): void
+    {
+        $config = new DebugConfig(enabled: true);
+
+        if (!$config->isAccessAllowed()) {
+            self::markTestSkipped('isAccessAllowed() is false in this environment.');
+        }
+
+        $toolbarRenderer = new ToolbarRenderer();
+        $handler = new ExceptionHandler(new ErrorRenderer(), $config, $toolbarRenderer);
+        $handler->setProfile(new Profile('test'));
+
+        ob_start();
+        @$handler->handleException(new \RuntimeException('profile test'));
+        $output = ob_get_clean();
+
+        self::assertIsString($output);
+        self::assertStringContainsString('wppack-debug', $output);
     }
 }
