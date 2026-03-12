@@ -13,6 +13,26 @@ use WpPack\Component\Security\Bridge\OAuth\Provider\ProviderInterface;
 #[CoversClass(OAuthLogoutHandler::class)]
 final class OAuthLogoutHandlerTest extends TestCase
 {
+    private ?\Closure $suppressCookies = null;
+
+    protected function setUp(): void
+    {
+        if (function_exists('add_filter')) {
+            // Prevent setcookie() calls from wp_clear_auth_cookie() which produce
+            // "Cannot modify header information" warnings when running under coverage.
+            $this->suppressCookies = static fn(): bool => false;
+            add_filter('send_auth_cookies', $this->suppressCookies, \PHP_INT_MAX);
+        }
+    }
+
+    protected function tearDown(): void
+    {
+        if ($this->suppressCookies !== null && function_exists('remove_filter')) {
+            remove_filter('send_auth_cookies', $this->suppressCookies, \PHP_INT_MAX);
+            $this->suppressCookies = null;
+        }
+    }
+
     #[Test]
     public function initiateLogoutWithRpInitiatedLogout(): void
     {

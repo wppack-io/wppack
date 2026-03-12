@@ -158,6 +158,10 @@ final class RouteEntry
 
     private function sendHeaders(Response $response): void
     {
+        if (headers_sent()) {
+            return;
+        }
+
         status_header($response->statusCode);
         foreach ($response->headers as $name => $value) {
             header(sprintf('%s: %s', $name, $value));

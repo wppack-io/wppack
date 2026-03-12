@@ -32,17 +32,24 @@ final class ShortcodeDataCollectorTest extends TestCase
     #[Test]
     public function collectWithoutGlobalsReturnsDefaults(): void
     {
+        $saved = $GLOBALS['shortcode_tags'] ?? null;
         unset($GLOBALS['shortcode_tags']);
 
-        $this->collector->collect();
-        $data = $this->collector->getData();
+        try {
+            $this->collector->collect();
+            $data = $this->collector->getData();
 
-        self::assertSame([], $data['shortcodes']);
-        self::assertSame(0, $data['total_count']);
-        self::assertSame(0, $data['used_count']);
-        self::assertSame([], $data['used_shortcodes']);
-        self::assertSame(0.0, $data['execution_time']);
-        self::assertSame([], $data['executions']);
+            self::assertSame([], $data['shortcodes']);
+            self::assertSame(0, $data['total_count']);
+            self::assertSame(0, $data['used_count']);
+            self::assertSame([], $data['used_shortcodes']);
+            self::assertSame(0.0, $data['execution_time']);
+            self::assertSame([], $data['executions']);
+        } finally {
+            if ($saved !== null) {
+                $GLOBALS['shortcode_tags'] = $saved;
+            }
+        }
     }
 
     #[Test]

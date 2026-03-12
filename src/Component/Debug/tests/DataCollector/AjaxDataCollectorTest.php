@@ -32,14 +32,21 @@ final class AjaxDataCollectorTest extends TestCase
     #[Test]
     public function collectWithoutGlobalsReturnsDefaults(): void
     {
+        $saved = $GLOBALS['wp_filter'] ?? null;
         unset($GLOBALS['wp_filter']);
 
-        $this->collector->collect();
-        $data = $this->collector->getData();
+        try {
+            $this->collector->collect();
+            $data = $this->collector->getData();
 
-        self::assertSame([], $data['registered_actions']);
-        self::assertSame(0, $data['total_actions']);
-        self::assertSame(0, $data['nopriv_count']);
+            self::assertSame([], $data['registered_actions']);
+            self::assertSame(0, $data['total_actions']);
+            self::assertSame(0, $data['nopriv_count']);
+        } finally {
+            if ($saved !== null) {
+                $GLOBALS['wp_filter'] = $saved;
+            }
+        }
     }
 
     #[Test]

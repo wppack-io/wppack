@@ -32,18 +32,28 @@ final class AssetDataCollectorTest extends TestCase
     #[Test]
     public function collectWithoutGlobalsReturnsDefaults(): void
     {
-        // Ensure globals are not set
+        $savedScripts = $GLOBALS['wp_scripts'] ?? null;
+        $savedStyles = $GLOBALS['wp_styles'] ?? null;
         unset($GLOBALS['wp_scripts'], $GLOBALS['wp_styles']);
 
-        $this->collector->collect();
-        $data = $this->collector->getData();
+        try {
+            $this->collector->collect();
+            $data = $this->collector->getData();
 
-        self::assertSame([], $data['scripts']);
-        self::assertSame([], $data['styles']);
-        self::assertSame(0, $data['enqueued_scripts']);
-        self::assertSame(0, $data['enqueued_styles']);
-        self::assertSame(0, $data['registered_scripts']);
-        self::assertSame(0, $data['registered_styles']);
+            self::assertSame([], $data['scripts']);
+            self::assertSame([], $data['styles']);
+            self::assertSame(0, $data['enqueued_scripts']);
+            self::assertSame(0, $data['enqueued_styles']);
+            self::assertSame(0, $data['registered_scripts']);
+            self::assertSame(0, $data['registered_styles']);
+        } finally {
+            if ($savedScripts !== null) {
+                $GLOBALS['wp_scripts'] = $savedScripts;
+            }
+            if ($savedStyles !== null) {
+                $GLOBALS['wp_styles'] = $savedStyles;
+            }
+        }
     }
 
     #[Test]
