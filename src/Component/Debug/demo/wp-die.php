@@ -114,17 +114,25 @@ $collectors[] = new FakeCollector('logger', 'Logs', '1', 'red', [
     'deprecation_logs' => [],
 ]);
 
-$collectors[] = new FakeCollector('wordpress', 'WordPress', '', 'default', [
-    'version' => '6.7.2',
-    'db_version' => '58975',
+$collectors[] = new FakeCollector('wordpress', 'WordPress', '6.7.2', 'default', [
+    'wp_version' => '6.7.2',
     'php_version' => PHP_VERSION,
-    'server_software' => $_SERVER['SERVER_SOFTWARE'] ?? 'PHP ' . PHP_VERSION . ' Development Server',
-    'site_url' => 'https://example.com',
+    'environment_type' => 'development',
     'is_multisite' => false,
-    'active_theme' => 'flavor',
-    'active_plugins' => ['wppack/debug'],
-    'wp_debug' => true,
-    'WP_CACHE' => false,
+    'theme' => 'flavor',
+    'is_block_theme' => false,
+    'is_child_theme' => false,
+    'theme_version' => '1.0.0',
+    'active_plugins' => ['wppack/debug' => 'WpPack Debug'],
+    'constants' => [
+        'WP_DEBUG' => true,
+        'SAVEQUERIES' => true,
+        'SCRIPT_DEBUG' => false,
+        'WP_DEBUG_LOG' => false,
+        'WP_DEBUG_DISPLAY' => true,
+        'WP_CACHE' => false,
+    ],
+    'extensions' => get_loaded_extensions(),
 ]);
 
 $collectors[] = new FakeCollector('environment', 'Environment', '', 'default', [

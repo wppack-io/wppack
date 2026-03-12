@@ -47,11 +47,14 @@ final class WordPressPanelRenderer extends AbstractPanelRenderer implements Pane
         $html .= '<div class="wpd-section">';
         $html .= '<h4 class="wpd-section-title">Active Theme</h4>';
         $html .= '<table class="wpd-table wpd-table-kv">';
-        $html .= $this->renderTableRow('Name', (string) ($data['theme'] ?? 'N/A'));
+        $themeName = (string) ($data['theme'] ?? 'N/A');
+        $html .= $this->renderTableRow('Name', $themeName);
 
-        $isBlockTheme = (bool) ($data['is_block_theme'] ?? false);
-        $themeTypeLabel = $isBlockTheme ? 'Block (FSE)' : 'Classic';
-        $html .= $this->renderTableRow('Type', '<span class="wpd-tag">' . $this->esc($themeTypeLabel) . '</span>');
+        if ($themeName !== 'N/A') {
+            $isBlockTheme = (bool) ($data['is_block_theme'] ?? false);
+            $themeTypeLabel = $isBlockTheme ? 'Block (FSE)' : 'Classic';
+            $html .= $this->renderTableRow('Type', '<span class="wpd-tag">' . $this->esc($themeTypeLabel) . '</span>');
+        }
 
         $isChildTheme = (bool) ($data['is_child_theme'] ?? false);
         if ($isChildTheme) {
