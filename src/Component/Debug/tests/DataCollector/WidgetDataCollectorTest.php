@@ -122,4 +122,90 @@ final class WidgetDataCollectorTest extends TestCase
         $sidebarReflection = new \ReflectionProperty($this->collector, 'currentSidebar');
         self::assertSame('', $sidebarReflection->getValue($this->collector));
     }
+
+    #[Test]
+    public function collectWithRegisteredSidebarsReturnsData(): void
+    {
+        if (!function_exists('register_sidebar')) {
+            self::markTestSkipped('WordPress widget functions are not available.');
+        }
+
+        $sidebarId = 'test-sidebar-' . uniqid();
+        register_sidebar([
+            'name' => 'Test Sidebar',
+            'id' => $sidebarId,
+            'before_widget' => '<div>',
+            'after_widget' => '</div>',
+            'before_title' => '<h2>',
+            'after_title' => '</h2>',
+        ]);
+
+        // Ensure the sidebar appears in wp_get_sidebars_widgets()
+        $sidebarsWidgets = wp_get_sidebars_widgets();
+        $sidebarsWidgets[$sidebarId] = [];
+        wp_set_sidebars_widgets($sidebarsWidgets);
+
+        try {
+            $this->collector->collect();
+            $data = $this->collector->getData();
+
+            self::assertGreaterThanOrEqual(1, $data['total_sidebars']);
+            self::assertArrayHasKey($sidebarId, $data['sidebars']);
+            self::assertSame('Test Sidebar', $data['sidebars'][$sidebarId]['name']);
+        } finally {
+            unregister_sidebar($sidebarId);
+        }
+    }
+
+    #[Test]
+    public function collectWithSidebarTimingsIncludesTimingData(): void
+    {
+        if (!function_exists('register_sidebar')) {
+            self::markTestSkipped('WordPress widget functions are not available.');
+        }
+
+        global $wp_registered_sidebars;
+
+        $sidebarId = 'timing-sidebar-' . uniqid();
+        register_sidebar([
+            'name' => 'Timing Sidebar',
+            'id' => $sidebarId,
+            'before_widget' => '<div>',
+            'after_widget' => '</div>',
+            'before_title' => '<h2>',
+            'after_title' => '</h2>',
+        ]);
+
+        // Simulate sidebar rendering via capture methods
+        $this->collector->captureSidebarBefore($sidebarId);
+        usleep(1000);
+        $this->collector->captureSidebarAfter($sidebarId);
+
+        try {
+            $this->collector->collect();
+            $data = $this->collector->getData();
+
+            self::assertNotEmpty($data['sidebar_timings']);
+            self::assertSame($sidebarId, $data['sidebar_timings'][0]['sidebar']);
+            self::assertSame('Timing Sidebar', $data['sidebar_timings'][0]['name']);
+            self::assertGreaterThan(0.0, $data['sidebar_timings'][0]['duration']);
+            self::assertGreaterThan(0.0, $data['render_time']);
+        } finally {
+            unregister_sidebar($sidebarId);
+        }
+    }
+
+    #[Test]
+    public function collectExcludesInactiveWidgets(): void
+    {
+        if (!function_exists('wp_get_sidebars_widgets')) {
+            self::markTestSkipped('WordPress widget functions are not available.');
+        }
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        // wp_inactive_widgets should not appear in sidebars
+        self::assertArrayNotHasKey('wp_inactive_widgets', $data['sidebars']);
+    }
 }

@@ -1,0 +1,278 @@
+<?php
+
+declare(strict_types=1);
+
+namespace WpPack\Component\Debug\Tests\Toolbar;
+
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+use WpPack\Component\Debug\Toolbar\Panel\RestPanelRenderer;
+
+final class RestPanelRendererTest extends TestCase
+{
+    private RestPanelRenderer $renderer;
+
+    protected function setUp(): void
+    {
+        $this->renderer = new RestPanelRenderer();
+    }
+
+    #[Test]
+    public function getNameReturnsRest(): void
+    {
+        self::assertSame('rest', $this->renderer->getName());
+    }
+
+    #[Test]
+    public function renderWithRoutesGroupedByNamespace(): void
+    {
+        $html = $this->renderer->render([
+            'is_rest_request' => false,
+            'current_request' => null,
+            'total_routes' => 5,
+            'total_namespaces' => 2,
+            'routes' => [
+                'wp/v2' => [
+                    ['route' => '/wp/v2/posts', 'methods' => ['GET', 'POST'], 'callback' => 'WP_REST_Posts_Controller'],
+                    ['route' => '/wp/v2/pages', 'methods' => ['GET'], 'callback' => 'WP_REST_Posts_Controller'],
+                ],
+                'my-plugin/v1' => [
+                    ['route' => '/my-plugin/v1/data', 'methods' => ['GET'], 'callback' => 'MyPlugin\\RestController::getData'],
+                ],
+            ],
+        ]);
+
+        // Namespace section headers with route counts
+        self::assertStringContainsString('wp/v2 (2)', $html);
+        self::assertStringContainsString('my-plugin/v1 (1)', $html);
+        // Routes
+        self::assertStringContainsString('/wp/v2/posts', $html);
+        self::assertStringContainsString('/wp/v2/pages', $html);
+        self::assertStringContainsString('/my-plugin/v1/data', $html);
+        // Callbacks
+        self::assertStringContainsString('WP_REST_Posts_Controller', $html);
+        self::assertStringContainsString('MyPlugin\RestController::getData', $html);
+        // Summary
+        self::assertStringContainsString('Total Routes', $html);
+        self::assertStringContainsString('5', $html);
+        self::assertStringContainsString('Namespaces', $html);
+        self::assertStringContainsString('2', $html);
+    }
+
+    #[Test]
+    public function renderWithCurrentRequest(): void
+    {
+        $html = $this->renderer->render([
+            'is_rest_request' => true,
+            'current_request' => [
+                'method' => 'POST',
+                'route' => '/wp/v2/posts',
+                'path' => '/wp-json/wp/v2/posts',
+                'namespace' => 'wp/v2',
+                'callback' => 'WP_REST_Posts_Controller::create_item',
+                'status' => 201,
+                'authentication' => 'nonce',
+                'params' => ['title' => 'New Post', 'status' => 'draft'],
+            ],
+            'total_routes' => 10,
+            'total_namespaces' => 2,
+            'routes' => [],
+        ]);
+
+        // Current Request section appears
+        self::assertStringContainsString('Current Request', $html);
+        // Method
+        self::assertStringContainsString('POST', $html);
+        // Route
+        self::assertStringContainsString('/wp/v2/posts', $html);
+        // Path differs from route, so it is shown
+        self::assertStringContainsString('/wp-json/wp/v2/posts', $html);
+        // Namespace
+        self::assertStringContainsString('wp/v2', $html);
+        // Callback
+        self::assertStringContainsString('WP_REST_Posts_Controller::create_item', $html);
+        // Status code 201 (green)
+        self::assertStringContainsString('201', $html);
+        self::assertStringContainsString('wpd-text-green', $html);
+        // Nonce authentication tag
+        self::assertStringContainsString('Nonce', $html);
+        // Request Parameters
+        self::assertStringContainsString('Request Parameters', $html);
+        self::assertStringContainsString('title', $html);
+        self::assertStringContainsString('New Post', $html);
+    }
+
+    #[Test]
+    public function renderMethodColorCoding(): void
+    {
+        $html = $this->renderer->render([
+            'is_rest_request' => false,
+            'current_request' => null,
+            'total_routes' => 4,
+            'total_namespaces' => 1,
+            'routes' => [
+                'test/v1' => [
+                    ['route' => '/test/v1/get-resource', 'methods' => ['GET'], 'callback' => 'TestController::get'],
+                    ['route' => '/test/v1/create-resource', 'methods' => ['POST'], 'callback' => 'TestController::create'],
+                    ['route' => '/test/v1/update-resource', 'methods' => ['PUT'], 'callback' => 'TestController::update'],
+                    ['route' => '/test/v1/delete-resource', 'methods' => ['DELETE'], 'callback' => 'TestController::delete'],
+                ],
+            ],
+        ]);
+
+        // GET - green
+        self::assertStringContainsString('color:#008a20', $html);
+        // POST - blue
+        self::assertStringContainsString('color:#3858e9', $html);
+        // PUT - yellow/brown
+        self::assertStringContainsString('color:#996800', $html);
+        // DELETE - red
+        self::assertStringContainsString('color:#cc1818', $html);
+    }
+
+    #[Test]
+    public function renderCurrentRequestWithDifferentAuthenticationTypes(): void
+    {
+        // Bearer authentication
+        $html = $this->renderer->render([
+            'is_rest_request' => true,
+            'current_request' => [
+                'method' => 'GET',
+                'route' => '/wp/v2/users/me',
+                'path' => '/wp-json/wp/v2/users/me',
+                'namespace' => 'wp/v2',
+                'callback' => 'WP_REST_Users_Controller::get_current_item',
+                'status' => 200,
+                'authentication' => 'bearer',
+                'params' => [],
+            ],
+            'total_routes' => 1,
+            'total_namespaces' => 1,
+            'routes' => [],
+        ]);
+
+        self::assertStringContainsString('Bearer', $html);
+        self::assertStringContainsString('color:#7b2d8e', $html);
+    }
+
+    #[Test]
+    public function renderCurrentRequestWith4xxStatus(): void
+    {
+        $html = $this->renderer->render([
+            'is_rest_request' => true,
+            'current_request' => [
+                'method' => 'GET',
+                'route' => '/wp/v2/posts/999',
+                'path' => '',
+                'namespace' => 'wp/v2',
+                'callback' => '',
+                'status' => 404,
+                'authentication' => 'none',
+                'params' => [],
+            ],
+            'total_routes' => 1,
+            'total_namespaces' => 1,
+            'routes' => [],
+        ]);
+
+        self::assertStringContainsString('404', $html);
+        self::assertStringContainsString('wpd-text-red', $html);
+    }
+
+    #[Test]
+    public function renderCurrentRequestWith3xxStatus(): void
+    {
+        $html = $this->renderer->render([
+            'is_rest_request' => true,
+            'current_request' => [
+                'method' => 'GET',
+                'route' => '/old/endpoint',
+                'path' => '',
+                'namespace' => 'old',
+                'callback' => '',
+                'status' => 301,
+                'authentication' => 'none',
+                'params' => [],
+            ],
+            'total_routes' => 1,
+            'total_namespaces' => 1,
+            'routes' => [],
+        ]);
+
+        self::assertStringContainsString('301', $html);
+        self::assertStringContainsString('wpd-text-yellow', $html);
+    }
+
+    #[Test]
+    public function renderRouteWithUnknownMethodShowsDefaultColor(): void
+    {
+        $html = $this->renderer->render([
+            'is_rest_request' => false,
+            'current_request' => null,
+            'total_routes' => 1,
+            'total_namespaces' => 1,
+            'routes' => [
+                'test/v1' => [
+                    ['route' => '/test/v1/options', 'methods' => ['OPTIONS'], 'callback' => 'callback'],
+                ],
+            ],
+        ]);
+
+        // OPTIONS method uses default color
+        self::assertStringContainsString('color:#50575e', $html);
+    }
+
+    #[Test]
+    public function renderCurrentRequestWithDeleteMethod(): void
+    {
+        $html = $this->renderer->render([
+            'is_rest_request' => true,
+            'current_request' => [
+                'method' => 'DELETE',
+                'route' => '/wp/v2/posts/1',
+                'path' => '/wp-json/wp/v2/posts/1',
+                'namespace' => 'wp/v2',
+                'callback' => 'WP_REST_Posts_Controller::delete_item',
+                'status' => 200,
+                'authentication' => 'cookie',
+                'params' => [],
+            ],
+            'total_routes' => 1,
+            'total_namespaces' => 1,
+            'routes' => [],
+        ]);
+
+        // DELETE method in current request section
+        self::assertStringContainsString('DELETE', $html);
+        self::assertStringContainsString('color:#cc1818', $html);
+        // Cookie auth tag
+        self::assertStringContainsString('Cookie', $html);
+    }
+
+    #[Test]
+    public function renderCurrentRequestWithPutMethodAndBasicAuth(): void
+    {
+        $html = $this->renderer->render([
+            'is_rest_request' => true,
+            'current_request' => [
+                'method' => 'PUT',
+                'route' => '/wp/v2/posts/1',
+                'path' => '/wp-json/wp/v2/posts/1',
+                'namespace' => 'wp/v2',
+                'callback' => 'WP_REST_Posts_Controller::update_item',
+                'status' => 200,
+                'authentication' => 'basic',
+                'params' => [],
+            ],
+            'total_routes' => 1,
+            'total_namespaces' => 1,
+            'routes' => [],
+        ]);
+
+        // PUT method in current request
+        self::assertStringContainsString('PUT', $html);
+        self::assertStringContainsString('color:#996800', $html);
+        // Basic auth tag
+        self::assertStringContainsString('Basic', $html);
+    }
+}

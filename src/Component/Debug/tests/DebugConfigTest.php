@@ -164,6 +164,537 @@ final class DebugConfigTest extends TestCase
         self::assertFalse($config->shouldShowToolbar());
     }
 
+    #[Test]
+    public function isAllowedRoleReturnsTrueForAdminUser(): void
+    {
+        if (!function_exists('wp_insert_user')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $userId = wp_insert_user([
+            'user_login' => 'test_config_admin_' . uniqid(),
+            'user_pass' => wp_generate_password(),
+            'role' => 'administrator',
+            'user_email' => 'config_admin@example.com',
+        ]);
+
+        wp_set_current_user($userId);
+
+        try {
+            $config = new DebugConfig(roleWhitelist: ['administrator']);
+            self::assertTrue($config->isAllowedRole());
+        } finally {
+            wp_set_current_user(0);
+            wp_delete_user($userId);
+        }
+    }
+
+    #[Test]
+    public function isAllowedRoleReturnsFalseForSubscriber(): void
+    {
+        if (!function_exists('wp_insert_user')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $userId = wp_insert_user([
+            'user_login' => 'test_config_sub_' . uniqid(),
+            'user_pass' => wp_generate_password(),
+            'role' => 'subscriber',
+            'user_email' => 'config_sub@example.com',
+        ]);
+
+        wp_set_current_user($userId);
+
+        try {
+            $config = new DebugConfig(roleWhitelist: ['administrator']);
+            self::assertFalse($config->isAllowedRole());
+        } finally {
+            wp_set_current_user(0);
+            wp_delete_user($userId);
+        }
+    }
+
+    #[Test]
+    public function shouldShowToolbarReturnsFalseForAjax(): void
+    {
+        if (!function_exists('wp_doing_ajax')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        // Simulate AJAX by adding filter
+        add_filter('wp_doing_ajax', '__return_true');
+
+        try {
+            $config = new DebugConfig(enabled: true, showToolbar: true);
+
+            if (!$config->isEnabled()) {
+                self::markTestSkipped('isEnabled() is false in this environment.');
+            }
+
+            // In WP environment with wp_doing_ajax returning true
+            // shouldShowToolbar should return false
+            self::assertFalse($config->shouldShowToolbar());
+        } finally {
+            remove_filter('wp_doing_ajax', '__return_true');
+        }
+    }
+
+    #[Test]
+    public function isAccessAllowedCombinesAllChecks(): void
+    {
+        if (!function_exists('wp_insert_user')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $userId = wp_insert_user([
+            'user_login' => 'test_access_' . uniqid(),
+            'user_pass' => wp_generate_password(),
+            'role' => 'administrator',
+            'user_email' => 'access@example.com',
+        ]);
+
+        wp_set_current_user($userId);
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+
+        try {
+            $config = new DebugConfig(
+                enabled: true,
+                ipWhitelist: ['127.0.0.1'],
+                roleWhitelist: ['administrator'],
+            );
+
+            if (!$config->isEnabled()) {
+                self::markTestSkipped('isEnabled() is false in this environment.');
+            }
+
+            self::assertTrue($config->isAccessAllowed());
+        } finally {
+            wp_set_current_user(0);
+            wp_delete_user($userId);
+        }
+    }
+
+    #[Test]
+    public function isEnabledReturnsFalseWhenDisabled(): void
+    {
+        $config = new DebugConfig(enabled: false);
+
+        self::assertFalse($config->isEnabled());
+    }
+
+    #[Test]
+    public function isEnabledReturnsFalseWhenWpDebugIsFalse(): void
+    {
+        // WP_DEBUG is checked in isEnabled()
+        // If WP_DEBUG is defined and false, isEnabled() should return false
+        if (!defined('WP_DEBUG')) {
+            self::markTestSkipped('WP_DEBUG is not defined in this environment.');
+        }
+
+        if (WP_DEBUG === true) {
+            self::markTestSkipped('WP_DEBUG is true in this environment.');
+        }
+
+        $config = new DebugConfig(enabled: true);
+        self::assertFalse($config->isEnabled());
+    }
+
+    #[Test]
+    public function isEnabledReturnsTrueInDevEnvironment(): void
+    {
+        if (!function_exists('wp_get_environment_type')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        if (defined('WP_DEBUG') && !WP_DEBUG) {
+            self::markTestSkipped('WP_DEBUG is false in this environment.');
+        }
+
+        if (wp_get_environment_type() === 'production') {
+            self::markTestSkipped('Environment type is production.');
+        }
+
+        $config = new DebugConfig(enabled: true);
+        self::assertTrue($config->isEnabled());
+    }
+
+    #[Test]
+    public function isEnabledReturnsFalseInProductionEnvironment(): void
+    {
+        if (!function_exists('wp_get_environment_type')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        if (wp_get_environment_type() !== 'production') {
+            self::markTestSkipped('Environment type is not production.');
+        }
+
+        $config = new DebugConfig(enabled: true);
+        self::assertFalse($config->isEnabled());
+    }
+
+    #[Test]
+    public function shouldShowToolbarReturnsFalseWhenShowToolbarDisabled(): void
+    {
+        $config = new DebugConfig(enabled: true, showToolbar: false);
+
+        // showToolbar is false, so shouldShowToolbar must be false regardless of other conditions
+        self::assertFalse($config->shouldShowToolbar());
+    }
+
+    #[Test]
+    public function shouldShowToolbarReturnsTrueWhenAllConditionsMet(): void
+    {
+        if (!function_exists('wp_get_environment_type')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        if (!function_exists('wp_insert_user')) {
+            self::markTestSkipped('WordPress user functions are not available.');
+        }
+
+        // Ensure we're not in production
+        if (wp_get_environment_type() === 'production') {
+            self::markTestSkipped('Cannot test in production environment.');
+        }
+
+        // Ensure WP_DEBUG is not false
+        if (defined('WP_DEBUG') && !WP_DEBUG) {
+            self::markTestSkipped('WP_DEBUG is false.');
+        }
+
+        $userId = wp_insert_user([
+            'user_login' => 'test_toolbar_admin_' . uniqid(),
+            'user_pass' => wp_generate_password(),
+            'role' => 'administrator',
+            'user_email' => 'toolbar_admin@example.com',
+        ]);
+
+        wp_set_current_user($userId);
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+
+        try {
+            $config = new DebugConfig(
+                enabled: true,
+                showToolbar: true,
+                ipWhitelist: ['127.0.0.1'],
+                roleWhitelist: ['administrator'],
+            );
+
+            if (!$config->isAccessAllowed()) {
+                self::markTestSkipped('isAccessAllowed() is false in this environment.');
+            }
+
+            // Ensure no ajax/cron/rest conditions are interfering
+            if (function_exists('wp_doing_ajax') && wp_doing_ajax()) {
+                self::markTestSkipped('AJAX request detected.');
+            }
+            if (function_exists('wp_doing_cron') && wp_doing_cron()) {
+                self::markTestSkipped('Cron request detected.');
+            }
+            if (defined('REST_REQUEST') && REST_REQUEST) {
+                self::markTestSkipped('REST request detected.');
+            }
+
+            self::assertTrue($config->shouldShowToolbar());
+        } finally {
+            wp_set_current_user(0);
+            wp_delete_user($userId);
+        }
+    }
+
+    #[Test]
+    public function shouldShowToolbarReturnsFalseForCron(): void
+    {
+        if (!function_exists('wp_doing_cron')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        add_filter('wp_doing_cron', '__return_true');
+
+        try {
+            $config = new DebugConfig(enabled: true, showToolbar: true);
+
+            if (!$config->isEnabled()) {
+                self::markTestSkipped('isEnabled() is false in this environment.');
+            }
+
+            // In WP environment with wp_doing_cron returning true
+            // shouldShowToolbar should return false
+            self::assertFalse($config->shouldShowToolbar());
+        } finally {
+            remove_filter('wp_doing_cron', '__return_true');
+        }
+    }
+
+    #[Test]
+    public function isAllowedRoleReturnsFalseForEditorWithAdminOnlyWhitelist(): void
+    {
+        if (!function_exists('wp_insert_user')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $userId = wp_insert_user([
+            'user_login' => 'test_editor_' . uniqid(),
+            'user_pass' => wp_generate_password(),
+            'role' => 'editor',
+            'user_email' => 'editor_role@example.com',
+        ]);
+
+        wp_set_current_user($userId);
+
+        try {
+            $config = new DebugConfig(roleWhitelist: ['administrator']);
+            self::assertFalse($config->isAllowedRole());
+        } finally {
+            wp_set_current_user(0);
+            wp_delete_user($userId);
+        }
+    }
+
+    #[Test]
+    public function isEnabledReturnsFalseWhenWpDebugIsFalseViaCoverage(): void
+    {
+        // Cover line 27: defined('WP_DEBUG') && !WP_DEBUG → return false
+        // WP_DEBUG is a constant, so we can only test this when it's false
+        if (!defined('WP_DEBUG') || WP_DEBUG !== false) {
+            self::markTestSkipped('WP_DEBUG is not false in this environment.');
+        }
+
+        $config = new DebugConfig(enabled: true);
+        self::assertFalse($config->isEnabled());
+    }
+
+    #[Test]
+    public function isEnabledReturnsFalseInProductionViaCoverage(): void
+    {
+        // Cover line 32: production environment check
+        if (!function_exists('wp_get_environment_type')) {
+            self::markTestSkipped('wp_get_environment_type() is not available.');
+        }
+
+        if (wp_get_environment_type() !== 'production') {
+            self::markTestSkipped('Not in production environment.');
+        }
+
+        $config = new DebugConfig(enabled: true);
+        self::assertFalse($config->isEnabled());
+    }
+
+    #[Test]
+    public function shouldShowToolbarReturnsFalseWhenShowToolbarFalseWithAccessAllowed(): void
+    {
+        // Cover line 68: !$this->showToolbar returns false
+        // Need isAccessAllowed() to return true first, then showToolbar=false to hit line 68
+        if (!function_exists('wp_insert_user')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        if (defined('WP_DEBUG') && !WP_DEBUG) {
+            self::markTestSkipped('WP_DEBUG is false.');
+        }
+
+        if (function_exists('wp_get_environment_type') && wp_get_environment_type() === 'production') {
+            self::markTestSkipped('Production environment.');
+        }
+
+        $userId = wp_insert_user([
+            'user_login' => 'test_toolbar_show_false_' . uniqid(),
+            'user_pass' => wp_generate_password(),
+            'role' => 'administrator',
+            'user_email' => 'toolbar_show_false@example.com',
+        ]);
+
+        wp_set_current_user($userId);
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+
+        try {
+            $config = new DebugConfig(
+                enabled: true,
+                showToolbar: false,
+                ipWhitelist: ['127.0.0.1'],
+                roleWhitelist: ['administrator'],
+            );
+
+            // isAccessAllowed should be true
+            self::assertTrue($config->isAccessAllowed());
+            // But showToolbar=false, so shouldShowToolbar returns false at line 68
+            self::assertFalse($config->shouldShowToolbar());
+        } finally {
+            wp_set_current_user(0);
+            wp_delete_user($userId);
+        }
+    }
+
+    #[Test]
+    public function shouldShowToolbarReturnsFalseForAjaxWithAdminUser(): void
+    {
+        // Cover line 72: wp_doing_ajax() returns true
+        // Need isAccessAllowed()=true AND showToolbar=true to reach the ajax check
+        if (!function_exists('wp_insert_user')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        if (!function_exists('wp_doing_ajax')) {
+            self::markTestSkipped('wp_doing_ajax() is not available.');
+        }
+
+        if (defined('WP_DEBUG') && !WP_DEBUG) {
+            self::markTestSkipped('WP_DEBUG is false.');
+        }
+
+        if (function_exists('wp_get_environment_type') && wp_get_environment_type() === 'production') {
+            self::markTestSkipped('Production environment.');
+        }
+
+        $userId = wp_insert_user([
+            'user_login' => 'test_ajax_admin_' . uniqid(),
+            'user_pass' => wp_generate_password(),
+            'role' => 'administrator',
+            'user_email' => 'ajax_admin@example.com',
+        ]);
+
+        wp_set_current_user($userId);
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+
+        add_filter('wp_doing_ajax', '__return_true');
+
+        try {
+            $config = new DebugConfig(
+                enabled: true,
+                showToolbar: true,
+                ipWhitelist: ['127.0.0.1'],
+                roleWhitelist: ['administrator'],
+            );
+
+            self::assertTrue($config->isAccessAllowed());
+            self::assertFalse($config->shouldShowToolbar());
+        } finally {
+            remove_filter('wp_doing_ajax', '__return_true');
+            wp_set_current_user(0);
+            wp_delete_user($userId);
+        }
+    }
+
+    #[Test]
+    public function shouldShowToolbarReturnsFalseForCronWithAdminUser(): void
+    {
+        // Cover line 76: wp_doing_cron() returns true
+        if (!function_exists('wp_insert_user')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        if (!function_exists('wp_doing_cron')) {
+            self::markTestSkipped('wp_doing_cron() is not available.');
+        }
+
+        if (defined('WP_DEBUG') && !WP_DEBUG) {
+            self::markTestSkipped('WP_DEBUG is false.');
+        }
+
+        if (function_exists('wp_get_environment_type') && wp_get_environment_type() === 'production') {
+            self::markTestSkipped('Production environment.');
+        }
+
+        $userId = wp_insert_user([
+            'user_login' => 'test_cron_admin_' . uniqid(),
+            'user_pass' => wp_generate_password(),
+            'role' => 'administrator',
+            'user_email' => 'cron_admin@example.com',
+        ]);
+
+        wp_set_current_user($userId);
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+
+        add_filter('wp_doing_cron', '__return_true');
+
+        try {
+            $config = new DebugConfig(
+                enabled: true,
+                showToolbar: true,
+                ipWhitelist: ['127.0.0.1'],
+                roleWhitelist: ['administrator'],
+            );
+
+            self::assertTrue($config->isAccessAllowed());
+            self::assertFalse($config->shouldShowToolbar());
+        } finally {
+            remove_filter('wp_doing_cron', '__return_true');
+            wp_set_current_user(0);
+            wp_delete_user($userId);
+        }
+    }
+
+    #[Test]
+    public function shouldShowToolbarReturnsFalseForRestRequestWithAdminUser(): void
+    {
+        // Cover line 80: REST_REQUEST check
+        // REST_REQUEST is a constant - can only test if defined and true
+        if (!function_exists('wp_insert_user')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        if (!defined('REST_REQUEST') || !REST_REQUEST) {
+            self::markTestSkipped('REST_REQUEST is not defined or not true.');
+        }
+
+        if (defined('WP_DEBUG') && !WP_DEBUG) {
+            self::markTestSkipped('WP_DEBUG is false.');
+        }
+
+        $userId = wp_insert_user([
+            'user_login' => 'test_rest_admin_' . uniqid(),
+            'user_pass' => wp_generate_password(),
+            'role' => 'administrator',
+            'user_email' => 'rest_admin@example.com',
+        ]);
+
+        wp_set_current_user($userId);
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+
+        try {
+            $config = new DebugConfig(
+                enabled: true,
+                showToolbar: true,
+                ipWhitelist: ['127.0.0.1'],
+                roleWhitelist: ['administrator'],
+            );
+
+            self::assertTrue($config->isAccessAllowed());
+            self::assertFalse($config->shouldShowToolbar());
+        } finally {
+            wp_set_current_user(0);
+            wp_delete_user($userId);
+        }
+    }
+
+    #[Test]
+    public function isAllowedRoleReturnsTrueForMatchingRole(): void
+    {
+        // Cover line 99: current_user_can($role) returns true
+        if (!function_exists('wp_insert_user')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $userId = wp_insert_user([
+            'user_login' => 'test_role_match_' . uniqid(),
+            'user_pass' => wp_generate_password(),
+            'role' => 'editor',
+            'user_email' => 'role_match@example.com',
+        ]);
+
+        wp_set_current_user($userId);
+
+        try {
+            // Use 'editor' in the whitelist to match this user's role
+            $config = new DebugConfig(roleWhitelist: ['editor']);
+            self::assertTrue($config->isAllowedRole());
+        } finally {
+            wp_set_current_user(0);
+            wp_delete_user($userId);
+        }
+    }
+
     protected function setUp(): void
     {
         $this->originalServer = $_SERVER;

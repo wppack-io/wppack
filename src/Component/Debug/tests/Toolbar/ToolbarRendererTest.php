@@ -32,6 +32,8 @@ use WpPack\Component\Debug\Toolbar\Panel\SecurityPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\ShortcodePanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\TranslationPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\WidgetPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\GenericPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\PerformancePanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\WordPressPanelRenderer;
 use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
 
@@ -1358,5 +1360,623 @@ final class ToolbarRendererTest extends TestCase
 
             public function reset(): void {}
         };
+    }
+
+    #[Test]
+    public function genericPanelRendererWithEmptyDataShowsNoDataMessage(): void
+    {
+        $renderer = new GenericPanelRenderer();
+        $html = $renderer->render([]);
+        self::assertStringContainsString('No data collected.', $html);
+    }
+
+    #[Test]
+    public function genericPanelRendererWithDataShowsTable(): void
+    {
+        $renderer = new GenericPanelRenderer();
+        $html = $renderer->render(['key1' => 'value1', 'key2' => 42]);
+        self::assertStringContainsString('key1', $html);
+        self::assertStringContainsString('value1', $html);
+        self::assertStringContainsString('key2', $html);
+    }
+
+    #[Test]
+    public function performancePanelRendersDbTimeline(): void
+    {
+        $requestTime = microtime(true);
+        $profile = $this->createProfileWithMockCollectors([
+            'stopwatch' => ['total_time' => 100.0, 'events' => [], 'phases' => [], 'request_time_float' => $requestTime],
+            'memory' => ['peak' => 1048576, 'limit' => 134217728, 'usage_percentage' => 0.8],
+            'database' => [
+                'total_count' => 2, 'total_time' => 5.0, 'slow_count' => 0,
+                'queries' => [
+                    ['sql' => 'SELECT * FROM wp_posts', 'time' => 2.5, 'caller' => 'test', 'start' => $requestTime + 0.01],
+                    ['sql' => 'SELECT * FROM wp_options', 'time' => 2.5, 'caller' => 'test', 'start' => $requestTime + 0.02],
+                ],
+            ],
+            'cache' => [],
+            'http_client' => [],
+            'event' => [],
+            'mail' => [],
+            'plugin' => ['plugins' => [], 'load_order' => []],
+            'theme' => ['hooks' => []],
+            'widget' => [],
+            'shortcode' => [],
+        ]);
+
+        $renderer = new PerformancePanelRenderer();
+        $html = $renderer->renderContent($profile);
+
+        self::assertStringContainsString('Database (2 queries)', $html);
+        self::assertStringContainsString('Timeline', $html);
+    }
+
+    #[Test]
+    public function performancePanelRendersHttpTimeline(): void
+    {
+        $requestTime = microtime(true);
+        $profile = $this->createProfileWithMockCollectors([
+            'stopwatch' => ['total_time' => 500.0, 'events' => [], 'phases' => [], 'request_time_float' => $requestTime],
+            'memory' => ['peak' => 1048576, 'limit' => 134217728, 'usage_percentage' => 0.8],
+            'database' => ['total_count' => 0, 'total_time' => 0.0, 'slow_count' => 0, 'queries' => []],
+            'cache' => [],
+            'http_client' => [
+                'total_count' => 1, 'total_time' => 200.0,
+                'requests' => [
+                    ['url' => 'https://api.example.com/data', 'method' => 'GET', 'status_code' => 200, 'duration' => 200.0, 'start' => $requestTime + 0.05],
+                ],
+            ],
+            'event' => [],
+            'mail' => [],
+            'plugin' => ['plugins' => [], 'load_order' => []],
+            'theme' => ['hooks' => []],
+            'widget' => [],
+            'shortcode' => [],
+        ]);
+
+        $renderer = new PerformancePanelRenderer();
+        $html = $renderer->renderContent($profile);
+
+        self::assertStringContainsString('HTTP Client (1 requests)', $html);
+    }
+
+    #[Test]
+    public function performancePanelRendersMailTimeline(): void
+    {
+        $requestTime = microtime(true);
+        $profile = $this->createProfileWithMockCollectors([
+            'stopwatch' => ['total_time' => 300.0, 'events' => [], 'phases' => [], 'request_time_float' => $requestTime],
+            'memory' => ['peak' => 1048576, 'limit' => 134217728, 'usage_percentage' => 0.8],
+            'database' => ['total_count' => 0, 'total_time' => 0.0, 'slow_count' => 0, 'queries' => []],
+            'cache' => [],
+            'http_client' => ['total_count' => 0, 'total_time' => 0.0, 'requests' => []],
+            'event' => [],
+            'mail' => [
+                'emails' => [
+                    ['subject' => 'Test Email', 'status' => 'sent', 'start' => $requestTime + 0.1, 'duration' => 50.0],
+                ],
+            ],
+            'plugin' => ['plugins' => [], 'load_order' => []],
+            'theme' => ['hooks' => []],
+            'widget' => [],
+            'shortcode' => [],
+        ]);
+
+        $renderer = new PerformancePanelRenderer();
+        $html = $renderer->renderContent($profile);
+
+        self::assertStringContainsString('Mail (1 emails)', $html);
+    }
+
+    #[Test]
+    public function performancePanelRendersWidgetTimeline(): void
+    {
+        $requestTime = microtime(true);
+        $profile = $this->createProfileWithMockCollectors([
+            'stopwatch' => ['total_time' => 200.0, 'events' => [], 'phases' => [], 'request_time_float' => $requestTime],
+            'memory' => ['peak' => 1048576, 'limit' => 134217728, 'usage_percentage' => 0.8],
+            'database' => ['total_count' => 0, 'total_time' => 0.0, 'slow_count' => 0, 'queries' => []],
+            'cache' => [],
+            'http_client' => ['total_count' => 0, 'total_time' => 0.0, 'requests' => []],
+            'event' => [],
+            'mail' => [],
+            'plugin' => ['plugins' => [], 'load_order' => []],
+            'theme' => ['hooks' => []],
+            'widget' => [
+                'sidebar_timings' => [
+                    ['sidebar' => 'sidebar-1', 'name' => 'Primary Sidebar', 'start' => $requestTime + 0.05, 'duration' => 10.0],
+                ],
+            ],
+            'shortcode' => [],
+        ]);
+
+        $renderer = new PerformancePanelRenderer();
+        $html = $renderer->renderContent($profile);
+
+        self::assertStringContainsString('Widgets (1 sidebars)', $html);
+    }
+
+    #[Test]
+    public function performancePanelRendersShortcodeTimeline(): void
+    {
+        $requestTime = microtime(true);
+        $profile = $this->createProfileWithMockCollectors([
+            'stopwatch' => ['total_time' => 200.0, 'events' => [], 'phases' => [], 'request_time_float' => $requestTime],
+            'memory' => ['peak' => 1048576, 'limit' => 134217728, 'usage_percentage' => 0.8],
+            'database' => ['total_count' => 0, 'total_time' => 0.0, 'slow_count' => 0, 'queries' => []],
+            'cache' => [],
+            'http_client' => ['total_count' => 0, 'total_time' => 0.0, 'requests' => []],
+            'event' => [],
+            'mail' => [],
+            'plugin' => ['plugins' => [], 'load_order' => []],
+            'theme' => ['hooks' => []],
+            'widget' => [],
+            'shortcode' => [
+                'executions' => [
+                    ['tag' => 'gallery', 'start' => $requestTime + 0.03, 'duration' => 5.0],
+                    ['tag' => 'caption', 'start' => $requestTime + 0.04, 'duration' => 2.0],
+                ],
+            ],
+        ]);
+
+        $renderer = new PerformancePanelRenderer();
+        $html = $renderer->renderContent($profile);
+
+        self::assertStringContainsString('Shortcodes (2 executions)', $html);
+    }
+
+    #[Test]
+    public function renderPerformancePanelShowsPluginLoadTimeBars(): void
+    {
+        $requestTime = microtime(true);
+        $profile = $this->createProfileWithMockCollectors([
+            'stopwatch' => [
+                'total_time' => 300.0,
+                'request_time_float' => $requestTime,
+                'phases' => ['muplugins_loaded' => 15.0, 'plugins_loaded' => 50.0],
+                'events' => [
+                    'plugins_loaded' => [
+                        'name' => 'plugins_loaded',
+                        'category' => 'wordpress',
+                        'duration' => 35.0,
+                        'memory' => 4096,
+                        'start_time' => 15.0,
+                        'end_time' => 50.0,
+                    ],
+                ],
+            ],
+            'memory' => ['peak' => 1048576, 'limit' => 134217728, 'usage_percentage' => 0.8],
+            'database' => ['total_count' => 0, 'total_time' => 0.0, 'slow_count' => 0, 'queries' => []],
+            'cache' => [],
+            'http_client' => ['total_count' => 0, 'total_time' => 0.0, 'requests' => []],
+            'event' => ['hook_timings' => []],
+            'mail' => [],
+            'plugin' => [
+                'plugins' => [
+                    'my-plugin/my-plugin.php' => [
+                        'name' => 'My Plugin',
+                        'load_time' => 12.5,
+                        'hook_time' => 12.5,
+                        'hooks' => [],
+                    ],
+                ],
+                'load_order' => ['my-plugin/my-plugin.php'],
+            ],
+            'theme' => ['hooks' => []],
+            'widget' => [],
+            'shortcode' => [],
+        ]);
+
+        $renderer = new PerformancePanelRenderer();
+        $html = $renderer->renderContent($profile);
+
+        self::assertStringContainsString('Plugins', $html);
+        self::assertStringContainsString('My Plugin', $html);
+        // Plugin load time bar should have "load" in the tooltip
+        self::assertStringContainsString('load', $html);
+    }
+
+    #[Test]
+    public function renderPerformancePanelShowsPluginHookTimeBars(): void
+    {
+        $requestTime = microtime(true);
+        $profile = $this->createProfileWithMockCollectors([
+            'stopwatch' => [
+                'total_time' => 300.0,
+                'request_time_float' => $requestTime,
+                'phases' => ['muplugins_loaded' => 15.0, 'plugins_loaded' => 50.0, 'init' => 120.0],
+                'events' => [],
+            ],
+            'memory' => ['peak' => 1048576, 'limit' => 134217728, 'usage_percentage' => 0.8],
+            'database' => ['total_count' => 0, 'total_time' => 0.0, 'slow_count' => 0, 'queries' => []],
+            'cache' => [],
+            'http_client' => ['total_count' => 0, 'total_time' => 0.0, 'requests' => []],
+            'event' => [
+                'hook_timings' => [
+                    'init' => ['count' => 5, 'total_time' => 20.0, 'start' => 55.0],
+                    'wp_loaded' => ['count' => 3, 'total_time' => 8.0, 'start' => 80.0],
+                ],
+            ],
+            'mail' => [],
+            'plugin' => [
+                'plugins' => [
+                    'woo/woo.php' => [
+                        'name' => 'WooCommerce',
+                        'hook_time' => 18.0,
+                        'hooks' => [
+                            ['hook' => 'init', 'listeners' => 3, 'time' => 12.0],
+                            ['hook' => 'wp_loaded', 'listeners' => 2, 'time' => 6.0],
+                        ],
+                    ],
+                ],
+                'load_order' => ['woo/woo.php'],
+            ],
+            'theme' => ['hooks' => []],
+            'widget' => [],
+            'shortcode' => [],
+        ]);
+
+        $renderer = new PerformancePanelRenderer();
+        $html = $renderer->renderContent($profile);
+
+        self::assertStringContainsString('Plugins', $html);
+        self::assertStringContainsString('WooCommerce', $html);
+        // Hook names should appear in tooltips
+        self::assertStringContainsString('init', $html);
+        self::assertStringContainsString('wp_loaded', $html);
+    }
+
+    #[Test]
+    public function renderPerformancePanelShowsThemeHookBars(): void
+    {
+        $requestTime = microtime(true);
+        $profile = $this->createProfileWithMockCollectors([
+            'stopwatch' => [
+                'total_time' => 300.0,
+                'request_time_float' => $requestTime,
+                'phases' => ['muplugins_loaded' => 15.0, 'init' => 80.0],
+                'events' => [],
+            ],
+            'memory' => ['peak' => 1048576, 'limit' => 134217728, 'usage_percentage' => 0.8],
+            'database' => ['total_count' => 0, 'total_time' => 0.0, 'slow_count' => 0, 'queries' => []],
+            'cache' => [],
+            'http_client' => ['total_count' => 0, 'total_time' => 0.0, 'requests' => []],
+            'event' => [
+                'hook_timings' => [
+                    'wp_head' => ['count' => 8, 'total_time' => 15.0, 'start' => 100.0],
+                    'wp_footer' => ['count' => 4, 'total_time' => 5.0, 'start' => 200.0],
+                ],
+            ],
+            'mail' => [],
+            'plugin' => ['plugins' => [], 'load_order' => []],
+            'theme' => [
+                'name' => 'Twenty Twenty-Four',
+                'hook_time' => 20.0,
+                'hooks' => [
+                    ['hook' => 'wp_head', 'listeners' => 5, 'time' => 12.0],
+                    ['hook' => 'wp_footer', 'listeners' => 3, 'time' => 8.0],
+                ],
+            ],
+            'widget' => [],
+            'shortcode' => [],
+        ]);
+
+        $renderer = new PerformancePanelRenderer();
+        $html = $renderer->renderContent($profile);
+
+        // Theme section divider should appear
+        self::assertStringContainsString('Theme', $html);
+        self::assertStringContainsString('Twenty Twenty-Four', $html);
+        // Hook names in tooltips
+        self::assertStringContainsString('wp_head', $html);
+        self::assertStringContainsString('wp_footer', $html);
+    }
+
+    #[Test]
+    public function renderPerformancePanelShowsWidgetSidebarBars(): void
+    {
+        $requestTime = microtime(true);
+        $profile = $this->createProfileWithMockCollectors([
+            'stopwatch' => [
+                'total_time' => 400.0,
+                'request_time_float' => $requestTime,
+                'phases' => ['muplugins_loaded' => 15.0],
+                'events' => [],
+            ],
+            'memory' => ['peak' => 1048576, 'limit' => 134217728, 'usage_percentage' => 0.8],
+            'database' => ['total_count' => 0, 'total_time' => 0.0, 'slow_count' => 0, 'queries' => []],
+            'cache' => [],
+            'http_client' => ['total_count' => 0, 'total_time' => 0.0, 'requests' => []],
+            'event' => [],
+            'mail' => [],
+            'plugin' => ['plugins' => [], 'load_order' => []],
+            'theme' => ['hooks' => []],
+            'widget' => [
+                'sidebar_timings' => [
+                    ['sidebar' => 'sidebar-1', 'name' => 'Main Sidebar', 'start' => $requestTime + 0.15, 'duration' => 8.3],
+                    ['sidebar' => 'sidebar-2', 'name' => 'Footer Area', 'start' => $requestTime + 0.20, 'duration' => 4.2],
+                ],
+            ],
+            'shortcode' => [],
+        ]);
+
+        $renderer = new PerformancePanelRenderer();
+        $html = $renderer->renderContent($profile);
+
+        self::assertStringContainsString('Widgets (2 sidebars)', $html);
+        // Widget names in tooltips
+        self::assertStringContainsString('Main Sidebar', $html);
+        self::assertStringContainsString('Footer Area', $html);
+    }
+
+    #[Test]
+    public function renderPerformancePanelShowsShortcodeExecutionBars(): void
+    {
+        $requestTime = microtime(true);
+        $profile = $this->createProfileWithMockCollectors([
+            'stopwatch' => [
+                'total_time' => 400.0,
+                'request_time_float' => $requestTime,
+                'phases' => ['muplugins_loaded' => 15.0],
+                'events' => [],
+            ],
+            'memory' => ['peak' => 1048576, 'limit' => 134217728, 'usage_percentage' => 0.8],
+            'database' => ['total_count' => 0, 'total_time' => 0.0, 'slow_count' => 0, 'queries' => []],
+            'cache' => [],
+            'http_client' => ['total_count' => 0, 'total_time' => 0.0, 'requests' => []],
+            'event' => [],
+            'mail' => [],
+            'plugin' => ['plugins' => [], 'load_order' => []],
+            'theme' => ['hooks' => []],
+            'widget' => [],
+            'shortcode' => [
+                'executions' => [
+                    ['tag' => 'gallery', 'start' => $requestTime + 0.10, 'duration' => 10.2],
+                    ['tag' => 'contact-form', 'start' => $requestTime + 0.12, 'duration' => 5.1],
+                    ['tag' => 'video', 'start' => $requestTime + 0.15, 'duration' => 3.5],
+                ],
+            ],
+        ]);
+
+        $renderer = new PerformancePanelRenderer();
+        $html = $renderer->renderContent($profile);
+
+        self::assertStringContainsString('Shortcodes (3 executions)', $html);
+        // Shortcode tags in tooltips (wrapped in square brackets)
+        self::assertStringContainsString('[gallery]', $html);
+        self::assertStringContainsString('[contact-form]', $html);
+        self::assertStringContainsString('[video]', $html);
+    }
+
+    #[Test]
+    public function renderPerformancePanelShowsMailBars(): void
+    {
+        $requestTime = microtime(true);
+        $profile = $this->createProfileWithMockCollectors([
+            'stopwatch' => [
+                'total_time' => 500.0,
+                'request_time_float' => $requestTime,
+                'phases' => ['muplugins_loaded' => 15.0],
+                'events' => [],
+            ],
+            'memory' => ['peak' => 1048576, 'limit' => 134217728, 'usage_percentage' => 0.8],
+            'database' => ['total_count' => 0, 'total_time' => 0.0, 'slow_count' => 0, 'queries' => []],
+            'cache' => [],
+            'http_client' => ['total_count' => 0, 'total_time' => 0.0, 'requests' => []],
+            'event' => [],
+            'mail' => [
+                'emails' => [
+                    ['subject' => 'Welcome Email', 'status' => 'sent', 'start' => $requestTime + 0.10, 'duration' => 50.0],
+                    ['subject' => 'Password Reset', 'status' => 'failed', 'start' => $requestTime + 0.20, 'duration' => 120.0],
+                ],
+            ],
+            'plugin' => ['plugins' => [], 'load_order' => []],
+            'theme' => ['hooks' => []],
+            'widget' => [],
+            'shortcode' => [],
+        ]);
+
+        $renderer = new PerformancePanelRenderer();
+        $html = $renderer->renderContent($profile);
+
+        self::assertStringContainsString('Mail (2 emails)', $html);
+        // Email subjects in tooltips
+        self::assertStringContainsString('Welcome Email', $html);
+        self::assertStringContainsString('Password Reset', $html);
+        // Status labels in tooltips
+        self::assertStringContainsString('sent', $html);
+        self::assertStringContainsString('failed', $html);
+    }
+
+    #[Test]
+    public function performancePanelRenderBadgeRedWhenHighMemory(): void
+    {
+        // Cover lines 38-39: red badge when usagePercentage >= 90
+        $profile = $this->createProfileWithMockCollectors([
+            'stopwatch' => ['total_time' => 50.0, 'events' => [], 'phases' => [], 'request_time_float' => 0.0],
+            'memory' => ['peak' => 1048576, 'limit' => 1100000, 'usage_percentage' => 95.0],
+            'database' => ['total_count' => 0, 'total_time' => 0.0, 'slow_count' => 0, 'queries' => []],
+        ]);
+
+        $renderer = new PerformancePanelRenderer();
+        $html = $renderer->renderBadge($profile);
+
+        // Red badge background should be present (rgba(204,24,24,0.12))
+        self::assertStringContainsString('style="background:rgba(204,24,24,0.12)"', $html);
+    }
+
+    #[Test]
+    public function performancePanelRenderBadgeRedWhenSlowQueries(): void
+    {
+        // Cover lines 38-39: red badge when slowQueries > 0
+        $profile = $this->createProfileWithMockCollectors([
+            'stopwatch' => ['total_time' => 50.0, 'events' => [], 'phases' => [], 'request_time_float' => 0.0],
+            'memory' => ['peak' => 1048576, 'limit' => 134217728, 'usage_percentage' => 0.8],
+            'database' => ['total_count' => 5, 'total_time' => 10.0, 'slow_count' => 2, 'queries' => []],
+        ]);
+
+        $renderer = new PerformancePanelRenderer();
+        $html = $renderer->renderBadge($profile);
+
+        self::assertStringContainsString('style="background:rgba(204,24,24,0.12)"', $html);
+    }
+
+    #[Test]
+    public function performancePanelRenderBadgeRedWhenSlowTotalTime(): void
+    {
+        // Cover lines 38-39: red badge when totalTime >= 1000
+        $requestTime = microtime(true) - 2.0; // 2 seconds ago to ensure getTime() >= 1000ms
+        $profile = $this->createProfileWithMockCollectors([
+            'stopwatch' => ['total_time' => 1500.0, 'events' => [], 'phases' => [], 'request_time_float' => $requestTime],
+            'memory' => ['peak' => 1048576, 'limit' => 134217728, 'usage_percentage' => 0.8],
+            'database' => ['total_count' => 0, 'total_time' => 0.0, 'slow_count' => 0, 'queries' => []],
+        ]);
+
+        // Ensure profile getTime() returns >= 1000ms by setting REQUEST_TIME_FLOAT
+        $origRequestTime = $_SERVER['REQUEST_TIME_FLOAT'] ?? null;
+        $_SERVER['REQUEST_TIME_FLOAT'] = $requestTime;
+
+        try {
+            $renderer = new PerformancePanelRenderer();
+            $html = $renderer->renderBadge($profile);
+
+            // With totalTime >= 1000ms, red badge should appear
+            self::assertStringContainsString('style="background:rgba(204,24,24,0.12)"', $html);
+        } finally {
+            if ($origRequestTime !== null) {
+                $_SERVER['REQUEST_TIME_FLOAT'] = $origRequestTime;
+            } else {
+                unset($_SERVER['REQUEST_TIME_FLOAT']);
+            }
+        }
+    }
+
+    #[Test]
+    public function performancePanelRenderPanelContainsHeaderAndBody(): void
+    {
+        // Cover lines 54-55, 57-58, 61, 64, 67: renderPanel() method
+        $profile = $this->createProfileWithMockCollectors([
+            'stopwatch' => ['total_time' => 100.0, 'events' => [], 'phases' => [], 'request_time_float' => 0.0],
+            'memory' => ['peak' => 1048576, 'limit' => 134217728, 'usage_percentage' => 0.8],
+            'database' => ['total_count' => 0, 'total_time' => 0.0, 'slow_count' => 0, 'queries' => []],
+            'cache' => [],
+            'http_client' => [],
+            'event' => [],
+            'mail' => [],
+            'plugin' => ['plugins' => [], 'load_order' => []],
+            'theme' => ['hooks' => []],
+            'widget' => [],
+            'shortcode' => [],
+        ]);
+
+        $renderer = new PerformancePanelRenderer();
+        $html = $renderer->renderPanel($profile);
+
+        // Line 58: Panel wrapper div
+        self::assertStringContainsString('class="wpd-panel"', $html);
+        self::assertStringContainsString('id="wpd-panel-performance"', $html);
+        // Line 60-61: Panel header with title
+        self::assertStringContainsString('class="wpd-panel-header"', $html);
+        self::assertStringContainsString('class="wpd-panel-title"', $html);
+        self::assertStringContainsString('Performance', $html);
+        // Line 61: Close button
+        self::assertStringContainsString('data-action="close-panel"', $html);
+        // Line 63-64: Panel body with content
+        self::assertStringContainsString('class="wpd-panel-body"', $html);
+        // Line 54: content from renderContent is embedded
+        self::assertStringContainsString('Overview', $html);
+    }
+
+    #[Test]
+    public function performancePanelRendersHttpTimelineSkipsRequestsWithoutStart(): void
+    {
+        // Cover line 308: continue when !isset($req['start'])
+        $requestTime = microtime(true);
+        $profile = $this->createProfileWithMockCollectors([
+            'stopwatch' => ['total_time' => 200.0, 'events' => [], 'phases' => [], 'request_time_float' => $requestTime],
+            'memory' => ['peak' => 1048576, 'limit' => 134217728, 'usage_percentage' => 0.8],
+            'database' => ['total_count' => 0, 'total_time' => 0.0, 'slow_count' => 0, 'queries' => []],
+            'cache' => [],
+            'http_client' => [
+                'total_count' => 3,
+                'total_time' => 100.0,
+                'requests' => [
+                    // Request with start -> should appear in timeline
+                    ['url' => 'https://api.example.com/data', 'method' => 'GET', 'status_code' => 200, 'duration' => 50.0, 'start' => $requestTime + 0.01],
+                    // Request without start -> should be skipped (line 308)
+                    ['url' => 'https://api.example.com/no-start', 'method' => 'POST', 'status_code' => 201, 'duration' => 30.0],
+                    // Another request with start
+                    ['url' => 'https://api.example.com/other', 'method' => 'PUT', 'status_code' => 200, 'duration' => 20.0, 'start' => $requestTime + 0.05],
+                ],
+            ],
+            'event' => [],
+            'mail' => [],
+            'plugin' => ['plugins' => [], 'load_order' => []],
+            'theme' => ['hooks' => []],
+            'widget' => [],
+            'shortcode' => [],
+        ]);
+
+        $renderer = new PerformancePanelRenderer();
+        $html = $renderer->renderContent($profile);
+
+        // Only 2 requests have 'start', so the timeline should say "2 requests"
+        self::assertStringContainsString('HTTP Client (2 requests)', $html);
+        // The request without start should NOT appear
+        self::assertStringNotContainsString('no-start', $html);
+        // Requests with start should appear
+        self::assertStringContainsString('api.example.com/data', $html);
+        self::assertStringContainsString('api.example.com/other', $html);
+    }
+
+    /**
+     * @param array<string, array<string, mixed>> $collectorData
+     */
+    private function createProfileWithMockCollectors(array $collectorData): Profile
+    {
+        $profile = new Profile('test-perf-' . uniqid());
+
+        foreach ($collectorData as $name => $data) {
+            $profile->addCollector($this->createCollector($name, ucfirst($name), '', 'default', $data));
+        }
+
+        return $profile;
+    }
+
+    #[Test]
+    public function renderLoggerPanelCoversAllLogLevels(): void
+    {
+        $profile = new Profile('test-token');
+        $profile->addCollector($this->createCollector('logger', 'Logs', '8', 'red', [
+            'total_count' => 8,
+            'error_count' => 4,
+            'deprecation_count' => 1,
+            'level_counts' => ['emergency' => 1, 'alert' => 1, 'critical' => 1, 'error' => 1, 'warning' => 1, 'notice' => 1, 'info' => 1, 'deprecation' => 1],
+            'logs' => [
+                ['level' => 'emergency', 'message' => 'System down', 'context' => [], 'channel' => 'app', 'file' => '', 'line' => 0],
+                ['level' => 'alert', 'message' => 'Alert msg', 'context' => [], 'channel' => 'app', 'file' => '', 'line' => 0],
+                ['level' => 'critical', 'message' => 'Critical msg', 'context' => [], 'channel' => 'app', 'file' => '', 'line' => 0],
+                ['level' => 'error', 'message' => 'Error msg', 'context' => [], 'channel' => 'app', 'file' => '', 'line' => 0],
+                ['level' => 'warning', 'message' => 'Warning msg', 'context' => [], 'channel' => 'app', 'file' => '', 'line' => 0],
+                ['level' => 'notice', 'message' => 'Notice msg', 'context' => [], 'channel' => 'app', 'file' => '', 'line' => 0],
+                ['level' => 'info', 'message' => 'Info msg', 'context' => [], 'channel' => 'app', 'file' => '', 'line' => 0],
+                ['level' => 'deprecation', 'message' => 'Deprecated msg', 'context' => [], 'channel' => 'app', 'file' => '', 'line' => 0],
+            ],
+        ]));
+
+        $html = $this->renderer->render($profile);
+
+        // Level-specific CSS classes
+        self::assertStringContainsString('wpd-log-critical', $html);
+        self::assertStringContainsString('wpd-log-error', $html);
+        self::assertStringContainsString('wpd-log-warning', $html);
+        self::assertStringContainsString('wpd-log-notice', $html);
+        self::assertStringContainsString('wpd-log-info', $html);
+        self::assertStringContainsString('wpd-log-debug', $html);
+        self::assertStringContainsString('wpd-log-deprecation', $html);
+
+        // Tab counts (emergency+alert+critical+error = 4 errors, warning+notice = 2 warnings)
+        self::assertStringContainsString('Errors (4)', $html);
+        self::assertStringContainsString('Warnings (2)', $html);
     }
 }

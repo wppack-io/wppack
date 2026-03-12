@@ -488,4 +488,77 @@ final class LoggerDataCollectorTest extends TestCase
 
         self::assertSame(0, $data['total_count']);
     }
+
+    #[Test]
+    public function handlePhpErrorCapturesRecoverableError(): void
+    {
+        $method = new \ReflectionMethod($this->collector, 'handlePhpError');
+        $oldLevel = error_reporting(E_ALL);
+
+        try {
+            $method->invoke($this->collector, E_RECOVERABLE_ERROR, 'Recoverable error occurred', '/file.php', 10);
+        } finally {
+            error_reporting($oldLevel);
+        }
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertSame(1, $data['total_count']);
+        $log = $data['logs'][0];
+        self::assertSame('error', $log['level']);
+        self::assertSame('E_RECOVERABLE_ERROR', $log['context']['_error_type']);
+    }
+
+    #[Test]
+    public function handlePhpErrorCapturesUnknownErrorType(): void
+    {
+        $method = new \ReflectionMethod($this->collector, 'handlePhpError');
+        // E_ALL includes all known errors, so set error_reporting to include everything
+        $oldLevel = error_reporting(-1);
+
+        try {
+            // Use E_COMPILE_ERROR (64) which is not in the match statement
+            $method->invoke($this->collector, E_COMPILE_ERROR, 'Unknown error type', '/file.php', 10);
+        } finally {
+            error_reporting($oldLevel);
+        }
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertSame(1, $data['total_count']);
+        $log = $data['logs'][0];
+        self::assertSame('warning', $log['level']);
+        self::assertSame('E_UNKNOWN', $log['context']['_error_type']);
+    }
+
+    #[Test]
+    public function handlePhpErrorCallsPreviousHandler(): void
+    {
+        $previousCalled = false;
+        $capturedErrno = 0;
+
+        // Set previousErrorHandler directly via reflection
+        $method = new \ReflectionMethod($this->collector, 'handlePhpError');
+        $ref = new \ReflectionProperty($this->collector, 'previousErrorHandler');
+        $ref->setValue($this->collector, function (int $errno) use (&$previousCalled, &$capturedErrno): bool {
+            $previousCalled = true;
+            $capturedErrno = $errno;
+
+            return false;
+        });
+
+        $oldLevel = error_reporting(E_ALL);
+
+        try {
+            $method->invoke($this->collector, E_USER_WARNING, 'test warning', '/file.php', 42);
+        } finally {
+            error_reporting($oldLevel);
+            $ref->setValue($this->collector, null);
+        }
+
+        self::assertTrue($previousCalled, 'Previous error handler should have been called');
+        self::assertSame(E_USER_WARNING, $capturedErrno);
+    }
 }

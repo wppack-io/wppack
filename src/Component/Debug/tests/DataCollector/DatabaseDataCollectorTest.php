@@ -170,4 +170,138 @@ final class DatabaseDataCollectorTest extends TestCase
         // SELECT queries without sensitive columns should be preserved
         self::assertStringContainsString('SELECT * FROM wp_posts', $data['queries'][0]['sql']);
     }
+
+    #[Test]
+    public function collectDetectsDuplicateQueries(): void
+    {
+        $sql = 'SELECT * FROM wp_options WHERE option_name = \'siteurl\'';
+
+        // Capture the same SQL query twice
+        $this->collector->captureQueryData([], $sql, 0.001, 'CallerA', 0.0);
+        $this->collector->captureQueryData([], $sql, 0.002, 'CallerB', 0.001);
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertGreaterThan(0, $data['duplicate_count']);
+        self::assertSame(1, $data['duplicate_count']); // 2 identical queries => 1 duplicate
+    }
+
+    #[Test]
+    public function collectDetectsSlowQueries(): void
+    {
+        // Capture a query with time > 0.1 seconds (100ms threshold)
+        $this->collector->captureQueryData([], 'SELECT SLEEP(1)', 0.15, 'SlowCaller', 0.0);
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertGreaterThan(0, $data['slow_count']);
+        self::assertSame(1, $data['slow_count']);
+    }
+
+    #[Test]
+    public function collectGeneratesSuggestions(): void
+    {
+        // Capture more than 50 queries to trigger the "high query count" suggestion
+        for ($i = 0; $i < 51; $i++) {
+            $this->collector->captureQueryData([], "SELECT * FROM wp_posts WHERE ID = {$i}", 0.001, 'BulkCaller', 0.0);
+        }
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertNotEmpty($data['suggestions']);
+        self::assertSame(51, $data['total_count']);
+
+        // Verify the high query count suggestion is present
+        $found = false;
+        foreach ($data['suggestions'] as $suggestion) {
+            if (str_contains($suggestion, 'High query count')) {
+                $found = true;
+                break;
+            }
+        }
+        self::assertTrue($found, 'Expected a "High query count" suggestion');
+    }
+
+    #[Test]
+    public function collectFallsBackToWpdbQueries(): void
+    {
+        if (!function_exists('add_filter')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        global $wpdb;
+
+        // Save original queries
+        $originalQueries = $wpdb->queries ?? null;
+
+        // Set mock wpdb->queries (format: [sql, time, caller, start, custom_data])
+        $wpdb->queries = [
+            ['SELECT 1 FROM wp_posts', 0.005, 'TestCaller::method', 0.0, []],
+            ['SELECT 2 FROM wp_options', 0.003, 'TestCaller::other', 0.005, []],
+        ];
+
+        try {
+            // Use a fresh collector without any realtime queries
+            $freshCollector = new DatabaseDataCollector();
+            // Remove the filter so it doesn't capture via realtime
+            remove_filter('log_query_custom_data', [$freshCollector, 'captureQueryData'], 10);
+
+            $freshCollector->collect();
+            $data = $freshCollector->getData();
+
+            self::assertSame(2, $data['total_count']);
+            self::assertCount(2, $data['queries']);
+        } finally {
+            // Restore original queries
+            if ($originalQueries !== null) {
+                $wpdb->queries = $originalQueries;
+            } else {
+                unset($wpdb->queries);
+            }
+        }
+    }
+
+    #[Test]
+    public function collectMasksMultipleSensitiveColumns(): void
+    {
+        $sensitiveColumns = ['api_key', 'apikey', 'secret', 'private_key', 'access_token', 'refresh_token', 'passwd', 'pwd'];
+
+        foreach ($sensitiveColumns as $column) {
+            $collector = new DatabaseDataCollector();
+            $sql = "UPDATE wp_settings SET {$column} = 'sensitive_value_123' WHERE id = 1";
+            $collector->captureQueryData([], $sql, 0.001, 'TestCaller', 0.0);
+
+            $collector->collect();
+            $data = $collector->getData();
+
+            self::assertStringContainsString("{$column} = ********", $data['queries'][0]['sql'], "Column '{$column}' should be masked");
+            self::assertStringNotContainsString('sensitive_value_123', $data['queries'][0]['sql'], "Sensitive value for '{$column}' should not be visible");
+        }
+    }
+
+    #[Test]
+    public function resetClearsRealtimeQueries(): void
+    {
+        // Capture some data
+        $this->collector->captureQueryData([], 'SELECT 1', 0.001, 'TestCaller', 0.0);
+        $this->collector->captureQueryData([], 'SELECT 2', 0.002, 'TestCaller', 0.001);
+
+        // Verify data exists before reset
+        $this->collector->collect();
+        $dataBefore = $this->collector->getData();
+        self::assertSame(2, $dataBefore['total_count']);
+
+        // Reset the collector
+        $this->collector->reset();
+
+        // Collect again — should have no queries
+        $this->collector->collect();
+        $dataAfter = $this->collector->getData();
+
+        self::assertSame(0, $dataAfter['total_count']);
+        self::assertSame([], $dataAfter['queries']);
+    }
 }

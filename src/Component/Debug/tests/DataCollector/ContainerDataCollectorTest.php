@@ -145,4 +145,261 @@ final class ContainerDataCollectorTest extends TestCase
 
         self::assertEmpty($collector->getData());
     }
+
+    #[Test]
+    public function collectWithContainerBuilderGathersServices(): void
+    {
+        $definition1 = $this->createDefinition(
+            class: 'App\\Service\\FooService',
+            public: true,
+            autowired: true,
+            lazy: false,
+            tags: ['app.handler' => [['priority' => 10]]],
+        );
+
+        $definition2 = $this->createDefinition(
+            class: 'App\\Service\\BarService',
+            public: false,
+            autowired: false,
+            lazy: true,
+            tags: [],
+        );
+
+        $builder = new class ($definition1, $definition2) {
+            public function __construct(
+                private readonly object $def1,
+                private readonly object $def2,
+            ) {}
+
+            /** @return array<string, object> */
+            public function getDefinitions(): array
+            {
+                return ['foo_service' => $this->def1, 'bar_service' => $this->def2];
+            }
+        };
+
+        $collector = new ContainerDataCollector($builder);
+        $collector->collect();
+        $data = $collector->getData();
+
+        self::assertSame(2, $data['service_count']);
+        self::assertArrayHasKey('foo_service', $data['services']);
+        self::assertArrayHasKey('bar_service', $data['services']);
+        self::assertSame('App\\Service\\FooService', $data['services']['foo_service']['class']);
+        self::assertSame('App\\Service\\BarService', $data['services']['bar_service']['class']);
+    }
+
+    #[Test]
+    public function collectWithContainerBuilderCountsPublicPrivate(): void
+    {
+        $publicDef = $this->createDefinition(class: 'App\\PublicService', public: true, autowired: false, lazy: false);
+        $privateDef1 = $this->createDefinition(class: 'App\\PrivateService1', public: false, autowired: true, lazy: false);
+        $privateDef2 = $this->createDefinition(class: 'App\\PrivateService2', public: false, autowired: false, lazy: true);
+
+        $builder = new class ($publicDef, $privateDef1, $privateDef2) {
+            public function __construct(
+                private readonly object $pub,
+                private readonly object $priv1,
+                private readonly object $priv2,
+            ) {}
+
+            /** @return array<string, object> */
+            public function getDefinitions(): array
+            {
+                return [
+                    'public_svc' => $this->pub,
+                    'private_svc_1' => $this->priv1,
+                    'private_svc_2' => $this->priv2,
+                ];
+            }
+        };
+
+        $collector = new ContainerDataCollector($builder);
+        $collector->collect();
+        $data = $collector->getData();
+
+        self::assertSame(3, $data['service_count']);
+        self::assertSame(1, $data['public_count']);
+        self::assertSame(2, $data['private_count']);
+        self::assertSame(1, $data['autowired_count']);
+        self::assertSame(1, $data['lazy_count']);
+    }
+
+    #[Test]
+    public function collectWithContainerBuilderGathersCompilerPasses(): void
+    {
+        $pass1 = new class {};
+        $pass2 = new class {};
+
+        $passConfig = new class ($pass1, $pass2) {
+            /** @var list<object> */
+            private array $passes;
+
+            public function __construct(object $pass1, object $pass2)
+            {
+                $this->passes = [$pass1, $pass2];
+            }
+
+            /** @return list<object> */
+            public function getPasses(): array
+            {
+                return $this->passes;
+            }
+        };
+
+        $builder = new class ($passConfig) {
+            public function __construct(private readonly object $passConfig) {}
+
+            /** @return array<string, object> */
+            public function getDefinitions(): array
+            {
+                return [];
+            }
+
+            public function getCompilerPassConfig(): object
+            {
+                return $this->passConfig;
+            }
+        };
+
+        $collector = new ContainerDataCollector($builder);
+        $collector->collect();
+        $data = $collector->getData();
+
+        self::assertCount(2, $data['compiler_passes']);
+        self::assertIsString($data['compiler_passes'][0]);
+        self::assertIsString($data['compiler_passes'][1]);
+    }
+
+    #[Test]
+    public function collectWithContainerBuilderGathersTaggedServices(): void
+    {
+        $builder = new class {
+            /** @return array<string, object> */
+            public function getDefinitions(): array
+            {
+                return [];
+            }
+
+            /** @return list<string> */
+            public function findTags(): array
+            {
+                return ['kernel.event_listener', 'controller.argument_resolver'];
+            }
+
+            /**
+             * @return array<string, list<array<string, mixed>>>
+             */
+            public function findTaggedServiceIds(string $tag): array
+            {
+                return match ($tag) {
+                    'kernel.event_listener' => ['listener.a' => [], 'listener.b' => []],
+                    'controller.argument_resolver' => ['resolver.a' => []],
+                    default => [],
+                };
+            }
+        };
+
+        $collector = new ContainerDataCollector($builder);
+        $collector->collect();
+        $data = $collector->getData();
+
+        self::assertArrayHasKey('kernel.event_listener', $data['tagged_services']);
+        self::assertArrayHasKey('controller.argument_resolver', $data['tagged_services']);
+        self::assertCount(2, $data['tagged_services']['kernel.event_listener']);
+        self::assertCount(1, $data['tagged_services']['controller.argument_resolver']);
+        self::assertContains('listener.a', $data['tagged_services']['kernel.event_listener']);
+        self::assertContains('listener.b', $data['tagged_services']['kernel.event_listener']);
+    }
+
+    #[Test]
+    public function collectWithContainerBuilderGathersParameters(): void
+    {
+        $parameterBag = new class {
+            /** @return array<string, mixed> */
+            public function all(): array
+            {
+                return [
+                    'kernel.debug' => true,
+                    'kernel.environment' => 'test',
+                    'app.secret' => 's3cret',
+                ];
+            }
+        };
+
+        $builder = new class ($parameterBag) {
+            public function __construct(private readonly object $bag) {}
+
+            /** @return array<string, object> */
+            public function getDefinitions(): array
+            {
+                return [];
+            }
+
+            public function getParameterBag(): object
+            {
+                return $this->bag;
+            }
+        };
+
+        $collector = new ContainerDataCollector($builder);
+        $collector->collect();
+        $data = $collector->getData();
+
+        self::assertSame(true, $data['parameters']['kernel.debug']);
+        self::assertSame('test', $data['parameters']['kernel.environment']);
+        self::assertSame('s3cret', $data['parameters']['app.secret']);
+    }
+
+    /**
+     * @param array<string, list<array<string, mixed>>> $tags
+     */
+    private function createDefinition(
+        string $class,
+        bool $public,
+        bool $autowired,
+        bool $lazy,
+        array $tags = [],
+    ): object {
+        return new class ($class, $public, $autowired, $lazy, $tags) {
+            /**
+             * @param array<string, list<array<string, mixed>>> $tags
+             */
+            public function __construct(
+                private readonly string $class,
+                private readonly bool $public,
+                private readonly bool $autowired,
+                private readonly bool $lazy,
+                private readonly array $tags = [],
+            ) {}
+
+            public function isPublic(): bool
+            {
+                return $this->public;
+            }
+
+            public function isAutowired(): bool
+            {
+                return $this->autowired;
+            }
+
+            public function isLazy(): bool
+            {
+                return $this->lazy;
+            }
+
+            public function getClass(): string
+            {
+                return $this->class;
+            }
+
+            /**
+             * @return array<string, list<array<string, mixed>>>
+             */
+            public function getTags(): array
+            {
+                return $this->tags;
+            }
+        };
+    }
 }

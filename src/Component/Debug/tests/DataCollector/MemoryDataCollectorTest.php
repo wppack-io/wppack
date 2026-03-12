@@ -152,4 +152,92 @@ final class MemoryDataCollectorTest extends TestCase
         $data = $this->collector->getData();
         self::assertEmpty($data['snapshots']);
     }
+
+    #[Test]
+    public function onWpLoadedTakesSnapshot(): void
+    {
+        $this->collector->onWpLoaded();
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertArrayHasKey('wp_loaded', $data['snapshots']);
+        self::assertIsInt($data['snapshots']['wp_loaded']);
+        self::assertGreaterThan(0, $data['snapshots']['wp_loaded']);
+    }
+
+    #[Test]
+    public function onTemplateRedirectTakesSnapshot(): void
+    {
+        $this->collector->onTemplateRedirect();
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertArrayHasKey('template_redirect', $data['snapshots']);
+        self::assertGreaterThan(0, $data['snapshots']['template_redirect']);
+    }
+
+    #[Test]
+    public function onWpFooterTakesSnapshot(): void
+    {
+        $this->collector->onWpFooter();
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertArrayHasKey('wp_footer', $data['snapshots']);
+        self::assertGreaterThan(0, $data['snapshots']['wp_footer']);
+    }
+
+    #[Test]
+    public function onShutdownTakesSnapshot(): void
+    {
+        $this->collector->onShutdown();
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertArrayHasKey('shutdown', $data['snapshots']);
+        self::assertGreaterThan(0, $data['snapshots']['shutdown']);
+    }
+
+    #[Test]
+    public function parseMemoryValueHandlesSuffixes(): void
+    {
+        $reflection = new \ReflectionMethod($this->collector, 'parseMemoryValue');
+
+        self::assertSame(128 * 1024 * 1024, $reflection->invoke($this->collector, '128M'));
+        self::assertSame(1024 * 1024 * 1024, $reflection->invoke($this->collector, '1G'));
+        self::assertSame(512 * 1024, $reflection->invoke($this->collector, '512K'));
+        self::assertSame(1024, $reflection->invoke($this->collector, '1024'));
+    }
+
+    #[Test]
+    public function collectComputesUsagePercentage(): void
+    {
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        if ($data['limit'] > 0) {
+            $expected = round(($data['peak'] / $data['limit']) * 100, 2);
+            self::assertSame($expected, $data['usage_percentage']);
+        } else {
+            self::assertSame(0.0, $data['usage_percentage']);
+        }
+    }
+
+    #[Test]
+    public function multipleSnapshotsRecordAllLabels(): void
+    {
+        $this->collector->onWpLoaded();
+        $this->collector->onTemplateRedirect();
+        $this->collector->onWpFooter();
+        $this->collector->onShutdown();
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertArrayHasKey('wp_loaded', $data['snapshots']);
+        self::assertArrayHasKey('template_redirect', $data['snapshots']);
+        self::assertArrayHasKey('wp_footer', $data['snapshots']);
+        self::assertArrayHasKey('shutdown', $data['snapshots']);
+        self::assertCount(4, $data['snapshots']);
+    }
 }

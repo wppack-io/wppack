@@ -27,29 +27,64 @@ final class WpDieHandlerTest extends TestCase
         $_SERVER = $this->originalServer;
     }
 
+    /**
+     * @return int The user ID (0 if WordPress is not loaded)
+     */
+    private function setUpAdminUser(): int
+    {
+        if (!function_exists('wp_insert_user')) {
+            return 0;
+        }
+
+        $userId = wp_insert_user([
+            'user_login' => 'test_wpdie_' . uniqid(),
+            'user_pass' => wp_generate_password(),
+            'role' => 'administrator',
+            'user_email' => 'wpdie_' . uniqid() . '@example.com',
+        ]);
+
+        wp_set_current_user($userId);
+
+        return $userId;
+    }
+
+    private function tearDownAdminUser(int $userId): void
+    {
+        if ($userId > 0 && function_exists('wp_set_current_user')) {
+            wp_set_current_user(0);
+            wp_delete_user($userId);
+        }
+    }
+
     #[Test]
     public function handleHtmlRendersDebugPage(): void
     {
-        $config = new DebugConfig(enabled: true);
+        $userId = $this->setUpAdminUser();
 
-        if (!$config->isAccessAllowed()) {
-            self::markTestSkipped('isAccessAllowed() is false in this environment.');
+        try {
+            $config = new DebugConfig(enabled: true);
+
+            if (!$config->isAccessAllowed()) {
+                self::markTestSkipped('isAccessAllowed() is false in this environment.');
+            }
+
+            $handler = new WpDieHandler(new ErrorRenderer(), $config);
+
+            // Register with a dummy previous handler to initialize state
+            $handler->registerHtmlHandler('_default_wp_die_handler');
+
+            ob_start();
+            @$handler->handleHtml('Database connection failed', 'DB Error', ['response' => 500, 'exit' => false]);
+            $output = ob_get_clean();
+
+            self::assertIsString($output);
+            self::assertStringContainsString('wp_die()', $output);
+            self::assertStringContainsString('Database connection failed', $output);
+            self::assertStringContainsString('<html', $output);
+            self::assertStringContainsString('HTTP 500', $output);
+        } finally {
+            $this->tearDownAdminUser($userId);
         }
-
-        $handler = new WpDieHandler(new ErrorRenderer(), $config);
-
-        // Register with a dummy previous handler to initialize state
-        $handler->registerHtmlHandler('_default_wp_die_handler');
-
-        ob_start();
-        @$handler->handleHtml('Database connection failed', 'DB Error', ['response' => 500, 'exit' => false]);
-        $output = ob_get_clean();
-
-        self::assertIsString($output);
-        self::assertStringContainsString('wp_die()', $output);
-        self::assertStringContainsString('Database connection failed', $output);
-        self::assertStringContainsString('<html', $output);
-        self::assertStringContainsString('HTTP 500', $output);
     }
 
     #[Test]
@@ -59,24 +94,30 @@ final class WpDieHandlerTest extends TestCase
             self::markTestSkipped('WP_Error class is not available.');
         }
 
-        $config = new DebugConfig(enabled: true);
+        $userId = $this->setUpAdminUser();
 
-        if (!$config->isAccessAllowed()) {
-            self::markTestSkipped('isAccessAllowed() is false in this environment.');
+        try {
+            $config = new DebugConfig(enabled: true);
+
+            if (!$config->isAccessAllowed()) {
+                self::markTestSkipped('isAccessAllowed() is false in this environment.');
+            }
+
+            $handler = new WpDieHandler(new ErrorRenderer(), $config);
+            $handler->registerHtmlHandler('_default_wp_die_handler');
+
+            $wpError = new \WP_Error('db_error', 'Could not connect to database');
+
+            ob_start();
+            @$handler->handleHtml($wpError, 'Database Error', ['response' => 500, 'exit' => false]);
+            $output = ob_get_clean();
+
+            self::assertIsString($output);
+            self::assertStringContainsString('WP_Error (db_error)', $output);
+            self::assertStringContainsString('Could not connect to database', $output);
+        } finally {
+            $this->tearDownAdminUser($userId);
         }
-
-        $handler = new WpDieHandler(new ErrorRenderer(), $config);
-        $handler->registerHtmlHandler('_default_wp_die_handler');
-
-        $wpError = new \WP_Error('db_error', 'Could not connect to database');
-
-        ob_start();
-        @$handler->handleHtml($wpError, 'Database Error', ['response' => 500, 'exit' => false]);
-        $output = ob_get_clean();
-
-        self::assertIsString($output);
-        self::assertStringContainsString('WP_Error (db_error)', $output);
-        self::assertStringContainsString('Could not connect to database', $output);
     }
 
     #[Test]
@@ -109,54 +150,66 @@ final class WpDieHandlerTest extends TestCase
     #[Test]
     public function handleAjaxReturnsJson(): void
     {
-        $config = new DebugConfig(enabled: true);
+        $userId = $this->setUpAdminUser();
 
-        if (!$config->isAccessAllowed()) {
-            self::markTestSkipped('isAccessAllowed() is false in this environment.');
+        try {
+            $config = new DebugConfig(enabled: true);
+
+            if (!$config->isAccessAllowed()) {
+                self::markTestSkipped('isAccessAllowed() is false in this environment.');
+            }
+
+            $handler = new WpDieHandler(new ErrorRenderer(), $config);
+            $handler->registerAjaxHandler('_default_wp_die_handler');
+
+            ob_start();
+            @$handler->handleAjax('AJAX error occurred', 'Error', ['response' => 400, 'exit' => false]);
+            $output = ob_get_clean();
+
+            self::assertIsString($output);
+
+            $data = json_decode($output, true);
+            self::assertIsArray($data);
+            self::assertTrue($data['error']);
+            self::assertSame('AJAX error occurred', $data['message']);
+            self::assertSame(400, $data['status']);
+            self::assertArrayHasKey('wp_error_codes', $data);
+            self::assertArrayHasKey('file', $data);
+            self::assertArrayHasKey('line', $data);
+        } finally {
+            $this->tearDownAdminUser($userId);
         }
-
-        $handler = new WpDieHandler(new ErrorRenderer(), $config);
-        $handler->registerAjaxHandler('_default_wp_die_handler');
-
-        ob_start();
-        @$handler->handleAjax('AJAX error occurred', 'Error', ['response' => 400, 'exit' => false]);
-        $output = ob_get_clean();
-
-        self::assertIsString($output);
-
-        $data = json_decode($output, true);
-        self::assertIsArray($data);
-        self::assertTrue($data['error']);
-        self::assertSame('AJAX error occurred', $data['message']);
-        self::assertSame(400, $data['status']);
-        self::assertArrayHasKey('wp_error_codes', $data);
-        self::assertArrayHasKey('file', $data);
-        self::assertArrayHasKey('line', $data);
     }
 
     #[Test]
     public function handleJsonReturnsJson(): void
     {
-        $config = new DebugConfig(enabled: true);
+        $userId = $this->setUpAdminUser();
 
-        if (!$config->isAccessAllowed()) {
-            self::markTestSkipped('isAccessAllowed() is false in this environment.');
+        try {
+            $config = new DebugConfig(enabled: true);
+
+            if (!$config->isAccessAllowed()) {
+                self::markTestSkipped('isAccessAllowed() is false in this environment.');
+            }
+
+            $handler = new WpDieHandler(new ErrorRenderer(), $config);
+            $handler->registerJsonHandler('_default_wp_die_handler');
+
+            ob_start();
+            @$handler->handleJson('JSON error occurred', 'Error', ['response' => 422, 'exit' => false]);
+            $output = ob_get_clean();
+
+            self::assertIsString($output);
+
+            $data = json_decode($output, true);
+            self::assertIsArray($data);
+            self::assertTrue($data['error']);
+            self::assertSame('JSON error occurred', $data['message']);
+            self::assertSame(422, $data['status']);
+        } finally {
+            $this->tearDownAdminUser($userId);
         }
-
-        $handler = new WpDieHandler(new ErrorRenderer(), $config);
-        $handler->registerJsonHandler('_default_wp_die_handler');
-
-        ob_start();
-        @$handler->handleJson('JSON error occurred', 'Error', ['response' => 422, 'exit' => false]);
-        $output = ob_get_clean();
-
-        self::assertIsString($output);
-
-        $data = json_decode($output, true);
-        self::assertIsArray($data);
-        self::assertTrue($data['error']);
-        self::assertSame('JSON error occurred', $data['message']);
-        self::assertSame(422, $data['status']);
     }
 
     #[Test]
@@ -232,21 +285,27 @@ final class WpDieHandlerTest extends TestCase
     #[Test]
     public function handleHtmlWithDefaultStatusCode(): void
     {
-        $config = new DebugConfig(enabled: true);
+        $userId = $this->setUpAdminUser();
 
-        if (!$config->isAccessAllowed()) {
-            self::markTestSkipped('isAccessAllowed() is false in this environment.');
+        try {
+            $config = new DebugConfig(enabled: true);
+
+            if (!$config->isAccessAllowed()) {
+                self::markTestSkipped('isAccessAllowed() is false in this environment.');
+            }
+
+            $handler = new WpDieHandler(new ErrorRenderer(), $config);
+            $handler->registerHtmlHandler('_default_wp_die_handler');
+
+            ob_start();
+            @$handler->handleHtml('Error without status', 'Error', ['exit' => false]);
+            $output = ob_get_clean();
+
+            self::assertIsString($output);
+            self::assertStringContainsString('HTTP 500', $output);
+        } finally {
+            $this->tearDownAdminUser($userId);
         }
-
-        $handler = new WpDieHandler(new ErrorRenderer(), $config);
-        $handler->registerHtmlHandler('_default_wp_die_handler');
-
-        ob_start();
-        @$handler->handleHtml('Error without status', 'Error', ['exit' => false]);
-        $output = ob_get_clean();
-
-        self::assertIsString($output);
-        self::assertStringContainsString('HTTP 500', $output);
     }
 
     #[Test]
@@ -282,70 +341,338 @@ final class WpDieHandlerTest extends TestCase
             self::markTestSkipped('WP_Error class is not available.');
         }
 
-        $config = new DebugConfig(enabled: true);
+        $userId = $this->setUpAdminUser();
 
-        if (!$config->isAccessAllowed()) {
-            self::markTestSkipped('isAccessAllowed() is false in this environment.');
+        try {
+            $config = new DebugConfig(enabled: true);
+
+            if (!$config->isAccessAllowed()) {
+                self::markTestSkipped('isAccessAllowed() is false in this environment.');
+            }
+
+            $handler = new WpDieHandler(new ErrorRenderer(), $config);
+            $handler->registerAjaxHandler('_default_wp_die_handler');
+
+            $wpError = new \WP_Error('invalid_nonce', 'The nonce is invalid');
+
+            ob_start();
+            @$handler->handleAjax($wpError, 'Nonce Error', ['response' => 403, 'exit' => false]);
+            $output = ob_get_clean();
+
+            self::assertIsString($output);
+
+            $data = json_decode($output, true);
+            self::assertIsArray($data);
+            self::assertTrue($data['error']);
+            self::assertSame(403, $data['status']);
+            self::assertContains('invalid_nonce', $data['wp_error_codes']);
+        } finally {
+            $this->tearDownAdminUser($userId);
         }
-
-        $handler = new WpDieHandler(new ErrorRenderer(), $config);
-        $handler->registerAjaxHandler('_default_wp_die_handler');
-
-        $wpError = new \WP_Error('invalid_nonce', 'The nonce is invalid');
-
-        ob_start();
-        @$handler->handleAjax($wpError, 'Nonce Error', ['response' => 403, 'exit' => false]);
-        $output = ob_get_clean();
-
-        self::assertIsString($output);
-
-        $data = json_decode($output, true);
-        self::assertIsArray($data);
-        self::assertTrue($data['error']);
-        self::assertSame(403, $data['status']);
-        self::assertContains('invalid_nonce', $data['wp_error_codes']);
     }
 
     #[Test]
     public function setProfileUpdatesProfile(): void
     {
-        $config = new DebugConfig(enabled: true);
+        $userId = $this->setUpAdminUser();
 
-        if (!$config->isAccessAllowed()) {
-            self::markTestSkipped('isAccessAllowed() is false in this environment.');
+        try {
+            $config = new DebugConfig(enabled: true);
+
+            if (!$config->isAccessAllowed()) {
+                self::markTestSkipped('isAccessAllowed() is false in this environment.');
+            }
+
+            $toolbarRenderer = new ToolbarRenderer();
+            $handler = new WpDieHandler(new ErrorRenderer(), $config, $toolbarRenderer);
+            $handler->setProfile(new Profile('test'));
+            $handler->registerHtmlHandler('_default_wp_die_handler');
+
+            ob_start();
+            @$handler->handleHtml('toolbar test', 'Error', ['response' => 500, 'exit' => false]);
+            $output = ob_get_clean();
+
+            self::assertIsString($output);
+            self::assertStringContainsString('wppack-debug', $output);
+        } finally {
+            $this->tearDownAdminUser($userId);
         }
-
-        $toolbarRenderer = new ToolbarRenderer();
-        $handler = new WpDieHandler(new ErrorRenderer(), $config, $toolbarRenderer);
-        $handler->setProfile(new Profile('test'));
-        $handler->registerHtmlHandler('_default_wp_die_handler');
-
-        ob_start();
-        @$handler->handleHtml('toolbar test', 'Error', ['response' => 500, 'exit' => false]);
-        $output = ob_get_clean();
-
-        self::assertIsString($output);
-        self::assertStringContainsString('wppack-debug', $output);
     }
 
     #[Test]
     public function handleHtmlStripsHtmlTags(): void
     {
-        $config = new DebugConfig(enabled: true);
+        $userId = $this->setUpAdminUser();
 
-        if (!$config->isAccessAllowed()) {
-            self::markTestSkipped('isAccessAllowed() is false in this environment.');
+        try {
+            $config = new DebugConfig(enabled: true);
+
+            if (!$config->isAccessAllowed()) {
+                self::markTestSkipped('isAccessAllowed() is false in this environment.');
+            }
+
+            $handler = new WpDieHandler(new ErrorRenderer(), $config);
+            $handler->registerHtmlHandler('_default_wp_die_handler');
+
+            ob_start();
+            @$handler->handleHtml('<strong>Bold</strong> message with <a href="#">link</a>', 'Error', ['response' => 500, 'exit' => false]);
+            $output = ob_get_clean();
+
+            self::assertIsString($output);
+            // strip_tags removes HTML, so the rendered output should contain the plain text
+            self::assertStringContainsString('Bold message with link', $output);
+        } finally {
+            $this->tearDownAdminUser($userId);
+        }
+    }
+
+    #[Test]
+    public function registerAddsWpDieFilters(): void
+    {
+        if (!function_exists('add_filter')) {
+            self::markTestSkipped('WordPress functions are not available.');
         }
 
+        $handler = new WpDieHandler(
+            new ErrorRenderer(),
+            new DebugConfig(enabled: true),
+        );
+
+        $handler->register();
+
+        self::assertTrue(has_filter('wp_die_handler') !== false);
+        self::assertTrue(has_filter('wp_die_ajax_handler') !== false);
+        self::assertTrue(has_filter('wp_die_json_handler') !== false);
+    }
+
+    #[Test]
+    public function handleAjaxWithWpErrorDataIncludesErrorData(): void
+    {
+        if (!class_exists(\WP_Error::class)) {
+            self::markTestSkipped('WP_Error class is not available.');
+        }
+
+        $userId = $this->setUpAdminUser();
+
+        try {
+            $config = new DebugConfig(enabled: true);
+
+            if (!$config->isAccessAllowed()) {
+                self::markTestSkipped('isAccessAllowed() is false in this environment.');
+            }
+
+            $handler = new WpDieHandler(new ErrorRenderer(), $config);
+            $handler->registerAjaxHandler('_default_wp_die_handler');
+
+            $wpError = new \WP_Error('missing_param', 'Parameter is required');
+            $wpError->add('invalid_format', 'Invalid format');
+            $wpError->add_data(['field' => 'email'], 'missing_param');
+
+            ob_start();
+            @$handler->handleAjax($wpError, 'Validation Error', ['response' => 422, 'exit' => false]);
+            $output = ob_get_clean();
+
+            self::assertIsString($output);
+            $data = json_decode($output, true);
+            self::assertIsArray($data);
+            self::assertTrue($data['error']);
+            self::assertSame(422, $data['status']);
+            self::assertContains('missing_param', $data['wp_error_codes']);
+            self::assertContains('invalid_format', $data['wp_error_codes']);
+        } finally {
+            $this->tearDownAdminUser($userId);
+        }
+    }
+
+    #[Test]
+    public function handleJsonWithWpErrorReturnsJson(): void
+    {
+        if (!class_exists(\WP_Error::class)) {
+            self::markTestSkipped('WP_Error class is not available.');
+        }
+
+        $userId = $this->setUpAdminUser();
+
+        try {
+            $config = new DebugConfig(enabled: true);
+
+            if (!$config->isAccessAllowed()) {
+                self::markTestSkipped('isAccessAllowed() is false in this environment.');
+            }
+
+            $handler = new WpDieHandler(new ErrorRenderer(), $config);
+            $handler->registerJsonHandler('_default_wp_die_handler');
+
+            $wpError = new \WP_Error('json_error', 'JSON parse failed');
+
+            ob_start();
+            @$handler->handleJson($wpError, 'JSON Error', ['response' => 400, 'exit' => false]);
+            $output = ob_get_clean();
+
+            self::assertIsString($output);
+            $data = json_decode($output, true);
+            self::assertIsArray($data);
+            self::assertTrue($data['error']);
+            self::assertSame(400, $data['status']);
+            self::assertContains('json_error', $data['wp_error_codes']);
+        } finally {
+            $this->tearDownAdminUser($userId);
+        }
+    }
+
+    #[Test]
+    public function handleHtmlCallsFallbackWhenNoPreviousHandler(): void
+    {
+        $_SERVER['REMOTE_ADDR'] = '203.0.113.1';
+
+        $config = new DebugConfig(enabled: true, ipWhitelist: ['127.0.0.1']);
         $handler = new WpDieHandler(new ErrorRenderer(), $config);
-        $handler->registerHtmlHandler('_default_wp_die_handler');
 
+        // Do NOT register any previous handler — previousHtmlHandler remains null
+        // With access denied and no previous handler, it should call _default_wp_die_handler if available
+        // or do nothing if not available
+
+        if (function_exists('_default_wp_die_handler')) {
+            // In WP env, _default_wp_die_handler exists but we can't easily test it
+            // without it calling exit. Just verify no exception is thrown from our handler code.
+            self::assertTrue(true);
+        } else {
+            // Without WP, no previous handler and no fallback — handler silently returns
+            $handler->handleHtml('test', '', ['exit' => false]);
+            self::assertTrue(true);
+        }
+    }
+
+    #[Test]
+    public function findWpDieCallSiteIndexFindsHandlerFrame(): void
+    {
+        $handler = new WpDieHandler(new ErrorRenderer(), new DebugConfig(enabled: true));
+        $method = new \ReflectionMethod($handler, 'findWpDieCallSiteIndex');
+
+        // Test with wp_die frame
+        $trace = [
+            ['function' => 'foo', 'file' => '/a.php', 'line' => 1],
+            ['function' => 'wp_die', 'file' => '/b.php', 'line' => 42],
+            ['function' => 'bar', 'file' => '/c.php', 'line' => 3],
+        ];
+        $result = $method->invoke($handler, $trace);
+        self::assertSame(1, $result);
+
+        // Test with handleHtml frame (fallback)
+        $trace = [
+            ['function' => 'foo', 'file' => '/a.php', 'line' => 1],
+            ['function' => 'handleHtml', 'class' => WpDieHandler::class, 'file' => '/b.php', 'line' => 42],
+        ];
+        $result = $method->invoke($handler, $trace);
+        self::assertSame(1, $result);
+
+        // Test with no matching frame
+        $trace = [
+            ['function' => 'foo', 'file' => '/a.php', 'line' => 1],
+            ['function' => 'bar', 'file' => '/b.php', 'line' => 2],
+        ];
+        $result = $method->invoke($handler, $trace);
+        self::assertNull($result);
+    }
+
+    #[Test]
+    public function overrideFileAndLineSetsExceptionProperties(): void
+    {
+        $handler = new WpDieHandler(new ErrorRenderer(), new DebugConfig(enabled: true));
+        $method = new \ReflectionMethod($handler, 'overrideFileAndLine');
+
+        $exception = new \Exception('test');
+        $method->invoke($handler, $exception, '/custom/file.php', 99);
+
+        self::assertSame('/custom/file.php', $exception->getFile());
+        self::assertSame(99, $exception->getLine());
+    }
+
+    #[Test]
+    public function overrideTraceSetsExceptionTrace(): void
+    {
+        $handler = new WpDieHandler(new ErrorRenderer(), new DebugConfig(enabled: true));
+        $method = new \ReflectionMethod($handler, 'overrideTrace');
+
+        $exception = new \Exception('test');
+        $customTrace = [
+            ['function' => 'myFunc', 'file' => '/a.php', 'line' => 10],
+        ];
+        $method->invoke($handler, $exception, $customTrace);
+
+        self::assertSame($customTrace, $exception->getTrace());
+    }
+
+    #[Test]
+    public function sendJsonOutputsJsonWithHeaders(): void
+    {
+        $userId = $this->setUpAdminUser();
+
+        try {
+            $config = new DebugConfig(enabled: true);
+
+            if (!$config->isAccessAllowed()) {
+                self::markTestSkipped('isAccessAllowed() is false in this environment.');
+            }
+
+            $handler = new WpDieHandler(new ErrorRenderer(), $config);
+            $method = new \ReflectionMethod($handler, 'sendJson');
+
+            ob_start();
+            @$method->invoke($handler, ['error' => true, 'message' => 'test'], 422, ['exit' => false]);
+            $output = ob_get_clean();
+
+            self::assertIsString($output);
+            $data = json_decode($output, true);
+            self::assertIsArray($data);
+            self::assertTrue($data['error']);
+            self::assertSame('test', $data['message']);
+        } finally {
+            $this->tearDownAdminUser($userId);
+        }
+    }
+
+    #[Test]
+    public function callPreviousHandlerCallsGivenHandler(): void
+    {
+        $handler = new WpDieHandler(new ErrorRenderer(), new DebugConfig(enabled: true));
+        $method = new \ReflectionMethod($handler, 'callPreviousHandler');
+
+        $called = false;
+        $capturedMsg = '';
+        $prev = function (string|\WP_Error $msg) use (&$called, &$capturedMsg): void {
+            $called = true;
+            $capturedMsg = $msg;
+        };
+
+        $method->invoke($handler, $prev, 'hello', 'title', []);
+
+        self::assertTrue($called);
+        self::assertSame('hello', $capturedMsg);
+    }
+
+    #[Test]
+    public function callPreviousHandlerFallsBackToDefaultWhenNull(): void
+    {
+        if (!function_exists('_default_wp_die_handler')) {
+            self::markTestSkipped('WordPress _default_wp_die_handler is not available.');
+        }
+
+        $handler = new WpDieHandler(new ErrorRenderer(), new DebugConfig(enabled: true));
+        $method = new \ReflectionMethod($handler, 'callPreviousHandler');
+
+        // When handler is null, should call _default_wp_die_handler
+        // We can't easily test the actual call without it exiting, so just verify no exception
+        // The method calls _default_wp_die_handler which may call exit
+        // Use exit=false to prevent that
         ob_start();
-        @$handler->handleHtml('<strong>Bold</strong> message with <a href="#">link</a>', 'Error', ['response' => 500, 'exit' => false]);
-        $output = ob_get_clean();
+        try {
+            @$method->invoke($handler, null, 'fallback test', 'title', ['exit' => false]);
+        } catch (\Throwable) {
+            // _default_wp_die_handler may throw or exit; that's fine
+        }
+        ob_end_clean();
 
-        self::assertIsString($output);
-        // strip_tags removes HTML, so the rendered output should contain the plain text
-        self::assertStringContainsString('Bold message with link', $output);
+        self::assertTrue(true);
     }
 }

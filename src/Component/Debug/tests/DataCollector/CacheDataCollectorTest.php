@@ -218,4 +218,84 @@ final class CacheDataCollectorTest extends TestCase
         self::assertSame('key3', $data['transient_operations'][2]['name']);
         self::assertSame('delete', $data['transient_operations'][2]['operation']);
     }
+
+    #[Test]
+    public function getElapsedMsReturnsZeroWhenRequestTimeFloatNotSet(): void
+    {
+        $method = new \ReflectionMethod($this->collector, 'getElapsedMs');
+
+        $originalServer = $_SERVER;
+        unset($_SERVER['REQUEST_TIME_FLOAT']);
+
+        try {
+            $result = $method->invoke($this->collector);
+            self::assertSame(0.0, $result);
+        } finally {
+            $_SERVER = $originalServer;
+        }
+    }
+
+    #[Test]
+    public function detectDropinReturnsNoneWithoutObjectCache(): void
+    {
+        $method = new \ReflectionMethod($this->collector, 'detectDropin');
+
+        global $wp_object_cache;
+        $savedCache = $wp_object_cache ?? null;
+        $wp_object_cache = null;
+
+        try {
+            $result = $method->invoke($this->collector);
+            self::assertSame('none', $result);
+        } finally {
+            $wp_object_cache = $savedCache;
+        }
+    }
+
+    #[Test]
+    public function collectGroupStatsReturnsEmptyWithoutObjectCache(): void
+    {
+        $method = new \ReflectionMethod($this->collector, 'collectGroupStats');
+
+        global $wp_object_cache;
+        $savedCache = $wp_object_cache ?? null;
+        $wp_object_cache = null;
+
+        try {
+            $result = $method->invoke($this->collector);
+            self::assertSame([], $result);
+        } finally {
+            $wp_object_cache = $savedCache;
+        }
+    }
+
+    #[Test]
+    public function collectGroupStatsReturnsEmptyWhenCachePropertyMissing(): void
+    {
+        $method = new \ReflectionMethod($this->collector, 'collectGroupStats');
+
+        global $wp_object_cache;
+        $savedCache = $wp_object_cache ?? null;
+        // Object without 'cache' property
+        $wp_object_cache = new \stdClass();
+
+        try {
+            $result = $method->invoke($this->collector);
+            self::assertSame([], $result);
+        } finally {
+            $wp_object_cache = $savedCache;
+        }
+    }
+
+    #[Test]
+    public function capturerCallerReturnsCallerName(): void
+    {
+        $method = new \ReflectionMethod($this->collector, 'captureCaller');
+
+        $result = $method->invoke($this->collector);
+
+        // Should return caller info (our test method via reflection invoke)
+        self::assertIsString($result);
+        self::assertNotEmpty($result);
+    }
 }

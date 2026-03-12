@@ -256,4 +256,97 @@ final class HttpClientDataCollectorTest extends TestCase
         self::assertSame(0, $data['total_count']);
         self::assertSame([], $data['requests']);
     }
+
+    #[Test]
+    public function slowRequestIsCountedAsSlow(): void
+    {
+        $url = 'https://slow.example.com/api';
+
+        // Capture start with a very old timestamp so duration > 1000ms
+        $this->collector->captureRequestStart(false, ['method' => 'GET'], $url);
+
+        // Manipulate the pending start time to simulate slow request
+        $ref = new \ReflectionProperty($this->collector, 'pendingRequests');
+        $pending = $ref->getValue($this->collector);
+        $pending[$url] = microtime(true) - 2.0; // 2 seconds ago
+        $ref->setValue($this->collector, $pending);
+
+        $response = [
+            'response' => ['code' => 200, 'message' => 'OK'],
+            'body' => 'ok',
+            'headers' => [],
+        ];
+
+        $this->collector->captureRequestEnd($response, 'response', 'WP_Http', ['method' => 'GET'], $url);
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertSame(1, $data['slow_count']);
+        self::assertGreaterThan(1000.0, $data['requests'][0]['duration']);
+    }
+
+    #[Test]
+    public function captureRequestEndWithoutHeadersInArgsUsesEmptyArray(): void
+    {
+        $url = 'https://example.com/no-headers';
+
+        $this->collector->captureRequestStart(false, ['method' => 'GET'], $url);
+
+        $response = [
+            'response' => ['code' => 200, 'message' => 'OK'],
+            'body' => '',
+            'headers' => [],
+        ];
+
+        // Pass args without 'headers' key
+        $this->collector->captureRequestEnd($response, 'response', 'WP_Http', ['method' => 'GET'], $url);
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertSame([], $data['requests'][0]['request_headers']);
+    }
+
+    #[Test]
+    public function extractResponseHeadersWithTraversable(): void
+    {
+        $url = 'https://example.com/traversable-headers';
+
+        $this->collector->captureRequestStart(false, ['method' => 'GET'], $url);
+
+        // Create a Traversable headers object (mimics Requests_Utility_CaseInsensitiveDictionary)
+        $headers = new \ArrayIterator(['Content-Type' => 'text/html', 'X-Custom' => 'value']);
+
+        $response = [
+            'response' => ['code' => 200, 'message' => 'OK'],
+            'body' => 'ok',
+            'headers' => $headers,
+        ];
+
+        $this->collector->captureRequestEnd($response, 'response', 'WP_Http', ['method' => 'GET', 'headers' => []], $url);
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertSame('text/html', $data['requests'][0]['response_headers']['Content-Type']);
+        self::assertSame('value', $data['requests'][0]['response_headers']['X-Custom']);
+    }
+
+    #[Test]
+    public function extractResponseHeadersWithNonArrayNonTraversableReturnsEmpty(): void
+    {
+        $url = 'https://example.com/no-parseable-headers';
+
+        $this->collector->captureRequestStart(false, ['method' => 'GET'], $url);
+
+        $response = [
+            'response' => ['code' => 200, 'message' => 'OK'],
+            'body' => 'ok',
+            'headers' => 'plain-string-not-iterable',
+        ];
+
+        $this->collector->captureRequestEnd($response, 'response', 'WP_Http', ['method' => 'GET', 'headers' => []], $url);
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertSame([], $data['requests'][0]['response_headers']);
+    }
 }

@@ -43,6 +43,35 @@ final class ExceptionHandlerTest extends TestCase
         }
     }
 
+    /**
+     * @return int The user ID (0 if WordPress is not loaded)
+     */
+    private function setUpAdminUser(): int
+    {
+        if (!function_exists('wp_insert_user')) {
+            return 0;
+        }
+
+        $userId = wp_insert_user([
+            'user_login' => 'test_exc_' . uniqid(),
+            'user_pass' => wp_generate_password(),
+            'role' => 'administrator',
+            'user_email' => 'exc_' . uniqid() . '@example.com',
+        ]);
+
+        wp_set_current_user($userId);
+
+        return $userId;
+    }
+
+    private function tearDownAdminUser(int $userId): void
+    {
+        if ($userId > 0 && function_exists('wp_set_current_user')) {
+            wp_set_current_user(0);
+            wp_delete_user($userId);
+        }
+    }
+
     #[Test]
     public function registerSetsExceptionHandler(): void
     {
@@ -79,46 +108,58 @@ final class ExceptionHandlerTest extends TestCase
     #[Test]
     public function handleExceptionWithEnabledConfigOutputsHtml(): void
     {
-        $config = new DebugConfig(enabled: true);
+        $userId = $this->setUpAdminUser();
 
-        if (!$config->isAccessAllowed()) {
-            self::markTestSkipped('isAccessAllowed() is false in this environment.');
+        try {
+            $config = new DebugConfig(enabled: true);
+
+            if (!$config->isAccessAllowed()) {
+                self::markTestSkipped('isAccessAllowed() is false in this environment.');
+            }
+
+            $handler = new ExceptionHandler(new ErrorRenderer(), $config);
+
+            $exception = new \RuntimeException('enabled debug test');
+
+            ob_start();
+            @$handler->handleException($exception);
+            $output = ob_get_clean();
+
+            self::assertIsString($output);
+            self::assertStringContainsString('RuntimeException', $output);
+            self::assertStringContainsString('enabled debug test', $output);
+            self::assertStringContainsString('<html', $output);
+        } finally {
+            $this->tearDownAdminUser($userId);
         }
-
-        $handler = new ExceptionHandler(new ErrorRenderer(), $config);
-
-        $exception = new \RuntimeException('enabled debug test');
-
-        ob_start();
-        @$handler->handleException($exception);
-        $output = ob_get_clean();
-
-        self::assertIsString($output);
-        self::assertStringContainsString('RuntimeException', $output);
-        self::assertStringContainsString('enabled debug test', $output);
-        self::assertStringContainsString('<html', $output);
     }
 
     #[Test]
     public function onRoutingExceptionDelegatesToHandleException(): void
     {
-        $config = new DebugConfig(enabled: true);
+        $userId = $this->setUpAdminUser();
 
-        if (!$config->isAccessAllowed()) {
-            self::markTestSkipped('isAccessAllowed() is false in this environment.');
+        try {
+            $config = new DebugConfig(enabled: true);
+
+            if (!$config->isAccessAllowed()) {
+                self::markTestSkipped('isAccessAllowed() is false in this environment.');
+            }
+
+            $handler = new ExceptionHandler(new ErrorRenderer(), $config);
+
+            $exception = new \RuntimeException('routing exception test');
+
+            ob_start();
+            @$handler->onRoutingException($exception);
+            $output = ob_get_clean();
+
+            self::assertIsString($output);
+            self::assertStringContainsString('RuntimeException', $output);
+            self::assertStringContainsString('routing exception test', $output);
+        } finally {
+            $this->tearDownAdminUser($userId);
         }
-
-        $handler = new ExceptionHandler(new ErrorRenderer(), $config);
-
-        $exception = new \RuntimeException('routing exception test');
-
-        ob_start();
-        @$handler->onRoutingException($exception);
-        $output = ob_get_clean();
-
-        self::assertIsString($output);
-        self::assertStringContainsString('RuntimeException', $output);
-        self::assertStringContainsString('routing exception test', $output);
     }
 
     #[Test]
@@ -169,82 +210,167 @@ final class ExceptionHandlerTest extends TestCase
     public function handleExceptionRendersWhenIpIsAllowed(): void
     {
         $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        $config = new DebugConfig(enabled: true, ipWhitelist: ['127.0.0.1']);
 
-        if (!$config->isAccessAllowed()) {
-            self::markTestSkipped('isAccessAllowed() is false in this environment.');
+        $userId = $this->setUpAdminUser();
+
+        try {
+            $config = new DebugConfig(enabled: true, ipWhitelist: ['127.0.0.1']);
+
+            if (!$config->isAccessAllowed()) {
+                self::markTestSkipped('isAccessAllowed() is false in this environment.');
+            }
+
+            $handler = new ExceptionHandler(new ErrorRenderer(), $config);
+
+            ob_start();
+            @$handler->handleException(new \RuntimeException('ip allowed test'));
+            $output = ob_get_clean();
+
+            self::assertIsString($output);
+            self::assertStringContainsString('ip allowed test', $output);
+        } finally {
+            $this->tearDownAdminUser($userId);
         }
-
-        $handler = new ExceptionHandler(new ErrorRenderer(), $config);
-
-        ob_start();
-        @$handler->handleException(new \RuntimeException('ip allowed test'));
-        $output = ob_get_clean();
-
-        self::assertIsString($output);
-        self::assertStringContainsString('ip allowed test', $output);
     }
 
     #[Test]
     public function handleExceptionWithToolbarRendersToolbar(): void
     {
-        $config = new DebugConfig(enabled: true);
+        $userId = $this->setUpAdminUser();
 
-        if (!$config->isAccessAllowed()) {
-            self::markTestSkipped('isAccessAllowed() is false in this environment.');
+        try {
+            $config = new DebugConfig(enabled: true);
+
+            if (!$config->isAccessAllowed()) {
+                self::markTestSkipped('isAccessAllowed() is false in this environment.');
+            }
+
+            $toolbarRenderer = new ToolbarRenderer();
+            $profile = new Profile('test-token');
+
+            $handler = new ExceptionHandler(new ErrorRenderer(), $config, $toolbarRenderer, $profile);
+
+            ob_start();
+            @$handler->handleException(new \RuntimeException('toolbar test'));
+            $output = ob_get_clean();
+
+            self::assertIsString($output);
+            self::assertStringContainsString('toolbar test', $output);
+            self::assertStringContainsString('wppack-debug', $output);
+        } finally {
+            $this->tearDownAdminUser($userId);
         }
-
-        $toolbarRenderer = new ToolbarRenderer();
-        $profile = new Profile('test-token');
-
-        $handler = new ExceptionHandler(new ErrorRenderer(), $config, $toolbarRenderer, $profile);
-
-        ob_start();
-        @$handler->handleException(new \RuntimeException('toolbar test'));
-        $output = ob_get_clean();
-
-        self::assertIsString($output);
-        self::assertStringContainsString('toolbar test', $output);
-        self::assertStringContainsString('wppack-debug', $output);
     }
 
     #[Test]
     public function handleExceptionWithoutToolbarRendererReturnsNoToolbar(): void
     {
-        $config = new DebugConfig(enabled: true);
+        $userId = $this->setUpAdminUser();
 
-        if (!$config->isAccessAllowed()) {
-            self::markTestSkipped('isAccessAllowed() is false in this environment.');
+        try {
+            $config = new DebugConfig(enabled: true);
+
+            if (!$config->isAccessAllowed()) {
+                self::markTestSkipped('isAccessAllowed() is false in this environment.');
+            }
+
+            $handler = new ExceptionHandler(new ErrorRenderer(), $config);
+
+            ob_start();
+            @$handler->handleException(new \RuntimeException('no toolbar'));
+            $output = ob_get_clean();
+
+            self::assertIsString($output);
+            self::assertStringContainsString('no toolbar', $output);
+        } finally {
+            $this->tearDownAdminUser($userId);
         }
-
-        $handler = new ExceptionHandler(new ErrorRenderer(), $config);
-
-        ob_start();
-        @$handler->handleException(new \RuntimeException('no toolbar'));
-        $output = ob_get_clean();
-
-        self::assertIsString($output);
-        self::assertStringContainsString('no toolbar', $output);
     }
 
     #[Test]
     public function setProfileUpdatesProfile(): void
     {
-        $config = new DebugConfig(enabled: true);
+        $userId = $this->setUpAdminUser();
 
-        if (!$config->isAccessAllowed()) {
-            self::markTestSkipped('isAccessAllowed() is false in this environment.');
+        try {
+            $config = new DebugConfig(enabled: true);
+
+            if (!$config->isAccessAllowed()) {
+                self::markTestSkipped('isAccessAllowed() is false in this environment.');
+            }
+
+            $toolbarRenderer = new ToolbarRenderer();
+            $handler = new ExceptionHandler(new ErrorRenderer(), $config, $toolbarRenderer);
+            $handler->setProfile(new Profile('test'));
+
+            ob_start();
+            @$handler->handleException(new \RuntimeException('profile test'));
+            $output = ob_get_clean();
+
+            self::assertIsString($output);
+            self::assertStringContainsString('wppack-debug', $output);
+        } finally {
+            $this->tearDownAdminUser($userId);
+        }
+    }
+
+    #[Test]
+    public function handleExceptionWithWordPressAdminAccess(): void
+    {
+        $userId = $this->setUpAdminUser();
+
+        if ($userId === 0) {
+            self::markTestSkipped('WordPress functions are not available.');
         }
 
-        $toolbarRenderer = new ToolbarRenderer();
-        $handler = new ExceptionHandler(new ErrorRenderer(), $config, $toolbarRenderer);
-        $handler->setProfile(new Profile('test'));
+        try {
+            $config = new DebugConfig(enabled: true, roleWhitelist: ['administrator']);
 
-        ob_start();
-        @$handler->handleException(new \RuntimeException('profile test'));
-        $output = ob_get_clean();
+            if (!$config->isAccessAllowed()) {
+                self::markTestSkipped('isAccessAllowed() is false in this environment.');
+            }
 
-        self::assertIsString($output);
-        self::assertStringContainsString('wppack-debug', $output);
+            $handler = new ExceptionHandler(new ErrorRenderer(), $config);
+
+            ob_start();
+            @$handler->handleException(new \RuntimeException('admin access test'));
+            $output = ob_get_clean();
+
+            self::assertIsString($output);
+            self::assertStringContainsString('admin access test', $output);
+        } finally {
+            $this->tearDownAdminUser($userId);
+        }
+    }
+
+    #[Test]
+    public function handleExceptionDeniedForSubscriber(): void
+    {
+        if (!function_exists('wp_insert_user')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $userId = wp_insert_user([
+            'user_login' => 'test_exc_sub_' . uniqid(),
+            'user_pass' => wp_generate_password(),
+            'role' => 'subscriber',
+            'user_email' => 'exc_sub@example.com',
+        ]);
+
+        wp_set_current_user($userId);
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+
+        try {
+            $config = new DebugConfig(enabled: true, roleWhitelist: ['administrator']);
+            $handler = new ExceptionHandler(new ErrorRenderer(), $config);
+
+            $this->expectException(\RuntimeException::class);
+            $this->expectExceptionMessage('subscriber denied');
+
+            $handler->handleException(new \RuntimeException('subscriber denied'));
+        } finally {
+            wp_set_current_user(0);
+            wp_delete_user($userId);
+        }
     }
 }

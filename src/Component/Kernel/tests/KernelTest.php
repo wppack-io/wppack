@@ -353,11 +353,15 @@ final class KernelTest extends TestCase
     }
 
     #[Test]
-    public function defaultsToProductionEnvironmentWhenWpUnavailable(): void
+    public function defaultsToWordPressEnvironmentType(): void
     {
         $kernel = new Kernel(autoBoot: false);
 
-        self::assertSame('production', $kernel->getEnvironment());
+        $expected = function_exists('wp_get_environment_type')
+            ? wp_get_environment_type()
+            : 'production';
+
+        self::assertSame($expected, $kernel->getEnvironment());
     }
 
     #[Test]
@@ -369,11 +373,13 @@ final class KernelTest extends TestCase
     }
 
     #[Test]
-    public function defaultsToDebugFalseWhenWpDebugUndefined(): void
+    public function defaultsToWpDebugConstant(): void
     {
         $kernel = new Kernel(autoBoot: false);
 
-        self::assertFalse($kernel->isDebug());
+        $expected = defined('WP_DEBUG') && WP_DEBUG;
+
+        self::assertSame($expected, $kernel->isDebug());
     }
 
     #[Test]
