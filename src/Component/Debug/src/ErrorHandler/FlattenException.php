@@ -59,8 +59,11 @@ final class FlattenException
         while ($previous !== null) {
             $currentTrace = self::buildTrace($previous);
             $trimmedTrace = self::trimCommonFrames($currentTrace, $previousTrace);
+            $previousClass = method_exists($previous, 'getDisplayClass')
+                ? $previous->getDisplayClass()
+                : $previous::class;
             $flat->chain[] = [
-                'class' => $previous::class,
+                'class' => $previousClass,
                 'message' => $previous->getMessage(),
                 'code' => $previous->getCode(),
                 'file' => $previous->getFile(),
@@ -123,27 +126,37 @@ final class FlattenException
     {
         $result = [];
 
-        // Prepend the throw location as frame #0
+        // Prepend the throw location as frame #0, unless the first trace
+        // frame already points to the same file:line (avoids duplicate frames
+        // when file/line was overridden to match the call site, e.g. wp_die)
         $throwFile = $exception->getFile();
         $throwLine = $exception->getLine();
-        $throwContext = [];
-        $throwHighlight = 0;
-        if ($throwFile !== '' && $throwLine > 0 && is_file($throwFile) && is_readable($throwFile)) {
-            $throwContext = self::getCodeContext($throwFile, $throwLine, 10);
-            $throwHighlight = $throwLine;
-        }
-        $result[] = [
-            'file' => $throwFile,
-            'line' => $throwLine,
-            'function' => '',
-            'class' => '',
-            'type' => '',
-            'args' => [],
-            'code_context' => $throwContext,
-            'highlight_line' => $throwHighlight,
-        ];
+        $traceFrames = $exception->getTrace();
+        $firstFrame = $traceFrames[0] ?? null;
+        $skipThrowFrame = $firstFrame !== null
+            && ($firstFrame['file'] ?? '') === $throwFile
+            && ($firstFrame['line'] ?? 0) === $throwLine;
 
-        foreach ($exception->getTrace() as $frame) {
+        if (!$skipThrowFrame) {
+            $throwContext = [];
+            $throwHighlight = 0;
+            if ($throwFile !== '' && $throwLine > 0 && is_file($throwFile) && is_readable($throwFile)) {
+                $throwContext = self::getCodeContext($throwFile, $throwLine, 10);
+                $throwHighlight = $throwLine;
+            }
+            $result[] = [
+                'file' => $throwFile,
+                'line' => $throwLine,
+                'function' => '',
+                'class' => '',
+                'type' => '',
+                'args' => [],
+                'code_context' => $throwContext,
+                'highlight_line' => $throwHighlight,
+            ];
+        }
+
+        foreach ($traceFrames as $frame) {
             $file = $frame['file'] ?? '';
             $line = $frame['line'] ?? 0;
             $function = $frame['function'];

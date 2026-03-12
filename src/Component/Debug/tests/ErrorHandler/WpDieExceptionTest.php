@@ -8,20 +8,19 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Debug\ErrorHandler\FlattenException;
 use WpPack\Component\Debug\ErrorHandler\WpDieException;
+use WpPack\Component\Debug\ErrorHandler\WpErrorException;
 
 final class WpDieExceptionTest extends TestCase
 {
     #[Test]
     public function constructorSetsAllProperties(): void
     {
-        $previous = new \LogicException('root cause');
+        $previous = new WpErrorException('root cause', ['forbidden'], ['forbidden' => ['required' => 'manage_options']]);
         $exception = new WpDieException(
             message: 'You do not have permission',
             statusCode: 403,
             wpDieTitle: 'Forbidden',
             wpDieArgs: ['response' => 403, 'exit' => false],
-            wpErrorCodes: ['forbidden', 'capability_missing'],
-            wpErrorData: ['forbidden' => ['required' => 'manage_options']],
             previous: $previous,
         );
 
@@ -30,9 +29,10 @@ final class WpDieExceptionTest extends TestCase
         self::assertSame(403, $exception->getStatusCode());
         self::assertSame('Forbidden', $exception->getWpDieTitle());
         self::assertSame(['response' => 403, 'exit' => false], $exception->getWpDieArgs());
-        self::assertSame(['forbidden', 'capability_missing'], $exception->getWpErrorCodes());
-        self::assertSame(['forbidden' => ['required' => 'manage_options']], $exception->getWpErrorData());
         self::assertSame($previous, $exception->getPrevious());
+        self::assertInstanceOf(WpErrorException::class, $exception->getPrevious());
+        self::assertSame(['forbidden'], $previous->getWpErrorCodes());
+        self::assertSame(['forbidden' => ['required' => 'manage_options']], $previous->getWpErrorData());
     }
 
     #[Test]
@@ -51,41 +51,28 @@ final class WpDieExceptionTest extends TestCase
     }
 
     #[Test]
-    public function displayClassShowsWpErrorWithCodes(): void
+    public function displayClassAlwaysReturnsWpDie(): void
     {
         $exception = new WpDieException(
             message: 'error',
             statusCode: 500,
             wpDieTitle: '',
             wpDieArgs: [],
-            wpErrorCodes: ['db_connect_fail'],
         );
 
         self::assertSame('wp_die()', $exception->getDisplayClass());
     }
 
     #[Test]
-    public function displayClassShowsMultipleWpErrorCodes(): void
+    public function displayClassReturnsWpDieEvenWithWpErrorPrevious(): void
     {
+        $previous = new WpErrorException('db error', ['db_connect_fail']);
         $exception = new WpDieException(
-            message: 'error',
-            statusCode: 403,
-            wpDieTitle: '',
-            wpDieArgs: [],
-            wpErrorCodes: ['forbidden', 'capability_missing'],
-        );
-
-        self::assertSame('wp_die()', $exception->getDisplayClass());
-    }
-
-    #[Test]
-    public function displayClassShowsWpDieForPlainStringMessage(): void
-    {
-        $exception = new WpDieException(
-            message: 'plain error',
+            message: 'db error',
             statusCode: 500,
             wpDieTitle: '',
             wpDieArgs: [],
+            previous: $previous,
         );
 
         self::assertSame('wp_die()', $exception->getDisplayClass());
@@ -99,7 +86,7 @@ final class WpDieExceptionTest extends TestCase
             statusCode: 500,
             wpDieTitle: '',
             wpDieArgs: [],
-            wpErrorCodes: ['db_connect_fail'],
+            previous: new WpErrorException('db error', ['db_connect_fail']),
         );
 
         $flat = FlattenException::createFromThrowable($exception);
@@ -108,34 +95,42 @@ final class WpDieExceptionTest extends TestCase
     }
 
     #[Test]
-    public function flattenExceptionUsesWpDieDisplayClassForPlainMessage(): void
+    public function flattenExceptionChainIncludesWpErrorException(): void
     {
+        $wpErrorException = new WpErrorException('db error', ['db_connect_fail']);
         $exception = new WpDieException(
-            message: 'test',
+            message: 'db error',
             statusCode: 500,
             wpDieTitle: '',
             wpDieArgs: [],
+            previous: $wpErrorException,
         );
 
         $flat = FlattenException::createFromThrowable($exception);
+        $chain = $flat->getChain();
 
-        self::assertSame('wp_die()', $flat->getClass());
+        self::assertCount(2, $chain);
+        self::assertSame('wp_die()', $chain[0]['class']);
+        self::assertSame('WP_Error (db_connect_fail)', $chain[1]['class']);
     }
 
     #[Test]
-    public function flattenExceptionChainUsesDisplayClass(): void
+    public function flattenExceptionChainWithMultipleWpErrorCodes(): void
     {
+        $wpErrorException = new WpErrorException('error', ['forbidden', 'capability_missing']);
         $exception = new WpDieException(
             message: 'error',
-            statusCode: 500,
+            statusCode: 403,
             wpDieTitle: '',
             wpDieArgs: [],
-            wpErrorCodes: ['db_error'],
+            previous: $wpErrorException,
         );
 
         $flat = FlattenException::createFromThrowable($exception);
+        $chain = $flat->getChain();
 
-        self::assertSame('wp_die()', $flat->getChain()[0]['class']);
+        self::assertCount(2, $chain);
+        self::assertSame('WP_Error (forbidden, capability_missing)', $chain[1]['class']);
     }
 
     #[Test]
@@ -148,8 +143,22 @@ final class WpDieExceptionTest extends TestCase
             wpDieArgs: [],
         );
 
-        self::assertSame([], $exception->getWpErrorCodes());
-        self::assertSame([], $exception->getWpErrorData());
         self::assertNull($exception->getPrevious());
+    }
+
+    #[Test]
+    public function flattenExceptionChainHasSingleEntryWithoutPrevious(): void
+    {
+        $exception = new WpDieException(
+            message: 'plain error',
+            statusCode: 500,
+            wpDieTitle: '',
+            wpDieArgs: [],
+        );
+
+        $flat = FlattenException::createFromThrowable($exception);
+
+        self::assertCount(1, $flat->getChain());
+        self::assertSame('wp_die()', $flat->getChain()[0]['class']);
     }
 }

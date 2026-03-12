@@ -23,12 +23,17 @@ final class WpDieHandler
     /** @var callable|string|null */
     private mixed $previousJsonHandler = null;
 
+    /** @var \WeakMap<\WP_Error, array{file: string, line: int}> */
+    private \WeakMap $wpErrorOrigins;
+
     public function __construct(
         private readonly ErrorRenderer $renderer,
         private readonly DebugConfig $config,
         private readonly ?ToolbarRenderer $toolbarRenderer = null,
         private ?Profile $profile = null,
-    ) {}
+    ) {
+        $this->wpErrorOrigins = new \WeakMap();
+    }
 
     public function setProfile(Profile $profile): void
     {
@@ -44,6 +49,7 @@ final class WpDieHandler
         add_filter('wp_die_handler', $this->registerHtmlHandler(...), \PHP_INT_MAX);
         add_filter('wp_die_ajax_handler', $this->registerAjaxHandler(...), \PHP_INT_MAX);
         add_filter('wp_die_json_handler', $this->registerJsonHandler(...), \PHP_INT_MAX);
+        add_action('wp_error_added', $this->captureWpErrorOrigin(...), \PHP_INT_MAX, 4);
     }
 
     /**
@@ -133,7 +139,7 @@ final class WpDieHandler
             'error' => true,
             'message' => $exception->getMessage(),
             'status' => $exception->getStatusCode(),
-            'wp_error_codes' => $exception->getWpErrorCodes(),
+            'wp_error_codes' => $this->extractWpErrorCodes($exception),
             'file' => $exception->getFile(),
             'line' => $exception->getLine(),
         ], $exception->getStatusCode(), $args);
@@ -159,7 +165,7 @@ final class WpDieHandler
             'error' => true,
             'message' => $exception->getMessage(),
             'status' => $exception->getStatusCode(),
-            'wp_error_codes' => $exception->getWpErrorCodes(),
+            'wp_error_codes' => $this->extractWpErrorCodes($exception),
             'file' => $exception->getFile(),
             'line' => $exception->getLine(),
         ], $exception->getStatusCode(), $args);
@@ -172,18 +178,26 @@ final class WpDieHandler
     private function createException(string|\WP_Error $message, string $title, array $args): WpDieException
     {
         $statusCode = (int) ($args['response'] ?? 500);
-        $wpErrorCodes = [];
-        $wpErrorData = [];
+        $previous = null;
+        /** @var array{file: string, line: int}|null $wpErrorOrigin */
+        $wpErrorOrigin = null;
 
         if ($message instanceof \WP_Error) {
             $messageText = $message->get_error_message();
             $wpErrorCodes = $message->get_error_codes();
+            $wpErrorData = [];
             foreach ($wpErrorCodes as $code) {
                 $data = $message->get_error_data($code);
                 if ($data !== '') {
                     $wpErrorData[$code] = $data;
                 }
             }
+            $previous = new WpErrorException(
+                message: $messageText,
+                wpErrorCodes: $wpErrorCodes,
+                wpErrorData: $wpErrorData,
+            );
+            $wpErrorOrigin = $this->wpErrorOrigins[$message] ?? null;
         } else {
             $messageText = $message;
         }
@@ -196,8 +210,7 @@ final class WpDieHandler
             statusCode: $statusCode,
             wpDieTitle: $title,
             wpDieArgs: $args,
-            wpErrorCodes: $wpErrorCodes,
-            wpErrorData: $wpErrorData,
+            previous: $previous,
         );
 
         // Override file/line and trace to point to wp_die() call site
@@ -205,9 +218,21 @@ final class WpDieHandler
         $callSiteIndex = $this->findWpDieCallSiteIndex($backtrace);
 
         if ($callSiteIndex !== null && isset($backtrace[$callSiteIndex]['file'], $backtrace[$callSiteIndex]['line'])) {
-            $this->overrideFileAndLine($exception, $backtrace[$callSiteIndex]['file'], $backtrace[$callSiteIndex]['line']);
-            // Inject trace frames starting from the wp_die() call site
-            $this->overrideTrace($exception, \array_slice($backtrace, $callSiteIndex));
+            $callSiteFile = $backtrace[$callSiteIndex]['file'];
+            $callSiteLine = $backtrace[$callSiteIndex]['line'];
+            $callSiteTrace = \array_slice($backtrace, $callSiteIndex);
+
+            $this->overrideFileAndLine($exception, $callSiteFile, $callSiteLine);
+            $this->overrideTrace($exception, $callSiteTrace);
+
+            // Point the WpErrorException to where "new WP_Error" was created
+            // (captured via wp_error_added hook), falling back to the wp_die call site
+            if ($previous !== null) {
+                $errorFile = $wpErrorOrigin['file'] ?? $callSiteFile;
+                $errorLine = $wpErrorOrigin['line'] ?? $callSiteLine;
+                $this->overrideFileAndLine($previous, $errorFile, $errorLine);
+                $this->overrideTrace($previous, []);
+            }
         }
 
         return $exception;
@@ -304,6 +329,51 @@ final class WpDieHandler
         if (($args['exit'] ?? true) !== false) {
             exit; // @codeCoverageIgnore
         }
+    }
+
+    /**
+     * Capture the creation site of a WP_Error via the wp_error_added action.
+     *
+     * Only records the first error code added (i.e. the __construct call).
+     */
+    public function captureWpErrorOrigin(string|int $code, string $message, mixed $data, \WP_Error $wpError): void
+    {
+        if (isset($this->wpErrorOrigins[$wpError])) {
+            return;
+        }
+
+        $backtrace = debug_backtrace(\DEBUG_BACKTRACE_IGNORE_ARGS, 10);
+
+        // The WP_Error::__construct frame's file/line points to
+        // where "new WP_Error(...)" was called in user code
+        foreach ($backtrace as $frame) {
+            if (
+                ($frame['class'] ?? '') === \WP_Error::class
+                && $frame['function'] === '__construct'
+                && isset($frame['file'], $frame['line'])
+            ) {
+                $this->wpErrorOrigins[$wpError] = [
+                    'file' => $frame['file'],
+                    'line' => $frame['line'],
+                ];
+
+                return;
+            }
+        }
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function extractWpErrorCodes(WpDieException $exception): array
+    {
+        $previous = $exception->getPrevious();
+
+        if ($previous instanceof WpErrorException) {
+            return $previous->getWpErrorCodes();
+        }
+
+        return [];
     }
 
     private function renderToolbar(): string

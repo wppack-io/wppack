@@ -10,12 +10,13 @@ namespace WpPack\Component\Debug\ErrorHandler;
  * WordPress calls wp_die() for DB errors, permission failures, nonce failures, etc.
  * This exception captures that data so FlattenException::createFromThrowable()
  * can process it through the standard debug page pipeline.
+ *
+ * When the wp_die() was triggered by a WP_Error, the underlying error is
+ * chained as the $previous exception (WpErrorException).
  */
 final class WpDieException extends \RuntimeException
 {
     /**
-     * @param list<string> $wpErrorCodes
-     * @param array<string, mixed> $wpErrorData
      * @param array<string, mixed> $wpDieArgs
      */
     public function __construct(
@@ -23,8 +24,6 @@ final class WpDieException extends \RuntimeException
         private readonly int $statusCode,
         private readonly string $wpDieTitle,
         private readonly array $wpDieArgs,
-        private readonly array $wpErrorCodes = [],
-        private readonly array $wpErrorData = [],
         ?\Throwable $previous = null,
     ) {
         parent::__construct($message, 0, $previous);
@@ -61,21 +60,5 @@ final class WpDieException extends \RuntimeException
     public function getWpDieArgs(): array
     {
         return $this->wpDieArgs;
-    }
-
-    /**
-     * @return list<string>
-     */
-    public function getWpErrorCodes(): array
-    {
-        return $this->wpErrorCodes;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function getWpErrorData(): array
-    {
-        return $this->wpErrorData;
     }
 }

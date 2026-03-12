@@ -17,14 +17,58 @@ use WpPack\Component\Debug\Toolbar\Panel\RequestPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\WordPressPanelRenderer;
 use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
 
-// Stub WordPress functions required by WP_Error
+// Minimal hook system for demo (supports add_action/add_filter/do_action/apply_filters)
+/** @var array<string, list<array{callback: callable, priority: int, accepted_args: int}>> */
+$_wp_demo_filters = [];
+
+if (!function_exists('add_filter')) {
+    function add_filter(string $hook_name, callable $callback, int $priority = 10, int $accepted_args = 1): true
+    {
+        global $_wp_demo_filters;
+        $_wp_demo_filters[$hook_name][] = ['callback' => $callback, 'priority' => $priority, 'accepted_args' => $accepted_args];
+        usort($_wp_demo_filters[$hook_name], fn($a, $b) => $a['priority'] <=> $b['priority']);
+
+        return true;
+    }
+}
+if (!function_exists('add_action')) {
+    function add_action(string $hook_name, callable $callback, int $priority = 10, int $accepted_args = 1): true
+    {
+        return add_filter($hook_name, $callback, $priority, $accepted_args);
+    }
+}
 if (!function_exists('do_action')) {
-    function do_action(string $hook_name, mixed ...$args): void {}
+    function do_action(string $hook_name, mixed ...$args): void
+    {
+        global $_wp_demo_filters;
+        foreach ($_wp_demo_filters[$hook_name] ?? [] as $hook) {
+            ($hook['callback'])(...\array_slice($args, 0, $hook['accepted_args']));
+        }
+    }
 }
 if (!function_exists('has_filter')) {
-    function has_filter(string $hook_name, mixed $callback = false): bool
+    function has_filter(string $hook_name, mixed $callback = false): bool|int
     {
-        return false;
+        global $_wp_demo_filters;
+
+        return isset($_wp_demo_filters[$hook_name]) && $_wp_demo_filters[$hook_name] !== [] ? 10 : false;
+    }
+}
+if (!function_exists('apply_filters')) {
+    function apply_filters(string $hook_name, mixed $value, mixed ...$args): mixed
+    {
+        global $_wp_demo_filters;
+        foreach ($_wp_demo_filters[$hook_name] ?? [] as $hook) {
+            $value = ($hook['callback'])($value, ...\array_slice($args, 0, $hook['accepted_args'] - 1));
+        }
+
+        return $value;
+    }
+}
+if (!function_exists('remove_filter')) {
+    function remove_filter(string $hook_name, callable $callback, int $priority = 10): bool
+    {
+        return true;
     }
 }
 if (!class_exists('WP_Error')) {
@@ -169,7 +213,19 @@ $toolbarRenderer->addPanelRenderer(new EnvironmentPanelRenderer());
 
 $renderer = new ErrorRenderer();
 $handler = new WpDieHandler($renderer, new DebugConfig(enabled: true), $toolbarRenderer, $profile);
-$handler->registerHtmlHandler('_default_wp_die_handler');
+$handler->register();
+
+// Stub wp_die() so the backtrace includes a wp_die frame (matching real WP behavior)
+if (!function_exists('wp_die')) {
+    function wp_die(string|\WP_Error $message = '', string $title = '', array|int|string $args = []): void
+    {
+        global $handler;
+        if (is_int($args) || is_string($args)) {
+            $args = ['response' => (int) $args];
+        }
+        $handler->handleHtml($message, $title, $args);
+    }
+}
 
 $scenario = $_GET['scenario'] ?? 'permission';
 
@@ -195,7 +251,9 @@ function loadAdminPage(WpDieHandler $handler): void
 function checkUserCapability(WpDieHandler $handler, string $capability): void
 {
     // In real WP: current_user_can($capability) returns false → wp_die()
-    $handler->handleHtml(new \WP_Error('forbidden', 'Sorry, you are not allowed to access this page.'), 'WordPress › Forbidden', ['response' => 403, 'exit' => false]);
+    $error = new \WP_Error('forbidden', 'Sorry, you are not allowed to access this page.');
+    $error->add_data(['required_capability' => $capability], 'forbidden');
+    wp_die($error, 'WordPress › Forbidden', ['response' => 403, 'exit' => false]);
 }
 
 // ── Database connection error scenario ──────────────────────────
@@ -213,7 +271,7 @@ function initializeDatabase(WpDieHandler $handler): void
 function connectToDatabase(WpDieHandler $handler, string $host, string $user, string $dbName): void
 {
     // In real WP: $wpdb->db_connect() fails → wp_die()
-    $handler->handleHtml(new \WP_Error('db_connect_fail', 'Error establishing a database connection.'), 'WordPress › Database Error', ['response' => 500, 'exit' => false]);
+    wp_die(new \WP_Error('db_connect_fail', 'Error establishing a database connection.'), 'WordPress › Database Error', ['response' => 500, 'exit' => false]);
 }
 
 // ── Nonce failure scenario ──────────────────────────────────────
@@ -231,12 +289,12 @@ function processPostForm(WpDieHandler $handler): void
 function verifyNonce(WpDieHandler $handler, string $action, string $field): void
 {
     // In real WP: check_admin_referer() fails → wp_die()
-    $handler->handleHtml('The link you followed has expired. Please try again.', 'WordPress › Nonce Failure', ['response' => 403, 'exit' => false]);
+    wp_die('The link you followed has expired. Please try again.', 'WordPress › Nonce Failure', ['response' => 403, 'exit' => false]);
 }
 
 // ── Generic error scenario ──────────────────────────────────────
 
 function simulateGenericError(WpDieHandler $handler): void
 {
-    $handler->handleHtml('Something went wrong.', 'WordPress › Error', ['response' => 500, 'exit' => false]);
+    wp_die('Something went wrong.', 'WordPress › Error', ['response' => 500, 'exit' => false]);
 }
