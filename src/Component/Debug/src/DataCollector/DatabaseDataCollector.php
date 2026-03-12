@@ -39,11 +39,8 @@ final class DatabaseDataCollector extends AbstractDataCollector
         $slowCount = 0;
         $suggestions = [];
 
-        // Convert query times from seconds to milliseconds
-        $queriesMs = [];
         foreach ($queries as $query) {
-            $timeMs = $query['time'] * 1000;
-            $totalTime += $timeMs;
+            $totalTime += $query['time'];
 
             $sql = $query['sql'];
             if (!isset($duplicates[$sql])) {
@@ -51,14 +48,9 @@ final class DatabaseDataCollector extends AbstractDataCollector
             }
             $duplicates[$sql]++;
 
-            if ($timeMs > self::SLOW_QUERY_THRESHOLD_MS) {
+            if ($query['time'] > self::SLOW_QUERY_THRESHOLD_MS) {
                 $slowCount++;
             }
-
-            $queriesMs[] = [
-                ...$query,
-                'time' => $timeMs,
-            ];
         }
 
         $duplicateCount = 0;
@@ -91,7 +83,7 @@ final class DatabaseDataCollector extends AbstractDataCollector
         }
 
         $this->data = [
-            'queries' => $queriesMs,
+            'queries' => $queries,
             'total_count' => $totalCount,
             'total_time' => $totalTime,
             'duplicate_count' => $duplicateCount,
@@ -125,7 +117,7 @@ final class DatabaseDataCollector extends AbstractDataCollector
      *
      * @param array<string, mixed> $queryData Custom query data
      * @param string               $sql       The SQL query
-     * @param float                $time      Query execution time in seconds
+     * @param float                $time      Query execution time in seconds (converted to ms internally)
      * @param string               $caller    Calling function/method
      * @param float                $start     Start time
      * @return array<string, mixed>
@@ -134,7 +126,7 @@ final class DatabaseDataCollector extends AbstractDataCollector
     {
         $this->realtimeQueries[] = [
             'sql' => $this->maskQueryValues($sql),
-            'time' => $time,
+            'time' => $time * 1000,
             'caller' => $caller,
             'start' => $start,
             'data' => $queryData,
@@ -181,7 +173,7 @@ final class DatabaseDataCollector extends AbstractDataCollector
 
             $queries[] = [
                 'sql' => $this->maskQueryValues((string) $query[0]),
-                'time' => (float) $query[1],
+                'time' => (float) $query[1] * 1000,
                 'caller' => (string) $query[2],
                 'start' => isset($query[3]) ? (float) $query[3] : 0.0,
                 'data' => isset($query[4]) && is_array($query[4]) ? $query[4] : [],

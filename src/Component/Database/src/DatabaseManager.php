@@ -553,7 +553,7 @@ final class DatabaseManager
             return;
         }
 
-        $elapsed = microtime(true) - $startTime;
+        $elapsed = (microtime(true) - $startTime) * 1000;
         $this->wpdb->queries[] = [$query, $elapsed, ''];
     }
 
