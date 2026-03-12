@@ -149,7 +149,7 @@ final class ToolbarAssets
         }
         #wppack-debug .wpd-badge.wpd-active {
             background: transparent;
-            box-shadow: inset 0 -2px 0 #3858e9;
+            box-shadow: inset 0 -2px 0 var(--wpd-accent, #3858e9);
         }
         #wppack-debug .wpd-badge-icon {
             display: flex;
@@ -1206,6 +1206,8 @@ final class ToolbarAssets
                 for (var i = 0; i < badges.length; i++) {
                     if (badges[i].getAttribute('data-panel') === name) {
                         badges[i].classList.add('wpd-active');
+                        var accent = badges[i].getAttribute('data-accent');
+                        badges[i].style.setProperty('--wpd-accent', accent || '#3858e9');
                     } else {
                         badges[i].classList.remove('wpd-active');
                     }

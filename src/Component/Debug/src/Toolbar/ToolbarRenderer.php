@@ -293,8 +293,10 @@ final class ToolbarRenderer
         $bgStyle = $colors['bg'] !== 'transparent' ? ' style="background:' . $colors['bg'] . '"' : '';
         $iconStyle = $colors['fg'] !== '#50575e' ? ' style="color:' . $colors['fg'] . '"' : '';
 
+        $accentAttr = $colorKey !== 'default' ? ' data-accent="' . $colors['fg'] . '"' : '';
+
         return <<<HTML
-        <button class="wpd-badge" data-panel="{$name}" data-tooltip="{$label}"{$bgStyle}>
+        <button class="wpd-badge" data-panel="{$name}" data-tooltip="{$label}"{$bgStyle}{$accentAttr}>
             <span class="wpd-badge-icon"{$iconStyle}>{$icon}</span>{$valueHtml}
         </button>
         HTML;
