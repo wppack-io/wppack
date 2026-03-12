@@ -18,6 +18,9 @@
         "wppack/logger": "For automatic Logger component integration with Debug toolbar"
     },
     "autoload": {
+        "files": [
+            "src/Compat/bootstrap.php"
+        ],
         "psr-4": {
             "WpPack\\Component\\Debug\\": "src/"
         }

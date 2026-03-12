@@ -31,6 +31,9 @@
         "yoast/phpunit-polyfills": "^4.0"
     },
     "autoload": {
+        "files": [
+            "src/Component/Debug/src/Compat/bootstrap.php"
+        ],
         "psr-4": {
             "WpPack\\Component\\Hook\\": "src/Component/Hook/src/",
             "WpPack\\Component\\DependencyInjection\\": "src/Component/DependencyInjection/src/",
