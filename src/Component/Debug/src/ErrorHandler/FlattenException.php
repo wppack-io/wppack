@@ -144,13 +144,27 @@ final class FlattenException
                 $throwContext = self::getCodeContext($throwFile, $throwLine, 10);
                 $throwHighlight = $throwLine;
             }
+
+            // Build synthetic constructor args from exception properties
+            // so frame #0 shows e.g. RuntimeException->__construct("msg", 0, PDOException)
+            // Args are pre-formatted because the throw frame is not processed by the trace loop
+            $throwArgs = [self::formatArg($exception->getMessage())];
+            $hasCode = $exception->getCode() !== 0;
+            $hasPrevious = $exception->getPrevious() !== null;
+            if ($hasCode || $hasPrevious) {
+                $throwArgs[] = self::formatArg($exception->getCode());
+            }
+            if ($hasPrevious) {
+                $throwArgs[] = self::formatArg($exception->getPrevious());
+            }
+
             $result[] = [
                 'file' => $throwFile,
                 'line' => $throwLine,
-                'function' => '',
-                'class' => '',
-                'type' => '',
-                'args' => [],
+                'function' => '__construct',
+                'class' => $exception::class,
+                'type' => '->',
+                'args' => $throwArgs,
                 'code_context' => $throwContext,
                 'highlight_line' => $throwHighlight,
             ];

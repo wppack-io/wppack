@@ -23,7 +23,7 @@ final class WpDieHandler
     /** @var callable|string|null */
     private mixed $previousJsonHandler = null;
 
-    /** @var \WeakMap<\WP_Error, array{file: string, line: int}> */
+    /** @var \WeakMap<\WP_Error, array{file: string, line: int, args: list<mixed>}> */
     private \WeakMap $wpErrorOrigins;
 
     public function __construct(
@@ -179,7 +179,7 @@ final class WpDieHandler
     {
         $statusCode = (int) ($args['response'] ?? 500);
         $previous = null;
-        /** @var array{file: string, line: int}|null $wpErrorOrigin */
+        /** @var array{file: string, line: int, args: list<mixed>}|null $wpErrorOrigin */
         $wpErrorOrigin = null;
 
         if ($message instanceof \WP_Error) {
@@ -231,7 +231,18 @@ final class WpDieHandler
                 $errorFile = $wpErrorOrigin['file'] ?? $callSiteFile;
                 $errorLine = $wpErrorOrigin['line'] ?? $callSiteLine;
                 $this->overrideFileAndLine($previous, $errorFile, $errorLine);
-                $this->overrideTrace($previous, []);
+
+                // Build a trace with the WP_Error::__construct call so the
+                // Previous Exceptions section shows constructor arguments
+                $errorTrace = $wpErrorOrigin !== null ? [[
+                    'function' => '__construct',
+                    'class' => \WP_Error::class,
+                    'type' => '->',
+                    'file' => $errorFile,
+                    'line' => $errorLine,
+                    'args' => $wpErrorOrigin['args'],
+                ]] : [];
+                $this->overrideTrace($previous, $errorTrace);
             }
         }
 
@@ -342,7 +353,7 @@ final class WpDieHandler
             return;
         }
 
-        $backtrace = debug_backtrace(\DEBUG_BACKTRACE_IGNORE_ARGS, 10);
+        $backtrace = debug_backtrace(0, 10);
 
         // The WP_Error::__construct frame's file/line points to
         // where "new WP_Error(...)" was called in user code
@@ -355,6 +366,7 @@ final class WpDieHandler
                 $this->wpErrorOrigins[$wpError] = [
                     'file' => $frame['file'],
                     'line' => $frame['line'],
+                    'args' => $frame['args'] ?? [],
                 ];
 
                 return;
