@@ -18,6 +18,31 @@ use WpPack\Component\Routing\RoutePosition;
 
 final class RouteEntryTest extends TestCase
 {
+    private ?\Closure $wpDieFilter = null;
+
+    protected function setUp(): void
+    {
+        if (!function_exists('add_filter')) {
+            return;
+        }
+
+        $this->wpDieFilter = static fn(): \Closure => static function (string|\WP_Error $message = ''): never {
+            throw new \WPDieException(is_string($message) ? $message : $message->get_error_message());
+        };
+
+        add_filter('wp_die_handler', $this->wpDieFilter, \PHP_INT_MAX);
+        add_filter('wp_die_ajax_handler', $this->wpDieFilter, \PHP_INT_MAX);
+    }
+
+    protected function tearDown(): void
+    {
+        if ($this->wpDieFilter !== null && function_exists('remove_filter')) {
+            remove_filter('wp_die_handler', $this->wpDieFilter, \PHP_INT_MAX);
+            remove_filter('wp_die_ajax_handler', $this->wpDieFilter, \PHP_INT_MAX);
+            $this->wpDieFilter = null;
+        }
+    }
+
     #[Test]
     public function parsesQueryVarsFromQueryString(): void
     {
@@ -582,6 +607,10 @@ final class RouteEntryTest extends TestCase
             );
         }, 10, 2);
 
+        // wp_send_json calls die directly unless wp_doing_ajax() is true
+        $doingAjax = static fn(): bool => true;
+        add_filter('wp_doing_ajax', $doingAjax);
+
         $entry = new RouteEntry(
             'test_route',
             '^test/([^/]+)/?$',
@@ -595,16 +624,19 @@ final class RouteEntryTest extends TestCase
 
         set_query_var('test_slug', 'hello');
 
-        // The filter returns a JsonResponse, which triggers handleJson → wp_send_json → exit
-        // In tests, wp_send_json calls wp_die which throws WPDieException
+        // The filter returns a JsonResponse, which triggers handleJson → wp_send_json
+        // wp_send_json echoes JSON and calls wp_die (via wp_doing_ajax), which throws WPDieException
         try {
+            ob_start();
             $entry->handleTemplateRedirect();
         } catch (\WPDieException) {
             // Expected: wp_send_json calls wp_die in test environment
+        } finally {
+            ob_end_clean();
+            remove_filter('wp_doing_ajax', $doingAjax);
+            remove_all_filters('wppack_routing_exception_response');
+            remove_all_filters('wppack_routing_exception');
         }
-
-        remove_all_filters('wppack_routing_exception_response');
-        remove_all_filters('wppack_routing_exception');
 
         // Verify the 404 was still set before the filter overrode
         global $wp_query;

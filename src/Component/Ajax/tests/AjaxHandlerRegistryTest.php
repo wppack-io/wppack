@@ -223,8 +223,11 @@ final class AjaxHandlerRegistryTest extends TestCase
      */
     private function executeAjaxCallback(string $hook): string
     {
-        add_filter('wp_die_ajax_handler', static fn(): string => self::class . '::ajaxDieHandler');
-        add_filter('wp_doing_ajax', static fn(): bool => true);
+        $dieFilter = static fn(): string => self::class . '::ajaxDieHandler';
+        $ajaxFilter = static fn(): bool => true;
+
+        add_filter('wp_die_ajax_handler', $dieFilter);
+        add_filter('wp_doing_ajax', $ajaxFilter);
 
         ob_start();
 
@@ -236,8 +239,8 @@ final class AjaxHandlerRegistryTest extends TestCase
 
         $output = ob_get_clean();
 
-        remove_filter('wp_die_ajax_handler', static fn(): string => self::class . '::ajaxDieHandler');
-        remove_filter('wp_doing_ajax', static fn(): bool => true);
+        remove_filter('wp_die_ajax_handler', $dieFilter);
+        remove_filter('wp_doing_ajax', $ajaxFilter);
 
         return $output ?: '';
     }

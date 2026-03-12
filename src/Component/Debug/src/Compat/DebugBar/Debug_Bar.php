@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Debug_Bar compatibility stub.
  *
@@ -17,21 +19,17 @@ if (class_exists('Debug_Bar')) {
 // phpcs:disable PSR1.Classes.ClassDeclaration, Squiz.Classes.ValidClassName
 class Debug_Bar
 {
-    /** @var array */
+    /** @var array<int, Debug_Bar_Panel> */
     public $panels = [];
 
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 
     /**
      * Enqueue scripts and styles (no-op stub).
      *
      * @return void
      */
-    public function enqueue()
-    {
-    }
+    public function enqueue() {}
 
     /**
      * Initialise panels via the debug_bar_panels filter.

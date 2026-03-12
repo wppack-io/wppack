@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Debug_Bar_Panel compatibility stub.
  *
@@ -45,27 +47,21 @@ class Debug_Bar_Panel
      *
      * @return void|false
      */
-    public function init()
-    {
-    }
+    public function init() {}
 
     /**
      * Called before render().
      *
      * @return void
      */
-    public function prerender()
-    {
-    }
+    public function prerender() {}
 
     /**
      * Render the panel contents.
      *
      * @return void
      */
-    public function render()
-    {
-    }
+    public function render() {}
 
     /**
      * Whether this panel should be visible.
@@ -106,8 +102,8 @@ class Debug_Bar_Panel
     /**
      * Filter callback for debug_bar_classes.
      *
-     * @param array $classes
-     * @return array
+     * @param array<class-string> $classes
+     * @return array<class-string>
      */
     public function debug_bar_classes($classes)
     {
