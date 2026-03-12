@@ -127,4 +127,55 @@ final class StopwatchTest extends TestCase
         self::assertSame('timer_b', $eventB->name);
         self::assertSame('category_b', $eventB->category);
     }
+
+    #[Test]
+    public function startWithDefaultCategorySetsDefaultInEvent(): void
+    {
+        $this->stopwatch->start('evt');
+        $event = $this->stopwatch->stop('evt');
+
+        self::assertSame('default', $event->category);
+    }
+
+    #[Test]
+    public function isStartedReturnsFalseForNeverStartedEvent(): void
+    {
+        self::assertFalse($this->stopwatch->isStarted('never'));
+    }
+
+    #[Test]
+    public function stopReturnsEventWithValidTimingAndMemory(): void
+    {
+        $this->stopwatch->start('timing');
+        $event = $this->stopwatch->stop('timing');
+
+        self::assertLessThan($event->endTime, $event->startTime);
+        self::assertGreaterThan(0, $event->memory);
+    }
+
+    #[Test]
+    public function stopReturnsSameInstanceAsGetEvent(): void
+    {
+        $this->stopwatch->start('x');
+        $event = $this->stopwatch->stop('x');
+
+        self::assertSame($event, $this->stopwatch->getEvent('x'));
+    }
+
+    #[Test]
+    public function getEventsReturnsEmptyArrayInitially(): void
+    {
+        self::assertSame([], (new Stopwatch())->getEvents());
+    }
+
+    #[Test]
+    public function startOverwritesPreviouslyStartedTimer(): void
+    {
+        $this->stopwatch->start('x', 'first');
+        $this->stopwatch->start('x', 'second');
+        $event = $this->stopwatch->stop('x');
+
+        self::assertSame('second', $event->category);
+        self::assertCount(1, $this->stopwatch->getEvents());
+    }
 }
