@@ -61,7 +61,7 @@ final class EnvironmentPanelRenderer extends AbstractPanelRenderer implements Re
             $tooltipHtml .= '<div>' . $this->esc($line) . '</div>';
         }
 
-        return '<div class="wpd-bar-env">'
+        return '<div class="wpd-bar-env" data-panel="environment">'
             . '<span class="wpd-env-label">' . $labelParts . '</span>'
             . '<div class="wpd-env-tooltip">' . $tooltipHtml . '</div>'
             . '</div>';

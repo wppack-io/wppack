@@ -177,7 +177,7 @@ final class ToolbarAssets
             height: 100%;
             border-left: 1px solid #e5e7eb;
             flex-shrink: 0;
-            cursor: default;
+            cursor: pointer;
         }
         #wppack-debug .wpd-env-label {
             display: flex;
@@ -1266,6 +1266,20 @@ final class ToolbarAssets
                         closeOverlay();
                     } else {
                         openPanel(panel);
+                    }
+                    return;
+                }
+
+                // Environment info click — toggle panel
+                var envBar = e.target.closest('.wpd-bar-env');
+                if (envBar) {
+                    var panel = envBar.getAttribute('data-panel');
+                    if (panel) {
+                        if (activePanel === panel) {
+                            closeOverlay();
+                        } else {
+                            openPanel(panel);
+                        }
                     }
                     return;
                 }
