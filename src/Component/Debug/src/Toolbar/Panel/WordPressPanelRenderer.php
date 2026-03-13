@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
 use WpPack\Component\Debug\Attribute\AsPanelRenderer;
+use WpPack\Component\Debug\Profiler\Profile;
 
 #[AsPanelRenderer(name: 'wordpress')]
 final class WordPressPanelRenderer extends AbstractPanelRenderer implements PanelRendererInterface
@@ -14,20 +15,27 @@ final class WordPressPanelRenderer extends AbstractPanelRenderer implements Pane
         return 'wordpress';
     }
 
-    public function render(array $data): string
+    public function render(Profile $profile): string
     {
+        $wpData = $this->getCollectorData($profile, 'wordpress');
+        $envData = $this->getCollectorData($profile, 'environment');
+        $themeData = $this->getCollectorData($profile, 'theme');
+        $pluginData = $this->getCollectorData($profile, 'plugin');
+
         $html = '<div class="wpd-section">';
         $html .= '<h4 class="wpd-section-title">Environment</h4>';
         $html .= '<table class="wpd-table wpd-table-kv">';
-        $html .= $this->renderTableRow('WordPress Version', (string) ($data['wp_version'] ?? 'N/A'));
-        $html .= $this->renderTableRow('PHP Version', (string) ($data['php_version'] ?? 'N/A'));
-        $html .= $this->renderTableRow('Environment', (string) ($data['environment_type'] ?? 'N/A'));
-        $html .= $this->renderTableRow('Multisite', ($data['is_multisite'] ?? false) ? 'Yes' : 'No');
+        $html .= $this->renderTableRow('WordPress Version', (string) ($wpData['wp_version'] ?? 'N/A'));
+
+        $phpVersion = (string) ($envData['php']['version'] ?? PHP_VERSION);
+        $html .= $this->renderTableRow('PHP Version', $phpVersion);
+        $html .= $this->renderTableRow('Environment', (string) ($wpData['environment_type'] ?? 'N/A'));
+        $html .= $this->renderTableRow('Multisite', ($wpData['is_multisite'] ?? false) ? 'Yes' : 'No');
         $html .= '</table>';
         $html .= '</div>';
 
         /** @var array<string, bool|null> $constants */
-        $constants = $data['constants'] ?? [];
+        $constants = $wpData['constants'] ?? [];
         if ($constants !== []) {
             $html .= '<div class="wpd-section">';
             $html .= '<h4 class="wpd-section-title">Debug Constants</h4>';
@@ -47,21 +55,21 @@ final class WordPressPanelRenderer extends AbstractPanelRenderer implements Pane
         $html .= '<div class="wpd-section">';
         $html .= '<h4 class="wpd-section-title">Active Theme</h4>';
         $html .= '<table class="wpd-table wpd-table-kv">';
-        $themeName = (string) ($data['theme'] ?? 'N/A');
+        $themeName = (string) ($themeData['name'] ?? 'N/A');
         $html .= $this->renderTableRow('Name', $themeName);
 
         if ($themeName !== 'N/A') {
-            $isBlockTheme = (bool) ($data['is_block_theme'] ?? false);
+            $isBlockTheme = (bool) ($themeData['is_block_theme'] ?? false);
             $themeTypeLabel = $isBlockTheme ? 'Block (FSE)' : 'Classic';
             $html .= $this->renderTableRow('Type', '<span class="wpd-tag">' . $this->esc($themeTypeLabel) . '</span>');
         }
 
-        $isChildTheme = (bool) ($data['is_child_theme'] ?? false);
+        $isChildTheme = (bool) ($themeData['is_child_theme'] ?? false);
         if ($isChildTheme) {
-            $html .= $this->renderTableRow('Parent Theme', $this->esc((string) ($data['parent_theme'] ?? '')));
+            $html .= $this->renderTableRow('Parent Theme', $this->esc((string) ($themeData['parent_theme'] ?? '')));
         }
 
-        $themeVersion = (string) ($data['theme_version'] ?? '');
+        $themeVersion = (string) ($themeData['version'] ?? '');
         if ($themeVersion !== '') {
             $html .= $this->renderTableRow('Version', $this->esc($themeVersion));
         }
@@ -69,8 +77,19 @@ final class WordPressPanelRenderer extends AbstractPanelRenderer implements Pane
         $html .= '</table>';
         $html .= '</div>';
 
-        /** @var array<string, string> $muPlugins */
-        $muPlugins = $data['mu_plugins'] ?? [];
+        // Separate MU and regular plugins from plugin data
+        /** @var array<string, array<string, mixed>> $allPlugins */
+        $allPlugins = $pluginData['plugins'] ?? [];
+        $muPlugins = [];
+        $activePlugins = [];
+        foreach ($allPlugins as $slug => $info) {
+            if ($info['is_mu'] ?? false) {
+                $muPlugins[$slug] = (string) ($info['name'] ?? $slug);
+            } else {
+                $activePlugins[$slug] = (string) ($info['name'] ?? $slug);
+            }
+        }
+
         if ($muPlugins !== []) {
             $html .= '<div class="wpd-section">';
             $html .= '<h4 class="wpd-section-title">Must-Use Plugins (' . $this->esc((string) count($muPlugins)) . ')</h4>';
@@ -82,13 +101,11 @@ final class WordPressPanelRenderer extends AbstractPanelRenderer implements Pane
             $html .= '</div>';
         }
 
-        /** @var array<string, string> $plugins */
-        $plugins = $data['active_plugins'] ?? [];
-        if ($plugins !== []) {
+        if ($activePlugins !== []) {
             $html .= '<div class="wpd-section">';
-            $html .= '<h4 class="wpd-section-title">Active Plugins (' . $this->esc((string) count($plugins)) . ')</h4>';
+            $html .= '<h4 class="wpd-section-title">Active Plugins (' . $this->esc((string) count($activePlugins)) . ')</h4>';
             $html .= '<ul class="wpd-list">';
-            foreach ($plugins as $plugin) {
+            foreach ($activePlugins as $plugin) {
                 $html .= '<li>' . $this->esc($plugin) . '</li>';
             }
             $html .= '</ul>';
@@ -96,7 +113,7 @@ final class WordPressPanelRenderer extends AbstractPanelRenderer implements Pane
         }
 
         /** @var list<string> $extensions */
-        $extensions = $data['extensions'] ?? [];
+        $extensions = $envData['extensions'] ?? [];
         if ($extensions !== []) {
             $html .= '<div class="wpd-section">';
             $html .= '<h4 class="wpd-section-title">PHP Extensions (' . $this->esc((string) count($extensions)) . ')</h4>';
