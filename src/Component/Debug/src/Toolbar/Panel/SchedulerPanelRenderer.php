@@ -76,7 +76,7 @@ final class SchedulerPanelRenderer extends AbstractPanelRenderer implements Rend
                 $html .= '<td><span class="wpd-tag">' . $this->esc((string) ($event['schedule'] ?? '')) . '</span></td>';
                 $html .= '<td>' . $this->esc((string) ($event['next_run_relative'] ?? ''));
                 if ($isOverdue) {
-                    $html .= ' <span class="wpd-query-tag wpd-tag-slow">OVERDUE</span>';
+                    $html .= ' ' . $this->badge('OVERDUE', 'red');
                 }
                 $html .= '</td>';
                 $html .= '<td class="wpd-col-right">' . $this->esc((string) ($event['callbacks'] ?? 0)) . '</td>';

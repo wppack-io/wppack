@@ -27,13 +27,13 @@ final class RequestPanelRenderer extends AbstractPanelRenderer implements Render
         $html .= '<table class="wpd-table wpd-table-kv">';
         $method = (string) ($data['method'] ?? '');
         $methodColor = match ($method) {
-            'GET' => 'background:var(--wpd-green-a8);color:var(--wpd-green)',
-            'POST' => 'background:var(--wpd-primary-a8);color:var(--wpd-primary)',
-            'PUT', 'PATCH' => 'background:var(--wpd-yellow-a8);color:var(--wpd-yellow)',
-            'DELETE' => 'background:var(--wpd-red-a8);color:var(--wpd-red)',
-            default => 'background:var(--wpd-gray-800-a8);color:var(--wpd-gray-800)',
+            'GET' => 'green',
+            'POST' => 'primary',
+            'PUT', 'PATCH' => 'yellow',
+            'DELETE' => 'red',
+            default => 'gray',
         };
-        $methodTag = '<span class="wpd-query-tag" style="' . $methodColor . '">' . $this->esc($method) . '</span>';
+        $methodTag = $this->badge($method, $methodColor);
         $html .= $this->renderTableRow('Method', $methodTag);
         $html .= $this->renderTableRow('URL', (string) ($data['url'] ?? ''));
 

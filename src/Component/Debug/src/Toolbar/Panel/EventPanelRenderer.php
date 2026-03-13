@@ -57,9 +57,9 @@ final class EventPanelRenderer extends AbstractPanelRenderer implements Renderer
 
             foreach ($componentSummary as $component => $summary) {
                 $typeTag = match ($summary['type']) {
-                    'plugin' => '<span class="wpd-query-tag" style="background:rgba(130,50,150,0.12);color:#7b2d8e">plugin</span>',
-                    'theme' => '<span class="wpd-query-tag" style="background:rgba(160,50,30,0.12);color:#9b3520">theme</span>',
-                    'core' => '<span class="wpd-query-tag" style="background:var(--wpd-primary-a8);color:var(--wpd-primary)">core</span>',
+                    'plugin' => $this->badge('plugin', 'purple'),
+                    'theme' => $this->badge('theme', 'rust'),
+                    'core' => $this->badge('core', 'primary'),
                     default => '<span class="wpd-tag">' . $this->esc($summary['type']) . '</span>',
                 };
 

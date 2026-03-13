@@ -9,7 +9,7 @@ use WpPack\Component\Debug\Profiler\Profile;
 abstract class AbstractPanelRenderer
 {
     /** @var array<string, array{bg: string, fg: string}> */
-    private const BADGE_COLORS = [
+    private const INDICATOR_COLORS = [
         'green' => ['bg' => 'var(--wpd-green-a12)', 'fg' => 'var(--wpd-green)'],
         'yellow' => ['bg' => 'var(--wpd-yellow-a12)', 'fg' => 'var(--wpd-yellow)'],
         'red' => ['bg' => 'var(--wpd-red-a12)', 'fg' => 'var(--wpd-red)'],
@@ -20,7 +20,7 @@ abstract class AbstractPanelRenderer
 
     abstract public function getName(): string;
 
-    public function renderBadge(Profile $profile): string
+    public function renderIndicator(Profile $profile): string
     {
         try {
             $collector = $profile->getCollector($this->getName());
@@ -30,13 +30,13 @@ abstract class AbstractPanelRenderer
 
         $name = $this->esc($collector->getName());
         $label = $this->esc($collector->getLabel());
-        $value = $collector->getBadgeValue();
-        $colorKey = $collector->getBadgeColor();
-        $colors = self::BADGE_COLORS[$colorKey] ?? self::BADGE_COLORS['default'];
+        $value = $collector->getIndicatorValue();
+        $colorKey = $collector->getIndicatorColor();
+        $colors = self::INDICATOR_COLORS[$colorKey] ?? self::INDICATOR_COLORS['default'];
         $icon = ToolbarIcons::svg($collector->getName());
 
         $valueHtml = $value !== ''
-            ? ' <span class="wpd-badge-value" style="color:' . $colors['fg'] . '">' . $this->esc($value) . '</span>'
+            ? ' <span class="wpd-indicator-value" style="color:' . $colors['fg'] . '">' . $this->esc($value) . '</span>'
             : '';
 
         $bgStyle = $colors['bg'] !== 'transparent' ? ' style="background:' . $colors['bg'] . '"' : '';
@@ -45,8 +45,8 @@ abstract class AbstractPanelRenderer
         $accentAttr = $colorKey !== 'default' ? ' data-accent="' . $colors['fg'] . '"' : '';
 
         return <<<HTML
-        <button class="wpd-badge" data-panel="{$name}" data-tooltip="{$label}"{$bgStyle}{$accentAttr}>
-            <span class="wpd-badge-icon"{$iconStyle}>{$icon}</span>{$valueHtml}
+        <button class="wpd-indicator" data-panel="{$name}" data-tooltip="{$label}"{$bgStyle}{$accentAttr}>
+            <span class="wpd-indicator-icon"{$iconStyle}>{$icon}</span>{$valueHtml}
         </button>
         HTML;
     }
@@ -312,6 +312,11 @@ abstract class AbstractPanelRenderer
         return $this->esc(sprintf('%.1f %s', round($value, 1), $units[$power]));
     }
 
+    protected function badge(string $label, string $color): string
+    {
+        return '<span class="wpd-badge wpd-badge-' . $this->esc($color) . '">' . $this->esc($label) . '</span>';
+    }
+
     protected function esc(string $value): string
     {
         return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -320,8 +325,8 @@ abstract class AbstractPanelRenderer
     /**
      * @return array<string, array{bg: string, fg: string}>
      */
-    public static function getBadgeColors(): array
+    public static function getIndicatorColors(): array
     {
-        return self::BADGE_COLORS;
+        return self::INDICATOR_COLORS;
     }
 }

@@ -59,13 +59,13 @@ final class RestPanelRenderer extends AbstractPanelRenderer implements RendererI
                 $methodTags = '';
                 foreach ($route['methods'] as $method) {
                     $color = match ($method) {
-                        'GET' => 'background:var(--wpd-green-a8);color:var(--wpd-green)',
-                        'POST' => 'background:var(--wpd-primary-a8);color:var(--wpd-primary)',
-                        'PUT', 'PATCH' => 'background:var(--wpd-yellow-a8);color:var(--wpd-yellow)',
-                        'DELETE' => 'background:var(--wpd-red-a8);color:var(--wpd-red)',
-                        default => 'background:var(--wpd-gray-800-a8);color:var(--wpd-gray-800)',
+                        'GET' => 'green',
+                        'POST' => 'primary',
+                        'PUT', 'PATCH' => 'yellow',
+                        'DELETE' => 'red',
+                        default => 'gray',
                     };
-                    $methodTags .= '<span class="wpd-query-tag" style="' . $color . '">' . $this->esc($method) . '</span> ';
+                    $methodTags .= $this->badge($method, $color) . ' ';
                 }
 
                 $html .= '<tr>';
@@ -98,13 +98,13 @@ final class RestPanelRenderer extends AbstractPanelRenderer implements RendererI
         $params = $request['params'] ?? [];
 
         $methodColor = match ($method) {
-            'GET' => 'background:var(--wpd-green-a8);color:var(--wpd-green)',
-            'POST' => 'background:var(--wpd-primary-a8);color:var(--wpd-primary)',
-            'PUT', 'PATCH' => 'background:var(--wpd-yellow-a8);color:var(--wpd-yellow)',
-            'DELETE' => 'background:var(--wpd-red-a8);color:var(--wpd-red)',
-            default => 'background:var(--wpd-gray-800-a8);color:var(--wpd-gray-800)',
+            'GET' => 'green',
+            'POST' => 'primary',
+            'PUT', 'PATCH' => 'yellow',
+            'DELETE' => 'red',
+            default => 'gray',
         };
-        $methodTag = '<span class="wpd-query-tag" style="' . $methodColor . '">' . $this->esc($method) . '</span>';
+        $methodTag = $this->badge($method, $methodColor);
 
         $statusColorClass = match (true) {
             $status >= 200 && $status < 300 => 'wpd-text-green',
@@ -113,10 +113,10 @@ final class RestPanelRenderer extends AbstractPanelRenderer implements RendererI
         };
 
         $authTag = match ($authentication) {
-            'bearer' => '<span class="wpd-query-tag" style="background:rgba(130,50,150,0.12);color:#7b2d8e">Bearer</span>',
-            'basic' => '<span class="wpd-query-tag" style="background:var(--wpd-yellow-a8);color:var(--wpd-yellow)">Basic</span>',
-            'nonce' => '<span class="wpd-query-tag" style="background:var(--wpd-primary-a8);color:var(--wpd-primary)">Nonce</span>',
-            'cookie' => '<span class="wpd-query-tag" style="background:var(--wpd-green-a8);color:var(--wpd-green)">Cookie</span>',
+            'bearer' => $this->badge('Bearer', 'purple'),
+            'basic' => $this->badge('Basic', 'yellow'),
+            'nonce' => $this->badge('Nonce', 'primary'),
+            'cookie' => $this->badge('Cookie', 'green'),
             default => '<span class="wpd-text-dim">' . $this->esc($authentication) . '</span>',
         };
 

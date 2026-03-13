@@ -75,8 +75,8 @@ final class CachePanelRenderer extends AbstractPanelRenderer implements Renderer
                     default => $this->esc((string) $op['expiration']) . ' s',
                 };
                 $opTag = $op['operation'] === 'set'
-                    ? '<span class="wpd-query-tag" style="background:var(--wpd-green-a8);color:var(--wpd-green)">SET</span>'
-                    : '<span class="wpd-query-tag" style="background:var(--wpd-red-a8);color:var(--wpd-red)">DELETE</span>';
+                    ? $this->badge('SET', 'green')
+                    : $this->badge('DELETE', 'red');
 
                 $html .= '<tr>';
                 $html .= '<td class="wpd-col-num">' . $this->esc((string) ($index + 1)) . '</td>';

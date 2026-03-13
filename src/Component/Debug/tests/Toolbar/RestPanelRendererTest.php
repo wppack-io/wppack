@@ -123,13 +123,13 @@ final class RestPanelRendererTest extends TestCase
         ]));
 
         // GET - green
-        self::assertStringContainsString('color:#008a20', $html);
-        // POST - blue
-        self::assertStringContainsString('color:#3858e9', $html);
-        // PUT - yellow/brown
-        self::assertStringContainsString('color:#996800', $html);
+        self::assertStringContainsString('wpd-badge-green', $html);
+        // POST - primary
+        self::assertStringContainsString('wpd-badge-primary', $html);
+        // PUT - yellow
+        self::assertStringContainsString('wpd-badge-yellow', $html);
         // DELETE - red
-        self::assertStringContainsString('color:#cc1818', $html);
+        self::assertStringContainsString('wpd-badge-red', $html);
     }
 
     #[Test]
@@ -154,7 +154,7 @@ final class RestPanelRendererTest extends TestCase
         ]));
 
         self::assertStringContainsString('Bearer', $html);
-        self::assertStringContainsString('color:#7b2d8e', $html);
+        self::assertStringContainsString('wpd-badge-purple', $html);
     }
 
     #[Test]
@@ -220,8 +220,8 @@ final class RestPanelRendererTest extends TestCase
             ],
         ]));
 
-        // OPTIONS method uses default color
-        self::assertStringContainsString('color:#50575e', $html);
+        // OPTIONS method uses default (gray) color
+        self::assertStringContainsString('wpd-badge-gray', $html);
     }
 
     #[Test]
@@ -246,7 +246,7 @@ final class RestPanelRendererTest extends TestCase
 
         // DELETE method in current request section
         self::assertStringContainsString('DELETE', $html);
-        self::assertStringContainsString('color:#cc1818', $html);
+        self::assertStringContainsString('wpd-badge-red', $html);
         // Cookie auth tag
         self::assertStringContainsString('Cookie', $html);
     }
@@ -273,7 +273,7 @@ final class RestPanelRendererTest extends TestCase
 
         // PUT method in current request
         self::assertStringContainsString('PUT', $html);
-        self::assertStringContainsString('color:#996800', $html);
+        self::assertStringContainsString('wpd-badge-yellow', $html);
         // Basic auth tag
         self::assertStringContainsString('Basic', $html);
     }
@@ -299,11 +299,11 @@ final class RestPanelRendererTest extends TestCase
             {
                 return 'REST API';
             }
-            public function getBadgeValue(): string
+            public function getIndicatorValue(): string
             {
                 return '';
             }
-            public function getBadgeColor(): string
+            public function getIndicatorColor(): string
             {
                 return 'default';
             }

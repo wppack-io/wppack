@@ -57,6 +57,10 @@ final class ToolbarAssets
             --wpd-dark-red-a12: rgba(153, 0, 0, 0.12);
             --wpd-gray-800-a8: rgba(55, 65, 81, 0.08);
             --wpd-gray-500-a10: rgba(107, 114, 128, 0.10);
+            --wpd-purple: #7b2d8e;
+            --wpd-purple-a8: rgba(130, 50, 150, 0.08);
+            --wpd-rust: #9b3520;
+            --wpd-rust-a8: rgba(160, 50, 30, 0.08);
 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             font-size: 13px;
@@ -121,15 +125,15 @@ final class ToolbarAssets
             white-space: nowrap;
         }
 
-        /* ---- Badges container ---- */
-        #wppack-debug .wpd-bar-badges-wrap {
+        /* ---- Indicators container ---- */
+        #wppack-debug .wpd-bar-indicators-wrap {
             position: relative;
             flex: 1 1 auto;
             min-width: 0;
             height: 100%;
         }
-        #wppack-debug .wpd-bar-badges-wrap::before,
-        #wppack-debug .wpd-bar-badges-wrap::after {
+        #wppack-debug .wpd-bar-indicators-wrap::before,
+        #wppack-debug .wpd-bar-indicators-wrap::after {
             content: '';
             position: absolute;
             top: 0;
@@ -140,21 +144,21 @@ final class ToolbarAssets
             opacity: 0;
             transition: opacity 0.15s;
         }
-        #wppack-debug .wpd-bar-badges-wrap::before {
+        #wppack-debug .wpd-bar-indicators-wrap::before {
             left: 0;
             background: linear-gradient(to right, var(--wpd-white) 10%, transparent);
         }
-        #wppack-debug .wpd-bar-badges-wrap::after {
+        #wppack-debug .wpd-bar-indicators-wrap::after {
             right: 0;
             background: linear-gradient(to left, var(--wpd-white) 10%, transparent);
         }
-        #wppack-debug .wpd-bar-badges-wrap.wpd-fade-left::before {
+        #wppack-debug .wpd-bar-indicators-wrap.wpd-fade-left::before {
             opacity: 1;
         }
-        #wppack-debug .wpd-bar-badges-wrap.wpd-fade-right::after {
+        #wppack-debug .wpd-bar-indicators-wrap.wpd-fade-right::after {
             opacity: 1;
         }
-        #wppack-debug .wpd-bar-badges {
+        #wppack-debug .wpd-bar-indicators {
             display: flex;
             align-items: center;
             height: 100%;
@@ -162,12 +166,12 @@ final class ToolbarAssets
             overflow-y: hidden;
             scrollbar-width: none;
         }
-        #wppack-debug .wpd-bar-badges::-webkit-scrollbar {
+        #wppack-debug .wpd-bar-indicators::-webkit-scrollbar {
             display: none;
         }
 
-        /* ---- Badges ---- */
-        #wppack-debug .wpd-badge {
+        /* ---- Indicators ---- */
+        #wppack-debug .wpd-indicator {
             display: flex;
             align-items: center;
             gap: 4px;
@@ -184,17 +188,17 @@ final class ToolbarAssets
             height: 100%;
             transition: background 0.15s ease;
         }
-        #wppack-debug .wpd-badge:last-child {
+        #wppack-debug .wpd-indicator:last-child {
             border-right: none;
         }
-        #wppack-debug .wpd-badge:hover {
+        #wppack-debug .wpd-indicator:hover {
             background: var(--wpd-gray-100);
         }
-        #wppack-debug .wpd-badge.wpd-active {
+        #wppack-debug .wpd-indicator.wpd-active {
             background: transparent;
             box-shadow: inset 0 -2px 0 var(--wpd-accent, var(--wpd-primary));
         }
-        #wppack-debug .wpd-badge-icon {
+        #wppack-debug .wpd-indicator-icon {
             display: flex;
             align-items: center;
             line-height: 1;
@@ -205,7 +209,7 @@ final class ToolbarAssets
             vertical-align: middle;
             flex-shrink: 0;
         }
-        #wppack-debug .wpd-badge-value {
+        #wppack-debug .wpd-indicator-value {
             font-size: 12px;
             font-weight: 400;
             color: var(--wpd-gray-800);
@@ -607,8 +611,8 @@ final class ToolbarAssets
             background: var(--wpd-yellow-a8);
         }
 
-        /* Query tags */
-        #wppack-debug .wpd-query-tag {
+        /* Badges */
+        #wppack-debug .wpd-badge {
             display: inline-block;
             font-size: 10px;
             font-weight: 600;
@@ -618,13 +622,33 @@ final class ToolbarAssets
             border-radius: 4px;
             vertical-align: middle;
         }
-        #wppack-debug .wpd-tag-slow {
+        #wppack-debug .wpd-badge-green {
+            background: var(--wpd-green-a8);
+            color: var(--wpd-green);
+        }
+        #wppack-debug .wpd-badge-primary {
+            background: var(--wpd-primary-a8);
+            color: var(--wpd-primary);
+        }
+        #wppack-debug .wpd-badge-yellow {
+            background: var(--wpd-yellow-a8);
+            color: var(--wpd-yellow);
+        }
+        #wppack-debug .wpd-badge-red {
             background: var(--wpd-red-a8);
             color: var(--wpd-red);
         }
-        #wppack-debug .wpd-tag-dup {
-            background: var(--wpd-yellow-a8);
-            color: var(--wpd-yellow);
+        #wppack-debug .wpd-badge-gray {
+            background: var(--wpd-gray-800-a8);
+            color: var(--wpd-gray-800);
+        }
+        #wppack-debug .wpd-badge-purple {
+            background: var(--wpd-purple-a8);
+            color: var(--wpd-purple);
+        }
+        #wppack-debug .wpd-badge-rust {
+            background: var(--wpd-rust-a8);
+            color: var(--wpd-rust);
         }
 
         /* ---- Timeline ---- */
@@ -1128,10 +1152,10 @@ final class ToolbarAssets
 
         /* Small mobile */
         @media (max-width: 480px) {
-            #wppack-debug .wpd-badge {
+            #wppack-debug .wpd-indicator {
                 padding: 0 8px;
             }
-            #wppack-debug .wpd-badge-value {
+            #wppack-debug .wpd-indicator-value {
                 display: none;
             }
             #wppack-debug .wpd-bar-env {
@@ -1170,31 +1194,31 @@ final class ToolbarAssets
             var contentHeader = root.querySelector('.wpd-content-header .wpd-panel-title');
             var activePanel = null;
 
-            // Badge scroll fade
-            var badgesWrap = root.querySelector('.wpd-bar-badges-wrap');
-            var badgesScroll = root.querySelector('.wpd-bar-badges');
-            function updateBadgeFade() {
-                if (!badgesWrap || !badgesScroll) return;
-                var sl = badgesScroll.scrollLeft;
-                var maxSl = badgesScroll.scrollWidth - badgesScroll.clientWidth;
+            // Indicator scroll fade
+            var indicatorsWrap = root.querySelector('.wpd-bar-indicators-wrap');
+            var indicatorsScroll = root.querySelector('.wpd-bar-indicators');
+            function updateIndicatorFade() {
+                if (!indicatorsWrap || !indicatorsScroll) return;
+                var sl = indicatorsScroll.scrollLeft;
+                var maxSl = indicatorsScroll.scrollWidth - indicatorsScroll.clientWidth;
                 if (maxSl <= 0) {
-                    badgesWrap.classList.remove('wpd-fade-left', 'wpd-fade-right');
+                    indicatorsWrap.classList.remove('wpd-fade-left', 'wpd-fade-right');
                     return;
                 }
-                badgesWrap.classList.toggle('wpd-fade-left', sl > 2);
-                badgesWrap.classList.toggle('wpd-fade-right', sl < maxSl - 2);
+                indicatorsWrap.classList.toggle('wpd-fade-left', sl > 2);
+                indicatorsWrap.classList.toggle('wpd-fade-right', sl < maxSl - 2);
             }
-            if (badgesScroll) {
-                badgesScroll.addEventListener('scroll', updateBadgeFade);
-                updateBadgeFade();
+            if (indicatorsScroll) {
+                indicatorsScroll.addEventListener('scroll', updateIndicatorFade);
+                updateIndicatorFade();
             }
 
             function closeOverlay() {
                 overlay.style.display = 'none';
                 root.classList.remove('wpd-panel-open');
-                var badges = root.querySelectorAll('.wpd-badge');
-                for (var i = 0; i < badges.length; i++) {
-                    badges[i].classList.remove('wpd-active');
+                var indicators = root.querySelectorAll('.wpd-indicator');
+                for (var i = 0; i < indicators.length; i++) {
+                    indicators[i].classList.remove('wpd-active');
                 }
                 var items = root.querySelectorAll('.wpd-sidebar-item');
                 for (var i = 0; i < items.length; i++) {
@@ -1251,15 +1275,15 @@ final class ToolbarAssets
                     }
                 }
 
-                // Highlight badge
-                var badges = root.querySelectorAll('.wpd-badge');
-                for (var i = 0; i < badges.length; i++) {
-                    if (badges[i].getAttribute('data-panel') === name) {
-                        badges[i].classList.add('wpd-active');
-                        var accent = badges[i].getAttribute('data-accent');
-                        badges[i].style.setProperty('--wpd-accent', accent || 'var(--wpd-primary)');
+                // Highlight indicator
+                var indicators = root.querySelectorAll('.wpd-indicator');
+                for (var i = 0; i < indicators.length; i++) {
+                    if (indicators[i].getAttribute('data-panel') === name) {
+                        indicators[i].classList.add('wpd-active');
+                        var accent = indicators[i].getAttribute('data-accent');
+                        indicators[i].style.setProperty('--wpd-accent', accent || 'var(--wpd-primary)');
                     } else {
-                        badges[i].classList.remove('wpd-active');
+                        indicators[i].classList.remove('wpd-active');
                     }
                 }
 
@@ -1308,10 +1332,10 @@ final class ToolbarAssets
                     return;
                 }
 
-                // Badge click — toggle panel
-                var badge = e.target.closest('.wpd-badge');
-                if (badge) {
-                    var panel = badge.getAttribute('data-panel');
+                // Indicator click — toggle panel
+                var indicator = e.target.closest('.wpd-indicator');
+                if (indicator) {
+                    var panel = indicator.getAttribute('data-panel');
                     if (activePanel === panel) {
                         closeOverlay();
                     } else {
@@ -1484,9 +1508,9 @@ final class ToolbarAssets
                     + '<td class="wpd-col-right">' + duration.toFixed(0) + ' ms</td>'
                     + '<td class="wpd-col-right">' + (size > 0 ? (size > 1024 ? (size/1024).toFixed(1) + ' KB' : size + ' B') : '-') + '</td>';
                 tbody.appendChild(tr);
-                // Update badge
-                var badges = document.querySelectorAll('.wpd-badge[data-panel="ajax"] .wpd-badge-value');
-                badges.forEach(function(b){ b.textContent = String(ajaxCount); });
+                // Update indicator
+                var indicators = document.querySelectorAll('.wpd-indicator[data-panel="ajax"] .wpd-indicator-value');
+                indicators.forEach(function(b){ b.textContent = String(ajaxCount); });
             }
 
             // Patch XMLHttpRequest

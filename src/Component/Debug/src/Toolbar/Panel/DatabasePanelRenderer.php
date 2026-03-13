@@ -126,10 +126,10 @@ final class DatabasePanelRenderer extends AbstractPanelRenderer implements Rende
 
                 $badges = '';
                 if ($isSlow) {
-                    $badges .= '<span class="wpd-query-tag wpd-tag-slow">SLOW</span>';
+                    $badges .= $this->badge('SLOW', 'red');
                 }
                 if ($isDuplicate) {
-                    $badges .= '<span class="wpd-query-tag wpd-tag-dup">DUP</span>';
+                    $badges .= $this->badge('DUP', 'yellow');
                 }
 
                 $startTime = (float) ($query['start'] ?? 0);
