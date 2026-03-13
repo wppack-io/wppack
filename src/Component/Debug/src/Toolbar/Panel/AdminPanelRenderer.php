@@ -67,7 +67,7 @@ final class AdminPanelRenderer extends AbstractPanelRenderer implements PanelRen
 
             foreach ($adminMenus as $menuItem) {
                 $html .= '<tr>';
-                $html .= '<td><strong>' . $this->esc($menuItem['title']) . '</strong></td>';
+                $html .= '<td>' . $this->esc($menuItem['title']) . '</td>';
                 $html .= '<td><code>' . $this->esc($menuItem['slug']) . '</code></td>';
                 $html .= '<td>' . $this->esc($menuItem['capability']) . '</td>';
                 $html .= '</tr>';
