@@ -438,6 +438,13 @@ final class ToolbarAssets
             margin-bottom: 14px;
         }
 
+        #wppack-debug .wpd-table-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+
         /* ---- Tables ---- */
         #wppack-debug .wpd-table {
             width: 100%;

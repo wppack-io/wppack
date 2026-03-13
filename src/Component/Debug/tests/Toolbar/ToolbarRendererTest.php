@@ -423,6 +423,28 @@ final class ToolbarRendererTest extends TestCase
             'dropins' => ['object-cache.php'],
             'load_order' => ['woocommerce/woocommerce.php'],
         ]));
+        $profile->addCollector($this->createCollector('asset', 'Assets', '2', 'default', [
+            'scripts' => [
+                'wc-cart-fragments' => [
+                    'handle' => 'wc-cart-fragments',
+                    'src' => '/wp-content/plugins/woocommerce/assets/js/frontend/cart-fragments.min.js',
+                    'version' => '8.5.0',
+                    'in_footer' => true,
+                    'deps' => ['jquery'],
+                    'enqueued' => true,
+                ],
+            ],
+            'styles' => [
+                'woocommerce-layout' => [
+                    'handle' => 'woocommerce-layout',
+                    'src' => '/wp-content/plugins/woocommerce/assets/css/woocommerce-layout.css',
+                    'version' => '8.5.0',
+                    'media' => 'all',
+                    'deps' => [],
+                    'enqueued' => true,
+                ],
+            ],
+        ]));
 
         $html = $this->renderer->render($profile);
 
@@ -447,6 +469,8 @@ final class ToolbarRendererTest extends TestCase
         self::assertStringContainsString('Enqueued Assets', $html);
         self::assertStringContainsString('woocommerce-layout', $html);
         self::assertStringContainsString('wc-cart-fragments', $html);
+        self::assertStringContainsString('cart-fragments.min.js', $html);
+        self::assertStringContainsString('woocommerce-layout.css', $html);
     }
 
     #[Test]
@@ -473,6 +497,28 @@ final class ToolbarRendererTest extends TestCase
                 ['hook' => 'wp_head', 'listeners' => 5, 'time' => 6.5],
             ],
         ]));
+        $profile->addCollector($this->createCollector('asset', 'Assets', '2', 'default', [
+            'scripts' => [
+                'jquery' => [
+                    'handle' => 'jquery',
+                    'src' => '',
+                    'version' => '3.7.1',
+                    'in_footer' => false,
+                    'deps' => ['jquery-core', 'jquery-migrate'],
+                    'enqueued' => true,
+                ],
+            ],
+            'styles' => [
+                'theme-style' => [
+                    'handle' => 'theme-style',
+                    'src' => '/wp-content/themes/flavor/style.css',
+                    'version' => '2.1.0',
+                    'media' => 'all',
+                    'deps' => [],
+                    'enqueued' => true,
+                ],
+            ],
+        ]));
 
         $html = $this->renderer->render($profile);
 
@@ -486,6 +532,7 @@ final class ToolbarRendererTest extends TestCase
         self::assertStringContainsString('is_single', $html);
         self::assertStringContainsString('Enqueued Assets', $html);
         self::assertStringContainsString('theme-style', $html);
+        self::assertStringContainsString('style.css', $html);
     }
 
     #[Test]

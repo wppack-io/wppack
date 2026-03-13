@@ -618,6 +618,22 @@ $collectors[] = new FakeCollector('environment', 'Environment', '', 'default', [
         'hit_rate' => 98.7,
         'oom_restarts' => 0,
     ],
+    'server' => [
+        'software' => 'nginx/1.24.0',
+        'web_server' => ['name' => 'Nginx', 'version' => '1.24.0', 'raw' => 'nginx/1.24.0'],
+        'name' => 'example.com',
+        'addr' => '10.0.0.1',
+        'port' => '443',
+        'protocol' => 'HTTP/2.0',
+        'document_root' => '/var/www/html',
+    ],
+    'runtime' => [
+        'type' => 'ecs',
+        'details' => [
+            'Launch Type' => 'Fargate',
+            'Region' => 'ap-northeast-1',
+        ],
+    ],
     'sapi' => 'fpm-fcgi',
     'os' => 'Linux',
     'architecture' => 64,
@@ -775,6 +791,11 @@ $collectors[] = new FakeCollector('asset', 'Assets', '18', 'default', [
         'contact-form-7' => ['handle' => 'contact-form-7', 'src' => '/wp-content/plugins/contact-form-7/includes/js/index.js', 'version' => '5.9', 'in_footer' => true, 'deps' => [], 'enqueued' => true],
         'flavor-main' => ['handle' => 'flavor-main', 'src' => '/wp-content/themes/flavor/assets/js/main.js', 'version' => '2.1.0', 'in_footer' => true, 'deps' => ['jquery'], 'enqueued' => true],
         'akismet-form' => ['handle' => 'akismet-form', 'src' => '/wp-content/plugins/akismet/akismet-frontend.js', 'version' => '5.3', 'in_footer' => true, 'deps' => [], 'enqueued' => true],
+        'jquery' => ['handle' => 'jquery', 'src' => '', 'version' => '3.7.1', 'in_footer' => false, 'deps' => ['jquery-core', 'jquery-migrate'], 'enqueued' => true],
+        'woocommerce' => ['handle' => 'woocommerce', 'src' => '/wp-content/plugins/woocommerce/assets/js/frontend/woocommerce.min.js', 'version' => '8.5.0', 'in_footer' => true, 'deps' => ['jquery'], 'enqueued' => true],
+        'wc-add-to-cart' => ['handle' => 'wc-add-to-cart', 'src' => '/wp-content/plugins/woocommerce/assets/js/frontend/add-to-cart.min.js', 'version' => '8.5.0', 'in_footer' => true, 'deps' => ['jquery'], 'enqueued' => true],
+        'yoast-seo-adminbar' => ['handle' => 'yoast-seo-adminbar', 'src' => '/wp-content/plugins/wordpress-seo/js/dist/adminbar.js', 'version' => '22.0', 'in_footer' => true, 'deps' => [], 'enqueued' => true],
+        'wpcf7-recaptcha' => ['handle' => 'wpcf7-recaptcha', 'src' => '/wp-content/plugins/contact-form-7/modules/recaptcha/index.js', 'version' => '5.9', 'in_footer' => true, 'deps' => [], 'enqueued' => true],
     ],
     'styles' => [
         'wp-block-library' => ['handle' => 'wp-block-library', 'src' => '/wp-includes/css/dist/block-library/style.min.css', 'version' => '6.7.1', 'media' => 'all', 'deps' => [], 'enqueued' => true],
@@ -788,11 +809,12 @@ $collectors[] = new FakeCollector('asset', 'Assets', '18', 'default', [
         'admin-bar' => ['handle' => 'admin-bar', 'src' => '/wp-includes/css/admin-bar.min.css', 'version' => '6.7.1', 'media' => 'all', 'deps' => ['dashicons'], 'enqueued' => true],
         'wp-block-library-theme' => ['handle' => 'wp-block-library-theme', 'src' => '/wp-includes/css/dist/block-library/theme.min.css', 'version' => '6.7.1', 'media' => 'all', 'deps' => [], 'enqueued' => true],
         'global-styles' => ['handle' => 'global-styles', 'src' => '', 'version' => '6.7.1', 'media' => 'all', 'deps' => [], 'enqueued' => true],
+        'woocommerce-smallscreen' => ['handle' => 'woocommerce-smallscreen', 'src' => '/wp-content/plugins/woocommerce/assets/css/woocommerce-smallscreen.css', 'version' => '8.5.0', 'media' => 'only screen and (max-width: 768px)', 'deps' => ['woocommerce-general'], 'enqueued' => true],
     ],
-    'enqueued_scripts' => 7,
-    'enqueued_styles' => 11,
-    'registered_scripts' => 42,
-    'registered_styles' => 35,
+    'enqueued_scripts' => 12,
+    'enqueued_styles' => 12,
+    'registered_scripts' => 47,
+    'registered_styles' => 36,
 ]);
 
 // REST API — simulating a REST request to GET /wp/v2/posts/42

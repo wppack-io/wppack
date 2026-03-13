@@ -176,6 +176,89 @@ abstract class AbstractPanelRenderer
         return $html;
     }
 
+    /**
+     * @param list<string>                        $styleHandles
+     * @param list<string>                        $scriptHandles
+     * @param array<string, array<string, mixed>> $allStyles
+     * @param array<string, array<string, mixed>> $allScripts
+     */
+    protected function renderAssetTables(
+        array $styleHandles,
+        array $scriptHandles,
+        array $allStyles,
+        array $allScripts,
+    ): string {
+        if ($styleHandles === [] && $scriptHandles === []) {
+            return '';
+        }
+
+        $html = '<div class="wpd-section">';
+        $html .= '<h4 class="wpd-section-title">Enqueued Assets</h4>';
+
+        if ($styleHandles !== []) {
+            $html .= '<div class="wpd-table-label">Styles</div>';
+            $html .= '<table class="wpd-table wpd-table-full">';
+            $html .= '<thead><tr>';
+            $html .= '<th>Handle</th>';
+            $html .= '<th>Source</th>';
+            $html .= '<th>Version</th>';
+            $html .= '<th>Media</th>';
+            $html .= '</tr></thead>';
+            $html .= '<tbody>';
+
+            foreach ($styleHandles as $handle) {
+                $info = $allStyles[$handle] ?? [];
+                $src = (string) ($info['src'] ?? '');
+                $version = (string) ($info['version'] ?? '');
+                $media = (string) ($info['media'] ?? '');
+
+                $html .= '<tr>';
+                $html .= '<td><code>' . $this->esc($handle) . '</code></td>';
+                $html .= '<td class="wpd-text-dim" style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' . ($src !== '' ? $this->esc($src) : '-') . '</td>';
+                $html .= '<td>' . ($version !== '' ? $this->esc($version) : '-') . '</td>';
+                $html .= '<td>' . ($media !== '' ? $this->esc($media) : '-') . '</td>';
+                $html .= '</tr>';
+            }
+
+            $html .= '</tbody></table>';
+        }
+
+        if ($scriptHandles !== []) {
+            if ($styleHandles !== []) {
+                $html .= '<div style="margin-top:8px"></div>';
+            }
+            $html .= '<div class="wpd-table-label">Scripts</div>';
+            $html .= '<table class="wpd-table wpd-table-full">';
+            $html .= '<thead><tr>';
+            $html .= '<th>Handle</th>';
+            $html .= '<th>Source</th>';
+            $html .= '<th>Version</th>';
+            $html .= '<th>Footer</th>';
+            $html .= '</tr></thead>';
+            $html .= '<tbody>';
+
+            foreach ($scriptHandles as $handle) {
+                $info = $allScripts[$handle] ?? [];
+                $src = (string) ($info['src'] ?? '');
+                $version = (string) ($info['version'] ?? '');
+                $inFooter = (bool) ($info['in_footer'] ?? false);
+
+                $html .= '<tr>';
+                $html .= '<td><code>' . $this->esc($handle) . '</code></td>';
+                $html .= '<td class="wpd-text-dim" style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' . ($src !== '' ? $this->esc($src) : '-') . '</td>';
+                $html .= '<td>' . ($version !== '' ? $this->esc($version) : '-') . '</td>';
+                $html .= '<td>' . $this->formatValue($inFooter) . '</td>';
+                $html .= '</tr>';
+            }
+
+            $html .= '</tbody></table>';
+        }
+
+        $html .= '</div>';
+
+        return $html;
+    }
+
     protected function formatValue(mixed $value): string
     {
         if (is_bool($value)) {

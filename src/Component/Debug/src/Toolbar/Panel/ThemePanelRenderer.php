@@ -118,27 +118,13 @@ final class ThemePanelRenderer extends AbstractPanelRenderer implements Renderer
         }
 
         // Assets
-        if ($enqueuedStyles !== [] || $enqueuedScripts !== []) {
-            $html .= '<div class="wpd-section">';
-            $html .= '<h4 class="wpd-section-title">Enqueued Assets</h4>';
-            if ($enqueuedStyles !== []) {
-                $html .= '<div style="margin-bottom:4px"><strong style="color:#757575;font-size:11px">Styles</strong></div>';
-                $html .= '<div class="wpd-tag-list" style="margin-bottom:8px">';
-                foreach ($enqueuedStyles as $style) {
-                    $html .= '<span class="wpd-tag">' . $this->esc($style) . '</span>';
-                }
-                $html .= '</div>';
-            }
-            if ($enqueuedScripts !== []) {
-                $html .= '<div style="margin-bottom:4px"><strong style="color:#757575;font-size:11px">Scripts</strong></div>';
-                $html .= '<div class="wpd-tag-list">';
-                foreach ($enqueuedScripts as $script) {
-                    $html .= '<span class="wpd-tag">' . $this->esc($script) . '</span>';
-                }
-                $html .= '</div>';
-            }
-            $html .= '</div>';
-        }
+        $assetData = $this->getCollectorData($profile, 'asset');
+        /** @var array<string, array<string, mixed>> $allScripts */
+        $allScripts = $assetData['scripts'] ?? [];
+        /** @var array<string, array<string, mixed>> $allStyles */
+        $allStyles = $assetData['styles'] ?? [];
+
+        $html .= $this->renderAssetTables($enqueuedStyles, $enqueuedScripts, $allStyles, $allScripts);
 
         // Body classes
         if ($bodyClasses !== []) {

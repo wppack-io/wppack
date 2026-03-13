@@ -125,18 +125,30 @@ final class PluginPanelRenderer extends AbstractPanelRenderer implements Rendere
         $html .= '</div>'; // .wpd-plugin-list
 
         // === Detail views (one per plugin, hidden by default) ===
+        $assetData = $this->getCollectorData($profile, 'asset');
+        /** @var array<string, array<string, mixed>> $allScripts */
+        $allScripts = $assetData['scripts'] ?? [];
+        /** @var array<string, array<string, mixed>> $allStyles */
+        $allStyles = $assetData['styles'] ?? [];
+
         foreach ($plugins as $slug => $info) {
-            $html .= $this->renderPluginDetailView($slug, $info);
+            $html .= $this->renderPluginDetailView($slug, $info, $allScripts, $allStyles);
         }
 
         return $html;
     }
 
     /**
-     * @param array<string, mixed> $info
+     * @param array<string, mixed>              $info
+     * @param array<string, array<string, mixed>> $allScripts
+     * @param array<string, array<string, mixed>> $allStyles
      */
-    private function renderPluginDetailView(string $slug, array $info): string
-    {
+    private function renderPluginDetailView(
+        string $slug,
+        array $info,
+        array $allScripts,
+        array $allStyles,
+    ): string {
         $name = (string) ($info['name'] ?? $slug);
         $version = (string) ($info['version'] ?? '');
         $loadTime = (float) ($info['load_time'] ?? 0.0);
@@ -211,27 +223,7 @@ final class PluginPanelRenderer extends AbstractPanelRenderer implements Rendere
         }
 
         // Enqueued Assets
-        if ($enqueuedStyles !== [] || $enqueuedScripts !== []) {
-            $html .= '<div class="wpd-section">';
-            $html .= '<h4 class="wpd-section-title">Enqueued Assets</h4>';
-            if ($enqueuedStyles !== []) {
-                $html .= '<div style="margin-bottom:4px"><strong style="color:#757575;font-size:11px">Styles</strong></div>';
-                $html .= '<div class="wpd-tag-list" style="margin-bottom:8px">';
-                foreach ($enqueuedStyles as $style) {
-                    $html .= '<span class="wpd-tag">' . $this->esc($style) . '</span>';
-                }
-                $html .= '</div>';
-            }
-            if ($enqueuedScripts !== []) {
-                $html .= '<div style="margin-bottom:4px"><strong style="color:#757575;font-size:11px">Scripts</strong></div>';
-                $html .= '<div class="wpd-tag-list">';
-                foreach ($enqueuedScripts as $script) {
-                    $html .= '<span class="wpd-tag">' . $this->esc($script) . '</span>';
-                }
-                $html .= '</div>';
-            }
-            $html .= '</div>';
-        }
+        $html .= $this->renderAssetTables($enqueuedStyles, $enqueuedScripts, $allStyles, $allScripts);
 
         $html .= '</div>'; // .wpd-plugin-detail
 
