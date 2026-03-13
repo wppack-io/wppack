@@ -341,19 +341,23 @@ final class EnvironmentPanelRendererTest extends TestCase
             'opcache' => [],
             'server' => [
                 'software' => 'Apache/2.4.52 (Ubuntu)',
+                'web_server' => ['name' => 'Apache', 'version' => '2.4.52', 'raw' => 'Apache/2.4.52 (Ubuntu)'],
                 'name' => 'example.com',
                 'addr' => '10.0.0.1',
                 'port' => '443',
                 'protocol' => 'HTTP/1.1',
                 'document_root' => '/var/www/html',
             ],
+            'runtime' => ['type' => '', 'details' => []],
         ]));
 
-        self::assertStringContainsString('Server', $html);
-        self::assertStringContainsString('Apache/2.4.52 (Ubuntu)', $html);
+        self::assertStringContainsString('Web Server', $html);
+        self::assertStringContainsString('Apache 2.4.52', $html);
         self::assertStringContainsString('web-server-01', $html);
         self::assertStringContainsString('HTTP/1.1', $html);
         self::assertStringContainsString('/var/www/html', $html);
+        self::assertStringContainsString('443', $html);
+        self::assertStringContainsString('Infrastructure', $html);
     }
 
     #[Test]
@@ -368,20 +372,170 @@ final class EnvironmentPanelRendererTest extends TestCase
             'opcache' => [],
             'server' => [
                 'software' => '',
+                'web_server' => ['name' => '', 'version' => '', 'raw' => ''],
                 'name' => '',
                 'addr' => '',
                 'port' => '',
                 'protocol' => '',
                 'document_root' => '',
             ],
+            'runtime' => ['type' => '', 'details' => []],
         ]));
 
-        self::assertStringContainsString('Server', $html);
-        self::assertStringNotContainsString('Software', $html);
+        self::assertStringContainsString('Web Server', $html);
+        self::assertStringContainsString('(not available)', $html);
         self::assertStringNotContainsString('Protocol', $html);
         self::assertStringNotContainsString('Document Root', $html);
         // OS is always shown
         self::assertStringContainsString('Linux', $html);
+    }
+
+    #[Test]
+    public function renderWithLambdaRuntime(): void
+    {
+        $html = $this->renderer->renderPanel($this->createProfile([
+            'php' => ['version' => '8.4.0'],
+            'sapi' => 'cli',
+            'os' => 'Linux',
+            'hostname' => '',
+            'extensions' => [],
+            'ini' => [],
+            'opcache' => [],
+            'server' => [
+                'software' => '',
+                'web_server' => ['name' => '', 'version' => '', 'raw' => ''],
+            ],
+            'runtime' => [
+                'type' => 'lambda',
+                'details' => [
+                    'Function' => 'my-wp-handler',
+                    'Memory' => '512',
+                    'Region' => 'ap-northeast-1',
+                    'Runtime' => 'provided.al2023',
+                ],
+            ],
+        ]));
+
+        self::assertStringContainsString('Infrastructure', $html);
+        self::assertStringContainsString('Lambda', $html);
+        self::assertStringContainsString('my-wp-handler', $html);
+        self::assertStringContainsString('512', $html);
+        self::assertStringContainsString('ap-northeast-1', $html);
+        self::assertStringContainsString('provided.al2023', $html);
+    }
+
+    #[Test]
+    public function renderWithEcsRuntime(): void
+    {
+        $html = $this->renderer->renderPanel($this->createProfile([
+            'php' => ['version' => '8.4.0'],
+            'sapi' => 'fpm-fcgi',
+            'os' => 'Linux',
+            'hostname' => 'ecs-task-01',
+            'extensions' => [],
+            'ini' => [],
+            'opcache' => [],
+            'server' => [
+                'software' => 'nginx/1.24.0',
+                'web_server' => ['name' => 'Nginx', 'version' => '1.24.0', 'raw' => 'nginx/1.24.0'],
+            ],
+            'runtime' => [
+                'type' => 'ecs',
+                'details' => [
+                    'Launch Type' => 'Fargate',
+                    'Region' => 'us-east-1',
+                ],
+            ],
+        ]));
+
+        self::assertStringContainsString('Infrastructure', $html);
+        self::assertStringContainsString('ECS', $html);
+        self::assertStringContainsString('Fargate', $html);
+        self::assertStringContainsString('us-east-1', $html);
+        self::assertStringContainsString('Web Server', $html);
+        self::assertStringContainsString('Nginx 1.24.0', $html);
+    }
+
+    #[Test]
+    public function renderWithDockerRuntime(): void
+    {
+        $html = $this->renderer->renderPanel($this->createProfile([
+            'php' => ['version' => '8.3.0'],
+            'sapi' => 'fpm-fcgi',
+            'os' => 'Linux',
+            'hostname' => 'abc123def456',
+            'extensions' => [],
+            'ini' => [],
+            'opcache' => [],
+            'server' => [
+                'software' => 'Apache/2.4.58',
+                'web_server' => ['name' => 'Apache', 'version' => '2.4.58', 'raw' => 'Apache/2.4.58'],
+            ],
+            'runtime' => [
+                'type' => 'docker',
+                'details' => [
+                    'Hostname' => 'abc123def456',
+                ],
+            ],
+        ]));
+
+        self::assertStringContainsString('Infrastructure', $html);
+        self::assertStringContainsString('Docker', $html);
+        // Hostname from runtime details should be skipped when it matches data hostname
+        $hostnameCount = substr_count($html, 'abc123def456');
+        self::assertSame(1, $hostnameCount, 'Hostname should appear only once (not duplicated from runtime details)');
+    }
+
+    #[Test]
+    public function renderWithWebServerParsed(): void
+    {
+        $html = $this->renderer->renderPanel($this->createProfile([
+            'php' => ['version' => '8.3.0'],
+            'sapi' => 'fpm-fcgi',
+            'os' => 'Linux',
+            'extensions' => [],
+            'ini' => [],
+            'opcache' => [],
+            'server' => [
+                'software' => 'LiteSpeed',
+                'web_server' => ['name' => 'Litespeed', 'version' => '', 'raw' => 'LiteSpeed'],
+                'protocol' => 'HTTP/2.0',
+            ],
+            'runtime' => ['type' => '', 'details' => []],
+        ]));
+
+        self::assertStringContainsString('Web Server', $html);
+        self::assertStringContainsString('Litespeed', $html);
+        self::assertStringContainsString('HTTP/2.0', $html);
+    }
+
+    #[Test]
+    public function renderWithNoRuntime(): void
+    {
+        $html = $this->renderer->renderPanel($this->createProfile([
+            'php' => ['version' => '8.3.0'],
+            'sapi' => 'fpm-fcgi',
+            'os' => 'Linux',
+            'hostname' => 'web-01',
+            'extensions' => [],
+            'ini' => [],
+            'opcache' => [],
+            'server' => [
+                'software' => 'Apache/2.4.52',
+                'web_server' => ['name' => 'Apache', 'version' => '2.4.52', 'raw' => 'Apache/2.4.52'],
+            ],
+            'runtime' => ['type' => '', 'details' => []],
+        ]));
+
+        self::assertStringContainsString('Infrastructure', $html);
+        // Runtime row should not appear (only "PHP Runtime" section title exists)
+        self::assertStringNotContainsString('wpd-tag">Lambda', $html);
+        self::assertStringNotContainsString('wpd-tag">ECS', $html);
+        self::assertStringNotContainsString('wpd-tag">Docker', $html);
+        self::assertStringNotContainsString('wpd-tag">EC2', $html);
+        self::assertStringNotContainsString('wpd-tag">Kubernetes', $html);
+        self::assertStringContainsString('Linux', $html);
+        self::assertStringContainsString('web-01', $html);
     }
 
     #[Test]

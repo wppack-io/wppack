@@ -27,6 +27,7 @@ final class EnvironmentDataCollector extends AbstractDataCollector
             'ini' => $this->collectIniSettings(),
             'opcache' => $this->collectOpcache(),
             'server' => $this->collectServerInfo(),
+            'runtime' => $this->collectRuntime(),
             'sapi' => PHP_SAPI,
             'os' => PHP_OS,
             'architecture' => PHP_INT_SIZE * 8,
@@ -101,18 +102,155 @@ final class EnvironmentDataCollector extends AbstractDataCollector
     }
 
     /**
-     * @return array<string, string>
+     * @return array<string, mixed>
      */
     private function collectServerInfo(): array
     {
+        $software = $_SERVER['SERVER_SOFTWARE'] ?? '';
+
         return [
-            'software' => $_SERVER['SERVER_SOFTWARE'] ?? '',
+            'software' => $software,
+            'web_server' => $this->parseWebServer($software),
             'name' => $_SERVER['SERVER_NAME'] ?? '',
             'addr' => $_SERVER['SERVER_ADDR'] ?? '',
             'port' => $_SERVER['SERVER_PORT'] ?? '',
             'protocol' => $_SERVER['SERVER_PROTOCOL'] ?? '',
             'document_root' => $_SERVER['DOCUMENT_ROOT'] ?? '',
         ];
+    }
+
+    /**
+     * @return array{name: string, version: string, raw: string}
+     */
+    private function parseWebServer(string $software): array
+    {
+        if ($software === '') {
+            return ['name' => '', 'version' => '', 'raw' => ''];
+        }
+
+        if (preg_match('/^([a-zA-Z][a-zA-Z0-9_.-]*)(?:\/(\S+))?/', $software, $m)) {
+            return [
+                'name' => ucfirst(strtolower($m[1])),
+                'version' => $m[2] ?? '',
+                'raw' => $software,
+            ];
+        }
+
+        return ['name' => $software, 'version' => '', 'raw' => $software];
+    }
+
+    /**
+     * @return array{type: string, details: array<string, string>}
+     */
+    private function collectRuntime(): array
+    {
+        // Lambda
+        $functionName = $this->getEnv('AWS_LAMBDA_FUNCTION_NAME');
+        if ($functionName !== '') {
+            return [
+                'type' => 'lambda',
+                'details' => array_filter([
+                    'Function' => $functionName,
+                    'Memory' => $this->getEnv('AWS_LAMBDA_FUNCTION_MEMORY_SIZE'),
+                    'Region' => $this->getEnv('AWS_REGION'),
+                    'Runtime' => $this->getEnv('AWS_EXECUTION_ENV'),
+                    'Handler' => $this->getEnv('_HANDLER'),
+                ]),
+            ];
+        }
+
+        // ECS
+        $ecsMetadata = $this->getEnv('ECS_CONTAINER_METADATA_URI_V4');
+        if ($ecsMetadata === '') {
+            $ecsMetadata = $this->getEnv('ECS_CONTAINER_METADATA_URI');
+        }
+        if ($ecsMetadata !== '') {
+            $launchType = '';
+            $ecsExecEnv = $this->getEnv('AWS_EXECUTION_ENV');
+            if (str_contains($ecsExecEnv, 'FARGATE')) {
+                $launchType = 'Fargate';
+            } elseif ($ecsExecEnv !== '') {
+                $launchType = 'EC2';
+            }
+
+            return [
+                'type' => 'ecs',
+                'details' => array_filter([
+                    'Launch Type' => $launchType,
+                    'Region' => $this->getEnv('AWS_REGION'),
+                ]),
+            ];
+        }
+
+        // Kubernetes
+        $k8sHost = $this->getEnv('KUBERNETES_SERVICE_HOST');
+        if ($k8sHost !== '') {
+            return [
+                'type' => 'kubernetes',
+                'details' => array_filter([
+                    'Namespace' => $this->getEnv('POD_NAMESPACE') ?: $this->readFileContent('/var/run/secrets/kubernetes.io/serviceaccount/namespace'),
+                    'Node' => $this->getEnv('NODE_NAME'),
+                    'Pod' => $this->getEnv('POD_NAME') ?: $this->getEnv('HOSTNAME'),
+                ]),
+            ];
+        }
+
+        // Docker (not in ECS/K8s)
+        if ($this->isDocker()) {
+            return [
+                'type' => 'docker',
+                'details' => array_filter([
+                    'Hostname' => $this->getEnv('HOSTNAME'),
+                ]),
+            ];
+        }
+
+        // EC2
+        if ($this->isEc2()) {
+            return [
+                'type' => 'ec2',
+                'details' => array_filter([
+                    'Region' => $this->getEnv('AWS_REGION'),
+                ]),
+            ];
+        }
+
+        return ['type' => '', 'details' => []];
+    }
+
+    private function getEnv(string $name): string
+    {
+        $value = getenv($name);
+
+        return $value !== false ? $value : '';
+    }
+
+    private function readFileContent(string $path): string
+    {
+        if (!is_file($path) || !is_readable($path)) {
+            return '';
+        }
+
+        $content = @file_get_contents($path);
+
+        return $content !== false ? trim($content) : '';
+    }
+
+    private function isDocker(): bool
+    {
+        return is_file('/.dockerenv');
+    }
+
+    private function isEc2(): bool
+    {
+        $uuid = $this->readFileContent('/sys/devices/virtual/dmi/id/product_uuid');
+        if ($uuid !== '' && str_starts_with(strtolower($uuid), 'ec2')) {
+            return true;
+        }
+
+        $boardAssetTag = $this->readFileContent('/sys/devices/virtual/dmi/id/board_asset_tag');
+
+        return str_starts_with($boardAssetTag, 'i-');
     }
 
     /**

@@ -24,14 +24,32 @@ final class EnvironmentPanelRenderer extends AbstractPanelRenderer implements Re
         $parts[] = 'PHP ' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION;
         $tooltipLines[] = 'PHP ' . PHP_VERSION;
 
-        // Server software
+        // Runtime or server software
         $envData = $this->getCollectorData($profile, 'environment');
-        /** @var array<string, string> $server */
+        /** @var array<string, mixed> $server */
         $server = $envData['server'] ?? [];
-        $serverSoftware = (string) ($server['software'] ?? '');
-        if ($serverSoftware !== '' && preg_match('/^([a-zA-Z]+)/', $serverSoftware, $m)) {
-            $parts[] = ucfirst(strtolower($m[1]));
-            $tooltipLines[] = $serverSoftware;
+        /** @var array<string, mixed> $runtime */
+        $runtime = $envData['runtime'] ?? ['type' => '', 'details' => []];
+        $runtimeType = (string) ($runtime['type'] ?? '');
+
+        $runtimeLabels = [
+            'lambda' => 'Lambda',
+            'ecs' => 'ECS',
+            'kubernetes' => 'K8s',
+        ];
+
+        if (isset($runtimeLabels[$runtimeType])) {
+            $parts[] = $runtimeLabels[$runtimeType];
+            $tooltipLines[] = $runtimeLabels[$runtimeType];
+        } else {
+            /** @var array<string, string> $webServer */
+            $webServer = $server['web_server'] ?? ['name' => '', 'version' => '', 'raw' => ''];
+            $webServerName = (string) ($webServer['name'] ?? '');
+            if ($webServerName !== '') {
+                $parts[] = $webServerName;
+                $raw = (string) ($webServer['raw'] ?? '');
+                $tooltipLines[] = $raw !== '' ? $raw : $webServerName;
+            }
         }
 
         // Additional tooltip info
@@ -153,19 +171,20 @@ final class EnvironmentPanelRenderer extends AbstractPanelRenderer implements Re
             $html .= '</div>';
         }
 
-        // Server section
+        // Web Server section
         $html .= '<div class="wpd-section">';
-        $html .= '<h4 class="wpd-section-title">Server</h4>';
+        $html .= '<h4 class="wpd-section-title">Web Server</h4>';
         $html .= '<table class="wpd-table wpd-table-kv">';
-        $software = (string) ($server['software'] ?? '');
-        if ($software !== '') {
-            $html .= $this->renderTableRow('Software', $this->esc($software));
+        /** @var array<string, string> $webServer */
+        $webServer = $server['web_server'] ?? ['name' => '', 'version' => '', 'raw' => ''];
+        $webServerName = (string) ($webServer['name'] ?? '');
+        $webServerVersion = (string) ($webServer['version'] ?? '');
+        if ($webServerName !== '') {
+            $softwareDisplay = $webServerVersion !== '' ? $webServerName . ' ' . $webServerVersion : $webServerName;
+            $html .= $this->renderTableRow('Software', $this->esc($softwareDisplay));
+        } else {
+            $html .= $this->renderTableRow('Software', '<span class="wpd-text-muted">(not available)</span>');
         }
-        $hostname = (string) ($data['hostname'] ?? '');
-        if ($hostname !== '') {
-            $html .= $this->renderTableRow('Hostname', $this->esc($hostname));
-        }
-        $html .= $this->renderTableRow('OS', $this->esc((string) ($data['os'] ?? '')));
         $protocol = (string) ($server['protocol'] ?? '');
         if ($protocol !== '') {
             $html .= $this->renderTableRow('Protocol', $this->esc($protocol));
@@ -173,6 +192,45 @@ final class EnvironmentPanelRenderer extends AbstractPanelRenderer implements Re
         $documentRoot = (string) ($server['document_root'] ?? '');
         if ($documentRoot !== '') {
             $html .= $this->renderTableRow('Document Root', $this->esc($documentRoot));
+        }
+        $port = (string) ($server['port'] ?? '');
+        if ($port !== '') {
+            $html .= $this->renderTableRow('Port', $this->esc($port));
+        }
+        $html .= '</table>';
+        $html .= '</div>';
+
+        // Infrastructure section
+        /** @var array<string, mixed> $runtime */
+        $runtime = $data['runtime'] ?? ['type' => '', 'details' => []];
+        $runtimeType = (string) ($runtime['type'] ?? '');
+        /** @var array<string, string> $runtimeDetails */
+        $runtimeDetails = $runtime['details'] ?? [];
+
+        $runtimeLabels = [
+            'lambda' => 'Lambda',
+            'ecs' => 'ECS',
+            'kubernetes' => 'Kubernetes',
+            'docker' => 'Docker',
+            'ec2' => 'EC2',
+        ];
+
+        $html .= '<div class="wpd-section">';
+        $html .= '<h4 class="wpd-section-title">Infrastructure</h4>';
+        $html .= '<table class="wpd-table wpd-table-kv">';
+        if ($runtimeType !== '' && isset($runtimeLabels[$runtimeType])) {
+            $html .= $this->renderTableRow('Runtime', '<span class="wpd-tag">' . $this->esc($runtimeLabels[$runtimeType]) . '</span>');
+        }
+        $html .= $this->renderTableRow('OS', $this->esc((string) ($data['os'] ?? '')));
+        $hostname = (string) ($data['hostname'] ?? '');
+        if ($hostname !== '') {
+            $html .= $this->renderTableRow('Hostname', $this->esc($hostname));
+        }
+        foreach ($runtimeDetails as $detailKey => $detailValue) {
+            if ($detailKey === 'Hostname' && $detailValue === $hostname) {
+                continue;
+            }
+            $html .= $this->renderTableRow($detailKey, $this->esc($detailValue));
         }
         $html .= '</table>';
         $html .= '</div>';
