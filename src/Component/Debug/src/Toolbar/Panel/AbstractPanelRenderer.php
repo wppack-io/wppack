@@ -18,6 +18,39 @@ abstract class AbstractPanelRenderer
 
     protected float $requestTimeFloat = 0.0;
 
+    abstract public function getName(): string;
+
+    public function renderBadge(Profile $profile): string
+    {
+        try {
+            $collector = $profile->getCollector($this->getName());
+        } catch (\Throwable) {
+            return '';
+        }
+
+        $name = $this->esc($collector->getName());
+        $label = $this->esc($collector->getLabel());
+        $value = $collector->getBadgeValue();
+        $colorKey = $collector->getBadgeColor();
+        $colors = self::BADGE_COLORS[$colorKey] ?? self::BADGE_COLORS['default'];
+        $icon = ToolbarIcons::svg($collector->getName());
+
+        $valueHtml = $value !== ''
+            ? ' <span class="wpd-badge-value" style="color:' . $colors['fg'] . '">' . $this->esc($value) . '</span>'
+            : '';
+
+        $bgStyle = $colors['bg'] !== 'transparent' ? ' style="background:' . $colors['bg'] . '"' : '';
+        $iconStyle = $colors['fg'] !== '#50575e' ? ' style="color:' . $colors['fg'] . '"' : '';
+
+        $accentAttr = $colorKey !== 'default' ? ' data-accent="' . $colors['fg'] . '"' : '';
+
+        return <<<HTML
+        <button class="wpd-badge" data-panel="{$name}" data-tooltip="{$label}"{$bgStyle}{$accentAttr}>
+            <span class="wpd-badge-icon"{$iconStyle}>{$icon}</span>{$valueHtml}
+        </button>
+        HTML;
+    }
+
     public function setRequestTimeFloat(float $requestTimeFloat): void
     {
         $this->requestTimeFloat = $requestTimeFloat;
@@ -204,7 +237,7 @@ abstract class AbstractPanelRenderer
     /**
      * @return array<string, array{bg: string, fg: string}>
      */
-    protected static function getBadgeColors(): array
+    public static function getBadgeColors(): array
     {
         return self::BADGE_COLORS;
     }
