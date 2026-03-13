@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
 use WpPack\Component\Debug\Attribute\AsPanelRenderer;
+use WpPack\Component\Debug\Profiler\Profile;
 
 #[AsPanelRenderer(name: 'router')]
 final class RouterPanelRenderer extends AbstractPanelRenderer implements PanelRendererInterface
@@ -14,8 +15,9 @@ final class RouterPanelRenderer extends AbstractPanelRenderer implements PanelRe
         return 'router';
     }
 
-    public function render(array $data): string
+    public function render(Profile $profile): string
     {
+        $data = $this->getCollectorData($profile, $this->getName());
         $template = (string) ($data['template'] ?? '');
         $templatePath = (string) ($data['template_path'] ?? '');
         $matchedRule = (string) ($data['matched_rule'] ?? '');

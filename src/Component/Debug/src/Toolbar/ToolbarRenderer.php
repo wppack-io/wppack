@@ -7,9 +7,9 @@ namespace WpPack\Component\Debug\Toolbar;
 use WpPack\Component\Debug\DataCollector\DataCollectorInterface;
 use WpPack\Component\Debug\Profiler\Profile;
 use WpPack\Component\Debug\Toolbar\Panel\AbstractPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\BadgeRendererInterface;
 use WpPack\Component\Debug\Toolbar\Panel\GenericPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\PanelRendererInterface;
-use WpPack\Component\Debug\Toolbar\Panel\PerformancePanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\ToolbarAssets;
 use WpPack\Component\Debug\Toolbar\Panel\ToolbarIcons;
 
@@ -51,15 +51,12 @@ final class ToolbarRenderer
     /** @var array<string, AbstractPanelRenderer&PanelRendererInterface> */
     private array $panelRenderers = [];
 
-    private readonly PerformancePanelRenderer $performanceRenderer;
-
     private readonly GenericPanelRenderer $genericRenderer;
 
     private readonly ToolbarAssets $assets;
 
     public function __construct()
     {
-        $this->performanceRenderer = new PerformancePanelRenderer();
         $this->genericRenderer = new GenericPanelRenderer();
         $this->assets = new ToolbarAssets();
     }
@@ -84,7 +81,6 @@ final class ToolbarRenderer
         foreach ($this->panelRenderers as $renderer) {
             $renderer->setRequestTimeFloat($requestTimeFloat);
         }
-        $this->performanceRenderer->setRequestTimeFloat($requestTimeFloat);
         $this->genericRenderer->setRequestTimeFloat($requestTimeFloat);
 
         // Build ordered badges (wordpress group first)
@@ -167,7 +163,7 @@ final class ToolbarRenderer
         foreach (self::SIDEBAR_GROUPS as $group) {
             $visibleItems = [];
             foreach ($group as $name) {
-                if ($name === 'performance' || \in_array($name, $collectorNames, true)) {
+                if (\in_array($name, $collectorNames, true) || isset($this->panelRenderers[$name])) {
                     $visibleItems[] = $name;
                 }
             }
@@ -222,7 +218,7 @@ final class ToolbarRenderer
         $knownNames = array_merge(...self::SIDEBAR_GROUPS);
         $orderedNames = [];
         foreach ($knownNames as $name) {
-            if ($name === 'performance' || isset($collectors[$name])) {
+            if (isset($collectors[$name]) || isset($this->panelRenderers[$name])) {
                 $orderedNames[] = $name;
             }
         }
@@ -235,12 +231,7 @@ final class ToolbarRenderer
 
         foreach ($orderedNames as $key) {
             $display = ($key === $defaultPanel) ? '' : ' style="display:none"';
-
-            if ($key === 'performance') {
-                $content = $this->performanceRenderer->renderContent($profile);
-            } else {
-                $content = $this->renderPanelContent($collectors[$key]);
-            }
+            $content = $this->renderPanelContent($profile, $key);
 
             $html .= '<div class="wpd-panel-content" id="wpd-pc-' . $this->esc($key) . '"' . $display . '>'
                 . $content . '</div>';
@@ -258,9 +249,10 @@ final class ToolbarRenderer
         $rendered = [];
 
         foreach (self::BADGE_ORDER as $name) {
-            if ($name === 'performance') {
-                $badges .= $this->performanceRenderer->renderBadge($profile);
-                $rendered[] = 'performance';
+            $renderer = $this->panelRenderers[$name] ?? null;
+            if ($renderer instanceof BadgeRendererInterface) {
+                $badges .= $renderer->renderBadge($profile);
+                $rendered[] = $name;
             } elseif (isset($collectors[$name])) {
                 $badges .= $this->renderBadge($collectors[$name]);
                 $rendered[] = $name;
@@ -302,11 +294,16 @@ final class ToolbarRenderer
         HTML;
     }
 
-    private function renderPanelContent(DataCollectorInterface $collector): string
+    private function renderPanelContent(Profile $profile, string $name): string
     {
-        $renderer = $this->panelRenderers[$collector->getName()] ?? $this->genericRenderer;
+        $renderer = $this->panelRenderers[$name] ?? null;
+        if ($renderer === null) {
+            $this->genericRenderer->setCollectorName($name);
 
-        return $renderer->render($collector->getData());
+            return $this->genericRenderer->render($profile);
+        }
+
+        return $renderer->render($profile);
     }
 
     /**
@@ -375,11 +372,17 @@ final class ToolbarRenderer
      */
     private function getPanelLabel(string $name, array $collectors): string
     {
-        if ($name === 'performance') {
-            return 'Performance';
+        if (isset($collectors[$name])) {
+            return $collectors[$name]->getLabel();
         }
 
-        return $collectors[$name]->getLabel();
+        // Panel renderers without a collector (e.g. performance)
+        $renderer = $this->panelRenderers[$name] ?? null;
+        if ($renderer !== null) {
+            return ucfirst($name);
+        }
+
+        return ucfirst($name);
     }
 
     /**

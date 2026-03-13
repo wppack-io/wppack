@@ -6,9 +6,7 @@ namespace WpPack\Component\Debug\Toolbar\Panel;
 
 use WpPack\Component\Debug\Profiler\Profile;
 
-interface PanelRendererInterface
+interface BadgeRendererInterface
 {
-    public function getName(): string;
-
-    public function render(Profile $profile): string;
+    public function renderBadge(Profile $profile): string;
 }

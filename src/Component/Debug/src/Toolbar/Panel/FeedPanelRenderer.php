@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
 use WpPack\Component\Debug\Attribute\AsPanelRenderer;
+use WpPack\Component\Debug\Profiler\Profile;
 
 #[AsPanelRenderer(name: 'feed')]
 final class FeedPanelRenderer extends AbstractPanelRenderer implements PanelRendererInterface
@@ -14,8 +15,9 @@ final class FeedPanelRenderer extends AbstractPanelRenderer implements PanelRend
         return 'feed';
     }
 
-    public function render(array $data): string
+    public function render(Profile $profile): string
     {
+        $data = $this->getCollectorData($profile, $this->getName());
         $totalCount = (int) ($data['total_count'] ?? 0);
         $customCount = (int) ($data['custom_count'] ?? 0);
         $feedDiscovery = $data['feed_discovery'] ?? true;

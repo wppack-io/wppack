@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
 use WpPack\Component\Debug\Attribute\AsPanelRenderer;
+use WpPack\Component\Debug\Profiler\Profile;
 
 #[AsPanelRenderer(name: 'theme')]
 final class ThemePanelRenderer extends AbstractPanelRenderer implements PanelRendererInterface
@@ -14,8 +15,9 @@ final class ThemePanelRenderer extends AbstractPanelRenderer implements PanelRen
         return 'theme';
     }
 
-    public function render(array $data): string
+    public function render(Profile $profile): string
     {
+        $data = $this->getCollectorData($profile, $this->getName());
         $name = (string) ($data['name'] ?? '');
         $version = (string) ($data['version'] ?? '');
         $isChildTheme = (bool) ($data['is_child_theme'] ?? false);

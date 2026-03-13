@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
 use WpPack\Component\Debug\Attribute\AsPanelRenderer;
+use WpPack\Component\Debug\Profiler\Profile;
 
 #[AsPanelRenderer(name: 'security')]
 final class SecurityPanelRenderer extends AbstractPanelRenderer implements PanelRendererInterface
@@ -14,8 +15,9 @@ final class SecurityPanelRenderer extends AbstractPanelRenderer implements Panel
         return 'security';
     }
 
-    public function render(array $data): string
+    public function render(Profile $profile): string
     {
+        $data = $this->getCollectorData($profile, $this->getName());
         $isLoggedIn = (bool) ($data['is_logged_in'] ?? false);
         $username = (string) ($data['username'] ?? '');
         $displayName = (string) ($data['display_name'] ?? '');

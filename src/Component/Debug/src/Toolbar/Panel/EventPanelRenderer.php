@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
 use WpPack\Component\Debug\Attribute\AsPanelRenderer;
+use WpPack\Component\Debug\Profiler\Profile;
 
 #[AsPanelRenderer(name: 'event')]
 final class EventPanelRenderer extends AbstractPanelRenderer implements PanelRendererInterface
@@ -14,8 +15,9 @@ final class EventPanelRenderer extends AbstractPanelRenderer implements PanelRen
         return 'event';
     }
 
-    public function render(array $data): string
+    public function render(Profile $profile): string
     {
+        $data = $this->getCollectorData($profile, $this->getName());
         $totalFirings = (int) ($data['total_firings'] ?? 0);
         $uniqueHooks = (int) ($data['unique_hooks'] ?? 0);
         $registeredHooks = (int) ($data['registered_hooks'] ?? 0);

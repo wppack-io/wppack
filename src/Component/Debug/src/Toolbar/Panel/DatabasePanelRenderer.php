@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
 use WpPack\Component\Debug\Attribute\AsPanelRenderer;
+use WpPack\Component\Debug\Profiler\Profile;
 
 #[AsPanelRenderer(name: 'database')]
 final class DatabasePanelRenderer extends AbstractPanelRenderer implements PanelRendererInterface
@@ -14,8 +15,9 @@ final class DatabasePanelRenderer extends AbstractPanelRenderer implements Panel
         return 'database';
     }
 
-    public function render(array $data): string
+    public function render(Profile $profile): string
     {
+        $data = $this->getCollectorData($profile, $this->getName());
         $totalCount = (int) ($data['total_count'] ?? 0);
         $totalTime = (float) ($data['total_time'] ?? 0.0);
         $duplicateCount = (int) ($data['duplicate_count'] ?? 0);

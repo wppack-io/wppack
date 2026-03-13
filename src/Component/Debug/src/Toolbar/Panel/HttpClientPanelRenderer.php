@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
 use WpPack\Component\Debug\Attribute\AsPanelRenderer;
+use WpPack\Component\Debug\Profiler\Profile;
 
 #[AsPanelRenderer(name: 'http_client')]
 final class HttpClientPanelRenderer extends AbstractPanelRenderer implements PanelRendererInterface
@@ -14,8 +15,9 @@ final class HttpClientPanelRenderer extends AbstractPanelRenderer implements Pan
         return 'http_client';
     }
 
-    public function render(array $data): string
+    public function render(Profile $profile): string
     {
+        $data = $this->getCollectorData($profile, $this->getName());
         $totalCount = (int) ($data['total_count'] ?? 0);
         $totalTime = (float) ($data['total_time'] ?? 0.0);
         $errorCount = (int) ($data['error_count'] ?? 0);

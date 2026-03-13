@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
 use WpPack\Component\Debug\Attribute\AsPanelRenderer;
+use WpPack\Component\Debug\Profiler\Profile;
 
 #[AsPanelRenderer(name: 'widget')]
 final class WidgetPanelRenderer extends AbstractPanelRenderer implements PanelRendererInterface
@@ -14,8 +15,9 @@ final class WidgetPanelRenderer extends AbstractPanelRenderer implements PanelRe
         return 'widget';
     }
 
-    public function render(array $data): string
+    public function render(Profile $profile): string
     {
+        $data = $this->getCollectorData($profile, $this->getName());
         $totalWidgets = (int) ($data['total_widgets'] ?? 0);
         $totalSidebars = (int) ($data['total_sidebars'] ?? 0);
         $activeWidgets = (int) ($data['active_widgets'] ?? 0);

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
 use WpPack\Component\Debug\Attribute\AsPanelRenderer;
+use WpPack\Component\Debug\Profiler\Profile;
 
 #[AsPanelRenderer(name: 'memory')]
 final class MemoryPanelRenderer extends AbstractPanelRenderer implements PanelRendererInterface
@@ -14,8 +15,9 @@ final class MemoryPanelRenderer extends AbstractPanelRenderer implements PanelRe
         return 'memory';
     }
 
-    public function render(array $data): string
+    public function render(Profile $profile): string
     {
+        $data = $this->getCollectorData($profile, $this->getName());
         $current = (int) ($data['current'] ?? 0);
         $peak = (int) ($data['peak'] ?? 0);
         $limit = (int) ($data['limit'] ?? 0);

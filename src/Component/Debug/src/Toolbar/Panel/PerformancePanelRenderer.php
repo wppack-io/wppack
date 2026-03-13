@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
+use WpPack\Component\Debug\Attribute\AsPanelRenderer;
 use WpPack\Component\Debug\Profiler\Profile;
 
-final class PerformancePanelRenderer extends AbstractPanelRenderer
+#[AsPanelRenderer(name: 'performance')]
+final class PerformancePanelRenderer extends AbstractPanelRenderer implements PanelRendererInterface, BadgeRendererInterface
 {
-    /**
-     * @return array<string, mixed>
-     */
-    public function getCollectorData(Profile $profile, string $name): array
+    public function getName(): string
     {
-        try {
-            return $profile->getCollector($name)->getData();
-        } catch (\Throwable) {
-            return [];
-        }
+        return 'performance';
+    }
+
+    public function render(Profile $profile): string
+    {
+        return $this->renderContent($profile);
     }
 
     public function renderBadge(Profile $profile): string

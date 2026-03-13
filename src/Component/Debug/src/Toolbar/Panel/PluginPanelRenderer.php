@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
 use WpPack\Component\Debug\Attribute\AsPanelRenderer;
+use WpPack\Component\Debug\Profiler\Profile;
 
 #[AsPanelRenderer(name: 'plugin')]
 final class PluginPanelRenderer extends AbstractPanelRenderer implements PanelRendererInterface
@@ -14,8 +15,9 @@ final class PluginPanelRenderer extends AbstractPanelRenderer implements PanelRe
         return 'plugin';
     }
 
-    public function render(array $data): string
+    public function render(Profile $profile): string
     {
+        $data = $this->getCollectorData($profile, $this->getName());
         $totalPlugins = (int) ($data['total_plugins'] ?? 0);
         $totalHookTime = (float) ($data['total_hook_time'] ?? 0.0);
         $slowestPlugin = (string) ($data['slowest_plugin'] ?? '');

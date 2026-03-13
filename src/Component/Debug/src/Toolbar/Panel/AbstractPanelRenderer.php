@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
+use WpPack\Component\Debug\Profiler\Profile;
+
 abstract class AbstractPanelRenderer
 {
     /** @var array<string, array{bg: string, fg: string}> */
@@ -19,6 +21,18 @@ abstract class AbstractPanelRenderer
     public function setRequestTimeFloat(float $requestTimeFloat): void
     {
         $this->requestTimeFloat = $requestTimeFloat;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function getCollectorData(Profile $profile, string $name): array
+    {
+        try {
+            return $profile->getCollector($name)->getData();
+        } catch (\Throwable) {
+            return [];
+        }
     }
 
     protected function renderTableRow(string $key, string $value, string $valueClass = ''): string

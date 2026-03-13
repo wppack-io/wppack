@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
 use WpPack\Component\Debug\Attribute\AsPanelRenderer;
+use WpPack\Component\Debug\Profiler\Profile;
 
 #[AsPanelRenderer(name: 'scheduler')]
 final class SchedulerPanelRenderer extends AbstractPanelRenderer implements PanelRendererInterface
@@ -14,8 +15,9 @@ final class SchedulerPanelRenderer extends AbstractPanelRenderer implements Pane
         return 'scheduler';
     }
 
-    public function render(array $data): string
+    public function render(Profile $profile): string
     {
+        $data = $this->getCollectorData($profile, $this->getName());
         $cronTotal = (int) ($data['cron_total'] ?? 0);
         $cronOverdue = (int) ($data['cron_overdue'] ?? 0);
         $asAvailable = (bool) ($data['action_scheduler_available'] ?? false);

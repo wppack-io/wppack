@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
 use WpPack\Component\Debug\Attribute\AsPanelRenderer;
+use WpPack\Component\Debug\Profiler\Profile;
 
 #[AsPanelRenderer(name: 'cache')]
 final class CachePanelRenderer extends AbstractPanelRenderer implements PanelRendererInterface
@@ -14,8 +15,9 @@ final class CachePanelRenderer extends AbstractPanelRenderer implements PanelRen
         return 'cache';
     }
 
-    public function render(array $data): string
+    public function render(Profile $profile): string
     {
+        $data = $this->getCollectorData($profile, $this->getName());
         $hits = (int) ($data['hits'] ?? 0);
         $misses = (int) ($data['misses'] ?? 0);
         $hitRate = (float) ($data['hit_rate'] ?? 0.0);
