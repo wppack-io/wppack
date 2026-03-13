@@ -46,16 +46,18 @@ final class LoggerPanelRenderer extends AbstractPanelRenderer implements Rendere
         $html .= $this->renderTableRow('Deprecations', (string) $deprecationCount, $deprecationCount > 0 ? 'wpd-text-orange' : '');
         $html .= $this->renderTableRow('Warnings', (string) $warningCount, $warningCount > 0 ? 'wpd-text-yellow' : '');
         $html .= '</table>';
+        $html .= '</div>';
 
         if ($channels !== []) {
-            $html .= '<div style="margin-top:8px"><span class="wpd-text-dim" style="font-size:11px;margin-right:6px">Channels</span>';
-            $html .= '<span class="wpd-tag-list" style="display:inline-flex">';
+            $html .= '<div class="wpd-section">';
+            $html .= '<h4 class="wpd-section-title">Channels</h4>';
+            $html .= '<div class="wpd-tag-list">';
             foreach ($channels as $ch) {
                 $html .= '<span class="wpd-tag">' . $this->esc($ch) . '</span>';
             }
-            $html .= '</span></div>';
+            $html .= '</div>';
+            $html .= '</div>';
         }
-        $html .= '</div>';
 
         if ($logs !== []) {
             // Count entries per tab
