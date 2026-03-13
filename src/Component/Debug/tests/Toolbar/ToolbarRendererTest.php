@@ -2025,8 +2025,10 @@ final class ToolbarRendererTest extends TestCase
         self::assertStringContainsString('wpd-log-debug', $html);
         self::assertStringContainsString('wpd-log-deprecation', $html);
 
-        // Tab counts (emergency+alert+critical+error = 4 errors, warning+notice = 2 warnings)
+        // Tab counts (emergency+alert+critical+error = 4 errors, warning = 1, notice = 1, info = 1)
         self::assertStringContainsString('Errors (4)', $html);
-        self::assertStringContainsString('Warnings (2)', $html);
+        self::assertStringContainsString('Warnings (1)', $html);
+        self::assertStringContainsString('Notices (1)', $html);
+        self::assertStringContainsString('Info (1)', $html);
     }
 }

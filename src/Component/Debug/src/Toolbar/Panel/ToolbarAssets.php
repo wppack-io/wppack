@@ -1394,7 +1394,8 @@ final class ToolbarAssets
                         if (filter === 'all') { show = true; }
                         else if (filter === 'error') { show = (['emergency','alert','critical','error'].indexOf(level) !== -1); }
                         else if (filter === 'deprecation') { show = level === 'deprecation'; }
-                        else if (filter === 'warning') { show = (['warning','notice'].indexOf(level) !== -1); }
+                        else if (filter === 'warning') { show = level === 'warning'; }
+                        else if (filter === 'notice') { show = level === 'notice'; }
                         else if (filter === 'info') { show = level === 'info'; }
                         else if (filter === 'debug') { show = level === 'debug'; }
                         row.style.display = show ? '' : 'none';

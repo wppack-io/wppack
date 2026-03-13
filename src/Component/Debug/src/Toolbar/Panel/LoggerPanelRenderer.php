@@ -61,6 +61,7 @@ final class LoggerPanelRenderer extends AbstractPanelRenderer implements Rendere
             $errorTabCount = 0;
             $deprecationTabCount = 0;
             $warningTabCount = 0;
+            $noticeTabCount = 0;
             $infoTabCount = 0;
             $debugTabCount = 0;
             foreach ($logs as $log) {
@@ -69,8 +70,10 @@ final class LoggerPanelRenderer extends AbstractPanelRenderer implements Rendere
                     $errorTabCount++;
                 } elseif ($lvl === 'deprecation') {
                     $deprecationTabCount++;
-                } elseif (in_array($lvl, ['warning', 'notice'], true)) {
+                } elseif ($lvl === 'warning') {
                     $warningTabCount++;
+                } elseif ($lvl === 'notice') {
+                    $noticeTabCount++;
                 } elseif ($lvl === 'info') {
                     $infoTabCount++;
                 } else {
@@ -86,6 +89,7 @@ final class LoggerPanelRenderer extends AbstractPanelRenderer implements Rendere
             $html .= '<button class="wpd-log-tab wpd-active" data-log-filter="all">All (' . $this->esc((string) count($logs)) . ')</button>';
             $html .= '<button class="wpd-log-tab" data-log-filter="error">Errors (' . $this->esc((string) $errorTabCount) . ')</button>';
             $html .= '<button class="wpd-log-tab" data-log-filter="warning">Warnings (' . $this->esc((string) $warningTabCount) . ')</button>';
+            $html .= '<button class="wpd-log-tab" data-log-filter="notice">Notices (' . $this->esc((string) $noticeTabCount) . ')</button>';
             $html .= '<button class="wpd-log-tab" data-log-filter="info">Info (' . $this->esc((string) $infoTabCount) . ')</button>';
             $html .= '<button class="wpd-log-tab" data-log-filter="debug">Debug (' . $this->esc((string) $debugTabCount) . ')</button>';
             $html .= '<button class="wpd-log-tab" data-log-filter="deprecation">Deprecations (' . $this->esc((string) $deprecationTabCount) . ')</button>';
