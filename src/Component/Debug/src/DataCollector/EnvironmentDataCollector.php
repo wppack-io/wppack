@@ -124,6 +124,11 @@ final class EnvironmentDataCollector extends AbstractDataCollector
      */
     private function parseWebServer(string $software): array
     {
+        // PHP built-in development server
+        if (PHP_SAPI === 'cli-server') {
+            return ['name' => 'PHP Built-in', 'version' => PHP_VERSION, 'raw' => 'PHP ' . PHP_VERSION . ' Development Server'];
+        }
+
         if ($software === '') {
             return ['name' => '', 'version' => '', 'raw' => ''];
         }

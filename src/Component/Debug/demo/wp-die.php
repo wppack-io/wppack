@@ -180,15 +180,35 @@ $collectors[] = new FakeCollector('wordpress', 'WordPress', '6.7.2', 'default', 
 ]);
 
 $collectors[] = new FakeCollector('environment', 'Environment', '', 'default', [
-    'php_version' => PHP_VERSION,
-    'php_sapi' => PHP_SAPI,
-    'php_extensions' => get_loaded_extensions(),
-    'wp_version' => '6.7.2',
-    'wp_debug' => true,
-    'wp_debug_log' => false,
-    'wp_debug_display' => true,
-    'server_software' => $_SERVER['SERVER_SOFTWARE'] ?? 'PHP ' . PHP_VERSION . ' Development Server',
+    'php' => [
+        'version' => PHP_VERSION,
+        'zend_version' => zend_version(),
+        'zts' => PHP_ZTS,
+        'debug' => PHP_DEBUG,
+        'gc_enabled' => gc_enabled(),
+    ],
+    'sapi' => PHP_SAPI,
+    'extensions' => get_loaded_extensions(),
+    'ini' => [
+        'memory_limit' => ini_get('memory_limit') ?: '',
+        'max_execution_time' => ini_get('max_execution_time') ?: '',
+        'display_errors' => ini_get('display_errors') ?: '',
+    ],
+    'opcache' => ['enabled' => false],
+    'server' => [
+        'software' => $_SERVER['SERVER_SOFTWARE'] ?? '',
+        'web_server' => PHP_SAPI === 'cli-server'
+            ? ['name' => 'PHP Built-in', 'version' => PHP_VERSION, 'raw' => 'PHP ' . PHP_VERSION . ' Development Server']
+            : ['name' => '', 'version' => '', 'raw' => $_SERVER['SERVER_SOFTWARE'] ?? ''],
+        'name' => $_SERVER['SERVER_NAME'] ?? '',
+        'port' => $_SERVER['SERVER_PORT'] ?? '',
+        'protocol' => $_SERVER['SERVER_PROTOCOL'] ?? '',
+        'document_root' => $_SERVER['DOCUMENT_ROOT'] ?? '',
+    ],
+    'runtime' => ['type' => '', 'details' => []],
     'os' => PHP_OS . ' (' . php_uname('r') . ')',
+    'architecture' => PHP_INT_SIZE * 8,
+    'hostname' => gethostname() ?: '',
 ]);
 
 $profile = new Profile(token: 'wp-die-demo-' . bin2hex(random_bytes(4)));
