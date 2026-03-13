@@ -809,7 +809,7 @@ final class ToolbarAssets
             color: var(--wpd-gray-800);
             flex: 1;
             display: flex;
-            align-items: center;
+            align-items: baseline;
             justify-content: center;
         }
         #wppack-debug .wpd-perf-card-unit {

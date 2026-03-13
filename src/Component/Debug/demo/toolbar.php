@@ -15,6 +15,7 @@ use WpPack\Component\Debug\Toolbar\Panel\HttpClientPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\LoggerPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\MailPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\MemoryPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\PerformancePanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\PluginPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\RequestPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\RouterPanelRenderer;
@@ -1028,6 +1029,7 @@ foreach ($collectors as $collector) {
 $renderer = new ToolbarRenderer();
 $renderer->addPanelRenderer(new DatabasePanelRenderer());
 $renderer->addPanelRenderer(new StopwatchPanelRenderer());
+$renderer->addPanelRenderer(new PerformancePanelRenderer());
 $renderer->addPanelRenderer(new MemoryPanelRenderer());
 $renderer->addPanelRenderer(new RequestPanelRenderer());
 $renderer->addPanelRenderer(new CachePanelRenderer());
