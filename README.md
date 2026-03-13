@@ -47,6 +47,7 @@ alternatives.
 | `wppack/taxonomy` | Custom taxonomy registration |
 | `wppack/role` | Role and capability management |
 | `wppack/templating` | Template engine abstraction |
+| `wppack/stopwatch` | Code execution timing and profiling |
 | `wppack/logger` | PSR-3 compatible logger |
 | `wppack/option` | Options API abstraction |
 | `wppack/transient` | Transients API abstraction |
