@@ -29,7 +29,7 @@ final class DatabasePanelRenderer extends AbstractPanelRenderer implements Panel
         $html .= '<h4 class="wpd-section-title">Summary</h4>';
         $html .= '<table class="wpd-table wpd-table-kv">';
         $html .= $this->renderTableRow('Total Queries', (string) $totalCount);
-        $html .= $this->renderTableRow('Total Time', $this->formatMs($totalTime * 1000));
+        $html .= $this->renderTableRow('Total Time', $this->formatMs($totalTime));
         $html .= $this->renderTableRow('Duplicate Queries', (string) $duplicateCount, $duplicateCount > 0 ? 'wpd-text-yellow' : '');
         $html .= $this->renderTableRow('Slow Queries', (string) $slowCount, $slowCount > 0 ? 'wpd-text-red' : '');
         $html .= '</table>';
