@@ -39,6 +39,42 @@ $securityLogger->warning('Failed login attempt', ['username' => 'admin']);
 // Output: [security.WARNING] Failed login attempt {"username":"admin"}
 ```
 
+## PHP Error Capture
+
+Capture PHP errors (warnings, deprecations, notices) as PSR-3 logs:
+
+```php
+use WpPack\Component\Logger\ErrorHandler;
+use WpPack\Component\Logger\LoggerFactory;
+use WpPack\Component\Logger\ChannelResolver\DefaultChannelResolver;
+use WpPack\Component\Logger\Handler\ErrorLogHandler;
+
+$factory = new LoggerFactory([new ErrorLogHandler()]);
+$resolver = new DefaultChannelResolver();
+
+$handler = new ErrorHandler($factory, $resolver);
+$handler->register();
+
+// PHP errors are now captured as PSR-3 logs:
+// E_WARNING       → warning
+// E_DEPRECATED    → warning + context['_type' => 'deprecation']
+// E_NOTICE        → notice
+// E_RECOVERABLE   → error
+```
+
+## Channel Resolver
+
+Resolve file paths to channel names via `ChannelResolverInterface`:
+
+```php
+use WpPack\Component\Logger\ChannelResolver\DefaultChannelResolver;
+
+$resolver = new DefaultChannelResolver(); // always returns 'php'
+$resolver->resolve('/any/path'); // 'php'
+```
+
+The default `WordPressChannelResolver` resolves `plugin:slug`, `theme:slug`, `wordpress`, or `php` from file paths using WordPress constants (with `defined()` guards for non-WP environments).
+
 ## Testing
 
 ```php

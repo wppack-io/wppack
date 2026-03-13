@@ -94,7 +94,7 @@ Built-in collectors gather profiling data and display it in the toolbar:
 | `RestDataCollector` | Endpoint count | REST API endpoint information |
 | `AssetDataCollector` | Asset count | Registered/enqueued scripts and styles |
 | `AdminDataCollector` | Admin page | Admin screen information |
-| `LoggerDataCollector` | Log count | Log messages, WordPress deprecation/doing_it_wrong notices |
+| `LoggerDataCollector` | Log count | Log messages, PHP errors, WordPress deprecation/doing_it_wrong notices |
 | `DumpDataCollector` | Dump count | Captured dump() calls with file/line info |
 | `MailDataCollector` | Email count | Emails sent via wp_mail(), success/failure tracking |
 | `SecurityDataCollector` | Username | Current user, roles, capabilities, authentication, nonce tracking |

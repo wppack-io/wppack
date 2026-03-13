@@ -415,12 +415,133 @@ $builder->register(LoggerInterface::class)
 
 Monolog を使用する場合、`#[LoggerChannel]` によるチャンネル自動注入は利用できません。チャンネル別ロガーが必要な場合は、各チャンネルを個別にサービス登録してください。
 
+## PHP エラーキャプチャ（ErrorHandler）
+
+`ErrorHandler` は PHP の `set_error_handler()` を使って警告・非推奨・通知などを PSR-3 ログに変換します。
+
+```php
+use WpPack\Component\Logger\ErrorHandler;
+use WpPack\Component\Logger\LoggerFactory;
+use WpPack\Component\Logger\ChannelResolver\DefaultChannelResolver;
+use WpPack\Component\Logger\Handler\ErrorLogHandler;
+
+$factory = new LoggerFactory([new ErrorLogHandler()]);
+$resolver = new DefaultChannelResolver();
+
+$errorHandler = new ErrorHandler($factory, $resolver);
+$errorHandler->register();
+
+// 以降の PHP エラーは Logger 経由で処理される
+// E_WARNING      → warning
+// E_NOTICE       → notice
+// E_DEPRECATED   → warning + context['_type' => 'deprecation']
+// E_RECOVERABLE_ERROR → error
+```
+
+### 特徴
+
+- **`@` 抑制演算子の尊重** — `error_reporting()` でフィルタ
+- **再入防止** — `$handling` フラグでログ出力中のエラーが無限ループを起こさない
+- **前のハンドラーチェーン** — `register()` 前に設定されていたハンドラーも呼び出す
+- **冪等性** — `register()` / `restore()` は複数回呼んでも安全
+
+### errno → PSR-3 マッピング
+
+| PHP エラー定数 | PSR-3 レベル | `_type` コンテキスト |
+|---------------|-------------|---------------------|
+| `E_DEPRECATED`, `E_USER_DEPRECATED` | `warning` | `deprecation` |
+| `E_NOTICE`, `E_USER_NOTICE` | `notice` | — |
+| `E_WARNING`, `E_USER_WARNING` | `warning` | — |
+| `E_RECOVERABLE_ERROR` | `error` | — |
+
+### コンテキスト
+
+ErrorHandler が生成するログエントリには以下のコンテキストが含まれます:
+
+| キー | 説明 |
+|------|------|
+| `_file` | エラー発生ファイルパス |
+| `_line` | エラー発生行番号 |
+| `_error_type` | PHP エラー定数名（`E_WARNING` 等） |
+| `_type` | `deprecation`（非推奨エラーのみ） |
+
+## チャンネル自動解決（ChannelResolver）
+
+`ChannelResolverInterface` は、ファイルパスからログチャンネル名を解決するインターフェースです。
+
+```php
+namespace WpPack\Component\Logger\ChannelResolver;
+
+interface ChannelResolverInterface
+{
+    public function resolve(string $filePath): string;
+}
+```
+
+### DefaultChannelResolver
+
+Logger コンポーネントに含まれるデフォルト実装。常に固定のチャンネル名（デフォルト: `php`）を返します。
+
+```php
+use WpPack\Component\Logger\ChannelResolver\DefaultChannelResolver;
+
+$resolver = new DefaultChannelResolver();
+$resolver->resolve('/any/path');  // 'php'
+
+$resolver = new DefaultChannelResolver('custom');
+$resolver->resolve('/any/path');  // 'custom'
+```
+
+### WordPressChannelResolver
+
+WordPress 環境対応の実装。エラー発生元のファイルパスからプラグイン/テーマ名を自動解決します。WordPress 定数が未定義の環境でも安全に動作し、フォールバック値 `php` を返します。
+
+```php
+use WpPack\Component\Logger\ChannelResolver\WordPressChannelResolver;
+
+$resolver = new WordPressChannelResolver();
+$resolver->resolve(WP_PLUGIN_DIR . '/akismet/akismet.php');  // 'plugin:akismet'
+```
+
+| パス | 解決結果 |
+|------|---------|
+| `WP_PLUGIN_DIR/akismet/...` | `plugin:akismet` |
+| `WPMU_PLUGIN_DIR/foo/...` | `plugin:foo` |
+| `ABSPATH/wp-content/themes/twentytwentyfour/...` | `theme:twentytwentyfour` |
+| `ABSPATH/wp-includes/...` or `wp-admin/...` | `wordpress` |
+| その他 | `php` |
+
+`LoggerServiceProvider` はデフォルトで `WordPressChannelResolver` を `ChannelResolverInterface` として登録します。
+
+## Debug コンポーネント統合
+
+Logger と Debug の両方がインストールされている場合:
+
+1. **ErrorHandler** が PHP エラーをキャプチャ → Logger 経由で `DebugHandler` → ツールバーに表示
+2. **WordPress deprecation** フック → `LoggerDataCollector` が Logger 経由でログ → ツールバーに表示
+3. **アプリケーションコード** の `$logger->info(...)` → 同じパイプラインでツールバーに表示
+
+```
+PHP Error → ErrorHandler → WordPressChannelResolver → LoggerFactory
+                                                          ↓
+                                                    Logger::log()
+                                                    ↓           ↓
+                                            ErrorLogHandler  DebugHandler
+                                            (error_log())    (ツールバー)
+```
+
+Logger 未インストール時は `LoggerDataCollector` が従来どおり直接ログを管理します（フォールバック動作）。
+
 ## 主要クラス
 
 | クラス | 説明 |
 |-------|------|
 | `Logger` | PSR-3 準拠ロガー |
 | `LoggerFactory` | 名前付きロガーインスタンスの生成 |
+| `ErrorHandler` | PHP エラー → PSR-3 ログ変換 |
+| `ChannelResolver\ChannelResolverInterface` | ファイルパス → チャンネル名解決 |
+| `ChannelResolver\DefaultChannelResolver` | 固定チャンネルリゾルバー |
+| `ChannelResolver\WordPressChannelResolver` | WordPress パス解決リゾルバー |
 | `Handler\HandlerInterface` | カスタムハンドラー用インターフェース |
 | `Handler\ErrorLogHandler` | PHP `error_log()` ハンドラー |
 | `Context\LoggerContext` | 永続的なロギングコンテキスト |

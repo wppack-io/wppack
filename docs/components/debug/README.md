@@ -191,7 +191,7 @@ echo $profile->getTime();
 | `RestDataCollector` | rest | エンドポイント数 | REST API エンドポイント情報 |
 | `AssetDataCollector` | asset | アセット数 | スクリプト/スタイルシートの登録・出力状況 |
 | `AdminDataCollector` | admin | 管理ページ | 管理画面情報 |
-| `LoggerDataCollector` | logger | ログ数 | ログメッセージ・非推奨警告 |
+| `LoggerDataCollector` | logger | ログ数 | ログメッセージ・PHP エラー・非推奨警告 |
 | `DumpDataCollector` | dump | dump 数 | dump() 呼び出しキャプチャ |
 | `MailDataCollector` | mail | メール数 | wp_mail() 送信メール追跡 |
 | `SecurityDataCollector` | security | ユーザー名 | 現在のユーザー・ロール・権限 |
@@ -500,8 +500,61 @@ final class StopwatchTest extends TestCase
 - **HttpFoundation コンポーネント** — `HttpException` ステータスコード取得用
 
 ### オプション
+- **Logger コンポーネント** — PHP エラーキャプチャ、チャンネル自動解決、ログパイプライン統合
 - **Database コンポーネント** — データベースクエリプロファイリング用
 - **Cache コンポーネント** — キャッシュ操作モニタリング用
+
+## Logger コンポーネント統合
+
+Logger コンポーネント（`wppack/logger`）がインストールされている場合、以下の統合が自動的に有効化されます:
+
+### PHP エラーキャプチャ
+
+Logger の `ErrorHandler` が `set_error_handler()` で PHP エラー（`E_WARNING`, `E_DEPRECATED`, `E_NOTICE` 等）をキャプチャし、PSR-3 ログに変換します。ログは `ErrorLogHandler`（`error_log()` 出力）と `DebugHandler`（ツールバー表示）の両方に流れます。
+
+### チャンネル自動解決
+
+Logger の `WordPressChannelResolver` がエラー発生元のファイルパスからプラグイン/テーマ名をチャンネルとして自動解決します（詳細は [Logger ドキュメント](../logger/) を参照）:
+
+```
+WP_PLUGIN_DIR/akismet/...              → チャンネル "plugin:akismet"
+WPMU_PLUGIN_DIR/custom-mu/...          → チャンネル "plugin:custom-mu"
+ABSPATH/wp-content/themes/mytheme/...  → チャンネル "theme:mytheme"
+ABSPATH/wp-includes/... or wp-admin/... → チャンネル "wordpress"
+その他                                  → チャンネル "php"
+```
+
+### WordPress 非推奨警告の Logger 統合
+
+`LoggerDataCollector` の WordPress deprecation キャプチャ（`deprecated_function_run` 等）は、Logger が利用可能な場合、Logger パイプライン経由でログを処理します。これにより `error_log()` への出力とツールバー表示が統一されます。Logger 未インストール時は従来どおりの直接ログでフォールバックします。
+
+### データフロー
+
+```
+PHP Error (E_WARNING, E_DEPRECATED, etc.)
+  → ErrorHandler (Logger)
+    → WordPressChannelResolver → "akismet"
+    → LoggerFactory::create("akismet")->warning(...)
+      → ErrorLogHandler → error_log()
+      → DebugHandler → LoggerDataCollector → ツールバー
+
+WordPress deprecation hook
+  → LoggerDataCollector::captureDeprecation()
+    → $this->logger->warning(...)
+      → ErrorLogHandler → error_log()
+      → DebugHandler → LoggerDataCollector → ツールバー
+
+Application code: $logger->info("...")
+  → ErrorLogHandler → error_log()
+  → DebugHandler → LoggerDataCollector → ツールバー
+```
+
+### DI 設定
+
+`DebugServiceProvider` が Logger 利用可能時に自動で以下を行います:
+
+1. `LoggerDataCollector` に `LoggerInterface` を setter 注入
+2. `ErrorHandler::register()` を呼び出して PHP エラーハンドラーを登録
 
 ## 関連ドキュメント
 

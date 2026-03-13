@@ -403,162 +403,108 @@ final class LoggerDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function registerErrorHandlerCapturesDeprecation(): void
+    public function captureDeprecationUsesLoggerWhenSet(): void
     {
-        $method = new \ReflectionMethod($this->collector, 'handlePhpError');
+        $loggedMessages = [];
+        $logger = new class ($loggedMessages) implements \Psr\Log\LoggerInterface {
+            use \Psr\Log\LoggerTrait;
 
-        // Ensure error_reporting includes user-level errors
-        $previousLevel = error_reporting(E_ALL);
+            /** @param list<array{level: string, message: string, context: array<string, mixed>}> $messages */
+            public function __construct(private array &$messages) {}
 
-        $method->invoke($this->collector, E_USER_DEPRECATED, 'Test deprecated function', '/test/file.php', 10);
+            public function log($level, string|\Stringable $message, array $context = []): void
+            {
+                $this->messages[] = ['level' => (string) $level, 'message' => (string) $message, 'context' => $context];
+            }
+        };
 
-        error_reporting($previousLevel);
+        $this->collector->setLogger($logger);
+        $this->collector->captureDeprecation('old_func', 'new_func', '6.0');
+
+        // Should route through Logger, not direct log()
+        self::assertCount(1, $loggedMessages);
+        self::assertSame('warning', $loggedMessages[0]['level']);
+        self::assertStringContainsString('old_func', $loggedMessages[0]['message']);
+        self::assertSame('deprecation', $loggedMessages[0]['context']['_type']);
+    }
+
+    #[Test]
+    public function captureDeprecationFallsBackWithoutLogger(): void
+    {
+        // No logger set — should use direct log()
+        $this->collector->captureDeprecation('old_func', 'new_func', '6.0');
+
         $this->collector->collect();
         $data = $this->collector->getData();
 
         self::assertSame(1, $data['total_count']);
         self::assertSame('deprecation', $data['logs'][0]['level']);
-        self::assertSame('php', $data['logs'][0]['channel']);
-        self::assertStringContainsString('Test deprecated function', $data['logs'][0]['message']);
-        self::assertSame('/test/file.php', $data['logs'][0]['file']);
-        self::assertSame(10, $data['logs'][0]['line']);
+        self::assertSame('wordpress', $data['logs'][0]['channel']);
     }
 
     #[Test]
-    public function registerErrorHandlerCapturesWarning(): void
+    public function captureDeprecatedHookUsesLoggerWhenSet(): void
     {
-        $method = new \ReflectionMethod($this->collector, 'handlePhpError');
+        $loggedMessages = [];
+        $logger = new class ($loggedMessages) implements \Psr\Log\LoggerInterface {
+            use \Psr\Log\LoggerTrait;
 
-        $previousLevel = error_reporting(E_ALL);
+            /** @param list<array{level: string, message: string, context: array<string, mixed>}> $messages */
+            public function __construct(private array &$messages) {}
 
-        $method->invoke($this->collector, E_USER_WARNING, 'Test warning', '/test/warn.php', 20);
+            public function log($level, string|\Stringable $message, array $context = []): void
+            {
+                $this->messages[] = ['level' => (string) $level, 'message' => (string) $message, 'context' => $context];
+            }
+        };
 
-        error_reporting($previousLevel);
-        $this->collector->collect();
-        $data = $this->collector->getData();
+        $this->collector->setLogger($logger);
+        $this->collector->captureDeprecatedHook('old_hook', 'new_hook', '6.0', '');
 
-        self::assertSame(1, $data['total_count']);
-        self::assertSame('warning', $data['logs'][0]['level']);
-        self::assertSame('php', $data['logs'][0]['channel']);
+        self::assertCount(1, $loggedMessages);
+        self::assertSame('warning', $loggedMessages[0]['level']);
+        self::assertSame('deprecation', $loggedMessages[0]['context']['_type']);
+        self::assertSame('deprecated_hook', $loggedMessages[0]['context']['type']);
     }
 
     #[Test]
-    public function registerErrorHandlerCapturesNotice(): void
+    public function captureDoingItWrongUsesLoggerWhenSet(): void
     {
-        $method = new \ReflectionMethod($this->collector, 'handlePhpError');
+        $loggedMessages = [];
+        $logger = new class ($loggedMessages) implements \Psr\Log\LoggerInterface {
+            use \Psr\Log\LoggerTrait;
 
-        $previousLevel = error_reporting(E_ALL);
+            /** @param list<array{level: string, message: string, context: array<string, mixed>}> $messages */
+            public function __construct(private array &$messages) {}
 
-        $method->invoke($this->collector, E_USER_NOTICE, 'Test notice', '/test/notice.php', 30);
+            public function log($level, string|\Stringable $message, array $context = []): void
+            {
+                $this->messages[] = ['level' => (string) $level, 'message' => (string) $message, 'context' => $context];
+            }
+        };
 
-        error_reporting($previousLevel);
-        $this->collector->collect();
-        $data = $this->collector->getData();
+        $this->collector->setLogger($logger);
+        $this->collector->captureDoingItWrong('bad_func', 'You did it wrong.', '6.0');
 
-        self::assertSame(1, $data['total_count']);
-        self::assertSame('notice', $data['logs'][0]['level']);
-        self::assertSame('php', $data['logs'][0]['channel']);
+        self::assertCount(1, $loggedMessages);
+        self::assertSame('warning', $loggedMessages[0]['level']);
+        self::assertSame('deprecation', $loggedMessages[0]['context']['_type']);
+        self::assertSame('doing_it_wrong', $loggedMessages[0]['context']['type']);
     }
 
     #[Test]
-    public function registerErrorHandlerRespectsAtSuppression(): void
+    public function collectCountsDeprecationsFromTypeContext(): void
     {
-        $method = new \ReflectionMethod($this->collector, 'handlePhpError');
-
-        // Simulate @ suppression by temporarily setting error_reporting to 0
-        $previousLevel = error_reporting(0);
-        $method->invoke($this->collector, E_USER_WARNING, 'Suppressed error', '/test/file.php', 1);
-        error_reporting($previousLevel);
-
-        $this->collector->collect();
-        $data = $this->collector->getData();
-
-        self::assertSame(0, $data['total_count']);
-    }
-
-    #[Test]
-    public function restoreErrorHandlerRestoresPrevious(): void
-    {
-        $this->collector->registerErrorHandler();
-        $this->collector->restoreErrorHandler();
-
-        // After restoring, our collector should not capture new errors
-        $this->collector->collect();
-        $data = $this->collector->getData();
-
-        self::assertSame(0, $data['total_count']);
-    }
-
-    #[Test]
-    public function handlePhpErrorCapturesRecoverableError(): void
-    {
-        $method = new \ReflectionMethod($this->collector, 'handlePhpError');
-        $oldLevel = error_reporting(E_ALL);
-
-        try {
-            $method->invoke($this->collector, E_RECOVERABLE_ERROR, 'Recoverable error occurred', '/file.php', 10);
-        } finally {
-            error_reporting($oldLevel);
-        }
+        // Simulate Logger-routed deprecation (warning level + _type context)
+        $this->collector->log('warning', 'Deprecated via logger', ['_type' => 'deprecation']);
+        // Direct deprecation level
+        $this->collector->log('deprecation', 'Direct deprecation');
+        // Normal warning (should not count as deprecation)
+        $this->collector->log('warning', 'Normal warning');
 
         $this->collector->collect();
         $data = $this->collector->getData();
 
-        self::assertSame(1, $data['total_count']);
-        $log = $data['logs'][0];
-        self::assertSame('error', $log['level']);
-        self::assertSame('E_RECOVERABLE_ERROR', $log['context']['_error_type']);
-    }
-
-    #[Test]
-    public function handlePhpErrorCapturesUnknownErrorType(): void
-    {
-        $method = new \ReflectionMethod($this->collector, 'handlePhpError');
-        // E_ALL includes all known errors, so set error_reporting to include everything
-        $oldLevel = error_reporting(-1);
-
-        try {
-            // Use E_COMPILE_ERROR (64) which is not in the match statement
-            $method->invoke($this->collector, E_COMPILE_ERROR, 'Unknown error type', '/file.php', 10);
-        } finally {
-            error_reporting($oldLevel);
-        }
-
-        $this->collector->collect();
-        $data = $this->collector->getData();
-
-        self::assertSame(1, $data['total_count']);
-        $log = $data['logs'][0];
-        self::assertSame('warning', $log['level']);
-        self::assertSame('E_UNKNOWN', $log['context']['_error_type']);
-    }
-
-    #[Test]
-    public function handlePhpErrorCallsPreviousHandler(): void
-    {
-        $previousCalled = false;
-        $capturedErrno = 0;
-
-        // Set previousErrorHandler directly via reflection
-        $method = new \ReflectionMethod($this->collector, 'handlePhpError');
-        $ref = new \ReflectionProperty($this->collector, 'previousErrorHandler');
-        $ref->setValue($this->collector, function (int $errno) use (&$previousCalled, &$capturedErrno): bool {
-            $previousCalled = true;
-            $capturedErrno = $errno;
-
-            return false;
-        });
-
-        $oldLevel = error_reporting(E_ALL);
-
-        try {
-            $method->invoke($this->collector, E_USER_WARNING, 'test warning', '/file.php', 42);
-        } finally {
-            error_reporting($oldLevel);
-            $ref->setValue($this->collector, null);
-        }
-
-        self::assertTrue($previousCalled, 'Previous error handler should have been called');
-        self::assertSame(E_USER_WARNING, $capturedErrno);
+        self::assertSame(2, $data['deprecation_count']);
     }
 }

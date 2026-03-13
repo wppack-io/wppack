@@ -11,6 +11,8 @@ use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
 use WpPack\Component\Logger\DependencyInjection\LoggerServiceProvider;
+use WpPack\Component\Logger\ChannelResolver\WordPressChannelResolver;
+use WpPack\Component\Logger\ErrorHandler;
 use WpPack\Component\Logger\Handler\ErrorLogHandler;
 use WpPack\Component\Logger\LoggerFactory;
 
@@ -109,6 +111,28 @@ final class LoggerServiceProviderTest extends TestCase
         $definition = $builder->findDefinition(ErrorLogHandler::class);
         $arguments = $definition->getArguments();
         self::assertSame('warning', $arguments[0]);
+    }
+
+    #[Test]
+    public function registersWordPressChannelResolver(): void
+    {
+        $builder = new ContainerBuilder();
+        $provider = new LoggerServiceProvider();
+
+        $provider->register($builder);
+
+        self::assertTrue($builder->hasDefinition(WordPressChannelResolver::class));
+    }
+
+    #[Test]
+    public function registersErrorHandler(): void
+    {
+        $builder = new ContainerBuilder();
+        $provider = new LoggerServiceProvider();
+
+        $provider->register($builder);
+
+        self::assertTrue($builder->hasDefinition(ErrorHandler::class));
     }
 
     #[Test]

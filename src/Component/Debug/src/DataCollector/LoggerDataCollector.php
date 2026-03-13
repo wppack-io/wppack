@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Debug\DataCollector;
 
+use Psr\Log\LoggerInterface;
 use WpPack\Component\Debug\Attribute\AsDataCollector;
 
 #[AsDataCollector(name: 'logger', priority: 100)]
@@ -22,11 +23,16 @@ final class LoggerDataCollector extends AbstractDataCollector
     /** @var list<array{level: string, message: string, context: array<string, mixed>, timestamp: float, channel: string, file: string, line: int}> */
     private array $logs = [];
 
-    private mixed $previousErrorHandler = null;
+    private ?LoggerInterface $logger = null;
 
     public function __construct()
     {
         $this->registerHooks();
+    }
+
+    public function setLogger(LoggerInterface $logger): void
+    {
+        $this->logger = $logger;
     }
 
     public function getName(): string
@@ -68,17 +74,6 @@ final class LoggerDataCollector extends AbstractDataCollector
         ];
     }
 
-    public function registerErrorHandler(): void
-    {
-        $this->previousErrorHandler = set_error_handler($this->handlePhpError(...));
-    }
-
-    public function restoreErrorHandler(): void
-    {
-        restore_error_handler();
-        $this->previousErrorHandler = null;
-    }
-
     /**
      * Capture deprecated function/argument notices from WordPress.
      */
@@ -103,14 +98,23 @@ final class LoggerDataCollector extends AbstractDataCollector
             }
         }
 
-        $this->log('deprecation', $message, [
+        $context = [
+            '_type' => 'deprecation',
             'type' => 'deprecation',
             'function' => $function,
             'replacement' => $replacement,
             'version' => $version,
             '_file' => $file,
             '_line' => $line,
-        ], 'wordpress');
+        ];
+
+        if ($this->logger !== null) {
+            $this->logger->warning($message, $context);
+
+            return;
+        }
+
+        $this->log('deprecation', $message, $context, 'wordpress');
     }
 
     /**
@@ -137,14 +141,23 @@ final class LoggerDataCollector extends AbstractDataCollector
             }
         }
 
-        $this->log('deprecation', $logMessage, [
+        $context = [
+            '_type' => 'deprecation',
             'type' => 'deprecated_hook',
             'hook' => $hook,
             'replacement' => $replacement,
             'version' => $version,
             '_file' => $file,
             '_line' => $line,
-        ], 'wordpress');
+        ];
+
+        if ($this->logger !== null) {
+            $this->logger->warning($logMessage, $context);
+
+            return;
+        }
+
+        $this->log('deprecation', $logMessage, $context, 'wordpress');
     }
 
     /**
@@ -171,24 +184,39 @@ final class LoggerDataCollector extends AbstractDataCollector
             }
         }
 
-        $this->log('deprecation', $logMessage, [
+        $context = [
+            '_type' => 'deprecation',
             'type' => 'doing_it_wrong',
             'function' => $function,
             'version' => $version,
             '_file' => $file,
             '_line' => $line,
-        ], 'wordpress');
+        ];
+
+        if ($this->logger !== null) {
+            $this->logger->warning($logMessage, $context);
+
+            return;
+        }
+
+        $this->log('deprecation', $logMessage, $context, 'wordpress');
     }
 
     public function collect(): void
     {
         $levelCounts = [];
+        $deprecationCount = 0;
         foreach ($this->logs as $log) {
             $level = $log['level'];
             if (!isset($levelCounts[$level])) {
                 $levelCounts[$level] = 0;
             }
             $levelCounts[$level]++;
+
+            // Count deprecations from both direct 'deprecation' level and Logger-routed entries with _type
+            if ($level === 'deprecation' || ($log['context']['_type'] ?? null) === 'deprecation') {
+                $deprecationCount++;
+            }
         }
 
         // Truncate message bodies and limit total entries
@@ -206,7 +234,7 @@ final class LoggerDataCollector extends AbstractDataCollector
             'logs' => $logs,
             'total_count' => count($this->logs),
             'level_counts' => $levelCounts,
-            'deprecation_count' => ($levelCounts['deprecation'] ?? 0),
+            'deprecation_count' => $deprecationCount,
             'error_count' => ($levelCounts['error'] ?? 0) + ($levelCounts['critical'] ?? 0) + ($levelCounts['alert'] ?? 0) + ($levelCounts['emergency'] ?? 0),
         ];
     }
@@ -238,47 +266,6 @@ final class LoggerDataCollector extends AbstractDataCollector
     {
         parent::reset();
         $this->logs = [];
-        $this->previousErrorHandler = null;
-    }
-
-    private function handlePhpError(int $errno, string $errstr, string $errfile, int $errline): bool
-    {
-        // Respect @ suppression operator
-        if (!(error_reporting() & $errno)) {
-            return false;
-        }
-
-        $level = match ($errno) {
-            E_DEPRECATED, E_USER_DEPRECATED => 'deprecation',
-            E_NOTICE, E_USER_NOTICE => 'notice',
-            E_WARNING, E_USER_WARNING => 'warning',
-            E_RECOVERABLE_ERROR => 'error',
-            default => 'warning',
-        };
-
-        $errorType = match ($errno) {
-            E_DEPRECATED => 'E_DEPRECATED',
-            E_USER_DEPRECATED => 'E_USER_DEPRECATED',
-            E_NOTICE => 'E_NOTICE',
-            E_USER_NOTICE => 'E_USER_NOTICE',
-            E_WARNING => 'E_WARNING',
-            E_USER_WARNING => 'E_USER_WARNING',
-            E_RECOVERABLE_ERROR => 'E_RECOVERABLE_ERROR',
-            default => 'E_UNKNOWN',
-        };
-
-        $this->log($level, $errstr, [
-            '_file' => $errfile,
-            '_line' => $errline,
-            '_error_type' => $errorType,
-        ], 'php');
-
-        // Call previous handler if any
-        if ($this->previousErrorHandler !== null) {
-            ($this->previousErrorHandler)($errno, $errstr, $errfile, $errline);
-        }
-
-        return false;
     }
 
     /**
