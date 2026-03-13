@@ -109,10 +109,10 @@ final class ContainerPanelRenderer extends AbstractPanelRenderer implements Rend
 
                 $flags = '';
                 if ($isAutowired) {
-                    $flags .= '<span class="wpd-query-tag" style="background:rgba(56,88,233,0.08);color:#3858e9">autowired</span> ';
+                    $flags .= '<span class="wpd-query-tag" style="background:var(--wpd-primary-a8);color:var(--wpd-primary)">autowired</span> ';
                 }
                 if ($isLazy) {
-                    $flags .= '<span class="wpd-query-tag" style="background:rgba(153,104,0,0.08);color:#996800">lazy</span> ';
+                    $flags .= '<span class="wpd-query-tag" style="background:var(--wpd-yellow-a8);color:var(--wpd-yellow)">lazy</span> ';
                 }
 
                 $html .= '<tr>';

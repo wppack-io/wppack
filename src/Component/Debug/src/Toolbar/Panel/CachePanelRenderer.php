@@ -43,9 +43,9 @@ final class CachePanelRenderer extends AbstractPanelRenderer implements Renderer
             default => 'wpd-text-red',
         };
         $barColor = match (true) {
-            $hitRate >= 80 => '#008a20',
-            $hitRate >= 50 => '#996800',
-            default => '#cc1818',
+            $hitRate >= 80 => 'var(--wpd-green)',
+            $hitRate >= 50 => 'var(--wpd-yellow)',
+            default => 'var(--wpd-red)',
         };
         $hitRateValue = '<span class="wpd-inline-bar"><span class="wpd-inline-bar-fill" style="width:' . $this->esc(sprintf('%.1f', min($hitRate, 100))) . '%;background:' . $this->esc($barColor) . '"></span></span>'
             . '<span class="' . $hitRateColor . '">' . $this->esc(sprintf('%.1f%%', $hitRate)) . '</span>';
@@ -75,8 +75,8 @@ final class CachePanelRenderer extends AbstractPanelRenderer implements Renderer
                     default => $this->esc((string) $op['expiration']) . ' s',
                 };
                 $opTag = $op['operation'] === 'set'
-                    ? '<span class="wpd-query-tag" style="background:rgba(0,163,42,0.08);color:#008a20">SET</span>'
-                    : '<span class="wpd-query-tag" style="background:rgba(204,24,24,0.08);color:#cc1818">DELETE</span>';
+                    ? '<span class="wpd-query-tag" style="background:var(--wpd-green-a8);color:var(--wpd-green)">SET</span>'
+                    : '<span class="wpd-query-tag" style="background:var(--wpd-red-a8);color:var(--wpd-red)">DELETE</span>';
 
                 $html .= '<tr>';
                 $html .= '<td class="wpd-col-num">' . $this->esc((string) ($index + 1)) . '</td>';

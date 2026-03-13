@@ -37,9 +37,9 @@ final class MemoryPanelRenderer extends AbstractPanelRenderer implements Rendere
             default => 'wpd-text-green',
         };
         $barColor = match (true) {
-            $usagePercentage >= 90 => '#cc1818',
-            $usagePercentage >= 70 => '#996800',
-            default => '#008a20',
+            $usagePercentage >= 90 => 'var(--wpd-red)',
+            $usagePercentage >= 70 => 'var(--wpd-yellow)',
+            default => 'var(--wpd-green)',
         };
         $usageValue = '<span class="wpd-inline-bar"><span class="wpd-inline-bar-fill" style="width:' . $this->esc(sprintf('%.1f', min($usagePercentage, 100))) . '%;background:' . $this->esc($barColor) . '"></span></span>'
             . '<span class="' . $usageColor . '">' . $this->esc(sprintf('%.1f%%', $usagePercentage)) . '</span>';

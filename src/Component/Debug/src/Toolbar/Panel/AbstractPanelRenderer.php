@@ -10,10 +10,10 @@ abstract class AbstractPanelRenderer
 {
     /** @var array<string, array{bg: string, fg: string}> */
     private const BADGE_COLORS = [
-        'green' => ['bg' => 'rgba(0,138,32,0.12)', 'fg' => '#008a20'],
-        'yellow' => ['bg' => 'rgba(153,104,0,0.12)', 'fg' => '#996800'],
-        'red' => ['bg' => 'rgba(204,24,24,0.12)', 'fg' => '#cc1818'],
-        'default' => ['bg' => 'transparent', 'fg' => '#50575e'],
+        'green' => ['bg' => 'var(--wpd-green-a12)', 'fg' => 'var(--wpd-green)'],
+        'yellow' => ['bg' => 'var(--wpd-yellow-a12)', 'fg' => 'var(--wpd-yellow)'],
+        'red' => ['bg' => 'var(--wpd-red-a12)', 'fg' => 'var(--wpd-red)'],
+        'default' => ['bg' => 'transparent', 'fg' => 'var(--wpd-gray-800)'],
     ];
 
     protected float $requestTimeFloat = 0.0;
@@ -40,7 +40,7 @@ abstract class AbstractPanelRenderer
             : '';
 
         $bgStyle = $colors['bg'] !== 'transparent' ? ' style="background:' . $colors['bg'] . '"' : '';
-        $iconStyle = $colors['fg'] !== '#50575e' ? ' style="color:' . $colors['fg'] . '"' : '';
+        $iconStyle = $colorKey !== 'default' ? ' style="color:' . $colors['fg'] . '"' : '';
 
         $accentAttr = $colorKey !== 'default' ? ' data-accent="' . $colors['fg'] . '"' : '';
 

@@ -64,7 +64,7 @@ final class PluginPanelRenderer extends AbstractPanelRenderer implements Rendere
                 $queryCount = (int) ($info['query_count'] ?? 0);
 
                 $html .= '<tr>';
-                $slowTag = ($slug === $slowestPlugin) ? ' <span class="wpd-query-tag" style="background:rgba(153,104,0,0.08);color:#996800">Slow</span>' : '';
+                $slowTag = ($slug === $slowestPlugin) ? ' <span class="wpd-query-tag" style="background:var(--wpd-yellow-a8);color:var(--wpd-yellow)">Slow</span>' : '';
                 $html .= '<td><span class="wpd-plugin-detail-link" data-plugin="' . $this->esc($slug) . '">' . $this->esc($name) . '</span>' . $slowTag . '</td>';
                 $html .= '<td>' . ($version !== '' ? $this->esc($version) : '-') . '</td>';
                 $html .= '<td class="wpd-col-right">' . ($loadTime > 0 ? $this->formatMs($loadTime) : '-') . '</td>';
@@ -98,7 +98,7 @@ final class PluginPanelRenderer extends AbstractPanelRenderer implements Rendere
                 $queryCount = (int) ($info['query_count'] ?? 0);
 
                 $html .= '<tr>';
-                $slowTag = ($slug === $slowestPlugin) ? ' <span class="wpd-query-tag" style="background:rgba(153,104,0,0.08);color:#996800">Slow</span>' : '';
+                $slowTag = ($slug === $slowestPlugin) ? ' <span class="wpd-query-tag" style="background:var(--wpd-yellow-a8);color:var(--wpd-yellow)">Slow</span>' : '';
                 $html .= '<td><span class="wpd-plugin-detail-link" data-plugin="' . $this->esc($slug) . '">' . $this->esc($name) . '</span>' . $slowTag . '</td>';
                 $html .= '<td>' . ($version !== '' ? $this->esc($version) : '-') . '</td>';
                 $html .= '<td class="wpd-col-right">' . ($loadTime > 0 ? $this->formatMs($loadTime) : '-') . '</td>';

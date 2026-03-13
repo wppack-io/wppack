@@ -59,7 +59,7 @@ final class EventPanelRenderer extends AbstractPanelRenderer implements Renderer
                 $typeTag = match ($summary['type']) {
                     'plugin' => '<span class="wpd-query-tag" style="background:rgba(130,50,150,0.12);color:#7b2d8e">plugin</span>',
                     'theme' => '<span class="wpd-query-tag" style="background:rgba(160,50,30,0.12);color:#9b3520">theme</span>',
-                    'core' => '<span class="wpd-query-tag" style="background:rgba(56,88,233,0.08);color:#3858e9">core</span>',
+                    'core' => '<span class="wpd-query-tag" style="background:var(--wpd-primary-a8);color:var(--wpd-primary)">core</span>',
                     default => '<span class="wpd-tag">' . $this->esc($summary['type']) . '</span>',
                 };
 

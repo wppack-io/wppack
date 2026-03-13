@@ -143,7 +143,7 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer implements Re
 
             // Build segments: fixed categories first, then dynamic
             $segments = [];
-            $segments[] = ['label' => 'PHP', 'time' => $phpTime, 'color' => '#3858e9'];
+            $segments[] = ['label' => 'PHP', 'time' => $phpTime, 'color' => 'var(--wpd-primary)'];
             $segments[] = ['label' => 'Database', 'time' => $dbTimeMs, 'color' => '#f0c33c'];
             $segments[] = ['label' => 'HTTP Client', 'time' => $httpTimeMs, 'color' => '#9b8afb'];
 
@@ -195,7 +195,7 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer implements Re
         $requestTimeFloat = (float) ($timeData['request_time_float'] ?? 0.0);
 
         $categoryColors = [
-            'wordpress' => '#3858e9',
+            'wordpress' => 'var(--wpd-primary)',
             'database' => '#f0c33c',
             'cache' => '#4ab866',
             'http' => '#9b8afb',

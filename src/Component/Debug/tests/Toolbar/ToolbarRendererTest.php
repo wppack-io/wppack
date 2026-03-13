@@ -1861,8 +1861,8 @@ final class ToolbarRendererTest extends TestCase
         $renderer = new PerformancePanelRenderer();
         $html = $renderer->renderBadge($profile);
 
-        // Red badge background should be present (rgba(204,24,24,0.12))
-        self::assertStringContainsString('style="background:rgba(204,24,24,0.12)"', $html);
+        // Red badge background should use CSS variable
+        self::assertStringContainsString('style="background:var(--wpd-red-a12)"', $html);
     }
 
     #[Test]
@@ -1878,7 +1878,7 @@ final class ToolbarRendererTest extends TestCase
         $renderer = new PerformancePanelRenderer();
         $html = $renderer->renderBadge($profile);
 
-        self::assertStringContainsString('style="background:rgba(204,24,24,0.12)"', $html);
+        self::assertStringContainsString('style="background:var(--wpd-red-a12)"', $html);
     }
 
     #[Test]
@@ -1901,7 +1901,7 @@ final class ToolbarRendererTest extends TestCase
             $html = $renderer->renderBadge($profile);
 
             // With totalTime >= 1000ms, red badge should appear
-            self::assertStringContainsString('style="background:rgba(204,24,24,0.12)"', $html);
+            self::assertStringContainsString('style="background:var(--wpd-red-a12)"', $html);
         } finally {
             if ($origRequestTime !== null) {
                 $_SERVER['REQUEST_TIME_FLOAT'] = $origRequestTime;
