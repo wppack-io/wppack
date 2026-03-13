@@ -6,7 +6,7 @@ namespace WpPack\Component\Debug\Toolbar\Panel;
 
 use WpPack\Component\Debug\Profiler\Profile;
 
-final class GenericPanelRenderer extends AbstractPanelRenderer implements PanelRendererInterface
+final class GenericPanelRenderer extends AbstractPanelRenderer implements RendererInterface
 {
     private string $collectorName = '';
 
@@ -20,7 +20,7 @@ final class GenericPanelRenderer extends AbstractPanelRenderer implements PanelR
         return 'generic';
     }
 
-    public function render(Profile $profile): string
+    public function renderPanel(Profile $profile): string
     {
         $data = $this->getCollectorData($profile, $this->collectorName);
 

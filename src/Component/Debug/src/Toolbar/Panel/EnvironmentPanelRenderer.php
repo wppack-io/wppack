@@ -8,14 +8,14 @@ use WpPack\Component\Debug\Attribute\AsPanelRenderer;
 use WpPack\Component\Debug\Profiler\Profile;
 
 #[AsPanelRenderer(name: 'environment')]
-final class EnvironmentPanelRenderer extends AbstractPanelRenderer implements PanelRendererInterface
+final class EnvironmentPanelRenderer extends AbstractPanelRenderer implements RendererInterface
 {
     public function getName(): string
     {
         return 'environment';
     }
 
-    public function render(Profile $profile): string
+    public function renderPanel(Profile $profile): string
     {
         $data = $this->getCollectorData($profile, $this->getName());
         /** @var array<string, mixed> $php */

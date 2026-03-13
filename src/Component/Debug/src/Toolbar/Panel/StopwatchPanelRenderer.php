@@ -8,14 +8,14 @@ use WpPack\Component\Debug\Attribute\AsPanelRenderer;
 use WpPack\Component\Debug\Profiler\Profile;
 
 #[AsPanelRenderer(name: 'stopwatch')]
-final class StopwatchPanelRenderer extends AbstractPanelRenderer implements PanelRendererInterface
+final class StopwatchPanelRenderer extends AbstractPanelRenderer implements RendererInterface
 {
     public function getName(): string
     {
         return 'stopwatch';
     }
 
-    public function render(Profile $profile): string
+    public function renderPanel(Profile $profile): string
     {
         $data = $this->getCollectorData($profile, $this->getName());
         $totalTime = (float) ($data['total_time'] ?? 0.0);

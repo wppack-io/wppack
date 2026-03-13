@@ -1380,7 +1380,7 @@ final class ToolbarRendererTest extends TestCase
         $renderer->setCollectorName('test_empty');
         $profile = new Profile();
         $profile->addCollector($this->createCollector('test_empty', 'Test', '', 'default'));
-        $html = $renderer->render($profile);
+        $html = $renderer->renderPanel($profile);
         self::assertStringContainsString('No data collected.', $html);
     }
 
@@ -1391,7 +1391,7 @@ final class ToolbarRendererTest extends TestCase
         $renderer->setCollectorName('test_data');
         $profile = new Profile();
         $profile->addCollector($this->createCollector('test_data', 'Test', '', 'default', ['key1' => 'value1', 'key2' => 42]));
-        $html = $renderer->render($profile);
+        $html = $renderer->renderPanel($profile);
         self::assertStringContainsString('key1', $html);
         self::assertStringContainsString('value1', $html);
         self::assertStringContainsString('key2', $html);

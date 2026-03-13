@@ -8,14 +8,14 @@ use WpPack\Component\Debug\Attribute\AsPanelRenderer;
 use WpPack\Component\Debug\Profiler\Profile;
 
 #[AsPanelRenderer(name: 'logger')]
-final class LoggerPanelRenderer extends AbstractPanelRenderer implements PanelRendererInterface
+final class LoggerPanelRenderer extends AbstractPanelRenderer implements RendererInterface
 {
     public function getName(): string
     {
         return 'logger';
     }
 
-    public function render(Profile $profile): string
+    public function renderPanel(Profile $profile): string
     {
         $data = $this->getCollectorData($profile, $this->getName());
         $totalCount = (int) ($data['total_count'] ?? 0);

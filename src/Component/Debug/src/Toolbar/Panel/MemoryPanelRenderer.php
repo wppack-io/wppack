@@ -8,14 +8,14 @@ use WpPack\Component\Debug\Attribute\AsPanelRenderer;
 use WpPack\Component\Debug\Profiler\Profile;
 
 #[AsPanelRenderer(name: 'memory')]
-final class MemoryPanelRenderer extends AbstractPanelRenderer implements PanelRendererInterface
+final class MemoryPanelRenderer extends AbstractPanelRenderer implements RendererInterface
 {
     public function getName(): string
     {
         return 'memory';
     }
 
-    public function render(Profile $profile): string
+    public function renderPanel(Profile $profile): string
     {
         $data = $this->getCollectorData($profile, $this->getName());
         $current = (int) ($data['current'] ?? 0);

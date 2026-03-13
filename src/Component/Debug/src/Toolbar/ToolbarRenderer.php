@@ -7,9 +7,8 @@ namespace WpPack\Component\Debug\Toolbar;
 use WpPack\Component\Debug\DataCollector\DataCollectorInterface;
 use WpPack\Component\Debug\Profiler\Profile;
 use WpPack\Component\Debug\Toolbar\Panel\AbstractPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\BadgeRendererInterface;
 use WpPack\Component\Debug\Toolbar\Panel\GenericPanelRenderer;
-use WpPack\Component\Debug\Toolbar\Panel\PanelRendererInterface;
+use WpPack\Component\Debug\Toolbar\Panel\RendererInterface;
 use WpPack\Component\Debug\Toolbar\Panel\ToolbarAssets;
 use WpPack\Component\Debug\Toolbar\Panel\ToolbarIcons;
 
@@ -48,7 +47,7 @@ final class ToolbarRenderer
         ['dump'],
     ];
 
-    /** @var array<string, AbstractPanelRenderer&PanelRendererInterface> */
+    /** @var array<string, AbstractPanelRenderer&RendererInterface> */
     private array $panelRenderers = [];
 
     private readonly GenericPanelRenderer $genericRenderer;
@@ -61,7 +60,7 @@ final class ToolbarRenderer
         $this->assets = new ToolbarAssets();
     }
 
-    public function addPanelRenderer(AbstractPanelRenderer&PanelRendererInterface $renderer): void
+    public function addPanelRenderer(AbstractPanelRenderer&RendererInterface $renderer): void
     {
         $this->panelRenderers[$renderer->getName()] = $renderer;
     }
@@ -250,7 +249,7 @@ final class ToolbarRenderer
 
         foreach (self::BADGE_ORDER as $name) {
             $renderer = $this->panelRenderers[$name] ?? null;
-            if ($renderer instanceof BadgeRendererInterface) {
+            if ($renderer !== null) {
                 $badges .= $renderer->renderBadge($profile);
                 $rendered[] = $name;
             } elseif (isset($collectors[$name])) {
@@ -300,10 +299,10 @@ final class ToolbarRenderer
         if ($renderer === null) {
             $this->genericRenderer->setCollectorName($name);
 
-            return $this->genericRenderer->render($profile);
+            return $this->genericRenderer->renderPanel($profile);
         }
 
-        return $renderer->render($profile);
+        return $renderer->renderPanel($profile);
     }
 
     /**

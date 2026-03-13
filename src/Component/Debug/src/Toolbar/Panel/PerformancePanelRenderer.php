@@ -8,14 +8,14 @@ use WpPack\Component\Debug\Attribute\AsPanelRenderer;
 use WpPack\Component\Debug\Profiler\Profile;
 
 #[AsPanelRenderer(name: 'performance')]
-final class PerformancePanelRenderer extends AbstractPanelRenderer implements PanelRendererInterface, BadgeRendererInterface
+final class PerformancePanelRenderer extends AbstractPanelRenderer implements RendererInterface
 {
     public function getName(): string
     {
         return 'performance';
     }
 
-    public function render(Profile $profile): string
+    public function renderPanel(Profile $profile): string
     {
         return $this->renderContent($profile);
     }

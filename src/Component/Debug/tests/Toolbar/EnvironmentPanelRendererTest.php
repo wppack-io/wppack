@@ -55,7 +55,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithBasicData(): void
     {
-        $html = $this->renderer->render($this->createProfile([
+        $html = $this->renderer->renderPanel($this->createProfile([
             'php' => [
                 'version' => '8.3.1',
                 'zend_version' => '4.3.1',
@@ -84,7 +84,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithOpcacheEnabled(): void
     {
-        $html = $this->renderer->render($this->createProfile([
+        $html = $this->renderer->renderPanel($this->createProfile([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -111,7 +111,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithOpcacheDisabled(): void
     {
-        $html = $this->renderer->render($this->createProfile([
+        $html = $this->renderer->renderPanel($this->createProfile([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -133,7 +133,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithHighHitRate(): void
     {
-        $html = $this->renderer->render($this->createProfile([
+        $html = $this->renderer->renderPanel($this->createProfile([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -154,7 +154,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithMediumHitRate(): void
     {
-        $html = $this->renderer->render($this->createProfile([
+        $html = $this->renderer->renderPanel($this->createProfile([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -175,7 +175,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithLowHitRate(): void
     {
-        $html = $this->renderer->render($this->createProfile([
+        $html = $this->renderer->renderPanel($this->createProfile([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -196,7 +196,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithWastedPercentage(): void
     {
-        $html = $this->renderer->render($this->createProfile([
+        $html = $this->renderer->renderPanel($this->createProfile([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -219,7 +219,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithOomRestarts(): void
     {
-        $html = $this->renderer->render($this->createProfile([
+        $html = $this->renderer->renderPanel($this->createProfile([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -241,7 +241,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithDisableFunctions(): void
     {
-        $html = $this->renderer->render($this->createProfile([
+        $html = $this->renderer->renderPanel($this->createProfile([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -261,7 +261,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithExtensions(): void
     {
-        $html = $this->renderer->render($this->createProfile([
+        $html = $this->renderer->renderPanel($this->createProfile([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -281,7 +281,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithEmptyExtensions(): void
     {
-        $html = $this->renderer->render($this->createProfile([
+        $html = $this->renderer->renderPanel($this->createProfile([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -297,7 +297,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithHostname(): void
     {
-        $html = $this->renderer->render($this->createProfile([
+        $html = $this->renderer->renderPanel($this->createProfile([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -314,7 +314,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithEmptyHostname(): void
     {
-        $html = $this->renderer->render($this->createProfile([
+        $html = $this->renderer->renderPanel($this->createProfile([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',

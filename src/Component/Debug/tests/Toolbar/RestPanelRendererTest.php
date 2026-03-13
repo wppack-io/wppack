@@ -28,7 +28,7 @@ final class RestPanelRendererTest extends TestCase
     #[Test]
     public function renderWithRoutesGroupedByNamespace(): void
     {
-        $html = $this->renderer->render($this->createProfile([
+        $html = $this->renderer->renderPanel($this->createProfile([
             'is_rest_request' => false,
             'current_request' => null,
             'total_routes' => 5,
@@ -64,7 +64,7 @@ final class RestPanelRendererTest extends TestCase
     #[Test]
     public function renderWithCurrentRequest(): void
     {
-        $html = $this->renderer->render($this->createProfile([
+        $html = $this->renderer->renderPanel($this->createProfile([
             'is_rest_request' => true,
             'current_request' => [
                 'method' => 'POST',
@@ -107,7 +107,7 @@ final class RestPanelRendererTest extends TestCase
     #[Test]
     public function renderMethodColorCoding(): void
     {
-        $html = $this->renderer->render($this->createProfile([
+        $html = $this->renderer->renderPanel($this->createProfile([
             'is_rest_request' => false,
             'current_request' => null,
             'total_routes' => 4,
@@ -136,7 +136,7 @@ final class RestPanelRendererTest extends TestCase
     public function renderCurrentRequestWithDifferentAuthenticationTypes(): void
     {
         // Bearer authentication
-        $html = $this->renderer->render($this->createProfile([
+        $html = $this->renderer->renderPanel($this->createProfile([
             'is_rest_request' => true,
             'current_request' => [
                 'method' => 'GET',
@@ -160,7 +160,7 @@ final class RestPanelRendererTest extends TestCase
     #[Test]
     public function renderCurrentRequestWith4xxStatus(): void
     {
-        $html = $this->renderer->render($this->createProfile([
+        $html = $this->renderer->renderPanel($this->createProfile([
             'is_rest_request' => true,
             'current_request' => [
                 'method' => 'GET',
@@ -184,7 +184,7 @@ final class RestPanelRendererTest extends TestCase
     #[Test]
     public function renderCurrentRequestWith3xxStatus(): void
     {
-        $html = $this->renderer->render($this->createProfile([
+        $html = $this->renderer->renderPanel($this->createProfile([
             'is_rest_request' => true,
             'current_request' => [
                 'method' => 'GET',
@@ -208,7 +208,7 @@ final class RestPanelRendererTest extends TestCase
     #[Test]
     public function renderRouteWithUnknownMethodShowsDefaultColor(): void
     {
-        $html = $this->renderer->render($this->createProfile([
+        $html = $this->renderer->renderPanel($this->createProfile([
             'is_rest_request' => false,
             'current_request' => null,
             'total_routes' => 1,
@@ -227,7 +227,7 @@ final class RestPanelRendererTest extends TestCase
     #[Test]
     public function renderCurrentRequestWithDeleteMethod(): void
     {
-        $html = $this->renderer->render($this->createProfile([
+        $html = $this->renderer->renderPanel($this->createProfile([
             'is_rest_request' => true,
             'current_request' => [
                 'method' => 'DELETE',
@@ -254,7 +254,7 @@ final class RestPanelRendererTest extends TestCase
     #[Test]
     public function renderCurrentRequestWithPutMethodAndBasicAuth(): void
     {
-        $html = $this->renderer->render($this->createProfile([
+        $html = $this->renderer->renderPanel($this->createProfile([
             'is_rest_request' => true,
             'current_request' => [
                 'method' => 'PUT',

@@ -8,14 +8,14 @@ use WpPack\Component\Debug\Attribute\AsPanelRenderer;
 use WpPack\Component\Debug\Profiler\Profile;
 
 #[AsPanelRenderer(name: 'wordpress')]
-final class WordPressPanelRenderer extends AbstractPanelRenderer implements PanelRendererInterface
+final class WordPressPanelRenderer extends AbstractPanelRenderer implements RendererInterface
 {
     public function getName(): string
     {
         return 'wordpress';
     }
 
-    public function render(Profile $profile): string
+    public function renderPanel(Profile $profile): string
     {
         $wpData = $this->getCollectorData($profile, 'wordpress');
         $envData = $this->getCollectorData($profile, 'environment');
