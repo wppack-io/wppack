@@ -77,13 +77,13 @@ final class EventDispatcher implements EventDispatcherInterface
     public function removeListener(string $event, callable $listener, int $priority = 10): void
     {
         if (class_exists($event) && !is_subclass_of($event, WordPressEvent::class)) {
-            remove_filter($event, $listener, $priority);
+            @remove_filter($event, $listener, $priority);
         } else {
             $hookName = is_subclass_of($event, WordPressEvent::class) ? $event::HOOK_NAME : $event;
 
             foreach ($this->wrappedListeners[$hookName][$priority] ?? [] as $i => $entry) {
                 if ($entry['original'] === $listener) {
-                    remove_filter($hookName, $entry['wrapped'], $priority);
+                    @remove_filter($hookName, $entry['wrapped'], $priority);
                     unset($this->wrappedListeners[$hookName][$priority][$i]);
 
                     return;

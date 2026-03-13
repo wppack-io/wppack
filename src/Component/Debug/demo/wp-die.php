@@ -217,6 +217,7 @@ $handler->register();
 
 // Stub wp_die() so the backtrace includes a wp_die frame (matching real WP behavior)
 if (!function_exists('wp_die')) {
+    /** @param array<string, mixed>|int|string $args */
     function wp_die(string|\WP_Error $message = '', string $title = '', array|int|string $args = []): void
     {
         global $handler;
