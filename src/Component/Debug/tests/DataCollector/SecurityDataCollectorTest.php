@@ -54,7 +54,7 @@ final class SecurityDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeValueReturnsAnonWhenNotLoggedIn(): void
+    public function getIndicatorValueReturnsAnonWhenNotLoggedIn(): void
     {
         if (function_exists('is_user_logged_in')) {
             self::markTestSkipped('WordPress functions are available; this test is for non-WP environments.');
@@ -62,11 +62,11 @@ final class SecurityDataCollectorTest extends TestCase
 
         $this->collector->collect();
 
-        self::assertSame('anon.', $this->collector->getBadgeValue());
+        self::assertSame('anon.', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeColorReturnsDefaultWhenNoFailures(): void
+    public function getIndicatorColorReturnsDefaultWhenNoFailures(): void
     {
         if (function_exists('is_user_logged_in')) {
             self::markTestSkipped('WordPress functions are available; this test is for non-WP environments.');
@@ -74,7 +74,7 @@ final class SecurityDataCollectorTest extends TestCase
 
         $this->collector->collect();
 
-        self::assertSame('default', $this->collector->getBadgeColor());
+        self::assertSame('default', $this->collector->getIndicatorColor());
     }
 
     #[Test]
@@ -237,7 +237,7 @@ final class SecurityDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeValueReturnsUsernameWhenLoggedIn(): void
+    public function getIndicatorValueReturnsUsernameWhenLoggedIn(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, [
@@ -245,18 +245,18 @@ final class SecurityDataCollectorTest extends TestCase
             'username' => 'admin',
         ]);
 
-        self::assertSame('admin', $this->collector->getBadgeValue());
+        self::assertSame('admin', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeColorReturnsRedWhenNonceFailures(): void
+    public function getIndicatorColorReturnsRedWhenNonceFailures(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, [
             'nonce_verify_failures' => 2,
         ]);
 
-        self::assertSame('red', $this->collector->getBadgeColor());
+        self::assertSame('red', $this->collector->getIndicatorColor());
     }
 
     #[Test]

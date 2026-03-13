@@ -44,14 +44,14 @@ final class ContainerDataCollector extends AbstractDataCollector
         $this->collectFromContainer();
     }
 
-    public function getBadgeValue(): string
+    public function getIndicatorValue(): string
     {
         $count = (int) ($this->data['service_count'] ?? 0);
 
         return $count > 0 ? (string) $count : '';
     }
 
-    public function getBadgeColor(): string
+    public function getIndicatorColor(): string
     {
         return 'default';
     }

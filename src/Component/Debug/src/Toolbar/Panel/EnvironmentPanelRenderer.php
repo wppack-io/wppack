@@ -15,7 +15,7 @@ final class EnvironmentPanelRenderer extends AbstractPanelRenderer implements Re
         return 'environment';
     }
 
-    public function renderBadge(Profile $profile): string
+    public function renderIndicator(Profile $profile): string
     {
         $parts = [];
         $tooltipLines = [];

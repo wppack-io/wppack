@@ -46,8 +46,8 @@ final class FakeCollector extends AbstractDataCollector
     public function __construct(
         private readonly string $fakeName,
         private readonly string $fakeLabel,
-        private readonly string $fakeBadgeValue,
-        private readonly string $fakeBadgeColor,
+        private readonly string $fakeIndicatorValue,
+        private readonly string $fakeIndicatorColor,
         private readonly array $fakeData,
     ) {}
 
@@ -61,14 +61,14 @@ final class FakeCollector extends AbstractDataCollector
         return $this->fakeLabel;
     }
 
-    public function getBadgeValue(): string
+    public function getIndicatorValue(): string
     {
-        return $this->fakeBadgeValue;
+        return $this->fakeIndicatorValue;
     }
 
-    public function getBadgeColor(): string
+    public function getIndicatorColor(): string
     {
-        return $this->fakeBadgeColor;
+        return $this->fakeIndicatorColor;
     }
 
     public function collect(): void
@@ -1091,7 +1091,7 @@ p { line-height: 1.8; color: #666; }
     <div class="card">
         <h2>Hello World</h2>
         <p>This is a demo page showing the WpPack Debug toolbar with sample data.
-        Click any badge in the toolbar below to expand the corresponding panel.</p>
+        Click any indicator in the toolbar below to expand the corresponding panel.</p>
         <p>This demo simulates a FSE (block theme) environment with the "Flavor" theme,
         showing block template detection, template parts, and all data collectors.</p>
     </div>

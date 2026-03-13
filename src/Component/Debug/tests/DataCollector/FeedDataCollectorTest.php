@@ -46,27 +46,27 @@ final class FeedDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeValueReturnsTotalCount(): void
+    public function getIndicatorValueReturnsTotalCount(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, ['total_count' => 4]);
 
-        self::assertSame('4', $this->collector->getBadgeValue());
+        self::assertSame('4', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeValueReturnsEmptyWhenZero(): void
+    public function getIndicatorValueReturnsEmptyWhenZero(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, ['total_count' => 0]);
 
-        self::assertSame('', $this->collector->getBadgeValue());
+        self::assertSame('', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeColorReturnsDefault(): void
+    public function getIndicatorColorReturnsDefault(): void
     {
-        self::assertSame('default', $this->collector->getBadgeColor());
+        self::assertSame('default', $this->collector->getIndicatorColor());
     }
 
     #[Test]

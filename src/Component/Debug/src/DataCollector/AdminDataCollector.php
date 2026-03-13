@@ -109,7 +109,7 @@ final class AdminDataCollector extends AbstractDataCollector
         ];
     }
 
-    public function getBadgeValue(): string
+    public function getIndicatorValue(): string
     {
         if (!($this->data['is_admin'] ?? false)) {
             return '';
@@ -120,7 +120,7 @@ final class AdminDataCollector extends AbstractDataCollector
         return (string) ($screen['id'] ?? $this->data['page_hook'] ?? '');
     }
 
-    public function getBadgeColor(): string
+    public function getIndicatorColor(): string
     {
         return 'default';
     }

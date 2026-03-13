@@ -57,7 +57,7 @@ final class AssetDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeValueReturnsTotalEnqueued(): void
+    public function getIndicatorValueReturnsTotalEnqueued(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, [
@@ -65,11 +65,11 @@ final class AssetDataCollectorTest extends TestCase
             'enqueued_styles' => 3,
         ]);
 
-        self::assertSame('8', $this->collector->getBadgeValue());
+        self::assertSame('8', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeValueReturnsEmptyWhenZero(): void
+    public function getIndicatorValueReturnsEmptyWhenZero(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, [
@@ -77,13 +77,13 @@ final class AssetDataCollectorTest extends TestCase
             'enqueued_styles' => 0,
         ]);
 
-        self::assertSame('', $this->collector->getBadgeValue());
+        self::assertSame('', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeColorReturnsDefault(): void
+    public function getIndicatorColorReturnsDefault(): void
     {
-        self::assertSame('default', $this->collector->getBadgeColor());
+        self::assertSame('default', $this->collector->getIndicatorColor());
     }
 
     #[Test]

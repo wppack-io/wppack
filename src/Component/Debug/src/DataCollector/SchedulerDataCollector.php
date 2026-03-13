@@ -136,14 +136,14 @@ final class SchedulerDataCollector extends AbstractDataCollector
         ];
     }
 
-    public function getBadgeValue(): string
+    public function getIndicatorValue(): string
     {
         $total = $this->data['cron_total'] ?? 0;
 
         return $total > 0 ? (string) $total : '';
     }
 
-    public function getBadgeColor(): string
+    public function getIndicatorColor(): string
     {
         $overdue = $this->data['cron_overdue'] ?? 0;
         $total = $this->data['cron_total'] ?? 0;

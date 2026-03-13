@@ -19,12 +19,12 @@ abstract class AbstractDataCollector implements DataCollectorInterface
         return ucfirst($this->getName());
     }
 
-    public function getBadgeValue(): string
+    public function getIndicatorValue(): string
     {
         return '';
     }
 
-    public function getBadgeColor(): string
+    public function getIndicatorColor(): string
     {
         return 'default';
     }

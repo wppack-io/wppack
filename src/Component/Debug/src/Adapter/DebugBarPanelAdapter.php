@@ -57,7 +57,7 @@ final class DebugBarPanelAdapter extends AbstractDataCollector
         ];
     }
 
-    public function getBadgeValue(): string
+    public function getIndicatorValue(): string
     {
         $count = $this->data['panel_count'] ?? 0;
 

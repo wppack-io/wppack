@@ -66,40 +66,40 @@ final class RequestDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeValueReturnsMethodAndStatus(): void
+    public function getIndicatorValueReturnsMethodAndStatus(): void
     {
         $_SERVER['REQUEST_METHOD'] = 'GET';
 
         $this->collector->collect();
 
-        self::assertSame('GET 200', $this->collector->getBadgeValue());
+        self::assertSame('GET 200', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeColorReturnsGreenFor200Status(): void
+    public function getIndicatorColorReturnsGreenFor200Status(): void
     {
         $this->collector->collect();
 
-        self::assertSame('green', $this->collector->getBadgeColor());
+        self::assertSame('green', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsYellowFor300Status(): void
+    public function getIndicatorColorReturnsYellowFor300Status(): void
     {
         // Use captureStatusCode to set a 301 status
         $this->collector->captureStatusCode('HTTP/1.1 301 Moved Permanently', 301);
         $this->collector->collect();
 
-        self::assertSame('yellow', $this->collector->getBadgeColor());
+        self::assertSame('yellow', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsRedFor400Status(): void
+    public function getIndicatorColorReturnsRedFor400Status(): void
     {
         $this->collector->captureStatusCode('HTTP/1.1 404 Not Found', 404);
         $this->collector->collect();
 
-        self::assertSame('red', $this->collector->getBadgeColor());
+        self::assertSame('red', $this->collector->getIndicatorColor());
     }
 
     #[Test]
@@ -441,40 +441,40 @@ final class RequestDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeValueFormatsMethodAndStatus(): void
+    public function getIndicatorValueFormatsMethodAndStatus(): void
     {
         $_SERVER['REQUEST_METHOD'] = 'GET';
 
         $this->collector->collect();
 
-        self::assertSame('GET 200', $this->collector->getBadgeValue());
+        self::assertSame('GET 200', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeColorReturnsGreenFor2xx(): void
+    public function getIndicatorColorReturnsGreenFor2xx(): void
     {
         $this->collector->captureStatusCode('HTTP/1.1 201 Created', 201);
         $this->collector->collect();
 
-        self::assertSame('green', $this->collector->getBadgeColor());
+        self::assertSame('green', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsYellowFor3xx(): void
+    public function getIndicatorColorReturnsYellowFor3xx(): void
     {
         $this->collector->captureStatusCode('HTTP/1.1 302 Found', 302);
         $this->collector->collect();
 
-        self::assertSame('yellow', $this->collector->getBadgeColor());
+        self::assertSame('yellow', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsRedFor4xx(): void
+    public function getIndicatorColorReturnsRedFor4xx(): void
     {
         $this->collector->captureStatusCode('HTTP/1.1 500 Internal Server Error', 500);
         $this->collector->collect();
 
-        self::assertSame('red', $this->collector->getBadgeColor());
+        self::assertSame('red', $this->collector->getIndicatorColor());
     }
 
     #[Test]

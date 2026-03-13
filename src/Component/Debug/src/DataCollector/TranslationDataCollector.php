@@ -116,14 +116,14 @@ final class TranslationDataCollector extends AbstractDataCollector
         ];
     }
 
-    public function getBadgeValue(): string
+    public function getIndicatorValue(): string
     {
         $missingCount = $this->data['missing_count'] ?? 0;
 
         return $missingCount > 0 ? (string) $missingCount : '';
     }
 
-    public function getBadgeColor(): string
+    public function getIndicatorColor(): string
     {
         $missingCount = $this->data['missing_count'] ?? 0;
 

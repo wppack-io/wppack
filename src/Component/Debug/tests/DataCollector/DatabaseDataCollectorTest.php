@@ -42,59 +42,59 @@ final class DatabaseDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeColorReturnsGreenForLowQueryCount(): void
+    public function getIndicatorColorReturnsGreenForLowQueryCount(): void
     {
         // Collect with no queries (total_count = 0, which is < 20)
         $this->collector->collect();
 
-        self::assertSame('green', $this->collector->getBadgeColor());
+        self::assertSame('green', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsYellowForMediumQueryCount(): void
+    public function getIndicatorColorReturnsYellowForMediumQueryCount(): void
     {
         // Use reflection to set data directly to test threshold logic
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, ['total_count' => 25]);
 
-        self::assertSame('yellow', $this->collector->getBadgeColor());
+        self::assertSame('yellow', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsRedForHighQueryCount(): void
+    public function getIndicatorColorReturnsRedForHighQueryCount(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, ['total_count' => 55]);
 
-        self::assertSame('red', $this->collector->getBadgeColor());
+        self::assertSame('red', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorThresholdBoundaryAt20(): void
+    public function getIndicatorColorThresholdBoundaryAt20(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
 
         // 19 should be green
         $reflection->setValue($this->collector, ['total_count' => 19]);
-        self::assertSame('green', $this->collector->getBadgeColor());
+        self::assertSame('green', $this->collector->getIndicatorColor());
 
         // 20 should be yellow
         $reflection->setValue($this->collector, ['total_count' => 20]);
-        self::assertSame('yellow', $this->collector->getBadgeColor());
+        self::assertSame('yellow', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorThresholdBoundaryAt50(): void
+    public function getIndicatorColorThresholdBoundaryAt50(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
 
         // 49 should be yellow
         $reflection->setValue($this->collector, ['total_count' => 49]);
-        self::assertSame('yellow', $this->collector->getBadgeColor());
+        self::assertSame('yellow', $this->collector->getIndicatorColor());
 
         // 50 should be red
         $reflection->setValue($this->collector, ['total_count' => 50]);
-        self::assertSame('red', $this->collector->getBadgeColor());
+        self::assertSame('red', $this->collector->getIndicatorColor());
     }
 
     #[Test]

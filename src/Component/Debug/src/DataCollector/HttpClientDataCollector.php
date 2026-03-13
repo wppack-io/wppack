@@ -136,14 +136,14 @@ final class HttpClientDataCollector extends AbstractDataCollector
         ];
     }
 
-    public function getBadgeValue(): string
+    public function getIndicatorValue(): string
     {
         $total = $this->data['total_count'] ?? 0;
 
         return $total > 0 ? (string) $total : '';
     }
 
-    public function getBadgeColor(): string
+    public function getIndicatorColor(): string
     {
         $errorCount = $this->data['error_count'] ?? 0;
 

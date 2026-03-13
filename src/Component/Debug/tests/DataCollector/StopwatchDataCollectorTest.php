@@ -59,15 +59,15 @@ final class StopwatchDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeColorReturnsDefault(): void
+    public function getIndicatorColorReturnsDefault(): void
     {
-        self::assertSame('default', $this->collector->getBadgeColor());
+        self::assertSame('default', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeValueReturnsEmpty(): void
+    public function getIndicatorValueReturnsEmpty(): void
     {
-        self::assertSame('', $this->collector->getBadgeValue());
+        self::assertSame('', $this->collector->getIndicatorValue());
     }
 
     #[Test]

@@ -171,7 +171,7 @@ final class LoggerDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeValueReturnsCount(): void
+    public function getIndicatorValueReturnsCount(): void
     {
         $this->collector->log('info', 'Message 1');
         $this->collector->log('info', 'Message 2');
@@ -179,96 +179,96 @@ final class LoggerDataCollectorTest extends TestCase
 
         $this->collector->collect();
 
-        self::assertSame('3', $this->collector->getBadgeValue());
+        self::assertSame('3', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeValueReturnsEmptyWhenNoLogs(): void
+    public function getIndicatorValueReturnsEmptyWhenNoLogs(): void
     {
         $this->collector->collect();
 
-        self::assertSame('', $this->collector->getBadgeValue());
+        self::assertSame('', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeColorReturnsRedForErrors(): void
+    public function getIndicatorColorReturnsRedForErrors(): void
     {
         $this->collector->log('error', 'An error');
 
         $this->collector->collect();
 
-        self::assertSame('red', $this->collector->getBadgeColor());
+        self::assertSame('red', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsRedForCritical(): void
+    public function getIndicatorColorReturnsRedForCritical(): void
     {
         $this->collector->log('critical', 'Critical issue');
 
         $this->collector->collect();
 
-        self::assertSame('red', $this->collector->getBadgeColor());
+        self::assertSame('red', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsRedForAlert(): void
+    public function getIndicatorColorReturnsRedForAlert(): void
     {
         $this->collector->log('alert', 'Alert');
 
         $this->collector->collect();
 
-        self::assertSame('red', $this->collector->getBadgeColor());
+        self::assertSame('red', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsRedForEmergency(): void
+    public function getIndicatorColorReturnsRedForEmergency(): void
     {
         $this->collector->log('emergency', 'Emergency');
 
         $this->collector->collect();
 
-        self::assertSame('red', $this->collector->getBadgeColor());
+        self::assertSame('red', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsYellowForDeprecations(): void
+    public function getIndicatorColorReturnsYellowForDeprecations(): void
     {
         $this->collector->log('deprecation', 'A deprecation notice');
         $this->collector->log('info', 'Some info');
 
         $this->collector->collect();
 
-        self::assertSame('yellow', $this->collector->getBadgeColor());
+        self::assertSame('yellow', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsGreenForWarningsOnly(): void
+    public function getIndicatorColorReturnsGreenForWarningsOnly(): void
     {
         $this->collector->log('warning', 'A warning');
         $this->collector->log('info', 'Some info');
 
         $this->collector->collect();
 
-        self::assertSame('green', $this->collector->getBadgeColor());
+        self::assertSame('green', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsGreenForInfoDebugOnly(): void
+    public function getIndicatorColorReturnsGreenForInfoDebugOnly(): void
     {
         $this->collector->log('info', 'Some info');
         $this->collector->log('debug', 'Debug message');
 
         $this->collector->collect();
 
-        self::assertSame('green', $this->collector->getBadgeColor());
+        self::assertSame('green', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsGreenWhenNoLogs(): void
+    public function getIndicatorColorReturnsGreenWhenNoLogs(): void
     {
         $this->collector->collect();
 
-        self::assertSame('green', $this->collector->getBadgeColor());
+        self::assertSame('green', $this->collector->getIndicatorColor());
     }
 
     #[Test]

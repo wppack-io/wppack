@@ -48,14 +48,14 @@ final class MemoryDataCollector extends AbstractDataCollector
         ];
     }
 
-    public function getBadgeValue(): string
+    public function getIndicatorValue(): string
     {
         $peak = $this->data['peak'] ?? 0;
 
         return $this->formatBytes($peak);
     }
 
-    public function getBadgeColor(): string
+    public function getIndicatorColor(): string
     {
         $usagePercentage = $this->data['usage_percentage'] ?? 0.0;
 

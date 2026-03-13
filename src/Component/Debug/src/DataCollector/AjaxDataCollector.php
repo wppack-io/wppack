@@ -92,12 +92,12 @@ final class AjaxDataCollector extends AbstractDataCollector
         ];
     }
 
-    public function getBadgeValue(): string
+    public function getIndicatorValue(): string
     {
         return '0';
     }
 
-    public function getBadgeColor(): string
+    public function getIndicatorColor(): string
     {
         return 'default';
     }

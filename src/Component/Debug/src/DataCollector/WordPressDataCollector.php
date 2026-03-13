@@ -29,12 +29,12 @@ final class WordPressDataCollector extends AbstractDataCollector
         ];
     }
 
-    public function getBadgeValue(): string
+    public function getIndicatorValue(): string
     {
         return $this->data['wp_version'] ?? '';
     }
 
-    public function getBadgeColor(): string
+    public function getIndicatorColor(): string
     {
         return 'default';
     }

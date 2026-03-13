@@ -191,7 +191,7 @@ final class DumpDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeValueReturnsCount(): void
+    public function getIndicatorValueReturnsCount(): void
     {
         $this->collector->capture('a');
         $this->collector->capture('b');
@@ -199,33 +199,33 @@ final class DumpDataCollectorTest extends TestCase
 
         $this->collector->collect();
 
-        self::assertSame('3', $this->collector->getBadgeValue());
+        self::assertSame('3', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeValueReturnsEmptyWhenNoDumps(): void
+    public function getIndicatorValueReturnsEmptyWhenNoDumps(): void
     {
         $this->collector->collect();
 
-        self::assertSame('', $this->collector->getBadgeValue());
+        self::assertSame('', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeColorReturnsYellowWhenDumpsExist(): void
+    public function getIndicatorColorReturnsYellowWhenDumpsExist(): void
     {
         $this->collector->capture('test');
 
         $this->collector->collect();
 
-        self::assertSame('yellow', $this->collector->getBadgeColor());
+        self::assertSame('yellow', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsDefaultWhenNoDumps(): void
+    public function getIndicatorColorReturnsDefaultWhenNoDumps(): void
     {
         $this->collector->collect();
 
-        self::assertSame('default', $this->collector->getBadgeColor());
+        self::assertSame('default', $this->collector->getIndicatorColor());
     }
 
     #[Test]

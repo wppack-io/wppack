@@ -53,7 +53,7 @@ final class QueryMonitorCollectorAdapter extends AbstractDataCollector
         ];
     }
 
-    public function getBadgeValue(): string
+    public function getIndicatorValue(): string
     {
         $count = $this->data['collector_count'] ?? 0;
 

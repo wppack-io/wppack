@@ -158,63 +158,63 @@ final class TranslationDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeValueReturnsMissingCount(): void
+    public function getIndicatorValueReturnsMissingCount(): void
     {
         $this->collector->captureGettext('Hello', 'Hello', 'my-plugin');
         $this->collector->captureGettext('World', 'World', 'my-plugin');
 
         $this->collector->collect();
 
-        self::assertSame('2', $this->collector->getBadgeValue());
+        self::assertSame('2', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeValueReturnsEmptyStringWhenNoMissing(): void
+    public function getIndicatorValueReturnsEmptyStringWhenNoMissing(): void
     {
         $this->collector->captureGettext('Bonjour', 'Hello', 'my-plugin');
 
         $this->collector->collect();
 
-        self::assertSame('', $this->collector->getBadgeValue());
+        self::assertSame('', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeValueReturnsEmptyStringBeforeCollect(): void
+    public function getIndicatorValueReturnsEmptyStringBeforeCollect(): void
     {
-        self::assertSame('', $this->collector->getBadgeValue());
+        self::assertSame('', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeColorReturnsGreenWhenNoMissing(): void
+    public function getIndicatorColorReturnsGreenWhenNoMissing(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, ['missing_count' => 0]);
 
-        self::assertSame('green', $this->collector->getBadgeColor());
+        self::assertSame('green', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsYellowWhenSomeMissing(): void
+    public function getIndicatorColorReturnsYellowWhenSomeMissing(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, ['missing_count' => 5]);
 
-        self::assertSame('yellow', $this->collector->getBadgeColor());
+        self::assertSame('yellow', $this->collector->getIndicatorColor());
 
         $reflection->setValue($this->collector, ['missing_count' => 20]);
-        self::assertSame('yellow', $this->collector->getBadgeColor());
+        self::assertSame('yellow', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsRedWhenManyMissing(): void
+    public function getIndicatorColorReturnsRedWhenManyMissing(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, ['missing_count' => 21]);
 
-        self::assertSame('red', $this->collector->getBadgeColor());
+        self::assertSame('red', $this->collector->getIndicatorColor());
 
         $reflection->setValue($this->collector, ['missing_count' => 100]);
-        self::assertSame('red', $this->collector->getBadgeColor());
+        self::assertSame('red', $this->collector->getIndicatorColor());
     }
 
     #[Test]

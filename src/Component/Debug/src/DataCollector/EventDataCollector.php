@@ -182,12 +182,12 @@ final class EventDataCollector extends AbstractDataCollector
         ];
     }
 
-    public function getBadgeValue(): string
+    public function getIndicatorValue(): string
     {
         return (string) $this->totalFirings;
     }
 
-    public function getBadgeColor(): string
+    public function getIndicatorColor(): string
     {
         if ($this->totalFirings >= 1000) {
             return 'red';

@@ -90,14 +90,14 @@ final class FeedDataCollector extends AbstractDataCollector
         ];
     }
 
-    public function getBadgeValue(): string
+    public function getIndicatorValue(): string
     {
         $count = (int) ($this->data['total_count'] ?? 0);
 
         return $count > 0 ? (string) $count : '';
     }
 
-    public function getBadgeColor(): string
+    public function getIndicatorColor(): string
     {
         return 'default';
     }

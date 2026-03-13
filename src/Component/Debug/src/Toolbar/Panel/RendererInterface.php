@@ -12,5 +12,5 @@ interface RendererInterface
 
     public function renderPanel(Profile $profile): string;
 
-    public function renderBadge(Profile $profile): string;
+    public function renderIndicator(Profile $profile): string;
 }

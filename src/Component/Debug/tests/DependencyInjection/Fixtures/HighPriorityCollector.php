@@ -27,12 +27,12 @@ final class HighPriorityCollector implements DataCollectorInterface
         return 'High';
     }
 
-    public function getBadgeValue(): string
+    public function getIndicatorValue(): string
     {
         return '';
     }
 
-    public function getBadgeColor(): string
+    public function getIndicatorColor(): string
     {
         return 'default';
     }

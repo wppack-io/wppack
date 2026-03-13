@@ -82,7 +82,7 @@ final class RouterDataCollector extends AbstractDataCollector
         ];
     }
 
-    public function getBadgeValue(): string
+    public function getIndicatorValue(): string
     {
         if ($this->data['is_404'] ?? false) {
             return '404';
@@ -95,7 +95,7 @@ final class RouterDataCollector extends AbstractDataCollector
         return $this->data['template'] ?? '';
     }
 
-    public function getBadgeColor(): string
+    public function getIndicatorColor(): string
     {
         if ($this->data['is_404'] ?? false) {
             return 'red';

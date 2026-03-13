@@ -14,8 +14,8 @@ use WpPack\Component\Debug\Toolbar\Panel\ToolbarIcons;
 
 final class ToolbarRenderer
 {
-    /** Badge display order in the toolbar bar. */
-    private const BADGE_ORDER = [
+    /** Indicator display order in the toolbar bar. */
+    private const INDICATOR_ORDER = [
         'plugin', 'theme',
         'performance',
         'request', 'router', 'rest', 'ajax', 'http_client',
@@ -74,8 +74,8 @@ final class ToolbarRenderer
         }
         $this->genericRenderer->setRequestTimeFloat($requestTimeFloat);
 
-        // Build ordered badges (wordpress group first)
-        $badges = $this->renderOrderedBadges($profile, $collectors);
+        // Build ordered indicators (wordpress group first)
+        $indicators = $this->renderOrderedIndicators($profile, $collectors);
 
         // Determine default panel (wordpress if available, else performance)
         $defaultPanel = isset($collectors['wordpress']) ? 'wordpress' : 'performance';
@@ -87,13 +87,13 @@ final class ToolbarRenderer
 
         // Logo & version (delegated to WordPressPanelRenderer)
         $wpMiniIcon = ToolbarIcons::svg('wordpress', 16);
-        $wpBadgeHtml = isset($this->panelRenderers['wordpress'])
-            ? $this->panelRenderers['wordpress']->renderBadge($profile)
+        $wpIndicatorHtml = isset($this->panelRenderers['wordpress'])
+            ? $this->panelRenderers['wordpress']->renderIndicator($profile)
             : '';
 
         // Environment info (delegated to EnvironmentPanelRenderer)
         $envHtml = isset($this->panelRenderers['environment'])
-            ? $this->panelRenderers['environment']->renderBadge($profile)
+            ? $this->panelRenderers['environment']->renderIndicator($profile)
             : '';
 
         // Default panel title
@@ -124,10 +124,10 @@ final class ToolbarRenderer
             {$wpMiniIcon}
         </div>
         <div class="wpd-bar">
-            {$wpBadgeHtml}
-            <div class="wpd-bar-badges-wrap">
-                <div class="wpd-bar-badges">
-                    {$badges}
+            {$wpIndicatorHtml}
+            <div class="wpd-bar-indicators-wrap">
+                <div class="wpd-bar-indicators">
+                    {$indicators}
                 </div>
             </div>
             {$envHtml}
@@ -231,18 +231,18 @@ final class ToolbarRenderer
     /**
      * @param array<string, DataCollectorInterface> $collectors
      */
-    private function renderOrderedBadges(Profile $profile, array $collectors): string
+    private function renderOrderedIndicators(Profile $profile, array $collectors): string
     {
-        $badges = '';
+        $indicators = '';
         $rendered = [];
 
-        foreach (self::BADGE_ORDER as $name) {
+        foreach (self::INDICATOR_ORDER as $name) {
             $renderer = $this->panelRenderers[$name] ?? null;
             if ($renderer !== null) {
-                $badges .= $renderer->renderBadge($profile);
+                $indicators .= $renderer->renderIndicator($profile);
                 $rendered[] = $name;
             } elseif (isset($collectors[$name])) {
-                $badges .= $this->renderBadge($collectors[$name]);
+                $indicators .= $this->renderIndicator($collectors[$name]);
                 $rendered[] = $name;
             }
         }
@@ -250,25 +250,25 @@ final class ToolbarRenderer
         // Unknown collectors at the end (skip wordpress/environment — rendered separately in the bar)
         foreach ($collectors as $name => $collector) {
             if ($name !== 'wordpress' && $name !== 'environment' && !\in_array($name, $rendered, true)) {
-                $badges .= $this->renderBadge($collector);
+                $indicators .= $this->renderIndicator($collector);
             }
         }
 
-        return $badges;
+        return $indicators;
     }
 
-    private function renderBadge(DataCollectorInterface $collector): string
+    private function renderIndicator(DataCollectorInterface $collector): string
     {
         $name = $this->esc($collector->getName());
         $label = $this->esc($collector->getLabel());
-        $value = $collector->getBadgeValue();
-        $colorKey = $collector->getBadgeColor();
-        $badgeColors = AbstractPanelRenderer::getBadgeColors();
-        $colors = $badgeColors[$colorKey] ?? $badgeColors['default'];
+        $value = $collector->getIndicatorValue();
+        $colorKey = $collector->getIndicatorColor();
+        $indicatorColors = AbstractPanelRenderer::getIndicatorColors();
+        $colors = $indicatorColors[$colorKey] ?? $indicatorColors['default'];
         $icon = ToolbarIcons::svg($collector->getName());
 
         $valueHtml = $value !== ''
-            ? ' <span class="wpd-badge-value" style="color:' . $colors['fg'] . '">' . $this->esc($value) . '</span>'
+            ? ' <span class="wpd-indicator-value" style="color:' . $colors['fg'] . '">' . $this->esc($value) . '</span>'
             : '';
 
         $bgStyle = $colors['bg'] !== 'transparent' ? ' style="background:' . $colors['bg'] . '"' : '';
@@ -277,8 +277,8 @@ final class ToolbarRenderer
         $accentAttr = $colorKey !== 'default' ? ' data-accent="' . $colors['fg'] . '"' : '';
 
         return <<<HTML
-        <button class="wpd-badge" data-panel="{$name}" data-tooltip="{$label}"{$bgStyle}{$accentAttr}>
-            <span class="wpd-badge-icon"{$iconStyle}>{$icon}</span>{$valueHtml}
+        <button class="wpd-indicator" data-panel="{$name}" data-tooltip="{$label}"{$bgStyle}{$accentAttr}>
+            <span class="wpd-indicator-icon"{$iconStyle}>{$icon}</span>{$valueHtml}
         </button>
         HTML;
     }

@@ -184,19 +184,19 @@ final class HttpClientDataCollectorTest extends TestCase
         $data = $this->collector->getData();
 
         self::assertSame(1, $data['error_count']);
-        self::assertSame('red', $this->collector->getBadgeColor());
+        self::assertSame('red', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeValueReturnsEmptyWhenNoRequests(): void
+    public function getIndicatorValueReturnsEmptyWhenNoRequests(): void
     {
         $this->collector->collect();
 
-        self::assertSame('', $this->collector->getBadgeValue());
+        self::assertSame('', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeColorReturnsRedOnError(): void
+    public function getIndicatorColorReturnsRedOnError(): void
     {
         $url = 'https://failing.example.com';
 
@@ -219,8 +219,8 @@ final class HttpClientDataCollectorTest extends TestCase
 
         $this->collector->collect();
 
-        self::assertSame('red', $this->collector->getBadgeColor());
-        self::assertSame('1', $this->collector->getBadgeValue());
+        self::assertSame('red', $this->collector->getIndicatorColor());
+        self::assertSame('1', $this->collector->getIndicatorValue());
 
         $data = $this->collector->getData();
         self::assertSame(1, $data['error_count']);

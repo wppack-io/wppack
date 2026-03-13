@@ -82,46 +82,46 @@ final class RouterDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeValueReturnsTemplateBasename(): void
+    public function getIndicatorValueReturnsTemplateBasename(): void
     {
         $this->collector->captureTemplate('/var/www/html/wp-content/themes/mytheme/archive.php');
         $this->collector->collect();
 
-        self::assertSame('archive.php', $this->collector->getBadgeValue());
+        self::assertSame('archive.php', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeValueReturnsEmptyWhenNoTemplate(): void
+    public function getIndicatorValueReturnsEmptyWhenNoTemplate(): void
     {
         $this->collector->collect();
 
-        self::assertSame('', $this->collector->getBadgeValue());
+        self::assertSame('', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeColorReturnsRedFor404(): void
+    public function getIndicatorColorReturnsRedFor404(): void
     {
         if (!function_exists('is_404')) {
             // Simulate 404 by directly setting data via collect after triggering
             // Without WordPress, is_404() is unavailable so we test the logic path
             // by verifying the default non-404 behavior
             $this->collector->collect();
-            self::assertSame('default', $this->collector->getBadgeColor());
+            self::assertSame('default', $this->collector->getIndicatorColor());
 
             return;
         }
 
-        // With WordPress available, if is_404() returns true, badge should be red
+        // With WordPress available, if is_404() returns true, indicator should be red
         $this->collector->collect();
         if ($this->collector->getData()['is_404']) {
-            self::assertSame('red', $this->collector->getBadgeColor());
+            self::assertSame('red', $this->collector->getIndicatorColor());
         } else {
-            self::assertSame('default', $this->collector->getBadgeColor());
+            self::assertSame('default', $this->collector->getIndicatorColor());
         }
     }
 
     #[Test]
-    public function getBadgeColorReturnsGreenWhenMatchedRule(): void
+    public function getIndicatorColorReturnsGreenWhenMatchedRule(): void
     {
         $wp = new \stdClass();
         $wp->matched_rule = '([^/]+)/?$';
@@ -131,15 +131,15 @@ final class RouterDataCollectorTest extends TestCase
         $this->collector->captureParseRequest($wp);
         $this->collector->collect();
 
-        self::assertSame('green', $this->collector->getBadgeColor());
+        self::assertSame('green', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsDefaultWhenNoMatch(): void
+    public function getIndicatorColorReturnsDefaultWhenNoMatch(): void
     {
         $this->collector->collect();
 
-        self::assertSame('default', $this->collector->getBadgeColor());
+        self::assertSame('default', $this->collector->getIndicatorColor());
     }
 
     #[Test]
@@ -172,13 +172,13 @@ final class RouterDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeValueReturnsEmptyForBlockThemeWithoutTemplate(): void
+    public function getIndicatorValueReturnsEmptyForBlockThemeWithoutTemplate(): void
     {
-        // Without WordPress, is_block_theme is false, so badge falls through to classic
+        // Without WordPress, is_block_theme is false, so indicator falls through to classic
         $this->collector->collect();
 
         // Verify it returns empty (no template captured, not a block theme)
-        self::assertSame('', $this->collector->getBadgeValue());
+        self::assertSame('', $this->collector->getIndicatorValue());
     }
 
     #[Test]
@@ -248,7 +248,7 @@ final class RouterDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeValueReturns404WhenIs404(): void
+    public function getIndicatorValueReturns404WhenIs404(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, [
@@ -257,11 +257,11 @@ final class RouterDataCollectorTest extends TestCase
             'template' => 'index.php',
         ]);
 
-        self::assertSame('404', $this->collector->getBadgeValue());
+        self::assertSame('404', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeValueReturnsBlockTemplateSlug(): void
+    public function getIndicatorValueReturnsBlockTemplateSlug(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, [
@@ -271,7 +271,7 @@ final class RouterDataCollectorTest extends TestCase
             'template' => '',
         ]);
 
-        self::assertSame('single', $this->collector->getBadgeValue());
+        self::assertSame('single', $this->collector->getIndicatorValue());
     }
 
     #[Test]

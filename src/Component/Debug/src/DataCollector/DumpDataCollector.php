@@ -52,14 +52,14 @@ final class DumpDataCollector extends AbstractDataCollector
         ];
     }
 
-    public function getBadgeValue(): string
+    public function getIndicatorValue(): string
     {
         $totalCount = $this->data['total_count'] ?? 0;
 
         return $totalCount > 0 ? (string) $totalCount : '';
     }
 
-    public function getBadgeColor(): string
+    public function getIndicatorColor(): string
     {
         $totalCount = $this->data['total_count'] ?? 0;
 

@@ -74,55 +74,55 @@ final class EventDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeValueReturnsTotalFirings(): void
+    public function getIndicatorValueReturnsTotalFirings(): void
     {
-        self::assertSame('0', $this->collector->getBadgeValue());
+        self::assertSame('0', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeValueReflectsFiringsAfterCapture(): void
+    public function getIndicatorValueReflectsFiringsAfterCapture(): void
     {
         // Simulate firings via reflection since current_filter() may not exist
         $reflection = new \ReflectionProperty($this->collector, 'totalFirings');
         $reflection->setValue($this->collector, 42);
 
-        self::assertSame('42', $this->collector->getBadgeValue());
+        self::assertSame('42', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeColorReturnsGreenWhenBelowFiveHundred(): void
+    public function getIndicatorColorReturnsGreenWhenBelowFiveHundred(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'totalFirings');
         $reflection->setValue($this->collector, 0);
 
-        self::assertSame('green', $this->collector->getBadgeColor());
+        self::assertSame('green', $this->collector->getIndicatorColor());
 
         $reflection->setValue($this->collector, 499);
-        self::assertSame('green', $this->collector->getBadgeColor());
+        self::assertSame('green', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsYellowWhenBelowOneThousand(): void
+    public function getIndicatorColorReturnsYellowWhenBelowOneThousand(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'totalFirings');
         $reflection->setValue($this->collector, 500);
 
-        self::assertSame('yellow', $this->collector->getBadgeColor());
+        self::assertSame('yellow', $this->collector->getIndicatorColor());
 
         $reflection->setValue($this->collector, 999);
-        self::assertSame('yellow', $this->collector->getBadgeColor());
+        self::assertSame('yellow', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsRedWhenAtOrAboveOneThousand(): void
+    public function getIndicatorColorReturnsRedWhenAtOrAboveOneThousand(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'totalFirings');
         $reflection->setValue($this->collector, 1000);
 
-        self::assertSame('red', $this->collector->getBadgeColor());
+        self::assertSame('red', $this->collector->getIndicatorColor());
 
         $reflection->setValue($this->collector, 5000);
-        self::assertSame('red', $this->collector->getBadgeColor());
+        self::assertSame('red', $this->collector->getIndicatorColor());
     }
 
     #[Test]

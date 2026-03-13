@@ -62,14 +62,14 @@ final class CacheDataCollector extends AbstractDataCollector
         ];
     }
 
-    public function getBadgeValue(): string
+    public function getIndicatorValue(): string
     {
         $hitRate = $this->data['hit_rate'] ?? 0.0;
 
         return sprintf('%.1f%%', $hitRate);
     }
 
-    public function getBadgeColor(): string
+    public function getIndicatorColor(): string
     {
         $hitRate = $this->data['hit_rate'] ?? 0.0;
 

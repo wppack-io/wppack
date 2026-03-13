@@ -109,7 +109,7 @@ final class ToolbarRendererTest extends TestCase
     }
 
     #[Test]
-    public function renderOutputContainsBadgeForEachCollector(): void
+    public function renderOutputContainsIndicatorForEachCollector(): void
     {
         $profile = new Profile('test-token');
         $profile->addCollector($this->createCollector('memory', 'Memory', '12.3 MB', 'green'));
@@ -118,7 +118,7 @@ final class ToolbarRendererTest extends TestCase
 
         $html = $this->renderer->render($profile);
 
-        // Each collector should have a badge button with data-panel attribute
+        // Each collector should have an indicator button with data-panel attribute
         self::assertStringContainsString('data-panel="memory"', $html);
         self::assertStringContainsString('data-panel="stopwatch"', $html);
         self::assertStringContainsString('data-panel="database"', $html);
@@ -158,7 +158,7 @@ final class ToolbarRendererTest extends TestCase
     }
 
     #[Test]
-    public function renderOutputContainsBadgeValues(): void
+    public function renderOutputContainsIndicatorValues(): void
     {
         $profile = new Profile('test-token');
         $profile->addCollector($this->createCollector('memory', 'Memory', '42.5 MB', 'yellow'));
@@ -182,7 +182,7 @@ final class ToolbarRendererTest extends TestCase
     }
 
     #[Test]
-    public function renderOutputContainsPerformanceBadge(): void
+    public function renderOutputContainsPerformanceIndicator(): void
     {
         $profile = $this->createProfileWithCollectors();
 
@@ -1312,9 +1312,9 @@ final class ToolbarRendererTest extends TestCase
         // Comma-separated caller shows only last entry
         self::assertStringContainsString('WP_Query::get_posts', $html);
         self::assertStringContainsString('Suggestions', $html);
-        // Slow query has SLOW badge
+        // Slow query has SLOW indicator
         self::assertStringContainsString('SLOW', $html);
-        // Duplicate query has DUP badge
+        // Duplicate query has DUP indicator
         self::assertStringContainsString('DUP', $html);
         self::assertStringContainsString('wpd-row-slow', $html);
         self::assertStringContainsString('wpd-row-duplicate', $html);
@@ -1369,19 +1369,19 @@ final class ToolbarRendererTest extends TestCase
     private function createCollector(
         string $name,
         string $label,
-        string $badgeValue,
-        string $badgeColor,
+        string $indicatorValue,
+        string $indicatorColor,
         array $data = [],
     ): DataCollectorInterface {
-        return new class ($name, $label, $badgeValue, $badgeColor, $data) implements DataCollectorInterface {
+        return new class ($name, $label, $indicatorValue, $indicatorColor, $data) implements DataCollectorInterface {
             /**
              * @param array<string, mixed> $data
              */
             public function __construct(
                 private readonly string $name,
                 private readonly string $label,
-                private readonly string $badgeValue,
-                private readonly string $badgeColor,
+                private readonly string $indicatorValue,
+                private readonly string $indicatorColor,
                 private readonly array $data,
             ) {}
 
@@ -1402,14 +1402,14 @@ final class ToolbarRendererTest extends TestCase
                 return $this->label;
             }
 
-            public function getBadgeValue(): string
+            public function getIndicatorValue(): string
             {
-                return $this->badgeValue;
+                return $this->indicatorValue;
             }
 
-            public function getBadgeColor(): string
+            public function getIndicatorColor(): string
             {
-                return $this->badgeColor;
+                return $this->indicatorColor;
             }
 
             public function reset(): void {}
@@ -1849,9 +1849,9 @@ final class ToolbarRendererTest extends TestCase
     }
 
     #[Test]
-    public function performancePanelRenderBadgeRedWhenHighMemory(): void
+    public function performancePanelRenderIndicatorRedWhenHighMemory(): void
     {
-        // Cover lines 38-39: red badge when usagePercentage >= 90
+        // Cover lines 38-39: red indicator when usagePercentage >= 90
         $profile = $this->createProfileWithMockCollectors([
             'stopwatch' => ['total_time' => 50.0, 'events' => [], 'phases' => [], 'request_time_float' => 0.0],
             'memory' => ['peak' => 1048576, 'limit' => 1100000, 'usage_percentage' => 95.0],
@@ -1859,16 +1859,16 @@ final class ToolbarRendererTest extends TestCase
         ]);
 
         $renderer = new PerformancePanelRenderer();
-        $html = $renderer->renderBadge($profile);
+        $html = $renderer->renderIndicator($profile);
 
-        // Red badge background should use CSS variable
+        // Red indicator background should use CSS variable
         self::assertStringContainsString('style="background:var(--wpd-red-a12)"', $html);
     }
 
     #[Test]
-    public function performancePanelRenderBadgeRedWhenSlowQueries(): void
+    public function performancePanelRenderIndicatorRedWhenSlowQueries(): void
     {
-        // Cover lines 38-39: red badge when slowQueries > 0
+        // Cover lines 38-39: red indicator when slowQueries > 0
         $profile = $this->createProfileWithMockCollectors([
             'stopwatch' => ['total_time' => 50.0, 'events' => [], 'phases' => [], 'request_time_float' => 0.0],
             'memory' => ['peak' => 1048576, 'limit' => 134217728, 'usage_percentage' => 0.8],
@@ -1876,15 +1876,15 @@ final class ToolbarRendererTest extends TestCase
         ]);
 
         $renderer = new PerformancePanelRenderer();
-        $html = $renderer->renderBadge($profile);
+        $html = $renderer->renderIndicator($profile);
 
         self::assertStringContainsString('style="background:var(--wpd-red-a12)"', $html);
     }
 
     #[Test]
-    public function performancePanelRenderBadgeRedWhenSlowTotalTime(): void
+    public function performancePanelRenderIndicatorRedWhenSlowTotalTime(): void
     {
-        // Cover lines 38-39: red badge when totalTime >= 1000
+        // Cover lines 38-39: red indicator when totalTime >= 1000
         $requestTime = microtime(true) - 2.0; // 2 seconds ago to ensure getTime() >= 1000ms
         $profile = $this->createProfileWithMockCollectors([
             'stopwatch' => ['total_time' => 1500.0, 'events' => [], 'phases' => [], 'request_time_float' => $requestTime],
@@ -1898,9 +1898,9 @@ final class ToolbarRendererTest extends TestCase
 
         try {
             $renderer = new PerformancePanelRenderer();
-            $html = $renderer->renderBadge($profile);
+            $html = $renderer->renderIndicator($profile);
 
-            // With totalTime >= 1000ms, red badge should appear
+            // With totalTime >= 1000ms, red indicator should appear
             self::assertStringContainsString('style="background:var(--wpd-red-a12)"', $html);
         } finally {
             if ($origRequestTime !== null) {

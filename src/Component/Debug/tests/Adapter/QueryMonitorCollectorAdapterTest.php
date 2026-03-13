@@ -86,7 +86,7 @@ namespace WpPack\Component\Debug\Tests\Adapter {
         }
 
         #[Test]
-        public function getBadgeValueReturnsCountWhenCollectorsExist(): void
+        public function getIndicatorValueReturnsCountWhenCollectorsExist(): void
         {
             // Set data via reflection to simulate collected collectors
             $reflection = new \ReflectionProperty($this->adapter, 'data');
@@ -98,14 +98,14 @@ namespace WpPack\Component\Debug\Tests\Adapter {
                 'collector_count' => 2,
             ]);
 
-            self::assertSame('2', $this->adapter->getBadgeValue());
+            self::assertSame('2', $this->adapter->getIndicatorValue());
         }
 
         #[Test]
-        public function getBadgeValueReturnsEmptyWhenNoCollectors(): void
+        public function getIndicatorValueReturnsEmptyWhenNoCollectors(): void
         {
             // No data collected — collector_count defaults to 0
-            self::assertSame('', $this->adapter->getBadgeValue());
+            self::assertSame('', $this->adapter->getIndicatorValue());
         }
 
         #[Test]

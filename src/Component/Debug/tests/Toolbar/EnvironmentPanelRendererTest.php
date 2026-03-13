@@ -37,11 +37,11 @@ final class EnvironmentPanelRendererTest extends TestCase
             {
                 return 'Environment';
             }
-            public function getBadgeValue(): string
+            public function getIndicatorValue(): string
             {
                 return '';
             }
-            public function getBadgeColor(): string
+            public function getIndicatorColor(): string
             {
                 return 'default';
             }

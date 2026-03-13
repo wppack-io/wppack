@@ -69,7 +69,7 @@ final class RequestDataCollector extends AbstractDataCollector
         ];
     }
 
-    public function getBadgeValue(): string
+    public function getIndicatorValue(): string
     {
         $method = $this->data['method'] ?? 'GET';
         $statusCode = $this->data['status_code'] ?? 200;
@@ -77,7 +77,7 @@ final class RequestDataCollector extends AbstractDataCollector
         return sprintf('%s %d', $method, $statusCode);
     }
 
-    public function getBadgeColor(): string
+    public function getIndicatorColor(): string
     {
         $statusCode = $this->data['status_code'] ?? 200;
 

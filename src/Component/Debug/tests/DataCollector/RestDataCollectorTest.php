@@ -48,22 +48,22 @@ final class RestDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeValueReturnsEmpty(): void
+    public function getIndicatorValueReturnsEmpty(): void
     {
-        self::assertSame('', $this->collector->getBadgeValue());
+        self::assertSame('', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeColorReturnsDefaultWhenNotRestRequest(): void
+    public function getIndicatorColorReturnsDefaultWhenNotRestRequest(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, ['is_rest_request' => false]);
 
-        self::assertSame('default', $this->collector->getBadgeColor());
+        self::assertSame('default', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsGreenForSuccess(): void
+    public function getIndicatorColorReturnsGreenForSuccess(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, [
@@ -71,11 +71,11 @@ final class RestDataCollectorTest extends TestCase
             'current_request' => ['status' => 200],
         ]);
 
-        self::assertSame('green', $this->collector->getBadgeColor());
+        self::assertSame('green', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsRedForClientError(): void
+    public function getIndicatorColorReturnsRedForClientError(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, [
@@ -83,11 +83,11 @@ final class RestDataCollectorTest extends TestCase
             'current_request' => ['status' => 404],
         ]);
 
-        self::assertSame('red', $this->collector->getBadgeColor());
+        self::assertSame('red', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsYellowForRedirect(): void
+    public function getIndicatorColorReturnsYellowForRedirect(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, [
@@ -95,7 +95,7 @@ final class RestDataCollectorTest extends TestCase
             'current_request' => ['status' => 301],
         ]);
 
-        self::assertSame('yellow', $this->collector->getBadgeColor());
+        self::assertSame('yellow', $this->collector->getIndicatorColor());
     }
 
     #[Test]

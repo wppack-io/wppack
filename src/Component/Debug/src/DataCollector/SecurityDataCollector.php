@@ -52,7 +52,7 @@ final class SecurityDataCollector extends AbstractDataCollector
         ];
     }
 
-    public function getBadgeValue(): string
+    public function getIndicatorValue(): string
     {
         if (!($this->data['is_logged_in'] ?? false)) {
             return 'anon.';
@@ -61,7 +61,7 @@ final class SecurityDataCollector extends AbstractDataCollector
         return $this->data['username'] ?? 'anon.';
     }
 
-    public function getBadgeColor(): string
+    public function getIndicatorColor(): string
     {
         $failures = (int) ($this->data['nonce_verify_failures'] ?? 0);
 

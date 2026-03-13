@@ -97,15 +97,15 @@ final class MailDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeValueReturnsEmptyWhenNoEmails(): void
+    public function getIndicatorValueReturnsEmptyWhenNoEmails(): void
     {
         $this->collector->collect();
 
-        self::assertSame('', $this->collector->getBadgeValue());
+        self::assertSame('', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeColorReturnsYellowWhenPending(): void
+    public function getIndicatorColorReturnsYellowWhenPending(): void
     {
         $args = [
             'to' => 'pending@example.com',
@@ -118,11 +118,11 @@ final class MailDataCollectorTest extends TestCase
         $this->collector->captureMailAttempt($args);
         $this->collector->collect();
 
-        self::assertSame('yellow', $this->collector->getBadgeColor());
+        self::assertSame('yellow', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsGreenWhenAllSent(): void
+    public function getIndicatorColorReturnsGreenWhenAllSent(): void
     {
         $args = [
             'to' => 'success@example.com',
@@ -141,11 +141,11 @@ final class MailDataCollectorTest extends TestCase
         ]);
         $this->collector->collect();
 
-        self::assertSame('green', $this->collector->getBadgeColor());
+        self::assertSame('green', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsRedWhenFailure(): void
+    public function getIndicatorColorReturnsRedWhenFailure(): void
     {
         $args = [
             'to' => 'fail@example.com',
@@ -168,8 +168,8 @@ final class MailDataCollectorTest extends TestCase
 
         $this->collector->collect();
 
-        self::assertSame('red', $this->collector->getBadgeColor());
-        self::assertSame('1', $this->collector->getBadgeValue());
+        self::assertSame('red', $this->collector->getIndicatorColor());
+        self::assertSame('1', $this->collector->getIndicatorValue());
 
         $data = $this->collector->getData();
         self::assertSame(1, $data['failure_count']);

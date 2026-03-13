@@ -15,9 +15,9 @@ interface DataCollectorInterface
 
     public function getLabel(): string;
 
-    public function getBadgeValue(): string;
+    public function getIndicatorValue(): string;
 
-    public function getBadgeColor(): string;
+    public function getIndicatorColor(): string;
 
     public function reset(): void;
 }

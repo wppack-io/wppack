@@ -49,38 +49,38 @@ final class PluginDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeValueReturnsEmptyWhenNoPlugins(): void
+    public function getIndicatorValueReturnsEmptyWhenNoPlugins(): void
     {
         $this->collector->collect();
 
-        self::assertSame('', $this->collector->getBadgeValue());
+        self::assertSame('', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeColorReturnsGreenWhenBelowTwenty(): void
+    public function getIndicatorColorReturnsGreenWhenBelowTwenty(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, ['total_plugins' => 5]);
 
-        self::assertSame('green', $this->collector->getBadgeColor());
+        self::assertSame('green', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsYellowWhenBelowForty(): void
+    public function getIndicatorColorReturnsYellowWhenBelowForty(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, ['total_plugins' => 25]);
 
-        self::assertSame('yellow', $this->collector->getBadgeColor());
+        self::assertSame('yellow', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsRedWhenAtOrAboveForty(): void
+    public function getIndicatorColorReturnsRedWhenAtOrAboveForty(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, ['total_plugins' => 40]);
 
-        self::assertSame('red', $this->collector->getBadgeColor());
+        self::assertSame('red', $this->collector->getIndicatorColor());
     }
 
     #[Test]
@@ -278,7 +278,7 @@ final class PluginDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeValueReturnsCountWhenPluginsActive(): void
+    public function getIndicatorValueReturnsCountWhenPluginsActive(): void
     {
         if (!function_exists('get_option')) {
             self::markTestSkipped('WordPress functions are not available.');
@@ -287,12 +287,12 @@ final class PluginDataCollectorTest extends TestCase
         $this->collector->collect();
         $data = $this->collector->getData();
 
-        $badge = $this->collector->getBadgeValue();
+        $indicator = $this->collector->getIndicatorValue();
 
         if ($data['total_plugins'] > 0) {
-            self::assertSame((string) $data['total_plugins'], $badge);
+            self::assertSame((string) $data['total_plugins'], $indicator);
         } else {
-            self::assertSame('', $badge);
+            self::assertSame('', $indicator);
         }
     }
 

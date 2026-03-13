@@ -43,19 +43,19 @@ final class WordPressDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeValueReturnsVersionInfo(): void
+    public function getIndicatorValueReturnsVersionInfo(): void
     {
         $this->collector->collect();
 
         // Without WordPress, wp_version will be empty string
-        $badgeValue = $this->collector->getBadgeValue();
-        self::assertIsString($badgeValue);
+        $indicatorValue = $this->collector->getIndicatorValue();
+        self::assertIsString($indicatorValue);
     }
 
     #[Test]
-    public function getBadgeColorReturnsDefault(): void
+    public function getIndicatorColorReturnsDefault(): void
     {
-        self::assertSame('default', $this->collector->getBadgeColor());
+        self::assertSame('default', $this->collector->getIndicatorColor());
     }
 
     #[Test]
@@ -143,7 +143,7 @@ final class WordPressDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeValueReturnsWpVersion(): void
+    public function getIndicatorValueReturnsWpVersion(): void
     {
         global $wp_version;
 
@@ -152,7 +152,7 @@ final class WordPressDataCollectorTest extends TestCase
         }
 
         $this->collector->collect();
-        self::assertSame($wp_version, $this->collector->getBadgeValue());
+        self::assertSame($wp_version, $this->collector->getIndicatorValue());
     }
 
     #[Test]

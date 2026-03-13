@@ -49,7 +49,7 @@ final class AdminDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeValueReturnsScreenIdWhenAdmin(): void
+    public function getIndicatorValueReturnsScreenIdWhenAdmin(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, [
@@ -58,24 +58,24 @@ final class AdminDataCollectorTest extends TestCase
             'page_hook' => 'edit.php',
         ]);
 
-        self::assertSame('edit-post', $this->collector->getBadgeValue());
+        self::assertSame('edit-post', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeValueReturnsEmptyWhenNotAdmin(): void
+    public function getIndicatorValueReturnsEmptyWhenNotAdmin(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, [
             'is_admin' => false,
         ]);
 
-        self::assertSame('', $this->collector->getBadgeValue());
+        self::assertSame('', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeColorReturnsDefault(): void
+    public function getIndicatorColorReturnsDefault(): void
     {
-        self::assertSame('default', $this->collector->getBadgeColor());
+        self::assertSame('default', $this->collector->getIndicatorColor());
     }
 
     #[Test]
@@ -259,7 +259,7 @@ final class AdminDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeValueFallsBackToPageHookWhenNoScreenId(): void
+    public function getIndicatorValueFallsBackToPageHookWhenNoScreenId(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, [
@@ -268,6 +268,6 @@ final class AdminDataCollectorTest extends TestCase
             'page_hook' => 'options-general.php',
         ]);
 
-        self::assertSame('options-general.php', $this->collector->getBadgeValue());
+        self::assertSame('options-general.php', $this->collector->getIndicatorValue());
     }
 }

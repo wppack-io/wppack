@@ -50,15 +50,15 @@ final class AjaxDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeValueReturnsZero(): void
+    public function getIndicatorValueReturnsZero(): void
     {
-        self::assertSame('0', $this->collector->getBadgeValue());
+        self::assertSame('0', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeColorReturnsDefault(): void
+    public function getIndicatorColorReturnsDefault(): void
     {
-        self::assertSame('default', $this->collector->getBadgeColor());
+        self::assertSame('default', $this->collector->getIndicatorColor());
     }
 
     #[Test]

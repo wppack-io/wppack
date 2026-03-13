@@ -76,14 +76,14 @@ final class AssetDataCollector extends AbstractDataCollector
         ];
     }
 
-    public function getBadgeValue(): string
+    public function getIndicatorValue(): string
     {
         $total = ($this->data['enqueued_scripts'] ?? 0) + ($this->data['enqueued_styles'] ?? 0);
 
         return $total > 0 ? (string) $total : '';
     }
 
-    public function getBadgeColor(): string
+    public function getIndicatorColor(): string
     {
         return 'default';
     }

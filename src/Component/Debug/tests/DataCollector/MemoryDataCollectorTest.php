@@ -77,62 +77,62 @@ final class MemoryDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeValueReturnsFormattedPeakMemory(): void
+    public function getIndicatorValueReturnsFormattedPeakMemory(): void
     {
         $this->collector->collect();
-        $badgeValue = $this->collector->getBadgeValue();
+        $indicatorValue = $this->collector->getIndicatorValue();
 
-        // Badge value should be a formatted bytes string (e.g., "2 MB")
-        self::assertMatchesRegularExpression('/^\d+(\.\d+)?\s+(B|KB|MB|GB)$/', $badgeValue);
+        // Indicator value should be a formatted bytes string (e.g., "2 MB")
+        self::assertMatchesRegularExpression('/^\d+(\.\d+)?\s+(B|KB|MB|GB)$/', $indicatorValue);
     }
 
     #[Test]
-    public function getBadgeColorReturnsGreenForLowUsage(): void
+    public function getIndicatorColorReturnsGreenForLowUsage(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, ['usage_percentage' => 50.0]);
 
-        self::assertSame('green', $this->collector->getBadgeColor());
+        self::assertSame('green', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsYellowForMediumUsage(): void
+    public function getIndicatorColorReturnsYellowForMediumUsage(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, ['usage_percentage' => 75.0]);
 
-        self::assertSame('yellow', $this->collector->getBadgeColor());
+        self::assertSame('yellow', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsRedForHighUsage(): void
+    public function getIndicatorColorReturnsRedForHighUsage(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, ['usage_percentage' => 95.0]);
 
-        self::assertSame('red', $this->collector->getBadgeColor());
+        self::assertSame('red', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorThresholdBoundaries(): void
+    public function getIndicatorColorThresholdBoundaries(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
 
         // 69.9 should be green
         $reflection->setValue($this->collector, ['usage_percentage' => 69.9]);
-        self::assertSame('green', $this->collector->getBadgeColor());
+        self::assertSame('green', $this->collector->getIndicatorColor());
 
         // 70.0 should be yellow
         $reflection->setValue($this->collector, ['usage_percentage' => 70.0]);
-        self::assertSame('yellow', $this->collector->getBadgeColor());
+        self::assertSame('yellow', $this->collector->getIndicatorColor());
 
         // 89.9 should be yellow
         $reflection->setValue($this->collector, ['usage_percentage' => 89.9]);
-        self::assertSame('yellow', $this->collector->getBadgeColor());
+        self::assertSame('yellow', $this->collector->getIndicatorColor());
 
         // 90.0 should be red
         $reflection->setValue($this->collector, ['usage_percentage' => 90.0]);
-        self::assertSame('red', $this->collector->getBadgeColor());
+        self::assertSame('red', $this->collector->getIndicatorColor());
     }
 
     #[Test]

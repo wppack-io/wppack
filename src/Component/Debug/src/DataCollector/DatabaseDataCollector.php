@@ -92,12 +92,12 @@ final class DatabaseDataCollector extends AbstractDataCollector
         ];
     }
 
-    public function getBadgeValue(): string
+    public function getIndicatorValue(): string
     {
         return (string) ($this->data['total_count'] ?? 0);
     }
 
-    public function getBadgeColor(): string
+    public function getIndicatorColor(): string
     {
         $totalCount = $this->data['total_count'] ?? 0;
 

@@ -101,33 +101,33 @@ final class ContainerDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeValueReturnsServiceCount(): void
+    public function getIndicatorValueReturnsServiceCount(): void
     {
         $collector = new ContainerDataCollector();
 
         $reflection = new \ReflectionProperty($collector, 'data');
         $reflection->setValue($collector, ['service_count' => 15]);
 
-        self::assertSame('15', $collector->getBadgeValue());
+        self::assertSame('15', $collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeValueReturnsEmptyWhenZero(): void
+    public function getIndicatorValueReturnsEmptyWhenZero(): void
     {
         $collector = new ContainerDataCollector();
 
         $reflection = new \ReflectionProperty($collector, 'data');
         $reflection->setValue($collector, ['service_count' => 0]);
 
-        self::assertSame('', $collector->getBadgeValue());
+        self::assertSame('', $collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeColorReturnsDefault(): void
+    public function getIndicatorColorReturnsDefault(): void
     {
         $collector = new ContainerDataCollector();
 
-        self::assertSame('default', $collector->getBadgeColor());
+        self::assertSame('default', $collector->getIndicatorColor());
     }
 
     #[Test]

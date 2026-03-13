@@ -96,7 +96,7 @@ final class DebugBarPanelAdapterTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeValueReturnsCountWhenPanelsExist(): void
+    public function getIndicatorValueReturnsCountWhenPanelsExist(): void
     {
         // Set data via reflection to simulate collected panels
         $reflection = new \ReflectionProperty($this->adapter, 'data');
@@ -108,14 +108,14 @@ final class DebugBarPanelAdapterTest extends TestCase
             'panel_count' => 2,
         ]);
 
-        self::assertSame('2', $this->adapter->getBadgeValue());
+        self::assertSame('2', $this->adapter->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeValueReturnsEmptyWhenNoPanels(): void
+    public function getIndicatorValueReturnsEmptyWhenNoPanels(): void
     {
         // No data collected — panel_count defaults to 0
-        self::assertSame('', $this->adapter->getBadgeValue());
+        self::assertSame('', $this->adapter->getIndicatorValue());
     }
 
     #[Test]

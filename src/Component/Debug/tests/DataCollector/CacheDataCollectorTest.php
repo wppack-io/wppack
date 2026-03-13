@@ -50,61 +50,61 @@ final class CacheDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeColorReturnsGreenForHighHitRate(): void
+    public function getIndicatorColorReturnsGreenForHighHitRate(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, ['hit_rate' => 90.0]);
 
-        self::assertSame('green', $this->collector->getBadgeColor());
+        self::assertSame('green', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsYellowForMediumHitRate(): void
+    public function getIndicatorColorReturnsYellowForMediumHitRate(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, ['hit_rate' => 65.0]);
 
-        self::assertSame('yellow', $this->collector->getBadgeColor());
+        self::assertSame('yellow', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsRedForLowHitRate(): void
+    public function getIndicatorColorReturnsRedForLowHitRate(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, ['hit_rate' => 30.0]);
 
-        self::assertSame('red', $this->collector->getBadgeColor());
+        self::assertSame('red', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorThresholdBoundaries(): void
+    public function getIndicatorColorThresholdBoundaries(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
 
         // 49.9 should be red
         $reflection->setValue($this->collector, ['hit_rate' => 49.9]);
-        self::assertSame('red', $this->collector->getBadgeColor());
+        self::assertSame('red', $this->collector->getIndicatorColor());
 
         // 50.0 should be yellow
         $reflection->setValue($this->collector, ['hit_rate' => 50.0]);
-        self::assertSame('yellow', $this->collector->getBadgeColor());
+        self::assertSame('yellow', $this->collector->getIndicatorColor());
 
         // 79.9 should be yellow
         $reflection->setValue($this->collector, ['hit_rate' => 79.9]);
-        self::assertSame('yellow', $this->collector->getBadgeColor());
+        self::assertSame('yellow', $this->collector->getIndicatorColor());
 
         // 80.0 should be green
         $reflection->setValue($this->collector, ['hit_rate' => 80.0]);
-        self::assertSame('green', $this->collector->getBadgeColor());
+        self::assertSame('green', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeValueReturnsFormattedHitRate(): void
+    public function getIndicatorValueReturnsFormattedHitRate(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, ['hit_rate' => 85.5]);
 
-        self::assertSame('85.5%', $this->collector->getBadgeValue());
+        self::assertSame('85.5%', $this->collector->getIndicatorValue());
     }
 
     #[Test]

@@ -76,27 +76,27 @@ final class WidgetDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeValueReturnsActiveWidgetCount(): void
+    public function getIndicatorValueReturnsActiveWidgetCount(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, ['active_widgets' => 7]);
 
-        self::assertSame('7', $this->collector->getBadgeValue());
+        self::assertSame('7', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeValueReturnsEmptyWhenZero(): void
+    public function getIndicatorValueReturnsEmptyWhenZero(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, ['active_widgets' => 0]);
 
-        self::assertSame('', $this->collector->getBadgeValue());
+        self::assertSame('', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeColorReturnsDefault(): void
+    public function getIndicatorColorReturnsDefault(): void
     {
-        self::assertSame('default', $this->collector->getBadgeColor());
+        self::assertSame('default', $this->collector->getIndicatorColor());
     }
 
     #[Test]

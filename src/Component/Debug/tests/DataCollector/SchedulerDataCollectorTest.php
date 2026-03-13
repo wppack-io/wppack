@@ -53,49 +53,49 @@ final class SchedulerDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeValueReturnsEmptyWhenNoEvents(): void
+    public function getIndicatorValueReturnsEmptyWhenNoEvents(): void
     {
         // Directly set data to simulate empty state
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, ['cron_total' => 0]);
 
-        self::assertSame('', $this->collector->getBadgeValue());
+        self::assertSame('', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeValueReturnsTotalWhenEventsExist(): void
+    public function getIndicatorValueReturnsTotalWhenEventsExist(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, ['cron_total' => 15]);
 
-        self::assertSame('15', $this->collector->getBadgeValue());
+        self::assertSame('15', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeColorReturnsGreenWhenNoOverdueAndFewEvents(): void
+    public function getIndicatorColorReturnsGreenWhenNoOverdueAndFewEvents(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, ['cron_total' => 10, 'cron_overdue' => 0]);
 
-        self::assertSame('green', $this->collector->getBadgeColor());
+        self::assertSame('green', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsYellowWhenManyEvents(): void
+    public function getIndicatorColorReturnsYellowWhenManyEvents(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, ['cron_total' => 60, 'cron_overdue' => 0]);
 
-        self::assertSame('yellow', $this->collector->getBadgeColor());
+        self::assertSame('yellow', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsRedWhenOverdue(): void
+    public function getIndicatorColorReturnsRedWhenOverdue(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, ['cron_total' => 5, 'cron_overdue' => 2]);
 
-        self::assertSame('red', $this->collector->getBadgeColor());
+        self::assertSame('red', $this->collector->getIndicatorColor());
     }
 
     #[Test]
@@ -386,30 +386,30 @@ final class SchedulerDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeColorReturnsRedWhenOverdueViaReflection(): void
+    public function getIndicatorColorReturnsRedWhenOverdueViaReflection(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, ['cron_total' => 5, 'cron_overdue' => 3]);
 
-        self::assertSame('red', $this->collector->getBadgeColor());
+        self::assertSame('red', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsYellowWhenManyEventsViaReflection(): void
+    public function getIndicatorColorReturnsYellowWhenManyEventsViaReflection(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, ['cron_total' => 50, 'cron_overdue' => 0]);
 
-        self::assertSame('yellow', $this->collector->getBadgeColor());
+        self::assertSame('yellow', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getBadgeColorReturnsGreenWhenNormalViaReflection(): void
+    public function getIndicatorColorReturnsGreenWhenNormalViaReflection(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, ['cron_total' => 10, 'cron_overdue' => 0]);
 
-        self::assertSame('green', $this->collector->getBadgeColor());
+        self::assertSame('green', $this->collector->getIndicatorColor());
     }
 
     #[Test]

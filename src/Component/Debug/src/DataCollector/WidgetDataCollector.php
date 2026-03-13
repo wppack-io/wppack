@@ -128,14 +128,14 @@ final class WidgetDataCollector extends AbstractDataCollector
         ];
     }
 
-    public function getBadgeValue(): string
+    public function getIndicatorValue(): string
     {
         $count = (int) ($this->data['active_widgets'] ?? 0);
 
         return $count > 0 ? (string) $count : '';
     }
 
-    public function getBadgeColor(): string
+    public function getIndicatorColor(): string
     {
         return 'default';
     }

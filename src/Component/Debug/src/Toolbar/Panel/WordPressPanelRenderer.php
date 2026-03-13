@@ -15,7 +15,7 @@ final class WordPressPanelRenderer extends AbstractPanelRenderer implements Rend
         return 'wordpress';
     }
 
-    public function renderBadge(Profile $profile): string
+    public function renderIndicator(Profile $profile): string
     {
         $wpData = $this->getCollectorData($profile, 'wordpress');
         $wpVersion = (string) ($wpData['wp_version'] ?? '');

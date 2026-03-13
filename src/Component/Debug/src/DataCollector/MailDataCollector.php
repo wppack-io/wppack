@@ -127,14 +127,14 @@ final class MailDataCollector extends AbstractDataCollector
         ];
     }
 
-    public function getBadgeValue(): string
+    public function getIndicatorValue(): string
     {
         $total = $this->data['total_count'] ?? 0;
 
         return $total > 0 ? (string) $total : '';
     }
 
-    public function getBadgeColor(): string
+    public function getIndicatorColor(): string
     {
         $failureCount = $this->data['failure_count'] ?? 0;
         $totalCount = $this->data['total_count'] ?? 0;

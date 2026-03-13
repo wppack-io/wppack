@@ -78,8 +78,8 @@ $handler->register(); // sets as global exception handler
 
 Built-in collectors gather profiling data and display it in the toolbar:
 
-| Collector | Badge | Description |
-|-----------|-------|-------------|
+| Collector | Indicator | Description |
+|-----------|-----------|-------------|
 | `RequestDataCollector` | Method + status code | HTTP method, URL, headers, GET/POST params, cookies |
 | `HttpClientDataCollector` | Request count | Outgoing HTTP requests with timing, status, response size |
 | `DatabaseDataCollector` | Query count | SQL queries, execution time, duplicate/slow query detection |
@@ -118,7 +118,7 @@ class MyCustomCollector extends AbstractDataCollector
         ];
     }
 
-    public function getBadgeValue(): string
+    public function getIndicatorValue(): string
     {
         return (string) ($this->data['custom_metric'] ?? 0);
     }

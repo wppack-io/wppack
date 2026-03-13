@@ -58,24 +58,24 @@ final class ThemeDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getBadgeValueReturnsEmptyString(): void
+    public function getIndicatorValueReturnsEmptyString(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
         $reflection->setValue($this->collector, ['name' => 'Twenty Twenty-Four']);
 
-        self::assertSame('', $this->collector->getBadgeValue());
+        self::assertSame('', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeValueReturnsEmptyWhenNoData(): void
+    public function getIndicatorValueReturnsEmptyWhenNoData(): void
     {
-        self::assertSame('', $this->collector->getBadgeValue());
+        self::assertSame('', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getBadgeColorReturnsDefault(): void
+    public function getIndicatorColorReturnsDefault(): void
     {
-        self::assertSame('default', $this->collector->getBadgeColor());
+        self::assertSame('default', $this->collector->getIndicatorColor());
     }
 
     #[Test]

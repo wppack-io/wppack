@@ -211,14 +211,14 @@ final class LoggerDataCollector extends AbstractDataCollector
         ];
     }
 
-    public function getBadgeValue(): string
+    public function getIndicatorValue(): string
     {
         $totalCount = $this->data['total_count'] ?? 0;
 
         return $totalCount > 0 ? (string) $totalCount : '';
     }
 
-    public function getBadgeColor(): string
+    public function getIndicatorColor(): string
     {
         $errorCount = $this->data['error_count'] ?? 0;
         $deprecationCount = $this->data['deprecation_count'] ?? 0;

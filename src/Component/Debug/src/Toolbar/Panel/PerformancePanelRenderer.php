@@ -20,7 +20,7 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer implements Re
         return $this->renderContent($profile);
     }
 
-    public function renderBadge(Profile $profile): string
+    public function renderIndicator(Profile $profile): string
     {
         $totalTime = $profile->getTime();
         $value = $this->formatMs($totalTime);
@@ -32,19 +32,19 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer implements Re
         $dbData = $this->getCollectorData($profile, 'database');
         $slowQueries = (int) ($dbData['slow_count'] ?? 0);
 
-        $badgeColors = self::getBadgeColors();
+        $indicatorColors = self::getIndicatorColors();
         $colors = match (true) {
-            $usagePercentage >= 90, $slowQueries > 0, $totalTime >= 1000 => $badgeColors['red'],
-            $totalTime >= 200 => $badgeColors['yellow'],
-            default => $badgeColors['default'],
+            $usagePercentage >= 90, $slowQueries > 0, $totalTime >= 1000 => $indicatorColors['red'],
+            $totalTime >= 200 => $indicatorColors['yellow'],
+            default => $indicatorColors['default'],
         };
 
         $bgStyle = $colors['bg'] !== 'transparent' ? ' style="background:' . $colors['bg'] . '"' : '';
 
         return <<<HTML
-        <button class="wpd-badge" data-panel="performance" data-tooltip="Performance"{$bgStyle}>
-            <span class="wpd-badge-icon" style="color:{$colors['fg']}">{$icon}</span>
-            <span class="wpd-badge-value" style="color:{$colors['fg']}">{$value}</span>
+        <button class="wpd-indicator" data-panel="performance" data-tooltip="Performance"{$bgStyle}>
+            <span class="wpd-indicator-icon" style="color:{$colors['fg']}">{$icon}</span>
+            <span class="wpd-indicator-value" style="color:{$colors['fg']}">{$value}</span>
         </button>
         HTML;
     }
