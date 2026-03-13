@@ -247,9 +247,9 @@ final class ToolbarRenderer
             }
         }
 
-        // Unknown collectors at the end (skip wordpress — handled by logo button)
+        // Unknown collectors at the end (skip wordpress/environment — rendered separately in the bar)
         foreach ($collectors as $name => $collector) {
-            if ($name !== 'wordpress' && !\in_array($name, $rendered, true)) {
+            if ($name !== 'wordpress' && $name !== 'environment' && !\in_array($name, $rendered, true)) {
                 $badges .= $this->renderBadge($collector);
             }
         }
