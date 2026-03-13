@@ -52,7 +52,7 @@ echo 'Time: ' . (microtime(true) - $start);
 ```php
 use WpPack\Component\Debug\DebugConfig;
 use WpPack\Component\Debug\Profiler\Profiler;
-use WpPack\Component\Debug\Profiler\Stopwatch;
+use WpPack\Component\Stopwatch\Stopwatch;
 use WpPack\Component\Debug\Toolbar\ToolbarSubscriber;
 
 // 設定 — 環境変数 or コンストラクタ引数
@@ -98,8 +98,10 @@ $config->isAllowedRole();      // ロールホワイトリストチェック
 
 ### Stopwatch（タイマー計測）
 
+[Stopwatch コンポーネント](../stopwatch/)が提供するタイマー機能を使用します。
+
 ```php
-use WpPack\Component\Debug\Profiler\Stopwatch;
+use WpPack\Component\Stopwatch\Stopwatch;
 
 $stopwatch = new Stopwatch();
 
@@ -127,7 +129,7 @@ $events = $stopwatch->getEvents();
 
 ```php
 use WpPack\Component\Debug\Profiler\Profiler;
-use WpPack\Component\Debug\Profiler\Stopwatch;
+use WpPack\Component\Stopwatch\Stopwatch;
 
 $profiler = new Profiler(new Stopwatch());
 
@@ -445,7 +447,7 @@ $container = $builder->compile();
 ```php
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Debug\Profiler\Stopwatch;
+use WpPack\Component\Stopwatch\Stopwatch;
 
 final class StopwatchTest extends TestCase
 {
@@ -490,6 +492,7 @@ final class StopwatchTest extends TestCase
 
 ### 必須
 - PHP 8.2+
+- **Stopwatch コンポーネント** — タイマー計測・ライフサイクルプロファイリング用
 
 ### 開発時推奨
 - **Hook コンポーネント** — WordPress アクション/フィルター登録用

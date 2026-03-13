@@ -221,6 +221,7 @@ $builder->addCompilerPass(new RegisterPanelRenderersPass());
 ## Requirements
 
 - PHP 8.2+
+- `wppack/stopwatch` — Timer and lifecycle profiling
 
 ## Documentation
 
