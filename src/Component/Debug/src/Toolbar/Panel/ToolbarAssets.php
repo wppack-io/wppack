@@ -4,65 +4,24 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
+use WpPack\Component\Debug\CssTheme;
+
 final class ToolbarAssets
 {
     public function renderCss(): string
     {
-        return <<<'CSS'
+        $vars = CssTheme::cssVariables();
+
+        return <<<CSS
         #wppack-debug *, #wppack-debug *::before, #wppack-debug *::after {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
         #wppack-debug {
-            /* Gray scale */
-            --wpd-gray-900: #1f2937;
-            --wpd-gray-800: #374151;
-            --wpd-gray-700: #4b5563;
-            --wpd-gray-500: #6b7280;
-            --wpd-gray-400: #9ca3af;
-            --wpd-gray-300: #d1d5db;
-            --wpd-gray-200: #e5e7eb;
-            --wpd-gray-100: #f3f4f6;
-            --wpd-gray-50: #fafafa;
-            --wpd-white: #ffffff;
+        {$vars}
 
-            /* Primary / accent */
-            --wpd-primary: #3858e9;
-            --wpd-primary-hover: #2d4ad6;
-            --wpd-primary-a8: rgba(56, 88, 233, 0.08);
-
-            /* Status colors */
-            --wpd-green: #008a20;
-            --wpd-green-a8: rgba(0, 138, 32, 0.08);
-            --wpd-green-a10: rgba(0, 138, 32, 0.10);
-            --wpd-green-a12: rgba(0, 138, 32, 0.12);
-            --wpd-yellow: #996800;
-            --wpd-yellow-a4: rgba(153, 104, 0, 0.04);
-            --wpd-yellow-a6: rgba(153, 104, 0, 0.06);
-            --wpd-yellow-a8: rgba(153, 104, 0, 0.08);
-            --wpd-yellow-a10: rgba(153, 104, 0, 0.10);
-            --wpd-yellow-a12: rgba(153, 104, 0, 0.12);
-            --wpd-red: #cc1818;
-            --wpd-red-a4: rgba(204, 24, 24, 0.04);
-            --wpd-red-a8: rgba(204, 24, 24, 0.08);
-            --wpd-red-a10: rgba(204, 24, 24, 0.10);
-            --wpd-red-a12: rgba(204, 24, 24, 0.12);
-            --wpd-orange: #b32d2e;
-            --wpd-blue: #2563eb;
-            --wpd-blue-a10: rgba(37, 99, 235, 0.10);
-            --wpd-amber: #a16207;
-            --wpd-amber-a10: rgba(161, 98, 7, 0.10);
-            --wpd-dark-red: #990000;
-            --wpd-dark-red-a12: rgba(153, 0, 0, 0.12);
-            --wpd-gray-800-a8: rgba(55, 65, 81, 0.08);
-            --wpd-gray-500-a10: rgba(107, 114, 128, 0.10);
-            --wpd-purple: #7b2d8e;
-            --wpd-purple-a8: rgba(130, 50, 150, 0.08);
-            --wpd-rust: #9b3520;
-            --wpd-rust-a8: rgba(160, 50, 30, 0.08);
-
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: var(--wpd-font-sans);
             font-size: 13px;
             line-height: 1.5;
             color: var(--wpd-gray-900);
@@ -542,7 +501,7 @@ final class ToolbarAssets
             white-space: nowrap;
         }
         #wppack-debug .wpd-table-kv .wpd-kv-val {
-            font-family: Menlo, Consolas, Monaco, 'Liberation Mono', 'Lucida Console', monospace;
+            font-family: var(--wpd-font-mono);
             font-size: 12px;
             word-break: break-all;
         }
@@ -550,7 +509,7 @@ final class ToolbarAssets
         /* Right-aligned numeric columns */
         #wppack-debug .wpd-table .wpd-col-right {
             text-align: right;
-            font-family: Menlo, Consolas, Monaco, 'Liberation Mono', 'Lucida Console', monospace;
+            font-family: var(--wpd-font-mono);
             font-size: 12px;
             white-space: nowrap;
         }
@@ -574,7 +533,7 @@ final class ToolbarAssets
             text-overflow: ellipsis;
         }
         #wppack-debug .wpd-table .wpd-col-sql code {
-            font-family: Menlo, Consolas, Monaco, 'Liberation Mono', 'Lucida Console', monospace;
+            font-family: var(--wpd-font-mono);
             font-size: 12px;
             color: var(--wpd-gray-900);
             white-space: pre-wrap;
@@ -584,14 +543,14 @@ final class ToolbarAssets
             width: 90px;
             white-space: nowrap;
             text-align: right;
-            font-family: Menlo, Consolas, Monaco, 'Liberation Mono', 'Lucida Console', monospace;
+            font-family: var(--wpd-font-mono);
             font-size: 12px;
         }
         #wppack-debug .wpd-table .wpd-col-caller {
             width: 260px;
         }
         #wppack-debug .wpd-caller {
-            font-family: Menlo, Consolas, Monaco, 'Liberation Mono', 'Lucida Console', monospace;
+            font-family: var(--wpd-font-mono);
             font-size: 11px;
             color: var(--wpd-gray-500);
             word-break: break-all;
@@ -771,7 +730,7 @@ final class ToolbarAssets
             background: var(--wpd-gray-50);
         }
         #wppack-debug .wpd-list code {
-            font-family: Menlo, Consolas, Monaco, 'Liberation Mono', 'Lucida Console', monospace;
+            font-family: var(--wpd-font-mono);
             font-size: 12px;
         }
 
@@ -799,7 +758,7 @@ final class ToolbarAssets
 
         /* ---- Code blocks ---- */
         #wppack-debug code {
-            font-family: Menlo, Consolas, Monaco, 'Liberation Mono', 'Lucida Console', monospace;
+            font-family: var(--wpd-font-mono);
             font-size: 12px;
         }
 
@@ -827,7 +786,7 @@ final class ToolbarAssets
             margin-bottom: 4px;
         }
         #wppack-debug .wpd-perf-card-value {
-            font-family: Menlo, Consolas, Monaco, 'Liberation Mono', 'Lucida Console', monospace;
+            font-family: var(--wpd-font-mono);
             font-size: 18px;
             font-weight: 500;
             color: var(--wpd-gray-800);
@@ -1060,7 +1019,7 @@ final class ToolbarAssets
         #wppack-debug .wpd-dump-file {
             font-size: 12px;
             color: var(--wpd-gray-500);
-            font-family: Menlo, Consolas, Monaco, 'Liberation Mono', 'Lucida Console', monospace;
+            font-family: var(--wpd-font-mono);
             margin-bottom: 4px;
         }
         #wppack-debug .wpd-dump-code {
@@ -1068,7 +1027,7 @@ final class ToolbarAssets
             padding: 8px 12px;
             border-radius: 4px;
             overflow-x: auto;
-            font-family: Menlo, Consolas, Monaco, 'Liberation Mono', 'Lucida Console', monospace;
+            font-family: var(--wpd-font-mono);
             font-size: 12px;
             color: var(--wpd-gray-900);
             margin: 0;

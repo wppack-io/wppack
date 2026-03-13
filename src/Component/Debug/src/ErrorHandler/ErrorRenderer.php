@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Debug\ErrorHandler;
 
+use WpPack\Component\Debug\CssTheme;
+
 final readonly class ErrorRenderer
 {
     public function render(FlattenException $exception, string $toolbarHtml = ''): string
@@ -20,6 +22,8 @@ final readonly class ErrorRenderer
 
         $shortClass = $this->escape($this->shortClassName($exception->getClass()));
         $codeLabel = $code !== 0 ? ' <span class="exception-code">(code ' . $code . ')</span>' : '';
+
+        $cssVariables = CssTheme::cssVariables();
 
         $chainSectionHtml = '';
         $chainCount = count($exception->getChain());
@@ -46,29 +50,14 @@ final readonly class ErrorRenderer
 
         /* ── Variables / Base ──────────────────────────────────── */
         :root {
-            --bg:          #ffffff;
-            --bg-card:     #ffffff;
-            --bg-code:     #fafafa;
-            --border:      #e5e7eb;
-            --border-hl:   #d1d5db;
-            --text:        #1f2937;
-            --text-sub:    #6b7280;
-            --text-muted:  #9ca3af;
-            --accent:      #3858e9;
-            --red:         #cc1818;
-            --red-bg:      rgba(204,24,24,0.08);
-            --green:       #008a20;
-            --font-mono:   Menlo, Consolas, Monaco, "Liberation Mono", "Lucida Console", monospace;
-            --font-sans:   -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            --radius:      8px;
-            --radius-sm:   4px;
+        {$cssVariables}
         }
 
         html { font-size: 13px; }
         body {
-            font-family: var(--font-sans);
-            background: var(--bg);
-            color: var(--text);
+            font-family: var(--wpd-font-sans);
+            background: var(--wpd-white);
+            color: var(--wpd-gray-900);
             line-height: 1.5;
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
@@ -77,25 +66,25 @@ final readonly class ErrorRenderer
 
         /* ── Header ────────────────────────────────────────────── */
         .header {
-            background: rgba(204,24,24,0.10);
-            border-bottom: 1px solid rgba(204,24,24,0.15);
+            background: var(--wpd-red-a10);
+            border-bottom: 1px solid var(--wpd-red-a12);
             padding: 16px;
         }
         .header-inner { max-width: 1400px; margin: 0 auto; }
         .exception-class {
             font-size: 20px;
             font-weight: 600;
-            color: var(--red);
+            color: var(--wpd-red);
             word-break: break-all;
         }
         .exception-code {
             font-size: 11px;
-            color: var(--text-sub);
+            color: var(--wpd-gray-500);
             font-weight: 400;
         }
         .exception-message {
             font-size: 12px;
-            color: var(--text);
+            color: var(--wpd-gray-900);
             margin-top: 4px;
             line-height: 1.3;
             word-break: break-word;
@@ -106,13 +95,13 @@ final readonly class ErrorRenderer
 
         /* ── Section ───────────────────────────────────────────── */
         .section { padding: 20px 16px; }
-        .section + .section { border-top: 1px solid var(--border); }
+        .section + .section { border-top: 1px solid var(--wpd-gray-200); }
         .section-title {
             font-size: 11px;
             font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            color: var(--text);
+            color: var(--wpd-gray-900);
             margin-bottom: 14px;
         }
 
@@ -120,7 +109,7 @@ final readonly class ErrorRenderer
         .code-table {
             width: 100%;
             border-collapse: collapse;
-            font-family: var(--font-mono);
+            font-family: var(--wpd-font-mono);
             font-size: 12px;
             line-height: 1.6;
             tab-size: 4;
@@ -131,10 +120,10 @@ final readonly class ErrorRenderer
             min-width: 56px;
             text-align: right;
             padding-right: 12px;
-            color: var(--text-muted);
+            color: var(--wpd-gray-400);
             user-select: none;
             -webkit-user-select: none;
-            border-right: 1px solid var(--border);
+            border-right: 1px solid var(--wpd-gray-200);
         }
         .code-table .line-code {
             padding-left: 12px;
@@ -142,19 +131,19 @@ final readonly class ErrorRenderer
             overflow-x: auto;
         }
         .code-table tr.highlight {
-            background: var(--red-bg);
+            background: var(--wpd-red-a8);
         }
         .code-table tr.highlight .line-number {
-            color: var(--red);
+            color: var(--wpd-red);
             font-weight: 700;
         }
 
         /* ── Stack Trace ───────────────────────────────────────── */
         .trace-list { list-style: none; }
         .trace-frame {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
+            background: var(--wpd-white);
+            border: 1px solid var(--wpd-gray-200);
+            border-radius: var(--wpd-radius);
             margin-bottom: 8px;
             overflow: hidden;
         }
@@ -169,35 +158,35 @@ final readonly class ErrorRenderer
             transition: background .15s;
             flex-wrap: wrap;
         }
-        .trace-header:hover { background: var(--bg); }
-        .trace-frame.open .trace-header { border-bottom: 1px solid var(--border); }
+        .trace-header:hover { background: var(--wpd-white); }
+        .trace-frame.open .trace-header { border-bottom: 1px solid var(--wpd-gray-200); }
         .trace-index {
-            font-family: var(--font-mono);
+            font-family: var(--wpd-font-mono);
             font-size: 11px;
-            color: var(--text-muted);
+            color: var(--wpd-gray-400);
             min-width: 24px;
             text-align: right;
             flex-shrink: 0;
         }
         .trace-function {
-            font-family: var(--font-mono);
+            font-family: var(--wpd-font-mono);
             font-size: 12px;
-            color: var(--text);
+            color: var(--wpd-gray-900);
             flex: 1;
             word-break: break-all;
         }
-        .trace-function .class-name { color: var(--accent); }
-        .trace-function .method-name { color: var(--green); }
-        .trace-function .type-sep { color: var(--text-muted); }
-        .trace-function .args-list { color: var(--text-sub); font-size: 11px; }
+        .trace-function .class-name { color: var(--wpd-primary); }
+        .trace-function .method-name { color: var(--wpd-green); }
+        .trace-function .type-sep { color: var(--wpd-gray-400); }
+        .trace-function .args-list { color: var(--wpd-gray-500); font-size: 11px; }
         .trace-location {
-            font-family: var(--font-mono);
+            font-family: var(--wpd-font-mono);
             font-size: 11px;
-            color: var(--text-muted);
+            color: var(--wpd-gray-400);
             flex-shrink: 0;
         }
-        .trace-location .loc-file { color: var(--text-sub); }
-        .trace-location .loc-line { color: var(--text); font-weight: 600; }
+        .trace-location .loc-file { color: var(--wpd-gray-500); }
+        .trace-location .loc-line { color: var(--wpd-gray-900); font-weight: 600; }
         .trace-toggle { flex-shrink: 0; }
         .wpd-log-indicator {
             display: inline-flex;
@@ -207,14 +196,14 @@ final readonly class ErrorRenderer
             height: 14px;
             font-size: 11px;
             font-weight: 600;
-            color: #9ca3af;
-            border: 1px solid #d1d5db;
+            color: var(--wpd-gray-400);
+            border: 1px solid var(--wpd-gray-300);
             border-radius: 3px;
         }
-        .trace-header:hover .wpd-log-indicator { color: #3858e9; border-color: #3858e9; }
+        .trace-header:hover .wpd-log-indicator { color: var(--wpd-primary); border-color: var(--wpd-primary); }
         .trace-body {
             display: none;
-            background: var(--bg-code);
+            background: var(--wpd-gray-50);
         }
         .trace-frame.open .trace-body { display: block; }
 
@@ -225,11 +214,11 @@ final readonly class ErrorRenderer
         .chain-item:last-child { margin-bottom: 0; }
         .chain-item-class {
             font-size: 18px;
-            color: var(--red);
+            color: var(--wpd-red);
             font-weight: 600;
         }
         .chain-item-message {
-            color: var(--text);
+            color: var(--wpd-gray-900);
             font-size: 12px;
             margin-top: 4px;
             word-break: break-word;
@@ -238,16 +227,16 @@ final readonly class ErrorRenderer
 
         /* ── Empty state ───────────────────────────────────────── */
         .empty-state {
-            color: var(--text-muted);
+            color: var(--wpd-gray-400);
             font-style: italic;
             padding: 8px 0;
         }
 
         /* ── Scrollbar ─────────────────────────────────────────── */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: var(--bg); }
-        ::-webkit-scrollbar-thumb { background: var(--border-hl); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+        ::-webkit-scrollbar-track { background: var(--wpd-white); }
+        ::-webkit-scrollbar-thumb { background: var(--wpd-gray-300); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--wpd-gray-400); }
 
         /* ── Responsive ────────────────────────────────────────── */
         @media (max-width: 768px) {
