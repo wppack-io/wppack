@@ -66,7 +66,15 @@ final class HttpClientPanelRenderer extends AbstractPanelRenderer implements Ren
                 $html .= '<tr>';
                 $html .= '<td class="wpd-col-num">' . $this->esc((string) ($index + 1)) . '</td>';
                 $html .= '<td class="wpd-col-reltime wpd-text-dim">' . $relTime . '</td>';
-                $html .= '<td><span class="wpd-tag">' . $this->esc($request['method'] ?? 'GET') . '</span></td>';
+                $method = (string) ($request['method'] ?? 'GET');
+                $methodColor = match ($method) {
+                    'GET' => 'green',
+                    'POST' => 'primary',
+                    'PUT', 'PATCH' => 'yellow',
+                    'DELETE' => 'red',
+                    default => 'gray',
+                };
+                $html .= '<td>' . $this->badge($method, $methodColor) . '</td>';
                 $html .= '<td><code>' . $this->esc($request['url'] ?? '') . '</code></td>';
                 $html .= '<td class="' . $statusColor . '">' . ($statusCode > 0 ? $this->esc((string) $statusCode) : '-') . $error . '</td>';
                 $html .= '<td class="wpd-col-right">' . $this->formatMs((float) ($request['duration'] ?? 0.0)) . '</td>';

@@ -109,15 +109,4 @@ class Debug_Bar_Panel
     {
         return $classes;
     }
-
-    /**
-     * PHP4 backward-compatible constructor.
-     *
-     * @param string $title
-     * @return void
-     */
-    public function Debug_Bar_Panel($title = '')
-    {
-        self::__construct($title);
-    }
 }

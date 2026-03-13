@@ -50,7 +50,7 @@ final class LoggerPanelRenderer extends AbstractPanelRenderer implements Rendere
         if ($channels !== []) {
             $html .= '<div style="margin-top:8px" class="wpd-tag-list">';
             foreach ($channels as $ch) {
-                $html .= '<span class="wpd-tag">' . $this->esc($ch) . '</span>';
+                $html .= $this->badge($ch, 'primary');
             }
             $html .= '</div>';
         }
@@ -100,7 +100,7 @@ final class LoggerPanelRenderer extends AbstractPanelRenderer implements Rendere
             $html .= '<th class="wpd-col-num">#</th>';
             $html .= '<th class="wpd-col-reltime">Time</th>';
             $html .= '<th>Level</th>';
-            $html .= '<th>Channel</th>';
+            $html .= '<th>Source</th>';
             $html .= '<th>Message</th>';
             $html .= '<th>File</th>';
             $html .= '<th></th>';
@@ -141,7 +141,7 @@ final class LoggerPanelRenderer extends AbstractPanelRenderer implements Rendere
                 $html .= '<td class="wpd-col-num">' . $this->esc((string) ($index + 1)) . '</td>';
                 $html .= '<td class="wpd-col-reltime wpd-text-dim">' . $this->esc($timeDisplay) . '</td>';
                 $html .= '<td><span class="wpd-tag ' . $levelColor . '">' . $this->esc($level) . '</span></td>';
-                $html .= '<td>' . $this->esc($log['channel'] ?? 'app') . '</td>';
+                $html .= '<td>' . $this->badge($log['channel'] ?? 'app', 'primary') . '</td>';
                 $html .= '<td><code>' . $this->esc($log['message'] ?? '') . '</code></td>';
                 $html .= '<td title="' . $this->esc($file) . '">' . $this->esc($fileDisplay) . '</td>';
                 $html .= '<td class="wpd-col-toggle">' . $toggleIcon . '</td>';
