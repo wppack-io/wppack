@@ -49,24 +49,6 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer implements Re
         HTML;
     }
 
-    public function renderPanel(Profile $profile): string
-    {
-        $content = $this->renderContent($profile);
-        $closeIcon = ToolbarIcons::svg('close', 14);
-
-        return <<<HTML
-        <div class="wpd-panel" id="wpd-panel-performance" style="display:none">
-            <div class="wpd-panel-header">
-                <span class="wpd-panel-title">Performance</span>
-                <button class="wpd-panel-close" data-action="close-panel" title="Close">{$closeIcon}</button>
-            </div>
-            <div class="wpd-panel-body">
-                {$content}
-            </div>
-        </div>
-        HTML;
-    }
-
     public function renderContent(Profile $profile): string
     {
         $timeData = $this->getCollectorData($profile, 'stopwatch');

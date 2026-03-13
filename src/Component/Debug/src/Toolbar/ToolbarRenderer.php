@@ -14,14 +14,6 @@ use WpPack\Component\Debug\Toolbar\Panel\ToolbarIcons;
 
 final class ToolbarRenderer
 {
-    /** @var array<string, array{bg: string, fg: string}> */
-    private const BADGE_COLORS = [
-        'green' => ['bg' => 'rgba(0,138,32,0.12)', 'fg' => '#008a20'],
-        'yellow' => ['bg' => 'rgba(153,104,0,0.12)', 'fg' => '#996800'],
-        'red' => ['bg' => 'rgba(204,24,24,0.12)', 'fg' => '#cc1818'],
-        'default' => ['bg' => 'transparent', 'fg' => '#50575e'],
-    ];
-
     /** Badge display order in the toolbar bar. */
     private const BADGE_ORDER = [
         'plugin', 'theme',
@@ -93,17 +85,16 @@ final class ToolbarRenderer
         $sidebarHtml = $this->renderSidebar($collectorNames, $collectors);
         $contentPanels = $this->renderContentPanels($profile, $collectors, $defaultPanel);
 
-        // Logo & version (clickable — opens WordPress panel)
-        $wpIcon = ToolbarIcons::svg('wordpress', 18);
+        // Logo & version (delegated to WordPressPanelRenderer)
         $wpMiniIcon = ToolbarIcons::svg('wordpress', 16);
-        $wpVersion = $this->getWpVersion($collectors);
-        $wpBtnContent = '<span class="wpd-bar-logo">' . $wpIcon . '</span>';
-        if ($wpVersion !== '') {
-            $wpBtnContent .= '<span class="wpd-bar-version">' . $this->esc($wpVersion) . '</span>';
-        }
+        $wpBadgeHtml = isset($this->panelRenderers['wordpress'])
+            ? $this->panelRenderers['wordpress']->renderBadge($profile)
+            : '';
 
-        // Environment info
-        $envHtml = $this->renderEnvironmentInfo($collectors);
+        // Environment info (delegated to EnvironmentPanelRenderer)
+        $envHtml = isset($this->panelRenderers['environment'])
+            ? $this->panelRenderers['environment']->renderBadge($profile)
+            : '';
 
         // Default panel title
         $defaultTitle = $this->esc($this->getPanelLabel($defaultPanel, $collectors));
@@ -133,9 +124,7 @@ final class ToolbarRenderer
             {$wpMiniIcon}
         </div>
         <div class="wpd-bar">
-            <button class="wpd-bar-wp" data-panel="wordpress" title="WordPress">
-                {$wpBtnContent}
-            </button>
+            {$wpBadgeHtml}
             <div class="wpd-bar-badges-wrap">
                 <div class="wpd-bar-badges">
                     {$badges}
@@ -274,7 +263,8 @@ final class ToolbarRenderer
         $label = $this->esc($collector->getLabel());
         $value = $collector->getBadgeValue();
         $colorKey = $collector->getBadgeColor();
-        $colors = self::BADGE_COLORS[$colorKey] ?? self::BADGE_COLORS['default'];
+        $badgeColors = AbstractPanelRenderer::getBadgeColors();
+        $colors = $badgeColors[$colorKey] ?? $badgeColors['default'];
         $icon = ToolbarIcons::svg($collector->getName());
 
         $valueHtml = $value !== ''
@@ -308,67 +298,6 @@ final class ToolbarRenderer
     /**
      * @param array<string, DataCollectorInterface> $collectors
      */
-    private function renderEnvironmentInfo(array $collectors): string
-    {
-        $parts = [];
-        $tooltipLines = [];
-
-        // PHP version
-        $parts[] = 'PHP ' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION;
-        $tooltipLines[] = 'PHP ' . PHP_VERSION;
-
-        // Server software
-        if (isset($collectors['request'])) {
-            $requestData = $collectors['request']->getData();
-            $serverSoftware = (string) ($requestData['server_vars']['SERVER_SOFTWARE'] ?? '');
-            if ($serverSoftware !== '' && preg_match('/^([a-zA-Z]+)/', $serverSoftware, $m)) {
-                $parts[] = ucfirst(strtolower($m[1]));
-                $tooltipLines[] = $serverSoftware;
-            }
-        }
-
-        // Additional tooltip info
-        if (isset($collectors['wordpress'])) {
-            $wpData = $collectors['wordpress']->getData();
-            $wpVersion = (string) ($wpData['wp_version'] ?? '');
-            if ($wpVersion !== '') {
-                $tooltipLines[] = 'WordPress ' . $wpVersion;
-            }
-            $envType = (string) ($wpData['environment_type'] ?? '');
-            if ($envType !== '') {
-                $tooltipLines[] = 'Env: ' . $envType;
-            }
-        }
-
-        if (isset($collectors['memory'])) {
-            $memData = $collectors['memory']->getData();
-            $limit = (int) ($memData['limit'] ?? 0);
-            if ($limit > 0) {
-                $tooltipLines[] = 'Memory Limit: ' . $this->formatBytes($limit);
-            }
-        }
-
-        $labelParts = '';
-        foreach ($parts as $i => $part) {
-            if ($i > 0) {
-                $labelParts .= '<span class="wpd-env-sep"></span>';
-            }
-            $labelParts .= $this->esc($part);
-        }
-        $tooltipHtml = '';
-        foreach ($tooltipLines as $line) {
-            $tooltipHtml .= '<div>' . $this->esc($line) . '</div>';
-        }
-
-        return '<div class="wpd-bar-env">'
-            . '<span class="wpd-env-label">' . $labelParts . '</span>'
-            . '<div class="wpd-env-tooltip">' . $tooltipHtml . '</div>'
-            . '</div>';
-    }
-
-    /**
-     * @param array<string, DataCollectorInterface> $collectors
-     */
     private function getPanelLabel(string $name, array $collectors): string
     {
         if (isset($collectors[$name])) {
@@ -384,33 +313,8 @@ final class ToolbarRenderer
         return ucfirst($name);
     }
 
-    /**
-     * @param array<string, DataCollectorInterface> $collectors
-     */
-    private function getWpVersion(array $collectors): string
-    {
-        if (!isset($collectors['wordpress'])) {
-            return '';
-        }
-
-        return (string) ($collectors['wordpress']->getData()['wp_version'] ?? '');
-    }
-
     private function esc(string $value): string
     {
         return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-    }
-
-    private function formatBytes(int $bytes): string
-    {
-        if ($bytes >= 1073741824) {
-            return sprintf('%.1f GB', $bytes / 1073741824);
-        }
-
-        if ($bytes >= 1048576) {
-            return sprintf('%d MB', (int) ($bytes / 1048576));
-        }
-
-        return sprintf('%d KB', (int) ($bytes / 1024));
     }
 }

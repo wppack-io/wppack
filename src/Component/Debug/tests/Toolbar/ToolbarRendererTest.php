@@ -11,6 +11,7 @@ use WpPack\Component\Debug\Profiler\Profile;
 use WpPack\Component\Debug\Toolbar\Panel\CachePanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\DatabasePanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\DumpPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\EnvironmentPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\EventPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\HttpClientPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\LoggerPanelRenderer;
@@ -70,6 +71,7 @@ final class ToolbarRendererTest extends TestCase
         $this->renderer->addPanelRenderer(new ContainerPanelRenderer());
         $this->renderer->addPanelRenderer(new FeedPanelRenderer());
         $this->renderer->addPanelRenderer(new PerformancePanelRenderer());
+        $this->renderer->addPanelRenderer(new EnvironmentPanelRenderer());
     }
 
     #[Test]
@@ -1869,9 +1871,8 @@ final class ToolbarRendererTest extends TestCase
     }
 
     #[Test]
-    public function performancePanelRenderPanelContainsHeaderAndBody(): void
+    public function performancePanelRenderPanelContainsContent(): void
     {
-        // Cover lines 54-55, 57-58, 61, 64, 67: renderPanel() method
         $profile = $this->createProfileWithMockCollectors([
             'stopwatch' => ['total_time' => 100.0, 'events' => [], 'phases' => [], 'request_time_float' => 0.0],
             'memory' => ['peak' => 1048576, 'limit' => 134217728, 'usage_percentage' => 0.8],
@@ -1889,19 +1890,10 @@ final class ToolbarRendererTest extends TestCase
         $renderer = new PerformancePanelRenderer();
         $html = $renderer->renderPanel($profile);
 
-        // Line 58: Panel wrapper div
-        self::assertStringContainsString('class="wpd-panel"', $html);
-        self::assertStringContainsString('id="wpd-panel-performance"', $html);
-        // Line 60-61: Panel header with title
-        self::assertStringContainsString('class="wpd-panel-header"', $html);
-        self::assertStringContainsString('class="wpd-panel-title"', $html);
-        self::assertStringContainsString('Performance', $html);
-        // Line 61: Close button
-        self::assertStringContainsString('data-action="close-panel"', $html);
-        // Line 63-64: Panel body with content
-        self::assertStringContainsString('class="wpd-panel-body"', $html);
-        // Line 54: content from renderContent is embedded
+        // renderPanel() delegates to renderContent(), which produces Overview section
         self::assertStringContainsString('Overview', $html);
+        self::assertStringContainsString('Total Time', $html);
+        self::assertStringContainsString('Peak Memory', $html);
     }
 
     #[Test]

@@ -15,6 +15,58 @@ final class EnvironmentPanelRenderer extends AbstractPanelRenderer implements Re
         return 'environment';
     }
 
+    public function renderBadge(Profile $profile): string
+    {
+        $parts = [];
+        $tooltipLines = [];
+
+        // PHP version
+        $parts[] = 'PHP ' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION;
+        $tooltipLines[] = 'PHP ' . PHP_VERSION;
+
+        // Server software
+        $requestData = $this->getCollectorData($profile, 'request');
+        $serverSoftware = (string) ($requestData['server_vars']['SERVER_SOFTWARE'] ?? '');
+        if ($serverSoftware !== '' && preg_match('/^([a-zA-Z]+)/', $serverSoftware, $m)) {
+            $parts[] = ucfirst(strtolower($m[1]));
+            $tooltipLines[] = $serverSoftware;
+        }
+
+        // Additional tooltip info
+        $wpData = $this->getCollectorData($profile, 'wordpress');
+        $wpVersion = (string) ($wpData['wp_version'] ?? '');
+        if ($wpVersion !== '') {
+            $tooltipLines[] = 'WordPress ' . $wpVersion;
+        }
+        $envType = (string) ($wpData['environment_type'] ?? '');
+        if ($envType !== '') {
+            $tooltipLines[] = 'Env: ' . $envType;
+        }
+
+        $memData = $this->getCollectorData($profile, 'memory');
+        $limit = (int) ($memData['limit'] ?? 0);
+        if ($limit > 0) {
+            $tooltipLines[] = 'Memory Limit: ' . $this->formatBytes($limit);
+        }
+
+        $labelParts = '';
+        foreach ($parts as $i => $part) {
+            if ($i > 0) {
+                $labelParts .= '<span class="wpd-env-sep"></span>';
+            }
+            $labelParts .= $this->esc($part);
+        }
+        $tooltipHtml = '';
+        foreach ($tooltipLines as $line) {
+            $tooltipHtml .= '<div>' . $this->esc($line) . '</div>';
+        }
+
+        return '<div class="wpd-bar-env">'
+            . '<span class="wpd-env-label">' . $labelParts . '</span>'
+            . '<div class="wpd-env-tooltip">' . $tooltipHtml . '</div>'
+            . '</div>';
+    }
+
     public function renderPanel(Profile $profile): string
     {
         $data = $this->getCollectorData($profile, $this->getName());

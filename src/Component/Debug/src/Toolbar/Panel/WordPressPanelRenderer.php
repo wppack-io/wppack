@@ -15,6 +15,20 @@ final class WordPressPanelRenderer extends AbstractPanelRenderer implements Rend
         return 'wordpress';
     }
 
+    public function renderBadge(Profile $profile): string
+    {
+        $wpData = $this->getCollectorData($profile, 'wordpress');
+        $wpVersion = (string) ($wpData['wp_version'] ?? '');
+        $wpIcon = ToolbarIcons::svg('wordpress', 18);
+        $content = '<span class="wpd-bar-logo">' . $wpIcon . '</span>';
+        if ($wpVersion !== '') {
+            $content .= '<span class="wpd-bar-version">' . $this->esc($wpVersion) . '</span>';
+        }
+
+        return '<button class="wpd-bar-wp" data-panel="wordpress" title="WordPress">'
+            . $content . '</button>';
+    }
+
     public function renderPanel(Profile $profile): string
     {
         $wpData = $this->getCollectorData($profile, 'wordpress');
