@@ -26,6 +26,7 @@ final class EnvironmentDataCollector extends AbstractDataCollector
             'extensions' => $this->collectExtensions(),
             'ini' => $this->collectIniSettings(),
             'opcache' => $this->collectOpcache(),
+            'server' => $this->collectServerInfo(),
             'sapi' => PHP_SAPI,
             'os' => PHP_OS,
             'architecture' => PHP_INT_SIZE * 8,
@@ -97,6 +98,21 @@ final class EnvironmentDataCollector extends AbstractDataCollector
         }
 
         return $settings;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function collectServerInfo(): array
+    {
+        return [
+            'software' => $_SERVER['SERVER_SOFTWARE'] ?? '',
+            'name' => $_SERVER['SERVER_NAME'] ?? '',
+            'addr' => $_SERVER['SERVER_ADDR'] ?? '',
+            'port' => $_SERVER['SERVER_PORT'] ?? '',
+            'protocol' => $_SERVER['SERVER_PROTOCOL'] ?? '',
+            'document_root' => $_SERVER['DOCUMENT_ROOT'] ?? '',
+        ];
     }
 
     /**

@@ -71,11 +71,12 @@ final class EnvironmentPanelRendererTest extends TestCase
             'opcache' => [],
         ]));
 
-        self::assertStringContainsString('PHP', $html);
+        self::assertStringContainsString('PHP Runtime', $html);
         self::assertStringContainsString('8.3.1', $html);
         self::assertStringContainsString('fpm-fcgi', $html);
         self::assertStringContainsString('4.3.1', $html);
         self::assertStringContainsString('64-bit', $html);
+        self::assertStringContainsString('Server', $html);
         self::assertStringContainsString('Linux', $html);
         self::assertStringContainsString('wpd-text-green">true', $html);
         self::assertStringContainsString('wpd-text-red">false', $html);
@@ -253,7 +254,7 @@ final class EnvironmentPanelRendererTest extends TestCase
             'opcache' => [],
         ]));
 
-        self::assertStringContainsString('Configuration', $html);
+        self::assertStringContainsString('PHP Configuration', $html);
         self::assertStringContainsString('3 functions disabled', $html);
         self::assertStringContainsString('256M', $html);
     }
@@ -270,7 +271,7 @@ final class EnvironmentPanelRendererTest extends TestCase
             'opcache' => [],
         ]));
 
-        self::assertStringContainsString('Extensions (4)', $html);
+        self::assertStringContainsString('PHP Extensions (4)', $html);
         self::assertStringContainsString('wpd-tag-list', $html);
         self::assertStringContainsString('<span class="wpd-tag">mbstring</span>', $html);
         self::assertStringContainsString('<span class="wpd-tag">curl</span>', $html);
@@ -325,6 +326,62 @@ final class EnvironmentPanelRendererTest extends TestCase
         ]));
 
         self::assertStringNotContainsString('Hostname', $html);
+    }
+
+    #[Test]
+    public function renderWithServerInfo(): void
+    {
+        $html = $this->renderer->renderPanel($this->createProfile([
+            'php' => ['version' => '8.3.0'],
+            'sapi' => 'fpm-fcgi',
+            'os' => 'Linux',
+            'hostname' => 'web-server-01',
+            'extensions' => [],
+            'ini' => [],
+            'opcache' => [],
+            'server' => [
+                'software' => 'Apache/2.4.52 (Ubuntu)',
+                'name' => 'example.com',
+                'addr' => '10.0.0.1',
+                'port' => '443',
+                'protocol' => 'HTTP/1.1',
+                'document_root' => '/var/www/html',
+            ],
+        ]));
+
+        self::assertStringContainsString('Server', $html);
+        self::assertStringContainsString('Apache/2.4.52 (Ubuntu)', $html);
+        self::assertStringContainsString('web-server-01', $html);
+        self::assertStringContainsString('HTTP/1.1', $html);
+        self::assertStringContainsString('/var/www/html', $html);
+    }
+
+    #[Test]
+    public function renderWithEmptyServerInfo(): void
+    {
+        $html = $this->renderer->renderPanel($this->createProfile([
+            'php' => ['version' => '8.3.0'],
+            'sapi' => 'cli',
+            'os' => 'Linux',
+            'extensions' => [],
+            'ini' => [],
+            'opcache' => [],
+            'server' => [
+                'software' => '',
+                'name' => '',
+                'addr' => '',
+                'port' => '',
+                'protocol' => '',
+                'document_root' => '',
+            ],
+        ]));
+
+        self::assertStringContainsString('Server', $html);
+        self::assertStringNotContainsString('Software', $html);
+        self::assertStringNotContainsString('Protocol', $html);
+        self::assertStringNotContainsString('Document Root', $html);
+        // OS is always shown
+        self::assertStringContainsString('Linux', $html);
     }
 
     #[Test]

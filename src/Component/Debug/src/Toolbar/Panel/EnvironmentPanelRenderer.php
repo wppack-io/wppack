@@ -25,8 +25,10 @@ final class EnvironmentPanelRenderer extends AbstractPanelRenderer implements Re
         $tooltipLines[] = 'PHP ' . PHP_VERSION;
 
         // Server software
-        $requestData = $this->getCollectorData($profile, 'request');
-        $serverSoftware = (string) ($requestData['server_vars']['SERVER_SOFTWARE'] ?? '');
+        $envData = $this->getCollectorData($profile, 'environment');
+        /** @var array<string, string> $server */
+        $server = $envData['server'] ?? [];
+        $serverSoftware = (string) ($server['software'] ?? '');
         if ($serverSoftware !== '' && preg_match('/^([a-zA-Z]+)/', $serverSoftware, $m)) {
             $parts[] = ucfirst(strtolower($m[1]));
             $tooltipLines[] = $serverSoftware;
@@ -78,12 +80,14 @@ final class EnvironmentPanelRenderer extends AbstractPanelRenderer implements Re
         $ini = $data['ini'] ?? [];
         /** @var array<string, mixed> $opcache */
         $opcache = $data['opcache'] ?? [];
+        /** @var array<string, string> $server */
+        $server = $data['server'] ?? [];
 
         $html = '';
 
-        // PHP section
+        // PHP Runtime section
         $html .= '<div class="wpd-section">';
-        $html .= '<h4 class="wpd-section-title">PHP</h4>';
+        $html .= '<h4 class="wpd-section-title">PHP Runtime</h4>';
         $html .= '<table class="wpd-table wpd-table-kv">';
         $html .= $this->renderTableRow('Version', $this->esc((string) ($php['version'] ?? '')));
         $html .= $this->renderTableRow('SAPI', $this->esc((string) ($data['sapi'] ?? '')));
@@ -92,11 +96,6 @@ final class EnvironmentPanelRenderer extends AbstractPanelRenderer implements Re
         $html .= $this->renderTableRow('Thread Safe', $this->formatValue($php['zts'] ?? false));
         $html .= $this->renderTableRow('Debug Build', $this->formatValue($php['debug'] ?? false));
         $html .= $this->renderTableRow('GC Enabled', $this->formatValue($php['gc_enabled'] ?? false));
-        $html .= $this->renderTableRow('OS', $this->esc((string) ($data['os'] ?? '')));
-        $hostname = (string) ($data['hostname'] ?? '');
-        if ($hostname !== '') {
-            $html .= $this->renderTableRow('Hostname', $this->esc($hostname));
-        }
         $html .= '</table>';
         $html .= '</div>';
 
@@ -127,9 +126,9 @@ final class EnvironmentPanelRenderer extends AbstractPanelRenderer implements Re
         $html .= '</table>';
         $html .= '</div>';
 
-        // Configuration section
+        // PHP Configuration section
         $html .= '<div class="wpd-section">';
-        $html .= '<h4 class="wpd-section-title">Configuration</h4>';
+        $html .= '<h4 class="wpd-section-title">PHP Configuration</h4>';
         $html .= '<table class="wpd-table wpd-table-kv">';
         foreach ($ini as $key => $value) {
             $displayValue = $value;
@@ -142,10 +141,10 @@ final class EnvironmentPanelRenderer extends AbstractPanelRenderer implements Re
         $html .= '</table>';
         $html .= '</div>';
 
-        // Extensions section
+        // PHP Extensions section
         if ($extensions !== []) {
             $html .= '<div class="wpd-section">';
-            $html .= '<h4 class="wpd-section-title">Extensions (' . $this->esc((string) count($extensions)) . ')</h4>';
+            $html .= '<h4 class="wpd-section-title">PHP Extensions (' . $this->esc((string) count($extensions)) . ')</h4>';
             $html .= '<div class="wpd-tag-list">';
             foreach ($extensions as $ext) {
                 $html .= '<span class="wpd-tag">' . $this->esc($ext) . '</span>';
@@ -153,6 +152,30 @@ final class EnvironmentPanelRenderer extends AbstractPanelRenderer implements Re
             $html .= '</div>';
             $html .= '</div>';
         }
+
+        // Server section
+        $html .= '<div class="wpd-section">';
+        $html .= '<h4 class="wpd-section-title">Server</h4>';
+        $html .= '<table class="wpd-table wpd-table-kv">';
+        $software = (string) ($server['software'] ?? '');
+        if ($software !== '') {
+            $html .= $this->renderTableRow('Software', $this->esc($software));
+        }
+        $hostname = (string) ($data['hostname'] ?? '');
+        if ($hostname !== '') {
+            $html .= $this->renderTableRow('Hostname', $this->esc($hostname));
+        }
+        $html .= $this->renderTableRow('OS', $this->esc((string) ($data['os'] ?? '')));
+        $protocol = (string) ($server['protocol'] ?? '');
+        if ($protocol !== '') {
+            $html .= $this->renderTableRow('Protocol', $this->esc($protocol));
+        }
+        $documentRoot = (string) ($server['document_root'] ?? '');
+        if ($documentRoot !== '') {
+            $html .= $this->renderTableRow('Document Root', $this->esc($documentRoot));
+        }
+        $html .= '</table>';
+        $html .= '</div>';
 
         return $html;
     }
