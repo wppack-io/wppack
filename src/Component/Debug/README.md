@@ -3,7 +3,7 @@
 > [!WARNING]
 > **This component is intended for development environments only.** It is automatically disabled when `wp_get_environment_type()` returns `'production'`. Sensitive data (passwords, tokens, API keys) in POST parameters, cookies, headers, and SQL queries is automatically masked, but configure `ipWhitelist` and `roleWhitelist` to restrict access.
 
-Web debug toolbar and error handler for WordPress. Provides a Symfony-inspired profiling toolbar, data collectors, stopwatch, and a styled exception handler.
+Web debug toolbar and error handler for WordPress. Provides a Symfony-inspired profiling toolbar, data collectors, panel renderers, stopwatch, and a styled exception handler.
 
 ## Installation
 
@@ -81,19 +81,31 @@ Built-in collectors gather profiling data and display it in the toolbar:
 | Collector | Indicator | Description |
 |-----------|-----------|-------------|
 | `RequestDataCollector` | Method + status code | HTTP method, URL, headers, GET/POST params, cookies |
-| `HttpClientDataCollector` | Request count | Outgoing HTTP requests with timing, status, response size |
-| `DatabaseDataCollector` | Query count | SQL queries, execution time, duplicate/slow query detection |
-| `EventDataCollector` | Hook firings | WordPress hooks monitoring, top hooks, orphan hooks |
+| `StopwatchDataCollector` | Total time | Request duration, WordPress lifecycle phases, stopwatch events |
 | `MemoryDataCollector` | Peak memory | Current/peak memory, limit, lifecycle snapshots |
-| `MailDataCollector` | Email count | Emails sent via wp_mail(), success/failure tracking |
-| `StopwatchDataCollector` | Total time | Request duration, WordPress lifecycle phases, stopwatch events (name: `stopwatch`) |
-| `SecurityDataCollector` | Username | Current user, roles, capabilities, authentication, nonce tracking |
+| `DatabaseDataCollector` | Query count | SQL queries, execution time, duplicate/slow query detection |
 | `CacheDataCollector` | Hit rate | Object cache hits/misses, transient set/delete counts |
+| `HttpClientDataCollector` | Request count | Outgoing HTTP requests with timing, status, response size |
 | `RouterDataCollector` | Template name | Matched rewrite rule, template, query vars, conditional tags (FSE/classic) |
-| `WordPressDataCollector` | WP version | WordPress/PHP version, active theme/plugins, debug constants |
+| `PluginDataCollector` | Plugin count | Active plugins, MU plugins, drop-ins |
+| `ThemeDataCollector` | Theme name | Active theme, parent theme, block/classic detection |
+| `EventDataCollector` | Hook firings | WordPress hooks monitoring, top hooks, orphan hooks |
+| `AjaxDataCollector` | AJAX count | WordPress AJAX request tracking |
+| `RestDataCollector` | Endpoint count | REST API endpoint information |
+| `AssetDataCollector` | Asset count | Registered/enqueued scripts and styles |
+| `AdminDataCollector` | Admin page | Admin screen information |
 | `LoggerDataCollector` | Log count | Log messages, WordPress deprecation/doing_it_wrong notices |
-| `TranslationDataCollector` | Missing count | Text domains, translation lookups, missing translation detection |
 | `DumpDataCollector` | Dump count | Captured dump() calls with file/line info |
+| `MailDataCollector` | Email count | Emails sent via wp_mail(), success/failure tracking |
+| `SecurityDataCollector` | Username | Current user, roles, capabilities, authentication, nonce tracking |
+| `WidgetDataCollector` | Widget count | Registered widgets and active sidebars |
+| `ContainerDataCollector` | Service count | DI container service information |
+| `ShortcodeDataCollector` | Shortcode count | Registered shortcodes |
+| `FeedDataCollector` | Feed count | RSS/Atom feed information |
+| `EnvironmentDataCollector` | Environment type | PHP/server environment details |
+| `SchedulerDataCollector` | Task count | Scheduled tasks and cron events |
+| `TranslationDataCollector` | Missing count | Text domains, translation lookups, missing translation detection |
+| `WordPressDataCollector` | WP version | WordPress/PHP version, active theme/plugins, debug constants |
 
 ## Custom Data Collector
 
@@ -127,6 +139,38 @@ class MyCustomCollector extends AbstractDataCollector
 
 When using the DI container, the `RegisterDataCollectorsPass` compiler pass auto-discovers classes tagged with `#[AsDataCollector]` and registers them by priority.
 
+## Panel Renderers
+
+Each toolbar panel (indicator + sidebar content) is rendered by a `RendererInterface` implementation. Extend `AbstractPanelRenderer` for built-in UI helpers (tables, performance cards, timeline bars, formatters):
+
+```php
+use WpPack\Component\Debug\Attribute\AsPanelRenderer;
+use WpPack\Component\Debug\Profiler\Profile;
+use WpPack\Component\Debug\Toolbar\Panel\AbstractPanelRenderer;
+
+#[AsPanelRenderer(name: 'my_collector')]
+class MyPanelRenderer extends AbstractPanelRenderer
+{
+    public function getName(): string
+    {
+        return 'my_collector';
+    }
+
+    public function renderPanel(Profile $profile): string
+    {
+        $data = $this->getCollectorData($profile, 'my_collector');
+
+        return '<div class="wpd-panel-content">'
+            . $this->renderKeyValueSection('Metrics', [
+                'Custom Metric' => (string) ($data['custom_metric'] ?? 0),
+            ])
+            . '</div>';
+    }
+}
+```
+
+The `RegisterPanelRenderersPass` compiler pass auto-discovers classes tagged with `#[AsPanelRenderer]`.
+
 ## Error Handler
 
 The `ExceptionHandler` renders a styled error page with:
@@ -141,12 +185,11 @@ The handler respects `DebugConfig::isEnabled()` and falls back to the previous e
 
 ## Adapters
 
-Bridge adapters integrate data from existing WordPress debug plugins into the WpPack toolbar:
+Bridge adapter integrates data from existing WordPress debug plugins into the WpPack toolbar:
 
 - **`DebugBarPanelAdapter`** -- Imports panels registered via the Debug Bar plugin (`debug_bar_panels` filter)
-- **`QueryMonitorCollectorAdapter`** -- Imports collectors from Query Monitor (`qm/collectors` filter)
 
-Both adapters are no-ops when their respective plugins are not active.
+The adapter is a no-op when the Debug Bar plugin is not active.
 
 ## Configuration
 
@@ -163,14 +206,16 @@ The toolbar is automatically suppressed during Ajax, cron, and REST API requests
 
 ## DI Integration
 
-Register the `DebugServiceProvider` with the DI container to auto-wire all services and collectors:
+Register the `DebugServiceProvider` with the DI container to auto-wire all services, collectors, and panel renderers:
 
 ```php
 use WpPack\Component\Debug\DependencyInjection\DebugServiceProvider;
 use WpPack\Component\Debug\DependencyInjection\RegisterDataCollectorsPass;
+use WpPack\Component\Debug\DependencyInjection\RegisterPanelRenderersPass;
 
 $builder->registerProvider(new DebugServiceProvider());
 $builder->addCompilerPass(new RegisterDataCollectorsPass());
+$builder->addCompilerPass(new RegisterPanelRenderersPass());
 ```
 
 ## Requirements
