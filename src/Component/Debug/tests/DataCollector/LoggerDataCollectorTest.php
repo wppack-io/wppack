@@ -7,6 +7,8 @@ namespace WpPack\Component\Debug\Tests\DataCollector;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Debug\DataCollector\LoggerDataCollector;
+use WpPack\Component\Logger\LoggerFactory;
+use WpPack\Component\Logger\Test\TestHandler;
 
 final class LoggerDataCollectorTest extends TestCase
 {
@@ -403,35 +405,26 @@ final class LoggerDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function captureDeprecationUsesLoggerWhenSet(): void
+    public function captureDeprecationUsesLoggerFactoryWhenSet(): void
     {
-        $loggedMessages = [];
-        $logger = new class ($loggedMessages) implements \Psr\Log\LoggerInterface {
-            use \Psr\Log\LoggerTrait;
+        $handler = new TestHandler();
+        $factory = new LoggerFactory([$handler]);
 
-            /** @param list<array{level: string, message: string, context: array<string, mixed>}> $messages */
-            public function __construct(private array &$messages) {}
-
-            public function log($level, string|\Stringable $message, array $context = []): void
-            {
-                $this->messages[] = ['level' => (string) $level, 'message' => (string) $message, 'context' => $context];
-            }
-        };
-
-        $this->collector->setLogger($logger);
+        $this->collector->setLoggerFactory($factory);
         $this->collector->captureDeprecation('old_func', 'new_func', '6.0');
 
         // Should route through Logger, not direct log()
-        self::assertCount(1, $loggedMessages);
-        self::assertSame('warning', $loggedMessages[0]['level']);
-        self::assertStringContainsString('old_func', $loggedMessages[0]['message']);
-        self::assertSame('deprecation', $loggedMessages[0]['context']['_type']);
+        $records = $handler->getRecords();
+        self::assertCount(1, $records);
+        self::assertSame('warning', $records[0]['level']);
+        self::assertStringContainsString('old_func', $records[0]['message']);
+        self::assertSame('deprecation', $records[0]['context']['_type']);
     }
 
     #[Test]
-    public function captureDeprecationFallsBackWithoutLogger(): void
+    public function captureDeprecationFallsBackWithoutLoggerFactory(): void
     {
-        // No logger set — should use direct log()
+        // No logger factory set — should use direct log()
         $this->collector->captureDeprecation('old_func', 'new_func', '6.0');
 
         $this->collector->collect();
@@ -443,53 +436,35 @@ final class LoggerDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function captureDeprecatedHookUsesLoggerWhenSet(): void
+    public function captureDeprecatedHookUsesLoggerFactoryWhenSet(): void
     {
-        $loggedMessages = [];
-        $logger = new class ($loggedMessages) implements \Psr\Log\LoggerInterface {
-            use \Psr\Log\LoggerTrait;
+        $handler = new TestHandler();
+        $factory = new LoggerFactory([$handler]);
 
-            /** @param list<array{level: string, message: string, context: array<string, mixed>}> $messages */
-            public function __construct(private array &$messages) {}
-
-            public function log($level, string|\Stringable $message, array $context = []): void
-            {
-                $this->messages[] = ['level' => (string) $level, 'message' => (string) $message, 'context' => $context];
-            }
-        };
-
-        $this->collector->setLogger($logger);
+        $this->collector->setLoggerFactory($factory);
         $this->collector->captureDeprecatedHook('old_hook', 'new_hook', '6.0', '');
 
-        self::assertCount(1, $loggedMessages);
-        self::assertSame('warning', $loggedMessages[0]['level']);
-        self::assertSame('deprecation', $loggedMessages[0]['context']['_type']);
-        self::assertSame('deprecated_hook', $loggedMessages[0]['context']['type']);
+        $records = $handler->getRecords();
+        self::assertCount(1, $records);
+        self::assertSame('warning', $records[0]['level']);
+        self::assertSame('deprecation', $records[0]['context']['_type']);
+        self::assertSame('deprecated_hook', $records[0]['context']['type']);
     }
 
     #[Test]
-    public function captureDoingItWrongUsesLoggerWhenSet(): void
+    public function captureDoingItWrongUsesLoggerFactoryWhenSet(): void
     {
-        $loggedMessages = [];
-        $logger = new class ($loggedMessages) implements \Psr\Log\LoggerInterface {
-            use \Psr\Log\LoggerTrait;
+        $handler = new TestHandler();
+        $factory = new LoggerFactory([$handler]);
 
-            /** @param list<array{level: string, message: string, context: array<string, mixed>}> $messages */
-            public function __construct(private array &$messages) {}
-
-            public function log($level, string|\Stringable $message, array $context = []): void
-            {
-                $this->messages[] = ['level' => (string) $level, 'message' => (string) $message, 'context' => $context];
-            }
-        };
-
-        $this->collector->setLogger($logger);
+        $this->collector->setLoggerFactory($factory);
         $this->collector->captureDoingItWrong('bad_func', 'You did it wrong.', '6.0');
 
-        self::assertCount(1, $loggedMessages);
-        self::assertSame('warning', $loggedMessages[0]['level']);
-        self::assertSame('deprecation', $loggedMessages[0]['context']['_type']);
-        self::assertSame('doing_it_wrong', $loggedMessages[0]['context']['type']);
+        $records = $handler->getRecords();
+        self::assertCount(1, $records);
+        self::assertSame('warning', $records[0]['level']);
+        self::assertSame('deprecation', $records[0]['context']['_type']);
+        self::assertSame('doing_it_wrong', $records[0]['context']['type']);
     }
 
     #[Test]

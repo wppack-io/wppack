@@ -150,12 +150,14 @@ $collectors[] = new FakeCollector('memory', 'Memory', '12.0 MB', 'default', [
 ]);
 
 $collectors[] = new FakeCollector('logger', 'Logs', '1', 'red', [
-    'logs' => [
-        ['level' => 'error', 'message' => 'wp_die() called', 'context' => [], 'channel' => 'wordpress', 'timestamp' => time()],
-    ],
-    'count_by_level' => ['error' => 1],
+    'total_count' => 1,
+    'error_count' => 1,
     'deprecation_count' => 0,
-    'deprecation_logs' => [],
+    'logs' => [
+        ['level' => 'error', 'message' => 'wp_die() called', 'context' => [], 'channel' => 'wordpress', 'file' => '/var/www/html/wp-content/plugins/my-plugin/admin.php', 'line' => 42, 'timestamp' => time()],
+    ],
+    'level_counts' => ['error' => 1],
+    'channel_counts' => ['wordpress' => 1],
 ]);
 
 $collectors[] = new FakeCollector('wordpress', 'WordPress', '6.7.2', 'default', [

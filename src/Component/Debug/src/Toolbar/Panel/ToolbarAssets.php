@@ -936,14 +936,18 @@ final class ToolbarAssets
             background: transparent;
             border: none;
             border-bottom: 2px solid transparent;
-            color: var(--wpd-gray-400);
+            color: var(--wpd-gray-600);
             padding: 8px 16px;
             cursor: pointer;
             font-family: inherit;
             font-size: 12px;
         }
-        #wppack-debug .wpd-log-tab:hover {
+        #wppack-debug .wpd-log-tab:not(:disabled):not(.wpd-active):hover {
             color: var(--wpd-gray-900);
+        }
+        #wppack-debug .wpd-log-tab:disabled {
+            color: var(--wpd-gray-300);
+            cursor: default;
         }
         #wppack-debug .wpd-log-tab.wpd-active {
             color: var(--wpd-primary);
@@ -1373,6 +1377,11 @@ final class ToolbarAssets
                     var section = tabs.closest('.wpd-section');
                     section.querySelectorAll('tr[data-log-level]').forEach(function(row) {
                         var level = row.getAttribute('data-log-level');
+                        // Always hide context rows on filter change
+                        if (row.classList.contains('wpd-log-context')) {
+                            row.style.display = 'none';
+                            return;
+                        }
                         var show = false;
                         if (filter === 'all') { show = true; }
                         else if (filter === 'error') { show = (['emergency','alert','critical','error'].indexOf(level) !== -1); }
@@ -1382,6 +1391,9 @@ final class ToolbarAssets
                         else if (filter === 'info') { show = level === 'info'; }
                         else if (filter === 'debug') { show = level === 'debug'; }
                         row.style.display = show ? '' : 'none';
+                        // Reset indicator to +
+                        var indicator = row.querySelector('.wpd-log-indicator');
+                        if (indicator) indicator.textContent = '+';
                     });
                     return;
                 }

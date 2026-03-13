@@ -112,9 +112,9 @@ final class DebugServiceProvider implements ServiceProviderInterface
         if (class_exists(\WpPack\Component\Logger\Handler\HandlerInterface::class)) {
             $builder->register(DebugHandler::class)->autowire();
 
-            // Inject Logger into LoggerDataCollector for Logger-routed deprecation capture
+            // Inject LoggerFactory into LoggerDataCollector for Logger-routed deprecation capture
             $builder->findDefinition(LoggerDataCollector::class)
-                ->addMethodCall('setLogger', [new \WpPack\Component\DependencyInjection\Reference(\Psr\Log\LoggerInterface::class)]);
+                ->addMethodCall('setLoggerFactory', [new \WpPack\Component\DependencyInjection\Reference(\WpPack\Component\Logger\LoggerFactory::class)]);
 
             // Register ErrorHandler and trigger registration
             $builder->findDefinition(\WpPack\Component\Logger\ErrorHandler::class)

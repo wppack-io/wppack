@@ -139,15 +139,17 @@ $collectors[] = new FakeCollector('memory', 'Memory', '18.5 MB', 'default', [
     'limit' => 268435456,
 ]);
 
-$collectors[] = new FakeCollector('logger', 'Logs', '3', 'yellow', [
-    'logs' => [
-        ['level' => 'error', 'message' => 'PDOException: Connection refused', 'context' => ['exception' => 'PDOException'], 'channel' => 'database', 'timestamp' => time()],
-        ['level' => 'warning', 'message' => 'Deprecated function called', 'context' => [], 'channel' => 'php', 'timestamp' => time()],
-        ['level' => 'info', 'message' => 'Request started', 'context' => [], 'channel' => 'request', 'timestamp' => time()],
-    ],
-    'count_by_level' => ['error' => 1, 'warning' => 1, 'info' => 1],
+$collectors[] = new FakeCollector('logger', 'Logs', '3', 'red', [
+    'total_count' => 3,
+    'error_count' => 1,
     'deprecation_count' => 0,
-    'deprecation_logs' => [],
+    'logs' => [
+        ['level' => 'error', 'message' => 'PDOException: Connection refused', 'context' => ['exception' => 'PDOException'], 'channel' => 'database', 'file' => '/var/www/html/wp-content/plugins/wppack/src/Component/Database/Connection.php', 'line' => 58, 'timestamp' => time()],
+        ['level' => 'warning', 'message' => 'Deprecated function called', 'context' => ['_type' => 'deprecation'], 'channel' => 'php', 'file' => '/var/www/html/wp-content/plugins/legacy-plugin/init.php', 'line' => 12, 'timestamp' => time()],
+        ['level' => 'info', 'message' => 'Request started', 'context' => [], 'channel' => 'request', 'file' => '', 'line' => 0, 'timestamp' => time()],
+    ],
+    'level_counts' => ['error' => 1, 'warning' => 1, 'info' => 1],
+    'channel_counts' => ['database' => 1, 'php' => 1, 'request' => 1],
 ]);
 
 $collectors[] = new FakeCollector('cache', 'Cache', '5 / 2', 'default', [

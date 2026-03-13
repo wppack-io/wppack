@@ -546,25 +546,29 @@ $collectors[] = new FakeCollector('event', 'Event', '847', 'default', [
 //   +160ms  debug   — Template resolved (during wp_footer)
 //
 $logBaseTime = $requestTimeFloat + 0.005;
-$collectors[] = new FakeCollector('logger', 'Logger', '12', 'red', [
-    'total_count' => 12,
+$collectors[] = new FakeCollector('logger', 'Logger', '15', 'red', [
+    'total_count' => 15,
     'error_count' => 1,
     'deprecation_count' => 3,
     'logs' => [
         ['level' => 'debug', 'message' => 'Route matched: single.html', 'context' => [], 'channel' => 'routing', 'file' => '', 'line' => 0, 'timestamp' => $logBaseTime],
-        ['level' => 'deprecation', 'message' => 'Function mysql_connect() is deprecated', 'context' => ['_error_type' => 'E_DEPRECATED'], 'channel' => 'php', 'file' => '/var/www/html/wp-content/plugins/legacy-plugin/legacy-db.php', 'line' => 15, 'timestamp' => $logBaseTime + 0.005],
-        ['level' => 'deprecation', 'message' => 'get_bloginfo(\'url\') is deprecated since version 3.0. Use home_url() instead.', 'context' => ['type' => 'deprecation', 'function' => 'get_bloginfo', 'replacement' => 'home_url', 'version' => '3.0'], 'channel' => 'wordpress', 'file' => '/var/www/html/wp-includes/functions.php', 'line' => 42, 'timestamp' => $logBaseTime + 0.018],
-        ['level' => 'deprecation', 'message' => 'Hook \'login_headertitle\' is deprecated since version 5.2. Use login_headertext instead.', 'context' => ['type' => 'deprecated_hook', 'hook' => 'login_headertitle', 'replacement' => 'login_headertext', 'version' => '5.2'], 'channel' => 'wordpress', 'file' => '/var/www/html/wp-includes/pluggable.php', 'line' => 128, 'timestamp' => $logBaseTime + 0.025],
+        ['level' => 'deprecation', 'message' => 'Function mysql_connect() is deprecated', 'context' => ['_type' => 'deprecation', '_error_type' => 'E_DEPRECATED'], 'channel' => 'plugin:legacy-plugin', 'file' => '/var/www/html/wp-content/plugins/legacy-plugin/legacy-db.php', 'line' => 15, 'timestamp' => $logBaseTime + 0.005],
+        ['level' => 'deprecation', 'message' => 'get_bloginfo(\'url\') is deprecated since version 3.0. Use home_url() instead.', 'context' => ['_type' => 'deprecation', 'type' => 'deprecation', 'function' => 'get_bloginfo', 'replacement' => 'home_url', 'version' => '3.0'], 'channel' => 'wordpress', 'file' => '/var/www/html/wp-includes/functions.php', 'line' => 42, 'timestamp' => $logBaseTime + 0.018],
+        ['level' => 'deprecation', 'message' => 'Hook \'login_headertitle\' is deprecated since version 5.2. Use login_headertext instead.', 'context' => ['_type' => 'deprecation', 'type' => 'deprecated_hook', 'hook' => 'login_headertitle', 'replacement' => 'login_headertext', 'version' => '5.2'], 'channel' => 'wordpress', 'file' => '/var/www/html/wp-includes/pluggable.php', 'line' => 128, 'timestamp' => $logBaseTime + 0.025],
         ['level' => 'info', 'message' => 'User "admin" logged in from 192.168.1.100', 'context' => ['user' => 'admin', 'ip' => '192.168.1.100'], 'channel' => 'security', 'file' => '', 'line' => 0, 'timestamp' => $logBaseTime + 0.042],
-        ['level' => 'warning', 'message' => 'Undefined array key "thumbnail" in template', 'context' => ['_error_type' => 'E_WARNING'], 'channel' => 'php', 'file' => '/var/www/html/wp-content/themes/flavor/template.php', 'line' => 67, 'timestamp' => $logBaseTime + 0.068],
-        ['level' => 'notice', 'message' => 'Undefined variable $sidebar in archive template', 'context' => ['_error_type' => 'E_NOTICE'], 'channel' => 'php', 'file' => '/var/www/html/wp-content/themes/flavor/archive.php', 'line' => 34, 'timestamp' => $logBaseTime + 0.075],
-        ['level' => 'warning', 'message' => 'Rate limit approaching for API key: 95% of 1000 req/min quota used', 'context' => ['current_usage' => 950, 'limit' => 1000, 'window' => '1min'], 'channel' => 'app', 'file' => '/var/www/html/wp-content/plugins/wppack/src/Component/HttpClient/ApiClient.php', 'line' => 203, 'timestamp' => $logBaseTime + 0.082],
+        ['level' => 'warning', 'message' => 'Undefined array key "thumbnail" in template', 'context' => ['_error_type' => 'E_WARNING'], 'channel' => 'theme:flavor', 'file' => '/var/www/html/wp-content/themes/flavor/template.php', 'line' => 67, 'timestamp' => $logBaseTime + 0.068],
+        ['level' => 'notice', 'message' => 'Undefined variable $sidebar in archive template', 'context' => ['_error_type' => 'E_NOTICE'], 'channel' => 'theme:flavor', 'file' => '/var/www/html/wp-content/themes/flavor/archive.php', 'line' => 34, 'timestamp' => $logBaseTime + 0.075],
+        ['level' => 'warning', 'message' => 'Rate limit approaching for API key: 95% of 1000 req/min quota used', 'context' => ['current_usage' => 950, 'limit' => 1000, 'window' => '1min'], 'channel' => 'plugin:wppack', 'file' => '/var/www/html/wp-content/plugins/wppack/src/Component/HttpClient/ApiClient.php', 'line' => 203, 'timestamp' => $logBaseTime + 0.082],
         ['level' => 'info', 'message' => 'Cache cleared for post_id=42', 'context' => ['post_id' => 42], 'channel' => 'app', 'file' => '', 'line' => 0, 'timestamp' => $logBaseTime + 0.105],
+        ['level' => 'notice', 'message' => 'Widget "recent_posts" rendered with empty data', 'context' => ['widget_id' => 'recent_posts'], 'channel' => 'theme:flavor', 'file' => '/var/www/html/wp-content/themes/flavor/widgets/recent-posts.php', 'line' => 18, 'timestamp' => $logBaseTime + 0.115],
         ['level' => 'info', 'message' => 'Email sent to user@example.com (Welcome to Our Site!)', 'context' => [], 'channel' => 'mailer', 'file' => '', 'line' => 0, 'timestamp' => $logBaseTime + 0.130],
-        ['level' => 'error', 'message' => 'Failed to process payment for order #1042: Gateway timeout', 'context' => ['order_id' => 1042, 'gateway' => 'stripe', 'error_code' => 'timeout'], 'channel' => 'app', 'file' => '/var/www/html/wp-content/plugins/wppack/src/Component/Payment/PaymentGateway.php', 'line' => 89, 'timestamp' => $logBaseTime + 0.145],
+        ['level' => 'warning', 'message' => 'WooCommerce checkout field "billing_phone" validation skipped', 'context' => ['field' => 'billing_phone'], 'channel' => 'plugin:woocommerce', 'file' => '/var/www/html/wp-content/plugins/woocommerce/includes/class-wc-checkout.php', 'line' => 312, 'timestamp' => $logBaseTime + 0.138],
+        ['level' => 'error', 'message' => 'Failed to process payment for order #1042: Gateway timeout', 'context' => ['order_id' => 1042, 'gateway' => 'stripe', 'error_code' => 'timeout'], 'channel' => 'plugin:woocommerce', 'file' => '/var/www/html/wp-content/plugins/woocommerce/includes/gateways/stripe/class-wc-stripe.php', 'line' => 89, 'timestamp' => $logBaseTime + 0.145],
+        ['level' => 'debug', 'message' => 'Akismet spam check: comment #587 is ham', 'context' => ['comment_id' => 587, 'result' => 'ham'], 'channel' => 'plugin:akismet', 'file' => '/var/www/html/wp-content/plugins/akismet/class.akismet.php', 'line' => 156, 'timestamp' => $logBaseTime + 0.155],
         ['level' => 'debug', 'message' => 'Template resolved: single-post.php', 'context' => [], 'channel' => 'app', 'file' => '', 'line' => 0, 'timestamp' => $logBaseTime + 0.160],
     ],
-    'level_counts' => ['error' => 1, 'deprecation' => 3, 'warning' => 2, 'notice' => 1, 'info' => 3, 'debug' => 2],
+    'level_counts' => ['error' => 1, 'deprecation' => 3, 'warning' => 3, 'notice' => 2, 'info' => 3, 'debug' => 3],
+    'channel_counts' => ['plugin:woocommerce' => 2, 'theme:flavor' => 3, 'wordpress' => 2, 'app' => 2, 'plugin:wppack' => 1, 'plugin:legacy-plugin' => 1, 'plugin:akismet' => 1, 'security' => 1, 'routing' => 1, 'mailer' => 1],
 ]);
 
 // Environment

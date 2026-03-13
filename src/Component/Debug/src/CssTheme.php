@@ -25,6 +25,7 @@ final class CssTheme
             --wpd-gray-900: #1f2937;
             --wpd-gray-800: #374151;
             --wpd-gray-700: #4b5563;
+            --wpd-gray-600: #52525b;
             --wpd-gray-500: #6b7280;
             --wpd-gray-400: #9ca3af;
             --wpd-gray-300: #d1d5db;

@@ -27,15 +27,8 @@ final class LoggerPanelRenderer extends AbstractPanelRenderer implements Rendere
         $logs = $data['logs'] ?? [];
 
         $warningCount = (int) ($levelCounts['warning'] ?? 0);
-
-        // Collect unique channels
-        $channels = [];
-        foreach ($logs as $log) {
-            $ch = $log['channel'] ?? 'app';
-            if (!in_array($ch, $channels, true)) {
-                $channels[] = $ch;
-            }
-        }
+        /** @var array<string, int> $channelCounts */
+        $channelCounts = $data['channel_counts'] ?? [];
 
         // Summary section
         $html = '<div class="wpd-section">';
@@ -48,12 +41,12 @@ final class LoggerPanelRenderer extends AbstractPanelRenderer implements Rendere
         $html .= '</table>';
         $html .= '</div>';
 
-        if ($channels !== []) {
+        if ($channelCounts !== []) {
             $html .= '<div class="wpd-section">';
             $html .= '<h4 class="wpd-section-title">Channels</h4>';
             $html .= '<div class="wpd-tag-list">';
-            foreach ($channels as $ch) {
-                $html .= '<span class="wpd-tag">' . $this->esc($ch) . '</span>';
+            foreach ($channelCounts as $ch => $count) {
+                $html .= '<span class="wpd-tag">' . $this->esc($ch) . ' (' . $count . ')</span>';
             }
             $html .= '</div>';
             $html .= '</div>';
@@ -90,12 +83,12 @@ final class LoggerPanelRenderer extends AbstractPanelRenderer implements Rendere
             // Filter tabs
             $html .= '<div class="wpd-log-tabs">';
             $html .= '<button class="wpd-log-tab wpd-active" data-log-filter="all">All (' . $this->esc((string) count($logs)) . ')</button>';
-            $html .= '<button class="wpd-log-tab" data-log-filter="error">Errors (' . $this->esc((string) $errorTabCount) . ')</button>';
-            $html .= '<button class="wpd-log-tab" data-log-filter="warning">Warnings (' . $this->esc((string) $warningTabCount) . ')</button>';
-            $html .= '<button class="wpd-log-tab" data-log-filter="notice">Notices (' . $this->esc((string) $noticeTabCount) . ')</button>';
-            $html .= '<button class="wpd-log-tab" data-log-filter="info">Info (' . $this->esc((string) $infoTabCount) . ')</button>';
-            $html .= '<button class="wpd-log-tab" data-log-filter="debug">Debug (' . $this->esc((string) $debugTabCount) . ')</button>';
-            $html .= '<button class="wpd-log-tab" data-log-filter="deprecation">Deprecations (' . $this->esc((string) $deprecationTabCount) . ')</button>';
+            $html .= $this->renderLogTab('error', 'Errors', $errorTabCount);
+            $html .= $this->renderLogTab('warning', 'Warnings', $warningTabCount);
+            $html .= $this->renderLogTab('notice', 'Notices', $noticeTabCount);
+            $html .= $this->renderLogTab('info', 'Info', $infoTabCount);
+            $html .= $this->renderLogTab('debug', 'Debug', $debugTabCount);
+            $html .= $this->renderLogTab('deprecation', 'Deprecations', $deprecationTabCount);
             $html .= '</div>';
 
             $html .= '<table class="wpd-table wpd-table-full">';
@@ -162,5 +155,13 @@ final class LoggerPanelRenderer extends AbstractPanelRenderer implements Rendere
         }
 
         return $html;
+    }
+
+    private function renderLogTab(string $filter, string $label, int $count): string
+    {
+        $disabled = $count === 0 ? ' disabled' : '';
+
+        return '<button class="wpd-log-tab" data-log-filter="' . $this->esc($filter) . '"' . $disabled . '>'
+            . $this->esc($label) . ' (' . $this->esc((string) $count) . ')</button>';
     }
 }

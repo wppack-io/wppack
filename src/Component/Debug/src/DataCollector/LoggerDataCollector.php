@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Debug\DataCollector;
 
-use Psr\Log\LoggerInterface;
 use WpPack\Component\Debug\Attribute\AsDataCollector;
+use WpPack\Component\Logger\LoggerFactory;
 
 #[AsDataCollector(name: 'logger', priority: 100)]
 final class LoggerDataCollector extends AbstractDataCollector
@@ -23,16 +23,16 @@ final class LoggerDataCollector extends AbstractDataCollector
     /** @var list<array{level: string, message: string, context: array<string, mixed>, timestamp: float, channel: string, file: string, line: int}> */
     private array $logs = [];
 
-    private ?LoggerInterface $logger = null;
+    private ?LoggerFactory $loggerFactory = null;
 
     public function __construct()
     {
         $this->registerHooks();
     }
 
-    public function setLogger(LoggerInterface $logger): void
+    public function setLoggerFactory(LoggerFactory $loggerFactory): void
     {
-        $this->logger = $logger;
+        $this->loggerFactory = $loggerFactory;
     }
 
     public function getName(): string
@@ -108,8 +108,8 @@ final class LoggerDataCollector extends AbstractDataCollector
             '_line' => $line,
         ];
 
-        if ($this->logger !== null) {
-            $this->logger->warning($message, $context);
+        if ($this->loggerFactory !== null) {
+            $this->loggerFactory->create('wordpress')->warning($message, $context);
 
             return;
         }
@@ -151,8 +151,8 @@ final class LoggerDataCollector extends AbstractDataCollector
             '_line' => $line,
         ];
 
-        if ($this->logger !== null) {
-            $this->logger->warning($logMessage, $context);
+        if ($this->loggerFactory !== null) {
+            $this->loggerFactory->create('wordpress')->warning($logMessage, $context);
 
             return;
         }
@@ -193,8 +193,8 @@ final class LoggerDataCollector extends AbstractDataCollector
             '_line' => $line,
         ];
 
-        if ($this->logger !== null) {
-            $this->logger->warning($logMessage, $context);
+        if ($this->loggerFactory !== null) {
+            $this->loggerFactory->create('wordpress')->warning($logMessage, $context);
 
             return;
         }
@@ -205,6 +205,7 @@ final class LoggerDataCollector extends AbstractDataCollector
     public function collect(): void
     {
         $levelCounts = [];
+        $channelCounts = [];
         $deprecationCount = 0;
         foreach ($this->logs as $log) {
             $level = $log['level'];
@@ -213,11 +214,19 @@ final class LoggerDataCollector extends AbstractDataCollector
             }
             $levelCounts[$level]++;
 
+            $channel = $log['channel'];
+            if (!isset($channelCounts[$channel])) {
+                $channelCounts[$channel] = 0;
+            }
+            $channelCounts[$channel]++;
+
             // Count deprecations from both direct 'deprecation' level and Logger-routed entries with _type
             if ($level === 'deprecation' || ($log['context']['_type'] ?? null) === 'deprecation') {
                 $deprecationCount++;
             }
         }
+
+        arsort($channelCounts);
 
         // Truncate message bodies and limit total entries
         $logs = array_slice($this->logs, 0, 200);
@@ -234,6 +243,7 @@ final class LoggerDataCollector extends AbstractDataCollector
             'logs' => $logs,
             'total_count' => count($this->logs),
             'level_counts' => $levelCounts,
+            'channel_counts' => $channelCounts,
             'deprecation_count' => $deprecationCount,
             'error_count' => ($levelCounts['error'] ?? 0) + ($levelCounts['critical'] ?? 0) + ($levelCounts['alert'] ?? 0) + ($levelCounts['emergency'] ?? 0),
         ];
