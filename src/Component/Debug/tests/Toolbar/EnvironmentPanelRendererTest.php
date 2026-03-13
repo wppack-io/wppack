@@ -6,6 +6,8 @@ namespace WpPack\Component\Debug\Tests\Toolbar;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Debug\DataCollector\DataCollectorInterface;
+use WpPack\Component\Debug\Profiler\Profile;
 use WpPack\Component\Debug\Toolbar\Panel\EnvironmentPanelRenderer;
 
 final class EnvironmentPanelRendererTest extends TestCase
@@ -17,10 +19,43 @@ final class EnvironmentPanelRendererTest extends TestCase
         $this->renderer = new EnvironmentPanelRenderer();
     }
 
+    private function createProfile(array $data): Profile
+    {
+        $profile = new Profile();
+        $collector = new class ($data) implements DataCollectorInterface {
+            public function __construct(private readonly array $data) {}
+            public function getName(): string
+            {
+                return 'environment';
+            }
+            public function collect(): void {}
+            public function getData(): array
+            {
+                return $this->data;
+            }
+            public function getLabel(): string
+            {
+                return 'Environment';
+            }
+            public function getBadgeValue(): string
+            {
+                return '';
+            }
+            public function getBadgeColor(): string
+            {
+                return 'default';
+            }
+            public function reset(): void {}
+        };
+        $profile->addCollector($collector);
+
+        return $profile;
+    }
+
     #[Test]
     public function renderWithBasicData(): void
     {
-        $html = $this->renderer->render([
+        $html = $this->renderer->render($this->createProfile([
             'php' => [
                 'version' => '8.3.1',
                 'zend_version' => '4.3.1',
@@ -34,7 +69,7 @@ final class EnvironmentPanelRendererTest extends TestCase
             'extensions' => [],
             'ini' => [],
             'opcache' => [],
-        ]);
+        ]));
 
         self::assertStringContainsString('PHP', $html);
         self::assertStringContainsString('8.3.1', $html);
@@ -49,7 +84,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithOpcacheEnabled(): void
     {
-        $html = $this->renderer->render([
+        $html = $this->renderer->render($this->createProfile([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -63,7 +98,7 @@ final class EnvironmentPanelRendererTest extends TestCase
                 'used_memory' => 10485760,  // 10 MB
                 'free_memory' => 125829120, // 120 MB
             ],
-        ]);
+        ]));
 
         self::assertStringContainsString('OPcache', $html);
         self::assertStringContainsString('wpd-text-green">true', $html);
@@ -76,7 +111,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithOpcacheDisabled(): void
     {
-        $html = $this->renderer->render([
+        $html = $this->renderer->render($this->createProfile([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -85,7 +120,7 @@ final class EnvironmentPanelRendererTest extends TestCase
             'opcache' => [
                 'enabled' => false,
             ],
-        ]);
+        ]));
 
         self::assertStringContainsString('OPcache', $html);
         self::assertStringContainsString('wpd-text-red">false', $html);
@@ -98,7 +133,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithHighHitRate(): void
     {
-        $html = $this->renderer->render([
+        $html = $this->renderer->render($this->createProfile([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -110,7 +145,7 @@ final class EnvironmentPanelRendererTest extends TestCase
                 'used_memory' => 0,
                 'free_memory' => 0,
             ],
-        ]);
+        ]));
 
         self::assertStringContainsString('wpd-text-green', $html);
         self::assertStringContainsString('98.7%', $html);
@@ -119,7 +154,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithMediumHitRate(): void
     {
-        $html = $this->renderer->render([
+        $html = $this->renderer->render($this->createProfile([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -131,7 +166,7 @@ final class EnvironmentPanelRendererTest extends TestCase
                 'used_memory' => 0,
                 'free_memory' => 0,
             ],
-        ]);
+        ]));
 
         self::assertStringContainsString('wpd-text-yellow', $html);
         self::assertStringContainsString('87.3%', $html);
@@ -140,7 +175,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithLowHitRate(): void
     {
-        $html = $this->renderer->render([
+        $html = $this->renderer->render($this->createProfile([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -152,7 +187,7 @@ final class EnvironmentPanelRendererTest extends TestCase
                 'used_memory' => 0,
                 'free_memory' => 0,
             ],
-        ]);
+        ]));
 
         self::assertStringContainsString('wpd-text-red', $html);
         self::assertStringContainsString('55.2%', $html);
@@ -161,7 +196,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithWastedPercentage(): void
     {
-        $html = $this->renderer->render([
+        $html = $this->renderer->render($this->createProfile([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -174,7 +209,7 @@ final class EnvironmentPanelRendererTest extends TestCase
                 'free_memory' => 0,
                 'wasted_percentage' => 3.5,
             ],
-        ]);
+        ]));
 
         self::assertStringContainsString('Wasted', $html);
         self::assertStringContainsString('3.5%', $html);
@@ -184,7 +219,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithOomRestarts(): void
     {
-        $html = $this->renderer->render([
+        $html = $this->renderer->render($this->createProfile([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -197,7 +232,7 @@ final class EnvironmentPanelRendererTest extends TestCase
                 'free_memory' => 0,
                 'oom_restarts' => 3,
             ],
-        ]);
+        ]));
 
         self::assertStringContainsString('OOM Restarts', $html);
         self::assertStringContainsString('wpd-text-red">3', $html);
@@ -206,7 +241,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithDisableFunctions(): void
     {
-        $html = $this->renderer->render([
+        $html = $this->renderer->render($this->createProfile([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -216,7 +251,7 @@ final class EnvironmentPanelRendererTest extends TestCase
                 'memory_limit' => '256M',
             ],
             'opcache' => [],
-        ]);
+        ]));
 
         self::assertStringContainsString('Configuration', $html);
         self::assertStringContainsString('3 functions disabled', $html);
@@ -226,14 +261,14 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithExtensions(): void
     {
-        $html = $this->renderer->render([
+        $html = $this->renderer->render($this->createProfile([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
             'extensions' => ['mbstring', 'curl', 'openssl', 'pdo_mysql'],
             'ini' => [],
             'opcache' => [],
-        ]);
+        ]));
 
         self::assertStringContainsString('Extensions (4)', $html);
         self::assertStringContainsString('wpd-tag-list', $html);
@@ -246,14 +281,14 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithEmptyExtensions(): void
     {
-        $html = $this->renderer->render([
+        $html = $this->renderer->render($this->createProfile([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
             'extensions' => [],
             'ini' => [],
             'opcache' => [],
-        ]);
+        ]));
 
         self::assertStringNotContainsString('Extensions', $html);
         self::assertStringNotContainsString('wpd-tag-list', $html);
@@ -262,7 +297,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithHostname(): void
     {
-        $html = $this->renderer->render([
+        $html = $this->renderer->render($this->createProfile([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -270,7 +305,7 @@ final class EnvironmentPanelRendererTest extends TestCase
             'extensions' => [],
             'ini' => [],
             'opcache' => [],
-        ]);
+        ]));
 
         self::assertStringContainsString('Hostname', $html);
         self::assertStringContainsString('web-server-01', $html);
@@ -279,7 +314,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithEmptyHostname(): void
     {
-        $html = $this->renderer->render([
+        $html = $this->renderer->render($this->createProfile([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -287,7 +322,7 @@ final class EnvironmentPanelRendererTest extends TestCase
             'extensions' => [],
             'ini' => [],
             'opcache' => [],
-        ]);
+        ]));
 
         self::assertStringNotContainsString('Hostname', $html);
     }

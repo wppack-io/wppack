@@ -30,23 +30,15 @@ final class WordPressDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function collectWithoutWordPressFunctionsGathersPhpInfo(): void
+    public function collectWithoutWordPressFunctionsGathersBasicInfo(): void
     {
         $this->collector->collect();
         $data = $this->collector->getData();
 
-        // PHP version is always available
-        self::assertSame(PHP_VERSION, $data['php_version']);
-
-        // Extensions are always available
-        self::assertArrayHasKey('extensions', $data);
-        self::assertIsArray($data['extensions']);
-        self::assertNotEmpty($data['extensions']);
-
         // WordPress-specific data should be empty/default without WP
         self::assertArrayHasKey('wp_version', $data);
-        self::assertArrayHasKey('theme', $data);
-        self::assertArrayHasKey('active_plugins', $data);
+        self::assertArrayHasKey('environment_type', $data);
+        self::assertArrayHasKey('is_multisite', $data);
         self::assertArrayHasKey('constants', $data);
     }
 
@@ -78,36 +70,6 @@ final class WordPressDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function collectIncludesThemeTypeFields(): void
-    {
-        $this->collector->collect();
-        $data = $this->collector->getData();
-
-        self::assertArrayHasKey('is_block_theme', $data);
-        self::assertArrayHasKey('is_child_theme', $data);
-        self::assertArrayHasKey('child_theme', $data);
-        self::assertArrayHasKey('parent_theme', $data);
-        self::assertArrayHasKey('theme_version', $data);
-    }
-
-    #[Test]
-    public function collectReturnsDefaultThemeInfoWithoutWordPress(): void
-    {
-        if (function_exists('wp_get_theme')) {
-            self::markTestSkipped('WordPress functions are available; this test is for non-WP environments.');
-        }
-
-        $this->collector->collect();
-        $data = $this->collector->getData();
-
-        self::assertFalse($data['is_block_theme']);
-        self::assertFalse($data['is_child_theme']);
-        self::assertSame('', $data['child_theme']);
-        self::assertSame('', $data['parent_theme']);
-        self::assertSame('', $data['theme_version']);
-    }
-
-    #[Test]
     public function collectGathersDebugConstants(): void
     {
         $this->collector->collect();
@@ -120,32 +82,6 @@ final class WordPressDataCollectorTest extends TestCase
         self::assertArrayHasKey('WP_DEBUG', $data['constants']);
         self::assertArrayHasKey('SAVEQUERIES', $data['constants']);
         self::assertArrayHasKey('SCRIPT_DEBUG', $data['constants']);
-    }
-
-    #[Test]
-    public function collectReturnsEmptyActivePluginsWithoutWordPress(): void
-    {
-        if (function_exists('get_option')) {
-            self::markTestSkipped('WordPress functions are available; this test is for non-WP environments.');
-        }
-
-        $this->collector->collect();
-        $data = $this->collector->getData();
-
-        self::assertSame([], $data['active_plugins']);
-    }
-
-    #[Test]
-    public function collectReturnsEmptyThemeWithoutWordPress(): void
-    {
-        if (function_exists('wp_get_theme')) {
-            self::markTestSkipped('WordPress functions are available; this test is for non-WP environments.');
-        }
-
-        $this->collector->collect();
-        $data = $this->collector->getData();
-
-        self::assertSame('', $data['theme']);
     }
 
     #[Test]
@@ -164,7 +100,7 @@ final class WordPressDataCollectorTest extends TestCase
     #[Test]
     public function collectWithWordPressGathersFullData(): void
     {
-        if (!function_exists('wp_get_theme')) {
+        if (!function_exists('wp_get_environment_type')) {
             self::markTestSkipped('WordPress functions are not available.');
         }
 
@@ -172,11 +108,9 @@ final class WordPressDataCollectorTest extends TestCase
         $data = $this->collector->getData();
 
         self::assertNotEmpty($data['wp_version']);
-        self::assertNotEmpty($data['theme']);
-        self::assertIsArray($data['active_plugins']);
-        self::assertIsArray($data['mu_plugins']);
         self::assertNotEmpty($data['environment_type']);
         self::assertIsBool($data['is_multisite']);
+        self::assertIsArray($data['constants']);
     }
 
     #[Test]
@@ -222,56 +156,6 @@ final class WordPressDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function collectGathersThemeInfoWithWordPress(): void
-    {
-        if (!function_exists('wp_get_theme')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
-        $this->collector->collect();
-        $data = $this->collector->getData();
-
-        $theme = wp_get_theme();
-        self::assertSame($theme->get('Name'), $data['theme']);
-        self::assertSame($theme->get('Version'), $data['theme_version']);
-    }
-
-    #[Test]
-    public function collectWithWordPressGathersThemeAndPluginInfo(): void
-    {
-        if (!function_exists('wp_get_theme')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
-        $this->collector->collect();
-        $data = $this->collector->getData();
-
-        // Theme name should be a non-empty string
-        self::assertIsString($data['theme']);
-        self::assertNotEmpty($data['theme']);
-
-        // Active plugins should be an array
-        self::assertIsArray($data['active_plugins']);
-
-        // MU plugins should be an array
-        self::assertIsArray($data['mu_plugins']);
-
-        // is_child_theme and is_block_theme should be booleans
-        self::assertIsBool($data['is_child_theme']);
-        self::assertIsBool($data['is_block_theme']);
-
-        // child_theme and parent_theme are strings
-        self::assertIsString($data['child_theme']);
-        self::assertIsString($data['parent_theme']);
-
-        // If not a child theme, child_theme and parent_theme should be empty
-        if (!$data['is_child_theme']) {
-            self::assertSame('', $data['child_theme']);
-            self::assertSame('', $data['parent_theme']);
-        }
-    }
-
-    #[Test]
     public function collectWithWordPressGathersDebugConstants(): void
     {
         if (!function_exists('wp_get_theme')) {
@@ -309,47 +193,6 @@ final class WordPressDataCollectorTest extends TestCase
             self::assertSame(SCRIPT_DEBUG, $constants['SCRIPT_DEBUG']);
         } else {
             self::assertNull($constants['SCRIPT_DEBUG']);
-        }
-    }
-
-    #[Test]
-    public function collectActivePluginsWithWordPress(): void
-    {
-        if (!function_exists('get_option') || !function_exists('get_plugin_data')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
-        $this->collector->collect();
-        $data = $this->collector->getData();
-
-        // active_plugins should be an associative array
-        self::assertIsArray($data['active_plugins']);
-
-        // Each entry should map plugin file => name
-        foreach ($data['active_plugins'] as $file => $name) {
-            self::assertIsString($file);
-            self::assertIsString($name);
-            self::assertNotEmpty($name);
-        }
-    }
-
-    #[Test]
-    public function collectMuPluginsWithWordPress(): void
-    {
-        if (!function_exists('get_mu_plugins')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
-        $this->collector->collect();
-        $data = $this->collector->getData();
-
-        // mu_plugins should be an associative array (may be empty)
-        self::assertIsArray($data['mu_plugins']);
-
-        foreach ($data['mu_plugins'] as $file => $name) {
-            self::assertIsString($file);
-            self::assertIsString($name);
-            self::assertNotEmpty($name);
         }
     }
 

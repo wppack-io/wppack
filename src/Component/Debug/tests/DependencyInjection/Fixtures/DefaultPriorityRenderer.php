@@ -16,7 +16,7 @@ final class DefaultPriorityRenderer extends AbstractPanelRenderer implements Pan
         return 'default';
     }
 
-    public function render(array $data): string
+    public function render(\WpPack\Component\Debug\Profiler\Profile $profile): string
     {
         return '';
     }

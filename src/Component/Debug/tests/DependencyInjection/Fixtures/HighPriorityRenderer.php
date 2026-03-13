@@ -16,7 +16,7 @@ final class HighPriorityRenderer extends AbstractPanelRenderer implements PanelR
         return 'high';
     }
 
-    public function render(array $data): string
+    public function render(\WpPack\Component\Debug\Profiler\Profile $profile): string
     {
         return '';
     }

@@ -69,6 +69,7 @@ final class ToolbarRendererTest extends TestCase
         $this->renderer->addPanelRenderer(new AdminPanelRenderer());
         $this->renderer->addPanelRenderer(new ContainerPanelRenderer());
         $this->renderer->addPanelRenderer(new FeedPanelRenderer());
+        $this->renderer->addPanelRenderer(new PerformancePanelRenderer());
     }
 
     #[Test]
@@ -1091,18 +1092,28 @@ final class ToolbarRendererTest extends TestCase
         $profile = new Profile('test-token');
         $profile->addCollector($this->createCollector('wordpress', 'WordPress', '6.4', 'default', [
             'wp_version' => '6.4.2',
-            'php_version' => '8.2.13',
             'environment_type' => 'local',
             'is_multisite' => false,
             'constants' => ['WP_DEBUG' => true, 'WP_DEBUG_LOG' => false, 'SCRIPT_DEBUG' => null],
-            'theme' => 'Twenty Twenty-Four',
+        ]));
+        $profile->addCollector($this->createCollector('environment', 'Environment', '', 'default', [
+            'php' => ['version' => '8.2.13'],
+            'extensions' => ['curl', 'mbstring', 'openssl'],
+        ]));
+        $profile->addCollector($this->createCollector('theme', 'Theme', '', 'default', [
+            'name' => 'Twenty Twenty-Four',
+            'version' => '1.2',
             'is_block_theme' => true,
             'is_child_theme' => false,
             'parent_theme' => '',
-            'theme_version' => '1.2',
+        ]));
+        $profile->addCollector($this->createCollector('plugin', 'Plugins', '', 'default', [
+            'plugins' => [
+                'loader.php' => ['name' => 'MU Loader', 'is_mu' => true],
+                'woocommerce/woocommerce.php' => ['name' => 'WooCommerce'],
+                'akismet/akismet.php' => ['name' => 'Akismet'],
+            ],
             'mu_plugins' => ['loader.php'],
-            'active_plugins' => ['woocommerce/woocommerce.php', 'akismet/akismet.php'],
-            'extensions' => ['curl', 'mbstring', 'openssl'],
         ]));
 
         $html = $this->renderer->render($profile);
@@ -1366,7 +1377,10 @@ final class ToolbarRendererTest extends TestCase
     public function genericPanelRendererWithEmptyDataShowsNoDataMessage(): void
     {
         $renderer = new GenericPanelRenderer();
-        $html = $renderer->render([]);
+        $renderer->setCollectorName('test_empty');
+        $profile = new Profile();
+        $profile->addCollector($this->createCollector('test_empty', 'Test', '', 'default'));
+        $html = $renderer->render($profile);
         self::assertStringContainsString('No data collected.', $html);
     }
 
@@ -1374,7 +1388,10 @@ final class ToolbarRendererTest extends TestCase
     public function genericPanelRendererWithDataShowsTable(): void
     {
         $renderer = new GenericPanelRenderer();
-        $html = $renderer->render(['key1' => 'value1', 'key2' => 42]);
+        $renderer->setCollectorName('test_data');
+        $profile = new Profile();
+        $profile->addCollector($this->createCollector('test_data', 'Test', '', 'default', ['key1' => 'value1', 'key2' => 42]));
+        $html = $renderer->render($profile);
         self::assertStringContainsString('key1', $html);
         self::assertStringContainsString('value1', $html);
         self::assertStringContainsString('key2', $html);
