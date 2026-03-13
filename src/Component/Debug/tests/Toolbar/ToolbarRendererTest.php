@@ -1098,10 +1098,6 @@ final class ToolbarRendererTest extends TestCase
             'is_multisite' => false,
             'constants' => ['WP_DEBUG' => true, 'WP_DEBUG_LOG' => false, 'SCRIPT_DEBUG' => null],
         ]));
-        $profile->addCollector($this->createCollector('environment', 'Environment', '', 'default', [
-            'php' => ['version' => '8.2.13'],
-            'extensions' => ['curl', 'mbstring', 'openssl'],
-        ]));
         $profile->addCollector($this->createCollector('theme', 'Theme', '', 'default', [
             'name' => 'Twenty Twenty-Four',
             'version' => '1.2',
@@ -1121,7 +1117,6 @@ final class ToolbarRendererTest extends TestCase
         $html = $this->renderer->render($profile);
 
         self::assertStringContainsString('6.4.2', $html);
-        self::assertStringContainsString('8.2.13', $html);
         self::assertStringContainsString('local', $html);
         self::assertStringContainsString('Debug Constants', $html);
         self::assertStringContainsString('WP_DEBUG', $html);
@@ -1129,8 +1124,7 @@ final class ToolbarRendererTest extends TestCase
         self::assertStringContainsString('Twenty Twenty-Four', $html);
         self::assertStringContainsString('Must-Use Plugins', $html);
         self::assertStringContainsString('Active Plugins', $html);
-        self::assertStringContainsString('PHP Extensions', $html);
-        self::assertStringContainsString('curl', $html);
+        self::assertStringNotContainsString('PHP Extensions', $html);
     }
 
     #[Test]

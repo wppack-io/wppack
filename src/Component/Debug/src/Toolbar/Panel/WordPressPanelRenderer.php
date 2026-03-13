@@ -32,17 +32,13 @@ final class WordPressPanelRenderer extends AbstractPanelRenderer implements Rend
     public function renderPanel(Profile $profile): string
     {
         $wpData = $this->getCollectorData($profile, 'wordpress');
-        $envData = $this->getCollectorData($profile, 'environment');
         $themeData = $this->getCollectorData($profile, 'theme');
         $pluginData = $this->getCollectorData($profile, 'plugin');
 
         $html = '<div class="wpd-section">';
-        $html .= '<h4 class="wpd-section-title">Environment</h4>';
+        $html .= '<h4 class="wpd-section-title">WordPress</h4>';
         $html .= '<table class="wpd-table wpd-table-kv">';
-        $html .= $this->renderTableRow('WordPress Version', (string) ($wpData['wp_version'] ?? 'N/A'));
-
-        $phpVersion = (string) ($envData['php']['version'] ?? PHP_VERSION);
-        $html .= $this->renderTableRow('PHP Version', $phpVersion);
+        $html .= $this->renderTableRow('Version', (string) ($wpData['wp_version'] ?? 'N/A'));
         $html .= $this->renderTableRow('Environment', (string) ($wpData['environment_type'] ?? 'N/A'));
         $html .= $this->renderTableRow('Multisite', ($wpData['is_multisite'] ?? false) ? 'Yes' : 'No');
         $html .= '</table>';
@@ -123,19 +119,6 @@ final class WordPressPanelRenderer extends AbstractPanelRenderer implements Rend
                 $html .= '<li>' . $this->esc($plugin) . '</li>';
             }
             $html .= '</ul>';
-            $html .= '</div>';
-        }
-
-        /** @var list<string> $extensions */
-        $extensions = $envData['extensions'] ?? [];
-        if ($extensions !== []) {
-            $html .= '<div class="wpd-section">';
-            $html .= '<h4 class="wpd-section-title">PHP Extensions (' . $this->esc((string) count($extensions)) . ')</h4>';
-            $html .= '<div class="wpd-tag-list">';
-            foreach ($extensions as $ext) {
-                $html .= '<span class="wpd-tag">' . $this->esc($ext) . '</span>';
-            }
-            $html .= '</div>';
             $html .= '</div>';
         }
 
