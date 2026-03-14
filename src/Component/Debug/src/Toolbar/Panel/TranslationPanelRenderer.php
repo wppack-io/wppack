@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
 use WpPack\Component\Debug\Attribute\AsPanelRenderer;
-use WpPack\Component\Debug\Profiler\Profile;
 
 #[AsPanelRenderer(name: 'translation')]
 final class TranslationPanelRenderer extends AbstractPanelRenderer implements RendererInterface
@@ -15,9 +14,9 @@ final class TranslationPanelRenderer extends AbstractPanelRenderer implements Re
         return 'translation';
     }
 
-    public function renderPanel(Profile $profile): string
+    public function renderPanel(): string
     {
-        $data = $this->getCollectorData($profile, $this->getName());
+        $data = $this->getCollectorData();
         $totalLookups = (int) ($data['total_lookups'] ?? 0);
         $missingCount = (int) ($data['missing_count'] ?? 0);
         /** @var list<string> $loadedDomains */

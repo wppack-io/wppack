@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
-use WpPack\Component\Debug\Profiler\Profile;
-
 final class GenericPanelRenderer extends AbstractPanelRenderer implements RendererInterface
 {
     private string $collectorName = '';
@@ -20,9 +18,9 @@ final class GenericPanelRenderer extends AbstractPanelRenderer implements Render
         return 'generic';
     }
 
-    public function renderPanel(Profile $profile): string
+    public function renderPanel(): string
     {
-        $data = $this->getCollectorData($profile, $this->collectorName);
+        $data = $this->getCollectorData($this->collectorName);
 
         if ($data === []) {
             return '<div class="wpd-section"><p class="wpd-text-dim">No data collected.</p></div>';

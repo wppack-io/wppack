@@ -1030,35 +1030,35 @@ foreach ($collectors as $collector) {
     $profile->addCollector($collector);
 }
 
-$renderer = new ToolbarRenderer();
-$renderer->addPanelRenderer(new DatabasePanelRenderer());
-$renderer->addPanelRenderer(new StopwatchPanelRenderer());
-$renderer->addPanelRenderer(new PerformancePanelRenderer());
-$renderer->addPanelRenderer(new MemoryPanelRenderer());
-$renderer->addPanelRenderer(new RequestPanelRenderer());
-$renderer->addPanelRenderer(new CachePanelRenderer());
-$renderer->addPanelRenderer(new WordPressPanelRenderer());
-$renderer->addPanelRenderer(new SecurityPanelRenderer());
-$renderer->addPanelRenderer(new MailPanelRenderer());
-$renderer->addPanelRenderer(new EventPanelRenderer());
-$renderer->addPanelRenderer(new LoggerPanelRenderer());
-$renderer->addPanelRenderer(new RouterPanelRenderer());
-$renderer->addPanelRenderer(new HttpClientPanelRenderer());
-$renderer->addPanelRenderer(new TranslationPanelRenderer());
-$renderer->addPanelRenderer(new DumpPanelRenderer());
-$renderer->addPanelRenderer(new PluginPanelRenderer());
-$renderer->addPanelRenderer(new ThemePanelRenderer());
-$renderer->addPanelRenderer(new SchedulerPanelRenderer());
-$renderer->addPanelRenderer(new WidgetPanelRenderer());
-$renderer->addPanelRenderer(new ShortcodePanelRenderer());
-$renderer->addPanelRenderer(new AssetPanelRenderer());
-$renderer->addPanelRenderer(new RestPanelRenderer());
-$renderer->addPanelRenderer(new AjaxPanelRenderer());
-$renderer->addPanelRenderer(new AdminPanelRenderer());
-$renderer->addPanelRenderer(new ContainerPanelRenderer());
-$renderer->addPanelRenderer(new FeedPanelRenderer());
-$renderer->addPanelRenderer(new EnvironmentPanelRenderer());
-$html = $renderer->render($profile);
+$renderer = new ToolbarRenderer($profile);
+$renderer->addPanelRenderer(new DatabasePanelRenderer($profile));
+$renderer->addPanelRenderer(new StopwatchPanelRenderer($profile));
+$renderer->addPanelRenderer(new PerformancePanelRenderer($profile));
+$renderer->addPanelRenderer(new MemoryPanelRenderer($profile));
+$renderer->addPanelRenderer(new RequestPanelRenderer($profile));
+$renderer->addPanelRenderer(new CachePanelRenderer($profile));
+$renderer->addPanelRenderer(new WordPressPanelRenderer($profile));
+$renderer->addPanelRenderer(new SecurityPanelRenderer($profile));
+$renderer->addPanelRenderer(new MailPanelRenderer($profile));
+$renderer->addPanelRenderer(new EventPanelRenderer($profile));
+$renderer->addPanelRenderer(new LoggerPanelRenderer($profile));
+$renderer->addPanelRenderer(new RouterPanelRenderer($profile));
+$renderer->addPanelRenderer(new HttpClientPanelRenderer($profile));
+$renderer->addPanelRenderer(new TranslationPanelRenderer($profile));
+$renderer->addPanelRenderer(new DumpPanelRenderer($profile));
+$renderer->addPanelRenderer(new PluginPanelRenderer($profile));
+$renderer->addPanelRenderer(new ThemePanelRenderer($profile));
+$renderer->addPanelRenderer(new SchedulerPanelRenderer($profile));
+$renderer->addPanelRenderer(new WidgetPanelRenderer($profile));
+$renderer->addPanelRenderer(new ShortcodePanelRenderer($profile));
+$renderer->addPanelRenderer(new AssetPanelRenderer($profile));
+$renderer->addPanelRenderer(new RestPanelRenderer($profile));
+$renderer->addPanelRenderer(new AjaxPanelRenderer($profile));
+$renderer->addPanelRenderer(new AdminPanelRenderer($profile));
+$renderer->addPanelRenderer(new ContainerPanelRenderer($profile));
+$renderer->addPanelRenderer(new FeedPanelRenderer($profile));
+$renderer->addPanelRenderer(new EnvironmentPanelRenderer($profile));
+$html = $renderer->render();
 ?>
 <!DOCTYPE html>
 <html lang="ja">

@@ -394,6 +394,6 @@ final class WpDieHandler
             return '';
         }
 
-        return $this->toolbarRenderer->render($this->profile);
+        return $this->toolbarRenderer->render();
     }
 }

@@ -41,45 +41,47 @@ use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
 final class ToolbarRendererTest extends TestCase
 {
     private ToolbarRenderer $renderer;
+    private Profile $profile;
 
     protected function setUp(): void
     {
-        $this->renderer = new ToolbarRenderer();
-        $this->renderer->addPanelRenderer(new DatabasePanelRenderer());
-        $this->renderer->addPanelRenderer(new StopwatchPanelRenderer());
-        $this->renderer->addPanelRenderer(new MemoryPanelRenderer());
-        $this->renderer->addPanelRenderer(new RequestPanelRenderer());
-        $this->renderer->addPanelRenderer(new CachePanelRenderer());
-        $this->renderer->addPanelRenderer(new WordPressPanelRenderer());
-        $this->renderer->addPanelRenderer(new SecurityPanelRenderer());
-        $this->renderer->addPanelRenderer(new MailPanelRenderer());
-        $this->renderer->addPanelRenderer(new EventPanelRenderer());
-        $this->renderer->addPanelRenderer(new LoggerPanelRenderer());
-        $this->renderer->addPanelRenderer(new RouterPanelRenderer());
-        $this->renderer->addPanelRenderer(new HttpClientPanelRenderer());
-        $this->renderer->addPanelRenderer(new TranslationPanelRenderer());
-        $this->renderer->addPanelRenderer(new DumpPanelRenderer());
-        $this->renderer->addPanelRenderer(new PluginPanelRenderer());
-        $this->renderer->addPanelRenderer(new ThemePanelRenderer());
-        $this->renderer->addPanelRenderer(new SchedulerPanelRenderer());
-        $this->renderer->addPanelRenderer(new WidgetPanelRenderer());
-        $this->renderer->addPanelRenderer(new ShortcodePanelRenderer());
-        $this->renderer->addPanelRenderer(new AssetPanelRenderer());
-        $this->renderer->addPanelRenderer(new RestPanelRenderer());
-        $this->renderer->addPanelRenderer(new AjaxPanelRenderer());
-        $this->renderer->addPanelRenderer(new AdminPanelRenderer());
-        $this->renderer->addPanelRenderer(new ContainerPanelRenderer());
-        $this->renderer->addPanelRenderer(new FeedPanelRenderer());
-        $this->renderer->addPanelRenderer(new PerformancePanelRenderer());
-        $this->renderer->addPanelRenderer(new EnvironmentPanelRenderer());
+        $this->profile = new Profile();
+        $this->renderer = new ToolbarRenderer($this->profile);
+        $this->renderer->addPanelRenderer(new DatabasePanelRenderer($this->profile));
+        $this->renderer->addPanelRenderer(new StopwatchPanelRenderer($this->profile));
+        $this->renderer->addPanelRenderer(new MemoryPanelRenderer($this->profile));
+        $this->renderer->addPanelRenderer(new RequestPanelRenderer($this->profile));
+        $this->renderer->addPanelRenderer(new CachePanelRenderer($this->profile));
+        $this->renderer->addPanelRenderer(new WordPressPanelRenderer($this->profile));
+        $this->renderer->addPanelRenderer(new SecurityPanelRenderer($this->profile));
+        $this->renderer->addPanelRenderer(new MailPanelRenderer($this->profile));
+        $this->renderer->addPanelRenderer(new EventPanelRenderer($this->profile));
+        $this->renderer->addPanelRenderer(new LoggerPanelRenderer($this->profile));
+        $this->renderer->addPanelRenderer(new RouterPanelRenderer($this->profile));
+        $this->renderer->addPanelRenderer(new HttpClientPanelRenderer($this->profile));
+        $this->renderer->addPanelRenderer(new TranslationPanelRenderer($this->profile));
+        $this->renderer->addPanelRenderer(new DumpPanelRenderer($this->profile));
+        $this->renderer->addPanelRenderer(new PluginPanelRenderer($this->profile));
+        $this->renderer->addPanelRenderer(new ThemePanelRenderer($this->profile));
+        $this->renderer->addPanelRenderer(new SchedulerPanelRenderer($this->profile));
+        $this->renderer->addPanelRenderer(new WidgetPanelRenderer($this->profile));
+        $this->renderer->addPanelRenderer(new ShortcodePanelRenderer($this->profile));
+        $this->renderer->addPanelRenderer(new AssetPanelRenderer($this->profile));
+        $this->renderer->addPanelRenderer(new RestPanelRenderer($this->profile));
+        $this->renderer->addPanelRenderer(new AjaxPanelRenderer($this->profile));
+        $this->renderer->addPanelRenderer(new AdminPanelRenderer($this->profile));
+        $this->renderer->addPanelRenderer(new ContainerPanelRenderer($this->profile));
+        $this->renderer->addPanelRenderer(new FeedPanelRenderer($this->profile));
+        $this->renderer->addPanelRenderer(new PerformancePanelRenderer($this->profile));
+        $this->renderer->addPanelRenderer(new EnvironmentPanelRenderer($this->profile));
     }
 
     #[Test]
     public function renderOutputContainsWppackDebugDivId(): void
     {
-        $profile = $this->createProfileWithCollectors();
+        $this->createProfileWithCollectors();
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('id="wppack-debug"', $html);
     }
@@ -87,9 +89,9 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderOutputContainsStyleTagWithCss(): void
     {
-        $profile = $this->createProfileWithCollectors();
+        $this->createProfileWithCollectors();
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('<style>', $html);
         self::assertStringContainsString('</style>', $html);
@@ -100,9 +102,9 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderOutputContainsScriptTagWithJs(): void
     {
-        $profile = $this->createProfileWithCollectors();
+        $this->createProfileWithCollectors();
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('<script>', $html);
         self::assertStringContainsString('</script>', $html);
@@ -111,12 +113,11 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderOutputContainsIndicatorForEachCollector(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('memory', 'Memory', '12.3 MB', 'green'));
-        $profile->addCollector($this->createCollector('stopwatch', 'Stopwatch', '150 ms', 'yellow'));
-        $profile->addCollector($this->createCollector('database', 'Database', '25', 'default'));
+        $this->profile->addCollector($this->createCollector('memory', 'Memory', '12.3 MB', 'green'));
+        $this->profile->addCollector($this->createCollector('stopwatch', 'Stopwatch', '150 ms', 'yellow'));
+        $this->profile->addCollector($this->createCollector('database', 'Database', '25', 'default'));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         // Each collector should have an indicator button with data-panel attribute
         self::assertStringContainsString('data-panel="memory"', $html);
@@ -127,11 +128,10 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderPanelsContainCollectorLabels(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('memory', 'Memory', '8 MB', 'green'));
-        $profile->addCollector($this->createCollector('request', 'Request', 'GET 200', 'default'));
+        $this->profile->addCollector($this->createCollector('memory', 'Memory', '8 MB', 'green'));
+        $this->profile->addCollector($this->createCollector('request', 'Request', 'GET 200', 'default'));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         // Panels should contain the collector labels
         self::assertStringContainsString('Memory', $html);
@@ -141,15 +141,14 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderOutputIsProperlyEscaped(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector(
+        $this->profile->addCollector($this->createCollector(
             'test',
             'Test <script>alert("xss")</script>',
             '<img onerror=alert(1)>',
             'default',
         ));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         // Raw HTML tags should not appear - they should be escaped
         self::assertStringNotContainsString('<script>alert("xss")</script>', $html);
@@ -160,10 +159,9 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderOutputContainsIndicatorValues(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('memory', 'Memory', '42.5 MB', 'yellow'));
+        $this->profile->addCollector($this->createCollector('memory', 'Memory', '42.5 MB', 'yellow'));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('42.5 MB', $html);
     }
@@ -171,11 +169,10 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderOutputContainsPanelIdsForEachCollector(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('cache', 'Cache', '95%', 'green'));
-        $profile->addCollector($this->createCollector('wordpress', 'WordPress', '6.4', 'default'));
+        $this->profile->addCollector($this->createCollector('cache', 'Cache', '95%', 'green'));
+        $this->profile->addCollector($this->createCollector('wordpress', 'WordPress', '6.4', 'default'));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('id="wpd-pc-cache"', $html);
         self::assertStringContainsString('id="wpd-pc-wordpress"', $html);
@@ -184,9 +181,9 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderOutputContainsPerformanceIndicator(): void
     {
-        $profile = $this->createProfileWithCollectors();
+        $this->createProfileWithCollectors();
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('data-panel="performance"', $html);
     }
@@ -194,9 +191,9 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderOutputContainsPerformancePanel(): void
     {
-        $profile = $this->createProfileWithCollectors();
+        $this->createProfileWithCollectors();
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('id="wpd-pc-performance"', $html);
     }
@@ -204,24 +201,23 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderPerformancePanelShowsOverviewCards(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('stopwatch', 'Stopwatch', '198 ms', 'green', [
+        $this->profile->addCollector($this->createCollector('stopwatch', 'Stopwatch', '198 ms', 'green', [
             'total_time' => 198.0,
             'phases' => ['muplugins_loaded' => 20.0, 'plugins_loaded' => 45.0, 'init' => 80.0, 'wp_loaded' => 120.0, 'template_redirect' => 198.0],
             'events' => [],
         ]));
-        $profile->addCollector($this->createCollector('memory', 'Memory', '42.5 MB', 'yellow', [
+        $this->profile->addCollector($this->createCollector('memory', 'Memory', '42.5 MB', 'yellow', [
             'peak' => 44564480,
             'limit' => 268435456,
             'usage_percentage' => 16.6,
         ]));
-        $profile->addCollector($this->createCollector('database', 'Database', '24', 'default', [
+        $this->profile->addCollector($this->createCollector('database', 'Database', '24', 'default', [
             'total_count' => 24,
             'total_time' => 35.0,
             'queries' => [],
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('Total Time', $html);
         self::assertStringContainsString('Peak Memory', $html);
@@ -235,8 +231,7 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderPerformancePanelShowsTimelineLabel(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('stopwatch', 'Stopwatch', '198 ms', 'green', [
+        $this->profile->addCollector($this->createCollector('stopwatch', 'Stopwatch', '198 ms', 'green', [
             'total_time' => 198.0,
             'request_time_float' => microtime(true) - 0.198,
             'phases' => ['muplugins_loaded' => 20.0],
@@ -245,7 +240,7 @@ final class ToolbarRendererTest extends TestCase
             ],
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('Timeline', $html);
         // Lifecycle phases and custom events appear in unified timeline
@@ -257,28 +252,27 @@ final class ToolbarRendererTest extends TestCase
     public function renderPerformancePanelShowsDbAndCacheInTimeline(): void
     {
         $requestTimeFloat = microtime(true) - 0.198;
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('stopwatch', 'Stopwatch', '198 ms', 'green', [
+        $this->profile->addCollector($this->createCollector('stopwatch', 'Stopwatch', '198 ms', 'green', [
             'total_time' => 198.0,
             'request_time_float' => $requestTimeFloat,
             'phases' => ['muplugins_loaded' => 20.0],
             'events' => [],
         ]));
-        $profile->addCollector($this->createCollector('database', 'Database', '2', 'green', [
+        $this->profile->addCollector($this->createCollector('database', 'Database', '2', 'green', [
             'total_count' => 2,
             'total_time' => 3.0,
             'queries' => [
                 ['sql' => 'SELECT * FROM wp_posts', 'time' => 1.5, 'caller' => 'test', 'start' => $requestTimeFloat + 0.030, 'data' => []],
             ],
         ]));
-        $profile->addCollector($this->createCollector('cache', 'Cache', '90%', 'green', [
+        $this->profile->addCollector($this->createCollector('cache', 'Cache', '90%', 'green', [
             'hit_rate' => 90.0,
             'transient_operations' => [
                 ['name' => 'my_key', 'operation' => 'set', 'expiration' => 3600, 'caller' => 'test', 'time' => 95.0],
             ],
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('Timeline', $html);
         // DB queries aggregated into single row
@@ -290,8 +284,7 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderDatabasePanelShowsCallerGrouping(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('database', 'Database', '4', 'green', [
+        $this->profile->addCollector($this->createCollector('database', 'Database', '4', 'green', [
             'total_count' => 4,
             'total_time' => 10.0,
             'queries' => [
@@ -302,7 +295,7 @@ final class ToolbarRendererTest extends TestCase
             ],
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('Queries by Caller', $html);
         self::assertStringContainsString('wp_load_alloptions', $html);
@@ -312,8 +305,7 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderCachePanelShowsTransientOperations(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('cache', 'Cache', '90.0%', 'green', [
+        $this->profile->addCollector($this->createCollector('cache', 'Cache', '90.0%', 'green', [
             'hits' => 100,
             'misses' => 10,
             'hit_rate' => 90.0,
@@ -328,7 +320,7 @@ final class ToolbarRendererTest extends TestCase
             'cache_groups' => ['options' => 50, 'posts' => 20],
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('Drop-in', $html);
         self::assertStringContainsString('Redis', $html);
@@ -343,8 +335,7 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderCachePanelFallsBackToCountsWhenNoOperations(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('cache', 'Cache', '90.0%', 'green', [
+        $this->profile->addCollector($this->createCollector('cache', 'Cache', '90.0%', 'green', [
             'hits' => 100,
             'misses' => 10,
             'hit_rate' => 90.0,
@@ -354,7 +345,7 @@ final class ToolbarRendererTest extends TestCase
             'cache_groups' => [],
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('Transient Sets', $html);
         self::assertStringContainsString('Transient Deletes', $html);
@@ -364,14 +355,13 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderPerformancePanelHandlesMissingCollectors(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('stopwatch', 'Stopwatch', '50 ms', 'green', [
+        $this->profile->addCollector($this->createCollector('stopwatch', 'Stopwatch', '50 ms', 'green', [
             'total_time' => 50.0,
             'phases' => [],
             'events' => [],
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('id="wpd-pc-performance"', $html);
         self::assertStringContainsString('Total Time', $html);
@@ -381,8 +371,7 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderPluginPanelShowsPluginData(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('plugin', 'Plugins', '3', 'green', [
+        $this->profile->addCollector($this->createCollector('plugin', 'Plugins', '3', 'green', [
             'total_plugins' => 3,
             'total_hook_time' => 35.8,
             'slowest_plugin' => 'woocommerce/woocommerce.php',
@@ -423,7 +412,7 @@ final class ToolbarRendererTest extends TestCase
             'dropins' => ['object-cache.php'],
             'load_order' => ['woocommerce/woocommerce.php'],
         ]));
-        $profile->addCollector($this->createCollector('asset', 'Assets', '2', 'default', [
+        $this->profile->addCollector($this->createCollector('asset', 'Assets', '2', 'default', [
             'scripts' => [
                 'wc-cart-fragments' => [
                     'handle' => 'wc-cart-fragments',
@@ -446,7 +435,7 @@ final class ToolbarRendererTest extends TestCase
             ],
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('id="wpd-pc-plugin"', $html);
         self::assertStringContainsString('data-panel="plugin"', $html);
@@ -476,8 +465,7 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderThemePanelShowsThemeData(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('theme', 'Theme', '', 'default', [
+        $this->profile->addCollector($this->createCollector('theme', 'Theme', '', 'default', [
             'name' => 'Twenty Twenty-Four',
             'version' => '1.2',
             'is_child_theme' => false,
@@ -497,7 +485,7 @@ final class ToolbarRendererTest extends TestCase
                 ['hook' => 'wp_head', 'listeners' => 5, 'time' => 6.5],
             ],
         ]));
-        $profile->addCollector($this->createCollector('asset', 'Assets', '2', 'default', [
+        $this->profile->addCollector($this->createCollector('asset', 'Assets', '2', 'default', [
             'scripts' => [
                 'jquery' => [
                     'handle' => 'jquery',
@@ -520,7 +508,7 @@ final class ToolbarRendererTest extends TestCase
             ],
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('id="wpd-pc-theme"', $html);
         self::assertStringContainsString('data-panel="theme"', $html);
@@ -538,8 +526,7 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderSchedulerPanelShowsCronData(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('scheduler', 'Scheduler', '3', 'green', [
+        $this->profile->addCollector($this->createCollector('scheduler', 'Scheduler', '3', 'green', [
             'cron_total' => 3,
             'cron_overdue' => 1,
             'action_scheduler_available' => true,
@@ -556,7 +543,7 @@ final class ToolbarRendererTest extends TestCase
             ],
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('id="wpd-pc-scheduler"', $html);
         self::assertStringContainsString('data-panel="scheduler"', $html);
@@ -570,19 +557,18 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderPerformancePanelShowsPluginTimelineEntries(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('stopwatch', 'Stopwatch', '198 ms', 'green', [
+        $this->profile->addCollector($this->createCollector('stopwatch', 'Stopwatch', '198 ms', 'green', [
             'total_time' => 198.0,
             'request_time_float' => microtime(true) - 0.198,
             'phases' => ['muplugins_loaded' => 20.0],
             'events' => [],
         ]));
-        $profile->addCollector($this->createCollector('event', 'Event', '100', 'green', [
+        $this->profile->addCollector($this->createCollector('event', 'Event', '100', 'green', [
             'hook_timings' => [
                 'init' => ['count' => 10, 'total_time' => 15.0, 'start' => 57.9],
             ],
         ]));
-        $profile->addCollector($this->createCollector('plugin', 'Plugins', '1', 'green', [
+        $this->profile->addCollector($this->createCollector('plugin', 'Plugins', '1', 'green', [
             'plugins' => [
                 'test/test.php' => [
                     'name' => 'TestPlugin',
@@ -594,7 +580,7 @@ final class ToolbarRendererTest extends TestCase
             ],
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('Plugins', $html);
         self::assertStringContainsString('TestPlugin', $html);
@@ -603,8 +589,7 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderLoggerPanelShowsFilterTabs(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('logger', 'Logs', '5', 'red', [
+        $this->profile->addCollector($this->createCollector('logger', 'Logs', '5', 'red', [
             'total_count' => 5,
             'error_count' => 1,
             'deprecation_count' => 2,
@@ -618,7 +603,7 @@ final class ToolbarRendererTest extends TestCase
             ],
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         // Filter tabs
         self::assertStringContainsString('data-log-filter="all"', $html);
@@ -647,8 +632,7 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderAdminPanelShowsAdminData(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('admin', 'Admin', '5', 'default', [
+        $this->profile->addCollector($this->createCollector('admin', 'Admin', '5', 'default', [
             'is_admin' => true,
             'page_hook' => 'toplevel_page_my-plugin',
             'screen' => ['id' => 'toplevel_page_my-plugin', 'base' => 'toplevel_page_my-plugin', 'post_type' => '', 'taxonomy' => ''],
@@ -664,7 +648,7 @@ final class ToolbarRendererTest extends TestCase
             'total_submenus' => 12,
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('Current Screen', $html);
         self::assertStringContainsString('toplevel_page_my-plugin', $html);
@@ -678,12 +662,11 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderAdminPanelShowsNonAdminMessage(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('admin', 'Admin', '-', 'default', [
+        $this->profile->addCollector($this->createCollector('admin', 'Admin', '-', 'default', [
             'is_admin' => false,
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('Not in admin context.', $html);
     }
@@ -691,8 +674,7 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderAjaxPanelShowsActions(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('ajax', 'Ajax', '3', 'default', [
+        $this->profile->addCollector($this->createCollector('ajax', 'Ajax', '3', 'default', [
             'total_actions' => 3,
             'nopriv_count' => 1,
             'registered_actions' => [
@@ -701,7 +683,7 @@ final class ToolbarRendererTest extends TestCase
             ],
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('Registered Actions', $html);
         self::assertStringContainsString('heartbeat', $html);
@@ -714,8 +696,7 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderAssetPanelShowsScriptsAndStyles(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('asset', 'Assets', '5/3', 'default', [
+        $this->profile->addCollector($this->createCollector('asset', 'Assets', '5/3', 'default', [
             'enqueued_scripts' => 5,
             'enqueued_styles' => 3,
             'registered_scripts' => 20,
@@ -728,7 +709,7 @@ final class ToolbarRendererTest extends TestCase
             ],
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('Enqueued Scripts', $html);
         self::assertStringContainsString('jquery-core', $html);
@@ -741,8 +722,7 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderContainerPanelShowsServices(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('container', 'Container', '10', 'default', [
+        $this->profile->addCollector($this->createCollector('container', 'Container', '10', 'default', [
             'service_count' => 10,
             'public_count' => 4,
             'private_count' => 6,
@@ -758,7 +738,7 @@ final class ToolbarRendererTest extends TestCase
             'parameters' => ['app.debug' => true],
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('Services', $html);
         self::assertStringContainsString('app.mailer', $html);
@@ -774,8 +754,7 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderDumpPanelShowsDumps(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('dump', 'Dumps', '2', 'yellow', [
+        $this->profile->addCollector($this->createCollector('dump', 'Dumps', '2', 'yellow', [
             'dumps' => [
                 ['file' => '/app/src/Controller.php', 'line' => 42, 'data' => 'string(5) "hello"'],
                 ['file' => '/app/src/Service.php', 'line' => 100, 'data' => 'int(42)'],
@@ -783,7 +762,7 @@ final class ToolbarRendererTest extends TestCase
             'total_count' => 2,
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('Dumps (2)', $html);
         self::assertStringContainsString('Controller.php', $html);
@@ -794,13 +773,12 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderDumpPanelShowsEmptyMessage(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('dump', 'Dumps', '0', 'default', [
+        $this->profile->addCollector($this->createCollector('dump', 'Dumps', '0', 'default', [
             'dumps' => [],
             'total_count' => 0,
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('No dump() calls recorded.', $html);
     }
@@ -808,8 +786,7 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderFeedPanelShowsFeeds(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('feed', 'Feed', '3', 'default', [
+        $this->profile->addCollector($this->createCollector('feed', 'Feed', '3', 'default', [
             'total_count' => 3,
             'custom_count' => 1,
             'feed_discovery' => true,
@@ -820,7 +797,7 @@ final class ToolbarRendererTest extends TestCase
             ],
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('Total Feeds', $html);
         self::assertStringContainsString('Custom Feeds', $html);
@@ -833,8 +810,7 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderHttpClientPanelShowsRequests(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('http_client', 'HTTP Client', '2', 'green', [
+        $this->profile->addCollector($this->createCollector('http_client', 'HTTP Client', '2', 'green', [
             'total_count' => 2,
             'total_time' => 350.5,
             'error_count' => 1,
@@ -845,7 +821,7 @@ final class ToolbarRendererTest extends TestCase
             ],
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('Total Requests', $html);
         self::assertStringContainsString('Errors', $html);
@@ -859,8 +835,7 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderMailPanelShowsEmails(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('mail', 'Mail', '2', 'default', [
+        $this->profile->addCollector($this->createCollector('mail', 'Mail', '2', 'default', [
             'total_count' => 2,
             'success_count' => 1,
             'failure_count' => 1,
@@ -898,7 +873,7 @@ final class ToolbarRendererTest extends TestCase
             ],
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('Email #1', $html);
         self::assertStringContainsString('Email #2', $html);
@@ -916,8 +891,7 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderRestPanelShowsRoutes(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('rest', 'REST', '25', 'default', [
+        $this->profile->addCollector($this->createCollector('rest', 'REST', '25', 'default', [
             'is_rest_request' => true,
             'current_request' => [
                 'method' => 'GET',
@@ -938,7 +912,7 @@ final class ToolbarRendererTest extends TestCase
             ],
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('Current Request', $html);
         self::assertStringContainsString('/wp/v2/posts', $html);
@@ -953,8 +927,7 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderRouterPanelShowsClassicTemplate(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('router', 'Router', '', 'default', [
+        $this->profile->addCollector($this->createCollector('router', 'Router', '', 'default', [
             'is_block_theme' => false,
             'template' => 'single.php',
             'template_path' => '/var/www/html/wp-content/themes/flavor/single.php',
@@ -969,7 +942,7 @@ final class ToolbarRendererTest extends TestCase
             'is_archive' => false,
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('Template (Classic)', $html);
         self::assertStringContainsString('single.php', $html);
@@ -983,8 +956,7 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderRouterPanelShowsBlockTemplate(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('router', 'Router', '', 'default', [
+        $this->profile->addCollector($this->createCollector('router', 'Router', '', 'default', [
             'is_block_theme' => true,
             'template' => '',
             'template_path' => '',
@@ -1007,7 +979,7 @@ final class ToolbarRendererTest extends TestCase
             'is_front_page' => true,
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('Block Template (FSE)', $html);
         self::assertStringContainsString('front-page', $html);
@@ -1021,8 +993,7 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderSecurityPanelShowsUserAndNonces(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('security', 'Security', '', 'default', [
+        $this->profile->addCollector($this->createCollector('security', 'Security', '', 'default', [
             'is_logged_in' => true,
             'username' => 'admin',
             'display_name' => 'Administrator',
@@ -1038,7 +1009,7 @@ final class ToolbarRendererTest extends TestCase
             'nonce_verify_failures' => 0,
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('User', $html);
         self::assertStringContainsString('admin', $html);
@@ -1054,8 +1025,7 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderShortcodePanelShowsShortcodes(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('shortcode', 'Shortcode', '5/2', 'default', [
+        $this->profile->addCollector($this->createCollector('shortcode', 'Shortcode', '5/2', 'default', [
             'total_count' => 5,
             'used_count' => 2,
             'execution_time' => 15.3,
@@ -1071,7 +1041,7 @@ final class ToolbarRendererTest extends TestCase
             ],
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('Execution Times', $html);
         self::assertStringContainsString('[gallery]', $html);
@@ -1084,8 +1054,7 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderTranslationPanelShowsTranslations(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('translation', 'Translation', '150', 'default', [
+        $this->profile->addCollector($this->createCollector('translation', 'Translation', '150', 'default', [
             'total_lookups' => 150,
             'missing_count' => 2,
             'loaded_domains' => ['default', 'woocommerce', 'my-plugin'],
@@ -1096,7 +1065,7 @@ final class ToolbarRendererTest extends TestCase
             ],
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('Total Lookups', $html);
         self::assertStringContainsString('Loaded Domains', $html);
@@ -1109,8 +1078,7 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderWidgetPanelShowsWidgets(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('widget', 'Widget', '8', 'default', [
+        $this->profile->addCollector($this->createCollector('widget', 'Widget', '8', 'default', [
             'total_widgets' => 8,
             'total_sidebars' => 3,
             'active_widgets' => 6,
@@ -1125,7 +1093,7 @@ final class ToolbarRendererTest extends TestCase
             ],
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('Total Sidebars', $html);
         self::assertStringContainsString('Total Widgets', $html);
@@ -1138,21 +1106,20 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderWordPressPanelShowsWpData(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('wordpress', 'WordPress', '6.4', 'default', [
+        $this->profile->addCollector($this->createCollector('wordpress', 'WordPress', '6.4', 'default', [
             'wp_version' => '6.4.2',
             'environment_type' => 'local',
             'is_multisite' => false,
             'constants' => ['WP_DEBUG' => true, 'WP_DEBUG_LOG' => false, 'SCRIPT_DEBUG' => null],
         ]));
-        $profile->addCollector($this->createCollector('theme', 'Theme', '', 'default', [
+        $this->profile->addCollector($this->createCollector('theme', 'Theme', '', 'default', [
             'name' => 'Twenty Twenty-Four',
             'version' => '1.2',
             'is_block_theme' => true,
             'is_child_theme' => false,
             'parent_theme' => '',
         ]));
-        $profile->addCollector($this->createCollector('plugin', 'Plugins', '', 'default', [
+        $this->profile->addCollector($this->createCollector('plugin', 'Plugins', '', 'default', [
             'plugins' => [
                 'loader.php' => ['name' => 'MU Loader', 'is_mu' => true],
                 'woocommerce/woocommerce.php' => ['name' => 'WooCommerce'],
@@ -1161,7 +1128,7 @@ final class ToolbarRendererTest extends TestCase
             'mu_plugins' => ['loader.php'],
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('6.4.2', $html);
         self::assertStringContainsString('local', $html);
@@ -1177,8 +1144,7 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderMemoryPanelShowsSnapshots(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('memory', 'Memory', '42.5 MB', 'yellow', [
+        $this->profile->addCollector($this->createCollector('memory', 'Memory', '42.5 MB', 'yellow', [
             'current' => 20971520,
             'peak' => 44564480,
             'limit' => 268435456,
@@ -1190,7 +1156,7 @@ final class ToolbarRendererTest extends TestCase
             ],
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('Current Usage', $html);
         self::assertStringContainsString('Peak Usage', $html);
@@ -1204,8 +1170,7 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderRequestPanelShowsRequestData(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('request', 'Request', 'GET 200', 'green', [
+        $this->profile->addCollector($this->createCollector('request', 'Request', 'GET 200', 'green', [
             'method' => 'GET',
             'url' => 'https://example.com/hello-world/',
             'status_code' => 200,
@@ -1219,7 +1184,7 @@ final class ToolbarRendererTest extends TestCase
             'http_api_calls' => [],
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('Request', $html);
         self::assertStringContainsString('GET', $html);
@@ -1237,8 +1202,7 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderRequestPanelShowsPostParamsAndHttpApiCalls(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('request', 'Request', 'POST 302', 'yellow', [
+        $this->profile->addCollector($this->createCollector('request', 'Request', 'POST 302', 'yellow', [
             'method' => 'POST',
             'url' => 'https://example.com/wp-admin/post.php',
             'status_code' => 302,
@@ -1254,7 +1218,7 @@ final class ToolbarRendererTest extends TestCase
             ],
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('POST', $html);
         self::assertStringContainsString('POST Parameters', $html);
@@ -1266,8 +1230,7 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderRestPanelShowsNonRestSummary(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('rest', 'REST', '25', 'default', [
+        $this->profile->addCollector($this->createCollector('rest', 'REST', '25', 'default', [
             'is_rest_request' => false,
             'current_request' => null,
             'total_routes' => 25,
@@ -1275,7 +1238,7 @@ final class ToolbarRendererTest extends TestCase
             'routes' => [],
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('REST Request', $html);
         self::assertStringContainsString('false', $html);
@@ -1286,7 +1249,6 @@ final class ToolbarRendererTest extends TestCase
     public function renderDatabasePanelShowsSlowAndDuplicateQueries(): void
     {
         $requestTimeFloat = microtime(true) - 0.198;
-        $profile = new Profile('test-token');
         $queries = [
             ['sql' => 'SELECT * FROM wp_posts WHERE ID = 1', 'time' => 0.5, 'caller' => 'WP_Post::get_instance', 'start' => $requestTimeFloat + 0.01, 'data' => []],
             ['sql' => 'SELECT * FROM wp_posts WHERE ID = 1', 'time' => 0.3, 'caller' => 'WP_Post::get_instance', 'start' => $requestTimeFloat + 0.02, 'data' => []],
@@ -1296,7 +1258,7 @@ final class ToolbarRendererTest extends TestCase
         for ($i = 0; $i < 4; $i++) {
             $queries[] = ['sql' => 'SELECT option_value FROM wp_options WHERE option_name = "opt' . $i . '"', 'time' => 0.2, 'caller' => 'wp_load_alloptions', 'start' => $requestTimeFloat + 0.04 + ($i * 0.001), 'data' => []];
         }
-        $profile->addCollector($this->createCollector('database', 'Database', '7', 'yellow', [
+        $this->profile->addCollector($this->createCollector('database', 'Database', '7', 'yellow', [
             'total_count' => 7,
             'total_time' => 152.0,
             'duplicate_count' => 1,
@@ -1305,7 +1267,7 @@ final class ToolbarRendererTest extends TestCase
             'queries' => $queries,
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('Queries by Caller', $html);
         self::assertStringContainsString('wp_postmeta', $html);
@@ -1323,8 +1285,7 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderEventPanelShowsHookData(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('event', 'Events', '250', 'default', [
+        $this->profile->addCollector($this->createCollector('event', 'Events', '250', 'default', [
             'total_firings' => 250,
             'unique_hooks' => 80,
             'registered_hooks' => 120,
@@ -1341,7 +1302,7 @@ final class ToolbarRendererTest extends TestCase
             ],
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         self::assertStringContainsString('Total Firings', $html);
         self::assertStringContainsString('Unique Hooks', $html);
@@ -1354,13 +1315,10 @@ final class ToolbarRendererTest extends TestCase
         self::assertStringContainsString('wp_head', $html);
     }
 
-    private function createProfileWithCollectors(): Profile
+    private function createProfileWithCollectors(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('memory', 'Memory', '10 MB', 'green'));
-        $profile->addCollector($this->createCollector('stopwatch', 'Stopwatch', '120 ms', 'default'));
-
-        return $profile;
+        $this->profile->addCollector($this->createCollector('memory', 'Memory', '10 MB', 'green'));
+        $this->profile->addCollector($this->createCollector('stopwatch', 'Stopwatch', '120 ms', 'default'));
     }
 
     /**
@@ -1419,22 +1377,22 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function genericPanelRendererWithEmptyDataShowsNoDataMessage(): void
     {
-        $renderer = new GenericPanelRenderer();
-        $renderer->setCollectorName('test_empty');
         $profile = new Profile();
         $profile->addCollector($this->createCollector('test_empty', 'Test', '', 'default'));
-        $html = $renderer->renderPanel($profile);
+        $renderer = new GenericPanelRenderer($profile);
+        $renderer->setCollectorName('test_empty');
+        $html = $renderer->renderPanel();
         self::assertStringContainsString('No data collected.', $html);
     }
 
     #[Test]
     public function genericPanelRendererWithDataShowsTable(): void
     {
-        $renderer = new GenericPanelRenderer();
-        $renderer->setCollectorName('test_data');
         $profile = new Profile();
         $profile->addCollector($this->createCollector('test_data', 'Test', '', 'default', ['key1' => 'value1', 'key2' => 42]));
-        $html = $renderer->renderPanel($profile);
+        $renderer = new GenericPanelRenderer($profile);
+        $renderer->setCollectorName('test_data');
+        $html = $renderer->renderPanel();
         self::assertStringContainsString('key1', $html);
         self::assertStringContainsString('value1', $html);
         self::assertStringContainsString('key2', $html);
@@ -1464,8 +1422,8 @@ final class ToolbarRendererTest extends TestCase
             'shortcode' => [],
         ]);
 
-        $renderer = new PerformancePanelRenderer();
-        $html = $renderer->renderContent($profile);
+        $renderer = new PerformancePanelRenderer($profile);
+        $html = $renderer->renderContent();
 
         self::assertStringContainsString('Database (2 queries)', $html);
         self::assertStringContainsString('Timeline', $html);
@@ -1494,8 +1452,8 @@ final class ToolbarRendererTest extends TestCase
             'shortcode' => [],
         ]);
 
-        $renderer = new PerformancePanelRenderer();
-        $html = $renderer->renderContent($profile);
+        $renderer = new PerformancePanelRenderer($profile);
+        $html = $renderer->renderContent();
 
         self::assertStringContainsString('HTTP Client (1 requests)', $html);
     }
@@ -1522,8 +1480,8 @@ final class ToolbarRendererTest extends TestCase
             'shortcode' => [],
         ]);
 
-        $renderer = new PerformancePanelRenderer();
-        $html = $renderer->renderContent($profile);
+        $renderer = new PerformancePanelRenderer($profile);
+        $html = $renderer->renderContent();
 
         self::assertStringContainsString('Mail (1 emails)', $html);
     }
@@ -1550,8 +1508,8 @@ final class ToolbarRendererTest extends TestCase
             'shortcode' => [],
         ]);
 
-        $renderer = new PerformancePanelRenderer();
-        $html = $renderer->renderContent($profile);
+        $renderer = new PerformancePanelRenderer($profile);
+        $html = $renderer->renderContent();
 
         self::assertStringContainsString('Widgets (1 sidebars)', $html);
     }
@@ -1579,8 +1537,8 @@ final class ToolbarRendererTest extends TestCase
             ],
         ]);
 
-        $renderer = new PerformancePanelRenderer();
-        $html = $renderer->renderContent($profile);
+        $renderer = new PerformancePanelRenderer($profile);
+        $html = $renderer->renderContent();
 
         self::assertStringContainsString('Shortcodes (2 executions)', $html);
     }
@@ -1627,8 +1585,8 @@ final class ToolbarRendererTest extends TestCase
             'shortcode' => [],
         ]);
 
-        $renderer = new PerformancePanelRenderer();
-        $html = $renderer->renderContent($profile);
+        $renderer = new PerformancePanelRenderer($profile);
+        $html = $renderer->renderContent();
 
         self::assertStringContainsString('Plugins', $html);
         self::assertStringContainsString('My Plugin', $html);
@@ -1676,8 +1634,8 @@ final class ToolbarRendererTest extends TestCase
             'shortcode' => [],
         ]);
 
-        $renderer = new PerformancePanelRenderer();
-        $html = $renderer->renderContent($profile);
+        $renderer = new PerformancePanelRenderer($profile);
+        $html = $renderer->renderContent();
 
         self::assertStringContainsString('Plugins', $html);
         self::assertStringContainsString('WooCommerce', $html);
@@ -1721,8 +1679,8 @@ final class ToolbarRendererTest extends TestCase
             'shortcode' => [],
         ]);
 
-        $renderer = new PerformancePanelRenderer();
-        $html = $renderer->renderContent($profile);
+        $renderer = new PerformancePanelRenderer($profile);
+        $html = $renderer->renderContent();
 
         // Theme section divider should appear
         self::assertStringContainsString('Theme', $html);
@@ -1760,8 +1718,8 @@ final class ToolbarRendererTest extends TestCase
             'shortcode' => [],
         ]);
 
-        $renderer = new PerformancePanelRenderer();
-        $html = $renderer->renderContent($profile);
+        $renderer = new PerformancePanelRenderer($profile);
+        $html = $renderer->renderContent();
 
         self::assertStringContainsString('Widgets (2 sidebars)', $html);
         // Widget names in tooltips
@@ -1798,8 +1756,8 @@ final class ToolbarRendererTest extends TestCase
             ],
         ]);
 
-        $renderer = new PerformancePanelRenderer();
-        $html = $renderer->renderContent($profile);
+        $renderer = new PerformancePanelRenderer($profile);
+        $html = $renderer->renderContent();
 
         self::assertStringContainsString('Shortcodes (3 executions)', $html);
         // Shortcode tags in tooltips (wrapped in square brackets)
@@ -1836,8 +1794,8 @@ final class ToolbarRendererTest extends TestCase
             'shortcode' => [],
         ]);
 
-        $renderer = new PerformancePanelRenderer();
-        $html = $renderer->renderContent($profile);
+        $renderer = new PerformancePanelRenderer($profile);
+        $html = $renderer->renderContent();
 
         self::assertStringContainsString('Mail (2 emails)', $html);
         // Email subjects in tooltips
@@ -1858,8 +1816,8 @@ final class ToolbarRendererTest extends TestCase
             'database' => ['total_count' => 0, 'total_time' => 0.0, 'slow_count' => 0, 'queries' => []],
         ]);
 
-        $renderer = new PerformancePanelRenderer();
-        $html = $renderer->renderIndicator($profile);
+        $renderer = new PerformancePanelRenderer($profile);
+        $html = $renderer->renderIndicator();
 
         // Red indicator background should use CSS variable
         self::assertStringContainsString('style="background:var(--wpd-red-a12)"', $html);
@@ -1875,8 +1833,8 @@ final class ToolbarRendererTest extends TestCase
             'database' => ['total_count' => 5, 'total_time' => 10.0, 'slow_count' => 2, 'queries' => []],
         ]);
 
-        $renderer = new PerformancePanelRenderer();
-        $html = $renderer->renderIndicator($profile);
+        $renderer = new PerformancePanelRenderer($profile);
+        $html = $renderer->renderIndicator();
 
         self::assertStringContainsString('style="background:var(--wpd-red-a12)"', $html);
     }
@@ -1897,8 +1855,8 @@ final class ToolbarRendererTest extends TestCase
         $_SERVER['REQUEST_TIME_FLOAT'] = $requestTime;
 
         try {
-            $renderer = new PerformancePanelRenderer();
-            $html = $renderer->renderIndicator($profile);
+            $renderer = new PerformancePanelRenderer($profile);
+            $html = $renderer->renderIndicator();
 
             // With totalTime >= 1000ms, red indicator should appear
             self::assertStringContainsString('style="background:var(--wpd-red-a12)"', $html);
@@ -1928,8 +1886,8 @@ final class ToolbarRendererTest extends TestCase
             'shortcode' => [],
         ]);
 
-        $renderer = new PerformancePanelRenderer();
-        $html = $renderer->renderPanel($profile);
+        $renderer = new PerformancePanelRenderer($profile);
+        $html = $renderer->renderPanel();
 
         // renderPanel() delegates to renderContent(), which produces Overview section
         self::assertStringContainsString('Overview', $html);
@@ -1967,8 +1925,8 @@ final class ToolbarRendererTest extends TestCase
             'shortcode' => [],
         ]);
 
-        $renderer = new PerformancePanelRenderer();
-        $html = $renderer->renderContent($profile);
+        $renderer = new PerformancePanelRenderer($profile);
+        $html = $renderer->renderContent();
 
         // Only 2 requests have 'start', so the timeline should say "2 requests"
         self::assertStringContainsString('HTTP Client (2 requests)', $html);
@@ -1984,7 +1942,7 @@ final class ToolbarRendererTest extends TestCase
      */
     private function createProfileWithMockCollectors(array $collectorData): Profile
     {
-        $profile = new Profile('test-perf-' . uniqid());
+        $profile = new Profile();
 
         foreach ($collectorData as $name => $data) {
             $profile->addCollector($this->createCollector($name, ucfirst($name), '', 'default', $data));
@@ -1996,8 +1954,7 @@ final class ToolbarRendererTest extends TestCase
     #[Test]
     public function renderLoggerPanelCoversAllLogLevels(): void
     {
-        $profile = new Profile('test-token');
-        $profile->addCollector($this->createCollector('logger', 'Logs', '8', 'red', [
+        $this->profile->addCollector($this->createCollector('logger', 'Logs', '8', 'red', [
             'total_count' => 8,
             'error_count' => 4,
             'deprecation_count' => 1,
@@ -2014,7 +1971,7 @@ final class ToolbarRendererTest extends TestCase
             ],
         ]));
 
-        $html = $this->renderer->render($profile);
+        $html = $this->renderer->render();
 
         // Level-specific CSS classes
         self::assertStringContainsString('wpd-log-critical', $html);

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
 use WpPack\Component\Debug\Attribute\AsPanelRenderer;
-use WpPack\Component\Debug\Profiler\Profile;
 
 #[AsPanelRenderer(name: 'plugin')]
 final class PluginPanelRenderer extends AbstractPanelRenderer implements RendererInterface
@@ -15,9 +14,9 @@ final class PluginPanelRenderer extends AbstractPanelRenderer implements Rendere
         return 'plugin';
     }
 
-    public function renderPanel(Profile $profile): string
+    public function renderPanel(): string
     {
-        $data = $this->getCollectorData($profile, $this->getName());
+        $data = $this->getCollectorData();
         $totalPlugins = (int) ($data['total_plugins'] ?? 0);
         $totalHookTime = (float) ($data['total_hook_time'] ?? 0.0);
         $slowestPlugin = (string) ($data['slowest_plugin'] ?? '');
@@ -125,7 +124,7 @@ final class PluginPanelRenderer extends AbstractPanelRenderer implements Rendere
         $html .= '</div>'; // .wpd-plugin-list
 
         // === Detail views (one per plugin, hidden by default) ===
-        $assetData = $this->getCollectorData($profile, 'asset');
+        $assetData = $this->getCollectorData('asset');
         /** @var array<string, array<string, mixed>> $allScripts */
         $allScripts = $assetData['scripts'] ?? [];
         /** @var array<string, array<string, mixed>> $allStyles */

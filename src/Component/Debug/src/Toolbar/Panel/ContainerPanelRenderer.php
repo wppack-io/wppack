@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
 use WpPack\Component\Debug\Attribute\AsPanelRenderer;
-use WpPack\Component\Debug\Profiler\Profile;
 
 #[AsPanelRenderer(name: 'container')]
 final class ContainerPanelRenderer extends AbstractPanelRenderer implements RendererInterface
@@ -15,9 +14,9 @@ final class ContainerPanelRenderer extends AbstractPanelRenderer implements Rend
         return 'container';
     }
 
-    public function renderPanel(Profile $profile): string
+    public function renderPanel(): string
     {
-        $data = $this->getCollectorData($profile, $this->getName());
+        $data = $this->getCollectorData();
         $serviceCount = (int) ($data['service_count'] ?? 0);
         $publicCount = (int) ($data['public_count'] ?? 0);
         $privateCount = (int) ($data['private_count'] ?? 0);

@@ -32,8 +32,8 @@ final class ToolbarSubscriberTest extends TestCase
     {
         // enabled: false ensures shouldShowToolbar() returns false
         $config = new DebugConfig(enabled: false, showToolbar: true);
-        $renderer = new ToolbarRenderer();
         $profile = new Profile();
+        $renderer = new ToolbarRenderer($profile);
 
         $subscriber = new ToolbarSubscriber($config, $renderer, $profile, []);
 
@@ -57,8 +57,8 @@ final class ToolbarSubscriberTest extends TestCase
             self::markTestSkipped('shouldShowToolbar() is false in this environment.');
         }
 
-        $renderer = new ToolbarRenderer();
         $profile = new Profile();
+        $renderer = new ToolbarRenderer($profile);
 
         $subscriber = new ToolbarSubscriber($config, $renderer, $profile, []);
         $subscriber->register();
@@ -74,8 +74,8 @@ final class ToolbarSubscriberTest extends TestCase
     {
         // enabled: false ensures shouldShowToolbar() returns false
         $config = new DebugConfig(enabled: false, showToolbar: true);
-        $renderer = new ToolbarRenderer();
         $profile = new Profile();
+        $renderer = new ToolbarRenderer($profile);
 
         $collector = new class extends AbstractDataCollector {
             public bool $collected = false;
@@ -131,7 +131,7 @@ final class ToolbarSubscriberTest extends TestCase
         };
 
         $profile = new Profile();
-        $renderer = new ToolbarRenderer();
+        $renderer = new ToolbarRenderer($profile);
 
         $subscriber = new ToolbarSubscriber($config, $renderer, $profile, [$collector]);
 
@@ -197,8 +197,8 @@ final class ToolbarSubscriberTest extends TestCase
                 self::markTestSkipped('shouldShowToolbar() is false in this environment.');
             }
 
-            $renderer = new ToolbarRenderer();
             $profile = new Profile();
+            $renderer = new ToolbarRenderer($profile);
 
             $subscriber = new ToolbarSubscriber($config, $renderer, $profile, []);
             $subscriber->register();
@@ -268,8 +268,8 @@ final class ToolbarSubscriberTest extends TestCase
                 }
             };
 
-            $renderer = new ToolbarRenderer();
             $profile = new Profile();
+            $renderer = new ToolbarRenderer($profile);
 
             $subscriber = new ToolbarSubscriber($config, $renderer, $profile, [$collector]);
 

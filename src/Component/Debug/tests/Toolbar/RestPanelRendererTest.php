@@ -13,10 +13,12 @@ use WpPack\Component\Debug\Toolbar\Panel\RestPanelRenderer;
 final class RestPanelRendererTest extends TestCase
 {
     private RestPanelRenderer $renderer;
+    private Profile $profile;
 
     protected function setUp(): void
     {
-        $this->renderer = new RestPanelRenderer();
+        $this->profile = new Profile();
+        $this->renderer = new RestPanelRenderer($this->profile);
     }
 
     #[Test]
@@ -28,7 +30,7 @@ final class RestPanelRendererTest extends TestCase
     #[Test]
     public function renderWithRoutesGroupedByNamespace(): void
     {
-        $html = $this->renderer->renderPanel($this->createProfile([
+        $this->setRestData([
             'is_rest_request' => false,
             'current_request' => null,
             'total_routes' => 5,
@@ -42,7 +44,8 @@ final class RestPanelRendererTest extends TestCase
                     ['route' => '/my-plugin/v1/data', 'methods' => ['GET'], 'callback' => 'MyPlugin\\RestController::getData'],
                 ],
             ],
-        ]));
+        ]);
+        $html = $this->renderer->renderPanel();
 
         // Namespace section headers with route counts
         self::assertStringContainsString('wp/v2 (2)', $html);
@@ -64,7 +67,7 @@ final class RestPanelRendererTest extends TestCase
     #[Test]
     public function renderWithCurrentRequest(): void
     {
-        $html = $this->renderer->renderPanel($this->createProfile([
+        $this->setRestData([
             'is_rest_request' => true,
             'current_request' => [
                 'method' => 'POST',
@@ -79,7 +82,8 @@ final class RestPanelRendererTest extends TestCase
             'total_routes' => 10,
             'total_namespaces' => 2,
             'routes' => [],
-        ]));
+        ]);
+        $html = $this->renderer->renderPanel();
 
         // Current Request section appears
         self::assertStringContainsString('Current Request', $html);
@@ -107,7 +111,7 @@ final class RestPanelRendererTest extends TestCase
     #[Test]
     public function renderMethodColorCoding(): void
     {
-        $html = $this->renderer->renderPanel($this->createProfile([
+        $this->setRestData([
             'is_rest_request' => false,
             'current_request' => null,
             'total_routes' => 4,
@@ -120,7 +124,8 @@ final class RestPanelRendererTest extends TestCase
                     ['route' => '/test/v1/delete-resource', 'methods' => ['DELETE'], 'callback' => 'TestController::delete'],
                 ],
             ],
-        ]));
+        ]);
+        $html = $this->renderer->renderPanel();
 
         // GET - green
         self::assertStringContainsString('wpd-badge-green', $html);
@@ -136,7 +141,7 @@ final class RestPanelRendererTest extends TestCase
     public function renderCurrentRequestWithDifferentAuthenticationTypes(): void
     {
         // Bearer authentication
-        $html = $this->renderer->renderPanel($this->createProfile([
+        $this->setRestData([
             'is_rest_request' => true,
             'current_request' => [
                 'method' => 'GET',
@@ -151,7 +156,8 @@ final class RestPanelRendererTest extends TestCase
             'total_routes' => 1,
             'total_namespaces' => 1,
             'routes' => [],
-        ]));
+        ]);
+        $html = $this->renderer->renderPanel();
 
         self::assertStringContainsString('Bearer', $html);
         self::assertStringContainsString('wpd-badge-purple', $html);
@@ -160,7 +166,7 @@ final class RestPanelRendererTest extends TestCase
     #[Test]
     public function renderCurrentRequestWith4xxStatus(): void
     {
-        $html = $this->renderer->renderPanel($this->createProfile([
+        $this->setRestData([
             'is_rest_request' => true,
             'current_request' => [
                 'method' => 'GET',
@@ -175,7 +181,8 @@ final class RestPanelRendererTest extends TestCase
             'total_routes' => 1,
             'total_namespaces' => 1,
             'routes' => [],
-        ]));
+        ]);
+        $html = $this->renderer->renderPanel();
 
         self::assertStringContainsString('404', $html);
         self::assertStringContainsString('wpd-text-red', $html);
@@ -184,7 +191,7 @@ final class RestPanelRendererTest extends TestCase
     #[Test]
     public function renderCurrentRequestWith3xxStatus(): void
     {
-        $html = $this->renderer->renderPanel($this->createProfile([
+        $this->setRestData([
             'is_rest_request' => true,
             'current_request' => [
                 'method' => 'GET',
@@ -199,7 +206,8 @@ final class RestPanelRendererTest extends TestCase
             'total_routes' => 1,
             'total_namespaces' => 1,
             'routes' => [],
-        ]));
+        ]);
+        $html = $this->renderer->renderPanel();
 
         self::assertStringContainsString('301', $html);
         self::assertStringContainsString('wpd-text-yellow', $html);
@@ -208,7 +216,7 @@ final class RestPanelRendererTest extends TestCase
     #[Test]
     public function renderRouteWithUnknownMethodShowsDefaultColor(): void
     {
-        $html = $this->renderer->renderPanel($this->createProfile([
+        $this->setRestData([
             'is_rest_request' => false,
             'current_request' => null,
             'total_routes' => 1,
@@ -218,7 +226,8 @@ final class RestPanelRendererTest extends TestCase
                     ['route' => '/test/v1/options', 'methods' => ['OPTIONS'], 'callback' => 'callback'],
                 ],
             ],
-        ]));
+        ]);
+        $html = $this->renderer->renderPanel();
 
         // OPTIONS method uses default (gray) color
         self::assertStringContainsString('wpd-badge-gray', $html);
@@ -227,7 +236,7 @@ final class RestPanelRendererTest extends TestCase
     #[Test]
     public function renderCurrentRequestWithDeleteMethod(): void
     {
-        $html = $this->renderer->renderPanel($this->createProfile([
+        $this->setRestData([
             'is_rest_request' => true,
             'current_request' => [
                 'method' => 'DELETE',
@@ -242,7 +251,8 @@ final class RestPanelRendererTest extends TestCase
             'total_routes' => 1,
             'total_namespaces' => 1,
             'routes' => [],
-        ]));
+        ]);
+        $html = $this->renderer->renderPanel();
 
         // DELETE method in current request section
         self::assertStringContainsString('DELETE', $html);
@@ -254,7 +264,7 @@ final class RestPanelRendererTest extends TestCase
     #[Test]
     public function renderCurrentRequestWithPutMethodAndBasicAuth(): void
     {
-        $html = $this->renderer->renderPanel($this->createProfile([
+        $this->setRestData([
             'is_rest_request' => true,
             'current_request' => [
                 'method' => 'PUT',
@@ -269,7 +279,8 @@ final class RestPanelRendererTest extends TestCase
             'total_routes' => 1,
             'total_namespaces' => 1,
             'routes' => [],
-        ]));
+        ]);
+        $html = $this->renderer->renderPanel();
 
         // PUT method in current request
         self::assertStringContainsString('PUT', $html);
@@ -281,9 +292,8 @@ final class RestPanelRendererTest extends TestCase
     /**
      * @param array<string, mixed> $data
      */
-    private function createProfile(array $data): Profile
+    private function setRestData(array $data): void
     {
-        $profile = new Profile();
         $collector = new class ($data) implements DataCollectorInterface {
             public function __construct(private readonly array $data) {}
             public function getName(): string
@@ -309,8 +319,6 @@ final class RestPanelRendererTest extends TestCase
             }
             public function reset(): void {}
         };
-        $profile->addCollector($collector);
-
-        return $profile;
+        $this->profile->addCollector($collector);
     }
 }

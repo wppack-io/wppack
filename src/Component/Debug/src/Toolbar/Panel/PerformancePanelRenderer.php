@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
 use WpPack\Component\Debug\Attribute\AsPanelRenderer;
-use WpPack\Component\Debug\Profiler\Profile;
 
 #[AsPanelRenderer(name: 'performance')]
 final class PerformancePanelRenderer extends AbstractPanelRenderer implements RendererInterface
@@ -15,21 +14,21 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer implements Re
         return 'performance';
     }
 
-    public function renderPanel(Profile $profile): string
+    public function renderPanel(): string
     {
-        return $this->renderContent($profile);
+        return $this->renderContent();
     }
 
-    public function renderIndicator(Profile $profile): string
+    public function renderIndicator(): string
     {
-        $totalTime = $profile->getTime();
+        $totalTime = $this->profile->getTime();
         $value = $this->formatMs($totalTime);
         $icon = ToolbarIcons::svg('performance');
 
-        $memoryData = $this->getCollectorData($profile, 'memory');
+        $memoryData = $this->getCollectorData('memory');
         $usagePercentage = (float) ($memoryData['usage_percentage'] ?? 0.0);
 
-        $dbData = $this->getCollectorData($profile, 'database');
+        $dbData = $this->getCollectorData('database');
         $slowQueries = (int) ($dbData['slow_count'] ?? 0);
 
         $indicatorColors = self::getIndicatorColors();
@@ -49,17 +48,17 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer implements Re
         HTML;
     }
 
-    public function renderContent(Profile $profile): string
+    public function renderContent(): string
     {
-        $timeData = $this->getCollectorData($profile, 'stopwatch');
-        $memoryData = $this->getCollectorData($profile, 'memory');
-        $dbData = $this->getCollectorData($profile, 'database');
-        $cacheData = $this->getCollectorData($profile, 'cache');
-        $httpData = $this->getCollectorData($profile, 'http_client');
-        $eventData = $this->getCollectorData($profile, 'event');
-        $mailData = $this->getCollectorData($profile, 'mail');
+        $timeData = $this->getCollectorData('stopwatch');
+        $memoryData = $this->getCollectorData('memory');
+        $dbData = $this->getCollectorData('database');
+        $cacheData = $this->getCollectorData('cache');
+        $httpData = $this->getCollectorData('http_client');
+        $eventData = $this->getCollectorData('event');
+        $mailData = $this->getCollectorData('mail');
 
-        $totalTime = (float) ($timeData['total_time'] ?? $profile->getTime());
+        $totalTime = (float) ($timeData['total_time'] ?? $this->profile->getTime());
         $peakMemory = (int) ($memoryData['peak'] ?? 0);
         $memoryLimit = (int) ($memoryData['limit'] ?? 0);
         $usagePercentage = (float) ($memoryData['usage_percentage'] ?? 0.0);
@@ -325,7 +324,7 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer implements Re
         }
 
         // 6. Plugin hook processing bars (including load time during plugins_loaded)
-        $pluginData = $this->getCollectorData($profile, 'plugin');
+        $pluginData = $this->getCollectorData('plugin');
         /** @var array<string, array<string, mixed>> $pluginEntries */
         $pluginEntries = $pluginData['plugins'] ?? [];
         $pluginTimelineEntries = [];
@@ -405,7 +404,7 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer implements Re
         }
 
         // 7. Theme hook processing bars
-        $themeData = $this->getCollectorData($profile, 'theme');
+        $themeData = $this->getCollectorData('theme');
         /** @var list<array{hook: string, listeners: int, time: float}> $themeHooks */
         $themeHooks = $themeData['hooks'] ?? [];
         $themeTimelineEntries = [];
@@ -443,7 +442,7 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer implements Re
         }
 
         // 8. Widget sidebar render bars (main timeline)
-        $widgetData = $this->getCollectorData($profile, 'widget');
+        $widgetData = $this->getCollectorData('widget');
         /** @var list<array{sidebar: string, name: string, start: float, duration: float}> $sidebarTimings */
         $sidebarTimings = $widgetData['sidebar_timings'] ?? [];
 
@@ -474,7 +473,7 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer implements Re
         }
 
         // 9. Shortcode execution bars (main timeline)
-        $shortcodeData = $this->getCollectorData($profile, 'shortcode');
+        $shortcodeData = $this->getCollectorData('shortcode');
         /** @var list<array{tag: string, start: float, duration: float}> $shortcodeExecutions */
         $shortcodeExecutions = $shortcodeData['executions'] ?? [];
 
@@ -505,7 +504,7 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer implements Re
         }
 
         // 10. Mail send bars (main timeline)
-        $mailData = $this->getCollectorData($profile, 'mail');
+        $mailData = $this->getCollectorData('mail');
         /** @var list<array{subject: string, status: string, start?: float, duration?: float}> $mailEmails */
         $mailEmails = $mailData['emails'] ?? [];
         $mailBars = [];

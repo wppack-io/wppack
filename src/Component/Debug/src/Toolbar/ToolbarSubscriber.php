@@ -50,6 +50,6 @@ final class ToolbarSubscriber
         $this->profile->setUrl($_SERVER['REQUEST_URI'] ?? '/');
         $this->profile->setMethod($_SERVER['REQUEST_METHOD'] ?? 'GET');
 
-        echo $this->renderer->render($this->profile);
+        echo $this->renderer->render();
     }
 }

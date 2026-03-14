@@ -12,16 +12,17 @@ use WpPack\Component\Debug\Toolbar\Panel\EnvironmentPanelRenderer;
 
 final class EnvironmentPanelRendererTest extends TestCase
 {
+    private Profile $profile;
     private EnvironmentPanelRenderer $renderer;
 
     protected function setUp(): void
     {
-        $this->renderer = new EnvironmentPanelRenderer();
+        $this->profile = new Profile();
+        $this->renderer = new EnvironmentPanelRenderer($this->profile);
     }
 
-    private function createProfile(array $data): Profile
+    private function setEnvironmentData(array $data): void
     {
-        $profile = new Profile();
         $collector = new class ($data) implements DataCollectorInterface {
             public function __construct(private readonly array $data) {}
             public function getName(): string
@@ -47,15 +48,13 @@ final class EnvironmentPanelRendererTest extends TestCase
             }
             public function reset(): void {}
         };
-        $profile->addCollector($collector);
-
-        return $profile;
+        $this->profile->addCollector($collector);
     }
 
     #[Test]
     public function renderWithBasicData(): void
     {
-        $html = $this->renderer->renderPanel($this->createProfile([
+        $this->setEnvironmentData([
             'php' => [
                 'version' => '8.3.1',
                 'zend_version' => '4.3.1',
@@ -69,7 +68,8 @@ final class EnvironmentPanelRendererTest extends TestCase
             'extensions' => [],
             'ini' => [],
             'opcache' => [],
-        ]));
+        ]);
+        $html = $this->renderer->renderPanel();
 
         self::assertStringContainsString('PHP Runtime', $html);
         self::assertStringContainsString('8.3.1', $html);
@@ -85,7 +85,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithOpcacheEnabled(): void
     {
-        $html = $this->renderer->renderPanel($this->createProfile([
+        $this->setEnvironmentData([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -99,7 +99,8 @@ final class EnvironmentPanelRendererTest extends TestCase
                 'used_memory' => 10485760,  // 10 MB
                 'free_memory' => 125829120, // 120 MB
             ],
-        ]));
+        ]);
+        $html = $this->renderer->renderPanel();
 
         self::assertStringContainsString('OPcache', $html);
         self::assertStringContainsString('wpd-text-green">true', $html);
@@ -112,7 +113,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithOpcacheDisabled(): void
     {
-        $html = $this->renderer->renderPanel($this->createProfile([
+        $this->setEnvironmentData([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -121,7 +122,8 @@ final class EnvironmentPanelRendererTest extends TestCase
             'opcache' => [
                 'enabled' => false,
             ],
-        ]));
+        ]);
+        $html = $this->renderer->renderPanel();
 
         self::assertStringContainsString('OPcache', $html);
         self::assertStringContainsString('wpd-text-red">false', $html);
@@ -134,7 +136,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithHighHitRate(): void
     {
-        $html = $this->renderer->renderPanel($this->createProfile([
+        $this->setEnvironmentData([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -146,7 +148,8 @@ final class EnvironmentPanelRendererTest extends TestCase
                 'used_memory' => 0,
                 'free_memory' => 0,
             ],
-        ]));
+        ]);
+        $html = $this->renderer->renderPanel();
 
         self::assertStringContainsString('wpd-text-green', $html);
         self::assertStringContainsString('98.7%', $html);
@@ -155,7 +158,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithMediumHitRate(): void
     {
-        $html = $this->renderer->renderPanel($this->createProfile([
+        $this->setEnvironmentData([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -167,7 +170,8 @@ final class EnvironmentPanelRendererTest extends TestCase
                 'used_memory' => 0,
                 'free_memory' => 0,
             ],
-        ]));
+        ]);
+        $html = $this->renderer->renderPanel();
 
         self::assertStringContainsString('wpd-text-yellow', $html);
         self::assertStringContainsString('87.3%', $html);
@@ -176,7 +180,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithLowHitRate(): void
     {
-        $html = $this->renderer->renderPanel($this->createProfile([
+        $this->setEnvironmentData([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -188,7 +192,8 @@ final class EnvironmentPanelRendererTest extends TestCase
                 'used_memory' => 0,
                 'free_memory' => 0,
             ],
-        ]));
+        ]);
+        $html = $this->renderer->renderPanel();
 
         self::assertStringContainsString('wpd-text-red', $html);
         self::assertStringContainsString('55.2%', $html);
@@ -197,7 +202,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithWastedPercentage(): void
     {
-        $html = $this->renderer->renderPanel($this->createProfile([
+        $this->setEnvironmentData([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -210,7 +215,8 @@ final class EnvironmentPanelRendererTest extends TestCase
                 'free_memory' => 0,
                 'wasted_percentage' => 3.5,
             ],
-        ]));
+        ]);
+        $html = $this->renderer->renderPanel();
 
         self::assertStringContainsString('Wasted', $html);
         self::assertStringContainsString('3.5%', $html);
@@ -220,7 +226,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithOomRestarts(): void
     {
-        $html = $this->renderer->renderPanel($this->createProfile([
+        $this->setEnvironmentData([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -233,7 +239,8 @@ final class EnvironmentPanelRendererTest extends TestCase
                 'free_memory' => 0,
                 'oom_restarts' => 3,
             ],
-        ]));
+        ]);
+        $html = $this->renderer->renderPanel();
 
         self::assertStringContainsString('OOM Restarts', $html);
         self::assertStringContainsString('wpd-text-red">3', $html);
@@ -242,7 +249,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithDisableFunctions(): void
     {
-        $html = $this->renderer->renderPanel($this->createProfile([
+        $this->setEnvironmentData([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -252,7 +259,8 @@ final class EnvironmentPanelRendererTest extends TestCase
                 'memory_limit' => '256M',
             ],
             'opcache' => [],
-        ]));
+        ]);
+        $html = $this->renderer->renderPanel();
 
         self::assertStringContainsString('PHP Configuration', $html);
         self::assertStringContainsString('3 functions disabled', $html);
@@ -262,14 +270,15 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithExtensions(): void
     {
-        $html = $this->renderer->renderPanel($this->createProfile([
+        $this->setEnvironmentData([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
             'extensions' => ['mbstring', 'curl', 'openssl', 'pdo_mysql'],
             'ini' => [],
             'opcache' => [],
-        ]));
+        ]);
+        $html = $this->renderer->renderPanel();
 
         self::assertStringContainsString('PHP Extensions (4)', $html);
         self::assertStringContainsString('wpd-tag-list', $html);
@@ -282,14 +291,15 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithEmptyExtensions(): void
     {
-        $html = $this->renderer->renderPanel($this->createProfile([
+        $this->setEnvironmentData([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
             'extensions' => [],
             'ini' => [],
             'opcache' => [],
-        ]));
+        ]);
+        $html = $this->renderer->renderPanel();
 
         self::assertStringNotContainsString('Extensions', $html);
         self::assertStringNotContainsString('wpd-tag-list', $html);
@@ -298,7 +308,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithHostname(): void
     {
-        $html = $this->renderer->renderPanel($this->createProfile([
+        $this->setEnvironmentData([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -306,7 +316,8 @@ final class EnvironmentPanelRendererTest extends TestCase
             'extensions' => [],
             'ini' => [],
             'opcache' => [],
-        ]));
+        ]);
+        $html = $this->renderer->renderPanel();
 
         self::assertStringContainsString('Hostname', $html);
         self::assertStringContainsString('web-server-01', $html);
@@ -315,7 +326,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithEmptyHostname(): void
     {
-        $html = $this->renderer->renderPanel($this->createProfile([
+        $this->setEnvironmentData([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -323,7 +334,8 @@ final class EnvironmentPanelRendererTest extends TestCase
             'extensions' => [],
             'ini' => [],
             'opcache' => [],
-        ]));
+        ]);
+        $html = $this->renderer->renderPanel();
 
         self::assertStringNotContainsString('Hostname', $html);
     }
@@ -331,7 +343,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithServerInfo(): void
     {
-        $html = $this->renderer->renderPanel($this->createProfile([
+        $this->setEnvironmentData([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'fpm-fcgi',
             'os' => 'Linux',
@@ -349,7 +361,8 @@ final class EnvironmentPanelRendererTest extends TestCase
                 'document_root' => '/var/www/html',
             ],
             'runtime' => ['type' => '', 'details' => []],
-        ]));
+        ]);
+        $html = $this->renderer->renderPanel();
 
         self::assertStringContainsString('Web Server', $html);
         self::assertStringContainsString('Apache 2.4.52', $html);
@@ -363,7 +376,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithEmptyServerInfo(): void
     {
-        $html = $this->renderer->renderPanel($this->createProfile([
+        $this->setEnvironmentData([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -380,7 +393,8 @@ final class EnvironmentPanelRendererTest extends TestCase
                 'document_root' => '',
             ],
             'runtime' => ['type' => '', 'details' => []],
-        ]));
+        ]);
+        $html = $this->renderer->renderPanel();
 
         self::assertStringContainsString('Web Server', $html);
         self::assertStringContainsString('(not available)', $html);
@@ -393,7 +407,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithLambdaRuntime(): void
     {
-        $html = $this->renderer->renderPanel($this->createProfile([
+        $this->setEnvironmentData([
             'php' => ['version' => '8.4.0'],
             'sapi' => 'cli',
             'os' => 'Linux',
@@ -414,7 +428,8 @@ final class EnvironmentPanelRendererTest extends TestCase
                     'Runtime' => 'provided.al2023',
                 ],
             ],
-        ]));
+        ]);
+        $html = $this->renderer->renderPanel();
 
         self::assertStringContainsString('Infrastructure', $html);
         self::assertStringContainsString('Lambda', $html);
@@ -427,7 +442,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithEcsRuntime(): void
     {
-        $html = $this->renderer->renderPanel($this->createProfile([
+        $this->setEnvironmentData([
             'php' => ['version' => '8.4.0'],
             'sapi' => 'fpm-fcgi',
             'os' => 'Linux',
@@ -446,7 +461,8 @@ final class EnvironmentPanelRendererTest extends TestCase
                     'Region' => 'us-east-1',
                 ],
             ],
-        ]));
+        ]);
+        $html = $this->renderer->renderPanel();
 
         self::assertStringContainsString('Infrastructure', $html);
         self::assertStringContainsString('ECS', $html);
@@ -459,7 +475,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithDockerRuntime(): void
     {
-        $html = $this->renderer->renderPanel($this->createProfile([
+        $this->setEnvironmentData([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'fpm-fcgi',
             'os' => 'Linux',
@@ -477,7 +493,8 @@ final class EnvironmentPanelRendererTest extends TestCase
                     'Hostname' => 'abc123def456',
                 ],
             ],
-        ]));
+        ]);
+        $html = $this->renderer->renderPanel();
 
         self::assertStringContainsString('Infrastructure', $html);
         self::assertStringContainsString('Docker', $html);
@@ -489,7 +506,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithWebServerParsed(): void
     {
-        $html = $this->renderer->renderPanel($this->createProfile([
+        $this->setEnvironmentData([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'fpm-fcgi',
             'os' => 'Linux',
@@ -502,7 +519,8 @@ final class EnvironmentPanelRendererTest extends TestCase
                 'protocol' => 'HTTP/2.0',
             ],
             'runtime' => ['type' => '', 'details' => []],
-        ]));
+        ]);
+        $html = $this->renderer->renderPanel();
 
         self::assertStringContainsString('Web Server', $html);
         self::assertStringContainsString('Litespeed', $html);
@@ -512,7 +530,7 @@ final class EnvironmentPanelRendererTest extends TestCase
     #[Test]
     public function renderWithNoRuntime(): void
     {
-        $html = $this->renderer->renderPanel($this->createProfile([
+        $this->setEnvironmentData([
             'php' => ['version' => '8.3.0'],
             'sapi' => 'fpm-fcgi',
             'os' => 'Linux',
@@ -525,7 +543,8 @@ final class EnvironmentPanelRendererTest extends TestCase
                 'web_server' => ['name' => 'Apache', 'version' => '2.4.52', 'raw' => 'Apache/2.4.52'],
             ],
             'runtime' => ['type' => '', 'details' => []],
-        ]));
+        ]);
+        $html = $this->renderer->renderPanel();
 
         self::assertStringContainsString('Infrastructure', $html);
         // Runtime row should not appear (only "PHP Runtime" section title exists)

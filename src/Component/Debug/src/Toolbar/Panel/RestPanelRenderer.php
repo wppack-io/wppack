@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
 use WpPack\Component\Debug\Attribute\AsPanelRenderer;
-use WpPack\Component\Debug\Profiler\Profile;
 
 #[AsPanelRenderer(name: 'rest')]
 final class RestPanelRenderer extends AbstractPanelRenderer implements RendererInterface
@@ -15,9 +14,9 @@ final class RestPanelRenderer extends AbstractPanelRenderer implements RendererI
         return 'rest';
     }
 
-    public function renderPanel(Profile $profile): string
+    public function renderPanel(): string
     {
-        $data = $this->getCollectorData($profile, $this->getName());
+        $data = $this->getCollectorData();
         $isRestRequest = (bool) ($data['is_rest_request'] ?? false);
         /** @var array<string, mixed>|null $currentRequest */
         $currentRequest = $data['current_request'] ?? null;

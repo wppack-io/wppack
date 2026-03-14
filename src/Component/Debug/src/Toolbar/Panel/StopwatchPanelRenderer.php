@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
 use WpPack\Component\Debug\Attribute\AsPanelRenderer;
-use WpPack\Component\Debug\Profiler\Profile;
 
 #[AsPanelRenderer(name: 'stopwatch')]
 final class StopwatchPanelRenderer extends AbstractPanelRenderer implements RendererInterface
@@ -15,9 +14,9 @@ final class StopwatchPanelRenderer extends AbstractPanelRenderer implements Rend
         return 'stopwatch';
     }
 
-    public function renderPanel(Profile $profile): string
+    public function renderPanel(): string
     {
-        $data = $this->getCollectorData($profile, $this->getName());
+        $data = $this->getCollectorData();
         $totalTime = (float) ($data['total_time'] ?? 0.0);
         /** @var array<string, float> $phases */
         $phases = $data['phases'] ?? [];

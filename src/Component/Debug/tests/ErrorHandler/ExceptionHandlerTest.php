@@ -245,8 +245,8 @@ final class ExceptionHandlerTest extends TestCase
                 self::markTestSkipped('isAccessAllowed() is false in this environment.');
             }
 
-            $toolbarRenderer = new ToolbarRenderer();
             $profile = new Profile('test-token');
+            $toolbarRenderer = new ToolbarRenderer($profile);
 
             $handler = new ExceptionHandler(new ErrorRenderer(), $config, $toolbarRenderer, $profile);
 
@@ -299,9 +299,10 @@ final class ExceptionHandlerTest extends TestCase
                 self::markTestSkipped('isAccessAllowed() is false in this environment.');
             }
 
-            $toolbarRenderer = new ToolbarRenderer();
+            $profile = new Profile('test');
+            $toolbarRenderer = new ToolbarRenderer($profile);
             $handler = new ExceptionHandler(new ErrorRenderer(), $config, $toolbarRenderer);
-            $handler->setProfile(new Profile('test'));
+            $handler->setProfile($profile);
 
             ob_start();
             @$handler->handleException(new \RuntimeException('profile test'));

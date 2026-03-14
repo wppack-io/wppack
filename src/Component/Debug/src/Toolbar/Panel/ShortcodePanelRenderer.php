@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
 use WpPack\Component\Debug\Attribute\AsPanelRenderer;
-use WpPack\Component\Debug\Profiler\Profile;
 
 #[AsPanelRenderer(name: 'shortcode')]
 final class ShortcodePanelRenderer extends AbstractPanelRenderer implements RendererInterface
@@ -15,9 +14,9 @@ final class ShortcodePanelRenderer extends AbstractPanelRenderer implements Rend
         return 'shortcode';
     }
 
-    public function renderPanel(Profile $profile): string
+    public function renderPanel(): string
     {
-        $data = $this->getCollectorData($profile, $this->getName());
+        $data = $this->getCollectorData();
         $totalCount = (int) ($data['total_count'] ?? 0);
         $usedCount = (int) ($data['used_count'] ?? 0);
         $executionTime = (float) ($data['execution_time'] ?? 0.0);

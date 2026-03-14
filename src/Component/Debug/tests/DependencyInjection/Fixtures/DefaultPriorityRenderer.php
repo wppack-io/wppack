@@ -16,7 +16,7 @@ final class DefaultPriorityRenderer extends AbstractPanelRenderer implements Ren
         return 'default';
     }
 
-    public function renderPanel(\WpPack\Component\Debug\Profiler\Profile $profile): string
+    public function renderPanel(): string
     {
         return '';
     }

@@ -77,7 +77,7 @@ final class DebugServiceProvider implements ServiceProviderInterface
         $builder->register(Stopwatch::class);
         $builder->register(Profiler::class)->autowire();
         $builder->register(Profile::class);
-        $builder->register(ToolbarRenderer::class);
+        $builder->register(ToolbarRenderer::class)->autowire();
         $builder->register(ErrorRenderer::class);
         $builder->register(ExceptionHandler::class)->autowire();
         $builder->register(WpDieHandler::class)->autowire();
@@ -114,7 +114,8 @@ final class DebugServiceProvider implements ServiceProviderInterface
                 ->addTag(RegisterDataCollectorsPass::TAG)
                 ->autowire();
             $builder->register(LoggerPanelRenderer::class)
-                ->addTag(RegisterPanelRenderersPass::TAG);
+                ->addTag(RegisterPanelRenderersPass::TAG)
+                ->autowire();
             if ($builder->hasDefinition(\WpPack\Component\Logger\ErrorHandler::class)) {
                 $builder->findDefinition(\WpPack\Component\Logger\ErrorHandler::class)
                     ->addMethodCall('register');
@@ -126,30 +127,30 @@ final class DebugServiceProvider implements ServiceProviderInterface
         $builder->register(QueryMonitorCollectorAdapter::class)->addTag(RegisterDataCollectorsPass::TAG);
 
         // Built-in panel renderers
-        $builder->register(DatabasePanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
-        $builder->register(StopwatchPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
-        $builder->register(MemoryPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
-        $builder->register(RequestPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
-        $builder->register(CachePanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
-        $builder->register(WordPressPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
-        $builder->register(SecurityPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
-        $builder->register(MailPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
-        $builder->register(EventPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
-        $builder->register(RouterPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
-        $builder->register(HttpClientPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
-        $builder->register(TranslationPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
-        $builder->register(DumpPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
-        $builder->register(PluginPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
-        $builder->register(ThemePanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
-        $builder->register(SchedulerPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
-        $builder->register(WidgetPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
-        $builder->register(AssetPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
-        $builder->register(AdminPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
-        $builder->register(ShortcodePanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
-        $builder->register(FeedPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
-        $builder->register(RestPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
-        $builder->register(ContainerPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
-        $builder->register(AjaxPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
-        $builder->register(EnvironmentPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
+        $builder->register(DatabasePanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
+        $builder->register(StopwatchPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
+        $builder->register(MemoryPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
+        $builder->register(RequestPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
+        $builder->register(CachePanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
+        $builder->register(WordPressPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
+        $builder->register(SecurityPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
+        $builder->register(MailPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
+        $builder->register(EventPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
+        $builder->register(RouterPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
+        $builder->register(HttpClientPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
+        $builder->register(TranslationPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
+        $builder->register(DumpPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
+        $builder->register(PluginPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
+        $builder->register(ThemePanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
+        $builder->register(SchedulerPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
+        $builder->register(WidgetPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
+        $builder->register(AssetPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
+        $builder->register(AdminPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
+        $builder->register(ShortcodePanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
+        $builder->register(FeedPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
+        $builder->register(RestPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
+        $builder->register(ContainerPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
+        $builder->register(AjaxPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
+        $builder->register(EnvironmentPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
     }
 }

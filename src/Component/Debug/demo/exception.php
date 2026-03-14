@@ -226,15 +226,15 @@ foreach ($collectors as $collector) {
     $profile->addCollector($collector);
 }
 
-$toolbarRenderer = new ToolbarRenderer();
-$toolbarRenderer->addPanelRenderer(new DatabasePanelRenderer());
-$toolbarRenderer->addPanelRenderer(new MemoryPanelRenderer());
-$toolbarRenderer->addPanelRenderer(new RequestPanelRenderer());
-$toolbarRenderer->addPanelRenderer(new CachePanelRenderer());
-$toolbarRenderer->addPanelRenderer(new WordPressPanelRenderer());
-$toolbarRenderer->addPanelRenderer(new LoggerPanelRenderer());
-$toolbarRenderer->addPanelRenderer(new EnvironmentPanelRenderer());
-$toolbarHtml = $toolbarRenderer->render($profile);
+$toolbarRenderer = new ToolbarRenderer($profile);
+$toolbarRenderer->addPanelRenderer(new DatabasePanelRenderer($profile));
+$toolbarRenderer->addPanelRenderer(new MemoryPanelRenderer($profile));
+$toolbarRenderer->addPanelRenderer(new RequestPanelRenderer($profile));
+$toolbarRenderer->addPanelRenderer(new CachePanelRenderer($profile));
+$toolbarRenderer->addPanelRenderer(new WordPressPanelRenderer($profile));
+$toolbarRenderer->addPanelRenderer(new LoggerPanelRenderer($profile));
+$toolbarRenderer->addPanelRenderer(new EnvironmentPanelRenderer($profile));
+$toolbarHtml = $toolbarRenderer->render();
 
 // Render the exception page with toolbar
 $flatException = FlattenException::createFromThrowable($exception);

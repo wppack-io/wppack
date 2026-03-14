@@ -46,9 +46,10 @@ final class ToolbarRenderer
 
     private readonly ToolbarAssets $assets;
 
-    public function __construct()
-    {
-        $this->genericRenderer = new GenericPanelRenderer();
+    public function __construct(
+        private readonly Profile $profile,
+    ) {
+        $this->genericRenderer = new GenericPanelRenderer($this->profile);
         $this->assets = new ToolbarAssets();
     }
 
@@ -57,9 +58,9 @@ final class ToolbarRenderer
         $this->panelRenderers[$renderer->getName()] = $renderer;
     }
 
-    public function render(Profile $profile): string
+    public function render(): string
     {
-        $collectors = $profile->getCollectors();
+        $collectors = $this->profile->getCollectors();
 
         // Extract request_time_float for relative time display across panels
         $requestTimeFloat = 0.0;
@@ -75,7 +76,7 @@ final class ToolbarRenderer
         $this->genericRenderer->setRequestTimeFloat($requestTimeFloat);
 
         // Build ordered indicators (wordpress group first)
-        $indicators = $this->renderOrderedIndicators($profile, $collectors);
+        $indicators = $this->renderOrderedIndicators($collectors);
 
         // Determine default panel (wordpress if available, else performance)
         $defaultPanel = isset($collectors['wordpress']) ? 'wordpress' : 'performance';
@@ -83,17 +84,17 @@ final class ToolbarRenderer
         // Build sidebar and content panels
         $collectorNames = array_keys($collectors);
         $sidebarHtml = $this->renderSidebar($collectorNames, $collectors);
-        $contentPanels = $this->renderContentPanels($profile, $collectors, $defaultPanel);
+        $contentPanels = $this->renderContentPanels($collectors, $defaultPanel);
 
         // Logo & version (delegated to WordPressPanelRenderer)
         $wpMiniIcon = ToolbarIcons::svg('wordpress', 16);
         $wpIndicatorHtml = isset($this->panelRenderers['wordpress'])
-            ? $this->panelRenderers['wordpress']->renderIndicator($profile)
+            ? $this->panelRenderers['wordpress']->renderIndicator()
             : '';
 
         // Environment info (delegated to EnvironmentPanelRenderer)
         $envHtml = isset($this->panelRenderers['environment'])
-            ? $this->panelRenderers['environment']->renderIndicator($profile)
+            ? $this->panelRenderers['environment']->renderIndicator()
             : '';
 
         // Default panel title
@@ -198,7 +199,7 @@ final class ToolbarRenderer
     /**
      * @param array<string, DataCollectorInterface> $collectors
      */
-    private function renderContentPanels(Profile $profile, array $collectors, string $defaultPanel): string
+    private function renderContentPanels(array $collectors, string $defaultPanel): string
     {
         $html = '';
 
@@ -219,7 +220,7 @@ final class ToolbarRenderer
 
         foreach ($orderedNames as $key) {
             $display = ($key === $defaultPanel) ? '' : ' style="display:none"';
-            $content = $this->renderPanelContent($profile, $key);
+            $content = $this->renderPanelContent($key);
 
             $html .= '<div class="wpd-panel-content" id="wpd-pc-' . $this->esc($key) . '"' . $display . '>'
                 . $content . '</div>';
@@ -231,7 +232,7 @@ final class ToolbarRenderer
     /**
      * @param array<string, DataCollectorInterface> $collectors
      */
-    private function renderOrderedIndicators(Profile $profile, array $collectors): string
+    private function renderOrderedIndicators(array $collectors): string
     {
         $indicators = '';
         $rendered = [];
@@ -239,7 +240,7 @@ final class ToolbarRenderer
         foreach (self::INDICATOR_ORDER as $name) {
             $renderer = $this->panelRenderers[$name] ?? null;
             if ($renderer !== null) {
-                $indicators .= $renderer->renderIndicator($profile);
+                $indicators .= $renderer->renderIndicator();
                 $rendered[] = $name;
             } elseif (isset($collectors[$name])) {
                 $indicators .= $this->renderIndicator($collectors[$name]);
@@ -283,16 +284,16 @@ final class ToolbarRenderer
         HTML;
     }
 
-    private function renderPanelContent(Profile $profile, string $name): string
+    private function renderPanelContent(string $name): string
     {
         $renderer = $this->panelRenderers[$name] ?? null;
         if ($renderer === null) {
             $this->genericRenderer->setCollectorName($name);
 
-            return $this->genericRenderer->renderPanel($profile);
+            return $this->genericRenderer->renderPanel();
         }
 
-        return $renderer->renderPanel($profile);
+        return $renderer->renderPanel();
     }
 
     /**

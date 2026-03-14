@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
 use WpPack\Component\Debug\Attribute\AsPanelRenderer;
-use WpPack\Component\Debug\Profiler\Profile;
 
 #[AsPanelRenderer(name: 'theme')]
 final class ThemePanelRenderer extends AbstractPanelRenderer implements RendererInterface
@@ -15,9 +14,9 @@ final class ThemePanelRenderer extends AbstractPanelRenderer implements Renderer
         return 'theme';
     }
 
-    public function renderPanel(Profile $profile): string
+    public function renderPanel(): string
     {
-        $data = $this->getCollectorData($profile, $this->getName());
+        $data = $this->getCollectorData();
         $name = (string) ($data['name'] ?? '');
         $version = (string) ($data['version'] ?? '');
         $isChildTheme = (bool) ($data['is_child_theme'] ?? false);
@@ -118,7 +117,7 @@ final class ThemePanelRenderer extends AbstractPanelRenderer implements Renderer
         }
 
         // Assets
-        $assetData = $this->getCollectorData($profile, 'asset');
+        $assetData = $this->getCollectorData('asset');
         /** @var array<string, array<string, mixed>> $allScripts */
         $allScripts = $assetData['scripts'] ?? [];
         /** @var array<string, array<string, mixed>> $allStyles */

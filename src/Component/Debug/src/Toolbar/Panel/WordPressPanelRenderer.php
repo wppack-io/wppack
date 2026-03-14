@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
 use WpPack\Component\Debug\Attribute\AsPanelRenderer;
-use WpPack\Component\Debug\Profiler\Profile;
 
 #[AsPanelRenderer(name: 'wordpress')]
 final class WordPressPanelRenderer extends AbstractPanelRenderer implements RendererInterface
@@ -15,9 +14,9 @@ final class WordPressPanelRenderer extends AbstractPanelRenderer implements Rend
         return 'wordpress';
     }
 
-    public function renderIndicator(Profile $profile): string
+    public function renderIndicator(): string
     {
-        $wpData = $this->getCollectorData($profile, 'wordpress');
+        $wpData = $this->getCollectorData('wordpress');
         $wpVersion = (string) ($wpData['wp_version'] ?? '');
         $wpIcon = ToolbarIcons::svg('wordpress', 18);
         $content = '<span class="wpd-bar-logo">' . $wpIcon . '</span>';
@@ -29,11 +28,11 @@ final class WordPressPanelRenderer extends AbstractPanelRenderer implements Rend
             . $content . '</button>';
     }
 
-    public function renderPanel(Profile $profile): string
+    public function renderPanel(): string
     {
-        $wpData = $this->getCollectorData($profile, 'wordpress');
-        $themeData = $this->getCollectorData($profile, 'theme');
-        $pluginData = $this->getCollectorData($profile, 'plugin');
+        $wpData = $this->getCollectorData('wordpress');
+        $themeData = $this->getCollectorData('theme');
+        $pluginData = $this->getCollectorData('plugin');
 
         $html = '<div class="wpd-section">';
         $html .= '<h4 class="wpd-section-title">WordPress</h4>';

@@ -383,9 +383,10 @@ final class WpDieHandlerTest extends TestCase
                 self::markTestSkipped('isAccessAllowed() is false in this environment.');
             }
 
-            $toolbarRenderer = new ToolbarRenderer();
+            $profile = new Profile('test');
+            $toolbarRenderer = new ToolbarRenderer($profile);
             $handler = new WpDieHandler(new ErrorRenderer(), $config, $toolbarRenderer);
-            $handler->setProfile(new Profile('test'));
+            $handler->setProfile($profile);
             $handler->registerHtmlHandler('_default_wp_die_handler');
 
             ob_start();

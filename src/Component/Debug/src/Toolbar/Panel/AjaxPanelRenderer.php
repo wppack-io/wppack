@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
 use WpPack\Component\Debug\Attribute\AsPanelRenderer;
-use WpPack\Component\Debug\Profiler\Profile;
 
 #[AsPanelRenderer(name: 'ajax')]
 final class AjaxPanelRenderer extends AbstractPanelRenderer implements RendererInterface
@@ -15,9 +14,9 @@ final class AjaxPanelRenderer extends AbstractPanelRenderer implements RendererI
         return 'ajax';
     }
 
-    public function renderPanel(Profile $profile): string
+    public function renderPanel(): string
     {
-        $data = $this->getCollectorData($profile, $this->getName());
+        $data = $this->getCollectorData();
         $totalActions = (int) ($data['total_actions'] ?? 0);
         $noprivCount = (int) ($data['nopriv_count'] ?? 0);
         /** @var array<string, array{callback: string, nopriv: bool}> $actions */

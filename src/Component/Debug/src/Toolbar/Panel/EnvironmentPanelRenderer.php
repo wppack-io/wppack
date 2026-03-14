@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
 use WpPack\Component\Debug\Attribute\AsPanelRenderer;
-use WpPack\Component\Debug\Profiler\Profile;
 
 #[AsPanelRenderer(name: 'environment')]
 final class EnvironmentPanelRenderer extends AbstractPanelRenderer implements RendererInterface
@@ -15,7 +14,7 @@ final class EnvironmentPanelRenderer extends AbstractPanelRenderer implements Re
         return 'environment';
     }
 
-    public function renderIndicator(Profile $profile): string
+    public function renderIndicator(): string
     {
         $parts = [];
         $tooltipLines = [];
@@ -25,7 +24,7 @@ final class EnvironmentPanelRenderer extends AbstractPanelRenderer implements Re
         $tooltipLines[] = 'PHP ' . PHP_VERSION;
 
         // Runtime or server software
-        $envData = $this->getCollectorData($profile, 'environment');
+        $envData = $this->getCollectorData('environment');
         /** @var array<string, mixed> $server */
         $server = $envData['server'] ?? [];
         /** @var array<string, mixed> $runtime */
@@ -53,7 +52,7 @@ final class EnvironmentPanelRenderer extends AbstractPanelRenderer implements Re
         }
 
         // Additional tooltip info
-        $wpData = $this->getCollectorData($profile, 'wordpress');
+        $wpData = $this->getCollectorData('wordpress');
         $wpVersion = (string) ($wpData['wp_version'] ?? '');
         if ($wpVersion !== '') {
             $tooltipLines[] = 'WordPress ' . $wpVersion;
@@ -63,7 +62,7 @@ final class EnvironmentPanelRenderer extends AbstractPanelRenderer implements Re
             $tooltipLines[] = 'Env: ' . $envType;
         }
 
-        $memData = $this->getCollectorData($profile, 'memory');
+        $memData = $this->getCollectorData('memory');
         $limit = (int) ($memData['limit'] ?? 0);
         if ($limit > 0) {
             $tooltipLines[] = 'Memory Limit: ' . $this->formatBytes($limit);
@@ -87,9 +86,9 @@ final class EnvironmentPanelRenderer extends AbstractPanelRenderer implements Re
             . '</div>';
     }
 
-    public function renderPanel(Profile $profile): string
+    public function renderPanel(): string
     {
-        $data = $this->getCollectorData($profile, $this->getName());
+        $data = $this->getCollectorData();
         /** @var array<string, mixed> $php */
         $php = $data['php'] ?? [];
         /** @var list<string> $extensions */

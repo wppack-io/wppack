@@ -65,16 +65,16 @@ asset → widget → shortcode → admin → mail → scheduler → translation 
 interface RendererInterface
 {
     public function getName(): string;
-    public function renderPanel(Profile $profile): string;
-    public function renderIndicator(Profile $profile): string;
+    public function renderPanel(): string;
+    public function renderIndicator(): string;
 }
 ```
 
 | メソッド | 説明 |
 |---------|------|
 | `getName()` | パネルの識別名（対応するコレクターの `getName()` と一致させる） |
-| `renderPanel(Profile $profile)` | サイドバーに表示するパネル HTML を返す |
-| `renderIndicator(Profile $profile)` | インジケーターバーに表示するボタン HTML を返す |
+| `renderPanel()` | サイドバーに表示するパネル HTML を返す |
+| `renderIndicator()` | インジケーターバーに表示するボタン HTML を返す |
 
 ## AbstractPanelRenderer
 
@@ -121,10 +121,14 @@ interface RendererInterface
 ### データアクセス
 
 ```php
-$data = $this->getCollectorData($profile, 'collector_name');
+// 自パネルのコレクターデータを取得（getName() がデフォルト）
+$data = $this->getCollectorData();
+
+// 他のコレクターのデータを取得
+$data = $this->getCollectorData('collector_name');
 ```
 
-`Profile` からコレクターデータを安全に取得。コレクターが存在しない場合は空配列を返します。
+コンストラクタで DI 注入された `Profile` からコレクターデータを安全に取得。コレクターが存在しない場合は空配列を返します。
 
 ## `#[AsPanelRenderer]` アトリビュート
 
@@ -244,7 +248,6 @@ final class ApiCallsDataCollector extends AbstractDataCollector
 
 ```php
 use WpPack\Component\Debug\Attribute\AsPanelRenderer;
-use WpPack\Component\Debug\Profiler\Profile;
 use WpPack\Component\Debug\Toolbar\Panel\AbstractPanelRenderer;
 
 #[AsPanelRenderer(name: 'api_calls')]
@@ -255,9 +258,9 @@ final class ApiCallsPanelRenderer extends AbstractPanelRenderer
         return 'api_calls';
     }
 
-    public function renderPanel(Profile $profile): string
+    public function renderPanel(): string
     {
-        $data = $this->getCollectorData($profile, 'api_calls');
+        $data = $this->getCollectorData();
         $calls = $data['calls'] ?? [];
         $totalTime = $data['total_time'] ?? 0;
 

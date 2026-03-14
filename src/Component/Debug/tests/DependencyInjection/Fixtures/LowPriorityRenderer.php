@@ -16,7 +16,7 @@ final class LowPriorityRenderer extends AbstractPanelRenderer implements Rendere
         return 'low';
     }
 
-    public function renderPanel(\WpPack\Component\Debug\Profiler\Profile $profile): string
+    public function renderPanel(): string
     {
         return '';
     }

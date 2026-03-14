@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
 use WpPack\Component\Debug\Attribute\AsPanelRenderer;
-use WpPack\Component\Debug\Profiler\Profile;
 
 #[AsPanelRenderer(name: 'asset')]
 final class AssetPanelRenderer extends AbstractPanelRenderer implements RendererInterface
@@ -15,9 +14,9 @@ final class AssetPanelRenderer extends AbstractPanelRenderer implements Renderer
         return 'asset';
     }
 
-    public function renderPanel(Profile $profile): string
+    public function renderPanel(): string
     {
-        $data = $this->getCollectorData($profile, $this->getName());
+        $data = $this->getCollectorData();
         $enqueuedScripts = (int) ($data['enqueued_scripts'] ?? 0);
         $enqueuedStyles = (int) ($data['enqueued_styles'] ?? 0);
         $registeredScripts = (int) ($data['registered_scripts'] ?? 0);

@@ -18,12 +18,16 @@ abstract class AbstractPanelRenderer
 
     protected float $requestTimeFloat = 0.0;
 
+    public function __construct(
+        protected readonly Profile $profile,
+    ) {}
+
     abstract public function getName(): string;
 
-    public function renderIndicator(Profile $profile): string
+    public function renderIndicator(): string
     {
         try {
-            $collector = $profile->getCollector($this->getName());
+            $collector = $this->profile->getCollector($this->getName());
         } catch (\Throwable) {
             return '';
         }
@@ -59,10 +63,10 @@ abstract class AbstractPanelRenderer
     /**
      * @return array<string, mixed>
      */
-    protected function getCollectorData(Profile $profile, string $name): array
+    protected function getCollectorData(?string $name = null): array
     {
         try {
-            return $profile->getCollector($name)->getData();
+            return $this->profile->getCollector($name ?? $this->getName())->getData();
         } catch (\Throwable) {
             return [];
         }

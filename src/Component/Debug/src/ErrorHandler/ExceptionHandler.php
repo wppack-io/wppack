@@ -65,6 +65,6 @@ final class ExceptionHandler
             return '';
         }
 
-        return $this->toolbarRenderer->render($this->profile);
+        return $this->toolbarRenderer->render();
     }
 }
