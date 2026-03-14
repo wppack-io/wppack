@@ -371,49 +371,61 @@ final class SecurityService
 
 ### Monolog への差し替え
 
-PSR-3 準拠のため、`LoggerInterface` のタイプヒントを変更せずに Monolog に差し替えられます。`wppack/monolog-logger` パッケージをインストールし、`MonologLoggerFactory` を使用します：
+`wppack/monolog-logger` パッケージの `MonologHandler`（WpPack `HandlerInterface` 実装）を `LoggerFactory` のハンドラーとして追加することで、バックエンドだけ Monolog に差し替えられます。WpPack の `LoggerFactory` / `Logger` はそのまま維持されるため、`#[LoggerChannel]` 等の DI 統合も引き続き利用可能です：
 
 ```bash
 composer require wppack/monolog-logger
 ```
 
 ```php
+use WpPack\Component\Logger\Bridge\Monolog\MonologHandler;
 use WpPack\Component\Logger\Bridge\Monolog\MonologLoggerFactory;
-use Monolog\Handler\ErrorLogHandler as MonologErrorLogHandler;
-use Monolog\Processor\PsrLogMessageProcessor;
+use WpPack\Component\Logger\LoggerFactory;
+use Monolog\Handler\StreamHandler;
 
-$factory = new MonologLoggerFactory(
-    defaultHandlers: [new MonologErrorLogHandler()],
-    defaultProcessors: [new PsrLogMessageProcessor()],
+$monologFactory = new MonologLoggerFactory(
+    defaultHandlers: [new StreamHandler('/path/to/app.log')],
 );
 
-// LoggerFactory と同じ create() インターフェース
-$logger = $factory->create('app');
+$handler = new MonologHandler($monologFactory);
+$loggerFactory = new LoggerFactory(defaultHandlers: [$handler]);
+
+$logger = $loggerFactory->create('app');
 $logger->info('Monolog is working');
 ```
 
 #### DI コンテナとの統合
 
-`MonologLoggerFactory` は `LoggerFactory` と同じ `create(string $name)` シグネチャを持つため、DI コンテナでそのまま差し替えられます：
+`LoggerServiceProvider` と `MonologLoggerServiceProvider` を併用します。`MonologLoggerServiceProvider` が `LoggerFactory` のハンドラーを `MonologHandler` に差し替えます：
 
 ```php
 use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
-use WpPack\Component\Logger\Bridge\Monolog\MonologLoggerFactory;
+use WpPack\Component\Logger\DependencyInjection\LoggerServiceProvider;
+use WpPack\Component\Logger\Bridge\Monolog\DependencyInjection\MonologLoggerServiceProvider;
+use Monolog\Handler\StreamHandler;
 use Monolog\Handler\ErrorLogHandler as MonologErrorLogHandler;
-use Psr\Log\LoggerInterface;
+use Monolog\Level;
 
 $builder = new ContainerBuilder();
 
-$builder->register(MonologLoggerFactory::class)
-    ->addArgument([new MonologErrorLogHandler()]);
+// WpPack Logger を先に登録
+$builder->addServiceProvider(new LoggerServiceProvider());
 
-$builder->register(LoggerInterface::class)
-    ->setFactory([new Reference(MonologLoggerFactory::class), 'create'])
-    ->setArgument(0, 'app');
+// Monolog ブリッジを追加（LoggerFactory のハンドラーを差し替え）
+$builder->addServiceProvider(new MonologLoggerServiceProvider(
+    handlers: [
+        new MonologErrorLogHandler(level: Level::Warning),
+        new StreamHandler('/path/to/app.log', Level::Debug),
+    ],
+    level: 'debug',
+));
+
+$container = $builder->compile();
+
+// WpPack Logger が返る（内部で MonologHandler → Monolog に委譲）
+$logger = $container->get(\Psr\Log\LoggerInterface::class);
+$logger->info('Hello World');
 ```
-
-Monolog を使用する場合、`#[LoggerChannel]` によるチャンネル自動注入は利用できません。チャンネル別ロガーが必要な場合は、各チャンネルを個別にサービス登録してください。
 
 ## PHP エラーキャプチャ（ErrorHandler）
 
