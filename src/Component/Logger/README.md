@@ -57,7 +57,7 @@ $handler->register();
 
 // PHP errors are now captured as PSR-3 logs:
 // E_WARNING       → warning
-// E_DEPRECATED    → warning + context['_type' => 'deprecation']
+// E_DEPRECATED    → notice + context['_type' => 'deprecation']
 // E_NOTICE        → notice
 // E_RECOVERABLE   → error
 ```

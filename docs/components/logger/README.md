@@ -446,7 +446,7 @@ $errorHandler->register();
 // 以降の PHP エラーは Logger 経由で処理される
 // E_WARNING      → warning
 // E_NOTICE       → notice
-// E_DEPRECATED   → warning + context['_type' => 'deprecation']
+// E_DEPRECATED   → notice + context['_type' => 'deprecation']
 // E_RECOVERABLE_ERROR → error
 ```
 
@@ -461,7 +461,7 @@ $errorHandler->register();
 
 | PHP エラー定数 | PSR-3 レベル | `_type` コンテキスト |
 |---------------|-------------|---------------------|
-| `E_DEPRECATED`, `E_USER_DEPRECATED` | `warning` | `deprecation` |
+| `E_DEPRECATED`, `E_USER_DEPRECATED` | `notice` | `deprecation` |
 | `E_NOTICE`, `E_USER_NOTICE` | `notice` | — |
 | `E_WARNING`, `E_USER_WARNING` | `warning` | — |
 | `E_RECOVERABLE_ERROR` | `error` | — |

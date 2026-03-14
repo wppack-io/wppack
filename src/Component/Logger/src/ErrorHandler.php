@@ -56,7 +56,7 @@ final class ErrorHandler
 
         try {
             $level = match ($errno) {
-                \E_DEPRECATED, \E_USER_DEPRECATED => 'warning',
+                \E_DEPRECATED, \E_USER_DEPRECATED => 'notice',
                 \E_NOTICE, \E_USER_NOTICE => 'notice',
                 \E_WARNING, \E_USER_WARNING => 'warning',
                 \E_RECOVERABLE_ERROR => 'error',

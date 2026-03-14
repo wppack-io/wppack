@@ -77,7 +77,7 @@ final class ErrorHandlerTest extends TestCase
     }
 
     #[Test]
-    public function capturesDeprecationAsWarningWithType(): void
+    public function capturesDeprecationAsNoticeWithType(): void
     {
         $this->errorHandler->register();
 
@@ -90,7 +90,7 @@ final class ErrorHandlerTest extends TestCase
 
         self::assertCount(1, $this->loggedEntries);
         $entry = $this->loggedEntries[0];
-        self::assertSame('warning', $entry['level']);
+        self::assertSame('notice', $entry['level']);
         self::assertSame('Deprecated feature', $entry['message']);
         self::assertSame('deprecation', $entry['context']['_type']);
         self::assertSame('E_USER_DEPRECATED', $entry['context']['_error_type']);
