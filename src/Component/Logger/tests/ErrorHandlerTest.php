@@ -18,7 +18,7 @@ final class ErrorHandlerTest extends TestCase
     /** @var list<array{level: string, message: string, context: array<string, mixed>}> */
     private array $loggedEntries = [];
 
-    protected function setUp(): void
+    private function createErrorHandler(bool $captureAllErrors = true): ErrorHandler
     {
         $handler = new class ($this->loggedEntries) implements HandlerInterface {
             /** @param list<array{level: string, message: string, context: array<string, mixed>}> $entries */
@@ -37,7 +37,13 @@ final class ErrorHandlerTest extends TestCase
 
         $factory = new LoggerFactory([$handler]);
         $resolver = new DefaultChannelResolver();
-        $this->errorHandler = new ErrorHandler($factory, $resolver);
+
+        return new ErrorHandler($factory, $resolver, $captureAllErrors);
+    }
+
+    protected function setUp(): void
+    {
+        $this->errorHandler = $this->createErrorHandler();
     }
 
     protected function tearDown(): void
@@ -51,18 +57,6 @@ final class ErrorHandlerTest extends TestCase
     {
         $this->errorHandler->register();
 
-        $previousLevel = error_reporting(E_ALL);
-        try {
-            @trigger_error('Test deprecation', E_USER_DEPRECATED);
-        } finally {
-            error_reporting($previousLevel);
-        }
-
-        // The @ operator suppresses, so let's test without it
-        $this->errorHandler->restore();
-
-        // Re-register and trigger without suppression
-        $this->errorHandler->register();
         $previousLevel = error_reporting(E_ALL);
         try {
             trigger_error('Test warning', E_USER_WARNING);
@@ -132,7 +126,7 @@ final class ErrorHandlerTest extends TestCase
     }
 
     #[Test]
-    public function respectsAtSuppression(): void
+    public function captureAllErrorsCapturesSuppressedErrors(): void
     {
         $this->errorHandler->register();
 
@@ -143,7 +137,77 @@ final class ErrorHandlerTest extends TestCase
             error_reporting($previousLevel);
         }
 
+        self::assertNotEmpty($this->loggedEntries);
+        self::assertSame('warning', $this->loggedEntries[0]['level']);
+        self::assertSame('Suppressed', $this->loggedEntries[0]['message']);
+    }
+
+    #[Test]
+    public function captureAllErrorsCapturesDeprecationEvenWhenMasked(): void
+    {
+        $this->errorHandler->register();
+
+        $previousLevel = error_reporting(E_ALL & ~E_USER_DEPRECATED);
+        try {
+            trigger_error('Masked deprecation', E_USER_DEPRECATED);
+        } finally {
+            error_reporting($previousLevel);
+        }
+
+        self::assertCount(1, $this->loggedEntries);
+        self::assertSame('notice', $this->loggedEntries[0]['level']);
+        self::assertSame('Masked deprecation', $this->loggedEntries[0]['message']);
+        self::assertSame('deprecation', $this->loggedEntries[0]['context']['_type']);
+    }
+
+    #[Test]
+    public function legacyModeRespectsSuppression(): void
+    {
+        $this->errorHandler->restore();
+        $this->errorHandler = $this->createErrorHandler(captureAllErrors: false);
+        $this->errorHandler->register();
+
+        $previousLevel = error_reporting(0);
+        try {
+            trigger_error('Suppressed', E_USER_WARNING);
+        } finally {
+            error_reporting($previousLevel);
+        }
+
         self::assertEmpty($this->loggedEntries);
+    }
+
+    #[Test]
+    public function legacyModeRespectsErrorReportingMask(): void
+    {
+        $this->errorHandler->restore();
+        $this->errorHandler = $this->createErrorHandler(captureAllErrors: false);
+        $this->errorHandler->register();
+
+        $previousLevel = error_reporting(E_ALL & ~E_USER_DEPRECATED);
+        try {
+            trigger_error('Masked deprecation', E_USER_DEPRECATED);
+        } finally {
+            error_reporting($previousLevel);
+        }
+
+        self::assertEmpty($this->loggedEntries);
+    }
+
+    #[Test]
+    public function returnsTrueToStopPhpHandler(): void
+    {
+        $this->errorHandler->register();
+
+        $previousLevel = error_reporting(E_ALL);
+        try {
+            $result = @trigger_error('Test', E_USER_NOTICE);
+        } finally {
+            error_reporting($previousLevel);
+        }
+
+        // trigger_error returns true when the error handler returns true
+        self::assertTrue($result);
     }
 
     #[Test]

@@ -19,6 +19,7 @@ final class LoggerServiceProvider implements ServiceProviderInterface
     public function __construct(
         private readonly string $defaultChannel = 'app',
         private readonly string $level = 'debug',
+        private readonly bool $captureAllErrors = true,
     ) {}
 
     public function register(ContainerBuilder $builder): void
@@ -38,6 +39,7 @@ final class LoggerServiceProvider implements ServiceProviderInterface
 
         $builder->register(ErrorHandler::class)
             ->addArgument(new Reference(LoggerFactory::class))
-            ->addArgument(new Reference(ChannelResolverInterface::class));
+            ->addArgument(new Reference(ChannelResolverInterface::class))
+            ->addArgument($this->captureAllErrors);
     }
 }

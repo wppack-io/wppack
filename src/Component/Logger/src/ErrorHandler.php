@@ -17,6 +17,7 @@ final class ErrorHandler
     public function __construct(
         private readonly LoggerFactory $loggerFactory,
         private readonly ChannelResolverInterface $channelResolver,
+        private readonly bool $captureAllErrors = true,
     ) {}
 
     public function register(): void
@@ -42,8 +43,9 @@ final class ErrorHandler
 
     private function handleError(int $errno, string $errstr, string $errfile, int $errline): bool
     {
-        // Respect @ suppression operator
-        if (!(error_reporting() & $errno)) {
+        // captureAllErrors=false: Respect error_reporting() mask (@ suppression + global setting)
+        // captureAllErrors=true:  Capture all PHP errors regardless of error_reporting()
+        if (!$this->captureAllErrors && !(error_reporting() & $errno)) {
             return false;
         }
 
@@ -95,6 +97,7 @@ final class ErrorHandler
             ($this->previousErrorHandler)($errno, $errstr, $errfile, $errline);
         }
 
-        return false;
+        // Logger handles the error — stop PHP's built-in handler
+        return true;
     }
 }
