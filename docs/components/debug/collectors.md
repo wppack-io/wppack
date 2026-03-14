@@ -285,9 +285,8 @@ WordPress フック（アクション/フィルター）の発火を監視。
 - Logger コンポーネントの `DebugHandler` 経由でアプリケーションログを受信
 - Logger コンポーネントの `ErrorHandler` 経由で PHP エラー（`E_WARNING`, `E_DEPRECATED` 等）を受信
 - `deprecated_function_run`, `deprecated_argument_run`, `deprecated_hook_run`, `doing_it_wrong_run` アクションで WordPress 非推奨警告をキャプチャ
-- Logger 注入時（`setLogger()`）は非推奨警告を Logger パイプライン経由で処理（`ErrorLogHandler` + `DebugHandler` の両方に流れる）
-- Logger 未注入時は従来どおり直接 `log()` でフォールバック
-- deprecation カウントは `level === 'deprecation'`（直接）と `context['_type'] === 'deprecation'`（Logger 経由）の両方を集計
+- コンストラクタで `LoggerFactory` を必須注入し、非推奨警告を Logger パイプライン経由で `notice` レベルとして処理（`ErrorLogHandler` + `DebugHandler` の両方に流れる）
+- deprecation カウントは `context['_type'] === 'deprecation'` コンテキストで集計
 - ログレベル別集計
 - Indicator 色: red（error 以上あり）、yellow（deprecation あり）、green（info/debug のみ）
 

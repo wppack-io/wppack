@@ -62,10 +62,10 @@ final class LoggerPanelRenderer extends AbstractPanelRenderer implements Rendere
             $debugTabCount = 0;
             foreach ($logs as $log) {
                 $lvl = $log['level'] ?? 'debug';
-                if (in_array($lvl, ['emergency', 'alert', 'critical', 'error'], true)) {
-                    $errorTabCount++;
-                } elseif ($lvl === 'deprecation') {
+                if (($log['context']['_type'] ?? null) === 'deprecation') {
                     $deprecationTabCount++;
+                } elseif (in_array($lvl, ['emergency', 'alert', 'critical', 'error'], true)) {
+                    $errorTabCount++;
                 } elseif ($lvl === 'warning') {
                     $warningTabCount++;
                 } elseif ($lvl === 'notice') {
@@ -105,7 +105,8 @@ final class LoggerPanelRenderer extends AbstractPanelRenderer implements Rendere
 
             foreach ($logs as $index => $log) {
                 $level = $log['level'] ?? 'debug';
-                $levelColor = match ($level) {
+                $effectiveLevel = ($log['context']['_type'] ?? null) === 'deprecation' ? 'deprecation' : $level;
+                $levelColor = match ($effectiveLevel) {
                     'emergency' => 'wpd-log-critical',
                     'alert' => 'wpd-log-critical',
                     'critical' => 'wpd-log-critical',
@@ -133,10 +134,10 @@ final class LoggerPanelRenderer extends AbstractPanelRenderer implements Rendere
                 $rowClass = $hasContext ? ' class="wpd-log-toggle"' : '';
 
                 $toggleIcon = $hasContext ? '<span class="wpd-log-indicator">+</span>' : '';
-                $html .= '<tr data-log-level="' . $this->esc($level) . '"' . $rowClass . '>';
+                $html .= '<tr data-log-level="' . $this->esc($effectiveLevel) . '"' . $rowClass . '>';
                 $html .= '<td class="wpd-col-num">' . $this->esc((string) ($index + 1)) . '</td>';
                 $html .= '<td class="wpd-col-reltime wpd-text-dim">' . $this->esc($timeDisplay) . '</td>';
-                $html .= '<td><span class="wpd-tag ' . $levelColor . '">' . $this->esc($level) . '</span></td>';
+                $html .= '<td><span class="wpd-tag ' . $levelColor . '">' . $this->esc($effectiveLevel) . '</span></td>';
                 $html .= '<td><span class="wpd-tag">' . $this->esc($log['channel'] ?? 'app') . '</span></td>';
                 $html .= '<td><code>' . $this->esc($log['message'] ?? '') . '</code></td>';
                 $html .= '<td title="' . $this->esc($file) . '">' . $this->esc($fileDisplay) . '</td>';
@@ -144,7 +145,7 @@ final class LoggerPanelRenderer extends AbstractPanelRenderer implements Rendere
                 $html .= '</tr>';
 
                 if ($hasContext) {
-                    $html .= '<tr class="wpd-log-context" style="display:none" data-log-level="' . $this->esc($level) . '">';
+                    $html .= '<tr class="wpd-log-context" style="display:none" data-log-level="' . $this->esc($effectiveLevel) . '">';
                     $html .= '<td colspan="7"><pre>' . $this->esc(json_encode($context, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}') . '</pre></td>';
                     $html .= '</tr>';
                 }

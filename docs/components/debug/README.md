@@ -526,7 +526,7 @@ ABSPATH/wp-includes/... or wp-admin/... → チャンネル "wordpress"
 
 ### WordPress 非推奨警告の Logger 統合
 
-`LoggerDataCollector` の WordPress deprecation キャプチャ（`deprecated_function_run` 等）は、Logger が利用可能な場合、Logger パイプライン経由でログを処理します。これにより `error_log()` への出力とツールバー表示が統一されます。Logger 未インストール時は従来どおりの直接ログでフォールバックします。
+`LoggerDataCollector` はコンストラクタで `LoggerFactory` を必須注入し、WordPress deprecation キャプチャ（`deprecated_function_run` 等）を Logger パイプライン経由で `notice` レベルとして処理します。これにより `error_log()` への出力とツールバー表示が統一されます。
 
 ### データフロー
 
@@ -540,7 +540,7 @@ PHP Error (E_WARNING, E_DEPRECATED, etc.)
 
 WordPress deprecation hook
   → LoggerDataCollector::captureDeprecation()
-    → $this->logger->warning(...)
+    → LoggerFactory::create("wordpress")->notice(...)
       → ErrorLogHandler → error_log()
       → DebugHandler → LoggerDataCollector → ツールバー
 
@@ -553,8 +553,9 @@ Application code: $logger->info("...")
 
 `DebugServiceProvider` が Logger 利用可能時に自動で以下を行います:
 
-1. `LoggerDataCollector` に `LoggerInterface` を setter 注入
-2. `ErrorHandler::register()` を呼び出して PHP エラーハンドラーを登録
+1. `LoggerDataCollector` をコンストラクタ注入（autowire）で登録
+2. `LoggerPanelRenderer` を条件付きで登録
+3. `ErrorHandler::register()` を呼び出して PHP エラーハンドラーを登録
 
 ## 関連ドキュメント
 

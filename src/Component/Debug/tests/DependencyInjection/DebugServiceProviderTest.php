@@ -221,7 +221,7 @@ final class DebugServiceProviderTest extends TestCase
     {
         // Logger\Handler\HandlerInterface exists in this project,
         // so DebugHandler should always be registered
-        if (!class_exists(\WpPack\Component\Logger\Handler\HandlerInterface::class)) {
+        if (!interface_exists(\WpPack\Component\Logger\Handler\HandlerInterface::class)) {
             self::markTestSkipped('Logger component HandlerInterface is not available.');
         }
 

@@ -13,10 +13,14 @@ use WpPack\Component\Logger\Test\TestHandler;
 final class LoggerDataCollectorTest extends TestCase
 {
     private LoggerDataCollector $collector;
+    private TestHandler $handler;
+    private LoggerFactory $factory;
 
     protected function setUp(): void
     {
-        $this->collector = new LoggerDataCollector();
+        $this->handler = new TestHandler();
+        $this->factory = new LoggerFactory([$this->handler]);
+        $this->collector = new LoggerDataCollector($this->factory);
     }
 
     protected function tearDown(): void
@@ -111,21 +115,19 @@ final class LoggerDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function captureDeprecationStoresDeprecation(): void
+    public function captureDeprecationRoutesToLoggerAsNotice(): void
     {
         $this->collector->captureDeprecation('old_function', 'new_function', '5.0');
 
-        $this->collector->collect();
-        $data = $this->collector->getData();
-
-        self::assertSame(1, $data['total_count']);
-        self::assertSame('deprecation', $data['logs'][0]['level']);
-        self::assertStringContainsString('old_function', $data['logs'][0]['message']);
-        self::assertStringContainsString('deprecated', $data['logs'][0]['message']);
-        self::assertStringContainsString('5.0', $data['logs'][0]['message']);
-        self::assertStringContainsString('new_function', $data['logs'][0]['message']);
-        self::assertSame('wordpress', $data['logs'][0]['channel']);
-        self::assertSame('deprecation', $data['logs'][0]['context']['type']);
+        $records = $this->handler->getRecords();
+        self::assertCount(1, $records);
+        self::assertSame('notice', $records[0]['level']);
+        self::assertStringContainsString('old_function', $records[0]['message']);
+        self::assertStringContainsString('deprecated', $records[0]['message']);
+        self::assertStringContainsString('5.0', $records[0]['message']);
+        self::assertStringContainsString('new_function', $records[0]['message']);
+        self::assertSame('deprecation', $records[0]['context']['_type']);
+        self::assertSame('deprecation', $records[0]['context']['type']);
     }
 
     #[Test]
@@ -133,43 +135,38 @@ final class LoggerDataCollectorTest extends TestCase
     {
         $this->collector->captureDeprecation('old_function', '', '5.0');
 
-        $this->collector->collect();
-        $data = $this->collector->getData();
-
-        self::assertStringContainsString('an alternative', $data['logs'][0]['message']);
+        $records = $this->handler->getRecords();
+        self::assertCount(1, $records);
+        self::assertStringContainsString('an alternative', $records[0]['message']);
     }
 
     #[Test]
-    public function captureDeprecatedHookStoresDeprecation(): void
+    public function captureDeprecatedHookRoutesToLoggerAsNotice(): void
     {
         $this->collector->captureDeprecatedHook('old_hook', 'new_hook', '5.0', '');
 
-        $this->collector->collect();
-        $data = $this->collector->getData();
-
-        self::assertSame(1, $data['total_count']);
-        self::assertSame('deprecation', $data['logs'][0]['level']);
-        self::assertStringContainsString('old_hook', $data['logs'][0]['message']);
-        self::assertStringContainsString('deprecated', $data['logs'][0]['message']);
-        self::assertSame('wordpress', $data['logs'][0]['channel']);
-        self::assertSame('deprecated_hook', $data['logs'][0]['context']['type']);
+        $records = $this->handler->getRecords();
+        self::assertCount(1, $records);
+        self::assertSame('notice', $records[0]['level']);
+        self::assertStringContainsString('old_hook', $records[0]['message']);
+        self::assertStringContainsString('deprecated', $records[0]['message']);
+        self::assertSame('deprecation', $records[0]['context']['_type']);
+        self::assertSame('deprecated_hook', $records[0]['context']['type']);
     }
 
     #[Test]
-    public function captureDoingItWrongStoresDeprecation(): void
+    public function captureDoingItWrongRoutesToLoggerAsNotice(): void
     {
         $this->collector->captureDoingItWrong('some_function', 'You are doing it wrong.', '5.0');
 
-        $this->collector->collect();
-        $data = $this->collector->getData();
-
-        self::assertSame(1, $data['total_count']);
-        self::assertSame('deprecation', $data['logs'][0]['level']);
-        self::assertStringContainsString('some_function', $data['logs'][0]['message']);
-        self::assertStringContainsString('incorrectly', $data['logs'][0]['message']);
-        self::assertStringContainsString('5.0', $data['logs'][0]['message']);
-        self::assertSame('wordpress', $data['logs'][0]['channel']);
-        self::assertSame('doing_it_wrong', $data['logs'][0]['context']['type']);
+        $records = $this->handler->getRecords();
+        self::assertCount(1, $records);
+        self::assertSame('notice', $records[0]['level']);
+        self::assertStringContainsString('some_function', $records[0]['message']);
+        self::assertStringContainsString('incorrectly', $records[0]['message']);
+        self::assertStringContainsString('5.0', $records[0]['message']);
+        self::assertSame('deprecation', $records[0]['context']['_type']);
+        self::assertSame('doing_it_wrong', $records[0]['context']['type']);
     }
 
     #[Test]
@@ -235,7 +232,7 @@ final class LoggerDataCollectorTest extends TestCase
     #[Test]
     public function getIndicatorColorReturnsYellowForDeprecations(): void
     {
-        $this->collector->log('deprecation', 'A deprecation notice');
+        $this->collector->log('notice', 'A deprecation notice', ['_type' => 'deprecation']);
         $this->collector->log('info', 'Some info');
 
         $this->collector->collect();
@@ -303,8 +300,8 @@ final class LoggerDataCollectorTest extends TestCase
     #[Test]
     public function collectCountsDeprecationsCorrectly(): void
     {
-        $this->collector->log('deprecation', 'Deprecated 1');
-        $this->collector->log('deprecation', 'Deprecated 2');
+        $this->collector->log('notice', 'Deprecated 1', ['_type' => 'deprecation']);
+        $this->collector->log('notice', 'Deprecated 2', ['_type' => 'deprecation']);
         $this->collector->log('warning', 'A warning');
         $this->collector->log('info', 'Some info');
 
@@ -405,75 +402,14 @@ final class LoggerDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function captureDeprecationUsesLoggerFactoryWhenSet(): void
-    {
-        $handler = new TestHandler();
-        $factory = new LoggerFactory([$handler]);
-
-        $this->collector->setLoggerFactory($factory);
-        $this->collector->captureDeprecation('old_func', 'new_func', '6.0');
-
-        // Should route through Logger, not direct log()
-        $records = $handler->getRecords();
-        self::assertCount(1, $records);
-        self::assertSame('warning', $records[0]['level']);
-        self::assertStringContainsString('old_func', $records[0]['message']);
-        self::assertSame('deprecation', $records[0]['context']['_type']);
-    }
-
-    #[Test]
-    public function captureDeprecationFallsBackWithoutLoggerFactory(): void
-    {
-        // No logger factory set — should use direct log()
-        $this->collector->captureDeprecation('old_func', 'new_func', '6.0');
-
-        $this->collector->collect();
-        $data = $this->collector->getData();
-
-        self::assertSame(1, $data['total_count']);
-        self::assertSame('deprecation', $data['logs'][0]['level']);
-        self::assertSame('wordpress', $data['logs'][0]['channel']);
-    }
-
-    #[Test]
-    public function captureDeprecatedHookUsesLoggerFactoryWhenSet(): void
-    {
-        $handler = new TestHandler();
-        $factory = new LoggerFactory([$handler]);
-
-        $this->collector->setLoggerFactory($factory);
-        $this->collector->captureDeprecatedHook('old_hook', 'new_hook', '6.0', '');
-
-        $records = $handler->getRecords();
-        self::assertCount(1, $records);
-        self::assertSame('warning', $records[0]['level']);
-        self::assertSame('deprecation', $records[0]['context']['_type']);
-        self::assertSame('deprecated_hook', $records[0]['context']['type']);
-    }
-
-    #[Test]
-    public function captureDoingItWrongUsesLoggerFactoryWhenSet(): void
-    {
-        $handler = new TestHandler();
-        $factory = new LoggerFactory([$handler]);
-
-        $this->collector->setLoggerFactory($factory);
-        $this->collector->captureDoingItWrong('bad_func', 'You did it wrong.', '6.0');
-
-        $records = $handler->getRecords();
-        self::assertCount(1, $records);
-        self::assertSame('warning', $records[0]['level']);
-        self::assertSame('deprecation', $records[0]['context']['_type']);
-        self::assertSame('doing_it_wrong', $records[0]['context']['type']);
-    }
-
-    #[Test]
     public function collectCountsDeprecationsFromTypeContext(): void
     {
-        // Simulate Logger-routed deprecation (warning level + _type context)
-        $this->collector->log('warning', 'Deprecated via logger', ['_type' => 'deprecation']);
-        // Direct deprecation level
-        $this->collector->log('deprecation', 'Direct deprecation');
+        // Logger-routed deprecation (notice level + _type context)
+        $this->collector->log('notice', 'Deprecated via logger', ['_type' => 'deprecation']);
+        // Another Logger-routed deprecation
+        $this->collector->log('notice', 'Another deprecation', ['_type' => 'deprecation']);
+        // Normal notice (should not count as deprecation)
+        $this->collector->log('notice', 'Normal notice');
         // Normal warning (should not count as deprecation)
         $this->collector->log('warning', 'Normal warning');
 

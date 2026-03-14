@@ -23,16 +23,10 @@ final class LoggerDataCollector extends AbstractDataCollector
     /** @var list<array{level: string, message: string, context: array<string, mixed>, timestamp: float, channel: string, file: string, line: int}> */
     private array $logs = [];
 
-    private ?LoggerFactory $loggerFactory = null;
-
-    public function __construct()
-    {
+    public function __construct(
+        private readonly LoggerFactory $loggerFactory,
+    ) {
         $this->registerHooks();
-    }
-
-    public function setLoggerFactory(LoggerFactory $loggerFactory): void
-    {
-        $this->loggerFactory = $loggerFactory;
     }
 
     public function getName(): string
@@ -108,13 +102,7 @@ final class LoggerDataCollector extends AbstractDataCollector
             '_line' => $line,
         ];
 
-        if ($this->loggerFactory !== null) {
-            $this->loggerFactory->create('wordpress')->warning($message, $context);
-
-            return;
-        }
-
-        $this->log('deprecation', $message, $context, 'wordpress');
+        $this->loggerFactory->create('wordpress')->notice($message, $context);
     }
 
     /**
@@ -151,13 +139,7 @@ final class LoggerDataCollector extends AbstractDataCollector
             '_line' => $line,
         ];
 
-        if ($this->loggerFactory !== null) {
-            $this->loggerFactory->create('wordpress')->warning($logMessage, $context);
-
-            return;
-        }
-
-        $this->log('deprecation', $logMessage, $context, 'wordpress');
+        $this->loggerFactory->create('wordpress')->notice($logMessage, $context);
     }
 
     /**
@@ -193,13 +175,7 @@ final class LoggerDataCollector extends AbstractDataCollector
             '_line' => $line,
         ];
 
-        if ($this->loggerFactory !== null) {
-            $this->loggerFactory->create('wordpress')->warning($logMessage, $context);
-
-            return;
-        }
-
-        $this->log('deprecation', $logMessage, $context, 'wordpress');
+        $this->loggerFactory->create('wordpress')->notice($logMessage, $context);
     }
 
     public function collect(): void
@@ -220,8 +196,7 @@ final class LoggerDataCollector extends AbstractDataCollector
             }
             $channelCounts[$channel]++;
 
-            // Count deprecations from both direct 'deprecation' level and Logger-routed entries with _type
-            if ($level === 'deprecation' || ($log['context']['_type'] ?? null) === 'deprecation') {
+            if (($log['context']['_type'] ?? null) === 'deprecation') {
                 $deprecationCount++;
             }
         }

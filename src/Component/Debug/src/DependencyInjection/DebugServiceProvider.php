@@ -93,7 +93,6 @@ final class DebugServiceProvider implements ServiceProviderInterface
         $builder->register(SecurityDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
         $builder->register(MailDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
         $builder->register(EventDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
-        $builder->register(LoggerDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
         $builder->register(RouterDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
         $builder->register(HttpClientDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
         $builder->register(TranslationDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
@@ -109,16 +108,17 @@ final class DebugServiceProvider implements ServiceProviderInterface
         $builder->register(EnvironmentDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
 
         // Logger Component integration (optional)
-        if (class_exists(\WpPack\Component\Logger\Handler\HandlerInterface::class)) {
+        if (interface_exists(\WpPack\Component\Logger\Handler\HandlerInterface::class)) {
             $builder->register(DebugHandler::class)->autowire();
-
-            // Inject LoggerFactory into LoggerDataCollector for Logger-routed deprecation capture
-            $builder->findDefinition(LoggerDataCollector::class)
-                ->addMethodCall('setLoggerFactory', [new \WpPack\Component\DependencyInjection\Reference(\WpPack\Component\Logger\LoggerFactory::class)]);
-
-            // Register ErrorHandler and trigger registration
-            $builder->findDefinition(\WpPack\Component\Logger\ErrorHandler::class)
-                ->addMethodCall('register');
+            $builder->register(LoggerDataCollector::class)
+                ->addTag(RegisterDataCollectorsPass::TAG)
+                ->autowire();
+            $builder->register(LoggerPanelRenderer::class)
+                ->addTag(RegisterPanelRenderersPass::TAG);
+            if ($builder->hasDefinition(\WpPack\Component\Logger\ErrorHandler::class)) {
+                $builder->findDefinition(\WpPack\Component\Logger\ErrorHandler::class)
+                    ->addMethodCall('register');
+            }
         }
 
         // Adapters
@@ -135,7 +135,6 @@ final class DebugServiceProvider implements ServiceProviderInterface
         $builder->register(SecurityPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
         $builder->register(MailPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
         $builder->register(EventPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
-        $builder->register(LoggerPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
         $builder->register(RouterPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
         $builder->register(HttpClientPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);
         $builder->register(TranslationPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG);

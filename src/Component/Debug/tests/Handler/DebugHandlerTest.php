@@ -8,6 +8,8 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Debug\DataCollector\LoggerDataCollector;
 use WpPack\Component\Debug\Handler\DebugHandler;
+use WpPack\Component\Logger\LoggerFactory;
+use WpPack\Component\Logger\Test\TestHandler;
 
 final class DebugHandlerTest extends TestCase
 {
@@ -16,7 +18,7 @@ final class DebugHandlerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->collector = new LoggerDataCollector();
+        $this->collector = new LoggerDataCollector(new LoggerFactory([new TestHandler()]));
         $this->handler = new DebugHandler($this->collector);
     }
 
