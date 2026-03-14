@@ -4,7 +4,14 @@
 **名前空間:** `WpPack\Component\Logger\Bridge\Monolog\`
 **レイヤー:** Infrastructure
 
-Logger コンポーネントの Monolog ブリッジ実装。`LoggerFactory` と同じインターフェースで Monolog ロガーを生成するファクトリを提供します。
+Logger コンポーネントの Monolog ブリッジ実装。WpPack Logger のフロントエンド（`LoggerFactory` + `Logger`）はそのまま維持し、`MonologHandler`（WpPack `HandlerInterface` 実装）を通じてバックエンドだけ Monolog に差し替えます。
+
+```
+Application code → LoggerFactory::create('payment') → WpPack Logger
+  → WpPack HandlerInterface chain:
+      ├── MonologHandler → Monolog\Logger('payment') → StreamHandler, SlackHandler...
+      └── DebugHandler → LoggerDataCollector → Toolbar（変更なし）
+```
 
 ## インストール
 
@@ -12,28 +19,45 @@ Logger コンポーネントの Monolog ブリッジ実装。`LoggerFactory` と
 composer require wppack/monolog-logger
 ```
 
-## 基本的な使い方
+## アーキテクチャ
+
+### ハンドラー方式
+
+`MonologHandler` は WpPack の `HandlerInterface` を実装し、内部で `MonologLoggerFactory` に委譲します。これにより：
+
+- WpPack の `LoggerFactory` / `Logger` がそのまま動作する（`#[LoggerChannel]` 属性による DI 解決も維持）
+- `DebugHandler` など他の WpPack ハンドラーと並列に動作する
+- `ErrorHandler` のチャンネル解決パイプラインが正常に機能する
+
+### MonologHandler
+
+WpPack `HandlerInterface` を実装し、ログレコードを Monolog に転送します。
 
 ```php
+use WpPack\Component\Logger\Bridge\Monolog\MonologHandler;
 use WpPack\Component\Logger\Bridge\Monolog\MonologLoggerFactory;
-use Monolog\Handler\ErrorLogHandler as MonologErrorLogHandler;
-use Monolog\Processor\PsrLogMessageProcessor;
+use Monolog\Handler\StreamHandler;
 
 $factory = new MonologLoggerFactory(
-    defaultHandlers: [new MonologErrorLogHandler()],
-    defaultProcessors: [new PsrLogMessageProcessor()],
+    defaultHandlers: [new StreamHandler('/path/to/app.log')],
 );
 
-$logger = $factory->create('app');
-$logger->info('Hello {name}', ['name' => 'World']);
+$handler = new MonologHandler($factory, level: 'warning');
 ```
+
+| パラメータ | 型 | デフォルト | 説明 |
+|-----------|---|----------|------|
+| `$factory` | `MonologLoggerFactory` | — | Monolog ロガーファクトリ |
+| `$level` | `string` | `'debug'` | 最小ログレベル |
+
+動作：
+- コンテキストの `_channel` からチャンネルを読み取り、対応する `Monolog\Logger` を取得
+- WpPack 内部コンテキストキー（`_channel`, `_file`, `_line`, `_type`, `_error_type`）を除去して Monolog に渡す
+- レベルフィルタリングにより、指定レベル以上のログのみ処理
 
 ## MonologLoggerFactory
 
-`MonologLoggerFactory` は `LoggerFactory` と同じ `create(string $name)` シグネチャを持ち、以下の機能を提供します：
-
-- デフォルトハンドラー・プロセッサの自動適用
-- チャンネル名によるロガーのキャッシュ（同名で呼び出すと同一インスタンスを返す）
+`MonologLoggerFactory` は Monolog ロガーインスタンスを生成・キャッシュするファクトリです。`MonologHandler` が内部で利用します。
 
 ### コンストラクタ
 
@@ -46,8 +70,8 @@ public function __construct(
 
 | パラメータ | 型 | 説明 |
 |-----------|---|------|
-| `$defaultHandlers` | `HandlerInterface[]` | 生成するロガーに追加するハンドラー |
-| `$defaultProcessors` | `ProcessorInterface[]` | 生成するロガーに追加するプロセッサ |
+| `$defaultHandlers` | `HandlerInterface[]` | 生成するロガーに追加する Monolog ハンドラー |
+| `$defaultProcessors` | `ProcessorInterface[]` | 生成するロガーに追加する Monolog プロセッサ |
 
 ### チャンネルベースロギング
 
@@ -56,36 +80,59 @@ $factory = new MonologLoggerFactory(
     defaultHandlers: [new MonologErrorLogHandler()],
 );
 
+// MonologHandler を通じてチャンネルが自動的に伝播
 $appLogger = $factory->create('app');
 $securityLogger = $factory->create('security');
-$apiLogger = $factory->create('api');
-
-$securityLogger->warning('Failed login attempt', ['username' => 'admin']);
-$apiLogger->info('API request', ['endpoint' => '/users', 'method' => 'GET']);
 ```
 
 ## DI コンテナ統合
 
-`wppack/dependency-injection` と組み合わせて、WpPack Logger からの差し替えが可能です：
+`MonologLoggerServiceProvider` は `LoggerServiceProvider` と併用します。`LoggerFactory` のハンドラーを `MonologHandler` に差し替えます：
 
 ```php
 use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\DependencyInjection\Reference;
-use WpPack\Component\Logger\Bridge\Monolog\MonologLoggerFactory;
+use WpPack\Component\Logger\DependencyInjection\LoggerServiceProvider;
+use WpPack\Component\Logger\Bridge\Monolog\DependencyInjection\MonologLoggerServiceProvider;
+use Monolog\Handler\StreamHandler;
 use Monolog\Handler\ErrorLogHandler as MonologErrorLogHandler;
-use Psr\Log\LoggerInterface;
+use Monolog\Level;
 
 $builder = new ContainerBuilder();
 
-// MonologLoggerFactory を登録
-$builder->register(MonologLoggerFactory::class)
-    ->addArgument([new MonologErrorLogHandler()]);
+// WpPack Logger を先に登録
+$builder->addServiceProvider(new LoggerServiceProvider());
 
-// デフォルトロガー
-$builder->register(LoggerInterface::class)
-    ->setFactory([new Reference(MonologLoggerFactory::class), 'create'])
-    ->setArgument(0, 'app');
+// Monolog ブリッジを追加（LoggerFactory のハンドラーを差し替え）
+$builder->addServiceProvider(new MonologLoggerServiceProvider(
+    handlers: [
+        new MonologErrorLogHandler(level: Level::Warning),
+        new StreamHandler('/path/to/app.log', Level::Debug),
+    ],
+    level: 'debug',
+));
+
+$container = $builder->compile();
+
+// WpPack Logger が返る（内部で MonologHandler → Monolog に委譲）
+$logger = $container->get(\Psr\Log\LoggerInterface::class);
+$logger->info('Hello World');
 ```
+
+### ServiceProvider コンストラクタ
+
+```php
+public function __construct(
+    array $handlers = [],
+    array $processors = [],
+    string $level = 'debug',
+)
+```
+
+| パラメータ | 型 | デフォルト | 説明 |
+|-----------|---|----------|------|
+| `$handlers` | `HandlerInterface[]` | `[]` | Monolog ハンドラー |
+| `$processors` | `ProcessorInterface[]` | `[]` | Monolog プロセッサ |
+| `$level` | `string` | `'debug'` | MonologHandler の最小ログレベル |
 
 ## Monolog ハンドラーの例
 
@@ -98,44 +145,33 @@ use Monolog\Handler\RotatingFileHandler;
 use Monolog\Level;
 
 // PHP error_log() に出力
-$factory = new MonologLoggerFactory(
-    defaultHandlers: [new MonologErrorLogHandler()],
+$provider = new MonologLoggerServiceProvider(
+    handlers: [new MonologErrorLogHandler()],
 );
 
 // ファイルに出力
-$factory = new MonologLoggerFactory(
-    defaultHandlers: [new StreamHandler('/path/to/app.log')],
+$provider = new MonologLoggerServiceProvider(
+    handlers: [new StreamHandler('/path/to/app.log')],
 );
 
 // 日次ローテーション
-$factory = new MonologLoggerFactory(
-    defaultHandlers: [new RotatingFileHandler('/path/to/app.log', 14)],
+$provider = new MonologLoggerServiceProvider(
+    handlers: [new RotatingFileHandler('/path/to/app.log', 14)],
 );
 
 // 複数ハンドラーの組み合わせ
-$factory = new MonologLoggerFactory(
-    defaultHandlers: [
+$provider = new MonologLoggerServiceProvider(
+    handlers: [
         new MonologErrorLogHandler(level: Level::Warning),
         new StreamHandler('/path/to/app.log', Level::Debug),
     ],
 );
 ```
 
-## WpPack Logger との比較
-
-| 機能 | WpPack Logger | Monolog Logger |
-|------|--------------|----------------|
-| PSR-3 準拠 | Yes | Yes |
-| ファクトリ | `LoggerFactory` | `MonologLoggerFactory` |
-| ハンドラー | `ErrorLogHandler` | Monolog の全ハンドラー |
-| プロセッサ | — | Monolog の全プロセッサ |
-| フォーマッター | 固定フォーマット | カスタマイズ可能 |
-| 依存関係 | `psr/log` のみ | `monolog/monolog` |
-
-WpPack Logger は軽量でシンプル。Monolog Logger は高度なログルーティング・フォーマッティングが必要な場合に適しています。
-
 ## 主要クラス
 
 | クラス | 説明 |
 |-------|------|
+| `MonologHandler` | WpPack `HandlerInterface` 実装。Monolog へのブリッジ |
 | `MonologLoggerFactory` | Monolog ロガーインスタンスの生成ファクトリ |
+| `MonologLoggerServiceProvider` | DI コンテナ統合用サービスプロバイダ |

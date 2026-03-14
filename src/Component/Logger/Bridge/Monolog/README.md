@@ -3,7 +3,7 @@
 **Package:** `wppack/monolog-logger`
 **Namespace:** `WpPack\Component\Logger\Bridge\Monolog\`
 
-A Monolog bridge for WpPack Logger. Use `MonologLoggerFactory` to leverage Monolog as a PSR-3 `LoggerInterface`.
+A Monolog bridge for WpPack Logger. Keeps the WpPack Logger frontend (`LoggerFactory` + `Logger`) intact and routes log records to Monolog via `MonologHandler` (a WpPack `HandlerInterface` implementation).
 
 ## Installation
 
@@ -14,16 +14,19 @@ composer require wppack/monolog-logger
 ## Usage
 
 ```php
+use WpPack\Component\Logger\Bridge\Monolog\MonologHandler;
 use WpPack\Component\Logger\Bridge\Monolog\MonologLoggerFactory;
-use Monolog\Handler\ErrorLogHandler;
-use Monolog\Processor\PsrLogMessageProcessor;
+use WpPack\Component\Logger\LoggerFactory;
+use Monolog\Handler\StreamHandler;
 
-$factory = new MonologLoggerFactory(
-    defaultHandlers: [new ErrorLogHandler()],
-    defaultProcessors: [new PsrLogMessageProcessor()],
+$monologFactory = new MonologLoggerFactory(
+    defaultHandlers: [new StreamHandler('/path/to/app.log')],
 );
 
-$logger = $factory->create('app');
+$handler = new MonologHandler($monologFactory);
+$loggerFactory = new LoggerFactory(defaultHandlers: [$handler]);
+
+$logger = $loggerFactory->create('app');
 $logger->info('Hello {name}', ['name' => 'World']);
 ```
 
