@@ -790,10 +790,10 @@ final class ToolbarAssets
             font-size: 18px;
             font-weight: 500;
             color: var(--wpd-gray-800);
-            flex: 1;
             display: flex;
             align-items: baseline;
             justify-content: center;
+            margin: auto 0;
         }
         #wppack-debug .wpd-perf-card-unit {
             font-size: 12px;
