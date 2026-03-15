@@ -67,22 +67,29 @@ use WpPack\Component\Debug\Toolbar\Panel\ShortcodePanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\TranslationPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\WidgetPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\WordPressPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters;
 use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
 use WpPack\Component\Debug\Toolbar\ToolbarSubscriber;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
+use WpPack\Component\Templating\PhpRenderer;
 
 final class DebugServiceProvider implements ServiceProviderInterface
 {
     public function register(ContainerBuilder $builder): void
     {
+        // Templating for Debug
+        $builder->register(TemplateFormatters::class);
+        $builder->register('debug.php_renderer', PhpRenderer::class)
+            ->addArgument([dirname(__DIR__) . '/../templates']);
+
         // Core services
         $builder->register(DebugConfig::class);
         $builder->register(Stopwatch::class);
         $builder->register(Profiler::class)->autowire();
         $builder->register(Profile::class);
         $builder->register(ToolbarRenderer::class)->autowire();
-        $builder->register(ErrorRenderer::class);
+        $builder->register(ErrorRenderer::class)->autowire();
         $builder->register(ExceptionHandler::class)->autowire();
         $builder->register(WpDieHandler::class)->autowire();
         $builder->register(ToolbarSubscriber::class)->autowire();

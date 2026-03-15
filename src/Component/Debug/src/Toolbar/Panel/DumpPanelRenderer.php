@@ -17,34 +17,10 @@ final class DumpPanelRenderer extends AbstractPanelRenderer implements RendererI
     public function renderPanel(): string
     {
         $data = $this->getCollectorData();
-        /** @var list<array<string, mixed>> $dumps */
-        $dumps = $data['dumps'] ?? [];
-        $totalCount = (int) ($data['total_count'] ?? 0);
 
-        if ($dumps === []) {
-            return '<div class="wpd-section"><p class="wpd-text-dim">No dump() calls recorded.</p></div>';
-        }
-
-        $html = '<div class="wpd-section">';
-        $html .= '<h4 class="wpd-section-title">Dumps (' . $this->esc((string) $totalCount) . ')</h4>';
-
-        foreach ($dumps as $index => $dump) {
-            $file = $dump['file'] ?? 'unknown';
-            $line = $dump['line'] ?? 0;
-            $dumpData = $dump['data'] ?? '';
-
-            $html .= '<div class="wpd-dump-item">';
-            $html .= '<div class="wpd-dump-file">';
-            $html .= '#' . $this->esc((string) ($index + 1)) . ' ' . $this->esc($file) . ':' . $this->esc((string) $line);
-            $html .= '</div>';
-            $html .= '<pre class="wpd-dump-code">';
-            $html .= $this->esc($dumpData);
-            $html .= '</pre>';
-            $html .= '</div>';
-        }
-
-        $html .= '</div>';
-
-        return $html;
+        return $this->getPhpRenderer()->render('toolbar/panels/dump', [
+            'dumps' => $data['dumps'] ?? [],
+            'totalCount' => (int) ($data['total_count'] ?? 0),
+        ]);
     }
 }

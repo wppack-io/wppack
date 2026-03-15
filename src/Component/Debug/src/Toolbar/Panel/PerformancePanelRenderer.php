@@ -16,7 +16,9 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer implements Re
 
     public function renderPanel(): string
     {
-        return $this->renderContent();
+        return $this->getPhpRenderer()->render('toolbar/panels/performance', [
+            'html' => $this->renderContent(),
+        ]);
     }
 
     public function renderIndicator(): string
@@ -40,12 +42,12 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer implements Re
 
         $bgStyle = $colors['bg'] !== 'transparent' ? ' style="background:' . $colors['bg'] . '"' : '';
 
-        return <<<HTML
-        <button class="wpd-indicator" data-panel="performance" data-tooltip="Performance"{$bgStyle}>
-            <span class="wpd-indicator-icon" style="color:{$colors['fg']}">{$icon}</span>
-            <span class="wpd-indicator-value" style="color:{$colors['fg']}">{$value}</span>
-        </button>
-        HTML;
+        return $this->getPhpRenderer()->render('toolbar/panels/performance-indicator', [
+            'value' => $value,
+            'icon' => $icon,
+            'colors' => $colors,
+            'bgStyle' => $bgStyle,
+        ]);
     }
 
     public function renderContent(): string

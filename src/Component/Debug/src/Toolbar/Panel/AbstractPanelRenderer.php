@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
+use WpPack\Component\Debug\Compat\EscapeFunctions;
 use WpPack\Component\Debug\Profiler\Profile;
+use WpPack\Component\Templating\PhpRenderer;
 
 abstract class AbstractPanelRenderer
 {
@@ -18,8 +20,13 @@ abstract class AbstractPanelRenderer
 
     protected float $requestTimeFloat = 0.0;
 
+    private ?PhpRenderer $lazyPhpRenderer = null;
+    private ?TemplateFormatters $lazyFormatters = null;
+
     public function __construct(
         protected readonly Profile $profile,
+        private readonly ?PhpRenderer $phpRenderer = null,
+        private readonly ?TemplateFormatters $templateFormatters = null,
     ) {}
 
     abstract public function getName(): string;
@@ -32,27 +39,14 @@ abstract class AbstractPanelRenderer
             return '';
         }
 
-        $name = $this->esc($collector->getName());
-        $label = $this->esc($collector->getLabel());
-        $value = $collector->getIndicatorValue();
-        $colorKey = $collector->getIndicatorColor();
-        $colors = self::INDICATOR_COLORS[$colorKey] ?? self::INDICATOR_COLORS['default'];
-        $icon = ToolbarIcons::svg($collector->getName());
-
-        $valueHtml = $value !== ''
-            ? ' <span class="wpd-indicator-value" style="color:' . $colors['fg'] . '">' . $this->esc($value) . '</span>'
-            : '';
-
-        $bgStyle = $colors['bg'] !== 'transparent' ? ' style="background:' . $colors['bg'] . '"' : '';
-        $iconStyle = $colorKey !== 'default' ? ' style="color:' . $colors['fg'] . '"' : '';
-
-        $accentAttr = $colorKey !== 'default' ? ' data-accent="' . $colors['fg'] . '"' : '';
-
-        return <<<HTML
-        <button class="wpd-indicator" data-panel="{$name}" data-tooltip="{$label}"{$bgStyle}{$accentAttr}>
-            <span class="wpd-indicator-icon"{$iconStyle}>{$icon}</span>{$valueHtml}
-        </button>
-        HTML;
+        return $this->getPhpRenderer()->render('toolbar/indicator', [
+            'name' => $collector->getName(),
+            'label' => $collector->getLabel(),
+            'value' => $collector->getIndicatorValue(),
+            'colorKey' => $collector->getIndicatorColor(),
+            'colors' => self::INDICATOR_COLORS[$collector->getIndicatorColor()] ?? self::INDICATOR_COLORS['default'],
+            'icon' => ToolbarIcons::svg($collector->getName()),
+        ]);
     }
 
     public function setRequestTimeFloat(float $requestTimeFloat): void
@@ -63,7 +57,7 @@ abstract class AbstractPanelRenderer
     /**
      * @return array<string, mixed>
      */
-    protected function getCollectorData(?string $name = null): array
+    public function getCollectorData(?string $name = null): array
     {
         try {
             return $this->profile->getCollector($name ?? $this->getName())->getData();
@@ -72,30 +66,26 @@ abstract class AbstractPanelRenderer
         }
     }
 
-    protected function renderTableRow(string $key, string $value, string $valueClass = ''): string
+    protected function getPhpRenderer(): PhpRenderer
     {
-        $classAttr = $valueClass !== '' ? ' class="wpd-kv-val ' . $this->esc($valueClass) . '"' : ' class="wpd-kv-val"';
-
-        return '<tr><td class="wpd-kv-key">' . $this->esc($key) . '</td><td' . $classAttr . '>' . $value . '</td></tr>';
-    }
-
-    /**
-     * @param array<string, mixed> $items
-     */
-    protected function renderKeyValueSection(string $title, array $items): string
-    {
-        $html = '<div class="wpd-section">';
-        $html .= '<h4 class="wpd-section-title">' . $this->esc($title) . '</h4>';
-        $html .= '<table class="wpd-table wpd-table-kv">';
-
-        foreach ($items as $key => $value) {
-            $html .= $this->renderTableRow($key, $this->formatValue($value));
+        if ($this->phpRenderer !== null) {
+            return $this->phpRenderer;
         }
 
-        $html .= '</table>';
-        $html .= '</div>';
+        EscapeFunctions::ensure();
 
-        return $html;
+        return $this->lazyPhpRenderer ??= new PhpRenderer([
+            dirname(__DIR__, 3) . '/templates',
+        ]);
+    }
+
+    protected function getFormatters(): TemplateFormatters
+    {
+        if ($this->templateFormatters !== null) {
+            return $this->templateFormatters;
+        }
+
+        return $this->lazyFormatters ??= new TemplateFormatters();
     }
 
     protected function renderPerfCard(string $label, string $value, string $unit, string $sub): string
@@ -180,108 +170,6 @@ abstract class AbstractPanelRenderer
         return $html;
     }
 
-    /**
-     * @param list<string>                        $styleHandles
-     * @param list<string>                        $scriptHandles
-     * @param array<string, array<string, mixed>> $allStyles
-     * @param array<string, array<string, mixed>> $allScripts
-     */
-    protected function renderAssetTables(
-        array $styleHandles,
-        array $scriptHandles,
-        array $allStyles,
-        array $allScripts,
-    ): string {
-        if ($styleHandles === [] && $scriptHandles === []) {
-            return '';
-        }
-
-        $html = '<div class="wpd-section">';
-        $html .= '<h4 class="wpd-section-title">Enqueued Assets</h4>';
-
-        if ($styleHandles !== []) {
-            $html .= '<div class="wpd-table-label">Styles</div>';
-            $html .= '<table class="wpd-table wpd-table-full">';
-            $html .= '<thead><tr>';
-            $html .= '<th>Handle</th>';
-            $html .= '<th>Source</th>';
-            $html .= '<th>Version</th>';
-            $html .= '<th>Media</th>';
-            $html .= '</tr></thead>';
-            $html .= '<tbody>';
-
-            foreach ($styleHandles as $handle) {
-                $info = $allStyles[$handle] ?? [];
-                $src = (string) ($info['src'] ?? '');
-                $version = (string) ($info['version'] ?? '');
-                $media = (string) ($info['media'] ?? '');
-
-                $html .= '<tr>';
-                $html .= '<td><code>' . $this->esc($handle) . '</code></td>';
-                $html .= '<td class="wpd-text-dim" style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' . ($src !== '' ? $this->esc($src) : '-') . '</td>';
-                $html .= '<td>' . ($version !== '' ? $this->esc($version) : '-') . '</td>';
-                $html .= '<td>' . ($media !== '' ? $this->esc($media) : '-') . '</td>';
-                $html .= '</tr>';
-            }
-
-            $html .= '</tbody></table>';
-        }
-
-        if ($scriptHandles !== []) {
-            if ($styleHandles !== []) {
-                $html .= '<div style="margin-top:8px"></div>';
-            }
-            $html .= '<div class="wpd-table-label">Scripts</div>';
-            $html .= '<table class="wpd-table wpd-table-full">';
-            $html .= '<thead><tr>';
-            $html .= '<th>Handle</th>';
-            $html .= '<th>Source</th>';
-            $html .= '<th>Version</th>';
-            $html .= '<th>Footer</th>';
-            $html .= '</tr></thead>';
-            $html .= '<tbody>';
-
-            foreach ($scriptHandles as $handle) {
-                $info = $allScripts[$handle] ?? [];
-                $src = (string) ($info['src'] ?? '');
-                $version = (string) ($info['version'] ?? '');
-                $inFooter = (bool) ($info['in_footer'] ?? false);
-
-                $html .= '<tr>';
-                $html .= '<td><code>' . $this->esc($handle) . '</code></td>';
-                $html .= '<td class="wpd-text-dim" style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' . ($src !== '' ? $this->esc($src) : '-') . '</td>';
-                $html .= '<td>' . ($version !== '' ? $this->esc($version) : '-') . '</td>';
-                $html .= '<td>' . $this->formatValue($inFooter) . '</td>';
-                $html .= '</tr>';
-            }
-
-            $html .= '</tbody></table>';
-        }
-
-        $html .= '</div>';
-
-        return $html;
-    }
-
-    protected function formatValue(mixed $value): string
-    {
-        if (is_bool($value)) {
-            return $value
-                ? '<span class="wpd-text-green">true</span>'
-                : '<span class="wpd-text-red">false</span>';
-        }
-
-        if ($value === null) {
-            return '<span class="wpd-text-dim">null</span>';
-        }
-
-        if (is_array($value)) {
-            return '<code>' . $this->esc(json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) ?: '[]') . '</code>';
-        }
-
-        return $this->esc((string) $value);
-    }
-
     protected function formatMs(float $ms): string
     {
         if ($ms >= 1000) {
@@ -289,17 +177,6 @@ abstract class AbstractPanelRenderer
         }
 
         return $this->esc(sprintf('%.1f ms', $ms));
-    }
-
-    protected function formatRelativeTime(float $absoluteTimestamp): string
-    {
-        if ($absoluteTimestamp <= 0 || $this->requestTimeFloat <= 0) {
-            return '';
-        }
-
-        $relativeMs = ($absoluteTimestamp - $this->requestTimeFloat) * 1000;
-
-        return $this->esc('+' . number_format(max(0, $relativeMs), 0) . ' ms');
     }
 
     protected function formatBytes(int $bytes): string
@@ -314,11 +191,6 @@ abstract class AbstractPanelRenderer
         $value = $bytes / (1024 ** $power);
 
         return $this->esc(sprintf('%.1f %s', round($value, 1), $units[$power]));
-    }
-
-    protected function badge(string $label, string $color): string
-    {
-        return '<span class="wpd-badge wpd-badge-' . $this->esc($color) . '">' . $this->esc($label) . '</span>';
     }
 
     protected function esc(string $value): string

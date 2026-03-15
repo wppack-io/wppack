@@ -22,10 +22,9 @@ final class GenericPanelRenderer extends AbstractPanelRenderer implements Render
     {
         $data = $this->getCollectorData($this->collectorName);
 
-        if ($data === []) {
-            return '<div class="wpd-section"><p class="wpd-text-dim">No data collected.</p></div>';
-        }
-
-        return $this->renderKeyValueSection('Data', $data);
+        return $this->getPhpRenderer()->render('toolbar/panels/generic', [
+            'data' => $data,
+            'fmt' => $this->getFormatters(),
+        ]);
     }
 }

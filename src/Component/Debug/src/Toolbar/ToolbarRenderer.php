@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Debug\Toolbar;
 
+use WpPack\Component\Debug\Compat\EscapeFunctions;
 use WpPack\Component\Debug\DataCollector\DataCollectorInterface;
 use WpPack\Component\Debug\Profiler\Profile;
 use WpPack\Component\Debug\Toolbar\Panel\AbstractPanelRenderer;
@@ -11,6 +12,7 @@ use WpPack\Component\Debug\Toolbar\Panel\GenericPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\RendererInterface;
 use WpPack\Component\Debug\Toolbar\Panel\ToolbarAssets;
 use WpPack\Component\Debug\Toolbar\Panel\ToolbarIcons;
+use WpPack\Component\Templating\PhpRenderer;
 
 final class ToolbarRenderer
 {
@@ -46,11 +48,27 @@ final class ToolbarRenderer
 
     private readonly ToolbarAssets $assets;
 
+    private ?PhpRenderer $lazyPhpRenderer = null;
+
     public function __construct(
         private readonly Profile $profile,
+        private readonly ?PhpRenderer $phpRenderer = null,
     ) {
         $this->genericRenderer = new GenericPanelRenderer($this->profile);
         $this->assets = new ToolbarAssets();
+    }
+
+    public function getPhpRenderer(): PhpRenderer
+    {
+        if ($this->phpRenderer !== null) {
+            return $this->phpRenderer;
+        }
+
+        EscapeFunctions::ensure();
+
+        return $this->lazyPhpRenderer ??= new PhpRenderer([
+            dirname(__DIR__, 2) . '/templates',
+        ]);
     }
 
     public function addPanelRenderer(AbstractPanelRenderer&RendererInterface $renderer): void
@@ -104,39 +122,18 @@ final class ToolbarRenderer
         $js = $this->assets->renderJs();
         $closeIcon = ToolbarIcons::svg('close', 14);
 
-        return <<<HTML
-        <div id="wppack-debug">
-        <style>{$css}</style>
-        <div class="wpd-overlay" style="display:none">
-            <div class="wpd-sidebar">
-                {$sidebarHtml}
-            </div>
-            <div class="wpd-content">
-                <div class="wpd-content-header">
-                    <span class="wpd-panel-title">{$defaultTitle}</span>
-                    <button class="wpd-panel-close" data-action="close-panel" title="Close">{$closeIcon}</button>
-                </div>
-                <div class="wpd-content-body">
-                    {$contentPanels}
-                </div>
-            </div>
-        </div>
-        <div class="wpd-mini" title="Show WpPack Debug Toolbar">
-            {$wpMiniIcon}
-        </div>
-        <div class="wpd-bar">
-            {$wpIndicatorHtml}
-            <div class="wpd-bar-indicators-wrap">
-                <div class="wpd-bar-indicators">
-                    {$indicators}
-                </div>
-            </div>
-            {$envHtml}
-            <button class="wpd-close-btn" data-action="minimize" title="Close toolbar">{$closeIcon}</button>
-        </div>
-        <script>{$js}</script>
-        </div>
-        HTML;
+        return $this->getPhpRenderer()->render('toolbar/layout', [
+            'css' => $css,
+            'js' => $js,
+            'sidebarHtml' => $sidebarHtml,
+            'contentPanels' => $contentPanels,
+            'defaultTitle' => $defaultTitle,
+            'indicators' => $indicators,
+            'wpIndicatorHtml' => $wpIndicatorHtml,
+            'envHtml' => $envHtml,
+            'wpMiniIcon' => $wpMiniIcon,
+            'closeIcon' => $closeIcon,
+        ]);
     }
 
     /**
@@ -146,9 +143,9 @@ final class ToolbarRenderer
     private function renderSidebar(array $collectorNames, array $collectors): string
     {
         $knownNames = array_merge(...self::SIDEBAR_GROUPS);
-        $html = '';
-        $groupIndex = 0;
 
+        // Build visible groups
+        $groups = [];
         foreach (self::SIDEBAR_GROUPS as $group) {
             $visibleItems = [];
             foreach ($group as $name) {
@@ -156,44 +153,26 @@ final class ToolbarRenderer
                     $visibleItems[] = $name;
                 }
             }
-
-            if ($visibleItems === []) {
-                continue;
-            }
-
-            if ($groupIndex > 0) {
-                $html .= '<div class="wpd-sidebar-divider"></div>';
-            }
-
-            foreach ($visibleItems as $key) {
-                $icon = ToolbarIcons::svg($key, 18);
-                $label = $this->getPanelLabel($key, $collectors);
-                $html .= '<button class="wpd-sidebar-item" data-panel="' . $this->esc($key) . '">'
-                    . '<span class="wpd-sidebar-icon">' . $icon . '</span>'
-                    . '<span class="wpd-sidebar-label">' . $this->esc($label) . '</span>'
-                    . '</button>';
-            }
-
-            $groupIndex++;
+            $groups[] = $visibleItems;
         }
 
-        // Collectors not in any sidebar group
-        $unknownNames = array_diff($collectorNames, $knownNames);
-        if ($unknownNames !== []) {
-            if ($groupIndex > 0) {
-                $html .= '<div class="wpd-sidebar-divider"></div>';
-            }
-            foreach ($unknownNames as $key) {
-                $icon = ToolbarIcons::svg($key, 18);
-                $label = $collectors[$key]->getLabel();
-                $html .= '<button class="wpd-sidebar-item" data-panel="' . $this->esc($key) . '">'
-                    . '<span class="wpd-sidebar-icon">' . $icon . '</span>'
-                    . '<span class="wpd-sidebar-label">' . $this->esc($label) . '</span>'
-                    . '</button>';
-            }
+        $unknownNames = array_values(array_diff($collectorNames, $knownNames));
+
+        // Build icon and label maps
+        $allNames = array_merge($collectorNames, array_keys($this->panelRenderers));
+        $iconMap = [];
+        $labelMap = [];
+        foreach (array_unique($allNames) as $key) {
+            $iconMap[$key] = ToolbarIcons::svg($key, 18);
+            $labelMap[$key] = $this->getPanelLabel($key, $collectors);
         }
 
-        return $html;
+        return $this->getPhpRenderer()->render('toolbar/sidebar', [
+            'groups' => $groups,
+            'unknownNames' => $unknownNames,
+            'iconMap' => $iconMap,
+            'labelMap' => $labelMap,
+        ]);
     }
 
     /**
@@ -260,28 +239,17 @@ final class ToolbarRenderer
 
     private function renderIndicator(DataCollectorInterface $collector): string
     {
-        $name = $this->esc($collector->getName());
-        $label = $this->esc($collector->getLabel());
-        $value = $collector->getIndicatorValue();
         $colorKey = $collector->getIndicatorColor();
         $indicatorColors = AbstractPanelRenderer::getIndicatorColors();
-        $colors = $indicatorColors[$colorKey] ?? $indicatorColors['default'];
-        $icon = ToolbarIcons::svg($collector->getName());
 
-        $valueHtml = $value !== ''
-            ? ' <span class="wpd-indicator-value" style="color:' . $colors['fg'] . '">' . $this->esc($value) . '</span>'
-            : '';
-
-        $bgStyle = $colors['bg'] !== 'transparent' ? ' style="background:' . $colors['bg'] . '"' : '';
-        $iconStyle = $colors['fg'] !== '#50575e' ? ' style="color:' . $colors['fg'] . '"' : '';
-
-        $accentAttr = $colorKey !== 'default' ? ' data-accent="' . $colors['fg'] . '"' : '';
-
-        return <<<HTML
-        <button class="wpd-indicator" data-panel="{$name}" data-tooltip="{$label}"{$bgStyle}{$accentAttr}>
-            <span class="wpd-indicator-icon"{$iconStyle}>{$icon}</span>{$valueHtml}
-        </button>
-        HTML;
+        return $this->getPhpRenderer()->render('toolbar/indicator', [
+            'name' => $collector->getName(),
+            'label' => $collector->getLabel(),
+            'value' => $collector->getIndicatorValue(),
+            'colorKey' => $colorKey,
+            'colors' => $indicatorColors[$colorKey] ?? $indicatorColors['default'],
+            'icon' => ToolbarIcons::svg($collector->getName()),
+        ]);
     }
 
     private function renderPanelContent(string $name): string
