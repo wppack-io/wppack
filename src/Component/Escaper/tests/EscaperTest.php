@@ -81,4 +81,54 @@ final class EscaperTest extends TestCase
     {
         self::assertSame('Hello World', $this->escaper->js('Hello World'));
     }
+
+    #[Test]
+    public function escapeDefaultsToHtml(): void
+    {
+        $result = $this->escaper->escape('<script>alert("XSS")</script>');
+
+        self::assertStringNotContainsString('<script>', $result);
+        self::assertStringContainsString('&lt;', $result);
+    }
+
+    #[Test]
+    public function escapeWithHtmlStrategy(): void
+    {
+        $result = $this->escaper->escape('<b>bold</b>', 'html');
+
+        self::assertStringContainsString('&lt;b&gt;', $result);
+    }
+
+    #[Test]
+    public function escapeWithAttrStrategy(): void
+    {
+        $result = $this->escaper->escape('" onclick="alert(1)', 'attr');
+
+        self::assertStringNotContainsString('"', $result);
+    }
+
+    #[Test]
+    public function escapeWithUrlStrategy(): void
+    {
+        $result = $this->escaper->escape('javascript:alert(1)', 'url');
+
+        self::assertStringNotContainsString('javascript:', $result);
+    }
+
+    #[Test]
+    public function escapeWithJsStrategy(): void
+    {
+        $result = $this->escaper->escape("He said \"hello\"", 'js');
+
+        self::assertStringNotContainsString('"', $result);
+    }
+
+    #[Test]
+    public function escapeThrowsOnUnknownStrategy(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unknown escaping strategy "css"');
+
+        $this->escaper->escape('value', 'css');
+    }
 }

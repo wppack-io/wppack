@@ -63,4 +63,22 @@ final class Escaper
     {
         return esc_js($value);
     }
+
+    /**
+     * Escape a string using the specified strategy.
+     *
+     * @param string $strategy One of: html, attr, url, js
+     */
+    public function escape(string $value, string $strategy = 'html'): string
+    {
+        return match ($strategy) {
+            'html' => $this->html($value),
+            'attr' => $this->attr($value),
+            'url' => $this->url($value),
+            'js' => $this->js($value),
+            default => throw new \InvalidArgumentException(
+                sprintf('Unknown escaping strategy "%s". Supported: html, attr, url, js.', $strategy),
+            ),
+        };
+    }
 }
