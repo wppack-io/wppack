@@ -12,7 +12,7 @@ composer require wppack/messenger
 
 ## レイヤー構造
 
-コンポーネントは 4 つのレイヤーに分類されます。各レイヤーは **自身より下位のレイヤーのみ** に依存できます。
+コンポーネントは 4 つのレイヤーに分類されます。
 
 ```
 Application  → Feature, Abstraction, Infrastructure

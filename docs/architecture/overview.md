@@ -144,8 +144,6 @@ WpPack\Plugin\{Name}\
 
 ## レイヤー間の依存ルール
 
-各レイヤーは **自身より下位のレイヤーのみ** に依存できます。
-
 ```
 Plugin       → Application, Feature, Abstraction, Infrastructure
 Application  → Feature, Abstraction, Infrastructure
@@ -154,11 +152,4 @@ Abstraction  → Infrastructure
 Infrastructure → (外部ライブラリのみ)
 ```
 
-**禁止される依存:**
-- Infrastructure が Feature や Application に依存する
-- Feature が Application に依存する
-- 同一レイヤー内の循環依存
-
-**推奨:**
-- インターフェースへの依存を優先する
-- 具体クラスへの直接依存は最小限にする
+- インターフェースへの依存を優先し、具体クラスへの直接依存は最小限にする
