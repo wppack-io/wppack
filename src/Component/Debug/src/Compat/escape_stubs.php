@@ -11,17 +11,18 @@ declare(strict_types=1);
  * @internal
  */
 
-function esc_html($text)
+function esc_html(mixed $text): string
 {
     return htmlspecialchars((string) $text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
-function esc_attr($text)
+function esc_attr(mixed $text): string
 {
     return htmlspecialchars((string) $text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
-function esc_url($url, $protocols = null, $_context = 'display')
+/** @param list<string>|null $protocols */
+function esc_url(mixed $url, ?array $protocols = null, string $_context = 'display'): string
 {
     $url = (string) $url;
     if (preg_match('/^javascript:/i', $url)) {
@@ -31,7 +32,7 @@ function esc_url($url, $protocols = null, $_context = 'display')
     return htmlspecialchars($url, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
-function esc_js($text)
+function esc_js(mixed $text): string
 {
     return str_replace(
         ["\\", '"', "'", "\n", "\r", '</'],

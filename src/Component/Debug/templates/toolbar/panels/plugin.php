@@ -160,12 +160,12 @@ endif;
 <?php endif; ?>
 <?php if (!empty($enqueuedStylesPl) || !empty($enqueuedScriptsPl)): ?>
 <?= $view->include('toolbar/partials/asset-tables', [
-        'styleHandles' => $enqueuedStylesPl,
-        'scriptHandles' => $enqueuedScriptsPl,
-        'allStyles' => $allStyles,
-        'allScripts' => $allScripts,
-        'fmt' => $fmt,
-    ]) ?>
+    'styleHandles' => $enqueuedStylesPl,
+    'scriptHandles' => $enqueuedScriptsPl,
+    'allStyles' => $allStyles,
+    'allScripts' => $allScripts,
+    'fmt' => $fmt,
+]) ?>
 <?php endif; ?>
 </div>
 <?php endforeach; ?>
