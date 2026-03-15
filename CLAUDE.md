@@ -227,6 +227,21 @@ wppack/logger
 - 名前空間: `WpPack\Component\{Name}\Attribute\Action\` / `Attribute\Filter\`
 - 自動検出: `ReflectionAttribute::IS_INSTANCEOF` により追加設定不要
 
+### WordPress バージョン互換性
+
+WordPress のフックや関数がバージョン間でリネーム・廃止される場合は、`version_compare(get_bloginfo('version'), ...)` でバージョンを判定し、新旧両方に対応する。新しいバージョンのフックを優先し、古いバージョンにはフォールバックを提供する。
+
+```php
+// 例: WP 6.8 で setted_transient → set_transient にリネーム
+$useNewHooks = version_compare(get_bloginfo('version'), '6.8', '>=');
+$setHook = $useNewHooks ? 'set_transient' : 'setted_transient';
+add_action($setHook, [$this, 'onTransientSet'], 10, 3);
+```
+
+- 二重発火を避けるため、新旧両方を同時に登録しない（どちらか一方を条件分岐で選択）
+- 廃止されたフック／関数を使い続けない（deprecation warning の原因になる）
+- 対応バージョン範囲はコメントで明記する（例: `// WP 6.8+: ... / WP < 6.8: ...`）
+
 ### 名前空間
 
 ```
