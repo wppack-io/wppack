@@ -42,7 +42,7 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer implements Re
 
         $bgStyle = $colors['bg'] !== 'transparent' ? ' style="background:' . $colors['bg'] . '"' : '';
 
-        return $this->getPhpRenderer()->render('toolbar/panels/performance-indicator', [
+        return $this->getPhpRenderer()->render('toolbar/indicators/performance', [
             'value' => $value,
             'icon' => $icon,
             'colors' => $colors,

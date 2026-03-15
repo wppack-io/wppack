@@ -242,7 +242,7 @@ final class ToolbarRenderer
         $colorKey = $collector->getIndicatorColor();
         $indicatorColors = AbstractPanelRenderer::getIndicatorColors();
 
-        return $this->getPhpRenderer()->render('toolbar/indicator', [
+        return $this->getPhpRenderer()->render('toolbar/indicators/default', [
             'name' => $collector->getName(),
             'label' => $collector->getLabel(),
             'value' => $collector->getIndicatorValue(),

@@ -77,7 +77,7 @@ final class EnvironmentPanelRenderer extends AbstractPanelRenderer implements Re
             $tooltipHtml .= '<div>' . $this->esc($line) . '</div>';
         }
 
-        return $this->getPhpRenderer()->render('toolbar/panels/environment-indicator', [
+        return $this->getPhpRenderer()->render('toolbar/indicators/environment', [
             'labelParts' => $labelParts,
             'tooltipHtml' => $tooltipHtml,
         ]);

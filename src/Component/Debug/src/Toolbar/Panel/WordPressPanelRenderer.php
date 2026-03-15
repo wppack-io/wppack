@@ -17,7 +17,7 @@ final class WordPressPanelRenderer extends AbstractPanelRenderer implements Rend
     public function renderIndicator(): string
     {
         $wpData = $this->getCollectorData('wordpress');
-        return $this->getPhpRenderer()->render('toolbar/panels/wordpress-indicator', [
+        return $this->getPhpRenderer()->render('toolbar/indicators/wordpress', [
             'wpVersion' => (string) ($wpData['wp_version'] ?? ''),
             'wpIcon' => ToolbarIcons::svg('wordpress', 18),
         ]);
