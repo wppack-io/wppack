@@ -27,7 +27,7 @@ jobs:
           - { local_path: 'src/Component/Rest', split_repository: 'rest' }
           - { local_path: 'src/Component/PostType', split_repository: 'post-type' }
           - { local_path: 'src/Component/Query', split_repository: 'query' }
-          - { local_path: 'src/Component/Command', split_repository: 'command' }
+          - { local_path: 'src/Component/Console', split_repository: 'console' }
           - { local_path: 'src/Component/Cache', split_repository: 'cache' }
           - { local_path: 'src/Component/Database', split_repository: 'database' }
           - { local_path: 'src/Component/Security', split_repository: 'security' }

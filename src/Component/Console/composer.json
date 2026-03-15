@@ -1,0 +1,19 @@
+{
+    "name": "wppack/console",
+    "description": "WP-CLI command framework with type-safe input/output",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpPack\\Component\\Console\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Component\\Console\\Tests\\": "tests/"
+        }
+    }
+}

@@ -29,7 +29,7 @@ alternatives.
 | `wppack/rest` | REST API endpoint registration |
 | `wppack/post-type` | Custom post type registration |
 | `wppack/query` | Type-safe query builder |
-| `wppack/command` | WP-CLI command registration |
+| `wppack/console` | WP-CLI command framework |
 | `wppack/cache` | PSR-6/PSR-16 cache abstraction |
 | `wppack/database` | Database abstraction and migrations |
 | `wppack/security` | Authentication and authorization |

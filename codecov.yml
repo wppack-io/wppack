@@ -169,10 +169,10 @@ component_management:
       name: Scheduler
       paths:
         - src/Component/Scheduler/src/**
-    - component_id: command
-      name: Command
+    - component_id: console
+      name: Console
       paths:
-        - src/Component/Command/src/**
+        - src/Component/Console/src/**
     - component_id: shortcode
       name: Shortcode
       paths:

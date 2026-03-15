@@ -72,7 +72,7 @@ WordPress の機能領域をモダンなパターンで扱う。
 | [Routing](./routing/) | `wppack/routing` | URL ルーティング |
 | [PostType](./post-type.md) | `wppack/post-type` | カスタム投稿タイプ・メタ登録 |
 | [Scheduler](./scheduler.md) | `wppack/scheduler` | スケジュール定義（EventBridge 同期） |
-| [Command](./command.md) | `wppack/command` | WP-CLI コマンド登録 |
+| [Console](./console/) | `wppack/console` | WP-CLI コマンドフレームワーク |
 | [Shortcode](./shortcode/) | `wppack/shortcode` | ショートコード登録 |
 | [Nonce](./nonce/) | `wppack/nonce` | Nonce 管理 |
 | [Ajax](./ajax/) | `wppack/ajax` | Admin Ajax ハンドラー |
