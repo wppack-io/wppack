@@ -36,30 +36,17 @@
 <tbody>
 <?php foreach ($requests as $index => $request):
     $statusCode = (int) ($request['status_code'] ?? 0);
-    $statusColor = match (true) {
-        $statusCode >= 200 && $statusCode < 300 => 'wpd-text-green',
-        $statusCode >= 300 && $statusCode < 400 => 'wpd-text-yellow',
-        $statusCode === 0 => 'wpd-text-dim',
-        default => 'wpd-text-red',
-    };
-    $error = ($request['error'] ?? '') !== '' ? '<br><small class="wpd-text-red">' . $this->e($request['error']) . '</small>' : '';
+    $statusColor = $fmt->statusColor($statusCode);
     $startTime = (float) ($request['start'] ?? 0);
     $relTime = $fmt->relativeTime($startTime, $requestTimeFloat);
     $method = (string) ($request['method'] ?? 'GET');
-    $methodColor = match ($method) {
-        'GET' => 'green',
-        'POST' => 'primary',
-        'PUT', 'PATCH' => 'yellow',
-        'DELETE' => 'red',
-        default => 'gray',
-    };
 ?>
 <tr>
 <td class="wpd-col-num"><?= $this->e((string) ($index + 1)) ?></td>
 <td class="wpd-col-reltime wpd-text-dim"><?= $this->e($relTime) ?></td>
-<td><?= $this->include('toolbar/partials/badge', ['label' => $method, 'color' => $methodColor]) ?></td>
+<td><?= $this->include('toolbar/partials/method-badge', ['method' => $method, 'fmt' => $fmt]) ?></td>
 <td><code><?= $this->e($request['url'] ?? '') ?></code></td>
-<td class="<?= $statusColor ?>"><?= $statusCode > 0 ? $this->e((string) $statusCode) : '-' ?><?= $this->raw($error) ?></td>
+<td class="<?= $statusColor ?>"><?= $statusCode > 0 ? $this->e((string) $statusCode) : '-' ?><?php if (($request['error'] ?? '') !== ''): ?><br><small class="wpd-text-red"><?= $this->e($request['error']) ?></small><?php endif; ?></td>
 <td class="wpd-col-right"><?= $this->e($fmt->ms((float) ($request['duration'] ?? 0.0))) ?></td>
 <td class="wpd-col-right"><?= $this->e($fmt->bytes((int) ($request['response_size'] ?? 0))) ?></td>
 </tr>

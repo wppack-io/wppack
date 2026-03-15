@@ -4,13 +4,18 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
+use WpPack\Component\Debug\Profiler\Profile;
+use WpPack\Component\Templating\PhpRenderer;
+
 final class GenericPanelRenderer extends AbstractPanelRenderer implements RendererInterface
 {
-    private string $collectorName = '';
-
-    public function setCollectorName(string $name): void
-    {
-        $this->collectorName = $name;
+    public function __construct(
+        Profile $profile,
+        private readonly string $collectorName = '',
+        ?PhpRenderer $phpRenderer = null,
+        ?TemplateFormatters $templateFormatters = null,
+    ) {
+        parent::__construct($profile, $phpRenderer, $templateFormatters);
     }
 
     public function getName(): string

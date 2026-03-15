@@ -45,15 +45,10 @@
 <th>Services</th>
 </tr></thead>
 <tbody>
-<?php foreach ($taggedServices as $tag => $serviceIds):
-    $tags = '';
-    foreach ($serviceIds as $id) {
-        $tags .= '<span class="wpd-tag">' . $this->e($id) . '</span>';
-    }
-?>
+<?php foreach ($taggedServices as $tag => $serviceIds): ?>
 <tr>
 <td><code><?= $this->e($tag) ?></code></td>
-<td><div class="wpd-tag-list"><?= $this->raw($tags) ?></div></td>
+<td><div class="wpd-tag-list"><?php foreach ($serviceIds as $id): ?><span class="wpd-tag"><?= $this->e($id) ?></span><?php endforeach; ?></div></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>
@@ -75,22 +70,12 @@
     $isPublic = (bool) ($info['public'] ?? false);
     $isAutowired = (bool) ($info['autowired'] ?? false);
     $isLazy = (bool) ($info['lazy'] ?? false);
-    $scope = $isPublic
-        ? '<span class="wpd-text-green">public</span>'
-        : '<span class="wpd-text-dim">private</span>';
-    $flags = '';
-    if ($isAutowired) {
-        $flags .= $this->include('toolbar/partials/badge', ['label' => 'autowired', 'color' => 'primary']) . ' ';
-    }
-    if ($isLazy) {
-        $flags .= $this->include('toolbar/partials/badge', ['label' => 'lazy', 'color' => 'yellow']) . ' ';
-    }
 ?>
 <tr>
 <td><code><?= $this->e($id) ?></code></td>
 <td class="wpd-text-dim"><?= $this->e($class) ?></td>
-<td><?= $this->raw($scope) ?></td>
-<td><?= $flags !== '' ? $this->raw($flags) : '-' ?></td>
+<td><?php if ($isPublic): ?><span class="wpd-text-green">public</span><?php else: ?><span class="wpd-text-dim">private</span><?php endif; ?></td>
+<td><?php if ($isAutowired): ?><?= $this->include('toolbar/partials/badge', ['label' => 'autowired', 'color' => 'primary']) ?> <?php endif; ?><?php if ($isLazy): ?><?= $this->include('toolbar/partials/badge', ['label' => 'lazy', 'color' => 'yellow']) ?><?php endif; ?><?php if (!$isAutowired && !$isLazy): ?>-<?php endif; ?></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>

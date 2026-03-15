@@ -44,8 +44,6 @@ final class ToolbarRenderer
     /** @var array<string, AbstractPanelRenderer&RendererInterface> */
     private array $panelRenderers = [];
 
-    private readonly GenericPanelRenderer $genericRenderer;
-
     private readonly ToolbarAssets $assets;
 
     private ?PhpRenderer $lazyPhpRenderer = null;
@@ -54,7 +52,6 @@ final class ToolbarRenderer
         private readonly Profile $profile,
         private readonly ?PhpRenderer $phpRenderer = null,
     ) {
-        $this->genericRenderer = new GenericPanelRenderer($this->profile);
         $this->assets = new ToolbarAssets();
     }
 
@@ -91,7 +88,6 @@ final class ToolbarRenderer
         foreach ($this->panelRenderers as $renderer) {
             $renderer->setRequestTimeFloat($requestTimeFloat);
         }
-        $this->genericRenderer->setRequestTimeFloat($requestTimeFloat);
 
         // Build ordered indicators (wordpress group first)
         $indicators = $this->renderOrderedIndicators($collectors);
@@ -256,9 +252,9 @@ final class ToolbarRenderer
     {
         $renderer = $this->panelRenderers[$name] ?? null;
         if ($renderer === null) {
-            $this->genericRenderer->setCollectorName($name);
+            $generic = new GenericPanelRenderer($this->profile, collectorName: $name);
 
-            return $this->genericRenderer->renderPanel();
+            return $generic->renderPanel();
         }
 
         return $renderer->renderPanel();

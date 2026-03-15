@@ -95,6 +95,43 @@ final class TemplateFormatters
     }
 
     /**
+     * Map HTTP method to badge color key.
+     */
+    public function methodColor(string $method): string
+    {
+        return match ($method) {
+            'GET' => 'green',
+            'POST' => 'primary',
+            'PUT', 'PATCH' => 'yellow',
+            'DELETE' => 'red',
+            default => 'gray',
+        };
+    }
+
+    /**
+     * Map HTTP status code to text color CSS class.
+     */
+    public function statusColor(int $statusCode): string
+    {
+        return match (true) {
+            $statusCode >= 200 && $statusCode < 300 => 'wpd-text-green',
+            $statusCode >= 300 && $statusCode < 400 => 'wpd-text-yellow',
+            $statusCode === 0 => 'wpd-text-dim',
+            default => 'wpd-text-red',
+        };
+    }
+
+    /**
+     * Format a float as percentage string.
+     *
+     * @return string e.g. "82.3%"
+     */
+    public function percentage(float $value): string
+    {
+        return sprintf('%.1f%%', $value);
+    }
+
+    /**
      * Format a mixed value as HTML string (bool/null/array/string).
      *
      * Note: This returns raw HTML — use $this->raw() in templates.

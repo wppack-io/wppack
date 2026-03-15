@@ -81,7 +81,7 @@ final class DebugServiceProvider implements ServiceProviderInterface
         // Templating for Debug
         $builder->register(TemplateFormatters::class);
         $builder->register('debug.php_renderer', PhpRenderer::class)
-            ->addArgument([dirname(__DIR__) . '/../templates']);
+            ->addArgument([dirname(__DIR__, 2) . '/templates']);
 
         // Core services
         $builder->register(DebugConfig::class);

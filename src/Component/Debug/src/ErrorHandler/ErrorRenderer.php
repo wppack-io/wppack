@@ -44,15 +44,7 @@ final class ErrorRenderer
             'renderer' => $this,
         ]);
 
-        $chainSectionHtml = '';
         $chainCount = count($exception->getChain());
-        if ($chainCount > 1) {
-            $chainSectionHtml = '<!-- ═══ Previous Exceptions ═══ -->'
-                . '<div class="section">'
-                . '<div class="section-title">Previous Exceptions (' . $this->escape((string) ($chainCount - 1)) . ')</div>'
-                . $chainHtml
-                . '</div>';
-        }
 
         return $this->getPhpRenderer()->render('error/page', [
             'shortClass' => $this->shortClassName($exception->getClass()),
@@ -61,7 +53,8 @@ final class ErrorRenderer
             'codeLabel' => $code !== 0 ? ' <span class="exception-code">(code ' . $code . ')</span>' : '',
             'cssVariables' => CssTheme::cssVariables(),
             'traceHtml' => $traceHtml,
-            'chainSectionHtml' => $chainSectionHtml,
+            'chainHtml' => $chainHtml,
+            'chainCount' => $chainCount,
             'toolbarHtml' => $toolbarHtml,
         ]);
     }

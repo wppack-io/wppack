@@ -65,16 +65,12 @@
 <th>Result</th>
 </tr></thead>
 <tbody>
-<?php foreach ($nonceOps as $op):
-    $resultHtml = $op['result']
-        ? '<span class="wpd-text-green">pass</span>'
-        : '<span class="wpd-text-red">fail</span>';
-?>
+<?php foreach ($nonceOps as $op): ?>
 <tr>
 <td class="wpd-col-reltime wpd-text-dim"><?= $this->e($fmt->relativeTime($op['timestamp'], $requestTimeFloat)) ?></td>
 <td><code><?= $this->e($op['action']) ?></code></td>
 <td><?= $this->e($op['operation']) ?></td>
-<td><?= $this->raw($resultHtml) ?></td>
+<td><?php if ($op['result']): ?><span class="wpd-text-green">pass</span><?php else: ?><span class="wpd-text-red">fail</span><?php endif; ?></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>

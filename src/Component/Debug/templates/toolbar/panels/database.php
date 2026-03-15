@@ -8,6 +8,9 @@
  * @var int                                                          $slowCount        Slow query count
  * @var list<string>                                                 $suggestions      Optimization suggestions
  * @var list<array>                                                  $queries          Query records
+ * @var array<string,array{count:int,total_time:float}>              $callerStats      Caller statistics (sorted)
+ * @var array<string,string>                                         $shortCallers     Short caller names
+ * @var array<string,int>                                            $sqlCounts        SQL duplicate counts
  * @var \WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt              Template formatters
  * @var float                                                        $requestTimeFloat Request start timestamp
  */
@@ -31,17 +34,7 @@
 </ul>
 </div>
 <?php endif; ?>
-<?php if (!empty($queries)):
-    // Caller grouping
-    $callerStats = [];
-    foreach ($queries as $query) {
-        $caller = $query['caller'];
-        $callerStats[$caller] ??= ['count' => 0, 'total_time' => 0.0];
-        $callerStats[$caller]['count']++;
-        $callerStats[$caller]['total_time'] += $query['time'];
-    }
-    uasort($callerStats, static fn(array $a, array $b): int => $b['total_time'] <=> $a['total_time']);
-?>
+<?php if (!empty($queries)): ?>
 <div class="wpd-section">
 <h4 class="wpd-section-title">Queries by Caller</h4>
 <table class="wpd-table wpd-table-full">
@@ -55,14 +48,9 @@
 <?php foreach ($callerStats as $caller => $stats):
     $avgTime = $stats['total_time'] / $stats['count'];
     $countClass = $stats['count'] > 5 ? ' wpd-text-yellow' : '';
-    $shortCaller = $caller;
-    $parts = preg_split('/,\s*/', $caller);
-    if ($parts !== false && count($parts) > 1) {
-        $shortCaller = end($parts);
-    }
 ?>
 <tr>
-<td title="<?= $this->e($caller) ?>"><span class="wpd-caller"><?= $this->e($shortCaller) ?></span></td>
+<td title="<?= $this->e($caller) ?>"><span class="wpd-caller"><?= $this->e($shortCallers[$caller] ?? $caller) ?></span></td>
 <td class="wpd-col-right<?= $countClass ?>"><?= $this->e((string) $stats['count']) ?></td>
 <td class="wpd-col-right"><?= $this->e($fmt->ms($stats['total_time'])) ?></td>
 <td class="wpd-col-right"><?= $this->e($fmt->ms($avgTime)) ?></td>
@@ -70,14 +58,7 @@
 <?php endforeach; ?>
 </tbody></table>
 </div>
-<?php
-    // Count duplicates for highlighting
-    $sqlCounts = [];
-    foreach ($queries as $query) {
-        $sql = $query['sql'];
-        $sqlCounts[$sql] = ($sqlCounts[$sql] ?? 0) + 1;
-    }
-?>
+<?php /* sqlCounts provided by renderer */ ?>
 <div class="wpd-section">
 <h4 class="wpd-section-title">Queries</h4>
 <table class="wpd-table wpd-table-full">
@@ -94,19 +75,14 @@
     $timeMs = (float) $query['time'];
     $isSlow = $timeMs > 100.0;
     $isDuplicate = ($sqlCounts[$sql] ?? 0) > 1;
-    $rowClass = '';
-    if ($isSlow) { $rowClass = 'wpd-row-slow'; }
-    elseif ($isDuplicate) { $rowClass = 'wpd-row-duplicate'; }
-    $badges = '';
-    if ($isSlow) { $badges .= $this->include('toolbar/partials/badge', ['label' => 'SLOW', 'color' => 'red']); }
-    if ($isDuplicate) { $badges .= $this->include('toolbar/partials/badge', ['label' => 'DUP', 'color' => 'yellow']); }
+    $rowClass = $isSlow ? 'wpd-row-slow' : ($isDuplicate ? 'wpd-row-duplicate' : '');
     $startTime = (float) ($query['start'] ?? 0);
     $relTime = $fmt->relativeTime($startTime, $requestTimeFloat);
 ?>
 <tr class="<?= $rowClass ?>">
 <td class="wpd-col-num"><?= $this->e((string) ($index + 1)) ?></td>
 <td class="wpd-col-reltime wpd-text-dim"><?= $this->e($relTime) ?></td>
-<td class="wpd-col-sql"><code><?= $this->e($sql) ?></code><?= $this->raw($badges) ?></td>
+<td class="wpd-col-sql"><code><?= $this->e($sql) ?></code><?php if ($isSlow): ?><?= $this->include('toolbar/partials/badge', ['label' => 'SLOW', 'color' => 'red']) ?><?php endif; ?><?php if ($isDuplicate): ?><?= $this->include('toolbar/partials/badge', ['label' => 'DUP', 'color' => 'yellow']) ?><?php endif; ?></td>
 <td class="wpd-col-time"><?= $this->e($fmt->ms($timeMs)) ?></td>
 <td class="wpd-col-caller"><span class="wpd-caller"><?= $this->e($query['caller']) ?></span></td>
 </tr>

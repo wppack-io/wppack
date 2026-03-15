@@ -34,17 +34,22 @@
 <th class="wpd-col-right">Duration</th>
 </tr></thead>
 <tbody>
-<?php foreach ($componentSummary as $component => $summary):
-    $typeTag = match ($summary['type']) {
-        'plugin' => $this->include('toolbar/partials/badge', ['label' => 'plugin', 'color' => 'purple']),
-        'theme' => $this->include('toolbar/partials/badge', ['label' => 'theme', 'color' => 'rust']),
-        'core' => $this->include('toolbar/partials/badge', ['label' => 'core', 'color' => 'primary']),
-        default => '<span class="wpd-tag">' . $this->e($summary['type']) . '</span>',
-    };
-?>
+<?php foreach ($componentSummary as $component => $summary): ?>
 <tr>
 <td><code><?= $this->e((string) $component) ?></code></td>
-<td><?= $this->raw($typeTag) ?></td>
+<td><?php
+    $typeColor = match ($summary['type']) {
+        'plugin' => 'purple',
+        'theme' => 'rust',
+        'core' => 'primary',
+        default => null,
+    };
+    if ($typeColor !== null) {
+        echo $this->include('toolbar/partials/badge', ['label' => $summary['type'], 'color' => $typeColor]);
+    } else {
+        echo '<span class="wpd-tag">' . $this->e($summary['type']) . '</span>';
+    }
+?></td>
 <td class="wpd-col-right"><?= $this->e((string) $summary['hooks']) ?></td>
 <td class="wpd-col-right"><?= $this->e((string) $summary['listeners']) ?></td>
 <td class="wpd-col-right"><?= $this->e($fmt->ms((float) $summary['total_time'])) ?></td>

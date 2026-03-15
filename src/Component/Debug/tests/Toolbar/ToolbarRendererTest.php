@@ -1379,8 +1379,7 @@ final class ToolbarRendererTest extends TestCase
     {
         $profile = new Profile();
         $profile->addCollector($this->createCollector('test_empty', 'Test', '', 'default'));
-        $renderer = new GenericPanelRenderer($profile);
-        $renderer->setCollectorName('test_empty');
+        $renderer = new GenericPanelRenderer($profile, collectorName: 'test_empty');
         $html = $renderer->renderPanel();
         self::assertStringContainsString('No data collected.', $html);
     }
@@ -1390,8 +1389,7 @@ final class ToolbarRendererTest extends TestCase
     {
         $profile = new Profile();
         $profile->addCollector($this->createCollector('test_data', 'Test', '', 'default', ['key1' => 'value1', 'key2' => 42]));
-        $renderer = new GenericPanelRenderer($profile);
-        $renderer->setCollectorName('test_data');
+        $renderer = new GenericPanelRenderer($profile, collectorName: 'test_data');
         $html = $renderer->renderPanel();
         self::assertStringContainsString('key1', $html);
         self::assertStringContainsString('value1', $html);
@@ -1423,7 +1421,7 @@ final class ToolbarRendererTest extends TestCase
         ]);
 
         $renderer = new PerformancePanelRenderer($profile);
-        $html = $renderer->renderContent();
+        $html = $renderer->renderPanel();
 
         self::assertStringContainsString('Database (2 queries)', $html);
         self::assertStringContainsString('Timeline', $html);
@@ -1453,7 +1451,7 @@ final class ToolbarRendererTest extends TestCase
         ]);
 
         $renderer = new PerformancePanelRenderer($profile);
-        $html = $renderer->renderContent();
+        $html = $renderer->renderPanel();
 
         self::assertStringContainsString('HTTP Client (1 requests)', $html);
     }
@@ -1481,7 +1479,7 @@ final class ToolbarRendererTest extends TestCase
         ]);
 
         $renderer = new PerformancePanelRenderer($profile);
-        $html = $renderer->renderContent();
+        $html = $renderer->renderPanel();
 
         self::assertStringContainsString('Mail (1 emails)', $html);
     }
@@ -1509,7 +1507,7 @@ final class ToolbarRendererTest extends TestCase
         ]);
 
         $renderer = new PerformancePanelRenderer($profile);
-        $html = $renderer->renderContent();
+        $html = $renderer->renderPanel();
 
         self::assertStringContainsString('Widgets (1 sidebars)', $html);
     }
@@ -1538,7 +1536,7 @@ final class ToolbarRendererTest extends TestCase
         ]);
 
         $renderer = new PerformancePanelRenderer($profile);
-        $html = $renderer->renderContent();
+        $html = $renderer->renderPanel();
 
         self::assertStringContainsString('Shortcodes (2 executions)', $html);
     }
@@ -1586,7 +1584,7 @@ final class ToolbarRendererTest extends TestCase
         ]);
 
         $renderer = new PerformancePanelRenderer($profile);
-        $html = $renderer->renderContent();
+        $html = $renderer->renderPanel();
 
         self::assertStringContainsString('Plugins', $html);
         self::assertStringContainsString('My Plugin', $html);
@@ -1635,7 +1633,7 @@ final class ToolbarRendererTest extends TestCase
         ]);
 
         $renderer = new PerformancePanelRenderer($profile);
-        $html = $renderer->renderContent();
+        $html = $renderer->renderPanel();
 
         self::assertStringContainsString('Plugins', $html);
         self::assertStringContainsString('WooCommerce', $html);
@@ -1680,7 +1678,7 @@ final class ToolbarRendererTest extends TestCase
         ]);
 
         $renderer = new PerformancePanelRenderer($profile);
-        $html = $renderer->renderContent();
+        $html = $renderer->renderPanel();
 
         // Theme section divider should appear
         self::assertStringContainsString('Theme', $html);
@@ -1719,7 +1717,7 @@ final class ToolbarRendererTest extends TestCase
         ]);
 
         $renderer = new PerformancePanelRenderer($profile);
-        $html = $renderer->renderContent();
+        $html = $renderer->renderPanel();
 
         self::assertStringContainsString('Widgets (2 sidebars)', $html);
         // Widget names in tooltips
@@ -1757,7 +1755,7 @@ final class ToolbarRendererTest extends TestCase
         ]);
 
         $renderer = new PerformancePanelRenderer($profile);
-        $html = $renderer->renderContent();
+        $html = $renderer->renderPanel();
 
         self::assertStringContainsString('Shortcodes (3 executions)', $html);
         // Shortcode tags in tooltips (wrapped in square brackets)
@@ -1795,7 +1793,7 @@ final class ToolbarRendererTest extends TestCase
         ]);
 
         $renderer = new PerformancePanelRenderer($profile);
-        $html = $renderer->renderContent();
+        $html = $renderer->renderPanel();
 
         self::assertStringContainsString('Mail (2 emails)', $html);
         // Email subjects in tooltips
@@ -1926,7 +1924,7 @@ final class ToolbarRendererTest extends TestCase
         ]);
 
         $renderer = new PerformancePanelRenderer($profile);
-        $html = $renderer->renderContent();
+        $html = $renderer->renderPanel();
 
         // Only 2 requests have 'start', so the timeline should say "2 requests"
         self::assertStringContainsString('HTTP Client (2 requests)', $html);

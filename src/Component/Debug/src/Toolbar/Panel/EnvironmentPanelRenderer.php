@@ -70,11 +70,11 @@ final class EnvironmentPanelRenderer extends AbstractPanelRenderer implements Re
             if ($i > 0) {
                 $labelParts .= '<span class="wpd-env-sep"></span>';
             }
-            $labelParts .= $this->esc($part);
+            $labelParts .= htmlspecialchars($part, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
         }
         $tooltipHtml = '';
         foreach ($tooltipLines as $line) {
-            $tooltipHtml .= '<div>' . $this->esc($line) . '</div>';
+            $tooltipHtml .= '<div>' . htmlspecialchars($line, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</div>';
         }
 
         return $this->getPhpRenderer()->render('toolbar/indicators/environment', [

@@ -9,6 +9,40 @@ use WpPack\Component\Debug\Attribute\AsPanelRenderer;
 #[AsPanelRenderer(name: 'performance')]
 final class PerformancePanelRenderer extends AbstractPanelRenderer implements RendererInterface
 {
+    /** @var array<string, string> */
+    private const CATEGORY_COLORS = [
+        'wordpress' => 'var(--wpd-primary)',
+        'database' => '#f0c33c',
+        'cache' => '#4ab866',
+        'http' => '#9b8afb',
+        'default' => '#5b9fe6',
+        'controller' => '#3fcf8e',
+        'template' => '#e26f56',
+        'security' => '#e65054',
+        'plugin' => '#d97ae6',
+        'theme_hooks' => '#e26f56',
+        'widget' => '#4ab866',
+        'shortcode' => '#e6a23c',
+        'mail' => '#e65490',
+    ];
+
+    /** @var array<string, string> */
+    private const CATEGORY_LABELS = [
+        'lifecycle' => 'Lifecycle',
+        'database' => 'Database',
+        'cache' => 'Cache',
+        'http' => 'HTTP Client',
+        'default' => 'Default',
+        'controller' => 'Controller',
+        'template' => 'Template',
+        'security' => 'Security',
+        'plugin' => 'Plugin',
+        'theme_hooks' => 'Theme',
+        'widget' => 'Widget',
+        'shortcode' => 'Shortcode',
+        'mail' => 'Mail',
+    ];
+
     public function getName(): string
     {
         return 'performance';
@@ -16,15 +50,89 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer implements Re
 
     public function renderPanel(): string
     {
+        $fmt = $this->getFormatters();
+
+        $timeData = $this->getCollectorData('stopwatch');
+        $memoryData = $this->getCollectorData('memory');
+        $dbData = $this->getCollectorData('database');
+        $cacheData = $this->getCollectorData('cache');
+        $httpData = $this->getCollectorData('http_client');
+        $eventData = $this->getCollectorData('event');
+        $mailData = $this->getCollectorData('mail');
+
+        $totalTime = (float) ($timeData['total_time'] ?? $this->profile->getTime());
+        $peakMemory = (int) ($memoryData['peak'] ?? 0);
+        $memoryLimit = (int) ($memoryData['limit'] ?? 0);
+        $usagePercentage = (float) ($memoryData['usage_percentage'] ?? 0.0);
+        $dbCount = (int) ($dbData['total_count'] ?? 0);
+        $dbTime = (float) ($dbData['total_time'] ?? 0.0);
+        $cacheHitRate = (float) ($cacheData['hit_rate'] ?? 0.0);
+        $httpCount = (int) ($httpData['total_count'] ?? 0);
+        $httpTime = (float) ($httpData['total_time'] ?? 0.0);
+        $hookFirings = (int) ($eventData['total_firings'] ?? 0);
+
+        // Build overview cards
+        $overviewCards = $this->buildOverviewCards(
+            $fmt,
+            $totalTime,
+            $peakMemory,
+            $memoryLimit,
+            $usagePercentage,
+            $dbCount,
+            $dbTime,
+            $cacheData,
+            $cacheHitRate,
+            $httpCount,
+            $httpTime,
+            $eventData,
+            $hookFirings,
+        );
+
+        // Build time distribution segments
+        $segments = $this->buildSegments($totalTime, $dbTime, $httpTime, $timeData, $cacheData, $mailData);
+
+        // Build timeline entries
+        $requestTimeFloat = (float) ($timeData['request_time_float'] ?? 0.0);
+
+        /** @var array<string, array{name: string, category: string, duration: float, memory: int, start_time: float, end_time: float}> $events */
+        $events = $timeData['events'] ?? [];
+
+        [$timelineEntries, $pluginTimelineEntries, $themeTimelineEntries] = $this->buildTimeline(
+            $fmt,
+            $timeData,
+            $dbData,
+            $cacheData,
+            $httpData,
+            $eventData,
+            $mailData,
+            $totalTime,
+            $requestTimeFloat,
+            $events,
+        );
+
+        // Determine used categories for legend
+        $allEntries = array_merge($timelineEntries, $pluginTimelineEntries, $themeTimelineEntries);
+        $usedCategories = array_unique(array_column($allEntries, 'category'));
+
         return $this->getPhpRenderer()->render('toolbar/panels/performance', [
-            'html' => $this->renderContent(),
+            'overviewCards' => $overviewCards,
+            'totalTime' => $totalTime,
+            'segments' => $segments,
+            'timelineEntries' => $timelineEntries,
+            'pluginTimelineEntries' => $pluginTimelineEntries,
+            'themeTimelineEntries' => $themeTimelineEntries,
+            'categoryColors' => self::CATEGORY_COLORS,
+            'categoryLabels' => self::CATEGORY_LABELS,
+            'usedCategories' => $usedCategories,
+            'fmt' => $fmt,
         ]);
     }
 
     public function renderIndicator(): string
     {
+        $fmt = $this->getFormatters();
         $totalTime = $this->profile->getTime();
-        $value = $this->formatMs($totalTime);
+        $value = $fmt->ms($totalTime);
         $icon = ToolbarIcons::svg('performance');
 
         $memoryData = $this->getCollectorData('memory');
@@ -50,166 +158,166 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer implements Re
         ]);
     }
 
-    public function renderContent(): string
-    {
-        $timeData = $this->getCollectorData('stopwatch');
-        $memoryData = $this->getCollectorData('memory');
-        $dbData = $this->getCollectorData('database');
-        $cacheData = $this->getCollectorData('cache');
-        $httpData = $this->getCollectorData('http_client');
-        $eventData = $this->getCollectorData('event');
-        $mailData = $this->getCollectorData('mail');
+    /**
+     * @param array<string, mixed> $cacheData
+     * @param array<string, mixed> $eventData
+     * @return list<array{label: string, value: string, unit: string, sub: string}>
+     */
+    private function buildOverviewCards(
+        TemplateFormatters $fmt,
+        float $totalTime,
+        int $peakMemory,
+        int $memoryLimit,
+        float $usagePercentage,
+        int $dbCount,
+        float $dbTime,
+        array $cacheData,
+        float $cacheHitRate,
+        int $httpCount,
+        float $httpTime,
+        array $eventData,
+        int $hookFirings,
+    ): array {
+        $cards = [];
 
-        $totalTime = (float) ($timeData['total_time'] ?? $this->profile->getTime());
-        $peakMemory = (int) ($memoryData['peak'] ?? 0);
-        $memoryLimit = (int) ($memoryData['limit'] ?? 0);
-        $usagePercentage = (float) ($memoryData['usage_percentage'] ?? 0.0);
-        $dbCount = (int) ($dbData['total_count'] ?? 0);
-        $dbTime = (float) ($dbData['total_time'] ?? 0.0);
-        $cacheHitRate = (float) ($cacheData['hit_rate'] ?? 0.0);
-        $httpCount = (int) ($httpData['total_count'] ?? 0);
-        $httpTime = (float) ($httpData['total_time'] ?? 0.0);
-        $hookFirings = (int) ($eventData['total_firings'] ?? 0);
-
-        $html = '';
-
-        // Section 1: Overview cards
-        $html .= '<div class="wpd-section">';
-        $html .= '<h4 class="wpd-section-title">Overview</h4>';
-        $html .= '<div class="wpd-perf-cards">';
-
-        [$timeVal, $timeUnit] = $this->formatMsCard($totalTime);
-        $html .= $this->renderPerfCard('Total Time', $timeVal, $timeUnit, '');
+        [$timeVal, $timeUnit] = $fmt->msCard($totalTime);
+        $cards[] = ['label' => 'Total Time', 'value' => $timeVal, 'unit' => $timeUnit, 'sub' => ''];
 
         $memorySub = '';
         if ($memoryLimit > 0) {
-            $memorySub = $this->esc(sprintf('%.0f%%', $usagePercentage)) . ' of ' . $this->formatBytes($memoryLimit);
+            $memorySub = $fmt->percentage($usagePercentage) . ' of ' . $fmt->bytes($memoryLimit);
         }
         if ($peakMemory > 0) {
-            [$memVal, $memUnit] = $this->formatBytesCard($peakMemory);
-            $html .= $this->renderPerfCard('Peak Memory', $memVal, $memUnit, $memorySub);
+            [$memVal, $memUnit] = $fmt->bytesCard($peakMemory);
+            $cards[] = ['label' => 'Peak Memory', 'value' => $memVal, 'unit' => $memUnit, 'sub' => $memorySub];
         } else {
-            $html .= $this->renderPerfCard('Peak Memory', 'N/A', '', $memorySub);
+            $cards[] = ['label' => 'Peak Memory', 'value' => 'N/A', 'unit' => '', 'sub' => $memorySub];
         }
 
-        $dbSub = $dbCount > 0 ? $this->formatMs($dbTime) . ' total' : '';
-        $html .= $this->renderPerfCard('Database', $dbCount > 0 ? $this->esc((string) $dbCount) : 'N/A', $dbCount > 0 ? 'queries' : '', $dbSub);
+        $dbSub = $dbCount > 0 ? $fmt->ms($dbTime) . ' total' : '';
+        $cards[] = [
+            'label' => 'Database',
+            'value' => $dbCount > 0 ? (string) $dbCount : 'N/A',
+            'unit' => $dbCount > 0 ? 'queries' : '',
+            'sub' => $dbSub,
+        ];
 
-        $html .= $this->renderPerfCard('Cache Hit Rate', $cacheData !== [] ? $this->esc(sprintf('%.1f', $cacheHitRate)) : 'N/A', $cacheData !== [] ? '%' : '', '');
+        $cards[] = [
+            'label' => 'Cache Hit Rate',
+            'value' => $cacheData !== [] ? sprintf('%.1f', $cacheHitRate) : 'N/A',
+            'unit' => $cacheData !== [] ? '%' : '',
+            'sub' => '',
+        ];
 
-        $httpSub = $httpCount > 0 ? $this->formatMs($httpTime) . ' total' : '';
-        $html .= $this->renderPerfCard('HTTP Client', $httpCount > 0 ? $this->esc((string) $httpCount) : 'N/A', $httpCount > 0 ? 'requests' : '', $httpSub);
+        $httpSub = $httpCount > 0 ? $fmt->ms($httpTime) . ' total' : '';
+        $cards[] = [
+            'label' => 'HTTP Client',
+            'value' => $httpCount > 0 ? (string) $httpCount : 'N/A',
+            'unit' => $httpCount > 0 ? 'requests' : '',
+            'sub' => $httpSub,
+        ];
 
-        $html .= $this->renderPerfCard('Hook Firings', $eventData !== [] ? number_format($hookFirings) : 'N/A', '', '');
+        $cards[] = [
+            'label' => 'Hook Firings',
+            'value' => $eventData !== [] ? number_format($hookFirings) : 'N/A',
+            'unit' => '',
+            'sub' => '',
+        ];
 
-        $html .= '</div>';
-        $html .= '</div>';
+        return $cards;
+    }
 
-        // Section 2: Time Distribution
-        /** @var array<string, array{name: string, category: string, duration: float, memory: int, start_time: float, end_time: float}> $events */
+    /**
+     * @param array<string, mixed> $timeData
+     * @param array<string, mixed> $cacheData
+     * @param array<string, mixed> $mailData
+     * @return list<array{label: string, time: float, color: string}>
+     */
+    private function buildSegments(
+        float $totalTime,
+        float $dbTime,
+        float $httpTime,
+        array $timeData,
+        array $cacheData,
+        array $mailData,
+    ): array {
+        if ($totalTime <= 0) {
+            return [];
+        }
+
+        /** @var array<string, array{name: string, category: string, duration: float}> $events */
         $events = $timeData['events'] ?? [];
         $customEvents = array_filter($events, static fn(array $e): bool => $e['category'] !== 'wordpress');
 
-        if ($totalTime > 0) {
-            $dbTimeMs = $dbTime;
-            $httpTimeMs = $httpTime;
-
-            // Aggregate custom stopwatch event durations by category
-            $categoryTimes = [];
-            foreach ($customEvents as $event) {
-                $cat = $event['category'];
-                $categoryTimes[$cat] = ($categoryTimes[$cat] ?? 0.0) + (float) $event['duration'];
-            }
-
-            // Aggregate transient operation times as "cache" category
-            /** @var list<array{name: string, operation: string, expiration: int, caller: string, time?: float}> $transientOps */
-            $transientOps = $cacheData['transient_operations'] ?? [];
-            $cacheTimeMs = 0.0;
-            foreach ($transientOps as $op) {
-                if (isset($op['time'])) {
-                    $cacheTimeMs += 0.5; // approximate per-operation cost
-                }
-            }
-
-            // Aggregate mail send times
-            /** @var list<array{duration?: float}> $mailEmailsDist */
-            $mailEmailsDist = $mailData['emails'] ?? [];
-            $mailTimeMs = 0.0;
-            foreach ($mailEmailsDist as $mailEmail) {
-                $mailTimeMs += (float) ($mailEmail['duration'] ?? 0.0);
-            }
-
-            $customTotal = array_sum($categoryTimes) + $cacheTimeMs + $mailTimeMs;
-            $phpTime = max(0.0, $totalTime - $dbTimeMs - $httpTimeMs - $customTotal);
-
-            // Build segments: fixed categories first, then dynamic
-            $segments = [];
-            $segments[] = ['label' => 'PHP', 'time' => $phpTime, 'color' => 'var(--wpd-primary)'];
-            $segments[] = ['label' => 'Database', 'time' => $dbTimeMs, 'color' => '#f0c33c'];
-            $segments[] = ['label' => 'HTTP Client', 'time' => $httpTimeMs, 'color' => '#9b8afb'];
-
-            if ($mailTimeMs > 0) {
-                $segments[] = ['label' => 'Mail', 'time' => $mailTimeMs, 'color' => '#e65490'];
-            }
-
-            if ($cacheTimeMs > 0) {
-                $segments[] = ['label' => 'Cache', 'time' => $cacheTimeMs, 'color' => '#4ab866'];
-            }
-
-            $dynamicCategoryColors = [
-                'template' => '#e26f56',
-                'controller' => '#3fcf8e',
-            ];
-            foreach ($categoryTimes as $cat => $catTime) {
-                $color = $dynamicCategoryColors[$cat] ?? '#5b9fe6';
-                $label = ucfirst($cat);
-                $segments[] = ['label' => $label, 'time' => $catTime, 'color' => $color];
-            }
-
-            $html .= '<div class="wpd-section">';
-            $html .= '<h4 class="wpd-section-title">Time Distribution</h4>';
-
-            $html .= '<div class="wpd-perf-dist-bar">';
-            foreach ($segments as $seg) {
-                $pct = ($seg['time'] / $totalTime) * 100;
-                if ($pct > 0) {
-                    $html .= '<div class="wpd-perf-dist-segment" style="width:' . $this->esc(sprintf('%.2f', $pct)) . '%;background:' . $this->esc($seg['color']) . '"></div>';
-                }
-            }
-            $html .= '</div>';
-
-            $html .= '<div class="wpd-perf-dist-legend">';
-            foreach ($segments as $seg) {
-                if ($seg['time'] > 0) {
-                    $pct = ($seg['time'] / $totalTime) * 100;
-                    $html .= '<span class="wpd-perf-legend-item"><span class="wpd-perf-legend-color" style="background:' . $this->esc($seg['color']) . '"></span> ' . $this->esc($seg['label']) . ' ' . $this->formatMs($seg['time']) . ' (' . $this->esc(sprintf('%.1f%%', $pct)) . ')</span>';
-                }
-            }
-            $html .= '</div>';
-
-            $html .= '</div>';
+        $categoryTimes = [];
+        foreach ($customEvents as $event) {
+            $cat = $event['category'];
+            $categoryTimes[$cat] = ($categoryTimes[$cat] ?? 0.0) + (float) $event['duration'];
         }
 
-        // Section 3: Unified Timeline (waterfall)
-        /** @var array<string, float> $phases */
-        $phases = $timeData['phases'] ?? [];
-        $requestTimeFloat = (float) ($timeData['request_time_float'] ?? 0.0);
+        $transientOps = $cacheData['transient_operations'] ?? [];
+        $cacheTimeMs = 0.0;
+        foreach ($transientOps as $op) {
+            if (isset($op['time'])) {
+                $cacheTimeMs += 0.5;
+            }
+        }
 
-        $categoryColors = [
-            'wordpress' => 'var(--wpd-primary)',
-            'database' => '#f0c33c',
-            'cache' => '#4ab866',
-            'http' => '#9b8afb',
-            'default' => '#5b9fe6',
-            'controller' => '#3fcf8e',
-            'template' => '#e26f56',
-            'security' => '#e65054',
-        ];
+        $mailEmails = $mailData['emails'] ?? [];
+        $mailTimeMs = 0.0;
+        foreach ($mailEmails as $email) {
+            $mailTimeMs += (float) ($email['duration'] ?? 0.0);
+        }
 
-        // Build unified timeline entries
+        $customTotal = array_sum($categoryTimes) + $cacheTimeMs + $mailTimeMs;
+        $phpTime = max(0.0, $totalTime - $dbTime - $httpTime - $customTotal);
+
+        $segments = [];
+        $segments[] = ['label' => 'PHP', 'time' => $phpTime, 'color' => 'var(--wpd-primary)'];
+        $segments[] = ['label' => 'Database', 'time' => $dbTime, 'color' => '#f0c33c'];
+        $segments[] = ['label' => 'HTTP Client', 'time' => $httpTime, 'color' => '#9b8afb'];
+
+        if ($mailTimeMs > 0) {
+            $segments[] = ['label' => 'Mail', 'time' => $mailTimeMs, 'color' => '#e65490'];
+        }
+        if ($cacheTimeMs > 0) {
+            $segments[] = ['label' => 'Cache', 'time' => $cacheTimeMs, 'color' => '#4ab866'];
+        }
+
+        $dynamicColors = ['template' => '#e26f56', 'controller' => '#3fcf8e'];
+        foreach ($categoryTimes as $cat => $catTime) {
+            $segments[] = ['label' => ucfirst($cat), 'time' => $catTime, 'color' => $dynamicColors[$cat] ?? '#5b9fe6'];
+        }
+
+        return $segments;
+    }
+
+    /**
+     * @param array<string, mixed> $timeData
+     * @param array<string, mixed> $dbData
+     * @param array<string, mixed> $cacheData
+     * @param array<string, mixed> $httpData
+     * @param array<string, mixed> $eventData
+     * @param array<string, mixed> $mailData
+     * @param array<string, mixed> $events
+     * @return array{list<array<string, mixed>>, list<array<string, mixed>>, list<array<string, mixed>>}
+     */
+    private function buildTimeline(
+        TemplateFormatters $fmt,
+        array $timeData,
+        array $dbData,
+        array $cacheData,
+        array $httpData,
+        array $eventData,
+        array $mailData,
+        float $totalTime,
+        float $requestTimeFloat,
+        array $events,
+    ): array {
         $timelineEntries = [];
 
         // 1. Lifecycle phases
+        $phases = $timeData['phases'] ?? [];
         $previousTime = 0.0;
         foreach ($phases as $phaseName => $phaseTime) {
             $duration = $phaseTime - $previousTime;
@@ -218,13 +326,12 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer implements Re
                 'start' => $previousTime,
                 'duration' => $duration,
                 'category' => 'wordpress',
-                'title' => $phaseName . "\n" . $this->formatMs($previousTime) . ' → ' . $this->formatMs($phaseTime) . ' (' . $this->formatMs($duration) . ')',
+                'title' => $phaseName . "\n" . $fmt->ms($previousTime) . ' → ' . $fmt->ms($phaseTime) . ' (' . $fmt->ms($duration) . ')',
             ];
             $previousTime = $phaseTime;
         }
 
-        // 2. DB queries — single row with individual ticks per query
-        /** @var list<array{sql: string, time: float, caller: string, start?: float}> $queries */
+        // 2. DB queries
         $queries = $dbData['queries'] ?? [];
         $dbBars = [];
         $dbTotalMs = 0.0;
@@ -239,24 +346,20 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer implements Re
             $dbBars[] = [
                 'start' => $startMs,
                 'duration' => $durationMs,
-                'title' => $sql . "\n" . $this->formatMs($durationMs) . ' — ' . $query['caller'],
+                'title' => $sql . "\n" . $fmt->ms($durationMs) . ' — ' . $query['caller'],
             ];
         }
         if ($dbBars !== []) {
             $dbLabel = sprintf('Database (%d queries)', count($dbBars));
             $timelineEntries[] = [
-                'name' => $dbLabel,
-                'start' => $dbBars[0]['start'],
-                'duration' => 0.0,
+                'name' => $dbLabel, 'start' => $dbBars[0]['start'], 'duration' => 0.0,
                 'category' => 'database',
-                'title' => $dbLabel . ' — ' . $this->formatMs($dbTotalMs) . ' total',
-                'value' => $dbTotalMs,
-                'bars' => $dbBars,
+                'title' => $dbLabel . ' — ' . $fmt->ms($dbTotalMs) . ' total',
+                'value' => $dbTotalMs, 'bars' => $dbBars,
             ];
         }
 
-        // 3. Transient operations — single row with individual ticks
-        /** @var list<array{name: string, operation: string, expiration: int, caller: string, time?: float}> $transientOps */
+        // 3. Transient operations
         $transientOps = $cacheData['transient_operations'] ?? [];
         $cacheBars = [];
         foreach ($transientOps as $op) {
@@ -272,17 +375,12 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer implements Re
         if ($cacheBars !== []) {
             $cacheLabel = sprintf('Cache (%d ops)', count($cacheBars));
             $timelineEntries[] = [
-                'name' => $cacheLabel,
-                'start' => $cacheBars[0]['start'],
-                'duration' => 0.0,
-                'category' => 'cache',
-                'title' => $cacheLabel,
-                'bars' => $cacheBars,
+                'name' => $cacheLabel, 'start' => $cacheBars[0]['start'], 'duration' => 0.0,
+                'category' => 'cache', 'title' => $cacheLabel, 'bars' => $cacheBars,
             ];
         }
 
-        // 4. HTTP Client requests — single row with individual ticks
-        /** @var list<array{url: string, method: string, status_code: int, duration: float, start?: float, response_size?: int, error?: string}> $httpRequests */
+        // 4. HTTP Client requests
         $httpRequests = $httpData['requests'] ?? [];
         $httpBars = [];
         $httpTotalMs = 0.0;
@@ -296,23 +394,21 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer implements Re
             $httpBars[] = [
                 'start' => $startMs,
                 'duration' => $durationMs,
-                'title' => $req['method'] . ' ' . $req['url'] . "\n" . $this->formatMs($durationMs) . ' — ' . $req['status_code'],
+                'title' => $req['method'] . ' ' . $req['url'] . "\n" . $fmt->ms($durationMs) . ' — ' . $req['status_code'],
             ];
         }
         if ($httpBars !== []) {
             $httpLabel = sprintf('HTTP Client (%d requests)', count($httpBars));
             $timelineEntries[] = [
-                'name' => $httpLabel,
-                'start' => $httpBars[0]['start'],
-                'duration' => 0.0,
+                'name' => $httpLabel, 'start' => $httpBars[0]['start'], 'duration' => 0.0,
                 'category' => 'http',
-                'title' => $httpLabel . ' — ' . $this->formatMs($httpTotalMs) . ' total',
-                'value' => $httpTotalMs,
-                'bars' => $httpBars,
+                'title' => $httpLabel . ' — ' . $fmt->ms($httpTotalMs) . ' total',
+                'value' => $httpTotalMs, 'bars' => $httpBars,
             ];
         }
 
-        // 5. Custom stopwatch events (excluding wordpress)
+        // 5. Custom stopwatch events
+        $customEvents = array_filter($events, static fn(array $e): bool => $e['category'] !== 'wordpress');
         foreach ($customEvents as $event) {
             $eventStart = (float) $event['start_time'];
             $eventDuration = (float) $event['duration'];
@@ -321,133 +417,21 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer implements Re
                 'start' => $eventStart,
                 'duration' => $eventDuration,
                 'category' => $event['category'],
-                'title' => $event['name'] . "\n+" . $this->formatMs($eventStart) . ' — ' . $this->formatMs($eventDuration),
+                'title' => $event['name'] . "\n+" . $fmt->ms($eventStart) . ' — ' . $fmt->ms($eventDuration),
             ];
         }
 
-        // 6. Plugin hook processing bars (including load time during plugins_loaded)
-        $pluginData = $this->getCollectorData('plugin');
-        /** @var array<string, array<string, mixed>> $pluginEntries */
-        $pluginEntries = $pluginData['plugins'] ?? [];
-        $pluginTimelineEntries = [];
-        /** @var array<string, array{count: int, total_time: float, start: float}> $hookTimings */
+        // 6. Plugin hook processing bars
         $hookTimings = $eventData['hook_timings'] ?? [];
-
-        /** @var array<string, float> $hookOffsets per-hook cumulative offset in ms */
         $hookOffsets = [];
-
-        // Pre-calculate plugin load offsets during plugins_loaded phase
-        /** @var list<string> $loadOrder */
-        $loadOrder = $pluginData['load_order'] ?? [];
-        /** @var array<string, float> $pluginLoadStarts slug → ms from plugins_loaded start */
-        $pluginLoadStarts = [];
-        $loadOffset = 0.0;
-
-        // plugins_loaded phase start from lifecycle events
-        $pluginsLoadedStart = 0.0;
-        foreach ($events as $event) {
-            if ($event['name'] === 'plugins_loaded') {
-                $pluginsLoadedStart = (float) $event['start_time'];
-                break;
-            }
-        }
-
-        foreach ($loadOrder as $pluginFile) {
-            $pluginLoadStarts[$pluginFile] = $loadOffset;
-            $loadTime = (float) ($pluginEntries[$pluginFile]['load_time'] ?? 0.0);
-            $loadOffset += $loadTime;
-        }
-
-        foreach ($pluginEntries as $slug => $info) {
-            /** @var list<array{hook: string, listeners: int, time: float, start?: float}> $pluginHooks */
-            $pluginHooks = $info['hooks'] ?? [];
-
-            $pluginBars = [];
-
-            // Add plugin load time bar during plugins_loaded phase
-            $pluginName = (string) ($info['name'] ?? $slug);
-            $loadTime = (float) ($info['load_time'] ?? 0.0);
-            if ($loadTime > 0 && $pluginsLoadedStart > 0) {
-                $loadStart = $pluginsLoadedStart + ($pluginLoadStarts[$slug] ?? 0.0);
-                $pluginBars[] = [
-                    'start' => $loadStart,
-                    'duration' => $loadTime,
-                    'title' => "load\n" . $this->formatMs($loadTime),
-                ];
-            }
-
-            foreach ($pluginHooks as $hookInfo) {
-                $hookName = $hookInfo['hook'];
-                $hookTiming = $hookTimings[$hookName] ?? null;
-                if ($hookTiming !== null && $hookTiming['start'] > 0) {
-                    $offset = $hookOffsets[$hookName] ?? 0.0;
-                    $duration = max($hookInfo['time'], 0.5);
-                    $pluginBars[] = [
-                        'start' => $hookTiming['start'] + $offset,
-                        'duration' => $duration,
-                        'title' => $hookName . "\n" . $this->formatMs($hookInfo['time']) . ' (' . $hookInfo['listeners'] . ' listeners)',
-                    ];
-                    $hookOffsets[$hookName] = $offset + $duration;
-                }
-            }
-
-            if ($pluginBars !== []) {
-                $hookTime = (float) ($info['hook_time'] ?? 0.0);
-                $pluginTimelineEntries[] = [
-                    'name' => (string) ($info['name'] ?? $slug),
-                    'start' => $pluginBars[0]['start'],
-                    'duration' => 0.0,
-                    'category' => 'plugin',
-                    'title' => (string) ($info['name'] ?? $slug) . ' — ' . $this->formatMs($hookTime),
-                    'value' => $hookTime,
-                    'bars' => $pluginBars,
-                ];
-            }
-        }
+        $pluginTimelineEntries = $this->buildPluginTimeline($fmt, $events, $hookTimings, $hookOffsets);
 
         // 7. Theme hook processing bars
-        $themeData = $this->getCollectorData('theme');
-        /** @var list<array{hook: string, listeners: int, time: float}> $themeHooks */
-        $themeHooks = $themeData['hooks'] ?? [];
-        $themeTimelineEntries = [];
+        $themeTimelineEntries = $this->buildThemeTimeline($fmt, $hookTimings, $hookOffsets);
 
-        if ($themeHooks !== []) {
-            $themeName = (string) ($themeData['name'] ?? 'Theme');
-            $themeBars = [];
-            foreach ($themeHooks as $hookInfo) {
-                $hookName = $hookInfo['hook'];
-                $hookTiming = $hookTimings[$hookName] ?? null;
-                if ($hookTiming !== null && $hookTiming['start'] > 0) {
-                    $offset = $hookOffsets[$hookName] ?? 0.0;
-                    $duration = max($hookInfo['time'], 0.5);
-                    $themeBars[] = [
-                        'start' => $hookTiming['start'] + $offset,
-                        'duration' => $duration,
-                        'title' => $hookName . "\n" . $this->formatMs($hookInfo['time']) . ' (' . $hookInfo['listeners'] . ' listeners)',
-                    ];
-                    $hookOffsets[$hookName] = $offset + $duration;
-                }
-            }
-
-            if ($themeBars !== []) {
-                $themeHookTime = (float) ($themeData['hook_time'] ?? 0.0);
-                $themeTimelineEntries[] = [
-                    'name' => $themeName,
-                    'start' => $themeBars[0]['start'],
-                    'duration' => 0.0,
-                    'category' => 'theme_hooks',
-                    'title' => $themeName . ' — ' . $this->formatMs($themeHookTime),
-                    'value' => $themeHookTime,
-                    'bars' => $themeBars,
-                ];
-            }
-        }
-
-        // 8. Widget sidebar render bars (main timeline)
+        // 8. Widget sidebar render bars
         $widgetData = $this->getCollectorData('widget');
-        /** @var list<array{sidebar: string, name: string, start: float, duration: float}> $sidebarTimings */
         $sidebarTimings = $widgetData['sidebar_timings'] ?? [];
-
         if ($sidebarTimings !== []) {
             $widgetBars = [];
             $widgetTotalTime = 0.0;
@@ -458,27 +442,21 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer implements Re
                 $widgetBars[] = [
                     'start' => $startMs,
                     'duration' => max($durationMs, 0.5),
-                    'title' => $timing['name'] . "\n" . $this->formatMs($durationMs),
+                    'title' => $timing['name'] . "\n" . $fmt->ms($durationMs),
                 ];
             }
-
             $widgetLabel = sprintf('Widgets (%d sidebars)', count($sidebarTimings));
             $timelineEntries[] = [
-                'name' => $widgetLabel,
-                'start' => $widgetBars[0]['start'],
-                'duration' => 0.0,
+                'name' => $widgetLabel, 'start' => $widgetBars[0]['start'], 'duration' => 0.0,
                 'category' => 'widget',
-                'title' => $widgetLabel . ' — ' . $this->formatMs($widgetTotalTime),
-                'value' => $widgetTotalTime,
-                'bars' => $widgetBars,
+                'title' => $widgetLabel . ' — ' . $fmt->ms($widgetTotalTime),
+                'value' => $widgetTotalTime, 'bars' => $widgetBars,
             ];
         }
 
-        // 9. Shortcode execution bars (main timeline)
+        // 9. Shortcode execution bars
         $shortcodeData = $this->getCollectorData('shortcode');
-        /** @var list<array{tag: string, start: float, duration: float}> $shortcodeExecutions */
         $shortcodeExecutions = $shortcodeData['executions'] ?? [];
-
         if ($shortcodeExecutions !== []) {
             $shortcodeBars = [];
             $shortcodeTotalTime = 0.0;
@@ -489,25 +467,19 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer implements Re
                 $shortcodeBars[] = [
                     'start' => $startMs,
                     'duration' => max($durationMs, 0.5),
-                    'title' => '[' . $exec['tag'] . "]\n" . $this->formatMs($durationMs),
+                    'title' => '[' . $exec['tag'] . "]\n" . $fmt->ms($durationMs),
                 ];
             }
-
             $shortcodeLabel = sprintf('Shortcodes (%d executions)', count($shortcodeExecutions));
             $timelineEntries[] = [
-                'name' => $shortcodeLabel,
-                'start' => $shortcodeBars[0]['start'],
-                'duration' => 0.0,
+                'name' => $shortcodeLabel, 'start' => $shortcodeBars[0]['start'], 'duration' => 0.0,
                 'category' => 'shortcode',
-                'title' => $shortcodeLabel . ' — ' . $this->formatMs($shortcodeTotalTime),
-                'value' => $shortcodeTotalTime,
-                'bars' => $shortcodeBars,
+                'title' => $shortcodeLabel . ' — ' . $fmt->ms($shortcodeTotalTime),
+                'value' => $shortcodeTotalTime, 'bars' => $shortcodeBars,
             ];
         }
 
-        // 10. Mail send bars (main timeline)
-        $mailData = $this->getCollectorData('mail');
-        /** @var list<array{subject: string, status: string, start?: float, duration?: float}> $mailEmails */
+        // 10. Mail send bars
         $mailEmails = $mailData['emails'] ?? [];
         $mailBars = [];
         $mailTotalMs = 0.0;
@@ -522,93 +494,151 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer implements Re
             $mailBars[] = [
                 'start' => $startMs,
                 'duration' => max($durationMs, 0.5),
-                'title' => $email['subject'] . ' (' . $statusLabel . ")\n" . $this->formatMs($durationMs),
+                'title' => $email['subject'] . ' (' . $statusLabel . ")\n" . $fmt->ms($durationMs),
             ];
         }
         if ($mailBars !== []) {
             $mailLabel = sprintf('Mail (%d emails)', count($mailBars));
             $timelineEntries[] = [
-                'name' => $mailLabel,
-                'start' => $mailBars[0]['start'],
-                'duration' => 0.0,
+                'name' => $mailLabel, 'start' => $mailBars[0]['start'], 'duration' => 0.0,
                 'category' => 'mail',
-                'title' => $mailLabel . ' — ' . $this->formatMs($mailTotalMs) . ' total',
-                'value' => $mailTotalMs,
-                'bars' => $mailBars,
+                'title' => $mailLabel . ' — ' . $fmt->ms($mailTotalMs) . ' total',
+                'value' => $mailTotalMs, 'bars' => $mailBars,
             ];
         }
 
-        // Sort by start time
+        // Sort main timeline by start time
         usort($timelineEntries, static fn(array $a, array $b): int => $a['start'] <=> $b['start']);
 
-        // Add category colors for new types
-        $categoryColors['plugin'] = '#d97ae6';
-        $categoryColors['theme_hooks'] = '#e26f56';
-        $categoryColors['widget'] = '#4ab866';
-        $categoryColors['shortcode'] = '#e6a23c';
-        $categoryColors['mail'] = '#e65490';
+        // Sort plugin entries by value descending
+        usort($pluginTimelineEntries, static fn(array $a, array $b): int => $b['value'] <=> $a['value']);
 
-        $hasTimeline = $timelineEntries !== [] || $pluginTimelineEntries !== [] || $themeTimelineEntries !== [];
+        return [$timelineEntries, $pluginTimelineEntries, $themeTimelineEntries];
+    }
 
-        if ($hasTimeline) {
-            $html .= '<div class="wpd-section">';
-            $html .= '<h4 class="wpd-section-title">Timeline</h4>';
-            $html .= '<div class="wpd-perf-waterfall">';
+    /**
+     * @param array<string, mixed> $events
+     * @param array<string, mixed> $hookTimings
+     * @param array<string, float> $hookOffsets
+     * @param-out array<string, float> $hookOffsets
+     * @return list<array<string, mixed>>
+     */
+    private function buildPluginTimeline(TemplateFormatters $fmt, array $events, array $hookTimings, array &$hookOffsets): array
+    {
+        $pluginData = $this->getCollectorData('plugin');
+        $pluginEntries = $pluginData['plugins'] ?? [];
+        $loadOrder = $pluginData['load_order'] ?? [];
 
-            // Main timeline entries
-            foreach ($timelineEntries as $entry) {
-                $color = $categoryColors[$entry['category']] ?? $categoryColors['default'];
-                $html .= $this->renderTimelineRow($entry, $color, $totalTime);
+        // plugins_loaded phase start
+        $pluginsLoadedStart = 0.0;
+        foreach ($events as $event) {
+            if ($event['name'] === 'plugins_loaded') {
+                $pluginsLoadedStart = (float) $event['start_time'];
+                break;
             }
-
-            // Plugin section divider + entries
-            if ($pluginTimelineEntries !== []) {
-                $html .= '<div class="wpd-perf-wf-divider"><span>Plugins</span></div>';
-                usort($pluginTimelineEntries, static fn(array $a, array $b): int => $b['value'] <=> $a['value']);
-                foreach ($pluginTimelineEntries as $entry) {
-                    $html .= $this->renderTimelineRow($entry, $categoryColors['plugin'], $totalTime);
-                }
-            }
-
-            // Theme section divider + entries
-            if ($themeTimelineEntries !== []) {
-                $html .= '<div class="wpd-perf-wf-divider"><span>Theme</span></div>';
-                foreach ($themeTimelineEntries as $entry) {
-                    $html .= $this->renderTimelineRow($entry, $categoryColors['theme_hooks'], $totalTime);
-                }
-            }
-
-            $html .= '</div>';
-
-            // Category legend
-            $allEntries = array_merge($timelineEntries, $pluginTimelineEntries, $themeTimelineEntries);
-            $usedCategories = array_unique(array_column($allEntries, 'category'));
-            $categoryLabels = [
-                'lifecycle' => 'Lifecycle',
-                'database' => 'Database',
-                'cache' => 'Cache',
-                'http' => 'HTTP Client',
-                'default' => 'Default',
-                'controller' => 'Controller',
-                'template' => 'Template',
-                'security' => 'Security',
-                'plugin' => 'Plugin',
-                'theme_hooks' => 'Theme',
-                'widget' => 'Widget',
-                'shortcode' => 'Shortcode',
-                'mail' => 'Mail',
-            ];
-            $html .= '<div class="wpd-perf-dist-legend">';
-            foreach ($usedCategories as $cat) {
-                $color = $categoryColors[$cat] ?? $categoryColors['default'];
-                $label = $categoryLabels[$cat] ?? ucfirst($cat);
-                $html .= '<span class="wpd-perf-legend-item"><span class="wpd-perf-legend-color" style="background:' . $this->esc($color) . '"></span> ' . $this->esc($label) . '</span>';
-            }
-            $html .= '</div>';
-
-            $html .= '</div>';
         }
 
-        return $html;
+        // Pre-calculate load offsets
+        $pluginLoadStarts = [];
+        $loadOffset = 0.0;
+        foreach ($loadOrder as $pluginFile) {
+            $pluginLoadStarts[$pluginFile] = $loadOffset;
+            $loadOffset += (float) ($pluginEntries[$pluginFile]['load_time'] ?? 0.0);
+        }
+
+        $result = [];
+        foreach ($pluginEntries as $slug => $info) {
+            $pluginHooks = $info['hooks'] ?? [];
+            $pluginBars = [];
+
+            $loadTime = (float) ($info['load_time'] ?? 0.0);
+            if ($loadTime > 0 && $pluginsLoadedStart > 0) {
+                $loadStart = $pluginsLoadedStart + ($pluginLoadStarts[$slug] ?? 0.0);
+                $pluginBars[] = [
+                    'start' => $loadStart,
+                    'duration' => $loadTime,
+                    'title' => "load\n" . $fmt->ms($loadTime),
+                ];
+            }
+
+            foreach ($pluginHooks as $hookInfo) {
+                $hookName = (string) $hookInfo['hook'];
+                $hookTiming = $hookTimings[$hookName] ?? null;
+                if ($hookTiming !== null && $hookTiming['start'] > 0) {
+                    $offset = $hookOffsets[$hookName] ?? 0.0;
+                    $duration = max((float) $hookInfo['time'], 0.5);
+                    $pluginBars[] = [
+                        'start' => (float) $hookTiming['start'] + $offset,
+                        'duration' => $duration,
+                        'title' => $hookName . "\n" . $fmt->ms((float) $hookInfo['time']) . ' (' . $hookInfo['listeners'] . ' listeners)',
+                    ];
+                    $hookOffsets[$hookName] = $offset + $duration;
+                }
+            }
+
+            if ($pluginBars !== []) {
+                $hookTime = (float) ($info['hook_time'] ?? 0.0);
+                $result[] = [
+                    'name' => (string) ($info['name'] ?? $slug),
+                    'start' => $pluginBars[0]['start'],
+                    'duration' => 0.0,
+                    'category' => 'plugin',
+                    'title' => (string) ($info['name'] ?? $slug) . ' — ' . $fmt->ms($hookTime),
+                    'value' => $hookTime,
+                    'bars' => $pluginBars,
+                ];
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param array<string, mixed> $hookTimings
+     * @param array<string, float> $hookOffsets
+     * @param-out array<string, float> $hookOffsets
+     * @return list<array<string, mixed>>
+     */
+    private function buildThemeTimeline(TemplateFormatters $fmt, array $hookTimings, array &$hookOffsets): array
+    {
+        $themeData = $this->getCollectorData('theme');
+        $themeHooks = $themeData['hooks'] ?? [];
+
+        if ($themeHooks === []) {
+            return [];
+        }
+
+        $themeName = (string) ($themeData['name'] ?? 'Theme');
+        $themeBars = [];
+        foreach ($themeHooks as $hookInfo) {
+            $hookName = (string) $hookInfo['hook'];
+            $hookTiming = $hookTimings[$hookName] ?? null;
+            if ($hookTiming !== null && $hookTiming['start'] > 0) {
+                $offset = $hookOffsets[$hookName] ?? 0.0;
+                $duration = max((float) $hookInfo['time'], 0.5);
+                $themeBars[] = [
+                    'start' => (float) $hookTiming['start'] + $offset,
+                    'duration' => $duration,
+                    'title' => $hookName . "\n" . $fmt->ms((float) $hookInfo['time']) . ' (' . $hookInfo['listeners'] . ' listeners)',
+                ];
+                $hookOffsets[$hookName] = $offset + $duration;
+            }
+        }
+
+        if ($themeBars === []) {
+            return [];
+        }
+
+        $themeHookTime = (float) ($themeData['hook_time'] ?? 0.0);
+
+        return [[
+            'name' => $themeName,
+            'start' => $themeBars[0]['start'],
+            'duration' => 0.0,
+            'category' => 'theme_hooks',
+            'title' => $themeName . ' — ' . $fmt->ms($themeHookTime),
+            'value' => $themeHookTime,
+            'bars' => $themeBars,
+        ]];
     }
 }

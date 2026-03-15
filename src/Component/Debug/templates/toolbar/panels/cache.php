@@ -22,8 +22,12 @@ $barColor = match (true) {
     $hitRate >= 50 => 'var(--wpd-yellow)',
     default => 'var(--wpd-red)',
 };
-$hitRateValue = '<span class="wpd-inline-bar"><span class="wpd-inline-bar-fill" style="width:' . $this->e(sprintf('%.1f', min($hitRate, 100))) . '%;background:' . $this->e($barColor) . '"></span></span>'
-    . '<span class="' . $hitRateColor . '">' . $this->e(sprintf('%.1f%%', $hitRate)) . '</span>';
+$hitRateValue = $this->include('toolbar/partials/progress-bar', [
+    'percentage' => $hitRate,
+    'barColor' => $barColor,
+    'textClass' => $hitRateColor,
+    'label' => $fmt->percentage($hitRate),
+]);
 ?>
 <div class="wpd-section">
 <h4 class="wpd-section-title">Object Cache</h4>

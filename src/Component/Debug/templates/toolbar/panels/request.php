@@ -7,18 +7,11 @@
  */
 $serverVars = $data['server_vars'] ?? [];
 $method = (string) ($data['method'] ?? '');
-$methodColor = match ($method) {
-    'GET' => 'green',
-    'POST' => 'primary',
-    'PUT', 'PATCH' => 'yellow',
-    'DELETE' => 'red',
-    default => 'gray',
-};
 ?>
 <div class="wpd-section">
 <h4 class="wpd-section-title">Request</h4>
 <table class="wpd-table wpd-table-kv">
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Method', 'value' => $this->include('toolbar/partials/badge', ['label' => $method, 'color' => $methodColor])]) ?>
+<?= $this->include('toolbar/partials/table-row', ['key' => 'Method', 'value' => $this->include('toolbar/partials/method-badge', ['method' => $method, 'fmt' => $fmt])]) ?>
 <?= $this->include('toolbar/partials/table-row', ['key' => 'URL', 'value' => (string) ($data['url'] ?? '')]) ?>
 <?php
 $script = (string) ($serverVars['SCRIPT_FILENAME'] ?? '');
@@ -39,11 +32,7 @@ if ($requestTimeFloat !== null) {
 <?php
 $statusCode = (int) ($data['status_code'] ?? 200);
 $contentType = (string) ($data['content_type'] ?? '');
-$statusColorClass = match (true) {
-    $statusCode >= 200 && $statusCode < 300 => 'wpd-text-green',
-    $statusCode >= 300 && $statusCode < 400 => 'wpd-text-yellow',
-    default => 'wpd-text-red',
-};
+$statusColorClass = $fmt->statusColor($statusCode);
 ?>
 <div class="wpd-section">
 <h4 class="wpd-section-title">Response</h4>

@@ -21,6 +21,7 @@ final class AjaxPanelRenderer extends AbstractPanelRenderer implements RendererI
         return $this->getPhpRenderer()->render('toolbar/panels/ajax', [
             'totalActions' => (int) ($data['total_actions'] ?? 0),
             'actions' => $data['registered_actions'] ?? [],
+            'fmt' => $this->getFormatters(),
         ]);
     }
 }

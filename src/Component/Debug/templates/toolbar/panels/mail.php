@@ -18,11 +18,8 @@
 </table>
 </div>
 <?php foreach ($emails as $index => $email):
-    $statusTag = match ($email['status'] ?? 'pending') {
-        'sent' => '<span class="wpd-status-tag wpd-status-sent">SENT</span>',
-        'failed' => '<span class="wpd-status-tag wpd-status-failed">FAILED</span>',
-        default => '<span class="wpd-status-tag wpd-status-pending">PENDING</span>',
-    };
+    $status = $email['status'] ?? 'pending';
+    $statusTag = $this->include('toolbar/partials/status-tag', ['status' => $status]);
 ?>
 <div class="wpd-section">
 <h4 class="wpd-section-title">Email #<?= $this->e((string) ($index + 1)) ?> <?= $this->raw($statusTag) ?></h4>

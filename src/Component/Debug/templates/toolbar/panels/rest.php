@@ -18,18 +18,8 @@ if ($isRestRequest && is_array($currentRequest)):
     $status = (int) ($currentRequest['status'] ?? 200);
     $authentication = (string) ($currentRequest['authentication'] ?? 'none');
     $params = $currentRequest['params'] ?? [];
-    $methodColor = match ($method) {
-        'GET' => 'green',
-        'POST' => 'primary',
-        'PUT', 'PATCH' => 'yellow',
-        'DELETE' => 'red',
-        default => 'gray',
-    };
-    $statusColorClass = match (true) {
-        $status >= 200 && $status < 300 => 'wpd-text-green',
-        $status >= 300 && $status < 400 => 'wpd-text-yellow',
-        default => 'wpd-text-red',
-    };
+    $methodColor = $fmt->methodColor($method);
+    $statusColorClass = $fmt->statusColor($status);
     $authTag = match ($authentication) {
         'bearer' => $this->include('toolbar/partials/badge', ['label' => 'Bearer', 'color' => 'purple']),
         'basic' => $this->include('toolbar/partials/badge', ['label' => 'Basic', 'color' => 'yellow']),
@@ -84,14 +74,7 @@ if ($isRestRequest && is_array($currentRequest)):
 <?php foreach ($nsRoutes as $routeInfo):
     $methodTags = '';
     foreach ($routeInfo['methods'] as $m) {
-        $color = match ($m) {
-            'GET' => 'green',
-            'POST' => 'primary',
-            'PUT', 'PATCH' => 'yellow',
-            'DELETE' => 'red',
-            default => 'gray',
-        };
-        $methodTags .= $this->include('toolbar/partials/badge', ['label' => $m, 'color' => $color]) . ' ';
+        $methodTags .= $this->include('toolbar/partials/method-badge', ['method' => $m, 'fmt' => $fmt]) . ' ';
     }
 ?>
 <tr>

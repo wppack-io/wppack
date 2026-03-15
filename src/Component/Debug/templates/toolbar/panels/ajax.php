@@ -2,8 +2,9 @@
 /**
  * Ajax panel template.
  *
- * @var int   $totalActions Total registered AJAX actions
- * @var array $actions      AJAX action definitions
+ * @var int                                                          $totalActions Total registered AJAX actions
+ * @var array                                                        $actions      AJAX action definitions
+ * @var \WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters     $fmt          Template formatters
  */
 ?>
 <div class="wpd-section">
@@ -16,15 +17,11 @@
 <th>NoPriv</th>
 </tr></thead>
 <tbody>
-<?php foreach ($actions as $action => $info):
-    $noprivHtml = $info['nopriv']
-        ? '<span class="wpd-text-yellow">Yes</span>'
-        : '<span class="wpd-text-dim">No</span>';
-?>
+<?php foreach ($actions as $action => $info): ?>
 <tr>
 <td><code><?= $this->e($action) ?></code></td>
 <td class="wpd-text-dim"><?= $this->e($info['callback']) ?></td>
-<td><?= $this->raw($noprivHtml) ?></td>
+<td><?= $this->raw($fmt->value($info['nopriv'])) ?></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>

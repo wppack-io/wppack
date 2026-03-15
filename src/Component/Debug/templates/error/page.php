@@ -8,7 +8,8 @@
  * @var string $codeLabel        Exception code label HTML
  * @var string $cssVariables     CSS custom property declarations
  * @var string $traceHtml        Stack trace HTML
- * @var string $chainSectionHtml Previous exception chain HTML
+ * @var string $chainHtml        Previous exception chain HTML
+ * @var int    $chainCount       Total chain count (including primary exception)
  * @var string $toolbarHtml      Debug toolbar HTML
  */
 ?>
@@ -237,7 +238,13 @@ body {
   <?= $this->raw($traceHtml) ?>
 </div>
 
-<?= $this->raw($chainSectionHtml) ?>
+<?php if ($chainCount > 1): ?>
+<!-- ═══ Previous Exceptions ═══ -->
+<div class="section">
+  <div class="section-title">Previous Exceptions (<?= $this->e((string) ($chainCount - 1)) ?>)</div>
+  <?= $this->raw($chainHtml) ?>
+</div>
+<?php endif; ?>
 
 </div><!-- .container -->
 

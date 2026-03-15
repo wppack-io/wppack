@@ -19,8 +19,12 @@ $barColor = match (true) {
     $usagePercentage >= 70 => 'var(--wpd-yellow)',
     default => 'var(--wpd-green)',
 };
-$usageValue = '<span class="wpd-inline-bar"><span class="wpd-inline-bar-fill" style="width:' . $this->e(sprintf('%.1f', min($usagePercentage, 100))) . '%;background:' . $this->e($barColor) . '"></span></span>'
-    . '<span class="' . $usageColor . '">' . $this->e(sprintf('%.1f%%', $usagePercentage)) . '</span>';
+$usageValue = $this->include('toolbar/partials/progress-bar', [
+    'percentage' => $usagePercentage,
+    'barColor' => $barColor,
+    'textClass' => $usageColor,
+    'label' => $fmt->percentage($usagePercentage),
+]);
 ?>
 <div class="wpd-section">
 <h4 class="wpd-section-title">Summary</h4>
