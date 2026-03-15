@@ -53,6 +53,10 @@ component_management:
       name: MonologLogger
       paths:
         - src/Component/Logger/Bridge/Monolog/src/**
+    - component_id: twig_templating
+      name: TwigTemplating
+      paths:
+        - src/Component/Templating/Bridge/Twig/src/**
 
     # Abstraction Layer
     - component_id: options_resolver

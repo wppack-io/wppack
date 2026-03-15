@@ -27,6 +27,7 @@
         "predis/predis": "^2.0",
         "roots/wordpress-no-content": "^6.9",
         "szepeviktor/phpstan-wordpress": "^2.0",
+        "twig/twig": "^3.0",
         "wp-phpunit/wp-phpunit": "^6.9",
         "yoast/phpunit-polyfills": "^4.0"
     },
@@ -96,7 +97,8 @@
             "WpPack\\Component\\Cache\\Bridge\\Apcu\\": "src/Component/Cache/Bridge/Apcu/src/",
             "WpPack\\Plugin\\AmazonMailerPlugin\\": "src/Plugin/AmazonMailerPlugin/src/",
             "WpPack\\Component\\Security\\Bridge\\SAML\\": "src/Component/Security/Bridge/SAML/src/",
-            "WpPack\\Component\\Security\\Bridge\\OAuth\\": "src/Component/Security/Bridge/OAuth/src/"
+            "WpPack\\Component\\Security\\Bridge\\OAuth\\": "src/Component/Security/Bridge/OAuth/src/",
+            "WpPack\\Component\\Templating\\Bridge\\Twig\\": "src/Component/Templating/Bridge/Twig/src/"
         }
     },
     "autoload-dev": {
@@ -157,7 +159,8 @@
             "WpPack\\Component\\Cache\\Bridge\\Memcached\\Tests\\": "src/Component/Cache/Bridge/Memcached/tests/",
             "WpPack\\Component\\Cache\\Bridge\\Apcu\\Tests\\": "src/Component/Cache/Bridge/Apcu/tests/",
             "WpPack\\Component\\Translation\\Tests\\": "src/Component/Translation/tests/",
-            "WpPack\\Component\\Security\\Bridge\\OAuth\\Tests\\": "src/Component/Security/Bridge/OAuth/tests/"
+            "WpPack\\Component\\Security\\Bridge\\OAuth\\Tests\\": "src/Component/Security/Bridge/OAuth/tests/",
+            "WpPack\\Component\\Templating\\Bridge\\Twig\\Tests\\": "src/Component/Templating/Bridge/Twig/tests/"
         }
     },
     "replace": {
@@ -222,7 +225,8 @@
         "wppack/memcached-cache": "self.version",
         "wppack/apcu-cache": "self.version",
         "wppack/saml-security": "self.version",
-        "wppack/oauth-security": "self.version"
+        "wppack/oauth-security": "self.version",
+        "wppack/twig-templating": "self.version"
     },
     "config": {
         "sort-packages": true

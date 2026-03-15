@@ -51,6 +51,7 @@ WordPress プラグインとして配布。Component を利用。
 | Transient | wppack/transient | WordPress transients ラッパー |
 | Role | wppack/role | ユーザーロール管理 |
 | Templating | wppack/templating | テンプレートエンジン |
+| TwigTemplating | wppack/twig-templating | Twig ブリッジ |
 | Stopwatch | wppack/stopwatch | ストップウォッチ（計測） |
 | Logger | wppack/logger | PSR-3 ロギング |
 | MonologLogger | wppack/monolog-logger | Monolog ブリッジ |
@@ -183,6 +184,11 @@ wppack/oauth-security
     ↓ requires
 wppack/security
     + firebase/php-jwt
+
+wppack/twig-templating
+    ↓ requires
+wppack/templating
+    + twig/twig
 
 wppack/monolog-logger
     ↓ requires

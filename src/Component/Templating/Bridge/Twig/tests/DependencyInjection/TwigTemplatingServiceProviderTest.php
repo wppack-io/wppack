@@ -1,0 +1,137 @@
+<?php
+
+declare(strict_types=1);
+
+namespace WpPack\Component\Templating\Bridge\Twig\Tests\DependencyInjection;
+
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+use Twig\Environment;
+use WpPack\Component\DependencyInjection\ContainerBuilder;
+use WpPack\Component\DependencyInjection\ServiceProviderInterface;
+use WpPack\Component\Templating\Bridge\Twig\DependencyInjection\TwigTemplatingServiceProvider;
+use WpPack\Component\Templating\Bridge\Twig\Extension\WordPressExtension;
+use WpPack\Component\Templating\Bridge\Twig\TwigEnvironmentFactory;
+use WpPack\Component\Templating\Bridge\Twig\TwigRenderer;
+use WpPack\Component\Templating\ChainRenderer;
+use WpPack\Component\Templating\DependencyInjection\TemplatingServiceProvider;
+use WpPack\Component\Templating\PhpRenderer;
+use WpPack\Component\Templating\TemplateRendererInterface;
+
+final class TwigTemplatingServiceProviderTest extends TestCase
+{
+    #[Test]
+    public function implementsServiceProviderInterface(): void
+    {
+        $provider = new TwigTemplatingServiceProvider();
+
+        self::assertInstanceOf(ServiceProviderInterface::class, $provider);
+    }
+
+    #[Test]
+    public function registersTwigRenderer(): void
+    {
+        $builder = new ContainerBuilder();
+        $builder->addServiceProvider(new TwigTemplatingServiceProvider(
+            paths: [__DIR__ . '/../Fixtures/templates'],
+        ));
+
+        self::assertTrue($builder->hasDefinition(TwigRenderer::class));
+        self::assertTrue($builder->hasDefinition(TwigEnvironmentFactory::class));
+        self::assertTrue($builder->hasDefinition(WordPressExtension::class));
+        self::assertTrue($builder->hasDefinition(Environment::class));
+    }
+
+    #[Test]
+    public function registersChainRendererWhenPhpRendererExists(): void
+    {
+        $builder = new ContainerBuilder();
+        $builder->addServiceProvider(new TemplatingServiceProvider(
+            paths: [__DIR__ . '/../Fixtures/templates'],
+        ));
+        $builder->addServiceProvider(new TwigTemplatingServiceProvider(
+            paths: [__DIR__ . '/../Fixtures/templates'],
+        ));
+
+        self::assertTrue($builder->hasDefinition(ChainRenderer::class));
+    }
+
+    #[Test]
+    public function setsAliasToChainRenderer(): void
+    {
+        $builder = new ContainerBuilder();
+        $builder->addServiceProvider(new TemplatingServiceProvider(
+            paths: [__DIR__ . '/../Fixtures/templates'],
+        ));
+        $builder->addServiceProvider(new TwigTemplatingServiceProvider(
+            paths: [__DIR__ . '/../Fixtures/templates'],
+        ));
+
+        $container = $builder->compile();
+        $renderer = $container->get(TemplateRendererInterface::class);
+
+        self::assertInstanceOf(ChainRenderer::class, $renderer);
+    }
+
+    #[Test]
+    public function setsAliasToTwigRendererStandalone(): void
+    {
+        $builder = new ContainerBuilder();
+        $builder->addServiceProvider(new TwigTemplatingServiceProvider(
+            paths: [__DIR__ . '/../Fixtures/templates'],
+        ));
+
+        $container = $builder->compile();
+        $renderer = $container->get(TemplateRendererInterface::class);
+
+        self::assertInstanceOf(TwigRenderer::class, $renderer);
+    }
+
+    #[Test]
+    public function passesPathsToFactory(): void
+    {
+        $path = __DIR__ . '/../Fixtures/templates';
+        $builder = new ContainerBuilder();
+        $builder->addServiceProvider(new TwigTemplatingServiceProvider(
+            paths: [$path],
+        ));
+
+        $definition = $builder->findDefinition(TwigEnvironmentFactory::class);
+        $arguments = $definition->getArguments();
+
+        self::assertSame([$path], $arguments[0]);
+    }
+
+    #[Test]
+    public function passesTwigOptions(): void
+    {
+        $options = ['debug' => true, 'cache' => '/tmp/twig'];
+        $builder = new ContainerBuilder();
+        $builder->addServiceProvider(new TwigTemplatingServiceProvider(
+            paths: [__DIR__ . '/../Fixtures/templates'],
+            twigOptions: $options,
+        ));
+
+        $definition = $builder->findDefinition(TwigEnvironmentFactory::class);
+        $arguments = $definition->getArguments();
+
+        self::assertSame($options, $arguments[1]);
+    }
+
+    #[Test]
+    public function compiledContainerResolves(): void
+    {
+        $builder = new ContainerBuilder();
+        $builder->addServiceProvider(new TwigTemplatingServiceProvider(
+            paths: [__DIR__ . '/../Fixtures/templates'],
+        ));
+
+        $container = $builder->compile();
+
+        $renderer = $container->get(TwigRenderer::class);
+        self::assertInstanceOf(TwigRenderer::class, $renderer);
+
+        $html = $renderer->render('simple', ['title' => 'DI Test']);
+        self::assertStringContainsString('DI Test', $html);
+    }
+}
