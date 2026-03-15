@@ -4,7 +4,7 @@
 **名前空間:** `WpPack\Component\Command\`
 **レイヤー:** Feature
 
-Command コンポーネントは、型安全性と整理されたコード構成を備えた、WP-CLI コマンドをモダンなアトリビュートベースで作成するためのコンポーネントです。
+Command コンポーネントは、Symfony Console に倣った `configure()` + `execute()` パターンで WP-CLI コマンドを型安全に作成するためのフレームワークです。DI コンテナとの統合により、`#[AsCommand]` アトリビュートを付けたコマンドクラスが自動的に検出・登録されます。
 
 ## インストール
 
@@ -14,13 +14,12 @@ composer require wppack/command
 
 ## このコンポーネントの機能
 
-- **アトリビュートベースのコマンド定義** - クリーンで宣言的な構文
-- **型安全な引数とオプション** - 自動パースとバリデーション
-- **自動ヘルプ生成** - コマンドアトリビュートと docblock から生成
-- **プログレスバーとテーブル** - より良いユーザー体験
-- **出力フォーマット** - 一貫したスタイリングメソッド
-- **テストユーティリティ** - 信頼性のあるコマンドテスト
-- **コマンドの自動検出と登録** - 自動セットアップ
+- **`configure()` + `execute()` パターン** — 引数/オプション定義と実行ロジックを明確に分離
+- **型安全な入出力** — `InputInterface` / `OutputStyle` による型付きアクセス
+- **WP-CLI synopsis 自動生成** — `InputDefinition` から `wp help` 用の定義を自動構築
+- **DI 自動登録** — `#[AsCommand]` + `RegisterCommandsPass` で追加設定不要
+- **テスト容易性** — `ArrayInput` + `BufferedOutput` でコマンドのユニットテストが可能
+- **リッチ出力** — success/error/warning/table/progress 等の出力ヘルパー
 
 ## 基本コンセプト
 
@@ -40,20 +39,8 @@ function myplugin_import_users_command($args, $assoc_args) {
     $skip_email = isset($assoc_args['skip-email']) ? true : false;
     $role = isset($assoc_args['role']) ? $assoc_args['role'] : 'subscriber';
 
-    if (!file_exists($file)) {
-        WP_CLI::error("File not found: $file");
-    }
-
     WP_CLI::log('Starting user import...');
-
-    $handle = fopen($file, 'r');
-    $count = 0;
-
-    while (($data = fgetcsv($handle)) !== false) {
-        $count++;
-    }
-
-    fclose($handle);
+    // ...
     WP_CLI::success("Imported $count users.");
 }
 ```
@@ -62,41 +49,44 @@ function myplugin_import_users_command($args, $assoc_args) {
 
 ```php
 use WpPack\Component\Command\AbstractCommand;
-use WpPack\Component\Command\Attribute\Command;
-use WpPack\Component\Command\Attribute\Argument;
-use WpPack\Component\Command\Attribute\Option;
+use WpPack\Component\Command\Attribute\AsCommand;
+use WpPack\Component\Command\Input\InputArgument;
+use WpPack\Component\Command\Input\InputDefinition;
+use WpPack\Component\Command\Input\InputInterface;
+use WpPack\Component\Command\Input\InputOption;
+use WpPack\Component\Command\Output\OutputStyle;
 
-#[Command('myplugin import-users', description: 'Import users from a CSV file')]
-class ImportUsersCommand extends AbstractCommand
+#[AsCommand(name: 'myplugin import-users', description: 'Import users from CSV')]
+final class ImportUsersCommand extends AbstractCommand
 {
-    #[Argument(description: 'Path to the CSV file', required: true)]
-    private string $file;
+    public function __construct(
+        private readonly UserRepository $userRepo,
+    ) {}
 
-    #[Option(description: 'Skip sending welcome emails')]
-    private bool $skipEmail = false;
-
-    #[Option(description: 'Default role for imported users')]
-    private string $role = 'subscriber';
-
-    public function handle(): void
+    protected function configure(InputDefinition $definition): void
     {
-        if (!file_exists($this->file)) {
-            $this->error("File not found: {$this->file}");
-            return;
-        }
+        $definition
+            ->addArgument(new InputArgument('file', InputArgument::REQUIRED, 'CSV file path'))
+            ->addOption(new InputOption('role', InputOption::VALUE_OPTIONAL, 'Default role', 'subscriber'))
+            ->addOption(new InputOption('skip-email', InputOption::VALUE_NONE, 'Skip welcome emails'));
+    }
 
-        $this->info('Starting user import...');
+    protected function execute(InputInterface $input, OutputStyle $output): int
+    {
+        $file = $input->getArgument('file');
+        $output->info("Importing from {$file}...");
 
-        $rows = $this->parseCsv($this->file);
-        $progress = $this->progress(count($rows));
+        $rows = $this->parseCsv($file);
+        $progress = $output->progress(count($rows));
 
         foreach ($rows as $row) {
-            $this->importUser($row);
+            $this->userRepo->create($row, $input->getOption('role'));
             $progress->advance();
         }
 
         $progress->finish();
-        $this->success("Imported " . count($rows) . " users.");
+        $output->success(sprintf('Imported %d users.', count($rows)));
+        return self::SUCCESS;
     }
 }
 ```
@@ -105,212 +95,210 @@ class ImportUsersCommand extends AbstractCommand
 
 ### コマンドの作成
 
+1. `AbstractCommand` を継承し、`#[AsCommand]` アトリビュートを付ける
+2. `configure()` で引数/オプションを定義する
+3. `execute()` にロジックを実装する
+
 ```php
-use WpPack\Component\Command\AbstractCommand;
-use WpPack\Component\Command\Attribute\Command;
-use WpPack\Component\Command\Attribute\Argument;
-use WpPack\Component\Command\Attribute\Option;
-
-#[Command('myapp generate-report', description: 'Generate a site report')]
-class GenerateReportCommand extends AbstractCommand
+#[AsCommand(name: 'myapp generate-report', description: 'Generate a site report')]
+final class GenerateReportCommand extends AbstractCommand
 {
-    #[Argument(description: 'Report type', required: true)]
-    private string $type;
-
-    #[Option(description: 'Output format', default: 'table')]
-    private string $format;
-
-    #[Option(description: 'Include draft posts')]
-    private bool $includeDrafts = false;
-
-    #[Option(description: 'Date range start')]
-    private ?string $from = null;
-
-    #[Option(description: 'Date range end')]
-    private ?string $to = null;
-
-    public function handle(): void
+    protected function configure(InputDefinition $definition): void
     {
-        $this->info("Generating {$this->type} report...");
+        $definition
+            ->addArgument(new InputArgument('type', InputArgument::REQUIRED, 'Report type'))
+            ->addOption(new InputOption('format', InputOption::VALUE_OPTIONAL, 'Output format', 'table'))
+            ->addOption(new InputOption('include-drafts', InputOption::VALUE_NONE, 'Include draft posts'));
+    }
 
-        $data = match ($this->type) {
-            'content' => $this->getContentReport(),
-            'users' => $this->getUserReport(),
-            'performance' => $this->getPerformanceReport(),
-            default => $this->error("Unknown report type: {$this->type}"),
+    protected function execute(InputInterface $input, OutputStyle $output): int
+    {
+        $type = $input->getArgument('type');
+        $output->info("Generating {$type} report...");
+
+        $data = $this->buildReport($type, $input->getOption('include-drafts'));
+
+        match ($input->getOption('format')) {
+            'table' => $output->table($data['headers'], $data['rows']),
+            'json' => $output->line(json_encode($data, JSON_PRETTY_PRINT)),
+            default => $output->error("Unknown format"),
         };
 
-        match ($this->format) {
-            'table' => $this->table($data['headers'], $data['rows']),
-            'csv' => $this->outputCsv($data),
-            'json' => $this->line(json_encode($data, JSON_PRETTY_PRINT)),
-            default => $this->error("Unknown format: {$this->format}"),
-        };
-
-        $this->success('Report generated successfully!');
-    }
-
-    private function getContentReport(): array
-    {
-        $statuses = $this->includeDrafts
-            ? ['publish', 'draft']
-            : ['publish'];
-
-        $posts = get_posts([
-            'post_status' => $statuses,
-            'posts_per_page' => -1,
-            'date_query' => array_filter([
-                'after' => $this->from,
-                'before' => $this->to,
-            ]),
-        ]);
-
-        return [
-            'headers' => ['ID', 'Title', 'Status', 'Author', 'Date'],
-            'rows' => array_map(fn ($post) => [
-                $post->ID,
-                $post->post_title,
-                $post->post_status,
-                get_the_author_meta('display_name', $post->post_author),
-                $post->post_date,
-            ], $posts),
-        ];
+        $output->success('Report generated successfully!');
+        return self::SUCCESS;
     }
 }
 ```
 
-### プログレスバーと長時間タスク
+### 引数の定義
+
+位置引数は `InputArgument` で定義します:
 
 ```php
-#[Command('myapp process-images', description: 'Process and optimize all images')]
-class ProcessImagesCommand extends AbstractCommand
+// 必須引数
+$definition->addArgument(new InputArgument('file', InputArgument::REQUIRED, 'CSV file path'));
+
+// オプション引数（デフォルト値付き）
+$definition->addArgument(new InputArgument('format', InputArgument::OPTIONAL, 'Output format', 'json'));
+
+// 配列引数（残りの引数をすべて受け取る）
+$definition->addArgument(new InputArgument('files', InputArgument::OPTIONAL | InputArgument::IS_ARRAY, 'Files'));
+```
+
+### オプションの定義
+
+名前付きオプションは `InputOption` で定義します:
+
+```php
+// フラグ（--verbose）
+$definition->addOption(new InputOption('verbose', InputOption::VALUE_NONE, 'Verbose output'));
+
+// 値必須（--format=csv）
+$definition->addOption(new InputOption('format', InputOption::VALUE_REQUIRED, 'Output format'));
+
+// 値オプション（--role[=editor]）
+$definition->addOption(new InputOption('role', InputOption::VALUE_OPTIONAL, 'User role', 'subscriber'));
+```
+
+### 終了コード
+
+```php
+return self::SUCCESS; // 0 — 正常終了
+return self::FAILURE; // 1 — 一般的なエラー
+return self::INVALID; // 2 — 無効な入力
+```
+
+## 出力メソッド
+
+`OutputStyle` はリッチな出力ヘルパーを提供します。WP-CLI 環境では `WP_CLI::success()` 等に委譲し、テスト環境ではバッファに書き込みます。
+
+```php
+$output->info('Informational message');     // [INFO] テキスト
+$output->success('Success message');         // [SUCCESS] テキスト
+$output->warning('Warning message');         // [WARNING] テキスト
+$output->error('Error message');             // [ERROR] テキスト（WP-CLI時はプロセス終了）
+$output->line('Plain text');                 // フォーマットなし
+$output->newLine();                          // 空行
+```
+
+### テーブル
+
+```php
+$output->table(
+    ['ID', 'Name', 'Email'],
+    [
+        ['1', 'Alice', 'alice@example.com'],
+        ['2', 'Bob', 'bob@example.com'],
+    ],
+);
+```
+
+### プログレスバー
+
+```php
+$progress = $output->progress(count($items), 'Importing');
+
+foreach ($items as $item) {
+    $this->process($item);
+    $progress->advance();
+}
+
+$progress->finish();
+```
+
+### 対話的入力
+
+```php
+$confirmed = $output->confirm('Continue?', true);
+$name = $output->ask('Enter name:', 'default');
+```
+
+## DI 統合
+
+### 自動登録（推奨）
+
+`#[AsCommand]` アトリビュートを付けたコマンドは、`RegisterCommandsPass` が自動的に検出し `CommandRegistry` に登録します。
+
+```php
+// ServiceProvider で CommandRegistry を登録
+$builder->register(CommandRegistry::class);
+
+// コマンドを DI コンテナに登録
+$builder->register(ImportUsersCommand::class)->autowire();
+
+// CompilerPass を追加
+$builder->addCompilerPass(new RegisterCommandsPass());
+```
+
+### タグベースの登録
+
+アトリビュートの代わりにタグを使うこともできます:
+
+```php
+$builder->register(ImportUsersCommand::class)
+    ->addTag('command.command');
+```
+
+### 手動登録
+
+DI を使わない場合は直接 `CommandRegistry` を利用できます:
+
+```php
+$registry = new CommandRegistry();
+$registry->add(new ImportUsersCommand($userRepo));
+$registry->register(); // WP_CLI::add_command() を一括呼び出し
+```
+
+## テスト
+
+`ArrayInput` と `BufferedOutput` を使い、WP-CLI なしでコマンドをテストできます:
+
+```php
+use WpPack\Component\Command\Input\ArrayInput;
+use WpPack\Component\Command\Output\BufferedOutput;
+use WpPack\Component\Command\Output\OutputStyle;
+
+#[Test]
+public function importSuccess(): void
 {
-    #[Option(description: 'Maximum width in pixels')]
-    private int $maxWidth = 1920;
+    $command = new ImportUsersCommand($this->userRepo);
 
-    #[Option(description: 'JPEG quality (1-100)')]
-    private int $quality = 85;
+    $input = new ArrayInput(
+        arguments: ['file' => '/path/to/users.csv'],
+        options: ['role' => 'editor', 'skip-email' => true],
+    );
+    $buffer = new BufferedOutput();
+    $output = new OutputStyle($buffer);
 
-    #[Option(description: 'Dry run without making changes')]
-    private bool $dryRun = false;
+    $exitCode = $command->run($input, $output);
 
-    public function handle(): void
-    {
-        $images = $this->getUnprocessedImages();
-
-        if (empty($images)) {
-            $this->info('No images to process.');
-            return;
-        }
-
-        $this->info(sprintf('Found %d images to process.', count($images)));
-
-        if ($this->dryRun) {
-            $this->warning('DRY RUN - No changes will be made.');
-        }
-
-        $progress = $this->progress(count($images));
-        $processed = 0;
-        $errors = 0;
-
-        foreach ($images as $image) {
-            try {
-                if (!$this->dryRun) {
-                    $this->processImage($image);
-                }
-                $processed++;
-            } catch (\Exception $e) {
-                $errors++;
-                $this->warning("Failed: {$image->post_title} - {$e->getMessage()}");
-            }
-
-            $progress->advance();
-        }
-
-        $progress->finish();
-        $this->newLine();
-
-        $this->success("Processed: {$processed}, Errors: {$errors}");
-    }
+    self::assertSame(AbstractCommand::SUCCESS, $exitCode);
+    self::assertStringContainsString('Imported', $buffer->getBuffer());
 }
 ```
 
-### データベース管理コマンド
+## アーキテクチャ
 
-```php
-#[Command('myapp db:cleanup', description: 'Clean up database tables')]
-class DatabaseCleanupCommand extends AbstractCommand
-{
-    public function __construct(
-        private readonly DatabaseManager $db,
-    ) {}
-
-    #[Option(description: 'Clean post revisions')]
-    private bool $revisions = true;
-
-    #[Option(description: 'Clean spam comments')]
-    private bool $spam = true;
-
-    #[Option(description: 'Clean expired transients')]
-    private bool $transients = true;
-
-    #[Option(description: 'Optimize tables after cleanup')]
-    private bool $optimize = false;
-
-    public function handle(): void
-    {
-        $this->info('Starting database cleanup...');
-        $results = [];
-
-        if ($this->revisions) {
-            $count = $this->db->query(
-                "DELETE FROM {$this->db->posts} WHERE post_type = 'revision'"
-            );
-            $results[] = ['Post Revisions', $count];
-        }
-
-        if ($this->spam) {
-            $count = $this->db->query(
-                "DELETE FROM {$this->db->comments} WHERE comment_approved = 'spam'"
-            );
-            $results[] = ['Spam Comments', $count];
-        }
-
-        if ($this->transients) {
-            $count = $this->db->query(
-                "DELETE FROM {$this->db->options}
-                 WHERE option_name LIKE '_transient_timeout_%'
-                 AND option_value < UNIX_TIMESTAMP()"
-            );
-            $results[] = ['Expired Transients', $count];
-        }
-
-        $this->table(['Type', 'Deleted'], $results);
-
-        if ($this->optimize) {
-            $this->info('Optimizing tables...');
-            $this->db->query("OPTIMIZE TABLE {$this->db->posts}, {$this->db->comments}, {$this->db->options}");
-            $this->success('Tables optimized.');
-        }
-
-        $this->success('Database cleanup completed!');
-    }
-}
+```
+AsCommand attribute → RegisterCommandsPass auto-detect → CommandRegistry.add()
+                                                                  ↓
+                                                             register()
+                                                                  ↓
+                                                      WP_CLI::add_command()
+                                                                  ↓
+                                                      CommandRunner(__invoke)
+                                                                  ↓
+                                                WpCliInput + OutputStyle を構築
+                                                                  ↓
+                                                    AbstractCommand::execute()
 ```
 
-## コマンドの登録
+### WP-CLI 互換性
 
-```php
-add_action('cli_init', function () {
-    $container = new WpPack\Container();
-    $container->register([
-        ImportUsersCommand::class,
-        GenerateReportCommand::class,
-        ProcessImagesCommand::class,
-        DatabaseCleanupCommand::class,
-    ]);
-});
-```
+- **加算的な統合**: `CommandRegistry::register()` は `WP_CLI::add_command()` を内部で呼ぶだけ。WP-CLI の仕組みを置き換えない
+- **既存コマンドとの共存**: 従来の `WP_CLI::add_command()` で直接登録したコマンドはそのまま動く
+- **`wp help` 対応**: `InputDefinition::toSynopsis()` が WP-CLI の synopsis フォーマットを生成
+- **WP-CLI 非存在時**: `CommandRegistry::register()` は `class_exists('WP_CLI')` でガードし、エラーにならない
 
 ## 使い方
 
@@ -318,35 +306,11 @@ add_action('cli_init', function () {
 # コマンドの実行
 wp myplugin import-users /path/to/users.csv --skip-email --role=editor
 wp myapp generate-report content --format=table --include-drafts
-wp myapp process-images --max-width=1200 --quality=90 --dry-run
-wp myapp db:cleanup --revisions --spam --transients --optimize
-```
-
-## 出力メソッド
-
-```php
-$this->info('Informational message');     // 青色テキスト
-$this->success('Success message');         // 緑色テキスト
-$this->warning('Warning message');         // 黄色テキスト
-$this->error('Error message');             // 赤色テキスト、コマンド終了
-$this->line('Plain text');                 // フォーマットなし
-$this->newLine();                          // 空行
-
-// テーブル
-$this->table(['Header1', 'Header2'], [['row1a', 'row1b'], ['row2a', 'row2b']]);
-
-// プログレスバー
-$progress = $this->progress($total);
-$progress->advance();
-$progress->finish();
-
-// 確認プロンプト
-$confirmed = $this->confirm('Continue?', true);
 ```
 
 ## このコンポーネントの使用場面
 
-**最適な用途：**
+**最適な用途:**
 - データのインポート/エクスポート操作
 - データベースメンテナンスタスク
 - デプロイ自動化
@@ -354,15 +318,14 @@ $confirmed = $this->confirm('Continue?', true);
 - バッチ処理
 - サイトセットアップと設定
 
-**代替を検討すべき場合：**
-- シンプルなワンオフスクリプト
-- 管理画面 UI の方が適したタスク
+**代替を検討すべき場合:**
+- シンプルなワンオフスクリプト → 直接 `WP_CLI::add_command()` で十分
+- 管理画面 UI の方が適したタスク → Admin コンポーネント
 
 ## 依存関係
 
 ### 必須
-- **WP-CLI** - WordPress コマンドラインインターフェース
+- **WP-CLI** — WordPress コマンドラインインターフェース（実行時のみ。テスト時は不要）
 
 ### 推奨
-- **DependencyInjection コンポーネント** - コマンドへのサービスインジェクション用
-- **Logger コンポーネント** - コマンド実行ログ用
+- **DependencyInjection コンポーネント** — コマンドの自動検出・登録
