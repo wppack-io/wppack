@@ -22,12 +22,15 @@ use WpPack\Component\Debug\DataCollector\HttpClientDataCollector;
 use WpPack\Component\Debug\DataCollector\LoggerDataCollector;
 use WpPack\Component\Debug\DataCollector\MailDataCollector;
 use WpPack\Component\Debug\DataCollector\MemoryDataCollector;
+use WpPack\Component\Debug\DataCollector\PluginDataCollector;
 use WpPack\Component\Debug\DataCollector\RequestDataCollector;
 use WpPack\Component\Debug\DataCollector\RestDataCollector;
 use WpPack\Component\Debug\DataCollector\RouterDataCollector;
+use WpPack\Component\Debug\DataCollector\SchedulerDataCollector;
 use WpPack\Component\Debug\DataCollector\SecurityDataCollector;
 use WpPack\Component\Debug\DataCollector\ShortcodeDataCollector;
 use WpPack\Component\Debug\DataCollector\StopwatchDataCollector;
+use WpPack\Component\Debug\DataCollector\ThemeDataCollector;
 use WpPack\Component\Debug\DataCollector\TranslationDataCollector;
 use WpPack\Component\Debug\DataCollector\WidgetDataCollector;
 use WpPack\Component\Debug\DataCollector\WordPressDataCollector;
@@ -55,6 +58,7 @@ use WpPack\Component\Debug\Toolbar\Panel\HttpClientPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\LoggerPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\MailPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\MemoryPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\PerformancePanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\PluginPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\RequestPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\RestPanelRenderer;
@@ -133,6 +137,9 @@ final class DebugServiceProviderTest extends TestCase
             ContainerDataCollector::class,
             AjaxDataCollector::class,
             EnvironmentDataCollector::class,
+            PluginDataCollector::class,
+            ThemeDataCollector::class,
+            SchedulerDataCollector::class,
         ];
 
         $taggedIds = $this->builder->findTaggedServiceIds(RegisterDataCollectorsPass::TAG);
@@ -176,6 +183,7 @@ final class DebugServiceProviderTest extends TestCase
             ContainerPanelRenderer::class,
             AjaxPanelRenderer::class,
             EnvironmentPanelRenderer::class,
+            PerformancePanelRenderer::class,
         ];
 
         $taggedIds = $this->builder->findTaggedServiceIds(RegisterPanelRenderersPass::TAG);

@@ -100,6 +100,52 @@ final class RegisterEventListenersPassTest extends TestCase
     }
 
     #[Test]
+    public function doesNotDoubleRegisterWhenClassHasBothAttributeAndSubscriber(): void
+    {
+        $builder = new ContainerBuilder();
+        (new EventDispatcherServiceProvider())->register($builder);
+
+        $builder->register(AttributeAndSubscriberListener::class);
+
+        $pass = new RegisterEventListenersPass();
+        $pass->process($builder);
+
+        $definition = $builder->findDefinition(EventDispatcher::class);
+        $calls = $definition->getMethodCalls();
+
+        $addListenerCalls = array_filter($calls, static fn(array $call): bool => $call['method'] === 'addListener');
+        $addSubscriberCalls = array_filter($calls, static fn(array $call): bool => $call['method'] === 'addSubscriber');
+
+        // Should register via attribute only, not via subscriber
+        self::assertNotEmpty($addListenerCalls);
+        self::assertEmpty($addSubscriberCalls, 'Should not register as subscriber when attributes are present.');
+    }
+
+    #[Test]
+    public function methodOverrideResolvesEventFromTargetMethod(): void
+    {
+        $builder = new ContainerBuilder();
+        (new EventDispatcherServiceProvider())->register($builder);
+
+        $builder->register(MethodOverrideListener::class);
+
+        $pass = new RegisterEventListenersPass();
+        $pass->process($builder);
+
+        $definition = $builder->findDefinition(EventDispatcher::class);
+        $calls = $definition->getMethodCalls();
+
+        $addListenerCalls = array_filter($calls, static fn(array $call): bool => $call['method'] === 'addListener');
+        self::assertNotEmpty($addListenerCalls);
+
+        $call = array_values($addListenerCalls)[0];
+        // Event should be resolved from handleEvent() parameter (AnotherTestEvent), not onEvent() parameter
+        self::assertSame(AnotherTestEvent::class, $call['arguments'][0]);
+        // Callback method should be handleEvent
+        self::assertSame('handleEvent', $call['arguments'][1][1]);
+    }
+
+    #[Test]
     public function resolvesEventFromMethodParameter(): void
     {
         $builder = new ContainerBuilder();
@@ -159,3 +205,28 @@ class PlainService
 {
     public function doWork(): void {}
 }
+
+#[AsEventListener(event: PassTestEvent::class)]
+class AttributeAndSubscriberListener implements EventSubscriberInterface
+{
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            PassTestEvent::class => 'onEvent',
+        ];
+    }
+
+    public function __invoke(PassTestEvent $event): void {}
+
+    public function onEvent(PassTestEvent $event): void {}
+}
+
+class MethodOverrideListener
+{
+    #[AsEventListener(method: 'handleEvent')]
+    public function onEvent(PassTestEvent $event): void {}
+
+    public function handleEvent(AnotherTestEvent $event): void {}
+}
+
+class AnotherTestEvent extends Event {}

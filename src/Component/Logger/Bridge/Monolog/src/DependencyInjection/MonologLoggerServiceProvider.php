@@ -33,6 +33,13 @@ final class MonologLoggerServiceProvider implements ServiceProviderInterface
             ->addArgument(new Reference(MonologLoggerFactory::class))
             ->addArgument($this->level);
 
+        if (!$builder->hasDefinition(LoggerFactory::class)) {
+            throw new \LogicException(sprintf(
+                '%s requires LoggerServiceProvider to be registered first.',
+                self::class,
+            ));
+        }
+
         $builder->findDefinition(LoggerFactory::class)
             ->setArgument(0, [new Reference(MonologHandler::class)]);
     }

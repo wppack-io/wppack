@@ -15,9 +15,12 @@ use WpPack\Component\Debug\DataCollector\LoggerDataCollector;
 use WpPack\Component\Debug\DataCollector\MailDataCollector;
 use WpPack\Component\Debug\Handler\DebugHandler;
 use WpPack\Component\Debug\DataCollector\MemoryDataCollector;
+use WpPack\Component\Debug\DataCollector\PluginDataCollector;
 use WpPack\Component\Debug\DataCollector\RequestDataCollector;
 use WpPack\Component\Debug\DataCollector\RouterDataCollector;
+use WpPack\Component\Debug\DataCollector\SchedulerDataCollector;
 use WpPack\Component\Debug\DataCollector\StopwatchDataCollector;
+use WpPack\Component\Debug\DataCollector\ThemeDataCollector;
 use WpPack\Component\Debug\DataCollector\AdminDataCollector;
 use WpPack\Component\Debug\DataCollector\AjaxDataCollector;
 use WpPack\Component\Debug\DataCollector\AssetDataCollector;
@@ -45,6 +48,7 @@ use WpPack\Component\Debug\Toolbar\Panel\HttpClientPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\LoggerPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\MailPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\MemoryPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\PerformancePanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\PluginPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\RequestPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\RouterPanelRenderer;
@@ -106,6 +110,9 @@ final class DebugServiceProvider implements ServiceProviderInterface
         $builder->register(ContainerDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
         $builder->register(AjaxDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
         $builder->register(EnvironmentDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
+        $builder->register(PluginDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
+        $builder->register(ThemeDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
+        $builder->register(SchedulerDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
 
         // Logger Component integration (optional)
         if (interface_exists(\WpPack\Component\Logger\Handler\HandlerInterface::class)) {
@@ -152,5 +159,6 @@ final class DebugServiceProvider implements ServiceProviderInterface
         $builder->register(ContainerPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
         $builder->register(AjaxPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
         $builder->register(EnvironmentPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
+        $builder->register(PerformancePanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
     }
 }

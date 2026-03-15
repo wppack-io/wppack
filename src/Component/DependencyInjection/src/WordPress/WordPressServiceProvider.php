@@ -113,137 +113,120 @@ final class WordPressServiceProvider implements ServiceProviderInterface
 
     public static function getWpdb(): \wpdb
     {
-        /** @var \wpdb $wpdb */
         global $wpdb;
 
-        return $wpdb;
+        return $wpdb ?? throw new \RuntimeException('Global $wpdb is not initialized.');
     }
 
     public static function getWpFilesystem(): \WP_Filesystem_Base
     {
-        /** @var \WP_Filesystem_Base $wp_filesystem */
         global $wp_filesystem;
 
-        return $wp_filesystem;
+        return $wp_filesystem ?? throw new \RuntimeException('Global $wp_filesystem is not initialized. Call WP_Filesystem() first.');
     }
 
     public static function getWp(): \WP
     {
-        /** @var \WP $wp */
         global $wp;
 
-        return $wp;
+        return $wp ?? throw new \RuntimeException('Global $wp is not initialized.');
     }
 
     public static function getWpRewrite(): \WP_Rewrite
     {
-        /** @var \WP_Rewrite $wp_rewrite */
         global $wp_rewrite;
 
-        return $wp_rewrite;
+        return $wp_rewrite ?? throw new \RuntimeException('Global $wp_rewrite is not initialized.');
     }
 
     public static function getWpTheQuery(): \WP_Query
     {
-        /** @var \WP_Query $wp_the_query */
         global $wp_the_query;
 
-        return $wp_the_query;
+        return $wp_the_query ?? throw new \RuntimeException('Global $wp_the_query is not initialized.');
     }
 
     public static function getWpQuery(): \WP_Query
     {
-        /** @var \WP_Query $wp_query */
         global $wp_query;
 
-        return $wp_query;
+        return $wp_query ?? throw new \RuntimeException('Global $wp_query is not initialized.');
     }
 
     public static function getWpRoles(): \WP_Roles
     {
-        /** @var \WP_Roles $wp_roles */
         global $wp_roles;
 
-        return $wp_roles;
+        return $wp_roles ?? throw new \RuntimeException('Global $wp_roles is not initialized.');
     }
 
     public static function getWpLocale(): \WP_Locale
     {
-        /** @var \WP_Locale $wp_locale */
         global $wp_locale;
 
-        return $wp_locale;
+        return $wp_locale ?? throw new \RuntimeException('Global $wp_locale is not initialized.');
     }
 
     public static function getWpLocaleSwitcher(): \WP_Locale_Switcher
     {
-        /** @var \WP_Locale_Switcher $wp_locale_switcher */
         global $wp_locale_switcher;
 
-        return $wp_locale_switcher;
+        return $wp_locale_switcher ?? throw new \RuntimeException('Global $wp_locale_switcher is not initialized.');
     }
 
     public static function getWpObjectCache(): \WP_Object_Cache
     {
-        /** @var \WP_Object_Cache $wp_object_cache */
         global $wp_object_cache;
 
-        return $wp_object_cache;
+        return $wp_object_cache ?? throw new \RuntimeException('Global $wp_object_cache is not initialized.');
     }
 
     public static function getWpEmbed(): \WP_Embed
     {
-        /** @var \WP_Embed $wp_embed */
         global $wp_embed;
 
-        return $wp_embed;
+        return $wp_embed ?? throw new \RuntimeException('Global $wp_embed is not initialized.');
     }
 
     public static function getWpWidgetFactory(): \WP_Widget_Factory
     {
-        /** @var \WP_Widget_Factory $wp_widget_factory */
         global $wp_widget_factory;
 
-        return $wp_widget_factory;
+        return $wp_widget_factory ?? throw new \RuntimeException('Global $wp_widget_factory is not initialized.');
     }
 
     public static function getWpTextdomainRegistry(): \WP_Textdomain_Registry
     {
-        /** @var \WP_Textdomain_Registry $wp_textdomain_registry */
         global $wp_textdomain_registry;
 
-        return $wp_textdomain_registry;
+        return $wp_textdomain_registry ?? throw new \RuntimeException('Global $wp_textdomain_registry is not initialized.');
     }
 
     public static function getWpScripts(): \WP_Scripts
     {
-        /** @var \WP_Scripts $wp_scripts */
         global $wp_scripts;
 
-        return $wp_scripts;
+        return $wp_scripts ?? throw new \RuntimeException('Global $wp_scripts is not initialized.');
     }
 
     public static function getWpStyles(): \WP_Styles
     {
-        /** @var \WP_Styles $wp_styles */
         global $wp_styles;
 
-        return $wp_styles;
+        return $wp_styles ?? throw new \RuntimeException('Global $wp_styles is not initialized.');
     }
 
     public static function getWpAdminBar(): \WP_Admin_Bar
     {
-        /** @var \WP_Admin_Bar $wp_admin_bar */
         global $wp_admin_bar;
 
-        return $wp_admin_bar;
+        return $wp_admin_bar ?? throw new \RuntimeException('Global $wp_admin_bar is not initialized.');
     }
 
     public static function getWpCustomize(): \WP_Customize_Manager
     {
-        /** @var \WP_Customize_Manager $wp_customize */
         global $wp_customize;
 
-        return $wp_customize;
+        return $wp_customize ?? throw new \RuntimeException('Global $wp_customize is not initialized.');
     }
 }

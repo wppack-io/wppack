@@ -20,11 +20,13 @@ final class RegisterLoggerPass implements CompilerPassInterface
         }
 
         foreach ($builder->getDefinitions() as $id => $definition) {
-            if (!class_exists($id)) {
+            $class = $definition->getClass() ?? $id;
+
+            if (!class_exists($class)) {
                 continue;
             }
 
-            $reflection = new \ReflectionClass($id);
+            $reflection = new \ReflectionClass($class);
             $constructor = $reflection->getConstructor();
 
             if ($constructor === null) {

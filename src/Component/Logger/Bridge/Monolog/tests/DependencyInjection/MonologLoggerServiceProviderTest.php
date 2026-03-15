@@ -30,6 +30,18 @@ final class MonologLoggerServiceProviderTest extends TestCase
     }
 
     #[Test]
+    public function throwsWhenLoggerServiceProviderNotRegistered(): void
+    {
+        $builder = new ContainerBuilder();
+        $provider = new MonologLoggerServiceProvider();
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('requires LoggerServiceProvider to be registered first');
+
+        $provider->register($builder);
+    }
+
+    #[Test]
     public function registersMonologHandler(): void
     {
         $builder = new ContainerBuilder();

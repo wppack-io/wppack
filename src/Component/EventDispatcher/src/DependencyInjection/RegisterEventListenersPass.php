@@ -33,10 +33,10 @@ final class RegisterEventListenersPass implements CompilerPassInterface
             $reflection = new \ReflectionClass($class);
 
             // Register #[AsEventListener] attributes
-            $this->processAttributes($dispatcherDefinition, $definition, $reflection);
+            $hasAttributes = $this->processAttributes($dispatcherDefinition, $definition, $reflection);
 
-            // Register EventSubscriberInterface implementations
-            if ($reflection->implementsInterface(EventSubscriberInterface::class)) {
+            // Register EventSubscriberInterface implementations (skip if attributes were found to avoid double-registration)
+            if (!$hasAttributes && $reflection->implementsInterface(EventSubscriberInterface::class)) {
                 $dispatcherDefinition->addMethodCall('addSubscriber', [new Reference($definition->getId())]);
             }
         }
@@ -49,7 +49,9 @@ final class RegisterEventListenersPass implements CompilerPassInterface
         \WpPack\Component\DependencyInjection\Definition $dispatcherDefinition,
         \WpPack\Component\DependencyInjection\Definition $serviceDefinition,
         \ReflectionClass $reflection,
-    ): void {
+    ): bool {
+        $found = false;
+
         // Class-level attributes
         foreach ($reflection->getAttributes(AsEventListener::class) as $attr) {
             /** @var AsEventListener $listener */
@@ -61,6 +63,7 @@ final class RegisterEventListenersPass implements CompilerPassInterface
                 continue;
             }
 
+            $found = true;
             $dispatcherDefinition->addMethodCall('addListener', [
                 $event,
                 [new Reference($serviceDefinition->getId()), $method],
@@ -74,20 +77,24 @@ final class RegisterEventListenersPass implements CompilerPassInterface
             foreach ($method->getAttributes(AsEventListener::class) as $attr) {
                 /** @var AsEventListener $listener */
                 $listener = $attr->newInstance();
-                $event = $listener->event ?? $this->resolveEventFromMethod($reflection, $method->getName());
+                $callbackMethod = $listener->method ?? $method->getName();
+                $event = $listener->event ?? $this->resolveEventFromMethod($reflection, $callbackMethod);
 
                 if ($event === null) {
                     continue;
                 }
 
+                $found = true;
                 $dispatcherDefinition->addMethodCall('addListener', [
                     $event,
-                    [new Reference($serviceDefinition->getId()), $listener->method ?? $method->getName()],
+                    [new Reference($serviceDefinition->getId()), $callbackMethod],
                     $listener->priority,
                     $listener->acceptedArgs,
                 ]);
             }
         }
+
+        return $found;
     }
 
     /**

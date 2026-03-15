@@ -136,6 +136,25 @@ final class RegisterLoggerPassTest extends TestCase
     }
 
     #[Test]
+    public function discoversChannelWhenServiceIdIsNotClassName(): void
+    {
+        $builder = new ContainerBuilder();
+        $builder->register(LoggerFactory::class);
+        $builder->register('app.payment', Fixtures\PaymentService::class);
+
+        $pass = new RegisterLoggerPass();
+        $pass->process($builder);
+
+        self::assertTrue($builder->hasDefinition('logger.payment'));
+
+        $definition = $builder->findDefinition('app.payment');
+        $arguments = $definition->getArguments();
+        self::assertArrayHasKey(0, $arguments);
+        self::assertInstanceOf(Reference::class, $arguments[0]);
+        self::assertSame('logger.payment', $arguments[0]->getId());
+    }
+
+    #[Test]
     public function ignoresServicesWithoutLoggerChannel(): void
     {
         $builder = new ContainerBuilder();
