@@ -26,7 +26,7 @@ final class AbstractCommandTest extends TestCase
 
         self::assertSame('test greet', $attribute->name);
         self::assertSame('Greet someone', $attribute->description);
-        self::assertFalse($attribute->hidden);
+        self::assertSame('', $attribute->usage);
     }
 
     #[Test]

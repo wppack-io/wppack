@@ -59,4 +59,14 @@ final class InputArgumentTest extends TestCase
 
         new InputArgument('file', InputArgument::REQUIRED, '', 'default');
     }
+
+    #[Test]
+    public function requiredArrayArgument(): void
+    {
+        $argument = new InputArgument('files', InputArgument::REQUIRED | InputArgument::IS_ARRAY, 'File list');
+
+        self::assertTrue($argument->isRequired());
+        self::assertTrue($argument->isArray());
+        self::assertNull($argument->default);
+    }
 }

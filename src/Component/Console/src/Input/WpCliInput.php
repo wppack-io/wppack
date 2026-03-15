@@ -68,6 +68,8 @@ final class WpCliInput implements InputInterface
             if (isset($args[$index])) {
                 $resolved[$name] = $args[$index];
                 $index++;
+            } elseif ($argument->isRequired()) {
+                throw new InvalidArgumentException(sprintf('Not enough arguments (missing: "%s").', $name));
             } else {
                 $resolved[$name] = $argument->default;
             }

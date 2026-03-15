@@ -28,9 +28,9 @@ final class CommandRegistry
             return;
         }
 
-        $this->registered = true;
-
         if (!class_exists(\WP_CLI::class, false)) {
+            $this->registered = true;
+
             return;
         }
 
@@ -42,12 +42,14 @@ final class CommandRegistry
                 'synopsis' => $command->getDefinition()->toSynopsis(),
             ];
 
-            if ($attribute->hidden) {
-                $args['when'] = 'before_wp_load';
+            if ($attribute->usage !== '') {
+                $args['longdesc'] = $attribute->usage;
             }
 
             \WP_CLI::add_command($attribute->name, new CommandRunner($command), $args);
         }
+
+        $this->registered = true;
     }
 
     /** @return list<AbstractCommand> */

@@ -8,7 +8,7 @@ final class WpCliOutput implements OutputInterface
 {
     public function write(string $message): void
     {
-        \WP_CLI::log($message); // @phpstan-ignore class.notFound
+        \WP_CLI::out($message); // @phpstan-ignore class.notFound
     }
 
     public function writeln(string $message): void

@@ -11,6 +11,5 @@ final class AsCommand
         public readonly string $name,
         public readonly string $description = '',
         public readonly string $usage = '',
-        public readonly bool $hidden = false,
     ) {}
 }

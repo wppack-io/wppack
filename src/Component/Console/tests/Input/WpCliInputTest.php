@@ -139,4 +139,27 @@ final class WpCliInputTest extends TestCase
 
         $input->getOption('missing');
     }
+
+    #[Test]
+    public function missingRequiredArgumentThrows(): void
+    {
+        $definition = new InputDefinition();
+        $definition->addArgument(new InputArgument('file', InputArgument::REQUIRED, 'CSV file'));
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Not enough arguments (missing: "file").');
+
+        new WpCliInput($definition, [], []);
+    }
+
+    #[Test]
+    public function requiredArrayArgumentWithValues(): void
+    {
+        $definition = new InputDefinition();
+        $definition->addArgument(new InputArgument('files', InputArgument::REQUIRED | InputArgument::IS_ARRAY));
+
+        $input = new WpCliInput($definition, ['a.csv', 'b.csv'], []);
+
+        self::assertSame(['a.csv', 'b.csv'], $input->getArgument('files'));
+    }
 }

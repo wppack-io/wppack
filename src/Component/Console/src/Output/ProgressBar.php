@@ -41,7 +41,7 @@ final class ProgressBar
 
     private function display(): void
     {
-        $percent = $this->total > 0 ? (int) floor(($this->current / $this->total) * 100) : 0;
+        $percent = $this->total > 0 ? min((int) floor(($this->current / $this->total) * 100), 100) : 0;
         $this->output->writeln(sprintf('%s: %d/%d (%d%%)', $this->message, $this->current, $this->total, $percent));
     }
 }

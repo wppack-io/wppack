@@ -50,6 +50,21 @@ final class CommandRegistryTest extends TestCase
     }
 
     #[Test]
+    public function registerIsIdempotent(): void
+    {
+        $registry = new CommandRegistry();
+        $registry->add(new DummyCommand());
+
+        $registry->register();
+
+        // Second call should silently return without error
+        $registry->register();
+
+        // Commands remain accessible
+        self::assertCount(1, $registry->all());
+    }
+
+    #[Test]
     public function cannotAddAfterRegister(): void
     {
         $registry = new CommandRegistry();
@@ -59,6 +74,18 @@ final class CommandRegistryTest extends TestCase
         $this->expectExceptionMessage('Cannot add commands after register() has been called.');
 
         $registry->add(new DummyCommand());
+    }
+
+    #[Test]
+    public function addAfterRegisterThrowsEvenWithCommands(): void
+    {
+        $registry = new CommandRegistry();
+        $registry->add(new DummyCommand());
+        $registry->register();
+
+        $this->expectException(LogicException::class);
+
+        $registry->add(new AnotherDummyCommand());
     }
 
     #[Test]
