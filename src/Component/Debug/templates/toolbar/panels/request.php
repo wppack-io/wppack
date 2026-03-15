@@ -11,20 +11,20 @@ $method = (string) ($data['method'] ?? '');
 <div class="wpd-section">
 <h4 class="wpd-section-title">Request</h4>
 <table class="wpd-table wpd-table-kv">
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Method', 'value' => $this->include('toolbar/partials/method-badge', ['method' => $method, 'fmt' => $fmt])]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'URL', 'value' => (string) ($data['url'] ?? '')]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Method', 'value' => $view->include('toolbar/partials/method-badge', ['method' => $method, 'fmt' => $fmt])]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'URL', 'value' => (string) ($data['url'] ?? '')]) ?>
 <?php
 $script = (string) ($serverVars['SCRIPT_FILENAME'] ?? '');
 if ($script !== '') {
-    echo $this->include('toolbar/partials/table-row', ['key' => 'Script', 'value' => $script]);
+    echo $view->include('toolbar/partials/table-row', ['key' => 'Script', 'value' => $script]);
 }
 $remoteAddr = (string) ($serverVars['REMOTE_ADDR'] ?? '');
 if ($remoteAddr !== '') {
-    echo $this->include('toolbar/partials/table-row', ['key' => 'Remote Address', 'value' => $remoteAddr]);
+    echo $view->include('toolbar/partials/table-row', ['key' => 'Remote Address', 'value' => $remoteAddr]);
 }
 $requestTimeFloat = $serverVars['REQUEST_TIME_FLOAT'] ?? null;
 if ($requestTimeFloat !== null) {
-    echo $this->include('toolbar/partials/table-row', ['key' => 'Time', 'value' => date('Y-m-d H:i:s', (int) $requestTimeFloat)]);
+    echo $view->include('toolbar/partials/table-row', ['key' => 'Time', 'value' => date('Y-m-d H:i:s', (int) $requestTimeFloat)]);
 }
 ?>
 </table>
@@ -37,50 +37,50 @@ $statusColorClass = $fmt->statusColor($statusCode);
 <div class="wpd-section">
 <h4 class="wpd-section-title">Response</h4>
 <table class="wpd-table wpd-table-kv">
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Status Code', 'value' => (string) $statusCode, 'valueClass' => $statusColorClass]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Status Code', 'value' => (string) $statusCode, 'valueClass' => $statusColorClass]) ?>
 <?php if ($contentType !== ''): ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Content-Type', 'value' => $contentType]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Content-Type', 'value' => $contentType]) ?>
 <?php endif; ?>
 </table>
 </div>
 <?php
 $requestHeaders = $data['request_headers'] ?? [];
 if (!empty($requestHeaders)) {
-    echo $this->include('toolbar/partials/key-value-section', ['title' => 'Request Headers', 'items' => $requestHeaders, 'fmt' => $fmt]);
+    echo $view->include('toolbar/partials/key-value-section', ['title' => 'Request Headers', 'items' => $requestHeaders, 'fmt' => $fmt]);
 }
 $responseHeaders = $data['response_headers'] ?? [];
 if (!empty($responseHeaders)) {
-    echo $this->include('toolbar/partials/key-value-section', ['title' => 'Response Headers', 'items' => $responseHeaders, 'fmt' => $fmt]);
+    echo $view->include('toolbar/partials/key-value-section', ['title' => 'Response Headers', 'items' => $responseHeaders, 'fmt' => $fmt]);
 }
 $getParams = $data['get_params'] ?? [];
 if (!empty($getParams)) {
-    echo $this->include('toolbar/partials/key-value-section', ['title' => 'GET Parameters', 'items' => $getParams, 'fmt' => $fmt]);
+    echo $view->include('toolbar/partials/key-value-section', ['title' => 'GET Parameters', 'items' => $getParams, 'fmt' => $fmt]);
 }
 $postParams = $data['post_params'] ?? [];
 if (!empty($postParams)) {
-    echo $this->include('toolbar/partials/key-value-section', ['title' => 'POST Parameters', 'items' => $postParams, 'fmt' => $fmt]);
+    echo $view->include('toolbar/partials/key-value-section', ['title' => 'POST Parameters', 'items' => $postParams, 'fmt' => $fmt]);
 }
 $cookies = $data['cookies'] ?? [];
 if (!empty($cookies)) {
-    echo $this->include('toolbar/partials/key-value-section', ['title' => 'Cookies', 'items' => $cookies, 'fmt' => $fmt]);
+    echo $view->include('toolbar/partials/key-value-section', ['title' => 'Cookies', 'items' => $cookies, 'fmt' => $fmt]);
 }
 $excludeFromServerVars = ['SCRIPT_FILENAME', 'REMOTE_ADDR', 'REQUEST_TIME_FLOAT'];
 $filteredServerVars = array_diff_key($serverVars, array_flip($excludeFromServerVars));
 if (!empty($filteredServerVars)) {
-    echo $this->include('toolbar/partials/key-value-section', ['title' => 'Server Variables', 'items' => $filteredServerVars, 'fmt' => $fmt]);
+    echo $view->include('toolbar/partials/key-value-section', ['title' => 'Server Variables', 'items' => $filteredServerVars, 'fmt' => $fmt]);
 }
 $httpApiCalls = $data['http_api_calls'] ?? [];
 if (!empty($httpApiCalls)):
-?>
+    ?>
 <div class="wpd-section">
-<h4 class="wpd-section-title">HTTP API Calls (<?= $this->e((string) count($httpApiCalls)) ?>)</h4>
+<h4 class="wpd-section-title">HTTP API Calls (<?= $view->e((string) count($httpApiCalls)) ?>)</h4>
 <table class="wpd-table wpd-table-full">
 <thead><tr><th>#</th><th>URL</th></tr></thead>
 <tbody>
 <?php foreach ($httpApiCalls as $index => $call): ?>
 <tr>
-<td><?= $this->e((string) ($index + 1)) ?></td>
-<td><code><?= $this->e($call['url']) ?></code></td>
+<td><?= $view->e((string) ($index + 1)) ?></td>
+<td><code><?= $view->e($call['url']) ?></code></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>

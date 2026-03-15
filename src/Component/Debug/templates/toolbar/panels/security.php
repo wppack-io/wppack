@@ -20,13 +20,13 @@
 <div class="wpd-section">
 <h4 class="wpd-section-title">User</h4>
 <table class="wpd-table wpd-table-kv">
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Logged In', 'value' => $fmt->value($isLoggedIn)]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Username', 'value' => $this->e($username ?: '-')]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Display Name', 'value' => $this->e($displayName ?: '-')]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Email', 'value' => $this->e($email ?: '-')]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Authentication', 'value' => $this->e($auth)]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Logged In', 'value' => $fmt->value($isLoggedIn)]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Username', 'value' => $view->e($username ?: '-')]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Display Name', 'value' => $view->e($displayName ?: '-')]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Email', 'value' => $view->e($email ?: '-')]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Authentication', 'value' => $view->e($auth)]) ?>
 <?php if ($isSuperAdmin): ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Super Admin', 'value' => '<span class="wpd-text-yellow">Yes</span>']) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Super Admin', 'value' => '<span class="wpd-text-yellow">Yes</span>']) ?>
 <?php endif; ?>
 </table>
 </div>
@@ -35,17 +35,17 @@
 <h4 class="wpd-section-title">Roles</h4>
 <div class="wpd-tag-list">
 <?php foreach ($roles as $role): ?>
-<span class="wpd-tag"><?= $this->e($role) ?></span>
+<span class="wpd-tag"><?= $view->e($role) ?></span>
 <?php endforeach; ?>
 </div>
 </div>
 <?php endif; ?>
 <?php if (!empty($capabilities)): ?>
 <div class="wpd-section">
-<h4 class="wpd-section-title">Capabilities (<?= $this->e((string) count($capabilities)) ?>)</h4>
+<h4 class="wpd-section-title">Capabilities (<?= $view->e((string) count($capabilities)) ?>)</h4>
 <div class="wpd-tag-list">
 <?php foreach ($capabilities as $cap => $granted): ?>
-<span class="wpd-tag <?= $granted ? 'wpd-text-green' : 'wpd-text-red' ?>"><?= $this->e($cap) ?></span>
+<span class="wpd-tag <?= $granted ? 'wpd-text-green' : 'wpd-text-red' ?>"><?= $view->e($cap) ?></span>
 <?php endforeach; ?>
 </div>
 </div>
@@ -53,8 +53,8 @@
 <div class="wpd-section">
 <h4 class="wpd-section-title">Nonce Operations</h4>
 <table class="wpd-table wpd-table-kv">
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Total Verifications', 'value' => (string) $nonceVerifyCount]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Failures', 'value' => (string) $nonceFailures, 'valueClass' => $nonceFailures > 0 ? 'wpd-text-red' : '']) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Total Verifications', 'value' => (string) $nonceVerifyCount]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Failures', 'value' => (string) $nonceFailures, 'valueClass' => $nonceFailures > 0 ? 'wpd-text-red' : '']) ?>
 </table>
 <?php if (!empty($nonceOps)): ?>
 <table class="wpd-table wpd-table-full" style="margin-top:8px">
@@ -67,9 +67,9 @@
 <tbody>
 <?php foreach ($nonceOps as $op): ?>
 <tr>
-<td class="wpd-col-reltime wpd-text-dim"><?= $this->e($fmt->relativeTime($op['timestamp'], $requestTimeFloat)) ?></td>
-<td><code><?= $this->e($op['action']) ?></code></td>
-<td><?= $this->e($op['operation']) ?></td>
+<td class="wpd-col-reltime wpd-text-dim"><?= $view->e($fmt->relativeTime($op['timestamp'], $requestTimeFloat)) ?></td>
+<td><code><?= $view->e($op['action']) ?></code></td>
+<td><?= $view->e($op['operation']) ?></td>
 <td><?php if ($op['result']): ?><span class="wpd-text-green">pass</span><?php else: ?><span class="wpd-text-red">fail</span><?php endif; ?></td>
 </tr>
 <?php endforeach; ?>

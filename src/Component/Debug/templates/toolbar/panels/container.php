@@ -17,11 +17,11 @@
 <div class="wpd-section">
 <h4 class="wpd-section-title">Summary</h4>
 <div class="wpd-perf-cards">
-<?= $this->include('toolbar/partials/perf-card', ['label' => 'Services', 'value' => (string) $serviceCount, 'unit' => '', 'sub' => '']) ?>
-<?= $this->include('toolbar/partials/perf-card', ['label' => 'Public', 'value' => (string) $publicCount, 'unit' => '', 'sub' => '']) ?>
-<?= $this->include('toolbar/partials/perf-card', ['label' => 'Private', 'value' => (string) $privateCount, 'unit' => '', 'sub' => '']) ?>
-<?= $this->include('toolbar/partials/perf-card', ['label' => 'Autowired', 'value' => (string) $autowiredCount, 'unit' => '', 'sub' => '']) ?>
-<?= $this->include('toolbar/partials/perf-card', ['label' => 'Lazy', 'value' => (string) $lazyCount, 'unit' => '', 'sub' => '']) ?>
+<?= $view->include('toolbar/partials/perf-card', ['label' => 'Services', 'value' => (string) $serviceCount, 'unit' => '', 'sub' => '']) ?>
+<?= $view->include('toolbar/partials/perf-card', ['label' => 'Public', 'value' => (string) $publicCount, 'unit' => '', 'sub' => '']) ?>
+<?= $view->include('toolbar/partials/perf-card', ['label' => 'Private', 'value' => (string) $privateCount, 'unit' => '', 'sub' => '']) ?>
+<?= $view->include('toolbar/partials/perf-card', ['label' => 'Autowired', 'value' => (string) $autowiredCount, 'unit' => '', 'sub' => '']) ?>
+<?= $view->include('toolbar/partials/perf-card', ['label' => 'Lazy', 'value' => (string) $lazyCount, 'unit' => '', 'sub' => '']) ?>
 </div>
 </div>
 <?php if (!empty($compilerPasses)): ?>
@@ -30,8 +30,8 @@
 <div class="wpd-tag-list">
 <?php foreach ($compilerPasses as $pass):
     $shortName = substr(strrchr($pass, '\\') ?: $pass, 1) ?: $pass;
-?>
-<span class="wpd-tag"><?= $this->e($shortName) ?></span>
+    ?>
+<span class="wpd-tag"><?= $view->e($shortName) ?></span>
 <?php endforeach; ?>
 </div>
 </div>
@@ -47,8 +47,8 @@
 <tbody>
 <?php foreach ($taggedServices as $tag => $serviceIds): ?>
 <tr>
-<td><code><?= $this->e($tag) ?></code></td>
-<td><div class="wpd-tag-list"><?php foreach ($serviceIds as $id): ?><span class="wpd-tag"><?= $this->e($id) ?></span><?php endforeach; ?></div></td>
+<td><code><?= $view->e($tag) ?></code></td>
+<td><div class="wpd-tag-list"><?php foreach ($serviceIds as $id): ?><span class="wpd-tag"><?= $view->e($id) ?></span><?php endforeach; ?></div></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>
@@ -70,17 +70,17 @@
     $isPublic = (bool) ($info['public'] ?? false);
     $isAutowired = (bool) ($info['autowired'] ?? false);
     $isLazy = (bool) ($info['lazy'] ?? false);
-?>
+    ?>
 <tr>
-<td><code><?= $this->e($id) ?></code></td>
-<td class="wpd-text-dim"><?= $this->e($class) ?></td>
+<td><code><?= $view->e($id) ?></code></td>
+<td class="wpd-text-dim"><?= $view->e($class) ?></td>
 <td><?php if ($isPublic): ?><span class="wpd-text-green">public</span><?php else: ?><span class="wpd-text-dim">private</span><?php endif; ?></td>
-<td><?php if ($isAutowired): ?><?= $this->include('toolbar/partials/badge', ['label' => 'autowired', 'color' => 'primary']) ?> <?php endif; ?><?php if ($isLazy): ?><?= $this->include('toolbar/partials/badge', ['label' => 'lazy', 'color' => 'yellow']) ?><?php endif; ?><?php if (!$isAutowired && !$isLazy): ?>-<?php endif; ?></td>
+<td><?php if ($isAutowired): ?><?= $view->include('toolbar/partials/badge', ['label' => 'autowired', 'color' => 'primary']) ?> <?php endif; ?><?php if ($isLazy): ?><?= $view->include('toolbar/partials/badge', ['label' => 'lazy', 'color' => 'yellow']) ?><?php endif; ?><?php if (!$isAutowired && !$isLazy): ?>-<?php endif; ?></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>
 </div>
 <?php endif; ?>
 <?php if (!empty($parameters)): ?>
-<?= $this->include('toolbar/partials/key-value-section', ['title' => 'Parameters', 'items' => $parameters, 'fmt' => $fmt]) ?>
+<?= $view->include('toolbar/partials/key-value-section', ['title' => 'Parameters', 'items' => $parameters, 'fmt' => $fmt]) ?>
 <?php endif; ?>

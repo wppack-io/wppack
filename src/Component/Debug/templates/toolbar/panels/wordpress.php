@@ -11,15 +11,15 @@
 <div class="wpd-section">
 <h4 class="wpd-section-title">WordPress</h4>
 <table class="wpd-table wpd-table-kv">
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Version', 'value' => (string) ($wpData['wp_version'] ?? 'N/A')]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Environment', 'value' => (string) ($wpData['environment_type'] ?? 'N/A')]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Multisite', 'value' => ($wpData['is_multisite'] ?? false) ? 'Yes' : 'No']) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Version', 'value' => (string) ($wpData['wp_version'] ?? 'N/A')]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Environment', 'value' => (string) ($wpData['environment_type'] ?? 'N/A')]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Multisite', 'value' => ($wpData['is_multisite'] ?? false) ? 'Yes' : 'No']) ?>
 </table>
 </div>
 <?php
 $constants = $wpData['constants'] ?? [];
 if (!empty($constants)):
-?>
+    ?>
 <div class="wpd-section">
 <h4 class="wpd-section-title">Debug Constants</h4>
 <table class="wpd-table wpd-table-kv">
@@ -29,8 +29,8 @@ if (!empty($constants)):
         true => '<span class="wpd-text-green">true</span>',
         false => '<span class="wpd-text-red">false</span>',
     };
-?>
-<tr><td class="wpd-kv-key"><?= $this->e($constant) ?></td><td class="wpd-kv-val"><?= $this->raw($display) ?></td></tr>
+    ?>
+<tr><td class="wpd-kv-key"><?= $view->e($constant) ?></td><td class="wpd-kv-val"><?= $view->raw($display) ?></td></tr>
 <?php endforeach; ?>
 </table>
 </div>
@@ -39,20 +39,20 @@ if (!empty($constants)):
 <h4 class="wpd-section-title">Active Theme</h4>
 <table class="wpd-table wpd-table-kv">
 <?php
-$themeName = (string) ($themeData['name'] ?? 'N/A');
-echo $this->include('toolbar/partials/table-row', ['key' => 'Name', 'value' => $themeName]);
+    $themeName = (string) ($themeData['name'] ?? 'N/A');
+echo $view->include('toolbar/partials/table-row', ['key' => 'Name', 'value' => $themeName]);
 if ($themeName !== 'N/A') {
     $isBlockTheme = (bool) ($themeData['is_block_theme'] ?? false);
     $themeTypeLabel = $isBlockTheme ? 'Block (FSE)' : 'Classic';
-    echo $this->include('toolbar/partials/table-row', ['key' => 'Type', 'value' => '<span class="wpd-tag">' . $this->e($themeTypeLabel) . '</span>']);
+    echo $view->include('toolbar/partials/table-row', ['key' => 'Type', 'value' => '<span class="wpd-tag">' . $view->e($themeTypeLabel) . '</span>']);
 }
 $isChildTheme = (bool) ($themeData['is_child_theme'] ?? false);
 if ($isChildTheme) {
-    echo $this->include('toolbar/partials/table-row', ['key' => 'Parent Theme', 'value' => $this->e((string) ($themeData['parent_theme'] ?? ''))]);
+    echo $view->include('toolbar/partials/table-row', ['key' => 'Parent Theme', 'value' => $view->e((string) ($themeData['parent_theme'] ?? ''))]);
 }
 $themeVersion = (string) ($themeData['version'] ?? '');
 if ($themeVersion !== '') {
-    echo $this->include('toolbar/partials/table-row', ['key' => 'Version', 'value' => $this->e($themeVersion)]);
+    echo $view->include('toolbar/partials/table-row', ['key' => 'Version', 'value' => $view->e($themeVersion)]);
 }
 ?>
 </table>
@@ -69,22 +69,22 @@ foreach ($allPlugins as $slug => $info) {
     }
 }
 if (!empty($muPlugins)):
-?>
+    ?>
 <div class="wpd-section">
-<h4 class="wpd-section-title">Must-Use Plugins (<?= $this->e((string) count($muPlugins)) ?>)</h4>
+<h4 class="wpd-section-title">Must-Use Plugins (<?= $view->e((string) count($muPlugins)) ?>)</h4>
 <ul class="wpd-list">
 <?php foreach ($muPlugins as $muPlugin): ?>
-<li><?= $this->e($muPlugin) ?></li>
+<li><?= $view->e($muPlugin) ?></li>
 <?php endforeach; ?>
 </ul>
 </div>
 <?php endif; ?>
 <?php if (!empty($activePlugins)): ?>
 <div class="wpd-section">
-<h4 class="wpd-section-title">Active Plugins (<?= $this->e((string) count($activePlugins)) ?>)</h4>
+<h4 class="wpd-section-title">Active Plugins (<?= $view->e((string) count($activePlugins)) ?>)</h4>
 <ul class="wpd-list">
 <?php foreach ($activePlugins as $plugin): ?>
-<li><?= $this->e($plugin) ?></li>
+<li><?= $view->e($plugin) ?></li>
 <?php endforeach; ?>
 </ul>
 </div>

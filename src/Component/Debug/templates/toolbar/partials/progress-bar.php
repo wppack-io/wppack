@@ -8,4 +8,4 @@
  * @var string $label      Formatted percentage label (e.g. "82.3%")
  */
 ?>
-<span class="wpd-inline-bar"><span class="wpd-inline-bar-fill" style="width:<?= $this->e(sprintf('%.1f', min($percentage, 100))) ?>%;background:<?= $this->e($barColor) ?>"></span></span><span class="<?= $textClass ?>"><?= $this->e($label) ?></span>
+<span class="wpd-inline-bar"><span class="wpd-inline-bar-fill" style="width:<?= $view->e(sprintf('%.1f', min($percentage, 100))) ?>%;background:<?= $view->e($barColor) ?>"></span></span><span class="<?= $textClass ?>"><?= $view->e($label) ?></span>

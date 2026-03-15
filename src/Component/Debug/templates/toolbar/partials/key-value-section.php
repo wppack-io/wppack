@@ -8,10 +8,10 @@
  */
 ?>
 <div class="wpd-section">
-<h4 class="wpd-section-title"><?= $this->e($title) ?></h4>
+<h4 class="wpd-section-title"><?= $view->e($title) ?></h4>
 <table class="wpd-table wpd-table-kv">
 <?php foreach ($items as $key => $val): ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => $key, 'value' => $fmt->value($val)]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => $key, 'value' => $fmt->value($val)]) ?>
 <?php endforeach; ?>
 </table>
 </div>

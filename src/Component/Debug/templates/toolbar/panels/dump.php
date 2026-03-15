@@ -9,15 +9,15 @@ if (empty($dumps)): ?>
 <div class="wpd-section"><p class="wpd-text-dim">No dump() calls recorded.</p></div>
 <?php return; endif; ?>
 <div class="wpd-section">
-<h4 class="wpd-section-title">Dumps (<?= $this->e((string) $totalCount) ?>)</h4>
+<h4 class="wpd-section-title">Dumps (<?= $view->e((string) $totalCount) ?>)</h4>
 <?php foreach ($dumps as $index => $dump):
     $file = $dump['file'] ?? 'unknown';
     $line = $dump['line'] ?? 0;
     $dumpData = $dump['data'] ?? '';
-?>
+    ?>
 <div class="wpd-dump-item">
-<div class="wpd-dump-file">#<?= $this->e((string) ($index + 1)) ?> <?= $this->e($file) ?>:<?= $this->e((string) $line) ?></div>
-<pre class="wpd-dump-code"><?= $this->e($dumpData) ?></pre>
+<div class="wpd-dump-file">#<?= $view->e((string) ($index + 1)) ?> <?= $view->e($file) ?>:<?= $view->e((string) $line) ?></div>
+<pre class="wpd-dump-code"><?= $view->e($dumpData) ?></pre>
 </div>
 <?php endforeach; ?>
 </div>

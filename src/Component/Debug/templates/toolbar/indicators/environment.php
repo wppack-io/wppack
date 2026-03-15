@@ -7,6 +7,6 @@
  */
 ?>
 <div class="wpd-bar-env" data-panel="environment">
-<span class="wpd-env-label"><?= $this->raw($labelParts) ?></span>
-<div class="wpd-env-tooltip"><?= $this->raw($tooltipHtml) ?></div>
+<span class="wpd-env-label"><?= $view->raw($labelParts) ?></span>
+<div class="wpd-env-tooltip"><?= $view->raw($tooltipHtml) ?></div>
 </div>

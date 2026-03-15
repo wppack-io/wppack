@@ -19,8 +19,8 @@ $allStyles = $assetData['styles'] ?? [];
 <div class="wpd-section">
 <h4 class="wpd-section-title">Summary</h4>
 <table class="wpd-table wpd-table-kv">
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Active Plugins', 'value' => (string) $totalPlugins]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Total Hook Time', 'value' => $fmt->ms($totalHookTime)]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Active Plugins', 'value' => (string) $totalPlugins]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Total Hook Time', 'value' => $fmt->ms($totalHookTime)]) ?>
 </table>
 </div>
 <?php if (!empty($muPluginsList)): ?>
@@ -41,14 +41,14 @@ $allStyles = $assetData['styles'] ?? [];
     $loadTime = (float) ($info['load_time'] ?? 0.0);
     $hookTime = (float) ($info['hook_time'] ?? 0.0);
     $queryCount = (int) ($info['query_count'] ?? 0);
-    $slowTag = ($slug === $slowestPlugin) ? ' ' . $this->include('toolbar/partials/badge', ['label' => 'Slow', 'color' => 'yellow']) : '';
-?>
+    $slowTag = ($slug === $slowestPlugin) ? ' ' . $view->include('toolbar/partials/badge', ['label' => 'Slow', 'color' => 'yellow']) : '';
+    ?>
 <tr>
-<td><span class="wpd-plugin-detail-link" data-plugin="<?= $this->e($slug) ?>"><?= $this->e($name) ?></span><?= $this->raw($slowTag) ?></td>
-<td><?= $version !== '' ? $this->e($version) : '-' ?></td>
-<td class="wpd-col-right"><?= $loadTime > 0 ? $this->e($fmt->ms($loadTime)) : '-' ?></td>
-<td class="wpd-col-right"><?= $this->e($fmt->ms($hookTime)) ?></td>
-<td class="wpd-col-right"><?= $queryCount > 0 ? $this->e((string) $queryCount) : '-' ?></td>
+<td><span class="wpd-plugin-detail-link" data-plugin="<?= $view->e($slug) ?>"><?= $view->e($name) ?></span><?= $view->raw($slowTag) ?></td>
+<td><?= $version !== '' ? $view->e($version) : '-' ?></td>
+<td class="wpd-col-right"><?= $loadTime > 0 ? $view->e($fmt->ms($loadTime)) : '-' ?></td>
+<td class="wpd-col-right"><?= $view->e($fmt->ms($hookTime)) ?></td>
+<td class="wpd-col-right"><?= $queryCount > 0 ? $view->e((string) $queryCount) : '-' ?></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>
@@ -72,14 +72,14 @@ $allStyles = $assetData['styles'] ?? [];
     $loadTime = (float) ($info['load_time'] ?? 0.0);
     $hookTime = (float) ($info['hook_time'] ?? 0.0);
     $queryCount = (int) ($info['query_count'] ?? 0);
-    $slowTag = ($slug === $slowestPlugin) ? ' ' . $this->include('toolbar/partials/badge', ['label' => 'Slow', 'color' => 'yellow']) : '';
-?>
+    $slowTag = ($slug === $slowestPlugin) ? ' ' . $view->include('toolbar/partials/badge', ['label' => 'Slow', 'color' => 'yellow']) : '';
+    ?>
 <tr>
-<td><span class="wpd-plugin-detail-link" data-plugin="<?= $this->e($slug) ?>"><?= $this->e($name) ?></span><?= $this->raw($slowTag) ?></td>
-<td><?= $version !== '' ? $this->e($version) : '-' ?></td>
-<td class="wpd-col-right"><?= $loadTime > 0 ? $this->e($fmt->ms($loadTime)) : '-' ?></td>
-<td class="wpd-col-right"><?= $this->e($fmt->ms($hookTime)) ?></td>
-<td class="wpd-col-right"><?= $queryCount > 0 ? $this->e((string) $queryCount) : '-' ?></td>
+<td><span class="wpd-plugin-detail-link" data-plugin="<?= $view->e($slug) ?>"><?= $view->e($name) ?></span><?= $view->raw($slowTag) ?></td>
+<td><?= $version !== '' ? $view->e($version) : '-' ?></td>
+<td class="wpd-col-right"><?= $loadTime > 0 ? $view->e($fmt->ms($loadTime)) : '-' ?></td>
+<td class="wpd-col-right"><?= $view->e($fmt->ms($hookTime)) ?></td>
+<td class="wpd-col-right"><?= $queryCount > 0 ? $view->e((string) $queryCount) : '-' ?></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>
@@ -90,7 +90,7 @@ $allStyles = $assetData['styles'] ?? [];
 <h4 class="wpd-section-title">Drop-ins</h4>
 <ul class="wpd-list">
 <?php foreach ($dropins as $dropin): ?>
-<li><code><?= $this->e($dropin) ?></code></li>
+<li><code><?= $view->e($dropin) ?></code></li>
 <?php endforeach; ?>
 </ul>
 </div>
@@ -108,17 +108,17 @@ $allStyles = $assetData['styles'] ?? [];
     $enqueuedStylesPl = $info['enqueued_styles'] ?? [];
     $enqueuedScriptsPl = $info['enqueued_scripts'] ?? [];
     $isMu = (bool) ($info['is_mu'] ?? false);
-?>
-<div class="wpd-plugin-detail" data-plugin="<?= $this->e($slug) ?>" style="display:none">
+    ?>
+<div class="wpd-plugin-detail" data-plugin="<?= $view->e($slug) ?>" style="display:none">
 <div style="margin-bottom:12px">
 <button class="wpd-plugin-back" data-action="plugin-back">&larr; Back to Plugins</button>
 </div>
 <div class="wpd-section">
 <h4 class="wpd-section-title"><?= $isMu ? 'MU Plugin Info' : 'Plugin Info' ?></h4>
 <table class="wpd-table wpd-table-kv">
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Name', 'value' => $this->e($name)]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Name', 'value' => $view->e($name)]) ?>
 <?php if ($version !== ''): ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Version', 'value' => $this->e($version)]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Version', 'value' => $view->e($version)]) ?>
 <?php endif; ?>
 </table>
 </div>
@@ -127,19 +127,19 @@ $allStyles = $assetData['styles'] ?? [];
 <div class="wpd-perf-cards">
 <?php if ($loadTime > 0):
     [$lv, $lu] = $fmt->msCard($loadTime);
-    echo $this->include('toolbar/partials/perf-card', ['label' => 'Load Time', 'value' => $lv, 'unit' => $lu, 'sub' => '']);
+    echo $view->include('toolbar/partials/perf-card', ['label' => 'Load Time', 'value' => $lv, 'unit' => $lu, 'sub' => '']);
 else:
-    echo $this->include('toolbar/partials/perf-card', ['label' => 'Load Time', 'value' => '-', 'unit' => '', 'sub' => '']);
+    echo $view->include('toolbar/partials/perf-card', ['label' => 'Load Time', 'value' => '-', 'unit' => '', 'sub' => '']);
 endif;
-[$hv, $hu] = $fmt->msCard($hookTimePl);
-echo $this->include('toolbar/partials/perf-card', ['label' => 'Hook Time', 'value' => $hv, 'unit' => $hu, 'sub' => $this->e((string) $hookCount) . ' hooks, ' . $this->e((string) $listenerCount) . ' listeners']);
-if ($queryTime > 0):
-    [$qv, $qu] = $fmt->msCard($queryTime);
-    echo $this->include('toolbar/partials/perf-card', ['label' => 'Query Time', 'value' => $qv, 'unit' => $qu, 'sub' => '']);
-else:
-    echo $this->include('toolbar/partials/perf-card', ['label' => 'Query Time', 'value' => '-', 'unit' => '', 'sub' => '']);
-endif;
-?>
+    [$hv, $hu] = $fmt->msCard($hookTimePl);
+    echo $view->include('toolbar/partials/perf-card', ['label' => 'Hook Time', 'value' => $hv, 'unit' => $hu, 'sub' => $view->e((string) $hookCount) . ' hooks, ' . $view->e((string) $listenerCount) . ' listeners']);
+    if ($queryTime > 0):
+        [$qv, $qu] = $fmt->msCard($queryTime);
+        echo $view->include('toolbar/partials/perf-card', ['label' => 'Query Time', 'value' => $qv, 'unit' => $qu, 'sub' => '']);
+    else:
+        echo $view->include('toolbar/partials/perf-card', ['label' => 'Query Time', 'value' => '-', 'unit' => '', 'sub' => '']);
+    endif;
+    ?>
 </div>
 </div>
 <?php if (!empty($hooks)): ?>
@@ -150,22 +150,22 @@ endif;
 <tbody>
 <?php foreach ($hooks as $hookInfo): ?>
 <tr>
-<td><code><?= $this->e($hookInfo['hook']) ?></code></td>
-<td class="wpd-col-right"><?= $this->e((string) $hookInfo['listeners']) ?></td>
-<td class="wpd-col-right"><?= $this->e($fmt->ms((float) $hookInfo['time'])) ?></td>
+<td><code><?= $view->e($hookInfo['hook']) ?></code></td>
+<td class="wpd-col-right"><?= $view->e((string) $hookInfo['listeners']) ?></td>
+<td class="wpd-col-right"><?= $view->e($fmt->ms((float) $hookInfo['time'])) ?></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>
 </div>
 <?php endif; ?>
 <?php if (!empty($enqueuedStylesPl) || !empty($enqueuedScriptsPl)): ?>
-<?= $this->include('toolbar/partials/asset-tables', [
-    'styleHandles' => $enqueuedStylesPl,
-    'scriptHandles' => $enqueuedScriptsPl,
-    'allStyles' => $allStyles,
-    'allScripts' => $allScripts,
-    'fmt' => $fmt,
-]) ?>
+<?= $view->include('toolbar/partials/asset-tables', [
+        'styleHandles' => $enqueuedStylesPl,
+        'scriptHandles' => $enqueuedScriptsPl,
+        'allStyles' => $allStyles,
+        'allScripts' => $allScripts,
+        'fmt' => $fmt,
+    ]) ?>
 <?php endif; ?>
 </div>
 <?php endforeach; ?>

@@ -1,1 +1,1 @@
-<html><body><?= $this->section('content') ?></body></html>
+<html><body><?= $view->section('content') ?></body></html>

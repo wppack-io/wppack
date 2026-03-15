@@ -1,2 +1,2 @@
-<?php $this->layout('layouts/base'); ?>
-<article><?= $this->e($title) ?></article>
+<?php $view->layout('layouts/base'); ?>
+<article><?= $view->e($title) ?></article>

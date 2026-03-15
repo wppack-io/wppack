@@ -1,5 +1,5 @@
-<?php $this->layout('layouts/two-column'); ?>
-<?php $this->start('sidebar'); ?>
+<?php $view->layout('layouts/two-column'); ?>
+<?php $view->start('sidebar'); ?>
 <nav>Sidebar content</nav>
-<?php $this->stop(); ?>
-<article><?= $this->e($title) ?></article>
+<?php $view->stop(); ?>
+<article><?= $view->e($title) ?></article>

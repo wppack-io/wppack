@@ -8,5 +8,5 @@
 if (empty($data)): ?>
 <div class="wpd-section"><p class="wpd-text-dim">No data collected.</p></div>
 <?php else: ?>
-<?= $this->include('toolbar/partials/key-value-section', ['title' => 'Data', 'items' => $data, 'fmt' => $fmt]) ?>
+<?= $view->include('toolbar/partials/key-value-section', ['title' => 'Data', 'items' => $data, 'fmt' => $fmt]) ?>
 <?php endif; ?>

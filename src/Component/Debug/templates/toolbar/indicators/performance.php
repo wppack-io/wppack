@@ -9,6 +9,6 @@
  */
 ?>
 <button class="wpd-indicator" data-panel="performance" data-tooltip="Performance"<?= $bgStyle ?>>
-    <span class="wpd-indicator-icon" style="color:<?= $this->e($colors['fg']) ?>"><?= $this->raw($icon) ?></span>
-    <span class="wpd-indicator-value" style="color:<?= $this->e($colors['fg']) ?>"><?= $this->e($value) ?></span>
+    <span class="wpd-indicator-icon" style="color:<?= $view->e($colors['fg']) ?>"><?= $view->raw($icon) ?></span>
+    <span class="wpd-indicator-value" style="color:<?= $view->e($colors['fg']) ?>"><?= $view->e($value) ?></span>
 </button>

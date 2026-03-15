@@ -12,9 +12,9 @@
 <div class="wpd-section">
 <h4 class="wpd-section-title">Summary</h4>
 <table class="wpd-table wpd-table-kv">
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Total Lookups', 'value' => (string) $totalLookups]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Loaded Domains', 'value' => (string) count($loadedDomains)]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Missing Translations', 'value' => (string) $missingCount, 'valueClass' => $missingCount > 0 ? 'wpd-text-yellow' : '']) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Total Lookups', 'value' => (string) $totalLookups]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Loaded Domains', 'value' => (string) count($loadedDomains)]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Missing Translations', 'value' => (string) $missingCount, 'valueClass' => $missingCount > 0 ? 'wpd-text-yellow' : '']) ?>
 </table>
 </div>
 <?php if (!empty($loadedDomains)): ?>
@@ -22,7 +22,7 @@
 <h4 class="wpd-section-title">Loaded Domains</h4>
 <div class="wpd-tag-list">
 <?php foreach ($loadedDomains as $domain): ?>
-<span class="wpd-tag"><?= $this->e($domain) ?></span>
+<span class="wpd-tag"><?= $view->e($domain) ?></span>
 <?php endforeach; ?>
 </div>
 </div>
@@ -35,8 +35,8 @@
 <tbody>
 <?php foreach ($domainUsage as $domain => $count): ?>
 <tr>
-<td><code><?= $this->e((string) $domain) ?></code></td>
-<td class="wpd-col-right"><?= $this->e((string) $count) ?></td>
+<td><code><?= $view->e((string) $domain) ?></code></td>
+<td class="wpd-col-right"><?= $view->e((string) $count) ?></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>
@@ -54,9 +54,9 @@
 <tbody>
 <?php foreach ($missing as $index => $entry): ?>
 <tr>
-<td class="wpd-col-num"><?= $this->e((string) ($index + 1)) ?></td>
-<td><code><?= $this->e($entry['original'] ?? '') ?></code></td>
-<td><?= $this->e($entry['domain'] ?? '') ?></td>
+<td class="wpd-col-num"><?= $view->e((string) ($index + 1)) ?></td>
+<td><code><?= $view->e($entry['original'] ?? '') ?></code></td>
+<td><?= $view->e($entry['domain'] ?? '') ?></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>

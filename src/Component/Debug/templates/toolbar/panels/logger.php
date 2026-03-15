@@ -15,10 +15,10 @@
 <div class="wpd-section">
 <h4 class="wpd-section-title">Summary</h4>
 <table class="wpd-table wpd-table-kv">
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Total Entries', 'value' => (string) $totalCount]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Errors', 'value' => (string) $errorCount, 'valueClass' => $errorCount > 0 ? 'wpd-text-red' : '']) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Deprecations', 'value' => (string) $deprecationCount, 'valueClass' => $deprecationCount > 0 ? 'wpd-text-orange' : '']) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Warnings', 'value' => (string) $warningCount, 'valueClass' => $warningCount > 0 ? 'wpd-text-yellow' : '']) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Total Entries', 'value' => (string) $totalCount]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Errors', 'value' => (string) $errorCount, 'valueClass' => $errorCount > 0 ? 'wpd-text-red' : '']) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Deprecations', 'value' => (string) $deprecationCount, 'valueClass' => $deprecationCount > 0 ? 'wpd-text-orange' : '']) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Warnings', 'value' => (string) $warningCount, 'valueClass' => $warningCount > 0 ? 'wpd-text-yellow' : '']) ?>
 </table>
 </div>
 <?php if (!empty($channelCounts)): ?>
@@ -26,28 +26,39 @@
 <h4 class="wpd-section-title">Channels</h4>
 <div class="wpd-tag-list">
 <?php foreach ($channelCounts as $ch => $count): ?>
-<span class="wpd-tag"><?= $this->e($ch) ?> (<?= $count ?>)</span>
+<span class="wpd-tag"><?= $view->e($ch) ?> (<?= $count ?>)</span>
 <?php endforeach; ?>
 </div>
 </div>
 <?php endif; ?>
 <?php if (!empty($logs)):
-    $errorTabCount = 0; $deprecationTabCount = 0; $warningTabCount = 0;
-    $noticeTabCount = 0; $infoTabCount = 0; $debugTabCount = 0;
+    $errorTabCount = 0;
+    $deprecationTabCount = 0;
+    $warningTabCount = 0;
+    $noticeTabCount = 0;
+    $infoTabCount = 0;
+    $debugTabCount = 0;
     foreach ($logs as $log) {
         $lvl = $log['level'] ?? 'debug';
-        if (($log['context']['_type'] ?? null) === 'deprecation') { $deprecationTabCount++; }
-        elseif (in_array($lvl, ['emergency', 'alert', 'critical', 'error'], true)) { $errorTabCount++; }
-        elseif ($lvl === 'warning') { $warningTabCount++; }
-        elseif ($lvl === 'notice') { $noticeTabCount++; }
-        elseif ($lvl === 'info') { $infoTabCount++; }
-        else { $debugTabCount++; }
+        if (($log['context']['_type'] ?? null) === 'deprecation') {
+            $deprecationTabCount++;
+        } elseif (in_array($lvl, ['emergency', 'alert', 'critical', 'error'], true)) {
+            $errorTabCount++;
+        } elseif ($lvl === 'warning') {
+            $warningTabCount++;
+        } elseif ($lvl === 'notice') {
+            $noticeTabCount++;
+        } elseif ($lvl === 'info') {
+            $infoTabCount++;
+        } else {
+            $debugTabCount++;
+        }
     }
 ?>
 <div class="wpd-section">
 <h4 class="wpd-section-title">Log Entries</h4>
 <div class="wpd-log-tabs">
-<button class="wpd-log-tab wpd-active" data-log-filter="all">All (<?= $this->e((string) count($logs)) ?>)</button>
+<button class="wpd-log-tab wpd-active" data-log-filter="all">All (<?= $view->e((string) count($logs)) ?>)</button>
 <button class="wpd-log-tab" data-log-filter="error"<?= $errorTabCount === 0 ? ' disabled' : '' ?>>Errors (<?= $errorTabCount ?>)</button>
 <button class="wpd-log-tab" data-log-filter="warning"<?= $warningTabCount === 0 ? ' disabled' : '' ?>>Warnings (<?= $warningTabCount ?>)</button>
 <button class="wpd-log-tab" data-log-filter="notice"<?= $noticeTabCount === 0 ? ' disabled' : '' ?>>Notices (<?= $noticeTabCount ?>)</button>
@@ -91,19 +102,19 @@
     $hasContext = is_array($context) && !empty($context);
     $rowClass = $hasContext ? ' class="wpd-log-toggle"' : '';
     $toggleIcon = $hasContext ? '<span class="wpd-log-indicator">+</span>' : '';
-?>
-<tr data-log-level="<?= $this->e($effectiveLevel) ?>"<?= $rowClass ?>>
-<td class="wpd-col-num"><?= $this->e((string) ($index + 1)) ?></td>
-<td class="wpd-col-reltime wpd-text-dim"><?= $this->e($timeDisplay) ?></td>
-<td><span class="wpd-tag <?= $levelColor ?>"><?= $this->e($effectiveLevel) ?></span></td>
-<td><span class="wpd-tag"><?= $this->e($log['channel'] ?? 'app') ?></span></td>
-<td><code><?= $this->e($log['message'] ?? '') ?></code></td>
-<td title="<?= $this->e($file) ?>"><?= $this->e($fileDisplay) ?></td>
-<td class="wpd-col-toggle"><?= $this->raw($toggleIcon) ?></td>
+    ?>
+<tr data-log-level="<?= $view->e($effectiveLevel) ?>"<?= $rowClass ?>>
+<td class="wpd-col-num"><?= $view->e((string) ($index + 1)) ?></td>
+<td class="wpd-col-reltime wpd-text-dim"><?= $view->e($timeDisplay) ?></td>
+<td><span class="wpd-tag <?= $levelColor ?>"><?= $view->e($effectiveLevel) ?></span></td>
+<td><span class="wpd-tag"><?= $view->e($log['channel'] ?? 'app') ?></span></td>
+<td><code><?= $view->e($log['message'] ?? '') ?></code></td>
+<td title="<?= $view->e($file) ?>"><?= $view->e($fileDisplay) ?></td>
+<td class="wpd-col-toggle"><?= $view->raw($toggleIcon) ?></td>
 </tr>
 <?php if ($hasContext): ?>
-<tr class="wpd-log-context" style="display:none" data-log-level="<?= $this->e($effectiveLevel) ?>">
-<td colspan="7"><pre><?= $this->e(json_encode($context, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}') ?></pre></td>
+<tr class="wpd-log-context" style="display:none" data-log-level="<?= $view->e($effectiveLevel) ?>">
+<td colspan="7"><pre><?= $view->e(json_encode($context, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}') ?></pre></td>
 </tr>
 <?php endif; ?>
 <?php endforeach; ?>

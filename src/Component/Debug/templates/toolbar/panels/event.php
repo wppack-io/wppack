@@ -16,10 +16,10 @@
 <div class="wpd-section">
 <h4 class="wpd-section-title">Summary</h4>
 <table class="wpd-table wpd-table-kv">
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Total Firings', 'value' => (string) $totalFirings]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Unique Hooks', 'value' => (string) $uniqueHooks]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Registered Hooks', 'value' => (string) $registeredHooks]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Orphan Hooks', 'value' => (string) $orphanHooks, 'valueClass' => $orphanHooks > 0 ? 'wpd-text-yellow' : '']) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Total Firings', 'value' => (string) $totalFirings]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Unique Hooks', 'value' => (string) $uniqueHooks]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Registered Hooks', 'value' => (string) $registeredHooks]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Orphan Hooks', 'value' => (string) $orphanHooks, 'valueClass' => $orphanHooks > 0 ? 'wpd-text-yellow' : '']) ?>
 </table>
 </div>
 <?php if (!empty($componentSummary)): ?>
@@ -36,7 +36,7 @@
 <tbody>
 <?php foreach ($componentSummary as $component => $summary): ?>
 <tr>
-<td><code><?= $this->e((string) $component) ?></code></td>
+<td><code><?= $view->e((string) $component) ?></code></td>
 <td><?php
     $typeColor = match ($summary['type']) {
         'plugin' => 'purple',
@@ -45,14 +45,14 @@
         default => null,
     };
     if ($typeColor !== null) {
-        echo $this->include('toolbar/partials/badge', ['label' => $summary['type'], 'color' => $typeColor]);
+        echo $view->include('toolbar/partials/badge', ['label' => $summary['type'], 'color' => $typeColor]);
     } else {
-        echo '<span class="wpd-tag">' . $this->e($summary['type']) . '</span>';
+        echo '<span class="wpd-tag">' . $view->e($summary['type']) . '</span>';
     }
-?></td>
-<td class="wpd-col-right"><?= $this->e((string) $summary['hooks']) ?></td>
-<td class="wpd-col-right"><?= $this->e((string) $summary['listeners']) ?></td>
-<td class="wpd-col-right"><?= $this->e($fmt->ms((float) $summary['total_time'])) ?></td>
+    ?></td>
+<td class="wpd-col-right"><?= $view->e((string) $summary['hooks']) ?></td>
+<td class="wpd-col-right"><?= $view->e((string) $summary['listeners']) ?></td>
+<td class="wpd-col-right"><?= $view->e($fmt->ms((float) $summary['total_time'])) ?></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>
@@ -71,19 +71,20 @@
 <th class="wpd-col-right">Duration</th>
 </tr></thead>
 <tbody>
-<?php $index = 0; foreach ($topHooks as $hook => $count):
-    $listeners = $listenerCounts[$hook] ?? 0;
-    $timing = $hookTimings[$hook] ?? null;
-    $duration = $timing !== null ? $fmt->ms($timing['total_time']) : '-';
-    $hookStart = $timing !== null ? '+' . number_format(max(0, $timing['start']), 0) : '-';
-?>
+<?php $index = 0;
+    foreach ($topHooks as $hook => $count):
+        $listeners = $listenerCounts[$hook] ?? 0;
+        $timing = $hookTimings[$hook] ?? null;
+        $duration = $timing !== null ? $fmt->ms($timing['total_time']) : '-';
+        $hookStart = $timing !== null ? '+' . number_format(max(0, $timing['start']), 0) : '-';
+        ?>
 <tr>
-<td class="wpd-col-num"><?= $this->e((string) (++$index)) ?></td>
-<td><code><?= $this->e($hook) ?></code></td>
-<td class="wpd-col-right"><?= $this->e((string) $count) ?></td>
-<td class="wpd-col-right"><?= $this->e((string) $listeners) ?></td>
-<td class="wpd-col-right wpd-text-dim"><?= $this->e($hookStart) ?></td>
-<td class="wpd-col-right"><?= $this->e($duration) ?></td>
+<td class="wpd-col-num"><?= $view->e((string) (++$index)) ?></td>
+<td><code><?= $view->e($hook) ?></code></td>
+<td class="wpd-col-right"><?= $view->e((string) $count) ?></td>
+<td class="wpd-col-right"><?= $view->e((string) $listeners) ?></td>
+<td class="wpd-col-right wpd-text-dim"><?= $view->e($hookStart) ?></td>
+<td class="wpd-col-right"><?= $view->e($duration) ?></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>

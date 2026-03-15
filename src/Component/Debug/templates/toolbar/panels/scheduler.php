@@ -18,21 +18,21 @@
 <div class="wpd-section">
 <h4 class="wpd-section-title">Summary</h4>
 <table class="wpd-table wpd-table-kv">
-<?= $this->include('toolbar/partials/table-row', ['key' => 'WP-Cron Events', 'value' => (string) $cronTotal]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Overdue', 'value' => (string) $cronOverdue, 'valueClass' => $cronOverdue > 0 ? 'wpd-text-red' : '']) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Action Scheduler', 'value' => $asAvailable ? 'Available' . ($asVersion !== '' ? ' (v' . $this->e($asVersion) . ')' : '') : 'Not available']) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'WP-Cron Events', 'value' => (string) $cronTotal]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Overdue', 'value' => (string) $cronOverdue, 'valueClass' => $cronOverdue > 0 ? 'wpd-text-red' : '']) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Action Scheduler', 'value' => $asAvailable ? 'Available' . ($asVersion !== '' ? ' (v' . $view->e($asVersion) . ')' : '') : 'Not available']) ?>
 <?php if ($asAvailable): ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'AS Pending', 'value' => (string) $asPending, 'valueClass' => $asPending > 0 ? 'wpd-text-yellow' : '']) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'AS Failed', 'value' => (string) $asFailed, 'valueClass' => $asFailed > 0 ? 'wpd-text-red' : '']) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'AS Complete', 'value' => (string) $asComplete]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'AS Pending', 'value' => (string) $asPending, 'valueClass' => $asPending > 0 ? 'wpd-text-yellow' : '']) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'AS Failed', 'value' => (string) $asFailed, 'valueClass' => $asFailed > 0 ? 'wpd-text-red' : '']) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'AS Complete', 'value' => (string) $asComplete]) ?>
 <?php endif; ?>
 </table>
 </div>
 <div class="wpd-section">
 <h4 class="wpd-section-title">Configuration</h4>
 <table class="wpd-table wpd-table-kv">
-<?= $this->include('toolbar/partials/table-row', ['key' => 'DISABLE_WP_CRON', 'value' => $fmt->value($cronDisabled)]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'ALTERNATE_WP_CRON', 'value' => $fmt->value($alternateCron)]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'DISABLE_WP_CRON', 'value' => $fmt->value($cronDisabled)]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'ALTERNATE_WP_CRON', 'value' => $fmt->value($alternateCron)]) ?>
 </table>
 </div>
 <?php if (!empty($cronEvents)): ?>
@@ -49,12 +49,12 @@
 <?php foreach ($cronEvents as $event):
     $isOverdue = (bool) ($event['is_overdue'] ?? false);
     $rowClass = $isOverdue ? 'wpd-row-slow' : '';
-?>
+    ?>
 <tr class="<?= $rowClass ?>">
-<td><code><?= $this->e((string) ($event['hook'] ?? '')) ?></code></td>
-<td><span class="wpd-tag"><?= $this->e((string) ($event['schedule'] ?? '')) ?></span></td>
-<td><?= $this->e((string) ($event['next_run_relative'] ?? '')) ?><?php if ($isOverdue): ?> <?= $this->include('toolbar/partials/badge', ['label' => 'OVERDUE', 'color' => 'red']) ?><?php endif; ?></td>
-<td class="wpd-col-right"><?= $this->e((string) ($event['callbacks'] ?? 0)) ?></td>
+<td><code><?= $view->e((string) ($event['hook'] ?? '')) ?></code></td>
+<td><span class="wpd-tag"><?= $view->e((string) ($event['schedule'] ?? '')) ?></span></td>
+<td><?= $view->e((string) ($event['next_run_relative'] ?? '')) ?><?php if ($isOverdue): ?> <?= $view->include('toolbar/partials/badge', ['label' => 'OVERDUE', 'color' => 'red']) ?><?php endif; ?></td>
+<td class="wpd-col-right"><?= $view->e((string) ($event['callbacks'] ?? 0)) ?></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>

@@ -14,10 +14,10 @@
 <div class="wpd-section">
 <h4 class="wpd-section-title">Summary</h4>
 <table class="wpd-table wpd-table-kv">
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Total Registered', 'value' => (string) $totalCount]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Used in Content', 'value' => (string) $usedCount]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Total Registered', 'value' => (string) $totalCount]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Used in Content', 'value' => (string) $usedCount]) ?>
 <?php if ($executionTime > 0): ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Execution Time', 'value' => $fmt->ms($executionTime)]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Execution Time', 'value' => $fmt->ms($executionTime)]) ?>
 <?php endif; ?>
 </table>
 </div>
@@ -32,8 +32,8 @@
 <tbody>
 <?php foreach ($executions as $exec): ?>
 <tr>
-<td><code>[<?= $this->e($exec['tag']) ?>]</code></td>
-<td class="wpd-col-time"><?= $this->e($fmt->ms($exec['duration'])) ?></td>
+<td><code>[<?= $view->e($exec['tag']) ?>]</code></td>
+<td class="wpd-col-time"><?= $view->e($fmt->ms($exec['duration'])) ?></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>
@@ -44,7 +44,7 @@
 <h4 class="wpd-section-title">Used in Current Page</h4>
 <div class="wpd-tag-list">
 <?php foreach ($usedShortcodes as $tag): ?>
-<span class="wpd-tag wpd-text-green"><?= $this->e($tag) ?></span>
+<span class="wpd-tag wpd-text-green"><?= $view->e($tag) ?></span>
 <?php endforeach; ?>
 </div>
 </div>
@@ -63,11 +63,11 @@
     $usedHtml = $info['used']
         ? '<span class="wpd-text-green">Yes</span>'
         : '<span class="wpd-text-dim">No</span>';
-?>
+    ?>
 <tr>
-<td><code><?= $this->e($info['tag']) ?></code></td>
-<td class="wpd-text-dim"><?= $this->e($info['callback']) ?></td>
-<td><?= $this->raw($usedHtml) ?></td>
+<td><code><?= $view->e($info['tag']) ?></code></td>
+<td class="wpd-text-dim"><?= $view->e($info['callback']) ?></td>
+<td><?= $view->raw($usedHtml) ?></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>

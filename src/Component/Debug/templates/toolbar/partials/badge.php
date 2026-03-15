@@ -6,4 +6,4 @@
  * @var string $color Badge color key
  */
 ?>
-<span class="wpd-badge wpd-badge-<?= $this->e($color) ?>"><?= $this->e($label) ?></span>
+<span class="wpd-badge wpd-badge-<?= $view->e($color) ?>"><?= $view->e($label) ?></span>

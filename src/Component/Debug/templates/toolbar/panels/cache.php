@@ -22,7 +22,7 @@ $barColor = match (true) {
     $hitRate >= 50 => 'var(--wpd-yellow)',
     default => 'var(--wpd-red)',
 };
-$hitRateValue = $this->include('toolbar/partials/progress-bar', [
+$hitRateValue = $view->include('toolbar/partials/progress-bar', [
     'percentage' => $hitRate,
     'barColor' => $barColor,
     'textClass' => $hitRateColor,
@@ -33,11 +33,11 @@ $hitRateValue = $this->include('toolbar/partials/progress-bar', [
 <h4 class="wpd-section-title">Object Cache</h4>
 <table class="wpd-table wpd-table-kv">
 <?php if ($dropin !== ''): ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Drop-in', 'value' => $this->e($dropin)]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Drop-in', 'value' => $view->e($dropin)]) ?>
 <?php endif; ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Cache Hits', 'value' => (string) $hits]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Cache Misses', 'value' => (string) $misses]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Hit Rate', 'value' => $hitRateValue]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Cache Hits', 'value' => (string) $hits]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Cache Misses', 'value' => (string) $misses]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Hit Rate', 'value' => $hitRateValue]) ?>
 </table>
 </div>
 <div class="wpd-section">
@@ -56,25 +56,25 @@ $hitRateValue = $this->include('toolbar/partials/progress-bar', [
     $expDisplay = match (true) {
         $op['operation'] === 'delete' => "\xe2\x80\x94",
         $op['expiration'] === 0 => 'none',
-        default => $this->e((string) $op['expiration']) . ' s',
+        default => $view->e((string) $op['expiration']) . ' s',
     };
     $opTag = $op['operation'] === 'set'
-        ? $this->include('toolbar/partials/badge', ['label' => 'SET', 'color' => 'green'])
-        : $this->include('toolbar/partials/badge', ['label' => 'DELETE', 'color' => 'red']);
-?>
+        ? $view->include('toolbar/partials/badge', ['label' => 'SET', 'color' => 'green'])
+        : $view->include('toolbar/partials/badge', ['label' => 'DELETE', 'color' => 'red']);
+    ?>
 <tr>
-<td class="wpd-col-num"><?= $this->e((string) ($index + 1)) ?></td>
-<td><code><?= $this->e($op['name']) ?></code></td>
-<td><?= $this->raw($opTag) ?></td>
-<td class="wpd-col-right"><?= $this->raw($expDisplay) ?></td>
-<td><span class="wpd-caller"><?= $this->e($op['caller']) ?></span></td>
+<td class="wpd-col-num"><?= $view->e((string) ($index + 1)) ?></td>
+<td><code><?= $view->e($op['name']) ?></code></td>
+<td><?= $view->raw($opTag) ?></td>
+<td class="wpd-col-right"><?= $view->raw($expDisplay) ?></td>
+<td><span class="wpd-caller"><?= $view->e($op['caller']) ?></span></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>
 <?php else: ?>
 <table class="wpd-table wpd-table-kv">
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Transient Sets', 'value' => (string) $transientSets]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Transient Deletes', 'value' => (string) $transientDeletes]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Transient Sets', 'value' => (string) $transientSets]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Transient Deletes', 'value' => (string) $transientDeletes]) ?>
 </table>
 <?php endif; ?>
 </div>
@@ -86,8 +86,8 @@ $hitRateValue = $this->include('toolbar/partials/progress-bar', [
 <tbody>
 <?php foreach ($cacheGroups as $group => $count): ?>
 <tr>
-<td><code><?= $this->e($group) ?></code></td>
-<td class="wpd-col-right"><?= $this->e((string) $count) ?></td>
+<td><code><?= $view->e($group) ?></code></td>
+<td class="wpd-col-right"><?= $view->e((string) $count) ?></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>

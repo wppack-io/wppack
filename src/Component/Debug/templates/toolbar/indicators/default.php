@@ -11,13 +11,13 @@
  */
 
 $valueHtml = $value !== ''
-    ? ' <span class="wpd-indicator-value" style="color:' . $this->e($colors['fg']) . '">' . $this->e($value) . '</span>'
+    ? ' <span class="wpd-indicator-value" style="color:' . $view->e($colors['fg']) . '">' . $view->e($value) . '</span>'
     : '';
 
-$bgStyle = $colors['bg'] !== 'transparent' ? ' style="background:' . $this->e($colors['bg']) . '"' : '';
-$iconStyle = $colorKey !== 'default' ? ' style="color:' . $this->e($colors['fg']) . '"' : '';
-$accentAttr = $colorKey !== 'default' ? ' data-accent="' . $this->e($colors['fg']) . '"' : '';
+$bgStyle = $colors['bg'] !== 'transparent' ? ' style="background:' . $view->e($colors['bg']) . '"' : '';
+$iconStyle = $colorKey !== 'default' ? ' style="color:' . $view->e($colors['fg']) . '"' : '';
+$accentAttr = $colorKey !== 'default' ? ' data-accent="' . $view->e($colors['fg']) . '"' : '';
 ?>
-<button class="wpd-indicator" data-panel="<?= $this->e($name) ?>" data-tooltip="<?= $this->e($label) ?>"<?= $bgStyle ?><?= $accentAttr ?>>
-    <span class="wpd-indicator-icon"<?= $iconStyle ?>><?= $this->raw($icon) ?></span><?= $this->raw($valueHtml) ?>
+<button class="wpd-indicator" data-panel="<?= $view->e($name) ?>" data-tooltip="<?= $view->e($label) ?>"<?= $bgStyle ?><?= $accentAttr ?>>
+    <span class="wpd-indicator-icon"<?= $iconStyle ?>><?= $view->raw($icon) ?></span><?= $view->raw($valueHtml) ?>
 </button>

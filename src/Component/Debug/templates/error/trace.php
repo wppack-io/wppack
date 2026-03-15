@@ -23,19 +23,19 @@ if (empty($trace)): ?>
     $funcHtml = '';
     if ($function === '') {
         if ($file !== '') {
-            $funcHtml = '<span class="loc-file">' . $this->e($renderer->shortenPath($file)) . '</span>';
+            $funcHtml = '<span class="loc-file">' . $view->e($renderer->shortenPath($file)) . '</span>';
             if ($line > 0) {
                 $funcHtml .= ':<span class="loc-line">' . $line . '</span>';
             }
         }
     } else {
         if ($class !== '') {
-            $funcHtml .= '<span class="class-name">' . $this->e($renderer->shortClassName($class)) . '</span>';
-            $funcHtml .= '<span class="type-sep">' . $this->e($type) . '</span>';
+            $funcHtml .= '<span class="class-name">' . $view->e($renderer->shortClassName($class)) . '</span>';
+            $funcHtml .= '<span class="type-sep">' . $view->e($type) . '</span>';
         }
-        $funcHtml .= '<span class="method-name">' . $this->e($function) . '</span>';
+        $funcHtml .= '<span class="method-name">' . $view->e($function) . '</span>';
         if (!empty($args)) {
-            $funcHtml .= '<span class="args-list">(' . $this->e(implode(', ', $args)) . ')</span>';
+            $funcHtml .= '<span class="args-list">(' . $view->e(implode(', ', $args)) . ')</span>';
         } else {
             $funcHtml .= '<span class="args-list">()</span>';
         }
@@ -44,7 +44,7 @@ if (empty($trace)): ?>
     $locHtml = '';
     if ($function !== '' && $file !== '') {
         $shortFile = $renderer->shortenPath($file);
-        $locHtml = '<span class="loc-file">' . $this->e($shortFile) . '</span>';
+        $locHtml = '<span class="loc-file">' . $view->e($shortFile) . '</span>';
         if ($line > 0) {
             $locHtml .= ':<span class="loc-line">' . $line . '</span>';
         }
@@ -62,7 +62,7 @@ if (empty($trace)): ?>
             $hl = $currentLineNum === $highlightLine ? ' class="highlight"' : '';
             $rows .= "<tr{$hl}>"
                 . '<td class="line-number">' . $currentLineNum . '</td>'
-                . '<td class="line-code">' . $this->e($codeLine) . '</td>'
+                . '<td class="line-code">' . $view->e($codeLine) . '</td>'
                 . '</tr>';
         }
         $bodyHtml = '<div style="overflow-x:auto"><table class="code-table"><tbody>'
@@ -72,16 +72,16 @@ if (empty($trace)): ?>
     $isOpen = $openFirst && $index === 0;
     $openClass = $isOpen ? ' open' : '';
     $indicator = $isOpen ? "\u{2212}" : '+';
-?>
+    ?>
 <li class="trace-frame<?= $openClass ?>">
 <div class="trace-header">
 <span class="trace-index">#<?= $index ?></span>
-<span class="trace-function"><?= $this->raw($funcHtml) ?></span>
-<span class="trace-location"><?= $this->raw($locHtml) ?></span>
+<span class="trace-function"><?= $view->raw($funcHtml) ?></span>
+<span class="trace-location"><?= $view->raw($locHtml) ?></span>
 <span class="trace-toggle"><span class="wpd-log-indicator"><?= $indicator ?></span></span>
 </div>
 <?php if ($bodyHtml !== ''): ?>
-<div class="trace-body"><?= $this->raw($bodyHtml) ?></div>
+<div class="trace-body"><?= $view->raw($bodyHtml) ?></div>
 <?php endif; ?>
 </li>
 <?php endforeach; ?>

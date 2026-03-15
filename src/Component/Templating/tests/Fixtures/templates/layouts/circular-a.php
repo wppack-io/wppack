@@ -1,2 +1,2 @@
-<?php $this->layout('layouts/circular-b'); ?>
+<?php $view->layout('layouts/circular-b'); ?>
 <p>Circular A</p>

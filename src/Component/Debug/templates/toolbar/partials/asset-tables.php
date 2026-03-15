@@ -26,12 +26,12 @@
     $src = (string) ($info['src'] ?? '');
     $version = (string) ($info['version'] ?? '');
     $media = (string) ($info['media'] ?? '');
-?>
+    ?>
 <tr>
-<td><code><?= $this->e($handle) ?></code></td>
-<td class="wpd-text-dim" style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><?= $src !== '' ? $this->e($src) : '-' ?></td>
-<td><?= $version !== '' ? $this->e($version) : '-' ?></td>
-<td><?= $media !== '' ? $this->e($media) : '-' ?></td>
+<td><code><?= $view->e($handle) ?></code></td>
+<td class="wpd-text-dim" style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><?= $src !== '' ? $view->e($src) : '-' ?></td>
+<td><?= $version !== '' ? $view->e($version) : '-' ?></td>
+<td><?= $media !== '' ? $view->e($media) : '-' ?></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>
@@ -54,12 +54,12 @@
     $src = (string) ($info['src'] ?? '');
     $version = (string) ($info['version'] ?? '');
     $inFooter = (bool) ($info['in_footer'] ?? false);
-?>
+    ?>
 <tr>
-<td><code><?= $this->e($handle) ?></code></td>
-<td class="wpd-text-dim" style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><?= $src !== '' ? $this->e($src) : '-' ?></td>
-<td><?= $version !== '' ? $this->e($version) : '-' ?></td>
-<td><?= $this->raw($fmt->value($inFooter)) ?></td>
+<td><code><?= $view->e($handle) ?></code></td>
+<td class="wpd-text-dim" style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><?= $src !== '' ? $view->e($src) : '-' ?></td>
+<td><?= $version !== '' ? $view->e($version) : '-' ?></td>
+<td><?= $view->raw($fmt->value($inFooter)) ?></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>

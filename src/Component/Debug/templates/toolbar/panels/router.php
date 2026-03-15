@@ -22,21 +22,21 @@ if ($isBlockTheme):
     $hasThemeFile = (bool) ($blockTemplate['has_theme_file'] ?? false);
     $filePath = (string) ($blockTemplate['file_path'] ?? '');
     $sourceLabel = $source === 'theme' ? 'Theme file' : ($source !== '' ? 'User customized (DB)' : '-');
-?>
+    ?>
 <div class="wpd-section">
 <h4 class="wpd-section-title">Block Template (FSE)</h4>
 <table class="wpd-table wpd-table-kv">
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Template Slug', 'value' => $this->e($slug ?: '-')]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Template ID', 'value' => $templateId !== '' ? '<code>' . $this->e($templateId) . '</code>' : '-']) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Source', 'value' => $this->e($sourceLabel)]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Has Theme File', 'value' => $fmt->value($hasThemeFile)]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'File Path', 'value' => $this->e($filePath ?: '-')]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Template Slug', 'value' => $view->e($slug ?: '-')]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Template ID', 'value' => $templateId !== '' ? '<code>' . $view->e($templateId) . '</code>' : '-']) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Source', 'value' => $view->e($sourceLabel)]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Has Theme File', 'value' => $fmt->value($hasThemeFile)]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'File Path', 'value' => $view->e($filePath ?: '-')]) ?>
 </table>
 </div>
 <?php
-    $parts = $blockTemplate['parts'] ?? [];
+        $parts = $blockTemplate['parts'] ?? [];
     if (!empty($parts)):
-?>
+        ?>
 <div class="wpd-section">
 <h4 class="wpd-section-title">Template Parts</h4>
 <table class="wpd-table wpd-table-full">
@@ -45,11 +45,11 @@ if ($isBlockTheme):
 <?php foreach ($parts as $part):
     $partSource = (string) ($part['source'] ?? '');
     $partSourceLabel = $partSource === 'theme' ? 'Theme file' : ($partSource !== '' ? 'User customized (DB)' : '-');
-?>
+    ?>
 <tr>
-<td><code><?= $this->e((string) ($part['slug'] ?? '')) ?></code></td>
-<td><?= $this->e((string) ($part['area'] ?? '')) ?></td>
-<td><?= $this->e($partSourceLabel) ?></td>
+<td><code><?= $view->e((string) ($part['slug'] ?? '')) ?></code></td>
+<td><?= $view->e((string) ($part['area'] ?? '')) ?></td>
+<td><?= $view->e($partSourceLabel) ?></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>
@@ -59,38 +59,46 @@ if ($isBlockTheme):
 <div class="wpd-section">
 <h4 class="wpd-section-title">Template (Classic)</h4>
 <table class="wpd-table wpd-table-kv">
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Template', 'value' => $this->e($template ?: '-')]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Template Path', 'value' => $this->e($templatePath ?: '-')]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Template', 'value' => $view->e($template ?: '-')]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Template Path', 'value' => $view->e($templatePath ?: '-')]) ?>
 </table>
 </div>
 <?php endif; ?>
 <div class="wpd-section">
 <h4 class="wpd-section-title">Route</h4>
 <table class="wpd-table wpd-table-kv">
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Query Type', 'value' => $this->e($queryType ?: '-')]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Matched Rule', 'value' => $matchedRule !== '' ? '<code>' . $this->e($matchedRule) . '</code>' : '-']) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Matched Query', 'value' => $this->e($matchedQuery ?: '-')]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => '404', 'value' => $fmt->value($is404)]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Rewrite Rules', 'value' => (string) $rewriteRulesCount]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Query Type', 'value' => $view->e($queryType ?: '-')]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Matched Rule', 'value' => $matchedRule !== '' ? '<code>' . $view->e($matchedRule) . '</code>' : '-']) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Matched Query', 'value' => $view->e($matchedQuery ?: '-')]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => '404', 'value' => $fmt->value($is404)]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Rewrite Rules', 'value' => (string) $rewriteRulesCount]) ?>
 </table>
 </div>
 <?php
-$queryVars = $data['query_vars'] ?? [];
+    $queryVars = $data['query_vars'] ?? [];
 if (!empty($queryVars)) {
-    echo $this->include('toolbar/partials/key-value-section', ['title' => 'Query Variables', 'items' => $queryVars, 'fmt' => $fmt]);
+    echo $view->include('toolbar/partials/key-value-section', ['title' => 'Query Variables', 'items' => $queryVars, 'fmt' => $fmt]);
 }
 $conditionals = [];
-if ($data['is_front_page'] ?? false) { $conditionals[] = 'is_front_page'; }
-if ($data['is_singular'] ?? false) { $conditionals[] = 'is_singular'; }
-if ($data['is_archive'] ?? false) { $conditionals[] = 'is_archive'; }
-if ($is404) { $conditionals[] = 'is_404'; }
+if ($data['is_front_page'] ?? false) {
+    $conditionals[] = 'is_front_page';
+}
+if ($data['is_singular'] ?? false) {
+    $conditionals[] = 'is_singular';
+}
+if ($data['is_archive'] ?? false) {
+    $conditionals[] = 'is_archive';
+}
+if ($is404) {
+    $conditionals[] = 'is_404';
+}
 if (!empty($conditionals)):
-?>
+    ?>
 <div class="wpd-section">
 <h4 class="wpd-section-title">Conditional Tags</h4>
 <div class="wpd-tag-list">
 <?php foreach ($conditionals as $tag): ?>
-<span class="wpd-tag wpd-text-green"><?= $this->e($tag) ?></span>
+<span class="wpd-tag wpd-text-green"><?= $view->e($tag) ?></span>
 <?php endforeach; ?>
 </div>
 </div>

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /** @var mixed $value */
 if (is_bool($value)) {
     echo $value
@@ -7,7 +9,7 @@ if (is_bool($value)) {
 } elseif ($value === null) {
     echo '<span class="wpd-text-dim">null</span>';
 } elseif (is_array($value)) {
-    echo '<code>' . $this->e(json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) ?: '[]') . '</code>';
+    echo '<code>' . $view->e(json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) ?: '[]') . '</code>';
 } else {
-    echo $this->e((string) $value);
+    echo $view->e((string) $value);
 }

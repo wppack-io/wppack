@@ -7,6 +7,6 @@
  * @var string $valueClass Optional CSS class for the value cell
  */
 $valueClass ??= '';
-$classAttr = $valueClass !== '' ? ' class="wpd-kv-val ' . $this->e($valueClass) . '"' : ' class="wpd-kv-val"';
+$classAttr = $valueClass !== '' ? ' class="wpd-kv-val ' . $view->e($valueClass) . '"' : ' class="wpd-kv-val"';
 ?>
-<tr><td class="wpd-kv-key"><?= $this->e($key) ?></td><td<?= $classAttr ?>><?= $this->raw($value) ?></td></tr>
+<tr><td class="wpd-kv-key"><?= $view->e($key) ?></td><td<?= $classAttr ?>><?= $view->raw($value) ?></td></tr>

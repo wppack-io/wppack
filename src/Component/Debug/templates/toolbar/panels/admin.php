@@ -16,15 +16,15 @@ if (!$isAdmin): ?>
 <div class="wpd-section">
 <h4 class="wpd-section-title">Current Screen</h4>
 <table class="wpd-table wpd-table-kv">
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Page Hook', 'value' => $this->e($pageHook ?: '-')]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Page Hook', 'value' => $view->e($pageHook ?: '-')]) ?>
 <?php if (!empty($screen)): ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Screen ID', 'value' => $this->e((string) ($screen['id'] ?? '-'))]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Base', 'value' => $this->e((string) ($screen['base'] ?? '-'))]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Screen ID', 'value' => $view->e((string) ($screen['id'] ?? '-'))]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Base', 'value' => $view->e((string) ($screen['base'] ?? '-'))]) ?>
 <?php if (($screen['post_type'] ?? '') !== ''): ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Post Type', 'value' => $this->e($screen['post_type'])]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Post Type', 'value' => $view->e($screen['post_type'])]) ?>
 <?php endif; ?>
 <?php if (($screen['taxonomy'] ?? '') !== ''): ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Taxonomy', 'value' => $this->e($screen['taxonomy'])]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Taxonomy', 'value' => $view->e($screen['taxonomy'])]) ?>
 <?php endif; ?>
 <?php endif; ?>
 </table>
@@ -41,15 +41,15 @@ if (!$isAdmin): ?>
 <tbody>
 <?php foreach ($adminMenus as $menuItem): ?>
 <tr>
-<td><?= $this->e($menuItem['title']) ?></td>
-<td><code><?= $this->e($menuItem['slug']) ?></code></td>
-<td><?= $this->e($menuItem['capability']) ?></td>
+<td><?= $view->e($menuItem['title']) ?></td>
+<td><code><?= $view->e($menuItem['slug']) ?></code></td>
+<td><?= $view->e($menuItem['capability']) ?></td>
 </tr>
 <?php if (isset($menuItem['submenu'])): ?>
 <?php foreach ($menuItem['submenu'] as $subItem): ?>
 <tr>
-<td style="padding-left:24px" class="wpd-text-dim"><?= $this->e($subItem['title']) ?></td>
-<td><code class="wpd-text-dim"><?= $this->e($subItem['slug']) ?></code></td>
+<td style="padding-left:24px" class="wpd-text-dim"><?= $view->e($subItem['title']) ?></td>
+<td><code class="wpd-text-dim"><?= $view->e($subItem['slug']) ?></code></td>
 <td></td>
 </tr>
 <?php endforeach; ?>
@@ -69,8 +69,8 @@ if (!$isAdmin): ?>
 <tbody>
 <?php foreach ($adminBarNodes as $node): ?>
 <tr>
-<td><code><?= $this->e($node['id']) ?></code></td>
-<td><?= $this->e($node['title']) ?></td>
+<td><code><?= $view->e($node['id']) ?></code></td>
+<td><?= $view->e($node['title']) ?></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>

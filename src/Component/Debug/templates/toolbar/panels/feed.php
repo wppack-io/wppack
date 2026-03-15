@@ -12,9 +12,9 @@
 <div class="wpd-section">
 <h4 class="wpd-section-title">Summary</h4>
 <table class="wpd-table wpd-table-kv">
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Total Feeds', 'value' => (string) $totalCount]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Custom Feeds', 'value' => (string) $customCount]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Feed Discovery', 'value' => $fmt->value($feedDiscovery)]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Total Feeds', 'value' => (string) $totalCount]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Custom Feeds', 'value' => (string) $customCount]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Feed Discovery', 'value' => $fmt->value($feedDiscovery)]) ?>
 </table>
 </div>
 <?php if (!empty($feeds)): ?>
@@ -31,11 +31,11 @@
     $customHtml = $feed['is_custom']
         ? '<span class="wpd-text-yellow">Yes</span>'
         : '<span class="wpd-text-dim">No</span>';
-?>
+    ?>
 <tr>
-<td><code><?= $this->e($feed['type']) ?></code></td>
-<td class="wpd-text-dim" style="max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><?= $this->e($feed['url']) ?></td>
-<td><?= $this->raw($customHtml) ?></td>
+<td><code><?= $view->e($feed['type']) ?></code></td>
+<td class="wpd-text-dim" style="max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><?= $view->e($feed['url']) ?></td>
+<td><?= $view->raw($customHtml) ?></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>

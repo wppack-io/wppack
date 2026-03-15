@@ -9,6 +9,7 @@ parameters:
     excludePaths:
         - */tests/*
         - src/*/vendor/*
+        - src/Component/*/templates/*
     scanDirectories:
         - vendor/roots/wordpress-no-content/wp-includes/
     ignoreErrors:

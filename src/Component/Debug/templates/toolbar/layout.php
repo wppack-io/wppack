@@ -15,33 +15,33 @@
  */
 ?>
 <div id="wppack-debug">
-<style><?= $this->raw($css) ?></style>
+<style><?= $view->raw($css) ?></style>
 <div class="wpd-overlay" style="display:none">
     <div class="wpd-sidebar">
-        <?= $this->raw($sidebarHtml) ?>
+        <?= $view->raw($sidebarHtml) ?>
     </div>
     <div class="wpd-content">
         <div class="wpd-content-header">
-            <span class="wpd-panel-title"><?= $this->e($defaultTitle) ?></span>
-            <button class="wpd-panel-close" data-action="close-panel" title="Close"><?= $this->raw($closeIcon) ?></button>
+            <span class="wpd-panel-title"><?= $view->e($defaultTitle) ?></span>
+            <button class="wpd-panel-close" data-action="close-panel" title="Close"><?= $view->raw($closeIcon) ?></button>
         </div>
         <div class="wpd-content-body">
-            <?= $this->raw($contentPanels) ?>
+            <?= $view->raw($contentPanels) ?>
         </div>
     </div>
 </div>
 <div class="wpd-mini" title="Show WpPack Debug Toolbar">
-    <?= $this->raw($wpMiniIcon) ?>
+    <?= $view->raw($wpMiniIcon) ?>
 </div>
 <div class="wpd-bar">
-    <?= $this->raw($wpIndicatorHtml) ?>
+    <?= $view->raw($wpIndicatorHtml) ?>
     <div class="wpd-bar-indicators-wrap">
         <div class="wpd-bar-indicators">
-            <?= $this->raw($indicators) ?>
+            <?= $view->raw($indicators) ?>
         </div>
     </div>
-    <?= $this->raw($envHtml) ?>
-    <button class="wpd-close-btn" data-action="minimize" title="Close toolbar"><?= $this->raw($closeIcon) ?></button>
+    <?= $view->raw($envHtml) ?>
+    <button class="wpd-close-btn" data-action="minimize" title="Close toolbar"><?= $view->raw($closeIcon) ?></button>
 </div>
-<script><?= $this->raw($js) ?></script>
+<script><?= $view->raw($js) ?></script>
 </div>

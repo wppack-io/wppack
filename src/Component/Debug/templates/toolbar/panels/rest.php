@@ -21,25 +21,25 @@ if ($isRestRequest && is_array($currentRequest)):
     $methodColor = $fmt->methodColor($method);
     $statusColorClass = $fmt->statusColor($status);
     $authTag = match ($authentication) {
-        'bearer' => $this->include('toolbar/partials/badge', ['label' => 'Bearer', 'color' => 'purple']),
-        'basic' => $this->include('toolbar/partials/badge', ['label' => 'Basic', 'color' => 'yellow']),
-        'nonce' => $this->include('toolbar/partials/badge', ['label' => 'Nonce', 'color' => 'primary']),
-        'cookie' => $this->include('toolbar/partials/badge', ['label' => 'Cookie', 'color' => 'green']),
-        default => '<span class="wpd-text-dim">' . $this->e($authentication) . '</span>',
+        'bearer' => $view->include('toolbar/partials/badge', ['label' => 'Bearer', 'color' => 'purple']),
+        'basic' => $view->include('toolbar/partials/badge', ['label' => 'Basic', 'color' => 'yellow']),
+        'nonce' => $view->include('toolbar/partials/badge', ['label' => 'Nonce', 'color' => 'primary']),
+        'cookie' => $view->include('toolbar/partials/badge', ['label' => 'Cookie', 'color' => 'green']),
+        default => '<span class="wpd-text-dim">' . $view->e($authentication) . '</span>',
     };
-?>
+    ?>
 <div class="wpd-section">
 <h4 class="wpd-section-title">Current Request</h4>
 <table class="wpd-table wpd-table-kv">
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Method', 'value' => $this->include('toolbar/partials/badge', ['label' => $method, 'color' => $methodColor])]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Route', 'value' => $route !== '' ? '<code>' . $this->e($route) . '</code>' : '-']) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Method', 'value' => $view->include('toolbar/partials/badge', ['label' => $method, 'color' => $methodColor])]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Route', 'value' => $route !== '' ? '<code>' . $view->e($route) . '</code>' : '-']) ?>
 <?php if ($path !== '' && $path !== $route): ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Path', 'value' => '<code>' . $this->e($path) . '</code>']) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Path', 'value' => '<code>' . $view->e($path) . '</code>']) ?>
 <?php endif; ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Namespace', 'value' => $namespace !== '' ? $this->e($namespace) : '-']) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Callback', 'value' => $callback !== '' ? '<code>' . $this->e($callback) . '</code>' : '-']) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Status', 'value' => (string) $status, 'valueClass' => $statusColorClass]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Authentication', 'value' => $authTag]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Namespace', 'value' => $namespace !== '' ? $view->e($namespace) : '-']) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Callback', 'value' => $callback !== '' ? '<code>' . $view->e($callback) . '</code>' : '-']) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Status', 'value' => (string) $status, 'valueClass' => $statusColorClass]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Authentication', 'value' => $authTag]) ?>
 </table>
 </div>
 <?php if (!empty($params)): ?>
@@ -47,7 +47,7 @@ if ($isRestRequest && is_array($currentRequest)):
 <h4 class="wpd-section-title">Request Parameters</h4>
 <table class="wpd-table wpd-table-kv">
 <?php foreach ($params as $key => $value): ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => $key, 'value' => $fmt->value($value)]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => $key, 'value' => $fmt->value($value)]) ?>
 <?php endforeach; ?>
 </table>
 </div>
@@ -56,14 +56,14 @@ if ($isRestRequest && is_array($currentRequest)):
 <div class="wpd-section">
 <h4 class="wpd-section-title">Summary</h4>
 <table class="wpd-table wpd-table-kv">
-<?= $this->include('toolbar/partials/table-row', ['key' => 'REST Request', 'value' => $fmt->value($isRestRequest)]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Total Routes', 'value' => (string) $totalRoutes]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Namespaces', 'value' => (string) $totalNamespaces]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'REST Request', 'value' => $fmt->value($isRestRequest)]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Total Routes', 'value' => (string) $totalRoutes]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Namespaces', 'value' => (string) $totalNamespaces]) ?>
 </table>
 </div>
 <?php foreach ($routes as $nsName => $nsRoutes): ?>
 <div class="wpd-section">
-<h4 class="wpd-section-title"><?= $this->e($nsName) ?> (<?= count($nsRoutes) ?>)</h4>
+<h4 class="wpd-section-title"><?= $view->e($nsName) ?> (<?= count($nsRoutes) ?>)</h4>
 <table class="wpd-table wpd-table-full">
 <thead><tr>
 <th>Route</th>
@@ -74,13 +74,13 @@ if ($isRestRequest && is_array($currentRequest)):
 <?php foreach ($nsRoutes as $routeInfo):
     $methodTags = '';
     foreach ($routeInfo['methods'] as $m) {
-        $methodTags .= $this->include('toolbar/partials/method-badge', ['method' => $m, 'fmt' => $fmt]) . ' ';
+        $methodTags .= $view->include('toolbar/partials/method-badge', ['method' => $m, 'fmt' => $fmt]) . ' ';
     }
-?>
+    ?>
 <tr>
-<td><code><?= $this->e($routeInfo['route']) ?></code></td>
-<td><?= $this->raw($methodTags) ?></td>
-<td class="wpd-text-dim"><?= $this->e($routeInfo['callback']) ?></td>
+<td><code><?= $view->e($routeInfo['route']) ?></code></td>
+<td><?= $view->raw($methodTags) ?></td>
+<td class="wpd-text-dim"><?= $view->e($routeInfo['callback']) ?></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>

@@ -44,11 +44,17 @@ final class ErrorHandlerTest extends TestCase
     protected function setUp(): void
     {
         $this->errorHandler = $this->createErrorHandler();
+
+        // Push a no-op error handler so our ErrorHandler does not chain
+        // to PHPUnit's handler (which would report intentional trigger_error()
+        // calls as test warnings/notices/deprecations).
+        set_error_handler(static fn(): bool => true);
     }
 
     protected function tearDown(): void
     {
         $this->errorHandler->restore();
+        restore_error_handler(); // Remove the no-op, restoring PHPUnit's handler
         $this->loggedEntries = [];
     }
 

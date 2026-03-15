@@ -14,11 +14,11 @@
 <div class="wpd-section">
 <h4 class="wpd-section-title">Summary</h4>
 <table class="wpd-table wpd-table-kv">
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Total Sidebars', 'value' => (string) $totalSidebars]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Total Widgets', 'value' => (string) $totalWidgets]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Active Widgets', 'value' => (string) $activeWidgets]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Total Sidebars', 'value' => (string) $totalSidebars]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Total Widgets', 'value' => (string) $totalWidgets]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Active Widgets', 'value' => (string) $activeWidgets]) ?>
 <?php if ($renderTime > 0): ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Render Time', 'value' => $fmt->ms($renderTime)]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Render Time', 'value' => $fmt->ms($renderTime)]) ?>
 <?php endif; ?>
 </table>
 </div>
@@ -33,8 +33,8 @@
 <tbody>
 <?php foreach ($sidebarTimings as $timing): ?>
 <tr>
-<td><?= $this->e($timing['name']) ?></td>
-<td class="wpd-col-time"><?= $this->e($fmt->ms($timing['duration'])) ?></td>
+<td><?= $view->e($timing['name']) ?></td>
+<td class="wpd-col-time"><?= $view->e($fmt->ms($timing['duration'])) ?></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>
@@ -53,15 +53,15 @@
     $widgetTags = '';
     if (!empty($sidebar['widgets'])) {
         foreach ($sidebar['widgets'] as $widget) {
-            $widgetTags .= '<span class="wpd-tag">' . $this->e($widget) . '</span>';
+            $widgetTags .= '<span class="wpd-tag">' . $view->e($widget) . '</span>';
         }
     } else {
         $widgetTags = '<span class="wpd-text-dim">empty</span>';
     }
-?>
+    ?>
 <tr>
-<td><?= $this->e($sidebar['name']) ?></td>
-<td><div class="wpd-tag-list"><?= $this->raw($widgetTags) ?></div></td>
+<td><?= $view->e($sidebar['name']) ?></td>
+<td><div class="wpd-tag-list"><?= $view->raw($widgetTags) ?></div></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>

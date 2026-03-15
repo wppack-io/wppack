@@ -142,7 +142,7 @@ final class PhpRendererTest extends TestCase
     {
         // Create a variant fixture on the fly
         $variantFile = $this->fixturesPath . '/simple-alt.php';
-        file_put_contents($variantFile, '<h2><?= $this->e($title) ?></h2>' . "\n");
+        file_put_contents($variantFile, '<h2><?= $view->e($title) ?></h2>' . "\n");
 
         try {
             $result = $this->renderer->render('simple', ['title' => 'Variant'], 'alt');

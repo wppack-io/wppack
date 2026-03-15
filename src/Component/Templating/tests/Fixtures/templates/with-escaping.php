@@ -1,2 +1,2 @@
-<p><?= $this->e($content) ?></p>
-<a href="<?= $this->e($url, 'attr') ?>">Link</a>
+<p><?= $view->e($content) ?></p>
+<a href="<?= $view->e($url, 'attr') ?>">Link</a>

@@ -15,10 +15,10 @@ composer require wppack/templating
 ## このコンポーネントの機能
 
 - **PHP テンプレートエンジン** — `PhpRenderer` による `include` + `ob_start()` ベースのレンダリング
-- **自動エスケープ** — テンプレート内で `$this->e()` による安全な出力（`wppack/escaper` に委譲）
-- **レイアウト継承** — Plates パターンの `$this->layout()` / `$this->section()` でテンプレート構造を定義
-- **セクション定義** — `$this->start()` / `$this->stop()` でコンテンツブロックをキャプチャ
-- **パーシャルインクルード** — `$this->include()` で部品テンプレートを再利用
+- **自動エスケープ** — テンプレート内で `\$view->e()` による安全な出力（`wppack/escaper` に委譲）
+- **レイアウト継承** — Plates パターンの `\$view->layout()` / `\$view->section()` でテンプレート構造を定義
+- **セクション定義** — `\$view->start()` / `\$view->stop()` でコンテンツブロックをキャプチャ
+- **パーシャルインクルード** — `\$view->include()` で部品テンプレートを再利用
 - **テンプレート検索** — `TemplateLocator` が WordPress テーマディレクトリ + カスタムパスを検索
 - **WordPress 完全互換** — テンプレート内で `get_header()` / `the_content()` 等をそのまま呼べる
 - **複数エンジン対応** — `ChainRenderer` で PhpRenderer + 将来の TwigRenderer を共存可能
@@ -61,13 +61,13 @@ echo $renderer->render('content/single', [
 テンプレートファイル（`content/single.php`）:
 
 ```php
-<?php $this->layout('layouts/base'); ?>
+<?php \$view->layout('layouts/base'); ?>
 <article>
-    <h1><?= $this->e($title) ?></h1>
+    <h1><?= \$view->e($title) ?></h1>
     <div class="meta">
-        By <?= $this->e($author) ?> on <?= $this->e($date) ?>
+        By <?= \$view->e($author) ?> on <?= \$view->e($date) ?>
     </div>
-    <div class="content"><?= $this->raw($content) ?></div>
+    <div class="content"><?= \$view->raw($content) ?></div>
 </article>
 ```
 
@@ -100,25 +100,25 @@ if ($renderer->exists('partials/card')) {
 
 ## テンプレート変数とエスケープ
 
-テンプレート内では `$this` が `TemplateContext` インスタンスを参照します。コンテキスト配列のキーがそのまま変数として展開されます。
+テンプレート内では `$view` が `TemplateContext` インスタンスを参照します。コンテキスト配列のキーがそのまま変数として展開されます。
 
-### エスケープ出力 `$this->e()`
+### エスケープ出力 `\$view->e()`
 
 ```php
 <!-- HTML エスケープ（デフォルト） -->
-<h1><?= $this->e($title) ?></h1>
+<h1><?= \$view->e($title) ?></h1>
 
 <!-- 属性エスケープ -->
-<input value="<?= $this->e($value, 'attr') ?>">
+<input value="<?= \$view->e($value, 'attr') ?>">
 
 <!-- URL エスケープ -->
-<a href="<?= $this->e($url, 'url') ?>">Link</a>
+<a href="<?= \$view->e($url, 'url') ?>">Link</a>
 
 <!-- JavaScript エスケープ -->
-<script>var name = '<?= $this->e($name, 'js') ?>';</script>
+<script>var name = '<?= \$view->e($name, 'js') ?>';</script>
 ```
 
-`$this->e()` は `mixed` 型を受け付けます:
+`\$view->e()` は `mixed` 型を受け付けます:
 
 | 型 | 変換 |
 |---|---|
@@ -129,27 +129,27 @@ if ($renderer->exists('partials/card')) {
 | `Stringable` | `(string)` キャスト |
 | `array` / 非Stringableオブジェクト | `RenderingException` |
 
-### 非エスケープ出力 `$this->raw()`
+### 非エスケープ出力 `\$view->raw()`
 
 事前にエスケープ済み、または信頼済みコンテンツの出力に使用します:
 
 ```php
-<div class="content"><?= $this->raw($trustedHtml) ?></div>
+<div class="content"><?= \$view->raw($trustedHtml) ?></div>
 ```
 
 ## レイアウト継承
 
-Plates パターンの `$this->layout()` でレイアウトを宣言し、子テンプレートの出力を `content` セクションとして注入します。
+Plates パターンの `\$view->layout()` でレイアウトを宣言し、子テンプレートの出力を `content` セクションとして注入します。
 
 ### レイアウトテンプレート（`layouts/base.php`）
 
 ```php
 <html>
 <head>
-    <title><?= $this->e($title ?? 'My Site') ?></title>
+    <title><?= \$view->e($title ?? 'My Site') ?></title>
 </head>
 <body>
-    <?= $this->section('content') ?>
+    <?= \$view->section('content') ?>
 </body>
 </html>
 ```
@@ -157,10 +157,10 @@ Plates パターンの `$this->layout()` でレイアウトを宣言し、子テ
 ### 子テンプレート（`pages/about.php`）
 
 ```php
-<?php $this->layout('layouts/base'); ?>
+<?php \$view->layout('layouts/base'); ?>
 <article>
-    <h1><?= $this->e($title) ?></h1>
-    <p><?= $this->e($description) ?></p>
+    <h1><?= \$view->e($title) ?></h1>
+    <p><?= \$view->e($description) ?></p>
 </article>
 ```
 
@@ -186,30 +186,30 @@ Plates パターンの `$this->layout()` でレイアウトを宣言し、子テ
 
 ```php
 <!-- layouts/two-column.php -->
-<?php $this->layout('layouts/base'); ?>
-<div class="main"><?= $this->section('content') ?></div>
-<div class="sidebar"><?= $this->section('sidebar', 'Default sidebar') ?></div>
+<?php \$view->layout('layouts/base'); ?>
+<div class="main"><?= \$view->section('content') ?></div>
+<div class="sidebar"><?= \$view->section('sidebar', 'Default sidebar') ?></div>
 ```
 
 ## セクション定義
 
-`$this->start()` / `$this->stop()` で名前付きセクションをキャプチャし、レイアウトの任意の場所に挿入します。
+`\$view->start()` / `\$view->stop()` で名前付きセクションをキャプチャし、レイアウトの任意の場所に挿入します。
 
 ```php
-<?php $this->layout('layouts/two-column'); ?>
+<?php \$view->layout('layouts/two-column'); ?>
 
-<?php $this->start('sidebar'); ?>
+<?php \$view->start('sidebar'); ?>
 <nav>
     <ul>
         <li><a href="/">Home</a></li>
         <li><a href="/about">About</a></li>
     </ul>
 </nav>
-<?php $this->stop(); ?>
+<?php \$view->stop(); ?>
 
 <article>
-    <h1><?= $this->e($title) ?></h1>
-    <p><?= $this->e($content) ?></p>
+    <h1><?= \$view->e($title) ?></h1>
+    <p><?= \$view->e($content) ?></p>
 </article>
 ```
 
@@ -217,18 +217,18 @@ Plates パターンの `$this->layout()` でレイアウトを宣言し、子テ
 
 ```php
 <!-- セクションが定義されていない場合のフォールバック -->
-<?= $this->section('sidebar', '<p>No sidebar content.</p>') ?>
+<?= \$view->section('sidebar', '<p>No sidebar content.</p>') ?>
 ```
 
 ## パーシャルインクルード
 
-`$this->include()` で別のテンプレートをインクルードします。インクルードされたテンプレートは独自の `TemplateContext` を持ち、渡されたコンテキスト変数のみアクセスできます。
+`\$view->include()` で別のテンプレートをインクルードします。インクルードされたテンプレートは独自の `TemplateContext` を持ち、渡されたコンテキスト変数のみアクセスできます。
 
 ```php
 <!-- 記事一覧ページ -->
 <div class="cards">
     <?php foreach ($posts as $post): ?>
-        <?= $this->include('partials/card', [
+        <?= \$view->include('partials/card', [
             'title' => $post->title,
             'body' => $post->excerpt,
         ]) ?>
@@ -240,8 +240,8 @@ Plates パターンの `$this->layout()` でレイアウトを宣言し、子テ
 
 ```php
 <div class="card">
-    <h3><?= $this->e($title) ?></h3>
-    <p><?= $this->e($body) ?></p>
+    <h3><?= \$view->e($title) ?></h3>
+    <p><?= \$view->e($body) ?></p>
 </div>
 ```
 
@@ -308,7 +308,7 @@ PhpRenderer は `include` + `ob_start()` を使用するため、テンプレー
 
 <?php if (have_posts()): while (have_posts()): the_post(); ?>
     <article>
-        <h2><?= $this->e(get_the_title()) ?></h2>
+        <h2><?= \$view->e(get_the_title()) ?></h2>
         <?php the_content(); ?>
     </article>
 <?php endwhile; endif; ?>
@@ -321,8 +321,8 @@ PhpRenderer は `include` + `ob_start()` を使用するため、テンプレー
 
 | WordPress 関数 | WpPack 対応 | 備考 |
 |---|---|---|
-| `get_header()` / `get_footer()` | `$this->layout()` | レイアウト継承で置換可能。直接呼び出しも可 |
-| `get_template_part()` | `$this->include()` | PhpRenderer パイプライン経由で `$this` 利用可能 |
+| `get_header()` / `get_footer()` | `\$view->layout()` | レイアウト継承で置換可能。直接呼び出しも可 |
+| `get_template_part()` | `\$view->include()` | PhpRenderer パイプライン経由で `$view` 利用可能 |
 | `get_sidebar()` / `dynamic_sidebar()` | そのまま呼び出し | output buffering でキャプチャ |
 | `the_content()` / `the_title()` | そのまま呼び出し | 直接出力は ob でキャプチャ |
 | `have_posts()` / `the_post()` | そのまま呼び出し | WordPress ループはそのまま |
@@ -334,15 +334,15 @@ PhpRenderer は `include` + `ob_start()` を使用するため、テンプレー
 
 ```php
 <?php get_header(); ?>
-<article><?= $this->e($title) ?></article>
+<article><?= \$view->e($title) ?></article>
 <?php get_footer(); ?>
 ```
 
 **スタイル B: レイアウト継承**（モダン設計向け）
 
 ```php
-<?php $this->layout('layouts/base'); ?>
-<article><?= $this->e($title) ?></article>
+<?php \$view->layout('layouts/base'); ?>
+<article><?= \$view->e($title) ?></article>
 ```
 
 どちらも PhpRenderer 内で動作します。段階的な移行が可能です。
@@ -411,14 +411,14 @@ final class TemplateTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->renderer = new PhpRenderer([
+        \$this->renderer = new PhpRenderer([
             __DIR__ . '/Fixtures/templates',
         ]);
     }
 
     public function testRendersTemplateWithData(): void
     {
-        $html = $this->renderer->render('simple', [
+        $html = \$this->renderer->render('simple', [
             'title' => 'Test Title',
         ]);
 
@@ -427,7 +427,7 @@ final class TemplateTest extends TestCase
 
     public function testAutoEscapesOutput(): void
     {
-        $html = $this->renderer->render('simple', [
+        $html = \$this->renderer->render('simple', [
             'title' => '<script>alert("xss")</script>',
         ]);
 
@@ -436,7 +436,7 @@ final class TemplateTest extends TestCase
 
     public function testRendersWithLayout(): void
     {
-        $html = $this->renderer->render('with-layout', [
+        $html = \$this->renderer->render('with-layout', [
             'title' => 'Page Title',
         ]);
 
@@ -452,7 +452,7 @@ final class TemplateTest extends TestCase
 TemplateRendererInterface         ← エンジン非依存の契約
 ├── PhpRenderer                   ← PHP テンプレートエンジン
 │   ├── TemplateLocator           ← テンプレート検索（locate_template + カスタムパス）
-│   ├── TemplateContext           ← テンプレート内の $this（e, raw, layout, section, include）
+│   ├── TemplateContext           ← テンプレート内の $view（e, raw, layout, section, include）
 │   └── Escaper                   ← 出力エスケープ（wppack/escaper）
 ├── ChainRenderer                 ← 複数エンジンへのデリゲート
 └── [将来] TwigRenderer           ← Twig ブリッジ（wppack/twig-templating）
@@ -466,7 +466,7 @@ TemplatePart                      ← WordPress get_template_part() ラッパー
 PhpRenderer::render()
   ↓ TemplateLocator::locate() でファイルパス解決
   ↓ TemplateContext 生成（Escaper + PhpRenderer 注入）
-  ↓ Closure::bind() で $this をバインド
+  ↓ $view 変数として TemplateContext を渡す
   ↓ extract() でコンテキスト変数展開
   ↓ ob_start() → include $file → ob_get_clean()
   ↓ layoutTemplate がセットされていればレイアウトを再帰レンダリング

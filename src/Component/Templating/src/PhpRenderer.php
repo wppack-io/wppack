@@ -11,7 +11,7 @@ use WpPack\Component\Templating\Exception\TemplateNotFoundException;
 /**
  * PHP template engine with layout inheritance, sections, and escaping.
  *
- * Templates are plain PHP files where $this refers to a TemplateContext instance,
+ * Templates are plain PHP files where $view refers to a TemplateContext instance,
  * providing escape helpers, layout declaration, sections, and partial includes.
  */
 final class PhpRenderer implements TemplateRendererInterface
@@ -127,25 +127,21 @@ final class PhpRenderer implements TemplateRendererInterface
      */
     private function renderFile(string $file, array $context, TemplateContext $templateContext): string
     {
-        $render = \Closure::bind(
-            function (string $__file, array $__context): string {
-                extract($__context, EXTR_SKIP);
-                ob_start();
+        $render = static function (string $__file, array $__context, TemplateContext $view): string {
+            extract($__context, EXTR_SKIP);
+            ob_start();
 
-                try {
-                    include $__file;
-                } catch (\Throwable $e) {
-                    ob_end_clean();
+            try {
+                include $__file;
+            } catch (\Throwable $e) {
+                ob_end_clean();
 
-                    throw $e;
-                }
+                throw $e;
+            }
 
-                return ob_get_clean() ?: '';
-            },
-            $templateContext,
-            TemplateContext::class,
-        );
+            return ob_get_clean() ?: '';
+        };
 
-        return $render($file, $context);
+        return $render($file, $context, $templateContext);
     }
 }

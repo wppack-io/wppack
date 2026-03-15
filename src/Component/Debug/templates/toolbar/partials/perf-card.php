@@ -9,7 +9,7 @@
  */
 ?>
 <div class="wpd-perf-card">
-<div class="wpd-perf-card-value"><?= $this->raw($value) ?><?php if ($unit !== ''): ?><span class="wpd-perf-card-unit"><?= $this->e($unit) ?></span><?php endif; ?></div>
-<div class="wpd-perf-card-label"><?= $this->e($label) ?></div>
-<?php if ($sub !== ''): ?><div class="wpd-perf-card-sub"><?= $this->raw($sub) ?></div><?php endif; ?>
+<div class="wpd-perf-card-value"><?= $view->raw($value) ?><?php if ($unit !== ''): ?><span class="wpd-perf-card-unit"><?= $view->e($unit) ?></span><?php endif; ?></div>
+<div class="wpd-perf-card-label"><?= $view->e($label) ?></div>
+<?php if ($sub !== ''): ?><div class="wpd-perf-card-sub"><?= $view->raw($sub) ?></div><?php endif; ?>
 </div>

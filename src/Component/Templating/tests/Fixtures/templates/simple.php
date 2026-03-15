@@ -1,1 +1,1 @@
-<h1><?= $this->e($title) ?></h1>
+<h1><?= $view->e($title) ?></h1>

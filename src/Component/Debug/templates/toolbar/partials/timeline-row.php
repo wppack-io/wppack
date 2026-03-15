@@ -7,7 +7,7 @@
  */
 ?>
 <div class="wpd-perf-wf-row">
-<div class="wpd-perf-wf-label"><?= $this->e((string) ($entry['name'] ?? '')) ?></div>
+<div class="wpd-perf-wf-label"><?= $view->e((string) ($entry['name'] ?? '')) ?></div>
 <div class="wpd-perf-wf-track">
 <?php
 $bars = $entry['bars'] ?? null;
@@ -16,19 +16,19 @@ if ($bars !== null) {
         $left = $totalTime > 0 ? ($bar['start'] / $totalTime) * 100 : 0;
         $width = $totalTime > 0 ? ($bar['duration'] / $totalTime) * 100 : 0;
         $width = max($width, 0.3);
-        $tooltipAttr = isset($bar['title']) ? ' data-tooltip="' . $this->e($bar['title']) . '"' : '';
-        echo '<div class="wpd-perf-wf-bar"' . $tooltipAttr . ' style="left:' . $this->e(sprintf('%.2f', $left)) . '%;width:' . $this->e(sprintf('%.2f', $width)) . '%;background:' . $this->e($color) . '"></div>';
+        $tooltipAttr = isset($bar['title']) ? ' data-tooltip="' . $view->e($bar['title']) . '"' : '';
+        echo '<div class="wpd-perf-wf-bar"' . $tooltipAttr . ' style="left:' . $view->e(sprintf('%.2f', $left)) . '%;width:' . $view->e(sprintf('%.2f', $width)) . '%;background:' . $view->e($color) . '"></div>';
     }
 } else {
     $left = $totalTime > 0 ? ((float) ($entry['start'] ?? 0.0) / $totalTime) * 100 : 0;
     $width = $totalTime > 0 ? ((float) ($entry['duration'] ?? 0.0) / $totalTime) * 100 : 0;
     $width = max($width, 0.3);
     $barTitle = (string) ($entry['title'] ?? '');
-    $tooltipAttr = $barTitle !== '' ? ' data-tooltip="' . $this->e($barTitle) . '"' : '';
-    echo '<div class="wpd-perf-wf-bar"' . $tooltipAttr . ' style="left:' . $this->e(sprintf('%.2f', $left)) . '%;width:' . $this->e(sprintf('%.2f', $width)) . '%;background:' . $this->e($color) . '"></div>';
+    $tooltipAttr = $barTitle !== '' ? ' data-tooltip="' . $view->e($barTitle) . '"' : '';
+    echo '<div class="wpd-perf-wf-bar"' . $tooltipAttr . ' style="left:' . $view->e(sprintf('%.2f', $left)) . '%;width:' . $view->e(sprintf('%.2f', $width)) . '%;background:' . $view->e($color) . '"></div>';
 }
 ?>
 </div>
 <?php $displayValue = (float) ($entry['value'] ?? $entry['duration'] ?? 0.0); ?>
-<div class="wpd-perf-wf-value"><?= $this->e($fmt->ms($displayValue)) ?></div>
+<div class="wpd-perf-wf-value"><?= $view->e($fmt->ms($displayValue)) ?></div>
 </div>

@@ -19,7 +19,7 @@ final class WordPressExtensionTest extends TestCase
         $extension = new WordPressExtension();
         $filters = $extension->getFilters();
 
-        $filterNames = array_map(fn ($f) => $f->getName(), $filters);
+        $filterNames = array_map(fn($f) => $f->getName(), $filters);
 
         self::assertContains('esc_html', $filterNames);
         self::assertContains('esc_attr', $filterNames);
@@ -34,7 +34,7 @@ final class WordPressExtensionTest extends TestCase
         $extension = new WordPressExtension();
         $functions = $extension->getFunctions();
 
-        $functionNames = array_map(fn ($f) => $f->getName(), $functions);
+        $functionNames = array_map(fn($f) => $f->getName(), $functions);
 
         self::assertContains('wp_head', $functionNames);
         self::assertContains('wp_footer', $functionNames);

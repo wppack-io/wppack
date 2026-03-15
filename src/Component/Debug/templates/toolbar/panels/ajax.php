@@ -19,9 +19,9 @@
 <tbody>
 <?php foreach ($actions as $action => $info): ?>
 <tr>
-<td><code><?= $this->e($action) ?></code></td>
-<td class="wpd-text-dim"><?= $this->e($info['callback']) ?></td>
-<td><?= $this->raw($fmt->value($info['nopriv'])) ?></td>
+<td><code><?= $view->e($action) ?></code></td>
+<td class="wpd-text-dim"><?= $view->e($info['callback']) ?></td>
+<td><?= $view->raw($fmt->value($info['nopriv'])) ?></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>

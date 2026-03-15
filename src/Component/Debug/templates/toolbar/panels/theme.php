@@ -28,16 +28,16 @@ $allStyles = $assetData['styles'] ?? [];
 <div class="wpd-section">
 <h4 class="wpd-section-title">Info</h4>
 <table class="wpd-table wpd-table-kv">
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Name', 'value' => $this->e($name ?: '-')]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Name', 'value' => $view->e($name ?: '-')]) ?>
 <?php if ($version !== ''): ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Version', 'value' => $this->e($version)]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Version', 'value' => $view->e($version)]) ?>
 <?php endif; ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Child Theme', 'value' => $fmt->value($isChildTheme)]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Child Theme', 'value' => $fmt->value($isChildTheme)]) ?>
 <?php if ($isChildTheme): ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Child', 'value' => $this->e((string) ($data['child_theme'] ?? ''))]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Parent', 'value' => $this->e((string) ($data['parent_theme'] ?? ''))]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Child', 'value' => $view->e((string) ($data['child_theme'] ?? ''))]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Parent', 'value' => $view->e((string) ($data['parent_theme'] ?? ''))]) ?>
 <?php endif; ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Block Theme', 'value' => $fmt->value($isBlockTheme)]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Block Theme', 'value' => $fmt->value($isBlockTheme)]) ?>
 </table>
 </div>
 <div class="wpd-section">
@@ -45,11 +45,11 @@ $allStyles = $assetData['styles'] ?? [];
 <div class="wpd-perf-cards">
 <?php
 [$sv, $su] = $fmt->msCard($setupTime);
-echo $this->include('toolbar/partials/perf-card', ['label' => 'Setup Time', 'value' => $sv, 'unit' => $su, 'sub' => '']);
+echo $view->include('toolbar/partials/perf-card', ['label' => 'Setup Time', 'value' => $sv, 'unit' => $su, 'sub' => '']);
 [$rv, $ru] = $fmt->msCard($renderTime);
-echo $this->include('toolbar/partials/perf-card', ['label' => 'Render Time', 'value' => $rv, 'unit' => $ru, 'sub' => '']);
+echo $view->include('toolbar/partials/perf-card', ['label' => 'Render Time', 'value' => $rv, 'unit' => $ru, 'sub' => '']);
 [$hv, $hu] = $fmt->msCard($hookTime);
-echo $this->include('toolbar/partials/perf-card', ['label' => 'Hook Time', 'value' => $hv, 'unit' => $hu, 'sub' => $this->e((string) $hookCount) . ' hooks, ' . $this->e((string) $listenerCount) . ' listeners']);
+echo $view->include('toolbar/partials/perf-card', ['label' => 'Hook Time', 'value' => $hv, 'unit' => $hu, 'sub' => $view->e((string) $hookCount) . ' hooks, ' . $view->e((string) $listenerCount) . ' listeners']);
 ?>
 </div>
 </div>
@@ -61,9 +61,9 @@ echo $this->include('toolbar/partials/perf-card', ['label' => 'Hook Time', 'valu
 <tbody>
 <?php foreach ($hooks as $hookInfo): ?>
 <tr>
-<td><code><?= $this->e($hookInfo['hook']) ?></code></td>
-<td class="wpd-col-right"><?= $this->e((string) $hookInfo['listeners']) ?></td>
-<td class="wpd-col-right"><?= $this->e($fmt->ms($hookInfo['time'])) ?></td>
+<td><code><?= $view->e($hookInfo['hook']) ?></code></td>
+<td class="wpd-col-right"><?= $view->e((string) $hookInfo['listeners']) ?></td>
+<td class="wpd-col-right"><?= $view->e($fmt->ms($hookInfo['time'])) ?></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>
@@ -74,10 +74,10 @@ echo $this->include('toolbar/partials/perf-card', ['label' => 'Hook Time', 'valu
 <h4 class="wpd-section-title">Template</h4>
 <table class="wpd-table wpd-table-kv">
 <?php if ($templateFile !== ''): ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Template File', 'value' => '<code>' . $this->e($templateFile) . '</code>']) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Template File', 'value' => '<code>' . $view->e($templateFile) . '</code>']) ?>
 <?php endif; ?>
 <?php if (!empty($templateParts)): ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Template Parts', 'value' => '<code>' . $this->e(implode(', ', $templateParts)) . '</code>']) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Template Parts', 'value' => '<code>' . $view->e(implode(', ', $templateParts)) . '</code>']) ?>
 <?php endif; ?>
 </table>
 </div>
@@ -87,13 +87,13 @@ echo $this->include('toolbar/partials/perf-card', ['label' => 'Hook Time', 'valu
 <h4 class="wpd-section-title">Conditional Tags</h4>
 <div class="wpd-tag-list">
 <?php foreach ($conditionalTags as $tag => $value): ?>
-<span class="wpd-tag <?= $value ? 'wpd-text-green' : 'wpd-text-dim' ?>"><?= $this->e($tag) ?></span>
+<span class="wpd-tag <?= $value ? 'wpd-text-green' : 'wpd-text-dim' ?>"><?= $view->e($tag) ?></span>
 <?php endforeach; ?>
 </div>
 </div>
 <?php endif; ?>
 <?php if (!empty($enqueuedStyles) || !empty($enqueuedScripts)): ?>
-<?= $this->include('toolbar/partials/asset-tables', [
+<?= $view->include('toolbar/partials/asset-tables', [
     'styleHandles' => $enqueuedStyles,
     'scriptHandles' => $enqueuedScripts,
     'allStyles' => $allStyles,
@@ -106,7 +106,7 @@ echo $this->include('toolbar/partials/perf-card', ['label' => 'Hook Time', 'valu
 <h4 class="wpd-section-title">Body Classes</h4>
 <div class="wpd-tag-list">
 <?php foreach ($bodyClasses as $class): ?>
-<span class="wpd-tag"><?= $this->e($class) ?></span>
+<span class="wpd-tag"><?= $view->e($class) ?></span>
 <?php endforeach; ?>
 </div>
 </div>

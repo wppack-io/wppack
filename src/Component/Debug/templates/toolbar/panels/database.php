@@ -18,10 +18,10 @@
 <div class="wpd-section">
 <h4 class="wpd-section-title">Summary</h4>
 <table class="wpd-table wpd-table-kv">
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Total Queries', 'value' => (string) $totalCount]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Total Time', 'value' => $fmt->ms($totalTime)]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Duplicate Queries', 'value' => (string) $duplicateCount, 'valueClass' => $duplicateCount > 0 ? 'wpd-text-yellow' : '']) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Slow Queries', 'value' => (string) $slowCount, 'valueClass' => $slowCount > 0 ? 'wpd-text-red' : '']) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Total Queries', 'value' => (string) $totalCount]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Total Time', 'value' => $fmt->ms($totalTime)]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Duplicate Queries', 'value' => (string) $duplicateCount, 'valueClass' => $duplicateCount > 0 ? 'wpd-text-yellow' : '']) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Slow Queries', 'value' => (string) $slowCount, 'valueClass' => $slowCount > 0 ? 'wpd-text-red' : '']) ?>
 </table>
 </div>
 <?php if (!empty($suggestions)): ?>
@@ -29,7 +29,7 @@
 <h4 class="wpd-section-title">Suggestions</h4>
 <ul class="wpd-suggestions">
 <?php foreach ($suggestions as $suggestion): ?>
-<li class="wpd-suggestion-item"><?= $this->e($suggestion) ?></li>
+<li class="wpd-suggestion-item"><?= $view->e($suggestion) ?></li>
 <?php endforeach; ?>
 </ul>
 </div>
@@ -48,12 +48,12 @@
 <?php foreach ($callerStats as $caller => $stats):
     $avgTime = $stats['total_time'] / $stats['count'];
     $countClass = $stats['count'] > 5 ? ' wpd-text-yellow' : '';
-?>
+    ?>
 <tr>
-<td title="<?= $this->e($caller) ?>"><span class="wpd-caller"><?= $this->e($shortCallers[$caller] ?? $caller) ?></span></td>
-<td class="wpd-col-right<?= $countClass ?>"><?= $this->e((string) $stats['count']) ?></td>
-<td class="wpd-col-right"><?= $this->e($fmt->ms($stats['total_time'])) ?></td>
-<td class="wpd-col-right"><?= $this->e($fmt->ms($avgTime)) ?></td>
+<td title="<?= $view->e($caller) ?>"><span class="wpd-caller"><?= $view->e($shortCallers[$caller] ?? $caller) ?></span></td>
+<td class="wpd-col-right<?= $countClass ?>"><?= $view->e((string) $stats['count']) ?></td>
+<td class="wpd-col-right"><?= $view->e($fmt->ms($stats['total_time'])) ?></td>
+<td class="wpd-col-right"><?= $view->e($fmt->ms($avgTime)) ?></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>
@@ -78,13 +78,13 @@
     $rowClass = $isSlow ? 'wpd-row-slow' : ($isDuplicate ? 'wpd-row-duplicate' : '');
     $startTime = (float) ($query['start'] ?? 0);
     $relTime = $fmt->relativeTime($startTime, $requestTimeFloat);
-?>
+    ?>
 <tr class="<?= $rowClass ?>">
-<td class="wpd-col-num"><?= $this->e((string) ($index + 1)) ?></td>
-<td class="wpd-col-reltime wpd-text-dim"><?= $this->e($relTime) ?></td>
-<td class="wpd-col-sql"><code><?= $this->e($sql) ?></code><?php if ($isSlow): ?><?= $this->include('toolbar/partials/badge', ['label' => 'SLOW', 'color' => 'red']) ?><?php endif; ?><?php if ($isDuplicate): ?><?= $this->include('toolbar/partials/badge', ['label' => 'DUP', 'color' => 'yellow']) ?><?php endif; ?></td>
-<td class="wpd-col-time"><?= $this->e($fmt->ms($timeMs)) ?></td>
-<td class="wpd-col-caller"><span class="wpd-caller"><?= $this->e($query['caller']) ?></span></td>
+<td class="wpd-col-num"><?= $view->e((string) ($index + 1)) ?></td>
+<td class="wpd-col-reltime wpd-text-dim"><?= $view->e($relTime) ?></td>
+<td class="wpd-col-sql"><code><?= $view->e($sql) ?></code><?php if ($isSlow): ?><?= $view->include('toolbar/partials/badge', ['label' => 'SLOW', 'color' => 'red']) ?><?php endif; ?><?php if ($isDuplicate): ?><?= $view->include('toolbar/partials/badge', ['label' => 'DUP', 'color' => 'yellow']) ?><?php endif; ?></td>
+<td class="wpd-col-time"><?= $view->e($fmt->ms($timeMs)) ?></td>
+<td class="wpd-col-caller"><span class="wpd-caller"><?= $view->e($query['caller']) ?></span></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>

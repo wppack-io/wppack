@@ -18,14 +18,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title><?= $this->e($shortClass) ?> - WpPack Debug</title>
+<title><?= $view->e($shortClass) ?> - WpPack Debug</title>
 <style>
 /* ── Reset ─────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 /* ── Variables / Base ──────────────────────────────────── */
 :root {
-<?= $this->raw($cssVariables) ?>
+<?= $view->raw($cssVariables) ?>
 }
 
 html { font-size: 13px; }
@@ -225,8 +225,8 @@ body {
 <!-- ═══ Header ═══ -->
 <div class="header">
   <div class="header-inner">
-    <div class="exception-class"><?= $this->e($class) ?><?= $this->raw($codeLabel) ?></div>
-    <div class="exception-message"><?= $this->e($message) ?></div>
+    <div class="exception-class"><?= $view->e($class) ?><?= $view->raw($codeLabel) ?></div>
+    <div class="exception-message"><?= $view->e($message) ?></div>
   </div>
 </div>
 
@@ -235,20 +235,20 @@ body {
 <!-- ═══ Stack Trace ═══ -->
 <div class="section">
   <div class="section-title">Stack Trace</div>
-  <?= $this->raw($traceHtml) ?>
+  <?= $view->raw($traceHtml) ?>
 </div>
 
 <?php if ($chainCount > 1): ?>
 <!-- ═══ Previous Exceptions ═══ -->
 <div class="section">
-  <div class="section-title">Previous Exceptions (<?= $this->e((string) ($chainCount - 1)) ?>)</div>
-  <?= $this->raw($chainHtml) ?>
+  <div class="section-title">Previous Exceptions (<?= $view->e((string) ($chainCount - 1)) ?>)</div>
+  <?= $view->raw($chainHtml) ?>
 </div>
 <?php endif; ?>
 
 </div><!-- .container -->
 
-<?= $this->raw($toolbarHtml) ?>
+<?= $view->raw($toolbarHtml) ?>
 
 <script>
 /* ── Accordion toggle ── */

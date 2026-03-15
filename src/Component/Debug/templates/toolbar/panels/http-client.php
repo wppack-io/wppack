@@ -14,10 +14,10 @@
 <div class="wpd-section">
 <h4 class="wpd-section-title">Summary</h4>
 <table class="wpd-table wpd-table-kv">
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Total Requests', 'value' => (string) $totalCount]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Total Time', 'value' => $fmt->ms($totalTime)]) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Errors', 'value' => (string) $errorCount, 'valueClass' => $errorCount > 0 ? 'wpd-text-red' : '']) ?>
-<?= $this->include('toolbar/partials/table-row', ['key' => 'Slow Requests', 'value' => (string) $slowCount, 'valueClass' => $slowCount > 0 ? 'wpd-text-yellow' : '']) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Total Requests', 'value' => (string) $totalCount]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Total Time', 'value' => $fmt->ms($totalTime)]) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Errors', 'value' => (string) $errorCount, 'valueClass' => $errorCount > 0 ? 'wpd-text-red' : '']) ?>
+<?= $view->include('toolbar/partials/table-row', ['key' => 'Slow Requests', 'value' => (string) $slowCount, 'valueClass' => $slowCount > 0 ? 'wpd-text-yellow' : '']) ?>
 </table>
 </div>
 <?php if (!empty($requests)): ?>
@@ -40,15 +40,15 @@
     $startTime = (float) ($request['start'] ?? 0);
     $relTime = $fmt->relativeTime($startTime, $requestTimeFloat);
     $method = (string) ($request['method'] ?? 'GET');
-?>
+    ?>
 <tr>
-<td class="wpd-col-num"><?= $this->e((string) ($index + 1)) ?></td>
-<td class="wpd-col-reltime wpd-text-dim"><?= $this->e($relTime) ?></td>
-<td><?= $this->include('toolbar/partials/method-badge', ['method' => $method, 'fmt' => $fmt]) ?></td>
-<td><code><?= $this->e($request['url'] ?? '') ?></code></td>
-<td class="<?= $statusColor ?>"><?= $statusCode > 0 ? $this->e((string) $statusCode) : '-' ?><?php if (($request['error'] ?? '') !== ''): ?><br><small class="wpd-text-red"><?= $this->e($request['error']) ?></small><?php endif; ?></td>
-<td class="wpd-col-right"><?= $this->e($fmt->ms((float) ($request['duration'] ?? 0.0))) ?></td>
-<td class="wpd-col-right"><?= $this->e($fmt->bytes((int) ($request['response_size'] ?? 0))) ?></td>
+<td class="wpd-col-num"><?= $view->e((string) ($index + 1)) ?></td>
+<td class="wpd-col-reltime wpd-text-dim"><?= $view->e($relTime) ?></td>
+<td><?= $view->include('toolbar/partials/method-badge', ['method' => $method, 'fmt' => $fmt]) ?></td>
+<td><code><?= $view->e($request['url'] ?? '') ?></code></td>
+<td class="<?= $statusColor ?>"><?= $statusCode > 0 ? $view->e((string) $statusCode) : '-' ?><?php if (($request['error'] ?? '') !== ''): ?><br><small class="wpd-text-red"><?= $view->e($request['error']) ?></small><?php endif; ?></td>
+<td class="wpd-col-right"><?= $view->e($fmt->ms((float) ($request['duration'] ?? 0.0))) ?></td>
+<td class="wpd-col-right"><?= $view->e($fmt->bytes((int) ($request['response_size'] ?? 0))) ?></td>
 </tr>
 <?php endforeach; ?>
 </tbody></table>

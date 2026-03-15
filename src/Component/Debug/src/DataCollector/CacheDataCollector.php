@@ -81,7 +81,8 @@ final class CacheDataCollector extends AbstractDataCollector
     }
 
     /**
-     * Hook callback for setted_transient / setted_site_transient.
+     * Hook callback for set_transient / set_site_transient (WP 6.8+)
+     * or setted_transient / setted_site_transient (WP < 6.8).
      */
     public function onTransientSet(string $transient = '', mixed $value = null, int $expiration = 0): void
     {
@@ -211,9 +212,15 @@ final class CacheDataCollector extends AbstractDataCollector
             return;
         }
 
-        add_action('setted_transient', [$this, 'onTransientSet'], 10, 3);
+        // WP 6.8+ renamed 'setted_transient' → 'set_transient' (old hooks deprecated).
+        // Use new hooks on 6.8+, fall back to old hooks on earlier versions.
+        $useNewHooks = version_compare(get_bloginfo('version'), '6.8', '>=');
+        $setHook = $useNewHooks ? 'set_transient' : 'setted_transient';
+        $setSiteHook = $useNewHooks ? 'set_site_transient' : 'setted_site_transient';
+
+        add_action($setHook, [$this, 'onTransientSet'], 10, 3);
         add_action('deleted_transient', [$this, 'onTransientDeleted'], 10, 1);
-        add_action('setted_site_transient', [$this, 'onTransientSet'], 10, 3);
+        add_action($setSiteHook, [$this, 'onTransientSet'], 10, 3);
         add_action('deleted_site_transient', [$this, 'onTransientDeleted'], 10, 1);
     }
 }
