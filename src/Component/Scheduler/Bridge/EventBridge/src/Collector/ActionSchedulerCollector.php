@@ -22,6 +22,9 @@ final class ActionSchedulerCollector
         }
 
         $store = \ActionScheduler::store();
+        // per_page: -1 fetches all pending actions at once.
+        // This is intended for migration/sync operations (e.g., plugin activation, WP-CLI).
+        // For large-scale sites, consider batching with pagination instead.
         $actionIds = $store->query_actions([
             'status' => \ActionScheduler_Store::STATUS_PENDING,
             'per_page' => -1,
@@ -60,7 +63,7 @@ final class ActionSchedulerCollector
         return $actions;
     }
 
-    private function resolveScheduleType(\ActionScheduler_Schedule_Interface $schedule): string
+    private function resolveScheduleType(\ActionScheduler_Schedule $schedule): string
     {
         return match (true) {
             $schedule instanceof \ActionScheduler_CronSchedule => 'cron',
@@ -70,19 +73,19 @@ final class ActionSchedulerCollector
         };
     }
 
-    private function resolveInterval(\ActionScheduler_Schedule_Interface $schedule): int
+    private function resolveInterval(\ActionScheduler_Schedule $schedule): int
     {
         if ($schedule instanceof \ActionScheduler_IntervalSchedule) {
-            return $schedule->get_recurrence();
+            return (int) $schedule->get_recurrence();
         }
 
         return 0;
     }
 
-    private function resolveCronExpression(\ActionScheduler_Schedule_Interface $schedule): string
+    private function resolveCronExpression(\ActionScheduler_Schedule $schedule): string
     {
         if ($schedule instanceof \ActionScheduler_CronSchedule) {
-            return $schedule->get_recurrence();
+            return (string) $schedule->get_recurrence();
         }
 
         return '';

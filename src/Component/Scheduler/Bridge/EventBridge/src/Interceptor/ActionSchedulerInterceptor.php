@@ -119,7 +119,7 @@ final class ActionSchedulerInterceptor
      *
      * @return array{0: string, 1: bool} [expression, autoDelete]
      */
-    private function resolveExpression(\ActionScheduler_Schedule_Interface $schedule): array
+    private function resolveExpression(\ActionScheduler_Schedule $schedule): array
     {
         return match (true) {
             $schedule instanceof \ActionScheduler_CronSchedule => [
@@ -127,7 +127,7 @@ final class ActionSchedulerInterceptor
                 false,
             ],
             $schedule instanceof \ActionScheduler_IntervalSchedule => [
-                $this->scheduleFactory->fromWpCronInterval($schedule->get_recurrence())['expression'],
+                $this->scheduleFactory->fromWpCronInterval((int) $schedule->get_recurrence())['expression'],
                 false,
             ],
             $schedule instanceof \ActionScheduler_SimpleSchedule => [

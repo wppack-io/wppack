@@ -9,6 +9,9 @@
         "wppack/messenger": "^1.0",
         "async-aws/scheduler": "^1.0"
     },
+    "require-dev": {
+        "woocommerce/action-scheduler": "^3.7"
+    },
     "autoload": {
         "psr-4": {
             "WpPack\\Component\\Scheduler\\Bridge\\EventBridge\\": "src/"

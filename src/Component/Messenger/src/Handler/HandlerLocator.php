@@ -23,7 +23,7 @@ final class HandlerLocator implements HandlerLocatorInterface
 
     public function addHandler(string $messageClass, callable $handler, string $name = ''): void
     {
-        if ($name === '' && is_array($handler)) {
+        if ($name === '' && is_array($handler) && \count($handler) >= 2) {
             $name = (is_object($handler[0]) ? $handler[0]::class : $handler[0]) . '::' . $handler[1];
         } elseif ($name === '' && $handler instanceof \Closure) {
             $name = 'Closure';

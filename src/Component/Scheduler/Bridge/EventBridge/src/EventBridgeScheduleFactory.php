@@ -160,9 +160,16 @@ final class EventBridgeScheduleFactory
         }
 
         // Extract inner trigger via reflection (JitterTrigger wraps another trigger)
-        $ref = new \ReflectionClass($trigger);
-        $prop = $ref->getProperty('inner');
+        try {
+            $ref = new \ReflectionClass($trigger);
+            $prop = $ref->getProperty('inner');
 
-        return $prop->getValue($trigger);
+            return $prop->getValue($trigger);
+        } catch (\ReflectionException $e) {
+            throw new InvalidArgumentException(sprintf(
+                'Failed to unwrap JitterTrigger: %s',
+                $e->getMessage(),
+            ), previous: $e);
+        }
     }
 }

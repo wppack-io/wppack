@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Scheduler\Bridge\EventBridge\Handler;
 
+use Psr\Log\LoggerInterface;
 use WpPack\Component\Messenger\Attribute\AsMessageHandler;
 use WpPack\Component\Scheduler\Message\WpCronMessage;
 
@@ -16,6 +17,10 @@ use WpPack\Component\Scheduler\Message\WpCronMessage;
 #[AsMessageHandler]
 final class WpCronMessageHandler
 {
+    public function __construct(
+        private readonly ?LoggerInterface $logger = null,
+    ) {}
+
     public function __invoke(WpCronMessage $message): void
     {
         // Execute the WordPress action — identical to wp-cron.php behavior
@@ -38,6 +43,11 @@ final class WpCronMessageHandler
         $interval = $schedules[$message->schedule]['interval'] ?? 0;
 
         if ($interval <= 0) {
+            $this->logger?->warning(
+                'WP-Cron schedule "{schedule}" not found for hook "{hook}"; skipping next-run update.',
+                ['schedule' => $message->schedule, 'hook' => $message->hook],
+            );
+
             return;
         }
 

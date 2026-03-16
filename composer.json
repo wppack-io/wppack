@@ -29,6 +29,7 @@
         "phpunit/phpunit": "^11.5",
         "predis/predis": "^2.0",
         "roots/wordpress-no-content": "^6.9",
+        "woocommerce/action-scheduler": "^3.7",
         "szepeviktor/phpstan-wordpress": "^2.0",
         "twig/twig": "^3.0",
         "wp-phpunit/wp-phpunit": "^6.9",

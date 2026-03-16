@@ -41,7 +41,7 @@ final class SqsTransport implements TransportInterface
         $delayStamp = $envelope->last(DelayStamp::class);
 
         if ($delayStamp !== null) {
-            $delaySeconds = (int) ceil($delayStamp->delayInMilliseconds / 1000);
+            $delaySeconds = max(0, (int) ceil($delayStamp->delayInMilliseconds / 1000));
             $input['DelaySeconds'] = min($delaySeconds, self::MAX_SQS_DELAY_SECONDS);
         }
 

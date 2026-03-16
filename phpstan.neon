@@ -12,6 +12,7 @@ parameters:
         - src/Component/*/templates/*
     scanDirectories:
         - vendor/roots/wordpress-no-content/wp-includes/
+        - vendor/woocommerce/action-scheduler/
     ignoreErrors:
         -
             identifier: trait.unused
@@ -20,9 +21,3 @@ parameters:
             identifier: function.resultUnused
             path: src/Component/Scheduler/Bridge/EventBridge/src/Interceptor/*
             reportUnmatched: false
-        -
-            identifier: class.notFound
-            path: src/Component/Scheduler/Bridge/EventBridge/src/Interceptor/ActionSchedulerInterceptor.php
-        -
-            identifier: class.notFound
-            path: src/Component/Scheduler/Bridge/EventBridge/src/Collector/ActionSchedulerCollector.php

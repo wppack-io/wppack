@@ -11,6 +11,11 @@ use WpPack\Component\Messenger\Stamp\ReceivedStamp;
 
 final class SqsEventHandler
 {
+    /**
+     * Tracks whether WordPress has already been bootstrapped in this process.
+     * Lambda reuses containers across invocations — this flag prevents loading
+     * wp-load.php multiple times within the same container lifecycle.
+     */
     private static bool $booted = false;
 
     public function __construct(
@@ -96,9 +101,14 @@ final class SqsEventHandler
 
         $wpLoadPath = rtrim($this->wordpressPath, '/') . '/wp-load.php';
 
-        if (file_exists($wpLoadPath)) {
-            require_once $wpLoadPath;
+        if (!file_exists($wpLoadPath)) {
+            throw new \RuntimeException(sprintf(
+                'WordPress bootstrap file not found at "%s".',
+                $wpLoadPath,
+            ));
         }
+
+        require_once $wpLoadPath;
 
         self::$booted = true;
     }

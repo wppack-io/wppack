@@ -15,24 +15,32 @@ final class JsonSerializer implements SerializerInterface
      */
     public function encode(Envelope $envelope): array
     {
-        $message = $envelope->getMessage();
-        $stamps = [];
+        try {
+            $message = $envelope->getMessage();
+            $stamps = [];
 
-        $allStamps = $envelope->all(); // @phpstan-ignore argument.templateType
-        foreach ($allStamps as $stamp) {
-            $stamps[$stamp::class][] = $this->normalizeStamp($stamp);
+            $allStamps = $envelope->all(); // @phpstan-ignore argument.templateType
+            foreach ($allStamps as $stamp) {
+                $stamps[$stamp::class][] = $this->normalizeStamp($stamp);
+            }
+
+            return [
+                'headers' => [
+                    'type' => $message::class,
+                    'stamps' => $stamps,
+                ],
+                'body' => json_encode(
+                    $this->normalizeMessage($message),
+                    \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_UNICODE,
+                ),
+            ];
+        } catch (\JsonException $e) {
+            throw new MessageDecodingFailedException(sprintf(
+                'Could not encode message of class "%s": %s',
+                $envelope->getMessage()::class,
+                $e->getMessage(),
+            ), previous: $e);
         }
-
-        return [
-            'headers' => [
-                'type' => $message::class,
-                'stamps' => $stamps,
-            ],
-            'body' => json_encode(
-                $this->normalizeMessage($message),
-                \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_UNICODE,
-            ),
-        ];
     }
 
     /**
