@@ -5,6 +5,12 @@ Handles `.wpress` archive files used by All-in-One WP Migration. Provides a `Zip
 > **Copyright & Attribution**
 > The `.wpress` format and All-in-One WP Migration are developed by and copyright of ServMask Inc. (Copyright (C) 2014-2025 ServMask Inc.). The original plugin is distributed under the GPLv3 license. This component is an independent implementation of the `.wpress` format and is not official software of or affiliated with ServMask Inc.
 
+## Why .wpress?
+
+`.wpress` is an open source archive format created by ServMask Inc. for All-in-One WP Migration — the most widely used WordPress migration plugin with 5M+ active installs. ServMask describes it as "our open source archive format" on [servmask.com](https://www.servmask.com/), and the plugin is distributed under GPLv3.
+
+By implementing `.wpress` natively, WpPack enables reading, creating, and modifying WordPress backups without depending on the AI1WM plugin itself — making it possible to integrate `.wpress` operations into custom toolchains, CI/CD pipelines, and migration workflows.
+
 ## Installation
 
 ```bash

@@ -46,6 +46,33 @@ $archive->extractTo('/dest');
 $archive->close();
 ```
 
+## `.wpress` フォーマットを採用する理由
+
+### オープンソースのアーカイブフォーマット
+
+`.wpress` は All-in-One WP Migration（AI1WM）の開発元である ServMask Inc. が公式サイトで「our open source archive format」と位置づけているオープンソースのアーカイブフォーマットです。
+
+> "Export your site into one tidy bundle using WPRESS, our open source archive format."
+> — [servmask.com](https://www.servmask.com/)
+
+AI1WM プラグイン自体が GPLv3 で公開されており、フォーマット仕様はソースコードから完全に読み取れます。Go（[yani-/wpress](https://github.com/yani-/wpress)）、Python（[kugland/wpressarc](https://github.com/kugland/wpressarc)）、Rust（wpress-oxide）等の複数言語で独立した実装が存在するエコシステムが形成されています。
+
+### WordPress マイグレーションのデファクト標準
+
+AI1WM は 500 万以上のアクティブインストールを持つ、最も広く利用されている WordPress マイグレーションプラグインです。`.wpress` フォーマットを直接操作できることで、以下が可能になります：
+
+- **既存資産の活用**: 世界中で蓄積されている `.wpress` バックアップを、AI1WM プラグインに依存せずに読み取り・展開できる
+- **ベンダーロックインの回避**: バックアップの作成・編集・検査をプログラマブルに行える
+- **ツールチェーンの構築**: CI/CD パイプラインやカスタムスクリプトに `.wpress` 操作を組み込める
+
+### 低メモリ環境に最適化された設計
+
+`.wpress` は共有ホスティング等の制約されたPHP環境で大規模サイトをストリーミング処理できるよう設計されています：
+
+- **シーケンシャル構造**: tar ライクな「ヘッダー + コンテンツ」の繰り返しで、先頭から順次読み取りだけで処理が完結する（ZIP のようにセントラルディレクトリを末尾に持たない）
+- **チャンク単位の暗号化・圧縮**: 512KB チャンクで AES-256-CBC 暗号化 / gzip・bzip2 圧縮を行うため、大ファイルでもメモリ消費が一定
+- **WordPress 専用メタデータ**: `package.json` にサイト URL、WordPress バージョン、データベース情報等を格納し、マイグレーションに必要な情報を一箇所に集約
+
 ## `.wpress` ファイル形式
 
 `.wpress` は All-in-One WP Migration 独自のバイナリアーカイブ形式です。tar に近いシーケンシャル構造で、固定長ヘッダー（4377 bytes）+ ファイルコンテンツの繰り返しで構成されます。マジックナンバーやグローバルヘッダーはありません。
