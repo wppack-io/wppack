@@ -147,6 +147,10 @@ component_management:
       name: SqsMessenger
       paths:
         - src/Component/Messenger/Bridge/Sqs/src/**
+    - component_id: serializer
+      name: Serializer
+      paths:
+        - src/Component/Serializer/src/**
     - component_id: stopwatch
       name: Stopwatch
       paths:

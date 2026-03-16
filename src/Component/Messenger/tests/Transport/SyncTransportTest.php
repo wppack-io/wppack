@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Messenger\Envelope;
+use WpPack\Component\Messenger\Stamp\SentStamp;
 use WpPack\Component\Messenger\Transport\SyncTransport;
 use WpPack\Component\Messenger\Transport\TransportInterface;
 
@@ -31,13 +32,14 @@ final class SyncTransportTest extends TestCase
     }
 
     #[Test]
-    public function sendReturnsSameEnvelope(): void
+    public function sendAddsSentStamp(): void
     {
         $transport = new SyncTransport();
         $envelope = Envelope::wrap(new \stdClass());
 
         $result = $transport->send($envelope);
 
-        self::assertSame($envelope, $result);
+        self::assertNotNull($result->last(SentStamp::class));
+        self::assertSame('sync', $result->last(SentStamp::class)->transportName);
     }
 }

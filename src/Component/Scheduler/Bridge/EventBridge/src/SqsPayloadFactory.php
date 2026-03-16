@@ -7,6 +7,12 @@ namespace WpPack\Component\Scheduler\Bridge\EventBridge;
 use WpPack\Component\Messenger\Stamp\StampInterface;
 use WpPack\Component\Scheduler\Message\ActionSchedulerMessage;
 use WpPack\Component\Scheduler\Message\WpCronMessage;
+use WpPack\Component\Serializer\Encoder\JsonEncoder;
+use WpPack\Component\Serializer\Normalizer\BackedEnumNormalizer;
+use WpPack\Component\Serializer\Normalizer\DateTimeNormalizer;
+use WpPack\Component\Serializer\Normalizer\ObjectNormalizer;
+use WpPack\Component\Serializer\Serializer;
+use WpPack\Component\Serializer\SerializerInterface;
 
 /**
  * Builds SQS message payloads compatible with SqsEventHandler + JsonSerializer::decode().
@@ -17,6 +23,17 @@ use WpPack\Component\Scheduler\Message\WpCronMessage;
  */
 final class SqsPayloadFactory
 {
+    private readonly SerializerInterface $serializer;
+
+    public function __construct(
+        ?SerializerInterface $serializer = null,
+    ) {
+        $this->serializer = $serializer ?? new Serializer(
+            normalizers: [new BackedEnumNormalizer(), new DateTimeNormalizer(), new ObjectNormalizer()],
+            encoders: [new JsonEncoder()],
+        );
+    }
+
     /**
      * Create an SQS payload from a message object and optional stamps.
      *
@@ -26,7 +43,7 @@ final class SqsPayloadFactory
     {
         $normalizedStamps = [];
         foreach ($stamps as $stamp) {
-            $normalizedStamps[$stamp::class][] = $this->normalizeStamp($stamp);
+            $normalizedStamps[$stamp::class][] = $this->serializer->normalize($stamp);
         }
 
         return json_encode([
@@ -35,7 +52,7 @@ final class SqsPayloadFactory
                 'stamps' => $normalizedStamps,
             ],
             'body' => json_encode(
-                $this->normalizeMessage($message),
+                $this->serializer->normalize($message),
                 \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_UNICODE,
             ),
         ], \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_UNICODE);
@@ -87,35 +104,5 @@ final class SqsPayloadFactory
             ),
             $stamps,
         );
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function normalizeMessage(object $message): array
-    {
-        $ref = new \ReflectionClass($message);
-        $data = [];
-
-        foreach ($ref->getProperties(\ReflectionProperty::IS_PUBLIC) as $prop) {
-            $data[$prop->getName()] = $prop->getValue($message);
-        }
-
-        return $data;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function normalizeStamp(StampInterface $stamp): array
-    {
-        $ref = new \ReflectionClass($stamp);
-        $data = [];
-
-        foreach ($ref->getProperties(\ReflectionProperty::IS_PUBLIC) as $prop) {
-            $data[$prop->getName()] = $prop->getValue($stamp);
-        }
-
-        return $data;
     }
 }

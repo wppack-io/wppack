@@ -12,6 +12,7 @@ use WpPack\Component\Scheduler\Trigger\WpCronScheduleTrigger;
 
 final class RecurringMessage implements ScheduledMessage
 {
+    // Intentionally mutable: allows factory-chain usage e.g. RecurringMessage::every('1 hour', $msg)->name('my-task')
     private ?string $name = null;
 
     private function __construct(

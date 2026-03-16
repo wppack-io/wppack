@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Messenger\Transport;
 
 use WpPack\Component\Messenger\Envelope;
+use WpPack\Component\Messenger\Stamp\SentStamp;
 
 final class SyncTransport implements TransportInterface
 {
@@ -15,6 +16,6 @@ final class SyncTransport implements TransportInterface
 
     public function send(Envelope $envelope): Envelope
     {
-        return $envelope;
+        return $envelope->with(new SentStamp($this->getName()));
     }
 }

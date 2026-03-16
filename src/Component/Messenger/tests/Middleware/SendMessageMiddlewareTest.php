@@ -68,7 +68,7 @@ final class SendMessageMiddlewareTest extends TestCase
             {
                 $this->sentRef[] = $envelope;
 
-                return $envelope;
+                return $envelope->with(new SentStamp($this->getName()));
             }
         };
 

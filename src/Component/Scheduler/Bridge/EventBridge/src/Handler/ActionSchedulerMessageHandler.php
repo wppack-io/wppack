@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Scheduler\Bridge\EventBridge\Handler;
 
+use Psr\Log\LoggerInterface;
 use WpPack\Component\Messenger\Attribute\AsMessageHandler;
 use WpPack\Component\Scheduler\Message\ActionSchedulerMessage;
 
@@ -17,6 +18,10 @@ use WpPack\Component\Scheduler\Message\ActionSchedulerMessage;
 #[AsMessageHandler]
 final class ActionSchedulerMessageHandler
 {
+    public function __construct(
+        private readonly ?LoggerInterface $logger = null,
+    ) {}
+
     public function __invoke(ActionSchedulerMessage $message): void
     {
         do_action_ref_array($message->hook, $message->args);
@@ -24,8 +29,12 @@ final class ActionSchedulerMessageHandler
         if ($message->actionId > 0 && class_exists(\ActionScheduler::class)) {
             try {
                 \ActionScheduler::store()->mark_complete($message->actionId);
-            } catch (\Exception) {
-                // Action already completed or deleted — safe to ignore
+            } catch (\Exception $e) {
+                $this->logger?->warning('Failed to mark Action Scheduler action {actionId} as complete: {error}', [
+                    'actionId' => $message->actionId,
+                    'error' => $e->getMessage(),
+                    'hook' => $message->hook,
+                ]);
             }
         }
     }

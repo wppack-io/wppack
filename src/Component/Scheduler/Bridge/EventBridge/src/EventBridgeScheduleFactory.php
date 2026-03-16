@@ -141,6 +141,9 @@ final class EventBridgeScheduleFactory
     }
 
     /**
+     * Past datetimes are intentionally supported: EventBridge at() executes immediately
+     * when the scheduled time is in the past, which matches WP-Cron's behavior for overdue events.
+     *
      * @return array{expression: string, type: 'at'}
      */
     private function fromDateTime(\DateTimeImmutable $dateTime): array
@@ -155,21 +158,10 @@ final class EventBridgeScheduleFactory
 
     private function unwrapJitter(TriggerInterface $trigger): TriggerInterface
     {
-        if (!$trigger instanceof JitterTrigger) {
-            return $trigger;
+        if ($trigger instanceof JitterTrigger) {
+            return $trigger->getInnerTrigger();
         }
 
-        // Extract inner trigger via reflection (JitterTrigger wraps another trigger)
-        try {
-            $ref = new \ReflectionClass($trigger);
-            $prop = $ref->getProperty('inner');
-
-            return $prop->getValue($trigger);
-        } catch (\ReflectionException $e) {
-            throw new InvalidArgumentException(sprintf(
-                'Failed to unwrap JitterTrigger: %s',
-                $e->getMessage(),
-            ), previous: $e);
-        }
+        return $trigger;
     }
 }

@@ -1,0 +1,60 @@
+# Serializer Component
+
+Object serialization with normalizer chain for WpPack.
+
+## Installation
+
+```bash
+composer require wppack/serializer
+```
+
+## Usage
+
+```php
+use WpPack\Component\Serializer\Encoder\JsonEncoder;
+use WpPack\Component\Serializer\Normalizer\BackedEnumNormalizer;
+use WpPack\Component\Serializer\Normalizer\DateTimeNormalizer;
+use WpPack\Component\Serializer\Normalizer\ObjectNormalizer;
+use WpPack\Component\Serializer\Serializer;
+
+$serializer = new Serializer(
+    normalizers: [
+        new BackedEnumNormalizer(),
+        new DateTimeNormalizer(),
+        new ObjectNormalizer(),
+    ],
+    encoders: [new JsonEncoder()],
+);
+
+// Serialize
+$json = $serializer->serialize($myObject, 'json');
+
+// Deserialize
+$object = $serializer->deserialize($json, MyClass::class, 'json');
+
+// Normalize / Denormalize
+$array = $serializer->normalize($myObject);
+$object = $serializer->denormalize($array, MyClass::class);
+```
+
+## Architecture
+
+Follows Symfony Serializer's normalizer + encoder chain pattern:
+
+- **Normalizers** convert objects to arrays and back
+- **Encoders** convert arrays to string formats (JSON, etc.) and back
+- **Serializer** orchestrates: `serialize()` = `normalize()` → `encode()`
+
+### Built-in Normalizers
+
+| Normalizer | Handles |
+|---|---|
+| `BackedEnumNormalizer` | `BackedEnum` ↔ scalar value |
+| `DateTimeNormalizer` | `DateTimeInterface` ↔ ISO 8601 string |
+| `ObjectNormalizer` | Objects ↔ arrays via public properties / constructor |
+
+### Built-in Encoders
+
+| Encoder | Format |
+|---|---|
+| `JsonEncoder` | JSON (`json_encode` / `json_decode` with `JSON_THROW_ON_ERROR`) |

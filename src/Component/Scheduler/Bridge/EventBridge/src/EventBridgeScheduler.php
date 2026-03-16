@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Scheduler\Bridge\EventBridge;
 
+use AsyncAws\Scheduler\Exception\ConflictException;
 use AsyncAws\Scheduler\Exception\ResourceNotFoundException;
 use AsyncAws\Scheduler\Input\CreateScheduleInput;
 use AsyncAws\Scheduler\Input\DeleteScheduleInput;
 use AsyncAws\Scheduler\Input\GetScheduleInput;
+use AsyncAws\Scheduler\Input\UpdateScheduleInput;
 use AsyncAws\Scheduler\SchedulerClient;
 use WpPack\Component\Scheduler\Bridge\EventBridge\Exception\EventBridgeException;
 use WpPack\Component\Scheduler\Message\ScheduledMessage;
@@ -78,9 +80,10 @@ class EventBridgeScheduler implements SchedulerInterface
     }
 
     /**
-     * Create an EventBridge schedule directly without going through TriggerInterface.
+     * Create or update an EventBridge schedule (upsert).
      *
      * Used by WpCronInterceptor to create schedules from raw WP-Cron parameters.
+     * Falls back to UpdateScheduleInput on ConflictException for idempotent upsert.
      */
     public function createScheduleRaw(
         string $scheduleId,
@@ -88,25 +91,34 @@ class EventBridgeScheduler implements SchedulerInterface
         string $payload,
         bool $autoDelete = false,
     ): void {
+        $input = [
+            'Name' => $scheduleId,
+            'GroupName' => $this->groupName,
+            'ScheduleExpression' => $expression,
+            'ScheduleExpressionTimezone' => 'UTC',
+            'FlexibleTimeWindow' => ['Mode' => 'OFF'],
+            'Target' => [
+                'Arn' => $this->targetArn,
+                'RoleArn' => $this->roleArn,
+                'Input' => $payload,
+            ],
+        ];
+
+        if ($autoDelete) {
+            $input['ActionAfterCompletion'] = 'DELETE';
+        }
+
         try {
-            $input = [
-                'Name' => $scheduleId,
-                'GroupName' => $this->groupName,
-                'ScheduleExpression' => $expression,
-                'ScheduleExpressionTimezone' => 'UTC',
-                'FlexibleTimeWindow' => ['Mode' => 'OFF'],
-                'Target' => [
-                    'Arn' => $this->targetArn,
-                    'RoleArn' => $this->roleArn,
-                    'Input' => $payload,
-                ],
-            ];
-
-            if ($autoDelete) {
-                $input['ActionAfterCompletion'] = 'DELETE';
-            }
-
             $this->schedulerClient->createSchedule(new CreateScheduleInput($input));
+        } catch (ConflictException) {
+            try {
+                $this->schedulerClient->updateSchedule(new UpdateScheduleInput($input));
+            } catch (\Throwable $e) {
+                throw new EventBridgeException(
+                    sprintf('Failed to update schedule "%s": %s', $scheduleId, $e->getMessage()),
+                    previous: $e,
+                );
+            }
         } catch (\Throwable $e) {
             throw new EventBridgeException(
                 sprintf('Failed to create schedule "%s": %s', $scheduleId, $e->getMessage()),

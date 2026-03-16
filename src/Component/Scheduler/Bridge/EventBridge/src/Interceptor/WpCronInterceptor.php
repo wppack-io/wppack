@@ -179,9 +179,18 @@ final class WpCronInterceptor
             $scheduleId = $this->idGenerator->forWpCronEvent($hook, $args, $schedule, (int) $timestamp);
 
             $this->scheduler->unschedule($scheduleId);
-            $this->removeFromCronArray((int) $timestamp, $hook, $args);
+
+            unset($crons[$timestamp][$hook][$key]);
+            if (empty($crons[$timestamp][$hook])) {
+                unset($crons[$timestamp][$hook]);
+            }
+            if (empty($crons[$timestamp])) {
+                unset($crons[$timestamp]);
+            }
             $count++;
         }
+
+        _set_cron_array($crons);
 
         return $count;
     }

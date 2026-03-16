@@ -60,6 +60,7 @@ WordPress API やデータアクセスを抽象化し、テスト可能にする
 | [Mailer](./mailer/) | `wppack/mailer` | メール送信抽象化、TransportInterface |
 | [Messenger](./messenger/) | `wppack/messenger` | トランスポート非依存のメッセージバス |
 | [SqsMessenger](./messenger/sqs-messenger.md) | `wppack/sqs-messenger` | SQS トランスポート |
+| [Serializer](./serializer/) | `wppack/serializer` | オブジェクト直列化（Normalizer チェーン） |
 | [OptionsResolver](./options-resolver/) | `wppack/options-resolver` | オプション解決（Symfony OptionsResolver 拡張） |
 | [Debug](./debug/) | `wppack/debug` | デバッグツール |
 

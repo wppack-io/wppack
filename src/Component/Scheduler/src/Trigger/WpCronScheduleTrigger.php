@@ -20,15 +20,27 @@ final class WpCronScheduleTrigger implements TriggerInterface
     public function __construct(
         private readonly string $schedule,
     ) {
-        if (!isset(self::SCHEDULES[$this->schedule])) {
-            throw new InvalidArgumentException(sprintf(
-                'Unknown WP-Cron schedule "%s". Known schedules: %s.',
-                $this->schedule,
-                implode(', ', array_keys(self::SCHEDULES)),
-            ));
+        if (isset(self::SCHEDULES[$this->schedule])) {
+            $this->intervalInSeconds = self::SCHEDULES[$this->schedule];
+
+            return;
         }
 
-        $this->intervalInSeconds = self::SCHEDULES[$this->schedule];
+        // Fallback to WordPress registered schedules (e.g. fifteen_minutes, plugin-defined)
+        if (\function_exists('wp_get_schedules')) {
+            $wpSchedules = wp_get_schedules();
+            if (isset($wpSchedules[$this->schedule]['interval'])) {
+                $this->intervalInSeconds = (int) $wpSchedules[$this->schedule]['interval'];
+
+                return;
+            }
+        }
+
+        throw new InvalidArgumentException(sprintf(
+            'Unknown WP-Cron schedule "%s". Known schedules: %s.',
+            $this->schedule,
+            implode(', ', array_keys(self::SCHEDULES)),
+        ));
     }
 
     public function getScheduleName(): string

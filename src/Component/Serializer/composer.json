@@ -1,0 +1,15 @@
+{
+    "name": "wppack/serializer",
+    "description": "Object serialization with normalizer chain",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2"
+    },
+    "autoload": {
+        "psr-4": { "WpPack\\Component\\Serializer\\": "src/" }
+    },
+    "autoload-dev": {
+        "psr-4": { "WpPack\\Component\\Serializer\\Tests\\": "tests/" }
+    }
+}

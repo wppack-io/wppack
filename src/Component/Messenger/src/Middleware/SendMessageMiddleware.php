@@ -43,7 +43,6 @@ final class SendMessageMiddleware implements MiddlewareInterface
         if ($transportName !== null && isset($this->transports[$transportName])) {
             $transport = $this->transports[$transportName];
             $envelope = $transport->send($envelope);
-            $envelope = $envelope->with(new SentStamp($transport->getName()));
 
             // If not sync, don't proceed to handler (handler runs in the consumer/Lambda)
             if (!$transport instanceof SyncTransport) {

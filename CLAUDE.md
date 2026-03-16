@@ -80,6 +80,7 @@ WordPress プラグインとして配布。Component を利用。
 | SendGridMailer | wppack/sendgrid-mailer | SendGrid トランスポート実装 |
 | Messenger | wppack/messenger | メッセージングバス（SQS/Lambda） |
 | SqsMessenger | wppack/sqs-messenger | Amazon SQS トランスポート |
+| Serializer | wppack/serializer | オブジェクト直列化（Normalizer チェーン） |
 | OptionsResolver | wppack/options-resolver | オプション解決（Symfony OptionsResolver 拡張） |
 | Debug | wppack/debug | デバッグ・プロファイリング |
 
@@ -131,6 +132,10 @@ wppack/scheduler-plugin
 wppack/scheduler
     ↓ requires
 wppack/messenger
+
+wppack/messenger
+    ↓ requires
+wppack/serializer
 
 wppack/sqs-messenger
     ↓ requires

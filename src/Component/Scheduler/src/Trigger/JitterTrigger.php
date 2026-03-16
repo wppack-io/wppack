@@ -11,6 +11,11 @@ final class JitterTrigger implements TriggerInterface
         private readonly int $maxJitterSeconds = 60,
     ) {}
 
+    public function getInnerTrigger(): TriggerInterface
+    {
+        return $this->inner;
+    }
+
     public function getNextRunDate(\DateTimeImmutable $now, ?\DateTimeImmutable $lastRun = null): ?\DateTimeImmutable
     {
         $next = $this->inner->getNextRunDate($now, $lastRun);
