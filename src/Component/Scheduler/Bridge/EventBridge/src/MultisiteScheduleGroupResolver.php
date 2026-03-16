@@ -4,19 +4,21 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Scheduler\Bridge\EventBridge;
 
-final class MultisiteScheduleGroupResolver
+final class MultisiteScheduleGroupResolver implements ScheduleGroupResolverInterface
 {
-    private const DEFAULT_GROUP = 'wppack';
+    public function __construct(
+        private readonly string $prefix = 'wppack',
+    ) {}
 
     public function resolve(?int $blogId = null): string
     {
         $blogId ??= $this->getCurrentBlogId();
 
         if ($blogId <= 1) {
-            return self::DEFAULT_GROUP;
+            return $this->prefix;
         }
 
-        return self::DEFAULT_GROUP . '_' . $blogId;
+        return $this->prefix . '_' . $blogId;
     }
 
     private function getCurrentBlogId(): int

@@ -21,7 +21,7 @@ final class EventBridgeScheduler implements SchedulerInterface
         private readonly SchedulerClient $schedulerClient,
         private readonly EventBridgeScheduleFactory $scheduleFactory,
         private readonly SqsPayloadFactory $payloadFactory,
-        private readonly string $groupName,
+        private readonly ScheduleGroupResolverInterface $groupResolver,
         private readonly string $targetArn,
         private readonly string $roleArn,
     ) {}
@@ -44,7 +44,7 @@ final class EventBridgeScheduler implements SchedulerInterface
         try {
             $this->schedulerClient->deleteSchedule(new DeleteScheduleInput([
                 'Name' => $scheduleId,
-                'GroupName' => $this->groupName,
+                'GroupName' => $this->groupResolver->resolve(),
             ]));
         } catch (ResourceNotFoundException) {
             // Already deleted — idempotent
@@ -61,7 +61,7 @@ final class EventBridgeScheduler implements SchedulerInterface
         try {
             $this->schedulerClient->getSchedule(new GetScheduleInput([
                 'Name' => $scheduleId,
-                'GroupName' => $this->groupName,
+                'GroupName' => $this->groupResolver->resolve(),
             ]));
 
             return true;
@@ -98,7 +98,7 @@ final class EventBridgeScheduler implements SchedulerInterface
     ): void {
         $input = [
             'Name' => $scheduleId,
-            'GroupName' => $this->groupName,
+            'GroupName' => $this->groupResolver->resolve(),
             'ScheduleExpression' => $expression,
             'ScheduleExpressionTimezone' => 'UTC',
             'FlexibleTimeWindow' => ['Mode' => 'OFF'],

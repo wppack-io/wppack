@@ -86,12 +86,13 @@ EventBridge が指定時刻に発火
 
 ```php
 use WpPack\Component\Scheduler\Bridge\EventBridge\EventBridgeScheduler;
+use WpPack\Component\Scheduler\Bridge\EventBridge\MultisiteScheduleGroupResolver;
 
 $scheduler = new EventBridgeScheduler(
     schedulerClient: $schedulerClient,        // async-aws SchedulerClient
     scheduleFactory: $scheduleFactory,        // EventBridgeScheduleFactory
     payloadFactory: $payloadFactory,          // SqsPayloadFactory
-    groupName: 'wppack-default',              // スケジュールグループ名
+    groupResolver: new MultisiteScheduleGroupResolver(),  // ScheduleGroupResolverInterface
     targetArn: 'arn:aws:sqs:...:wppack',     // SQS ターゲット ARN
     roleArn: 'arn:aws:iam::...:role/...',    // IAM ロール ARN
 );
@@ -264,12 +265,16 @@ $factory->fromTimestamp(1700000000);   // → ['expression' => 'at(...)', 'type'
 
 ### MultisiteScheduleGroupResolver
 
-マルチサイト環境では、ブログごとにスケジュールグループを分離します。
+マルチサイト環境では、ブログごとにスケジュールグループを分離します。`ScheduleGroupResolverInterface` を実装し、`EventBridgeScheduler` に注入することで、`switch_to_blog()` 時にも正しいグループに操作が向きます。
 
 ```php
 use WpPack\Component\Scheduler\Bridge\EventBridge\MultisiteScheduleGroupResolver;
 
+// デフォルト prefix: 'wppack'
 $resolver = new MultisiteScheduleGroupResolver();
+
+// カスタム prefix
+$resolver = new MultisiteScheduleGroupResolver(prefix: 'myapp');
 
 $groupName = $resolver->resolve();     // 現在のブログ
 $groupName = $resolver->resolve(3);    // 特定のブログ
@@ -277,7 +282,7 @@ $groupName = $resolver->resolve(3);    // 特定のブログ
 
 ### グループ名テーブル
 
-| ブログ ID | グループ名 |
+| ブログ ID | グループ名（prefix: `wppack`） |
 |----------|-----------|
 | 1（メイン） | `wppack` |
 | 2 | `wppack_2` |
@@ -402,6 +407,7 @@ EventBridge が SQS にメッセージを送信するロール:
 use AsyncAws\Scheduler\SchedulerClient;
 use WpPack\Component\Scheduler\Bridge\EventBridge\EventBridgeScheduler;
 use WpPack\Component\Scheduler\Bridge\EventBridge\EventBridgeScheduleFactory;
+use WpPack\Component\Scheduler\Bridge\EventBridge\MultisiteScheduleGroupResolver;
 use WpPack\Component\Scheduler\Bridge\EventBridge\SqsPayloadFactory;
 use WpPack\Component\Scheduler\Message\RecurringMessage;
 
@@ -409,7 +415,7 @@ $scheduler = new EventBridgeScheduler(
     schedulerClient: new SchedulerClient(['region' => 'ap-northeast-1']),
     scheduleFactory: new EventBridgeScheduleFactory(),
     payloadFactory: new SqsPayloadFactory(),
-    groupName: WPPACK_SCHEDULER_GROUP,
+    groupResolver: new MultisiteScheduleGroupResolver(),
     targetArn: WPPACK_SCHEDULER_TARGET_ARN,
     roleArn: WPPACK_SCHEDULER_ROLE_ARN,
 );
@@ -600,6 +606,7 @@ $interceptor = new WpCronInterceptor(
 | `EventBridgeScheduler` | `SchedulerInterface` の EventBridge 実装 |
 | `EventBridgeScheduleFactory` | Trigger → EventBridge 式変換 |
 | `ScheduleIdGenerator` | WP-Cron / AS → スケジュール ID の決定的マッピング |
+| `ScheduleGroupResolverInterface` | グループ名解決インターフェース |
 | `MultisiteScheduleGroupResolver` | マルチサイト対応グループ名解決 |
 | `SqsPayloadFactory` | SQS ペイロード構築 |
 | `WpCronInterceptor` | WP-Cron API の EventBridge バックエンド差し替え |

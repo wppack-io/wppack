@@ -7,6 +7,7 @@ namespace WpPack\Component\Scheduler\Bridge\EventBridge\Tests;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Scheduler\Bridge\EventBridge\MultisiteScheduleGroupResolver;
+use WpPack\Component\Scheduler\Bridge\EventBridge\ScheduleGroupResolverInterface;
 
 final class MultisiteScheduleGroupResolverTest extends TestCase
 {
@@ -15,6 +16,12 @@ final class MultisiteScheduleGroupResolverTest extends TestCase
     protected function setUp(): void
     {
         $this->resolver = new MultisiteScheduleGroupResolver();
+    }
+
+    #[Test]
+    public function implementsScheduleGroupResolverInterface(): void
+    {
+        self::assertInstanceOf(ScheduleGroupResolverInterface::class, $this->resolver);
     }
 
     #[Test]
@@ -50,5 +57,21 @@ final class MultisiteScheduleGroupResolverTest extends TestCase
         }
 
         self::assertSame('wppack', $this->resolver->resolve());
+    }
+
+    #[Test]
+    public function customPrefixForMainSite(): void
+    {
+        $resolver = new MultisiteScheduleGroupResolver(prefix: 'myapp');
+
+        self::assertSame('myapp', $resolver->resolve(1));
+    }
+
+    #[Test]
+    public function customPrefixForSubSite(): void
+    {
+        $resolver = new MultisiteScheduleGroupResolver(prefix: 'myapp');
+
+        self::assertSame('myapp_3', $resolver->resolve(3));
     }
 }
