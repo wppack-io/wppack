@@ -109,7 +109,7 @@ final class EventBridgeScheduleFactory
      *
      * @return array{expression: string, type: 'cron'}
      */
-    private function fromCronExpression(string $expression): array
+    public function fromCronExpression(string $expression): array
     {
         $parts = preg_split('/\s+/', trim($expression));
 

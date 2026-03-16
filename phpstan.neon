@@ -13,4 +13,12 @@ parameters:
     scanDirectories:
         - vendor/roots/wordpress-no-content/wp-includes/
     ignoreErrors:
-        - identifier: trait.unused
+        -
+            identifier: trait.unused
+            reportUnmatched: false
+        -
+            identifier: class.notFound
+            path: src/Component/Scheduler/Bridge/EventBridge/src/Interceptor/ActionSchedulerInterceptor.php
+        -
+            identifier: class.notFound
+            path: src/Component/Scheduler/Bridge/EventBridge/src/Collector/ActionSchedulerCollector.php

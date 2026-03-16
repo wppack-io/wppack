@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Scheduler\Bridge\EventBridge;
 
 use WpPack\Component\Messenger\Stamp\StampInterface;
+use WpPack\Component\Scheduler\Message\ActionSchedulerMessage;
 use WpPack\Component\Scheduler\Message\WpCronMessage;
 
 /**
@@ -59,6 +60,30 @@ final class SqsPayloadFactory
                 args: $args,
                 schedule: $schedule,
                 timestamp: $timestamp,
+            ),
+            $stamps,
+        );
+    }
+
+    /**
+     * Create an SQS payload for an Action Scheduler action.
+     *
+     * @param array<mixed> $args
+     * @param list<StampInterface> $stamps
+     */
+    public function createForActionSchedulerAction(
+        string $hook,
+        array $args,
+        string $group,
+        int $actionId,
+        array $stamps = [],
+    ): string {
+        return $this->create(
+            new ActionSchedulerMessage(
+                hook: $hook,
+                args: $args,
+                group: $group,
+                actionId: $actionId,
             ),
             $stamps,
         );

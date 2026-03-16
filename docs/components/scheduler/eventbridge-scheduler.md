@@ -436,18 +436,113 @@ wp_schedule_event(time(), 'hourly', 'my_hook', ['arg1']);
 // → EventBridge に rate(1 hours) スケジュールが作成される
 ```
 
+## Action Scheduler インターセプション
+
+### アーキテクチャ: Post-Store Hook + Queue Runner Disable
+
+WP-Cron とは異なり、Action Scheduler（AS）には `pre_schedule_event` のような統一的な pre-filter がありません。代わりに、`action_scheduler_stored_action`（post-store）フックで AS がアクションを DB に保存した後に EventBridge スケジュールを作成します。AS のローカルストアはそのまま残し、管理画面の互換性を維持します。
+
+```
+as_schedule_recurring_action($timestamp, 3600, 'my_hook', $args)
+  ↓ AS がアクションを DB に保存（ステータス: pending）
+  ↓ action_scheduler_stored_action フック発火
+  ↓ ActionSchedulerInterceptor が EventBridge に rate(1 hours) スケジュール作成
+  ↓ AS queue runner は無効化済み（ローカル実行なし）
+
+EventBridge が指定時刻に発火
+  ↓ SQS に ActionSchedulerMessage ペイロード送信
+  ↓ Lambda SqsEventHandler → MessageBus → ActionSchedulerMessageHandler
+  ↓ do_action_ref_array($hook, $args)
+  ↓ AS ストアのステータスを complete に更新
+```
+
+### ActionSchedulerInterceptor
+
+Post-store/cancel フックで AS ライフサイクルをインターセプトし、EventBridge にスケジュールを作成します。
+
+```php
+use WpPack\Component\Scheduler\Bridge\EventBridge\Interceptor\ActionSchedulerInterceptor;
+
+$interceptor = new ActionSchedulerInterceptor(
+    scheduler: $eventBridgeScheduler,
+    scheduleFactory: new EventBridgeScheduleFactory(),
+    payloadFactory: new SqsPayloadFactory(),
+);
+
+$interceptor->register();   // フック登録
+$interceptor->unregister(); // フック解除
+```
+
+#### インターセプトするフック
+
+| AS フック | メソッド | 動作 |
+|----------|---------|------|
+| `action_scheduler_stored_action` | `onStoredAction()` | AS ストアからアクション取得 → EventBridge スケジュール作成 |
+| `action_scheduler_canceled_action` | `onCanceledAction()` | EventBridge スケジュール削除 |
+| `action_scheduler_queue_runner_concurrent_batches` | `onConcurrentBatches()` | `0` 返却（queue runner 無効化） |
+
+#### AS スケジュール型 → EventBridge 式変換
+
+| AS スケジュール型 | EventBridge 式 | autoDelete |
+|-----------------|---------------|------------|
+| `ActionScheduler_NullSchedule`（async） | `at(now)` | `true` |
+| `ActionScheduler_SimpleSchedule`（single） | `at(scheduled_date)` | `true` |
+| `ActionScheduler_IntervalSchedule`（recurring） | `rate(interval)` | `false` |
+| `ActionScheduler_CronSchedule`（cron） | `cron(expression)` | `false` |
+
+### ActionSchedulerMessageHandler
+
+Lambda 上で Action Scheduler メッセージを処理するハンドラー。`#[AsMessageHandler]` アトリビュート付き。
+
+```php
+// 自動的に MessageBus 経由で呼び出される
+// 1. do_action_ref_array($hook, $args) — 既存のコールバックが動作
+// 2. AS ストアのステータスを complete に更新
+//    (EventBridge の rate()/cron() が繰り返しを担当、AS は自動リスケジュールしない)
+```
+
+### ActionSchedulerCollector
+
+初期マイグレーション用。AS ストアから pending アクションを収集します。
+
+```php
+use WpPack\Component\Scheduler\Bridge\EventBridge\Collector\ActionSchedulerCollector;
+
+$collector = new ActionSchedulerCollector();
+$actions = $collector->collect();
+// → list<array{hook, args, group, actionId, scheduleType, interval, cronExpression, scheduledDate}>
+```
+
+### ActionSchedulerMessage
+
+Action Scheduler アクションを表現する POPO メッセージ。
+
+```php
+use WpPack\Component\Scheduler\Message\ActionSchedulerMessage;
+
+$message = new ActionSchedulerMessage(
+    hook: 'my_as_hook',
+    args: ['arg1', 'arg2'],
+    group: 'my-group',
+    actionId: 42,
+);
+```
+
 ## クラス一覧
 
 | クラス | 説明 |
 |-------|------|
 | `EventBridgeScheduler` | `SchedulerInterface` の EventBridge 実装 |
 | `EventBridgeScheduleFactory` | Trigger → EventBridge 式変換 |
-| `ScheduleIdGenerator` | WP-Cron イベント → スケジュール ID の決定的マッピング |
+| `ScheduleIdGenerator` | WP-Cron / AS → スケジュール ID の決定的マッピング |
 | `MultisiteScheduleGroupResolver` | マルチサイト対応グループ名解決 |
 | `SqsPayloadFactory` | SQS ペイロード構築 |
 | `WpCronInterceptor` | WP-Cron API の EventBridge バックエンド差し替え |
 | `WpCronMessageHandler` | Lambda での WP-Cron メッセージ処理 |
 | `WpCronCollector` | 既存 WP-Cron イベントの収集（マイグレーション用） |
+| `ActionSchedulerInterceptor` | Action Scheduler の EventBridge バックエンド差し替え |
+| `ActionSchedulerMessageHandler` | Lambda での AS メッセージ処理 |
+| `ActionSchedulerCollector` | 既存 AS アクションの収集（マイグレーション用） |
 | `WpCronMessage` | WP-Cron イベントを表現するメッセージ |
 | `ActionSchedulerMessage` | Action Scheduler アクションを表現するメッセージ |
 | `EventBridgeException` | EventBridge 操作エラー |
