@@ -15,7 +15,7 @@ use WpPack\Component\Scheduler\Bridge\EventBridge\Exception\EventBridgeException
 use WpPack\Component\Scheduler\Message\ScheduledMessage;
 use WpPack\Component\Scheduler\Scheduler\SchedulerInterface;
 
-class EventBridgeScheduler implements SchedulerInterface
+final class EventBridgeScheduler implements SchedulerInterface
 {
     public function __construct(
         private readonly SchedulerClient $schedulerClient,
@@ -67,6 +67,11 @@ class EventBridgeScheduler implements SchedulerInterface
             return true;
         } catch (ResourceNotFoundException) {
             return false;
+        } catch (\Throwable $e) {
+            throw new EventBridgeException(
+                sprintf('Failed to check schedule "%s": %s', $scheduleId, $e->getMessage()),
+                previous: $e,
+            );
         }
     }
 

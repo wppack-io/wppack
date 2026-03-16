@@ -7,7 +7,6 @@ namespace WpPack\Component\Scheduler\Bridge\EventBridge\Tests\Interceptor;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Scheduler\Bridge\EventBridge\EventBridgeScheduleFactory;
-use WpPack\Component\Scheduler\Bridge\EventBridge\EventBridgeScheduler;
 use WpPack\Component\Scheduler\Bridge\EventBridge\Interceptor\WpCronInterceptor;
 use WpPack\Component\Scheduler\Bridge\EventBridge\SqsPayloadFactory;
 use WpPack\Component\Scheduler\Message\ScheduledMessage;
@@ -211,24 +210,19 @@ final class WpCronInterceptorTest extends TestCase
 }
 
 /**
- * Spy implementation of EventBridgeScheduler for testing WpCronInterceptor.
+ * Spy implementation of SchedulerInterface for testing WpCronInterceptor.
  *
  * Records all method calls for assertion without requiring the real SchedulerClient.
  *
  * @internal
  */
-final class SpyScheduler extends EventBridgeScheduler
+final class SpyScheduler implements SchedulerInterface
 {
     /** @var list<array{scheduleId: string, expression: string, payload: string, autoDelete: bool}> */
     public array $createScheduleRawCalls = [];
 
     /** @var list<string> */
     public array $unscheduleCalls = [];
-
-    public function __construct()
-    {
-        // Skip parent constructor — we don't need real AWS client
-    }
 
     public function schedule(string $scheduleId, ScheduledMessage $message): void
     {

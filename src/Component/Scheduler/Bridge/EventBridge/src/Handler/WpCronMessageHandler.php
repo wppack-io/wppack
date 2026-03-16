@@ -6,6 +6,7 @@ namespace WpPack\Component\Scheduler\Bridge\EventBridge\Handler;
 
 use Psr\Log\LoggerInterface;
 use WpPack\Component\Messenger\Attribute\AsMessageHandler;
+use WpPack\Component\Scheduler\Bridge\EventBridge\CronArrayHelper;
 use WpPack\Component\Scheduler\Message\WpCronMessage;
 
 /**
@@ -51,17 +52,8 @@ final class WpCronMessageHandler
             return;
         }
 
-        $crons = _get_cron_array();
-        $key = md5(serialize($message->args));
-
         // Remove old entry
-        unset($crons[$message->timestamp][$message->hook][$key]);
-        if (isset($crons[$message->timestamp][$message->hook]) && empty($crons[$message->timestamp][$message->hook])) {
-            unset($crons[$message->timestamp][$message->hook]);
-        }
-        if (isset($crons[$message->timestamp]) && empty($crons[$message->timestamp])) {
-            unset($crons[$message->timestamp]);
-        }
+        CronArrayHelper::removeEntry($message->timestamp, $message->hook, $message->args);
 
         // Calculate next run time (skip past if behind)
         $nextTimestamp = $message->timestamp + $interval;
@@ -71,14 +63,13 @@ final class WpCronMessageHandler
         }
 
         // Add new entry
-        $crons[$nextTimestamp][$message->hook][$key] = [
-            'schedule' => $message->schedule,
-            'args' => $message->args,
-            'interval' => $interval,
-        ];
-
-        uksort($crons, 'strcmp');
-        _set_cron_array($crons);
+        CronArrayHelper::addEntry(
+            $nextTimestamp,
+            $message->hook,
+            $message->args,
+            $message->schedule,
+            $interval,
+        );
     }
 
     /**
@@ -86,21 +77,6 @@ final class WpCronMessageHandler
      */
     private function removeSingleEvent(WpCronMessage $message): void
     {
-        $crons = _get_cron_array();
-        $key = md5(serialize($message->args));
-
-        if (!isset($crons[$message->timestamp][$message->hook][$key])) {
-            return;
-        }
-
-        unset($crons[$message->timestamp][$message->hook][$key]);
-        if (empty($crons[$message->timestamp][$message->hook])) {
-            unset($crons[$message->timestamp][$message->hook]);
-        }
-        if (empty($crons[$message->timestamp])) {
-            unset($crons[$message->timestamp]);
-        }
-
-        _set_cron_array($crons);
+        CronArrayHelper::removeEntry($message->timestamp, $message->hook, $message->args);
     }
 }

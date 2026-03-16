@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Scheduler\Bridge\EventBridge\Interceptor;
 
+use WpPack\Component\Scheduler\Bridge\EventBridge\Collector\WpCronCollector;
+use WpPack\Component\Scheduler\Bridge\EventBridge\CronArrayHelper;
 use WpPack\Component\Scheduler\Bridge\EventBridge\EventBridgeScheduleFactory;
-use WpPack\Component\Scheduler\Bridge\EventBridge\EventBridgeScheduler;
 use WpPack\Component\Scheduler\Bridge\EventBridge\ScheduleIdGenerator;
 use WpPack\Component\Scheduler\Bridge\EventBridge\SqsPayloadFactory;
+use WpPack\Component\Scheduler\Scheduler\SchedulerInterface;
 
 /**
  * Intercepts WP-Cron API via pre_* filters and delegates to EventBridge Scheduler.
@@ -24,7 +26,7 @@ final class WpCronInterceptor
     private readonly ScheduleIdGenerator $idGenerator;
 
     public function __construct(
-        private readonly EventBridgeScheduler $scheduler,
+        private readonly SchedulerInterface $scheduler,
         private readonly EventBridgeScheduleFactory $scheduleFactory,
         private readonly SqsPayloadFactory $payloadFactory,
     ) {
@@ -53,6 +55,53 @@ final class WpCronInterceptor
         remove_filter('pre_clear_scheduled_hook', [$this, 'onPreClearScheduledHook'], 10);
         remove_filter('pre_unschedule_hook', [$this, 'onPreUnscheduleHook'], 10);
         remove_filter('pre_get_ready_cron_jobs', [$this, 'onPreGetReadyCronJobs'], 10);
+    }
+
+    /**
+     * Sync all existing WP-Cron events to EventBridge.
+     *
+     * Collects events from the local cron array via WpCronCollector and creates
+     * corresponding EventBridge schedules. Intended for initial migration
+     * (e.g., plugin activation or WP-CLI `wp wppack scheduler sync`).
+     *
+     * @return int Number of events synced
+     */
+    public function sync(): int
+    {
+        $collector = new WpCronCollector();
+        $count = 0;
+
+        foreach ($collector->collect() as $event) {
+            $scheduleId = $this->idGenerator->forWpCronEvent(
+                $event['hook'],
+                $event['args'],
+                $event['schedule'],
+                $event['timestamp'],
+            );
+
+            if ($event['schedule'] !== false && $event['interval'] > 0) {
+                $expression = $this->scheduleFactory->fromWpCronInterval($event['interval']);
+            } else {
+                $expression = $this->scheduleFactory->fromTimestamp($event['timestamp']);
+            }
+
+            $payload = $this->payloadFactory->createForWpCronEvent(
+                $event['hook'],
+                $event['args'],
+                $event['schedule'],
+                $event['timestamp'],
+            );
+
+            $this->scheduler->createScheduleRaw(
+                $scheduleId,
+                $expression['expression'],
+                $payload,
+                $expression['type'] === 'at',
+            );
+            $count++;
+        }
+
+        return $count;
     }
 
     /**
@@ -93,7 +142,7 @@ final class WpCronInterceptor
             $expression['type'] === 'at',
         );
 
-        $this->addToCronArray($timestamp, $hook, $args, $schedule, (int) ($event->interval ?? 0));
+        CronArrayHelper::addEntry($timestamp, $hook, $args, $schedule, (int) ($event->interval ?? 0));
 
         return true;
     }
@@ -113,7 +162,7 @@ final class WpCronInterceptor
             return $pre;
         }
 
-        $this->addToCronArray(
+        CronArrayHelper::addEntry(
             $event->timestamp,
             $event->hook,
             $event->args,
@@ -140,11 +189,11 @@ final class WpCronInterceptor
             return $pre;
         }
 
-        $schedule = $this->getScheduleFromCronArray($timestamp, $hook, $args);
+        $schedule = CronArrayHelper::getScheduleName($timestamp, $hook, $args);
         $scheduleId = $this->idGenerator->forWpCronEvent($hook, $args, $schedule, $timestamp);
 
         $this->scheduler->unschedule($scheduleId);
-        $this->removeFromCronArray($timestamp, $hook, $args);
+        CronArrayHelper::removeEntry($timestamp, $hook, $args);
 
         return true;
     }
@@ -249,60 +298,4 @@ final class WpCronInterceptor
         return [];
     }
 
-    /**
-     * @param array<mixed> $args
-     */
-    private function addToCronArray(int $timestamp, string $hook, array $args, string|false $schedule, int $interval): void
-    {
-        $crons = _get_cron_array();
-        $key = md5(serialize($args));
-
-        $entry = [
-            'schedule' => $schedule,
-            'args' => $args,
-        ];
-
-        if ($schedule !== false && $interval > 0) {
-            $entry['interval'] = $interval;
-        }
-
-        $crons[$timestamp][$hook][$key] = $entry;
-        uksort($crons, 'strcmp');
-
-        _set_cron_array($crons);
-    }
-
-    /**
-     * @param array<mixed> $args
-     */
-    private function removeFromCronArray(int $timestamp, string $hook, array $args): void
-    {
-        $crons = _get_cron_array();
-        $key = md5(serialize($args));
-
-        unset($crons[$timestamp][$hook][$key]);
-
-        if (isset($crons[$timestamp][$hook]) && empty($crons[$timestamp][$hook])) {
-            unset($crons[$timestamp][$hook]);
-        }
-
-        if (isset($crons[$timestamp]) && empty($crons[$timestamp])) {
-            unset($crons[$timestamp]);
-        }
-
-        _set_cron_array($crons);
-    }
-
-    /**
-     * Look up the schedule name for a specific event in the local cron array.
-     *
-     * @param array<mixed> $args
-     */
-    private function getScheduleFromCronArray(int $timestamp, string $hook, array $args): string|false
-    {
-        $crons = _get_cron_array();
-        $key = md5(serialize($args));
-
-        return $crons[$timestamp][$hook][$key]['schedule'] ?? false;
-    }
 }

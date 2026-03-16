@@ -86,7 +86,11 @@ final class Envelope
     public function all(?string $stampClass = null): array
     {
         if ($stampClass === null) {
-            return array_merge(...array_values($this->stamps) ?: [[]]);
+            if ($this->stamps === []) {
+                return [];
+            }
+
+            return array_merge(...array_values($this->stamps));
         }
 
         return $this->stamps[$stampClass] ?? [];

@@ -15,4 +15,17 @@ interface SchedulerInterface
     public function has(string $scheduleId): bool;
 
     public function getNextRunDate(string $scheduleId): ?\DateTimeImmutable;
+
+    /**
+     * Create or update a schedule from raw EventBridge parameters.
+     *
+     * Used by interceptors to create schedules from WP-Cron / Action Scheduler
+     * parameters without constructing a ScheduledMessage.
+     */
+    public function createScheduleRaw(
+        string $scheduleId,
+        string $expression,
+        string $payload,
+        bool $autoDelete = false,
+    ): void;
 }

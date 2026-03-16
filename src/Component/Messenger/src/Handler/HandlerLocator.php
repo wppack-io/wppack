@@ -41,6 +41,20 @@ final class HandlerLocator implements HandlerLocatorInterface
      */
     public function getHandlers(object $message): iterable
     {
-        return $this->handlers[$message::class] ?? [];
+        $matched = $this->handlers[$message::class] ?? [];
+
+        foreach (class_parents($message) ?: [] as $parent) {
+            if (isset($this->handlers[$parent])) {
+                $matched = [...$matched, ...$this->handlers[$parent]];
+            }
+        }
+
+        foreach (class_implements($message) ?: [] as $interface) {
+            if (isset($this->handlers[$interface])) {
+                $matched = [...$matched, ...$this->handlers[$interface]];
+            }
+        }
+
+        return $matched;
     }
 }

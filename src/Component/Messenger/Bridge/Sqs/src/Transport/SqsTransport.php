@@ -6,6 +6,7 @@ namespace WpPack\Component\Messenger\Bridge\Sqs\Transport;
 
 use AsyncAws\Sqs\Input\SendMessageRequest;
 use AsyncAws\Sqs\SqsClient;
+use Psr\Log\LoggerInterface;
 use WpPack\Component\Messenger\Envelope;
 use WpPack\Component\Messenger\Exception\TransportException;
 use WpPack\Component\Messenger\Serializer\SerializerInterface;
@@ -23,6 +24,7 @@ final class SqsTransport implements TransportInterface
         private readonly SerializerInterface $serializer,
         private readonly string $queueUrl,
         private readonly string $name = 'sqs',
+        private readonly ?LoggerInterface $logger = null,
         private readonly JsonEncoder $jsonEncoder = new JsonEncoder(),
     ) {}
 
@@ -44,7 +46,16 @@ final class SqsTransport implements TransportInterface
 
         if ($delayStamp !== null) {
             $delaySeconds = max(0, (int) ceil($delayStamp->delayInMilliseconds / 1000));
-            $input['DelaySeconds'] = min($delaySeconds, self::MAX_SQS_DELAY_SECONDS);
+            $clamped = min($delaySeconds, self::MAX_SQS_DELAY_SECONDS);
+
+            if ($clamped < $delaySeconds) {
+                $this->logger?->warning(
+                    'SQS delay clamped from {requested}s to {max}s (SQS maximum).',
+                    ['requested' => $delaySeconds, 'max' => self::MAX_SQS_DELAY_SECONDS],
+                );
+            }
+
+            $input['DelaySeconds'] = $clamped;
         }
 
         try {

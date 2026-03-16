@@ -35,6 +35,15 @@ final class NullScheduler implements SchedulerInterface
         return $this->schedules[$scheduleId]->getTrigger()->getNextRunDate(new \DateTimeImmutable());
     }
 
+    public function createScheduleRaw(
+        string $scheduleId,
+        string $expression,
+        string $payload,
+        bool $autoDelete = false,
+    ): void {
+        // No-op: NullScheduler does not interact with EventBridge
+    }
+
     /** @return array<string, ScheduledMessage> */
     public function getSchedules(): array
     {
