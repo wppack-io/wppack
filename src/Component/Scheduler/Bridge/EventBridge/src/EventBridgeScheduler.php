@@ -1,0 +1,117 @@
+<?php
+
+declare(strict_types=1);
+
+namespace WpPack\Component\Scheduler\Bridge\EventBridge;
+
+use AsyncAws\Scheduler\Exception\ResourceNotFoundException;
+use AsyncAws\Scheduler\Input\CreateScheduleInput;
+use AsyncAws\Scheduler\Input\DeleteScheduleInput;
+use AsyncAws\Scheduler\Input\GetScheduleInput;
+use AsyncAws\Scheduler\SchedulerClient;
+use WpPack\Component\Scheduler\Bridge\EventBridge\Exception\EventBridgeException;
+use WpPack\Component\Scheduler\Message\ScheduledMessage;
+use WpPack\Component\Scheduler\Scheduler\SchedulerInterface;
+
+class EventBridgeScheduler implements SchedulerInterface
+{
+    public function __construct(
+        private readonly SchedulerClient $schedulerClient,
+        private readonly EventBridgeScheduleFactory $scheduleFactory,
+        private readonly SqsPayloadFactory $payloadFactory,
+        private readonly string $groupName,
+        private readonly string $targetArn,
+        private readonly string $roleArn,
+    ) {}
+
+    public function schedule(string $scheduleId, ScheduledMessage $message): void
+    {
+        $expression = $this->scheduleFactory->createExpression($message->getTrigger());
+        $payload = $this->payloadFactory->create($message->getMessage());
+
+        $this->createScheduleRaw(
+            $scheduleId,
+            $expression['expression'],
+            $payload,
+            $expression['type'] === 'at',
+        );
+    }
+
+    public function unschedule(string $scheduleId): void
+    {
+        try {
+            $this->schedulerClient->deleteSchedule(new DeleteScheduleInput([
+                'Name' => $scheduleId,
+                'GroupName' => $this->groupName,
+            ]));
+        } catch (ResourceNotFoundException) {
+            // Already deleted — idempotent
+        } catch (\Throwable $e) {
+            throw new EventBridgeException(
+                sprintf('Failed to delete schedule "%s": %s', $scheduleId, $e->getMessage()),
+                previous: $e,
+            );
+        }
+    }
+
+    public function has(string $scheduleId): bool
+    {
+        try {
+            $this->schedulerClient->getSchedule(new GetScheduleInput([
+                'Name' => $scheduleId,
+                'GroupName' => $this->groupName,
+            ]));
+
+            return true;
+        } catch (ResourceNotFoundException) {
+            return false;
+        }
+    }
+
+    /**
+     * EventBridge Scheduler API does not expose the next execution time.
+     * Use the local wp_options.cron for this information instead.
+     */
+    public function getNextRunDate(string $scheduleId): ?\DateTimeImmutable
+    {
+        return null;
+    }
+
+    /**
+     * Create an EventBridge schedule directly without going through TriggerInterface.
+     *
+     * Used by WpCronInterceptor to create schedules from raw WP-Cron parameters.
+     */
+    public function createScheduleRaw(
+        string $scheduleId,
+        string $expression,
+        string $payload,
+        bool $autoDelete = false,
+    ): void {
+        try {
+            $input = [
+                'Name' => $scheduleId,
+                'GroupName' => $this->groupName,
+                'ScheduleExpression' => $expression,
+                'ScheduleExpressionTimezone' => 'UTC',
+                'FlexibleTimeWindow' => ['Mode' => 'OFF'],
+                'Target' => [
+                    'Arn' => $this->targetArn,
+                    'RoleArn' => $this->roleArn,
+                    'Input' => $payload,
+                ],
+            ];
+
+            if ($autoDelete) {
+                $input['ActionAfterCompletion'] = 'DELETE';
+            }
+
+            $this->schedulerClient->createSchedule(new CreateScheduleInput($input));
+        } catch (\Throwable $e) {
+            throw new EventBridgeException(
+                sprintf('Failed to create schedule "%s": %s', $scheduleId, $e->getMessage()),
+                previous: $e,
+            );
+        }
+    }
+}

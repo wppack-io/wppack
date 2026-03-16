@@ -173,6 +173,10 @@ component_management:
       name: Scheduler
       paths:
         - src/Component/Scheduler/src/**
+    - component_id: eventbridge_scheduler
+      name: EventBridgeScheduler
+      paths:
+        - src/Component/Scheduler/Bridge/EventBridge/src/**
     - component_id: console
       name: Console
       paths:

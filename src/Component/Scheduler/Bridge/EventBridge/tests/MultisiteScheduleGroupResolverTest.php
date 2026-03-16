@@ -1,0 +1,54 @@
+<?php
+
+declare(strict_types=1);
+
+namespace WpPack\Component\Scheduler\Bridge\EventBridge\Tests;
+
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+use WpPack\Component\Scheduler\Bridge\EventBridge\MultisiteScheduleGroupResolver;
+
+final class MultisiteScheduleGroupResolverTest extends TestCase
+{
+    private MultisiteScheduleGroupResolver $resolver;
+
+    protected function setUp(): void
+    {
+        $this->resolver = new MultisiteScheduleGroupResolver();
+    }
+
+    #[Test]
+    public function mainSiteReturnsDefaultGroup(): void
+    {
+        self::assertSame('wppack', $this->resolver->resolve(1));
+    }
+
+    #[Test]
+    public function blogIdZeroReturnsDefaultGroup(): void
+    {
+        self::assertSame('wppack', $this->resolver->resolve(0));
+    }
+
+    #[Test]
+    public function subSiteReturnsSuffixedGroup(): void
+    {
+        self::assertSame('wppack_2', $this->resolver->resolve(2));
+    }
+
+    #[Test]
+    public function largeSubSiteIdReturnsSuffixedGroup(): void
+    {
+        self::assertSame('wppack_999', $this->resolver->resolve(999));
+    }
+
+    #[Test]
+    public function nullBlogIdFallsBackToDefault(): void
+    {
+        // Without WordPress, get_current_blog_id() doesn't exist → falls back to 1
+        if (\function_exists('get_current_blog_id')) {
+            self::markTestSkipped('WordPress is loaded, cannot test fallback.');
+        }
+
+        self::assertSame('wppack', $this->resolver->resolve());
+    }
+}

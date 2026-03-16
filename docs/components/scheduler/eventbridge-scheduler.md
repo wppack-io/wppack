@@ -29,6 +29,8 @@ WP-Cron との比較:
 
 ## アーキテクチャ
 
+### SchedulerInterface 経由（直接利用）
+
 ```
 ┌─ WordPress ────────────────────────────────────────┐
 │  EventBridgeScheduler::schedule($id, $message)     │
@@ -51,6 +53,31 @@ WP-Cron との比較:
 │  SqsEventHandler → MessageBus → Handler            │
 └────────────────────────────────────────────────────┘
 ```
+
+### WP-Cron インターセプション（Full Intercept + Local State）
+
+既存の WP-Cron API をそのまま使いながら、バックエンドを EventBridge に差し替えます。Cavalcade（humanmade/Cavalcade）と同じアプローチです。
+
+```
+wp_schedule_event('hourly', 'my_hook', $args)
+  ↓ pre_schedule_event フィルター（WpCronInterceptor がインターセプト）
+  ↓ EventBridge に rate(1 hours) スケジュール作成
+  ↓ wp_options.cron にも書き込み（管理画面の可視性のため）
+  ↓ return true（WP は正常にスケジュールされたと認識）
+
+EventBridge が指定時刻に発火
+  ↓ SQS に WpCronMessage ペイロード送信
+  ↓ Lambda SqsEventHandler（既存、変更不要）
+  ↓ MessageBus が WpCronMessage をディスパッチ
+  ↓ WpCronMessageHandler:
+     - do_action_ref_array($hook, $args) ← 既存コールバックが動く
+     - wp_options.cron の次回実行時刻を更新
+```
+
+**設計方針:**
+- **Write**: `pre_*` フィルターでインターセプト → EventBridge + ローカル `wp_options.cron` に dual-write
+- **Read**: `wp_options.cron` から直接読み取り（高速、管理ツール互換）
+- **Execution**: `pre_get_ready_cron_jobs` で空配列返却 → ローカル実行を無効化、EventBridge が sole executor
 
 ## EventBridgeScheduler
 
@@ -96,6 +123,100 @@ if ($scheduler->has('daily-cleanup')) {
 }
 ```
 
+### createScheduleRaw()
+
+Trigger を経由せず直接 EventBridge スケジュールを作成します。`WpCronInterceptor` が内部的に使用します。
+
+```php
+$scheduler->createScheduleRaw(
+    scheduleId: 'wpcron_my_hook_abcdef12',
+    expression: 'rate(1 hours)',
+    payload: '{"headers":{"type":"..."},"body":"..."}',
+    autoDelete: false,
+);
+```
+
+## WP-Cron インターセプション
+
+### WpCronInterceptor
+
+`pre_*` フィルターで WP-Cron API をインターセプトし、EventBridge にスケジュールを作成します。
+
+```php
+use WpPack\Component\Scheduler\Bridge\EventBridge\Interceptor\WpCronInterceptor;
+
+$interceptor = new WpCronInterceptor(
+    scheduler: $eventBridgeScheduler,
+    scheduleFactory: new EventBridgeScheduleFactory(),
+    payloadFactory: new SqsPayloadFactory(),
+);
+
+$interceptor->register();   // フィルター登録
+$interceptor->unregister(); // フィルター解除
+```
+
+#### インターセプトするフィルター
+
+| WordPress フィルター | メソッド | 動作 |
+|---------------------|---------|------|
+| `pre_schedule_event` | `onPreScheduleEvent()` | EventBridge スケジュール作成 + ローカル cron 更新 → `true` |
+| `pre_reschedule_event` | `onPreRescheduleEvent()` | ローカル cron のみ更新（rate() 自動繰り返し）→ `true` |
+| `pre_unschedule_event` | `onPreUnscheduleEvent()` | EventBridge スケジュール削除 + ローカル cron 削除 → `true` |
+| `pre_clear_scheduled_hook` | `onPreClearScheduledHook()` | hook+args の全スケジュール削除 → 削除件数 |
+| `pre_unschedule_hook` | `onPreUnscheduleHook()` | hook の全スケジュール削除 → 削除件数 |
+| `pre_get_ready_cron_jobs` | `onPreGetReadyCronJobs()` | `[]` 返却（ローカル実行無効化） |
+
+`register()` 内で `DISABLE_WP_CRON` を定義し、`spawn_cron()` を完全に無効化します。
+
+### WpCronMessageHandler
+
+Lambda 上で WP-Cron メッセージを処理するハンドラー。`#[AsMessageHandler]` アトリビュート付き。
+
+```php
+// 自動的に MessageBus 経由で呼び出される
+// 1. do_action_ref_array($hook, $args) — 既存のコールバックが動作
+// 2. 繰り返し: wp_options.cron の次回実行時刻を更新
+// 3. 単発: wp_options.cron から削除
+```
+
+### WpCronMessage
+
+WP-Cron イベントを表現する POPO メッセージ。`JsonSerializer` でシリアライズ/デシリアライズ可能。
+
+```php
+use WpPack\Component\Scheduler\Message\WpCronMessage;
+
+$message = new WpCronMessage(
+    hook: 'my_cron_hook',
+    args: ['arg1', 'arg2'],
+    schedule: 'hourly',  // 繰り返し: schedule 名、単発: false
+    timestamp: 1700000000,
+);
+```
+
+### ScheduleIdGenerator
+
+WP-Cron の `(hook, args, timestamp)` から EventBridge スケジュール名（最大 64 文字）を決定的に生成します。
+
+| 種類 | フォーマット | 例 |
+|------|------------|-----|
+| 繰り返し | `wpcron_{hook}_{md5(args)[0:8]}` | `wpcron_my_hook_a1b2c3d4` |
+| 単発 | `wpcron_{hook}_{md5(args)[0:8]}_{timestamp}` | `wpcron_my_hook_a1b2c3d4_1700000000` |
+| 64 文字超過 | `wpcron_{md5(full_id)[0:32]}` | `wpcron_abcdef1234567890...` |
+| Action Scheduler | `as_{md5(hook+args)[0:16]}_{actionId}` | `as_abcdef1234567890_42` |
+
+### WpCronCollector
+
+初期マイグレーション用。`_get_cron_array()` から全 WP-Cron イベントを収集します。
+
+```php
+use WpPack\Component\Scheduler\Bridge\EventBridge\Collector\WpCronCollector;
+
+$collector = new WpCronCollector();
+$events = $collector->collect();
+// → list<array{hook, args, schedule, interval, timestamp}>
+```
+
 ## EventBridgeScheduleFactory
 
 `TriggerInterface` を EventBridge Scheduler の式に変換します。
@@ -114,7 +235,7 @@ if ($scheduler->has('daily-cleanup')) {
 
 | インターバル | 式 |
 |------------|-----|
-| 60 秒未満 | `rate(N minutes)` — 最小 1 分 |
+| 60 秒未満 | `rate(1 minute)` — EventBridge 最小粒度 |
 | 60 〜 3599 秒 | `rate(N minutes)` |
 | 3600 秒以上 | `rate(N hours)` |
 
@@ -127,6 +248,16 @@ WordPress:    */15 * * * *
 EventBridge:  cron(*/15 * * * ? *)
 ```
 
+### WP-Cron interval からの直接変換
+
+`fromWpCronInterval()` で WP-Cron の interval（秒数）から直接 rate 式に変換できます。
+
+```php
+$factory = new EventBridgeScheduleFactory();
+$factory->fromWpCronInterval(3600);    // → ['expression' => 'rate(1 hour)', 'type' => 'rate']
+$factory->fromTimestamp(1700000000);   // → ['expression' => 'at(...)', 'type' => 'at']
+```
+
 ## マルチサイト対応
 
 ### MultisiteScheduleGroupResolver
@@ -136,35 +267,39 @@ EventBridge:  cron(*/15 * * * ? *)
 ```php
 use WpPack\Component\Scheduler\Bridge\EventBridge\MultisiteScheduleGroupResolver;
 
-$resolver = new MultisiteScheduleGroupResolver(
-    prefix: 'wppack', // デフォルト: 'wppack'
-);
+$resolver = new MultisiteScheduleGroupResolver();
 
-$groupName = $resolver->resolve();           // 現在のブログ
-$groupName = $resolver->resolveForSite(3);   // 特定のブログ
+$groupName = $resolver->resolve();     // 現在のブログ
+$groupName = $resolver->resolve(3);    // 特定のブログ
 ```
 
 ### グループ名テーブル
 
 | ブログ ID | グループ名 |
 |----------|-----------|
-| 1（メイン） | `wppack-site-1` |
-| 2 | `wppack-site-2` |
-| 3 | `wppack-site-3` |
+| 1（メイン） | `wppack` |
+| 2 | `wppack_2` |
+| 3 | `wppack_3` |
 
 ## SqsPayloadFactory
 
-EventBridge から SQS に渡すペイロードを構築します。`JsonSerializer` と同じフォーマットでメッセージをエンコードします。
+EventBridge から SQS に渡すペイロードを構築します。`JsonSerializer` と同じフォーマットでメッセージをエンコードし、既存の `SqsEventHandler` がそのまま処理可能です。
 
 ```php
 use WpPack\Component\Scheduler\Bridge\EventBridge\SqsPayloadFactory;
-use WpPack\Component\Messenger\Serializer\JsonSerializer;
 
-$payloadFactory = new SqsPayloadFactory(
-    serializer: new JsonSerializer(),
+$factory = new SqsPayloadFactory();
+
+// 任意のメッセージオブジェクト + スタンプ
+$payload = $factory->create($message, $stamps);
+
+// WP-Cron イベントから直接生成
+$payload = $factory->createForWpCronEvent(
+    hook: 'my_hook',
+    args: ['arg1'],
+    schedule: 'hourly',
+    timestamp: 1700000000,
 );
-
-$payload = $payloadFactory->create($scheduledMessage);
 ```
 
 ### ペイロード構造
@@ -174,10 +309,10 @@ EventBridge が SQS に送信するペイロードは、`SqsEventHandler` が処
 ```json
 {
     "headers": {
-        "type": "App\\CleanupMessage",
+        "type": "WpPack\\Component\\Scheduler\\Message\\WpCronMessage",
         "stamps": {}
     },
-    "body": "{\"retentionDays\":30}"
+    "body": "{\"hook\":\"my_hook\",\"args\":[\"arg1\"],\"schedule\":\"hourly\",\"timestamp\":1700000000}"
 }
 ```
 
@@ -259,43 +394,46 @@ EventBridge が SQS にメッセージを送信するロール:
 
 ## クイックスタート
 
+### SchedulerInterface 経由
+
 ```php
 use AsyncAws\Scheduler\SchedulerClient;
 use WpPack\Component\Scheduler\Bridge\EventBridge\EventBridgeScheduler;
 use WpPack\Component\Scheduler\Bridge\EventBridge\EventBridgeScheduleFactory;
 use WpPack\Component\Scheduler\Bridge\EventBridge\SqsPayloadFactory;
 use WpPack\Component\Scheduler\Message\RecurringMessage;
-use WpPack\Component\Messenger\Serializer\JsonSerializer;
-
-// EventBridge Scheduler のセットアップ
-$schedulerClient = new SchedulerClient(['region' => 'ap-northeast-1']);
-$serializer = new JsonSerializer();
 
 $scheduler = new EventBridgeScheduler(
-    schedulerClient: $schedulerClient,
+    schedulerClient: new SchedulerClient(['region' => 'ap-northeast-1']),
     scheduleFactory: new EventBridgeScheduleFactory(),
-    payloadFactory: new SqsPayloadFactory($serializer),
+    payloadFactory: new SqsPayloadFactory(),
     groupName: WPPACK_SCHEDULER_GROUP,
     targetArn: WPPACK_SCHEDULER_TARGET_ARN,
     roleArn: WPPACK_SCHEDULER_ROLE_ARN,
 );
 
-// スケジュール登録
 $scheduler->schedule(
     'daily-cleanup',
     RecurringMessage::schedule('daily', new CleanupMessage()),
 );
+```
 
-$scheduler->schedule(
-    'hourly-sync',
-    RecurringMessage::every('1 hour', new SyncMessage()),
+### WP-Cron インターセプション
+
+```php
+use WpPack\Component\Scheduler\Bridge\EventBridge\Interceptor\WpCronInterceptor;
+
+// SchedulerPlugin が自動的に register() を呼ぶ
+$interceptor = new WpCronInterceptor(
+    scheduler: $eventBridgeScheduler,
+    scheduleFactory: new EventBridgeScheduleFactory(),
+    payloadFactory: new SqsPayloadFactory(),
 );
+$interceptor->register();
 
-// スケジュール確認
-$scheduler->has('daily-cleanup'); // true
-
-// スケジュール解除
-$scheduler->unschedule('hourly-sync');
+// 以後、既存の WP-Cron API がそのまま使える
+wp_schedule_event(time(), 'hourly', 'my_hook', ['arg1']);
+// → EventBridge に rate(1 hours) スケジュールが作成される
 ```
 
 ## クラス一覧
@@ -304,11 +442,19 @@ $scheduler->unschedule('hourly-sync');
 |-------|------|
 | `EventBridgeScheduler` | `SchedulerInterface` の EventBridge 実装 |
 | `EventBridgeScheduleFactory` | Trigger → EventBridge 式変換 |
+| `ScheduleIdGenerator` | WP-Cron イベント → スケジュール ID の決定的マッピング |
 | `MultisiteScheduleGroupResolver` | マルチサイト対応グループ名解決 |
 | `SqsPayloadFactory` | SQS ペイロード構築 |
+| `WpCronInterceptor` | WP-Cron API の EventBridge バックエンド差し替え |
+| `WpCronMessageHandler` | Lambda での WP-Cron メッセージ処理 |
+| `WpCronCollector` | 既存 WP-Cron イベントの収集（マイグレーション用） |
+| `WpCronMessage` | WP-Cron イベントを表現するメッセージ |
+| `ActionSchedulerMessage` | Action Scheduler アクションを表現するメッセージ |
+| `EventBridgeException` | EventBridge 操作エラー |
 
 ## 依存関係
 
 ### 必須
 - **wppack/scheduler** -- Scheduler 基盤（`SchedulerInterface`, Trigger, Message）
+- **wppack/messenger** -- メッセージングバス（`AsMessageHandler`, `JsonSerializer`）
 - **async-aws/scheduler ^1.0** -- EventBridge Scheduler API クライアント
