@@ -6,6 +6,9 @@
 
 All-in-One WP Migration が使用する `.wpress` アーカイブ形式を操作するコンポーネントです。`ZipArchive` と同様のインターフェースで `.wpress` ファイルの読み書き・エントリの追加・削除を行えます。
 
+> **著作権・帰属**
+> `.wpress` フォーマットおよび All-in-One WP Migration は ServMask Inc. が開発・著作権を保有するソフトウェアです（Copyright (C) 2014-2025 ServMask Inc.）。オリジナルのプラグインは GPLv3 ライセンスで配布されています。本コンポーネントは `.wpress` フォーマットの独自実装であり、ServMask Inc. の公式ソフトウェアまたは関連製品ではありません。
+
 ## インストール
 
 ```bash

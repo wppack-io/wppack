@@ -2,6 +2,9 @@
 
 Handles `.wpress` archive files used by All-in-One WP Migration. Provides a `ZipArchive`-like API for reading, writing, extracting, and modifying `.wpress` archives.
 
+> **Copyright & Attribution**
+> The `.wpress` format and All-in-One WP Migration are developed by and copyright of ServMask Inc. (Copyright (C) 2014-2025 ServMask Inc.). The original plugin is distributed under the GPLv3 license. This component is an independent implementation of the `.wpress` format and is not official software of or affiliated with ServMask Inc.
+
 ## Installation
 
 ```bash
