@@ -7,7 +7,11 @@
         "php": "^8.2"
     },
     "require-dev": {
+        "wppack/escaper": "^1.0",
         "wppack/hook": "^1.0"
+    },
+    "suggest": {
+        "wppack/escaper": "For delegating output escaping to the Escaper component"
     },
     "autoload": {
         "psr-4": {

@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Setting\AbstractSettingsPage;
 use WpPack\Component\Setting\Attribute\AsSettingsPage;
+use WpPack\Component\Escaper\Escaper;
 use WpPack\Component\Setting\SettingsConfigurator;
 use WpPack\Component\Setting\SettingsRenderer;
 
@@ -379,6 +380,72 @@ final class SettingsRendererTest extends TestCase
         $output = ob_get_clean();
 
         self::assertStringContainsString('</div>', $output);
+    }
+
+    #[Test]
+    public function textRendersCorrectlyWithEscaper(): void
+    {
+        $renderer = new SettingsRenderer(new Escaper());
+
+        $context = [
+            'id' => 'api_key',
+            'name' => 'my_opts[api_key]',
+            'value' => '<script>alert("xss")</script>',
+            'class' => 'regular-text',
+            'placeholder' => '',
+            'description' => '',
+        ];
+
+        ob_start();
+        $renderer->text($context);
+        $html = ob_get_clean();
+
+        self::assertStringContainsString('<input type="text"', $html);
+        self::assertStringNotContainsString('<script>', $html);
+    }
+
+    #[Test]
+    public function textareaRendersCorrectlyWithEscaper(): void
+    {
+        $renderer = new SettingsRenderer(new Escaper());
+
+        $context = [
+            'id' => 'bio',
+            'name' => 'my_opts[bio]',
+            'value' => '<b>bold</b>',
+            'class' => 'large-text',
+            'rows' => 5,
+            'cols' => 50,
+            'description' => '',
+        ];
+
+        ob_start();
+        $renderer->textarea($context);
+        $html = ob_get_clean();
+
+        self::assertStringContainsString('<textarea', $html);
+        self::assertStringNotContainsString('<b>bold</b>', $html);
+    }
+
+    #[Test]
+    public function selectRendersCorrectlyWithEscaper(): void
+    {
+        $renderer = new SettingsRenderer(new Escaper());
+
+        $context = [
+            'id' => 'log_level',
+            'name' => 'my_opts[log_level]',
+            'value' => 'info',
+            'choices' => ['debug' => 'Debug', 'info' => 'Info'],
+            'description' => 'Choose level',
+        ];
+
+        ob_start();
+        $renderer->select($context);
+        $html = ob_get_clean();
+
+        self::assertStringContainsString('<select', $html);
+        self::assertStringContainsString('Choose level', $html);
     }
 
     #[Test]

@@ -65,9 +65,21 @@ final class Escaper
     }
 
     /**
+     * Escape a string for safe output inside a <textarea> element.
+     *
+     * Similar to html(), but applies double encoding for nested HTML entities.
+     *
+     * @see esc_textarea()
+     */
+    public function textarea(string $value): string
+    {
+        return esc_textarea($value);
+    }
+
+    /**
      * Escape a string using the specified strategy.
      *
-     * @param string $strategy One of: html, attr, url, js
+     * @param string $strategy One of: html, attr, url, js, textarea
      */
     public function escape(string $value, string $strategy = 'html'): string
     {
@@ -76,8 +88,9 @@ final class Escaper
             'attr' => $this->attr($value),
             'url' => $this->url($value),
             'js' => $this->js($value),
+            'textarea' => $this->textarea($value),
             default => throw new \InvalidArgumentException(
-                sprintf('Unknown escaping strategy "%s". Supported: html, attr, url, js.', $strategy),
+                sprintf('Unknown escaping strategy "%s". Supported: html, attr, url, js, textarea.', $strategy),
             ),
         };
     }

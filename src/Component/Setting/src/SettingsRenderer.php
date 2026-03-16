@@ -4,8 +4,14 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Setting;
 
+use WpPack\Component\Escaper\Escaper;
+
 class SettingsRenderer
 {
+    public function __construct(
+        private readonly ?Escaper $escaper = null,
+    ) {}
+
     // ─── Page Templates ───
 
     public function renderPage(AbstractSettingsPage $page): void
@@ -21,7 +27,7 @@ class SettingsRenderer
         $plugin_page ??= '';
 
         echo '<div class="wrap">';
-        echo '<h1>' . esc_html(get_admin_page_title()) . '</h1>';
+        echo '<h1>' . $this->escHtml(get_admin_page_title()) . '</h1>';
     }
 
     public function renderForm(AbstractSettingsPage $page): void
@@ -47,11 +53,11 @@ class SettingsRenderer
     {
         printf(
             '<input type="text" id="%s" name="%s" value="%s" class="%s" placeholder="%s" />',
-            esc_attr($context['id']),
-            esc_attr($context['name']),
-            esc_attr($context['value']),
-            esc_attr($context['class']),
-            esc_attr($context['placeholder']),
+            $this->escAttr($context['id']),
+            $this->escAttr($context['name']),
+            $this->escAttr($context['value']),
+            $this->escAttr($context['class']),
+            $this->escAttr($context['placeholder']),
         );
         $this->renderDescription($context['description']);
     }
@@ -63,10 +69,10 @@ class SettingsRenderer
     {
         printf(
             '<input type="password" id="%s" name="%s" value="%s" class="%s" />',
-            esc_attr($context['id']),
-            esc_attr($context['name']),
-            esc_attr($context['value']),
-            esc_attr($context['class']),
+            $this->escAttr($context['id']),
+            $this->escAttr($context['name']),
+            $this->escAttr($context['value']),
+            $this->escAttr($context['class']),
         );
         $this->renderDescription($context['description']);
     }
@@ -78,11 +84,11 @@ class SettingsRenderer
     {
         printf(
             '<input type="url" id="%s" name="%s" value="%s" class="%s" placeholder="%s" />',
-            esc_attr($context['id']),
-            esc_attr($context['name']),
-            esc_attr($context['value']),
-            esc_attr($context['class']),
-            esc_attr($context['placeholder']),
+            $this->escAttr($context['id']),
+            $this->escAttr($context['name']),
+            $this->escAttr($context['value']),
+            $this->escAttr($context['class']),
+            $this->escAttr($context['placeholder']),
         );
         $this->renderDescription($context['description']);
     }
@@ -94,11 +100,11 @@ class SettingsRenderer
     {
         printf(
             '<input type="email" id="%s" name="%s" value="%s" class="%s" placeholder="%s" />',
-            esc_attr($context['id']),
-            esc_attr($context['name']),
-            esc_attr($context['value']),
-            esc_attr($context['class']),
-            esc_attr($context['placeholder']),
+            $this->escAttr($context['id']),
+            $this->escAttr($context['name']),
+            $this->escAttr($context['value']),
+            $this->escAttr($context['class']),
+            $this->escAttr($context['placeholder']),
         );
         $this->renderDescription($context['description']);
     }
@@ -110,18 +116,18 @@ class SettingsRenderer
     {
         $attrs = sprintf(
             'type="number" id="%s" name="%s" value="%s" class="%s" step="%s"',
-            esc_attr($context['id']),
-            esc_attr($context['name']),
-            esc_attr((string) $context['value']),
-            esc_attr($context['class']),
-            esc_attr((string) $context['step']),
+            $this->escAttr($context['id']),
+            $this->escAttr($context['name']),
+            $this->escAttr((string) $context['value']),
+            $this->escAttr($context['class']),
+            $this->escAttr((string) $context['step']),
         );
 
         if ($context['min'] !== null) {
-            $attrs .= sprintf(' min="%s"', esc_attr((string) $context['min']));
+            $attrs .= sprintf(' min="%s"', $this->escAttr((string) $context['min']));
         }
         if ($context['max'] !== null) {
-            $attrs .= sprintf(' max="%s"', esc_attr((string) $context['max']));
+            $attrs .= sprintf(' max="%s"', $this->escAttr((string) $context['max']));
         }
 
         echo '<input ' . $attrs . ' />';
@@ -135,12 +141,12 @@ class SettingsRenderer
     {
         printf(
             '<textarea id="%s" name="%s" class="%s" rows="%d" cols="%d">%s</textarea>',
-            esc_attr($context['id']),
-            esc_attr($context['name']),
-            esc_attr($context['class']),
+            $this->escAttr($context['id']),
+            $this->escAttr($context['name']),
+            $this->escAttr($context['class']),
             $context['rows'],
             $context['cols'],
-            esc_textarea($context['value']),
+            $this->escTextarea($context['value']),
         );
         $this->renderDescription($context['description']);
     }
@@ -152,15 +158,15 @@ class SettingsRenderer
     {
         printf(
             '<input type="hidden" name="%s" value="0" />',
-            esc_attr($context['name']),
+            $this->escAttr($context['name']),
         );
         printf(
             '<label for="%s"><input type="checkbox" id="%s" name="%s" value="1"%s /> %s</label>',
-            esc_attr($context['id']),
-            esc_attr($context['id']),
-            esc_attr($context['name']),
+            $this->escAttr($context['id']),
+            $this->escAttr($context['id']),
+            $this->escAttr($context['name']),
             $context['checked'] ? ' checked="checked"' : '',
-            esc_html($context['label']),
+            $this->escHtml($context['label']),
         );
         $this->renderDescription($context['description']);
     }
@@ -172,15 +178,15 @@ class SettingsRenderer
     {
         printf(
             '<select id="%s" name="%s">',
-            esc_attr($context['id']),
-            esc_attr($context['name']),
+            $this->escAttr($context['id']),
+            $this->escAttr($context['name']),
         );
         foreach ($context['choices'] as $optionValue => $optionLabel) {
             printf(
                 '<option value="%s"%s>%s</option>',
-                esc_attr((string) $optionValue),
+                $this->escAttr((string) $optionValue),
                 $context['value'] === (string) $optionValue ? ' selected="selected"' : '',
-                esc_html($optionLabel),
+                $this->escHtml($optionLabel),
             );
         }
         echo '</select>';
@@ -200,10 +206,10 @@ class SettingsRenderer
             }
             printf(
                 '<label><input type="radio" name="%s" value="%s"%s /> %s</label>',
-                esc_attr($context['name']),
-                esc_attr((string) $optionValue),
+                $this->escAttr($context['name']),
+                $this->escAttr((string) $optionValue),
                 $context['value'] === (string) $optionValue ? ' checked="checked"' : '',
-                esc_html($optionLabel),
+                $this->escHtml($optionLabel),
             );
             $first = false;
         }
@@ -214,7 +220,36 @@ class SettingsRenderer
     protected function renderDescription(string $description): void
     {
         if ($description !== '') {
-            printf('<p class="description">%s</p>', esc_html($description));
+            printf('<p class="description">%s</p>', $this->escHtml($description));
         }
+    }
+
+    // ─── Escape Helpers ───
+
+    private function escHtml(string $value): string
+    {
+        if ($this->escaper !== null) {
+            return $this->escaper->html($value);
+        }
+
+        return esc_html($value);
+    }
+
+    private function escAttr(string $value): string
+    {
+        if ($this->escaper !== null) {
+            return $this->escaper->attr($value);
+        }
+
+        return esc_attr($value);
+    }
+
+    private function escTextarea(string $value): string
+    {
+        if ($this->escaper !== null) {
+            return $this->escaper->textarea($value);
+        }
+
+        return esc_textarea($value);
     }
 }

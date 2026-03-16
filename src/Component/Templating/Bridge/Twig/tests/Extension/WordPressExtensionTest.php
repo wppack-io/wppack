@@ -7,12 +7,29 @@ namespace WpPack\Component\Templating\Bridge\Twig\Tests\Extension;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Twig\Environment;
+use Twig\Loader\ArrayLoader;
 use Twig\Loader\FilesystemLoader;
 use WpPack\Component\Escaper\Escaper;
+use WpPack\Component\Sanitizer\Sanitizer;
 use WpPack\Component\Templating\Bridge\Twig\Extension\WordPressExtension;
 
 final class WordPressExtensionTest extends TestCase
 {
+    private Environment $twig;
+
+    protected function setUp(): void
+    {
+        if (!function_exists('esc_html')) {
+            self::markTestSkipped('WordPress functions are not available.');
+        }
+
+        $this->twig = new Environment(new ArrayLoader(), [
+            'strict_variables' => true,
+            'autoescape' => false,
+        ]);
+        $this->twig->addExtension(new WordPressExtension());
+    }
+
     #[Test]
     public function providesEscapeFilters(): void
     {
@@ -25,6 +42,7 @@ final class WordPressExtensionTest extends TestCase
         self::assertContains('esc_attr', $filterNames);
         self::assertContains('esc_url', $filterNames);
         self::assertContains('esc_js', $filterNames);
+        self::assertContains('esc_textarea', $filterNames);
         self::assertContains('wp_kses_post', $filterNames);
     }
 
@@ -43,54 +61,72 @@ final class WordPressExtensionTest extends TestCase
     }
 
     #[Test]
-    public function escHtmlDelegatesToEscaper(): void
+    public function escHtmlFilterEscapesHtml(): void
     {
-        $escaper = new Escaper();
-        $extension = new WordPressExtension($escaper);
-
-        $result = $extension->escHtml('<script>alert("xss")</script>');
+        $result = $this->renderFilter('esc_html', '<script>alert("xss")</script>');
 
         self::assertStringNotContainsString('<script>', $result);
         self::assertStringContainsString('&lt;script&gt;', $result);
     }
 
     #[Test]
-    public function escAttrDelegatesToEscaper(): void
+    public function escAttrFilterEscapesAttributes(): void
     {
-        $escaper = new Escaper();
-        $extension = new WordPressExtension($escaper);
-
-        $result = $extension->escAttr('" onclick="alert(1)');
+        $result = $this->renderFilter('esc_attr', '" onclick="alert(1)');
 
         self::assertStringNotContainsString('"', $result);
     }
 
     #[Test]
-    public function filtersWorkWithoutEscaper(): void
+    public function escTextareaFilterEscapesTextarea(): void
     {
-        $extension = new WordPressExtension();
+        $result = $this->renderFilter('esc_textarea', '<script>alert("xss")</script>');
 
-        $result = $extension->escHtml('<b>bold</b>');
+        self::assertStringNotContainsString('<script>', $result);
+    }
 
-        self::assertStringNotContainsString('<b>', $result);
-        self::assertStringContainsString('&lt;b&gt;', $result);
+    #[Test]
+    public function wpKsesPostFilterSanitizesHtml(): void
+    {
+        $result = $this->renderFilter('wp_kses_post', '<p>Hello</p><script>alert("xss")</script>');
+
+        self::assertStringContainsString('<p>Hello</p>', $result);
+        self::assertStringNotContainsString('<script>', $result);
+    }
+
+    #[Test]
+    public function acceptsCustomEscaperAndSanitizer(): void
+    {
+        $extension = new WordPressExtension(new Escaper(), new Sanitizer());
+        $filters = $extension->getFilters();
+
+        $filterNames = array_map(fn($f) => $f->getName(), $filters);
+
+        self::assertContains('esc_html', $filterNames);
+        self::assertContains('wp_kses_post', $filterNames);
     }
 
     #[Test]
     public function integrationTest(): void
     {
-        $extension = new WordPressExtension(new Escaper());
         $loader = new FilesystemLoader(__DIR__ . '/../Fixtures/templates');
         $twig = new Environment($loader, [
             'strict_variables' => true,
             'autoescape' => 'html',
         ]);
-        $twig->addExtension($extension);
+        $twig->addExtension(new WordPressExtension());
 
         $html = $twig->render('with-escaping.html.twig', [
             'content' => '<script>xss</script>',
         ]);
 
         self::assertStringNotContainsString('<script>', $html);
+    }
+
+    private function renderFilter(string $filter, string $value): string
+    {
+        $template = $this->twig->createTemplate("{{ value|$filter }}");
+
+        return $template->render(['value' => $value]);
     }
 }

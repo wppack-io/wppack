@@ -83,6 +83,21 @@ final class EscaperTest extends TestCase
     }
 
     #[Test]
+    public function textareaEscapesSpecialCharacters(): void
+    {
+        $result = $this->escaper->textarea('<script>alert("XSS")</script>');
+
+        self::assertStringNotContainsString('<script>', $result);
+        self::assertStringContainsString('&lt;', $result);
+    }
+
+    #[Test]
+    public function textareaPreservesPlainText(): void
+    {
+        self::assertSame('Hello World', $this->escaper->textarea('Hello World'));
+    }
+
+    #[Test]
     public function escapeDefaultsToHtml(): void
     {
         $result = $this->escaper->escape('<script>alert("XSS")</script>');
@@ -124,10 +139,18 @@ final class EscaperTest extends TestCase
     }
 
     #[Test]
+    public function escapeWithTextareaStrategy(): void
+    {
+        $result = $this->escaper->escape('<b>bold</b>', 'textarea');
+
+        self::assertStringContainsString('&lt;b&gt;', $result);
+    }
+
+    #[Test]
     public function escapeThrowsOnUnknownStrategy(): void
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Unknown escaping strategy "css"');
+        $this->expectExceptionMessage('Unknown escaping strategy "css". Supported: html, attr, url, js, textarea.');
 
         $this->escaper->escape('value', 'css');
     }

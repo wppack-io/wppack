@@ -8,11 +8,13 @@ use Twig\Extension\AbstractExtension;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
 use WpPack\Component\Escaper\Escaper;
+use WpPack\Component\Sanitizer\Sanitizer;
 
 final class WordPressExtension extends AbstractExtension
 {
     public function __construct(
-        private readonly ?Escaper $escaper = null,
+        private readonly Escaper $escaper = new Escaper(),
+        private readonly Sanitizer $sanitizer = new Sanitizer(),
     ) {}
 
     /**
@@ -21,11 +23,12 @@ final class WordPressExtension extends AbstractExtension
     public function getFilters(): array
     {
         return [
-            new TwigFilter('esc_html', $this->escHtml(...), ['is_safe' => ['html']]),
-            new TwigFilter('esc_attr', $this->escAttr(...), ['is_safe' => ['html']]),
-            new TwigFilter('esc_url', $this->escUrl(...), ['is_safe' => ['html']]),
-            new TwigFilter('esc_js', $this->escJs(...), ['is_safe' => ['html', 'js']]),
-            new TwigFilter('wp_kses_post', $this->wpKsesPost(...), ['is_safe' => ['html']]),
+            new TwigFilter('esc_html', $this->escaper->html(...), ['is_safe' => ['html']]),
+            new TwigFilter('esc_attr', $this->escaper->attr(...), ['is_safe' => ['html']]),
+            new TwigFilter('esc_url', $this->escaper->url(...), ['is_safe' => ['html']]),
+            new TwigFilter('esc_js', $this->escaper->js(...), ['is_safe' => ['html', 'js']]),
+            new TwigFilter('esc_textarea', $this->escaper->textarea(...), ['is_safe' => ['html']]),
+            new TwigFilter('wp_kses_post', $this->sanitizer->ksesPost(...), ['is_safe' => ['html']]),
         ];
     }
 
@@ -40,71 +43,6 @@ final class WordPressExtension extends AbstractExtension
             new TwigFunction('body_class', $this->captureBodyClass(...), ['is_safe' => ['html']]),
             new TwigFunction('language_attributes', $this->captureLanguageAttributes(...), ['is_safe' => ['html']]),
         ];
-    }
-
-    public function escHtml(string $value): string
-    {
-        if ($this->escaper !== null) {
-            return $this->escaper->html($value);
-        }
-
-        if (function_exists('esc_html')) {
-            return esc_html($value);
-        }
-
-        return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-    }
-
-    public function escAttr(string $value): string
-    {
-        if ($this->escaper !== null) {
-            return $this->escaper->attr($value);
-        }
-
-        if (function_exists('esc_attr')) {
-            return esc_attr($value);
-        }
-
-        return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-    }
-
-    public function escUrl(string $value): string
-    {
-        if ($this->escaper !== null) {
-            return $this->escaper->url($value);
-        }
-
-        if (function_exists('esc_url')) {
-            return esc_url($value);
-        }
-
-        return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-    }
-
-    public function escJs(string $value): string
-    {
-        if ($this->escaper !== null) {
-            return $this->escaper->js($value);
-        }
-
-        if (function_exists('esc_js')) {
-            return esc_js($value);
-        }
-
-        return str_replace(
-            ["\\", '"', "'", "\n", "\r", '</'],
-            ["\\\\", '\\"', "\\'", "\\n", "\\r", '<\\/'],
-            $value,
-        );
-    }
-
-    public function wpKsesPost(string $value): string
-    {
-        if (function_exists('wp_kses_post')) {
-            return wp_kses_post($value);
-        }
-
-        return $value;
     }
 
     private function captureWpHead(): string
