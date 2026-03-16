@@ -43,6 +43,13 @@ final class ObjectNormalizer implements NormalizerInterface, DenormalizerInterfa
 
     public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): object
     {
+        if (!\is_array($data)) {
+            throw new NotNormalizableValueException(sprintf(
+                'Expected an array, got "%s".',
+                get_debug_type($data),
+            ));
+        }
+
         if (!class_exists($type)) {
             throw new NotNormalizableValueException(sprintf(
                 'Class "%s" does not exist.',
@@ -108,12 +115,10 @@ final class ObjectNormalizer implements NormalizerInterface, DenormalizerInterfa
     private function denormalizeValue(mixed $value, \ReflectionParameter $param, ?string $format, array $context): mixed
     {
         if ($value === null || \is_scalar($value)) {
-            $type = $param->getType();
-
-            if ($type instanceof \ReflectionNamedType && !$type->isBuiltin() && \is_string($value)) {
-                $typeName = $type->getName();
-                if (isset($this->denormalizer) && $this->denormalizer->supportsDenormalization($value, $typeName, $format, $context)) {
-                    return $this->denormalizer->denormalize($value, $typeName, $format, $context);
+            if (\is_string($value)) {
+                $className = $this->resolveClassName($param->getType());
+                if ($className !== null && isset($this->denormalizer) && $this->denormalizer->supportsDenormalization($value, $className, $format, $context)) {
+                    return $this->denormalizer->denormalize($value, $className, $format, $context);
                 }
             }
 
@@ -121,16 +126,36 @@ final class ObjectNormalizer implements NormalizerInterface, DenormalizerInterfa
         }
 
         if (\is_array($value)) {
-            $type = $param->getType();
-
-            if ($type instanceof \ReflectionNamedType && !$type->isBuiltin()) {
-                $typeName = $type->getName();
-                if (isset($this->denormalizer) && $this->denormalizer->supportsDenormalization($value, $typeName, $format, $context)) {
-                    return $this->denormalizer->denormalize($value, $typeName, $format, $context);
-                }
+            $className = $this->resolveClassName($param->getType());
+            if ($className !== null && isset($this->denormalizer) && $this->denormalizer->supportsDenormalization($value, $className, $format, $context)) {
+                return $this->denormalizer->denormalize($value, $className, $format, $context);
             }
         }
 
         return $value;
+    }
+
+    /**
+     * Extract the first non-builtin class name from a type declaration.
+     *
+     * Handles both ReflectionNamedType and ReflectionUnionType (e.g., ?MyClass, MyClass|null).
+     *
+     * @return class-string|null
+     */
+    private function resolveClassName(?\ReflectionType $type): ?string
+    {
+        if ($type instanceof \ReflectionNamedType) {
+            return !$type->isBuiltin() ? $type->getName() : null;
+        }
+
+        if ($type instanceof \ReflectionUnionType) {
+            foreach ($type->getTypes() as $innerType) {
+                if ($innerType instanceof \ReflectionNamedType && !$innerType->isBuiltin()) {
+                    return $innerType->getName();
+                }
+            }
+        }
+
+        return null;
     }
 }

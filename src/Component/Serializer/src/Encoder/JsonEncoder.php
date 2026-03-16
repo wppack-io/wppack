@@ -14,13 +14,8 @@ final class JsonEncoder implements EncoderInterface, DecoderInterface
     {
         try {
             if (\function_exists('wp_json_encode')) {
-                $json = wp_json_encode($data, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_UNICODE);
-
-                if ($json === false) {
-                    throw new NotEncodableValueException('wp_json_encode returned false.');
-                }
-
-                return $json;
+                /** @var string — JSON_THROW_ON_ERROR ensures no false return */
+                return wp_json_encode($data, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_UNICODE);
             }
 
             return json_encode($data, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_UNICODE);

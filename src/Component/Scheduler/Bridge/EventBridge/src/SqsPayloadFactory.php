@@ -18,17 +18,18 @@ use WpPack\Component\Serializer\SerializerInterface;
  * Builds SQS message payloads compatible with SqsEventHandler + JsonSerializer::decode().
  *
  * The output JSON string becomes the EventBridge Target.Input, which is delivered
- * as the SQS message body. SqsEventHandler json_decodes it and feeds the result
- * to JsonSerializer::decode().
+ * as the SQS message body. SqsEventHandler decodes it via JsonEncoder and feeds
+ * the result to JsonSerializer::decode().
  */
 final class SqsPayloadFactory
 {
     private readonly SerializerInterface $serializer;
+    private readonly JsonEncoder $jsonEncoder;
 
     public function __construct(
         ?SerializerInterface $serializer = null,
-        private readonly JsonEncoder $jsonEncoder = new JsonEncoder(),
     ) {
+        $this->jsonEncoder = new JsonEncoder();
         $this->serializer = $serializer ?? new Serializer(
             normalizers: [new BackedEnumNormalizer(), new DateTimeNormalizer(), new ObjectNormalizer()],
             encoders: [$this->jsonEncoder],

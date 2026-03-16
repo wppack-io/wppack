@@ -35,22 +35,31 @@ final class DateTimeNormalizer implements NormalizerInterface, DenormalizerInter
     {
         $dateTimeFormat = $context[self::FORMAT_KEY] ?? self::DEFAULT_FORMAT;
 
-        if ($type === \DateTimeImmutable::class || $type === \DateTimeInterface::class) {
-            $dateTime = \DateTimeImmutable::createFromFormat($dateTimeFormat, $data);
-            if ($dateTime === false) {
-                $dateTime = new \DateTimeImmutable($data);
+        try {
+            if ($type === \DateTimeImmutable::class || $type === \DateTimeInterface::class) {
+                $dateTime = \DateTimeImmutable::createFromFormat($dateTimeFormat, $data);
+                if ($dateTime === false) {
+                    $dateTime = new \DateTimeImmutable($data);
+                }
+
+                return $dateTime;
             }
 
-            return $dateTime;
-        }
+            if ($type === \DateTime::class) {
+                $dateTime = \DateTime::createFromFormat($dateTimeFormat, $data);
+                if ($dateTime === false) {
+                    $dateTime = new \DateTime($data);
+                }
 
-        if ($type === \DateTime::class) {
-            $dateTime = \DateTime::createFromFormat($dateTimeFormat, $data);
-            if ($dateTime === false) {
-                $dateTime = new \DateTime($data);
+                return $dateTime;
             }
-
-            return $dateTime;
+        } catch (\Exception $e) {
+            throw new NotNormalizableValueException(sprintf(
+                'Failed to denormalize "%s" into "%s": %s',
+                $data,
+                $type,
+                $e->getMessage(),
+            ), previous: $e);
         }
 
         throw new NotNormalizableValueException(sprintf(

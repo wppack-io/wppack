@@ -7,6 +7,7 @@ namespace WpPack\Component\Messenger\Bridge\Sqs\Tests\Transport;
 use AsyncAws\Sqs\Input\SendMessageRequest;
 use AsyncAws\Sqs\Result\SendMessageResult;
 use AsyncAws\Sqs\SqsClient;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Messenger\Bridge\Sqs\Transport\SqsTransport;
@@ -16,6 +17,7 @@ use WpPack\Component\Messenger\Serializer\SerializerInterface;
 use WpPack\Component\Messenger\Stamp\DelayStamp;
 use WpPack\Component\Messenger\Stamp\SentStamp;
 
+#[CoversClass(SqsTransport::class)]
 final class SqsTransportTest extends TestCase
 {
     private const QUEUE_URL = 'https://sqs.ap-northeast-1.amazonaws.com/123456789/test-queue';

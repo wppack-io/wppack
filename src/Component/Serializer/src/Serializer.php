@@ -41,11 +41,7 @@ final class Serializer implements SerializerInterface, NormalizerInterface, Deno
         }
         $this->normalizers = $normalizerList;
 
-        $encoderList = [];
-        foreach ($encoders as $encoder) {
-            $encoderList[] = $encoder;
-        }
-        $this->encoders = $encoderList;
+        $this->encoders = [...$encoders];
     }
 
     public function serialize(mixed $data, string $format, array $context = []): string
