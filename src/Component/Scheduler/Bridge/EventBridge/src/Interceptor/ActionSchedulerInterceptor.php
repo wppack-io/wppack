@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Scheduler\Bridge\EventBridge\Interceptor;
 
+use Psr\Log\LoggerInterface;
 use WpPack\Component\Scheduler\Bridge\EventBridge\Collector\ActionSchedulerCollector;
 use WpPack\Component\Scheduler\Bridge\EventBridge\EventBridgeScheduleFactory;
 use WpPack\Component\Scheduler\Bridge\EventBridge\ScheduleIdGenerator;
@@ -29,6 +30,7 @@ final class ActionSchedulerInterceptor
         private readonly SchedulerInterface $scheduler,
         private readonly EventBridgeScheduleFactory $scheduleFactory,
         private readonly SqsPayloadFactory $payloadFactory,
+        private readonly ?LoggerInterface $logger = null,
     ) {
         $this->idGenerator = new ScheduleIdGenerator();
     }
@@ -86,8 +88,17 @@ final class ActionSchedulerInterceptor
 
             $autoDelete = \in_array($action['scheduleType'], ['single', 'async'], true);
 
-            $this->scheduler->createScheduleRaw($scheduleId, $expression, $payload, $autoDelete);
-            $count++;
+            try {
+                $this->scheduler->createScheduleRaw($scheduleId, $expression, $payload, $autoDelete);
+                $count++;
+            } catch (\Throwable $e) {
+                $this->logger?->error('Failed to sync Action Scheduler action #{actionId} "{hook}" to EventBridge: {error}', [
+                    'actionId' => $action['actionId'],
+                    'hook' => $action['hook'],
+                    'error' => $e->getMessage(),
+                    'exception' => $e,
+                ]);
+            }
         }
 
         return $count;
@@ -121,7 +132,16 @@ final class ActionSchedulerInterceptor
 
         [$expression, $autoDelete] = $this->resolveExpression($schedule);
 
-        $this->scheduler->createScheduleRaw($scheduleId, $expression, $payload, $autoDelete);
+        try {
+            $this->scheduler->createScheduleRaw($scheduleId, $expression, $payload, $autoDelete);
+        } catch (\Throwable $e) {
+            $this->logger?->error('Failed to create EventBridge schedule for Action Scheduler action #{actionId} "{hook}": {error}', [
+                'actionId' => $actionId,
+                'hook' => $hook,
+                'error' => $e->getMessage(),
+                'exception' => $e,
+            ]);
+        }
     }
 
     /**
@@ -148,7 +168,15 @@ final class ActionSchedulerInterceptor
             $actionId,
         );
 
-        $this->scheduler->unschedule($scheduleId);
+        try {
+            $this->scheduler->unschedule($scheduleId);
+        } catch (\Throwable $e) {
+            $this->logger?->error('Failed to delete EventBridge schedule for Action Scheduler action #{actionId}: {error}', [
+                'actionId' => $actionId,
+                'error' => $e->getMessage(),
+                'exception' => $e,
+            ]);
+        }
     }
 
     /**

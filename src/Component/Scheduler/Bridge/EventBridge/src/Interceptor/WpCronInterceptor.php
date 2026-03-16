@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Scheduler\Bridge\EventBridge\Interceptor;
 
+use Psr\Log\LoggerInterface;
 use WpPack\Component\Scheduler\Bridge\EventBridge\Collector\WpCronCollector;
 use WpPack\Component\Scheduler\Bridge\EventBridge\CronArrayHelper;
 use WpPack\Component\Scheduler\Bridge\EventBridge\EventBridgeScheduleFactory;
@@ -29,6 +30,7 @@ final class WpCronInterceptor
         private readonly SchedulerInterface $scheduler,
         private readonly EventBridgeScheduleFactory $scheduleFactory,
         private readonly SqsPayloadFactory $payloadFactory,
+        private readonly ?LoggerInterface $logger = null,
     ) {
         $this->idGenerator = new ScheduleIdGenerator();
     }
@@ -92,13 +94,21 @@ final class WpCronInterceptor
                 $event['timestamp'],
             );
 
-            $this->scheduler->createScheduleRaw(
-                $scheduleId,
-                $expression['expression'],
-                $payload,
-                $expression['type'] === 'at',
-            );
-            $count++;
+            try {
+                $this->scheduler->createScheduleRaw(
+                    $scheduleId,
+                    $expression['expression'],
+                    $payload,
+                    $expression['type'] === 'at',
+                );
+                $count++;
+            } catch (\Throwable $e) {
+                $this->logger?->error('Failed to sync WP-Cron event "{hook}" to EventBridge: {error}', [
+                    'hook' => $event['hook'],
+                    'error' => $e->getMessage(),
+                    'exception' => $e,
+                ]);
+            }
         }
 
         return $count;
@@ -135,14 +145,24 @@ final class WpCronInterceptor
 
         $payload = $this->payloadFactory->createForWpCronEvent($hook, $args, $schedule, $timestamp);
 
-        $this->scheduler->createScheduleRaw(
-            $scheduleId,
-            $expression['expression'],
-            $payload,
-            $expression['type'] === 'at',
-        );
-
+        // DB first — always persist
         CronArrayHelper::addEntry($timestamp, $hook, $args, $schedule, (int) ($event->interval ?? 0));
+
+        // EventBridge — best-effort
+        try {
+            $this->scheduler->createScheduleRaw(
+                $scheduleId,
+                $expression['expression'],
+                $payload,
+                $expression['type'] === 'at',
+            );
+        } catch (\Throwable $e) {
+            $this->logger?->error('Failed to create EventBridge schedule for WP-Cron event "{hook}": {error}', [
+                'hook' => $hook,
+                'error' => $e->getMessage(),
+                'exception' => $e,
+            ]);
+        }
 
         return true;
     }
@@ -192,8 +212,19 @@ final class WpCronInterceptor
         $schedule = CronArrayHelper::getScheduleName($timestamp, $hook, $args);
         $scheduleId = $this->idGenerator->forWpCronEvent($hook, $args, $schedule, $timestamp);
 
-        $this->scheduler->unschedule($scheduleId);
+        // DB first — always persist
         CronArrayHelper::removeEntry($timestamp, $hook, $args);
+
+        // EventBridge — best-effort
+        try {
+            $this->scheduler->unschedule($scheduleId);
+        } catch (\Throwable $e) {
+            $this->logger?->error('Failed to delete EventBridge schedule for WP-Cron event "{hook}": {error}', [
+                'hook' => $hook,
+                'error' => $e->getMessage(),
+                'exception' => $e,
+            ]);
+        }
 
         return true;
     }
@@ -227,7 +258,15 @@ final class WpCronInterceptor
             $schedule = $cronHooks[$hook][$key]['schedule'] ?? false;
             $scheduleId = $this->idGenerator->forWpCronEvent($hook, $args, $schedule, (int) $timestamp);
 
-            $this->scheduler->unschedule($scheduleId);
+            try {
+                $this->scheduler->unschedule($scheduleId);
+            } catch (\Throwable $e) {
+                $this->logger?->error('Failed to delete EventBridge schedule for WP-Cron hook "{hook}": {error}', [
+                    'hook' => $hook,
+                    'error' => $e->getMessage(),
+                    'exception' => $e,
+                ]);
+            }
 
             unset($crons[$timestamp][$hook][$key]);
             if (empty($crons[$timestamp][$hook])) {
@@ -273,7 +312,15 @@ final class WpCronInterceptor
                 $schedule = $event['schedule'] ?? false;
                 $scheduleId = $this->idGenerator->forWpCronEvent($hook, $args, $schedule, (int) $timestamp);
 
-                $this->scheduler->unschedule($scheduleId);
+                try {
+                    $this->scheduler->unschedule($scheduleId);
+                } catch (\Throwable $e) {
+                    $this->logger?->error('Failed to delete EventBridge schedule for WP-Cron hook "{hook}": {error}', [
+                        'hook' => $hook,
+                        'error' => $e->getMessage(),
+                        'exception' => $e,
+                    ]);
+                }
                 $count++;
             }
 

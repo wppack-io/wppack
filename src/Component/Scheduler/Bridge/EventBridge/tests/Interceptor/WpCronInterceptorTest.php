@@ -6,6 +6,7 @@ namespace WpPack\Component\Scheduler\Bridge\EventBridge\Tests\Interceptor;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use WpPack\Component\Scheduler\Bridge\EventBridge\EventBridgeScheduleFactory;
 use WpPack\Component\Scheduler\Bridge\EventBridge\Interceptor\WpCronInterceptor;
 use WpPack\Component\Scheduler\Bridge\EventBridge\SqsPayloadFactory;
@@ -207,6 +208,106 @@ final class WpCronInterceptorTest extends TestCase
         self::assertSame(2, $result);
         self::assertCount(2, $this->scheduler->unscheduleCalls);
     }
+
+    #[Test]
+    public function onPreScheduleEventPersistsToDbWhenEventBridgeFails(): void
+    {
+        $this->scheduler->shouldThrowOnCreate = true;
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())->method('error');
+
+        $interceptor = new WpCronInterceptor(
+            $this->scheduler,
+            new EventBridgeScheduleFactory(),
+            new SqsPayloadFactory(),
+            $logger,
+        );
+
+        $timestamp = time() + 3600;
+        $event = (object) [
+            'hook' => 'eb_fail_hook',
+            'args' => [],
+            'timestamp' => $timestamp,
+            'schedule' => 'hourly',
+            'interval' => 3600,
+        ];
+
+        $result = $interceptor->onPreScheduleEvent(null, $event);
+
+        self::assertTrue($result);
+
+        // DB entry must exist despite EventBridge failure
+        $crons = _get_cron_array();
+        $key = md5(serialize([]));
+        self::assertTrue(isset($crons[$timestamp]['eb_fail_hook'][$key]));
+    }
+
+    #[Test]
+    public function onPreUnscheduleEventRemovesFromDbWhenEventBridgeFails(): void
+    {
+        $this->scheduler->shouldThrowOnUnschedule = true;
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())->method('error');
+
+        $interceptor = new WpCronInterceptor(
+            $this->scheduler,
+            new EventBridgeScheduleFactory(),
+            new SqsPayloadFactory(),
+            $logger,
+        );
+
+        $timestamp = time() + 3600;
+        $key = md5(serialize([]));
+
+        $crons = _get_cron_array();
+        $crons[$timestamp]['eb_fail_unsched'][$key] = [
+            'schedule' => 'hourly',
+            'args' => [],
+            'interval' => 3600,
+        ];
+        _set_cron_array($crons);
+
+        $result = $interceptor->onPreUnscheduleEvent(null, $timestamp, 'eb_fail_unsched', []);
+
+        self::assertTrue($result);
+
+        // DB entry must be removed despite EventBridge failure
+        $crons = _get_cron_array();
+        self::assertFalse(isset($crons[$timestamp]['eb_fail_unsched'][$key]));
+    }
+
+    #[Test]
+    public function onPreClearScheduledHookContinuesOnEventBridgeFailure(): void
+    {
+        $this->scheduler->shouldThrowOnUnschedule = true;
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::exactly(2))->method('error');
+
+        $interceptor = new WpCronInterceptor(
+            $this->scheduler,
+            new EventBridgeScheduleFactory(),
+            new SqsPayloadFactory(),
+            $logger,
+        );
+
+        $ts1 = time() + 3600;
+        $ts2 = time() + 7200;
+        $args = ['arg1'];
+        $key = md5(serialize($args));
+
+        $crons = _get_cron_array();
+        $crons[$ts1]['clear_hook'][$key] = ['schedule' => 'hourly', 'args' => $args, 'interval' => 3600];
+        $crons[$ts2]['clear_hook'][$key] = ['schedule' => 'hourly', 'args' => $args, 'interval' => 3600];
+        _set_cron_array($crons);
+
+        $result = $interceptor->onPreClearScheduledHook(null, 'clear_hook', $args);
+
+        // Both events cleared from DB despite EB failures
+        self::assertSame(2, $result);
+        $crons = _get_cron_array();
+        self::assertFalse(isset($crons[$ts1]['clear_hook']));
+        self::assertFalse(isset($crons[$ts2]['clear_hook']));
+    }
 }
 
 /**
@@ -224,6 +325,10 @@ final class SpyScheduler implements SchedulerInterface
     /** @var list<string> */
     public array $unscheduleCalls = [];
 
+    public bool $shouldThrowOnCreate = false;
+
+    public bool $shouldThrowOnUnschedule = false;
+
     public function schedule(string $scheduleId, ScheduledMessage $message): void
     {
         // Not used by interceptor
@@ -231,6 +336,9 @@ final class SpyScheduler implements SchedulerInterface
 
     public function unschedule(string $scheduleId): void
     {
+        if ($this->shouldThrowOnUnschedule) {
+            throw new \RuntimeException('EventBridge API error');
+        }
         $this->unscheduleCalls[] = $scheduleId;
     }
 
@@ -250,6 +358,9 @@ final class SpyScheduler implements SchedulerInterface
         string $payload,
         bool $autoDelete = false,
     ): void {
+        if ($this->shouldThrowOnCreate) {
+            throw new \RuntimeException('EventBridge API error');
+        }
         $this->createScheduleRawCalls[] = [
             'scheduleId' => $scheduleId,
             'expression' => $expression,
