@@ -1,25 +1,23 @@
 {
     "name": "wppack/scheduler",
-    "description": "Symfony-like scheduler with EventBridge sync for WordPress",
+    "description": "Task scheduler with recurring and one-time message support for WordPress",
     "type": "library",
     "license": "MIT",
     "require": {
         "php": "^8.2",
         "wppack/messenger": "^1.0",
-        "async-aws/scheduler": "^1.0",
         "dragonmantank/cron-expression": "^3.0"
     },
     "require-dev": {
         "wppack/hook": "^1.0"
     },
+    "suggest": {
+        "wppack/eventbridge-scheduler": "EventBridge backend for high-reliability scheduling"
+    },
     "autoload": {
-        "psr-4": {
-            "WpPack\\Component\\Scheduler\\": "src/"
-        }
+        "psr-4": { "WpPack\\Component\\Scheduler\\": "src/" }
     },
     "autoload-dev": {
-        "psr-4": {
-            "WpPack\\Component\\Scheduler\\Tests\\": "tests/"
-        }
+        "psr-4": { "WpPack\\Component\\Scheduler\\Tests\\": "tests/" }
     }
 }

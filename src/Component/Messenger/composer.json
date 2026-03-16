@@ -1,16 +1,22 @@
 {
     "name": "wppack/messenger",
-    "description": "SQS/Lambda messaging bus for WordPress",
+    "description": "Transport-agnostic messaging bus for WordPress",
     "type": "library",
     "license": "MIT",
     "require": {
         "php": "^8.2",
-        "async-aws/sqs": "^2.0",
         "psr/log": "^3.0"
     },
+    "require-dev": {
+        "wppack/hook": "^1.0"
+    },
+    "suggest": {
+        "wppack/sqs-messenger": "SQS transport for async messaging via AWS Lambda"
+    },
     "autoload": {
-        "psr-4": {
-            "WpPack\\Component\\Messenger\\": "src/"
-        }
+        "psr-4": { "WpPack\\Component\\Messenger\\": "src/" }
+    },
+    "autoload-dev": {
+        "psr-4": { "WpPack\\Component\\Messenger\\Tests\\": "tests/" }
     }
 }

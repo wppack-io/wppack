@@ -1,0 +1,21 @@
+{
+    "name": "wppack/sqs-messenger",
+    "description": "Amazon SQS transport for WpPack Messenger",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "wppack/messenger": "^1.0",
+        "async-aws/sqs": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpPack\\Component\\Messenger\\Bridge\\Sqs\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Component\\Messenger\\Bridge\\Sqs\\Tests\\": "tests/"
+        }
+    }
+}

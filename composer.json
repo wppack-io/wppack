@@ -18,6 +18,7 @@
         "async-aws/dynamo-db": "^3.0",
         "async-aws/scheduler": "^1.0",
         "async-aws/ses": "^1.14",
+        "async-aws/sqs": "^2.0",
         "dragonmantank/cron-expression": "^3.0",
         "firebase/php-jwt": "^7.0",
         "friendsofphp/php-cs-fixer": "^3.68",
@@ -99,6 +100,7 @@
             "WpPack\\Plugin\\AmazonMailerPlugin\\": "src/Plugin/AmazonMailerPlugin/src/",
             "WpPack\\Component\\Security\\Bridge\\SAML\\": "src/Component/Security/Bridge/SAML/src/",
             "WpPack\\Component\\Security\\Bridge\\OAuth\\": "src/Component/Security/Bridge/OAuth/src/",
+            "WpPack\\Component\\Messenger\\Bridge\\Sqs\\": "src/Component/Messenger/Bridge/Sqs/src/",
             "WpPack\\Component\\Scheduler\\Bridge\\EventBridge\\": "src/Component/Scheduler/Bridge/EventBridge/src/",
             "WpPack\\Component\\Templating\\Bridge\\Twig\\": "src/Component/Templating/Bridge/Twig/src/",
             "WpPack\\Component\\Wpress\\": "src/Component/Wpress/src/"
@@ -144,6 +146,8 @@
             "WpPack\\Component\\Sanitizer\\Tests\\": "src/Component/Sanitizer/tests/",
             "WpPack\\Component\\Escaper\\Tests\\": "src/Component/Escaper/tests/",
             "WpPack\\Component\\EventDispatcher\\Tests\\": "src/Component/EventDispatcher/tests/",
+            "WpPack\\Component\\Messenger\\Tests\\": "src/Component/Messenger/tests/",
+            "WpPack\\Component\\Messenger\\Bridge\\Sqs\\Tests\\": "src/Component/Messenger/Bridge/Sqs/tests/",
             "WpPack\\Component\\Scheduler\\Tests\\": "src/Component/Scheduler/tests/",
             "WpPack\\Component\\Security\\Tests\\": "src/Component/Security/tests/",
             "WpPack\\Component\\Security\\Bridge\\SAML\\Tests\\": "src/Component/Security/Bridge/SAML/tests/",
@@ -230,6 +234,7 @@
         "wppack/apcu-cache": "self.version",
         "wppack/saml-security": "self.version",
         "wppack/oauth-security": "self.version",
+        "wppack/sqs-messenger": "self.version",
         "wppack/eventbridge-scheduler": "self.version",
         "wppack/twig-templating": "self.version",
         "wppack/wpress": "self.version"

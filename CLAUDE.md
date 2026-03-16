@@ -79,6 +79,7 @@ WordPress プラグインとして配布。Component を利用。
 | AzureMailer | wppack/azure-mailer | Azure Communication Services トランスポート実装 |
 | SendGridMailer | wppack/sendgrid-mailer | SendGrid トランスポート実装 |
 | Messenger | wppack/messenger | メッセージングバス（SQS/Lambda） |
+| SqsMessenger | wppack/sqs-messenger | Amazon SQS トランスポート |
 | OptionsResolver | wppack/options-resolver | オプション解決（Symfony OptionsResolver 拡張） |
 | Debug | wppack/debug | デバッグ・プロファイリング |
 
@@ -130,6 +131,11 @@ wppack/scheduler-plugin
 wppack/scheduler
     ↓ requires
 wppack/messenger
+
+wppack/sqs-messenger
+    ↓ requires
+wppack/messenger
+    + async-aws/sqs
 
 wppack/s3-storage-plugin
     ↓ requires

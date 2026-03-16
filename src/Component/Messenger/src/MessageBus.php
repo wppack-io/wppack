@@ -1,0 +1,33 @@
+<?php
+
+declare(strict_types=1);
+
+namespace WpPack\Component\Messenger;
+
+use WpPack\Component\Messenger\Middleware\MiddlewareInterface;
+use WpPack\Component\Messenger\Middleware\MiddlewareStack;
+use WpPack\Component\Messenger\Stamp\StampInterface;
+
+final class MessageBus implements MessageBusInterface
+{
+    /** @var list<MiddlewareInterface> */
+    private readonly array $middlewares;
+
+    /**
+     * @param iterable<MiddlewareInterface> $middlewares
+     */
+    public function __construct(iterable $middlewares = [])
+    {
+        $this->middlewares = $middlewares instanceof \Traversable
+            ? iterator_to_array($middlewares, false)
+            : array_values($middlewares);
+    }
+
+    public function dispatch(object $message, array $stamps = []): Envelope
+    {
+        $envelope = Envelope::wrap($message, $stamps);
+        $stack = new MiddlewareStack($this->middlewares);
+
+        return $stack->next()->handle($envelope, $stack);
+    }
+}
