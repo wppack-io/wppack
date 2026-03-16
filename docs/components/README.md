@@ -58,7 +58,8 @@ WordPress API やデータアクセスを抽象化し、テスト可能にする
 | [HttpClient](./http-client/) | `wppack/http-client` | HTTP クライアント抽象化 |
 | [HttpFoundation](./http-foundation/) | `wppack/http-foundation` | Request/Response 抽象化 |
 | [Mailer](./mailer/) | `wppack/mailer` | メール送信抽象化、TransportInterface |
-| [Messenger](./messenger.md) | `wppack/messenger` | 非同期メッセージバス（SQS/Lambda） |
+| [Messenger](./messenger/) | `wppack/messenger` | トランスポート非依存のメッセージバス |
+| [SqsMessenger](./messenger/sqs-messenger.md) | `wppack/sqs-messenger` | SQS トランスポート |
 | [OptionsResolver](./options-resolver/) | `wppack/options-resolver` | オプション解決（Symfony OptionsResolver 拡張） |
 | [Debug](./debug/) | `wppack/debug` | デバッグツール |
 
@@ -72,7 +73,8 @@ WordPress の機能領域をモダンなパターンで扱う。
 | [Rest](./rest/) | `wppack/rest` | REST API エンドポイント定義 |
 | [Routing](./routing/) | `wppack/routing` | URL ルーティング |
 | [PostType](./post-type.md) | `wppack/post-type` | カスタム投稿タイプ・メタ登録 |
-| [Scheduler](./scheduler.md) | `wppack/scheduler` | スケジュール定義（EventBridge 同期） |
+| [Scheduler](./scheduler/) | `wppack/scheduler` | Trigger ベースのタスクスケジューラー |
+| [EventBridgeScheduler](./scheduler/eventbridge-scheduler.md) | `wppack/eventbridge-scheduler` | EventBridge スケジューラー |
 | [Console](./console/) | `wppack/console` | WP-CLI コマンドフレームワーク |
 | [Shortcode](./shortcode/) | `wppack/shortcode` | ショートコード登録 |
 | [Nonce](./nonce/) | `wppack/nonce` | Nonce 管理 |
