@@ -189,6 +189,10 @@ component_management:
       name: Ajax
       paths:
         - src/Component/Ajax/src/**
+    - component_id: wpress
+      name: Wpress
+      paths:
+        - src/Component/Wpress/src/**
 
     # Application Layer
     - component_id: plugin

@@ -77,6 +77,7 @@ WordPress の機能領域をモダンなパターンで扱う。
 | [Shortcode](./shortcode/) | `wppack/shortcode` | ショートコード登録 |
 | [Nonce](./nonce/) | `wppack/nonce` | Nonce 管理 |
 | [Ajax](./ajax/) | `wppack/ajax` | Admin Ajax ハンドラー |
+| [Wpress](./wpress/) | `wppack/wpress` | .wpress アーカイブ形式操作 |
 
 ## Application Layer（アプリケーション層）
 

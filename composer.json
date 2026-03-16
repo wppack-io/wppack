@@ -97,7 +97,8 @@
             "WpPack\\Plugin\\AmazonMailerPlugin\\": "src/Plugin/AmazonMailerPlugin/src/",
             "WpPack\\Component\\Security\\Bridge\\SAML\\": "src/Component/Security/Bridge/SAML/src/",
             "WpPack\\Component\\Security\\Bridge\\OAuth\\": "src/Component/Security/Bridge/OAuth/src/",
-            "WpPack\\Component\\Templating\\Bridge\\Twig\\": "src/Component/Templating/Bridge/Twig/src/"
+            "WpPack\\Component\\Templating\\Bridge\\Twig\\": "src/Component/Templating/Bridge/Twig/src/",
+            "WpPack\\Component\\Wpress\\": "src/Component/Wpress/src/"
         }
     },
     "autoload-dev": {
@@ -159,7 +160,8 @@
             "WpPack\\Component\\Cache\\Bridge\\Apcu\\Tests\\": "src/Component/Cache/Bridge/Apcu/tests/",
             "WpPack\\Component\\Translation\\Tests\\": "src/Component/Translation/tests/",
             "WpPack\\Component\\Security\\Bridge\\OAuth\\Tests\\": "src/Component/Security/Bridge/OAuth/tests/",
-            "WpPack\\Component\\Templating\\Bridge\\Twig\\Tests\\": "src/Component/Templating/Bridge/Twig/tests/"
+            "WpPack\\Component\\Templating\\Bridge\\Twig\\Tests\\": "src/Component/Templating/Bridge/Twig/tests/",
+            "WpPack\\Component\\Wpress\\Tests\\": "src/Component/Wpress/tests/"
         }
     },
     "replace": {
@@ -224,7 +226,8 @@
         "wppack/apcu-cache": "self.version",
         "wppack/saml-security": "self.version",
         "wppack/oauth-security": "self.version",
-        "wppack/twig-templating": "self.version"
+        "wppack/twig-templating": "self.version",
+        "wppack/wpress": "self.version"
     },
     "config": {
         "sort-packages": true
