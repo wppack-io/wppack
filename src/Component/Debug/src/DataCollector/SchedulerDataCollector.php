@@ -111,14 +111,17 @@ final class SchedulerDataCollector extends AbstractDataCollector
                 ? constant('ActionScheduler_Versions::AS_VERSION')
                 : '';
 
+            /** @var array<mixed> $pendingActions */
             $pendingActions = as_get_scheduled_actions(['status' => 'pending', 'per_page' => 0], 'ARRAY_A');
-            $asPending = is_array($pendingActions) ? count($pendingActions) : 0;
+            $asPending = count($pendingActions);
 
+            /** @var array<mixed> $failedActions */
             $failedActions = as_get_scheduled_actions(['status' => 'failed', 'per_page' => 0], 'ARRAY_A');
-            $asFailed = is_array($failedActions) ? count($failedActions) : 0;
+            $asFailed = count($failedActions);
 
+            /** @var array<mixed> $completeActions */
             $completeActions = as_get_scheduled_actions(['status' => 'complete', 'per_page' => 0], 'ARRAY_A');
-            $asComplete = is_array($completeActions) ? count($completeActions) : 0;
+            $asComplete = count($completeActions);
         }
 
         $this->data = [

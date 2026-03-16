@@ -8,7 +8,7 @@ use WpPack\Component\Serializer\Exception\NotEncodableValueException;
 
 final class JsonEncoder implements EncoderInterface, DecoderInterface
 {
-    public const string FORMAT = 'json';
+    public const FORMAT = 'json';
 
     public function encode(mixed $data, string $format, array $context = []): string
     {

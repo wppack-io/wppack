@@ -16,7 +16,7 @@ use WpPack\Component\Serializer\Encoder\JsonEncoder;
 
 final class SqsTransport implements TransportInterface
 {
-    private const int MAX_SQS_DELAY_SECONDS = 900;
+    private const MAX_SQS_DELAY_SECONDS = 900;
 
     public function __construct(
         private readonly SqsClient $sqsClient,

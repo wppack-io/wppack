@@ -18,7 +18,7 @@ use WpPack\Component\Messenger\Stamp\SentStamp;
 
 final class SqsTransportTest extends TestCase
 {
-    private const string QUEUE_URL = 'https://sqs.ap-northeast-1.amazonaws.com/123456789/test-queue';
+    private const QUEUE_URL = 'https://sqs.ap-northeast-1.amazonaws.com/123456789/test-queue';
 
     protected function setUp(): void
     {

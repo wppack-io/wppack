@@ -8,9 +8,9 @@ use WpPack\Component\Serializer\Exception\NotNormalizableValueException;
 
 final class DateTimeNormalizer implements NormalizerInterface, DenormalizerInterface
 {
-    public const string FORMAT_KEY = 'datetime_format';
+    public const FORMAT_KEY = 'datetime_format';
 
-    private const string DEFAULT_FORMAT = \DateTimeInterface::ATOM;
+    private const DEFAULT_FORMAT = \DateTimeInterface::ATOM;
 
     public function normalize(mixed $data, ?string $format = null, array $context = []): string
     {
