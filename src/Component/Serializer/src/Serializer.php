@@ -15,7 +15,7 @@ use WpPack\Component\Serializer\Normalizer\NormalizerInterface;
 
 final class Serializer implements SerializerInterface, NormalizerInterface, DenormalizerInterface
 {
-    /** @var list<NormalizerInterface> */
+    /** @var list<NormalizerInterface|DenormalizerInterface> */
     private readonly array $normalizers;
 
     /** @var list<EncoderInterface|DecoderInterface> */
@@ -81,7 +81,7 @@ final class Serializer implements SerializerInterface, NormalizerInterface, Deno
         }
 
         foreach ($this->normalizers as $normalizer) {
-            if ($normalizer instanceof NormalizerInterface && $normalizer->supportsNormalization($data, $format)) {
+            if ($normalizer instanceof NormalizerInterface && $normalizer->supportsNormalization($data, $format, $context)) {
                 return $normalizer->normalize($data, $format, $context);
             }
         }
@@ -92,14 +92,14 @@ final class Serializer implements SerializerInterface, NormalizerInterface, Deno
         ));
     }
 
-    public function supportsNormalization(mixed $data, ?string $format = null): bool
+    public function supportsNormalization(mixed $data, ?string $format = null, array $context = []): bool
     {
         if ($data === null || \is_scalar($data) || \is_array($data)) {
             return true;
         }
 
         foreach ($this->normalizers as $normalizer) {
-            if ($normalizer instanceof NormalizerInterface && $normalizer->supportsNormalization($data, $format)) {
+            if ($normalizer instanceof NormalizerInterface && $normalizer->supportsNormalization($data, $format, $context)) {
                 return true;
             }
         }
@@ -110,7 +110,7 @@ final class Serializer implements SerializerInterface, NormalizerInterface, Deno
     public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): object
     {
         foreach ($this->normalizers as $normalizer) {
-            if ($normalizer instanceof DenormalizerInterface && $normalizer->supportsDenormalization($data, $type, $format)) {
+            if ($normalizer instanceof DenormalizerInterface && $normalizer->supportsDenormalization($data, $type, $format, $context)) {
                 /** @var object */
                 return $normalizer->denormalize($data, $type, $format, $context);
             }
@@ -122,10 +122,10 @@ final class Serializer implements SerializerInterface, NormalizerInterface, Deno
         ));
     }
 
-    public function supportsDenormalization(mixed $data, string $type, ?string $format = null): bool
+    public function supportsDenormalization(mixed $data, string $type, ?string $format = null, array $context = []): bool
     {
         foreach ($this->normalizers as $normalizer) {
-            if ($normalizer instanceof DenormalizerInterface && $normalizer->supportsDenormalization($data, $type, $format)) {
+            if ($normalizer instanceof DenormalizerInterface && $normalizer->supportsDenormalization($data, $type, $format, $context)) {
                 return true;
             }
         }
@@ -139,7 +139,7 @@ final class Serializer implements SerializerInterface, NormalizerInterface, Deno
     private function encode(mixed $data, string $format, array $context): string
     {
         foreach ($this->encoders as $encoder) {
-            if ($encoder instanceof EncoderInterface && $encoder->supportsEncoding($format)) {
+            if ($encoder instanceof EncoderInterface && $encoder->supportsEncoding($format, $context)) {
                 return $encoder->encode($data, $format, $context);
             }
         }
@@ -153,7 +153,7 @@ final class Serializer implements SerializerInterface, NormalizerInterface, Deno
     private function decode(string $data, string $format, array $context): mixed
     {
         foreach ($this->encoders as $encoder) {
-            if ($encoder instanceof DecoderInterface && $encoder->supportsDecoding($format)) {
+            if ($encoder instanceof DecoderInterface && $encoder->supportsDecoding($format, $context)) {
                 return $encoder->decode($data, $format, $context);
             }
         }

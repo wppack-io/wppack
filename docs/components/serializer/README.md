@@ -116,13 +116,13 @@ namespace WpPack\Component\Serializer\Normalizer;
 interface NormalizerInterface
 {
     public function normalize(mixed $data, ?string $format = null, array $context = []): array|string|int|float|bool|null;
-    public function supportsNormalization(mixed $data, ?string $format = null): bool;
+    public function supportsNormalization(mixed $data, ?string $format = null, array $context = []): bool;
 }
 
 interface DenormalizerInterface
 {
     public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): mixed;
-    public function supportsDenormalization(mixed $data, string $type, ?string $format = null): bool;
+    public function supportsDenormalization(mixed $data, string $type, ?string $format = null, array $context = []): bool;
 }
 ```
 
@@ -231,13 +231,13 @@ namespace WpPack\Component\Serializer\Encoder;
 interface EncoderInterface
 {
     public function encode(mixed $data, string $format, array $context = []): string;
-    public function supportsEncoding(string $format): bool;
+    public function supportsEncoding(string $format, array $context = []): bool;
 }
 
 interface DecoderInterface
 {
     public function decode(string $data, string $format, array $context = []): mixed;
-    public function supportsDecoding(string $format): bool;
+    public function supportsDecoding(string $format, array $context = []): bool;
 }
 ```
 

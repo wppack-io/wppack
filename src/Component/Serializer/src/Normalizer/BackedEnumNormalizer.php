@@ -20,7 +20,7 @@ final class BackedEnumNormalizer implements NormalizerInterface, DenormalizerInt
         return $data->value;
     }
 
-    public function supportsNormalization(mixed $data, ?string $format = null): bool
+    public function supportsNormalization(mixed $data, ?string $format = null, array $context = []): bool
     {
         return $data instanceof \BackedEnum;
     }
@@ -37,7 +37,7 @@ final class BackedEnumNormalizer implements NormalizerInterface, DenormalizerInt
         return $type::from($data);
     }
 
-    public function supportsDenormalization(mixed $data, string $type, ?string $format = null): bool
+    public function supportsDenormalization(mixed $data, string $type, ?string $format = null, array $context = []): bool
     {
         return is_subclass_of($type, \BackedEnum::class);
     }

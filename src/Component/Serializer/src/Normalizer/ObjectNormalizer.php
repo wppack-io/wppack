@@ -36,7 +36,7 @@ final class ObjectNormalizer implements NormalizerInterface, DenormalizerInterfa
         return $result;
     }
 
-    public function supportsNormalization(mixed $data, ?string $format = null): bool
+    public function supportsNormalization(mixed $data, ?string $format = null, array $context = []): bool
     {
         return \is_object($data);
     }
@@ -65,13 +65,19 @@ final class ObjectNormalizer implements NormalizerInterface, DenormalizerInterfa
                 $args[$name] = $this->denormalizeValue($data[$name], $param, $format, $context);
             } elseif ($param->isDefaultValueAvailable()) {
                 $args[$name] = $param->getDefaultValue();
+            } elseif (!$param->isOptional()) {
+                throw new NotNormalizableValueException(sprintf(
+                    'Missing required constructor parameter "%s" for class "%s".',
+                    $name,
+                    $type,
+                ));
             }
         }
 
         return $ref->newInstanceArgs($args);
     }
 
-    public function supportsDenormalization(mixed $data, string $type, ?string $format = null): bool
+    public function supportsDenormalization(mixed $data, string $type, ?string $format = null, array $context = []): bool
     {
         return \is_array($data) && class_exists($type);
     }
@@ -89,7 +95,7 @@ final class ObjectNormalizer implements NormalizerInterface, DenormalizerInterfa
             return array_map(fn(mixed $v) => $this->normalizeValue($v, $format, $context), $value);
         }
 
-        if (isset($this->normalizer) && \is_object($value) && $this->normalizer->supportsNormalization($value, $format)) {
+        if (isset($this->normalizer) && \is_object($value) && $this->normalizer->supportsNormalization($value, $format, $context)) {
             return $this->normalizer->normalize($value, $format, $context);
         }
 
@@ -106,7 +112,7 @@ final class ObjectNormalizer implements NormalizerInterface, DenormalizerInterfa
 
             if ($type instanceof \ReflectionNamedType && !$type->isBuiltin() && \is_string($value)) {
                 $typeName = $type->getName();
-                if (isset($this->denormalizer) && $this->denormalizer->supportsDenormalization($value, $typeName, $format)) {
+                if (isset($this->denormalizer) && $this->denormalizer->supportsDenormalization($value, $typeName, $format, $context)) {
                     return $this->denormalizer->denormalize($value, $typeName, $format, $context);
                 }
             }
@@ -119,7 +125,7 @@ final class ObjectNormalizer implements NormalizerInterface, DenormalizerInterfa
 
             if ($type instanceof \ReflectionNamedType && !$type->isBuiltin()) {
                 $typeName = $type->getName();
-                if (isset($this->denormalizer) && $this->denormalizer->supportsDenormalization($value, $typeName, $format)) {
+                if (isset($this->denormalizer) && $this->denormalizer->supportsDenormalization($value, $typeName, $format, $context)) {
                     return $this->denormalizer->denormalize($value, $typeName, $format, $context);
                 }
             }

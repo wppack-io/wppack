@@ -26,7 +26,7 @@ final class DateTimeNormalizer implements NormalizerInterface, DenormalizerInter
         return $data->format($dateTimeFormat);
     }
 
-    public function supportsNormalization(mixed $data, ?string $format = null): bool
+    public function supportsNormalization(mixed $data, ?string $format = null, array $context = []): bool
     {
         return $data instanceof \DateTimeInterface;
     }
@@ -59,7 +59,7 @@ final class DateTimeNormalizer implements NormalizerInterface, DenormalizerInter
         ));
     }
 
-    public function supportsDenormalization(mixed $data, string $type, ?string $format = null): bool
+    public function supportsDenormalization(mixed $data, string $type, ?string $format = null, array $context = []): bool
     {
         return \is_string($data) && ($type === \DateTimeInterface::class
             || $type === \DateTimeImmutable::class

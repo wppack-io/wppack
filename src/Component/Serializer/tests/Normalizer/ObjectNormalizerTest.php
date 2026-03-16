@@ -7,6 +7,7 @@ namespace WpPack\Component\Serializer\Tests\Normalizer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Serializer\Exception\NotNormalizableValueException;
 use WpPack\Component\Serializer\Normalizer\ObjectNormalizer;
 use WpPack\Component\Serializer\Tests\Fixtures\DummyObject;
 
@@ -71,6 +72,15 @@ final class ObjectNormalizerTest extends TestCase
         $result = $this->normalizer->normalize($object);
 
         self::assertSame(['items' => ['a', 'b', 'c']], $result);
+    }
+
+    #[Test]
+    public function denormalizeThrowsForMissingRequiredParameter(): void
+    {
+        $this->expectException(NotNormalizableValueException::class);
+        $this->expectExceptionMessage('Missing required constructor parameter "name"');
+
+        $this->normalizer->denormalize(['value' => 42], DummyObject::class);
     }
 
     #[Test]

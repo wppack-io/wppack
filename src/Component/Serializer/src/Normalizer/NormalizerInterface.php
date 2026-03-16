@@ -13,5 +13,8 @@ interface NormalizerInterface
      */
     public function normalize(mixed $data, ?string $format = null, array $context = []): array|string|int|float|bool|null;
 
-    public function supportsNormalization(mixed $data, ?string $format = null): bool;
+    /**
+     * @param array<string, mixed> $context
+     */
+    public function supportsNormalization(mixed $data, ?string $format = null, array $context = []): bool;
 }

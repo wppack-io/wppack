@@ -73,6 +73,35 @@ final class SerializerTest extends TestCase
     }
 
     #[Test]
+    public function denormalizeNestedObjects(): void
+    {
+        $data = ['label' => 'parent', 'child' => ['name' => 'child', 'value' => 5]];
+
+        $result = $this->serializer->denormalize($data, NestedObject::class);
+
+        self::assertInstanceOf(NestedObject::class, $result);
+        self::assertSame('parent', $result->label);
+        self::assertInstanceOf(DummyObject::class, $result->child);
+        self::assertSame('child', $result->child->name);
+        self::assertSame(5, $result->child->value);
+    }
+
+    #[Test]
+    public function serializeAndDeserializeNestedObjects(): void
+    {
+        $object = new NestedObject('parent', new DummyObject('child', 5));
+
+        $json = $this->serializer->serialize($object, 'json');
+        $restored = $this->serializer->deserialize($json, NestedObject::class, 'json');
+
+        self::assertInstanceOf(NestedObject::class, $restored);
+        self::assertSame('parent', $restored->label);
+        self::assertInstanceOf(DummyObject::class, $restored->child);
+        self::assertSame('child', $restored->child->name);
+        self::assertSame(5, $restored->child->value);
+    }
+
+    #[Test]
     public function normalizeScalarsPassThrough(): void
     {
         self::assertNull($this->serializer->normalize(null));

@@ -11,5 +11,8 @@ interface DecoderInterface
      */
     public function decode(string $data, string $format, array $context = []): mixed;
 
-    public function supportsDecoding(string $format): bool;
+    /**
+     * @param array<string, mixed> $context
+     */
+    public function supportsDecoding(string $format, array $context = []): bool;
 }

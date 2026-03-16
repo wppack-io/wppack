@@ -13,7 +13,8 @@ interface DenormalizerInterface
     public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): mixed;
 
     /**
-     * @param class-string $type
+     * @param class-string         $type
+     * @param array<string, mixed> $context
      */
-    public function supportsDenormalization(mixed $data, string $type, ?string $format = null): bool;
+    public function supportsDenormalization(mixed $data, string $type, ?string $format = null, array $context = []): bool;
 }

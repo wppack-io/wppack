@@ -6,6 +6,7 @@ namespace WpPack\Component\Messenger\Serializer;
 
 use WpPack\Component\Messenger\Envelope;
 use WpPack\Component\Messenger\Exception\MessageDecodingFailedException;
+use WpPack\Component\Messenger\Exception\MessageEncodingFailedException;
 use WpPack\Component\Messenger\Stamp\StampInterface;
 use WpPack\Component\Serializer\Encoder\JsonEncoder;
 use WpPack\Component\Serializer\Normalizer\BackedEnumNormalizer;
@@ -49,7 +50,7 @@ final class JsonSerializer implements SerializerInterface
                 'body' => $this->serializer->serialize($message, 'json'),
             ];
         } catch (\Throwable $e) {
-            throw new MessageDecodingFailedException(sprintf(
+            throw new MessageEncodingFailedException(sprintf(
                 'Could not encode message of class "%s": %s',
                 $envelope->getMessage()::class,
                 $e->getMessage(),

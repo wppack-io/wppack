@@ -29,7 +29,7 @@ final class JsonEncoder implements EncoderInterface, DecoderInterface
         }
     }
 
-    public function supportsEncoding(string $format): bool
+    public function supportsEncoding(string $format, array $context = []): bool
     {
         return $format === self::FORMAT;
     }
@@ -37,17 +37,13 @@ final class JsonEncoder implements EncoderInterface, DecoderInterface
     public function decode(string $data, string $format, array $context = []): mixed
     {
         try {
-            if (\function_exists('wp_json_decode')) {
-                return wp_json_decode($data, true, 512, \JSON_THROW_ON_ERROR);
-            }
-
             return json_decode($data, true, 512, \JSON_THROW_ON_ERROR);
         } catch (\JsonException $e) {
             throw new NotEncodableValueException($e->getMessage(), previous: $e);
         }
     }
 
-    public function supportsDecoding(string $format): bool
+    public function supportsDecoding(string $format, array $context = []): bool
     {
         return $format === self::FORMAT;
     }
