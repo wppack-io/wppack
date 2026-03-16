@@ -9,6 +9,7 @@ use WpPack\Component\HttpClient\HttpClient;
 use WpPack\Component\Mailer\Exception\TransportException;
 use WpPack\Component\Mailer\Transport\AbstractApiTransport;
 use WpPack\Component\Mailer\PhpMailer;
+use WpPack\Component\Serializer\Encoder\JsonEncoder;
 
 final class SendGridApiTransport extends AbstractApiTransport
 {
@@ -17,6 +18,7 @@ final class SendGridApiTransport extends AbstractApiTransport
     public function __construct(
         private readonly string $apiKey,
         private readonly ?HttpClient $httpClient = null,
+        private readonly JsonEncoder $jsonEncoder = new JsonEncoder(),
     ) {}
 
     public function getName(): string
@@ -52,11 +54,7 @@ final class SendGridApiTransport extends AbstractApiTransport
             $payload['attachments'] = $attachments;
         }
 
-        $body = wp_json_encode($payload);
-
-        if ($body === false) {
-            throw new TransportException('Failed to encode email payload as JSON.');
-        }
+        $body = $this->jsonEncoder->encode($payload, 'json');
 
         try {
             $response = ($this->httpClient ?? new HttpClient())

@@ -6,6 +6,7 @@
     "require": {
         "php": "^8.2",
         "wppack/messenger": "^1.0",
+        "wppack/serializer": "^1.0",
         "async-aws/sqs": "^2.0"
     },
     "autoload": {

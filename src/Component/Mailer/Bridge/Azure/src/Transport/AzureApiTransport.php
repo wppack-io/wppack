@@ -8,6 +8,7 @@ use WpPack\Component\HttpClient\HttpClient;
 use WpPack\Component\Mailer\Exception\TransportException;
 use WpPack\Component\Mailer\Transport\AbstractApiTransport;
 use WpPack\Component\Mailer\PhpMailer;
+use WpPack\Component\Serializer\Encoder\JsonEncoder;
 
 final class AzureApiTransport extends AbstractApiTransport
 {
@@ -21,6 +22,7 @@ final class AzureApiTransport extends AbstractApiTransport
         private readonly string $accessKey,
         private readonly string $apiVersion = self::DEFAULT_API_VERSION,
         private readonly ?HttpClient $httpClient = null,
+        private readonly JsonEncoder $jsonEncoder = new JsonEncoder(),
     ) {}
 
     public function getName(): string
@@ -31,11 +33,7 @@ final class AzureApiTransport extends AbstractApiTransport
     protected function doSendApi(PhpMailer $phpMailer): string
     {
         $payload = $this->buildPayload($phpMailer);
-        $body = wp_json_encode($payload);
-
-        if ($body === false) {
-            throw new TransportException('Failed to encode email payload as JSON.');
-        }
+        $body = $this->jsonEncoder->encode($payload, 'json');
 
         $endpoint = sprintf(self::HOST, $this->resourceName);
 

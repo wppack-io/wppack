@@ -27,10 +27,11 @@ final class SqsPayloadFactory
 
     public function __construct(
         ?SerializerInterface $serializer = null,
+        private readonly JsonEncoder $jsonEncoder = new JsonEncoder(),
     ) {
         $this->serializer = $serializer ?? new Serializer(
             normalizers: [new BackedEnumNormalizer(), new DateTimeNormalizer(), new ObjectNormalizer()],
-            encoders: [new JsonEncoder()],
+            encoders: [$this->jsonEncoder],
         );
     }
 
@@ -46,16 +47,13 @@ final class SqsPayloadFactory
             $normalizedStamps[$stamp::class][] = $this->serializer->normalize($stamp);
         }
 
-        return json_encode([
+        return $this->jsonEncoder->encode([
             'headers' => [
                 'type' => $message::class,
                 'stamps' => $normalizedStamps,
             ],
-            'body' => json_encode(
-                $this->serializer->normalize($message),
-                \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_UNICODE,
-            ),
-        ], \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_UNICODE);
+            'body' => $this->serializer->serialize($message, 'json'),
+        ], 'json');
     }
 
     /**

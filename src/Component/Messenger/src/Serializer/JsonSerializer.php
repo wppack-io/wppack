@@ -46,12 +46,9 @@ final class JsonSerializer implements SerializerInterface
                     'type' => $message::class,
                     'stamps' => $stamps,
                 ],
-                'body' => json_encode(
-                    $this->serializer->normalize($message),
-                    \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_UNICODE,
-                ),
+                'body' => $this->serializer->serialize($message, 'json'),
             ];
-        } catch (\JsonException $e) {
+        } catch (\Throwable $e) {
             throw new MessageDecodingFailedException(sprintf(
                 'Could not encode message of class "%s": %s',
                 $envelope->getMessage()::class,
@@ -80,9 +77,7 @@ final class JsonSerializer implements SerializerInterface
             ));
         }
 
-        /** @var array<string, mixed> $messageData */
-        $messageData = json_decode($data['body'], true, 512, \JSON_THROW_ON_ERROR);
-        $message = $this->serializer->denormalize($messageData, $messageClass);
+        $message = $this->serializer->deserialize($data['body'], $messageClass, 'json');
 
         $stamps = [];
         foreach ($data['headers']['stamps'] ?? [] as $stampClass => $stampDataList) {

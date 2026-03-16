@@ -12,6 +12,7 @@ use WpPack\Component\Messenger\Serializer\SerializerInterface;
 use WpPack\Component\Messenger\Stamp\DelayStamp;
 use WpPack\Component\Messenger\Stamp\SentStamp;
 use WpPack\Component\Messenger\Transport\TransportInterface;
+use WpPack\Component\Serializer\Encoder\JsonEncoder;
 
 final class SqsTransport implements TransportInterface
 {
@@ -22,6 +23,7 @@ final class SqsTransport implements TransportInterface
         private readonly SerializerInterface $serializer,
         private readonly string $queueUrl,
         private readonly string $name = 'sqs',
+        private readonly JsonEncoder $jsonEncoder = new JsonEncoder(),
     ) {}
 
     public function getName(): string
@@ -35,7 +37,7 @@ final class SqsTransport implements TransportInterface
 
         $input = [
             'QueueUrl' => $this->queueUrl,
-            'MessageBody' => json_encode($encodedEnvelope, \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_UNICODE),
+            'MessageBody' => $this->jsonEncoder->encode($encodedEnvelope, 'json'),
         ];
 
         $delayStamp = $envelope->last(DelayStamp::class);

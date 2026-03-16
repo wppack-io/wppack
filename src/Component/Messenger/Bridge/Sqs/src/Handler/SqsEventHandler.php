@@ -8,6 +8,7 @@ use Psr\Log\LoggerInterface;
 use WpPack\Component\Messenger\MessageBusInterface;
 use WpPack\Component\Messenger\Serializer\SerializerInterface;
 use WpPack\Component\Messenger\Stamp\ReceivedStamp;
+use WpPack\Component\Serializer\Encoder\JsonEncoder;
 
 final class SqsEventHandler
 {
@@ -23,6 +24,7 @@ final class SqsEventHandler
         private readonly MessageBusInterface $messageBus,
         private readonly SerializerInterface $serializer,
         private readonly ?LoggerInterface $logger = null,
+        private readonly JsonEncoder $jsonEncoder = new JsonEncoder(),
     ) {}
 
     /**
@@ -64,7 +66,7 @@ final class SqsEventHandler
      */
     private function processRecord(array $record): void
     {
-        $data = json_decode($record['body'], true, 512, \JSON_THROW_ON_ERROR);
+        $data = $this->jsonEncoder->decode($record['body'], 'json');
         $envelope = $this->serializer->decode($data);
 
         $multisiteStamp = $envelope->last(\WpPack\Component\Messenger\Stamp\MultisiteStamp::class);

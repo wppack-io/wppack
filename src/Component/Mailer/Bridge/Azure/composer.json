@@ -6,7 +6,8 @@
     "require": {
         "php": "^8.2",
         "wppack/http-client": "^1.0",
-        "wppack/mailer": "^1.0"
+        "wppack/mailer": "^1.0",
+        "wppack/serializer": "^1.0"
     },
     "autoload": {
         "psr-4": {
