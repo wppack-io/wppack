@@ -109,11 +109,15 @@ final class MimeTypes implements MimeTypesInterface
         if (\function_exists('wp_get_mime_types')) {
             /** @var array<string, string> $wpTypes */
             $wpTypes = wp_get_mime_types();
+            $mimeTypes = [];
             foreach ($wpTypes as $extPattern => $mime) {
                 $exts = explode('|', $extPattern);
                 if (\in_array($extension, $exts, true)) {
-                    return [$mime];
+                    $mimeTypes[] = $mime;
                 }
+            }
+            if ($mimeTypes !== []) {
+                return $mimeTypes;
             }
         }
 
@@ -127,10 +131,18 @@ final class MimeTypes implements MimeTypesInterface
             return get_allowed_mime_types($userId);
         }
 
-        return array_map(
-            static fn(array $mimes): string => $mimes[0],
-            MimeTypeMap::EXTENSIONS_TO_MIMES,
-        );
+        // Group extensions by primary MIME type to match WP's pipe-separated key format
+        $grouped = [];
+        foreach (MimeTypeMap::EXTENSIONS_TO_MIMES as $ext => $mimes) {
+            $grouped[$mimes[0]][] = $ext;
+        }
+
+        $result = [];
+        foreach ($grouped as $mime => $exts) {
+            $result[implode('|', $exts)] = $mime;
+        }
+
+        return $result;
     }
 
     public function getExtensionType(string $extension): ?string

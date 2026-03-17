@@ -222,6 +222,7 @@ final class RouteEntry
     private function handleFile(BinaryFileResponse $response): void
     {
         $filename = $response->filename ?? basename($response->path);
+        // Static singleton is synced with DI-managed instance via MimeServiceProvider::setDefault()
         $mimeType = MimeTypes::getDefault()->guessMimeType($response->path) ?? 'application/octet-stream';
 
         header('Content-Type: ' . $mimeType);

@@ -21,11 +21,10 @@ final class RegisterMimeTypeGuessersPass implements CompilerPassInterface
             return;
         }
 
-        $guessers = [];
-        foreach ($builder->findTaggedServiceIds($this->tag) as $id => $tags) {
-            $guessers[] = new Reference($id);
-        }
+        $definition = $builder->findDefinition(MimeTypes::class);
 
-        $builder->findDefinition(MimeTypes::class)->setArgument(0, $guessers);
+        foreach ($builder->findTaggedServiceIds($this->tag) as $id => $tags) {
+            $definition->addMethodCall('registerGuesser', [new Reference($id)]);
+        }
     }
 }

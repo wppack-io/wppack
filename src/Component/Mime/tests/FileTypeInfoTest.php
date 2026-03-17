@@ -61,4 +61,15 @@ final class FileTypeInfoTest extends TestCase
 
         self::assertSame('corrected.jpg', $info->properFilename);
     }
+
+    #[Test]
+    public function isValidReturnsTrueForEmptyStrings(): void
+    {
+        $info = new FileTypeInfo(extension: '', mimeType: '');
+
+        // Empty strings are non-null, so isValid() returns true.
+        // Callers (e.g. MimeTypes::validateFile) are responsible for
+        // converting empty strings to null before constructing FileTypeInfo.
+        self::assertTrue($info->isValid());
+    }
 }

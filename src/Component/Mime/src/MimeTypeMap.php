@@ -392,7 +392,7 @@ final class MimeTypeMap
         'svgz' => 'image',
         'ai' => 'image',
         'eps' => 'image',
-        'ps' => 'image',
+        'ps' => 'document',
 
         // Audio
         'aac' => 'audio',
@@ -562,9 +562,9 @@ final class MimeTypeMap
         'wsdl' => 'code',
         'manifest' => 'code',
         'wasm' => 'code',
-        'gpx' => 'code',
-        'kml' => 'code',
-        'geojson' => 'code',
+        'gpx' => 'document',
+        'kml' => 'document',
+        'geojson' => 'document',
 
         // Font
         'woff' => 'font',

@@ -67,7 +67,7 @@ final class MimeServiceProviderTest extends TestCase
     }
 
     #[Test]
-    public function guessersAreInjectedViaCompilerPass(): void
+    public function defaultGuessersAreAvailableWhenBuiltViaDi(): void
     {
         $builder = new ContainerBuilder();
         $provider = new MimeServiceProvider();
@@ -81,5 +81,17 @@ final class MimeServiceProviderTest extends TestCase
 
         self::assertTrue($mimeTypes->isGuesserSupported());
         self::assertSame('image/jpeg', $mimeTypes->getMimeTypes('jpg')[0] ?? null);
+    }
+
+    #[Test]
+    public function defaultGuessersAreNotTagged(): void
+    {
+        $builder = new ContainerBuilder();
+        $provider = new MimeServiceProvider();
+        $provider->register($builder);
+
+        $tagged = $builder->findTaggedServiceIds('mime.mime_type_guesser');
+
+        self::assertSame([], $tagged);
     }
 }

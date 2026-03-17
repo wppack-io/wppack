@@ -19,6 +19,9 @@ class File extends \SplFileInfo
         parent::__construct($path);
     }
 
+    /**
+     * Static singleton is synced with DI-managed instance via MimeServiceProvider::setDefault().
+     */
     public function getMimeType(): ?string
     {
         $path = $this->getPathname();

@@ -197,6 +197,10 @@ final class MimeTypesTest extends TestCase
 
         self::assertNotEmpty($allowed);
         self::assertContains('image/jpeg', $allowed);
+
+        // Keys should use pipe-separated format matching WP's get_allowed_mime_types()
+        self::assertArrayHasKey('jpg|jpeg|jpe', $allowed);
+        self::assertSame('image/jpeg', $allowed['jpg|jpeg|jpe']);
     }
 
     #[Test]
@@ -295,7 +299,9 @@ final class MimeTypesTest extends TestCase
 
         $mimeTypes = new MimeTypes();
 
-        self::assertSame('image/jpeg', $mimeTypes->sanitize('image/jpeg; charset=utf-8'));
+        // Only characters outside [-+*.a-zA-Z0-9/] are removed (same as WP's sanitize_mime_type)
+        self::assertSame('image/jpeg', $mimeTypes->sanitize('image/<jpeg>'));
+        self::assertSame('image/jpegcharsetutf-8', $mimeTypes->sanitize('image/jpeg; charset=utf-8'));
     }
 
     private function createGuesser(?string $result): MimeTypeGuesserInterface

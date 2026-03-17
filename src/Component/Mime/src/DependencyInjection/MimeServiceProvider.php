@@ -18,14 +18,11 @@ final class MimeServiceProvider implements ServiceProviderInterface
 {
     public function register(ContainerBuilder $builder): void
     {
-        $builder->register(ExtensionMimeTypeGuesser::class)
-            ->addTag('mime.mime_type_guesser');
-
-        $builder->register(FileinfoMimeTypeGuesser::class)
-            ->addTag('mime.mime_type_guesser');
-
-        $builder->register(WordPressMimeTypeGuesser::class)
-            ->addTag('mime.mime_type_guesser');
+        // Default guessers are registered by MimeTypes constructor.
+        // Only custom guessers need the 'mime.mime_type_guesser' tag.
+        $builder->register(ExtensionMimeTypeGuesser::class);
+        $builder->register(FileinfoMimeTypeGuesser::class);
+        $builder->register(WordPressMimeTypeGuesser::class);
 
         // Synchronize DI-managed instance with the static singleton (Symfony pattern)
         $builder->register(MimeTypes::class)
