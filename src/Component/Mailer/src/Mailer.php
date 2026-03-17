@@ -7,6 +7,7 @@ namespace WpPack\Component\Mailer;
 use WpPack\Component\Mailer\Exception\TransportException;
 use WpPack\Component\Mailer\Transport\Transport;
 use WpPack\Component\Mailer\Transport\TransportInterface;
+use WpPack\Component\Mime\MimeTypes;
 
 final class Mailer
 {
@@ -235,20 +236,24 @@ final class Mailer
 
         // Attachments
         foreach ($email->getAttachments() as $attachment) {
+            $contentType = $attachment->contentType
+                ?? MimeTypes::getDefault()->guessMimeType($attachment->path)
+                ?? 'application/octet-stream';
+
             if ($attachment->inline) {
                 $phpMailer->addEmbeddedImage(
                     $attachment->path,
                     $attachment->name ?? basename($attachment->path),
                     basename($attachment->path),
                     'base64',
-                    $attachment->contentType ?? '',
+                    $contentType,
                 );
             } else {
                 $phpMailer->addAttachment(
                     $attachment->path,
                     $attachment->name ?? '',
                     'base64',
-                    $attachment->contentType ?? '',
+                    $contentType,
                 );
             }
         }
