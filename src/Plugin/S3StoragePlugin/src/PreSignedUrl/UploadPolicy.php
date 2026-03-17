@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace WpPack\Plugin\S3StoragePlugin\PreSignedUrl;
 
+use WpPack\Component\Mime\MimeTypes;
+use WpPack\Component\Mime\MimeTypesInterface;
+
 final class UploadPolicy
 {
     private const DEFAULT_MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
@@ -18,9 +21,10 @@ final class UploadPolicy
     public function __construct(
         ?int $maxFileSize = null,
         ?array $allowedMimeTypes = null,
+        ?MimeTypesInterface $mimeTypes = null,
     ) {
         $this->maxFileSize = $maxFileSize ?? self::DEFAULT_MAX_FILE_SIZE;
-        $this->allowedMimeTypes = $allowedMimeTypes ?? $this->resolveDefaultMimeTypes();
+        $this->allowedMimeTypes = $allowedMimeTypes ?? $this->resolveDefaultMimeTypes($mimeTypes ?? MimeTypes::getDefault());
     }
 
     public function isAllowedType(string $contentType): bool
@@ -53,15 +57,10 @@ final class UploadPolicy
     /**
      * @return list<string>
      */
-    private function resolveDefaultMimeTypes(): array
+    private function resolveDefaultMimeTypes(MimeTypesInterface $mimeTypes): array
     {
-        if (!function_exists('get_allowed_mime_types')) {
-            return [];
-        }
+        $allowed = $mimeTypes->getAllowedMimeTypes();
 
-        /** @var array<string, string> $wpMimeTypes */
-        $wpMimeTypes = get_allowed_mime_types();
-
-        return array_values(array_unique($wpMimeTypes));
+        return array_values(array_unique($allowed));
     }
 }
