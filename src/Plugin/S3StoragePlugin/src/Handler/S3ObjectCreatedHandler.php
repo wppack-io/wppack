@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace WpPack\Plugin\S3StoragePlugin\Handler;
 
+use Psr\Log\LoggerInterface;
+use WpPack\Component\Logger\Attribute\LoggerChannel;
 use WpPack\Component\Messenger\Attribute\AsMessageHandler;
 use WpPack\Component\Messenger\MessageBusInterface;
 use WpPack\Plugin\S3StoragePlugin\Message\GenerateThumbnailsMessage;
@@ -15,6 +17,8 @@ final readonly class S3ObjectCreatedHandler
     public function __construct(
         private MessageBusInterface $bus,
         private string $prefix,
+        #[LoggerChannel('s3-storage')]
+        private ?LoggerInterface $logger = null,
     ) {}
 
     public function __invoke(S3ObjectCreatedMessage $message): void
@@ -47,7 +51,16 @@ final readonly class S3ObjectCreatedHandler
 
             $attachmentId = wp_insert_attachment($attachmentData, $relativePath);
 
-            if (\is_int($attachmentId) && $attachmentId > 0) {
+            if ($attachmentId instanceof \WP_Error) {
+                $this->logger?->error('wp_insert_attachment failed for key "{key}": {error}', [
+                    'key' => $message->key,
+                    'error' => $attachmentId->get_error_message(),
+                ]);
+
+                return;
+            }
+
+            if ($attachmentId > 0) {
                 $this->bus->dispatch(new GenerateThumbnailsMessage(
                     attachmentId: $attachmentId,
                     blogId: $blogId,

@@ -54,7 +54,6 @@ Media コンポーネント（WordPress 統合）
 ├── Storage\Subscriber\UploadDirSubscriber      ← upload_dir フィルタ
 ├── Storage\Subscriber\AttachmentSubscriber     ← attachment 関連フック
 ├── Storage\Subscriber\ImageEditorSubscriber    ← StorageImageEditor 差し込み
-├── Storage\Subscriber\SideloadSubscriber       ← サイドロード対応
 ├── Storage\ImageEditor\StorageImageEditor      ← stream wrapper 対応画像エディタ
 ├── Storage\Command\MigrateCommand              ← 移行コマンド
 ├── Storage\StorageConfiguration                ← ストレージ設定 VO

@@ -34,7 +34,7 @@ WordPress コアのアップロード処理
 
 ## Subscriber 群
 
-Media Storage 連携は、WordPress フックを介して動作する 4 つの Subscriber で構成されます。すべて `#[AsHookSubscriber]` アトリビュートを持ち、Hook コンポーネントにより自動登録されます。
+Media Storage 連携は、WordPress フックを介して動作する 3 つの Subscriber で構成されます。すべて `#[AsHookSubscriber]` アトリビュートを持ち、Hook コンポーネントにより自動登録されます。
 
 ### UploadDirSubscriber
 
@@ -84,18 +84,6 @@ use WpPack\Component\Media\Storage\Subscriber\ImageEditorSubscriber;
 **フック:** `wp_image_editors`（priority: 9）
 
 WordPress が画像をリサイズする際に `StorageImageEditor` が選択され、stream wrapper パスの画像を処理できるようになります。
-
-### SideloadSubscriber
-
-WordPress のサイドロード（`media_sideload_image()` 等）を stream wrapper パスに対応させます。
-
-```php
-use WpPack\Component\Media\Storage\Subscriber\SideloadSubscriber;
-```
-
-**フック:** `wp_handle_sideload_prefilter`
-
-サイドロード時に一時ファイルパスの stream wrapper 互換性を確保します。
 
 ## StorageImageEditor
 

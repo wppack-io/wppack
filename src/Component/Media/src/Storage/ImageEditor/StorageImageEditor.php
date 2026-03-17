@@ -29,7 +29,7 @@ class StorageImageEditor extends \WP_Image_Editor_Imagick
 
         // If the file is a stream wrapper path, download to a local temp file
         if (str_contains($file, '://') && !str_starts_with($file, 'file://')) {
-            $contents = @file_get_contents($file);
+            $contents = file_get_contents($file);
             if ($contents === false) {
                 return new \WP_Error(
                     'image_editor_load_error',
@@ -119,7 +119,7 @@ class StorageImageEditor extends \WP_Image_Editor_Imagick
     {
         foreach ($this->tempFiles as $tempFile) {
             if (file_exists($tempFile)) {
-                @unlink($tempFile);
+                unlink($tempFile);
             }
         }
 

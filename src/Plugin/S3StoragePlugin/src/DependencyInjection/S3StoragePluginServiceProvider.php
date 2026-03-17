@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WpPack\Plugin\S3StoragePlugin\DependencyInjection;
 
 use AsyncAws\S3\S3Client;
+use Psr\Log\LoggerInterface;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
@@ -42,9 +43,8 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
 
         // Storage Adapter
         $builder->register(S3StorageAdapter::class)
-            ->addArgument(new Reference(S3Client::class))
-            ->addArgument(new Reference(S3StorageConfiguration::class . '.bucket'))
             ->setFactory([self::class, 'createS3StorageAdapter'])
+            ->addArgument(new Reference(S3Client::class))
             ->addArgument(new Reference(S3StorageConfiguration::class));
 
         $builder->setAlias(StorageAdapterInterface::class, S3StorageAdapter::class);
@@ -57,9 +57,8 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
 
         // URL Resolver
         $builder->register(UrlResolver::class)
-            ->addArgument(new Reference(StorageAdapterInterface::class))
-            ->addArgument(new Reference(S3StorageConfiguration::class . '.cdnUrl'))
             ->setFactory([self::class, 'createUrlResolver'])
+            ->addArgument(new Reference(S3StorageAdapter::class))
             ->addArgument(new Reference(S3StorageConfiguration::class));
 
         // Media Storage Subscribers
@@ -91,7 +90,6 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
         $builder->register(S3EventNormalizer::class);
 
         $builder->register(S3ObjectCreatedHandler::class)
-            ->addArgument(new Reference(MessageBusInterface::class))
             ->setFactory([self::class, 'createS3ObjectCreatedHandler'])
             ->addArgument(new Reference(MessageBusInterface::class))
             ->addArgument(new Reference(S3StorageConfiguration::class))
@@ -106,10 +104,10 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
         return new S3Client(['region' => $config->region]);
     }
 
-    public static function createS3StorageAdapter(S3StorageConfiguration $config): S3StorageAdapter
-    {
-        $s3Client = new S3Client(['region' => $config->region]);
-
+    public static function createS3StorageAdapter(
+        S3Client $s3Client,
+        S3StorageConfiguration $config,
+    ): S3StorageAdapter {
         return new S3StorageAdapter(
             s3Client: $s3Client,
             bucket: $config->bucket,
@@ -123,16 +121,10 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
         StorageStreamWrapper::register('s3', $adapter);
     }
 
-    public static function createUrlResolver(S3StorageConfiguration $config): UrlResolver
-    {
-        $s3Client = new S3Client(['region' => $config->region]);
-        $adapter = new S3StorageAdapter(
-            s3Client: $s3Client,
-            bucket: $config->bucket,
-            prefix: $config->prefix,
-            publicUrl: $config->cdnUrl,
-        );
-
+    public static function createUrlResolver(
+        S3StorageAdapter $adapter,
+        S3StorageConfiguration $config,
+    ): UrlResolver {
         return new UrlResolver($adapter, $config->cdnUrl);
     }
 
@@ -150,10 +142,12 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
     public static function createS3ObjectCreatedHandler(
         MessageBusInterface $bus,
         S3StorageConfiguration $config,
+        ?LoggerInterface $logger = null,
     ): S3ObjectCreatedHandler {
         return new S3ObjectCreatedHandler(
             bus: $bus,
             prefix: $config->prefix,
+            logger: $logger,
         );
     }
 }
