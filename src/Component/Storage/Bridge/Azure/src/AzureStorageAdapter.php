@@ -76,7 +76,11 @@ final class AzureStorageAdapter extends AbstractStorageAdapter
 
             $stream = fopen('php://temp', 'r+');
             \assert($stream !== false);
-            fwrite($stream, $body->getContents());
+
+            while (!$body->eof()) {
+                fwrite($stream, $body->read(8192));
+            }
+
             rewind($stream);
 
             return $stream;

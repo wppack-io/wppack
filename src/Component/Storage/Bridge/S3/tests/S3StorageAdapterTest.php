@@ -94,6 +94,26 @@ final class S3StorageAdapterTest extends TestCase
     }
 
     #[Test]
+    public function readStreamReturnsResource(): void
+    {
+        $resultStream = $this->createMock(ResultStream::class);
+        $resultStream->method('getChunks')->willReturn(['stream ', 'contents']);
+
+        $s3Client = $this->createMock(S3Client::class);
+        $s3Client->expects($this->once())
+            ->method('getObject')
+            ->willReturn(ResultMockFactory::create(GetObjectOutput::class, [
+                'Body' => $resultStream,
+            ]));
+
+        $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
+        $result = $adapter->readStream('file.txt');
+
+        self::assertIsResource($result);
+        self::assertSame('stream contents', stream_get_contents($result));
+    }
+
+    #[Test]
     public function readThrowsObjectNotFoundExceptionOn404(): void
     {
         $s3Client = $this->createMock(S3Client::class);

@@ -91,6 +91,26 @@ final class AzureStorageAdapterTest extends TestCase
     }
 
     #[Test]
+    public function readStreamReturnsResource(): void
+    {
+        $stream = $this->createMock(StreamInterface::class);
+        $stream->method('eof')->willReturnOnConsecutiveCalls(false, true);
+        $stream->method('read')->with(8192)->willReturn('stream contents');
+
+        $downloadResult = $this->createMock(DownloadStreamingResult::class);
+        $downloadResult->method('getBody')->willReturn($stream);
+
+        $blobClient = $this->createMock(BlobClient::class);
+        $blobClient->method('downloadStreaming')->willReturn($downloadResult);
+
+        $adapter = $this->createAdapter($blobClient);
+        $result = $adapter->readStream('file.txt');
+
+        self::assertIsResource($result);
+        self::assertSame('stream contents', stream_get_contents($result));
+    }
+
+    #[Test]
     public function readThrowsObjectNotFoundExceptionOn404(): void
     {
         $blobClient = $this->createMock(BlobClient::class);

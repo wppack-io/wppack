@@ -99,7 +99,11 @@ final class S3StorageAdapter extends AbstractStorageAdapter
 
             $stream = fopen('php://temp', 'r+');
             \assert($stream !== false);
-            fwrite($stream, $result->getBody()->getContentAsString());
+
+            foreach ($result->getBody()->getChunks() as $chunk) {
+                fwrite($stream, $chunk);
+            }
+
             rewind($stream);
 
             return $stream;

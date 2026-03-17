@@ -267,7 +267,8 @@ final class GcsStorageAdapterTest extends TestCase
     public function readStreamReturnsResource(): void
     {
         $stream = $this->createMock(StreamInterface::class);
-        $stream->method('getContents')->willReturn('stream contents');
+        $stream->method('eof')->willReturnOnConsecutiveCalls(false, true);
+        $stream->method('read')->with(8192)->willReturn('stream contents');
 
         $object = $this->createMock(StorageObject::class);
         $object->method('downloadAsStream')->willReturn($stream);
