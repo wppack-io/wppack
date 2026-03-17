@@ -58,7 +58,6 @@ Key classes:
 - `Storage\Subscriber\UploadDirSubscriber` - Rewrites `upload_dir` paths to stream wrapper paths
 - `Storage\Subscriber\AttachmentSubscriber` - Handles attachment URLs, file paths, deletion, and metadata
 - `Storage\Subscriber\ImageEditorSubscriber` - Registers `StorageImageEditor` for remote image processing
-- `Storage\Subscriber\SideloadSubscriber` - Ensures sideload compatibility with stream wrappers
 - `Storage\ImageEditor\StorageImageEditor` - Downloads to local temp, processes with Imagick, writes back
 - `Storage\Command\MigrateCommand` - WP-CLI command to migrate local uploads to object storage
 - `Storage\StorageConfiguration` - Storage connection configuration value object

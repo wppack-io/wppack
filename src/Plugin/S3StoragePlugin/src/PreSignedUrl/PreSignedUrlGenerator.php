@@ -42,6 +42,7 @@ final readonly class PreSignedUrlGenerator
 
     private function buildKey(string $filename): string
     {
+        $filename = basename($filename); // Strip any path components
         $datePath = gmdate('Y/m');
         $uniqueId = bin2hex(random_bytes(8));
         $sanitizedFilename = $this->sanitizeFilename($filename);

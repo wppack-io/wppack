@@ -208,6 +208,11 @@ final class StorageStreamWrapper
         return ftruncate($this->body, $newSize);
     }
 
+    public function stream_lock(int $operation): bool
+    {
+        return true;
+    }
+
     public function stream_set_option(int $option, int $arg1, int $arg2): bool
     {
         return false;
@@ -422,24 +427,27 @@ final class StorageStreamWrapper
 
     private function openReadOnly(StorageAdapterInterface $adapter): bool
     {
-        try {
-            $contents = $adapter->read($this->key);
-            $this->body = $this->createTempStream();
-            fwrite($this->body, $contents);
-            rewind($this->body);
-
-            return true;
-        } catch (\Throwable) {
-            return false;
-        }
+        return $this->loadFromStorage($adapter);
     }
 
     private function openReadWrite(StorageAdapterInterface $adapter): bool
     {
+        return $this->loadFromStorage($adapter);
+    }
+
+    /**
+     * Load file content from storage using stream-based transfer.
+     *
+     * Uses readStream() + stream_copy_to_stream() for chunked transfer,
+     * avoiding loading the entire file content into a PHP string.
+     */
+    private function loadFromStorage(StorageAdapterInterface $adapter): bool
+    {
         try {
-            $contents = $adapter->read($this->key);
+            $stream = $adapter->readStream($this->key);
             $this->body = $this->createTempStream();
-            fwrite($this->body, $contents);
+            stream_copy_to_stream($stream, $this->body);
+            fclose($stream);
             rewind($this->body);
 
             return true;
@@ -451,7 +459,7 @@ final class StorageStreamWrapper
     private function openWriteOnly(): bool
     {
         $this->body = $this->createTempStream();
-        $this->dirty = false;
+        $this->dirty = true; // w mode always writes (truncate semantics)
 
         return true;
     }
@@ -459,7 +467,7 @@ final class StorageStreamWrapper
     private function openWriteNew(): bool
     {
         $this->body = $this->createTempStream();
-        $this->dirty = false;
+        $this->dirty = true; // w+ mode always writes (truncate semantics)
 
         return true;
     }
@@ -469,8 +477,9 @@ final class StorageStreamWrapper
         $this->body = $this->createTempStream();
 
         try {
-            $contents = $adapter->read($this->key);
-            fwrite($this->body, $contents);
+            $stream = $adapter->readStream($this->key);
+            stream_copy_to_stream($stream, $this->body);
+            fclose($stream);
         } catch (ObjectNotFoundException) {
             // File does not exist yet — start empty
         } catch (\Throwable) {
@@ -494,7 +503,7 @@ final class StorageStreamWrapper
         }
 
         $this->body = $this->createTempStream();
-        $this->dirty = false;
+        $this->dirty = true; // x mode creates a new file (flush even if empty)
 
         return true;
     }
@@ -505,8 +514,9 @@ final class StorageStreamWrapper
 
         if ($readable) {
             try {
-                $contents = $adapter->read($this->key);
-                fwrite($this->body, $contents);
+                $stream = $adapter->readStream($this->key);
+                stream_copy_to_stream($stream, $this->body);
+                fclose($stream);
                 rewind($this->body);
             } catch (ObjectNotFoundException) {
                 // File does not exist — start empty
