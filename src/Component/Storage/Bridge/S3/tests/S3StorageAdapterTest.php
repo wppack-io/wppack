@@ -18,6 +18,10 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Storage\Bridge\S3\S3StorageAdapter;
 use WpPack\Component\Storage\Exception\ObjectNotFoundException;
+use AsyncAws\S3\Exception\NoSuchKeyException;
+use AsyncAws\S3\Result\ListObjectsV2Output;
+use AsyncAws\S3\ValueObject\AwsObject;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 #[CoversClass(S3StorageAdapter::class)]
 final class S3StorageAdapterTest extends TestCase
@@ -118,7 +122,7 @@ final class S3StorageAdapterTest extends TestCase
     {
         $s3Client = $this->createMock(S3Client::class);
         $s3Client->method('getObject')
-            ->willThrowException(new \RuntimeException('HTTP 404 Not Found'));
+            ->willThrowException($this->createNoSuchKeyException());
 
         $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
 
@@ -177,7 +181,7 @@ final class S3StorageAdapterTest extends TestCase
     {
         $s3Client = $this->createMock(S3Client::class);
         $s3Client->method('headObject')
-            ->willThrowException(new \RuntimeException('HTTP 404 Not Found'));
+            ->willThrowException($this->createNoSuchKeyException());
 
         $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
 
@@ -226,7 +230,7 @@ final class S3StorageAdapterTest extends TestCase
     {
         $s3Client = $this->createMock(S3Client::class);
         $s3Client->method('headObject')
-            ->willThrowException(new \RuntimeException('HTTP 404 Not Found'));
+            ->willThrowException($this->createNoSuchKeyException());
 
         $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
 
@@ -291,5 +295,90 @@ final class S3StorageAdapterTest extends TestCase
 
         $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
         $adapter->move('source.txt', 'dest.txt');
+    }
+
+    #[Test]
+    public function temporaryUrlReturnsPresignedUrl(): void
+    {
+        $s3Client = new S3Client([
+            'region' => 'us-east-1',
+            'accessKeyId' => 'AKIAIOSFODNN7EXAMPLE',
+            'accessKeySecret' => 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
+        ]);
+
+        $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
+        $url = $adapter->temporaryUrl('file.txt', new \DateTimeImmutable('+1 hour'));
+
+        self::assertStringContainsString('my-bucket', $url);
+        self::assertStringContainsString('file.txt', $url);
+        self::assertStringContainsString('X-Amz-Signature', $url);
+    }
+
+    #[Test]
+    public function listContentsRecursiveYieldsObjects(): void
+    {
+        $now = new \DateTimeImmutable();
+
+        $s3Client = $this->createMock(S3Client::class);
+        $s3Client->method('listObjectsV2')
+            ->willReturn(ResultMockFactory::create(ListObjectsV2Output::class, [
+                'Contents' => [
+                    new AwsObject(['Key' => 'file1.txt', 'Size' => 100, 'LastModified' => $now]),
+                    new AwsObject(['Key' => 'dir/file2.txt', 'Size' => 200, 'LastModified' => $now]),
+                ],
+                'CommonPrefixes' => [],
+                'IsTruncated' => false,
+            ]));
+
+        $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
+        $items = iterator_to_array($adapter->listContents('', true));
+
+        self::assertCount(2, $items);
+        self::assertSame('file1.txt', $items[0]->key);
+        self::assertSame(100, $items[0]->size);
+        self::assertSame('dir/file2.txt', $items[1]->key);
+        self::assertSame(200, $items[1]->size);
+    }
+
+    #[Test]
+    public function listContentsNonRecursivePassesDelimiter(): void
+    {
+        $now = new \DateTimeImmutable();
+
+        $s3Client = $this->createMock(S3Client::class);
+        $s3Client->method('listObjectsV2')
+            ->with($this->callback(function ($input) {
+                return $input->getDelimiter() === '/';
+            }))
+            ->willReturn(ResultMockFactory::create(ListObjectsV2Output::class, [
+                'Contents' => [
+                    new AwsObject(['Key' => 'file1.txt', 'Size' => 100, 'LastModified' => $now]),
+                ],
+                'CommonPrefixes' => [],
+                'IsTruncated' => false,
+            ]));
+
+        $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
+        $items = iterator_to_array($adapter->listContents('', false));
+
+        self::assertCount(1, $items);
+        self::assertSame('file1.txt', $items[0]->key);
+    }
+
+    private function createNoSuchKeyException(): NoSuchKeyException
+    {
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('getInfo')
+            ->willReturnCallback(fn(string $type) => match ($type) {
+                'http_code' => 404,
+                'url' => 'https://my-bucket.s3.amazonaws.com/nonexistent.txt',
+                default => null,
+            });
+        $response->method('getHeaders')
+            ->willReturn([]);
+        $response->method('getContent')
+            ->willReturn('');
+
+        return new NoSuchKeyException($response);
     }
 }

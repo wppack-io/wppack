@@ -17,13 +17,10 @@ final class S3StorageAdapterFactory implements StorageAdapterFactoryInterface
         [$bucket, $region] = $this->parseHost($dsn, $options);
 
         if ($bucket === null) {
-            throw new InvalidArgumentException('Cannot determine bucket name from S3 storage DSN. Use "s3://my-bucket.s3.ap-northeast-1.amazonaws.com/prefix" format.');
+            throw new InvalidArgumentException('Cannot determine bucket name from S3 storage DSN. Supported formats: "s3://{bucket}.s3.{region}.amazonaws.com/{prefix}" or "s3://{bucket}".');
         }
 
-        $prefix = ltrim($dsn->getPath() ?? '', '/');
-        if ($prefix === '') {
-            $prefix = $options['prefix'] ?? '';
-        }
+        $prefix = $this->parsePrefix($dsn, $options);
 
         $publicUrl = $dsn->getOption('public_url') ?? $options['public_url'] ?? null;
         $endpoint = $dsn->getOption('endpoint') ?? $options['endpoint'] ?? null;
@@ -101,5 +98,21 @@ final class S3StorageAdapterFactory implements StorageAdapterFactoryInterface
     public function supports(Dsn $dsn): bool
     {
         return $dsn->getScheme() === 's3';
+    }
+
+    /**
+     * Parse prefix from DSN path.
+     *
+     * @param array<string, mixed> $options
+     */
+    private function parsePrefix(Dsn $dsn, array $options): string
+    {
+        $path = ltrim($dsn->getPath() ?? '', '/');
+
+        if ($path !== '') {
+            return $path;
+        }
+
+        return $options['prefix'] ?? '';
     }
 }

@@ -14,6 +14,9 @@ use Psr\Http\Message\StreamInterface;
 use WpPack\Component\Storage\Bridge\Azure\AzureBlobClientInterface;
 use WpPack\Component\Storage\Bridge\Azure\AzureStorageAdapter;
 use WpPack\Component\Storage\Exception\ObjectNotFoundException;
+use AzureOss\Storage\Blob\Exceptions\BlobNotFoundException;
+use AzureOss\Storage\Blob\Models\Blob;
+use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
 
 #[CoversClass(AzureStorageAdapter::class)]
 final class AzureStorageAdapterTest extends TestCase
@@ -108,7 +111,7 @@ final class AzureStorageAdapterTest extends TestCase
     {
         $client = $this->createMock(AzureBlobClientInterface::class);
         $client->method('downloadStreamingContent')
-            ->willThrowException(new \RuntimeException('HTTP 404 Not Found'));
+            ->willThrowException(new BlobNotFoundException('Blob not found'));
 
         $adapter = new AzureStorageAdapter($client);
 
@@ -145,7 +148,7 @@ final class AzureStorageAdapterTest extends TestCase
     {
         $client = $this->createMock(AzureBlobClientInterface::class);
         $client->method('getProperties')
-            ->willThrowException(new \RuntimeException('HTTP 404 Not Found'));
+            ->willThrowException(new BlobNotFoundException('Blob not found'));
 
         $adapter = new AzureStorageAdapter($client);
 
@@ -192,7 +195,7 @@ final class AzureStorageAdapterTest extends TestCase
     {
         $client = $this->createMock(AzureBlobClientInterface::class);
         $client->method('getProperties')
-            ->willThrowException(new \RuntimeException('HTTP 404 Not Found'));
+            ->willThrowException(new BlobNotFoundException('Blob not found'));
 
         $adapter = new AzureStorageAdapter($client);
 
@@ -267,6 +270,204 @@ final class AzureStorageAdapterTest extends TestCase
 
         $adapter = new AzureStorageAdapter($client);
         $adapter->move('source.txt', 'dest.txt');
+    }
+
+    #[Test]
+    public function writeStreamCallsUpload(): void
+    {
+        $resource = fopen('php://temp', 'r+');
+        fwrite($resource, 'stream contents');
+        rewind($resource);
+
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->expects($this->once())
+            ->method('upload')
+            ->with('file.txt', $resource, null);
+
+        $adapter = new AzureStorageAdapter($client);
+        $adapter->writeStream('file.txt', $resource);
+
+        fclose($resource);
+    }
+
+    #[Test]
+    public function writeStreamWithContentType(): void
+    {
+        $resource = fopen('php://temp', 'r+');
+        fwrite($resource, 'stream contents');
+        rewind($resource);
+
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->expects($this->once())
+            ->method('upload')
+            ->with(
+                'file.txt',
+                $resource,
+                $this->callback(fn(?UploadBlobOptions $options) => $options !== null && $options->contentType === 'image/png'),
+            );
+
+        $adapter = new AzureStorageAdapter($client);
+        $adapter->writeStream('file.txt', $resource, ['Content-Type' => 'image/png']);
+
+        fclose($resource);
+    }
+
+    #[Test]
+    public function readStreamWithPrefix(): void
+    {
+        $stream = $this->createMock(StreamInterface::class);
+        $stream->method('eof')->willReturnOnConsecutiveCalls(false, true);
+        $stream->method('read')->with(8192)->willReturn('stream contents');
+
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->method('downloadStreamingContent')
+            ->with('uploads/file.txt')
+            ->willReturn($stream);
+
+        $adapter = new AzureStorageAdapter($client, 'uploads');
+        $result = $adapter->readStream('file.txt');
+
+        self::assertIsResource($result);
+        self::assertSame('stream contents', stream_get_contents($result));
+    }
+
+    #[Test]
+    public function readStreamThrowsObjectNotFoundExceptionOn404(): void
+    {
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->method('downloadStreamingContent')
+            ->willThrowException(new BlobNotFoundException('Blob not found'));
+
+        $adapter = new AzureStorageAdapter($client);
+
+        $this->expectException(ObjectNotFoundException::class);
+        $adapter->readStream('nonexistent.txt');
+    }
+
+    #[Test]
+    public function deleteMultipleCallsDeleteForEachKey(): void
+    {
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->expects($this->exactly(2))
+            ->method('delete');
+
+        $adapter = new AzureStorageAdapter($client);
+        $adapter->deleteMultiple(['a.txt', 'b.txt']);
+    }
+
+    #[Test]
+    public function deleteMultipleEmptyIsNoop(): void
+    {
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->expects($this->never())->method('delete');
+
+        $adapter = new AzureStorageAdapter($client);
+        $adapter->deleteMultiple([]);
+    }
+
+    #[Test]
+    public function copyWithPrefix(): void
+    {
+        $sourceUri = new Uri('https://account.blob.core.windows.net/my-container/uploads/source.txt');
+
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->method('getBlobUri')
+            ->with('uploads/source.txt')
+            ->willReturn($sourceUri);
+        $client->expects($this->once())
+            ->method('syncCopyFromUri')
+            ->with('uploads/dest.txt', $sourceUri);
+
+        $adapter = new AzureStorageAdapter($client, 'uploads');
+        $adapter->copy('source.txt', 'dest.txt');
+    }
+
+    #[Test]
+    public function existsWithPrefix(): void
+    {
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->method('getProperties')
+            ->with('uploads/file.txt')
+            ->willReturn($this->createBlobProperties());
+
+        $adapter = new AzureStorageAdapter($client, 'uploads');
+
+        self::assertTrue($adapter->exists('file.txt'));
+    }
+
+    #[Test]
+    public function temporaryUrlReturnsUrl(): void
+    {
+        $sasUri = new Uri('https://account.blob.core.windows.net/my-container/file.txt?sv=2024&sig=abc');
+
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->method('generateSasUri')
+            ->willReturn($sasUri);
+
+        $adapter = new AzureStorageAdapter($client);
+        $url = $adapter->temporaryUrl('file.txt', new \DateTimeImmutable('+1 hour'));
+
+        self::assertSame('https://account.blob.core.windows.net/my-container/file.txt?sv=2024&sig=abc', $url);
+    }
+
+    #[Test]
+    public function temporaryUrlWithPrefix(): void
+    {
+        $sasUri = new Uri('https://account.blob.core.windows.net/my-container/uploads/file.txt?sv=2024&sig=abc');
+
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->method('generateSasUri')
+            ->with('uploads/file.txt', $this->isInstanceOf(BlobSasBuilder::class))
+            ->willReturn($sasUri);
+
+        $adapter = new AzureStorageAdapter($client, 'uploads');
+        $url = $adapter->temporaryUrl('file.txt', new \DateTimeImmutable('+1 hour'));
+
+        self::assertSame('https://account.blob.core.windows.net/my-container/uploads/file.txt?sv=2024&sig=abc', $url);
+    }
+
+    #[Test]
+    public function listContentsRecursiveYieldsObjects(): void
+    {
+        $now = new \DateTimeImmutable();
+
+        $blob1 = new Blob('file1.txt', $this->createBlobProperties(100, 'text/plain', $now));
+        $blob2 = new Blob('dir/file2.txt', $this->createBlobProperties(200, 'application/pdf', $now));
+
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->method('listBlobsByHierarchy')
+            ->with(null, '')
+            ->willReturn([$blob1, $blob2]);
+
+        $adapter = new AzureStorageAdapter($client);
+        $items = iterator_to_array($adapter->listContents('', true));
+
+        self::assertCount(2, $items);
+        self::assertSame('file1.txt', $items[0]->key);
+        self::assertSame(100, $items[0]->size);
+        self::assertSame('text/plain', $items[0]->mimeType);
+        self::assertSame('dir/file2.txt', $items[1]->key);
+        self::assertSame(200, $items[1]->size);
+        self::assertSame('application/pdf', $items[1]->mimeType);
+    }
+
+    #[Test]
+    public function listContentsNonRecursivePassesDelimiter(): void
+    {
+        $now = new \DateTimeImmutable();
+
+        $blob1 = new Blob('file1.txt', $this->createBlobProperties(100, 'text/plain', $now));
+
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->method('listBlobsByHierarchy')
+            ->with(null, '/')
+            ->willReturn([$blob1]);
+
+        $adapter = new AzureStorageAdapter($client);
+        $items = iterator_to_array($adapter->listContents('', false));
+
+        self::assertCount(1, $items);
+        self::assertSame('file1.txt', $items[0]->key);
     }
 
     /**

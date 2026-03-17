@@ -6,6 +6,8 @@ namespace WpPack\Component\Storage\Bridge\Azure;
 
 use AzureOss\Storage\Blob\Models\Blob;
 use AzureOss\Storage\Blob\Models\UploadBlobOptions;
+use AzureOss\Storage\Blob\Exceptions\BlobNotFoundException;
+use AzureOss\Storage\Blob\Models\BlobHttpHeaders;
 use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
 use WpPack\Component\Storage\Adapter\AbstractStorageAdapter;
 use WpPack\Component\Storage\Exception\ObjectNotFoundException;
@@ -52,6 +54,8 @@ final class AzureStorageAdapter extends AbstractStorageAdapter
 
     protected function doReadStream(string $key): mixed
     {
+        $stream = null;
+
         try {
             $body = $this->client->downloadStreamingContent($this->prefixKey($key));
 
@@ -64,8 +68,15 @@ final class AzureStorageAdapter extends AbstractStorageAdapter
 
             rewind($stream);
 
-            return $stream;
+            $result = $stream;
+            $stream = null;
+
+            return $result;
         } catch (\Throwable $e) {
+            if (\is_resource($stream)) {
+                fclose($stream);
+            }
+
             if ($this->isNotFoundException($e)) {
                 throw new ObjectNotFoundException($key, $e);
             }
@@ -141,11 +152,11 @@ final class AzureStorageAdapter extends AbstractStorageAdapter
     protected function doListContents(string $prefix, bool $recursive): iterable
     {
         $fullPrefix = $this->prefixKey($prefix);
-        $delimiter = $recursive ? '' : '/';
+        $prefixArg = $fullPrefix !== '' ? $fullPrefix : null;
 
         $blobs = $recursive
-            ? $this->client->listBlobsByHierarchy($fullPrefix !== '' ? $fullPrefix : null)
-            : $this->client->listBlobsByHierarchy($fullPrefix !== '' ? $fullPrefix : null, '/');
+            ? $this->client->listBlobsByHierarchy($prefixArg, '')
+            : $this->client->listBlobsByHierarchy($prefixArg, '/');
 
         foreach ($blobs as $blob) {
             if (!$blob instanceof Blob) {
@@ -158,6 +169,7 @@ final class AzureStorageAdapter extends AbstractStorageAdapter
                 key: $blobKey,
                 size: $blob->properties->contentLength,
                 lastModified: \DateTimeImmutable::createFromInterface($blob->properties->lastModified),
+                mimeType: $blob->properties->contentType,
             );
         }
     }
@@ -169,11 +181,28 @@ final class AzureStorageAdapter extends AbstractStorageAdapter
     {
         $contentType = $metadata['Content-Type'] ?? null;
 
-        if ($contentType === null) {
+        $headerMap = [
+            'Cache-Control' => 'cacheControl',
+            'Content-Disposition' => 'contentDisposition',
+            'Content-Encoding' => 'contentEncoding',
+            'Content-Language' => 'contentLanguage',
+        ];
+
+        $headerArgs = [];
+        foreach ($headerMap as $metaKey => $headerProp) {
+            if (isset($metadata[$metaKey])) {
+                $headerArgs[$headerProp] = $metadata[$metaKey];
+            }
+        }
+
+        if ($contentType === null && $headerArgs === []) {
             return null;
         }
 
-        return new UploadBlobOptions(contentType: $contentType);
+        return new UploadBlobOptions(
+            contentType: $contentType,
+            httpHeaders: $headerArgs !== [] ? new BlobHttpHeaders(...$headerArgs) : null,
+        );
     }
 
     private function prefixKey(string $key): string
@@ -202,10 +231,6 @@ final class AzureStorageAdapter extends AbstractStorageAdapter
 
     private function isNotFoundException(\Throwable $e): bool
     {
-        $message = $e->getMessage();
-
-        return str_contains($message, '404')
-            || str_contains($message, 'Not Found')
-            || str_contains($message, 'BlobNotFound');
+        return $e instanceof BlobNotFoundException;
     }
 }

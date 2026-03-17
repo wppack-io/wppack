@@ -443,15 +443,22 @@ final class StorageStreamWrapper
      */
     private function loadFromStorage(StorageAdapterInterface $adapter): bool
     {
+        $stream = null;
+
         try {
             $stream = $adapter->readStream($this->key);
             $this->body = $this->createTempStream();
             stream_copy_to_stream($stream, $this->body);
             fclose($stream);
+            $stream = null;
             rewind($this->body);
 
             return true;
         } catch (\Throwable) {
+            if (\is_resource($stream)) {
+                fclose($stream);
+            }
+
             return false;
         }
     }
@@ -475,14 +482,20 @@ final class StorageStreamWrapper
     private function openAppend(StorageAdapterInterface $adapter, bool $readable): bool
     {
         $this->body = $this->createTempStream();
+        $stream = null;
 
         try {
             $stream = $adapter->readStream($this->key);
             stream_copy_to_stream($stream, $this->body);
             fclose($stream);
+            $stream = null;
         } catch (ObjectNotFoundException) {
             // File does not exist yet — start empty
         } catch (\Throwable) {
+            if (\is_resource($stream)) {
+                fclose($stream);
+            }
+
             return false;
         }
 
@@ -513,14 +526,21 @@ final class StorageStreamWrapper
         $this->body = $this->createTempStream();
 
         if ($readable) {
+            $stream = null;
+
             try {
                 $stream = $adapter->readStream($this->key);
                 stream_copy_to_stream($stream, $this->body);
                 fclose($stream);
+                $stream = null;
                 rewind($this->body);
             } catch (ObjectNotFoundException) {
                 // File does not exist — start empty
             } catch (\Throwable) {
+                if (\is_resource($stream)) {
+                    fclose($stream);
+                }
+
                 return false;
             }
         }

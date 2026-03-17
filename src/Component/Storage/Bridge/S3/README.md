@@ -44,7 +44,7 @@ $adapter = new S3StorageAdapter(
 );
 ```
 
-### Pre-signed URLs
+### Temporary URLs (Pre-signed)
 
 ```php
 $url = $adapter->temporaryUrl('private/document.pdf', new \DateTimeImmutable('+1 hour'));

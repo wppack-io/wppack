@@ -11,6 +11,7 @@ use AsyncAws\S3\Input\GetObjectRequest;
 use AsyncAws\S3\Input\HeadObjectRequest;
 use AsyncAws\S3\Input\ListObjectsV2Request;
 use AsyncAws\S3\Input\PutObjectRequest;
+use AsyncAws\S3\Exception\NoSuchKeyException;
 use AsyncAws\S3\S3Client;
 use AsyncAws\S3\ValueObject\Delete;
 use AsyncAws\S3\ValueObject\ObjectIdentifier;
@@ -91,6 +92,8 @@ final class S3StorageAdapter extends AbstractStorageAdapter
 
     protected function doReadStream(string $key): mixed
     {
+        $stream = null;
+
         try {
             $result = $this->s3Client->getObject(new GetObjectRequest([
                 'Bucket' => $this->bucket,
@@ -106,8 +109,15 @@ final class S3StorageAdapter extends AbstractStorageAdapter
 
             rewind($stream);
 
-            return $stream;
+            $result = $stream;
+            $stream = null;
+
+            return $result;
         } catch (\Throwable $e) {
+            if (\is_resource($stream)) {
+                fclose($stream);
+            }
+
             if ($this->isNotFoundException($e)) {
                 throw new ObjectNotFoundException($key, $e);
             }
@@ -212,14 +222,6 @@ final class S3StorageAdapter extends AbstractStorageAdapter
             'Key' => $this->prefixKey($key),
         ]);
 
-        $now = new \DateTimeImmutable();
-        $interval = $now->diff(\DateTimeImmutable::createFromInterface($expiration));
-        $seconds = $interval->days * 86400 + $interval->h * 3600 + $interval->i * 60 + $interval->s;
-
-        if ($seconds <= 0) {
-            $seconds = 3600;
-        }
-
         return $this->s3Client->presign($input, \DateTimeImmutable::createFromInterface($expiration));
     }
 
@@ -281,10 +283,6 @@ final class S3StorageAdapter extends AbstractStorageAdapter
 
     private function isNotFoundException(\Throwable $e): bool
     {
-        $message = $e->getMessage();
-
-        return str_contains($message, '404')
-            || str_contains($message, 'Not Found')
-            || str_contains($message, 'NoSuchKey');
+        return $e instanceof NoSuchKeyException;
     }
 }

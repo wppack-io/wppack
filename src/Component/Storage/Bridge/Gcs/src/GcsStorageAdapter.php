@@ -8,6 +8,7 @@ use Google\Cloud\Storage\Bucket;
 use WpPack\Component\Storage\Adapter\AbstractStorageAdapter;
 use WpPack\Component\Storage\Exception\ObjectNotFoundException;
 use WpPack\Component\Storage\ObjectMetadata;
+use Google\Cloud\Core\Exception\NotFoundException;
 
 final class GcsStorageAdapter extends AbstractStorageAdapter
 {
@@ -75,6 +76,7 @@ final class GcsStorageAdapter extends AbstractStorageAdapter
     protected function doReadStream(string $key): mixed
     {
         $object = $this->bucket->object($this->prefixKey($key));
+        $stream = null;
 
         try {
             $body = $object->downloadAsStream();
@@ -88,8 +90,15 @@ final class GcsStorageAdapter extends AbstractStorageAdapter
 
             rewind($stream);
 
-            return $stream;
+            $result = $stream;
+            $stream = null;
+
+            return $result;
         } catch (\Throwable $e) {
+            if (\is_resource($stream)) {
+                fclose($stream);
+            }
+
             if ($this->isNotFoundException($e)) {
                 throw new ObjectNotFoundException($key, $e);
             }
@@ -179,6 +188,7 @@ final class GcsStorageAdapter extends AbstractStorageAdapter
                 key: $objectKey,
                 size: isset($info['size']) ? (int) $info['size'] : null,
                 lastModified: $lastModified,
+                mimeType: $info['contentType'] ?? null,
             );
         }
     }
@@ -209,10 +219,6 @@ final class GcsStorageAdapter extends AbstractStorageAdapter
 
     private function isNotFoundException(\Throwable $e): bool
     {
-        $message = $e->getMessage();
-
-        return str_contains($message, '404')
-            || str_contains($message, 'Not Found')
-            || str_contains($message, 'No such object');
+        return $e instanceof NotFoundException;
     }
 }

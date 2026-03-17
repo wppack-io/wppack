@@ -17,13 +17,13 @@ final class AzureStorageAdapterFactory implements StorageAdapterFactoryInterface
         $account = $this->parseAccount($dsn, $options);
 
         if ($account === null) {
-            throw new InvalidArgumentException('Cannot determine account name from Azure storage DSN. Use "azure://{account}.blob.core.windows.net/{container}" format.');
+            throw new InvalidArgumentException('Cannot determine account name from Azure storage DSN. Supported formats: "azure://{account}.blob.core.windows.net/{container}" or "azure://{account}/{container}".');
         }
 
         $container = $this->parseContainer($dsn, $options);
 
         if ($container === null) {
-            throw new InvalidArgumentException('Cannot determine container name from Azure storage DSN. Use "azure://{account}.blob.core.windows.net/{container}" format.');
+            throw new InvalidArgumentException('Cannot determine container name from Azure storage DSN. Supported formats: "azure://{account}.blob.core.windows.net/{container}" or "azure://{account}/{container}".');
         }
 
         $prefix = $this->parsePrefix($dsn, $options);

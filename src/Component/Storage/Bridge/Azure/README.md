@@ -44,7 +44,7 @@ $adapter = new AzureStorageAdapter(
 );
 ```
 
-### SAS Token URLs
+### Temporary URLs (SAS Token)
 
 ```php
 $url = $adapter->temporaryUrl('private/document.pdf', new \DateTimeImmutable('+1 hour'));

@@ -44,7 +44,7 @@ $adapter = new GcsStorageAdapter(
 );
 ```
 
-### Signed URLs (V4)
+### Temporary URLs (Signed URL V4)
 
 ```php
 $url = $adapter->temporaryUrl('private/document.pdf', new \DateTimeImmutable('+1 hour'));
