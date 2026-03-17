@@ -528,3 +528,7 @@ class AttachmentDeletionHandler
 ### 推奨
 - **Filesystem コンポーネント** - ファイル操作用
 - **DependencyInjection コンポーネント** - サービス注入用
+
+## 関連ドキュメント
+
+- [Storage 連携](./storage.md) - オブジェクトストレージとの連携

@@ -1,0 +1,58 @@
+<?php
+
+declare(strict_types=1);
+
+namespace WpPack\Component\Media\Tests\Storage;
+
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+use WpPack\Component\Media\Storage\UrlResolver;
+use WpPack\Component\Storage\Test\InMemoryStorageAdapter;
+
+final class UrlResolverTest extends TestCase
+{
+    #[Test]
+    public function resolveWithCdnUrlReturnsCdnUrlPlusKey(): void
+    {
+        $adapter = new InMemoryStorageAdapter();
+        $resolver = new UrlResolver($adapter, 'https://cdn.example.com');
+
+        self::assertSame('https://cdn.example.com/uploads/2024/01/image.jpg', $resolver->resolve('uploads/2024/01/image.jpg'));
+    }
+
+    #[Test]
+    public function resolveWithCdnUrlTrimsTrailingSlash(): void
+    {
+        $adapter = new InMemoryStorageAdapter();
+        $resolver = new UrlResolver($adapter, 'https://cdn.example.com/');
+
+        self::assertSame('https://cdn.example.com/uploads/image.jpg', $resolver->resolve('uploads/image.jpg'));
+    }
+
+    #[Test]
+    public function resolveWithCdnUrlTrimsLeadingSlashFromKey(): void
+    {
+        $adapter = new InMemoryStorageAdapter();
+        $resolver = new UrlResolver($adapter, 'https://cdn.example.com');
+
+        self::assertSame('https://cdn.example.com/uploads/image.jpg', $resolver->resolve('/uploads/image.jpg'));
+    }
+
+    #[Test]
+    public function resolveWithoutCdnUrlDelegatesToAdapterPublicUrl(): void
+    {
+        $adapter = new InMemoryStorageAdapter();
+        $resolver = new UrlResolver($adapter);
+
+        self::assertSame('memory://uploads/image.jpg', $resolver->resolve('uploads/image.jpg'));
+    }
+
+    #[Test]
+    public function resolveWithNullCdnUrlDelegatesToAdapterPublicUrl(): void
+    {
+        $adapter = new InMemoryStorageAdapter();
+        $resolver = new UrlResolver($adapter, null);
+
+        self::assertSame('memory://uploads/2024/01/photo.png', $resolver->resolve('uploads/2024/01/photo.png'));
+    }
+}

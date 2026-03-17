@@ -5,14 +5,24 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "wppack/dependency-injection": "^1.0",
         "wppack/hook": "^1.0",
+        "wppack/http-foundation": "^1.0",
         "wppack/media": "^1.0",
         "wppack/messenger": "^1.0",
+        "wppack/rest": "^1.0",
+        "wppack/s3-storage": "^1.0",
+        "wppack/storage": "^1.0",
         "async-aws/s3": "^2.0"
     },
     "autoload": {
         "psr-4": {
             "WpPack\\Plugin\\S3StoragePlugin\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Plugin\\S3StoragePlugin\\Tests\\": "tests/"
         }
     }
 }

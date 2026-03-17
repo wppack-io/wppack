@@ -87,6 +87,28 @@ assert($adapter->read('test.txt') === 'hello');
 | Adapter | Package | DSN Scheme |
 |---------|---------|------------|
 | Amazon S3 | `wppack/s3-storage` | `s3://` |
+| Azure Blob Storage | `wppack/azure-storage` | `azure://` |
+| Google Cloud Storage | `wppack/gcs-storage` | `gcs://` |
+| Local filesystem | `wppack/storage` (core) | `local://` |
+
+## Stream Wrapper
+
+Register a protocol to use standard PHP file functions with any storage adapter:
+
+```php
+use WpPack\Component\Storage\StreamWrapper\StorageStreamWrapper;
+
+// Register a protocol
+$adapter = Storage::fromDsn('s3://my-bucket.s3.ap-northeast-1.amazonaws.com/uploads');
+StorageStreamWrapper::register('s3', $adapter);
+
+// Use standard PHP file functions
+file_put_contents('s3://path/to/file.txt', 'Hello, World!');
+$contents = file_get_contents('s3://path/to/file.txt');
+$exists = file_exists('s3://path/to/file.txt');
+```
+
+See [Stream Wrapper documentation](../../docs/components/storage/stream-wrapper.md) for details on supported functions, fopen modes, buffering strategy, and StatCache.
 
 ## Documentation
 

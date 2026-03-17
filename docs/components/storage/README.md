@@ -358,6 +358,25 @@ ExceptionInterface                   extends \Throwable
 | `Bridge\Azure\AzureStorageAdapterFactory` | wppack/azure-storage | Azure Blob ファクトリ |
 | `Bridge\Gcs\GcsStorageAdapter` | wppack/gcs-storage | GCS アダプタ |
 | `Bridge\Gcs\GcsStorageAdapterFactory` | wppack/gcs-storage | GCS ファクトリ |
+| `StreamWrapper\StorageStreamWrapper` | wppack/storage | PHP stream wrapper (`stream_wrapper_register`) |
+| `StreamWrapper\StatCache` | wppack/storage | URL stat キャッシュ |
+
+## Stream Wrapper
+
+`StorageStreamWrapper` は PHP の `stream_wrapper_register` を使い、`StorageAdapterInterface` を介したオブジェクトストレージへのアクセスを PHP 標準ファイル関数（`file_exists`, `file_get_contents`, `fopen` 等）から透過的に行えるようにします。
+
+```php
+use WpPack\Component\Storage\StreamWrapper\StorageStreamWrapper;
+
+$adapter = Storage::fromDsn('s3://my-bucket.s3.ap-northeast-1.amazonaws.com/uploads');
+StorageStreamWrapper::register('s3', $adapter);
+
+// PHP 標準関数がそのまま使える
+file_put_contents('s3://path/to/file.txt', 'Hello, World!');
+$contents = file_get_contents('s3://path/to/file.txt');
+```
+
+詳細は [Stream Wrapper ドキュメント](stream-wrapper.md) を参照してください。
 
 ## 依存関係
 

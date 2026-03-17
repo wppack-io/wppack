@@ -1,6 +1,15 @@
 # wppack/s3-storage-plugin
 
-WordPress plugin for S3-based media storage. Replaces WordPress media uploads with direct browser-to-S3 uploads via pre-signed URLs, with asynchronous attachment registration through SQS.
+WordPress plugin for S3-based media storage. A thin S3-specific layer that provides pre-signed URL uploads and S3 event-driven attachment registration.
+
+## Architecture
+
+S3StoragePlugin is a thin layer on top of provider-agnostic components:
+
+- **Stream wrapper** (`s3://` protocol) is provided by `wppack/storage` (`StorageStreamWrapper`)
+- **WordPress upload integration** (upload_dir, attachment URLs, image editor) is provided by `wppack/media` (Subscriber classes)
+- **S3 adapter** is provided by `wppack/s3-storage` (`S3StorageAdapter`)
+- **S3StoragePlugin** provides only S3-specific features: Pre-signed URLs, S3 event handling, and S3 configuration
 
 ## Installation
 
@@ -14,18 +23,11 @@ composer require wppack/s3-storage-plugin
 - WordPress 6.x
 - AWS account with S3 and SQS
 
-## Usage
+## Features
 
-### Upload Flow
+### Pre-signed URL Upload
 
-The plugin automatically handles media uploads:
-
-1. Browser requests a pre-signed URL via REST API
-2. File is uploaded directly to S3 (no server load)
-3. S3 event triggers SQS message
-4. Lambda handler registers the WordPress attachment
-
-### Pre-signed URL API
+Browser-to-S3 direct upload without server load:
 
 ```javascript
 const response = await fetch('/wp-json/wppack/v1/s3/presigned-url', {
@@ -50,11 +52,25 @@ await fetch(url, {
 });
 ```
 
+### S3 Event Handling
+
+S3 object creation events are processed via SQS/Lambda:
+
+1. S3 Event Notification triggers SQS message
+2. `S3ObjectCreatedHandler` registers WordPress attachment
+3. Resized images (thumbnails, scaled, rotated) are automatically skipped
+4. `GenerateThumbnailsHandler` generates thumbnails asynchronously
+
+### Multisite Support
+
+Multisite environments are automatically detected. The handler parses `/sites/{blog_id}/` from S3 keys and uses `switch_to_blog()` to register attachments in the correct blog context.
+
 ### WP-CLI
 
 ```bash
-wp wppack s3 migrate              # Migrate local files to S3
-wp wppack s3 migrate --dry-run    # Preview migration
+wp media:migrate-storage              # Migrate local files to S3
+wp media:migrate-storage --dry-run    # Preview migration
+wp media:migrate-storage --batch-size=100
 ```
 
 ## Configuration

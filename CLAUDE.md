@@ -146,9 +146,14 @@ wppack/sqs-messenger
 wppack/messenger
     + async-aws/sqs
 
+wppack/media
+    ↓ requires
+wppack/storage
+
 wppack/s3-storage-plugin
     ↓ requires
-wppack/media, wppack/filesystem, wppack/hook
+wppack/storage, wppack/s3-storage, wppack/rest
+    + wppack/media, wppack/messenger
     + async-aws/s3
 
 wppack/s3-storage

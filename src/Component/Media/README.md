@@ -49,9 +49,26 @@ $mediaManager->addImageSize(new ImageSize(
 
 For S3 media storage, install `wppack/s3-storage-plugin`. The Media API remains the same.
 
+## Storage Integration
+
+The Media component includes built-in support for replacing WordPress uploads with any object storage backend via `StorageAdapterInterface`. Subscriber classes hook into WordPress upload/attachment lifecycle to transparently redirect file operations through the Storage component's stream wrapper.
+
+Key classes:
+
+- `Storage\Subscriber\UploadDirSubscriber` - Rewrites `upload_dir` paths to stream wrapper paths
+- `Storage\Subscriber\AttachmentSubscriber` - Handles attachment URLs, file paths, deletion, and metadata
+- `Storage\Subscriber\ImageEditorSubscriber` - Registers `StorageImageEditor` for remote image processing
+- `Storage\Subscriber\SideloadSubscriber` - Ensures sideload compatibility with stream wrappers
+- `Storage\ImageEditor\StorageImageEditor` - Downloads to local temp, processes with Imagick, writes back
+- `Storage\Command\MigrateCommand` - WP-CLI command to migrate local uploads to object storage
+- `Storage\StorageConfiguration` - Storage connection configuration value object
+- `Storage\UrlResolver` - Resolves storage keys to CDN or public URLs
+
+See [Storage Integration documentation](../../docs/components/media/storage.md) for details.
+
 ## Documentation
 
-See [docs/components/media.md](../../docs/components/media.md) for full documentation.
+See [docs/components/media/](../../docs/components/media/) for full documentation.
 
 ## License
 

@@ -98,7 +98,7 @@ WordPress のアプリケーション構成要素を抽象化する。
 | [Setting](./setting/) | `wppack/setting` | Settings API ラッパー |
 | [User](./user.md) | `wppack/user` | ユーザー管理 |
 | [Block](./block.md) | `wppack/block` | ブロックエディタ統合 |
-| [Media](./media.md) | `wppack/media` | メディア管理 |
+| [Media](./media/) | `wppack/media` | メディア管理 |
 | [Comment](./comment.md) | `wppack/comment` | コメント管理 |
 | [Taxonomy](./taxonomy.md) | `wppack/taxonomy` | タクソノミー定義 |
 | [NavigationMenu](./navigation-menu/) | `wppack/navigation-menu` | ナビゲーションメニュー |
