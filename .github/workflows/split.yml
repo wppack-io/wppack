@@ -13,52 +13,74 @@ jobs:
       matrix:
         package:
           # Component packages
-          - { local_path: 'src/Component/Hook', split_repository: 'hook' }
-          - { local_path: 'src/Component/DependencyInjection', split_repository: 'dependency-injection' }
-          - { local_path: 'src/Component/Config', split_repository: 'config' }
-          - { local_path: 'src/Component/EventDispatcher', split_repository: 'event-dispatcher' }
-          - { local_path: 'src/Component/Filesystem', split_repository: 'filesystem' }
-          - { local_path: 'src/Component/Kernel', split_repository: 'kernel' }
-          - { local_path: 'src/Component/Mailer', split_repository: 'mailer' }
-          - { local_path: 'src/Component/Messenger', split_repository: 'messenger' }
-          - { local_path: 'src/Component/Scheduler', split_repository: 'scheduler' }
-          - { local_path: 'src/Component/Media', split_repository: 'media' }
           - { local_path: 'src/Component/Admin', split_repository: 'admin' }
-          - { local_path: 'src/Component/Rest', split_repository: 'rest' }
-          - { local_path: 'src/Component/PostType', split_repository: 'post-type' }
-          - { local_path: 'src/Component/Query', split_repository: 'query' }
-          - { local_path: 'src/Component/Console', split_repository: 'console' }
+          - { local_path: 'src/Component/Ajax', split_repository: 'ajax' }
+          - { local_path: 'src/Component/Block', split_repository: 'block' }
           - { local_path: 'src/Component/Cache', split_repository: 'cache' }
+          - { local_path: 'src/Component/Comment', split_repository: 'comment' }
+          - { local_path: 'src/Component/Console', split_repository: 'console' }
+          - { local_path: 'src/Component/DashboardWidget', split_repository: 'dashboard-widget' }
           - { local_path: 'src/Component/Database', split_repository: 'database' }
-          - { local_path: 'src/Component/Security', split_repository: 'security' }
-          - { local_path: 'src/Component/Sanitizer', split_repository: 'sanitizer' }
-          - { local_path: 'src/Component/Validator', split_repository: 'validator' }
+          - { local_path: 'src/Component/Debug', split_repository: 'debug' }
+          - { local_path: 'src/Component/DependencyInjection', split_repository: 'dependency-injection' }
+          - { local_path: 'src/Component/Escaper', split_repository: 'escaper' }
+          - { local_path: 'src/Component/EventDispatcher', split_repository: 'event-dispatcher' }
+          - { local_path: 'src/Component/Feed', split_repository: 'feed' }
+          - { local_path: 'src/Component/Filesystem', split_repository: 'filesystem' }
+          - { local_path: 'src/Component/Hook', split_repository: 'hook' }
           - { local_path: 'src/Component/HttpClient', split_repository: 'http-client' }
           - { local_path: 'src/Component/HttpFoundation', split_repository: 'http-foundation' }
-          - { local_path: 'src/Component/Plugin', split_repository: 'plugin' }
-          - { local_path: 'src/Component/Theme', split_repository: 'theme' }
-          - { local_path: 'src/Component/Widget', split_repository: 'widget' }
-          - { local_path: 'src/Component/Setting', split_repository: 'setting' }
-          - { local_path: 'src/Component/User', split_repository: 'user' }
-          - { local_path: 'src/Component/Block', split_repository: 'block' }
-          - { local_path: 'src/Component/Comment', split_repository: 'comment' }
-          - { local_path: 'src/Component/Taxonomy', split_repository: 'taxonomy' }
-          - { local_path: 'src/Component/Role', split_repository: 'role' }
-          - { local_path: 'src/Component/Templating', split_repository: 'templating' }
+          - { local_path: 'src/Component/Kernel', split_repository: 'kernel' }
           - { local_path: 'src/Component/Logger', split_repository: 'logger' }
-          - { local_path: 'src/Component/Option', split_repository: 'option' }
-          - { local_path: 'src/Component/Transient', split_repository: 'transient' }
-          - { local_path: 'src/Component/Nonce', split_repository: 'nonce' }
-          - { local_path: 'src/Component/Shortcode', split_repository: 'shortcode' }
-          - { local_path: 'src/Component/Routing', split_repository: 'routing' }
-          - { local_path: 'src/Component/Ajax', split_repository: 'ajax' }
-          - { local_path: 'src/Component/Debug', split_repository: 'debug' }
+          - { local_path: 'src/Component/Mailer', split_repository: 'mailer' }
+          - { local_path: 'src/Component/Media', split_repository: 'media' }
+          - { local_path: 'src/Component/Messenger', split_repository: 'messenger' }
           - { local_path: 'src/Component/NavigationMenu', split_repository: 'navigation-menu' }
-          - { local_path: 'src/Component/Feed', split_repository: 'feed' }
+          - { local_path: 'src/Component/Nonce', split_repository: 'nonce' }
           - { local_path: 'src/Component/OEmbed', split_repository: 'oembed' }
+          - { local_path: 'src/Component/Option', split_repository: 'option' }
+          - { local_path: 'src/Component/OptionsResolver', split_repository: 'options-resolver' }
+          - { local_path: 'src/Component/Plugin', split_repository: 'plugin' }
+          - { local_path: 'src/Component/PostType', split_repository: 'post-type' }
+          - { local_path: 'src/Component/Query', split_repository: 'query' }
+          - { local_path: 'src/Component/Rest', split_repository: 'rest' }
+          - { local_path: 'src/Component/Role', split_repository: 'role' }
+          - { local_path: 'src/Component/Routing', split_repository: 'routing' }
+          - { local_path: 'src/Component/Sanitizer', split_repository: 'sanitizer' }
+          - { local_path: 'src/Component/Scheduler', split_repository: 'scheduler' }
+          - { local_path: 'src/Component/Security', split_repository: 'security' }
+          - { local_path: 'src/Component/Serializer', split_repository: 'serializer' }
+          - { local_path: 'src/Component/Setting', split_repository: 'setting' }
+          - { local_path: 'src/Component/Shortcode', split_repository: 'shortcode' }
           - { local_path: 'src/Component/SiteHealth', split_repository: 'site-health' }
-          - { local_path: 'src/Component/DashboardWidget', split_repository: 'dashboard-widget' }
+          - { local_path: 'src/Component/Stopwatch', split_repository: 'stopwatch' }
+          - { local_path: 'src/Component/Storage', split_repository: 'storage' }
+          - { local_path: 'src/Component/Taxonomy', split_repository: 'taxonomy' }
+          - { local_path: 'src/Component/Templating', split_repository: 'templating' }
+          - { local_path: 'src/Component/Theme', split_repository: 'theme' }
+          - { local_path: 'src/Component/Transient', split_repository: 'transient' }
           - { local_path: 'src/Component/Translation', split_repository: 'translation' }
+          - { local_path: 'src/Component/User', split_repository: 'user' }
+          - { local_path: 'src/Component/Widget', split_repository: 'widget' }
+          - { local_path: 'src/Component/Wpress', split_repository: 'wpress' }
+          # Bridge packages
+          - { local_path: 'src/Component/Cache/Bridge/Apcu', split_repository: 'apcu-cache' }
+          - { local_path: 'src/Component/Cache/Bridge/DynamoDb', split_repository: 'dynamodb-cache' }
+          - { local_path: 'src/Component/Cache/Bridge/ElastiCacheAuth', split_repository: 'elasticache-auth' }
+          - { local_path: 'src/Component/Cache/Bridge/Memcached', split_repository: 'memcached-cache' }
+          - { local_path: 'src/Component/Cache/Bridge/Redis', split_repository: 'redis-cache' }
+          - { local_path: 'src/Component/Logger/Bridge/Monolog', split_repository: 'monolog-logger' }
+          - { local_path: 'src/Component/Mailer/Bridge/Amazon', split_repository: 'amazon-mailer' }
+          - { local_path: 'src/Component/Mailer/Bridge/Azure', split_repository: 'azure-mailer' }
+          - { local_path: 'src/Component/Mailer/Bridge/SendGrid', split_repository: 'sendgrid-mailer' }
+          - { local_path: 'src/Component/Messenger/Bridge/Sqs', split_repository: 'sqs-messenger' }
+          - { local_path: 'src/Component/Scheduler/Bridge/EventBridge', split_repository: 'eventbridge-scheduler' }
+          - { local_path: 'src/Component/Security/Bridge/OAuth', split_repository: 'oauth-security' }
+          - { local_path: 'src/Component/Security/Bridge/SAML', split_repository: 'saml-security' }
+          - { local_path: 'src/Component/Storage/Bridge/Azure', split_repository: 'azure-storage' }
+          - { local_path: 'src/Component/Storage/Bridge/Gcs', split_repository: 'gcs-storage' }
+          - { local_path: 'src/Component/Storage/Bridge/S3', split_repository: 's3-storage' }
+          - { local_path: 'src/Component/Templating/Bridge/Twig', split_repository: 'twig-templating' }
           # Plugin packages
           - { local_path: 'src/Plugin/SchedulerPlugin', split_repository: 'scheduler-plugin' }
           - { local_path: 'src/Plugin/S3StoragePlugin', split_repository: 's3-storage-plugin' }

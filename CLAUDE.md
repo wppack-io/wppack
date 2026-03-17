@@ -96,6 +96,7 @@ WordPress プラグインとして配布。Component を利用。
 | Routing | wppack/routing | URLルーティング |
 | PostType | wppack/post-type | カスタム投稿タイプ |
 | Scheduler | wppack/scheduler | スケジューラー（EventBridge同期） |
+| EventBridgeScheduler | wppack/eventbridge-scheduler | EventBridge スケジューラー |
 | Console | wppack/console | WP-CLI コマンドフレームワーク |
 | Shortcode | wppack/shortcode | ショートコードフレームワーク |
 | Nonce | wppack/nonce | CSRF トークン管理 |
