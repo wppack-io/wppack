@@ -87,6 +87,14 @@ component_management:
       name: ApcuCache
       paths:
         - src/Component/Cache/Bridge/Apcu/src/**
+    - component_id: storage
+      name: Storage
+      paths:
+        - src/Component/Storage/src/**
+    - component_id: s3_storage
+      name: S3Storage
+      paths:
+        - src/Component/Storage/Bridge/S3/src/**
     - component_id: database
       name: Database
       paths:

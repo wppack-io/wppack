@@ -63,6 +63,8 @@ WordPress API やデータアクセスを抽象化し、テスト可能にする
 | [Serializer](./serializer/) | `wppack/serializer` | オブジェクト直列化（Normalizer チェーン） |
 | [OptionsResolver](./options-resolver/) | `wppack/options-resolver` | オプション解決（Symfony OptionsResolver 拡張） |
 | [Debug](./debug/) | `wppack/debug` | デバッグツール |
+| [Storage](./storage/) | `wppack/storage` | オブジェクトストレージ抽象化 |
+| [S3Storage](./storage/s3-storage.md) | `wppack/s3-storage` | Amazon S3 ストレージアダプタ |
 
 ## Feature Layer（機能層）
 

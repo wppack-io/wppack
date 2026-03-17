@@ -83,6 +83,8 @@ WordPress プラグインとして配布。Component を利用。
 | Serializer | wppack/serializer | オブジェクト直列化（Normalizer チェーン） |
 | OptionsResolver | wppack/options-resolver | オプション解決（Symfony OptionsResolver 拡張） |
 | Debug | wppack/debug | デバッグ・プロファイリング |
+| Storage | wppack/storage | オブジェクトストレージ抽象化 |
+| S3Storage | wppack/s3-storage | Amazon S3 ストレージアダプタ |
 
 ### Feature Layer
 | Component | パッケージ名 | 説明 |
@@ -145,6 +147,11 @@ wppack/messenger
 wppack/s3-storage-plugin
     ↓ requires
 wppack/media, wppack/filesystem, wppack/hook
+    + async-aws/s3
+
+wppack/s3-storage
+    ↓ requires
+wppack/storage
     + async-aws/s3
 
 wppack/elasticache-auth

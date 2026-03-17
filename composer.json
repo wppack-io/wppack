@@ -16,6 +16,7 @@
     },
     "require-dev": {
         "async-aws/dynamo-db": "^3.0",
+        "async-aws/s3": "^2.0",
         "async-aws/scheduler": "^1.0",
         "async-aws/ses": "^1.14",
         "async-aws/sqs": "^2.0",
@@ -29,9 +30,9 @@
         "phpunit/phpunit": "^11.5",
         "predis/predis": "^2.0",
         "roots/wordpress-no-content": "^6.9",
-        "woocommerce/action-scheduler": "^3.7",
         "szepeviktor/phpstan-wordpress": "^2.0",
         "twig/twig": "^3.0",
+        "woocommerce/action-scheduler": "^3.7",
         "wp-phpunit/wp-phpunit": "^6.9",
         "yoast/phpunit-polyfills": "^4.0"
     },
@@ -105,7 +106,9 @@
             "WpPack\\Component\\Messenger\\Bridge\\Sqs\\": "src/Component/Messenger/Bridge/Sqs/src/",
             "WpPack\\Component\\Scheduler\\Bridge\\EventBridge\\": "src/Component/Scheduler/Bridge/EventBridge/src/",
             "WpPack\\Component\\Templating\\Bridge\\Twig\\": "src/Component/Templating/Bridge/Twig/src/",
-            "WpPack\\Component\\Wpress\\": "src/Component/Wpress/src/"
+            "WpPack\\Component\\Wpress\\": "src/Component/Wpress/src/",
+            "WpPack\\Component\\Storage\\": "src/Component/Storage/src/",
+            "WpPack\\Component\\Storage\\Bridge\\S3\\": "src/Component/Storage/Bridge/S3/src/"
         }
     },
     "autoload-dev": {
@@ -172,7 +175,9 @@
             "WpPack\\Component\\Security\\Bridge\\OAuth\\Tests\\": "src/Component/Security/Bridge/OAuth/tests/",
             "WpPack\\Component\\Scheduler\\Bridge\\EventBridge\\Tests\\": "src/Component/Scheduler/Bridge/EventBridge/tests/",
             "WpPack\\Component\\Templating\\Bridge\\Twig\\Tests\\": "src/Component/Templating/Bridge/Twig/tests/",
-            "WpPack\\Component\\Wpress\\Tests\\": "src/Component/Wpress/tests/"
+            "WpPack\\Component\\Wpress\\Tests\\": "src/Component/Wpress/tests/",
+            "WpPack\\Component\\Storage\\Tests\\": "src/Component/Storage/tests/",
+            "WpPack\\Component\\Storage\\Bridge\\S3\\Tests\\": "src/Component/Storage/Bridge/S3/tests/"
         }
     },
     "replace": {
@@ -241,7 +246,9 @@
         "wppack/sqs-messenger": "self.version",
         "wppack/eventbridge-scheduler": "self.version",
         "wppack/twig-templating": "self.version",
-        "wppack/wpress": "self.version"
+        "wppack/wpress": "self.version",
+        "wppack/storage": "self.version",
+        "wppack/s3-storage": "self.version"
     },
     "config": {
         "sort-packages": true
