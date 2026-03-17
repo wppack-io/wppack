@@ -124,7 +124,7 @@ final class S3StorageAdapterFactoryTest extends TestCase
         $adapter = $factory->create($dsn);
 
         // Verify the prefix is reflected in the URL
-        self::assertStringContainsString('wp-content/uploads', $adapter->url('file.txt'));
+        self::assertStringContainsString('wp-content/uploads', $adapter->publicUrl('file.txt'));
     }
 
     #[Test]

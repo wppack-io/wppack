@@ -85,6 +85,8 @@ WordPress プラグインとして配布。Component を利用。
 | Debug | wppack/debug | デバッグ・プロファイリング |
 | Storage | wppack/storage | オブジェクトストレージ抽象化 |
 | S3Storage | wppack/s3-storage | Amazon S3 ストレージアダプタ |
+| AzureStorage | wppack/azure-storage | Azure Blob Storage アダプタ |
+| GcsStorage | wppack/gcs-storage | Google Cloud Storage アダプタ |
 
 ### Feature Layer
 | Component | パッケージ名 | 説明 |
@@ -153,6 +155,16 @@ wppack/s3-storage
     ↓ requires
 wppack/storage
     + async-aws/s3
+
+wppack/azure-storage
+    ↓ requires
+wppack/storage
+    + azure-oss/storage
+
+wppack/gcs-storage
+    ↓ requires
+wppack/storage
+    + google/cloud-storage
 
 wppack/elasticache-auth
     + async-aws/core

@@ -16,25 +16,25 @@ use WpPack\Component\Storage\ObjectMetadata;
 final class AbstractStorageAdapterTest extends TestCase
 {
     #[Test]
-    public function putDelegatesToDoPut(): void
+    public function writeDelegatesToDoWrite(): void
     {
         $adapter = $this->createConcreteAdapter();
 
-        $adapter->put('file.txt', 'contents', ['Content-Type' => 'text/plain']);
+        $adapter->write('file.txt', 'contents', ['Content-Type' => 'text/plain']);
 
-        self::assertSame([['doPut', ['file.txt', 'contents', ['Content-Type' => 'text/plain']]]], $adapter->calls);
+        self::assertSame([['doWrite', ['file.txt', 'contents', ['Content-Type' => 'text/plain']]]], $adapter->calls);
     }
 
     #[Test]
-    public function putStreamDelegatesToDoPutStream(): void
+    public function writeStreamDelegatesToDoWriteStream(): void
     {
         $adapter = $this->createConcreteAdapter();
         $stream = fopen('php://memory', 'r+');
 
-        $adapter->putStream('file.txt', $stream, ['Content-Type' => 'text/plain']);
+        $adapter->writeStream('file.txt', $stream, ['Content-Type' => 'text/plain']);
 
         self::assertCount(1, $adapter->calls);
-        self::assertSame('doPutStream', $adapter->calls[0][0]);
+        self::assertSame('doWriteStream', $adapter->calls[0][0]);
         self::assertSame('file.txt', $adapter->calls[0][1][0]);
         self::assertSame($stream, $adapter->calls[0][1][1]);
 
@@ -42,24 +42,24 @@ final class AbstractStorageAdapterTest extends TestCase
     }
 
     #[Test]
-    public function getDelegatesToDoGet(): void
+    public function readDelegatesToDoRead(): void
     {
         $adapter = $this->createConcreteAdapter();
-        $adapter->returnValues['doGet'] = 'file contents';
+        $adapter->returnValues['doRead'] = 'file contents';
 
-        self::assertSame('file contents', $adapter->get('file.txt'));
-        self::assertSame([['doGet', ['file.txt']]], $adapter->calls);
+        self::assertSame('file contents', $adapter->read('file.txt'));
+        self::assertSame([['doRead', ['file.txt']]], $adapter->calls);
     }
 
     #[Test]
-    public function getStreamDelegatesToDoGetStream(): void
+    public function readStreamDelegatesToDoReadStream(): void
     {
         $adapter = $this->createConcreteAdapter();
         $stream = fopen('php://memory', 'r+');
-        $adapter->returnValues['doGetStream'] = $stream;
+        $adapter->returnValues['doReadStream'] = $stream;
 
-        self::assertSame($stream, $adapter->getStream('file.txt'));
-        self::assertSame([['doGetStream', ['file.txt']]], $adapter->calls);
+        self::assertSame($stream, $adapter->readStream('file.txt'));
+        self::assertSame([['doReadStream', ['file.txt']]], $adapter->calls);
 
         fclose($stream);
     }
@@ -126,13 +126,13 @@ final class AbstractStorageAdapterTest extends TestCase
     }
 
     #[Test]
-    public function urlDelegatesToDoUrl(): void
+    public function publicUrlDelegatesToDoPublicUrl(): void
     {
         $adapter = $this->createConcreteAdapter();
-        $adapter->returnValues['doUrl'] = 'https://example.com/file.txt';
+        $adapter->returnValues['doPublicUrl'] = 'https://example.com/file.txt';
 
-        self::assertSame('https://example.com/file.txt', $adapter->url('file.txt'));
-        self::assertSame([['doUrl', ['file.txt']]], $adapter->calls);
+        self::assertSame('https://example.com/file.txt', $adapter->publicUrl('file.txt'));
+        self::assertSame([['doPublicUrl', ['file.txt']]], $adapter->calls);
     }
 
     #[Test]
@@ -160,10 +160,10 @@ final class AbstractStorageAdapterTest extends TestCase
     {
         $adapter = $this->createConcreteAdapter();
         $original = new \RuntimeException('connection lost');
-        $adapter->throwOn['doGet'] = $original;
+        $adapter->throwOn['doRead'] = $original;
 
         try {
-            $adapter->get('file.txt');
+            $adapter->read('file.txt');
             self::fail('Expected StorageException');
         } catch (StorageException $e) {
             self::assertSame('connection lost', $e->getMessage());
@@ -176,10 +176,10 @@ final class AbstractStorageAdapterTest extends TestCase
     {
         $adapter = $this->createConcreteAdapter();
         $original = new StorageException('storage error');
-        $adapter->throwOn['doGet'] = $original;
+        $adapter->throwOn['doRead'] = $original;
 
         try {
-            $adapter->get('file.txt');
+            $adapter->read('file.txt');
             self::fail('Expected StorageException');
         } catch (StorageException $e) {
             self::assertSame($original, $e);
@@ -192,10 +192,10 @@ final class AbstractStorageAdapterTest extends TestCase
     {
         $adapter = $this->createConcreteAdapter();
         $original = new UnsupportedOperationException('temporaryUrl', 'test');
-        $adapter->throwOn['doUrl'] = $original;
+        $adapter->throwOn['doPublicUrl'] = $original;
 
         try {
-            $adapter->url('file.txt');
+            $adapter->publicUrl('file.txt');
             self::fail('Expected UnsupportedOperationException');
         } catch (UnsupportedOperationException $e) {
             self::assertSame($original, $e);
@@ -219,24 +219,24 @@ final class AbstractStorageAdapterTest extends TestCase
                 return 'test';
             }
 
-            protected function doPut(string $key, string $contents, array $metadata = []): void
+            protected function doWrite(string $key, string $contents, array $metadata = []): void
             {
-                $this->record('doPut', [$key, $contents, $metadata]);
+                $this->record('doWrite', [$key, $contents, $metadata]);
             }
 
-            protected function doPutStream(string $key, mixed $resource, array $metadata = []): void
+            protected function doWriteStream(string $key, mixed $resource, array $metadata = []): void
             {
-                $this->record('doPutStream', [$key, $resource, $metadata]);
+                $this->record('doWriteStream', [$key, $resource, $metadata]);
             }
 
-            protected function doGet(string $key): string
+            protected function doRead(string $key): string
             {
-                return $this->record('doGet', [$key]);
+                return $this->record('doRead', [$key]);
             }
 
-            protected function doGetStream(string $key): mixed
+            protected function doReadStream(string $key): mixed
             {
-                return $this->record('doGetStream', [$key]);
+                return $this->record('doReadStream', [$key]);
             }
 
             protected function doDelete(string $key): void
@@ -269,9 +269,9 @@ final class AbstractStorageAdapterTest extends TestCase
                 return $this->record('doMetadata', [$key]);
             }
 
-            protected function doUrl(string $key): string
+            protected function doPublicUrl(string $key): string
             {
-                return $this->record('doUrl', [$key]);
+                return $this->record('doPublicUrl', [$key]);
             }
 
             protected function doListContents(string $prefix, bool $recursive): iterable

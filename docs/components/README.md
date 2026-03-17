@@ -65,6 +65,8 @@ WordPress API やデータアクセスを抽象化し、テスト可能にする
 | [Debug](./debug/) | `wppack/debug` | デバッグツール |
 | [Storage](./storage/) | `wppack/storage` | オブジェクトストレージ抽象化 |
 | [S3Storage](./storage/s3-storage.md) | `wppack/s3-storage` | Amazon S3 ストレージアダプタ |
+| [AzureStorage](./storage/azure-storage.md) | `wppack/azure-storage` | Azure Blob Storage アダプタ |
+| [GcsStorage](./storage/gcs-storage.md) | `wppack/gcs-storage` | Google Cloud Storage アダプタ |
 
 ## Feature Layer（機能層）
 

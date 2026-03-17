@@ -1,0 +1,78 @@
+# Azure Storage
+
+Azure Blob Storage adapter for [WpPack Storage](../../README.md).
+
+## Installation
+
+```bash
+composer require wppack/azure-storage
+```
+
+## Usage
+
+### Via DSN
+
+```php
+use WpPack\Component\Storage\Adapter\Storage;
+
+// Using account name from host
+$adapter = Storage::fromDsn('azure://myaccount.blob.core.windows.net/mycontainer/uploads');
+
+// With explicit credentials
+$adapter = Storage::fromDsn('azure://myaccount:ACCOUNT_KEY@myaccount.blob.core.windows.net/mycontainer');
+
+// With public URL (CDN)
+$adapter = Storage::fromDsn('azure://myaccount.blob.core.windows.net/mycontainer/uploads?public_url=https://cdn.example.com');
+
+// With connection string
+$adapter = Storage::fromDsn('azure://myaccount.blob.core.windows.net/mycontainer?connection_string=DefaultEndpointsProtocol%3Dhttps%3BAccountName%3D...');
+```
+
+### Direct Instantiation
+
+```php
+use AzureOss\Storage\Blob\BlobServiceClient;
+use WpPack\Component\Storage\Bridge\Azure\AzureStorageAdapter;
+
+$serviceClient = BlobServiceClient::fromConnectionString('DefaultEndpointsProtocol=https;AccountName=myaccount;AccountKey=...');
+
+$adapter = new AzureStorageAdapter(
+    serviceClient: $serviceClient,
+    container: 'mycontainer',
+    prefix: 'uploads',
+    publicUrl: 'https://cdn.example.com',
+);
+```
+
+### SAS Token URLs
+
+```php
+$url = $adapter->temporaryUrl('private/document.pdf', new \DateTimeImmutable('+1 hour'));
+```
+
+## DSN Format
+
+```
+azure://{account}.blob.core.windows.net/{container}/{prefix}
+```
+
+| Part | Meaning | Example |
+|------|---------|---------|
+| Host | `{account}.blob.core.windows.net` | `myaccount.blob.core.windows.net` |
+| Path | `/{container}/{prefix}` | `/mycontainer/uploads` |
+| User:Pass | Account name + access key (optional) | `myaccount:KEY@` |
+| Query | Extra options | `?public_url=https://cdn.example.com` |
+
+### Query Options
+
+| Option | Description | Example |
+|--------|-------------|---------|
+| `public_url` | Public base URL for `publicUrl()` | `https://cdn.example.com` |
+| `connection_string` | Azure connection string | `DefaultEndpointsProtocol=https;...` |
+
+### Alternative Host Formats
+
+```php
+// Plain account name
+'azure://myaccount/mycontainer/uploads'
+```

@@ -25,7 +25,7 @@ final class S3StorageAdapterFactory implements StorageAdapterFactoryInterface
             $prefix = $options['prefix'] ?? '';
         }
 
-        $cdnUrl = $dsn->getOption('cdn_url') ?? $options['cdn_url'] ?? null;
+        $publicUrl = $dsn->getOption('public_url') ?? $options['public_url'] ?? null;
         $endpoint = $dsn->getOption('endpoint') ?? $options['endpoint'] ?? null;
 
         $clientConfig = [];
@@ -52,7 +52,7 @@ final class S3StorageAdapterFactory implements StorageAdapterFactoryInterface
             s3Client: $s3Client,
             bucket: $bucket,
             prefix: $prefix,
-            cdnUrl: $cdnUrl,
+            publicUrl: $publicUrl,
         );
     }
 

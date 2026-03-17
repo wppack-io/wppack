@@ -95,6 +95,14 @@ component_management:
       name: S3Storage
       paths:
         - src/Component/Storage/Bridge/S3/src/**
+    - component_id: azure_storage
+      name: AzureStorage
+      paths:
+        - src/Component/Storage/Bridge/Azure/src/**
+    - component_id: gcs_storage
+      name: GcsStorage
+      paths:
+        - src/Component/Storage/Bridge/Gcs/src/**
     - component_id: database
       name: Database
       paths:

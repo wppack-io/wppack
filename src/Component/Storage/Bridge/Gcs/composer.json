@@ -1,0 +1,21 @@
+{
+    "name": "wppack/gcs-storage",
+    "description": "Google Cloud Storage adapter for WpPack Storage",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "wppack/storage": "^0.1",
+        "google/cloud-storage": "^1.30"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpPack\\Component\\Storage\\Bridge\\Gcs\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Component\\Storage\\Bridge\\Gcs\\Tests\\": "tests/"
+        }
+    }
+}

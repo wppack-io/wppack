@@ -2,29 +2,37 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Storage\Tests\Test;
+namespace WpPack\Component\Storage\Tests\Adapter;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Storage\Adapter\LocalStorageAdapter;
 use WpPack\Component\Storage\Exception\ObjectNotFoundException;
 use WpPack\Component\Storage\Exception\UnsupportedOperationException;
-use WpPack\Component\Storage\Test\InMemoryStorageAdapter;
 
-#[CoversClass(InMemoryStorageAdapter::class)]
-final class InMemoryStorageAdapterTest extends TestCase
+#[CoversClass(LocalStorageAdapter::class)]
+final class LocalStorageAdapterTest extends TestCase
 {
-    private InMemoryStorageAdapter $adapter;
+    private string $tempDir;
+    private LocalStorageAdapter $adapter;
 
     protected function setUp(): void
     {
-        $this->adapter = new InMemoryStorageAdapter();
+        $this->tempDir = sys_get_temp_dir() . '/wppack_local_storage_test_' . uniqid();
+        mkdir($this->tempDir, 0777, true);
+        $this->adapter = new LocalStorageAdapter($this->tempDir);
+    }
+
+    protected function tearDown(): void
+    {
+        $this->removeDirectory($this->tempDir);
     }
 
     #[Test]
     public function getName(): void
     {
-        self::assertSame('in-memory', $this->adapter->getName());
+        self::assertSame('local', $this->adapter->getName());
     }
 
     #[Test]
@@ -36,30 +44,38 @@ final class InMemoryStorageAdapterTest extends TestCase
     }
 
     #[Test]
-    public function writeWithMetadata(): void
+    public function writeCreatesSubdirectories(): void
     {
-        $this->adapter->write('file.txt', 'contents', ['Content-Type' => 'text/plain']);
+        $this->adapter->write('a/b/c/file.txt', 'deep');
 
-        $metadata = $this->adapter->metadata('file.txt');
-        self::assertSame('text/plain', $metadata->mimeType);
+        self::assertSame('deep', $this->adapter->read('a/b/c/file.txt'));
+    }
+
+    #[Test]
+    public function writeOverwritesExisting(): void
+    {
+        $this->adapter->write('file.txt', 'old');
+        $this->adapter->write('file.txt', 'new');
+
+        self::assertSame('new', $this->adapter->read('file.txt'));
     }
 
     #[Test]
     public function writeStreamAndRead(): void
     {
         $stream = fopen('php://memory', 'r+');
+        \assert($stream !== false);
         fwrite($stream, 'stream contents');
         rewind($stream);
 
         $this->adapter->writeStream('file.txt', $stream);
+        fclose($stream);
 
         self::assertSame('stream contents', $this->adapter->read('file.txt'));
-
-        fclose($stream);
     }
 
     #[Test]
-    public function readThrowsForMissingObject(): void
+    public function readThrowsForMissingFile(): void
     {
         $this->expectException(ObjectNotFoundException::class);
 
@@ -74,12 +90,11 @@ final class InMemoryStorageAdapterTest extends TestCase
         $stream = $this->adapter->readStream('file.txt');
         self::assertIsResource($stream);
         self::assertSame('stream test', stream_get_contents($stream));
-
         fclose($stream);
     }
 
     #[Test]
-    public function readStreamThrowsForMissingObject(): void
+    public function readStreamThrowsForMissingFile(): void
     {
         $this->expectException(ObjectNotFoundException::class);
 
@@ -138,6 +153,15 @@ final class InMemoryStorageAdapterTest extends TestCase
     }
 
     #[Test]
+    public function copyCreatesSubdirectories(): void
+    {
+        $this->adapter->write('source.txt', 'contents');
+        $this->adapter->copy('source.txt', 'sub/dir/dest.txt');
+
+        self::assertSame('contents', $this->adapter->read('sub/dir/dest.txt'));
+    }
+
+    #[Test]
     public function copyThrowsForMissingSource(): void
     {
         $this->expectException(ObjectNotFoundException::class);
@@ -156,20 +180,27 @@ final class InMemoryStorageAdapterTest extends TestCase
     }
 
     #[Test]
+    public function moveThrowsForMissingSource(): void
+    {
+        $this->expectException(ObjectNotFoundException::class);
+
+        $this->adapter->move('nonexistent.txt', 'dest.txt');
+    }
+
+    #[Test]
     public function metadata(): void
     {
-        $this->adapter->write('file.txt', 'hello', ['Content-Type' => 'text/plain']);
+        $this->adapter->write('file.txt', 'hello');
 
         $metadata = $this->adapter->metadata('file.txt');
 
         self::assertSame('file.txt', $metadata->key);
         self::assertSame(5, $metadata->size);
         self::assertNotNull($metadata->lastModified);
-        self::assertSame('text/plain', $metadata->mimeType);
     }
 
     #[Test]
-    public function metadataThrowsForMissingObject(): void
+    public function metadataThrowsForMissingFile(): void
     {
         $this->expectException(ObjectNotFoundException::class);
 
@@ -177,9 +208,23 @@ final class InMemoryStorageAdapterTest extends TestCase
     }
 
     #[Test]
-    public function publicUrl(): void
+    public function publicUrlReturnsFilePath(): void
     {
-        self::assertSame('memory://file.txt', $this->adapter->publicUrl('file.txt'));
+        self::assertSame(
+            $this->tempDir . '/file.txt',
+            $this->adapter->publicUrl('file.txt'),
+        );
+    }
+
+    #[Test]
+    public function publicUrlReturnsCustomUrl(): void
+    {
+        $adapter = new LocalStorageAdapter($this->tempDir, 'https://cdn.example.com');
+
+        self::assertSame(
+            'https://cdn.example.com/images/photo.jpg',
+            $adapter->publicUrl('images/photo.jpg'),
+        );
     }
 
     #[Test]
@@ -191,48 +236,72 @@ final class InMemoryStorageAdapterTest extends TestCase
     }
 
     #[Test]
+    public function listContentsRecursive(): void
+    {
+        $this->adapter->write('a.txt', 'a');
+        $this->adapter->write('sub/b.txt', 'b');
+        $this->adapter->write('sub/deep/c.txt', 'c');
+
+        $items = iterator_to_array($this->adapter->listContents());
+        $keys = array_map(fn($m) => $m->key, $items);
+        sort($keys);
+
+        self::assertSame(['a.txt', 'sub/b.txt', 'sub/deep/c.txt'], $keys);
+    }
+
+    #[Test]
+    public function listContentsNonRecursive(): void
+    {
+        $this->adapter->write('a.txt', 'a');
+        $this->adapter->write('sub/b.txt', 'b');
+
+        $items = iterator_to_array($this->adapter->listContents('', recursive: false));
+        $keys = array_map(fn($m) => $m->key, $items);
+
+        self::assertSame(['a.txt'], $keys);
+    }
+
+    #[Test]
     public function listContentsWithPrefix(): void
     {
         $this->adapter->write('uploads/a.txt', 'a');
         $this->adapter->write('uploads/b.txt', 'b');
         $this->adapter->write('other/c.txt', 'c');
 
-        $items = iterator_to_array($this->adapter->listContents('uploads/'));
+        $items = iterator_to_array($this->adapter->listContents('uploads'));
+        $keys = array_map(fn($m) => $m->key, $items);
+        sort($keys);
 
-        self::assertCount(2, $items);
-        self::assertSame('uploads/a.txt', $items[0]->key);
-        self::assertSame('uploads/b.txt', $items[1]->key);
+        self::assertSame(['uploads/a.txt', 'uploads/b.txt'], $keys);
     }
 
     #[Test]
-    public function listContentsNonRecursive(): void
+    public function listContentsEmptyDirectory(): void
     {
-        $this->adapter->write('uploads/a.txt', 'a');
-        $this->adapter->write('uploads/sub/b.txt', 'b');
+        $items = iterator_to_array($this->adapter->listContents('nonexistent'));
 
-        $items = iterator_to_array($this->adapter->listContents('uploads/', recursive: false));
-
-        self::assertCount(1, $items);
-        self::assertSame('uploads/a.txt', $items[0]->key);
+        self::assertSame([], $items);
     }
 
-    #[Test]
-    public function listContentsAll(): void
+    private function removeDirectory(string $dir): void
     {
-        $this->adapter->write('a.txt', 'a');
-        $this->adapter->write('b.txt', 'b');
+        if (!is_dir($dir)) {
+            return;
+        }
 
-        $items = iterator_to_array($this->adapter->listContents());
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::CHILD_FIRST,
+        );
 
-        self::assertCount(2, $items);
-    }
+        foreach ($iterator as $file) {
+            if ($file->isDir()) {
+                rmdir($file->getPathname());
+            } else {
+                unlink($file->getPathname());
+            }
+        }
 
-    #[Test]
-    public function writeOverwritesExistingObject(): void
-    {
-        $this->adapter->write('file.txt', 'old');
-        $this->adapter->write('file.txt', 'new');
-
-        self::assertSame('new', $this->adapter->read('file.txt'));
+        rmdir($dir);
     }
 }

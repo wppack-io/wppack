@@ -34,7 +34,7 @@ final class S3StorageAdapterTest extends TestCase
     }
 
     #[Test]
-    public function putCallsPutObject(): void
+    public function writeCallsPutObject(): void
     {
         $s3Client = $this->createMock(S3Client::class);
         $s3Client->expects($this->once())
@@ -42,11 +42,11 @@ final class S3StorageAdapterTest extends TestCase
             ->willReturn(ResultMockFactory::create(PutObjectOutput::class));
 
         $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
-        $adapter->put('file.txt', 'contents');
+        $adapter->write('file.txt', 'contents');
     }
 
     #[Test]
-    public function putWithPrefix(): void
+    public function writeWithPrefix(): void
     {
         $s3Client = $this->createMock(S3Client::class);
         $s3Client->expects($this->once())
@@ -57,11 +57,11 @@ final class S3StorageAdapterTest extends TestCase
             ->willReturn(ResultMockFactory::create(PutObjectOutput::class));
 
         $adapter = new S3StorageAdapter($s3Client, 'my-bucket', 'uploads');
-        $adapter->put('file.txt', 'contents');
+        $adapter->write('file.txt', 'contents');
     }
 
     #[Test]
-    public function putWithContentType(): void
+    public function writeWithContentType(): void
     {
         $s3Client = $this->createMock(S3Client::class);
         $s3Client->expects($this->once())
@@ -72,11 +72,11 @@ final class S3StorageAdapterTest extends TestCase
             ->willReturn(ResultMockFactory::create(PutObjectOutput::class));
 
         $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
-        $adapter->put('file.txt', 'contents', ['Content-Type' => 'text/plain']);
+        $adapter->write('file.txt', 'contents', ['Content-Type' => 'text/plain']);
     }
 
     #[Test]
-    public function getReturnsContents(): void
+    public function readReturnsContents(): void
     {
         $resultStream = $this->createMock(ResultStream::class);
         $resultStream->method('getContentAsString')->willReturn('file contents');
@@ -90,11 +90,11 @@ final class S3StorageAdapterTest extends TestCase
 
         $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
 
-        self::assertSame('file contents', $adapter->get('file.txt'));
+        self::assertSame('file contents', $adapter->read('file.txt'));
     }
 
     #[Test]
-    public function getThrowsObjectNotFoundExceptionOn404(): void
+    public function readThrowsObjectNotFoundExceptionOn404(): void
     {
         $s3Client = $this->createMock(S3Client::class);
         $s3Client->method('getObject')
@@ -103,7 +103,7 @@ final class S3StorageAdapterTest extends TestCase
         $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
 
         $this->expectException(ObjectNotFoundException::class);
-        $adapter->get('nonexistent.txt');
+        $adapter->read('nonexistent.txt');
     }
 
     #[Test]
@@ -215,7 +215,7 @@ final class S3StorageAdapterTest extends TestCase
     }
 
     #[Test]
-    public function urlReturnsS3DirectUrl(): void
+    public function publicUrlReturnsS3DirectUrl(): void
     {
         $adapter = new S3StorageAdapter(
             $this->createMock(S3Client::class),
@@ -224,27 +224,27 @@ final class S3StorageAdapterTest extends TestCase
 
         self::assertSame(
             'https://my-bucket.s3.amazonaws.com/path/to/file.txt',
-            $adapter->url('path/to/file.txt'),
+            $adapter->publicUrl('path/to/file.txt'),
         );
     }
 
     #[Test]
-    public function urlReturnsCdnUrl(): void
+    public function publicUrlReturnsCustomPublicUrl(): void
     {
         $adapter = new S3StorageAdapter(
             $this->createMock(S3Client::class),
             'my-bucket',
-            cdnUrl: 'https://cdn.example.com',
+            publicUrl: 'https://cdn.example.com',
         );
 
         self::assertSame(
             'https://cdn.example.com/path/to/file.txt',
-            $adapter->url('path/to/file.txt'),
+            $adapter->publicUrl('path/to/file.txt'),
         );
     }
 
     #[Test]
-    public function urlWithPrefix(): void
+    public function publicUrlWithPrefix(): void
     {
         $adapter = new S3StorageAdapter(
             $this->createMock(S3Client::class),
@@ -254,7 +254,7 @@ final class S3StorageAdapterTest extends TestCase
 
         self::assertSame(
             'https://my-bucket.s3.amazonaws.com/uploads/file.txt',
-            $adapter->url('file.txt'),
+            $adapter->publicUrl('file.txt'),
         );
     }
 

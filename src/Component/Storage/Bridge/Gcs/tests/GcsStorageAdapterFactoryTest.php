@@ -1,0 +1,111 @@
+<?php
+
+declare(strict_types=1);
+
+namespace WpPack\Component\Storage\Bridge\Gcs\Tests;
+
+use Google\Cloud\Storage\Bucket;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+use WpPack\Component\Storage\Adapter\Dsn;
+use WpPack\Component\Storage\Bridge\Gcs\GcsStorageAdapter;
+use WpPack\Component\Storage\Bridge\Gcs\GcsStorageAdapterFactory;
+use WpPack\Component\Storage\Exception\InvalidArgumentException;
+
+#[CoversClass(GcsStorageAdapterFactory::class)]
+final class GcsStorageAdapterFactoryTest extends TestCase
+{
+    #[Test]
+    public function supportsGcsScheme(): void
+    {
+        $factory = new GcsStorageAdapterFactory();
+
+        self::assertTrue($factory->supports(Dsn::fromString('gcs://my-bucket.storage.googleapis.com')));
+    }
+
+    #[Test]
+    public function doesNotSupportOtherSchemes(): void
+    {
+        $factory = new GcsStorageAdapterFactory();
+
+        self::assertFalse($factory->supports(Dsn::fromString('s3://my-bucket.s3.amazonaws.com')));
+        self::assertFalse($factory->supports(Dsn::fromString('azure://account.blob.core.windows.net/container')));
+    }
+
+    #[Test]
+    public function createFromFullDsn(): void
+    {
+        $bucket = $this->createMock(Bucket::class);
+        $factory = new GcsStorageAdapterFactory();
+        $dsn = Dsn::fromString('gcs://my-bucket.storage.googleapis.com/uploads');
+
+        $adapter = $factory->create($dsn, ['bucket' => $bucket]);
+
+        self::assertInstanceOf(GcsStorageAdapter::class, $adapter);
+        self::assertSame('gcs', $adapter->getName());
+    }
+
+    #[Test]
+    public function createFromPlainBucketHost(): void
+    {
+        $bucket = $this->createMock(Bucket::class);
+        $factory = new GcsStorageAdapterFactory();
+        $dsn = Dsn::fromString('gcs://my-bucket');
+
+        $adapter = $factory->create($dsn, ['bucket' => $bucket]);
+
+        self::assertInstanceOf(GcsStorageAdapter::class, $adapter);
+    }
+
+    #[Test]
+    public function createWithOptionsOverride(): void
+    {
+        $bucket = $this->createMock(Bucket::class);
+        $factory = new GcsStorageAdapterFactory();
+        $dsn = Dsn::fromString('gcs://my-bucket.storage.googleapis.com');
+
+        $adapter = $factory->create($dsn, [
+            'bucket' => $bucket,
+            'prefix' => 'media',
+        ]);
+
+        self::assertInstanceOf(GcsStorageAdapter::class, $adapter);
+    }
+
+    #[Test]
+    public function createWithPublicUrl(): void
+    {
+        $bucket = $this->createMock(Bucket::class);
+        $factory = new GcsStorageAdapterFactory();
+        $dsn = Dsn::fromString('gcs://my-bucket?public_url=https://cdn.example.com');
+
+        $adapter = $factory->create($dsn, ['bucket' => $bucket]);
+
+        self::assertInstanceOf(GcsStorageAdapter::class, $adapter);
+    }
+
+    #[Test]
+    public function pathBecomesPrefix(): void
+    {
+        $bucket = $this->createMock(Bucket::class);
+        $bucket->method('name')->willReturn('my-bucket');
+        $factory = new GcsStorageAdapterFactory();
+        $dsn = Dsn::fromString('gcs://my-bucket.storage.googleapis.com/wp-content/uploads');
+
+        $adapter = $factory->create($dsn, ['bucket' => $bucket]);
+
+        self::assertStringContainsString('wp-content/uploads', $adapter->publicUrl('file.txt'));
+    }
+
+    #[Test]
+    public function throwsWhenBucketCannotBeDetermined(): void
+    {
+        $factory = new GcsStorageAdapterFactory();
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Cannot determine bucket name');
+
+        $factory->create(Dsn::fromString('gcs://'), []);
+    }
+}

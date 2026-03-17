@@ -13,18 +13,18 @@ abstract class AbstractStorageAdapter implements StorageAdapterInterface
     abstract public function getName(): string;
 
     /** @param array<string, string> $metadata */
-    abstract protected function doPut(string $key, string $contents, array $metadata = []): void;
+    abstract protected function doWrite(string $key, string $contents, array $metadata = []): void;
 
     /**
      * @param resource $resource
      * @param array<string, string> $metadata
      */
-    abstract protected function doPutStream(string $key, mixed $resource, array $metadata = []): void;
+    abstract protected function doWriteStream(string $key, mixed $resource, array $metadata = []): void;
 
-    abstract protected function doGet(string $key): string;
+    abstract protected function doRead(string $key): string;
 
     /** @return resource */
-    abstract protected function doGetStream(string $key): mixed;
+    abstract protected function doReadStream(string $key): mixed;
 
     abstract protected function doDelete(string $key): void;
 
@@ -48,7 +48,7 @@ abstract class AbstractStorageAdapter implements StorageAdapterInterface
 
     abstract protected function doMetadata(string $key): ObjectMetadata;
 
-    abstract protected function doUrl(string $key): string;
+    abstract protected function doPublicUrl(string $key): string;
 
     protected function doTemporaryUrl(string $key, \DateTimeInterface $expiration): string
     {
@@ -58,28 +58,28 @@ abstract class AbstractStorageAdapter implements StorageAdapterInterface
     /** @return iterable<ObjectMetadata> */
     abstract protected function doListContents(string $prefix, bool $recursive): iterable;
 
-    public function put(string $key, string $contents, array $metadata = []): void
+    public function write(string $key, string $contents, array $metadata = []): void
     {
         $this->execute(function () use ($key, $contents, $metadata): void {
-            $this->doPut($key, $contents, $metadata);
+            $this->doWrite($key, $contents, $metadata);
         });
     }
 
-    public function putStream(string $key, mixed $resource, array $metadata = []): void
+    public function writeStream(string $key, mixed $resource, array $metadata = []): void
     {
         $this->execute(function () use ($key, $resource, $metadata): void {
-            $this->doPutStream($key, $resource, $metadata);
+            $this->doWriteStream($key, $resource, $metadata);
         });
     }
 
-    public function get(string $key): string
+    public function read(string $key): string
     {
-        return $this->execute(fn(): string => $this->doGet($key));
+        return $this->execute(fn(): string => $this->doRead($key));
     }
 
-    public function getStream(string $key): mixed
+    public function readStream(string $key): mixed
     {
-        return $this->execute(fn(): mixed => $this->doGetStream($key));
+        return $this->execute(fn(): mixed => $this->doReadStream($key));
     }
 
     public function delete(string $key): void
@@ -120,9 +120,9 @@ abstract class AbstractStorageAdapter implements StorageAdapterInterface
         return $this->execute(fn(): ObjectMetadata => $this->doMetadata($key));
     }
 
-    public function url(string $key): string
+    public function publicUrl(string $key): string
     {
-        return $this->execute(fn(): string => $this->doUrl($key));
+        return $this->execute(fn(): string => $this->doPublicUrl($key));
     }
 
     public function temporaryUrl(string $key, \DateTimeInterface $expiration): string

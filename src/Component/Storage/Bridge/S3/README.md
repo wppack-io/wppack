@@ -21,8 +21,8 @@ $adapter = Storage::fromDsn('s3://my-bucket.s3.ap-northeast-1.amazonaws.com/uplo
 // With explicit credentials
 $adapter = Storage::fromDsn('s3://ACCESS_KEY:SECRET_KEY@my-bucket.s3.ap-northeast-1.amazonaws.com');
 
-// With CDN URL
-$adapter = Storage::fromDsn('s3://my-bucket.s3.ap-northeast-1.amazonaws.com/uploads?cdn_url=https://cdn.example.com');
+// With public URL (CDN)
+$adapter = Storage::fromDsn('s3://my-bucket.s3.ap-northeast-1.amazonaws.com/uploads?public_url=https://cdn.example.com');
 
 // With custom endpoint (MinIO, LocalStack, etc.)
 $adapter = Storage::fromDsn('s3://my-bucket?endpoint=http://localhost:9000');
@@ -40,7 +40,7 @@ $adapter = new S3StorageAdapter(
     s3Client: $s3Client,
     bucket: 'my-bucket',
     prefix: 'uploads',
-    cdnUrl: 'https://cdn.example.com',
+    publicUrl: 'https://cdn.example.com',
 );
 ```
 
@@ -63,13 +63,13 @@ s3://{bucket}.s3.{region}.amazonaws.com/{prefix}
 | Host | `{bucket}.s3.{region}.amazonaws.com` | `my-bucket.s3.ap-northeast-1.amazonaws.com` |
 | Path | Key prefix | `/uploads` |
 | User:Pass | AWS credentials (optional) | `AKID:SECRET@` |
-| Query | Extra options | `?cdn_url=https://cdn.example.com` |
+| Query | Extra options | `?public_url=https://cdn.example.com` |
 
 ### Query Options
 
 | Option | Description | Example |
 |--------|-------------|---------|
-| `cdn_url` | CDN base URL for `url()` | `https://cdn.example.com` |
+| `public_url` | Public base URL for `publicUrl()` | `https://cdn.example.com` |
 | `endpoint` | Custom endpoint (MinIO, R2) | `http://localhost:9000` |
 | `region` | Override region (for plain bucket host) | `ap-northeast-1` |
 

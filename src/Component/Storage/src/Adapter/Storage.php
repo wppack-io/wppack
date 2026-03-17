@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Storage\Adapter;
 
+use WpPack\Component\Storage\Bridge\Azure\AzureStorageAdapterFactory;
+use WpPack\Component\Storage\Bridge\Gcs\GcsStorageAdapterFactory;
 use WpPack\Component\Storage\Bridge\S3\S3StorageAdapterFactory;
 use WpPack\Component\Storage\Exception\UnsupportedSchemeException;
 
@@ -11,7 +13,10 @@ final class Storage
 {
     /** @var array<class-string<StorageAdapterFactoryInterface>> */
     private const FACTORY_CLASSES = [
+        LocalStorageAdapterFactory::class,
         S3StorageAdapterFactory::class,
+        AzureStorageAdapterFactory::class,
+        GcsStorageAdapterFactory::class,
     ];
 
     /** @param iterable<StorageAdapterFactoryInterface> $factories */

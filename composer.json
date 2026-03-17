@@ -108,7 +108,9 @@
             "WpPack\\Component\\Templating\\Bridge\\Twig\\": "src/Component/Templating/Bridge/Twig/src/",
             "WpPack\\Component\\Wpress\\": "src/Component/Wpress/src/",
             "WpPack\\Component\\Storage\\": "src/Component/Storage/src/",
-            "WpPack\\Component\\Storage\\Bridge\\S3\\": "src/Component/Storage/Bridge/S3/src/"
+            "WpPack\\Component\\Storage\\Bridge\\S3\\": "src/Component/Storage/Bridge/S3/src/",
+            "WpPack\\Component\\Storage\\Bridge\\Azure\\": "src/Component/Storage/Bridge/Azure/src/",
+            "WpPack\\Component\\Storage\\Bridge\\Gcs\\": "src/Component/Storage/Bridge/Gcs/src/"
         }
     },
     "autoload-dev": {
@@ -177,7 +179,9 @@
             "WpPack\\Component\\Templating\\Bridge\\Twig\\Tests\\": "src/Component/Templating/Bridge/Twig/tests/",
             "WpPack\\Component\\Wpress\\Tests\\": "src/Component/Wpress/tests/",
             "WpPack\\Component\\Storage\\Tests\\": "src/Component/Storage/tests/",
-            "WpPack\\Component\\Storage\\Bridge\\S3\\Tests\\": "src/Component/Storage/Bridge/S3/tests/"
+            "WpPack\\Component\\Storage\\Bridge\\S3\\Tests\\": "src/Component/Storage/Bridge/S3/tests/",
+            "WpPack\\Component\\Storage\\Bridge\\Azure\\Tests\\": "src/Component/Storage/Bridge/Azure/tests/",
+            "WpPack\\Component\\Storage\\Bridge\\Gcs\\Tests\\": "src/Component/Storage/Bridge/Gcs/tests/"
         }
     },
     "replace": {
@@ -248,7 +252,9 @@
         "wppack/twig-templating": "self.version",
         "wppack/wpress": "self.version",
         "wppack/storage": "self.version",
-        "wppack/s3-storage": "self.version"
+        "wppack/s3-storage": "self.version",
+        "wppack/azure-storage": "self.version",
+        "wppack/gcs-storage": "self.version"
     },
     "config": {
         "sort-packages": true

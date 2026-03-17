@@ -18,8 +18,8 @@ use WpPack\Component\Storage\Adapter\Storage;
 // S3 (requires wppack/s3-storage)
 $adapter = Storage::fromDsn('s3://my-bucket.s3.ap-northeast-1.amazonaws.com/uploads');
 
-$adapter->put('path/to/file.txt', 'Hello, World!');
-$contents = $adapter->get('path/to/file.txt');
+$adapter->write('path/to/file.txt', 'Hello, World!');
+$contents = $adapter->read('path/to/file.txt');
 ```
 
 ### StorageAdapterInterface
@@ -29,18 +29,18 @@ use WpPack\Component\Storage\Adapter\StorageAdapterInterface;
 
 function upload(StorageAdapterInterface $adapter): void
 {
-    // Put contents
-    $adapter->put('path/to/file.txt', 'contents', ['Content-Type' => 'text/plain']);
+    // Write contents
+    $adapter->write('path/to/file.txt', 'contents', ['Content-Type' => 'text/plain']);
 
-    // Put stream (for large files)
+    // Write stream (for large files)
     $stream = fopen('/path/to/large-file.zip', 'r');
-    $adapter->putStream('path/to/large-file.zip', $stream);
+    $adapter->writeStream('path/to/large-file.zip', $stream);
 
-    // Get contents
-    $contents = $adapter->get('path/to/file.txt');
+    // Read contents
+    $contents = $adapter->read('path/to/file.txt');
 
-    // Get stream
-    $stream = $adapter->getStream('path/to/large-file.zip');
+    // Read stream
+    $stream = $adapter->readStream('path/to/large-file.zip');
 
     // Check existence
     $exists = $adapter->exists('path/to/file.txt');
@@ -49,8 +49,8 @@ function upload(StorageAdapterInterface $adapter): void
     $metadata = $adapter->metadata('path/to/file.txt');
     // $metadata->size, $metadata->lastModified, $metadata->mimeType
 
-    // Get URL
-    $url = $adapter->url('path/to/file.txt');
+    // Get public URL
+    $url = $adapter->publicUrl('path/to/file.txt');
 
     // Get temporary (pre-signed) URL
     $url = $adapter->temporaryUrl('path/to/file.txt', new \DateTimeImmutable('+1 hour'));
@@ -78,8 +78,8 @@ Use `InMemoryStorageAdapter` for unit tests:
 use WpPack\Component\Storage\Test\InMemoryStorageAdapter;
 
 $adapter = new InMemoryStorageAdapter();
-$adapter->put('test.txt', 'hello');
-assert($adapter->get('test.txt') === 'hello');
+$adapter->write('test.txt', 'hello');
+assert($adapter->read('test.txt') === 'hello');
 ```
 
 ## Available Adapters

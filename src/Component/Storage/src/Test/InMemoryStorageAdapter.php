@@ -19,22 +19,22 @@ final class InMemoryStorageAdapter implements StorageAdapterInterface
         return 'in-memory';
     }
 
-    public function put(string $key, string $contents, array $metadata = []): void
+    public function write(string $key, string $contents, array $metadata = []): void
     {
         $this->objects[$key] = ['contents' => $contents, 'metadata' => $metadata];
     }
 
-    public function putStream(string $key, mixed $resource, array $metadata = []): void
+    public function writeStream(string $key, mixed $resource, array $metadata = []): void
     {
         $contents = stream_get_contents($resource);
         if ($contents === false) {
             $contents = '';
         }
 
-        $this->put($key, $contents, $metadata);
+        $this->write($key, $contents, $metadata);
     }
 
-    public function get(string $key): string
+    public function read(string $key): string
     {
         if (!isset($this->objects[$key])) {
             throw new ObjectNotFoundException($key);
@@ -43,9 +43,9 @@ final class InMemoryStorageAdapter implements StorageAdapterInterface
         return $this->objects[$key]['contents'];
     }
 
-    public function getStream(string $key): mixed
+    public function readStream(string $key): mixed
     {
-        $contents = $this->get($key);
+        $contents = $this->read($key);
 
         $stream = fopen('php://memory', 'r+');
         \assert($stream !== false);
@@ -103,7 +103,7 @@ final class InMemoryStorageAdapter implements StorageAdapterInterface
         );
     }
 
-    public function url(string $key): string
+    public function publicUrl(string $key): string
     {
         return 'memory://' . $key;
     }

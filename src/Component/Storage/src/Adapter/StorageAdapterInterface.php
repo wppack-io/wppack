@@ -13,22 +13,22 @@ interface StorageAdapterInterface
     public function getName(): string;
 
     /** @param array<string, string> $metadata */
-    public function put(string $key, string $contents, array $metadata = []): void;
+    public function write(string $key, string $contents, array $metadata = []): void;
 
     /**
      * @param resource $resource
      * @param array<string, string> $metadata
      */
-    public function putStream(string $key, mixed $resource, array $metadata = []): void;
+    public function writeStream(string $key, mixed $resource, array $metadata = []): void;
 
     /** @throws ObjectNotFoundException */
-    public function get(string $key): string;
+    public function read(string $key): string;
 
     /**
      * @return resource
      * @throws ObjectNotFoundException
      */
-    public function getStream(string $key): mixed;
+    public function readStream(string $key): mixed;
 
     public function delete(string $key): void;
 
@@ -44,7 +44,7 @@ interface StorageAdapterInterface
     /** @throws ObjectNotFoundException */
     public function metadata(string $key): ObjectMetadata;
 
-    public function url(string $key): string;
+    public function publicUrl(string $key): string;
 
     /** @throws UnsupportedOperationException */
     public function temporaryUrl(string $key, \DateTimeInterface $expiration): string;

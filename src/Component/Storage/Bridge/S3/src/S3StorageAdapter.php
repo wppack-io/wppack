@@ -24,7 +24,7 @@ final class S3StorageAdapter extends AbstractStorageAdapter
         private readonly S3Client $s3Client,
         private readonly string $bucket,
         private readonly string $prefix = '',
-        private readonly ?string $cdnUrl = null,
+        private readonly ?string $publicUrl = null,
     ) {}
 
     public function getName(): string
@@ -32,7 +32,7 @@ final class S3StorageAdapter extends AbstractStorageAdapter
         return 's3';
     }
 
-    protected function doPut(string $key, string $contents, array $metadata = []): void
+    protected function doWrite(string $key, string $contents, array $metadata = []): void
     {
         $input = [
             'Bucket' => $this->bucket,
@@ -52,7 +52,7 @@ final class S3StorageAdapter extends AbstractStorageAdapter
         $this->s3Client->putObject(new PutObjectRequest($input))->resolve();
     }
 
-    protected function doPutStream(string $key, mixed $resource, array $metadata = []): void
+    protected function doWriteStream(string $key, mixed $resource, array $metadata = []): void
     {
         $input = [
             'Bucket' => $this->bucket,
@@ -72,7 +72,7 @@ final class S3StorageAdapter extends AbstractStorageAdapter
         $this->s3Client->putObject(new PutObjectRequest($input))->resolve();
     }
 
-    protected function doGet(string $key): string
+    protected function doRead(string $key): string
     {
         try {
             $result = $this->s3Client->getObject(new GetObjectRequest([
@@ -89,7 +89,7 @@ final class S3StorageAdapter extends AbstractStorageAdapter
         }
     }
 
-    protected function doGetStream(string $key): mixed
+    protected function doReadStream(string $key): mixed
     {
         try {
             $result = $this->s3Client->getObject(new GetObjectRequest([
@@ -190,12 +190,12 @@ final class S3StorageAdapter extends AbstractStorageAdapter
         }
     }
 
-    protected function doUrl(string $key): string
+    protected function doPublicUrl(string $key): string
     {
         $prefixedKey = $this->prefixKey($key);
 
-        if ($this->cdnUrl !== null) {
-            return rtrim($this->cdnUrl, '/') . '/' . ltrim($prefixedKey, '/');
+        if ($this->publicUrl !== null) {
+            return rtrim($this->publicUrl, '/') . '/' . ltrim($prefixedKey, '/');
         }
 
         return sprintf('https://%s.s3.amazonaws.com/%s', $this->bucket, $prefixedKey);

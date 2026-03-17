@@ -27,8 +27,8 @@ s3://{bucket}.s3.{region}.amazonaws.com/{prefix}
 // 明示的な認証情報
 's3://ACCESS_KEY:SECRET_KEY@my-bucket.s3.us-east-1.amazonaws.com'
 
-// CDN URL 付き
-'s3://my-bucket.s3.ap-northeast-1.amazonaws.com/uploads?cdn_url=https://cdn.example.com'
+// 公開 URL 付き
+'s3://my-bucket.s3.ap-northeast-1.amazonaws.com/uploads?public_url=https://cdn.example.com'
 
 // カスタムエンドポイント（MinIO, LocalStack 等）
 's3://my-bucket?endpoint=http://localhost:9000'
@@ -46,7 +46,7 @@ s3://{bucket}.s3.{region}.amazonaws.com/{prefix}
 
 | オプション | 説明 | 例 |
 |-----------|------|------|
-| `cdn_url` | CDN ベース URL（`url()` で使用） | `https://cdn.example.com` |
+| `public_url` | 公開ベース URL（`publicUrl()` で使用） | `https://cdn.example.com` |
 | `endpoint` | カスタムエンドポイント（MinIO, R2 等） | `http://localhost:9000` |
 | `region` | リージョン上書き（プレーンホスト時） | `ap-northeast-1` |
 
@@ -59,8 +59,8 @@ use WpPack\Component\Storage\Adapter\Storage;
 
 $adapter = Storage::fromDsn('s3://my-bucket.s3.ap-northeast-1.amazonaws.com/uploads');
 
-$adapter->put('images/photo.jpg', $contents, ['Content-Type' => 'image/jpeg']);
-$url = $adapter->url('images/photo.jpg');
+$adapter->write('images/photo.jpg', $contents, ['Content-Type' => 'image/jpeg']);
+$url = $adapter->publicUrl('images/photo.jpg');
 ```
 
 ### 直接インスタンス化
@@ -75,7 +75,7 @@ $adapter = new S3StorageAdapter(
     s3Client: $s3Client,
     bucket: 'my-bucket',
     prefix: 'uploads',
-    cdnUrl: 'https://cdn.example.com',
+    publicUrl: 'https://cdn.example.com',
 );
 ```
 
@@ -86,21 +86,21 @@ $adapter = new S3StorageAdapter(
 | `$s3Client` | `S3Client` | async-aws S3 クライアント |
 | `$bucket` | `string` | バケット名 |
 | `$prefix` | `string` | キープレフィックス（デフォルト: `''`） |
-| `$cdnUrl` | `?string` | CDN ベース URL（デフォルト: `null`） |
+| `$publicUrl` | `?string` | 公開ベース URL（デフォルト: `null`） |
 
 ## URL 生成
 
 ### 公開 URL
 
 ```php
-// CDN URL が設定されている場合
+// 公開 URL が設定されている場合
 $adapter = new S3StorageAdapter($s3Client, 'my-bucket', 'uploads', 'https://cdn.example.com');
-$adapter->url('images/photo.jpg');
+$adapter->publicUrl('images/photo.jpg');
 // => 'https://cdn.example.com/uploads/images/photo.jpg'
 
-// CDN URL なしの場合（S3 直接 URL）
+// 公開 URL なしの場合（S3 直接 URL）
 $adapter = new S3StorageAdapter($s3Client, 'my-bucket', 'uploads');
-$adapter->url('images/photo.jpg');
+$adapter->publicUrl('images/photo.jpg');
 // => 'https://my-bucket.s3.amazonaws.com/uploads/images/photo.jpg'
 ```
 
@@ -121,10 +121,10 @@ $url = $adapter->temporaryUrl('private/document.pdf', new \DateTimeImmutable('+1
 // /uploads がプレフィックスになる
 $adapter = Storage::fromDsn('s3://my-bucket.s3.ap-northeast-1.amazonaws.com/uploads');
 
-$adapter->put('2024/01/photo.jpg', $contents);
+$adapter->write('2024/01/photo.jpg', $contents);
 // 実際の S3 キー: 'uploads/2024/01/photo.jpg'
 
-$adapter->get('2024/01/photo.jpg');
+$adapter->read('2024/01/photo.jpg');
 // 実際の S3 キー: 'uploads/2024/01/photo.jpg'
 
 $adapter->listContents('2024/01/');
@@ -156,15 +156,15 @@ $adapter = Storage::fromDsn('s3://my-bucket?endpoint=https://<account-id>.r2.clo
 
 | StorageAdapterInterface | S3 API |
 |------------------------|--------|
-| `put()` / `putStream()` | `PutObject` |
-| `get()` / `getStream()` | `GetObject` |
+| `write()` / `writeStream()` | `PutObject` |
+| `read()` / `readStream()` | `GetObject` |
 | `delete()` | `DeleteObject` |
 | `deleteMultiple()` | `DeleteObjects` |
 | `exists()` | `HeadObject` |
 | `copy()` | `CopyObject` |
 | `move()` | `CopyObject` + `DeleteObject` |
 | `metadata()` | `HeadObject` |
-| `url()` | URL 構築（API 呼び出しなし） |
+| `publicUrl()` | URL 構築（API 呼び出しなし） |
 | `temporaryUrl()` | プリサイン URL 生成 |
 | `listContents()` | `ListObjectsV2`（ページネーション対応） |
 
@@ -177,7 +177,7 @@ use WpPack\Component\Storage\Exception\ObjectNotFoundException;
 use WpPack\Component\Storage\Exception\StorageException;
 
 try {
-    $contents = $adapter->get('nonexistent.txt');
+    $contents = $adapter->read('nonexistent.txt');
 } catch (ObjectNotFoundException $e) {
     // オブジェクトが存在しない
 } catch (StorageException $e) {
