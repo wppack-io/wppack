@@ -31,20 +31,42 @@ final class MimeTypeMapTest extends TestCase
     }
 
     #[Test]
-    public function bidirectionalConsistencyForCommonTypes(): void
+    public function allExtensionsToMimesHaveReverseMapping(): void
     {
-        $checkExtensions = ['jpg', 'png', 'gif', 'pdf', 'html', 'css', 'js', 'json', 'xml', 'zip', 'mp3', 'mp4'];
-
-        foreach ($checkExtensions as $ext) {
-            $mimeTypes = MimeTypeMap::EXTENSIONS_TO_MIMES[$ext] ?? [];
-            self::assertNotEmpty($mimeTypes, sprintf('Extension "%s" should have MIME types', $ext));
+        foreach (MimeTypeMap::EXTENSIONS_TO_MIMES as $ext => $mimeTypes) {
+            self::assertNotEmpty($mimeTypes, sprintf('Extension "%s" should have at least one MIME type', $ext));
 
             foreach ($mimeTypes as $mime) {
-                $reverseExtensions = MimeTypeMap::MIMES_TO_EXTENSIONS[$mime] ?? [];
+                self::assertArrayHasKey(
+                    $mime,
+                    MimeTypeMap::MIMES_TO_EXTENSIONS,
+                    sprintf('MIME type "%s" (from extension "%s") should exist in MIMES_TO_EXTENSIONS', $mime, $ext),
+                );
                 self::assertContains(
                     $ext,
-                    $reverseExtensions,
-                    sprintf('MIME type "%s" should map back to extension "%s"', $mime, $ext),
+                    MimeTypeMap::MIMES_TO_EXTENSIONS[$mime],
+                    sprintf('MIMES_TO_EXTENSIONS["%s"] should contain extension "%s"', $mime, $ext),
+                );
+            }
+        }
+    }
+
+    #[Test]
+    public function allMimesToExtensionsHaveReverseMapping(): void
+    {
+        foreach (MimeTypeMap::MIMES_TO_EXTENSIONS as $mime => $extensions) {
+            self::assertNotEmpty($extensions, sprintf('MIME type "%s" should have at least one extension', $mime));
+
+            foreach ($extensions as $ext) {
+                self::assertArrayHasKey(
+                    $ext,
+                    MimeTypeMap::EXTENSIONS_TO_MIMES,
+                    sprintf('Extension "%s" (from MIME "%s") should exist in EXTENSIONS_TO_MIMES', $ext, $mime),
+                );
+                self::assertContains(
+                    $mime,
+                    MimeTypeMap::EXTENSIONS_TO_MIMES[$ext],
+                    sprintf('EXTENSIONS_TO_MIMES["%s"] should contain MIME type "%s"', $ext, $mime),
                 );
             }
         }
@@ -88,5 +110,23 @@ final class MimeTypeMapTest extends TestCase
         foreach (array_keys(MimeTypeMap::EXTENSION_TYPES) as $ext) {
             self::assertSame(strtolower($ext), $ext, sprintf('Extension type key "%s" should be lowercase', $ext));
         }
+    }
+
+    #[Test]
+    public function extensionTypesCoversAllExtensionsToMimes(): void
+    {
+        $missing = array_diff(
+            array_keys(MimeTypeMap::EXTENSIONS_TO_MIMES),
+            array_keys(MimeTypeMap::EXTENSION_TYPES),
+        );
+
+        self::assertSame(
+            [],
+            $missing,
+            sprintf(
+                'EXTENSION_TYPES is missing entries for: %s',
+                implode(', ', $missing),
+            ),
+        );
     }
 }

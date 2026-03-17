@@ -14,6 +14,7 @@ final class UploadPolicy
     /** @var list<string> */
     private readonly array $allowedMimeTypes;
     private readonly int $maxFileSize;
+    private readonly MimeTypesInterface $mimeTypes;
 
     /**
      * @param list<string>|null $allowedMimeTypes
@@ -23,8 +24,9 @@ final class UploadPolicy
         ?array $allowedMimeTypes = null,
         ?MimeTypesInterface $mimeTypes = null,
     ) {
+        $this->mimeTypes = $mimeTypes ?? MimeTypes::getDefault();
         $this->maxFileSize = $maxFileSize ?? self::DEFAULT_MAX_FILE_SIZE;
-        $this->allowedMimeTypes = $allowedMimeTypes ?? $this->resolveDefaultMimeTypes($mimeTypes ?? MimeTypes::getDefault());
+        $this->allowedMimeTypes = $allowedMimeTypes ?? $this->resolveDefaultMimeTypes();
     }
 
     public function isAllowedType(string $contentType): bool
@@ -57,9 +59,9 @@ final class UploadPolicy
     /**
      * @return list<string>
      */
-    private function resolveDefaultMimeTypes(MimeTypesInterface $mimeTypes): array
+    private function resolveDefaultMimeTypes(): array
     {
-        $allowed = $mimeTypes->getAllowedMimeTypes();
+        $allowed = $this->mimeTypes->getAllowedMimeTypes();
 
         return array_values(array_unique($allowed));
     }

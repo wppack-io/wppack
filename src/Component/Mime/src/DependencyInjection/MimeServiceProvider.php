@@ -27,6 +27,7 @@ final class MimeServiceProvider implements ServiceProviderInterface
         $builder->register(WordPressMimeTypeGuesser::class)
             ->addTag('mime.mime_type_guesser');
 
+        // Synchronize DI-managed instance with the static singleton (Symfony pattern)
         $builder->register(MimeTypes::class)
             ->addMethodCall('setDefault', [new Reference(MimeTypes::class)]);
 

@@ -9,35 +9,29 @@ final class MimeTypes implements MimeTypesInterface
     private static ?self $default = null;
 
     /** @var list<MimeTypeGuesserInterface> */
-    private array $guessers;
+    private array $guessers = [];
 
     /**
-     * @param list<MimeTypeGuesserInterface> $guessers Ordered lowest→highest priority
+     * @param list<MimeTypeGuesserInterface> $guessers Additional guessers (registered with highest priority)
      */
     public function __construct(array $guessers = [])
     {
-        $this->guessers = $guessers;
+        $this->registerGuesser(new ExtensionMimeTypeGuesser());
+        $this->registerGuesser(new FileinfoMimeTypeGuesser());
+
+        $wpGuesser = new WordPressMimeTypeGuesser();
+        if ($wpGuesser->isGuesserSupported()) {
+            $this->registerGuesser($wpGuesser);
+        }
+
+        foreach ($guessers as $guesser) {
+            $this->registerGuesser($guesser);
+        }
     }
 
     public static function getDefault(): self
     {
-        if (self::$default !== null) {
-            return self::$default;
-        }
-
-        $guessers = [
-            new ExtensionMimeTypeGuesser(),
-            new FileinfoMimeTypeGuesser(),
-        ];
-
-        $wpGuesser = new WordPressMimeTypeGuesser();
-        if ($wpGuesser->isGuesserSupported()) {
-            $guessers[] = $wpGuesser;
-        }
-
-        self::$default = new self($guessers);
-
-        return self::$default;
+        return self::$default ??= new self();
     }
 
     public static function setDefault(self $default): void
@@ -55,7 +49,7 @@ final class MimeTypes implements MimeTypesInterface
 
     public function registerGuesser(MimeTypeGuesserInterface $guesser): void
     {
-        $this->guessers[] = $guesser;
+        array_unshift($this->guessers, $guesser);
     }
 
     public function isGuesserSupported(): bool
@@ -71,10 +65,7 @@ final class MimeTypes implements MimeTypesInterface
 
     public function guessMimeType(string $path): ?string
     {
-        // Iterate in reverse: last registered = highest priority
-        for ($i = \count($this->guessers) - 1; $i >= 0; --$i) {
-            $guesser = $this->guessers[$i];
-
+        foreach ($this->guessers as $guesser) {
             if (!$guesser->isGuesserSupported()) {
                 continue;
             }

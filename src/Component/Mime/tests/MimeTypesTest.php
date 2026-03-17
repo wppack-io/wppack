@@ -6,8 +6,6 @@ namespace WpPack\Component\Mime\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Mime\ExtensionMimeTypeGuesser;
-use WpPack\Component\Mime\FileinfoMimeTypeGuesser;
 use WpPack\Component\Mime\MimeTypeGuesserInterface;
 use WpPack\Component\Mime\MimeTypes;
 use WpPack\Component\Mime\MimeTypesInterface;
@@ -180,19 +178,11 @@ final class MimeTypesTest extends TestCase
     }
 
     #[Test]
-    public function isGuesserSupportedReturnsTrueWithSupportedGuessers(): void
+    public function isGuesserSupportedReturnsTrueWithDefaultGuessers(): void
     {
-        $mimeTypes = new MimeTypes([new ExtensionMimeTypeGuesser()]);
+        $mimeTypes = new MimeTypes();
 
         self::assertTrue($mimeTypes->isGuesserSupported());
-    }
-
-    #[Test]
-    public function isGuesserSupportedReturnsFalseWithNoGuessers(): void
-    {
-        $mimeTypes = new MimeTypes([]);
-
-        self::assertFalse($mimeTypes->isGuesserSupported());
     }
 
     #[Test]
