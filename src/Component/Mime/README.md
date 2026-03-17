@@ -45,7 +45,7 @@ $clean = $mimeTypes->sanitize('image/jpeg; charset=utf-8');
 
 ## Documentation
 
-See [docs/components/mime.md](../../../docs/components/mime.md) for full documentation.
+See [docs/components/mime/](../../../docs/components/mime/) for full documentation.
 
 ## License
 
