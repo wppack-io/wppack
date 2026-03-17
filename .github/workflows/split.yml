@@ -2,7 +2,7 @@ name: Split Packages
 
 on:
   push:
-    branches: [master]
+    branches: [1.x]
     tags: ['v*']
 
 jobs:
