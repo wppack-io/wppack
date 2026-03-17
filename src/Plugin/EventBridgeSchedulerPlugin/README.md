@@ -1,11 +1,11 @@
-# wppack/scheduler-plugin
+# wppack/eventbridge-scheduler-plugin
 
 WordPress plugin for EventBridge-based scheduling. Provides Symfony Scheduler-like declarative schedule definitions with real-time synchronization to AWS EventBridge Scheduler.
 
 ## Installation
 
 ```bash
-composer require wppack/scheduler-plugin
+composer require wppack/eventbridge-scheduler-plugin
 ```
 
 ## Requirements
@@ -74,7 +74,7 @@ SQS_QUEUE_URL=https://sqs.ap-northeast-1.amazonaws.com/123456789/wppack-schedule
 
 ## Documentation
 
-See [full documentation](../../docs/plugins/scheduler-plugin.md) for details.
+See [full documentation](../../docs/plugins/eventbridge-scheduler-plugin.md) for details.
 
 ## License
 

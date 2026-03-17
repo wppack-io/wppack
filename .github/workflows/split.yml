@@ -82,7 +82,7 @@ jobs:
           - { local_path: 'src/Component/Storage/Bridge/S3', split_repository: 's3-storage' }
           - { local_path: 'src/Component/Templating/Bridge/Twig', split_repository: 'twig-templating' }
           # Plugin packages
-          - { local_path: 'src/Plugin/SchedulerPlugin', split_repository: 'scheduler-plugin' }
+          - { local_path: 'src/Plugin/EventBridgeSchedulerPlugin', split_repository: 'eventbridge-scheduler-plugin' }
           - { local_path: 'src/Plugin/S3StoragePlugin', split_repository: 's3-storage-plugin' }
           - { local_path: 'src/Plugin/AmazonMailerPlugin', split_repository: 'amazon-mailer-plugin' }
 

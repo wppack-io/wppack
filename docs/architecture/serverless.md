@@ -126,7 +126,7 @@ AWS SDK として [AsyncAWS](https://async-aws.com/) を採用しています。
 │                                                          │
 └──────────────────────────────────────────────────────────┘
             │
-            │ SchedulerPlugin が収集
+            │ EventBridgeSchedulerPlugin が収集
             ▼
 ┌──────────────────────┐
 │ Action Scheduler DB  │  ← 一次データソース
@@ -154,7 +154,7 @@ AWS SDK として [AsyncAWS](https://async-aws.com/) を採用しています。
 └──────────────────────┘
 ```
 
-1. `#[AsSchedule]` で定義されたスケジュールを SchedulerPlugin が収集
+1. `#[AsSchedule]` で定義されたスケジュールを EventBridgeSchedulerPlugin が収集
 2. Action Scheduler DB に一次データとして保存
 3. EventBridge Scheduler にリアルタイム同期（作成・更新・削除）
 4. 指定時刻に EventBridge が SQS にメッセージを送信

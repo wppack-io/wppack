@@ -125,14 +125,14 @@ WordPress プラグインとして配布。Component を利用。
 ### Plugin パッケージ
 | Plugin | パッケージ名 | 説明 |
 |--------|-------------|------|
-| SchedulerPlugin | wppack/scheduler-plugin | EventBridge スケジューラープラグイン |
+| EventBridgeSchedulerPlugin | wppack/eventbridge-scheduler-plugin | EventBridge スケジューラープラグイン |
 | S3StoragePlugin | wppack/s3-storage-plugin | S3 ストレージプラグイン |
 | AmazonMailerPlugin | wppack/amazon-mailer-plugin | Amazon SES メーラープラグイン |
 
 ## 主要な依存関係
 
 ```
-wppack/scheduler-plugin
+wppack/eventbridge-scheduler-plugin
     ↓ requires
 wppack/scheduler
     ↓ requires
@@ -371,7 +371,7 @@ wppack/
 │   │   ├── Messenger/     → wppack/messenger
 │   │   └── ...
 │   └── Plugin/             # WordPress プラグイン
-│       ├── SchedulerPlugin/  → wppack/scheduler-plugin
+│       ├── EventBridgeSchedulerPlugin/  → wppack/eventbridge-scheduler-plugin
 │       ├── S3StoragePlugin/  → wppack/s3-storage-plugin
 │       └── AmazonMailerPlugin/  → wppack/amazon-mailer-plugin
 ├── tests/

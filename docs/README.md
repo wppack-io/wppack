@@ -151,7 +151,7 @@ composer require wppack/messenger
 composer require wppack/scheduler
 
 # プラグイン
-composer require wppack/scheduler-plugin
+composer require wppack/eventbridge-scheduler-plugin
 ```
 
 ### 開発環境セットアップ

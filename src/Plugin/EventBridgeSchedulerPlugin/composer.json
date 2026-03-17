@@ -1,5 +1,5 @@
 {
-    "name": "wppack/scheduler-plugin",
+    "name": "wppack/eventbridge-scheduler-plugin",
     "description": "WordPress plugin for EventBridge-based scheduling",
     "type": "wordpress-plugin",
     "license": "MIT",
@@ -11,7 +11,7 @@
     },
     "autoload": {
         "psr-4": {
-            "WpPack\\Plugin\\SchedulerPlugin\\": "src/"
+            "WpPack\\Plugin\\EventBridgeSchedulerPlugin\\": "src/"
         }
     }
 }

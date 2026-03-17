@@ -284,10 +284,10 @@ component_management:
       paths:
         - src/Component/Translation/src/**
     # Plugins
-    - component_id: scheduler_plugin
-      name: SchedulerPlugin
+    - component_id: eventbridge_scheduler_plugin
+      name: EventBridgeSchedulerPlugin
       paths:
-        - src/Plugin/SchedulerPlugin/src/**
+        - src/Plugin/EventBridgeSchedulerPlugin/src/**
     - component_id: s3_storage_plugin
       name: S3StoragePlugin
       paths:

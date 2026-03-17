@@ -431,7 +431,7 @@ $scheduler->schedule(
 ```php
 use WpPack\Component\Scheduler\Bridge\EventBridge\Interceptor\WpCronInterceptor;
 
-// SchedulerPlugin が自動的に register() を呼ぶ
+// EventBridgeSchedulerPlugin が自動的に register() を呼ぶ
 $interceptor = new WpCronInterceptor(
     scheduler: $eventBridgeScheduler,
     scheduleFactory: new EventBridgeScheduleFactory(),

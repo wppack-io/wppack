@@ -67,7 +67,7 @@ alternatives.
 
 | Package | Description |
 |---------|-------------|
-| `wppack/scheduler-plugin` | WordPress plugin for scheduler integration |
+| `wppack/eventbridge-scheduler-plugin` | WordPress plugin for scheduler integration |
 | `wppack/s3-storage-plugin` | Amazon S3 media storage plugin |
 | `wppack/amazon-mailer-plugin` | Amazon SES mailer plugin |
 
@@ -82,7 +82,7 @@ Each component can be installed independently. Install only what you need.
 ## Architecture
 
 ```
-Plugin Layer        wppack/scheduler-plugin, wppack/s3-storage-plugin, ...
+Plugin Layer        wppack/eventbridge-scheduler-plugin, wppack/s3-storage-plugin, ...
                          |
 Feature Layer       wppack/messenger, wppack/scheduler, wppack/mailer, ...
                          |
