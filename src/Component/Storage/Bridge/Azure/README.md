@@ -32,13 +32,13 @@ $adapter = Storage::fromDsn('azure://myaccount.blob.core.windows.net/mycontainer
 
 ```php
 use AzureOss\Storage\Blob\BlobServiceClient;
+use WpPack\Component\Storage\Bridge\Azure\AzureBlobClient;
 use WpPack\Component\Storage\Bridge\Azure\AzureStorageAdapter;
 
 $serviceClient = BlobServiceClient::fromConnectionString('DefaultEndpointsProtocol=https;AccountName=myaccount;AccountKey=...');
 
 $adapter = new AzureStorageAdapter(
-    serviceClient: $serviceClient,
-    container: 'mycontainer',
+    client: new AzureBlobClient($serviceClient, 'mycontainer'),
     prefix: 'uploads',
     publicUrl: 'https://cdn.example.com',
 );

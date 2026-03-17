@@ -30,31 +30,36 @@ final class AzureStorageAdapterFactory implements StorageAdapterFactoryInterface
         $publicUrl = $dsn->getOption('public_url') ?? $options['public_url'] ?? null;
         $connectionString = $dsn->getOption('connection_string') ?? $options['connection_string'] ?? null;
 
-        if (isset($options['service_client']) && $options['service_client'] instanceof BlobServiceClient) {
-            $serviceClient = $options['service_client'];
-        } elseif ($connectionString !== null) {
-            $serviceClient = BlobServiceClient::fromConnectionString($connectionString);
+        if (isset($options['client']) && $options['client'] instanceof AzureBlobClientInterface) {
+            $client = $options['client'];
         } else {
-            $accountKey = $dsn->getPassword() ?? $options['account_key'] ?? null;
-            $accountName = $dsn->getUser() ?? $account;
-
-            if ($accountKey !== null) {
-                $connStr = sprintf(
-                    'DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s',
-                    $accountName,
-                    $accountKey,
-                );
-                $serviceClient = BlobServiceClient::fromConnectionString($connStr);
+            if (isset($options['service_client']) && $options['service_client'] instanceof BlobServiceClient) {
+                $serviceClient = $options['service_client'];
+            } elseif ($connectionString !== null) {
+                $serviceClient = BlobServiceClient::fromConnectionString($connectionString);
             } else {
-                $serviceClient = BlobServiceClient::fromConnectionString(
-                    sprintf('DefaultEndpointsProtocol=https;AccountName=%s', $account),
-                );
+                $accountKey = $dsn->getPassword() ?? $options['account_key'] ?? null;
+                $accountName = $dsn->getUser() ?? $account;
+
+                if ($accountKey !== null) {
+                    $connStr = sprintf(
+                        'DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s',
+                        $accountName,
+                        $accountKey,
+                    );
+                    $serviceClient = BlobServiceClient::fromConnectionString($connStr);
+                } else {
+                    $serviceClient = BlobServiceClient::fromConnectionString(
+                        sprintf('DefaultEndpointsProtocol=https;AccountName=%s', $account),
+                    );
+                }
             }
+
+            $client = new AzureBlobClient($serviceClient, $container);
         }
 
         return new AzureStorageAdapter(
-            serviceClient: $serviceClient,
-            container: $container,
+            client: $client,
             prefix: $prefix,
             publicUrl: $publicUrl,
         );

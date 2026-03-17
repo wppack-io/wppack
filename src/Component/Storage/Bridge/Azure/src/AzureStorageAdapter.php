@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Storage\Bridge\Azure;
 
-use AzureOss\Storage\Blob\BlobClient;
-use AzureOss\Storage\Blob\BlobServiceClient;
+use AzureOss\Storage\Blob\Models\Blob;
+use AzureOss\Storage\Blob\Models\UploadBlobOptions;
 use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
 use WpPack\Component\Storage\Adapter\AbstractStorageAdapter;
 use WpPack\Component\Storage\Exception\ObjectNotFoundException;
@@ -14,8 +14,7 @@ use WpPack\Component\Storage\ObjectMetadata;
 final class AzureStorageAdapter extends AbstractStorageAdapter
 {
     public function __construct(
-        private readonly BlobServiceClient $serviceClient,
-        private readonly string $container,
+        private readonly AzureBlobClientInterface $client,
         private readonly string $prefix = '',
         private readonly ?string $publicUrl = null,
     ) {}
@@ -27,40 +26,22 @@ final class AzureStorageAdapter extends AbstractStorageAdapter
 
     protected function doWrite(string $key, string $contents, array $metadata = []): void
     {
-        $options = [];
+        $options = $this->buildUploadOptions($metadata);
 
-        if (isset($metadata['Content-Type'])) {
-            $options['contentType'] = $metadata['Content-Type'];
-            unset($metadata['Content-Type']);
-        }
-
-        if ($metadata !== []) {
-            $options['metadata'] = $metadata;
-        }
-
-        $this->getBlobClient($key)->upload($contents, $options);
+        $this->client->upload($this->prefixKey($key), $contents, $options);
     }
 
     protected function doWriteStream(string $key, mixed $resource, array $metadata = []): void
     {
-        $options = [];
+        $options = $this->buildUploadOptions($metadata);
 
-        if (isset($metadata['Content-Type'])) {
-            $options['contentType'] = $metadata['Content-Type'];
-            unset($metadata['Content-Type']);
-        }
-
-        if ($metadata !== []) {
-            $options['metadata'] = $metadata;
-        }
-
-        $this->getBlobClient($key)->upload($resource, $options);
+        $this->client->upload($this->prefixKey($key), $resource, $options);
     }
 
     protected function doRead(string $key): string
     {
         try {
-            return $this->getBlobClient($key)->downloadStreaming()->getBody()->getContents();
+            return $this->client->downloadStreamingContent($this->prefixKey($key))->getContents();
         } catch (\Throwable $e) {
             if ($this->isNotFoundException($e)) {
                 throw new ObjectNotFoundException($key, $e);
@@ -72,7 +53,7 @@ final class AzureStorageAdapter extends AbstractStorageAdapter
     protected function doReadStream(string $key): mixed
     {
         try {
-            $body = $this->getBlobClient($key)->downloadStreaming()->getBody();
+            $body = $this->client->downloadStreamingContent($this->prefixKey($key));
 
             $stream = fopen('php://temp', 'r+');
             \assert($stream !== false);
@@ -94,13 +75,13 @@ final class AzureStorageAdapter extends AbstractStorageAdapter
 
     protected function doDelete(string $key): void
     {
-        $this->getBlobClient($key)->delete();
+        $this->client->delete($this->prefixKey($key));
     }
 
     protected function doExists(string $key): bool
     {
         try {
-            $this->getBlobClient($key)->getProperties();
+            $this->client->getProperties($this->prefixKey($key));
 
             return true;
         } catch (\Throwable $e) {
@@ -113,23 +94,19 @@ final class AzureStorageAdapter extends AbstractStorageAdapter
 
     protected function doCopy(string $sourceKey, string $destinationKey): void
     {
-        $sourceClient = $this->getBlobClient($sourceKey);
-        $destinationClient = $this->getBlobClient($destinationKey);
-
-        $destinationClient->copyFromUrl($sourceClient->uri);
+        $sourceUri = $this->client->getBlobUri($this->prefixKey($sourceKey));
+        $this->client->syncCopyFromUri($this->prefixKey($destinationKey), $sourceUri);
     }
 
     protected function doMetadata(string $key): ObjectMetadata
     {
         try {
-            $properties = $this->getBlobClient($key)->getProperties();
+            $properties = $this->client->getProperties($this->prefixKey($key));
 
             return new ObjectMetadata(
                 key: $key,
                 size: $properties->contentLength,
-                lastModified: $properties->lastModified !== null
-                    ? \DateTimeImmutable::createFromInterface($properties->lastModified)
-                    : null,
+                lastModified: \DateTimeImmutable::createFromInterface($properties->lastModified),
                 mimeType: $properties->contentType,
             );
         } catch (\Throwable $e) {
@@ -148,49 +125,55 @@ final class AzureStorageAdapter extends AbstractStorageAdapter
             return rtrim($this->publicUrl, '/') . '/' . ltrim($prefixedKey, '/');
         }
 
-        return (string) $this->getBlobClient($key)->uri;
+        return (string) $this->client->getBlobUri($prefixedKey);
     }
 
     protected function doTemporaryUrl(string $key, \DateTimeInterface $expiration): string
     {
-        $blobClient = $this->getBlobClient($key);
-        $sasBuilder = BlobSasBuilder::new($this->container, $this->prefixKey($key))
+        $prefixedKey = $this->prefixKey($key);
+        $sasBuilder = BlobSasBuilder::new()
             ->setExpiresOn(\DateTimeImmutable::createFromInterface($expiration))
             ->setPermissions('r');
 
-        return (string) $blobClient->generateSasUri($sasBuilder);
+        return (string) $this->client->generateSasUri($prefixedKey, $sasBuilder);
     }
 
     protected function doListContents(string $prefix, bool $recursive): iterable
     {
         $fullPrefix = $this->prefixKey($prefix);
+        $delimiter = $recursive ? '' : '/';
 
-        $options = ['prefix' => $fullPrefix];
+        $blobs = $recursive
+            ? $this->client->listBlobsByHierarchy($fullPrefix !== '' ? $fullPrefix : null)
+            : $this->client->listBlobsByHierarchy($fullPrefix !== '' ? $fullPrefix : null, '/');
 
-        if (!$recursive) {
-            $options['delimiter'] = '/';
-        }
+        foreach ($blobs as $blob) {
+            if (!$blob instanceof Blob) {
+                continue;
+            }
 
-        $containerClient = $this->serviceClient->getContainerClient($this->container);
-
-        foreach ($containerClient->getBlobsByHierarchy($options) as $blob) {
             $blobKey = $this->stripPrefix($blob->name);
 
             yield new ObjectMetadata(
                 key: $blobKey,
-                size: $blob->contentLength,
-                lastModified: $blob->lastModified !== null
-                    ? \DateTimeImmutable::createFromInterface($blob->lastModified)
-                    : null,
+                size: $blob->properties->contentLength,
+                lastModified: \DateTimeImmutable::createFromInterface($blob->properties->lastModified),
             );
         }
     }
 
-    private function getBlobClient(string $key): BlobClient
+    /**
+     * @param array<string, string> $metadata
+     */
+    private function buildUploadOptions(array $metadata): ?UploadBlobOptions
     {
-        return $this->serviceClient
-            ->getContainerClient($this->container)
-            ->getBlobClient($this->prefixKey($key));
+        $contentType = $metadata['Content-Type'] ?? null;
+
+        if ($contentType === null) {
+            return null;
+        }
+
+        return new UploadBlobOptions(contentType: $contentType);
     }
 
     private function prefixKey(string $key): string

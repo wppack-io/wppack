@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Storage\Bridge\Azure\Tests;
 
-use AzureOss\Storage\Blob\BlobClient;
-use AzureOss\Storage\Blob\BlobServiceClient;
-use AzureOss\Storage\Blob\ContainerClient;
 use AzureOss\Storage\Blob\Models\BlobProperties;
-use AzureOss\Storage\Blob\Models\DownloadStreamingResult;
+use AzureOss\Storage\Blob\Models\UploadBlobOptions;
+use GuzzleHttp\Psr7\Uri;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\StreamInterface;
+use WpPack\Component\Storage\Bridge\Azure\AzureBlobClientInterface;
 use WpPack\Component\Storage\Bridge\Azure\AzureStorageAdapter;
 use WpPack\Component\Storage\Exception\ObjectNotFoundException;
 
@@ -23,8 +22,7 @@ final class AzureStorageAdapterTest extends TestCase
     public function getName(): void
     {
         $adapter = new AzureStorageAdapter(
-            $this->createMock(BlobServiceClient::class),
-            'my-container',
+            $this->createMock(AzureBlobClientInterface::class),
         );
 
         self::assertSame('azure', $adapter->getName());
@@ -33,43 +31,40 @@ final class AzureStorageAdapterTest extends TestCase
     #[Test]
     public function writeCallsUpload(): void
     {
-        $blobClient = $this->createMock(BlobClient::class);
-        $blobClient->expects($this->once())
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->expects($this->once())
             ->method('upload')
-            ->with('contents', []);
+            ->with('file.txt', 'contents', null);
 
-        $adapter = $this->createAdapter($blobClient);
+        $adapter = new AzureStorageAdapter($client);
         $adapter->write('file.txt', 'contents');
     }
 
     #[Test]
     public function writeWithPrefix(): void
     {
-        $blobClient = $this->createMock(BlobClient::class);
-        $blobClient->expects($this->once())
-            ->method('upload');
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->expects($this->once())
+            ->method('upload')
+            ->with('uploads/file.txt', 'contents', null);
 
-        $containerClient = $this->createMock(ContainerClient::class);
-        $containerClient->method('getBlobClient')
-            ->with('uploads/file.txt')
-            ->willReturn($blobClient);
-
-        $serviceClient = $this->createMock(BlobServiceClient::class);
-        $serviceClient->method('getContainerClient')->willReturn($containerClient);
-
-        $adapter = new AzureStorageAdapter($serviceClient, 'my-container', 'uploads');
+        $adapter = new AzureStorageAdapter($client, 'uploads');
         $adapter->write('file.txt', 'contents');
     }
 
     #[Test]
     public function writeWithContentType(): void
     {
-        $blobClient = $this->createMock(BlobClient::class);
-        $blobClient->expects($this->once())
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->expects($this->once())
             ->method('upload')
-            ->with('contents', ['contentType' => 'text/plain']);
+            ->with(
+                'file.txt',
+                'contents',
+                $this->callback(fn(?UploadBlobOptions $options) => $options !== null && $options->contentType === 'text/plain'),
+            );
 
-        $adapter = $this->createAdapter($blobClient);
+        $adapter = new AzureStorageAdapter($client);
         $adapter->write('file.txt', 'contents', ['Content-Type' => 'text/plain']);
     }
 
@@ -79,13 +74,12 @@ final class AzureStorageAdapterTest extends TestCase
         $stream = $this->createMock(StreamInterface::class);
         $stream->method('getContents')->willReturn('file contents');
 
-        $downloadResult = $this->createMock(DownloadStreamingResult::class);
-        $downloadResult->method('getBody')->willReturn($stream);
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->method('downloadStreamingContent')
+            ->with('file.txt')
+            ->willReturn($stream);
 
-        $blobClient = $this->createMock(BlobClient::class);
-        $blobClient->method('downloadStreaming')->willReturn($downloadResult);
-
-        $adapter = $this->createAdapter($blobClient);
+        $adapter = new AzureStorageAdapter($client);
 
         self::assertSame('file contents', $adapter->read('file.txt'));
     }
@@ -97,13 +91,12 @@ final class AzureStorageAdapterTest extends TestCase
         $stream->method('eof')->willReturnOnConsecutiveCalls(false, true);
         $stream->method('read')->with(8192)->willReturn('stream contents');
 
-        $downloadResult = $this->createMock(DownloadStreamingResult::class);
-        $downloadResult->method('getBody')->willReturn($stream);
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->method('downloadStreamingContent')
+            ->with('file.txt')
+            ->willReturn($stream);
 
-        $blobClient = $this->createMock(BlobClient::class);
-        $blobClient->method('downloadStreaming')->willReturn($downloadResult);
-
-        $adapter = $this->createAdapter($blobClient);
+        $adapter = new AzureStorageAdapter($client);
         $result = $adapter->readStream('file.txt');
 
         self::assertIsResource($result);
@@ -113,11 +106,11 @@ final class AzureStorageAdapterTest extends TestCase
     #[Test]
     public function readThrowsObjectNotFoundExceptionOn404(): void
     {
-        $blobClient = $this->createMock(BlobClient::class);
-        $blobClient->method('downloadStreaming')
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->method('downloadStreamingContent')
             ->willThrowException(new \RuntimeException('HTTP 404 Not Found'));
 
-        $adapter = $this->createAdapter($blobClient);
+        $adapter = new AzureStorageAdapter($client);
 
         $this->expectException(ObjectNotFoundException::class);
         $adapter->read('nonexistent.txt');
@@ -126,22 +119,23 @@ final class AzureStorageAdapterTest extends TestCase
     #[Test]
     public function deleteCallsDelete(): void
     {
-        $blobClient = $this->createMock(BlobClient::class);
-        $blobClient->expects($this->once())
-            ->method('delete');
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->expects($this->once())
+            ->method('delete')
+            ->with('file.txt');
 
-        $adapter = $this->createAdapter($blobClient);
+        $adapter = new AzureStorageAdapter($client);
         $adapter->delete('file.txt');
     }
 
     #[Test]
     public function existsReturnsTrueWhenBlobExists(): void
     {
-        $blobClient = $this->createMock(BlobClient::class);
-        $blobClient->method('getProperties')
-            ->willReturn($this->createMock(BlobProperties::class));
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->method('getProperties')
+            ->willReturn($this->createBlobProperties());
 
-        $adapter = $this->createAdapter($blobClient);
+        $adapter = new AzureStorageAdapter($client);
 
         self::assertTrue($adapter->exists('file.txt'));
     }
@@ -149,39 +143,29 @@ final class AzureStorageAdapterTest extends TestCase
     #[Test]
     public function existsReturnsFalseWhenNotFound(): void
     {
-        $blobClient = $this->createMock(BlobClient::class);
-        $blobClient->method('getProperties')
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->method('getProperties')
             ->willThrowException(new \RuntimeException('HTTP 404 Not Found'));
 
-        $adapter = $this->createAdapter($blobClient);
+        $adapter = new AzureStorageAdapter($client);
 
         self::assertFalse($adapter->exists('nonexistent.txt'));
     }
 
     #[Test]
-    public function copyCallsCopyFromUrl(): void
+    public function copySyncsCopyFromUri(): void
     {
-        $sourceUri = 'https://account.blob.core.windows.net/my-container/source.txt';
+        $sourceUri = new Uri('https://account.blob.core.windows.net/my-container/source.txt');
 
-        $sourceClient = $this->createMock(BlobClient::class);
-        $sourceClient->uri = $sourceUri;
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->method('getBlobUri')
+            ->with('source.txt')
+            ->willReturn($sourceUri);
+        $client->expects($this->once())
+            ->method('syncCopyFromUri')
+            ->with('dest.txt', $sourceUri);
 
-        $destClient = $this->createMock(BlobClient::class);
-        $destClient->expects($this->once())
-            ->method('copyFromUrl')
-            ->with($sourceUri);
-
-        $containerClient = $this->createMock(ContainerClient::class);
-        $containerClient->method('getBlobClient')
-            ->willReturnCallback(fn(string $key) => match ($key) {
-                'source.txt' => $sourceClient,
-                'dest.txt' => $destClient,
-            });
-
-        $serviceClient = $this->createMock(BlobServiceClient::class);
-        $serviceClient->method('getContainerClient')->willReturn($containerClient);
-
-        $adapter = new AzureStorageAdapter($serviceClient, 'my-container');
+        $adapter = new AzureStorageAdapter($client);
         $adapter->copy('source.txt', 'dest.txt');
     }
 
@@ -190,15 +174,11 @@ final class AzureStorageAdapterTest extends TestCase
     {
         $now = new \DateTimeImmutable();
 
-        $properties = $this->createMock(BlobProperties::class);
-        $properties->contentLength = 1024;
-        $properties->contentType = 'application/pdf';
-        $properties->lastModified = $now;
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->method('getProperties')
+            ->willReturn($this->createBlobProperties(1024, 'application/pdf', $now));
 
-        $blobClient = $this->createMock(BlobClient::class);
-        $blobClient->method('getProperties')->willReturn($properties);
-
-        $adapter = $this->createAdapter($blobClient);
+        $adapter = new AzureStorageAdapter($client);
         $metadata = $adapter->metadata('doc.pdf');
 
         self::assertSame('doc.pdf', $metadata->key);
@@ -210,11 +190,11 @@ final class AzureStorageAdapterTest extends TestCase
     #[Test]
     public function metadataThrowsObjectNotFoundExceptionOn404(): void
     {
-        $blobClient = $this->createMock(BlobClient::class);
-        $blobClient->method('getProperties')
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->method('getProperties')
             ->willThrowException(new \RuntimeException('HTTP 404 Not Found'));
 
-        $adapter = $this->createAdapter($blobClient);
+        $adapter = new AzureStorageAdapter($client);
 
         $this->expectException(ObjectNotFoundException::class);
         $adapter->metadata('nonexistent.txt');
@@ -223,10 +203,12 @@ final class AzureStorageAdapterTest extends TestCase
     #[Test]
     public function publicUrlReturnsBlobDirectUrl(): void
     {
-        $blobClient = $this->createMock(BlobClient::class);
-        $blobClient->uri = 'https://account.blob.core.windows.net/my-container/path/to/file.txt';
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->method('getBlobUri')
+            ->with('path/to/file.txt')
+            ->willReturn(new Uri('https://account.blob.core.windows.net/my-container/path/to/file.txt'));
 
-        $adapter = $this->createAdapter($blobClient);
+        $adapter = new AzureStorageAdapter($client);
 
         self::assertSame(
             'https://account.blob.core.windows.net/my-container/path/to/file.txt',
@@ -237,17 +219,10 @@ final class AzureStorageAdapterTest extends TestCase
     #[Test]
     public function publicUrlReturnsCustomPublicUrl(): void
     {
-        $blobClient = $this->createMock(BlobClient::class);
-
-        $containerClient = $this->createMock(ContainerClient::class);
-        $containerClient->method('getBlobClient')->willReturn($blobClient);
-
-        $serviceClient = $this->createMock(BlobServiceClient::class);
-        $serviceClient->method('getContainerClient')->willReturn($containerClient);
+        $client = $this->createMock(AzureBlobClientInterface::class);
 
         $adapter = new AzureStorageAdapter(
-            $serviceClient,
-            'my-container',
+            $client,
             publicUrl: 'https://cdn.example.com',
         );
 
@@ -260,17 +235,10 @@ final class AzureStorageAdapterTest extends TestCase
     #[Test]
     public function publicUrlWithPrefix(): void
     {
-        $blobClient = $this->createMock(BlobClient::class);
-
-        $containerClient = $this->createMock(ContainerClient::class);
-        $containerClient->method('getBlobClient')->willReturn($blobClient);
-
-        $serviceClient = $this->createMock(BlobServiceClient::class);
-        $serviceClient->method('getContainerClient')->willReturn($containerClient);
+        $client = $this->createMock(AzureBlobClientInterface::class);
 
         $adapter = new AzureStorageAdapter(
-            $serviceClient,
-            'my-container',
+            $client,
             prefix: 'uploads',
             publicUrl: 'https://cdn.example.com',
         );
@@ -284,37 +252,37 @@ final class AzureStorageAdapterTest extends TestCase
     #[Test]
     public function moveUsesCopyThenDelete(): void
     {
-        $sourceUri = 'https://account.blob.core.windows.net/my-container/source.txt';
+        $sourceUri = new Uri('https://account.blob.core.windows.net/my-container/source.txt');
 
-        $sourceClient = $this->createMock(BlobClient::class);
-        $sourceClient->uri = $sourceUri;
-        $sourceClient->expects($this->once())->method('delete');
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->method('getBlobUri')
+            ->with('source.txt')
+            ->willReturn($sourceUri);
+        $client->expects($this->once())
+            ->method('syncCopyFromUri')
+            ->with('dest.txt', $sourceUri);
+        $client->expects($this->once())
+            ->method('delete')
+            ->with('source.txt');
 
-        $destClient = $this->createMock(BlobClient::class);
-        $destClient->expects($this->once())->method('copyFromUrl');
-
-        $containerClient = $this->createMock(ContainerClient::class);
-        $containerClient->method('getBlobClient')
-            ->willReturnCallback(fn(string $key) => match ($key) {
-                'source.txt' => $sourceClient,
-                'dest.txt' => $destClient,
-            });
-
-        $serviceClient = $this->createMock(BlobServiceClient::class);
-        $serviceClient->method('getContainerClient')->willReturn($containerClient);
-
-        $adapter = new AzureStorageAdapter($serviceClient, 'my-container');
+        $adapter = new AzureStorageAdapter($client);
         $adapter->move('source.txt', 'dest.txt');
     }
 
-    private function createAdapter(BlobClient $blobClient): AzureStorageAdapter
-    {
-        $containerClient = $this->createMock(ContainerClient::class);
-        $containerClient->method('getBlobClient')->willReturn($blobClient);
-
-        $serviceClient = $this->createMock(BlobServiceClient::class);
-        $serviceClient->method('getContainerClient')->willReturn($containerClient);
-
-        return new AzureStorageAdapter($serviceClient, 'my-container');
+    /**
+     * @phpstan-ignore method.deprecated
+     */
+    private function createBlobProperties(
+        int $contentLength = 0,
+        string $contentType = 'application/octet-stream',
+        ?\DateTimeInterface $lastModified = null,
+    ): BlobProperties {
+        return new BlobProperties(
+            lastModified: $lastModified ?? new \DateTimeImmutable(),
+            contentLength: $contentLength,
+            contentType: $contentType,
+            contentMD5: null,
+            metadata: [],
+        );
     }
 }

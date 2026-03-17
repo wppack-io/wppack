@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Storage\Bridge\Azure\Tests;
 
-use AzureOss\Storage\Blob\BlobServiceClient;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Storage\Adapter\Dsn;
+use WpPack\Component\Storage\Bridge\Azure\AzureBlobClientInterface;
 use WpPack\Component\Storage\Bridge\Azure\AzureStorageAdapter;
 use WpPack\Component\Storage\Bridge\Azure\AzureStorageAdapterFactory;
 use WpPack\Component\Storage\Exception\InvalidArgumentException;
@@ -36,11 +36,11 @@ final class AzureStorageAdapterFactoryTest extends TestCase
     #[Test]
     public function createFromFullDsn(): void
     {
-        $serviceClient = $this->createMock(BlobServiceClient::class);
+        $client = $this->createMock(AzureBlobClientInterface::class);
         $factory = new AzureStorageAdapterFactory();
         $dsn = Dsn::fromString('azure://myaccount.blob.core.windows.net/mycontainer/uploads');
 
-        $adapter = $factory->create($dsn, ['service_client' => $serviceClient]);
+        $adapter = $factory->create($dsn, ['client' => $client]);
 
         self::assertInstanceOf(AzureStorageAdapter::class, $adapter);
         self::assertSame('azure', $adapter->getName());
@@ -49,11 +49,11 @@ final class AzureStorageAdapterFactoryTest extends TestCase
     #[Test]
     public function createFromPlainAccountHost(): void
     {
-        $serviceClient = $this->createMock(BlobServiceClient::class);
+        $client = $this->createMock(AzureBlobClientInterface::class);
         $factory = new AzureStorageAdapterFactory();
         $dsn = Dsn::fromString('azure://myaccount/mycontainer');
 
-        $adapter = $factory->create($dsn, ['service_client' => $serviceClient]);
+        $adapter = $factory->create($dsn, ['client' => $client]);
 
         self::assertInstanceOf(AzureStorageAdapter::class, $adapter);
     }
@@ -61,12 +61,12 @@ final class AzureStorageAdapterFactoryTest extends TestCase
     #[Test]
     public function createWithOptionsOverride(): void
     {
-        $serviceClient = $this->createMock(BlobServiceClient::class);
+        $client = $this->createMock(AzureBlobClientInterface::class);
         $factory = new AzureStorageAdapterFactory();
         $dsn = Dsn::fromString('azure://myaccount.blob.core.windows.net/mycontainer');
 
         $adapter = $factory->create($dsn, [
-            'service_client' => $serviceClient,
+            'client' => $client,
             'public_url' => 'https://cdn.example.com',
         ]);
 
@@ -76,11 +76,11 @@ final class AzureStorageAdapterFactoryTest extends TestCase
     #[Test]
     public function createWithContainerAndPrefix(): void
     {
-        $serviceClient = $this->createMock(BlobServiceClient::class);
+        $client = $this->createMock(AzureBlobClientInterface::class);
         $factory = new AzureStorageAdapterFactory();
         $dsn = Dsn::fromString('azure://myaccount.blob.core.windows.net/mycontainer/wp-content/uploads');
 
-        $adapter = $factory->create($dsn, ['service_client' => $serviceClient]);
+        $adapter = $factory->create($dsn, ['client' => $client]);
 
         self::assertInstanceOf(AzureStorageAdapter::class, $adapter);
     }
