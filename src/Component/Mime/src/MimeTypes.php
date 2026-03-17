@@ -40,6 +40,11 @@ final class MimeTypes implements MimeTypesInterface
         return self::$default;
     }
 
+    public static function setDefault(self $default): void
+    {
+        self::$default = $default;
+    }
+
     /**
      * @internal For testing only
      */

@@ -8,6 +8,7 @@ use WpPack\Component\Mailer\Exception\TransportException;
 use WpPack\Component\Mailer\Transport\Transport;
 use WpPack\Component\Mailer\Transport\TransportInterface;
 use WpPack\Component\Mime\MimeTypes;
+use WpPack\Component\Mime\MimeTypesInterface;
 
 final class Mailer
 {
@@ -18,10 +19,12 @@ final class Mailer
     private ?TemplateRendererInterface $renderer = null;
 
     private readonly TransportInterface $transport;
+    private readonly MimeTypesInterface $mimeTypes;
 
     public function __construct(
         string|TransportInterface $transport,
         ?PhpMailer $phpMailer = null,
+        ?MimeTypesInterface $mimeTypes = null,
     ) {
         $this->transport = \is_string($transport)
             ? Transport::fromDsn($transport)
@@ -29,6 +32,7 @@ final class Mailer
 
         $this->phpMailer = $phpMailer ?? new PhpMailer(true);
         $this->phpMailer->setTransport($this->transport);
+        $this->mimeTypes = $mimeTypes ?? MimeTypes::getDefault();
     }
 
     public function setTemplateRenderer(TemplateRendererInterface $renderer): void
@@ -237,7 +241,7 @@ final class Mailer
         // Attachments
         foreach ($email->getAttachments() as $attachment) {
             $contentType = $attachment->contentType
-                ?? MimeTypes::getDefault()->guessMimeType($attachment->path)
+                ?? $this->mimeTypes->guessMimeType($attachment->path)
                 ?? 'application/octet-stream';
 
             if ($attachment->inline) {
