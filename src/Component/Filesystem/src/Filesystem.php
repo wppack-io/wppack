@@ -4,14 +4,22 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Filesystem;
 
+use WpPack\Component\Mime\MimeTypes;
+use WpPack\Component\Mime\MimeTypesInterface;
+
 /**
  * DI-injectable wrapper around WP_Filesystem_Base.
  */
 final class Filesystem
 {
+    private readonly MimeTypesInterface $mimeTypes;
+
     public function __construct(
         private readonly \WP_Filesystem_Base $wpFilesystem,
-    ) {}
+        ?MimeTypesInterface $mimeTypes = null,
+    ) {
+        $this->mimeTypes = $mimeTypes ?? MimeTypes::getDefault();
+    }
 
     public function read(string $path): string|false
     {
@@ -98,7 +106,7 @@ final class Filesystem
             return false;
         }
 
-        return @mime_content_type($path);
+        return $this->mimeTypes->guessMimeType($path) ?? false;
     }
 
     /**

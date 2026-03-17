@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Routing;
 
 use WpPack\Component\HttpFoundation\BinaryFileResponse;
+use WpPack\Component\Mime\MimeTypes;
 use WpPack\Component\HttpFoundation\Exception\HttpException;
 use WpPack\Component\HttpFoundation\Exception\NotFoundException;
 use WpPack\Component\HttpFoundation\JsonResponse;
@@ -221,7 +222,7 @@ final class RouteEntry
     private function handleFile(BinaryFileResponse $response): void
     {
         $filename = $response->filename ?? basename($response->path);
-        $mimeType = mime_content_type($response->path) ?: 'application/octet-stream';
+        $mimeType = MimeTypes::getDefault()->guessMimeType($response->path) ?? 'application/octet-stream';
 
         header('Content-Type: ' . $mimeType);
         header('Content-Disposition: ' . $response->disposition . '; filename="' . $filename . '"');

@@ -35,6 +35,7 @@ jobs:
           - { local_path: 'src/Component/Mailer', split_repository: 'mailer' }
           - { local_path: 'src/Component/Media', split_repository: 'media' }
           - { local_path: 'src/Component/Messenger', split_repository: 'messenger' }
+          - { local_path: 'src/Component/Mime', split_repository: 'mime' }
           - { local_path: 'src/Component/NavigationMenu', split_repository: 'navigation-menu' }
           - { local_path: 'src/Component/Nonce', split_repository: 'nonce' }
           - { local_path: 'src/Component/OEmbed', split_repository: 'oembed' }

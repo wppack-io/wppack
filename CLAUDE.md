@@ -55,6 +55,7 @@ WordPress プラグインとして配布。Component を利用。
 | Stopwatch | wppack/stopwatch | ストップウォッチ（計測） |
 | Logger | wppack/logger | PSR-3 ロギング |
 | MonologLogger | wppack/monolog-logger | Monolog ブリッジ |
+| Mime | wppack/mime | MIME 型判定・拡張子マッピング |
 
 ### Abstraction Layer
 | Component | パッケージ名 | 説明 |

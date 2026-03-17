@@ -8,18 +8,25 @@ use Psr\Log\LoggerInterface;
 use WpPack\Component\Logger\Attribute\LoggerChannel;
 use WpPack\Component\Messenger\Attribute\AsMessageHandler;
 use WpPack\Component\Messenger\MessageBusInterface;
+use WpPack\Component\Mime\MimeTypes;
+use WpPack\Component\Mime\MimeTypesInterface;
 use WpPack\Plugin\S3StoragePlugin\Message\GenerateThumbnailsMessage;
 use WpPack\Plugin\S3StoragePlugin\Message\S3ObjectCreatedMessage;
 
 #[AsMessageHandler]
 final readonly class S3ObjectCreatedHandler
 {
+    private MimeTypesInterface $mimeTypes;
+
     public function __construct(
         private MessageBusInterface $bus,
         private string $prefix,
+        ?MimeTypesInterface $mimeTypes = null,
         #[LoggerChannel('s3-storage')]
         private ?LoggerInterface $logger = null,
-    ) {}
+    ) {
+        $this->mimeTypes = $mimeTypes ?? MimeTypes::getDefault();
+    }
 
     public function __invoke(S3ObjectCreatedMessage $message): void
     {
@@ -41,7 +48,7 @@ final readonly class S3ObjectCreatedHandler
                 return;
             }
 
-            $mimeType = $this->guessMimeType($relativePath);
+            $mimeType = $this->mimeTypes->guessMimeType($relativePath) ?? 'application/octet-stream';
 
             $attachmentData = [
                 'post_title' => pathinfo($relativePath, \PATHINFO_FILENAME),
@@ -144,29 +151,4 @@ final readonly class S3ObjectCreatedHandler
         return $relativePath;
     }
 
-    private function guessMimeType(string $path): string
-    {
-        if (function_exists('wp_check_filetype')) {
-            /** @var array{type: string|false, ext: string|false} $fileType */
-            $fileType = wp_check_filetype(basename($path));
-
-            if (\is_string($fileType['type']) && $fileType['type'] !== '') {
-                return $fileType['type'];
-            }
-        }
-
-        $extension = strtolower(pathinfo($path, \PATHINFO_EXTENSION));
-
-        return match ($extension) {
-            'jpg', 'jpeg' => 'image/jpeg',
-            'png' => 'image/png',
-            'gif' => 'image/gif',
-            'webp' => 'image/webp',
-            'svg' => 'image/svg+xml',
-            'pdf' => 'application/pdf',
-            'mp4' => 'video/mp4',
-            'mp3' => 'audio/mpeg',
-            default => 'application/octet-stream',
-        };
-    }
 }

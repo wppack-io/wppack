@@ -6,6 +6,7 @@ namespace WpPack\Component\HttpFoundation\File;
 
 use WpPack\Component\HttpFoundation\File\Exception\FileException;
 use WpPack\Component\HttpFoundation\File\Exception\FileNotFoundException;
+use WpPack\Component\Mime\MimeTypes;
 
 class File extends \SplFileInfo
 {
@@ -26,9 +27,7 @@ class File extends \SplFileInfo
             return null;
         }
 
-        $mimeType = @mime_content_type($path);
-
-        return $mimeType !== false ? $mimeType : null;
+        return MimeTypes::getDefault()->guessMimeType($path);
     }
 
     public function guessExtension(): ?string
@@ -39,22 +38,9 @@ class File extends \SplFileInfo
             return null;
         }
 
-        return match ($mimeType) {
-            'image/jpeg' => 'jpg',
-            'image/png' => 'png',
-            'image/gif' => 'gif',
-            'image/webp' => 'webp',
-            'image/svg+xml' => 'svg',
-            'application/pdf' => 'pdf',
-            'application/json' => 'json',
-            'text/plain' => 'txt',
-            'text/html' => 'html',
-            'text/css' => 'css',
-            'application/javascript' => 'js',
-            'application/xml', 'text/xml' => 'xml',
-            'application/zip' => 'zip',
-            default => null,
-        };
+        $extensions = MimeTypes::getDefault()->getExtensions($mimeType);
+
+        return $extensions !== [] ? $extensions[0] : null;
     }
 
     public function move(string $directory, ?string $name = null): self

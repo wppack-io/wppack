@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Storage\Adapter;
 
+use WpPack\Component\Mime\MimeTypes;
+use WpPack\Component\Mime\MimeTypesInterface;
 use WpPack\Component\Storage\Exception\ObjectNotFoundException;
 use WpPack\Component\Storage\Exception\UnsupportedOperationException;
 use WpPack\Component\Storage\ObjectMetadata;
@@ -11,12 +13,15 @@ use WpPack\Component\Storage\ObjectMetadata;
 final class LocalStorageAdapter extends AbstractStorageAdapter
 {
     private readonly string $rootDir;
+    private readonly MimeTypesInterface $mimeTypes;
 
     public function __construct(
         string $rootDir,
         private readonly ?string $publicUrl = null,
+        ?MimeTypesInterface $mimeTypes = null,
     ) {
         $this->rootDir = rtrim($rootDir, '/');
+        $this->mimeTypes = $mimeTypes ?? MimeTypes::getDefault();
     }
 
     public function getName(): string
@@ -127,7 +132,7 @@ final class LocalStorageAdapter extends AbstractStorageAdapter
             key: $key,
             size: (int) filesize($path),
             lastModified: $mtime !== false ? (new \DateTimeImmutable())->setTimestamp($mtime) : null,
-            mimeType: mime_content_type($path) ?: null,
+            mimeType: $this->mimeTypes->guessMimeType($path),
         );
     }
 

@@ -57,6 +57,10 @@ component_management:
       name: TwigTemplating
       paths:
         - src/Component/Templating/Bridge/Twig/src/**
+    - component_id: mime
+      name: Mime
+      paths:
+        - src/Component/Mime/src/**
 
     # Abstraction Layer
     - component_id: options_resolver

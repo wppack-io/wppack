@@ -1,0 +1,19 @@
+{
+    "name": "wppack/mime",
+    "description": "MIME type detection and extension mapping with WordPress integration",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpPack\\Component\\Mime\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Component\\Mime\\Tests\\": "tests/"
+        }
+    }
+}
