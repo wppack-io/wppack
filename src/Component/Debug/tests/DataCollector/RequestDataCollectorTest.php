@@ -565,4 +565,181 @@ final class RequestDataCollectorTest extends TestCase
         self::assertEmpty($dataAfter['http_api_calls']);
     }
 
+    #[Test]
+    public function getLabelReturnsRequest(): void
+    {
+        self::assertSame('Request', $this->collector->getLabel());
+    }
+
+    #[Test]
+    public function collectBuildUrlWithServerNameFallback(): void
+    {
+        unset($_SERVER['HTTP_HOST']);
+        $_SERVER['SERVER_NAME'] = 'fallback-server.com';
+        $_SERVER['REQUEST_URI'] = '/path';
+        $_SERVER['HTTPS'] = 'off';
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertSame('http://fallback-server.com/path', $data['url']);
+    }
+
+    #[Test]
+    public function collectBuildUrlWithLocalhostFallback(): void
+    {
+        unset($_SERVER['HTTP_HOST'], $_SERVER['SERVER_NAME']);
+        $_SERVER['REQUEST_URI'] = '/test';
+        $_SERVER['HTTPS'] = 'off';
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertSame('http://localhost/test', $data['url']);
+    }
+
+    #[Test]
+    public function collectBuildUrlWithMissingRequestUri(): void
+    {
+        $_SERVER['HTTP_HOST'] = 'example.com';
+        unset($_SERVER['REQUEST_URI']);
+        $_SERVER['HTTPS'] = 'off';
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertSame('http://example.com/', $data['url']);
+    }
+
+    #[Test]
+    public function collectMasksProxyAuthorizationHeader(): void
+    {
+        $_SERVER['HTTP_PROXY_AUTHORIZATION'] = 'Basic abc123';
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertSame('********', $data['request_headers']['Proxy-Authorization']);
+    }
+
+    #[Test]
+    public function collectMasksXApiKeyHeader(): void
+    {
+        $_SERVER['HTTP_X_API_KEY'] = 'my-api-key';
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertSame('********', $data['request_headers']['X-Api-Key']);
+    }
+
+    #[Test]
+    public function collectMasksXAuthTokenHeader(): void
+    {
+        $_SERVER['HTTP_X_AUTH_TOKEN'] = 'my-auth-token';
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertSame('********', $data['request_headers']['X-Auth-Token']);
+    }
+
+    #[Test]
+    public function collectMasksCreditCardInPostParams(): void
+    {
+        $_POST = ['credit_card' => '4111111111111111', 'name' => 'John'];
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertSame('********', $data['post_params']['credit_card']);
+        self::assertSame('John', $data['post_params']['name']);
+    }
+
+    #[Test]
+    public function collectMasksCvvAndSsnInPostParams(): void
+    {
+        $_POST = ['cvv' => '123', 'ssn' => '123-45-6789', 'visible' => 'ok'];
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertSame('********', $data['post_params']['cvv']);
+        self::assertSame('********', $data['post_params']['ssn']);
+        self::assertSame('ok', $data['post_params']['visible']);
+    }
+
+    #[Test]
+    public function collectMasksPrivateKeyAndRefreshToken(): void
+    {
+        $_POST = ['private_key' => 'pem-data', 'refresh_token' => 'rt-xyz'];
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertSame('********', $data['post_params']['private_key']);
+        self::assertSame('********', $data['post_params']['refresh_token']);
+    }
+
+    #[Test]
+    public function collectMasksPartialSensitiveKeyMatch(): void
+    {
+        // Keys containing sensitive keywords (e.g., "my_password_field")
+        $_POST = ['my_password_field' => 'hidden', 'user_apikey_v2' => 'secret'];
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertSame('********', $data['post_params']['my_password_field']);
+        self::assertSame('********', $data['post_params']['user_apikey_v2']);
+    }
+
+    #[Test]
+    public function captureStatusCodeReturnsOriginalHeader(): void
+    {
+        $result = $this->collector->captureStatusCode('HTTP/1.1 200 OK', 200);
+
+        self::assertSame('HTTP/1.1 200 OK', $result);
+    }
+
+    #[Test]
+    public function captureHttpApiCallWithNonArrayParsedArgs(): void
+    {
+        // parsedArgs can be non-array (edge case)
+        $this->collector->captureHttpApiCall(
+            ['body' => 'response'],
+            'response',
+            'WP_Http',
+            'not-an-array',
+            'https://example.com/api',
+        );
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertCount(1, $data['http_api_calls']);
+        self::assertSame([], $data['http_api_calls'][0]['args']);
+    }
+
+    #[Test]
+    public function collectServerVarsOmitsMissingKeys(): void
+    {
+        // Remove optional server vars
+        unset(
+            $_SERVER['HTTPS'],
+            $_SERVER['CONTENT_TYPE'],
+            $_SERVER['CONTENT_LENGTH'],
+            $_SERVER['SCRIPT_FILENAME'],
+            $_SERVER['GATEWAY_INTERFACE'],
+            $_SERVER['PATH_INFO'],
+            $_SERVER['SCRIPT_NAME'],
+            $_SERVER['QUERY_STRING'],
+        );
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertArrayNotHasKey('HTTPS', $data['server_vars']);
+        self::assertArrayNotHasKey('CONTENT_TYPE', $data['server_vars']);
+    }
 }

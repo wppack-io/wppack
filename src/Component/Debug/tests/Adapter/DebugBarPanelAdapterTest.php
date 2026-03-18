@@ -128,4 +128,83 @@ final class DebugBarPanelAdapterTest extends TestCase
         self::assertStringNotContainsString('<script>', $result);
         self::assertStringContainsString('Hello', $result);
     }
+
+    #[Test]
+    public function collectSkipsPanelsWithoutRenderOrTitleMethods(): void
+    {
+        if (!class_exists(\Debug_Bar_Panel::class)) {
+            self::markTestSkipped('Debug_Bar_Panel class is not available.');
+        }
+
+        // Create a mock panel without render method
+        $brokenPanel = new \stdClass();
+
+        // Register the broken panel + a valid panel via filter
+        $validPanel = new class ('Valid Panel') extends \Debug_Bar_Panel {
+            public function render(): void
+            {
+                echo '<p>Valid content</p>';
+            }
+        };
+
+        $callback = static fn(array $panels): array => array_merge($panels, [$brokenPanel, $validPanel]);
+        add_filter('debug_bar_panels', $callback, 10, 1);
+
+        try {
+            $this->adapter->collect();
+            $data = $this->adapter->getData();
+
+            // Only valid panel should be collected
+            self::assertSame(1, $data['panel_count']);
+            self::assertSame('Valid Panel', $data['panels'][0]['title']);
+        } finally {
+            remove_filter('debug_bar_panels', $callback, 10);
+        }
+    }
+
+    #[Test]
+    public function collectWithPanelEmptyRender(): void
+    {
+        if (!class_exists(\Debug_Bar_Panel::class)) {
+            self::markTestSkipped('Debug_Bar_Panel class is not available.');
+        }
+
+        // Panel with empty render output
+        $emptyPanel = new class ('Empty Panel') extends \Debug_Bar_Panel {
+            public function render(): void
+            {
+                // intentionally empty
+            }
+        };
+
+        $callback = static fn(array $panels): array => array_merge($panels, [$emptyPanel]);
+        add_filter('debug_bar_panels', $callback, 10, 1);
+
+        try {
+            $this->adapter->collect();
+            $data = $this->adapter->getData();
+
+            self::assertGreaterThanOrEqual(1, $data['panel_count']);
+
+            $found = false;
+            foreach ($data['panels'] as $panel) {
+                if ($panel['title'] === 'Empty Panel') {
+                    $found = true;
+                    self::assertSame('', $panel['html']);
+                }
+            }
+            self::assertTrue($found);
+        } finally {
+            remove_filter('debug_bar_panels', $callback, 10);
+        }
+    }
+
+    #[Test]
+    public function getIndicatorValueReturnsEmptyWhenPanelCountZero(): void
+    {
+        $reflection = new \ReflectionProperty($this->adapter, 'data');
+        $reflection->setValue($this->adapter, ['panel_count' => 0]);
+
+        self::assertSame('', $this->adapter->getIndicatorValue());
+    }
 }

@@ -484,4 +484,280 @@ final class StorageStreamWrapperTest extends TestCase
 
         self::assertSame('text', $this->adapter->read('text.txt'));
     }
+
+    // ──────────────────────────────────────────────
+    // stream_stat / stream_flush / stream_truncate edge cases
+    // ──────────────────────────────────────────────
+
+    public function testStreamStatReturnsStatArray(): void
+    {
+        $this->adapter->write('stat.txt', 'hello');
+
+        $fp = fopen(self::PROTOCOL . '://stat.txt', 'r');
+        self::assertIsResource($fp);
+
+        $stat = fstat($fp);
+        self::assertIsArray($stat);
+        self::assertArrayHasKey('size', $stat);
+        // Read-only mode → 0100444
+        self::assertSame(0100444, $stat['mode']);
+
+        fclose($fp);
+    }
+
+    public function testStreamStatWritableMode(): void
+    {
+        $fp = fopen(self::PROTOCOL . '://writable.txt', 'w+');
+        self::assertIsResource($fp);
+
+        fwrite($fp, 'data');
+        $stat = fstat($fp);
+        self::assertIsArray($stat);
+        // Writable mode → 0100666
+        self::assertSame(0100666, $stat['mode']);
+
+        fclose($fp);
+    }
+
+    public function testStreamFlushWritesData(): void
+    {
+        $fp = fopen(self::PROTOCOL . '://flush.txt', 'w');
+        self::assertIsResource($fp);
+
+        fwrite($fp, 'flushed');
+        fflush($fp);
+
+        // Data should be flushed to storage
+        self::assertSame('flushed', $this->adapter->read('flush.txt'));
+
+        fclose($fp);
+    }
+
+    public function testStreamFlushReturnsTrueWhenNotDirty(): void
+    {
+        $this->adapter->write('existing.txt', 'data');
+
+        $fp = fopen(self::PROTOCOL . '://existing.txt', 'r+');
+        self::assertIsResource($fp);
+
+        // Read without writing (not dirty)
+        fread($fp, 1024);
+        $result = fflush($fp);
+        self::assertTrue($result);
+
+        fclose($fp);
+    }
+
+    public function testStreamTruncateOnReadOnlyReturnsFalse(): void
+    {
+        $this->adapter->write('trunc-ro.txt', 'data');
+
+        $fp = fopen(self::PROTOCOL . '://trunc-ro.txt', 'r');
+        self::assertIsResource($fp);
+
+        // Cannot truncate read-only stream
+        $result = ftruncate($fp, 0);
+        self::assertFalse($result);
+
+        fclose($fp);
+    }
+
+    public function testStreamLockAlwaysReturnsTrue(): void
+    {
+        $fp = fopen(self::PROTOCOL . '://lock.txt', 'w');
+        self::assertIsResource($fp);
+
+        fwrite($fp, 'data');
+        // flock calls stream_lock
+        self::assertTrue(flock($fp, \LOCK_EX));
+        self::assertTrue(flock($fp, \LOCK_UN));
+
+        fclose($fp);
+    }
+
+    // ──────────────────────────────────────────────
+    // url_stat edge cases
+    // ──────────────────────────────────────────────
+
+    public function testUrlStatReturnsFileStatWithTimestamps(): void
+    {
+        $this->adapter->write('timed.txt', str_repeat('x', 100));
+
+        clearstatcache();
+        StorageStreamWrapper::getStatCache(self::PROTOCOL)?->clear();
+
+        $stat = stat(self::PROTOCOL . '://timed.txt');
+        self::assertIsArray($stat);
+        self::assertSame(100, $stat['size']);
+        // Regular file mode
+        self::assertSame(0100666, $stat['mode']);
+    }
+
+    public function testUrlStatReturnsDirectoryStatForPathWithoutExtension(): void
+    {
+        clearstatcache();
+
+        $stat = stat(self::PROTOCOL . '://uploads/2024/01');
+        self::assertIsArray($stat);
+        // Directory mode
+        self::assertSame(0040777, $stat['mode']);
+    }
+
+    public function testUrlStatReturnsFalseForNonExistentFile(): void
+    {
+        clearstatcache();
+        StorageStreamWrapper::getStatCache(self::PROTOCOL)?->clear();
+
+        $result = @stat(self::PROTOCOL . '://does-not-exist.txt');
+        self::assertFalse($result);
+    }
+
+    // ──────────────────────────────────────────────
+    // getAdapter / getStatCache for unregistered protocol
+    // ──────────────────────────────────────────────
+
+    public function testGetAdapterReturnsNullForUnregisteredProtocol(): void
+    {
+        self::assertNull(StorageStreamWrapper::getAdapter('unregistered'));
+    }
+
+    public function testGetStatCacheReturnsNullForUnregisteredProtocol(): void
+    {
+        self::assertNull(StorageStreamWrapper::getStatCache('unregistered'));
+    }
+
+    public function testUnregisterIdempotent(): void
+    {
+        StorageStreamWrapper::unregister('unregistered_protocol');
+        self::assertNull(StorageStreamWrapper::getAdapter('unregistered_protocol'));
+    }
+
+    // ──────────────────────────────────────────────
+    // Mode c without existing file
+    // ──────────────────────────────────────────────
+
+    public function testModeCExistingFile(): void
+    {
+        $this->adapter->write('cexist.txt', 'old content');
+
+        $fp = fopen(self::PROTOCOL . '://cexist.txt', 'c');
+        self::assertIsResource($fp);
+
+        fwrite($fp, 'overwritten');
+        fclose($fp);
+
+        self::assertSame('overwritten', $this->adapter->read('cexist.txt'));
+    }
+
+    // ──────────────────────────────────────────────
+    // stream_read on write-only, stream_write on read-only
+    // ──────────────────────────────────────────────
+
+    public function testStreamReadReturnsFalseOnWriteOnlyMode(): void
+    {
+        $fp = fopen(self::PROTOCOL . '://wo.txt', 'w');
+        self::assertIsResource($fp);
+
+        fwrite($fp, 'data');
+        rewind($fp);
+
+        $data = fread($fp, 1024);
+        // In write-only mode, read returns false/empty
+        self::assertEmpty($data);
+
+        fclose($fp);
+    }
+
+    // ──────────────────────────────────────────────
+    // Append to non-existent file with a+
+    // ──────────────────────────────────────────────
+
+    public function testModeAPlusCreatesNewFile(): void
+    {
+        $fp = fopen(self::PROTOCOL . '://aplus-new.txt', 'a+');
+        self::assertIsResource($fp);
+
+        fwrite($fp, 'new content');
+        rewind($fp);
+
+        self::assertSame('new content', stream_get_contents($fp));
+        fclose($fp);
+
+        self::assertSame('new content', $this->adapter->read('aplus-new.txt'));
+    }
+
+    // ──────────────────────────────────────────────
+    // x+ mode with existing file
+    // ──────────────────────────────────────────────
+
+    public function testModeXPlusFailsIfFileExists(): void
+    {
+        $this->adapter->write('xplus-exist.txt', 'content');
+
+        $fp = @fopen(self::PROTOCOL . '://xplus-exist.txt', 'x+');
+        self::assertFalse($fp);
+    }
+
+    // ──────────────────────────────────────────────
+    // Directory listing: opendir on root
+    // ──────────────────────────────────────────────
+
+    public function testDirOpendirAtRoot(): void
+    {
+        $this->adapter->write('root-a.txt', 'a');
+        $this->adapter->write('root-b.txt', 'b');
+
+        $dh = opendir(self::PROTOCOL . '://');
+        self::assertIsResource($dh);
+
+        $entries = [];
+        while (($entry = readdir($dh)) !== false) {
+            $entries[] = $entry;
+        }
+
+        closedir($dh);
+
+        self::assertContains('root-a.txt', $entries);
+        self::assertContains('root-b.txt', $entries);
+    }
+
+    // ──────────────────────────────────────────────
+    // stream_close flush on dirty writable
+    // ──────────────────────────────────────────────
+
+    public function testStreamCloseFlushesOnDirtyWritable(): void
+    {
+        $fp = fopen(self::PROTOCOL . '://close-flush.txt', 'w');
+        fwrite($fp, 'auto-flushed');
+        // Close should automatically flush dirty data
+        fclose($fp);
+
+        self::assertSame('auto-flushed', $this->adapter->read('close-flush.txt'));
+    }
+
+    // ──────────────────────────────────────────────
+    // StatCache pre-caching during dir listing
+    // ──────────────────────────────────────────────
+
+    public function testDirListingPreCachesStat(): void
+    {
+        $this->adapter->write('listing/file1.txt', 'content1');
+        $this->adapter->write('listing/file2.txt', 'content2');
+
+        StorageStreamWrapper::getStatCache(self::PROTOCOL)?->clear();
+
+        $dh = opendir(self::PROTOCOL . '://listing');
+        while (readdir($dh) !== false) {
+            // consume entries
+        }
+        closedir($dh);
+
+        // Stats should be pre-cached during directory listing
+        $statCache = StorageStreamWrapper::getStatCache(self::PROTOCOL);
+        self::assertNotNull($statCache);
+
+        // File stats should have been cached
+        $cached1 = $statCache->get(self::PROTOCOL . '://listing/file1.txt');
+        self::assertNotNull($cached1, 'Stat for file1.txt should be pre-cached during directory listing');
+    }
 }

@@ -69,6 +69,14 @@ final class OutputStyleTest extends TestCase
     }
 
     #[Test]
+    public function newLineDefault(): void
+    {
+        $this->style->newLine();
+
+        self::assertSame(\PHP_EOL, $this->buffer->getBuffer());
+    }
+
+    #[Test]
     public function table(): void
     {
         $this->style->table(['Name', 'Age'], [['Alice', '30'], ['Bob', '25']]);
@@ -81,6 +89,52 @@ final class OutputStyleTest extends TestCase
         self::assertStringContainsString('30', $output);
         self::assertStringContainsString('Bob', $output);
         self::assertStringContainsString('25', $output);
+    }
+
+    #[Test]
+    public function tableOutputsTabSeparatedFormat(): void
+    {
+        $this->style->table(['Col1', 'Col2'], [['a', 'b'], ['c', 'd']]);
+
+        $output = $this->buffer->getBuffer();
+        $lines = explode(\PHP_EOL, trim($output));
+
+        // Header line
+        self::assertSame("Col1\tCol2", $lines[0]);
+        // Data rows
+        self::assertSame("a\tb", $lines[1]);
+        self::assertSame("c\td", $lines[2]);
+    }
+
+    #[Test]
+    public function tableWithEmptyRows(): void
+    {
+        $this->style->table(['Header'], []);
+
+        $output = $this->buffer->getBuffer();
+
+        self::assertStringContainsString('Header', $output);
+    }
+
+    #[Test]
+    public function tableWithNumericValues(): void
+    {
+        $this->style->table(['Name', 'Score'], [['Alice', 95], ['Bob', 87]]);
+
+        $output = $this->buffer->getBuffer();
+
+        self::assertStringContainsString('95', $output);
+        self::assertStringContainsString('87', $output);
+    }
+
+    #[Test]
+    public function tableWithMissingColumns(): void
+    {
+        // Row shorter than headers — should handle gracefully
+        $this->style->table(['A', 'B', 'C'], [['x']]);
+
+        $output = $this->buffer->getBuffer();
+        self::assertStringContainsString('x', $output);
     }
 
     #[Test]
@@ -112,6 +166,26 @@ final class OutputStyleTest extends TestCase
     }
 
     #[Test]
+    public function confirmOutputsQuestionWithYes(): void
+    {
+        $this->style->confirm('Continue?', true);
+
+        $output = $this->buffer->getBuffer();
+        self::assertStringContainsString('Continue?', $output);
+        self::assertStringContainsString('[Y/n]', $output);
+    }
+
+    #[Test]
+    public function confirmOutputsQuestionWithNo(): void
+    {
+        $this->style->confirm('Continue?', false);
+
+        $output = $this->buffer->getBuffer();
+        self::assertStringContainsString('Continue?', $output);
+        self::assertStringContainsString('[y/N]', $output);
+    }
+
+    #[Test]
     public function askReturnsFallbackDefault(): void
     {
         self::assertSame('default', $this->style->ask('Name?', 'default'));
@@ -119,8 +193,40 @@ final class OutputStyleTest extends TestCase
     }
 
     #[Test]
+    public function askOutputsPromptWithDefault(): void
+    {
+        $this->style->ask('Enter name?', 'John');
+
+        $output = $this->buffer->getBuffer();
+        self::assertStringContainsString('Enter name?', $output);
+        self::assertStringContainsString('[John]', $output);
+    }
+
+    #[Test]
+    public function askOutputsPromptWithoutDefault(): void
+    {
+        $this->style->ask('Enter name?');
+
+        $output = $this->buffer->getBuffer();
+        self::assertStringContainsString('Enter name?', $output);
+    }
+
+    #[Test]
     public function getOutput(): void
     {
         self::assertSame($this->buffer, $this->style->getOutput());
+    }
+
+    #[Test]
+    public function multipleOutputCallsAppend(): void
+    {
+        $this->style->success('Step 1');
+        $this->style->info('Step 2');
+        $this->style->error('Step 3');
+
+        $output = $this->buffer->getBuffer();
+        self::assertStringContainsString('[SUCCESS] Step 1', $output);
+        self::assertStringContainsString('[INFO] Step 2', $output);
+        self::assertStringContainsString('[ERROR] Step 3', $output);
     }
 }

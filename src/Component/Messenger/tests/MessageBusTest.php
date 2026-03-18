@@ -83,4 +83,27 @@ final class MessageBusTest extends TestCase
 
         self::assertSame($delay, $envelope->last(DelayStamp::class));
     }
+
+    #[Test]
+    public function constructorAcceptsTraversable(): void
+    {
+        $middleware = new class implements MiddlewareInterface {
+            public function handle(Envelope $envelope, StackInterface $stack): Envelope
+            {
+                $envelope = $envelope->with(new BusNameStamp('from-generator'));
+
+                return $stack->next()->handle($envelope, $stack);
+            }
+        };
+
+        $generator = (static function () use ($middleware): \Generator {
+            yield $middleware;
+        })();
+
+        $bus = new MessageBus($generator);
+        $envelope = $bus->dispatch(new \stdClass());
+
+        self::assertNotNull($envelope->last(BusNameStamp::class));
+        self::assertSame('from-generator', $envelope->last(BusNameStamp::class)->busName);
+    }
 }

@@ -104,6 +104,83 @@ final class WpressEntryTest extends TestCase
         fclose($handle);
     }
 
+    #[Test]
+    public function getContentsWithLargeData(): void
+    {
+        // Content larger than the internal 8192 chunk size
+        $content = str_repeat('Large block. ', 1000);
+        $handle = $this->createEntryHandle($content);
+        $header = new Header(name: 'large.txt', size: \strlen($content), mtime: 1000, prefix: '.');
+
+        $entry = new WpressEntry($header, $handle, 0, new PlainContentProcessor());
+
+        self::assertSame($content, $entry->getContents());
+
+        fclose($handle);
+    }
+
+    #[Test]
+    public function getStreamOfEmptyEntry(): void
+    {
+        $handle = $this->createEntryHandle('');
+        $header = new Header(name: 'empty.txt', size: 0, mtime: 1000, prefix: '.');
+
+        $entry = new WpressEntry($header, $handle, 0, new PlainContentProcessor());
+
+        $stream = $entry->getStream();
+        self::assertIsResource($stream);
+        self::assertSame('', stream_get_contents($stream));
+
+        fclose($stream);
+        fclose($handle);
+    }
+
+    #[Test]
+    public function getStreamWithOffset(): void
+    {
+        $prefix = 'PREFIX_DATA';
+        $content = 'Actual stream content';
+        $handle = $this->createEntryHandle($prefix . $content);
+        $header = new Header(name: 'offset.txt', size: \strlen($content), mtime: 1000, prefix: '.');
+
+        $entry = new WpressEntry($header, $handle, \strlen($prefix), new PlainContentProcessor());
+
+        $stream = $entry->getStream();
+        self::assertIsResource($stream);
+        self::assertSame($content, stream_get_contents($stream));
+
+        fclose($stream);
+        fclose($handle);
+    }
+
+    #[Test]
+    public function getPathWithEmptyPrefix(): void
+    {
+        $handle = $this->createEntryHandle('test');
+        $header = new Header(name: 'file.txt', size: 4, mtime: 1000, prefix: '');
+
+        $entry = new WpressEntry($header, $handle, 0, new PlainContentProcessor());
+
+        self::assertSame('file.txt', $entry->getPath());
+        self::assertSame('', $entry->getPrefix());
+
+        fclose($handle);
+    }
+
+    #[Test]
+    public function getContentsWithBinaryData(): void
+    {
+        $content = "\x00\x01\x02\xFF\xFE\xFD";
+        $handle = $this->createEntryHandle($content);
+        $header = new Header(name: 'binary.dat', size: \strlen($content), mtime: 1000, prefix: '.');
+
+        $entry = new WpressEntry($header, $handle, 0, new PlainContentProcessor());
+
+        self::assertSame($content, $entry->getContents());
+
+        fclose($handle);
+    }
+
     /**
      * @return resource
      */

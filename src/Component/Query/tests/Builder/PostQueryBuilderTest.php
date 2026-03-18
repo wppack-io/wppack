@@ -973,6 +973,59 @@ final class PostQueryBuilderTest extends TestCase
     }
 
     #[Test]
+    public function unsupportedOperatorForAuthorThrows(): void
+    {
+        $builder = new PostQueryBuilder();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unsupported operator "LIKE" for field "post.author"');
+
+        $builder
+            ->where('p.author LIKE :val')
+            ->setParameter('val', '5%')
+            ->toArray();
+    }
+
+    #[Test]
+    public function unsupportedOperatorForIdThrows(): void
+    {
+        $builder = new PostQueryBuilder();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unsupported operator "LIKE" for field "post.id"');
+
+        $builder
+            ->where('p.id LIKE :val')
+            ->setParameter('val', '42%')
+            ->toArray();
+    }
+
+    #[Test]
+    public function unsupportedOperatorForParentThrows(): void
+    {
+        $builder = new PostQueryBuilder();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unsupported operator "NOT IN" for field "post.parent"');
+
+        $builder
+            ->where('p.parent NOT IN :vals')
+            ->setParameter('vals', [10, 20])
+            ->toArray();
+    }
+
+    // ── orderBy with array argument ──
+
+    #[Test]
+    public function orderByWithArrayArgument(): void
+    {
+        $builder = new PostQueryBuilder();
+        $args = $builder->orderBy(['date' => 'DESC', 'title' => 'ASC'])->toArray();
+
+        self::assertSame(['date' => 'DESC', 'title' => 'ASC'], $args['orderby']);
+    }
+
+    #[Test]
     public function userPrefixNotAllowedInPostBuilder(): void
     {
         $builder = new PostQueryBuilder();

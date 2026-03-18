@@ -95,6 +95,61 @@ final class CommandRegistryTest extends TestCase
 
         self::assertSame([], $registry->all());
     }
+
+    #[Test]
+    public function registerWithEmptyCommands(): void
+    {
+        $registry = new CommandRegistry();
+        $registry->register();
+
+        // After registration with no commands, all() still returns empty
+        self::assertSame([], $registry->all());
+    }
+
+    #[Test]
+    public function registerWithWpCli(): void
+    {
+        if (!class_exists(\WP_CLI::class, false)) {
+            self::markTestSkipped('WP-CLI is not available.');
+        }
+
+        $registry = new CommandRegistry();
+        $registry->add(new DummyCommand());
+
+        // Should register with WP_CLI::add_command
+        $registry->register();
+
+        self::assertCount(1, $registry->all());
+    }
+
+    #[Test]
+    public function registerSetsRegisteredFlagWithoutWpCli(): void
+    {
+        // Without WP_CLI, register() should mark as registered and return early
+        $registry = new CommandRegistry();
+        $registry->add(new DummyCommand());
+
+        $registry->register();
+
+        // Verify it's marked as registered by trying to add after
+        $this->expectException(LogicException::class);
+        $registry->add(new AnotherDummyCommand());
+    }
+
+    #[Test]
+    public function allPreservesInsertionOrder(): void
+    {
+        $registry = new CommandRegistry();
+        $first = new DummyCommand();
+        $second = new AnotherDummyCommand();
+
+        $registry->add($first);
+        $registry->add($second);
+
+        $all = $registry->all();
+        self::assertSame($first, $all[0]);
+        self::assertSame($second, $all[1]);
+    }
 }
 
 #[AsCommand(name: 'test dummy', description: 'A dummy command')]

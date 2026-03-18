@@ -206,9 +206,168 @@ final class AttachmentSubscriberTest extends TestCase
     }
 
     #[Test]
-    public function onDeleteAttachmentRequiresWordPressFunctions(): void
+    public function onDeleteAttachmentDeletesFileAndThumbnails(): void
     {
-        $this->subscriber->onDeleteAttachment(1);
-        self::assertTrue(true); // No exception thrown
+        // Create an attachment with metadata
+        $this->adapter->write('uploads/2024/01/image.jpg', 'original image content');
+        $this->adapter->write('uploads/2024/01/image-150x150.jpg', 'thumbnail');
+        $this->adapter->write('uploads/2024/01/image-300x200.jpg', 'medium');
+
+        $attachmentId = wp_insert_attachment([
+            'post_title' => 'Test Image',
+            'post_mime_type' => 'image/jpeg',
+            'post_status' => 'inherit',
+        ], '2024/01/image.jpg');
+
+        update_post_meta($attachmentId, '_wp_attached_file', '2024/01/image.jpg');
+        wp_update_attachment_metadata($attachmentId, [
+            'file' => '2024/01/image.jpg',
+            'sizes' => [
+                'thumbnail' => ['file' => 'image-150x150.jpg'],
+                'medium' => ['file' => 'image-300x200.jpg'],
+            ],
+        ]);
+
+        $this->subscriber->onDeleteAttachment($attachmentId);
+
+        self::assertFalse($this->adapter->exists('uploads/2024/01/image.jpg'));
+        self::assertFalse($this->adapter->exists('uploads/2024/01/image-150x150.jpg'));
+        self::assertFalse($this->adapter->exists('uploads/2024/01/image-300x200.jpg'));
+    }
+
+    #[Test]
+    public function onDeleteAttachmentSkipsWhenNoAttachedFile(): void
+    {
+        $attachmentId = wp_insert_attachment([
+            'post_title' => 'No File',
+            'post_mime_type' => 'image/jpeg',
+            'post_status' => 'inherit',
+        ]);
+
+        // No _wp_attached_file meta - should not throw
+        $this->subscriber->onDeleteAttachment($attachmentId);
+        self::assertTrue(true);
+    }
+
+    #[Test]
+    public function onDeleteAttachmentHandlesNoThumbnails(): void
+    {
+        $this->adapter->write('uploads/document.pdf', 'pdf content');
+
+        $attachmentId = wp_insert_attachment([
+            'post_title' => 'PDF',
+            'post_mime_type' => 'application/pdf',
+            'post_status' => 'inherit',
+        ], 'document.pdf');
+
+        update_post_meta($attachmentId, '_wp_attached_file', 'document.pdf');
+        // No sizes metadata
+
+        $this->subscriber->onDeleteAttachment($attachmentId);
+
+        self::assertFalse($this->adapter->exists('uploads/document.pdf'));
+    }
+
+    #[Test]
+    public function filterAttachmentUrlReturnsUrlFromResolver(): void
+    {
+        $attachmentId = wp_insert_attachment([
+            'post_title' => 'Test',
+            'post_mime_type' => 'image/jpeg',
+            'post_status' => 'inherit',
+        ], '2024/01/photo.jpg');
+
+        update_post_meta($attachmentId, '_wp_attached_file', '2024/01/photo.jpg');
+
+        $url = $this->subscriber->filterAttachmentUrl('https://example.com/old-url.jpg', $attachmentId);
+
+        self::assertSame('https://cdn.example.com/uploads/2024/01/photo.jpg', $url);
+    }
+
+    #[Test]
+    public function filterAttachmentUrlReturnsOriginalWhenNoMeta(): void
+    {
+        $attachmentId = wp_insert_attachment([
+            'post_title' => 'No Meta',
+            'post_mime_type' => 'image/jpeg',
+            'post_status' => 'inherit',
+        ]);
+
+        // No _wp_attached_file meta
+        $url = $this->subscriber->filterAttachmentUrl('https://example.com/original.jpg', $attachmentId);
+
+        self::assertSame('https://example.com/original.jpg', $url);
+    }
+
+    #[Test]
+    public function filterGetAttachedFileUsesPostMeta(): void
+    {
+        $attachmentId = wp_insert_attachment([
+            'post_title' => 'Meta File',
+            'post_mime_type' => 'image/png',
+            'post_status' => 'inherit',
+        ], '2024/06/banner.png');
+
+        update_post_meta($attachmentId, '_wp_attached_file', '2024/06/banner.png');
+
+        $result = $this->subscriber->filterGetAttachedFile('/var/www/html/wp-content/uploads/2024/06/banner.png', $attachmentId);
+
+        self::assertSame('s3://my-bucket/uploads/2024/06/banner.png', $result);
+    }
+
+    #[Test]
+    public function setFilesizeInMetaFetchesSizeFromStorage(): void
+    {
+        $this->adapter->write('uploads/2024/01/sized.jpg', str_repeat('x', 54321));
+
+        $attachmentId = wp_insert_attachment([
+            'post_title' => 'Sized',
+            'post_mime_type' => 'image/jpeg',
+            'post_status' => 'inherit',
+        ], '2024/01/sized.jpg');
+
+        update_post_meta($attachmentId, '_wp_attached_file', '2024/01/sized.jpg');
+
+        $metadata = ['file' => '2024/01/sized.jpg'];
+        $result = $this->subscriber->setFilesizeInMeta($metadata, $attachmentId);
+
+        self::assertSame(54321, $result['filesize']);
+    }
+
+    #[Test]
+    public function setFilesizeInMetaSkipsWhenFileNotInStorage(): void
+    {
+        $attachmentId = wp_insert_attachment([
+            'post_title' => 'Missing',
+            'post_mime_type' => 'image/jpeg',
+            'post_status' => 'inherit',
+        ], '2024/01/missing.jpg');
+
+        update_post_meta($attachmentId, '_wp_attached_file', '2024/01/missing.jpg');
+
+        $metadata = ['file' => '2024/01/missing.jpg'];
+        $result = $this->subscriber->setFilesizeInMeta($metadata, $attachmentId);
+
+        self::assertArrayNotHasKey('filesize', $result);
+    }
+
+    #[Test]
+    public function filterUniqueFilenameFileListReturnsEmptyForNonMatchingPattern(): void
+    {
+        $result = $this->subscriber->filterUniqueFilenameFileList(
+            null,
+            'other-protocol://different-bucket/path',
+            'file.jpg',
+        );
+
+        self::assertSame([], $result);
+    }
+
+    #[Test]
+    public function filterReadImageMetadataReturnsFalseForFalseInput(): void
+    {
+        // When $meta is already false and path is remote
+        $result = $this->subscriber->filterReadImageMetadata(false, 's3://bucket/file.jpg');
+        self::assertFalse($result);
     }
 }

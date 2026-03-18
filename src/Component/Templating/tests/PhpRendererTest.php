@@ -185,4 +185,67 @@ final class PhpRendererTest extends TestCase
         // Just verify it renders correctly.
         self::assertStringContainsString('<html><body>', $result);
     }
+
+    #[Test]
+    public function rendersTemplateWithExplicitLocatorAndEscaper(): void
+    {
+        $locator = new \WpPack\Component\Templating\TemplateLocator([$this->fixturesPath]);
+        $escaper = new Escaper();
+        $renderer = new PhpRenderer(locator: $locator, escaper: $escaper);
+
+        $result = $renderer->render('simple', ['title' => 'Custom Locator']);
+
+        self::assertStringContainsString('Custom Locator', $result);
+    }
+
+    #[Test]
+    public function existsWithVariant(): void
+    {
+        // Create a variant fixture
+        $variantFile = $this->fixturesPath . '/simple-check.php';
+        file_put_contents($variantFile, '<p>check</p>');
+
+        try {
+            // Clear PHP's stat cache so is_file() sees the newly created file
+            clearstatcache();
+            self::assertTrue($this->renderer->exists('simple', 'check'));
+
+            // exists() with a non-existent variant still returns true
+            // because the base template 'simple.php' is found as a fallback
+            self::assertTrue($this->renderer->exists('simple', 'nonexistent-variant-check'));
+        } finally {
+            unlink($variantFile);
+        }
+    }
+
+    #[Test]
+    public function renderThrowsOnExceptionInTemplate(): void
+    {
+        // Create a template that throws an exception
+        $errorFile = $this->fixturesPath . '/error-template.php';
+        file_put_contents($errorFile, '<?php throw new \RuntimeException("Template error"); ?>');
+
+        try {
+            $this->expectException(\RuntimeException::class);
+            $this->expectExceptionMessage('Template error');
+            $this->renderer->render('error-template');
+        } finally {
+            @unlink($errorFile);
+        }
+    }
+
+    #[Test]
+    public function layoutWithMissingLayoutTemplateThrows(): void
+    {
+        // Create a template that declares a nonexistent layout
+        $templateFile = $this->fixturesPath . '/missing-layout-ref.php';
+        file_put_contents($templateFile, '<?php $view->layout("nonexistent-layout-xyz"); ?>Content');
+
+        try {
+            $this->expectException(\WpPack\Component\Templating\Exception\TemplateNotFoundException::class);
+            $this->renderer->render('missing-layout-ref');
+        } finally {
+            @unlink($templateFile);
+        }
+    }
 }

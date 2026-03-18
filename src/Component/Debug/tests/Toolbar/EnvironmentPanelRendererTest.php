@@ -562,4 +562,235 @@ final class EnvironmentPanelRendererTest extends TestCase
     {
         self::assertSame('environment', $this->renderer->getName());
     }
+
+    #[Test]
+    public function renderIndicatorShowsPhpVersion(): void
+    {
+        $this->setEnvironmentData([
+            'server' => [
+                'web_server' => ['name' => 'Apache', 'version' => '2.4', 'raw' => 'Apache/2.4'],
+            ],
+            'runtime' => ['type' => '', 'details' => []],
+        ]);
+        $this->setWordPressData([]);
+        $this->setMemoryData([]);
+
+        $html = $this->renderer->renderIndicator();
+
+        self::assertStringContainsString('PHP ' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION, $html);
+    }
+
+    #[Test]
+    public function renderIndicatorShowsLambdaRuntime(): void
+    {
+        $this->setEnvironmentData([
+            'server' => [
+                'web_server' => ['name' => '', 'version' => '', 'raw' => ''],
+            ],
+            'runtime' => ['type' => 'lambda', 'details' => []],
+        ]);
+        $this->setWordPressData([]);
+        $this->setMemoryData([]);
+
+        $html = $this->renderer->renderIndicator();
+
+        self::assertStringContainsString('Lambda', $html);
+    }
+
+    #[Test]
+    public function renderIndicatorShowsEcsRuntime(): void
+    {
+        $this->setEnvironmentData([
+            'server' => [
+                'web_server' => ['name' => '', 'version' => '', 'raw' => ''],
+            ],
+            'runtime' => ['type' => 'ecs', 'details' => []],
+        ]);
+        $this->setWordPressData([]);
+        $this->setMemoryData([]);
+
+        $html = $this->renderer->renderIndicator();
+
+        self::assertStringContainsString('ECS', $html);
+    }
+
+    #[Test]
+    public function renderIndicatorShowsK8sRuntime(): void
+    {
+        $this->setEnvironmentData([
+            'server' => [
+                'web_server' => ['name' => '', 'version' => '', 'raw' => ''],
+            ],
+            'runtime' => ['type' => 'kubernetes', 'details' => []],
+        ]);
+        $this->setWordPressData([]);
+        $this->setMemoryData([]);
+
+        $html = $this->renderer->renderIndicator();
+
+        self::assertStringContainsString('K8s', $html);
+    }
+
+    #[Test]
+    public function renderIndicatorShowsWebServerWhenNoRuntime(): void
+    {
+        $this->setEnvironmentData([
+            'server' => [
+                'web_server' => ['name' => 'Nginx', 'version' => '1.24', 'raw' => 'nginx/1.24'],
+            ],
+            'runtime' => ['type' => '', 'details' => []],
+        ]);
+        $this->setWordPressData([]);
+        $this->setMemoryData([]);
+
+        $html = $this->renderer->renderIndicator();
+
+        self::assertStringContainsString('Nginx', $html);
+    }
+
+    #[Test]
+    public function renderIndicatorShowsWpVersionInTooltip(): void
+    {
+        $this->setEnvironmentData([
+            'server' => [
+                'web_server' => ['name' => '', 'version' => '', 'raw' => ''],
+            ],
+            'runtime' => ['type' => '', 'details' => []],
+        ]);
+        $this->setWordPressData(['wp_version' => '6.5.1', 'environment_type' => 'development']);
+        $this->setMemoryData([]);
+
+        $html = $this->renderer->renderIndicator();
+
+        self::assertStringContainsString('WordPress 6.5.1', $html);
+        self::assertStringContainsString('Env: development', $html);
+    }
+
+    #[Test]
+    public function renderIndicatorShowsMemoryLimitInTooltip(): void
+    {
+        $this->setEnvironmentData([
+            'server' => [
+                'web_server' => ['name' => '', 'version' => '', 'raw' => ''],
+            ],
+            'runtime' => ['type' => '', 'details' => []],
+        ]);
+        $this->setWordPressData([]);
+        $this->setMemoryData(['limit' => 268435456]); // 256 MB
+
+        $html = $this->renderer->renderIndicator();
+
+        self::assertStringContainsString('Memory Limit:', $html);
+    }
+
+    #[Test]
+    public function renderIndicatorShowsWebServerRawInTooltip(): void
+    {
+        $this->setEnvironmentData([
+            'server' => [
+                'web_server' => ['name' => 'Apache', 'version' => '2.4', 'raw' => 'Apache/2.4.52 (Ubuntu)'],
+            ],
+            'runtime' => ['type' => '', 'details' => []],
+        ]);
+        $this->setWordPressData([]);
+        $this->setMemoryData([]);
+
+        $html = $this->renderer->renderIndicator();
+
+        self::assertStringContainsString('Apache/2.4.52 (Ubuntu)', $html);
+    }
+
+    #[Test]
+    public function renderIndicatorFallsBackToWebServerNameWhenRawEmpty(): void
+    {
+        $this->setEnvironmentData([
+            'server' => [
+                'web_server' => ['name' => 'Litespeed', 'version' => '', 'raw' => ''],
+            ],
+            'runtime' => ['type' => '', 'details' => []],
+        ]);
+        $this->setWordPressData([]);
+        $this->setMemoryData([]);
+
+        $html = $this->renderer->renderIndicator();
+
+        self::assertStringContainsString('Litespeed', $html);
+    }
+
+    #[Test]
+    public function renderIndicatorNoMemoryLimitWhenZero(): void
+    {
+        $this->setEnvironmentData([
+            'server' => [
+                'web_server' => ['name' => '', 'version' => '', 'raw' => ''],
+            ],
+            'runtime' => ['type' => '', 'details' => []],
+        ]);
+        $this->setWordPressData([]);
+        $this->setMemoryData(['limit' => 0]);
+
+        $html = $this->renderer->renderIndicator();
+
+        self::assertStringNotContainsString('Memory Limit:', $html);
+    }
+
+    private function setWordPressData(array $data): void
+    {
+        $collector = new class ($data) implements DataCollectorInterface {
+            public function __construct(private readonly array $data) {}
+            public function getName(): string
+            {
+                return 'wordpress';
+            }
+            public function collect(): void {}
+            public function getData(): array
+            {
+                return $this->data;
+            }
+            public function getLabel(): string
+            {
+                return 'WordPress';
+            }
+            public function getIndicatorValue(): string
+            {
+                return '';
+            }
+            public function getIndicatorColor(): string
+            {
+                return 'default';
+            }
+            public function reset(): void {}
+        };
+        $this->profile->addCollector($collector);
+    }
+
+    private function setMemoryData(array $data): void
+    {
+        $collector = new class ($data) implements DataCollectorInterface {
+            public function __construct(private readonly array $data) {}
+            public function getName(): string
+            {
+                return 'memory';
+            }
+            public function collect(): void {}
+            public function getData(): array
+            {
+                return $this->data;
+            }
+            public function getLabel(): string
+            {
+                return 'Memory';
+            }
+            public function getIndicatorValue(): string
+            {
+                return '';
+            }
+            public function getIndicatorColor(): string
+            {
+                return 'default';
+            }
+            public function reset(): void {}
+        };
+        $this->profile->addCollector($collector);
+    }
 }

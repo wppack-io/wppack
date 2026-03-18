@@ -161,4 +161,92 @@ final class ErrorRendererTest extends TestCase
 
         self::assertStringContainsString('code 42', $html);
     }
+
+    #[Test]
+    public function renderWithZeroCodeOmitsCodeLabel(): void
+    {
+        $exception = new \RuntimeException('no code error', 0);
+        $flat = FlattenException::createFromThrowable($exception);
+
+        $html = $this->renderer->render($flat);
+
+        self::assertStringNotContainsString('<span class="exception-code">', $html);
+        self::assertStringContainsString('no code error', $html);
+    }
+
+    #[Test]
+    public function shortClassNameWithNamespace(): void
+    {
+        self::assertSame('RuntimeException', $this->renderer->shortClassName('RuntimeException'));
+        self::assertSame('FlattenException', $this->renderer->shortClassName('WpPack\\Component\\Debug\\ErrorHandler\\FlattenException'));
+    }
+
+    #[Test]
+    public function shortClassNameWithoutNamespace(): void
+    {
+        self::assertSame('MyClass', $this->renderer->shortClassName('MyClass'));
+    }
+
+    #[Test]
+    public function shortenPathWithAbspath(): void
+    {
+        // ABSPATH is defined by WordPress in the test environment
+        $path = ABSPATH . 'wp-content/plugins/my-plugin/file.php';
+
+        $result = $this->renderer->shortenPath($path);
+
+        self::assertSame('wp-content/plugins/my-plugin/file.php', $result);
+    }
+
+    #[Test]
+    public function shortenPathWithVendorPath(): void
+    {
+        $path = '/home/user/project/vendor/some-package/src/SomeClass.php';
+
+        $result = $this->renderer->shortenPath($path);
+
+        self::assertSame('.../vendor/some-package/src/SomeClass.php', $result);
+    }
+
+    #[Test]
+    public function shortenPathWithUnknownPath(): void
+    {
+        $path = '/opt/other/location/file.php';
+
+        // This path does not start with ABSPATH and has no /vendor/
+        $result = $this->renderer->shortenPath($path);
+
+        self::assertSame($path, $result);
+    }
+
+    #[Test]
+    public function escapeEscapesHtmlSpecialChars(): void
+    {
+        $result = $this->renderer->escape('<div class="test">value & more</div>');
+
+        self::assertSame('&lt;div class=&quot;test&quot;&gt;value &amp; more&lt;/div&gt;', $result);
+    }
+
+    #[Test]
+    public function getPhpRendererReturnsLazyInstanceWhenNoInjection(): void
+    {
+        $renderer = new ErrorRenderer();
+
+        $phpRenderer = $renderer->getPhpRenderer();
+
+        self::assertInstanceOf(\WpPack\Component\Templating\PhpRenderer::class, $phpRenderer);
+        // Same instance returned on second call
+        self::assertSame($phpRenderer, $renderer->getPhpRenderer());
+    }
+
+    #[Test]
+    public function getPhpRendererReturnsInjectedRenderer(): void
+    {
+        $phpRenderer = new \WpPack\Component\Templating\PhpRenderer([
+            dirname(__DIR__, 2) . '/templates',
+        ]);
+        $renderer = new ErrorRenderer($phpRenderer);
+
+        self::assertSame($phpRenderer, $renderer->getPhpRenderer());
+    }
 }

@@ -323,4 +323,105 @@ final class StreamTest extends TestCase
             unlink($file);
         }
     }
+
+    #[Test]
+    public function appendModeIsWritable(): void
+    {
+        $file = tempnam(sys_get_temp_dir(), 'stream_test_');
+
+        try {
+            $resource = fopen($file, 'a');
+            $stream = new Stream($resource);
+
+            self::assertTrue($stream->isWritable());
+            $stream->close();
+        } finally {
+            unlink($file);
+        }
+    }
+
+    #[Test]
+    public function exclusiveModeIsWritable(): void
+    {
+        $file = tempnam(sys_get_temp_dir(), 'stream_test_');
+        // Remove the file first since x mode fails if file exists
+        unlink($file);
+
+        try {
+            $resource = fopen($file, 'x');
+            $stream = new Stream($resource);
+
+            self::assertTrue($stream->isWritable());
+            $stream->close();
+        } finally {
+            @unlink($file);
+        }
+    }
+
+    #[Test]
+    public function cModeIsWritable(): void
+    {
+        $file = tempnam(sys_get_temp_dir(), 'stream_test_');
+
+        try {
+            $resource = fopen($file, 'c');
+            $stream = new Stream($resource);
+
+            self::assertTrue($stream->isWritable());
+            $stream->close();
+        } finally {
+            unlink($file);
+        }
+    }
+
+    #[Test]
+    public function toStringReturnsContentsFromCurrentPosition(): void
+    {
+        $stream = new Stream('hello world');
+        $stream->read(6); // read "hello "
+
+        // __toString should rewind and return full contents
+        self::assertSame('hello world', (string) $stream);
+    }
+
+    #[Test]
+    public function toStringReturnsEmptyWhenNotSeekable(): void
+    {
+        $stream = new Stream('hello');
+        $stream->close();
+
+        // After close, stream is not seekable; __toString catches exception and returns ''
+        self::assertSame('', (string) $stream);
+    }
+
+    #[Test]
+    public function getContentsOnDetachedStreamThrowsRuntimeException(): void
+    {
+        $stream = new Stream('hello');
+        $stream->detach();
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Stream is not readable');
+        $stream->getContents();
+    }
+
+    #[Test]
+    public function seekFromCurrent(): void
+    {
+        $stream = new Stream('hello world');
+
+        $stream->read(5); // "hello"
+        $stream->seek(1, \SEEK_CUR);
+        self::assertSame('world', $stream->getContents());
+    }
+
+    #[Test]
+    public function getMetadataReturnsSpecificKey(): void
+    {
+        $stream = new Stream('hello');
+
+        $mode = $stream->getMetadata('mode');
+        self::assertNotNull($mode);
+        self::assertIsString($mode);
+    }
 }

@@ -94,4 +94,59 @@ final class MimeServiceProviderTest extends TestCase
 
         self::assertSame([], $tagged);
     }
+
+    #[Test]
+    public function registerMimeTypeGuessersPassSkipsWhenNoMimeTypesDefinition(): void
+    {
+        $builder = new ContainerBuilder();
+        // Do NOT register MimeServiceProvider — MimeTypes definition won't exist
+
+        $pass = new RegisterMimeTypeGuessersPass();
+        $pass->process($builder);
+
+        // Should just return without error
+        self::assertFalse($builder->hasDefinition(MimeTypes::class));
+    }
+
+    #[Test]
+    public function registerMimeTypeGuessersPassRegistersTaggedGuessers(): void
+    {
+        $builder = new ContainerBuilder();
+        $provider = new MimeServiceProvider();
+        $provider->register($builder);
+
+        // Register a tagged guesser
+        $builder->register('custom_guesser', MimeTypeGuesserInterface::class)
+            ->addTag('mime.mime_type_guesser');
+
+        $pass = new RegisterMimeTypeGuessersPass();
+        $pass->process($builder);
+
+        $definition = $builder->findDefinition(MimeTypes::class);
+        $calls = $definition->getMethodCalls();
+
+        $registerCalls = array_filter($calls, static fn(array $call): bool => $call['method'] === 'registerGuesser');
+        self::assertNotEmpty($registerCalls);
+    }
+
+    #[Test]
+    public function registerMimeTypeGuessersPassWithCustomTag(): void
+    {
+        $builder = new ContainerBuilder();
+        $provider = new MimeServiceProvider();
+        $provider->register($builder);
+
+        // Register with custom tag
+        $builder->register('custom_guesser', MimeTypeGuesserInterface::class)
+            ->addTag('custom.guesser_tag');
+
+        $pass = new RegisterMimeTypeGuessersPass('custom.guesser_tag');
+        $pass->process($builder);
+
+        $definition = $builder->findDefinition(MimeTypes::class);
+        $calls = $definition->getMethodCalls();
+
+        $registerCalls = array_filter($calls, static fn(array $call): bool => $call['method'] === 'registerGuesser');
+        self::assertNotEmpty($registerCalls);
+    }
 }

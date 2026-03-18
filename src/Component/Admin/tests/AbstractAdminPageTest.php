@@ -216,6 +216,34 @@ final class AbstractAdminPageTest extends TestCase
         $page->handleEnqueue('some_other_page');
         self::assertFalse($page->scriptsEnqueued);
     }
+
+    #[Test]
+    public function handleEnqueueCallsStylesOnMatchingHookSuffix(): void
+    {
+        $page = new EnqueueBothTestAdminPage();
+        $page->addMenuPage();
+
+        $ref = new \ReflectionProperty(AbstractAdminPage::class, 'hookSuffix');
+        $hookSuffix = $ref->getValue($page);
+
+        self::assertNotNull($hookSuffix);
+
+        $page->handleEnqueue($hookSuffix);
+
+        self::assertTrue($page->scriptsEnqueued);
+        self::assertTrue($page->stylesEnqueued);
+    }
+
+    #[Test]
+    public function handleEnqueueBeforeAddMenuPageSkips(): void
+    {
+        $page = new EnqueueScriptsTestAdminPage();
+
+        // hookSuffix is null before addMenuPage is called
+        $page->handleEnqueue('any-page');
+
+        self::assertFalse($page->scriptsEnqueued);
+    }
 }
 
 #[AsAdminPage(
@@ -305,5 +333,27 @@ class FullAttributeTestAdminPage extends AbstractAdminPage
     public function render(): void
     {
         echo '';
+    }
+}
+
+#[AsAdminPage(slug: 'enqueue-both-page', title: 'Enqueue Both Page')]
+class EnqueueBothTestAdminPage extends AbstractAdminPage
+{
+    public bool $scriptsEnqueued = false;
+    public bool $stylesEnqueued = false;
+
+    public function render(): void
+    {
+        echo '';
+    }
+
+    protected function enqueueScripts(string $hookSuffix): void
+    {
+        $this->scriptsEnqueued = true;
+    }
+
+    protected function enqueueStyles(string $hookSuffix): void
+    {
+        $this->stylesEnqueued = true;
     }
 }

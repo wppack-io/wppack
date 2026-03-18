@@ -89,4 +89,28 @@ final class LocalStorageAdapterFactoryTest extends TestCase
 
         $factory->create(Dsn::fromString('local://'), []);
     }
+
+    #[Test]
+    public function createFromHostnameOnly(): void
+    {
+        $factory = new LocalStorageAdapterFactory();
+        // local://hostname → host=hostname, path=null
+        $dsn = Dsn::fromString('local://storage-host');
+
+        $adapter = $factory->create($dsn);
+
+        self::assertInstanceOf(LocalStorageAdapter::class, $adapter);
+    }
+
+    #[Test]
+    public function createWithPublicUrlFromOptions(): void
+    {
+        $factory = new LocalStorageAdapterFactory();
+        $dsn = Dsn::fromString('local:///var/www/uploads');
+
+        $adapter = $factory->create($dsn, ['public_url' => 'https://static.example.com']);
+
+        self::assertInstanceOf(LocalStorageAdapter::class, $adapter);
+        self::assertSame('https://static.example.com/file.txt', $adapter->publicUrl('file.txt'));
+    }
 }

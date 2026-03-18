@@ -439,6 +439,122 @@ final class TermQueryBuilderTest extends TestCase
         self::assertArrayNotHasKey('meta_query', $args);
     }
 
+    // ── Execution with non-array returns ──
+
+    #[Test]
+    public function getWithInvalidTaxonomyReturnsEmptyResult(): void
+    {
+        // When taxonomy is invalid, WP_Term_Query::get_terms() returns WP_Error (not array)
+        // This tests the !\is_array($terms) fallback branch in get()
+        $result = (new TermQueryBuilder())
+            ->where('t.taxonomy = :tax')
+            ->setParameter('tax', 'nonexistent_taxonomy_' . uniqid())
+            ->get();
+
+        self::assertTrue($result->isEmpty());
+        self::assertSame(0, $result->total);
+    }
+
+    #[Test]
+    public function firstWithInvalidTaxonomyReturnsNull(): void
+    {
+        // When taxonomy is invalid, WP_Term_Query::get_terms() returns WP_Error
+        // This tests the !\is_array($terms) fallback branch in first()
+        $term = (new TermQueryBuilder())
+            ->where('t.taxonomy = :tax')
+            ->setParameter('tax', 'nonexistent_taxonomy_' . uniqid())
+            ->first();
+
+        self::assertNull($term);
+    }
+
+    #[Test]
+    public function getIdsWithInvalidTaxonomyReturnsEmptyArray(): void
+    {
+        // When taxonomy is invalid, WP_Term_Query::get_terms() returns WP_Error
+        // This tests the !\is_array($ids) fallback branch in getIds()
+        $ids = (new TermQueryBuilder())
+            ->where('t.taxonomy = :tax')
+            ->setParameter('tax', 'nonexistent_taxonomy_' . uniqid())
+            ->getIds();
+
+        self::assertSame([], $ids);
+    }
+
+    // ── Ordering with string order ──
+
+    #[Test]
+    public function orderByWithStringOrder(): void
+    {
+        $builder = new TermQueryBuilder();
+        $args = $builder->orderBy('name', 'DESC')->toArray();
+
+        self::assertSame('name', $args['orderby']);
+        self::assertSame('DESC', $args['order']);
+    }
+
+    #[Test]
+    public function addOrderByWithStringOrder(): void
+    {
+        $builder = new TermQueryBuilder();
+        $args = $builder
+            ->orderBy('t.name', 'ASC')
+            ->addOrderBy('t.count', 'DESC')
+            ->toArray();
+
+        self::assertSame(['name' => 'ASC', 'count' => 'DESC'], $args['orderby']);
+    }
+
+    // ── orWhere with closure ──
+
+    #[Test]
+    public function orWhereWithClosure(): void
+    {
+        $builder = new TermQueryBuilder();
+        $args = $builder
+            ->where('m.active = :active')
+            ->orWhere(function (ConditionGroup $group): void {
+                $group->where('m.color = :c1')
+                    ->orWhere('m.color = :c2');
+            })
+            ->setParameter('active', true)
+            ->setParameter('c1', 'red')
+            ->setParameter('c2', 'blue')
+            ->toArray();
+
+        self::assertArrayHasKey('meta_query', $args);
+    }
+
+    // ── Additional standard field error cases ──
+
+    #[Test]
+    public function unsupportedOperatorForIdThrows(): void
+    {
+        $builder = new TermQueryBuilder();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unsupported operator "LIKE" for field "term.id"');
+
+        $builder
+            ->where('t.id LIKE :val')
+            ->setParameter('val', '5%')
+            ->toArray();
+    }
+
+    #[Test]
+    public function unsupportedOperatorForSlugThrows(): void
+    {
+        $builder = new TermQueryBuilder();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unsupported operator "NOT IN" for field "term.slug"');
+
+        $builder
+            ->where('t.slug NOT IN :vals')
+            ->setParameter('vals', ['a', 'b'])
+            ->toArray();
+    }
+
     // ── Execution methods (WordPress integration) ──
 
     #[Test]
@@ -453,6 +569,17 @@ final class TermQueryBuilderTest extends TestCase
     }
 
     #[Test]
+    public function getReturnsTotalCount(): void
+    {
+        $result = (new TermQueryBuilder())
+            ->where('t.taxonomy = :tax')
+            ->setParameter('tax', 'category')
+            ->get();
+
+        self::assertGreaterThanOrEqual(0, $result->total);
+    }
+
+    #[Test]
     public function firstReturnsNullableWpTerm(): void
     {
         $term = (new TermQueryBuilder())
@@ -462,5 +589,106 @@ final class TermQueryBuilderTest extends TestCase
             ->first();
 
         self::assertNull($term);
+    }
+
+    #[Test]
+    public function getIdsReturnsArrayOfIntegers(): void
+    {
+        $ids = (new TermQueryBuilder())
+            ->where('t.taxonomy = :tax')
+            ->setParameter('tax', 'category')
+            ->getIds();
+
+        self::assertIsArray($ids);
+    }
+
+    #[Test]
+    public function countReturnsInteger(): void
+    {
+        $count = (new TermQueryBuilder())
+            ->where('t.taxonomy = :tax')
+            ->setParameter('tax', 'category')
+            ->count();
+
+        self::assertIsInt($count);
+        self::assertGreaterThanOrEqual(0, $count);
+    }
+
+    #[Test]
+    public function existsReturnsBool(): void
+    {
+        $exists = (new TermQueryBuilder())
+            ->where('t.taxonomy = :tax')
+            ->andWhere('t.id = :id')
+            ->setParameters(['tax' => 'category', 'id' => 999999])
+            ->exists();
+
+        self::assertFalse($exists);
+    }
+
+    #[Test]
+    public function existsReturnsTrueWhenTermExists(): void
+    {
+        $termData = wp_insert_term('exists-test-term', 'category');
+        self::assertIsArray($termData);
+        $termId = $termData['term_id'];
+
+        try {
+            $exists = (new TermQueryBuilder())
+                ->hideEmpty(false)
+                ->where('t.taxonomy = :tax')
+                ->andWhere('t.id = :id')
+                ->setParameters(['tax' => 'category', 'id' => $termId])
+                ->exists();
+
+            self::assertTrue($exists);
+        } finally {
+            wp_delete_term($termId, 'category');
+        }
+    }
+
+    #[Test]
+    public function firstReturnsTermWhenExists(): void
+    {
+        $termData = wp_insert_term('first-test-term', 'category');
+        self::assertIsArray($termData);
+        $termId = $termData['term_id'];
+
+        try {
+            $term = (new TermQueryBuilder())
+                ->hideEmpty(false)
+                ->where('t.taxonomy = :tax')
+                ->andWhere('t.id = :id')
+                ->setParameters(['tax' => 'category', 'id' => $termId])
+                ->first();
+
+            self::assertInstanceOf(\WP_Term::class, $term);
+        } finally {
+            wp_delete_term($termId, 'category');
+        }
+    }
+
+    #[Test]
+    public function getIdsReturnsNonEmptyForExistingTerms(): void
+    {
+        $termData = wp_insert_term('getids-test-term', 'category');
+        self::assertIsArray($termData);
+        $termId = $termData['term_id'];
+
+        try {
+            $ids = (new TermQueryBuilder())
+                ->hideEmpty(false)
+                ->where('t.taxonomy = :tax')
+                ->andWhere('t.id = :id')
+                ->setParameters(['tax' => 'category', 'id' => $termId])
+                ->getIds();
+
+            self::assertNotEmpty($ids);
+            foreach ($ids as $id) {
+                self::assertIsInt($id);
+            }
+        } finally {
+            wp_delete_term($termId, 'category');
+        }
     }
 }

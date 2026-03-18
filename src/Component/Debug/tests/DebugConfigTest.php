@@ -610,6 +610,92 @@ final class DebugConfigTest extends TestCase
         }
     }
 
+    #[Test]
+    public function isAllowedRoleReturnsTrueWithEmptyWhitelist(): void
+    {
+        // Cover line 93-95: empty roleWhitelist returns true
+        $config = new DebugConfig(roleWhitelist: []);
+
+        self::assertTrue($config->isAllowedRole());
+    }
+
+    #[Test]
+    public function isAllowedRoleReturnsFalseForNoUser(): void
+    {
+        // No user logged in, roles don't match
+        wp_set_current_user(0);
+
+        $config = new DebugConfig(roleWhitelist: ['administrator']);
+
+        self::assertFalse($config->isAllowedRole());
+    }
+
+    #[Test]
+    public function shouldShowToolbarReturnsFalseForRestRequest(): void
+    {
+        // Cover line 79-81: REST_REQUEST constant check
+        if (!defined('REST_REQUEST') || !REST_REQUEST) {
+            self::markTestSkipped('REST_REQUEST is not defined or not true.');
+        }
+
+        $userId = wp_insert_user([
+            'user_login' => 'test_rest_toolbar_' . uniqid(),
+            'user_pass' => wp_generate_password(),
+            'role' => 'administrator',
+            'user_email' => 'rest_toolbar@example.com',
+        ]);
+
+        wp_set_current_user($userId);
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+
+        try {
+            $config = new DebugConfig(
+                enabled: true,
+                showToolbar: true,
+                ipWhitelist: ['127.0.0.1'],
+                roleWhitelist: ['administrator'],
+            );
+
+            self::assertTrue($config->isAccessAllowed());
+            // REST_REQUEST is true, so toolbar should not be shown
+            self::assertFalse($config->shouldShowToolbar());
+        } finally {
+            wp_set_current_user(0);
+            wp_delete_user($userId);
+        }
+    }
+
+    #[Test]
+    public function isAccessAllowedSkipsIpCheckWhenRemoteAddrEmpty(): void
+    {
+        // Cover line 49-50: empty REMOTE_ADDR skips IP check
+        $_SERVER['REMOTE_ADDR'] = '';
+
+        $config = new DebugConfig(enabled: true, ipWhitelist: ['127.0.0.1']);
+
+        if (!$config->isEnabled()) {
+            self::markTestSkipped('isEnabled() is false in this environment.');
+        }
+
+        // With empty REMOTE_ADDR, the IP check should be skipped
+        // and access depends only on role check
+        $userId = wp_insert_user([
+            'user_login' => 'test_empty_addr_' . uniqid(),
+            'user_pass' => wp_generate_password(),
+            'role' => 'administrator',
+            'user_email' => 'empty_addr@example.com',
+        ]);
+
+        wp_set_current_user($userId);
+
+        try {
+            self::assertTrue($config->isAccessAllowed());
+        } finally {
+            wp_set_current_user(0);
+            wp_delete_user($userId);
+        }
+    }
+
     protected function setUp(): void
     {
         $this->originalServer = $_SERVER;

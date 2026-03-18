@@ -205,4 +205,22 @@ final class AbstractControllerTest extends TestCase
 
         $this->controller->callDenyAccessUnlessGranted('edit_posts');
     }
+
+    #[Test]
+    public function isGrantedThrowsWithoutSecurity(): void
+    {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Security is not available');
+
+        $this->controller->callIsGranted('edit_posts');
+    }
+
+    #[Test]
+    public function denyAccessUnlessGrantedThrowsWithoutSecurity(): void
+    {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Security is not available');
+
+        $this->controller->callDenyAccessUnlessGranted('edit_posts');
+    }
 }

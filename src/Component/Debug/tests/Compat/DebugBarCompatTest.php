@@ -116,4 +116,67 @@ final class DebugBarCompatTest extends TestCase
         self::assertIsArray($bar->panels);
         self::assertSame([], $bar->panels);
     }
+
+    #[Test]
+    public function debugBarEnqueueIsCallable(): void
+    {
+        $bar = new Debug_Bar();
+
+        // enqueue() is a no-op stub — should not throw
+        $bar->enqueue();
+
+        self::assertTrue(true);
+    }
+
+    #[Test]
+    public function debugBarInitPanelsUsesFilter(): void
+    {
+        $mockPanel = new Debug_Bar_Panel('Filter Panel');
+
+        $callback = static fn(array $panels): array => array_merge($panels, [$mockPanel]);
+        add_filter('debug_bar_panels', $callback, 10, 1);
+
+        try {
+            $bar = new Debug_Bar();
+            $bar->init_panels();
+
+            self::assertCount(1, $bar->panels);
+            self::assertSame('Filter Panel', $bar->panels[0]->title());
+        } finally {
+            remove_filter('debug_bar_panels', $callback, 10);
+        }
+    }
+
+    #[Test]
+    public function panelInitReturnsNull(): void
+    {
+        $panel = new Debug_Bar_Panel();
+
+        // init() should return null by default (void)
+        $result = $panel->init();
+
+        self::assertNull($result);
+    }
+
+    #[Test]
+    public function panelConstructorWithFalseInit(): void
+    {
+        // When init() returns false, filter should not be registered
+        $panel = new class ('Init False Panel') extends Debug_Bar_Panel {
+            public function init(): bool
+            {
+                return false;
+            }
+        };
+
+        self::assertSame('Init False Panel', $panel->title());
+    }
+
+    #[Test]
+    public function panelConstructorWithDefaultTitle(): void
+    {
+        $panel = new Debug_Bar_Panel();
+
+        self::assertSame('', $panel->title());
+    }
 }

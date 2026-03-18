@@ -30,6 +30,16 @@ final class AbstractCommandTest extends TestCase
     }
 
     #[Test]
+    public function getCommandAttributeWithUsage(): void
+    {
+        $attribute = TestCommandWithUsage::getCommandAttribute();
+
+        self::assertSame('test usage', $attribute->name);
+        self::assertSame('Command with usage', $attribute->description);
+        self::assertSame('wp test usage <name> --loud', $attribute->usage);
+    }
+
+    #[Test]
     public function getCommandAttributeThrowsWithoutAttribute(): void
     {
         $this->expectException(LogicException::class);
@@ -60,6 +70,18 @@ final class AbstractCommandTest extends TestCase
     }
 
     #[Test]
+    public function getDefinitionWithDefaultConfigure(): void
+    {
+        // Command that does not override configure() — tests the default no-op configure
+        $command = new MinimalTestCommand();
+        $definition = $command->getDefinition();
+
+        self::assertInstanceOf(InputDefinition::class, $definition);
+        self::assertSame([], $definition->getArguments());
+        self::assertSame([], $definition->getOptions());
+    }
+
+    #[Test]
     public function executeReturnsSuccess(): void
     {
         $command = new TestGreetCommand();
@@ -82,6 +104,31 @@ final class AbstractCommandTest extends TestCase
         $command->run($input, $output);
 
         self::assertStringContainsString('HELLO WORLD!', $buffer->getBuffer());
+    }
+
+    #[Test]
+    public function executeOutputsInfoMessage(): void
+    {
+        $command = new TestGreetCommand();
+        $input = new ArrayInput(['name' => 'Alice'], ['loud' => false]);
+        $buffer = new BufferedOutput();
+        $output = new OutputStyle($buffer);
+
+        $command->run($input, $output);
+
+        self::assertStringContainsString('Hello Alice!', $buffer->getBuffer());
+    }
+
+    #[Test]
+    public function executeReturnsFailure(): void
+    {
+        $command = new FailingTestCommand();
+        $input = new ArrayInput();
+        $output = new OutputStyle(new BufferedOutput());
+
+        $exitCode = $command->run($input, $output);
+
+        self::assertSame(AbstractCommand::FAILURE, $exitCode);
     }
 
     #[Test]
@@ -117,10 +164,37 @@ final class TestGreetCommand extends AbstractCommand
     }
 }
 
+#[AsCommand(name: 'test usage', description: 'Command with usage', usage: 'wp test usage <name> --loud')]
+final class TestCommandWithUsage extends AbstractCommand
+{
+    protected function execute(InputInterface $input, OutputStyle $output): int
+    {
+        return self::SUCCESS;
+    }
+}
+
 final class CommandWithoutAttribute extends AbstractCommand
 {
     protected function execute(InputInterface $input, OutputStyle $output): int
     {
         return self::SUCCESS;
+    }
+}
+
+#[AsCommand(name: 'test minimal', description: 'Minimal command')]
+final class MinimalTestCommand extends AbstractCommand
+{
+    protected function execute(InputInterface $input, OutputStyle $output): int
+    {
+        return self::SUCCESS;
+    }
+}
+
+#[AsCommand(name: 'test failing', description: 'A failing command')]
+final class FailingTestCommand extends AbstractCommand
+{
+    protected function execute(InputInterface $input, OutputStyle $output): int
+    {
+        return self::FAILURE;
     }
 }

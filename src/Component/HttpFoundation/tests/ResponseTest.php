@@ -79,4 +79,40 @@ final class ResponseTest extends TestCase
 
         self::assertSame('test', $output);
     }
+
+    #[Test]
+    public function sendMultipleTimesOutputsContentMultipleTimes(): void
+    {
+        $response = new Response('hello');
+
+        ob_start();
+        $response->send();
+        $response->send();
+        $output = ob_get_clean();
+
+        self::assertSame('hellohello', $output);
+    }
+
+    #[Test]
+    public function sendEmptyContent(): void
+    {
+        $response = new Response('', 204);
+
+        ob_start();
+        $response->send();
+        $output = ob_get_clean();
+
+        self::assertSame('', $output);
+        self::assertSame(204, $response->statusCode);
+    }
+
+    #[Test]
+    public function responseCanBeSubclassed(): void
+    {
+        $subclass = new class('sub', 201, ['X-Sub' => 'yes']) extends Response {};
+
+        self::assertSame('sub', $subclass->content);
+        self::assertSame(201, $subclass->statusCode);
+        self::assertSame(['X-Sub' => 'yes'], $subclass->headers);
+    }
 }

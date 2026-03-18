@@ -146,6 +146,120 @@ final class RegisterEventListenersPassTest extends TestCase
     }
 
     #[Test]
+    public function skipsListenerWhenEventCannotBeResolved(): void
+    {
+        $builder = new ContainerBuilder();
+        (new EventDispatcherServiceProvider())->register($builder);
+
+        $builder->register(NoMethodResolveListener::class);
+
+        $pass = new RegisterEventListenersPass();
+        $pass->process($builder);
+
+        $definition = $builder->findDefinition(EventDispatcher::class);
+        $calls = $definition->getMethodCalls();
+
+        $addListenerCalls = array_filter($calls, static fn(array $call): bool => $call['method'] === 'addListener');
+        // Event could not be resolved from __invoke (no typed parameter), so no listener should be added
+        self::assertEmpty($addListenerCalls);
+    }
+
+    #[Test]
+    public function skipsMethodListenerWhenEventCannotBeResolved(): void
+    {
+        $builder = new ContainerBuilder();
+        (new EventDispatcherServiceProvider())->register($builder);
+
+        $builder->register(ListenerWithNoParams::class);
+
+        $pass = new RegisterEventListenersPass();
+        $pass->process($builder);
+
+        $definition = $builder->findDefinition(EventDispatcher::class);
+        $calls = $definition->getMethodCalls();
+
+        $addListenerCalls = array_filter($calls, static fn(array $call): bool => $call['method'] === 'addListener');
+        self::assertEmpty($addListenerCalls);
+    }
+
+    #[Test]
+    public function skipsListenerWithMissingMethod(): void
+    {
+        $builder = new ContainerBuilder();
+        (new EventDispatcherServiceProvider())->register($builder);
+
+        $builder->register(ListenerWithMissingMethod::class);
+
+        $pass = new RegisterEventListenersPass();
+        $pass->process($builder);
+
+        $definition = $builder->findDefinition(EventDispatcher::class);
+        $calls = $definition->getMethodCalls();
+
+        $addListenerCalls = array_filter($calls, static fn(array $call): bool => $call['method'] === 'addListener');
+        // nonExistentMethod doesn't exist, so it should be skipped
+        self::assertEmpty($addListenerCalls);
+    }
+
+    #[Test]
+    public function skipsListenerWithBuiltinParameterType(): void
+    {
+        $builder = new ContainerBuilder();
+        (new EventDispatcherServiceProvider())->register($builder);
+
+        $builder->register(ListenerWithBuiltinParam::class);
+
+        $pass = new RegisterEventListenersPass();
+        $pass->process($builder);
+
+        $definition = $builder->findDefinition(EventDispatcher::class);
+        $calls = $definition->getMethodCalls();
+
+        $addListenerCalls = array_filter($calls, static fn(array $call): bool => $call['method'] === 'addListener');
+        // string is a builtin type, so event cannot be resolved
+        self::assertEmpty($addListenerCalls);
+    }
+
+    #[Test]
+    public function skipsNonExistentClass(): void
+    {
+        $builder = new ContainerBuilder();
+        (new EventDispatcherServiceProvider())->register($builder);
+
+        // Register a service with a class that doesn't exist
+        $builder->register('non_existent_service', 'NonExistent\\FakeClass');
+
+        $pass = new RegisterEventListenersPass();
+        $pass->process($builder);
+
+        // Should not throw; non-existent classes are skipped
+        $definition = $builder->findDefinition(EventDispatcher::class);
+        $calls = $definition->getMethodCalls();
+
+        $listenerCalls = array_filter($calls, static fn(array $call): bool => \in_array($call['method'], ['addListener', 'addSubscriber'], true));
+        self::assertEmpty($listenerCalls);
+    }
+
+    #[Test]
+    public function processesDefinitionUsingGetClassFallsBackToId(): void
+    {
+        $builder = new ContainerBuilder();
+        (new EventDispatcherServiceProvider())->register($builder);
+
+        // Register using class as the ID (no separate class argument)
+        $builder->register(ClassLevelListener::class);
+
+        $pass = new RegisterEventListenersPass();
+        $pass->process($builder);
+
+        $definition = $builder->findDefinition(EventDispatcher::class);
+        $calls = $definition->getMethodCalls();
+
+        $addListenerCalls = array_filter($calls, static fn(array $call): bool => $call['method'] === 'addListener');
+        self::assertNotEmpty($addListenerCalls);
+    }
+
+    #[Test]
     public function resolvesEventFromMethodParameter(): void
     {
         $builder = new ContainerBuilder();
@@ -230,3 +344,34 @@ class MethodOverrideListener
 }
 
 class AnotherTestEvent extends Event {}
+
+#[AsEventListener]
+class NoMethodResolveListener
+{
+    // __invoke without a parameter type hint
+    public function __invoke(): void {}
+}
+
+class ListenerWithNoParams
+{
+    #[AsEventListener]
+    public function handle(): void {}
+}
+
+#[AsEventListener(method: 'nonExistentMethod')]
+class ListenerWithMissingMethod
+{
+    public function __invoke(PassTestEvent $event): void {}
+}
+
+class PredisClientInterfaceListener
+{
+    #[AsEventListener(event: PassTestEvent::class, method: 'handleEvent')]
+    public function handleEvent(PassTestEvent $event): void {}
+}
+
+class ListenerWithBuiltinParam
+{
+    #[AsEventListener]
+    public function handle(string $data): void {}
+}

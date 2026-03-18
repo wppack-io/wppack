@@ -145,4 +145,81 @@ final class CompressedContentProcessorTest extends TestCase
         // Size should match the rest of the data
         self::assertSame(\strlen($encoded) - 4, $chunkSize);
     }
+
+    #[Test]
+    public function defaultTypeIsGzip(): void
+    {
+        // Test default constructor argument
+        $processor = new CompressedContentProcessor();
+
+        $original = 'Default compression test';
+        $encoded = $processor->encode($original);
+        $decoded = $processor->decode($encoded);
+
+        self::assertSame($original, $decoded);
+    }
+
+    #[Test]
+    public function binaryDataRoundTrip(): void
+    {
+        $processor = new CompressedContentProcessor('gzip');
+
+        $original = random_bytes(2048);
+        $encoded = $processor->encode($original);
+        $decoded = $processor->decode($encoded);
+
+        self::assertSame($original, $decoded);
+    }
+
+    #[Test]
+    public function singleByteRoundTrip(): void
+    {
+        $processor = new CompressedContentProcessor('gzip');
+
+        $original = 'A';
+        $encoded = $processor->encode($original);
+        $decoded = $processor->decode($encoded);
+
+        self::assertSame($original, $decoded);
+    }
+
+    #[Test]
+    public function decodeEmptyStringReturnsEmpty(): void
+    {
+        $processor = new CompressedContentProcessor('gzip');
+
+        $decoded = $processor->decode('');
+
+        self::assertSame('', $decoded);
+    }
+
+    #[Test]
+    public function bzip2MultiChunkRoundTripIfAvailable(): void
+    {
+        if (!\function_exists('bzcompress')) {
+            self::markTestSkipped('bzip2 extension is not available.');
+        }
+
+        $processor = new CompressedContentProcessor('bzip2');
+
+        // Data larger than one chunk
+        $original = str_repeat('bzip2 chunk data. ', 40000);
+        $encoded = $processor->encode($original);
+        $decoded = $processor->decode($encoded);
+
+        self::assertSame($original, $decoded);
+    }
+
+    #[Test]
+    public function corruptedCompressedDataThrows(): void
+    {
+        $processor = new CompressedContentProcessor('gzip');
+
+        // Create a valid size header but with corrupted compressed data
+        $corruptedData = pack('N', 10) . 'not_gzip!!';
+
+        $this->expectException(ArchiveException::class);
+        $this->expectExceptionMessage('Failed to decompress');
+        $processor->decode($corruptedData);
+    }
 }

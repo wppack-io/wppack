@@ -349,4 +349,484 @@ final class EnvironmentDataCollectorTest extends TestCase
         self::assertGreaterThanOrEqual(0, $result['cached_scripts']);
         self::assertGreaterThanOrEqual(0, $result['oom_restarts']);
     }
+
+    #[Test]
+    public function collectGathersServerInfo(): void
+    {
+        $originalServer = $_SERVER;
+        $_SERVER['SERVER_SOFTWARE'] = 'Apache/2.4.52 (Ubuntu)';
+        $_SERVER['SERVER_NAME'] = 'example.com';
+        $_SERVER['SERVER_ADDR'] = '10.0.0.1';
+        $_SERVER['SERVER_PORT'] = '443';
+        $_SERVER['SERVER_PROTOCOL'] = 'HTTP/1.1';
+        $_SERVER['DOCUMENT_ROOT'] = '/var/www/html';
+
+        try {
+            $this->collector->collect();
+            $data = $this->collector->getData();
+
+            self::assertArrayHasKey('server', $data);
+            $server = $data['server'];
+            self::assertSame('Apache/2.4.52 (Ubuntu)', $server['software']);
+            self::assertSame('example.com', $server['name']);
+            self::assertSame('10.0.0.1', $server['addr']);
+            self::assertSame('443', $server['port']);
+            self::assertSame('HTTP/1.1', $server['protocol']);
+            self::assertSame('/var/www/html', $server['document_root']);
+
+            // web_server should be parsed
+            self::assertArrayHasKey('web_server', $server);
+            self::assertSame('Apache', $server['web_server']['name']);
+            self::assertSame('2.4.52', $server['web_server']['version']);
+        } finally {
+            $_SERVER = $originalServer;
+        }
+    }
+
+    #[Test]
+    public function collectServerInfoDefaultsWhenNoServerVars(): void
+    {
+        $originalServer = $_SERVER;
+        unset(
+            $_SERVER['SERVER_SOFTWARE'],
+            $_SERVER['SERVER_NAME'],
+            $_SERVER['SERVER_ADDR'],
+            $_SERVER['SERVER_PORT'],
+            $_SERVER['SERVER_PROTOCOL'],
+            $_SERVER['DOCUMENT_ROOT'],
+        );
+
+        try {
+            $this->collector->collect();
+            $data = $this->collector->getData();
+
+            self::assertArrayHasKey('server', $data);
+            $server = $data['server'];
+            self::assertSame('', $server['software']);
+            self::assertSame('', $server['name']);
+            self::assertSame('', $server['addr']);
+            self::assertSame('', $server['port']);
+            self::assertSame('', $server['protocol']);
+            self::assertSame('', $server['document_root']);
+        } finally {
+            $_SERVER = $originalServer;
+        }
+    }
+
+    #[Test]
+    public function parseWebServerWithApache(): void
+    {
+        $method = new \ReflectionMethod($this->collector, 'parseWebServer');
+
+        $result = $method->invoke($this->collector, 'Apache/2.4.52 (Ubuntu)');
+
+        self::assertSame('Apache', $result['name']);
+        self::assertSame('2.4.52', $result['version']);
+        self::assertSame('Apache/2.4.52 (Ubuntu)', $result['raw']);
+    }
+
+    #[Test]
+    public function parseWebServerWithNginx(): void
+    {
+        $method = new \ReflectionMethod($this->collector, 'parseWebServer');
+
+        $result = $method->invoke($this->collector, 'nginx/1.24.0');
+
+        self::assertSame('Nginx', $result['name']);
+        self::assertSame('1.24.0', $result['version']);
+        self::assertSame('nginx/1.24.0', $result['raw']);
+    }
+
+    #[Test]
+    public function parseWebServerWithEmptyString(): void
+    {
+        $method = new \ReflectionMethod($this->collector, 'parseWebServer');
+
+        $result = $method->invoke($this->collector, '');
+
+        self::assertSame('', $result['name']);
+        self::assertSame('', $result['version']);
+        self::assertSame('', $result['raw']);
+    }
+
+    #[Test]
+    public function parseWebServerWithNameOnly(): void
+    {
+        $method = new \ReflectionMethod($this->collector, 'parseWebServer');
+
+        $result = $method->invoke($this->collector, 'LiteSpeed');
+
+        self::assertSame('Litespeed', $result['name']);
+        self::assertSame('', $result['version']);
+        self::assertSame('LiteSpeed', $result['raw']);
+    }
+
+    #[Test]
+    public function getEnvReturnsEmptyStringWhenNotSet(): void
+    {
+        $method = new \ReflectionMethod($this->collector, 'getEnv');
+
+        // Use an environment variable name that is very unlikely to exist
+        $result = $method->invoke($this->collector, 'WPPACK_TEST_NONEXISTENT_VAR_12345');
+
+        self::assertSame('', $result);
+    }
+
+    #[Test]
+    public function getEnvReturnsValueWhenSet(): void
+    {
+        $method = new \ReflectionMethod($this->collector, 'getEnv');
+
+        $envName = 'WPPACK_TEST_ENV_VAR_' . uniqid();
+        putenv($envName . '=test_value');
+
+        try {
+            $result = $method->invoke($this->collector, $envName);
+            self::assertSame('test_value', $result);
+        } finally {
+            putenv($envName);
+        }
+    }
+
+    #[Test]
+    public function readFileContentReturnsEmptyForNonexistentFile(): void
+    {
+        $method = new \ReflectionMethod($this->collector, 'readFileContent');
+
+        $result = $method->invoke($this->collector, '/nonexistent/path/to/file');
+
+        self::assertSame('', $result);
+    }
+
+    #[Test]
+    public function readFileContentReturnsContentForExistingFile(): void
+    {
+        $method = new \ReflectionMethod($this->collector, 'readFileContent');
+
+        $tmpFile = tempnam(sys_get_temp_dir(), 'wppack_test_');
+        file_put_contents($tmpFile, "  test content  \n");
+
+        try {
+            $result = $method->invoke($this->collector, $tmpFile);
+            self::assertSame('test content', $result);
+        } finally {
+            unlink($tmpFile);
+        }
+    }
+
+    #[Test]
+    public function isDockerReturnsBoolValue(): void
+    {
+        $method = new \ReflectionMethod($this->collector, 'isDocker');
+
+        $result = $method->invoke($this->collector);
+
+        self::assertIsBool($result);
+    }
+
+    #[Test]
+    public function isEc2ReturnsBoolValue(): void
+    {
+        $method = new \ReflectionMethod($this->collector, 'isEc2');
+
+        $result = $method->invoke($this->collector);
+
+        self::assertIsBool($result);
+    }
+
+    #[Test]
+    public function collectRuntimeReturnsTypeAndDetails(): void
+    {
+        $method = new \ReflectionMethod($this->collector, 'collectRuntime');
+
+        $result = $method->invoke($this->collector);
+
+        self::assertArrayHasKey('type', $result);
+        self::assertArrayHasKey('details', $result);
+        self::assertIsString($result['type']);
+        self::assertIsArray($result['details']);
+    }
+
+    #[Test]
+    public function collectRuntimeLambdaDetection(): void
+    {
+        $method = new \ReflectionMethod($this->collector, 'collectRuntime');
+
+        $envName = 'AWS_LAMBDA_FUNCTION_NAME';
+        $originalValue = getenv($envName);
+
+        putenv($envName . '=my-lambda-function');
+        putenv('AWS_LAMBDA_FUNCTION_MEMORY_SIZE=512');
+        putenv('AWS_REGION=us-east-1');
+        putenv('AWS_EXECUTION_ENV=provided.al2023');
+        putenv('_HANDLER=handler');
+
+        try {
+            $result = $method->invoke($this->collector);
+
+            self::assertSame('lambda', $result['type']);
+            self::assertSame('my-lambda-function', $result['details']['Function']);
+            self::assertSame('512', $result['details']['Memory']);
+            self::assertSame('us-east-1', $result['details']['Region']);
+            self::assertSame('provided.al2023', $result['details']['Runtime']);
+            self::assertSame('handler', $result['details']['Handler']);
+        } finally {
+            if ($originalValue !== false) {
+                putenv($envName . '=' . $originalValue);
+            } else {
+                putenv($envName);
+            }
+            putenv('AWS_LAMBDA_FUNCTION_MEMORY_SIZE');
+            putenv('AWS_REGION');
+            putenv('AWS_EXECUTION_ENV');
+            putenv('_HANDLER');
+        }
+    }
+
+    #[Test]
+    public function collectRuntimeEcsDetectionV4(): void
+    {
+        $method = new \ReflectionMethod($this->collector, 'collectRuntime');
+
+        // Clear Lambda env to avoid lambda detection
+        $originalLambda = getenv('AWS_LAMBDA_FUNCTION_NAME');
+        putenv('AWS_LAMBDA_FUNCTION_NAME');
+
+        $originalEcsV4 = getenv('ECS_CONTAINER_METADATA_URI_V4');
+        $originalEcsV3 = getenv('ECS_CONTAINER_METADATA_URI');
+        $originalExecEnv = getenv('AWS_EXECUTION_ENV');
+        $originalRegion = getenv('AWS_REGION');
+
+        putenv('ECS_CONTAINER_METADATA_URI_V4=http://169.254.170.2/v4/metadata');
+        putenv('AWS_EXECUTION_ENV=AWS_ECS_FARGATE');
+        putenv('AWS_REGION=ap-northeast-1');
+
+        try {
+            $result = $method->invoke($this->collector);
+
+            self::assertSame('ecs', $result['type']);
+            self::assertSame('Fargate', $result['details']['Launch Type']);
+            self::assertSame('ap-northeast-1', $result['details']['Region']);
+        } finally {
+            if ($originalLambda !== false) {
+                putenv('AWS_LAMBDA_FUNCTION_NAME=' . $originalLambda);
+            } else {
+                putenv('AWS_LAMBDA_FUNCTION_NAME');
+            }
+            if ($originalEcsV4 !== false) {
+                putenv('ECS_CONTAINER_METADATA_URI_V4=' . $originalEcsV4);
+            } else {
+                putenv('ECS_CONTAINER_METADATA_URI_V4');
+            }
+            if ($originalEcsV3 !== false) {
+                putenv('ECS_CONTAINER_METADATA_URI=' . $originalEcsV3);
+            } else {
+                putenv('ECS_CONTAINER_METADATA_URI');
+            }
+            if ($originalExecEnv !== false) {
+                putenv('AWS_EXECUTION_ENV=' . $originalExecEnv);
+            } else {
+                putenv('AWS_EXECUTION_ENV');
+            }
+            if ($originalRegion !== false) {
+                putenv('AWS_REGION=' . $originalRegion);
+            } else {
+                putenv('AWS_REGION');
+            }
+        }
+    }
+
+    #[Test]
+    public function collectRuntimeEcsDetectionV3FallbackEc2LaunchType(): void
+    {
+        $method = new \ReflectionMethod($this->collector, 'collectRuntime');
+
+        $originalLambda = getenv('AWS_LAMBDA_FUNCTION_NAME');
+        putenv('AWS_LAMBDA_FUNCTION_NAME');
+
+        $originalEcsV4 = getenv('ECS_CONTAINER_METADATA_URI_V4');
+        $originalEcsV3 = getenv('ECS_CONTAINER_METADATA_URI');
+        $originalExecEnv = getenv('AWS_EXECUTION_ENV');
+        $originalRegion = getenv('AWS_REGION');
+
+        // Clear V4 so we fall back to V3
+        putenv('ECS_CONTAINER_METADATA_URI_V4');
+        putenv('ECS_CONTAINER_METADATA_URI=http://169.254.170.2/v3/metadata');
+        putenv('AWS_EXECUTION_ENV=AWS_ECS_EC2');
+        putenv('AWS_REGION=us-west-2');
+
+        try {
+            $result = $method->invoke($this->collector);
+
+            self::assertSame('ecs', $result['type']);
+            self::assertSame('EC2', $result['details']['Launch Type']);
+            self::assertSame('us-west-2', $result['details']['Region']);
+        } finally {
+            if ($originalLambda !== false) {
+                putenv('AWS_LAMBDA_FUNCTION_NAME=' . $originalLambda);
+            } else {
+                putenv('AWS_LAMBDA_FUNCTION_NAME');
+            }
+            if ($originalEcsV4 !== false) {
+                putenv('ECS_CONTAINER_METADATA_URI_V4=' . $originalEcsV4);
+            } else {
+                putenv('ECS_CONTAINER_METADATA_URI_V4');
+            }
+            if ($originalEcsV3 !== false) {
+                putenv('ECS_CONTAINER_METADATA_URI=' . $originalEcsV3);
+            } else {
+                putenv('ECS_CONTAINER_METADATA_URI');
+            }
+            if ($originalExecEnv !== false) {
+                putenv('AWS_EXECUTION_ENV=' . $originalExecEnv);
+            } else {
+                putenv('AWS_EXECUTION_ENV');
+            }
+            if ($originalRegion !== false) {
+                putenv('AWS_REGION=' . $originalRegion);
+            } else {
+                putenv('AWS_REGION');
+            }
+        }
+    }
+
+    #[Test]
+    public function collectRuntimeKubernetesDetection(): void
+    {
+        $method = new \ReflectionMethod($this->collector, 'collectRuntime');
+
+        $originalLambda = getenv('AWS_LAMBDA_FUNCTION_NAME');
+        $originalEcsV4 = getenv('ECS_CONTAINER_METADATA_URI_V4');
+        $originalEcsV3 = getenv('ECS_CONTAINER_METADATA_URI');
+        $originalK8sHost = getenv('KUBERNETES_SERVICE_HOST');
+        $originalPodNamespace = getenv('POD_NAMESPACE');
+        $originalNodeName = getenv('NODE_NAME');
+        $originalPodName = getenv('POD_NAME');
+        $originalHostname = getenv('HOSTNAME');
+
+        putenv('AWS_LAMBDA_FUNCTION_NAME');
+        putenv('ECS_CONTAINER_METADATA_URI_V4');
+        putenv('ECS_CONTAINER_METADATA_URI');
+        putenv('KUBERNETES_SERVICE_HOST=10.0.0.1');
+        putenv('POD_NAMESPACE=default');
+        putenv('NODE_NAME=node-01');
+        putenv('POD_NAME=my-pod-abc123');
+
+        try {
+            $result = $method->invoke($this->collector);
+
+            self::assertSame('kubernetes', $result['type']);
+            self::assertSame('default', $result['details']['Namespace']);
+            self::assertSame('node-01', $result['details']['Node']);
+            self::assertSame('my-pod-abc123', $result['details']['Pod']);
+        } finally {
+            foreach ([
+                'AWS_LAMBDA_FUNCTION_NAME' => $originalLambda,
+                'ECS_CONTAINER_METADATA_URI_V4' => $originalEcsV4,
+                'ECS_CONTAINER_METADATA_URI' => $originalEcsV3,
+                'KUBERNETES_SERVICE_HOST' => $originalK8sHost,
+                'POD_NAMESPACE' => $originalPodNamespace,
+                'NODE_NAME' => $originalNodeName,
+                'POD_NAME' => $originalPodName,
+                'HOSTNAME' => $originalHostname,
+            ] as $name => $value) {
+                if ($value !== false) {
+                    putenv($name . '=' . $value);
+                } else {
+                    putenv($name);
+                }
+            }
+        }
+    }
+
+    #[Test]
+    public function collectRuntimeKubernetesPodFallsBackToHostname(): void
+    {
+        $method = new \ReflectionMethod($this->collector, 'collectRuntime');
+
+        $originalLambda = getenv('AWS_LAMBDA_FUNCTION_NAME');
+        $originalEcsV4 = getenv('ECS_CONTAINER_METADATA_URI_V4');
+        $originalEcsV3 = getenv('ECS_CONTAINER_METADATA_URI');
+        $originalK8sHost = getenv('KUBERNETES_SERVICE_HOST');
+        $originalPodName = getenv('POD_NAME');
+        $originalHostname = getenv('HOSTNAME');
+
+        putenv('AWS_LAMBDA_FUNCTION_NAME');
+        putenv('ECS_CONTAINER_METADATA_URI_V4');
+        putenv('ECS_CONTAINER_METADATA_URI');
+        putenv('KUBERNETES_SERVICE_HOST=10.0.0.1');
+        putenv('POD_NAME');
+        putenv('HOSTNAME=fallback-hostname');
+
+        try {
+            $result = $method->invoke($this->collector);
+
+            self::assertSame('kubernetes', $result['type']);
+            self::assertSame('fallback-hostname', $result['details']['Pod']);
+        } finally {
+            foreach ([
+                'AWS_LAMBDA_FUNCTION_NAME' => $originalLambda,
+                'ECS_CONTAINER_METADATA_URI_V4' => $originalEcsV4,
+                'ECS_CONTAINER_METADATA_URI' => $originalEcsV3,
+                'KUBERNETES_SERVICE_HOST' => $originalK8sHost,
+                'POD_NAME' => $originalPodName,
+                'HOSTNAME' => $originalHostname,
+            ] as $name => $value) {
+                if ($value !== false) {
+                    putenv($name . '=' . $value);
+                } else {
+                    putenv($name);
+                }
+            }
+        }
+    }
+
+    #[Test]
+    public function collectRuntimeEcsWithEmptyExecEnv(): void
+    {
+        $method = new \ReflectionMethod($this->collector, 'collectRuntime');
+
+        $originalLambda = getenv('AWS_LAMBDA_FUNCTION_NAME');
+        $originalEcsV4 = getenv('ECS_CONTAINER_METADATA_URI_V4');
+        $originalExecEnv = getenv('AWS_EXECUTION_ENV');
+
+        putenv('AWS_LAMBDA_FUNCTION_NAME');
+        putenv('ECS_CONTAINER_METADATA_URI_V4=http://169.254.170.2/v4');
+        putenv('AWS_EXECUTION_ENV');
+
+        try {
+            $result = $method->invoke($this->collector);
+
+            self::assertSame('ecs', $result['type']);
+            // With empty exec env, launch type should be empty (filtered out by array_filter)
+            self::assertArrayNotHasKey('Launch Type', $result['details']);
+        } finally {
+            if ($originalLambda !== false) {
+                putenv('AWS_LAMBDA_FUNCTION_NAME=' . $originalLambda);
+            } else {
+                putenv('AWS_LAMBDA_FUNCTION_NAME');
+            }
+            if ($originalEcsV4 !== false) {
+                putenv('ECS_CONTAINER_METADATA_URI_V4=' . $originalEcsV4);
+            } else {
+                putenv('ECS_CONTAINER_METADATA_URI_V4');
+            }
+            if ($originalExecEnv !== false) {
+                putenv('AWS_EXECUTION_ENV=' . $originalExecEnv);
+            } else {
+                putenv('AWS_EXECUTION_ENV');
+            }
+        }
+    }
+
+    #[Test]
+    public function collectRuntimeGathersData(): void
+    {
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertArrayHasKey('runtime', $data);
+        self::assertArrayHasKey('type', $data['runtime']);
+        self::assertArrayHasKey('details', $data['runtime']);
+    }
 }

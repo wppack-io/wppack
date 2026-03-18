@@ -111,6 +111,24 @@ final class RegisterHookSubscribersPassTest extends TestCase
         $registerCalls = array_filter($calls, static fn(array $call): bool => $call['method'] === 'register');
         self::assertEmpty($registerCalls);
     }
+
+    #[Test]
+    public function skipsNonExistentClass(): void
+    {
+        $builder = new ContainerBuilder();
+        (new HookServiceProvider())->register($builder);
+
+        $builder->register('non_existent_service', 'NonExistent\\FakeSubscriber');
+
+        $pass = new RegisterHookSubscribersPass();
+        $pass->process($builder);
+
+        $definition = $builder->findDefinition(HookDiscovery::class);
+        $calls = $definition->getMethodCalls();
+
+        $registerCalls = array_filter($calls, static fn(array $call): bool => $call['method'] === 'register');
+        self::assertEmpty($registerCalls);
+    }
 }
 
 // Test fixtures

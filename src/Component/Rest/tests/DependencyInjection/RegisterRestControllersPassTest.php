@@ -76,6 +76,23 @@ final class RegisterRestControllersPassTest extends TestCase
         $registerCalls = array_filter($methodCalls, static fn(array $call): bool => $call['method'] === 'register');
         self::assertCount(0, $registerCalls);
     }
+
+    #[Test]
+    public function skipsNonExistentClass(): void
+    {
+        $builder = new ContainerBuilder();
+        $builder->register(RestRegistry::class);
+        $builder->register('non_existent_service', 'NonExistent\\RestController');
+
+        $pass = new RegisterRestControllersPass();
+        $pass->process($builder);
+
+        $registryDef = $builder->findDefinition(RestRegistry::class);
+        $methodCalls = $registryDef->getMethodCalls();
+
+        $registerCalls = array_filter($methodCalls, static fn(array $call): bool => $call['method'] === 'register');
+        self::assertCount(0, $registerCalls);
+    }
 }
 
 #[RestRoute('/pass-test', namespace: 'test/v1')]

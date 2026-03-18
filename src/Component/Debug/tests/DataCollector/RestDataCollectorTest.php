@@ -1039,6 +1039,121 @@ final class RestDataCollectorTest extends TestCase
     }
 
     #[Test]
+    public function collectHandlesRouteWithNoNamespaceMatch(): void
+    {
+        global $wp_rest_server;
+        $originalServer = $wp_rest_server;
+        $wp_rest_server = null;
+
+        // Register a route with a namespace that won't match standard namespaces detection
+        $registered = false;
+        $registerCallback = static function () use (&$registered): void {
+            if ($registered) {
+                return;
+            }
+            register_rest_route('custom-ns/v1', '/test-route', [
+                'methods' => ['GET', 'POST'],
+                'callback' => static fn(): \WP_REST_Response => new \WP_REST_Response(['ok' => true]),
+                'permission_callback' => '__return_true',
+            ]);
+            $registered = true;
+        };
+
+        add_action('rest_api_init', $registerCallback, 10);
+
+        try {
+            rest_get_server();
+
+            $this->collector->collect();
+            $data = $this->collector->getData();
+
+            // Find our route in the grouped routes
+            $found = false;
+            foreach ($data['routes'] as $ns => $routes) {
+                foreach ($routes as $route) {
+                    if ($route['route'] === '/custom-ns/v1/test-route') {
+                        $found = true;
+                        self::assertSame('custom-ns/v1', $ns);
+                        self::assertContains('GET', $route['methods']);
+                        self::assertContains('POST', $route['methods']);
+                        break 2;
+                    }
+                }
+            }
+            self::assertTrue($found, 'Custom namespaced route should be found');
+        } finally {
+            remove_action('rest_api_init', $registerCallback, 10);
+            $wp_rest_server = $originalServer;
+        }
+    }
+
+    #[Test]
+    public function collectHandlesMethodsWithEnabledFalse(): void
+    {
+        global $wp_rest_server;
+        $originalServer = $wp_rest_server;
+        $wp_rest_server = null;
+
+        // Register a route with some methods disabled
+        $registered = false;
+        $registerCallback = static function () use (&$registered): void {
+            if ($registered) {
+                return;
+            }
+            register_rest_route('test-methods/v1', '/disabled-check', [
+                [
+                    'methods' => 'GET',
+                    'callback' => static fn(): \WP_REST_Response => new \WP_REST_Response(['ok' => true]),
+                    'permission_callback' => '__return_true',
+                ],
+            ]);
+            $registered = true;
+        };
+
+        add_action('rest_api_init', $registerCallback, 10);
+
+        try {
+            rest_get_server();
+
+            $this->collector->collect();
+            $data = $this->collector->getData();
+
+            // Route should have only enabled methods
+            $found = false;
+            foreach ($data['routes'] as $ns => $routes) {
+                foreach ($routes as $route) {
+                    if ($route['route'] === '/test-methods/v1/disabled-check') {
+                        $found = true;
+                        self::assertIsArray($route['methods']);
+                        break 2;
+                    }
+                }
+            }
+            self::assertTrue($found, 'Route should be found');
+        } finally {
+            remove_action('rest_api_init', $registerCallback, 10);
+            $wp_rest_server = $originalServer;
+        }
+    }
+
+    #[Test]
+    public function collectTotalRoutesMatchesCount(): void
+    {
+
+        rest_get_server();
+
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        // Total routes should match the sum of routes across all namespaces
+        $sum = 0;
+        foreach ($data['routes'] as $routes) {
+            $sum += count($routes);
+        }
+        self::assertSame($data['total_routes'], $sum);
+    }
+
+    #[Test]
     public function collectCurrentRequestCookieAuthWhenLoggedIn(): void
     {
 

@@ -27,7 +27,16 @@ final class CommandRunnerTest extends TestCase
     }
 
     #[Test]
-    public function invokeRequiresWpCli(): void
+    public function runnerIsCallable(): void
+    {
+        $command = new RunnerTestCommand();
+        $runner = new CommandRunner($command);
+
+        self::assertIsCallable($runner);
+    }
+
+    #[Test]
+    public function invokeSuccessDoesNotHalt(): void
     {
         if (!class_exists(\WP_CLI::class, false)) {
             self::markTestSkipped('WP-CLI is not available.');
@@ -36,6 +45,20 @@ final class CommandRunnerTest extends TestCase
         $command = new RunnerTestCommand();
         $runner = new CommandRunner($command);
         $runner(['world'], ['shout' => '']);
+    }
+
+    #[Test]
+    public function invokeFailureCallsHalt(): void
+    {
+        if (!class_exists(\WP_CLI::class, false)) {
+            self::markTestSkipped('WP-CLI is not available.');
+        }
+
+        $command = new RunnerFailCommand();
+        $runner = new CommandRunner($command);
+
+        // WP_CLI::halt() would exit, so we can only test this with WP-CLI present
+        $runner([], []);
     }
 }
 
@@ -52,5 +75,14 @@ final class RunnerTestCommand extends AbstractCommand
     protected function execute(InputInterface $input, OutputStyle $output): int
     {
         return self::SUCCESS;
+    }
+}
+
+#[AsCommand(name: 'test runner-fail', description: 'Failing runner test')]
+final class RunnerFailCommand extends AbstractCommand
+{
+    protected function execute(InputInterface $input, OutputStyle $output): int
+    {
+        return self::FAILURE;
     }
 }

@@ -332,4 +332,88 @@ final class ErrorHandlerTest extends TestCase
         self::assertFalse($ref->getValue($this->errorHandler));
         self::assertCount(1, $this->loggedEntries);
     }
+
+    #[Test]
+    public function reentrantCallReturnsFalse(): void
+    {
+        // Simulate a re-entrant error by manually setting the handling flag
+        $ref = new \ReflectionProperty($this->errorHandler, 'handling');
+
+        $this->errorHandler->register();
+
+        // Set handling to true to simulate re-entrancy
+        $ref->setValue($this->errorHandler, true);
+
+        $previousLevel = error_reporting(E_ALL);
+        try {
+            trigger_error('Reentrant', E_USER_NOTICE);
+        } finally {
+            error_reporting($previousLevel);
+            $ref->setValue($this->errorHandler, false);
+        }
+
+        // The re-entrant call should have been skipped
+        self::assertEmpty($this->loggedEntries);
+    }
+
+    #[Test]
+    public function handlerRecoveriesFromExceptionInLogger(): void
+    {
+        // Create a handler that throws an exception
+        $handler = new class implements HandlerInterface {
+            public function isHandling(string $level): bool
+            {
+                return true;
+            }
+
+            public function handle(string $level, string $message, array $context): void
+            {
+                throw new \RuntimeException('Logger failed');
+            }
+        };
+
+        $factory = new LoggerFactory([$handler]);
+        $resolver = new DefaultChannelResolver();
+        $errorHandler = new ErrorHandler($factory, $resolver);
+
+        // Push a no-op so ErrorHandler chains to it instead of PHPUnit's handler
+        set_error_handler(static fn(): bool => true);
+
+        try {
+            $errorHandler->register();
+
+            $previousLevel = error_reporting(E_ALL);
+            try {
+                // The trigger_error call triggers handleError, which throws because
+                // the handler throws. The handling flag should be reset in the finally block.
+                trigger_error('Trigger', E_USER_NOTICE);
+            } catch (\RuntimeException) {
+                // Expected
+            } finally {
+                error_reporting($previousLevel);
+            }
+
+            // Verify handling flag is reset (no re-entrancy protection leak)
+            $ref = new \ReflectionProperty($errorHandler, 'handling');
+            self::assertFalse($ref->getValue($errorHandler));
+        } finally {
+            $errorHandler->restore();
+            restore_error_handler();
+        }
+    }
+
+    #[Test]
+    public function capturesUnknownErrorTypeAsWarning(): void
+    {
+        $this->errorHandler->register();
+
+        // Simulate calling the error handler with an unknown error type
+        $handleError = new \ReflectionMethod($this->errorHandler, 'handleError');
+
+        $handleError->invoke($this->errorHandler, 0, 'Unknown error type', __FILE__, __LINE__);
+
+        self::assertCount(1, $this->loggedEntries);
+        self::assertSame('warning', $this->loggedEntries[0]['level']);
+        self::assertSame('E_UNKNOWN', $this->loggedEntries[0]['context']['_error_type']);
+    }
 }

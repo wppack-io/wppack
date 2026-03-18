@@ -93,6 +93,34 @@ final class UploadDirSubscriberTest extends TestCase
     }
 
     #[Test]
+    public function filterUploadDirPreservesSubdirKey(): void
+    {
+        $adapter = new InMemoryStorageAdapter();
+        $config = new StorageConfiguration(
+            protocol: 'azure',
+            bucket: 'my-container',
+            prefix: 'media',
+        );
+        $resolver = new UrlResolver($adapter, 'https://cdn.azure.com');
+        $subscriber = new UploadDirSubscriber($config, $resolver);
+
+        $dirs = [
+            'path' => '/var/www/html/wp-content/uploads/2025/03',
+            'url' => 'https://example.com/wp-content/uploads/2025/03',
+            'subdir' => '/2025/03',
+            'basedir' => '/var/www/html/wp-content/uploads',
+            'baseurl' => 'https://example.com/wp-content/uploads',
+        ];
+
+        $result = $subscriber->filterUploadDir($dirs);
+
+        self::assertSame('azure://my-container/media/2025/03', $result['path']);
+        self::assertSame('https://cdn.azure.com/media/2025/03', $result['url']);
+        self::assertSame('azure://my-container/media', $result['basedir']);
+        self::assertSame('https://cdn.azure.com/media', $result['baseurl']);
+    }
+
+    #[Test]
     public function filterUploadDirUsesAdapterPublicUrlWhenNoCdn(): void
     {
         $adapter = new InMemoryStorageAdapter();

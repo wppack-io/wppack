@@ -147,4 +147,88 @@ final class ChainContentProcessorTest extends TestCase
         // IV is 16 bytes
         self::assertGreaterThan(16, $chunkSize);
     }
+
+    #[Test]
+    public function unsupportedCompressionTypeThrows(): void
+    {
+        $this->expectException(\WpPack\Component\Wpress\Exception\ArchiveException::class);
+        $this->expectExceptionMessage('Unsupported compression type');
+
+        new ChainContentProcessor('password', 'lz4');
+    }
+
+    #[Test]
+    public function truncatedSizeHeaderInDecodeThrows(): void
+    {
+        $processor = new ChainContentProcessor('pw', 'gzip');
+
+        $this->expectException(\WpPack\Component\Wpress\Exception\ArchiveException::class);
+        $this->expectExceptionMessage('insufficient bytes for size header');
+        $processor->decode("\x00\x01");
+    }
+
+    #[Test]
+    public function truncatedChunkDataInDecodeThrows(): void
+    {
+        $processor = new ChainContentProcessor('pw', 'gzip');
+
+        // Size header says 1000 bytes, but only 5 follow
+        $data = pack('N', 1000) . 'short';
+
+        $this->expectException(\WpPack\Component\Wpress\Exception\ArchiveException::class);
+        $this->expectExceptionMessage('insufficient bytes for chunk data');
+        $processor->decode($data);
+    }
+
+    #[Test]
+    public function binaryDataRoundTrip(): void
+    {
+        $processor = new ChainContentProcessor('bin-password', 'gzip');
+
+        $original = random_bytes(1024);
+        $encoded = $processor->encode($original);
+        $decoded = $processor->decode($encoded);
+
+        self::assertSame($original, $decoded);
+    }
+
+    #[Test]
+    public function singleByteRoundTrip(): void
+    {
+        $processor = new ChainContentProcessor('pw', 'gzip');
+
+        $original = 'X';
+        $encoded = $processor->encode($original);
+        $decoded = $processor->decode($encoded);
+
+        self::assertSame($original, $decoded);
+    }
+
+    #[Test]
+    public function decodeEmptyStringReturnsEmpty(): void
+    {
+        $processor = new ChainContentProcessor('pw', 'gzip');
+
+        // Decoding empty data (offset >= length) should return empty
+        $decoded = $processor->decode('');
+
+        self::assertSame('', $decoded);
+    }
+
+    #[Test]
+    public function bzip2LargeDataRoundTripIfAvailable(): void
+    {
+        if (!\function_exists('bzcompress')) {
+            self::markTestSkipped('bzip2 extension is not available.');
+        }
+
+        $processor = new ChainContentProcessor('bz2-pass', 'bzip2');
+
+        // Multi-chunk data
+        $original = str_repeat('bzip2 test data block. ', 30000);
+        $encoded = $processor->encode($original);
+        $decoded = $processor->decode($encoded);
+
+        self::assertSame($original, $decoded);
+    }
 }

@@ -67,6 +67,47 @@ final class AccessDecisionManagerTest extends TestCase
         self::assertFalse($adm->decide(new NullToken(), 'some_attribute'));
     }
 
+    #[Test]
+    public function addVoterAddsNewVoter(): void
+    {
+        $adm = new AccessDecisionManager();
+        $voter = $this->createVoter(VoterInterface::ACCESS_GRANTED);
+
+        $adm->addVoter($voter);
+
+        self::assertTrue($adm->decide(new NullToken(), 'some_attribute'));
+    }
+
+    #[Test]
+    public function decideWithSubjectPassesItToVoters(): void
+    {
+        $subjectReceived = null;
+        $voter = new class ($subjectReceived) implements VoterInterface {
+            public function __construct(private mixed &$subjectReceived) {}
+
+            public function vote(TokenInterface $token, string $attribute, mixed $subject = null): int
+            {
+                $this->subjectReceived = $subject;
+
+                return self::ACCESS_GRANTED;
+            }
+        };
+
+        $adm = new AccessDecisionManager([$voter]);
+
+        $adm->decide(new NullToken(), 'edit_post', 42);
+
+        self::assertSame(42, $subjectReceived);
+    }
+
+    #[Test]
+    public function noVotersAllowedWhenAllAbstainConfigured(): void
+    {
+        $adm = new AccessDecisionManager([], allowIfAllAbstain: true);
+
+        self::assertTrue($adm->decide(new NullToken(), 'some_attribute'));
+    }
+
     private function createVoter(int $result): VoterInterface
     {
         return new class ($result) implements VoterInterface {

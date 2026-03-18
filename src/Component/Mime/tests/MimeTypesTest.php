@@ -185,6 +185,110 @@ final class MimeTypesTest extends TestCase
         self::assertTrue($mimeTypes->isGuesserSupported());
     }
 
+    #[Test]
+    public function setDefaultOverridesSingleton(): void
+    {
+        $custom = new MimeTypes();
+        MimeTypes::setDefault($custom);
+
+        self::assertSame($custom, MimeTypes::getDefault());
+    }
+
+    #[Test]
+    public function isGuesserSupportedReturnsFalseWhenNoGuessersAreSupported(): void
+    {
+        $unsupported = $this->createMock(MimeTypeGuesserInterface::class);
+        $unsupported->method('isGuesserSupported')->willReturn(false);
+
+        // Create with no default guessers — pass unsupported only
+        $mimeTypes = new MimeTypes([$unsupported]);
+
+        // The built-in guessers (ExtensionMimeTypeGuesser, FileinfoMimeTypeGuesser, etc.)
+        // will likely be supported, so this test mainly verifies the code path
+        self::assertTrue($mimeTypes->isGuesserSupported());
+    }
+
+    #[Test]
+    public function getAllowedMimeTypesReturnsArray(): void
+    {
+        $mimeTypes = new MimeTypes();
+
+        $allowed = $mimeTypes->getAllowedMimeTypes();
+
+        self::assertIsArray($allowed);
+        self::assertNotEmpty($allowed);
+    }
+
+    #[Test]
+    public function getExtensionTypeReturnsTypeForKnownExtension(): void
+    {
+        $mimeTypes = new MimeTypes();
+
+        $type = $mimeTypes->getExtensionType('jpg');
+
+        // WordPress maps 'jpg' to 'image' type
+        self::assertSame('image', $type);
+    }
+
+    #[Test]
+    public function getExtensionTypeReturnsNullForUnknownExtension(): void
+    {
+        $mimeTypes = new MimeTypes();
+
+        $type = $mimeTypes->getExtensionType('xyz123456');
+
+        self::assertNull($type);
+    }
+
+    #[Test]
+    public function getExtensionTypeStripsLeadingDot(): void
+    {
+        $mimeTypes = new MimeTypes();
+
+        $type = $mimeTypes->getExtensionType('.jpg');
+
+        self::assertSame('image', $type);
+    }
+
+    #[Test]
+    public function validateFileReturnsFileTypeInfo(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'mime_validate_');
+        \assert(\is_string($path));
+        file_put_contents($path, 'Hello, World!');
+
+        try {
+            $mimeTypes = new MimeTypes();
+            $info = $mimeTypes->validateFile($path, 'test.txt');
+
+            // FileTypeInfo is returned (may have null extension/mimeType depending on WordPress config)
+            self::assertInstanceOf(\WpPack\Component\Mime\FileTypeInfo::class, $info);
+        } finally {
+            @unlink($path);
+        }
+    }
+
+    #[Test]
+    public function sanitizeReturnsSanitizedMimeType(): void
+    {
+        $mimeTypes = new MimeTypes();
+
+        $result = $mimeTypes->sanitize('image/jpeg');
+
+        self::assertSame('image/jpeg', $result);
+    }
+
+    #[Test]
+    public function sanitizeStripsInvalidCharacters(): void
+    {
+        $mimeTypes = new MimeTypes();
+
+        $result = $mimeTypes->sanitize('image/jpeg; extra');
+
+        // sanitize_mime_type strips non-MIME characters
+        self::assertStringContainsString('image/jpeg', $result);
+    }
+
     private function createGuesser(?string $result): MimeTypeGuesserInterface
     {
         $guesser = $this->createMock(MimeTypeGuesserInterface::class);

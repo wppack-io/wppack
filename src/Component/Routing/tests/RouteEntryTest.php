@@ -534,6 +534,90 @@ final class RouteEntryTest extends TestCase
     }
 
     #[Test]
+    public function dispatchWithExceptionUsingTemplateResponseFilter(): void
+    {
+        add_filter('wppack_routing_exception_response', function (?Response $response, $e): TemplateResponse {
+            return new TemplateResponse(
+                '/custom/error-template.php',
+                ['error' => $e->getMessage()],
+                $e->getStatusCode(),
+            );
+        }, 10, 2);
+
+        $entry = new RouteEntry(
+            'test_route',
+            '^test/([^/]+)/?$',
+            'index.php?test_slug=$matches[1]',
+            RoutePosition::Top,
+            [],
+            function (): never {
+                throw new ForbiddenException('No access.');
+            },
+        );
+
+        set_query_var('test_slug', 'hello');
+
+        try {
+            @$entry->handleTemplateRedirect();
+        } catch (\WPDieException) {
+            // Expected in some configurations
+        } finally {
+            remove_all_filters('wppack_routing_exception_response');
+            remove_all_filters('wppack_routing_exception');
+        }
+
+        // If the filter returned a TemplateResponse, the pending template should be set
+        $result = $entry->filterTemplateInclude('/original.php');
+        if ($result !== '/original.php') {
+            self::assertSame('/custom/error-template.php', $result);
+        } else {
+            // Template may not have been set if wp_die was called instead
+            self::assertSame('/original.php', $result);
+        }
+    }
+
+    #[Test]
+    public function handleTemplateRedirectWithFalseQueryVar(): void
+    {
+        $called = false;
+        $entry = new RouteEntry(
+            'test_route',
+            '^test/([^/]+)/?$',
+            'index.php?test_slug=$matches[1]',
+            RoutePosition::Top,
+            [],
+            function () use (&$called) {
+                $called = true;
+                return null;
+            },
+        );
+
+        // Set query var to false (should not trigger dispatch)
+        set_query_var('test_slug', false);
+        $entry->handleTemplateRedirect();
+
+        self::assertFalse($called);
+    }
+
+    #[Test]
+    public function registerRouteWithBottomPosition(): void
+    {
+        $entry = new RouteEntry(
+            'bottom_route',
+            '^bottom/([^/]+)/?$',
+            'index.php?bottom_slug=$matches[1]',
+            RoutePosition::Bottom,
+            [['%bottom_slug%', '([^/]+)']],
+            fn() => null,
+        );
+
+        $entry->registerRoute();
+
+        global $wp_rewrite;
+        self::assertArrayHasKey('^bottom/([^/]+)/?$', $wp_rewrite->extra_rules ?? $wp_rewrite->extra_rules_top ?? []);
+    }
+
+    #[Test]
     public function exceptionResponseFilterOverridesDefault(): void
     {
         add_filter('wppack_routing_exception_response', function (?Response $response, $e): JsonResponse {

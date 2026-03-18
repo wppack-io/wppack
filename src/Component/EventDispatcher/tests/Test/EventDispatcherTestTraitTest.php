@@ -103,6 +103,46 @@ final class EventDispatcherTestTraitTest extends TestCase
 
         $this->assertEventNotDispatched(TraitTestEvent::class);
     }
+
+    #[Test]
+    public function assertEventDispatchedFailsWhenNotDispatched(): void
+    {
+        $this->expectException(\PHPUnit\Framework\AssertionFailedError::class);
+        $this->expectExceptionMessage('was not dispatched');
+
+        $this->assertEventDispatched(TraitTestEvent::class);
+    }
+
+    #[Test]
+    public function assertEventNotDispatchedFailsWhenDispatched(): void
+    {
+        $this->dispatch(new TraitTestEvent());
+
+        $this->expectException(\PHPUnit\Framework\AssertionFailedError::class);
+        $this->expectExceptionMessage('was dispatched but should not have been');
+
+        $this->assertEventNotDispatched(TraitTestEvent::class);
+    }
+
+    #[Test]
+    public function getLastDispatchedEventWithMultipleDifferentEvents(): void
+    {
+        $event1 = new TraitTestEvent();
+        $event1->marker = 'first';
+        $this->dispatch($event1);
+
+        $otherEvent = new class extends Event {};
+        $this->dispatch($otherEvent);
+
+        $event2 = new TraitTestEvent();
+        $event2->marker = 'last';
+        $this->dispatch($event2);
+
+        $last = $this->getLastDispatchedEvent(TraitTestEvent::class);
+
+        self::assertNotNull($last);
+        self::assertSame('last', $last->marker);
+    }
 }
 
 class TraitTestEvent extends Event

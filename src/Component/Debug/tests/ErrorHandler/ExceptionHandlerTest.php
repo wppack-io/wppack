@@ -362,4 +362,62 @@ final class ExceptionHandlerTest extends TestCase
             wp_delete_user($userId);
         }
     }
+
+    #[Test]
+    public function handleExceptionWithToolbarRendererButNoProfileRendersEmpty(): void
+    {
+        $userId = $this->setUpAdminUser();
+
+        try {
+            $config = new DebugConfig(enabled: true);
+
+            if (!$config->isAccessAllowed()) {
+                self::markTestSkipped('isAccessAllowed() is false in this environment.');
+            }
+
+            $profile = new Profile('test');
+            $toolbarRenderer = new ToolbarRenderer($profile);
+
+            // Construct without a profile (null), even though toolbarRenderer is provided
+            $handler = new ExceptionHandler(new ErrorRenderer(), $config, $toolbarRenderer);
+
+            ob_start();
+            @$handler->handleException(new \RuntimeException('no profile for toolbar'));
+            $output = ob_get_clean();
+
+            self::assertIsString($output);
+            self::assertStringContainsString('no profile for toolbar', $output);
+        } finally {
+            $this->tearDownAdminUser($userId);
+        }
+    }
+
+    #[Test]
+    public function registerCapturesPreviousHandlerCorrectly(): void
+    {
+        $previousCalled = false;
+
+        // Set a specific previous handler
+        set_exception_handler(function (\Throwable $e) use (&$previousCalled): void {
+            $previousCalled = true;
+        });
+
+        $handler = new ExceptionHandler(
+            new ErrorRenderer(),
+            new DebugConfig(enabled: false),
+        );
+
+        $handler->register();
+
+        // The current handler should now be our ExceptionHandler
+        $current = set_exception_handler(null);
+        restore_exception_handler();
+
+        self::assertNotNull($current);
+
+        // When access is denied, it should delegate to previous
+        $handler->handleException(new \RuntimeException('test previous'));
+
+        self::assertTrue($previousCalled, 'Previous handler should have been called');
+    }
 }

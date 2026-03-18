@@ -27,4 +27,18 @@ final class AddMultisiteStampMiddlewareTest extends TestCase
         self::assertCount(1, $result->all(MultisiteStamp::class));
         self::assertSame(5, $result->last(MultisiteStamp::class)->blogId);
     }
+
+    #[Test]
+    public function addsStampWhenNotPresent(): void
+    {
+        $middleware = new AddMultisiteStampMiddleware();
+        $envelope = Envelope::wrap(new \stdClass());
+        $stack = new MiddlewareStack([]);
+
+        $result = $middleware->handle($envelope, $stack);
+
+        $stamp = $result->last(MultisiteStamp::class);
+        self::assertNotNull($stamp);
+        self::assertSame(get_current_blog_id(), $stamp->blogId);
+    }
 }

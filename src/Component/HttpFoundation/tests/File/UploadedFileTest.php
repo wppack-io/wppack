@@ -245,4 +245,52 @@ final class UploadedFileTest extends TestCase
 
         self::assertFalse($file->getSize());
     }
+
+    #[Test]
+    public function moveCreatesDirectoryIfNotExists(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'wppack_upload_');
+        file_put_contents($path, 'data');
+
+        $targetDir = sys_get_temp_dir() . '/wppack_move_test_' . uniqid() . '/nested';
+
+        try {
+            $file = new UploadedFile($path, 'test.txt', 'text/plain', \UPLOAD_ERR_OK);
+
+            // move_uploaded_file will fail, but the directory should be created
+            try {
+                $file->move($targetDir);
+            } catch (FileException) {
+                // Expected: move_uploaded_file fails for non-uploaded files
+            }
+
+            // Verify directory was created
+            self::assertDirectoryExists($targetDir);
+        } finally {
+            @unlink($path);
+            @rmdir($targetDir);
+            @rmdir(\dirname($targetDir));
+        }
+    }
+
+    #[Test]
+    public function moveUsesOriginalNameWhenNoNameProvided(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'wppack_upload_');
+        file_put_contents($path, 'data');
+
+        try {
+            $file = new UploadedFile($path, 'original-name.txt', 'text/plain', \UPLOAD_ERR_OK);
+
+            // move_uploaded_file will fail, but the target path construction uses originalName
+            try {
+                $file->move(sys_get_temp_dir());
+            } catch (FileException $e) {
+                // Expected: move_uploaded_file fails for non-uploaded files
+                self::assertStringContainsString('Could not move the file', $e->getMessage());
+            }
+        } finally {
+            @unlink($path);
+        }
+    }
 }

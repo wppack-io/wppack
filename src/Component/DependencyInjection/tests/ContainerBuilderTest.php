@@ -323,4 +323,66 @@ final class ContainerBuilderTest extends TestCase
         self::assertTrue($definition->isAutowired());
         self::assertTrue($definition->isPublic());
     }
+
+    #[Test]
+    public function findDefinitionWrapsSymfonyDefinitionWhenNotInCache(): void
+    {
+        $builder = new ContainerBuilder();
+
+        // Register directly via Symfony's builder to bypass our definitions cache
+        $builder->getSymfonyBuilder()->register('symfony.only', \stdClass::class)->setPublic(true);
+
+        // This should wrap the Symfony definition
+        $definition = $builder->findDefinition('symfony.only');
+        self::assertInstanceOf(Definition::class, $definition);
+        self::assertSame(\stdClass::class, $definition->getClass());
+    }
+
+    #[Test]
+    public function getDefinitionsIncludesSymfonyRegisteredServices(): void
+    {
+        $builder = new ContainerBuilder();
+
+        // Register via WpPack
+        $builder->register('wppack.service', \stdClass::class);
+
+        // Register directly via Symfony's builder
+        $builder->getSymfonyBuilder()->register('symfony.service', \ArrayObject::class)->setPublic(true);
+
+        $definitions = $builder->getDefinitions();
+
+        self::assertArrayHasKey('wppack.service', $definitions);
+        self::assertArrayHasKey('symfony.service', $definitions);
+    }
+
+    #[Test]
+    public function setParameterReturnsSelf(): void
+    {
+        $builder = new ContainerBuilder();
+
+        $result = $builder->setParameter('key', 'value');
+
+        self::assertSame($builder, $result);
+    }
+
+    #[Test]
+    public function setAliasReturnsSelf(): void
+    {
+        $builder = new ContainerBuilder();
+        $builder->register('service.a', \stdClass::class);
+
+        $result = $builder->setAlias('alias.a', 'service.a');
+
+        self::assertSame($builder, $result);
+    }
+
+    #[Test]
+    public function getSymfonyBuilderReturnsInstance(): void
+    {
+        $builder = new ContainerBuilder();
+
+        $symfonyBuilder = $builder->getSymfonyBuilder();
+
+        self::assertInstanceOf(\Symfony\Component\DependencyInjection\ContainerBuilder::class, $symfonyBuilder);
+    }
 }

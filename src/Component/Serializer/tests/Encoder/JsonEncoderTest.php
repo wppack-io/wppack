@@ -45,6 +45,23 @@ final class JsonEncoderTest extends TestCase
     }
 
     #[Test]
+    public function encodeThrowsOnUnencodableValue(): void
+    {
+        $this->expectException(NotEncodableValueException::class);
+
+        // INF is not a valid JSON value
+        $this->encoder->encode(\INF, 'json');
+    }
+
+    #[Test]
+    public function encodeThrowsOnNaN(): void
+    {
+        $this->expectException(NotEncodableValueException::class);
+
+        $this->encoder->encode(\NAN, 'json');
+    }
+
+    #[Test]
     public function decodeThrowsOnInvalidJson(): void
     {
         $this->expectException(NotEncodableValueException::class);
@@ -53,10 +70,28 @@ final class JsonEncoderTest extends TestCase
     }
 
     #[Test]
+    public function decodeThrowsOnEmptyString(): void
+    {
+        $this->expectException(NotEncodableValueException::class);
+
+        $this->encoder->decode('', 'json');
+    }
+
+    #[Test]
+    public function decodeThrowsOnTruncatedJson(): void
+    {
+        $this->expectException(NotEncodableValueException::class);
+
+        $this->encoder->decode('{"key":', 'json');
+    }
+
+    #[Test]
     public function supportsEncoding(): void
     {
         self::assertTrue($this->encoder->supportsEncoding('json'));
         self::assertFalse($this->encoder->supportsEncoding('xml'));
+        self::assertFalse($this->encoder->supportsEncoding('csv'));
+        self::assertFalse($this->encoder->supportsEncoding(''));
     }
 
     #[Test]
@@ -64,5 +99,32 @@ final class JsonEncoderTest extends TestCase
     {
         self::assertTrue($this->encoder->supportsDecoding('json'));
         self::assertFalse($this->encoder->supportsDecoding('xml'));
+        self::assertFalse($this->encoder->supportsDecoding('csv'));
+        self::assertFalse($this->encoder->supportsDecoding(''));
+    }
+
+    #[Test]
+    public function encodeScalarValues(): void
+    {
+        self::assertSame('"hello"', $this->encoder->encode('hello', 'json'));
+        self::assertSame('42', $this->encoder->encode(42, 'json'));
+        self::assertSame('true', $this->encoder->encode(true, 'json'));
+        self::assertSame('null', $this->encoder->encode(null, 'json'));
+    }
+
+    #[Test]
+    public function decodeReturnsAssociativeArray(): void
+    {
+        $result = $this->encoder->decode('{"nested":{"a":1}}', 'json');
+
+        self::assertIsArray($result);
+        self::assertIsArray($result['nested']);
+        self::assertSame(1, $result['nested']['a']);
+    }
+
+    #[Test]
+    public function formatConstant(): void
+    {
+        self::assertSame('json', JsonEncoder::FORMAT);
     }
 }

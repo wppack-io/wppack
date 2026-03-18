@@ -70,4 +70,69 @@ final class CapabilityVoterTest extends TestCase
             wp_delete_user($userId);
         }
     }
+
+    #[Test]
+    public function grantedForSubjectBasedCapabilityCheck(): void
+    {
+        $authorId = wp_create_user('cap_voter_author_' . uniqid(), 'password123', 'cap_author_' . uniqid() . '@example.com');
+        self::assertIsInt($authorId);
+
+        try {
+            $user = new \WP_User($authorId);
+            $user->set_role('author');
+
+            // Create a post by this author
+            $postId = wp_insert_post([
+                'post_title' => 'Test Post for Capability',
+                'post_content' => 'Content',
+                'post_status' => 'publish',
+                'post_author' => $authorId,
+            ]);
+
+            self::assertIsInt($postId);
+
+            $token = new \WpPack\Component\Security\Authentication\Token\PostAuthenticationToken($user, $user->roles);
+
+            // Author should be able to edit their own post
+            self::assertSame(VoterInterface::ACCESS_GRANTED, $this->voter->vote($token, 'edit_post', $postId));
+
+            wp_delete_post($postId, true);
+        } finally {
+            wp_delete_user($authorId);
+        }
+    }
+
+    #[Test]
+    public function deniedForSubjectBasedCapabilityCheckOnOthersPost(): void
+    {
+        $subscriberId = wp_create_user('cap_voter_subscriber_' . uniqid(), 'password123', 'cap_sub_' . uniqid() . '@example.com');
+        self::assertIsInt($subscriberId);
+
+        $authorId = wp_create_user('cap_voter_other_author_' . uniqid(), 'password123', 'cap_other_' . uniqid() . '@example.com');
+        self::assertIsInt($authorId);
+
+        try {
+            $subscriber = new \WP_User($subscriberId);
+            $subscriber->set_role('subscriber');
+
+            $postId = wp_insert_post([
+                'post_title' => 'Other Author Post',
+                'post_content' => 'Content',
+                'post_status' => 'publish',
+                'post_author' => $authorId,
+            ]);
+
+            self::assertIsInt($postId);
+
+            $token = new \WpPack\Component\Security\Authentication\Token\PostAuthenticationToken($subscriber, $subscriber->roles);
+
+            // Subscriber should NOT be able to edit another user's post
+            self::assertSame(VoterInterface::ACCESS_DENIED, $this->voter->vote($token, 'edit_post', $postId));
+
+            wp_delete_post($postId, true);
+        } finally {
+            wp_delete_user($subscriberId);
+            wp_delete_user($authorId);
+        }
+    }
 }

@@ -181,4 +181,49 @@ final class PassportTest extends TestCase
         self::assertFalse($disabled->isEnabled());
         self::assertTrue($enabled->isEnabled());
     }
+
+    #[Test]
+    public function userBadgeSetUserOverridesLoader(): void
+    {
+        $originalUser = new \WP_User();
+        $originalUser->ID = 1;
+        $originalUser->user_login = 'original';
+
+        $overrideUser = new \WP_User();
+        $overrideUser->ID = 2;
+        $overrideUser->user_login = 'override';
+
+        $badge = new UserBadge('testuser', static fn(string $id): \WP_User => $originalUser);
+
+        $badge->setUser($overrideUser);
+
+        self::assertSame($overrideUser, $badge->getUser());
+        self::assertSame(2, $badge->getUser()->ID);
+    }
+
+    #[Test]
+    public function userBadgeGetUserIdentifierReturnsIdentifier(): void
+    {
+        $badge = new UserBadge('test-identifier-123');
+
+        self::assertSame('test-identifier-123', $badge->getUserIdentifier());
+    }
+
+    #[Test]
+    public function userBadgeGetUserLoaderReturnsClosureOrNull(): void
+    {
+        $badgeWithLoader = new UserBadge('test', static fn() => new \WP_User());
+        $badgeWithoutLoader = new UserBadge('test2');
+
+        self::assertInstanceOf(\Closure::class, $badgeWithLoader->getUserLoader());
+        self::assertNull($badgeWithoutLoader->getUserLoader());
+    }
+
+    #[Test]
+    public function userBadgeIsAlwaysResolved(): void
+    {
+        $badge = new UserBadge('test');
+
+        self::assertTrue($badge->isResolved());
+    }
 }

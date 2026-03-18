@@ -390,6 +390,77 @@ final class UserQueryBuilderTest extends TestCase
         self::assertArrayNotHasKey('meta_query', $args);
     }
 
+    // ── hasPublishedPosts with array ──
+
+    #[Test]
+    public function hasPublishedPostsWithArrayOfPostTypes(): void
+    {
+        $builder = new UserQueryBuilder();
+        $args = $builder->hasPublishedPosts(['post', 'page'])->toArray();
+
+        self::assertSame(['post', 'page'], $args['has_published_posts']);
+    }
+
+    // ── Ordering with string order ──
+
+    #[Test]
+    public function orderByWithStringOrder(): void
+    {
+        $builder = new UserQueryBuilder();
+        $args = $builder->orderBy('display_name', 'DESC')->toArray();
+
+        self::assertSame('display_name', $args['orderby']);
+        self::assertSame('DESC', $args['order']);
+    }
+
+    #[Test]
+    public function addOrderByWithStringOrder(): void
+    {
+        $builder = new UserQueryBuilder();
+        $args = $builder
+            ->orderBy('u.display_name', 'ASC')
+            ->addOrderBy('u.user_registered', 'DESC')
+            ->toArray();
+
+        self::assertSame(['display_name' => 'ASC', 'user_registered' => 'DESC'], $args['orderby']);
+    }
+
+    // ── orWhere with closure ──
+
+    #[Test]
+    public function orWhereWithClosure(): void
+    {
+        $builder = new UserQueryBuilder();
+        $args = $builder
+            ->where('m.active = :active')
+            ->orWhere(function (ConditionGroup $group): void {
+                $group->where('m.level = :l1')
+                    ->orWhere('m.level = :l2');
+            })
+            ->setParameter('active', true)
+            ->setParameter('l1', 1)
+            ->setParameter('l2', 2)
+            ->toArray();
+
+        self::assertArrayHasKey('meta_query', $args);
+    }
+
+    // ── Additional standard field error cases ──
+
+    #[Test]
+    public function unsupportedOperatorForIdThrows(): void
+    {
+        $builder = new UserQueryBuilder();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unsupported operator "LIKE" for field "user.id"');
+
+        $builder
+            ->where('u.id LIKE :val')
+            ->setParameter('val', '5%')
+            ->toArray();
+    }
+
     // ── Execution methods (WordPress integration) ──
 
     #[Test]
@@ -405,6 +476,38 @@ final class UserQueryBuilderTest extends TestCase
     }
 
     #[Test]
+    public function getReturnsPaginationInfo(): void
+    {
+        $result = (new UserQueryBuilder())
+            ->setMaxResults(5)
+            ->get();
+
+        self::assertGreaterThanOrEqual(0, $result->total);
+        self::assertGreaterThanOrEqual(0, $result->totalPages);
+        self::assertGreaterThanOrEqual(1, $result->currentPage);
+    }
+
+    #[Test]
+    public function getWithoutNumberSetsTotalPagesCorrectly(): void
+    {
+        $result = (new UserQueryBuilder())->get();
+
+        // When no number is set (perPage = 0), totalPages should be 1 if users exist, 0 if not
+        self::assertGreaterThanOrEqual(0, $result->totalPages);
+    }
+
+    #[Test]
+    public function getWithPagedArgument(): void
+    {
+        $result = (new UserQueryBuilder())
+            ->setMaxResults(5)
+            ->arg('paged', 2)
+            ->get();
+
+        self::assertSame(2, $result->currentPage);
+    }
+
+    #[Test]
     public function firstReturnsNullableWpUser(): void
     {
         $user = (new UserQueryBuilder())
@@ -413,5 +516,47 @@ final class UserQueryBuilderTest extends TestCase
             ->first();
 
         self::assertNull($user);
+    }
+
+    #[Test]
+    public function getIdsReturnsArrayOfIntegers(): void
+    {
+        $ids = (new UserQueryBuilder())
+            ->setMaxResults(5)
+            ->getIds();
+
+        self::assertIsArray($ids);
+        foreach ($ids as $id) {
+            self::assertIsInt($id);
+        }
+    }
+
+    #[Test]
+    public function countReturnsInteger(): void
+    {
+        $count = (new UserQueryBuilder())->count();
+
+        self::assertIsInt($count);
+        self::assertGreaterThanOrEqual(0, $count);
+    }
+
+    #[Test]
+    public function existsReturnsBool(): void
+    {
+        $exists = (new UserQueryBuilder())
+            ->where('u.id = :id')
+            ->setParameter('id', 999999)
+            ->exists();
+
+        self::assertFalse($exists);
+    }
+
+    #[Test]
+    public function existsReturnsTrueWhenUsersExist(): void
+    {
+        // Admin user should always exist in test environment
+        $exists = (new UserQueryBuilder())->exists();
+
+        self::assertTrue($exists);
     }
 }

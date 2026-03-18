@@ -227,6 +227,77 @@ final class TokenizerTest extends TestCase
         $this->tokenizer->tokenize('');
     }
 
+    #[Test]
+    public function throwsOnWhitespaceOnlyExpression(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Expression cannot be empty.');
+
+        $this->tokenizer->tokenize('   ');
+    }
+
+    // ── Tab whitespace ──
+
+    #[Test]
+    public function skipsTabWhitespace(): void
+    {
+        $tokens = $this->tokenizer->tokenize("m.a\t=\t:a");
+
+        self::assertCount(1, $tokens);
+        self::assertSame(TokenType::Condition, $tokens[0]->type);
+        self::assertSame("m.a\t=\t:a", $tokens[0]->value);
+    }
+
+    #[Test]
+    public function tabBetweenAndConditions(): void
+    {
+        $tokens = $this->tokenizer->tokenize("m.a = :a\tAND\tm.b = :b");
+
+        self::assertCount(3, $tokens);
+        self::assertSame(TokenType::Condition, $tokens[0]->type);
+        self::assertSame(TokenType::And, $tokens[1]->type);
+        self::assertSame(TokenType::Condition, $tokens[2]->type);
+    }
+
+    // ── AND/OR at end of expression ──
+
+    #[Test]
+    public function andAtEndOfExpressionIsTreatedAsLogical(): void
+    {
+        // AND at end of expression — isLogicalOperator returns true (afterKeyword is empty)
+        $tokens = $this->tokenizer->tokenize('m.a = :a AND');
+
+        self::assertCount(2, $tokens);
+        self::assertSame(TokenType::Condition, $tokens[0]->type);
+        self::assertSame('m.a = :a', $tokens[0]->value);
+        self::assertSame(TokenType::And, $tokens[1]->type);
+    }
+
+    #[Test]
+    public function orAtEndOfExpressionIsTreatedAsLogical(): void
+    {
+        $tokens = $this->tokenizer->tokenize('m.a = :a OR');
+
+        self::assertCount(2, $tokens);
+        self::assertSame(TokenType::Condition, $tokens[0]->type);
+        self::assertSame(TokenType::Or, $tokens[1]->type);
+    }
+
+    // ── OR is always logical ──
+
+    #[Test]
+    public function orFollowedByNonPrefixIsTreatedAsLogical(): void
+    {
+        // OR followed by something that is not a '(' and not a prefix pattern
+        // is still treated as logical (OR is never a compare operator)
+        $tokens = $this->tokenizer->tokenize('m.a = :a OR :b');
+
+        self::assertCount(3, $tokens);
+        self::assertSame('m.a = :a', $tokens[0]->value);
+        self::assertSame(TokenType::Or, $tokens[1]->type);
+        self::assertSame(':b', $tokens[2]->value);
+    }
+
     // ── Word boundary ──
 
     #[Test]

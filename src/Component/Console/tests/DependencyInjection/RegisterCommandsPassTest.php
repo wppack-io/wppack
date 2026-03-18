@@ -96,6 +96,82 @@ final class RegisterCommandsPassTest extends TestCase
         $registerCalls = array_filter($methodCalls, static fn(array $call): bool => $call['method'] === 'register');
         self::assertCount(1, $registerCalls);
     }
+
+    #[Test]
+    public function ignoresNonExistentClasses(): void
+    {
+        $builder = new ContainerBuilder();
+        $builder->register(CommandRegistry::class);
+        $builder->register('NonExistent\\FakeCommand');
+
+        $pass = new RegisterCommandsPass();
+        $pass->process($builder);
+
+        $registryDef = $builder->findDefinition(CommandRegistry::class);
+        $methodCalls = $registryDef->getMethodCalls();
+
+        $addCalls = array_filter($methodCalls, static fn(array $call): bool => $call['method'] === 'add');
+        self::assertCount(0, $addCalls);
+    }
+
+    #[Test]
+    public function ignoresAbstractCommandSubclassWithoutAttributeOrTag(): void
+    {
+        $builder = new ContainerBuilder();
+        $builder->register(CommandRegistry::class);
+        $builder->register(PassTestPlainSubclass::class);
+
+        $pass = new RegisterCommandsPass();
+        $pass->process($builder);
+
+        $registryDef = $builder->findDefinition(CommandRegistry::class);
+        $methodCalls = $registryDef->getMethodCalls();
+
+        $addCalls = array_filter($methodCalls, static fn(array $call): bool => $call['method'] === 'add');
+        self::assertCount(0, $addCalls);
+    }
+
+    #[Test]
+    public function detectsCommandWithExplicitClass(): void
+    {
+        $builder = new ContainerBuilder();
+        $builder->register(CommandRegistry::class);
+        $def = $builder->register('my.command');
+        $def->setClass(PassTestCommand::class);
+
+        $pass = new RegisterCommandsPass();
+        $pass->process($builder);
+
+        $registryDef = $builder->findDefinition(CommandRegistry::class);
+        $methodCalls = $registryDef->getMethodCalls();
+
+        $addCalls = array_filter($methodCalls, static fn(array $call): bool => $call['method'] === 'add');
+        self::assertCount(1, $addCalls);
+    }
+
+    #[Test]
+    public function tagConstant(): void
+    {
+        self::assertSame('console.command', RegisterCommandsPass::TAG);
+    }
+
+    #[Test]
+    public function detectsMultipleCommands(): void
+    {
+        $builder = new ContainerBuilder();
+        $builder->register(CommandRegistry::class);
+        $builder->register(PassTestCommand::class);
+        $builder->register(PassTestTaggedCommand::class)->addTag(RegisterCommandsPass::TAG);
+
+        $pass = new RegisterCommandsPass();
+        $pass->process($builder);
+
+        $registryDef = $builder->findDefinition(CommandRegistry::class);
+        $methodCalls = $registryDef->getMethodCalls();
+
+        $addCalls = array_filter($methodCalls, static fn(array $call): bool => $call['method'] === 'add');
+        self::assertCount(2, $addCalls);
+    }
 }
 
 #[AsCommand(name: 'test pass', description: 'Pass test command')]
@@ -109,6 +185,17 @@ final class PassTestCommand extends AbstractCommand
 
 #[AsCommand(name: 'test pass-tagged', description: 'Tagged test command')]
 final class PassTestTaggedCommand extends AbstractCommand
+{
+    protected function execute(InputInterface $input, OutputStyle $output): int
+    {
+        return self::SUCCESS;
+    }
+}
+
+/**
+ * A subclass of AbstractCommand without #[AsCommand] attribute and no tag.
+ */
+final class PassTestPlainSubclass extends AbstractCommand
 {
     protected function execute(InputInterface $input, OutputStyle $output): int
     {
