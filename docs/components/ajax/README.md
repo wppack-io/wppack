@@ -212,6 +212,56 @@ $response = new JsonResponse(['error' => 'Not found'], 404);            // → w
 | < 400 | `wp_send_json_success()` | 成功 |
 | >= 400 | `wp_send_json_error()` | エラー |
 
+### AbstractAjaxController
+
+`AbstractAjaxController` を継承すると、Security メソッドと `json()` レスポンスヘルパーが使えます。Routing の `AbstractController`、Rest の `AbstractRestController` と同じパターンです。
+
+```php
+use WpPack\Component\Ajax\AbstractAjaxController;
+use WpPack\Component\Ajax\Attribute\Ajax;
+use WpPack\Component\Ajax\Access;
+use WpPack\Component\HttpFoundation\JsonResponse;
+
+class ProductController extends AbstractAjaxController
+{
+    #[Ajax(action: 'delete_product', access: Access::Authenticated)]
+    public function delete(): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('delete_posts');
+
+        wp_delete_post((int) $_POST['product_id']);
+
+        return $this->json(['deleted' => true]);
+    }
+
+    #[Ajax(action: 'get_product', access: Access::Authenticated)]
+    public function get(): JsonResponse
+    {
+        $user = $this->getUser();
+
+        return $this->json([
+            'user' => $user?->display_name,
+            'can_edit' => $this->isGranted('edit_posts'),
+        ]);
+    }
+}
+```
+
+#### 利用可能なメソッド
+
+| メソッド | 説明 |
+|---------|------|
+| `getUser(): ?\WP_User` | 現在の認証済みユーザーを取得 |
+| `isGranted(string, mixed): bool` | 認可チェック |
+| `denyAccessUnlessGranted(string, mixed, string): void` | 認可されていない場合 `AccessDeniedException` をスロー |
+| `json(mixed, int, array): JsonResponse` | JSON レスポンスを生成 |
+
+> **注意:** `getUser()`、`isGranted()`、`denyAccessUnlessGranted()` を使うには `wppack/security` パッケージが必要です。Security が未設定の場合、`LogicException` がスローされます。
+
+#### `#[Ajax(capability: '...')]` との違い
+
+`#[Ajax]` アトリビュートの `capability` パラメータは WordPress の `current_user_can()` を使用した組み込みの権限チェックです。`AbstractAjaxController` の `isGranted()` / `denyAccessUnlessGranted()` は Security コンポーネントのカスタム Voter による高度な認可チェックに使用します。シンプルなケースでは `capability` パラメータで十分です。
+
 ### AjaxHandlerRegistry
 
 `#[Ajax]` アトリビュートを読み取り、WordPress フックに登録するサービスクラスです。
@@ -262,6 +312,18 @@ use WpPack\Component\Ajax\AjaxHandlerRegistry;
 use WpPack\Component\HttpFoundation\Request;
 
 $registry = new AjaxHandlerRegistry(Request::createFromGlobals());
+```
+
+#### コンストラクタでの Security 注入
+
+`Security` を渡すと、`AbstractAjaxController` を継承したハンドラーに自動的に Security が設定されます。`getUser()`、`isGranted()`、`denyAccessUnlessGranted()` が利用可能になります。
+
+```php
+use WpPack\Component\Ajax\AjaxHandlerRegistry;
+use WpPack\Component\Security\Security;
+
+$registry = new AjaxHandlerRegistry(security: $security);
+$registry->register(new ProductController()); // AbstractAjaxController を継承している場合、Security が自動設定される
 ```
 
 ### Request インジェクション
@@ -408,6 +470,7 @@ const result = await response.json();
 
 | クラス | 説明 |
 |-------|------|
+| `AbstractAjaxController` | Security メソッド + `json()` ヘルパーを提供する基底クラス |
 | `Access` | 3種類のアクセスレベル enum（Public / Authenticated / Guest） |
 | `Attribute\Ajax` | メソッドレベル AJAX ハンドラーアトリビュート |
 | `Response\JsonResponse` | `wp_send_json_success/error` ラッパー |

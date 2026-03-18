@@ -91,11 +91,45 @@ public function updateProfile(Request $request, #[CurrentUser] \WP_User $user): 
 }
 ```
 
+### AbstractAjaxController
+
+Extend `AbstractAjaxController` to access Security methods and the `json()` response helper:
+
+```php
+use WpPack\Component\Ajax\AbstractAjaxController;
+use WpPack\Component\Ajax\Attribute\Ajax;
+use WpPack\Component\Ajax\Access;
+use WpPack\Component\HttpFoundation\JsonResponse;
+
+class ProductController extends AbstractAjaxController
+{
+    #[Ajax(action: 'delete_product', access: Access::Authenticated)]
+    public function delete(): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('delete_posts');
+
+        wp_delete_post((int) $_POST['product_id']);
+
+        return $this->json(['deleted' => true]);
+    }
+}
+```
+
+Available methods:
+
+- `getUser(): ?\WP_User` — Get the current authenticated user
+- `isGranted(string $attribute, mixed $subject = null): bool` — Check authorization
+- `denyAccessUnlessGranted(string $attribute, mixed $subject = null, string $message = 'Access Denied.'): void` — Throw `AccessDeniedException` if not granted
+- `json(mixed $data, int $statusCode = 200, array $headers = []): JsonResponse` — Create a JSON response
+
+Requires `wppack/security` for `getUser()`, `isGranted()`, and `denyAccessUnlessGranted()`.
+
 ### AjaxHandlerRegistry
 
 ```php
 use WpPack\Component\Ajax\AjaxHandlerRegistry;
 use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Security\Security;
 
 // Without constructor injection (Request::createFromGlobals() is used)
 $registry = new AjaxHandlerRegistry();
@@ -103,6 +137,10 @@ $registry->register(new ProductController());
 
 // With constructor injection
 $registry = new AjaxHandlerRegistry(Request::createFromGlobals());
+$registry->register(new ProductController());
+
+// With Security (enables AbstractAjaxController methods)
+$registry = new AjaxHandlerRegistry(security: $security);
 $registry->register(new ProductController());
 ```
 

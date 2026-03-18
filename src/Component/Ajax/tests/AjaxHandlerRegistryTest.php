@@ -6,15 +6,19 @@ namespace WpPack\Component\Ajax\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Ajax\AbstractAjaxController;
 use WpPack\Component\Ajax\Access;
 use WpPack\Component\Ajax\AjaxHandlerRegistry;
 use WpPack\Component\Ajax\Attribute\Ajax;
 use WpPack\Component\HttpFoundation\JsonResponse;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Security\Attribute\CurrentUser;
+use WpPack\Component\Security\Tests\SecurityTestTrait;
 
 final class AjaxHandlerRegistryTest extends TestCase
 {
+    use SecurityTestTrait;
+
     private AjaxHandlerRegistry $registry;
 
     protected function setUp(): void
@@ -303,6 +307,43 @@ final class AjaxHandlerRegistryTest extends TestCase
         self::assertInstanceOf(\WP_User::class, $subscriber->receivedUser);
         self::assertSame(1, $subscriber->receivedUser->ID);
         self::assertInstanceOf(Request::class, $subscriber->receivedRequest);
+    }
+
+    #[Test]
+    public function registerSetsSecurity(): void
+    {
+        $user = new \WP_User();
+        $user->ID = 42;
+
+        $security = $this->createSecurity(user: $user);
+        $registry = new AjaxHandlerRegistry(security: $security);
+
+        $subscriber = new class extends AbstractAjaxController {
+            public ?\WP_User $receivedUser = null;
+
+            #[Ajax(action: 'test_security')]
+            public function handle(): JsonResponse
+            {
+                $this->receivedUser = $this->getUser();
+
+                return new JsonResponse(['ok' => true]);
+            }
+        };
+
+        $registry->register($subscriber);
+
+        $this->executeAjaxCallback('wp_ajax_test_security');
+
+        self::assertSame($user, $subscriber->receivedUser);
+    }
+
+    #[Test]
+    public function registryAcceptsSecurityInConstructor(): void
+    {
+        $security = $this->createSecurity(granted: true);
+        $registry = new AjaxHandlerRegistry(security: $security);
+
+        self::assertInstanceOf(AjaxHandlerRegistry::class, $registry);
     }
 
     #[Test]

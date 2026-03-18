@@ -8,7 +8,7 @@
         "wppack/http-foundation": "^1.0"
     },
     "suggest": {
-        "wppack/security": "Required for #[CurrentUser] parameter injection"
+        "wppack/security": "Required for #[CurrentUser] injection and AbstractAjaxController"
     },
     "autoload": {
         "psr-4": {

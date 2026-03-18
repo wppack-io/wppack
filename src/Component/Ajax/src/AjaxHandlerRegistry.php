@@ -10,15 +10,21 @@ use WpPack\Component\HttpFoundation\Exception\HttpException;
 use WpPack\Component\HttpFoundation\JsonResponse;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Security\Attribute\CurrentUser;
+use WpPack\Component\Security\Security;
 
 final class AjaxHandlerRegistry
 {
     public function __construct(
         private readonly ?Request $request = null,
+        private readonly ?Security $security = null,
     ) {}
 
     public function register(object $subscriber): void
     {
+        if ($this->security !== null && $subscriber instanceof AbstractAjaxController) {
+            $subscriber->setSecurity($this->security);
+        }
+
         $reflection = new \ReflectionClass($subscriber);
 
         foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
