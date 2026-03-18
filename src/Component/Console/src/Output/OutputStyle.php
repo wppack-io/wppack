@@ -76,7 +76,7 @@ final class OutputStyle
                 $items[] = $item;
             }
 
-            \WP_CLI\Utils\format_items('table', $items, $headers); // @phpstan-ignore function.notFound
+            \WP_CLI\Utils\format_items('table', $items, $headers);
             return;
         }
 

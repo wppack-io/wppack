@@ -13,6 +13,8 @@ parameters:
     scanDirectories:
         - vendor/roots/wordpress-no-content/wp-includes/
         - vendor/woocommerce/action-scheduler/
+    scanFiles:
+        - vendor/wp-cli/wp-cli/php/utils.php
     ignoreErrors:
         -
             identifier: trait.unused
