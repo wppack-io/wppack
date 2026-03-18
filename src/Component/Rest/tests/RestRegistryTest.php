@@ -13,6 +13,12 @@ use WpPack\Component\Rest\Attribute\RestRoute;
 use WpPack\Component\Rest\HttpMethod;
 use WpPack\Component\Rest\RestEntry;
 use WpPack\Component\Rest\RestRegistry;
+use WpPack\Component\Security\Attribute\CurrentUser;
+use WpPack\Component\Security\Authentication\AuthenticationManagerInterface;
+use WpPack\Component\Security\Authentication\Token\PostAuthenticationToken;
+use WpPack\Component\Security\Authentication\Token\TokenInterface;
+use WpPack\Component\Security\Authorization\AuthorizationCheckerInterface;
+use WpPack\Component\Security\Security;
 
 final class RestRegistryTest extends TestCase
 {
@@ -602,5 +608,126 @@ final class RestRegistryTest extends TestCase
 
         $entries = $registry->getRegisteredEntries();
         self::assertSame('/items', $entries[0]->route);
+    }
+
+    #[Test]
+    public function callbackInjectsCurrentUser(): void
+    {
+        $user = new \WP_User();
+        $user->ID = 42;
+        $user->user_login = 'testuser';
+
+        $security = $this->createSecurity(user: $user);
+
+        $controller = new #[RestRoute('/current-user', namespace: 'test/v1')] #[Permission(public: true)] class {
+            public ?\WP_User $capturedUser = null;
+
+            #[RestRoute(methods: HttpMethod::GET)]
+            public function index(#[CurrentUser] \WP_User $user): array
+            {
+                $this->capturedUser = $user;
+
+                return [];
+            }
+        };
+
+        $registry = new RestRegistry(new Request(), $security);
+        $registry->register($controller);
+
+        $entries = $registry->getRegisteredEntries();
+        $entries[0]->register();
+
+        $wpRequest = new \WP_REST_Request('GET', '/test/v1/current-user');
+        $routes = rest_get_server()->get_routes();
+        $route = $routes['/test/v1/current-user'][0];
+        call_user_func($route['callback'], $wpRequest);
+
+        self::assertSame($user, $controller->capturedUser);
+    }
+
+    #[Test]
+    public function currentUserParamIsExcludedFromRestParams(): void
+    {
+        $security = $this->createSecurity();
+
+        $controller = new #[RestRoute('/current-user-params', namespace: 'test/v1')] #[Permission(public: true)] class {
+            #[RestRoute(methods: HttpMethod::GET)]
+            public function index(#[CurrentUser] \WP_User $user, int $page = 1): array
+            {
+                return [];
+            }
+        };
+
+        $registry = new RestRegistry(new Request(), $security);
+        $registry->register($controller);
+
+        $entries = $registry->getRegisteredEntries();
+        self::assertCount(1, $entries[0]->params);
+        self::assertSame('page', $entries[0]->params[0]->name);
+    }
+
+    #[Test]
+    public function currentUserInjectionWithoutSecurity(): void
+    {
+        $controller = new #[RestRoute('/no-security-user', namespace: 'test/v1')] #[Permission(public: true)] class {
+            public bool $called = false;
+            public mixed $capturedUser = 'not_set';
+
+            #[RestRoute(methods: HttpMethod::GET)]
+            public function index(#[CurrentUser] ?\WP_User $user = null): array
+            {
+                $this->called = true;
+                $this->capturedUser = $user;
+
+                return [];
+            }
+        };
+
+        $registry = new RestRegistry(new Request());
+        $registry->register($controller);
+
+        $entries = $registry->getRegisteredEntries();
+        $entries[0]->register();
+
+        $wpRequest = new \WP_REST_Request('GET', '/test/v1/no-security-user');
+        $routes = rest_get_server()->get_routes();
+        $route = $routes['/test/v1/no-security-user'][0];
+        call_user_func($route['callback'], $wpRequest);
+
+        self::assertTrue($controller->called);
+        self::assertNull($controller->capturedUser);
+    }
+
+    private function createSecurity(?\WP_User $user = null): Security
+    {
+        $checker = new class implements AuthorizationCheckerInterface {
+            public function isGranted(string $attribute, mixed $subject = null): bool
+            {
+                return false;
+            }
+        };
+
+        $token = $user !== null ? new PostAuthenticationToken($user, ['subscriber']) : null;
+
+        $authManager = new class ($token) implements AuthenticationManagerInterface {
+            public function __construct(private readonly ?TokenInterface $token) {}
+
+            public function handleAuthentication(mixed $user, string $username, string $password): mixed
+            {
+                return $user;
+            }
+
+            public function handleStatelessAuthentication(int $userId): int
+            {
+                return $userId;
+            }
+
+            public function getToken(): ?TokenInterface
+            {
+                return $this->token;
+            }
+        };
+
+        return new Security($checker, $authManager);
     }
 }

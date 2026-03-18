@@ -9,12 +9,17 @@ use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Rest\RestRegistry;
+use WpPack\Component\Security\Security;
 
 final class RestServiceProvider implements ServiceProviderInterface
 {
     public function register(ContainerBuilder $builder): void
     {
-        $builder->register(RestRegistry::class)
+        $definition = $builder->register(RestRegistry::class)
             ->addArgument(new Reference(Request::class));
+
+        if ($builder->hasDefinition(Security::class)) {
+            $definition->addArgument(new Reference(Security::class));
+        }
     }
 }

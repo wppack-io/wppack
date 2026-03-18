@@ -8,6 +8,8 @@ use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Rest\Attribute\Param;
 use WpPack\Component\Rest\Attribute\Permission;
 use WpPack\Component\Rest\Attribute\RestRoute;
+use WpPack\Component\Security\Attribute\CurrentUser;
+use WpPack\Component\Security\Security;
 
 final class RestRegistry
 {
@@ -16,10 +18,15 @@ final class RestRegistry
 
     public function __construct(
         private readonly Request $request,
+        private readonly ?Security $security = null,
     ) {}
 
     public function register(object $controller): void
     {
+        if ($this->security !== null && $controller instanceof AbstractRestController) {
+            $controller->setSecurity($this->security);
+        }
+
         foreach ($this->resolveEntries($controller) as $entry) {
             $this->entries[] = $entry;
             add_action('rest_api_init', $entry->register(...));
@@ -118,6 +125,10 @@ final class RestRegistry
                 }
             }
 
+            if ($parameter->getAttributes(CurrentUser::class) !== []) {
+                continue;
+            }
+
             $name = self::toSnakeCase($parameter->getName());
             $wpType = self::toWpType($parameter);
             $required = !$parameter->isDefaultValueAvailable();
@@ -139,6 +150,8 @@ final class RestRegistry
     {
         $methodName = $method->getName();
         $requestParamIndex = null;
+        /** @var array<int, array{index: int, value: mixed}> */
+        $injectableParams = [];
 
         foreach ($method->getParameters() as $index => $parameter) {
             $type = $parameter->getType();
@@ -150,15 +163,26 @@ final class RestRegistry
                     $requestParamIndex = ['index' => $index, 'type' => 'native'];
                 }
             }
+
+            if ($parameter->getAttributes(CurrentUser::class) !== []) {
+                $injectableParams[] = ['index' => $index, 'value' => null];
+            }
         }
 
-        return function (\WP_REST_Request $wpRequest, mixed ...$paramValues) use ($controller, $methodName, $requestParamIndex): mixed {
+        $security = $this->security;
+
+        return function (\WP_REST_Request $wpRequest, mixed ...$paramValues) use ($controller, $methodName, $requestParamIndex, $injectableParams, $security): mixed {
             if ($requestParamIndex !== null) {
                 $inject = $requestParamIndex['type'] === 'httpfoundation'
                     ? $this->prepareRequest($wpRequest)
                     : $wpRequest;
 
                 array_splice($paramValues, $requestParamIndex['index'], 0, [$inject]);
+            }
+
+            foreach ($injectableParams as $injectable) {
+                $value = $security?->getUser();
+                array_splice($paramValues, $injectable['index'], 0, [$value]);
             }
 
             return $controller->{$methodName}(...$paramValues);

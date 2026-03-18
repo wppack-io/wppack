@@ -9,6 +9,12 @@ use PHPUnit\Framework\TestCase;
 use WpPack\Component\HttpFoundation\JsonResponse;
 use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Rest\AbstractRestController;
+use WpPack\Component\Security\Authentication\AuthenticationManagerInterface;
+use WpPack\Component\Security\Authentication\Token\PostAuthenticationToken;
+use WpPack\Component\Security\Authentication\Token\TokenInterface;
+use WpPack\Component\Security\Authorization\AuthorizationCheckerInterface;
+use WpPack\Component\Security\Exception\AccessDeniedException;
+use WpPack\Component\Security\Security;
 
 final class AbstractRestControllerTest extends TestCase
 {
@@ -35,6 +41,21 @@ final class AbstractRestControllerTest extends TestCase
             public function callResponse(mixed $data = null, int $statusCode = 200, array $headers = []): Response
             {
                 return $this->response($data, $statusCode, $headers);
+            }
+
+            public function callGetUser(): ?\WP_User
+            {
+                return $this->getUser();
+            }
+
+            public function callIsGranted(string $attribute, mixed $subject = null): bool
+            {
+                return $this->isGranted($attribute, $subject);
+            }
+
+            public function callDenyAccessUnlessGranted(string $attribute, mixed $subject = null, string $message = 'Access Denied.'): void
+            {
+                $this->denyAccessUnlessGranted($attribute, $subject, $message);
             }
         };
     }
@@ -89,5 +110,99 @@ final class AbstractRestControllerTest extends TestCase
         self::assertSame('data', $response->content);
         self::assertSame(202, $response->statusCode);
         self::assertSame(['X-Header' => 'val'], $response->headers);
+    }
+
+    #[Test]
+    public function getUserReturnsSecurity(): void
+    {
+        $user = new \WP_User();
+        $user->ID = 42;
+
+        $security = $this->createSecurity(user: $user);
+        $this->controller->setSecurity($security);
+
+        self::assertSame($user, $this->controller->callGetUser());
+    }
+
+    #[Test]
+    public function getUserThrowsWithoutSecurity(): void
+    {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Security is not available');
+
+        $this->controller->callGetUser();
+    }
+
+    #[Test]
+    public function isGrantedDelegatesToSecurity(): void
+    {
+        $security = $this->createSecurity(granted: true);
+        $this->controller->setSecurity($security);
+
+        self::assertTrue($this->controller->callIsGranted('edit_posts'));
+    }
+
+    #[Test]
+    public function isGrantedThrowsWithoutSecurity(): void
+    {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Security is not available');
+
+        $this->controller->callIsGranted('edit_posts');
+    }
+
+    #[Test]
+    public function denyAccessUnlessGrantedDelegatesToSecurity(): void
+    {
+        $security = $this->createSecurity(granted: false);
+        $this->controller->setSecurity($security);
+
+        $this->expectException(AccessDeniedException::class);
+
+        $this->controller->callDenyAccessUnlessGranted('edit_posts');
+    }
+
+    #[Test]
+    public function denyAccessUnlessGrantedThrowsWithoutSecurity(): void
+    {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Security is not available');
+
+        $this->controller->callDenyAccessUnlessGranted('edit_posts');
+    }
+
+    private function createSecurity(?\WP_User $user = null, bool $granted = false): Security
+    {
+        $checker = new class ($granted) implements AuthorizationCheckerInterface {
+            public function __construct(private readonly bool $granted) {}
+
+            public function isGranted(string $attribute, mixed $subject = null): bool
+            {
+                return $this->granted;
+            }
+        };
+
+        $token = $user !== null ? new PostAuthenticationToken($user, ['subscriber']) : null;
+
+        $authManager = new class ($token) implements AuthenticationManagerInterface {
+            public function __construct(private readonly ?TokenInterface $token) {}
+
+            public function handleAuthentication(mixed $user, string $username, string $password): mixed
+            {
+                return $user;
+            }
+
+            public function handleStatelessAuthentication(int $userId): int
+            {
+                return $userId;
+            }
+
+            public function getToken(): ?TokenInterface
+            {
+                return $this->token;
+            }
+        };
+
+        return new Security($checker, $authManager);
     }
 }
