@@ -172,4 +172,92 @@ final class GoogleProviderTest extends TestCase
             GoogleProvider::DISCOVERY_URL,
         );
     }
+
+    #[Test]
+    public function authorizationUrlIncludesCodeChallenge(): void
+    {
+        $provider = new GoogleProvider($this->configuration);
+
+        $url = $provider->getAuthorizationUrl('test-state', 'test-nonce', 'test-challenge', 'S256');
+        $parsed = parse_url($url);
+        parse_str($parsed['query'], $params);
+
+        self::assertSame('test-challenge', $params['code_challenge']);
+        self::assertSame('S256', $params['code_challenge_method']);
+    }
+
+    #[Test]
+    public function authorizationUrlExcludesCodeChallengeWhenNull(): void
+    {
+        $provider = new GoogleProvider($this->configuration);
+
+        $url = $provider->getAuthorizationUrl('test-state', 'test-nonce');
+        $parsed = parse_url($url);
+        parse_str($parsed['query'], $params);
+
+        self::assertArrayNotHasKey('code_challenge', $params);
+        self::assertArrayNotHasKey('code_challenge_method', $params);
+    }
+
+    #[Test]
+    public function setDiscoveryDocumentOverridesDefaults(): void
+    {
+        $provider = new GoogleProvider($this->configuration);
+
+        $discoveryDocument = new \WpPack\Component\Security\Bridge\OAuth\Token\DiscoveryDocument(
+            issuer: 'https://custom-google.example.com',
+            authorizationEndpoint: 'https://custom-google.example.com/authorize',
+            tokenEndpoint: 'https://custom-google.example.com/token',
+            userinfoEndpoint: 'https://custom-google.example.com/userinfo',
+            jwksUri: 'https://custom-google.example.com/keys',
+        );
+
+        $provider->setDiscoveryDocument($discoveryDocument);
+
+        self::assertSame('https://custom-google.example.com/token', $provider->getTokenEndpoint());
+        self::assertSame('https://custom-google.example.com/userinfo', $provider->getUserInfoEndpoint());
+        self::assertSame('https://custom-google.example.com/keys', $provider->getJwksUri());
+        self::assertSame('https://custom-google.example.com', $provider->getIssuer());
+    }
+
+    #[Test]
+    public function authorizationUrlUsesDiscoveryEndpoint(): void
+    {
+        $discoveryDocument = new \WpPack\Component\Security\Bridge\OAuth\Token\DiscoveryDocument(
+            issuer: 'https://custom.example.com',
+            authorizationEndpoint: 'https://custom.example.com/authorize',
+            tokenEndpoint: 'https://custom.example.com/token',
+        );
+
+        $provider = new GoogleProvider($this->configuration, discoveryDocument: $discoveryDocument);
+
+        $url = $provider->getAuthorizationUrl('state', 'nonce');
+        self::assertStringStartsWith('https://custom.example.com/authorize?', $url);
+    }
+
+    #[Test]
+    public function configurationEndpointsOverrideDefaults(): void
+    {
+        $config = new OAuthConfiguration(
+            clientId: 'client-id',
+            clientSecret: 'client-secret',
+            redirectUri: 'https://example.com/callback',
+            scopes: ['openid'],
+            authorizationEndpoint: 'https://config.example.com/authorize',
+            tokenEndpoint: 'https://config.example.com/token',
+            userinfoEndpoint: 'https://config.example.com/userinfo',
+            jwksUri: 'https://config.example.com/keys',
+            issuer: 'https://config.example.com',
+        );
+
+        $provider = new GoogleProvider($config);
+
+        self::assertSame('https://config.example.com/token', $provider->getTokenEndpoint());
+        self::assertSame('https://config.example.com/userinfo', $provider->getUserInfoEndpoint());
+        self::assertSame('https://config.example.com/keys', $provider->getJwksUri());
+        self::assertSame('https://config.example.com', $provider->getIssuer());
+
+        $url = $provider->getAuthorizationUrl('state', 'nonce');
+        self::assertStringStartsWith('https://config.example.com/authorize?', $url);
+    }
 }

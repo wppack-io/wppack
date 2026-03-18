@@ -225,4 +225,84 @@ final class AzureProviderTest extends TestCase
 
         self::assertNull($provider->getUserInfoEndpoint());
     }
+
+    #[Test]
+    public function authorizationUrlIncludesCodeChallenge(): void
+    {
+        $provider = new AzureProvider($this->configuration, $this->tenantId);
+
+        $url = $provider->getAuthorizationUrl('test-state', 'test-nonce', 'test-challenge', 'S256');
+        $parsed = parse_url($url);
+        parse_str($parsed['query'], $params);
+
+        self::assertSame('test-challenge', $params['code_challenge']);
+        self::assertSame('S256', $params['code_challenge_method']);
+    }
+
+    #[Test]
+    public function authorizationUrlExcludesCodeChallengeWhenNull(): void
+    {
+        $provider = new AzureProvider($this->configuration, $this->tenantId);
+
+        $url = $provider->getAuthorizationUrl('test-state', 'test-nonce');
+        $parsed = parse_url($url);
+        parse_str($parsed['query'], $params);
+
+        self::assertArrayNotHasKey('code_challenge', $params);
+        self::assertArrayNotHasKey('code_challenge_method', $params);
+    }
+
+    #[Test]
+    public function configurationEndpointsOverrideDefaults(): void
+    {
+        $config = new OAuthConfiguration(
+            clientId: 'client-id',
+            clientSecret: 'client-secret',
+            redirectUri: 'https://example.com/callback',
+            scopes: ['openid'],
+            authorizationEndpoint: 'https://config.example.com/authorize',
+            tokenEndpoint: 'https://config.example.com/token',
+            userinfoEndpoint: 'https://config.example.com/userinfo',
+            jwksUri: 'https://config.example.com/keys',
+            issuer: 'https://config.example.com',
+            endSessionEndpoint: 'https://config.example.com/logout',
+        );
+
+        $provider = new AzureProvider($config, $this->tenantId);
+
+        self::assertSame('https://config.example.com/token', $provider->getTokenEndpoint());
+        self::assertSame('https://config.example.com/userinfo', $provider->getUserInfoEndpoint());
+        self::assertSame('https://config.example.com/keys', $provider->getJwksUri());
+        self::assertSame('https://config.example.com', $provider->getIssuer());
+        self::assertSame('https://config.example.com/logout', $provider->getEndSessionEndpoint());
+
+        $url = $provider->getAuthorizationUrl('state', 'nonce');
+        self::assertStringStartsWith('https://config.example.com/authorize?', $url);
+    }
+
+    #[Test]
+    public function discoveryDocumentOverridesConfiguration(): void
+    {
+        $config = new OAuthConfiguration(
+            clientId: 'client-id',
+            clientSecret: 'client-secret',
+            redirectUri: 'https://example.com/callback',
+            scopes: ['openid'],
+            tokenEndpoint: 'https://config.example.com/token',
+            userinfoEndpoint: 'https://config.example.com/userinfo',
+        );
+
+        $discoveryDocument = new DiscoveryDocument(
+            issuer: 'https://discovery.example.com',
+            authorizationEndpoint: 'https://discovery.example.com/authorize',
+            tokenEndpoint: 'https://discovery.example.com/token',
+            userinfoEndpoint: 'https://discovery.example.com/userinfo',
+        );
+
+        $provider = new AzureProvider($config, $this->tenantId, $discoveryDocument);
+
+        // Discovery should override config
+        self::assertSame('https://discovery.example.com/token', $provider->getTokenEndpoint());
+        self::assertSame('https://discovery.example.com/userinfo', $provider->getUserInfoEndpoint());
+    }
 }

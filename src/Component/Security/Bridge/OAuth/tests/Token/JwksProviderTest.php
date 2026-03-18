@@ -143,4 +143,13 @@ final class JwksProviderTest extends TestCase
 
         $this->provider->getKeys('https://idp.example.com/.well-known/jwks.json');
     }
+
+    #[Test]
+    public function getKeysThrowsForNonHttpsUri(): void
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('JWKS URI must use HTTPS.');
+
+        $this->provider->getKeys('http://idp.example.com/.well-known/jwks.json');
+    }
 }

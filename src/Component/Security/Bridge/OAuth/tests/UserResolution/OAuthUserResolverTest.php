@@ -251,6 +251,10 @@ final class OAuthUserResolverTest extends TestCase
 
         self::assertIsInt($userId);
 
+        // Explicitly set role to ensure it's applied in the test environment
+        $wpUser = get_user_by('id', $userId);
+        $wpUser->set_role('subscriber');
+
         $resolver = new OAuthUserResolver(providerName: 'google');
 
         $user = $resolver->resolveUser(
@@ -487,6 +491,10 @@ final class OAuthUserResolverTest extends TestCase
         ]);
 
         self::assertIsInt($userId);
+
+        // Explicitly set role to ensure it's applied in the test environment
+        $wpUser = get_user_by('id', $userId);
+        $wpUser->set_role('editor');
 
         $resolver = new OAuthUserResolver(
             providerName: 'google',

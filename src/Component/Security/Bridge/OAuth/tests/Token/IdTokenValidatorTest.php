@@ -274,4 +274,134 @@ final class IdTokenValidatorTest extends TestCase
             [['kty' => 'RSA', 'kid' => 'wrong-key', 'n' => 'invalid', 'e' => 'AQAB']],
         );
     }
+
+    #[Test]
+    public function missingIssuerThrowsException(): void
+    {
+        $payload = [
+            'aud' => $this->clientId,
+            'sub' => 'user-123',
+            'exp' => time() + 3600,
+            'iat' => time() - 10,
+            'nonce' => $this->nonce,
+        ];
+        $token = JWT::encode($payload, $this->privateKey, 'RS256', $this->kid);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('issuer validation failed');
+
+        $this->validator->validate(
+            $token,
+            $this->nonce,
+            $this->clientId,
+            $this->issuer,
+            $this->jwks,
+        );
+    }
+
+    #[Test]
+    public function missingAudienceThrowsException(): void
+    {
+        $payload = [
+            'iss' => $this->issuer,
+            'sub' => 'user-123',
+            'exp' => time() + 3600,
+            'iat' => time() - 10,
+            'nonce' => $this->nonce,
+        ];
+        $token = JWT::encode($payload, $this->privateKey, 'RS256', $this->kid);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('missing the "aud" claim');
+
+        $this->validator->validate(
+            $token,
+            $this->nonce,
+            $this->clientId,
+            $this->issuer,
+            $this->jwks,
+        );
+    }
+
+    #[Test]
+    public function missingExpirationThrowsException(): void
+    {
+        $payload = [
+            'iss' => $this->issuer,
+            'aud' => $this->clientId,
+            'sub' => 'user-123',
+            'iat' => time() - 10,
+            'nonce' => $this->nonce,
+        ];
+        $token = JWT::encode($payload, $this->privateKey, 'RS256', $this->kid);
+
+        // JWT library also validates exp, so it may throw before our validation
+        $this->expectException(\RuntimeException::class);
+
+        $this->validator->validate(
+            $token,
+            $this->nonce,
+            $this->clientId,
+            $this->issuer,
+            $this->jwks,
+        );
+    }
+
+    #[Test]
+    public function missingIssuedAtThrowsException(): void
+    {
+        $payload = [
+            'iss' => $this->issuer,
+            'aud' => $this->clientId,
+            'sub' => 'user-123',
+            'exp' => time() + 3600,
+            'nonce' => $this->nonce,
+        ];
+        $token = JWT::encode($payload, $this->privateKey, 'RS256', $this->kid);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('missing the "iat" claim');
+
+        $this->validator->validate(
+            $token,
+            $this->nonce,
+            $this->clientId,
+            $this->issuer,
+            $this->jwks,
+        );
+    }
+
+    #[Test]
+    public function azpWithSingleAudienceIsAccepted(): void
+    {
+        // When azp is present but aud is a single value, azp validation is skipped
+        $token = $this->createIdToken([
+            'azp' => 'other-client',
+        ]);
+
+        $claims = $this->validator->validate(
+            $token,
+            $this->nonce,
+            $this->clientId,
+            $this->issuer,
+            $this->jwks,
+        );
+
+        self::assertSame('other-client', $claims['azp']);
+    }
+
+    #[Test]
+    public function completelyInvalidTokenThrowsException(): void
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('ID token validation failed.');
+
+        $this->validator->validate(
+            'completely-invalid-token',
+            $this->nonce,
+            $this->clientId,
+            $this->issuer,
+            $this->jwks,
+        );
+    }
 }

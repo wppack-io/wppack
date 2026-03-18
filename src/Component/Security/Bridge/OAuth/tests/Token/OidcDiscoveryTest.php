@@ -153,4 +153,13 @@ final class OidcDiscoveryTest extends TestCase
             'https://idp.example.com/.well-known/openid-configuration',
         );
     }
+
+    #[Test]
+    public function discoverThrowsForNonHttpsUrl(): void
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Discovery URL must use HTTPS.');
+
+        $this->discovery->discover('http://idp.example.com/.well-known/openid-configuration');
+    }
 }

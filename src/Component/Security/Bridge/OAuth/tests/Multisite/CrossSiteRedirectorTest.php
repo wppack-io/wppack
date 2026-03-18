@@ -233,4 +233,126 @@ final class CrossSiteRedirectorTest extends TestCase
 
         self::assertNull($redirector->resolveBlogId('https://sub.example.com'));
     }
+
+    #[Test]
+    public function resolveBlogIdReturnsNullForInvalidUrl(): void
+    {
+        $redirector = new CrossSiteRedirector();
+
+        self::assertNull($redirector->resolveBlogId('not-a-url'));
+    }
+
+    #[Test]
+    public function buildAutoSubmitFormContainsFormElements(): void
+    {
+        $redirector = new CrossSiteRedirector();
+
+        $method = new \ReflectionMethod($redirector, 'buildAutoSubmitForm');
+
+        $html = $method->invoke(
+            $redirector,
+            'https://target.example.com/oauth/verify',
+            'test-token-value',
+            'https://target.example.com/dashboard',
+        );
+
+        self::assertStringContainsString('method="POST"', $html);
+        self::assertStringContainsString('action="https://target.example.com/oauth/verify"', $html);
+        self::assertStringContainsString('name="_wppack_oauth_token"', $html);
+        self::assertStringContainsString('value="test-token-value"', $html);
+        self::assertStringContainsString('name="returnTo"', $html);
+        self::assertStringContainsString('value="https://target.example.com/dashboard"', $html);
+        self::assertStringContainsString('document.getElementById', $html);
+    }
+
+    #[Test]
+    public function buildAutoSubmitFormEscapesHtmlEntities(): void
+    {
+        $redirector = new CrossSiteRedirector();
+
+        $method = new \ReflectionMethod($redirector, 'buildAutoSubmitForm');
+
+        $html = $method->invoke(
+            $redirector,
+            'https://target.example.com/oauth/verify?param=value&other=1',
+            'token<script>alert(1)</script>',
+            'return"onclick="hack',
+        );
+
+        // Injected XSS payloads must be HTML-escaped in attribute values
+        self::assertStringContainsString('&lt;script&gt;', $html);
+        self::assertStringNotContainsString('token<script>', $html);
+        self::assertStringContainsString('&amp;', $html);
+        self::assertStringContainsString('&quot;', $html);
+    }
+
+    #[Test]
+    public function customVerifyPath(): void
+    {
+        $redirector = new CrossSiteRedirector(verifyPath: '/custom/verify/path');
+
+        $method = new \ReflectionMethod($redirector, 'resolveVerifyUrl');
+
+        $result = $method->invoke($redirector, 'https://example.com/anything');
+        self::assertSame('https://example.com/custom/verify/path', $result);
+    }
+
+    #[Test]
+    public function verifyTokenReturnsNullForZeroUserId(): void
+    {
+        $token = 'test-zero-user-token';
+        $userId = 0;
+        $timestamp = time();
+        $payload = $userId . '|' . $timestamp . '|' . $token;
+        $hmac = wp_hash($payload);
+
+        set_transient(
+            '_wppack_oauth_xsite_' . hash('sha256', $token),
+            [
+                'user_id' => $userId,
+                'hmac' => $hmac,
+                'created_at' => $timestamp,
+            ],
+            120,
+        );
+
+        $redirector = new CrossSiteRedirector();
+
+        self::assertNull($redirector->verifyToken($token));
+    }
+
+    #[Test]
+    public function needsRedirectReturnsFalseForUrlWithoutHost(): void
+    {
+        $redirector = new CrossSiteRedirector();
+
+        self::assertFalse($redirector->needsRedirect('/relative/path'));
+    }
+
+    #[Test]
+    public function verifyTokenReturnsNullForMissingTransientData(): void
+    {
+        $redirector = new CrossSiteRedirector();
+
+        // Token with no corresponding transient
+        self::assertNull($redirector->verifyToken('completely-nonexistent-token'));
+    }
+
+    #[Test]
+    public function verifyTokenReturnsNullForNonArrayTransient(): void
+    {
+        $token = 'test-non-array-token';
+        set_transient(
+            '_wppack_oauth_xsite_' . hash('sha256', $token),
+            'string-value',
+            120,
+        );
+
+        $redirector = new CrossSiteRedirector();
+
+        self::assertNull($redirector->verifyToken($token));
+
+        // Clean up
+        delete_transient('_wppack_oauth_xsite_' . hash('sha256', $token));
+    }
 }
