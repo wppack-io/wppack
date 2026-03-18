@@ -318,6 +318,206 @@ $event = $dispatcher->dispatch(new OrderPlacedEvent($order, $customer));
 
 内部的に `do_action(EventClass::class, $event)` を呼び出すため、WordPress の `add_action()` で登録したリスナーも連携可能です。
 
+## WordPress フック連携
+
+EventDispatcher は内部で WordPress のフックシステム（`$wp_filter` / `add_filter()`）をバックエンドとして使用します。PSR-14 イベントと WordPress フックをシームレスに橋渡しし、既存の WordPress フックを型安全に扱えます。
+
+### アクションフックの登録
+
+`addListener()` で WordPress のアクションフックに登録できます：
+
+```php
+use WpPack\Component\EventDispatcher\EventDispatcher;
+use WpPack\Component\EventDispatcher\WordPressEvent;
+
+$dispatcher = new EventDispatcher();
+
+// init フックに登録
+$dispatcher->addListener('init', function (WordPressEvent $event): void {
+    // カスタム投稿タイプの登録など
+    register_post_type('product', [
+        'public' => true,
+        'label'  => 'Products',
+    ]);
+});
+
+// wp_enqueue_scripts フックに登録
+$dispatcher->addListener('wp_enqueue_scripts', function (WordPressEvent $event): void {
+    wp_enqueue_style('my-theme', get_stylesheet_uri());
+    wp_enqueue_script('my-app', get_template_directory_uri() . '/assets/js/app.js', [], null, true);
+});
+```
+
+### フィルターフックの登録
+
+フィルターでは `WordPressEvent` の `filterValue` プロパティで戻り値を変更します：
+
+```php
+// the_content フィルター
+$dispatcher->addListener('the_content', function (WordPressEvent $event): void {
+    $event->filterValue = $event->filterValue . '<p class="disclaimer">※ 個人の感想です</p>';
+}, acceptedArgs: 1);
+
+// body_class フィルター
+$dispatcher->addListener('body_class', function (WordPressEvent $event): void {
+    $classes = $event->filterValue;
+    $classes[] = 'custom-theme';
+
+    if (is_front_page()) {
+        $classes[] = 'is-front';
+    }
+
+    $event->filterValue = $classes;
+}, acceptedArgs: 1);
+```
+
+### アトリビュートでの WordPress フック登録
+
+`#[AsEventListener]` の `event` パラメータに WordPress フック名を指定します：
+
+```php
+use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
+use WpPack\Component\EventDispatcher\WordPressEvent;
+
+final class ContentEnhancer
+{
+    public function __construct(
+        private readonly AdManager $adManager,
+    ) {}
+
+    #[AsEventListener(event: 'the_content', priority: 20, acceptedArgs: 1)]
+    public function insertAds(WordPressEvent $event): void
+    {
+        if (is_single()) {
+            $event->filterValue = $this->adManager->inject($event->filterValue);
+        }
+    }
+
+    #[AsEventListener(event: 'wp_head', priority: 10)]
+    public function addMetaTags(WordPressEvent $event): void
+    {
+        echo '<meta name="generator" content="MyPlugin 1.0">';
+    }
+}
+```
+
+### サブスクライバーでの WordPress フック登録
+
+`EventSubscriberInterface` でも WordPress フックを扱えます。`acceptedArgs` は配列の第3要素で指定します：
+
+```php
+use WpPack\Component\EventDispatcher\EventSubscriberInterface;
+use WpPack\Component\EventDispatcher\WordPressEvent;
+
+final class ThemeSetupSubscriber implements EventSubscriberInterface
+{
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            'after_setup_theme' => 'setup',
+            'wp_enqueue_scripts' => 'enqueueAssets',
+            'body_class' => ['filterBodyClass', 10, 1],
+            'save_post' => ['onSavePost', 10, 3],
+        ];
+    }
+
+    public function setup(WordPressEvent $event): void
+    {
+        add_theme_support('post-thumbnails');
+        add_theme_support('title-tag');
+    }
+
+    public function enqueueAssets(WordPressEvent $event): void
+    {
+        wp_enqueue_style('theme-style', get_stylesheet_uri());
+    }
+
+    public function filterBodyClass(WordPressEvent $event): void
+    {
+        $event->filterValue[] = 'my-theme';
+    }
+
+    public function onSavePost(WordPressEvent $event): void
+    {
+        [$postId, $post, $update] = $event->args;
+
+        if ($post->post_type === 'product' && $update) {
+            // 商品更新時の処理
+            delete_transient("product_cache_{$postId}");
+        }
+    }
+}
+```
+
+### WordPressEvent サブクラスによる型安全なアクセス
+
+頻繁に使用するフックには `WordPressEvent` サブクラスを定義すると、マジック getter で型安全なアクセスが可能です：
+
+```php
+use WpPack\Component\EventDispatcher\WordPressEvent;
+use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
+
+final class SavePostEvent extends WordPressEvent
+{
+    public const HOOK_NAME = 'save_post';
+
+    protected array $argMap = [
+        'postId' => 0,
+        'post'   => 1,
+        'update' => 2,
+    ];
+}
+
+final class PostCacheInvalidator
+{
+    #[AsEventListener(event: SavePostEvent::class, acceptedArgs: 3)]
+    public function invalidateCache(SavePostEvent $event): void
+    {
+        // マジック getter で型安全にアクセス
+        $postId = $event->getPostId(); // int
+        $post = $event->getPost();     // \WP_Post
+        $update = $event->getUpdate(); // bool
+
+        if ($update && $post->post_status === 'publish') {
+            wp_cache_delete("post_{$postId}", 'my_plugin');
+        }
+    }
+}
+```
+
+### Named Hook アトリビュートとの使い分け
+
+| 方法 | 用途 |
+|------|------|
+| **Named Hook アトリビュート**（`#[InitAction]` 等） | WordPress フックを直接扱うシンプルなケース。メソッドの引数が WordPress フックの引数そのまま |
+| **EventDispatcher + WordPressEvent** | フィルター値の変更、伝播停止、テスト容易性が必要なケース |
+| **EventDispatcher + カスタムイベント** | ドメインイベント。WordPress フックに依存しないアプリケーションロジック |
+
+```php
+use WpPack\Component\Hook\Attribute\Action\InitAction;
+use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
+use WpPack\Component\EventDispatcher\WordPressEvent;
+
+final class PostTypeRegistrar
+{
+    // ✅ シンプルなフック → Named Hook アトリビュート
+    #[InitAction]
+    public function registerPostTypes(): void
+    {
+        register_post_type('product', ['public' => true]);
+    }
+
+    // ✅ フィルター値の変更や複雑なロジック → EventDispatcher
+    #[AsEventListener(event: 'the_content', priority: 20, acceptedArgs: 1)]
+    public function enhanceContent(WordPressEvent $event): void
+    {
+        if (get_post_type() === 'product') {
+            $event->filterValue = $this->renderProductDetails() . $event->filterValue;
+        }
+    }
+}
+```
+
 ## イベント伝播の停止
 
 `Event` 基底クラスは `StoppableEventInterface` を実装済みです。`stopPropagation()` を呼び出すと後続リスナーの実行がスキップされます：
