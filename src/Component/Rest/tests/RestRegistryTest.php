@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Rest\Attribute\Param;
 use WpPack\Component\Rest\Attribute\Permission;
-use WpPack\Component\Rest\Attribute\Route;
+use WpPack\Component\Rest\Attribute\RestRoute;
 use WpPack\Component\Rest\HttpMethod;
 use WpPack\Component\Rest\RestEntry;
 use WpPack\Component\Rest\RestRegistry;
@@ -24,8 +24,8 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function resolvesControllerWithSingleRoute(): void
     {
-        $controller = new #[Route('/items', namespace: 'test/v1')] #[Permission(public: true)] class {
-            #[Route(methods: HttpMethod::GET)]
+        $controller = new #[RestRoute('/items', namespace: 'test/v1')] #[Permission(public: true)] class {
+            #[RestRoute(methods: HttpMethod::GET)]
             public function list(): array
             {
                 return [];
@@ -45,14 +45,14 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function resolvesControllerWithMultipleRoutes(): void
     {
-        $controller = new #[Route('/items', namespace: 'test/v1')] #[Permission(public: true)] class {
-            #[Route(methods: HttpMethod::GET)]
+        $controller = new #[RestRoute('/items', namespace: 'test/v1')] #[Permission(public: true)] class {
+            #[RestRoute(methods: HttpMethod::GET)]
             public function list(): array
             {
                 return [];
             }
 
-            #[Route('/(?P<id>\d+)', methods: HttpMethod::GET)]
+            #[RestRoute('/(?P<id>\d+)', methods: HttpMethod::GET)]
             public function show(int $id): array
             {
                 return [];
@@ -71,8 +71,8 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function resolvesClassLevelPermission(): void
     {
-        $controller = new #[Route('/items', namespace: 'test/v1')] #[Permission(capability: 'edit_posts')] class {
-            #[Route(methods: HttpMethod::GET)]
+        $controller = new #[RestRoute('/items', namespace: 'test/v1')] #[Permission(capability: 'edit_posts')] class {
+            #[RestRoute(methods: HttpMethod::GET)]
             public function list(): array
             {
                 return [];
@@ -89,14 +89,14 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function methodLevelPermissionOverridesClassLevel(): void
     {
-        $controller = new #[Route('/items', namespace: 'test/v1')] #[Permission(public: true)] class {
-            #[Route(methods: HttpMethod::GET)]
+        $controller = new #[RestRoute('/items', namespace: 'test/v1')] #[Permission(public: true)] class {
+            #[RestRoute(methods: HttpMethod::GET)]
             public function list(): array
             {
                 return [];
             }
 
-            #[Route(methods: HttpMethod::POST)]
+            #[RestRoute(methods: HttpMethod::POST)]
             #[Permission(capability: 'edit_posts')]
             public function create(): array
             {
@@ -115,8 +115,8 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function combinesClassRouteWithMethodRoute(): void
     {
-        $controller = new #[Route('/products', namespace: 'shop/v1')] #[Permission(public: true)] class {
-            #[Route('/(?P<id>\d+)/reviews', methods: HttpMethod::GET)]
+        $controller = new #[RestRoute('/products', namespace: 'shop/v1')] #[Permission(public: true)] class {
+            #[RestRoute('/(?P<id>\d+)/reviews', methods: HttpMethod::GET)]
             public function reviews(int $id): array
             {
                 return [];
@@ -134,8 +134,8 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function resolvesParameterLevelParamAttributes(): void
     {
-        $controller = new #[Route('/items', namespace: 'test/v1')] #[Permission(public: true)] class {
-            #[Route(methods: HttpMethod::GET)]
+        $controller = new #[RestRoute('/items', namespace: 'test/v1')] #[Permission(public: true)] class {
+            #[RestRoute(methods: HttpMethod::GET)]
             public function list(
                 #[Param(minimum: 1, maximum: 100)]
                 int $perPage = 10,
@@ -160,8 +160,8 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function infersParamNameTypeRequiredFromPhp(): void
     {
-        $controller = new #[Route('/items', namespace: 'test/v1')] #[Permission(public: true)] class {
-            #[Route(methods: HttpMethod::POST)]
+        $controller = new #[RestRoute('/items', namespace: 'test/v1')] #[Permission(public: true)] class {
+            #[RestRoute(methods: HttpMethod::POST)]
             public function create(string $title, bool $published = false): array
             {
                 return [];
@@ -190,8 +190,8 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function skipsRequestParameter(): void
     {
-        $controller = new #[Route('/items', namespace: 'test/v1')] #[Permission(public: true)] class {
-            #[Route(methods: HttpMethod::POST)]
+        $controller = new #[RestRoute('/items', namespace: 'test/v1')] #[Permission(public: true)] class {
+            #[RestRoute(methods: HttpMethod::POST)]
             public function create(string $title, \WpPack\Component\HttpFoundation\Request $request): array
             {
                 return [];
@@ -210,7 +210,7 @@ final class RestRegistryTest extends TestCase
     public function throwsWhenNoClassLevelRoute(): void
     {
         $controller = new class {
-            #[Route(methods: HttpMethod::GET)]
+            #[RestRoute(methods: HttpMethod::GET)]
             public function list(): array
             {
                 return [];
@@ -218,7 +218,7 @@ final class RestRegistryTest extends TestCase
         };
 
         $this->expectException(\LogicException::class);
-        $this->expectExceptionMessage('must have a #[Route] attribute');
+        $this->expectExceptionMessage('must have a #[RestRoute] attribute');
 
         $registry = $this->createRegistryWithoutWordPress();
         $registry->register($controller);
@@ -227,8 +227,8 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function throwsWhenClassRouteHasNoNamespace(): void
     {
-        $controller = new #[Route('/items')] class {
-            #[Route(methods: HttpMethod::GET)]
+        $controller = new #[RestRoute('/items')] class {
+            #[RestRoute(methods: HttpMethod::GET)]
             public function list(): array
             {
                 return [];
@@ -245,7 +245,7 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function throwsWhenNoMethodRoutes(): void
     {
-        $controller = new #[Route('/items', namespace: 'test/v1')] class {
+        $controller = new #[RestRoute('/items', namespace: 'test/v1')] class {
             public function list(): array
             {
                 return [];
@@ -253,7 +253,7 @@ final class RestRegistryTest extends TestCase
         };
 
         $this->expectException(\LogicException::class);
-        $this->expectExceptionMessage('has no methods with #[Route] attributes');
+        $this->expectExceptionMessage('has no methods with #[RestRoute] attributes');
 
         $registry = $this->createRegistryWithoutWordPress();
         $registry->register($controller);
@@ -262,9 +262,9 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function repeatableRouteCreatesMultipleEntries(): void
     {
-        $controller = new #[Route('/items', namespace: 'test/v1')] #[Permission(public: true)] class {
-            #[Route(methods: HttpMethod::PUT)]
-            #[Route(methods: HttpMethod::PATCH)]
+        $controller = new #[RestRoute('/items', namespace: 'test/v1')] #[Permission(public: true)] class {
+            #[RestRoute(methods: HttpMethod::PUT)]
+            #[RestRoute(methods: HttpMethod::PATCH)]
             public function update(): array
             {
                 return [];
@@ -283,8 +283,8 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function registerAddsRestApiInitHook(): void
     {
-        $controller = new #[Route('/items', namespace: 'test/v1')] #[Permission(public: true)] class {
-            #[Route(methods: HttpMethod::GET)]
+        $controller = new #[RestRoute('/items', namespace: 'test/v1')] #[Permission(public: true)] class {
+            #[RestRoute(methods: HttpMethod::GET)]
             public function list(): array
             {
                 return [];
@@ -308,8 +308,8 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function resolvesFloatParameterAsNumberType(): void
     {
-        $controller = new #[Route('/metrics', namespace: 'test/v1')] #[Permission(public: true)] class {
-            #[Route(methods: HttpMethod::POST)]
+        $controller = new #[RestRoute('/metrics', namespace: 'test/v1')] #[Permission(public: true)] class {
+            #[RestRoute(methods: HttpMethod::POST)]
             public function store(float $score): array
             {
                 return [];
@@ -326,8 +326,8 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function resolvesArrayParameterAsArrayType(): void
     {
-        $controller = new #[Route('/batch', namespace: 'test/v1')] #[Permission(public: true)] class {
-            #[Route(methods: HttpMethod::POST)]
+        $controller = new #[RestRoute('/batch', namespace: 'test/v1')] #[Permission(public: true)] class {
+            #[RestRoute(methods: HttpMethod::POST)]
             public function process(array $ids): array
             {
                 return [];
@@ -344,8 +344,8 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function skipWpRestRequestParameter(): void
     {
-        $controller = new #[Route('/items', namespace: 'test/v1')] #[Permission(public: true)] class {
-            #[Route(methods: HttpMethod::GET)]
+        $controller = new #[RestRoute('/items', namespace: 'test/v1')] #[Permission(public: true)] class {
+            #[RestRoute(methods: HttpMethod::GET)]
             public function list(\WP_REST_Request $request, int $page = 1): array
             {
                 return [];
@@ -363,8 +363,8 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function convertsCamelCaseToSnakeCase(): void
     {
-        $controller = new #[Route('/items', namespace: 'test/v1')] #[Permission(public: true)] class {
-            #[Route(methods: HttpMethod::GET)]
+        $controller = new #[RestRoute('/items', namespace: 'test/v1')] #[Permission(public: true)] class {
+            #[RestRoute(methods: HttpMethod::GET)]
             public function list(int $perPage = 10, string $sortOrder = 'asc'): array
             {
                 return [];
@@ -382,8 +382,8 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function permissionCallbackIsReturnTrueForPublic(): void
     {
-        $controller = new #[Route('/public', namespace: 'test/v1')] #[Permission(public: true)] class {
-            #[Route(methods: HttpMethod::GET)]
+        $controller = new #[RestRoute('/public', namespace: 'test/v1')] #[Permission(public: true)] class {
+            #[RestRoute(methods: HttpMethod::GET)]
             public function index(): array
             {
                 return [];
@@ -404,8 +404,8 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function permissionCallbackChecksCapability(): void
     {
-        $controller = new #[Route('/admin', namespace: 'test/v1')] #[Permission(capability: 'manage_options')] class {
-            #[Route(methods: HttpMethod::GET)]
+        $controller = new #[RestRoute('/admin', namespace: 'test/v1')] #[Permission(capability: 'manage_options')] class {
+            #[RestRoute(methods: HttpMethod::GET)]
             public function index(): array
             {
                 return [];
@@ -428,11 +428,11 @@ final class RestRegistryTest extends TestCase
     {
         $capturedId = null;
         $capturedTitle = null;
-        $controller = new #[Route('/items', namespace: 'test/v1')] #[Permission(public: true)] class {
+        $controller = new #[RestRoute('/items', namespace: 'test/v1')] #[Permission(public: true)] class {
             public ?int $capturedId = null;
             public ?string $capturedTitle = null;
 
-            #[Route('/(?P<id>\d+)', methods: HttpMethod::PUT)]
+            #[RestRoute('/(?P<id>\d+)', methods: HttpMethod::PUT)]
             public function update(int $id, string $title): array
             {
                 $this->capturedId = $id;
@@ -464,10 +464,10 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function callbackInjectsCustomRequestObject(): void
     {
-        $controller = new #[Route('/inject-request', namespace: 'test/v1')] #[Permission(public: true)] class {
+        $controller = new #[RestRoute('/inject-request', namespace: 'test/v1')] #[Permission(public: true)] class {
             public ?\WpPack\Component\HttpFoundation\Request $capturedRequest = null;
 
-            #[Route(methods: HttpMethod::GET)]
+            #[RestRoute(methods: HttpMethod::GET)]
             public function index(\WpPack\Component\HttpFoundation\Request $request): array
             {
                 $this->capturedRequest = $request;
@@ -493,8 +493,8 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function createArgsIncludesValidateCallback(): void
     {
-        $controller = new #[Route('/validate-items', namespace: 'test/v1')] #[Permission(public: true)] class {
-            #[Route(methods: HttpMethod::POST)]
+        $controller = new #[RestRoute('/validate-items', namespace: 'test/v1')] #[Permission(public: true)] class {
+            #[RestRoute(methods: HttpMethod::POST)]
             public function create(
                 #[Param(validate: 'validateTitle')]
                 string $title,
@@ -524,8 +524,8 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function createArgsIncludesSanitizeCallback(): void
     {
-        $controller = new #[Route('/sanitize-items', namespace: 'test/v1')] #[Permission(public: true)] class {
-            #[Route(methods: HttpMethod::POST)]
+        $controller = new #[RestRoute('/sanitize-items', namespace: 'test/v1')] #[Permission(public: true)] class {
+            #[RestRoute(methods: HttpMethod::POST)]
             public function create(
                 #[Param(sanitize: 'sanitizeTitle')]
                 string $title,
@@ -555,8 +555,8 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function permissionCallbackInvokesControllerMethod(): void
     {
-        $controller = new #[Route('/items', namespace: 'test/v1')] class {
-            #[Route(methods: HttpMethod::GET)]
+        $controller = new #[RestRoute('/items', namespace: 'test/v1')] class {
+            #[RestRoute(methods: HttpMethod::GET)]
             #[Permission(callback: 'checkAccess')]
             public function index(): array
             {
@@ -587,8 +587,8 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function emptyMethodRouteProducesSlash(): void
     {
-        $controller = new #[Route('/items', namespace: 'test/v1')] #[Permission(public: true)] class {
-            #[Route(methods: HttpMethod::GET)]
+        $controller = new #[RestRoute('/items', namespace: 'test/v1')] #[Permission(public: true)] class {
+            #[RestRoute(methods: HttpMethod::GET)]
             public function index(): array
             {
                 return [];

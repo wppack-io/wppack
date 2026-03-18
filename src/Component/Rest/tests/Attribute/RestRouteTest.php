@@ -6,15 +6,15 @@ namespace WpPack\Component\Rest\Tests\Attribute;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Rest\Attribute\Route;
+use WpPack\Component\Rest\Attribute\RestRoute;
 use WpPack\Component\Rest\HttpMethod;
 
-final class RouteTest extends TestCase
+final class RestRouteTest extends TestCase
 {
     #[Test]
     public function defaultValues(): void
     {
-        $route = new Route();
+        $route = new RestRoute();
 
         self::assertSame('', $route->route);
         self::assertSame([], $route->methods);
@@ -24,7 +24,7 @@ final class RouteTest extends TestCase
     #[Test]
     public function classLevelWithNamespace(): void
     {
-        $route = new Route('/products', namespace: 'my-plugin/v1');
+        $route = new RestRoute('/products', namespace: 'my-plugin/v1');
 
         self::assertSame('/products', $route->route);
         self::assertSame('my-plugin/v1', $route->namespace);
@@ -33,7 +33,7 @@ final class RouteTest extends TestCase
     #[Test]
     public function methodLevelWithMethods(): void
     {
-        $route = new Route('/items', methods: [HttpMethod::GET, HttpMethod::POST]);
+        $route = new RestRoute('/items', methods: [HttpMethod::GET, HttpMethod::POST]);
 
         self::assertSame('/items', $route->route);
         self::assertSame(['GET', 'POST'], $route->methods);
@@ -42,7 +42,7 @@ final class RouteTest extends TestCase
     #[Test]
     public function singleMethodEnum(): void
     {
-        $route = new Route(methods: HttpMethod::POST);
+        $route = new RestRoute(methods: HttpMethod::POST);
 
         self::assertSame(['POST'], $route->methods);
     }
@@ -50,7 +50,7 @@ final class RouteTest extends TestCase
     #[Test]
     public function singleMethodString(): void
     {
-        $route = new Route(methods: 'POST');
+        $route = new RestRoute(methods: 'POST');
 
         self::assertSame(['POST'], $route->methods);
     }
@@ -58,7 +58,7 @@ final class RouteTest extends TestCase
     #[Test]
     public function multipleMethodsEnum(): void
     {
-        $route = new Route(methods: [HttpMethod::PUT, HttpMethod::PATCH]);
+        $route = new RestRoute(methods: [HttpMethod::PUT, HttpMethod::PATCH]);
 
         self::assertSame(['PUT', 'PATCH'], $route->methods);
     }
@@ -66,7 +66,7 @@ final class RouteTest extends TestCase
     #[Test]
     public function multipleMethodsString(): void
     {
-        $route = new Route(methods: ['PUT', 'PATCH']);
+        $route = new RestRoute(methods: ['PUT', 'PATCH']);
 
         self::assertSame(['PUT', 'PATCH'], $route->methods);
     }
@@ -74,7 +74,7 @@ final class RouteTest extends TestCase
     #[Test]
     public function mixedMethodTypes(): void
     {
-        $route = new Route(methods: [HttpMethod::GET, 'POST']);
+        $route = new RestRoute(methods: [HttpMethod::GET, 'POST']);
 
         self::assertSame(['GET', 'POST'], $route->methods);
     }
@@ -82,7 +82,7 @@ final class RouteTest extends TestCase
     #[Test]
     public function methodsAreUppercased(): void
     {
-        $route = new Route(methods: 'get');
+        $route = new RestRoute(methods: 'get');
 
         self::assertSame(['GET'], $route->methods);
     }
@@ -90,7 +90,7 @@ final class RouteTest extends TestCase
     #[Test]
     public function isRepeatableAttribute(): void
     {
-        $reflection = new \ReflectionClass(Route::class);
+        $reflection = new \ReflectionClass(RestRoute::class);
         $attributes = $reflection->getAttributes(\Attribute::class);
 
         self::assertCount(1, $attributes);
@@ -101,7 +101,7 @@ final class RouteTest extends TestCase
     #[Test]
     public function targetsClassAndMethod(): void
     {
-        $reflection = new \ReflectionClass(Route::class);
+        $reflection = new \ReflectionClass(RestRoute::class);
         $attributes = $reflection->getAttributes(\Attribute::class);
         $flags = $attributes[0]->newInstance()->flags;
 
@@ -112,7 +112,7 @@ final class RouteTest extends TestCase
     #[Test]
     public function routeAsFirstPositionalArgument(): void
     {
-        $route = new Route('/users');
+        $route = new RestRoute('/users');
 
         self::assertSame('/users', $route->route);
     }

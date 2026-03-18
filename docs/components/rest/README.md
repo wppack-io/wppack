@@ -14,7 +14,7 @@ composer require wppack/rest
 
 ```php
 use WpPack\Component\Rest\AbstractRestController;
-use WpPack\Component\Rest\Attribute\Route;
+use WpPack\Component\Rest\Attribute\RestRoute;
 use WpPack\Component\Rest\Attribute\Param;
 use WpPack\Component\Rest\Attribute\Permission;
 use WpPack\Component\HttpFoundation\Exception\NotFoundException;
@@ -22,11 +22,11 @@ use WpPack\Component\Rest\HttpMethod;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\HttpFoundation\JsonResponse;
 
-#[Route('/products', namespace: 'my-plugin/v1')]
+#[RestRoute('/products', namespace: 'my-plugin/v1')]
 #[Permission(public: true)]
 class ProductController extends AbstractRestController
 {
-    #[Route(methods: HttpMethod::GET)]
+    #[RestRoute(methods: HttpMethod::GET)]
     public function list(
         #[Param(minimum: 1, maximum: 100)] int $perPage = 10,
         #[Param(minimum: 1)] int $page = 1,
@@ -38,7 +38,7 @@ class ProductController extends AbstractRestController
         ])];
     }
 
-    #[Route('/(?P<id>\d+)', methods: HttpMethod::GET)]
+    #[RestRoute('/(?P<id>\d+)', methods: HttpMethod::GET)]
     public function show(int $id): JsonResponse
     {
         $product = get_post($id);
@@ -49,7 +49,7 @@ class ProductController extends AbstractRestController
         return $this->json(['id' => $product->ID, 'title' => $product->post_title]);
     }
 
-    #[Route(methods: HttpMethod::POST)]
+    #[RestRoute(methods: HttpMethod::POST)]
     #[Permission(capability: 'edit_posts')]
     public function create(
         #[Param(minLength: 3)] string $title,
@@ -59,7 +59,7 @@ class ProductController extends AbstractRestController
         return $this->created(['id' => $id]);
     }
 
-    #[Route('/(?P<id>\d+)', methods: HttpMethod::DELETE)]
+    #[RestRoute('/(?P<id>\d+)', methods: HttpMethod::DELETE)]
     #[Permission(callback: 'canDelete')]
     public function delete(int $id): JsonResponse
     {
@@ -85,7 +85,7 @@ $registry->register(new ProductController());
 
 ## アトリビュート
 
-### `#[Route]`
+### `#[RestRoute]`
 
 クラスレベルとメソッドレベルの両方で使用可能。
 
@@ -95,7 +95,7 @@ $registry->register(new ProductController());
 | `namespace` | REST API 名前空間 | 必須 | - |
 | `methods` | HTTP メソッド | - | 必須 |
 
-`IS_REPEATABLE` 対応のため、メソッドに複数の `#[Route]` を付与可能。
+`IS_REPEATABLE` 対応のため、メソッドに複数の `#[RestRoute]` を付与可能。
 
 ### `#[Param]`
 

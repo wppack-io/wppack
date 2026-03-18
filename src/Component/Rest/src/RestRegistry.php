@@ -7,7 +7,7 @@ namespace WpPack\Component\Rest;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Rest\Attribute\Param;
 use WpPack\Component\Rest\Attribute\Permission;
-use WpPack\Component\Rest\Attribute\Route;
+use WpPack\Component\Rest\Attribute\RestRoute;
 
 final class RestRegistry
 {
@@ -37,10 +37,10 @@ final class RestRegistry
     {
         $reflection = new \ReflectionClass($controller);
 
-        $classRouteAttrs = $reflection->getAttributes(Route::class);
+        $classRouteAttrs = $reflection->getAttributes(RestRoute::class);
         if ($classRouteAttrs === []) {
             throw new \LogicException(sprintf(
-                'Class "%s" must have a #[Route] attribute.',
+                'Class "%s" must have a #[RestRoute] attribute.',
                 $controller::class,
             ));
         }
@@ -48,7 +48,7 @@ final class RestRegistry
         $classRoute = $classRouteAttrs[0]->newInstance();
         if ($classRoute->namespace === null) {
             throw new \LogicException(sprintf(
-                'Class-level #[Route] on "%s" must specify a namespace.',
+                'Class-level #[RestRoute] on "%s" must specify a namespace.',
                 $controller::class,
             ));
         }
@@ -58,7 +58,7 @@ final class RestRegistry
 
         $entries = [];
         foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
-            $methodRouteAttrs = $method->getAttributes(Route::class);
+            $methodRouteAttrs = $method->getAttributes(RestRoute::class);
             if ($methodRouteAttrs === []) {
                 continue;
             }
@@ -90,7 +90,7 @@ final class RestRegistry
 
         if ($entries === []) {
             throw new \LogicException(sprintf(
-                'Class "%s" has no methods with #[Route] attributes.',
+                'Class "%s" has no methods with #[RestRoute] attributes.',
                 $controller::class,
             ));
         }

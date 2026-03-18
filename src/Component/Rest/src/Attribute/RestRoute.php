@@ -7,7 +7,7 @@ namespace WpPack\Component\Rest\Attribute;
 use WpPack\Component\Rest\HttpMethod;
 
 #[\Attribute(\Attribute::TARGET_CLASS | \Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
-final class Route
+final class RestRoute
 {
     /** @var list<string> */
     public readonly array $methods;
