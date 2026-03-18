@@ -187,10 +187,7 @@ final class ThemeDataCollector extends AbstractDataCollector
      */
     private function buildThemeHookAttribution(array $wpFilter): array
     {
-        $themeDir = defined('ABSPATH') ? (ABSPATH . 'wp-content/themes') : '';
-        if ($themeDir === '') {
-            return [];
-        }
+        $themeDir = ABSPATH . 'wp-content/themes';
 
         $hooks = [];
 

@@ -311,7 +311,7 @@ final class PluginDataCollectorTest extends TestCase
         $savedQueries = $wpdb->queries ?? null;
 
         // Simulate some queries from a plugin directory
-        $pluginDir = defined('WP_PLUGIN_DIR') ? WP_PLUGIN_DIR : '/wp-content/plugins';
+        $pluginDir = WP_PLUGIN_DIR;
         $wpdb->queries = [
             ['SELECT 1', 0.001, $pluginDir . '/test-plugin/main.php, test_function'],
             ['SELECT 2', 0.002, $pluginDir . '/test-plugin/main.php, another_function'],
@@ -708,10 +708,6 @@ final class PluginDataCollectorTest extends TestCase
     #[Test]
     public function buildPluginHookAttributionSkipsNonObjectEntries(): void
     {
-        if (!defined('WP_PLUGIN_DIR')) {
-            self::markTestSkipped('WP_PLUGIN_DIR is not defined.');
-        }
-
         $collector = new PluginDataCollector();
         $method = new \ReflectionMethod($collector, 'buildPluginHookAttribution');
 
@@ -741,10 +737,6 @@ final class PluginDataCollectorTest extends TestCase
     #[Test]
     public function buildPluginHookAttributionProcessesValidHookObjects(): void
     {
-        if (!defined('WP_PLUGIN_DIR')) {
-            self::markTestSkipped('WP_PLUGIN_DIR is not defined.');
-        }
-
         $collector = new PluginDataCollector();
         $method = new \ReflectionMethod($collector, 'buildPluginHookAttribution');
 
@@ -772,10 +764,6 @@ final class PluginDataCollectorTest extends TestCase
     #[Test]
     public function getPluginSlugFromCallbackReturnsMuPluginBasename(): void
     {
-        if (!defined('WPMU_PLUGIN_DIR')) {
-            self::markTestSkipped('WPMU_PLUGIN_DIR is not defined.');
-        }
-
         $muPluginDir = WPMU_PLUGIN_DIR;
         $fakeFile = $muPluginDir . '/test-mu-slug.php';
         $funcName = 'test_mu_slug_callback_' . md5(uniqid());
@@ -792,7 +780,7 @@ final class PluginDataCollectorTest extends TestCase
             $collector = new PluginDataCollector();
             $method = new \ReflectionMethod($collector, 'getPluginSlugFromCallback');
 
-            $result = $method->invoke($collector, $funcName, '', $muPluginDir);
+            $result = $method->invoke($collector, $funcName, '/nonexistent/plugins', $muPluginDir);
             self::assertSame('test-mu-slug.php', $result);
         } finally {
             if ($fileCreated && file_exists($fakeFile)) {
@@ -807,10 +795,6 @@ final class PluginDataCollectorTest extends TestCase
     #[Test]
     public function buildQueryAttributionSkipsMalformedQueries(): void
     {
-        if (!defined('WP_PLUGIN_DIR')) {
-            self::markTestSkipped('WP_PLUGIN_DIR is not defined.');
-        }
-
         $collector = new PluginDataCollector();
         $method = new \ReflectionMethod($collector, 'buildQueryAttribution');
 
@@ -906,10 +890,6 @@ final class PluginDataCollectorTest extends TestCase
     #[Test]
     public function buildQueryAttributionWithMuPluginDirQueries(): void
     {
-        if (!defined('WPMU_PLUGIN_DIR')) {
-            self::markTestSkipped('WPMU_PLUGIN_DIR is not defined.');
-        }
-
         $collector = new PluginDataCollector();
         $method = new \ReflectionMethod($collector, 'buildQueryAttribution');
 
@@ -945,10 +925,6 @@ final class PluginDataCollectorTest extends TestCase
     #[Test]
     public function getPluginSlugFromCallbackReturnsPluginDirSlug(): void
     {
-        if (!defined('WP_PLUGIN_DIR')) {
-            self::markTestSkipped('WP_PLUGIN_DIR is not defined.');
-        }
-
         $pluginDir = WP_PLUGIN_DIR;
         $fakeDir = $pluginDir . '/slug-test-plugin';
         $fakeFile = $fakeDir . '/main.php';
@@ -1004,10 +980,6 @@ final class PluginDataCollectorTest extends TestCase
     #[Test]
     public function buildPluginHookAttributionBuildsHooksFromPluginCallbacks(): void
     {
-        if (!defined('WP_PLUGIN_DIR')) {
-            self::markTestSkipped('WP_PLUGIN_DIR is not defined.');
-        }
-
         $pluginDir = WP_PLUGIN_DIR;
         $fakeDir = $pluginDir . '/hook-attr-test';
         $fakeFile = $fakeDir . '/plugin.php';
@@ -1068,10 +1040,6 @@ final class PluginDataCollectorTest extends TestCase
     #[Test]
     public function buildQueryAttributionHandlesBothPluginAndMuPluginQueries(): void
     {
-        if (!defined('WP_PLUGIN_DIR') || !defined('WPMU_PLUGIN_DIR')) {
-            self::markTestSkipped('Plugin directories are not defined.');
-        }
-
         $collector = new PluginDataCollector();
         $method = new \ReflectionMethod($collector, 'buildQueryAttribution');
 

@@ -27,10 +27,6 @@ final class WordPressChannelResolverTest extends TestCase
     #[Test]
     public function resolvesPluginDirectory(): void
     {
-        if (!defined('WP_PLUGIN_DIR')) {
-            self::markTestSkipped('WP_PLUGIN_DIR is not defined.');
-        }
-
         $path = WP_PLUGIN_DIR . '/akismet/akismet.php';
 
         self::assertSame('plugin:akismet', $this->resolver->resolve($path));
@@ -39,10 +35,6 @@ final class WordPressChannelResolverTest extends TestCase
     #[Test]
     public function resolvesPluginSubdirectory(): void
     {
-        if (!defined('WP_PLUGIN_DIR')) {
-            self::markTestSkipped('WP_PLUGIN_DIR is not defined.');
-        }
-
         $path = WP_PLUGIN_DIR . '/woocommerce/includes/class-wc-product.php';
 
         self::assertSame('plugin:woocommerce', $this->resolver->resolve($path));
@@ -51,10 +43,6 @@ final class WordPressChannelResolverTest extends TestCase
     #[Test]
     public function resolvesMuPluginAsPlugin(): void
     {
-        if (!defined('WPMU_PLUGIN_DIR')) {
-            self::markTestSkipped('WPMU_PLUGIN_DIR is not defined.');
-        }
-
         $path = WPMU_PLUGIN_DIR . '/custom-mu/custom-mu.php';
 
         self::assertSame('plugin:custom-mu', $this->resolver->resolve($path));

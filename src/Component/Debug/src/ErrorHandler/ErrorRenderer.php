@@ -65,7 +65,7 @@ final class ErrorRenderer
 
     public function shortenPath(string $path): string
     {
-        if (defined('ABSPATH') && str_starts_with($path, ABSPATH)) {
+        if (str_starts_with($path, ABSPATH)) {
             return substr($path, strlen(ABSPATH));
         }
 

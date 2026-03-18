@@ -21,9 +21,7 @@ final class CookieAuthenticatorTest extends TestCase
     #[Test]
     public function supportsRequestWithAuthCookie(): void
     {
-        $cookieName = defined('LOGGED_IN_COOKIE')
-            ? LOGGED_IN_COOKIE
-            : 'wordpress_logged_in_' . COOKIEHASH;
+        $cookieName = LOGGED_IN_COOKIE;
 
         $request = new Request(
             cookies: [$cookieName => 'some_cookie_value'],

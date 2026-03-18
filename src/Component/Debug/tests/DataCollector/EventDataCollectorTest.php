@@ -497,10 +497,6 @@ final class EventDataCollectorTest extends TestCase
     #[Test]
     public function attributeFileToComponentDetectsPluginDirectory(): void
     {
-        if (!defined('WP_PLUGIN_DIR')) {
-            self::markTestSkipped('WP_PLUGIN_DIR is not defined.');
-        }
-
         $collector = new EventDataCollector();
         $method = new \ReflectionMethod($collector, 'attributeFileToComponent');
 
@@ -520,10 +516,6 @@ final class EventDataCollectorTest extends TestCase
     #[Test]
     public function attributeFileToComponentDetectsMuPluginDirectory(): void
     {
-        if (!defined('WPMU_PLUGIN_DIR')) {
-            self::markTestSkipped('WPMU_PLUGIN_DIR is not defined.');
-        }
-
         $collector = new EventDataCollector();
         $method = new \ReflectionMethod($collector, 'attributeFileToComponent');
 
@@ -805,10 +797,6 @@ final class EventDataCollectorTest extends TestCase
     #[Test]
     public function resolveCallbackWithArrayCallbackFromPluginDir(): void
     {
-        if (!defined('WP_PLUGIN_DIR')) {
-            self::markTestSkipped('WP_PLUGIN_DIR is not defined.');
-        }
-
         $pluginDir = WP_PLUGIN_DIR;
         $fakeDir = $pluginDir . '/resolve-cb-test';
         $fakeFile = $fakeDir . '/handler.php';

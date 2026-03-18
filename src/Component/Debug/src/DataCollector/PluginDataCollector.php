@@ -246,12 +246,8 @@ final class PluginDataCollector extends AbstractDataCollector
      */
     private function buildPluginHookAttribution(array $wpFilter): array
     {
-        $pluginDir = defined('WP_PLUGIN_DIR') ? WP_PLUGIN_DIR : '';
-        $muPluginDir = defined('WPMU_PLUGIN_DIR') ? WPMU_PLUGIN_DIR : '';
-
-        if ($pluginDir === '' && $muPluginDir === '') {
-            return [];
-        }
+        $pluginDir = WP_PLUGIN_DIR;
+        $muPluginDir = WPMU_PLUGIN_DIR;
 
         $pluginHooks = [];
 
@@ -301,7 +297,7 @@ final class PluginDataCollector extends AbstractDataCollector
         }
 
         // Check regular plugin directory
-        if ($pluginDir !== '' && str_starts_with($fileName, $pluginDir)) {
+        if (str_starts_with($fileName, $pluginDir)) {
             $relative = substr($fileName, strlen($pluginDir) + 1);
             $parts = explode('/', $relative, 2);
 
@@ -309,7 +305,7 @@ final class PluginDataCollector extends AbstractDataCollector
         }
 
         // Check MU plugin directory — single-file structure, use basename
-        if ($muPluginDir !== '' && str_starts_with($fileName, $muPluginDir)) {
+        if (str_starts_with($fileName, $muPluginDir)) {
             return basename($fileName);
         }
 
@@ -347,12 +343,8 @@ final class PluginDataCollector extends AbstractDataCollector
             return [];
         }
 
-        $pluginDir = defined('WP_PLUGIN_DIR') ? WP_PLUGIN_DIR : '';
-        $muPluginDir = defined('WPMU_PLUGIN_DIR') ? WPMU_PLUGIN_DIR : '';
-
-        if ($pluginDir === '' && $muPluginDir === '') {
-            return [];
-        }
+        $pluginDir = WP_PLUGIN_DIR;
+        $muPluginDir = WPMU_PLUGIN_DIR;
 
         $result = [];
 
@@ -364,7 +356,7 @@ final class PluginDataCollector extends AbstractDataCollector
             $time = (float) ($query[1] ?? 0.0);
 
             // Check regular plugin directory
-            if ($pluginDir !== '' && str_contains($caller, $pluginDir)) {
+            if (str_contains($caller, $pluginDir)) {
                 $pos = strpos($caller, $pluginDir);
                 if ($pos !== false) {
                     $relative = substr($caller, $pos + strlen($pluginDir) + 1);
@@ -378,7 +370,7 @@ final class PluginDataCollector extends AbstractDataCollector
             }
 
             // Check MU plugin directory
-            if ($muPluginDir !== '' && str_contains($caller, $muPluginDir)) {
+            if (str_contains($caller, $muPluginDir)) {
                 $pos = strpos($caller, $muPluginDir);
                 if ($pos !== false) {
                     $relative = substr($caller, $pos + strlen($muPluginDir) + 1);

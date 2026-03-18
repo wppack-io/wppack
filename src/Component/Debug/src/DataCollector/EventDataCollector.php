@@ -260,10 +260,10 @@ final class EventDataCollector extends AbstractDataCollector
         $callbackName = $this->getCallbackName($callback);
 
         // Check plugin directory
-        $pluginDir = defined('WP_PLUGIN_DIR') ? WP_PLUGIN_DIR : '';
-        $muPluginDir = defined('WPMU_PLUGIN_DIR') ? WPMU_PLUGIN_DIR : '';
+        $pluginDir = WP_PLUGIN_DIR;
+        $muPluginDir = WPMU_PLUGIN_DIR;
 
-        if ($pluginDir !== '' && str_starts_with($fileName, $pluginDir)) {
+        if (str_starts_with($fileName, $pluginDir)) {
             $relative = substr($fileName, strlen($pluginDir) + 1);
             $parts = explode('/', $relative, 2);
             $slug = $parts[0];
@@ -271,7 +271,7 @@ final class EventDataCollector extends AbstractDataCollector
             return ['name' => $callbackName, 'component' => $slug, 'component_type' => 'plugin'];
         }
 
-        if ($muPluginDir !== '' && str_starts_with($fileName, $muPluginDir)) {
+        if (str_starts_with($fileName, $muPluginDir)) {
             $relative = substr($fileName, strlen($muPluginDir) + 1);
             $parts = explode('/', $relative, 2);
             $slug = $parts[0];
@@ -280,8 +280,8 @@ final class EventDataCollector extends AbstractDataCollector
         }
 
         // Check theme directory
-        $themeDir = defined('ABSPATH') ? (ABSPATH . 'wp-content/themes') : '';
-        if ($themeDir !== '' && str_starts_with($fileName, $themeDir)) {
+        $themeDir = ABSPATH . 'wp-content/themes';
+        if (str_starts_with($fileName, $themeDir)) {
             $relative = substr($fileName, strlen($themeDir) + 1);
             $parts = explode('/', $relative, 2);
             $slug = $parts[0];
@@ -290,11 +290,10 @@ final class EventDataCollector extends AbstractDataCollector
         }
 
         // Check core
-        $absPath = defined('ABSPATH') ? ABSPATH : '';
-        if ($absPath !== '' && str_starts_with($fileName, $absPath . 'wp-includes')) {
+        if (str_starts_with($fileName, ABSPATH . 'wp-includes')) {
             return ['name' => $callbackName, 'component' => 'core', 'component_type' => 'core'];
         }
-        if ($absPath !== '' && str_starts_with($fileName, $absPath . 'wp-admin')) {
+        if (str_starts_with($fileName, ABSPATH . 'wp-admin')) {
             return ['name' => $callbackName, 'component' => 'core', 'component_type' => 'core'];
         }
 
