@@ -346,8 +346,5 @@ add_action('init', function () {
 
 ## 依存関係
 
-### 必須
-- **Hook コンポーネント** — フィルター登録用
-
 ### 推奨
 - **DependencyInjection コンポーネント** — サービス注入用

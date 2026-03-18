@@ -78,9 +78,6 @@ class MediaHandler
 
 ## 依存関係
 
-### 必須
-- **Hook コンポーネント** - WordPress フック登録用
-
 ### 推奨
 - **Filesystem コンポーネント** - ファイル操作用
 - **DependencyInjection コンポーネント** - サービス注入用

@@ -85,9 +85,6 @@ class CommentHandler
 
 ## 依存関係
 
-### 必須
-- **Hook コンポーネント** - Named Hook アトリビュートの基盤
-
 ### 推奨
 - **Mailer コンポーネント** - コメント通知メール送信用
 - **EventDispatcher コンポーネント** - コメントライフサイクルイベント用

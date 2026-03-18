@@ -94,8 +94,5 @@ class ProductTaxonomy
 
 ## 依存関係
 
-### 必須
-- **Hook コンポーネント** - WordPress タクソノミー登録用
-
 ### 推奨
 - **Cache コンポーネント** - タクソノミーデータのキャッシュ用

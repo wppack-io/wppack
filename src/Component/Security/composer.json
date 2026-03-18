@@ -12,7 +12,6 @@
         "wppack/dependency-injection": "^1.0"
     },
     "suggest": {
-        "wppack/hook": "For Named Hook attribute support (WpLoginAction, AuthenticateFilter, etc.)",
         "wppack/dependency-injection": "For DI container integration with automatic authenticator and voter registration"
     },
     "autoload": {

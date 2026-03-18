@@ -471,9 +471,6 @@ class ContactFormBlock extends AbstractBlock
 
 ## 依存関係
 
-### 必須
-- **Hook コンポーネント** - WordPress ブロック登録フック用
-
 ### 推奨
 - **DependencyInjection コンポーネント** - ブロックへのサービスインジェクション用
 - **Templating コンポーネント** - ブロックテンプレートレンダリング用

@@ -150,9 +150,6 @@ src/
 
 ## 依存関係
 
-### 必須
-- **Hook コンポーネント** (`wppack/hook`) - Named Hook アトリビュートの基底クラス
-
 ### 推奨
 - **Setting コンポーネント** (`wppack/setting`) - 設定ページ（Settings API 統合）
 - **DashboardWidget コンポーネント** (`wppack/dashboard-widget`) - ダッシュボードウィジェット

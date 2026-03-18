@@ -77,9 +77,6 @@ class UserHandler
 
 ## 依存関係
 
-### 必須
-- **Hook コンポーネント** - WordPress ユーザーフック用
-
 ### 推奨
 - **Security コンポーネント** - 認証とバリデーション用
 - **Event Dispatcher コンポーネント** - ユーザーイベント用

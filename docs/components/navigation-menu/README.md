@@ -162,8 +162,5 @@ $registry->getRegisteredLocations(): array           // ['location' => 'descript
 
 ## 依存関係
 
-### 必須
-- **Hook コンポーネント** - WordPress メニュー登録フック用
-
 ### 推奨
 - **Theme コンポーネント** - テーマ統合

@@ -102,9 +102,6 @@ class ThemeAssets
 
 ## 依存関係
 
-### 必須
-- **Hook コンポーネント** - WordPress アクション/フィルターの登録
-
 ### 推奨
 - **DependencyInjection コンポーネント** - サービスコンテナ
 - **Filesystem コンポーネント** - テンプレート操作

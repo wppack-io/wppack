@@ -32,7 +32,3 @@ composer require wppack/plugin
 **代替を検討すべき場合：**
 - プラグイン自身の初期化・有効化・無効化 → `PluginInterface`（[Kernel コンポーネント](../kernel/README.md)）を使用
 
-## 依存関係
-
-### 必須
-- **Hook コンポーネント** - WordPress フック登録用

@@ -239,5 +239,4 @@ src/
 ## 依存関係
 
 ### 必須
-- **Hook コンポーネント** - Named Hook Attributes の基底クラス提供
 - **OptionsResolver コンポーネント** - アトリビュートの解決・型キャスト
