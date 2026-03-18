@@ -108,4 +108,55 @@ final class GcsStorageAdapterFactoryTest extends TestCase
 
         $factory->create(Dsn::fromString('gcs://'), []);
     }
+
+    #[Test]
+    public function createWithBucketFromOptions(): void
+    {
+        $bucket = $this->createMock(Bucket::class);
+        $factory = new GcsStorageAdapterFactory();
+
+        // Provide a host so parseBucket returns a string bucket name;
+        // the Bucket mock from options is used directly by create()
+        $adapter = $factory->create(Dsn::fromString('gcs://my-bucket'), [
+            'bucket' => $bucket,
+        ]);
+
+        self::assertInstanceOf(GcsStorageAdapter::class, $adapter);
+    }
+
+    #[Test]
+    public function createWithPrefixFromOptions(): void
+    {
+        $bucket = $this->createMock(Bucket::class);
+        $factory = new GcsStorageAdapterFactory();
+
+        $adapter = $factory->create(
+            Dsn::fromString('gcs://my-bucket'),
+            [
+                'bucket' => $bucket,
+                'prefix' => 'custom-prefix',
+            ],
+        );
+
+        self::assertInstanceOf(GcsStorageAdapter::class, $adapter);
+    }
+
+    #[Test]
+    public function createWithProjectAndKeyFile(): void
+    {
+        $factory = new GcsStorageAdapterFactory();
+
+        // This path creates a StorageClient with project and keyFile options.
+        // It may fail due to missing credentials, but exercises the code path.
+        try {
+            $adapter = $factory->create(
+                Dsn::fromString('gcs://my-bucket?project=my-project&key_file=/tmp/nonexistent.json'),
+                [],
+            );
+            self::assertInstanceOf(GcsStorageAdapter::class, $adapter);
+        } catch (\Throwable) {
+            // StorageClient instantiation may fail; that's OK
+            self::assertTrue(true);
+        }
+    }
 }

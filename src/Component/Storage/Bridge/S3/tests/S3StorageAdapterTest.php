@@ -365,6 +365,296 @@ final class S3StorageAdapterTest extends TestCase
         self::assertSame('file1.txt', $items[0]->key);
     }
 
+    #[Test]
+    public function writeStreamCallsPutObject(): void
+    {
+        $resource = fopen('php://temp', 'r+');
+        fwrite($resource, 'stream contents');
+        rewind($resource);
+
+        $s3Client = $this->createMock(S3Client::class);
+        $s3Client->expects($this->once())
+            ->method('putObject')
+            ->willReturn(ResultMockFactory::create(PutObjectOutput::class));
+
+        $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
+        $adapter->writeStream('file.txt', $resource);
+
+        fclose($resource);
+    }
+
+    #[Test]
+    public function writeStreamWithContentType(): void
+    {
+        $resource = fopen('php://temp', 'r+');
+        fwrite($resource, 'stream contents');
+        rewind($resource);
+
+        $s3Client = $this->createMock(S3Client::class);
+        $s3Client->expects($this->once())
+            ->method('putObject')
+            ->with($this->callback(function ($input) {
+                return $input->getContentType() === 'image/png';
+            }))
+            ->willReturn(ResultMockFactory::create(PutObjectOutput::class));
+
+        $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
+        $adapter->writeStream('file.txt', $resource, ['Content-Type' => 'image/png']);
+
+        fclose($resource);
+    }
+
+    #[Test]
+    public function writeStreamWithPrefix(): void
+    {
+        $resource = fopen('php://temp', 'r+');
+        fwrite($resource, 'data');
+        rewind($resource);
+
+        $s3Client = $this->createMock(S3Client::class);
+        $s3Client->expects($this->once())
+            ->method('putObject')
+            ->with($this->callback(function ($input) {
+                return $input->getKey() === 'uploads/file.txt';
+            }))
+            ->willReturn(ResultMockFactory::create(PutObjectOutput::class));
+
+        $adapter = new S3StorageAdapter($s3Client, 'my-bucket', 'uploads');
+        $adapter->writeStream('file.txt', $resource);
+
+        fclose($resource);
+    }
+
+    #[Test]
+    public function writeWithCustomMetadata(): void
+    {
+        $s3Client = $this->createMock(S3Client::class);
+        $s3Client->expects($this->once())
+            ->method('putObject')
+            ->with($this->callback(function ($input) {
+                return $input->getContentType() === 'text/plain'
+                    && $input->getMetadata()['x-custom'] === 'value';
+            }))
+            ->willReturn(ResultMockFactory::create(PutObjectOutput::class));
+
+        $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
+        $adapter->write('file.txt', 'contents', [
+            'Content-Type' => 'text/plain',
+            'x-custom' => 'value',
+        ]);
+    }
+
+    #[Test]
+    public function writeStreamWithCustomMetadata(): void
+    {
+        $resource = fopen('php://temp', 'r+');
+        fwrite($resource, 'data');
+        rewind($resource);
+
+        $s3Client = $this->createMock(S3Client::class);
+        $s3Client->expects($this->once())
+            ->method('putObject')
+            ->with($this->callback(function ($input) {
+                return $input->getMetadata()['x-custom'] === 'value';
+            }))
+            ->willReturn(ResultMockFactory::create(PutObjectOutput::class));
+
+        $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
+        $adapter->writeStream('file.txt', $resource, ['x-custom' => 'value']);
+
+        fclose($resource);
+    }
+
+    #[Test]
+    public function readStreamThrowsObjectNotFoundExceptionOn404(): void
+    {
+        $s3Client = $this->createMock(S3Client::class);
+        $s3Client->method('getObject')
+            ->willThrowException($this->createNoSuchKeyException());
+
+        $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
+
+        $this->expectException(ObjectNotFoundException::class);
+        $adapter->readStream('nonexistent.txt');
+    }
+
+    #[Test]
+    public function readStreamWithPrefix(): void
+    {
+        $resultStream = $this->createMock(ResultStream::class);
+        $resultStream->method('getChunks')->willReturn(['stream contents']);
+
+        $s3Client = $this->createMock(S3Client::class);
+        $s3Client->expects($this->once())
+            ->method('getObject')
+            ->with($this->callback(function ($input) {
+                return $input->getKey() === 'uploads/file.txt';
+            }))
+            ->willReturn(ResultMockFactory::create(GetObjectOutput::class, [
+                'Body' => $resultStream,
+            ]));
+
+        $adapter = new S3StorageAdapter($s3Client, 'my-bucket', 'uploads');
+        $result = $adapter->readStream('file.txt');
+
+        self::assertIsResource($result);
+        self::assertSame('stream contents', stream_get_contents($result));
+    }
+
+    #[Test]
+    public function readThrowsUnexpectedException(): void
+    {
+        $s3Client = $this->createMock(S3Client::class);
+        $s3Client->method('getObject')
+            ->willThrowException(new \RuntimeException('Connection lost'));
+
+        $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Connection lost');
+        $adapter->read('file.txt');
+    }
+
+    #[Test]
+    public function readStreamThrowsUnexpectedException(): void
+    {
+        $s3Client = $this->createMock(S3Client::class);
+        $s3Client->method('getObject')
+            ->willThrowException(new \RuntimeException('Connection lost'));
+
+        $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Connection lost');
+        $adapter->readStream('file.txt');
+    }
+
+    #[Test]
+    public function existsThrowsUnexpectedException(): void
+    {
+        $s3Client = $this->createMock(S3Client::class);
+        $s3Client->method('headObject')
+            ->willThrowException(new \RuntimeException('Connection lost'));
+
+        $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
+
+        $this->expectException(\RuntimeException::class);
+        $adapter->exists('file.txt');
+    }
+
+    #[Test]
+    public function metadataThrowsUnexpectedException(): void
+    {
+        $s3Client = $this->createMock(S3Client::class);
+        $s3Client->method('headObject')
+            ->willThrowException(new \RuntimeException('Connection lost'));
+
+        $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
+
+        $this->expectException(\RuntimeException::class);
+        $adapter->metadata('file.txt');
+    }
+
+    #[Test]
+    public function metadataWithNullLastModified(): void
+    {
+        $s3Client = $this->createMock(S3Client::class);
+        $s3Client->method('headObject')
+            ->willReturn(ResultMockFactory::create(HeadObjectOutput::class, [
+                'ContentLength' => 512,
+                'ContentType' => 'text/plain',
+                'LastModified' => null,
+            ]));
+
+        $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
+        $metadata = $adapter->metadata('file.txt');
+
+        self::assertSame('file.txt', $metadata->key);
+        self::assertSame(512, $metadata->size);
+        self::assertNull($metadata->lastModified);
+    }
+
+    #[Test]
+    public function listContentsSkipsObjectsWithNullKey(): void
+    {
+        $now = new \DateTimeImmutable();
+
+        $s3Client = $this->createMock(S3Client::class);
+        $s3Client->method('listObjectsV2')
+            ->willReturn(ResultMockFactory::create(ListObjectsV2Output::class, [
+                'Contents' => [
+                    new AwsObject(['Key' => null, 'Size' => 0]),
+                    new AwsObject(['Key' => 'file.txt', 'Size' => 100, 'LastModified' => $now]),
+                ],
+                'CommonPrefixes' => [],
+                'IsTruncated' => false,
+            ]));
+
+        $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
+        $items = iterator_to_array($adapter->listContents('', true));
+
+        self::assertCount(1, $items);
+        self::assertSame('file.txt', $items[0]->key);
+    }
+
+    #[Test]
+    public function listContentsWithNullLastModified(): void
+    {
+        $s3Client = $this->createMock(S3Client::class);
+        $s3Client->method('listObjectsV2')
+            ->willReturn(ResultMockFactory::create(ListObjectsV2Output::class, [
+                'Contents' => [
+                    new AwsObject(['Key' => 'file.txt', 'Size' => 100, 'LastModified' => null]),
+                ],
+                'CommonPrefixes' => [],
+                'IsTruncated' => false,
+            ]));
+
+        $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
+        $items = iterator_to_array($adapter->listContents('', true));
+
+        self::assertCount(1, $items);
+        self::assertNull($items[0]->lastModified);
+    }
+
+    #[Test]
+    public function listContentsWithPrefixStripsPrefix(): void
+    {
+        $now = new \DateTimeImmutable();
+
+        $s3Client = $this->createMock(S3Client::class);
+        $s3Client->method('listObjectsV2')
+            ->willReturn(ResultMockFactory::create(ListObjectsV2Output::class, [
+                'Contents' => [
+                    new AwsObject(['Key' => 'uploads/file.txt', 'Size' => 100, 'LastModified' => $now]),
+                ],
+                'CommonPrefixes' => [],
+                'IsTruncated' => false,
+            ]));
+
+        $adapter = new S3StorageAdapter($s3Client, 'my-bucket', 'uploads');
+        $items = iterator_to_array($adapter->listContents('', true));
+
+        self::assertCount(1, $items);
+        self::assertSame('file.txt', $items[0]->key);
+    }
+
+    #[Test]
+    public function publicUrlWithCustomPublicUrlAndPrefix(): void
+    {
+        $adapter = new S3StorageAdapter(
+            $this->createMock(S3Client::class),
+            'my-bucket',
+            prefix: 'uploads',
+            publicUrl: 'https://cdn.example.com',
+        );
+
+        self::assertSame(
+            'https://cdn.example.com/uploads/file.txt',
+            $adapter->publicUrl('file.txt'),
+        );
+    }
+
     private function createNoSuchKeyException(): NoSuchKeyException
     {
         $response = $this->createMock(ResponseInterface::class);

@@ -470,6 +470,107 @@ final class AzureStorageAdapterTest extends TestCase
         self::assertSame('file1.txt', $items[0]->key);
     }
 
+    #[Test]
+    public function writeWithHttpHeaders(): void
+    {
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->expects($this->once())
+            ->method('upload')
+            ->with(
+                'file.txt',
+                'contents',
+                $this->callback(fn(?UploadBlobOptions $options) => $options !== null
+                    && $options->contentType === 'text/plain'
+                    && $options->httpHeaders !== null
+                    && $options->httpHeaders->cacheControl === 'max-age=3600'),
+            );
+
+        $adapter = new AzureStorageAdapter($client);
+        $adapter->write('file.txt', 'contents', [
+            'Content-Type' => 'text/plain',
+            'Cache-Control' => 'max-age=3600',
+        ]);
+    }
+
+    #[Test]
+    public function writeWithOnlyHttpHeadersNoContentType(): void
+    {
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->expects($this->once())
+            ->method('upload')
+            ->with(
+                'file.txt',
+                'contents',
+                $this->callback(fn(?UploadBlobOptions $options) => $options !== null
+                    && $options->contentType === null
+                    && $options->httpHeaders !== null
+                    && $options->httpHeaders->contentDisposition === 'attachment'),
+            );
+
+        $adapter = new AzureStorageAdapter($client);
+        $adapter->write('file.txt', 'contents', [
+            'Content-Disposition' => 'attachment',
+        ]);
+    }
+
+    #[Test]
+    public function readThrowsUnexpectedException(): void
+    {
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->method('downloadStreamingContent')
+            ->willThrowException(new \RuntimeException('Connection lost'));
+
+        $adapter = new AzureStorageAdapter($client);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Connection lost');
+        $adapter->read('file.txt');
+    }
+
+    #[Test]
+    public function existsThrowsUnexpectedException(): void
+    {
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->method('getProperties')
+            ->willThrowException(new \RuntimeException('Connection lost'));
+
+        $adapter = new AzureStorageAdapter($client);
+
+        $this->expectException(\RuntimeException::class);
+        $adapter->exists('file.txt');
+    }
+
+    #[Test]
+    public function metadataThrowsUnexpectedException(): void
+    {
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->method('getProperties')
+            ->willThrowException(new \RuntimeException('Connection lost'));
+
+        $adapter = new AzureStorageAdapter($client);
+
+        $this->expectException(\RuntimeException::class);
+        $adapter->metadata('file.txt');
+    }
+
+    #[Test]
+    public function listContentsWithPrefix(): void
+    {
+        $now = new \DateTimeImmutable();
+
+        $blob1 = new Blob('uploads/file1.txt', $this->createBlobProperties(100, 'text/plain', $now));
+
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->method('listBlobsByHierarchy')
+            ->willReturn([$blob1]);
+
+        $adapter = new AzureStorageAdapter($client, 'uploads');
+        $items = iterator_to_array($adapter->listContents('', true));
+
+        self::assertCount(1, $items);
+        self::assertSame('file1.txt', $items[0]->key);
+    }
+
     /**
      * @phpstan-ignore method.deprecated
      */

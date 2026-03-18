@@ -522,6 +522,114 @@ final class GcsStorageAdapterTest extends TestCase
     }
 
     #[Test]
+    public function readThrowsUnexpectedException(): void
+    {
+        $object = $this->createMock(StorageObject::class);
+        $object->method('downloadAsString')
+            ->willThrowException(new \RuntimeException('Connection lost'));
+
+        $bucket = $this->createMock(Bucket::class);
+        $bucket->method('object')->willReturn($object);
+
+        $adapter = new GcsStorageAdapter($bucket);
+
+        $this->expectException(\RuntimeException::class);
+        $adapter->read('file.txt');
+    }
+
+    #[Test]
+    public function readStreamThrowsUnexpectedException(): void
+    {
+        $object = $this->createMock(StorageObject::class);
+        $object->method('downloadAsStream')
+            ->willThrowException(new \RuntimeException('Connection lost'));
+
+        $bucket = $this->createMock(Bucket::class);
+        $bucket->method('object')->willReturn($object);
+
+        $adapter = new GcsStorageAdapter($bucket);
+
+        $this->expectException(\RuntimeException::class);
+        $adapter->readStream('file.txt');
+    }
+
+    #[Test]
+    public function metadataThrowsUnexpectedException(): void
+    {
+        $object = $this->createMock(StorageObject::class);
+        $object->method('info')
+            ->willThrowException(new \RuntimeException('Connection lost'));
+
+        $bucket = $this->createMock(Bucket::class);
+        $bucket->method('object')->willReturn($object);
+
+        $adapter = new GcsStorageAdapter($bucket);
+
+        $this->expectException(\RuntimeException::class);
+        $adapter->metadata('file.txt');
+    }
+
+    #[Test]
+    public function metadataWithMinimalInfo(): void
+    {
+        $object = $this->createMock(StorageObject::class);
+        $object->method('info')->willReturn([]);
+
+        $bucket = $this->createMock(Bucket::class);
+        $bucket->method('object')->willReturn($object);
+
+        $adapter = new GcsStorageAdapter($bucket);
+        $metadata = $adapter->metadata('file.txt');
+
+        self::assertSame('file.txt', $metadata->key);
+        self::assertNull($metadata->size);
+        self::assertNull($metadata->lastModified);
+        self::assertNull($metadata->mimeType);
+    }
+
+    #[Test]
+    public function writeWithCustomMetadata(): void
+    {
+        $bucket = $this->createMock(Bucket::class);
+        $bucket->expects($this->once())
+            ->method('upload')
+            ->with('contents', [
+                'name' => 'file.txt',
+                'metadata' => [
+                    'contentType' => 'text/plain',
+                    'metadata' => ['x-custom' => 'value'],
+                ],
+            ]);
+
+        $adapter = new GcsStorageAdapter($bucket);
+        $adapter->write('file.txt', 'contents', [
+            'Content-Type' => 'text/plain',
+            'x-custom' => 'value',
+        ]);
+    }
+
+    #[Test]
+    public function writeStreamWithCustomMetadata(): void
+    {
+        $resource = fopen('php://temp', 'r+');
+        fwrite($resource, 'data');
+        rewind($resource);
+
+        $bucket = $this->createMock(Bucket::class);
+        $bucket->expects($this->once())
+            ->method('upload')
+            ->with($resource, [
+                'name' => 'file.txt',
+                'metadata' => ['metadata' => ['x-custom' => 'value']],
+            ]);
+
+        $adapter = new GcsStorageAdapter($bucket);
+        $adapter->writeStream('file.txt', $resource, ['x-custom' => 'value']);
+
+        fclose($resource);
+    }
+
+    #[Test]
     public function listContentsWithPrefix(): void
     {
         $now = new \DateTimeImmutable();
