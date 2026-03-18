@@ -13,6 +13,7 @@ use WpPack\Component\Routing\AbstractController;
 use WpPack\Component\Routing\Response\BlockTemplateResponse;
 use WpPack\Component\Routing\Response\TemplateResponse;
 use WpPack\Component\Security\Exception\AccessDeniedException;
+use WpPack\Component\Security\Tests\SecurityTestTrait;
 
 final class AbstractControllerTest extends TestCase
 {

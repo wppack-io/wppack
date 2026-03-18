@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Rest\Tests;
+namespace WpPack\Component\Security\Tests;
 
 use WpPack\Component\Security\Authentication\AuthenticationManagerInterface;
 use WpPack\Component\Security\Authentication\Token\PostAuthenticationToken;

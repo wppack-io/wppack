@@ -15,6 +15,7 @@ use WpPack\Component\Routing\RouteEntry;
 use WpPack\Component\Routing\RoutePosition;
 use WpPack\Component\Routing\RouteRegistry;
 use WpPack\Component\Security\Attribute\CurrentUser;
+use WpPack\Component\Security\Tests\SecurityTestTrait;
 
 final class RouteRegistryTest extends TestCase
 {

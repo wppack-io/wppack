@@ -243,7 +243,7 @@ class MyRestSubscriber
 | フック | `init` | `rest_api_init` |
 | レスポンス | Template/Block/Redirect 等 | Response/JsonResponse |
 | エラー処理 | null で WordPress に委譲 | `throw HttpException` → `WP_Error` |
-| リクエスト | `get_query_var()` | `Request`（`WP_REST_Request` ラッパー） |
+| リクエスト | `Request` + パラメータ自動注入 | `Request`（`WP_REST_Request` ラッパー） |
 | パーミッション | なし | `#[Permission]` 必須 |
 
 ## プラグイン / テーマでの配置

@@ -14,6 +14,7 @@ use WpPack\Component\Rest\Attribute\RestRoute;
 use WpPack\Component\Rest\HttpMethod;
 use WpPack\Component\Rest\RestRegistry;
 use WpPack\Component\Security\Attribute\CurrentUser;
+use WpPack\Component\Security\Tests\SecurityTestTrait;
 
 final class RestRegistryTest extends TestCase
 {
