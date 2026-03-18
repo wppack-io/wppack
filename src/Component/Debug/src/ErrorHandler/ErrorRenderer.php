@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Debug\ErrorHandler;
 
-use WpPack\Component\Debug\Compat\EscapeFunctions;
 use WpPack\Component\Debug\CssTheme;
 use WpPack\Component\Templating\PhpRenderer;
 
@@ -21,8 +20,6 @@ final class ErrorRenderer
         if ($this->phpRenderer !== null) {
             return $this->phpRenderer;
         }
-
-        EscapeFunctions::ensure();
 
         return $this->lazyPhpRenderer ??= new PhpRenderer([
             dirname(__DIR__, 2) . '/templates',

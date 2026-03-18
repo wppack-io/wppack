@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Debug\Toolbar;
 
-use WpPack\Component\Debug\Compat\EscapeFunctions;
 use WpPack\Component\Debug\DataCollector\DataCollectorInterface;
 use WpPack\Component\Debug\Profiler\Profile;
 use WpPack\Component\Debug\Toolbar\Panel\AbstractPanelRenderer;
@@ -60,8 +59,6 @@ final class ToolbarRenderer
         if ($this->phpRenderer !== null) {
             return $this->phpRenderer;
         }
-
-        EscapeFunctions::ensure();
 
         return $this->lazyPhpRenderer ??= new PhpRenderer([
             dirname(__DIR__, 2) . '/templates',

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
-use WpPack\Component\Debug\Compat\EscapeFunctions;
 use WpPack\Component\Debug\Profiler\Profile;
 use WpPack\Component\Templating\PhpRenderer;
 
@@ -71,8 +70,6 @@ abstract class AbstractPanelRenderer
         if ($this->phpRenderer !== null) {
             return $this->phpRenderer;
         }
-
-        EscapeFunctions::ensure();
 
         return $this->lazyPhpRenderer ??= new PhpRenderer([
             dirname(__DIR__, 3) . '/templates',

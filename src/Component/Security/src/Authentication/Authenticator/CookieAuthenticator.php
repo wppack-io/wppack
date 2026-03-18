@@ -18,15 +18,7 @@ final class CookieAuthenticator implements StatelessAuthenticatorInterface
 {
     public function supports(Request $request): bool
     {
-        if (\defined('LOGGED_IN_COOKIE')) {
-            $cookieName = \LOGGED_IN_COOKIE;
-        } elseif (\defined('COOKIEHASH')) {
-            $cookieName = 'wordpress_logged_in_' . \COOKIEHASH;
-        } else {
-            return false;
-        }
-
-        return $request->cookies->has($cookieName);
+        return $request->cookies->has(\LOGGED_IN_COOKIE); // @phpstan-ignore constant.notFound
     }
 
     public function authenticate(Request $request): Passport
