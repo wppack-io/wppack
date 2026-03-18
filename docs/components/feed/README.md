@@ -166,6 +166,7 @@ class FeedQueryModifier
 ## Named Hook アトリビュート
 
 → [Hook コンポーネントのドキュメント](../hook/feed.md) を参照してください。
+
 ## 主要クラス
 
 | クラス | 説明 |

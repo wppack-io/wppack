@@ -239,6 +239,7 @@ class PostActions
 ## Named Hook アトリビュート
 
 → [Hook コンポーネントのドキュメント](../hook/nonce.md) を参照してください。
+
 ## クイックリファレンス
 
 ### NonceManager

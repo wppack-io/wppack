@@ -199,6 +199,7 @@ $registry->getRegisteredDomains();    // array<string, PluginTextDomain|ThemeTex
 ## Named Hook アトリビュート
 
 → [Hook コンポーネントのドキュメント](../hook/translation.md) を参照してください。
+
 ## 実践的な例
 
 ### プラグインの翻訳クラス

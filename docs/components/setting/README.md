@@ -334,6 +334,7 @@ class MyPluginSettings extends AbstractSettingsPage
 ## Named Hook アトリビュート
 
 → [Hook コンポーネントのドキュメント](../hook/setting.md) を参照してください。
+
 ## WordPress 統合
 
 - 設定は通常の WordPress 管理画面ページとして表示

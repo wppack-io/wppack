@@ -374,6 +374,7 @@ $schemas = $schemaManager->getSchemas();
 ## Named Hook アトリビュート
 
 → [Hook コンポーネントのドキュメント](../hook/database.md) を参照してください。
+
 ## 依存関係
 
 ### 必須

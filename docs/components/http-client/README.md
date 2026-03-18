@@ -300,6 +300,7 @@ $thirdPartyService = new SomeExternalSdk(
 ## Named Hook アトリビュート
 
 → [Hook コンポーネントのドキュメント](../hook/http-client.md) を参照してください。
+
 ## クイックリファレンス
 
 ### リクエストメソッド

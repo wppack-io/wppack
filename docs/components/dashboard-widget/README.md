@@ -220,6 +220,7 @@ class CustomizableWidget extends AbstractDashboardWidget
 ## Named Hook アトリビュート
 
 → [Hook コンポーネントのドキュメント](../hook/dashboard-widget.md) を参照してください。
+
 ## ウィジェット登録
 
 ```php

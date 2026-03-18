@@ -413,6 +413,7 @@ class PostController
 ## Named Hook アトリビュート
 
 → [Hook コンポーネントのドキュメント](../hook/security.md) を参照してください。
+
 ## DI 統合
 
 ```php

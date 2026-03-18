@@ -121,6 +121,7 @@ $registry->removeSubmenu('my-plugin', 'my-plugin-settings');
 ## Named Hook アトリビュート
 
 → [Hook コンポーネントのドキュメント](../hook/admin.md) を参照してください。
+
 ## 管理画面初期化について
 
 `admin_init` フックは管理画面のライフサイクルフックであり、Hook コンポーネントが所有しています。管理画面初期化時のフックには Hook コンポーネントの `AdminInitAction` を使用してください。

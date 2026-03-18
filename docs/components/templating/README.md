@@ -476,6 +476,7 @@ PhpRenderer::render()
 ## Named Hook アトリビュート
 
 → [Hook コンポーネントのドキュメント](../hook/templating.md) を参照してください。
+
 ## 例外
 
 | 例外 | 説明 |

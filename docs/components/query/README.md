@@ -719,6 +719,7 @@ class CategoryService
 ## Named Hook アトリビュート
 
 → [Hook コンポーネントのドキュメント](../hook/query.md) を参照してください。
+
 ## 2層設計（PostType との関係）
 
 ```

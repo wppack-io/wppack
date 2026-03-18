@@ -491,6 +491,7 @@ $schedules = $scheduler->getSchedules(); // array<string, ScheduledMessage>
 ## Named Hook アトリビュート
 
 → [Hook コンポーネントのドキュメント](../hook/scheduler.md) を参照してください。
+
 ## Messenger 連携
 
 Scheduler で定義されたメッセージは `wppack/messenger` の `MessageBus` を通じてディスパッチされます。メッセージクラスはプレーンな POPO として定義し、`#[AsMessageHandler]` でハンドラーを紐付けます。

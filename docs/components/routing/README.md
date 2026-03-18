@@ -668,6 +668,7 @@ register_activation_hook(__FILE__, fn() => $registry->flush());
 ## Named Hook アトリビュート
 
 → [Hook コンポーネントのドキュメント](../hook/routing.md) を参照してください。
+
 ## プラグイン / テーマでの配置
 
 プラグインやテーマでフロントページコントローラーを作成する場合、以下のディレクトリ構成を推奨します。

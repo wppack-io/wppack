@@ -211,6 +211,7 @@ add_action('init', function () use ($container) {
 ## Named Hook アトリビュート
 
 → [Hook コンポーネントのドキュメント](../hook/shortcode.md) を参照してください。
+
 ## このコンポーネントの使用場面
 
 **最適な用途：**

@@ -196,6 +196,7 @@ throw new ForbiddenException('Access denied.');         // 403
 ## Named Hook アトリビュート
 
 → [Hook コンポーネントのドキュメント](../hook/rest.md) を参照してください。
+
 ## Routing コンポーネントとの違い
 
 | | Routing | Rest |
