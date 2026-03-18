@@ -4,16 +4,28 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Routing;
 
+use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Routing\Attribute\RewriteTag;
 use WpPack\Component\Routing\Attribute\Route;
+use WpPack\Component\Security\Attribute\CurrentUser;
+use WpPack\Component\Security\Security;
 
 final class RouteRegistry
 {
     /** @var array<string, RouteEntry> */
     private array $routes = [];
 
+    public function __construct(
+        private readonly ?Request $request = null,
+        private readonly ?Security $security = null,
+    ) {}
+
     public function register(object $controller): void
     {
+        if ($this->security !== null && $controller instanceof AbstractController) {
+            $controller->setSecurity($this->security);
+        }
+
         foreach ($this->resolveRoutes($controller) as $entry) {
             $this->routes[$entry->name] = $entry;
 
@@ -61,13 +73,15 @@ final class RouteRegistry
             }
 
             $route = $classRoutes[0]->newInstance();
+            $queryVarNames = self::parseQueryVars($route->query);
+            $method = $reflection->getMethod('__invoke');
             $entries[] = new RouteEntry(
                 $route->name,
                 $route->regex,
                 $route->query,
                 $route->position,
                 $classTags,
-                $controller->__invoke(...),
+                $this->createHandler($controller, $method, $queryVarNames),
             );
         }
 
@@ -82,6 +96,7 @@ final class RouteRegistry
             }
 
             $route = $methodRoutes[0]->newInstance();
+            $queryVarNames = self::parseQueryVars($route->query);
             $methodTags = $this->resolveRewriteTags($method);
             $entries[] = new RouteEntry(
                 $route->name,
@@ -89,7 +104,7 @@ final class RouteRegistry
                 $route->query,
                 $route->position,
                 array_merge($classTags, $methodTags),
-                $controller->{$method->getName()}(...),
+                $this->createHandler($controller, $method, $queryVarNames),
             );
         }
 
@@ -101,6 +116,73 @@ final class RouteRegistry
         }
 
         return $entries;
+    }
+
+    /**
+     * @param list<string> $queryVarNames
+     */
+    private function createHandler(
+        object $controller,
+        \ReflectionMethod $method,
+        array $queryVarNames,
+    ): \Closure {
+        $methodName = $method->getName();
+        $requestParamIndex = null;
+        /** @var list<array{index: int}> */
+        $injectableParams = [];
+        /** @var list<array{index: int, name: string}> */
+        $routeParams = [];
+
+        foreach ($method->getParameters() as $index => $parameter) {
+            $type = $parameter->getType();
+            if ($type instanceof \ReflectionNamedType && $type->getName() === Request::class) {
+                $requestParamIndex = $index;
+                continue;
+            }
+
+            if ($parameter->getAttributes(CurrentUser::class) !== []) {
+                $injectableParams[] = ['index' => $index];
+                continue;
+            }
+
+            $routeParams[] = ['index' => $index, 'name' => self::toSnakeCase($parameter->getName())];
+        }
+
+        $request = $this->request;
+        $security = $this->security;
+
+        return function () use ($controller, $methodName, $requestParamIndex, $injectableParams, $routeParams, $queryVarNames, $request, $security): mixed {
+            if ($request !== null) {
+                foreach ($queryVarNames as $varName) {
+                    $request->attributes->set($varName, get_query_var($varName));
+                }
+            }
+
+            // Build injection map (index → value)
+            $injections = [];
+
+            if ($requestParamIndex !== null) {
+                $injections[$requestParamIndex] = $request;
+            }
+
+            foreach ($injectableParams as $injectable) {
+                $injections[$injectable['index']] = $security?->getUser();
+            }
+
+            // Build full argument array in positional order
+            $fullArgs = [];
+            $routeIndex = 0;
+            for ($i = 0, $total = count($routeParams) + count($injections); $i < $total; $i++) {
+                if (array_key_exists($i, $injections)) {
+                    $fullArgs[] = $injections[$i];
+                } else {
+                    $fullArgs[] = $request?->attributes->get($routeParams[$routeIndex]['name']);
+                    $routeIndex++;
+                }
+            }
+
+            return $controller->{$methodName}(...$fullArgs);
+        };
     }
 
     /**
@@ -116,5 +198,21 @@ final class RouteRegistry
         }
 
         return $tags;
+    }
+
+    private static function toSnakeCase(string $name): string
+    {
+        return strtolower((string) preg_replace('/[A-Z]/', '_$0', lcfirst($name)));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function parseQueryVars(string $query): array
+    {
+        $queryString = preg_replace('/^index\.php\?/', '', $query);
+        preg_match_all('/(?:^|&)([^=&]+)=\$matches\[/', (string) $queryString, $matches);
+
+        return $matches[1];
     }
 }

@@ -6,15 +6,19 @@ namespace WpPack\Component\Routing\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Routing\AbstractController;
 use WpPack\Component\Routing\Attribute\RewriteTag;
 use WpPack\Component\Routing\Attribute\Route;
 use WpPack\Component\Routing\Response\TemplateResponse;
 use WpPack\Component\Routing\RouteEntry;
 use WpPack\Component\Routing\RoutePosition;
 use WpPack\Component\Routing\RouteRegistry;
+use WpPack\Component\Security\Attribute\CurrentUser;
 
 final class RouteRegistryTest extends TestCase
 {
+    use SecurityTestTrait;
     #[Test]
     public function resolvesSingleActionController(): void
     {
@@ -327,6 +331,193 @@ final class RouteRegistryTest extends TestCase
 
         $routes = $registry->getRegisteredRoutes();
         self::assertSame(['item_id', 'item_slug'], $routes['detail_route']->queryVars);
+    }
+
+    #[Test]
+    public function handlerInjectsRequest(): void
+    {
+        $request = new Request();
+        $controller = new class {
+            public ?Request $capturedRequest = null;
+
+            #[Route(
+                name: 'inject_request',
+                regex: '^items/([^/]+)/?$',
+                query: 'index.php?item_slug=$matches[1]',
+            )]
+            public function show(Request $request): ?TemplateResponse
+            {
+                $this->capturedRequest = $request;
+
+                return null;
+            }
+        };
+
+        $registry = new RouteRegistry($request);
+        $registry->register($controller);
+
+        $routes = $registry->getRegisteredRoutes();
+        $entry = $routes['inject_request'];
+
+        // Simulate WordPress setting query vars
+        set_query_var('item_slug', 'test-item');
+        $entry->handleTemplateRedirect();
+
+        self::assertSame($request, $controller->capturedRequest);
+        self::assertSame('test-item', $request->attributes->get('item_slug'));
+    }
+
+    #[Test]
+    public function handlerInjectsCurrentUser(): void
+    {
+        $user = new \WP_User();
+        $user->ID = 42;
+        $user->user_login = 'testuser';
+
+        $security = $this->createSecurity(user: $user);
+        $request = new Request();
+
+        $controller = new class {
+            public ?\WP_User $capturedUser = null;
+
+            #[Route(
+                name: 'inject_user',
+                regex: '^profile/([^/]+)/?$',
+                query: 'index.php?profile_page=$matches[1]',
+            )]
+            public function index(#[CurrentUser] \WP_User $user): ?TemplateResponse
+            {
+                $this->capturedUser = $user;
+
+                return null;
+            }
+        };
+
+        $registry = new RouteRegistry($request, $security);
+        $registry->register($controller);
+
+        $routes = $registry->getRegisteredRoutes();
+        $entry = $routes['inject_user'];
+
+        set_query_var('profile_page', '1');
+        $entry->handleTemplateRedirect();
+
+        self::assertSame($user, $controller->capturedUser);
+    }
+
+    #[Test]
+    public function handlerResolvesRouteParamsFromAttributes(): void
+    {
+        $request = new Request();
+
+        $controller = new class {
+            public ?string $capturedSlug = null;
+
+            #[Route(
+                name: 'resolve_params',
+                regex: '^items/([^/]+)/?$',
+                query: 'index.php?item_slug=$matches[1]',
+            )]
+            public function show(string $itemSlug): ?TemplateResponse
+            {
+                $this->capturedSlug = $itemSlug;
+
+                return null;
+            }
+        };
+
+        $registry = new RouteRegistry($request);
+        $registry->register($controller);
+
+        $routes = $registry->getRegisteredRoutes();
+        $entry = $routes['resolve_params'];
+
+        set_query_var('item_slug', 'my-item');
+        $entry->handleTemplateRedirect();
+
+        self::assertSame('my-item', $controller->capturedSlug);
+        self::assertSame('my-item', $request->attributes->get('item_slug'));
+    }
+
+    #[Test]
+    public function handlerInjectsRequestAndCurrentUserWithParams(): void
+    {
+        $user = new \WP_User();
+        $user->ID = 42;
+        $user->user_login = 'testuser';
+
+        $security = $this->createSecurity(user: $user);
+        $request = new Request();
+
+        $controller = new class {
+            public ?\WP_User $capturedUser = null;
+            public ?Request $capturedRequest = null;
+            public ?string $capturedSlug = null;
+
+            #[Route(
+                name: 'inject_all',
+                regex: '^items/([^/]+)/?$',
+                query: 'index.php?item_slug=$matches[1]',
+            )]
+            public function show(#[CurrentUser] \WP_User $user, Request $request, string $itemSlug): ?TemplateResponse
+            {
+                $this->capturedUser = $user;
+                $this->capturedRequest = $request;
+                $this->capturedSlug = $itemSlug;
+
+                return null;
+            }
+        };
+
+        $registry = new RouteRegistry($request, $security);
+        $registry->register($controller);
+
+        $routes = $registry->getRegisteredRoutes();
+        $entry = $routes['inject_all'];
+
+        set_query_var('item_slug', 'test-slug');
+        $entry->handleTemplateRedirect();
+
+        self::assertSame($user, $controller->capturedUser);
+        self::assertSame($request, $controller->capturedRequest);
+        self::assertSame('test-slug', $controller->capturedSlug);
+    }
+
+    #[Test]
+    public function registerSetsSecurity(): void
+    {
+        $user = new \WP_User();
+        $user->ID = 42;
+
+        $security = $this->createSecurity(user: $user);
+        $request = new Request();
+
+        $controller = new class extends AbstractController {
+            public ?\WP_User $capturedUser = null;
+
+            #[Route(
+                name: 'set_security',
+                regex: '^secure/([^/]+)/?$',
+                query: 'index.php?secure_page=$matches[1]',
+            )]
+            public function index(): ?TemplateResponse
+            {
+                $this->capturedUser = $this->getUser();
+
+                return null;
+            }
+        };
+
+        $registry = new RouteRegistry($request, $security);
+        $registry->register($controller);
+
+        $routes = $registry->getRegisteredRoutes();
+        $entry = $routes['set_security'];
+
+        set_query_var('secure_page', '1');
+        $entry->handleTemplateRedirect();
+
+        self::assertSame($user, $controller->capturedUser);
     }
 
     /**

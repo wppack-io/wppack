@@ -12,9 +12,12 @@ use WpPack\Component\HttpFoundation\RedirectResponse;
 use WpPack\Component\Routing\AbstractController;
 use WpPack\Component\Routing\Response\BlockTemplateResponse;
 use WpPack\Component\Routing\Response\TemplateResponse;
+use WpPack\Component\Security\Exception\AccessDeniedException;
 
 final class AbstractControllerTest extends TestCase
 {
+    use SecurityTestTrait;
+
     private AbstractController $controller;
 
     protected function setUp(): void
@@ -62,6 +65,21 @@ final class AbstractControllerTest extends TestCase
                 array $headers = [],
             ): BinaryFileResponse {
                 return $this->file($path, $filename, $disposition, $headers);
+            }
+
+            public function callGetUser(): ?\WP_User
+            {
+                return $this->getUser();
+            }
+
+            public function callIsGranted(string $attribute, mixed $subject = null): bool
+            {
+                return $this->isGranted($attribute, $subject);
+            }
+
+            public function callDenyAccessUnlessGranted(string $attribute, mixed $subject = null, string $message = 'Access Denied.'): void
+            {
+                $this->denyAccessUnlessGranted($attribute, $subject, $message);
             }
         };
     }
@@ -144,5 +162,46 @@ final class AbstractControllerTest extends TestCase
         self::assertSame('report.pdf', $response->filename);
         self::assertSame('inline', $response->disposition);
         self::assertSame(['Cache-Control' => 'no-cache'], $response->headers);
+    }
+
+    #[Test]
+    public function getUserDelegatesToSecurity(): void
+    {
+        $user = new \WP_User();
+        $user->ID = 42;
+
+        $security = $this->createSecurity(user: $user);
+        $this->controller->setSecurity($security);
+
+        self::assertSame($user, $this->controller->callGetUser());
+    }
+
+    #[Test]
+    public function getUserThrowsWithoutSecurity(): void
+    {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('Security is not available');
+
+        $this->controller->callGetUser();
+    }
+
+    #[Test]
+    public function isGrantedDelegatesToSecurity(): void
+    {
+        $security = $this->createSecurity(granted: true);
+        $this->controller->setSecurity($security);
+
+        self::assertTrue($this->controller->callIsGranted('edit_posts'));
+    }
+
+    #[Test]
+    public function denyAccessUnlessGrantedDelegatesToSecurity(): void
+    {
+        $security = $this->createSecurity(granted: false);
+        $this->controller->setSecurity($security);
+
+        $this->expectException(AccessDeniedException::class);
+
+        $this->controller->callDenyAccessUnlessGranted('edit_posts');
     }
 }
