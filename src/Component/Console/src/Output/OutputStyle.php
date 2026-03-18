@@ -94,7 +94,8 @@ final class OutputStyle
     public function confirm(string $question, bool $default = false): bool
     {
         if ($this->output instanceof WpCliOutput) {
-            return (bool) \cli\confirm($question, $default);        }
+            return (bool) \cli\confirm($question, $default);
+        }
 
         $this->output->writeln($question . ($default ? ' [Y/n]' : ' [y/N]'));
 
@@ -104,7 +105,8 @@ final class OutputStyle
     public function ask(string $question, ?string $default = null): string
     {
         if ($this->output instanceof WpCliOutput) {
-            return (string) \cli\prompt($question, $default);        }
+            return (string) \cli\prompt($question, $default);
+        }
 
         $prompt = $default !== null ? sprintf('%s [%s]', $question, $default) : $question;
         $this->output->writeln($prompt);

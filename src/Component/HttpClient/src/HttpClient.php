@@ -23,9 +23,6 @@ class HttpClient implements ClientInterface
     /** @var array<string, string> */
     private array $queryParams = [];
 
-    /** @var list<array{name: string, contents: mixed, filename: ?string}> */
-    private array $attachments = []; // @phpstan-ignore property.onlyWritten
-
     /** @var array<string, mixed> */
     private array $options = [];
 
@@ -141,14 +138,6 @@ class HttpClient implements ClientInterface
         return $clone;
     }
 
-    public function asMultipart(): self
-    {
-        $clone = clone $this;
-        $clone->bodyFormat = 'multipart';
-
-        return $clone;
-    }
-
     /**
      * @param array<string, string> $params
      */
@@ -156,14 +145,6 @@ class HttpClient implements ClientInterface
     {
         $clone = clone $this;
         $clone->queryParams = array_merge($clone->queryParams, $params);
-
-        return $clone;
-    }
-
-    public function attach(string $name, mixed $contents, ?string $filename = null): self
-    {
-        $clone = clone $this;
-        $clone->attachments[] = ['name' => $name, 'contents' => $contents, 'filename' => $filename];
 
         return $clone;
     }

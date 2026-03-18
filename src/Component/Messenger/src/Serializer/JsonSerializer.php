@@ -37,7 +37,7 @@ final class JsonSerializer implements SerializerInterface
             $message = $envelope->getMessage();
             $stamps = [];
 
-            $allStamps = $envelope->all(); // @phpstan-ignore argument.templateType
+            $allStamps = $envelope->all();
             foreach ($allStamps as $stamp) {
                 $stamps[$stamp::class][] = $this->serializer->normalize($stamp);
             }

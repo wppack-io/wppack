@@ -128,28 +128,10 @@ final class HttpClientTest extends TestCase
     }
 
     #[Test]
-    public function asMultipartReturnsNewInstance(): void
-    {
-        $client = new HttpClient();
-        $new = $client->asMultipart();
-
-        self::assertNotSame($client, $new);
-    }
-
-    #[Test]
     public function queryReturnsNewInstance(): void
     {
         $client = new HttpClient();
         $new = $client->query(['page' => '1']);
-
-        self::assertNotSame($client, $new);
-    }
-
-    #[Test]
-    public function attachReturnsNewInstance(): void
-    {
-        $client = new HttpClient();
-        $new = $client->attach('file', 'contents', 'file.txt');
 
         self::assertNotSame($client, $new);
     }

@@ -78,7 +78,7 @@ final class SqsEventHandler
         }
 
         try {
-            $existingStamps = $envelope->all(); // @phpstan-ignore argument.templateType
+            $existingStamps = $envelope->all();
             $this->messageBus->dispatch(
                 $envelope->getMessage(),
                 [...$existingStamps, new ReceivedStamp('sqs')],

@@ -81,7 +81,7 @@ final class Envelope
      *
      * @param class-string<T>|null $stampClass
      *
-     * @return list<T>
+     * @phpstan-return ($stampClass is null ? list<StampInterface> : list<T>)
      */
     public function all(?string $stampClass = null): array
     {
