@@ -67,7 +67,7 @@ priority 降順:
 | `RequestDataCollector` | request | 255 | Method + Status | green(2xx) / yellow(3xx) / red(4xx+) |
 | `StopwatchDataCollector` | stopwatch | 250 | Total time | green(<200ms) / yellow(<1s) / red(>=1s) |
 | `MemoryDataCollector` | memory | 245 | Peak memory | green(<70%) / yellow(<90%) / red(>=90%) |
-| `DatabaseDataCollector` | database | 200 | クエリ数 | green(<20) / yellow(<50) / red(>=50) |
+| `DatabaseDataCollector` | database | 200 | 合計秒数 | green(<0.5s) / yellow(<1s) / red(>=1s) |
 | `CacheDataCollector` | cache | 195 | Hit rate | green(>=80%) / yellow(>=50%) / red(<50%) |
 | `HttpClientDataCollector` | http_client | 190 | リクエスト数 | green / yellow(slow) / red(error) |
 | `RouterDataCollector` | router | 150 | テンプレート名 | red(404) / green(match) / default |
@@ -232,7 +232,7 @@ WordPress クエリログを分析。`SAVEQUERIES` 有効時に動作。
 - 重複クエリ検出（同一 SQL が複数回実行）
 - スロークエリ検出（>100ms）
 - 最適化サジェスチョン自動生成
-- Indicator 色: green（<20）、yellow（<50）、red（>=50）
+- Indicator 色: green（<0.5s）、yellow（<1s）、red（>=1s）
 
 #### CacheDataCollector（priority: 195）
 

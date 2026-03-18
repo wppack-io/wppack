@@ -94,18 +94,22 @@ final class DatabaseDataCollector extends AbstractDataCollector
 
     public function getIndicatorValue(): string
     {
-        return (string) ($this->data['total_count'] ?? 0);
+        $totalTimeMs = $this->data['total_time'] ?? 0.0;
+        $totalTimeSec = $totalTimeMs / 1000;
+
+        return number_format($totalTimeSec, 2) . ' s';
     }
 
     public function getIndicatorColor(): string
     {
-        $totalCount = $this->data['total_count'] ?? 0;
+        $totalTimeMs = $this->data['total_time'] ?? 0.0;
+        $totalTimeSec = $totalTimeMs / 1000;
 
-        if ($totalCount >= 50) {
+        if ($totalTimeSec >= 1.0) {
             return 'red';
         }
 
-        if ($totalCount >= 20) {
+        if ($totalTimeSec >= 0.5) {
             return 'yellow';
         }
 

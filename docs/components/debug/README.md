@@ -180,7 +180,7 @@ echo $profile->getTime();
 | `RequestDataCollector` | request | Method + Status | HTTP リクエスト/レスポンス情報 |
 | `StopwatchDataCollector` | stopwatch | Total time | WP ライフサイクルフェーズ別タイミング |
 | `MemoryDataCollector` | memory | Peak memory | メモリ使用量スナップショット |
-| `DatabaseDataCollector` | database | クエリ数 | クエリ分析（重複/スロー検出） |
+| `DatabaseDataCollector` | database | 合計秒数 | クエリ分析（重複/スロー検出） |
 | `CacheDataCollector` | cache | Hit rate | オブジェクトキャッシュ統計 |
 | `HttpClientDataCollector` | http_client | リクエスト数 | 外部 HTTP リクエスト（タイミング/ステータス） |
 | `RouterDataCollector` | router | テンプレート名 | マッチしたルール・テンプレート・クエリ変数 |
@@ -228,7 +228,7 @@ WordPress クエリログを分析。`SAVEQUERIES` 有効時に動作。
 - 重複クエリ検出（同一 SQL が複数回実行）
 - スロークエリ検出（>100ms）
 - 最適化サジェスチョン自動生成
-- Indicator 色: green（<20）、yellow（<50）、red（>=50）
+- Indicator 色: green（<0.5s）、yellow（<1s）、red（>=1s）
 
 #### MemoryDataCollector
 

@@ -42,59 +42,68 @@ final class DatabaseDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getIndicatorColorReturnsGreenForLowQueryCount(): void
+    public function getIndicatorColorReturnsGreenForFastQueries(): void
     {
-        // Collect with no queries (total_count = 0, which is < 20)
+        // Collect with no queries (total_time = 0.0, which is < 0.5s)
         $this->collector->collect();
 
         self::assertSame('green', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getIndicatorColorReturnsYellowForMediumQueryCount(): void
+    public function getIndicatorColorReturnsYellowForModerateTime(): void
     {
         // Use reflection to set data directly to test threshold logic
         $reflection = new \ReflectionProperty($this->collector, 'data');
-        $reflection->setValue($this->collector, ['total_count' => 25]);
+        $reflection->setValue($this->collector, ['total_time' => 600.0]);
 
         self::assertSame('yellow', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getIndicatorColorReturnsRedForHighQueryCount(): void
+    public function getIndicatorColorReturnsRedForSlowTime(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
-        $reflection->setValue($this->collector, ['total_count' => 55]);
+        $reflection->setValue($this->collector, ['total_time' => 1200.0]);
 
         self::assertSame('red', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getIndicatorColorThresholdBoundaryAt20(): void
+    public function getIndicatorColorThresholdBoundaryAtHalfSecond(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
 
-        // 19 should be green
-        $reflection->setValue($this->collector, ['total_count' => 19]);
+        // 499.9ms should be green
+        $reflection->setValue($this->collector, ['total_time' => 499.9]);
         self::assertSame('green', $this->collector->getIndicatorColor());
 
-        // 20 should be yellow
-        $reflection->setValue($this->collector, ['total_count' => 20]);
+        // 500.0ms should be yellow
+        $reflection->setValue($this->collector, ['total_time' => 500.0]);
         self::assertSame('yellow', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getIndicatorColorThresholdBoundaryAt50(): void
+    public function getIndicatorColorThresholdBoundaryAtOneSecond(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
 
-        // 49 should be yellow
-        $reflection->setValue($this->collector, ['total_count' => 49]);
+        // 999.9ms should be yellow
+        $reflection->setValue($this->collector, ['total_time' => 999.9]);
         self::assertSame('yellow', $this->collector->getIndicatorColor());
 
-        // 50 should be red
-        $reflection->setValue($this->collector, ['total_count' => 50]);
+        // 1000.0ms should be red
+        $reflection->setValue($this->collector, ['total_time' => 1000.0]);
         self::assertSame('red', $this->collector->getIndicatorColor());
+    }
+
+    #[Test]
+    public function getIndicatorValueShowsTotalTime(): void
+    {
+        $reflection = new \ReflectionProperty($this->collector, 'data');
+        $reflection->setValue($this->collector, ['total_time' => 1234.5]);
+
+        self::assertSame('1.23 s', $this->collector->getIndicatorValue());
     }
 
     #[Test]
