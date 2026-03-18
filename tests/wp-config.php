@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 define('ABSPATH', dirname(__DIR__) . '/vendor/roots/wordpress-no-content/');
 
 define('DB_NAME', 'wppack_test');
