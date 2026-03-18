@@ -9,11 +9,13 @@ use PHPUnit\Framework\TestCase;
 use WpPack\Component\HttpFoundation\BinaryFileResponse;
 use WpPack\Component\HttpFoundation\JsonResponse;
 use WpPack\Component\HttpFoundation\RedirectResponse;
+use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Routing\AbstractController;
 use WpPack\Component\Routing\Response\BlockTemplateResponse;
 use WpPack\Component\Routing\Response\TemplateResponse;
 use WpPack\Component\Security\Exception\AccessDeniedException;
 use WpPack\Component\Security\Tests\SecurityTestTrait;
+use WpPack\Component\Templating\TemplateRendererInterface;
 
 final class AbstractControllerTest extends TestCase
 {
@@ -25,21 +27,37 @@ final class AbstractControllerTest extends TestCase
     {
         $this->controller = new class extends AbstractController {
             public function callRender(
+                string $view,
+                array $parameters = [],
+                int $statusCode = 200,
+                array $headers = [],
+            ): Response {
+                return $this->render($view, $parameters, $statusCode, $headers);
+            }
+
+            public function callRenderView(
+                string $view,
+                array $parameters = [],
+            ): string {
+                return $this->renderView($view, $parameters);
+            }
+
+            public function callRenderTemplate(
                 string $template,
                 array $context = [],
                 int $statusCode = 200,
                 array $headers = [],
             ): TemplateResponse {
-                return $this->render($template, $context, $statusCode, $headers);
+                return $this->renderTemplate($template, $context, $statusCode, $headers);
             }
 
-            public function callBlock(
+            public function callRenderBlockTemplate(
                 string $slug,
                 array $context = [],
                 int $statusCode = 200,
                 array $headers = [],
             ): BlockTemplateResponse {
-                return $this->block($slug, $context, $statusCode, $headers);
+                return $this->renderBlockTemplate($slug, $context, $statusCode, $headers);
             }
 
             public function callJson(
@@ -86,9 +104,65 @@ final class AbstractControllerTest extends TestCase
     }
 
     #[Test]
-    public function renderReturnsTemplateResponse(): void
+    public function renderReturnsResponseWithRenderedContent(): void
     {
+        $renderer = $this->createMock(TemplateRendererInterface::class);
+        $renderer->method('render')
+            ->with('templates/product.html.twig', ['name' => 'Widget'])
+            ->willReturn('<h1>Widget</h1>');
+
+        $this->controller->setTemplateRenderer($renderer);
+
         $response = $this->controller->callRender(
+            'templates/product.html.twig',
+            ['name' => 'Widget'],
+            201,
+            ['X-Custom' => 'header'],
+        );
+
+        self::assertInstanceOf(Response::class, $response);
+        self::assertSame('<h1>Widget</h1>', $response->content);
+        self::assertSame(201, $response->statusCode);
+        self::assertSame(['X-Custom' => 'header'], $response->headers);
+    }
+
+    #[Test]
+    public function renderViewReturnsRenderedString(): void
+    {
+        $renderer = $this->createMock(TemplateRendererInterface::class);
+        $renderer->method('render')
+            ->with('templates/hello.html.twig', ['name' => 'World'])
+            ->willReturn('Hello World');
+
+        $this->controller->setTemplateRenderer($renderer);
+
+        $html = $this->controller->callRenderView('templates/hello.html.twig', ['name' => 'World']);
+
+        self::assertSame('Hello World', $html);
+    }
+
+    #[Test]
+    public function renderThrowsWithoutRenderer(): void
+    {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('TemplateRendererInterface is not available');
+
+        $this->controller->callRender('templates/test.html.twig');
+    }
+
+    #[Test]
+    public function renderViewThrowsWithoutRenderer(): void
+    {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('TemplateRendererInterface is not available');
+
+        $this->controller->callRenderView('templates/test.html.twig');
+    }
+
+    #[Test]
+    public function renderTemplateReturnsTemplateResponse(): void
+    {
+        $response = $this->controller->callRenderTemplate(
             '/path/to/template.php',
             ['key' => 'value'],
             201,
@@ -103,9 +177,9 @@ final class AbstractControllerTest extends TestCase
     }
 
     #[Test]
-    public function blockReturnsBlockTemplateResponse(): void
+    public function renderBlockTemplateReturnsBlockTemplateResponse(): void
     {
-        $response = $this->controller->callBlock(
+        $response = $this->controller->callRenderBlockTemplate(
             'single-portfolio',
             ['slug' => 'my-project'],
             201,

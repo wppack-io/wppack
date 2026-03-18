@@ -9,7 +9,8 @@
         "wppack/mime": "^1.0"
     },
     "suggest": {
-        "wppack/security": "Required for #[CurrentUser] injection and Security integration in controllers"
+        "wppack/security": "Required for #[CurrentUser] injection and Security integration in controllers",
+        "wppack/templating": "Required for render() and renderView() template rendering in controllers"
     },
     "autoload": {
         "psr-4": {

@@ -9,6 +9,7 @@ use WpPack\Component\Routing\Attribute\RewriteTag;
 use WpPack\Component\Routing\Attribute\Route;
 use WpPack\Component\Security\Attribute\CurrentUser;
 use WpPack\Component\Security\Security;
+use WpPack\Component\Templating\TemplateRendererInterface;
 
 final class RouteRegistry
 {
@@ -18,12 +19,18 @@ final class RouteRegistry
     public function __construct(
         private readonly ?Request $request = null,
         private readonly ?Security $security = null,
+        private readonly ?TemplateRendererInterface $renderer = null,
     ) {}
 
     public function register(object $controller): void
     {
-        if ($this->security !== null && $controller instanceof AbstractController) {
-            $controller->setSecurity($this->security);
+        if ($controller instanceof AbstractController) {
+            if ($this->security !== null) {
+                $controller->setSecurity($this->security);
+            }
+            if ($this->renderer !== null) {
+                $controller->setTemplateRenderer($this->renderer);
+            }
         }
 
         foreach ($this->resolveRoutes($controller) as $entry) {

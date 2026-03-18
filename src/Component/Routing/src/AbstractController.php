@@ -7,18 +7,27 @@ namespace WpPack\Component\Routing;
 use WpPack\Component\HttpFoundation\BinaryFileResponse;
 use WpPack\Component\HttpFoundation\JsonResponse;
 use WpPack\Component\HttpFoundation\RedirectResponse;
+use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Routing\Response\BlockTemplateResponse;
 use WpPack\Component\Routing\Response\TemplateResponse;
 use WpPack\Component\Security\Security;
+use WpPack\Component\Templating\TemplateRendererInterface;
 
 abstract class AbstractController
 {
     private ?Security $security = null;
+    private ?TemplateRendererInterface $renderer = null;
 
     /** @internal */
     public function setSecurity(Security $security): void
     {
         $this->security = $security;
+    }
+
+    /** @internal */
+    public function setTemplateRenderer(TemplateRendererInterface $renderer): void
+    {
+        $this->renderer = $renderer;
     }
 
     protected function getUser(): ?\WP_User
@@ -49,10 +58,37 @@ abstract class AbstractController
     }
 
     /**
-     * @param array<string, mixed> $context
+     * @param array<string, mixed> $parameters
      * @param array<string, string> $headers
      */
     protected function render(
+        string $view,
+        array $parameters = [],
+        int $statusCode = 200,
+        array $headers = [],
+    ): Response {
+        $content = $this->renderView($view, $parameters);
+
+        return new Response($content, $statusCode, $headers);
+    }
+
+    /**
+     * @param array<string, mixed> $parameters
+     */
+    protected function renderView(string $view, array $parameters = []): string
+    {
+        if ($this->renderer === null) {
+            throw new \LogicException('A TemplateRendererInterface is not available. Pass a TemplateRendererInterface to RouteRegistry or call setTemplateRenderer() to use render().');
+        }
+
+        return $this->renderer->render($view, $parameters);
+    }
+
+    /**
+     * @param array<string, mixed> $context
+     * @param array<string, string> $headers
+     */
+    protected function renderTemplate(
         string $template,
         array $context = [],
         int $statusCode = 200,
@@ -65,7 +101,7 @@ abstract class AbstractController
      * @param array<string, mixed> $context
      * @param array<string, string> $headers
      */
-    protected function block(
+    protected function renderBlockTemplate(
         string $slug,
         array $context = [],
         int $statusCode = 200,

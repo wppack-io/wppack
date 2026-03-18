@@ -16,6 +16,7 @@ use WpPack\Component\Routing\RoutePosition;
 use WpPack\Component\Routing\RouteRegistry;
 use WpPack\Component\Security\Attribute\CurrentUser;
 use WpPack\Component\Security\Tests\SecurityTestTrait;
+use WpPack\Component\Templating\TemplateRendererInterface;
 
 final class RouteRegistryTest extends TestCase
 {
@@ -588,6 +589,44 @@ final class RouteRegistryTest extends TestCase
         $entry->handleTemplateRedirect();
 
         self::assertSame($user, $controller->capturedUser);
+    }
+
+    #[Test]
+    public function registerSetsTemplateRenderer(): void
+    {
+        $renderer = $this->createMock(TemplateRendererInterface::class);
+        $renderer->method('render')
+            ->with('templates/test.html.twig', ['key' => 'value'])
+            ->willReturn('<p>test</p>');
+
+        $request = new Request();
+
+        $controller = new class extends AbstractController {
+            public ?string $result = null;
+
+            #[Route(
+                name: 'renderer_test',
+                regex: '^renderer-test/([^/]+)/?$',
+                query: 'index.php?renderer_page=$matches[1]',
+            )]
+            public function index(): ?TemplateResponse
+            {
+                $this->result = $this->renderView('templates/test.html.twig', ['key' => 'value']);
+
+                return null;
+            }
+        };
+
+        $registry = new RouteRegistry($request, null, $renderer);
+        $registry->register($controller);
+
+        $routes = $registry->getRegisteredRoutes();
+        $entry = $routes['renderer_test'];
+
+        set_query_var('renderer_page', '1');
+        $entry->handleTemplateRedirect();
+
+        self::assertSame('<p>test</p>', $controller->result);
     }
 
     /**
