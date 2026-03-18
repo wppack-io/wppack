@@ -6,6 +6,7 @@ namespace WpPack\Component\Scheduler\Bridge\EventBridge\Tests\Handler;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use WpPack\Component\Scheduler\Bridge\EventBridge\Handler\ActionSchedulerMessageHandler;
 use WpPack\Component\Scheduler\Message\ActionSchedulerMessage;
 
@@ -24,14 +25,16 @@ final class ActionSchedulerMessageHandlerTest extends TestCase
         $called = false;
         $receivedArgs = [];
 
-        add_action('test_as_hook', static function () use (&$called, &$receivedArgs): void {
+        $callback = static function () use (&$called, &$receivedArgs): void {
             $called = true;
             $receivedArgs = \func_get_args();
-        }, 10, 2);
+        };
+
+        add_action('test_as_handler_hook', $callback, 10, 2);
 
         try {
             $message = new ActionSchedulerMessage(
-                hook: 'test_as_hook',
+                hook: 'test_as_handler_hook',
                 args: ['value1', 'value2'],
                 group: 'test-group',
                 actionId: 0,
@@ -42,7 +45,7 @@ final class ActionSchedulerMessageHandlerTest extends TestCase
             self::assertTrue($called, 'do_action_ref_array should have called the hook callback');
             self::assertSame(['value1', 'value2'], $receivedArgs);
         } finally {
-            remove_action('test_as_hook', static function (): void {}, 10);
+            remove_action('test_as_handler_hook', $callback, 10);
         }
     }
 
@@ -53,10 +56,10 @@ final class ActionSchedulerMessageHandlerTest extends TestCase
             self::markTestSkipped('Action Scheduler is not available.');
         }
 
-        $actionId = as_schedule_single_action(time() + 3600, 'test_as_complete_hook', [], 'test-group');
+        $actionId = as_schedule_single_action(time() + 3600, 'test_as_handler_complete_hook', [], 'test-group');
 
         $message = new ActionSchedulerMessage(
-            hook: 'test_as_complete_hook',
+            hook: 'test_as_handler_complete_hook',
             args: [],
             group: 'test-group',
             actionId: $actionId,
@@ -72,7 +75,7 @@ final class ActionSchedulerMessageHandlerTest extends TestCase
     public function invokeDoesNotFailWithZeroActionId(): void
     {
         $message = new ActionSchedulerMessage(
-            hook: 'test_as_noop_hook',
+            hook: 'test_as_handler_noop_hook',
             args: [],
             group: '',
             actionId: 0,
@@ -91,5 +94,61 @@ final class ActionSchedulerMessageHandlerTest extends TestCase
         $attributes = $ref->getAttributes(\WpPack\Component\Messenger\Attribute\AsMessageHandler::class);
 
         self::assertCount(1, $attributes);
+    }
+
+    #[Test]
+    public function invokeLogsWarningWhenMarkCompleteThrows(): void
+    {
+        if (!class_exists(\ActionScheduler::class)) {
+            self::markTestSkipped('Action Scheduler is not available.');
+        }
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())->method('warning')
+            ->with(
+                self::stringContains('Failed to mark Action Scheduler action'),
+                self::callback(static function (array $context): bool {
+                    return isset($context['actionId'], $context['error'], $context['hook']);
+                }),
+            );
+
+        $handler = new ActionSchedulerMessageHandler($logger);
+
+        // Use a non-existent actionId to cause mark_complete to throw
+        // InvalidArgumentException ("Unidentified action")
+        $message = new ActionSchedulerMessage(
+            hook: 'test_as_handler_fail_complete_hook',
+            args: [],
+            group: 'test-group',
+            actionId: 999999999,
+        );
+
+        // Should not throw - warning is logged instead
+        ($handler)($message);
+    }
+
+    #[Test]
+    public function invokeSkipsMarkCompleteWhenActionSchedulerNotAvailableButActionIdPositive(): void
+    {
+        // This test validates the class_exists check path
+        // When ActionScheduler IS available, actionId > 0 enters the mark_complete branch
+        // When ActionScheduler is NOT available, it skips the branch entirely
+        // In either case, no exception should be thrown
+        $message = new ActionSchedulerMessage(
+            hook: 'test_as_handler_conditional_hook',
+            args: [],
+            group: '',
+            actionId: 1,
+        );
+
+        // With ActionScheduler available: will try mark_complete(1) on a non-existent action
+        // and either succeed or get caught by the try/catch
+        $logger = $this->createMock(LoggerInterface::class);
+        $handler = new ActionSchedulerMessageHandler($logger);
+
+        // Should not throw regardless of AS availability
+        ($handler)($message);
+
+        self::assertTrue(true);
     }
 }

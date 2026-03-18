@@ -104,4 +104,31 @@ final class ActionSchedulerCollectorTest extends TestCase
 
         self::assertTrue($found, 'Cron action should be collected');
     }
+
+    #[Test]
+    public function collectResolvesAsyncScheduleType(): void
+    {
+        if (!class_exists(\ActionScheduler::class)) {
+            self::markTestSkipped('Action Scheduler is not available.');
+        }
+
+        $actionId = as_enqueue_async_action('test_collect_async_hook', ['async_arg'], 'test-group');
+
+        $actions = $this->collector->collect();
+
+        $found = false;
+        foreach ($actions as $action) {
+            if ($action['actionId'] === $actionId) {
+                // NullSchedule extends SimpleSchedule, so resolves as 'single'
+                self::assertSame('single', $action['scheduleType']);
+                self::assertSame(0, $action['interval']);
+                self::assertSame('', $action['cronExpression']);
+                self::assertNull($action['scheduledDate']);
+                $found = true;
+                break;
+            }
+        }
+
+        self::assertTrue($found, 'Async action should be collected');
+    }
 }

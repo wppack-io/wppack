@@ -202,6 +202,82 @@ final class EventBridgeScheduleFactoryTest extends TestCase
     }
 
     #[Test]
+    public function cronExpressionWithBothDomAndDowSpecifiedPrefersDom(): void
+    {
+        // Both dom=15 and dow=1 are specified (neither is * or ?)
+        $result = $this->factory->fromCronExpression('0 9 15 * 1');
+
+        // Both specified — prefer dom, set dow to ?
+        self::assertSame('cron(0 9 15 * ? *)', $result['expression']);
+        self::assertSame('cron', $result['type']);
+    }
+
+    #[Test]
+    public function cronExpressionWithQuestionMarkInDomIsPreserved(): void
+    {
+        // dom=? already, dow=1 — no adjustment needed
+        $result = $this->factory->fromCronExpression('0 9 ? * 1');
+
+        self::assertSame('cron(0 9 ? * 1 *)', $result['expression']);
+        self::assertSame('cron', $result['type']);
+    }
+
+    #[Test]
+    public function cronExpressionWithQuestionMarkInDowIsPreserved(): void
+    {
+        // dom=15, dow=? already — no adjustment needed
+        $result = $this->factory->fromCronExpression('0 9 15 * ?');
+
+        self::assertSame('cron(0 9 15 * ? *)', $result['expression']);
+        self::assertSame('cron', $result['type']);
+    }
+
+    #[Test]
+    public function cronExpressionWithInvalidFieldCountThrows(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Expected 5-field cron expression');
+
+        $this->factory->fromCronExpression('0 9 * *');
+    }
+
+    #[Test]
+    public function cronExpressionWithTooManyFieldsThrows(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Expected 5-field cron expression');
+
+        $this->factory->fromCronExpression('0 9 * * * 2025');
+    }
+
+    #[Test]
+    public function fromWpCronIntervalSubMinuteConvertsToRate1Minute(): void
+    {
+        $result = $this->factory->fromWpCronInterval(30);
+
+        self::assertSame('rate(1 minute)', $result['expression']);
+        self::assertSame('rate', $result['type']);
+    }
+
+    #[Test]
+    public function fromWpCronIntervalConverts60ToRate1Minute(): void
+    {
+        $result = $this->factory->fromWpCronInterval(60);
+
+        self::assertSame('rate(1 minute)', $result['expression']);
+        self::assertSame('rate', $result['type']);
+    }
+
+    #[Test]
+    public function fromWpCronIntervalNonEvenMinutesRoundsUp(): void
+    {
+        $result = $this->factory->fromWpCronInterval(90);
+
+        self::assertSame('rate(2 minutes)', $result['expression']);
+        self::assertSame('rate', $result['type']);
+    }
+
+    #[Test]
     public function unsupportedTriggerTypeThrowsException(): void
     {
         $trigger = new class implements TriggerInterface {

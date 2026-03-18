@@ -6,6 +6,7 @@ namespace WpPack\Component\Scheduler\Bridge\EventBridge\Tests\Interceptor;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use WpPack\Component\Scheduler\Bridge\EventBridge\EventBridgeScheduleFactory;
 use WpPack\Component\Scheduler\Bridge\EventBridge\Interceptor\ActionSchedulerInterceptor;
 use WpPack\Component\Scheduler\Bridge\EventBridge\SqsPayloadFactory;
@@ -66,7 +67,9 @@ final class ActionSchedulerInterceptorTest extends TestCase
     #[Test]
     public function onStoredActionCreatesScheduleForIntervalAction(): void
     {
-        $actionId = as_schedule_recurring_action(time(), 3600, 'test_interval_hook', ['arg1'], 'test-group');
+        $this->interceptor->register();
+
+        $actionId = as_schedule_recurring_action(time(), 3600, 'test_eb_interval_hook', ['arg1'], 'test-group');
 
         self::assertCount(1, $this->scheduler->createScheduleRawCalls);
 
@@ -79,8 +82,10 @@ final class ActionSchedulerInterceptorTest extends TestCase
     #[Test]
     public function onStoredActionCreatesScheduleForSingleAction(): void
     {
+        $this->interceptor->register();
+
         $timestamp = time() + 3600;
-        $actionId = as_schedule_single_action($timestamp, 'test_single_hook', ['arg1'], 'test-group');
+        $actionId = as_schedule_single_action($timestamp, 'test_eb_single_hook', ['arg1'], 'test-group');
 
         self::assertCount(1, $this->scheduler->createScheduleRawCalls);
 
@@ -93,7 +98,9 @@ final class ActionSchedulerInterceptorTest extends TestCase
     #[Test]
     public function onStoredActionCreatesScheduleForCronAction(): void
     {
-        $actionId = as_schedule_cron_action(time(), '*/15 * * * *', 'test_cron_hook', ['arg1'], 'test-group');
+        $this->interceptor->register();
+
+        $actionId = as_schedule_cron_action(time(), '*/15 * * * *', 'test_eb_cron_hook', ['arg1'], 'test-group');
 
         self::assertCount(1, $this->scheduler->createScheduleRawCalls);
 
@@ -108,7 +115,7 @@ final class ActionSchedulerInterceptorTest extends TestCase
     {
         $this->interceptor->register();
 
-        $actionId = as_schedule_recurring_action(time(), 3600, 'test_cancel_hook', [], 'test-group');
+        $actionId = as_schedule_recurring_action(time(), 3600, 'test_eb_cancel_hook', [], 'test-group');
 
         // Reset spy to focus on cancel
         $this->scheduler->createScheduleRawCalls = [];
@@ -117,5 +124,139 @@ final class ActionSchedulerInterceptorTest extends TestCase
 
         self::assertCount(1, $this->scheduler->unscheduleCalls);
         self::assertStringStartsWith('as_', $this->scheduler->unscheduleCalls[0]);
+    }
+
+    #[Test]
+    public function onStoredActionLogsErrorWhenEventBridgeFails(): void
+    {
+        $this->scheduler->shouldThrowOnCreate = true;
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())->method('error');
+
+        $interceptor = new ActionSchedulerInterceptor(
+            $this->scheduler,
+            new EventBridgeScheduleFactory(),
+            new SqsPayloadFactory(),
+            $logger,
+        );
+        $interceptor->register();
+
+        try {
+            as_schedule_single_action(time() + 3600, 'test_eb_fail_store_hook', [], 'test-group');
+            // Should not throw - error is caught and logged
+        } finally {
+            $interceptor->unregister();
+        }
+    }
+
+    #[Test]
+    public function onCanceledActionLogsErrorWhenEventBridgeFails(): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())->method('error');
+
+        // First, create with a working scheduler
+        $workingScheduler = new SpyScheduler();
+        $setupInterceptor = new ActionSchedulerInterceptor(
+            $workingScheduler,
+            new EventBridgeScheduleFactory(),
+            new SqsPayloadFactory(),
+        );
+        $setupInterceptor->register();
+
+        $actionId = as_schedule_recurring_action(time(), 3600, 'test_eb_fail_cancel_hook', [], 'test-group');
+        $setupInterceptor->unregister();
+
+        // Now set up interceptor that will fail on unschedule
+        $this->scheduler->shouldThrowOnUnschedule = true;
+        $interceptor = new ActionSchedulerInterceptor(
+            $this->scheduler,
+            new EventBridgeScheduleFactory(),
+            new SqsPayloadFactory(),
+            $logger,
+        );
+        $interceptor->register();
+
+        try {
+            \ActionScheduler::store()->cancel_action($actionId);
+            // Should not throw - error is caught and logged
+        } finally {
+            $interceptor->unregister();
+        }
+    }
+
+    #[Test]
+    public function onStoredActionCreatesScheduleForAsyncAction(): void
+    {
+        $this->interceptor->register();
+
+        // Async action (no schedule) - uses NullSchedule internally
+        $actionId = as_enqueue_async_action('test_eb_async_hook', ['arg1'], 'test-group');
+
+        self::assertNotEmpty($this->scheduler->createScheduleRawCalls);
+
+        $call = $this->scheduler->createScheduleRawCalls[0];
+        self::assertStringStartsWith('as_', $call['scheduleId']);
+        self::assertStringContainsString('at(', $call['expression']);
+        self::assertTrue($call['autoDelete']);
+    }
+
+    #[Test]
+    public function syncSyncsAllPendingActionsToEventBridge(): void
+    {
+        // Create some pending AS actions first (without interceptor registered)
+        $actionId1 = as_schedule_single_action(time() + 3600, 'test_eb_sync_single_hook', ['arg1'], 'sync-group');
+        $actionId2 = as_schedule_recurring_action(time(), 3600, 'test_eb_sync_recurring_hook', [], 'sync-group');
+
+        // Now sync
+        $count = $this->interceptor->sync();
+
+        self::assertGreaterThanOrEqual(2, $count);
+        self::assertGreaterThanOrEqual(2, \count($this->scheduler->createScheduleRawCalls));
+    }
+
+    #[Test]
+    public function syncLogsErrorWhenEventBridgeFails(): void
+    {
+        $this->scheduler->shouldThrowOnCreate = true;
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::atLeastOnce())->method('error');
+
+        $interceptor = new ActionSchedulerInterceptor(
+            $this->scheduler,
+            new EventBridgeScheduleFactory(),
+            new SqsPayloadFactory(),
+            $logger,
+        );
+
+        // Create a pending AS action
+        as_schedule_single_action(time() + 3600, 'test_eb_sync_fail_hook', [], 'sync-group');
+
+        $count = $interceptor->sync();
+
+        self::assertSame(0, $count);
+    }
+
+    #[Test]
+    public function syncHandlesCronScheduleType(): void
+    {
+        // Create a cron AS action (without interceptor registered)
+        as_schedule_cron_action(time(), '*/30 * * * *', 'test_eb_sync_cron_hook', [], 'sync-group');
+
+        $count = $this->interceptor->sync();
+
+        self::assertGreaterThanOrEqual(1, $count);
+
+        // Find the cron call
+        $found = false;
+        foreach ($this->scheduler->createScheduleRawCalls as $call) {
+            if (str_contains($call['expression'], 'cron(')) {
+                $found = true;
+                self::assertFalse($call['autoDelete']);
+                break;
+            }
+        }
+
+        self::assertTrue($found, 'Cron schedule should be synced with cron expression');
     }
 }

@@ -116,6 +116,16 @@ final class WpCronInterceptorTest extends TestCase
     }
 
     #[Test]
+    public function onPreScheduleEventReturnsFalseWhenPreIsFalse(): void
+    {
+        $event = (object) ['hook' => 'hook', 'args' => [], 'timestamp' => time(), 'schedule' => false];
+        $result = $this->interceptor->onPreScheduleEvent(false, $event);
+
+        self::assertFalse($result);
+        self::assertCount(0, $this->scheduler->createScheduleRawCalls);
+    }
+
+    #[Test]
     public function onPreRescheduleEventReturnsTrue(): void
     {
         $event = (object) [
@@ -132,6 +142,43 @@ final class WpCronInterceptorTest extends TestCase
         // No EventBridge calls — rate() auto-repeats
         self::assertCount(0, $this->scheduler->createScheduleRawCalls);
         self::assertCount(0, $this->scheduler->unscheduleCalls);
+    }
+
+    #[Test]
+    public function onPreRescheduleEventSkipsWhenPreIsNotNull(): void
+    {
+        $event = (object) ['hook' => 'hook', 'args' => [], 'timestamp' => time(), 'schedule' => 'hourly', 'interval' => 3600];
+        $result = $this->interceptor->onPreRescheduleEvent(true, $event);
+
+        self::assertTrue($result);
+    }
+
+    #[Test]
+    public function onPreRescheduleEventReturnsFalseWhenPreIsFalse(): void
+    {
+        $event = (object) ['hook' => 'hook', 'args' => [], 'timestamp' => time(), 'schedule' => 'hourly', 'interval' => 3600];
+        $result = $this->interceptor->onPreRescheduleEvent(false, $event);
+
+        self::assertFalse($result);
+    }
+
+    #[Test]
+    public function onPreRescheduleEventWritesToCronArrayWithoutScheduleKey(): void
+    {
+        $timestamp = time() + 3600;
+        $event = (object) [
+            'hook' => 'resched_hook',
+            'args' => ['x'],
+            'timestamp' => $timestamp,
+        ];
+
+        $result = $this->interceptor->onPreRescheduleEvent(null, $event);
+
+        self::assertTrue($result);
+
+        $crons = _get_cron_array();
+        $key = md5(serialize(['x']));
+        self::assertTrue(isset($crons[$timestamp]['resched_hook'][$key]));
     }
 
     #[Test]
@@ -155,6 +202,24 @@ final class WpCronInterceptorTest extends TestCase
 
         $crons = _get_cron_array();
         self::assertFalse(isset($crons[$timestamp]['my_hook'][$key]));
+    }
+
+    #[Test]
+    public function onPreUnscheduleEventSkipsWhenPreIsNotNull(): void
+    {
+        $result = $this->interceptor->onPreUnscheduleEvent(true, time(), 'hook', []);
+
+        self::assertTrue($result);
+        self::assertCount(0, $this->scheduler->unscheduleCalls);
+    }
+
+    #[Test]
+    public function onPreUnscheduleEventReturnsFalseWhenPreIsFalse(): void
+    {
+        $result = $this->interceptor->onPreUnscheduleEvent(false, time(), 'hook', []);
+
+        self::assertFalse($result);
+        self::assertCount(0, $this->scheduler->unscheduleCalls);
     }
 
     #[Test]
@@ -185,6 +250,58 @@ final class WpCronInterceptorTest extends TestCase
     }
 
     #[Test]
+    public function onPreClearScheduledHookSkipsWhenPreIsNotNull(): void
+    {
+        $result = $this->interceptor->onPreClearScheduledHook(5, 'hook', []);
+
+        self::assertSame(5, $result);
+        self::assertCount(0, $this->scheduler->unscheduleCalls);
+    }
+
+    #[Test]
+    public function onPreClearScheduledHookReturnsZeroWhenNoMatchingEvents(): void
+    {
+        $result = $this->interceptor->onPreClearScheduledHook(null, 'nonexistent_hook', ['arg']);
+
+        self::assertSame(0, $result);
+        self::assertCount(0, $this->scheduler->unscheduleCalls);
+    }
+
+    #[Test]
+    public function onPreClearScheduledHookCleansUpEmptyTimestamps(): void
+    {
+        $ts = time() + 3600;
+        $args = [];
+        $key = md5(serialize($args));
+
+        $crons = _get_cron_array();
+        $crons[$ts]['clear_cleanup_hook'][$key] = ['schedule' => 'hourly', 'args' => $args, 'interval' => 3600];
+        _set_cron_array($crons);
+
+        $this->interceptor->onPreClearScheduledHook(null, 'clear_cleanup_hook', $args);
+
+        $crons = _get_cron_array();
+        // Timestamp should be cleaned up (empty after removing last hook entry)
+        self::assertFalse(isset($crons[$ts]['clear_cleanup_hook']));
+    }
+
+    #[Test]
+    public function onPreClearScheduledHookWithFalseSchedule(): void
+    {
+        $ts = time() + 3600;
+        $args = [];
+        $key = md5(serialize($args));
+
+        $crons = _get_cron_array();
+        $crons[$ts]['clear_single_hook'][$key] = ['schedule' => false, 'args' => $args];
+        _set_cron_array($crons);
+
+        $result = $this->interceptor->onPreClearScheduledHook(null, 'clear_single_hook', $args);
+
+        self::assertSame(1, $result);
+    }
+
+    #[Test]
     public function onPreUnscheduleHookRemovesAllEventsForHook(): void
     {
         $ts1 = time() + 3600;
@@ -201,6 +318,69 @@ final class WpCronInterceptorTest extends TestCase
 
         self::assertSame(2, $result);
         self::assertCount(2, $this->scheduler->unscheduleCalls);
+    }
+
+    #[Test]
+    public function onPreUnscheduleHookSkipsWhenPreIsNotNull(): void
+    {
+        $result = $this->interceptor->onPreUnscheduleHook(3, 'hook');
+
+        self::assertSame(3, $result);
+        self::assertCount(0, $this->scheduler->unscheduleCalls);
+    }
+
+    #[Test]
+    public function onPreUnscheduleHookReturnsZeroWhenNoMatchingEvents(): void
+    {
+        $result = $this->interceptor->onPreUnscheduleHook(null, 'nonexistent_unsched_hook');
+
+        self::assertSame(0, $result);
+        self::assertCount(0, $this->scheduler->unscheduleCalls);
+    }
+
+    #[Test]
+    public function onPreUnscheduleHookCleansUpEmptyTimestamps(): void
+    {
+        // Use a unique timestamp unlikely to collide with other cron entries
+        $ts = time() + 999999;
+        $key = md5(serialize([]));
+
+        $crons = _get_cron_array();
+        $crons[$ts]['unsched_cleanup_hook'][$key] = ['schedule' => 'hourly', 'args' => [], 'interval' => 3600];
+        _set_cron_array($crons);
+
+        $this->interceptor->onPreUnscheduleHook(null, 'unsched_cleanup_hook');
+
+        $crons = _get_cron_array();
+        // The hook should be removed from the timestamp
+        self::assertFalse(isset($crons[$ts]['unsched_cleanup_hook']));
+    }
+
+    #[Test]
+    public function onPreUnscheduleHookLogsErrorWhenEventBridgeFails(): void
+    {
+        $this->scheduler->shouldThrowOnUnschedule = true;
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())->method('error');
+
+        $interceptor = new WpCronInterceptor(
+            $this->scheduler,
+            new EventBridgeScheduleFactory(),
+            new SqsPayloadFactory(),
+            $logger,
+        );
+
+        $ts = time() + 3600;
+        $key = md5(serialize([]));
+
+        $crons = _get_cron_array();
+        $crons[$ts]['unsched_fail_hook'][$key] = ['schedule' => 'hourly', 'args' => [], 'interval' => 3600];
+        _set_cron_array($crons);
+
+        $result = $interceptor->onPreUnscheduleHook(null, 'unsched_fail_hook');
+
+        // Event is still counted despite EB failure
+        self::assertSame(1, $result);
     }
 
     #[Test]
@@ -301,6 +481,147 @@ final class WpCronInterceptorTest extends TestCase
         $crons = _get_cron_array();
         self::assertFalse(isset($crons[$ts1]['clear_hook']));
         self::assertFalse(isset($crons[$ts2]['clear_hook']));
+    }
+
+    #[Test]
+    public function syncSyncsRecurringEventsToEventBridge(): void
+    {
+        // Add a recurring event to the cron array
+        $timestamp = time() + 3600;
+        $key = md5(serialize([]));
+        $crons = _get_cron_array();
+        $crons[$timestamp]['sync_recurring_hook'][$key] = [
+            'schedule' => 'hourly',
+            'args' => [],
+            'interval' => 3600,
+        ];
+        _set_cron_array($crons);
+
+        $count = $this->interceptor->sync();
+
+        self::assertGreaterThanOrEqual(1, $count);
+
+        // Find the recurring event in the spy calls
+        $found = false;
+        foreach ($this->scheduler->createScheduleRawCalls as $call) {
+            if (str_contains($call['expression'], 'rate(')) {
+                $found = true;
+                self::assertFalse($call['autoDelete']);
+                break;
+            }
+        }
+
+        self::assertTrue($found, 'Recurring event should be synced with rate expression');
+    }
+
+    #[Test]
+    public function syncSyncsSingleEventsToEventBridge(): void
+    {
+        // Add a single event to the cron array
+        $timestamp = time() + 3600;
+        $key = md5(serialize(['single_arg']));
+        $crons = _get_cron_array();
+        $crons[$timestamp]['sync_single_hook'][$key] = [
+            'schedule' => false,
+            'args' => ['single_arg'],
+        ];
+        _set_cron_array($crons);
+
+        $count = $this->interceptor->sync();
+
+        self::assertGreaterThanOrEqual(1, $count);
+
+        // Find the single event
+        $found = false;
+        foreach ($this->scheduler->createScheduleRawCalls as $call) {
+            if (str_contains($call['expression'], 'at(') && str_contains($call['scheduleId'], 'wpcron_sync_single_hook')) {
+                $found = true;
+                self::assertTrue($call['autoDelete']);
+                break;
+            }
+        }
+
+        self::assertTrue($found, 'Single event should be synced with at expression');
+    }
+
+    #[Test]
+    public function syncLogsErrorAndContinuesWhenEventBridgeFails(): void
+    {
+        $this->scheduler->shouldThrowOnCreate = true;
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::atLeastOnce())->method('error');
+
+        $interceptor = new WpCronInterceptor(
+            $this->scheduler,
+            new EventBridgeScheduleFactory(),
+            new SqsPayloadFactory(),
+            $logger,
+        );
+
+        // Add events to the cron array
+        $ts1 = time() + 3600;
+        $ts2 = time() + 7200;
+        $key = md5(serialize([]));
+        $crons = _get_cron_array();
+        $crons[$ts1]['sync_fail_hook1'][$key] = ['schedule' => 'hourly', 'args' => [], 'interval' => 3600];
+        $crons[$ts2]['sync_fail_hook2'][$key] = ['schedule' => false, 'args' => []];
+        _set_cron_array($crons);
+
+        $count = $interceptor->sync();
+
+        // No events synced due to failures
+        self::assertSame(0, $count);
+    }
+
+    #[Test]
+    public function syncReturnsZeroWhenNoCronEvents(): void
+    {
+        // Ensure cron array is empty (or only has version key)
+        _set_cron_array([]);
+
+        $count = $this->interceptor->sync();
+
+        self::assertSame(0, $count);
+    }
+
+    #[Test]
+    public function onPreScheduleEventWritesRecurringEventToCronArray(): void
+    {
+        $timestamp = time() + 3600;
+        $event = (object) [
+            'hook' => 'cron_write_hook',
+            'args' => ['param1'],
+            'timestamp' => $timestamp,
+            'schedule' => 'daily',
+            'interval' => 86400,
+        ];
+
+        $this->interceptor->onPreScheduleEvent(null, $event);
+
+        $crons = _get_cron_array();
+        $key = md5(serialize(['param1']));
+        self::assertTrue(isset($crons[$timestamp]['cron_write_hook'][$key]));
+        self::assertSame('daily', $crons[$timestamp]['cron_write_hook'][$key]['schedule']);
+        self::assertSame(86400, $crons[$timestamp]['cron_write_hook'][$key]['interval']);
+    }
+
+    #[Test]
+    public function onPreScheduleEventWritesSingleEventToCronArray(): void
+    {
+        $timestamp = time() + 3600;
+        $event = (object) [
+            'hook' => 'cron_single_write_hook',
+            'args' => [],
+            'timestamp' => $timestamp,
+            'schedule' => false,
+        ];
+
+        $this->interceptor->onPreScheduleEvent(null, $event);
+
+        $crons = _get_cron_array();
+        $key = md5(serialize([]));
+        self::assertTrue(isset($crons[$timestamp]['cron_single_write_hook'][$key]));
+        self::assertFalse($crons[$timestamp]['cron_single_write_hook'][$key]['schedule']);
     }
 }
 

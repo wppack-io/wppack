@@ -9,6 +9,7 @@ use PHPUnit\Framework\TestCase;
 use WpPack\Component\Messenger\Serializer\JsonSerializer;
 use WpPack\Component\Messenger\Stamp\MultisiteStamp;
 use WpPack\Component\Scheduler\Bridge\EventBridge\SqsPayloadFactory;
+use WpPack\Component\Scheduler\Message\ActionSchedulerMessage;
 use WpPack\Component\Scheduler\Message\WpCronMessage;
 
 final class SqsPayloadFactoryTest extends TestCase
@@ -140,5 +141,49 @@ final class SqsPayloadFactoryTest extends TestCase
         $decoded = json_decode($payload, true, 512, \JSON_THROW_ON_ERROR);
 
         self::assertEmpty($decoded['headers']['stamps']);
+    }
+
+    #[Test]
+    public function createForActionSchedulerActionProducesCorrectPayload(): void
+    {
+        $payload = $this->factory->createForActionSchedulerAction(
+            hook: 'as_hook',
+            args: ['x', 'y'],
+            group: 'my-group',
+            actionId: 42,
+        );
+
+        $data = json_decode($payload, true, 512, \JSON_THROW_ON_ERROR);
+        $serializer = new JsonSerializer();
+        $envelope = $serializer->decode($data);
+
+        $decoded = $envelope->getMessage();
+        self::assertInstanceOf(ActionSchedulerMessage::class, $decoded);
+        self::assertSame('as_hook', $decoded->hook);
+        self::assertSame(['x', 'y'], $decoded->args);
+        self::assertSame('my-group', $decoded->group);
+        self::assertSame(42, $decoded->actionId);
+    }
+
+    #[Test]
+    public function createForActionSchedulerActionWithStamps(): void
+    {
+        $stamps = [new MultisiteStamp(blogId: 7)];
+
+        $payload = $this->factory->createForActionSchedulerAction(
+            hook: 'as_stamp_hook',
+            args: [],
+            group: 'stamp-group',
+            actionId: 1,
+            stamps: $stamps,
+        );
+
+        $data = json_decode($payload, true, 512, \JSON_THROW_ON_ERROR);
+        $serializer = new JsonSerializer();
+        $envelope = $serializer->decode($data);
+
+        $multisiteStamp = $envelope->last(MultisiteStamp::class);
+        self::assertNotNull($multisiteStamp);
+        self::assertSame(7, $multisiteStamp->blogId);
     }
 }
