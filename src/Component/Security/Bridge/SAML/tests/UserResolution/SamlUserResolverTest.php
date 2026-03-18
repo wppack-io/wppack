@@ -227,4 +227,382 @@ final class SamlUserResolverTest extends TestCase
         // First match (Editor) should win
         self::assertContains('editor', $user->roles);
     }
+
+    #[Test]
+    public function roleMapUnmatchedKeepsExistingRole(): void
+    {
+        $login = 'saml_unmatched_' . uniqid();
+        $userId = wp_insert_user([
+            'user_login' => $login,
+            'user_email' => 'saml-unmatched-' . uniqid() . '@example.com',
+            'user_pass' => wp_generate_password(),
+            'role' => 'editor',
+        ]);
+
+        self::assertIsInt($userId);
+
+        // Explicitly set role to ensure it's applied in the test environment
+        $wpUser = get_user_by('id', $userId);
+        $wpUser->set_role('editor');
+
+        $resolver = new SamlUserResolver(
+            roleMapping: ['Admin' => 'administrator'],
+            roleAttribute: 'groups',
+        );
+
+        $user = $resolver->resolveUser(
+            $login,
+            ['groups' => ['UnknownGroup']],
+        );
+
+        // Role should not change when no mapping matches
+        self::assertContains('editor', $user->roles);
+    }
+
+    #[Test]
+    public function roleMapSkippedWhenNoMappingConfigured(): void
+    {
+        $login = 'saml_norole_' . uniqid();
+        $userId = wp_insert_user([
+            'user_login' => $login,
+            'user_email' => 'saml-norole-' . uniqid() . '@example.com',
+            'user_pass' => wp_generate_password(),
+            'role' => 'subscriber',
+        ]);
+
+        self::assertIsInt($userId);
+
+        // Explicitly set role to ensure it's applied in the test environment
+        $wpUser = get_user_by('id', $userId);
+        $wpUser->set_role('subscriber');
+
+        $resolver = new SamlUserResolver();
+
+        $user = $resolver->resolveUser(
+            $login,
+            ['groups' => ['Admin']],
+        );
+
+        self::assertContains('subscriber', $user->roles);
+    }
+
+    #[Test]
+    public function syncUserAttributesUpdatesChanged(): void
+    {
+        $nameId = 'saml-sync-' . uniqid();
+        $email = 'saml-sync-' . uniqid() . '@example.com';
+        $userId = wp_insert_user([
+            'user_login' => 'saml_sync_' . uniqid(),
+            'user_email' => $email,
+            'user_pass' => wp_generate_password(),
+            'first_name' => 'OldFirst',
+            'last_name' => 'OldLast',
+            'display_name' => 'OldDisplay',
+        ]);
+
+        self::assertIsInt($userId);
+
+        $resolver = new SamlUserResolver();
+
+        $user = $resolver->resolveUser(
+            $nameId,
+            [
+                'email' => [$email],
+                'firstName' => ['NewFirst'],
+                'lastName' => ['NewLast'],
+                'displayName' => ['NewDisplay'],
+            ],
+        );
+
+        $refreshed = get_user_by('id', $user->ID);
+        self::assertInstanceOf(\WP_User::class, $refreshed);
+        self::assertSame('NewFirst', $refreshed->first_name);
+        self::assertSame('NewLast', $refreshed->last_name);
+        self::assertSame('NewDisplay', $refreshed->display_name);
+    }
+
+    #[Test]
+    public function syncUserAttributesSkipsWhenNoChanges(): void
+    {
+        $nameId = 'saml-nochange-' . uniqid();
+        $email = 'saml-nochange-' . uniqid() . '@example.com';
+        $userId = wp_insert_user([
+            'user_login' => 'saml_nochange_' . uniqid(),
+            'user_email' => $email,
+            'user_pass' => wp_generate_password(),
+            'first_name' => 'Same',
+            'last_name' => 'Same',
+            'display_name' => 'Same Same',
+        ]);
+
+        self::assertIsInt($userId);
+
+        $resolver = new SamlUserResolver();
+
+        $user = $resolver->resolveUser(
+            $nameId,
+            [
+                'email' => [$email],
+                'firstName' => ['Same'],
+                'lastName' => ['Same'],
+                'displayName' => ['Same Same'],
+            ],
+        );
+
+        self::assertInstanceOf(\WP_User::class, $user);
+        self::assertSame($userId, $user->ID);
+    }
+
+    #[Test]
+    public function autoProvisionWithAllAttributes(): void
+    {
+        $nameId = 'provisioned_full_' . uniqid();
+        $email = 'saml-full-' . uniqid() . '@example.com';
+        $resolver = new SamlUserResolver(
+            autoProvision: true,
+            defaultRole: 'editor',
+        );
+
+        $user = $resolver->resolveUser(
+            $nameId,
+            [
+                'email' => [$email],
+                'firstName' => ['John'],
+                'lastName' => ['Doe'],
+                'displayName' => ['John Doe'],
+            ],
+        );
+
+        self::assertInstanceOf(\WP_User::class, $user);
+        self::assertSame($email, $user->user_email);
+
+        $refreshed = get_user_by('id', $user->ID);
+        self::assertInstanceOf(\WP_User::class, $refreshed);
+        self::assertSame('John', $refreshed->first_name);
+        self::assertSame('Doe', $refreshed->last_name);
+        self::assertSame('John Doe', $refreshed->display_name);
+        self::assertContains('editor', $refreshed->roles);
+    }
+
+    #[Test]
+    public function autoProvisionWithoutOptionalAttributes(): void
+    {
+        $nameId = 'provisioned_minimal_' . uniqid();
+        $resolver = new SamlUserResolver(
+            autoProvision: true,
+            firstNameAttribute: null,
+            lastNameAttribute: null,
+            displayNameAttribute: null,
+        );
+
+        $user = $resolver->resolveUser(
+            $nameId,
+            [],
+        );
+
+        self::assertInstanceOf(\WP_User::class, $user);
+        self::assertSame($nameId, $user->user_login);
+    }
+
+    #[Test]
+    public function autoProvisionWithoutEmail(): void
+    {
+        // Use an email-like NameID so it serves as a valid fallback email
+        // when no email attribute is provided (user_email = nameId).
+        $nameId = 'noemail-' . uniqid() . '@example.com';
+        $resolver = new SamlUserResolver(autoProvision: true);
+
+        $user = $resolver->resolveUser(
+            $nameId,
+            [],
+        );
+
+        self::assertInstanceOf(\WP_User::class, $user);
+        self::assertSame($nameId, $user->user_login);
+        // When no email attribute is provided, the NameID is used as fallback email
+        self::assertSame($nameId, $user->user_email);
+    }
+
+    #[Test]
+    public function syncWithNullAttributeNames(): void
+    {
+        $login = 'saml_null_attr_' . uniqid();
+        $userId = wp_insert_user([
+            'user_login' => $login,
+            'user_email' => 'saml-null-' . uniqid() . '@example.com',
+            'user_pass' => wp_generate_password(),
+            'first_name' => 'Existing',
+        ]);
+
+        self::assertIsInt($userId);
+
+        $resolver = new SamlUserResolver(
+            firstNameAttribute: null,
+            lastNameAttribute: null,
+            displayNameAttribute: null,
+        );
+
+        $user = $resolver->resolveUser(
+            $login,
+            [],
+        );
+
+        $refreshed = get_user_by('id', $user->ID);
+        self::assertInstanceOf(\WP_User::class, $refreshed);
+        self::assertSame('Existing', $refreshed->first_name);
+    }
+
+    #[Test]
+    public function resolveUserBindsNameIdOnFirstLogin(): void
+    {
+        $login = 'saml_bind_' . uniqid();
+        $userId = wp_insert_user([
+            'user_login' => $login,
+            'user_email' => 'saml-bind-' . uniqid() . '@example.com',
+            'user_pass' => wp_generate_password(),
+        ]);
+
+        self::assertIsInt($userId);
+
+        $resolver = new SamlUserResolver();
+
+        $resolver->resolveUser($login, []);
+
+        self::assertSame($login, get_user_meta($userId, '_wppack_saml_nameid', true));
+    }
+
+    #[Test]
+    public function autoProvisionWithRoleMapping(): void
+    {
+        $nameId = 'provisioned_role_' . uniqid();
+        $resolver = new SamlUserResolver(
+            autoProvision: true,
+            defaultRole: 'subscriber',
+            roleMapping: ['Admin' => 'administrator'],
+            roleAttribute: 'groups',
+        );
+
+        $user = $resolver->resolveUser(
+            $nameId,
+            [
+                'email' => ['provision-role-' . uniqid() . '@example.com'],
+                'groups' => ['Admin'],
+            ],
+        );
+
+        self::assertInstanceOf(\WP_User::class, $user);
+        self::assertContains('administrator', $user->roles);
+    }
+
+    #[Test]
+    public function roleMapSkippedWhenRoleAttributeIsNull(): void
+    {
+        $login = 'saml_noroleattr_' . uniqid();
+        $userId = wp_insert_user([
+            'user_login' => $login,
+            'user_email' => 'saml-noroleattr-' . uniqid() . '@example.com',
+            'user_pass' => wp_generate_password(),
+            'role' => 'subscriber',
+        ]);
+
+        self::assertIsInt($userId);
+
+        // Explicitly set role to ensure it's applied in the test environment
+        $wpUser = get_user_by('id', $userId);
+        $wpUser->set_role('subscriber');
+
+        $resolver = new SamlUserResolver(
+            roleMapping: ['Admin' => 'administrator'],
+            roleAttribute: null,
+        );
+
+        $user = $resolver->resolveUser(
+            $login,
+            ['groups' => ['Admin']],
+        );
+
+        self::assertContains('subscriber', $user->roles);
+    }
+
+    #[Test]
+    public function resolveUserByEmailWithExistingBoundNameId(): void
+    {
+        $nameId = 'saml-bound-' . uniqid();
+        $email = 'saml-bound-' . uniqid() . '@example.com';
+        $userId = wp_insert_user([
+            'user_login' => 'saml_bound_' . uniqid(),
+            'user_email' => $email,
+            'user_pass' => wp_generate_password(),
+        ]);
+
+        self::assertIsInt($userId);
+
+        // Pre-bind with same NameID
+        update_user_meta($userId, '_wppack_saml_nameid', $nameId);
+
+        $resolver = new SamlUserResolver();
+
+        $user = $resolver->resolveUser(
+            $nameId,
+            ['email' => [$email]],
+        );
+
+        self::assertInstanceOf(\WP_User::class, $user);
+        self::assertSame($userId, $user->ID);
+    }
+
+    #[Test]
+    public function resolveUserWithEmptyEmailAttribute(): void
+    {
+        $login = 'saml_emptyemail_' . uniqid();
+        $userId = wp_insert_user([
+            'user_login' => $login,
+            'user_email' => 'saml-emptyemail-' . uniqid() . '@example.com',
+            'user_pass' => wp_generate_password(),
+        ]);
+
+        self::assertIsInt($userId);
+
+        $resolver = new SamlUserResolver();
+
+        // Empty email value should be skipped
+        $user = $resolver->resolveUser(
+            $login,
+            ['email' => ['']],
+        );
+
+        self::assertInstanceOf(\WP_User::class, $user);
+        self::assertSame($userId, $user->ID);
+    }
+
+    #[Test]
+    public function roleMapWithEmptyRoleValues(): void
+    {
+        $login = 'saml_empty_roles_' . uniqid();
+        $userId = wp_insert_user([
+            'user_login' => $login,
+            'user_email' => 'saml-empty-roles-' . uniqid() . '@example.com',
+            'user_pass' => wp_generate_password(),
+            'role' => 'subscriber',
+        ]);
+
+        self::assertIsInt($userId);
+
+        // Explicitly set role to ensure it's applied in the test environment
+        $wpUser = get_user_by('id', $userId);
+        $wpUser->set_role('subscriber');
+
+        $resolver = new SamlUserResolver(
+            roleMapping: ['Admin' => 'administrator'],
+            roleAttribute: 'groups',
+        );
+
+        // Empty groups array
+        $user = $resolver->resolveUser(
+            $login,
+            ['groups' => []],
+        );
+
+        self::assertContains('subscriber', $user->roles);
+    }
 }

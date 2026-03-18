@@ -267,4 +267,126 @@ final class SamlAuthenticatorTest extends TestCase
         self::assertStringNotContainsString('evil.example.com', $response->url);
         self::assertStringContainsString('/wp-admin', $response->url);
     }
+
+    #[Test]
+    public function onAuthenticationSuccessWithSameOriginRelayState(): void
+    {
+        $user = $this->createMock(\WP_User::class);
+        $user->ID = 1;
+        $user->roles = ['subscriber'];
+
+        $token = new PostAuthenticationToken($user, ['subscriber']);
+
+        $authenticator = $this->createAuthenticator();
+
+        $siteUrl = home_url('/custom-page');
+
+        $request = new Request(
+            post: ['RelayState' => $siteUrl],
+            server: ['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/saml/acs'],
+        );
+
+        $response = $authenticator->onAuthenticationSuccess($request, $token);
+
+        self::assertInstanceOf(RedirectResponse::class, $response);
+    }
+
+    #[Test]
+    public function onAuthenticationSuccessWithoutRelayState(): void
+    {
+        $user = $this->createMock(\WP_User::class);
+        $user->ID = 1;
+        $user->roles = ['subscriber'];
+
+        $token = new PostAuthenticationToken($user, ['subscriber']);
+
+        $authenticator = $this->createAuthenticator();
+
+        $request = new Request(
+            post: [],
+            server: ['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/saml/acs'],
+        );
+
+        $response = $authenticator->onAuthenticationSuccess($request, $token);
+
+        self::assertInstanceOf(RedirectResponse::class, $response);
+        self::assertStringContainsString('/wp-admin', $response->url);
+    }
+
+    #[Test]
+    public function onAuthenticationSuccessWithInvalidRelayStateUrl(): void
+    {
+        $user = $this->createMock(\WP_User::class);
+        $user->ID = 1;
+        $user->roles = ['subscriber'];
+
+        $token = new PostAuthenticationToken($user, ['subscriber']);
+
+        $authenticator = $this->createAuthenticator();
+
+        // RelayState with no host
+        $request = new Request(
+            post: ['RelayState' => '/relative/path'],
+            server: ['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/saml/acs'],
+        );
+
+        $response = $authenticator->onAuthenticationSuccess($request, $token);
+
+        self::assertInstanceOf(RedirectResponse::class, $response);
+        // Should fall back to admin_url()
+        self::assertStringContainsString('/wp-admin', $response->url);
+    }
+
+    #[Test]
+    public function authenticateDispatchesEvent(): void
+    {
+        $auth = $this->createMock(\OneLogin\Saml2\Auth::class);
+        $auth->method('processResponse')->willReturn(null);
+        $auth->method('getErrors')->willReturn([]);
+        $auth->method('getNameId')->willReturn('user@example.com');
+        $auth->method('getAttributes')->willReturn(['email' => ['user@example.com']]);
+        $auth->method('getSessionIndex')->willReturn('_session456');
+
+        $this->factory->method('create')->willReturn($auth);
+
+        $this->eventDispatcher->expects(self::once())
+            ->method('dispatch');
+
+        $authenticator = $this->createAuthenticator();
+
+        $request = new Request(
+            post: ['SAMLResponse' => 'base64encodedresponse'],
+            server: ['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/saml/acs'],
+        );
+
+        $authenticator->authenticate($request);
+    }
+
+    #[Test]
+    public function authenticateWithNullSessionIndex(): void
+    {
+        $auth = $this->createMock(\OneLogin\Saml2\Auth::class);
+        $auth->method('processResponse')->willReturn(null);
+        $auth->method('getErrors')->willReturn([]);
+        $auth->method('getNameId')->willReturn('user@example.com');
+        $auth->method('getAttributes')->willReturn([]);
+        $auth->method('getSessionIndex')->willReturn(null);
+
+        $this->factory->method('create')->willReturn($auth);
+
+        $authenticator = $this->createAuthenticator();
+
+        $request = new Request(
+            post: ['SAMLResponse' => 'base64encodedresponse'],
+            server: ['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/saml/acs'],
+        );
+
+        $passport = $authenticator->authenticate($request);
+
+        self::assertInstanceOf(SelfValidatingPassport::class, $passport);
+
+        $samlBadge = $passport->getBadge(SamlAttributesBadge::class);
+        self::assertInstanceOf(SamlAttributesBadge::class, $samlBadge);
+        self::assertNull($samlBadge->getSessionIndex());
+    }
 }
