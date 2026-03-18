@@ -73,7 +73,7 @@ $resolver = new DefaultChannelResolver(); // always returns 'php'
 $resolver->resolve('/any/path'); // 'php'
 ```
 
-The default `WordPressChannelResolver` resolves `plugin:slug`, `theme:slug`, `wordpress`, or `php` from file paths using WordPress constants (with `defined()` guards for non-WP environments).
+The default `WordPressChannelResolver` resolves `plugin:slug`, `theme:slug`, `wordpress`, or `php` from file paths using WordPress constants (`WP_PLUGIN_DIR`, `WPMU_PLUGIN_DIR`, `ABSPATH`).
 
 ## Testing
 

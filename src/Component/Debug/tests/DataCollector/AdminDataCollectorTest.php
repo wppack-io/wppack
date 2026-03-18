@@ -163,11 +163,6 @@ final class AdminDataCollectorTest extends TestCase
     #[Test]
     public function collectWithAdminBarReturnsTopLevelNodes(): void
     {
-        if (!class_exists(\WP_Admin_Bar::class)) {
-            self::markTestSkipped('WP_Admin_Bar class is not available.');
-        }
-
-
         $savedAdminBar = $GLOBALS['wp_admin_bar'] ?? null;
 
         set_current_screen('dashboard');

@@ -233,8 +233,13 @@ final class WordPressServiceProviderTest extends TestCase
     #[DataProvider('factoryGlobalProvider')]
     public function factoryMethodReturnsGlobalVariable(string $factoryMethod, string $globalName, string $className): void
     {
-        if (!class_exists($className, false) && !class_exists($className)) {
-            self::markTestSkipped(sprintf('WordPress class %s is not available.', $className));
+        if (!class_exists($className)) {
+            self::markTestSkipped(sprintf('Class %s is not autoloadable.', $className));
+        }
+
+        $ref = new \ReflectionClass($className);
+        if ($ref->isFinal()) {
+            self::markTestSkipped(sprintf('Class %s is final and cannot be mocked.', $className));
         }
 
         $mock = $this->createMock($className);

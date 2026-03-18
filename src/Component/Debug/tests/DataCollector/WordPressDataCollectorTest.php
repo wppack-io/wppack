@@ -101,10 +101,6 @@ final class WordPressDataCollectorTest extends TestCase
     {
         global $wp_version;
 
-        if (!isset($wp_version)) {
-            self::markTestSkipped('$wp_version is not set.');
-        }
-
         $this->collector->collect();
         $data = $this->collector->getData();
 
@@ -125,10 +121,6 @@ final class WordPressDataCollectorTest extends TestCase
     public function getIndicatorValueReturnsWpVersion(): void
     {
         global $wp_version;
-
-        if (!isset($wp_version)) {
-            self::markTestSkipped('$wp_version is not set.');
-        }
 
         $this->collector->collect();
         self::assertSame($wp_version, $this->collector->getIndicatorValue());

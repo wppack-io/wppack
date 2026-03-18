@@ -214,12 +214,7 @@ final class RouterDataCollectorTest extends TestCase
     #[Test]
     public function collectWithRewriteRulesCountsRules(): void
     {
-
         global $wp_rewrite;
-
-        if (!isset($wp_rewrite) || !is_object($wp_rewrite)) {
-            self::markTestSkipped('$wp_rewrite is not set.');
-        }
 
         $this->collector->collect();
         $data = $this->collector->getData();
@@ -314,10 +309,6 @@ final class RouterDataCollectorTest extends TestCase
     public function collectWithRewriteRulesObject(): void
     {
         global $wp_rewrite;
-
-        if (!isset($wp_rewrite) || !is_object($wp_rewrite)) {
-            self::markTestSkipped('$wp_rewrite is not set.');
-        }
 
         // Ensure rules are loaded
         if (!is_array($wp_rewrite->rules ?? null)) {

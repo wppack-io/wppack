@@ -23,13 +23,8 @@ final class FilesystemTest extends TestCase
             define('FS_CHMOD_FILE', 0644);
         }
 
-        if (!class_exists(\WP_Filesystem_Base::class)) {
-            require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
-        }
-
-        if (!class_exists(\WP_Filesystem_Direct::class)) {
-            require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
-        }
+        require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
+        require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
 
         $this->filesystem = new Filesystem(new \WP_Filesystem_Direct(null));
         $this->testDir = sys_get_temp_dir() . '/wppack_filesystem_test_' . uniqid();
