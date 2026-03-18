@@ -245,7 +245,7 @@ class MyRestSubscriber
 | レスポンス | Template/Block/Redirect 等 | Response/JsonResponse |
 | エラー処理 | null で WordPress に委譲 | `throw HttpException` → `WP_Error` |
 | リクエスト | `Request` + パラメータ自動注入 | `Request` / `WP_REST_Request` |
-| パーミッション | なし | `#[Permission]` 必須 |
+| パーミッション | なし | `#[Permission]`（未指定なら public） |
 
 ## プラグイン / テーマでの配置
 
