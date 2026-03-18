@@ -7,6 +7,9 @@
         "php": "^8.2",
         "wppack/http-foundation": "^1.0"
     },
+    "suggest": {
+        "wppack/security": "Required for #[CurrentUser] parameter injection"
+    },
     "autoload": {
         "psr-4": {
             "WpPack\\Component\\Ajax\\": "src/"

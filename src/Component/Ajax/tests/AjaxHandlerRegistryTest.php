@@ -8,8 +8,10 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Ajax\Access;
 use WpPack\Component\Ajax\AjaxHandlerRegistry;
-use WpPack\Component\Ajax\Attribute\AjaxHandler;
+use WpPack\Component\Ajax\Attribute\Ajax;
 use WpPack\Component\HttpFoundation\JsonResponse;
+use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Security\Attribute\CurrentUser;
 
 final class AjaxHandlerRegistryTest extends TestCase
 {
@@ -24,7 +26,7 @@ final class AjaxHandlerRegistryTest extends TestCase
     public function publicAccessRegistersBothHooks(): void
     {
         $subscriber = new class {
-            #[AjaxHandler(action: 'test_public')]
+            #[Ajax(action: 'test_public')]
             public function handle(): void {}
         };
 
@@ -38,7 +40,7 @@ final class AjaxHandlerRegistryTest extends TestCase
     public function authenticatedAccessRegistersOnlyPrivHook(): void
     {
         $subscriber = new class {
-            #[AjaxHandler(action: 'test_auth', access: Access::Authenticated)]
+            #[Ajax(action: 'test_auth', access: Access::Authenticated)]
             public function handle(): void {}
         };
 
@@ -52,7 +54,7 @@ final class AjaxHandlerRegistryTest extends TestCase
     public function guestAccessRegistersOnlyNoprivHook(): void
     {
         $subscriber = new class {
-            #[AjaxHandler(action: 'test_guest', access: Access::Guest)]
+            #[Ajax(action: 'test_guest', access: Access::Guest)]
             public function handle(): void {}
         };
 
@@ -66,7 +68,7 @@ final class AjaxHandlerRegistryTest extends TestCase
     public function customPriorityIsRespected(): void
     {
         $subscriber = new class {
-            #[AjaxHandler(action: 'test_priority', priority: 5)]
+            #[Ajax(action: 'test_priority', priority: 5)]
             public function handle(): void {}
         };
 
@@ -79,8 +81,8 @@ final class AjaxHandlerRegistryTest extends TestCase
     public function multipleHandlersOnSameMethod(): void
     {
         $subscriber = new class {
-            #[AjaxHandler(action: 'action_a')]
-            #[AjaxHandler(action: 'action_b', access: Access::Authenticated)]
+            #[Ajax(action: 'action_a')]
+            #[Ajax(action: 'action_b', access: Access::Authenticated)]
             public function handle(): void {}
         };
 
@@ -98,7 +100,7 @@ final class AjaxHandlerRegistryTest extends TestCase
         $subscriber = new class {
             public bool $called = false;
 
-            #[AjaxHandler(action: 'test_invoke')]
+            #[Ajax(action: 'test_invoke')]
             public function handle(): void
             {
                 $this->called = true;
@@ -116,7 +118,7 @@ final class AjaxHandlerRegistryTest extends TestCase
     public function callbackSendsJsonResponseOnSuccess(): void
     {
         $subscriber = new class {
-            #[AjaxHandler(action: 'test_json_success')]
+            #[Ajax(action: 'test_json_success')]
             public function handle(): JsonResponse
             {
                 return new JsonResponse(['msg' => 'ok']);
@@ -138,7 +140,7 @@ final class AjaxHandlerRegistryTest extends TestCase
         $subscriber = new class {
             public bool $called = false;
 
-            #[AjaxHandler(action: 'test_cap', capability: 'manage_options')]
+            #[Ajax(action: 'test_cap', capability: 'manage_options')]
             public function handle(): JsonResponse
             {
                 $this->called = true;
@@ -165,7 +167,7 @@ final class AjaxHandlerRegistryTest extends TestCase
         $subscriber = new class {
             public bool $called = false;
 
-            #[AjaxHandler(action: 'test_cap_ok', capability: 'manage_options')]
+            #[Ajax(action: 'test_cap_ok', capability: 'manage_options')]
             public function handle(): JsonResponse
             {
                 $this->called = true;
@@ -190,7 +192,7 @@ final class AjaxHandlerRegistryTest extends TestCase
         $subscriber = new class {
             public bool $called = false;
 
-            #[AjaxHandler(action: 'test_referer', checkReferer: 'my_nonce')]
+            #[Ajax(action: 'test_referer', checkReferer: 'my_nonce')]
             public function handle(): void
             {
                 $this->called = true;
@@ -209,6 +211,121 @@ final class AjaxHandlerRegistryTest extends TestCase
         }
 
         self::assertTrue($subscriber->called);
+    }
+
+    #[Test]
+    public function callbackInjectsRequest(): void
+    {
+        $subscriber = new class {
+            public ?Request $receivedRequest = null;
+
+            #[Ajax(action: 'test_inject_request')]
+            public function handle(Request $request): void
+            {
+                $this->receivedRequest = $request;
+            }
+        };
+
+        $this->registry->register($subscriber);
+
+        $this->executeAjaxCallback('wp_ajax_test_inject_request');
+
+        self::assertInstanceOf(Request::class, $subscriber->receivedRequest);
+    }
+
+    #[Test]
+    public function callbackInjectsCurrentUser(): void
+    {
+        $subscriber = new class {
+            public ?\WP_User $receivedUser = null;
+
+            #[Ajax(action: 'test_inject_user')]
+            public function handle(#[CurrentUser] \WP_User $user): void
+            {
+                $this->receivedUser = $user;
+            }
+        };
+
+        $this->registry->register($subscriber);
+
+        wp_set_current_user(1);
+        $this->executeAjaxCallback('wp_ajax_test_inject_user');
+
+        self::assertInstanceOf(\WP_User::class, $subscriber->receivedUser);
+        self::assertSame(1, $subscriber->receivedUser->ID);
+    }
+
+    #[Test]
+    public function callbackInjectsBothRequestAndCurrentUser(): void
+    {
+        $subscriber = new class {
+            public ?Request $receivedRequest = null;
+            public ?\WP_User $receivedUser = null;
+
+            #[Ajax(action: 'test_inject_both')]
+            public function handle(Request $request, #[CurrentUser] \WP_User $user): void
+            {
+                $this->receivedRequest = $request;
+                $this->receivedUser = $user;
+            }
+        };
+
+        $this->registry->register($subscriber);
+
+        wp_set_current_user(1);
+        $this->executeAjaxCallback('wp_ajax_test_inject_both');
+
+        self::assertInstanceOf(Request::class, $subscriber->receivedRequest);
+        self::assertInstanceOf(\WP_User::class, $subscriber->receivedUser);
+        self::assertSame(1, $subscriber->receivedUser->ID);
+    }
+
+    #[Test]
+    public function callbackInjectsInReversedOrder(): void
+    {
+        $subscriber = new class {
+            public ?Request $receivedRequest = null;
+            public ?\WP_User $receivedUser = null;
+
+            #[Ajax(action: 'test_inject_reversed')]
+            public function handle(#[CurrentUser] \WP_User $user, Request $request): void
+            {
+                $this->receivedUser = $user;
+                $this->receivedRequest = $request;
+            }
+        };
+
+        $this->registry->register($subscriber);
+
+        wp_set_current_user(1);
+        $this->executeAjaxCallback('wp_ajax_test_inject_reversed');
+
+        self::assertInstanceOf(\WP_User::class, $subscriber->receivedUser);
+        self::assertSame(1, $subscriber->receivedUser->ID);
+        self::assertInstanceOf(Request::class, $subscriber->receivedRequest);
+    }
+
+    #[Test]
+    public function registryAcceptsRequestInConstructor(): void
+    {
+        $request = new Request(server: ['REQUEST_URI' => '/wp-admin/admin-ajax.php', 'REQUEST_METHOD' => 'POST']);
+        $registry = new AjaxHandlerRegistry($request);
+
+        $subscriber = new class {
+            public ?Request $receivedRequest = null;
+
+            #[Ajax(action: 'test_ctor_request')]
+            public function handle(Request $request): void
+            {
+                $this->receivedRequest = $request;
+            }
+        };
+
+        $registry->register($subscriber);
+
+        $this->executeAjaxCallback('wp_ajax_test_ctor_request');
+
+        self::assertSame($request, $subscriber->receivedRequest);
     }
 
     /**

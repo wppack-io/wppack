@@ -7,14 +7,14 @@ namespace WpPack\Component\Ajax\Tests\Attribute;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Ajax\Access;
-use WpPack\Component\Ajax\Attribute\AjaxHandler;
+use WpPack\Component\Ajax\Attribute\Ajax;
 
-final class AjaxHandlerTest extends TestCase
+final class AjaxTest extends TestCase
 {
     #[Test]
     public function defaultValues(): void
     {
-        $handler = new AjaxHandler(action: 'my_action');
+        $handler = new Ajax(action: 'my_action');
 
         self::assertSame('my_action', $handler->action);
         self::assertSame(Access::Public, $handler->access);
@@ -26,7 +26,7 @@ final class AjaxHandlerTest extends TestCase
     #[Test]
     public function authenticatedAccess(): void
     {
-        $handler = new AjaxHandler(action: 'my_action', access: Access::Authenticated);
+        $handler = new Ajax(action: 'my_action', access: Access::Authenticated);
 
         self::assertSame(Access::Authenticated, $handler->access);
     }
@@ -34,7 +34,7 @@ final class AjaxHandlerTest extends TestCase
     #[Test]
     public function guestAccess(): void
     {
-        $handler = new AjaxHandler(action: 'my_action', access: Access::Guest);
+        $handler = new Ajax(action: 'my_action', access: Access::Guest);
 
         self::assertSame(Access::Guest, $handler->access);
     }
@@ -42,7 +42,7 @@ final class AjaxHandlerTest extends TestCase
     #[Test]
     public function allParametersCustomized(): void
     {
-        $handler = new AjaxHandler(
+        $handler = new Ajax(
             action: 'delete_item',
             access: Access::Authenticated,
             capability: 'delete_posts',
@@ -61,13 +61,13 @@ final class AjaxHandlerTest extends TestCase
     public function isRepeatableAttribute(): void
     {
         $class = new class {
-            #[AjaxHandler(action: 'action_one')]
-            #[AjaxHandler(action: 'action_two', access: Access::Authenticated)]
+            #[Ajax(action: 'action_one')]
+            #[Ajax(action: 'action_two', access: Access::Authenticated)]
             public function handle(): void {}
         };
 
         $method = new \ReflectionMethod($class, 'handle');
-        $attributes = $method->getAttributes(AjaxHandler::class);
+        $attributes = $method->getAttributes(Ajax::class);
 
         self::assertCount(2, $attributes);
         self::assertSame('action_one', $attributes[0]->newInstance()->action);
@@ -77,7 +77,7 @@ final class AjaxHandlerTest extends TestCase
     #[Test]
     public function targetsMethodsOnly(): void
     {
-        $reflection = new \ReflectionClass(AjaxHandler::class);
+        $reflection = new \ReflectionClass(Ajax::class);
         $attributes = $reflection->getAttributes(\Attribute::class);
 
         self::assertCount(1, $attributes);

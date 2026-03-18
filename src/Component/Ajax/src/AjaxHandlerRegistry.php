@@ -4,23 +4,29 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Ajax;
 
-use WpPack\Component\Ajax\Attribute\AjaxHandler;
+use WpPack\Component\Ajax\Attribute\Ajax;
 use WpPack\Component\HttpFoundation\Exception\ForbiddenException;
 use WpPack\Component\HttpFoundation\Exception\HttpException;
 use WpPack\Component\HttpFoundation\JsonResponse;
+use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Security\Attribute\CurrentUser;
 
 final class AjaxHandlerRegistry
 {
+    public function __construct(
+        private readonly ?Request $request = null,
+    ) {}
+
     public function register(object $subscriber): void
     {
         $reflection = new \ReflectionClass($subscriber);
 
         foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
-            $attributes = $method->getAttributes(AjaxHandler::class);
+            $attributes = $method->getAttributes(Ajax::class);
 
             foreach ($attributes as $attribute) {
                 $handler = $attribute->newInstance();
-                $callback = $this->createCallback($subscriber, $method->getName(), $handler);
+                $callback = $this->createCallback($subscriber, $method, $handler);
 
                 if ($handler->access === Access::Public || $handler->access === Access::Authenticated) {
                     add_action("wp_ajax_{$handler->action}", $callback, $handler->priority);
@@ -33,9 +39,28 @@ final class AjaxHandlerRegistry
         }
     }
 
-    private function createCallback(object $subscriber, string $method, AjaxHandler $handler): \Closure
+    private function createCallback(object $subscriber, \ReflectionMethod $method, Ajax $handler): \Closure
     {
-        return static function () use ($subscriber, $method, $handler): void {
+        $methodName = $method->getName();
+        $requestParamIndex = null;
+        /** @var list<array{index: int}> */
+        $currentUserParams = [];
+
+        foreach ($method->getParameters() as $index => $parameter) {
+            $type = $parameter->getType();
+            if ($type instanceof \ReflectionNamedType && $type->getName() === Request::class) {
+                $requestParamIndex = $index;
+                continue;
+            }
+
+            if ($parameter->getAttributes(CurrentUser::class) !== []) {
+                $currentUserParams[] = ['index' => $index];
+            }
+        }
+
+        $request = $this->request;
+
+        return static function () use ($subscriber, $methodName, $handler, $requestParamIndex, $currentUserParams, $request): void {
             try {
                 if ($handler->checkReferer !== null) {
                     check_ajax_referer($handler->checkReferer);
@@ -45,7 +70,18 @@ final class AjaxHandlerRegistry
                     throw new ForbiddenException('Insufficient permissions.');
                 }
 
-                $result = $subscriber->{$method}();
+                $injections = [];
+
+                if ($requestParamIndex !== null) {
+                    $injections[$requestParamIndex] = $request ?? Request::createFromGlobals();
+                }
+
+                foreach ($currentUserParams as $param) {
+                    $injections[$param['index']] = wp_get_current_user();
+                }
+
+                ksort($injections);
+                $result = $subscriber->{$methodName}(...array_values($injections));
 
                 if ($result instanceof JsonResponse) {
                     if ($result->statusCode < 400) {

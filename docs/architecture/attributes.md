@@ -133,9 +133,9 @@ Named Hook アトリビュート（`WpAjaxAction`, `WpAjaxNoprivAction`, `CheckA
 
 | Attribute | パラメータ | WordPress API |
 |-----------|-----------|--------------|
-| `#[AjaxHandler]` | `action: string`, `access?: Access = Access::Public`, `capability?: string`, `checkReferer?: string`, `priority?: int = 10` | `wp_ajax_{action}` / `wp_ajax_nopriv_{action}` |
+| `#[Ajax]` | `action: string`, `access?: Access = Access::Public`, `capability?: string`, `checkReferer?: string`, `priority?: int = 10` | `wp_ajax_{action}` / `wp_ajax_nopriv_{action}` |
 
-`#[AjaxHandler]` はメソッドに付与（`IS_REPEATABLE`）。`Access` enum は `Public`（全ユーザー）、`Authenticated`（ログイン済みのみ）、`Guest`（ゲストのみ）を提供。
+`#[Ajax]` はメソッドに付与（`IS_REPEATABLE`）。`Access` enum は `Public`（全ユーザー）、`Authenticated`（ログイン済みのみ）、`Guest`（ゲストのみ）を提供。
 
 ## 9. パフォーマンス Attributes
 

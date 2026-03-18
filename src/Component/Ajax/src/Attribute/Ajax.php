@@ -7,7 +7,7 @@ namespace WpPack\Component\Ajax\Attribute;
 use WpPack\Component\Ajax\Access;
 
 #[\Attribute(\Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
-final class AjaxHandler
+final class Ajax
 {
     public function __construct(
         public readonly string $action,
