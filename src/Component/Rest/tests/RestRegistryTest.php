@@ -7,21 +7,27 @@ namespace WpPack\Component\Rest\Tests;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Rest\AbstractRestController;
 use WpPack\Component\Rest\Attribute\Param;
 use WpPack\Component\Rest\Attribute\Permission;
 use WpPack\Component\Rest\Attribute\RestRoute;
 use WpPack\Component\Rest\HttpMethod;
-use WpPack\Component\Rest\RestEntry;
 use WpPack\Component\Rest\RestRegistry;
 use WpPack\Component\Security\Attribute\CurrentUser;
-use WpPack\Component\Security\Authentication\AuthenticationManagerInterface;
-use WpPack\Component\Security\Authentication\Token\PostAuthenticationToken;
-use WpPack\Component\Security\Authentication\Token\TokenInterface;
-use WpPack\Component\Security\Authorization\AuthorizationCheckerInterface;
-use WpPack\Component\Security\Security;
 
 final class RestRegistryTest extends TestCase
 {
+    use SecurityTestTrait;
+
+    protected function tearDown(): void
+    {
+        global $wp_rest_server;
+        $wp_rest_server = null;
+        remove_all_actions('rest_api_init');
+
+        parent::tearDown();
+    }
+
     private function createRegistryWithoutWordPress(): RestRegistry
     {
         return new RestRegistry(new Request());
@@ -399,9 +405,6 @@ final class RestRegistryTest extends TestCase
         $registry = new RestRegistry(new Request());
         $registry->register($controller);
 
-        $entries = $registry->getRegisteredEntries();
-        $entries[0]->register();
-
         $routes = rest_get_server()->get_routes();
         $route = $routes['/test/v1/public'][0];
         self::assertSame('__return_true', $route['permission_callback']);
@@ -420,9 +423,6 @@ final class RestRegistryTest extends TestCase
 
         $registry = new RestRegistry(new Request());
         $registry->register($controller);
-
-        $entries = $registry->getRegisteredEntries();
-        $entries[0]->register();
 
         $routes = rest_get_server()->get_routes();
         $route = $routes['/test/v1/admin'][0];
@@ -450,9 +450,6 @@ final class RestRegistryTest extends TestCase
 
         $registry = new RestRegistry(new Request());
         $registry->register($controller);
-
-        $entries = $registry->getRegisteredEntries();
-        $entries[0]->register();
 
         $request = new \WP_REST_Request('PUT', '/test/v1/items/42');
         $request->set_param('id', 42);
@@ -485,9 +482,6 @@ final class RestRegistryTest extends TestCase
         $registry = new RestRegistry(new Request());
         $registry->register($controller);
 
-        $entries = $registry->getRegisteredEntries();
-        $entries[0]->register();
-
         $wpRequest = new \WP_REST_Request('GET', '/test/v1/inject-request/42');
         $wpRequest->set_url_params(['id' => '42']);
         $routes = rest_get_server()->get_routes();
@@ -519,9 +513,6 @@ final class RestRegistryTest extends TestCase
         $registry = new RestRegistry(new Request());
         $registry->register($controller);
 
-        $entries = $registry->getRegisteredEntries();
-        $entries[0]->register();
-
         $routes = rest_get_server()->get_routes();
         $route = $routes['/test/v1/validate-items'][0];
         self::assertArrayHasKey('title', $route['args']);
@@ -550,9 +541,6 @@ final class RestRegistryTest extends TestCase
         $registry = new RestRegistry(new Request());
         $registry->register($controller);
 
-        $entries = $registry->getRegisteredEntries();
-        $entries[0]->register();
-
         $routes = rest_get_server()->get_routes();
         $route = $routes['/test/v1/sanitize-items'][0];
         self::assertArrayHasKey('title', $route['args']);
@@ -579,9 +567,6 @@ final class RestRegistryTest extends TestCase
 
         $registry = new RestRegistry(new Request());
         $registry->register($controller);
-
-        $entries = $registry->getRegisteredEntries();
-        $entries[0]->register();
 
         $routes = rest_get_server()->get_routes();
         $route = $routes['/test/v1/items'][0];
@@ -634,9 +619,6 @@ final class RestRegistryTest extends TestCase
         $registry = new RestRegistry(new Request(), $security);
         $registry->register($controller);
 
-        $entries = $registry->getRegisteredEntries();
-        $entries[0]->register();
-
         $wpRequest = new \WP_REST_Request('GET', '/test/v1/current-user');
         $routes = rest_get_server()->get_routes();
         $route = $routes['/test/v1/current-user'][0];
@@ -686,9 +668,6 @@ final class RestRegistryTest extends TestCase
         $registry = new RestRegistry(new Request());
         $registry->register($controller);
 
-        $entries = $registry->getRegisteredEntries();
-        $entries[0]->register();
-
         $wpRequest = new \WP_REST_Request('GET', '/test/v1/no-security-user');
         $routes = rest_get_server()->get_routes();
         $route = $routes['/test/v1/no-security-user'][0];
@@ -698,36 +677,115 @@ final class RestRegistryTest extends TestCase
         self::assertNull($controller->capturedUser);
     }
 
-    private function createSecurity(?\WP_User $user = null): Security
+    #[Test]
+    public function callbackInjectsCurrentUserBeforeRequest(): void
     {
-        $checker = new class implements AuthorizationCheckerInterface {
-            public function isGranted(string $attribute, mixed $subject = null): bool
+        $user = new \WP_User();
+        $user->ID = 42;
+        $user->user_login = 'testuser';
+
+        $security = $this->createSecurity(user: $user);
+
+        $controller = new #[RestRoute('/cu-req', namespace: 'test/v1')] #[Permission(public: true)] class {
+            public ?\WP_User $capturedUser = null;
+            public ?Request $capturedRequest = null;
+            public ?int $capturedId = null;
+
+            #[RestRoute('/(?P<id>\d+)', methods: HttpMethod::GET)]
+            public function show(#[CurrentUser] \WP_User $user, Request $request, int $id): array
             {
-                return false;
+                $this->capturedUser = $user;
+                $this->capturedRequest = $request;
+                $this->capturedId = $id;
+
+                return [];
             }
         };
 
-        $token = $user !== null ? new PostAuthenticationToken($user, ['subscriber']) : null;
+        $registry = new RestRegistry(new Request(), $security);
+        $registry->register($controller);
 
-        $authManager = new class ($token) implements AuthenticationManagerInterface {
-            public function __construct(private readonly ?TokenInterface $token) {}
+        $wpRequest = new \WP_REST_Request('GET', '/test/v1/cu-req/99');
+        $wpRequest->set_url_params(['id' => 99]);
+        $wpRequest->set_param('id', 99);
+        $routes = rest_get_server()->get_routes();
+        $route = $routes['/test/v1/cu-req/(?P<id>\d+)'][0];
+        call_user_func($route['callback'], $wpRequest);
 
-            public function handleAuthentication(mixed $user, string $username, string $password): mixed
+        self::assertSame($user, $controller->capturedUser);
+        self::assertInstanceOf(Request::class, $controller->capturedRequest);
+        self::assertSame(99, $controller->capturedRequest->attributes->get('id'));
+        self::assertSame(99, $controller->capturedId);
+    }
+
+    #[Test]
+    public function callbackInjectsCurrentUserAtMiddlePosition(): void
+    {
+        $user = new \WP_User();
+        $user->ID = 42;
+        $user->user_login = 'testuser';
+
+        $security = $this->createSecurity(user: $user);
+
+        $controller = new #[RestRoute('/cu-mid', namespace: 'test/v1')] #[Permission(public: true)] class {
+            public ?int $capturedId = null;
+            public ?\WP_User $capturedUser = null;
+            public ?string $capturedName = null;
+
+            #[RestRoute('/(?P<id>\d+)', methods: HttpMethod::GET)]
+            public function show(int $id, #[CurrentUser] \WP_User $user, string $name): array
             {
-                return $user;
-            }
+                $this->capturedId = $id;
+                $this->capturedUser = $user;
+                $this->capturedName = $name;
 
-            public function handleStatelessAuthentication(int $userId): int
-            {
-                return $userId;
-            }
-
-            public function getToken(): ?TokenInterface
-            {
-                return $this->token;
+                return [];
             }
         };
 
-        return new Security($checker, $authManager);
+        $registry = new RestRegistry(new Request(), $security);
+        $registry->register($controller);
+
+        $wpRequest = new \WP_REST_Request('GET', '/test/v1/cu-mid/7');
+        $wpRequest->set_param('id', 7);
+        $wpRequest->set_param('name', 'test-item');
+        $routes = rest_get_server()->get_routes();
+        $route = $routes['/test/v1/cu-mid/(?P<id>\d+)'][0];
+        call_user_func($route['callback'], $wpRequest);
+
+        self::assertSame(7, $controller->capturedId);
+        self::assertSame($user, $controller->capturedUser);
+        self::assertSame('test-item', $controller->capturedName);
+    }
+
+    #[Test]
+    public function registerSetsSecurity(): void
+    {
+        $user = new \WP_User();
+        $user->ID = 42;
+
+        $security = $this->createSecurity(user: $user);
+
+        $controller = new #[RestRoute('/set-security', namespace: 'test/v1')] #[Permission(public: true)] class extends AbstractRestController {
+            public ?\WP_User $capturedUser = null;
+
+            #[RestRoute(methods: HttpMethod::GET)]
+            public function index(): array
+            {
+                $this->capturedUser = $this->getUser();
+
+                return [];
+            }
+        };
+
+        $registry = new RestRegistry(new Request(), $security);
+        $registry->register($controller);
+
+        $wpRequest = new \WP_REST_Request('GET', '/test/v1/set-security');
+        $routes = rest_get_server()->get_routes();
+        $route = $routes['/test/v1/set-security'][0];
+        call_user_func($route['callback'], $wpRequest);
+
+        self::assertSame($user, $controller->capturedUser);
     }
 }

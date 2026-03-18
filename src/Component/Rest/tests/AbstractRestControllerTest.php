@@ -9,15 +9,12 @@ use PHPUnit\Framework\TestCase;
 use WpPack\Component\HttpFoundation\JsonResponse;
 use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Rest\AbstractRestController;
-use WpPack\Component\Security\Authentication\AuthenticationManagerInterface;
-use WpPack\Component\Security\Authentication\Token\PostAuthenticationToken;
-use WpPack\Component\Security\Authentication\Token\TokenInterface;
-use WpPack\Component\Security\Authorization\AuthorizationCheckerInterface;
 use WpPack\Component\Security\Exception\AccessDeniedException;
-use WpPack\Component\Security\Security;
 
 final class AbstractRestControllerTest extends TestCase
 {
+    use SecurityTestTrait;
+
     private object $controller;
 
     protected function setUp(): void
@@ -169,40 +166,5 @@ final class AbstractRestControllerTest extends TestCase
         $this->expectExceptionMessage('Security is not available');
 
         $this->controller->callDenyAccessUnlessGranted('edit_posts');
-    }
-
-    private function createSecurity(?\WP_User $user = null, bool $granted = false): Security
-    {
-        $checker = new class ($granted) implements AuthorizationCheckerInterface {
-            public function __construct(private readonly bool $granted) {}
-
-            public function isGranted(string $attribute, mixed $subject = null): bool
-            {
-                return $this->granted;
-            }
-        };
-
-        $token = $user !== null ? new PostAuthenticationToken($user, ['subscriber']) : null;
-
-        $authManager = new class ($token) implements AuthenticationManagerInterface {
-            public function __construct(private readonly ?TokenInterface $token) {}
-
-            public function handleAuthentication(mixed $user, string $username, string $password): mixed
-            {
-                return $user;
-            }
-
-            public function handleStatelessAuthentication(int $userId): int
-            {
-                return $userId;
-            }
-
-            public function getToken(): ?TokenInterface
-            {
-                return $this->token;
-            }
-        };
-
-        return new Security($checker, $authManager);
     }
 }

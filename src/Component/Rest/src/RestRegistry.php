@@ -150,7 +150,7 @@ final class RestRegistry
     {
         $methodName = $method->getName();
         $requestParamIndex = null;
-        /** @var array<int, array{index: int, value: mixed}> */
+        /** @var list<array{index: int}> */
         $injectableParams = [];
 
         foreach ($method->getParameters() as $index => $parameter) {
@@ -165,27 +165,38 @@ final class RestRegistry
             }
 
             if ($parameter->getAttributes(CurrentUser::class) !== []) {
-                $injectableParams[] = ['index' => $index, 'value' => null];
+                $injectableParams[] = ['index' => $index];
             }
         }
 
         $security = $this->security;
 
         return function (\WP_REST_Request $wpRequest, mixed ...$paramValues) use ($controller, $methodName, $requestParamIndex, $injectableParams, $security): mixed {
+            // Build injection map (index → value)
+            $injections = [];
+
             if ($requestParamIndex !== null) {
-                $inject = $requestParamIndex['type'] === 'httpfoundation'
+                $injections[$requestParamIndex['index']] = $requestParamIndex['type'] === 'httpfoundation'
                     ? $this->prepareRequest($wpRequest)
                     : $wpRequest;
-
-                array_splice($paramValues, $requestParamIndex['index'], 0, [$inject]);
             }
 
             foreach ($injectableParams as $injectable) {
-                $value = $security?->getUser();
-                array_splice($paramValues, $injectable['index'], 0, [$value]);
+                $injections[$injectable['index']] = $security?->getUser();
             }
 
-            return $controller->{$methodName}(...$paramValues);
+            // Build full argument array in positional order
+            $fullArgs = [];
+            $restIndex = 0;
+            for ($i = 0, $total = count($paramValues) + count($injections); $i < $total; $i++) {
+                if (array_key_exists($i, $injections)) {
+                    $fullArgs[] = $injections[$i];
+                } else {
+                    $fullArgs[] = $paramValues[$restIndex++];
+                }
+            }
+
+            return $controller->{$methodName}(...$fullArgs);
         };
     }
 
