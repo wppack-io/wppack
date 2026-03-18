@@ -94,7 +94,7 @@ final class FilenameGenerator
 }
 ```
 
-### Hook Attribute リファレンス
+## クイックリファレンス
 
 ```php
 // Filesystem Method

@@ -6,6 +6,9 @@
 
 WordPress ユーザー関連フックを Named Hook アトリビュートで型安全に利用するためのコンポーネントです。
 
+> [!WARNING]
+> このコンポーネントは設計段階です。ソースコードの実装はまだありません。以下は設計仕様として参照してください。
+
 ## インストール
 
 ```bash
@@ -68,29 +71,9 @@ class UserHandler
 }
 ```
 
-## Named Hook アトリビュート
+## Hook アトリビュート
 
-→ [Hook コンポーネントのドキュメント](./hook/user.md) を参照してください。
-## Hook アトリビュートリファレンス
-
-```php
-// 登録
-#[UserRegisterAction(priority?: int = 10)]         // ユーザー登録後
-#[RegistrationErrorsFilter(priority?: int = 10)]   // 登録バリデーション
-#[RegisterFormAction(priority?: int = 10)]          // 登録フォームの変更
-
-// プロフィール管理
-#[ProfileUpdateAction(priority?: int = 10)]        // プロフィール更新後
-#[ShowUserProfileAction(priority?: int = 10)]      // 自分のプロフィールフィールド表示
-#[EditUserProfileAction(priority?: int = 10)]      // 他のユーザーのプロフィールフィールド表示
-#[PersonalOptionsUpdateAction(priority?: int = 10)] // 自分のプロフィールフィールド保存
-#[EditUserProfileUpdateAction(priority?: int = 10)] // 他のユーザーのプロフィールフィールド保存
-
-// ユーザー削除
-#[DeleteUserAction(priority?: int = 10)]           // ユーザー削除前
-#[DeletedUserAction(priority?: int = 10)]          // ユーザー削除後
-#[RemoveUserFromBlogAction(priority?: int = 10)]   // マルチサイトブログからの削除
-```
+→ 詳細は [Hook コンポーネント — User](./hook/user.md) を参照してください。
 
 ## 依存関係
 

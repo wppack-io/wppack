@@ -156,36 +156,9 @@ $registry->hasLocation(string $location): bool
 $registry->getRegisteredLocations(): array           // ['location' => 'description']
 ```
 
-## Named Hook アトリビュート
+## Hook アトリビュート
 
-→ [Hook コンポーネントのドキュメント](../hook/navigation-menu.md) を参照してください。
-## Hook アトリビュートリファレンス
-
-```php
-// メニュー登録
-// メニューロケーション登録には Hook コンポーネントの #[AfterSetupThemeAction] を使用
-
-// メニュー表示
-#[WpNavMenuArgsFilter(priority?: int = 10)]          // メニュー引数の変更
-#[WpNavMenuItemsFilter(priority?: int = 10)]         // メニュー HTML の変更
-#[WpNavMenuObjectsFilter(priority?: int = 10)]       // メニューオブジェクトの処理
-#[PreWpNavMenuFilter(priority?: int = 10)]           // メニュー出力のオーバーライド
-
-// メニューアイテム
-#[WpNavMenuItemCustomFieldsAction(priority?: int = 10)] // カスタムフィールドの追加
-#[WpUpdateNavMenuItemAction(priority?: int = 10)]    // メニューアイテムデータの保存
-#[WpSetupNavMenuItemFilter(priority?: int = 10)]     // メニューアイテムのセットアップ
-
-// CSS クラス
-#[NavMenuCssClassFilter(priority?: int = 10)]        // メニューアイテムクラス
-#[NavMenuItemIdFilter(priority?: int = 10)]          // メニューアイテム ID
-#[NavMenuLinkAttributesFilter(priority?: int = 10)]  // リンク属性
-
-// メニュー管理
-#[WpCreateNavMenuAction(priority?: int = 10)]        // メニュー作成時
-#[WpUpdateNavMenuAction(priority?: int = 10)]        // メニュー更新時
-#[WpDeleteNavMenuAction(priority?: int = 10)]        // メニュー削除時
-```
+→ 詳細は [Hook コンポーネント — NavigationMenu](../hook/navigation-menu.md) を参照してください。
 
 ## 依存関係
 

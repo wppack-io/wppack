@@ -125,27 +125,9 @@ $status = $siteTransient->get('network_status');
 $siteTransient->delete('network_status');
 ```
 
-## Named Hook アトリビュート
+## Hook アトリビュート
 
-→ [Hook コンポーネントのドキュメント](../hook/transient.md) を参照してください。
-## Hook Attribute リファレンス
-
-```php
-// トランジェント読み取り
-#[PreTransientFilter('name', priority: 10)]      // トランジェント読み取り前
-#[TransientFilter('name', priority: 10)]          // トランジェント読み取り後
-
-// トランジェント書き込み
-#[PreSetTransientFilter('name', priority: 10)]    // トランジェント保存前
-#[TransientTimeoutFilter('name', priority: 10)]   // 有効期限の変更
-#[SetTransientAction('name', priority: 10)]       // トランジェント保存後
-#[DeletedTransientAction(priority: 10)]           // トランジェント削除後
-
-// サイトトランジェント（マルチサイト）
-#[PreSiteTransientFilter('name', priority: 10)]   // サイトトランジェント読み取り前
-#[SiteTransientFilter('name', priority: 10)]      // サイトトランジェント読み取り後
-#[SetSiteTransientAction('name', priority: 10)]   // サイトトランジェント保存後
-```
+→ 詳細は [Hook コンポーネント — Transient](../hook/transient.md) を参照してください。
 
 ## 主要クラス
 
@@ -153,12 +135,3 @@ $siteTransient->delete('network_status');
 |-------|------|
 | `TransientManager` | WordPress Transient API のラッパー |
 | `SiteTransientManager` | WordPress Site Transient API のラッパー（マルチサイト） |
-| `Attribute\Filter\PreTransientFilter` | トランジェント読み取り前フィルター |
-| `Attribute\Filter\TransientFilter` | トランジェント読み取り後フィルター |
-| `Attribute\Filter\PreSetTransientFilter` | トランジェント保存前フィルター |
-| `Attribute\Filter\TransientTimeoutFilter` | 有効期限変更フィルター |
-| `Attribute\Action\SetTransientAction` | トランジェント保存後アクション |
-| `Attribute\Action\DeletedTransientAction` | トランジェント削除後アクション |
-| `Attribute\Filter\PreSiteTransientFilter` | サイトトランジェント読み取り前フィルター |
-| `Attribute\Filter\SiteTransientFilter` | サイトトランジェント読み取り後フィルター |
-| `Attribute\Action\SetSiteTransientAction` | サイトトランジェント保存後アクション |

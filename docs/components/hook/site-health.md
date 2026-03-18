@@ -9,7 +9,7 @@
 テストの一覧を変更します（テストの追加・削除・変更）。
 
 ```php
-use WpPack\Component\SiteHealth\Attribute\SiteStatusTestsFilter;
+use WpPack\Component\Hook\Attribute\SiteHealth\SiteStatusTestsFilter;
 
 class HealthCheckManager
 {
@@ -31,7 +31,7 @@ class HealthCheckManager
 個別テストの結果を変更します。
 
 ```php
-use WpPack\Component\SiteHealth\Attribute\SiteStatusTestResultFilter;
+use WpPack\Component\Hook\Attribute\SiteHealth\SiteStatusTestResultFilter;
 
 class HealthCheckModifier
 {
@@ -54,7 +54,7 @@ class HealthCheckModifier
 サイトヘルス情報タブのデバッグ情報を変更します。
 
 ```php
-use WpPack\Component\SiteHealth\Attribute\DebugInformationFilter;
+use WpPack\Component\Hook\Attribute\SiteHealth\DebugInformationFilter;
 
 class DebugInfoProvider
 {
@@ -74,4 +74,18 @@ class DebugInfoProvider
         return $info;
     }
 }
+```
+
+## クイックリファレンス
+
+```php
+// テスト管理
+#[SiteStatusTestsFilter(priority?: int = 10)]        // site_status_tests — テスト一覧の変更
+#[SiteStatusTestResultFilter(priority?: int = 10)]    // site_status_test_result — テスト結果の変更
+
+// デバッグ情報
+#[DebugInformationFilter(priority?: int = 10)]        // debug_information — デバッグ情報の追加
+
+// サイトヘルスナビゲーション
+#[SiteHealthNavigationTabsFilter(priority?: int = 10)] // site_health_navigation_tabs — タブの変更
 ```

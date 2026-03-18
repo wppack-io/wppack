@@ -6,6 +6,9 @@
 
 WordPress のタクソノミー登録関数 `register_taxonomy()` をアトリビュートでラップし、タームの CRUD フックを Named Hook アトリビュートとして提供するコンポーネントです。
 
+> [!WARNING]
+> このコンポーネントは設計段階です。ソースコードの実装はまだありません。以下は設計仕様として参照してください。
+
 ## インストール
 
 ```bash
@@ -85,32 +88,9 @@ class ProductTaxonomy
 }
 ```
 
-## Named Hook アトリビュート
+## Hook アトリビュート
 
-→ [Hook コンポーネントのドキュメント](./hook/taxonomy.md) を参照してください。
-## Hook アトリビュートリファレンス
-
-```php
-// 登録
-#[RegisteredTaxonomyAction(priority?: int = 10)]      // タクソノミー登録後
-
-// ターム管理
-#[CreateTermAction(taxonomy: string, priority?: int = 10)]   // ターム作成時
-#[EditTermAction(taxonomy: string, priority?: int = 10)]     // ターム編集時
-#[DeleteTermAction(taxonomy: string, priority?: int = 10)]   // ターム削除時
-#[CreatedTermAction(priority?: int = 10)]                    // ターム作成後（全タクソノミー）
-#[EditedTermAction(priority?: int = 10)]                     // ターム編集後（全タクソノミー）
-
-// タームクエリ
-#[PreGetTermsAction(priority?: int = 10)]             // タームクエリ実行前
-#[TermsClausesFilter(priority?: int = 10)]            // タームクエリ SQL の変更
-#[GetTermsFilter(priority?: int = 10)]                // 取得されたタームのフィルタリング
-
-// ターム表示
-#[TermLinkFilter(priority?: int = 10)]                // タームパーマリンクの変更
-#[GetTheTermsFilter(priority?: int = 10)]             // 投稿タームのフィルタリング
-#[TermNameFilter(priority?: int = 10)]                // ターム名のフィルタリング
-```
+→ 詳細は [Hook コンポーネント — Taxonomy](./hook/taxonomy.md) を参照してください。
 
 ## 依存関係
 

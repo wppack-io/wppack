@@ -210,3 +210,32 @@ class ThemePerformance
     }
 }
 ```
+
+## クイックリファレンス
+
+```php
+// アセット管理
+#[WpEnqueueScriptsAction(priority?: int = 10)]      // フロントエンドのスクリプトとスタイル
+#[WpPrintStylesAction(priority?: int = 10)]          // スタイルの直接出力
+#[WpPrintScriptsAction(priority?: int = 10)]         // スクリプトの直接出力
+
+// テンプレート出力
+#[WpHeadAction(priority?: int = 10)]                 // <head> セクションのコンテンツ
+#[WpFooterAction(priority?: int = 10)]               // </body> 前のコンテンツ
+#[WpBodyOpenAction(priority?: int = 10)]             // <body> タグ直後のコンテンツ
+
+// カスタマイザー
+#[CustomizeRegisterAction(priority?: int = 10)]      // カスタマイザーオプションの登録
+#[CustomizePreviewInitAction(priority?: int = 10)]   // プレビュースクリプト
+
+// フィルター
+#[BodyClassFilter(priority?: int = 10)]              // Body の CSS クラス
+#[PostClassFilter(priority?: int = 10)]              // 投稿の CSS クラス
+#[ScriptLoaderTagFilter(priority?: int = 10)]        // script タグの変更
+#[StyleLoaderTagFilter(priority?: int = 10)]         // style タグの変更
+```
+
+> [!NOTE]
+> `after_setup_theme` フックは Hook コンポーネントの [`AfterSetupThemeAction`](../hook/README.md) を使用してください。
+> `widgets_init` フックの Named Hook は現在実装されていません。汎用の `#[Action('widgets_init')]` を使用してください。
+```

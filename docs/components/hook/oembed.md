@@ -121,3 +121,28 @@ final class DiscoveryLinksCustomizer
     }
 }
 ```
+
+## クイックリファレンス
+
+```php
+// プロバイダー管理
+#[OembedProvidersFilter(priority?: int = 10)]
+
+// リクエスト
+#[OembedFetchUrlFilter(priority?: int = 10)]
+#[PreOembedResultFilter(priority?: int = 10)]
+#[OembedTtlFilter(priority?: int = 10)]
+
+// レスポンス処理
+#[OembedResultFilter(priority?: int = 10)]
+#[EmbedOembedHtmlFilter(priority?: int = 10)]
+#[OembedDataparseFilter(priority?: int = 10)]
+
+// ディスカバリー
+#[OembedDiscoveryLinksFilter(priority?: int = 10)]
+#[OembedResponseDataFilter(priority?: int = 10)]
+
+// 表示
+#[EmbedDefaultsFilter(priority?: int = 10)]
+#[EmbedHandlersFilter(priority?: int = 10)]
+```

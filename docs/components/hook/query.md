@@ -49,7 +49,7 @@ class QueryWhereModifier
 }
 ```
 
-### Hook アトリビュートリファレンス
+## クイックリファレンス
 
 すべてのアトリビュートは `priority?: int = 10` パラメータを受け取ります。
 

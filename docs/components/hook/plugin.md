@@ -296,3 +296,29 @@ class EarlySetup
     }
 }
 ```
+
+## クイックリファレンス
+
+```php
+// プラグイン管理
+#[ActivatedPluginAction(priority?: int = 10)]        // プラグイン有効化後
+#[DeactivatedPluginAction(priority?: int = 10)]      // プラグイン無効化後
+#[PluginActionLinksFilter(plugin: string, priority?: int = 10)]           // プラグインアクションリンク
+#[NetworkPluginActionLinksFilter(plugin: string, priority?: int = 10)]    // ネットワーク管理アクションリンク
+#[PluginRowMetaFilter(priority?: int = 10)]          // プラグイン行メタリンク
+#[AfterPluginRowAction(priority?: int = 10)]         // プラグイン一覧の行の後
+
+// プラグイン更新
+#[UpgraderProcessCompleteAction(priority?: int = 10)]                     // 更新完了後
+#[PreSetSiteTransientUpdatePluginsFilter(priority?: int = 10)]            // 更新情報の変更
+#[PluginsApiFilter(priority?: int = 10)]                                  // プラグイン API 結果のフィルタリング
+
+// プラグイン読み込み
+#[PluginLoadedAction(priority?: int = 10)]           // 個別プラグイン読み込み完了
+#[NetworkPluginsLoadedAction(priority?: int = 10)]   // ネットワークプラグイン読み込み完了
+#[MuPluginsLoadedAction(priority?: int = 10)]        // Must-Use プラグイン読み込み完了
+```
+
+> [!NOTE]
+> `plugins_loaded` フックは Hook コンポーネントの [`PluginsLoadedAction`](../hook/README.md) を使用してください。
+```

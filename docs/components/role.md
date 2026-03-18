@@ -6,6 +6,9 @@
 
 WordPress のロール・権限管理関数（`add_role()` / `add_cap()` / `current_user_can()`）をアトリビュートベースでラップし、型安全なロール定義と権限チェックを提供するコンポーネントです。
 
+> [!WARNING]
+> このコンポーネントは設計段階です。ソースコードの実装はまだありません。以下は設計仕様として参照してください。
+
 ## インストール
 
 ```bash
@@ -197,9 +200,9 @@ class OrderService
 }
 ```
 
-## Named Hook アトリビュート
+## Hook アトリビュート
 
-→ [Hook コンポーネントのドキュメント](./hook/role.md) を参照してください。
+→ 詳細は [Hook コンポーネント — Role](./hook/role.md) を参照してください。
 ## 主要クラス
 
 | クラス | 説明 |
@@ -210,9 +213,6 @@ class OrderService
 | `Attribute\Role` | ロール定義アトリビュート |
 | `Attribute\Capability` | 権限宣言アトリビュート |
 | `Attribute\RequiresCapability` | メソッドレベルの権限ガード |
-| `Attribute\UserHasCapFilter` | 権限の動的フィルタフック |
-| `Attribute\MapMetaCapFilter` | メタ権限マッピングフック |
-| `Attribute\SetUserRoleAction` | ロール変更アクションフック |
 
 ## 利用シーン
 

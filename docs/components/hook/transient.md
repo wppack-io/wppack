@@ -180,3 +180,22 @@ class NetworkCacheHandler
     }
 }
 ```
+
+## クイックリファレンス
+
+```php
+// トランジェント読み取り
+#[PreTransientFilter('name', priority: 10)]      // トランジェント読み取り前
+#[TransientFilter('name', priority: 10)]          // トランジェント読み取り後
+
+// トランジェント書き込み
+#[PreSetTransientFilter('name', priority: 10)]    // トランジェント保存前
+#[TransientTimeoutFilter('name', priority: 10)]   // 有効期限の変更
+#[SetTransientAction('name', priority: 10)]       // トランジェント保存後
+#[DeletedTransientAction(priority: 10)]           // トランジェント削除後
+
+// サイトトランジェント（マルチサイト）
+#[PreSiteTransientFilter('name', priority: 10)]   // サイトトランジェント読み取り前
+#[SiteTransientFilter('name', priority: 10)]      // サイトトランジェント読み取り後
+#[SetSiteTransientAction('name', priority: 10)]   // サイトトランジェント保存後
+```

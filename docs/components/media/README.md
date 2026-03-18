@@ -72,37 +72,9 @@ class MediaHandler
 }
 ```
 
-## Named Hook アトリビュート
+## Hook アトリビュート
 
-→ [Hook コンポーネントのドキュメント](../hook/media.md) を参照してください。
-## Hook アトリビュートリファレンス
-
-```php
-// アップロード処理
-#[WpHandleUploadFilter(priority?: int = 10)]              // アップロードされたファイルの処理
-#[WpHandleUploadPrefilterFilter(priority?: int = 10)]     // アップロード前のバリデーション
-#[UploadMimesFilter(priority?: int = 10)]                 // 許可される MIME タイプ
-
-// 画像処理
-#[WpGenerateAttachmentMetadataFilter(priority?: int = 10)] // アタッチメントメタデータの変更
-#[IntermediateSizesAdvancedFilter(priority?: int = 10)]    // カスタム画像サイズの生成
-#[WpImageEditorsFilter(priority?: int = 10)]              // 画像エディターの選択
-
-// メディアライブラリ
-#[AjaxQueryAttachmentsArgsFilter(priority?: int = 10)]    // メディアクエリのフィルタリング
-#[MediaUploadTabsFilter(priority?: int = 10)]             // アップロードタブの追加
-#[AttachmentFieldsToEditFilter(priority?: int = 10)]      // カスタムアタッチメントフィールド
-
-// 表示
-#[WpGetAttachmentImageAttributesFilter(priority?: int = 10)] // 画像属性
-#[WpGetAttachmentUrlFilter(priority?: int = 10)]          // アタッチメント URL
-#[WpGetAttachmentLinkFilter(priority?: int = 10)]         // アタッチメントリンク
-
-// 管理
-#[AddAttachmentAction(priority?: int = 10)]               // アタッチメント追加後
-#[EditAttachmentAction(priority?: int = 10)]              // アタッチメント編集後
-#[DeleteAttachmentAction(priority?: int = 10)]            // アタッチメント削除前
-```
+→ 詳細は [Hook コンポーネント — Media](../hook/media.md) を参照してください。
 
 ## 依存関係
 

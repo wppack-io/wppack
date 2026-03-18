@@ -86,7 +86,7 @@ class DatabaseTableManager
 }
 ```
 
-### Hook Attribute リファレンス
+## クイックリファレンス
 
 | Attribute | WordPress Hook | 説明 |
 |-----------|---------------|------|

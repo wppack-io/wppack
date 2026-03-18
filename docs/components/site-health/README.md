@@ -279,22 +279,9 @@ WordPress のステータス値に直接マッピング：
 | `Result::recommended()` | `recommended` | `orange` |
 | `Result::critical()` | `critical` | `red` |
 
-## Named Hook アトリビュート
+## Hook アトリビュート
 
-→ [Hook コンポーネントのドキュメント](../hook/site-health.md) を参照してください。
-## Hook アトリビュートリファレンス
-
-```php
-// テスト管理
-#[SiteStatusTestsFilter(priority?: int = 10)]        // site_status_tests — テスト一覧の変更
-#[SiteStatusTestResultFilter(priority?: int = 10)]    // site_status_test_result — テスト結果の変更
-
-// デバッグ情報
-#[DebugInformationFilter(priority?: int = 10)]        // debug_information — デバッグ情報の追加
-
-// サイトヘルスナビゲーション
-#[SiteHealthNavigationTabsFilter(priority?: int = 10)] // site_health_navigation_tabs — タブの変更
-```
+→ 詳細は [Hook コンポーネント — SiteHealth](../hook/site-health.md) を参照してください。
 
 ## ヘルスチェック登録
 

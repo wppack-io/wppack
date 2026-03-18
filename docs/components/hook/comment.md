@@ -11,7 +11,7 @@
 コメント本文の表示時にテキストを加工するフィルターです。
 
 ```php
-use WpPack\Component\Comment\Attribute\CommentTextFilter;
+use WpPack\Component\Hook\Attribute\Comment\CommentTextFilter;
 
 class CommentFormatter
 {
@@ -46,7 +46,7 @@ class CommentFormatter
 コメントの承認状態を決定するフィルターです。スパム判定や自動承認のロジックを実装できます。
 
 ```php
-use WpPack\Component\Comment\Attribute\PreCommentApprovedFilter;
+use WpPack\Component\Hook\Attribute\Comment\PreCommentApprovedFilter;
 
 class CommentModerator
 {
@@ -88,7 +88,7 @@ class CommentModerator
 コメントフォームのデフォルトフィールド（名前・メール・URL）をカスタマイズするフィルターです。
 
 ```php
-use WpPack\Component\Comment\Attribute\CommentFormDefaultFieldsFilter;
+use WpPack\Component\Hook\Attribute\Comment\CommentFormDefaultFieldsFilter;
 
 class CommentFormCustomizer
 {
@@ -117,7 +117,7 @@ class CommentFormCustomizer
 コメント本文のテキストエリアフィールドをカスタマイズするフィルターです。
 
 ```php
-use WpPack\Component\Comment\Attribute\CommentFormFieldCommentFilter;
+use WpPack\Component\Hook\Attribute\Comment\CommentFormFieldCommentFilter;
 
 class CommentFieldCustomizer
 {
@@ -152,7 +152,7 @@ class CommentFieldCustomizer
 コメントが投稿に紐付けられる前に実行されるアクションです。投稿のコメント可否チェックなどに利用できます。
 
 ```php
-use WpPack\Component\Comment\Attribute\PreCommentOnPostAction;
+use WpPack\Component\Hook\Attribute\Comment\PreCommentOnPostAction;
 
 class CommentPreCheck
 {
@@ -185,7 +185,7 @@ class CommentPreCheck
 コメントがデータベースに保存された直後に実行されるアクションです。通知送信やメタデータの追加に利用できます。
 
 ```php
-use WpPack\Component\Comment\Attribute\CommentPostAction;
+use WpPack\Component\Hook\Attribute\Comment\CommentPostAction;
 
 class CommentNotifier
 {
@@ -230,7 +230,7 @@ class CommentNotifier
 `wp_insert_comment()` でコメントが挿入されたときに実行されるアクションです。コメントオブジェクトが引数として渡されます。
 
 ```php
-use WpPack\Component\Comment\Attribute\WpInsertCommentAction;
+use WpPack\Component\Hook\Attribute\Comment\WpInsertCommentAction;
 
 class CommentStatisticsUpdater
 {
@@ -257,7 +257,7 @@ class CommentStatisticsUpdater
 コメントのステータスが変更されたときに実行されるアクションです。承認・スパム判定・ゴミ箱移動などの状態遷移を追跡できます。
 
 ```php
-use WpPack\Component\Comment\Attribute\TransitionCommentStatusAction;
+use WpPack\Component\Hook\Attribute\Comment\TransitionCommentStatusAction;
 
 class CommentStatusHandler
 {
@@ -297,7 +297,7 @@ class CommentStatusHandler
 管理画面でコメントが編集されたときに実行されるアクションです。編集履歴の追跡などに利用できます。
 
 ```php
-use WpPack\Component\Comment\Attribute\EditCommentAction;
+use WpPack\Component\Hook\Attribute\Comment\EditCommentAction;
 
 class CommentEditTracker
 {
@@ -317,4 +317,21 @@ class CommentEditTracker
         update_comment_meta($commentId, '_edit_count', $editCount);
     }
 }
+```
+
+## クイックリファレンス
+
+| アトリビュート | WordPress フック | 種別 | 説明 |
+|---|---|---|---|
+| `#[CommentTextFilter]` | `comment_text` | Filter | コメントテキストの表示を変更 |
+| `#[PreCommentApprovedFilter]` | `pre_comment_approved` | Filter | コメントの承認状態を判定 |
+| `#[CommentFormDefaultFieldsFilter]` | `comment_form_default_fields` | Filter | フォームのデフォルトフィールドをカスタマイズ |
+| `#[CommentFormFieldCommentFilter]` | `comment_form_field_comment` | Filter | コメント本文フィールドをカスタマイズ |
+| `#[PreCommentOnPostAction]` | `pre_comment_on_post` | Action | コメント投稿前の検証処理 |
+| `#[CommentPostAction]` | `comment_post` | Action | コメント投稿後の処理 |
+| `#[WpInsertCommentAction]` | `wp_insert_comment` | Action | コメント挿入後の処理 |
+| `#[TransitionCommentStatusAction]` | `transition_comment_status` | Action | コメントステータス変更時の処理 |
+| `#[EditCommentAction]` | `edit_comment` | Action | コメント編集後の処理 |
+
+すべてのアトリビュートは `priority` パラメータ（デフォルト: `10`）をサポートします。
 ```

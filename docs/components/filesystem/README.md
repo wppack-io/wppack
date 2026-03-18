@@ -172,9 +172,9 @@ $customPath = $uploadPath->subdir('exports');
 // /var/www/html/wp-content/uploads/exports
 ```
 
-## Named Hook アトリビュート
+## Hook アトリビュート
 
-→ [Hook コンポーネントのドキュメント](../hook/filesystem.md) を参照してください。
+→ 詳細は [Hook コンポーネント — Filesystem](../hook/filesystem.md) を参照してください。
 ## テスト
 
 ```php
@@ -213,17 +213,6 @@ class FileOperationsTest extends TestCase
 |-------|------|
 | `Filesystem` | `WP_Filesystem_Base` DI ラッパー |
 | `WordPress\UploadPath` | `wp_upload_dir()` DI ラッパー |
-| `Attribute\Action\WpFilesystemInitAction` | `wp_filesystem_init` アクション |
-| `Attribute\Filter\FilesystemMethodFilter` | `filesystem_method` フィルター |
-| `Attribute\Filter\FilesystemMethodFileFilter` | `filesystem_method_file` フィルター |
-| `Attribute\Filter\UploadDirFilter` | `upload_dir` フィルター |
-| `Attribute\Filter\WpUniqueFilenameFilter` | `wp_unique_filename` フィルター |
-| `Attribute\Filter\WpHandleSideloadPrefilterFilter` | `wp_handle_sideload_prefilter` フィルター |
-| `Attribute\Filter\WpDeleteFileFilter` | `wp_delete_file` フィルター |
-| `Attribute\Filter\FileIsDisplayableImageFilter` | `file_is_displayable_image` フィルター |
-| `Attribute\Filter\WpUploadBitsFilter` | `wp_upload_bits` フィルター |
-| `Attribute\Filter\LoadImageToEditPathFilter` | `load_image_to_edit_path` フィルター |
-| `Attribute\Filter\WpMkdirModeFilter` | `wp_mkdir_mode` フィルター |
 
 ## 依存関係
 

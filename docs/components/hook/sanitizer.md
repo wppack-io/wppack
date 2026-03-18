@@ -221,3 +221,20 @@ final class UserLoginSanitizer
     }
 }
 ```
+
+## クイックリファレンス
+
+| Attribute | WordPress Hook | 説明 |
+|-----------|---------------|------|
+| `#[SanitizePostMetaFilter(metaKey: 'key')]` | `sanitize_post_meta_{$meta_key}` | 投稿メタをサニタイズ |
+| `#[SanitizeCommentMetaFilter(metaKey: 'key')]` | `sanitize_comment_meta_{$meta_key}` | コメントメタをサニタイズ |
+| `#[SanitizeTermMetaFilter(metaKey: 'key')]` | `sanitize_term_meta_{$meta_key}` | タームメタをサニタイズ |
+| `#[SanitizeUserMetaFilter(metaKey: 'key')]` | `sanitize_user_meta_{$meta_key}` | ユーザーメタをサニタイズ |
+| `#[SanitizeTextFieldFilter(priority: 10)]` | `sanitize_text_field` | テキストフィールドをサニタイズ |
+| `#[SanitizeTitleFilter(priority: 10)]` | `sanitize_title` | タイトルをサニタイズ |
+| `#[SanitizeFileNameFilter(priority: 10)]` | `sanitize_file_name` | ファイル名をサニタイズ |
+| `#[SanitizeEmailFilter(priority: 10)]` | `sanitize_email` | メールアドレスをサニタイズ |
+| `#[SanitizeKeyFilter(priority: 10)]` | `sanitize_key` | キー文字列をサニタイズ |
+| `#[PreInsertTermFilter(priority: 10)]` | `pre_insert_term` | ターム挿入前にフィルター |
+| `#[PreUserLoginFilter(priority: 10)]` | `pre_user_login` | ユーザーログイン名をフィルター |
+```

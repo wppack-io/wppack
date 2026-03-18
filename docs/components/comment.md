@@ -6,6 +6,9 @@
 
 WordPress コメント関連フックを Named Hook アトリビュートで型安全に利用するためのコンポーネントです。
 
+> [!WARNING]
+> このコンポーネントは設計段階です。ソースコードの実装はまだありません。以下は設計仕様として参照してください。
+
 ## インストール
 
 ```bash
@@ -68,24 +71,9 @@ class CommentHandler
 }
 ```
 
-## Named Hook アトリビュート
+## Hook アトリビュート
 
-→ [Hook コンポーネントのドキュメント](./hook/comment.md) を参照してください。
-## Hook アトリビュートリファレンス
-
-| アトリビュート | WordPress フック | 種別 | 説明 |
-|---|---|---|---|
-| `#[CommentTextFilter]` | `comment_text` | Filter | コメントテキストの表示を変更 |
-| `#[PreCommentApprovedFilter]` | `pre_comment_approved` | Filter | コメントの承認状態を判定 |
-| `#[CommentFormDefaultFieldsFilter]` | `comment_form_default_fields` | Filter | フォームのデフォルトフィールドをカスタマイズ |
-| `#[CommentFormFieldCommentFilter]` | `comment_form_field_comment` | Filter | コメント本文フィールドをカスタマイズ |
-| `#[PreCommentOnPostAction]` | `pre_comment_on_post` | Action | コメント投稿前の検証処理 |
-| `#[CommentPostAction]` | `comment_post` | Action | コメント投稿後の処理 |
-| `#[WpInsertCommentAction]` | `wp_insert_comment` | Action | コメント挿入後の処理 |
-| `#[TransitionCommentStatusAction]` | `transition_comment_status` | Action | コメントステータス変更時の処理 |
-| `#[EditCommentAction]` | `edit_comment` | Action | コメント編集後の処理 |
-
-すべてのアトリビュートは `priority` パラメータ（デフォルト: `10`）をサポートします。
+→ 詳細は [Hook コンポーネント — Comment](./hook/comment.md) を参照してください。
 
 ## WordPress 統合
 

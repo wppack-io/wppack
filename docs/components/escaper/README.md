@@ -93,17 +93,9 @@ $escaper->url($url);    // "http://example.com/?a=1&#038;b=2"
 $sanitizer->url($url);  // "http://example.com/?a=1&b=2"
 ```
 
-## Named Hook アトリビュート
+## Hook アトリビュート
 
-→ [Hook コンポーネントのドキュメント](../hook/escaper.md) を参照してください。
-## Hook Attribute リファレンス
-
-| Attribute | WordPress Hook | 説明 |
-|-----------|---------------|------|
-| `#[EscHtmlFilter(priority: 10)]` | `esc_html` | HTML エスケープをフィルター |
-| `#[EscAttrFilter(priority: 10)]` | `esc_attr` | 属性値エスケープをフィルター |
-| `#[EscUrlFilter(priority: 10)]` | `esc_url` | URL エスケープをフィルター |
-| `#[EscJsFilter(priority: 10)]` | `esc_js` | JS エスケープをフィルター |
+→ 詳細は [Hook コンポーネント — Escaper](../hook/escaper.md) を参照してください。
 
 ## 依存関係
 

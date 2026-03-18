@@ -34,7 +34,7 @@ class MenuManager
 **使用場面:** 表示前にナビゲーションメニュー引数を変更する場合。
 
 ```php
-use WpPack\Component\NavigationMenu\Attribute\WpNavMenuArgsFilter;
+use WpPack\Component\Hook\Attribute\NavigationMenu\WpNavMenuArgsFilter;
 
 class MenuArgumentsCustomizer
 {
@@ -62,7 +62,7 @@ class MenuArgumentsCustomizer
 **使用場面:** メニュー HTML 出力を変更する場合。
 
 ```php
-use WpPack\Component\NavigationMenu\Attribute\WpNavMenuItemsFilter;
+use WpPack\Component\Hook\Attribute\NavigationMenu\WpNavMenuItemsFilter;
 
 class MenuItemsEnhancer
 {
@@ -100,7 +100,7 @@ class MenuItemsEnhancer
 **使用場面:** レンダリング前にメニューアイテムオブジェクトを変更する場合。
 
 ```php
-use WpPack\Component\NavigationMenu\Attribute\WpNavMenuObjectsFilter;
+use WpPack\Component\Hook\Attribute\NavigationMenu\WpNavMenuObjectsFilter;
 
 class MenuObjectProcessor
 {
@@ -140,7 +140,7 @@ class MenuObjectProcessor
 **使用場面:** 管理画面でメニューアイテムにカスタムフィールドを追加する場合。
 
 ```php
-use WpPack\Component\NavigationMenu\Attribute\WpNavMenuItemCustomFieldsAction;
+use WpPack\Component\Hook\Attribute\NavigationMenu\WpNavMenuItemCustomFieldsAction;
 
 class MenuItemFields
 {
@@ -170,7 +170,7 @@ class MenuItemFields
 **使用場面:** カスタムメニューアイテムデータを保存する場合。
 
 ```php
-use WpPack\Component\NavigationMenu\Attribute\WpUpdateNavMenuItemAction;
+use WpPack\Component\Hook\Attribute\NavigationMenu\WpUpdateNavMenuItemAction;
 
 class MenuItemSaver
 {
@@ -193,7 +193,7 @@ class MenuItemSaver
 **使用場面:** メニューアイテムの CSS クラスを変更する場合。
 
 ```php
-use WpPack\Component\NavigationMenu\Attribute\NavMenuCssClassFilter;
+use WpPack\Component\Hook\Attribute\NavigationMenu\NavMenuCssClassFilter;
 
 class MenuClassCustomizer
 {
@@ -209,4 +209,32 @@ class MenuClassCustomizer
         return array_unique(array_filter($classes));
     }
 }
+```
+
+## クイックリファレンス
+
+```php
+// メニュー登録
+// メニューロケーション登録には Hook コンポーネントの #[AfterSetupThemeAction] を使用
+
+// メニュー表示
+#[WpNavMenuArgsFilter(priority?: int = 10)]          // メニュー引数の変更
+#[WpNavMenuItemsFilter(priority?: int = 10)]         // メニュー HTML の変更
+#[WpNavMenuObjectsFilter(priority?: int = 10)]       // メニューオブジェクトの処理
+#[PreWpNavMenuFilter(priority?: int = 10)]           // メニュー出力のオーバーライド
+
+// メニューアイテム
+#[WpNavMenuItemCustomFieldsAction(priority?: int = 10)] // カスタムフィールドの追加
+#[WpUpdateNavMenuItemAction(priority?: int = 10)]    // メニューアイテムデータの保存
+#[WpSetupNavMenuItemFilter(priority?: int = 10)]     // メニューアイテムのセットアップ
+
+// CSS クラス
+#[NavMenuCssClassFilter(priority?: int = 10)]        // メニューアイテムクラス
+#[NavMenuItemIdFilter(priority?: int = 10)]          // メニューアイテム ID
+#[NavMenuLinkAttributesFilter(priority?: int = 10)]  // リンク属性
+
+// メニュー管理
+#[WpCreateNavMenuAction(priority?: int = 10)]        // メニュー作成時
+#[WpUpdateNavMenuAction(priority?: int = 10)]        // メニュー更新時
+#[WpDeleteNavMenuAction(priority?: int = 10)]        // メニュー削除時
 ```

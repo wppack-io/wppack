@@ -246,3 +246,31 @@ class SidebarRegistrar
     }
 }
 ```
+
+## クイックリファレンス
+
+```php
+// ウィジェット登録
+#[WidgetsInitAction(priority?: int = 10)]            // ウィジェットとサイドバーの登録
+#[RegisterSidebarFilter(priority?: int = 10)]         // サイドバー登録後のフィルター
+
+// ウィジェット表示
+#[DynamicSidebarBeforeAction(priority?: int = 10)]   // サイドバー表示前
+#[DynamicSidebarAfterAction(priority?: int = 10)]    // サイドバー表示後
+#[DynamicSidebarParamsFilter(priority?: int = 10)]   // ウィジェット表示パラメータの変更
+
+// ウィジェット更新
+#[WidgetUpdateCallbackFilter(priority?: int = 10)]   // 保存時のウィジェット設定フィルター
+#[WidgetFormCallbackFilter(priority?: int = 10)]     // ウィジェットフォームの変更
+#[WidgetDisplayCallbackFilter(priority?: int = 10)]  // ウィジェット表示の制御
+
+// ウィジェットコンテンツ
+#[WidgetTitleFilter(priority?: int = 10)]            // ウィジェットタイトルのフィルター
+#[WidgetTextFilter(priority?: int = 10)]             // テキストウィジェットコンテンツのフィルター
+#[WidgetContentFilter(priority?: int = 10)]          // カスタム HTML ウィジェットコンテンツのフィルター
+
+// その他
+#[DynamicSidebarHasWidgetsFilter(priority?: int = 10)] // サイドバーのウィジェット有無
+#[WidgetAreaPreviewFilter(priority?: int = 10)]        // ウィジェットエリアプレビュー
+#[WidgetsPrefetchingFilter(priority?: int = 10)]       // ウィジェットプリフェッチ
+```

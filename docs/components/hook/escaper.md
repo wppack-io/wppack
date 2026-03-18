@@ -69,3 +69,13 @@ final class JsEscaper
     }
 }
 ```
+
+## クイックリファレンス
+
+| Attribute | WordPress Hook | 説明 |
+|-----------|---------------|------|
+| `#[EscHtmlFilter(priority: 10)]` | `esc_html` | HTML エスケープをフィルター |
+| `#[EscAttrFilter(priority: 10)]` | `esc_attr` | 属性値エスケープをフィルター |
+| `#[EscUrlFilter(priority: 10)]` | `esc_url` | URL エスケープをフィルター |
+| `#[EscJsFilter(priority: 10)]` | `esc_js` | JS エスケープをフィルター |
+```

@@ -9,7 +9,7 @@
 **WordPress Hook:** `wp_handle_upload`
 
 ```php
-use WpPack\Component\Media\Attribute\WpHandleUploadFilter;
+use WpPack\Component\Hook\Attribute\Media\WpHandleUploadFilter;
 
 class UploadHandler
 {
@@ -37,7 +37,7 @@ class UploadHandler
 **WordPress Hook:** `wp_handle_upload_prefilter`
 
 ```php
-use WpPack\Component\Media\Attribute\WpHandleUploadPrefilterFilter;
+use WpPack\Component\Hook\Attribute\Media\WpHandleUploadPrefilterFilter;
 
 class UploadValidator
 {
@@ -98,7 +98,7 @@ class UploadValidator
 **WordPress Hook:** `upload_mimes`
 
 ```php
-use WpPack\Component\Media\Attribute\UploadMimesFilter;
+use WpPack\Component\Hook\Attribute\Media\UploadMimesFilter;
 
 class MimeTypeManager
 {
@@ -126,7 +126,7 @@ class MimeTypeManager
 **WordPress Hook:** `wp_generate_attachment_metadata`
 
 ```php
-use WpPack\Component\Media\Attribute\WpGenerateAttachmentMetadataFilter;
+use WpPack\Component\Hook\Attribute\Media\WpGenerateAttachmentMetadataFilter;
 
 class AttachmentMetadataProcessor
 {
@@ -151,7 +151,7 @@ class AttachmentMetadataProcessor
 **WordPress Hook:** `intermediate_image_sizes_advanced`
 
 ```php
-use WpPack\Component\Media\Attribute\IntermediateSizesAdvancedFilter;
+use WpPack\Component\Hook\Attribute\Media\IntermediateSizesAdvancedFilter;
 
 class ImageSizeManager
 {
@@ -182,7 +182,7 @@ class ImageSizeManager
 **WordPress Hook:** `wp_image_editors`
 
 ```php
-use WpPack\Component\Media\Attribute\WpImageEditorsFilter;
+use WpPack\Component\Hook\Attribute\Media\WpImageEditorsFilter;
 
 class ImageEditorSelector
 {
@@ -204,7 +204,7 @@ class ImageEditorSelector
 **WordPress Hook:** `ajax_query_attachments_args`
 
 ```php
-use WpPack\Component\Media\Attribute\AjaxQueryAttachmentsArgsFilter;
+use WpPack\Component\Hook\Attribute\Media\AjaxQueryAttachmentsArgsFilter;
 
 class MediaLibraryFilter
 {
@@ -237,7 +237,7 @@ class MediaLibraryFilter
 **WordPress Hook:** `media_upload_tabs`
 
 ```php
-use WpPack\Component\Media\Attribute\MediaUploadTabsFilter;
+use WpPack\Component\Hook\Attribute\Media\MediaUploadTabsFilter;
 
 class MediaTabManager
 {
@@ -257,7 +257,7 @@ class MediaTabManager
 **WordPress Hook:** `attachment_fields_to_edit`
 
 ```php
-use WpPack\Component\Media\Attribute\AttachmentFieldsToEditFilter;
+use WpPack\Component\Hook\Attribute\Media\AttachmentFieldsToEditFilter;
 
 class AttachmentFieldEditor
 {
@@ -283,7 +283,7 @@ class AttachmentFieldEditor
 **WordPress Hook:** `wp_get_attachment_image_attributes`
 
 ```php
-use WpPack\Component\Media\Attribute\WpGetAttachmentImageAttributesFilter;
+use WpPack\Component\Hook\Attribute\Media\WpGetAttachmentImageAttributesFilter;
 
 class ImageAttributeManager
 {
@@ -317,7 +317,7 @@ class ImageAttributeManager
 **WordPress Hook:** `wp_get_attachment_url`
 
 ```php
-use WpPack\Component\Media\Attribute\WpGetAttachmentUrlFilter;
+use WpPack\Component\Hook\Attribute\Media\WpGetAttachmentUrlFilter;
 
 class AttachmentUrlModifier
 {
@@ -340,7 +340,7 @@ class AttachmentUrlModifier
 **WordPress Hook:** `wp_get_attachment_link`
 
 ```php
-use WpPack\Component\Media\Attribute\WpGetAttachmentLinkFilter;
+use WpPack\Component\Hook\Attribute\Media\WpGetAttachmentLinkFilter;
 
 class AttachmentLinkModifier
 {
@@ -362,7 +362,7 @@ class AttachmentLinkModifier
 **WordPress Hook:** `add_attachment`
 
 ```php
-use WpPack\Component\Media\Attribute\AddAttachmentAction;
+use WpPack\Component\Hook\Attribute\Media\AddAttachmentAction;
 
 class AttachmentCreationHandler
 {
@@ -381,7 +381,7 @@ class AttachmentCreationHandler
 **WordPress Hook:** `edit_attachment`
 
 ```php
-use WpPack\Component\Media\Attribute\EditAttachmentAction;
+use WpPack\Component\Hook\Attribute\Media\EditAttachmentAction;
 
 class AttachmentEditHandler
 {
@@ -402,7 +402,7 @@ class AttachmentEditHandler
 **WordPress Hook:** `delete_attachment`
 
 ```php
-use WpPack\Component\Media\Attribute\DeleteAttachmentAction;
+use WpPack\Component\Hook\Attribute\Media\DeleteAttachmentAction;
 
 class AttachmentDeletionHandler
 {
@@ -415,4 +415,33 @@ class AttachmentDeletionHandler
         $this->logDeletion($attachment_id);
     }
 }
+```
+
+## クイックリファレンス
+
+```php
+// アップロード処理
+#[WpHandleUploadFilter(priority?: int = 10)]              // アップロードされたファイルの処理
+#[WpHandleUploadPrefilterFilter(priority?: int = 10)]     // アップロード前のバリデーション
+#[UploadMimesFilter(priority?: int = 10)]                 // 許可される MIME タイプ
+
+// 画像処理
+#[WpGenerateAttachmentMetadataFilter(priority?: int = 10)] // アタッチメントメタデータの変更
+#[IntermediateSizesAdvancedFilter(priority?: int = 10)]    // カスタム画像サイズの生成
+#[WpImageEditorsFilter(priority?: int = 10)]              // 画像エディターの選択
+
+// メディアライブラリ
+#[AjaxQueryAttachmentsArgsFilter(priority?: int = 10)]    // メディアクエリのフィルタリング
+#[MediaUploadTabsFilter(priority?: int = 10)]             // アップロードタブの追加
+#[AttachmentFieldsToEditFilter(priority?: int = 10)]      // カスタムアタッチメントフィールド
+
+// 表示
+#[WpGetAttachmentImageAttributesFilter(priority?: int = 10)] // 画像属性
+#[WpGetAttachmentUrlFilter(priority?: int = 10)]          // アタッチメント URL
+#[WpGetAttachmentLinkFilter(priority?: int = 10)]         // アタッチメントリンク
+
+// 管理
+#[AddAttachmentAction(priority?: int = 10)]               // アタッチメント追加後
+#[EditAttachmentAction(priority?: int = 10)]              // アタッチメント編集後
+#[DeleteAttachmentAction(priority?: int = 10)]            // アタッチメント削除前
 ```

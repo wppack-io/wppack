@@ -587,14 +587,6 @@ class CleanupScheduleProviderTest extends TestCase
 | `Trigger\JitterTrigger` | ジッター付き Trigger デコレーター |
 | `Scheduler\SchedulerInterface` | バックエンド CRUD インターフェース |
 | `Scheduler\NullScheduler` | テスト用インメモリ実装 |
-| `Attribute\Action\ScheduledEventAction` | スケジュールイベント Action |
-| `Attribute\Action\WpCronAction` | WP-Cron Action |
-| `Attribute\Filter\CronSchedulesFilter` | cron_schedules Filter |
-| `Attribute\Filter\ScheduleEventFilter` | schedule_event Filter |
-| `Attribute\Filter\GetScheduleFilter` | get_schedule Filter |
-| `Attribute\Filter\PreScheduleEventFilter` | pre_schedule_event Filter |
-| `Attribute\Filter\PreUnscheduleEventFilter` | pre_unschedule_event Filter |
-| `Attribute\Filter\PreDoEventFilter` | pre_do_event Filter |
 | `Exception\SchedulerException` | スケジューラー例外 |
 | `Exception\InvalidArgumentException` | 不正な引数例外 |
 | `Exception\LogicException` | ロジック例外 |

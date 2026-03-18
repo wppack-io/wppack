@@ -9,7 +9,7 @@
 **WordPress フック:** `user_register`
 
 ```php
-use WpPack\Component\User\Attribute\UserRegisterAction;
+use WpPack\Component\Hook\Attribute\User\UserRegisterAction;
 
 class UserRegistration
 {
@@ -39,7 +39,7 @@ class UserRegistration
 **WordPress フック:** `registration_errors`
 
 ```php
-use WpPack\Component\User\Attribute\RegistrationErrorsFilter;
+use WpPack\Component\Hook\Attribute\User\RegistrationErrorsFilter;
 use WP_Error;
 
 class RegistrationValidation
@@ -71,7 +71,7 @@ class RegistrationValidation
 **WordPress フック:** `register_form`
 
 ```php
-use WpPack\Component\User\Attribute\RegisterFormAction;
+use WpPack\Component\Hook\Attribute\User\RegisterFormAction;
 
 class RegistrationForm
 {
@@ -96,7 +96,7 @@ class RegistrationForm
 **WordPress フック:** `profile_update`
 
 ```php
-use WpPack\Component\User\Attribute\ProfileUpdateAction;
+use WpPack\Component\Hook\Attribute\User\ProfileUpdateAction;
 use WP_User;
 
 class UserProfile
@@ -122,7 +122,7 @@ class UserProfile
 自分のプロフィール編集画面にカスタムフィールドを表示します。
 
 ```php
-use WpPack\Component\User\Attribute\ShowUserProfileAction;
+use WpPack\Component\Hook\Attribute\User\ShowUserProfileAction;
 use WP_User;
 
 class UserProfileFields
@@ -166,7 +166,7 @@ class UserProfileFields
 他のユーザーのプロフィール編集画面にカスタムフィールドを表示します。
 
 ```php
-use WpPack\Component\User\Attribute\EditUserProfileAction;
+use WpPack\Component\Hook\Attribute\User\EditUserProfileAction;
 use WP_User;
 
 class AdminUserProfileFields
@@ -198,7 +198,7 @@ class AdminUserProfileFields
 自分のプロフィールのカスタムフィールドを保存します。
 
 ```php
-use WpPack\Component\User\Attribute\PersonalOptionsUpdateAction;
+use WpPack\Component\Hook\Attribute\User\PersonalOptionsUpdateAction;
 
 class SaveProfileFields
 {
@@ -228,7 +228,7 @@ class SaveProfileFields
 他のユーザーのプロフィールのカスタムフィールドを保存します。
 
 ```php
-use WpPack\Component\User\Attribute\EditUserProfileUpdateAction;
+use WpPack\Component\Hook\Attribute\User\EditUserProfileUpdateAction;
 
 class SaveAdminProfileFields
 {
@@ -253,7 +253,7 @@ class SaveAdminProfileFields
 **WordPress フック:** `delete_user`
 
 ```php
-use WpPack\Component\User\Attribute\DeleteUserAction;
+use WpPack\Component\Hook\Attribute\User\DeleteUserAction;
 
 class UserDeletion
 {
@@ -277,7 +277,7 @@ class UserDeletion
 **WordPress フック:** `deleted_user`
 
 ```php
-use WpPack\Component\User\Attribute\DeletedUserAction;
+use WpPack\Component\Hook\Attribute\User\DeletedUserAction;
 
 class PostUserDeletion
 {
@@ -299,7 +299,7 @@ class PostUserDeletion
 **WordPress フック:** `remove_user_from_blog`
 
 ```php
-use WpPack\Component\User\Attribute\RemoveUserFromBlogAction;
+use WpPack\Component\Hook\Attribute\User\RemoveUserFromBlogAction;
 
 class MultiSiteUserHandler
 {
@@ -310,4 +310,25 @@ class MultiSiteUserHandler
         $this->notifyBlogAdmin($blog_id, $user_id);
     }
 }
+```
+
+## クイックリファレンス
+
+```php
+// 登録
+#[UserRegisterAction(priority?: int = 10)]         // ユーザー登録後
+#[RegistrationErrorsFilter(priority?: int = 10)]   // 登録バリデーション
+#[RegisterFormAction(priority?: int = 10)]          // 登録フォームの変更
+
+// プロフィール管理
+#[ProfileUpdateAction(priority?: int = 10)]        // プロフィール更新後
+#[ShowUserProfileAction(priority?: int = 10)]      // 自分のプロフィールフィールド表示
+#[EditUserProfileAction(priority?: int = 10)]      // 他のユーザーのプロフィールフィールド表示
+#[PersonalOptionsUpdateAction(priority?: int = 10)] // 自分のプロフィールフィールド保存
+#[EditUserProfileUpdateAction(priority?: int = 10)] // 他のユーザーのプロフィールフィールド保存
+
+// ユーザー削除
+#[DeleteUserAction(priority?: int = 10)]           // ユーザー削除前
+#[DeletedUserAction(priority?: int = 10)]          // ユーザー削除後
+#[RemoveUserFromBlogAction(priority?: int = 10)]   // マルチサイトブログからの削除
 ```

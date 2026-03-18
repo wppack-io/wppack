@@ -12,7 +12,7 @@
 **使用場面:** タクソノミーが登録された後にアクションを実行する場合。
 
 ```php
-use WpPack\Component\Taxonomy\Attribute\RegisteredTaxonomyAction;
+use WpPack\Component\Hook\Attribute\Taxonomy\RegisteredTaxonomyAction;
 
 class TaxonomySetup
 {
@@ -38,7 +38,7 @@ class TaxonomySetup
 **使用場面:** タームが作成されたときにアクションを実行する場合。
 
 ```php
-use WpPack\Component\Taxonomy\Attribute\CreateTermAction;
+use WpPack\Component\Hook\Attribute\Taxonomy\CreateTermAction;
 
 class TermManager
 {
@@ -65,7 +65,7 @@ class TermManager
 **使用場面:** タームが更新されたときにアクションを実行する場合。
 
 ```php
-use WpPack\Component\Taxonomy\Attribute\EditTermAction;
+use WpPack\Component\Hook\Attribute\Taxonomy\EditTermAction;
 
 class TermUpdateHandler
 {
@@ -90,7 +90,7 @@ class TermUpdateHandler
 **使用場面:** タームが削除されたときにクリーンアップを実行する場合。
 
 ```php
-use WpPack\Component\Taxonomy\Attribute\DeleteTermAction;
+use WpPack\Component\Hook\Attribute\Taxonomy\DeleteTermAction;
 
 class TermDeletionHandler
 {
@@ -113,7 +113,7 @@ class TermDeletionHandler
 **使用場面:** タームクエリが実行される前に変更する場合。
 
 ```php
-use WpPack\Component\Taxonomy\Attribute\PreGetTermsAction;
+use WpPack\Component\Hook\Attribute\Taxonomy\PreGetTermsAction;
 
 class TermQueryModifier
 {
@@ -138,7 +138,7 @@ class TermQueryModifier
 **使用場面:** タームクエリの SQL 句を変更する場合。
 
 ```php
-use WpPack\Component\Taxonomy\Attribute\TermsClausesFilter;
+use WpPack\Component\Hook\Attribute\Taxonomy\TermsClausesFilter;
 
 class TermQueryOptimizer
 {
@@ -167,7 +167,7 @@ class TermQueryOptimizer
 **使用場面:** タームのパーマリンクを変更する場合。
 
 ```php
-use WpPack\Component\Taxonomy\Attribute\TermLinkFilter;
+use WpPack\Component\Hook\Attribute\Taxonomy\TermLinkFilter;
 
 class TermLinkCustomizer
 {
@@ -192,7 +192,7 @@ class TermLinkCustomizer
 **使用場面:** 取得されたターム一覧をフィルタリングする場合。
 
 ```php
-use WpPack\Component\Taxonomy\Attribute\GetTermsFilter;
+use WpPack\Component\Hook\Attribute\Taxonomy\GetTermsFilter;
 
 class TermFilterHandler
 {
@@ -210,4 +210,28 @@ class TermFilterHandler
         return $terms;
     }
 }
+```
+
+## クイックリファレンス
+
+```php
+// 登録
+#[RegisteredTaxonomyAction(priority?: int = 10)]      // タクソノミー登録後
+
+// ターム管理
+#[CreateTermAction(taxonomy: string, priority?: int = 10)]   // ターム作成時
+#[EditTermAction(taxonomy: string, priority?: int = 10)]     // ターム編集時
+#[DeleteTermAction(taxonomy: string, priority?: int = 10)]   // ターム削除時
+#[CreatedTermAction(priority?: int = 10)]                    // ターム作成後（全タクソノミー）
+#[EditedTermAction(priority?: int = 10)]                     // ターム編集後（全タクソノミー）
+
+// タームクエリ
+#[PreGetTermsAction(priority?: int = 10)]             // タームクエリ実行前
+#[TermsClausesFilter(priority?: int = 10)]            // タームクエリ SQL の変更
+#[GetTermsFilter(priority?: int = 10)]                // 取得されたタームのフィルタリング
+
+// ターム表示
+#[TermLinkFilter(priority?: int = 10)]                // タームパーマリンクの変更
+#[GetTheTermsFilter(priority?: int = 10)]             // 投稿タームのフィルタリング
+#[TermNameFilter(priority?: int = 10)]                // ターム名のフィルタリング
 ```
