@@ -6,6 +6,8 @@
 
 WordPress の AJAX ハンドリングをモダン化するコンポーネントです。従来の手続き的なコールバックを、型安全で自動セキュリティ機能を備えたオブジェクト指向のアトリビュートベースハンドラーに置き換えます。
 
+> **注意:** WordPress の Admin Ajax（`admin-ajax.php`）はレガシーな仕組みです。新規開発では [REST API](../rest/README.md) と [`@wordpress/api-fetch`](https://developer.wordpress.org/block-editor/reference-guides/packages/packages-api-fetch/) の利用を推奨します。このコンポーネントは、既存の AJAX ハンドラーの保守や、REST API では対応しにくいケース（例: `admin-ajax.php` に依存するサードパーティプラグインとの統合）で使用してください。
+
 ## インストール
 
 ```bash
