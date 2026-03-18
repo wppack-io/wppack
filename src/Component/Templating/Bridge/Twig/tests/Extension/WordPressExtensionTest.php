@@ -119,10 +119,70 @@ final class WordPressExtensionTest extends TestCase
         self::assertStringNotContainsString('<script>', $html);
     }
 
+    #[Test]
+    public function wpHeadFunctionCapturesOutput(): void
+    {
+        $result = $this->renderFunction('wp_head');
+
+        // wp_head outputs scripts and stylesheets; in test env it may be empty
+        self::assertIsString($result);
+    }
+
+    #[Test]
+    public function wpFooterFunctionCapturesOutput(): void
+    {
+        $result = $this->renderFunction('wp_footer');
+
+        self::assertIsString($result);
+    }
+
+    #[Test]
+    public function bodyClassFunctionCapturesOutput(): void
+    {
+        $result = $this->renderFunction('body_class');
+
+        // body_class() outputs class="..."
+        self::assertIsString($result);
+    }
+
+    #[Test]
+    public function languageAttributesFunctionCapturesOutput(): void
+    {
+        $result = $this->renderFunction('language_attributes');
+
+        self::assertIsString($result);
+    }
+
+    #[Test]
+    public function escUrlFilterSanitizesUrl(): void
+    {
+        $result = $this->renderFilter('esc_url', 'javascript:alert(1)');
+
+        self::assertStringNotContainsString('javascript:', $result);
+    }
+
+    #[Test]
+    public function escJsFilterEscapesJs(): void
+    {
+        $result = $this->renderFilter('esc_js', "alert('xss')");
+
+        // esc_js escapes single quotes with backslashes (e.g., ' -> \')
+        // so the unescaped original should not appear in the output
+        self::assertStringNotContainsString("alert('xss')", $result);
+        self::assertStringContainsString('alert(', $result);
+    }
+
     private function renderFilter(string $filter, string $value): string
     {
         $template = $this->twig->createTemplate("{{ value|$filter }}");
 
         return $template->render(['value' => $value]);
+    }
+
+    private function renderFunction(string $function): string
+    {
+        $template = $this->twig->createTemplate("{{ $function() }}");
+
+        return $template->render([]);
     }
 }

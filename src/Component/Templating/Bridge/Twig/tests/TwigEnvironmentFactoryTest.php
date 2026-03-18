@@ -78,4 +78,63 @@ final class TwigEnvironmentFactoryTest extends TestCase
         // strict_variables defaults to true
         self::assertTrue($env->isStrictVariables());
     }
+
+    #[Test]
+    public function duplicatePathsAreDeduped(): void
+    {
+        $path = __DIR__ . '/Fixtures/templates';
+        $factory = new TwigEnvironmentFactory(paths: [$path, $path]);
+
+        $env = $factory->create();
+        $loader = $env->getLoader();
+
+        self::assertInstanceOf(FilesystemLoader::class, $loader);
+
+        // Count occurrences of our path
+        $occurrences = array_count_values($loader->getPaths());
+        // Our path should appear only once (deduped), ignoring theme paths
+        self::assertSame(1, $occurrences[$path] ?? 0);
+    }
+
+    #[Test]
+    public function createWithNoExtensions(): void
+    {
+        $factory = new TwigEnvironmentFactory(
+            paths: [__DIR__ . '/Fixtures/templates'],
+            extensions: [],
+        );
+
+        $env = $factory->create();
+
+        self::assertInstanceOf(Environment::class, $env);
+    }
+
+    #[Test]
+    public function createWithMultipleExtensions(): void
+    {
+        $ext1 = new WordPressExtension();
+
+        $factory = new TwigEnvironmentFactory(
+            paths: [__DIR__ . '/Fixtures/templates'],
+            extensions: [$ext1],
+        );
+
+        $env = $factory->create();
+
+        self::assertTrue($env->hasExtension(WordPressExtension::class));
+    }
+
+    #[Test]
+    public function optionsOverrideDefaults(): void
+    {
+        $factory = new TwigEnvironmentFactory(
+            paths: [__DIR__ . '/Fixtures/templates'],
+            options: ['strict_variables' => false],
+        );
+
+        $env = $factory->create();
+
+        // strict_variables should be overridden to false
+        self::assertFalse($env->isStrictVariables());
+    }
 }
