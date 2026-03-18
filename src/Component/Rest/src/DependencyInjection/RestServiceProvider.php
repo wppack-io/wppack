@@ -1,0 +1,20 @@
+<?php
+
+declare(strict_types=1);
+
+namespace WpPack\Component\Rest\DependencyInjection;
+
+use WpPack\Component\DependencyInjection\ContainerBuilder;
+use WpPack\Component\DependencyInjection\Reference;
+use WpPack\Component\DependencyInjection\ServiceProviderInterface;
+use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Rest\RestRegistry;
+
+final class RestServiceProvider implements ServiceProviderInterface
+{
+    public function register(ContainerBuilder $builder): void
+    {
+        $builder->register(RestRegistry::class)
+            ->addArgument(new Reference(Request::class));
+    }
+}

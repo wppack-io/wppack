@@ -14,6 +14,10 @@ final class RestRegistry
     /** @var list<RestEntry> */
     private array $entries = [];
 
+    public function __construct(
+        private readonly Request $request,
+    ) {}
+
     public function register(object $controller): void
     {
         foreach ($this->resolveEntries($controller) as $entry) {
@@ -148,10 +152,10 @@ final class RestRegistry
             }
         }
 
-        return static function (\WP_REST_Request $wpRequest, mixed ...$paramValues) use ($controller, $methodName, $requestParamIndex): mixed {
+        return function (\WP_REST_Request $wpRequest, mixed ...$paramValues) use ($controller, $methodName, $requestParamIndex): mixed {
             if ($requestParamIndex !== null) {
                 $inject = $requestParamIndex['type'] === 'httpfoundation'
-                    ? Request::createFromGlobals()
+                    ? $this->prepareRequest($wpRequest)
                     : $wpRequest;
 
                 array_splice($paramValues, $requestParamIndex['index'], 0, [$inject]);
@@ -159,6 +163,15 @@ final class RestRegistry
 
             return $controller->{$methodName}(...$paramValues);
         };
+    }
+
+    private function prepareRequest(\WP_REST_Request $wpRequest): Request
+    {
+        foreach ($wpRequest->get_url_params() as $key => $value) {
+            $this->request->attributes->set($key, $value);
+        }
+
+        return $this->request;
     }
 
     private static function toSnakeCase(string $name): string

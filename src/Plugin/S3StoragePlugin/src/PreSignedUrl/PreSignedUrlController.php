@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WpPack\Plugin\S3StoragePlugin\PreSignedUrl;
 
 use WpPack\Component\HttpFoundation\JsonResponse;
+use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Rest\AbstractRestController;
 use WpPack\Component\Rest\Attribute\Permission;
 use WpPack\Component\Rest\Attribute\RestRoute;
@@ -19,24 +20,22 @@ final class PreSignedUrlController extends AbstractRestController
         private readonly UploadPolicy $policy,
     ) {}
 
-    public function __invoke(\WP_REST_Request $request): JsonResponse
+    public function __invoke(Request $request): JsonResponse
     {
-        /** @var string|null $filename */
-        $filename = $request->get_param('filename');
-        /** @var string|null $contentType */
-        $contentType = $request->get_param('content_type');
-        /** @var int|string|null $contentLength */
-        $contentLength = $request->get_param('content_length');
+        $payload = $request->getPayload();
+        $filename = $payload->getString('filename');
+        $contentType = $payload->getString('content_type');
+        $contentLength = $payload->getString('content_length');
 
-        if ($filename === null || $filename === '') {
+        if ($filename === '') {
             return $this->json(['error' => 'The "filename" parameter is required.'], 400);
         }
 
-        if ($contentType === null || $contentType === '') {
+        if ($contentType === '') {
             return $this->json(['error' => 'The "content_type" parameter is required.'], 400);
         }
 
-        if ($contentLength === null) {
+        if ($contentLength === '') {
             return $this->json(['error' => 'The "content_length" parameter is required.'], 400);
         }
 

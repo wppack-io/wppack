@@ -38,7 +38,19 @@ final class RequestTest extends TestCase
     }
 
     #[Test]
-    public function getChecksQueryFirst(): void
+    public function getChecksAttributesFirst(): void
+    {
+        $request = new Request(
+            query: ['key' => 'from_query'],
+            attributes: ['key' => 'from_attributes'],
+            post: ['key' => 'from_post'],
+        );
+
+        self::assertSame('from_attributes', $request->get('key'));
+    }
+
+    #[Test]
+    public function getChecksQueryWhenNotInAttributes(): void
     {
         $request = new Request(
             query: ['key' => 'from_query'],
@@ -49,7 +61,7 @@ final class RequestTest extends TestCase
     }
 
     #[Test]
-    public function getChecksPostWhenNotInQuery(): void
+    public function getChecksPostWhenNotInAttributesOrQuery(): void
     {
         $request = new Request(
             query: [],
@@ -350,6 +362,89 @@ final class RequestTest extends TestCase
     }
 
     #[Test]
+    public function constructorInitializesAttributesBag(): void
+    {
+        $request = new Request(attributes: ['foo' => 'bar']);
+
+        self::assertInstanceOf(ParameterBag::class, $request->attributes);
+        self::assertSame('bar', $request->attributes->get('foo'));
+    }
+
+    #[Test]
+    public function getPayloadParsesJsonBody(): void
+    {
+        $request = new Request(content: '{"name":"John","age":30}');
+
+        $payload = $request->getPayload();
+
+        self::assertInstanceOf(ParameterBag::class, $payload);
+        self::assertSame('John', $payload->getString('name'));
+        self::assertSame(30, $payload->getInt('age'));
+    }
+
+    #[Test]
+    public function getPayloadReturnsPostDataWhenPostIsNotEmpty(): void
+    {
+        $request = new Request(
+            post: ['title' => 'Hello'],
+            content: '{"title":"FromBody"}',
+        );
+
+        $payload = $request->getPayload();
+
+        self::assertSame('Hello', $payload->getString('title'));
+    }
+
+    #[Test]
+    public function getPayloadCachesResult(): void
+    {
+        $request = new Request(content: '{"key":"value"}');
+
+        $payload1 = $request->getPayload();
+        $payload2 = $request->getPayload();
+
+        self::assertSame($payload1, $payload2);
+    }
+
+    #[Test]
+    public function getPayloadReturnsEmptyBagForEmptyContent(): void
+    {
+        $request = new Request(content: '');
+
+        $payload = $request->getPayload();
+
+        self::assertSame(0, $payload->count());
+    }
+
+    #[Test]
+    public function createFromGlobalsInitializesEmptyAttributes(): void
+    {
+        $origGet = $_GET;
+        $origPost = $_POST;
+        $origCookie = $_COOKIE;
+        $origFiles = $_FILES;
+        $origServer = $_SERVER;
+
+        try {
+            $_GET = [];
+            $_POST = [];
+            $_COOKIE = [];
+            $_FILES = [];
+            $_SERVER = ['REQUEST_METHOD' => 'GET'];
+
+            $request = Request::createFromGlobals();
+
+            self::assertSame(0, $request->attributes->count());
+        } finally {
+            $_GET = $origGet;
+            $_POST = $origPost;
+            $_COOKIE = $origCookie;
+            $_FILES = $origFiles;
+            $_SERVER = $origServer;
+        }
+    }
+
+    #[Test]
     public function createFromGlobalsUsesSuperglobals(): void
     {
         $origGet = $_GET;
@@ -376,6 +471,236 @@ final class RequestTest extends TestCase
             $_COOKIE = $origCookie;
             $_FILES = $origFiles;
             $_SERVER = $origServer;
+        }
+    }
+
+    #[Test]
+    public function createFromGlobalsUnslashesQueryParams(): void
+    {
+        $origGet = $_GET;
+        $origPost = $_POST;
+        $origCookie = $_COOKIE;
+        $origFiles = $_FILES;
+        $origServer = $_SERVER;
+
+        try {
+            // Simulate wp_magic_quotes(): addslashes applied to superglobals
+            $_GET = add_magic_quotes(['name' => "O'Brien", 'search' => 'it\'s a "test"']);
+            $_POST = [];
+            $_COOKIE = [];
+            $_FILES = [];
+            $_SERVER = ['REQUEST_METHOD' => 'GET'];
+
+            $request = Request::createFromGlobals();
+
+            self::assertSame("O'Brien", $request->query->get('name'));
+            self::assertSame('it\'s a "test"', $request->query->get('search'));
+        } finally {
+            $_GET = $origGet;
+            $_POST = $origPost;
+            $_COOKIE = $origCookie;
+            $_FILES = $origFiles;
+            $_SERVER = $origServer;
+        }
+    }
+
+    #[Test]
+    public function createFromGlobalsUnslashesPostParams(): void
+    {
+        $origGet = $_GET;
+        $origPost = $_POST;
+        $origCookie = $_COOKIE;
+        $origFiles = $_FILES;
+        $origServer = $_SERVER;
+
+        try {
+            $_GET = [];
+            // Simulate wp_magic_quotes()
+            $_POST = add_magic_quotes(['title' => 'Hello "World"', 'body' => "It's great"]);
+            $_COOKIE = [];
+            $_FILES = [];
+            $_SERVER = ['REQUEST_METHOD' => 'POST'];
+
+            $request = Request::createFromGlobals();
+
+            self::assertSame('Hello "World"', $request->post->get('title'));
+            self::assertSame("It's great", $request->post->get('body'));
+        } finally {
+            $_GET = $origGet;
+            $_POST = $origPost;
+            $_COOKIE = $origCookie;
+            $_FILES = $origFiles;
+            $_SERVER = $origServer;
+        }
+    }
+
+    #[Test]
+    public function createFromGlobalsUnslashesCookies(): void
+    {
+        $origGet = $_GET;
+        $origPost = $_POST;
+        $origCookie = $_COOKIE;
+        $origFiles = $_FILES;
+        $origServer = $_SERVER;
+
+        try {
+            $_GET = [];
+            $_POST = [];
+            // Simulate wp_magic_quotes()
+            $_COOKIE = add_magic_quotes(['token' => "abc'def"]);
+            $_FILES = [];
+            $_SERVER = ['REQUEST_METHOD' => 'GET'];
+
+            $request = Request::createFromGlobals();
+
+            self::assertSame("abc'def", $request->cookies->get('token'));
+        } finally {
+            $_GET = $origGet;
+            $_POST = $origPost;
+            $_COOKIE = $origCookie;
+            $_FILES = $origFiles;
+            $_SERVER = $origServer;
+        }
+    }
+
+    #[Test]
+    public function createFromGlobalsUnslashesServerVars(): void
+    {
+        $origGet = $_GET;
+        $origPost = $_POST;
+        $origCookie = $_COOKIE;
+        $origFiles = $_FILES;
+        $origServer = $_SERVER;
+
+        try {
+            $_GET = [];
+            $_POST = [];
+            $_COOKIE = [];
+            $_FILES = [];
+            // Simulate wp_magic_quotes() on $_SERVER
+            $_SERVER = add_magic_quotes([
+                'REQUEST_METHOD' => 'GET',
+                'REQUEST_URI' => "/search?q=it's",
+                'HTTP_HOST' => 'example.com',
+            ]);
+
+            $request = Request::createFromGlobals();
+
+            self::assertSame("/search?q=it's", $request->getUri());
+        } finally {
+            $_GET = $origGet;
+            $_POST = $origPost;
+            $_COOKIE = $origCookie;
+            $_FILES = $origFiles;
+            $_SERVER = $origServer;
+        }
+    }
+
+    #[Test]
+    public function createFromGlobalsMatchesWpRestRequestValues(): void
+    {
+        $origGet = $_GET;
+        $origPost = $_POST;
+        $origCookie = $_COOKIE;
+        $origFiles = $_FILES;
+        $origServer = $_SERVER;
+
+        try {
+            // Simulate wp_magic_quotes() applied to superglobals
+            $_GET = add_magic_quotes(['name' => "O'Brien", 'tag' => 'rock&roll']);
+            $_POST = add_magic_quotes(['content' => 'She said "hello"']);
+            $_COOKIE = [];
+            $_FILES = [];
+            $_SERVER = ['REQUEST_METHOD' => 'POST', 'CONTENT_TYPE' => 'application/x-www-form-urlencoded'];
+
+            // WP_REST_Request uses wp_unslash() internally (same as WP_REST_Server::serve_request)
+            $wpRequest = new \WP_REST_Request('POST', '/test');
+            $wpRequest->set_query_params(wp_unslash($_GET));
+            $wpRequest->set_body_params(wp_unslash($_POST));
+
+            // HttpFoundation Request should produce identical values
+            $request = Request::createFromGlobals();
+
+            self::assertSame($wpRequest->get_param('name'), $request->query->get('name'));
+            self::assertSame($wpRequest->get_param('tag'), $request->query->get('tag'));
+            self::assertSame($wpRequest->get_param('content'), $request->post->get('content'));
+        } finally {
+            $_GET = $origGet;
+            $_POST = $origPost;
+            $_COOKIE = $origCookie;
+            $_FILES = $origFiles;
+            $_SERVER = $origServer;
+        }
+    }
+
+    #[Test]
+    public function createFromGlobalsSkipsUnslashBeforeMagicQuotes(): void
+    {
+        $origGet = $_GET;
+        $origPost = $_POST;
+        $origCookie = $_COOKIE;
+        $origFiles = $_FILES;
+        $origServer = $_SERVER;
+
+        // Simulate pre-wp_magic_quotes state
+        Request::disableMagicQuotesHandling();
+
+        try {
+            // Raw superglobals without addslashes (before wp_magic_quotes)
+            $_GET = ['path' => 'C:\\Users\\test'];
+            $_POST = [];
+            $_COOKIE = [];
+            $_FILES = [];
+            $_SERVER = ['REQUEST_METHOD' => 'GET'];
+
+            $request = Request::createFromGlobals();
+
+            // Backslash should be preserved since wp_unslash is NOT applied
+            self::assertSame('C:\\Users\\test', $request->query->get('path'));
+        } finally {
+            $_GET = $origGet;
+            $_POST = $origPost;
+            $_COOKIE = $origCookie;
+            $_FILES = $origFiles;
+            $_SERVER = $origServer;
+            Request::resetMagicQuotesHandling();
+        }
+    }
+
+    #[Test]
+    public function enableMagicQuotesHandlingForcesUnslash(): void
+    {
+        $origGet = $_GET;
+        $origPost = $_POST;
+        $origCookie = $_COOKIE;
+        $origFiles = $_FILES;
+        $origServer = $_SERVER;
+
+        Request::disableMagicQuotesHandling();
+
+        try {
+            // Manually slashed data
+            $_GET = add_magic_quotes(['name' => "O'Brien"]);
+            $_POST = [];
+            $_COOKIE = [];
+            $_FILES = [];
+            $_SERVER = ['REQUEST_METHOD' => 'GET'];
+
+            // Without explicit enable, backslash remains
+            $before = Request::createFromGlobals();
+            self::assertSame("O\\'Brien", $before->query->get('name'));
+
+            // After explicit enable, unslash is applied
+            Request::enableMagicQuotesHandling();
+            $after = Request::createFromGlobals();
+            self::assertSame("O'Brien", $after->query->get('name'));
+        } finally {
+            $_GET = $origGet;
+            $_POST = $origPost;
+            $_COOKIE = $origCookie;
+            $_FILES = $origFiles;
+            $_SERVER = $origServer;
+            Request::resetMagicQuotesHandling();
         }
     }
 }

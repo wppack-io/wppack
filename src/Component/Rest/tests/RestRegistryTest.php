@@ -18,7 +18,7 @@ final class RestRegistryTest extends TestCase
 {
     private function createRegistryWithoutWordPress(): RestRegistry
     {
-        return new RestRegistry();
+        return new RestRegistry(new Request());
     }
 
     #[Test]
@@ -291,7 +291,7 @@ final class RestRegistryTest extends TestCase
             }
         };
 
-        $registry = new RestRegistry();
+        $registry = new RestRegistry(new Request());
         $registry->register($controller);
 
         self::assertNotFalse(has_action('rest_api_init'));
@@ -300,7 +300,7 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function getRegisteredEntriesReturnsEmptyByDefault(): void
     {
-        $registry = new RestRegistry();
+        $registry = new RestRegistry(new Request());
 
         self::assertSame([], $registry->getRegisteredEntries());
     }
@@ -390,7 +390,7 @@ final class RestRegistryTest extends TestCase
             }
         };
 
-        $registry = new RestRegistry();
+        $registry = new RestRegistry(new Request());
         $registry->register($controller);
 
         $entries = $registry->getRegisteredEntries();
@@ -412,7 +412,7 @@ final class RestRegistryTest extends TestCase
             }
         };
 
-        $registry = new RestRegistry();
+        $registry = new RestRegistry(new Request());
         $registry->register($controller);
 
         $entries = $registry->getRegisteredEntries();
@@ -442,7 +442,7 @@ final class RestRegistryTest extends TestCase
             }
         };
 
-        $registry = new RestRegistry();
+        $registry = new RestRegistry(new Request());
         $registry->register($controller);
 
         $entries = $registry->getRegisteredEntries();
@@ -464,7 +464,7 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function callbackInjectsCustomRequestObject(): void
     {
-        $controller = new #[RestRoute('/inject-request', namespace: 'test/v1')] #[Permission(public: true)] class {
+        $controller = new #[RestRoute('/inject-request/(?P<id>\d+)', namespace: 'test/v1')] #[Permission(public: true)] class {
             public ?\WpPack\Component\HttpFoundation\Request $capturedRequest = null;
 
             #[RestRoute(methods: HttpMethod::GET)]
@@ -476,18 +476,20 @@ final class RestRegistryTest extends TestCase
             }
         };
 
-        $registry = new RestRegistry();
+        $registry = new RestRegistry(new Request());
         $registry->register($controller);
 
         $entries = $registry->getRegisteredEntries();
         $entries[0]->register();
 
-        $wpRequest = new \WP_REST_Request('GET', '/test/v1/inject-request');
+        $wpRequest = new \WP_REST_Request('GET', '/test/v1/inject-request/42');
+        $wpRequest->set_url_params(['id' => '42']);
         $routes = rest_get_server()->get_routes();
-        $route = $routes['/test/v1/inject-request'][0];
+        $route = $routes['/test/v1/inject-request/(?P<id>\d+)'][0];
         call_user_func($route['callback'], $wpRequest);
 
         self::assertInstanceOf(Request::class, $controller->capturedRequest);
+        self::assertSame('42', $controller->capturedRequest->attributes->get('id'));
     }
 
     #[Test]
@@ -508,7 +510,7 @@ final class RestRegistryTest extends TestCase
             }
         };
 
-        $registry = new RestRegistry();
+        $registry = new RestRegistry(new Request());
         $registry->register($controller);
 
         $entries = $registry->getRegisteredEntries();
@@ -539,7 +541,7 @@ final class RestRegistryTest extends TestCase
             }
         };
 
-        $registry = new RestRegistry();
+        $registry = new RestRegistry(new Request());
         $registry->register($controller);
 
         $entries = $registry->getRegisteredEntries();
@@ -569,7 +571,7 @@ final class RestRegistryTest extends TestCase
             }
         };
 
-        $registry = new RestRegistry();
+        $registry = new RestRegistry(new Request());
         $registry->register($controller);
 
         $entries = $registry->getRegisteredEntries();

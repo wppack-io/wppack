@@ -34,6 +34,16 @@ class ParameterBag implements \Countable
         return \array_key_exists($key, $this->parameters);
     }
 
+    public function set(string $key, mixed $value): void
+    {
+        $this->parameters[$key] = $value;
+    }
+
+    public function remove(string $key): void
+    {
+        unset($this->parameters[$key]);
+    }
+
     public function get(string $key, mixed $default = null): mixed
     {
         return $this->has($key) ? $this->parameters[$key] : $default;

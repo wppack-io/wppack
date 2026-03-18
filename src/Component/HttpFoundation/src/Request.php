@@ -6,8 +6,24 @@ namespace WpPack\Component\HttpFoundation;
 
 class Request
 {
+    /**
+     * Whether wp_magic_quotes() has been applied to superglobals.
+     *
+     * wp_magic_quotes() applies addslashes() to $_GET, $_POST, $_COOKIE, and $_SERVER.
+     * This is called in wp-settings.php (line 599) AFTER plugins_loaded (line 593)
+     * but BEFORE init (line 742).
+     *
+     * When true, createFromGlobals() applies wp_unslash() to reverse the escaping.
+     * Auto-detected via did_action('sanitize_comment_cookies') which fires
+     * immediately after wp_magic_quotes() in wp-settings.php (line 606).
+     *
+     * null = auto-detect, true = forced on, false = forced off
+     */
+    private static ?bool $magicQuotesApplied = null;
+
     public readonly ParameterBag $query;
     public readonly ParameterBag $post;
+    public readonly ParameterBag $attributes;
     public readonly ParameterBag $cookies;
     public readonly FileBag $files;
     public readonly ServerBag $server;
@@ -15,9 +31,12 @@ class Request
 
     private ?string $content;
 
+    private ?ParameterBag $payload = null;
+
     /**
      * @param array<string, mixed> $query
      * @param array<string, mixed> $post
+     * @param array<string, mixed> $attributes
      * @param array<string, mixed> $cookies
      * @param array<string, mixed> $files
      * @param array<string, mixed> $server
@@ -25,6 +44,7 @@ class Request
     public function __construct(
         array $query = [],
         array $post = [],
+        array $attributes = [],
         array $cookies = [],
         array $files = [],
         array $server = [],
@@ -32,6 +52,7 @@ class Request
     ) {
         $this->query = new ParameterBag($query);
         $this->post = new ParameterBag($post);
+        $this->attributes = new ParameterBag($attributes);
         $this->cookies = new ParameterBag($cookies);
         $this->files = new FileBag($files);
         $this->server = new ServerBag($server);
@@ -39,16 +60,96 @@ class Request
         $this->content = $content;
     }
 
+    /**
+     * Creates a Request from PHP superglobals.
+     *
+     * WordPress applies addslashes() to $_GET, $_POST, $_COOKIE, and $_SERVER
+     * via wp_magic_quotes() in wp-settings.php. This method reverses that
+     * with wp_unslash() so the Request always contains clean, unescaped values.
+     *
+     * Detection: wp_magic_quotes() is called at wp-settings.php:599,
+     * immediately followed by do_action('sanitize_comment_cookies') at line 606.
+     * If that action has fired, magic quotes have been applied.
+     */
     public static function createFromGlobals(): self
     {
-        return new self($_GET, $_POST, $_COOKIE, $_FILES, $_SERVER);
+        if (self::isMagicQuotesApplied()) {
+            /** @var array<string, mixed> $query */
+            $query = wp_unslash($_GET);
+            /** @var array<string, mixed> $post */
+            $post = wp_unslash($_POST);
+            /** @var array<string, mixed> $cookies */
+            $cookies = wp_unslash($_COOKIE);
+            /** @var array<string, mixed> $server */
+            $server = wp_unslash($_SERVER);
+        } else {
+            $query = $_GET;
+            $post = $_POST;
+            $cookies = $_COOKIE;
+            $server = $_SERVER;
+        }
+
+        return new self($query, $post, [], $cookies, $_FILES, $server);
     }
 
     /**
-     * Gets a parameter from query, then post.
+     * Marks that wp_magic_quotes() has been applied to superglobals.
+     *
+     * Normally auto-detected via did_action('sanitize_comment_cookies').
+     * This method exists for explicit control in edge cases where
+     * auto-detection is not reliable.
+     */
+    public static function enableMagicQuotesHandling(): void
+    {
+        self::$magicQuotesApplied = true;
+    }
+
+    /**
+     * Disables wp_unslash() in createFromGlobals().
+     *
+     * Use when createFromGlobals() is called before wp_magic_quotes()
+     * has been applied (e.g. during plugins_loaded).
+     */
+    public static function disableMagicQuotesHandling(): void
+    {
+        self::$magicQuotesApplied = false;
+    }
+
+    /**
+     * Resets to auto-detection mode.
+     *
+     * @internal For testing only.
+     */
+    public static function resetMagicQuotesHandling(): void
+    {
+        self::$magicQuotesApplied = null;
+    }
+
+    private static function isMagicQuotesApplied(): bool
+    {
+        // Explicit override takes precedence
+        if (self::$magicQuotesApplied !== null) {
+            return self::$magicQuotesApplied;
+        }
+
+        // Auto-detect: sanitize_comment_cookies fires immediately after
+        // wp_magic_quotes() in wp-settings.php
+        if (\function_exists('did_action') && did_action('sanitize_comment_cookies') > 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Gets a parameter from attributes, then query, then post.
      */
     public function get(string $key, mixed $default = null): mixed
     {
+        if ($this->attributes->has($key)) {
+            return $this->attributes->get($key);
+        }
+
         if ($this->query->has($key)) {
             return $this->query->get($key);
         }
@@ -155,6 +256,17 @@ class Request
 
         /** @var array<string, mixed> */
         return json_decode($content, true, 512, \JSON_THROW_ON_ERROR);
+    }
+
+    public function getPayload(): ParameterBag
+    {
+        if ($this->payload === null) {
+            $this->payload = $this->post->count() > 0
+                ? new ParameterBag($this->post->all())
+                : new ParameterBag($this->toArray());
+        }
+
+        return $this->payload;
     }
 
     public function isAjax(): bool

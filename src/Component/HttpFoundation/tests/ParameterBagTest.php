@@ -193,4 +193,26 @@ final class ParameterBagTest extends TestCase
         self::assertSame('', $bag->getAlnum('missing'));
         self::assertSame('fallback', $bag->getAlnum('missing', 'fallback'));
     }
+
+    #[Test]
+    public function setSetsAndOverwritesValue(): void
+    {
+        $bag = new ParameterBag(['key' => 'original']);
+
+        $bag->set('key', 'updated');
+        self::assertSame('updated', $bag->get('key'));
+
+        $bag->set('new_key', 'new_value');
+        self::assertSame('new_value', $bag->get('new_key'));
+    }
+
+    #[Test]
+    public function removeDeletesValue(): void
+    {
+        $bag = new ParameterBag(['key' => 'value', 'other' => 'keep']);
+
+        $bag->remove('key');
+        self::assertFalse($bag->has('key'));
+        self::assertTrue($bag->has('other'));
+    }
 }
