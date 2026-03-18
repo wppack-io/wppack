@@ -90,6 +90,10 @@ final readonly class DebugConfig
 
     public function isAllowedRole(): bool
     {
+        if ($this->roleWhitelist === []) {
+            return true;
+        }
+
         foreach ($this->roleWhitelist as $role) {
             if (current_user_can($role)) {
                 return true;

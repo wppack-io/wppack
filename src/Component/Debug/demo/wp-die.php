@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../../../../vendor/autoload.php';
+require_once __DIR__ . '/bootstrap.php';
 
 use WpPack\Component\Debug\DataCollector\AbstractDataCollector;
 use WpPack\Component\Debug\DebugConfig;
@@ -16,64 +16,6 @@ use WpPack\Component\Debug\Toolbar\Panel\MemoryPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\RequestPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\WordPressPanelRenderer;
 use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
-
-// Minimal hook system for demo (supports add_action/add_filter/do_action/apply_filters)
-/** @var array<string, list<array{callback: callable, priority: int, accepted_args: int}>> */
-$_wp_demo_filters = [];
-
-if (!function_exists('add_filter')) {
-    function add_filter(string $hook_name, callable $callback, int $priority = 10, int $accepted_args = 1): true
-    {
-        global $_wp_demo_filters;
-        $_wp_demo_filters[$hook_name][] = ['callback' => $callback, 'priority' => $priority, 'accepted_args' => $accepted_args];
-        usort($_wp_demo_filters[$hook_name], fn($a, $b) => $a['priority'] <=> $b['priority']);
-
-        return true;
-    }
-}
-if (!function_exists('add_action')) {
-    function add_action(string $hook_name, callable $callback, int $priority = 10, int $accepted_args = 1): true
-    {
-        return add_filter($hook_name, $callback, $priority, $accepted_args);
-    }
-}
-if (!function_exists('do_action')) {
-    function do_action(string $hook_name, mixed ...$args): void
-    {
-        global $_wp_demo_filters;
-        foreach ($_wp_demo_filters[$hook_name] ?? [] as $hook) {
-            ($hook['callback'])(...\array_slice($args, 0, $hook['accepted_args']));
-        }
-    }
-}
-if (!function_exists('has_filter')) {
-    function has_filter(string $hook_name, mixed $callback = false): bool|int
-    {
-        global $_wp_demo_filters;
-
-        return isset($_wp_demo_filters[$hook_name]) && $_wp_demo_filters[$hook_name] !== [] ? 10 : false;
-    }
-}
-if (!function_exists('apply_filters')) {
-    function apply_filters(string $hook_name, mixed $value, mixed ...$args): mixed
-    {
-        global $_wp_demo_filters;
-        foreach ($_wp_demo_filters[$hook_name] ?? [] as $hook) {
-            $value = ($hook['callback'])($value, ...\array_slice($args, 0, $hook['accepted_args'] - 1));
-        }
-
-        return $value;
-    }
-}
-if (!function_exists('remove_filter')) {
-    function remove_filter(string $hook_name, callable $callback, int $priority = 10): bool
-    {
-        return true;
-    }
-}
-if (!class_exists('WP_Error')) {
-    require_once __DIR__ . '/../../../../vendor/roots/wordpress-no-content/wp-includes/class-wp-error.php';
-}
 
 /**
  * Fake collector that injects pre-built data for demo purposes.
@@ -234,21 +176,8 @@ $toolbarRenderer->addPanelRenderer(new EnvironmentPanelRenderer($profile));
 // --- Simulate wp_die() scenarios ---
 
 $renderer = new ErrorRenderer();
-$handler = new WpDieHandler($renderer, new DebugConfig(enabled: true), $toolbarRenderer, $profile);
+$handler = new WpDieHandler($renderer, new DebugConfig(enabled: true, roleWhitelist: []), $toolbarRenderer, $profile);
 $handler->register();
-
-// Stub wp_die() so the backtrace includes a wp_die frame (matching real WP behavior)
-if (!function_exists('wp_die')) {
-    /** @param array<string, mixed>|int|string $args */
-    function wp_die(string|\WP_Error $message = '', string $title = '', array|int|string $args = []): void
-    {
-        global $handler;
-        if (is_int($args) || is_string($args)) {
-            $args = ['response' => (int) $args];
-        }
-        $handler->handleHtml($message, $title, $args);
-    }
-}
 
 $scenario = $_GET['scenario'] ?? 'permission';
 

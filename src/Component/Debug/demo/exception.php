@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../../../../vendor/autoload.php';
+require_once __DIR__ . '/bootstrap.php';
 
 use WpPack\Component\Debug\DataCollector\AbstractDataCollector;
 use WpPack\Component\Debug\ErrorHandler\ErrorRenderer;
