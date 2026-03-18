@@ -73,7 +73,7 @@ final class RouteRegistry
             }
 
             $route = $classRoutes[0]->newInstance();
-            $queryVarNames = self::parseQueryVars($route->query);
+            $queryVarNames = RouteEntry::parseQueryVars($route->query);
             $method = $reflection->getMethod('__invoke');
             $entries[] = new RouteEntry(
                 $route->name,
@@ -96,7 +96,7 @@ final class RouteRegistry
             }
 
             $route = $methodRoutes[0]->newInstance();
-            $queryVarNames = self::parseQueryVars($route->query);
+            $queryVarNames = RouteEntry::parseQueryVars($route->query);
             $methodTags = $this->resolveRewriteTags($method);
             $entries[] = new RouteEntry(
                 $route->name,
@@ -203,16 +203,5 @@ final class RouteRegistry
     private static function toSnakeCase(string $name): string
     {
         return strtolower((string) preg_replace('/[A-Z]/', '_$0', lcfirst($name)));
-    }
-
-    /**
-     * @return list<string>
-     */
-    private static function parseQueryVars(string $query): array
-    {
-        $queryString = preg_replace('/^index\.php\?/', '', $query);
-        preg_match_all('/(?:^|&)([^=&]+)=\$matches\[/', (string) $queryString, $matches);
-
-        return $matches[1];
     }
 }

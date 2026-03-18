@@ -247,7 +247,7 @@ final class RouteEntry
     /**
      * @return list<string>
      */
-    private static function parseQueryVars(string $query): array
+    public static function parseQueryVars(string $query): array
     {
         $queryString = preg_replace('/^index\.php\?/', '', $query);
         preg_match_all('/(?:^|&)([^=&]+)=\$matches\[/', (string) $queryString, $matches);

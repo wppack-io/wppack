@@ -19,6 +19,7 @@ use WpPack\Component\Security\Attribute\CurrentUser;
 final class RouteRegistryTest extends TestCase
 {
     use SecurityTestTrait;
+
     #[Test]
     public function resolvesSingleActionController(): void
     {
@@ -481,6 +482,74 @@ final class RouteRegistryTest extends TestCase
         self::assertSame($user, $controller->capturedUser);
         self::assertSame($request, $controller->capturedRequest);
         self::assertSame('test-slug', $controller->capturedSlug);
+    }
+
+    #[Test]
+    public function singleActionControllerInjectsRequestAndParams(): void
+    {
+        $request = new Request();
+
+        $controller = new #[Route(name: 'invoke_inject', regex: '^items/([^/]+)/?$', query: 'index.php?item_slug=$matches[1]', )] class {
+            public ?Request $capturedRequest = null;
+            public ?string $capturedSlug = null;
+
+            public function __invoke(Request $request, string $itemSlug): ?TemplateResponse
+            {
+                $this->capturedRequest = $request;
+                $this->capturedSlug = $itemSlug;
+
+                return null;
+            }
+        };
+
+        $registry = new RouteRegistry($request);
+        $registry->register($controller);
+
+        $routes = $registry->getRegisteredRoutes();
+        $entry = $routes['invoke_inject'];
+
+        set_query_var('item_slug', 'invoke-item');
+        $entry->handleTemplateRedirect();
+
+        self::assertSame($request, $controller->capturedRequest);
+        self::assertSame('invoke-item', $controller->capturedSlug);
+        self::assertSame('invoke-item', $request->attributes->get('item_slug'));
+    }
+
+    #[Test]
+    public function currentUserInjectionWithoutSecurity(): void
+    {
+        $request = new Request();
+
+        $controller = new class {
+            public bool $called = false;
+            public mixed $capturedUser = 'not_set';
+
+            #[Route(
+                name: 'no_security_user',
+                regex: '^no-security/([^/]+)/?$',
+                query: 'index.php?no_security_page=$matches[1]',
+            )]
+            public function index(#[CurrentUser] ?\WP_User $user = null): ?TemplateResponse
+            {
+                $this->called = true;
+                $this->capturedUser = $user;
+
+                return null;
+            }
+        };
+
+        $registry = new RouteRegistry($request);
+        $registry->register($controller);
+
+        $routes = $registry->getRegisteredRoutes();
+        $entry = $routes['no_security_user'];
+
+        set_query_var('no_security_page', '1');
+        $entry->handleTemplateRedirect();
+
+        self::assertTrue($controller->called);
+        self::assertNull($controller->capturedUser);
     }
 
     #[Test]
