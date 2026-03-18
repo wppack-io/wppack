@@ -167,7 +167,7 @@ final class AjaxDataCollectorTest extends TestCase
     public function collectExtractsArrayCallbackWithObject(): void
     {
 
-        $obj = new class () {
+        $obj = new class {
             public function handle(): void {}
         };
         add_action('wp_ajax_test_debug_obj_cb', [$obj, 'handle'], 10);

@@ -109,7 +109,7 @@ final class ResponseTest extends TestCase
     #[Test]
     public function responseCanBeSubclassed(): void
     {
-        $subclass = new class('sub', 201, ['X-Sub' => 'yes']) extends Response {};
+        $subclass = new class ('sub', 201, ['X-Sub' => 'yes']) extends Response {};
 
         self::assertSame('sub', $subclass->content);
         self::assertSame(201, $subclass->statusCode);
