@@ -28,7 +28,7 @@ final class CommandRunner
         $exitCode = $this->command->run($input, $output);
 
         if ($exitCode !== AbstractCommand::SUCCESS) {
-            \WP_CLI::halt($exitCode); // @phpstan-ignore class.notFound
+            \WP_CLI::halt($exitCode);
         }
     }
 }

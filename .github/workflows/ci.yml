@@ -91,9 +91,6 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
 
-      - name: Setup WordPress test config
-        run: cp tests/wp-config.php.dist tests/wp-config.php
-
       - name: Start Valkey Cluster
         run: |
           for port in 7010 7011 7012; do

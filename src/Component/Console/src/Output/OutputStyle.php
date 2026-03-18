@@ -13,8 +13,7 @@ final class OutputStyle
     public function success(string $message): void
     {
         if ($this->output instanceof WpCliOutput) {
-            \WP_CLI::success($message); // @phpstan-ignore class.notFound
-
+            \WP_CLI::success($message);
             return;
         }
 
@@ -24,8 +23,7 @@ final class OutputStyle
     public function error(string $message): void
     {
         if ($this->output instanceof WpCliOutput) {
-            \WP_CLI::error($message); // @phpstan-ignore class.notFound
-
+            \WP_CLI::error($message);
             return;
         }
 
@@ -35,8 +33,7 @@ final class OutputStyle
     public function warning(string $message): void
     {
         if ($this->output instanceof WpCliOutput) {
-            \WP_CLI::warning($message); // @phpstan-ignore class.notFound
-
+            \WP_CLI::warning($message);
             return;
         }
 
@@ -46,8 +43,7 @@ final class OutputStyle
     public function info(string $message): void
     {
         if ($this->output instanceof WpCliOutput) {
-            \WP_CLI::log($message); // @phpstan-ignore class.notFound
-
+            \WP_CLI::log($message);
             return;
         }
 
@@ -81,7 +77,6 @@ final class OutputStyle
             }
 
             \WP_CLI\Utils\format_items('table', $items, $headers); // @phpstan-ignore function.notFound
-
             return;
         }
 
@@ -99,8 +94,7 @@ final class OutputStyle
     public function confirm(string $question, bool $default = false): bool
     {
         if ($this->output instanceof WpCliOutput) {
-            return (bool) \cli\confirm($question, $default); // @phpstan-ignore function.notFound
-        }
+            return (bool) \cli\confirm($question, $default);        }
 
         $this->output->writeln($question . ($default ? ' [Y/n]' : ' [y/N]'));
 
@@ -110,8 +104,7 @@ final class OutputStyle
     public function ask(string $question, ?string $default = null): string
     {
         if ($this->output instanceof WpCliOutput) {
-            return (string) \cli\prompt($question, $default); // @phpstan-ignore function.notFound
-        }
+            return (string) \cli\prompt($question, $default);        }
 
         $prompt = $default !== null ? sprintf('%s [%s]', $question, $default) : $question;
         $this->output->writeln($prompt);
