@@ -145,14 +145,15 @@ Controller メソッドの返り値 → WP REST API への変換
 
 ## Request
 
-`Request` クラスは `WP_REST_Request` のタイプセーフなラッパー。
+コントローラーメソッドには `Request`（HttpFoundation）または `\WP_REST_Request`（WordPress ネイティブ）を注入できます。
 
 ```php
+use WpPack\Component\HttpFoundation\Request;
+
 public function show(Request $request): JsonResponse
 {
-    $id = $request->getParam('id');
-    $headers = $request->getHeaders();
-    $body = $request->getBody();
+    $headers = $request->headers->get('Authorization');
+    $body = $request->getContent();
     // ...
 }
 ```
@@ -243,7 +244,7 @@ class MyRestSubscriber
 | フック | `init` | `rest_api_init` |
 | レスポンス | Template/Block/Redirect 等 | Response/JsonResponse |
 | エラー処理 | null で WordPress に委譲 | `throw HttpException` → `WP_Error` |
-| リクエスト | `Request` + パラメータ自動注入 | `Request`（`WP_REST_Request` ラッパー） |
+| リクエスト | `Request` + パラメータ自動注入 | `Request` / `WP_REST_Request` |
 | パーミッション | なし | `#[Permission]` 必須 |
 
 ## プラグイン / テーマでの配置
