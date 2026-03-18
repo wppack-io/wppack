@@ -15,10 +15,6 @@ final class CrossSiteRedirectorTest extends TestCase
     #[Test]
     public function needsRedirectReturnsFalseForSameHost(): void
     {
-        if (!function_exists('site_url')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $redirector = new CrossSiteRedirector();
 
         // Using the current site URL should not need a redirect
@@ -36,10 +32,6 @@ final class CrossSiteRedirectorTest extends TestCase
     #[Test]
     public function needsRedirectReturnsTrueForDifferentHost(): void
     {
-        if (!function_exists('site_url')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $redirector = new CrossSiteRedirector();
 
         self::assertTrue($redirector->needsRedirect('https://different.example.com/path'));
@@ -48,10 +40,6 @@ final class CrossSiteRedirectorTest extends TestCase
     #[Test]
     public function resolveBlogIdReturnsNullWhenNotMultisite(): void
     {
-        if (!function_exists('is_multisite')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         if (is_multisite()) {
             self::markTestSkipped('This test requires a non-multisite installation.');
         }

@@ -52,20 +52,12 @@ final class WordPressDataCollector extends AbstractDataCollector
 
     private function getEnvironmentType(): string
     {
-        if (function_exists('wp_get_environment_type')) {
-            return wp_get_environment_type();
-        }
-
-        return '';
+        return wp_get_environment_type();
     }
 
     private function isMultisite(): bool
     {
-        if (function_exists('is_multisite')) {
-            return is_multisite();
-        }
-
-        return false;
+        return is_multisite();
     }
 
     /**

@@ -16,9 +16,7 @@ final class SamlEntryPointTest extends TestCase
 {
     protected function tearDown(): void
     {
-        if (function_exists('remove_all_filters')) {
-            remove_all_filters('login_url');
-        }
+        remove_all_filters('login_url');
     }
     #[Test]
     public function getLoginUrl(): void
@@ -62,10 +60,6 @@ final class SamlEntryPointTest extends TestCase
     #[Test]
     public function registerAddsLoginUrlFilter(): void
     {
-        if (!function_exists('add_filter')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $auth = $this->createMock(Auth::class);
         $auth->method('login')
             ->with(null, [], false, false, true)
@@ -85,10 +79,6 @@ final class SamlEntryPointTest extends TestCase
     #[Test]
     public function registerAddsLoginUrlFilterWithRedirect(): void
     {
-        if (!function_exists('add_filter')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $auth = $this->createMock(Auth::class);
         $auth->method('login')
             ->willReturnCallback(function (?string $returnTo) {

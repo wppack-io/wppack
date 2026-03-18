@@ -324,10 +324,6 @@ final class SectionDefinitionTest extends TestCase
     #[Test]
     public function rendererFieldCallbackRendersNonCheckboxField(): void
     {
-        if (!function_exists('get_option')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $page = new FieldTypeTestSettingsPage();
         $configurator = new SettingsConfigurator($page);
 
@@ -353,10 +349,6 @@ final class SectionDefinitionTest extends TestCase
     #[Test]
     public function rendererFieldCallbackRendersCheckboxField(): void
     {
-        if (!function_exists('get_option')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $page = new FieldTypeTestSettingsPage();
         $configurator = new SettingsConfigurator($page);
 
@@ -382,10 +374,6 @@ final class SectionDefinitionTest extends TestCase
     #[Test]
     public function fieldWithStringTypeCallbackInvokesRenderer(): void
     {
-        if (!function_exists('get_option')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $page = new FieldTypeTestSettingsPage();
         $configurator = new SettingsConfigurator($page);
 

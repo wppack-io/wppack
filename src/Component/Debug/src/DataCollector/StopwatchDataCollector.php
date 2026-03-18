@@ -272,10 +272,6 @@ final class StopwatchDataCollector extends AbstractDataCollector
 
     private function registerHooks(): void
     {
-        if (!function_exists('add_action')) {
-            return;
-        }
-
         // Common phases
         add_action('muplugins_loaded', [$this, 'onMuPluginsLoaded'], PHP_INT_MIN);
         add_action('plugins_loaded', [$this, 'onPluginsLoaded'], PHP_INT_MIN);

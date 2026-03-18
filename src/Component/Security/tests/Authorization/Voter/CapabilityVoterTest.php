@@ -38,10 +38,6 @@ final class CapabilityVoterTest extends TestCase
     #[Test]
     public function grantedForUserWithCapability(): void
     {
-        if (!function_exists('user_can')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $userId = wp_create_user('cap_voter_test_user', 'password123', 'cap_voter_test@example.com');
         self::assertIsInt($userId);
 
@@ -60,10 +56,6 @@ final class CapabilityVoterTest extends TestCase
     #[Test]
     public function deniedForUserWithoutCapability(): void
     {
-        if (!function_exists('user_can')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $userId = wp_create_user('cap_voter_sub_user', 'password123', 'cap_voter_sub@example.com');
         self::assertIsInt($userId);
 

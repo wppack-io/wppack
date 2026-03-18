@@ -128,10 +128,6 @@ final class SiteHealthRegistryTest extends TestCase
     #[Test]
     public function registerAfterBindThrowsLogicException(): void
     {
-        if (!function_exists('add_filter')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $registry = new SiteHealthRegistry();
         $registry->bind();
 
@@ -144,10 +140,6 @@ final class SiteHealthRegistryTest extends TestCase
     #[Test]
     public function bindIsIdempotent(): void
     {
-        if (!function_exists('add_filter')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $registry = new SiteHealthRegistry();
 
         $registry->bind();

@@ -47,10 +47,6 @@ final class WordPressExtension extends AbstractExtension
 
     private function captureWpHead(): string
     {
-        if (!function_exists('wp_head')) {
-            return '';
-        }
-
         ob_start();
         wp_head();
 
@@ -59,10 +55,6 @@ final class WordPressExtension extends AbstractExtension
 
     private function captureWpFooter(): string
     {
-        if (!function_exists('wp_footer')) {
-            return '';
-        }
-
         ob_start();
         wp_footer();
 
@@ -71,10 +63,6 @@ final class WordPressExtension extends AbstractExtension
 
     private function captureBodyClass(): string
     {
-        if (!function_exists('body_class')) {
-            return '';
-        }
-
         ob_start();
         body_class();
 
@@ -83,10 +71,6 @@ final class WordPressExtension extends AbstractExtension
 
     private function captureLanguageAttributes(): string
     {
-        if (!function_exists('language_attributes')) {
-            return '';
-        }
-
         ob_start();
         language_attributes();
 

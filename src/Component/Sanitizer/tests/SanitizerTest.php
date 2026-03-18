@@ -14,10 +14,6 @@ final class SanitizerTest extends TestCase
 
     protected function setUp(): void
     {
-        if (!function_exists('sanitize_text_field')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->sanitizer = new Sanitizer();
     }
 

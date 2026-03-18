@@ -16,10 +16,6 @@ final class SiteOptionManagerTest extends TestCase
 
     protected function setUp(): void
     {
-        if (!function_exists('get_site_option')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->manager = new SiteOptionManager();
 
         delete_site_option(self::TEST_OPTION);
@@ -27,9 +23,7 @@ final class SiteOptionManagerTest extends TestCase
 
     protected function tearDown(): void
     {
-        if (function_exists('delete_site_option')) {
-            delete_site_option(self::TEST_OPTION);
-        }
+        delete_site_option(self::TEST_OPTION);
     }
 
     #[Test]

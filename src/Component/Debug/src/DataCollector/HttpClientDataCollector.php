@@ -159,13 +159,8 @@ final class HttpClientDataCollector extends AbstractDataCollector
 
     private function registerHooks(): void
     {
-        if (function_exists('add_filter')) {
-            add_filter('pre_http_request', [$this, 'captureRequestStart'], \PHP_INT_MAX, 3);
-        }
-
-        if (function_exists('add_action')) {
-            add_action('http_api_debug', [$this, 'captureRequestEnd'], 10, 5);
-        }
+        add_filter('pre_http_request', [$this, 'captureRequestStart'], \PHP_INT_MAX, 3);
+        add_action('http_api_debug', [$this, 'captureRequestEnd'], 10, 5);
     }
 
     /**

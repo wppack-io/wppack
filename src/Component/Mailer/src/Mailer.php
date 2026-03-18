@@ -61,7 +61,7 @@ final class Mailer
      */
     public static function reset(): void
     {
-        if (self::$bootedInstance !== null && function_exists('remove_filter')) {
+        if (self::$bootedInstance !== null) {
             @remove_filter('wp_mail', [self::$bootedInstance, 'onWpMail'], PHP_INT_MIN);
         }
 

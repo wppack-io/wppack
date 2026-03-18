@@ -22,10 +22,6 @@ final class OidcDiscoveryTest extends TestCase
 
     protected function setUp(): void
     {
-        if (!\function_exists('wp_remote_request')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->httpClient = new HttpClient();
         $this->discovery = new OidcDiscovery($this->httpClient);
 
@@ -34,15 +30,11 @@ final class OidcDiscoveryTest extends TestCase
 
     protected function tearDown(): void
     {
-        if (\function_exists('remove_filter')) {
-            remove_filter('pre_http_request', [$this, 'mockHttpResponse'], 10);
-        }
+        remove_filter('pre_http_request', [$this, 'mockHttpResponse'], 10);
 
         // Clean up transient
-        if (\function_exists('delete_transient')) {
-            $cacheKey = '_wppack_oidc_discovery_' . md5('https://idp.example.com/.well-known/openid-configuration');
-            delete_transient($cacheKey);
-        }
+        $cacheKey = '_wppack_oidc_discovery_' . md5('https://idp.example.com/.well-known/openid-configuration');
+        delete_transient($cacheKey);
     }
 
     /**
@@ -89,10 +81,6 @@ final class OidcDiscoveryTest extends TestCase
     #[Test]
     public function discoverCachesInTransient(): void
     {
-        if (!\function_exists('get_transient')) {
-            self::markTestSkipped('WordPress transient functions are not available.');
-        }
-
         $this->mockResponse = [
             'response' => ['code' => 200, 'message' => 'OK'],
             'headers' => ['content-type' => 'application/json'],
@@ -117,10 +105,6 @@ final class OidcDiscoveryTest extends TestCase
     #[Test]
     public function discoverUsesTransientCache(): void
     {
-        if (!\function_exists('set_transient')) {
-            self::markTestSkipped('WordPress transient functions are not available.');
-        }
-
         $cacheKey = '_wppack_oidc_discovery_' . md5('https://idp.example.com/.well-known/openid-configuration');
         set_transient($cacheKey, [
             'issuer' => 'https://cached.example.com',

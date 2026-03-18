@@ -55,10 +55,6 @@ final class SecurityTest extends TestCase
     #[Test]
     public function getUserReturnsUserWhenAuthenticated(): void
     {
-        if (!class_exists(\WP_User::class)) {
-            self::markTestSkipped('WP_User class is not available.');
-        }
-
         $user = new \WP_User();
         $user->ID = 42;
         $user->user_login = 'testuser';

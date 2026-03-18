@@ -188,10 +188,6 @@ final class RouteRegistryTest extends TestCase
     #[Test]
     public function registerAddsInitHook(): void
     {
-        if (!function_exists('add_action')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $controller = new #[Route(name: 'wp_test_route', regex: '^wp-test/?$', query: 'index.php?wp_test=$matches[1]', )] class {
             public function __invoke(): ?TemplateResponse
             {
@@ -208,10 +204,6 @@ final class RouteRegistryTest extends TestCase
     #[Test]
     public function registerAddsQueryVarsHook(): void
     {
-        if (!function_exists('add_filter')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $controller = new #[Route(name: 'wp_vars_route', regex: '^wp-vars/?$', query: 'index.php?wp_var=$matches[1]', )] class {
             public function __invoke(): ?TemplateResponse
             {
@@ -228,10 +220,6 @@ final class RouteRegistryTest extends TestCase
     #[Test]
     public function registerAddsTemplateRedirectHook(): void
     {
-        if (!function_exists('add_action')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $controller = new #[Route(name: 'wp_redirect_route', regex: '^wp-redirect/?$', query: 'index.php?wp_redirect=$matches[1]', )] class {
             public function __invoke(): ?TemplateResponse
             {
@@ -248,10 +236,6 @@ final class RouteRegistryTest extends TestCase
     #[Test]
     public function registerAddsTemplateIncludeHook(): void
     {
-        if (!function_exists('add_filter')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $controller = new #[Route(name: 'wp_include_route', regex: '^wp-include/?$', query: 'index.php?wp_include=$matches[1]', )] class {
             public function __invoke(): ?TemplateResponse
             {
@@ -276,10 +260,6 @@ final class RouteRegistryTest extends TestCase
     #[Test]
     public function flushCallsFlushRewriteRules(): void
     {
-        if (!function_exists('flush_rewrite_rules')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $registry = new RouteRegistry();
         $registry->flush();
 
@@ -357,25 +337,6 @@ final class RouteRegistryTest extends TestCase
      */
     private function createRegistryWithoutWordPress(): RouteRegistry
     {
-        if (function_exists('add_action')) {
-            return new RouteRegistry();
-        }
-
-        return new class extends RouteRegistry {
-            public function register(object $controller): void
-            {
-                $reflection = new \ReflectionMethod(RouteRegistry::class, 'resolveRoutes');
-                $entries = $reflection->invoke($this, $controller);
-
-                $routesProp = new \ReflectionProperty(RouteRegistry::class, 'routes');
-                $routes = $routesProp->getValue($this);
-
-                foreach ($entries as $entry) {
-                    $routes[$entry->name] = $entry;
-                }
-
-                $routesProp->setValue($this, $routes);
-            }
-        };
+        return new RouteRegistry();
     }
 }

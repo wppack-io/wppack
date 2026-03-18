@@ -34,10 +34,6 @@ final class AttachmentSubscriberTest extends TestCase
     #[Test]
     public function filterAttachmentUrlRequiresWordPressFunctions(): void
     {
-        if (!function_exists('get_post_meta')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         // With WordPress available, this would convert URLs
         $url = $this->subscriber->filterAttachmentUrl('https://example.com/wp-content/uploads/2024/01/image.jpg', 1);
         self::assertIsString($url);
@@ -46,10 +42,6 @@ final class AttachmentSubscriberTest extends TestCase
     #[Test]
     public function filterGetAttachedFileConvertsLocalPathToStreamWrapper(): void
     {
-        if (!function_exists('get_post_meta')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $result = $this->subscriber->filterGetAttachedFile('/var/www/html/wp-content/uploads/2024/01/image.jpg', 1);
 
         // With WordPress, the method retrieves the relative path from post meta
@@ -68,11 +60,6 @@ final class AttachmentSubscriberTest extends TestCase
     #[Test]
     public function filterGetAttachedFileHandlesRelativePath(): void
     {
-        if (function_exists('get_post_meta')) {
-            // With WordPress, the method uses get_post_meta to get relative path
-            self::markTestSkipped('This test verifies fallback behavior without WordPress.');
-        }
-
         $result = $this->subscriber->filterGetAttachedFile('2024/01/image.jpg', 1);
 
         self::assertSame('s3://my-bucket/uploads/2024/01/image.jpg', $result);
@@ -82,10 +69,6 @@ final class AttachmentSubscriberTest extends TestCase
     public function setFilesizeInMetaRetrievesSizeFromStorage(): void
     {
         $this->adapter->write('uploads/2024/01/image.jpg', str_repeat('x', 12345));
-
-        if (!function_exists('get_post_meta')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         // This test would require WordPress to retrieve post meta
         $metadata = ['file' => '2024/01/image.jpg'];
@@ -225,10 +208,6 @@ final class AttachmentSubscriberTest extends TestCase
     #[Test]
     public function onDeleteAttachmentRequiresWordPressFunctions(): void
     {
-        if (!function_exists('get_post_meta')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->subscriber->onDeleteAttachment(1);
         self::assertTrue(true); // No exception thrown
     }

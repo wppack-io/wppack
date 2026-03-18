@@ -38,10 +38,6 @@ final class EventDataCollector extends AbstractDataCollector
 
     public function captureHookFired(): void
     {
-        if (!function_exists('current_filter')) {
-            return;
-        }
-
         $now = microtime(true);
         $hook = current_filter();
 
@@ -327,10 +323,6 @@ final class EventDataCollector extends AbstractDataCollector
 
     private function registerHooks(): void
     {
-        if (!function_exists('add_action')) {
-            return;
-        }
-
         add_action('all', [$this, 'captureHookFired']);
     }
 }

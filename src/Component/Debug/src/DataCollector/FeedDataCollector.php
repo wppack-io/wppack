@@ -21,17 +21,6 @@ final class FeedDataCollector extends AbstractDataCollector
 
     public function collect(): void
     {
-        if (!function_exists('get_bloginfo')) {
-            $this->data = [
-                'feeds' => [],
-                'total_count' => 0,
-                'custom_count' => 0,
-                'feed_discovery' => true,
-            ];
-
-            return;
-        }
-
         global $wp_rewrite;
 
         $feeds = [];
@@ -50,15 +39,13 @@ final class FeedDataCollector extends AbstractDataCollector
         }
 
         // Comments feed
-        if (function_exists('get_post_comments_feed_link')) {
-            $commentsFeed = get_bloginfo('comments_rss2_url');
-            if ($commentsFeed !== '') {
-                $feeds[] = [
-                    'type' => 'comments-rss2',
-                    'url' => $commentsFeed,
-                    'is_custom' => false,
-                ];
-            }
+        $commentsFeed = get_bloginfo('comments_rss2_url');
+        if ($commentsFeed !== '') {
+            $feeds[] = [
+                'type' => 'comments-rss2',
+                'url' => $commentsFeed,
+                'is_custom' => false,
+            ];
         }
 
         // Custom feeds from rewrite rules
@@ -66,7 +53,7 @@ final class FeedDataCollector extends AbstractDataCollector
         if (isset($wp_rewrite->extra_feeds) && is_array($wp_rewrite->extra_feeds)) {
             foreach ($wp_rewrite->extra_feeds as $feedSlug) {
                 if (!in_array($feedSlug, $builtinTypes, true)) {
-                    $url = function_exists('get_feed_link') ? get_feed_link($feedSlug) : '';
+                    $url = get_feed_link($feedSlug);
                     $feeds[] = [
                         'type' => $feedSlug,
                         'url' => $url,
@@ -77,10 +64,7 @@ final class FeedDataCollector extends AbstractDataCollector
             }
         }
 
-        $feedDiscovery = true;
-        if (function_exists('get_option')) {
-            $feedDiscovery = (bool) get_option('rss_use_excerpt', true);
-        }
+        $feedDiscovery = (bool) get_option('rss_use_excerpt', true);
 
         $this->data = [
             'feeds' => $feeds,

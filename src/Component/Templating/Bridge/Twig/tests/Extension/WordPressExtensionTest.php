@@ -19,10 +19,6 @@ final class WordPressExtensionTest extends TestCase
 
     protected function setUp(): void
     {
-        if (!function_exists('esc_html')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->twig = new Environment(new ArrayLoader(), [
             'strict_variables' => true,
             'autoescape' => false,

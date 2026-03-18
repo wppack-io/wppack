@@ -19,8 +19,7 @@ interface MimeTypesInterface extends MimeTypeGuesserInterface
     /**
      * Returns MIME types allowed for upload.
      *
-     * WP: get_allowed_mime_types() with upload_mimes filter applied.
-     * Non-WP: all MIME types (no restriction).
+     * Uses get_allowed_mime_types() with upload_mimes filter applied.
      *
      * @return array<string, string> ext_pattern => mime_type
      */
@@ -29,24 +28,21 @@ interface MimeTypesInterface extends MimeTypeGuesserInterface
     /**
      * Returns the file type category for an extension (image, audio, video, document, etc.).
      *
-     * WP: uses wp_ext2type().
-     * Non-WP: static map fallback.
+     * Uses wp_ext2type().
      */
     public function getExtensionType(string $extension): ?string;
 
     /**
      * Validates a file's MIME type and extension from its content and filename.
      *
-     * WP: uses wp_check_filetype_and_ext() with security verification.
-     * Non-WP: finfo + extension matching fallback.
+     * Uses wp_check_filetype_and_ext() with security verification.
      */
     public function validateFile(string $filePath, string $filename): FileTypeInfo;
 
     /**
      * Sanitizes a MIME type string.
      *
-     * WP: uses sanitize_mime_type().
-     * Non-WP: regex-based invalid character removal.
+     * Uses sanitize_mime_type().
      */
     public function sanitize(string $mimeType): string;
 }

@@ -32,13 +32,8 @@ final class SamlLogoutHandler
         $auth = $this->authFactory->create();
         $auth->processSLO(keepLocalSession: true, stay: true);
 
-        if (function_exists('wp_logout')) {
-            wp_logout();
-        }
-
-        if (function_exists('wp_clear_auth_cookie')) {
-            wp_clear_auth_cookie();
-        }
+        wp_logout();
+        wp_clear_auth_cookie();
     }
 
     public function isLogoutRequest(): bool

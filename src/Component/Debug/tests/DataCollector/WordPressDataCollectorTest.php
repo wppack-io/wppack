@@ -85,25 +85,8 @@ final class WordPressDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function collectReturnsFalseForMultisiteWithoutWordPress(): void
-    {
-        if (function_exists('is_multisite')) {
-            self::markTestSkipped('WordPress functions are available; this test is for non-WP environments.');
-        }
-
-        $this->collector->collect();
-        $data = $this->collector->getData();
-
-        self::assertFalse($data['is_multisite']);
-    }
-
-    #[Test]
     public function collectWithWordPressGathersFullData(): void
     {
-        if (!function_exists('wp_get_environment_type')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->collector->collect();
         $data = $this->collector->getData();
 
@@ -131,10 +114,6 @@ final class WordPressDataCollectorTest extends TestCase
     #[Test]
     public function collectIncludesEnvironmentType(): void
     {
-        if (!function_exists('wp_get_environment_type')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->collector->collect();
         $data = $this->collector->getData();
 
@@ -158,10 +137,6 @@ final class WordPressDataCollectorTest extends TestCase
     #[Test]
     public function collectWithWordPressGathersDebugConstants(): void
     {
-        if (!function_exists('wp_get_theme')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->collector->collect();
         $data = $this->collector->getData();
 
@@ -199,10 +174,6 @@ final class WordPressDataCollectorTest extends TestCase
     #[Test]
     public function collectMultisiteStatusWithWordPress(): void
     {
-        if (!function_exists('is_multisite')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->collector->collect();
         $data = $this->collector->getData();
 

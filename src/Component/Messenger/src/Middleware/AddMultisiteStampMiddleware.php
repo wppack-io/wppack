@@ -11,7 +11,7 @@ final class AddMultisiteStampMiddleware implements MiddlewareInterface
 {
     public function handle(Envelope $envelope, StackInterface $stack): Envelope
     {
-        if ($envelope->last(MultisiteStamp::class) === null && function_exists('get_current_blog_id')) {
+        if ($envelope->last(MultisiteStamp::class) === null) {
             $envelope = $envelope->with(new MultisiteStamp(get_current_blog_id()));
         }
 

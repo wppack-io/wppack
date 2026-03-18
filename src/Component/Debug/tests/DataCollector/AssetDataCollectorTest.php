@@ -101,9 +101,6 @@ final class AssetDataCollectorTest extends TestCase
     #[Test]
     public function collectWithEnqueuedScriptsReturnsData(): void
     {
-        if (!function_exists('wp_enqueue_script')) {
-            self::markTestSkipped('WordPress asset functions are not available.');
-        }
 
         wp_register_script('test-debug-script', '/js/test.js', ['jquery'], '1.0.0', true);
         wp_enqueue_script('test-debug-script');
@@ -130,9 +127,6 @@ final class AssetDataCollectorTest extends TestCase
     #[Test]
     public function collectWithEnqueuedStylesReturnsData(): void
     {
-        if (!function_exists('wp_enqueue_style')) {
-            self::markTestSkipped('WordPress asset functions are not available.');
-        }
 
         wp_register_style('test-debug-style', '/css/test.css', [], '2.0.0', 'screen');
         wp_enqueue_style('test-debug-style');
@@ -158,9 +152,6 @@ final class AssetDataCollectorTest extends TestCase
     #[Test]
     public function collectDistinguishesRegisteredFromEnqueued(): void
     {
-        if (!function_exists('wp_register_script')) {
-            self::markTestSkipped('WordPress asset functions are not available.');
-        }
 
         wp_register_script('test-debug-registered-only', '/js/registered.js', [], '1.0.0', false);
 

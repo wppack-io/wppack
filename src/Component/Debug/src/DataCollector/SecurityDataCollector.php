@@ -29,7 +29,7 @@ final class SecurityDataCollector extends AbstractDataCollector
 
     public function collect(): void
     {
-        if (!function_exists('is_user_logged_in') || !is_user_logged_in()) {
+        if (!is_user_logged_in()) {
             $this->data = $this->getAnonymousDefaults();
             return;
         }
@@ -156,19 +156,11 @@ final class SecurityDataCollector extends AbstractDataCollector
 
     private function isSuperAdmin(): bool
     {
-        if (function_exists('is_super_admin')) {
-            return is_super_admin();
-        }
-
-        return false;
+        return is_super_admin();
     }
 
     private function registerHooks(): void
     {
-        if (!function_exists('add_filter')) {
-            return;
-        }
-
         add_filter('wp_verify_nonce', [$this, 'filterNonceVerify'], \PHP_INT_MAX, 3);
     }
 }

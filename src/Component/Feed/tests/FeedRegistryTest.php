@@ -15,10 +15,6 @@ final class FeedRegistryTest extends TestCase
     #[Test]
     public function registerDelegatesToFeed(): void
     {
-        if (!function_exists('add_feed')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $registry = new FeedRegistry();
         $feed = new RegistryTestFeed();
 
@@ -30,10 +26,6 @@ final class FeedRegistryTest extends TestCase
     #[Test]
     public function hasReturnsTrueAfterRegistration(): void
     {
-        if (!function_exists('add_feed')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $registry = new FeedRegistry();
         $registry->register(new RegistryTestFeed());
 
@@ -59,10 +51,6 @@ final class FeedRegistryTest extends TestCase
     #[Test]
     public function getRegisteredFeedsReturnsRegisteredFeeds(): void
     {
-        if (!function_exists('add_feed')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $registry = new FeedRegistry();
         $feed = new RegistryTestFeed();
         $registry->register($feed);
@@ -76,10 +64,6 @@ final class FeedRegistryTest extends TestCase
     #[Test]
     public function laterRegistrationOverridesSameSlug(): void
     {
-        if (!function_exists('add_feed')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $registry = new FeedRegistry();
         $first = new RegistryTestFeed();
         $second = new RegistryTestFeed();

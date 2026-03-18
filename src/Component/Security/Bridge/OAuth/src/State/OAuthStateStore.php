@@ -11,10 +11,6 @@ final class OAuthStateStore
 
     public function store(string $state, StoredState $storedState): void
     {
-        if (!function_exists('set_transient')) {
-            return;
-        }
-
         set_transient(self::TRANSIENT_PREFIX . $state, [
             'nonce' => $storedState->getNonce(),
             'code_verifier' => $storedState->getCodeVerifier(),
@@ -25,10 +21,6 @@ final class OAuthStateStore
 
     public function retrieve(string $state): ?StoredState
     {
-        if (!function_exists('get_transient') || !function_exists('delete_transient')) {
-            return null;
-        }
-
         $data = get_transient(self::TRANSIENT_PREFIX . $state);
 
         // One-time use: delete immediately

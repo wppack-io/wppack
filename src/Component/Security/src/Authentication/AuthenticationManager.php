@@ -147,13 +147,8 @@ final class AuthenticationManager implements AuthenticationManagerInterface
 
         $user = $token->getUser();
 
-        if (function_exists('wp_clear_auth_cookie')) {
-            wp_clear_auth_cookie();
-        }
-
-        if (function_exists('wp_set_auth_cookie')) {
-            wp_set_auth_cookie($user->ID, false, is_ssl());
-        }
+        wp_clear_auth_cookie();
+        wp_set_auth_cookie($user->ID, false, is_ssl());
     }
 
     /**

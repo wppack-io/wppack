@@ -13,13 +13,6 @@ use WpPack\Component\Security\Exception\AuthenticationException;
 #[CoversClass(OAuthUserResolver::class)]
 final class OAuthUserResolverTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        if (!function_exists('get_user_by')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-    }
-
     #[Test]
     public function resolveUserByEmail(): void
     {
@@ -150,10 +143,6 @@ final class OAuthUserResolverTest extends TestCase
     #[Test]
     public function autoProvision(): void
     {
-        if (!function_exists('wp_insert_user')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $email = 'oauth-provision-' . uniqid() . '@example.com';
         $subject = 'provisioned_user_' . uniqid();
         $resolver = new OAuthUserResolver(providerName: 'google', autoProvision: true);
@@ -179,10 +168,6 @@ final class OAuthUserResolverTest extends TestCase
     #[Test]
     public function autoProvisionWithDefaultRole(): void
     {
-        if (!function_exists('wp_insert_user')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $subject = 'provisioned_editor_' . uniqid();
         $resolver = new OAuthUserResolver(
             providerName: 'google',
@@ -468,10 +453,6 @@ final class OAuthUserResolverTest extends TestCase
     #[Test]
     public function autoProvisionWithXssInDisplayName(): void
     {
-        if (!function_exists('wp_insert_user')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $subject = 'provisioned_xss_' . uniqid();
         $resolver = new OAuthUserResolver(providerName: 'google', autoProvision: true);
 

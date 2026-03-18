@@ -146,10 +146,6 @@ final class ShortcodeDataCollector extends AbstractDataCollector
             return [];
         }
 
-        if (!function_exists('get_shortcode_regex')) {
-            return [];
-        }
-
         $pattern = get_shortcode_regex(array_keys($shortcode_tags));
         $used = [];
 
@@ -181,10 +177,6 @@ final class ShortcodeDataCollector extends AbstractDataCollector
 
     private function registerHooks(): void
     {
-        if (!function_exists('add_filter')) {
-            return;
-        }
-
         add_filter('pre_do_shortcode_tag', [$this, 'capturePreShortcode'], \PHP_INT_MIN, 4);
         add_filter('do_shortcode_tag', [$this, 'capturePostShortcode'], \PHP_INT_MAX, 4);
     }

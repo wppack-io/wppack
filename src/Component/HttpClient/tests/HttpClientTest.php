@@ -17,16 +17,12 @@ final class HttpClientTest extends TestCase
     {
         parent::setUp();
 
-        if (function_exists('add_filter')) {
-            add_filter('pre_http_request', [$this, 'mockHttpResponse'], 10, 3);
-        }
+        add_filter('pre_http_request', [$this, 'mockHttpResponse'], 10, 3);
     }
 
     protected function tearDown(): void
     {
-        if (function_exists('remove_filter')) {
-            remove_filter('pre_http_request', [$this, 'mockHttpResponse'], 10);
-        }
+        remove_filter('pre_http_request', [$this, 'mockHttpResponse'], 10);
 
         parent::tearDown();
     }
@@ -185,9 +181,6 @@ final class HttpClientTest extends TestCase
     #[Test]
     public function sendRequestReturnsResponse(): void
     {
-        if (!function_exists('wp_remote_request')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $client = new HttpClient();
         $request = new Request('GET', 'https://httpbin.org/get');
@@ -201,9 +194,6 @@ final class HttpClientTest extends TestCase
     #[Test]
     public function sendRequestThrowsConnectionExceptionOnWpError(): void
     {
-        if (!function_exists('wp_remote_request')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $client = (new HttpClient())->timeout(1);
         $request = new Request('GET', 'https://invalid.domain.that.does.not.exist.example');
@@ -215,9 +205,6 @@ final class HttpClientTest extends TestCase
     #[Test]
     public function getRequestSendsGetMethod(): void
     {
-        if (!function_exists('wp_remote_request')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $client = new HttpClient();
         $response = $client->get('https://httpbin.org/get');
@@ -229,9 +216,6 @@ final class HttpClientTest extends TestCase
     #[Test]
     public function postRequestSendsPostMethod(): void
     {
-        if (!function_exists('wp_remote_request')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $client = new HttpClient();
         $response = $client->post('https://httpbin.org/post', ['body' => 'test=value']);
@@ -243,9 +227,6 @@ final class HttpClientTest extends TestCase
     #[Test]
     public function postRequestWithJsonBody(): void
     {
-        if (!function_exists('wp_remote_request')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $client = (new HttpClient())->asJson();
         $response = $client->post('https://httpbin.org/post', ['json' => ['key' => 'value']]);
@@ -258,9 +239,6 @@ final class HttpClientTest extends TestCase
     #[Test]
     public function postRequestWithFormBody(): void
     {
-        if (!function_exists('wp_remote_request')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $client = (new HttpClient())->asForm();
         $response = $client->post('https://httpbin.org/post', ['form_params' => ['key' => 'value']]);
@@ -271,9 +249,6 @@ final class HttpClientTest extends TestCase
     #[Test]
     public function baseUriIsPrepended(): void
     {
-        if (!function_exists('wp_remote_request')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $client = (new HttpClient())->baseUri('https://httpbin.org');
         $response = $client->get('/get');
@@ -284,9 +259,6 @@ final class HttpClientTest extends TestCase
     #[Test]
     public function queryParamsAreAppended(): void
     {
-        if (!function_exists('wp_remote_request')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $client = (new HttpClient())->query(['foo' => 'bar']);
         $response = $client->get('https://httpbin.org/get');
@@ -299,9 +271,6 @@ final class HttpClientTest extends TestCase
     #[Test]
     public function putRequestSendsPutMethod(): void
     {
-        if (!function_exists('wp_remote_request')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $client = new HttpClient();
         $response = $client->put('https://httpbin.org/put', ['body' => 'data']);
@@ -312,9 +281,6 @@ final class HttpClientTest extends TestCase
     #[Test]
     public function deleteRequestSendsDeleteMethod(): void
     {
-        if (!function_exists('wp_remote_request')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $client = new HttpClient();
         $response = $client->delete('https://httpbin.org/delete');
@@ -325,9 +291,6 @@ final class HttpClientTest extends TestCase
     #[Test]
     public function headRequestSendsHeadMethod(): void
     {
-        if (!function_exists('wp_remote_request')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $client = new HttpClient();
         $response = $client->head('https://httpbin.org/get');
@@ -339,9 +302,6 @@ final class HttpClientTest extends TestCase
     #[Test]
     public function patchRequestSendsPatchMethod(): void
     {
-        if (!function_exists('wp_remote_request')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $client = new HttpClient();
         $response = $client->patch('https://httpbin.org/patch', ['body' => 'data']);
@@ -352,9 +312,6 @@ final class HttpClientTest extends TestCase
     #[Test]
     public function requestWithCustomHeaders(): void
     {
-        if (!function_exists('wp_remote_request')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $client = (new HttpClient())->withHeaders(['X-Custom' => 'test-value']);
         $response = $client->get('https://httpbin.org/headers');
@@ -367,9 +324,6 @@ final class HttpClientTest extends TestCase
     #[Test]
     public function requestWithTimeout(): void
     {
-        if (!function_exists('wp_remote_request')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $client = (new HttpClient())->timeout(30);
         $response = $client->get('https://httpbin.org/get');
@@ -380,9 +334,6 @@ final class HttpClientTest extends TestCase
     #[Test]
     public function queryParamsAppendedToUrlWithExistingQuery(): void
     {
-        if (!function_exists('wp_remote_request')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $client = (new HttpClient())->query(['bar' => 'baz']);
         $response = $client->get('https://httpbin.org/get?foo=1');
@@ -396,9 +347,6 @@ final class HttpClientTest extends TestCase
     #[Test]
     public function baseUriNotPrependedWhenUrlHasScheme(): void
     {
-        if (!function_exists('wp_remote_request')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $client = (new HttpClient())->baseUri('https://ignored.example.com');
         $response = $client->get('https://httpbin.org/get');

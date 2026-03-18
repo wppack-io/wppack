@@ -15,10 +15,6 @@ final class CrossSiteRedirectorTest extends TestCase
     #[Test]
     public function needsRedirectReturnsFalseForSameHost(): void
     {
-        if (!function_exists('site_url')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $redirector = new CrossSiteRedirector();
 
         self::assertFalse($redirector->needsRedirect(site_url('/some-path')));
@@ -35,10 +31,6 @@ final class CrossSiteRedirectorTest extends TestCase
     #[Test]
     public function needsRedirectReturnsTrueForDifferentHost(): void
     {
-        if (!function_exists('site_url')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $redirector = new CrossSiteRedirector();
 
         self::assertTrue($redirector->needsRedirect('https://different.example.com/path'));
@@ -127,10 +119,6 @@ final class CrossSiteRedirectorTest extends TestCase
     #[Test]
     public function verifyTokenReturnsNullForInvalidToken(): void
     {
-        if (!function_exists('get_transient')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $redirector = new CrossSiteRedirector();
 
         self::assertNull($redirector->verifyToken('invalid-token'));
@@ -139,10 +127,6 @@ final class CrossSiteRedirectorTest extends TestCase
     #[Test]
     public function verifyTokenSucceedsWithValidToken(): void
     {
-        if (!function_exists('set_transient') || !function_exists('wp_hash')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $token = 'test-valid-token-abc123';
         $userId = 42;
         $timestamp = time();
@@ -167,10 +151,6 @@ final class CrossSiteRedirectorTest extends TestCase
     #[Test]
     public function verifyTokenReturnsNullForExpiredToken(): void
     {
-        if (!function_exists('set_transient') || !function_exists('wp_hash')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $token = 'test-expired-token-abc123';
         $userId = 42;
         $timestamp = time() - 121;
@@ -198,10 +178,6 @@ final class CrossSiteRedirectorTest extends TestCase
     #[Test]
     public function verifyTokenEnforcesOneTimeUse(): void
     {
-        if (!function_exists('set_transient') || !function_exists('wp_hash')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $token = 'test-onetime-token-abc123';
         $userId = 42;
         $timestamp = time();
@@ -227,10 +203,6 @@ final class CrossSiteRedirectorTest extends TestCase
     #[Test]
     public function verifyTokenReturnsNullForTamperedHmac(): void
     {
-        if (!function_exists('set_transient') || !function_exists('wp_hash')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $token = 'test-tampered-token-abc123';
         $userId = 42;
         $timestamp = time();
@@ -253,10 +225,6 @@ final class CrossSiteRedirectorTest extends TestCase
     #[Test]
     public function resolveBlogIdReturnsNullWhenNotMultisite(): void
     {
-        if (!function_exists('is_multisite')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         if (is_multisite()) {
             self::markTestSkipped('This test requires a non-multisite installation.');
         }

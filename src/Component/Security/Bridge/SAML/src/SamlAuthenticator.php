@@ -59,9 +59,7 @@ final class SamlAuthenticator implements AuthenticatorInterface
         $errors = $auth->getErrors();
 
         if ($errors !== []) {
-            if (function_exists('do_action')) {
-                do_action('wppack_saml_authentication_error', $errors, $auth->getLastErrorReason());
-            }
+            do_action('wppack_saml_authentication_error', $errors, $auth->getLastErrorReason());
 
             throw new AuthenticationException('SAML authentication failed.');
         }
@@ -76,9 +74,7 @@ final class SamlAuthenticator implements AuthenticatorInterface
             $sessionIndex,
         ));
 
-        if (function_exists('do_action')) {
-            do_action('wppack_saml_authenticated', $nameId, $attributes);
-        }
+        do_action('wppack_saml_authenticated', $nameId, $attributes);
 
         $userResolver = $this->userResolver;
 
@@ -97,8 +93,8 @@ final class SamlAuthenticator implements AuthenticatorInterface
 
         $blogId = null;
 
-        if ($this->crossSiteRedirector !== null && function_exists('is_multisite') && is_multisite()) {
-            $blogId = function_exists('get_current_blog_id') ? get_current_blog_id() : null;
+        if ($this->crossSiteRedirector !== null && is_multisite()) {
+            $blogId = get_current_blog_id();
         }
 
         return new PostAuthenticationToken(
@@ -112,19 +108,17 @@ final class SamlAuthenticator implements AuthenticatorInterface
     {
         $user = $token->getUser();
 
-        if ($this->addUserToBlog && function_exists('is_multisite') && is_multisite()) {
-            if (function_exists('is_user_member_of_blog') && !is_user_member_of_blog($user->ID)) {
-                if (function_exists('add_user_to_blog') && function_exists('get_current_blog_id')) {
-                    $role = !empty($user->roles) ? $user->roles[0] : 'subscriber';
-                    add_user_to_blog(get_current_blog_id(), $user->ID, $role);
-                }
+        if ($this->addUserToBlog && is_multisite()) {
+            if (!is_user_member_of_blog($user->ID)) {
+                $role = !empty($user->roles) ? $user->roles[0] : 'subscriber';
+                add_user_to_blog(get_current_blog_id(), $user->ID, $role);
             }
         }
 
         $relayState = $request->post->get('RelayState');
-        $fallback = function_exists('admin_url') ? admin_url() : '/wp-admin/';
+        $fallback = admin_url();
 
-        if ($relayState !== null && $this->isSameOrigin($relayState) && function_exists('wp_validate_redirect')) {
+        if ($relayState !== null && $this->isSameOrigin($relayState)) {
             $redirect = wp_validate_redirect($relayState, $fallback);
         } else {
             $redirect = $fallback;
@@ -135,11 +129,9 @@ final class SamlAuthenticator implements AuthenticatorInterface
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): Response
     {
-        if (function_exists('do_action')) {
-            do_action('wppack_saml_authentication_failed', $exception);
-        }
+        do_action('wppack_saml_authentication_failed', $exception);
 
-        $loginUrl = function_exists('wp_login_url') ? wp_login_url() : '/wp-login.php';
+        $loginUrl = wp_login_url();
 
         return new RedirectResponse($loginUrl . '?saml_error=1');
     }
@@ -149,10 +141,6 @@ final class SamlAuthenticator implements AuthenticatorInterface
         $host = parse_url($url, \PHP_URL_HOST);
 
         if ($host === null || $host === false) {
-            return false;
-        }
-
-        if (!function_exists('home_url')) {
             return false;
         }
 

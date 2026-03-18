@@ -18,19 +18,11 @@ final class WordPressUserProviderTest extends TestCase
 
     protected function setUp(): void
     {
-        if (!function_exists('get_user_by')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->provider = new WordPressUserProvider();
     }
 
     protected function tearDown(): void
     {
-        if (!function_exists('wp_delete_user')) {
-            return;
-        }
-
         foreach ($this->createdUserIds as $userId) {
             wp_delete_user($userId);
         }

@@ -41,9 +41,8 @@ namespace WpPack\Component\Debug\Tests\Adapter {
         #[Test]
         public function collectWithoutApplyFiltersReturnsEmpty(): void
         {
-            if (function_exists('apply_filters')) {
-                self::markTestSkipped('apply_filters is available; cannot test the unavailable path.');
-            }
+            // WordPress is always loaded in test env; cannot test the unavailable path
+            self::markTestSkipped('apply_filters is available; cannot test the unavailable path.');
 
             $this->adapter->collect();
 
@@ -54,9 +53,6 @@ namespace WpPack\Component\Debug\Tests\Adapter {
         #[Test]
         public function collectWithQueryMonitorCollectorsCollectsData(): void
         {
-            if (!function_exists('apply_filters')) {
-                self::markTestSkipped('WordPress functions are not available.');
-            }
 
             // Create a mock QM_Collector-like object with get_data() method
             $mockCollector = new class {
@@ -112,9 +108,6 @@ namespace WpPack\Component\Debug\Tests\Adapter {
         public function collectWithMockQmCollectorsGathersData(): void
         {
             // Cover lines 30-31, 35, 37-40, 43-47, 50-53
-            if (!function_exists('apply_filters')) {
-                self::markTestSkipped('WordPress functions are not available.');
-            }
 
             // Create mock collectors with get_data() method
             $mockDbCollector = new class {
@@ -188,9 +181,6 @@ namespace WpPack\Component\Debug\Tests\Adapter {
         public function collectWithEmptyCollectorsArray(): void
         {
             // Cover lines 35, 50-53 with empty collectors from apply_filters
-            if (!function_exists('apply_filters')) {
-                self::markTestSkipped('WordPress functions are not available.');
-            }
 
             $callback = static fn(array $collectors): array => [];
             add_filter('qm/collectors', $callback, 10, 1);
@@ -214,9 +204,6 @@ namespace WpPack\Component\Debug\Tests\Adapter {
         {
             // Cover line 46: is_array($data) ? $data : (is_object($data) ? (array) $data : [])
             // Test the case where get_data() returns neither array nor object
-            if (!function_exists('apply_filters')) {
-                self::markTestSkipped('WordPress functions are not available.');
-            }
 
             $mockNullCollector = new class {
                 public function get_data(): mixed

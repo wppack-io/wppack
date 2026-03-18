@@ -21,19 +21,6 @@ final class RestDataCollector extends AbstractDataCollector
 
     public function collect(): void
     {
-        if (!function_exists('rest_get_server')) {
-            $this->data = [
-                'is_rest_request' => false,
-                'current_request' => null,
-                'routes' => [],
-                'namespaces' => [],
-                'total_routes' => 0,
-                'total_namespaces' => 0,
-            ];
-
-            return;
-        }
-
         $server = rest_get_server();
         $allRoutes = $server->get_routes();
         $namespaces = $server->get_namespaces();
@@ -194,7 +181,7 @@ final class RestDataCollector extends AbstractDataCollector
             }
         } elseif (isset($_GET['_wpnonce']) || isset($_SERVER['HTTP_X_WP_NONCE'])) {
             $authentication = 'nonce';
-        } elseif (function_exists('is_user_logged_in') && is_user_logged_in()) {
+        } elseif (is_user_logged_in()) {
             $authentication = 'cookie';
         }
 

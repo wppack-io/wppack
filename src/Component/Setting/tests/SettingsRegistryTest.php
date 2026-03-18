@@ -17,10 +17,6 @@ final class SettingsRegistryTest extends TestCase
 
     protected function setUp(): void
     {
-        if (!\function_exists('add_action')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->registry = new SettingsRegistry();
     }
 

@@ -32,9 +32,8 @@ final class EventDataCollectorTest extends TestCase
     #[Test]
     public function collectWithoutWordPressReturnsDefaults(): void
     {
-        if (function_exists('add_action')) {
-            self::markTestSkipped('WordPress hooks are active; firings and counts are non-zero.');
-        }
+        // WordPress is always loaded in test env; this test is for non-WP environments
+        self::markTestSkipped('WordPress hooks are active; firings and counts are non-zero.');
 
         $this->collector->collect();
         $data = $this->collector->getData();
@@ -60,14 +59,13 @@ final class EventDataCollectorTest extends TestCase
         $this->collector->collect();
         $data = $this->collector->getData();
 
-        if (function_exists('current_filter') && current_filter() !== false) {
+        if (current_filter() !== false) {
             // WordPress is active and we're within a hook context —
             // captureHookFired() records firings normally.
             self::assertSame(2, $data['total_firings']);
             self::assertSame(1, $data['unique_hooks']);
         } else {
-            // Without WordPress or outside hook context, current_filter()
-            // doesn't exist or returns false — no hooks are captured.
+            // Outside hook context, current_filter() returns false — no hooks are captured.
             self::assertSame(0, $data['total_firings']);
             self::assertSame(0, $data['unique_hooks']);
         }
@@ -199,9 +197,6 @@ final class EventDataCollectorTest extends TestCase
     #[Test]
     public function captureHookFiredRecordsTimings(): void
     {
-        if (!function_exists('current_filter')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         // We need current_filter() to return a hook name.
         // Use do_action to fire a real hook with our collector attached.
@@ -230,9 +225,6 @@ final class EventDataCollectorTest extends TestCase
     #[Test]
     public function collectBuildsComponentAttribution(): void
     {
-        if (!function_exists('add_action')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         // The component attribution uses resolveCallback which inspects file paths.
         // Core WP functions will be attributed to 'core' if ABSPATH is defined.
@@ -301,9 +293,6 @@ final class EventDataCollectorTest extends TestCase
     #[Test]
     public function collectWithWpFilterBuildsListenerCounts(): void
     {
-        if (!function_exists('add_action')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         global $wp_filter;
 
@@ -335,9 +324,6 @@ final class EventDataCollectorTest extends TestCase
     #[Test]
     public function collectOrphanHooksDetected(): void
     {
-        if (!function_exists('add_action')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $orphanHook = 'test_orphan_hook_' . uniqid();
 
@@ -361,9 +347,6 @@ final class EventDataCollectorTest extends TestCase
     #[Test]
     public function collectWithWpFilterBuildsComponentAttribution(): void
     {
-        if (!function_exists('add_action') || !defined('ABSPATH')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $collector = new EventDataCollector();
         $collector->collect();
@@ -398,9 +381,6 @@ final class EventDataCollectorTest extends TestCase
     #[Test]
     public function captureHookFiredRecordsTimingsWithRealDoAction(): void
     {
-        if (!function_exists('do_action')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $hookName = 'test_real_timing_' . uniqid();
         $collector = new EventDataCollector();
@@ -437,9 +417,6 @@ final class EventDataCollectorTest extends TestCase
     #[Test]
     public function captureHookFiredRecordsPreviousHookTimingOnSecondCall(): void
     {
-        if (!function_exists('do_action')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $hookA = 'test_prev_timing_a_' . uniqid();
         $hookB = 'test_prev_timing_b_' . uniqid();
@@ -485,9 +462,6 @@ final class EventDataCollectorTest extends TestCase
     #[Test]
     public function collectSkipsNonObjectEntriesInWpFilterForComponentAttribution(): void
     {
-        if (!function_exists('add_action')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         global $wp_filter;
 
@@ -569,10 +543,6 @@ final class EventDataCollectorTest extends TestCase
     #[Test]
     public function attributeFileToComponentDetectsThemeDirectory(): void
     {
-        if (!defined('ABSPATH')) {
-            self::markTestSkipped('ABSPATH is not defined.');
-        }
-
         $collector = new EventDataCollector();
         $method = new \ReflectionMethod($collector, 'attributeFileToComponent');
 
@@ -592,10 +562,6 @@ final class EventDataCollectorTest extends TestCase
     #[Test]
     public function attributeFileToComponentDetectsCoreDirectories(): void
     {
-        if (!defined('ABSPATH')) {
-            self::markTestSkipped('ABSPATH is not defined.');
-        }
-
         $collector = new EventDataCollector();
         $method = new \ReflectionMethod($collector, 'attributeFileToComponent');
 
@@ -703,9 +669,6 @@ final class EventDataCollectorTest extends TestCase
     #[Test]
     public function collectBuildsComponentAttributionFromPluginHook(): void
     {
-        if (!function_exists('add_action') || !defined('WP_PLUGIN_DIR')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $pluginDir = WP_PLUGIN_DIR;
         $fakeDir = $pluginDir . '/event-attr-test';
@@ -762,9 +725,6 @@ final class EventDataCollectorTest extends TestCase
     #[Test]
     public function collectAttributesTimingProportionallyToComponents(): void
     {
-        if (!function_exists('add_action') || !defined('WP_PLUGIN_DIR')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $pluginDir = WP_PLUGIN_DIR;
         $fakeDir = $pluginDir . '/timing-attr-test';
@@ -821,9 +781,6 @@ final class EventDataCollectorTest extends TestCase
     #[Test]
     public function captureHookFiredOutsideHookContextDoesNotIncrement(): void
     {
-        if (!function_exists('current_filter')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $collector = new EventDataCollector();
 
@@ -894,9 +851,6 @@ final class EventDataCollectorTest extends TestCase
     #[Test]
     public function collectCountsListenersAcrossMultiplePriorities(): void
     {
-        if (!function_exists('add_action')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $hookName = 'test_multi_priority_' . uniqid();
         $cb1 = static function (): void {};

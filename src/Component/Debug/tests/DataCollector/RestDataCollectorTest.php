@@ -30,24 +30,6 @@ final class RestDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function collectWithoutWordPressReturnsDefaults(): void
-    {
-        if (function_exists('rest_get_server')) {
-            self::markTestSkipped('WordPress functions are available.');
-        }
-
-        $this->collector->collect();
-        $data = $this->collector->getData();
-
-        self::assertFalse($data['is_rest_request']);
-        self::assertNull($data['current_request']);
-        self::assertSame([], $data['routes']);
-        self::assertSame([], $data['namespaces']);
-        self::assertSame(0, $data['total_routes']);
-        self::assertSame(0, $data['total_namespaces']);
-    }
-
-    #[Test]
     public function getIndicatorValueReturnsEmpty(): void
     {
         self::assertSame('', $this->collector->getIndicatorValue());
@@ -113,9 +95,6 @@ final class RestDataCollectorTest extends TestCase
     #[Test]
     public function collectGathersRestRoutes(): void
     {
-        if (!function_exists('rest_get_server')) {
-            self::markTestSkipped('WordPress REST API functions are not available.');
-        }
 
         // Register a test route
         $registered = false;
@@ -166,9 +145,6 @@ final class RestDataCollectorTest extends TestCase
     #[Test]
     public function collectIsNotRestRequestByDefault(): void
     {
-        if (!function_exists('rest_get_server')) {
-            self::markTestSkipped('WordPress REST API functions are not available.');
-        }
 
         $this->collector->collect();
         $data = $this->collector->getData();
@@ -181,9 +157,6 @@ final class RestDataCollectorTest extends TestCase
     #[Test]
     public function collectGroupsRoutesByNamespace(): void
     {
-        if (!function_exists('rest_get_server')) {
-            self::markTestSkipped('WordPress REST API functions are not available.');
-        }
 
         rest_get_server();
 
@@ -274,9 +247,6 @@ final class RestDataCollectorTest extends TestCase
     #[Test]
     public function collectRouteMethodsExtracted(): void
     {
-        if (!function_exists('rest_get_server')) {
-            self::markTestSkipped('WordPress REST API functions are not available.');
-        }
 
         // Use the existing routes from the server — WP core always registers routes
         $server = rest_get_server();
@@ -304,9 +274,6 @@ final class RestDataCollectorTest extends TestCase
     #[Test]
     public function collectRouteCallbackExtracted(): void
     {
-        if (!function_exists('rest_get_server')) {
-            self::markTestSkipped('WordPress REST API functions are not available.');
-        }
 
         // Use the existing routes from the server
         $server = rest_get_server();
@@ -346,9 +313,6 @@ final class RestDataCollectorTest extends TestCase
     #[Test]
     public function collectCurrentRequestReturnsNullWhenNotRestRequest(): void
     {
-        if (!function_exists('rest_get_server')) {
-            self::markTestSkipped('WordPress REST API functions are not available.');
-        }
 
         $server = rest_get_server();
         $allRoutes = $server->get_routes();
@@ -369,9 +333,6 @@ final class RestDataCollectorTest extends TestCase
     #[Test]
     public function collectCurrentRequestWithServerPathInfoAndRestServer(): void
     {
-        if (!function_exists('rest_get_server')) {
-            self::markTestSkipped('WordPress REST API functions are not available.');
-        }
 
         if (!defined('REST_REQUEST') || !REST_REQUEST) {
             self::markTestSkipped('REST_REQUEST constant is not defined; cannot test REST request paths without polluting global state.');
@@ -451,9 +412,6 @@ final class RestDataCollectorTest extends TestCase
     #[Test]
     public function collectCurrentRequestWithRestRouteGetParam(): void
     {
-        if (!function_exists('rest_get_server')) {
-            self::markTestSkipped('WordPress REST API functions are not available.');
-        }
 
         if (!defined('REST_REQUEST') || !REST_REQUEST) {
             self::markTestSkipped('REST_REQUEST constant is not defined; cannot test REST request paths without polluting global state.');
@@ -505,9 +463,6 @@ final class RestDataCollectorTest extends TestCase
     #[Test]
     public function collectCurrentRequestWithBearerAuth(): void
     {
-        if (!function_exists('rest_get_server')) {
-            self::markTestSkipped('WordPress REST API functions are not available.');
-        }
 
         if (!defined('REST_REQUEST') || !REST_REQUEST) {
             self::markTestSkipped('REST_REQUEST constant is not defined; cannot test REST request paths without polluting global state.');
@@ -561,9 +516,6 @@ final class RestDataCollectorTest extends TestCase
     #[Test]
     public function collectCurrentRequestWithBasicAuth(): void
     {
-        if (!function_exists('rest_get_server')) {
-            self::markTestSkipped('WordPress REST API functions are not available.');
-        }
 
         if (!defined('REST_REQUEST') || !REST_REQUEST) {
             self::markTestSkipped('REST_REQUEST constant is not defined; cannot test REST request paths without polluting global state.');
@@ -617,9 +569,6 @@ final class RestDataCollectorTest extends TestCase
     #[Test]
     public function collectCurrentRequestWithNonceAuth(): void
     {
-        if (!function_exists('rest_get_server')) {
-            self::markTestSkipped('WordPress REST API functions are not available.');
-        }
 
         if (!defined('REST_REQUEST') || !REST_REQUEST) {
             self::markTestSkipped('REST_REQUEST constant is not defined; cannot test REST request paths without polluting global state.');
@@ -675,9 +624,6 @@ final class RestDataCollectorTest extends TestCase
     #[Test]
     public function collectCurrentRequestWithXWpNonceHeader(): void
     {
-        if (!function_exists('rest_get_server')) {
-            self::markTestSkipped('WordPress REST API functions are not available.');
-        }
 
         if (!defined('REST_REQUEST') || !REST_REQUEST) {
             self::markTestSkipped('REST_REQUEST constant is not defined; cannot test REST request paths without polluting global state.');
@@ -738,9 +684,6 @@ final class RestDataCollectorTest extends TestCase
     #[Test]
     public function collectCurrentRequestWithNoServerAndNoPathInfo(): void
     {
-        if (!function_exists('rest_get_server')) {
-            self::markTestSkipped('WordPress REST API functions are not available.');
-        }
 
         if (!defined('REST_REQUEST') || !REST_REQUEST) {
             self::markTestSkipped('REST_REQUEST constant is not defined; cannot test REST request paths without polluting global state.');
@@ -812,9 +755,6 @@ final class RestDataCollectorTest extends TestCase
     #[Test]
     public function collectCurrentRequestWithEmptyRestRoute(): void
     {
-        if (!function_exists('rest_get_server')) {
-            self::markTestSkipped('WordPress REST API functions are not available.');
-        }
 
         if (!defined('REST_REQUEST') || !REST_REQUEST) {
             self::markTestSkipped('REST_REQUEST constant is not defined; cannot test REST request paths without polluting global state.');
@@ -870,9 +810,6 @@ final class RestDataCollectorTest extends TestCase
     #[Test]
     public function collectCurrentRequestWithQueryParams(): void
     {
-        if (!function_exists('rest_get_server')) {
-            self::markTestSkipped('WordPress REST API functions are not available.');
-        }
 
         if (!defined('REST_REQUEST') || !REST_REQUEST) {
             self::markTestSkipped('REST_REQUEST constant is not defined; cannot test REST request paths without polluting global state.');
@@ -932,9 +869,6 @@ final class RestDataCollectorTest extends TestCase
     #[Test]
     public function collectCurrentRequestMatchesRouteAndExtractsCallback(): void
     {
-        if (!function_exists('rest_get_server')) {
-            self::markTestSkipped('WordPress REST API functions are not available.');
-        }
 
         if (!defined('REST_REQUEST') || !REST_REQUEST) {
             self::markTestSkipped('REST_REQUEST constant is not defined; cannot test REST request paths without polluting global state.');
@@ -994,9 +928,6 @@ final class RestDataCollectorTest extends TestCase
     #[Test]
     public function collectCurrentRequestWithNonMatchingRoute(): void
     {
-        if (!function_exists('rest_get_server')) {
-            self::markTestSkipped('WordPress REST API functions are not available.');
-        }
 
         if (!defined('REST_REQUEST') || !REST_REQUEST) {
             self::markTestSkipped('REST_REQUEST constant is not defined; cannot test REST request paths without polluting global state.');
@@ -1054,9 +985,6 @@ final class RestDataCollectorTest extends TestCase
     #[Test]
     public function collectCurrentRequestWithPostMethodMatchesRoute(): void
     {
-        if (!function_exists('rest_get_server')) {
-            self::markTestSkipped('WordPress REST API functions are not available.');
-        }
 
         if (!defined('REST_REQUEST') || !REST_REQUEST) {
             self::markTestSkipped('REST_REQUEST constant is not defined; cannot test REST request paths without polluting global state.');
@@ -1113,13 +1041,7 @@ final class RestDataCollectorTest extends TestCase
     #[Test]
     public function collectCurrentRequestCookieAuthWhenLoggedIn(): void
     {
-        if (!function_exists('rest_get_server')) {
-            self::markTestSkipped('WordPress REST API functions are not available.');
-        }
 
-        if (!function_exists('is_user_logged_in')) {
-            self::markTestSkipped('WordPress user functions are not available.');
-        }
 
         if (!defined('REST_REQUEST') || !REST_REQUEST) {
             self::markTestSkipped('REST_REQUEST constant is not defined; cannot test REST request paths without polluting global state.');

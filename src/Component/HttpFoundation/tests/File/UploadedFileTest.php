@@ -224,21 +224,6 @@ final class UploadedFileTest extends TestCase
     }
 
     #[Test]
-    public function wpHandleUploadThrowsWithoutWordPress(): void
-    {
-        if (\function_exists('wp_handle_upload')) {
-            self::markTestSkipped('WordPress functions are available.');
-        }
-
-        $file = new UploadedFile('/tmp/test', 'file.txt');
-
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('WordPress function wp_handle_upload() is not available.');
-
-        $file->wpHandleUpload();
-    }
-
-    #[Test]
     public function getSizeReturnsFileSizeWhenValid(): void
     {
         $path = tempnam(sys_get_temp_dir(), 'wppack_size_');

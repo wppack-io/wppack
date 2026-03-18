@@ -92,10 +92,6 @@ class UploadedFile extends File
      */
     public function wpHandleUpload(array $overrides = []): array
     {
-        if (!\function_exists('wp_handle_upload')) {
-            throw new \RuntimeException('WordPress function wp_handle_upload() is not available.');
-        }
-
         $fileArray = $this->toFilesArray();
 
         return wp_handle_upload($fileArray, $overrides);

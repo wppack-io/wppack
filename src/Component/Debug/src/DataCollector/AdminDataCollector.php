@@ -21,7 +21,7 @@ final class AdminDataCollector extends AbstractDataCollector
 
     public function collect(): void
     {
-        if (!function_exists('is_admin') || !is_admin()) {
+        if (!is_admin()) {
             $this->data = [
                 'is_admin' => false,
                 'page_hook' => '',
@@ -38,16 +38,14 @@ final class AdminDataCollector extends AbstractDataCollector
         global $menu, $submenu, $pagenow, $wp_admin_bar;
 
         $screen = [];
-        if (function_exists('get_current_screen')) {
-            $currentScreen = get_current_screen();
-            if ($currentScreen !== null) {
-                $screen = [
-                    'id' => $currentScreen->id,
-                    'base' => $currentScreen->base,
-                    'post_type' => $currentScreen->post_type,
-                    'taxonomy' => $currentScreen->taxonomy,
-                ];
-            }
+        $currentScreen = get_current_screen();
+        if ($currentScreen !== null) {
+            $screen = [
+                'id' => $currentScreen->id,
+                'base' => $currentScreen->base,
+                'post_type' => $currentScreen->post_type,
+                'taxonomy' => $currentScreen->taxonomy,
+            ];
         }
 
         $adminMenus = [];

@@ -357,9 +357,7 @@ final class KernelTest extends TestCase
     {
         $kernel = new Kernel(autoBoot: false);
 
-        $expected = function_exists('wp_get_environment_type')
-            ? wp_get_environment_type()
-            : 'production';
+        $expected = wp_get_environment_type();
 
         self::assertSame($expected, $kernel->getEnvironment());
     }

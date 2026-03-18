@@ -143,9 +143,7 @@ final class DatabaseDataCollector extends AbstractDataCollector
 
     private function registerHooks(): void
     {
-        if (function_exists('add_filter')) {
-            add_filter('log_query_custom_data', [$this, 'captureQueryData'], 10, 5);
-        }
+        add_filter('log_query_custom_data', [$this, 'captureQueryData'], 10, 5);
     }
 
     /**

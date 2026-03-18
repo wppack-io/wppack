@@ -15,10 +15,6 @@ final class TextDomainRegistryTest extends TestCase
     #[Test]
     public function registerLoadsPluginTextDomain(): void
     {
-        if (!function_exists('load_plugin_textdomain')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $registry = new TextDomainRegistry();
         $registry->register(new RegistryPluginStub());
 
@@ -28,10 +24,6 @@ final class TextDomainRegistryTest extends TestCase
     #[Test]
     public function registerLoadsThemeTextDomain(): void
     {
-        if (!function_exists('load_theme_textdomain')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $registry = new TextDomainRegistry();
         $registry->register(new RegistryThemeStub());
 
@@ -41,10 +33,6 @@ final class TextDomainRegistryTest extends TestCase
     #[Test]
     public function registerAcceptsNonTranslatorObject(): void
     {
-        if (!function_exists('load_plugin_textdomain')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $registry = new TextDomainRegistry();
         $registry->register(new NonTranslatorPluginStub());
 
@@ -64,10 +52,6 @@ final class TextDomainRegistryTest extends TestCase
     #[Test]
     public function hasReturnsTrueAfterRegistration(): void
     {
-        if (!function_exists('load_plugin_textdomain')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $registry = new TextDomainRegistry();
         $registry->register(new RegistryPluginStub());
 
@@ -93,10 +77,6 @@ final class TextDomainRegistryTest extends TestCase
     #[Test]
     public function getRegisteredDomainsReturnsRegisteredDomains(): void
     {
-        if (!function_exists('load_plugin_textdomain')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $registry = new TextDomainRegistry();
         $registry->register(new RegistryPluginStub());
 
@@ -110,10 +90,6 @@ final class TextDomainRegistryTest extends TestCase
     #[Test]
     public function loadPluginCallsWordPressFunction(): void
     {
-        if (!function_exists('load_plugin_textdomain')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         TextDomainRegistry::loadPlugin('static-plugin', 'static-plugin/languages');
 
         // If no exception was thrown, the call succeeded
@@ -123,10 +99,6 @@ final class TextDomainRegistryTest extends TestCase
     #[Test]
     public function loadThemeCallsWordPressFunction(): void
     {
-        if (!function_exists('load_theme_textdomain')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         TextDomainRegistry::loadTheme('static-theme', 'languages');
 
         // If no exception was thrown, the call succeeded

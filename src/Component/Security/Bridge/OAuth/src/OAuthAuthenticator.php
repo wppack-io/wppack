@@ -67,9 +67,7 @@ final class OAuthAuthenticator implements AuthenticatorInterface
             $error = $request->query->get('error', '');
             $desc = $request->query->get('error_description', '');
 
-            if (function_exists('do_action')) {
-                do_action('wppack_oauth_authentication_error', $error, $desc);
-            }
+            do_action('wppack_oauth_authentication_error', $error, $desc);
 
             throw new AuthenticationException('OAuth authentication failed.');
         }
@@ -89,8 +87,8 @@ final class OAuthAuthenticator implements AuthenticatorInterface
 
         $blogId = null;
 
-        if ($this->crossSiteRedirector !== null && function_exists('is_multisite') && is_multisite()) {
-            $blogId = function_exists('get_current_blog_id') ? get_current_blog_id() : null;
+        if ($this->crossSiteRedirector !== null && is_multisite()) {
+            $blogId = get_current_blog_id();
         }
 
         return new PostAuthenticationToken(
@@ -104,20 +102,18 @@ final class OAuthAuthenticator implements AuthenticatorInterface
     {
         $user = $token->getUser();
 
-        if ($this->addUserToBlog && function_exists('is_multisite') && is_multisite()) {
-            if (function_exists('is_user_member_of_blog') && !is_user_member_of_blog($user->ID)) {
-                if (function_exists('add_user_to_blog') && function_exists('get_current_blog_id')) {
-                    $role = !empty($user->roles) ? $user->roles[0] : 'subscriber';
-                    add_user_to_blog(get_current_blog_id(), $user->ID, $role);
-                }
+        if ($this->addUserToBlog && is_multisite()) {
+            if (!is_user_member_of_blog($user->ID)) {
+                $role = !empty($user->roles) ? $user->roles[0] : 'subscriber';
+                add_user_to_blog(get_current_blog_id(), $user->ID, $role);
             }
         }
 
         // For cross-site: use returnTo from POST
         $returnTo = $request->post->get('returnTo');
-        $fallback = function_exists('admin_url') ? admin_url() : '/wp-admin/';
+        $fallback = admin_url();
 
-        if ($returnTo !== null && $this->isSameOrigin($returnTo) && function_exists('wp_validate_redirect')) {
+        if ($returnTo !== null && $this->isSameOrigin($returnTo)) {
             $redirect = wp_validate_redirect($returnTo, $fallback);
         } else {
             $redirect = $fallback;
@@ -128,11 +124,9 @@ final class OAuthAuthenticator implements AuthenticatorInterface
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): Response
     {
-        if (function_exists('do_action')) {
-            do_action('wppack_oauth_authentication_failed', $exception);
-        }
+        do_action('wppack_oauth_authentication_failed', $exception);
 
-        $loginUrl = function_exists('wp_login_url') ? wp_login_url() : '/wp-login.php';
+        $loginUrl = wp_login_url();
 
         return new RedirectResponse($loginUrl . '?oauth_error=1');
     }
@@ -216,9 +210,7 @@ final class OAuthAuthenticator implements AuthenticatorInterface
         // Dispatch event
         $this->dispatcher->dispatch(new OAuthResponseReceivedEvent($subject, $claims, $tokenSet));
 
-        if (function_exists('do_action')) {
-            do_action('wppack_oauth_authenticated', $subject, $claims);
-        }
+        do_action('wppack_oauth_authenticated', $subject, $claims);
 
         $userResolver = $this->userResolver;
 
@@ -244,10 +236,6 @@ final class OAuthAuthenticator implements AuthenticatorInterface
             throw new AuthenticationException('OAuth authentication failed.');
         }
 
-        if (!function_exists('get_user_by')) {
-            throw new AuthenticationException('OAuth authentication failed.');
-        }
-
         $user = get_user_by('id', $userId);
 
         if (!$user instanceof \WP_User) {
@@ -267,10 +255,6 @@ final class OAuthAuthenticator implements AuthenticatorInterface
         $host = parse_url($url, \PHP_URL_HOST);
 
         if ($host === null || $host === false) {
-            return false;
-        }
-
-        if (!function_exists('home_url')) {
             return false;
         }
 

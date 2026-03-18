@@ -38,10 +38,6 @@ final class RestEntryTest extends TestCase
     #[Test]
     public function registerCallsRegisterRoute(): void
     {
-        if (!function_exists('register_rest_route')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $entry = new RestEntry(
             'test/v1',
             '/items',
@@ -60,9 +56,6 @@ final class RestEntryTest extends TestCase
     #[Test]
     public function callbackConvertsResponseToWpRestResponse(): void
     {
-        if (!class_exists(\WP_REST_Request::class)) {
-            self::markTestSkipped('WordPress classes are not available.');
-        }
 
         $response = new \WpPack\Component\HttpFoundation\Response('', 200, ['X-Custom' => 'yes']);
         $entry = new RestEntry(
@@ -89,9 +82,6 @@ final class RestEntryTest extends TestCase
     #[Test]
     public function callbackConvertsJsonResponseToWpRestResponse(): void
     {
-        if (!class_exists(\WP_REST_Request::class)) {
-            self::markTestSkipped('WordPress classes are not available.');
-        }
 
         $response = new \WpPack\Component\HttpFoundation\JsonResponse(['id' => 1], 201);
         $entry = new RestEntry(
@@ -118,10 +108,6 @@ final class RestEntryTest extends TestCase
     #[Test]
     public function callbackReturnsArrayAsRestResponse(): void
     {
-        if (!function_exists('rest_ensure_response')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $entry = new RestEntry(
             'test/v1',
             '/array',
@@ -145,9 +131,6 @@ final class RestEntryTest extends TestCase
     #[Test]
     public function callbackReturnsNoContentForNull(): void
     {
-        if (!class_exists(\WP_REST_Request::class)) {
-            self::markTestSkipped('WordPress classes are not available.');
-        }
 
         $entry = new RestEntry(
             'test/v1',
@@ -172,9 +155,6 @@ final class RestEntryTest extends TestCase
     #[Test]
     public function callbackConvertsHttpExceptionToWpError(): void
     {
-        if (!class_exists(\WP_REST_Request::class)) {
-            self::markTestSkipped('WordPress classes are not available.');
-        }
 
         $entry = new RestEntry(
             'test/v1',
@@ -203,9 +183,6 @@ final class RestEntryTest extends TestCase
     #[Test]
     public function callbackSetsResponseHeaders(): void
     {
-        if (!class_exists(\WP_REST_Request::class)) {
-            self::markTestSkipped('WordPress classes are not available.');
-        }
 
         $response = new \WpPack\Component\HttpFoundation\Response('', 200, ['X-Rate-Limit' => '100']);
         $entry = new RestEntry(

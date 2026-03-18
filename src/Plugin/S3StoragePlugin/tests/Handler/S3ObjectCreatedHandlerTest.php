@@ -93,28 +93,6 @@ final class S3ObjectCreatedHandlerTest extends TestCase
     }
 
     #[Test]
-    public function invokeRequiresWordPressFunctions(): void
-    {
-        if (function_exists('wp_insert_attachment')) {
-            self::markTestSkipped('WordPress functions are available.');
-        }
-
-        // Without WordPress functions, __invoke should return early without error
-        $message = new \WpPack\Plugin\S3StoragePlugin\Message\S3ObjectCreatedMessage(
-            bucket: 'my-bucket',
-            key: 'uploads/2024/01/photo.jpg',
-            size: 12345,
-            eTag: 'abc123',
-        );
-
-        // Should not throw an exception
-        ($this->handler)($message);
-
-        // If we get here, the handler gracefully handled missing WordPress functions
-        self::assertTrue(true);
-    }
-
-    #[Test]
     public function invokeSkipsResizedImages(): void
     {
         $bus = $this->createMock(MessageBusInterface::class);

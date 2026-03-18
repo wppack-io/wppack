@@ -14,10 +14,6 @@ final class NonceManagerTest extends TestCase
 
     protected function setUp(): void
     {
-        if (!function_exists('wp_create_nonce')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->nonceManager = new NonceManager();
     }
 

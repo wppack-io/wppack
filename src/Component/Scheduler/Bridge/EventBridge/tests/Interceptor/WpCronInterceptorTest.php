@@ -20,10 +20,6 @@ final class WpCronInterceptorTest extends TestCase
 
     protected function setUp(): void
     {
-        if (!\function_exists('add_filter')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->scheduler = new SpyScheduler();
         $this->interceptor = new WpCronInterceptor(
             $this->scheduler,
@@ -34,9 +30,7 @@ final class WpCronInterceptorTest extends TestCase
 
     protected function tearDown(): void
     {
-        if (\function_exists('remove_filter')) {
-            $this->interceptor->unregister();
-        }
+        $this->interceptor->unregister();
     }
 
     #[Test]

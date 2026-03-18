@@ -20,7 +20,7 @@ final class RoleVoter implements VoterInterface
 
         // Super Admin check (multisite)
         if ($attribute === 'ROLE_SUPER_ADMIN') {
-            return \function_exists('is_super_admin') && is_super_admin($token->getUser()->ID)
+            return is_super_admin($token->getUser()->ID)
                 ? self::ACCESS_GRANTED
                 : self::ACCESS_DENIED;
         }

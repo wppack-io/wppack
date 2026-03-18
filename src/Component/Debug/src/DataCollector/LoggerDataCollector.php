@@ -287,10 +287,6 @@ final class LoggerDataCollector extends AbstractDataCollector
 
     private function registerHooks(): void
     {
-        if (!function_exists('add_action')) {
-            return;
-        }
-
         add_action('deprecated_function_run', [$this, 'captureDeprecation'], 10, 3);
         add_action('deprecated_argument_run', [$this, 'captureDeprecation'], 10, 3);
         add_action('deprecated_hook_run', [$this, 'captureDeprecatedHook'], 10, 4);

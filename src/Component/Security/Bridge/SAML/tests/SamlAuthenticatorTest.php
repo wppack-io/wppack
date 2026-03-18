@@ -193,10 +193,6 @@ final class SamlAuthenticatorTest extends TestCase
     #[Test]
     public function createToken(): void
     {
-        if (!class_exists(\WP_User::class)) {
-            self::markTestSkipped('WordPress is not available.');
-        }
-
         $user = $this->createMock(\WP_User::class);
         $user->ID = 1;
         $user->roles = ['subscriber'];
@@ -231,10 +227,6 @@ final class SamlAuthenticatorTest extends TestCase
     #[Test]
     public function onAuthenticationSuccess(): void
     {
-        if (!class_exists(\WP_User::class)) {
-            self::markTestSkipped('WordPress is not available.');
-        }
-
         $user = $this->createMock(\WP_User::class);
         $user->ID = 1;
         $user->roles = ['subscriber'];
@@ -256,10 +248,6 @@ final class SamlAuthenticatorTest extends TestCase
     #[Test]
     public function onAuthenticationSuccessIgnoresNonSameOriginRelayState(): void
     {
-        if (!class_exists(\WP_User::class)) {
-            self::markTestSkipped('WordPress is not available.');
-        }
-
         $user = $this->createMock(\WP_User::class);
         $user->ID = 1;
         $user->roles = ['subscriber'];

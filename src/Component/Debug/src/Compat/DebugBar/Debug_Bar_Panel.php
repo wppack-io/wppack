@@ -37,9 +37,7 @@ class Debug_Bar_Panel
             return;
         }
 
-        if (function_exists('add_filter')) {
-            add_filter('debug_bar_classes', [$this, 'debug_bar_classes']);
-        }
+        add_filter('debug_bar_classes', [$this, 'debug_bar_classes']);
     }
 
     /**

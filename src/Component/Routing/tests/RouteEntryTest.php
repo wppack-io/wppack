@@ -22,10 +22,6 @@ final class RouteEntryTest extends TestCase
 
     protected function setUp(): void
     {
-        if (!function_exists('add_filter')) {
-            return;
-        }
-
         $this->wpDieFilter = static fn(): \Closure => static function (string|\WP_Error $message = ''): never {
             throw new \WPDieException(is_string($message) ? $message : $message->get_error_message());
         };
@@ -36,7 +32,7 @@ final class RouteEntryTest extends TestCase
 
     protected function tearDown(): void
     {
-        if ($this->wpDieFilter !== null && function_exists('remove_filter')) {
+        if ($this->wpDieFilter !== null) {
             remove_filter('wp_die_handler', $this->wpDieFilter, \PHP_INT_MAX);
             remove_filter('wp_die_ajax_handler', $this->wpDieFilter, \PHP_INT_MAX);
             $this->wpDieFilter = null;
@@ -124,10 +120,6 @@ final class RouteEntryTest extends TestCase
     #[Test]
     public function registerRouteCallsAddRewriteRule(): void
     {
-        if (!function_exists('add_rewrite_rule')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $entry = new RouteEntry(
             'test_route',
             '^test/([^/]+)/?$',
@@ -146,10 +138,6 @@ final class RouteEntryTest extends TestCase
     #[Test]
     public function handleTemplateRedirectCallsHandlerWhenMatches(): void
     {
-        if (!function_exists('get_query_var')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $called = false;
         $entry = new RouteEntry(
             'test_route',
@@ -173,10 +161,6 @@ final class RouteEntryTest extends TestCase
     #[Test]
     public function handleTemplateRedirectSkipsWhenNoMatch(): void
     {
-        if (!function_exists('get_query_var')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $called = false;
         $entry = new RouteEntry(
             'test_route',
@@ -215,10 +199,6 @@ final class RouteEntryTest extends TestCase
     #[Test]
     public function filterTemplateIncludeReturnsPendingTemplate(): void
     {
-        if (!function_exists('get_query_var')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $entry = new RouteEntry(
             'test_route',
             '^test/([^/]+)/?$',
@@ -237,10 +217,6 @@ final class RouteEntryTest extends TestCase
     #[Test]
     public function dispatchWithNullResponseDoesNothing(): void
     {
-        if (!function_exists('get_query_var')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $entry = new RouteEntry(
             'test_route',
             '^test/([^/]+)/?$',
@@ -260,10 +236,6 @@ final class RouteEntryTest extends TestCase
     #[Test]
     public function dispatchWithTemplateResponseSetsContextVariables(): void
     {
-        if (!function_exists('get_query_var') || !function_exists('set_query_var')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $entry = new RouteEntry(
             'test_route',
             '^test/([^/]+)/?$',
@@ -286,10 +258,6 @@ final class RouteEntryTest extends TestCase
     #[Test]
     public function dispatchWithUnsupportedResponseThrowsTypeError(): void
     {
-        if (!function_exists('get_query_var')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $unsupportedResponse = new \stdClass();
 
         $entry = new RouteEntry(
@@ -382,10 +350,6 @@ final class RouteEntryTest extends TestCase
     #[Test]
     public function registerRouteWithMultipleRewriteTags(): void
     {
-        if (!function_exists('add_rewrite_rule')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $entry = new RouteEntry(
             'test_route',
             '^products/([^/]+)/(\d+)/?$',
@@ -404,10 +368,6 @@ final class RouteEntryTest extends TestCase
     #[Test]
     public function dispatchWithTemplateResponseSetsStatusHeader(): void
     {
-        if (!function_exists('get_query_var') || !function_exists('status_header')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $entry = new RouteEntry(
             'test_route',
             '^test/([^/]+)/?$',
@@ -430,10 +390,6 @@ final class RouteEntryTest extends TestCase
     #[Test]
     public function handleTemplateRedirectDispatchesFirstMatchingVar(): void
     {
-        if (!function_exists('get_query_var') || !function_exists('set_query_var')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $dispatchCount = 0;
         $entry = new RouteEntry(
             'test_route',
@@ -460,10 +416,6 @@ final class RouteEntryTest extends TestCase
     #[Test]
     public function dispatchWithBlockTemplateResponse(): void
     {
-        if (!function_exists('get_query_var') || !function_exists('get_block_template')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $entry = new RouteEntry(
             'test_route',
             '^test/([^/]+)/?$',
@@ -496,10 +448,6 @@ final class RouteEntryTest extends TestCase
     #[Test]
     public function dispatchWithNotFoundExceptionSets404(): void
     {
-        if (!function_exists('get_query_var')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $entry = new RouteEntry(
             'test_route',
             '^test/([^/]+)/?$',
@@ -526,10 +474,6 @@ final class RouteEntryTest extends TestCase
     #[Test]
     public function dispatchWithHttpExceptionFallsBackToWpDie(): void
     {
-        if (!function_exists('get_query_var') || !function_exists('wp_die')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $entry = new RouteEntry(
             'test_route',
             '^test/([^/]+)/?$',
@@ -559,10 +503,6 @@ final class RouteEntryTest extends TestCase
     #[Test]
     public function dispatchWithExceptionFiresAction(): void
     {
-        if (!function_exists('get_query_var') || !function_exists('add_action')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $caughtException = null;
         add_action('wppack_routing_exception', function ($e) use (&$caughtException): void {
             $caughtException = $e;
@@ -596,10 +536,6 @@ final class RouteEntryTest extends TestCase
     #[Test]
     public function exceptionResponseFilterOverridesDefault(): void
     {
-        if (!function_exists('get_query_var') || !function_exists('add_filter')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         add_filter('wppack_routing_exception_response', function (?Response $response, $e): JsonResponse {
             return new JsonResponse(
                 ['error' => $e->getErrorCode(), 'message' => $e->getMessage()],

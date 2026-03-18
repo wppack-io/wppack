@@ -25,9 +25,7 @@ final class CrossSiteRedirector
             return false;
         }
 
-        $currentHost = function_exists('site_url')
-            ? parse_url(site_url(), \PHP_URL_HOST)
-            : ($_SERVER['HTTP_HOST'] ?? null);
+        $currentHost = parse_url(site_url(), \PHP_URL_HOST);
 
         if ($currentHost === null) {
             return false;
@@ -57,27 +55,19 @@ final class CrossSiteRedirector
         $timestamp = time();
 
         $payload = $userId . '|' . $timestamp . '|' . $token;
-        if (!function_exists('wp_hash')) {
-            throw new \RuntimeException('Cross-site redirect requires WordPress.');
-        }
-
         $hmac = wp_hash($payload);
 
-        if (function_exists('set_transient')) {
-            set_transient(
-                self::TRANSIENT_PREFIX . hash('sha256', $token),
-                [
-                    'user_id' => $userId,
-                    'hmac' => $hmac,
-                    'created_at' => $timestamp,
-                ],
-                self::TOKEN_TTL,
-            );
-        }
+        set_transient(
+            self::TRANSIENT_PREFIX . hash('sha256', $token),
+            [
+                'user_id' => $userId,
+                'hmac' => $hmac,
+                'created_at' => $timestamp,
+            ],
+            self::TOKEN_TTL,
+        );
 
-        if (function_exists('do_action')) {
-            do_action('wppack_oauth_cross_site_redirect', $targetUrl);
-        }
+        do_action('wppack_oauth_cross_site_redirect', $targetUrl);
 
         $verifyUrl = $this->resolveVerifyUrl($targetUrl);
 
@@ -93,10 +83,6 @@ final class CrossSiteRedirector
      */
     public function verifyToken(string $token): ?int
     {
-        if (!function_exists('get_transient') || !function_exists('delete_transient')) {
-            return null;
-        }
-
         $key = self::TRANSIENT_PREFIX . hash('sha256', $token);
         $data = get_transient($key);
 
@@ -115,10 +101,6 @@ final class CrossSiteRedirector
         }
 
         // Verify HMAC
-        if (!function_exists('wp_hash')) {
-            throw new \RuntimeException('Cross-site redirect requires WordPress.');
-        }
-
         $payload = $userId . '|' . $createdAt . '|' . $token;
         $expectedHmac = wp_hash($payload);
 
@@ -134,24 +116,20 @@ final class CrossSiteRedirector
 
     public function resolveBlogId(string $url): ?int
     {
-        if (!function_exists('is_multisite') || !is_multisite()) {
+        if (!is_multisite()) {
             return null;
         }
 
-        if (function_exists('get_blog_id_from_url')) {
-            $host = parse_url($url, \PHP_URL_HOST);
-            $path = parse_url($url, \PHP_URL_PATH) ?: '/';
+        $host = parse_url($url, \PHP_URL_HOST);
+        $path = parse_url($url, \PHP_URL_PATH) ?: '/';
 
-            if ($host === null || $host === false) {
-                return null;
-            }
-
-            $blogId = get_blog_id_from_url($host, $path);
-
-            return $blogId > 0 ? $blogId : null;
+        if ($host === null || $host === false) {
+            return null;
         }
 
-        return null;
+        $blogId = get_blog_id_from_url($host, $path);
+
+        return $blogId > 0 ? $blogId : null;
     }
 
     private function isHostAllowed(string $host): bool
@@ -160,7 +138,7 @@ final class CrossSiteRedirector
             return true;
         }
 
-        if (function_exists('is_multisite') && is_multisite() && function_exists('get_sites')) {
+        if (is_multisite()) {
             $sites = get_sites(['number' => 0]);
 
             foreach ($sites as $site) {

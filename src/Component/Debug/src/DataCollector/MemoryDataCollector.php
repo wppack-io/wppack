@@ -125,10 +125,6 @@ final class MemoryDataCollector extends AbstractDataCollector
 
     private function registerHooks(): void
     {
-        if (!function_exists('add_action')) {
-            return;
-        }
-
         add_action('wp_loaded', [$this, 'onWpLoaded'], PHP_INT_MAX);
         add_action('template_redirect', [$this, 'onTemplateRedirect'], PHP_INT_MAX);
         add_action('wp_footer', [$this, 'onWpFooter'], PHP_INT_MAX);

@@ -203,14 +203,9 @@ final class RequestDataCollector extends AbstractDataCollector
 
     private function registerHooks(): void
     {
-        if (function_exists('add_filter')) {
-            add_filter('status_header', [$this, 'captureStatusCode'], 10, 2);
-            add_filter('wp_headers', [$this, 'captureResponseHeaders'], 10, 1);
-        }
-
-        if (function_exists('add_action')) {
-            add_action('http_api_debug', [$this, 'captureHttpApiCall'], 10, 5);
-        }
+        add_filter('status_header', [$this, 'captureStatusCode'], 10, 2);
+        add_filter('wp_headers', [$this, 'captureResponseHeaders'], 10, 1);
+        add_action('http_api_debug', [$this, 'captureHttpApiCall'], 10, 5);
     }
 
     /**

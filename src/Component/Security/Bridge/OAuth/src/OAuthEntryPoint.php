@@ -27,9 +27,7 @@ final class OAuthEntryPoint
     {
         $url = $this->getLoginUrl($returnTo);
 
-        if (function_exists('wp_redirect')) {
-            wp_redirect($url);
-        }
+        wp_redirect($url);
 
         exit;
     }

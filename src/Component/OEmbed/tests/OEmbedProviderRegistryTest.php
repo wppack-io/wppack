@@ -16,10 +16,6 @@ final class OEmbedProviderRegistryTest extends TestCase
 
     protected function setUp(): void
     {
-        if (!function_exists('wp_oembed_add_provider')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->registry = new OEmbedProviderRegistry();
     }
 

@@ -94,10 +94,6 @@ final class HookRegistryTest extends TestCase
     #[Test]
     public function throwsWhenAddingAfterBind(): void
     {
-        if (!\function_exists('add_action')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $registry = new HookRegistry();
         $registry->bind();
 
@@ -108,10 +104,6 @@ final class HookRegistryTest extends TestCase
     #[Test]
     public function throwsWhenAddingRegisteredHookAfterBind(): void
     {
-        if (!\function_exists('add_action')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $registry = new HookRegistry();
         $registry->bind();
 
@@ -126,10 +118,6 @@ final class HookRegistryTest extends TestCase
     #[Test]
     public function bindIsIdempotent(): void
     {
-        if (!\function_exists('add_action')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $registry = new HookRegistry();
         $registry->addAction('init', static function (): void {});
 

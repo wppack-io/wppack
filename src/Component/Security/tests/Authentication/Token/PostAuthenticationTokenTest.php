@@ -11,13 +11,6 @@ use WpPack\Component\Security\Authentication\Token\PostAuthenticationToken;
 
 final class PostAuthenticationTokenTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        if (!class_exists(\WP_User::class)) {
-            self::markTestSkipped('WP_User class is not available.');
-        }
-    }
-
     #[Test]
     public function tokenReturnsUser(): void
     {

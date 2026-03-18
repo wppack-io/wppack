@@ -18,10 +18,6 @@ final class SchemaManagerTest extends TestCase
 
     protected function setUp(): void
     {
-        if (!function_exists('wp_remote_request')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->db = new DatabaseManager();
     }
 

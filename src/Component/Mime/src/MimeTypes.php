@@ -83,20 +83,18 @@ final class MimeTypes implements MimeTypesInterface
     {
         $mimeType = strtolower($mimeType);
 
-        if (\function_exists('wp_get_mime_types')) {
-            /** @var array<string, string> $wpTypes */
-            $wpTypes = wp_get_mime_types();
-            $extensions = [];
-            foreach ($wpTypes as $extPattern => $mime) {
-                if (strtolower($mime) === $mimeType) {
-                    foreach (explode('|', $extPattern) as $ext) {
-                        $extensions[] = $ext;
-                    }
+        /** @var array<string, string> $wpTypes */
+        $wpTypes = wp_get_mime_types();
+        $extensions = [];
+        foreach ($wpTypes as $extPattern => $mime) {
+            if (strtolower($mime) === $mimeType) {
+                foreach (explode('|', $extPattern) as $ext) {
+                    $extensions[] = $ext;
                 }
             }
-            if ($extensions !== []) {
-                return $extensions;
-            }
+        }
+        if ($extensions !== []) {
+            return $extensions;
         }
 
         return MimeTypeMap::MIMES_TO_EXTENSIONS[$mimeType] ?? [];
@@ -106,19 +104,17 @@ final class MimeTypes implements MimeTypesInterface
     {
         $extension = strtolower(ltrim($extension, '.'));
 
-        if (\function_exists('wp_get_mime_types')) {
-            /** @var array<string, string> $wpTypes */
-            $wpTypes = wp_get_mime_types();
-            $mimeTypes = [];
-            foreach ($wpTypes as $extPattern => $mime) {
-                $exts = explode('|', $extPattern);
-                if (\in_array($extension, $exts, true)) {
-                    $mimeTypes[] = $mime;
-                }
+        /** @var array<string, string> $wpTypes */
+        $wpTypes = wp_get_mime_types();
+        $mimeTypes = [];
+        foreach ($wpTypes as $extPattern => $mime) {
+            $exts = explode('|', $extPattern);
+            if (\in_array($extension, $exts, true)) {
+                $mimeTypes[] = $mime;
             }
-            if ($mimeTypes !== []) {
-                return $mimeTypes;
-            }
+        }
+        if ($mimeTypes !== []) {
+            return $mimeTypes;
         }
 
         return MimeTypeMap::EXTENSIONS_TO_MIMES[$extension] ?? [];
@@ -126,68 +122,34 @@ final class MimeTypes implements MimeTypesInterface
 
     public function getAllowedMimeTypes(?int $userId = null): array
     {
-        if (\function_exists('get_allowed_mime_types')) {
-            /** @var array<string, string> */
-            return get_allowed_mime_types($userId);
-        }
-
-        // Group extensions by primary MIME type to match WP's pipe-separated key format
-        $grouped = [];
-        foreach (MimeTypeMap::EXTENSIONS_TO_MIMES as $ext => $mimes) {
-            $grouped[$mimes[0]][] = $ext;
-        }
-
-        $result = [];
-        foreach ($grouped as $mime => $exts) {
-            $result[implode('|', $exts)] = $mime;
-        }
-
-        return $result;
+        /** @var array<string, string> */
+        return get_allowed_mime_types($userId);
     }
 
     public function getExtensionType(string $extension): ?string
     {
         $extension = strtolower(ltrim($extension, '.'));
 
-        if (\function_exists('wp_ext2type')) {
-            /** @var string|null */
-            return wp_ext2type($extension);
-        }
-
-        return MimeTypeMap::EXTENSION_TYPES[$extension] ?? null;
+        /** @var string|null */
+        return wp_ext2type($extension);
     }
 
     public function validateFile(string $filePath, string $filename): FileTypeInfo
     {
-        if (\function_exists('wp_check_filetype_and_ext')) {
-            /** @var array{ext: string|false, type: string|false, proper_filename: string|false} $result */
-            $result = wp_check_filetype_and_ext($filePath, $filename);
-
-            return new FileTypeInfo(
-                extension: \is_string($result['ext']) && $result['ext'] !== '' ? $result['ext'] : null,
-                mimeType: \is_string($result['type']) && $result['type'] !== '' ? $result['type'] : null,
-                properFilename: \is_string($result['proper_filename']) && $result['proper_filename'] !== ''
-                    ? $result['proper_filename'] : null,
-            );
-        }
-
-        $mimeType = $this->guessMimeType($filePath);
-        $ext = strtolower(pathinfo($filename, \PATHINFO_EXTENSION));
-        $validExt = $ext !== '' ? $ext : null;
+        /** @var array{ext: string|false, type: string|false, proper_filename: string|false} $result */
+        $result = wp_check_filetype_and_ext($filePath, $filename);
 
         return new FileTypeInfo(
-            extension: $validExt,
-            mimeType: $mimeType,
+            extension: \is_string($result['ext']) && $result['ext'] !== '' ? $result['ext'] : null,
+            mimeType: \is_string($result['type']) && $result['type'] !== '' ? $result['type'] : null,
+            properFilename: \is_string($result['proper_filename']) && $result['proper_filename'] !== ''
+                ? $result['proper_filename'] : null,
         );
     }
 
     public function sanitize(string $mimeType): string
     {
-        if (\function_exists('sanitize_mime_type')) {
-            /** @var string */
-            return sanitize_mime_type($mimeType);
-        }
-
-        return (string) preg_replace('/[^-+*.a-zA-Z0-9\/]/', '', $mimeType);
+        /** @var string */
+        return sanitize_mime_type($mimeType);
     }
 }

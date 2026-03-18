@@ -22,10 +22,6 @@ final class TokenExchangerTest extends TestCase
 
     protected function setUp(): void
     {
-        if (!\function_exists('wp_remote_request')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->httpClient = new HttpClient();
         $this->exchanger = new TokenExchanger($this->httpClient);
 
@@ -34,9 +30,7 @@ final class TokenExchangerTest extends TestCase
 
     protected function tearDown(): void
     {
-        if (\function_exists('remove_filter')) {
-            remove_filter('pre_http_request', [$this, 'mockHttpResponse'], 10);
-        }
+        remove_filter('pre_http_request', [$this, 'mockHttpResponse'], 10);
     }
 
     /**

@@ -61,24 +61,8 @@ final class RoleVoterTest extends TestCase
     }
 
     #[Test]
-    public function superAdminDeniedWhenWordPressNotAvailable(): void
-    {
-        if (\function_exists('is_super_admin')) {
-            self::markTestSkipped('is_super_admin() is available; tested in integration test.');
-        }
-
-        $token = $this->createTokenWithRoles(['administrator']);
-
-        self::assertSame(VoterInterface::ACCESS_DENIED, $this->voter->vote($token, 'ROLE_SUPER_ADMIN'));
-    }
-
-    #[Test]
     public function superAdminGrantedForAdminOnSingleSite(): void
     {
-        if (!\function_exists('is_super_admin')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $userId = wp_insert_user([
             'user_login' => 'test_admin_' . uniqid(),
             'user_pass' => wp_generate_password(),
@@ -95,10 +79,6 @@ final class RoleVoterTest extends TestCase
     #[Test]
     public function superAdminDeniedForSubscriber(): void
     {
-        if (!\function_exists('is_super_admin')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $userId = wp_insert_user([
             'user_login' => 'test_subscriber_' . uniqid(),
             'user_pass' => wp_generate_password(),

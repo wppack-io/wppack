@@ -23,10 +23,6 @@ final class MultisiteScheduleGroupResolver implements ScheduleGroupResolverInter
 
     private function getCurrentBlogId(): int
     {
-        if (\function_exists('get_current_blog_id')) {
-            return get_current_blog_id();
-        }
-
-        return 1;
+        return get_current_blog_id();
     }
 }

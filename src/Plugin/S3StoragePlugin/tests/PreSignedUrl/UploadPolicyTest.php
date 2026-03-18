@@ -102,14 +102,11 @@ final class UploadPolicyTest extends TestCase
     }
 
     #[Test]
-    public function getAllowedMimeTypesReturnsEmptyWithoutWordPress(): void
+    public function getAllowedMimeTypesReturnsWordPressDefaults(): void
     {
-        if (function_exists('get_allowed_mime_types')) {
-            self::markTestSkipped('WordPress functions are available, cannot test fallback.');
-        }
-
         $policy = new UploadPolicy();
 
-        self::assertSame([], $policy->getAllowedMimeTypes());
+        $expected = array_values(array_unique(get_allowed_mime_types()));
+        self::assertSame($expected, $policy->getAllowedMimeTypes());
     }
 }

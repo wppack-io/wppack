@@ -58,19 +58,6 @@ final class WidgetDataCollector extends AbstractDataCollector
 
     public function collect(): void
     {
-        if (!function_exists('wp_get_sidebars_widgets')) {
-            $this->data = [
-                'sidebars' => [],
-                'total_widgets' => 0,
-                'total_sidebars' => 0,
-                'active_widgets' => 0,
-                'render_time' => 0.0,
-                'sidebar_timings' => [],
-            ];
-
-            return;
-        }
-
         global $wp_registered_sidebars, $wp_registered_widgets;
 
         $sidebarsWidgets = wp_get_sidebars_widgets();
@@ -150,10 +137,6 @@ final class WidgetDataCollector extends AbstractDataCollector
 
     private function registerHooks(): void
     {
-        if (!function_exists('add_action')) {
-            return;
-        }
-
         add_action('dynamic_sidebar_before', [$this, 'captureSidebarBefore'], \PHP_INT_MIN, 1);
         add_action('dynamic_sidebar_after', [$this, 'captureSidebarAfter'], \PHP_INT_MAX, 1);
     }

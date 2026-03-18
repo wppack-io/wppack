@@ -63,10 +63,6 @@ final class WordPressChannelResolverTest extends TestCase
     #[Test]
     public function resolvesThemeDirectory(): void
     {
-        if (!defined('ABSPATH')) {
-            self::markTestSkipped('ABSPATH is not defined.');
-        }
-
         $path = ABSPATH . 'wp-content/themes/twentytwentyfour/functions.php';
 
         self::assertSame('theme:twentytwentyfour', $this->resolver->resolve($path));
@@ -75,10 +71,6 @@ final class WordPressChannelResolverTest extends TestCase
     #[Test]
     public function resolvesWpIncludes(): void
     {
-        if (!defined('ABSPATH')) {
-            self::markTestSkipped('ABSPATH is not defined.');
-        }
-
         $path = ABSPATH . 'wp-includes/plugin.php';
 
         self::assertSame('wordpress', $this->resolver->resolve($path));
@@ -87,10 +79,6 @@ final class WordPressChannelResolverTest extends TestCase
     #[Test]
     public function resolvesWpAdmin(): void
     {
-        if (!defined('ABSPATH')) {
-            self::markTestSkipped('ABSPATH is not defined.');
-        }
-
         $path = ABSPATH . 'wp-admin/admin.php';
 
         self::assertSame('wordpress', $this->resolver->resolve($path));

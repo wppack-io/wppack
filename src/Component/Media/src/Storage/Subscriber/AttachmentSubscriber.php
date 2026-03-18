@@ -31,10 +31,6 @@ final readonly class AttachmentSubscriber
     #[WpGetAttachmentUrlFilter]
     public function filterAttachmentUrl(string $url, int $postId): string
     {
-        if (!function_exists('get_post_meta')) {
-            return $url;
-        }
-
         $file = get_post_meta($postId, '_wp_attached_file', true);
         if (!\is_string($file) || $file === '') {
             return $url;
@@ -57,17 +53,15 @@ final readonly class AttachmentSubscriber
         }
 
         // Get the relative path from post meta (stored as relative to uploads dir)
-        if (function_exists('get_post_meta')) {
-            $relativePath = get_post_meta($attachmentId, '_wp_attached_file', true);
-            if (\is_string($relativePath) && $relativePath !== '') {
-                return sprintf(
-                    '%s://%s/%s/%s',
-                    $this->config->protocol,
-                    $this->config->bucket,
-                    $this->config->prefix,
-                    ltrim($relativePath, '/'),
-                );
-            }
+        $relativePath = get_post_meta($attachmentId, '_wp_attached_file', true);
+        if (\is_string($relativePath) && $relativePath !== '') {
+            return sprintf(
+                '%s://%s/%s/%s',
+                $this->config->protocol,
+                $this->config->bucket,
+                $this->config->prefix,
+                ltrim($relativePath, '/'),
+            );
         }
 
         // Fallback: treat the file path as relative
@@ -82,10 +76,6 @@ final readonly class AttachmentSubscriber
     #[DeleteAttachmentAction]
     public function onDeleteAttachment(int $postId): void
     {
-        if (!function_exists('get_post_meta') || !function_exists('wp_get_attachment_metadata')) {
-            return;
-        }
-
         $file = get_post_meta($postId, '_wp_attached_file', true);
         if (!\is_string($file) || $file === '') {
             return;
@@ -120,10 +110,6 @@ final readonly class AttachmentSubscriber
     public function setFilesizeInMeta(array $metadata, int $attachmentId): array
     {
         if (isset($metadata['filesize']) && $metadata['filesize'] > 0) {
-            return $metadata;
-        }
-
-        if (!function_exists('get_post_meta')) {
             return $metadata;
         }
 

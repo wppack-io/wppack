@@ -20,7 +20,7 @@ final class TemplateLocator
      * Locate a template file.
      *
      * Search order:
-     * 1. WordPress locate_template() (if available)
+     * 1. WordPress locate_template()
      * 2. Custom paths in registration order
      *
      * @param string $template Template name (e.g., 'partials/card')
@@ -33,11 +33,9 @@ final class TemplateLocator
         $candidates = $this->buildCandidates($template, $variant);
 
         // 1. WordPress theme template lookup
-        if (function_exists('locate_template')) {
-            $found = locate_template($candidates);
-            if ($found !== '') {
-                return $found;
-            }
+        $found = locate_template($candidates);
+        if ($found !== '') {
+            return $found;
         }
 
         // 2. Custom paths

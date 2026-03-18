@@ -21,16 +21,12 @@ final class SendGridApiTransportTest extends TestCase
     {
         parent::setUp();
 
-        if (function_exists('add_filter')) {
-            add_filter('pre_http_request', [$this, 'mockHttpResponse'], 10, 3);
-        }
+        add_filter('pre_http_request', [$this, 'mockHttpResponse'], 10, 3);
     }
 
     protected function tearDown(): void
     {
-        if (function_exists('remove_filter')) {
-            remove_filter('pre_http_request', [$this, 'mockHttpResponse'], 10);
-        }
+        remove_filter('pre_http_request', [$this, 'mockHttpResponse'], 10);
         $this->mockResponse = null;
         $this->capturedBody = null;
         parent::tearDown();
@@ -76,10 +72,6 @@ final class SendGridApiTransportTest extends TestCase
     #[Test]
     public function sendBuildsApiPayload(): void
     {
-        if (!function_exists('wp_json_encode')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->mockResponse = [
             'headers' => ['X-Message-Id' => 'sg-test-id-123'],
             'body' => '',
@@ -105,10 +97,6 @@ final class SendGridApiTransportTest extends TestCase
     #[Test]
     public function sendWithReplyTo(): void
     {
-        if (!function_exists('wp_json_encode')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->mockResponse = [
             'headers' => ['X-Message-Id' => 'sg-reply-id'],
             'body' => '',
@@ -131,10 +119,6 @@ final class SendGridApiTransportTest extends TestCase
     #[Test]
     public function sendWithMultipleReplyTo(): void
     {
-        if (!function_exists('wp_json_encode')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->mockResponse = [
             'headers' => ['X-Message-Id' => 'sg-multi-reply-id'],
             'body' => '',
@@ -158,10 +142,6 @@ final class SendGridApiTransportTest extends TestCase
     #[Test]
     public function sendWithAttachments(): void
     {
-        if (!function_exists('wp_json_encode')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->mockResponse = [
             'headers' => ['X-Message-Id' => 'sg-att-id'],
             'body' => '',
@@ -185,10 +165,6 @@ final class SendGridApiTransportTest extends TestCase
     #[Test]
     public function sendThrowsOnApiError(): void
     {
-        if (!function_exists('wp_json_encode')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->mockResponse = [
             'headers' => [],
             'body' => '{"errors":[{"message":"Bad Request"}]}',
@@ -208,10 +184,6 @@ final class SendGridApiTransportTest extends TestCase
     #[Test]
     public function sendThrowsOnMissingMessageId(): void
     {
-        if (!function_exists('wp_json_encode')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->mockResponse = [
             'headers' => [],
             'body' => '',
@@ -231,10 +203,6 @@ final class SendGridApiTransportTest extends TestCase
     #[Test]
     public function sendWithCcAndBcc(): void
     {
-        if (!function_exists('wp_json_encode')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->mockResponse = [
             'headers' => ['X-Message-Id' => 'sg-cc-bcc-id'],
             'body' => '',
@@ -261,10 +229,6 @@ final class SendGridApiTransportTest extends TestCase
     #[Test]
     public function sendWithHtmlContent(): void
     {
-        if (!function_exists('wp_json_encode')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->mockResponse = [
             'headers' => ['X-Message-Id' => 'sg-html-id'],
             'body' => '',
@@ -293,10 +257,6 @@ final class SendGridApiTransportTest extends TestCase
     #[Test]
     public function sendWithInlineAttachment(): void
     {
-        if (!function_exists('wp_json_encode')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->mockResponse = [
             'headers' => ['X-Message-Id' => 'sg-inline-id'],
             'body' => '',

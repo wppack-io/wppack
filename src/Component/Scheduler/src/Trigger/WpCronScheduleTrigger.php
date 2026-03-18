@@ -27,13 +27,11 @@ final class WpCronScheduleTrigger implements TriggerInterface
         }
 
         // Fallback to WordPress registered schedules (e.g. fifteen_minutes, plugin-defined)
-        if (\function_exists('wp_get_schedules')) {
-            $wpSchedules = wp_get_schedules();
-            if (isset($wpSchedules[$this->schedule]['interval'])) {
-                $this->intervalInSeconds = (int) $wpSchedules[$this->schedule]['interval'];
+        $wpSchedules = wp_get_schedules();
+        if (isset($wpSchedules[$this->schedule]['interval'])) {
+            $this->intervalInSeconds = (int) $wpSchedules[$this->schedule]['interval'];
 
-                return;
-            }
+            return;
         }
 
         throw new InvalidArgumentException(sprintf(

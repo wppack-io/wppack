@@ -10,13 +10,6 @@ use WpPack\Component\Setting\ValidationContext;
 
 final class ValidationContextTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        if (!function_exists('add_settings_error')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-    }
-
     #[Test]
     public function errorAddsSettingsError(): void
     {

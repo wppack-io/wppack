@@ -52,13 +52,6 @@ final readonly class PreSignedUrlGenerator
 
     private function sanitizeFilename(string $filename): string
     {
-        if (function_exists('sanitize_file_name')) {
-            return sanitize_file_name($filename);
-        }
-
-        // Fallback: basic sanitization
-        $filename = preg_replace('/[^\w\-.]/', '-', $filename) ?? $filename;
-
-        return trim($filename, '-');
+        return sanitize_file_name($filename);
     }
 }

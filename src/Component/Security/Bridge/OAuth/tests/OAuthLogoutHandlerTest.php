@@ -17,17 +17,15 @@ final class OAuthLogoutHandlerTest extends TestCase
 
     protected function setUp(): void
     {
-        if (function_exists('add_filter')) {
-            // Prevent setcookie() calls from wp_clear_auth_cookie() which produce
-            // "Cannot modify header information" warnings when running under coverage.
-            $this->suppressCookies = static fn(): bool => false;
-            add_filter('send_auth_cookies', $this->suppressCookies, \PHP_INT_MAX);
-        }
+        // Prevent setcookie() calls from wp_clear_auth_cookie() which produce
+        // "Cannot modify header information" warnings when running under coverage.
+        $this->suppressCookies = static fn(): bool => false;
+        add_filter('send_auth_cookies', $this->suppressCookies, \PHP_INT_MAX);
     }
 
     protected function tearDown(): void
     {
-        if ($this->suppressCookies !== null && function_exists('remove_filter')) {
+        if ($this->suppressCookies !== null) {
             remove_filter('send_auth_cookies', $this->suppressCookies, \PHP_INT_MAX);
             $this->suppressCookies = null;
         }
@@ -69,10 +67,6 @@ final class OAuthLogoutHandlerTest extends TestCase
     #[Test]
     public function handleLocalLogout(): void
     {
-        if (!function_exists('wp_logout')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $provider = $this->createMock(ProviderInterface::class);
         $handler = new OAuthLogoutHandler($provider);
 

@@ -88,45 +88,4 @@ final class MimeTypeMapTest extends TestCase
         }
     }
 
-    #[Test]
-    public function extensionTypesCoversCommonTypes(): void
-    {
-        self::assertSame('image', MimeTypeMap::EXTENSION_TYPES['jpg']);
-        self::assertSame('image', MimeTypeMap::EXTENSION_TYPES['png']);
-        self::assertSame('audio', MimeTypeMap::EXTENSION_TYPES['mp3']);
-        self::assertSame('video', MimeTypeMap::EXTENSION_TYPES['mp4']);
-        self::assertSame('document', MimeTypeMap::EXTENSION_TYPES['pdf']);
-        self::assertSame('document', MimeTypeMap::EXTENSION_TYPES['docx']);
-        self::assertSame('spreadsheet', MimeTypeMap::EXTENSION_TYPES['xlsx']);
-        self::assertSame('archive', MimeTypeMap::EXTENSION_TYPES['zip']);
-        self::assertSame('code', MimeTypeMap::EXTENSION_TYPES['html']);
-        self::assertSame('font', MimeTypeMap::EXTENSION_TYPES['woff2']);
-        self::assertSame('text', MimeTypeMap::EXTENSION_TYPES['txt']);
-    }
-
-    #[Test]
-    public function extensionTypesAllLowerCaseKeys(): void
-    {
-        foreach (array_keys(MimeTypeMap::EXTENSION_TYPES) as $ext) {
-            self::assertSame(strtolower($ext), $ext, sprintf('Extension type key "%s" should be lowercase', $ext));
-        }
-    }
-
-    #[Test]
-    public function extensionTypesCoversAllExtensionsToMimes(): void
-    {
-        $missing = array_diff(
-            array_keys(MimeTypeMap::EXTENSIONS_TO_MIMES),
-            array_keys(MimeTypeMap::EXTENSION_TYPES),
-        );
-
-        self::assertSame(
-            [],
-            $missing,
-            sprintf(
-                'EXTENSION_TYPES is missing entries for: %s',
-                implode(', ', $missing),
-            ),
-        );
-    }
 }

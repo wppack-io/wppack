@@ -15,10 +15,6 @@ final class MenuRegistryTest extends TestCase
 
     protected function setUp(): void
     {
-        if (!function_exists('register_nav_menus')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->registry = new MenuRegistry();
     }
 

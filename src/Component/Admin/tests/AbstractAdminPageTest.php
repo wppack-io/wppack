@@ -153,10 +153,6 @@ final class AbstractAdminPageTest extends TestCase
     #[Test]
     public function addMenuPageRegistersTopLevelPage(): void
     {
-        if (!function_exists('add_menu_page')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         global $menu;
 
         $page = new ConcreteTestAdminPage();
@@ -175,13 +171,7 @@ final class AbstractAdminPageTest extends TestCase
     #[Test]
     public function addMenuPageRegistersSubmenuPage(): void
     {
-        if (!function_exists('add_submenu_page')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
-        if (function_exists('wp_set_current_user')) {
-            wp_set_current_user(1);
-        }
+        wp_set_current_user(1);
 
         global $submenu;
 
@@ -203,10 +193,6 @@ final class AbstractAdminPageTest extends TestCase
     #[Test]
     public function handleEnqueueCallsOnlyOnMatchingHookSuffix(): void
     {
-        if (!function_exists('add_menu_page')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $page = new EnqueueScriptsTestAdminPage();
         $page->addMenuPage();
 
@@ -224,10 +210,6 @@ final class AbstractAdminPageTest extends TestCase
     #[Test]
     public function handleEnqueueSkipsWhenHookSuffixDiffers(): void
     {
-        if (!function_exists('add_menu_page')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $page = new EnqueueScriptsTestAdminPage();
         $page->addMenuPage();
 

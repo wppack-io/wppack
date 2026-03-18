@@ -51,11 +51,6 @@ final class MultisiteScheduleGroupResolverTest extends TestCase
     #[Test]
     public function nullBlogIdFallsBackToDefault(): void
     {
-        // Without WordPress, get_current_blog_id() doesn't exist → falls back to 1
-        if (\function_exists('get_current_blog_id')) {
-            self::markTestSkipped('WordPress is loaded, cannot test fallback.');
-        }
-
         self::assertSame('wppack', $this->resolver->resolve());
     }
 

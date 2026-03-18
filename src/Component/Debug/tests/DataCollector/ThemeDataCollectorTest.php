@@ -30,34 +30,6 @@ final class ThemeDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function collectWithoutWordPressReturnsDefaults(): void
-    {
-        if (function_exists('wp_get_theme')) {
-            self::markTestSkipped('WordPress functions are available.');
-        }
-
-        $this->collector->collect();
-        $data = $this->collector->getData();
-
-        self::assertSame('', $data['name']);
-        self::assertSame('', $data['version']);
-        self::assertFalse($data['is_child_theme']);
-        self::assertFalse($data['is_block_theme']);
-        self::assertSame('', $data['template_file']);
-        self::assertSame([], $data['template_parts']);
-        self::assertSame([], $data['body_classes']);
-        self::assertSame([], $data['conditional_tags']);
-        self::assertSame([], $data['enqueued_styles']);
-        self::assertSame([], $data['enqueued_scripts']);
-        self::assertSame(0.0, $data['setup_time']);
-        self::assertSame(0.0, $data['render_time']);
-        self::assertSame(0, $data['hook_count']);
-        self::assertSame(0, $data['listener_count']);
-        self::assertSame(0.0, $data['hook_time']);
-        self::assertSame([], $data['hooks']);
-    }
-
-    #[Test]
     public function getIndicatorValueReturnsEmptyString(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
@@ -162,9 +134,6 @@ final class ThemeDataCollectorTest extends TestCase
     #[Test]
     public function collectWithWordPressGathersThemeData(): void
     {
-        if (!function_exists('wp_get_theme')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $this->collector->collect();
         $data = $this->collector->getData();
@@ -180,9 +149,6 @@ final class ThemeDataCollectorTest extends TestCase
     #[Test]
     public function collectIncludesConditionalTags(): void
     {
-        if (!function_exists('wp_get_theme')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $this->collector->collect();
         $data = $this->collector->getData();
@@ -204,9 +170,6 @@ final class ThemeDataCollectorTest extends TestCase
     #[Test]
     public function collectIncludesThemeHookAttribution(): void
     {
-        if (!function_exists('wp_get_theme')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $this->collector->collect();
         $data = $this->collector->getData();
@@ -226,9 +189,6 @@ final class ThemeDataCollectorTest extends TestCase
     #[Test]
     public function collectWithSetupTimingIncludesTimingData(): void
     {
-        if (!function_exists('wp_get_theme')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $this->collector->captureSetupStart();
         usleep(1000);
@@ -248,9 +208,6 @@ final class ThemeDataCollectorTest extends TestCase
     #[Test]
     public function collectWithTemplatePartsIncludesTemplateData(): void
     {
-        if (!function_exists('wp_get_theme')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $this->collector->captureTemplateInclude('/path/to/single.php');
         $this->collector->captureTemplatePart('header');
@@ -268,9 +225,6 @@ final class ThemeDataCollectorTest extends TestCase
     #[Test]
     public function collectGathersThemeNameAndVersion(): void
     {
-        if (!function_exists('wp_get_theme')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $this->collector->collect();
         $data = $this->collector->getData();
@@ -283,9 +237,6 @@ final class ThemeDataCollectorTest extends TestCase
     #[Test]
     public function collectChildThemeDetection(): void
     {
-        if (!function_exists('wp_get_theme') || !function_exists('is_child_theme')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $this->collector->collect();
         $data = $this->collector->getData();
@@ -305,9 +256,6 @@ final class ThemeDataCollectorTest extends TestCase
     #[Test]
     public function collectBlockThemeDetection(): void
     {
-        if (!function_exists('wp_get_theme') || !function_exists('wp_is_block_theme')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $this->collector->collect();
         $data = $this->collector->getData();
@@ -318,9 +266,6 @@ final class ThemeDataCollectorTest extends TestCase
     #[Test]
     public function collectEnqueuedAssetsWithWordPress(): void
     {
-        if (!function_exists('wp_get_theme') || !function_exists('wp_enqueue_script')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         wp_enqueue_script('test-theme-script', '/js/theme-test.js', [], '1.0', true);
         wp_enqueue_style('test-theme-style', '/css/theme-test.css', [], '1.0');
@@ -372,9 +317,6 @@ final class ThemeDataCollectorTest extends TestCase
     #[Test]
     public function collectWithWordPressProducesCompleteThemeData(): void
     {
-        if (!function_exists('wp_get_theme')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         // Set up timing data to exercise lines 176 (setup_time) and 177 (render_time)
         $this->collector->captureSetupStart();
@@ -421,14 +363,11 @@ final class ThemeDataCollectorTest extends TestCase
     #[Test]
     public function collectAccumulatesThemeHookTimeAndListeners(): void
     {
-        if (!function_exists('wp_get_theme') || !defined('ABSPATH')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         // Register a hook from the theme directory to ensure buildThemeHookAttribution
         // finds at least one theme hook. We create a temp file inside the themes dir.
         $themeDir = ABSPATH . 'wp-content/themes';
-        $currentTheme = function_exists('get_stylesheet') ? get_stylesheet() : 'default';
+        $currentTheme = get_stylesheet();
         $themeSubDir = $themeDir . '/' . $currentTheme;
         $fakeFile = $themeSubDir . '/test-coverage-func.php';
         $funcName = 'test_theme_hook_coverage_' . md5(uniqid());
@@ -458,9 +397,7 @@ final class ThemeDataCollectorTest extends TestCase
                 self::assertGreaterThanOrEqual(1, $data['listener_count']);
             }
         } finally {
-            if (function_exists('remove_all_actions')) {
-                remove_all_actions($hookName);
-            }
+            remove_all_actions($hookName);
             if ($fileCreated && file_exists($fakeFile)) {
                 unlink($fakeFile);
             }
@@ -474,10 +411,6 @@ final class ThemeDataCollectorTest extends TestCase
     #[Test]
     public function buildThemeHookAttributionSkipsNonObjectEntries(): void
     {
-        if (!defined('ABSPATH')) {
-            self::markTestSkipped('ABSPATH is not defined.');
-        }
-
         $collector = new ThemeDataCollector();
         $method = new \ReflectionMethod($collector, 'buildThemeHookAttribution');
 
@@ -502,10 +435,6 @@ final class ThemeDataCollectorTest extends TestCase
     #[Test]
     public function buildThemeHookAttributionDetectsThemeCallbacks(): void
     {
-        if (!defined('ABSPATH')) {
-            self::markTestSkipped('ABSPATH is not defined.');
-        }
-
         $themeDir = ABSPATH . 'wp-content/themes';
         $testThemeDir = $themeDir . '/test-coverage-theme';
         $testFile = $testThemeDir . '/functions.php';
@@ -609,10 +538,6 @@ final class ThemeDataCollectorTest extends TestCase
     #[Test]
     public function buildThemeHookAttributionSortsByListenerCount(): void
     {
-        if (!defined('ABSPATH')) {
-            self::markTestSkipped('ABSPATH is not defined.');
-        }
-
         $themeDir = ABSPATH . 'wp-content/themes';
         $testThemeDir = $themeDir . '/sort-test-theme';
         $testFile = $testThemeDir . '/functions.php';

@@ -42,12 +42,6 @@ final class MigrateCommand extends AbstractCommand
 
     protected function execute(InputInterface $input, OutputStyle $output): int
     {
-        if (!function_exists('get_posts') || !function_exists('wp_upload_dir')) {
-            $output->error('WordPress functions are not available. Run this command within WordPress environment.');
-
-            return self::FAILURE;
-        }
-
         $dryRun = (bool) $input->getOption('dry-run');
         $batchSize = (int) $input->getOption('batch-size');
 
@@ -173,16 +167,14 @@ final class MigrateCommand extends AbstractCommand
         $files[$localPath] = $storageKey;
 
         // Thumbnails
-        if (function_exists('wp_get_attachment_metadata')) {
-            $metadata = wp_get_attachment_metadata($attachmentId);
-            if (\is_array($metadata) && isset($metadata['sizes']) && \is_array($metadata['sizes'])) {
-                $directory = \dirname($attachedFile);
-                /** @var array<string, mixed> $size */
-                foreach ($metadata['sizes'] as $size) {
-                    if (isset($size['file']) && \is_string($size['file'])) {
-                        $thumbPath = $directory . '/' . $size['file'];
-                        $files[$baseDir . '/' . $thumbPath] = $this->config->prefix . '/' . $thumbPath;
-                    }
+        $metadata = wp_get_attachment_metadata($attachmentId);
+        if (\is_array($metadata) && isset($metadata['sizes']) && \is_array($metadata['sizes'])) {
+            $directory = \dirname($attachedFile);
+            /** @var array<string, mixed> $size */
+            foreach ($metadata['sizes'] as $size) {
+                if (isset($size['file']) && \is_string($size['file'])) {
+                    $thumbPath = $directory . '/' . $size['file'];
+                    $files[$baseDir . '/' . $thumbPath] = $this->config->prefix . '/' . $thumbPath;
                 }
             }
         }

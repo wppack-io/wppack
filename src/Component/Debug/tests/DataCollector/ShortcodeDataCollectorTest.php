@@ -118,9 +118,6 @@ final class ShortcodeDataCollectorTest extends TestCase
     #[Test]
     public function collectWithRegisteredShortcodesReturnsData(): void
     {
-        if (!function_exists('add_shortcode')) {
-            self::markTestSkipped('WordPress shortcode functions are not available.');
-        }
 
         add_shortcode('test_debug_sc', static fn(): string => 'content');
 
@@ -140,9 +137,6 @@ final class ShortcodeDataCollectorTest extends TestCase
     #[Test]
     public function collectFormatsStringCallback(): void
     {
-        if (!function_exists('add_shortcode')) {
-            self::markTestSkipped('WordPress shortcode functions are not available.');
-        }
 
         add_shortcode('test_debug_str', 'intval');
 
@@ -189,9 +183,6 @@ final class ShortcodeDataCollectorTest extends TestCase
     #[Test]
     public function collectDetectsUsedShortcodesInPostContent(): void
     {
-        if (!function_exists('add_shortcode') || !function_exists('get_shortcode_regex')) {
-            self::markTestSkipped('WordPress shortcode functions are not available.');
-        }
 
         add_shortcode('test_debug_used', static fn(): string => 'used');
         add_shortcode('test_debug_unused', static fn(): string => 'unused');

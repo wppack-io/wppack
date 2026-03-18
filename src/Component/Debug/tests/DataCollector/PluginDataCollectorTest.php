@@ -30,25 +30,6 @@ final class PluginDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function collectWithoutWordPressReturnsDefaults(): void
-    {
-        if (function_exists('get_option')) {
-            self::markTestSkipped('WordPress functions are available.');
-        }
-
-        $this->collector->collect();
-        $data = $this->collector->getData();
-
-        self::assertSame([], $data['plugins']);
-        self::assertSame(0, $data['total_plugins']);
-        self::assertSame([], $data['mu_plugins']);
-        self::assertSame([], $data['dropins']);
-        self::assertSame([], $data['load_order']);
-        self::assertSame('', $data['slowest_plugin']);
-        self::assertSame(0.0, $data['total_hook_time']);
-    }
-
-    #[Test]
     public function getIndicatorValueReturnsEmptyWhenNoPlugins(): void
     {
         $this->collector->collect();
@@ -205,9 +186,6 @@ final class PluginDataCollectorTest extends TestCase
     #[Test]
     public function collectWithWordPressGathersPluginStructure(): void
     {
-        if (!function_exists('get_option')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $this->collector->collect();
         $data = $this->collector->getData();
@@ -227,9 +205,6 @@ final class PluginDataCollectorTest extends TestCase
     #[Test]
     public function collectBuildsSortedPluginsByHookTime(): void
     {
-        if (!function_exists('get_option')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $this->collector->collect();
         $data = $this->collector->getData();
@@ -248,9 +223,6 @@ final class PluginDataCollectorTest extends TestCase
     #[Test]
     public function collectPluginDataStructureIsCorrect(): void
     {
-        if (!function_exists('get_option')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $this->collector->collect();
         $data = $this->collector->getData();
@@ -280,9 +252,6 @@ final class PluginDataCollectorTest extends TestCase
     #[Test]
     public function getIndicatorValueReturnsCountWhenPluginsActive(): void
     {
-        if (!function_exists('get_option')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $this->collector->collect();
         $data = $this->collector->getData();
@@ -299,9 +268,6 @@ final class PluginDataCollectorTest extends TestCase
     #[Test]
     public function collectWithWordPressGathersActivePluginData(): void
     {
-        if (!function_exists('get_option')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $this->collector->collect();
         $data = $this->collector->getData();
@@ -318,9 +284,6 @@ final class PluginDataCollectorTest extends TestCase
     #[Test]
     public function collectBuildsHookAttributionWithWpFilter(): void
     {
-        if (!function_exists('get_option') || !defined('WP_PLUGIN_DIR')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         // Add a hook with a closure that lives in a "plugin" path
         // This exercises buildPluginHookAttribution and getPluginSlugFromCallback
@@ -341,9 +304,6 @@ final class PluginDataCollectorTest extends TestCase
     #[Test]
     public function collectBuildsQueryAttributionFromWpdb(): void
     {
-        if (!function_exists('get_option')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         global $wpdb;
 
@@ -376,9 +336,6 @@ final class PluginDataCollectorTest extends TestCase
     #[Test]
     public function collectHandlesMuPluginData(): void
     {
-        if (!function_exists('get_mu_plugins')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $this->collector->collect();
         $data = $this->collector->getData();
@@ -397,9 +354,6 @@ final class PluginDataCollectorTest extends TestCase
     #[Test]
     public function collectWithActivePluginOptionExercisesInnerLoop(): void
     {
-        if (!function_exists('get_option')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $savedPlugins = get_option('active_plugins', []);
 
@@ -439,9 +393,6 @@ final class PluginDataCollectorTest extends TestCase
     #[Test]
     public function collectWithPluginHookAttributionFromPluginDir(): void
     {
-        if (!function_exists('get_option') || !defined('WP_PLUGIN_DIR')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         global $wp_filter;
 
@@ -485,9 +436,7 @@ final class PluginDataCollectorTest extends TestCase
             self::assertGreaterThanOrEqual(0, $pluginData['hook_count']);
         } finally {
             update_option('active_plugins', $savedPlugins);
-            if (function_exists('remove_action')) {
-                remove_all_actions($hookName);
-            }
+            remove_all_actions($hookName);
             if ($fileCreated && file_exists($fakePluginFile)) {
                 unlink($fakePluginFile);
             }
@@ -500,9 +449,6 @@ final class PluginDataCollectorTest extends TestCase
     #[Test]
     public function collectWithMuPluginCaptureDoesNotCrash(): void
     {
-        if (!function_exists('get_option')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         // Simulate MU plugin loading cycle
         $this->collector->captureMuPluginLoaded('/var/www/html/wp-content/mu-plugins/test-mu.php');
@@ -521,9 +467,6 @@ final class PluginDataCollectorTest extends TestCase
     #[Test]
     public function collectQueryAttributionWithPluginDir(): void
     {
-        if (!function_exists('get_option') || !defined('WP_PLUGIN_DIR')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         global $wpdb;
 
@@ -597,11 +540,9 @@ final class PluginDataCollectorTest extends TestCase
         $result = $method->invoke($collector, 'phpinfo');
         self::assertNull($result);
 
-        // Test with a user-defined function if WordPress is available
-        if (function_exists('wp_list_pluck')) {
-            $result = $method->invoke($collector, 'wp_list_pluck');
-            self::assertIsString($result);
-        }
+        // Test with a user-defined function
+        $result = $method->invoke($collector, 'wp_list_pluck');
+        self::assertIsString($result);
     }
 
     #[Test]
@@ -622,9 +563,6 @@ final class PluginDataCollectorTest extends TestCase
     #[Test]
     public function collectWithSingleFilePluginExtractsSlugFromFilename(): void
     {
-        if (!function_exists('get_option')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $savedPlugins = get_option('active_plugins', []);
 
@@ -648,9 +586,6 @@ final class PluginDataCollectorTest extends TestCase
     #[Test]
     public function collectWithLoadTimesRecordsSlowestPlugin(): void
     {
-        if (!function_exists('get_option')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $savedPlugins = get_option('active_plugins', []);
 
@@ -679,9 +614,6 @@ final class PluginDataCollectorTest extends TestCase
     #[Test]
     public function collectQueryAttributionWithMuPluginDir(): void
     {
-        if (!function_exists('get_option') || !defined('WPMU_PLUGIN_DIR')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         global $wpdb;
 
@@ -719,9 +651,6 @@ final class PluginDataCollectorTest extends TestCase
     #[Test]
     public function collectSetsSlowestPluginWhenHookTimeIsPositive(): void
     {
-        if (!function_exists('get_option') || !defined('WP_PLUGIN_DIR')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         global $wp_filter;
 
@@ -910,9 +839,6 @@ final class PluginDataCollectorTest extends TestCase
     #[Test]
     public function collectMuPluginWithHookAttributionAndSlowTracking(): void
     {
-        if (!function_exists('get_option') || !function_exists('get_mu_plugins') || !defined('WPMU_PLUGIN_DIR')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         global $wp_filter;
 

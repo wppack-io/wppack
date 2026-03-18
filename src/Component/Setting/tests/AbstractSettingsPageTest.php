@@ -218,10 +218,6 @@ final class AbstractSettingsPageTest extends TestCase
     #[Test]
     public function renderDelegatesToRenderer(): void
     {
-        if (!function_exists('settings_fields')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         // Set $title global so get_admin_page_title() returns early
         // without calling get_plugin_page_hookname() with null $plugin_page
         global $title;
@@ -241,10 +237,6 @@ final class AbstractSettingsPageTest extends TestCase
     #[Test]
     public function getOptionReturnsStoredValue(): void
     {
-        if (!function_exists('get_option')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $page = new MinimalTestSettingsPage();
 
         update_option($page->optionName, ['api_key' => 'test-key']);
@@ -257,10 +249,6 @@ final class AbstractSettingsPageTest extends TestCase
     #[Test]
     public function getOptionReturnsDefaultWhenKeyMissing(): void
     {
-        if (!function_exists('get_option')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $page = new MinimalTestSettingsPage();
 
         update_option($page->optionName, ['other_key' => 'value']);
@@ -273,10 +261,6 @@ final class AbstractSettingsPageTest extends TestCase
     #[Test]
     public function getOptionReturnsDefaultWhenOptionNotArray(): void
     {
-        if (!function_exists('get_option')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $page = new MinimalTestSettingsPage();
 
         update_option($page->optionName, 'not-an-array');
@@ -289,13 +273,7 @@ final class AbstractSettingsPageTest extends TestCase
     #[Test]
     public function addMenuPageRegistersSubmenuPage(): void
     {
-        if (!function_exists('add_submenu_page')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
-        if (function_exists('wp_set_current_user')) {
-            wp_set_current_user(1);
-        }
+        wp_set_current_user(1);
 
         global $submenu;
 
@@ -317,10 +295,6 @@ final class AbstractSettingsPageTest extends TestCase
     #[Test]
     public function addMenuPageRegistersTopLevelPage(): void
     {
-        if (!function_exists('add_menu_page')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         global $menu;
 
         $page = new TopLevelTestSettingsPage();
@@ -339,10 +313,6 @@ final class AbstractSettingsPageTest extends TestCase
     #[Test]
     public function initSettingsRegistersSetting(): void
     {
-        if (!function_exists('register_setting')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $page = new ConcreteTestSettingsPage();
         $page->initSettings();
 
@@ -353,10 +323,6 @@ final class AbstractSettingsPageTest extends TestCase
     #[Test]
     public function initSettingsRegistersSection(): void
     {
-        if (!function_exists('add_settings_section')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         global $wp_settings_sections;
 
         $page = new ConcreteTestSettingsPage();
@@ -369,10 +335,6 @@ final class AbstractSettingsPageTest extends TestCase
     #[Test]
     public function initSettingsRegistersFields(): void
     {
-        if (!function_exists('add_settings_field')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         global $wp_settings_fields;
 
         $page = new ConcreteTestSettingsPage();
@@ -386,10 +348,6 @@ final class AbstractSettingsPageTest extends TestCase
     #[Test]
     public function initSettingsWithSanitizeCallback(): void
     {
-        if (!function_exists('register_setting')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $page = new SanitizeTestSettingsPage();
         $page->initSettings();
 
@@ -401,10 +359,6 @@ final class AbstractSettingsPageTest extends TestCase
     #[Test]
     public function initSettingsWithSanitizeOverrideExecutesSanitizeCallback(): void
     {
-        if (!function_exists('register_setting')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $page = new SanitizeTestSettingsPage();
         $page->initSettings();
 
@@ -420,10 +374,6 @@ final class AbstractSettingsPageTest extends TestCase
     #[Test]
     public function initSettingsWithValidateOverrideExecutesValidateCallback(): void
     {
-        if (!function_exists('register_setting')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $page = new ValidateTestSettingsPage();
         $page->initSettings();
 
@@ -448,10 +398,6 @@ final class AbstractSettingsPageTest extends TestCase
     #[Test]
     public function initSettingsWithBothOverridesExecutesBoth(): void
     {
-        if (!function_exists('register_setting')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $page = new SanitizeAndValidateTestSettingsPage();
         $page->initSettings();
 
@@ -479,10 +425,6 @@ final class AbstractSettingsPageTest extends TestCase
     #[Test]
     public function initSettingsWithoutOverridesHasNoSanitizeCallback(): void
     {
-        if (!function_exists('register_setting')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $page = new MinimalTestSettingsPage();
         $page->initSettings();
 

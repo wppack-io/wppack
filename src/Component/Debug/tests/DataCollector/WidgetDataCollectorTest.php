@@ -30,24 +30,6 @@ final class WidgetDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function collectWithoutWordPressReturnsDefaults(): void
-    {
-        if (function_exists('wp_get_sidebars_widgets')) {
-            self::markTestSkipped('WordPress functions are available.');
-        }
-
-        $this->collector->collect();
-        $data = $this->collector->getData();
-
-        self::assertSame([], $data['sidebars']);
-        self::assertSame(0, $data['total_widgets']);
-        self::assertSame(0, $data['total_sidebars']);
-        self::assertSame(0, $data['active_widgets']);
-        self::assertSame(0.0, $data['render_time']);
-        self::assertSame([], $data['sidebar_timings']);
-    }
-
-    #[Test]
     public function captureSidebarBeforeAndAfterRecordsTiming(): void
     {
         $this->collector->captureSidebarBefore('sidebar-1');
@@ -126,10 +108,6 @@ final class WidgetDataCollectorTest extends TestCase
     #[Test]
     public function collectWithRegisteredSidebarsReturnsData(): void
     {
-        if (!function_exists('register_sidebar')) {
-            self::markTestSkipped('WordPress widget functions are not available.');
-        }
-
         $sidebarId = 'test-sidebar-' . uniqid();
         register_sidebar([
             'name' => 'Test Sidebar',
@@ -160,10 +138,6 @@ final class WidgetDataCollectorTest extends TestCase
     #[Test]
     public function collectWithSidebarTimingsIncludesTimingData(): void
     {
-        if (!function_exists('register_sidebar')) {
-            self::markTestSkipped('WordPress widget functions are not available.');
-        }
-
         global $wp_registered_sidebars;
 
         $sidebarId = 'timing-sidebar-' . uniqid();
@@ -198,10 +172,6 @@ final class WidgetDataCollectorTest extends TestCase
     #[Test]
     public function collectExcludesInactiveWidgets(): void
     {
-        if (!function_exists('wp_get_sidebars_widgets')) {
-            self::markTestSkipped('WordPress widget functions are not available.');
-        }
-
         $this->collector->collect();
         $data = $this->collector->getData();
 

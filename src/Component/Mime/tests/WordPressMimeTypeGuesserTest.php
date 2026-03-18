@@ -11,36 +11,16 @@ use WpPack\Component\Mime\WordPressMimeTypeGuesser;
 final class WordPressMimeTypeGuesserTest extends TestCase
 {
     #[Test]
-    public function isSupportedOnlyWhenWordPressIsLoaded(): void
+    public function isSupported(): void
     {
         $guesser = new WordPressMimeTypeGuesser();
 
-        if (\function_exists('wp_check_filetype')) {
-            self::assertTrue($guesser->isGuesserSupported());
-        } else {
-            self::assertFalse($guesser->isGuesserSupported());
-        }
-    }
-
-    #[Test]
-    public function returnsNullWhenWordPressIsNotLoaded(): void
-    {
-        if (\function_exists('wp_check_filetype')) {
-            self::markTestSkipped('WordPress is loaded, cannot test non-WP behavior.');
-        }
-
-        $guesser = new WordPressMimeTypeGuesser();
-
-        self::assertNull($guesser->guessMimeType('/path/to/photo.jpg'));
+        self::assertTrue($guesser->isGuesserSupported());
     }
 
     #[Test]
     public function guessesMimeTypeWhenWordPressIsLoaded(): void
     {
-        if (!\function_exists('wp_check_filetype')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $guesser = new WordPressMimeTypeGuesser();
 
         self::assertSame('image/jpeg', $guesser->guessMimeType('/path/to/photo.jpg'));

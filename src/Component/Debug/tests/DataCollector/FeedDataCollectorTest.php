@@ -30,22 +30,6 @@ final class FeedDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function collectWithoutWordPressReturnsDefaults(): void
-    {
-        if (function_exists('get_bloginfo')) {
-            self::markTestSkipped('WordPress functions are available.');
-        }
-
-        $this->collector->collect();
-        $data = $this->collector->getData();
-
-        self::assertSame([], $data['feeds']);
-        self::assertSame(0, $data['total_count']);
-        self::assertSame(0, $data['custom_count']);
-        self::assertTrue($data['feed_discovery']);
-    }
-
-    #[Test]
     public function getIndicatorValueReturnsTotalCount(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
@@ -84,9 +68,6 @@ final class FeedDataCollectorTest extends TestCase
     #[Test]
     public function collectGathersBuiltInFeeds(): void
     {
-        if (!function_exists('get_bloginfo')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $this->collector->collect();
         $data = $this->collector->getData();
@@ -108,9 +89,6 @@ final class FeedDataCollectorTest extends TestCase
     #[Test]
     public function collectGathersCommentsFeed(): void
     {
-        if (!function_exists('get_bloginfo') || !function_exists('get_post_comments_feed_link')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $this->collector->collect();
         $data = $this->collector->getData();
@@ -122,9 +100,6 @@ final class FeedDataCollectorTest extends TestCase
     #[Test]
     public function collectDetectsCustomFeeds(): void
     {
-        if (!function_exists('get_bloginfo')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         global $wp_rewrite;
         $savedExtraFeeds = $wp_rewrite->extra_feeds ?? null;
@@ -151,9 +126,6 @@ final class FeedDataCollectorTest extends TestCase
     #[Test]
     public function collectFeedDiscoveryReflectsOption(): void
     {
-        if (!function_exists('get_option')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $this->collector->collect();
         $data = $this->collector->getData();
@@ -164,9 +136,6 @@ final class FeedDataCollectorTest extends TestCase
     #[Test]
     public function collectBuiltInFeedsAreNotCustom(): void
     {
-        if (!function_exists('get_bloginfo')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $this->collector->collect();
         $data = $this->collector->getData();

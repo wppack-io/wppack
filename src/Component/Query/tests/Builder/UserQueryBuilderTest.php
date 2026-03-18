@@ -395,10 +395,6 @@ final class UserQueryBuilderTest extends TestCase
     #[Test]
     public function getReturnsUserQueryResult(): void
     {
-        if (!class_exists(\WP_User_Query::class)) {
-            self::markTestSkipped('WordPress is not available.');
-        }
-
         $result = (new UserQueryBuilder())
             ->where('u.role = :role')
             ->setParameter('role', 'author')
@@ -411,10 +407,6 @@ final class UserQueryBuilderTest extends TestCase
     #[Test]
     public function firstReturnsNullableWpUser(): void
     {
-        if (!class_exists(\WP_User_Query::class)) {
-            self::markTestSkipped('WordPress is not available.');
-        }
-
         $user = (new UserQueryBuilder())
             ->where('u.id = :id')
             ->setParameter('id', 999999)

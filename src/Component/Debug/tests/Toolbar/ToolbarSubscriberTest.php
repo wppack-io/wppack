@@ -47,10 +47,6 @@ final class ToolbarSubscriberTest extends TestCase
     #[Test]
     public function registerAddsFooterActionsWhenEnabled(): void
     {
-        if (!function_exists('add_action')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $config = new DebugConfig(enabled: true, showToolbar: true);
 
         if (!$config->shouldShowToolbar()) {
@@ -159,19 +155,11 @@ final class ToolbarSubscriberTest extends TestCase
     public function registerAddsFooterActionsWithAdminUser(): void
     {
         // Cover lines 29-30, 33-34: add_action calls when shouldShowToolbar=true
-        if (!function_exists('add_action')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
-        if (!function_exists('wp_insert_user')) {
-            self::markTestSkipped('WordPress user functions are not available.');
-        }
-
         if (defined('WP_DEBUG') && !WP_DEBUG) {
             self::markTestSkipped('WP_DEBUG is false.');
         }
 
-        if (function_exists('wp_get_environment_type') && wp_get_environment_type() === 'production') {
+        if (wp_get_environment_type() === 'production') {
             self::markTestSkipped('Production environment.');
         }
 
@@ -216,15 +204,11 @@ final class ToolbarSubscriberTest extends TestCase
     public function onFooterCollectsAndRendersWithAdminUser(): void
     {
         // Cover lines 44-46, 50-51, 53: onFooter collects data and echoes output
-        if (!function_exists('wp_insert_user')) {
-            self::markTestSkipped('WordPress user functions are not available.');
-        }
-
         if (defined('WP_DEBUG') && !WP_DEBUG) {
             self::markTestSkipped('WP_DEBUG is false.');
         }
 
-        if (function_exists('wp_get_environment_type') && wp_get_environment_type() === 'production') {
+        if (wp_get_environment_type() === 'production') {
             self::markTestSkipped('Production environment.');
         }
 

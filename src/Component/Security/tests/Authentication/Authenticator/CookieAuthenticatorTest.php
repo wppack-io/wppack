@@ -21,10 +21,6 @@ final class CookieAuthenticatorTest extends TestCase
     #[Test]
     public function supportsRequestWithAuthCookie(): void
     {
-        if (!defined('COOKIEHASH')) {
-            self::markTestSkipped('WordPress constants are not available.');
-        }
-
         $cookieName = defined('LOGGED_IN_COOKIE')
             ? LOGGED_IN_COOKIE
             : 'wordpress_logged_in_' . COOKIEHASH;
@@ -40,10 +36,6 @@ final class CookieAuthenticatorTest extends TestCase
     #[Test]
     public function doesNotSupportRequestWithoutCookie(): void
     {
-        if (!defined('COOKIEHASH')) {
-            self::markTestSkipped('WordPress constants are not available.');
-        }
-
         $request = new Request(
             server: ['REQUEST_METHOD' => 'GET'],
         );

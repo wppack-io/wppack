@@ -35,11 +35,7 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
 
     public function resolveUser(string $subject, array $claims): \WP_User
     {
-        if (!function_exists('get_user_by')) {
-            throw new \RuntimeException('WordPress functions are not available.');
-        }
-
-        $sanitizedSubject = function_exists('sanitize_user') ? sanitize_user($subject, true) : $subject;
+        $sanitizedSubject = sanitize_user($subject, true);
 
         if ($sanitizedSubject === '') {
             throw new AuthenticationException('Invalid OAuth subject identifier.');
@@ -59,7 +55,7 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
         $email = $this->getClaimValue($claims, $this->emailClaim);
 
         if ($email !== null) {
-            $email = function_exists('sanitize_email') ? sanitize_email($email) : $email;
+            $email = sanitize_email($email);
 
             if ($email === '' || !filter_var($email, \FILTER_VALIDATE_EMAIL)) {
                 $email = null;
@@ -111,10 +107,6 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
 
     private function findBySubject(string $subject): ?\WP_User
     {
-        if (!function_exists('get_users')) {
-            return null;
-        }
-
         $users = get_users([
             'meta_key' => $this->getSubjectMetaKey(),
             'meta_value' => $subject,
@@ -126,10 +118,6 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
 
     private function isSubjectBound(\WP_User $user, string $subject): bool
     {
-        if (!function_exists('get_user_meta')) {
-            return true;
-        }
-
         $storedSubject = get_user_meta($user->ID, $this->getSubjectMetaKey(), true);
 
         if ($storedSubject === '' || $storedSubject === false) {
@@ -141,9 +129,7 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
 
     private function bindSubject(\WP_User $user, string $subject): void
     {
-        if (function_exists('update_user_meta')) {
-            update_user_meta($user->ID, $this->getSubjectMetaKey(), $subject);
-        }
+        update_user_meta($user->ID, $this->getSubjectMetaKey(), $subject);
     }
 
     /**
@@ -162,8 +148,7 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
             $firstName = $this->getClaimValue($claims, $this->firstNameClaim);
 
             if ($firstName !== null) {
-                $userdata['first_name'] = function_exists('sanitize_text_field')
-                    ? sanitize_text_field($firstName) : $firstName;
+                $userdata['first_name'] = sanitize_text_field($firstName);
             }
         }
 
@@ -171,8 +156,7 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
             $lastName = $this->getClaimValue($claims, $this->lastNameClaim);
 
             if ($lastName !== null) {
-                $userdata['last_name'] = function_exists('sanitize_text_field')
-                    ? sanitize_text_field($lastName) : $lastName;
+                $userdata['last_name'] = sanitize_text_field($lastName);
             }
         }
 
@@ -180,8 +164,7 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
             $displayName = $this->getClaimValue($claims, $this->displayNameClaim);
 
             if ($displayName !== null) {
-                $userdata['display_name'] = function_exists('sanitize_text_field')
-                    ? sanitize_text_field($displayName) : $displayName;
+                $userdata['display_name'] = sanitize_text_field($displayName);
             }
         }
 
@@ -189,9 +172,7 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
         $userId = wp_insert_user($userdata);
 
         if ($userId instanceof \WP_Error) {
-            if (function_exists('do_action')) {
-                do_action('wppack_oauth_user_provision_failed', $subject, $userId);
-            }
+            do_action('wppack_oauth_user_provision_failed', $subject, $userId);
 
             throw new AuthenticationException('User provisioning failed.');
         }
@@ -205,9 +186,7 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
         $this->bindSubject($user, $subject);
         $this->mapUserRole($user, $claims);
 
-        if (function_exists('do_action')) {
-            do_action('wppack_oauth_user_provisioned', $user, $subject, $claims);
-        }
+        do_action('wppack_oauth_user_provisioned', $user, $subject, $claims);
 
         return $user;
     }
@@ -217,10 +196,6 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
      */
     private function syncUserAttributes(\WP_User $user, array $claims): void
     {
-        if (!function_exists('wp_update_user')) {
-            return;
-        }
-
         $userdata = ['ID' => $user->ID];
         $needsUpdate = false;
 
@@ -228,7 +203,7 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
             $firstName = $this->getClaimValue($claims, $this->firstNameClaim);
 
             if ($firstName !== null) {
-                $firstName = function_exists('sanitize_text_field') ? sanitize_text_field($firstName) : $firstName;
+                $firstName = sanitize_text_field($firstName);
 
                 if ($firstName !== $user->first_name) {
                     $userdata['first_name'] = $firstName;
@@ -241,7 +216,7 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
             $lastName = $this->getClaimValue($claims, $this->lastNameClaim);
 
             if ($lastName !== null) {
-                $lastName = function_exists('sanitize_text_field') ? sanitize_text_field($lastName) : $lastName;
+                $lastName = sanitize_text_field($lastName);
 
                 if ($lastName !== $user->last_name) {
                     $userdata['last_name'] = $lastName;
@@ -254,7 +229,7 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
             $displayName = $this->getClaimValue($claims, $this->displayNameClaim);
 
             if ($displayName !== null) {
-                $displayName = function_exists('sanitize_text_field') ? sanitize_text_field($displayName) : $displayName;
+                $displayName = sanitize_text_field($displayName);
 
                 if ($displayName !== $user->display_name) {
                     $userdata['display_name'] = $displayName;
@@ -265,10 +240,7 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
 
         if ($needsUpdate) {
             wp_update_user($userdata);
-
-            if (function_exists('do_action')) {
-                do_action('wppack_oauth_user_updated', $user, $claims);
-            }
+            do_action('wppack_oauth_user_updated', $user, $claims);
         }
     }
 

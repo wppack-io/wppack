@@ -16,10 +16,6 @@ final class EventDispatcherTestTraitTest extends TestCase
 
     protected function setUp(): void
     {
-        if (!\function_exists('add_filter')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->resetDispatchedEvents();
         $this->eventDispatcher = null;
     }

@@ -13,13 +13,6 @@ use WpPack\Component\Security\Exception\AuthenticationException;
 #[CoversClass(SamlUserResolver::class)]
 final class SamlUserResolverTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        if (!function_exists('get_user_by')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-    }
-
     #[Test]
     public function resolveUserByEmail(): void
     {
@@ -130,10 +123,6 @@ final class SamlUserResolverTest extends TestCase
     #[Test]
     public function autoProvision(): void
     {
-        if (!function_exists('wp_insert_user')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $email = 'saml-provision-' . uniqid() . '@example.com';
         $nameId = 'provisioned_user_' . uniqid();
         $resolver = new SamlUserResolver(autoProvision: true);
@@ -190,10 +179,6 @@ final class SamlUserResolverTest extends TestCase
     #[Test]
     public function autoProvisionWithXssInAttributes(): void
     {
-        if (!function_exists('wp_insert_user')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $nameId = 'provisioned_xss_' . uniqid();
         $resolver = new SamlUserResolver(autoProvision: true);
 

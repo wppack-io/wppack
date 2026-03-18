@@ -99,26 +99,12 @@ final class PluginDataCollector extends AbstractDataCollector
 
     public function collect(): void
     {
-        if (!function_exists('get_plugins') && !function_exists('get_option')) {
-            $this->data = [
-                'plugins' => [],
-                'total_plugins' => 0,
-                'mu_plugins' => [],
-                'dropins' => [],
-                'load_order' => [],
-                'slowest_plugin' => '',
-                'total_hook_time' => 0.0,
-            ];
-
-            return;
-        }
-
         global $wp_filter, $wpdb;
 
-        $activePlugins = function_exists('get_option') ? (array) get_option('active_plugins', []) : [];
-        $muPlugins = function_exists('get_mu_plugins') ? array_keys(get_mu_plugins()) : [];
-        $dropins = function_exists('_get_dropins') ? array_keys(array_intersect_key(_get_dropins(), @get_plugins('/../'))) : [];
-        $allPluginsData = function_exists('get_plugins') ? get_plugins() : [];
+        $activePlugins = (array) get_option('active_plugins', []);
+        $muPlugins = array_keys(get_mu_plugins());
+        $dropins = array_keys(array_intersect_key(_get_dropins(), @get_plugins('/../')));
+        $allPluginsData = get_plugins();
 
         // Build per-plugin hook attribution
         $pluginHooks = $this->buildPluginHookAttribution($wp_filter ?? []);
@@ -171,7 +157,7 @@ final class PluginDataCollector extends AbstractDataCollector
         }
 
         // MU plugins — process with the same pipeline as regular plugins
-        $muPluginData = function_exists('get_mu_plugins') ? get_mu_plugins() : [];
+        $muPluginData = get_mu_plugins();
         foreach ($muPluginData as $muFile => $muInfo) {
             $slug = basename($muFile);
 
@@ -412,10 +398,6 @@ final class PluginDataCollector extends AbstractDataCollector
 
     private function registerHooks(): void
     {
-        if (!function_exists('add_action')) {
-            return;
-        }
-
         add_action('mu_plugin_loaded', [$this, 'captureMuPluginLoaded'], \PHP_INT_MIN, 1);
         add_action('muplugins_loaded', [$this, 'captureMuPluginsLoaded'], \PHP_INT_MAX, 0);
         add_action('plugin_loaded', [$this, 'capturePluginLoaded'], \PHP_INT_MIN, 1);

@@ -16,23 +16,6 @@ use WpPack\Component\Messenger\Stamp\MultisiteStamp;
 final class AddMultisiteStampMiddlewareTest extends TestCase
 {
     #[Test]
-    public function skipsWhenGetCurrentBlogIdDoesNotExist(): void
-    {
-        // In a non-WordPress environment, get_current_blog_id() does not exist
-        if (function_exists('get_current_blog_id')) {
-            self::markTestSkipped('get_current_blog_id() is available; cannot test skip behavior.');
-        }
-
-        $middleware = new AddMultisiteStampMiddleware();
-        $envelope = Envelope::wrap(new \stdClass());
-        $stack = new MiddlewareStack([]);
-
-        $result = $middleware->handle($envelope, $stack);
-
-        self::assertNull($result->last(MultisiteStamp::class));
-    }
-
-    #[Test]
     public function doesNotAddStampWhenAlreadyPresent(): void
     {
         $middleware = new AddMultisiteStampMiddleware();

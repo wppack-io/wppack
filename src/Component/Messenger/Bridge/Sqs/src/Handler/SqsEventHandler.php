@@ -72,7 +72,7 @@ final class SqsEventHandler
         $multisiteStamp = $envelope->last(\WpPack\Component\Messenger\Stamp\MultisiteStamp::class);
         $switched = false;
 
-        if ($multisiteStamp !== null && function_exists('switch_to_blog')) {
+        if ($multisiteStamp !== null) {
             switch_to_blog($multisiteStamp->blogId);
             $switched = true;
         }
@@ -89,7 +89,7 @@ final class SqsEventHandler
                 'messageClass' => $envelope->getMessage()::class,
             ]);
         } finally {
-            if ($switched && function_exists('restore_current_blog')) {
+            if ($switched) {
                 restore_current_blog();
             }
         }

@@ -32,11 +32,11 @@ final class RouterDataCollector extends AbstractDataCollector
 
     public function collect(): void
     {
-        $is404 = function_exists('is_404') && is_404();
-        $isFrontPage = function_exists('is_front_page') && is_front_page();
-        $isSingular = function_exists('is_singular') && is_singular();
-        $isArchive = function_exists('is_archive') && is_archive();
-        $isSearch = function_exists('is_search') && is_search();
+        $is404 = is_404();
+        $isFrontPage = is_front_page();
+        $isSingular = is_singular();
+        $isArchive = is_archive();
+        $isSearch = is_search();
 
         $queryType = match (true) {
             $is404 => '404',
@@ -47,7 +47,7 @@ final class RouterDataCollector extends AbstractDataCollector
             default => 'other',
         };
 
-        $isBlockTheme = function_exists('wp_is_block_theme') && wp_is_block_theme();
+        $isBlockTheme = wp_is_block_theme();
 
         $blockTemplate = [
             'slug' => '',
@@ -157,10 +157,6 @@ final class RouterDataCollector extends AbstractDataCollector
             return $default;
         }
 
-        if (!function_exists('get_block_template')) {
-            return $default;
-        }
-
         $template = get_block_template($_wp_current_template_id, 'wp_template');
 
         if (!is_object($template)) {
@@ -188,7 +184,7 @@ final class RouterDataCollector extends AbstractDataCollector
 
     private function resolveBlockTemplateFilePath(string $slug): string
     {
-        if ($slug === '' || !function_exists('get_theme_file_path')) {
+        if ($slug === '') {
             return '';
         }
 
@@ -202,16 +198,12 @@ final class RouterDataCollector extends AbstractDataCollector
      */
     private function collectBlockTemplateParts(string $content): array
     {
-        if (!function_exists('get_block_template')) {
-            return [];
-        }
-
         if (!preg_match_all('/<!-- wp:template-part \{[^}]*"slug"\s*:\s*"([^"]+)"[^}]*\} \/-->/', $content, $matches)) {
             return [];
         }
 
         $parts = [];
-        $stylesheet = function_exists('get_stylesheet') ? get_stylesheet() : '';
+        $stylesheet = get_stylesheet();
 
         foreach ($matches[1] as $partSlug) {
             $partId = $stylesheet !== '' ? $stylesheet . '//' . $partSlug : $partSlug;
@@ -237,13 +229,8 @@ final class RouterDataCollector extends AbstractDataCollector
 
     private function registerHooks(): void
     {
-        if (function_exists('add_action')) {
-            add_action('parse_request', [$this, 'captureParseRequest'], PHP_INT_MAX, 1);
-        }
-
-        if (function_exists('add_filter')) {
-            add_filter('template_include', [$this, 'captureTemplate'], PHP_INT_MAX, 1);
-        }
+        add_action('parse_request', [$this, 'captureParseRequest'], PHP_INT_MAX, 1);
+        add_filter('template_include', [$this, 'captureTemplate'], PHP_INT_MAX, 1);
     }
 
     private function getRewriteRulesCount(): int

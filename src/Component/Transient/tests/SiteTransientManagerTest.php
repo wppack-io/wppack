@@ -16,10 +16,6 @@ final class SiteTransientManagerTest extends TestCase
 
     protected function setUp(): void
     {
-        if (!function_exists('get_site_transient')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->manager = new SiteTransientManager();
 
         delete_site_transient(self::TEST_TRANSIENT);
@@ -27,9 +23,7 @@ final class SiteTransientManagerTest extends TestCase
 
     protected function tearDown(): void
     {
-        if (function_exists('delete_site_transient')) {
-            delete_site_transient(self::TEST_TRANSIENT);
-        }
+        delete_site_transient(self::TEST_TRANSIENT);
     }
 
     #[Test]

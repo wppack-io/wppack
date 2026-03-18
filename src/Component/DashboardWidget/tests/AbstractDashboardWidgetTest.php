@@ -99,10 +99,6 @@ final class AbstractDashboardWidgetTest extends TestCase
     #[Test]
     public function registerWithCapabilityAllowed(): void
     {
-        if (!function_exists('wp_add_dashboard_widget')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $widget = new CapabilityTestDashboardWidget();
 
         // current_user_can('edit_posts') must return true in WordPress test env
@@ -115,17 +111,11 @@ final class AbstractDashboardWidgetTest extends TestCase
     #[Test]
     public function registerSkipsWhenCapabilityDenied(): void
     {
-        if (!function_exists('current_user_can')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         // Use a capability that the default test user won't have
         $widget = new RestrictedCapabilityTestDashboardWidget();
 
         // Set up a user without the required capability
-        if (function_exists('wp_set_current_user')) {
-            wp_set_current_user(0); // Anonymous user
-        }
+        wp_set_current_user(0); // Anonymous user
 
         ob_start();
         $widget->register();
@@ -151,13 +141,7 @@ final class AbstractDashboardWidgetTest extends TestCase
     #[Test]
     public function registerCallsWpAddDashboardWidget(): void
     {
-        if (!function_exists('wp_add_dashboard_widget')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
-        if (function_exists('set_current_screen')) {
-            set_current_screen('dashboard');
-        }
+        set_current_screen('dashboard');
 
         global $wp_meta_boxes;
 
@@ -171,13 +155,7 @@ final class AbstractDashboardWidgetTest extends TestCase
     #[Test]
     public function registerPassesCorrectParameters(): void
     {
-        if (!function_exists('wp_add_dashboard_widget')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
-        if (function_exists('set_current_screen')) {
-            set_current_screen('dashboard');
-        }
+        set_current_screen('dashboard');
 
         global $wp_meta_boxes;
 
@@ -192,13 +170,7 @@ final class AbstractDashboardWidgetTest extends TestCase
     #[Test]
     public function registerWithoutCapabilityRegisters(): void
     {
-        if (!function_exists('wp_add_dashboard_widget')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
-        if (function_exists('set_current_screen')) {
-            set_current_screen('dashboard');
-        }
+        set_current_screen('dashboard');
 
         global $wp_meta_boxes;
 
@@ -212,16 +184,8 @@ final class AbstractDashboardWidgetTest extends TestCase
     #[Test]
     public function registerWithConfigureOverridePassesCallback(): void
     {
-        if (!function_exists('wp_add_dashboard_widget')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
-        if (function_exists('set_current_screen')) {
-            set_current_screen('dashboard');
-        }
-        if (function_exists('wp_set_current_user')) {
-            wp_set_current_user(1);
-        }
+        set_current_screen('dashboard');
+        wp_set_current_user(1);
 
         global $wp_dashboard_control_callbacks;
 
@@ -235,13 +199,7 @@ final class AbstractDashboardWidgetTest extends TestCase
     #[Test]
     public function registerWithoutConfigureOverridePassesNull(): void
     {
-        if (!function_exists('wp_add_dashboard_widget')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
-        if (function_exists('set_current_screen')) {
-            set_current_screen('dashboard');
-        }
+        set_current_screen('dashboard');
 
         global $wp_dashboard_control_callbacks;
         $wp_dashboard_control_callbacks = [];
@@ -322,13 +280,7 @@ final class AbstractDashboardWidgetTest extends TestCase
     #[Test]
     public function registerWithCapabilityChecksUserPermission(): void
     {
-        if (!function_exists('wp_add_dashboard_widget') || !function_exists('wp_set_current_user')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
-        if (function_exists('set_current_screen')) {
-            set_current_screen('dashboard');
-        }
+        set_current_screen('dashboard');
 
         global $wp_meta_boxes;
 

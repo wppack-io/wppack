@@ -22,9 +22,7 @@ final class CrossSiteRedirector
             return false;
         }
 
-        $currentHost = function_exists('site_url')
-            ? parse_url(site_url(), \PHP_URL_HOST)
-            : ($_SERVER['HTTP_HOST'] ?? null);
+        $currentHost = parse_url(site_url(), \PHP_URL_HOST);
 
         if ($currentHost === null) {
             return false;
@@ -45,9 +43,7 @@ final class CrossSiteRedirector
             throw new \RuntimeException(\sprintf('Host "%s" is not allowed for cross-site redirect.', $targetHost));
         }
 
-        if (function_exists('do_action')) {
-            do_action('wppack_saml_cross_site_redirect', $targetUrl);
-        }
+        do_action('wppack_saml_cross_site_redirect', $targetUrl);
 
         $targetAcsUrl = $this->resolveAcsUrl($targetUrl);
 
@@ -58,24 +54,20 @@ final class CrossSiteRedirector
 
     public function resolveBlogId(string $url): ?int
     {
-        if (!function_exists('is_multisite') || !is_multisite()) {
+        if (!is_multisite()) {
             return null;
         }
 
-        if (function_exists('get_blog_id_from_url')) {
-            $host = parse_url($url, \PHP_URL_HOST);
-            $path = parse_url($url, \PHP_URL_PATH) ?: '/';
+        $host = parse_url($url, \PHP_URL_HOST);
+        $path = parse_url($url, \PHP_URL_PATH) ?: '/';
 
-            if ($host === null || $host === false) {
-                return null;
-            }
-
-            $blogId = get_blog_id_from_url($host, $path);
-
-            return $blogId > 0 ? $blogId : null;
+        if ($host === null || $host === false) {
+            return null;
         }
 
-        return null;
+        $blogId = get_blog_id_from_url($host, $path);
+
+        return $blogId > 0 ? $blogId : null;
     }
 
     private function isHostAllowed(string $host): bool
@@ -84,7 +76,7 @@ final class CrossSiteRedirector
             return true;
         }
 
-        if (function_exists('is_multisite') && is_multisite() && function_exists('get_sites')) {
+        if (is_multisite()) {
             $sites = get_sites(['number' => 0]);
 
             foreach ($sites as $site) {

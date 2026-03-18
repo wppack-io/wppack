@@ -10,13 +10,6 @@ use WpPack\Component\Filesystem\WordPress\UploadPath;
 
 final class UploadPathTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        if (!function_exists('wp_upload_dir')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-    }
-
     #[Test]
     public function getBasePathReturnsString(): void
     {

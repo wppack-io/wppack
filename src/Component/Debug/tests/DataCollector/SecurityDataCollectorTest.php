@@ -30,54 +30,6 @@ final class SecurityDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function collectWithoutWordPressReturnsDefaults(): void
-    {
-        if (function_exists('is_user_logged_in')) {
-            self::markTestSkipped('WordPress functions are available; this test is for non-WP environments.');
-        }
-
-        $this->collector->collect();
-        $data = $this->collector->getData();
-
-        self::assertFalse($data['is_logged_in']);
-        self::assertSame(0, $data['user_id']);
-        self::assertSame('', $data['username']);
-        self::assertSame('', $data['display_name']);
-        self::assertSame('', $data['email']);
-        self::assertSame([], $data['roles']);
-        self::assertSame([], $data['capabilities']);
-        self::assertFalse($data['is_super_admin']);
-        self::assertSame('none', $data['authentication']);
-        self::assertSame([], $data['nonce_operations']);
-        self::assertSame(0, $data['nonce_verify_count']);
-        self::assertSame(0, $data['nonce_verify_failures']);
-    }
-
-    #[Test]
-    public function getIndicatorValueReturnsAnonWhenNotLoggedIn(): void
-    {
-        if (function_exists('is_user_logged_in')) {
-            self::markTestSkipped('WordPress functions are available; this test is for non-WP environments.');
-        }
-
-        $this->collector->collect();
-
-        self::assertSame('anon.', $this->collector->getIndicatorValue());
-    }
-
-    #[Test]
-    public function getIndicatorColorReturnsDefaultWhenNoFailures(): void
-    {
-        if (function_exists('is_user_logged_in')) {
-            self::markTestSkipped('WordPress functions are available; this test is for non-WP environments.');
-        }
-
-        $this->collector->collect();
-
-        self::assertSame('default', $this->collector->getIndicatorColor());
-    }
-
-    #[Test]
     public function maskEmailShowsOnlyDomain(): void
     {
         self::assertSame('***@example.com', $this->collector->maskEmail('user@example.com'));
@@ -109,9 +61,6 @@ final class SecurityDataCollectorTest extends TestCase
     #[Test]
     public function collectWithLoggedInUserReturnsUserData(): void
     {
-        if (!function_exists('wp_insert_user')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $userId = wp_insert_user([
             'user_login' => 'test_security_' . uniqid(),
@@ -146,9 +95,6 @@ final class SecurityDataCollectorTest extends TestCase
     #[Test]
     public function collectDetectsBasicAuthAsApplicationPassword(): void
     {
-        if (!function_exists('wp_insert_user')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $originalServer = $_SERVER;
         $userId = wp_insert_user([
@@ -178,9 +124,6 @@ final class SecurityDataCollectorTest extends TestCase
     #[Test]
     public function collectDetectsRedirectBasicAuthAsApplicationPassword(): void
     {
-        if (!function_exists('wp_insert_user')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $originalServer = $_SERVER;
         $userId = wp_insert_user([
@@ -262,9 +205,6 @@ final class SecurityDataCollectorTest extends TestCase
     #[Test]
     public function collectIsSuperAdminWithWordPress(): void
     {
-        if (!function_exists('wp_insert_user')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $userId = wp_insert_user([
             'user_login' => 'test_super_' . uniqid(),

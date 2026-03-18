@@ -16,13 +16,7 @@ final class DashboardWidgetRegistryTest extends TestCase
 
     protected function setUp(): void
     {
-        if (!function_exists('wp_add_dashboard_widget')) {
-            self::markTestSkipped('WordPress dashboard functions are not available.');
-        }
-
-        if (function_exists('set_current_screen')) {
-            set_current_screen('dashboard');
-        }
+        set_current_screen('dashboard');
 
         global $wp_meta_boxes;
         $wp_meta_boxes = [];

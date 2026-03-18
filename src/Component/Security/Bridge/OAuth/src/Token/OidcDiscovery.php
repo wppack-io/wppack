@@ -24,12 +24,10 @@ final class OidcDiscovery
     {
         $cacheKey = self::TRANSIENT_PREFIX . md5($discoveryUrl);
 
-        if (\function_exists('get_transient')) {
-            $cached = get_transient($cacheKey);
+        $cached = get_transient($cacheKey);
 
-            if (\is_array($cached)) {
-                return DiscoveryDocument::fromArray($cached);
-            }
+        if (\is_array($cached)) {
+            return DiscoveryDocument::fromArray($cached);
         }
 
         if (!str_starts_with($discoveryUrl, 'https://')) {
@@ -50,9 +48,7 @@ final class OidcDiscovery
 
         $document = DiscoveryDocument::fromArray($data);
 
-        if (\function_exists('set_transient')) {
-            set_transient($cacheKey, $data, self::CACHE_TTL);
-        }
+        set_transient($cacheKey, $data, self::CACHE_TTL);
 
         return $document;
     }

@@ -51,10 +51,6 @@ final class AuthenticationManagerTest extends TestCase
     #[Test]
     public function handleAuthenticationPassesThroughWpUser(): void
     {
-        if (!class_exists(\WP_User::class)) {
-            self::markTestSkipped('WP_User class is not available.');
-        }
-
         $user = new \WP_User();
         $user->ID = 1;
 
@@ -66,10 +62,6 @@ final class AuthenticationManagerTest extends TestCase
     #[Test]
     public function handleAuthenticationSkipsStatelessAuthenticators(): void
     {
-        if (!class_exists(\WP_User::class)) {
-            self::markTestSkipped('WP_User class is not available.');
-        }
-
         $stateless = $this->createStatelessAuthenticator(true);
         $this->manager->addAuthenticator($stateless);
 
@@ -81,10 +73,6 @@ final class AuthenticationManagerTest extends TestCase
     #[Test]
     public function handleStatelessAuthenticationSkipsNonStatelessAuthenticators(): void
     {
-        if (!class_exists(\WP_User::class)) {
-            self::markTestSkipped('WP_User class is not available.');
-        }
-
         $regular = $this->createRegularAuthenticator(true);
         $this->manager->addAuthenticator($regular);
 
@@ -96,10 +84,6 @@ final class AuthenticationManagerTest extends TestCase
     #[Test]
     public function handleAuthenticationReturnsUserOnSuccess(): void
     {
-        if (!class_exists(\WP_User::class)) {
-            self::markTestSkipped('WP_User class is not available.');
-        }
-
         $user = new \WP_User();
         $user->ID = 42;
         $user->user_login = 'testuser';
@@ -118,10 +102,6 @@ final class AuthenticationManagerTest extends TestCase
     #[Test]
     public function handleAuthenticationReturnsWpErrorOnFailure(): void
     {
-        if (!class_exists(\WP_User::class) || !class_exists(\WP_Error::class)) {
-            self::markTestSkipped('WordPress classes are not available.');
-        }
-
         $authenticator = $this->createFailingAuthenticator();
         $this->manager->addAuthenticator($authenticator);
 
@@ -133,10 +113,6 @@ final class AuthenticationManagerTest extends TestCase
     #[Test]
     public function handleStatelessAuthenticationReturnsUserIdOnSuccess(): void
     {
-        if (!class_exists(\WP_User::class)) {
-            self::markTestSkipped('WP_User class is not available.');
-        }
-
         $user = new \WP_User();
         $user->ID = 42;
         $user->user_login = 'testuser';
@@ -162,10 +138,6 @@ final class AuthenticationManagerTest extends TestCase
     #[Test]
     public function handleAuthenticationDispatchesEvents(): void
     {
-        if (!class_exists(\WP_User::class)) {
-            self::markTestSkipped('WP_User class is not available.');
-        }
-
         $user = new \WP_User();
         $user->ID = 1;
         $user->user_login = 'testuser';
@@ -182,10 +154,6 @@ final class AuthenticationManagerTest extends TestCase
     #[Test]
     public function handleStatelessAuthenticationContinuesOnFailure(): void
     {
-        if (!class_exists(\WP_User::class)) {
-            self::markTestSkipped('WP_User class is not available.');
-        }
-
         $user = new \WP_User();
         $user->ID = 42;
         $user->user_login = 'testuser';

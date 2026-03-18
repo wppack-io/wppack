@@ -17,10 +17,6 @@ final class ActionSchedulerInterceptorTest extends TestCase
 
     protected function setUp(): void
     {
-        if (!\function_exists('add_action')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         if (!class_exists(\ActionScheduler::class)) {
             self::markTestSkipped('Action Scheduler is not available.');
         }
@@ -35,7 +31,7 @@ final class ActionSchedulerInterceptorTest extends TestCase
 
     protected function tearDown(): void
     {
-        if (\function_exists('remove_action') && isset($this->interceptor)) {
+        if (isset($this->interceptor)) {
             $this->interceptor->unregister();
         }
     }

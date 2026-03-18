@@ -27,10 +27,6 @@ final class QueryMonitorCollectorAdapter extends AbstractDataCollector
             return;
         }
 
-        if (!function_exists('apply_filters')) {
-            return;
-        }
-
         /** @var array<string, object> $collectors */
         $collectors = apply_filters('qm/collectors', []);
 

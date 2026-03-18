@@ -228,9 +228,6 @@ final class DatabaseDataCollectorTest extends TestCase
     #[Test]
     public function collectFallsBackToWpdbQueries(): void
     {
-        if (!function_exists('add_filter')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         global $wpdb;
 

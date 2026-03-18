@@ -16,10 +16,6 @@ final class TransientManagerTest extends TestCase
 
     protected function setUp(): void
     {
-        if (!function_exists('get_transient')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->manager = new TransientManager();
 
         delete_transient(self::TEST_TRANSIENT);
@@ -27,9 +23,7 @@ final class TransientManagerTest extends TestCase
 
     protected function tearDown(): void
     {
-        if (function_exists('delete_transient')) {
-            delete_transient(self::TEST_TRANSIENT);
-        }
+        delete_transient(self::TEST_TRANSIENT);
     }
 
     #[Test]

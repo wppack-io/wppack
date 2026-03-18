@@ -48,10 +48,6 @@ final class ExceptionHandlerTest extends TestCase
      */
     private function setUpAdminUser(): int
     {
-        if (!function_exists('wp_insert_user')) {
-            return 0;
-        }
-
         $userId = wp_insert_user([
             'user_login' => 'test_exc_' . uniqid(),
             'user_pass' => wp_generate_password(),
@@ -66,7 +62,7 @@ final class ExceptionHandlerTest extends TestCase
 
     private function tearDownAdminUser(int $userId): void
     {
-        if ($userId > 0 && function_exists('wp_set_current_user')) {
+        if ($userId > 0) {
             wp_set_current_user(0);
             wp_delete_user($userId);
         }
@@ -320,10 +316,6 @@ final class ExceptionHandlerTest extends TestCase
     {
         $userId = $this->setUpAdminUser();
 
-        if ($userId === 0) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         try {
             $config = new DebugConfig(enabled: true, roleWhitelist: ['administrator']);
 
@@ -347,10 +339,6 @@ final class ExceptionHandlerTest extends TestCase
     #[Test]
     public function handleExceptionDeniedForSubscriber(): void
     {
-        if (!function_exists('wp_insert_user')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $userId = wp_insert_user([
             'user_login' => 'test_exc_sub_' . uniqid(),
             'user_pass' => wp_generate_password(),

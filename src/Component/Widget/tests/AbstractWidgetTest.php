@@ -11,13 +11,6 @@ use WpPack\Component\Widget\Attribute\AsWidget;
 
 final class AbstractWidgetTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        if (!class_exists(\WP_Widget::class)) {
-            self::markTestSkipped('WP_Widget class is not available.');
-        }
-    }
-
     #[Test]
     public function resolvesIdFromAttribute(): void
     {

@@ -17,10 +17,6 @@ final class EventSubscriberTest extends TestCase
 
     protected function setUp(): void
     {
-        if (!\function_exists('add_filter')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->dispatcher = new EventDispatcher();
     }
 

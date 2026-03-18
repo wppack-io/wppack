@@ -32,7 +32,7 @@ final class DebugBarPanelAdapterTest extends TestCase
     #[Test]
     public function collectWithoutDebugBarReturnsEmpty(): void
     {
-        if (!class_exists(\Debug_Bar_Panel::class) || !function_exists('apply_filters')) {
+        if (!class_exists(\Debug_Bar_Panel::class)) {
             // Guard classes/functions not available — collect() returns early with empty data
             $this->adapter->collect();
 
@@ -54,9 +54,6 @@ final class DebugBarPanelAdapterTest extends TestCase
     #[Test]
     public function collectWithDebugBarPanelsCollectsData(): void
     {
-        if (!function_exists('apply_filters')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         if (!class_exists(\Debug_Bar_Panel::class)) {
             self::markTestSkipped('Debug_Bar_Panel class is not available.');
@@ -127,18 +124,8 @@ final class DebugBarPanelAdapterTest extends TestCase
 
         $result = $method->invoke($this->adapter, $input);
 
-        if (function_exists('wp_kses_post')) {
-            // wp_kses_post strips script tags but keeps safe HTML
-            self::assertStringNotContainsString('<script>', $result);
-            self::assertStringContainsString('Hello', $result);
-        } else {
-            // Fallback: strip_tags + htmlspecialchars
-            self::assertStringNotContainsString('<script>', $result);
-            self::assertStringNotContainsString('<p>', $result);
-            self::assertStringContainsString('Hello', $result);
-            // The result should be HTML-escaped after strip_tags
-            $expected = htmlspecialchars(strip_tags($input), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-            self::assertSame($expected, $result);
-        }
+        // wp_kses_post strips script tags but keeps safe HTML
+        self::assertStringNotContainsString('<script>', $result);
+        self::assertStringContainsString('Hello', $result);
     }
 }

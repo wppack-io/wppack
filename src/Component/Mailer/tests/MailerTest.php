@@ -55,10 +55,6 @@ final class MailerTest extends TestCase
     #[Test]
     public function bootRegistersHooksOnce(): void
     {
-        if (!function_exists('add_filter')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $mailer = new Mailer(new NullTransport());
 
         $mailer->boot();
@@ -71,10 +67,6 @@ final class MailerTest extends TestCase
     #[Test]
     public function resetAllowsReboot(): void
     {
-        if (!function_exists('add_filter')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $mailer1 = new Mailer(new NullTransport());
         $mailer1->boot();
 
@@ -134,10 +126,6 @@ final class MailerTest extends TestCase
     #[Test]
     public function sendWithNullTransport(): void
     {
-        if (!function_exists('do_action_ref_array')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $succeededData = null;
         add_action('wp_mail_succeeded', static function (array $data) use (&$succeededData): void {
             $succeededData = $data;
@@ -164,10 +152,6 @@ final class MailerTest extends TestCase
     #[Test]
     public function sendWithHtmlEmail(): void
     {
-        if (!function_exists('do_action_ref_array')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $succeededData = null;
         add_action('wp_mail_succeeded', static function (array $data) use (&$succeededData): void {
             $succeededData = $data;
@@ -190,10 +174,6 @@ final class MailerTest extends TestCase
     #[Test]
     public function sendTemplatedEmailWithoutRendererThrows(): void
     {
-        if (!function_exists('do_action_ref_array')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $mailer = new Mailer(new NullTransport());
         $email = (new TemplatedEmail())
             ->from('sender@example.com')
@@ -208,10 +188,6 @@ final class MailerTest extends TestCase
     #[Test]
     public function sendTemplatedEmailWithRenderer(): void
     {
-        if (!function_exists('do_action_ref_array')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $succeededData = null;
         add_action('wp_mail_succeeded', static function (array $data) use (&$succeededData): void {
             $succeededData = $data;
@@ -242,10 +218,6 @@ final class MailerTest extends TestCase
     #[Test]
     public function sendThrowsTransportExceptionOnFailure(): void
     {
-        if (!function_exists('do_action_ref_array')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $failingTransport = new class implements \WpPack\Component\Mailer\Transport\TransportInterface {
             public function getName(): string
             {
@@ -273,10 +245,6 @@ final class MailerTest extends TestCase
     #[Test]
     public function sendFiresWpMailFailedOnFailure(): void
     {
-        if (!function_exists('do_action_ref_array')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $failingTransport = new class implements \WpPack\Component\Mailer\Transport\TransportInterface {
             public function getName(): string
             {
@@ -315,10 +283,6 @@ final class MailerTest extends TestCase
     #[Test]
     public function sendWithMultipleRecipientTypes(): void
     {
-        if (!function_exists('do_action_ref_array')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $succeededData = null;
         add_action('wp_mail_succeeded', static function (array $data) use (&$succeededData): void {
             $succeededData = $data;
@@ -342,10 +306,6 @@ final class MailerTest extends TestCase
     #[Test]
     public function sendWithAttachments(): void
     {
-        if (!function_exists('do_action_ref_array')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $file = tempnam(sys_get_temp_dir(), 'wppack_mailer_test_');
         file_put_contents($file, 'attachment content');
 
@@ -375,10 +335,6 @@ final class MailerTest extends TestCase
     #[Test]
     public function sendWithReturnPath(): void
     {
-        if (!function_exists('do_action_ref_array')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $succeededData = null;
         add_action('wp_mail_succeeded', static function (array $data) use (&$succeededData): void {
             $succeededData = $data;
@@ -400,10 +356,6 @@ final class MailerTest extends TestCase
     #[Test]
     public function sendWithReplyTo(): void
     {
-        if (!function_exists('do_action_ref_array')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $succeededData = null;
         add_action('wp_mail_succeeded', static function (array $data) use (&$succeededData): void {
             $succeededData = $data;
@@ -425,10 +377,6 @@ final class MailerTest extends TestCase
     #[Test]
     public function sendWithCustomHeaders(): void
     {
-        if (!function_exists('do_action_ref_array')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $succeededData = null;
         add_action('wp_mail_succeeded', static function (array $data) use (&$succeededData): void {
             $succeededData = $data;
@@ -451,10 +399,6 @@ final class MailerTest extends TestCase
     #[Test]
     public function sendWrapsNonTransportException(): void
     {
-        if (!function_exists('do_action_ref_array')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $throwingTransport = new class implements \WpPack\Component\Mailer\Transport\TransportInterface {
             public function getName(): string
             {
@@ -482,10 +426,6 @@ final class MailerTest extends TestCase
     #[Test]
     public function sendTemplatedEmailRendersTextTemplate(): void
     {
-        if (!function_exists('do_action_ref_array')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $succeededData = null;
         add_action('wp_mail_succeeded', static function (array $data) use (&$succeededData): void {
             $succeededData = $data;
@@ -516,10 +456,6 @@ final class MailerTest extends TestCase
     #[Test]
     public function sendWithInlineAttachment(): void
     {
-        if (!function_exists('do_action_ref_array')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $file = tempnam(sys_get_temp_dir(), 'wppack_mailer_inline_');
         file_put_contents($file, 'image-data');
 
@@ -552,10 +488,6 @@ final class MailerTest extends TestCase
     #[Test]
     public function sendWithHtmlOnlyNoTextBody(): void
     {
-        if (!function_exists('do_action_ref_array')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $succeededData = null;
         add_action('wp_mail_succeeded', static function (array $data) use (&$succeededData): void {
             $succeededData = $data;

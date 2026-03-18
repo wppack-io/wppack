@@ -17,10 +17,6 @@ final class CacheManagerTest extends TestCase
 
     protected function setUp(): void
     {
-        if (!function_exists('wp_cache_get')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->manager = new CacheManager();
 
         wp_cache_delete(self::TEST_KEY, '');
@@ -29,10 +25,8 @@ final class CacheManagerTest extends TestCase
 
     protected function tearDown(): void
     {
-        if (function_exists('wp_cache_delete')) {
-            wp_cache_delete(self::TEST_KEY, '');
-            wp_cache_delete(self::TEST_KEY, self::TEST_GROUP);
-        }
+        wp_cache_delete(self::TEST_KEY, '');
+        wp_cache_delete(self::TEST_KEY, self::TEST_GROUP);
     }
 
     #[Test]

@@ -56,10 +56,6 @@ final class TranslatorTest extends TestCase
     #[Test]
     public function translateCallsWordPressFunction(): void
     {
-        if (!function_exists('__')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $translator = new Translator('test-domain');
 
         self::assertSame('Hello', $translator->translate('Hello'));
@@ -68,10 +64,6 @@ final class TranslatorTest extends TestCase
     #[Test]
     public function echoCallsWordPressFunction(): void
     {
-        if (!function_exists('_e')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $translator = new Translator('test-domain');
 
         ob_start();
@@ -84,10 +76,6 @@ final class TranslatorTest extends TestCase
     #[Test]
     public function pluralCallsWordPressFunction(): void
     {
-        if (!function_exists('_n')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $translator = new Translator('test-domain');
 
         self::assertSame('%d item', $translator->plural('%d item', '%d items', 1));
@@ -97,10 +85,6 @@ final class TranslatorTest extends TestCase
     #[Test]
     public function translateWithContextCallsWordPressFunction(): void
     {
-        if (!function_exists('_x')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $translator = new Translator('test-domain');
 
         self::assertSame('Post', $translator->translateWithContext('Post', 'verb'));
@@ -109,10 +93,6 @@ final class TranslatorTest extends TestCase
     #[Test]
     public function pluralWithContextCallsWordPressFunction(): void
     {
-        if (!function_exists('_nx')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $translator = new Translator('test-domain');
 
         self::assertSame('%d item', $translator->pluralWithContext('%d item', '%d items', 1, 'cart'));
@@ -122,10 +102,6 @@ final class TranslatorTest extends TestCase
     #[Test]
     public function escHtmlCallsWordPressFunction(): void
     {
-        if (!function_exists('esc_html__')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $translator = new Translator('test-domain');
 
         self::assertSame('Safe text', $translator->escHtml('Safe text'));
@@ -134,10 +110,6 @@ final class TranslatorTest extends TestCase
     #[Test]
     public function escAttrCallsWordPressFunction(): void
     {
-        if (!function_exists('esc_attr__')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $translator = new Translator('test-domain');
 
         self::assertSame('Title text', $translator->escAttr('Title text'));

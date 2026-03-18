@@ -30,29 +30,6 @@ final class SchedulerDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function collectWithoutWordPressReturnsDefaults(): void
-    {
-        if (function_exists('_get_cron_array')) {
-            self::markTestSkipped('WordPress functions are available.');
-        }
-
-        $this->collector->collect();
-        $data = $this->collector->getData();
-
-        self::assertSame([], $data['cron_events']);
-        self::assertSame(0, $data['cron_total']);
-        self::assertSame(0, $data['cron_overdue']);
-        self::assertFalse($data['action_scheduler_available']);
-        self::assertSame('', $data['action_scheduler_version']);
-        self::assertSame(0, $data['as_pending']);
-        self::assertSame(0, $data['as_failed']);
-        self::assertSame(0, $data['as_complete']);
-        self::assertSame([], $data['as_recent_actions']);
-        self::assertFalse($data['cron_disabled']);
-        self::assertFalse($data['alternate_cron']);
-    }
-
-    #[Test]
     public function getIndicatorValueReturnsEmptyWhenNoEvents(): void
     {
         // Directly set data to simulate empty state
@@ -111,9 +88,6 @@ final class SchedulerDataCollectorTest extends TestCase
     #[Test]
     public function collectWithWordPressGathersCronData(): void
     {
-        if (!function_exists('_get_cron_array')) {
-            self::markTestSkipped('WordPress cron functions are not available.');
-        }
 
         // Schedule a test cron event
         $hookName = 'test_debug_cron_' . uniqid();
@@ -146,9 +120,6 @@ final class SchedulerDataCollectorTest extends TestCase
     #[Test]
     public function collectEventsSortedByNextRun(): void
     {
-        if (!function_exists('_get_cron_array')) {
-            self::markTestSkipped('WordPress cron functions are not available.');
-        }
 
         $this->collector->collect();
         $data = $this->collector->getData();
@@ -162,9 +133,6 @@ final class SchedulerDataCollectorTest extends TestCase
     #[Test]
     public function collectDetectsCronDisabledState(): void
     {
-        if (!function_exists('_get_cron_array')) {
-            self::markTestSkipped('WordPress cron functions are not available.');
-        }
 
         $this->collector->collect();
         $data = $this->collector->getData();
@@ -180,9 +148,6 @@ final class SchedulerDataCollectorTest extends TestCase
     #[Test]
     public function collectCronEventStructureIsCorrect(): void
     {
-        if (!function_exists('_get_cron_array')) {
-            self::markTestSkipped('WordPress cron functions are not available.');
-        }
 
         $this->collector->collect();
         $data = $this->collector->getData();
@@ -206,9 +171,6 @@ final class SchedulerDataCollectorTest extends TestCase
     #[Test]
     public function collectWithCronArrayReturnsEvents(): void
     {
-        if (!function_exists('_get_cron_array')) {
-            self::markTestSkipped('WordPress cron functions are not available.');
-        }
 
         $hook1 = 'test_cron_events_a_' . uniqid();
         $hook2 = 'test_cron_events_b_' . uniqid();
@@ -244,9 +206,6 @@ final class SchedulerDataCollectorTest extends TestCase
     #[Test]
     public function collectDetectsOverdueEvents(): void
     {
-        if (!function_exists('_get_cron_array')) {
-            self::markTestSkipped('WordPress cron functions are not available.');
-        }
 
         $hookName = 'test_overdue_cron_' . uniqid();
 
@@ -277,9 +236,6 @@ final class SchedulerDataCollectorTest extends TestCase
     #[Test]
     public function collectRelativeTimeFormatting(): void
     {
-        if (!function_exists('_get_cron_array')) {
-            self::markTestSkipped('WordPress cron functions are not available.');
-        }
 
         $now = time();
 
@@ -334,9 +290,6 @@ final class SchedulerDataCollectorTest extends TestCase
     #[Test]
     public function collectCountsCallbacksPerHook(): void
     {
-        if (!function_exists('_get_cron_array')) {
-            self::markTestSkipped('WordPress cron functions are not available.');
-        }
 
         $hookName = 'test_callback_count_cron_' . uniqid();
         $callback1 = static function (): void {};
@@ -369,9 +322,6 @@ final class SchedulerDataCollectorTest extends TestCase
     #[Test]
     public function collectDisabledCronDetection(): void
     {
-        if (!function_exists('_get_cron_array')) {
-            self::markTestSkipped('WordPress cron functions are not available.');
-        }
 
         $this->collector->collect();
         $data = $this->collector->getData();
@@ -415,9 +365,6 @@ final class SchedulerDataCollectorTest extends TestCase
     #[Test]
     public function collectWithOverdueCronEventSetsRelativeTimeStrings(): void
     {
-        if (!function_exists('_get_cron_array')) {
-            self::markTestSkipped('WordPress cron functions are not available.');
-        }
 
         $hookName = 'test_overdue_relative_' . uniqid();
 
@@ -449,9 +396,6 @@ final class SchedulerDataCollectorTest extends TestCase
     #[Test]
     public function collectWithFutureCronEventSetsRelativeTimeStrings(): void
     {
-        if (!function_exists('_get_cron_array')) {
-            self::markTestSkipped('WordPress cron functions are not available.');
-        }
 
         $now = time();
         $hookLessThanMinute = 'test_future_sec_' . uniqid();
@@ -506,9 +450,6 @@ final class SchedulerDataCollectorTest extends TestCase
     #[Test]
     public function collectCountsCallbacksFromWpFilter(): void
     {
-        if (!function_exists('_get_cron_array')) {
-            self::markTestSkipped('WordPress cron functions are not available.');
-        }
 
         $hookName = 'test_callback_wp_filter_' . uniqid();
         $callback1 = static function (): void {};
@@ -548,9 +489,6 @@ final class SchedulerDataCollectorTest extends TestCase
     #[Test]
     public function collectWithMinutesAgoCronEvent(): void
     {
-        if (!function_exists('_get_cron_array')) {
-            self::markTestSkipped('WordPress cron functions are not available.');
-        }
 
         $hookName = 'test_minutes_ago_' . uniqid();
 
@@ -582,9 +520,6 @@ final class SchedulerDataCollectorTest extends TestCase
     #[Test]
     public function collectWithJustOverdueCronEvent(): void
     {
-        if (!function_exists('_get_cron_array')) {
-            self::markTestSkipped('WordPress cron functions are not available.');
-        }
 
         $hookName = 'test_just_overdue_' . uniqid();
 
@@ -616,9 +551,6 @@ final class SchedulerDataCollectorTest extends TestCase
     #[Test]
     public function collectIteratesCronArrayAndBuildsEventDetails(): void
     {
-        if (!function_exists('_get_cron_array')) {
-            self::markTestSkipped('WordPress cron functions are not available.');
-        }
 
         // Schedule multiple events with different schedules to thoroughly cover the loop
         $hookSingle = 'test_cron_detail_single_' . uniqid();
@@ -677,9 +609,6 @@ final class SchedulerDataCollectorTest extends TestCase
     #[Test]
     public function collectWithCronEventNoCallbacksReturnsZeroCallbacks(): void
     {
-        if (!function_exists('_get_cron_array')) {
-            self::markTestSkipped('WordPress cron functions are not available.');
-        }
 
         $hookName = 'test_no_callbacks_' . uniqid();
         wp_schedule_single_event(time() + 3600, $hookName);
@@ -709,9 +638,6 @@ final class SchedulerDataCollectorTest extends TestCase
     #[Test]
     public function collectActionSchedulerDetectionWhenNotAvailable(): void
     {
-        if (!function_exists('_get_cron_array')) {
-            self::markTestSkipped('WordPress cron functions are not available.');
-        }
 
         // When Action Scheduler is not installed, the AS fields should be defaults
         if (function_exists('as_get_scheduled_actions')) {
@@ -734,9 +660,6 @@ final class SchedulerDataCollectorTest extends TestCase
     #[Test]
     public function collectActionSchedulerFieldsWhenAvailable(): void
     {
-        if (!function_exists('_get_cron_array')) {
-            self::markTestSkipped('WordPress cron functions are not available.');
-        }
 
         if (!function_exists('as_get_scheduled_actions')) {
             self::markTestSkipped('Action Scheduler is not available.');
@@ -758,9 +681,6 @@ final class SchedulerDataCollectorTest extends TestCase
     #[Test]
     public function collectCronEventsContainScheduleFieldForRecurring(): void
     {
-        if (!function_exists('_get_cron_array')) {
-            self::markTestSkipped('WordPress cron functions are not available.');
-        }
 
         $hookName = 'test_schedule_field_' . uniqid();
         wp_schedule_event(time() + 3600, 'daily', $hookName);
@@ -789,9 +709,6 @@ final class SchedulerDataCollectorTest extends TestCase
     #[Test]
     public function collectCronEventsRelativeTimeInLessThanMinute(): void
     {
-        if (!function_exists('_get_cron_array')) {
-            self::markTestSkipped('WordPress cron functions are not available.');
-        }
 
         $hookName = 'test_less_than_min_' . uniqid();
         // Schedule 20 seconds in the future
@@ -821,9 +738,6 @@ final class SchedulerDataCollectorTest extends TestCase
     #[Test]
     public function collectCronEventsCallbackCountAcrossMultiplePriorities(): void
     {
-        if (!function_exists('_get_cron_array')) {
-            self::markTestSkipped('WordPress cron functions are not available.');
-        }
 
         $hookName = 'test_multi_priority_' . uniqid();
         $cb1 = static function (): void {};

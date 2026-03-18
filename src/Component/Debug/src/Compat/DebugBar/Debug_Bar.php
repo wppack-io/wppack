@@ -38,8 +38,6 @@ class Debug_Bar
      */
     public function init_panels()
     {
-        if (function_exists('apply_filters')) {
-            $this->panels = apply_filters('debug_bar_panels', []);
-        }
+        $this->panels = apply_filters('debug_bar_panels', []);
     }
 }

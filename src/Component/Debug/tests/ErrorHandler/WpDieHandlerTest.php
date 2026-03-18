@@ -32,10 +32,6 @@ final class WpDieHandlerTest extends TestCase
      */
     private function setUpAdminUser(): int
     {
-        if (!function_exists('wp_insert_user')) {
-            return 0;
-        }
-
         $userId = wp_insert_user([
             'user_login' => 'test_wpdie_' . uniqid(),
             'user_pass' => wp_generate_password(),
@@ -50,7 +46,7 @@ final class WpDieHandlerTest extends TestCase
 
     private function tearDownAdminUser(int $userId): void
     {
-        if ($userId > 0 && function_exists('wp_set_current_user')) {
+        if ($userId > 0) {
             wp_set_current_user(0);
             wp_delete_user($userId);
         }
@@ -90,10 +86,6 @@ final class WpDieHandlerTest extends TestCase
     #[Test]
     public function handleHtmlWithWpErrorRendersDebugPage(): void
     {
-        if (!class_exists(\WP_Error::class)) {
-            self::markTestSkipped('WP_Error class is not available.');
-        }
-
         $userId = $this->setUpAdminUser();
 
         try {
@@ -228,20 +220,8 @@ final class WpDieHandlerTest extends TestCase
     #[Test]
     public function registerIsNoOpWithoutWordPress(): void
     {
-        // If add_filter is not available, register() should not throw
-        if (function_exists('add_filter')) {
-            self::markTestSkipped('add_filter() is available; cannot test no-op behavior.');
-        }
-
-        $handler = new WpDieHandler(
-            new ErrorRenderer(),
-            new DebugConfig(enabled: true),
-        );
-
-        $handler->register();
-
-        // No exception means success
-        self::assertTrue(true);
+        // add_filter is always available in WP test env; cannot test no-op behavior
+        self::markTestSkipped('add_filter() is available; cannot test no-op behavior.');
     }
 
     #[Test]
@@ -337,10 +317,6 @@ final class WpDieHandlerTest extends TestCase
     #[Test]
     public function handleAjaxWithWpErrorReturnsErrorCodes(): void
     {
-        if (!class_exists(\WP_Error::class)) {
-            self::markTestSkipped('WP_Error class is not available.');
-        }
-
         $userId = $this->setUpAdminUser();
 
         try {
@@ -430,10 +406,6 @@ final class WpDieHandlerTest extends TestCase
     #[Test]
     public function registerAddsWpDieFilters(): void
     {
-        if (!function_exists('add_filter')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $handler = new WpDieHandler(
             new ErrorRenderer(),
             new DebugConfig(enabled: true),
@@ -449,10 +421,6 @@ final class WpDieHandlerTest extends TestCase
     #[Test]
     public function handleAjaxWithWpErrorDataIncludesErrorData(): void
     {
-        if (!class_exists(\WP_Error::class)) {
-            self::markTestSkipped('WP_Error class is not available.');
-        }
-
         $userId = $this->setUpAdminUser();
 
         try {
@@ -488,10 +456,6 @@ final class WpDieHandlerTest extends TestCase
     #[Test]
     public function handleJsonWithWpErrorReturnsJson(): void
     {
-        if (!class_exists(\WP_Error::class)) {
-            self::markTestSkipped('WP_Error class is not available.');
-        }
-
         $userId = $this->setUpAdminUser();
 
         try {
@@ -533,15 +497,9 @@ final class WpDieHandlerTest extends TestCase
         // With access denied and no previous handler, it should call _default_wp_die_handler if available
         // or do nothing if not available
 
-        if (function_exists('_default_wp_die_handler')) {
-            // In WP env, _default_wp_die_handler exists but we can't easily test it
-            // without it calling exit. Just verify no exception is thrown from our handler code.
-            self::assertTrue(true);
-        } else {
-            // Without WP, no previous handler and no fallback — handler silently returns
-            $handler->handleHtml('test', '', ['exit' => false]);
-            self::assertTrue(true);
-        }
+        // In WP env, _default_wp_die_handler exists but we can't easily test it
+        // without it calling exit. Just verify no exception is thrown from our handler code.
+        self::assertTrue(true);
     }
 
     #[Test]
@@ -655,10 +613,6 @@ final class WpDieHandlerTest extends TestCase
     #[Test]
     public function callPreviousHandlerFallsBackToDefaultWhenNull(): void
     {
-        if (!function_exists('_default_wp_die_handler')) {
-            self::markTestSkipped('WordPress _default_wp_die_handler is not available.');
-        }
-
         $handler = new WpDieHandler(new ErrorRenderer(), new DebugConfig(enabled: true));
         $method = new \ReflectionMethod($handler, 'callPreviousHandler');
 

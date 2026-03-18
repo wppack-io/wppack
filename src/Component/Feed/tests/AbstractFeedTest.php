@@ -47,10 +47,6 @@ final class AbstractFeedTest extends TestCase
     #[Test]
     public function registerCallsAddFeed(): void
     {
-        if (!function_exists('add_feed')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $feed = new ConcreteTestFeed();
         $feed->register();
 

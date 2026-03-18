@@ -26,24 +26,6 @@ final class SchedulerDataCollector extends AbstractDataCollector
 
     public function collect(): void
     {
-        if (!function_exists('_get_cron_array')) {
-            $this->data = [
-                'cron_events' => [],
-                'cron_total' => 0,
-                'cron_overdue' => 0,
-                'action_scheduler_available' => false,
-                'action_scheduler_version' => '',
-                'as_pending' => 0,
-                'as_failed' => 0,
-                'as_complete' => 0,
-                'as_recent_actions' => [],
-                'cron_disabled' => false,
-                'alternate_cron' => false,
-            ];
-
-            return;
-        }
-
         /** @var array<int, array<string, array<string, array{schedule: string|false, args: list<mixed>}>>>|false $cronArray */
         $cronArray = _get_cron_array();
         $now = time();
@@ -106,7 +88,7 @@ final class SchedulerDataCollector extends AbstractDataCollector
         $asComplete = 0;
         $asRecentActions = [];
 
-        if ($asAvailable && function_exists('as_get_scheduled_actions')) {
+        if ($asAvailable) {
             $asVersion = defined('ActionScheduler_Versions::AS_VERSION')
                 ? constant('ActionScheduler_Versions::AS_VERSION')
                 : '';

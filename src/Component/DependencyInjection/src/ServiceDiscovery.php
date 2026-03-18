@@ -153,18 +153,6 @@ final class ServiceDiscovery
 
     private function resolveOption(string $name, \ReflectionParameter $parameter): mixed
     {
-        if (!function_exists('get_option')) {
-            if ($parameter->isDefaultValueAvailable()) {
-                return null;
-            }
-
-            throw new \RuntimeException(sprintf(
-                'Unable to resolve option "%s" for parameter "$%s": get_option() is not available.',
-                $name,
-                $parameter->getName(),
-            ));
-        }
-
         $parts = explode('.', $name);
         $optionName = array_shift($parts);
 

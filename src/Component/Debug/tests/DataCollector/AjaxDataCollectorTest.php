@@ -76,9 +76,6 @@ final class AjaxDataCollectorTest extends TestCase
     #[Test]
     public function collectWithAjaxActionsReturnsData(): void
     {
-        if (!function_exists('add_action')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $callback = static function (): void {};
         add_action('wp_ajax_test_debug_action', $callback, 10);
@@ -109,9 +106,6 @@ final class AjaxDataCollectorTest extends TestCase
     #[Test]
     public function collectExtractsStringCallback(): void
     {
-        if (!function_exists('add_action')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         // phpcs:ignore WordPress.WP.AlternativeFunctions -- test only
         add_action('wp_ajax_test_debug_str_cb', 'strlen', 10);
@@ -130,9 +124,6 @@ final class AjaxDataCollectorTest extends TestCase
     #[Test]
     public function collectExtractsClosureCallback(): void
     {
-        if (!function_exists('add_action')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $closure = static function (): void {};
         add_action('wp_ajax_test_debug_closure_cb', $closure, 10);
@@ -151,9 +142,6 @@ final class AjaxDataCollectorTest extends TestCase
     #[Test]
     public function collectSortsActionsByName(): void
     {
-        if (!function_exists('add_action')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $callback = static function (): void {};
         add_action('wp_ajax_test_debug_zzz', $callback, 10);

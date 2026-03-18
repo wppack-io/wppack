@@ -29,11 +29,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
      */
     public function resolveUser(string $nameId, array $attributes): \WP_User
     {
-        if (!function_exists('get_user_by')) {
-            throw new \RuntimeException('WordPress functions are not available.');
-        }
-
-        $sanitizedNameId = function_exists('sanitize_user') ? sanitize_user($nameId, true) : $nameId;
+        $sanitizedNameId = sanitize_user($nameId, true);
 
         if ($sanitizedNameId === '') {
             throw new AuthenticationException('Invalid SAML NameID.');
@@ -42,7 +38,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
         $email = $this->getAttributeValue($attributes, $this->emailAttribute);
 
         if ($email !== null) {
-            $email = function_exists('sanitize_email') ? sanitize_email($email) : $email;
+            $email = sanitize_email($email);
 
             if ($email === '' || !filter_var($email, \FILTER_VALIDATE_EMAIL)) {
                 $email = null;
@@ -100,8 +96,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
             $firstName = $this->getAttributeValue($attributes, $this->firstNameAttribute);
 
             if ($firstName !== null) {
-                $userdata['first_name'] = function_exists('sanitize_text_field')
-                    ? sanitize_text_field($firstName) : $firstName;
+                $userdata['first_name'] = sanitize_text_field($firstName);
             }
         }
 
@@ -109,8 +104,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
             $lastName = $this->getAttributeValue($attributes, $this->lastNameAttribute);
 
             if ($lastName !== null) {
-                $userdata['last_name'] = function_exists('sanitize_text_field')
-                    ? sanitize_text_field($lastName) : $lastName;
+                $userdata['last_name'] = sanitize_text_field($lastName);
             }
         }
 
@@ -118,8 +112,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
             $displayName = $this->getAttributeValue($attributes, $this->displayNameAttribute);
 
             if ($displayName !== null) {
-                $userdata['display_name'] = function_exists('sanitize_text_field')
-                    ? sanitize_text_field($displayName) : $displayName;
+                $userdata['display_name'] = sanitize_text_field($displayName);
             }
         }
 
@@ -127,9 +120,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
         $userId = wp_insert_user($userdata);
 
         if ($userId instanceof \WP_Error) {
-            if (function_exists('do_action')) {
-                do_action('wppack_saml_user_provision_failed', $nameId, $userId);
-            }
+            do_action('wppack_saml_user_provision_failed', $nameId, $userId);
 
             throw new AuthenticationException('User provisioning failed.');
         }
@@ -143,9 +134,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
         $this->bindNameId($user, $nameId);
         $this->mapUserRole($user, $attributes);
 
-        if (function_exists('do_action')) {
-            do_action('wppack_saml_user_provisioned', $user, $nameId, $attributes);
-        }
+        do_action('wppack_saml_user_provisioned', $user, $nameId, $attributes);
 
         return $user;
     }
@@ -155,10 +144,6 @@ final class SamlUserResolver implements SamlUserResolverInterface
      */
     private function syncUserAttributes(\WP_User $user, array $attributes): void
     {
-        if (!function_exists('wp_update_user')) {
-            return;
-        }
-
         $userdata = ['ID' => $user->ID];
         $needsUpdate = false;
 
@@ -166,7 +151,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
             $firstName = $this->getAttributeValue($attributes, $this->firstNameAttribute);
 
             if ($firstName !== null) {
-                $firstName = function_exists('sanitize_text_field') ? sanitize_text_field($firstName) : $firstName;
+                $firstName = sanitize_text_field($firstName);
 
                 if ($firstName !== $user->first_name) {
                     $userdata['first_name'] = $firstName;
@@ -179,7 +164,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
             $lastName = $this->getAttributeValue($attributes, $this->lastNameAttribute);
 
             if ($lastName !== null) {
-                $lastName = function_exists('sanitize_text_field') ? sanitize_text_field($lastName) : $lastName;
+                $lastName = sanitize_text_field($lastName);
 
                 if ($lastName !== $user->last_name) {
                     $userdata['last_name'] = $lastName;
@@ -192,7 +177,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
             $displayName = $this->getAttributeValue($attributes, $this->displayNameAttribute);
 
             if ($displayName !== null) {
-                $displayName = function_exists('sanitize_text_field') ? sanitize_text_field($displayName) : $displayName;
+                $displayName = sanitize_text_field($displayName);
 
                 if ($displayName !== $user->display_name) {
                     $userdata['display_name'] = $displayName;
@@ -203,10 +188,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
 
         if ($needsUpdate) {
             wp_update_user($userdata);
-
-            if (function_exists('do_action')) {
-                do_action('wppack_saml_user_updated', $user, $attributes);
-            }
+            do_action('wppack_saml_user_updated', $user, $attributes);
         }
     }
 
@@ -232,10 +214,6 @@ final class SamlUserResolver implements SamlUserResolverInterface
 
     private function isNameIdBound(\WP_User $user, string $nameId): bool
     {
-        if (!function_exists('get_user_meta')) {
-            return true;
-        }
-
         $storedNameId = get_user_meta($user->ID, self::SAML_NAMEID_META_KEY, true);
 
         if ($storedNameId === '' || $storedNameId === false) {
@@ -249,9 +227,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
 
     private function bindNameId(\WP_User $user, string $nameId): void
     {
-        if (function_exists('update_user_meta')) {
-            update_user_meta($user->ID, self::SAML_NAMEID_META_KEY, $nameId);
-        }
+        update_user_meta($user->ID, self::SAML_NAMEID_META_KEY, $nameId);
     }
 
     /**

@@ -42,10 +42,6 @@ final class WpDieHandler
 
     public function register(): void
     {
-        if (!function_exists('add_filter')) {
-            return;
-        }
-
         add_filter('wp_die_handler', $this->registerHtmlHandler(...), \PHP_INT_MAX);
         add_filter('wp_die_ajax_handler', $this->registerAjaxHandler(...), \PHP_INT_MAX);
         add_filter('wp_die_json_handler', $this->registerJsonHandler(...), \PHP_INT_MAX);
@@ -319,9 +315,7 @@ final class WpDieHandler
         }
 
         // Fallback to WordPress default handler
-        if (function_exists('_default_wp_die_handler')) {
-            _default_wp_die_handler($message, $title, $args);
-        }
+        _default_wp_die_handler($message, $title, $args);
     }
 
     /**

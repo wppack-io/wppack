@@ -14,10 +14,6 @@ final class WidgetRegistryTest extends TestCase
 
     protected function setUp(): void
     {
-        if (!function_exists('register_widget')) {
-            self::markTestSkipped('WordPress widget functions are not available.');
-        }
-
         $this->registry = new WidgetRegistry();
     }
 

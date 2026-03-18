@@ -18,21 +18,7 @@ final class RestRegistryTest extends TestCase
 {
     private function createRegistryWithoutWordPress(): RestRegistry
     {
-        if (function_exists('add_action')) {
-            return new RestRegistry();
-        }
-
-        return new class extends RestRegistry {
-            public function register(object $controller): void
-            {
-                $reflection = new \ReflectionMethod(RestRegistry::class, 'resolveEntries');
-                $entries = $reflection->invoke($this, $controller);
-
-                $prop = new \ReflectionProperty(RestRegistry::class, 'entries');
-                $existing = $prop->getValue($this);
-                $prop->setValue($this, array_merge($existing, $entries));
-            }
-        };
+        return new RestRegistry();
     }
 
     #[Test]
@@ -297,10 +283,6 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function registerAddsRestApiInitHook(): void
     {
-        if (!function_exists('add_action')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $controller = new #[Route('/items', namespace: 'test/v1')] #[Permission(public: true)] class {
             #[Route(methods: HttpMethod::GET)]
             public function list(): array
@@ -362,10 +344,6 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function skipWpRestRequestParameter(): void
     {
-        if (!class_exists(\WP_REST_Request::class)) {
-            self::markTestSkipped('WordPress classes are not available.');
-        }
-
         $controller = new #[Route('/items', namespace: 'test/v1')] #[Permission(public: true)] class {
             #[Route(methods: HttpMethod::GET)]
             public function list(\WP_REST_Request $request, int $page = 1): array
@@ -404,10 +382,6 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function permissionCallbackIsReturnTrueForPublic(): void
     {
-        if (!function_exists('register_rest_route')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $controller = new #[Route('/public', namespace: 'test/v1')] #[Permission(public: true)] class {
             #[Route(methods: HttpMethod::GET)]
             public function index(): array
@@ -430,10 +404,6 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function permissionCallbackChecksCapability(): void
     {
-        if (!function_exists('register_rest_route')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $controller = new #[Route('/admin', namespace: 'test/v1')] #[Permission(capability: 'manage_options')] class {
             #[Route(methods: HttpMethod::GET)]
             public function index(): array
@@ -456,10 +426,6 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function callbackExtractsParamsFromRequest(): void
     {
-        if (!class_exists(\WP_REST_Request::class)) {
-            self::markTestSkipped('WordPress classes are not available.');
-        }
-
         $capturedId = null;
         $capturedTitle = null;
         $controller = new #[Route('/items', namespace: 'test/v1')] #[Permission(public: true)] class {
@@ -498,10 +464,6 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function callbackInjectsCustomRequestObject(): void
     {
-        if (!class_exists(\WP_REST_Request::class)) {
-            self::markTestSkipped('WordPress classes are not available.');
-        }
-
         $controller = new #[Route('/inject-request', namespace: 'test/v1')] #[Permission(public: true)] class {
             public ?\WpPack\Component\HttpFoundation\Request $capturedRequest = null;
 
@@ -531,10 +493,6 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function createArgsIncludesValidateCallback(): void
     {
-        if (!function_exists('register_rest_route')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $controller = new #[Route('/validate-items', namespace: 'test/v1')] #[Permission(public: true)] class {
             #[Route(methods: HttpMethod::POST)]
             public function create(
@@ -566,10 +524,6 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function createArgsIncludesSanitizeCallback(): void
     {
-        if (!function_exists('register_rest_route')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $controller = new #[Route('/sanitize-items', namespace: 'test/v1')] #[Permission(public: true)] class {
             #[Route(methods: HttpMethod::POST)]
             public function create(
@@ -601,10 +555,6 @@ final class RestRegistryTest extends TestCase
     #[Test]
     public function permissionCallbackInvokesControllerMethod(): void
     {
-        if (!function_exists('register_rest_route')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $controller = new #[Route('/items', namespace: 'test/v1')] class {
             #[Route(methods: HttpMethod::GET)]
             #[Permission(callback: 'checkAccess')]

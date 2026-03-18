@@ -57,10 +57,8 @@ abstract class AbstractShortcode
         }
 
         // Apply shortcode_atts() for WordPress filter compatibility
-        if (\function_exists('shortcode_atts')) {
-            $defaults = $this->cachedResolver->resolve([]);
-            $atts = shortcode_atts($defaults, $atts, $this->name);
-        }
+        $defaults = $this->cachedResolver->resolve([]);
+        $atts = shortcode_atts($defaults, $atts, $this->name);
 
         return $this->cachedResolver->resolve($atts);
     }

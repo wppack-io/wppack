@@ -988,10 +988,6 @@ final class PostQueryBuilderTest extends TestCase
     #[Test]
     public function getReturnsPostQueryResult(): void
     {
-        if (!class_exists(\WP_Query::class)) {
-            self::markTestSkipped('WordPress is not available.');
-        }
-
         $result = (new PostQueryBuilder())
             ->where('p.type = :type')
             ->andWhere('p.status = :status')
@@ -1005,10 +1001,6 @@ final class PostQueryBuilderTest extends TestCase
     #[Test]
     public function firstReturnsNullableWpPost(): void
     {
-        if (!class_exists(\WP_Query::class)) {
-            self::markTestSkipped('WordPress is not available.');
-        }
-
         $post = (new PostQueryBuilder())
             ->where('p.type = :type')
             ->andWhere('p.id = :id')
@@ -1021,10 +1013,6 @@ final class PostQueryBuilderTest extends TestCase
     #[Test]
     public function getIdsReturnsList(): void
     {
-        if (!class_exists(\WP_Query::class)) {
-            self::markTestSkipped('WordPress is not available.');
-        }
-
         $ids = (new PostQueryBuilder())
             ->where('p.type = :type')
             ->andWhere('p.status = :status')
@@ -1038,10 +1026,6 @@ final class PostQueryBuilderTest extends TestCase
     #[Test]
     public function countReturnsInteger(): void
     {
-        if (!class_exists(\WP_Query::class)) {
-            self::markTestSkipped('WordPress is not available.');
-        }
-
         $count = (new PostQueryBuilder())
             ->where('p.type = :type')
             ->andWhere('p.status = :status')
@@ -1054,10 +1038,6 @@ final class PostQueryBuilderTest extends TestCase
     #[Test]
     public function existsReturnsBool(): void
     {
-        if (!class_exists(\WP_Query::class)) {
-            self::markTestSkipped('WordPress is not available.');
-        }
-
         $exists = (new PostQueryBuilder())
             ->where('p.type = :type')
             ->andWhere('p.id = :id')

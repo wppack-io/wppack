@@ -32,11 +32,10 @@ class Kernel
         ?bool $debug = null,
         bool $autoBoot = true,
     ) {
-        $this->environment = $environment
-            ?? (\function_exists('wp_get_environment_type') ? wp_get_environment_type() : 'production');
+        $this->environment = $environment ?? wp_get_environment_type();
         $this->debug = $debug ?? (\defined('WP_DEBUG') && WP_DEBUG);
 
-        if ($autoBoot && \function_exists('add_action')) {
+        if ($autoBoot) {
             add_action('init', [self::class, 'autoBoot'], 0);
         }
     }
@@ -46,12 +45,8 @@ class Kernel
         self::getInstance()->addPlugin($plugin);
 
         $pluginFile = $plugin->getPluginFile();
-        if (\function_exists('register_activation_hook')) {
-            register_activation_hook($pluginFile, [$plugin, 'onActivate']);
-        }
-        if (\function_exists('register_deactivation_hook')) {
-            register_deactivation_hook($pluginFile, [$plugin, 'onDeactivate']);
-        }
+        register_activation_hook($pluginFile, [$plugin, 'onActivate']);
+        register_deactivation_hook($pluginFile, [$plugin, 'onDeactivate']);
     }
 
     public static function registerTheme(ThemeInterface $theme): void
@@ -89,9 +84,7 @@ class Kernel
      */
     public static function resetInstance(): void
     {
-        if (\function_exists('remove_action')) {
-            remove_action('init', [self::class, 'autoBoot'], 0);
-        }
+        remove_action('init', [self::class, 'autoBoot'], 0);
 
         self::$instance = null;
     }

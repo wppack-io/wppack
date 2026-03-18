@@ -28,10 +28,6 @@ final class DebugBarPanelAdapter extends AbstractDataCollector
         }
 
         // Get registered panels via debug_bar_panels filter
-        if (!function_exists('apply_filters')) {
-            return;
-        }
-
         /** @var list<object> $panels */
         $panels = apply_filters('debug_bar_panels', []);
 
@@ -66,10 +62,6 @@ final class DebugBarPanelAdapter extends AbstractDataCollector
 
     private function sanitizeHtml(string $html): string
     {
-        if (function_exists('wp_kses_post')) {
-            return wp_kses_post($html);
-        }
-
-        return htmlspecialchars(strip_tags($html), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        return wp_kses_post($html);
     }
 }

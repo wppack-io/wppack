@@ -28,7 +28,7 @@ final readonly class DebugConfig
         }
 
         // Hard-block in production environment
-        if (function_exists('wp_get_environment_type') && wp_get_environment_type() === 'production') {
+        if (wp_get_environment_type() === 'production') {
             return false;
         }
 
@@ -68,11 +68,11 @@ final readonly class DebugConfig
             return false;
         }
 
-        if (function_exists('wp_doing_ajax') && wp_doing_ajax()) {
+        if (wp_doing_ajax()) {
             return false;
         }
 
-        if (function_exists('wp_doing_cron') && wp_doing_cron()) {
+        if (wp_doing_cron()) {
             return false;
         }
 
@@ -90,10 +90,6 @@ final readonly class DebugConfig
 
     public function isAllowedRole(): bool
     {
-        if (!function_exists('current_user_can')) {
-            return true; // WordPress not loaded — skip role check
-        }
-
         foreach ($this->roleWhitelist as $role) {
             if (current_user_can($role)) {
                 return true;

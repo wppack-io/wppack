@@ -35,7 +35,7 @@ final readonly class S3ObjectCreatedHandler
         }
 
         $blogId = $this->parseBlogId($message->key);
-        $isMultisite = $blogId > 1 && function_exists('switch_to_blog');
+        $isMultisite = $blogId > 1;
 
         if ($isMultisite) {
             switch_to_blog($blogId);
@@ -43,10 +43,6 @@ final readonly class S3ObjectCreatedHandler
 
         try {
             $relativePath = $this->extractRelativePath($message->key, $blogId);
-
-            if (!function_exists('wp_insert_attachment')) {
-                return;
-            }
 
             $mimeType = $this->mimeTypes->guessMimeType($relativePath) ?? 'application/octet-stream';
 

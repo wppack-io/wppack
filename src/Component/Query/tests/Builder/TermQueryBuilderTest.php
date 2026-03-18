@@ -444,10 +444,6 @@ final class TermQueryBuilderTest extends TestCase
     #[Test]
     public function getReturnsTermQueryResult(): void
     {
-        if (!class_exists(\WP_Term_Query::class)) {
-            self::markTestSkipped('WordPress is not available.');
-        }
-
         $result = (new TermQueryBuilder())
             ->where('t.taxonomy = :tax')
             ->setParameter('tax', 'category')
@@ -459,10 +455,6 @@ final class TermQueryBuilderTest extends TestCase
     #[Test]
     public function firstReturnsNullableWpTerm(): void
     {
-        if (!class_exists(\WP_Term_Query::class)) {
-            self::markTestSkipped('WordPress is not available.');
-        }
-
         $term = (new TermQueryBuilder())
             ->where('t.taxonomy = :tax')
             ->andWhere('t.id = :id')

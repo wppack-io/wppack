@@ -14,10 +14,6 @@ final class EscaperTest extends TestCase
 
     protected function setUp(): void
     {
-        if (!function_exists('esc_html')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->escaper = new Escaper();
     }
 

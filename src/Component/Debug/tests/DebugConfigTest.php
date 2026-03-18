@@ -98,19 +98,6 @@ final class DebugConfigTest extends TestCase
     }
 
     #[Test]
-    public function isAllowedRoleReturnsTrueWhenWordPressNotLoaded(): void
-    {
-        if (function_exists('current_user_can')) {
-            self::markTestSkipped('WordPress is loaded; current_user_can() exists.');
-        }
-
-        // When current_user_can is not available, role check is skipped
-        $config = new DebugConfig(roleWhitelist: ['administrator']);
-
-        self::assertTrue($config->isAllowedRole());
-    }
-
-    #[Test]
     public function isAccessAllowedReturnsFalseWhenDisabled(): void
     {
         $config = new DebugConfig(enabled: false);
@@ -167,10 +154,6 @@ final class DebugConfigTest extends TestCase
     #[Test]
     public function isAllowedRoleReturnsTrueForAdminUser(): void
     {
-        if (!function_exists('wp_insert_user')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $userId = wp_insert_user([
             'user_login' => 'test_config_admin_' . uniqid(),
             'user_pass' => wp_generate_password(),
@@ -192,10 +175,6 @@ final class DebugConfigTest extends TestCase
     #[Test]
     public function isAllowedRoleReturnsFalseForSubscriber(): void
     {
-        if (!function_exists('wp_insert_user')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $userId = wp_insert_user([
             'user_login' => 'test_config_sub_' . uniqid(),
             'user_pass' => wp_generate_password(),
@@ -217,10 +196,6 @@ final class DebugConfigTest extends TestCase
     #[Test]
     public function shouldShowToolbarReturnsFalseForAjax(): void
     {
-        if (!function_exists('wp_doing_ajax')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         // Simulate AJAX by adding filter
         add_filter('wp_doing_ajax', '__return_true');
 
@@ -242,10 +217,6 @@ final class DebugConfigTest extends TestCase
     #[Test]
     public function isAccessAllowedCombinesAllChecks(): void
     {
-        if (!function_exists('wp_insert_user')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $userId = wp_insert_user([
             'user_login' => 'test_access_' . uniqid(),
             'user_pass' => wp_generate_password(),
@@ -302,10 +273,6 @@ final class DebugConfigTest extends TestCase
     #[Test]
     public function isEnabledReturnsTrueInDevEnvironment(): void
     {
-        if (!function_exists('wp_get_environment_type')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         if (defined('WP_DEBUG') && !WP_DEBUG) {
             self::markTestSkipped('WP_DEBUG is false in this environment.');
         }
@@ -321,10 +288,6 @@ final class DebugConfigTest extends TestCase
     #[Test]
     public function isEnabledReturnsFalseInProductionEnvironment(): void
     {
-        if (!function_exists('wp_get_environment_type')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         if (wp_get_environment_type() !== 'production') {
             self::markTestSkipped('Environment type is not production.');
         }
@@ -345,14 +308,6 @@ final class DebugConfigTest extends TestCase
     #[Test]
     public function shouldShowToolbarReturnsTrueWhenAllConditionsMet(): void
     {
-        if (!function_exists('wp_get_environment_type')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
-        if (!function_exists('wp_insert_user')) {
-            self::markTestSkipped('WordPress user functions are not available.');
-        }
-
         // Ensure we're not in production
         if (wp_get_environment_type() === 'production') {
             self::markTestSkipped('Cannot test in production environment.');
@@ -386,10 +341,10 @@ final class DebugConfigTest extends TestCase
             }
 
             // Ensure no ajax/cron/rest conditions are interfering
-            if (function_exists('wp_doing_ajax') && wp_doing_ajax()) {
+            if (wp_doing_ajax()) {
                 self::markTestSkipped('AJAX request detected.');
             }
-            if (function_exists('wp_doing_cron') && wp_doing_cron()) {
+            if (wp_doing_cron()) {
                 self::markTestSkipped('Cron request detected.');
             }
             if (defined('REST_REQUEST') && REST_REQUEST) {
@@ -406,10 +361,6 @@ final class DebugConfigTest extends TestCase
     #[Test]
     public function shouldShowToolbarReturnsFalseForCron(): void
     {
-        if (!function_exists('wp_doing_cron')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         add_filter('wp_doing_cron', '__return_true');
 
         try {
@@ -430,10 +381,6 @@ final class DebugConfigTest extends TestCase
     #[Test]
     public function isAllowedRoleReturnsFalseForEditorWithAdminOnlyWhitelist(): void
     {
-        if (!function_exists('wp_insert_user')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $userId = wp_insert_user([
             'user_login' => 'test_editor_' . uniqid(),
             'user_pass' => wp_generate_password(),
@@ -469,10 +416,6 @@ final class DebugConfigTest extends TestCase
     public function isEnabledReturnsFalseInProductionViaCoverage(): void
     {
         // Cover line 32: production environment check
-        if (!function_exists('wp_get_environment_type')) {
-            self::markTestSkipped('wp_get_environment_type() is not available.');
-        }
-
         if (wp_get_environment_type() !== 'production') {
             self::markTestSkipped('Not in production environment.');
         }
@@ -486,15 +429,11 @@ final class DebugConfigTest extends TestCase
     {
         // Cover line 68: !$this->showToolbar returns false
         // Need isAccessAllowed() to return true first, then showToolbar=false to hit line 68
-        if (!function_exists('wp_insert_user')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         if (defined('WP_DEBUG') && !WP_DEBUG) {
             self::markTestSkipped('WP_DEBUG is false.');
         }
 
-        if (function_exists('wp_get_environment_type') && wp_get_environment_type() === 'production') {
+        if (wp_get_environment_type() === 'production') {
             self::markTestSkipped('Production environment.');
         }
 
@@ -531,19 +470,11 @@ final class DebugConfigTest extends TestCase
     {
         // Cover line 72: wp_doing_ajax() returns true
         // Need isAccessAllowed()=true AND showToolbar=true to reach the ajax check
-        if (!function_exists('wp_insert_user')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
-        if (!function_exists('wp_doing_ajax')) {
-            self::markTestSkipped('wp_doing_ajax() is not available.');
-        }
-
         if (defined('WP_DEBUG') && !WP_DEBUG) {
             self::markTestSkipped('WP_DEBUG is false.');
         }
 
-        if (function_exists('wp_get_environment_type') && wp_get_environment_type() === 'production') {
+        if (wp_get_environment_type() === 'production') {
             self::markTestSkipped('Production environment.');
         }
 
@@ -580,19 +511,11 @@ final class DebugConfigTest extends TestCase
     public function shouldShowToolbarReturnsFalseForCronWithAdminUser(): void
     {
         // Cover line 76: wp_doing_cron() returns true
-        if (!function_exists('wp_insert_user')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
-        if (!function_exists('wp_doing_cron')) {
-            self::markTestSkipped('wp_doing_cron() is not available.');
-        }
-
         if (defined('WP_DEBUG') && !WP_DEBUG) {
             self::markTestSkipped('WP_DEBUG is false.');
         }
 
-        if (function_exists('wp_get_environment_type') && wp_get_environment_type() === 'production') {
+        if (wp_get_environment_type() === 'production') {
             self::markTestSkipped('Production environment.');
         }
 
@@ -630,10 +553,6 @@ final class DebugConfigTest extends TestCase
     {
         // Cover line 80: REST_REQUEST check
         // REST_REQUEST is a constant - can only test if defined and true
-        if (!function_exists('wp_insert_user')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         if (!defined('REST_REQUEST') || !REST_REQUEST) {
             self::markTestSkipped('REST_REQUEST is not defined or not true.');
         }
@@ -672,10 +591,6 @@ final class DebugConfigTest extends TestCase
     public function isAllowedRoleReturnsTrueForMatchingRole(): void
     {
         // Cover line 99: current_user_can($role) returns true
-        if (!function_exists('wp_insert_user')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $userId = wp_insert_user([
             'user_login' => 'test_role_match_' . uniqid(),
             'user_pass' => wp_generate_password(),

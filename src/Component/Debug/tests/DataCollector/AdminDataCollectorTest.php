@@ -30,25 +30,6 @@ final class AdminDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function collectWithoutWordPressReturnsDefaults(): void
-    {
-        if (function_exists('is_admin')) {
-            self::markTestSkipped('WordPress functions are available.');
-        }
-
-        $this->collector->collect();
-        $data = $this->collector->getData();
-
-        self::assertFalse($data['is_admin']);
-        self::assertSame('', $data['page_hook']);
-        self::assertSame([], $data['screen']);
-        self::assertSame([], $data['admin_menus']);
-        self::assertSame([], $data['admin_bar_nodes']);
-        self::assertSame(0, $data['total_menus']);
-        self::assertSame(0, $data['total_submenus']);
-    }
-
-    #[Test]
     public function getIndicatorValueReturnsScreenIdWhenAdmin(): void
     {
         $reflection = new \ReflectionProperty($this->collector, 'data');
@@ -93,9 +74,6 @@ final class AdminDataCollectorTest extends TestCase
     #[Test]
     public function collectWithAdminScreenReturnsScreenData(): void
     {
-        if (!function_exists('set_current_screen')) {
-            self::markTestSkipped('WordPress admin functions are not available.');
-        }
 
         $savedMenu = $GLOBALS['menu'] ?? null;
         $savedSubmenu = $GLOBALS['submenu'] ?? null;
@@ -150,9 +128,6 @@ final class AdminDataCollectorTest extends TestCase
     #[Test]
     public function collectSkipsEmptyMenuItems(): void
     {
-        if (!function_exists('set_current_screen')) {
-            self::markTestSkipped('WordPress admin functions are not available.');
-        }
 
         $savedMenu = $GLOBALS['menu'] ?? null;
         $savedSubmenu = $GLOBALS['submenu'] ?? null;
@@ -192,9 +167,6 @@ final class AdminDataCollectorTest extends TestCase
             self::markTestSkipped('WP_Admin_Bar class is not available.');
         }
 
-        if (!function_exists('set_current_screen')) {
-            self::markTestSkipped('WordPress admin functions are not available.');
-        }
 
         $savedAdminBar = $GLOBALS['wp_admin_bar'] ?? null;
 
@@ -238,9 +210,6 @@ final class AdminDataCollectorTest extends TestCase
     #[Test]
     public function collectOutsideAdminReturnsNonAdminDefaults(): void
     {
-        if (!function_exists('set_current_screen')) {
-            self::markTestSkipped('WordPress admin functions are not available.');
-        }
 
         set_current_screen('front');
 

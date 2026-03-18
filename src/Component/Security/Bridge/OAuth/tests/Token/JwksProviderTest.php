@@ -21,10 +21,6 @@ final class JwksProviderTest extends TestCase
 
     protected function setUp(): void
     {
-        if (!\function_exists('wp_remote_request')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->httpClient = new HttpClient();
         $this->provider = new JwksProvider($this->httpClient);
 
@@ -33,14 +29,10 @@ final class JwksProviderTest extends TestCase
 
     protected function tearDown(): void
     {
-        if (\function_exists('remove_filter')) {
-            remove_filter('pre_http_request', [$this, 'mockHttpResponse'], 10);
-        }
+        remove_filter('pre_http_request', [$this, 'mockHttpResponse'], 10);
 
-        if (\function_exists('delete_transient')) {
-            $cacheKey = '_wppack_oauth_jwks_' . md5('https://idp.example.com/.well-known/jwks.json');
-            delete_transient($cacheKey);
-        }
+        $cacheKey = '_wppack_oauth_jwks_' . md5('https://idp.example.com/.well-known/jwks.json');
+        delete_transient($cacheKey);
     }
 
     /**
@@ -86,10 +78,6 @@ final class JwksProviderTest extends TestCase
     #[Test]
     public function getKeysCachesInTransient(): void
     {
-        if (!\function_exists('get_transient')) {
-            self::markTestSkipped('WordPress transient functions are not available.');
-        }
-
         $jwksKeys = [
             ['kty' => 'RSA', 'kid' => 'cached-key', 'n' => 'n-value', 'e' => 'AQAB'],
         ];
@@ -112,10 +100,6 @@ final class JwksProviderTest extends TestCase
     #[Test]
     public function getKeysUsesTransientCache(): void
     {
-        if (!\function_exists('set_transient')) {
-            self::markTestSkipped('WordPress transient functions are not available.');
-        }
-
         $cachedKeys = [
             ['kty' => 'RSA', 'kid' => 'from-cache', 'n' => 'n-value', 'e' => 'AQAB'],
         ];

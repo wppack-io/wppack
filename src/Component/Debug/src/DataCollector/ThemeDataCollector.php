@@ -97,34 +97,9 @@ final class ThemeDataCollector extends AbstractDataCollector
 
     public function collect(): void
     {
-        if (!function_exists('wp_get_theme')) {
-            $this->data = [
-                'name' => '',
-                'version' => '',
-                'is_child_theme' => false,
-                'child_theme' => '',
-                'parent_theme' => '',
-                'is_block_theme' => false,
-                'template_file' => '',
-                'template_parts' => [],
-                'body_classes' => [],
-                'conditional_tags' => [],
-                'enqueued_styles' => [],
-                'enqueued_scripts' => [],
-                'setup_time' => 0.0,
-                'render_time' => 0.0,
-                'hook_count' => 0,
-                'listener_count' => 0,
-                'hook_time' => 0.0,
-                'hooks' => [],
-            ];
-
-            return;
-        }
-
         $theme = wp_get_theme();
         $isChildTheme = is_child_theme();
-        $isBlockTheme = function_exists('wp_is_block_theme') && wp_is_block_theme();
+        $isBlockTheme = wp_is_block_theme();
 
         // Build hook attribution for theme
         global $wp_filter;
@@ -276,10 +251,6 @@ final class ThemeDataCollector extends AbstractDataCollector
 
     private function registerHooks(): void
     {
-        if (!function_exists('add_action')) {
-            return;
-        }
-
         add_action('setup_theme', [$this, 'captureSetupStart'], \PHP_INT_MIN, 0);
         add_action('after_setup_theme', [$this, 'captureSetupEnd'], \PHP_INT_MAX, 0);
         add_action('template_redirect', [$this, 'captureRenderStart'], \PHP_INT_MIN, 0);

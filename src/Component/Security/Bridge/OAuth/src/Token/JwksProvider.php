@@ -25,12 +25,10 @@ final class JwksProvider
     {
         $cacheKey = self::TRANSIENT_PREFIX . md5($jwksUri);
 
-        if (\function_exists('get_transient')) {
-            $cached = get_transient($cacheKey);
+        $cached = get_transient($cacheKey);
 
-            if (\is_array($cached)) {
-                return $cached;
-            }
+        if (\is_array($cached)) {
+            return $cached;
         }
 
         if (!str_starts_with($jwksUri, 'https://')) {
@@ -52,9 +50,7 @@ final class JwksProvider
         /** @var array<int, array<string, mixed>> $keys */
         $keys = $data['keys'];
 
-        if (\function_exists('set_transient')) {
-            set_transient($cacheKey, $keys, self::CACHE_TTL);
-        }
+        set_transient($cacheKey, $keys, self::CACHE_TTL);
 
         return $keys;
     }

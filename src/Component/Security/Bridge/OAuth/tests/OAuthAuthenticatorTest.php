@@ -216,10 +216,6 @@ final class OAuthAuthenticatorTest extends TestCase
     #[Test]
     public function createToken(): void
     {
-        if (!class_exists(\WP_User::class)) {
-            self::markTestSkipped('WordPress is not available.');
-        }
-
         $user = $this->createMock(\WP_User::class);
         $user->ID = 1;
         $user->roles = ['subscriber'];
@@ -254,10 +250,6 @@ final class OAuthAuthenticatorTest extends TestCase
     #[Test]
     public function onAuthenticationSuccess(): void
     {
-        if (!class_exists(\WP_User::class)) {
-            self::markTestSkipped('WordPress is not available.');
-        }
-
         $user = $this->createMock(\WP_User::class);
         $user->ID = 1;
         $user->roles = ['subscriber'];
@@ -279,10 +271,6 @@ final class OAuthAuthenticatorTest extends TestCase
     #[Test]
     public function authenticateCrossSiteWithValidToken(): void
     {
-        if (!function_exists('set_transient') || !function_exists('wp_hash') || !function_exists('get_user_by')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $user = get_user_by('id', 1);
 
         if (!$user instanceof \WP_User) {
@@ -385,10 +373,6 @@ final class OAuthAuthenticatorTest extends TestCase
     #[Test]
     public function onAuthenticationSuccessIgnoresNonSameOriginReturnTo(): void
     {
-        if (!class_exists(\WP_User::class)) {
-            self::markTestSkipped('WordPress is not available.');
-        }
-
         $user = $this->createMock(\WP_User::class);
         $user->ID = 1;
         $user->roles = ['subscriber'];

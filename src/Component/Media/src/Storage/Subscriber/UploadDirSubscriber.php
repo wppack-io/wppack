@@ -31,8 +31,8 @@ final readonly class UploadDirSubscriber
 
         // Preserve multisite subdirectory (e.g., /sites/2/)
         $siteSubdir = '';
-        if (function_exists('is_multisite') && is_multisite()) {
-            $blogId = function_exists('get_current_blog_id') ? get_current_blog_id() : 1;
+        if (is_multisite()) {
+            $blogId = get_current_blog_id();
             if ($blogId > 1) {
                 $siteSubdir = '/sites/' . $blogId;
             }

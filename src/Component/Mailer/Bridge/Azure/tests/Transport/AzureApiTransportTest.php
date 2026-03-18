@@ -19,18 +19,12 @@ final class AzureApiTransportTest extends TestCase
 
     protected function setUp(): void
     {
-        if (!function_exists('wp_json_encode')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         add_filter('pre_http_request', [$this, 'mockHttpResponse'], 10, 3);
     }
 
     protected function tearDown(): void
     {
-        if (function_exists('remove_filter')) {
-            remove_filter('pre_http_request', [$this, 'mockHttpResponse'], 10);
-        }
+        remove_filter('pre_http_request', [$this, 'mockHttpResponse'], 10);
         $this->mockResponse = null;
         $this->capturedBody = null;
         parent::tearDown();

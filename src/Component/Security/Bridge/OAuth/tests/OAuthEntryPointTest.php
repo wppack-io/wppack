@@ -17,9 +17,7 @@ final class OAuthEntryPointTest extends TestCase
 {
     protected function tearDown(): void
     {
-        if (function_exists('remove_all_filters')) {
-            remove_all_filters('login_url');
-        }
+        remove_all_filters('login_url');
     }
     private function createConfiguration(bool $pkceEnabled = false): OAuthConfiguration
     {
@@ -96,10 +94,6 @@ final class OAuthEntryPointTest extends TestCase
     #[Test]
     public function registerAddsLoginUrlFilter(): void
     {
-        if (!function_exists('add_filter')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $provider = $this->createMock(ProviderInterface::class);
         $provider->method('getAuthorizationUrl')
             ->willReturn('https://idp.example.com/authorize?client_id=test&state=abc');
@@ -120,10 +114,6 @@ final class OAuthEntryPointTest extends TestCase
     #[Test]
     public function registerAddsLoginUrlFilterWithRedirect(): void
     {
-        if (!function_exists('add_filter')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $provider = $this->createMock(ProviderInterface::class);
         $provider->method('getAuthorizationUrl')
             ->willReturn('https://idp.example.com/authorize');

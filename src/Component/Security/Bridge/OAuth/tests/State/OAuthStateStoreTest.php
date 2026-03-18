@@ -16,10 +16,6 @@ final class OAuthStateStoreTest extends TestCase
     #[Test]
     public function storeAndRetrieve(): void
     {
-        if (!function_exists('set_transient')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $store = new OAuthStateStore();
         $state = bin2hex(random_bytes(16));
         $storedState = StoredState::create('test-nonce', 'test-verifier', 'https://example.com/return');
@@ -36,10 +32,6 @@ final class OAuthStateStoreTest extends TestCase
     #[Test]
     public function retrieveIsOneTimeUse(): void
     {
-        if (!function_exists('set_transient')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $store = new OAuthStateStore();
         $state = bin2hex(random_bytes(16));
         $storedState = StoredState::create('test-nonce', null, null);
@@ -58,10 +50,6 @@ final class OAuthStateStoreTest extends TestCase
     #[Test]
     public function retrieveReturnsNullForNonExistentState(): void
     {
-        if (!function_exists('get_transient')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $store = new OAuthStateStore();
 
         self::assertNull($store->retrieve('non-existent-state'));
@@ -70,10 +58,6 @@ final class OAuthStateStoreTest extends TestCase
     #[Test]
     public function retrieveReturnsNullForExpiredState(): void
     {
-        if (!function_exists('set_transient')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $store = new OAuthStateStore();
         $state = bin2hex(random_bytes(16));
 
@@ -86,15 +70,4 @@ final class OAuthStateStoreTest extends TestCase
         self::assertNull($retrieved);
     }
 
-    #[Test]
-    public function retrieveReturnsNullWithoutWordPress(): void
-    {
-        if (function_exists('get_transient')) {
-            self::markTestSkipped('This test requires WordPress functions to be absent.');
-        }
-
-        $store = new OAuthStateStore();
-
-        self::assertNull($store->retrieve('any-state'));
-    }
 }

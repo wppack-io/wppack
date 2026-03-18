@@ -10,13 +10,6 @@ use WpPack\Component\Templating\TemplatePart;
 
 final class TemplatePartTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        if (!function_exists('get_template_part')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-    }
-
     #[Test]
     public function renderCallsGetTemplatePart(): void
     {

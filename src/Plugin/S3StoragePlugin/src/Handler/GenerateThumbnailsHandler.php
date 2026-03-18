@@ -12,11 +12,7 @@ final class GenerateThumbnailsHandler
 {
     public function __invoke(GenerateThumbnailsMessage $message): void
     {
-        if (!function_exists('wp_generate_attachment_metadata')) {
-            return;
-        }
-
-        $isMultisite = $message->blogId > 1 && function_exists('switch_to_blog');
+        $isMultisite = $message->blogId > 1;
 
         if ($isMultisite) {
             switch_to_blog($message->blogId);

@@ -16,10 +16,6 @@ final class OptionManagerTest extends TestCase
 
     protected function setUp(): void
     {
-        if (!function_exists('get_option')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->manager = new OptionManager();
 
         delete_option(self::TEST_OPTION);
@@ -27,9 +23,7 @@ final class OptionManagerTest extends TestCase
 
     protected function tearDown(): void
     {
-        if (function_exists('delete_option')) {
-            delete_option(self::TEST_OPTION);
-        }
+        delete_option(self::TEST_OPTION);
     }
 
     #[Test]

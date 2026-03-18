@@ -208,10 +208,6 @@ final class CacheDataCollector extends AbstractDataCollector
 
     private function registerHooks(): void
     {
-        if (!function_exists('add_action')) {
-            return;
-        }
-
         // WP 6.8+ renamed 'setted_transient' → 'set_transient' (old hooks deprecated).
         // Use new hooks on 6.8+, fall back to old hooks on earlier versions.
         $useNewHooks = version_compare(get_bloginfo('version'), '6.8', '>=');

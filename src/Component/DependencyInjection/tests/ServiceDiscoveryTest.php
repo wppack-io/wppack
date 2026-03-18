@@ -220,10 +220,6 @@ final class ServiceDiscoveryTest extends TestCase
     #[Test]
     public function resolvesOptionAttribute(): void
     {
-        if (!function_exists('get_option')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         update_option('test_option_name', 'option_value');
 
         $builder = new ContainerBuilder();
@@ -244,10 +240,6 @@ final class ServiceDiscoveryTest extends TestCase
     #[Test]
     public function resolvesOptionDotNotation(): void
     {
-        if (!function_exists('get_option')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         update_option('test_settings', ['nested' => ['key' => 'deep_value']]);
 
         $builder = new ContainerBuilder();
@@ -452,10 +444,6 @@ final class ServiceDiscoveryTest extends TestCase
     #[Test]
     public function optionNotSetWithoutDefaultThrows(): void
     {
-        if (!function_exists('get_option')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $builder = new ContainerBuilder();
         $discovery = new ServiceDiscovery($builder);
 
@@ -495,10 +483,6 @@ final class ServiceDiscoveryTest extends TestCase
     #[Test]
     public function optionNestedKeyNotFoundWithoutDefaultThrows(): void
     {
-        if (!function_exists('get_option')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         update_option('test_nested_opt', ['existing' => 'value']);
 
         try {

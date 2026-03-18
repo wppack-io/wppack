@@ -15,10 +15,6 @@ final class WpCronMessageHandlerTest extends TestCase
 
     protected function setUp(): void
     {
-        if (!\function_exists('do_action_ref_array')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
-
         $this->handler = new WpCronMessageHandler();
     }
 

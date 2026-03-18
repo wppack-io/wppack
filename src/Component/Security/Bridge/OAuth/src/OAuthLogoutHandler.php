@@ -44,37 +44,28 @@ final class OAuthLogoutHandler
                 $url .= '?' . http_build_query($params);
             }
 
-            if (function_exists('do_action')) {
-                do_action(
-                    'wppack_oauth_logout',
-                    function_exists('get_current_user_id') ? get_current_user_id() : 0,
-                    true,
-                );
-            }
+            do_action(
+                'wppack_oauth_logout',
+                get_current_user_id(),
+                true,
+            );
 
             return $url;
         }
 
-        if (function_exists('do_action')) {
-            do_action(
-                'wppack_oauth_logout',
-                function_exists('get_current_user_id') ? get_current_user_id() : 0,
-                false,
-            );
-        }
+        do_action(
+            'wppack_oauth_logout',
+            get_current_user_id(),
+            false,
+        );
 
         return null;
     }
 
     public function handleLocalLogout(): void
     {
-        if (function_exists('wp_logout')) {
-            wp_logout();
-        }
-
-        if (function_exists('wp_clear_auth_cookie')) {
-            wp_clear_auth_cookie();
-        }
+        wp_logout();
+        wp_clear_auth_cookie();
     }
 
     public function supportsRemoteLogout(): bool

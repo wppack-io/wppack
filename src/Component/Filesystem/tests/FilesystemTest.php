@@ -15,10 +15,6 @@ final class FilesystemTest extends TestCase
 
     protected function setUp(): void
     {
-        if (!defined('ABSPATH')) {
-            self::markTestSkipped('WordPress is not available.');
-        }
-
         if (!defined('FS_CHMOD_DIR')) {
             define('FS_CHMOD_DIR', 0755);
         }

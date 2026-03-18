@@ -17,10 +17,6 @@ final class ShortcodeRegistryTest extends TestCase
 
     protected function setUp(): void
     {
-        if (!function_exists('add_shortcode')) {
-            self::markTestSkipped('WordPress shortcode functions are not available.');
-        }
-
         $this->registry = new ShortcodeRegistry();
     }
 

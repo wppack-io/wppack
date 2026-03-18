@@ -149,10 +149,6 @@ final class TranslationDataCollector extends AbstractDataCollector
 
     private function registerHooks(): void
     {
-        if (!function_exists('add_filter')) {
-            return;
-        }
-
         add_filter('gettext', [$this, 'captureGettext'], PHP_INT_MAX, 3);
         add_filter('gettext_with_context', [$this, 'captureGettextWithContext'], PHP_INT_MAX, 4);
         add_filter('ngettext', [$this, 'captureNgettext'], PHP_INT_MAX, 5);

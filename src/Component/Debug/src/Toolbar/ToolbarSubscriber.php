@@ -26,10 +26,6 @@ final class ToolbarSubscriber
             return;
         }
 
-        if (!function_exists('add_action')) {
-            return;
-        }
-
         add_action('wp_footer', $this->onFooter(...), 9999);
         add_action('admin_footer', $this->onFooter(...), 9999);
     }

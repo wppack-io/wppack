@@ -163,14 +163,9 @@ final class MailDataCollector extends AbstractDataCollector
 
     private function registerHooks(): void
     {
-        if (function_exists('add_filter')) {
-            add_filter('wp_mail', [$this, 'captureMailAttempt'], \PHP_INT_MAX, 1);
-        }
-
-        if (function_exists('add_action')) {
-            add_action('wp_mail_succeeded', [$this, 'captureMailSuccess'], 10, 1);
-            add_action('wp_mail_failed', [$this, 'captureMailFailure'], 10, 1);
-        }
+        add_filter('wp_mail', [$this, 'captureMailAttempt'], \PHP_INT_MAX, 1);
+        add_action('wp_mail_succeeded', [$this, 'captureMailSuccess'], 10, 1);
+        add_action('wp_mail_failed', [$this, 'captureMailFailure'], 10, 1);
     }
 
     /**

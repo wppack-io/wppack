@@ -144,10 +144,6 @@ final class PassportTest extends TestCase
     #[Test]
     public function userBadgeCallsUserLoader(): void
     {
-        if (!class_exists(\WP_User::class)) {
-            self::markTestSkipped('WP_User class is not available.');
-        }
-
         $user = new \WP_User();
         $user->ID = 1;
         $user->user_login = 'testuser';

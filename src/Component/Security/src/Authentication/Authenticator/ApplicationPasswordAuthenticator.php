@@ -54,7 +54,7 @@ final class ApplicationPasswordAuthenticator implements StatelessAuthenticatorIn
     public function createToken(Passport $passport): TokenInterface
     {
         $user = $passport->getUser();
-        $blogId = \function_exists('get_current_blog_id') ? get_current_blog_id() : null;
+        $blogId = get_current_blog_id();
 
         return new PostAuthenticationToken($user, $user->roles, $blogId);
     }

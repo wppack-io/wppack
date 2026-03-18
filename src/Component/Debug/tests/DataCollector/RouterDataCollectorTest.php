@@ -101,16 +101,6 @@ final class RouterDataCollectorTest extends TestCase
     #[Test]
     public function getIndicatorColorReturnsRedFor404(): void
     {
-        if (!function_exists('is_404')) {
-            // Simulate 404 by directly setting data via collect after triggering
-            // Without WordPress, is_404() is unavailable so we test the logic path
-            // by verifying the default non-404 behavior
-            $this->collector->collect();
-            self::assertSame('default', $this->collector->getIndicatorColor());
-
-            return;
-        }
-
         // With WordPress available, if is_404() returns true, indicator should be red
         $this->collector->collect();
         if ($this->collector->getData()['is_404']) {
@@ -213,9 +203,6 @@ final class RouterDataCollectorTest extends TestCase
     #[Test]
     public function collectWithWordPressDetectsQueryType(): void
     {
-        if (!function_exists('is_404')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $this->collector->collect();
         $data = $this->collector->getData();
@@ -227,9 +214,6 @@ final class RouterDataCollectorTest extends TestCase
     #[Test]
     public function collectWithRewriteRulesCountsRules(): void
     {
-        if (!function_exists('is_404')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         global $wp_rewrite;
 
@@ -277,9 +261,6 @@ final class RouterDataCollectorTest extends TestCase
     #[Test]
     public function collectBlockThemeDataIsAvailable(): void
     {
-        if (!function_exists('wp_is_block_theme')) {
-            self::markTestSkipped('WordPress block theme functions are not available.');
-        }
 
         $this->collector->collect();
         $data = $this->collector->getData();
@@ -294,9 +275,6 @@ final class RouterDataCollectorTest extends TestCase
     #[Test]
     public function collectWithWordPressGathersAllConditionals(): void
     {
-        if (!function_exists('is_404')) {
-            self::markTestSkipped('WordPress functions are not available.');
-        }
 
         $this->collector->collect();
         $data = $this->collector->getData();
@@ -312,9 +290,6 @@ final class RouterDataCollectorTest extends TestCase
     #[Test]
     public function collectWithBlockTemplateIdGathersBlockData(): void
     {
-        if (!function_exists('get_block_template') || !function_exists('wp_is_block_theme')) {
-            self::markTestSkipped('WordPress block template functions are not available.');
-        }
 
         // If this is a block theme, test the block template collection
         if (!wp_is_block_theme()) {
@@ -376,9 +351,6 @@ final class RouterDataCollectorTest extends TestCase
     #[Test]
     public function collectBlockTemplateReturnsDefaultWhenNoTemplateId(): void
     {
-        if (!function_exists('get_block_template')) {
-            self::markTestSkipped('WordPress block template functions are not available.');
-        }
 
         global $_wp_current_template_id;
         $originalTemplateId = $_wp_current_template_id ?? null;
@@ -410,9 +382,6 @@ final class RouterDataCollectorTest extends TestCase
     #[Test]
     public function collectBlockTemplateReturnsDefaultWhenTemplateIdIsEmpty(): void
     {
-        if (!function_exists('get_block_template')) {
-            self::markTestSkipped('WordPress block template functions are not available.');
-        }
 
         global $_wp_current_template_id;
         $originalTemplateId = $_wp_current_template_id ?? null;
@@ -443,9 +412,6 @@ final class RouterDataCollectorTest extends TestCase
     #[Test]
     public function collectBlockTemplateReturnsDefaultWhenTemplateIdIsNotString(): void
     {
-        if (!function_exists('get_block_template')) {
-            self::markTestSkipped('WordPress block template functions are not available.');
-        }
 
         global $_wp_current_template_id;
         $originalTemplateId = $_wp_current_template_id ?? null;
@@ -476,9 +442,6 @@ final class RouterDataCollectorTest extends TestCase
     #[Test]
     public function collectBlockTemplateReturnsDefaultWhenTemplateNotFound(): void
     {
-        if (!function_exists('get_block_template')) {
-            self::markTestSkipped('WordPress block template functions are not available.');
-        }
 
         global $_wp_current_template_id;
         $originalTemplateId = $_wp_current_template_id ?? null;
@@ -511,13 +474,7 @@ final class RouterDataCollectorTest extends TestCase
     #[Test]
     public function collectBlockTemplateReturnsTemplateDataWhenFound(): void
     {
-        if (!function_exists('get_block_template')) {
-            self::markTestSkipped('WordPress block template functions are not available.');
-        }
 
-        if (!function_exists('get_stylesheet')) {
-            self::markTestSkipped('WordPress theme functions are not available.');
-        }
 
         global $_wp_current_template_id;
         $originalTemplateId = $_wp_current_template_id ?? null;
@@ -582,13 +539,7 @@ final class RouterDataCollectorTest extends TestCase
     #[Test]
     public function collectBlockTemplateWithContentExtractsParts(): void
     {
-        if (!function_exists('get_block_template')) {
-            self::markTestSkipped('WordPress block template functions are not available.');
-        }
 
-        if (!function_exists('get_stylesheet')) {
-            self::markTestSkipped('WordPress theme functions are not available.');
-        }
 
         global $_wp_current_template_id;
         $originalTemplateId = $_wp_current_template_id ?? null;
@@ -668,9 +619,6 @@ final class RouterDataCollectorTest extends TestCase
     #[Test]
     public function resolveBlockTemplateFilePathReturnsEmptyWhenFileNotFound(): void
     {
-        if (!function_exists('get_theme_file_path')) {
-            self::markTestSkipped('WordPress theme functions are not available.');
-        }
 
         $method = new \ReflectionMethod($this->collector, 'resolveBlockTemplateFilePath');
 
@@ -683,9 +631,6 @@ final class RouterDataCollectorTest extends TestCase
     #[Test]
     public function resolveBlockTemplateFilePathReturnsPathWhenFileExists(): void
     {
-        if (!function_exists('get_theme_file_path')) {
-            self::markTestSkipped('WordPress theme functions are not available.');
-        }
 
         $method = new \ReflectionMethod($this->collector, 'resolveBlockTemplateFilePath');
 
@@ -718,9 +663,6 @@ final class RouterDataCollectorTest extends TestCase
     #[Test]
     public function collectBlockTemplatePartsReturnsEmptyWhenNoMatches(): void
     {
-        if (!function_exists('get_block_template')) {
-            self::markTestSkipped('WordPress block template functions are not available.');
-        }
 
         $method = new \ReflectionMethod($this->collector, 'collectBlockTemplateParts');
 
@@ -733,9 +675,6 @@ final class RouterDataCollectorTest extends TestCase
     #[Test]
     public function collectBlockTemplatePartsExtractsSlugsFromContent(): void
     {
-        if (!function_exists('get_block_template')) {
-            self::markTestSkipped('WordPress block template functions are not available.');
-        }
 
         $method = new \ReflectionMethod($this->collector, 'collectBlockTemplateParts');
 
@@ -763,9 +702,6 @@ final class RouterDataCollectorTest extends TestCase
     #[Test]
     public function collectBlockTemplatePartsHandlesNonExistentPart(): void
     {
-        if (!function_exists('get_block_template')) {
-            self::markTestSkipped('WordPress block template functions are not available.');
-        }
 
         $method = new \ReflectionMethod($this->collector, 'collectBlockTemplateParts');
 
@@ -785,13 +721,7 @@ final class RouterDataCollectorTest extends TestCase
     #[Test]
     public function collectBlockTemplatePartsWithExistingPart(): void
     {
-        if (!function_exists('get_block_template')) {
-            self::markTestSkipped('WordPress block template functions are not available.');
-        }
 
-        if (!function_exists('get_stylesheet')) {
-            self::markTestSkipped('WordPress theme functions are not available.');
-        }
 
         $stylesheet = get_stylesheet();
 
@@ -888,9 +818,6 @@ final class RouterDataCollectorTest extends TestCase
     #[Test]
     public function collectWithBlockThemeCallsCollectBlockTemplate(): void
     {
-        if (!function_exists('wp_is_block_theme')) {
-            self::markTestSkipped('WordPress block theme functions are not available.');
-        }
 
         if (!wp_is_block_theme()) {
             self::markTestSkipped('Current theme is not a block theme.');
@@ -915,9 +842,6 @@ final class RouterDataCollectorTest extends TestCase
     #[Test]
     public function collectBlockTemplatePartsReturnsEmptyForEmptyContent(): void
     {
-        if (!function_exists('get_block_template')) {
-            self::markTestSkipped('WordPress block template functions are not available.');
-        }
 
         $method = new \ReflectionMethod($this->collector, 'collectBlockTemplateParts');
 

@@ -13,10 +13,6 @@ final class WordPressMimeTypeGuesser implements MimeTypeGuesserInterface
 
     public function guessMimeType(string $path): ?string
     {
-        if (!\function_exists('wp_check_filetype')) {
-            return null;
-        }
-
         /** @var array{type: string|false, ext: string|false} $fileType */
         $fileType = wp_check_filetype(basename($path));
 

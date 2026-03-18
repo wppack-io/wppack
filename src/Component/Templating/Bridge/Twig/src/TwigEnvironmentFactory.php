@@ -48,18 +48,14 @@ final class TwigEnvironmentFactory
     {
         $paths = [];
 
-        if (function_exists('get_stylesheet_directory')) {
-            $childThemeDir = get_stylesheet_directory();
-            if (is_dir($childThemeDir)) {
-                $paths[] = $childThemeDir;
-            }
+        $childThemeDir = get_stylesheet_directory();
+        if (is_dir($childThemeDir)) {
+            $paths[] = $childThemeDir;
         }
 
-        if (function_exists('get_template_directory')) {
-            $parentThemeDir = get_template_directory();
-            if (is_dir($parentThemeDir) && !\in_array($parentThemeDir, $paths, true)) {
-                $paths[] = $parentThemeDir;
-            }
+        $parentThemeDir = get_template_directory();
+        if (is_dir($parentThemeDir) && !\in_array($parentThemeDir, $paths, true)) {
+            $paths[] = $parentThemeDir;
         }
 
         foreach ($this->paths as $path) {

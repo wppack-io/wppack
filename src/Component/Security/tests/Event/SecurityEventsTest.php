@@ -52,10 +52,6 @@ final class SecurityEventsTest extends TestCase
     #[Test]
     public function loginSuccessEventHoldsUserAndUsername(): void
     {
-        if (!class_exists(\WP_User::class)) {
-            self::markTestSkipped('WP_User class is not available.');
-        }
-
         $user = new \WP_User();
         $user->ID = 1;
         $user->user_login = 'admin';
