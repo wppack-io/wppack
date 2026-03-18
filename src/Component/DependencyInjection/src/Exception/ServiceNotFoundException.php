@@ -6,7 +6,7 @@ namespace WpPack\Component\DependencyInjection\Exception;
 
 use Psr\Container\NotFoundExceptionInterface;
 
-final class ServiceNotFoundException extends \InvalidArgumentException implements NotFoundExceptionInterface
+final class ServiceNotFoundException extends \InvalidArgumentException implements ExceptionInterface, NotFoundExceptionInterface
 {
     public function __construct(string $id)
     {

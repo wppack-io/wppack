@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\DependencyInjection\Exception;
 
-final class ParameterNotFoundException extends \InvalidArgumentException
+final class ParameterNotFoundException extends \InvalidArgumentException implements ExceptionInterface
 {
     public function __construct(string $name)
     {

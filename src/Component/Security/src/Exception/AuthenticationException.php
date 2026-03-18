@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Security\Exception;
 
-class AuthenticationException extends \RuntimeException
+class AuthenticationException extends \RuntimeException implements ExceptionInterface
 {
     /**
      * Generic message to prevent user enumeration.

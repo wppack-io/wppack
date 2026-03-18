@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Security\Exception;
 
-class AccessDeniedException extends \RuntimeException
+class AccessDeniedException extends \RuntimeException implements ExceptionInterface
 {
     public function __construct(
         string $message = 'Access Denied.',
