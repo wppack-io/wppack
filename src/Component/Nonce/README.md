@@ -29,7 +29,7 @@ $url = $nonce->url('https://example.com/action', 'my-action');
 ## Named Hook Attributes
 
 ```php
-use WpPack\Component\Nonce\Attribute\Filter\NonceLifeFilter;
+use WpPack\Component\Hook\Attribute\Nonce\Filter\NonceLifeFilter;
 
 final class NonceLifetimeCustomizer
 {

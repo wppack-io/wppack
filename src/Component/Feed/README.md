@@ -41,9 +41,9 @@ $registry->getRegisteredFeeds();         // ['products' => ProductFeed]
 ### Named Hook Attributes
 
 ```php
-use WpPack\Component\Feed\Attribute\Action\Rss2HeadAction;
-use WpPack\Component\Feed\Attribute\Action\Rss2ItemAction;
-use WpPack\Component\Feed\Attribute\Filter\TheContentFeedFilter;
+use WpPack\Component\Hook\Attribute\Feed\Action\Rss2HeadAction;
+use WpPack\Component\Hook\Attribute\Feed\Action\Rss2ItemAction;
+use WpPack\Component\Hook\Attribute\Feed\Filter\TheContentFeedFilter;
 
 class FeedCustomizer
 {

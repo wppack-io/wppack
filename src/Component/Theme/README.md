@@ -13,7 +13,7 @@ composer require wppack/theme
 ### Enqueue Scripts
 
 ```php
-use WpPack\Component\Theme\Attribute\Action\WpEnqueueScriptsAction;
+use WpPack\Component\Hook\Attribute\Theme\Action\WpEnqueueScriptsAction;
 
 final class AssetLoader
 {
@@ -29,7 +29,7 @@ final class AssetLoader
 ### Body Class Filter
 
 ```php
-use WpPack\Component\Theme\Attribute\Filter\BodyClassFilter;
+use WpPack\Component\Hook\Attribute\Theme\Filter\BodyClassFilter;
 
 final class ThemeBodyClass
 {

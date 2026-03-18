@@ -7,9 +7,6 @@
         "php": "^8.2",
         "wppack/http-foundation": "^1.0"
     },
-    "require-dev": {
-        "wppack/hook": "^1.0"
-    },
     "suggest": {
         "wppack/security": "Required for #[CurrentUser] injection and getUser() in controllers"
     },

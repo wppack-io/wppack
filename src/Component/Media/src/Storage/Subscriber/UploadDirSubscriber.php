@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Media\Storage\Subscriber;
 
-use WpPack\Component\Filesystem\Attribute\Filter\UploadDirFilter;
+use WpPack\Component\Hook\Attribute\Filesystem\Filter\UploadDirFilter;
 use WpPack\Component\Hook\Attribute\AsHookSubscriber;
 use WpPack\Component\Media\Storage\StorageConfiguration;
 use WpPack\Component\Media\Storage\UrlResolver;

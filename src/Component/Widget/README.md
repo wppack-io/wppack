@@ -47,8 +47,8 @@ $registry->registerSidebar([
 ### Named Hook Attributes
 
 ```php
-use WpPack\Component\Widget\Attribute\Action\WidgetsInitAction;
-use WpPack\Component\Widget\Attribute\Filter\WidgetTitleFilter;
+use WpPack\Component\Hook\Attribute\Widget\Action\WidgetsInitAction;
+use WpPack\Component\Hook\Attribute\Widget\Filter\WidgetTitleFilter;
 
 final class WidgetHooks
 {

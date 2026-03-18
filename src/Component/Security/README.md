@@ -56,8 +56,8 @@ if ($security->isGranted('ROLE_ADMINISTRATOR')) {
 ### Named Hook Attributes
 
 ```php
-use WpPack\Component\Security\Attribute\Action\WpLoginAction;
-use WpPack\Component\Security\Attribute\Filter\AuthenticateFilter;
+use WpPack\Component\Hook\Attribute\Security\Action\WpLoginAction;
+use WpPack\Component\Hook\Attribute\Security\Filter\AuthenticateFilter;
 
 class SecuritySubscriber
 {

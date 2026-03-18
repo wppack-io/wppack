@@ -41,8 +41,8 @@ $siteTransient->delete('network_status');
 ### Named Hook Attributes
 
 ```php
-use WpPack\Component\Transient\Attribute\Filter\PreTransientFilter;
-use WpPack\Component\Transient\Attribute\Action\SetTransientAction;
+use WpPack\Component\Hook\Attribute\Transient\Filter\PreTransientFilter;
+use WpPack\Component\Hook\Attribute\Transient\Action\SetTransientAction;
 
 final class TransientHooks
 {

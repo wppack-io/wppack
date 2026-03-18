@@ -13,7 +13,7 @@ composer require wppack/plugin
 ### Plugin Action Links
 
 ```php
-use WpPack\Component\Plugin\Attribute\Filter\PluginActionLinksFilter;
+use WpPack\Component\Hook\Attribute\Plugin\Filter\PluginActionLinksFilter;
 
 final class MyPluginLinks
 {
@@ -29,7 +29,7 @@ final class MyPluginLinks
 ### Plugin Activation Event
 
 ```php
-use WpPack\Component\Plugin\Attribute\Action\ActivatedPluginAction;
+use WpPack\Component\Hook\Attribute\Plugin\Action\ActivatedPluginAction;
 
 final class PluginWatcher
 {

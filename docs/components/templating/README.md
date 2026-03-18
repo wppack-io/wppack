@@ -473,30 +473,9 @@ PhpRenderer::render()
   ↓ 結果返却
 ```
 
-## Named Hook 属性
+## Named Hook アトリビュート
 
-Templating コンポーネントは `the_content` / `the_title` フィルター用の Named Hook 属性も提供します:
-
-```php
-use WpPack\Component\Templating\Attribute\Filter\TheContentFilter;
-use WpPack\Component\Templating\Attribute\Filter\TheTitleFilter;
-
-final class ContentFormatter
-{
-    #[TheContentFilter(priority: 20)]
-    public function formatContent(string $content): string
-    {
-        return '<div class="formatted">' . $content . '</div>';
-    }
-
-    #[TheTitleFilter]
-    public function formatTitle(string $title): string
-    {
-        return trim($title);
-    }
-}
-```
-
+→ [Hook コンポーネントのドキュメント](../hook/templating.md) を参照してください。
 ## 例外
 
 | 例外 | 説明 |

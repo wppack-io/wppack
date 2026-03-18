@@ -9,7 +9,6 @@
         "wppack/event-dispatcher": "^1.0"
     },
     "require-dev": {
-        "wppack/hook": "^1.0",
         "wppack/dependency-injection": "^1.0"
     },
     "suggest": {

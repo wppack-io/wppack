@@ -90,11 +90,11 @@ $registry->unregister('button');
 ### Named Hook Attributes
 
 ```php
-use WpPack\Component\Shortcode\Attribute\Filter\ShortcodeAttsFilter;
-use WpPack\Component\Shortcode\Attribute\Filter\DoShortcodeTagFilter;
-use WpPack\Component\Shortcode\Attribute\Filter\PreDoShortcodeTagFilter;
-use WpPack\Component\Shortcode\Attribute\Filter\NoTexturizeShortcodesFilter;
-use WpPack\Component\Shortcode\Attribute\Filter\StripShortcodesTagNamesFilter;
+use WpPack\Component\Hook\Attribute\Shortcode\Filter\ShortcodeAttsFilter;
+use WpPack\Component\Hook\Attribute\Shortcode\Filter\DoShortcodeTagFilter;
+use WpPack\Component\Hook\Attribute\Shortcode\Filter\PreDoShortcodeTagFilter;
+use WpPack\Component\Hook\Attribute\Shortcode\Filter\NoTexturizeShortcodesFilter;
+use WpPack\Component\Hook\Attribute\Shortcode\Filter\StripShortcodesTagNamesFilter;
 
 final class ShortcodeHooks
 {

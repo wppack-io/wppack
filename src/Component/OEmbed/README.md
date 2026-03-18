@@ -42,8 +42,8 @@ $registry->removeProvider('https://example.com/*');
 ### Named Hook Attributes
 
 ```php
-use WpPack\Component\OEmbed\Attribute\Filter\OembedProvidersFilter;
-use WpPack\Component\OEmbed\Attribute\Filter\OembedResultFilter;
+use WpPack\Component\Hook\Attribute\OEmbed\Filter\OembedProvidersFilter;
+use WpPack\Component\Hook\Attribute\OEmbed\Filter\OembedResultFilter;
 
 final class VideoEmbedCustomizer
 {

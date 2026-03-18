@@ -6,9 +6,6 @@
     "require": {
         "php": "^8.2"
     },
-    "require-dev": {
-        "wppack/hook": "^1.0"
-    },
     "autoload": {
         "psr-4": {
             "WpPack\\Component\\Taxonomy\\": "src/"

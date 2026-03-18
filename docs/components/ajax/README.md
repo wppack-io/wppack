@@ -329,56 +329,7 @@ const result = await response.json();
 
 ## Named Hook アトリビュート
 
-> Named Hook を使用するサブスクライバーの推奨配置先: `src/Ajax/Subscriber/`
-
-低レベルの WordPress AJAX フックを直接使用する場合のアトリビュートです。`#[AjaxHandler]` がカバーしない高度なユースケースで使用します。
-
-```php
-use WpPack\Component\Ajax\Attribute\Action\WpAjaxAction;
-use WpPack\Component\Ajax\Attribute\Action\WpAjaxNoprivAction;
-use WpPack\Component\Ajax\Attribute\Action\CheckAjaxRefererAction;
-
-final class LowLevelAjaxHandler
-{
-    #[WpAjaxAction(action: 'my_custom_action')]
-    public function handleAuthenticated(): void
-    {
-        // wp_ajax_my_custom_action フックのコールバック
-        wp_send_json_success(['message' => 'OK']);
-    }
-
-    #[WpAjaxNoprivAction(action: 'my_public_action')]
-    public function handlePublic(): void
-    {
-        // wp_ajax_nopriv_my_public_action フックのコールバック
-        wp_send_json_success(['message' => 'Public OK']);
-    }
-
-    #[CheckAjaxRefererAction]
-    public function onRefererCheck(): void
-    {
-        // check_ajax_referer アクション実行時
-    }
-}
-```
-
-### #[AjaxHandler] vs Named Hook Attributes
-
-| 機能 | `#[AjaxHandler]` | Named Hook Attributes |
-|------|-------------------|----------------------|
-| アクセス制御 | `Access` enum で自動 | 手動でフック選択 |
-| nonce 検証 | `checkReferer` で自動 | 手動実装 |
-| 権限チェック | `capability` で自動 | 手動実装 |
-| レスポンス処理 | `JsonResponse` 自動送信 | 手動で `wp_send_json_*` |
-| 推奨用途 | 一般的な AJAX ハンドラー | 高度なカスタマイズ |
-
-```php
-// Action アトリビュート
-#[WpAjaxAction(action: string, priority?: int = 10)]       // wp_ajax_{action}
-#[WpAjaxNoprivAction(action: string, priority?: int = 10)] // wp_ajax_nopriv_{action}
-#[CheckAjaxRefererAction(priority?: int = 10)]              // check_ajax_referer
-```
-
+→ [Hook コンポーネントのドキュメント](../hook/ajax.md) を参照してください。
 ## クラスリファレンス
 
 | クラス | 説明 |

@@ -4,7 +4,7 @@
 **名前空間:** `WpPack\Component\EventDispatcher\`
 **レイヤー:** Infrastructure
 
-PSR-14 準拠のイベントディスパッチャー。型安全なイベントオブジェクト、アトリビュートベースのイベントリスナー・サブスクライバー、イベント伝播の停止、WordPress フックとの連携を提供します。
+PSR-14 準拠のイベントディスパッチャー。WordPress フックシステム（`$wp_filter`）をバックエンドとして使用し、型安全なイベントオブジェクト、アトリビュートベースのリスナー登録、イベント伝播制御、WordPress フックとの双方向連携を提供します。
 
 ## インストール
 
@@ -39,7 +39,7 @@ do_action('user_registered', $user_id, $userdata);
 
 ```php
 use WpPack\Component\EventDispatcher\Event;
-use WpPack\Component\EventDispatcher\Attribute\EventListener;
+use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
 
 final readonly class UserRegisteredEvent extends Event
 {
@@ -56,7 +56,7 @@ final class UserEventHandler
         private readonly NewsletterService $newsletter,
     ) {}
 
-    #[EventListener(UserRegisteredEvent::class, priority: 10)]
+    #[AsEventListener(priority: 10)]
     public function sendWelcomeEmail(UserRegisteredEvent $event): void
     {
         $this->mailer->send(
@@ -66,7 +66,7 @@ final class UserEventHandler
         );
     }
 
-    #[EventListener(UserRegisteredEvent::class, priority: 20)]
+    #[AsEventListener(priority: 20)]
     public function addToNewsletter(UserRegisteredEvent $event): void
     {
         $this->newsletter->subscribe($event->user->email);
@@ -80,7 +80,9 @@ $this->dispatcher->dispatch($event);
 
 ## イベントクラス
 
-強い型付けのオブジェクトとしてイベントを定義します：
+### カスタムイベント
+
+強い型付けのオブジェクトとしてイベントを定義します。`Event` 基底クラスは PSR-14 の `StoppableEventInterface` を実装済みです：
 
 ```php
 use WpPack\Component\EventDispatcher\Event;
@@ -95,11 +97,73 @@ final readonly class OrderPlacedEvent extends Event
 }
 ```
 
+### WordPressEvent
+
+WordPress フックを PSR-14 イベントとしてラップするクラスです。フック名と引数を保持し、マジック getter でタイプセーフなアクセスを提供します：
+
+```php
+use WpPack\Component\EventDispatcher\WordPressEvent;
+
+// 汎用的な WordPressEvent として WordPress フックをリッスン
+$dispatcher->addListener('save_post', function (WordPressEvent $event): void {
+    [$postId, $post, $update] = $event->args;
+    // フック名: $event->hookName
+}, acceptedArgs: 3);
+```
+
+#### カスタム WordPressEvent サブクラス
+
+`HOOK_NAME` 定数と `$argMap` でタイプセーフなアクセサを定義できます：
+
+```php
+class SavePostEvent extends WordPressEvent
+{
+    public const HOOK_NAME = 'save_post';
+
+    protected array $argMap = [
+        'postId' => 0,
+        'post'   => 1,
+        'update' => 2,
+    ];
+}
+
+// WordPressEvent サブクラスをイベント名として使用
+$dispatcher->addListener(
+    SavePostEvent::class,
+    function (SavePostEvent $event): void {
+        $event->getPostId();  // → int（args[0]）
+        $event->getPost();    // → \WP_Post（args[1]）
+        $event->getUpdate();  // → bool（args[2]）
+    },
+    acceptedArgs: 3,
+);
+```
+
+#### フィルター値の変更
+
+`WordPressEvent` の `$filterValue` プロパティで `apply_filters()` の戻り値を変更できます：
+
+```php
+$dispatcher->addListener('the_content', function (WordPressEvent $event): void {
+    // filterValue は args[0]（フィルター対象の値）で初期化される
+    $event->filterValue = $event->filterValue . '<p>Appended content</p>';
+}, acceptedArgs: 1);
+```
+
 ## イベントリスナー
 
-### アトリビュートベースの登録
+### `#[AsEventListener]` アトリビュート
 
-単一イベントを処理するリスナーを `#[AsEventListener]` でマークします：
+クラスまたはメソッドに付与可能（`IS_REPEATABLE`）。DI コンテナの `RegisterEventListenersPass` で自動検出されます。
+
+| パラメータ | 型 | デフォルト | 説明 |
+|-----------|------|---------|------|
+| `event` | `?string` | `null` | イベントクラス FQCN（省略時はメソッドの第1引数の型から自動解決） |
+| `method` | `?string` | `null` | 呼び出すメソッド名（省略時はクラスレベルで `__invoke`、メソッドレベルで付与先メソッド） |
+| `priority` | `int` | `10` | 実行優先度（WordPress 準拠: 小さい = 早い） |
+| `acceptedArgs` | `int` | `1` | WordPress フック用の引数数 |
+
+#### クラスレベル（単一イベント Invokable リスナー）
 
 ```php
 use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
@@ -118,47 +182,29 @@ final class SendWelcomeEmailListener
 }
 ```
 
-### 優先度付きリスナー
+`event` パラメータ省略時、`__invoke` メソッドの第1引数の型ヒントからイベントクラスが自動解決されます。
 
-```php
-#[AsEventListener(priority: -10)]
-final class AuditLogListener
-{
-    public function __invoke(UserRegisteredEvent $event): void
-    {
-        // 他のリスナーの後に実行される
-    }
-}
-```
-
-### 複数イベントの処理
-
-`#[EventListener]` を使って1つのクラスで複数のイベントを処理できます：
+#### メソッドレベル（複数イベント処理）
 
 ```php
 final class OrderEventHandler
 {
-    public function __construct(
-        private readonly MailerInterface $mailer,
-        private readonly InventoryService $inventory,
-    ) {}
-
-    #[EventListener(OrderPlacedEvent::class, priority: 10)]
+    #[AsEventListener(priority: 10)]
     public function sendOrderConfirmation(OrderPlacedEvent $event): void
     {
-        $this->mailer->send(
-            $event->customer->email,
-            'Order Confirmation #' . $event->order->number,
-            $this->renderOrderConfirmation($event->order)
-        );
+        // メソッド引数の型からイベントクラスが自動解決される
     }
 
-    #[EventListener(OrderPlacedEvent::class, priority: 20)]
+    #[AsEventListener(priority: 20)]
     public function updateInventory(OrderPlacedEvent $event): void
     {
-        foreach ($event->order->getItems() as $item) {
-            $this->inventory->reserve($item->sku, $item->quantity);
-        }
+        // ...
+    }
+
+    #[AsEventListener(event: 'save_post', acceptedArgs: 3)]
+    public function onSavePost(WordPressEvent $event): void
+    {
+        // WordPress フックの場合は event パラメータでフック名を指定
     }
 }
 ```
@@ -170,6 +216,7 @@ use WpPack\Component\EventDispatcher\EventDispatcher;
 
 $dispatcher = new EventDispatcher();
 
+// カスタムイベントリスナー
 $dispatcher->addListener(
     UserRegisteredEvent::class,
     function (UserRegisteredEvent $event): void {
@@ -177,17 +224,36 @@ $dispatcher->addListener(
     },
     priority: 10,
 );
+
+// WordPress フックリスナー
+$dispatcher->addListener(
+    'save_post',
+    function (WordPressEvent $event): void {
+        [$postId, $post, $update] = $event->args;
+    },
+    priority: 10,
+    acceptedArgs: 3,
+);
+
+// WordPress フックリスナー（カスタムイベントクラス指定）
+$dispatcher->addListener(
+    'save_post',
+    function (SavePostEvent $event): void {
+        $event->getPostId();
+    },
+    priority: 10,
+    acceptedArgs: 3,
+    eventClass: SavePostEvent::class,
+);
 ```
 
 ## イベントサブスクライバー
 
-関連するイベントハンドラーを1つのクラスにまとめます：
+`EventSubscriberInterface` を実装して、関連するイベントハンドラーを1つのクラスにまとめます。DI コンテナの `RegisterEventListenersPass` で自動検出されます（`#[AsEventListener]` アトリビュートが付与されている場合はサブスクライバーとしての登録はスキップされます）。
 
 ```php
-use WpPack\Component\EventDispatcher\Attribute\AsEventSubscriber;
 use WpPack\Component\EventDispatcher\EventSubscriberInterface;
 
-#[AsEventSubscriber]
 final class UserLifecycleSubscriber implements EventSubscriberInterface
 {
     public function __construct(
@@ -198,12 +264,17 @@ final class UserLifecycleSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
+            // メソッド名のみ（priority: 10）
+            UserUpdatedEvent::class => 'syncUserData',
+            // [メソッド名, priority]
+            UserDeletedEvent::class => ['cleanupUserData', 5],
+            // [メソッド名, priority, acceptedArgs]（WordPress フック用）
+            'save_post' => ['onSavePost', 10, 3],
+            // 同一イベントに複数リスナー
             UserRegisteredEvent::class => [
                 ['trackRegistration', 20],
                 ['clearUserCache', 10],
             ],
-            UserUpdatedEvent::class => 'syncUserData',
-            UserDeletedEvent::class => 'cleanupUserData',
         ];
     }
 
@@ -220,17 +291,21 @@ final class UserLifecycleSubscriber implements EventSubscriberInterface
         $this->cache->forget("user:{$event->user->id}");
     }
 
-    public function syncUserData(UserUpdatedEvent $event): void
-    {
-        // ユーザー更新を処理
-    }
-
-    public function cleanupUserData(UserDeletedEvent $event): void
-    {
-        // ユーザー削除を処理
-    }
+    public function syncUserData(UserUpdatedEvent $event): void { /* ... */ }
+    public function cleanupUserData(UserDeletedEvent $event): void { /* ... */ }
+    public function onSavePost(WordPressEvent $event): void { /* ... */ }
 }
 ```
+
+### `getSubscribedEvents()` の値フォーマット
+
+| フォーマット | 例 | 説明 |
+|-------------|------|------|
+| `string` | `'methodName'` | メソッド名のみ（priority: 10） |
+| `[string, int]` | `['methodName', 20]` | メソッド名 + 優先度 |
+| `[string, int, int]` | `['methodName', 10, 3]` | + acceptedArgs（WordPress フック用） |
+| `[string, int, int, class-string]` | `['methodName', 10, 1, SavePostEvent::class]` | + eventClass（WordPressEvent サブクラス指定） |
+| `list<above>` | `[['method1', 10], ['method2', 20]]` | 同一イベントに複数リスナー |
 
 ## イベントのディスパッチ
 
@@ -238,155 +313,68 @@ final class UserLifecycleSubscriber implements EventSubscriberInterface
 use WpPack\Component\EventDispatcher\EventDispatcher;
 
 $dispatcher = new EventDispatcher();
-
-$event = $dispatcher->dispatch(new UserRegisteredEvent(
-    user: $user,
-));
+$event = $dispatcher->dispatch(new OrderPlacedEvent($order, $customer));
 ```
 
-```php
-final class OrderService
-{
-    public function __construct(
-        private readonly EventDispatcher $dispatcher,
-    ) {}
-
-    public function placeOrder(array $orderData): Order
-    {
-        $order = $this->createOrder($orderData);
-        $customer = $this->getCustomer($orderData['customer_id']);
-
-        $this->dispatcher->dispatch(new OrderPlacedEvent($order, $customer));
-
-        return $order;
-    }
-}
-```
+内部的に `do_action(EventClass::class, $event)` を呼び出すため、WordPress の `add_action()` で登録したリスナーも連携可能です。
 
 ## イベント伝播の停止
 
-PSR-14 の `StoppableEventInterface` でイベントの伝播を制御できます：
+`Event` 基底クラスは `StoppableEventInterface` を実装済みです。`stopPropagation()` を呼び出すと後続リスナーの実行がスキップされます：
 
 ```php
-use Psr\EventDispatcher\StoppableEventInterface;
 use WpPack\Component\EventDispatcher\Event;
 
-final class PaymentProcessingEvent extends Event implements StoppableEventInterface
+final class PaymentProcessingEvent extends Event
 {
-    private bool $propagationStopped = false;
-
     public function __construct(
         public readonly Payment $payment,
         public readonly Order $order,
     ) {}
-
-    public function stopPropagation(): void
-    {
-        $this->propagationStopped = true;
-    }
-
-    public function isPropagationStopped(): bool
-    {
-        return $this->propagationStopped;
-    }
 }
 
 final class PaymentHandler
 {
-    #[EventListener(PaymentProcessingEvent::class, priority: 100)]
+    #[AsEventListener(priority: 5)]
     public function validatePayment(PaymentProcessingEvent $event): void
     {
         if ($this->security->isFraudulent($event->payment)) {
-            $event->stopPropagation();
+            $event->stopPropagation(); // 以降のリスナーは実行されない
             throw new FraudulentPaymentException();
         }
     }
 
-    #[EventListener(PaymentProcessingEvent::class, priority: 90)]
+    #[AsEventListener(priority: 15)]
     public function processPayment(PaymentProcessingEvent $event): void
     {
+        // validatePayment で stopPropagation() が呼ばれた場合、実行されない
         $this->paymentGateway->charge($event->payment);
     }
 }
 ```
 
-## WordPress フック連携
-
-### HookBridge
-
-WordPress フックと EventDispatcher 間のブリッジを提供します：
+## DI 統合
 
 ```php
-use WpPack\Component\EventDispatcher\WordPress\HookBridge;
+use WpPack\Component\EventDispatcher\DependencyInjection\EventDispatcherServiceProvider;
+use WpPack\Component\EventDispatcher\DependencyInjection\RegisterEventListenersPass;
 
-$bridge = new HookBridge($dispatcher);
-
-// WordPress アクションを EventDispatcher にブリッジ
-$bridge->bridgeAction('save_post', SavePostEvent::class);
-
-// EventDispatcher イベントを WordPress フックにブリッジ
-$bridge->bridgeEvent(UserRegisteredEvent::class, 'wppack_user_registered');
+$builder->addServiceProvider(new EventDispatcherServiceProvider());
+$builder->addCompilerPass(new RegisterEventListenersPass());
 ```
 
-### WordPress フックからイベントへの変換
+`RegisterEventListenersPass` は以下を自動検出します：
 
-```php
-final class WordPressEventBridge
-{
-    public function __construct(
-        private readonly HookBridge $bridge,
-    ) {}
+1. `#[AsEventListener]` アトリビュートが付与されたクラス / メソッド
+2. `EventSubscriberInterface` を実装したクラス
 
-    #[Action('init', priority: 10)]
-    public function setupBridging(): void
-    {
-        // WordPress フックをイベントに変換
-        $this->bridge->bridgeHookToEvent('save_post', PostSavedEvent::class,
-            function ($post_id, $post, $update) {
-                if ($post->post_type === 'post' && $update) {
-                    return new PostSavedEvent(
-                        Post::fromWpPost($post),
-                        $update
-                    );
-                }
-                return null; // 条件を満たさない場合はイベントをスキップ
-            }
-        );
-
-        // イベントを WordPress フックとして公開
-        $this->bridge->exposeEventAsHook(OrderPlacedEvent::class, 'wppack_order_placed',
-            function (OrderPlacedEvent $event) {
-                return [$event->order->id, $event->order->toArray()];
-            }
-        );
-    }
-}
-```
-
-## エラーハンドリング
-
-```php
-final class RobustEventHandler
-{
-    #[EventListener(OrderPlacedEvent::class, priority: 10)]
-    public function processOrder(OrderPlacedEvent $event): void
-    {
-        try {
-            $this->paymentProcessor->charge($event->order);
-        } catch (PaymentException $e) {
-            $this->logger->error('Payment failed', [
-                'order_id' => $event->order->id,
-                'error' => $e->getMessage(),
-            ]);
-            return; // 他のリスナーの実行を妨げない
-        }
-    }
-}
-```
+両方が該当する場合、`#[AsEventListener]` が優先され、サブスクライバーとしての重複登録は行われません。
 
 ## テスト
 
-### イベントディスパッチのテスト
+### EventDispatcherTestTrait
+
+テスト用のヘルパートレイト。イベントのディスパッチとアサーションを簡潔に記述できます：
 
 ```php
 use WpPack\Component\EventDispatcher\Test\EventDispatcherTestTrait;
@@ -397,19 +385,40 @@ class OrderServiceTest extends TestCase
 
     public function testOrderPlacedEventIsDispatched(): void
     {
-        $service = new OrderService($this->dispatcher);
+        $service = new OrderService($this->getEventDispatcher());
         $service->placeOrder([
             'customer_id' => 123,
             'total' => 99.99,
         ]);
 
         $this->assertEventDispatched(OrderPlacedEvent::class);
-        $this->assertEventDispatchedTimes(OrderPlacedEvent::class, 1);
+    }
+
+    public function testEventNotDispatched(): void
+    {
+        $this->assertEventNotDispatched(OrderPlacedEvent::class);
+    }
+
+    public function testLastDispatchedEvent(): void
+    {
+        $this->dispatch(new OrderPlacedEvent($order, $customer));
+
+        $event = $this->getLastDispatchedEvent(OrderPlacedEvent::class);
+        self::assertSame($order, $event->order);
     }
 }
 ```
 
-### イベントリスナーのテスト
+| メソッド | 説明 |
+|---------|------|
+| `getEventDispatcher()` | `EventDispatcher` シングルトンインスタンスを取得 |
+| `dispatch(object $event)` | イベントをディスパッチし、履歴に記録 |
+| `getLastDispatchedEvent(class-string)` | 指定クラスの最後のイベントを取得（`null` 可） |
+| `assertEventDispatched(class-string)` | イベントがディスパッチされたことをアサート |
+| `assertEventNotDispatched(class-string)` | イベントがディスパッチされていないことをアサート |
+| `resetDispatchedEvents()` | ディスパッチ履歴をリセット |
+
+### リスナーの単体テスト
 
 ```php
 class WelcomeEmailHandlerTest extends TestCase
@@ -434,12 +443,11 @@ class WelcomeEmailHandlerTest extends TestCase
 
 | クラス | 説明 |
 |-------|------|
-| `EventDispatcher` | イベントディスパッチャー |
-| `EventDispatcherInterface` | ディスパッチャーインターフェース（PSR-14） |
-| `Event` | 基底イベントクラス |
-| `Attribute\AsEventListener` | リスナーマーカー |
-| `Attribute\EventListener` | イベントクラス指定付きリスナー |
-| `Attribute\AsEventSubscriber` | サブスクライバーマーカー |
-| `EventSubscriberInterface` | サブスクライバーインターフェース |
-| `WordPress\HookBridge` | WordPress フックブリッジ |
-| `Test\EventDispatcherTestTrait` | テスト用トレイト |
+| `EventDispatcher` | PSR-14 準拠イベントディスパッチャー（WordPress フックシステムをバックエンドに使用） |
+| `Event` | 基底イベントクラス（`StoppableEventInterface` 実装済み） |
+| `WordPressEvent` | WordPress フック用イベント（`$hookName`, `$args`, `$filterValue`, マジック getter） |
+| `EventSubscriberInterface` | サブスクライバーインターフェース（`getSubscribedEvents()` を定義） |
+| `Attribute\AsEventListener` | リスナー登録アトリビュート（クラス / メソッドに付与可能、`IS_REPEATABLE`） |
+| `DependencyInjection\EventDispatcherServiceProvider` | DI サービスプロバイダー |
+| `DependencyInjection\RegisterEventListenersPass` | アトリビュート / サブスクライバーの自動検出コンパイラーパス |
+| `Test\EventDispatcherTestTrait` | テスト用トレイト（ディスパッチ履歴・アサーション） |

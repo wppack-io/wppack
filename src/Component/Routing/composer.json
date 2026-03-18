@@ -11,9 +11,6 @@
     "suggest": {
         "wppack/security": "Required for #[CurrentUser] injection and Security integration in controllers"
     },
-    "require-dev": {
-        "wppack/hook": "^1.0"
-    },
     "autoload": {
         "psr-4": {
             "WpPack\\Component\\Routing\\": "src/"

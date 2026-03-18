@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Media\Storage\Subscriber;
 
 use WpPack\Component\Hook\Attribute\AsHookSubscriber;
-use WpPack\Component\Media\Attribute\Filter\WpImageEditorsFilter;
+use WpPack\Component\Hook\Attribute\Media\Filter\WpImageEditorsFilter;
 
 #[AsHookSubscriber]
 final readonly class ImageEditorSubscriber

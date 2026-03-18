@@ -50,8 +50,8 @@ $siteOption->delete('network_old_setting');
 ### Named Hook Attributes
 
 ```php
-use WpPack\Component\Option\Attribute\Filter\PreOptionFilter;
-use WpPack\Component\Option\Attribute\Action\UpdateOptionAction;
+use WpPack\Component\Hook\Attribute\Option\Filter\PreOptionFilter;
+use WpPack\Component\Hook\Attribute\Option\Action\UpdateOptionAction;
 
 final class OptionHooks
 {

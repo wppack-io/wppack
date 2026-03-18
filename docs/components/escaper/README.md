@@ -95,76 +95,7 @@ $sanitizer->url($url);  // "http://example.com/?a=1&b=2"
 
 ## Named Hook アトリビュート
 
-> Named Hook を使用するサブスクライバーの推奨配置先: `src/Escaper/Subscriber/`
-
-### `#[EscHtmlFilter]`
-
-**WordPress Hook:** `esc_html`
-
-```php
-use WpPack\Component\Escaper\Attribute\Filter\EscHtmlFilter;
-
-final class HtmlEscaper
-{
-    #[EscHtmlFilter(priority: 10)]
-    public function escapeHtml(string $safeText, string $text): string
-    {
-        return $safeText;
-    }
-}
-```
-
-### `#[EscAttrFilter]`
-
-**WordPress Hook:** `esc_attr`
-
-```php
-use WpPack\Component\Escaper\Attribute\Filter\EscAttrFilter;
-
-final class AttrEscaper
-{
-    #[EscAttrFilter(priority: 10)]
-    public function escapeAttr(string $safeText, string $text): string
-    {
-        return $safeText;
-    }
-}
-```
-
-### `#[EscUrlFilter]`
-
-**WordPress Hook:** `esc_url`
-
-```php
-use WpPack\Component\Escaper\Attribute\Filter\EscUrlFilter;
-
-final class UrlEscaper
-{
-    #[EscUrlFilter(priority: 10)]
-    public function escapeUrl(string $url, string $originalUrl, string $context): string
-    {
-        return $url;
-    }
-}
-```
-
-### `#[EscJsFilter]`
-
-**WordPress Hook:** `esc_js`
-
-```php
-use WpPack\Component\Escaper\Attribute\Filter\EscJsFilter;
-
-final class JsEscaper
-{
-    #[EscJsFilter(priority: 10)]
-    public function escapeJs(string $safeText, string $text): string
-    {
-        return $safeText;
-    }
-}
-```
-
+→ [Hook コンポーネントのドキュメント](../hook/escaper.md) を参照してください。
 ## Hook Attribute リファレンス
 
 | Attribute | WordPress Hook | 説明 |

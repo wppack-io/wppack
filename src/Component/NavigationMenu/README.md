@@ -43,9 +43,9 @@ $registry->unregisterLocation('footer');
 ### Named Hook Attributes
 
 ```php
-use WpPack\Component\NavigationMenu\Attribute\Filter\WpNavMenuItemsFilter;
-use WpPack\Component\NavigationMenu\Attribute\Filter\NavMenuCssClassFilter;
-use WpPack\Component\NavigationMenu\Attribute\Action\WpCreateNavMenuAction;
+use WpPack\Component\Hook\Attribute\NavigationMenu\Filter\WpNavMenuItemsFilter;
+use WpPack\Component\Hook\Attribute\NavigationMenu\Filter\NavMenuCssClassFilter;
+use WpPack\Component\Hook\Attribute\NavigationMenu\Action\WpCreateNavMenuAction;
 
 final class MenuCustomizer
 {

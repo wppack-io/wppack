@@ -67,9 +67,9 @@ $customPath = $uploadPath->subdir('exports'); // .../uploads/exports (auto-creat
 ### Named Hook Attributes
 
 ```php
-use WpPack\Component\Filesystem\Attribute\Filter\UploadDirFilter;
-use WpPack\Component\Filesystem\Attribute\Filter\FilesystemMethodFilter;
-use WpPack\Component\Filesystem\Attribute\Action\WpFilesystemInitAction;
+use WpPack\Component\Hook\Attribute\Filesystem\Filter\UploadDirFilter;
+use WpPack\Component\Hook\Attribute\Filesystem\Filter\FilesystemMethodFilter;
+use WpPack\Component\Hook\Attribute\Filesystem\Action\WpFilesystemInitAction;
 
 final class FilesystemHooks
 {

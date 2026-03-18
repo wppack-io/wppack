@@ -9,7 +9,6 @@
         "wppack/templating": "^1.0"
     },
     "require-dev": {
-        "wppack/hook": "^1.0",
         "wppack/dependency-injection": "^1.0",
         "wppack/http-foundation": "^1.0"
     },

@@ -50,9 +50,9 @@ $registry->remove('site_stats_widget');
 ### Named Hook Attributes
 
 ```php
-use WpPack\Component\DashboardWidget\Attribute\Action\WpDashboardSetupAction;
-use WpPack\Component\DashboardWidget\Attribute\Action\ActivityBoxEndAction;
-use WpPack\Component\DashboardWidget\Attribute\Filter\DashboardGlanceItemsFilter;
+use WpPack\Component\Hook\Attribute\DashboardWidget\Action\WpDashboardSetupAction;
+use WpPack\Component\Hook\Attribute\DashboardWidget\Action\ActivityBoxEndAction;
+use WpPack\Component\Hook\Attribute\DashboardWidget\Filter\DashboardGlanceItemsFilter;
 
 final class DashboardHooks
 {

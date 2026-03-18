@@ -8,16 +8,17 @@
         "wppack/messenger": "^1.0",
         "dragonmantank/cron-expression": "^3.0"
     },
-    "require-dev": {
-        "wppack/hook": "^1.0"
-    },
     "suggest": {
         "wppack/eventbridge-scheduler": "EventBridge backend for high-reliability scheduling"
     },
     "autoload": {
-        "psr-4": { "WpPack\\Component\\Scheduler\\": "src/" }
+        "psr-4": {
+            "WpPack\\Component\\Scheduler\\": "src/"
+        }
     },
     "autoload-dev": {
-        "psr-4": { "WpPack\\Component\\Scheduler\\Tests\\": "tests/" }
+        "psr-4": {
+            "WpPack\\Component\\Scheduler\\Tests\\": "tests/"
+        }
     }
 }

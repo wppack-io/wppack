@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Media\Storage\Subscriber;
 
-use WpPack\Component\Filesystem\Attribute\Filter\PreWpUniqueFilenameFileListFilter;
+use WpPack\Component\Hook\Attribute\Filesystem\Filter\PreWpUniqueFilenameFileListFilter;
 use WpPack\Component\Hook\Attribute\AsHookSubscriber;
-use WpPack\Component\Media\Attribute\Action\DeleteAttachmentAction;
-use WpPack\Component\Media\Attribute\Filter\GetAttachedFileFilter;
-use WpPack\Component\Media\Attribute\Filter\WpGenerateAttachmentMetadataFilter;
-use WpPack\Component\Media\Attribute\Filter\WpGetAttachmentUrlFilter;
-use WpPack\Component\Media\Attribute\Filter\WpReadImageMetadataFilter;
-use WpPack\Component\Media\Attribute\Filter\WpResourceHintsFilter;
+use WpPack\Component\Hook\Attribute\Media\Action\DeleteAttachmentAction;
+use WpPack\Component\Hook\Attribute\Media\Filter\GetAttachedFileFilter;
+use WpPack\Component\Hook\Attribute\Media\Filter\WpGenerateAttachmentMetadataFilter;
+use WpPack\Component\Hook\Attribute\Media\Filter\WpGetAttachmentUrlFilter;
+use WpPack\Component\Hook\Attribute\Media\Filter\WpReadImageMetadataFilter;
+use WpPack\Component\Hook\Attribute\Media\Filter\WpResourceHintsFilter;
 use WpPack\Component\Media\Storage\StorageConfiguration;
 use WpPack\Component\Media\Storage\UrlResolver;
 use WpPack\Component\Storage\Adapter\StorageAdapterInterface;

@@ -258,11 +258,11 @@ wppack/logger
 
 ### Named Hook 規約
 
-各 component が WordPress フック用の named hook アトリビュートを定義する際の規約:
+全 Named Hook アトリビュートは Hook コンポーネントに集約されている:
 - 詳細: [docs/components/hook/named-hook-conventions.md](docs/components/hook/named-hook-conventions.md)
-- Hook component はライフサイクルフックのみ所有（`init`, `admin_init` 等）
-- ドメイン固有フックは各 component が所有（PostType → `SavePostAction` 等）
-- 名前空間: `WpPack\Component\{Name}\Attribute\Action\` / `Attribute\Filter\`
+- Hook component がライフサイクルフック（`init`, `admin_init` 等）およびドメイン固有フックをすべて所有
+- 名前空間: `WpPack\Component\Hook\Attribute\{ComponentName}\Action\` / `Filter\`
+- ディレクトリ: `src/Component/Hook/src/Attribute/{ComponentName}/Action/` / `Filter/`
 - 自動検出: `ReflectionAttribute::IS_INSTANCEOF` により追加設定不要
 
 ### WordPress バージョン互換性

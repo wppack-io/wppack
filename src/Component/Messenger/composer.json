@@ -8,16 +8,17 @@
         "psr/log": "^3.0",
         "wppack/serializer": "^1.0"
     },
-    "require-dev": {
-        "wppack/hook": "^1.0"
-    },
     "suggest": {
         "wppack/sqs-messenger": "SQS transport for async messaging via AWS Lambda"
     },
     "autoload": {
-        "psr-4": { "WpPack\\Component\\Messenger\\": "src/" }
+        "psr-4": {
+            "WpPack\\Component\\Messenger\\": "src/"
+        }
     },
     "autoload-dev": {
-        "psr-4": { "WpPack\\Component\\Messenger\\Tests\\": "tests/" }
+        "psr-4": {
+            "WpPack\\Component\\Messenger\\Tests\\": "tests/"
+        }
     }
 }

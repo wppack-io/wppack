@@ -59,9 +59,9 @@ $registry->register(new ProductController());
 ### Named Hook Attributes
 
 ```php
-use WpPack\Component\Ajax\Attribute\Action\WpAjaxAction;
-use WpPack\Component\Ajax\Attribute\Action\WpAjaxNoprivAction;
-use WpPack\Component\Ajax\Attribute\Action\CheckAjaxRefererAction;
+use WpPack\Component\Hook\Attribute\Ajax\Action\WpAjaxAction;
+use WpPack\Component\Hook\Attribute\Ajax\Action\WpAjaxNoprivAction;
+use WpPack\Component\Hook\Attribute\Ajax\Action\CheckAjaxRefererAction;
 
 final class AjaxHooks
 {

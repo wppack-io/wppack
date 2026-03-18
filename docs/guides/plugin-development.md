@@ -372,8 +372,8 @@ namespace MyPlugin\Hook;
 
 use WpPack\Component\Hook\Attribute\AsHookSubscriber;
 use WpPack\Component\Hook\Attribute\Action\InitAction;
-use WpPack\Component\Admin\Attribute\Action\AdminMenuAction;
-use WpPack\Component\Admin\Attribute\Action\AdminNoticesAction;
+use WpPack\Component\Hook\Attribute\Admin\Action\AdminMenuAction;
+use WpPack\Component\Hook\Attribute\Admin\Action\AdminNoticesAction;
 
 #[AsHookSubscriber]
 final class AdminSetup
@@ -440,20 +440,20 @@ ServiceDiscovery → ContainerBuilder → RegisterHookSubscribersPass → HookDi
 
 ### Named Hook アトリビュート
 
-Hook コンポーネントはライフサイクルフック（`init`、`admin_init` 等）の Named Hook アトリビュートを提供します。ドメイン固有のフックは各コンポーネントが提供します。
+Hook コンポーネントはすべての Named Hook アトリビュートを一元管理しています。ライフサイクルフック（`init`、`admin_init` 等）は `Hook\Attribute\Action\` 直下に、ドメイン固有のフックはコンポーネント別サブディレクトリ（`Hook\Attribute\{Name}\`）に配置されています。
 
 ```php
-// Hook コンポーネント（ライフサイクル）
+// ライフサイクルフック（Hook\Attribute\Action\）
 use WpPack\Component\Hook\Attribute\Action\InitAction;
 use WpPack\Component\Hook\Attribute\Action\AdminInitAction;
 
-// Admin コンポーネント（管理画面）
-use WpPack\Component\Admin\Attribute\Action\AdminMenuAction;
-use WpPack\Component\Admin\Attribute\Action\AdminEnqueueScriptsAction;
-use WpPack\Component\Admin\Attribute\Action\AdminNoticesAction;
+// Admin ドメインフック（Hook\Attribute\Admin\）
+use WpPack\Component\Hook\Attribute\Admin\Action\AdminMenuAction;
+use WpPack\Component\Hook\Attribute\Admin\Action\AdminEnqueueScriptsAction;
+use WpPack\Component\Hook\Attribute\Admin\Action\AdminNoticesAction;
 
-// Plugin コンポーネント（プラグイン管理）
-use WpPack\Component\Plugin\Attribute\Filter\PluginActionLinksFilter;
+// Plugin ドメインフック（Hook\Attribute\Plugin\）
+use WpPack\Component\Hook\Attribute\Plugin\Filter\PluginActionLinksFilter;
 
 // 汎用的な Hook アトリビュート（Named Hook がない場合）
 use WpPack\Component\Hook\Attribute\Action;
@@ -774,7 +774,7 @@ declare(strict_types=1);
 
 namespace MyNotificationPlugin\Hook;
 
-use WpPack\Component\Admin\Attribute\Action\AdminMenuAction;
+use WpPack\Component\Hook\Attribute\Admin\Action\AdminMenuAction;
 use WpPack\Component\Hook\Attribute\Action\AdminInitAction;
 use WpPack\Component\Hook\Attribute\AsHookSubscriber;
 
