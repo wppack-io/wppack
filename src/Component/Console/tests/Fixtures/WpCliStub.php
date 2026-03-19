@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Minimal WP_CLI stub for testing Console component.
  * This must be loaded via require_once BEFORE any class_exists() checks.
