@@ -1,5 +1,7 @@
 # WpPack Option
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=option)](https://codecov.io/github/wppack-io/wppack)
+
 Object-oriented wrapper for the WordPress Options API. Provides simple manager classes for option CRUD operations.
 
 ## Installation

@@ -1,5 +1,7 @@
 # Query Component
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=query)](https://codecov.io/github/wppack-io/wppack)
+
 A type-safe, fluent query builder for WordPress native queries (`WP_Query`, `WP_User_Query`, `WP_Term_Query`).
 
 ## Installation

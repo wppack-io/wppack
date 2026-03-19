@@ -1,5 +1,7 @@
 # WpPack Wpress
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=wpress)](https://codecov.io/github/wppack-io/wppack)
+
 Handles `.wpress` archive files used by All-in-One WP Migration. Provides a `ZipArchive`-like API for reading, writing, extracting, and modifying `.wpress` archives.
 
 > **Copyright & Attribution**

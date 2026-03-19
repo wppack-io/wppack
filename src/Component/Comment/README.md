@@ -1,5 +1,7 @@
 # WpPack Comment
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=comment)](https://codecov.io/github/wppack-io/wppack)
+
 Comment management utilities for WordPress.
 
 > [!WARNING]

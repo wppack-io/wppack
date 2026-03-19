@@ -1,5 +1,7 @@
 # EventBridge Scheduler
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=eventbridge_scheduler)](https://codecov.io/github/wppack-io/wppack)
+
 Amazon EventBridge Scheduler backend for [WpPack Scheduler](../../README.md).
 
 ## Installation

@@ -1,5 +1,7 @@
 # wppack/eventbridge-scheduler-plugin
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=eventbridge_scheduler_plugin)](https://codecov.io/github/wppack-io/wppack)
+
 WordPress plugin for EventBridge-based scheduling. Provides Symfony Scheduler-like declarative schedule definitions with real-time synchronization to AWS EventBridge Scheduler.
 
 ## Installation

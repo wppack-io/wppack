@@ -1,5 +1,7 @@
 # WpPack Logger
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=logger)](https://codecov.io/github/wppack-io/wppack)
+
 A PSR-3 compliant logging component. Wraps WordPress's `error_log()` with a structured interface.
 
 ## Installation

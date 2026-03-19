@@ -1,5 +1,7 @@
 # WpPack Ajax
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=ajax)](https://codecov.io/github/wppack-io/wppack)
+
 A component for WordPress AJAX handling. Provides handler definition via `#[Ajax]` attribute, three types of access control via the `Access` enum, type-safe responses with `JsonResponse`, and Named Hook attributes.
 
 ## Installation

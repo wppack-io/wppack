@@ -1,5 +1,7 @@
 # WpPack OptionsResolver
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=options_resolver)](https://codecov.io/github/wppack-io/wppack)
+
 An OptionsResolver for WordPress. Extends Symfony OptionsResolver to automatically cast values from strings when a single type (`'int'`, `'float'`, `'bool'`) is specified via `setAllowedTypes()`.
 
 ## Installation

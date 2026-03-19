@@ -1,5 +1,7 @@
 # WpPack APCu Cache
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=apcu_cache)](https://codecov.io/github/wppack-io/wppack)
+
 APCu cache adapter for the WpPack Cache component.
 
 ## Installation

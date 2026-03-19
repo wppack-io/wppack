@@ -1,5 +1,7 @@
 # WpPack Widget
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=widget)](https://codecov.io/github/wppack-io/wppack)
+
 A WordPress widget system component. Provides widget definitions via `AbstractWidget` + `#[AsWidget]` attributes, along with Named Hook Attributes.
 
 ## Installation

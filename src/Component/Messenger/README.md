@@ -1,5 +1,7 @@
 # WpPack Messenger
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=messenger)](https://codecov.io/github/wppack-io/wppack)
+
 Async message bus for WordPress with SQS/Lambda support.
 
 ## Installation

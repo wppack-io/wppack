@@ -1,5 +1,7 @@
 # WpPack Transient
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=transient)](https://codecov.io/github/wppack-io/wppack)
+
 Object-oriented wrapper for the WordPress Transient API. Provides manager classes for transient operations on single-site and multisite environments.
 
 ## Installation

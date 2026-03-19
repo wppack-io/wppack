@@ -1,5 +1,7 @@
 # wppack/s3-storage-plugin
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=s3_storage_plugin)](https://codecov.io/github/wppack-io/wppack)
+
 WordPress plugin for S3-based media storage. A thin S3-specific layer that provides pre-signed URL uploads and S3 event-driven attachment registration.
 
 ## Architecture

@@ -1,5 +1,7 @@
 # WpPack Routing
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=routing)](https://codecov.io/github/wppack-io/wppack)
+
 URL routing for WordPress.
 
 ## Installation

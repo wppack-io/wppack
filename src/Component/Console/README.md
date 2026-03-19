@@ -1,5 +1,7 @@
 # WpPack Console
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=console)](https://codecov.io/github/wppack-io/wppack)
+
 A WP-CLI command framework providing type-safe input/output, automatic command registration via DI, and a Symfony Console-inspired `configure()` + `execute()` pattern.
 
 ## Installation

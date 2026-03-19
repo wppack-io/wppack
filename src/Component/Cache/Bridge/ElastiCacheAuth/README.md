@@ -1,5 +1,7 @@
 # ElastiCache Auth
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=elasticache_auth)](https://codecov.io/github/wppack-io/wppack)
+
 AWS ElastiCache IAM authentication bridge for WpPack Cache.
 
 ## Installation

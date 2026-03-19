@@ -1,5 +1,7 @@
 # Serializer Component
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=serializer)](https://codecov.io/github/wppack-io/wppack)
+
 Object serialization with normalizer chain for WpPack.
 
 ## Installation

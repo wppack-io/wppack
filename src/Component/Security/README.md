@@ -1,5 +1,7 @@
 # WpPack Security
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=security)](https://codecov.io/github/wppack-io/wppack)
+
 A component that provides a pluggable authentication and authorization framework on WordPress. Supports request-based authentication via the Authenticator pattern, value-object representation of authentication requirements through Passport/Badge, and Voter-based authorization checks.
 
 ## Installation

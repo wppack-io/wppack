@@ -1,5 +1,7 @@
 # Setting Component
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=setting)](https://codecov.io/github/wppack-io/wppack)
+
 **Package:** `wppack/setting`
 **Namespace:** `WpPack\Component\Setting\`
 **Layer:** Application

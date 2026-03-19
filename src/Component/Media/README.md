@@ -1,5 +1,7 @@
 # WpPack Media
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=media)](https://codecov.io/github/wppack-io/wppack)
+
 Type-safe media library and attachment management for WordPress.
 
 ## Installation

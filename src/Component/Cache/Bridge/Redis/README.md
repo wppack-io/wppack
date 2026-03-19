@@ -1,5 +1,7 @@
 # WpPack Redis Cache
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=redis_cache)](https://codecov.io/github/wppack-io/wppack)
+
 Redis adapter for the WpPack Cache Object Cache drop-in. Supports multiple Redis client libraries within a single bridge package.
 
 ## Supported Clients

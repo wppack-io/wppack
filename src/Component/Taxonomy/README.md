@@ -1,5 +1,7 @@
 # WpPack Taxonomy
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=taxonomy)](https://codecov.io/github/wppack-io/wppack)
+
 Taxonomy registration and management for WordPress.
 
 > [!WARNING]

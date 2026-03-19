@@ -1,5 +1,7 @@
 # SamlSecurity
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=saml_security)](https://codecov.io/github/wppack-io/wppack)
+
 SAML 2.0 Service Provider (SP) authentication bridge for WpPack Security. Wraps `onelogin/php-saml` to integrate external IdP (Okta, Azure AD, Google Workspace, etc.) SSO authentication with the WpPack Security component.
 
 ## Installation

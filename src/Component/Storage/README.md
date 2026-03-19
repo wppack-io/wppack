@@ -1,5 +1,7 @@
 # Storage
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=storage)](https://codecov.io/github/wppack-io/wppack)
+
 Object storage abstraction for WordPress.
 
 ## Installation

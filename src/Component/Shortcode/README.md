@@ -1,5 +1,7 @@
 # WpPack Shortcode
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=shortcode)](https://codecov.io/github/wppack-io/wppack)
+
 A component for defining WordPress shortcodes in an object-oriented manner. Provides shortcode definitions via `AbstractShortcode` + `#[AsShortcode]` attributes, along with Named Hook Attributes.
 
 ## Installation

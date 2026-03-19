@@ -1,5 +1,7 @@
 # WpPack Mailer
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=mailer)](https://codecov.io/github/wppack-io/wppack)
+
 Email abstraction with pluggable transports for WordPress.
 
 ## Installation

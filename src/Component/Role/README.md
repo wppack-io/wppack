@@ -1,5 +1,7 @@
 # WpPack Role
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=role)](https://codecov.io/github/wppack-io/wppack)
+
 User role and capability management for WordPress.
 
 > [!WARNING]

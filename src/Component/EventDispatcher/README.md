@@ -1,5 +1,7 @@
 # EventDispatcher Component
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=event_dispatcher)](https://codecov.io/github/wppack-io/wppack)
+
 A PSR-14 compliant event dispatcher that uses the WordPress hook system (`$wp_filter`) as its backend.
 
 ## Installation

@@ -1,5 +1,7 @@
 # WpPack HttpClient
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=http_client)](https://codecov.io/github/wppack-io/wppack)
+
 A PSR-18 compliant wrapper for the WordPress HTTP API. Provides type-safe HTTP requests with a Fluent API.
 
 ## Installation

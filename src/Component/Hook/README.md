@@ -1,5 +1,7 @@
 # WpPack Hook
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=hook)](https://codecov.io/github/wppack-io/wppack)
+
 Attribute-based WordPress hook (action/filter) management.
 
 ## Installation

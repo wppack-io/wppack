@@ -1,5 +1,7 @@
 # WpPack Templating
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=templating)](https://codecov.io/github/wppack-io/wppack)
+
 A PHP template engine for WordPress with layout inheritance, sections, automatic escaping, and partial includes. Follows the Plates / Symfony PhpEngine pattern with an engine-agnostic interface for future Twig support.
 
 ## Installation

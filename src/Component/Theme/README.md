@@ -1,5 +1,7 @@
 # WpPack Theme
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=theme)](https://codecov.io/github/wppack-io/wppack)
+
 Named hook attributes for WordPress theme-related hooks including assets, template output, customizer, and filters.
 
 ## Installation

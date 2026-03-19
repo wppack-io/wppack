@@ -1,5 +1,7 @@
 # WpPack Sanitizer
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=sanitizer)](https://codecov.io/github/wppack-io/wppack)
+
 Input sanitization utilities for WordPress.
 
 ## Installation

@@ -1,5 +1,7 @@
 # S3 Storage
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=s3_storage)](https://codecov.io/github/wppack-io/wppack)
+
 Amazon S3 adapter for [WpPack Storage](../../README.md).
 
 ## Installation

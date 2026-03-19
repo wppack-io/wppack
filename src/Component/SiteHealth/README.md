@@ -1,5 +1,7 @@
 # WpPack SiteHealth
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=site_health)](https://codecov.io/github/wppack-io/wppack)
+
 Attribute-based site health checks and debug information for WordPress.
 
 ## Installation

@@ -1,5 +1,7 @@
 # WpPack Scheduler
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=scheduler)](https://codecov.io/github/wppack-io/wppack)
+
 Symfony-like task scheduler with AWS EventBridge sync for WordPress.
 
 ## Installation

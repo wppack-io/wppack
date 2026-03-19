@@ -1,5 +1,7 @@
 # HttpFoundation Component
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=http_foundation)](https://codecov.io/github/wppack-io/wppack)
+
 An object-oriented layer for HTTP request handling in WordPress. Provides type-safe access to superglobals (`$_GET`, `$_POST`, `$_FILES`, etc.) and base response classes used across all WpPack components.
 
 ## Installation

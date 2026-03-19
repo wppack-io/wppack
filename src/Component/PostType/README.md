@@ -1,5 +1,7 @@
 # WpPack PostType
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=post_type)](https://codecov.io/github/wppack-io/wppack)
+
 Custom post type and meta registration for WordPress.
 
 > [!WARNING]

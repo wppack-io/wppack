@@ -1,5 +1,7 @@
 # Amazon Mailer
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=amazon_mailer)](https://codecov.io/github/wppack-io/wppack)
+
 Amazon SES transport implementation for WpPack Mailer.
 
 ## Installation

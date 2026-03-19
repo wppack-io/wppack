@@ -1,5 +1,7 @@
 # wppack/amazon-mailer-plugin
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=amazon_mailer_plugin)](https://codecov.io/github/wppack-io/wppack)
+
 WordPress plugin for SES-based email delivery. Replaces WordPress email sending with Amazon SES, including bounce and complaint handling via SQS.
 
 ## Installation

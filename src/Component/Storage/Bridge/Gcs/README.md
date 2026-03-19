@@ -1,5 +1,7 @@
 # GCS Storage
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=gcs_storage)](https://codecov.io/github/wppack-io/wppack)
+
 Google Cloud Storage adapter for [WpPack Storage](../../README.md).
 
 ## Installation

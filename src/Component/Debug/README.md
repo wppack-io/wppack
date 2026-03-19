@@ -1,5 +1,7 @@
 # WpPack Debug
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=debug)](https://codecov.io/github/wppack-io/wppack)
+
 > [!WARNING]
 > **This component is intended for development environments only.** It is automatically disabled when `wp_get_environment_type()` returns `'production'`. Sensitive data (passwords, tokens, API keys) in POST parameters, cookies, headers, and SQL queries is automatically masked, but configure `ipWhitelist` and `roleWhitelist` to restrict access.
 

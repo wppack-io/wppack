@@ -1,5 +1,7 @@
 # WpPack Cache
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=cache)](https://codecov.io/github/wppack-io/wppack)
+
 Object-oriented wrapper for the WordPress Object Cache API. Provides a simple manager class for cache operations with group support.
 
 ## Installation

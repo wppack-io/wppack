@@ -1,5 +1,7 @@
 # Twig Templating
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=twig_templating)](https://codecov.io/github/wppack-io/wppack)
+
 **Package:** `wppack/twig-templating`
 **Namespace:** `WpPack\Component\Templating\Bridge\Twig\`
 

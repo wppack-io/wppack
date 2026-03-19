@@ -1,5 +1,7 @@
 # Azure Storage
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=azure_storage)](https://codecov.io/github/wppack-io/wppack)
+
 Azure Blob Storage adapter for [WpPack Storage](../../README.md).
 
 ## Installation

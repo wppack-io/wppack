@@ -1,5 +1,7 @@
 # WpPack Stopwatch
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=stopwatch)](https://codecov.io/github/wppack-io/wppack)
+
 Stopwatch component for measuring code execution time. Provides a simple API to start/stop named timers and collect timing data.
 
 ## Installation

@@ -1,5 +1,7 @@
 # WpPack Filesystem
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=filesystem)](https://codecov.io/github/wppack-io/wppack)
+
 DI-injectable wrapper around `WP_Filesystem_Base`.
 
 ## Installation

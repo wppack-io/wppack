@@ -1,5 +1,7 @@
 # WpPack Plugin
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=plugin)](https://codecov.io/github/wppack-io/wppack)
+
 Named hook attributes for WordPress plugin lifecycle, management, and update hooks.
 
 ## Installation

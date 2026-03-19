@@ -1,5 +1,7 @@
 # WpPack Feed
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=feed)](https://codecov.io/github/wppack-io/wppack)
+
 A component for WordPress feed management (RSS 2.0, Atom). Provides `AbstractFeed` + `#[AsFeed]` attribute for custom feed registration, and Named Hook attributes for modifying existing feeds.
 
 ## Installation

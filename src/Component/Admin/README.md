@@ -1,5 +1,7 @@
 # WpPack Admin
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=admin)](https://codecov.io/github/wppack-io/wppack)
+
 Admin page and menu registration utilities for WordPress.
 
 ## Installation

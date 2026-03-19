@@ -1,5 +1,7 @@
 # WpPack User
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=user)](https://codecov.io/github/wppack-io/wppack)
+
 User management utilities for WordPress.
 
 > [!WARNING]

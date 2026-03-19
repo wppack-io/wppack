@@ -1,5 +1,7 @@
 # WpPack Nonce
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=nonce)](https://codecov.io/github/wppack-io/wppack)
+
 Object-oriented wrapper for the WordPress Nonce API. Provides type-safe nonce operations.
 
 ## Installation

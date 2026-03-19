@@ -1,5 +1,7 @@
 # WpPack DashboardWidget
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=dashboard_widget)](https://codecov.io/github/wppack-io/wppack)
+
 A component for WordPress dashboard widgets. Provides `AbstractDashboardWidget` + `#[AsDashboardWidget]` attribute for widget definition, and Named Hook attributes.
 
 ## Installation

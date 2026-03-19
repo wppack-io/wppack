@@ -1,5 +1,7 @@
 # WpPack Mime
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=mime)](https://codecov.io/github/wppack-io/wppack)
+
 MIME type detection and extension mapping with WordPress integration.
 
 ## Installation

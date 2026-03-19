@@ -1,5 +1,7 @@
 # Monolog Logger
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=monolog_logger)](https://codecov.io/github/wppack-io/wppack)
+
 **Package:** `wppack/monolog-logger`
 **Namespace:** `WpPack\Component\Logger\Bridge\Monolog\`
 

@@ -1,5 +1,7 @@
 # Database Component
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=database)](https://codecov.io/github/wppack-io/wppack)
+
 A component that provides a type-safe wrapper around WordPress `$wpdb`, with exception-based error handling and custom table schema management via `dbDelta()`.
 
 ## Installation

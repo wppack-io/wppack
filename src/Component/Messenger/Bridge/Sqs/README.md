@@ -1,5 +1,7 @@
 # SQS Messenger
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=sqs_messenger)](https://codecov.io/github/wppack-io/wppack)
+
 Amazon SQS transport for WpPack Messenger.
 
 ## Installation

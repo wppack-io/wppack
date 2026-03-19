@@ -1,5 +1,7 @@
 # WpPack OEmbed
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=oembed)](https://codecov.io/github/wppack-io/wppack)
+
 A component for managing WordPress oEmbed with modern PHP. Provides automatic provider registration via `OEmbedProviderInterface` and Named Hook attributes.
 
 ## Installation

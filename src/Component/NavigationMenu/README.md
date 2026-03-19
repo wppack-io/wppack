@@ -1,5 +1,7 @@
 # WpPack NavigationMenu
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=navigation_menu)](https://codecov.io/github/wppack-io/wppack)
+
 A component for managing WordPress navigation menus with modern PHP. Provides automatic menu location registration via `MenuLocationProviderInterface` and Named Hook attributes.
 
 ## Installation
