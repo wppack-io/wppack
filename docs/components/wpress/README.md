@@ -96,7 +96,8 @@ archive.wpress
 | `mtime` | 12 bytes | Unix タイムスタンプ（10進ASCII） |
 | `prefix` | 4096 bytes | ディレクトリパス（ルートは `.`） |
 
-> **Note**: 詳細なバイナリフォーマット仕様は [.wpress ファイルフォーマット仕様](../../specifications/wpress-format.md) を参照してください。
+> [!NOTE]
+> 詳細なバイナリフォーマット仕様は [.wpress ファイルフォーマット仕様](../../specifications/wpress-format.md) を参照してください。
 
 ## WpressArchive
 
@@ -190,7 +191,8 @@ while (!feof($stream)) {
 fclose($stream);
 ```
 
-> **Note**: `getContents()` は同じエントリに対して複数回呼び出し可能です。毎回ファイルハンドルを seek して読み取ります。暗号化/圧縮されたアーカイブの場合、`package.json` と `multisite.json` は常に平文で読み取られます。
+> [!NOTE]
+> `getContents()` は同じエントリに対して複数回呼び出し可能です。毎回ファイルハンドルを seek して読み取ります。暗号化/圧縮されたアーカイブの場合、`package.json` と `multisite.json` は常に平文で読み取られます。
 
 ### エントリの展開
 
@@ -271,7 +273,8 @@ $archive->close();
 // 変更がない場合、close() はファイルハンドルを閉じるだけ（I/O なし）
 ```
 
-> **Important**: `close()` を呼ばないと、追加・削除の変更がファイルに反映されません。
+> [!IMPORTANT]
+> `close()` を呼ばないと、追加・削除の変更がファイルに反映されません。
 
 ## 暗号化・圧縮
 
@@ -452,7 +455,8 @@ $archive->addFromString('package.json', $json);
 | `encryptedSignature` | `?string` | `EncryptedSignature` | パスワード検証用シグネチャ |
 | `compression` | `?CompressionInfo` | `Compression` | 圧縮設定 |
 
-> **Note**: `null` のフィールドは `json_encode()` 時に省略されます。AI1WM のフォーマットと互換性を維持するための仕様です。
+> [!NOTE]
+> `null` のフィールドは `json_encode()` 時に省略されます。AI1WM のフォーマットと互換性を維持するための仕様です。
 
 #### サブオブジェクト
 

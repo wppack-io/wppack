@@ -413,7 +413,8 @@ SamlAuthenticator（sub.example.com）
 - `allowedHosts` に明示的に指定（開発環境のドメインもここに追加）
 - マルチサイトの `get_sites()` に登録されたホスト
 
-> **注意**: リダイレクト先の ACS URL は常に HTTPS が強制されます。
+> [!NOTE]
+> リダイレクト先の ACS URL は常に HTTPS が強制されます。
 
 ## IdP 設定ガイド
 

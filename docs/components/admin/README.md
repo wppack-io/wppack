@@ -52,7 +52,8 @@ class MyPluginPage extends AbstractAdminPage
 | `icon` | `?string` | `null` | メニューアイコン URL / dashicons クラス |
 | `position` | `?int` | `null` | メニュー表示位置 |
 
-> **権限チェック:** `#[IsGranted('capability')]`（Security コンポーネント）をクラスに付与して必要な権限を指定します。未指定時のデフォルトは `'manage_options'` です。
+> [!NOTE]
+> `#[IsGranted('capability')]`（Security コンポーネント）をクラスに付与して必要な権限を指定します。未指定時のデフォルトは `'manage_options'` です。
 
 ### サブメニューページ
 

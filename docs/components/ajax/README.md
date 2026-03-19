@@ -6,7 +6,8 @@
 
 WordPress の AJAX ハンドリングをモダン化するコンポーネントです。従来の手続き的なコールバックを、型安全で自動セキュリティ機能を備えたオブジェクト指向のアトリビュートベースハンドラーに置き換えます。
 
-> **注意:** WordPress の Admin Ajax（`admin-ajax.php`）はレガシーな仕組みです。新規開発では [REST API](../rest/README.md) と [`@wordpress/api-fetch`](https://developer.wordpress.org/block-editor/reference-guides/packages/packages-api-fetch/) の利用を推奨します。このコンポーネントは、既存の AJAX ハンドラーの保守や、REST API では対応しにくいケース（例: `admin-ajax.php` に依存するサードパーティプラグインとの統合）で使用してください。
+> [!WARNING]
+> WordPress の Admin Ajax（`admin-ajax.php`）はレガシーな仕組みです。新規開発では [REST API](../rest/README.md) と [`@wordpress/api-fetch`](https://developer.wordpress.org/block-editor/reference-guides/packages/packages-api-fetch/) の利用を推奨します。このコンポーネントは、既存の AJAX ハンドラーの保守や、REST API では対応しにくいケース（例: `admin-ajax.php` に依存するサードパーティプラグインとの統合）で使用してください。
 
 ## インストール
 
@@ -128,7 +129,8 @@ public function search(): JsonResponse { /* ... */ }
 | `checkReferer` | `?string` | `null` | nonce アクション名。設定時に `check_ajax_referer()` で検証 |
 | `priority` | `int` | `10` | フック優先度 |
 
-> **権限チェック:** capability チェックには `#[IsGranted('capability')]` アトリビュートを `#[Ajax]` と併用します。詳細は [Security コンポーネント](../security/) を参照。
+> [!NOTE]
+> capability チェックには `#[IsGranted('capability')]` アトリビュートを `#[Ajax]` と併用します。詳細は [Security コンポーネント](../security/) を参照。
 
 #### 基本的な使用例
 
@@ -259,7 +261,8 @@ class ProductController extends AbstractAjaxController
 | `denyAccessUnlessGranted(string, mixed, string): void` | 認可されていない場合 `AccessDeniedException` をスロー |
 | `json(mixed, int, array): JsonResponse` | JSON レスポンスを生成 |
 
-> **注意:** `getUser()`、`isGranted()`、`denyAccessUnlessGranted()` を使うには `wppack/security` パッケージが必要です。Security が未設定の場合、`LogicException` がスローされます。
+> [!WARNING]
+> `getUser()`、`isGranted()`、`denyAccessUnlessGranted()` を使うには `wppack/security` パッケージが必要です。Security が未設定の場合、`LogicException` がスローされます。
 
 #### `#[IsGranted]` と `AbstractAjaxController` の使い分け
 

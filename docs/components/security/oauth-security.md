@@ -394,7 +394,8 @@ SAML Bridge の `CrossSiteRedirector` と同じパターンですが、SAMLRespo
 - `verifyToken()`: transient からトークン取得・削除（ワンタイム）→ HMAC 検証 → user ID 返却
 - `isHostAllowed()`: `allowedHosts` + multisite `get_sites()` チェック
 
-> **注意**: リダイレクト先 URL は常に HTTPS が強制されます。`.local` / `.localhost` ドメインは自動許可されません。
+> [!NOTE]
+> リダイレクト先 URL は常に HTTPS が強制されます。`.local` / `.localhost` ドメインは自動許可されません。
 
 ## PKCE (Proof Key for Code Exchange)
 
@@ -545,7 +546,8 @@ GitHub Settings での設定:
 - **Developer settings** > OAuth Apps > New OAuth App
 - **Authorization callback URL**: `https://example.com/oauth/callback`
 
-> **注意**: GitHub は OIDC 非対応のため、ID トークンは発行されません。UserInfo は `/user` API から取得されます。`httpClient` パラメータを `OAuthAuthenticator` に渡す必要があります。
+> [!NOTE]
+> GitHub は OIDC 非対応のため、ID トークンは発行されません。UserInfo は `/user` API から取得されます。`httpClient` パラメータを `OAuthAuthenticator` に渡す必要があります。
 
 ## セキュリティ考慮事項
 

@@ -84,7 +84,8 @@ get_transient(string $transient): mixed
 - Transient が存在し有効期限内: 保存された値
 - Transient が存在しない / 有効期限切れ: `false`
 
-> **注意**: `false` を値として保存した場合と、Transient が存在しない場合を区別するには、厳密比較演算子（`===`）を使用してください。
+> [!NOTE]
+> `false` を値として保存した場合と、Transient が存在しない場合を区別するには、厳密比較演算子（`===`）を使用してください。
 
 ### `delete_transient()` 詳細
 

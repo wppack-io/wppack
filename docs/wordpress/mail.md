@@ -205,7 +205,8 @@ $phpmailer->Body    = '';
 $phpmailer->AltBody = '';
 ```
 
-> **注意**: `$phpmailer->Mailer` や SMTP 設定はリセットされません。`phpmailer_init` で設定した SMTP 構成は次の `wp_mail()` 呼び出しでも維持されます。
+> [!NOTE]
+> `$phpmailer->Mailer` や SMTP 設定はリセットされません。`phpmailer_init` で設定した SMTP 構成は次の `wp_mail()` 呼び出しでも維持されます。
 
 ## 5. フック一覧
 
@@ -259,4 +260,5 @@ function wp_mail($to, $subject, $message, $headers = '', $attachments = []) {
 }
 ```
 
-> **注意**: Pluggable 関数を置き換える場合、`wp_mail` フィルターや `phpmailer_init` アクション等のフックが発火しなくなる可能性があります。他のプラグインとの互換性に注意が必要です。
+> [!WARNING]
+> Pluggable 関数を置き換える場合、`wp_mail` フィルターや `phpmailer_init` アクション等のフックが発火しなくなる可能性があります。他のプラグインとの互換性に注意が必要です。

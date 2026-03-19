@@ -131,7 +131,8 @@ function register_activation_hook(string $file, callable $callback): void {
 | `wp-content/plugins/sample.php` | `activate_sample.php` |
 | `wp-content/plugins/my-plugin/my-plugin.php` | `activate_my-plugin/my-plugin.php` |
 
-> **注意**: `register_activation_hook()` はプラグインのメインファイルのトップレベルで呼ぶ必要があります。`plugins_loaded` や `init` 等のフック内で登録しても、有効化時にはそれらのフックは発火しないため動作しません。
+> [!WARNING]
+> `register_activation_hook()` はプラグインのメインファイルのトップレベルで呼ぶ必要があります。`plugins_loaded` や `init` 等のフック内で登録しても、有効化時にはそれらのフックは発火しないため動作しません。
 
 ### 有効化時の典型的な処理
 
@@ -247,7 +248,8 @@ function register_deactivation_hook(string $file, callable $callback): void {
 }
 ```
 
-> **重要**: 無効化コールバック実行時、プラグインは**まだアクティブ**です。これはプラグインの関数やクラスを使える最後の機会です。
+> [!IMPORTANT]
+> 無効化コールバック実行時、プラグインは**まだアクティブ**です。これはプラグインの関数やクラスを使える最後の機会です。
 
 ### 無効化時の典型的な処理
 
