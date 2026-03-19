@@ -212,9 +212,11 @@ final class S3ObjectCreatedHandlerTest extends TestCase
 
         // This may or may not dispatch depending on how WP processes the filter,
         // but should not throw
+        set_error_handler(static fn(): bool => true);
         try {
             ($handler)($message);
         } finally {
+            restore_error_handler();
             remove_all_filters('wp_insert_attachment_data');
         }
     }

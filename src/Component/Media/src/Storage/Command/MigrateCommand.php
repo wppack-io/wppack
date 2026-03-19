@@ -114,7 +114,7 @@ final class MigrateCommand extends AbstractCommand
                     }
 
                     try {
-                        $stream = fopen($localPath, 'rb');
+                        $stream = @fopen($localPath, 'rb');
                         if ($stream === false) {
                             $output->warning(sprintf('  Failed to open: %s', $localPath));
                             $totalFailed++;

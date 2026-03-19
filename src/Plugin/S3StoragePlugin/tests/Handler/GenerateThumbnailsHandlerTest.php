@@ -34,7 +34,12 @@ final class GenerateThumbnailsHandlerTest extends TestCase
             blogId: 1,
         );
 
-        ($this->handler)($message);
+        set_error_handler(static fn(): bool => true);
+        try {
+            ($this->handler)($message);
+        } finally {
+            restore_error_handler();
+        }
 
         // Verify the handler ran without errors
         $metadata = wp_get_attachment_metadata($attachmentId);

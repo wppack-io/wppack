@@ -89,7 +89,7 @@ final class CompressedContentProcessor implements ContentProcessorInterface
     private function decompress(string $data): string
     {
         if ($this->type === 'gzip') {
-            $result = gzuncompress($data);
+            $result = @gzuncompress($data);
         } else {
             $result = bzdecompress($data);
         }
