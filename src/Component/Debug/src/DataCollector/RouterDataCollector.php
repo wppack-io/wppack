@@ -47,7 +47,8 @@ final class RouterDataCollector extends AbstractDataCollector
             default => 'other',
         };
 
-        $isBlockTheme = did_action('after_setup_theme') ? wp_is_block_theme() : false;
+        // WP 6.8+: wp_is_block_theme() emits a notice if theme directory is not yet registered
+        $isBlockTheme = !empty($GLOBALS['wp_theme_directories']) ? wp_is_block_theme() : false;
 
         $blockTemplate = [
             'slug' => '',

@@ -287,7 +287,8 @@ final class RouterDataCollectorTest extends TestCase
     {
 
         // If this is a block theme, test the block template collection
-        if (!wp_is_block_theme()) {
+        $isBlockTheme = !empty($GLOBALS['wp_theme_directories']) && wp_is_block_theme();
+        if (!$isBlockTheme) {
             // Test that non-block-theme still works correctly
             $this->collector->collect();
             $data = $this->collector->getData();
@@ -810,7 +811,7 @@ final class RouterDataCollectorTest extends TestCase
     public function collectWithBlockThemeCallsCollectBlockTemplate(): void
     {
 
-        if (!wp_is_block_theme()) {
+        if (empty($GLOBALS['wp_theme_directories']) || !wp_is_block_theme()) {
             self::markTestSkipped('Current theme is not a block theme.');
         }
 
