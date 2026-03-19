@@ -13,65 +13,91 @@ use WpPack\Component\Console\Output\WpCliOutput;
 #[CoversClass(WpCliOutput::class)]
 final class WpCliOutputTest extends TestCase
 {
-    #[Test]
-    public function implementsOutputInterface(): void
+    /** @var resource|null */
+    private mixed $streamFilter = null;
+
+    protected function setUp(): void
     {
-        if (!class_exists(\WP_CLI::class, false)) {
-            self::markTestSkipped('WP-CLI is not available.');
+        StdoutCaptureFilter::$buffer = '';
+
+        if (!in_array('wppack.stdout_capture', stream_get_filters(), true)) {
+            stream_filter_register('wppack.stdout_capture', StdoutCaptureFilter::class);
         }
 
-        $output = new WpCliOutput();
+        $this->streamFilter = stream_filter_append(\STDOUT, 'wppack.stdout_capture');
+    }
 
-        self::assertInstanceOf(OutputInterface::class, $output);
+    protected function tearDown(): void
+    {
+        if ($this->streamFilter !== null) {
+            stream_filter_remove($this->streamFilter);
+            $this->streamFilter = null;
+        }
     }
 
     #[Test]
-    public function writeCallsWpCliOut(): void
+    public function implementsOutputInterface(): void
     {
-        if (!class_exists(\WP_CLI::class, false)) {
-            self::markTestSkipped('WP-CLI is not available.');
-        }
+        self::assertInstanceOf(OutputInterface::class, new WpCliOutput());
+    }
 
+    #[Test]
+    public function writeOutputsToStdout(): void
+    {
         $output = new WpCliOutput();
-        $output->write('test message');
 
-        // If we get here without error, WP_CLI::out() was called successfully
-        self::assertTrue(true);
+        $output->write('hello');
+
+        self::assertSame('hello', StdoutCaptureFilter::$buffer);
+    }
+
+    #[Test]
+    public function multipleWritesConcatenate(): void
+    {
+        $output = new WpCliOutput();
+
+        $output->write('first');
+        $output->write('second');
+
+        self::assertSame('firstsecond', StdoutCaptureFilter::$buffer);
     }
 
     #[Test]
     public function writelnCallsWpCliLog(): void
     {
-        if (!class_exists(\WP_CLI::class, false)) {
-            self::markTestSkipped('WP-CLI is not available.');
-        }
-
         $output = new WpCliOutput();
+
+        // WP_CLI::log() requires a logger; without one it's a no-op
         $output->writeln('test message');
 
-        self::assertTrue(true);
+        self::assertSame('', StdoutCaptureFilter::$buffer);
     }
 
     #[Test]
     public function newLineCallsWpCliLog(): void
     {
-        if (!class_exists(\WP_CLI::class, false)) {
-            self::markTestSkipped('WP-CLI is not available.');
-        }
-
         $output = new WpCliOutput();
+
         $output->newLine(2);
 
-        self::assertTrue(true);
+        self::assertSame('', StdoutCaptureFilter::$buffer);
     }
+}
 
-    #[Test]
-    public function canBeInstantiated(): void
+/**
+ * Stream filter to capture fwrite(STDOUT) output.
+ */
+final class StdoutCaptureFilter extends \php_user_filter
+{
+    public static string $buffer = '';
+
+    public function filter($in, $out, &$consumed, $closing): int
     {
-        // WpCliOutput can be instantiated even without WP-CLI available
-        // since it only calls WP_CLI methods in its methods, not in the constructor
-        $output = new WpCliOutput();
+        while ($bucket = stream_bucket_make_writeable($in)) {
+            self::$buffer .= $bucket->data;
+            $consumed += $bucket->datalen;
+        }
 
-        self::assertInstanceOf(WpCliOutput::class, $output);
+        return \PSFS_PASS_ON;
     }
 }

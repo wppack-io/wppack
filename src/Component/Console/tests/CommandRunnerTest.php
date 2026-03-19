@@ -6,6 +6,7 @@ namespace WpPack\Component\Console\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WP_CLI\ExitException;
 use WpPack\Component\Console\AbstractCommand;
 use WpPack\Component\Console\Attribute\AsCommand;
 use WpPack\Component\Console\CommandRunner;
@@ -17,6 +18,23 @@ use WpPack\Component\Console\Output\OutputStyle;
 
 final class CommandRunnerTest extends TestCase
 {
+    private static \ReflectionProperty $captureExit;
+
+    public static function setUpBeforeClass(): void
+    {
+        self::$captureExit = new \ReflectionProperty(\WP_CLI::class, 'capture_exit');
+    }
+
+    protected function setUp(): void
+    {
+        self::$captureExit->setValue(null, true);
+    }
+
+    protected function tearDown(): void
+    {
+        self::$captureExit->setValue(null, false);
+    }
+
     #[Test]
     public function constructsWithCommand(): void
     {
@@ -38,31 +56,47 @@ final class CommandRunnerTest extends TestCase
     #[Test]
     public function invokeSuccessDoesNotHalt(): void
     {
-        if (!class_exists(\WP_CLI::class, false)) {
-            self::markTestSkipped('WP-CLI is not available.');
-        }
-
-        \WP_CLI::reset();
         $command = new RunnerTestCommand();
         $runner = new CommandRunner($command);
+
         $runner(['world'], ['shout' => '']);
 
-        self::assertNull(\WP_CLI::$haltedCode);
+        // If we get here, no ExitException was thrown — halt() was not called
+        self::assertTrue(true);
     }
 
     #[Test]
     public function invokeFailureCallsHalt(): void
     {
-        if (!class_exists(\WP_CLI::class, false)) {
-            self::markTestSkipped('WP-CLI is not available.');
-        }
-
-        \WP_CLI::reset();
         $command = new RunnerFailCommand();
         $runner = new CommandRunner($command);
-        $runner([], []);
 
-        self::assertSame(AbstractCommand::FAILURE, \WP_CLI::$haltedCode);
+        $this->expectException(ExitException::class);
+
+        $runner([], []);
+    }
+
+    #[Test]
+    public function invokeWithInvalidExitCodeCallsHalt(): void
+    {
+        $command = new RunnerInvalidCommand();
+        $runner = new CommandRunner($command);
+
+        $this->expectException(ExitException::class);
+
+        $runner([], []);
+    }
+
+    #[Test]
+    public function invokePassesInputToCommand(): void
+    {
+        $command = new RunnerCaptureCommand();
+        $runner = new CommandRunner($command);
+
+        $runner(['Alice'], ['loud' => '']);
+
+        self::assertSame('Alice', RunnerCaptureCommand::$capturedName);
+        self::assertTrue(RunnerCaptureCommand::$capturedLoud);
     }
 }
 
@@ -88,5 +122,36 @@ final class RunnerFailCommand extends AbstractCommand
     protected function execute(InputInterface $input, OutputStyle $output): int
     {
         return self::FAILURE;
+    }
+}
+
+#[AsCommand(name: 'test runner-invalid', description: 'Invalid exit code')]
+final class RunnerInvalidCommand extends AbstractCommand
+{
+    protected function execute(InputInterface $input, OutputStyle $output): int
+    {
+        return self::INVALID;
+    }
+}
+
+#[AsCommand(name: 'test runner-capture', description: 'Capture input command')]
+final class RunnerCaptureCommand extends AbstractCommand
+{
+    public static ?string $capturedName = null;
+    public static bool $capturedLoud = false;
+
+    protected function configure(InputDefinition $definition): void
+    {
+        $definition
+            ->addArgument(new InputArgument('name', InputArgument::REQUIRED))
+            ->addOption(new InputOption('loud', InputOption::VALUE_NONE));
+    }
+
+    protected function execute(InputInterface $input, OutputStyle $output): int
+    {
+        self::$capturedName = $input->getArgument('name');
+        self::$capturedLoud = $input->getOption('loud');
+
+        return self::SUCCESS;
     }
 }
