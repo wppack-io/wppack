@@ -103,7 +103,14 @@ WordPress のデータ構造を定義するための Attribute。
 | `#[IsGranted]` | `attribute: string`, `subject?: mixed`, `message?: string = 'Access Denied.'`, `statusCode?: int = 403` | Security | 認可チェック。クラスまたはメソッドに付与可能（`IS_REPEATABLE`）。複数指定で AND（すべて通過が必要） | `current_user_can()` |
 | `#[CurrentUser]` | _(なし)_ | Security | コントローラーメソッドの引数に現在のログインユーザー（`WP_User`）を注入 | `wp_get_current_user()` |
 
-`#[IsGranted]` は Ajax、Rest、Routing、Admin、Setting、DashboardWidget の全コンポーネントで統一的に使用される capability チェックアトリビュート。各コンポーネントが持っていた `capability` パラメータを置き換える。
+`#[IsGranted]` は以下のコンポーネントで使用される capability チェックアトリビュート。各コンポーネントが持っていた `capability` パラメータを置き換える。コンポーネントごとにチェック方式が異なる:
+
+| コンポーネント | チェック方式 |
+|--------------|------------|
+| Admin / Setting | `IsGrantedChecker::extractCapability()` で文字列を取り出し `add_menu_page()` に渡す（WordPress が制御） |
+| Ajax / Routing | ハンドラー実行前に `IsGrantedChecker::check()` でランタイムチェック |
+| Rest | `permission_callback` クロージャを生成して `current_user_can()` チェック |
+| DashboardWidget | `register()` 内で `current_user_can()` チェック |
 
 > `#[AsAuthenticator]` と `#[AsVoter]` はサービス登録 Attribute として [Section 1](#1-サービス登録-attributes) に記載しています。
 
