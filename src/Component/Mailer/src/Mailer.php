@@ -197,8 +197,8 @@ final class Mailer
     {
         // From — apply wp_mail_from / wp_mail_from_name filters (same as wp_mail())
         $from = $email->getFrom();
-        $fromAddress = apply_filters('wp_mail_from', $from?->address ?? $phpMailer->From);
-        $fromName = apply_filters('wp_mail_from_name', $from?->name ?? $phpMailer->FromName);
+        $fromAddress = apply_filters('wp_mail_from', $from !== null ? $from->address : $phpMailer->From);
+        $fromName = apply_filters('wp_mail_from_name', $from !== null ? $from->name : $phpMailer->FromName);
 
         $phpMailer->setFrom($fromAddress, $fromName, false);
 
