@@ -253,4 +253,58 @@ final class CrossSiteRedirectorTest extends TestCase
 
         self::assertFalse($redirector->needsRedirect('/some-path'));
     }
+
+    #[Test]
+    public function resolveBlogIdReturnsNullForNonMultisite(): void
+    {
+        if (is_multisite()) {
+            self::markTestSkipped('This test requires a non-multisite installation.');
+        }
+
+        $redirector = new CrossSiteRedirector();
+
+        // Even with a valid URL, should return null in non-multisite
+        self::assertNull($redirector->resolveBlogId('https://example.com/some-path'));
+    }
+
+    #[Test]
+    public function resolveBlogIdReturnsNullForRelativePathOnly(): void
+    {
+        $redirector = new CrossSiteRedirector();
+
+        // A relative path has no host
+        self::assertNull($redirector->resolveBlogId('/just-a-path'));
+    }
+
+    #[Test]
+    public function isHostAllowedReturnsTrueForExplicitlyAllowedHost(): void
+    {
+        $redirector = new CrossSiteRedirector(
+            allowedHosts: ['allowed1.example.com', 'allowed2.example.com'],
+        );
+
+        $method = new \ReflectionMethod($redirector, 'isHostAllowed');
+
+        self::assertTrue($method->invoke($redirector, 'allowed1.example.com'));
+        self::assertTrue($method->invoke($redirector, 'allowed2.example.com'));
+        self::assertFalse($method->invoke($redirector, 'notallowed.example.com'));
+    }
+
+    #[Test]
+    public function buildAutoSubmitFormContainsNoScriptButton(): void
+    {
+        $redirector = new CrossSiteRedirector();
+
+        $method = new \ReflectionMethod($redirector, 'buildAutoSubmitForm');
+
+        $html = $method->invoke(
+            $redirector,
+            'https://target.example.com/acs',
+            'saml-response',
+            'relay-state',
+        );
+
+        self::assertStringContainsString('<noscript>', $html);
+        self::assertStringContainsString('<button type="submit">', $html);
+    }
 }

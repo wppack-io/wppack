@@ -111,4 +111,89 @@ final class ChainRendererTest extends TestCase
 
         self::assertStringContainsString('Second', $result);
     }
+
+    #[Test]
+    public function existsReturnsFalseWithEmptyRendererList(): void
+    {
+        $chain = new ChainRenderer();
+
+        self::assertFalse($chain->exists('any-template'));
+    }
+
+    #[Test]
+    public function existsReturnsFalseWhenMultipleRenderersDoNotHaveTemplate(): void
+    {
+        $renderer1 = $this->createMock(TemplateRendererInterface::class);
+        $renderer1->method('exists')->willReturn(false);
+
+        $renderer2 = $this->createMock(TemplateRendererInterface::class);
+        $renderer2->method('exists')->willReturn(false);
+
+        $chain = new ChainRenderer([$renderer1, $renderer2]);
+
+        self::assertFalse($chain->exists('nonexistent'));
+    }
+
+    #[Test]
+    public function supportsReturnsFalseWithEmptyRendererList(): void
+    {
+        $chain = new ChainRenderer();
+
+        self::assertFalse($chain->supports('any-template'));
+    }
+
+    #[Test]
+    public function renderThrowsWithEmptyRendererList(): void
+    {
+        $chain = new ChainRenderer();
+
+        $this->expectException(TemplateNotFoundException::class);
+        $this->expectExceptionMessage('Template "some-template" not found.');
+
+        $chain->render('some-template');
+    }
+
+    #[Test]
+    public function renderThrowsWhenMultipleRenderersDoNotSupport(): void
+    {
+        $renderer1 = $this->createMock(TemplateRendererInterface::class);
+        $renderer1->method('supports')->willReturn(false);
+
+        $renderer2 = $this->createMock(TemplateRendererInterface::class);
+        $renderer2->method('supports')->willReturn(false);
+
+        $chain = new ChainRenderer([$renderer1, $renderer2]);
+
+        $this->expectException(TemplateNotFoundException::class);
+
+        $chain->render('nonexistent');
+    }
+
+    #[Test]
+    public function existsDelegatesToSecondRenderer(): void
+    {
+        $renderer1 = $this->createMock(TemplateRendererInterface::class);
+        $renderer1->method('exists')->willReturn(false);
+
+        $renderer2 = $this->createMock(TemplateRendererInterface::class);
+        $renderer2->method('exists')->willReturn(true);
+
+        $chain = new ChainRenderer([$renderer1, $renderer2]);
+
+        self::assertTrue($chain->exists('some-template'));
+    }
+
+    #[Test]
+    public function supportsDelegatesToSecondRenderer(): void
+    {
+        $renderer1 = $this->createMock(TemplateRendererInterface::class);
+        $renderer1->method('supports')->willReturn(false);
+
+        $renderer2 = $this->createMock(TemplateRendererInterface::class);
+        $renderer2->method('supports')->willReturn(true);
+
+        $chain = new ChainRenderer([$renderer1, $renderer2]);
+
+        self::assertTrue($chain->supports('some-template'));
+    }
 }

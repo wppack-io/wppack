@@ -922,6 +922,70 @@ final class OAuthAuthenticatorTest extends TestCase
     }
 
     #[Test]
+    public function authenticateNonOidcWithCrossSiteRedirectorButSameHost(): void
+    {
+        $stateKey = 'test-state-xsite-same';
+        // Store state with a returnTo that is the same host (needsRedirect returns false)
+        $this->storeState($stateKey, null, site_url('/dashboard'));
+
+        $user = $this->createMock(\WP_User::class);
+        $user->ID = 42;
+        $user->roles = ['subscriber'];
+
+        $this->provider->method('getTokenEndpoint')->willReturn('https://github.com/login/oauth/access_token');
+        $this->provider->method('supportsOidc')->willReturn(false);
+        $this->provider->method('getUserInfoEndpoint')->willReturn('https://api.github.com/user');
+        $this->provider->method('normalizeUserInfo')->willReturnCallback(static function (array $data): array {
+            return ['sub' => (string) ($data['id'] ?? '')];
+        });
+
+        $this->userResolver->method('resolveUser')->willReturn($user);
+
+        $callCount = 0;
+        remove_filter('pre_http_request', [$this, 'mockHttpResponse'], 10);
+        add_filter('pre_http_request', function ($response, $parsedArgs, $url) use (&$callCount) {
+            $callCount++;
+            if ($callCount === 1) {
+                return [
+                    'response' => ['code' => 200, 'message' => 'OK'],
+                    'headers' => ['content-type' => 'application/json'],
+                    'body' => json_encode([
+                        'access_token' => 'gho_test',
+                        'token_type' => 'Bearer',
+                    ]),
+                ];
+            }
+
+            return [
+                'response' => ['code' => 200, 'message' => 'OK'],
+                'headers' => ['content-type' => 'application/json'],
+                'body' => json_encode(['id' => 12345]),
+            ];
+        }, 10, 3);
+
+        $crossSiteRedirector = new CrossSiteRedirector(
+            allowedHosts: ['example.com'],
+            verifyPath: '/oauth/verify',
+        );
+
+        $authenticator = $this->createAuthenticator(
+            httpClient: new HttpClient(),
+            crossSiteRedirector: $crossSiteRedirector,
+        );
+
+        $request = new Request(
+            query: ['code' => 'auth-code', 'state' => $stateKey],
+            server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/oauth/callback'],
+        );
+
+        $passport = $authenticator->authenticate($request);
+
+        self::assertInstanceOf(SelfValidatingPassport::class, $passport);
+
+        remove_all_filters('pre_http_request');
+    }
+
+    #[Test]
     public function supportsReturnsFalseForPostTokenWithWrongPath(): void
     {
         $authenticator = $this->createAuthenticator();

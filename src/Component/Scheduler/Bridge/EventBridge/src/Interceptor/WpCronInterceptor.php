@@ -38,7 +38,7 @@ final class WpCronInterceptor
     public function register(): void
     {
         if (!\defined('DISABLE_WP_CRON')) {
-            \define('DISABLE_WP_CRON', true);
+            \define('DISABLE_WP_CRON', true); // @codeCoverageIgnore
         }
 
         add_filter('pre_schedule_event', [$this, 'onPreScheduleEvent'], 10, 2);

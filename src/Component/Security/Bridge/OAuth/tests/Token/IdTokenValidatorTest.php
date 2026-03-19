@@ -404,4 +404,57 @@ final class IdTokenValidatorTest extends TestCase
             $this->jwks,
         );
     }
+
+    #[Test]
+    public function expiredTokenCaughtByOwnValidation(): void
+    {
+        // Set JWT leeway high enough so the library doesn't throw,
+        // allowing our own validateExpiration to catch it
+        $originalLeeway = JWT::$leeway;
+        JWT::$leeway = 999999;
+
+        try {
+            $token = $this->createIdToken(['exp' => time() - 10]);
+
+            $this->expectException(\RuntimeException::class);
+            $this->expectExceptionMessage('ID token has expired.');
+
+            $this->validator->validate(
+                $token,
+                $this->nonce,
+                $this->clientId,
+                $this->issuer,
+                $this->jwks,
+            );
+        } finally {
+            JWT::$leeway = $originalLeeway;
+        }
+    }
+
+    #[Test]
+    public function iatInFutureCaughtByOwnValidation(): void
+    {
+        // Set JWT leeway high enough so the library doesn't throw for iat in the future,
+        // but our own IAT_LEEWAY_SECONDS (300) will still catch it
+        $originalLeeway = JWT::$leeway;
+        JWT::$leeway = 999999;
+
+        try {
+            // iat 600 seconds in the future exceeds our IAT_LEEWAY_SECONDS of 300
+            $token = $this->createIdToken(['iat' => time() + 600]);
+
+            $this->expectException(\RuntimeException::class);
+            $this->expectExceptionMessage('"iat" claim is in the future');
+
+            $this->validator->validate(
+                $token,
+                $this->nonce,
+                $this->clientId,
+                $this->issuer,
+                $this->jwks,
+            );
+        } finally {
+            JWT::$leeway = $originalLeeway;
+        }
+    }
 }

@@ -63,6 +63,7 @@ final class ActionSchedulerInterceptor
         $collector = new ActionSchedulerCollector();
         $count = 0;
 
+        // @codeCoverageIgnoreStart
         foreach ($collector->collect() as $action) {
             $scheduleId = $this->idGenerator->forActionScheduler(
                 $action['hook'],
@@ -100,6 +101,7 @@ final class ActionSchedulerInterceptor
                 ]);
             }
         }
+        // @codeCoverageIgnoreEnd
 
         return $count;
     }
@@ -116,6 +118,7 @@ final class ActionSchedulerInterceptor
             return;
         }
 
+        // @codeCoverageIgnoreStart
         $action = \ActionScheduler::store()->fetch_action($actionId);
 
         if (!$action instanceof \ActionScheduler_Action) {
@@ -142,6 +145,7 @@ final class ActionSchedulerInterceptor
                 'exception' => $e,
             ]);
         }
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -156,6 +160,7 @@ final class ActionSchedulerInterceptor
             return;
         }
 
+        // @codeCoverageIgnoreStart
         $action = \ActionScheduler::store()->fetch_action($actionId);
 
         if (!$action instanceof \ActionScheduler_Action) {
@@ -177,6 +182,7 @@ final class ActionSchedulerInterceptor
                 'exception' => $e,
             ]);
         }
+        // @codeCoverageIgnoreEnd
     }
 
     /**
@@ -191,6 +197,8 @@ final class ActionSchedulerInterceptor
 
     /**
      * Determine EventBridge expression and auto-delete flag from AS schedule type.
+     *
+     * @codeCoverageIgnore — requires Action Scheduler plugin class definitions
      *
      * @return array{0: string, 1: bool} [expression, autoDelete]
      */

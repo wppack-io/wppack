@@ -226,4 +226,111 @@ final class PassportTest extends TestCase
 
         self::assertTrue($badge->isResolved());
     }
+
+    #[Test]
+    public function passportGetUserReturnsUserFromBadge(): void
+    {
+        $user = new \WP_User();
+        $user->ID = 42;
+        $user->user_login = 'testuser';
+
+        $userBadge = new UserBadge('testuser', static fn() => $user);
+        $passport = new Passport($userBadge);
+
+        self::assertSame($user, $passport->getUser());
+    }
+
+    #[Test]
+    public function passportGetUserBadgeReturnsUserBadge(): void
+    {
+        $userBadge = new UserBadge('testuser');
+        $passport = new Passport($userBadge);
+
+        self::assertSame($userBadge, $passport->getUserBadge());
+    }
+
+    #[Test]
+    public function passportWithCredentialsAndAdditionalBadges(): void
+    {
+        $userBadge = new UserBadge('testuser');
+        $credentials = new CredentialsBadge('secret123');
+        $remember = new RememberMeBadge(true);
+
+        $passport = new Passport($userBadge, $credentials, [$remember]);
+
+        self::assertTrue($passport->hasBadge(UserBadge::class));
+        self::assertTrue($passport->hasBadge(CredentialsBadge::class));
+        self::assertTrue($passport->hasBadge(RememberMeBadge::class));
+    }
+
+    #[Test]
+    public function passportWithNullCredentials(): void
+    {
+        $userBadge = new UserBadge('testuser');
+        $passport = new Passport($userBadge, null);
+
+        self::assertTrue($passport->hasBadge(UserBadge::class));
+        self::assertFalse($passport->hasBadge(CredentialsBadge::class));
+    }
+
+    #[Test]
+    public function passportGetBadgeReturnsNullForMissingBadge(): void
+    {
+        $userBadge = new UserBadge('testuser');
+        $passport = new Passport($userBadge);
+
+        self::assertNull($passport->getBadge(CredentialsBadge::class));
+    }
+
+    #[Test]
+    public function passportAddBadgeReturnsSelf(): void
+    {
+        $userBadge = new UserBadge('testuser');
+        $passport = new Passport($userBadge);
+
+        $result = $passport->addBadge(new RememberMeBadge(true));
+
+        self::assertSame($passport, $result);
+    }
+
+    #[Test]
+    public function credentialsBadgeAcceptsMaxLengthPassword(): void
+    {
+        $password = str_repeat('a', 4096);
+        $badge = new CredentialsBadge($password);
+
+        self::assertSame($password, $badge->getPassword());
+    }
+
+    #[Test]
+    public function rememberMeBadgeDefaultIsDisabled(): void
+    {
+        $badge = new RememberMeBadge();
+
+        self::assertFalse($badge->isEnabled());
+        self::assertTrue($badge->isResolved());
+    }
+
+    #[Test]
+    public function userBadgeCachesUserOnSubsequentCalls(): void
+    {
+        $callCount = 0;
+        $user = new \WP_User();
+        $user->ID = 1;
+
+        $badge = new UserBadge('testuser', static function () use ($user, &$callCount) {
+            $callCount++;
+
+            return $user;
+        });
+
+        // First call triggers loader
+        $result1 = $badge->getUser();
+        // Second call should use cached value
+        $result2 = $badge->getUser();
+
+        self::assertSame($user, $result1);
+        self::assertSame($user, $result2);
+        self::assertSame(1, $callCount);
+    }
 }

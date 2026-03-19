@@ -259,4 +259,58 @@ final class MemcachedAdapterTest extends TestCase
         self::assertTrue($this->adapter->add('wppack_test:existing', 'new', -1));
         self::assertSame('old', $this->adapter->get('wppack_test:existing'));
     }
+
+    #[Test]
+    public function decrementReturnsFalseForMissing(): void
+    {
+        self::assertFalse($this->adapter->decrement('wppack_test:nonexistent'));
+    }
+
+    #[Test]
+    public function getMultipleReturnsFalseForAllKeysWhenClientFails(): void
+    {
+        $client = $this->createMock(\Memcached::class);
+        $client->method('getMulti')->willReturn(false);
+
+        $adapter = new MemcachedAdapter($client);
+        $results = $adapter->getMultiple(['key1', 'key2']);
+
+        self::assertSame(['key1' => false, 'key2' => false], $results);
+    }
+
+    #[Test]
+    public function flushWithPrefixFallsBackWhenGetAllKeysFails(): void
+    {
+        $client = $this->createMock(\Memcached::class);
+        $client->method('getAllKeys')->willReturn(false);
+        $client->expects(self::once())->method('flush')->willReturn(true);
+
+        $adapter = new MemcachedAdapter($client);
+
+        self::assertTrue($adapter->flush('some_prefix:'));
+    }
+
+    #[Test]
+    public function isAvailableReturnsFalseWhenNoServerHasValidPid(): void
+    {
+        $client = $this->createMock(\Memcached::class);
+        $client->method('getStats')->willReturn([
+            '127.0.0.1:11211' => ['pid' => -1],
+        ]);
+
+        $adapter = new MemcachedAdapter($client);
+
+        self::assertFalse($adapter->isAvailable());
+    }
+
+    #[Test]
+    public function isAvailableReturnsFalseOnException(): void
+    {
+        $client = $this->createMock(\Memcached::class);
+        $client->method('getStats')->willThrowException(new \RuntimeException('Connection failed'));
+
+        $adapter = new MemcachedAdapter($client);
+
+        self::assertFalse($adapter->isAvailable());
+    }
 }

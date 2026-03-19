@@ -618,6 +618,61 @@ final class RouteEntryTest extends TestCase
     }
 
     #[Test]
+    public function parseQueryVarsStaticMethodWorksStandalone(): void
+    {
+        $vars = RouteEntry::parseQueryVars('index.php?cat=$matches[1]&tag=$matches[2]');
+
+        self::assertSame(['cat', 'tag'], $vars);
+    }
+
+    #[Test]
+    public function parseQueryVarsWithNoMatchesReturnsEmpty(): void
+    {
+        $vars = RouteEntry::parseQueryVars('index.php?page_id=42');
+
+        self::assertSame([], $vars);
+    }
+
+    #[Test]
+    public function filterQueryVarsWithEmptyInputArray(): void
+    {
+        $entry = new RouteEntry(
+            'test_route',
+            '^test/([^/]+)/?$',
+            'index.php?test_slug=$matches[1]',
+            RoutePosition::Top,
+            [],
+            fn() => null,
+        );
+
+        $vars = $entry->filterQueryVars([]);
+
+        self::assertSame(['test_slug'], $vars);
+    }
+
+    #[Test]
+    public function dispatchWithNonHttpExceptionPropagates(): void
+    {
+        $entry = new RouteEntry(
+            'test_route',
+            '^test/([^/]+)/?$',
+            'index.php?test_slug=$matches[1]',
+            RoutePosition::Top,
+            [],
+            function (): never {
+                throw new \RuntimeException('Non-HTTP exception');
+            },
+        );
+
+        set_query_var('test_slug', 'hello');
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Non-HTTP exception');
+
+        $entry->handleTemplateRedirect();
+    }
+
+    #[Test]
     public function exceptionResponseFilterOverridesDefault(): void
     {
         add_filter('wppack_routing_exception_response', function (?Response $response, $e): JsonResponse {

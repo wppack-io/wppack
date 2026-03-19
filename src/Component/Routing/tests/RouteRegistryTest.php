@@ -629,6 +629,152 @@ final class RouteRegistryTest extends TestCase
         self::assertSame('<p>test</p>', $controller->result);
     }
 
+    #[Test]
+    public function handlerConvertsCamelCaseParamToSnakeCase(): void
+    {
+        $request = new Request();
+
+        $controller = new class {
+            public ?string $capturedValue = null;
+
+            #[Route(
+                name: 'snake_case_test',
+                regex: '^items/([^/]+)/?$',
+                query: 'index.php?product_name=$matches[1]',
+            )]
+            public function show(string $productName): ?TemplateResponse
+            {
+                $this->capturedValue = $productName;
+
+                return null;
+            }
+        };
+
+        $registry = new RouteRegistry($request);
+        $registry->register($controller);
+
+        $routes = $registry->getRegisteredRoutes();
+        $entry = $routes['snake_case_test'];
+
+        set_query_var('product_name', 'test-product');
+        $entry->handleTemplateRedirect();
+
+        self::assertSame('test-product', $controller->capturedValue);
+    }
+
+    #[Test]
+    public function registerDoesNotSetSecurityOnNonAbstractController(): void
+    {
+        $user = new \WP_User();
+        $user->ID = 42;
+        $security = $this->createSecurity(user: $user);
+
+        $controller = new #[Route(name: 'plain_controller', regex: '^plain/?$', query: 'index.php?plain_page=$matches[1]', )] class {
+            public function __invoke(): ?TemplateResponse
+            {
+                return null;
+            }
+        };
+
+        $registry = new RouteRegistry(null, $security);
+        $registry->register($controller);
+
+        // Should not throw even though controller is not AbstractController
+        self::assertTrue($registry->has('plain_controller'));
+    }
+
+    #[Test]
+    public function registerDoesNotSetRendererOnNonAbstractController(): void
+    {
+        $renderer = $this->createMock(TemplateRendererInterface::class);
+
+        $controller = new #[Route(name: 'no_renderer', regex: '^no-renderer/?$', query: 'index.php?page=$matches[1]', )] class {
+            public function __invoke(): ?TemplateResponse
+            {
+                return null;
+            }
+        };
+
+        $registry = new RouteRegistry(null, null, $renderer);
+        $registry->register($controller);
+
+        self::assertTrue($registry->has('no_renderer'));
+    }
+
+    #[Test]
+    public function registerWithNullSecurityDoesNotCallSetSecurity(): void
+    {
+        $controller = new class extends AbstractController {
+            #[Route(
+                name: 'null_security',
+                regex: '^null-sec/?$',
+                query: 'index.php?page=$matches[1]',
+            )]
+            public function index(): ?TemplateResponse
+            {
+                return null;
+            }
+        };
+
+        $registry = new RouteRegistry(null, null, null);
+        $registry->register($controller);
+
+        self::assertTrue($registry->has('null_security'));
+    }
+
+    #[Test]
+    public function registerWithNullRendererDoesNotCallSetRenderer(): void
+    {
+        $controller = new class extends AbstractController {
+            #[Route(
+                name: 'null_renderer',
+                regex: '^null-rend/?$',
+                query: 'index.php?page=$matches[1]',
+            )]
+            public function index(): ?TemplateResponse
+            {
+                return null;
+            }
+        };
+
+        $registry = new RouteRegistry(null, null, null);
+        $registry->register($controller);
+
+        self::assertTrue($registry->has('null_renderer'));
+    }
+
+    #[Test]
+    public function handlerWithNoRequestDoesNotSetAttributes(): void
+    {
+        $controller = new class {
+            public bool $called = false;
+
+            #[Route(
+                name: 'no_request',
+                regex: '^no-req/([^/]+)/?$',
+                query: 'index.php?slug=$matches[1]',
+            )]
+            public function show(): ?TemplateResponse
+            {
+                $this->called = true;
+
+                return null;
+            }
+        };
+
+        // No request passed to registry
+        $registry = new RouteRegistry();
+        $registry->register($controller);
+
+        $routes = $registry->getRegisteredRoutes();
+        $entry = $routes['no_request'];
+
+        set_query_var('slug', 'test');
+        $entry->handleTemplateRedirect();
+
+        self::assertTrue($controller->called);
+    }
+
     /**
      * Creates a RouteRegistry that bypasses WordPress hook functions for unit testing.
      *

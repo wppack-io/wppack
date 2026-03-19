@@ -186,4 +186,89 @@ final class TemplateContextTest extends TestCase
 
         self::assertSame('<p>injected</p>', $this->context->section('content'));
     }
+
+    #[Test]
+    public function rawHandlesInteger(): void
+    {
+        self::assertSame('42', $this->context->raw(42));
+    }
+
+    #[Test]
+    public function rawHandlesFloat(): void
+    {
+        self::assertSame('3.14', $this->context->raw(3.14));
+    }
+
+    #[Test]
+    public function rawHandlesBoolTrue(): void
+    {
+        self::assertSame('1', $this->context->raw(true));
+    }
+
+    #[Test]
+    public function rawHandlesBoolFalse(): void
+    {
+        self::assertSame('', $this->context->raw(false));
+    }
+
+    #[Test]
+    public function rawHandlesStringable(): void
+    {
+        $stringable = new class implements \Stringable {
+            public function __toString(): string
+            {
+                return '<em>raw stringable</em>';
+            }
+        };
+
+        self::assertSame('<em>raw stringable</em>', $this->context->raw($stringable));
+    }
+
+    #[Test]
+    public function rawThrowsOnArray(): void
+    {
+        $this->expectException(RenderingException::class);
+        $this->expectExceptionMessage('Cannot convert value of type "array"');
+
+        $this->context->raw(['not', 'stringable']);
+    }
+
+    #[Test]
+    public function rawThrowsOnNonStringableObject(): void
+    {
+        $this->expectException(RenderingException::class);
+        $this->expectExceptionMessage('Cannot convert value of type');
+
+        $this->context->raw(new \stdClass());
+    }
+
+    #[Test]
+    public function resetLayoutClearsLayoutState(): void
+    {
+        $this->context->layout('layouts/base', 'wide');
+
+        self::assertSame('layouts/base', $this->context->getLayoutTemplate());
+        self::assertSame('wide', $this->context->getLayoutVariant());
+
+        $this->context->resetLayout();
+
+        self::assertNull($this->context->getLayoutTemplate());
+        self::assertSame('', $this->context->getLayoutVariant());
+    }
+
+    #[Test]
+    public function eWithDifferentStrategy(): void
+    {
+        $result = $this->context->e('value with <html>', 'attr');
+
+        self::assertStringNotContainsString('<html>', $result);
+    }
+
+    #[Test]
+    public function layoutVariantDefaultsToEmpty(): void
+    {
+        $this->context->layout('layouts/base');
+
+        self::assertSame('', $this->context->getLayoutVariant());
+    }
 }

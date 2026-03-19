@@ -97,4 +97,76 @@ final class OAuthLogoutHandlerTest extends TestCase
 
         self::assertFalse($handler->supportsRemoteLogout());
     }
+
+    #[Test]
+    public function initiateLogoutWithEndpointNoIdTokenAndNoReturnTo(): void
+    {
+        $provider = $this->createMock(ProviderInterface::class);
+        $provider->method('getEndSessionEndpoint')
+            ->willReturn('https://idp.example.com/logout');
+
+        $handler = new OAuthLogoutHandler($provider);
+
+        $url = $handler->initiateLogout();
+
+        self::assertNotNull($url);
+        // No params => no query string
+        self::assertSame('https://idp.example.com/logout', $url);
+    }
+
+    #[Test]
+    public function initiateLogoutUsesRedirectAfterLogoutFallback(): void
+    {
+        $provider = $this->createMock(ProviderInterface::class);
+        $provider->method('getEndSessionEndpoint')
+            ->willReturn('https://idp.example.com/logout');
+
+        $handler = new OAuthLogoutHandler(
+            $provider,
+            'https://app.example.com/home',
+        );
+
+        // No returnTo passed, should fall back to redirectAfterLogout
+        $url = $handler->initiateLogout('id-token-value');
+
+        self::assertNotNull($url);
+        self::assertStringContainsString('id_token_hint=id-token-value', $url);
+        self::assertStringContainsString('post_logout_redirect_uri=', $url);
+        self::assertStringContainsString(urlencode('https://app.example.com/home'), $url);
+    }
+
+    #[Test]
+    public function initiateLogoutReturnToOverridesRedirectAfterLogout(): void
+    {
+        $provider = $this->createMock(ProviderInterface::class);
+        $provider->method('getEndSessionEndpoint')
+            ->willReturn('https://idp.example.com/logout');
+
+        $handler = new OAuthLogoutHandler(
+            $provider,
+            'https://app.example.com/fallback',
+        );
+
+        $url = $handler->initiateLogout(null, 'https://app.example.com/custom');
+
+        self::assertNotNull($url);
+        self::assertStringNotContainsString('id_token_hint', $url);
+        self::assertStringContainsString(urlencode('https://app.example.com/custom'), $url);
+    }
+
+    #[Test]
+    public function initiateLogoutWithIdTokenOnly(): void
+    {
+        $provider = $this->createMock(ProviderInterface::class);
+        $provider->method('getEndSessionEndpoint')
+            ->willReturn('https://idp.example.com/logout');
+
+        $handler = new OAuthLogoutHandler($provider);
+
+        $url = $handler->initiateLogout('my-id-token');
+
+        self::assertNotNull($url);
+        self::assertStringContainsString('id_token_hint=my-id-token', $url);
+        self::assertStringNotContainsString('post_logout_redirect_uri', $url);
+    }
 }

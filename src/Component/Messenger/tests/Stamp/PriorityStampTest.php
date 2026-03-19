@@ -1,0 +1,48 @@
+<?php
+
+declare(strict_types=1);
+
+namespace WpPack\Component\Messenger\Tests\Stamp;
+
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+use WpPack\Component\Messenger\Stamp\PriorityStamp;
+use WpPack\Component\Messenger\Stamp\StampInterface;
+
+#[CoversClass(PriorityStamp::class)]
+final class PriorityStampTest extends TestCase
+{
+    #[Test]
+    public function constructionAndPropertyAccess(): void
+    {
+        $stamp = new PriorityStamp(10);
+
+        self::assertSame(10, $stamp->priority);
+        self::assertInstanceOf(StampInterface::class, $stamp);
+    }
+
+    #[Test]
+    public function defaultPriority(): void
+    {
+        $stamp = new PriorityStamp();
+
+        self::assertSame(0, $stamp->priority);
+    }
+
+    #[Test]
+    public function negativePriority(): void
+    {
+        $stamp = new PriorityStamp(-5);
+
+        self::assertSame(-5, $stamp->priority);
+    }
+
+    #[Test]
+    public function zeroPriority(): void
+    {
+        $stamp = new PriorityStamp(0);
+
+        self::assertSame(0, $stamp->priority);
+    }
+}

@@ -571,6 +571,165 @@ final class AzureStorageAdapterTest extends TestCase
         self::assertSame('file1.txt', $items[0]->key);
     }
 
+    #[Test]
+    public function readStreamThrowsUnexpectedException(): void
+    {
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->method('downloadStreamingContent')
+            ->willThrowException(new \RuntimeException('Connection lost'));
+
+        $adapter = new AzureStorageAdapter($client);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Connection lost');
+        $adapter->readStream('file.txt');
+    }
+
+    #[Test]
+    public function listContentsSkipsBlobPrefixEntries(): void
+    {
+        $now = new \DateTimeImmutable();
+
+        $blob = new Blob('file1.txt', $this->createBlobProperties(100, 'text/plain', $now));
+        // BlobPrefix entries are skipped by the adapter
+        $prefix = new \AzureOss\Storage\Blob\Models\BlobPrefix('subdir/');
+
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->method('listBlobsByHierarchy')
+            ->willReturn([$blob, $prefix]);
+
+        $adapter = new AzureStorageAdapter($client);
+        $items = iterator_to_array($adapter->listContents('', false));
+
+        // Only the Blob should be yielded, not the BlobPrefix
+        self::assertCount(1, $items);
+        self::assertSame('file1.txt', $items[0]->key);
+    }
+
+    #[Test]
+    public function stripPrefixReturnsBlobKeyWhenPrefixDoesNotMatch(): void
+    {
+        $now = new \DateTimeImmutable();
+
+        // Blob name does NOT start with the configured prefix
+        $blob = new Blob('other/file.txt', $this->createBlobProperties(50, 'text/plain', $now));
+
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->method('listBlobsByHierarchy')
+            ->willReturn([$blob]);
+
+        $adapter = new AzureStorageAdapter($client, 'uploads');
+        $items = iterator_to_array($adapter->listContents('', true));
+
+        self::assertCount(1, $items);
+        // Since blob key doesn't start with "uploads/", it's returned as-is
+        self::assertSame('other/file.txt', $items[0]->key);
+    }
+
+    #[Test]
+    public function writeWithContentEncodingHeader(): void
+    {
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->expects($this->once())
+            ->method('upload')
+            ->with(
+                'file.txt',
+                'contents',
+                $this->callback(fn(?UploadBlobOptions $options) => $options !== null
+                    && $options->httpHeaders !== null
+                    && $options->httpHeaders->contentEncoding === 'gzip'),
+            );
+
+        $adapter = new AzureStorageAdapter($client);
+        $adapter->write('file.txt', 'contents', [
+            'Content-Encoding' => 'gzip',
+        ]);
+    }
+
+    #[Test]
+    public function writeWithContentLanguageHeader(): void
+    {
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->expects($this->once())
+            ->method('upload')
+            ->with(
+                'file.txt',
+                'contents',
+                $this->callback(fn(?UploadBlobOptions $options) => $options !== null
+                    && $options->httpHeaders !== null
+                    && $options->httpHeaders->contentLanguage === 'en-US'),
+            );
+
+        $adapter = new AzureStorageAdapter($client);
+        $adapter->write('file.txt', 'contents', [
+            'Content-Language' => 'en-US',
+        ]);
+    }
+
+    #[Test]
+    public function publicUrlWithPrefixButNoBlobUri(): void
+    {
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->method('getBlobUri')
+            ->with('uploads/file.txt')
+            ->willReturn(new Uri('https://account.blob.core.windows.net/container/uploads/file.txt'));
+
+        $adapter = new AzureStorageAdapter($client, 'uploads');
+
+        self::assertSame(
+            'https://account.blob.core.windows.net/container/uploads/file.txt',
+            $adapter->publicUrl('file.txt'),
+        );
+    }
+
+    #[Test]
+    public function deleteWithPrefix(): void
+    {
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->expects($this->once())
+            ->method('delete')
+            ->with('uploads/file.txt');
+
+        $adapter = new AzureStorageAdapter($client, 'uploads');
+        $adapter->delete('file.txt');
+    }
+
+    #[Test]
+    public function metadataWithPrefix(): void
+    {
+        $now = new \DateTimeImmutable();
+
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->method('getProperties')
+            ->with('uploads/doc.pdf')
+            ->willReturn($this->createBlobProperties(2048, 'application/pdf', $now));
+
+        $adapter = new AzureStorageAdapter($client, 'uploads');
+        $metadata = $adapter->metadata('doc.pdf');
+
+        self::assertSame('doc.pdf', $metadata->key);
+        self::assertSame(2048, $metadata->size);
+    }
+
+    #[Test]
+    public function listContentsWithPrefixAndSubPrefix(): void
+    {
+        $now = new \DateTimeImmutable();
+
+        $blob = new Blob('uploads/images/photo.jpg', $this->createBlobProperties(5000, 'image/jpeg', $now));
+
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->method('listBlobsByHierarchy')
+            ->with('uploads/images/', '')
+            ->willReturn([$blob]);
+
+        $adapter = new AzureStorageAdapter($client, 'uploads');
+        $items = iterator_to_array($adapter->listContents('images/', true));
+
+        self::assertCount(1, $items);
+        self::assertSame('images/photo.jpg', $items[0]->key);
+    }
+
     /**
      * @phpstan-ignore method.deprecated
      */

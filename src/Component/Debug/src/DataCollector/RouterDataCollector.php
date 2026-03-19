@@ -47,7 +47,7 @@ final class RouterDataCollector extends AbstractDataCollector
             default => 'other',
         };
 
-        $isBlockTheme = wp_is_block_theme();
+        $isBlockTheme = did_action('after_setup_theme') ? wp_is_block_theme() : false;
 
         $blockTemplate = [
             'slug' => '',

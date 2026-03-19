@@ -105,6 +105,68 @@ final class SecurityTest extends TestCase
         self::assertTrue(true);
     }
 
+    #[Test]
+    public function denyAccessUnlessGrantedUsesCustomMessage(): void
+    {
+        $checker = new class implements AuthorizationCheckerInterface {
+            public function isGranted(string $attribute, mixed $subject = null): bool
+            {
+                return false;
+            }
+        };
+
+        $authManager = $this->createAuthManager(null);
+        $security = new Security($checker, $authManager);
+
+        $this->expectException(AccessDeniedException::class);
+        $this->expectExceptionMessage('You shall not pass!');
+
+        $security->denyAccessUnlessGranted('manage_options', null, 'You shall not pass!');
+    }
+
+    #[Test]
+    public function isGrantedWithSubjectDelegatesToChecker(): void
+    {
+        $receivedSubject = null;
+        $checker = new class ($receivedSubject) implements AuthorizationCheckerInterface {
+            public function __construct(private mixed &$receivedSubject) {}
+
+            public function isGranted(string $attribute, mixed $subject = null): bool
+            {
+                $this->receivedSubject = $subject;
+
+                return true;
+            }
+        };
+
+        $authManager = $this->createAuthManager(null);
+        $security = new Security($checker, $authManager);
+
+        self::assertTrue($security->isGranted('edit_post', 42));
+        self::assertSame(42, $receivedSubject);
+    }
+
+    #[Test]
+    public function denyAccessUnlessGrantedWithSubject(): void
+    {
+        $checker = new class implements AuthorizationCheckerInterface {
+            public function isGranted(string $attribute, mixed $subject = null): bool
+            {
+                return $subject === 'allowed-subject';
+            }
+        };
+
+        $authManager = $this->createAuthManager(null);
+        $security = new Security($checker, $authManager);
+
+        // Should not throw
+        $security->denyAccessUnlessGranted('edit_post', 'allowed-subject');
+
+        // Should throw
+        $this->expectException(AccessDeniedException::class);
+        $security->denyAccessUnlessGranted('edit_post', 'denied-subject');
+    }
+
     private function createAuthManager(?TokenInterface $token): AuthenticationManagerInterface
     {
         return new class ($token) implements AuthenticationManagerInterface {

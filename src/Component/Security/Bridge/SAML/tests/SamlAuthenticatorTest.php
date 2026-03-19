@@ -16,6 +16,7 @@ use WpPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
 use WpPack\Component\Security\Authentication\Token\PostAuthenticationToken;
 use WpPack\Component\Security\Bridge\SAML\Badge\SamlAttributesBadge;
 use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
+use WpPack\Component\Security\Bridge\SAML\Multisite\CrossSiteRedirector;
 use WpPack\Component\Security\Bridge\SAML\SamlAuthenticator;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolverInterface;
 use WpPack\Component\Security\Exception\AuthenticationException;
@@ -360,6 +361,185 @@ final class SamlAuthenticatorTest extends TestCase
         );
 
         $authenticator->authenticate($request);
+    }
+
+    #[Test]
+    public function authenticateWithCrossSiteRedirectorNoRedirectNeeded(): void
+    {
+        $auth = $this->createMock(Auth::class);
+        $auth->method('processResponse')->willReturn(null);
+        $auth->method('getErrors')->willReturn([]);
+        $auth->method('getNameId')->willReturn('user@example.com');
+        $auth->method('getAttributes')->willReturn(['email' => ['user@example.com']]);
+        $auth->method('getSessionIndex')->willReturn('_session');
+
+        $this->factory->method('create')->willReturn($auth);
+
+        // CrossSiteRedirector is final, use a real instance
+        // needsRedirect returns false for same-host URLs
+        $crossSiteRedirector = new CrossSiteRedirector();
+
+        $authenticator = new SamlAuthenticator(
+            $this->factory,
+            $this->userResolver,
+            $this->eventDispatcher,
+            '/saml/acs',
+            $crossSiteRedirector,
+        );
+
+        // Use a same-site relay state so needsRedirect returns false
+        $sameHostUrl = site_url('/custom-page');
+
+        $request = new Request(
+            post: ['SAMLResponse' => 'base64response', 'RelayState' => $sameHostUrl],
+            server: ['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/saml/acs'],
+        );
+
+        $passport = $authenticator->authenticate($request);
+
+        self::assertInstanceOf(SelfValidatingPassport::class, $passport);
+    }
+
+    #[Test]
+    public function authenticateWithCrossSiteRedirectorWithNullRelayState(): void
+    {
+        $auth = $this->createMock(Auth::class);
+        $auth->method('processResponse')->willReturn(null);
+        $auth->method('getErrors')->willReturn([]);
+        $auth->method('getNameId')->willReturn('user@example.com');
+        $auth->method('getAttributes')->willReturn(['email' => ['user@example.com']]);
+        $auth->method('getSessionIndex')->willReturn('_session');
+
+        $this->factory->method('create')->willReturn($auth);
+
+        // CrossSiteRedirector is final, use a real instance
+        $crossSiteRedirector = new CrossSiteRedirector();
+
+        $authenticator = new SamlAuthenticator(
+            $this->factory,
+            $this->userResolver,
+            $this->eventDispatcher,
+            '/saml/acs',
+            $crossSiteRedirector,
+        );
+
+        $request = new Request(
+            post: ['SAMLResponse' => 'base64response'],
+            server: ['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/saml/acs'],
+        );
+
+        $passport = $authenticator->authenticate($request);
+
+        self::assertInstanceOf(SelfValidatingPassport::class, $passport);
+    }
+
+    #[Test]
+    public function createTokenWithCrossSiteRedirectorOnNonMultisite(): void
+    {
+        if (is_multisite()) {
+            self::markTestSkipped('This test requires a non-multisite installation.');
+        }
+
+        $user = $this->createMock(\WP_User::class);
+        $user->ID = 1;
+        $user->roles = ['subscriber'];
+
+        $crossSiteRedirector = new CrossSiteRedirector();
+
+        $authenticator = new SamlAuthenticator(
+            $this->factory,
+            $this->userResolver,
+            $this->eventDispatcher,
+            '/saml/acs',
+            $crossSiteRedirector,
+        );
+
+        $userBadge = new UserBadge('user@example.com', fn() => $user);
+        $passport = new SelfValidatingPassport($userBadge);
+
+        $token = $authenticator->createToken($passport);
+
+        self::assertInstanceOf(PostAuthenticationToken::class, $token);
+        // On non-multisite, blogId should be null even with crossSiteRedirector
+        self::assertNull($token->getBlogId());
+    }
+
+    #[Test]
+    public function createTokenWithoutCrossSiteRedirector(): void
+    {
+        $user = $this->createMock(\WP_User::class);
+        $user->ID = 1;
+        $user->roles = ['editor'];
+
+        // No crossSiteRedirector provided
+        $authenticator = $this->createAuthenticator();
+
+        $userBadge = new UserBadge('user@example.com', fn() => $user);
+        $passport = new SelfValidatingPassport($userBadge);
+
+        $token = $authenticator->createToken($passport);
+
+        self::assertInstanceOf(PostAuthenticationToken::class, $token);
+        // blogId should be null when no crossSiteRedirector
+        self::assertNull($token->getBlogId());
+    }
+
+    #[Test]
+    public function onAuthenticationSuccessWithUserAlreadyMemberOfBlog(): void
+    {
+        $user = $this->createMock(\WP_User::class);
+        $user->ID = 1;
+        $user->roles = ['subscriber'];
+
+        $token = new PostAuthenticationToken($user, ['subscriber']);
+
+        // Use the default authenticator (addUserToBlog = true)
+        $authenticator = new SamlAuthenticator(
+            $this->factory,
+            $this->userResolver,
+            $this->eventDispatcher,
+            '/saml/acs',
+            null,
+            true,
+        );
+
+        $request = new Request(
+            post: [],
+            server: ['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/saml/acs'],
+        );
+
+        $response = $authenticator->onAuthenticationSuccess($request, $token);
+
+        self::assertInstanceOf(RedirectResponse::class, $response);
+    }
+
+    #[Test]
+    public function onAuthenticationSuccessWithAddUserToBlogDisabled(): void
+    {
+        $user = $this->createMock(\WP_User::class);
+        $user->ID = 1;
+        $user->roles = ['subscriber'];
+
+        $token = new PostAuthenticationToken($user, ['subscriber']);
+
+        $authenticator = new SamlAuthenticator(
+            $this->factory,
+            $this->userResolver,
+            $this->eventDispatcher,
+            '/saml/acs',
+            null,
+            false,
+        );
+
+        $request = new Request(
+            post: [],
+            server: ['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/saml/acs'],
+        );
+
+        $response = $authenticator->onAuthenticationSuccess($request, $token);
+
+        self::assertInstanceOf(RedirectResponse::class, $response);
+        self::assertStringContainsString('/wp-admin', $response->url);
     }
 
     #[Test]

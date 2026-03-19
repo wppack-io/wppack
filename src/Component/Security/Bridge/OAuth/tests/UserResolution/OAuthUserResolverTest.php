@@ -530,4 +530,233 @@ final class OAuthUserResolverTest extends TestCase
         self::assertInstanceOf(\WP_User::class, $user);
         self::assertSame($login, get_user_meta($userId, '_wppack_oauth_sub_google', true));
     }
+
+    #[Test]
+    public function getClaimValueReturnsNullForBooleanValue(): void
+    {
+        $subject = 'oauth-bool-' . uniqid();
+        $userId = wp_insert_user([
+            'user_login' => 'oauth_bool_' . uniqid(),
+            'user_email' => 'oauth-bool-' . uniqid() . '@example.com',
+            'user_pass' => wp_generate_password(),
+        ]);
+
+        self::assertIsInt($userId);
+
+        update_user_meta($userId, '_wppack_oauth_sub_google', $subject);
+
+        $resolver = new OAuthUserResolver(
+            providerName: 'google',
+            firstNameClaim: 'bool_claim',
+        );
+
+        // Boolean claim values should be ignored (returns null)
+        $user = $resolver->resolveUser(
+            $subject,
+            ['bool_claim' => true],
+        );
+
+        self::assertInstanceOf(\WP_User::class, $user);
+    }
+
+    #[Test]
+    public function getClaimValueReturnsNullForFloatValue(): void
+    {
+        $subject = 'oauth-float-' . uniqid();
+        $userId = wp_insert_user([
+            'user_login' => 'oauth_float_' . uniqid(),
+            'user_email' => 'oauth-float-' . uniqid() . '@example.com',
+            'user_pass' => wp_generate_password(),
+        ]);
+
+        self::assertIsInt($userId);
+
+        update_user_meta($userId, '_wppack_oauth_sub_google', $subject);
+
+        $resolver = new OAuthUserResolver(
+            providerName: 'google',
+            firstNameClaim: 'float_claim',
+        );
+
+        // Float claim values should be ignored (returns null)
+        $user = $resolver->resolveUser(
+            $subject,
+            ['float_claim' => 3.14],
+        );
+
+        self::assertInstanceOf(\WP_User::class, $user);
+    }
+
+    #[Test]
+    public function getClaimValueReturnsNullForArrayValue(): void
+    {
+        $subject = 'oauth-arr-' . uniqid();
+        $userId = wp_insert_user([
+            'user_login' => 'oauth_arr_' . uniqid(),
+            'user_email' => 'oauth-arr-' . uniqid() . '@example.com',
+            'user_pass' => wp_generate_password(),
+        ]);
+
+        self::assertIsInt($userId);
+
+        update_user_meta($userId, '_wppack_oauth_sub_google', $subject);
+
+        $resolver = new OAuthUserResolver(
+            providerName: 'google',
+            firstNameClaim: 'array_claim',
+        );
+
+        // Array claim values should be ignored (returns null)
+        $user = $resolver->resolveUser(
+            $subject,
+            ['array_claim' => ['value1', 'value2']],
+        );
+
+        self::assertInstanceOf(\WP_User::class, $user);
+    }
+
+    #[Test]
+    public function autoProvisionWithoutEmail(): void
+    {
+        $subject = 'provisioned_noemail_' . uniqid();
+        $resolver = new OAuthUserResolver(providerName: 'google', autoProvision: true);
+
+        $user = $resolver->resolveUser(
+            $subject,
+            [
+                'given_name' => 'NoEmail',
+                'family_name' => 'User',
+            ],
+        );
+
+        self::assertInstanceOf(\WP_User::class, $user);
+        // When no email is provided, subject is used as fallback for user_email
+        self::assertSame($subject, $user->user_login);
+        self::assertSame($subject, get_user_meta($user->ID, '_wppack_oauth_sub_google', true));
+    }
+
+    #[Test]
+    public function autoProvisionWithNullClaimNames(): void
+    {
+        $subject = 'provisioned_nullclaims_' . uniqid();
+        $resolver = new OAuthUserResolver(
+            providerName: 'google',
+            autoProvision: true,
+            firstNameClaim: null,
+            lastNameClaim: null,
+            displayNameClaim: null,
+        );
+
+        $user = $resolver->resolveUser(
+            $subject,
+            [
+                'given_name' => 'Ignored',
+                'family_name' => 'Ignored',
+                'name' => 'Ignored',
+            ],
+        );
+
+        self::assertInstanceOf(\WP_User::class, $user);
+    }
+
+    #[Test]
+    public function syncUserAttributesWithNullClaimNames(): void
+    {
+        $subject = 'oauth-nullsync-' . uniqid();
+        $userId = wp_insert_user([
+            'user_login' => 'oauth_nullsync_' . uniqid(),
+            'user_email' => 'oauth-nullsync-' . uniqid() . '@example.com',
+            'user_pass' => wp_generate_password(),
+            'first_name' => 'Original',
+        ]);
+
+        self::assertIsInt($userId);
+
+        update_user_meta($userId, '_wppack_oauth_sub_google', $subject);
+
+        $resolver = new OAuthUserResolver(
+            providerName: 'google',
+            firstNameClaim: null,
+            lastNameClaim: null,
+            displayNameClaim: null,
+        );
+
+        $user = $resolver->resolveUser(
+            $subject,
+            ['given_name' => 'ShouldBeIgnored'],
+        );
+
+        // first_name should not be updated since firstNameClaim is null
+        $refreshed = get_user_by('id', $user->ID);
+        self::assertSame('Original', $refreshed->first_name);
+    }
+
+    #[Test]
+    public function mapUserRoleWithNonStringArrayElements(): void
+    {
+        $login = 'oauth_role_nonstr_' . uniqid();
+        $userId = wp_insert_user([
+            'user_login' => $login,
+            'user_email' => 'oauth-role-nonstr-' . uniqid() . '@example.com',
+            'user_pass' => wp_generate_password(),
+            'role' => 'subscriber',
+        ]);
+
+        self::assertIsInt($userId);
+
+        $wpUser = get_user_by('id', $userId);
+        $wpUser->set_role('subscriber');
+
+        $resolver = new OAuthUserResolver(
+            providerName: 'google',
+            roleMapping: ['admin_group' => 'administrator'],
+            roleClaim: 'groups',
+        );
+
+        // Non-string array elements should be skipped
+        $user = $resolver->resolveUser(
+            $login,
+            ['groups' => [42, true, null]],
+        );
+
+        self::assertContains('subscriber', $user->roles);
+    }
+
+    #[Test]
+    public function autoProvisionThrowsWhenWpInsertUserFails(): void
+    {
+        // Use a login > 60 chars to cause wp_insert_user to return WP_Error
+        $longSubject = str_repeat('a', 61);
+
+        $resolver = new OAuthUserResolver(providerName: 'google', autoProvision: true);
+
+        $this->expectException(AuthenticationException::class);
+        $this->expectExceptionMessage('User provisioning failed.');
+
+        $resolver->resolveUser(
+            $longSubject,
+            ['email' => 'long-subject-' . uniqid() . '@example.com'],
+        );
+    }
+
+    #[Test]
+    public function autoProvisionWithCustomEmailClaim(): void
+    {
+        $subject = 'provisioned_custom_email_' . uniqid();
+        $customEmail = 'custom-' . uniqid() . '@example.com';
+
+        $resolver = new OAuthUserResolver(
+            providerName: 'google',
+            autoProvision: true,
+            emailClaim: 'preferred_email',
+        );
+
+        $user = $resolver->resolveUser(
+            $subject,
+            ['preferred_email' => $customEmail],
+        );
+
+        self::assertInstanceOf(\WP_User::class, $user);
+        self::assertSame($customEmail, $user->user_email);
+    }
 }

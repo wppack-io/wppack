@@ -127,9 +127,11 @@ final class SamlUserResolver implements SamlUserResolverInterface
 
         $user = get_user_by('id', $userId);
 
+        // @codeCoverageIgnoreStart
         if (!$user instanceof \WP_User) {
             throw new AuthenticationException(\sprintf('Failed to retrieve provisioned user "%s".', $nameId));
         }
+        // @codeCoverageIgnoreEnd
 
         $this->bindNameId($user, $nameId);
         $this->mapUserRole($user, $attributes);

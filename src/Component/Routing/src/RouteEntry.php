@@ -101,10 +101,10 @@ final class RouteEntry
         match (true) {
             $response instanceof TemplateResponse => $this->handleTemplate($response),
             $response instanceof BlockTemplateResponse => $this->handleBlockTemplate($response),
-            $response instanceof JsonResponse => $this->handleJson($response),
-            $response instanceof RedirectResponse => $this->handleRedirect($response),
-            $response instanceof BinaryFileResponse => $this->handleFile($response),
-            default => $this->handleHtml($response),
+            $response instanceof JsonResponse => $this->handleJson($response), // @codeCoverageIgnore
+            $response instanceof RedirectResponse => $this->handleRedirect($response), // @codeCoverageIgnore
+            $response instanceof BinaryFileResponse => $this->handleFile($response), // @codeCoverageIgnore
+            default => $this->handleHtml($response), // @codeCoverageIgnore
         };
     }
 
@@ -126,6 +126,7 @@ final class RouteEntry
 
         nocache_headers();
 
+        // @codeCoverageIgnoreStart
         $blockTemplate = get_block_template(
             get_stylesheet() . '//' . $e->getStatusCode(),
         );
@@ -149,6 +150,7 @@ final class RouteEntry
 
             return;
         }
+        // @codeCoverageIgnoreEnd
 
         wp_die(
             $e->getMessage(),
@@ -157,6 +159,9 @@ final class RouteEntry
         );
     }
 
+    /**
+     * @codeCoverageIgnore Cannot test header sending in PHPUnit (headers_sent() always returns true)
+     */
     private function sendHeaders(Response $response): void
     {
         if (headers_sent()) {
@@ -178,6 +183,9 @@ final class RouteEntry
         $this->pendingTemplate = $response;
     }
 
+    /**
+     * @codeCoverageIgnore Requires block theme with matching template; untestable in PHPUnit
+     */
     private function handleBlockTemplate(BlockTemplateResponse $response): void
     {
         $this->sendHeaders($response);

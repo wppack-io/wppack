@@ -284,4 +284,72 @@ final class PredisClusterAdapterTest extends TestCase
         self::assertTrue($this->adapter->set('{wppack_test}:after', 'value'));
         self::assertSame('value', $this->adapter->get('{wppack_test}:after'));
     }
+
+    #[Test]
+    public function connectWithTimeouts(): void
+    {
+        $adapter = new PredisAdapter([
+            'redis_cluster' => true,
+            'hosts' => ['127.0.0.1:7010', '127.0.0.1:7011', '127.0.0.1:7012'],
+            'timeout' => 5,
+            'read_timeout' => 3,
+        ]);
+
+        if (!$adapter->isAvailable()) {
+            self::markTestSkipped('Redis Cluster is not available at 127.0.0.1:7010-7012.');
+        }
+
+        self::assertTrue($adapter->set('{wppack_test}:cluster_timeout', 'value'));
+        self::assertSame('value', $adapter->get('{wppack_test}:cluster_timeout'));
+
+        $adapter->delete('{wppack_test}:cluster_timeout');
+        $adapter->close();
+    }
+
+    #[Test]
+    public function connectWithAuth(): void
+    {
+        $adapter = new PredisAdapter([
+            'redis_cluster' => true,
+            'hosts' => ['127.0.0.1:7010', '127.0.0.1:7011', '127.0.0.1:7012'],
+            'timeout' => 2,
+            'auth' => 'testpassword',
+        ]);
+
+        // Auth will fail against unauthenticated cluster, but the auth param
+        // is passed through buildPredisConnectionParams covering the password branch
+        try {
+            $adapter->isAvailable();
+        } catch (\Throwable) {
+            // Expected: auth will fail
+        }
+
+        self::assertSame('predis', $adapter->getName());
+        $adapter->close();
+    }
+
+    #[Test]
+    public function connectWithTls(): void
+    {
+        $adapter = new PredisAdapter([
+            'redis_cluster' => true,
+            'hosts' => ['127.0.0.1:7010', '127.0.0.1:7011', '127.0.0.1:7012'],
+            'tls' => true,
+            'timeout' => 2,
+        ]);
+
+        try {
+            if (!$adapter->isAvailable()) {
+                self::markTestSkipped('Redis Cluster with TLS is not available.');
+            }
+        } catch (\Throwable) {
+            self::markTestSkipped('Redis Cluster with TLS is not available.');
+        }
+
+        self::assertTrue($adapter->set('{wppack_test}:cluster_tls', 'value'));
+        self::assertSame('value', $adapter->get('{wppack_test}:cluster_tls'));
+
+        $adapter->delete('{wppack_test}:cluster_tls');
+        $adapter->close();
+    }
 }

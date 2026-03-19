@@ -576,6 +576,61 @@ final class SamlUserResolverTest extends TestCase
     }
 
     #[Test]
+    public function autoProvisionFailsWithDuplicateLogin(): void
+    {
+        $existingLogin = 'saml_dup_' . uniqid();
+        $existingEmail = 'saml-dup-' . uniqid() . '@example.com';
+
+        // Create a user first
+        $userId = wp_insert_user([
+            'user_login' => $existingLogin,
+            'user_email' => $existingEmail,
+            'user_pass' => wp_generate_password(),
+        ]);
+
+        self::assertIsInt($userId);
+
+        $resolver = new SamlUserResolver(autoProvision: true);
+
+        // Try to auto-provision with the same login but a different email
+        // This should fail because the login already exists (will be found by login lookup)
+        // Actually, resolveUser will find by login and return the existing user
+        $user = $resolver->resolveUser(
+            $existingLogin,
+            ['email' => ['different-' . uniqid() . '@example.com']],
+        );
+
+        // The existing user is returned since it was found by login
+        self::assertSame($userId, $user->ID);
+    }
+
+    #[Test]
+    public function autoProvisionFailsWhenWpInsertUserReturnsError(): void
+    {
+        // Use an extremely long login name that wp_insert_user should reject
+        // or use a pre_user_login filter to force an error
+        $nameId = 'provision_fail_' . uniqid();
+
+        add_filter('pre_user_login', function () {
+            return ''; // Force empty login which wp_insert_user will reject
+        });
+
+        $resolver = new SamlUserResolver(autoProvision: true);
+
+        try {
+            $this->expectException(AuthenticationException::class);
+            $this->expectExceptionMessage('User provisioning failed.');
+
+            $resolver->resolveUser(
+                $nameId,
+                ['email' => ['provision-fail-' . uniqid() . '@example.com']],
+            );
+        } finally {
+            remove_all_filters('pre_user_login');
+        }
+    }
+
+    #[Test]
     public function roleMapWithEmptyRoleValues(): void
     {
         $login = 'saml_empty_roles_' . uniqid();

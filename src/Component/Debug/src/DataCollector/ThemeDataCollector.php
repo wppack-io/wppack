@@ -99,7 +99,7 @@ final class ThemeDataCollector extends AbstractDataCollector
     {
         $theme = wp_get_theme();
         $isChildTheme = is_child_theme();
-        $isBlockTheme = wp_is_block_theme();
+        $isBlockTheme = did_action('after_setup_theme') ? wp_is_block_theme() : false;
 
         // Build hook attribution for theme
         global $wp_filter;

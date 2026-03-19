@@ -322,4 +322,93 @@ final class RelayClusterAdapterTest extends TestCase
         $adapter->delete('{wppack_test}:persistent');
         $adapter->close();
     }
+
+    #[Test]
+    public function connectWithFailoverDistribute(): void
+    {
+        $adapter = new RelayClusterAdapter([
+            'hosts' => ['127.0.0.1:7010', '127.0.0.1:7011', '127.0.0.1:7012'],
+            'timeout' => 2,
+            'failover' => 'distribute',
+        ]);
+
+        if (!$adapter->isAvailable()) {
+            self::markTestSkipped('Relay Cluster is not available at 127.0.0.1:7010-7012.');
+        }
+
+        self::assertTrue($adapter->set('{wppack_test}:failover_dist', 'value'));
+        self::assertSame('value', $adapter->get('{wppack_test}:failover_dist'));
+
+        $adapter->delete('{wppack_test}:failover_dist');
+        $adapter->close();
+    }
+
+    #[Test]
+    public function connectWithFailoverSlaves(): void
+    {
+        $adapter = new RelayClusterAdapter([
+            'hosts' => ['127.0.0.1:7010', '127.0.0.1:7011', '127.0.0.1:7012'],
+            'timeout' => 2,
+            'failover' => 'slaves',
+        ]);
+
+        if (!$adapter->isAvailable()) {
+            self::markTestSkipped('Relay Cluster is not available at 127.0.0.1:7010-7012.');
+        }
+
+        self::assertTrue($adapter->set('{wppack_test}:failover_slaves', 'value'));
+        self::assertSame('value', $adapter->get('{wppack_test}:failover_slaves'));
+
+        $adapter->delete('{wppack_test}:failover_slaves');
+        $adapter->close();
+    }
+
+    #[Test]
+    public function connectWithCredentialProvider(): void
+    {
+        $called = false;
+        $adapter = new RelayClusterAdapter([
+            'hosts' => ['127.0.0.1:7010', '127.0.0.1:7011', '127.0.0.1:7012'],
+            'timeout' => 2,
+            'credential_provider' => function () use (&$called): string {
+                $called = true;
+
+                return '';
+            },
+        ]);
+
+        try {
+            if (!$adapter->isAvailable()) {
+                self::markTestSkipped('Relay Cluster is not available at 127.0.0.1:7010-7012.');
+            }
+        } catch (\Throwable) {
+            // The credential_provider path was exercised
+            self::assertTrue($called);
+
+            return;
+        }
+
+        self::assertTrue($called);
+        $adapter->close();
+    }
+
+    #[Test]
+    public function connectWithReadTimeout(): void
+    {
+        $adapter = new RelayClusterAdapter([
+            'hosts' => ['127.0.0.1:7010', '127.0.0.1:7011', '127.0.0.1:7012'],
+            'timeout' => 2,
+            'read_timeout' => 5,
+        ]);
+
+        if (!$adapter->isAvailable()) {
+            self::markTestSkipped('Relay Cluster is not available at 127.0.0.1:7010-7012.');
+        }
+
+        self::assertTrue($adapter->set('{wppack_test}:read_timeout', 'value'));
+        self::assertSame('value', $adapter->get('{wppack_test}:read_timeout'));
+
+        $adapter->delete('{wppack_test}:read_timeout');
+        $adapter->close();
+    }
 }

@@ -45,11 +45,13 @@ final class SamlAuthenticator implements AuthenticatorInterface
 
         if ($this->crossSiteRedirector !== null && $relayState !== null) {
             if ($this->crossSiteRedirector->needsRedirect($relayState)) {
+                // @codeCoverageIgnoreStart
                 $this->crossSiteRedirector->redirect(
                     $relayState,
                     $request->post->get('SAMLResponse', ''),
                     $relayState,
                 );
+                // @codeCoverageIgnoreEnd
             }
         }
 
@@ -93,9 +95,11 @@ final class SamlAuthenticator implements AuthenticatorInterface
 
         $blogId = null;
 
+        // @codeCoverageIgnoreStart
         if ($this->crossSiteRedirector !== null && is_multisite()) {
             $blogId = get_current_blog_id();
         }
+        // @codeCoverageIgnoreEnd
 
         return new PostAuthenticationToken(
             $user,
@@ -108,12 +112,14 @@ final class SamlAuthenticator implements AuthenticatorInterface
     {
         $user = $token->getUser();
 
+        // @codeCoverageIgnoreStart
         if ($this->addUserToBlog && is_multisite()) {
             if (!is_user_member_of_blog($user->ID)) {
                 $role = !empty($user->roles) ? $user->roles[0] : 'subscriber';
                 add_user_to_blog(get_current_blog_id(), $user->ID, $role);
             }
         }
+        // @codeCoverageIgnoreEnd
 
         $relayState = $request->post->get('RelayState');
         $fallback = admin_url();

@@ -89,4 +89,129 @@ final class MemcachedAdapterFactoryTest extends TestCase
 
         self::assertInstanceOf(MemcachedAdapter::class, $adapter);
     }
+
+    #[Test]
+    public function createsAdapterWithMultiHostDefaultPort(): void
+    {
+        // Multi-host DSN without explicit port — defaults to 11211
+        $adapter = $this->factory->create(
+            Dsn::fromString('memcached:?host[10.0.0.1]&host[10.0.0.2]'),
+        );
+
+        self::assertInstanceOf(MemcachedAdapter::class, $adapter);
+    }
+
+    #[Test]
+    public function createsAdapterWithUnixSocketDsn(): void
+    {
+        $adapter = $this->factory->create(
+            Dsn::fromString('memcached:///var/run/memcached.sock'),
+        );
+
+        self::assertInstanceOf(MemcachedAdapter::class, $adapter);
+    }
+
+    #[Test]
+    public function createsAdapterWithSaslAuthFromOptions(): void
+    {
+        if (!method_exists(\Memcached::class, 'setSaslAuthData')) {
+            self::markTestSkipped('ext-memcached was not compiled with SASL support.');
+        }
+
+        $adapter = $this->factory->create(
+            Dsn::fromString('memcached://127.0.0.1:11211'),
+            ['username' => 'user', 'password' => 'secret'],
+        );
+
+        self::assertInstanceOf(MemcachedAdapter::class, $adapter);
+    }
+
+    #[Test]
+    public function createsAdapterWithBooleanOptionsFromDsn(): void
+    {
+        $adapter = $this->factory->create(
+            Dsn::fromString('memcached://127.0.0.1:11211?tcp_nodelay=1&no_block=0'),
+        );
+
+        self::assertInstanceOf(MemcachedAdapter::class, $adapter);
+    }
+
+    #[Test]
+    public function createsAdapterWithBooleanOptionsFromArray(): void
+    {
+        $adapter = $this->factory->create(
+            Dsn::fromString('memcached://127.0.0.1:11211'),
+            [
+                'tcp_nodelay' => true,
+                'no_block' => false,
+                'binary_protocol' => true,
+                'libketama_compatible' => true,
+            ],
+        );
+
+        self::assertInstanceOf(MemcachedAdapter::class, $adapter);
+    }
+
+    #[Test]
+    public function createsAdapterWithTimeoutFromDsn(): void
+    {
+        $adapter = $this->factory->create(
+            Dsn::fromString('memcached://127.0.0.1:11211?timeout=5000&retry_timeout=10'),
+        );
+
+        self::assertInstanceOf(MemcachedAdapter::class, $adapter);
+    }
+
+    #[Test]
+    public function createsAdapterWithPersistentIdFromDsn(): void
+    {
+        $adapter = $this->factory->create(
+            Dsn::fromString('memcached://127.0.0.1:11211?persistent_id=my_pool'),
+        );
+
+        self::assertInstanceOf(MemcachedAdapter::class, $adapter);
+    }
+
+    #[Test]
+    public function createsAdapterWithWeightOption(): void
+    {
+        $adapter = $this->factory->create(
+            Dsn::fromString('memcached://127.0.0.1:11211?weight=10'),
+        );
+
+        self::assertInstanceOf(MemcachedAdapter::class, $adapter);
+    }
+
+    #[Test]
+    public function createsAdapterWithMultiHostAndWeight(): void
+    {
+        $adapter = $this->factory->create(
+            Dsn::fromString('memcached:?host[10.0.0.1:11211]&host[10.0.0.2:11211]&weight=5'),
+        );
+
+        self::assertInstanceOf(MemcachedAdapter::class, $adapter);
+    }
+
+    #[Test]
+    public function createsAdapterWithHostFromOptions(): void
+    {
+        // DSN with no host, host provided via options
+        $adapter = $this->factory->create(
+            Dsn::fromString('memcached://127.0.0.1:11211'),
+            ['host' => '10.0.0.1', 'port' => 11212],
+        );
+
+        self::assertInstanceOf(MemcachedAdapter::class, $adapter);
+    }
+
+    #[Test]
+    public function createsAdapterWithDefaultHostAndPort(): void
+    {
+        // DSN with just a path (Unix socket style) but host is present
+        $adapter = $this->factory->create(
+            Dsn::fromString('memcached://localhost'),
+        );
+
+        self::assertInstanceOf(MemcachedAdapter::class, $adapter);
+    }
 }

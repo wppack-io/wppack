@@ -27,6 +27,7 @@ final class ActionSchedulerMessageHandler
         do_action_ref_array($message->hook, $message->args);
 
         if ($message->actionId > 0 && class_exists(\ActionScheduler::class)) {
+            // @codeCoverageIgnoreStart
             try {
                 \ActionScheduler::store()->mark_complete($message->actionId);
             } catch (\Exception $e) {
@@ -36,6 +37,7 @@ final class ActionSchedulerMessageHandler
                     'hook' => $message->hook,
                 ]);
             }
+            // @codeCoverageIgnoreEnd
         }
     }
 }

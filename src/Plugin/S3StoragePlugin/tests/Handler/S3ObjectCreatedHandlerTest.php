@@ -7,9 +7,15 @@ namespace WpPack\Plugin\S3StoragePlugin\Tests\Handler;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use WpPack\Component\Messenger\Envelope;
 use WpPack\Component\Messenger\MessageBusInterface;
+use WpPack\Component\Mime\MimeTypesInterface;
 use WpPack\Plugin\S3StoragePlugin\Handler\S3ObjectCreatedHandler;
+use WpPack\Plugin\S3StoragePlugin\Message\GenerateThumbnailsMessage;
+use WpPack\Plugin\S3StoragePlugin\Message\S3ObjectCreatedMessage;
+
+require_once __DIR__ . '/multisite-polyfill.php';
 
 final class S3ObjectCreatedHandlerTest extends TestCase
 {
@@ -104,7 +110,7 @@ final class S3ObjectCreatedHandlerTest extends TestCase
             prefix: 'uploads',
         );
 
-        $message = new \WpPack\Plugin\S3StoragePlugin\Message\S3ObjectCreatedMessage(
+        $message = new S3ObjectCreatedMessage(
             bucket: 'my-bucket',
             key: 'uploads/2024/01/photo-100x200.jpg',
             size: 5000,
@@ -126,7 +132,7 @@ final class S3ObjectCreatedHandlerTest extends TestCase
             prefix: 'uploads',
         );
 
-        $message = new \WpPack\Plugin\S3StoragePlugin\Message\S3ObjectCreatedMessage(
+        $message = new S3ObjectCreatedMessage(
             bucket: 'my-bucket',
             key: 'uploads/2024/01/original-photo.jpg',
             size: 50000,
@@ -141,7 +147,7 @@ final class S3ObjectCreatedHandlerTest extends TestCase
     {
         $bus = $this->createMock(MessageBusInterface::class);
         $bus->expects(self::once())->method('dispatch')
-            ->with(self::isInstanceOf(\WpPack\Plugin\S3StoragePlugin\Message\GenerateThumbnailsMessage::class))
+            ->with(self::isInstanceOf(GenerateThumbnailsMessage::class))
             ->willReturn(Envelope::wrap(new \stdClass()));
 
         $handler = new S3ObjectCreatedHandler(
@@ -149,7 +155,7 @@ final class S3ObjectCreatedHandlerTest extends TestCase
             prefix: 'uploads',
         );
 
-        $message = new \WpPack\Plugin\S3StoragePlugin\Message\S3ObjectCreatedMessage(
+        $message = new S3ObjectCreatedMessage(
             bucket: 'my-bucket',
             key: 'uploads/2024/03/document.pdf',
             size: 10000,
@@ -171,7 +177,7 @@ final class S3ObjectCreatedHandlerTest extends TestCase
             prefix: 'wp-content/uploads',
         );
 
-        $message = new \WpPack\Plugin\S3StoragePlugin\Message\S3ObjectCreatedMessage(
+        $message = new S3ObjectCreatedMessage(
             bucket: 'my-bucket',
             key: 'other/path/file.png',
             size: 1000,
@@ -197,7 +203,7 @@ final class S3ObjectCreatedHandlerTest extends TestCase
             prefix: 'uploads',
         );
 
-        $message = new \WpPack\Plugin\S3StoragePlugin\Message\S3ObjectCreatedMessage(
+        $message = new S3ObjectCreatedMessage(
             bucket: 'my-bucket',
             key: 'uploads/2024/01/test-file.jpg',
             size: 5000,
@@ -231,7 +237,7 @@ final class S3ObjectCreatedHandlerTest extends TestCase
     public function constructorAcceptsCustomMimeTypes(): void
     {
         $bus = $this->createMock(MessageBusInterface::class);
-        $mimeTypes = $this->createMock(\WpPack\Component\Mime\MimeTypesInterface::class);
+        $mimeTypes = $this->createMock(MimeTypesInterface::class);
         $mimeTypes->method('guessMimeType')->willReturn('image/webp');
 
         $handler = new S3ObjectCreatedHandler(
@@ -251,7 +257,7 @@ final class S3ObjectCreatedHandlerTest extends TestCase
         $bus->expects(self::once())->method('dispatch')
             ->willReturn(Envelope::wrap(new \stdClass()));
 
-        $mimeTypes = $this->createMock(\WpPack\Component\Mime\MimeTypesInterface::class);
+        $mimeTypes = $this->createMock(MimeTypesInterface::class);
         $mimeTypes->method('guessMimeType')->willReturn(null);
 
         $handler = new S3ObjectCreatedHandler(
@@ -260,7 +266,7 @@ final class S3ObjectCreatedHandlerTest extends TestCase
             mimeTypes: $mimeTypes,
         );
 
-        $message = new \WpPack\Plugin\S3StoragePlugin\Message\S3ObjectCreatedMessage(
+        $message = new S3ObjectCreatedMessage(
             bucket: 'my-bucket',
             key: 'uploads/2024/01/unknown-type.xyz',
             size: 1000,
@@ -278,7 +284,7 @@ final class S3ObjectCreatedHandlerTest extends TestCase
         $bus->expects(self::once())->method('dispatch')
             ->willReturn(Envelope::wrap(new \stdClass()));
 
-        $logger = $this->createMock(\Psr\Log\LoggerInterface::class);
+        $logger = $this->createMock(LoggerInterface::class);
 
         $handler = new S3ObjectCreatedHandler(
             bus: $bus,
@@ -286,7 +292,7 @@ final class S3ObjectCreatedHandlerTest extends TestCase
             logger: $logger,
         );
 
-        $message = new \WpPack\Plugin\S3StoragePlugin\Message\S3ObjectCreatedMessage(
+        $message = new S3ObjectCreatedMessage(
             bucket: 'my-bucket',
             key: 'uploads/2024/01/photo-with-logger.jpg',
             size: 5000,
@@ -294,5 +300,144 @@ final class S3ObjectCreatedHandlerTest extends TestCase
         );
 
         ($handler)($message);
+    }
+
+    #[Test]
+    public function invokeWithMultisiteKeyCallsSwitchToBlogAndRestores(): void
+    {
+        $currentBlogId = get_current_blog_id();
+
+        $bus = $this->createMock(MessageBusInterface::class);
+        $bus->expects(self::once())->method('dispatch')
+            ->with(self::callback(static function (object $msg): bool {
+                return $msg instanceof GenerateThumbnailsMessage
+                    && $msg->blogId === 2;
+            }))
+            ->willReturn(Envelope::wrap(new \stdClass()));
+
+        $handler = new S3ObjectCreatedHandler(
+            bus: $bus,
+            prefix: 'uploads',
+        );
+
+        $message = new S3ObjectCreatedMessage(
+            bucket: 'my-bucket',
+            key: 'uploads/sites/2/2024/01/multisite-photo.jpg',
+            size: 5000,
+            eTag: 'abc',
+        );
+
+        ($handler)($message);
+
+        // Blog should be restored after handler
+        self::assertSame($currentBlogId, get_current_blog_id());
+    }
+
+    #[Test]
+    public function invokeWithMultisiteKeyExtractsRelativePathWithoutSitesPrefix(): void
+    {
+        $bus = $this->createMock(MessageBusInterface::class);
+        $bus->expects(self::once())->method('dispatch')
+            ->with(self::callback(static function (object $msg): bool {
+                return $msg instanceof GenerateThumbnailsMessage
+                    && $msg->blogId === 3;
+            }))
+            ->willReturn(Envelope::wrap(new \stdClass()));
+
+        $handler = new S3ObjectCreatedHandler(
+            bus: $bus,
+            prefix: 'uploads',
+        );
+
+        $message = new S3ObjectCreatedMessage(
+            bucket: 'my-bucket',
+            key: 'uploads/sites/3/2024/06/document.pdf',
+            size: 20000,
+            eTag: 'multi123',
+        );
+
+        ($handler)($message);
+    }
+
+    #[Test]
+    public function invokeWithMultisiteKeyRestoresBlogOnException(): void
+    {
+        $currentBlogId = get_current_blog_id();
+
+        $bus = $this->createMock(MessageBusInterface::class);
+        $bus->expects(self::once())->method('dispatch')
+            ->willThrowException(new \RuntimeException('Bus error'));
+
+        $handler = new S3ObjectCreatedHandler(
+            bus: $bus,
+            prefix: 'uploads',
+        );
+
+        $message = new S3ObjectCreatedMessage(
+            bucket: 'my-bucket',
+            key: 'uploads/sites/4/2024/01/photo.jpg',
+            size: 5000,
+            eTag: 'abc',
+        );
+
+        try {
+            ($handler)($message);
+        } catch (\RuntimeException) {
+            // Expected
+        }
+
+        // Blog should be restored even on exception (via finally block)
+        self::assertSame($currentBlogId, get_current_blog_id());
+    }
+
+    #[Test]
+    public function invokeWithPrefixTrailingSlash(): void
+    {
+        $bus = $this->createMock(MessageBusInterface::class);
+        $bus->expects(self::once())->method('dispatch')
+            ->willReturn(Envelope::wrap(new \stdClass()));
+
+        $handler = new S3ObjectCreatedHandler(
+            bus: $bus,
+            prefix: 'uploads/',
+        );
+
+        $message = new S3ObjectCreatedMessage(
+            bucket: 'my-bucket',
+            key: 'uploads/2024/01/test-trailing.jpg',
+            size: 5000,
+            eTag: 'abc',
+        );
+
+        ($handler)($message);
+    }
+
+    #[Test]
+    public function invokeWithLoggerAndMultisitePath(): void
+    {
+        $currentBlogId = get_current_blog_id();
+
+        $bus = $this->createMock(MessageBusInterface::class);
+        $bus->expects(self::once())->method('dispatch')
+            ->willReturn(Envelope::wrap(new \stdClass()));
+
+        $logger = $this->createMock(LoggerInterface::class);
+
+        $handler = new S3ObjectCreatedHandler(
+            bus: $bus,
+            prefix: 'uploads',
+            logger: $logger,
+        );
+
+        $message = new S3ObjectCreatedMessage(
+            bucket: 'my-bucket',
+            key: 'uploads/sites/2/2024/01/logged-multisite.jpg',
+            size: 5000,
+            eTag: 'abc',
+        );
+
+        ($handler)($message);
+
+        self::assertSame($currentBlogId, get_current_blog_id());
     }
 }

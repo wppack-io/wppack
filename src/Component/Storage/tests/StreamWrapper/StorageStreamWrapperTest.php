@@ -760,4 +760,666 @@ final class StorageStreamWrapperTest extends TestCase
         $cached1 = $statCache->get(self::PROTOCOL . '://listing/file1.txt');
         self::assertNotNull($cached1, 'Stat for file1.txt should be pre-cached during directory listing');
     }
+
+    // ──────────────────────────────────────────────
+    // stream_truncate additional edge cases
+    // ──────────────────────────────────────────────
+
+    public function testTruncateMarksDirtyAndFlushesOnClose(): void
+    {
+        $fp = fopen(self::PROTOCOL . '://trunc-dirty.txt', 'w+');
+        fwrite($fp, 'Hello World');
+
+        // Truncate to 5 bytes — marks dirty
+        ftruncate($fp, 5);
+
+        // Close triggers flush of truncated content
+        fclose($fp);
+
+        self::assertSame('Hello', $this->adapter->read('trunc-dirty.txt'));
+    }
+
+    public function testTruncateToZero(): void
+    {
+        $fp = fopen(self::PROTOCOL . '://trunc-zero.txt', 'w+');
+        fwrite($fp, 'Some data');
+
+        ftruncate($fp, 0);
+        rewind($fp);
+        $content = stream_get_contents($fp);
+        self::assertSame('', $content);
+
+        fclose($fp);
+    }
+
+    // ──────────────────────────────────────────────
+    // stream_seek beyond end of file
+    // ──────────────────────────────────────────────
+
+    public function testSeekBeyondEnd(): void
+    {
+        $this->adapter->write('seek-beyond.txt', 'ABC');
+
+        $fp = fopen(self::PROTOCOL . '://seek-beyond.txt', 'r+');
+        self::assertIsResource($fp);
+
+        // Seek beyond end of file
+        $result = fseek($fp, 100);
+        self::assertSame(0, $result);
+        self::assertSame(100, ftell($fp));
+
+        // Read returns empty since we are past EOF
+        $data = fread($fp, 10);
+        self::assertSame('', $data);
+
+        fclose($fp);
+    }
+
+    public function testSeekWithWhenceEnd(): void
+    {
+        $this->adapter->write('seek-end.txt', 'ABCDEF');
+
+        $fp = fopen(self::PROTOCOL . '://seek-end.txt', 'r');
+        self::assertIsResource($fp);
+
+        // Seek from end
+        fseek($fp, -3, \SEEK_END);
+        self::assertSame('DEF', fread($fp, 3));
+
+        fclose($fp);
+    }
+
+    public function testSeekWithWhenceCur(): void
+    {
+        $this->adapter->write('seek-cur.txt', 'ABCDEF');
+
+        $fp = fopen(self::PROTOCOL . '://seek-cur.txt', 'r');
+        self::assertIsResource($fp);
+
+        fread($fp, 2); // position at 2
+        fseek($fp, 1, \SEEK_CUR); // skip 1 more
+        self::assertSame(3, ftell($fp));
+        self::assertSame('DEF', fread($fp, 3));
+
+        fclose($fp);
+    }
+
+    // ──────────────────────────────────────────────
+    // stream_set_option always returns false
+    // ──────────────────────────────────────────────
+
+    public function testStreamSetOptionReturnsFalse(): void
+    {
+        $fp = fopen(self::PROTOCOL . '://setopt.txt', 'w');
+        self::assertIsResource($fp);
+
+        fwrite($fp, 'data');
+
+        // stream_set_option is called internally by stream_set_timeout etc.
+        // We verify via the class method directly that it returns false
+        $wrapper = new StorageStreamWrapper();
+        self::assertFalse($wrapper->stream_set_option(0, 0, 0));
+
+        fclose($fp);
+    }
+
+    // ──────────────────────────────────────────────
+    // url_stat with Throwable from adapter (non ObjectNotFoundException)
+    // ──────────────────────────────────────────────
+
+    public function testUrlStatReturnsFalseOnGenericException(): void
+    {
+        // Create a mock adapter that throws a generic exception on metadata
+        $errorAdapter = new class implements \WpPack\Component\Storage\Adapter\StorageAdapterInterface {
+            public function getName(): string
+            {
+                return 'error';
+            }
+            public function write(string $key, string $contents, array $metadata = []): void {}
+            public function writeStream(string $key, mixed $resource, array $metadata = []): void {}
+            public function read(string $key): string
+            {
+                return '';
+            }
+            public function readStream(string $key): mixed
+            {
+                return fopen('php://memory', 'r');
+            }
+            public function delete(string $key): void {}
+            public function deleteMultiple(array $keys): void {}
+            public function exists(string $key): bool
+            {
+                return true;
+            }
+            public function copy(string $sourceKey, string $destinationKey): void {}
+            public function move(string $sourceKey, string $destinationKey): void {}
+            public function metadata(string $key): \WpPack\Component\Storage\ObjectMetadata
+            {
+                throw new \RuntimeException('Connection error');
+            }
+            public function publicUrl(string $key): string
+            {
+                return '';
+            }
+            public function temporaryUrl(string $key, \DateTimeInterface $expiration): string
+            {
+                return '';
+            }
+            public function listContents(string $prefix = '', bool $recursive = true): iterable
+            {
+                return [];
+            }
+        };
+
+        StorageStreamWrapper::register('errtest', $errorAdapter);
+
+        try {
+            clearstatcache();
+            StorageStreamWrapper::getStatCache('errtest')?->clear();
+
+            // url_stat should return false on generic Throwable
+            $result = @stat('errtest://some-file.txt');
+            self::assertFalse($result);
+        } finally {
+            StorageStreamWrapper::unregister('errtest');
+        }
+    }
+
+    // ──────────────────────────────────────────────
+    // unlink returns false when adapter throws
+    // ──────────────────────────────────────────────
+
+    public function testUnlinkReturnsFalseOnException(): void
+    {
+        $errorAdapter = new class implements \WpPack\Component\Storage\Adapter\StorageAdapterInterface {
+            public function getName(): string
+            {
+                return 'error';
+            }
+            public function write(string $key, string $contents, array $metadata = []): void {}
+            public function writeStream(string $key, mixed $resource, array $metadata = []): void {}
+            public function read(string $key): string
+            {
+                return '';
+            }
+            public function readStream(string $key): mixed
+            {
+                return fopen('php://memory', 'r');
+            }
+            public function delete(string $key): void
+            {
+                throw new \RuntimeException('Delete failed');
+            }
+            public function deleteMultiple(array $keys): void {}
+            public function exists(string $key): bool
+            {
+                return true;
+            }
+            public function copy(string $sourceKey, string $destinationKey): void {}
+            public function move(string $sourceKey, string $destinationKey): void {}
+            public function metadata(string $key): \WpPack\Component\Storage\ObjectMetadata
+            {
+                return new \WpPack\Component\Storage\ObjectMetadata(key: $key, size: 0);
+            }
+            public function publicUrl(string $key): string
+            {
+                return '';
+            }
+            public function temporaryUrl(string $key, \DateTimeInterface $expiration): string
+            {
+                return '';
+            }
+            public function listContents(string $prefix = '', bool $recursive = true): iterable
+            {
+                return [];
+            }
+        };
+
+        StorageStreamWrapper::register('unlinktest', $errorAdapter);
+
+        try {
+            $result = @unlink('unlinktest://somefile.txt');
+            self::assertFalse($result);
+        } finally {
+            StorageStreamWrapper::unregister('unlinktest');
+        }
+    }
+
+    // ──────────────────────────────────────────────
+    // rename returns false when adapter throws
+    // ──────────────────────────────────────────────
+
+    public function testRenameReturnsFalseOnException(): void
+    {
+        $errorAdapter = new class implements \WpPack\Component\Storage\Adapter\StorageAdapterInterface {
+            public function getName(): string
+            {
+                return 'error';
+            }
+            public function write(string $key, string $contents, array $metadata = []): void {}
+            public function writeStream(string $key, mixed $resource, array $metadata = []): void {}
+            public function read(string $key): string
+            {
+                return '';
+            }
+            public function readStream(string $key): mixed
+            {
+                return fopen('php://memory', 'r');
+            }
+            public function delete(string $key): void {}
+            public function deleteMultiple(array $keys): void {}
+            public function exists(string $key): bool
+            {
+                return true;
+            }
+            public function copy(string $sourceKey, string $destinationKey): void {}
+            public function move(string $sourceKey, string $destinationKey): void
+            {
+                throw new \RuntimeException('Move failed');
+            }
+            public function metadata(string $key): \WpPack\Component\Storage\ObjectMetadata
+            {
+                return new \WpPack\Component\Storage\ObjectMetadata(key: $key, size: 0);
+            }
+            public function publicUrl(string $key): string
+            {
+                return '';
+            }
+            public function temporaryUrl(string $key, \DateTimeInterface $expiration): string
+            {
+                return '';
+            }
+            public function listContents(string $prefix = '', bool $recursive = true): iterable
+            {
+                return [];
+            }
+        };
+
+        StorageStreamWrapper::register('renametest', $errorAdapter);
+
+        try {
+            $result = @rename('renametest://from.txt', 'renametest://to.txt');
+            self::assertFalse($result);
+        } finally {
+            StorageStreamWrapper::unregister('renametest');
+        }
+    }
+
+    // ──────────────────────────────────────────────
+    // stream_open with unregistered protocol adapter
+    // ──────────────────────────────────────────────
+
+    public function testOpenFailsWhenReadOnlyFileDoesNotExist(): void
+    {
+        $fp = @fopen(self::PROTOCOL . '://nonexistent-readonly.txt', 'r');
+        self::assertFalse($fp);
+    }
+
+    // ──────────────────────────────────────────────
+    // dir_opendir on adapter that throws
+    // ──────────────────────────────────────────────
+
+    public function testDirOpendirReturnsFalseOnException(): void
+    {
+        $errorAdapter = new class implements \WpPack\Component\Storage\Adapter\StorageAdapterInterface {
+            public function getName(): string
+            {
+                return 'error';
+            }
+            public function write(string $key, string $contents, array $metadata = []): void {}
+            public function writeStream(string $key, mixed $resource, array $metadata = []): void {}
+            public function read(string $key): string
+            {
+                return '';
+            }
+            public function readStream(string $key): mixed
+            {
+                return fopen('php://memory', 'r');
+            }
+            public function delete(string $key): void {}
+            public function deleteMultiple(array $keys): void {}
+            public function exists(string $key): bool
+            {
+                return false;
+            }
+            public function copy(string $sourceKey, string $destinationKey): void {}
+            public function move(string $sourceKey, string $destinationKey): void {}
+            public function metadata(string $key): \WpPack\Component\Storage\ObjectMetadata
+            {
+                return new \WpPack\Component\Storage\ObjectMetadata(key: $key, size: 0);
+            }
+            public function publicUrl(string $key): string
+            {
+                return '';
+            }
+            public function temporaryUrl(string $key, \DateTimeInterface $expiration): string
+            {
+                return '';
+            }
+            public function listContents(string $prefix = '', bool $recursive = true): iterable
+            {
+                throw new \RuntimeException('List failed');
+            }
+        };
+
+        StorageStreamWrapper::register('dirtest', $errorAdapter);
+
+        try {
+            $result = @opendir('dirtest://some-dir');
+            self::assertFalse($result);
+        } finally {
+            StorageStreamWrapper::unregister('dirtest');
+        }
+    }
+
+    // ──────────────────────────────────────────────
+    // StatCache invalidated on write (via flush)
+    // ──────────────────────────────────────────────
+
+    public function testStatCacheInvalidatedOnWrite(): void
+    {
+        $this->adapter->write('write-cache.txt', 'old');
+
+        // Populate cache via stat
+        clearstatcache();
+        file_exists(self::PROTOCOL . '://write-cache.txt');
+
+        $statCache = StorageStreamWrapper::getStatCache(self::PROTOCOL);
+        self::assertNotNull($statCache->get(self::PROTOCOL . '://write-cache.txt'));
+
+        // Write new content, which should invalidate the cache for that key
+        file_put_contents(self::PROTOCOL . '://write-cache.txt', 'new content');
+
+        // Cache should have been invalidated via flush()
+        self::assertNull($statCache->get(self::PROTOCOL . '://write-cache.txt'));
+    }
+
+    // ──────────────────────────────────────────────
+    // stream_eof returns true when body is null
+    // ──────────────────────────────────────────────
+
+    public function testStreamEofReturnsTrueWhenBodyNull(): void
+    {
+        $wrapper = new StorageStreamWrapper();
+
+        // body is null by default
+        self::assertTrue($wrapper->stream_eof());
+    }
+
+    // ──────────────────────────────────────────────
+    // stream_tell returns false when body is null
+    // ──────────────────────────────────────────────
+
+    public function testStreamTellReturnsFalseWhenBodyNull(): void
+    {
+        $wrapper = new StorageStreamWrapper();
+
+        self::assertFalse($wrapper->stream_tell());
+    }
+
+    // ──────────────────────────────────────────────
+    // stream_seek returns false when body is null
+    // ──────────────────────────────────────────────
+
+    public function testStreamSeekReturnsFalseWhenBodyNull(): void
+    {
+        $wrapper = new StorageStreamWrapper();
+
+        self::assertFalse($wrapper->stream_seek(0));
+    }
+
+    // ──────────────────────────────────────────────
+    // stream_stat returns false when body is null
+    // ──────────────────────────────────────────────
+
+    public function testStreamStatReturnsFalseWhenBodyNull(): void
+    {
+        $wrapper = new StorageStreamWrapper();
+
+        self::assertFalse($wrapper->stream_stat());
+    }
+
+    // ──────────────────────────────────────────────
+    // stream_flush returns false when body is null
+    // ──────────────────────────────────────────────
+
+    public function testStreamFlushReturnsFalseWhenBodyNull(): void
+    {
+        $wrapper = new StorageStreamWrapper();
+
+        self::assertFalse($wrapper->stream_flush());
+    }
+
+    // ──────────────────────────────────────────────
+    // stream_truncate returns false when body is null
+    // ──────────────────────────────────────────────
+
+    public function testStreamTruncateReturnsFalseWhenBodyNull(): void
+    {
+        $wrapper = new StorageStreamWrapper();
+
+        self::assertFalse($wrapper->stream_truncate(0));
+    }
+
+    // ──────────────────────────────────────────────
+    // stream_read returns false when body is null
+    // ──────────────────────────────────────────────
+
+    public function testStreamReadReturnsFalseWhenBodyNull(): void
+    {
+        $wrapper = new StorageStreamWrapper();
+
+        self::assertFalse($wrapper->stream_read(1024));
+    }
+
+    // ──────────────────────────────────────────────
+    // stream_write returns 0 when body is null
+    // ──────────────────────────────────────────────
+
+    public function testStreamWriteReturnsZeroWhenBodyNull(): void
+    {
+        $wrapper = new StorageStreamWrapper();
+
+        self::assertSame(0, $wrapper->stream_write('data'));
+    }
+
+    // ──────────────────────────────────────────────
+    // stream_close does nothing when body is null
+    // ──────────────────────────────────────────────
+
+    public function testStreamCloseDoesNothingWhenBodyNull(): void
+    {
+        $wrapper = new StorageStreamWrapper();
+
+        // Should not throw
+        $wrapper->stream_close();
+        self::assertTrue(true);
+    }
+
+    // ──────────────────────────────────────────────
+    // append mode with adapter that throws generic error
+    // ──────────────────────────────────────────────
+
+    public function testAppendModeReturnsFalseOnGenericError(): void
+    {
+        $errorAdapter = new class implements \WpPack\Component\Storage\Adapter\StorageAdapterInterface {
+            public function getName(): string
+            {
+                return 'error';
+            }
+            public function write(string $key, string $contents, array $metadata = []): void {}
+            public function writeStream(string $key, mixed $resource, array $metadata = []): void {}
+            public function read(string $key): string
+            {
+                return '';
+            }
+            public function readStream(string $key): mixed
+            {
+                throw new \RuntimeException('Connection error');
+            }
+            public function delete(string $key): void {}
+            public function deleteMultiple(array $keys): void {}
+            public function exists(string $key): bool
+            {
+                return true;
+            }
+            public function copy(string $sourceKey, string $destinationKey): void {}
+            public function move(string $sourceKey, string $destinationKey): void {}
+            public function metadata(string $key): \WpPack\Component\Storage\ObjectMetadata
+            {
+                return new \WpPack\Component\Storage\ObjectMetadata(key: $key, size: 0);
+            }
+            public function publicUrl(string $key): string
+            {
+                return '';
+            }
+            public function temporaryUrl(string $key, \DateTimeInterface $expiration): string
+            {
+                return '';
+            }
+            public function listContents(string $prefix = '', bool $recursive = true): iterable
+            {
+                return [];
+            }
+        };
+
+        StorageStreamWrapper::register('appendtest', $errorAdapter);
+
+        try {
+            $fp = @fopen('appendtest://file.txt', 'a');
+            self::assertFalse($fp);
+        } finally {
+            StorageStreamWrapper::unregister('appendtest');
+        }
+    }
+
+    // ──────────────────────────────────────────────
+    // c+ mode with adapter that throws generic error
+    // ──────────────────────────────────────────────
+
+    public function testModeCPlusReturnsFalseOnGenericError(): void
+    {
+        $errorAdapter = new class implements \WpPack\Component\Storage\Adapter\StorageAdapterInterface {
+            public function getName(): string
+            {
+                return 'error';
+            }
+            public function write(string $key, string $contents, array $metadata = []): void {}
+            public function writeStream(string $key, mixed $resource, array $metadata = []): void {}
+            public function read(string $key): string
+            {
+                return '';
+            }
+            public function readStream(string $key): mixed
+            {
+                throw new \RuntimeException('Connection error');
+            }
+            public function delete(string $key): void {}
+            public function deleteMultiple(array $keys): void {}
+            public function exists(string $key): bool
+            {
+                return true;
+            }
+            public function copy(string $sourceKey, string $destinationKey): void {}
+            public function move(string $sourceKey, string $destinationKey): void {}
+            public function metadata(string $key): \WpPack\Component\Storage\ObjectMetadata
+            {
+                return new \WpPack\Component\Storage\ObjectMetadata(key: $key, size: 0);
+            }
+            public function publicUrl(string $key): string
+            {
+                return '';
+            }
+            public function temporaryUrl(string $key, \DateTimeInterface $expiration): string
+            {
+                return '';
+            }
+            public function listContents(string $prefix = '', bool $recursive = true): iterable
+            {
+                return [];
+            }
+        };
+
+        StorageStreamWrapper::register('cplustest', $errorAdapter);
+
+        try {
+            $fp = @fopen('cplustest://file.txt', 'c+');
+            self::assertFalse($fp);
+        } finally {
+            StorageStreamWrapper::unregister('cplustest');
+        }
+    }
+
+    // ──────────────────────────────────────────────
+    // x mode with adapter.exists() that throws
+    // ──────────────────────────────────────────────
+
+    public function testModeXReturnsFalseWhenExistsThrows(): void
+    {
+        $errorAdapter = new class implements \WpPack\Component\Storage\Adapter\StorageAdapterInterface {
+            public function getName(): string
+            {
+                return 'error';
+            }
+            public function write(string $key, string $contents, array $metadata = []): void {}
+            public function writeStream(string $key, mixed $resource, array $metadata = []): void {}
+            public function read(string $key): string
+            {
+                return '';
+            }
+            public function readStream(string $key): mixed
+            {
+                return fopen('php://memory', 'r');
+            }
+            public function delete(string $key): void {}
+            public function deleteMultiple(array $keys): void {}
+            public function exists(string $key): bool
+            {
+                throw new \RuntimeException('Connection error');
+            }
+            public function copy(string $sourceKey, string $destinationKey): void {}
+            public function move(string $sourceKey, string $destinationKey): void {}
+            public function metadata(string $key): \WpPack\Component\Storage\ObjectMetadata
+            {
+                return new \WpPack\Component\Storage\ObjectMetadata(key: $key, size: 0);
+            }
+            public function publicUrl(string $key): string
+            {
+                return '';
+            }
+            public function temporaryUrl(string $key, \DateTimeInterface $expiration): string
+            {
+                return '';
+            }
+            public function listContents(string $prefix = '', bool $recursive = true): iterable
+            {
+                return [];
+            }
+        };
+
+        StorageStreamWrapper::register('xtest', $errorAdapter);
+
+        try {
+            $fp = @fopen('xtest://file.txt', 'x');
+            self::assertFalse($fp);
+        } finally {
+            StorageStreamWrapper::unregister('xtest');
+        }
+    }
+
+    // ──────────────────────────────────────────────
+    // re-registration overwrites existing wrapper
+    // ──────────────────────────────────────────────
+
+    public function testRegisterOverwritesExistingWrapper(): void
+    {
+        $adapter2 = new InMemoryStorageAdapter();
+        $adapter2->write('new.txt', 'new-data');
+
+        // Re-register with new adapter
+        StorageStreamWrapper::register(self::PROTOCOL, $adapter2);
+
+        self::assertSame($adapter2, StorageStreamWrapper::getAdapter(self::PROTOCOL));
+        self::assertSame('new-data', file_get_contents(self::PROTOCOL . '://new.txt'));
+    }
 }

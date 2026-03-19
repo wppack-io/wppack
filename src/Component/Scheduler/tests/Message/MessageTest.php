@@ -8,9 +8,11 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Scheduler\Exception\InvalidArgumentException;
+use WpPack\Component\Scheduler\Message\ActionSchedulerMessage;
 use WpPack\Component\Scheduler\Message\OneTimeMessage;
 use WpPack\Component\Scheduler\Message\RecurringMessage;
 use WpPack\Component\Scheduler\Message\ScheduledMessage;
+use WpPack\Component\Scheduler\Message\WpCronMessage;
 use WpPack\Component\Scheduler\Schedule;
 use WpPack\Component\Scheduler\Trigger\CronExpressionTrigger;
 use WpPack\Component\Scheduler\Trigger\DateTimeTrigger;
@@ -21,6 +23,8 @@ use WpPack\Component\Scheduler\Trigger\WpCronScheduleTrigger;
 #[CoversClass(RecurringMessage::class)]
 #[CoversClass(OneTimeMessage::class)]
 #[CoversClass(Schedule::class)]
+#[CoversClass(WpCronMessage::class)]
+#[CoversClass(ActionSchedulerMessage::class)]
 final class MessageTest extends TestCase
 {
     // =========================================================================
@@ -956,5 +960,94 @@ final class MessageTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
 
         new IntervalTrigger(-1);
+    }
+
+    // =========================================================================
+    // WpCronMessage
+    // =========================================================================
+
+    #[Test]
+    public function wpCronMessageDefaultValues(): void
+    {
+        $message = new WpCronMessage('my_hook');
+
+        self::assertSame('my_hook', $message->hook);
+        self::assertSame([], $message->args);
+        self::assertFalse($message->schedule);
+        self::assertSame(0, $message->timestamp);
+    }
+
+    #[Test]
+    public function wpCronMessageWithAllProperties(): void
+    {
+        $message = new WpCronMessage(
+            hook: 'cleanup_hook',
+            args: ['arg1', 'arg2'],
+            schedule: 'hourly',
+            timestamp: 1700000000,
+        );
+
+        self::assertSame('cleanup_hook', $message->hook);
+        self::assertSame(['arg1', 'arg2'], $message->args);
+        self::assertSame('hourly', $message->schedule);
+        self::assertSame(1700000000, $message->timestamp);
+    }
+
+    #[Test]
+    public function wpCronMessageIsReadonly(): void
+    {
+        $reflection = new \ReflectionClass(WpCronMessage::class);
+
+        self::assertTrue($reflection->isReadOnly());
+    }
+
+    #[Test]
+    public function wpCronMessageWithFalseSchedule(): void
+    {
+        $message = new WpCronMessage(
+            hook: 'one_time_hook',
+            schedule: false,
+        );
+
+        self::assertFalse($message->schedule);
+    }
+
+    // =========================================================================
+    // ActionSchedulerMessage
+    // =========================================================================
+
+    #[Test]
+    public function actionSchedulerMessageDefaultValues(): void
+    {
+        $message = new ActionSchedulerMessage('my_action');
+
+        self::assertSame('my_action', $message->hook);
+        self::assertSame([], $message->args);
+        self::assertSame('', $message->group);
+        self::assertSame(0, $message->actionId);
+    }
+
+    #[Test]
+    public function actionSchedulerMessageWithAllProperties(): void
+    {
+        $message = new ActionSchedulerMessage(
+            hook: 'process_order',
+            args: [42, 'premium'],
+            group: 'orders',
+            actionId: 123,
+        );
+
+        self::assertSame('process_order', $message->hook);
+        self::assertSame([42, 'premium'], $message->args);
+        self::assertSame('orders', $message->group);
+        self::assertSame(123, $message->actionId);
+    }
+
+    #[Test]
+    public function actionSchedulerMessageIsReadonly(): void
+    {
+        $reflection = new \ReflectionClass(ActionSchedulerMessage::class);
+
+        self::assertTrue($reflection->isReadOnly());
     }
 }

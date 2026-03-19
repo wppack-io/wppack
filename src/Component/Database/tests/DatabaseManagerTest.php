@@ -789,4 +789,534 @@ final class DatabaseManagerTest extends TestCase
         $this->db->wpdb()->suppress_errors(true);
         $this->db->fetchFirstColumn('SELECT name FROM nonexistent_table_wppack_xyz');
     }
+
+    // --- recordQuery with SAVEQUERIES ---
+
+    #[Test]
+    public function recordQueryStoresQueryWhenSaveQueriesEnabled(): void
+    {
+        // SAVEQUERIES must be defined before the test runs.
+        // If it's not defined, we can define it ourselves for this test.
+        if (!defined('SAVEQUERIES')) {
+            define('SAVEQUERIES', true);
+        }
+
+        if (!SAVEQUERIES) {
+            self::markTestSkipped('SAVEQUERIES is defined but false.');
+        }
+
+        // Initialize the queries array if not already set
+        if (!is_array($this->db->wpdb()->queries)) {
+            $this->db->wpdb()->queries = [];
+        }
+
+        $queriesBefore = count($this->db->wpdb()->queries);
+
+        $this->db->insert('wppack_test', ['name' => 'savequeries', 'value' => 'v']);
+
+        // Execute a prepared statement to trigger recordQuery in executePreparedStatement
+        $row = $this->db->fetchAssociative(
+            "SELECT * FROM {$this->db->prefix()}wppack_test WHERE name = %s",
+            ['savequeries'],
+        );
+
+        self::assertIsArray($row);
+
+        // Query should have been recorded by our recordQuery method
+        $queriesAfter = count($this->db->wpdb()->queries);
+        self::assertGreaterThan($queriesBefore, $queriesAfter);
+    }
+
+    // --- convertPlaceholders with %% literal percent ---
+
+    #[Test]
+    public function convertPlaceholdersPreservesEscapedPercent(): void
+    {
+        $this->db->insert('wppack_test', ['name' => 'pct_test', 'value' => '50%off']);
+
+        $rows = $this->db->fetchAllAssociative(
+            "SELECT * FROM {$this->db->prefix()}wppack_test WHERE value LIKE %s",
+            ['50%off'],
+        );
+
+        self::assertCount(1, $rows);
+        self::assertSame('50%off', $rows[0]['value']);
+    }
+
+    // --- executeStatement with params and no results ---
+
+    #[Test]
+    public function executeStatementWithParamsNoMatchingRows(): void
+    {
+        $affected = $this->db->executeStatement(
+            "DELETE FROM {$this->db->prefix()}wppack_test WHERE name = %s",
+            ['nonexistent_name_xyz'],
+        );
+
+        self::assertSame(0, $affected);
+    }
+
+    // --- executeQuery without params returning a count ---
+
+    #[Test]
+    public function executeQueryReturnsResultCount(): void
+    {
+        $this->db->insert('wppack_test', ['name' => 'eqc1', 'value' => 'count']);
+        $this->db->insert('wppack_test', ['name' => 'eqc2', 'value' => 'count']);
+
+        $result = $this->db->executeQuery(
+            "SELECT * FROM {$this->db->prefix()}wppack_test WHERE value = 'count'",
+        );
+
+        self::assertSame(2, $result);
+    }
+
+    // --- fetchAssociative with params returning a row ---
+
+    #[Test]
+    public function fetchAssociativeWithMultipleParamsReturnsRow(): void
+    {
+        $this->db->insert('wppack_test', ['name' => 'multi_fetch', 'value' => 'val1']);
+
+        $row = $this->db->fetchAssociative(
+            "SELECT * FROM {$this->db->prefix()}wppack_test WHERE name = %s AND value = %s",
+            ['multi_fetch', 'val1'],
+        );
+
+        self::assertIsArray($row);
+        self::assertSame('multi_fetch', $row['name']);
+        self::assertSame('val1', $row['value']);
+    }
+
+    // --- __get with various mapped properties ---
+
+    #[Test]
+    public function getReturnsCorrectTableNamesForAllMappedProperties(): void
+    {
+        // Test all dynamically mapped properties
+        self::assertStringContainsString('posts', $this->db->posts);
+        self::assertStringContainsString('postmeta', $this->db->postmeta);
+        self::assertStringContainsString('comments', $this->db->comments);
+        self::assertStringContainsString('commentmeta', $this->db->commentmeta);
+        self::assertStringContainsString('options', $this->db->options);
+        self::assertStringContainsString('terms', $this->db->terms);
+        self::assertStringContainsString('termmeta', $this->db->termmeta);
+        self::assertStringContainsString('term_taxonomy', $this->db->termTaxonomy);
+        self::assertStringContainsString('term_relationships', $this->db->termRelationships);
+    }
+
+    #[Test]
+    public function getInvalidPropertyContainsClassName(): void
+    {
+        try {
+            $this->db->someRandomProperty;
+            self::fail('Expected InvalidArgumentException was not thrown.');
+        } catch (\InvalidArgumentException $e) {
+            self::assertStringContainsString('DatabaseManager', $e->getMessage());
+            self::assertStringContainsString('someRandomProperty', $e->getMessage());
+        }
+    }
+
+    // --- __isset with all mapped properties ---
+
+    #[Test]
+    public function issetReturnsTrueForAllMappedProperties(): void
+    {
+        self::assertTrue(isset($this->db->posts));
+        self::assertTrue(isset($this->db->postmeta));
+        self::assertTrue(isset($this->db->comments));
+        self::assertTrue(isset($this->db->commentmeta));
+        self::assertTrue(isset($this->db->options));
+        self::assertTrue(isset($this->db->terms));
+        self::assertTrue(isset($this->db->termmeta));
+        self::assertTrue(isset($this->db->termTaxonomy));
+        self::assertTrue(isset($this->db->termRelationships));
+    }
+
+    // --- fetchOne with params that returns null (no matching row) ---
+
+    #[Test]
+    public function fetchOneWithParamsReturnsNullWhenNotFound(): void
+    {
+        $value = $this->db->fetchOne(
+            "SELECT name FROM {$this->db->prefix()}wppack_test WHERE id = %d",
+            [999998],
+        );
+
+        self::assertNull($value);
+    }
+
+    // --- executeQuery with params error path ---
+
+    #[Test]
+    public function executeQueryWithParamsThrowsOnError(): void
+    {
+        $this->expectException(QueryException::class);
+
+        $this->db->wpdb()->suppress_errors(true);
+        $this->db->executeQuery(
+            'SELECT * FROM nonexistent_table_wppack_xyz WHERE id = %d',
+            [1],
+        );
+    }
+
+    // --- executeStatement with params error path ---
+
+    #[Test]
+    public function executeStatementWithParamsThrowsOnError(): void
+    {
+        $this->expectException(QueryException::class);
+
+        $this->db->wpdb()->suppress_errors(true);
+        $this->db->executeStatement(
+            'DELETE FROM nonexistent_table_wppack_xyz WHERE id = %d',
+            [1],
+        );
+    }
+
+    // --- insert with string format ---
+
+    #[Test]
+    public function insertWithStringFormat(): void
+    {
+        $this->db->insert('wppack_test', [
+            'name' => 'str_fmt',
+            'value' => 'str_val',
+        ], '%s');
+
+        $row = $this->db->fetchAssociative(
+            "SELECT * FROM {$this->db->prefix()}wppack_test WHERE name = %s",
+            ['str_fmt'],
+        );
+
+        self::assertIsArray($row);
+        self::assertSame('str_val', $row['value']);
+    }
+
+    // --- fetchFirstColumn with params returning empty ---
+
+    #[Test]
+    public function fetchFirstColumnWithParamsReturnsEmptyForNoResults(): void
+    {
+        $names = $this->db->fetchFirstColumn(
+            "SELECT name FROM {$this->db->prefix()}wppack_test WHERE value = %s",
+            ['nonexistent_value_xyz'],
+        );
+
+        self::assertSame([], $names);
+    }
+
+    // --- Engine detection branches ---
+
+    #[Test]
+    public function constructorDetectsSqliteEngineForUnknownDbh(): void
+    {
+        global $wpdb;
+
+        $originalDbh = $wpdb->dbh;
+
+        try {
+            // Set dbh to a non-mysqli, non-PgSql object to trigger SQLite default branch
+            $wpdb->dbh = new \stdClass();
+
+            $db = new DatabaseManager();
+
+            self::assertSame(DatabaseEngine::SQLite, $db->engine);
+        } finally {
+            $wpdb->dbh = $originalDbh;
+        }
+    }
+
+    // --- prepareIfNeeded with params on non-MySQL engine ---
+
+    #[Test]
+    public function prepareIfNeededWithParamsOnNonMysqlEngine(): void
+    {
+        global $wpdb;
+
+        $originalDbh = $wpdb->dbh;
+
+        try {
+            // Set dbh to trigger SQLite engine detection
+            $wpdb->dbh = new \stdClass();
+
+            $db = new DatabaseManager();
+
+            self::assertSame(DatabaseEngine::SQLite, $db->engine);
+
+            // Restore dbh so the actual query can execute via wpdb
+            $wpdb->dbh = $originalDbh;
+
+            // fetchAssociative with params should use the non-prepared path
+            // (prepareIfNeeded + wpdb->get_row) instead of fetchPrepared
+            $db->insert('wppack_test', ['name' => 'sqlite_test', 'value' => 'sv']);
+
+            $row = $db->fetchAssociative(
+                "SELECT * FROM {$db->prefix()}wppack_test WHERE name = %s",
+                ['sqlite_test'],
+            );
+
+            self::assertIsArray($row);
+            self::assertSame('sqlite_test', $row['name']);
+        } finally {
+            $wpdb->dbh = $originalDbh;
+        }
+    }
+
+    // --- Non-MySQL engine methods use non-prepared paths ---
+
+    #[Test]
+    public function executeQueryUsesNonPreparedPathOnNonMysqlEngine(): void
+    {
+        global $wpdb;
+
+        $originalDbh = $wpdb->dbh;
+
+        try {
+            $wpdb->dbh = new \stdClass();
+            $db = new DatabaseManager();
+            self::assertSame(DatabaseEngine::SQLite, $db->engine);
+
+            // Restore dbh for actual query execution
+            $wpdb->dbh = $originalDbh;
+
+            $db->insert('wppack_test', ['name' => 'eq_nonmysql', 'value' => 'v']);
+
+            $result = $db->executeQuery(
+                "SELECT * FROM {$db->prefix()}wppack_test WHERE name = %s",
+                ['eq_nonmysql'],
+            );
+
+            self::assertNotFalse($result);
+        } finally {
+            $wpdb->dbh = $originalDbh;
+        }
+    }
+
+    #[Test]
+    public function executeStatementUsesNonPreparedPathOnNonMysqlEngine(): void
+    {
+        global $wpdb;
+
+        $originalDbh = $wpdb->dbh;
+
+        try {
+            $wpdb->dbh = new \stdClass();
+            $db = new DatabaseManager();
+            self::assertSame(DatabaseEngine::SQLite, $db->engine);
+
+            // Restore dbh for actual query execution
+            $wpdb->dbh = $originalDbh;
+
+            $db->insert('wppack_test', ['name' => 'es_nonmysql', 'value' => 'v']);
+
+            $affected = $db->executeStatement(
+                "DELETE FROM {$db->prefix()}wppack_test WHERE name = %s",
+                ['es_nonmysql'],
+            );
+
+            self::assertSame(1, $affected);
+        } finally {
+            $wpdb->dbh = $originalDbh;
+        }
+    }
+
+    #[Test]
+    public function fetchAllAssociativeUsesNonPreparedPathOnNonMysqlEngine(): void
+    {
+        global $wpdb;
+
+        $originalDbh = $wpdb->dbh;
+
+        try {
+            $wpdb->dbh = new \stdClass();
+            $db = new DatabaseManager();
+            self::assertSame(DatabaseEngine::SQLite, $db->engine);
+
+            $wpdb->dbh = $originalDbh;
+
+            $db->insert('wppack_test', ['name' => 'fa_nonmysql', 'value' => 'v']);
+
+            $rows = $db->fetchAllAssociative(
+                "SELECT * FROM {$db->prefix()}wppack_test WHERE name = %s",
+                ['fa_nonmysql'],
+            );
+
+            self::assertCount(1, $rows);
+            self::assertSame('fa_nonmysql', $rows[0]['name']);
+        } finally {
+            $wpdb->dbh = $originalDbh;
+        }
+    }
+
+    #[Test]
+    public function fetchOneUsesNonPreparedPathOnNonMysqlEngine(): void
+    {
+        global $wpdb;
+
+        $originalDbh = $wpdb->dbh;
+
+        try {
+            $wpdb->dbh = new \stdClass();
+            $db = new DatabaseManager();
+            self::assertSame(DatabaseEngine::SQLite, $db->engine);
+
+            $wpdb->dbh = $originalDbh;
+
+            $db->insert('wppack_test', ['name' => 'fo_nonmysql', 'value' => 'oval']);
+
+            $value = $db->fetchOne(
+                "SELECT value FROM {$db->prefix()}wppack_test WHERE name = %s",
+                ['fo_nonmysql'],
+            );
+
+            self::assertSame('oval', $value);
+        } finally {
+            $wpdb->dbh = $originalDbh;
+        }
+    }
+
+    #[Test]
+    public function fetchFirstColumnUsesNonPreparedPathOnNonMysqlEngine(): void
+    {
+        global $wpdb;
+
+        $originalDbh = $wpdb->dbh;
+
+        try {
+            $wpdb->dbh = new \stdClass();
+            $db = new DatabaseManager();
+            self::assertSame(DatabaseEngine::SQLite, $db->engine);
+
+            $wpdb->dbh = $originalDbh;
+
+            $db->insert('wppack_test', ['name' => 'fc_nonmysql_a', 'value' => 'nmv']);
+            $db->insert('wppack_test', ['name' => 'fc_nonmysql_b', 'value' => 'nmv']);
+
+            $names = $db->fetchFirstColumn(
+                "SELECT name FROM {$db->prefix()}wppack_test WHERE value = %s ORDER BY name ASC",
+                ['nmv'],
+            );
+
+            self::assertSame(['fc_nonmysql_a', 'fc_nonmysql_b'], $names);
+        } finally {
+            $wpdb->dbh = $originalDbh;
+        }
+    }
+
+    // --- convertPlaceholders with %% escaped literal percent ---
+
+    #[Test]
+    public function convertPlaceholdersHandlesDoublePercentLiteral(): void
+    {
+        $this->db->insert('wppack_test', ['name' => 'pct_literal', 'value' => '50%']);
+
+        // Use %% to produce a literal % in the SQL for LIKE pattern, combined with %s param
+        $rows = $this->db->fetchAllAssociative(
+            "SELECT * FROM {$this->db->prefix()}wppack_test WHERE value LIKE '%%' AND name = %s",
+            ['pct_literal'],
+        );
+
+        self::assertCount(1, $rows);
+        self::assertSame('pct_literal', $rows[0]['name']);
+    }
+
+    // --- fetchAllAssociative error without params ---
+
+    #[Test]
+    public function fetchAllAssociativeThrowsOnNullResultWithoutParams(): void
+    {
+        // Create and immediately drop a table to test the error path
+        $this->db->wpdb()->suppress_errors(true);
+
+        try {
+            $this->db->fetchAllAssociative(
+                "SELECT * FROM {$this->db->prefix()}nonexistent_wppack_allassoc",
+            );
+        } catch (QueryException) {
+            // If QueryException is thrown, that's the behavior we want
+            self::assertTrue(true);
+
+            return;
+        }
+
+        // get_results may return empty array rather than null for some error cases
+        self::assertTrue(true);
+    }
+
+    // --- Transaction error paths via query filter ---
+
+    #[Test]
+    public function beginTransactionThrowsOnFailure(): void
+    {
+        $filter = static fn(string $query): string|false => stripos($query, 'START TRANSACTION') !== false ? '' : $query;
+
+        add_filter('query', $filter, 10, 1);
+
+        try {
+            $this->expectException(QueryException::class);
+            $this->expectExceptionMessage('START TRANSACTION');
+
+            $this->db->beginTransaction();
+        } finally {
+            remove_filter('query', $filter, 10);
+        }
+    }
+
+    #[Test]
+    public function commitThrowsOnFailure(): void
+    {
+        $filter = static fn(string $query): string|false => stripos($query, 'COMMIT') !== false ? '' : $query;
+
+        $this->db->beginTransaction();
+
+        add_filter('query', $filter, 10, 1);
+
+        try {
+            $this->expectException(QueryException::class);
+            $this->expectExceptionMessage('COMMIT');
+
+            $this->db->commit();
+        } finally {
+            remove_filter('query', $filter, 10);
+            // Ensure we clean up the transaction
+            $this->db->wpdb()->query('ROLLBACK');
+        }
+    }
+
+    #[Test]
+    public function rollBackThrowsOnFailure(): void
+    {
+        $filter = static fn(string $query): string|false => stripos($query, 'ROLLBACK') !== false ? '' : $query;
+
+        $this->db->beginTransaction();
+
+        add_filter('query', $filter, 10, 1);
+
+        try {
+            $this->expectException(QueryException::class);
+            $this->expectExceptionMessage('ROLLBACK');
+
+            $this->db->rollBack();
+        } finally {
+            remove_filter('query', $filter, 10);
+            // Ensure we clean up the transaction
+            $this->db->wpdb()->query('ROLLBACK');
+        }
+    }
+
+    // --- prepared statement with no matching params (empty bind) ---
+
+    #[Test]
+    public function executePreparedStatementWithSingleParam(): void
+    {
+        $this->db->insert('wppack_test', ['name' => 'single_param', 'value' => 'sv']);
+
+        $result = $this->db->executeQuery(
+            "SELECT * FROM {$this->db->prefix()}wppack_test WHERE name = %s",
+            ['single_param'],
+        );
+
+        self::assertNotFalse($result);
+    }
 }

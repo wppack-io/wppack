@@ -1,0 +1,394 @@
+<?php
+
+declare(strict_types=1);
+
+namespace WpPack\Plugin\S3StoragePlugin\Tests\DependencyInjection;
+
+use AsyncAws\S3\S3Client;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+use WpPack\Component\DependencyInjection\ContainerBuilder;
+use WpPack\Component\DependencyInjection\Reference;
+use WpPack\Component\DependencyInjection\ServiceProviderInterface;
+use WpPack\Component\Media\Storage\StorageConfiguration;
+use WpPack\Component\Media\Storage\Subscriber\AttachmentSubscriber;
+use WpPack\Component\Media\Storage\Subscriber\UploadDirSubscriber;
+use WpPack\Component\Media\Storage\UrlResolver;
+use WpPack\Component\Messenger\MessageBusInterface;
+use WpPack\Component\Storage\Adapter\StorageAdapterInterface;
+use WpPack\Component\Storage\Bridge\S3\S3StorageAdapter;
+use WpPack\Component\Storage\StreamWrapper\StorageStreamWrapper;
+use WpPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
+use WpPack\Plugin\S3StoragePlugin\DependencyInjection\S3StoragePluginServiceProvider;
+use WpPack\Plugin\S3StoragePlugin\Handler\GenerateThumbnailsHandler;
+use WpPack\Plugin\S3StoragePlugin\Handler\S3ObjectCreatedHandler;
+use WpPack\Plugin\S3StoragePlugin\Message\S3EventNormalizer;
+use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\PreSignedUrlController;
+use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\PreSignedUrlGenerator;
+use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\UploadPolicy;
+
+#[CoversClass(S3StoragePluginServiceProvider::class)]
+final class S3StoragePluginServiceProviderTest extends TestCase
+{
+    private ContainerBuilder $builder;
+    private S3StoragePluginServiceProvider $provider;
+
+    protected function setUp(): void
+    {
+        $this->builder = new ContainerBuilder();
+        $this->provider = new S3StoragePluginServiceProvider();
+    }
+
+    #[Test]
+    public function implementsServiceProviderInterface(): void
+    {
+        self::assertInstanceOf(ServiceProviderInterface::class, $this->provider);
+    }
+
+    #[Test]
+    public function registersS3StorageConfiguration(): void
+    {
+        $this->provider->register($this->builder);
+
+        self::assertTrue($this->builder->hasDefinition(S3StorageConfiguration::class));
+
+        $definition = $this->builder->findDefinition(S3StorageConfiguration::class);
+        $factory = $definition->getFactory();
+        self::assertNotNull($factory);
+        self::assertSame(S3StorageConfiguration::class, $factory[0]);
+        self::assertSame('fromEnvironment', $factory[1]);
+    }
+
+    #[Test]
+    public function registersStorageConfiguration(): void
+    {
+        $this->provider->register($this->builder);
+
+        self::assertTrue($this->builder->hasDefinition(StorageConfiguration::class));
+
+        $definition = $this->builder->findDefinition(StorageConfiguration::class);
+        $factory = $definition->getFactory();
+        self::assertNotNull($factory);
+        self::assertInstanceOf(Reference::class, $factory[0]);
+        self::assertSame(S3StorageConfiguration::class, (string) $factory[0]);
+        self::assertSame('toStorageConfiguration', $factory[1]);
+    }
+
+    #[Test]
+    public function registersS3Client(): void
+    {
+        $this->provider->register($this->builder);
+
+        self::assertTrue($this->builder->hasDefinition(S3Client::class));
+
+        $definition = $this->builder->findDefinition(S3Client::class);
+        $factory = $definition->getFactory();
+        self::assertNotNull($factory);
+        self::assertSame(S3StoragePluginServiceProvider::class, $factory[0]);
+        self::assertSame('createS3Client', $factory[1]);
+    }
+
+    #[Test]
+    public function registersS3StorageAdapter(): void
+    {
+        $this->provider->register($this->builder);
+
+        self::assertTrue($this->builder->hasDefinition(S3StorageAdapter::class));
+
+        $definition = $this->builder->findDefinition(S3StorageAdapter::class);
+        $factory = $definition->getFactory();
+        self::assertNotNull($factory);
+        self::assertSame(S3StoragePluginServiceProvider::class, $factory[0]);
+        self::assertSame('createS3StorageAdapter', $factory[1]);
+    }
+
+    #[Test]
+    public function registersStorageAdapterInterfaceAlias(): void
+    {
+        $this->provider->register($this->builder);
+
+        // The alias should resolve
+        self::assertTrue($this->builder->hasDefinition(S3StorageAdapter::class));
+    }
+
+    #[Test]
+    public function registersStreamWrapperRegistrar(): void
+    {
+        $this->provider->register($this->builder);
+
+        $registrarId = StorageStreamWrapper::class . '.registrar';
+        self::assertTrue($this->builder->hasDefinition($registrarId));
+
+        $definition = $this->builder->findDefinition($registrarId);
+        $factory = $definition->getFactory();
+        self::assertNotNull($factory);
+        self::assertSame(S3StoragePluginServiceProvider::class, $factory[0]);
+        self::assertSame('registerStreamWrapper', $factory[1]);
+    }
+
+    #[Test]
+    public function registersUrlResolver(): void
+    {
+        $this->provider->register($this->builder);
+
+        self::assertTrue($this->builder->hasDefinition(UrlResolver::class));
+
+        $definition = $this->builder->findDefinition(UrlResolver::class);
+        $factory = $definition->getFactory();
+        self::assertNotNull($factory);
+        self::assertSame(S3StoragePluginServiceProvider::class, $factory[0]);
+        self::assertSame('createUrlResolver', $factory[1]);
+    }
+
+    #[Test]
+    public function registersUploadDirSubscriber(): void
+    {
+        $this->provider->register($this->builder);
+
+        self::assertTrue($this->builder->hasDefinition(UploadDirSubscriber::class));
+
+        $definition = $this->builder->findDefinition(UploadDirSubscriber::class);
+        self::assertTrue($definition->hasTag('hook.subscriber'));
+    }
+
+    #[Test]
+    public function registersAttachmentSubscriber(): void
+    {
+        $this->provider->register($this->builder);
+
+        self::assertTrue($this->builder->hasDefinition(AttachmentSubscriber::class));
+
+        $definition = $this->builder->findDefinition(AttachmentSubscriber::class);
+        self::assertTrue($definition->hasTag('hook.subscriber'));
+    }
+
+    #[Test]
+    public function registersUploadPolicy(): void
+    {
+        $this->provider->register($this->builder);
+
+        self::assertTrue($this->builder->hasDefinition(UploadPolicy::class));
+    }
+
+    #[Test]
+    public function registersPreSignedUrlGenerator(): void
+    {
+        $this->provider->register($this->builder);
+
+        self::assertTrue($this->builder->hasDefinition(PreSignedUrlGenerator::class));
+
+        $definition = $this->builder->findDefinition(PreSignedUrlGenerator::class);
+        $factory = $definition->getFactory();
+        self::assertNotNull($factory);
+        self::assertSame(S3StoragePluginServiceProvider::class, $factory[0]);
+        self::assertSame('createPreSignedUrlGenerator', $factory[1]);
+    }
+
+    #[Test]
+    public function registersPreSignedUrlController(): void
+    {
+        $this->provider->register($this->builder);
+
+        self::assertTrue($this->builder->hasDefinition(PreSignedUrlController::class));
+
+        $definition = $this->builder->findDefinition(PreSignedUrlController::class);
+        self::assertTrue($definition->hasTag('rest.controller'));
+    }
+
+    #[Test]
+    public function registersS3EventNormalizer(): void
+    {
+        $this->provider->register($this->builder);
+
+        self::assertTrue($this->builder->hasDefinition(S3EventNormalizer::class));
+    }
+
+    #[Test]
+    public function registersS3ObjectCreatedHandler(): void
+    {
+        $this->provider->register($this->builder);
+
+        self::assertTrue($this->builder->hasDefinition(S3ObjectCreatedHandler::class));
+
+        $definition = $this->builder->findDefinition(S3ObjectCreatedHandler::class);
+        self::assertTrue($definition->hasTag('messenger.message_handler'));
+
+        $factory = $definition->getFactory();
+        self::assertNotNull($factory);
+        self::assertSame(S3StoragePluginServiceProvider::class, $factory[0]);
+        self::assertSame('createS3ObjectCreatedHandler', $factory[1]);
+    }
+
+    #[Test]
+    public function registersGenerateThumbnailsHandler(): void
+    {
+        $this->provider->register($this->builder);
+
+        self::assertTrue($this->builder->hasDefinition(GenerateThumbnailsHandler::class));
+
+        $definition = $this->builder->findDefinition(GenerateThumbnailsHandler::class);
+        self::assertTrue($definition->hasTag('messenger.message_handler'));
+    }
+
+    #[Test]
+    public function createS3ClientReturnsS3ClientInstance(): void
+    {
+        $config = new S3StorageConfiguration(
+            bucket: 'test-bucket',
+            region: 'us-east-1',
+        );
+
+        $client = S3StoragePluginServiceProvider::createS3Client($config);
+
+        self::assertInstanceOf(S3Client::class, $client);
+    }
+
+    #[Test]
+    public function createS3StorageAdapterReturnsAdapterInstance(): void
+    {
+        $s3Client = new S3Client(['region' => 'us-east-1']);
+        $config = new S3StorageConfiguration(
+            bucket: 'test-bucket',
+            region: 'us-east-1',
+            prefix: 'uploads',
+            cdnUrl: 'https://cdn.example.com',
+        );
+
+        $adapter = S3StoragePluginServiceProvider::createS3StorageAdapter($s3Client, $config);
+
+        self::assertInstanceOf(S3StorageAdapter::class, $adapter);
+    }
+
+    #[Test]
+    public function createS3StorageAdapterWithoutCdnUrl(): void
+    {
+        $s3Client = new S3Client(['region' => 'us-east-1']);
+        $config = new S3StorageConfiguration(
+            bucket: 'test-bucket',
+            region: 'us-east-1',
+        );
+
+        $adapter = S3StoragePluginServiceProvider::createS3StorageAdapter($s3Client, $config);
+
+        self::assertInstanceOf(S3StorageAdapter::class, $adapter);
+    }
+
+    #[Test]
+    public function registerStreamWrapperRegistersS3Protocol(): void
+    {
+        $s3Client = new S3Client(['region' => 'us-east-1']);
+        $config = new S3StorageConfiguration(
+            bucket: 'test-bucket',
+            region: 'us-east-1',
+        );
+        $adapter = S3StoragePluginServiceProvider::createS3StorageAdapter($s3Client, $config);
+
+        // Unregister if already registered from a previous test
+        if (\in_array('s3', stream_get_wrappers(), true)) {
+            stream_wrapper_unregister('s3');
+        }
+
+        S3StoragePluginServiceProvider::registerStreamWrapper($adapter);
+
+        self::assertContains('s3', stream_get_wrappers());
+
+        // Clean up
+        StorageStreamWrapper::unregister('s3');
+    }
+
+    #[Test]
+    public function createUrlResolverReturnsUrlResolverInstance(): void
+    {
+        $s3Client = new S3Client(['region' => 'us-east-1']);
+        $config = new S3StorageConfiguration(
+            bucket: 'test-bucket',
+            region: 'us-east-1',
+            cdnUrl: 'https://cdn.example.com',
+        );
+        $adapter = S3StoragePluginServiceProvider::createS3StorageAdapter($s3Client, $config);
+
+        $resolver = S3StoragePluginServiceProvider::createUrlResolver($adapter, $config);
+
+        self::assertInstanceOf(UrlResolver::class, $resolver);
+    }
+
+    #[Test]
+    public function createUrlResolverWithoutCdnUrl(): void
+    {
+        $s3Client = new S3Client(['region' => 'us-east-1']);
+        $config = new S3StorageConfiguration(
+            bucket: 'test-bucket',
+            region: 'us-east-1',
+        );
+        $adapter = S3StoragePluginServiceProvider::createS3StorageAdapter($s3Client, $config);
+
+        $resolver = S3StoragePluginServiceProvider::createUrlResolver($adapter, $config);
+
+        self::assertInstanceOf(UrlResolver::class, $resolver);
+    }
+
+    #[Test]
+    public function createPreSignedUrlGeneratorReturnsGeneratorInstance(): void
+    {
+        $s3Client = new S3Client(['region' => 'us-east-1']);
+        $config = new S3StorageConfiguration(
+            bucket: 'test-bucket',
+            region: 'us-east-1',
+            prefix: 'wp-uploads',
+        );
+
+        $generator = S3StoragePluginServiceProvider::createPreSignedUrlGenerator($s3Client, $config);
+
+        self::assertInstanceOf(PreSignedUrlGenerator::class, $generator);
+    }
+
+    #[Test]
+    public function createS3ObjectCreatedHandlerReturnsHandlerInstance(): void
+    {
+        $bus = $this->createMock(MessageBusInterface::class);
+        $config = new S3StorageConfiguration(
+            bucket: 'test-bucket',
+            region: 'us-east-1',
+            prefix: 'uploads',
+        );
+
+        $handler = S3StoragePluginServiceProvider::createS3ObjectCreatedHandler($bus, $config);
+
+        self::assertInstanceOf(S3ObjectCreatedHandler::class, $handler);
+    }
+
+    #[Test]
+    public function createS3ObjectCreatedHandlerWithLogger(): void
+    {
+        $bus = $this->createMock(MessageBusInterface::class);
+        $logger = $this->createMock(\Psr\Log\LoggerInterface::class);
+        $config = new S3StorageConfiguration(
+            bucket: 'test-bucket',
+            region: 'us-east-1',
+            prefix: 'uploads',
+        );
+
+        $handler = S3StoragePluginServiceProvider::createS3ObjectCreatedHandler($bus, $config, $logger);
+
+        self::assertInstanceOf(S3ObjectCreatedHandler::class, $handler);
+    }
+
+    #[Test]
+    public function canBeAddedViaContainerBuilder(): void
+    {
+        $result = $this->builder->addServiceProvider($this->provider);
+
+        self::assertSame($this->builder, $result);
+        self::assertTrue($this->builder->hasDefinition(S3StorageConfiguration::class));
+        self::assertTrue($this->builder->hasDefinition(S3Client::class));
+        self::assertTrue($this->builder->hasDefinition(S3StorageAdapter::class));
+        self::assertTrue($this->builder->hasDefinition(UrlResolver::class));
+        self::assertTrue($this->builder->hasDefinition(UploadPolicy::class));
+        self::assertTrue($this->builder->hasDefinition(PreSignedUrlGenerator::class));
+        self::assertTrue($this->builder->hasDefinition(PreSignedUrlController::class));
+        self::assertTrue($this->builder->hasDefinition(S3EventNormalizer::class));
+        self::assertTrue($this->builder->hasDefinition(S3ObjectCreatedHandler::class));
+        self::assertTrue($this->builder->hasDefinition(GenerateThumbnailsHandler::class));
+    }
+}

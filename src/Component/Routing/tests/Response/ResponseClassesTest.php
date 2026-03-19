@@ -51,4 +51,82 @@ final class ResponseClassesTest extends TestCase
         self::assertSame('/var/files/report.pdf', $response->path);
         self::assertSame('attachment', $response->disposition);
     }
+
+    #[Test]
+    public function blockTemplateResponseDefaultValues(): void
+    {
+        $response = new BlockTemplateResponse('archive');
+
+        self::assertSame('archive', $response->slug);
+        self::assertSame([], $response->context);
+        self::assertSame(200, $response->statusCode);
+        self::assertSame([], $response->headers);
+    }
+
+    #[Test]
+    public function blockTemplateResponseContentIsEmpty(): void
+    {
+        $response = new BlockTemplateResponse('single', ['key' => 'value']);
+
+        // BlockTemplateResponse passes empty string to parent Response
+        self::assertSame('', $response->content);
+    }
+
+    #[Test]
+    public function blockTemplateResponseWithCustomStatusCode(): void
+    {
+        $response = new BlockTemplateResponse('404', ['error' => 'Not Found'], 404);
+
+        self::assertSame('404', $response->slug);
+        self::assertSame(404, $response->statusCode);
+        self::assertSame(['error' => 'Not Found'], $response->context);
+    }
+
+    #[Test]
+    public function blockTemplateResponseWithHeaders(): void
+    {
+        $response = new BlockTemplateResponse(
+            'custom',
+            [],
+            200,
+            ['X-Cache' => 'MISS', 'Vary' => 'Accept'],
+        );
+
+        self::assertSame(['X-Cache' => 'MISS', 'Vary' => 'Accept'], $response->headers);
+    }
+
+    #[Test]
+    public function blockTemplateResponseExtendsResponse(): void
+    {
+        $response = new BlockTemplateResponse('page');
+
+        self::assertInstanceOf(\WpPack\Component\HttpFoundation\Response::class, $response);
+    }
+
+    #[Test]
+    public function jsonResponseWithNullData(): void
+    {
+        $response = new JsonResponse(null);
+
+        self::assertNull($response->data);
+        self::assertSame(200, $response->statusCode);
+    }
+
+    #[Test]
+    public function redirectResponseWithUnsafe(): void
+    {
+        $response = new RedirectResponse('https://external.com', 301, false);
+
+        self::assertFalse($response->safe);
+        self::assertSame(301, $response->statusCode);
+    }
+
+    #[Test]
+    public function binaryFileResponseWithInlineDisposition(): void
+    {
+        $response = new BinaryFileResponse('/path/image.jpg', 'photo.jpg', 'inline');
+
+        self::assertSame('inline', $response->disposition);
+        self::assertSame('photo.jpg', $response->filename);
+    }
 }

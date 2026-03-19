@@ -50,6 +50,53 @@ final class AuthorizationCheckerTest extends TestCase
         self::assertFalse($checker->isGranted('anything'));
     }
 
+    #[Test]
+    public function isGrantedUsesTokenFromAuthManager(): void
+    {
+        $user = new \WP_User();
+        $user->ID = 1;
+        $user->user_login = 'admin';
+
+        $token = new \WpPack\Component\Security\Authentication\Token\PostAuthenticationToken($user, ['administrator']);
+
+        $voter = new class implements VoterInterface {
+            public function vote(TokenInterface $token, string $attribute, mixed $subject = null): int
+            {
+                return $token->isAuthenticated() ? self::ACCESS_GRANTED : self::ACCESS_DENIED;
+            }
+        };
+
+        $adm = new AccessDecisionManager([$voter]);
+        $authManager = $this->createAuthManager($token);
+        $checker = new AuthorizationChecker($adm, $authManager);
+
+        self::assertTrue($checker->isGranted('anything'));
+    }
+
+    #[Test]
+    public function isGrantedPassesSubjectToVoter(): void
+    {
+        $receivedSubject = null;
+        $voter = new class ($receivedSubject) implements VoterInterface {
+            public function __construct(private mixed &$receivedSubject) {}
+
+            public function vote(TokenInterface $token, string $attribute, mixed $subject = null): int
+            {
+                $this->receivedSubject = $subject;
+
+                return self::ACCESS_GRANTED;
+            }
+        };
+
+        $adm = new AccessDecisionManager([$voter]);
+        $authManager = $this->createAuthManager(null);
+        $checker = new AuthorizationChecker($adm, $authManager);
+
+        $checker->isGranted('edit_post', 42);
+
+        self::assertSame(42, $receivedSubject);
+    }
+
     private function createAuthManager(?TokenInterface $token): AuthenticationManagerInterface
     {
         return new class ($token) implements AuthenticationManagerInterface {

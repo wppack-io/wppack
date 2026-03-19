@@ -42,9 +42,12 @@ final class CommandRunnerTest extends TestCase
             self::markTestSkipped('WP-CLI is not available.');
         }
 
+        \WP_CLI::reset();
         $command = new RunnerTestCommand();
         $runner = new CommandRunner($command);
         $runner(['world'], ['shout' => '']);
+
+        self::assertNull(\WP_CLI::$haltedCode);
     }
 
     #[Test]
@@ -54,11 +57,12 @@ final class CommandRunnerTest extends TestCase
             self::markTestSkipped('WP-CLI is not available.');
         }
 
+        \WP_CLI::reset();
         $command = new RunnerFailCommand();
         $runner = new CommandRunner($command);
-
-        // WP_CLI::halt() would exit, so we can only test this with WP-CLI present
         $runner([], []);
+
+        self::assertSame(AbstractCommand::FAILURE, \WP_CLI::$haltedCode);
     }
 }
 

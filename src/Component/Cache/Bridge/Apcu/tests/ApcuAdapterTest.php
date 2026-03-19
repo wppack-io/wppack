@@ -247,4 +247,28 @@ final class ApcuAdapterTest extends TestCase
         self::assertTrue($this->adapter->add('wppack_test:existing', 'new', -1));
         self::assertSame('old', $this->adapter->get('wppack_test:existing'));
     }
+
+    #[Test]
+    public function getMultipleWithEmptyKeys(): void
+    {
+        $results = $this->adapter->getMultiple([]);
+
+        self::assertSame([], $results);
+    }
+
+    #[Test]
+    public function decrementReturnsFalseForMissing(): void
+    {
+        self::assertFalse($this->adapter->decrement('wppack_test:nonexistent'));
+    }
+
+    #[Test]
+    public function closeDoesNotThrow(): void
+    {
+        $this->adapter->close();
+
+        // close() is a no-op for APCu; verify adapter still works afterward
+        self::assertTrue($this->adapter->set('wppack_test:after_close', 'value'));
+        self::assertSame('value', $this->adapter->get('wppack_test:after_close'));
+    }
 }

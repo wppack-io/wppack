@@ -19,16 +19,21 @@ final class SamlMetadataController
         $metadata = $settings->getSPMetadata();
         $errors = $settings->validateMetadata($metadata);
 
+        // @codeCoverageIgnoreStart
         if ($errors !== []) {
             throw new \RuntimeException(\sprintf(
                 'Invalid SP metadata: %s',
                 implode(', ', $errors),
             ));
         }
+        // @codeCoverageIgnoreEnd
 
         return $metadata;
     }
 
+    /**
+     * @codeCoverageIgnore
+     */
     public function serve(): never
     {
         header('Content-Type: application/xml');

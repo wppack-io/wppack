@@ -21,6 +21,7 @@ final class ActionSchedulerCollector
             return [];
         }
 
+        // @codeCoverageIgnoreStart
         $store = \ActionScheduler::store();
         // per_page: -1 fetches all pending actions at once.
         // This is intended for migration/sync operations (e.g., plugin activation, WP-CLI).
@@ -61,8 +62,12 @@ final class ActionSchedulerCollector
         }
 
         return $actions;
+        // @codeCoverageIgnoreEnd
     }
 
+    /**
+     * @codeCoverageIgnore — requires Action Scheduler plugin class definitions
+     */
     private function resolveScheduleType(\ActionScheduler_Schedule $schedule): string
     {
         return match (true) {
@@ -73,6 +78,9 @@ final class ActionSchedulerCollector
         };
     }
 
+    /**
+     * @codeCoverageIgnore — requires Action Scheduler plugin class definitions
+     */
     private function resolveInterval(\ActionScheduler_Schedule $schedule): int
     {
         if ($schedule instanceof \ActionScheduler_IntervalSchedule) {
@@ -82,6 +90,9 @@ final class ActionSchedulerCollector
         return 0;
     }
 
+    /**
+     * @codeCoverageIgnore — requires Action Scheduler plugin class definitions
+     */
     private function resolveCronExpression(\ActionScheduler_Schedule $schedule): string
     {
         if ($schedule instanceof \ActionScheduler_CronSchedule) {

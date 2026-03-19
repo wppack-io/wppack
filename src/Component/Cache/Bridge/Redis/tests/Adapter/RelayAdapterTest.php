@@ -317,4 +317,275 @@ final class RelayAdapterTest extends TestCase
         $adapter->delete('wppack_test:readtimeout');
         $adapter->close();
     }
+
+    #[Test]
+    public function getMultipleEmpty(): void
+    {
+        self::assertSame([], $this->adapter->getMultiple([]));
+    }
+
+    #[Test]
+    public function deleteMultipleEmpty(): void
+    {
+        self::assertSame([], $this->adapter->deleteMultiple([]));
+    }
+
+    #[Test]
+    public function setMultipleWithTtl(): void
+    {
+        $results = $this->adapter->setMultiple([
+            'wppack_test:ttl1' => 'value1',
+            'wppack_test:ttl2' => 'value2',
+        ], 10);
+
+        self::assertTrue($results['wppack_test:ttl1']);
+        self::assertTrue($results['wppack_test:ttl2']);
+        self::assertSame('value1', $this->adapter->get('wppack_test:ttl1'));
+        self::assertSame('value2', $this->adapter->get('wppack_test:ttl2'));
+    }
+
+    #[Test]
+    public function decrementReturnsFalseForMissing(): void
+    {
+        self::assertFalse($this->adapter->decrement('wppack_test:nonexistent'));
+    }
+
+    #[Test]
+    public function flushAll(): void
+    {
+        $this->adapter->set('wppack_test:a', '1');
+        $this->adapter->set('wppack_test:b', '2');
+
+        $this->adapter->flush();
+
+        self::assertFalse($this->adapter->get('wppack_test:a'));
+        self::assertFalse($this->adapter->get('wppack_test:b'));
+    }
+
+    #[Test]
+    public function closeAndReconnect(): void
+    {
+        $this->adapter->set('wppack_test:before', 'value');
+        $this->adapter->close();
+
+        self::assertTrue($this->adapter->set('wppack_test:after', 'value'));
+        self::assertSame('value', $this->adapter->get('wppack_test:after'));
+    }
+
+    #[Test]
+    public function connectWithTcpKeepalive(): void
+    {
+        $adapter = new RelayAdapter([
+            'host' => '127.0.0.1',
+            'port' => 6379,
+            'tcp_keepalive' => 60,
+        ]);
+
+        if (!$adapter->isAvailable()) {
+            self::markTestSkipped('Redis server is not available at 127.0.0.1:6379.');
+        }
+
+        self::assertTrue($adapter->set('wppack_test:keepalive', 'value'));
+        self::assertSame('value', $adapter->get('wppack_test:keepalive'));
+
+        $adapter->delete('wppack_test:keepalive');
+        $adapter->close();
+    }
+
+    #[Test]
+    public function connectWithTls(): void
+    {
+        $adapter = new RelayAdapter([
+            'host' => '127.0.0.1',
+            'port' => 6380,
+            'tls' => true,
+            'timeout' => 2,
+        ]);
+
+        try {
+            if (!$adapter->isAvailable()) {
+                self::markTestSkipped('Redis TLS server is not available.');
+            }
+        } catch (\Throwable) {
+            self::markTestSkipped('Redis TLS server is not available.');
+        }
+
+        self::assertTrue($adapter->set('wppack_test:tls', 'value'));
+        self::assertSame('value', $adapter->get('wppack_test:tls'));
+
+        $adapter->delete('wppack_test:tls');
+        $adapter->close();
+    }
+
+    #[Test]
+    public function connectWithSocket(): void
+    {
+        $socketPath = '/var/run/redis/redis.sock';
+
+        if (!file_exists($socketPath)) {
+            self::markTestSkipped('Redis Unix socket is not available at ' . $socketPath);
+        }
+
+        $adapter = new RelayAdapter([
+            'socket' => $socketPath,
+        ]);
+
+        if (!$adapter->isAvailable()) {
+            self::markTestSkipped('Redis server is not available via Unix socket.');
+        }
+
+        self::assertTrue($adapter->set('wppack_test:socket', 'value'));
+        self::assertSame('value', $adapter->get('wppack_test:socket'));
+
+        $adapter->delete('wppack_test:socket');
+        $adapter->close();
+    }
+
+    #[Test]
+    public function connectWithDbindex(): void
+    {
+        $adapter = new RelayAdapter([
+            'host' => '127.0.0.1',
+            'port' => 6379,
+            'dbindex' => 2,
+        ]);
+
+        if (!$adapter->isAvailable()) {
+            self::markTestSkipped('Redis server is not available at 127.0.0.1:6379.');
+        }
+
+        self::assertTrue($adapter->set('wppack_test:dbindex', 'value'));
+        self::assertSame('value', $adapter->get('wppack_test:dbindex'));
+
+        $adapter->delete('wppack_test:dbindex');
+        $adapter->close();
+    }
+
+    #[Test]
+    public function connectViaSentinelWithPersistent(): void
+    {
+        $adapter = new RelayAdapter([
+            'redis_sentinel' => 'mymaster',
+            'sentinel_hosts' => [
+                ['host' => '127.0.0.1', 'port' => 26379],
+            ],
+            'persistent' => true,
+        ]);
+
+        if (!$adapter->isAvailable()) {
+            self::markTestSkipped('Redis Sentinel is not available.');
+        }
+
+        self::assertTrue($adapter->set('wppack_test:sentinel_persist', 'value'));
+        self::assertSame('value', $adapter->get('wppack_test:sentinel_persist'));
+
+        $adapter->delete('wppack_test:sentinel_persist');
+        $adapter->close();
+    }
+
+    #[Test]
+    public function connectViaSentinelWithReadTimeoutAndDbindex(): void
+    {
+        $adapter = new RelayAdapter([
+            'redis_sentinel' => 'mymaster',
+            'sentinel_hosts' => [
+                ['host' => '127.0.0.1', 'port' => 26379],
+            ],
+            'read_timeout' => 5,
+            'dbindex' => 1,
+        ]);
+
+        if (!$adapter->isAvailable()) {
+            self::markTestSkipped('Redis Sentinel is not available.');
+        }
+
+        self::assertTrue($adapter->set('wppack_test:sentinel_db', 'value'));
+        self::assertSame('value', $adapter->get('wppack_test:sentinel_db'));
+
+        $adapter->delete('wppack_test:sentinel_db');
+        $adapter->close();
+    }
+
+    #[Test]
+    public function connectViaSentinelThrowsWhenNoMasterFound(): void
+    {
+        $adapter = new RelayAdapter([
+            'redis_sentinel' => 'nonexistent_service',
+            'sentinel_hosts' => [
+                ['host' => '127.0.0.1', 'port' => 26379],
+            ],
+        ]);
+
+        try {
+            $sentinel = new \Relay\Relay();
+            $sentinel->connect('127.0.0.1', 26379, 2);
+            $sentinel->close();
+        } catch (\Throwable) {
+            self::markTestSkipped('Redis Sentinel is not available.');
+        }
+
+        $this->expectException(\WpPack\Component\Cache\Exception\AdapterException::class);
+        $this->expectExceptionMessage('No master found for Sentinel service "nonexistent_service"');
+
+        $adapter->set('wppack_test:fail', 'value');
+    }
+
+    #[Test]
+    public function connectViaSentinelSkipsFailingSentinelHost(): void
+    {
+        $adapter = new RelayAdapter([
+            'redis_sentinel' => 'mymaster',
+            'sentinel_hosts' => [
+                ['host' => '127.0.0.1', 'port' => 1],     // This will fail
+                ['host' => '127.0.0.1', 'port' => 26379],  // This should succeed
+            ],
+        ]);
+
+        if (!$adapter->isAvailable()) {
+            self::markTestSkipped('Redis Sentinel is not available.');
+        }
+
+        self::assertTrue($adapter->set('wppack_test:sentinel_skip', 'value'));
+        self::assertSame('value', $adapter->get('wppack_test:sentinel_skip'));
+
+        $adapter->delete('wppack_test:sentinel_skip');
+        $adapter->close();
+    }
+
+    #[Test]
+    public function connectWithCredentialProvider(): void
+    {
+        $called = false;
+        $adapter = new RelayAdapter([
+            'host' => '127.0.0.1',
+            'port' => 6379,
+            'credential_provider' => function () use (&$called): string {
+                $called = true;
+
+                return '';
+            },
+        ]);
+
+        try {
+            if (!$adapter->isAvailable()) {
+                self::markTestSkipped('Redis server is not available at 127.0.0.1:6379.');
+            }
+        } catch (\Throwable) {
+            // The credential provider path was exercised
+            self::assertTrue($called);
+
+            return;
+        }
+
+        self::assertTrue($called);
+        $adapter->close();
+    }
+
+    #[Test]
+    public function setMultipleWithNegativeTtlEmptyValues(): void
+    {
+        $results = $this->adapter->setMultiple([], -1);
+
+        self::assertSame([], $results);
+    }
 }

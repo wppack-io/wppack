@@ -344,7 +344,9 @@ final class ErrorHandlerTest extends TestCase
         // Set handling to true to simulate re-entrancy
         $ref->setValue($this->errorHandler, true);
 
-        $previousLevel = error_reporting(E_ALL);
+        // Suppress notice output: when ErrorHandler detects re-entrancy it returns false,
+        // which causes PHP to emit the notice unless error_reporting is 0.
+        $previousLevel = error_reporting(0);
         try {
             trigger_error('Reentrant', E_USER_NOTICE);
         } finally {

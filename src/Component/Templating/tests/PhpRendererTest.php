@@ -248,4 +248,103 @@ final class PhpRendererTest extends TestCase
             @unlink($templateFile);
         }
     }
+
+    #[Test]
+    public function displayWithVariant(): void
+    {
+        $variantFile = $this->fixturesPath . '/simple-display.php';
+        file_put_contents($variantFile, '<h3><?= $view->e($title) ?></h3>' . "\n");
+
+        try {
+            ob_start();
+            $this->renderer->display('simple', ['title' => 'Display Variant'], 'display');
+            $output = ob_get_clean();
+
+            self::assertStringContainsString('<h3>', $output);
+            self::assertStringContainsString('Display Variant', $output);
+        } finally {
+            @unlink($variantFile);
+        }
+    }
+
+    #[Test]
+    public function renderWithMultiLevelLayoutInheritance(): void
+    {
+        // with-sections uses two-column layout which extends base layout
+        $result = $this->renderer->render('with-sections', ['title' => 'Multi']);
+
+        // Should contain base layout wrapper and two-column layout structure
+        self::assertStringContainsString('<html><body>', $result);
+        self::assertStringContainsString('</body></html>', $result);
+        self::assertStringContainsString('<div class="main">', $result);
+        self::assertStringContainsString('<div class="sidebar">', $result);
+    }
+
+    #[Test]
+    public function renderWithLayoutVariant(): void
+    {
+        // Create a layout variant fixture
+        $layoutVariantFile = $this->fixturesPath . '/layouts/base-wide.php';
+        file_put_contents($layoutVariantFile, '<html><body class="wide"><?= $view->section("content") ?></body></html>');
+
+        $templateFile = $this->fixturesPath . '/with-layout-variant.php';
+        file_put_contents($templateFile, '<?php $view->layout("layouts/base", "wide"); ?><article>Variant Layout</article>');
+
+        try {
+            clearstatcache();
+            $result = $this->renderer->render('with-layout-variant');
+
+            self::assertStringContainsString('<html><body class="wide">', $result);
+            self::assertStringContainsString('<article>Variant Layout</article>', $result);
+        } finally {
+            @unlink($layoutVariantFile);
+            @unlink($templateFile);
+        }
+    }
+
+    #[Test]
+    public function renderWithEmptyContext(): void
+    {
+        $templateFile = $this->fixturesPath . '/no-context.php';
+        file_put_contents($templateFile, '<p>Static content</p>');
+
+        try {
+            $result = $this->renderer->render('no-context');
+            self::assertSame('<p>Static content</p>', $result);
+        } finally {
+            @unlink($templateFile);
+        }
+    }
+
+    #[Test]
+    public function includeRendersPartialWithContext(): void
+    {
+        // with-include already tests include, but let's verify context isolation
+        $result = $this->renderer->render('with-include', [
+            'cardTitle' => 'Isolated',
+            'cardBody' => 'Content',
+        ]);
+
+        self::assertStringContainsString('Isolated', $result);
+        self::assertStringContainsString('Content', $result);
+    }
+
+    #[Test]
+    public function maxRenderDepthThrowsException(): void
+    {
+        // Create a template that recursively includes itself to exceed MAX_RENDER_DEPTH
+        $templateFile = $this->fixturesPath . '/recursive-include.php';
+        file_put_contents(
+            $templateFile,
+            '<?= $view->include("recursive-include") ?>',
+        );
+
+        try {
+            $this->expectException(RenderingException::class);
+            $this->expectExceptionMessage('Maximum template nesting depth');
+            $this->renderer->render('recursive-include');
+        } finally {
+            @unlink($templateFile);
+        }
+    }
 }

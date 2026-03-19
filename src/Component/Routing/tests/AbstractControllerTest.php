@@ -297,4 +297,126 @@ final class AbstractControllerTest extends TestCase
 
         $this->controller->callDenyAccessUnlessGranted('edit_posts');
     }
+
+    #[Test]
+    public function renderWithDefaultParameters(): void
+    {
+        $renderer = $this->createMock(TemplateRendererInterface::class);
+        $renderer->method('render')
+            ->with('templates/default.html.twig', [])
+            ->willReturn('<p>default</p>');
+
+        $this->controller->setTemplateRenderer($renderer);
+
+        $response = $this->controller->callRender('templates/default.html.twig');
+
+        self::assertInstanceOf(Response::class, $response);
+        self::assertSame('<p>default</p>', $response->content);
+        self::assertSame(200, $response->statusCode);
+        self::assertSame([], $response->headers);
+    }
+
+    #[Test]
+    public function renderViewWithDefaultParameters(): void
+    {
+        $renderer = $this->createMock(TemplateRendererInterface::class);
+        $renderer->method('render')
+            ->with('templates/view.html.twig', [])
+            ->willReturn('view content');
+
+        $this->controller->setTemplateRenderer($renderer);
+
+        $html = $this->controller->callRenderView('templates/view.html.twig');
+
+        self::assertSame('view content', $html);
+    }
+
+    #[Test]
+    public function renderTemplateWithDefaultParameters(): void
+    {
+        $response = $this->controller->callRenderTemplate('/path/to/template.php');
+
+        self::assertInstanceOf(TemplateResponse::class, $response);
+        self::assertSame('/path/to/template.php', $response->template);
+        self::assertSame([], $response->context);
+        self::assertSame(200, $response->statusCode);
+        self::assertSame([], $response->headers);
+    }
+
+    #[Test]
+    public function renderBlockTemplateWithDefaultParameters(): void
+    {
+        $response = $this->controller->callRenderBlockTemplate('single');
+
+        self::assertInstanceOf(BlockTemplateResponse::class, $response);
+        self::assertSame('single', $response->slug);
+        self::assertSame([], $response->context);
+        self::assertSame(200, $response->statusCode);
+        self::assertSame([], $response->headers);
+    }
+
+    #[Test]
+    public function jsonWithDefaultParameters(): void
+    {
+        $response = $this->controller->callJson(['key' => 'value']);
+
+        self::assertInstanceOf(JsonResponse::class, $response);
+        self::assertSame(['key' => 'value'], $response->data);
+        self::assertSame(200, $response->statusCode);
+        self::assertArrayHasKey('Content-Type', $response->headers);
+    }
+
+    #[Test]
+    public function redirectWithDefaultParameters(): void
+    {
+        $response = $this->controller->callRedirect('/new-location');
+
+        self::assertInstanceOf(RedirectResponse::class, $response);
+        self::assertSame('/new-location', $response->url);
+        self::assertSame(302, $response->statusCode);
+        self::assertTrue($response->safe);
+        self::assertArrayHasKey('Location', $response->headers);
+    }
+
+    #[Test]
+    public function fileWithDefaultParameters(): void
+    {
+        $response = $this->controller->callFile('/path/to/download.zip');
+
+        self::assertInstanceOf(BinaryFileResponse::class, $response);
+        self::assertSame('/path/to/download.zip', $response->path);
+        self::assertNull($response->filename);
+        self::assertSame('attachment', $response->disposition);
+        self::assertSame([], $response->headers);
+    }
+
+    #[Test]
+    public function denyAccessUnlessGrantedPassesWhenGranted(): void
+    {
+        $security = $this->createSecurity(granted: true);
+        $this->controller->setSecurity($security);
+
+        $this->controller->callDenyAccessUnlessGranted('edit_posts');
+
+        // No exception means success
+        self::assertTrue(true);
+    }
+
+    #[Test]
+    public function isGrantedReturnsFalseWhenNotGranted(): void
+    {
+        $security = $this->createSecurity(granted: false);
+        $this->controller->setSecurity($security);
+
+        self::assertFalse($this->controller->callIsGranted('manage_options'));
+    }
+
+    #[Test]
+    public function getUserReturnsNullWhenNotAuthenticated(): void
+    {
+        $security = $this->createSecurity();
+        $this->controller->setSecurity($security);
+
+        self::assertNull($this->controller->callGetUser());
+    }
 }

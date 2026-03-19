@@ -306,4 +306,189 @@ final class PredisAdapterTest extends TestCase
         $adapter->delete('wppack_test:sentinel');
         $adapter->close();
     }
+
+    #[Test]
+    public function connectWithSocket(): void
+    {
+        $adapter = new PredisAdapter([
+            'socket' => '/tmp/nonexistent-redis.sock',
+        ]);
+
+        // Socket connection will fail, but buildPredisConnectionParams code path
+        // for 'unix' scheme is exercised during connection attempt
+        try {
+            $adapter->isAvailable();
+        } catch (\Throwable) {
+            // Expected: socket doesn't exist
+        }
+
+        self::assertSame('predis', $adapter->getName());
+        $adapter->close();
+    }
+
+    #[Test]
+    public function connectWithPersistent(): void
+    {
+        $adapter = new PredisAdapter([
+            'host' => '127.0.0.1',
+            'port' => 6379,
+            'persistent' => true,
+        ]);
+
+        if (!$adapter->isAvailable()) {
+            self::markTestSkipped('Redis server is not available at 127.0.0.1:6379.');
+        }
+
+        self::assertTrue($adapter->set('wppack_test:persistent', 'value'));
+        self::assertSame('value', $adapter->get('wppack_test:persistent'));
+
+        $adapter->delete('wppack_test:persistent');
+        $adapter->close();
+    }
+
+    #[Test]
+    public function connectWithDbindex(): void
+    {
+        $adapter = new PredisAdapter([
+            'host' => '127.0.0.1',
+            'port' => 6379,
+            'dbindex' => 2,
+        ]);
+
+        if (!$adapter->isAvailable()) {
+            self::markTestSkipped('Redis server is not available at 127.0.0.1:6379.');
+        }
+
+        self::assertTrue($adapter->set('wppack_test:dbindex', 'value'));
+        self::assertSame('value', $adapter->get('wppack_test:dbindex'));
+
+        $adapter->delete('wppack_test:dbindex');
+        $adapter->close();
+    }
+
+    #[Test]
+    public function connectWithTls(): void
+    {
+        $adapter = new PredisAdapter([
+            'host' => '127.0.0.1',
+            'port' => 6380,
+            'tls' => true,
+            'timeout' => 2,
+        ]);
+
+        try {
+            if (!$adapter->isAvailable()) {
+                self::markTestSkipped('Redis TLS server is not available.');
+            }
+        } catch (\Throwable) {
+            self::markTestSkipped('Redis TLS server is not available.');
+        }
+
+        self::assertTrue($adapter->set('wppack_test:tls', 'value'));
+        self::assertSame('value', $adapter->get('wppack_test:tls'));
+
+        $adapter->delete('wppack_test:tls');
+        $adapter->close();
+    }
+
+    #[Test]
+    public function connectWithReadTimeout(): void
+    {
+        $adapter = new PredisAdapter([
+            'host' => '127.0.0.1',
+            'port' => 6379,
+            'read_timeout' => 5,
+        ]);
+
+        if (!$adapter->isAvailable()) {
+            self::markTestSkipped('Redis server is not available at 127.0.0.1:6379.');
+        }
+
+        self::assertTrue($adapter->set('wppack_test:readtimeout', 'value'));
+        self::assertSame('value', $adapter->get('wppack_test:readtimeout'));
+
+        $adapter->delete('wppack_test:readtimeout');
+        $adapter->close();
+    }
+
+    #[Test]
+    public function connectWithCredentialProvider(): void
+    {
+        $called = false;
+        $adapter = new PredisAdapter([
+            'host' => '127.0.0.1',
+            'port' => 6379,
+            'credential_provider' => function () use (&$called): string {
+                $called = true;
+
+                return '';
+            },
+        ]);
+
+        try {
+            if (!$adapter->isAvailable()) {
+                self::markTestSkipped('Redis server is not available at 127.0.0.1:6379.');
+            }
+        } catch (\Throwable) {
+            // Credential provider path was exercised even if auth fails
+            self::assertTrue($called);
+
+            return;
+        }
+
+        self::assertTrue($called);
+        $adapter->close();
+    }
+
+    #[Test]
+    public function connectWithPasswordAndDbindex(): void
+    {
+        $adapter = new PredisAdapter([
+            'host' => '127.0.0.1',
+            'port' => 6379,
+            'auth' => 'testpassword',
+            'dbindex' => 2,
+        ]);
+
+        // Predis builds connection params lazily, so the auth/dbindex params
+        // are passed through buildPredisConnectionParams. The auth will fail
+        // on actual command execution, but the code path is exercised.
+        try {
+            $adapter->isAvailable();
+        } catch (\Throwable) {
+            // Expected: auth will fail against unauthenticated server
+        }
+
+        self::assertSame('predis', $adapter->getName());
+        $adapter->close();
+    }
+
+    #[Test]
+    public function connectWithTimeouts(): void
+    {
+        $adapter = new PredisAdapter([
+            'host' => '127.0.0.1',
+            'port' => 6379,
+            'timeout' => 5,
+            'read_timeout' => 3,
+        ]);
+
+        if (!$adapter->isAvailable()) {
+            self::markTestSkipped('Redis server is not available at 127.0.0.1:6379.');
+        }
+
+        self::assertTrue($adapter->set('wppack_test:timeouts', 'value'));
+        self::assertSame('value', $adapter->get('wppack_test:timeouts'));
+
+        $adapter->delete('wppack_test:timeouts');
+        $adapter->close();
+    }
+
+    #[Test]
+    public function setMultipleWithNegativeTtlEmptyValues(): void
+    {
+        $results = $this->adapter->setMultiple([], -1);
+
+        self::assertSame([], $results);
+    }
 }

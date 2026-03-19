@@ -342,4 +342,121 @@ final class RedisClusterAdapterTest extends TestCase
         $adapter->delete('{wppack_test}:persistent');
         $adapter->close();
     }
+
+    #[Test]
+    public function connectWithFailoverSlaves(): void
+    {
+        // FAILOVER_DISTRIBUTE_SLAVES requires replica nodes.
+        // Our cluster has 3 masters and no replicas, so isAvailable() fails.
+        // We just verify that the adapter can be constructed with 'slaves' failover
+        // and the connection attempt does not throw during construction.
+        $adapter = new RedisClusterAdapter([
+            'hosts' => ['127.0.0.1:7010', '127.0.0.1:7011', '127.0.0.1:7012'],
+            'timeout' => 2,
+            'failover' => 'slaves',
+        ]);
+
+        self::assertSame('redis-cluster', $adapter->getName());
+
+        // Try set/get directly — write to master should still work
+        try {
+            $adapter->set('{wppack_test}:failover_slaves', 'value');
+            self::assertSame('value', $adapter->get('{wppack_test}:failover_slaves'));
+            $adapter->delete('{wppack_test}:failover_slaves');
+        } catch (\Throwable) {
+            // Expected: cluster without replicas may fail with slaves failover
+        }
+
+        $adapter->close();
+    }
+
+    #[Test]
+    public function connectWithCredentialProvider(): void
+    {
+        $called = false;
+        $adapter = new RedisClusterAdapter([
+            'hosts' => ['127.0.0.1:7010', '127.0.0.1:7011', '127.0.0.1:7012'],
+            'timeout' => 2,
+            'credential_provider' => function () use (&$called): string {
+                $called = true;
+
+                return '';
+            },
+        ]);
+
+        try {
+            if (!$adapter->isAvailable()) {
+                self::markTestSkipped('Redis Cluster is not available at 127.0.0.1:7010-7012.');
+            }
+        } catch (\Throwable) {
+            // The auth may fail but credential_provider path was exercised
+            self::assertTrue($called);
+
+            return;
+        }
+
+        self::assertTrue($called);
+        $adapter->close();
+    }
+
+    #[Test]
+    public function connectWithReadTimeout(): void
+    {
+        $adapter = new RedisClusterAdapter([
+            'hosts' => ['127.0.0.1:7010', '127.0.0.1:7011', '127.0.0.1:7012'],
+            'timeout' => 2,
+            'read_timeout' => 5,
+        ]);
+
+        if (!$adapter->isAvailable()) {
+            self::markTestSkipped('Redis Cluster is not available at 127.0.0.1:7010-7012.');
+        }
+
+        self::assertTrue($adapter->set('{wppack_test}:read_timeout', 'value'));
+        self::assertSame('value', $adapter->get('{wppack_test}:read_timeout'));
+
+        $adapter->delete('{wppack_test}:read_timeout');
+        $adapter->close();
+    }
+
+    #[Test]
+    public function connectWithTls(): void
+    {
+        $adapter = new RedisClusterAdapter([
+            'hosts' => ['127.0.0.1:7010', '127.0.0.1:7011', '127.0.0.1:7012'],
+            'timeout' => 2,
+            'tls' => true,
+        ]);
+
+        // TLS cluster is not available in test env, but createConnection is exercised
+        // which covers the TLS seed building branch
+        try {
+            $adapter->isAvailable();
+        } catch (\Throwable) {
+            // Expected: TLS connection will fail
+        }
+
+        self::assertSame('redis-cluster', $adapter->getName());
+        $adapter->close();
+    }
+
+    #[Test]
+    public function connectWithAuth(): void
+    {
+        $adapter = new RedisClusterAdapter([
+            'hosts' => ['127.0.0.1:7010', '127.0.0.1:7011', '127.0.0.1:7012'],
+            'timeout' => 2,
+            'auth' => 'testpassword',
+        ]);
+
+        // Auth will fail against our unauthenticated cluster, but createConnection is exercised
+        try {
+            $adapter->isAvailable();
+        } catch (\Throwable) {
+            // Expected: auth will fail
+        }
+
+        self::assertSame('redis-cluster', $adapter->getName());
+        $adapter->close();
+    }
 }

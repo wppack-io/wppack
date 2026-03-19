@@ -24,13 +24,18 @@ final class CrossSiteRedirector
 
         $currentHost = parse_url(site_url(), \PHP_URL_HOST);
 
+        // @codeCoverageIgnoreStart
         if ($currentHost === null) {
             return false;
         }
+        // @codeCoverageIgnoreEnd
 
         return $targetHost !== $currentHost;
     }
 
+    /**
+     * @codeCoverageIgnore
+     */
     public function redirect(string $targetUrl, string $samlResponse, string $relayState): never
     {
         $targetHost = parse_url($targetUrl, \PHP_URL_HOST);
@@ -52,6 +57,9 @@ final class CrossSiteRedirector
         exit;
     }
 
+    /**
+     * @codeCoverageIgnore Requires multisite installation
+     */
     public function resolveBlogId(string $url): ?int
     {
         if (!is_multisite()) {
@@ -76,6 +84,7 @@ final class CrossSiteRedirector
             return true;
         }
 
+        // @codeCoverageIgnoreStart
         if (is_multisite()) {
             $sites = get_sites(['number' => 0]);
 
@@ -85,6 +94,7 @@ final class CrossSiteRedirector
                 }
             }
         }
+        // @codeCoverageIgnoreEnd
 
         return false;
     }

@@ -50,7 +50,7 @@ final class ScheduleIdGenerator
         $id = self::AS_PREFIX . $hash . '_' . $actionId;
 
         if (\strlen($id) > self::MAX_LENGTH) {
-            $id = self::AS_PREFIX . substr(md5($id), 0, 32);
+            $id = self::AS_PREFIX . substr(md5($id), 0, 32); // @codeCoverageIgnore
         }
 
         return $id;

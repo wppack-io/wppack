@@ -18,10 +18,6 @@ final class ActionSchedulerInterceptorTest extends TestCase
 
     protected function setUp(): void
     {
-        if (!class_exists(\ActionScheduler::class)) {
-            self::markTestSkipped('Action Scheduler is not available.');
-        }
-
         $this->scheduler = new SpyScheduler();
         $this->interceptor = new ActionSchedulerInterceptor(
             $this->scheduler,
@@ -32,9 +28,7 @@ final class ActionSchedulerInterceptorTest extends TestCase
 
     protected function tearDown(): void
     {
-        if (isset($this->interceptor)) {
-            $this->interceptor->unregister();
-        }
+        $this->interceptor->unregister();
     }
 
     #[Test]
@@ -65,8 +59,57 @@ final class ActionSchedulerInterceptorTest extends TestCase
     }
 
     #[Test]
+    public function onConcurrentBatchesReturnsZeroForNullInput(): void
+    {
+        self::assertSame(0, $this->interceptor->onConcurrentBatches(null));
+    }
+
+    #[Test]
+    public function onStoredActionReturnsEarlyWhenActionSchedulerNotAvailable(): void
+    {
+        if (class_exists(\ActionScheduler::class)) {
+            self::markTestSkipped('This test requires Action Scheduler to NOT be available.');
+        }
+
+        // Should return early without calling scheduler
+        $this->interceptor->onStoredAction(123);
+
+        self::assertCount(0, $this->scheduler->createScheduleRawCalls);
+    }
+
+    #[Test]
+    public function onCanceledActionReturnsEarlyWhenActionSchedulerNotAvailable(): void
+    {
+        if (class_exists(\ActionScheduler::class)) {
+            self::markTestSkipped('This test requires Action Scheduler to NOT be available.');
+        }
+
+        // Should return early without calling scheduler
+        $this->interceptor->onCanceledAction(456);
+
+        self::assertCount(0, $this->scheduler->unscheduleCalls);
+    }
+
+    #[Test]
+    public function syncReturnsZeroWhenActionSchedulerNotAvailable(): void
+    {
+        if (class_exists(\ActionScheduler::class)) {
+            self::markTestSkipped('This test requires Action Scheduler to NOT be available.');
+        }
+
+        $count = $this->interceptor->sync();
+
+        self::assertSame(0, $count);
+        self::assertCount(0, $this->scheduler->createScheduleRawCalls);
+    }
+
+    #[Test]
     public function onStoredActionCreatesScheduleForIntervalAction(): void
     {
+        if (!class_exists(\ActionScheduler::class)) {
+            self::markTestSkipped('Action Scheduler is not available.');
+        }
+
         $this->interceptor->register();
 
         $actionId = as_schedule_recurring_action(time(), 3600, 'test_eb_interval_hook', ['arg1'], 'test-group');
@@ -82,6 +125,10 @@ final class ActionSchedulerInterceptorTest extends TestCase
     #[Test]
     public function onStoredActionCreatesScheduleForSingleAction(): void
     {
+        if (!class_exists(\ActionScheduler::class)) {
+            self::markTestSkipped('Action Scheduler is not available.');
+        }
+
         $this->interceptor->register();
 
         $timestamp = time() + 3600;
@@ -98,6 +145,10 @@ final class ActionSchedulerInterceptorTest extends TestCase
     #[Test]
     public function onStoredActionCreatesScheduleForCronAction(): void
     {
+        if (!class_exists(\ActionScheduler::class)) {
+            self::markTestSkipped('Action Scheduler is not available.');
+        }
+
         $this->interceptor->register();
 
         $actionId = as_schedule_cron_action(time(), '*/15 * * * *', 'test_eb_cron_hook', ['arg1'], 'test-group');
@@ -113,6 +164,10 @@ final class ActionSchedulerInterceptorTest extends TestCase
     #[Test]
     public function onCanceledActionDeletesSchedule(): void
     {
+        if (!class_exists(\ActionScheduler::class)) {
+            self::markTestSkipped('Action Scheduler is not available.');
+        }
+
         $this->interceptor->register();
 
         $actionId = as_schedule_recurring_action(time(), 3600, 'test_eb_cancel_hook', [], 'test-group');
@@ -129,6 +184,10 @@ final class ActionSchedulerInterceptorTest extends TestCase
     #[Test]
     public function onStoredActionLogsErrorWhenEventBridgeFails(): void
     {
+        if (!class_exists(\ActionScheduler::class)) {
+            self::markTestSkipped('Action Scheduler is not available.');
+        }
+
         $this->scheduler->shouldThrowOnCreate = true;
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::once())->method('error');
@@ -152,6 +211,10 @@ final class ActionSchedulerInterceptorTest extends TestCase
     #[Test]
     public function onCanceledActionLogsErrorWhenEventBridgeFails(): void
     {
+        if (!class_exists(\ActionScheduler::class)) {
+            self::markTestSkipped('Action Scheduler is not available.');
+        }
+
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::once())->method('error');
 
@@ -188,6 +251,10 @@ final class ActionSchedulerInterceptorTest extends TestCase
     #[Test]
     public function onStoredActionCreatesScheduleForAsyncAction(): void
     {
+        if (!class_exists(\ActionScheduler::class)) {
+            self::markTestSkipped('Action Scheduler is not available.');
+        }
+
         $this->interceptor->register();
 
         // Async action (no schedule) - uses NullSchedule internally
@@ -204,6 +271,10 @@ final class ActionSchedulerInterceptorTest extends TestCase
     #[Test]
     public function syncSyncsAllPendingActionsToEventBridge(): void
     {
+        if (!class_exists(\ActionScheduler::class)) {
+            self::markTestSkipped('Action Scheduler is not available.');
+        }
+
         // Create some pending AS actions first (without interceptor registered)
         $actionId1 = as_schedule_single_action(time() + 3600, 'test_eb_sync_single_hook', ['arg1'], 'sync-group');
         $actionId2 = as_schedule_recurring_action(time(), 3600, 'test_eb_sync_recurring_hook', [], 'sync-group');
@@ -218,6 +289,10 @@ final class ActionSchedulerInterceptorTest extends TestCase
     #[Test]
     public function syncLogsErrorWhenEventBridgeFails(): void
     {
+        if (!class_exists(\ActionScheduler::class)) {
+            self::markTestSkipped('Action Scheduler is not available.');
+        }
+
         $this->scheduler->shouldThrowOnCreate = true;
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects(self::atLeastOnce())->method('error');
@@ -240,6 +315,10 @@ final class ActionSchedulerInterceptorTest extends TestCase
     #[Test]
     public function syncHandlesCronScheduleType(): void
     {
+        if (!class_exists(\ActionScheduler::class)) {
+            self::markTestSkipped('Action Scheduler is not available.');
+        }
+
         // Create a cron AS action (without interceptor registered)
         as_schedule_cron_action(time(), '*/30 * * * *', 'test_eb_sync_cron_hook', [], 'sync-group');
 
