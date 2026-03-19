@@ -113,7 +113,7 @@ final class RestEntry
         if ($hasIsGranted && (!$hasPermission || $this->permission->public)) {
             return static function (\WP_REST_Request $request) use ($isGrantedAttributes): bool {
                 foreach ($isGrantedAttributes as $grant) {
-                    if (!current_user_can($grant->attribute)) {
+                    if ($grant->subject !== null ? !current_user_can($grant->attribute, $grant->subject) : !current_user_can($grant->attribute)) {
                         return false;
                     }
                 }
@@ -135,7 +135,7 @@ final class RestEntry
                     return false;
                 }
                 foreach ($isGrantedAttributes as $grant) {
-                    if (!current_user_can($grant->attribute)) {
+                    if ($grant->subject !== null ? !current_user_can($grant->attribute, $grant->subject) : !current_user_can($grant->attribute)) {
                         return false;
                     }
                 }

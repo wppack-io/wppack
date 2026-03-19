@@ -38,7 +38,7 @@ abstract class AbstractDashboardWidget
     public function register(): void
     {
         foreach ($this->isGrantedAttributes as $grant) {
-            if (!current_user_can($grant->attribute)) {
+            if ($grant->subject !== null ? !current_user_can($grant->attribute, $grant->subject) : !current_user_can($grant->attribute)) {
                 return;
             }
         }

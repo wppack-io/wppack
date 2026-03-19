@@ -30,19 +30,15 @@ final class AjaxHandlerRegistry
         }
 
         $reflection = new \ReflectionClass($subscriber);
-        $classGrants = IsGrantedChecker::resolve($reflection);
+        $checker = $this->isGrantedChecker ?? new IsGrantedChecker($this->security);
 
         foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
             $attributes = $method->getAttributes(Ajax::class);
 
             foreach ($attributes as $attribute) {
                 $handler = $attribute->newInstance();
-                $methodGrants = $method->getAttributes(IsGranted::class);
-                $grants = array_merge($classGrants, array_map(
-                    static fn(\ReflectionAttribute $a) => $a->newInstance(),
-                    $methodGrants,
-                ));
-                $callback = $this->createCallback($subscriber, $method, $handler, $grants);
+                $grants = IsGrantedChecker::resolve($reflection, $method);
+                $callback = $this->createCallback($subscriber, $method, $handler, $grants, $checker);
 
                 if ($handler->access === Access::Public || $handler->access === Access::Authenticated) {
                     add_action("wp_ajax_{$handler->action}", $callback, $handler->priority);
@@ -58,7 +54,7 @@ final class AjaxHandlerRegistry
     /**
      * @param list<IsGranted> $grants
      */
-    private function createCallback(object $subscriber, \ReflectionMethod $method, Ajax $handler, array $grants): \Closure
+    private function createCallback(object $subscriber, \ReflectionMethod $method, Ajax $handler, array $grants, IsGrantedChecker $checker): \Closure
     {
         $methodName = $method->getName();
         $requestParamIndex = null;
@@ -78,7 +74,6 @@ final class AjaxHandlerRegistry
         }
 
         $request = $this->request;
-        $checker = $this->isGrantedChecker ?? new IsGrantedChecker($this->security);
 
         return static function () use ($subscriber, $methodName, $handler, $grants, $requestParamIndex, $currentUserParams, $request, $checker): void {
             try {

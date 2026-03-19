@@ -45,7 +45,7 @@ final class IsGrantedChecker
                 if (!$this->security->isGranted($grant->attribute, $grant->subject)) {
                     throw new AccessDeniedException($grant->message);
                 }
-            } elseif (!current_user_can($grant->attribute)) {
+            } elseif ($grant->subject !== null ? !current_user_can($grant->attribute, $grant->subject) : !current_user_can($grant->attribute)) {
                 throw new AccessDeniedException($grant->message);
             }
         }
