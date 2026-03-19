@@ -42,7 +42,7 @@ function handle_search_ajax() {
     $data = [];
     foreach ($results as $post) {
         $data[] = [
-            'id' => $post->ID,
+      'id' => $post->ID,QQ
             'title' => $post->post_title,
         ];
     }
@@ -125,9 +125,10 @@ public function search(): JsonResponse { /* ... */ }
 |-----------|------|-----------|------|
 | `action` | `string` | （必須） | WordPress AJAX アクション名 |
 | `access` | `Access` | `Access::Public` | アクセスレベル |
-| `capability` | `?string` | `null` | 権限チェック（例: `'edit_posts'`） |
 | `checkReferer` | `?string` | `null` | nonce アクション名。設定時に `check_ajax_referer()` で検証 |
 | `priority` | `int` | `10` | フック優先度 |
+
+> **権限チェック:** capability チェックには `#[IsGranted('capability')]` アトリビュートを `#[Ajax]` と併用します。詳細は [Security コンポーネント](../security/) を参照。
 
 #### 基本的な使用例
 
@@ -166,12 +167,14 @@ public function updateProduct(): JsonResponse
 #### nonce + capability 付きハンドラー
 
 ```php
+use WpPack\Component\Security\Attribute\IsGranted;
+
 #[Ajax(
     action: 'delete_product',
     access: Access::Authenticated,
-    capability: 'delete_posts',
     checkReferer: 'delete_product_nonce',
 )]
+#[IsGranted('delete_posts')]
 public function deleteProduct(): JsonResponse
 {
     // nonce と権限は AjaxHandlerRegistry が自動検証
@@ -258,9 +261,9 @@ class ProductController extends AbstractAjaxController
 
 > **注意:** `getUser()`、`isGranted()`、`denyAccessUnlessGranted()` を使うには `wppack/security` パッケージが必要です。Security が未設定の場合、`LogicException` がスローされます。
 
-#### `#[Ajax(capability: '...')]` との違い
+#### `#[IsGranted]` と `AbstractAjaxController` の使い分け
 
-`#[Ajax]` アトリビュートの `capability` パラメータは WordPress の `current_user_can()` を使用した組み込みの権限チェックです。`AbstractAjaxController` の `isGranted()` / `denyAccessUnlessGranted()` は Security コンポーネントのカスタム Voter による高度な認可チェックに使用します。シンプルなケースでは `capability` パラメータで十分です。
+`#[IsGranted('capability')]` は宣言的な権限チェックで、ハンドラー実行前に自動検証されます。`AbstractAjaxController` の `isGranted()` / `denyAccessUnlessGranted()` は Security コンポーネントのカスタム Voter による高度な認可チェックに使用します。シンプルな capability チェックには `#[IsGranted]` が適しています。
 
 ### AjaxHandlerRegistry
 
@@ -276,7 +279,7 @@ class ProductController extends AbstractAjaxController
    - `Guest` → `add_action('wp_ajax_nopriv_{action}', ...)` のみ
 4. コールバック実行時:
    - `checkReferer` 設定あり → `check_ajax_referer()` 検証
-   - `capability` 設定あり → `current_user_can()` 検証（失敗時は 403 エラー）
+   - `#[IsGranted]` 設定あり → `IsGrantedChecker::check()` 検証（失敗時は 403 エラー）
    - メソッド呼び出し
    - 戻り値が `JsonResponse` なら `->send()`
 
@@ -420,14 +423,14 @@ nonce + 権限チェックの組み合わせ:
 #[Ajax(
     action: 'publish_post',
     access: Access::Authenticated,
-    capability: 'publish_posts',
     checkReferer: 'publish_post_nonce',
 )]
+#[IsGranted('publish_posts')]
 ```
 
 ### 推奨パターン
 
-| ユースケース | access | capability | checkReferer |
+| ユースケース | access | `#[IsGranted]` | checkReferer |
 |-------------|--------|-----------|-------------|
 | 公開検索 | `Public` | - | - |
 | ログインユーザーのデータ取得 | `Authenticated` | - | - |

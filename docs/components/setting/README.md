@@ -102,13 +102,13 @@ class MyPluginSettings extends AbstractSettingsPage
     slug: 'my-plugin',            // ページスラグ（必須）
     title: 'My Plugin Settings',  // ページタイトル（必須）
     menuTitle: 'My Plugin',       // メニュー表示名（デフォルト: title と同じ）
-    capability: 'manage_options', // 必要な権限（デフォルト: manage_options）
     optionName: 'my_plugin_opts', // オプション名（デフォルト: slug のハイフン→アンダースコア変換）
     optionGroup: 'my_plugin_grp', // オプショングループ（デフォルト: optionName と同じ）
     parent: 'options-general.php',// 親メニュー（null でトップレベル、デフォルト: options-general.php）
     icon: null,                   // トップレベルメニュー用アイコン
     position: null,               // メニュー位置
 )]
+// 権限チェック: #[IsGranted('manage_options')]（デフォルト）
 ```
 
 ### AbstractSettingsPage

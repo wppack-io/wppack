@@ -21,6 +21,7 @@ use WpPack\Component\HttpFoundation\Exception\NotFoundException;
 use WpPack\Component\Rest\HttpMethod;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\HttpFoundation\JsonResponse;
+use WpPack\Component\Security\Attribute\IsGranted;
 
 #[RestRoute('/products', namespace: 'my-plugin/v1')]
 #[Permission(public: true)]
@@ -50,7 +51,7 @@ class ProductController extends AbstractRestController
     }
 
     #[RestRoute(methods: HttpMethod::POST)]
-    #[Permission(capability: 'edit_posts')]
+    #[IsGranted('edit_posts')]
     public function create(
         #[Param(minLength: 3)] string $title,
         Request $request,
@@ -114,12 +115,18 @@ int $perPage = 10
 
 ### `#[Permission]`
 
-クラスレベル（デフォルト）とメソッドレベル（オーバーライド）で使用。
+クラスレベル（デフォルト）とメソッドレベル（オーバーライド）で使用。REST 固有の `callback` と `public` を制御する。
 
 ```php
-#[Permission(capability: 'edit_posts')]    // ケイパビリティチェック
 #[Permission(callback: 'canDelete')]       // コントローラーメソッドをコールバック
 #[Permission(public: true)]                // 公開エンドポイント
+```
+
+capability チェックには `#[IsGranted]`（Security コンポーネント）を使用する:
+
+```php
+#[IsGranted('edit_posts')]                 // ケイパビリティチェック
+#[IsGranted('edit_post', subject: 42)]     // オブジェクトレベル権限
 ```
 
 ## レスポンス
@@ -206,7 +213,7 @@ throw new ForbiddenException('Access denied.');         // 403
 | レスポンス | Template/Block/Redirect 等 | Response/JsonResponse |
 | エラー処理 | null で WordPress に委譲 | `throw HttpException` → `WP_Error` |
 | リクエスト | `Request` + パラメータ自動注入 | `Request` / `WP_REST_Request` |
-| パーミッション | なし | `#[Permission]`（未指定なら public） |
+| パーミッション | `#[IsGranted]` | `#[Permission]` + `#[IsGranted]` |
 
 ## プラグイン / テーマでの配置
 

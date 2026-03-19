@@ -46,11 +46,12 @@ function my_dashboard_widget_configure() {
 ```php
 use WpPack\Component\DashboardWidget\AbstractDashboardWidget;
 use WpPack\Component\DashboardWidget\Attribute\AsDashboardWidget;
+use WpPack\Component\Security\Attribute\IsGranted;
 
+#[IsGranted('edit_posts')]
 #[AsDashboardWidget(
     id: 'my_dashboard_widget',
     title: 'My Widget',
-    capability: 'edit_posts',
 )]
 class MyDashboardWidget extends AbstractDashboardWidget
 {
@@ -78,11 +79,12 @@ class MyDashboardWidget extends AbstractDashboardWidget
 ```php
 use WpPack\Component\DashboardWidget\AbstractDashboardWidget;
 use WpPack\Component\DashboardWidget\Attribute\AsDashboardWidget;
+use WpPack\Component\Security\Attribute\IsGranted;
 
+#[IsGranted('manage_options')]
 #[AsDashboardWidget(
     id: 'site_stats_widget',
     title: 'Site Statistics',
-    capability: 'manage_options',
     context: 'normal',
     priority: 'high',
 )]
@@ -109,10 +111,10 @@ class SiteStatsWidget extends AbstractDashboardWidget
 ### 依存性注入を使用したウィジェット
 
 ```php
+#[IsGranted('edit_posts')]
 #[AsDashboardWidget(
     id: 'recent_activity_widget',
     title: 'Recent Activity',
-    capability: 'edit_posts',
 )]
 class RecentActivityWidget extends AbstractDashboardWidget
 {
@@ -151,10 +153,10 @@ class RecentActivityWidget extends AbstractDashboardWidget
 ### 設定（Configure）コールバック付きウィジェット
 
 ```php
+#[IsGranted('manage_options')]
 #[AsDashboardWidget(
     id: 'customizable_widget',
     title: 'Customizable Widget',
-    capability: 'manage_options',
 )]
 class CustomizableWidget extends AbstractDashboardWidget
 {

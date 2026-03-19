@@ -48,10 +48,11 @@ class MyPluginPage extends AbstractAdminPage
 | `slug` | `string` | （必須） | メニュースラッグ |
 | `title` | `string` | （必須） | ページタイトル |
 | `menuTitle` | `string` | `''`（= title） | メニュー表示名 |
-| `capability` | `string` | `'manage_options'` | 必要な権限 |
 | `parent` | `?string` | `null` | 親メニュースラッグ（null = トップレベル） |
 | `icon` | `?string` | `null` | メニューアイコン URL / dashicons クラス |
 | `position` | `?int` | `null` | メニュー表示位置 |
+
+> **権限チェック:** `#[IsGranted('capability')]`（Security コンポーネント）をクラスに付与して必要な権限を指定します。未指定時のデフォルトは `'manage_options'` です。
 
 ### サブメニューページ
 
