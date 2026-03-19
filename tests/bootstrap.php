@@ -10,6 +10,17 @@ putenv('WP_PHPUNIT__TESTS_CONFIG=' . __DIR__ . '/wp-config.php');
 $_tests_dir = dirname(__DIR__) . '/vendor/wp-phpunit/wp-phpunit';
 
 require_once $_tests_dir . '/includes/functions.php';
+
+// WP 6.8+: suppress _doing_it_wrong notice for wp_is_block_theme() called before
+// theme directory registration during WP bootstrap (WordPress core issue).
+tests_add_filter('doing_it_wrong_trigger_error', static function (bool $trigger, string $function): bool {
+    if ($function === 'wp_is_block_theme') {
+        return false;
+    }
+
+    return $trigger;
+}, 10, 2);
+
 require_once $_tests_dir . '/includes/bootstrap.php';
 
 // Load admin/core includes required by component tests
