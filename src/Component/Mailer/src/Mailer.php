@@ -200,7 +200,7 @@ final class Mailer
         $fromAddress = apply_filters('wp_mail_from', $from?->address ?? $phpMailer->From);
         $fromName = apply_filters('wp_mail_from_name', $from?->name ?? $phpMailer->FromName);
 
-        $phpMailer->setFrom($fromAddress, $fromName);
+        $phpMailer->setFrom($fromAddress, $fromName, false);
 
         // To
         foreach ($email->getTo() as $to) {
