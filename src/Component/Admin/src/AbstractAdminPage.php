@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Admin;
 
 use WpPack\Component\Admin\Attribute\AsAdminPage;
+use WpPack\Component\Security\Authorization\IsGrantedChecker;
 
 abstract class AbstractAdminPage
 {
@@ -22,12 +23,14 @@ abstract class AbstractAdminPage
 
     public function __construct()
     {
-        $attribute = $this->resolveAttribute();
+        /** @var \ReflectionClass<object> $reflection */
+        $reflection = new \ReflectionClass($this);
+        $attribute = $this->resolveAttribute($reflection);
 
         $this->slug = $attribute->slug;
         $this->title = $attribute->title;
         $this->menuTitle = $attribute->menuTitle !== '' ? $attribute->menuTitle : $attribute->title;
-        $this->capability = $attribute->capability;
+        $this->capability = IsGrantedChecker::extractCapability($reflection);
         $this->parent = $attribute->parent;
         $this->icon = $attribute->icon;
         $this->position = $attribute->position;
@@ -100,9 +103,11 @@ abstract class AbstractAdminPage
         return $this->hasEnqueueStylesOverride;
     }
 
-    private function resolveAttribute(): AsAdminPage
+    /**
+     * @param \ReflectionClass<object> $reflection
+     */
+    private function resolveAttribute(\ReflectionClass $reflection): AsAdminPage
     {
-        $reflection = new \ReflectionClass($this);
         /** @var list<\ReflectionAttribute<AsAdminPage>> $attributes */
         $attributes = $reflection->getAttributes(AsAdminPage::class);
 

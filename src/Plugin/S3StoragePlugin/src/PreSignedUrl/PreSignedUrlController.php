@@ -7,12 +7,12 @@ namespace WpPack\Plugin\S3StoragePlugin\PreSignedUrl;
 use WpPack\Component\HttpFoundation\JsonResponse;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Rest\AbstractRestController;
-use WpPack\Component\Rest\Attribute\Permission;
 use WpPack\Component\Rest\Attribute\RestRoute;
 use WpPack\Component\Rest\HttpMethod;
+use WpPack\Component\Security\Attribute\IsGranted;
 
 #[RestRoute(route: '/s3/presigned-url', methods: HttpMethod::POST, namespace: 'wppack/v1')]
-#[Permission(capability: 'upload_files')]
+#[IsGranted('upload_files')]
 final class PreSignedUrlController extends AbstractRestController
 {
     public function __construct(

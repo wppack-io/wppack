@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Routing;
 
+use WpPack\Component\HttpFoundation\Exception\ForbiddenException;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Routing\Attribute\RewriteTag;
 use WpPack\Component\Routing\Attribute\Route;
 use WpPack\Component\Security\Attribute\CurrentUser;
+use WpPack\Component\Security\Attribute\IsGranted;
+use WpPack\Component\Security\Authorization\IsGrantedChecker;
+use WpPack\Component\Security\Exception\AccessDeniedException;
 use WpPack\Component\Security\Security;
 use WpPack\Component\Templating\TemplateRendererInterface;
 
@@ -20,6 +24,7 @@ final class RouteRegistry
         private readonly ?Request $request = null,
         private readonly ?Security $security = null,
         private readonly ?TemplateRendererInterface $renderer = null,
+        private readonly ?IsGrantedChecker $isGrantedChecker = null,
     ) {}
 
     public function register(object $controller): void
@@ -69,6 +74,10 @@ final class RouteRegistry
         $entries = [];
         $reflection = new \ReflectionClass($controller);
         $classTags = $this->resolveRewriteTags($reflection);
+        $classGrants = array_map(
+            static fn(\ReflectionAttribute $a) => $a->newInstance(),
+            $reflection->getAttributes(IsGranted::class),
+        );
 
         $classRoutes = $reflection->getAttributes(Route::class);
         if ($classRoutes !== []) {
@@ -82,13 +91,17 @@ final class RouteRegistry
             $route = $classRoutes[0]->newInstance();
             $queryVarNames = RouteEntry::parseQueryVars($route->query);
             $method = $reflection->getMethod('__invoke');
+            $methodGrants = array_map(
+                static fn(\ReflectionAttribute $a) => $a->newInstance(),
+                $method->getAttributes(IsGranted::class),
+            );
             $entries[] = new RouteEntry(
                 $route->name,
                 $route->regex,
                 $route->query,
                 $route->position,
                 $classTags,
-                $this->createHandler($controller, $method, $queryVarNames),
+                $this->createHandler($controller, $method, $queryVarNames, array_merge($classGrants, $methodGrants)),
             );
         }
 
@@ -105,13 +118,17 @@ final class RouteRegistry
             $route = $methodRoutes[0]->newInstance();
             $queryVarNames = RouteEntry::parseQueryVars($route->query);
             $methodTags = $this->resolveRewriteTags($method);
+            $methodGrants = array_map(
+                static fn(\ReflectionAttribute $a) => $a->newInstance(),
+                $method->getAttributes(IsGranted::class),
+            );
             $entries[] = new RouteEntry(
                 $route->name,
                 $route->regex,
                 $route->query,
                 $route->position,
                 array_merge($classTags, $methodTags),
-                $this->createHandler($controller, $method, $queryVarNames),
+                $this->createHandler($controller, $method, $queryVarNames, array_merge($classGrants, $methodGrants)),
             );
         }
 
@@ -127,11 +144,13 @@ final class RouteRegistry
 
     /**
      * @param list<string> $queryVarNames
+     * @param list<IsGranted> $grants
      */
     private function createHandler(
         object $controller,
         \ReflectionMethod $method,
         array $queryVarNames,
+        array $grants = [],
     ): \Closure {
         $methodName = $method->getName();
         $requestParamIndex = null;
@@ -157,8 +176,16 @@ final class RouteRegistry
 
         $request = $this->request;
         $security = $this->security;
+        $checker = $this->isGrantedChecker ?? new IsGrantedChecker($this->security);
 
-        return function () use ($controller, $methodName, $requestParamIndex, $injectableParams, $routeParams, $queryVarNames, $request, $security): mixed {
+        return function () use ($controller, $methodName, $requestParamIndex, $injectableParams, $routeParams, $queryVarNames, $request, $security, $grants, $checker): mixed {
+            if ($grants !== []) {
+                try {
+                    $checker->check($grants);
+                } catch (AccessDeniedException $e) {
+                    throw new ForbiddenException($e->getMessage());
+                }
+            }
             if ($request !== null) {
                 foreach ($queryVarNames as $varName) {
                     $request->attributes->set($varName, get_query_var($varName));

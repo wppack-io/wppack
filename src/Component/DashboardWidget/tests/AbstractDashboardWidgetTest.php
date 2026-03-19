@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\DashboardWidget\AbstractDashboardWidget;
 use WpPack\Component\DashboardWidget\Attribute\AsDashboardWidget;
+use WpPack\Component\Security\Attribute\IsGranted;
 
 final class AbstractDashboardWidgetTest extends TestCase
 {
@@ -44,21 +45,12 @@ final class AbstractDashboardWidgetTest extends TestCase
     }
 
     #[Test]
-    public function resolvesCapabilityFromAttribute(): void
-    {
-        $widget = new ConcreteTestDashboardWidget();
-
-        self::assertNull($widget->capability);
-    }
-
-    #[Test]
     public function resolvesAllAttributeParameters(): void
     {
         $widget = new FullAttributeTestDashboardWidget();
 
         self::assertSame('full_widget', $widget->id);
         self::assertSame('Full Widget', $widget->title);
-        self::assertSame('manage_options', $widget->capability);
         self::assertSame('side', $widget->context);
         self::assertSame('high', $widget->priority);
     }
@@ -168,14 +160,13 @@ final class AbstractDashboardWidgetTest extends TestCase
     }
 
     #[Test]
-    public function registerWithoutCapabilityRegisters(): void
+    public function registerWithoutIsGrantedRegisters(): void
     {
         set_current_screen('dashboard');
 
         global $wp_meta_boxes;
 
         $widget = new ConcreteTestDashboardWidget();
-        self::assertNull($widget->capability);
         $widget->register();
 
         self::assertArrayHasKey($widget->id, $wp_meta_boxes['dashboard'][$widget->context][$widget->priority]);
@@ -248,7 +239,7 @@ final class AbstractDashboardWidgetTest extends TestCase
         $widget = new ConcreteTestDashboardWidget();
         $reflection = new \ReflectionClass($widget);
 
-        foreach (['id', 'title', 'capability', 'context', 'priority'] as $prop) {
+        foreach (['id', 'title', 'context', 'priority'] as $prop) {
             self::assertTrue($reflection->getProperty($prop)->isReadOnly());
         }
     }
@@ -303,10 +294,10 @@ class ConcreteTestDashboardWidget extends AbstractDashboardWidget
     }
 }
 
+#[IsGranted('manage_options')]
 #[AsDashboardWidget(
     id: 'full_widget',
     title: 'Full Widget',
-    capability: 'manage_options',
     context: 'side',
     priority: 'high',
 )]
@@ -326,7 +317,8 @@ class NoAttributeTestDashboardWidget extends AbstractDashboardWidget
     }
 }
 
-#[AsDashboardWidget(id: 'capability_widget', title: 'Capability Widget', capability: 'edit_posts')]
+#[IsGranted('edit_posts')]
+#[AsDashboardWidget(id: 'capability_widget', title: 'Capability Widget')]
 class CapabilityTestDashboardWidget extends AbstractDashboardWidget
 {
     public function render(): void
@@ -335,7 +327,8 @@ class CapabilityTestDashboardWidget extends AbstractDashboardWidget
     }
 }
 
-#[AsDashboardWidget(id: 'restricted_widget', title: 'Restricted Widget', capability: 'activate_plugins')]
+#[IsGranted('activate_plugins')]
+#[AsDashboardWidget(id: 'restricted_widget', title: 'Restricted Widget')]
 class RestrictedCapabilityTestDashboardWidget extends AbstractDashboardWidget
 {
     public function render(): void

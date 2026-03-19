@@ -11,7 +11,6 @@ final class AsAdminPage
         public readonly string $slug,
         public readonly string $title,
         public readonly string $menuTitle = '',
-        public readonly string $capability = 'manage_options',
         public readonly ?string $parent = null,
         public readonly ?string $icon = null,
         public readonly ?int $position = null,

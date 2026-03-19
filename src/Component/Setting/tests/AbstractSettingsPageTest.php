@@ -6,6 +6,7 @@ namespace WpPack\Component\Setting\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Security\Attribute\IsGranted;
 use WpPack\Component\Setting\AbstractSettingsPage;
 use WpPack\Component\Setting\Attribute\AsSettingsPage;
 use WpPack\Component\Setting\SettingsConfigurator;
@@ -186,6 +187,14 @@ final class AbstractSettingsPageTest extends TestCase
         self::assertSame('tools.php', $page->parent);
         self::assertNull($page->icon);
         self::assertNull($page->position);
+    }
+
+    #[Test]
+    public function capabilityDefaultsToManageOptions(): void
+    {
+        $page = new MinimalTestSettingsPage();
+
+        self::assertSame('manage_options', $page->capability);
     }
 
     #[Test]
@@ -499,11 +508,11 @@ class SanitizeTestSettingsPage extends AbstractSettingsPage
     }
 }
 
+#[IsGranted('edit_posts')]
 #[AsSettingsPage(
     slug: 'full-plugin',
     title: 'Full Plugin Settings',
     menuTitle: 'Full Plugin',
-    capability: 'edit_posts',
     optionName: 'full_plugin_opts',
     optionGroup: 'full_plugin_grp',
     parent: 'tools.php',

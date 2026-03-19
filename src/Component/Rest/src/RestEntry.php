@@ -8,6 +8,7 @@ use WpPack\Component\HttpFoundation\Exception\HttpException;
 use WpPack\Component\HttpFoundation\JsonResponse;
 use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Rest\Attribute\Permission;
+use WpPack\Component\Security\Attribute\IsGranted;
 
 /** @internal */
 final class RestEntry
@@ -15,6 +16,7 @@ final class RestEntry
     /**
      * @param list<string> $methods
      * @param list<RestParamEntry> $params
+     * @param list<IsGranted> $isGrantedAttributes
      */
     public function __construct(
         public readonly string $namespace,
@@ -24,6 +26,7 @@ final class RestEntry
         public readonly array $params,
         private readonly \Closure $handler,
         private readonly ?object $controller = null,
+        public readonly array $isGrantedAttributes = [],
     ) {}
 
     public function register(): void
@@ -95,21 +98,50 @@ final class RestEntry
      */
     private function createPermissionCallback(): \Closure|string
     {
-        if ($this->permission === null || $this->permission->public) {
+        $isGrantedAttributes = $this->isGrantedAttributes;
+        $hasPermission = $this->permission !== null;
+        $hasIsGranted = $isGrantedAttributes !== [];
+
+        if (!$hasPermission && !$hasIsGranted) {
             return '__return_true';
         }
 
-        if ($this->permission->capability !== null) {
-            $capability = $this->permission->capability;
-
-            return static fn(\WP_REST_Request $request): bool => current_user_can($capability);
+        if ($hasPermission && $this->permission->public && !$hasIsGranted) {
+            return '__return_true';
         }
 
-        if ($this->permission->callback !== null && $this->controller !== null) {
+        if ($hasIsGranted && (!$hasPermission || $this->permission->public)) {
+            return static function (\WP_REST_Request $request) use ($isGrantedAttributes): bool {
+                foreach ($isGrantedAttributes as $grant) {
+                    if (!current_user_can($grant->attribute)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            };
+        }
+
+        if ($hasPermission && $this->permission->callback !== null && $this->controller !== null) {
             $controller = $this->controller;
             $method = $this->permission->callback;
 
-            return static fn(\WP_REST_Request $request): bool => $controller->{$method}($request);
+            if (!$hasIsGranted) {
+                return static fn(\WP_REST_Request $request): bool => $controller->{$method}($request);
+            }
+
+            return static function (\WP_REST_Request $request) use ($controller, $method, $isGrantedAttributes): bool {
+                if (!$controller->{$method}($request)) {
+                    return false;
+                }
+                foreach ($isGrantedAttributes as $grant) {
+                    if (!current_user_can($grant->attribute)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            };
         }
 
         return '__return_true';

@@ -11,21 +11,10 @@ use WpPack\Component\Rest\Attribute\Permission;
 final class PermissionTest extends TestCase
 {
     #[Test]
-    public function capabilityPermission(): void
-    {
-        $permission = new Permission(capability: 'edit_posts');
-
-        self::assertSame('edit_posts', $permission->capability);
-        self::assertNull($permission->callback);
-        self::assertFalse($permission->public);
-    }
-
-    #[Test]
     public function callbackPermission(): void
     {
         $permission = new Permission(callback: 'canDelete');
 
-        self::assertNull($permission->capability);
         self::assertSame('canDelete', $permission->callback);
         self::assertFalse($permission->public);
     }
@@ -35,18 +24,8 @@ final class PermissionTest extends TestCase
     {
         $permission = new Permission(public: true);
 
-        self::assertNull($permission->capability);
         self::assertNull($permission->callback);
         self::assertTrue($permission->public);
-    }
-
-    #[Test]
-    public function throwsWhenBothCapabilityAndCallback(): void
-    {
-        $this->expectException(\LogicException::class);
-        $this->expectExceptionMessage('cannot have both');
-
-        new Permission(capability: 'edit_posts', callback: 'canEdit');
     }
 
     #[Test]

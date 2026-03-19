@@ -6,6 +6,7 @@ namespace WpPack\Component\Routing\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\HttpFoundation\Exception\ForbiddenException;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Routing\AbstractController;
 use WpPack\Component\Routing\Attribute\RewriteTag;
@@ -15,6 +16,7 @@ use WpPack\Component\Routing\RouteEntry;
 use WpPack\Component\Routing\RoutePosition;
 use WpPack\Component\Routing\RouteRegistry;
 use WpPack\Component\Security\Attribute\CurrentUser;
+use WpPack\Component\Security\Attribute\IsGranted;
 use WpPack\Component\Security\Tests\SecurityTestTrait;
 use WpPack\Component\Templating\TemplateRendererInterface;
 
@@ -773,6 +775,118 @@ final class RouteRegistryTest extends TestCase
         $entry->handleTemplateRedirect();
 
         self::assertTrue($controller->called);
+    }
+
+    #[Test]
+    public function isGrantedAllowsAccessWhenCapabilityGranted(): void
+    {
+        $request = new Request();
+
+        $controller = new class {
+            public bool $called = false;
+
+            #[IsGranted('manage_options')]
+            #[Route(
+                name: 'is_granted_allow',
+                regex: '^granted-allow/([^/]+)/?$',
+                query: 'index.php?granted_page=$matches[1]',
+            )]
+            public function index(): ?TemplateResponse
+            {
+                $this->called = true;
+
+                return null;
+            }
+        };
+
+        wp_set_current_user(1);
+        $registry = new RouteRegistry($request);
+        $registry->register($controller);
+
+        $routes = $registry->getRegisteredRoutes();
+        $entry = $routes['is_granted_allow'];
+
+        set_query_var('granted_page', '1');
+        $entry->handleTemplateRedirect();
+
+        self::assertTrue($controller->called);
+    }
+
+    #[Test]
+    public function isGrantedDeniesAccessWhenCapabilityNotGranted(): void
+    {
+        $request = new Request();
+
+        $controller = new class {
+            public bool $called = false;
+
+            #[IsGranted('manage_options')]
+            #[Route(
+                name: 'is_granted_deny',
+                regex: '^granted-deny/([^/]+)/?$',
+                query: 'index.php?granted_deny_page=$matches[1]',
+            )]
+            public function index(): ?TemplateResponse
+            {
+                $this->called = true;
+
+                return null;
+            }
+        };
+
+        wp_set_current_user(0);
+        $registry = new RouteRegistry($request);
+        $registry->register($controller);
+
+        $routes = $registry->getRegisteredRoutes();
+        $entry = $routes['is_granted_deny'];
+
+        set_query_var('granted_deny_page', '1');
+
+        // ForbiddenException is caught by RouteEntry::dispatch() and handled via wp_die
+        ob_start();
+        $entry->handleTemplateRedirect();
+        ob_end_clean();
+
+        self::assertFalse($controller->called);
+    }
+
+    #[Test]
+    public function classLevelIsGrantedAppliesToAllRoutes(): void
+    {
+        $request = new Request();
+
+        $controller = new #[IsGranted('manage_options')] class {
+            public bool $called = false;
+
+            #[Route(
+                name: 'class_granted',
+                regex: '^class-granted/([^/]+)/?$',
+                query: 'index.php?class_granted_page=$matches[1]',
+            )]
+            public function index(): ?TemplateResponse
+            {
+                $this->called = true;
+
+                return null;
+            }
+        };
+
+        wp_set_current_user(0);
+        $registry = new RouteRegistry($request);
+        $registry->register($controller);
+
+        $routes = $registry->getRegisteredRoutes();
+        $entry = $routes['class_granted'];
+
+        set_query_var('class_granted_page', '1');
+
+        // ForbiddenException is caught by RouteEntry::dispatch() and handled via wp_die
+        ob_start();
+        $entry->handleTemplateRedirect();
+        ob_end_clean();
+
+        self::assertFalse($controller->called);
     }
 
     /**

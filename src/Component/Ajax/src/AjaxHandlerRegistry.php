@@ -10,6 +10,9 @@ use WpPack\Component\HttpFoundation\Exception\HttpException;
 use WpPack\Component\HttpFoundation\JsonResponse;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Security\Attribute\CurrentUser;
+use WpPack\Component\Security\Attribute\IsGranted;
+use WpPack\Component\Security\Authorization\IsGrantedChecker;
+use WpPack\Component\Security\Exception\AccessDeniedException;
 use WpPack\Component\Security\Security;
 
 final class AjaxHandlerRegistry
@@ -17,6 +20,7 @@ final class AjaxHandlerRegistry
     public function __construct(
         private readonly ?Request $request = null,
         private readonly ?Security $security = null,
+        private readonly ?IsGrantedChecker $isGrantedChecker = null,
     ) {}
 
     public function register(object $subscriber): void
@@ -26,13 +30,19 @@ final class AjaxHandlerRegistry
         }
 
         $reflection = new \ReflectionClass($subscriber);
+        $classGrants = IsGrantedChecker::resolve($reflection);
 
         foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
             $attributes = $method->getAttributes(Ajax::class);
 
             foreach ($attributes as $attribute) {
                 $handler = $attribute->newInstance();
-                $callback = $this->createCallback($subscriber, $method, $handler);
+                $methodGrants = $method->getAttributes(IsGranted::class);
+                $grants = array_merge($classGrants, array_map(
+                    static fn(\ReflectionAttribute $a) => $a->newInstance(),
+                    $methodGrants,
+                ));
+                $callback = $this->createCallback($subscriber, $method, $handler, $grants);
 
                 if ($handler->access === Access::Public || $handler->access === Access::Authenticated) {
                     add_action("wp_ajax_{$handler->action}", $callback, $handler->priority);
@@ -45,7 +55,10 @@ final class AjaxHandlerRegistry
         }
     }
 
-    private function createCallback(object $subscriber, \ReflectionMethod $method, Ajax $handler): \Closure
+    /**
+     * @param list<IsGranted> $grants
+     */
+    private function createCallback(object $subscriber, \ReflectionMethod $method, Ajax $handler, array $grants): \Closure
     {
         $methodName = $method->getName();
         $requestParamIndex = null;
@@ -65,15 +78,20 @@ final class AjaxHandlerRegistry
         }
 
         $request = $this->request;
+        $checker = $this->isGrantedChecker ?? new IsGrantedChecker($this->security);
 
-        return static function () use ($subscriber, $methodName, $handler, $requestParamIndex, $currentUserParams, $request): void {
+        return static function () use ($subscriber, $methodName, $handler, $grants, $requestParamIndex, $currentUserParams, $request, $checker): void {
             try {
                 if ($handler->checkReferer !== null) {
                     check_ajax_referer($handler->checkReferer);
                 }
 
-                if ($handler->capability !== null && !current_user_can($handler->capability)) {
-                    throw new ForbiddenException('Insufficient permissions.');
+                if ($grants !== []) {
+                    try {
+                        $checker->check($grants);
+                    } catch (AccessDeniedException) {
+                        throw new ForbiddenException('Insufficient permissions.');
+                    }
                 }
 
                 $injections = [];

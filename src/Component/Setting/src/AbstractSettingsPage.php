@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Setting;
 
+use WpPack\Component\Security\Authorization\IsGrantedChecker;
 use WpPack\Component\Setting\Attribute\AsSettingsPage;
 
 abstract class AbstractSettingsPage
@@ -24,12 +25,14 @@ abstract class AbstractSettingsPage
 
     public function __construct()
     {
-        $attribute = $this->resolveAttribute();
+        /** @var \ReflectionClass<object> $reflection */
+        $reflection = new \ReflectionClass($this);
+        $attribute = $this->resolveAttribute($reflection);
 
         $this->slug = $attribute->slug;
         $this->title = $attribute->title;
         $this->menuTitle = $attribute->menuTitle !== '' ? $attribute->menuTitle : $attribute->title;
-        $this->capability = $attribute->capability;
+        $this->capability = IsGrantedChecker::extractCapability($reflection);
         $this->optionName = $attribute->optionName !== '' ? $attribute->optionName : str_replace('-', '_', $attribute->slug);
         $this->optionGroup = $attribute->optionGroup !== '' ? $attribute->optionGroup : $this->optionName;
         $this->parent = $attribute->parent;
@@ -184,9 +187,11 @@ abstract class AbstractSettingsPage
         return $this->hasSanitizeOverride;
     }
 
-    private function resolveAttribute(): AsSettingsPage
+    /**
+     * @param \ReflectionClass<object> $reflection
+     */
+    private function resolveAttribute(\ReflectionClass $reflection): AsSettingsPage
     {
-        $reflection = new \ReflectionClass($this);
         /** @var list<\ReflectionAttribute<AsSettingsPage>> $attributes */
         $attributes = $reflection->getAttributes(AsSettingsPage::class);
 

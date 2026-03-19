@@ -18,6 +18,7 @@ use WpPack\Component\Security\Authorization\Voter\AccessDecisionManager;
 use WpPack\Component\Security\Authorization\Voter\CapabilityVoter;
 use WpPack\Component\Security\Authorization\Voter\RoleVoter;
 use WpPack\Component\Security\EventListener\CheckCredentialsListener;
+use WpPack\Component\Security\Authorization\IsGrantedChecker;
 use WpPack\Component\Security\Security;
 
 final class SecurityServiceProvider implements ServiceProviderInterface
@@ -48,6 +49,10 @@ final class SecurityServiceProvider implements ServiceProviderInterface
         $builder->register(Security::class)
             ->addArgument(new Reference(AuthorizationCheckerInterface::class))
             ->addArgument(new Reference(AuthenticationManagerInterface::class));
+
+        // IsGranted Checker
+        $builder->register(IsGrantedChecker::class)
+            ->addArgument(new Reference(Security::class));
 
         // Event Listeners
         $builder->register(CheckCredentialsListener::class);

@@ -18,7 +18,6 @@ final class AjaxTest extends TestCase
 
         self::assertSame('my_action', $handler->action);
         self::assertSame(Access::Public, $handler->access);
-        self::assertNull($handler->capability);
         self::assertNull($handler->checkReferer);
         self::assertSame(10, $handler->priority);
     }
@@ -45,14 +44,12 @@ final class AjaxTest extends TestCase
         $handler = new Ajax(
             action: 'delete_item',
             access: Access::Authenticated,
-            capability: 'delete_posts',
             checkReferer: 'delete_item_nonce',
             priority: 5,
         );
 
         self::assertSame('delete_item', $handler->action);
         self::assertSame(Access::Authenticated, $handler->access);
-        self::assertSame('delete_posts', $handler->capability);
         self::assertSame('delete_item_nonce', $handler->checkReferer);
         self::assertSame(5, $handler->priority);
     }

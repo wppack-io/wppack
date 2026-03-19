@@ -17,7 +17,6 @@ final class AsDashboardWidgetTest extends TestCase
 
         self::assertSame('test_widget', $attribute->id);
         self::assertSame('Test Widget', $attribute->title);
-        self::assertNull($attribute->capability);
         self::assertSame('normal', $attribute->context);
         self::assertSame('core', $attribute->priority);
     }
@@ -28,14 +27,12 @@ final class AsDashboardWidgetTest extends TestCase
         $attribute = new AsDashboardWidget(
             id: 'custom_widget',
             title: 'Custom Widget',
-            capability: 'manage_options',
             context: 'side',
             priority: 'high',
         );
 
         self::assertSame('custom_widget', $attribute->id);
         self::assertSame('Custom Widget', $attribute->title);
-        self::assertSame('manage_options', $attribute->capability);
         self::assertSame('side', $attribute->context);
         self::assertSame('high', $attribute->priority);
     }

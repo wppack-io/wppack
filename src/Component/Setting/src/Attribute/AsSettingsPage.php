@@ -11,7 +11,6 @@ final class AsSettingsPage
         public readonly string $slug,
         public readonly string $title,
         public readonly string $menuTitle = '',
-        public readonly string $capability = 'manage_options',
         public readonly string $optionName = '',
         public readonly string $optionGroup = '',
         public readonly ?string $parent = 'options-general.php',

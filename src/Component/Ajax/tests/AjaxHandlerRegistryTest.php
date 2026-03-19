@@ -13,6 +13,7 @@ use WpPack\Component\Ajax\Attribute\Ajax;
 use WpPack\Component\HttpFoundation\JsonResponse;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Security\Attribute\CurrentUser;
+use WpPack\Component\Security\Attribute\IsGranted;
 use WpPack\Component\Security\Tests\SecurityTestTrait;
 
 final class AjaxHandlerRegistryTest extends TestCase
@@ -144,7 +145,8 @@ final class AjaxHandlerRegistryTest extends TestCase
         $subscriber = new class {
             public bool $called = false;
 
-            #[Ajax(action: 'test_cap', capability: 'manage_options')]
+            #[Ajax(action: 'test_cap')]
+            #[IsGranted('manage_options')]
             public function handle(): JsonResponse
             {
                 $this->called = true;
@@ -171,7 +173,8 @@ final class AjaxHandlerRegistryTest extends TestCase
         $subscriber = new class {
             public bool $called = false;
 
-            #[Ajax(action: 'test_cap_ok', capability: 'manage_options')]
+            #[Ajax(action: 'test_cap_ok')]
+            #[IsGranted('manage_options')]
             public function handle(): JsonResponse
             {
                 $this->called = true;

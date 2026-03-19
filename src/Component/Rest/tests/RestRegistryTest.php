@@ -14,6 +14,7 @@ use WpPack\Component\Rest\Attribute\RestRoute;
 use WpPack\Component\Rest\HttpMethod;
 use WpPack\Component\Rest\RestRegistry;
 use WpPack\Component\Security\Attribute\CurrentUser;
+use WpPack\Component\Security\Attribute\IsGranted;
 use WpPack\Component\Security\Tests\SecurityTestTrait;
 
 final class RestRegistryTest extends TestCase
@@ -82,9 +83,9 @@ final class RestRegistryTest extends TestCase
     }
 
     #[Test]
-    public function resolvesClassLevelPermission(): void
+    public function resolvesClassLevelIsGranted(): void
     {
-        $controller = new #[RestRoute('/items', namespace: 'test/v1')] #[Permission(capability: 'edit_posts')] class {
+        $controller = new #[RestRoute('/items', namespace: 'test/v1')] #[IsGranted('edit_posts')] class {
             #[RestRoute(methods: HttpMethod::GET)]
             public function list(): array
             {
@@ -96,7 +97,8 @@ final class RestRegistryTest extends TestCase
         $registry->register($controller);
 
         $entries = $registry->getRegisteredEntries();
-        self::assertSame('edit_posts', $entries[0]->permission->capability);
+        self::assertCount(1, $entries[0]->isGrantedAttributes);
+        self::assertSame('edit_posts', $entries[0]->isGrantedAttributes[0]->attribute);
     }
 
     #[Test]
@@ -110,7 +112,7 @@ final class RestRegistryTest extends TestCase
             }
 
             #[RestRoute(methods: HttpMethod::POST)]
-            #[Permission(capability: 'edit_posts')]
+            #[IsGranted('edit_posts')]
             public function create(): array
             {
                 return [];
@@ -122,7 +124,9 @@ final class RestRegistryTest extends TestCase
 
         $entries = $registry->getRegisteredEntries();
         self::assertTrue($entries[0]->permission->public);
-        self::assertSame('edit_posts', $entries[1]->permission->capability);
+        self::assertCount(0, $entries[0]->isGrantedAttributes);
+        self::assertCount(1, $entries[1]->isGrantedAttributes);
+        self::assertSame('edit_posts', $entries[1]->isGrantedAttributes[0]->attribute);
     }
 
     #[Test]
@@ -412,9 +416,9 @@ final class RestRegistryTest extends TestCase
     }
 
     #[Test]
-    public function permissionCallbackChecksCapability(): void
+    public function permissionCallbackChecksIsGranted(): void
     {
-        $controller = new #[RestRoute('/admin', namespace: 'test/v1')] #[Permission(capability: 'manage_options')] class {
+        $controller = new #[RestRoute('/admin', namespace: 'test/v1')] #[IsGranted('manage_options')] class {
             #[RestRoute(methods: HttpMethod::GET)]
             public function index(): array
             {

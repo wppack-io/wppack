@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Admin\AbstractAdminPage;
 use WpPack\Component\Admin\Attribute\AsAdminPage;
+use WpPack\Component\Security\Attribute\IsGranted;
 
 final class AbstractAdminPageTest extends TestCase
 {
@@ -136,6 +137,14 @@ final class AbstractAdminPageTest extends TestCase
         self::assertSame('tools.php', $page->parent);
         self::assertNull($page->icon);
         self::assertNull($page->position);
+    }
+
+    #[Test]
+    public function capabilityDefaultsToManageOptions(): void
+    {
+        $page = new MinimalTestAdminPage();
+
+        self::assertSame('manage_options', $page->capability);
     }
 
     #[Test]
@@ -321,11 +330,11 @@ class EnqueueStylesTestAdminPage extends AbstractAdminPage
     }
 }
 
+#[IsGranted('edit_posts')]
 #[AsAdminPage(
     slug: 'full-admin',
     title: 'Full Admin Page',
     menuTitle: 'Full Admin',
-    capability: 'edit_posts',
     parent: 'tools.php',
 )]
 class FullAttributeTestAdminPage extends AbstractAdminPage

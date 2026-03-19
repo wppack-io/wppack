@@ -12,7 +12,6 @@ final class Ajax
     public function __construct(
         public readonly string $action,
         public readonly Access $access = Access::Public,
-        public readonly ?string $capability = null,
         public readonly ?string $checkReferer = null,
         public readonly int $priority = 10,
     ) {}

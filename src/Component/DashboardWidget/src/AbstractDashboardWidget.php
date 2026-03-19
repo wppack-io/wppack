@@ -5,24 +5,30 @@ declare(strict_types=1);
 namespace WpPack\Component\DashboardWidget;
 
 use WpPack\Component\DashboardWidget\Attribute\AsDashboardWidget;
+use WpPack\Component\Security\Attribute\IsGranted;
+use WpPack\Component\Security\Authorization\IsGrantedChecker;
 
 abstract class AbstractDashboardWidget
 {
     public readonly string $id;
     public readonly string $title;
-    public readonly ?string $capability;
     public readonly string $context;
     public readonly string $priority;
 
+    /** @var list<IsGranted> */
+    private readonly array $isGrantedAttributes;
+
     public function __construct()
     {
-        $attribute = $this->resolveAttribute();
+        /** @var \ReflectionClass<object> $reflection */
+        $reflection = new \ReflectionClass($this);
+        $attribute = $this->resolveAttribute($reflection);
 
         $this->id = $attribute->id;
         $this->title = $attribute->title;
-        $this->capability = $attribute->capability;
         $this->context = $attribute->context;
         $this->priority = $attribute->priority;
+        $this->isGrantedAttributes = IsGrantedChecker::resolve($reflection);
     }
 
     abstract public function render(): void;
@@ -31,8 +37,10 @@ abstract class AbstractDashboardWidget
 
     public function register(): void
     {
-        if ($this->capability !== null && !current_user_can($this->capability)) {
-            return;
+        foreach ($this->isGrantedAttributes as $grant) {
+            if (!current_user_can($grant->attribute)) {
+                return;
+            }
         }
 
         $configureCallback = $this->hasConfigureOverride() ? $this->configure(...) : null;
@@ -48,9 +56,11 @@ abstract class AbstractDashboardWidget
         );
     }
 
-    private function resolveAttribute(): AsDashboardWidget
+    /**
+     * @param \ReflectionClass<object> $reflection
+     */
+    private function resolveAttribute(\ReflectionClass $reflection): AsDashboardWidget
     {
-        $reflection = new \ReflectionClass($this);
         /** @var list<\ReflectionAttribute<AsDashboardWidget>> $attributes */
         $attributes = $reflection->getAttributes(AsDashboardWidget::class);
 

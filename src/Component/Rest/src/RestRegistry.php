@@ -9,6 +9,8 @@ use WpPack\Component\Rest\Attribute\Param;
 use WpPack\Component\Rest\Attribute\Permission;
 use WpPack\Component\Rest\Attribute\RestRoute;
 use WpPack\Component\Security\Attribute\CurrentUser;
+use WpPack\Component\Security\Attribute\IsGranted;
+use WpPack\Component\Security\Authorization\IsGrantedChecker;
 use WpPack\Component\Security\Security;
 
 final class RestRegistry
@@ -67,6 +69,11 @@ final class RestRegistry
         $classPermissionAttrs = $reflection->getAttributes(Permission::class);
         $classPermission = $classPermissionAttrs !== [] ? $classPermissionAttrs[0]->newInstance() : null;
 
+        $classIsGrantedAttrs = array_map(
+            static fn(\ReflectionAttribute $a) => $a->newInstance(),
+            $reflection->getAttributes(IsGranted::class),
+        );
+
         $entries = [];
         foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
             $methodRouteAttrs = $method->getAttributes(RestRoute::class);
@@ -76,6 +83,12 @@ final class RestRegistry
 
             $methodPermissionAttrs = $method->getAttributes(Permission::class);
             $methodPermission = $methodPermissionAttrs !== [] ? $methodPermissionAttrs[0]->newInstance() : $classPermission;
+
+            $methodIsGrantedAttrs = array_map(
+                static fn(\ReflectionAttribute $a) => $a->newInstance(),
+                $method->getAttributes(IsGranted::class),
+            );
+            $isGrantedAttributes = array_merge($classIsGrantedAttrs, $methodIsGrantedAttrs);
 
             $params = $this->resolveParams($method);
             $handler = $this->createHandler($controller, $method, $params);
@@ -95,6 +108,7 @@ final class RestRegistry
                     $params,
                     $handler,
                     $controller,
+                    $isGrantedAttributes,
                 );
             }
         }

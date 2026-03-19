@@ -10,51 +10,19 @@ use WpPack\Component\HttpFoundation\RedirectResponse;
 use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Routing\Response\BlockTemplateResponse;
 use WpPack\Component\Routing\Response\TemplateResponse;
-use WpPack\Component\Security\Security;
+use WpPack\Component\Security\SecurityAwareTrait;
 use WpPack\Component\Templating\TemplateRendererInterface;
 
 abstract class AbstractController
 {
-    private ?Security $security = null;
-    private ?TemplateRendererInterface $renderer = null;
+    use SecurityAwareTrait;
 
-    /** @internal */
-    public function setSecurity(Security $security): void
-    {
-        $this->security = $security;
-    }
+    private ?TemplateRendererInterface $renderer = null;
 
     /** @internal */
     public function setTemplateRenderer(TemplateRendererInterface $renderer): void
     {
         $this->renderer = $renderer;
-    }
-
-    protected function getUser(): ?\WP_User
-    {
-        if ($this->security === null) {
-            throw new \LogicException('Security is not available. Register SecurityServiceProvider to use getUser().');
-        }
-
-        return $this->security->getUser();
-    }
-
-    protected function isGranted(string $attribute, mixed $subject = null): bool
-    {
-        if ($this->security === null) {
-            throw new \LogicException('Security is not available. Register SecurityServiceProvider to use isGranted().');
-        }
-
-        return $this->security->isGranted($attribute, $subject);
-    }
-
-    protected function denyAccessUnlessGranted(string $attribute, mixed $subject = null, string $message = 'Access Denied.'): void
-    {
-        if ($this->security === null) {
-            throw new \LogicException('Security is not available. Register SecurityServiceProvider to use denyAccessUnlessGranted().');
-        }
-
-        $this->security->denyAccessUnlessGranted($attribute, $subject, $message);
     }
 
     /**
