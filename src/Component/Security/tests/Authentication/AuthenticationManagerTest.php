@@ -31,6 +31,8 @@ final class AuthenticationManagerTest extends TestCase
 
     protected function setUp(): void
     {
+        ob_start();
+
         $this->dispatcher = new class implements EventDispatcherInterface {
             /** @var list<object> */
             public array $events = [];
@@ -44,6 +46,11 @@ final class AuthenticationManagerTest extends TestCase
         };
 
         $this->manager = new AuthenticationManager($this->dispatcher);
+    }
+
+    protected function tearDown(): void
+    {
+        ob_end_clean();
     }
 
     #[Test]

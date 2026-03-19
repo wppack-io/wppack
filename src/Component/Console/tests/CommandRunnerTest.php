@@ -15,6 +15,7 @@ use WpPack\Component\Console\Input\InputDefinition;
 use WpPack\Component\Console\Input\InputInterface;
 use WpPack\Component\Console\Input\InputOption;
 use WpPack\Component\Console\Output\OutputStyle;
+use WpPack\Component\Console\Tests\Output\StdoutCaptureFilter;
 
 final class CommandRunnerTest extends TestCase
 {
@@ -25,13 +26,33 @@ final class CommandRunnerTest extends TestCase
         self::$captureExit = new \ReflectionProperty(\WP_CLI::class, 'capture_exit');
     }
 
+    /** @var resource|null */
+    private mixed $streamFilter = null;
+
     protected function setUp(): void
     {
         self::$captureExit->setValue(null, true);
+
+        StdoutCaptureFilter::$buffer = '';
+
+        if (!in_array('wppack.stdout_capture', stream_get_filters(), true)) {
+            stream_filter_register('wppack.stdout_capture', StdoutCaptureFilter::class);
+        }
+
+        $this->streamFilter = stream_filter_append(\STDOUT, 'wppack.stdout_capture');
+
+        ob_start();
     }
 
     protected function tearDown(): void
     {
+        ob_end_clean();
+
+        if ($this->streamFilter !== null) {
+            stream_filter_remove($this->streamFilter);
+            $this->streamFilter = null;
+        }
+
         self::$captureExit->setValue(null, false);
     }
 

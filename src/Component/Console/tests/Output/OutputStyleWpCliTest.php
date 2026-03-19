@@ -13,6 +13,32 @@ use WpPack\Component\Console\Output\WpCliOutput;
 #[CoversClass(OutputStyle::class)]
 final class OutputStyleWpCliTest extends TestCase
 {
+    /** @var resource|null */
+    private mixed $streamFilter = null;
+
+    protected function setUp(): void
+    {
+        StdoutCaptureFilter::$buffer = '';
+
+        if (!in_array('wppack.stdout_capture', stream_get_filters(), true)) {
+            stream_filter_register('wppack.stdout_capture', StdoutCaptureFilter::class);
+        }
+
+        $this->streamFilter = stream_filter_append(\STDOUT, 'wppack.stdout_capture');
+
+        ob_start();
+    }
+
+    protected function tearDown(): void
+    {
+        ob_end_clean();
+
+        if ($this->streamFilter !== null) {
+            stream_filter_remove($this->streamFilter);
+            $this->streamFilter = null;
+        }
+    }
+
     #[Test]
     public function successCallsWpCliSuccess(): void
     {
