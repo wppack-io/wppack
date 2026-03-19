@@ -486,6 +486,90 @@ final class MailerTest extends TestCase
     }
 
     #[Test]
+    public function sendAppliesWpMailFromFilter(): void
+    {
+        $filter = static fn(): string => 'filtered@example.com';
+        add_filter('wp_mail_from', $filter);
+
+        try {
+            $initData = null;
+            add_action('phpmailer_init', static function (PhpMailer $pm) use (&$initData): void {
+                $initData = ['From' => $pm->From];
+            });
+
+            $mailer = new Mailer(new NullTransport());
+            $email = (new Email())
+                ->from('original@example.com')
+                ->to('user@example.com')
+                ->subject('From Filter Test')
+                ->text('Hello');
+
+            $mailer->send($email);
+
+            self::assertNotNull($initData);
+            self::assertSame('filtered@example.com', $initData['From']);
+        } finally {
+            remove_filter('wp_mail_from', $filter);
+        }
+    }
+
+    #[Test]
+    public function sendAppliesWpMailFromNameFilter(): void
+    {
+        $filter = static fn(): string => 'Filtered Name';
+        add_filter('wp_mail_from_name', $filter);
+
+        try {
+            $initData = null;
+            add_action('phpmailer_init', static function (PhpMailer $pm) use (&$initData): void {
+                $initData = ['FromName' => $pm->FromName];
+            });
+
+            $mailer = new Mailer(new NullTransport());
+            $email = (new Email())
+                ->from('sender@example.com', 'Original Name')
+                ->to('user@example.com')
+                ->subject('FromName Filter Test')
+                ->text('Hello');
+
+            $mailer->send($email);
+
+            self::assertNotNull($initData);
+            self::assertSame('Filtered Name', $initData['FromName']);
+        } finally {
+            remove_filter('wp_mail_from_name', $filter);
+        }
+    }
+
+    #[Test]
+    public function sendEmailFromOverridesDefaultButFilterStillApplies(): void
+    {
+        $filter = static fn(string $from): string => 'forced@example.com';
+        add_filter('wp_mail_from', $filter);
+
+        try {
+            $initData = null;
+            add_action('phpmailer_init', static function (PhpMailer $pm) use (&$initData): void {
+                $initData = ['From' => $pm->From];
+            });
+
+            $mailer = new Mailer(new NullTransport());
+            $email = (new Email())
+                ->from('custom@example.com')
+                ->to('user@example.com')
+                ->subject('Override + Filter Test')
+                ->text('Hello');
+
+            $mailer->send($email);
+
+            self::assertNotNull($initData);
+            self::assertSame('forced@example.com', $initData['From']);
+        } finally {
+            remove_filter('wp_mail_from', $filter);
+        }
+    }
+
+    #[Test]
     public function sendWithHtmlOnlyNoTextBody(): void
     {
         $succeededData = null;

@@ -195,11 +195,12 @@ final class Mailer
 
     private function populatePhpMailer(PhpMailer $phpMailer, Email $email): void
     {
-        // From
+        // From — apply wp_mail_from / wp_mail_from_name filters (same as wp_mail())
         $from = $email->getFrom();
-        if ($from !== null) {
-            $phpMailer->setFrom($from->address, $from->name);
-        }
+        $fromAddress = apply_filters('wp_mail_from', $from?->address ?? $phpMailer->From);
+        $fromName = apply_filters('wp_mail_from_name', $from?->name ?? $phpMailer->FromName);
+
+        $phpMailer->setFrom($fromAddress, $fromName);
 
         // To
         foreach ($email->getTo() as $to) {

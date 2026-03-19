@@ -85,6 +85,8 @@ PhpMailer のメッセージ状態をクリア（clearAllRecipients 等）
   ↓
 Email の内容で PHPMailer を設定（populatePhpMailer）
   ↓
+wp_mail_from / wp_mail_from_name フィルターを適用
+  ↓
 phpmailer_init アクションを発火（プラグイン互換）
   ↓
 PhpMailer::send() → preSend() → postSend()
@@ -409,6 +411,8 @@ Mailer コンポーネントは以下の WordPress フックと連携します:
 
 | フック | タイプ | 説明 |
 |--------|-------|------|
+| `wp_mail_from` | filter | From アドレスを変更 |
+| `wp_mail_from_name` | filter | From 名を変更 |
 | `phpmailer_init` | action | PHPMailer 設定を変更（Mailer が発火） |
 | `wp_mail_succeeded` | action | 送信成功後 |
 | `wp_mail_failed` | action | 送信失敗時 |
