@@ -395,6 +395,14 @@ final class RelayAdapterTest extends TestCase
     #[Test]
     public function connectWithTls(): void
     {
+        // Skip if TLS is not available on the target port
+        $ctx = stream_context_create(['ssl' => ['verify_peer' => false]]);
+        $probe = @stream_socket_client('tls://127.0.0.1:6380', $errno, $errstr, 1, STREAM_CLIENT_CONNECT, $ctx);
+        if ($probe === false) {
+            self::markTestSkipped('TLS server is not available on port 6380.');
+        }
+        fclose($probe);
+
         $adapter = new RelayAdapter([
             'host' => '127.0.0.1',
             'port' => 6380,
