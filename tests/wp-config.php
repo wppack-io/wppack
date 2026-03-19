@@ -23,3 +23,9 @@ define('WP_DEBUG', true);
 define('WP_ENVIRONMENT_TYPE', 'local');
 
 define('WP_TESTS_PHPUNIT_POLYFILLS_PATH', dirname(__DIR__) . '/vendor/yoast/phpunit-polyfills');
+
+// WP 6.8+: Pre-populate $wp_theme_directories so wp_is_block_theme()
+// does not trigger a _doing_it_wrong notice during wp-settings.php load.
+// This is needed because install.php (run as a separate process) loads
+// wp-settings.php before calling register_theme_directory().
+$GLOBALS['wp_theme_directories'] = [__DIR__ . '/../vendor/wp-phpunit/wp-phpunit/data/themedir1'];

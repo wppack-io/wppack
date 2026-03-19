@@ -260,8 +260,7 @@ final class ThemeDataCollectorTest extends TestCase
         $this->collector->collect();
         $data = $this->collector->getData();
 
-        $expected = !empty($GLOBALS['wp_theme_directories']) ? wp_is_block_theme() : false;
-        self::assertSame($expected, $data['is_block_theme']);
+        self::assertSame(wp_is_block_theme(), $data['is_block_theme']);
     }
 
     #[Test]

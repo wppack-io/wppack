@@ -32,22 +32,52 @@ final class DatabaseDataCollectorTest extends TestCase
     #[Test]
     public function collectWithNoWpdbReturnsEmptyQueries(): void
     {
-        // Without WordPress ($wpdb is not available), collect should still work
-        $this->collector->collect();
-        $data = $this->collector->getData();
+        global $wpdb;
+        $saved = $wpdb->queries ?? null;
+        $wpdb->queries = [];
 
-        self::assertSame(0, $data['total_count']);
-        self::assertSame(0.0, $data['total_time']);
-        self::assertSame([], $data['queries']);
+        try {
+            // Fresh collector with no realtime queries and empty $wpdb->queries
+            $collector = new DatabaseDataCollector();
+            remove_filter('log_query_custom_data', [$collector, 'captureQueryData'], 10);
+
+            $collector->collect();
+            $data = $collector->getData();
+
+            self::assertSame(0, $data['total_count']);
+            self::assertSame(0.0, $data['total_time']);
+            self::assertSame([], $data['queries']);
+        } finally {
+            if ($saved !== null) {
+                $wpdb->queries = $saved;
+            } else {
+                unset($wpdb->queries);
+            }
+        }
     }
 
     #[Test]
     public function getIndicatorColorReturnsGreenForFastQueries(): void
     {
-        // Collect with no queries (total_time = 0.0, which is < 0.5s)
-        $this->collector->collect();
+        global $wpdb;
+        $saved = $wpdb->queries ?? null;
+        $wpdb->queries = [];
 
-        self::assertSame('green', $this->collector->getIndicatorColor());
+        try {
+            // Fresh collector with no queries (total_time = 0.0, which is < 0.5s)
+            $collector = new DatabaseDataCollector();
+            remove_filter('log_query_custom_data', [$collector, 'captureQueryData'], 10);
+
+            $collector->collect();
+
+            self::assertSame('green', $collector->getIndicatorColor());
+        } finally {
+            if ($saved !== null) {
+                $wpdb->queries = $saved;
+            } else {
+                unset($wpdb->queries);
+            }
+        }
     }
 
     #[Test]
@@ -291,23 +321,35 @@ final class DatabaseDataCollectorTest extends TestCase
     #[Test]
     public function resetClearsRealtimeQueries(): void
     {
-        // Capture some data
-        $this->collector->captureQueryData([], 'SELECT 1', 0.001, 'TestCaller', 0.0);
-        $this->collector->captureQueryData([], 'SELECT 2', 0.002, 'TestCaller', 0.001);
+        global $wpdb;
+        $saved = $wpdb->queries ?? null;
+        $wpdb->queries = [];
 
-        // Verify data exists before reset
-        $this->collector->collect();
-        $dataBefore = $this->collector->getData();
-        self::assertSame(2, $dataBefore['total_count']);
+        try {
+            // Capture some data
+            $this->collector->captureQueryData([], 'SELECT 1', 0.001, 'TestCaller', 0.0);
+            $this->collector->captureQueryData([], 'SELECT 2', 0.002, 'TestCaller', 0.001);
 
-        // Reset the collector
-        $this->collector->reset();
+            // Verify data exists before reset
+            $this->collector->collect();
+            $dataBefore = $this->collector->getData();
+            self::assertSame(2, $dataBefore['total_count']);
 
-        // Collect again — should have no queries
-        $this->collector->collect();
-        $dataAfter = $this->collector->getData();
+            // Reset the collector
+            $this->collector->reset();
 
-        self::assertSame(0, $dataAfter['total_count']);
-        self::assertSame([], $dataAfter['queries']);
+            // Collect again — should have no queries (realtime cleared, $wpdb->queries empty)
+            $this->collector->collect();
+            $dataAfter = $this->collector->getData();
+
+            self::assertSame(0, $dataAfter['total_count']);
+            self::assertSame([], $dataAfter['queries']);
+        } finally {
+            if ($saved !== null) {
+                $wpdb->queries = $saved;
+            } else {
+                unset($wpdb->queries);
+            }
+        }
     }
 }

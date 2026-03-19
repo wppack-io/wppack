@@ -99,8 +99,7 @@ final class ThemeDataCollector extends AbstractDataCollector
     {
         $theme = wp_get_theme();
         $isChildTheme = is_child_theme();
-        // WP 6.8+: wp_is_block_theme() emits a notice if theme directory is not yet registered
-        $isBlockTheme = !empty($GLOBALS['wp_theme_directories']) ? wp_is_block_theme() : false;
+        $isBlockTheme = wp_is_block_theme();
 
         // Build hook attribution for theme
         global $wp_filter;
