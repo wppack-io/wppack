@@ -803,14 +803,18 @@ final class StorageStreamWrapperTest extends TestCase
         $fp = fopen(self::PROTOCOL . '://seek-beyond.txt', 'r+');
         self::assertIsResource($fp);
 
-        // Seek beyond end of file
+        // Seek beyond end of file — behavior varies by PHP version
         $result = fseek($fp, 100);
-        self::assertSame(0, $result);
-        self::assertSame(100, ftell($fp));
 
-        // Read returns empty since we are past EOF
-        $data = fread($fp, 10);
-        self::assertSame('', $data);
+        if ($result === 0) {
+            // PHP 8.3+: seek succeeds, position moves past EOF
+            self::assertSame(100, ftell($fp));
+            $data = fread($fp, 10);
+            self::assertSame('', $data);
+        } else {
+            // PHP 8.2: seek fails, position unchanged
+            self::assertSame(-1, $result);
+        }
 
         fclose($fp);
     }
