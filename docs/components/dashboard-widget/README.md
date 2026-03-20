@@ -51,7 +51,7 @@ use WpPack\Component\Security\Attribute\IsGranted;
 #[IsGranted('edit_posts')]
 #[AsDashboardWidget(
     id: 'my_dashboard_widget',
-    title: 'My Widget',
+    label: 'My Widget',
 )]
 class MyDashboardWidget extends AbstractDashboardWidget
 {
@@ -84,7 +84,7 @@ use WpPack\Component\Security\Attribute\IsGranted;
 #[IsGranted('manage_options')]
 #[AsDashboardWidget(
     id: 'site_stats_widget',
-    title: 'Site Statistics',
+    label: 'Site Statistics',
     context: 'normal',
     priority: 'high',
 )]
@@ -114,7 +114,7 @@ class SiteStatsWidget extends AbstractDashboardWidget
 #[IsGranted('edit_posts')]
 #[AsDashboardWidget(
     id: 'recent_activity_widget',
-    title: 'Recent Activity',
+    label: 'Recent Activity',
 )]
 class RecentActivityWidget extends AbstractDashboardWidget
 {
@@ -156,7 +156,7 @@ class RecentActivityWidget extends AbstractDashboardWidget
 #[IsGranted('manage_options')]
 #[AsDashboardWidget(
     id: 'customizable_widget',
-    title: 'Customizable Widget',
+    label: 'Customizable Widget',
 )]
 class CustomizableWidget extends AbstractDashboardWidget
 {

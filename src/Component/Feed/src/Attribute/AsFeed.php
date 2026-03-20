@@ -9,6 +9,6 @@ final class AsFeed
 {
     public function __construct(
         public readonly string $slug,
-        public readonly string $title = '',
+        public readonly string $label = '',
     ) {}
 }

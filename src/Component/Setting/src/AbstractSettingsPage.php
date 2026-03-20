@@ -10,8 +10,8 @@ use WpPack\Component\Setting\Attribute\AsSettingsPage;
 abstract class AbstractSettingsPage
 {
     public readonly string $slug;
-    public readonly string $title;
-    public readonly string $menuTitle;
+    public readonly string $label;
+    public readonly string $menuLabel;
     public readonly string $capability;
     public readonly string $optionName;
     public readonly string $optionGroup;
@@ -30,8 +30,8 @@ abstract class AbstractSettingsPage
         $attribute = $this->resolveAttribute($reflection);
 
         $this->slug = $attribute->slug;
-        $this->title = $attribute->title;
-        $this->menuTitle = $attribute->menuTitle !== '' ? $attribute->menuTitle : $attribute->title;
+        $this->label = $attribute->label;
+        $this->menuLabel = $attribute->menuLabel !== '' ? $attribute->menuLabel : $attribute->label;
         $this->capability = IsGrantedChecker::extractCapability($reflection);
         $this->optionName = $attribute->optionName !== '' ? $attribute->optionName : str_replace('-', '_', $attribute->slug);
         $this->optionGroup = $attribute->optionGroup !== '' ? $attribute->optionGroup : $this->optionName;
@@ -94,16 +94,16 @@ abstract class AbstractSettingsPage
         if ($this->parent !== null) {
             add_submenu_page(
                 $this->parent,
-                $this->title,
-                $this->menuTitle,
+                $this->label,
+                $this->menuLabel,
                 $this->capability,
                 $this->slug,
                 $this->render(...),
             );
         } else {
             add_menu_page(
-                $this->title,
-                $this->menuTitle,
+                $this->label,
+                $this->menuLabel,
                 $this->capability,
                 $this->slug,
                 $this->render(...),

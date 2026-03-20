@@ -38,7 +38,7 @@ use WpPack\Component\OEmbed\OEmbedProviderRegistry;
 $registry = new OEmbedProviderRegistry();
 $registry->addDefinition('https://example.com/*', 'https://example.com/oembed');
 $registry->addDefinition('#https?://custom\.site/.*#i', 'https://custom.site/oembed', regex: true);
-$registry->removeProvider('https://example.com/*');
+$registry->unregister('https://example.com/*');
 ```
 
 ### Named Hook Attributes

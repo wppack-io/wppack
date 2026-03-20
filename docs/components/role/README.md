@@ -111,7 +111,7 @@ $manager->add(ShopManagerRole::class);
 $manager->addDefinition(new RoleDefinition('viewer', 'Viewer', ['read']));
 
 // 登録済みのロール定義を取得
-$definitions = $manager->getDefinitions(); // array<string, RoleDefinition>
+$definitions = $manager->all(); // array<string, RoleDefinition>
 
 // WordPress DB と同期（差分適用）
 $manager->synchronize();

@@ -15,12 +15,12 @@ final class AdminPageRegistry
         }
     }
 
-    public function remove(string $menuSlug): void
+    public function unregister(string $menuSlug): void
     {
         remove_menu_page($menuSlug);
     }
 
-    public function removeSubmenu(string $parentSlug, string $menuSlug): void
+    public function unregisterSubmenu(string $parentSlug, string $menuSlug): void
     {
         remove_submenu_page($parentSlug, $menuSlug);
     }

@@ -484,7 +484,7 @@ final class WpCronInterceptorTest extends TestCase
     }
 
     #[Test]
-    public function syncSyncsRecurringEventsToEventBridge(): void
+    public function synchronizeSyncsRecurringEventsToEventBridge(): void
     {
         // Add a recurring event to the cron array
         $timestamp = time() + 3600;
@@ -497,7 +497,7 @@ final class WpCronInterceptorTest extends TestCase
         ];
         _set_cron_array($crons);
 
-        $count = $this->interceptor->sync();
+        $count = $this->interceptor->synchronize();
 
         self::assertGreaterThanOrEqual(1, $count);
 
@@ -515,7 +515,7 @@ final class WpCronInterceptorTest extends TestCase
     }
 
     #[Test]
-    public function syncSyncsSingleEventsToEventBridge(): void
+    public function synchronizeSyncsSingleEventsToEventBridge(): void
     {
         // Add a single event to the cron array
         $timestamp = time() + 3600;
@@ -527,7 +527,7 @@ final class WpCronInterceptorTest extends TestCase
         ];
         _set_cron_array($crons);
 
-        $count = $this->interceptor->sync();
+        $count = $this->interceptor->synchronize();
 
         self::assertGreaterThanOrEqual(1, $count);
 
@@ -545,7 +545,7 @@ final class WpCronInterceptorTest extends TestCase
     }
 
     #[Test]
-    public function syncLogsErrorAndContinuesWhenEventBridgeFails(): void
+    public function synchronizeLogsErrorAndContinuesWhenEventBridgeFails(): void
     {
         $this->scheduler->shouldThrowOnCreate = true;
         $logger = $this->createMock(LoggerInterface::class);
@@ -567,19 +567,19 @@ final class WpCronInterceptorTest extends TestCase
         $crons[$ts2]['sync_fail_hook2'][$key] = ['schedule' => false, 'args' => []];
         _set_cron_array($crons);
 
-        $count = $interceptor->sync();
+        $count = $interceptor->synchronize();
 
         // No events synced due to failures
         self::assertSame(0, $count);
     }
 
     #[Test]
-    public function syncReturnsZeroWhenNoCronEvents(): void
+    public function synchronizeReturnsZeroWhenNoCronEvents(): void
     {
         // Ensure cron array is empty (or only has version key)
         _set_cron_array([]);
 
-        $count = $this->interceptor->sync();
+        $count = $this->interceptor->synchronize();
 
         self::assertSame(0, $count);
     }

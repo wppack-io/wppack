@@ -65,8 +65,8 @@ final class ContainerDataCollector extends AbstractDataCollector
         $autowiredCount = 0;
         $lazyCount = 0;
 
-        if (method_exists($builder, 'getDefinitions')) {
-            foreach ($builder->getDefinitions() as $id => $definition) {
+        if (method_exists($builder, 'all')) {
+            foreach ($builder->all() as $id => $definition) {
                 $isPublic = method_exists($definition, 'isPublic') && $definition->isPublic();
                 $isAutowired = method_exists($definition, 'isAutowired') && $definition->isAutowired();
                 $isLazy = method_exists($definition, 'isLazy') && $definition->isLazy();

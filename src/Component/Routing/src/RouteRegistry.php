@@ -56,7 +56,7 @@ final class RouteRegistry
     /**
      * @return array<string, RouteEntry>
      */
-    public function getRegisteredRoutes(): array
+    public function all(): array
     {
         return $this->routes;
     }

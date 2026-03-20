@@ -84,66 +84,66 @@ final class NoAttributeDebugSection implements DebugSectionInterface
 final class SiteHealthRegistryTest extends TestCase
 {
     #[Test]
-    public function registerHealthCheck(): void
+    public function addHealthCheck(): void
     {
         $registry = new SiteHealthRegistry();
 
-        $result = $registry->register(new DirectHealthCheckStub());
+        $result = $registry->add(new DirectHealthCheckStub());
 
         self::assertInstanceOf(SiteHealthRegistry::class, $result);
     }
 
     #[Test]
-    public function registerDebugSection(): void
+    public function addDebugSection(): void
     {
         $registry = new SiteHealthRegistry();
 
-        $result = $registry->register(new DebugSectionStub());
+        $result = $registry->add(new DebugSectionStub());
 
         self::assertInstanceOf(SiteHealthRegistry::class, $result);
     }
 
     #[Test]
-    public function registerHealthCheckWithoutAttributeThrowsException(): void
+    public function addHealthCheckWithoutAttributeThrowsException(): void
     {
         $registry = new SiteHealthRegistry();
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('is missing the #[AsHealthCheck] attribute');
 
-        $registry->register(new NoAttributeHealthCheck());
+        $registry->add(new NoAttributeHealthCheck());
     }
 
     #[Test]
-    public function registerDebugSectionWithoutAttributeThrowsException(): void
+    public function addDebugSectionWithoutAttributeThrowsException(): void
     {
         $registry = new SiteHealthRegistry();
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('is missing the #[AsDebugInfo] attribute');
 
-        $registry->register(new NoAttributeDebugSection());
+        $registry->add(new NoAttributeDebugSection());
     }
 
     #[Test]
-    public function registerAfterBindThrowsLogicException(): void
+    public function addAfterRegisterThrowsLogicException(): void
     {
         $registry = new SiteHealthRegistry();
-        $registry->bind();
+        $registry->register();
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessage('Cannot register after bind()');
+        $this->expectExceptionMessage('Cannot add after register()');
 
-        $registry->register(new DirectHealthCheckStub());
+        $registry->add(new DirectHealthCheckStub());
     }
 
     #[Test]
-    public function bindIsIdempotent(): void
+    public function registerIsIdempotent(): void
     {
         $registry = new SiteHealthRegistry();
 
-        $registry->bind();
-        $registry->bind();
+        $registry->register();
+        $registry->register();
 
         self::assertTrue(true);
     }
@@ -152,7 +152,7 @@ final class SiteHealthRegistryTest extends TestCase
     public function onSiteStatusTestsWithDirectTest(): void
     {
         $registry = new SiteHealthRegistry();
-        $registry->register(new DirectHealthCheckStub());
+        $registry->add(new DirectHealthCheckStub());
 
         $tests = $registry->onSiteStatusTests([]);
 
@@ -174,7 +174,7 @@ final class SiteHealthRegistryTest extends TestCase
     public function onSiteStatusTestsWithAsyncTest(): void
     {
         $registry = new SiteHealthRegistry();
-        $registry->register(new AsyncHealthCheckStub());
+        $registry->add(new AsyncHealthCheckStub());
 
         $tests = $registry->onSiteStatusTests([]);
 
@@ -195,7 +195,7 @@ final class SiteHealthRegistryTest extends TestCase
     public function onSiteStatusTestsPreservesExistingTests(): void
     {
         $registry = new SiteHealthRegistry();
-        $registry->register(new DirectHealthCheckStub());
+        $registry->add(new DirectHealthCheckStub());
 
         $existing = [
             'direct' => [
@@ -213,7 +213,7 @@ final class SiteHealthRegistryTest extends TestCase
     public function onDebugInformationBasicSection(): void
     {
         $registry = new SiteHealthRegistry();
-        $registry->register(new DebugSectionStub());
+        $registry->add(new DebugSectionStub());
 
         $debugInfo = $registry->onDebugInformation([]);
 
@@ -233,7 +233,7 @@ final class SiteHealthRegistryTest extends TestCase
     public function onDebugInformationWithDescriptionAndShowCount(): void
     {
         $registry = new SiteHealthRegistry();
-        $registry->register(new DetailedDebugSectionStub());
+        $registry->add(new DetailedDebugSectionStub());
 
         $debugInfo = $registry->onDebugInformation([]);
 
@@ -245,13 +245,13 @@ final class SiteHealthRegistryTest extends TestCase
     }
 
     #[Test]
-    public function fluentRegistration(): void
+    public function fluentAdd(): void
     {
         $registry = new SiteHealthRegistry();
 
         $result = $registry
-            ->register(new DirectHealthCheckStub())
-            ->register(new DebugSectionStub());
+            ->add(new DirectHealthCheckStub())
+            ->add(new DebugSectionStub());
 
         self::assertInstanceOf(SiteHealthRegistry::class, $result);
 

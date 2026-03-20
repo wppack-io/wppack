@@ -99,7 +99,7 @@ final class DashboardWidgetRegistryTest extends TestCase
     }
 }
 
-#[AsDashboardWidget(id: 'test_registry_widget', title: 'Registry Test Widget')]
+#[AsDashboardWidget(id: 'test_registry_widget', label: 'Registry Test Widget')]
 class RegistryTestDashboardWidget extends AbstractDashboardWidget
 {
     public function render(): void

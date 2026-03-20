@@ -25,7 +25,7 @@ final class RegisterDataCollectorsPass implements CompilerPassInterface
         // Collect all collectors with their priorities
         $collectors = [];
 
-        foreach ($builder->getDefinitions() as $definition) {
+        foreach ($builder->all() as $definition) {
             $class = $definition->getClass() ?? $definition->getId();
 
             if (!class_exists($class)) {

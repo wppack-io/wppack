@@ -24,7 +24,7 @@ final class RegisterPanelRenderersPass implements CompilerPassInterface
 
         $renderers = [];
 
-        foreach ($builder->getDefinitions() as $definition) {
+        foreach ($builder->all() as $definition) {
             $class = $definition->getClass() ?? $definition->getId();
 
             if (!class_exists($class)) {

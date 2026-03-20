@@ -78,7 +78,7 @@ EventBridge が指定時刻に発火
 - **Write**: `pre_*` フィルターでインターセプト → DB first（`wp_options.cron` に必ず永続化）+ EventBridge best-effort（失敗時はログ出力して継続）
 - **Read**: `wp_options.cron` から直接読み取り（高速、管理ツール互換）
 - **Execution**: `pre_get_ready_cron_jobs` で空配列返却 → ローカル実行を無効化、EventBridge が sole executor
-- **Recovery**: EventBridge 作成失敗時は `sync()` で DB 状態をもとに一括リカバリ可能
+- **Recovery**: EventBridge 作成失敗時は `synchronize()` で DB 状態をもとに一括リカバリ可能
 
 ## EventBridgeScheduler
 
@@ -562,19 +562,19 @@ EventBridge API の呼び出しが失敗した場合:
 // [ERROR] Failed to create EventBridge schedule for WP-Cron event "my_hook": AccessDeniedException
 ```
 
-### sync() によるリカバリ
+### synchronize() によるリカバリ
 
-EventBridge スケジュールの作成に失敗した場合、`sync()` メソッドで DB 状態をもとに一括リカバリできます:
+EventBridge スケジュールの作成に失敗した場合、`synchronize()` メソッドで DB 状態をもとに一括リカバリできます:
 
 ```php
 // WP-Cron イベントの一括同期
-$synced = $wpCronInterceptor->sync();
+$synced = $wpCronInterceptor->synchronize();
 
 // Action Scheduler アクションの一括同期
-$synced = $asInterceptor->sync();
+$synced = $asInterceptor->synchronize();
 ```
 
-`sync()` は per-event で `try/catch` を行い、個別のイベントが失敗しても残りの同期を継続します。プラグインの有効化時や WP-CLI コマンド（`wp wppack scheduler sync`）で実行することを想定しています。
+`synchronize()` は per-event で `try/catch` を行い、個別のイベントが失敗しても残りの同期を継続します。プラグインの有効化時や WP-CLI コマンド（`wp wppack scheduler sync`）で実行することを想定しています。
 
 ### LoggerInterface の注入
 

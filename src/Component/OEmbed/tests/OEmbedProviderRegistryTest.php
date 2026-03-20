@@ -64,7 +64,7 @@ final class OEmbedProviderRegistryTest extends TestCase
         $this->registry->addProvider($provider2);
         $this->registry->register();
 
-        self::assertCount(2, $this->registry->getRegisteredProviders());
+        self::assertCount(2, $this->registry->all());
         self::assertTrue($this->registry->hasProvider('https://example.com/*'));
         self::assertTrue($this->registry->hasProvider('#https?://custom\.site/.*#i'));
     }
@@ -76,7 +76,7 @@ final class OEmbedProviderRegistryTest extends TestCase
 
         self::assertTrue($this->registry->hasProvider('https://example.com/*'));
 
-        $providers = $this->registry->getRegisteredProviders();
+        $providers = $this->registry->all();
         self::assertCount(1, $providers);
         self::assertSame('https://example.com/*', $providers[0]->format);
         self::assertSame('https://example.com/oembed', $providers[0]->endpoint);
@@ -84,13 +84,13 @@ final class OEmbedProviderRegistryTest extends TestCase
     }
 
     #[Test]
-    public function removeProviderRemovesDefinition(): void
+    public function unregisterRemovesDefinition(): void
     {
         $this->registry->addDefinition('https://example.com/*', 'https://example.com/oembed');
-        $this->registry->removeProvider('https://example.com/*');
+        $this->registry->unregister('https://example.com/*');
 
         self::assertFalse($this->registry->hasProvider('https://example.com/*'));
-        self::assertSame([], $this->registry->getRegisteredProviders());
+        self::assertSame([], $this->registry->all());
     }
 
     #[Test]
@@ -100,9 +100,9 @@ final class OEmbedProviderRegistryTest extends TestCase
     }
 
     #[Test]
-    public function getRegisteredProvidersReturnsEmptyArrayByDefault(): void
+    public function allReturnsEmptyArrayByDefault(): void
     {
-        self::assertSame([], $this->registry->getRegisteredProviders());
+        self::assertSame([], $this->registry->all());
     }
 
     #[Test]
@@ -130,7 +130,7 @@ final class OEmbedProviderRegistryTest extends TestCase
         $this->registry->addProvider($provider2);
         $this->registry->register();
 
-        $providers = $this->registry->getRegisteredProviders();
+        $providers = $this->registry->all();
         self::assertCount(1, $providers);
         self::assertSame('https://example.com/oembed/v2', $providers[0]->endpoint);
     }
@@ -140,7 +140,7 @@ final class OEmbedProviderRegistryTest extends TestCase
     {
         $this->registry->addDefinition('#https?://regex\.site/.*#i', 'https://regex.site/oembed', regex: true);
 
-        $providers = $this->registry->getRegisteredProviders();
+        $providers = $this->registry->all();
         self::assertCount(1, $providers);
         self::assertTrue($providers[0]->regex);
     }

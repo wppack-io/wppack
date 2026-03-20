@@ -295,17 +295,17 @@ use WpPack\Component\SiteHealth\SiteHealthRegistry;
 add_action('init', function () {
     $registry = new SiteHealthRegistry();
     $registry
-        ->register(new DatabaseOptimizationCheck())
-        ->register(new CacheStatusCheck())
-        ->register(new ExternalApiCheck())
-        ->register(new MyPluginDebugInfo())
-        ->bind();
+        ->add(new DatabaseOptimizationCheck())
+        ->add(new CacheStatusCheck())
+        ->add(new ExternalApiCheck())
+        ->add(new MyPluginDebugInfo())
+        ->register();
 });
 ```
 
-`register()` はフルエントインターフェースを提供し、`HealthCheckInterface` と `DebugSectionInterface` の両方を受け付けます。各オブジェクトには対応するアトリビュート（`#[AsHealthCheck]` / `#[AsDebugInfo]`）が必要です。
+`add()` はフルエントインターフェースを提供し、`HealthCheckInterface` と `DebugSectionInterface` の両方を受け付けます。各オブジェクトには対応するアトリビュート（`#[AsHealthCheck]` / `#[AsDebugInfo]`）が必要です。
 
-`bind()` は内部で `add_filter('site_status_tests', ...)` と `add_filter('debug_information', ...)` を登録します。冪等なので複数回呼んでも安全です。
+`register()` は内部で `add_filter('site_status_tests', ...)` と `add_filter('debug_information', ...)` を登録します。冪等なので複数回呼んでも安全です。
 
 ### DI コンテナ使用時
 

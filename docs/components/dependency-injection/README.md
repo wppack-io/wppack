@@ -1038,7 +1038,7 @@ final class MyPlugin implements PluginInterface
 | `register(string $id, ?string $class = null)` | `Definition` | サービスを登録 |
 | `findDefinition(string $id)` | `Definition` | 定義を取得（未登録時は `ServiceNotFoundException`） |
 | `hasDefinition(string $id)` | `bool` | 定義が存在するか |
-| `getDefinitions()` | `array<string, Definition>` | 全定義を取得 |
+| `all()` | `array<string, Definition>` | 全定義を取得 |
 | `findTaggedServiceIds(string $tag)` | `array` | タグ付きサービスID一覧 |
 | `addCompilerPass(CompilerPassInterface $pass)` | `self` | コンパイラーパスを追加 |
 | `getCompilerPasses()` | `CompilerPassInterface[]` | コンパイラーパス一覧 |

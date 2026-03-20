@@ -21,27 +21,27 @@ final class AbstractAdminPageTest extends TestCase
     }
 
     #[Test]
-    public function resolvesTitleFromAttribute(): void
+    public function resolvesLabelFromAttribute(): void
     {
         $page = new ConcreteTestAdminPage();
 
-        self::assertSame('My Admin Page', $page->title);
+        self::assertSame('My Admin Page', $page->label);
     }
 
     #[Test]
-    public function resolvesMenuTitleFromAttribute(): void
+    public function resolvesMenuLabelFromAttribute(): void
     {
         $page = new ConcreteTestAdminPage();
 
-        self::assertSame('My Admin', $page->menuTitle);
+        self::assertSame('My Admin', $page->menuLabel);
     }
 
     #[Test]
-    public function menuTitleDefaultsToTitle(): void
+    public function menuLabelDefaultsToLabel(): void
     {
         $page = new MinimalTestAdminPage();
 
-        self::assertSame('Minimal Page', $page->menuTitle);
+        self::assertSame('Minimal Page', $page->menuLabel);
     }
 
     #[Test]
@@ -131,8 +131,8 @@ final class AbstractAdminPageTest extends TestCase
         $page = new FullAttributeTestAdminPage();
 
         self::assertSame('full-admin', $page->slug);
-        self::assertSame('Full Admin Page', $page->title);
-        self::assertSame('Full Admin', $page->menuTitle);
+        self::assertSame('Full Admin Page', $page->label);
+        self::assertSame('Full Admin', $page->menuLabel);
         self::assertSame('edit_posts', $page->capability);
         self::assertSame('tools.php', $page->parent);
         self::assertNull($page->icon);
@@ -257,8 +257,8 @@ final class AbstractAdminPageTest extends TestCase
 
 #[AsAdminPage(
     slug: 'my-admin-page',
-    title: 'My Admin Page',
-    menuTitle: 'My Admin',
+    label: 'My Admin Page',
+    menuLabel: 'My Admin',
     icon: 'dashicons-admin-generic',
     position: 25,
 )]
@@ -270,7 +270,7 @@ class ConcreteTestAdminPage extends AbstractAdminPage
     }
 }
 
-#[AsAdminPage(slug: 'minimal-page', title: 'Minimal Page')]
+#[AsAdminPage(slug: 'minimal-page', label: 'Minimal Page')]
 class MinimalTestAdminPage extends AbstractAdminPage
 {
     public function render(): void
@@ -281,7 +281,7 @@ class MinimalTestAdminPage extends AbstractAdminPage
 
 #[AsAdminPage(
     slug: 'submenu-page',
-    title: 'Submenu Page',
+    label: 'Submenu Page',
     parent: 'options-general.php',
 )]
 class SubmenuTestAdminPage extends AbstractAdminPage
@@ -300,7 +300,7 @@ class NoAttributeTestAdminPage extends AbstractAdminPage
     }
 }
 
-#[AsAdminPage(slug: 'enqueue-scripts-page', title: 'Enqueue Scripts Page')]
+#[AsAdminPage(slug: 'enqueue-scripts-page', label: 'Enqueue Scripts Page')]
 class EnqueueScriptsTestAdminPage extends AbstractAdminPage
 {
     public bool $scriptsEnqueued = false;
@@ -316,7 +316,7 @@ class EnqueueScriptsTestAdminPage extends AbstractAdminPage
     }
 }
 
-#[AsAdminPage(slug: 'enqueue-styles-page', title: 'Enqueue Styles Page')]
+#[AsAdminPage(slug: 'enqueue-styles-page', label: 'Enqueue Styles Page')]
 class EnqueueStylesTestAdminPage extends AbstractAdminPage
 {
     public function render(): void
@@ -333,8 +333,8 @@ class EnqueueStylesTestAdminPage extends AbstractAdminPage
 #[IsGranted('edit_posts')]
 #[AsAdminPage(
     slug: 'full-admin',
-    title: 'Full Admin Page',
-    menuTitle: 'Full Admin',
+    label: 'Full Admin Page',
+    menuLabel: 'Full Admin',
     parent: 'tools.php',
 )]
 class FullAttributeTestAdminPage extends AbstractAdminPage
@@ -345,7 +345,7 @@ class FullAttributeTestAdminPage extends AbstractAdminPage
     }
 }
 
-#[AsAdminPage(slug: 'enqueue-both-page', title: 'Enqueue Both Page')]
+#[AsAdminPage(slug: 'enqueue-both-page', label: 'Enqueue Both Page')]
 class EnqueueBothTestAdminPage extends AbstractAdminPage
 {
     public bool $scriptsEnqueued = false;

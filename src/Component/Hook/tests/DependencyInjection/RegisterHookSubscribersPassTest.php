@@ -54,7 +54,7 @@ final class RegisterHookSubscribersPassTest extends TestCase
     }
 
     #[Test]
-    public function addsBindCallToRegistry(): void
+    public function addsRegisterCallToRegistry(): void
     {
         $builder = new ContainerBuilder();
         (new HookServiceProvider())->register($builder);
@@ -65,8 +65,8 @@ final class RegisterHookSubscribersPassTest extends TestCase
         $definition = $builder->findDefinition(HookRegistry::class);
         $calls = $definition->getMethodCalls();
 
-        $bindCalls = array_filter($calls, static fn(array $call): bool => $call['method'] === 'bind');
-        self::assertNotEmpty($bindCalls);
+        $registerCalls = array_filter($calls, static fn(array $call): bool => $call['method'] === 'register');
+        self::assertNotEmpty($registerCalls);
     }
 
     #[Test]

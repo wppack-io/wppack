@@ -23,7 +23,7 @@ final class RegisterLoggerPassTest extends TestCase
 
         $pass->process($builder);
 
-        self::assertSame([], $builder->getDefinitions());
+        self::assertSame([], $builder->all());
     }
 
     #[Test]
@@ -75,7 +75,7 @@ final class RegisterLoggerPassTest extends TestCase
         $pass = new RegisterLoggerPass();
         $pass->process($builder);
 
-        $definitions = $builder->getDefinitions();
+        $definitions = $builder->all();
         $paymentLoggerCount = 0;
         foreach ($definitions as $id => $def) {
             if ($id === 'logger.payment') {
@@ -131,7 +131,7 @@ final class RegisterLoggerPassTest extends TestCase
         $pass = new RegisterLoggerPass();
         $pass->process($builder);
 
-        $definitions = $builder->getDefinitions();
+        $definitions = $builder->all();
         self::assertCount(2, $definitions); // LoggerFactory + NoConstructorService only
     }
 
@@ -164,7 +164,7 @@ final class RegisterLoggerPassTest extends TestCase
         $pass = new RegisterLoggerPass();
         $pass->process($builder);
 
-        $definitions = $builder->getDefinitions();
+        $definitions = $builder->all();
         self::assertCount(2, $definitions); // LoggerFactory + PlainService only
     }
 }

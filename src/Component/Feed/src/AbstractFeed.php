@@ -9,14 +9,14 @@ use WpPack\Component\Feed\Attribute\AsFeed;
 abstract class AbstractFeed
 {
     public readonly string $slug;
-    public readonly string $title;
+    public readonly string $label;
 
     public function __construct()
     {
         $attribute = $this->resolveAttribute();
 
         $this->slug = $attribute->slug;
-        $this->title = $attribute->title;
+        $this->label = $attribute->label;
     }
 
     abstract public function render(): void;

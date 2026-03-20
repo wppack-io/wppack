@@ -72,7 +72,7 @@ final class ContainerBuilderTest extends TestCase
         $builder->register('service.a');
         $builder->register('service.b');
 
-        $definitions = $builder->getDefinitions();
+        $definitions = $builder->all();
         self::assertCount(2, $definitions);
         self::assertArrayHasKey('service.a', $definitions);
         self::assertArrayHasKey('service.b', $definitions);
@@ -339,7 +339,7 @@ final class ContainerBuilderTest extends TestCase
     }
 
     #[Test]
-    public function getDefinitionsIncludesSymfonyRegisteredServices(): void
+    public function allIncludesSymfonyRegisteredServices(): void
     {
         $builder = new ContainerBuilder();
 
@@ -349,7 +349,7 @@ final class ContainerBuilderTest extends TestCase
         // Register directly via Symfony's builder
         $builder->getSymfonyBuilder()->register('symfony.service', \ArrayObject::class)->setPublic(true);
 
-        $definitions = $builder->getDefinitions();
+        $definitions = $builder->all();
 
         self::assertArrayHasKey('wppack.service', $definitions);
         self::assertArrayHasKey('symfony.service', $definitions);

@@ -152,9 +152,9 @@ class OEmbedManager
 $registry->addProvider(OEmbedProviderInterface $provider): void
 $registry->register(): void                          // プロバイダーの定義を一括登録
 $registry->addDefinition(string $format, string $endpoint, bool $regex = false): void
-$registry->removeProvider(string $format): void
+$registry->unregister(string $format): void
 $registry->hasProvider(string $format): bool
-$registry->getRegisteredProviders(): array           // list<OEmbedProviderDefinition>
+$registry->all(): array           // list<OEmbedProviderDefinition>
 ```
 
 ## OEmbedProviderDefinition

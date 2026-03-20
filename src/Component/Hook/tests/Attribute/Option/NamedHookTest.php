@@ -26,7 +26,7 @@ final class NamedHookTest extends TestCase
     #[Test]
     public function addOptionActionHasCorrectHookName(): void
     {
-        $action = new AddOptionAction(optionName: 'my_opt');
+        $action = new AddOptionAction(name: 'my_opt');
 
         self::assertSame('add_option_my_opt', $action->hook);
         self::assertSame(HookType::Action, $action->type);
@@ -36,7 +36,7 @@ final class NamedHookTest extends TestCase
     #[Test]
     public function addOptionActionAcceptsCustomPriority(): void
     {
-        $action = new AddOptionAction(optionName: 'my_opt', priority: 5);
+        $action = new AddOptionAction(name: 'my_opt', priority: 5);
 
         self::assertSame(5, $action->priority);
     }
@@ -44,15 +44,15 @@ final class NamedHookTest extends TestCase
     #[Test]
     public function addOptionActionPropertyIsAccessible(): void
     {
-        $action = new AddOptionAction(optionName: 'my_opt');
+        $action = new AddOptionAction(name: 'my_opt');
 
-        self::assertSame('my_opt', $action->optionName);
+        self::assertSame('my_opt', $action->name);
     }
 
     #[Test]
     public function deleteOptionActionHasCorrectHookName(): void
     {
-        $action = new DeleteOptionAction(optionName: 'my_opt');
+        $action = new DeleteOptionAction(name: 'my_opt');
 
         self::assertSame('delete_option_my_opt', $action->hook);
     }
@@ -60,7 +60,7 @@ final class NamedHookTest extends TestCase
     #[Test]
     public function updateOptionActionHasCorrectHookName(): void
     {
-        $action = new UpdateOptionAction(optionName: 'my_opt');
+        $action = new UpdateOptionAction(name: 'my_opt');
 
         self::assertSame('update_option_my_opt', $action->hook);
     }
@@ -68,7 +68,7 @@ final class NamedHookTest extends TestCase
     #[Test]
     public function updateSiteOptionActionHasCorrectHookName(): void
     {
-        $action = new UpdateSiteOptionAction(optionName: 'my_opt');
+        $action = new UpdateSiteOptionAction(name: 'my_opt');
 
         self::assertSame('update_site_option_my_opt', $action->hook);
     }
@@ -76,7 +76,7 @@ final class NamedHookTest extends TestCase
     #[Test]
     public function defaultOptionFilterHasCorrectHookName(): void
     {
-        $filter = new DefaultOptionFilter(optionName: 'my_opt');
+        $filter = new DefaultOptionFilter(name: 'my_opt');
 
         self::assertSame('default_option_my_opt', $filter->hook);
         self::assertSame(HookType::Filter, $filter->type);
@@ -85,7 +85,7 @@ final class NamedHookTest extends TestCase
     #[Test]
     public function optionFilterHasCorrectHookName(): void
     {
-        $filter = new OptionFilter(optionName: 'my_opt');
+        $filter = new OptionFilter(name: 'my_opt');
 
         self::assertSame('option_my_opt', $filter->hook);
     }
@@ -93,7 +93,7 @@ final class NamedHookTest extends TestCase
     #[Test]
     public function preOptionFilterHasCorrectHookName(): void
     {
-        $filter = new PreOptionFilter(optionName: 'my_opt');
+        $filter = new PreOptionFilter(name: 'my_opt');
 
         self::assertSame('pre_option_my_opt', $filter->hook);
     }
@@ -101,7 +101,7 @@ final class NamedHookTest extends TestCase
     #[Test]
     public function preSiteOptionFilterHasCorrectHookName(): void
     {
-        $filter = new PreSiteOptionFilter(optionName: 'my_opt');
+        $filter = new PreSiteOptionFilter(name: 'my_opt');
 
         self::assertSame('pre_site_option_my_opt', $filter->hook);
     }
@@ -109,7 +109,7 @@ final class NamedHookTest extends TestCase
     #[Test]
     public function preUpdateOptionFilterHasCorrectHookName(): void
     {
-        $filter = new PreUpdateOptionFilter(optionName: 'my_opt');
+        $filter = new PreUpdateOptionFilter(name: 'my_opt');
 
         self::assertSame('pre_update_option_my_opt', $filter->hook);
     }
@@ -117,7 +117,7 @@ final class NamedHookTest extends TestCase
     #[Test]
     public function siteOptionFilterHasCorrectHookName(): void
     {
-        $filter = new SiteOptionFilter(optionName: 'my_opt');
+        $filter = new SiteOptionFilter(name: 'my_opt');
 
         self::assertSame('site_option_my_opt', $filter->hook);
     }
@@ -125,31 +125,31 @@ final class NamedHookTest extends TestCase
     #[Test]
     public function allActionsExtendAction(): void
     {
-        self::assertInstanceOf(Action::class, new AddOptionAction(optionName: 'test'));
-        self::assertInstanceOf(Action::class, new DeleteOptionAction(optionName: 'test'));
-        self::assertInstanceOf(Action::class, new UpdateOptionAction(optionName: 'test'));
-        self::assertInstanceOf(Action::class, new UpdateSiteOptionAction(optionName: 'test'));
+        self::assertInstanceOf(Action::class, new AddOptionAction(name: 'test'));
+        self::assertInstanceOf(Action::class, new DeleteOptionAction(name: 'test'));
+        self::assertInstanceOf(Action::class, new UpdateOptionAction(name: 'test'));
+        self::assertInstanceOf(Action::class, new UpdateSiteOptionAction(name: 'test'));
     }
 
     #[Test]
     public function allFiltersExtendFilter(): void
     {
-        self::assertInstanceOf(Filter::class, new DefaultOptionFilter(optionName: 'test'));
-        self::assertInstanceOf(Filter::class, new OptionFilter(optionName: 'test'));
-        self::assertInstanceOf(Filter::class, new PreOptionFilter(optionName: 'test'));
-        self::assertInstanceOf(Filter::class, new PreSiteOptionFilter(optionName: 'test'));
-        self::assertInstanceOf(Filter::class, new PreUpdateOptionFilter(optionName: 'test'));
-        self::assertInstanceOf(Filter::class, new SiteOptionFilter(optionName: 'test'));
+        self::assertInstanceOf(Filter::class, new DefaultOptionFilter(name: 'test'));
+        self::assertInstanceOf(Filter::class, new OptionFilter(name: 'test'));
+        self::assertInstanceOf(Filter::class, new PreOptionFilter(name: 'test'));
+        self::assertInstanceOf(Filter::class, new PreSiteOptionFilter(name: 'test'));
+        self::assertInstanceOf(Filter::class, new PreUpdateOptionFilter(name: 'test'));
+        self::assertInstanceOf(Filter::class, new SiteOptionFilter(name: 'test'));
     }
 
     #[Test]
     public function namedHooksAreDetectedByIsInstanceof(): void
     {
         $class = new class {
-            #[AddOptionAction(optionName: 'theme_color')]
+            #[AddOptionAction(name: 'theme_color')]
             public function onAddOption(): void {}
 
-            #[OptionFilter(optionName: 'theme_color', priority: 5)]
+            #[OptionFilter(name: 'theme_color', priority: 5)]
             public function onOption(): void {}
         };
 

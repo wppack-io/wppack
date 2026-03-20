@@ -248,16 +248,16 @@ composer require wppack/hook
 
 | Attribute | 追加パラメータ | WordPress フック |
 |-----------|--------------|-----------------|
-| `#[PreOptionFilter]` | `optionName: string` | `pre_option_{option}` |
-| `#[OptionFilter]` | `optionName: string` | `option_{option}` |
-| `#[DefaultOptionFilter]` | `optionName: string` | `default_option_{option}` |
-| `#[PreUpdateOptionFilter]` | `optionName: string` | `pre_update_option_{option}` |
-| `#[UpdateOptionAction]` | `optionName: string` | `update_option_{option}` |
-| `#[AddOptionAction]` | `optionName: string` | `add_option_{option}` |
-| `#[DeleteOptionAction]` | `optionName: string` | `delete_option_{option}` |
-| `#[PreSiteOptionFilter]` | `optionName: string` | `pre_site_option_{option}` |
-| `#[SiteOptionFilter]` | `optionName: string` | `site_option_{option}` |
-| `#[UpdateSiteOptionAction]` | `optionName: string` | `update_site_option_{option}` |
+| `#[PreOptionFilter]` | `name: string` | `pre_option_{option}` |
+| `#[OptionFilter]` | `name: string` | `option_{option}` |
+| `#[DefaultOptionFilter]` | `name: string` | `default_option_{option}` |
+| `#[PreUpdateOptionFilter]` | `name: string` | `pre_update_option_{option}` |
+| `#[UpdateOptionAction]` | `name: string` | `update_option_{option}` |
+| `#[AddOptionAction]` | `name: string` | `add_option_{option}` |
+| `#[DeleteOptionAction]` | `name: string` | `delete_option_{option}` |
+| `#[PreSiteOptionFilter]` | `name: string` | `pre_site_option_{option}` |
+| `#[SiteOptionFilter]` | `name: string` | `site_option_{option}` |
+| `#[UpdateSiteOptionAction]` | `name: string` | `update_site_option_{option}` |
 
 ### Transient（`Hook\Attribute\Transient\`）
 

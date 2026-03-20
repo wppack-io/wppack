@@ -24,8 +24,8 @@ use WpPack\Component\Admin\Attribute\AsAdminPage;
 
 #[AsAdminPage(
     slug: 'my-plugin',
-    title: 'My Plugin',
-    menuTitle: 'My Plugin',
+    label: 'My Plugin',
+    menuLabel: 'My Plugin',
     icon: 'dashicons-admin-generic',
     position: 25,
 )]
@@ -34,7 +34,7 @@ class MyPluginPage extends AbstractAdminPage
     public function render(): void
     {
         echo '<div class="wrap">';
-        echo '<h1>' . esc_html($this->title) . '</h1>';
+        echo '<h1>' . esc_html($this->label) . '</h1>';
         echo '<p>Plugin content here.</p>';
         echo '</div>';
     }
@@ -46,8 +46,8 @@ class MyPluginPage extends AbstractAdminPage
 | パラメータ | 型 | デフォルト | 説明 |
 |-----------|------|-----------|------|
 | `slug` | `string` | （必須） | メニュースラッグ |
-| `title` | `string` | （必須） | ページタイトル |
-| `menuTitle` | `string` | `''`（= title） | メニュー表示名 |
+| `label` | `string` | （必須） | ページタイトル |
+| `menuLabel` | `string` | `''`（= label） | メニュー表示名 |
 | `parent` | `?string` | `null` | 親メニュースラッグ（null = トップレベル） |
 | `icon` | `?string` | `null` | メニューアイコン URL / dashicons クラス |
 | `position` | `?int` | `null` | メニュー表示位置 |
@@ -62,7 +62,7 @@ class MyPluginPage extends AbstractAdminPage
 ```php
 #[AsAdminPage(
     slug: 'my-plugin-settings',
-    title: 'Settings',
+    label: 'Settings',
     parent: 'my-plugin',
 )]
 class MyPluginSettingsPage extends AbstractAdminPage
@@ -81,7 +81,7 @@ class MyPluginSettingsPage extends AbstractAdminPage
 `enqueueScripts()` / `enqueueStyles()` をオーバーライドすると、そのページでのみアセットがロードされます（hookSuffix によるページスコープ）。
 
 ```php
-#[AsAdminPage(slug: 'my-plugin', title: 'My Plugin')]
+#[AsAdminPage(slug: 'my-plugin', label: 'My Plugin')]
 class MyPluginPage extends AbstractAdminPage
 {
     public function render(): void
@@ -114,10 +114,10 @@ $registry = new AdminPageRegistry();
 $registry->register(new MyPluginPage());
 
 // トップレベルメニュー削除
-$registry->remove('my-plugin');
+$registry->unregister('my-plugin');
 
 // サブメニュー削除
-$registry->removeSubmenu('my-plugin', 'my-plugin-settings');
+$registry->unregisterSubmenu('my-plugin', 'my-plugin-settings');
 ```
 
 ## Named Hook アトリビュート

@@ -27,7 +27,7 @@ final class RegisterHookSubscribersPass implements CompilerPassInterface
 
         $discoveryDefinition = $builder->findDefinition(HookDiscovery::class);
 
-        foreach ($builder->getDefinitions() as $definition) {
+        foreach ($builder->all() as $definition) {
             $class = $definition->getClass() ?? $definition->getId();
 
             if (!class_exists($class)) {
@@ -47,6 +47,6 @@ final class RegisterHookSubscribersPass implements CompilerPassInterface
         }
 
         $registryDefinition = $builder->findDefinition(HookRegistry::class);
-        $registryDefinition->addMethodCall('bind');
+        $registryDefinition->addMethodCall('register');
     }
 }

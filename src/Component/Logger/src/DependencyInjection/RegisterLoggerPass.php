@@ -19,7 +19,7 @@ final class RegisterLoggerPass implements CompilerPassInterface
             return;
         }
 
-        foreach ($builder->getDefinitions() as $id => $definition) {
+        foreach ($builder->all() as $id => $definition) {
             $class = $definition->getClass() ?? $id;
 
             if (!class_exists($class)) {

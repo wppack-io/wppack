@@ -72,7 +72,7 @@ class ContainerBuilder
     /**
      * @return array<string, Definition>
      */
-    public function getDefinitions(): array
+    public function all(): array
     {
         foreach ($this->symfonyBuilder->getDefinitions() as $id => $symfonyDefinition) {
             if (\in_array($id, self::INTERNAL_SERVICE_IDS, true)) {

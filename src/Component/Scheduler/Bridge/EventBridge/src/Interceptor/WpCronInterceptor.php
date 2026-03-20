@@ -60,15 +60,15 @@ final class WpCronInterceptor
     }
 
     /**
-     * Sync all existing WP-Cron events to EventBridge.
+     * Synchronize all existing WP-Cron events to EventBridge.
      *
      * Collects events from the local cron array via WpCronCollector and creates
      * corresponding EventBridge schedules. Intended for initial migration
      * (e.g., plugin activation or WP-CLI `wp wppack scheduler sync`).
      *
-     * @return int Number of events synced
+     * @return int Number of events synchronized
      */
-    public function sync(): int
+    public function synchronize(): int
     {
         $collector = new WpCronCollector();
         $count = 0;

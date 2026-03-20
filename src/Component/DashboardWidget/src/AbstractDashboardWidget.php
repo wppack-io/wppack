@@ -11,7 +11,7 @@ use WpPack\Component\Role\Authorization\IsGrantedChecker;
 abstract class AbstractDashboardWidget
 {
     public readonly string $id;
-    public readonly string $title;
+    public readonly string $label;
     public readonly string $context;
     public readonly string $priority;
 
@@ -27,7 +27,7 @@ abstract class AbstractDashboardWidget
         $attribute = $this->resolveAttribute($reflection);
 
         $this->id = $attribute->id;
-        $this->title = $attribute->title;
+        $this->label = $attribute->label;
         $this->context = $attribute->context;
         $this->priority = $attribute->priority;
         $this->isGrantedAttributes = IsGrantedChecker::resolve($reflection);
@@ -48,7 +48,7 @@ abstract class AbstractDashboardWidget
 
         wp_add_dashboard_widget(
             $this->id,
-            $this->title,
+            $this->label,
             $this->render(...),
             $configureCallback,
             null,

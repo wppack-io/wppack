@@ -94,7 +94,7 @@ final class RoleManager
     /**
      * @return array<string, RoleDefinition>
      */
-    public function getDefinitions(): array
+    public function all(): array
     {
         return $this->definitions;
     }

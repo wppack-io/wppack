@@ -36,7 +36,7 @@ use WpPack\Component\Feed\AbstractFeed;
 use WpPack\Component\Feed\Attribute\AsFeed;
 use WpPack\Component\Hook\Attribute\Feed\Action\Rss2ItemAction;
 
-#[AsFeed(slug: 'products', title: 'Product Feed')]
+#[AsFeed(slug: 'products', label: 'Product Feed')]
 class ProductFeed extends AbstractFeed
 {
     public function render(): void
@@ -67,7 +67,7 @@ class ProductFeed extends AbstractFeed
 use WpPack\Component\Feed\AbstractFeed;
 use WpPack\Component\Feed\Attribute\AsFeed;
 
-#[AsFeed(slug: 'products', title: 'Product Feed')]
+#[AsFeed(slug: 'products', label: 'Product Feed')]
 class ProductFeed extends AbstractFeed
 {
     public function render(): void
@@ -89,7 +89,7 @@ class ProductFeed extends AbstractFeed
 | パラメータ | 型 | 必須 | デフォルト | 説明 |
 |-----------|------|------|-----------|------|
 | `slug` | `string` | はい | — | フィード URL スラッグ（`/feed/{slug}/`） |
-| `title` | `string` | いいえ | `''` | フィードタイトル（メタデータ用） |
+| `label` | `string` | いいえ | `''` | フィードタイトル（メタデータ用） |
 
 #### FeedRegistry
 
@@ -104,7 +104,7 @@ $registry->register(new EventFeed());
 
 // 登録確認
 $registry->has('products');           // true
-$registry->getRegisteredFeeds();      // ['products' => ProductFeed, 'events' => EventFeed]
+$registry->all();      // ['products' => ProductFeed, 'events' => EventFeed]
 ```
 
 ### 2. 既存フィード修正（Named Hook アトリビュート）
@@ -172,8 +172,8 @@ class FeedQueryModifier
 | クラス | 説明 |
 |--------|------|
 | `AbstractFeed` | カスタムフィードの基底クラス。`#[AsFeed]` でメタデータ指定、`render()` で出力 |
-| `AsFeed` | クラスレベルアトリビュート。`slug`（必須）と `title`（オプション）を指定 |
-| `FeedRegistry` | フィードの一括登録・管理。`register()`, `has()`, `getRegisteredFeeds()` |
+| `AsFeed` | クラスレベルアトリビュート。`slug`（必須）と `label`（オプション）を指定 |
+| `FeedRegistry` | フィードの一括登録・管理。`register()`, `has()`, `all()` |
 
 ## 依存関係
 

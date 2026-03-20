@@ -22,7 +22,7 @@ final class RoleManagerTest extends TestCase
     protected function tearDown(): void
     {
         // Clean up any roles created during tests
-        foreach ($this->manager->getDefinitions() as $definition) {
+        foreach ($this->manager->all() as $definition) {
             remove_role($definition->name);
         }
     }
@@ -34,7 +34,7 @@ final class RoleManagerTest extends TestCase
 
         $this->manager->addDefinition($definition);
 
-        $definitions = $this->manager->getDefinitions();
+        $definitions = $this->manager->all();
         self::assertCount(1, $definitions);
         self::assertArrayHasKey('test_role', $definitions);
         self::assertSame('Test Role', $definitions['test_role']->label);
@@ -46,7 +46,7 @@ final class RoleManagerTest extends TestCase
     {
         $this->manager->add(ShopManagerTestRole::class);
 
-        $definitions = $this->manager->getDefinitions();
+        $definitions = $this->manager->all();
         self::assertCount(1, $definitions);
         self::assertArrayHasKey('shop_manager', $definitions);
         self::assertSame('Shop Manager', $definitions['shop_manager']->label);
@@ -58,7 +58,7 @@ final class RoleManagerTest extends TestCase
     {
         $this->manager->add(new ShopManagerTestRole());
 
-        $definitions = $this->manager->getDefinitions();
+        $definitions = $this->manager->all();
         self::assertArrayHasKey('shop_manager', $definitions);
     }
 
@@ -150,7 +150,7 @@ final class RoleManagerTest extends TestCase
         $this->manager->remove('remove_test_role');
 
         self::assertNull(get_role('remove_test_role'));
-        self::assertArrayNotHasKey('remove_test_role', $this->manager->getDefinitions());
+        self::assertArrayNotHasKey('remove_test_role', $this->manager->all());
     }
 
     #[Test]
@@ -194,9 +194,9 @@ final class RoleManagerTest extends TestCase
     }
 
     #[Test]
-    public function getDefinitionsReturnsEmptyByDefault(): void
+    public function allReturnsEmptyByDefault(): void
     {
-        self::assertSame([], $this->manager->getDefinitions());
+        self::assertSame([], $this->manager->all());
     }
 
     #[Test]
@@ -205,7 +205,7 @@ final class RoleManagerTest extends TestCase
         $this->manager->addDefinition(new RoleDefinition('test_role', 'Version 1', ['read']));
         $this->manager->addDefinition(new RoleDefinition('test_role', 'Version 2', ['read', 'edit_posts']));
 
-        $definitions = $this->manager->getDefinitions();
+        $definitions = $this->manager->all();
         self::assertCount(1, $definitions);
         self::assertSame('Version 2', $definitions['test_role']->label);
     }

@@ -478,7 +478,7 @@ class CustomTestRenderer extends SettingsRenderer
     }
 }
 
-#[AsSettingsPage(slug: 'custom-renderer-test', title: 'Custom Renderer Test')]
+#[AsSettingsPage(slug: 'custom-renderer-test', label: 'Custom Renderer Test')]
 class CustomRendererTestSettingsPage extends AbstractSettingsPage
 {
     protected function configure(SettingsConfigurator $settings): void {}

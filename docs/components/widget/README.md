@@ -51,7 +51,7 @@ use WpPack\Component\Widget\Attribute\AsWidget;
 
 #[AsWidget(
     id: 'recent_posts',
-    name: 'Recent Posts',
+    label: 'Recent Posts',
     description: 'Display your most recent posts'
 )]
 class RecentPostsWidget extends AbstractWidget
@@ -80,13 +80,13 @@ class RecentPostsWidget extends AbstractWidget
 
 ### AbstractWidget
 
-`WP_Widget` を拡張する抽象基底クラスです。`#[AsWidget]` アトリビュートからメタデータ（id / name / description）を自動解決し、`parent::__construct()` に渡します。
+`WP_Widget` を拡張する抽象基底クラスです。`#[AsWidget]` アトリビュートからメタデータ（id / label / description）を自動解決し、`parent::__construct()` に渡します。
 
 ```php
 use WpPack\Component\Widget\AbstractWidget;
 use WpPack\Component\Widget\Attribute\AsWidget;
 
-#[AsWidget(id: 'social_links', name: 'Social Links', description: 'Social media links')]
+#[AsWidget(id: 'social_links', label: 'Social Links', description: 'Social media links')]
 class SocialLinksWidget extends AbstractWidget
 {
     protected function render(array $args, array $instance): string
@@ -148,7 +148,7 @@ $registry->registerSidebar([
 |-------|------|
 | `AbstractWidget` | `WP_Widget` 抽象ラッパー。`#[AsWidget]` からメタデータ自動解決 |
 | `WidgetRegistry` | ウィジェット/サイドバー登録サービス |
-| `Attribute\AsWidget` | クラスレベルアトリビュート（id / name / description） |
+| `Attribute\AsWidget` | クラスレベルアトリビュート（id / label / description） |
 
 ## WordPress 統合
 

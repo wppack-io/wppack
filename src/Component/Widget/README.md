@@ -18,7 +18,7 @@ composer require wppack/widget
 use WpPack\Component\Widget\AbstractWidget;
 use WpPack\Component\Widget\Attribute\AsWidget;
 
-#[AsWidget(id: 'recent_posts', name: 'Recent Posts', description: 'Display recent posts')]
+#[AsWidget(id: 'recent_posts', label: 'Recent Posts', description: 'Display recent posts')]
 class RecentPostsWidget extends AbstractWidget
 {
     protected function render(array $args, array $instance): string

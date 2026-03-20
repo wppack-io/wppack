@@ -23,7 +23,7 @@ final class FeedRegistry
     /**
      * @return array<string, AbstractFeed>
      */
-    public function getRegisteredFeeds(): array
+    public function all(): array
     {
         return $this->feeds;
     }

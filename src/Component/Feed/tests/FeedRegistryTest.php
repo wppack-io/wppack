@@ -41,21 +41,21 @@ final class FeedRegistryTest extends TestCase
     }
 
     #[Test]
-    public function getRegisteredFeedsReturnsEmptyByDefault(): void
+    public function allReturnsEmptyByDefault(): void
     {
         $registry = new FeedRegistry();
 
-        self::assertSame([], $registry->getRegisteredFeeds());
+        self::assertSame([], $registry->all());
     }
 
     #[Test]
-    public function getRegisteredFeedsReturnsRegisteredFeeds(): void
+    public function allReturnsRegisteredFeeds(): void
     {
         $registry = new FeedRegistry();
         $feed = new RegistryTestFeed();
         $registry->register($feed);
 
-        $feeds = $registry->getRegisteredFeeds();
+        $feeds = $registry->all();
 
         self::assertCount(1, $feeds);
         self::assertSame($feed, $feeds['registry-feed']);
@@ -71,14 +71,14 @@ final class FeedRegistryTest extends TestCase
         $registry->register($first);
         $registry->register($second);
 
-        $feeds = $registry->getRegisteredFeeds();
+        $feeds = $registry->all();
 
         self::assertCount(1, $feeds);
         self::assertSame($second, $feeds['registry-feed']);
     }
 }
 
-#[AsFeed(slug: 'registry-feed', title: 'Registry Test Feed')]
+#[AsFeed(slug: 'registry-feed', label: 'Registry Test Feed')]
 class RegistryTestFeed extends AbstractFeed
 {
     public function render(): void

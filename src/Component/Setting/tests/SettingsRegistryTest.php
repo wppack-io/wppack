@@ -80,7 +80,7 @@ final class SettingsRegistryTest extends TestCase
     }
 }
 
-#[AsSettingsPage(slug: 'registry-test', title: 'Registry Test')]
+#[AsSettingsPage(slug: 'registry-test', label: 'Registry Test')]
 class RegistryTestSettingsPage extends AbstractSettingsPage
 {
     protected function configure(SettingsConfigurator $settings): void
@@ -90,7 +90,7 @@ class RegistryTestSettingsPage extends AbstractSettingsPage
     }
 }
 
-#[AsSettingsPage(slug: 'registry-test-second', title: 'Registry Test Second')]
+#[AsSettingsPage(slug: 'registry-test-second', label: 'Registry Test Second')]
 class RegistryTestSecondSettingsPage extends AbstractSettingsPage
 {
     protected function configure(SettingsConfigurator $settings): void

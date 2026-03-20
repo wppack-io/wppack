@@ -153,7 +153,7 @@ $registry->registerLocation(string $location, string $description): void
 $registry->registerLocations(array $locations): void
 $registry->unregisterLocation(string $location): void
 $registry->hasLocation(string $location): bool
-$registry->getRegisteredLocations(): array           // ['location' => 'description']
+$registry->all(): array           // ['location' => 'description']
 ```
 
 ## Hook アトリビュート

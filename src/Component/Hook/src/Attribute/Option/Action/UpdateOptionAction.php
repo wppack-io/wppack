@@ -10,9 +10,9 @@ use WpPack\Component\Hook\Attribute\Action;
 final class UpdateOptionAction extends Action
 {
     public function __construct(
-        public readonly string $optionName,
+        public readonly string $name,
         int $priority = 10,
     ) {
-        parent::__construct("update_option_{$this->optionName}", $priority);
+        parent::__construct("update_option_{$this->name}", $priority);
     }
 }

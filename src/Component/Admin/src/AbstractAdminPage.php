@@ -10,8 +10,8 @@ use WpPack\Component\Role\Authorization\IsGrantedChecker;
 abstract class AbstractAdminPage
 {
     public readonly string $slug;
-    public readonly string $title;
-    public readonly string $menuTitle;
+    public readonly string $label;
+    public readonly string $menuLabel;
     public readonly string $capability;
     public readonly ?string $parent;
     public readonly ?string $icon;
@@ -28,8 +28,8 @@ abstract class AbstractAdminPage
         $attribute = $this->resolveAttribute($reflection);
 
         $this->slug = $attribute->slug;
-        $this->title = $attribute->title;
-        $this->menuTitle = $attribute->menuTitle !== '' ? $attribute->menuTitle : $attribute->title;
+        $this->label = $attribute->label;
+        $this->menuLabel = $attribute->menuLabel !== '' ? $attribute->menuLabel : $attribute->label;
         $this->capability = IsGrantedChecker::extractCapability($reflection);
         $this->parent = $attribute->parent;
         $this->icon = $attribute->icon;
@@ -47,16 +47,16 @@ abstract class AbstractAdminPage
         if ($this->parent !== null) {
             $this->hookSuffix = (string) add_submenu_page(
                 $this->parent,
-                $this->title,
-                $this->menuTitle,
+                $this->label,
+                $this->menuLabel,
                 $this->capability,
                 $this->slug,
                 $this->render(...),
             );
         } else {
             $this->hookSuffix = add_menu_page(
-                $this->title,
-                $this->menuTitle,
+                $this->label,
+                $this->menuLabel,
                 $this->capability,
                 $this->slug,
                 $this->render(...),

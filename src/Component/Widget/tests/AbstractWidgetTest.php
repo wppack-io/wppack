@@ -20,7 +20,7 @@ final class AbstractWidgetTest extends TestCase
     }
 
     #[Test]
-    public function resolvesNameFromAttribute(): void
+    public function resolvesLabelFromAttribute(): void
     {
         $widget = new ConcreteTestWidget();
 
@@ -95,7 +95,7 @@ final class AbstractWidgetTest extends TestCase
     }
 }
 
-#[AsWidget(id: 'test_widget', name: 'Test Widget', description: 'A test widget')]
+#[AsWidget(id: 'test_widget', label: 'Test Widget', description: 'A test widget')]
 class ConcreteTestWidget extends AbstractWidget
 {
     protected function render(array $args, array $instance): string
@@ -104,7 +104,7 @@ class ConcreteTestWidget extends AbstractWidget
     }
 }
 
-#[AsWidget(id: 'context_widget', name: 'Context Widget', description: 'A context-aware widget')]
+#[AsWidget(id: 'context_widget', label: 'Context Widget', description: 'A context-aware widget')]
 class ContextAwareTestWidget extends AbstractWidget
 {
     protected function render(array $args, array $instance): string

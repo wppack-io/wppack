@@ -347,8 +347,8 @@ $discovery = new HookDiscovery($registry);
 $discovery->register(new ContentHooks());
 $discovery->register(new AdminHooks());
 
-// 検出されたすべてのフックをWordPressにバインド
-$registry->bind();
+// 検出されたすべてのフックをWordPressに登録
+$registry->register();
 ```
 
 ### DIコンテナ連携
@@ -466,8 +466,8 @@ $registry = new HookRegistry();
 $registry->addAction('init', $callable, priority: 10);
 $registry->addFilter('the_content', $callable, priority: 10);
 
-// すべてのフックをWordPressにバインド
-$registry->bind();
+// すべてのフックをWordPressに登録
+$registry->register();
 
 // 登録済みフックの確認
 $actions = $registry->getActions();

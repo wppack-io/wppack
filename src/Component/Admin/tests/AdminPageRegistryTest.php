@@ -64,23 +64,23 @@ final class AdminPageRegistryTest extends TestCase
     }
 
     #[Test]
-    public function removeCallsRemoveMenuPage(): void
+    public function unregisterCallsRemoveMenuPage(): void
     {
-        $this->registry->remove('registry-test-admin');
+        $this->registry->unregister('registry-test-admin');
 
         self::assertTrue(true);
     }
 
     #[Test]
-    public function removeSubmenuCallsRemoveSubmenuPage(): void
+    public function unregisterSubmenuCallsRemoveSubmenuPage(): void
     {
-        $this->registry->removeSubmenu('options-general.php', 'registry-test-admin');
+        $this->registry->unregisterSubmenu('options-general.php', 'registry-test-admin');
 
         self::assertTrue(true);
     }
 }
 
-#[AsAdminPage(slug: 'registry-test-admin', title: 'Registry Test')]
+#[AsAdminPage(slug: 'registry-test-admin', label: 'Registry Test')]
 class RegistryTestAdminPage extends AbstractAdminPage
 {
     public function render(): void
@@ -89,7 +89,7 @@ class RegistryTestAdminPage extends AbstractAdminPage
     }
 }
 
-#[AsAdminPage(slug: 'registry-enqueue-test', title: 'Registry Enqueue Test')]
+#[AsAdminPage(slug: 'registry-enqueue-test', label: 'Registry Enqueue Test')]
 class RegistryEnqueueTestAdminPage extends AbstractAdminPage
 {
     public function render(): void

@@ -11,12 +11,12 @@ final class HookRegistry
     /** @var list<RegisteredHook> */
     private array $hooks = [];
 
-    private bool $bound = false;
+    private bool $registered = false;
 
     public function add(RegisteredHook $registeredHook): self
     {
-        if ($this->bound) {
-            throw new LogicException('Cannot register hooks after bind() has been called.');
+        if ($this->registered) {
+            throw new LogicException('Cannot register hooks after register() has been called.');
         }
 
         $this->hooks[] = $registeredHook;
@@ -58,13 +58,13 @@ final class HookRegistry
         ));
     }
 
-    public function bind(): void
+    public function register(): void
     {
-        if ($this->bound) {
+        if ($this->registered) {
             return;
         }
 
-        $this->bound = true;
+        $this->registered = true;
 
         foreach ($this->hooks as $registeredHook) {
             $hook = $registeredHook->hook;

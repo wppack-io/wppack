@@ -10,9 +10,9 @@ use WpPack\Component\Hook\Attribute\Filter;
 final class OptionFilter extends Filter
 {
     public function __construct(
-        public readonly string $optionName,
+        public readonly string $name,
         int $priority = 10,
     ) {
-        parent::__construct("option_{$this->optionName}", $priority);
+        parent::__construct("option_{$this->name}", $priority);
     }
 }

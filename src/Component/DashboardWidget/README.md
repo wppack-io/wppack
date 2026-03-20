@@ -20,7 +20,7 @@ use WpPack\Component\DashboardWidget\Attribute\AsDashboardWidget;
 
 #[AsDashboardWidget(
     id: 'site_stats_widget',
-    title: 'Site Statistics',
+    label: 'Site Statistics',
     capability: 'manage_options',
     context: 'normal',
     priority: 'high',

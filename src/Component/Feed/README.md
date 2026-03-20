@@ -18,7 +18,7 @@ composer require wppack/feed
 use WpPack\Component\Feed\AbstractFeed;
 use WpPack\Component\Feed\Attribute\AsFeed;
 
-#[AsFeed(slug: 'products', title: 'Product Feed')]
+#[AsFeed(slug: 'products', label: 'Product Feed')]
 class ProductFeed extends AbstractFeed
 {
     public function render(): void
@@ -37,7 +37,7 @@ use WpPack\Component\Feed\FeedRegistry;
 $registry = new FeedRegistry();
 $registry->register(new ProductFeed());
 $registry->has('products');              // true
-$registry->getRegisteredFeeds();         // ['products' => ProductFeed]
+$registry->all();         // ['products' => ProductFeed]
 ```
 
 ### Named Hook Attributes

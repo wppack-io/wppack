@@ -23,11 +23,11 @@ final class AbstractDashboardWidgetTest extends TestCase
     }
 
     #[Test]
-    public function resolvesTitleFromAttribute(): void
+    public function resolvesLabelFromAttribute(): void
     {
         $widget = new ConcreteTestDashboardWidget();
 
-        self::assertSame('Test Dashboard Widget', $widget->title);
+        self::assertSame('Test Dashboard Widget', $widget->label);
     }
 
     #[Test]
@@ -52,7 +52,7 @@ final class AbstractDashboardWidgetTest extends TestCase
         $widget = new FullAttributeTestDashboardWidget();
 
         self::assertSame('full_widget', $widget->id);
-        self::assertSame('Full Widget', $widget->title);
+        self::assertSame('Full Widget', $widget->label);
         self::assertSame('side', $widget->context);
         self::assertSame('high', $widget->priority);
     }
@@ -241,7 +241,7 @@ final class AbstractDashboardWidgetTest extends TestCase
         $widget = new ConcreteTestDashboardWidget();
         $reflection = new \ReflectionClass($widget);
 
-        foreach (['id', 'title', 'context', 'priority'] as $prop) {
+        foreach (['id', 'label', 'context', 'priority'] as $prop) {
             self::assertTrue($reflection->getProperty($prop)->isReadOnly());
         }
     }
@@ -335,7 +335,7 @@ final class AbstractDashboardWidgetTest extends TestCase
     }
 }
 
-#[AsDashboardWidget(id: 'test_dashboard_widget', title: 'Test Dashboard Widget')]
+#[AsDashboardWidget(id: 'test_dashboard_widget', label: 'Test Dashboard Widget')]
 class ConcreteTestDashboardWidget extends AbstractDashboardWidget
 {
     public function render(): void
@@ -347,7 +347,7 @@ class ConcreteTestDashboardWidget extends AbstractDashboardWidget
 #[IsGranted('manage_options')]
 #[AsDashboardWidget(
     id: 'full_widget',
-    title: 'Full Widget',
+    label: 'Full Widget',
     context: 'side',
     priority: 'high',
 )]
@@ -368,7 +368,7 @@ class NoAttributeTestDashboardWidget extends AbstractDashboardWidget
 }
 
 #[IsGranted('edit_posts')]
-#[AsDashboardWidget(id: 'capability_widget', title: 'Capability Widget')]
+#[AsDashboardWidget(id: 'capability_widget', label: 'Capability Widget')]
 class CapabilityTestDashboardWidget extends AbstractDashboardWidget
 {
     public function render(): void
@@ -378,7 +378,7 @@ class CapabilityTestDashboardWidget extends AbstractDashboardWidget
 }
 
 #[IsGranted('activate_plugins')]
-#[AsDashboardWidget(id: 'restricted_widget', title: 'Restricted Widget')]
+#[AsDashboardWidget(id: 'restricted_widget', label: 'Restricted Widget')]
 class RestrictedCapabilityTestDashboardWidget extends AbstractDashboardWidget
 {
     public function render(): void
@@ -387,7 +387,7 @@ class RestrictedCapabilityTestDashboardWidget extends AbstractDashboardWidget
     }
 }
 
-#[AsDashboardWidget(id: 'configurable_widget', title: 'Configurable Widget')]
+#[AsDashboardWidget(id: 'configurable_widget', label: 'Configurable Widget')]
 class ConfigurableTestDashboardWidget extends AbstractDashboardWidget
 {
     public function render(): void

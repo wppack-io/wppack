@@ -43,7 +43,7 @@ final class OEmbedProviderRegistry
         wp_oembed_add_provider($format, $endpoint, $regex);
     }
 
-    public function removeProvider(string $format): void
+    public function unregister(string $format): void
     {
         unset($this->definitions[$format]);
 
@@ -58,7 +58,7 @@ final class OEmbedProviderRegistry
     /**
      * @return list<OEmbedProviderDefinition>
      */
-    public function getRegisteredProviders(): array
+    public function all(): array
     {
         return array_values($this->definitions);
     }

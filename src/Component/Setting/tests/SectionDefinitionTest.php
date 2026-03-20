@@ -403,7 +403,7 @@ final class SectionDefinitionTest extends TestCase
     }
 }
 
-#[AsSettingsPage(slug: 'field-type-test', title: 'Field Type Test')]
+#[AsSettingsPage(slug: 'field-type-test', label: 'Field Type Test')]
 class FieldTypeTestSettingsPage extends AbstractSettingsPage
 {
     protected function configure(SettingsConfigurator $settings): void {}

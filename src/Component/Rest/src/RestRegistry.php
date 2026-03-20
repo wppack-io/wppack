@@ -38,7 +38,7 @@ final class RestRegistry
     /**
      * @return list<RestEntry>
      */
-    public function getRegisteredEntries(): array
+    public function all(): array
     {
         return $this->entries;
     }

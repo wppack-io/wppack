@@ -699,7 +699,7 @@ $registry->register(new EventController());
 
 // 登録確認
 $registry->has('product_detail');         // true
-$registry->getRegisteredRoutes();         // array<string, RouteEntry>
+$registry->all();         // array<string, RouteEntry>
 
 // リライトルールフラッシュ（プラグイン有効化時のみ！）
 register_activation_hook(__FILE__, fn() => $registry->flush());

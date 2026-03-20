@@ -62,7 +62,7 @@ final class MenuRegistryTest extends TestCase
         self::assertSame([
             'primary' => 'Primary Menu',
             'footer' => 'Footer Menu',
-        ], $this->registry->getRegisteredLocations());
+        ], $this->registry->all());
     }
 
     #[Test]
@@ -71,7 +71,7 @@ final class MenuRegistryTest extends TestCase
         $this->registry->registerLocation('sidebar', 'Sidebar Menu');
 
         self::assertTrue($this->registry->hasLocation('sidebar'));
-        self::assertSame('Sidebar Menu', $this->registry->getRegisteredLocations()['sidebar']);
+        self::assertSame('Sidebar Menu', $this->registry->all()['sidebar']);
     }
 
     #[Test]
@@ -102,9 +102,9 @@ final class MenuRegistryTest extends TestCase
     }
 
     #[Test]
-    public function getRegisteredLocationsReturnsEmptyArrayByDefault(): void
+    public function allReturnsEmptyArrayByDefault(): void
     {
-        self::assertSame([], $this->registry->getRegisteredLocations());
+        self::assertSame([], $this->registry->all());
     }
 
     #[Test]
@@ -128,6 +128,6 @@ final class MenuRegistryTest extends TestCase
         $this->registry->addProvider($provider2);
         $this->registry->register();
 
-        self::assertSame('Primary Menu V2', $this->registry->getRegisteredLocations()['primary']);
+        self::assertSame('Primary Menu V2', $this->registry->all()['primary']);
     }
 }

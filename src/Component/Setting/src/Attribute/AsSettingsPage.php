@@ -9,8 +9,8 @@ final class AsSettingsPage
 {
     public function __construct(
         public readonly string $slug,
-        public readonly string $title,
-        public readonly string $menuTitle = '',
+        public readonly string $label,
+        public readonly string $menuLabel = '',
         public readonly string $optionName = '',
         public readonly string $optionGroup = '',
         public readonly ?string $parent = 'options-general.php',

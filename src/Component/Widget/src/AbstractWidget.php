@@ -14,7 +14,7 @@ abstract class AbstractWidget extends \WP_Widget
 
         parent::__construct(
             $attribute->id,
-            $attribute->name,
+            $attribute->label,
             ['description' => $attribute->description],
         );
     }

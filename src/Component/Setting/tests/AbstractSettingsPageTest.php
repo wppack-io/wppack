@@ -24,27 +24,27 @@ final class AbstractSettingsPageTest extends TestCase
     }
 
     #[Test]
-    public function resolvesTitleFromAttribute(): void
+    public function resolvesLabelFromAttribute(): void
     {
         $page = new ConcreteTestSettingsPage();
 
-        self::assertSame('My Plugin Settings', $page->title);
+        self::assertSame('My Plugin Settings', $page->label);
     }
 
     #[Test]
-    public function resolvesMenuTitleFromAttribute(): void
+    public function resolvesMenuLabelFromAttribute(): void
     {
         $page = new ConcreteTestSettingsPage();
 
-        self::assertSame('My Plugin', $page->menuTitle);
+        self::assertSame('My Plugin', $page->menuLabel);
     }
 
     #[Test]
-    public function menuTitleDefaultsToTitle(): void
+    public function menuLabelDefaultsToLabel(): void
     {
         $page = new MinimalTestSettingsPage();
 
-        self::assertSame('Minimal Settings', $page->menuTitle);
+        self::assertSame('Minimal Settings', $page->menuLabel);
     }
 
     #[Test]
@@ -179,8 +179,8 @@ final class AbstractSettingsPageTest extends TestCase
         $page = new FullAttributeTestSettingsPage();
 
         self::assertSame('full-plugin', $page->slug);
-        self::assertSame('Full Plugin Settings', $page->title);
-        self::assertSame('Full Plugin', $page->menuTitle);
+        self::assertSame('Full Plugin Settings', $page->label);
+        self::assertSame('Full Plugin', $page->menuLabel);
         self::assertSame('edit_posts', $page->capability);
         self::assertSame('full_plugin_opts', $page->optionName);
         self::assertSame('full_plugin_grp', $page->optionGroup);
@@ -445,8 +445,8 @@ final class AbstractSettingsPageTest extends TestCase
 
 #[AsSettingsPage(
     slug: 'my-plugin',
-    title: 'My Plugin Settings',
-    menuTitle: 'My Plugin',
+    label: 'My Plugin Settings',
+    menuLabel: 'My Plugin',
     optionName: 'my_plugin_options',
     optionGroup: 'my_plugin_group',
 )]
@@ -459,7 +459,7 @@ class ConcreteTestSettingsPage extends AbstractSettingsPage
     }
 }
 
-#[AsSettingsPage(slug: 'minimal-settings', title: 'Minimal Settings')]
+#[AsSettingsPage(slug: 'minimal-settings', label: 'Minimal Settings')]
 class MinimalTestSettingsPage extends AbstractSettingsPage
 {
     protected function configure(SettingsConfigurator $settings): void {}
@@ -467,7 +467,7 @@ class MinimalTestSettingsPage extends AbstractSettingsPage
 
 #[AsSettingsPage(
     slug: 'top-level',
-    title: 'Top Level Settings',
+    label: 'Top Level Settings',
     parent: null,
     icon: 'dashicons-admin-generic',
     position: 80,
@@ -482,7 +482,7 @@ class NoAttributeTestSettingsPage extends AbstractSettingsPage
     protected function configure(SettingsConfigurator $settings): void {}
 }
 
-#[AsSettingsPage(slug: 'validate-test', title: 'Validate Test')]
+#[AsSettingsPage(slug: 'validate-test', label: 'Validate Test')]
 class ValidateTestSettingsPage extends AbstractSettingsPage
 {
     protected function configure(SettingsConfigurator $settings): void {}
@@ -497,7 +497,7 @@ class ValidateTestSettingsPage extends AbstractSettingsPage
     }
 }
 
-#[AsSettingsPage(slug: 'sanitize-test', title: 'Sanitize Test')]
+#[AsSettingsPage(slug: 'sanitize-test', label: 'Sanitize Test')]
 class SanitizeTestSettingsPage extends AbstractSettingsPage
 {
     protected function configure(SettingsConfigurator $settings): void {}
@@ -511,8 +511,8 @@ class SanitizeTestSettingsPage extends AbstractSettingsPage
 #[IsGranted('edit_posts')]
 #[AsSettingsPage(
     slug: 'full-plugin',
-    title: 'Full Plugin Settings',
-    menuTitle: 'Full Plugin',
+    label: 'Full Plugin Settings',
+    menuLabel: 'Full Plugin',
     optionName: 'full_plugin_opts',
     optionGroup: 'full_plugin_grp',
     parent: 'tools.php',
@@ -524,7 +524,7 @@ class FullAttributeTestSettingsPage extends AbstractSettingsPage
 
 class OverrideTestRenderer extends SettingsRenderer {}
 
-#[AsSettingsPage(slug: 'renderer-override', title: 'Renderer Override')]
+#[AsSettingsPage(slug: 'renderer-override', label: 'Renderer Override')]
 class RendererOverrideTestSettingsPage extends AbstractSettingsPage
 {
     protected function configure(SettingsConfigurator $settings): void {}
@@ -535,7 +535,7 @@ class RendererOverrideTestSettingsPage extends AbstractSettingsPage
     }
 }
 
-#[AsSettingsPage(slug: 'sanitize-validate-test', title: 'Sanitize & Validate Test')]
+#[AsSettingsPage(slug: 'sanitize-validate-test', label: 'Sanitize & Validate Test')]
 class SanitizeAndValidateTestSettingsPage extends AbstractSettingsPage
 {
     protected function configure(SettingsConfigurator $settings): void {}

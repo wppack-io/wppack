@@ -47,9 +47,9 @@ class MyPluginDebugInfo implements DebugSectionInterface
 // Standalone registration (without DI container)
 $registry = new SiteHealthRegistry();
 $registry
-    ->register(new PhpVersionCheck())
-    ->register(new MyPluginDebugInfo())
-    ->bind();
+    ->add(new PhpVersionCheck())
+    ->add(new MyPluginDebugInfo())
+    ->register();
 ```
 
 ## Documentation

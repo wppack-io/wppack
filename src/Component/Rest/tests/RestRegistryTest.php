@@ -49,7 +49,7 @@ final class RestRegistryTest extends TestCase
         $registry = $this->createRegistryWithoutWordPress();
         $registry->register($controller);
 
-        $entries = $registry->getRegisteredEntries();
+        $entries = $registry->all();
         self::assertCount(1, $entries);
         self::assertSame('test/v1', $entries[0]->namespace);
         self::assertSame('/items', $entries[0]->route);
@@ -76,7 +76,7 @@ final class RestRegistryTest extends TestCase
         $registry = $this->createRegistryWithoutWordPress();
         $registry->register($controller);
 
-        $entries = $registry->getRegisteredEntries();
+        $entries = $registry->all();
         self::assertCount(2, $entries);
         self::assertSame('/items', $entries[0]->route);
         self::assertSame('/items/(?P<id>\d+)', $entries[1]->route);
@@ -96,7 +96,7 @@ final class RestRegistryTest extends TestCase
         $registry = $this->createRegistryWithoutWordPress();
         $registry->register($controller);
 
-        $entries = $registry->getRegisteredEntries();
+        $entries = $registry->all();
         self::assertCount(1, $entries[0]->isGrantedAttributes);
         self::assertSame('edit_posts', $entries[0]->isGrantedAttributes[0]->attribute);
     }
@@ -122,7 +122,7 @@ final class RestRegistryTest extends TestCase
         $registry = $this->createRegistryWithoutWordPress();
         $registry->register($controller);
 
-        $entries = $registry->getRegisteredEntries();
+        $entries = $registry->all();
         self::assertTrue($entries[0]->permission->public);
         self::assertCount(0, $entries[0]->isGrantedAttributes);
         self::assertCount(1, $entries[1]->isGrantedAttributes);
@@ -143,7 +143,7 @@ final class RestRegistryTest extends TestCase
         $registry = $this->createRegistryWithoutWordPress();
         $registry->register($controller);
 
-        $entries = $registry->getRegisteredEntries();
+        $entries = $registry->all();
         self::assertSame('/products/(?P<id>\d+)/reviews', $entries[0]->route);
         self::assertSame('shop/v1', $entries[0]->namespace);
     }
@@ -164,7 +164,7 @@ final class RestRegistryTest extends TestCase
         $registry = $this->createRegistryWithoutWordPress();
         $registry->register($controller);
 
-        $entries = $registry->getRegisteredEntries();
+        $entries = $registry->all();
         self::assertCount(1, $entries[0]->params);
         self::assertSame('per_page', $entries[0]->params[0]->name);
         self::assertSame('integer', $entries[0]->params[0]->type);
@@ -188,7 +188,7 @@ final class RestRegistryTest extends TestCase
         $registry = $this->createRegistryWithoutWordPress();
         $registry->register($controller);
 
-        $entries = $registry->getRegisteredEntries();
+        $entries = $registry->all();
         $params = $entries[0]->params;
 
         self::assertCount(2, $params);
@@ -218,7 +218,7 @@ final class RestRegistryTest extends TestCase
         $registry = $this->createRegistryWithoutWordPress();
         $registry->register($controller);
 
-        $entries = $registry->getRegisteredEntries();
+        $entries = $registry->all();
         self::assertCount(1, $entries[0]->params);
         self::assertSame('title', $entries[0]->params[0]->name);
     }
@@ -291,7 +291,7 @@ final class RestRegistryTest extends TestCase
         $registry = $this->createRegistryWithoutWordPress();
         $registry->register($controller);
 
-        $entries = $registry->getRegisteredEntries();
+        $entries = $registry->all();
         self::assertCount(2, $entries);
         self::assertSame(['PUT'], $entries[0]->methods);
         self::assertSame(['PATCH'], $entries[1]->methods);
@@ -315,11 +315,11 @@ final class RestRegistryTest extends TestCase
     }
 
     #[Test]
-    public function getRegisteredEntriesReturnsEmptyByDefault(): void
+    public function allReturnsEmptyByDefault(): void
     {
         $registry = new RestRegistry(new Request());
 
-        self::assertSame([], $registry->getRegisteredEntries());
+        self::assertSame([], $registry->all());
     }
 
     #[Test]
@@ -336,7 +336,7 @@ final class RestRegistryTest extends TestCase
         $registry = $this->createRegistryWithoutWordPress();
         $registry->register($controller);
 
-        $entries = $registry->getRegisteredEntries();
+        $entries = $registry->all();
         self::assertSame('number', $entries[0]->params[0]->type);
     }
 
@@ -354,7 +354,7 @@ final class RestRegistryTest extends TestCase
         $registry = $this->createRegistryWithoutWordPress();
         $registry->register($controller);
 
-        $entries = $registry->getRegisteredEntries();
+        $entries = $registry->all();
         self::assertSame('array', $entries[0]->params[0]->type);
     }
 
@@ -372,7 +372,7 @@ final class RestRegistryTest extends TestCase
         $registry = $this->createRegistryWithoutWordPress();
         $registry->register($controller);
 
-        $entries = $registry->getRegisteredEntries();
+        $entries = $registry->all();
         self::assertCount(1, $entries[0]->params);
         self::assertSame('page', $entries[0]->params[0]->name);
     }
@@ -391,7 +391,7 @@ final class RestRegistryTest extends TestCase
         $registry = $this->createRegistryWithoutWordPress();
         $registry->register($controller);
 
-        $entries = $registry->getRegisteredEntries();
+        $entries = $registry->all();
         self::assertSame('per_page', $entries[0]->params[0]->name);
         self::assertSame('sort_order', $entries[0]->params[1]->name);
     }
@@ -596,7 +596,7 @@ final class RestRegistryTest extends TestCase
         $registry = $this->createRegistryWithoutWordPress();
         $registry->register($controller);
 
-        $entries = $registry->getRegisteredEntries();
+        $entries = $registry->all();
         self::assertSame('/items', $entries[0]->route);
     }
 
@@ -648,7 +648,7 @@ final class RestRegistryTest extends TestCase
         $registry = new RestRegistry(new Request(), $security);
         $registry->register($controller);
 
-        $entries = $registry->getRegisteredEntries();
+        $entries = $registry->all();
         self::assertCount(1, $entries[0]->params);
         self::assertSame('page', $entries[0]->params[0]->name);
     }

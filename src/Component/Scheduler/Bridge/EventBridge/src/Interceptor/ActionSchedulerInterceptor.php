@@ -50,15 +50,15 @@ final class ActionSchedulerInterceptor
     }
 
     /**
-     * Sync all pending Action Scheduler actions to EventBridge.
+     * Synchronize all pending Action Scheduler actions to EventBridge.
      *
      * Collects actions from the AS data store via ActionSchedulerCollector and creates
      * corresponding EventBridge schedules. Intended for initial migration
      * (e.g., plugin activation or WP-CLI `wp wppack scheduler sync`).
      *
-     * @return int Number of actions synced
+     * @return int Number of actions synchronized
      */
-    public function sync(): int
+    public function synchronize(): int
     {
         $collector = new ActionSchedulerCollector();
         $count = 0;

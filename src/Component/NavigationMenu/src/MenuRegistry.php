@@ -67,7 +67,7 @@ final class MenuRegistry
     /**
      * @return array<string, string>
      */
-    public function getRegisteredLocations(): array
+    public function all(): array
     {
         return $this->locations;
     }

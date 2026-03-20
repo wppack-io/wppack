@@ -77,7 +77,7 @@ final class ContainerDataCollectorTest extends TestCase
         $builder = new class ($definition) {
             public function __construct(private readonly object $definition) {}
 
-            public function getDefinitions(): array
+            public function all(): array
             {
                 return ['my_service' => $this->definition];
             }
@@ -172,7 +172,7 @@ final class ContainerDataCollectorTest extends TestCase
             ) {}
 
             /** @return array<string, object> */
-            public function getDefinitions(): array
+            public function all(): array
             {
                 return ['foo_service' => $this->def1, 'bar_service' => $this->def2];
             }
@@ -204,7 +204,7 @@ final class ContainerDataCollectorTest extends TestCase
             ) {}
 
             /** @return array<string, object> */
-            public function getDefinitions(): array
+            public function all(): array
             {
                 return [
                     'public_svc' => $this->pub,
@@ -251,7 +251,7 @@ final class ContainerDataCollectorTest extends TestCase
             public function __construct(private readonly object $passConfig) {}
 
             /** @return array<string, object> */
-            public function getDefinitions(): array
+            public function all(): array
             {
                 return [];
             }
@@ -276,7 +276,7 @@ final class ContainerDataCollectorTest extends TestCase
     {
         $builder = new class {
             /** @return array<string, object> */
-            public function getDefinitions(): array
+            public function all(): array
             {
                 return [];
             }
@@ -331,7 +331,7 @@ final class ContainerDataCollectorTest extends TestCase
             public function __construct(private readonly object $bag) {}
 
             /** @return array<string, object> */
-            public function getDefinitions(): array
+            public function all(): array
             {
                 return [];
             }

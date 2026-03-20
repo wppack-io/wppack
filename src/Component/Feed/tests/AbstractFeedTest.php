@@ -20,19 +20,19 @@ final class AbstractFeedTest extends TestCase
     }
 
     #[Test]
-    public function resolveTitleFromAttribute(): void
+    public function resolveLabelFromAttribute(): void
     {
         $feed = new ConcreteTestFeed();
 
-        self::assertSame('Test Feed', $feed->title);
+        self::assertSame('Test Feed', $feed->label);
     }
 
     #[Test]
-    public function titleDefaultsToEmptyString(): void
+    public function labelDefaultsToEmptyString(): void
     {
         $feed = new MinimalTestFeed();
 
-        self::assertSame('', $feed->title);
+        self::assertSame('', $feed->label);
     }
 
     #[Test]
@@ -55,7 +55,7 @@ final class AbstractFeedTest extends TestCase
     }
 }
 
-#[AsFeed(slug: 'test-feed', title: 'Test Feed')]
+#[AsFeed(slug: 'test-feed', label: 'Test Feed')]
 class ConcreteTestFeed extends AbstractFeed
 {
     public function render(): void

@@ -13,10 +13,10 @@ final class AsDashboardWidgetTest extends TestCase
     #[Test]
     public function defaultValues(): void
     {
-        $attribute = new AsDashboardWidget(id: 'test_widget', title: 'Test Widget');
+        $attribute = new AsDashboardWidget(id: 'test_widget', label: 'Test Widget');
 
         self::assertSame('test_widget', $attribute->id);
-        self::assertSame('Test Widget', $attribute->title);
+        self::assertSame('Test Widget', $attribute->label);
         self::assertSame('normal', $attribute->context);
         self::assertSame('core', $attribute->priority);
     }
@@ -26,13 +26,13 @@ final class AsDashboardWidgetTest extends TestCase
     {
         $attribute = new AsDashboardWidget(
             id: 'custom_widget',
-            title: 'Custom Widget',
+            label: 'Custom Widget',
             context: 'side',
             priority: 'high',
         );
 
         self::assertSame('custom_widget', $attribute->id);
-        self::assertSame('Custom Widget', $attribute->title);
+        self::assertSame('Custom Widget', $attribute->label);
         self::assertSame('side', $attribute->context);
         self::assertSame('high', $attribute->priority);
     }

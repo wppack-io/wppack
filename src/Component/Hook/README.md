@@ -90,7 +90,7 @@ $registry = new HookRegistry();
 $discovery = new HookDiscovery($registry);
 
 $discovery->register(new ContentHooks());
-$registry->bind();
+$registry->register();
 ```
 
 ## Documentation

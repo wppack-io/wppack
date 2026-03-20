@@ -23,7 +23,7 @@ final class RegisterEventListenersPass implements CompilerPassInterface
 
         $dispatcherDefinition = $builder->findDefinition(EventDispatcher::class);
 
-        foreach ($builder->getDefinitions() as $definition) {
+        foreach ($builder->all() as $definition) {
             $class = $definition->getClass() ?? $definition->getId();
 
             if (!class_exists($class)) {

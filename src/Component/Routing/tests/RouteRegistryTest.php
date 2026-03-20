@@ -38,7 +38,7 @@ final class RouteRegistryTest extends TestCase
         $registry->register($controller);
 
         self::assertTrue($registry->has('test_route'));
-        self::assertCount(1, $registry->getRegisteredRoutes());
+        self::assertCount(1, $registry->all());
     }
 
     #[Test]
@@ -71,7 +71,7 @@ final class RouteRegistryTest extends TestCase
 
         self::assertTrue($registry->has('route_list'));
         self::assertTrue($registry->has('route_detail'));
-        self::assertCount(2, $registry->getRegisteredRoutes());
+        self::assertCount(2, $registry->all());
     }
 
     #[Test]
@@ -88,7 +88,7 @@ final class RouteRegistryTest extends TestCase
         $registry = $this->createRegistryWithoutWordPress();
         $registry->register($controller);
 
-        $routes = $registry->getRegisteredRoutes();
+        $routes = $registry->all();
         $entry = $routes['tagged_route'];
         self::assertSame([['%test_tag%', '([^/]+)']], $entry->rewriteTags);
     }
@@ -112,7 +112,7 @@ final class RouteRegistryTest extends TestCase
         $registry = $this->createRegistryWithoutWordPress();
         $registry->register($controller);
 
-        $routes = $registry->getRegisteredRoutes();
+        $routes = $registry->all();
         $entry = $routes['method_tagged'];
         self::assertSame([['%method_tag%', '(\d+)']], $entry->rewriteTags);
     }
@@ -136,7 +136,7 @@ final class RouteRegistryTest extends TestCase
         $registry = $this->createRegistryWithoutWordPress();
         $registry->register($controller);
 
-        $routes = $registry->getRegisteredRoutes();
+        $routes = $registry->all();
         $entry = $routes['combined_tags'];
         self::assertSame(
             [['%class_tag%', '([^/]+)'], ['%method_tag%', '(\d+)']],
@@ -259,11 +259,11 @@ final class RouteRegistryTest extends TestCase
     }
 
     #[Test]
-    public function getRegisteredRoutesReturnsEmptyByDefault(): void
+    public function allReturnsEmptyByDefault(): void
     {
         $registry = new RouteRegistry();
 
-        self::assertSame([], $registry->getRegisteredRoutes());
+        self::assertSame([], $registry->all());
     }
 
     #[Test]
@@ -289,7 +289,7 @@ final class RouteRegistryTest extends TestCase
         $registry = $this->createRegistryWithoutWordPress();
         $registry->register($controller);
 
-        $routes = $registry->getRegisteredRoutes();
+        $routes = $registry->all();
         self::assertSame(RoutePosition::Bottom, $routes['bottom_route']->position);
     }
 
@@ -317,7 +317,7 @@ final class RouteRegistryTest extends TestCase
         $registry->register($controller);
 
         // Only the method with #[Route] should be registered, not __invoke
-        self::assertCount(1, $registry->getRegisteredRoutes());
+        self::assertCount(1, $registry->all());
         self::assertTrue($registry->has('method_route'));
     }
 
@@ -334,7 +334,7 @@ final class RouteRegistryTest extends TestCase
         $registry = $this->createRegistryWithoutWordPress();
         $registry->register($controller);
 
-        $routes = $registry->getRegisteredRoutes();
+        $routes = $registry->all();
         self::assertSame(['item_id', 'item_slug'], $routes['detail_route']->queryVars);
     }
 
@@ -361,7 +361,7 @@ final class RouteRegistryTest extends TestCase
         $registry = new RouteRegistry($request);
         $registry->register($controller);
 
-        $routes = $registry->getRegisteredRoutes();
+        $routes = $registry->all();
         $entry = $routes['inject_request'];
 
         // Simulate WordPress setting query vars
@@ -401,7 +401,7 @@ final class RouteRegistryTest extends TestCase
         $registry = new RouteRegistry($request, $security);
         $registry->register($controller);
 
-        $routes = $registry->getRegisteredRoutes();
+        $routes = $registry->all();
         $entry = $routes['inject_user'];
 
         set_query_var('profile_page', '1');
@@ -434,7 +434,7 @@ final class RouteRegistryTest extends TestCase
         $registry = new RouteRegistry($request);
         $registry->register($controller);
 
-        $routes = $registry->getRegisteredRoutes();
+        $routes = $registry->all();
         $entry = $routes['resolve_params'];
 
         set_query_var('item_slug', 'my-item');
@@ -477,7 +477,7 @@ final class RouteRegistryTest extends TestCase
         $registry = new RouteRegistry($request, $security);
         $registry->register($controller);
 
-        $routes = $registry->getRegisteredRoutes();
+        $routes = $registry->all();
         $entry = $routes['inject_all'];
 
         set_query_var('item_slug', 'test-slug');
@@ -509,7 +509,7 @@ final class RouteRegistryTest extends TestCase
         $registry = new RouteRegistry($request);
         $registry->register($controller);
 
-        $routes = $registry->getRegisteredRoutes();
+        $routes = $registry->all();
         $entry = $routes['invoke_inject'];
 
         set_query_var('item_slug', 'invoke-item');
@@ -546,7 +546,7 @@ final class RouteRegistryTest extends TestCase
         $registry = new RouteRegistry($request);
         $registry->register($controller);
 
-        $routes = $registry->getRegisteredRoutes();
+        $routes = $registry->all();
         $entry = $routes['no_security_user'];
 
         set_query_var('no_security_page', '1');
@@ -584,7 +584,7 @@ final class RouteRegistryTest extends TestCase
         $registry = new RouteRegistry($request, $security);
         $registry->register($controller);
 
-        $routes = $registry->getRegisteredRoutes();
+        $routes = $registry->all();
         $entry = $routes['set_security'];
 
         set_query_var('secure_page', '1');
@@ -622,7 +622,7 @@ final class RouteRegistryTest extends TestCase
         $registry = new RouteRegistry($request, null, $renderer);
         $registry->register($controller);
 
-        $routes = $registry->getRegisteredRoutes();
+        $routes = $registry->all();
         $entry = $routes['renderer_test'];
 
         set_query_var('renderer_page', '1');
@@ -655,7 +655,7 @@ final class RouteRegistryTest extends TestCase
         $registry = new RouteRegistry($request);
         $registry->register($controller);
 
-        $routes = $registry->getRegisteredRoutes();
+        $routes = $registry->all();
         $entry = $routes['snake_case_test'];
 
         set_query_var('product_name', 'test-product');
@@ -768,7 +768,7 @@ final class RouteRegistryTest extends TestCase
         $registry = new RouteRegistry();
         $registry->register($controller);
 
-        $routes = $registry->getRegisteredRoutes();
+        $routes = $registry->all();
         $entry = $routes['no_request'];
 
         set_query_var('slug', 'test');
@@ -803,7 +803,7 @@ final class RouteRegistryTest extends TestCase
         $registry = new RouteRegistry($request);
         $registry->register($controller);
 
-        $routes = $registry->getRegisteredRoutes();
+        $routes = $registry->all();
         $entry = $routes['is_granted_allow'];
 
         set_query_var('granted_page', '1');
@@ -838,7 +838,7 @@ final class RouteRegistryTest extends TestCase
         $registry = new RouteRegistry($request);
         $registry->register($controller);
 
-        $routes = $registry->getRegisteredRoutes();
+        $routes = $registry->all();
         $entry = $routes['is_granted_deny'];
 
         set_query_var('granted_deny_page', '1');
@@ -876,7 +876,7 @@ final class RouteRegistryTest extends TestCase
         $registry = new RouteRegistry($request);
         $registry->register($controller);
 
-        $routes = $registry->getRegisteredRoutes();
+        $routes = $registry->all();
         $entry = $routes['class_granted'];
 
         set_query_var('class_granted_page', '1');

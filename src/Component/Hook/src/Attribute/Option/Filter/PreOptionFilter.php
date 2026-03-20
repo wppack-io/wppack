@@ -10,9 +10,9 @@ use WpPack\Component\Hook\Attribute\Filter;
 final class PreOptionFilter extends Filter
 {
     public function __construct(
-        public readonly string $optionName,
+        public readonly string $name,
         int $priority = 10,
     ) {
-        parent::__construct("pre_option_{$this->optionName}", $priority);
+        parent::__construct("pre_option_{$this->name}", $priority);
     }
 }

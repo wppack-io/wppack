@@ -147,7 +147,7 @@ final class MyPlugin implements PluginInterface
     public function boot(Container $container): void
     {
         // コンテナ確定後の初期化処理
-        // HookRegistry::bind() はコンパイラーパスで自動呼び出しされる
+        // HookRegistry::register() はコンパイラーパスで自動呼び出しされる
     }
 
     public function onActivate(): void
@@ -430,7 +430,7 @@ final class AdminSetup
 1. `ServiceDiscovery::discover()` が `src/` 配下の全具象クラスをコンテナに登録
 2. `RegisterHookSubscribersPass` が `#[AsHookSubscriber]` 付きサービスを検出
 3. コンパイル時に `HookDiscovery::register()` でフックメソッドを収集
-4. `HookRegistry::bind()` で WordPress の `add_action()` / `add_filter()` に登録
+4. `HookRegistry::register()` で WordPress の `add_action()` / `add_filter()` に登録
 
 ```
 ServiceDiscovery → ContainerBuilder → RegisterHookSubscribersPass → HookDiscovery → HookRegistry → WordPress

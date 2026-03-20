@@ -17,12 +17,12 @@ final class SiteHealthRegistry
     /** @var list<array{section: DebugSectionInterface, attribute: AsDebugInfo}> */
     private array $debugSections = [];
 
-    private bool $bound = false;
+    private bool $registered = false;
 
-    public function register(HealthCheckInterface|DebugSectionInterface $object): self
+    public function add(HealthCheckInterface|DebugSectionInterface $object): self
     {
-        if ($this->bound) {
-            throw new LogicException('Cannot register after bind() has been called.');
+        if ($this->registered) {
+            throw new LogicException('Cannot add after register() has been called.');
         }
 
         $reflection = new \ReflectionClass($object);
@@ -62,13 +62,13 @@ final class SiteHealthRegistry
         return $this;
     }
 
-    public function bind(): void
+    public function register(): void
     {
-        if ($this->bound) {
+        if ($this->registered) {
             return;
         }
 
-        $this->bound = true;
+        $this->registered = true;
 
         add_filter('site_status_tests', [$this, 'onSiteStatusTests']);
         add_filter('debug_information', [$this, 'onDebugInformation']);

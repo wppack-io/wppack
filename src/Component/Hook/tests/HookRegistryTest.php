@@ -92,20 +92,20 @@ final class HookRegistryTest extends TestCase
     }
 
     #[Test]
-    public function throwsWhenAddingAfterBind(): void
+    public function throwsWhenAddingAfterRegister(): void
     {
         $registry = new HookRegistry();
-        $registry->bind();
+        $registry->register();
 
         $this->expectException(LogicException::class);
         $registry->addAction('init', static function (): void {});
     }
 
     #[Test]
-    public function throwsWhenAddingRegisteredHookAfterBind(): void
+    public function throwsWhenAddingRegisteredHookAfterRegister(): void
     {
         $registry = new HookRegistry();
-        $registry->bind();
+        $registry->register();
 
         $this->expectException(LogicException::class);
         $registry->add(new RegisteredHook(
@@ -116,13 +116,13 @@ final class HookRegistryTest extends TestCase
     }
 
     #[Test]
-    public function bindIsIdempotent(): void
+    public function registerIsIdempotent(): void
     {
         $registry = new HookRegistry();
         $registry->addAction('init', static function (): void {});
 
-        $registry->bind();
-        $registry->bind(); // should not throw
+        $registry->register();
+        $registry->register(); // should not throw
 
         self::assertCount(1, $registry->all());
     }
