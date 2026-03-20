@@ -123,6 +123,20 @@ $url = $adapter->temporaryUrl('private/document.pdf', new \DateTimeImmutable('+1
 // => 'https://myaccount.blob.core.windows.net/mycontainer/uploads/private/document.pdf?sv=...&sig=...'
 ```
 
+### SAS トークン付き一時アップロード URL
+
+SAS トークンに create + write 権限を付与した一時 URL を生成します。クライアントからサーバーを経由せずに直接 Azure Blob Storage にファイルをアップロードする場合に使用します。
+
+```php
+$url = $adapter->temporaryUploadUrl('uploads/photo.jpg', new \DateTimeImmutable('+1 hour'), [
+    'Content-Type' => 'image/jpeg',
+    'Content-Length' => 1024000,
+]);
+// => 'https://myaccount.blob.core.windows.net/mycontainer/uploads/uploads/photo.jpg?sv=...&sp=cw&sig=...'
+```
+
+`$options` に `Content-Type` や `Content-Length` を指定すると、アップロード時にその値が強制されます。
+
 ## Azure Blob API マッピング
 
 | StorageAdapterInterface | Azure Blob API |
@@ -139,7 +153,8 @@ $url = $adapter->temporaryUrl('private/document.pdf', new \DateTimeImmutable('+1
 | `move()` | `copyFromUrl()` + `delete()` |
 | `metadata()` | `getProperties()` |
 | `publicUrl()` | URL 構築（API 呼び出しなし） |
-| `temporaryUrl()` | SAS トークン生成 |
+| `temporaryUrl()` | SAS トークン生成（読み取り） |
+| `temporaryUploadUrl()` | SAS トークン生成（create + write 権限） |
 | `listContents()` | `getBlobsByHierarchy()` |
 
 ## 内部メソッドマッピング

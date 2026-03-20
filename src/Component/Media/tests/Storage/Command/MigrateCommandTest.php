@@ -389,6 +389,11 @@ final class MigrateCommandTest extends TestCase
                 return $this->inner->temporaryUrl($path, $expiration);
             }
 
+            public function temporaryUploadUrl(string $path, \DateTimeInterface $expiration, array $options = []): string
+            {
+                return $this->inner->temporaryUploadUrl($path, $expiration, $options);
+            }
+
             public function listContents(string $path = '', bool $deep = false): iterable
             {
                 return $this->inner->listContents($path, $deep);

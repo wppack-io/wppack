@@ -61,6 +61,12 @@ abstract class AbstractStorageAdapter implements StorageAdapterInterface
         throw new UnsupportedOperationException('temporaryUrl', $this->getName());
     }
 
+    /** @param array<string, string|int> $options */
+    protected function doTemporaryUploadUrl(string $path, \DateTimeInterface $expiration, array $options = []): string
+    {
+        throw new UnsupportedOperationException('temporaryUploadUrl', $this->getName());
+    }
+
     /** @return iterable<ObjectMetadata> */
     abstract protected function doListContents(string $path, bool $deep): iterable;
 
@@ -153,6 +159,11 @@ abstract class AbstractStorageAdapter implements StorageAdapterInterface
     public function temporaryUrl(string $path, \DateTimeInterface $expiration): string
     {
         return $this->execute(fn(): string => $this->doTemporaryUrl($path, $expiration));
+    }
+
+    public function temporaryUploadUrl(string $path, \DateTimeInterface $expiration, array $options = []): string
+    {
+        return $this->execute(fn(): string => $this->doTemporaryUploadUrl($path, $expiration, $options));
     }
 
     public function listContents(string $path = '', bool $deep = false): iterable

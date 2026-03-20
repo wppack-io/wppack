@@ -175,6 +175,15 @@ final class AbstractStorageAdapterTest extends TestCase
     }
 
     #[Test]
+    public function temporaryUploadUrlDefaultThrowsUnsupportedOperationException(): void
+    {
+        $adapter = $this->createConcreteAdapter();
+
+        $this->expectException(UnsupportedOperationException::class);
+        $adapter->temporaryUploadUrl('file.txt', new \DateTimeImmutable('+1 hour'));
+    }
+
+    #[Test]
     public function listContentsDelegatesToDoListContents(): void
     {
         $adapter = $this->createConcreteAdapter();

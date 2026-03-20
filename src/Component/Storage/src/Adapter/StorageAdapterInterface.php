@@ -55,6 +55,12 @@ interface StorageAdapterInterface
     /** @throws UnsupportedOperationException */
     public function temporaryUrl(string $path, \DateTimeInterface $expiration): string;
 
+    /**
+     * @param array<string, string|int> $options
+     * @throws UnsupportedOperationException
+     */
+    public function temporaryUploadUrl(string $path, \DateTimeInterface $expiration, array $options = []): string;
+
     /** @return iterable<ObjectMetadata> */
     public function listContents(string $path = '', bool $deep = false): iterable;
 }

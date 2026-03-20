@@ -153,6 +153,11 @@ final class InMemoryStorageAdapter implements StorageAdapterInterface
         throw new UnsupportedOperationException('temporaryUrl', $this->getName());
     }
 
+    public function temporaryUploadUrl(string $path, \DateTimeInterface $expiration, array $options = []): string
+    {
+        throw new UnsupportedOperationException('temporaryUploadUrl', $this->getName());
+    }
+
     public function listContents(string $path = '', bool $deep = false): iterable
     {
         $prefix = $path !== '' ? rtrim($path, '/') . '/' : '';

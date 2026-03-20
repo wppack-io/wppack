@@ -193,6 +193,22 @@ final class GcsStorageAdapter extends AbstractStorageAdapter
         return $object->signedUrl($expiration, ['version' => 'v4']);
     }
 
+    protected function doTemporaryUploadUrl(string $path, \DateTimeInterface $expiration, array $options = []): string
+    {
+        $object = $this->bucket->object($this->prefixPath($path));
+
+        $signOptions = [
+            'version' => 'v4',
+            'method' => 'PUT',
+        ];
+
+        if (isset($options['Content-Type'])) {
+            $signOptions['contentType'] = (string) $options['Content-Type'];
+        }
+
+        return $object->signedUrl($expiration, $signOptions);
+    }
+
     protected function doListContents(string $path, bool $deep): iterable
     {
         $fullPrefix = $this->prefixPath($path);

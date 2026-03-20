@@ -180,6 +180,16 @@ final class AzureStorageAdapter extends AbstractStorageAdapter
         return (string) $this->client->generateSasUri($prefixedPath, $sasBuilder);
     }
 
+    protected function doTemporaryUploadUrl(string $path, \DateTimeInterface $expiration, array $options = []): string
+    {
+        $prefixedPath = $this->prefixPath($path);
+        $sasBuilder = BlobSasBuilder::new()
+            ->setExpiresOn(\DateTimeImmutable::createFromInterface($expiration))
+            ->setPermissions('cw');
+
+        return (string) $this->client->generateSasUri($prefixedPath, $sasBuilder);
+    }
+
     protected function doListContents(string $path, bool $deep): iterable
     {
         $fullPrefix = $this->prefixPath($path);

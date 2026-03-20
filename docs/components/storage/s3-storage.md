@@ -113,6 +113,20 @@ $url = $adapter->temporaryUrl('private/document.pdf', new \DateTimeImmutable('+1
 // => 'https://my-bucket.s3.amazonaws.com/uploads/private/document.pdf?X-Amz-Signature=...'
 ```
 
+### 署名付き一時アップロード URL
+
+S3 の PUT プリサイン URL を生成します。クライアントからサーバーを経由せずに直接 S3 にファイルをアップロードする場合に使用します。
+
+```php
+$url = $adapter->temporaryUploadUrl('uploads/photo.jpg', new \DateTimeImmutable('+1 hour'), [
+    'Content-Type' => 'image/jpeg',
+    'Content-Length' => 1024000,
+]);
+// => 'https://my-bucket.s3.amazonaws.com/uploads/uploads/photo.jpg?X-Amz-Signature=...'
+```
+
+`$options` に `Content-Type` や `Content-Length` を指定すると、アップロード時にその値が強制されます。
+
 ## パスプレフィックス
 
 `prefix` を指定すると、すべての操作が自動的にプレフィックス付きのパスで行われます。DSN のパス部分がプレフィックスになります。
@@ -168,7 +182,8 @@ $adapter = Storage::fromDsn('s3://my-bucket?endpoint=https://<account-id>.r2.clo
 | `move()` | `CopyObject` + `DeleteObject` |
 | `metadata()` | `HeadObject` |
 | `publicUrl()` | URL 構築（API 呼び出しなし） |
-| `temporaryUrl()` | プリサイン URL 生成 |
+| `temporaryUrl()` | プリサイン URL 生成（GET） |
+| `temporaryUploadUrl()` | プリサイン URL 生成（PUT） |
 | `listContents()` | `ListObjectsV2`（ページネーション対応） |
 
 ## 内部メソッドマッピング

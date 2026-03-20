@@ -427,6 +427,37 @@ final class AzureStorageAdapterTest extends TestCase
     }
 
     #[Test]
+    public function temporaryUploadUrlReturnsUrl(): void
+    {
+        $sasUri = new Uri('https://account.blob.core.windows.net/my-container/file.txt?sv=2024&sig=upload');
+
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->method('generateSasUri')
+            ->willReturn($sasUri);
+
+        $adapter = new AzureStorageAdapter($client);
+        $url = $adapter->temporaryUploadUrl('file.txt', new \DateTimeImmutable('+1 hour'));
+
+        self::assertSame('https://account.blob.core.windows.net/my-container/file.txt?sv=2024&sig=upload', $url);
+    }
+
+    #[Test]
+    public function temporaryUploadUrlWithPrefix(): void
+    {
+        $sasUri = new Uri('https://account.blob.core.windows.net/my-container/uploads/file.txt?sv=2024&sig=upload');
+
+        $client = $this->createMock(AzureBlobClientInterface::class);
+        $client->method('generateSasUri')
+            ->with('uploads/file.txt', $this->isInstanceOf(BlobSasBuilder::class))
+            ->willReturn($sasUri);
+
+        $adapter = new AzureStorageAdapter($client, 'uploads');
+        $url = $adapter->temporaryUploadUrl('file.txt', new \DateTimeImmutable('+1 hour'));
+
+        self::assertSame('https://account.blob.core.windows.net/my-container/uploads/file.txt?sv=2024&sig=upload', $url);
+    }
+
+    #[Test]
     public function listContentsRecursiveYieldsObjects(): void
     {
         $now = new \DateTimeImmutable();

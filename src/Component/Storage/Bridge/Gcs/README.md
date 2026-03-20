@@ -52,6 +52,15 @@ $adapter = new GcsStorageAdapter(
 $url = $adapter->temporaryUrl('private/document.pdf', new \DateTimeImmutable('+1 hour'));
 ```
 
+### Temporary Upload URLs (Signed PUT URL V4)
+
+```php
+$url = $adapter->temporaryUploadUrl('uploads/photo.jpg', new \DateTimeImmutable('+1 hour'), [
+    'Content-Type' => 'image/jpeg',
+    'Content-Length' => 1024000,
+]);
+```
+
 ## DSN Format
 
 ```

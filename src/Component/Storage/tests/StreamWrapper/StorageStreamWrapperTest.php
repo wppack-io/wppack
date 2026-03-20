@@ -925,6 +925,10 @@ final class StorageStreamWrapperTest extends TestCase
             {
                 return '';
             }
+            public function temporaryUploadUrl(string $path, \DateTimeInterface $expiration, array $options = []): string
+            {
+                return '';
+            }
             public function listContents(string $path = '', bool $deep = false): iterable
             {
                 return [];
@@ -995,6 +999,10 @@ final class StorageStreamWrapperTest extends TestCase
             {
                 return '';
             }
+            public function temporaryUploadUrl(string $path, \DateTimeInterface $expiration, array $options = []): string
+            {
+                return '';
+            }
             public function listContents(string $path = '', bool $deep = false): iterable
             {
                 return [];
@@ -1058,6 +1066,10 @@ final class StorageStreamWrapperTest extends TestCase
                 return '';
             }
             public function temporaryUrl(string $path, \DateTimeInterface $expiration): string
+            {
+                return '';
+            }
+            public function temporaryUploadUrl(string $path, \DateTimeInterface $expiration, array $options = []): string
             {
                 return '';
             }
@@ -1131,6 +1143,10 @@ final class StorageStreamWrapperTest extends TestCase
                 return '';
             }
             public function temporaryUrl(string $path, \DateTimeInterface $expiration): string
+            {
+                return '';
+            }
+            public function temporaryUploadUrl(string $path, \DateTimeInterface $expiration, array $options = []): string
             {
                 return '';
             }
@@ -1321,6 +1337,10 @@ final class StorageStreamWrapperTest extends TestCase
             {
                 return '';
             }
+            public function temporaryUploadUrl(string $path, \DateTimeInterface $expiration, array $options = []): string
+            {
+                return '';
+            }
             public function listContents(string $path = '', bool $deep = false): iterable
             {
                 return [];
@@ -1384,6 +1404,10 @@ final class StorageStreamWrapperTest extends TestCase
             {
                 return '';
             }
+            public function temporaryUploadUrl(string $path, \DateTimeInterface $expiration, array $options = []): string
+            {
+                return '';
+            }
             public function listContents(string $path = '', bool $deep = false): iterable
             {
                 return [];
@@ -1444,6 +1468,10 @@ final class StorageStreamWrapperTest extends TestCase
                 return '';
             }
             public function temporaryUrl(string $path, \DateTimeInterface $expiration): string
+            {
+                return '';
+            }
+            public function temporaryUploadUrl(string $path, \DateTimeInterface $expiration, array $options = []): string
             {
                 return '';
             }

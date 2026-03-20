@@ -179,10 +179,12 @@ final class S3StoragePluginServiceProviderTest extends TestCase
         self::assertTrue($this->builder->hasDefinition(PreSignedUrlGenerator::class));
 
         $definition = $this->builder->findDefinition(PreSignedUrlGenerator::class);
-        $factory = $definition->getFactory();
-        self::assertNotNull($factory);
-        self::assertSame(S3StoragePluginServiceProvider::class, $factory[0]);
-        self::assertSame('createPreSignedUrlGenerator', $factory[1]);
+        self::assertNull($definition->getFactory());
+
+        $arguments = $definition->getArguments();
+        self::assertCount(1, $arguments);
+        self::assertInstanceOf(Reference::class, $arguments[0]);
+        self::assertSame(StorageAdapterInterface::class, (string) $arguments[0]);
     }
 
     #[Test]
@@ -326,21 +328,6 @@ final class S3StoragePluginServiceProviderTest extends TestCase
         $resolver = S3StoragePluginServiceProvider::createUrlResolver($adapter, $config);
 
         self::assertInstanceOf(UrlResolver::class, $resolver);
-    }
-
-    #[Test]
-    public function createPreSignedUrlGeneratorReturnsGeneratorInstance(): void
-    {
-        $s3Client = new S3Client(['region' => 'us-east-1']);
-        $config = new S3StorageConfiguration(
-            bucket: 'test-bucket',
-            region: 'us-east-1',
-            prefix: 'wp-uploads',
-        );
-
-        $generator = S3StoragePluginServiceProvider::createPreSignedUrlGenerator($s3Client, $config);
-
-        self::assertInstanceOf(PreSignedUrlGenerator::class, $generator);
     }
 
     #[Test]

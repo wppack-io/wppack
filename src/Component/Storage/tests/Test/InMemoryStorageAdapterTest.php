@@ -229,6 +229,14 @@ final class InMemoryStorageAdapterTest extends TestCase
     }
 
     #[Test]
+    public function temporaryUploadUrlThrowsUnsupportedOperationException(): void
+    {
+        $this->expectException(UnsupportedOperationException::class);
+
+        $this->adapter->temporaryUploadUrl('file.txt', new \DateTimeImmutable('+1 hour'));
+    }
+
+    #[Test]
     public function listContentsWithPrefix(): void
     {
         $this->adapter->write('uploads/a.txt', 'a');

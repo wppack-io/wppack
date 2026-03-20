@@ -315,6 +315,60 @@ final class S3StorageAdapterTest extends TestCase
     }
 
     #[Test]
+    public function temporaryUploadUrlReturnsPresignedUrl(): void
+    {
+        $s3Client = new S3Client([
+            'region' => 'us-east-1',
+            'accessKeyId' => 'AKIAIOSFODNN7EXAMPLE',
+            'accessKeySecret' => 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
+        ]);
+
+        $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
+        $url = $adapter->temporaryUploadUrl('file.txt', new \DateTimeImmutable('+1 hour'));
+
+        self::assertStringContainsString('my-bucket', $url);
+        self::assertStringContainsString('file.txt', $url);
+        self::assertStringContainsString('X-Amz-Signature', $url);
+    }
+
+    #[Test]
+    public function temporaryUploadUrlWithPrefix(): void
+    {
+        $s3Client = new S3Client([
+            'region' => 'us-east-1',
+            'accessKeyId' => 'AKIAIOSFODNN7EXAMPLE',
+            'accessKeySecret' => 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
+        ]);
+
+        $adapter = new S3StorageAdapter($s3Client, 'my-bucket', 'uploads');
+        $url = $adapter->temporaryUploadUrl('file.txt', new \DateTimeImmutable('+1 hour'));
+
+        self::assertStringContainsString('my-bucket', $url);
+        self::assertStringContainsString('uploads', $url);
+        self::assertStringContainsString('file.txt', $url);
+        self::assertStringContainsString('X-Amz-Signature', $url);
+    }
+
+    #[Test]
+    public function temporaryUploadUrlWithContentType(): void
+    {
+        $s3Client = new S3Client([
+            'region' => 'us-east-1',
+            'accessKeyId' => 'AKIAIOSFODNN7EXAMPLE',
+            'accessKeySecret' => 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
+        ]);
+
+        $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
+        $url = $adapter->temporaryUploadUrl('file.txt', new \DateTimeImmutable('+1 hour'), [
+            'Content-Type' => 'image/png',
+        ]);
+
+        self::assertStringContainsString('my-bucket', $url);
+        self::assertStringContainsString('file.txt', $url);
+        self::assertStringContainsString('X-Amz-Signature', $url);
+    }
+
+    #[Test]
     public function listContentsRecursiveYieldsObjects(): void
     {
         $now = new \DateTimeImmutable();

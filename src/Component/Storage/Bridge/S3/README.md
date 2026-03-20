@@ -52,6 +52,15 @@ $adapter = new S3StorageAdapter(
 $url = $adapter->temporaryUrl('private/document.pdf', new \DateTimeImmutable('+1 hour'));
 ```
 
+### Temporary Upload URLs (Pre-signed PUT)
+
+```php
+$url = $adapter->temporaryUploadUrl('uploads/photo.jpg', new \DateTimeImmutable('+1 hour'), [
+    'Content-Type' => 'image/jpeg',
+    'Content-Length' => 1024000,
+]);
+```
+
 ## DSN Format
 
 The DSN mirrors the actual S3 virtual-hosted style URL:

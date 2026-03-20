@@ -302,6 +302,27 @@ final class S3StorageAdapter extends AbstractStorageAdapter
         return $this->s3Client->presign($input, \DateTimeImmutable::createFromInterface($expiration));
     }
 
+    protected function doTemporaryUploadUrl(string $path, \DateTimeInterface $expiration, array $options = []): string
+    {
+        $input = [
+            'Bucket' => $this->bucket,
+            'Key' => $this->prefixPath($path),
+        ];
+
+        if (isset($options['Content-Type'])) {
+            $input['ContentType'] = (string) $options['Content-Type'];
+        }
+
+        if (isset($options['Content-Length'])) {
+            $input['ContentLength'] = (int) $options['Content-Length'];
+        }
+
+        return $this->s3Client->presign(
+            new PutObjectRequest($input),
+            \DateTimeImmutable::createFromInterface($expiration),
+        );
+    }
+
     protected function doListContents(string $path, bool $deep): iterable
     {
         $fullPrefix = $this->prefixPath($path);

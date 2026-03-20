@@ -77,9 +77,7 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
         $builder->register(UploadPolicy::class);
 
         $builder->register(PreSignedUrlGenerator::class)
-            ->setFactory([self::class, 'createPreSignedUrlGenerator'])
-            ->addArgument(new Reference(S3Client::class))
-            ->addArgument(new Reference(S3StorageConfiguration::class));
+            ->addArgument(new Reference(StorageAdapterInterface::class));
 
         $builder->register(PreSignedUrlController::class)
             ->addArgument(new Reference(PreSignedUrlGenerator::class))
@@ -126,17 +124,6 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
         S3StorageConfiguration $config,
     ): UrlResolver {
         return new UrlResolver($adapter, $config->cdnUrl);
-    }
-
-    public static function createPreSignedUrlGenerator(
-        S3Client $s3Client,
-        S3StorageConfiguration $config,
-    ): PreSignedUrlGenerator {
-        return new PreSignedUrlGenerator(
-            s3Client: $s3Client,
-            bucket: $config->bucket,
-            prefix: $config->prefix,
-        );
     }
 
     public static function createS3ObjectCreatedHandler(

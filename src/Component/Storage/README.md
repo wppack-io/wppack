@@ -62,6 +62,12 @@ function upload(StorageAdapterInterface $adapter): void
     // Get temporary (pre-signed) URL
     $url = $adapter->temporaryUrl('path/to/file.txt', new \DateTimeImmutable('+1 hour'));
 
+    // Get temporary upload URL (pre-signed PUT)
+    $uploadUrl = $adapter->temporaryUploadUrl('uploads/photo.jpg', new \DateTimeImmutable('+1 hour'), [
+        'Content-Type' => 'image/jpeg',
+        'Content-Length' => 1024000,
+    ]);
+
     // Copy / Move
     $adapter->copy('source.txt', 'destination.txt');
     $adapter->move('old-path.txt', 'new-path.txt');

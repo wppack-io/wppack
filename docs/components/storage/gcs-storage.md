@@ -111,6 +111,20 @@ $url = $adapter->temporaryUrl('private/document.pdf', new \DateTimeImmutable('+1
 // => 'https://storage.googleapis.com/my-bucket/uploads/private/document.pdf?X-Goog-Signature=...'
 ```
 
+### 署名付き一時アップロード URL（V4 PUT）
+
+GCS の V4 署名付き PUT URL を生成します。クライアントからサーバーを経由せずに直接 GCS にファイルをアップロードする場合に使用します。
+
+```php
+$url = $adapter->temporaryUploadUrl('uploads/photo.jpg', new \DateTimeImmutable('+1 hour'), [
+    'Content-Type' => 'image/jpeg',
+    'Content-Length' => 1024000,
+]);
+// => 'https://storage.googleapis.com/my-bucket/uploads/uploads/photo.jpg?X-Goog-Signature=...'
+```
+
+`$options` に `Content-Type` や `Content-Length` を指定すると、アップロード時にその値が強制されます。
+
 ## パスプレフィックス
 
 `prefix` を指定すると、すべての操作が自動的にプレフィックス付きのパスで行われます。DSN のパス部分がプレフィックスになります。
@@ -147,7 +161,8 @@ $adapter->listContents('2024/01/');
 | `move()` | `StorageObject::copy()` + `StorageObject::delete()` |
 | `metadata()` | `StorageObject::info()` |
 | `publicUrl()` | URL 構築（API 呼び出しなし） |
-| `temporaryUrl()` | `StorageObject::signedUrl()` (V4) |
+| `temporaryUrl()` | `StorageObject::signedUrl()` (V4, GET) |
+| `temporaryUploadUrl()` | `StorageObject::signedUrl()` (V4, PUT) |
 | `listContents()` | `Bucket::objects()` |
 
 ## 内部メソッドマッピング

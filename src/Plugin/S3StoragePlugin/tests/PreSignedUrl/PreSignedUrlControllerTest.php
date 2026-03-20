@@ -8,6 +8,7 @@ use AsyncAws\S3\S3Client;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Storage\Bridge\S3\S3StorageAdapter;
 use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\PreSignedUrlController;
 use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\PreSignedUrlGenerator;
 use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\UploadPolicy;
@@ -19,9 +20,11 @@ final class PreSignedUrlControllerTest extends TestCase
         ?UploadPolicy $policy = null,
     ): PreSignedUrlController {
         $generator ??= new PreSignedUrlGenerator(
-            new S3Client(['region' => 'us-east-1']),
-            'test-bucket',
-            'uploads',
+            new S3StorageAdapter(
+                new S3Client(['region' => 'us-east-1']),
+                'test-bucket',
+                'uploads',
+            ),
         );
         $policy ??= new UploadPolicy(allowedMimeTypes: []);
 

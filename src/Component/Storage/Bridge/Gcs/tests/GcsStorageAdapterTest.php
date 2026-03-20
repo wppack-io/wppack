@@ -459,6 +459,64 @@ final class GcsStorageAdapterTest extends TestCase
     }
 
     #[Test]
+    public function temporaryUploadUrlReturnsSignedUrl(): void
+    {
+        $expiration = new \DateTimeImmutable('+1 hour');
+
+        $object = $this->createMock(StorageObject::class);
+        $object->method('signedUrl')
+            ->with($expiration, ['version' => 'v4', 'method' => 'PUT'])
+            ->willReturn('https://storage.googleapis.com/my-bucket/file.txt?X-Goog-Signature=upload');
+
+        $bucket = $this->createMock(Bucket::class);
+        $bucket->method('object')->willReturn($object);
+
+        $adapter = new GcsStorageAdapter($bucket);
+        $url = $adapter->temporaryUploadUrl('file.txt', $expiration);
+
+        self::assertSame('https://storage.googleapis.com/my-bucket/file.txt?X-Goog-Signature=upload', $url);
+    }
+
+    #[Test]
+    public function temporaryUploadUrlWithPrefix(): void
+    {
+        $expiration = new \DateTimeImmutable('+1 hour');
+
+        $object = $this->createMock(StorageObject::class);
+        $object->method('signedUrl')
+            ->willReturn('https://storage.googleapis.com/my-bucket/uploads/file.txt?X-Goog-Signature=upload');
+
+        $bucket = $this->createMock(Bucket::class);
+        $bucket->method('object')
+            ->with('uploads/file.txt')
+            ->willReturn($object);
+
+        $adapter = new GcsStorageAdapter($bucket, 'uploads');
+        $url = $adapter->temporaryUploadUrl('file.txt', $expiration);
+
+        self::assertSame('https://storage.googleapis.com/my-bucket/uploads/file.txt?X-Goog-Signature=upload', $url);
+    }
+
+    #[Test]
+    public function temporaryUploadUrlWithContentType(): void
+    {
+        $expiration = new \DateTimeImmutable('+1 hour');
+
+        $object = $this->createMock(StorageObject::class);
+        $object->method('signedUrl')
+            ->with($expiration, ['version' => 'v4', 'method' => 'PUT', 'contentType' => 'image/png'])
+            ->willReturn('https://storage.googleapis.com/my-bucket/file.png?X-Goog-Signature=upload');
+
+        $bucket = $this->createMock(Bucket::class);
+        $bucket->method('object')->willReturn($object);
+
+        $adapter = new GcsStorageAdapter($bucket);
+        $url = $adapter->temporaryUploadUrl('file.png', $expiration, ['Content-Type' => 'image/png']);
+
+        self::assertSame('https://storage.googleapis.com/my-bucket/file.png?X-Goog-Signature=upload', $url);
+    }
+
+    #[Test]
     public function listContentsRecursiveYieldsObjects(): void
     {
         $now = new \DateTimeImmutable();
