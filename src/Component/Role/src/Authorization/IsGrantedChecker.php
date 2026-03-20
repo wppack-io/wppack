@@ -42,12 +42,30 @@ final class IsGrantedChecker
         foreach ($grants as $grant) {
             if ($this->authorizationChecker !== null) {
                 if (!$this->authorizationChecker->isGranted($grant->attribute, $grant->subject)) {
-                    throw new AccessDeniedException($grant->message);
+                    throw new AccessDeniedException($grant->message, $grant->statusCode);
                 }
             } elseif ($grant->subject !== null ? !current_user_can($grant->attribute, $grant->subject) : !current_user_can($grant->attribute)) {
-                throw new AccessDeniedException($grant->message);
+                throw new AccessDeniedException($grant->message, $grant->statusCode);
             }
         }
+    }
+
+    /**
+     * @param list<IsGranted> $grants
+     */
+    public function isAllGranted(array $grants): bool
+    {
+        foreach ($grants as $grant) {
+            if ($this->authorizationChecker !== null) {
+                if (!$this->authorizationChecker->isGranted($grant->attribute, $grant->subject)) {
+                    return false;
+                }
+            } elseif ($grant->subject !== null ? !current_user_can($grant->attribute, $grant->subject) : !current_user_can($grant->attribute)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

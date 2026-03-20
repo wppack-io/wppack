@@ -60,6 +60,13 @@ final class RoleManager
                 continue;
             }
 
+            // Update label if it differs
+            $wpRoles = wp_roles();
+            if ($wpRoles->roles[$definition->name]['name'] !== $definition->label) {
+                $wpRoles->roles[$definition->name]['name'] = $definition->label;
+                update_option($wpRoles->role_key, $wpRoles->roles);
+            }
+
             $definedCaps = array_flip($definition->capabilities);
 
             // Add missing capabilities

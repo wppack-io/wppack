@@ -9,6 +9,8 @@ use PHPUnit\Framework\TestCase;
 use WpPack\Component\DashboardWidget\AbstractDashboardWidget;
 use WpPack\Component\DashboardWidget\Attribute\AsDashboardWidget;
 use WpPack\Component\Role\Attribute\IsGranted;
+use WpPack\Component\Role\Authorization\AuthorizationCheckerInterface;
+use WpPack\Component\Role\Authorization\IsGrantedChecker;
 
 final class AbstractDashboardWidgetTest extends TestCase
 {
@@ -282,6 +284,54 @@ final class AbstractDashboardWidgetTest extends TestCase
         $widget->register();
 
         self::assertArrayHasKey($widget->id, $wp_meta_boxes['dashboard'][$widget->context][$widget->priority]);
+    }
+
+    #[Test]
+    public function registerUsesInjectedIsGrantedChecker(): void
+    {
+        set_current_screen('dashboard');
+
+        global $wp_meta_boxes;
+
+        $authChecker = new class implements AuthorizationCheckerInterface {
+            public function isGranted(string $attribute, mixed $subject = null): bool
+            {
+                return true;
+            }
+        };
+        $checker = new IsGrantedChecker($authChecker);
+
+        // Anonymous user would normally be denied, but the injected checker allows it
+        wp_set_current_user(0);
+
+        $widget = new CapabilityTestDashboardWidget($checker);
+        $widget->register();
+
+        self::assertArrayHasKey($widget->id, $wp_meta_boxes['dashboard'][$widget->context][$widget->priority]);
+    }
+
+    #[Test]
+    public function registerSkipsWhenInjectedCheckerDenies(): void
+    {
+        set_current_screen('dashboard');
+
+        global $wp_meta_boxes;
+        $wp_meta_boxes = [];
+
+        $authChecker = new class implements AuthorizationCheckerInterface {
+            public function isGranted(string $attribute, mixed $subject = null): bool
+            {
+                return false;
+            }
+        };
+        $checker = new IsGrantedChecker($authChecker);
+
+        wp_set_current_user(1);
+
+        $widget = new CapabilityTestDashboardWidget($checker);
+        $widget->register();
+
+        self::assertArrayNotHasKey('capability_widget', $wp_meta_boxes['dashboard']['normal']['core'] ?? []);
     }
 }
 

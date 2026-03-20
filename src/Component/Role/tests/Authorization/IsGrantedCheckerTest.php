@@ -159,6 +159,86 @@ final class IsGrantedCheckerTest extends TestCase
     }
 
     #[Test]
+    public function checkPassesStatusCodeToException(): void
+    {
+        $checker = new IsGrantedChecker($this->createAuthorizationChecker(false));
+
+        $grants = [new IsGranted('edit_posts', statusCode: 404)];
+
+        try {
+            $checker->check($grants);
+            self::fail('Expected AccessDeniedException');
+        } catch (AccessDeniedException $e) {
+            self::assertSame(404, $e->statusCode);
+        }
+    }
+
+    #[Test]
+    public function checkDefaultStatusCodeIs403(): void
+    {
+        $checker = new IsGrantedChecker($this->createAuthorizationChecker(false));
+
+        $grants = [new IsGranted('edit_posts')];
+
+        try {
+            $checker->check($grants);
+            self::fail('Expected AccessDeniedException');
+        } catch (AccessDeniedException $e) {
+            self::assertSame(403, $e->statusCode);
+        }
+    }
+
+    #[Test]
+    public function isAllGrantedReturnsTrueWhenAllGranted(): void
+    {
+        $checker = new IsGrantedChecker($this->createAuthorizationChecker(true));
+
+        $grants = [new IsGranted('edit_posts'), new IsGranted('manage_options')];
+
+        self::assertTrue($checker->isAllGranted($grants));
+    }
+
+    #[Test]
+    public function isAllGrantedReturnsFalseWhenDenied(): void
+    {
+        $checker = new IsGrantedChecker($this->createAuthorizationChecker(false));
+
+        $grants = [new IsGranted('edit_posts')];
+
+        self::assertFalse($checker->isAllGranted($grants));
+    }
+
+    #[Test]
+    public function isAllGrantedReturnsTrueForEmptyGrants(): void
+    {
+        $checker = new IsGrantedChecker();
+
+        self::assertTrue($checker->isAllGranted([]));
+    }
+
+    #[Test]
+    public function isAllGrantedFallsBackToCurrentUserCan(): void
+    {
+        $checker = new IsGrantedChecker();
+
+        wp_set_current_user(1);
+        $grants = [new IsGranted('manage_options')];
+
+        self::assertTrue($checker->isAllGranted($grants));
+    }
+
+    #[Test]
+    public function isAllGrantedFallbackReturnsFalseWhenDenied(): void
+    {
+        $checker = new IsGrantedChecker();
+
+        wp_set_current_user(0);
+        $grants = [new IsGranted('manage_options')];
+
+        self::assertFalse($checker->isAllGranted($grants));
+    }
+
+    #[Test]
     public function extractCapabilityReturnsFirstAttribute(): void
     {
         $class = new #[IsGranted('edit_posts')] class {};

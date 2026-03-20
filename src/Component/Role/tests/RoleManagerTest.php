@@ -154,6 +154,46 @@ final class RoleManagerTest extends TestCase
     }
 
     #[Test]
+    public function synchronizeUpdatesLabel(): void
+    {
+        // Create a role with an old label
+        add_role('sync_label_role', 'Old Label', ['read' => true]);
+
+        $this->manager->addDefinition(new RoleDefinition(
+            'sync_label_role',
+            'New Label',
+            ['read'],
+        ));
+
+        $this->manager->synchronize();
+
+        $wpRoles = wp_roles();
+        self::assertSame('New Label', $wpRoles->roles['sync_label_role']['name']);
+
+        remove_role('sync_label_role');
+    }
+
+    #[Test]
+    public function synchronizeSkipsLabelUpdateWhenUnchanged(): void
+    {
+        add_role('sync_same_label_role', 'Same Label', ['read' => true]);
+
+        $this->manager->addDefinition(new RoleDefinition(
+            'sync_same_label_role',
+            'Same Label',
+            ['read'],
+        ));
+
+        // Should not call update_option when the label is the same
+        $this->manager->synchronize();
+
+        $wpRoles = wp_roles();
+        self::assertSame('Same Label', $wpRoles->roles['sync_same_label_role']['name']);
+
+        remove_role('sync_same_label_role');
+    }
+
+    #[Test]
     public function getDefinitionsReturnsEmptyByDefault(): void
     {
         self::assertSame([], $this->manager->getDefinitions());

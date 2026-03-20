@@ -18,7 +18,9 @@ abstract class AbstractDashboardWidget
     /** @var list<IsGranted> */
     private readonly array $isGrantedAttributes;
 
-    public function __construct()
+    private readonly IsGrantedChecker $isGrantedChecker;
+
+    public function __construct(?IsGrantedChecker $isGrantedChecker = null)
     {
         /** @var \ReflectionClass<object> $reflection */
         $reflection = new \ReflectionClass($this);
@@ -29,6 +31,7 @@ abstract class AbstractDashboardWidget
         $this->context = $attribute->context;
         $this->priority = $attribute->priority;
         $this->isGrantedAttributes = IsGrantedChecker::resolve($reflection);
+        $this->isGrantedChecker = $isGrantedChecker ?? new IsGrantedChecker();
     }
 
     abstract public function render(): void;
@@ -37,10 +40,8 @@ abstract class AbstractDashboardWidget
 
     public function register(): void
     {
-        foreach ($this->isGrantedAttributes as $grant) {
-            if ($grant->subject !== null ? !current_user_can($grant->attribute, $grant->subject) : !current_user_can($grant->attribute)) {
-                return;
-            }
+        if (!$this->isGrantedChecker->isAllGranted($this->isGrantedAttributes)) {
+            return;
         }
 
         $configureCallback = $this->hasConfigureOverride() ? $this->configure(...) : null;
