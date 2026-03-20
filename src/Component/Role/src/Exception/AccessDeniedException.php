@@ -8,8 +8,7 @@ class AccessDeniedException extends \RuntimeException implements ExceptionInterf
 {
     public function __construct(
         string $message = 'Access Denied.',
-        public readonly int $statusCode = 403,
-        int $code = 0,
+        int $code = 403,
         ?\Throwable $previous = null,
     ) {
         parent::__construct($message, $code, $previous);

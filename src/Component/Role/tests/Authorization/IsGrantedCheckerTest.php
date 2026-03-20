@@ -169,7 +169,7 @@ final class IsGrantedCheckerTest extends TestCase
             $checker->check($grants);
             self::fail('Expected AccessDeniedException');
         } catch (AccessDeniedException $e) {
-            self::assertSame(404, $e->statusCode);
+            self::assertSame(404, $e->getCode());
         }
     }
 
@@ -184,7 +184,7 @@ final class IsGrantedCheckerTest extends TestCase
             $checker->check($grants);
             self::fail('Expected AccessDeniedException');
         } catch (AccessDeniedException $e) {
-            self::assertSame(403, $e->statusCode);
+            self::assertSame(403, $e->getCode());
         }
     }
 
