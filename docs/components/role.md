@@ -6,8 +6,7 @@
 
 WordPress のロール・権限管理関数（`add_role()` / `add_cap()` / `current_user_can()`）をアトリビュートベースでラップし、型安全なロール定義と権限チェックを提供するコンポーネントです。
 
-> [!WARNING]
-> このコンポーネントは設計段階です。ソースコードの実装はまだありません。以下は設計仕様として参照してください。
+`#[IsGranted]` アトリビュートと `IsGrantedChecker` もこのコンポーネントで提供しており、Admin / Setting / DashboardWidget / Ajax / Routing / Rest など軽量コンポーネントが Security コンポーネントに依存せずに認可チェックを行えます。
 
 ## インストール
 
@@ -37,191 +36,190 @@ if (current_user_can('manage_products')) {
 ### After（WpPack）
 
 ```php
-use WpPack\Component\Role\AbstractRole;
-use WpPack\Component\Role\Attribute\Role;
-use WpPack\Component\Role\Attribute\Capability;
-use WpPack\Component\Role\Attribute\RequiresCapability;
+use WpPack\Component\Role\Attribute\AsRole;
+use WpPack\Component\Role\Attribute\IsGranted;
+use WpPack\Component\Role\RoleManager;
 
-#[Role(
+// ロール定義
+#[AsRole(
     name: 'shop_manager',
     label: 'Shop Manager',
     capabilities: ['read', 'edit_posts', 'manage_products'],
 )]
-class ShopManagerRole extends AbstractRole
-{
-    #[Capability('manage_inventory')]
-    protected bool $canManageInventory = true;
+final class ShopManagerRole {}
 
-    #[Capability('view_sales_reports')]
-    protected bool $canViewSalesReports = false;
-}
+// ロール同期
+$manager = new RoleManager();
+$manager->add(ShopManagerRole::class);
+$manager->synchronize();
 
-// 権限で保護されたサービスメソッド
-class ProductService
+// コントローラーやサービスでの権限チェック
+#[IsGranted('manage_products')]
+final class ProductController
 {
-    #[RequiresCapability('manage_products')]
-    public function createProduct(array $data): Product
-    {
-        return $this->productRepository->create($data);
-    }
+    // manage_products 権限が必要
 }
 ```
 
 ## ロール定義
 
-### シンプルなロール
+### `#[AsRole]` アトリビュート
 
 ```php
-use WpPack\Component\Role\AbstractRole;
-use WpPack\Component\Role\Attribute\Role;
-use WpPack\Component\Role\Attribute\Capability;
+use WpPack\Component\Role\Attribute\AsRole;
 
-#[Role(
+#[AsRole(
     name: 'shop_manager',
     label: 'Shop Manager',
-    capabilities: ['read', 'edit_posts'],
+    capabilities: ['read', 'edit_posts', 'manage_products', 'view_orders'],
 )]
-class ShopManagerRole extends AbstractRole
-{
-    #[Capability('manage_products')]
-    protected bool $canManageProducts = true;
-
-    #[Capability('view_orders')]
-    protected bool $canViewOrders = true;
-
-    #[Capability('manage_inventory')]
-    protected bool $canManageInventory = true;
-
-    #[Capability('view_sales_reports')]
-    protected bool $canViewSalesReports = false; // デフォルトで無効
-
-    public function getDescription(): string
-    {
-        return 'Manages products, inventory, and customer orders';
-    }
-}
+final class ShopManagerRole {}
 ```
 
-### ロールの登録
+パラメータ:
+- `name` — WordPress のロール識別子（`add_role()` の第1引数）
+- `label` — 表示名
+- `capabilities` — このロールに付与する権限の配列
+
+### `RoleDefinition` 値オブジェクト
+
+プログラム的にロール定義を作成する場合:
+
+```php
+use WpPack\Component\Role\RoleDefinition;
+
+$definition = new RoleDefinition(
+    name: 'shop_manager',
+    label: 'Shop Manager',
+    capabilities: ['read', 'edit_posts', 'manage_products'],
+);
+```
+
+## RoleManager
+
+`RoleManager` はロール定義を管理し、WordPress のロールシステムと同期します。
 
 ```php
 use WpPack\Component\Role\RoleManager;
 
-class RoleManagementService
-{
-    public function __construct(
-        private readonly RoleManager $roleManager,
-    ) {}
+$manager = new RoleManager();
 
-    #[Action('init', priority: 10)]
-    public function onInit(): void
-    {
-        // #[Role] アトリビュートを持つクラスを自動検出
-        $this->roleManager->discoverRoles();
-    }
+// #[AsRole] クラスからロール追加
+$manager->add(ShopManagerRole::class);
 
-    public function assignShopManagerRole(int $userId): void
-    {
-        $user = get_user_by('id', $userId);
-        if ($user) {
-            $this->roleManager->assignRole($user, 'shop_manager');
-        }
-    }
-}
+// RoleDefinition から追加
+$manager->addDefinition(new RoleDefinition('viewer', 'Viewer', ['read']));
+
+// WordPress DB と同期（差分適用）
+$manager->synchronize();
+
+// ロール削除
+$manager->remove('shop_manager');
 ```
 
-## 権限で保護されたサービス
+### `synchronize()` の動作
 
-### アトリビュートベースの保護
+`synchronize()` は PHP 定義と WordPress の `wp_user_roles` オプションを比較し、差分のみを適用します:
 
-`#[RequiresCapability]` アトリビュートを使用して、メソッドレベルで `current_user_can()` チェックを自動適用します。
+- 新規ロール → `add_role()` で追加
+- 既存ロールに新しい権限 → `add_cap()` で追加
+- 定義から削除された権限 → `remove_cap()` で削除
+
+> [!IMPORTANT]
+> `synchronize()` は毎リクエストではなく、プラグインの activation 時や管理画面アクションで呼ぶ想定です。
+
+## 権限チェック（IsGranted）
+
+### `#[IsGranted]` アトリビュート
+
+クラスまたはメソッドに付与して、宣言的に権限チェックを行います。複数指定で AND（すべて通過が必要）。
 
 ```php
-use WpPack\Component\Role\Attribute\RequiresCapability;
+use WpPack\Component\Role\Attribute\IsGranted;
 
-class ProductService
+#[IsGranted('edit_posts')]
+final class PostController
 {
-    public function __construct(
-        private readonly ProductRepository $productRepository,
-    ) {}
-
-    #[RequiresCapability('manage_products')]
-    public function createProduct(array $data): Product
+    #[IsGranted('publish_posts')]
+    public function publish(): void
     {
-        return $this->productRepository->create($data);
-    }
-
-    #[RequiresCapability('manage_products')]
-    public function updateProduct(int $productId, array $data): Product
-    {
-        return $this->productRepository->update($productId, $data);
-    }
-
-    #[RequiresCapability('view_orders')]
-    public function getProductOrders(int $productId): array
-    {
-        return $this->productRepository->getOrders($productId);
-    }
-
-    // パブリックメソッド - 権限チェック不要
-    public function getPublicProducts(): array
-    {
-        return $this->productRepository->getPublished();
+        // edit_posts AND publish_posts が必要
     }
 }
 ```
 
-### 手動での権限チェック
+パラメータ:
+- `attribute` — 権限文字列（`current_user_can()` に渡される）
+- `subject` — 対象オブジェクト（省略可、`current_user_can()` の第2引数）
+- `message` — 拒否時のメッセージ（デフォルト: `'Access Denied.'`）
+- `statusCode` — 拒否時のステータスコード（デフォルト: `403`）
+
+### `IsGrantedChecker`
+
+`#[IsGranted]` アトリビュートの解決とチェックを行うサービスです。
 
 ```php
-use WpPack\Component\Role\PermissionChecker;
+use WpPack\Component\Role\Authorization\IsGrantedChecker;
 
-class OrderService
-{
-    public function __construct(
-        private readonly OrderRepository $orderRepository,
-        private readonly PermissionChecker $permissions,
-    ) {}
+// アトリビュートの解決
+$grants = IsGrantedChecker::resolve($reflectionClass, $reflectionMethod);
 
-    public function processOrder(Order $order): void
-    {
-        $user = wp_get_current_user();
+// チェック（AccessDeniedException をスロー）
+$checker = new IsGrantedChecker();
+$checker->check($grants);
 
-        if (!$this->permissions->userCan($user, 'manage_orders')) {
-            throw new UnauthorizedException('Cannot manage orders');
-        }
-
-        if ($order->getValue() > 1000 && !$this->permissions->userCan($user, 'process_high_value_orders')) {
-            throw new UnauthorizedException('Cannot process high-value orders');
-        }
-
-        $this->orderRepository->markAsProcessed($order);
-    }
-}
+// クラスレベルの最初の権限を取得（デフォルト: 'manage_options'）
+$capability = IsGrantedChecker::extractCapability($reflectionClass);
 ```
 
-## Hook アトリビュート
+Security コンポーネントと併用する場合、`AuthorizationCheckerInterface` を注入して Voter ベースの認可チェックを利用できます:
 
-→ 詳細は [Hook コンポーネント — Role](./hook/role.md) を参照してください。
+```php
+use WpPack\Component\Role\Authorization\AuthorizationCheckerInterface;
+
+$checker = new IsGrantedChecker($authorizationChecker);
+```
+
+Security が利用できない場合は `current_user_can()` にフォールバックします。
+
+### コンポーネントごとのチェック方式
+
+| コンポーネント | チェック方式 |
+|--------------|------------|
+| Admin / Setting | `IsGrantedChecker::extractCapability()` で文字列を取り出し `add_menu_page()` に渡す（WordPress が制御） |
+| Ajax / Routing | ハンドラー実行前に `IsGrantedChecker::check()` でランタイムチェック |
+| Rest | `permission_callback` クロージャを生成して `current_user_can()` チェック |
+| DashboardWidget | `register()` 内で `current_user_can()` チェック |
+
+## 例外
+
+| クラス | 説明 |
+|-------|------|
+| `Exception\ExceptionInterface` | コンポーネント例外の基底インターフェース |
+| `Exception\AccessDeniedException` | 権限チェック失敗時にスローされる例外 |
+
+Security コンポーネントの `AccessDeniedException` は Role の `AccessDeniedException` を拡張しているため、`catch (Role\Exception\AccessDeniedException)` で両方をキャッチできます。
 
 ## 主要クラス
 
 | クラス | 説明 |
 |-------|------|
-| `AbstractRole` | ロール定義の基底クラス |
-| `RoleManager` | ロールの登録・管理 |
-| `PermissionChecker` | 権限チェックサービス |
-| `Attribute\Role` | ロール定義アトリビュート |
-| `Attribute\Capability` | 権限宣言アトリビュート |
-| `Attribute\RequiresCapability` | メソッドレベルの権限ガード |
+| `Attribute\AsRole` | ロール定義アトリビュート |
+| `Attribute\IsGranted` | 認可チェックアトリビュート |
+| `RoleDefinition` | ロール定義の値オブジェクト |
+| `RoleManager` | ロールの登録・同期・削除 |
+| `Authorization\AuthorizationCheckerInterface` | 認可チェッカーインターフェース |
+| `Authorization\IsGrantedChecker` | IsGranted アトリビュートの解決・チェック |
+| `Exception\AccessDeniedException` | アクセス拒否例外 |
 
 ## 利用シーン
 
 **最適なケース:**
 - カスタムロールと権限の定義が必要なプラグイン
-- `current_user_can()` をアトリビュートで宣言的に使いたい場合
+- `#[IsGranted]` で宣言的に権限チェックを行いたい場合
 - ロールベースのアクセス制御を体系的に管理したい場合
+- Security コンポーネントなしで軽量な認可チェックが必要な場合
 
 **代替を検討すべきケース:**
 - WordPress 標準のロールで十分な場合
-- シンプルな権限チェックのみが必要な場合
+- Voter パターンによる高度な認可が必要な場合（→ Security コンポーネント）

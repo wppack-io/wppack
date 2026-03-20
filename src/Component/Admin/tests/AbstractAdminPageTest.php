@@ -8,7 +8,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Admin\AbstractAdminPage;
 use WpPack\Component\Admin\Attribute\AsAdminPage;
-use WpPack\Component\Security\Attribute\IsGranted;
+use WpPack\Component\Role\Attribute\IsGranted;
 
 final class AbstractAdminPageTest extends TestCase
 {

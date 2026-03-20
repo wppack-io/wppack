@@ -547,6 +547,7 @@ final class TwoFactorListener { /* ... */ }
 ## 依存関係
 
 ### 必須
+- **wppack/role** — `#[IsGranted]` アトリビュート、`IsGrantedChecker`、`AccessDeniedException`
 - **wppack/http-foundation** — Request オブジェクト
 - **wppack/event-dispatcher** — イベントディスパッチ
 
@@ -554,3 +555,6 @@ final class TwoFactorListener { /* ... */ }
 - **wppack/hook** — Named Hook アトリビュート（WpLoginAction, AuthenticateFilter 等）
 - **wppack/dependency-injection** — DI コンテナ統合
 - **Nonce Component** — CSRF 保護
+
+> [!NOTE]
+> `#[IsGranted]` アトリビュートと `IsGrantedChecker` は Role コンポーネント（`WpPack\Component\Role\Attribute\IsGranted`、`WpPack\Component\Role\Authorization\IsGrantedChecker`）で提供されています。Security コンポーネントの `AuthorizationChecker` は Role の `AuthorizationCheckerInterface` を実装しており、Voter ベースの認可チェックを `IsGrantedChecker` に注入できます。

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Setting;
 
-use WpPack\Component\Security\Authorization\IsGrantedChecker;
+use WpPack\Component\Role\Authorization\IsGrantedChecker;
 use WpPack\Component\Setting\Attribute\AsSettingsPage;
 
 abstract class AbstractSettingsPage

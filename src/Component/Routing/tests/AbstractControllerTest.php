@@ -13,7 +13,7 @@ use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Routing\AbstractController;
 use WpPack\Component\Routing\Response\BlockTemplateResponse;
 use WpPack\Component\Routing\Response\TemplateResponse;
-use WpPack\Component\Security\Exception\AccessDeniedException;
+use WpPack\Component\Role\Exception\AccessDeniedException;
 use WpPack\Component\Security\Tests\SecurityTestTrait;
 use WpPack\Component\Templating\TemplateRendererInterface;
 

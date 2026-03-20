@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Tests\Attribute;
+namespace WpPack\Component\Role\Tests\Attribute;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Security\Attribute\IsGranted;
+use WpPack\Component\Role\Attribute\IsGranted;
 
 final class IsGrantedTest extends TestCase
 {

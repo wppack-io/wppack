@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Attribute;
+namespace WpPack\Component\Role\Attribute;
 
 #[\Attribute(\Attribute::TARGET_CLASS | \Attribute::TARGET_METHOD | \Attribute::IS_REPEATABLE)]
 final class IsGranted

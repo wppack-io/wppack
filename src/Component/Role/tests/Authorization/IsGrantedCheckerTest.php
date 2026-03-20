@@ -2,19 +2,17 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Tests\Authorization;
+namespace WpPack\Component\Role\Tests\Authorization;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Security\Attribute\IsGranted;
-use WpPack\Component\Security\Authorization\IsGrantedChecker;
-use WpPack\Component\Security\Exception\AccessDeniedException;
-use WpPack\Component\Security\Tests\SecurityTestTrait;
+use WpPack\Component\Role\Attribute\IsGranted;
+use WpPack\Component\Role\Authorization\AuthorizationCheckerInterface;
+use WpPack\Component\Role\Authorization\IsGrantedChecker;
+use WpPack\Component\Role\Exception\AccessDeniedException;
 
 final class IsGrantedCheckerTest extends TestCase
 {
-    use SecurityTestTrait;
-
     #[Test]
     public function resolveCollectsFromClassOnly(): void
     {
@@ -85,10 +83,9 @@ final class IsGrantedCheckerTest extends TestCase
     }
 
     #[Test]
-    public function checkPassesWithSecurity(): void
+    public function checkPassesWithAuthorizationChecker(): void
     {
-        $security = $this->createSecurity(granted: true);
-        $checker = new IsGrantedChecker($security);
+        $checker = new IsGrantedChecker($this->createAuthorizationChecker(true));
 
         $grants = [new IsGranted('edit_posts')];
 
@@ -98,10 +95,9 @@ final class IsGrantedCheckerTest extends TestCase
     }
 
     #[Test]
-    public function checkThrowsWithSecurityWhenDenied(): void
+    public function checkThrowsWithAuthorizationCheckerWhenDenied(): void
     {
-        $security = $this->createSecurity(granted: false);
-        $checker = new IsGrantedChecker($security);
+        $checker = new IsGrantedChecker($this->createAuthorizationChecker(false));
 
         $grants = [new IsGranted('edit_posts', message: 'No access.')];
 
@@ -150,8 +146,7 @@ final class IsGrantedCheckerTest extends TestCase
     #[Test]
     public function checkAllGrantsMustPass(): void
     {
-        $security = $this->createSecurity(granted: false);
-        $checker = new IsGrantedChecker($security);
+        $checker = new IsGrantedChecker($this->createAuthorizationChecker(false));
 
         $grants = [
             new IsGranted('edit_posts'),
@@ -194,5 +189,17 @@ final class IsGrantedCheckerTest extends TestCase
         $capability = IsGrantedChecker::extractCapability($reflection);
 
         self::assertSame('edit_posts', $capability);
+    }
+
+    private function createAuthorizationChecker(bool $granted): AuthorizationCheckerInterface
+    {
+        return new class ($granted) implements AuthorizationCheckerInterface {
+            public function __construct(private readonly bool $granted) {}
+
+            public function isGranted(string $attribute, mixed $subject = null): bool
+            {
+                return $this->granted;
+            }
+        };
     }
 }

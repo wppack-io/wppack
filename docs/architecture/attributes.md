@@ -100,7 +100,7 @@ WordPress のデータ構造を定義するための Attribute。
 
 | Attribute | パラメータ | 提供元 | 説明 | WordPress API |
 |-----------|-----------|--------|------|--------------|
-| `#[IsGranted]` | `attribute: string`, `subject?: mixed`, `message?: string = 'Access Denied.'`, `statusCode?: int = 403` | Security | 認可チェック。クラスまたはメソッドに付与可能（`IS_REPEATABLE`）。複数指定で AND（すべて通過が必要） | `current_user_can()` |
+| `#[IsGranted]` | `attribute: string`, `subject?: mixed`, `message?: string = 'Access Denied.'`, `statusCode?: int = 403` | Role | 認可チェック。クラスまたはメソッドに付与可能（`IS_REPEATABLE`）。複数指定で AND（すべて通過が必要） | `current_user_can()` |
 | `#[CurrentUser]` | _(なし)_ | Security | コントローラーメソッドの引数に現在のログインユーザー（`WP_User`）を注入 | `wp_get_current_user()` |
 
 `#[IsGranted]` は以下のコンポーネントで使用される capability チェックアトリビュート。各コンポーネントが持っていた `capability` パラメータを置き換える。コンポーネントごとにチェック方式が異なる:

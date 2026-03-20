@@ -213,6 +213,18 @@ wppack/amazon-mailer-plugin
     ↓ requires
 wppack/amazon-mailer, wppack/hook
 
+wppack/security
+    ↓ requires
+wppack/role, wppack/http-foundation, wppack/event-dispatcher
+
+wppack/admin, wppack/setting, wppack/dashboard-widget
+    ↓ requires
+wppack/role
+
+wppack/ajax, wppack/routing, wppack/rest
+    ↓ requires
+wppack/role, wppack/http-foundation
+
 wppack/saml-security
     ↓ requires
 wppack/security

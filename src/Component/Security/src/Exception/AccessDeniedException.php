@@ -4,13 +4,6 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Security\Exception;
 
-class AccessDeniedException extends \RuntimeException implements ExceptionInterface
-{
-    public function __construct(
-        string $message = 'Access Denied.',
-        int $code = 0,
-        ?\Throwable $previous = null,
-    ) {
-        parent::__construct($message, $code, $previous);
-    }
-}
+use WpPack\Component\Role\Exception\AccessDeniedException as RoleAccessDeniedException;
+
+class AccessDeniedException extends RoleAccessDeniedException implements ExceptionInterface {}

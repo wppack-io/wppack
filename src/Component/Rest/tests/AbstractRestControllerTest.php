@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 use WpPack\Component\HttpFoundation\JsonResponse;
 use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Rest\AbstractRestController;
-use WpPack\Component\Security\Exception\AccessDeniedException;
+use WpPack\Component\Role\Exception\AccessDeniedException;
 use WpPack\Component\Security\Tests\SecurityTestTrait;
 
 final class AbstractRestControllerTest extends TestCase

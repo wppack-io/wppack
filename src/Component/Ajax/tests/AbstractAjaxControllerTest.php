@@ -8,7 +8,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Ajax\AbstractAjaxController;
 use WpPack\Component\HttpFoundation\JsonResponse;
-use WpPack\Component\Security\Exception\AccessDeniedException;
+use WpPack\Component\Role\Exception\AccessDeniedException;
 use WpPack\Component\Security\Tests\SecurityTestTrait;
 
 final class AbstractAjaxControllerTest extends TestCase

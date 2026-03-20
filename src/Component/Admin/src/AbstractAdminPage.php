@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Admin;
 
 use WpPack\Component\Admin\Attribute\AsAdminPage;
-use WpPack\Component\Security\Authorization\IsGrantedChecker;
+use WpPack\Component\Role\Authorization\IsGrantedChecker;
 
 abstract class AbstractAdminPage
 {

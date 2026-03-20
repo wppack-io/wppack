@@ -9,8 +9,8 @@ use WpPack\Component\Rest\Attribute\Param;
 use WpPack\Component\Rest\Attribute\Permission;
 use WpPack\Component\Rest\Attribute\RestRoute;
 use WpPack\Component\Security\Attribute\CurrentUser;
-use WpPack\Component\Security\Attribute\IsGranted;
-use WpPack\Component\Security\Authorization\IsGrantedChecker;
+use WpPack\Component\Role\Attribute\IsGranted;
+use WpPack\Component\Role\Authorization\IsGrantedChecker;
 use WpPack\Component\Security\Security;
 
 final class RestRegistry

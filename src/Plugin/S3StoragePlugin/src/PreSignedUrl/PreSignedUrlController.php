@@ -9,7 +9,7 @@ use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Rest\AbstractRestController;
 use WpPack\Component\Rest\Attribute\RestRoute;
 use WpPack\Component\Rest\HttpMethod;
-use WpPack\Component\Security\Attribute\IsGranted;
+use WpPack\Component\Role\Attribute\IsGranted;
 
 #[RestRoute(route: '/s3/presigned-url', methods: HttpMethod::POST, namespace: 'wppack/v1')]
 #[IsGranted('upload_files')]

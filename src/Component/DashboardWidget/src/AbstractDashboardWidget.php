@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace WpPack\Component\DashboardWidget;
 
 use WpPack\Component\DashboardWidget\Attribute\AsDashboardWidget;
-use WpPack\Component\Security\Attribute\IsGranted;
-use WpPack\Component\Security\Authorization\IsGrantedChecker;
+use WpPack\Component\Role\Attribute\IsGranted;
+use WpPack\Component\Role\Authorization\IsGrantedChecker;
 
 abstract class AbstractDashboardWidget
 {

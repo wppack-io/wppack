@@ -8,7 +8,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\DashboardWidget\AbstractDashboardWidget;
 use WpPack\Component\DashboardWidget\Attribute\AsDashboardWidget;
-use WpPack\Component\Security\Attribute\IsGranted;
+use WpPack\Component\Role\Attribute\IsGranted;
 
 final class AbstractDashboardWidgetTest extends TestCase
 {

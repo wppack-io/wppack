@@ -13,7 +13,7 @@ use WpPack\Component\Ajax\Attribute\Ajax;
 use WpPack\Component\HttpFoundation\JsonResponse;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Security\Attribute\CurrentUser;
-use WpPack\Component\Security\Attribute\IsGranted;
+use WpPack\Component\Role\Attribute\IsGranted;
 use WpPack\Component\Security\Tests\SecurityTestTrait;
 
 final class AjaxHandlerRegistryTest extends TestCase

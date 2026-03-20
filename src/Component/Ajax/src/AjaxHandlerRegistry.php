@@ -10,9 +10,9 @@ use WpPack\Component\HttpFoundation\Exception\HttpException;
 use WpPack\Component\HttpFoundation\JsonResponse;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Security\Attribute\CurrentUser;
-use WpPack\Component\Security\Attribute\IsGranted;
-use WpPack\Component\Security\Authorization\IsGrantedChecker;
-use WpPack\Component\Security\Exception\AccessDeniedException;
+use WpPack\Component\Role\Attribute\IsGranted;
+use WpPack\Component\Role\Authorization\IsGrantedChecker;
+use WpPack\Component\Role\Exception\AccessDeniedException;
 use WpPack\Component\Security\Security;
 
 final class AjaxHandlerRegistry

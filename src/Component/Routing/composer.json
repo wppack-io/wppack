@@ -5,6 +5,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "wppack/role": "^1.0",
         "wppack/http-foundation": "^1.0",
         "wppack/mime": "^1.0"
     },

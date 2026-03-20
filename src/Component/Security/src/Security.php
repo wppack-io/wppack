@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Security;
 
+use WpPack\Component\Role\Authorization\AuthorizationCheckerInterface as RoleAuthorizationCheckerInterface;
 use WpPack\Component\Security\Authentication\AuthenticationManagerInterface;
 use WpPack\Component\Security\Authorization\AuthorizationCheckerInterface;
 use WpPack\Component\Security\Exception\AccessDeniedException;
 
-final class Security
+final class Security implements RoleAuthorizationCheckerInterface
 {
     public function __construct(
         private readonly AuthorizationCheckerInterface $authorizationChecker,

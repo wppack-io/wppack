@@ -16,7 +16,7 @@ use WpPack\Component\Routing\RouteEntry;
 use WpPack\Component\Routing\RoutePosition;
 use WpPack\Component\Routing\RouteRegistry;
 use WpPack\Component\Security\Attribute\CurrentUser;
-use WpPack\Component\Security\Attribute\IsGranted;
+use WpPack\Component\Role\Attribute\IsGranted;
 use WpPack\Component\Security\Tests\SecurityTestTrait;
 use WpPack\Component\Templating\TemplateRendererInterface;
 

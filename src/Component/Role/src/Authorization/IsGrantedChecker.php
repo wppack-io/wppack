@@ -2,16 +2,15 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Authorization;
+namespace WpPack\Component\Role\Authorization;
 
-use WpPack\Component\Security\Attribute\IsGranted;
-use WpPack\Component\Security\Exception\AccessDeniedException;
-use WpPack\Component\Security\Security;
+use WpPack\Component\Role\Attribute\IsGranted;
+use WpPack\Component\Role\Exception\AccessDeniedException;
 
 final class IsGrantedChecker
 {
     public function __construct(
-        private readonly ?Security $security = null,
+        private readonly ?AuthorizationCheckerInterface $authorizationChecker = null,
     ) {}
 
     /**
@@ -41,8 +40,8 @@ final class IsGrantedChecker
     public function check(array $grants): void
     {
         foreach ($grants as $grant) {
-            if ($this->security !== null) {
-                if (!$this->security->isGranted($grant->attribute, $grant->subject)) {
+            if ($this->authorizationChecker !== null) {
+                if (!$this->authorizationChecker->isGranted($grant->attribute, $grant->subject)) {
                     throw new AccessDeniedException($grant->message);
                 }
             } elseif ($grant->subject !== null ? !current_user_can($grant->attribute, $grant->subject) : !current_user_can($grant->attribute)) {

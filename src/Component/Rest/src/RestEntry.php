@@ -8,7 +8,7 @@ use WpPack\Component\HttpFoundation\Exception\HttpException;
 use WpPack\Component\HttpFoundation\JsonResponse;
 use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Rest\Attribute\Permission;
-use WpPack\Component\Security\Attribute\IsGranted;
+use WpPack\Component\Role\Attribute\IsGranted;
 
 /** @internal */
 final class RestEntry
