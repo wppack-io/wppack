@@ -85,7 +85,7 @@ $adapter = new S3StorageAdapter(
 |-----------|------|------|
 | `$s3Client` | `S3Client` | async-aws S3 クライアント |
 | `$bucket` | `string` | バケット名 |
-| `$prefix` | `string` | キープレフィックス（デフォルト: `''`） |
+| `$prefix` | `string` | パスプレフィックス（デフォルト: `''`） |
 | `$publicUrl` | `?string` | 公開ベース URL（デフォルト: `null`） |
 
 ## URL 生成
@@ -113,9 +113,9 @@ $url = $adapter->temporaryUrl('private/document.pdf', new \DateTimeImmutable('+1
 // => 'https://my-bucket.s3.amazonaws.com/uploads/private/document.pdf?X-Amz-Signature=...'
 ```
 
-## キープレフィックス
+## パスプレフィックス
 
-`prefix` を指定すると、すべての操作が自動的にプレフィックス付きのキーで行われます。DSN のパス部分がプレフィックスになります。
+`prefix` を指定すると、すべての操作が自動的にプレフィックス付きのパスで行われます。DSN のパス部分がプレフィックスになります。
 
 ```php
 // /uploads がプレフィックスになる
@@ -129,7 +129,7 @@ $adapter->read('2024/01/photo.jpg');
 
 $adapter->listContents('2024/01/');
 // 実際のプレフィックス: 'uploads/2024/01/'
-// 返却されるキーからはプレフィックスが除去される
+// 返却されるパスからはプレフィックスが除去される
 ```
 
 ## バッチ削除
@@ -160,13 +160,23 @@ $adapter = Storage::fromDsn('s3://my-bucket?endpoint=https://<account-id>.r2.clo
 | `read()` / `readStream()` | `GetObject` |
 | `delete()` | `DeleteObject` |
 | `deleteMultiple()` | `DeleteObjects` |
-| `exists()` | `HeadObject` |
+| `fileExists()` | `HeadObject` |
+| `directoryExists()` | `ListObjectsV2`（prefix 存在判定） |
+| `createDirectory()` | `PutObject`（空マーカー） |
+| `deleteDirectory()` | `ListObjectsV2` + `DeleteObjects` |
 | `copy()` | `CopyObject` |
 | `move()` | `CopyObject` + `DeleteObject` |
 | `metadata()` | `HeadObject` |
 | `publicUrl()` | URL 構築（API 呼び出しなし） |
 | `temporaryUrl()` | プリサイン URL 生成 |
 | `listContents()` | `ListObjectsV2`（ページネーション対応） |
+
+## 内部メソッドマッピング
+
+| 内部メソッド | 説明 |
+|-------------|------|
+| `prefixPath(string $path)` | パスにプレフィックスを付与 |
+| `stripPath(string $path)` | パスからプレフィックスを除去 |
 
 ## 例外処理
 

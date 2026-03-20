@@ -173,7 +173,7 @@ final class S3StorageAdapterTest extends TestCase
 
         $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
 
-        self::assertTrue($adapter->exists('file.txt'));
+        self::assertTrue($adapter->fileExists('file.txt'));
     }
 
     #[Test]
@@ -185,7 +185,7 @@ final class S3StorageAdapterTest extends TestCase
 
         $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
 
-        self::assertFalse($adapter->exists('nonexistent.txt'));
+        self::assertFalse($adapter->fileExists('nonexistent.txt'));
     }
 
     #[Test]
@@ -219,7 +219,7 @@ final class S3StorageAdapterTest extends TestCase
         $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
         $metadata = $adapter->metadata('doc.pdf');
 
-        self::assertSame('doc.pdf', $metadata->key);
+        self::assertSame('doc.pdf', $metadata->path);
         self::assertSame(1024, $metadata->size);
         self::assertSame('application/pdf', $metadata->mimeType);
         self::assertNotNull($metadata->lastModified);
@@ -331,12 +331,12 @@ final class S3StorageAdapterTest extends TestCase
             ]));
 
         $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
-        $items = iterator_to_array($adapter->listContents('', true));
+        $items = iterator_to_array($adapter->listContents('', deep: true));
 
         self::assertCount(2, $items);
-        self::assertSame('file1.txt', $items[0]->key);
+        self::assertSame('file1.txt', $items[0]->path);
         self::assertSame(100, $items[0]->size);
-        self::assertSame('dir/file2.txt', $items[1]->key);
+        self::assertSame('dir/file2.txt', $items[1]->path);
         self::assertSame(200, $items[1]->size);
     }
 
@@ -359,10 +359,10 @@ final class S3StorageAdapterTest extends TestCase
             ]));
 
         $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
-        $items = iterator_to_array($adapter->listContents('', false));
+        $items = iterator_to_array($adapter->listContents('', deep: false));
 
         self::assertCount(1, $items);
-        self::assertSame('file1.txt', $items[0]->key);
+        self::assertSame('file1.txt', $items[0]->path);
     }
 
     #[Test]
@@ -539,7 +539,7 @@ final class S3StorageAdapterTest extends TestCase
         $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
 
         $this->expectException(\RuntimeException::class);
-        $adapter->exists('file.txt');
+        $adapter->fileExists('file.txt');
     }
 
     #[Test]
@@ -569,7 +569,7 @@ final class S3StorageAdapterTest extends TestCase
         $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
         $metadata = $adapter->metadata('file.txt');
 
-        self::assertSame('file.txt', $metadata->key);
+        self::assertSame('file.txt', $metadata->path);
         self::assertSame(512, $metadata->size);
         self::assertNull($metadata->lastModified);
     }
@@ -591,10 +591,10 @@ final class S3StorageAdapterTest extends TestCase
             ]));
 
         $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
-        $items = iterator_to_array($adapter->listContents('', true));
+        $items = iterator_to_array($adapter->listContents('', deep: true));
 
         self::assertCount(1, $items);
-        self::assertSame('file.txt', $items[0]->key);
+        self::assertSame('file.txt', $items[0]->path);
     }
 
     #[Test]
@@ -611,7 +611,7 @@ final class S3StorageAdapterTest extends TestCase
             ]));
 
         $adapter = new S3StorageAdapter($s3Client, 'my-bucket');
-        $items = iterator_to_array($adapter->listContents('', true));
+        $items = iterator_to_array($adapter->listContents('', deep: true));
 
         self::assertCount(1, $items);
         self::assertNull($items[0]->lastModified);
@@ -633,10 +633,10 @@ final class S3StorageAdapterTest extends TestCase
             ]));
 
         $adapter = new S3StorageAdapter($s3Client, 'my-bucket', 'uploads');
-        $items = iterator_to_array($adapter->listContents('', true));
+        $items = iterator_to_array($adapter->listContents('', deep: true));
 
         self::assertCount(1, $items);
-        self::assertSame('file.txt', $items[0]->key);
+        self::assertSame('file.txt', $items[0]->path);
     }
 
     #[Test]

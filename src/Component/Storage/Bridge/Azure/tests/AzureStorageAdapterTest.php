@@ -140,7 +140,7 @@ final class AzureStorageAdapterTest extends TestCase
 
         $adapter = new AzureStorageAdapter($client);
 
-        self::assertTrue($adapter->exists('file.txt'));
+        self::assertTrue($adapter->fileExists('file.txt'));
     }
 
     #[Test]
@@ -152,7 +152,7 @@ final class AzureStorageAdapterTest extends TestCase
 
         $adapter = new AzureStorageAdapter($client);
 
-        self::assertFalse($adapter->exists('nonexistent.txt'));
+        self::assertFalse($adapter->fileExists('nonexistent.txt'));
     }
 
     #[Test]
@@ -184,7 +184,7 @@ final class AzureStorageAdapterTest extends TestCase
         $adapter = new AzureStorageAdapter($client);
         $metadata = $adapter->metadata('doc.pdf');
 
-        self::assertSame('doc.pdf', $metadata->key);
+        self::assertSame('doc.pdf', $metadata->path);
         self::assertSame(1024, $metadata->size);
         self::assertSame('application/pdf', $metadata->mimeType);
         self::assertNotNull($metadata->lastModified);
@@ -392,7 +392,7 @@ final class AzureStorageAdapterTest extends TestCase
 
         $adapter = new AzureStorageAdapter($client, 'uploads');
 
-        self::assertTrue($adapter->exists('file.txt'));
+        self::assertTrue($adapter->fileExists('file.txt'));
     }
 
     #[Test]
@@ -440,13 +440,13 @@ final class AzureStorageAdapterTest extends TestCase
             ->willReturn([$blob1, $blob2]);
 
         $adapter = new AzureStorageAdapter($client);
-        $items = iterator_to_array($adapter->listContents('', true));
+        $items = iterator_to_array($adapter->listContents('', deep: true));
 
         self::assertCount(2, $items);
-        self::assertSame('file1.txt', $items[0]->key);
+        self::assertSame('file1.txt', $items[0]->path);
         self::assertSame(100, $items[0]->size);
         self::assertSame('text/plain', $items[0]->mimeType);
-        self::assertSame('dir/file2.txt', $items[1]->key);
+        self::assertSame('dir/file2.txt', $items[1]->path);
         self::assertSame(200, $items[1]->size);
         self::assertSame('application/pdf', $items[1]->mimeType);
     }
@@ -464,10 +464,10 @@ final class AzureStorageAdapterTest extends TestCase
             ->willReturn([$blob1]);
 
         $adapter = new AzureStorageAdapter($client);
-        $items = iterator_to_array($adapter->listContents('', false));
+        $items = iterator_to_array($adapter->listContents('', deep: false));
 
         self::assertCount(1, $items);
-        self::assertSame('file1.txt', $items[0]->key);
+        self::assertSame('file1.txt', $items[0]->path);
     }
 
     #[Test]
@@ -537,7 +537,7 @@ final class AzureStorageAdapterTest extends TestCase
         $adapter = new AzureStorageAdapter($client);
 
         $this->expectException(\RuntimeException::class);
-        $adapter->exists('file.txt');
+        $adapter->fileExists('file.txt');
     }
 
     #[Test]
@@ -565,10 +565,10 @@ final class AzureStorageAdapterTest extends TestCase
             ->willReturn([$blob1]);
 
         $adapter = new AzureStorageAdapter($client, 'uploads');
-        $items = iterator_to_array($adapter->listContents('', true));
+        $items = iterator_to_array($adapter->listContents('', deep: true));
 
         self::assertCount(1, $items);
-        self::assertSame('file1.txt', $items[0]->key);
+        self::assertSame('file1.txt', $items[0]->path);
     }
 
     #[Test]
@@ -586,12 +586,12 @@ final class AzureStorageAdapterTest extends TestCase
     }
 
     #[Test]
-    public function listContentsSkipsBlobPrefixEntries(): void
+    public function listContentsYieldsBlobPrefixAsDirectory(): void
     {
         $now = new \DateTimeImmutable();
 
         $blob = new Blob('file1.txt', $this->createBlobProperties(100, 'text/plain', $now));
-        // BlobPrefix entries are skipped by the adapter
+        // BlobPrefix entries are yielded as directory ObjectMetadata
         $prefix = new \AzureOss\Storage\Blob\Models\BlobPrefix('subdir/');
 
         $client = $this->createMock(AzureBlobClientInterface::class);
@@ -599,11 +599,13 @@ final class AzureStorageAdapterTest extends TestCase
             ->willReturn([$blob, $prefix]);
 
         $adapter = new AzureStorageAdapter($client);
-        $items = iterator_to_array($adapter->listContents('', false));
+        $items = iterator_to_array($adapter->listContents('', deep: false));
 
-        // Only the Blob should be yielded, not the BlobPrefix
-        self::assertCount(1, $items);
-        self::assertSame('file1.txt', $items[0]->key);
+        self::assertCount(2, $items);
+        self::assertSame('file1.txt', $items[0]->path);
+        self::assertFalse($items[0]->isDirectory);
+        self::assertSame('subdir/', $items[1]->path);
+        self::assertTrue($items[1]->isDirectory);
     }
 
     #[Test]
@@ -619,11 +621,11 @@ final class AzureStorageAdapterTest extends TestCase
             ->willReturn([$blob]);
 
         $adapter = new AzureStorageAdapter($client, 'uploads');
-        $items = iterator_to_array($adapter->listContents('', true));
+        $items = iterator_to_array($adapter->listContents('', deep: true));
 
         self::assertCount(1, $items);
         // Since blob key doesn't start with "uploads/", it's returned as-is
-        self::assertSame('other/file.txt', $items[0]->key);
+        self::assertSame('other/file.txt', $items[0]->path);
     }
 
     #[Test]
@@ -707,7 +709,7 @@ final class AzureStorageAdapterTest extends TestCase
         $adapter = new AzureStorageAdapter($client, 'uploads');
         $metadata = $adapter->metadata('doc.pdf');
 
-        self::assertSame('doc.pdf', $metadata->key);
+        self::assertSame('doc.pdf', $metadata->path);
         self::assertSame(2048, $metadata->size);
     }
 
@@ -724,10 +726,10 @@ final class AzureStorageAdapterTest extends TestCase
             ->willReturn([$blob]);
 
         $adapter = new AzureStorageAdapter($client, 'uploads');
-        $items = iterator_to_array($adapter->listContents('images/', true));
+        $items = iterator_to_array($adapter->listContents('images/', deep: true));
 
         self::assertCount(1, $items);
-        self::assertSame('images/photo.jpg', $items[0]->key);
+        self::assertSame('images/photo.jpg', $items[0]->path);
     }
 
     /**

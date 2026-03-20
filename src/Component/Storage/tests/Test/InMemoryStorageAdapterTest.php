@@ -92,7 +92,7 @@ final class InMemoryStorageAdapterTest extends TestCase
         $this->adapter->write('file.txt', 'contents');
         $this->adapter->delete('file.txt');
 
-        self::assertFalse($this->adapter->exists('file.txt'));
+        self::assertFalse($this->adapter->fileExists('file.txt'));
     }
 
     #[Test]
@@ -100,7 +100,7 @@ final class InMemoryStorageAdapterTest extends TestCase
     {
         $this->adapter->delete('nonexistent.txt');
 
-        self::assertFalse($this->adapter->exists('nonexistent.txt'));
+        self::assertFalse($this->adapter->fileExists('nonexistent.txt'));
     }
 
     #[Test]
@@ -112,19 +112,57 @@ final class InMemoryStorageAdapterTest extends TestCase
 
         $this->adapter->deleteMultiple(['a.txt', 'b.txt']);
 
-        self::assertFalse($this->adapter->exists('a.txt'));
-        self::assertFalse($this->adapter->exists('b.txt'));
-        self::assertTrue($this->adapter->exists('c.txt'));
+        self::assertFalse($this->adapter->fileExists('a.txt'));
+        self::assertFalse($this->adapter->fileExists('b.txt'));
+        self::assertTrue($this->adapter->fileExists('c.txt'));
     }
 
     #[Test]
-    public function exists(): void
+    public function fileExistsCheck(): void
     {
-        self::assertFalse($this->adapter->exists('file.txt'));
+        self::assertFalse($this->adapter->fileExists('file.txt'));
 
         $this->adapter->write('file.txt', 'contents');
 
-        self::assertTrue($this->adapter->exists('file.txt'));
+        self::assertTrue($this->adapter->fileExists('file.txt'));
+    }
+
+    #[Test]
+    public function createDirectory(): void
+    {
+        $this->adapter->createDirectory('my-dir');
+
+        self::assertTrue($this->adapter->directoryExists('my-dir'));
+    }
+
+    #[Test]
+    public function deleteDirectory(): void
+    {
+        $this->adapter->createDirectory('my-dir');
+        $this->adapter->write('my-dir/file.txt', 'contents');
+
+        $this->adapter->deleteDirectory('my-dir');
+
+        self::assertFalse($this->adapter->directoryExists('my-dir'));
+        self::assertFalse($this->adapter->fileExists('my-dir/file.txt'));
+    }
+
+    #[Test]
+    public function directoryExistsCheck(): void
+    {
+        self::assertFalse($this->adapter->directoryExists('my-dir'));
+
+        $this->adapter->createDirectory('my-dir');
+
+        self::assertTrue($this->adapter->directoryExists('my-dir'));
+    }
+
+    #[Test]
+    public function directoryExistsImpliedByObjects(): void
+    {
+        $this->adapter->write('uploads/file.txt', 'contents');
+
+        self::assertTrue($this->adapter->directoryExists('uploads'));
     }
 
     #[Test]
@@ -151,7 +189,7 @@ final class InMemoryStorageAdapterTest extends TestCase
         $this->adapter->write('source.txt', 'contents');
         $this->adapter->move('source.txt', 'dest.txt');
 
-        self::assertFalse($this->adapter->exists('source.txt'));
+        self::assertFalse($this->adapter->fileExists('source.txt'));
         self::assertSame('contents', $this->adapter->read('dest.txt'));
     }
 
@@ -162,7 +200,7 @@ final class InMemoryStorageAdapterTest extends TestCase
 
         $metadata = $this->adapter->metadata('file.txt');
 
-        self::assertSame('file.txt', $metadata->key);
+        self::assertSame('file.txt', $metadata->path);
         self::assertSame(5, $metadata->size);
         self::assertNotNull($metadata->lastModified);
         self::assertSame('text/plain', $metadata->mimeType);
@@ -197,23 +235,28 @@ final class InMemoryStorageAdapterTest extends TestCase
         $this->adapter->write('uploads/b.txt', 'b');
         $this->adapter->write('other/c.txt', 'c');
 
-        $items = iterator_to_array($this->adapter->listContents('uploads/'));
+        $items = iterator_to_array($this->adapter->listContents('uploads/', deep: true));
 
         self::assertCount(2, $items);
-        self::assertSame('uploads/a.txt', $items[0]->key);
-        self::assertSame('uploads/b.txt', $items[1]->key);
+        self::assertSame('uploads/a.txt', $items[0]->path);
+        self::assertSame('uploads/b.txt', $items[1]->path);
     }
 
     #[Test]
-    public function listContentsNonRecursive(): void
+    public function listContentsShallow(): void
     {
         $this->adapter->write('uploads/a.txt', 'a');
         $this->adapter->write('uploads/sub/b.txt', 'b');
 
-        $items = iterator_to_array($this->adapter->listContents('uploads/', recursive: false));
+        $items = iterator_to_array($this->adapter->listContents('uploads/', deep: false));
 
-        self::assertCount(1, $items);
-        self::assertSame('uploads/a.txt', $items[0]->key);
+        $files = array_values(array_filter($items, fn($m) => !$m->isDirectory));
+        $dirs = array_values(array_filter($items, fn($m) => $m->isDirectory));
+
+        self::assertCount(1, $files);
+        self::assertSame('uploads/a.txt', $files[0]->path);
+        self::assertCount(1, $dirs);
+        self::assertSame('uploads/sub', $dirs[0]->path);
     }
 
     #[Test]
@@ -222,7 +265,7 @@ final class InMemoryStorageAdapterTest extends TestCase
         $this->adapter->write('a.txt', 'a');
         $this->adapter->write('b.txt', 'b');
 
-        $items = iterator_to_array($this->adapter->listContents());
+        $items = iterator_to_array($this->adapter->listContents('', deep: true));
 
         self::assertCount(2, $items);
     }

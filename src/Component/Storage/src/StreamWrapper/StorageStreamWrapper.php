@@ -24,7 +24,7 @@ final class StorageStreamWrapper
 
     private string $mode = '';
     private string $protocol = '';
-    private string $key = '';
+    private string $path = '';
     private bool $writable = false;
     private bool $readable = false;
     private bool $dirty = false;
@@ -70,7 +70,7 @@ final class StorageStreamWrapper
     public function stream_open(string $path, string $mode, int $options, ?string &$opened_path): bool
     {
         $this->initProtocol($path);
-        $this->key = $this->parsePath($path);
+        $this->path = $this->parsePath($path);
         $this->mode = rtrim($mode, 'bt');
 
         $adapter = $this->getAdapterForProtocol();
@@ -228,14 +228,7 @@ final class StorageStreamWrapper
     public function url_stat(string $path, int $flags): array|false
     {
         $this->initProtocol($path);
-        $key = $this->parsePath($path);
-
-        $extension = pathinfo($key, \PATHINFO_EXTENSION);
-
-        // Paths without extension are treated as directories (WordPress optimization)
-        if ($extension === '' || $extension === '0') {
-            return $this->buildDirectoryStat();
-        }
+        $storagePath = $this->parsePath($path);
 
         // Check stat cache
         $statCache = self::$statCaches[$this->protocol] ?? null;
@@ -251,28 +244,40 @@ final class StorageStreamWrapper
             return false;
         }
 
+        // Try metadata() first (file existence)
         try {
-            $metadata = $adapter->metadata($key);
+            $metadata = $adapter->metadata($storagePath);
             $stat = $this->buildFileStat($metadata);
 
             $statCache?->set($path, $stat);
 
             return $stat;
         } catch (ObjectNotFoundException) {
-            if ($flags & \STREAM_URL_STAT_QUIET) {
-                return false;
-            }
-
-            return false;
+            // Not a file — check if it's a directory
         } catch (\Throwable) {
             return false;
         }
+
+        // Check directory existence
+        try {
+            if ($adapter->directoryExists($storagePath)) {
+                return $this->buildDirectoryStat();
+            }
+        } catch (\Throwable) {
+            // Fall through
+        }
+
+        if ($flags & \STREAM_URL_STAT_QUIET) {
+            return false;
+        }
+
+        return false;
     }
 
     public function unlink(string $path): bool
     {
         $this->initProtocol($path);
-        $key = $this->parsePath($path);
+        $storagePath = $this->parsePath($path);
 
         $adapter = $this->getAdapterForProtocol();
         if ($adapter === null) {
@@ -280,7 +285,7 @@ final class StorageStreamWrapper
         }
 
         try {
-            $adapter->delete($key);
+            $adapter->delete($storagePath);
             self::$statCaches[$this->protocol]->remove($path);
 
             return true;
@@ -292,8 +297,8 @@ final class StorageStreamWrapper
     public function rename(string $pathFrom, string $pathTo): bool
     {
         $this->initProtocol($pathFrom);
-        $keyFrom = $this->parsePath($pathFrom);
-        $keyTo = $this->parsePath($pathTo);
+        $storagePathFrom = $this->parsePath($pathFrom);
+        $storagePathTo = $this->parsePath($pathTo);
 
         $adapter = $this->getAdapterForProtocol();
         if ($adapter === null) {
@@ -301,7 +306,7 @@ final class StorageStreamWrapper
         }
 
         try {
-            $adapter->move($keyFrom, $keyTo);
+            $adapter->move($storagePathFrom, $storagePathTo);
             self::$statCaches[$this->protocol]->remove($pathFrom);
             self::$statCaches[$this->protocol]->remove($pathTo);
 
@@ -313,14 +318,40 @@ final class StorageStreamWrapper
 
     public function mkdir(string $path, int $mode, int $options): bool
     {
-        // Object storage has no real directory concept — always succeed
-        return true;
+        $this->initProtocol($path);
+        $storagePath = $this->parsePath($path);
+
+        $adapter = $this->getAdapterForProtocol();
+        if ($adapter === null) {
+            return false;
+        }
+
+        try {
+            $adapter->createDirectory($storagePath);
+
+            return true;
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
     public function rmdir(string $path, int $options): bool
     {
-        // Object storage has no real directory concept — always succeed
-        return true;
+        $this->initProtocol($path);
+        $storagePath = $this->parsePath($path);
+
+        $adapter = $this->getAdapterForProtocol();
+        if ($adapter === null) {
+            return false;
+        }
+
+        try {
+            $adapter->deleteDirectory($storagePath);
+
+            return true;
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
     // ──────────────────────────────────────────────
@@ -346,9 +377,9 @@ final class StorageStreamWrapper
             $this->dirIndex = 0;
             $seen = [];
 
-            // Use recursive listing and extract first-level entries
+            // Use deep listing and extract first-level entries
             foreach ($adapter->listContents($prefix, true) as $item) {
-                $relativePath = substr($item->key, \strlen($prefix));
+                $relativePath = substr($item->path, \strlen($prefix));
                 $relativePath = ltrim($relativePath, '/');
 
                 if ($relativePath === '') {
@@ -366,7 +397,7 @@ final class StorageStreamWrapper
                     // Pre-cache stat for listed file objects (not directories)
                     $statCache = self::$statCaches[$this->protocol] ?? null;
                     if ($statCache !== null && $slashPos === false) {
-                        $fullPath = $this->protocol . '://' . $item->key;
+                        $fullPath = $this->protocol . '://' . $item->path;
                         $stat = $this->buildFileStat($item);
                         $statCache->set($fullPath, $stat);
                     }
@@ -446,7 +477,7 @@ final class StorageStreamWrapper
         $stream = null;
 
         try {
-            $stream = $adapter->readStream($this->key);
+            $stream = $adapter->readStream($this->path);
             $this->body = $this->createTempStream();
             stream_copy_to_stream($stream, $this->body);
             fclose($stream);
@@ -485,7 +516,7 @@ final class StorageStreamWrapper
         $stream = null;
 
         try {
-            $stream = $adapter->readStream($this->key);
+            $stream = $adapter->readStream($this->path);
             stream_copy_to_stream($stream, $this->body);
             fclose($stream);
             $stream = null;
@@ -508,8 +539,8 @@ final class StorageStreamWrapper
     private function openExclusive(StorageAdapterInterface $adapter, bool $readable): bool
     {
         try {
-            if ($adapter->exists($this->key)) {
-                return $this->triggerError('File already exists: ' . $this->key, \STREAM_REPORT_ERRORS);
+            if ($adapter->fileExists($this->path)) {
+                return $this->triggerError('File already exists: ' . $this->path, \STREAM_REPORT_ERRORS);
             }
         } catch (\Throwable) {
             return false;
@@ -529,7 +560,7 @@ final class StorageStreamWrapper
             $stream = null;
 
             try {
-                $stream = $adapter->readStream($this->key);
+                $stream = $adapter->readStream($this->path);
                 stream_copy_to_stream($stream, $this->body);
                 fclose($stream);
                 $stream = null;
@@ -557,8 +588,8 @@ final class StorageStreamWrapper
 
         try {
             rewind($this->body);
-            $adapter->writeStream($this->key, $this->body);
-            self::$statCaches[$this->protocol]->remove($this->protocol . '://' . $this->key);
+            $adapter->writeStream($this->path, $this->body);
+            self::$statCaches[$this->protocol]->remove($this->protocol . '://' . $this->path);
             $this->dirty = false;
 
             return true;

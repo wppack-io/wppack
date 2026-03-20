@@ -102,7 +102,7 @@ final class MigrateCommandTest extends TestCase
         $exitCode = $this->command->run($input, $output);
 
         self::assertSame(0, $exitCode);
-        self::assertTrue($this->adapter->exists('uploads/' . $relPath . '/test-image.jpg'));
+        self::assertTrue($this->adapter->fileExists('uploads/' . $relPath . '/test-image.jpg'));
         self::assertStringContainsString('Migrated: 1', $buffer->getBuffer());
 
         // Cleanup local file
@@ -135,7 +135,7 @@ final class MigrateCommandTest extends TestCase
         $exitCode = $this->command->run($input, $output);
 
         self::assertSame(0, $exitCode);
-        self::assertFalse($this->adapter->exists('uploads/' . $relPath . '/dry-run.jpg'));
+        self::assertFalse($this->adapter->fileExists('uploads/' . $relPath . '/dry-run.jpg'));
         $outputText = $buffer->getBuffer();
         self::assertStringContainsString('Dry run mode enabled', $outputText);
         self::assertStringContainsString('[DRY RUN]', $outputText);
@@ -218,7 +218,7 @@ final class MigrateCommandTest extends TestCase
         $exitCode = $this->command->run($input, $output);
 
         self::assertSame(0, $exitCode);
-        self::assertFalse($this->adapter->exists('uploads/2024/04/missing-file.jpg'));
+        self::assertFalse($this->adapter->fileExists('uploads/2024/04/missing-file.jpg'));
     }
 
     #[Test]
@@ -255,9 +255,9 @@ final class MigrateCommandTest extends TestCase
         $exitCode = $this->command->run($input, $output);
 
         self::assertSame(0, $exitCode);
-        self::assertTrue($this->adapter->exists('uploads/' . $relPath . '/photo.jpg'));
-        self::assertTrue($this->adapter->exists('uploads/' . $relPath . '/photo-150x150.jpg'));
-        self::assertTrue($this->adapter->exists('uploads/' . $relPath . '/photo-300x200.jpg'));
+        self::assertTrue($this->adapter->fileExists('uploads/' . $relPath . '/photo.jpg'));
+        self::assertTrue($this->adapter->fileExists('uploads/' . $relPath . '/photo-150x150.jpg'));
+        self::assertTrue($this->adapter->fileExists('uploads/' . $relPath . '/photo-300x200.jpg'));
         self::assertStringContainsString('Migrated: 3', $buffer->getBuffer());
 
         @unlink($fullDir . '/photo.jpg');
@@ -296,7 +296,7 @@ final class MigrateCommandTest extends TestCase
 
         self::assertSame(0, $exitCode);
         for ($i = 1; $i <= 3; $i++) {
-            self::assertTrue($this->adapter->exists('uploads/' . $relPath . "/batch-{$i}.jpg"));
+            self::assertTrue($this->adapter->fileExists('uploads/' . $relPath . "/batch-{$i}.jpg"));
             @unlink($fullDir . "/batch-{$i}.jpg");
         }
     }
@@ -314,69 +314,84 @@ final class MigrateCommandTest extends TestCase
                 return $this->inner->getName();
             }
 
-            public function write(string $key, string $contents, array $metadata = []): void
+            public function write(string $path, string $contents, array $metadata = []): void
             {
-                $this->inner->write($key, $contents, $metadata);
+                $this->inner->write($path, $contents, $metadata);
             }
 
-            public function writeStream(string $key, mixed $resource, array $metadata = []): void
+            public function writeStream(string $path, mixed $resource, array $metadata = []): void
             {
                 throw new \RuntimeException('Simulated storage failure');
             }
 
-            public function read(string $key): string
+            public function read(string $path): string
             {
-                return $this->inner->read($key);
+                return $this->inner->read($path);
             }
 
-            public function readStream(string $key): mixed
+            public function readStream(string $path): mixed
             {
-                return $this->inner->readStream($key);
+                return $this->inner->readStream($path);
             }
 
-            public function delete(string $key): void
+            public function delete(string $path): void
             {
-                $this->inner->delete($key);
+                $this->inner->delete($path);
             }
 
-            public function deleteMultiple(array $keys): void
+            public function deleteMultiple(array $paths): void
             {
-                $this->inner->deleteMultiple($keys);
+                $this->inner->deleteMultiple($paths);
             }
 
-            public function exists(string $key): bool
+            public function fileExists(string $path): bool
             {
-                return $this->inner->exists($key);
+                return $this->inner->fileExists($path);
             }
 
-            public function copy(string $sourceKey, string $destinationKey): void
+            public function createDirectory(string $path): void
             {
-                $this->inner->copy($sourceKey, $destinationKey);
+                $this->inner->createDirectory($path);
             }
 
-            public function move(string $sourceKey, string $destinationKey): void
+            public function deleteDirectory(string $path): void
             {
-                $this->inner->move($sourceKey, $destinationKey);
+                $this->inner->deleteDirectory($path);
             }
 
-            public function metadata(string $key): \WpPack\Component\Storage\ObjectMetadata
+            public function directoryExists(string $path): bool
             {
-                return $this->inner->metadata($key);
+                return $this->inner->directoryExists($path);
             }
 
-            public function publicUrl(string $key): string
+            public function copy(string $source, string $destination): void
             {
-                return $this->inner->publicUrl($key);
+                $this->inner->copy($source, $destination);
             }
 
-            public function temporaryUrl(string $key, \DateTimeInterface $expiration): string
+            public function move(string $source, string $destination): void
             {
-                return $this->inner->temporaryUrl($key, $expiration);
+                $this->inner->move($source, $destination);
             }
 
-            public function listContents(string $prefix = '', bool $recursive = true): iterable
+            public function metadata(string $path): \WpPack\Component\Storage\ObjectMetadata
             {
-                return $this->inner->listContents($prefix, $recursive);
+                return $this->inner->metadata($path);
+            }
+
+            public function publicUrl(string $path): string
+            {
+                return $this->inner->publicUrl($path);
+            }
+
+            public function temporaryUrl(string $path, \DateTimeInterface $expiration): string
+            {
+                return $this->inner->temporaryUrl($path, $expiration);
+            }
+
+            public function listContents(string $path = '', bool $deep = false): iterable
+            {
+                return $this->inner->listContents($path, $deep);
             }
         };
 

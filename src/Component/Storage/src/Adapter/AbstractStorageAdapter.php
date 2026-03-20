@@ -13,126 +13,151 @@ abstract class AbstractStorageAdapter implements StorageAdapterInterface
     abstract public function getName(): string;
 
     /** @param array<string, string> $metadata */
-    abstract protected function doWrite(string $key, string $contents, array $metadata = []): void;
+    abstract protected function doWrite(string $path, string $contents, array $metadata = []): void;
 
     /**
      * @param resource $resource
      * @param array<string, string> $metadata
      */
-    abstract protected function doWriteStream(string $key, mixed $resource, array $metadata = []): void;
+    abstract protected function doWriteStream(string $path, mixed $resource, array $metadata = []): void;
 
-    abstract protected function doRead(string $key): string;
+    abstract protected function doRead(string $path): string;
 
     /** @return resource */
-    abstract protected function doReadStream(string $key): mixed;
+    abstract protected function doReadStream(string $path): mixed;
 
-    abstract protected function doDelete(string $key): void;
+    abstract protected function doDelete(string $path): void;
 
-    /** @param list<string> $keys */
-    protected function doDeleteMultiple(array $keys): void
+    /** @param list<string> $paths */
+    protected function doDeleteMultiple(array $paths): void
     {
-        foreach ($keys as $key) {
-            $this->doDelete($key);
+        foreach ($paths as $path) {
+            $this->doDelete($path);
         }
     }
 
-    abstract protected function doExists(string $key): bool;
+    abstract protected function doFileExists(string $path): bool;
 
-    abstract protected function doCopy(string $sourceKey, string $destinationKey): void;
+    abstract protected function doCreateDirectory(string $path): void;
 
-    protected function doMove(string $sourceKey, string $destinationKey): void
+    abstract protected function doDeleteDirectory(string $path): void;
+
+    abstract protected function doDirectoryExists(string $path): bool;
+
+    abstract protected function doCopy(string $source, string $destination): void;
+
+    protected function doMove(string $source, string $destination): void
     {
-        $this->copy($sourceKey, $destinationKey);
-        $this->delete($sourceKey);
+        $this->copy($source, $destination);
+        $this->delete($source);
     }
 
-    abstract protected function doMetadata(string $key): ObjectMetadata;
+    abstract protected function doMetadata(string $path): ObjectMetadata;
 
-    abstract protected function doPublicUrl(string $key): string;
+    abstract protected function doPublicUrl(string $path): string;
 
-    protected function doTemporaryUrl(string $key, \DateTimeInterface $expiration): string
+    protected function doTemporaryUrl(string $path, \DateTimeInterface $expiration): string
     {
         throw new UnsupportedOperationException('temporaryUrl', $this->getName());
     }
 
     /** @return iterable<ObjectMetadata> */
-    abstract protected function doListContents(string $prefix, bool $recursive): iterable;
+    abstract protected function doListContents(string $path, bool $deep): iterable;
 
-    public function write(string $key, string $contents, array $metadata = []): void
+    public function write(string $path, string $contents, array $metadata = []): void
     {
-        $this->execute(function () use ($key, $contents, $metadata): void {
-            $this->doWrite($key, $contents, $metadata);
+        $this->execute(function () use ($path, $contents, $metadata): void {
+            $this->doWrite($path, $contents, $metadata);
         });
     }
 
-    public function writeStream(string $key, mixed $resource, array $metadata = []): void
+    public function writeStream(string $path, mixed $resource, array $metadata = []): void
     {
-        $this->execute(function () use ($key, $resource, $metadata): void {
-            $this->doWriteStream($key, $resource, $metadata);
+        $this->execute(function () use ($path, $resource, $metadata): void {
+            $this->doWriteStream($path, $resource, $metadata);
         });
     }
 
-    public function read(string $key): string
+    public function read(string $path): string
     {
-        return $this->execute(fn(): string => $this->doRead($key));
+        return $this->execute(fn(): string => $this->doRead($path));
     }
 
-    public function readStream(string $key): mixed
+    public function readStream(string $path): mixed
     {
-        return $this->execute(fn(): mixed => $this->doReadStream($key));
+        return $this->execute(fn(): mixed => $this->doReadStream($path));
     }
 
-    public function delete(string $key): void
+    public function delete(string $path): void
     {
-        $this->execute(function () use ($key): void {
-            $this->doDelete($key);
+        $this->execute(function () use ($path): void {
+            $this->doDelete($path);
         });
     }
 
-    public function deleteMultiple(array $keys): void
+    public function deleteMultiple(array $paths): void
     {
-        $this->execute(function () use ($keys): void {
-            $this->doDeleteMultiple($keys);
+        $this->execute(function () use ($paths): void {
+            $this->doDeleteMultiple($paths);
         });
     }
 
-    public function exists(string $key): bool
+    public function fileExists(string $path): bool
     {
-        return $this->execute(fn(): bool => $this->doExists($key));
+        return $this->execute(fn(): bool => $this->doFileExists($path));
     }
 
-    public function copy(string $sourceKey, string $destinationKey): void
+    public function createDirectory(string $path): void
     {
-        $this->execute(function () use ($sourceKey, $destinationKey): void {
-            $this->doCopy($sourceKey, $destinationKey);
+        $this->execute(function () use ($path): void {
+            $this->doCreateDirectory($path);
         });
     }
 
-    public function move(string $sourceKey, string $destinationKey): void
+    public function deleteDirectory(string $path): void
     {
-        $this->execute(function () use ($sourceKey, $destinationKey): void {
-            $this->doMove($sourceKey, $destinationKey);
+        $this->execute(function () use ($path): void {
+            $this->doDeleteDirectory($path);
         });
     }
 
-    public function metadata(string $key): ObjectMetadata
+    public function directoryExists(string $path): bool
     {
-        return $this->execute(fn(): ObjectMetadata => $this->doMetadata($key));
+        return $this->execute(fn(): bool => $this->doDirectoryExists($path));
     }
 
-    public function publicUrl(string $key): string
+    public function copy(string $source, string $destination): void
     {
-        return $this->execute(fn(): string => $this->doPublicUrl($key));
+        $this->execute(function () use ($source, $destination): void {
+            $this->doCopy($source, $destination);
+        });
     }
 
-    public function temporaryUrl(string $key, \DateTimeInterface $expiration): string
+    public function move(string $source, string $destination): void
     {
-        return $this->execute(fn(): string => $this->doTemporaryUrl($key, $expiration));
+        $this->execute(function () use ($source, $destination): void {
+            $this->doMove($source, $destination);
+        });
     }
 
-    public function listContents(string $prefix = '', bool $recursive = true): iterable
+    public function metadata(string $path): ObjectMetadata
     {
-        return $this->execute(fn(): iterable => $this->doListContents($prefix, $recursive));
+        return $this->execute(fn(): ObjectMetadata => $this->doMetadata($path));
+    }
+
+    public function publicUrl(string $path): string
+    {
+        return $this->execute(fn(): string => $this->doPublicUrl($path));
+    }
+
+    public function temporaryUrl(string $path, \DateTimeInterface $expiration): string
+    {
+        return $this->execute(fn(): string => $this->doTemporaryUrl($path, $expiration));
+    }
+
+    public function listContents(string $path = '', bool $deep = false): iterable
+    {
+        return $this->execute(fn(): iterable => $this->doListContents($path, $deep));
     }
 
     /**

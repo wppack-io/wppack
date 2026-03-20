@@ -85,13 +85,43 @@ final class AbstractStorageAdapterTest extends TestCase
     }
 
     #[Test]
-    public function existsDelegatesToDoExists(): void
+    public function fileExistsDelegatesToDoFileExists(): void
     {
         $adapter = $this->createConcreteAdapter();
-        $adapter->returnValues['doExists'] = true;
+        $adapter->returnValues['doFileExists'] = true;
 
-        self::assertTrue($adapter->exists('file.txt'));
-        self::assertSame([['doExists', ['file.txt']]], $adapter->calls);
+        self::assertTrue($adapter->fileExists('file.txt'));
+        self::assertSame([['doFileExists', ['file.txt']]], $adapter->calls);
+    }
+
+    #[Test]
+    public function createDirectoryDelegatesToDoCreateDirectory(): void
+    {
+        $adapter = $this->createConcreteAdapter();
+
+        $adapter->createDirectory('some/dir');
+
+        self::assertSame([['doCreateDirectory', ['some/dir']]], $adapter->calls);
+    }
+
+    #[Test]
+    public function deleteDirectoryDelegatesToDoDeleteDirectory(): void
+    {
+        $adapter = $this->createConcreteAdapter();
+
+        $adapter->deleteDirectory('some/dir');
+
+        self::assertSame([['doDeleteDirectory', ['some/dir']]], $adapter->calls);
+    }
+
+    #[Test]
+    public function directoryExistsDelegatesToDoDirectoryExists(): void
+    {
+        $adapter = $this->createConcreteAdapter();
+        $adapter->returnValues['doDirectoryExists'] = true;
+
+        self::assertTrue($adapter->directoryExists('some/dir'));
+        self::assertSame([['doDirectoryExists', ['some/dir']]], $adapter->calls);
     }
 
     #[Test]
@@ -118,7 +148,7 @@ final class AbstractStorageAdapterTest extends TestCase
     public function metadataDelegatesToDoMetadata(): void
     {
         $adapter = $this->createConcreteAdapter();
-        $meta = new ObjectMetadata(key: 'file.txt', size: 100);
+        $meta = new ObjectMetadata(path: 'file.txt', size: 100);
         $adapter->returnValues['doMetadata'] = $meta;
 
         self::assertSame($meta, $adapter->metadata('file.txt'));
@@ -148,7 +178,7 @@ final class AbstractStorageAdapterTest extends TestCase
     public function listContentsDelegatesToDoListContents(): void
     {
         $adapter = $this->createConcreteAdapter();
-        $items = [new ObjectMetadata(key: 'a.txt'), new ObjectMetadata(key: 'b.txt')];
+        $items = [new ObjectMetadata(path: 'a.txt'), new ObjectMetadata(path: 'b.txt')];
         $adapter->returnValues['doListContents'] = $items;
 
         self::assertSame($items, $adapter->listContents('prefix/', true));
@@ -219,64 +249,79 @@ final class AbstractStorageAdapterTest extends TestCase
                 return 'test';
             }
 
-            protected function doWrite(string $key, string $contents, array $metadata = []): void
+            protected function doWrite(string $path, string $contents, array $metadata = []): void
             {
-                $this->record('doWrite', [$key, $contents, $metadata]);
+                $this->record('doWrite', [$path, $contents, $metadata]);
             }
 
-            protected function doWriteStream(string $key, mixed $resource, array $metadata = []): void
+            protected function doWriteStream(string $path, mixed $resource, array $metadata = []): void
             {
-                $this->record('doWriteStream', [$key, $resource, $metadata]);
+                $this->record('doWriteStream', [$path, $resource, $metadata]);
             }
 
-            protected function doRead(string $key): string
+            protected function doRead(string $path): string
             {
-                return $this->record('doRead', [$key]);
+                return $this->record('doRead', [$path]);
             }
 
-            protected function doReadStream(string $key): mixed
+            protected function doReadStream(string $path): mixed
             {
-                return $this->record('doReadStream', [$key]);
+                return $this->record('doReadStream', [$path]);
             }
 
-            protected function doDelete(string $key): void
+            protected function doDelete(string $path): void
             {
-                $this->record('doDelete', [$key]);
+                $this->record('doDelete', [$path]);
             }
 
-            protected function doDeleteMultiple(array $keys): void
+            protected function doDeleteMultiple(array $paths): void
             {
-                $this->record('doDeleteMultiple', [$keys]);
+                $this->record('doDeleteMultiple', [$paths]);
             }
 
-            protected function doExists(string $key): bool
+            protected function doFileExists(string $path): bool
             {
-                return $this->record('doExists', [$key]);
+                return $this->record('doFileExists', [$path]);
             }
 
-            protected function doCopy(string $sourceKey, string $destinationKey): void
+            protected function doCreateDirectory(string $path): void
             {
-                $this->record('doCopy', [$sourceKey, $destinationKey]);
+                $this->record('doCreateDirectory', [$path]);
             }
 
-            protected function doMove(string $sourceKey, string $destinationKey): void
+            protected function doDeleteDirectory(string $path): void
             {
-                $this->record('doMove', [$sourceKey, $destinationKey]);
+                $this->record('doDeleteDirectory', [$path]);
             }
 
-            protected function doMetadata(string $key): ObjectMetadata
+            protected function doDirectoryExists(string $path): bool
             {
-                return $this->record('doMetadata', [$key]);
+                return $this->record('doDirectoryExists', [$path]);
             }
 
-            protected function doPublicUrl(string $key): string
+            protected function doCopy(string $source, string $destination): void
             {
-                return $this->record('doPublicUrl', [$key]);
+                $this->record('doCopy', [$source, $destination]);
             }
 
-            protected function doListContents(string $prefix, bool $recursive): iterable
+            protected function doMove(string $source, string $destination): void
             {
-                return $this->record('doListContents', [$prefix, $recursive]);
+                $this->record('doMove', [$source, $destination]);
+            }
+
+            protected function doMetadata(string $path): ObjectMetadata
+            {
+                return $this->record('doMetadata', [$path]);
+            }
+
+            protected function doPublicUrl(string $path): string
+            {
+                return $this->record('doPublicUrl', [$path]);
+            }
+
+            protected function doListContents(string $path, bool $deep): iterable
+            {
+                return $this->record('doListContents', [$path, $deep]);
             }
 
             private function record(string $method, array $args): mixed

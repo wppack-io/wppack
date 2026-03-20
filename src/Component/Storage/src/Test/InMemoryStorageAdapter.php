@@ -14,38 +14,41 @@ final class InMemoryStorageAdapter implements StorageAdapterInterface
     /** @var array<string, array{contents: string, metadata: array<string, string>}> */
     private array $objects = [];
 
+    /** @var array<string, true> */
+    private array $directories = [];
+
     public function getName(): string
     {
         return 'in-memory';
     }
 
-    public function write(string $key, string $contents, array $metadata = []): void
+    public function write(string $path, string $contents, array $metadata = []): void
     {
-        $this->objects[$key] = ['contents' => $contents, 'metadata' => $metadata];
+        $this->objects[$path] = ['contents' => $contents, 'metadata' => $metadata];
     }
 
-    public function writeStream(string $key, mixed $resource, array $metadata = []): void
+    public function writeStream(string $path, mixed $resource, array $metadata = []): void
     {
         $contents = stream_get_contents($resource);
         if ($contents === false) {
             $contents = '';
         }
 
-        $this->write($key, $contents, $metadata);
+        $this->write($path, $contents, $metadata);
     }
 
-    public function read(string $key): string
+    public function read(string $path): string
     {
-        if (!isset($this->objects[$key])) {
-            throw new ObjectNotFoundException($key);
+        if (!isset($this->objects[$path])) {
+            throw new ObjectNotFoundException($path);
         }
 
-        return $this->objects[$key]['contents'];
+        return $this->objects[$path]['contents'];
     }
 
-    public function readStream(string $key): mixed
+    public function readStream(string $path): mixed
     {
-        $contents = $this->read($key);
+        $contents = $this->read($path);
 
         $stream = fopen('php://memory', 'r+');
         \assert($stream !== false);
@@ -55,79 +58,163 @@ final class InMemoryStorageAdapter implements StorageAdapterInterface
         return $stream;
     }
 
-    public function delete(string $key): void
+    public function delete(string $path): void
     {
-        unset($this->objects[$key]);
+        unset($this->objects[$path]);
     }
 
-    public function deleteMultiple(array $keys): void
+    public function deleteMultiple(array $paths): void
     {
-        foreach ($keys as $key) {
-            $this->delete($key);
+        foreach ($paths as $path) {
+            $this->delete($path);
         }
     }
 
-    public function exists(string $key): bool
+    public function fileExists(string $path): bool
     {
-        return isset($this->objects[$key]);
+        return isset($this->objects[$path]);
     }
 
-    public function copy(string $sourceKey, string $destinationKey): void
+    public function createDirectory(string $path): void
     {
-        if (!isset($this->objects[$sourceKey])) {
-            throw new ObjectNotFoundException($sourceKey);
+        $this->directories[rtrim($path, '/')] = true;
+    }
+
+    public function deleteDirectory(string $path): void
+    {
+        $normalizedPath = rtrim($path, '/');
+
+        unset($this->directories[$normalizedPath]);
+
+        $prefix = $normalizedPath . '/';
+        foreach (array_keys($this->objects) as $objectPath) {
+            if (str_starts_with($objectPath, $prefix)) {
+                unset($this->objects[$objectPath]);
+            }
+        }
+    }
+
+    public function directoryExists(string $path): bool
+    {
+        $normalizedPath = rtrim($path, '/');
+
+        if (isset($this->directories[$normalizedPath])) {
+            return true;
         }
 
-        $this->objects[$destinationKey] = $this->objects[$sourceKey];
-    }
-
-    public function move(string $sourceKey, string $destinationKey): void
-    {
-        $this->copy($sourceKey, $destinationKey);
-        $this->delete($sourceKey);
-    }
-
-    public function metadata(string $key): ObjectMetadata
-    {
-        if (!isset($this->objects[$key])) {
-            throw new ObjectNotFoundException($key);
+        $prefix = $normalizedPath . '/';
+        foreach (array_keys($this->objects) as $objectPath) {
+            if (str_starts_with($objectPath, $prefix)) {
+                return true;
+            }
         }
 
-        $object = $this->objects[$key];
+        return false;
+    }
+
+    public function copy(string $source, string $destination): void
+    {
+        if (!isset($this->objects[$source])) {
+            throw new ObjectNotFoundException($source);
+        }
+
+        $this->objects[$destination] = $this->objects[$source];
+    }
+
+    public function move(string $source, string $destination): void
+    {
+        $this->copy($source, $destination);
+        $this->delete($source);
+    }
+
+    public function metadata(string $path): ObjectMetadata
+    {
+        if (!isset($this->objects[$path])) {
+            throw new ObjectNotFoundException($path);
+        }
+
+        $object = $this->objects[$path];
 
         return new ObjectMetadata(
-            key: $key,
+            path: $path,
             size: \strlen($object['contents']),
             lastModified: new \DateTimeImmutable(),
             mimeType: $object['metadata']['Content-Type'] ?? null,
         );
     }
 
-    public function publicUrl(string $key): string
+    public function publicUrl(string $path): string
     {
-        return 'memory://' . $key;
+        return 'memory://' . $path;
     }
 
-    public function temporaryUrl(string $key, \DateTimeInterface $expiration): string
+    public function temporaryUrl(string $path, \DateTimeInterface $expiration): string
     {
         throw new UnsupportedOperationException('temporaryUrl', $this->getName());
     }
 
-    public function listContents(string $prefix = '', bool $recursive = true): iterable
+    public function listContents(string $path = '', bool $deep = false): iterable
     {
-        foreach ($this->objects as $key => $object) {
-            if ($prefix !== '' && !str_starts_with($key, $prefix)) {
+        $prefix = $path !== '' ? rtrim($path, '/') . '/' : '';
+        $yieldedDirectories = [];
+
+        foreach ($this->objects as $objectPath => $object) {
+            if ($prefix !== '' && !str_starts_with($objectPath, $prefix)) {
                 continue;
             }
 
-            if (!$recursive && substr_count(substr($key, \strlen($prefix)), '/') > 0) {
-                continue;
+            $relativePath = substr($objectPath, \strlen($prefix));
+
+            if (!$deep) {
+                $slashPos = strpos($relativePath, '/');
+                if ($slashPos !== false) {
+                    // This object is in a subdirectory; yield the directory entry instead
+                    $dirName = substr($relativePath, 0, $slashPos);
+                    $dirPath = $prefix . $dirName;
+                    if (!isset($yieldedDirectories[$dirPath])) {
+                        $yieldedDirectories[$dirPath] = true;
+                        yield new ObjectMetadata(
+                            path: $dirPath,
+                            isDirectory: true,
+                        );
+                    }
+                    continue;
+                }
             }
 
             yield new ObjectMetadata(
-                key: $key,
+                path: $objectPath,
                 size: \strlen($object['contents']),
                 mimeType: $object['metadata']['Content-Type'] ?? null,
+            );
+        }
+
+        // Yield explicitly created directories that match the prefix
+        foreach (array_keys($this->directories) as $dirPath) {
+            if (isset($yieldedDirectories[$dirPath])) {
+                continue;
+            }
+
+            if ($prefix !== '' && !str_starts_with($dirPath . '/', $prefix)) {
+                continue;
+            }
+
+            if (!$deep) {
+                $relativeDirPath = substr($dirPath, \strlen($prefix));
+                if (str_contains($relativeDirPath, '/')) {
+                    continue;
+                }
+            }
+
+            // Skip if the directory is the path itself
+            if ($dirPath === rtrim($path, '/') && $path !== '') {
+                continue;
+            }
+
+            $yieldedDirectories[$dirPath] = true;
+            yield new ObjectMetadata(
+                path: $dirPath,
+                isDirectory: true,
             );
         }
     }

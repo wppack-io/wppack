@@ -7,9 +7,10 @@ namespace WpPack\Component\Storage;
 final readonly class ObjectMetadata
 {
     public function __construct(
-        public string $key,
+        public string $path,
         public ?int $size = null,
         public ?\DateTimeImmutable $lastModified = null,
         public ?string $mimeType = null,
+        public bool $isDirectory = false,
     ) {}
 }

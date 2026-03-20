@@ -2,7 +2,7 @@
 
 [![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=storage)](https://codecov.io/github/wppack-io/wppack)
 
-Object storage abstraction for WordPress.
+Storage abstraction for WordPress.
 
 ## Installation
 
@@ -44,8 +44,13 @@ function upload(StorageAdapterInterface $adapter): void
     // Read stream
     $stream = $adapter->readStream('path/to/large-file.zip');
 
-    // Check existence
-    $exists = $adapter->exists('path/to/file.txt');
+    // Check file existence
+    $exists = $adapter->fileExists('path/to/file.txt');
+
+    // Directory operations
+    $adapter->createDirectory('path/to/directory');
+    $adapter->directoryExists('path/to/directory');
+    $adapter->deleteDirectory('path/to/directory');
 
     // Get metadata
     $metadata = $adapter->metadata('path/to/file.txt');
@@ -67,7 +72,7 @@ function upload(StorageAdapterInterface $adapter): void
 
     // List contents
     foreach ($adapter->listContents('uploads/2024/') as $object) {
-        echo $object->key;
+        echo $object->path;
     }
 }
 ```

@@ -120,7 +120,7 @@ final readonly class AttachmentSubscriber
 
         $key = $this->config->prefix . '/' . ltrim($file, '/');
 
-        if ($this->adapter->exists($key)) {
+        if ($this->adapter->fileExists($key)) {
             $objectMetadata = $this->adapter->metadata($key);
             if ($objectMetadata->size !== null) {
                 $metadata['filesize'] = $objectMetadata->size;
@@ -196,7 +196,7 @@ final readonly class AttachmentSubscriber
         $result = [];
 
         foreach ($this->adapter->listContents($prefix, false) as $object) {
-            $result[] = basename($object->key);
+            $result[] = basename($object->path);
         }
 
         return $result;

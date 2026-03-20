@@ -18,24 +18,41 @@ final class ObjectMetadataTest extends TestCase
         $lastModified = new \DateTimeImmutable('2024-01-01 12:00:00');
 
         $metadata = new ObjectMetadata(
-            key: 'path/to/file.txt',
+            path: 'path/to/file.txt',
             size: 1024,
             lastModified: $lastModified,
             mimeType: 'text/plain',
         );
 
-        self::assertSame('path/to/file.txt', $metadata->key);
+        self::assertSame('path/to/file.txt', $metadata->path);
         self::assertSame(1024, $metadata->size);
         self::assertSame($lastModified, $metadata->lastModified);
         self::assertSame('text/plain', $metadata->mimeType);
+        self::assertFalse($metadata->isDirectory);
     }
 
     #[Test]
-    public function constructsWithOnlyKey(): void
+    public function constructsWithOnlyPath(): void
     {
-        $metadata = new ObjectMetadata(key: 'file.txt');
+        $metadata = new ObjectMetadata(path: 'file.txt');
 
-        self::assertSame('file.txt', $metadata->key);
+        self::assertSame('file.txt', $metadata->path);
+        self::assertNull($metadata->size);
+        self::assertNull($metadata->lastModified);
+        self::assertNull($metadata->mimeType);
+        self::assertFalse($metadata->isDirectory);
+    }
+
+    #[Test]
+    public function constructsWithIsDirectoryTrue(): void
+    {
+        $metadata = new ObjectMetadata(
+            path: 'some/directory',
+            isDirectory: true,
+        );
+
+        self::assertSame('some/directory', $metadata->path);
+        self::assertTrue($metadata->isDirectory);
         self::assertNull($metadata->size);
         self::assertNull($metadata->lastModified);
         self::assertNull($metadata->mimeType);

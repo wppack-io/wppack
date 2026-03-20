@@ -29,132 +29,170 @@ final class LocalStorageAdapter extends AbstractStorageAdapter
         return 'local';
     }
 
-    protected function doWrite(string $key, string $contents, array $metadata = []): void
+    protected function doWrite(string $path, string $contents, array $metadata = []): void
     {
-        $path = $this->fullPath($key);
-        $this->ensureDirectory(\dirname($path));
+        $fullPath = $this->fullPath($path);
+        $this->ensureDirectory(\dirname($fullPath));
 
-        file_put_contents($path, $contents);
+        file_put_contents($fullPath, $contents);
     }
 
-    protected function doWriteStream(string $key, mixed $resource, array $metadata = []): void
+    protected function doWriteStream(string $path, mixed $resource, array $metadata = []): void
     {
-        $path = $this->fullPath($key);
-        $this->ensureDirectory(\dirname($path));
+        $fullPath = $this->fullPath($path);
+        $this->ensureDirectory(\dirname($fullPath));
 
-        $dest = fopen($path, 'w');
+        $dest = fopen($fullPath, 'w');
         \assert($dest !== false);
         stream_copy_to_stream($resource, $dest);
         fclose($dest);
     }
 
-    protected function doRead(string $key): string
+    protected function doRead(string $path): string
     {
-        $path = $this->fullPath($key);
+        $fullPath = $this->fullPath($path);
 
-        if (!is_file($path)) {
-            throw new ObjectNotFoundException($key);
+        if (!is_file($fullPath)) {
+            throw new ObjectNotFoundException($path);
         }
 
-        $contents = file_get_contents($path);
+        $contents = file_get_contents($fullPath);
         \assert($contents !== false);
 
         return $contents;
     }
 
-    protected function doReadStream(string $key): mixed
+    protected function doReadStream(string $path): mixed
     {
-        $path = $this->fullPath($key);
+        $fullPath = $this->fullPath($path);
 
-        if (!is_file($path)) {
-            throw new ObjectNotFoundException($key);
+        if (!is_file($fullPath)) {
+            throw new ObjectNotFoundException($path);
         }
 
-        $stream = fopen($path, 'r');
+        $stream = fopen($fullPath, 'r');
         \assert($stream !== false);
 
         return $stream;
     }
 
-    protected function doDelete(string $key): void
+    protected function doDelete(string $path): void
     {
-        $path = $this->fullPath($key);
+        $fullPath = $this->fullPath($path);
 
-        if (is_file($path)) {
-            unlink($path);
+        if (is_file($fullPath)) {
+            unlink($fullPath);
         }
     }
 
-    protected function doExists(string $key): bool
+    protected function doFileExists(string $path): bool
     {
-        return is_file($this->fullPath($key));
+        return is_file($this->fullPath($path));
     }
 
-    protected function doCopy(string $sourceKey, string $destinationKey): void
+    protected function doCreateDirectory(string $path): void
     {
-        $sourcePath = $this->fullPath($sourceKey);
+        $fullPath = $this->fullPath($path);
+
+        if (!is_dir($fullPath)) {
+            mkdir($fullPath, 0777, true);
+        }
+    }
+
+    protected function doDeleteDirectory(string $path): void
+    {
+        $fullPath = $this->fullPath($path);
+
+        if (!is_dir($fullPath)) {
+            return;
+        }
+
+        $flags = \RecursiveDirectoryIterator::SKIP_DOTS;
+        $dirIterator = new \RecursiveDirectoryIterator($fullPath, $flags);
+        $iterator = new \RecursiveIteratorIterator($dirIterator, \RecursiveIteratorIterator::CHILD_FIRST);
+
+        /** @var \SplFileInfo $item */
+        foreach ($iterator as $item) {
+            if ($item->isDir()) {
+                rmdir($item->getPathname());
+            } else {
+                unlink($item->getPathname());
+            }
+        }
+
+        rmdir($fullPath);
+    }
+
+    protected function doDirectoryExists(string $path): bool
+    {
+        return is_dir($this->fullPath($path));
+    }
+
+    protected function doCopy(string $source, string $destination): void
+    {
+        $sourcePath = $this->fullPath($source);
 
         if (!is_file($sourcePath)) {
-            throw new ObjectNotFoundException($sourceKey);
+            throw new ObjectNotFoundException($source);
         }
 
-        $destPath = $this->fullPath($destinationKey);
+        $destPath = $this->fullPath($destination);
         $this->ensureDirectory(\dirname($destPath));
 
         copy($sourcePath, $destPath);
     }
 
-    protected function doMove(string $sourceKey, string $destinationKey): void
+    protected function doMove(string $source, string $destination): void
     {
-        $sourcePath = $this->fullPath($sourceKey);
+        $sourcePath = $this->fullPath($source);
 
         if (!is_file($sourcePath)) {
-            throw new ObjectNotFoundException($sourceKey);
+            throw new ObjectNotFoundException($source);
         }
 
-        $destPath = $this->fullPath($destinationKey);
+        $destPath = $this->fullPath($destination);
         $this->ensureDirectory(\dirname($destPath));
 
         rename($sourcePath, $destPath);
     }
 
-    protected function doMetadata(string $key): ObjectMetadata
+    protected function doMetadata(string $path): ObjectMetadata
     {
-        $path = $this->fullPath($key);
+        $fullPath = $this->fullPath($path);
 
-        if (!is_file($path)) {
-            throw new ObjectNotFoundException($key);
+        if (!is_file($fullPath)) {
+            throw new ObjectNotFoundException($path);
         }
 
-        $mtime = filemtime($path);
+        $mtime = filemtime($fullPath);
 
         return new ObjectMetadata(
-            key: $key,
-            size: (int) filesize($path),
+            path: $path,
+            size: (int) filesize($fullPath),
             lastModified: $mtime !== false ? (new \DateTimeImmutable())->setTimestamp($mtime) : null,
-            mimeType: $this->mimeTypes->guessMimeType($path),
+            mimeType: $this->mimeTypes->guessMimeType($fullPath),
         );
     }
 
-    protected function doPublicUrl(string $key): string
+    protected function doPublicUrl(string $path): string
     {
         if ($this->publicUrl !== null) {
-            return rtrim($this->publicUrl, '/') . '/' . ltrim($key, '/');
+            return rtrim($this->publicUrl, '/') . '/' . ltrim($path, '/');
         }
 
-        return $this->fullPath($key);
+        return $this->fullPath($path);
     }
 
-    protected function doTemporaryUrl(string $key, \DateTimeInterface $expiration): string
+    protected function doTemporaryUrl(string $path, \DateTimeInterface $expiration): string
     {
         throw new UnsupportedOperationException('temporaryUrl', $this->getName());
     }
 
-    protected function doListContents(string $prefix, bool $recursive): iterable
+    protected function doListContents(string $path, bool $deep): iterable
     {
         $dir = $this->rootDir;
-        if ($prefix !== '') {
-            $dir .= '/' . rtrim($prefix, '/');
+        if ($path !== '') {
+            $dir .= '/' . rtrim($path, '/');
         }
 
         if (!is_dir($dir)) {
@@ -164,7 +202,7 @@ final class LocalStorageAdapter extends AbstractStorageAdapter
         $flags = \RecursiveDirectoryIterator::SKIP_DOTS;
         $dirIterator = new \RecursiveDirectoryIterator($dir, $flags);
 
-        if ($recursive) {
+        if ($deep) {
             $iterator = new \RecursiveIteratorIterator($dirIterator);
         } else {
             $iterator = $dirIterator;
@@ -172,26 +210,33 @@ final class LocalStorageAdapter extends AbstractStorageAdapter
 
         /** @var \SplFileInfo $file */
         foreach ($iterator as $file) {
-            if (!$file->isFile()) {
+            $itemFullPath = $file->getPathname();
+            $relativePath = substr($itemFullPath, \strlen($this->rootDir) + 1);
+
+            if ($file->isDir()) {
+                if (!$deep) {
+                    yield new ObjectMetadata(
+                        path: $relativePath,
+                        isDirectory: true,
+                    );
+                }
+
                 continue;
             }
-
-            $fullPath = $file->getPathname();
-            $key = substr($fullPath, \strlen($this->rootDir) + 1);
 
             $mtime = $file->getMTime();
 
             yield new ObjectMetadata(
-                key: $key,
+                path: $relativePath,
                 size: (int) $file->getSize(),
                 lastModified: (new \DateTimeImmutable())->setTimestamp($mtime),
             );
         }
     }
 
-    private function fullPath(string $key): string
+    private function fullPath(string $path): string
     {
-        return $this->rootDir . '/' . ltrim($key, '/');
+        return $this->rootDir . '/' . ltrim($path, '/');
     }
 
     private function ensureDirectory(string $dir): void

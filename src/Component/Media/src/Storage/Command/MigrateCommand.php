@@ -100,7 +100,7 @@ final class MigrateCommand extends AbstractCommand
                         continue;
                     }
 
-                    if ($this->adapter->exists($storageKey)) {
+                    if ($this->adapter->fileExists($storageKey)) {
                         $totalSkipped++;
 
                         continue;

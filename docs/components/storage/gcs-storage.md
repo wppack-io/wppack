@@ -83,7 +83,7 @@ $adapter = new GcsStorageAdapter(
 | パラメータ | 型 | 説明 |
 |-----------|------|------|
 | `$bucket` | `Bucket` | GCS Bucket オブジェクト |
-| `$prefix` | `string` | キープレフィックス（デフォルト: `''`） |
+| `$prefix` | `string` | パスプレフィックス（デフォルト: `''`） |
 | `$publicUrl` | `?string` | 公開ベース URL（デフォルト: `null`） |
 
 ## URL 生成
@@ -111,9 +111,9 @@ $url = $adapter->temporaryUrl('private/document.pdf', new \DateTimeImmutable('+1
 // => 'https://storage.googleapis.com/my-bucket/uploads/private/document.pdf?X-Goog-Signature=...'
 ```
 
-## キープレフィックス
+## パスプレフィックス
 
-`prefix` を指定すると、すべての操作が自動的にプレフィックス付きのキーで行われます。DSN のパス部分がプレフィックスになります。
+`prefix` を指定すると、すべての操作が自動的にプレフィックス付きのパスで行われます。DSN のパス部分がプレフィックスになります。
 
 ```php
 // /uploads がプレフィックスになる
@@ -127,7 +127,7 @@ $adapter->read('2024/01/photo.jpg');
 
 $adapter->listContents('2024/01/');
 // 実際のプレフィックス: 'uploads/2024/01/'
-// 返却されるキーからはプレフィックスが除去される
+// 返却されるパスからはプレフィックスが除去される
 ```
 
 ## GCS API マッピング
@@ -139,13 +139,23 @@ $adapter->listContents('2024/01/');
 | `readStream()` | `StorageObject::downloadAsStream()` |
 | `delete()` | `StorageObject::delete()` |
 | `deleteMultiple()` | ループ削除（`delete()` × N） |
-| `exists()` | `StorageObject::exists()` |
+| `fileExists()` | `StorageObject::exists()` |
+| `directoryExists()` | `Bucket::objects()` で prefix 存在判定 |
+| `createDirectory()` | `Bucket::upload()`（空マーカー） |
+| `deleteDirectory()` | `Bucket::objects()` + ループ削除 |
 | `copy()` | `StorageObject::copy()` |
 | `move()` | `StorageObject::copy()` + `StorageObject::delete()` |
 | `metadata()` | `StorageObject::info()` |
 | `publicUrl()` | URL 構築（API 呼び出しなし） |
 | `temporaryUrl()` | `StorageObject::signedUrl()` (V4) |
 | `listContents()` | `Bucket::objects()` |
+
+## 内部メソッドマッピング
+
+| 内部メソッド | 説明 |
+|-------------|------|
+| `prefixPath(string $path)` | パスにプレフィックスを付与 |
+| `stripPath(string $path)` | パスからプレフィックスを除去 |
 
 ## 例外処理
 

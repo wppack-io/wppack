@@ -316,7 +316,8 @@ final class StorageStreamWrapperTest extends TestCase
 
     public function testFileExistsForDirectoryPath(): void
     {
-        // Paths without extension are treated as directories
+        // url_stat tries metadata() first, then directoryExists()
+        $this->adapter->createDirectory('uploads/2024/01');
         self::assertTrue(file_exists(self::PROTOCOL . '://uploads/2024/01'));
     }
 
@@ -342,7 +343,7 @@ final class StorageStreamWrapperTest extends TestCase
         $result = unlink(self::PROTOCOL . '://delete-me.txt');
 
         self::assertTrue($result);
-        self::assertFalse($this->adapter->exists('delete-me.txt'));
+        self::assertFalse($this->adapter->fileExists('delete-me.txt'));
     }
 
     public function testRename(): void
@@ -355,22 +356,27 @@ final class StorageStreamWrapperTest extends TestCase
         );
 
         self::assertTrue($result);
-        self::assertFalse($this->adapter->exists('old-name.txt'));
+        self::assertFalse($this->adapter->fileExists('old-name.txt'));
         self::assertSame('data', $this->adapter->read('new-name.txt'));
     }
 
     // ──────────────────────────────────────────────
-    // mkdir / rmdir (no-ops for object storage)
+    // mkdir / rmdir (delegates to adapter)
     // ──────────────────────────────────────────────
 
-    public function testMkdirAlwaysSucceeds(): void
+    public function testMkdirCreatesDirectory(): void
     {
         self::assertTrue(mkdir(self::PROTOCOL . '://new-dir', 0777, true));
+        self::assertTrue($this->adapter->directoryExists('new-dir'));
     }
 
-    public function testRmdirAlwaysSucceeds(): void
+    public function testRmdirDeletesDirectory(): void
     {
+        $this->adapter->createDirectory('some-dir');
+        self::assertTrue($this->adapter->directoryExists('some-dir'));
+
         self::assertTrue(rmdir(self::PROTOCOL . '://some-dir'));
+        self::assertFalse($this->adapter->directoryExists('some-dir'));
     }
 
     // ──────────────────────────────────────────────
@@ -595,7 +601,11 @@ final class StorageStreamWrapperTest extends TestCase
 
     public function testUrlStatReturnsDirectoryStatForPathWithoutExtension(): void
     {
+        // url_stat now tries metadata() first, then directoryExists()
+        $this->adapter->createDirectory('uploads/2024/01');
+
         clearstatcache();
+        StorageStreamWrapper::getStatCache(self::PROTOCOL)?->clear();
 
         $stat = stat(self::PROTOCOL . '://uploads/2024/01');
         self::assertIsArray($stat);
@@ -879,37 +889,43 @@ final class StorageStreamWrapperTest extends TestCase
             {
                 return 'error';
             }
-            public function write(string $key, string $contents, array $metadata = []): void {}
-            public function writeStream(string $key, mixed $resource, array $metadata = []): void {}
-            public function read(string $key): string
+            public function write(string $path, string $contents, array $metadata = []): void {}
+            public function writeStream(string $path, mixed $resource, array $metadata = []): void {}
+            public function read(string $path): string
             {
                 return '';
             }
-            public function readStream(string $key): mixed
+            public function readStream(string $path): mixed
             {
                 return fopen('php://memory', 'r');
             }
-            public function delete(string $key): void {}
-            public function deleteMultiple(array $keys): void {}
-            public function exists(string $key): bool
+            public function delete(string $path): void {}
+            public function deleteMultiple(array $paths): void {}
+            public function fileExists(string $path): bool
             {
                 return true;
             }
-            public function copy(string $sourceKey, string $destinationKey): void {}
-            public function move(string $sourceKey, string $destinationKey): void {}
-            public function metadata(string $key): \WpPack\Component\Storage\ObjectMetadata
+            public function createDirectory(string $path): void {}
+            public function deleteDirectory(string $path): void {}
+            public function directoryExists(string $path): bool
+            {
+                return false;
+            }
+            public function copy(string $source, string $destination): void {}
+            public function move(string $source, string $destination): void {}
+            public function metadata(string $path): \WpPack\Component\Storage\ObjectMetadata
             {
                 throw new \RuntimeException('Connection error');
             }
-            public function publicUrl(string $key): string
+            public function publicUrl(string $path): string
             {
                 return '';
             }
-            public function temporaryUrl(string $key, \DateTimeInterface $expiration): string
+            public function temporaryUrl(string $path, \DateTimeInterface $expiration): string
             {
                 return '';
             }
-            public function listContents(string $prefix = '', bool $recursive = true): iterable
+            public function listContents(string $path = '', bool $deep = false): iterable
             {
                 return [];
             }
@@ -940,40 +956,46 @@ final class StorageStreamWrapperTest extends TestCase
             {
                 return 'error';
             }
-            public function write(string $key, string $contents, array $metadata = []): void {}
-            public function writeStream(string $key, mixed $resource, array $metadata = []): void {}
-            public function read(string $key): string
+            public function write(string $path, string $contents, array $metadata = []): void {}
+            public function writeStream(string $path, mixed $resource, array $metadata = []): void {}
+            public function read(string $path): string
             {
                 return '';
             }
-            public function readStream(string $key): mixed
+            public function readStream(string $path): mixed
             {
                 return fopen('php://memory', 'r');
             }
-            public function delete(string $key): void
+            public function delete(string $path): void
             {
                 throw new \RuntimeException('Delete failed');
             }
-            public function deleteMultiple(array $keys): void {}
-            public function exists(string $key): bool
+            public function deleteMultiple(array $paths): void {}
+            public function fileExists(string $path): bool
             {
                 return true;
             }
-            public function copy(string $sourceKey, string $destinationKey): void {}
-            public function move(string $sourceKey, string $destinationKey): void {}
-            public function metadata(string $key): \WpPack\Component\Storage\ObjectMetadata
+            public function createDirectory(string $path): void {}
+            public function deleteDirectory(string $path): void {}
+            public function directoryExists(string $path): bool
             {
-                return new \WpPack\Component\Storage\ObjectMetadata(key: $key, size: 0);
+                return false;
             }
-            public function publicUrl(string $key): string
+            public function copy(string $source, string $destination): void {}
+            public function move(string $source, string $destination): void {}
+            public function metadata(string $path): \WpPack\Component\Storage\ObjectMetadata
+            {
+                return new \WpPack\Component\Storage\ObjectMetadata(path: $path, size: 0);
+            }
+            public function publicUrl(string $path): string
             {
                 return '';
             }
-            public function temporaryUrl(string $key, \DateTimeInterface $expiration): string
+            public function temporaryUrl(string $path, \DateTimeInterface $expiration): string
             {
                 return '';
             }
-            public function listContents(string $prefix = '', bool $recursive = true): iterable
+            public function listContents(string $path = '', bool $deep = false): iterable
             {
                 return [];
             }
@@ -1000,40 +1022,46 @@ final class StorageStreamWrapperTest extends TestCase
             {
                 return 'error';
             }
-            public function write(string $key, string $contents, array $metadata = []): void {}
-            public function writeStream(string $key, mixed $resource, array $metadata = []): void {}
-            public function read(string $key): string
+            public function write(string $path, string $contents, array $metadata = []): void {}
+            public function writeStream(string $path, mixed $resource, array $metadata = []): void {}
+            public function read(string $path): string
             {
                 return '';
             }
-            public function readStream(string $key): mixed
+            public function readStream(string $path): mixed
             {
                 return fopen('php://memory', 'r');
             }
-            public function delete(string $key): void {}
-            public function deleteMultiple(array $keys): void {}
-            public function exists(string $key): bool
+            public function delete(string $path): void {}
+            public function deleteMultiple(array $paths): void {}
+            public function fileExists(string $path): bool
             {
                 return true;
             }
-            public function copy(string $sourceKey, string $destinationKey): void {}
-            public function move(string $sourceKey, string $destinationKey): void
+            public function createDirectory(string $path): void {}
+            public function deleteDirectory(string $path): void {}
+            public function directoryExists(string $path): bool
+            {
+                return false;
+            }
+            public function copy(string $source, string $destination): void {}
+            public function move(string $source, string $destination): void
             {
                 throw new \RuntimeException('Move failed');
             }
-            public function metadata(string $key): \WpPack\Component\Storage\ObjectMetadata
+            public function metadata(string $path): \WpPack\Component\Storage\ObjectMetadata
             {
-                return new \WpPack\Component\Storage\ObjectMetadata(key: $key, size: 0);
+                return new \WpPack\Component\Storage\ObjectMetadata(path: $path, size: 0);
             }
-            public function publicUrl(string $key): string
-            {
-                return '';
-            }
-            public function temporaryUrl(string $key, \DateTimeInterface $expiration): string
+            public function publicUrl(string $path): string
             {
                 return '';
             }
-            public function listContents(string $prefix = '', bool $recursive = true): iterable
+            public function temporaryUrl(string $path, \DateTimeInterface $expiration): string
+            {
+                return '';
+            }
+            public function listContents(string $path = '', bool $deep = false): iterable
             {
                 return [];
             }
@@ -1070,37 +1098,43 @@ final class StorageStreamWrapperTest extends TestCase
             {
                 return 'error';
             }
-            public function write(string $key, string $contents, array $metadata = []): void {}
-            public function writeStream(string $key, mixed $resource, array $metadata = []): void {}
-            public function read(string $key): string
+            public function write(string $path, string $contents, array $metadata = []): void {}
+            public function writeStream(string $path, mixed $resource, array $metadata = []): void {}
+            public function read(string $path): string
             {
                 return '';
             }
-            public function readStream(string $key): mixed
+            public function readStream(string $path): mixed
             {
                 return fopen('php://memory', 'r');
             }
-            public function delete(string $key): void {}
-            public function deleteMultiple(array $keys): void {}
-            public function exists(string $key): bool
+            public function delete(string $path): void {}
+            public function deleteMultiple(array $paths): void {}
+            public function fileExists(string $path): bool
             {
                 return false;
             }
-            public function copy(string $sourceKey, string $destinationKey): void {}
-            public function move(string $sourceKey, string $destinationKey): void {}
-            public function metadata(string $key): \WpPack\Component\Storage\ObjectMetadata
+            public function createDirectory(string $path): void {}
+            public function deleteDirectory(string $path): void {}
+            public function directoryExists(string $path): bool
             {
-                return new \WpPack\Component\Storage\ObjectMetadata(key: $key, size: 0);
+                return false;
             }
-            public function publicUrl(string $key): string
+            public function copy(string $source, string $destination): void {}
+            public function move(string $source, string $destination): void {}
+            public function metadata(string $path): \WpPack\Component\Storage\ObjectMetadata
+            {
+                return new \WpPack\Component\Storage\ObjectMetadata(path: $path, size: 0);
+            }
+            public function publicUrl(string $path): string
             {
                 return '';
             }
-            public function temporaryUrl(string $key, \DateTimeInterface $expiration): string
+            public function temporaryUrl(string $path, \DateTimeInterface $expiration): string
             {
                 return '';
             }
-            public function listContents(string $prefix = '', bool $recursive = true): iterable
+            public function listContents(string $path = '', bool $deep = false): iterable
             {
                 throw new \RuntimeException('List failed');
             }
@@ -1251,37 +1285,43 @@ final class StorageStreamWrapperTest extends TestCase
             {
                 return 'error';
             }
-            public function write(string $key, string $contents, array $metadata = []): void {}
-            public function writeStream(string $key, mixed $resource, array $metadata = []): void {}
-            public function read(string $key): string
+            public function write(string $path, string $contents, array $metadata = []): void {}
+            public function writeStream(string $path, mixed $resource, array $metadata = []): void {}
+            public function read(string $path): string
             {
                 return '';
             }
-            public function readStream(string $key): mixed
+            public function readStream(string $path): mixed
             {
                 throw new \RuntimeException('Connection error');
             }
-            public function delete(string $key): void {}
-            public function deleteMultiple(array $keys): void {}
-            public function exists(string $key): bool
+            public function delete(string $path): void {}
+            public function deleteMultiple(array $paths): void {}
+            public function fileExists(string $path): bool
             {
                 return true;
             }
-            public function copy(string $sourceKey, string $destinationKey): void {}
-            public function move(string $sourceKey, string $destinationKey): void {}
-            public function metadata(string $key): \WpPack\Component\Storage\ObjectMetadata
+            public function createDirectory(string $path): void {}
+            public function deleteDirectory(string $path): void {}
+            public function directoryExists(string $path): bool
             {
-                return new \WpPack\Component\Storage\ObjectMetadata(key: $key, size: 0);
+                return false;
             }
-            public function publicUrl(string $key): string
+            public function copy(string $source, string $destination): void {}
+            public function move(string $source, string $destination): void {}
+            public function metadata(string $path): \WpPack\Component\Storage\ObjectMetadata
+            {
+                return new \WpPack\Component\Storage\ObjectMetadata(path: $path, size: 0);
+            }
+            public function publicUrl(string $path): string
             {
                 return '';
             }
-            public function temporaryUrl(string $key, \DateTimeInterface $expiration): string
+            public function temporaryUrl(string $path, \DateTimeInterface $expiration): string
             {
                 return '';
             }
-            public function listContents(string $prefix = '', bool $recursive = true): iterable
+            public function listContents(string $path = '', bool $deep = false): iterable
             {
                 return [];
             }
@@ -1308,37 +1348,43 @@ final class StorageStreamWrapperTest extends TestCase
             {
                 return 'error';
             }
-            public function write(string $key, string $contents, array $metadata = []): void {}
-            public function writeStream(string $key, mixed $resource, array $metadata = []): void {}
-            public function read(string $key): string
+            public function write(string $path, string $contents, array $metadata = []): void {}
+            public function writeStream(string $path, mixed $resource, array $metadata = []): void {}
+            public function read(string $path): string
             {
                 return '';
             }
-            public function readStream(string $key): mixed
+            public function readStream(string $path): mixed
             {
                 throw new \RuntimeException('Connection error');
             }
-            public function delete(string $key): void {}
-            public function deleteMultiple(array $keys): void {}
-            public function exists(string $key): bool
+            public function delete(string $path): void {}
+            public function deleteMultiple(array $paths): void {}
+            public function fileExists(string $path): bool
             {
                 return true;
             }
-            public function copy(string $sourceKey, string $destinationKey): void {}
-            public function move(string $sourceKey, string $destinationKey): void {}
-            public function metadata(string $key): \WpPack\Component\Storage\ObjectMetadata
+            public function createDirectory(string $path): void {}
+            public function deleteDirectory(string $path): void {}
+            public function directoryExists(string $path): bool
             {
-                return new \WpPack\Component\Storage\ObjectMetadata(key: $key, size: 0);
+                return false;
             }
-            public function publicUrl(string $key): string
+            public function copy(string $source, string $destination): void {}
+            public function move(string $source, string $destination): void {}
+            public function metadata(string $path): \WpPack\Component\Storage\ObjectMetadata
+            {
+                return new \WpPack\Component\Storage\ObjectMetadata(path: $path, size: 0);
+            }
+            public function publicUrl(string $path): string
             {
                 return '';
             }
-            public function temporaryUrl(string $key, \DateTimeInterface $expiration): string
+            public function temporaryUrl(string $path, \DateTimeInterface $expiration): string
             {
                 return '';
             }
-            public function listContents(string $prefix = '', bool $recursive = true): iterable
+            public function listContents(string $path = '', bool $deep = false): iterable
             {
                 return [];
             }
@@ -1355,47 +1401,53 @@ final class StorageStreamWrapperTest extends TestCase
     }
 
     // ──────────────────────────────────────────────
-    // x mode with adapter.exists() that throws
+    // x mode with adapter.fileExists() that throws
     // ──────────────────────────────────────────────
 
-    public function testModeXReturnsFalseWhenExistsThrows(): void
+    public function testModeXReturnsFalseWhenFileExistsThrows(): void
     {
         $errorAdapter = new class implements \WpPack\Component\Storage\Adapter\StorageAdapterInterface {
             public function getName(): string
             {
                 return 'error';
             }
-            public function write(string $key, string $contents, array $metadata = []): void {}
-            public function writeStream(string $key, mixed $resource, array $metadata = []): void {}
-            public function read(string $key): string
+            public function write(string $path, string $contents, array $metadata = []): void {}
+            public function writeStream(string $path, mixed $resource, array $metadata = []): void {}
+            public function read(string $path): string
             {
                 return '';
             }
-            public function readStream(string $key): mixed
+            public function readStream(string $path): mixed
             {
                 return fopen('php://memory', 'r');
             }
-            public function delete(string $key): void {}
-            public function deleteMultiple(array $keys): void {}
-            public function exists(string $key): bool
+            public function delete(string $path): void {}
+            public function deleteMultiple(array $paths): void {}
+            public function fileExists(string $path): bool
             {
                 throw new \RuntimeException('Connection error');
             }
-            public function copy(string $sourceKey, string $destinationKey): void {}
-            public function move(string $sourceKey, string $destinationKey): void {}
-            public function metadata(string $key): \WpPack\Component\Storage\ObjectMetadata
+            public function createDirectory(string $path): void {}
+            public function deleteDirectory(string $path): void {}
+            public function directoryExists(string $path): bool
             {
-                return new \WpPack\Component\Storage\ObjectMetadata(key: $key, size: 0);
+                return false;
             }
-            public function publicUrl(string $key): string
+            public function copy(string $source, string $destination): void {}
+            public function move(string $source, string $destination): void {}
+            public function metadata(string $path): \WpPack\Component\Storage\ObjectMetadata
+            {
+                return new \WpPack\Component\Storage\ObjectMetadata(path: $path, size: 0);
+            }
+            public function publicUrl(string $path): string
             {
                 return '';
             }
-            public function temporaryUrl(string $key, \DateTimeInterface $expiration): string
+            public function temporaryUrl(string $path, \DateTimeInterface $expiration): string
             {
                 return '';
             }
-            public function listContents(string $prefix = '', bool $recursive = true): iterable
+            public function listContents(string $path = '', bool $deep = false): iterable
             {
                 return [];
             }

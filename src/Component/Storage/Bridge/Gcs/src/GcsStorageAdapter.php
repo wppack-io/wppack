@@ -23,10 +23,10 @@ final class GcsStorageAdapter extends AbstractStorageAdapter
         return 'gcs';
     }
 
-    protected function doWrite(string $key, string $contents, array $metadata = []): void
+    protected function doWrite(string $path, string $contents, array $metadata = []): void
     {
         $options = [
-            'name' => $this->prefixKey($key),
+            'name' => $this->prefixPath($path),
         ];
 
         if (isset($metadata['Content-Type'])) {
@@ -41,10 +41,10 @@ final class GcsStorageAdapter extends AbstractStorageAdapter
         $this->bucket->upload($contents, $options);
     }
 
-    protected function doWriteStream(string $key, mixed $resource, array $metadata = []): void
+    protected function doWriteStream(string $path, mixed $resource, array $metadata = []): void
     {
         $options = [
-            'name' => $this->prefixKey($key),
+            'name' => $this->prefixPath($path),
         ];
 
         if (isset($metadata['Content-Type'])) {
@@ -59,23 +59,23 @@ final class GcsStorageAdapter extends AbstractStorageAdapter
         $this->bucket->upload($resource, $options);
     }
 
-    protected function doRead(string $key): string
+    protected function doRead(string $path): string
     {
-        $object = $this->bucket->object($this->prefixKey($key));
+        $object = $this->bucket->object($this->prefixPath($path));
 
         try {
             return $object->downloadAsString();
         } catch (\Throwable $e) {
             if ($this->isNotFoundException($e)) {
-                throw new ObjectNotFoundException($key, $e);
+                throw new ObjectNotFoundException($path, $e);
             }
             throw $e;
         }
     }
 
-    protected function doReadStream(string $key): mixed
+    protected function doReadStream(string $path): mixed
     {
-        $object = $this->bucket->object($this->prefixKey($key));
+        $object = $this->bucket->object($this->prefixPath($path));
         $stream = null;
 
         try {
@@ -100,38 +100,65 @@ final class GcsStorageAdapter extends AbstractStorageAdapter
             }
 
             if ($this->isNotFoundException($e)) {
-                throw new ObjectNotFoundException($key, $e);
+                throw new ObjectNotFoundException($path, $e);
             }
             throw $e;
         }
     }
 
-    protected function doDelete(string $key): void
+    protected function doDelete(string $path): void
     {
-        $this->bucket->object($this->prefixKey($key))->delete();
+        $this->bucket->object($this->prefixPath($path))->delete();
     }
 
-    protected function doExists(string $key): bool
+    protected function doFileExists(string $path): bool
     {
-        return $this->bucket->object($this->prefixKey($key))->exists();
+        return $this->bucket->object($this->prefixPath($path))->exists();
     }
 
-    protected function doCopy(string $sourceKey, string $destinationKey): void
+    protected function doCreateDirectory(string $path): void
     {
-        $this->bucket->object($this->prefixKey($sourceKey))->copy($this->bucket->name(), [
-            'name' => $this->prefixKey($destinationKey),
+        $dirName = rtrim($this->prefixPath($path), '/') . '/';
+        $this->bucket->upload('', ['name' => $dirName]);
+    }
+
+    protected function doDeleteDirectory(string $path): void
+    {
+        $dirPrefix = rtrim($this->prefixPath($path), '/') . '/';
+
+        foreach ($this->bucket->objects(['prefix' => $dirPrefix]) as $object) {
+            $object->delete();
+        }
+    }
+
+    protected function doDirectoryExists(string $path): bool
+    {
+        $dirPrefix = rtrim($this->prefixPath($path), '/') . '/';
+        $objects = $this->bucket->objects(['prefix' => $dirPrefix, 'maxResults' => 1]);
+
+        foreach ($objects as $_) {
+            return true;
+        }
+
+        return false;
+    }
+
+    protected function doCopy(string $source, string $destination): void
+    {
+        $this->bucket->object($this->prefixPath($source))->copy($this->bucket->name(), [
+            'name' => $this->prefixPath($destination),
         ]);
     }
 
-    protected function doMetadata(string $key): ObjectMetadata
+    protected function doMetadata(string $path): ObjectMetadata
     {
-        $object = $this->bucket->object($this->prefixKey($key));
+        $object = $this->bucket->object($this->prefixPath($path));
 
         try {
             $info = $object->info();
         } catch (\Throwable $e) {
             if ($this->isNotFoundException($e)) {
-                throw new ObjectNotFoundException($key, $e);
+                throw new ObjectNotFoundException($path, $e);
             }
             throw $e;
         }
@@ -141,51 +168,51 @@ final class GcsStorageAdapter extends AbstractStorageAdapter
             : null;
 
         return new ObjectMetadata(
-            key: $key,
+            path: $path,
             size: isset($info['size']) ? (int) $info['size'] : null,
             lastModified: $lastModified,
             mimeType: $info['contentType'] ?? null,
         );
     }
 
-    protected function doPublicUrl(string $key): string
+    protected function doPublicUrl(string $path): string
     {
-        $prefixedKey = $this->prefixKey($key);
+        $prefixedPath = $this->prefixPath($path);
 
         if ($this->publicUrl !== null) {
-            return rtrim($this->publicUrl, '/') . '/' . ltrim($prefixedKey, '/');
+            return rtrim($this->publicUrl, '/') . '/' . ltrim($prefixedPath, '/');
         }
 
-        return sprintf('https://storage.googleapis.com/%s/%s', $this->bucket->name(), $prefixedKey);
+        return sprintf('https://storage.googleapis.com/%s/%s', $this->bucket->name(), $prefixedPath);
     }
 
-    protected function doTemporaryUrl(string $key, \DateTimeInterface $expiration): string
+    protected function doTemporaryUrl(string $path, \DateTimeInterface $expiration): string
     {
-        $object = $this->bucket->object($this->prefixKey($key));
+        $object = $this->bucket->object($this->prefixPath($path));
 
         return $object->signedUrl($expiration, ['version' => 'v4']);
     }
 
-    protected function doListContents(string $prefix, bool $recursive): iterable
+    protected function doListContents(string $path, bool $deep): iterable
     {
-        $fullPrefix = $this->prefixKey($prefix);
+        $fullPrefix = $this->prefixPath($path);
 
         $options = ['prefix' => $fullPrefix];
 
-        if (!$recursive) {
+        if (!$deep) {
             $options['delimiter'] = '/';
         }
 
         foreach ($this->bucket->objects($options) as $object) {
             $info = $object->info();
-            $objectKey = $this->stripPrefix($object->name());
+            $objectPath = $this->stripPath($object->name());
 
             $lastModified = isset($info['updated'])
                 ? new \DateTimeImmutable($info['updated'])
                 : null;
 
             yield new ObjectMetadata(
-                key: $objectKey,
+                path: $objectPath,
                 size: isset($info['size']) ? (int) $info['size'] : null,
                 lastModified: $lastModified,
                 mimeType: $info['contentType'] ?? null,
@@ -193,28 +220,28 @@ final class GcsStorageAdapter extends AbstractStorageAdapter
         }
     }
 
-    private function prefixKey(string $key): string
+    private function prefixPath(string $path): string
     {
         if ($this->prefix === '') {
-            return $key;
+            return $path;
         }
 
-        return rtrim($this->prefix, '/') . '/' . ltrim($key, '/');
+        return rtrim($this->prefix, '/') . '/' . ltrim($path, '/');
     }
 
-    private function stripPrefix(string $key): string
+    private function stripPath(string $path): string
     {
         if ($this->prefix === '') {
-            return $key;
+            return $path;
         }
 
         $prefix = rtrim($this->prefix, '/') . '/';
 
-        if (str_starts_with($key, $prefix)) {
-            return substr($key, \strlen($prefix));
+        if (str_starts_with($path, $prefix)) {
+            return substr($path, \strlen($prefix));
         }
 
-        return $key;
+        return $path;
     }
 
     private function isNotFoundException(\Throwable $e): bool

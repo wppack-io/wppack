@@ -13,42 +13,48 @@ interface StorageAdapterInterface
     public function getName(): string;
 
     /** @param array<string, string> $metadata */
-    public function write(string $key, string $contents, array $metadata = []): void;
+    public function write(string $path, string $contents, array $metadata = []): void;
 
     /**
      * @param resource $resource
      * @param array<string, string> $metadata
      */
-    public function writeStream(string $key, mixed $resource, array $metadata = []): void;
+    public function writeStream(string $path, mixed $resource, array $metadata = []): void;
 
     /** @throws ObjectNotFoundException */
-    public function read(string $key): string;
+    public function read(string $path): string;
 
     /**
      * @return resource
      * @throws ObjectNotFoundException
      */
-    public function readStream(string $key): mixed;
+    public function readStream(string $path): mixed;
 
-    public function delete(string $key): void;
+    public function delete(string $path): void;
 
-    /** @param list<string> $keys */
-    public function deleteMultiple(array $keys): void;
+    /** @param list<string> $paths */
+    public function deleteMultiple(array $paths): void;
 
-    public function exists(string $key): bool;
+    public function fileExists(string $path): bool;
 
-    public function copy(string $sourceKey, string $destinationKey): void;
+    public function createDirectory(string $path): void;
 
-    public function move(string $sourceKey, string $destinationKey): void;
+    public function deleteDirectory(string $path): void;
+
+    public function directoryExists(string $path): bool;
+
+    public function copy(string $source, string $destination): void;
+
+    public function move(string $source, string $destination): void;
 
     /** @throws ObjectNotFoundException */
-    public function metadata(string $key): ObjectMetadata;
+    public function metadata(string $path): ObjectMetadata;
 
-    public function publicUrl(string $key): string;
+    public function publicUrl(string $path): string;
 
     /** @throws UnsupportedOperationException */
-    public function temporaryUrl(string $key, \DateTimeInterface $expiration): string;
+    public function temporaryUrl(string $path, \DateTimeInterface $expiration): string;
 
     /** @return iterable<ObjectMetadata> */
-    public function listContents(string $prefix = '', bool $recursive = true): iterable;
+    public function listContents(string $path = '', bool $deep = false): iterable;
 }

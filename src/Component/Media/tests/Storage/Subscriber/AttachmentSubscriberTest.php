@@ -230,9 +230,9 @@ final class AttachmentSubscriberTest extends TestCase
 
         $this->subscriber->onDeleteAttachment($attachmentId);
 
-        self::assertFalse($this->adapter->exists('uploads/2024/01/image.jpg'));
-        self::assertFalse($this->adapter->exists('uploads/2024/01/image-150x150.jpg'));
-        self::assertFalse($this->adapter->exists('uploads/2024/01/image-300x200.jpg'));
+        self::assertFalse($this->adapter->fileExists('uploads/2024/01/image.jpg'));
+        self::assertFalse($this->adapter->fileExists('uploads/2024/01/image-150x150.jpg'));
+        self::assertFalse($this->adapter->fileExists('uploads/2024/01/image-300x200.jpg'));
     }
 
     #[Test]
@@ -265,7 +265,7 @@ final class AttachmentSubscriberTest extends TestCase
 
         $this->subscriber->onDeleteAttachment($attachmentId);
 
-        self::assertFalse($this->adapter->exists('uploads/document.pdf'));
+        self::assertFalse($this->adapter->fileExists('uploads/document.pdf'));
     }
 
     #[Test]

@@ -95,7 +95,7 @@ $adapter = new AzureStorageAdapter(
 |-----------|------|------|
 | `$serviceClient` | `BlobServiceClient` | Azure Blob Service クライアント |
 | `$container` | `string` | コンテナ名 |
-| `$prefix` | `string` | キープレフィックス（デフォルト: `''`） |
+| `$prefix` | `string` | パスプレフィックス（デフォルト: `''`） |
 | `$publicUrl` | `?string` | 公開ベース URL（デフォルト: `null`） |
 
 ## URL 生成
@@ -131,13 +131,23 @@ $url = $adapter->temporaryUrl('private/document.pdf', new \DateTimeImmutable('+1
 | `read()` / `readStream()` | `downloadStreaming()` |
 | `delete()` | `delete()` |
 | `deleteMultiple()` | ループ削除（`delete()` × N） |
-| `exists()` | `getProperties()` で 404 判定 |
+| `fileExists()` | `getProperties()` で 404 判定 |
+| `directoryExists()` | `getBlobsByHierarchy()` で prefix 存在判定 |
+| `createDirectory()` | 空マーカー Blob をアップロード |
+| `deleteDirectory()` | `getBlobsByHierarchy()` + ループ削除 |
 | `copy()` | `copyFromUrl()` |
 | `move()` | `copyFromUrl()` + `delete()` |
 | `metadata()` | `getProperties()` |
 | `publicUrl()` | URL 構築（API 呼び出しなし） |
 | `temporaryUrl()` | SAS トークン生成 |
 | `listContents()` | `getBlobsByHierarchy()` |
+
+## 内部メソッドマッピング
+
+| 内部メソッド | 説明 |
+|-------------|------|
+| `prefixPath(string $path)` | パスにプレフィックスを付与 |
+| `stripPath(string $path)` | パスからプレフィックスを除去 |
 
 ## 例外処理
 

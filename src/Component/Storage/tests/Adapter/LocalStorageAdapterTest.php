@@ -107,7 +107,7 @@ final class LocalStorageAdapterTest extends TestCase
         $this->adapter->write('file.txt', 'contents');
         $this->adapter->delete('file.txt');
 
-        self::assertFalse($this->adapter->exists('file.txt'));
+        self::assertFalse($this->adapter->fileExists('file.txt'));
     }
 
     #[Test]
@@ -115,7 +115,7 @@ final class LocalStorageAdapterTest extends TestCase
     {
         $this->adapter->delete('nonexistent.txt');
 
-        self::assertFalse($this->adapter->exists('nonexistent.txt'));
+        self::assertFalse($this->adapter->fileExists('nonexistent.txt'));
     }
 
     #[Test]
@@ -127,19 +127,66 @@ final class LocalStorageAdapterTest extends TestCase
 
         $this->adapter->deleteMultiple(['a.txt', 'b.txt']);
 
-        self::assertFalse($this->adapter->exists('a.txt'));
-        self::assertFalse($this->adapter->exists('b.txt'));
-        self::assertTrue($this->adapter->exists('c.txt'));
+        self::assertFalse($this->adapter->fileExists('a.txt'));
+        self::assertFalse($this->adapter->fileExists('b.txt'));
+        self::assertTrue($this->adapter->fileExists('c.txt'));
     }
 
     #[Test]
-    public function exists(): void
+    public function fileExistsCheck(): void
     {
-        self::assertFalse($this->adapter->exists('file.txt'));
+        self::assertFalse($this->adapter->fileExists('file.txt'));
 
         $this->adapter->write('file.txt', 'contents');
 
-        self::assertTrue($this->adapter->exists('file.txt'));
+        self::assertTrue($this->adapter->fileExists('file.txt'));
+    }
+
+    #[Test]
+    public function createDirectory(): void
+    {
+        $this->adapter->createDirectory('new/sub/dir');
+
+        self::assertTrue($this->adapter->directoryExists('new/sub/dir'));
+    }
+
+    #[Test]
+    public function createDirectoryIsIdempotent(): void
+    {
+        $this->adapter->createDirectory('my-dir');
+        $this->adapter->createDirectory('my-dir');
+
+        self::assertTrue($this->adapter->directoryExists('my-dir'));
+    }
+
+    #[Test]
+    public function deleteDirectory(): void
+    {
+        $this->adapter->createDirectory('my-dir');
+        $this->adapter->write('my-dir/file.txt', 'contents');
+
+        $this->adapter->deleteDirectory('my-dir');
+
+        self::assertFalse($this->adapter->directoryExists('my-dir'));
+        self::assertFalse($this->adapter->fileExists('my-dir/file.txt'));
+    }
+
+    #[Test]
+    public function deleteDirectoryNonexistentIsNoop(): void
+    {
+        $this->adapter->deleteDirectory('nonexistent-dir');
+
+        self::assertFalse($this->adapter->directoryExists('nonexistent-dir'));
+    }
+
+    #[Test]
+    public function directoryExistsCheck(): void
+    {
+        self::assertFalse($this->adapter->directoryExists('my-dir'));
+
+        $this->adapter->createDirectory('my-dir');
+
+        self::assertTrue($this->adapter->directoryExists('my-dir'));
     }
 
     #[Test]
@@ -175,7 +222,7 @@ final class LocalStorageAdapterTest extends TestCase
         $this->adapter->write('source.txt', 'contents');
         $this->adapter->move('source.txt', 'dest.txt');
 
-        self::assertFalse($this->adapter->exists('source.txt'));
+        self::assertFalse($this->adapter->fileExists('source.txt'));
         self::assertSame('contents', $this->adapter->read('dest.txt'));
     }
 
@@ -194,7 +241,7 @@ final class LocalStorageAdapterTest extends TestCase
 
         $metadata = $this->adapter->metadata('file.txt');
 
-        self::assertSame('file.txt', $metadata->key);
+        self::assertSame('file.txt', $metadata->path);
         self::assertSame(5, $metadata->size);
         self::assertNotNull($metadata->lastModified);
     }
@@ -236,29 +283,32 @@ final class LocalStorageAdapterTest extends TestCase
     }
 
     #[Test]
-    public function listContentsRecursive(): void
+    public function listContentsDeep(): void
     {
         $this->adapter->write('a.txt', 'a');
         $this->adapter->write('sub/b.txt', 'b');
         $this->adapter->write('sub/deep/c.txt', 'c');
 
-        $items = iterator_to_array($this->adapter->listContents());
-        $keys = array_map(fn($m) => $m->key, $items);
-        sort($keys);
+        $items = iterator_to_array($this->adapter->listContents('', deep: true));
+        $paths = array_map(fn($m) => $m->path, $items);
+        sort($paths);
 
-        self::assertSame(['a.txt', 'sub/b.txt', 'sub/deep/c.txt'], $keys);
+        self::assertSame(['a.txt', 'sub/b.txt', 'sub/deep/c.txt'], $paths);
     }
 
     #[Test]
-    public function listContentsNonRecursive(): void
+    public function listContentsShallow(): void
     {
         $this->adapter->write('a.txt', 'a');
         $this->adapter->write('sub/b.txt', 'b');
 
-        $items = iterator_to_array($this->adapter->listContents('', recursive: false));
-        $keys = array_map(fn($m) => $m->key, $items);
+        $items = iterator_to_array($this->adapter->listContents('', deep: false));
+        $filePaths = array_map(
+            fn($m) => $m->path,
+            array_values(array_filter($items, fn($m) => !$m->isDirectory)),
+        );
 
-        self::assertSame(['a.txt'], $keys);
+        self::assertSame(['a.txt'], $filePaths);
     }
 
     #[Test]
@@ -268,11 +318,11 @@ final class LocalStorageAdapterTest extends TestCase
         $this->adapter->write('uploads/b.txt', 'b');
         $this->adapter->write('other/c.txt', 'c');
 
-        $items = iterator_to_array($this->adapter->listContents('uploads'));
-        $keys = array_map(fn($m) => $m->key, $items);
-        sort($keys);
+        $items = iterator_to_array($this->adapter->listContents('uploads', deep: true));
+        $paths = array_map(fn($m) => $m->path, $items);
+        sort($paths);
 
-        self::assertSame(['uploads/a.txt', 'uploads/b.txt'], $keys);
+        self::assertSame(['uploads/a.txt', 'uploads/b.txt'], $paths);
     }
 
     #[Test]

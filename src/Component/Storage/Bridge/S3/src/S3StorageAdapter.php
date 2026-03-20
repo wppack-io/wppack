@@ -33,11 +33,11 @@ final class S3StorageAdapter extends AbstractStorageAdapter
         return 's3';
     }
 
-    protected function doWrite(string $key, string $contents, array $metadata = []): void
+    protected function doWrite(string $path, string $contents, array $metadata = []): void
     {
         $input = [
             'Bucket' => $this->bucket,
-            'Key' => $this->prefixKey($key),
+            'Key' => $this->prefixPath($path),
             'Body' => $contents,
         ];
 
@@ -53,11 +53,11 @@ final class S3StorageAdapter extends AbstractStorageAdapter
         $this->s3Client->putObject(new PutObjectRequest($input))->resolve();
     }
 
-    protected function doWriteStream(string $key, mixed $resource, array $metadata = []): void
+    protected function doWriteStream(string $path, mixed $resource, array $metadata = []): void
     {
         $input = [
             'Bucket' => $this->bucket,
-            'Key' => $this->prefixKey($key),
+            'Key' => $this->prefixPath($path),
             'Body' => $resource,
         ];
 
@@ -73,31 +73,31 @@ final class S3StorageAdapter extends AbstractStorageAdapter
         $this->s3Client->putObject(new PutObjectRequest($input))->resolve();
     }
 
-    protected function doRead(string $key): string
+    protected function doRead(string $path): string
     {
         try {
             $result = $this->s3Client->getObject(new GetObjectRequest([
                 'Bucket' => $this->bucket,
-                'Key' => $this->prefixKey($key),
+                'Key' => $this->prefixPath($path),
             ]));
 
             return $result->getBody()->getContentAsString();
         } catch (\Throwable $e) {
             if ($this->isNotFoundException($e)) {
-                throw new ObjectNotFoundException($key, $e);
+                throw new ObjectNotFoundException($path, $e);
             }
             throw $e;
         }
     }
 
-    protected function doReadStream(string $key): mixed
+    protected function doReadStream(string $path): mixed
     {
         $stream = null;
 
         try {
             $result = $this->s3Client->getObject(new GetObjectRequest([
                 'Bucket' => $this->bucket,
-                'Key' => $this->prefixKey($key),
+                'Key' => $this->prefixPath($path),
             ]));
 
             $stream = fopen('php://temp', 'r+');
@@ -119,29 +119,29 @@ final class S3StorageAdapter extends AbstractStorageAdapter
             }
 
             if ($this->isNotFoundException($e)) {
-                throw new ObjectNotFoundException($key, $e);
+                throw new ObjectNotFoundException($path, $e);
             }
             throw $e;
         }
     }
 
-    protected function doDelete(string $key): void
+    protected function doDelete(string $path): void
     {
         $this->s3Client->deleteObject(new DeleteObjectRequest([
             'Bucket' => $this->bucket,
-            'Key' => $this->prefixKey($key),
+            'Key' => $this->prefixPath($path),
         ]))->resolve();
     }
 
-    protected function doDeleteMultiple(array $keys): void
+    protected function doDeleteMultiple(array $paths): void
     {
-        if ($keys === []) {
+        if ($paths === []) {
             return;
         }
 
         $objects = array_map(
-            fn(string $key): ObjectIdentifier => new ObjectIdentifier(['Key' => $this->prefixKey($key)]),
-            $keys,
+            fn(string $path): ObjectIdentifier => new ObjectIdentifier(['Key' => $this->prefixPath($path)]),
+            $paths,
         );
 
         // S3 allows max 1000 objects per request
@@ -153,12 +153,12 @@ final class S3StorageAdapter extends AbstractStorageAdapter
         }
     }
 
-    protected function doExists(string $key): bool
+    protected function doFileExists(string $path): bool
     {
         try {
             $this->s3Client->headObject(new HeadObjectRequest([
                 'Bucket' => $this->bucket,
-                'Key' => $this->prefixKey($key),
+                'Key' => $this->prefixPath($path),
             ]))->resolve();
 
             return true;
@@ -170,75 +170,35 @@ final class S3StorageAdapter extends AbstractStorageAdapter
         }
     }
 
-    protected function doCopy(string $sourceKey, string $destinationKey): void
+    protected function doCreateDirectory(string $path): void
     {
-        $this->s3Client->copyObject(new CopyObjectRequest([
+        $dirKey = $this->prefixPath($path);
+
+        if (!str_ends_with($dirKey, '/')) {
+            $dirKey .= '/';
+        }
+
+        $this->s3Client->putObject(new PutObjectRequest([
             'Bucket' => $this->bucket,
-            'CopySource' => $this->bucket . '/' . $this->prefixKey($sourceKey),
-            'Key' => $this->prefixKey($destinationKey),
+            'Key' => $dirKey,
+            'Body' => '',
         ]))->resolve();
     }
 
-    protected function doMetadata(string $key): ObjectMetadata
+    protected function doDeleteDirectory(string $path): void
     {
-        try {
-            $result = $this->s3Client->headObject(new HeadObjectRequest([
-                'Bucket' => $this->bucket,
-                'Key' => $this->prefixKey($key),
-            ]));
-            $result->resolve();
+        $prefix = $this->prefixPath($path);
 
-            $lastModified = $result->getLastModified();
-
-            return new ObjectMetadata(
-                key: $key,
-                size: (int) $result->getContentLength(),
-                lastModified: $lastModified !== null ? \DateTimeImmutable::createFromInterface($lastModified) : null,
-                mimeType: $result->getContentType(),
-            );
-        } catch (\Throwable $e) {
-            if ($this->isNotFoundException($e)) {
-                throw new ObjectNotFoundException($key, $e);
-            }
-            throw $e;
-        }
-    }
-
-    protected function doPublicUrl(string $key): string
-    {
-        $prefixedKey = $this->prefixKey($key);
-
-        if ($this->publicUrl !== null) {
-            return rtrim($this->publicUrl, '/') . '/' . ltrim($prefixedKey, '/');
+        if (!str_ends_with($prefix, '/')) {
+            $prefix .= '/';
         }
 
-        return sprintf('https://%s.s3.amazonaws.com/%s', $this->bucket, $prefixedKey);
-    }
-
-    protected function doTemporaryUrl(string $key, \DateTimeInterface $expiration): string
-    {
-        $input = new GetObjectRequest([
+        $result = $this->s3Client->listObjectsV2(new ListObjectsV2Request([
             'Bucket' => $this->bucket,
-            'Key' => $this->prefixKey($key),
-        ]);
+            'Prefix' => $prefix,
+        ]));
 
-        return $this->s3Client->presign($input, \DateTimeImmutable::createFromInterface($expiration));
-    }
-
-    protected function doListContents(string $prefix, bool $recursive): iterable
-    {
-        $fullPrefix = $this->prefixKey($prefix);
-
-        $input = [
-            'Bucket' => $this->bucket,
-            'Prefix' => $fullPrefix,
-        ];
-
-        if (!$recursive) {
-            $input['Delimiter'] = '/';
-        }
-
-        $result = $this->s3Client->listObjectsV2(new ListObjectsV2Request($input));
+        $objects = [];
 
         foreach ($result as $object) {
             $objectKey = $object->getKey();
@@ -246,39 +206,174 @@ final class S3StorageAdapter extends AbstractStorageAdapter
                 continue;
             }
 
-            $key = $this->stripPrefix($objectKey);
+            $objects[] = new ObjectIdentifier(['Key' => $objectKey]);
+
+            // S3 allows max 1000 objects per DeleteObjects request
+            if (\count($objects) === 1000) {
+                $this->s3Client->deleteObjects(new DeleteObjectsRequest([
+                    'Bucket' => $this->bucket,
+                    'Delete' => new Delete(['Objects' => $objects]),
+                ]))->resolve();
+                $objects = [];
+            }
+        }
+
+        if ($objects !== []) {
+            $this->s3Client->deleteObjects(new DeleteObjectsRequest([
+                'Bucket' => $this->bucket,
+                'Delete' => new Delete(['Objects' => $objects]),
+            ]))->resolve();
+        }
+    }
+
+    protected function doDirectoryExists(string $path): bool
+    {
+        $prefix = $this->prefixPath($path);
+
+        if (!str_ends_with($prefix, '/')) {
+            $prefix .= '/';
+        }
+
+        $result = $this->s3Client->listObjectsV2(new ListObjectsV2Request([
+            'Bucket' => $this->bucket,
+            'Prefix' => $prefix,
+            'MaxKeys' => 1,
+        ]));
+
+        foreach ($result as $object) {
+            return true;
+        }
+
+        return false;
+    }
+
+    protected function doCopy(string $source, string $destination): void
+    {
+        $this->s3Client->copyObject(new CopyObjectRequest([
+            'Bucket' => $this->bucket,
+            'CopySource' => $this->bucket . '/' . $this->prefixPath($source),
+            'Key' => $this->prefixPath($destination),
+        ]))->resolve();
+    }
+
+    protected function doMetadata(string $path): ObjectMetadata
+    {
+        try {
+            $result = $this->s3Client->headObject(new HeadObjectRequest([
+                'Bucket' => $this->bucket,
+                'Key' => $this->prefixPath($path),
+            ]));
+            $result->resolve();
+
+            $lastModified = $result->getLastModified();
+
+            return new ObjectMetadata(
+                path: $path,
+                size: (int) $result->getContentLength(),
+                lastModified: $lastModified !== null ? \DateTimeImmutable::createFromInterface($lastModified) : null,
+                mimeType: $result->getContentType(),
+            );
+        } catch (\Throwable $e) {
+            if ($this->isNotFoundException($e)) {
+                throw new ObjectNotFoundException($path, $e);
+            }
+            throw $e;
+        }
+    }
+
+    protected function doPublicUrl(string $path): string
+    {
+        $prefixedPath = $this->prefixPath($path);
+
+        if ($this->publicUrl !== null) {
+            return rtrim($this->publicUrl, '/') . '/' . ltrim($prefixedPath, '/');
+        }
+
+        return sprintf('https://%s.s3.amazonaws.com/%s', $this->bucket, $prefixedPath);
+    }
+
+    protected function doTemporaryUrl(string $path, \DateTimeInterface $expiration): string
+    {
+        $input = new GetObjectRequest([
+            'Bucket' => $this->bucket,
+            'Key' => $this->prefixPath($path),
+        ]);
+
+        return $this->s3Client->presign($input, \DateTimeImmutable::createFromInterface($expiration));
+    }
+
+    protected function doListContents(string $path, bool $deep): iterable
+    {
+        $fullPrefix = $this->prefixPath($path);
+
+        $input = [
+            'Bucket' => $this->bucket,
+            'Prefix' => $fullPrefix,
+        ];
+
+        if (!$deep) {
+            $input['Delimiter'] = '/';
+        }
+
+        $result = $this->s3Client->listObjectsV2(new ListObjectsV2Request($input));
+
+        // Yield file objects from Contents
+        foreach ($result as $object) {
+            $objectKey = $object->getKey();
+            if ($objectKey === null) {
+                continue;
+            }
+
+            $strippedPath = $this->stripPath($objectKey);
             $lastModified = $object->getLastModified();
 
             yield new ObjectMetadata(
-                key: $key,
+                path: $strippedPath,
                 size: (int) $object->getSize(),
                 lastModified: $lastModified !== null ? \DateTimeImmutable::createFromInterface($lastModified) : null,
             );
         }
+
+        // Yield directory entries from CommonPrefixes (only in non-deep mode)
+        if (!$deep) {
+            foreach ($result->getCommonPrefixes() as $commonPrefix) {
+                $prefixValue = $commonPrefix->getPrefix();
+                if ($prefixValue === null) {
+                    continue;
+                }
+
+                $dirPath = $this->stripPath($prefixValue);
+
+                yield new ObjectMetadata(
+                    path: rtrim($dirPath, '/') . '/',
+                    isDirectory: true,
+                );
+            }
+        }
     }
 
-    private function prefixKey(string $key): string
+    private function prefixPath(string $path): string
     {
         if ($this->prefix === '') {
-            return $key;
+            return $path;
         }
 
-        return rtrim($this->prefix, '/') . '/' . ltrim($key, '/');
+        return rtrim($this->prefix, '/') . '/' . ltrim($path, '/');
     }
 
-    private function stripPrefix(string $key): string
+    private function stripPath(string $path): string
     {
         if ($this->prefix === '') {
-            return $key;
+            return $path;
         }
 
         $prefix = rtrim($this->prefix, '/') . '/';
 
-        if (str_starts_with($key, $prefix)) {
-            return substr($key, \strlen($prefix));
+        if (str_starts_with($path, $prefix)) {
+            return substr($path, \strlen($prefix));
         }
 
-        return $key;
+        return $path;
     }
 
     private function isNotFoundException(\Throwable $e): bool

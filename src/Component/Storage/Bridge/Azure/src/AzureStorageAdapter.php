@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Storage\Bridge\Azure;
 
 use AzureOss\Storage\Blob\Models\Blob;
+use AzureOss\Storage\Blob\Models\BlobPrefix;
 use AzureOss\Storage\Blob\Models\UploadBlobOptions;
 use AzureOss\Storage\Blob\Exceptions\BlobNotFoundException;
 use AzureOss\Storage\Blob\Models\BlobHttpHeaders;
@@ -26,38 +27,38 @@ final class AzureStorageAdapter extends AbstractStorageAdapter
         return 'azure';
     }
 
-    protected function doWrite(string $key, string $contents, array $metadata = []): void
+    protected function doWrite(string $path, string $contents, array $metadata = []): void
     {
         $options = $this->buildUploadOptions($metadata);
 
-        $this->client->upload($this->prefixKey($key), $contents, $options);
+        $this->client->upload($this->prefixPath($path), $contents, $options);
     }
 
-    protected function doWriteStream(string $key, mixed $resource, array $metadata = []): void
+    protected function doWriteStream(string $path, mixed $resource, array $metadata = []): void
     {
         $options = $this->buildUploadOptions($metadata);
 
-        $this->client->upload($this->prefixKey($key), $resource, $options);
+        $this->client->upload($this->prefixPath($path), $resource, $options);
     }
 
-    protected function doRead(string $key): string
+    protected function doRead(string $path): string
     {
         try {
-            return $this->client->downloadStreamingContent($this->prefixKey($key))->getContents();
+            return $this->client->downloadStreamingContent($this->prefixPath($path))->getContents();
         } catch (\Throwable $e) {
             if ($this->isNotFoundException($e)) {
-                throw new ObjectNotFoundException($key, $e);
+                throw new ObjectNotFoundException($path, $e);
             }
             throw $e;
         }
     }
 
-    protected function doReadStream(string $key): mixed
+    protected function doReadStream(string $path): mixed
     {
         $stream = null;
 
         try {
-            $body = $this->client->downloadStreamingContent($this->prefixKey($key));
+            $body = $this->client->downloadStreamingContent($this->prefixPath($path));
 
             $stream = fopen('php://temp', 'r+');
             \assert($stream !== false);
@@ -78,21 +79,21 @@ final class AzureStorageAdapter extends AbstractStorageAdapter
             }
 
             if ($this->isNotFoundException($e)) {
-                throw new ObjectNotFoundException($key, $e);
+                throw new ObjectNotFoundException($path, $e);
             }
             throw $e;
         }
     }
 
-    protected function doDelete(string $key): void
+    protected function doDelete(string $path): void
     {
-        $this->client->delete($this->prefixKey($key));
+        $this->client->delete($this->prefixPath($path));
     }
 
-    protected function doExists(string $key): bool
+    protected function doFileExists(string $path): bool
     {
         try {
-            $this->client->getProperties($this->prefixKey($key));
+            $this->client->getProperties($this->prefixPath($path));
 
             return true;
         } catch (\Throwable $e) {
@@ -103,70 +104,108 @@ final class AzureStorageAdapter extends AbstractStorageAdapter
         }
     }
 
-    protected function doCopy(string $sourceKey, string $destinationKey): void
+    protected function doCreateDirectory(string $path): void
     {
-        $sourceUri = $this->client->getBlobUri($this->prefixKey($sourceKey));
-        $this->client->syncCopyFromUri($this->prefixKey($destinationKey), $sourceUri);
+        $dirPath = rtrim($this->prefixPath($path), '/') . '/';
+        $this->client->upload($dirPath, '', null);
     }
 
-    protected function doMetadata(string $key): ObjectMetadata
+    protected function doDeleteDirectory(string $path): void
+    {
+        $dirPrefix = rtrim($this->prefixPath($path), '/') . '/';
+        $blobs = $this->client->listBlobsByHierarchy($dirPrefix, '');
+
+        foreach ($blobs as $blob) {
+            if ($blob instanceof Blob) {
+                $this->client->delete($blob->name);
+            }
+        }
+    }
+
+    protected function doDirectoryExists(string $path): bool
+    {
+        $dirPrefix = rtrim($this->prefixPath($path), '/') . '/';
+        $blobs = $this->client->listBlobsByHierarchy($dirPrefix, '');
+
+        foreach ($blobs as $_) {
+            return true;
+        }
+
+        return false;
+    }
+
+    protected function doCopy(string $source, string $destination): void
+    {
+        $sourceUri = $this->client->getBlobUri($this->prefixPath($source));
+        $this->client->syncCopyFromUri($this->prefixPath($destination), $sourceUri);
+    }
+
+    protected function doMetadata(string $path): ObjectMetadata
     {
         try {
-            $properties = $this->client->getProperties($this->prefixKey($key));
+            $properties = $this->client->getProperties($this->prefixPath($path));
 
             return new ObjectMetadata(
-                key: $key,
+                path: $path,
                 size: $properties->contentLength,
                 lastModified: \DateTimeImmutable::createFromInterface($properties->lastModified),
                 mimeType: $properties->contentType,
             );
         } catch (\Throwable $e) {
             if ($this->isNotFoundException($e)) {
-                throw new ObjectNotFoundException($key, $e);
+                throw new ObjectNotFoundException($path, $e);
             }
             throw $e;
         }
     }
 
-    protected function doPublicUrl(string $key): string
+    protected function doPublicUrl(string $path): string
     {
-        $prefixedKey = $this->prefixKey($key);
+        $prefixedPath = $this->prefixPath($path);
 
         if ($this->publicUrl !== null) {
-            return rtrim($this->publicUrl, '/') . '/' . ltrim($prefixedKey, '/');
+            return rtrim($this->publicUrl, '/') . '/' . ltrim($prefixedPath, '/');
         }
 
-        return (string) $this->client->getBlobUri($prefixedKey);
+        return (string) $this->client->getBlobUri($prefixedPath);
     }
 
-    protected function doTemporaryUrl(string $key, \DateTimeInterface $expiration): string
+    protected function doTemporaryUrl(string $path, \DateTimeInterface $expiration): string
     {
-        $prefixedKey = $this->prefixKey($key);
+        $prefixedPath = $this->prefixPath($path);
         $sasBuilder = BlobSasBuilder::new()
             ->setExpiresOn(\DateTimeImmutable::createFromInterface($expiration))
             ->setPermissions('r');
 
-        return (string) $this->client->generateSasUri($prefixedKey, $sasBuilder);
+        return (string) $this->client->generateSasUri($prefixedPath, $sasBuilder);
     }
 
-    protected function doListContents(string $prefix, bool $recursive): iterable
+    protected function doListContents(string $path, bool $deep): iterable
     {
-        $fullPrefix = $this->prefixKey($prefix);
+        $fullPrefix = $this->prefixPath($path);
         $prefixArg = $fullPrefix !== '' ? $fullPrefix : null;
 
-        $blobs = $recursive
+        $blobs = $deep
             ? $this->client->listBlobsByHierarchy($prefixArg, '')
             : $this->client->listBlobsByHierarchy($prefixArg, '/');
 
         foreach ($blobs as $blob) {
-            if (!$blob instanceof Blob) {
+            if ($blob instanceof BlobPrefix) {
+                $dirPath = $this->stripPath($blob->name);
+
+                yield new ObjectMetadata(
+                    path: $dirPath,
+                    isDirectory: true,
+                );
+
                 continue;
             }
 
-            $blobKey = $this->stripPrefix($blob->name);
+            /** @var Blob $blob */
+            $blobPath = $this->stripPath($blob->name);
 
             yield new ObjectMetadata(
-                key: $blobKey,
+                path: $blobPath,
                 size: $blob->properties->contentLength,
                 lastModified: \DateTimeImmutable::createFromInterface($blob->properties->lastModified),
                 mimeType: $blob->properties->contentType,
@@ -205,28 +244,28 @@ final class AzureStorageAdapter extends AbstractStorageAdapter
         );
     }
 
-    private function prefixKey(string $key): string
+    private function prefixPath(string $path): string
     {
         if ($this->prefix === '') {
-            return $key;
+            return $path;
         }
 
-        return rtrim($this->prefix, '/') . '/' . ltrim($key, '/');
+        return rtrim($this->prefix, '/') . '/' . ltrim($path, '/');
     }
 
-    private function stripPrefix(string $key): string
+    private function stripPath(string $path): string
     {
         if ($this->prefix === '') {
-            return $key;
+            return $path;
         }
 
         $prefix = rtrim($this->prefix, '/') . '/';
 
-        if (str_starts_with($key, $prefix)) {
-            return substr($key, \strlen($prefix));
+        if (str_starts_with($path, $prefix)) {
+            return substr($path, \strlen($prefix));
         }
 
-        return $key;
+        return $path;
     }
 
     private function isNotFoundException(\Throwable $e): bool
