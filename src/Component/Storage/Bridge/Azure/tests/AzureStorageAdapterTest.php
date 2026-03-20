@@ -609,7 +609,7 @@ final class AzureStorageAdapterTest extends TestCase
     }
 
     #[Test]
-    public function stripPrefixReturnsBlobKeyWhenPrefixDoesNotMatch(): void
+    public function stripPathReturnsBlobPathWhenPrefixDoesNotMatch(): void
     {
         $now = new \DateTimeImmutable();
 
@@ -624,7 +624,7 @@ final class AzureStorageAdapterTest extends TestCase
         $items = iterator_to_array($adapter->listContents('', deep: true));
 
         self::assertCount(1, $items);
-        // Since blob key doesn't start with "uploads/", it's returned as-is
+        // Since blob name doesn't start with "uploads/", it's returned as-is
         self::assertSame('other/file.txt', $items[0]->path);
     }
 

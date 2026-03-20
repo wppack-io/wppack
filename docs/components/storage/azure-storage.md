@@ -75,15 +75,16 @@ $url = $adapter->publicUrl('images/photo.jpg');
 
 ```php
 use AzureOss\Storage\Blob\BlobServiceClient;
+use WpPack\Component\Storage\Bridge\Azure\AzureBlobClient;
 use WpPack\Component\Storage\Bridge\Azure\AzureStorageAdapter;
 
 $serviceClient = BlobServiceClient::fromConnectionString(
     'DefaultEndpointsProtocol=https;AccountName=myaccount;AccountKey=...',
 );
+$blobClient = new AzureBlobClient($serviceClient, 'mycontainer');
 
 $adapter = new AzureStorageAdapter(
-    serviceClient: $serviceClient,
-    container: 'mycontainer',
+    client: $blobClient,
     prefix: 'uploads',
     publicUrl: 'https://cdn.example.com',
 );
@@ -93,8 +94,7 @@ $adapter = new AzureStorageAdapter(
 
 | パラメータ | 型 | 説明 |
 |-----------|------|------|
-| `$serviceClient` | `BlobServiceClient` | Azure Blob Service クライアント |
-| `$container` | `string` | コンテナ名 |
+| `$client` | `AzureBlobClientInterface` | Azure Blob クライアント |
 | `$prefix` | `string` | パスプレフィックス（デフォルト: `''`） |
 | `$publicUrl` | `?string` | 公開ベース URL（デフォルト: `null`） |
 
@@ -104,12 +104,12 @@ $adapter = new AzureStorageAdapter(
 
 ```php
 // 公開 URL が設定されている場合
-$adapter = new AzureStorageAdapter($serviceClient, 'mycontainer', 'uploads', 'https://cdn.example.com');
+$adapter = new AzureStorageAdapter($blobClient, 'uploads', 'https://cdn.example.com');
 $adapter->publicUrl('images/photo.jpg');
 // => 'https://cdn.example.com/uploads/images/photo.jpg'
 
 // 公開 URL なしの場合（Azure Blob 直接 URL）
-$adapter = new AzureStorageAdapter($serviceClient, 'mycontainer', 'uploads');
+$adapter = new AzureStorageAdapter($blobClient, 'uploads');
 $adapter->publicUrl('images/photo.jpg');
 // => 'https://myaccount.blob.core.windows.net/mycontainer/uploads/images/photo.jpg'
 ```
