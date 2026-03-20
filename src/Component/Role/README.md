@@ -35,7 +35,7 @@ final class ProductController {}
 
 ## Documentation
 
-See [docs/components/role.md](../../../docs/components/role.md) for full documentation.
+See [docs/components/role/](../../../docs/components/role/) for full documentation.
 
 ## License
 
