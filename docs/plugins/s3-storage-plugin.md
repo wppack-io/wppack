@@ -11,13 +11,14 @@ S3StoragePlugin は S3 固有の機能を提供する薄いレイヤーです。
 | Stream Wrapper (`s3://` プロトコル) | [Storage コンポーネント](../components/storage/stream-wrapper.md) `StorageStreamWrapper` |
 | WordPress フック統合（upload_dir, attachment URL 等） | [Media コンポーネント](../components/media/storage.md) Subscriber 群 |
 | S3 アダプタ | [S3Storage Bridge](../components/storage/s3-storage.md) `S3StorageAdapter` |
-| Pre-signed URL | S3StoragePlugin |
+| Pre-signed URL 生成 (`temporaryUploadUrl`) | [Storage コンポーネント](../components/storage/README.md) `StorageAdapterInterface` |
+| Pre-signed URL REST API / ポリシー | S3StoragePlugin |
 | S3 イベント処理 | S3StoragePlugin |
 | S3 固有の設定 | S3StoragePlugin |
 
 S3StoragePlugin が担うのは以下の S3 固有機能のみです:
 
-- **Pre-signed URL**: ブラウザから S3 に直接アップロード（サーバー負荷なし）
+- **Pre-signed URL REST API**: Storage コンポーネントの `temporaryUploadUrl()` を利用し、REST エンドポイントとアップロードポリシーを提供
 - **S3 イベント処理**: S3 イベント → SQS → Lambda での非同期 attachment 登録
 - **S3 固有設定**: `S3StorageConfiguration`（環境変数から S3 接続設定を生成）
 - **サービス組み立て**: DI コンテナで Storage / Media コンポーネントを S3 向けに組み立て
@@ -31,8 +32,9 @@ S3StoragePlugin（薄いレイヤー）
 ├── Configuration/
 │   └── S3StorageConfiguration         ← S3 固有設定、環境変数から生成
 ├── PreSignedUrl/
-│   ├── PreSignedUrlGenerator          ← Pre-signed PUT URL 生成
-│   ├── PreSignedUrlController         ← REST API エンドポイント
+│   ├── PreSignedUrlGenerator          ← StorageAdapterInterface::temporaryUploadUrl() ラッパー
+│   ├── PreSignedUrlResult             ← Pre-signed URL 結果 VO
+│   ├── PreSignedUrlController         ← REST API エンドポイント（__invoke）
 │   └── UploadPolicy                   ← ファイルタイプ・サイズ制限
 ├── Message/
 │   ├── S3ObjectCreatedMessage         ← S3 イベント DTO
@@ -45,10 +47,10 @@ S3StoragePlugin（薄いレイヤー）
     └── S3StoragePluginServiceProvider ← サービス組み立て
 
 Storage コンポーネント（プロバイダ非依存）
+├── Adapter\StorageAdapterInterface    ← ストレージコントラクト（temporaryUploadUrl 含む）
+├── Adapter\Storage                    ← ファサード
 ├── StreamWrapper\StorageStreamWrapper ← stream_wrapper_register
-├── StreamWrapper\StatCache            ← url_stat キャッシュ
-├── Adapter\StorageAdapterInterface    ← ストレージコントラクト
-└── Bridge\S3\S3StorageAdapter         ← S3 アダプタ実装
+└── StreamWrapper\StatCache            ← url_stat キャッシュ
 
 Media コンポーネント（WordPress 統合）
 ├── Storage\Subscriber\UploadDirSubscriber      ← upload_dir フィルタ
@@ -115,12 +117,12 @@ WordPress コア / プラグイン
 
 | パッケージ | 用途 |
 |-----------|------|
-| wppack/storage | ストレージ抽象化（`StorageAdapterInterface`, `StorageStreamWrapper`） |
+| wppack/storage | ストレージ抽象化（`StorageAdapterInterface`, `temporaryUploadUrl`, `StorageStreamWrapper`） |
 | wppack/s3-storage | S3 アダプタ（`S3StorageAdapter`） |
 | wppack/media | WordPress メディア統合（Subscriber 群, `StorageImageEditor`） |
 | wppack/hook | WordPress フック統合 |
 | wppack/messenger | メッセージバス・ハンドラ基盤（SQS 経由の非同期処理） |
-| async-aws/s3 | S3 API（Pre-signed URL 生成含む） |
+| async-aws/s3 | S3 API（S3StorageAdapter 経由で使用） |
 
 ## 名前空間
 
@@ -134,7 +136,8 @@ WpPack\Plugin\S3StoragePlugin\
 
 #### PreSignedUrlGenerator
 
-AsyncAWS S3 を使用して Pre-signed PUT URL を生成する。
+StorageAdapterInterface の `temporaryUploadUrl()` を使用して Pre-signed PUT URL を生成する。
+プロバイダ非依存のため、S3 / Azure / GCS いずれのアダプタでも動作する。
 
 ```php
 namespace WpPack\Plugin\S3StoragePlugin\PreSignedUrl;
@@ -142,9 +145,7 @@ namespace WpPack\Plugin\S3StoragePlugin\PreSignedUrl;
 final class PreSignedUrlGenerator
 {
     public function __construct(
-        private readonly S3Client $s3Client,
-        private readonly string $bucket,
-        private readonly string $prefix,
+        private readonly StorageAdapterInterface $storage,
     ) {}
 
     public function generate(
@@ -169,9 +170,9 @@ final class PreSignedUrlController
      * POST /wp-json/wppack/v1/s3/presigned-url
      *
      * Request: { "filename": "photo.jpg", "content_type": "image/jpeg", "content_length": 1048576 }
-     * Response: { "url": "https://...", "key": "uploads/2024/01/photo.jpg", "expires_in": 3600 }
+     * Response: { "url": "https://...", "key": "2024/01/a1b2c3d4-photo.jpg", "expires_in": 3600 }
      */
-    public function handleRequest(\WP_REST_Request $request): \WP_REST_Response;
+    public function __invoke(Request $request): JsonResponse;
 }
 ```
 
@@ -335,7 +336,7 @@ use WpPack\Component\Storage\Adapter\StorageAdapterInterface;
 
 $adapter = $container->get(StorageAdapterInterface::class);
 $adapter->write(
-    key: 'uploads/2024/01/document.pdf',
+    path: 'uploads/2024/01/document.pdf',
     contents: file_get_contents($localPath),
     metadata: ['Content-Type' => 'application/pdf'],
 );
