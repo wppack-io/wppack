@@ -52,7 +52,7 @@ final class TextDomainRegistry
     /**
      * @return array<string, PluginTextDomain|ThemeTextDomain>
      */
-    public function getRegisteredDomains(): array
+    public function all(): array
     {
         return $this->domains;
     }

@@ -85,7 +85,7 @@ final class RoleManager
         }
     }
 
-    public function remove(string $roleName): void
+    public function unregister(string $roleName): void
     {
         remove_role($roleName);
         unset($this->definitions[$roleName]);

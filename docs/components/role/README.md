@@ -117,7 +117,7 @@ $definitions = $manager->all(); // array<string, RoleDefinition>
 $manager->synchronize();
 
 // ロール削除
-$manager->remove('shop_manager');
+$manager->unregister('shop_manager');
 ```
 
 ### `synchronize()` の動作

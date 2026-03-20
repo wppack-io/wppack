@@ -46,7 +46,7 @@ use WpPack\Component\DashboardWidget\DashboardWidgetRegistry;
 
 $registry = new DashboardWidgetRegistry();
 $registry->register(new SiteStatsWidget());
-$registry->remove('site_stats_widget');
+$registry->unregister('site_stats_widget');
 ```
 
 ### Named Hook Attributes

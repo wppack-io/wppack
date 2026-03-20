@@ -11,7 +11,7 @@ final class DashboardWidgetRegistry
         $widget->register();
     }
 
-    public function remove(string $widgetId): void
+    public function unregister(string $widgetId): void
     {
         remove_meta_box($widgetId, 'dashboard', 'normal');
     }

@@ -67,20 +67,20 @@ final class TextDomainRegistryTest extends TestCase
     }
 
     #[Test]
-    public function getRegisteredDomainsReturnsEmptyByDefault(): void
+    public function allReturnsEmptyByDefault(): void
     {
         $registry = new TextDomainRegistry();
 
-        self::assertSame([], $registry->getRegisteredDomains());
+        self::assertSame([], $registry->all());
     }
 
     #[Test]
-    public function getRegisteredDomainsReturnsRegisteredDomains(): void
+    public function allReturnsRegisteredDomains(): void
     {
         $registry = new TextDomainRegistry();
         $registry->register(new RegistryPluginStub());
 
-        $domains = $registry->getRegisteredDomains();
+        $domains = $registry->all();
 
         self::assertCount(1, $domains);
         self::assertArrayHasKey('registry-plugin', $domains);

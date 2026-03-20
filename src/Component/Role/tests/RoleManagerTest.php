@@ -136,7 +136,7 @@ final class RoleManagerTest extends TestCase
     }
 
     #[Test]
-    public function removeDeletesRoleFromWordPressAndDefinitions(): void
+    public function unregisterDeletesRoleFromWordPressAndDefinitions(): void
     {
         $this->manager->addDefinition(new RoleDefinition(
             'remove_test_role',
@@ -147,7 +147,7 @@ final class RoleManagerTest extends TestCase
 
         self::assertNotNull(get_role('remove_test_role'));
 
-        $this->manager->remove('remove_test_role');
+        $this->manager->unregister('remove_test_role');
 
         self::assertNull(get_role('remove_test_role'));
         self::assertArrayNotHasKey('remove_test_role', $this->manager->all());

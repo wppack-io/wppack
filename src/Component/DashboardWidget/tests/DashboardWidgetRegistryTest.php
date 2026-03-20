@@ -36,9 +36,9 @@ final class DashboardWidgetRegistryTest extends TestCase
     }
 
     #[Test]
-    public function removeCallsRemoveMetaBox(): void
+    public function unregisterCallsRemoveMetaBox(): void
     {
-        $this->registry->remove('test_registry_widget');
+        $this->registry->unregister('test_registry_widget');
 
         // If no exception was thrown, removal succeeded
         self::assertTrue(true);
@@ -57,7 +57,7 @@ final class DashboardWidgetRegistryTest extends TestCase
     }
 
     #[Test]
-    public function removeRemovesWidgetFromMetaBoxes(): void
+    public function unregisterRemovesWidgetFromMetaBoxes(): void
     {
         global $wp_meta_boxes;
 
@@ -66,13 +66,13 @@ final class DashboardWidgetRegistryTest extends TestCase
 
         self::assertArrayHasKey($widget->id, $wp_meta_boxes['dashboard'][$widget->context][$widget->priority]);
 
-        $this->registry->remove($widget->id);
+        $this->registry->unregister($widget->id);
 
         self::assertFalse($wp_meta_boxes['dashboard'][$widget->context][$widget->priority][$widget->id]);
     }
 
     #[Test]
-    public function registerAndRemoveRoundTrip(): void
+    public function registerAndUnregisterRoundTrip(): void
     {
         global $wp_meta_boxes;
 
@@ -81,7 +81,7 @@ final class DashboardWidgetRegistryTest extends TestCase
         $this->registry->register($widget);
         self::assertArrayHasKey($widget->id, $wp_meta_boxes['dashboard'][$widget->context][$widget->priority]);
 
-        $this->registry->remove($widget->id);
+        $this->registry->unregister($widget->id);
         self::assertFalse($wp_meta_boxes['dashboard'][$widget->context][$widget->priority][$widget->id]);
     }
 

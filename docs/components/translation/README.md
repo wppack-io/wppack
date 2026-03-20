@@ -193,7 +193,7 @@ TextDomainRegistry::loadTheme('my-theme', 'languages');
 
 ```php
 $registry->has('my-plugin');          // bool
-$registry->getRegisteredDomains();    // array<string, PluginTextDomain|ThemeTextDomain>
+$registry->all();                     // array<string, PluginTextDomain|ThemeTextDomain>
 ```
 
 ## Named Hook アトリビュート
