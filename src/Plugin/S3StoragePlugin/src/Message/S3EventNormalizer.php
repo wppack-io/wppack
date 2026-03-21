@@ -7,10 +7,10 @@ namespace WpPack\Plugin\S3StoragePlugin\Message;
 final readonly class S3EventNormalizer
 {
     /**
-     * Parse S3 Event Notification JSON into S3ObjectCreatedMessage objects.
+     * Parse S3 Event Notification JSON into message objects.
      *
      * @param array<string, mixed> $event
-     * @return list<S3ObjectCreatedMessage>
+     * @return list<S3ObjectCreatedMessage|S3ObjectRemovedMessage>
      */
     public function normalize(array $event): array
     {
@@ -20,10 +20,6 @@ final readonly class S3EventNormalizer
         $messages = [];
 
         foreach ($records as $record) {
-            if (!$this->isObjectCreatedEvent($record)) {
-                continue;
-            }
-
             /** @var array<string, mixed> $s3Data */
             $s3Data = $record['s3'] ?? [];
 
@@ -35,19 +31,24 @@ final readonly class S3EventNormalizer
 
             $bucket = (string) ($bucketData['name'] ?? '');
             $key = urldecode((string) ($objectData['key'] ?? ''));
-            $size = (int) ($objectData['size'] ?? 0);
-            $eTag = (string) ($objectData['eTag'] ?? '');
 
             if ($bucket === '' || $key === '') {
                 continue;
             }
 
-            $messages[] = new S3ObjectCreatedMessage(
-                bucket: $bucket,
-                key: $key,
-                size: $size,
-                eTag: $eTag,
-            );
+            if ($this->isObjectCreatedEvent($record)) {
+                $messages[] = new S3ObjectCreatedMessage(
+                    bucket: $bucket,
+                    key: $key,
+                    size: (int) ($objectData['size'] ?? 0),
+                    eTag: (string) ($objectData['eTag'] ?? ''),
+                );
+            } elseif ($this->isObjectRemovedEvent($record)) {
+                $messages[] = new S3ObjectRemovedMessage(
+                    bucket: $bucket,
+                    key: $key,
+                );
+            }
         }
 
         return $messages;
@@ -61,5 +62,15 @@ final readonly class S3EventNormalizer
         $eventName = (string) ($record['eventName'] ?? '');
 
         return str_starts_with($eventName, 's3:ObjectCreated:');
+    }
+
+    /**
+     * @param array<string, mixed> $record
+     */
+    private function isObjectRemovedEvent(array $record): bool
+    {
+        $eventName = (string) ($record['eventName'] ?? '');
+
+        return str_starts_with($eventName, 's3:ObjectRemoved:');
     }
 }

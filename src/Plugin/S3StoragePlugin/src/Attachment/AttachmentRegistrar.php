@@ -87,6 +87,41 @@ final readonly class AttachmentRegistrar
         }
     }
 
+    public function unregister(string $key): ?int
+    {
+        if ($this->isResizedImage($key)) {
+            return null;
+        }
+
+        $blogId = $this->parseBlogId($key);
+        $isMultisite = $blogId > 1;
+
+        if ($isMultisite) {
+            switch_to_blog($blogId);
+        }
+
+        try {
+            $relativePath = $this->extractRelativePath($key, $blogId);
+            $existingId = $this->findExistingAttachment($relativePath);
+
+            if ($existingId === null) {
+                $this->logger?->debug('No attachment found for "{path}", skipping deletion.', [
+                    'path' => $relativePath,
+                ]);
+
+                return null;
+            }
+
+            wp_delete_attachment($existingId, true);
+
+            return $existingId;
+        } finally {
+            if ($isMultisite) {
+                restore_current_blog();
+            }
+        }
+    }
+
     /**
      * Detect resized/derivative images that should not create new attachments.
      *

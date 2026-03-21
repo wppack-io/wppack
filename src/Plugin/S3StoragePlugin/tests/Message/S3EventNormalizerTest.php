@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Plugin\S3StoragePlugin\Message\S3EventNormalizer;
 use WpPack\Plugin\S3StoragePlugin\Message\S3ObjectCreatedMessage;
+use WpPack\Plugin\S3StoragePlugin\Message\S3ObjectRemovedMessage;
 
 final class S3EventNormalizerTest extends TestCase
 {
@@ -130,32 +131,10 @@ final class S3EventNormalizerTest extends TestCase
     }
 
     #[Test]
-    public function normalizeFiltersNonObjectCreatedEvents(): void
+    public function normalizeFiltersUnrecognizedEvents(): void
     {
         $event = [
             'Records' => [
-                [
-                    'eventName' => 's3:ObjectRemoved:Delete',
-                    's3' => [
-                        'bucket' => ['name' => 'my-bucket'],
-                        'object' => [
-                            'key' => 'uploads/deleted.jpg',
-                            'size' => 100,
-                            'eTag' => 'etag1',
-                        ],
-                    ],
-                ],
-                [
-                    'eventName' => 's3:ObjectCreated:Put',
-                    's3' => [
-                        'bucket' => ['name' => 'my-bucket'],
-                        'object' => [
-                            'key' => 'uploads/created.jpg',
-                            'size' => 200,
-                            'eTag' => 'etag2',
-                        ],
-                    ],
-                ],
                 [
                     'eventName' => 's3:Replication:OperationCompletedReplication',
                     's3' => [
@@ -167,13 +146,23 @@ final class S3EventNormalizerTest extends TestCase
                         ],
                     ],
                 ],
+                [
+                    'eventName' => 's3:ObjectRestore:Completed',
+                    's3' => [
+                        'bucket' => ['name' => 'my-bucket'],
+                        'object' => [
+                            'key' => 'uploads/restored.jpg',
+                            'size' => 400,
+                            'eTag' => 'etag4',
+                        ],
+                    ],
+                ],
             ],
         ];
 
         $messages = $this->normalizer->normalize($event);
 
-        self::assertCount(1, $messages);
-        self::assertSame('uploads/created.jpg', $messages[0]->key);
+        self::assertSame([], $messages);
     }
 
     #[Test]
@@ -250,5 +239,152 @@ final class S3EventNormalizerTest extends TestCase
         $messages = $this->normalizer->normalize($event);
 
         self::assertCount(4, $messages);
+    }
+
+    #[Test]
+    public function normalizeObjectRemovedDeleteEvent(): void
+    {
+        $event = [
+            'Records' => [
+                [
+                    'eventName' => 's3:ObjectRemoved:Delete',
+                    's3' => [
+                        'bucket' => ['name' => 'my-bucket'],
+                        'object' => [
+                            'key' => 'uploads/2024/01/deleted.jpg',
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        $messages = $this->normalizer->normalize($event);
+
+        self::assertCount(1, $messages);
+        self::assertInstanceOf(S3ObjectRemovedMessage::class, $messages[0]);
+        self::assertSame('my-bucket', $messages[0]->bucket);
+        self::assertSame('uploads/2024/01/deleted.jpg', $messages[0]->key);
+    }
+
+    #[Test]
+    public function normalizeObjectRemovedDeleteMarkerCreatedEvent(): void
+    {
+        $event = [
+            'Records' => [
+                [
+                    'eventName' => 's3:ObjectRemoved:DeleteMarkerCreated',
+                    's3' => [
+                        'bucket' => ['name' => 'my-bucket'],
+                        'object' => [
+                            'key' => 'uploads/2024/01/versioned.jpg',
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        $messages = $this->normalizer->normalize($event);
+
+        self::assertCount(1, $messages);
+        self::assertInstanceOf(S3ObjectRemovedMessage::class, $messages[0]);
+        self::assertSame('uploads/2024/01/versioned.jpg', $messages[0]->key);
+    }
+
+    #[Test]
+    public function normalizeMixedCreatedAndRemovedEvents(): void
+    {
+        $event = [
+            'Records' => [
+                [
+                    'eventName' => 's3:ObjectCreated:Put',
+                    's3' => [
+                        'bucket' => ['name' => 'my-bucket'],
+                        'object' => [
+                            'key' => 'uploads/created.jpg',
+                            'size' => 200,
+                            'eTag' => 'etag1',
+                        ],
+                    ],
+                ],
+                [
+                    'eventName' => 's3:ObjectRemoved:Delete',
+                    's3' => [
+                        'bucket' => ['name' => 'my-bucket'],
+                        'object' => [
+                            'key' => 'uploads/deleted.jpg',
+                        ],
+                    ],
+                ],
+                [
+                    'eventName' => 's3:Replication:OperationCompletedReplication',
+                    's3' => [
+                        'bucket' => ['name' => 'my-bucket'],
+                        'object' => [
+                            'key' => 'uploads/replicated.jpg',
+                            'size' => 300,
+                            'eTag' => 'etag3',
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        $messages = $this->normalizer->normalize($event);
+
+        self::assertCount(2, $messages);
+        self::assertInstanceOf(S3ObjectCreatedMessage::class, $messages[0]);
+        self::assertSame('uploads/created.jpg', $messages[0]->key);
+        self::assertInstanceOf(S3ObjectRemovedMessage::class, $messages[1]);
+        self::assertSame('uploads/deleted.jpg', $messages[1]->key);
+    }
+
+    #[Test]
+    public function normalizeObjectRemovedUrlDecodesKeys(): void
+    {
+        $event = [
+            'Records' => [
+                [
+                    'eventName' => 's3:ObjectRemoved:Delete',
+                    's3' => [
+                        'bucket' => ['name' => 'my-bucket'],
+                        'object' => [
+                            'key' => 'uploads/2024/01/my+photo+%28copy%29.jpg',
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        $messages = $this->normalizer->normalize($event);
+
+        self::assertCount(1, $messages);
+        self::assertSame('uploads/2024/01/my photo (copy).jpg', $messages[0]->key);
+    }
+
+    #[Test]
+    public function normalizeObjectRemovedSkipsEmptyBucketOrKey(): void
+    {
+        $event = [
+            'Records' => [
+                [
+                    'eventName' => 's3:ObjectRemoved:Delete',
+                    's3' => [
+                        'bucket' => ['name' => ''],
+                        'object' => ['key' => 'uploads/file.jpg'],
+                    ],
+                ],
+                [
+                    'eventName' => 's3:ObjectRemoved:Delete',
+                    's3' => [
+                        'bucket' => ['name' => 'my-bucket'],
+                        'object' => ['key' => ''],
+                    ],
+                ],
+            ],
+        ];
+
+        $messages = $this->normalizer->normalize($event);
+
+        self::assertSame([], $messages);
     }
 }

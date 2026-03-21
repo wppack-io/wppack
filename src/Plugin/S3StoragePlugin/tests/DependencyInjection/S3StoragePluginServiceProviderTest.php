@@ -25,6 +25,7 @@ use WpPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
 use WpPack\Plugin\S3StoragePlugin\DependencyInjection\S3StoragePluginServiceProvider;
 use WpPack\Plugin\S3StoragePlugin\Handler\GenerateThumbnailsHandler;
 use WpPack\Plugin\S3StoragePlugin\Handler\S3ObjectCreatedHandler;
+use WpPack\Plugin\S3StoragePlugin\Handler\S3ObjectRemovedHandler;
 use WpPack\Plugin\S3StoragePlugin\Message\S3EventNormalizer;
 use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\PreSignedUrlController;
 use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\PreSignedUrlGenerator;
@@ -268,6 +269,22 @@ final class S3StoragePluginServiceProviderTest extends TestCase
     }
 
     #[Test]
+    public function registersS3ObjectRemovedHandler(): void
+    {
+        $this->provider->register($this->builder);
+
+        self::assertTrue($this->builder->hasDefinition(S3ObjectRemovedHandler::class));
+
+        $definition = $this->builder->findDefinition(S3ObjectRemovedHandler::class);
+        self::assertTrue($definition->hasTag('messenger.message_handler'));
+
+        $arguments = $definition->getArguments();
+        self::assertCount(1, $arguments);
+        self::assertInstanceOf(Reference::class, $arguments[0]);
+        self::assertSame(AttachmentRegistrar::class, (string) $arguments[0]);
+    }
+
+    #[Test]
     public function registersGenerateThumbnailsHandler(): void
     {
         $this->provider->register($this->builder);
@@ -431,6 +448,7 @@ final class S3StoragePluginServiceProviderTest extends TestCase
         self::assertTrue($this->builder->hasDefinition(PreSignedUrlController::class));
         self::assertTrue($this->builder->hasDefinition(S3EventNormalizer::class));
         self::assertTrue($this->builder->hasDefinition(S3ObjectCreatedHandler::class));
+        self::assertTrue($this->builder->hasDefinition(S3ObjectRemovedHandler::class));
         self::assertTrue($this->builder->hasDefinition(GenerateThumbnailsHandler::class));
         self::assertTrue($this->builder->hasDefinition(AttachmentRegistrar::class));
         self::assertTrue($this->builder->hasDefinition(RegisterAttachmentController::class));

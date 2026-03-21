@@ -318,4 +318,104 @@ final class AttachmentRegistrarTest extends TestCase
 
         self::assertIsInt($result);
     }
+
+    #[Test]
+    public function unregisterDeletesExistingAttachment(): void
+    {
+        $bus = $this->createMock(MessageBusInterface::class);
+        $bus->method('dispatch')
+            ->willReturn(Envelope::wrap(new \stdClass()));
+
+        $registrar = new AttachmentRegistrar(
+            bus: $bus,
+            prefix: 'uploads',
+        );
+
+        $key = 'uploads/2024/01/unregister-' . uniqid() . '.jpg';
+        $createdId = $registrar->register($key);
+        self::assertIsInt($createdId);
+
+        $deletedId = $registrar->unregister($key);
+
+        self::assertSame($createdId, $deletedId);
+    }
+
+    #[Test]
+    public function unregisterReturnsNullForNonExistentAttachment(): void
+    {
+        $bus = $this->createMock(MessageBusInterface::class);
+        $bus->expects(self::never())->method('dispatch');
+
+        $registrar = new AttachmentRegistrar(
+            bus: $bus,
+            prefix: 'uploads',
+        );
+
+        $key = 'uploads/2024/01/nonexistent-' . uniqid() . '.jpg';
+        $result = $registrar->unregister($key);
+
+        self::assertNull($result);
+    }
+
+    #[Test]
+    public function unregisterReturnsNullForResizedImage(): void
+    {
+        $bus = $this->createMock(MessageBusInterface::class);
+        $bus->expects(self::never())->method('dispatch');
+
+        $registrar = new AttachmentRegistrar(
+            bus: $bus,
+            prefix: 'uploads',
+        );
+
+        $result = $registrar->unregister('uploads/2024/01/photo-100x200.jpg');
+
+        self::assertNull($result);
+    }
+
+    #[Test]
+    public function unregisterHandlesMultisitePath(): void
+    {
+        $currentBlogId = get_current_blog_id();
+
+        $bus = $this->createMock(MessageBusInterface::class);
+        $bus->method('dispatch')
+            ->willReturn(Envelope::wrap(new \stdClass()));
+
+        $registrar = new AttachmentRegistrar(
+            bus: $bus,
+            prefix: 'uploads',
+        );
+
+        $key = 'uploads/sites/2/2024/01/unregister-multi-' . uniqid() . '.jpg';
+        $registrar->register($key);
+        $registrar->unregister($key);
+
+        self::assertSame($currentBlogId, get_current_blog_id());
+    }
+
+    #[Test]
+    public function unregisterWithLoggerLogsWhenAttachmentNotFound(): void
+    {
+        $bus = $this->createMock(MessageBusInterface::class);
+        $bus->expects(self::never())->method('dispatch');
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())->method('debug')
+            ->with(
+                'No attachment found for "{path}", skipping deletion.',
+                self::isType('array'),
+            );
+
+        $registrar = new AttachmentRegistrar(
+            bus: $bus,
+            prefix: 'uploads',
+            logger: $logger,
+        );
+
+        $key = 'uploads/2024/01/unregister-log-' . uniqid() . '.jpg';
+        $result = $registrar->unregister($key);
+
+        self::assertNull($result);
+    }
 }

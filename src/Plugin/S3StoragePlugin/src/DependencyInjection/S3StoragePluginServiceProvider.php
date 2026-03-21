@@ -22,6 +22,7 @@ use WpPack\Plugin\S3StoragePlugin\Attachment\RegisterAttachmentController;
 use WpPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
 use WpPack\Plugin\S3StoragePlugin\Handler\GenerateThumbnailsHandler;
 use WpPack\Plugin\S3StoragePlugin\Handler\S3ObjectCreatedHandler;
+use WpPack\Plugin\S3StoragePlugin\Handler\S3ObjectRemovedHandler;
 use WpPack\Plugin\S3StoragePlugin\Message\S3EventNormalizer;
 use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\PreSignedUrlController;
 use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\PreSignedUrlGenerator;
@@ -108,6 +109,10 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
         $builder->register(S3EventNormalizer::class);
 
         $builder->register(S3ObjectCreatedHandler::class)
+            ->addArgument(new Reference(AttachmentRegistrar::class))
+            ->addTag('messenger.message_handler');
+
+        $builder->register(S3ObjectRemovedHandler::class)
             ->addArgument(new Reference(AttachmentRegistrar::class))
             ->addTag('messenger.message_handler');
 
