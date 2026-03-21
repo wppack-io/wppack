@@ -107,7 +107,7 @@ final class RegisterAttachmentControllerTest extends TestCase
     public function returnsErrorForResizedImage(): void
     {
         $adapter = $this->createMock(StorageAdapterInterface::class);
-        $adapter->method('fileExists')->willReturn(true);
+        $adapter->expects(self::never())->method('fileExists');
 
         $bus = $this->createMock(MessageBusInterface::class);
         $bus->expects(self::never())->method('dispatch');
@@ -125,8 +125,7 @@ final class RegisterAttachmentControllerTest extends TestCase
 
         $response = $controller->__invoke($request);
 
-        // Resized images return null from registrar, resulting in 500
-        self::assertSame(500, $response->statusCode);
+        self::assertSame(400, $response->statusCode);
     }
 
     #[Test]

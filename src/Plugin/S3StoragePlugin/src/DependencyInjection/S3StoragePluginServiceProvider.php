@@ -110,10 +110,12 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
 
         $builder->register(S3ObjectCreatedHandler::class)
             ->addArgument(new Reference(AttachmentRegistrar::class))
+            ->addArgument(new Reference(S3StorageConfiguration::class))
             ->addTag('messenger.message_handler');
 
         $builder->register(S3ObjectRemovedHandler::class)
             ->addArgument(new Reference(AttachmentRegistrar::class))
+            ->addArgument(new Reference(S3StorageConfiguration::class))
             ->addTag('messenger.message_handler');
 
         $builder->register(GenerateThumbnailsHandler::class)

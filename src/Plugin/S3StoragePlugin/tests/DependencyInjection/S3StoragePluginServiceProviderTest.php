@@ -261,11 +261,12 @@ final class S3StoragePluginServiceProviderTest extends TestCase
         $definition = $this->builder->findDefinition(S3ObjectCreatedHandler::class);
         self::assertTrue($definition->hasTag('messenger.message_handler'));
 
-        // Handler now uses direct constructor injection (no factory)
         $arguments = $definition->getArguments();
-        self::assertCount(1, $arguments);
+        self::assertCount(2, $arguments);
         self::assertInstanceOf(Reference::class, $arguments[0]);
         self::assertSame(AttachmentRegistrar::class, (string) $arguments[0]);
+        self::assertInstanceOf(Reference::class, $arguments[1]);
+        self::assertSame(S3StorageConfiguration::class, (string) $arguments[1]);
     }
 
     #[Test]
@@ -279,9 +280,11 @@ final class S3StoragePluginServiceProviderTest extends TestCase
         self::assertTrue($definition->hasTag('messenger.message_handler'));
 
         $arguments = $definition->getArguments();
-        self::assertCount(1, $arguments);
+        self::assertCount(2, $arguments);
         self::assertInstanceOf(Reference::class, $arguments[0]);
         self::assertSame(AttachmentRegistrar::class, (string) $arguments[0]);
+        self::assertInstanceOf(Reference::class, $arguments[1]);
+        self::assertSame(S3StorageConfiguration::class, (string) $arguments[1]);
     }
 
     #[Test]

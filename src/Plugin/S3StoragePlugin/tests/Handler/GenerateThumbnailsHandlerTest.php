@@ -19,7 +19,7 @@ final class GenerateThumbnailsHandlerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->handler = new GenerateThumbnailsHandler();
+        $this->handler = new GenerateThumbnailsHandler(logger: null);
     }
 
     #[Test]

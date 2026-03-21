@@ -112,7 +112,15 @@ final readonly class AttachmentRegistrar
                 return null;
             }
 
-            wp_delete_attachment($existingId, true);
+            $result = wp_delete_attachment($existingId, true);
+
+            if (!$result instanceof \WP_Post) {
+                $this->logger?->error('wp_delete_attachment failed for attachment ID {id}.', [
+                    'id' => $existingId,
+                ]);
+
+                return null;
+            }
 
             return $existingId;
         } finally {

@@ -33,15 +33,21 @@ final readonly class AdminAssetSubscriber
             true,
         );
 
-        wp_add_inline_script('wppack-s3-upload', sprintf(
-            'var wppS3Upload = %s;',
-            (string) json_encode([
+        try {
+            $config = json_encode([
                 'presignedUrl' => rest_url('wppack/v1/s3/presigned-url'),
                 'registerUrl' => rest_url('wppack/v1/s3/register-attachment'),
                 'nonce' => wp_create_nonce('wp_rest'),
                 'maxFileSize' => $this->policy->getMaxFileSize(),
                 'allowedTypes' => $this->policy->getAllowedMimeTypes(),
-            ], \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_UNICODE),
+            ], \JSON_THROW_ON_ERROR | \JSON_UNESCAPED_UNICODE);
+        } catch (\JsonException) {
+            return;
+        }
+
+        wp_add_inline_script('wppack-s3-upload', sprintf(
+            'var wppS3Upload = %s;',
+            $config,
         ), 'before');
     }
 }

@@ -30,6 +30,10 @@ final class RegisterAttachmentController extends AbstractRestController
             return $this->json(['error' => 'The "key" parameter is required.'], 400);
         }
 
+        if ($this->registrar->isResizedImage($key)) {
+            return $this->json(['error' => 'Resized images cannot be registered as attachments.'], 400);
+        }
+
         if (!$this->adapter->fileExists($key)) {
             return $this->json(['error' => sprintf('File "%s" does not exist in storage.', $key)], 404);
         }

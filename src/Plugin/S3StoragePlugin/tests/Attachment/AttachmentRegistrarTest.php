@@ -338,6 +338,7 @@ final class AttachmentRegistrarTest extends TestCase
         $deletedId = $registrar->unregister($key);
 
         self::assertSame($createdId, $deletedId);
+        self::assertNull(get_post($deletedId), 'Attachment should have been deleted from the database.');
     }
 
     #[Test]

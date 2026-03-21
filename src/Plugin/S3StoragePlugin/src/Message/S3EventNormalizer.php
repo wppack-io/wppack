@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace WpPack\Plugin\S3StoragePlugin\Message;
 
+use Psr\Log\LoggerInterface;
+
 final readonly class S3EventNormalizer
 {
+    public function __construct(
+        private ?LoggerInterface $logger = null,
+    ) {}
     /**
      * Parse S3 Event Notification JSON into message objects.
      *
@@ -33,6 +38,10 @@ final readonly class S3EventNormalizer
             $key = urldecode((string) ($objectData['key'] ?? ''));
 
             if ($bucket === '' || $key === '') {
+                $this->logger?->debug('Skipping S3 event record with empty bucket or key.', [
+                    'eventName' => (string) ($record['eventName'] ?? ''),
+                ]);
+
                 continue;
             }
 
