@@ -35,8 +35,8 @@ final class PreSignedUrlController extends AbstractRestController
             return $this->json(['error' => 'The "content_type" parameter is required.'], 400);
         }
 
-        if ($contentLength === '') {
-            return $this->json(['error' => 'The "content_length" parameter is required.'], 400);
+        if ($contentLength === '' || !ctype_digit($contentLength)) {
+            return $this->json(['error' => 'The "content_length" parameter must be a positive integer.'], 400);
         }
 
         $contentLength = (int) $contentLength;

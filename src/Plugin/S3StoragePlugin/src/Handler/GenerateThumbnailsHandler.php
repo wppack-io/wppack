@@ -8,7 +8,7 @@ use WpPack\Component\Messenger\Attribute\AsMessageHandler;
 use WpPack\Plugin\S3StoragePlugin\Message\GenerateThumbnailsMessage;
 
 #[AsMessageHandler]
-final class GenerateThumbnailsHandler
+final readonly class GenerateThumbnailsHandler
 {
     public function __invoke(GenerateThumbnailsMessage $message): void
     {

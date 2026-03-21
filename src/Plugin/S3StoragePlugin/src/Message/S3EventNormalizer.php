@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Plugin\S3StoragePlugin\Message;
 
-final class S3EventNormalizer
+final readonly class S3EventNormalizer
 {
     /**
      * Parse S3 Event Notification JSON into S3ObjectCreatedMessage objects.

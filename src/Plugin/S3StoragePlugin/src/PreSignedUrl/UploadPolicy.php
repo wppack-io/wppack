@@ -7,14 +7,14 @@ namespace WpPack\Plugin\S3StoragePlugin\PreSignedUrl;
 use WpPack\Component\Mime\MimeTypes;
 use WpPack\Component\Mime\MimeTypesInterface;
 
-final class UploadPolicy
+final readonly class UploadPolicy
 {
     private const DEFAULT_MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
 
     /** @var list<string> */
-    private readonly array $allowedMimeTypes;
-    private readonly int $maxFileSize;
-    private readonly MimeTypesInterface $mimeTypes;
+    private array $allowedMimeTypes;
+    private int $maxFileSize;
+    private MimeTypesInterface $mimeTypes;
 
     /**
      * @param list<string>|null $allowedMimeTypes
