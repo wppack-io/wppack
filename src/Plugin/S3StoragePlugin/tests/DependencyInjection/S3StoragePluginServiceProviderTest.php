@@ -19,6 +19,8 @@ use WpPack\Component\Messenger\MessageBusInterface;
 use WpPack\Component\Storage\Adapter\StorageAdapterInterface;
 use WpPack\Component\Storage\Bridge\S3\S3StorageAdapter;
 use WpPack\Component\Storage\StreamWrapper\StorageStreamWrapper;
+use WpPack\Plugin\S3StoragePlugin\Attachment\AttachmentRegistrar;
+use WpPack\Plugin\S3StoragePlugin\Attachment\RegisterAttachmentController;
 use WpPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
 use WpPack\Plugin\S3StoragePlugin\DependencyInjection\S3StoragePluginServiceProvider;
 use WpPack\Plugin\S3StoragePlugin\Handler\GenerateThumbnailsHandler;
@@ -27,6 +29,7 @@ use WpPack\Plugin\S3StoragePlugin\Message\S3EventNormalizer;
 use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\PreSignedUrlController;
 use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\PreSignedUrlGenerator;
 use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\UploadPolicy;
+use WpPack\Plugin\S3StoragePlugin\Subscriber\AdminAssetSubscriber;
 
 #[CoversClass(S3StoragePluginServiceProvider::class)]
 final class S3StoragePluginServiceProviderTest extends TestCase
@@ -199,6 +202,47 @@ final class S3StoragePluginServiceProviderTest extends TestCase
     }
 
     #[Test]
+    public function registersAttachmentRegistrar(): void
+    {
+        $this->provider->register($this->builder);
+
+        self::assertTrue($this->builder->hasDefinition(AttachmentRegistrar::class));
+
+        $definition = $this->builder->findDefinition(AttachmentRegistrar::class);
+        $factory = $definition->getFactory();
+        self::assertNotNull($factory);
+        self::assertSame(S3StoragePluginServiceProvider::class, $factory[0]);
+        self::assertSame('createAttachmentRegistrar', $factory[1]);
+    }
+
+    #[Test]
+    public function registersRegisterAttachmentController(): void
+    {
+        $this->provider->register($this->builder);
+
+        self::assertTrue($this->builder->hasDefinition(RegisterAttachmentController::class));
+
+        $definition = $this->builder->findDefinition(RegisterAttachmentController::class);
+        self::assertTrue($definition->hasTag('rest.controller'));
+    }
+
+    #[Test]
+    public function registersAdminAssetSubscriber(): void
+    {
+        $this->provider->register($this->builder);
+
+        self::assertTrue($this->builder->hasDefinition(AdminAssetSubscriber::class));
+
+        $definition = $this->builder->findDefinition(AdminAssetSubscriber::class);
+        self::assertTrue($definition->hasTag('hook.subscriber'));
+
+        $factory = $definition->getFactory();
+        self::assertNotNull($factory);
+        self::assertSame(S3StoragePluginServiceProvider::class, $factory[0]);
+        self::assertSame('createAdminAssetSubscriber', $factory[1]);
+    }
+
+    #[Test]
     public function registersS3EventNormalizer(): void
     {
         $this->provider->register($this->builder);
@@ -216,10 +260,11 @@ final class S3StoragePluginServiceProviderTest extends TestCase
         $definition = $this->builder->findDefinition(S3ObjectCreatedHandler::class);
         self::assertTrue($definition->hasTag('messenger.message_handler'));
 
-        $factory = $definition->getFactory();
-        self::assertNotNull($factory);
-        self::assertSame(S3StoragePluginServiceProvider::class, $factory[0]);
-        self::assertSame('createS3ObjectCreatedHandler', $factory[1]);
+        // Handler now uses direct constructor injection (no factory)
+        $arguments = $definition->getArguments();
+        self::assertCount(1, $arguments);
+        self::assertInstanceOf(Reference::class, $arguments[0]);
+        self::assertSame(AttachmentRegistrar::class, (string) $arguments[0]);
     }
 
     #[Test]
@@ -331,7 +376,7 @@ final class S3StoragePluginServiceProviderTest extends TestCase
     }
 
     #[Test]
-    public function createS3ObjectCreatedHandlerReturnsHandlerInstance(): void
+    public function createAttachmentRegistrarReturnsRegistrarInstance(): void
     {
         $bus = $this->createMock(MessageBusInterface::class);
         $config = new S3StorageConfiguration(
@@ -340,13 +385,13 @@ final class S3StoragePluginServiceProviderTest extends TestCase
             prefix: 'uploads',
         );
 
-        $handler = S3StoragePluginServiceProvider::createS3ObjectCreatedHandler($bus, $config);
+        $registrar = S3StoragePluginServiceProvider::createAttachmentRegistrar($bus, $config);
 
-        self::assertInstanceOf(S3ObjectCreatedHandler::class, $handler);
+        self::assertInstanceOf(AttachmentRegistrar::class, $registrar);
     }
 
     #[Test]
-    public function createS3ObjectCreatedHandlerWithLogger(): void
+    public function createAttachmentRegistrarWithLogger(): void
     {
         $bus = $this->createMock(MessageBusInterface::class);
         $logger = $this->createMock(\Psr\Log\LoggerInterface::class);
@@ -356,9 +401,19 @@ final class S3StoragePluginServiceProviderTest extends TestCase
             prefix: 'uploads',
         );
 
-        $handler = S3StoragePluginServiceProvider::createS3ObjectCreatedHandler($bus, $config, $logger);
+        $registrar = S3StoragePluginServiceProvider::createAttachmentRegistrar($bus, $config, $logger);
 
-        self::assertInstanceOf(S3ObjectCreatedHandler::class, $handler);
+        self::assertInstanceOf(AttachmentRegistrar::class, $registrar);
+    }
+
+    #[Test]
+    public function createAdminAssetSubscriberReturnsSubscriberInstance(): void
+    {
+        $policy = new UploadPolicy(allowedMimeTypes: []);
+
+        $subscriber = S3StoragePluginServiceProvider::createAdminAssetSubscriber($policy);
+
+        self::assertInstanceOf(AdminAssetSubscriber::class, $subscriber);
     }
 
     #[Test]
@@ -377,5 +432,8 @@ final class S3StoragePluginServiceProviderTest extends TestCase
         self::assertTrue($this->builder->hasDefinition(S3EventNormalizer::class));
         self::assertTrue($this->builder->hasDefinition(S3ObjectCreatedHandler::class));
         self::assertTrue($this->builder->hasDefinition(GenerateThumbnailsHandler::class));
+        self::assertTrue($this->builder->hasDefinition(AttachmentRegistrar::class));
+        self::assertTrue($this->builder->hasDefinition(RegisterAttachmentController::class));
+        self::assertTrue($this->builder->hasDefinition(AdminAssetSubscriber::class));
     }
 }

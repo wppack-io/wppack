@@ -17,6 +17,8 @@ use WpPack\Component\Messenger\MessageBusInterface;
 use WpPack\Component\Storage\Adapter\StorageAdapterInterface;
 use WpPack\Component\Storage\Bridge\S3\S3StorageAdapter;
 use WpPack\Component\Storage\StreamWrapper\StorageStreamWrapper;
+use WpPack\Plugin\S3StoragePlugin\Attachment\AttachmentRegistrar;
+use WpPack\Plugin\S3StoragePlugin\Attachment\RegisterAttachmentController;
 use WpPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
 use WpPack\Plugin\S3StoragePlugin\Handler\GenerateThumbnailsHandler;
 use WpPack\Plugin\S3StoragePlugin\Handler\S3ObjectCreatedHandler;
@@ -24,6 +26,7 @@ use WpPack\Plugin\S3StoragePlugin\Message\S3EventNormalizer;
 use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\PreSignedUrlController;
 use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\PreSignedUrlGenerator;
 use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\UploadPolicy;
+use WpPack\Plugin\S3StoragePlugin\Subscriber\AdminAssetSubscriber;
 
 final class S3StoragePluginServiceProvider implements ServiceProviderInterface
 {
@@ -84,13 +87,28 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
             ->addArgument(new Reference(UploadPolicy::class))
             ->addTag('rest.controller');
 
+        // Attachment registration
+        $builder->register(AttachmentRegistrar::class)
+            ->setFactory([self::class, 'createAttachmentRegistrar'])
+            ->addArgument(new Reference(MessageBusInterface::class))
+            ->addArgument(new Reference(S3StorageConfiguration::class));
+
+        $builder->register(RegisterAttachmentController::class)
+            ->addArgument(new Reference(AttachmentRegistrar::class))
+            ->addArgument(new Reference(StorageAdapterInterface::class))
+            ->addTag('rest.controller');
+
+        // Admin assets
+        $builder->register(AdminAssetSubscriber::class)
+            ->setFactory([self::class, 'createAdminAssetSubscriber'])
+            ->addArgument(new Reference(UploadPolicy::class))
+            ->addTag('hook.subscriber');
+
         // Message handlers
         $builder->register(S3EventNormalizer::class);
 
         $builder->register(S3ObjectCreatedHandler::class)
-            ->setFactory([self::class, 'createS3ObjectCreatedHandler'])
-            ->addArgument(new Reference(MessageBusInterface::class))
-            ->addArgument(new Reference(S3StorageConfiguration::class))
+            ->addArgument(new Reference(AttachmentRegistrar::class))
             ->addTag('messenger.message_handler');
 
         $builder->register(GenerateThumbnailsHandler::class)
@@ -126,15 +144,24 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
         return new UrlResolver($adapter, $config->cdnUrl);
     }
 
-    public static function createS3ObjectCreatedHandler(
+    public static function createAttachmentRegistrar(
         MessageBusInterface $bus,
         S3StorageConfiguration $config,
         ?LoggerInterface $logger = null,
-    ): S3ObjectCreatedHandler {
-        return new S3ObjectCreatedHandler(
+    ): AttachmentRegistrar {
+        return new AttachmentRegistrar(
             bus: $bus,
             prefix: $config->prefix,
             logger: $logger,
+        );
+    }
+
+    public static function createAdminAssetSubscriber(
+        UploadPolicy $policy,
+    ): AdminAssetSubscriber {
+        return new AdminAssetSubscriber(
+            pluginFile: \dirname(__DIR__, 2) . '/s3-storage-plugin.php',
+            policy: $policy,
         );
     }
 }
