@@ -14,12 +14,12 @@ use WpPack\Component\Mailer\Bridge\Amazon\Transport\SesTransportFactory;
 use WpPack\Component\Mailer\Mailer;
 use WpPack\Component\Mailer\Transport\NativeTransportFactory;
 use WpPack\Component\Mailer\Transport\Transport;
-use WpPack\Component\Mailer\Transport\TransportInterface;
 use WpPack\Plugin\AmazonMailerPlugin\Configuration\AmazonMailerConfiguration;
 use WpPack\Plugin\AmazonMailerPlugin\DependencyInjection\AmazonMailerPluginServiceProvider;
 use WpPack\Plugin\AmazonMailerPlugin\Handler\BounceHandler;
 use WpPack\Plugin\AmazonMailerPlugin\Handler\ComplaintHandler;
 use WpPack\Plugin\AmazonMailerPlugin\Message\SesNotificationNormalizer;
+use WpPack\Plugin\AmazonMailerPlugin\SuppressionList;
 
 #[CoversClass(AmazonMailerPluginServiceProvider::class)]
 final class AmazonMailerPluginServiceProviderTest extends TestCase
@@ -84,32 +84,32 @@ final class AmazonMailerPluginServiceProviderTest extends TestCase
     }
 
     #[Test]
-    public function registersTransportInterface(): void
-    {
-        $this->provider->register($this->builder);
-
-        self::assertTrue($this->builder->hasDefinition(TransportInterface::class));
-
-        $definition = $this->builder->findDefinition(TransportInterface::class);
-        $factory = $definition->getFactory();
-        self::assertNotNull($factory);
-        self::assertInstanceOf(Reference::class, $factory[0]);
-        self::assertSame(Transport::class, (string) $factory[0]);
-        self::assertSame('fromString', $factory[1]);
-    }
-
-    #[Test]
-    public function registersMailer(): void
+    public function registersMailerWithFactory(): void
     {
         $this->provider->register($this->builder);
 
         self::assertTrue($this->builder->hasDefinition(Mailer::class));
 
         $definition = $this->builder->findDefinition(Mailer::class);
+        $factory = $definition->getFactory();
+        self::assertNotNull($factory);
+        self::assertSame(AmazonMailerPluginServiceProvider::class, $factory[0]);
+        self::assertSame('createMailer', $factory[1]);
+
         $arguments = $definition->getArguments();
         self::assertCount(1, $arguments);
         self::assertInstanceOf(Reference::class, $arguments[0]);
-        self::assertSame(TransportInterface::class, (string) $arguments[0]);
+        self::assertSame(AmazonMailerConfiguration::class, (string) $arguments[0]);
+    }
+
+    #[Test]
+    public function createMailerReturnsMailerInstance(): void
+    {
+        $config = new AmazonMailerConfiguration(dsn: 'native://default');
+
+        $mailer = AmazonMailerPluginServiceProvider::createMailer($config);
+
+        self::assertInstanceOf(Mailer::class, $mailer);
     }
 
     #[Test]
@@ -121,6 +121,14 @@ final class AmazonMailerPluginServiceProviderTest extends TestCase
     }
 
     #[Test]
+    public function registersSuppressionList(): void
+    {
+        $this->provider->register($this->builder);
+
+        self::assertTrue($this->builder->hasDefinition(SuppressionList::class));
+    }
+
+    #[Test]
     public function registersBounceHandler(): void
     {
         $this->provider->register($this->builder);
@@ -129,6 +137,11 @@ final class AmazonMailerPluginServiceProviderTest extends TestCase
 
         $definition = $this->builder->findDefinition(BounceHandler::class);
         self::assertTrue($definition->hasTag('messenger.message_handler'));
+
+        $arguments = $definition->getArguments();
+        self::assertCount(1, $arguments);
+        self::assertInstanceOf(Reference::class, $arguments[0]);
+        self::assertSame(SuppressionList::class, (string) $arguments[0]);
     }
 
     #[Test]
@@ -140,16 +153,11 @@ final class AmazonMailerPluginServiceProviderTest extends TestCase
 
         $definition = $this->builder->findDefinition(ComplaintHandler::class);
         self::assertTrue($definition->hasTag('messenger.message_handler'));
-    }
 
-    #[Test]
-    public function extractDsnReturnsDsnString(): void
-    {
-        $config = new AmazonMailerConfiguration(dsn: 'ses+api://default?region=us-east-1');
-
-        $dsn = AmazonMailerPluginServiceProvider::extractDsn($config);
-
-        self::assertSame('ses+api://default?region=us-east-1', $dsn);
+        $arguments = $definition->getArguments();
+        self::assertCount(1, $arguments);
+        self::assertInstanceOf(Reference::class, $arguments[0]);
+        self::assertSame(SuppressionList::class, (string) $arguments[0]);
     }
 
     #[Test]
@@ -162,9 +170,9 @@ final class AmazonMailerPluginServiceProviderTest extends TestCase
         self::assertTrue($this->builder->hasDefinition(SesTransportFactory::class));
         self::assertTrue($this->builder->hasDefinition(NativeTransportFactory::class));
         self::assertTrue($this->builder->hasDefinition(Transport::class));
-        self::assertTrue($this->builder->hasDefinition(TransportInterface::class));
         self::assertTrue($this->builder->hasDefinition(Mailer::class));
         self::assertTrue($this->builder->hasDefinition(SesNotificationNormalizer::class));
+        self::assertTrue($this->builder->hasDefinition(SuppressionList::class));
         self::assertTrue($this->builder->hasDefinition(BounceHandler::class));
         self::assertTrue($this->builder->hasDefinition(ComplaintHandler::class));
     }

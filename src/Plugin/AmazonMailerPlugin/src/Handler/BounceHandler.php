@@ -7,13 +7,13 @@ namespace WpPack\Plugin\AmazonMailerPlugin\Handler;
 use Psr\Log\LoggerInterface;
 use WpPack\Component\Messenger\Attribute\AsMessageHandler;
 use WpPack\Plugin\AmazonMailerPlugin\Message\SesBounceMessage;
+use WpPack\Plugin\AmazonMailerPlugin\SuppressionList;
 
 #[AsMessageHandler]
 final readonly class BounceHandler
 {
-    private const OPTION_KEY = 'wppack_ses_suppression_list';
-
     public function __construct(
+        private SuppressionList $suppressionList,
         private ?LoggerInterface $logger = null,
     ) {}
 
@@ -30,32 +30,6 @@ final readonly class BounceHandler
             return;
         }
 
-        $this->addToSuppressionList($message->bouncedRecipients);
-    }
-
-    /**
-     * @param list<string> $addresses
-     */
-    private function addToSuppressionList(array $addresses): void
-    {
-        /** @var string $json */
-        $json = get_option(self::OPTION_KEY, '[]');
-
-        /** @var list<string> $list */
-        $list = json_decode($json, true) ?: [];
-
-        $updated = false;
-        foreach ($addresses as $address) {
-            $normalized = strtolower($address);
-
-            if (!\in_array($normalized, $list, true)) {
-                $list[] = $normalized;
-                $updated = true;
-            }
-        }
-
-        if ($updated) {
-            update_option(self::OPTION_KEY, json_encode($list, \JSON_THROW_ON_ERROR));
-        }
+        $this->suppressionList->add($message->bouncedRecipients);
     }
 }

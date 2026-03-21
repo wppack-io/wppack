@@ -11,11 +11,11 @@ use WpPack\Component\Mailer\Bridge\Amazon\Transport\SesTransportFactory;
 use WpPack\Component\Mailer\Mailer;
 use WpPack\Component\Mailer\Transport\NativeTransportFactory;
 use WpPack\Component\Mailer\Transport\Transport;
-use WpPack\Component\Mailer\Transport\TransportInterface;
 use WpPack\Plugin\AmazonMailerPlugin\Configuration\AmazonMailerConfiguration;
 use WpPack\Plugin\AmazonMailerPlugin\Handler\BounceHandler;
 use WpPack\Plugin\AmazonMailerPlugin\Handler\ComplaintHandler;
 use WpPack\Plugin\AmazonMailerPlugin\Message\SesNotificationNormalizer;
+use WpPack\Plugin\AmazonMailerPlugin\SuppressionList;
 
 final class AmazonMailerPluginServiceProvider implements ServiceProviderInterface
 {
@@ -36,34 +36,29 @@ final class AmazonMailerPluginServiceProvider implements ServiceProviderInterfac
         $builder->register(Transport::class)
             ->addArgument([]);
 
-        // TransportInterface (resolved from DSN)
-        $builder->register(TransportInterface::class)
-            ->setFactory([new Reference(Transport::class), 'fromString'])
-            ->addArgument(new Reference(AmazonMailerConfiguration::class . '.dsn'));
-
-        // DSN string extraction from Configuration
-        $builder->register(AmazonMailerConfiguration::class . '.dsn')
-            ->setClass('string')
-            ->setFactory([self::class, 'extractDsn'])
-            ->addArgument(new Reference(AmazonMailerConfiguration::class));
-
         // Mailer
         $builder->register(Mailer::class)
-            ->addArgument(new Reference(TransportInterface::class));
+            ->setFactory([self::class, 'createMailer'])
+            ->addArgument(new Reference(AmazonMailerConfiguration::class));
 
         // Message normalizer
         $builder->register(SesNotificationNormalizer::class);
 
+        // Suppression list
+        $builder->register(SuppressionList::class);
+
         // Message handlers
         $builder->register(BounceHandler::class)
+            ->addArgument(new Reference(SuppressionList::class))
             ->addTag('messenger.message_handler');
 
         $builder->register(ComplaintHandler::class)
+            ->addArgument(new Reference(SuppressionList::class))
             ->addTag('messenger.message_handler');
     }
 
-    public static function extractDsn(AmazonMailerConfiguration $config): string
+    public static function createMailer(AmazonMailerConfiguration $config): Mailer
     {
-        return $config->dsn;
+        return new Mailer(transport: $config->dsn);
     }
 }

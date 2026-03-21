@@ -211,7 +211,8 @@ wppack/mailer
 
 wppack/amazon-mailer-plugin
     ↓ requires
-wppack/amazon-mailer, wppack/hook
+wppack/amazon-mailer, wppack/mailer, wppack/hook
+    + wppack/dependency-injection, wppack/kernel, wppack/messenger
 
 wppack/security
     ↓ requires

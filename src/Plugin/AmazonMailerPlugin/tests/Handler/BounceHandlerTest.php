@@ -10,6 +10,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use WpPack\Plugin\AmazonMailerPlugin\Handler\BounceHandler;
 use WpPack\Plugin\AmazonMailerPlugin\Message\SesBounceMessage;
+use WpPack\Plugin\AmazonMailerPlugin\SuppressionList;
 
 #[CoversClass(BounceHandler::class)]
 final class BounceHandlerTest extends TestCase
@@ -29,7 +30,7 @@ final class BounceHandlerTest extends TestCase
     #[Test]
     public function permanentBounceAddsToSuppressionList(): void
     {
-        $handler = new BounceHandler();
+        $handler = new BounceHandler(new SuppressionList());
 
         $message = new SesBounceMessage(
             messageId: 'msg-001',
@@ -53,7 +54,7 @@ final class BounceHandlerTest extends TestCase
     #[Test]
     public function transientBounceDoesNotAddToSuppressionList(): void
     {
-        $handler = new BounceHandler();
+        $handler = new BounceHandler(new SuppressionList());
 
         $message = new SesBounceMessage(
             messageId: 'msg-002',
@@ -74,56 +75,6 @@ final class BounceHandlerTest extends TestCase
     }
 
     #[Test]
-    public function duplicateAddressesAreNotAdded(): void
-    {
-        update_option(self::OPTION_KEY, json_encode(['existing@example.com']));
-
-        $handler = new BounceHandler();
-
-        $message = new SesBounceMessage(
-            messageId: 'msg-003',
-            bounceType: 'Permanent',
-            bounceSubType: 'General',
-            bouncedRecipients: ['existing@example.com', 'new@example.com'],
-            timestamp: new \DateTimeImmutable('2024-01-15T14:00:00Z'),
-        );
-
-        $handler($message);
-
-        /** @var string $json */
-        $json = get_option(self::OPTION_KEY, '[]');
-        /** @var list<string> $list */
-        $list = json_decode($json, true);
-
-        self::assertCount(2, $list);
-        self::assertContains('existing@example.com', $list);
-        self::assertContains('new@example.com', $list);
-    }
-
-    #[Test]
-    public function addressesAreNormalizedToLowerCase(): void
-    {
-        $handler = new BounceHandler();
-
-        $message = new SesBounceMessage(
-            messageId: 'msg-004',
-            bounceType: 'Permanent',
-            bounceSubType: 'General',
-            bouncedRecipients: ['User@Example.COM'],
-            timestamp: new \DateTimeImmutable('2024-01-15T16:00:00Z'),
-        );
-
-        $handler($message);
-
-        /** @var string $json */
-        $json = get_option(self::OPTION_KEY, '[]');
-        /** @var list<string> $list */
-        $list = json_decode($json, true);
-
-        self::assertSame(['user@example.com'], $list);
-    }
-
-    #[Test]
     public function logsWhenLoggerProvided(): void
     {
         $logger = $this->createMock(LoggerInterface::class);
@@ -134,7 +85,7 @@ final class BounceHandlerTest extends TestCase
                     && $context['bounceType'] === 'Permanent';
             }));
 
-        $handler = new BounceHandler(logger: $logger);
+        $handler = new BounceHandler(new SuppressionList(), logger: $logger);
 
         $message = new SesBounceMessage(
             messageId: 'msg-005',
