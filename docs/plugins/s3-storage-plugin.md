@@ -15,6 +15,9 @@ S3StoragePlugin は S3 固有の機能を提供する薄いレイヤーです。
 | Pre-signed URL REST API / ポリシー | S3StoragePlugin |
 | S3 イベント処理 | S3StoragePlugin |
 | S3 固有の設定 | S3StoragePlugin |
+| プラグインブートストラップ | S3StoragePlugin (`PluginInterface`) |
+| Attachment 同期登録 REST API | S3StoragePlugin (`RegisterAttachmentController`) |
+| ブラウザ直接 S3 アップロード JS | S3StoragePlugin (`s3-upload.js` + `AdminAssetSubscriber`) |
 
 S3StoragePlugin が担うのは以下の S3 固有機能のみです:
 
@@ -22,6 +25,9 @@ S3StoragePlugin が担うのは以下の S3 固有機能のみです:
 - **S3 イベント処理**: S3 イベント → SQS → Lambda での非同期 attachment 登録
 - **S3 固有設定**: `S3StorageConfiguration`（環境変数から S3 接続設定を生成）
 - **サービス組み立て**: DI コンテナで Storage / Media コンポーネントを S3 向けに組み立て
+- **プラグインブートストラップ**: `PluginInterface` 実装によるエントリポイント（サービス登録・コンパイラパス提供）
+- **Attachment 同期登録**: ブラウザアップロード後の REST API 経由での即時 attachment 登録
+- **ブラウザ直接アップロード JS**: `wp.Uploader` をインターセプトし、Pre-signed URL → S3 PUT → attachment 登録を自動化
 
 ## アーキテクチャ
 
@@ -29,20 +35,28 @@ S3StoragePlugin が担うのは以下の S3 固有機能のみです:
 
 ```
 S3StoragePlugin（薄いレイヤー）
+├── S3StoragePlugin.php              ← PluginInterface 実装（エントリポイント）
+├── Attachment/
+│   ├── AttachmentRegistrar          ← 冪等な attachment 登録（同期・非同期共用）
+│   └── RegisterAttachmentController ← 同期登録 REST API
+├── Subscriber/
+│   └── AdminAssetSubscriber         ← 管理画面 JS エンキュー
+├── assets/js/
+│   └── s3-upload.js                 ← wp.Uploader インターセプター
 ├── Configuration/
-│   └── S3StorageConfiguration         ← S3 固有設定、環境変数から生成
+│   └── S3StorageConfiguration       ← S3 固有設定、環境変数から生成
 ├── PreSignedUrl/
-│   ├── PreSignedUrlGenerator          ← StorageAdapterInterface::temporaryUploadUrl() ラッパー
-│   ├── PreSignedUrlResult             ← Pre-signed URL 結果 VO
-│   ├── PreSignedUrlController         ← REST API エンドポイント（__invoke）
-│   └── UploadPolicy                   ← ファイルタイプ・サイズ制限
+│   ├── PreSignedUrlGenerator        ← StorageAdapterInterface::temporaryUploadUrl() ラッパー
+│   ├── PreSignedUrlResult           ← Pre-signed URL 結果 VO
+│   ├── PreSignedUrlController       ← REST API エンドポイント（__invoke）
+│   └── UploadPolicy                 ← ファイルタイプ・サイズ制限
 ├── Message/
-│   ├── S3ObjectCreatedMessage         ← S3 イベント DTO
-│   ├── GenerateThumbnailsMessage      ← サムネイル生成メッセージ
-│   └── S3EventNormalizer              ← S3 Event Notification パーサー
+│   ├── S3ObjectCreatedMessage       ← S3 イベント DTO
+│   ├── GenerateThumbnailsMessage    ← サムネイル生成メッセージ
+│   └── S3EventNormalizer            ← S3 Event Notification パーサー
 ├── Handler/
-│   ├── S3ObjectCreatedHandler         ← attachment 登録（リサイズ画像スキップ付き）
-│   └── GenerateThumbnailsHandler      ← サムネイル非同期生成
+│   ├── S3ObjectCreatedHandler       ← AttachmentRegistrar に委譲する薄いアダプタ
+│   └── GenerateThumbnailsHandler    ← サムネイル非同期生成
 └── DependencyInjection/
     └── S3StoragePluginServiceProvider ← サービス組み立て
 
@@ -64,35 +78,44 @@ Media コンポーネント（WordPress 統合）
 
 ### アップロードフロー
 
+#### ブラウザ直接アップロード（同期）
+
 ```
-┌─ ブラウザ直接アップロード ────────────────────┐
-│                                                │
-│  Browser                                       │
-│    → REST API (PreSignedUrlController)          │
-│    → Pre-signed PUT URL 取得                    │
-│    → Direct upload to S3                       │
-│                                                │
-└────────────────────────────────────────────────┘
-            ↓ S3 Event Notification
-┌─ メッセージキュー ───────────────────────────┐
-│ Amazon SQS                                     │
-└────────────────────────────────────────────────┘
-            ↓ WpPack\Component\Messenger
-┌─ 非同期処理 (Lambda) ────────────────────────┐
-│                                                │
-│ S3ObjectCreatedHandler                         │
-│   → リサイズ画像の判定（スキップ）              │
-│   → マルチサイト対応 (switch_to_blog)           │
-│   → wp_insert_attachment()                     │
-│   → GenerateThumbnailsMessage をディスパッチ    │
-│                                                │
-│ GenerateThumbnailsHandler                      │
-│   → get_attached_file() → stream wrapper 経由   │
-│   → StorageImageEditor でサムネイル生成         │
-│   → wp_update_attachment_metadata()            │
-│                                                │
-└────────────────────────────────────────────────┘
+Browser (s3-upload.js)
+  → REST API (PreSignedUrlController) → Pre-signed PUT URL 取得
+  → Direct PUT to S3
+  → REST API (RegisterAttachmentController) → 同期 attachment 登録
+  → wp_prepare_attachment_for_js() レスポンス → メディアモーダル更新
 ```
+
+`s3-upload.js` は `wp.Uploader.prototype.init` をラップし、WordPress 標準のアップロードフローをインターセプトします。アップロードチェーンは以下の順序で実行されます:
+
+1. `getPresignedUrl()` — Pre-signed PUT URL を取得
+2. `putToS3()` — XMLHttpRequest で S3 に直接 PUT（プログレスイベント付き）
+3. `registerAttachment()` — REST API で attachment を同期登録
+4. `completeUpload()` — plupload の `FileUploaded` イベントを発火
+5. `startNextFile()` — キュー内の次のファイルを処理
+
+#### S3 イベント経由の非同期登録
+
+```
+S3 Event Notification
+  → Amazon SQS
+  → WpPack\Component\Messenger
+  → S3ObjectCreatedHandler → AttachmentRegistrar.register()
+    → リサイズ画像の判定（スキップ）
+    → マルチサイト対応 (switch_to_blog)
+    → 既存 attachment の重複検出（冪等）
+    → wp_insert_attachment()
+    → GenerateThumbnailsMessage をディスパッチ
+
+GenerateThumbnailsHandler
+  → get_attached_file() → stream wrapper 経由
+  → StorageImageEditor でサムネイル生成
+  → wp_update_attachment_metadata()
+```
+
+ブラウザ直接アップロード後に S3 Event Notification が到達した場合、`AttachmentRegistrar` の重複検出（`_wp_attached_file` メタ検索）により冪等にスキップされます。
 
 ### ファイルアクセスフロー
 
@@ -122,6 +145,8 @@ WordPress コア / プラグイン
 | wppack/media | WordPress メディア統合（Subscriber 群, `StorageImageEditor`） |
 | wppack/hook | WordPress フック統合 |
 | wppack/messenger | メッセージバス・ハンドラ基盤（SQS 経由の非同期処理） |
+| wppack/kernel | プラグインブートストラップ（`PluginInterface`, `Kernel`） |
+| wppack/role | 認可（`#[IsGranted]`） |
 | async-aws/s3 | S3 API（S3StorageAdapter 経由で使用） |
 
 ## 名前空間
@@ -131,6 +156,98 @@ WpPack\Plugin\S3StoragePlugin\
 ```
 
 ## 主要クラス
+
+### S3StoragePlugin
+
+`PluginInterface` 実装。プラグインのエントリポイントとして、サービス登録とコンパイラパス提供を行う。
+
+```php
+namespace WpPack\Plugin\S3StoragePlugin;
+
+final class S3StoragePlugin implements PluginInterface
+{
+    public function getPluginFile(): string;
+    public function register(ContainerBuilder $builder): void;
+    public function getCompilerPasses(): array;  // RegisterHookSubscribersPass, RegisterRestControllersPass
+    public function boot(Container $container): void;
+    public function onActivate(): void;
+    public function onDeactivate(): void;
+}
+```
+
+### Attachment 登録
+
+#### AttachmentRegistrar
+
+S3 オブジェクトを WordPress の attachment として冪等に登録するコアロジック。同期（REST API 経由）・非同期（S3 イベント経由）の両方から使用される。
+
+```php
+namespace WpPack\Plugin\S3StoragePlugin\Attachment;
+
+final readonly class AttachmentRegistrar
+{
+    public function __construct(
+        private MessageBusInterface $bus,
+        private string $prefix,
+        ?MimeTypesInterface $mimeTypes = null,
+        private ?LoggerInterface $logger = null,
+    ) {}
+
+    public function register(string $key, ?int $userId = null): ?int;
+    public function isResizedImage(string $key): bool;
+    public function parseBlogId(string $key): int;
+}
+```
+
+**`register()` のフロー:**
+
+1. `isResizedImage()` でリサイズ画像をスキップ
+2. `parseBlogId()` でマルチサイトのブログ ID を解析
+3. `switch_to_blog()` でブログコンテキストを切り替え（マルチサイト時）
+4. `findExistingAttachment()` で `_wp_attached_file` メタ検索 → 既存 attachment があれば冪等にスキップ
+5. MIME タイプを推定し、`wp_insert_attachment()` で登録
+6. `GenerateThumbnailsMessage` をメッセージバスにディスパッチ
+7. `restore_current_blog()` で元のコンテキストに復帰（`finally` ブロック）
+
+**リサイズ画像のスキップ:** S3 Event Notification はサムネイル生成時にも発火するため、`isResizedImage()` でリサイズ画像（派生ファイル）を検出してスキップします。以下のパターンにマッチする場合、新しい attachment は作成されません:
+
+| パターン | 例 | 説明 |
+|---------|------|------|
+| `-{width}x{height}` | `photo-100x200.jpg` | WordPress サムネイル |
+| `-scaled` | `photo-scaled.jpg` | WordPress の大画像スケーリング |
+| `-rotated` | `photo-rotated.png` | 画像回転 |
+| `-e{timestamp}` | `photo-e1234567890.jpg` | 画像編集のタイムスタンプ |
+
+#### RegisterAttachmentController
+
+ブラウザ直接アップロード後の同期 attachment 登録 REST API。
+
+```php
+namespace WpPack\Plugin\S3StoragePlugin\Attachment;
+
+#[RestRoute(route: '/s3/register-attachment', methods: HttpMethod::POST, namespace: 'wppack/v1')]
+#[IsGranted('upload_files')]
+final class RegisterAttachmentController extends AbstractRestController
+{
+    public function __construct(
+        private readonly AttachmentRegistrar $registrar,
+        private readonly StorageAdapterInterface $adapter,
+    ) {}
+
+    /**
+     * POST /wp-json/wppack/v1/s3/register-attachment
+     *
+     * Request: { "key": "uploads/2024/01/abc123def-photo.jpg" }
+     * Response: wp_prepare_attachment_for_js() 形式（201 Created）
+     *
+     * Errors:
+     *   400 — key パラメータ未指定
+     *   404 — S3 上にファイルが存在しない
+     *   500 — attachment 登録失敗
+     */
+    public function __invoke(Request $request): JsonResponse;
+}
+```
 
 ### Pre-signed URL
 
@@ -197,7 +314,7 @@ final class UploadPolicy
 
 #### S3ObjectCreatedHandler
 
-S3 オブジェクト作成イベントを処理し、WordPress の attachment として登録する。
+S3 オブジェクト作成イベントを処理し、`AttachmentRegistrar` に委譲する薄いアダプタ。
 
 ```php
 namespace WpPack\Plugin\S3StoragePlugin\Handler;
@@ -205,20 +322,16 @@ namespace WpPack\Plugin\S3StoragePlugin\Handler;
 #[AsMessageHandler]
 final readonly class S3ObjectCreatedHandler
 {
-    public function __invoke(S3ObjectCreatedMessage $message): void;
-    public function isResizedImage(string $key): bool;
-    public function parseBlogId(string $key): int;
+    public function __construct(
+        private AttachmentRegistrar $registrar,
+    ) {}
+
+    public function __invoke(S3ObjectCreatedMessage $message): void
+    {
+        $this->registrar->register($message->key);
+    }
 }
 ```
-
-**リサイズ画像のスキップ:** S3 Event Notification はサムネイル生成時にも発火するため、`isResizedImage()` でリサイズ画像（派生ファイル）を検出してスキップします。以下のパターンにマッチする場合、新しい attachment は作成されません:
-
-| パターン | 例 | 説明 |
-|---------|------|------|
-| `-{width}x{height}` | `photo-100x200.jpg` | WordPress サムネイル |
-| `-scaled` | `photo-scaled.jpg` | WordPress の大画像スケーリング |
-| `-rotated` | `photo-rotated.png` | 画像回転 |
-| `-e{timestamp}` | `photo-e1234567890.jpg` | 画像編集のタイムスタンプ |
 
 #### GenerateThumbnailsHandler
 
@@ -248,14 +361,63 @@ final class S3EventNormalizer
 }
 ```
 
+### 管理画面アセット
+
+#### AdminAssetSubscriber
+
+管理画面で `s3-upload.js` をエンキューし、フロントエンドに必要な設定を注入する。`media-upload` または `media-views` スクリプトが読み込まれている場合のみエンキューされる。
+
+```php
+namespace WpPack\Plugin\S3StoragePlugin\Subscriber;
+
+#[AsHookSubscriber]
+final readonly class AdminAssetSubscriber
+{
+    public function __construct(
+        private string $pluginFile,
+        private UploadPolicy $policy,
+    ) {}
+
+    #[AdminEnqueueScriptsAction]
+    public function enqueueScripts(): void;
+}
+```
+
+`wp_add_inline_script` で以下の設定オブジェクトを注入します:
+
+```javascript
+var wppS3Upload = {
+    presignedUrl: "/wp-json/wppack/v1/s3/presigned-url",
+    registerUrl: "/wp-json/wppack/v1/s3/register-attachment",
+    nonce: "...",
+    maxFileSize: 104857600,
+    allowedTypes: ["image/jpeg", "image/png", ...]
+};
+```
+
+#### s3-upload.js
+
+`wp.Uploader.prototype.init` をラップし、WordPress 標準のアップロードフローを S3 直接アップロードにインターセプトする。
+
+**主要関数:**
+
+| 関数 | 役割 |
+|------|------|
+| `getPresignedUrl(nativeFile)` | Pre-signed PUT URL を fetch で取得 |
+| `putToS3(up, file, nativeFile, presigned)` | XMLHttpRequest で S3 に PUT（プログレストラッキング付き） |
+| `registerAttachment(key)` | REST API で attachment を同期登録 |
+| `completeUpload(up, file, attachment)` | plupload の `FileUploaded` イベント発火・次ファイル処理 |
+| `triggerError(up, file, message)` | plupload の `Error` イベント発火 |
+| `startNextFile(up)` | キュー内の次ファイル処理または `UploadComplete` 発火 |
+
 ### マルチサイト対応
 
-S3ObjectCreatedHandler はマルチサイト環境を自動検出します:
+AttachmentRegistrar はマルチサイト環境を自動検出します:
 
 1. S3 キーのパスから `/sites/{blog_id}/` パターンを解析
 2. `switch_to_blog()` でブログコンテキストを切り替え
 3. 該当ブログの attachment として登録
-4. `restore_current_blog()` で元に戻す
+4. `restore_current_blog()` で元に戻す（`finally` ブロックで保証）
 
 ```
 uploads/2024/01/photo.jpg         → blog_id: 1（メインサイト）
@@ -277,10 +439,6 @@ final readonly class S3StorageConfiguration
 }
 ```
 
-### Admin\SettingsPage
-
-管理画面の設定ページ。S3 バケット設定、CDN URL、同期状態を表示する。
-
 ## 環境変数
 
 ```bash
@@ -298,9 +456,34 @@ S3_PREFIX=uploads                  # S3 キーのプレフィックス
 CDN_URL=https://cdn.example.com
 ```
 
+## S3 CORS 設定
+
+ブラウザから S3 への直接 PUT アップロードを行うには、S3 バケットに CORS 設定が必要です:
+
+```json
+[
+    {
+        "AllowedOrigins": ["https://example.com"],
+        "AllowedMethods": ["PUT"],
+        "AllowedHeaders": ["Content-Type"],
+        "MaxAgeSeconds": 3600
+    }
+]
+```
+
+> **注意**: `AllowedOrigins` には WordPress サイトのオリジンを指定してください。`"*"` はセキュリティ上推奨しません。
+
+AWS CLI での設定例:
+
+```bash
+aws s3api put-bucket-cors --bucket my-wordpress-media --cors-configuration file://cors.json
+```
+
 ## 使用例
 
-### Pre-signed URL によるアップロード
+### ブラウザ直接アップロード（JavaScript）
+
+`s3-upload.js` が自動的に WordPress のアップロードフローをインターセプトするため、通常は手動実装は不要です。カスタム実装が必要な場合:
 
 ```javascript
 // 1. Pre-signed URL を取得
@@ -326,7 +509,19 @@ await fetch(url, {
     body: file,
 });
 
-// 3. S3 Event → SQS → Lambda で自動的に attachment が登録される
+// 3. Attachment を同期登録
+const regResponse = await fetch('/wp-json/wppack/v1/s3/register-attachment', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'X-WP-Nonce': wpApiSettings.nonce,
+    },
+    body: JSON.stringify({ key }),
+});
+
+const attachment = await regResponse.json();
+// attachment は wp_prepare_attachment_for_js() 形式
+// { id, title, filename, url, type, subtype, width, height, ... }
 ```
 
 ### PHP からのアップロード
