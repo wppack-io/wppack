@@ -187,7 +187,8 @@
             "WpPack\\Component\\Storage\\Bridge\\S3\\Tests\\": "src/Component/Storage/Bridge/S3/tests/",
             "WpPack\\Component\\Storage\\Bridge\\Azure\\Tests\\": "src/Component/Storage/Bridge/Azure/tests/",
             "WpPack\\Component\\Storage\\Bridge\\Gcs\\Tests\\": "src/Component/Storage/Bridge/Gcs/tests/",
-            "WpPack\\Plugin\\S3StoragePlugin\\Tests\\": "src/Plugin/S3StoragePlugin/tests/"
+            "WpPack\\Plugin\\S3StoragePlugin\\Tests\\": "src/Plugin/S3StoragePlugin/tests/",
+            "WpPack\\Plugin\\AmazonMailerPlugin\\Tests\\": "src/Plugin/AmazonMailerPlugin/tests/"
         }
     },
     "replace": {

@@ -6,11 +6,20 @@
     "require": {
         "php": "^8.2",
         "wppack/amazon-mailer": "^1.0",
-        "wppack/hook": "^1.0"
+        "wppack/dependency-injection": "^1.0",
+        "wppack/hook": "^1.0",
+        "wppack/kernel": "^1.0",
+        "wppack/mailer": "^1.0",
+        "wppack/messenger": "^1.0"
     },
     "autoload": {
         "psr-4": {
             "WpPack\\Plugin\\AmazonMailerPlugin\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Plugin\\AmazonMailerPlugin\\Tests\\": "tests/"
         }
     }
 }

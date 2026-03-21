@@ -16,6 +16,38 @@ composer require wppack/amazon-mailer-plugin
 - WordPress 6.x
 - AWS account with SES
 
+## Architecture
+
+AmazonMailerPlugin implements `PluginInterface` and bootstraps via `Kernel::registerPlugin()`:
+
+1. **Bootstrap** (`amazon-mailer-plugin.php`) registers the plugin with the Kernel
+2. **ServiceProvider** registers Mailer, Transport, and Handler services in the DI container
+3. **`Mailer::boot()`** registers the `wp_mail` filter, replacing the global `$phpmailer` with an SES-backed transport
+4. **Handlers** process bounce/complaint notifications from SES via SNS → SQS → Messenger
+
+## Configuration
+
+Set `MAILER_DSN` in `wp-config.php` or as an environment variable:
+
+```php
+// wp-config.php
+define('MAILER_DSN', 'ses+api://ACCESS_KEY:SECRET_KEY@default?region=ap-northeast-1');
+```
+
+For IAM role authentication (recommended on AWS infrastructure):
+
+```php
+define('MAILER_DSN', 'ses+api://default?region=ap-northeast-1');
+```
+
+### Supported DSN Schemes
+
+| Scheme | Transport | Description |
+|--------|-----------|-------------|
+| `ses`, `ses+api` | SesApiTransport | SES API (SendEmail) |
+| `ses+https` | SesHttpTransport | SES v2 API (SendRawEmail) |
+| `ses+smtp`, `ses+smtps` | SesSmtpTransport | SES SMTP |
+
 ## Usage
 
 ### Automatic wp_mail() Integration
@@ -27,7 +59,7 @@ Once activated, all `wp_mail()` calls are automatically routed through SES:
 wp_mail('user@example.com', 'Subject', 'Message body');
 ```
 
-### Mailer Component
+### Direct Mailer API
 
 ```php
 use WpPack\Component\Mailer\Mailer;
@@ -42,23 +74,13 @@ $email = (new Email())
 $mailer->send($email);
 ```
 
-### WP-CLI
+### Bounce/Complaint Handling
 
-```bash
-wp wppack ses verify-identity --email=noreply@example.com
-wp wppack ses test-email --to=test@example.com
-```
+SES bounce and complaint notifications are processed via SNS → SQS → WpPack Messenger:
 
-## Configuration
-
-Set environment variables:
-
-```bash
-AWS_ACCESS_KEY_ID=your-access-key
-AWS_SECRET_ACCESS_KEY=your-secret-key
-AWS_REGION=ap-northeast-1
-SES_CONFIGURATION_SET=my-config    # Optional
-```
+- **Permanent bounces** are logged and added to the suppression list (`wp_options`)
+- **Transient bounces** are logged only
+- **Complaints** are logged and added to the suppression list
 
 ## Documentation
 
