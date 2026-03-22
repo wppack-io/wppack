@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use WpPack\Component\Option\OptionManager;
 use WpPack\Plugin\AmazonMailerPlugin\Handler\ComplaintHandler;
 use WpPack\Plugin\AmazonMailerPlugin\Message\SesComplaintMessage;
 use WpPack\Plugin\AmazonMailerPlugin\SuppressionList;
@@ -30,7 +31,7 @@ final class ComplaintHandlerTest extends TestCase
     #[Test]
     public function complaintAddsToSuppressionList(): void
     {
-        $handler = new ComplaintHandler(new SuppressionList());
+        $handler = new ComplaintHandler(new SuppressionList(new OptionManager()));
 
         $message = new SesComplaintMessage(
             messageId: 'msg-001',
@@ -60,7 +61,7 @@ final class ComplaintHandlerTest extends TestCase
                     && $context['feedbackType'] === 'abuse';
             }));
 
-        $handler = new ComplaintHandler(new SuppressionList(), logger: $logger);
+        $handler = new ComplaintHandler(new SuppressionList(new OptionManager()), logger: $logger);
 
         $message = new SesComplaintMessage(
             messageId: 'msg-004',

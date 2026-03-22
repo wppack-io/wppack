@@ -7,6 +7,7 @@ namespace WpPack\Plugin\S3StoragePlugin\Tests\Handler;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Media\AttachmentManager;
 use WpPack\Component\Messenger\Envelope;
 use WpPack\Component\Messenger\MessageBusInterface;
 use WpPack\Component\Site\BlogSwitcher;
@@ -36,6 +37,7 @@ final class S3ObjectCreatedHandlerTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
+            attachment: new AttachmentManager(),
         );
 
         $handler = new S3ObjectCreatedHandler($registrar, $this->createConfig());
@@ -74,6 +76,7 @@ final class S3ObjectCreatedHandlerTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
+            attachment: new AttachmentManager(),
         );
 
         $handler = new S3ObjectCreatedHandler($registrar, $this->createConfig());
@@ -98,6 +101,7 @@ final class S3ObjectCreatedHandlerTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
+            attachment: new AttachmentManager(),
         );
 
         $handler = new S3ObjectCreatedHandler($registrar, $this->createConfig('expected-bucket'));
@@ -123,6 +127,7 @@ final class S3ObjectCreatedHandlerTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
+            attachment: new AttachmentManager(),
         );
 
         $handler = new S3ObjectCreatedHandler($registrar, $this->createConfig());

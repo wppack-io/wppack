@@ -7,6 +7,7 @@ namespace WpPack\Plugin\S3StoragePlugin\Tests\Handler;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Media\AttachmentManager;
 use WpPack\Component\Messenger\Envelope;
 use WpPack\Component\Messenger\MessageBusInterface;
 use WpPack\Component\Site\BlogSwitcher;
@@ -36,6 +37,7 @@ final class S3ObjectRemovedHandlerTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
+            attachment: new AttachmentManager(),
         );
 
         // Create an attachment first so unregister has something to find
@@ -65,6 +67,7 @@ final class S3ObjectRemovedHandlerTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
+            attachment: new AttachmentManager(),
         );
 
         $handler = new S3ObjectRemovedHandler($registrar, $this->createConfig());
@@ -88,6 +91,7 @@ final class S3ObjectRemovedHandlerTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
+            attachment: new AttachmentManager(),
         );
 
         // Create an attachment
@@ -118,6 +122,7 @@ final class S3ObjectRemovedHandlerTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
+            attachment: new AttachmentManager(),
         );
 
         $handler = new S3ObjectRemovedHandler($registrar, $this->createConfig());

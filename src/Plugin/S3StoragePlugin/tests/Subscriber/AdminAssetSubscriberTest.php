@@ -8,6 +8,9 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Asset\AssetManager;
+use WpPack\Component\Nonce\NonceManager;
+use WpPack\Component\Plugin\PluginPathResolver;
+use WpPack\Component\Rest\RestUrlGenerator;
 use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\UploadPolicy;
 use WpPack\Plugin\S3StoragePlugin\Subscriber\AdminAssetSubscriber;
 
@@ -19,9 +22,11 @@ final class AdminAssetSubscriberTest extends TestCase
     {
         $policy = new UploadPolicy(allowedMimeTypes: []);
         $subscriber = new AdminAssetSubscriber(
-            pluginFile: __DIR__ . '/../../s3-storage-plugin.php',
+            pluginPath: new PluginPathResolver(__DIR__ . '/../../s3-storage-plugin.php'),
             policy: $policy,
             asset: new AssetManager(),
+            nonce: new NonceManager(),
+            restUrl: new RestUrlGenerator(),
         );
 
         self::assertInstanceOf(AdminAssetSubscriber::class, $subscriber);
@@ -32,9 +37,11 @@ final class AdminAssetSubscriberTest extends TestCase
     {
         $policy = new UploadPolicy(allowedMimeTypes: []);
         $subscriber = new AdminAssetSubscriber(
-            pluginFile: __DIR__ . '/../../s3-storage-plugin.php',
+            pluginPath: new PluginPathResolver(__DIR__ . '/../../s3-storage-plugin.php'),
             policy: $policy,
             asset: new AssetManager(),
+            nonce: new NonceManager(),
+            restUrl: new RestUrlGenerator(),
         );
 
         // When neither media-upload nor media-views is enqueued, should silently return

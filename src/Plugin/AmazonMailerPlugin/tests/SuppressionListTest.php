@@ -7,6 +7,7 @@ namespace WpPack\Plugin\AmazonMailerPlugin\Tests;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Option\OptionManager;
 use WpPack\Plugin\AmazonMailerPlugin\SuppressionList;
 
 #[CoversClass(SuppressionList::class)]
@@ -27,7 +28,7 @@ final class SuppressionListTest extends TestCase
     #[Test]
     public function addsAddressesToSuppressionList(): void
     {
-        $list = new SuppressionList();
+        $list = new SuppressionList(new OptionManager());
 
         $list->add(['bounce@example.com', 'invalid@example.com']);
 
@@ -45,7 +46,7 @@ final class SuppressionListTest extends TestCase
     {
         update_option(self::OPTION_KEY, json_encode(['existing@example.com']));
 
-        $list = new SuppressionList();
+        $list = new SuppressionList(new OptionManager());
 
         $list->add(['existing@example.com', 'new@example.com']);
 
@@ -62,7 +63,7 @@ final class SuppressionListTest extends TestCase
     #[Test]
     public function addressesAreNormalizedToLowerCase(): void
     {
-        $list = new SuppressionList();
+        $list = new SuppressionList(new OptionManager());
 
         $list->add(['User@Example.COM']);
 
@@ -79,7 +80,7 @@ final class SuppressionListTest extends TestCase
     {
         update_option(self::OPTION_KEY, json_encode(['existing@example.com']));
 
-        $list = new SuppressionList();
+        $list = new SuppressionList(new OptionManager());
 
         $list->add(['existing@example.com']);
 
@@ -94,7 +95,7 @@ final class SuppressionListTest extends TestCase
     #[Test]
     public function multipleAddressesAllAdded(): void
     {
-        $list = new SuppressionList();
+        $list = new SuppressionList(new OptionManager());
 
         $list->add(['user1@example.com', 'user2@example.com', 'user3@example.com']);
 
@@ -112,7 +113,7 @@ final class SuppressionListTest extends TestCase
     #[Test]
     public function emptyArrayDoesNotCreateOption(): void
     {
-        $list = new SuppressionList();
+        $list = new SuppressionList(new OptionManager());
 
         $list->add([]);
 

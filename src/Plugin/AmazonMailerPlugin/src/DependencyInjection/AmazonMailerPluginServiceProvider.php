@@ -11,6 +11,7 @@ use WpPack\Component\Mailer\Bridge\Amazon\Transport\SesTransportFactory;
 use WpPack\Component\Mailer\Mailer;
 use WpPack\Component\Mailer\Transport\NativeTransportFactory;
 use WpPack\Component\Mailer\Transport\Transport;
+use WpPack\Component\Option\OptionManager;
 use WpPack\Plugin\AmazonMailerPlugin\Configuration\AmazonMailerConfiguration;
 use WpPack\Plugin\AmazonMailerPlugin\Handler\BounceHandler;
 use WpPack\Plugin\AmazonMailerPlugin\Handler\ComplaintHandler;
@@ -44,8 +45,12 @@ final class AmazonMailerPluginServiceProvider implements ServiceProviderInterfac
         // Message normalizer
         $builder->register(SesNotificationNormalizer::class);
 
+        // Option manager
+        $builder->register(OptionManager::class);
+
         // Suppression list
-        $builder->register(SuppressionList::class);
+        $builder->register(SuppressionList::class)
+            ->addArgument(new Reference(OptionManager::class));
 
         // Message handlers
         $builder->register(BounceHandler::class)

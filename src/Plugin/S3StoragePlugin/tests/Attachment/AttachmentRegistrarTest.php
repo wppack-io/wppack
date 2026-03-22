@@ -9,6 +9,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use WpPack\Component\Media\AttachmentManager;
 use WpPack\Component\Messenger\Envelope;
 use WpPack\Component\Messenger\MessageBusInterface;
 use WpPack\Component\Mime\MimeTypesInterface;
@@ -28,6 +29,7 @@ final class AttachmentRegistrarTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
+            attachment: new AttachmentManager(),
         );
     }
 
@@ -110,6 +112,7 @@ final class AttachmentRegistrarTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
+            attachment: new AttachmentManager(),
         );
 
         $result = $registrar->register('uploads/2024/01/photo-100x200.jpg');
@@ -129,6 +132,7 @@ final class AttachmentRegistrarTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
+            attachment: new AttachmentManager(),
         );
 
         $key = 'uploads/2024/01/registrar-original-' . uniqid() . '.jpg';
@@ -149,6 +153,7 @@ final class AttachmentRegistrarTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
+            attachment: new AttachmentManager(),
         );
 
         $key = 'uploads/2024/01/registrar-user-' . uniqid() . '.jpg';
@@ -169,6 +174,7 @@ final class AttachmentRegistrarTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
+            attachment: new AttachmentManager(),
         );
 
         $key = 'uploads/2024/01/registrar-dup-' . uniqid() . '.jpg';
@@ -185,6 +191,7 @@ final class AttachmentRegistrarTest extends TestCase
             bus: $bus2,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
+            attachment: new AttachmentManager(),
         );
 
         $secondId = $registrar2->register($key);
@@ -209,6 +216,7 @@ final class AttachmentRegistrarTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
+            attachment: new AttachmentManager(),
         );
 
         $key = 'uploads/sites/2/2024/01/registrar-multi-' . uniqid() . '.jpg';
@@ -230,6 +238,7 @@ final class AttachmentRegistrarTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
+            attachment: new AttachmentManager(),
         );
 
         $key = 'uploads/sites/4/2024/01/registrar-exc-' . uniqid() . '.jpg';
@@ -257,6 +266,7 @@ final class AttachmentRegistrarTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
+            attachment: new AttachmentManager(),
             mimeTypes: $mimeTypes,
         );
 
@@ -280,6 +290,7 @@ final class AttachmentRegistrarTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
+            attachment: new AttachmentManager(),
             mimeTypes: $mimeTypes,
         );
 
@@ -302,6 +313,7 @@ final class AttachmentRegistrarTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
+            attachment: new AttachmentManager(),
             logger: $logger,
         );
 
@@ -322,6 +334,7 @@ final class AttachmentRegistrarTest extends TestCase
             bus: $bus,
             prefix: 'uploads/',
             blogSwitcher: new BlogSwitcher(),
+            attachment: new AttachmentManager(),
         );
 
         $key = 'uploads/2024/01/registrar-trail-' . uniqid() . '.jpg';
@@ -341,6 +354,7 @@ final class AttachmentRegistrarTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
+            attachment: new AttachmentManager(),
         );
 
         $key = 'uploads/2024/01/unregister-' . uniqid() . '.jpg';
@@ -363,6 +377,7 @@ final class AttachmentRegistrarTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
+            attachment: new AttachmentManager(),
         );
 
         $key = 'uploads/2024/01/nonexistent-' . uniqid() . '.jpg';
@@ -381,6 +396,7 @@ final class AttachmentRegistrarTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
+            attachment: new AttachmentManager(),
         );
 
         $result = $registrar->unregister('uploads/2024/01/photo-100x200.jpg');
@@ -401,6 +417,7 @@ final class AttachmentRegistrarTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
+            attachment: new AttachmentManager(),
         );
 
         $key = 'uploads/sites/2/2024/01/unregister-multi-' . uniqid() . '.jpg';
@@ -427,6 +444,7 @@ final class AttachmentRegistrarTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
+            attachment: new AttachmentManager(),
             logger: $logger,
         );
 

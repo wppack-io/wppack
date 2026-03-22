@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use WpPack\Component\Option\OptionManager;
 use WpPack\Plugin\AmazonMailerPlugin\Handler\BounceHandler;
 use WpPack\Plugin\AmazonMailerPlugin\Message\SesBounceMessage;
 use WpPack\Plugin\AmazonMailerPlugin\SuppressionList;
@@ -30,7 +31,7 @@ final class BounceHandlerTest extends TestCase
     #[Test]
     public function permanentBounceAddsToSuppressionList(): void
     {
-        $handler = new BounceHandler(new SuppressionList());
+        $handler = new BounceHandler(new SuppressionList(new OptionManager()));
 
         $message = new SesBounceMessage(
             messageId: 'msg-001',
@@ -54,7 +55,7 @@ final class BounceHandlerTest extends TestCase
     #[Test]
     public function transientBounceDoesNotAddToSuppressionList(): void
     {
-        $handler = new BounceHandler(new SuppressionList());
+        $handler = new BounceHandler(new SuppressionList(new OptionManager()));
 
         $message = new SesBounceMessage(
             messageId: 'msg-002',
@@ -85,7 +86,7 @@ final class BounceHandlerTest extends TestCase
                     && $context['bounceType'] === 'Permanent';
             }));
 
-        $handler = new BounceHandler(new SuppressionList(), logger: $logger);
+        $handler = new BounceHandler(new SuppressionList(new OptionManager()), logger: $logger);
 
         $message = new SesBounceMessage(
             messageId: 'msg-005',

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WpPack\Plugin\S3StoragePlugin\Attachment;
 
 use Psr\Log\LoggerInterface;
+use WpPack\Component\Media\AttachmentManager;
 use WpPack\Component\Messenger\MessageBusInterface;
 use WpPack\Component\Mime\MimeTypes;
 use WpPack\Component\Mime\MimeTypesInterface;
@@ -19,6 +20,7 @@ final readonly class AttachmentRegistrar
         private MessageBusInterface $bus,
         private string $prefix,
         private BlogSwitcherInterface $blogSwitcher,
+        private AttachmentManager $attachment,
         ?MimeTypesInterface $mimeTypes = null,
         private ?LoggerInterface $logger = null,
     ) {
@@ -58,7 +60,7 @@ final readonly class AttachmentRegistrar
                 $attachmentData['post_author'] = $userId;
             }
 
-            $attachmentId = wp_insert_attachment($attachmentData, $relativePath);
+            $attachmentId = $this->attachment->insert($attachmentData, $relativePath);
 
             if ($attachmentId instanceof \WP_Error) {
                 $this->logger?->error('wp_insert_attachment failed for key "{key}": {error}', [
@@ -100,7 +102,7 @@ final readonly class AttachmentRegistrar
                 return null;
             }
 
-            $result = wp_delete_attachment($existingId, true);
+            $result = $this->attachment->delete($existingId, true);
 
             if (!$result instanceof \WP_Post) {
                 $this->logger?->error('wp_delete_attachment failed for attachment ID {id}.', [
@@ -179,20 +181,6 @@ final readonly class AttachmentRegistrar
 
     private function findExistingAttachment(string $relativePath): ?int
     {
-        $existing = get_posts([
-            'post_type' => 'attachment',
-            'post_status' => 'any',
-            'meta_key' => '_wp_attached_file',
-            'meta_value' => $relativePath,
-            'posts_per_page' => 1,
-            'fields' => 'ids',
-            'no_found_rows' => true,
-        ]);
-
-        if ($existing !== []) {
-            return (int) $existing[0];
-        }
-
-        return null;
+        return $this->attachment->findByMeta('_wp_attached_file', $relativePath);
     }
 }

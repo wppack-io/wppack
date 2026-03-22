@@ -23,6 +23,17 @@ trait SecurityAwareTrait
         return $this->security->getUser();
     }
 
+    protected function getUserId(): int
+    {
+        if ($this->security === null) {
+            return get_current_user_id();
+        }
+
+        $user = $this->security->getUser();
+
+        return $user !== null ? $user->ID : 0;
+    }
+
     protected function isGranted(string $attribute, mixed $subject = null): bool
     {
         if ($this->security === null) {

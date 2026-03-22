@@ -7,6 +7,7 @@ namespace WpPack\Plugin\S3StoragePlugin\Tests\Handler;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Media\AttachmentManager;
 use WpPack\Component\Site\BlogSwitcher;
 use WpPack\Plugin\S3StoragePlugin\Handler\GenerateThumbnailsHandler;
 use WpPack\Plugin\S3StoragePlugin\Message\GenerateThumbnailsMessage;
@@ -18,7 +19,10 @@ final class GenerateThumbnailsHandlerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->handler = new GenerateThumbnailsHandler(blogSwitcher: new BlogSwitcher());
+        $this->handler = new GenerateThumbnailsHandler(
+            blogSwitcher: new BlogSwitcher(),
+            attachment: new AttachmentManager(),
+        );
     }
 
     #[Test]

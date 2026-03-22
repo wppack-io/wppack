@@ -10,7 +10,8 @@
         "wppack/hook": "^1.0",
         "wppack/kernel": "^1.0",
         "wppack/mailer": "^1.0",
-        "wppack/messenger": "^1.0"
+        "wppack/messenger": "^1.0",
+        "wppack/option": "^1.0"
     },
     "autoload": {
         "psr-4": {

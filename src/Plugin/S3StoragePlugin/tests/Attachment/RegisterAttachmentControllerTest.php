@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Media\AttachmentManager;
 use WpPack\Component\Messenger\MessageBusInterface;
 use WpPack\Component\Site\BlogSwitcher;
 use WpPack\Component\Storage\Adapter\StorageAdapterInterface;
@@ -21,14 +22,16 @@ final class RegisterAttachmentControllerTest extends TestCase
         ?AttachmentRegistrar $registrar = null,
         ?StorageAdapterInterface $adapter = null,
     ): RegisterAttachmentController {
+        $attachment = new AttachmentManager();
         $registrar ??= new AttachmentRegistrar(
             bus: $this->createMock(MessageBusInterface::class),
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
+            attachment: $attachment,
         );
         $adapter ??= $this->createMock(StorageAdapterInterface::class);
 
-        return new RegisterAttachmentController($registrar, $adapter);
+        return new RegisterAttachmentController($registrar, $adapter, $attachment);
     }
 
     #[Test]
@@ -90,6 +93,7 @@ final class RegisterAttachmentControllerTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
+            attachment: new AttachmentManager(),
         );
 
         $controller = $this->createController(registrar: $registrar, adapter: $adapter);
@@ -117,6 +121,7 @@ final class RegisterAttachmentControllerTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
+            attachment: new AttachmentManager(),
         );
 
         $controller = $this->createController(registrar: $registrar, adapter: $adapter);
@@ -144,6 +149,7 @@ final class RegisterAttachmentControllerTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
+            attachment: new AttachmentManager(),
         );
 
         $controller = $this->createController(registrar: $registrar, adapter: $adapter);

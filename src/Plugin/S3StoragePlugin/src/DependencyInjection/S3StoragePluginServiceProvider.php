@@ -10,11 +10,15 @@ use WpPack\Component\Asset\AssetManager;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
+use WpPack\Component\Media\AttachmentManager;
 use WpPack\Component\Media\Storage\StorageConfiguration;
 use WpPack\Component\Media\Storage\Subscriber\AttachmentSubscriber;
 use WpPack\Component\Media\Storage\Subscriber\UploadDirSubscriber;
 use WpPack\Component\Media\Storage\UrlResolver;
 use WpPack\Component\Messenger\MessageBusInterface;
+use WpPack\Component\Nonce\NonceManager;
+use WpPack\Component\Plugin\PluginPathResolver;
+use WpPack\Component\Rest\RestUrlGenerator;
 use WpPack\Component\Site\BlogContext;
 use WpPack\Component\Site\BlogContextInterface;
 use WpPack\Component\Site\BlogSwitcher;
@@ -99,26 +103,43 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
             ->addArgument(new Reference(UploadPolicy::class))
             ->addTag('rest.controller');
 
+        // Attachment manager
+        $builder->register(AttachmentManager::class);
+
         // Attachment registration
         $builder->register(AttachmentRegistrar::class)
             ->setFactory([self::class, 'createAttachmentRegistrar'])
             ->addArgument(new Reference(MessageBusInterface::class))
             ->addArgument(new Reference(S3StorageConfiguration::class))
-            ->addArgument(new Reference(BlogSwitcherInterface::class));
+            ->addArgument(new Reference(BlogSwitcherInterface::class))
+            ->addArgument(new Reference(AttachmentManager::class));
 
         $builder->register(RegisterAttachmentController::class)
             ->addArgument(new Reference(AttachmentRegistrar::class))
             ->addArgument(new Reference(StorageAdapterInterface::class))
+            ->addArgument(new Reference(AttachmentManager::class))
             ->addTag('rest.controller');
 
         // Asset Manager
         $builder->register(AssetManager::class);
+
+        // Nonce Manager
+        $builder->register(NonceManager::class);
+
+        // REST URL Generator
+        $builder->register(RestUrlGenerator::class);
+
+        // Plugin Path Resolver
+        $builder->register(PluginPathResolver::class)
+            ->setFactory([self::class, 'createPluginPathResolver']);
 
         // Admin assets
         $builder->register(AdminAssetSubscriber::class)
             ->setFactory([self::class, 'createAdminAssetSubscriber'])
             ->addArgument(new Reference(UploadPolicy::class))
             ->addArgument(new Reference(AssetManager::class))
+            ->addArgument(new Reference(NonceManager::class))
+            ->addArgument(new Reference(RestUrlGenerator::class))
             ->addTag('hook.subscriber');
 
         // Message handlers
@@ -136,6 +157,7 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
 
         $builder->register(GenerateThumbnailsHandler::class)
             ->addArgument(new Reference(BlogSwitcherInterface::class))
+            ->addArgument(new Reference(AttachmentManager::class))
             ->addTag('messenger.message_handler');
     }
 
@@ -172,24 +194,35 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
         MessageBusInterface $bus,
         S3StorageConfiguration $config,
         BlogSwitcherInterface $blogSwitcher,
+        AttachmentManager $attachment,
         ?LoggerInterface $logger = null,
     ): AttachmentRegistrar {
         return new AttachmentRegistrar(
             bus: $bus,
             prefix: $config->prefix,
-            logger: $logger,
             blogSwitcher: $blogSwitcher,
+            attachment: $attachment,
+            logger: $logger,
         );
+    }
+
+    public static function createPluginPathResolver(): PluginPathResolver
+    {
+        return new PluginPathResolver(\dirname(__DIR__, 2) . '/s3-storage-plugin.php');
     }
 
     public static function createAdminAssetSubscriber(
         UploadPolicy $policy,
         AssetManager $asset,
+        NonceManager $nonce,
+        RestUrlGenerator $restUrl,
     ): AdminAssetSubscriber {
         return new AdminAssetSubscriber(
-            pluginFile: \dirname(__DIR__, 2) . '/s3-storage-plugin.php',
+            pluginPath: self::createPluginPathResolver(),
             policy: $policy,
             asset: $asset,
+            nonce: $nonce,
+            restUrl: $restUrl,
         );
     }
 }

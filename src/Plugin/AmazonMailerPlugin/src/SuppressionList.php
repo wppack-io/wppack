@@ -4,9 +4,15 @@ declare(strict_types=1);
 
 namespace WpPack\Plugin\AmazonMailerPlugin;
 
+use WpPack\Component\Option\OptionManager;
+
 final readonly class SuppressionList
 {
     private const OPTION_KEY = 'wppack_ses_suppression_list';
+
+    public function __construct(
+        private OptionManager $option,
+    ) {}
 
     /**
      * @param list<string> $addresses
@@ -14,7 +20,7 @@ final readonly class SuppressionList
     public function add(array $addresses): void
     {
         /** @var string $json */
-        $json = get_option(self::OPTION_KEY, '[]');
+        $json = $this->option->get(self::OPTION_KEY, '[]');
 
         /** @var list<string> $list */
         $list = json_decode($json, true) ?: [];
@@ -30,7 +36,7 @@ final readonly class SuppressionList
         }
 
         if ($updated) {
-            update_option(self::OPTION_KEY, json_encode($list, \JSON_THROW_ON_ERROR));
+            $this->option->update(self::OPTION_KEY, json_encode($list, \JSON_THROW_ON_ERROR));
         }
     }
 }
