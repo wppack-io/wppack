@@ -21,9 +21,11 @@ final class Filesystem
         $this->mimeTypes = $mimeTypes ?? MimeTypes::getDefault();
     }
 
-    public function read(string $path): string|false
+    public function read(string $path): ?string
     {
-        return $this->wpFilesystem->get_contents($path);
+        $result = $this->wpFilesystem->get_contents($path);
+
+        return $result === false ? null : $result;
     }
 
     public function write(string $path, string $content): bool
@@ -34,7 +36,7 @@ final class Filesystem
     public function append(string $path, string $content): bool
     {
         $existing = $this->wpFilesystem->get_contents($path);
-        if ($existing === false) {
+        if (!\is_string($existing)) {
             $existing = '';
         }
 
@@ -90,23 +92,27 @@ final class Filesystem
         return $this->wpFilesystem->chmod($path, $mode);
     }
 
-    public function size(string $path): int|false
+    public function size(string $path): ?int
     {
-        return $this->wpFilesystem->size($path);
+        $result = $this->wpFilesystem->size($path);
+
+        return $result === false ? null : $result;
     }
 
-    public function lastModified(string $path): int|false
+    public function lastModified(string $path): ?int
     {
-        return $this->wpFilesystem->mtime($path);
+        $result = $this->wpFilesystem->mtime($path);
+
+        return $result === false ? null : $result;
     }
 
-    public function mimeType(string $path): string|false
+    public function mimeType(string $path): ?string
     {
         if (!file_exists($path)) {
-            return false;
+            return null;
         }
 
-        return $this->mimeTypes->guessMimeType($path) ?? false;
+        return $this->mimeTypes->guessMimeType($path);
     }
 
     /**

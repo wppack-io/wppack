@@ -229,7 +229,7 @@ final class FilesystemTest extends TestCase
     #[Test]
     public function mimeTypeNonExistentFile(): void
     {
-        self::assertFalse($this->filesystem->mimeType($this->testDir . '/nonexistent.txt'));
+        self::assertNull($this->filesystem->mimeType($this->testDir . '/nonexistent.txt'));
     }
 
     #[Test]
@@ -282,19 +282,19 @@ final class FilesystemTest extends TestCase
     #[Test]
     public function readNonExistentFile(): void
     {
-        self::assertFalse($this->filesystem->read($this->testDir . '/nonexistent.txt'));
+        self::assertNull($this->filesystem->read($this->testDir . '/nonexistent.txt'));
     }
 
     #[Test]
     public function fileSizeNonExistentFile(): void
     {
-        self::assertFalse($this->filesystem->size($this->testDir . '/nonexistent.txt'));
+        self::assertNull($this->filesystem->size($this->testDir . '/nonexistent.txt'));
     }
 
     #[Test]
     public function lastModifiedNonExistentFile(): void
     {
-        self::assertFalse($this->filesystem->lastModified($this->testDir . '/nonexistent.txt'));
+        self::assertNull($this->filesystem->lastModified($this->testDir . '/nonexistent.txt'));
     }
 
     #[Test]

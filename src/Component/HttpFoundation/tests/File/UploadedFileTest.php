@@ -144,11 +144,11 @@ final class UploadedFileTest extends TestCase
     }
 
     #[Test]
-    public function getSizeReturnsFalseWhenNotValid(): void
+    public function getSizeReturnsNullWhenNotValid(): void
     {
         $file = new UploadedFile('/tmp/nonexistent', 'file.txt', error: \UPLOAD_ERR_PARTIAL);
 
-        self::assertFalse($file->getSize());
+        self::assertNull($file->getSize());
     }
 
     #[Test]
@@ -239,11 +239,11 @@ final class UploadedFileTest extends TestCase
     }
 
     #[Test]
-    public function getSizeReturnsFalseForNonExistentFile(): void
+    public function getSizeReturnsNullForNonExistentFile(): void
     {
         $file = new UploadedFile('/nonexistent/path/file.txt', 'file.txt', 'text/plain', \UPLOAD_ERR_OK);
 
-        self::assertFalse($file->getSize());
+        self::assertNull($file->getSize());
     }
 
     #[Test]

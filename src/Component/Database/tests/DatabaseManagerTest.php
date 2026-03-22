@@ -137,14 +137,14 @@ final class DatabaseManagerTest extends TestCase
     }
 
     #[Test]
-    public function fetchAssociativeReturnsFalseWhenNotFound(): void
+    public function fetchAssociativeReturnsNullWhenNotFound(): void
     {
         $row = $this->db->fetchAssociative(
             "SELECT * FROM {$this->db->prefix()}wppack_test WHERE id = %d",
             [999999],
         );
 
-        self::assertFalse($row);
+        self::assertNull($row);
     }
 
     #[Test]
@@ -184,7 +184,7 @@ final class DatabaseManagerTest extends TestCase
             [$id],
         );
 
-        self::assertFalse($row);
+        self::assertNull($row);
     }
 
     #[Test]
@@ -229,7 +229,7 @@ final class DatabaseManagerTest extends TestCase
             ['tx_rollback'],
         );
 
-        self::assertFalse($row);
+        self::assertNull($row);
     }
 
     #[Test]
@@ -479,7 +479,7 @@ final class DatabaseManagerTest extends TestCase
             [$id],
         );
 
-        self::assertFalse($row);
+        self::assertNull($row);
     }
 
     // --- Empty result edge cases ---
@@ -548,13 +548,13 @@ final class DatabaseManagerTest extends TestCase
     }
 
     #[Test]
-    public function fetchAssociativeWithoutParamsReturnsFalseWhenNotFound(): void
+    public function fetchAssociativeWithoutParamsReturnsNullWhenNotFound(): void
     {
         $row = $this->db->fetchAssociative(
             "SELECT * FROM {$this->db->prefix()}wppack_test WHERE name = 'nonexistent_fetch_noparam'",
         );
 
-        self::assertFalse($row);
+        self::assertNull($row);
     }
 
     // --- fetchOne without params (non-prepared path) ---

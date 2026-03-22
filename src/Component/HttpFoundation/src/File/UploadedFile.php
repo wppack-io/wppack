@@ -47,13 +47,16 @@ class UploadedFile extends File
         return self::ERROR_MESSAGES[$this->error] ?? 'Unknown upload error.';
     }
 
-    public function getSize(): int|false
+    #[\ReturnTypeWillChange]
+    public function getSize(): ?int
     {
         if (!$this->isValid()) {
-            return false;
+            return null;
         }
 
-        return @filesize($this->getPathname());
+        $size = @filesize($this->getPathname());
+
+        return $size === false ? null : $size;
     }
 
     public function getMimeType(): ?string
@@ -100,7 +103,7 @@ class UploadedFile extends File
     /**
      * Converts the UploadedFile to the $_FILES array format WordPress expects.
      *
-     * @return array{name: string, type: string, tmp_name: string, error: int, size: int|false}
+     * @return array{name: string, type: string, tmp_name: string, error: int, size: ?int}
      */
     public function toFilesArray(): array
     {

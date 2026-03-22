@@ -158,16 +158,16 @@ final class DatabaseManager
      *
      * @param list<mixed> $params
      *
-     * @return array<string, mixed>|false
+     * @return array<string, mixed>|null
      *
      * @throws QueryException
      */
-    public function fetchAssociative(string $query, array $params = []): array|false
+    public function fetchAssociative(string $query, array $params = []): ?array
     {
         if ($this->engine === DatabaseEngine::MySQL && $params !== []) {
             $rows = $this->fetchPrepared($query, $params, 'row');
 
-            return $rows === [] ? false : $rows[0];
+            return $rows === [] ? null : $rows[0];
         }
 
         $sql = $this->prepareIfNeeded($query, $params);
@@ -179,7 +179,7 @@ final class DatabaseManager
             throw new QueryException($sql, $this->wpdb->last_error);
         }
 
-        return $row ?? false;
+        return $row;
     }
 
     /**
