@@ -76,26 +76,32 @@ class MediaHandler
 
 ### AttachmentManager
 
-WordPress の attachment 操作関数（`wp_insert_attachment()`、`wp_delete_attachment()`、`wp_prepare_attachment_for_js()` 等）をラップするクラス。DI コンテナ経由でのインジェクションとテスト時のモックを可能にします。
+WordPress の attachment 操作関数（`wp_insert_attachment()`、`wp_delete_attachment()`、`wp_prepare_attachment_for_js()` 等）をラップするクラス。`AttachmentManagerInterface` を実装しており、DI コンテナではインターフェースを型宣言に使用します。
 
 ```php
 use WpPack\Component\Media\AttachmentManager;
+use WpPack\Component\Media\AttachmentManagerInterface;
+use WpPack\Component\Media\Exception\AttachmentException;
 use WpPack\Component\PostType\PostRepository;
 
 $attachment = new AttachmentManager(new PostRepository());
 
-// Attachment の登録
-$id = $attachment->insert([
-    'post_title' => 'My Image',
-    'post_mime_type' => 'image/jpeg',
-    'post_status' => 'inherit',
-], '2024/01/photo.jpg');
+// Attachment の登録（失敗時は AttachmentException をスロー）
+try {
+    $id = $attachment->insert([
+        'post_title' => 'My Image',
+        'post_mime_type' => 'image/jpeg',
+        'post_status' => 'inherit',
+    ], '2024/01/photo.jpg');
+} catch (AttachmentException $e) {
+    // 登録失敗時の処理
+}
 
 // JavaScript 向けデータの準備
 $data = $attachment->prepareForJs($id);
 
 // Attachment ファイルパスの取得
-$file = $attachment->getAttachedFile($id);
+$file = $attachment->getFile($id);
 
 // メタデータの生成・更新
 $metadata = $attachment->generateMetadata($id, $file);
@@ -110,16 +116,16 @@ $attachment->delete($id, force: true);
 
 **主なメソッド:**
 
-| メソッド | WordPress 関数 | 説明 |
-|---------|---------------|------|
-| `insert()` | `wp_insert_attachment()` | Attachment 登録 |
-| `delete()` | `wp_delete_attachment()` | Attachment 削除 |
-| `prepareForJs()` | `wp_prepare_attachment_for_js()` | JS 向けデータ準備 |
-| `getAttachedFile()` | `get_attached_file()` | ファイルパス取得 |
-| `generateMetadata()` | `wp_generate_attachment_metadata()` | メタデータ生成 |
-| `updateMetadata()` | `wp_update_attachment_metadata()` | メタデータ更新 |
-| `getMetadata()` | `wp_get_attachment_metadata()` | メタデータ取得 |
-| `findByMeta()` | `PostRepositoryInterface::findOneByMeta()` | メタキーで attachment 検索 |
+| メソッド | WordPress 関数 | 戻り値 | 説明 |
+|---------|---------------|--------|------|
+| `insert()` | `wp_insert_attachment()` | `int` (throws `AttachmentException`) | Attachment 登録 |
+| `delete()` | `wp_delete_attachment()` | `?\WP_Post` | Attachment 削除 |
+| `prepareForJs()` | `wp_prepare_attachment_for_js()` | `?array` | JS 向けデータ準備 |
+| `getFile()` | `get_attached_file()` | `?string` | ファイルパス取得 |
+| `generateMetadata()` | `wp_generate_attachment_metadata()` | `array` | メタデータ生成 |
+| `updateMetadata()` | `wp_update_attachment_metadata()` | `bool` | メタデータ更新 |
+| `getMetadata()` | `wp_get_attachment_metadata()` | `?array` | メタデータ取得 |
+| `findByMeta()` | `PostRepositoryInterface::findOneByMeta()` | `?int` | メタキーで attachment 検索 |
 
 ## Hook アトリビュート
 

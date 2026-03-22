@@ -55,13 +55,18 @@ For S3 media storage, install `wppack/s3-storage-plugin`. The Media API remains 
 
 ```php
 use WpPack\Component\Media\AttachmentManager;
+use WpPack\Component\Media\Exception\AttachmentException;
 use WpPack\Component\PostType\PostRepository;
 
 $attachment = new AttachmentManager(new PostRepository());
 
-$id = $attachment->insert(['post_title' => 'Photo', 'post_mime_type' => 'image/jpeg', 'post_status' => 'inherit'], '2024/01/photo.jpg');
+try {
+    $id = $attachment->insert(['post_title' => 'Photo', 'post_mime_type' => 'image/jpeg', 'post_status' => 'inherit'], '2024/01/photo.jpg');
+} catch (AttachmentException $e) {
+    // handle failure
+}
 $data = $attachment->prepareForJs($id);
-$file = $attachment->getAttachedFile($id);
+$file = $attachment->getFile($id);
 $metadata = $attachment->generateMetadata($id, $file);
 $attachment->updateMetadata($id, $metadata);
 $existingId = $attachment->findByMeta('_wp_attached_file', '2024/01/photo.jpg');
