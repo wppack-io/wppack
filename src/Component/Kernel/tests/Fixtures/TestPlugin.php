@@ -6,9 +6,9 @@ namespace WpPack\Component\Kernel\Tests\Fixtures;
 
 use WpPack\Component\DependencyInjection\Container;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\Kernel\PluginInterface;
+use WpPack\Component\Kernel\AbstractPlugin;
 
-class TestPlugin implements PluginInterface
+class TestPlugin extends AbstractPlugin
 {
     public bool $registered = false;
     public bool $booted = false;
@@ -20,8 +20,9 @@ class TestPlugin implements PluginInterface
     /**
      * @param list<\WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface> $compilerPasses
      */
-    public function __construct(array $compilerPasses = [])
+    public function __construct(string $pluginFile = __FILE__, array $compilerPasses = [])
     {
+        parent::__construct($pluginFile);
         $this->compilerPasses = $compilerPasses;
     }
 
@@ -43,8 +44,4 @@ class TestPlugin implements PluginInterface
         $this->booted = true;
         $this->bootedContainer = $container;
     }
-
-    public function onActivate(): void {}
-
-    public function onDeactivate(): void {}
 }

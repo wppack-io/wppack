@@ -43,18 +43,6 @@ final class PluginWatcher
 }
 ```
 
-### PluginPathResolver
-
-```php
-use WpPack\Component\Plugin\PluginPathResolver;
-
-$resolver = new PluginPathResolver(__FILE__);
-
-$resolver->getUrl();      // plugin_dir_url()
-$resolver->getPath();     // plugin_dir_path()
-$resolver->getBasename(); // plugin_basename()
-```
-
 ## Available Attributes
 
 ### Actions

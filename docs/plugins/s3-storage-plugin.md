@@ -148,7 +148,6 @@ WordPress コア / プラグイン
 | wppack/kernel | プラグインブートストラップ（`PluginInterface`, `Kernel`） |
 | wppack/role | 認可（`#[IsGranted]`） |
 | wppack/nonce | CSRF トークン管理（REST API nonce 生成） |
-| wppack/plugin | プラグインパス解決（`PluginPathResolver`） |
 | wppack/rest | REST URL 生成（`RestUrlGenerator`） |
 | wppack/asset | アセット管理（`AssetManager`） |
 | async-aws/s3 | S3 API（S3StorageAdapter 経由で使用） |
@@ -168,13 +167,11 @@ WpPack\Plugin\S3StoragePlugin\
 ```php
 namespace WpPack\Plugin\S3StoragePlugin;
 
-final class S3StoragePlugin implements PluginInterface
+final class S3StoragePlugin extends AbstractPlugin
 {
+    public function __construct(string $pluginFile);
     public function register(ContainerBuilder $builder): void;
     public function getCompilerPasses(): array;  // RegisterHookSubscribersPass, RegisterRestControllersPass
-    public function boot(Container $container): void;
-    public function onActivate(): void;
-    public function onDeactivate(): void;
 }
 ```
 
@@ -386,7 +383,7 @@ namespace WpPack\Plugin\S3StoragePlugin\Subscriber;
 final readonly class AdminAssetSubscriber
 {
     public function __construct(
-        private PluginPathResolver $pluginPath,
+        private string $pluginUrl,
         private UploadPolicy $policy,
         private AssetManager $asset,
         private NonceManager $nonce,

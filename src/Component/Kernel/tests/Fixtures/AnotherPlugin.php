@@ -6,12 +6,17 @@ namespace WpPack\Component\Kernel\Tests\Fixtures;
 
 use WpPack\Component\DependencyInjection\Container;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\Kernel\PluginInterface;
+use WpPack\Component\Kernel\AbstractPlugin;
 
-class AnotherPlugin implements PluginInterface
+class AnotherPlugin extends AbstractPlugin
 {
     public bool $registered = false;
     public bool $booted = false;
+
+    public function __construct(string $pluginFile = __FILE__)
+    {
+        parent::__construct($pluginFile);
+    }
 
     public function register(ContainerBuilder $builder): void
     {
@@ -21,17 +26,8 @@ class AnotherPlugin implements PluginInterface
             ->setPublic(true);
     }
 
-    public function getCompilerPasses(): array
-    {
-        return [];
-    }
-
     public function boot(Container $container): void
     {
         $this->booted = true;
     }
-
-    public function onActivate(): void {}
-
-    public function onDeactivate(): void {}
 }

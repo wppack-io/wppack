@@ -10,6 +10,12 @@ use WpPack\Component\DependencyInjection\ServiceProviderInterface;
 
 interface ThemeInterface extends ServiceProviderInterface
 {
+    public function getFile(): string;
+
+    public function getPath(): string;
+
+    public function getUrl(): string;
+
     /**
      * @return CompilerPassInterface[]
      */

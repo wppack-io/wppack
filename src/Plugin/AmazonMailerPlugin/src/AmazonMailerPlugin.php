@@ -8,17 +8,18 @@ use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use WpPack\Component\DependencyInjection\Container;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
-use WpPack\Component\Kernel\PluginInterface;
+use WpPack\Component\Kernel\AbstractPlugin;
 use WpPack\Component\Mailer\DependencyInjection\RegisterTransportFactoriesPass;
 use WpPack\Component\Mailer\Mailer;
 use WpPack\Plugin\AmazonMailerPlugin\DependencyInjection\AmazonMailerPluginServiceProvider;
 
-final class AmazonMailerPlugin implements PluginInterface
+final class AmazonMailerPlugin extends AbstractPlugin
 {
     private readonly AmazonMailerPluginServiceProvider $serviceProvider;
 
-    public function __construct()
+    public function __construct(string $pluginFile)
     {
+        parent::__construct($pluginFile);
         $this->serviceProvider = new AmazonMailerPluginServiceProvider();
     }
 
@@ -44,8 +45,4 @@ final class AmazonMailerPlugin implements PluginInterface
         $mailer = $container->get(Mailer::class);
         $mailer->boot();
     }
-
-    public function onActivate(): void {}
-
-    public function onDeactivate(): void {}
 }

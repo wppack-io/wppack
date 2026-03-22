@@ -10,14 +10,14 @@ use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use WpPack\Component\DependencyInjection\Container;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Kernel\AbstractPlugin;
+use WpPack\Component\Kernel\AbstractTheme;
 use WpPack\Component\Kernel\Exception\KernelAlreadyBootedException;
 use WpPack\Component\Kernel\Kernel;
-use WpPack\Component\Kernel\PluginInterface;
 use WpPack\Component\Kernel\Tests\Fixtures\AnotherPlugin;
 use WpPack\Component\Kernel\Tests\Fixtures\TestPlugin;
 use WpPack\Component\Kernel\Tests\Fixtures\TestService;
 use WpPack\Component\Kernel\Tests\Fixtures\TestTheme;
-use WpPack\Component\Kernel\ThemeInterface;
 
 final class KernelTest extends TestCase
 {
@@ -112,12 +112,15 @@ final class KernelTest extends TestCase
             }
         };
 
-        $plugin = new class ($order, $pass) implements PluginInterface {
+        $plugin = new class (__FILE__, $order, $pass) extends AbstractPlugin {
             /** @param list<string> $order */
             public function __construct(
+                string $pluginFile,
                 private array &$order,
                 private readonly CompilerPassInterface $pass,
-            ) {}
+            ) {
+                parent::__construct($pluginFile);
+            }
 
             public function register(ContainerBuilder $builder): void
             {
@@ -128,12 +131,6 @@ final class KernelTest extends TestCase
             {
                 return [$this->pass];
             }
-
-            public function boot(Container $container): void {}
-
-            public function onActivate(): void {}
-
-            public function onDeactivate(): void {}
         };
 
         $kernel = new Kernel();
@@ -162,42 +159,30 @@ final class KernelTest extends TestCase
     {
         $order = [];
 
-        $plugin = new class ($order) implements PluginInterface {
+        $plugin = new class (__FILE__, $order) extends AbstractPlugin {
             /** @param list<string> $order */
-            public function __construct(private array &$order) {}
+            public function __construct(string $pluginFile, private array &$order)
+            {
+                parent::__construct($pluginFile);
+            }
 
             public function register(ContainerBuilder $builder): void
             {
                 $this->order[] = 'plugin';
             }
-
-            public function getCompilerPasses(): array
-            {
-                return [];
-            }
-
-            public function boot(Container $container): void {}
-
-            public function onActivate(): void {}
-
-            public function onDeactivate(): void {}
         };
 
-        $theme = new class ($order) implements ThemeInterface {
+        $theme = new class (__FILE__, $order) extends AbstractTheme {
             /** @param list<string> $order */
-            public function __construct(private array &$order) {}
+            public function __construct(string $themeFile, private array &$order)
+            {
+                parent::__construct($themeFile);
+            }
 
             public function register(ContainerBuilder $builder): void
             {
                 $this->order[] = 'theme';
             }
-
-            public function getCompilerPasses(): array
-            {
-                return [];
-            }
-
-            public function boot(Container $container): void {}
         };
 
         $kernel = new Kernel();
@@ -301,7 +286,7 @@ final class KernelTest extends TestCase
     #[Test]
     public function registerPluginAddsToInstance(): void
     {
-        Kernel::registerPlugin(new TestPlugin(), __FILE__);
+        Kernel::registerPlugin(new TestPlugin(__FILE__));
 
         $instance = Kernel::getInstance();
 
@@ -332,7 +317,7 @@ final class KernelTest extends TestCase
     #[Test]
     public function resetInstanceClearsState(): void
     {
-        Kernel::registerPlugin(new TestPlugin(), __FILE__);
+        Kernel::registerPlugin(new TestPlugin(__FILE__));
         $first = Kernel::getInstance();
 
         Kernel::resetInstance();
@@ -390,7 +375,7 @@ final class KernelTest extends TestCase
     public function autoBootBootsInstance(): void
     {
         $plugin = new TestPlugin();
-        Kernel::registerPlugin($plugin, __FILE__);
+        Kernel::registerPlugin($plugin);
 
         Kernel::autoBoot();
 

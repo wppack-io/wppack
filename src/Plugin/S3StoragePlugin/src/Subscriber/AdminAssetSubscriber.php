@@ -8,7 +8,6 @@ use WpPack\Component\Asset\AssetManager;
 use WpPack\Component\Hook\Attribute\Admin\Action\AdminEnqueueScriptsAction;
 use WpPack\Component\Hook\Attribute\AsHookSubscriber;
 use WpPack\Component\Nonce\NonceManager;
-use WpPack\Component\Plugin\PluginPathResolver;
 use WpPack\Component\Rest\RestUrlGenerator;
 use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\UploadPolicy;
 
@@ -16,7 +15,7 @@ use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\UploadPolicy;
 final readonly class AdminAssetSubscriber
 {
     public function __construct(
-        private PluginPathResolver $pluginPath,
+        private string $pluginUrl,
         private UploadPolicy $policy,
         private AssetManager $asset,
         private NonceManager $nonce,
@@ -32,7 +31,7 @@ final readonly class AdminAssetSubscriber
 
         $this->asset->enqueueScript(
             'wppack-s3-upload',
-            $this->pluginPath->getUrl() . 'assets/js/s3-upload.js',
+            $this->pluginUrl . 'assets/js/s3-upload.js',
             ['jquery', 'media-views'],
             '1.0.0',
             true,

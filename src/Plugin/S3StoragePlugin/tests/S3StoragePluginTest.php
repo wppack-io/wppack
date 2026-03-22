@@ -9,6 +9,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
+use WpPack\Component\Kernel\AbstractPlugin;
 use WpPack\Component\Kernel\PluginInterface;
 use WpPack\Component\Rest\DependencyInjection\RegisterRestControllersPass;
 use WpPack\Plugin\S3StoragePlugin\S3StoragePlugin;
@@ -20,7 +21,7 @@ final class S3StoragePluginTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->plugin = new S3StoragePlugin();
+        $this->plugin = new S3StoragePlugin('/path/to/plugin.php');
     }
 
     #[Test]
@@ -57,29 +58,8 @@ final class S3StoragePluginTest extends TestCase
     }
 
     #[Test]
-    public function bootDoesNotThrow(): void
+    public function extendsAbstractPlugin(): void
     {
-        $container = new \WpPack\Component\DependencyInjection\Container(new \Symfony\Component\DependencyInjection\Container());
-
-        $this->plugin->boot($container);
-
-        // boot() is currently a no-op, just verify it doesn't throw
-        $this->addToAssertionCount(1);
-    }
-
-    #[Test]
-    public function onActivateDoesNotThrow(): void
-    {
-        $this->plugin->onActivate();
-
-        $this->addToAssertionCount(1);
-    }
-
-    #[Test]
-    public function onDeactivateDoesNotThrow(): void
-    {
-        $this->plugin->onDeactivate();
-
-        $this->addToAssertionCount(1);
+        self::assertInstanceOf(AbstractPlugin::class, $this->plugin);
     }
 }

@@ -19,7 +19,6 @@ use WpPack\Component\Media\Storage\Subscriber\UploadDirSubscriber;
 use WpPack\Component\Media\Storage\UrlResolver;
 use WpPack\Component\Messenger\MessageBusInterface;
 use WpPack\Component\Nonce\NonceManager;
-use WpPack\Component\Plugin\PluginPathResolver;
 use WpPack\Component\Rest\RestUrlGenerator;
 use WpPack\Component\Storage\Adapter\StorageAdapterInterface;
 use WpPack\Component\Storage\Bridge\S3\S3StorageAdapter;
@@ -46,7 +45,7 @@ final class S3StoragePluginServiceProviderTest extends TestCase
     protected function setUp(): void
     {
         $this->builder = new ContainerBuilder();
-        $this->provider = new S3StoragePluginServiceProvider();
+        $this->provider = new S3StoragePluginServiceProvider('/path/to/plugin.php');
     }
 
     #[Test]
@@ -436,22 +435,15 @@ final class S3StoragePluginServiceProviderTest extends TestCase
     }
 
     #[Test]
-    public function createPluginPathResolverReturnsResolverInstance(): void
-    {
-        $resolver = S3StoragePluginServiceProvider::createPluginPathResolver();
-
-        self::assertInstanceOf(PluginPathResolver::class, $resolver);
-    }
-
-    #[Test]
     public function createAdminAssetSubscriberReturnsSubscriberInstance(): void
     {
+        $pluginUrl = 'https://example.com/wp-content/plugins/s3-storage-plugin/';
         $policy = new UploadPolicy(allowedMimeTypes: []);
         $asset = new AssetManager();
         $nonce = new NonceManager();
         $restUrl = new RestUrlGenerator();
 
-        $subscriber = S3StoragePluginServiceProvider::createAdminAssetSubscriber($policy, $asset, $nonce, $restUrl);
+        $subscriber = S3StoragePluginServiceProvider::createAdminAssetSubscriber($pluginUrl, $policy, $asset, $nonce, $restUrl);
 
         self::assertInstanceOf(AdminAssetSubscriber::class, $subscriber);
     }
@@ -481,20 +473,6 @@ final class S3StoragePluginServiceProviderTest extends TestCase
     }
 
     #[Test]
-    public function registersPluginPathResolver(): void
-    {
-        $this->provider->register($this->builder);
-
-        self::assertTrue($this->builder->hasDefinition(PluginPathResolver::class));
-
-        $definition = $this->builder->findDefinition(PluginPathResolver::class);
-        $factory = $definition->getFactory();
-        self::assertNotNull($factory);
-        self::assertSame(S3StoragePluginServiceProvider::class, $factory[0]);
-        self::assertSame('createPluginPathResolver', $factory[1]);
-    }
-
-    #[Test]
     public function canBeAddedViaContainerBuilder(): void
     {
         $result = $this->builder->addServiceProvider($this->provider);
@@ -517,6 +495,5 @@ final class S3StoragePluginServiceProviderTest extends TestCase
         self::assertTrue($this->builder->hasDefinition(AttachmentManager::class));
         self::assertTrue($this->builder->hasDefinition(NonceManager::class));
         self::assertTrue($this->builder->hasDefinition(RestUrlGenerator::class));
-        self::assertTrue($this->builder->hasDefinition(PluginPathResolver::class));
     }
 }

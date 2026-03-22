@@ -6,9 +6,9 @@ namespace WpPack\Component\Kernel\Tests\Fixtures;
 
 use WpPack\Component\DependencyInjection\Container;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\Kernel\ThemeInterface;
+use WpPack\Component\Kernel\AbstractTheme;
 
-class TestTheme implements ThemeInterface
+class TestTheme extends AbstractTheme
 {
     public bool $registered = false;
     public bool $booted = false;
@@ -20,8 +20,9 @@ class TestTheme implements ThemeInterface
     /**
      * @param list<\WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface> $compilerPasses
      */
-    public function __construct(array $compilerPasses = [])
+    public function __construct(string $themeFile = __FILE__, array $compilerPasses = [])
     {
+        parent::__construct($themeFile);
         $this->compilerPasses = $compilerPasses;
     }
 

@@ -9,6 +9,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
+use WpPack\Component\Kernel\AbstractPlugin;
 use WpPack\Component\Kernel\PluginInterface;
 use WpPack\Component\Mailer\DependencyInjection\RegisterTransportFactoriesPass;
 use WpPack\Component\Mailer\Mailer;
@@ -21,7 +22,7 @@ final class AmazonMailerPluginTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->plugin = new AmazonMailerPlugin();
+        $this->plugin = new AmazonMailerPlugin('/path/to/plugin.php');
     }
 
     #[Test]
@@ -76,18 +77,8 @@ final class AmazonMailerPluginTest extends TestCase
     }
 
     #[Test]
-    public function onActivateDoesNotThrow(): void
+    public function extendsAbstractPlugin(): void
     {
-        $this->plugin->onActivate();
-
-        $this->addToAssertionCount(1);
-    }
-
-    #[Test]
-    public function onDeactivateDoesNotThrow(): void
-    {
-        $this->plugin->onDeactivate();
-
-        $this->addToAssertionCount(1);
+        self::assertInstanceOf(AbstractPlugin::class, $this->plugin);
     }
 }

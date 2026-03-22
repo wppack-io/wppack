@@ -17,7 +17,6 @@ use WpPack\Component\Media\Storage\Subscriber\UploadDirSubscriber;
 use WpPack\Component\Media\Storage\UrlResolver;
 use WpPack\Component\Messenger\MessageBusInterface;
 use WpPack\Component\Nonce\NonceManager;
-use WpPack\Component\Plugin\PluginPathResolver;
 use WpPack\Component\Rest\RestUrlGenerator;
 use WpPack\Component\Site\BlogContext;
 use WpPack\Component\Site\BlogContextInterface;
@@ -40,6 +39,10 @@ use WpPack\Plugin\S3StoragePlugin\Subscriber\AdminAssetSubscriber;
 
 final class S3StoragePluginServiceProvider implements ServiceProviderInterface
 {
+    public function __construct(
+        private readonly string $pluginFile,
+    ) {}
+
     public function register(ContainerBuilder $builder): void
     {
         // Site component services
@@ -129,13 +132,11 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
         // REST URL Generator
         $builder->register(RestUrlGenerator::class);
 
-        // Plugin Path Resolver
-        $builder->register(PluginPathResolver::class)
-            ->setFactory([self::class, 'createPluginPathResolver']);
-
         // Admin assets
+        $pluginUrl = plugin_dir_url($this->pluginFile);
         $builder->register(AdminAssetSubscriber::class)
             ->setFactory([self::class, 'createAdminAssetSubscriber'])
+            ->addArgument($pluginUrl)
             ->addArgument(new Reference(UploadPolicy::class))
             ->addArgument(new Reference(AssetManager::class))
             ->addArgument(new Reference(NonceManager::class))
@@ -206,19 +207,15 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
         );
     }
 
-    public static function createPluginPathResolver(): PluginPathResolver
-    {
-        return new PluginPathResolver(\dirname(__DIR__, 2) . '/s3-storage-plugin.php');
-    }
-
     public static function createAdminAssetSubscriber(
+        string $pluginUrl,
         UploadPolicy $policy,
         AssetManager $asset,
         NonceManager $nonce,
         RestUrlGenerator $restUrl,
     ): AdminAssetSubscriber {
         return new AdminAssetSubscriber(
-            pluginPath: self::createPluginPathResolver(),
+            pluginUrl: $pluginUrl,
             policy: $policy,
             asset: $asset,
             nonce: $nonce,

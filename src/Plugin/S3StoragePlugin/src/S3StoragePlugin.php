@@ -8,17 +8,18 @@ use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use WpPack\Component\DependencyInjection\Container;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
-use WpPack\Component\Kernel\PluginInterface;
+use WpPack\Component\Kernel\AbstractPlugin;
 use WpPack\Component\Rest\DependencyInjection\RegisterRestControllersPass;
 use WpPack\Plugin\S3StoragePlugin\DependencyInjection\S3StoragePluginServiceProvider;
 
-final class S3StoragePlugin implements PluginInterface
+final class S3StoragePlugin extends AbstractPlugin
 {
     private readonly S3StoragePluginServiceProvider $serviceProvider;
 
-    public function __construct()
+    public function __construct(string $pluginFile)
     {
-        $this->serviceProvider = new S3StoragePluginServiceProvider();
+        parent::__construct($pluginFile);
+        $this->serviceProvider = new S3StoragePluginServiceProvider($pluginFile);
     }
 
     public function register(ContainerBuilder $builder): void
@@ -36,10 +37,4 @@ final class S3StoragePlugin implements PluginInterface
             new RegisterRestControllersPass(),
         ];
     }
-
-    public function boot(Container $container): void {}
-
-    public function onActivate(): void {}
-
-    public function onDeactivate(): void {}
 }
