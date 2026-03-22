@@ -7,6 +7,7 @@ namespace WpPack\Component\Media\Tests\Storage\Subscriber;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\EventDispatcher\WordPressEvent;
 use WpPack\Component\Media\Storage\ImageEditor\StorageImageEditor;
 use WpPack\Component\Media\Storage\Subscriber\ImageEditorSubscriber;
 
@@ -23,12 +24,13 @@ final class ImageEditorSubscriberTest extends TestCase
             \WP_Image_Editor_GD::class,
         ];
 
-        $result = $subscriber->filterEditors($editors);
+        $event = new WordPressEvent('wp_image_editors', [$editors]);
+        $subscriber->filterEditors($event);
 
-        self::assertSame(StorageImageEditor::class, $result[0]);
-        self::assertSame(\WP_Image_Editor_Imagick::class, $result[1]);
-        self::assertSame(\WP_Image_Editor_GD::class, $result[2]);
-        self::assertCount(3, $result);
+        self::assertSame(StorageImageEditor::class, $event->filterValue[0]);
+        self::assertSame(\WP_Image_Editor_Imagick::class, $event->filterValue[1]);
+        self::assertSame(\WP_Image_Editor_GD::class, $event->filterValue[2]);
+        self::assertCount(3, $event->filterValue);
     }
 
     #[Test]
@@ -36,9 +38,10 @@ final class ImageEditorSubscriberTest extends TestCase
     {
         $subscriber = new ImageEditorSubscriber(StorageImageEditor::class);
 
-        $result = $subscriber->filterEditors([]);
+        $event = new WordPressEvent('wp_image_editors', [[]]);
+        $subscriber->filterEditors($event);
 
-        self::assertSame([StorageImageEditor::class], $result);
+        self::assertSame([StorageImageEditor::class], $event->filterValue);
     }
 
     #[Test]
@@ -47,11 +50,12 @@ final class ImageEditorSubscriberTest extends TestCase
         $subscriber = new ImageEditorSubscriber(StorageImageEditor::class);
 
         $editors = [\WP_Image_Editor_GD::class];
-        $result = $subscriber->filterEditors($editors);
+        $event = new WordPressEvent('wp_image_editors', [$editors]);
+        $subscriber->filterEditors($event);
 
-        self::assertCount(2, $result);
-        self::assertSame(StorageImageEditor::class, $result[0]);
-        self::assertSame(\WP_Image_Editor_GD::class, $result[1]);
+        self::assertCount(2, $event->filterValue);
+        self::assertSame(StorageImageEditor::class, $event->filterValue[0]);
+        self::assertSame(\WP_Image_Editor_GD::class, $event->filterValue[1]);
     }
 
     #[Test]
@@ -61,8 +65,9 @@ final class ImageEditorSubscriberTest extends TestCase
         $subscriber = new ImageEditorSubscriber($customClass);
 
         $editors = [\WP_Image_Editor_Imagick::class];
-        $result = $subscriber->filterEditors($editors);
+        $event = new WordPressEvent('wp_image_editors', [$editors]);
+        $subscriber->filterEditors($event);
 
-        self::assertSame($customClass, $result[0]);
+        self::assertSame($customClass, $event->filterValue[0]);
     }
 }

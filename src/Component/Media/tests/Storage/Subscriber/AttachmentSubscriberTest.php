@@ -6,6 +6,7 @@ namespace WpPack\Component\Media\Tests\Storage\Subscriber;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\EventDispatcher\WordPressEvent;
 use WpPack\Component\Media\Storage\StorageConfiguration;
 use WpPack\Component\Media\Storage\Subscriber\AttachmentSubscriber;
 use WpPack\Component\Media\Storage\UrlResolver;
@@ -35,34 +36,38 @@ final class AttachmentSubscriberTest extends TestCase
     public function filterAttachmentUrlRequiresWordPressFunctions(): void
     {
         // With WordPress available, this would convert URLs
-        $url = $this->subscriber->filterAttachmentUrl('https://example.com/wp-content/uploads/2024/01/image.jpg', 1);
-        self::assertIsString($url);
+        $event = new WordPressEvent('wp_get_attachment_url', ['https://example.com/wp-content/uploads/2024/01/image.jpg', 1]);
+        $this->subscriber->filterAttachmentUrl($event);
+        self::assertIsString($event->filterValue);
     }
 
     #[Test]
     public function filterGetAttachedFileConvertsLocalPathToStreamWrapper(): void
     {
-        $result = $this->subscriber->filterGetAttachedFile('/var/www/html/wp-content/uploads/2024/01/image.jpg', 1);
+        $event = new WordPressEvent('get_attached_file', ['/var/www/html/wp-content/uploads/2024/01/image.jpg', 1]);
+        $this->subscriber->filterGetAttachedFile($event);
 
         // With WordPress, the method retrieves the relative path from post meta
-        self::assertStringStartsWith('s3://my-bucket/uploads/', $result);
+        self::assertStringStartsWith('s3://my-bucket/uploads/', $event->filterValue);
     }
 
     #[Test]
     public function filterGetAttachedFilePreservesExistingStreamWrapperPath(): void
     {
         $path = 's3://my-bucket/uploads/2024/01/image.jpg';
-        $result = $this->subscriber->filterGetAttachedFile($path, 1);
+        $event = new WordPressEvent('get_attached_file', [$path, 1]);
+        $this->subscriber->filterGetAttachedFile($event);
 
-        self::assertSame($path, $result);
+        self::assertSame($path, $event->filterValue);
     }
 
     #[Test]
     public function filterGetAttachedFileHandlesRelativePath(): void
     {
-        $result = $this->subscriber->filterGetAttachedFile('2024/01/image.jpg', 1);
+        $event = new WordPressEvent('get_attached_file', ['2024/01/image.jpg', 1]);
+        $this->subscriber->filterGetAttachedFile($event);
 
-        self::assertSame('s3://my-bucket/uploads/2024/01/image.jpg', $result);
+        self::assertSame('s3://my-bucket/uploads/2024/01/image.jpg', $event->filterValue);
     }
 
     #[Test]
@@ -72,17 +77,19 @@ final class AttachmentSubscriberTest extends TestCase
 
         // This test would require WordPress to retrieve post meta
         $metadata = ['file' => '2024/01/image.jpg'];
-        $result = $this->subscriber->setFilesizeInMeta($metadata, 1);
-        self::assertIsArray($result);
+        $event = new WordPressEvent('wp_generate_attachment_metadata', [$metadata, 1]);
+        $this->subscriber->setFilesizeInMeta($event);
+        self::assertIsArray($event->filterValue);
     }
 
     #[Test]
     public function setFilesizeInMetaPreservesExistingFilesize(): void
     {
         $metadata = ['filesize' => 54321];
-        $result = $this->subscriber->setFilesizeInMeta($metadata, 1);
+        $event = new WordPressEvent('wp_generate_attachment_metadata', [$metadata, 1]);
+        $this->subscriber->setFilesizeInMeta($event);
 
-        self::assertSame(54321, $result['filesize']);
+        self::assertSame(54321, $event->filterValue['filesize']);
     }
 
     #[Test]
@@ -90,9 +97,10 @@ final class AttachmentSubscriberTest extends TestCase
     {
         $meta = ['aperture' => '2.8', 'credit' => 'test'];
 
-        $result = $this->subscriber->filterReadImageMetadata($meta, 's3://my-bucket/uploads/2024/01/image.jpg');
+        $event = new WordPressEvent('wp_read_image_metadata', [$meta, 's3://my-bucket/uploads/2024/01/image.jpg']);
+        $this->subscriber->filterReadImageMetadata($event);
 
-        self::assertFalse($result);
+        self::assertFalse($event->filterValue);
     }
 
     #[Test]
@@ -100,9 +108,10 @@ final class AttachmentSubscriberTest extends TestCase
     {
         $meta = ['aperture' => '2.8', 'credit' => 'test'];
 
-        $result = $this->subscriber->filterReadImageMetadata($meta, '/var/www/html/wp-content/uploads/2024/01/image.jpg');
+        $event = new WordPressEvent('wp_read_image_metadata', [$meta, '/var/www/html/wp-content/uploads/2024/01/image.jpg']);
+        $this->subscriber->filterReadImageMetadata($event);
 
-        self::assertSame($meta, $result);
+        self::assertSame($meta, $event->filterValue);
     }
 
     #[Test]
@@ -110,9 +119,10 @@ final class AttachmentSubscriberTest extends TestCase
     {
         $meta = ['aperture' => '2.8'];
 
-        $result = $this->subscriber->filterReadImageMetadata($meta, 'file:///var/www/html/uploads/image.jpg');
+        $event = new WordPressEvent('wp_read_image_metadata', [$meta, 'file:///var/www/html/uploads/image.jpg']);
+        $this->subscriber->filterReadImageMetadata($event);
 
-        self::assertSame($meta, $result);
+        self::assertSame($meta, $event->filterValue);
     }
 
     #[Test]
@@ -120,10 +130,11 @@ final class AttachmentSubscriberTest extends TestCase
     {
         $hints = ['example.com'];
 
-        $result = $this->subscriber->filterResourceHints($hints, 'dns-prefetch');
+        $event = new WordPressEvent('wp_resource_hints', [$hints, 'dns-prefetch']);
+        $this->subscriber->filterResourceHints($event);
 
-        self::assertContains('cdn.example.com', $result);
-        self::assertContains('example.com', $result);
+        self::assertContains('cdn.example.com', $event->filterValue);
+        self::assertContains('example.com', $event->filterValue);
     }
 
     #[Test]
@@ -131,9 +142,10 @@ final class AttachmentSubscriberTest extends TestCase
     {
         $hints = ['cdn.example.com'];
 
-        $result = $this->subscriber->filterResourceHints($hints, 'dns-prefetch');
+        $event = new WordPressEvent('wp_resource_hints', [$hints, 'dns-prefetch']);
+        $this->subscriber->filterResourceHints($event);
 
-        self::assertCount(1, array_filter($result, fn(string $h) => $h === 'cdn.example.com'));
+        self::assertCount(1, array_filter($event->filterValue, fn(string $h) => $h === 'cdn.example.com'));
     }
 
     #[Test]
@@ -141,9 +153,10 @@ final class AttachmentSubscriberTest extends TestCase
     {
         $hints = ['example.com'];
 
-        $result = $this->subscriber->filterResourceHints($hints, 'preconnect');
+        $event = new WordPressEvent('wp_resource_hints', [$hints, 'preconnect']);
+        $this->subscriber->filterResourceHints($event);
 
-        self::assertSame($hints, $result);
+        self::assertSame($hints, $event->filterValue);
     }
 
     #[Test]
@@ -158,9 +171,10 @@ final class AttachmentSubscriberTest extends TestCase
         $subscriber = new AttachmentSubscriber($config, $resolver, $this->adapter);
 
         $hints = ['example.com'];
-        $result = $subscriber->filterResourceHints($hints, 'dns-prefetch');
+        $event = new WordPressEvent('wp_resource_hints', [$hints, 'dns-prefetch']);
+        $subscriber->filterResourceHints($event);
 
-        self::assertSame($hints, $result);
+        self::assertSame($hints, $event->filterValue);
     }
 
     #[Test]
@@ -170,39 +184,42 @@ final class AttachmentSubscriberTest extends TestCase
         $this->adapter->write('uploads/2024/01/photo.png', 'content');
         $this->adapter->write('uploads/2024/01/document.pdf', 'content');
 
-        $result = $this->subscriber->filterUniqueFilenameFileList(
+        $event = new WordPressEvent('pre_wp_unique_filename_file_list', [
             null,
             's3://my-bucket/uploads/2024/01',
             'image.jpg',
-        );
+        ]);
+        $this->subscriber->filterUniqueFilenameFileList($event);
 
-        self::assertContains('image.jpg', $result);
-        self::assertContains('photo.png', $result);
-        self::assertContains('document.pdf', $result);
+        self::assertContains('image.jpg', $event->filterValue);
+        self::assertContains('photo.png', $event->filterValue);
+        self::assertContains('document.pdf', $event->filterValue);
     }
 
     #[Test]
     public function filterUniqueFilenameFileListReturnsEmptyForLocalPaths(): void
     {
-        $result = $this->subscriber->filterUniqueFilenameFileList(
+        $event = new WordPressEvent('pre_wp_unique_filename_file_list', [
             null,
             '/var/www/html/wp-content/uploads/2024/01',
             'image.jpg',
-        );
+        ]);
+        $this->subscriber->filterUniqueFilenameFileList($event);
 
-        self::assertSame([], $result);
+        self::assertSame([], $event->filterValue);
     }
 
     #[Test]
     public function filterUniqueFilenameFileListReturnsEmptyForFileScheme(): void
     {
-        $result = $this->subscriber->filterUniqueFilenameFileList(
+        $event = new WordPressEvent('pre_wp_unique_filename_file_list', [
             null,
             'file:///var/www/html/uploads/2024/01',
             'image.jpg',
-        );
+        ]);
+        $this->subscriber->filterUniqueFilenameFileList($event);
 
-        self::assertSame([], $result);
+        self::assertSame([], $event->filterValue);
     }
 
     #[Test]
@@ -228,7 +245,8 @@ final class AttachmentSubscriberTest extends TestCase
             ],
         ]);
 
-        $this->subscriber->onDeleteAttachment($attachmentId);
+        $event = new WordPressEvent('delete_attachment', [$attachmentId]);
+        $this->subscriber->onDeleteAttachment($event);
 
         self::assertFalse($this->adapter->fileExists('uploads/2024/01/image.jpg'));
         self::assertFalse($this->adapter->fileExists('uploads/2024/01/image-150x150.jpg'));
@@ -245,7 +263,8 @@ final class AttachmentSubscriberTest extends TestCase
         ]);
 
         // No _wp_attached_file meta - should not throw
-        $this->subscriber->onDeleteAttachment($attachmentId);
+        $event = new WordPressEvent('delete_attachment', [$attachmentId]);
+        $this->subscriber->onDeleteAttachment($event);
         self::assertTrue(true);
     }
 
@@ -263,7 +282,8 @@ final class AttachmentSubscriberTest extends TestCase
         update_post_meta($attachmentId, '_wp_attached_file', 'document.pdf');
         // No sizes metadata
 
-        $this->subscriber->onDeleteAttachment($attachmentId);
+        $event = new WordPressEvent('delete_attachment', [$attachmentId]);
+        $this->subscriber->onDeleteAttachment($event);
 
         self::assertFalse($this->adapter->fileExists('uploads/document.pdf'));
     }
@@ -279,9 +299,10 @@ final class AttachmentSubscriberTest extends TestCase
 
         update_post_meta($attachmentId, '_wp_attached_file', '2024/01/photo.jpg');
 
-        $url = $this->subscriber->filterAttachmentUrl('https://example.com/old-url.jpg', $attachmentId);
+        $event = new WordPressEvent('wp_get_attachment_url', ['https://example.com/old-url.jpg', $attachmentId]);
+        $this->subscriber->filterAttachmentUrl($event);
 
-        self::assertSame('https://cdn.example.com/uploads/2024/01/photo.jpg', $url);
+        self::assertSame('https://cdn.example.com/uploads/2024/01/photo.jpg', $event->filterValue);
     }
 
     #[Test]
@@ -294,9 +315,10 @@ final class AttachmentSubscriberTest extends TestCase
         ]);
 
         // No _wp_attached_file meta
-        $url = $this->subscriber->filterAttachmentUrl('https://example.com/original.jpg', $attachmentId);
+        $event = new WordPressEvent('wp_get_attachment_url', ['https://example.com/original.jpg', $attachmentId]);
+        $this->subscriber->filterAttachmentUrl($event);
 
-        self::assertSame('https://example.com/original.jpg', $url);
+        self::assertSame('https://example.com/original.jpg', $event->filterValue);
     }
 
     #[Test]
@@ -310,9 +332,10 @@ final class AttachmentSubscriberTest extends TestCase
 
         update_post_meta($attachmentId, '_wp_attached_file', '2024/06/banner.png');
 
-        $result = $this->subscriber->filterGetAttachedFile('/var/www/html/wp-content/uploads/2024/06/banner.png', $attachmentId);
+        $event = new WordPressEvent('get_attached_file', ['/var/www/html/wp-content/uploads/2024/06/banner.png', $attachmentId]);
+        $this->subscriber->filterGetAttachedFile($event);
 
-        self::assertSame('s3://my-bucket/uploads/2024/06/banner.png', $result);
+        self::assertSame('s3://my-bucket/uploads/2024/06/banner.png', $event->filterValue);
     }
 
     #[Test]
@@ -329,9 +352,10 @@ final class AttachmentSubscriberTest extends TestCase
         update_post_meta($attachmentId, '_wp_attached_file', '2024/01/sized.jpg');
 
         $metadata = ['file' => '2024/01/sized.jpg'];
-        $result = $this->subscriber->setFilesizeInMeta($metadata, $attachmentId);
+        $event = new WordPressEvent('wp_generate_attachment_metadata', [$metadata, $attachmentId]);
+        $this->subscriber->setFilesizeInMeta($event);
 
-        self::assertSame(54321, $result['filesize']);
+        self::assertSame(54321, $event->filterValue['filesize']);
     }
 
     #[Test]
@@ -346,28 +370,31 @@ final class AttachmentSubscriberTest extends TestCase
         update_post_meta($attachmentId, '_wp_attached_file', '2024/01/missing.jpg');
 
         $metadata = ['file' => '2024/01/missing.jpg'];
-        $result = $this->subscriber->setFilesizeInMeta($metadata, $attachmentId);
+        $event = new WordPressEvent('wp_generate_attachment_metadata', [$metadata, $attachmentId]);
+        $this->subscriber->setFilesizeInMeta($event);
 
-        self::assertArrayNotHasKey('filesize', $result);
+        self::assertArrayNotHasKey('filesize', $event->filterValue);
     }
 
     #[Test]
     public function filterUniqueFilenameFileListReturnsEmptyForNonMatchingPattern(): void
     {
-        $result = $this->subscriber->filterUniqueFilenameFileList(
+        $event = new WordPressEvent('pre_wp_unique_filename_file_list', [
             null,
             'other-protocol://different-bucket/path',
             'file.jpg',
-        );
+        ]);
+        $this->subscriber->filterUniqueFilenameFileList($event);
 
-        self::assertSame([], $result);
+        self::assertSame([], $event->filterValue);
     }
 
     #[Test]
     public function filterReadImageMetadataReturnsFalseForFalseInput(): void
     {
         // When $meta is already false and path is remote
-        $result = $this->subscriber->filterReadImageMetadata(false, 's3://bucket/file.jpg');
-        self::assertFalse($result);
+        $event = new WordPressEvent('wp_read_image_metadata', [false, 's3://bucket/file.jpg']);
+        $this->subscriber->filterReadImageMetadata($event);
+        self::assertFalse($event->filterValue);
     }
 }

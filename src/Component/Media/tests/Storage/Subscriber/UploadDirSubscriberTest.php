@@ -6,6 +6,7 @@ namespace WpPack\Component\Media\Tests\Storage\Subscriber;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\EventDispatcher\WordPressEvent;
 use WpPack\Component\Media\Storage\StorageConfiguration;
 use WpPack\Component\Media\Storage\Subscriber\UploadDirSubscriber;
 use WpPack\Component\Media\Storage\UrlResolver;
@@ -33,10 +34,11 @@ final class UploadDirSubscriberTest extends TestCase
             'baseurl' => 'https://example.com/wp-content/uploads',
         ];
 
-        $result = $subscriber->filterUploadDir($dirs);
+        $event = new WordPressEvent('upload_dir', [$dirs]);
+        $subscriber->filterUploadDir($event);
 
-        self::assertSame('s3://my-bucket/uploads/2024/01', $result['path']);
-        self::assertSame('s3://my-bucket/uploads', $result['basedir']);
+        self::assertSame('s3://my-bucket/uploads/2024/01', $event->filterValue['path']);
+        self::assertSame('s3://my-bucket/uploads', $event->filterValue['basedir']);
     }
 
     #[Test]
@@ -60,10 +62,11 @@ final class UploadDirSubscriberTest extends TestCase
             'baseurl' => 'https://example.com/wp-content/uploads',
         ];
 
-        $result = $subscriber->filterUploadDir($dirs);
+        $event = new WordPressEvent('upload_dir', [$dirs]);
+        $subscriber->filterUploadDir($event);
 
-        self::assertSame('https://cdn.example.com/uploads/2024/01', $result['url']);
-        self::assertSame('https://cdn.example.com/uploads', $result['baseurl']);
+        self::assertSame('https://cdn.example.com/uploads/2024/01', $event->filterValue['url']);
+        self::assertSame('https://cdn.example.com/uploads', $event->filterValue['baseurl']);
     }
 
     #[Test]
@@ -86,10 +89,11 @@ final class UploadDirSubscriberTest extends TestCase
             'baseurl' => 'https://example.com/wp-content/uploads',
         ];
 
-        $result = $subscriber->filterUploadDir($dirs);
+        $event = new WordPressEvent('upload_dir', [$dirs]);
+        $subscriber->filterUploadDir($event);
 
-        self::assertSame('gcs://my-gcs-bucket/wp-uploads', $result['path']);
-        self::assertSame('gcs://my-gcs-bucket/wp-uploads', $result['basedir']);
+        self::assertSame('gcs://my-gcs-bucket/wp-uploads', $event->filterValue['path']);
+        self::assertSame('gcs://my-gcs-bucket/wp-uploads', $event->filterValue['basedir']);
     }
 
     #[Test]
@@ -112,12 +116,13 @@ final class UploadDirSubscriberTest extends TestCase
             'baseurl' => 'https://example.com/wp-content/uploads',
         ];
 
-        $result = $subscriber->filterUploadDir($dirs);
+        $event = new WordPressEvent('upload_dir', [$dirs]);
+        $subscriber->filterUploadDir($event);
 
-        self::assertSame('azure://my-container/media/2025/03', $result['path']);
-        self::assertSame('https://cdn.azure.com/media/2025/03', $result['url']);
-        self::assertSame('azure://my-container/media', $result['basedir']);
-        self::assertSame('https://cdn.azure.com/media', $result['baseurl']);
+        self::assertSame('azure://my-container/media/2025/03', $event->filterValue['path']);
+        self::assertSame('https://cdn.azure.com/media/2025/03', $event->filterValue['url']);
+        self::assertSame('azure://my-container/media', $event->filterValue['basedir']);
+        self::assertSame('https://cdn.azure.com/media', $event->filterValue['baseurl']);
     }
 
     #[Test]
@@ -140,10 +145,11 @@ final class UploadDirSubscriberTest extends TestCase
             'baseurl' => 'https://example.com/wp-content/uploads',
         ];
 
-        $result = $subscriber->filterUploadDir($dirs);
+        $event = new WordPressEvent('upload_dir', [$dirs]);
+        $subscriber->filterUploadDir($event);
 
         // InMemoryStorageAdapter returns 'memory://' prefix for publicUrl
-        self::assertSame('memory://uploads/2024/01', $result['url']);
-        self::assertSame('memory://uploads', $result['baseurl']);
+        self::assertSame('memory://uploads/2024/01', $event->filterValue['url']);
+        self::assertSame('memory://uploads', $event->filterValue['baseurl']);
     }
 }
