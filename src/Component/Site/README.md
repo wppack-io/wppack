@@ -44,6 +44,18 @@ $result = $switcher->runInBlogIfNeeded(2, function () {
 });
 ```
 
+Direct switch/restore for cases that don't fit a single callback:
+
+```php
+$switcher->switchToBlog(2);
+try {
+    $name = get_option('blogname');
+    $url = get_option('siteurl');
+} finally {
+    $switcher->restoreCurrentBlog();
+}
+```
+
 ### SiteRepository
 
 Multisite site queries and resolution:
@@ -59,3 +71,7 @@ $blogId = $repository->findByUrl('example.com', '/blog/');
 $blogId = $repository->findBySlug('myblog');
 $domains = $repository->getAllDomains();
 ```
+
+## Documentation
+
+For detailed documentation in Japanese, see [docs/components/site/](../../../docs/components/site/).

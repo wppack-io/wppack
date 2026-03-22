@@ -6,6 +6,10 @@ namespace WpPack\Component\Site;
 
 interface BlogSwitcherInterface
 {
+    public function switchToBlog(int $blogId): void;
+
+    public function restoreCurrentBlog(): void;
+
     /**
      * @template T
      *

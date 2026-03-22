@@ -66,4 +66,55 @@ final class BlogSwitcherTest extends TestCase
 
         self::assertSame('switched', $result);
     }
+
+    #[Test]
+    public function switchToBlogSwitchesContext(): void
+    {
+        if (!is_multisite()) {
+            self::markTestSkipped('Multisite required.');
+        }
+
+        $switcher = new BlogSwitcher();
+        $originalBlogId = get_current_blog_id();
+
+        $switcher->switchToBlog(2);
+        self::assertSame(2, get_current_blog_id());
+
+        $switcher->restoreCurrentBlog();
+        self::assertSame($originalBlogId, get_current_blog_id());
+    }
+
+    #[Test]
+    public function restoreCurrentBlogWithoutPriorSwitchDoesNotThrow(): void
+    {
+        $switcher = new BlogSwitcher();
+        $originalBlogId = get_current_blog_id();
+
+        $switcher->restoreCurrentBlog();
+
+        self::assertSame($originalBlogId, get_current_blog_id());
+    }
+
+    #[Test]
+    public function switchToBlogNestedCallsRestoreCorrectly(): void
+    {
+        if (!is_multisite()) {
+            self::markTestSkipped('Multisite required.');
+        }
+
+        $switcher = new BlogSwitcher();
+        $originalBlogId = get_current_blog_id();
+
+        $switcher->switchToBlog(2);
+        self::assertSame(2, get_current_blog_id());
+
+        $switcher->switchToBlog(3);
+        self::assertSame(3, get_current_blog_id());
+
+        $switcher->restoreCurrentBlog();
+        self::assertSame(2, get_current_blog_id());
+
+        $switcher->restoreCurrentBlog();
+        self::assertSame($originalBlogId, get_current_blog_id());
+    }
 }

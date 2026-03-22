@@ -10,18 +10,32 @@ final readonly class BlogSwitcher implements BlogSwitcherInterface
         private BlogContextInterface $context = new BlogContext(),
     ) {}
 
-    public function runInBlog(int $blogId, callable $callback): mixed
+    public function switchToBlog(int $blogId): void
     {
         if (!\function_exists('switch_to_blog')) {
-            return $callback();
+            return;
         }
 
         switch_to_blog($blogId);
+    }
+
+    public function restoreCurrentBlog(): void
+    {
+        if (!\function_exists('restore_current_blog')) {
+            return;
+        }
+
+        restore_current_blog();
+    }
+
+    public function runInBlog(int $blogId, callable $callback): mixed
+    {
+        $this->switchToBlog($blogId);
 
         try {
             return $callback();
         } finally {
-            restore_current_blog();
+            $this->restoreCurrentBlog();
         }
     }
 
