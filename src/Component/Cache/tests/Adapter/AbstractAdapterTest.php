@@ -37,7 +37,7 @@ final class AbstractAdapterTest extends TestCase
     public function getMultipleDelegatesToDoGetMultiple(): void
     {
         $adapter = $this->createConcreteAdapter();
-        $expected = ['k1' => 'v1', 'k2' => false];
+        $expected = ['k1' => 'v1', 'k2' => null];
         $adapter->returnValues['doGetMultiple'] = $expected;
 
         self::assertSame($expected, $adapter->getMultiple(['k1', 'k2']));
@@ -173,7 +173,7 @@ final class AbstractAdapterTest extends TestCase
 
             public function close(): void {}
 
-            protected function doGet(string $key): string|false
+            protected function doGet(string $key): ?string
             {
                 return $this->record('doGet', [$key]);
             }
@@ -208,12 +208,12 @@ final class AbstractAdapterTest extends TestCase
                 return $this->record('doDeleteMultiple', [$keys]);
             }
 
-            protected function doIncrement(string $key, int $offset = 1): int|false
+            protected function doIncrement(string $key, int $offset = 1): ?int
             {
                 return $this->record('doIncrement', [$key, $offset]);
             }
 
-            protected function doDecrement(string $key, int $offset = 1): int|false
+            protected function doDecrement(string $key, int $offset = 1): ?int
             {
                 return $this->record('doDecrement', [$key, $offset]);
             }

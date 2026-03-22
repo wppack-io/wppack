@@ -44,7 +44,7 @@ final class ObjectCache
             $fullKey = $this->buildKey($key, $group);
             $value = $this->adapter->get($fullKey);
 
-            if ($value !== false) {
+            if ($value !== null) {
                 $data = $this->unserialize($value);
                 $this->runtime[$group][$runtimeKey] = $data;
                 $found = true;
@@ -92,9 +92,9 @@ final class ObjectCache
 
             foreach ($keysToFetch as $key) {
                 $fullKey = $fullKeys[$key];
-                $value = $fetched[$fullKey] ?? false;
+                $value = $fetched[$fullKey] ?? null;
 
-                if ($value !== false) {
+                if ($value !== null) {
                     $data = $this->unserialize($value);
                     $runtimeKey = $this->runtimeKey($key, $group);
                     $this->runtime[$group][$runtimeKey] = $data;
@@ -211,7 +211,7 @@ final class ObjectCache
 
         if (!$exists && $this->adapter !== null && !$this->isNonPersistent($group)) {
             $fullKey = $this->buildKey($key, $group);
-            $exists = $this->adapter->get($fullKey) !== false;
+            $exists = $this->adapter->get($fullKey) !== null;
         }
 
         if (!$exists) {
@@ -285,7 +285,7 @@ final class ObjectCache
                 $fullKey = $this->buildKey($key, $group);
                 $value = $this->adapter->get($fullKey);
 
-                if ($value !== false) {
+                if ($value !== null) {
                     $this->runtime[$group][$runtimeKey] = $this->unserialize($value);
                 }
             }

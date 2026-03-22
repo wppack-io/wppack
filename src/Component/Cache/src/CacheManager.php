@@ -41,14 +41,18 @@ final class CacheManager
         return wp_cache_flush_group($group);
     }
 
-    public function increment(string $key, int $offset = 1, string $group = ''): int|false
+    public function increment(string $key, int $offset = 1, string $group = ''): ?int
     {
-        return wp_cache_incr($key, $offset, $group);
+        $result = wp_cache_incr($key, $offset, $group);
+
+        return $result === false ? null : $result;
     }
 
-    public function decrement(string $key, int $offset = 1, string $group = ''): int|false
+    public function decrement(string $key, int $offset = 1, string $group = ''): ?int
     {
-        return wp_cache_decr($key, $offset, $group);
+        $result = wp_cache_decr($key, $offset, $group);
+
+        return $result === false ? null : $result;
     }
 
     public function supports(string $feature): bool

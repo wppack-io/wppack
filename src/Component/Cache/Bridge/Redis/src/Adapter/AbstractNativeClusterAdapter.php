@@ -30,11 +30,11 @@ abstract class AbstractNativeClusterAdapter extends AbstractAdapter
      */
     abstract protected function createConnection(): object;
 
-    protected function doGet(string $key): string|false
+    protected function doGet(string $key): ?string
     {
         $result = $this->getConnection()->get($key);
 
-        return $result === false ? false : (string) $result;
+        return $result === false ? null : (string) $result;
     }
 
     protected function doGetMultiple(array $keys): array
@@ -48,7 +48,7 @@ abstract class AbstractNativeClusterAdapter extends AbstractAdapter
 
         foreach ($keys as $i => $key) {
             $value = $values[$i] ?? false;
-            $results[$key] = $value === false ? false : (string) $value;
+            $results[$key] = $value === false ? null : (string) $value;
         }
 
         return $results;
@@ -135,23 +135,23 @@ abstract class AbstractNativeClusterAdapter extends AbstractAdapter
         return $results;
     }
 
-    protected function doIncrement(string $key, int $offset = 1): int|false
+    protected function doIncrement(string $key, int $offset = 1): ?int
     {
         $connection = $this->getConnection();
 
         if (!$connection->exists($key)) {
-            return false;
+            return null;
         }
 
         return $connection->incrby($key, $offset);
     }
 
-    protected function doDecrement(string $key, int $offset = 1): int|false
+    protected function doDecrement(string $key, int $offset = 1): ?int
     {
         $connection = $this->getConnection();
 
         if (!$connection->exists($key)) {
-            return false;
+            return null;
         }
 
         return $connection->decrby($key, $offset);

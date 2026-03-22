@@ -54,7 +54,7 @@ final class MemcachedAdapterTest extends TestCase
     #[Test]
     public function getReturnsFalseForMissing(): void
     {
-        self::assertFalse($this->adapter->get('wppack_test:nonexistent'));
+        self::assertNull($this->adapter->get('wppack_test:nonexistent'));
     }
 
     #[Test]
@@ -67,7 +67,7 @@ final class MemcachedAdapterTest extends TestCase
 
         self::assertSame('value1', $results['wppack_test:key1']);
         self::assertSame('value2', $results['wppack_test:key2']);
-        self::assertFalse($results['wppack_test:missing']);
+        self::assertNull($results['wppack_test:missing']);
     }
 
     #[Test]
@@ -105,7 +105,7 @@ final class MemcachedAdapterTest extends TestCase
         $this->adapter->set('wppack_test:key', 'value');
         $this->adapter->delete('wppack_test:key');
 
-        self::assertFalse($this->adapter->get('wppack_test:key'));
+        self::assertNull($this->adapter->get('wppack_test:key'));
     }
 
     #[Test]
@@ -118,7 +118,7 @@ final class MemcachedAdapterTest extends TestCase
 
         self::assertTrue($results['wppack_test:key1']);
         self::assertTrue($results['wppack_test:key2']);
-        self::assertFalse($this->adapter->get('wppack_test:key1'));
+        self::assertNull($this->adapter->get('wppack_test:key1'));
     }
 
     #[Test]
@@ -132,7 +132,7 @@ final class MemcachedAdapterTest extends TestCase
     #[Test]
     public function incrementReturnsFalseForMissing(): void
     {
-        self::assertFalse($this->adapter->increment('wppack_test:nonexistent'));
+        self::assertNull($this->adapter->increment('wppack_test:nonexistent'));
     }
 
     #[Test]
@@ -156,8 +156,8 @@ final class MemcachedAdapterTest extends TestCase
 
         $this->adapter->flush('wppack_test:');
 
-        self::assertFalse($this->adapter->get('wppack_test:a'));
-        self::assertFalse($this->adapter->get('wppack_test:b'));
+        self::assertNull($this->adapter->get('wppack_test:a'));
+        self::assertNull($this->adapter->get('wppack_test:b'));
         self::assertSame('3', $this->adapter->get('wppack_other:c'));
 
         // Clean up
@@ -172,8 +172,8 @@ final class MemcachedAdapterTest extends TestCase
 
         $this->adapter->flush();
 
-        self::assertFalse($this->adapter->get('wppack_test:a'));
-        self::assertFalse($this->adapter->get('wppack_test:b'));
+        self::assertNull($this->adapter->get('wppack_test:a'));
+        self::assertNull($this->adapter->get('wppack_test:b'));
     }
 
     #[Test]
@@ -231,7 +231,7 @@ final class MemcachedAdapterTest extends TestCase
         self::assertSame('value', $this->adapter->get('wppack_test:neg'));
 
         self::assertTrue($this->adapter->set('wppack_test:neg', 'new', -1));
-        self::assertFalse($this->adapter->get('wppack_test:neg'));
+        self::assertNull($this->adapter->get('wppack_test:neg'));
     }
 
     #[Test]
@@ -247,8 +247,8 @@ final class MemcachedAdapterTest extends TestCase
 
         self::assertTrue($results['wppack_test:neg1']);
         self::assertTrue($results['wppack_test:neg2']);
-        self::assertFalse($this->adapter->get('wppack_test:neg1'));
-        self::assertFalse($this->adapter->get('wppack_test:neg2'));
+        self::assertNull($this->adapter->get('wppack_test:neg1'));
+        self::assertNull($this->adapter->get('wppack_test:neg2'));
     }
 
     #[Test]
@@ -263,7 +263,7 @@ final class MemcachedAdapterTest extends TestCase
     #[Test]
     public function decrementReturnsFalseForMissing(): void
     {
-        self::assertFalse($this->adapter->decrement('wppack_test:nonexistent'));
+        self::assertNull($this->adapter->decrement('wppack_test:nonexistent'));
     }
 
     #[Test]
@@ -275,7 +275,7 @@ final class MemcachedAdapterTest extends TestCase
         $adapter = new MemcachedAdapter($client);
         $results = $adapter->getMultiple(['key1', 'key2']);
 
-        self::assertSame(['key1' => false, 'key2' => false], $results);
+        self::assertSame(['key1' => null, 'key2' => null], $results);
     }
 
     #[Test]

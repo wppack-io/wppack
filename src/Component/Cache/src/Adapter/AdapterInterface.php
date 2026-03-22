@@ -8,11 +8,11 @@ interface AdapterInterface
 {
     public function getName(): string;
 
-    public function get(string $key): string|false;
+    public function get(string $key): ?string;
 
     /**
      * @param list<string> $keys
-     * @return array<string, string|false>
+     * @return array<string, ?string>
      */
     public function getMultiple(array $keys): array;
 
@@ -34,9 +34,9 @@ interface AdapterInterface
      */
     public function deleteMultiple(array $keys): array;
 
-    public function increment(string $key, int $offset = 1): int|false;
+    public function increment(string $key, int $offset = 1): ?int;
 
-    public function decrement(string $key, int $offset = 1): int|false;
+    public function decrement(string $key, int $offset = 1): ?int;
 
     public function flush(string $prefix = ''): bool;
 

@@ -16,9 +16,9 @@ final class InMemoryAdapter implements AdapterInterface
         return 'in-memory';
     }
 
-    public function get(string $key): string|false
+    public function get(string $key): ?string
     {
-        return $this->data[$key] ?? false;
+        return $this->data[$key] ?? null;
     }
 
     public function getMultiple(array $keys): array
@@ -26,7 +26,7 @@ final class InMemoryAdapter implements AdapterInterface
         $results = [];
 
         foreach ($keys as $key) {
-            $results[$key] = $this->data[$key] ?? false;
+            $results[$key] = $this->data[$key] ?? null;
         }
 
         return $results;
@@ -81,10 +81,10 @@ final class InMemoryAdapter implements AdapterInterface
         return $results;
     }
 
-    public function increment(string $key, int $offset = 1): int|false
+    public function increment(string $key, int $offset = 1): ?int
     {
         if (!isset($this->data[$key])) {
-            return false;
+            return null;
         }
 
         $value = (int) unserialize($this->data[$key]) + $offset;
@@ -93,10 +93,10 @@ final class InMemoryAdapter implements AdapterInterface
         return $value;
     }
 
-    public function decrement(string $key, int $offset = 1): int|false
+    public function decrement(string $key, int $offset = 1): ?int
     {
         if (!isset($this->data[$key])) {
-            return false;
+            return null;
         }
 
         $value = (int) unserialize($this->data[$key]) - $offset;

@@ -10,11 +10,11 @@ abstract class AbstractAdapter implements AdapterInterface
 {
     abstract public function getName(): string;
 
-    abstract protected function doGet(string $key): string|false;
+    abstract protected function doGet(string $key): ?string;
 
     /**
      * @param list<string> $keys
-     * @return array<string, string|false>
+     * @return array<string, ?string>
      */
     abstract protected function doGetMultiple(array $keys): array;
 
@@ -36,9 +36,9 @@ abstract class AbstractAdapter implements AdapterInterface
      */
     abstract protected function doDeleteMultiple(array $keys): array;
 
-    abstract protected function doIncrement(string $key, int $offset = 1): int|false;
+    abstract protected function doIncrement(string $key, int $offset = 1): ?int;
 
-    abstract protected function doDecrement(string $key, int $offset = 1): int|false;
+    abstract protected function doDecrement(string $key, int $offset = 1): ?int;
 
     abstract protected function doFlush(string $prefix = ''): bool;
 
@@ -46,12 +46,12 @@ abstract class AbstractAdapter implements AdapterInterface
 
     abstract public function close(): void;
 
-    public function get(string $key): string|false
+    public function get(string $key): ?string
     {
-        return $this->execute(fn(): string|false => $this->doGet($key));
+        return $this->execute(fn(): ?string => $this->doGet($key));
     }
 
-    /** @return array<string, string|false> */
+    /** @return array<string, ?string> */
     public function getMultiple(array $keys): array
     {
         return $this->execute(fn(): array => $this->doGetMultiple($keys));
@@ -84,14 +84,14 @@ abstract class AbstractAdapter implements AdapterInterface
         return $this->execute(fn(): array => $this->doDeleteMultiple($keys));
     }
 
-    public function increment(string $key, int $offset = 1): int|false
+    public function increment(string $key, int $offset = 1): ?int
     {
-        return $this->execute(fn(): int|false => $this->doIncrement($key, $offset));
+        return $this->execute(fn(): ?int => $this->doIncrement($key, $offset));
     }
 
-    public function decrement(string $key, int $offset = 1): int|false
+    public function decrement(string $key, int $offset = 1): ?int
     {
-        return $this->execute(fn(): int|false => $this->doDecrement($key, $offset));
+        return $this->execute(fn(): ?int => $this->doDecrement($key, $offset));
     }
 
     public function flush(string $prefix = ''): bool

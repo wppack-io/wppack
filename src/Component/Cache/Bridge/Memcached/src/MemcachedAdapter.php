@@ -17,12 +17,12 @@ final class MemcachedAdapter extends AbstractAdapter
         return 'memcached';
     }
 
-    protected function doGet(string $key): string|false
+    protected function doGet(string $key): ?string
     {
         $result = $this->client->get($key);
 
         if ($this->client->getResultCode() === \Memcached::RES_NOTFOUND) {
-            return false;
+            return null;
         }
 
         return (string) $result;
@@ -37,13 +37,13 @@ final class MemcachedAdapter extends AbstractAdapter
         $values = $this->client->getMulti($keys);
 
         if ($values === false) {
-            return array_fill_keys($keys, false);
+            return array_fill_keys($keys, null);
         }
 
         $results = [];
 
         foreach ($keys as $key) {
-            $results[$key] = isset($values[$key]) ? (string) $values[$key] : false;
+            $results[$key] = isset($values[$key]) ? (string) $values[$key] : null;
         }
 
         return $results;
@@ -113,23 +113,23 @@ final class MemcachedAdapter extends AbstractAdapter
         return $results;
     }
 
-    protected function doIncrement(string $key, int $offset = 1): int|false
+    protected function doIncrement(string $key, int $offset = 1): ?int
     {
         $result = $this->client->increment($key, $offset);
 
         if ($result === false) {
-            return false;
+            return null;
         }
 
         return (int) $result;
     }
 
-    protected function doDecrement(string $key, int $offset = 1): int|false
+    protected function doDecrement(string $key, int $offset = 1): ?int
     {
         $result = $this->client->decrement($key, $offset);
 
         if ($result === false) {
-            return false;
+            return null;
         }
 
         return (int) $result;

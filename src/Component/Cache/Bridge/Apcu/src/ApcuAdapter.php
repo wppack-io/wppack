@@ -13,12 +13,12 @@ final class ApcuAdapter extends AbstractAdapter
         return 'apcu';
     }
 
-    protected function doGet(string $key): string|false
+    protected function doGet(string $key): ?string
     {
         $result = apcu_fetch($key, $success);
 
         if ($success === false) {
-            return false;
+            return null;
         }
 
         return (string) $result;
@@ -34,11 +34,11 @@ final class ApcuAdapter extends AbstractAdapter
         $results = [];
 
         if (!\is_array($values)) {
-            return array_fill_keys($keys, false);
+            return array_fill_keys($keys, null);
         }
 
         foreach ($keys as $key) {
-            $results[$key] = isset($values[$key]) ? (string) $values[$key] : false;
+            $results[$key] = isset($values[$key]) ? (string) $values[$key] : null;
         }
 
         return $results;
@@ -108,12 +108,12 @@ final class ApcuAdapter extends AbstractAdapter
         return $results;
     }
 
-    protected function doIncrement(string $key, int $offset = 1): int|false
+    protected function doIncrement(string $key, int $offset = 1): ?int
     {
         $value = apcu_fetch($key, $success);
 
         if ($success === false) {
-            return false;
+            return null;
         }
 
         $newValue = (int) $value + $offset;
@@ -122,12 +122,12 @@ final class ApcuAdapter extends AbstractAdapter
         return $newValue;
     }
 
-    protected function doDecrement(string $key, int $offset = 1): int|false
+    protected function doDecrement(string $key, int $offset = 1): ?int
     {
         $value = apcu_fetch($key, $success);
 
         if ($success === false) {
-            return false;
+            return null;
         }
 
         $newValue = (int) $value - $offset;

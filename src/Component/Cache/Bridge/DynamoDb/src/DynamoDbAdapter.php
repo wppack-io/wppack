@@ -37,7 +37,7 @@ final class DynamoDbAdapter extends AbstractAdapter
         return 'dynamodb';
     }
 
-    protected function doGet(string $key): string|false
+    protected function doGet(string $key): ?string
     {
         [$pk, $sk] = $this->splitKey($key);
 
@@ -53,14 +53,14 @@ final class DynamoDbAdapter extends AbstractAdapter
         $item = $result->getItem();
 
         if ($item === []) {
-            return false;
+            return null;
         }
 
         if ($this->isExpired($item)) {
-            return false;
+            return null;
         }
 
-        return $item['v']->getS() ?? false;
+        return $item['v']->getS();
     }
 
     protected function doGetMultiple(array $keys): array
@@ -231,7 +231,7 @@ final class DynamoDbAdapter extends AbstractAdapter
         return $results;
     }
 
-    protected function doIncrement(string $key, int $offset = 1): int|false
+    protected function doIncrement(string $key, int $offset = 1): ?int
     {
         [$pk, $sk] = $this->splitKey($key);
 
@@ -247,7 +247,7 @@ final class DynamoDbAdapter extends AbstractAdapter
         $item = $result->getItem();
 
         if ($item === [] || $this->isExpired($item)) {
-            return false;
+            return null;
         }
 
         $currentValue = (int) ($item['v']->getS() ?? '0');
@@ -271,7 +271,7 @@ final class DynamoDbAdapter extends AbstractAdapter
         return $newValue;
     }
 
-    protected function doDecrement(string $key, int $offset = 1): int|false
+    protected function doDecrement(string $key, int $offset = 1): ?int
     {
         return $this->doIncrement($key, -$offset);
     }

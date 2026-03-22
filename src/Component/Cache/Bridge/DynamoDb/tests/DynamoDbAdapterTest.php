@@ -77,7 +77,7 @@ final class DynamoDbAdapterTest extends TestCase
     #[Test]
     public function getReturnsFalseForMissing(): void
     {
-        self::assertFalse($this->adapter->get('wppack_test:1:posts:nonexistent'));
+        self::assertNull($this->adapter->get('wppack_test:1:posts:nonexistent'));
     }
 
     #[Test]
@@ -94,7 +94,7 @@ final class DynamoDbAdapterTest extends TestCase
 
         self::assertSame('value1', $results['wppack_test:1:posts:key1']);
         self::assertSame('value2', $results['wppack_test:1:posts:key2']);
-        self::assertFalse($results['wppack_test:1:posts:missing']);
+        self::assertNull($results['wppack_test:1:posts:missing']);
     }
 
     #[Test]
@@ -132,7 +132,7 @@ final class DynamoDbAdapterTest extends TestCase
         $this->adapter->set('wppack_test:1:posts:key', 'value');
         $this->adapter->delete('wppack_test:1:posts:key');
 
-        self::assertFalse($this->adapter->get('wppack_test:1:posts:key'));
+        self::assertNull($this->adapter->get('wppack_test:1:posts:key'));
     }
 
     #[Test]
@@ -148,7 +148,7 @@ final class DynamoDbAdapterTest extends TestCase
 
         self::assertTrue($results['wppack_test:1:posts:key1']);
         self::assertTrue($results['wppack_test:1:posts:key2']);
-        self::assertFalse($this->adapter->get('wppack_test:1:posts:key1'));
+        self::assertNull($this->adapter->get('wppack_test:1:posts:key1'));
     }
 
     #[Test]
@@ -163,7 +163,7 @@ final class DynamoDbAdapterTest extends TestCase
     #[Test]
     public function incrementReturnsFalseForMissing(): void
     {
-        self::assertFalse($this->adapter->increment('wppack_test:1:posts:nonexistent'));
+        self::assertNull($this->adapter->increment('wppack_test:1:posts:nonexistent'));
     }
 
     #[Test]
@@ -184,8 +184,8 @@ final class DynamoDbAdapterTest extends TestCase
 
         $this->adapter->flush('wppack_test:1:posts:');
 
-        self::assertFalse($this->adapter->get('wppack_test:1:posts:a'));
-        self::assertFalse($this->adapter->get('wppack_test:1:posts:b'));
+        self::assertNull($this->adapter->get('wppack_test:1:posts:a'));
+        self::assertNull($this->adapter->get('wppack_test:1:posts:b'));
         self::assertSame('3', $this->adapter->get('wppack_test:1:options:c'));
     }
 
@@ -202,7 +202,7 @@ final class DynamoDbAdapterTest extends TestCase
         // Flush only site 1 posts
         $this->adapter->flush('wppack_test:1:posts:');
 
-        self::assertFalse($this->adapter->get('wppack_test:1:posts:a'));
+        self::assertNull($this->adapter->get('wppack_test:1:posts:a'));
         self::assertSame('2', $this->adapter->get('wppack_test:2:posts:a'));
         self::assertSame('3', $this->adapter->get('wppack_test:1:options:a'));
     }
@@ -215,8 +215,8 @@ final class DynamoDbAdapterTest extends TestCase
 
         $this->adapter->flush('');
 
-        self::assertFalse($this->adapter->get('wppack_test:1:posts:a'));
-        self::assertFalse($this->adapter->get('wppack_test:1:options:b'));
+        self::assertNull($this->adapter->get('wppack_test:1:posts:a'));
+        self::assertNull($this->adapter->get('wppack_test:1:options:b'));
     }
 
     #[Test]
@@ -253,7 +253,7 @@ final class DynamoDbAdapterTest extends TestCase
         self::assertSame('value', $this->adapter->get('wppack_test:1:posts:neg'));
 
         self::assertTrue($this->adapter->set('wppack_test:1:posts:neg', 'new', -1));
-        self::assertFalse($this->adapter->get('wppack_test:1:posts:neg'));
+        self::assertNull($this->adapter->get('wppack_test:1:posts:neg'));
     }
 
     #[Test]
@@ -269,8 +269,8 @@ final class DynamoDbAdapterTest extends TestCase
 
         self::assertTrue($results['wppack_test:1:posts:neg1']);
         self::assertTrue($results['wppack_test:1:posts:neg2']);
-        self::assertFalse($this->adapter->get('wppack_test:1:posts:neg1'));
-        self::assertFalse($this->adapter->get('wppack_test:1:posts:neg2'));
+        self::assertNull($this->adapter->get('wppack_test:1:posts:neg1'));
+        self::assertNull($this->adapter->get('wppack_test:1:posts:neg2'));
     }
 
     #[Test]
@@ -307,7 +307,7 @@ final class DynamoDbAdapterTest extends TestCase
 
         sleep(2);
 
-        self::assertFalse($this->adapter->get('wppack_test:1:posts:expire'));
+        self::assertNull($this->adapter->get('wppack_test:1:posts:expire'));
     }
 
     #[Test]
@@ -362,8 +362,8 @@ final class DynamoDbAdapterTest extends TestCase
         }
 
         // Verify items were deleted
-        self::assertFalse($this->adapter->get('wppack_test:1:posts:batch_del_0'));
-        self::assertFalse($this->adapter->get('wppack_test:1:posts:batch_del_25'));
+        self::assertNull($this->adapter->get('wppack_test:1:posts:batch_del_0'));
+        self::assertNull($this->adapter->get('wppack_test:1:posts:batch_del_25'));
     }
 
     #[Test]

@@ -25,11 +25,11 @@ final class PredisAdapter extends AbstractAdapter
         return 'predis';
     }
 
-    protected function doGet(string $key): string|false
+    protected function doGet(string $key): ?string
     {
         $result = $this->getConnection()->get($key);
 
-        return $result === null ? false : (string) $result;
+        return $result === null ? null : (string) $result;
     }
 
     protected function doGetMultiple(array $keys): array
@@ -43,7 +43,7 @@ final class PredisAdapter extends AbstractAdapter
 
         foreach ($keys as $i => $key) {
             $value = $values[$i] ?? null;
-            $results[$key] = $value === null ? false : (string) $value;
+            $results[$key] = $value === null ? null : (string) $value;
         }
 
         return $results;
@@ -151,23 +151,23 @@ final class PredisAdapter extends AbstractAdapter
         return $results;
     }
 
-    protected function doIncrement(string $key, int $offset = 1): int|false
+    protected function doIncrement(string $key, int $offset = 1): ?int
     {
         $client = $this->getConnection();
 
         if (!$client->exists($key)) {
-            return false;
+            return null;
         }
 
         return $client->incrby($key, $offset);
     }
 
-    protected function doDecrement(string $key, int $offset = 1): int|false
+    protected function doDecrement(string $key, int $offset = 1): ?int
     {
         $client = $this->getConnection();
 
         if (!$client->exists($key)) {
-            return false;
+            return null;
         }
 
         return $client->decrby($key, $offset);
