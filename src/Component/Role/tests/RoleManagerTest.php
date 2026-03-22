@@ -25,6 +25,8 @@ final class RoleManagerTest extends TestCase
         foreach ($this->manager->all() as $definition) {
             remove_role($definition->name);
         }
+
+        delete_option('wppack_managed_roles');
     }
 
     #[Test]
@@ -115,16 +117,26 @@ final class RoleManagerTest extends TestCase
     #[Test]
     public function synchronizeRemovesObsoleteCapabilities(): void
     {
-        // Create a role with extra capabilities
-        add_role('sync_remove_role', 'Remove Role', ['read' => true, 'edit_posts' => true, 'delete_posts' => true]);
-
+        // 1st sync: register with 3 caps to record managed state
         $this->manager->addDefinition(new RoleDefinition(
+            'sync_remove_role',
+            'Remove Role',
+            ['read', 'edit_posts', 'delete_posts'],
+        ));
+        $this->manager->synchronize();
+
+        $wpRole = get_role('sync_remove_role');
+        self::assertNotNull($wpRole);
+        self::assertTrue($wpRole->has_cap('delete_posts'));
+
+        // 2nd sync: remove delete_posts from definition
+        $manager2 = new RoleManager();
+        $manager2->addDefinition(new RoleDefinition(
             'sync_remove_role',
             'Remove Role',
             ['read', 'edit_posts'],
         ));
-
-        $this->manager->synchronize();
+        $manager2->synchronize();
 
         $wpRole = get_role('sync_remove_role');
         self::assertNotNull($wpRole);
@@ -133,6 +145,130 @@ final class RoleManagerTest extends TestCase
         self::assertFalse($wpRole->has_cap('delete_posts'));
 
         remove_role('sync_remove_role');
+    }
+
+    #[Test]
+    public function synchronizeDoesNotRemoveUnmanagedCapabilities(): void
+    {
+        // 1st sync: register role with managed caps
+        $this->manager->addDefinition(new RoleDefinition(
+            'plugin_role',
+            'Plugin Role',
+            ['read', 'edit_posts'],
+        ));
+        $this->manager->synchronize();
+
+        // Simulate another plugin adding a capability
+        $wpRole = get_role('plugin_role');
+        self::assertNotNull($wpRole);
+        $wpRole->add_cap('manage_woocommerce');
+
+        // 2nd sync: same definitions — unmanaged cap must survive
+        $manager2 = new RoleManager();
+        $manager2->addDefinition(new RoleDefinition(
+            'plugin_role',
+            'Plugin Role',
+            ['read', 'edit_posts'],
+        ));
+        $manager2->synchronize();
+
+        $wpRole = get_role('plugin_role');
+        self::assertNotNull($wpRole);
+        self::assertTrue($wpRole->has_cap('read'));
+        self::assertTrue($wpRole->has_cap('edit_posts'));
+        self::assertTrue($wpRole->has_cap('manage_woocommerce'));
+
+        remove_role('plugin_role');
+    }
+
+    #[Test]
+    public function synchronizeRemovesOrphanRole(): void
+    {
+        // 1st sync: register a role
+        $this->manager->addDefinition(new RoleDefinition(
+            'orphan_role',
+            'Orphan Role',
+            ['read'],
+        ));
+        $this->manager->synchronize();
+
+        self::assertNotNull(get_role('orphan_role'));
+
+        // 2nd sync: empty definitions — orphan role should be removed
+        $manager2 = new RoleManager();
+        $manager2->synchronize();
+
+        self::assertNull(get_role('orphan_role'));
+    }
+
+    #[Test]
+    public function synchronizeDoesNotRemoveUnmanagedRoles(): void
+    {
+        // Create a role not managed by RoleManager
+        add_role('external_role', 'External Role', ['read' => true]);
+
+        // Sync with no definitions — external role must survive
+        $this->manager->synchronize();
+
+        self::assertNotNull(get_role('external_role'));
+
+        remove_role('external_role');
+    }
+
+    #[Test]
+    public function synchronizeNeverRemovesBuiltInRoles(): void
+    {
+        $builtInRoles = ['administrator', 'editor', 'author', 'contributor', 'subscriber'];
+
+        // Poison managed state: pretend we previously managed built-in roles
+        $poisonedState = [];
+        foreach ($builtInRoles as $role) {
+            $poisonedState[$role] = ['read'];
+        }
+        update_option('wppack_managed_roles', $poisonedState, false);
+
+        // Sync with empty definitions — built-in roles must survive
+        $this->manager->synchronize();
+
+        foreach ($builtInRoles as $role) {
+            self::assertNotNull(get_role($role), sprintf('Built-in role "%s" was removed', $role));
+        }
+    }
+
+    #[Test]
+    public function synchronizeSavesManagedState(): void
+    {
+        $this->manager->addDefinition(new RoleDefinition(
+            'state_role',
+            'State Role',
+            ['read', 'edit_posts'],
+        ));
+        $this->manager->synchronize();
+
+        $state = get_option('wppack_managed_roles', []);
+        self::assertArrayHasKey('state_role', $state);
+        self::assertSame(['read', 'edit_posts'], $state['state_role']);
+
+        remove_role('state_role');
+    }
+
+    #[Test]
+    public function unregisterCleansUpManagedState(): void
+    {
+        $this->manager->addDefinition(new RoleDefinition(
+            'cleanup_role',
+            'Cleanup Role',
+            ['read'],
+        ));
+        $this->manager->synchronize();
+
+        $state = get_option('wppack_managed_roles', []);
+        self::assertArrayHasKey('cleanup_role', $state);
+
+        $this->manager->unregister('cleanup_role');
+
+        $state = get_option('wppack_managed_roles', []);
+        self::assertArrayNotHasKey('cleanup_role', $state);
     }
 
     #[Test]
