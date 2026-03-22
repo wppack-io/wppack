@@ -441,7 +441,7 @@ final class S3StoragePluginServiceProviderTest extends TestCase
         $policy = new UploadPolicy(allowedMimeTypes: []);
         $asset = new AssetManager();
         $nonce = new NonceManager();
-        $restUrl = new RestUrlGenerator();
+        $restUrl = new RestUrlGenerator(new \WpPack\Component\Rest\RestRegistry($this->createMock(\WpPack\Component\HttpFoundation\Request::class)));
 
         $subscriber = S3StoragePluginServiceProvider::createAdminAssetSubscriber($pluginUrl, $policy, $asset, $nonce, $restUrl);
 

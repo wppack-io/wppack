@@ -20,12 +20,13 @@ final class AdminAssetSubscriberTest extends TestCase
     public function canBeInstantiated(): void
     {
         $policy = new UploadPolicy(allowedMimeTypes: []);
+        $restRegistry = new \WpPack\Component\Rest\RestRegistry($this->createMock(\WpPack\Component\HttpFoundation\Request::class));
         $subscriber = new AdminAssetSubscriber(
             pluginUrl: plugin_dir_url(__DIR__ . '/../../s3-storage-plugin.php'),
             policy: $policy,
             asset: new AssetManager(),
             nonce: new NonceManager(),
-            restUrl: new RestUrlGenerator(),
+            restUrl: new RestUrlGenerator($restRegistry),
         );
 
         self::assertInstanceOf(AdminAssetSubscriber::class, $subscriber);
@@ -35,12 +36,13 @@ final class AdminAssetSubscriberTest extends TestCase
     public function enqueueScriptsSkipsWhenMediaScriptsNotLoaded(): void
     {
         $policy = new UploadPolicy(allowedMimeTypes: []);
+        $restRegistry = new \WpPack\Component\Rest\RestRegistry($this->createMock(\WpPack\Component\HttpFoundation\Request::class));
         $subscriber = new AdminAssetSubscriber(
             pluginUrl: plugin_dir_url(__DIR__ . '/../../s3-storage-plugin.php'),
             policy: $policy,
             asset: new AssetManager(),
             nonce: new NonceManager(),
-            restUrl: new RestUrlGenerator(),
+            restUrl: new RestUrlGenerator($restRegistry),
         );
 
         // When neither media-upload nor media-views is enqueued, should silently return
