@@ -6,6 +6,7 @@ namespace WpPack\Plugin\S3StoragePlugin\DependencyInjection;
 
 use AsyncAws\S3\S3Client;
 use Psr\Log\LoggerInterface;
+use WpPack\Component\Asset\AssetManager;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
@@ -31,7 +32,6 @@ use WpPack\Plugin\S3StoragePlugin\Message\S3EventNormalizer;
 use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\PreSignedUrlController;
 use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\PreSignedUrlGenerator;
 use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\UploadPolicy;
-use WpPack\Component\Asset\AssetManager;
 use WpPack\Plugin\S3StoragePlugin\Subscriber\AdminAssetSubscriber;
 
 final class S3StoragePluginServiceProvider implements ServiceProviderInterface

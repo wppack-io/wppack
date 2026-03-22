@@ -7,6 +7,7 @@ namespace WpPack\Plugin\S3StoragePlugin\Tests\Subscriber;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Asset\AssetManager;
 use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\UploadPolicy;
 use WpPack\Plugin\S3StoragePlugin\Subscriber\AdminAssetSubscriber;
 
@@ -20,6 +21,7 @@ final class AdminAssetSubscriberTest extends TestCase
         $subscriber = new AdminAssetSubscriber(
             pluginFile: __DIR__ . '/../../s3-storage-plugin.php',
             policy: $policy,
+            asset: new AssetManager(),
         );
 
         self::assertInstanceOf(AdminAssetSubscriber::class, $subscriber);
@@ -32,6 +34,7 @@ final class AdminAssetSubscriberTest extends TestCase
         $subscriber = new AdminAssetSubscriber(
             pluginFile: __DIR__ . '/../../s3-storage-plugin.php',
             policy: $policy,
+            asset: new AssetManager(),
         );
 
         // When neither media-upload nor media-views is enqueued, should silently return
