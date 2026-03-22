@@ -11,6 +11,7 @@ final readonly class AttachmentManager
     public function __construct(
         private PostRepositoryInterface $postRepository,
     ) {}
+
     /**
      * @param array<string, mixed> $data
      *
@@ -87,6 +88,6 @@ final readonly class AttachmentManager
 
     public function findByMeta(string $metaKey, string $metaValue): ?int
     {
-        return $this->postRepository->findOneByMeta($metaKey, $metaValue, 'attachment');
+        return $this->postRepository->findOneByMeta($metaKey, $metaValue, 'attachment', 'any');
     }
 }

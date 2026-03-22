@@ -107,6 +107,18 @@ final class UserRepositoryTest extends TestCase
     }
 
     #[Test]
+    public function findByLoginReturnsNullWhenNotFound(): void
+    {
+        self::assertNull($this->repository->findByLogin('nonexistent_login_' . uniqid()));
+    }
+
+    #[Test]
+    public function findBySlugReturnsNullWhenNotFound(): void
+    {
+        self::assertNull($this->repository->findBySlug('nonexistent-slug-' . uniqid()));
+    }
+
+    #[Test]
     public function insertCreatesUser(): void
     {
         $login = 'test_insert_' . uniqid();

@@ -77,6 +77,12 @@ final class TermRepositoryTest extends TestCase
     }
 
     #[Test]
+    public function findByNameReturnsNullWhenNotFound(): void
+    {
+        self::assertNull($this->repository->findByName('Nonexistent Name ' . uniqid(), 'category'));
+    }
+
+    #[Test]
     public function existsReturnsTermIdWhenFound(): void
     {
         $name = 'Test Exists ' . uniqid();

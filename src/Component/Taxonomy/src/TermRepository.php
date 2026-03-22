@@ -33,7 +33,6 @@ final readonly class TermRepository implements TermRepositoryInterface
             return null;
         }
 
-        $args = $parentId !== null ? ['parent' => $parentId] : [];
         $result = term_exists($term, $taxonomy !== '' ? $taxonomy : null, $parentId ?? 0);
 
         if (\is_array($result)) {
