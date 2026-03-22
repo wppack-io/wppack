@@ -222,7 +222,8 @@ wppack/role, wppack/http-foundation, wppack/event-dispatcher, wppack/site
 
 wppack/admin, wppack/setting, wppack/dashboard-widget
     ↓ requires
-wppack/role
+wppack/role, wppack/http-foundation
+    + wppack/security (suggest)
 
 wppack/ajax, wppack/routing, wppack/rest
     ↓ requires

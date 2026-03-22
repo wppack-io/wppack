@@ -272,6 +272,61 @@ class StatsWidget extends AbstractDashboardWidget
 }
 ```
 
+### Request / パラメータ自動注入
+
+`DashboardWidgetRegistry` に `Request` / `Security` を渡すと、`__invoke()` のパラメータに自動注入できます。
+
+#### Registry の設定
+
+```php
+use WpPack\Component\DashboardWidget\DashboardWidgetRegistry;
+use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Security\Security;
+
+$registry = new DashboardWidgetRegistry(
+    request: $request,
+    security: $security,  // wppack/security（任意）
+);
+$registry->register(new SiteStatsWidget());
+```
+
+#### Request 注入
+
+```php
+#[AsDashboardWidget(id: 'site_stats_widget', label: 'Site Statistics')]
+class SiteStatsWidget extends AbstractDashboardWidget
+{
+    public function __invoke(Request $request): string
+    {
+        $period = $request->query->getString('period', 'week');
+
+        return '<p>Stats for: ' . esc_html($period) . '</p>';
+    }
+}
+```
+
+#### #[CurrentUser] による WP_User 注入
+
+`Security` コンポーネント (`wppack/security`) が必要です。
+
+```php
+use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Security\Attribute\CurrentUser;
+
+#[AsDashboardWidget(id: 'user_activity_widget', label: 'My Activity')]
+class UserActivityWidget extends AbstractDashboardWidget
+{
+    public function __invoke(Request $request, #[CurrentUser] \WP_User $user): string
+    {
+        // $request と $user が自動注入される
+        return '<p>Welcome, ' . esc_html($user->display_name) . '</p>';
+    }
+}
+```
+
+> [!NOTE]
+> 既存の引数なし `__invoke()` はそのまま動作します。パラメータ注入はオプトインです。
+
 ## Named Hook アトリビュート
 
 → [Hook コンポーネントのドキュメント](../hook/dashboard-widget.md) を参照してください。
@@ -323,5 +378,9 @@ src/
 
 ## 依存関係
 
+### 必須
+- **HttpFoundation コンポーネント** (`wppack/http-foundation`) — `InvokeArgumentResolverTrait`、`Request` 注入
+
 ### 推奨
+- **Security コンポーネント** (`wppack/security`) — `#[CurrentUser]` による WP_User 注入
 - **DependencyInjection コンポーネント** — サービス注入用

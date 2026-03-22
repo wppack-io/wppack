@@ -476,6 +476,7 @@ final class MyService
 | `File\UploadedFile` | アップロードファイルラッパー（`File` 拡張） |
 | `File\Exception\FileException` | ファイル操作例外 |
 | `File\Exception\FileNotFoundException` | ファイル不在例外 |
+| `InvokeArgumentResolverTrait` | `__invoke()` パラメータ自動注入（Admin / DashboardWidget / Setting で使用） |
 
 ## 依存関係
 

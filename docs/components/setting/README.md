@@ -121,7 +121,7 @@ class MyPluginSettings extends AbstractSettingsPage
 
 #### オプションメソッド
 
-- `__invoke(): string` — ページレンダリング（デフォルトは `SettingsRenderer` に委譲して出力をキャプチャ。オーバーライドすれば Templating 等で自由にレンダリング可能）
+- `__invoke(): string` — ページレンダリング（デフォルトは `SettingsRenderer` に委譲して出力をキャプチャ。オーバーライドすると `Request` / `#[CurrentUser]` のパラメータ自動注入が有効になる）
 - `sanitize(array $input): array` — サニタイズ（型変換・正規化）
 - `validate(array $input, ValidationContext $context): array` — バリデーション（エラー通知）
 - `createRenderer(): SettingsRenderer` — レンダラーの生成（サブクラスでオーバーライド可能）
@@ -366,6 +366,76 @@ class MyPluginSettings extends AbstractSettingsPage
 
 > デフォルトの `__invoke()` は `SettingsRenderer::renderPage()` の出力を `ob_start()` でキャプチャして返します。`render()` ショートカットを使う場合は `__invoke()` をオーバーライドして Templating ベースのレンダリングに置き換えます。
 
+### Request / パラメータ自動注入
+
+`SettingsRegistry` に `Request` / `Security` を渡すと、`__invoke()` をオーバーライドした場合にパラメータを自動注入できます。
+
+#### Registry の設定
+
+```php
+use WpPack\Component\Setting\SettingsRegistry;
+use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Security\Security;
+
+$registry = new SettingsRegistry(
+    request: $request,
+    security: $security,  // wppack/security（任意）
+);
+$registry->register(new MyPluginSettings());
+```
+
+#### Request 注入
+
+```php
+#[AsSettingsPage(slug: 'my-plugin', label: 'My Plugin Settings')]
+class MyPluginSettings extends AbstractSettingsPage
+{
+    protected function configure(SettingsConfigurator $settings): void
+    {
+        $settings->section('general', 'General')
+            ->text('api_key', 'API Key');
+    }
+
+    // __invoke() をオーバーライドしてカスタムレンダリング
+    public function __invoke(Request $request): string
+    {
+        $tab = $request->query->getString('tab', 'general');
+
+        return $this->render('setting/my-plugin.html.twig', [
+            'page' => $this,
+            'tab' => $tab,
+        ]);
+    }
+}
+```
+
+#### #[CurrentUser] による WP_User 注入
+
+`Security` コンポーネント (`wppack/security`) が必要です。
+
+```php
+use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Security\Attribute\CurrentUser;
+
+#[AsSettingsPage(slug: 'my-plugin', label: 'My Plugin Settings')]
+class MyPluginSettings extends AbstractSettingsPage
+{
+    protected function configure(SettingsConfigurator $settings): void { /* ... */ }
+
+    public function __invoke(Request $request, #[CurrentUser] \WP_User $user): string
+    {
+        // $request と $user が自動注入される
+        return $this->render('setting/my-plugin.html.twig', [
+            'page' => $this,
+            'user' => $user,
+        ]);
+    }
+}
+```
+
+> [!NOTE]
+> パラメータ注入は `__invoke()` をオーバーライドした場合のみ有効です。デフォルトの `__invoke()` は `SettingsRenderer::renderPage()` に委譲するため、`__invoke()` をオーバーライドしない既存の設定ページには影響しません。
+
 ## Named Hook アトリビュート
 
 → [Hook コンポーネントのドキュメント](../hook/setting.md) を参照してください。
@@ -396,8 +466,9 @@ src/
 ## 依存関係
 
 ### 必須
-- なし
+- **HttpFoundation コンポーネント** (`wppack/http-foundation`) — `InvokeArgumentResolverTrait`、`Request` 注入
 
 ### 推奨
+- **Security コンポーネント** (`wppack/security`) — `#[CurrentUser]` による WP_User 注入
 - **Hook コンポーネント** - Named Hook アトリビュートの利用
 - **Option コンポーネント** - 拡張された設定ストレージ

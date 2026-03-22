@@ -141,6 +141,61 @@ class MyPluginPage extends AbstractAdminPage
 }
 ```
 
+### Request / パラメータ自動注入
+
+`AdminPageRegistry` に `Request` / `Security` を渡すと、`__invoke()` のパラメータに自動注入できます。
+
+#### Registry の設定
+
+```php
+use WpPack\Component\Admin\AdminPageRegistry;
+use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Security\Security;
+
+$registry = new AdminPageRegistry(
+    request: $request,
+    security: $security,  // wppack/security（任意）
+);
+$registry->register(new MyPluginPage());
+```
+
+#### Request 注入
+
+```php
+#[AsAdminPage(slug: 'my-plugin', label: 'My Plugin')]
+class MyPluginPage extends AbstractAdminPage
+{
+    public function __invoke(Request $request): string
+    {
+        $tab = $request->query->getString('tab', 'general');
+
+        return '<div class="wrap"><h1>' . esc_html($this->label) . '</h1></div>';
+    }
+}
+```
+
+#### #[CurrentUser] による WP_User 注入
+
+`Security` コンポーネント (`wppack/security`) が必要です。
+
+```php
+use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Security\Attribute\CurrentUser;
+
+#[AsAdminPage(slug: 'my-plugin', label: 'My Plugin')]
+class MyPluginPage extends AbstractAdminPage
+{
+    public function __invoke(Request $request, #[CurrentUser] \WP_User $user): string
+    {
+        // $request と $user が自動注入される
+        return '<div class="wrap"><h1>' . esc_html($user->display_name) . '</h1></div>';
+    }
+}
+```
+
+> [!NOTE]
+> 既存の引数なし `__invoke()` はそのまま動作します。パラメータ注入はオプトインです。
+
 ### AdminPageRegistry
 
 `AdminPageRegistry` でページを登録・削除します。
@@ -193,7 +248,11 @@ src/
 
 ## 依存関係
 
+### 必須
+- **HttpFoundation コンポーネント** (`wppack/http-foundation`) — `InvokeArgumentResolverTrait`、`Request` 注入
+
 ### 推奨
+- **Security コンポーネント** (`wppack/security`) — `#[CurrentUser]` による WP_User 注入
 - **Setting コンポーネント** (`wppack/setting`) - 設定ページ（Settings API 統合）
 - **DashboardWidget コンポーネント** (`wppack/dashboard-widget`) - ダッシュボードウィジェット
 - **DependencyInjection コンポーネント** (`wppack/dependency-injection`) - サービスコンテナ
