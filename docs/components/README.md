@@ -69,10 +69,10 @@ WordPress API やデータアクセスを抽象化し、テスト可能にする
 | [AzureMailer](./mailer/azure-mailer.md) | `wppack/azure-mailer` | Azure Communication Services トランスポート実装 |
 | [SendGridMailer](./mailer/sendgrid-mailer.md) | `wppack/sendgrid-mailer` | SendGrid トランスポート実装 |
 | [Messenger](./messenger/) | `wppack/messenger` | トランスポート非依存のメッセージバス |
-| [SqsMessenger](./messenger/sqs-messenger.md) | `wppack/sqs-messenger` | SQS トランスポート |
+| [SqsMessenger](./messenger/sqs-messenger.md) | `wppack/sqs-messenger` | Amazon SQS トランスポート |
 | [Serializer](./serializer/) | `wppack/serializer` | オブジェクト直列化（Normalizer チェーン） |
 | [OptionsResolver](./options-resolver/) | `wppack/options-resolver` | オプション解決（Symfony OptionsResolver 拡張） |
-| [Debug](./debug/) | `wppack/debug` | デバッグツール |
+| [Debug](./debug/) | `wppack/debug` | デバッグ・プロファイリング |
 | [Storage](./storage/) | `wppack/storage` | オブジェクトストレージ抽象化 |
 | [S3Storage](./storage/s3-storage.md) | `wppack/s3-storage` | Amazon S3 ストレージアダプタ |
 | [AzureStorage](./storage/azure-storage.md) | `wppack/azure-storage` | Azure Blob Storage アダプタ |
@@ -92,7 +92,7 @@ WordPress の機能領域をモダンなパターンで扱う。
 | [EventBridgeScheduler](./scheduler/eventbridge-scheduler.md) | `wppack/eventbridge-scheduler` | EventBridge スケジューラー |
 | [Console](./console/) | `wppack/console` | WP-CLI コマンドフレームワーク |
 | [Shortcode](./shortcode/) | `wppack/shortcode` | ショートコード登録 |
-| [Nonce](./nonce/) | `wppack/nonce` | Nonce 管理 |
+| [Nonce](./nonce/) | `wppack/nonce` | CSRF トークン管理 |
 | [Asset](./asset/) | `wppack/asset` | アセット管理（スクリプト・スタイル） |
 | [Ajax](./ajax/) | `wppack/ajax` | Admin Ajax ハンドラー |
 | [Wpress](./wpress/) | `wppack/wpress` | .wpress アーカイブ形式操作 |
@@ -104,7 +104,7 @@ WordPress のアプリケーション構成要素を抽象化する。
 | コンポーネント | パッケージ | 説明 |
 |---------------|-----------|------|
 | [Plugin](./plugin/) | `wppack/plugin` | プラグインライフサイクル管理 |
-| [Theme](./theme/) | `wppack/theme` | テーマ機能 |
+| [Theme](./theme/) | `wppack/theme` | テーマ開発フレームワーク |
 | [Widget](./widget/) | `wppack/widget` | ウィジェット定義 |
 | [Setting](./setting/) | `wppack/setting` | Settings API ラッパー |
 | [User](./user.md) | `wppack/user` | ユーザー管理 |
@@ -112,10 +112,10 @@ WordPress のアプリケーション構成要素を抽象化する。
 | [Media](./media/) | `wppack/media` | メディア管理 |
 | [Comment](./comment.md) | `wppack/comment` | コメント管理 |
 | [Taxonomy](./taxonomy.md) | `wppack/taxonomy` | タクソノミー定義 |
-| [NavigationMenu](./navigation-menu/) | `wppack/navigation-menu` | ナビゲーションメニュー |
+| [NavigationMenu](./navigation-menu/) | `wppack/navigation-menu` | メニュー管理 |
 | [Feed](./feed/) | `wppack/feed` | RSS/Atom フィード |
 | [OEmbed](./oembed/) | `wppack/oembed` | oEmbed プロバイダー |
-| [SiteHealth](./site-health/) | `wppack/site-health` | サイトヘルス |
+| [SiteHealth](./site-health/) | `wppack/site-health` | サイトヘルスチェック |
 | [DashboardWidget](./dashboard-widget/) | `wppack/dashboard-widget` | ダッシュボードウィジェット |
 | [Translation](./translation/) | `wppack/translation` | 翻訳・国際化 |
 

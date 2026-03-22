@@ -42,18 +42,18 @@ WordPress プラグインとして配布。Component を利用。
 ### Infrastructure Layer
 | Component | パッケージ名 | 説明 |
 |-----------|-------------|------|
-| Hook | wppack/hook | アトリビュートベースのアクション/フィルター |
-| DependencyInjection | wppack/dependency-injection | サービスコンテナ + 設定管理 |
-| EventDispatcher | wppack/event-dispatcher | イベントシステム |
-| Filesystem | wppack/filesystem | ファイル操作 |
+| Hook | wppack/hook | アトリビュートベースの WordPress フック（アクション/フィルター）管理 |
+| DependencyInjection | wppack/dependency-injection | PSR-11 準拠のサービスコンテナ、オートワイヤリング、設定管理 |
+| EventDispatcher | wppack/event-dispatcher | PSR-14 準拠のイベントシステム |
+| Filesystem | wppack/filesystem | WP_Filesystem DI ラッパー、ファイル操作抽象化 |
 | Kernel | wppack/kernel | アプリケーションブートストラップ |
-| Option | wppack/option | WordPress options ラッパー |
-| Transient | wppack/transient | WordPress transients ラッパー |
-| Role | wppack/role | ユーザーロール管理 |
-| Templating | wppack/templating | テンプレートエンジン |
+| Option | wppack/option | wp_options の型安全ラッパー |
+| Transient | wppack/transient | Transient API の型安全ラッパー |
+| Role | wppack/role | ロール・権限管理 |
+| Templating | wppack/templating | テンプレートエンジン抽象化 |
 | TwigTemplating | wppack/twig-templating | Twig ブリッジ |
-| Stopwatch | wppack/stopwatch | ストップウォッチ（計測） |
-| Logger | wppack/logger | PSR-3 ロギング |
+| Stopwatch | wppack/stopwatch | コード実行時間の計測 |
+| Logger | wppack/logger | PSR-3 準拠ロガー |
 | MonologLogger | wppack/monolog-logger | Monolog ブリッジ |
 | Mime | wppack/mime | MIME 型判定・拡張子マッピング |
 | Site | wppack/site | マルチサイト管理（ブログ切替・コンテキスト・サイト照会） |
@@ -61,22 +61,22 @@ WordPress プラグインとして配布。Component を利用。
 ### Abstraction Layer
 | Component | パッケージ名 | 説明 |
 |-----------|-------------|------|
-| Cache | wppack/cache | キャッシュインターフェース |
+| Cache | wppack/cache | PSR-6/PSR-16 キャッシュ抽象化 |
 | RedisCache | wppack/redis-cache | Redis / Valkey キャッシュ |
 | ElastiCacheAuth | wppack/elasticache-auth | ElastiCache IAM 認証 |
 | DynamoDbCache | wppack/dynamodb-cache | DynamoDB キャッシュ |
 | MemcachedCache | wppack/memcached-cache | Memcached キャッシュ |
 | ApcuCache | wppack/apcu-cache | APCu キャッシュ |
-| Database | wppack/database | データベース抽象化 |
-| Query | wppack/query | クエリビルダー |
+| Database | wppack/database | $wpdb の型安全ラッパー、マイグレーション |
+| Query | wppack/query | WP_Query ビルダー |
 | Security | wppack/security | 認証・認可フレームワーク |
-| SamlSecurity | wppack/saml-security | SAML 2.0 SP 認証 |
-| OAuthSecurity | wppack/oauth-security | OAuth 2.0 / OpenID Connect 認証 |
+| SamlSecurity | wppack/saml-security | SAML 2.0 SP 認証ブリッジ |
+| OAuthSecurity | wppack/oauth-security | OAuth 2.0 / OpenID Connect 認証ブリッジ |
 | Sanitizer | wppack/sanitizer | 入力サニタイズ |
 | Escaper | wppack/escaper | 出力エスケープ |
-| HttpClient | wppack/http-client | HTTPクライアント |
-| HttpFoundation | wppack/http-foundation | Request/Response |
-| Mailer | wppack/mailer | メール抽象化（Transport基盤含む） |
+| HttpClient | wppack/http-client | HTTP クライアント抽象化 |
+| HttpFoundation | wppack/http-foundation | Request/Response 抽象化 |
+| Mailer | wppack/mailer | メール送信抽象化、TransportInterface |
 | AmazonMailer | wppack/amazon-mailer | SES トランスポート実装 |
 | AzureMailer | wppack/azure-mailer | Azure Communication Services トランスポート実装 |
 | SendGridMailer | wppack/sendgrid-mailer | SendGrid トランスポート実装 |
@@ -93,37 +93,37 @@ WordPress プラグインとして配布。Component を利用。
 ### Feature Layer
 | Component | パッケージ名 | 説明 |
 |-----------|-------------|------|
-| Admin | wppack/admin | 管理画面ユーティリティ |
-| Rest | wppack/rest | REST API フレームワーク |
-| Routing | wppack/routing | URLルーティング |
-| PostType | wppack/post-type | カスタム投稿タイプ |
+| Admin | wppack/admin | 管理画面ページ・メニュー登録 |
+| Rest | wppack/rest | REST API エンドポイント定義 |
+| Routing | wppack/routing | URL ルーティング |
+| PostType | wppack/post-type | カスタム投稿タイプ・メタ登録 |
 | Scheduler | wppack/scheduler | Trigger ベースのタスクスケジューラー |
 | EventBridgeScheduler | wppack/eventbridge-scheduler | EventBridge スケジューラー |
 | Console | wppack/console | WP-CLI コマンドフレームワーク |
-| Shortcode | wppack/shortcode | ショートコードフレームワーク |
+| Shortcode | wppack/shortcode | ショートコード登録 |
 | Nonce | wppack/nonce | CSRF トークン管理 |
 | Asset | wppack/asset | アセット管理（スクリプト・スタイル） |
-| Ajax | wppack/ajax | Ajax ハンドラー |
+| Ajax | wppack/ajax | Admin Ajax ハンドラー |
 | Wpress | wppack/wpress | .wpress アーカイブ形式操作 |
 
 ### Application Layer
 | Component | パッケージ名 | 説明 |
 |-----------|-------------|------|
-| Plugin | wppack/plugin | プラグイン開発フレームワーク |
+| Plugin | wppack/plugin | プラグインライフサイクル管理 |
 | Theme | wppack/theme | テーマ開発フレームワーク |
-| Widget | wppack/widget | ウィジェットシステム |
-| Setting | wppack/setting | 設定管理 |
+| Widget | wppack/widget | ウィジェット定義 |
+| Setting | wppack/setting | Settings API ラッパー |
 | User | wppack/user | ユーザー管理 |
-| Block | wppack/block | Gutenberg ブロック |
-| Media | wppack/media | メディアライブラリ |
-| Comment | wppack/comment | コメントシステム |
-| Taxonomy | wppack/taxonomy | タクソノミー管理 |
+| Block | wppack/block | ブロックエディタ統合 |
+| Media | wppack/media | メディア管理 |
+| Comment | wppack/comment | コメント管理 |
+| Taxonomy | wppack/taxonomy | タクソノミー定義 |
 | NavigationMenu | wppack/navigation-menu | メニュー管理 |
 | Feed | wppack/feed | RSS/Atom フィード |
-| OEmbed | wppack/oembed | oEmbed |
+| OEmbed | wppack/oembed | oEmbed プロバイダー |
 | SiteHealth | wppack/site-health | サイトヘルスチェック |
 | DashboardWidget | wppack/dashboard-widget | ダッシュボードウィジェット |
-| Translation | wppack/translation | 国際化 |
+| Translation | wppack/translation | 翻訳・国際化 |
 
 ### Plugin パッケージ
 | Plugin | パッケージ名 | 説明 |
