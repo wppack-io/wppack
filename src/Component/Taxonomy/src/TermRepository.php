@@ -4,11 +4,19 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Taxonomy;
 
+use WpPack\Component\Taxonomy\Exception\TermException;
+
 final readonly class TermRepository implements TermRepositoryInterface
 {
-    public function findAll(array $args = []): array|\WP_Error
+    public function findAll(array $args = []): array
     {
-        return get_terms($args);
+        $result = get_terms($args);
+
+        if ($result instanceof \WP_Error) {
+            throw TermException::fromWpError($result);
+        }
+
+        return $result;
     }
 
     public function find(int $termId, string $taxonomy = ''): ?\WP_Term
@@ -43,14 +51,26 @@ final readonly class TermRepository implements TermRepositoryInterface
         return null;
     }
 
-    public function insert(string $term, string $taxonomy, array $args = []): array|\WP_Error
+    public function insert(string $term, string $taxonomy, array $args = []): array
     {
-        return wp_insert_term($term, $taxonomy, $args);
+        $result = wp_insert_term($term, $taxonomy, $args);
+
+        if ($result instanceof \WP_Error) {
+            throw TermException::fromWpError($result);
+        }
+
+        return $result;
     }
 
-    public function update(int $termId, string $taxonomy, array $args = []): array|\WP_Error
+    public function update(int $termId, string $taxonomy, array $args = []): array
     {
-        return wp_update_term($termId, $taxonomy, $args);
+        $result = wp_update_term($termId, $taxonomy, $args);
+
+        if ($result instanceof \WP_Error) {
+            throw TermException::fromWpError($result);
+        }
+
+        return $result;
     }
 
     public function delete(int $termId, string $taxonomy, array $args = []): bool
@@ -65,9 +85,11 @@ final readonly class TermRepository implements TermRepositoryInterface
         return get_term_meta($termId, $key, $single);
     }
 
-    public function addMeta(int $termId, string $key, mixed $value, bool $unique = false): int|false
+    public function addMeta(int $termId, string $key, mixed $value, bool $unique = false): ?int
     {
-        return add_term_meta($termId, $key, $value, $unique);
+        $result = add_term_meta($termId, $key, $value, $unique);
+
+        return $result === false ? null : $result;
     }
 
     public function updateMeta(int $termId, string $key, mixed $value, mixed $previousValue = ''): int|bool
@@ -80,24 +102,48 @@ final readonly class TermRepository implements TermRepositoryInterface
         return delete_term_meta($termId, $key, $value);
     }
 
-    public function setObjectTerms(int $objectId, array $terms, string $taxonomy, bool $append = false): array|\WP_Error
+    public function setObjectTerms(int $objectId, array $terms, string $taxonomy, bool $append = false): array
     {
-        return wp_set_object_terms($objectId, $terms, $taxonomy, $append);
+        $result = wp_set_object_terms($objectId, $terms, $taxonomy, $append);
+
+        if ($result instanceof \WP_Error) {
+            throw TermException::fromWpError($result);
+        }
+
+        return $result;
     }
 
-    public function addObjectTerms(int $objectId, array $terms, string $taxonomy): array|\WP_Error
+    public function addObjectTerms(int $objectId, array $terms, string $taxonomy): array
     {
-        return wp_add_object_terms($objectId, $terms, $taxonomy);
+        $result = wp_add_object_terms($objectId, $terms, $taxonomy);
+
+        if ($result instanceof \WP_Error) {
+            throw TermException::fromWpError($result);
+        }
+
+        return $result;
     }
 
-    public function removeObjectTerms(int $objectId, array $terms, string $taxonomy): bool|\WP_Error
+    public function removeObjectTerms(int $objectId, array $terms, string $taxonomy): bool
     {
-        return wp_remove_object_terms($objectId, $terms, $taxonomy);
+        $result = wp_remove_object_terms($objectId, $terms, $taxonomy);
+
+        if ($result instanceof \WP_Error) {
+            throw TermException::fromWpError($result);
+        }
+
+        return $result;
     }
 
-    public function getObjectTerms(int|array $objectIds, string|array $taxonomies, array $args = []): array|\WP_Error
+    public function getObjectTerms(int|array $objectIds, string|array $taxonomies, array $args = []): array
     {
-        return wp_get_object_terms($objectIds, $taxonomies, $args);
+        $result = wp_get_object_terms($objectIds, $taxonomies, $args);
+
+        if ($result instanceof \WP_Error) {
+            throw TermException::fromWpError($result);
+        }
+
+        return $result;
     }
 
     private function findBy(string $field, string $value, string $taxonomy): ?\WP_Term

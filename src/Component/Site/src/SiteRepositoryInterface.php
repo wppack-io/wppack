@@ -26,7 +26,7 @@ interface SiteRepositoryInterface
 
     public function getMeta(int $blogId, string $key = '', bool $single = false): mixed;
 
-    public function addMeta(int $blogId, string $key, mixed $value, bool $unique = false): int|false;
+    public function addMeta(int $blogId, string $key, mixed $value, bool $unique = false): ?int;
 
     public function updateMeta(int $blogId, string $key, mixed $value, mixed $previousValue = ''): int|bool;
 

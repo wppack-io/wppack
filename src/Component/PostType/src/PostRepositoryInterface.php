@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace WpPack\Component\PostType;
 
+use WpPack\Component\PostType\Exception\PostException;
+
 interface PostRepositoryInterface
 {
     public function find(int $postId): ?\WP_Post;
@@ -18,16 +20,16 @@ interface PostRepositoryInterface
     /**
      * @param array<string, mixed> $data
      *
-     * @return int|\WP_Error
+     * @throws PostException
      */
-    public function insert(array $data): int|\WP_Error;
+    public function insert(array $data): int;
 
     /**
      * @param array<string, mixed> $data
      *
-     * @return int|\WP_Error
+     * @throws PostException
      */
-    public function update(array $data): int|\WP_Error;
+    public function update(array $data): int;
 
     public function delete(int $postId, bool $force = false): ?\WP_Post;
 
@@ -37,7 +39,7 @@ interface PostRepositoryInterface
 
     public function getMeta(int $postId, string $key = '', bool $single = false): mixed;
 
-    public function addMeta(int $postId, string $key, mixed $value, bool $unique = false): int|false;
+    public function addMeta(int $postId, string $key, mixed $value, bool $unique = false): ?int;
 
     public function updateMeta(int $postId, string $key, mixed $value, mixed $previousValue = ''): int|bool;
 

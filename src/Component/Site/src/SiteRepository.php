@@ -70,13 +70,15 @@ final readonly class SiteRepository implements SiteRepositoryInterface
         return get_site_meta($blogId, $key, $single);
     }
 
-    public function addMeta(int $blogId, string $key, mixed $value, bool $unique = false): int|false
+    public function addMeta(int $blogId, string $key, mixed $value, bool $unique = false): ?int
     {
         if (!\function_exists('add_site_meta')) {
-            return false;
+            return null;
         }
 
-        return add_site_meta($blogId, $key, $value, $unique);
+        $result = add_site_meta($blogId, $key, $value, $unique);
+
+        return $result === false ? null : $result;
     }
 
     public function updateMeta(int $blogId, string $key, mixed $value, mixed $previousValue = ''): int|bool

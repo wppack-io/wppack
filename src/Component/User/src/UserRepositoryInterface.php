@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace WpPack\Component\User;
 
+use WpPack\Component\User\Exception\UserException;
+
 interface UserRepositoryInterface
 {
     /**
@@ -24,22 +26,22 @@ interface UserRepositoryInterface
     /**
      * @param array<string, mixed> $data
      *
-     * @return int|\WP_Error
+     * @throws UserException
      */
-    public function insert(array $data): int|\WP_Error;
+    public function insert(array $data): int;
 
     /**
      * @param array<string, mixed> $data
      *
-     * @return int|\WP_Error
+     * @throws UserException
      */
-    public function update(array $data): int|\WP_Error;
+    public function update(array $data): int;
 
     public function delete(int $userId, ?int $reassignTo = null): bool;
 
     public function getMeta(int $userId, string $key = '', bool $single = false): mixed;
 
-    public function addMeta(int $userId, string $key, mixed $value, bool $unique = false): int|false;
+    public function addMeta(int $userId, string $key, mixed $value, bool $unique = false): ?int;
 
     public function updateMeta(int $userId, string $key, mixed $value, mixed $previousValue = ''): int|bool;
 

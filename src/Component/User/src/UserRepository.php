@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace WpPack\Component\User;
 
+use WpPack\Component\User\Exception\UserException;
+
 final readonly class UserRepository implements UserRepositoryInterface
 {
     public function findAll(array $args = []): array
@@ -33,14 +35,26 @@ final readonly class UserRepository implements UserRepositoryInterface
         return $this->findBy('slug', $slug);
     }
 
-    public function insert(array $data): int|\WP_Error
+    public function insert(array $data): int
     {
-        return wp_insert_user($data);
+        $result = wp_insert_user($data);
+
+        if ($result instanceof \WP_Error) {
+            throw UserException::fromWpError($result);
+        }
+
+        return $result;
     }
 
-    public function update(array $data): int|\WP_Error
+    public function update(array $data): int
     {
-        return wp_update_user($data);
+        $result = wp_update_user($data);
+
+        if ($result instanceof \WP_Error) {
+            throw UserException::fromWpError($result);
+        }
+
+        return $result;
     }
 
     public function delete(int $userId, ?int $reassignTo = null): bool
@@ -55,9 +69,11 @@ final readonly class UserRepository implements UserRepositoryInterface
         return get_user_meta($userId, $key, $single);
     }
 
-    public function addMeta(int $userId, string $key, mixed $value, bool $unique = false): int|false
+    public function addMeta(int $userId, string $key, mixed $value, bool $unique = false): ?int
     {
-        return add_user_meta($userId, $key, $value, $unique);
+        $result = add_user_meta($userId, $key, $value, $unique);
+
+        return $result === false ? null : $result;
     }
 
     public function updateMeta(int $userId, string $key, mixed $value, mixed $previousValue = ''): int|bool

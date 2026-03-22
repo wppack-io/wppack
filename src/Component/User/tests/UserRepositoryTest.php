@@ -7,6 +7,7 @@ namespace WpPack\Component\User\Tests;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\User\Exception\UserException;
 use WpPack\Component\User\UserRepository;
 
 #[CoversClass(UserRepository::class)]
@@ -144,6 +145,25 @@ final class UserRepositoryTest extends TestCase
         self::assertSame($login, $user->user_login);
 
         wp_delete_user($result);
+    }
+
+    #[Test]
+    public function insertThrowsOnMissingLogin(): void
+    {
+        $this->expectException(UserException::class);
+
+        $this->repository->insert([
+            'user_pass' => 'password123',
+            'user_email' => 'nologin_' . uniqid() . '@example.com',
+        ]);
+    }
+
+    #[Test]
+    public function updateThrowsOnInvalidId(): void
+    {
+        $this->expectException(UserException::class);
+
+        $this->repository->update(['ID' => 0, 'display_name' => 'Invalid']);
     }
 
     #[Test]

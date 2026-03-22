@@ -7,6 +7,7 @@ namespace WpPack\Component\Taxonomy\Tests;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Taxonomy\Exception\TermException;
 use WpPack\Component\Taxonomy\TermRepository;
 
 #[CoversClass(TermRepository::class)]
@@ -25,6 +26,14 @@ final class TermRepositoryTest extends TestCase
         $terms = $this->repository->findAll(['taxonomy' => 'category']);
 
         self::assertIsArray($terms);
+    }
+
+    #[Test]
+    public function findAllThrowsOnInvalidTaxonomy(): void
+    {
+        $this->expectException(TermException::class);
+
+        $this->repository->findAll(['taxonomy' => 'nonexistent_taxonomy_' . uniqid()]);
     }
 
     #[Test]

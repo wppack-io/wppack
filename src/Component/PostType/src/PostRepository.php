@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace WpPack\Component\PostType;
 
+use WpPack\Component\PostType\Exception\PostException;
+
 final readonly class PostRepository implements PostRepositoryInterface
 {
     public function find(int $postId): ?\WP_Post
@@ -18,14 +20,26 @@ final readonly class PostRepository implements PostRepositoryInterface
         return get_posts($args);
     }
 
-    public function insert(array $data): int|\WP_Error
+    public function insert(array $data): int
     {
-        return wp_insert_post($data, true);
+        $result = wp_insert_post($data, true);
+
+        if ($result instanceof \WP_Error) {
+            throw PostException::fromWpError($result);
+        }
+
+        return $result;
     }
 
-    public function update(array $data): int|\WP_Error
+    public function update(array $data): int
     {
-        return wp_update_post($data, true);
+        $result = wp_update_post($data, true);
+
+        if ($result instanceof \WP_Error) {
+            throw PostException::fromWpError($result);
+        }
+
+        return $result;
     }
 
     public function delete(int $postId, bool $force = false): ?\WP_Post
@@ -54,9 +68,11 @@ final readonly class PostRepository implements PostRepositoryInterface
         return get_post_meta($postId, $key, $single);
     }
 
-    public function addMeta(int $postId, string $key, mixed $value, bool $unique = false): int|false
+    public function addMeta(int $postId, string $key, mixed $value, bool $unique = false): ?int
     {
-        return add_post_meta($postId, $key, $value, $unique);
+        $result = add_post_meta($postId, $key, $value, $unique);
+
+        return $result === false ? null : $result;
     }
 
     public function updateMeta(int $postId, string $key, mixed $value, mixed $previousValue = ''): int|bool
