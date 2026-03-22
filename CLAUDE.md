@@ -276,6 +276,60 @@ wppack/logger
 - match式を活用
 - Named argumentsを適切に使用
 
+### コミットメッセージ
+
+[Conventional Commits](https://www.conventionalcommits.org/) ベースの形式を使用する。
+
+```
+<type>(<scope>): <summary>
+
+<body>
+```
+
+#### サマリー行（1行目）
+
+- **72文字以内**（`git log --oneline` で見切れない長さ）
+- **型プレフィックス**: 変更の種類を明示
+- **スコープ（任意）**: 変更対象のコンポーネント名やパッケージ名
+- **命令形**: "Add", "Fix", "Refactor" etc.（"Added", "Fixes" ではない）
+
+| type | 用途 |
+|------|------|
+| `feat` | 新機能追加 |
+| `fix` | バグ修正 |
+| `refactor` | リファクタリング（動作変更なし） |
+| `docs` | ドキュメントのみの変更 |
+| `test` | テストの追加・修正のみ |
+| `chore` | ビルド、CI、依存関係等の雑務 |
+
+#### 本文（2行目以降）
+
+- サマリー行の後に**空行1行**を挟む
+- **箇条書き**（`-` 使用）で変更内容を構造化
+- 「なぜ」この変更が必要だったかを含める
+- 技術的な詳細は必要に応じて
+
+#### 例
+
+```
+feat(Admin,DashboardWidget,Setting): add render() shortcut
+
+- Add render() method to AbstractAdminPage, AbstractDashboardWidget,
+  AbstractSettingsPage that delegates to TemplateRendererInterface
+- Registry classes accept optional TemplateRendererInterface in constructor
+  and inject via setter during register()
+- Setting uses $templateRenderer to avoid collision with $renderer
+  (SettingsRenderer)
+```
+
+#### コミットの粒度
+
+**1コミット = 1つの論理的な変更単位（atomic commit）** を原則とする。
+
+- **同じコミットに含める**: 機能実装とそのテスト、機能実装と直接関連するドキュメント更新
+- **別コミットに分ける**: 独立したバグ修正同士、新機能と無関係なリファクタリング
+- **判断基準**: 「このコミットだけを `git revert` したとき、意味のある単位で元に戻せるか？」
+
 ### `function_exists()` の使用方針
 
 WordPress がロードされていない環境を想定する必要はない。WordPress コア関数に対する `function_exists()` ガードは不要。
