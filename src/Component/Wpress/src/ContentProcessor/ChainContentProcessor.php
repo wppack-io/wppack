@@ -73,8 +73,12 @@ final class ChainContentProcessor implements ContentProcessorInterface
                 throw new EncryptionException('Failed to decrypt data. The password may be incorrect.');
             }
 
-            // Decompress
-            $result .= $this->decompress($compressed);
+            // Decompress — if decompression fails after decryption, the password is incorrect
+            try {
+                $result .= $this->decompress($compressed);
+            } catch (ArchiveException) {
+                throw new EncryptionException('Failed to decrypt data. The password may be incorrect.');
+            }
         }
 
         return $result;
