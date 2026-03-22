@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WpPack\Plugin\S3StoragePlugin\Tests\DependencyInjection;
 
 use AsyncAws\S3\S3Client;
+use WpPack\Component\Asset\AssetManager;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -432,8 +433,9 @@ final class S3StoragePluginServiceProviderTest extends TestCase
     public function createAdminAssetSubscriberReturnsSubscriberInstance(): void
     {
         $policy = new UploadPolicy(allowedMimeTypes: []);
+        $asset = new AssetManager();
 
-        $subscriber = S3StoragePluginServiceProvider::createAdminAssetSubscriber($policy);
+        $subscriber = S3StoragePluginServiceProvider::createAdminAssetSubscriber($policy, $asset);
 
         self::assertInstanceOf(AdminAssetSubscriber::class, $subscriber);
     }
