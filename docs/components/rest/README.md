@@ -27,7 +27,7 @@ use WpPack\Component\Security\Attribute\IsGranted;
 #[Permission(public: true)]
 class ProductController extends AbstractRestController
 {
-    #[RestRoute(methods: HttpMethod::GET)]
+    #[RestRoute(methods: HttpMethod::GET, name: 'product_list')]
     public function list(
         #[Param(minimum: 1, maximum: 100)] int $perPage = 10,
         #[Param(minimum: 1)] int $page = 1,
@@ -39,7 +39,7 @@ class ProductController extends AbstractRestController
         ])];
     }
 
-    #[RestRoute('/(?P<id>\d+)', methods: HttpMethod::GET)]
+    #[RestRoute('/{id}', methods: HttpMethod::GET, name: 'product_show', requirements: ['id' => '\d+'])]
     public function show(int $id): JsonResponse
     {
         $product = get_post($id);
@@ -60,7 +60,7 @@ class ProductController extends AbstractRestController
         return $this->created(['id' => $id]);
     }
 
-    #[RestRoute('/(?P<id>\d+)', methods: HttpMethod::DELETE)]
+    #[RestRoute('/{id}', methods: HttpMethod::DELETE, requirements: ['id' => '\d+'])]
     #[Permission(callback: 'canDelete')]
     public function delete(int $id): JsonResponse
     {
@@ -94,9 +94,45 @@ $registry->register(new ProductController());
 |-----------|------|:---:|:---:|
 | `route` | ルートパス（第1引数） | プレフィックス | サブルート |
 | `namespace` | REST API 名前空間 | 必須 | - |
-| `methods` | HTTP メソッド | - | 必須 |
+| `methods` | HTTP メソッド | `__invoke` 用 | 必須 |
+| `name` | ルート名（URL 生成用） | `__invoke` 用 | 任意 |
+| `requirements` | パスパラメータの正規表現制約 | 任意 | 任意（マージ） |
 
 `IS_REPEATABLE` 対応のため、メソッドに複数の `#[RestRoute]` を付与可能。
+
+#### パスベースルート定義
+
+`{param}` プレースホルダーを使うと、`(?P<param>[^/]+)` に自動変換される。`requirements` で正規表現パターンを指定可能:
+
+```php
+// {id} → (?P<id>[^/]+)（デフォルト）
+#[RestRoute('/{id}', methods: HttpMethod::GET)]
+
+// {id} → (?P<id>\d+)（requirements 指定）
+#[RestRoute('/{id}', methods: HttpMethod::GET, requirements: ['id' => '\d+'])]
+```
+
+クラスレベルとメソッドレベルの `requirements` はマージされる（メソッドが優先）。
+
+従来の `(?P<param>...)` 形式もそのまま使用可能。
+
+#### `__invoke` コントローラー
+
+クラスレベルの `#[RestRoute]` に `methods` を指定すると、`__invoke()` メソッドがハンドラとして使用される:
+
+```php
+#[RestRoute('/health', namespace: 'my-plugin/v1', methods: HttpMethod::GET, name: 'health_check')]
+#[Permission(public: true)]
+class HealthController
+{
+    public function __invoke(): array
+    {
+        return ['status' => 'ok'];
+    }
+}
+```
+
+`__invoke` コントローラーと通常のメソッドルートを同じクラスに併用可能。
 
 ### `#[Param]`
 
@@ -214,26 +250,50 @@ throw new ForbiddenException('Access denied.');         // 403
 | エラー処理 | null で WordPress に委譲 | `throw HttpException` → `WP_Error` |
 | リクエスト | `Request` + パラメータ自動注入 | `Request` / `WP_REST_Request` |
 | パーミッション | `#[IsGranted]` | `#[Permission]` + `#[IsGranted]` |
+| パスベース定義 | `{param}` → rewrite rule | `{param}` → `(?P<param>...)` |
+| `__invoke` | 対応 | 対応 |
+| URL 生成 | `UrlGenerator::generate()` | `RestUrlGenerator::generate()` |
 
 ## RestUrlGenerator
 
-REST API の URL を生成するユーティリティクラス。`rest_url()` と `rest_get_url_prefix()` のラッパーとして、DI コンテナ経由でのインジェクションを可能にします。
+REST API の URL を生成するユーティリティクラス。`rest_url()` / `rest_get_url_prefix()` のラッパーに加え、名前付きルートからの URL 生成をサポートする。
 
 ```php
 use WpPack\Component\Rest\RestUrlGenerator;
 
-$restUrl = new RestUrlGenerator();
+// DI コンテナまたは手動で RestRegistry を注入
+$restUrl = new RestUrlGenerator($registry);
 
+// 基本的な URL 生成
 $restUrl->url('wppack/v1/s3/presigned-url');
 // => https://example.com/wp-json/wppack/v1/s3/presigned-url
 
 $restUrl->prefix();
 // => 'wp-json'
+
+// 名前付きルートから URL 生成
+$restUrl->generate('product_show', ['id' => 42]);
+// => https://example.com/wp-json/my-plugin/v1/products/42
+
+$restUrl->generate('product_list');
+// => https://example.com/wp-json/my-plugin/v1/products
 ```
 
 **主な利用場面:**
+- 名前付きルートからの URL 生成（パラメータ付き）
 - JavaScript に REST API URL を渡す際に、`rest_url()` の直接呼び出しを避けて DI 経由で注入したい場合
 - テスト時に REST URL をモック可能にしたい場合
+
+### 名前付きルートの照会
+
+`RestRegistry` で名前付きルートを直接照会することも可能:
+
+```php
+$registry->has('product_show');  // true
+$registry->get('product_show'); // RestEntry
+```
+
+存在しないルート名を指定すると `RouteNotFoundException` がスローされる。`generate()` でパラメータが不足すると `MissingParametersException` がスローされる。
 
 ## プラグイン / テーマでの配置
 

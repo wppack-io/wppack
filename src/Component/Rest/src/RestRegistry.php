@@ -173,8 +173,6 @@ final class RestRegistry
                     $fullRoute = '/';
                 }
 
-                $name = $methodRoute->name !== '' ? $methodRoute->name : '';
-
                 $entries[] = new RestEntry(
                     $classRoute->namespace,
                     $fullRoute,
@@ -184,7 +182,7 @@ final class RestRegistry
                     $handler,
                     $controller,
                     $isGrantedAttributes,
-                    $name,
+                    $methodRoute->name,
                     $fullPath,
                 );
             }
