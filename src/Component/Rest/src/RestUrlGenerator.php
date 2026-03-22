@@ -49,6 +49,6 @@ final class RestUrlGenerator
             ));
         }
 
-        return rest_url($entry->namespace . $path);
+        return rest_url($entry->namespace . '/' . ltrim($path, '/'));
     }
 }

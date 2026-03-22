@@ -10,7 +10,6 @@ use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Rest\Attribute\Permission;
 use WpPack\Component\Role\Attribute\IsGranted;
 
-/** @internal */
 final class RestEntry
 {
     /**
