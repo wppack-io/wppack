@@ -69,7 +69,7 @@ WordPress プラグインとして配布。Component を利用。
 | ApcuCache | wppack/apcu-cache | APCu キャッシュ |
 | Database | wppack/database | データベース抽象化 |
 | Query | wppack/query | クエリビルダー |
-| Security | wppack/security | セキュリティユーティリティ |
+| Security | wppack/security | 認証・認可フレームワーク |
 | SamlSecurity | wppack/saml-security | SAML 2.0 SP 認証 |
 | OAuthSecurity | wppack/oauth-security | OAuth 2.0 / OpenID Connect 認証 |
 | Sanitizer | wppack/sanitizer | 入力サニタイズ |
@@ -80,7 +80,7 @@ WordPress プラグインとして配布。Component を利用。
 | AmazonMailer | wppack/amazon-mailer | SES トランスポート実装 |
 | AzureMailer | wppack/azure-mailer | Azure Communication Services トランスポート実装 |
 | SendGridMailer | wppack/sendgrid-mailer | SendGrid トランスポート実装 |
-| Messenger | wppack/messenger | メッセージングバス（SQS/Lambda） |
+| Messenger | wppack/messenger | トランスポート非依存のメッセージバス |
 | SqsMessenger | wppack/sqs-messenger | Amazon SQS トランスポート |
 | Serializer | wppack/serializer | オブジェクト直列化（Normalizer チェーン） |
 | OptionsResolver | wppack/options-resolver | オプション解決（Symfony OptionsResolver 拡張） |
@@ -97,7 +97,7 @@ WordPress プラグインとして配布。Component を利用。
 | Rest | wppack/rest | REST API フレームワーク |
 | Routing | wppack/routing | URLルーティング |
 | PostType | wppack/post-type | カスタム投稿タイプ |
-| Scheduler | wppack/scheduler | スケジューラー（EventBridge同期） |
+| Scheduler | wppack/scheduler | Trigger ベースのタスクスケジューラー |
 | EventBridgeScheduler | wppack/eventbridge-scheduler | EventBridge スケジューラー |
 | Console | wppack/console | WP-CLI コマンドフレームワーク |
 | Shortcode | wppack/shortcode | ショートコードフレームワーク |
