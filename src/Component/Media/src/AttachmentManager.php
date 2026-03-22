@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Media;
 
+use WpPack\Component\Media\Exception\AttachmentException;
 use WpPack\Component\PostType\PostRepositoryInterface;
 
-final readonly class AttachmentManager
+final readonly class AttachmentManager implements AttachmentManagerInterface
 {
     public function __construct(
         private PostRepositoryInterface $postRepository,
@@ -15,23 +16,33 @@ final readonly class AttachmentManager
     /**
      * @param array<string, mixed> $data
      *
-     * @return int|\WP_Error
+     * @throws AttachmentException
      *
      * @see wp_insert_attachment()
      */
-    public function insert(array $data, string $file, int $parentId = 0): int|\WP_Error
+    public function insert(array $data, string $file, int $parentId = 0): int
     {
-        return wp_insert_attachment($data, $file, $parentId);
+        $result = wp_insert_attachment($data, $file, $parentId);
+
+        if ($result instanceof \WP_Error) {
+            throw AttachmentException::fromWpError($result);
+        }
+
+        return $result;
     }
 
     /**
-     * @return \WP_Post|false|null
-     *
      * @see wp_delete_attachment()
      */
-    public function delete(int $id, bool $force = false): \WP_Post|false|null
+    public function delete(int $id, bool $force = false): ?\WP_Post
     {
-        return wp_delete_attachment($id, $force);
+        $result = wp_delete_attachment($id, $force);
+
+        if (!$result instanceof \WP_Post) {
+            return null;
+        }
+
+        return $result;
     }
 
     /**
@@ -45,13 +56,13 @@ final readonly class AttachmentManager
     }
 
     /**
-     * @return string|false
-     *
      * @see get_attached_file()
      */
-    public function getAttachedFile(int $id, bool $unfiltered = false): string|false
+    public function getFile(int $id, bool $unfiltered = false): ?string
     {
-        return get_attached_file($id, $unfiltered);
+        $result = get_attached_file($id, $unfiltered);
+
+        return \is_string($result) && $result !== '' ? $result : null;
     }
 
     /**
@@ -67,23 +78,23 @@ final readonly class AttachmentManager
     /**
      * @param array<string, mixed> $data
      *
-     * @return int|false
-     *
      * @see wp_update_attachment_metadata()
      */
-    public function updateMetadata(int $id, array $data): int|false
+    public function updateMetadata(int $id, array $data): bool
     {
-        return wp_update_attachment_metadata($id, $data);
+        return wp_update_attachment_metadata($id, $data) !== false;
     }
 
     /**
-     * @return array<string, mixed>|false
+     * @return array<string, mixed>|null
      *
      * @see wp_get_attachment_metadata()
      */
-    public function getMetadata(int $id, bool $unfiltered = false): array|false
+    public function getMetadata(int $id, bool $unfiltered = false): ?array
     {
-        return wp_get_attachment_metadata($id, $unfiltered);
+        $result = wp_get_attachment_metadata($id, $unfiltered);
+
+        return \is_array($result) ? $result : null;
     }
 
     public function findByMeta(string $metaKey, string $metaValue): ?int

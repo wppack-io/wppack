@@ -11,6 +11,7 @@ use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
 use WpPack\Component\Media\AttachmentManager;
+use WpPack\Component\Media\AttachmentManagerInterface;
 use WpPack\Component\PostType\PostRepository;
 use WpPack\Component\PostType\PostRepositoryInterface;
 use WpPack\Component\Media\Storage\StorageConfiguration;
@@ -115,18 +116,20 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
         $builder->register(AttachmentManager::class)
             ->addArgument(new Reference(PostRepositoryInterface::class));
 
+        $builder->setAlias(AttachmentManagerInterface::class, AttachmentManager::class);
+
         // Attachment registration
         $builder->register(AttachmentRegistrar::class)
             ->setFactory([self::class, 'createAttachmentRegistrar'])
             ->addArgument(new Reference(MessageBusInterface::class))
             ->addArgument(new Reference(S3StorageConfiguration::class))
             ->addArgument(new Reference(BlogSwitcherInterface::class))
-            ->addArgument(new Reference(AttachmentManager::class));
+            ->addArgument(new Reference(AttachmentManagerInterface::class));
 
         $builder->register(RegisterAttachmentController::class)
             ->addArgument(new Reference(AttachmentRegistrar::class))
             ->addArgument(new Reference(StorageAdapterInterface::class))
-            ->addArgument(new Reference(AttachmentManager::class))
+            ->addArgument(new Reference(AttachmentManagerInterface::class))
             ->addTag('rest.controller');
 
         // Asset Manager
@@ -164,7 +167,7 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
 
         $builder->register(GenerateThumbnailsHandler::class)
             ->addArgument(new Reference(BlogSwitcherInterface::class))
-            ->addArgument(new Reference(AttachmentManager::class))
+            ->addArgument(new Reference(AttachmentManagerInterface::class))
             ->addTag('messenger.message_handler');
     }
 
@@ -201,7 +204,7 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
         MessageBusInterface $bus,
         S3StorageConfiguration $config,
         BlogSwitcherInterface $blogSwitcher,
-        AttachmentManager $attachment,
+        AttachmentManagerInterface $attachment,
         ?LoggerInterface $logger = null,
     ): AttachmentRegistrar {
         return new AttachmentRegistrar(

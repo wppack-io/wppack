@@ -6,7 +6,7 @@ namespace WpPack\Plugin\S3StoragePlugin\Attachment;
 
 use WpPack\Component\HttpFoundation\JsonResponse;
 use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Media\AttachmentManager;
+use WpPack\Component\Media\AttachmentManagerInterface;
 use WpPack\Component\Rest\AbstractRestController;
 use WpPack\Component\Rest\Attribute\RestRoute;
 use WpPack\Component\Rest\HttpMethod;
@@ -20,7 +20,7 @@ final class RegisterAttachmentController extends AbstractRestController
     public function __construct(
         private readonly AttachmentRegistrar $registrar,
         private readonly StorageAdapterInterface $adapter,
-        private readonly AttachmentManager $attachment,
+        private readonly AttachmentManagerInterface $attachment,
     ) {}
 
     public function __invoke(Request $request): JsonResponse

@@ -78,7 +78,7 @@ final class AttachmentManagerTest extends TestCase
     }
 
     #[Test]
-    public function getAttachedFileReturnsFilePath(): void
+    public function getFileReturnsFilePath(): void
     {
         $file = 'test-attached-' . uniqid() . '.jpg';
         $id = wp_insert_attachment(
@@ -88,7 +88,7 @@ final class AttachmentManagerTest extends TestCase
 
         self::assertIsInt($id);
 
-        $result = $this->manager->getAttachedFile($id);
+        $result = $this->manager->getFile($id);
 
         self::assertIsString($result);
         self::assertStringContainsString($file, $result);
@@ -107,7 +107,9 @@ final class AttachmentManagerTest extends TestCase
         self::assertIsInt($id);
 
         $data = ['width' => 100, 'height' => 200, 'file' => 'test.jpg'];
-        $this->manager->updateMetadata($id, $data);
+        $result = $this->manager->updateMetadata($id, $data);
+
+        self::assertTrue($result);
 
         $metadata = $this->manager->getMetadata($id);
 

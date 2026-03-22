@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace WpPack\Plugin\S3StoragePlugin\Handler;
 
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Media\AttachmentManager;
+use WpPack\Component\Media\AttachmentManagerInterface;
 use WpPack\Component\Messenger\Attribute\AsMessageHandler;
 use WpPack\Component\Site\BlogSwitcherInterface;
 use WpPack\Plugin\S3StoragePlugin\Message\GenerateThumbnailsMessage;
@@ -15,16 +15,16 @@ final readonly class GenerateThumbnailsHandler
 {
     public function __construct(
         private BlogSwitcherInterface $blogSwitcher,
-        private AttachmentManager $attachment,
+        private AttachmentManagerInterface $attachment,
         private ?LoggerInterface $logger = null,
     ) {}
 
     public function __invoke(GenerateThumbnailsMessage $message): void
     {
         $this->blogSwitcher->runInBlogIfNeeded($message->blogId, function () use ($message): void {
-            $file = $this->attachment->getAttachedFile($message->attachmentId);
+            $file = $this->attachment->getFile($message->attachmentId);
 
-            if (!\is_string($file) || $file === '') {
+            if ($file === null) {
                 $this->logger?->warning('No attached file found for attachment ID {id}.', [
                     'id' => $message->attachmentId,
                 ]);

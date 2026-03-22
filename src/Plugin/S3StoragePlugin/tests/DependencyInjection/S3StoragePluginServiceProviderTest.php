@@ -13,6 +13,7 @@ use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
 use WpPack\Component\Media\AttachmentManager;
+use WpPack\Component\Media\AttachmentManagerInterface;
 use WpPack\Component\PostType\PostRepository;
 use WpPack\Component\PostType\PostRepositoryInterface;
 use WpPack\Component\Media\Storage\StorageConfiguration;

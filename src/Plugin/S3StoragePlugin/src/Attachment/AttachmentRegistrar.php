@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace WpPack\Plugin\S3StoragePlugin\Attachment;
 
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Media\AttachmentManager;
+use WpPack\Component\Media\AttachmentManagerInterface;
+use WpPack\Component\Media\Exception\AttachmentException;
 use WpPack\Component\Messenger\MessageBusInterface;
 use WpPack\Component\Mime\MimeTypes;
 use WpPack\Component\Mime\MimeTypesInterface;
@@ -20,7 +21,7 @@ final readonly class AttachmentRegistrar
         private MessageBusInterface $bus,
         private string $prefix,
         private BlogSwitcherInterface $blogSwitcher,
-        private AttachmentManager $attachment,
+        private AttachmentManagerInterface $attachment,
         ?MimeTypesInterface $mimeTypes = null,
         private ?LoggerInterface $logger = null,
     ) {
@@ -60,12 +61,12 @@ final readonly class AttachmentRegistrar
                 $attachmentData['post_author'] = $userId;
             }
 
-            $attachmentId = $this->attachment->insert($attachmentData, $relativePath);
-
-            if ($attachmentId instanceof \WP_Error) {
+            try {
+                $attachmentId = $this->attachment->insert($attachmentData, $relativePath);
+            } catch (AttachmentException $e) {
                 $this->logger?->error('wp_insert_attachment failed for key "{key}": {error}', [
                     'key' => $key,
-                    'error' => $attachmentId->get_error_message(),
+                    'error' => $e->getMessage(),
                 ]);
 
                 return null;
@@ -104,7 +105,7 @@ final readonly class AttachmentRegistrar
 
             $result = $this->attachment->delete($existingId, true);
 
-            if (!$result instanceof \WP_Post) {
+            if ($result === null) {
                 $this->logger?->error('wp_delete_attachment failed for attachment ID {id}.', [
                     'id' => $existingId,
                 ]);
