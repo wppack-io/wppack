@@ -56,6 +56,7 @@ WordPress プラグインとして配布。Component を利用。
 | Logger | wppack/logger | PSR-3 ロギング |
 | MonologLogger | wppack/monolog-logger | Monolog ブリッジ |
 | Mime | wppack/mime | MIME 型判定・拡張子マッピング |
+| Site | wppack/site | マルチサイト管理（ブログ切替・コンテキスト・サイト照会） |
 
 ### Abstraction Layer
 | Component | パッケージ名 | 説明 |
@@ -141,20 +142,20 @@ wppack/messenger
 
 wppack/messenger
     ↓ requires
-wppack/serializer
+wppack/serializer, wppack/site
 
 wppack/sqs-messenger
     ↓ requires
-wppack/messenger
+wppack/messenger, wppack/site
     + async-aws/sqs
 
 wppack/media
     ↓ requires
-wppack/storage
+wppack/storage, wppack/site
 
 wppack/s3-storage-plugin
     ↓ requires
-wppack/storage, wppack/s3-storage, wppack/rest
+wppack/storage, wppack/s3-storage, wppack/rest, wppack/site
     + wppack/media, wppack/messenger
     + async-aws/s3
 
@@ -216,7 +217,7 @@ wppack/amazon-mailer, wppack/mailer, wppack/hook
 
 wppack/security
     ↓ requires
-wppack/role, wppack/http-foundation, wppack/event-dispatcher
+wppack/role, wppack/http-foundation, wppack/event-dispatcher, wppack/site
 
 wppack/admin, wppack/setting, wppack/dashboard-widget
     ↓ requires
@@ -228,13 +229,18 @@ wppack/role, wppack/http-foundation
 
 wppack/saml-security
     ↓ requires
-wppack/security
+wppack/security, wppack/site
     + onelogin/php-saml
 
 wppack/oauth-security
     ↓ requires
-wppack/security
+wppack/security, wppack/site
     + firebase/php-jwt
+
+wppack/eventbridge-scheduler
+    ↓ requires
+wppack/scheduler, wppack/messenger, wppack/site
+    + async-aws/scheduler
 
 wppack/twig-templating
     ↓ requires

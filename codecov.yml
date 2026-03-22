@@ -61,6 +61,10 @@ component_management:
       name: Mime
       paths:
         - src/Component/Mime/src/**
+    - component_id: site
+      name: Site
+      paths:
+        - src/Component/Site/src/**
 
     # Abstraction Layer
     - component_id: options_resolver

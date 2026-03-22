@@ -13,9 +13,14 @@ use WpPack\Component\Security\Authentication\StatelessAuthenticatorInterface;
 use WpPack\Component\Security\Authentication\Token\PostAuthenticationToken;
 use WpPack\Component\Security\Authentication\Token\TokenInterface;
 use WpPack\Component\Security\Exception\AuthenticationException;
+use WpPack\Component\Site\BlogContext;
+use WpPack\Component\Site\BlogContextInterface;
 
 final class CookieAuthenticator implements StatelessAuthenticatorInterface
 {
+    public function __construct(
+        private readonly BlogContextInterface $blogContext = new BlogContext(),
+    ) {}
     public function supports(Request $request): bool
     {
         return $request->cookies->has(\LOGGED_IN_COOKIE); // @phpstan-ignore constant.notFound
@@ -45,7 +50,7 @@ final class CookieAuthenticator implements StatelessAuthenticatorInterface
     public function createToken(Passport $passport): TokenInterface
     {
         $user = $passport->getUser();
-        $blogId = get_current_blog_id();
+        $blogId = $this->blogContext->getCurrentBlogId();
 
         return new PostAuthenticationToken($user, $user->roles, $blogId);
     }

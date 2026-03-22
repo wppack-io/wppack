@@ -114,7 +114,8 @@
             "WpPack\\Component\\Storage\\": "src/Component/Storage/src/",
             "WpPack\\Component\\Storage\\Bridge\\S3\\": "src/Component/Storage/Bridge/S3/src/",
             "WpPack\\Component\\Storage\\Bridge\\Azure\\": "src/Component/Storage/Bridge/Azure/src/",
-            "WpPack\\Component\\Storage\\Bridge\\Gcs\\": "src/Component/Storage/Bridge/Gcs/src/"
+            "WpPack\\Component\\Storage\\Bridge\\Gcs\\": "src/Component/Storage/Bridge/Gcs/src/",
+            "WpPack\\Component\\Site\\": "src/Component/Site/src/"
         }
     },
     "autoload-dev": {
@@ -187,6 +188,7 @@
             "WpPack\\Component\\Storage\\Bridge\\S3\\Tests\\": "src/Component/Storage/Bridge/S3/tests/",
             "WpPack\\Component\\Storage\\Bridge\\Azure\\Tests\\": "src/Component/Storage/Bridge/Azure/tests/",
             "WpPack\\Component\\Storage\\Bridge\\Gcs\\Tests\\": "src/Component/Storage/Bridge/Gcs/tests/",
+            "WpPack\\Component\\Site\\Tests\\": "src/Component/Site/tests/",
             "WpPack\\Plugin\\S3StoragePlugin\\Tests\\": "src/Plugin/S3StoragePlugin/tests/",
             "WpPack\\Plugin\\AmazonMailerPlugin\\Tests\\": "src/Plugin/AmazonMailerPlugin/tests/"
         }
@@ -262,7 +264,8 @@
         "wppack/storage": "self.version",
         "wppack/s3-storage": "self.version",
         "wppack/azure-storage": "self.version",
-        "wppack/gcs-storage": "self.version"
+        "wppack/gcs-storage": "self.version",
+        "wppack/site": "self.version"
     },
     "config": {
         "sort-packages": true
