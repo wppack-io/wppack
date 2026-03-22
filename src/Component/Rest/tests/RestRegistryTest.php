@@ -11,6 +11,7 @@ use WpPack\Component\Rest\AbstractRestController;
 use WpPack\Component\Rest\Attribute\Param;
 use WpPack\Component\Rest\Attribute\Permission;
 use WpPack\Component\Rest\Attribute\RestRoute;
+use WpPack\Component\Rest\Exception\RouteNotFoundException;
 use WpPack\Component\Rest\HttpMethod;
 use WpPack\Component\Rest\RestRegistry;
 use WpPack\Component\Security\Attribute\CurrentUser;
@@ -792,5 +793,209 @@ final class RestRegistryTest extends TestCase
         call_user_func($route['callback'], $wpRequest);
 
         self::assertSame($user, $controller->capturedUser);
+    }
+
+    #[Test]
+    public function resolvesInvokeController(): void
+    {
+        $controller = new #[RestRoute('/invoke-items', namespace: 'test/v1', methods: [HttpMethod::GET])] #[Permission(public: true)] class {
+            public function __invoke(): array
+            {
+                return ['invoked' => true];
+            }
+        };
+
+        $registry = $this->createRegistryWithoutWordPress();
+        $registry->register($controller);
+
+        $entries = $registry->all();
+        self::assertCount(1, $entries);
+        self::assertSame('test/v1', $entries[0]->namespace);
+        self::assertSame('/invoke-items', $entries[0]->route);
+        self::assertSame(['GET'], $entries[0]->methods);
+    }
+
+    #[Test]
+    public function invokeControllerWithPathParams(): void
+    {
+        $controller = new #[RestRoute('/invoke-products/{id}', namespace: 'test/v1', methods: [HttpMethod::GET])] #[Permission(public: true)] class {
+            public ?int $capturedId = null;
+
+            public function __invoke(int $id): array
+            {
+                $this->capturedId = $id;
+
+                return ['id' => $id];
+            }
+        };
+
+        $registry = new RestRegistry(new Request());
+        $registry->register($controller);
+
+        $wpRequest = new \WP_REST_Request('GET', '/test/v1/invoke-products/42');
+        $wpRequest->set_param('id', 42);
+
+        $routes = rest_get_server()->get_routes();
+        $route = $routes['/test/v1/invoke-products/(?P<id>[^/]+)'][0];
+        call_user_func($route['callback'], $wpRequest);
+
+        self::assertSame(42, $controller->capturedId);
+    }
+
+    #[Test]
+    public function throwsWhenClassRouteHasMethodsButNoInvoke(): void
+    {
+        $controller = new #[RestRoute('/no-invoke', namespace: 'test/v1', methods: [HttpMethod::GET])] #[Permission(public: true)] class {
+            public function list(): array
+            {
+                return [];
+            }
+        };
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('does not implement __invoke()');
+
+        $registry = $this->createRegistryWithoutWordPress();
+        $registry->register($controller);
+    }
+
+    #[Test]
+    public function invokeWithMethodRoutesCombined(): void
+    {
+        $controller = new #[RestRoute('/combo', namespace: 'test/v1', methods: [HttpMethod::GET])] #[Permission(public: true)] class {
+            public function __invoke(): array
+            {
+                return ['index' => true];
+            }
+
+            #[RestRoute('/detail', methods: [HttpMethod::GET])]
+            public function detail(): array
+            {
+                return ['detail' => true];
+            }
+        };
+
+        $registry = $this->createRegistryWithoutWordPress();
+        $registry->register($controller);
+
+        $entries = $registry->all();
+        self::assertCount(2, $entries);
+        self::assertSame('/combo', $entries[0]->route);
+        self::assertSame('/combo/detail', $entries[1]->route);
+    }
+
+    #[Test]
+    public function pathBasedRouteCompiles(): void
+    {
+        $controller = new #[RestRoute('/products', namespace: 'test/v1')] #[Permission(public: true)] class {
+            #[RestRoute('/{id}', methods: [HttpMethod::GET])]
+            public function show(int $id): array
+            {
+                return [];
+            }
+        };
+
+        $registry = $this->createRegistryWithoutWordPress();
+        $registry->register($controller);
+
+        $entries = $registry->all();
+        self::assertSame('/products/(?P<id>[^/]+)', $entries[0]->route);
+        self::assertSame('/products/{id}', $entries[0]->path);
+    }
+
+    #[Test]
+    public function pathBasedRouteWithRequirements(): void
+    {
+        $controller = new #[RestRoute('/products', namespace: 'test/v1')] #[Permission(public: true)] class {
+            #[RestRoute('/{id}', methods: [HttpMethod::GET], requirements: ['id' => '\d+'])]
+            public function show(int $id): array
+            {
+                return [];
+            }
+        };
+
+        $registry = $this->createRegistryWithoutWordPress();
+        $registry->register($controller);
+
+        $entries = $registry->all();
+        self::assertSame('/products/(?P<id>\d+)', $entries[0]->route);
+    }
+
+    #[Test]
+    public function pathBasedClassAndMethodRequirementsMerge(): void
+    {
+        $controller = new #[RestRoute('/categories/{category}', namespace: 'test/v1', requirements: ['category' => '[a-z]+'])] #[Permission(public: true)] class {
+            #[RestRoute('/items/{id}', methods: [HttpMethod::GET], requirements: ['id' => '\d+'])]
+            public function show(string $category, int $id): array
+            {
+                return [];
+            }
+        };
+
+        $registry = $this->createRegistryWithoutWordPress();
+        $registry->register($controller);
+
+        $entries = $registry->all();
+        self::assertSame('/categories/(?P<category>[a-z]+)/items/(?P<id>\d+)', $entries[0]->route);
+    }
+
+    #[Test]
+    public function invokeSkippedInMethodScan(): void
+    {
+        $controller = new #[RestRoute('/skip-invoke', namespace: 'test/v1', methods: [HttpMethod::GET])] #[Permission(public: true)] class {
+            public function __invoke(): array
+            {
+                return ['invoke' => true];
+            }
+
+            #[RestRoute('/extra', methods: [HttpMethod::POST])]
+            public function extra(): array
+            {
+                return ['extra' => true];
+            }
+        };
+
+        $registry = $this->createRegistryWithoutWordPress();
+        $registry->register($controller);
+
+        $entries = $registry->all();
+        self::assertCount(2, $entries);
+        self::assertSame('/skip-invoke', $entries[0]->route);
+        self::assertSame(['GET'], $entries[0]->methods);
+        self::assertSame('/skip-invoke/extra', $entries[1]->route);
+        self::assertSame(['POST'], $entries[1]->methods);
+    }
+
+    #[Test]
+    public function hasAndGetMethods(): void
+    {
+        $controller = new #[RestRoute('/named', namespace: 'test/v1')] #[Permission(public: true)] class {
+            #[RestRoute(methods: [HttpMethod::GET], name: 'named_list')]
+            public function list(): array
+            {
+                return [];
+            }
+        };
+
+        $registry = $this->createRegistryWithoutWordPress();
+        $registry->register($controller);
+
+        self::assertTrue($registry->has('named_list'));
+        self::assertFalse($registry->has('nonexistent'));
+
+        $entry = $registry->get('named_list');
+        self::assertSame('named_list', $entry->name);
+        self::assertSame('/named', $entry->route);
+    }
+
+    #[Test]
+    public function getThrowsRouteNotFoundException(): void
+    {
+        $registry = $this->createRegistryWithoutWordPress();
+
+        $this->expectException(RouteNotFoundException::class);
+        $this->expectExceptionMessage('Route "nonexistent" does not exist.');
+
+        $registry->get('nonexistent');
     }
 }

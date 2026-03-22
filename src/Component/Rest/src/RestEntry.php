@@ -27,7 +27,21 @@ final class RestEntry
         private readonly \Closure $handler,
         private readonly ?object $controller = null,
         public readonly array $isGrantedAttributes = [],
+        public readonly string $name = '',
+        public readonly string $path = '',
     ) {}
+
+    /**
+     * Extracts parameter names from a path pattern.
+     *
+     * @return list<string>
+     */
+    public static function extractParams(string $path): array
+    {
+        preg_match_all('/\{([^}]+)\}/', $path, $matches);
+
+        return $matches[1];
+    }
 
     public function register(): void
     {

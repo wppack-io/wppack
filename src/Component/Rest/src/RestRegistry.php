@@ -8,6 +8,7 @@ use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Rest\Attribute\Param;
 use WpPack\Component\Rest\Attribute\Permission;
 use WpPack\Component\Rest\Attribute\RestRoute;
+use WpPack\Component\Rest\Exception\RouteNotFoundException;
 use WpPack\Component\Security\Attribute\CurrentUser;
 use WpPack\Component\Role\Attribute\IsGranted;
 use WpPack\Component\Role\Authorization\IsGrantedChecker;
@@ -17,6 +18,9 @@ final class RestRegistry
 {
     /** @var list<RestEntry> */
     private array $entries = [];
+
+    /** @var array<string, RestEntry> */
+    private array $namedEntries = [];
 
     public function __construct(
         private readonly Request $request,
@@ -31,6 +35,9 @@ final class RestRegistry
 
         foreach ($this->resolveEntries($controller) as $entry) {
             $this->entries[] = $entry;
+            if ($entry->name !== '') {
+                $this->namedEntries[$entry->name] = $entry;
+            }
             add_action('rest_api_init', $entry->register(...));
         }
     }
@@ -41,6 +48,23 @@ final class RestRegistry
     public function all(): array
     {
         return $this->entries;
+    }
+
+    public function has(string $name): bool
+    {
+        return isset($this->namedEntries[$name]);
+    }
+
+    /**
+     * @throws RouteNotFoundException
+     */
+    public function get(string $name): RestEntry
+    {
+        if (!isset($this->namedEntries[$name])) {
+            throw new RouteNotFoundException(sprintf('Route "%s" does not exist.', $name));
+        }
+
+        return $this->namedEntries[$name];
     }
 
     /**
@@ -75,7 +99,54 @@ final class RestRegistry
         );
 
         $entries = [];
+
+        // __invoke support: class-level #[RestRoute] with methods → use __invoke as handler
+        if ($classRoute->methods !== []) {
+            if (!$reflection->hasMethod('__invoke')) {
+                throw new \LogicException(sprintf(
+                    'Class "%s" has #[RestRoute] with methods but does not implement __invoke().',
+                    $controller::class,
+                ));
+            }
+
+            $method = $reflection->getMethod('__invoke');
+            $methodPermissionAttrs = $method->getAttributes(Permission::class);
+            $methodPermission = $methodPermissionAttrs !== [] ? $methodPermissionAttrs[0]->newInstance() : $classPermission;
+
+            $methodIsGrantedAttrs = array_map(
+                static fn(\ReflectionAttribute $a) => $a->newInstance(),
+                $method->getAttributes(IsGranted::class),
+            );
+            $isGrantedAttributes = array_merge($classIsGrantedAttrs, $methodIsGrantedAttrs);
+
+            $params = $this->resolveParams($method);
+            $handler = $this->createHandler($controller, $method, $params);
+
+            $fullPath = $classRoute->route;
+            $fullRoute = self::compilePath($fullPath, $classRoute->requirements);
+            if ($fullRoute === '') {
+                $fullRoute = '/';
+            }
+
+            $entries[] = new RestEntry(
+                $classRoute->namespace,
+                $fullRoute,
+                $classRoute->methods,
+                $methodPermission,
+                $params,
+                $handler,
+                $controller,
+                $isGrantedAttributes,
+                $classRoute->name,
+                $fullPath,
+            );
+        }
+
         foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
+            if ($method->getName() === '__invoke') {
+                continue;
+            }
+
             $methodRouteAttrs = $method->getAttributes(RestRoute::class);
             if ($methodRouteAttrs === []) {
                 continue;
@@ -95,10 +166,14 @@ final class RestRegistry
 
             foreach ($methodRouteAttrs as $routeAttr) {
                 $methodRoute = $routeAttr->newInstance();
-                $fullRoute = rtrim($classRoute->route, '/') . $methodRoute->route;
+                $fullPath = rtrim($classRoute->route, '/') . $methodRoute->route;
+                $mergedRequirements = array_merge($classRoute->requirements, $methodRoute->requirements);
+                $fullRoute = self::compilePath($fullPath, $mergedRequirements);
                 if ($fullRoute === '') {
                     $fullRoute = '/';
                 }
+
+                $name = $methodRoute->name !== '' ? $methodRoute->name : '';
 
                 $entries[] = new RestEntry(
                     $classRoute->namespace,
@@ -109,18 +184,41 @@ final class RestRegistry
                     $handler,
                     $controller,
                     $isGrantedAttributes,
+                    $name,
+                    $fullPath,
                 );
             }
         }
 
         if ($entries === []) {
             throw new \LogicException(sprintf(
-                'Class "%s" has no methods with #[RestRoute] attributes.',
+                'Class "%s" has no methods with #[RestRoute] attributes and no __invoke() with methods.',
                 $controller::class,
             ));
         }
 
         return $entries;
+    }
+
+    /**
+     * Compiles a path pattern, converting {param} placeholders to regex groups.
+     *
+     * @param array<string, string> $requirements
+     */
+    private static function compilePath(string $path, array $requirements = []): string
+    {
+        $params = RestEntry::extractParams($path);
+        if ($params === []) {
+            return $path;
+        }
+
+        $compiled = $path;
+        foreach ($params as $param) {
+            $pattern = $requirements[$param] ?? '[^/]+';
+            $compiled = str_replace('{' . $param . '}', '(?P<' . $param . '>' . $pattern . ')', $compiled);
+        }
+
+        return $compiled;
     }
 
     /**

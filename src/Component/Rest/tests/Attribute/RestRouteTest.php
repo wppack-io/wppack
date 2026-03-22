@@ -116,4 +116,36 @@ final class RestRouteTest extends TestCase
 
         self::assertSame('/users', $route->route);
     }
+
+    #[Test]
+    public function nameDefaultsToEmpty(): void
+    {
+        $route = new RestRoute();
+
+        self::assertSame('', $route->name);
+    }
+
+    #[Test]
+    public function nameIsStored(): void
+    {
+        $route = new RestRoute('/items', name: 'item_list');
+
+        self::assertSame('item_list', $route->name);
+    }
+
+    #[Test]
+    public function requirementsDefaultsToEmpty(): void
+    {
+        $route = new RestRoute();
+
+        self::assertSame([], $route->requirements);
+    }
+
+    #[Test]
+    public function requirementsAreStored(): void
+    {
+        $route = new RestRoute('/items/{id}', requirements: ['id' => '\d+']);
+
+        self::assertSame(['id' => '\d+'], $route->requirements);
+    }
 }

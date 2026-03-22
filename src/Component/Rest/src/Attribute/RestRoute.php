@@ -14,11 +14,14 @@ final class RestRoute
 
     /**
      * @param HttpMethod|string|list<HttpMethod|string> $methods
+     * @param array<string, string> $requirements
      */
     public function __construct(
         public readonly string $route = '',
         HttpMethod|string|array $methods = [],
         public readonly ?string $namespace = null,
+        public readonly string $name = '',
+        public readonly array $requirements = [],
     ) {
         if (!is_array($methods)) {
             $methods = [$methods];

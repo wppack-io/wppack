@@ -205,4 +205,12 @@ final class RestEntryTest extends TestCase
         $headers = $result->get_headers();
         self::assertSame('100', $headers['X-Rate-Limit']);
     }
+
+    #[Test]
+    public function extractParamsFromPath(): void
+    {
+        self::assertSame(['id'], RestEntry::extractParams('/items/{id}'));
+        self::assertSame(['year', 'month'], RestEntry::extractParams('/events/{year}/{month}'));
+        self::assertSame([], RestEntry::extractParams('/static'));
+    }
 }
