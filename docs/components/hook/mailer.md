@@ -141,18 +141,20 @@ class MailSuccessHandler
 **WordPress Hook:** `wp_mail_failed`
 
 ```php
+use Psr\Log\LoggerInterface;
 use WpPack\Component\Hook\Attribute\Mailer\Action\WpMailFailedAction;
 
 class MailFailureHandler
 {
+    public function __construct(
+        private readonly LoggerInterface $logger,
+    ) {}
+
     #[WpMailFailedAction]
     public function onMailFailed(\WP_Error $error): void
     {
         // 送信失敗をログに記録
-        error_log(sprintf(
-            'Mail send failed: %s',
-            $error->get_error_message(),
-        ));
+        $this->logger->error('Mail send failed', ['error' => $error->get_error_message()]);
     }
 }
 ```

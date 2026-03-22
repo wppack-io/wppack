@@ -131,11 +131,6 @@ $response = $http->asForm()->post('/api/login', [
     'username' => 'john',
     'password' => 'secret',
 ]);
-
-// マルチパートリクエスト（ファイルアップロード）
-$response = $http->asMultipart()
-    ->attach('avatar', fopen('/path/to/image.jpg', 'r'))
-    ->post('/api/upload');
 ```
 
 ### レスポンスの処理
@@ -180,12 +175,11 @@ try {
     return $response->json();
 } catch (ConnectionException $e) {
     // ネットワークエラー（wp_remote_* が WP_Error を返した場合）
-    error_log('API connection failed: ' . $e->getMessage());
+    $logger->error('API connection failed', ['exception' => $e]);
     return null;
 } catch (RequestException $e) {
     // HTTP エラー（4xx / 5xx）
-    $status = $e->response->status();
-    error_log('API request failed with status: ' . $status);
+    $logger->error('API request failed', ['status' => $e->response->status(), 'exception' => $e]);
     return null;
 }
 ```
@@ -322,9 +316,7 @@ $http->withHeaders(['X-Custom' => 'value'])
      ->timeout(30)
      ->asJson()
      ->asForm()
-     ->asMultipart()
-     ->query(['param' => 'value'])
-     ->attach('file', $resource, 'filename.txt');
+     ->query(['param' => 'value']);
 ```
 
 ### レスポンスメソッド
@@ -364,7 +356,6 @@ $response->getHeaders();
 - 外部 API との連携が必要なプラグイン・テーマ
 - PSR-18 対応のサードパーティライブラリとの統合
 - 認証付き API リクエストの実装
-- ファイルアップロードを含む HTTP 操作
 
 **代替を検討すべきケース:**
 - 単発のシンプルな HTTP リクエスト（`wp_remote_get()` で十分な場合）

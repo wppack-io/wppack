@@ -38,12 +38,7 @@ new Address('not-an-email');
 
 ### DSN のベストプラクティス
 
-`Dsn::__toString()` はパスワードをマスクして出力します。ログや例外メッセージに安全に使用できます。
-
-```php
-$dsn = Dsn::fromString('ses+api://ACCESS_KEY:SECRET_KEY@default');
-echo $dsn; // ses+api://ACCESS_KEY:****@default
-```
+DSN のパスワードは `getPassword()` getter 経由でのみアクセスされるため、DSN オブジェクトを誤ってログに出力してもクレデンシャルが露出しにくい設計になっています。クレデンシャルは環境変数で管理し、コードに埋め込まないことを推奨します。
 
 ### 環境変数の使用（推奨）
 
@@ -148,8 +143,8 @@ define('MAILER_DSN', 'ses://default?region=ap-northeast-1&configuration_set=my-c
 送信失敗時に発火するアクション。クレデンシャルを含まない安全なエラーデータが渡されます。
 
 ```php
-add_action('wp_mail_failed', function (\WP_Error $error) {
-    error_log('Mail failed: ' . $error->get_error_message());
+add_action('wp_mail_failed', function (\WP_Error $error) use ($logger) {
+    $logger->error('Mail failed', ['error' => $error->get_error_message()]);
 });
 ```
 
@@ -162,7 +157,7 @@ try {
     $mailer->send($email);
 } catch (TransportException $e) {
     // メッセージにクレデンシャルは含まれない
-    error_log($e->getMessage());
+    $logger->error('Mail transport failed', ['exception' => $e]);
 }
 ```
 

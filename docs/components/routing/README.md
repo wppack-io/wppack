@@ -471,9 +471,12 @@ get_header();
 | `wppack_routing_exception_response` | filter | `null`, `HttpException $e` → `?Response` | カスタムレスポンスで上書き |
 
 ```php
-// ログ出力
-add_action('wppack_routing_exception', function (HttpException $e): void {
-    error_log(sprintf('[%d] %s', $e->getStatusCode(), $e->getMessage()));
+// ログ出力（LoggerInterface を DI またはクロージャ経由で注入）
+add_action('wppack_routing_exception', function (HttpException $e) use ($logger): void {
+    $logger->error('Routing exception', [
+        'status' => $e->getStatusCode(),
+        'message' => $e->getMessage(),
+    ]);
 });
 
 // 全エラーを JSON で返す（API 用途）

@@ -108,20 +108,24 @@ declare(strict_types=1);
 
 namespace App\Ajax\Subscriber;
 
+use Psr\Log\LoggerInterface;
 use WpPack\Component\Hook\Attribute\Ajax\Action\CheckAjaxRefererAction;
 
 final class AjaxSecuritySubscriber
 {
+    public function __construct(
+        private readonly LoggerInterface $logger,
+    ) {}
+
     #[CheckAjaxRefererAction]
     public function onCheckAjaxReferer(string $action, bool $result): void
     {
         if (!$result) {
             // リファラーチェック失敗をログに記録
-            error_log(sprintf(
-                'Ajax referer check failed for action "%s" from IP %s',
-                $action,
-                $_SERVER['REMOTE_ADDR'] ?? 'unknown'
-            ));
+            $this->logger->warning('Ajax referer check failed', [
+                'action' => $action,
+                'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+            ]);
         }
     }
 }

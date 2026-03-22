@@ -519,13 +519,13 @@ Google Admin での設定:
 | `wppack_saml_cross_site_redirect` | クロスサイトリダイレクト実行時 | `$targetUrl` |
 
 ```php
-// 使用例: 認証イベントのロギング
-add_action('wppack_saml_authenticated', function (string $nameId, array $attributes): void {
-    error_log(sprintf('SAML login: %s', $nameId));
+// 使用例: 認証イベントのロギング（LoggerInterface を DI またはクロージャ経由で注入）
+add_action('wppack_saml_authenticated', function (string $nameId, array $attributes) use ($logger): void {
+    $logger->info('SAML login', ['nameId' => $nameId]);
 });
 
-add_action('wppack_saml_authentication_error', function (array $errors, ?string $reason): void {
-    error_log(sprintf('SAML error: %s (%s)', implode(', ', $errors), $reason ?? 'unknown'));
+add_action('wppack_saml_authentication_error', function (array $errors, ?string $reason) use ($logger): void {
+    $logger->error('SAML error', ['errors' => $errors, 'reason' => $reason]);
 });
 ```
 

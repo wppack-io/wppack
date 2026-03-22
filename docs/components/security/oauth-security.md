@@ -584,13 +584,13 @@ GitHub Settings での設定:
 | `wppack_oauth_logout` | ログアウト実行時 | `$userId`, `$remote` |
 
 ```php
-// 使用例: 認証イベントのロギング
-add_action('wppack_oauth_authenticated', function (string $subject, array $claims): void {
-    error_log(sprintf('OAuth login: %s (%s)', $subject, $claims['email'] ?? 'no email'));
+// 使用例: 認証イベントのロギング（LoggerInterface を DI またはクロージャ経由で注入）
+add_action('wppack_oauth_authenticated', function (string $subject, array $claims) use ($logger): void {
+    $logger->info('OAuth login', ['subject' => $subject, 'email' => $claims['email'] ?? null]);
 });
 
-add_action('wppack_oauth_authentication_error', function (string $errorCode, string $desc): void {
-    error_log(sprintf('OAuth error: %s - %s', $errorCode, $desc));
+add_action('wppack_oauth_authentication_error', function (string $errorCode, string $desc) use ($logger): void {
+    $logger->error('OAuth error', ['code' => $errorCode, 'description' => $desc]);
 });
 ```
 
