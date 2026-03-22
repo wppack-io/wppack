@@ -4,6 +4,8 @@
 
 A PSR-14 compliant event dispatcher that uses the WordPress hook system (`$wp_filter`) as its backend.
 
+> **Recommended:** EventDispatcher is the recommended approach for new implementations. It handles both custom application events and WordPress hooks (actions/filters) via `WordPressEvent` / Extended Event classes with full type safety. See the [Plugin Development Guide](../../../docs/guides/plugin-development.md#イベントフック登録) for usage patterns.
+
 ## Installation
 
 ```bash

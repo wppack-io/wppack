@@ -4,6 +4,8 @@
 
 Attribute-based WordPress hook (action/filter) management.
 
+> **Note:** For new implementations, consider using the [EventDispatcher](../EventDispatcher/README.md) component instead. EventDispatcher provides a PSR-14 compliant event system backed by WordPress's `$wp_filter`, with support for custom events, `WordPressEvent` wrappers, and `#[AsEventListener]` attributes. The Hook component remains available for existing code and Named Hook attribute-based type-safe hook definitions.
+
 ## Installation
 
 ```bash

@@ -285,6 +285,19 @@ WordPress がロードされていない環境を想定する必要はない。W
 - **必要:** PHP 拡張の関数（`apcu_enabled`, `bzcompress`, `finfo_open` 等）
 - **必要:** `wp-admin` 専用関数で `require_once` が必要な場合（`dbDelta`, `wp_delete_user` 等）
 
+### Hook vs EventDispatcher の使い分け
+
+新規実装では **EventDispatcher を優先**する。EventDispatcher は WordPress の `$wp_filter` をバックエンドに使っており、WordPress フック（アクション・フィルター）も `WordPressEvent` / Extended Event クラスで型安全に扱える。
+
+| ケース | 推奨 |
+|--------|------|
+| DI コンテナ起動前のフック（`plugins_loaded` 等） | WordPress 関数を直接使用（`add_action()` / `add_filter()`） |
+| WordPress フック全般（`init` 以降） | **EventDispatcher**（`WordPressEvent` / `#[AsEventListener]`） |
+| アプリケーション固有のドメインイベント | **EventDispatcher**（カスタムイベント + `#[AsEventListener]`） |
+| コンポーネント間の疎結合な通知 | **EventDispatcher** |
+
+Hook コンポーネントは既存コードとの互換性のために残すが、新規実装では EventDispatcher を使う。
+
 ### Named Hook 規約
 
 全 Named Hook アトリビュートは Hook コンポーネントに集約されている:
