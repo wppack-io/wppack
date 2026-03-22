@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace WpPack\Plugin\S3StoragePlugin\Subscriber;
 
 use WpPack\Component\Asset\AssetManager;
-use WpPack\Component\Hook\Attribute\Admin\Action\AdminEnqueueScriptsAction;
-use WpPack\Component\Hook\Attribute\AsHookSubscriber;
+use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
 use WpPack\Component\Nonce\NonceManager;
 use WpPack\Component\Rest\RestUrlGenerator;
 use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\UploadPolicy;
 
-#[AsHookSubscriber]
 final readonly class AdminAssetSubscriber
 {
     public function __construct(
@@ -22,7 +20,7 @@ final readonly class AdminAssetSubscriber
         private RestUrlGenerator $restUrl,
     ) {}
 
-    #[AdminEnqueueScriptsAction]
+    #[AsEventListener(event: 'admin_enqueue_scripts')]
     public function enqueueScripts(): void
     {
         if (!$this->asset->scriptIs('media-upload', 'enqueued') && !$this->asset->scriptIs('media-views', 'enqueued')) {
