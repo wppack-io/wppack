@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Media\Storage\Subscriber;
 
+use Psr\Log\LoggerInterface;
 use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
 use WpPack\Component\EventDispatcher\WordPressEvent;
 use WpPack\Component\Media\Storage\PrivateAttachmentChecker;
@@ -24,6 +25,7 @@ final readonly class PrivateAttachmentSubscriber
         private StorageAdapterInterface $adapter,
         private PrivateAttachmentChecker $checker,
         private SignedUrlCache $cache,
+        private ?LoggerInterface $logger = null,
     ) {}
 
     /**
@@ -148,7 +150,9 @@ final readonly class PrivateAttachmentSubscriber
 
         try {
             $signedUrl = $this->adapter->temporaryUrl($key, $expiration);
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            $this->logger?->warning('Failed to generate signed URL for private attachment', ['key' => $key, 'error' => $e->getMessage()]);
+
             return null;
         }
 

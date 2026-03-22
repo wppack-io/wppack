@@ -23,6 +23,10 @@ final readonly class SignedUrlCache
 
     public function set(string $key, string $url, int $ttl): void
     {
+        if ($ttl <= 0) {
+            return;
+        }
+
         $this->transient->set(self::TRANSIENT_PREFIX . md5($key), $url, $ttl);
     }
 }

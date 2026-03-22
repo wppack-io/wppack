@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Media\Storage\Subscriber;
 
+use Psr\Log\LoggerInterface;
 use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
 use WpPack\Component\EventDispatcher\WordPressEvent;
 use WpPack\Component\Media\Storage\StorageConfiguration;
@@ -28,6 +29,7 @@ final class PrivacyExportSubscriber
     public function __construct(
         private readonly StorageConfiguration $config,
         private readonly StorageAdapterInterface $adapter,
+        private readonly ?LoggerInterface $logger = null,
     ) {}
 
     /**
@@ -68,6 +70,12 @@ final class PrivacyExportSubscriber
     #[AsEventListener(event: 'wp_privacy_personal_data_export_file_created', priority: 20)]
     public function onExportFileCreated(WordPressEvent $event): void
     {
+        // Defensive: ensure filter is removed even if onAfterExport was skipped
+        if ($this->exportsFilter !== null) {
+            remove_filter('wp_privacy_exports_dir', $this->exportsFilter, 1);
+            $this->exportsFilter = null;
+        }
+
         if ($this->localTempDir === null || !is_dir($this->localTempDir)) {
             return;
         }
@@ -90,29 +98,30 @@ final class PrivacyExportSubscriber
 
             $filename = basename($localFile);
 
-            // Build the storage key based on the exports URL path
-            $exportsUrl = wp_privacy_exports_url();
-            $baseUrl = $uploadsDir['baseurl'] ?? '';
-
-            // Determine relative path within uploads
-            $relativePath = '';
-            if ($baseUrl !== '' && str_starts_with($exportsUrl, $baseUrl)) {
-                $relativePath = ltrim(substr($exportsUrl, \strlen($baseUrl)), '/');
+            // Determine relative path within uploads using directory comparison
+            if ($basedir !== '' && str_starts_with($exportsDir, $basedir)) {
+                $relativePath = ltrim(substr($exportsDir, \strlen($basedir)), '/');
             } else {
                 $relativePath = 'wp-personal-data-exports/';
             }
 
             $key = $this->config->prefix . '/' . $relativePath . $filename;
 
-            $contents = file_get_contents($localFile);
+            $contents = @file_get_contents($localFile);
             if ($contents !== false) {
                 $this->adapter->write($key, $contents);
+            } else {
+                $this->logger?->warning('Failed to read privacy export file', ['file' => $localFile]);
             }
 
-            @unlink($localFile);
+            if (!unlink($localFile)) {
+                $this->logger?->warning('Failed to delete local privacy export file', ['file' => $localFile]);
+            }
         }
 
-        @rmdir($this->localTempDir);
+        if (!rmdir($this->localTempDir)) {
+            $this->logger?->warning('Failed to remove local privacy export temp directory', ['dir' => $this->localTempDir]);
+        }
         $this->localTempDir = null;
     }
 }

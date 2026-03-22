@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Plugin\S3StoragePlugin\Subscriber;
 
+use Psr\Log\LoggerInterface;
 use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
 use WpPack\Component\EventDispatcher\WordPressEvent;
 use WpPack\Component\Media\Storage\PrivateAttachmentChecker;
@@ -22,6 +23,7 @@ final readonly class PrivateAttachmentAclSubscriber
         private StorageConfiguration $config,
         private StorageAdapterInterface $adapter,
         private PrivateAttachmentChecker $checker,
+        private ?LoggerInterface $logger = null,
     ) {}
 
     /**
@@ -68,8 +70,8 @@ final readonly class PrivateAttachmentAclSubscriber
     {
         try {
             $this->adapter->setVisibility($key, $visibility);
-        } catch (\Throwable) {
-            // Silently ignore if the adapter does not support visibility
+        } catch (\Throwable $e) {
+            $this->logger?->warning('Failed to set visibility on storage object', ['key' => $key, 'error' => $e->getMessage()]);
         }
     }
 }

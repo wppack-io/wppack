@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Media\Storage\Subscriber;
 
+use Psr\Log\LoggerInterface;
 use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
 use WpPack\Component\EventDispatcher\WordPressEvent;
 use WpPack\Component\Media\Storage\StorageConfiguration;
@@ -14,6 +15,7 @@ final readonly class SideloadSubscriber
     public function __construct(
         private StorageConfiguration $config,
         private StorageAdapterInterface $adapter,
+        private ?LoggerInterface $logger = null,
     ) {}
 
     /**
@@ -32,7 +34,7 @@ final readonly class SideloadSubscriber
         $tmpName = $file['tmp_name'];
 
         // Only handle files in system temp directory
-        $systemTempDir = sys_get_temp_dir();
+        $systemTempDir = realpath(sys_get_temp_dir()) ?: sys_get_temp_dir();
         if (!str_starts_with(realpath($tmpName) ?: $tmpName, $systemTempDir)) {
             return;
         }
@@ -42,8 +44,10 @@ final readonly class SideloadSubscriber
         $key = $this->config->prefix . '/tmp/' . wp_unique_id('sideload_') . '_' . $filename;
 
         // Upload to storage via adapter
-        $contents = file_get_contents($tmpName);
+        $contents = @file_get_contents($tmpName);
         if ($contents === false) {
+            $this->logger?->warning('Failed to read sideloaded file', ['tmp_name' => $tmpName]);
+
             return;
         }
 
