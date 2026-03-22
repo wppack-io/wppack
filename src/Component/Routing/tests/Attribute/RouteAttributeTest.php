@@ -16,31 +16,55 @@ use WpPack\Component\Routing\RoutePosition;
 final class RouteAttributeTest extends TestCase
 {
     #[Test]
+    public function routeStoresPathAsFirstArgument(): void
+    {
+        $route = new Route('/products/{product_slug}', name: 'product_detail');
+
+        self::assertSame('/products/{product_slug}', $route->path);
+        self::assertSame('product_detail', $route->name);
+    }
+
+    #[Test]
     public function routeStoresAllProperties(): void
     {
         $route = new Route(
-            name: 'product_detail',
-            regex: '^products/([^/]+)/?$',
-            query: 'index.php?product_slug=$matches[1]',
+            '/events/{year}/{month}',
+            name: 'event_archive',
+            requirements: ['year' => '\d{4}', 'month' => '\d{2}'],
+            vars: ['post_type' => 'event'],
             position: RoutePosition::Bottom,
         );
 
-        self::assertSame('product_detail', $route->name);
-        self::assertSame('^products/([^/]+)/?$', $route->regex);
-        self::assertSame('index.php?product_slug=$matches[1]', $route->query);
+        self::assertSame('/events/{year}/{month}', $route->path);
+        self::assertSame('event_archive', $route->name);
+        self::assertSame(['year' => '\d{4}', 'month' => '\d{2}'], $route->requirements);
+        self::assertSame(['post_type' => 'event'], $route->vars);
         self::assertSame(RoutePosition::Bottom, $route->position);
     }
 
     #[Test]
     public function routeDefaultsToTopPosition(): void
     {
-        $route = new Route(
-            name: 'default_route',
-            regex: '^page/?$',
-            query: 'index.php?pagename=page',
-        );
+        $route = new Route('/page', name: 'default_route');
 
         self::assertSame(RoutePosition::Top, $route->position);
+    }
+
+    #[Test]
+    public function routeDefaultsToEmptyRequirementsAndVars(): void
+    {
+        $route = new Route('/simple', name: 'simple');
+
+        self::assertSame([], $route->requirements);
+        self::assertSame([], $route->vars);
+    }
+
+    #[Test]
+    public function routeDefaultsToEmptyName(): void
+    {
+        $route = new Route('/no-name');
+
+        self::assertSame('', $route->name);
     }
 
     #[Test]

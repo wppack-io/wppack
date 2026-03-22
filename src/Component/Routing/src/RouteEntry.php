@@ -33,6 +33,7 @@ final class RouteEntry
         public readonly RoutePosition $position,
         public readonly array $rewriteTags,
         private readonly \Closure $handler,
+        public readonly string $path = '',
     ) {
         $this->queryVars = self::parseQueryVars($query);
     }
@@ -77,6 +78,58 @@ final class RouteEntry
         }
 
         return $template;
+    }
+
+    /**
+     * Compiles a path pattern into a WordPress rewrite regex.
+     *
+     * @param array<string, string> $requirements
+     */
+    public static function compilePath(string $path, array $requirements = []): string
+    {
+        $path = ltrim($path, '/');
+        $params = self::extractParams($path);
+
+        $regex = $path;
+        foreach ($params as $param) {
+            $pattern = $requirements[$param] ?? '[^/]+';
+            $regex = str_replace('{' . $param . '}', '(?P<' . $param . '>' . $pattern . ')', $regex);
+        }
+
+        return '^' . $regex . '/?$';
+    }
+
+    /**
+     * Builds a WordPress query string from a path pattern and optional static vars.
+     *
+     * @param array<string, string> $vars
+     */
+    public static function buildQueryFromPath(string $path, array $vars = []): string
+    {
+        $params = self::extractParams($path);
+        $parts = [];
+
+        foreach ($vars as $key => $value) {
+            $parts[] = $key . '=' . $value;
+        }
+
+        foreach ($params as $index => $param) {
+            $parts[] = $param . '=$matches[' . ($index + 1) . ']';
+        }
+
+        return 'index.php?' . implode('&', $parts);
+    }
+
+    /**
+     * Extracts parameter names from a path pattern.
+     *
+     * @return list<string>
+     */
+    public static function extractParams(string $path): array
+    {
+        preg_match_all('/\{([^}]+)\}/', $path, $matches);
+
+        return $matches[1];
     }
 
     private function dispatch(): void

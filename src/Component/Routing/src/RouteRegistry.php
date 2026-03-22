@@ -8,6 +8,7 @@ use WpPack\Component\HttpFoundation\Exception\ForbiddenException;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Routing\Attribute\RewriteTag;
 use WpPack\Component\Routing\Attribute\Route;
+use WpPack\Component\Routing\Exception\RouteNotFoundException;
 use WpPack\Component\Security\Attribute\CurrentUser;
 use WpPack\Component\Role\Attribute\IsGranted;
 use WpPack\Component\Role\Authorization\IsGrantedChecker;
@@ -54,6 +55,18 @@ final class RouteRegistry
     }
 
     /**
+     * @throws RouteNotFoundException
+     */
+    public function get(string $name): RouteEntry
+    {
+        if (!isset($this->routes[$name])) {
+            throw new RouteNotFoundException(sprintf('Route "%s" does not exist.', $name));
+        }
+
+        return $this->routes[$name];
+    }
+
+    /**
      * @return array<string, RouteEntry>
      */
     public function all(): array
@@ -86,15 +99,18 @@ final class RouteRegistry
             }
 
             $route = $classRoutes[0]->newInstance();
-            $queryVarNames = RouteEntry::parseQueryVars($route->query);
+            $regex = RouteEntry::compilePath($route->path, $route->requirements);
+            $query = RouteEntry::buildQueryFromPath($route->path, $route->vars);
+            $queryVarNames = RouteEntry::parseQueryVars($query);
             $method = $reflection->getMethod('__invoke');
             $entries[] = new RouteEntry(
                 $route->name,
-                $route->regex,
-                $route->query,
+                $regex,
+                $query,
                 $route->position,
                 $classTags,
                 $this->createHandler($controller, $method, $queryVarNames, IsGrantedChecker::resolve($reflection, $method), $checker),
+                $route->path,
             );
         }
 
@@ -109,15 +125,18 @@ final class RouteRegistry
             }
 
             $route = $methodRoutes[0]->newInstance();
-            $queryVarNames = RouteEntry::parseQueryVars($route->query);
+            $regex = RouteEntry::compilePath($route->path, $route->requirements);
+            $query = RouteEntry::buildQueryFromPath($route->path, $route->vars);
+            $queryVarNames = RouteEntry::parseQueryVars($query);
             $methodTags = $this->resolveRewriteTags($method);
             $entries[] = new RouteEntry(
                 $route->name,
-                $route->regex,
-                $route->query,
+                $regex,
+                $query,
                 $route->position,
                 array_merge($classTags, $methodTags),
                 $this->createHandler($controller, $method, $queryVarNames, IsGrantedChecker::resolve($reflection, $method), $checker),
+                $route->path,
             );
         }
 

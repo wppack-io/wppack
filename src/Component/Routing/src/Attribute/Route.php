@@ -10,9 +10,12 @@ use WpPack\Component\Routing\RoutePosition;
 final class Route
 {
     public function __construct(
-        public readonly string $name,
-        public readonly string $regex,
-        public readonly string $query,
+        public readonly string $path,
+        public readonly string $name = '',
+        /** @var array<string, string> */
+        public readonly array $requirements = [],
+        /** @var array<string, string> */
+        public readonly array $vars = [],
         public readonly RoutePosition $position = RoutePosition::Top,
     ) {}
 }

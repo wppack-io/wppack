@@ -11,6 +11,7 @@ use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Routing\AbstractController;
 use WpPack\Component\Routing\Attribute\RewriteTag;
 use WpPack\Component\Routing\Attribute\Route;
+use WpPack\Component\Routing\Exception\RouteNotFoundException;
 use WpPack\Component\Routing\Response\TemplateResponse;
 use WpPack\Component\Routing\RouteEntry;
 use WpPack\Component\Routing\RoutePosition;
@@ -27,7 +28,7 @@ final class RouteRegistryTest extends TestCase
     #[Test]
     public function resolvesSingleActionController(): void
     {
-        $controller = new #[Route(name: 'test_route', regex: '^test/([^/]+)/?$', query: 'index.php?test_slug=$matches[1]', )] class {
+        $controller = new #[Route('/test/{test_slug}', name: 'test_route')] class {
             public function __invoke(): ?TemplateResponse
             {
                 return null;
@@ -45,21 +46,13 @@ final class RouteRegistryTest extends TestCase
     public function resolvesMultiActionController(): void
     {
         $controller = new class {
-            #[Route(
-                name: 'route_list',
-                regex: '^items/?$',
-                query: 'index.php?item_page=list',
-            )]
+            #[Route('/items', name: 'route_list')]
             public function list(): ?TemplateResponse
             {
                 return null;
             }
 
-            #[Route(
-                name: 'route_detail',
-                regex: '^items/([^/]+)/?$',
-                query: 'index.php?item_slug=$matches[1]',
-            )]
+            #[Route('/items/{item_slug}', name: 'route_detail')]
             public function show(): ?TemplateResponse
             {
                 return null;
@@ -78,7 +71,7 @@ final class RouteRegistryTest extends TestCase
     public function resolvesClassLevelRewriteTags(): void
     {
         $controller = new #[RewriteTag('%test_tag%', '([^/]+)')]
-        #[Route(name: 'tagged_route', regex: '^tagged/%test_tag%/?$', query: 'index.php?test_tag=$matches[1]', )] class {
+        #[Route('/tagged/{test_tag}', name: 'tagged_route')] class {
             public function __invoke(): ?TemplateResponse
             {
                 return null;
@@ -98,11 +91,7 @@ final class RouteRegistryTest extends TestCase
     {
         $controller = new class {
             #[RewriteTag('%method_tag%', '(\d+)')]
-            #[Route(
-                name: 'method_tagged',
-                regex: '^method/%method_tag%/?$',
-                query: 'index.php?method_tag=$matches[1]',
-            )]
+            #[Route('/method/{method_tag}', name: 'method_tagged')]
             public function show(): ?TemplateResponse
             {
                 return null;
@@ -122,11 +111,7 @@ final class RouteRegistryTest extends TestCase
     {
         $controller = new #[RewriteTag('%class_tag%', '([^/]+)')] class {
             #[RewriteTag('%method_tag%', '(\d+)')]
-            #[Route(
-                name: 'combined_tags',
-                regex: '^combined/%class_tag%/%method_tag%/?$',
-                query: 'index.php?class_tag=$matches[1]&method_tag=$matches[2]',
-            )]
+            #[Route('/combined/{class_tag}/{method_tag}', name: 'combined_tags')]
             public function show(): ?TemplateResponse
             {
                 return null;
@@ -147,7 +132,7 @@ final class RouteRegistryTest extends TestCase
     #[Test]
     public function throwsWhenClassRouteWithoutInvoke(): void
     {
-        $controller = new #[Route(name: 'broken_route', regex: '^broken/?$', query: 'index.php?broken=1', )] class {};
+        $controller = new #[Route('/broken', name: 'broken_route')] class {};
 
         $this->expectException(\LogicException::class);
         $this->expectExceptionMessage('does not implement __invoke()');
@@ -173,7 +158,7 @@ final class RouteRegistryTest extends TestCase
     #[Test]
     public function hasReturnsTrueForRegistered(): void
     {
-        $controller = new #[Route(name: 'exists_route', regex: '^exists/?$', query: 'index.php?exists_page=$matches[1]', )] class {
+        $controller = new #[Route('/exists/{exists_page}', name: 'exists_route')] class {
             public function __invoke(): ?TemplateResponse
             {
                 return null;
@@ -197,7 +182,7 @@ final class RouteRegistryTest extends TestCase
     #[Test]
     public function registerAddsInitHook(): void
     {
-        $controller = new #[Route(name: 'wp_test_route', regex: '^wp-test/?$', query: 'index.php?wp_test=$matches[1]', )] class {
+        $controller = new #[Route('/wp-test/{wp_test}', name: 'wp_test_route')] class {
             public function __invoke(): ?TemplateResponse
             {
                 return null;
@@ -213,7 +198,7 @@ final class RouteRegistryTest extends TestCase
     #[Test]
     public function registerAddsQueryVarsHook(): void
     {
-        $controller = new #[Route(name: 'wp_vars_route', regex: '^wp-vars/?$', query: 'index.php?wp_var=$matches[1]', )] class {
+        $controller = new #[Route('/wp-vars/{wp_var}', name: 'wp_vars_route')] class {
             public function __invoke(): ?TemplateResponse
             {
                 return null;
@@ -229,7 +214,7 @@ final class RouteRegistryTest extends TestCase
     #[Test]
     public function registerAddsTemplateRedirectHook(): void
     {
-        $controller = new #[Route(name: 'wp_redirect_route', regex: '^wp-redirect/?$', query: 'index.php?wp_redirect=$matches[1]', )] class {
+        $controller = new #[Route('/wp-redirect/{wp_redirect}', name: 'wp_redirect_route')] class {
             public function __invoke(): ?TemplateResponse
             {
                 return null;
@@ -245,7 +230,7 @@ final class RouteRegistryTest extends TestCase
     #[Test]
     public function registerAddsTemplateIncludeHook(): void
     {
-        $controller = new #[Route(name: 'wp_include_route', regex: '^wp-include/?$', query: 'index.php?wp_include=$matches[1]', )] class {
+        $controller = new #[Route('/wp-include/{wp_include}', name: 'wp_include_route')] class {
             public function __invoke(): ?TemplateResponse
             {
                 return null;
@@ -279,7 +264,7 @@ final class RouteRegistryTest extends TestCase
     #[Test]
     public function resolvesRoutePositionFromAttribute(): void
     {
-        $controller = new #[Route(name: 'bottom_route', regex: '^bottom/?$', query: 'index.php?page=$matches[1]', position: RoutePosition::Bottom, )] class {
+        $controller = new #[Route('/bottom/{page}', name: 'bottom_route', position: RoutePosition::Bottom)] class {
             public function __invoke(): ?TemplateResponse
             {
                 return null;
@@ -302,11 +287,7 @@ final class RouteRegistryTest extends TestCase
                 return null;
             }
 
-            #[Route(
-                name: 'method_route',
-                regex: '^method/?$',
-                query: 'index.php?method_page=$matches[1]',
-            )]
+            #[Route('/method/{method_page}', name: 'method_route')]
             public function show(): ?TemplateResponse
             {
                 return null;
@@ -324,7 +305,7 @@ final class RouteRegistryTest extends TestCase
     #[Test]
     public function registeredRouteEntryHasCorrectQueryVars(): void
     {
-        $controller = new #[Route(name: 'detail_route', regex: '^items/(\d+)/([^/]+)/?$', query: 'index.php?item_id=$matches[1]&item_slug=$matches[2]', )] class {
+        $controller = new #[Route('/items/{item_id}/{item_slug}', name: 'detail_route', requirements: ['item_id' => '\d+'])] class {
             public function __invoke(): ?TemplateResponse
             {
                 return null;
@@ -345,11 +326,7 @@ final class RouteRegistryTest extends TestCase
         $controller = new class {
             public ?Request $capturedRequest = null;
 
-            #[Route(
-                name: 'inject_request',
-                regex: '^items/([^/]+)/?$',
-                query: 'index.php?item_slug=$matches[1]',
-            )]
+            #[Route('/items/{item_slug}', name: 'inject_request')]
             public function show(Request $request): ?TemplateResponse
             {
                 $this->capturedRequest = $request;
@@ -385,11 +362,7 @@ final class RouteRegistryTest extends TestCase
         $controller = new class {
             public ?\WP_User $capturedUser = null;
 
-            #[Route(
-                name: 'inject_user',
-                regex: '^profile/([^/]+)/?$',
-                query: 'index.php?profile_page=$matches[1]',
-            )]
+            #[Route('/profile/{profile_page}', name: 'inject_user')]
             public function index(#[CurrentUser] \WP_User $user): ?TemplateResponse
             {
                 $this->capturedUser = $user;
@@ -418,11 +391,7 @@ final class RouteRegistryTest extends TestCase
         $controller = new class {
             public ?string $capturedSlug = null;
 
-            #[Route(
-                name: 'resolve_params',
-                regex: '^items/([^/]+)/?$',
-                query: 'index.php?item_slug=$matches[1]',
-            )]
+            #[Route('/items/{item_slug}', name: 'resolve_params')]
             public function show(string $itemSlug): ?TemplateResponse
             {
                 $this->capturedSlug = $itemSlug;
@@ -459,11 +428,7 @@ final class RouteRegistryTest extends TestCase
             public ?Request $capturedRequest = null;
             public ?string $capturedSlug = null;
 
-            #[Route(
-                name: 'inject_all',
-                regex: '^items/([^/]+)/?$',
-                query: 'index.php?item_slug=$matches[1]',
-            )]
+            #[Route('/items/{item_slug}', name: 'inject_all')]
             public function show(#[CurrentUser] \WP_User $user, Request $request, string $itemSlug): ?TemplateResponse
             {
                 $this->capturedUser = $user;
@@ -493,7 +458,7 @@ final class RouteRegistryTest extends TestCase
     {
         $request = new Request();
 
-        $controller = new #[Route(name: 'invoke_inject', regex: '^items/([^/]+)/?$', query: 'index.php?item_slug=$matches[1]', )] class {
+        $controller = new #[Route('/items/{item_slug}', name: 'invoke_inject')] class {
             public ?Request $capturedRequest = null;
             public ?string $capturedSlug = null;
 
@@ -529,11 +494,7 @@ final class RouteRegistryTest extends TestCase
             public bool $called = false;
             public mixed $capturedUser = 'not_set';
 
-            #[Route(
-                name: 'no_security_user',
-                regex: '^no-security/([^/]+)/?$',
-                query: 'index.php?no_security_page=$matches[1]',
-            )]
+            #[Route('/no-security/{no_security_page}', name: 'no_security_user')]
             public function index(#[CurrentUser] ?\WP_User $user = null): ?TemplateResponse
             {
                 $this->called = true;
@@ -568,11 +529,7 @@ final class RouteRegistryTest extends TestCase
         $controller = new class extends AbstractController {
             public ?\WP_User $capturedUser = null;
 
-            #[Route(
-                name: 'set_security',
-                regex: '^secure/([^/]+)/?$',
-                query: 'index.php?secure_page=$matches[1]',
-            )]
+            #[Route('/secure/{secure_page}', name: 'set_security')]
             public function index(): ?TemplateResponse
             {
                 $this->capturedUser = $this->getUser();
@@ -606,11 +563,7 @@ final class RouteRegistryTest extends TestCase
         $controller = new class extends AbstractController {
             public ?string $result = null;
 
-            #[Route(
-                name: 'renderer_test',
-                regex: '^renderer-test/([^/]+)/?$',
-                query: 'index.php?renderer_page=$matches[1]',
-            )]
+            #[Route('/renderer-test/{renderer_page}', name: 'renderer_test')]
             public function index(): ?TemplateResponse
             {
                 $this->result = $this->renderView('templates/test.html.twig', ['key' => 'value']);
@@ -639,11 +592,7 @@ final class RouteRegistryTest extends TestCase
         $controller = new class {
             public ?string $capturedValue = null;
 
-            #[Route(
-                name: 'snake_case_test',
-                regex: '^items/([^/]+)/?$',
-                query: 'index.php?product_name=$matches[1]',
-            )]
+            #[Route('/items/{product_name}', name: 'snake_case_test')]
             public function show(string $productName): ?TemplateResponse
             {
                 $this->capturedValue = $productName;
@@ -671,7 +620,7 @@ final class RouteRegistryTest extends TestCase
         $user->ID = 42;
         $security = $this->createSecurity(user: $user);
 
-        $controller = new #[Route(name: 'plain_controller', regex: '^plain/?$', query: 'index.php?plain_page=$matches[1]', )] class {
+        $controller = new #[Route('/plain/{plain_page}', name: 'plain_controller')] class {
             public function __invoke(): ?TemplateResponse
             {
                 return null;
@@ -690,7 +639,7 @@ final class RouteRegistryTest extends TestCase
     {
         $renderer = $this->createMock(TemplateRendererInterface::class);
 
-        $controller = new #[Route(name: 'no_renderer', regex: '^no-renderer/?$', query: 'index.php?page=$matches[1]', )] class {
+        $controller = new #[Route('/no-renderer/{page}', name: 'no_renderer')] class {
             public function __invoke(): ?TemplateResponse
             {
                 return null;
@@ -707,11 +656,7 @@ final class RouteRegistryTest extends TestCase
     public function registerWithNullSecurityDoesNotCallSetSecurity(): void
     {
         $controller = new class extends AbstractController {
-            #[Route(
-                name: 'null_security',
-                regex: '^null-sec/?$',
-                query: 'index.php?page=$matches[1]',
-            )]
+            #[Route('/null-sec/{page}', name: 'null_security')]
             public function index(): ?TemplateResponse
             {
                 return null;
@@ -728,11 +673,7 @@ final class RouteRegistryTest extends TestCase
     public function registerWithNullRendererDoesNotCallSetRenderer(): void
     {
         $controller = new class extends AbstractController {
-            #[Route(
-                name: 'null_renderer',
-                regex: '^null-rend/?$',
-                query: 'index.php?page=$matches[1]',
-            )]
+            #[Route('/null-rend/{page}', name: 'null_renderer')]
             public function index(): ?TemplateResponse
             {
                 return null;
@@ -751,11 +692,7 @@ final class RouteRegistryTest extends TestCase
         $controller = new class {
             public bool $called = false;
 
-            #[Route(
-                name: 'no_request',
-                regex: '^no-req/([^/]+)/?$',
-                query: 'index.php?slug=$matches[1]',
-            )]
+            #[Route('/no-req/{slug}', name: 'no_request')]
             public function show(): ?TemplateResponse
             {
                 $this->called = true;
@@ -786,11 +723,7 @@ final class RouteRegistryTest extends TestCase
             public bool $called = false;
 
             #[IsGranted('manage_options')]
-            #[Route(
-                name: 'is_granted_allow',
-                regex: '^granted-allow/([^/]+)/?$',
-                query: 'index.php?granted_page=$matches[1]',
-            )]
+            #[Route('/granted-allow/{granted_page}', name: 'is_granted_allow')]
             public function index(): ?TemplateResponse
             {
                 $this->called = true;
@@ -821,11 +754,7 @@ final class RouteRegistryTest extends TestCase
             public bool $called = false;
 
             #[IsGranted('manage_options')]
-            #[Route(
-                name: 'is_granted_deny',
-                regex: '^granted-deny/([^/]+)/?$',
-                query: 'index.php?granted_deny_page=$matches[1]',
-            )]
+            #[Route('/granted-deny/{granted_deny_page}', name: 'is_granted_deny')]
             public function index(): ?TemplateResponse
             {
                 $this->called = true;
@@ -859,11 +788,7 @@ final class RouteRegistryTest extends TestCase
         $controller = new #[IsGranted('manage_options')] class {
             public bool $called = false;
 
-            #[Route(
-                name: 'class_granted',
-                regex: '^class-granted/([^/]+)/?$',
-                query: 'index.php?class_granted_page=$matches[1]',
-            )]
+            #[Route('/class-granted/{class_granted_page}', name: 'class_granted')]
             public function index(): ?TemplateResponse
             {
                 $this->called = true;
@@ -887,6 +812,170 @@ final class RouteRegistryTest extends TestCase
         ob_end_clean();
 
         self::assertFalse($controller->called);
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // get() method
+    // ──────────────────────────────────────────────────────────────
+
+    #[Test]
+    public function getReturnsRouteEntryByName(): void
+    {
+        $controller = new #[Route('/products/{product_slug}', name: 'product_detail')] class {
+            public function __invoke(): ?TemplateResponse
+            {
+                return null;
+            }
+        };
+
+        $registry = $this->createRegistryWithoutWordPress();
+        $registry->register($controller);
+
+        $entry = $registry->get('product_detail');
+        self::assertSame('product_detail', $entry->name);
+        self::assertSame('/products/{product_slug}', $entry->path);
+    }
+
+    #[Test]
+    public function getThrowsRouteNotFoundExceptionForMissingRoute(): void
+    {
+        $registry = new RouteRegistry();
+
+        $this->expectException(RouteNotFoundException::class);
+        $this->expectExceptionMessage('Route "nonexistent" does not exist.');
+
+        $registry->get('nonexistent');
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // path-based route compilation
+    // ──────────────────────────────────────────────────────────────
+
+    #[Test]
+    public function pathBasedRouteGeneratesCorrectRegex(): void
+    {
+        $controller = new #[Route('/products/{product_slug}', name: 'path_regex_test')] class {
+            public function __invoke(): ?TemplateResponse
+            {
+                return null;
+            }
+        };
+
+        $registry = $this->createRegistryWithoutWordPress();
+        $registry->register($controller);
+
+        $entry = $registry->get('path_regex_test');
+        self::assertSame('^products/(?P<product_slug>[^/]+)/?$', $entry->regex);
+        self::assertSame('index.php?product_slug=$matches[1]', $entry->query);
+    }
+
+    #[Test]
+    public function pathBasedRouteWithRequirementsGeneratesCorrectRegex(): void
+    {
+        $controller = new class {
+            #[Route('/events/{year}/{month}', name: 'requirements_test', requirements: ['year' => '\d{4}', 'month' => '\d{2}'])]
+            public function archive(): ?TemplateResponse
+            {
+                return null;
+            }
+        };
+
+        $registry = $this->createRegistryWithoutWordPress();
+        $registry->register($controller);
+
+        $entry = $registry->get('requirements_test');
+        self::assertSame('^events/(?P<year>\d{4})/(?P<month>\d{2})/?$', $entry->regex);
+        self::assertSame('index.php?year=$matches[1]&month=$matches[2]', $entry->query);
+    }
+
+    #[Test]
+    public function pathBasedRouteWithVarsGeneratesCorrectQuery(): void
+    {
+        $controller = new class {
+            #[Route('/events/{year}', name: 'vars_test', vars: ['post_type' => 'event'])]
+            public function archive(): ?TemplateResponse
+            {
+                return null;
+            }
+        };
+
+        $registry = $this->createRegistryWithoutWordPress();
+        $registry->register($controller);
+
+        $entry = $registry->get('vars_test');
+        self::assertSame('index.php?post_type=event&year=$matches[1]', $entry->query);
+    }
+
+    #[Test]
+    public function pathBasedRouteStoresPathForUrlGeneration(): void
+    {
+        $controller = new #[Route('/products/{product_slug}', name: 'path_store_test')] class {
+            public function __invoke(): ?TemplateResponse
+            {
+                return null;
+            }
+        };
+
+        $registry = $this->createRegistryWithoutWordPress();
+        $registry->register($controller);
+
+        $entry = $registry->get('path_store_test');
+        self::assertSame('/products/{product_slug}', $entry->path);
+    }
+
+    #[Test]
+    public function pathBasedRouteParamsAreInjectedIntoHandler(): void
+    {
+        $request = new Request();
+
+        $controller = new class {
+            public ?string $capturedSlug = null;
+
+            #[Route('/products/{product_slug}', name: 'inject_path_params')]
+            public function show(string $productSlug): ?TemplateResponse
+            {
+                $this->capturedSlug = $productSlug;
+
+                return null;
+            }
+        };
+
+        $registry = new RouteRegistry($request);
+        $registry->register($controller);
+
+        $entry = $registry->get('inject_path_params');
+
+        set_query_var('product_slug', 'my-product');
+        $entry->handleTemplateRedirect();
+
+        self::assertSame('my-product', $controller->capturedSlug);
+        self::assertSame('my-product', $request->attributes->get('product_slug'));
+    }
+
+    #[Test]
+    public function pathBasedRouteParamsAreSetOnRequestAttributes(): void
+    {
+        $request = new Request();
+
+        $controller = new class {
+            #[Route('/events/{year}/{month}', name: 'attrs_test', requirements: ['year' => '\d{4}', 'month' => '\d{2}'])]
+            public function archive(Request $request, string $year, string $month): ?TemplateResponse
+            {
+                return null;
+            }
+        };
+
+        $registry = new RouteRegistry($request);
+        $registry->register($controller);
+
+        $entry = $registry->get('attrs_test');
+
+        set_query_var('year', '2024');
+        set_query_var('month', '03');
+        $entry->handleTemplateRedirect();
+
+        self::assertSame('2024', $request->attributes->get('year'));
+        self::assertSame('03', $request->attributes->get('month'));
     }
 
     /**

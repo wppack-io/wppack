@@ -39,6 +39,163 @@ final class RouteEntryTest extends TestCase
         }
     }
 
+    // ──────────────────────────────────────────────────────────────
+    // compilePath
+    // ──────────────────────────────────────────────────────────────
+
+    #[Test]
+    public function compilePathWithSingleParam(): void
+    {
+        $regex = RouteEntry::compilePath('/products/{product_slug}');
+
+        self::assertSame('^products/(?P<product_slug>[^/]+)/?$', $regex);
+    }
+
+    #[Test]
+    public function compilePathWithMultipleParams(): void
+    {
+        $regex = RouteEntry::compilePath('/events/{year}/{month}');
+
+        self::assertSame('^events/(?P<year>[^/]+)/(?P<month>[^/]+)/?$', $regex);
+    }
+
+    #[Test]
+    public function compilePathWithRequirements(): void
+    {
+        $regex = RouteEntry::compilePath('/events/{year}/{month}', ['year' => '\d{4}', 'month' => '\d{2}']);
+
+        self::assertSame('^events/(?P<year>\d{4})/(?P<month>\d{2})/?$', $regex);
+    }
+
+    #[Test]
+    public function compilePathWithPartialRequirements(): void
+    {
+        $regex = RouteEntry::compilePath('/events/{year}/{slug}', ['year' => '\d{4}']);
+
+        self::assertSame('^events/(?P<year>\d{4})/(?P<slug>[^/]+)/?$', $regex);
+    }
+
+    #[Test]
+    public function compilePathWithNoParams(): void
+    {
+        $regex = RouteEntry::compilePath('/static-page');
+
+        self::assertSame('^static-page/?$', $regex);
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // buildQueryFromPath
+    // ──────────────────────────────────────────────────────────────
+
+    #[Test]
+    public function buildQueryFromPathWithSingleParam(): void
+    {
+        $query = RouteEntry::buildQueryFromPath('/products/{product_slug}');
+
+        self::assertSame('index.php?product_slug=$matches[1]', $query);
+    }
+
+    #[Test]
+    public function buildQueryFromPathWithMultipleParams(): void
+    {
+        $query = RouteEntry::buildQueryFromPath('/events/{year}/{month}');
+
+        self::assertSame('index.php?year=$matches[1]&month=$matches[2]', $query);
+    }
+
+    #[Test]
+    public function buildQueryFromPathWithVars(): void
+    {
+        $query = RouteEntry::buildQueryFromPath('/events/{year}', ['post_type' => 'event']);
+
+        self::assertSame('index.php?post_type=event&year=$matches[1]', $query);
+    }
+
+    #[Test]
+    public function buildQueryFromPathWithVarsAndMultipleParams(): void
+    {
+        $query = RouteEntry::buildQueryFromPath('/events/{year}/{month}', ['post_type' => 'event']);
+
+        self::assertSame('index.php?post_type=event&year=$matches[1]&month=$matches[2]', $query);
+    }
+
+    #[Test]
+    public function buildQueryFromPathWithNoParams(): void
+    {
+        $query = RouteEntry::buildQueryFromPath('/static-page');
+
+        self::assertSame('index.php?', $query);
+    }
+
+    #[Test]
+    public function buildQueryFromPathWithOnlyVars(): void
+    {
+        $query = RouteEntry::buildQueryFromPath('/static-page', ['pagename' => 'static']);
+
+        self::assertSame('index.php?pagename=static', $query);
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // extractParams
+    // ──────────────────────────────────────────────────────────────
+
+    #[Test]
+    public function extractParamsFromPath(): void
+    {
+        self::assertSame(['product_slug'], RouteEntry::extractParams('/products/{product_slug}'));
+    }
+
+    #[Test]
+    public function extractMultipleParamsFromPath(): void
+    {
+        self::assertSame(['year', 'month'], RouteEntry::extractParams('/events/{year}/{month}'));
+    }
+
+    #[Test]
+    public function extractNoParamsFromStaticPath(): void
+    {
+        self::assertSame([], RouteEntry::extractParams('/static-page'));
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // path property
+    // ──────────────────────────────────────────────────────────────
+
+    #[Test]
+    public function storesPathProperty(): void
+    {
+        $entry = new RouteEntry(
+            'test_route',
+            '^products/(?P<product_slug>[^/]+)/?$',
+            'index.php?product_slug=$matches[1]',
+            RoutePosition::Top,
+            [],
+            fn() => null,
+            '/products/{product_slug}',
+        );
+
+        self::assertSame('/products/{product_slug}', $entry->path);
+    }
+
+    #[Test]
+    public function pathDefaultsToEmptyString(): void
+    {
+        $entry = new RouteEntry(
+            'test_route',
+            '^test/?$',
+            'index.php?page=$matches[1]',
+            RoutePosition::Top,
+            [],
+            fn() => null,
+        );
+
+        self::assertSame('', $entry->path);
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // parseQueryVars (legacy)
+    // ──────────────────────────────────────────────────────────────
+
     #[Test]
     public function parsesQueryVarsFromQueryString(): void
     {
@@ -557,6 +714,7 @@ final class RouteEntryTest extends TestCase
 
         set_query_var('test_slug', 'hello');
 
+        // wp_die() in test environment throws WPDieException
         try {
             @$entry->handleTemplateRedirect();
         } catch (\WPDieException) {
