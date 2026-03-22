@@ -10,6 +10,8 @@ use WpPack\Component\Media\Exception\AttachmentException;
 use WpPack\Component\Messenger\MessageBusInterface;
 use WpPack\Component\Mime\MimeTypes;
 use WpPack\Component\Mime\MimeTypesInterface;
+use WpPack\Component\Site\BlogContext;
+use WpPack\Component\Site\BlogContextInterface;
 use WpPack\Component\Site\BlogSwitcherInterface;
 use WpPack\Plugin\S3StoragePlugin\Message\GenerateThumbnailsMessage;
 
@@ -24,6 +26,7 @@ final readonly class AttachmentRegistrar
         private AttachmentManagerInterface $attachment,
         ?MimeTypesInterface $mimeTypes = null,
         private ?LoggerInterface $logger = null,
+        private BlogContextInterface $blogContext = new BlogContext(),
     ) {
         $this->mimeTypes = $mimeTypes ?? MimeTypes::getDefault();
     }
@@ -158,7 +161,7 @@ final readonly class AttachmentRegistrar
             return (int) $matches[1];
         }
 
-        return 1;
+        return $this->blogContext->getMainSiteId();
     }
 
     private function extractRelativePath(string $key, int $blogId): string
@@ -170,7 +173,7 @@ final readonly class AttachmentRegistrar
             $relativePath = substr($key, \strlen($prefix));
         }
 
-        if ($blogId > 1) {
+        if ($blogId !== $this->blogContext->getMainSiteId()) {
             $sitePrefix = 'sites/' . $blogId . '/';
             if (str_starts_with($relativePath, $sitePrefix)) {
                 $relativePath = substr($relativePath, \strlen($sitePrefix));

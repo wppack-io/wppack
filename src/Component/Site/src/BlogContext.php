@@ -11,6 +11,11 @@ final readonly class BlogContext implements BlogContextInterface
         return get_current_blog_id();
     }
 
+    public function getMainSiteId(): int
+    {
+        return get_main_site_id();
+    }
+
     public function isMultisite(): bool
     {
         return is_multisite();

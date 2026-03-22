@@ -27,13 +27,19 @@ final class MultisiteScheduleGroupResolverTest extends TestCase
     #[Test]
     public function mainSiteReturnsDefaultGroup(): void
     {
-        self::assertSame('wppack', $this->resolver->resolve(1));
+        self::assertSame('wppack', $this->resolver->resolve(get_main_site_id()));
     }
 
     #[Test]
     public function blogIdZeroReturnsDefaultGroup(): void
     {
         self::assertSame('wppack', $this->resolver->resolve(0));
+    }
+
+    #[Test]
+    public function negativeIdReturnsDefaultGroup(): void
+    {
+        self::assertSame('wppack', $this->resolver->resolve(-1));
     }
 
     #[Test]
@@ -59,7 +65,7 @@ final class MultisiteScheduleGroupResolverTest extends TestCase
     {
         $resolver = new MultisiteScheduleGroupResolver(prefix: 'myapp');
 
-        self::assertSame('myapp', $resolver->resolve(1));
+        self::assertSame('myapp', $resolver->resolve(get_main_site_id()));
     }
 
     #[Test]

@@ -10,5 +10,7 @@ interface BlogContextInterface
 
     public function isMultisite(): bool;
 
+    public function getMainSiteId(): int;
+
     public function isSwitched(): bool;
 }

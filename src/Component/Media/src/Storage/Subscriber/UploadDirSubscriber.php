@@ -35,7 +35,7 @@ final readonly class UploadDirSubscriber
         $siteSubdir = '';
         if ($this->blogContext->isMultisite()) {
             $blogId = $this->blogContext->getCurrentBlogId();
-            if ($blogId > 1) {
+            if ($blogId !== $this->blogContext->getMainSiteId()) {
                 $siteSubdir = '/sites/' . $blogId;
             }
         }

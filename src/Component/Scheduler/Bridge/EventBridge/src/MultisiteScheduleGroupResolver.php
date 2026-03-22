@@ -18,7 +18,7 @@ final class MultisiteScheduleGroupResolver implements ScheduleGroupResolverInter
     {
         $blogId ??= $this->blogContext->getCurrentBlogId();
 
-        if ($blogId <= 1) {
+        if ($blogId <= 0 || $blogId === $this->blogContext->getMainSiteId()) {
             return $this->prefix;
         }
 

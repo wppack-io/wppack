@@ -82,9 +82,9 @@ final class AttachmentRegistrarTest extends TestCase
     }
 
     #[Test]
-    public function parseBlogIdFromMainSite(): void
+    public function parseBlogIdReturnsMainSiteIdForMainSite(): void
     {
-        self::assertSame(1, $this->registrar->parseBlogId('uploads/2024/01/photo.jpg'));
+        self::assertSame(get_main_site_id(), $this->registrar->parseBlogId('uploads/2024/01/photo.jpg'));
     }
 
     #[Test]
@@ -96,11 +96,11 @@ final class AttachmentRegistrarTest extends TestCase
     }
 
     #[Test]
-    public function parseBlogIdReturnsOneForPathWithoutSitesPattern(): void
+    public function parseBlogIdReturnsMainSiteIdForPathWithoutSitesPattern(): void
     {
-        self::assertSame(1, $this->registrar->parseBlogId('uploads/2024/01/file.pdf'));
-        self::assertSame(1, $this->registrar->parseBlogId('other-prefix/image.jpg'));
-        self::assertSame(1, $this->registrar->parseBlogId('uploads/sites/file.jpg'));
+        self::assertSame(get_main_site_id(), $this->registrar->parseBlogId('uploads/2024/01/file.pdf'));
+        self::assertSame(get_main_site_id(), $this->registrar->parseBlogId('other-prefix/image.jpg'));
+        self::assertSame(get_main_site_id(), $this->registrar->parseBlogId('uploads/sites/file.jpg'));
     }
 
     #[Test]
