@@ -1,0 +1,19 @@
+{
+    "name": "wppack/asset",
+    "description": "Asset management (scripts and styles) for WordPress",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpPack\\Component\\Asset\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Component\\Asset\\Tests\\": "tests/"
+        }
+    }
+}

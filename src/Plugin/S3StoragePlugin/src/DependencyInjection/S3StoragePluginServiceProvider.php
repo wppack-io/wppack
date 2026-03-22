@@ -31,6 +31,7 @@ use WpPack\Plugin\S3StoragePlugin\Message\S3EventNormalizer;
 use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\PreSignedUrlController;
 use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\PreSignedUrlGenerator;
 use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\UploadPolicy;
+use WpPack\Component\Asset\AssetManager;
 use WpPack\Plugin\S3StoragePlugin\Subscriber\AdminAssetSubscriber;
 
 final class S3StoragePluginServiceProvider implements ServiceProviderInterface
@@ -110,10 +111,14 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
             ->addArgument(new Reference(StorageAdapterInterface::class))
             ->addTag('rest.controller');
 
+        // Asset Manager
+        $builder->register(AssetManager::class);
+
         // Admin assets
         $builder->register(AdminAssetSubscriber::class)
             ->setFactory([self::class, 'createAdminAssetSubscriber'])
             ->addArgument(new Reference(UploadPolicy::class))
+            ->addArgument(new Reference(AssetManager::class))
             ->addTag('hook.subscriber');
 
         // Message handlers
@@ -179,10 +184,12 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
 
     public static function createAdminAssetSubscriber(
         UploadPolicy $policy,
+        AssetManager $asset,
     ): AdminAssetSubscriber {
         return new AdminAssetSubscriber(
             pluginFile: \dirname(__DIR__, 2) . '/s3-storage-plugin.php',
             policy: $policy,
+            asset: $asset,
         );
     }
 }

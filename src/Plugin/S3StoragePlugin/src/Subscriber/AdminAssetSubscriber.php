@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Plugin\S3StoragePlugin\Subscriber;
 
+use WpPack\Component\Asset\AssetManager;
 use WpPack\Component\Hook\Attribute\Admin\Action\AdminEnqueueScriptsAction;
 use WpPack\Component\Hook\Attribute\AsHookSubscriber;
 use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\UploadPolicy;
@@ -14,18 +15,19 @@ final readonly class AdminAssetSubscriber
     public function __construct(
         private string $pluginFile,
         private UploadPolicy $policy,
+        private AssetManager $asset,
     ) {}
 
     #[AdminEnqueueScriptsAction]
     public function enqueueScripts(): void
     {
-        if (!wp_script_is('media-upload', 'enqueued') && !wp_script_is('media-views', 'enqueued')) {
+        if (!$this->asset->scriptIs('media-upload', 'enqueued') && !$this->asset->scriptIs('media-views', 'enqueued')) {
             return;
         }
 
         $pluginDir = plugin_dir_url($this->pluginFile);
 
-        wp_enqueue_script(
+        $this->asset->enqueueScript(
             'wppack-s3-upload',
             $pluginDir . 'assets/js/s3-upload.js',
             ['jquery', 'media-views'],
@@ -45,7 +47,7 @@ final readonly class AdminAssetSubscriber
             return;
         }
 
-        wp_add_inline_script('wppack-s3-upload', sprintf(
+        $this->asset->addInlineScript('wppack-s3-upload', sprintf(
             'var wppS3Upload = %s;',
             $config,
         ), 'before');

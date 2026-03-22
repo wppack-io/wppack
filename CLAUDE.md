@@ -102,6 +102,7 @@ WordPress プラグインとして配布。Component を利用。
 | Console | wppack/console | WP-CLI コマンドフレームワーク |
 | Shortcode | wppack/shortcode | ショートコードフレームワーク |
 | Nonce | wppack/nonce | CSRF トークン管理 |
+| Asset | wppack/asset | アセット管理（スクリプト・スタイル） |
 | Ajax | wppack/ajax | Ajax ハンドラー |
 | Wpress | wppack/wpress | .wpress アーカイブ形式操作 |
 

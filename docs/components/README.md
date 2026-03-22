@@ -93,6 +93,7 @@ WordPress の機能領域をモダンなパターンで扱う。
 | [Console](./console/) | `wppack/console` | WP-CLI コマンドフレームワーク |
 | [Shortcode](./shortcode/) | `wppack/shortcode` | ショートコード登録 |
 | [Nonce](./nonce/) | `wppack/nonce` | Nonce 管理 |
+| [Asset](./asset/) | `wppack/asset` | アセット管理（スクリプト・スタイル） |
 | [Ajax](./ajax/) | `wppack/ajax` | Admin Ajax ハンドラー |
 | [Wpress](./wpress/) | `wppack/wpress` | .wpress アーカイブ形式操作 |
 
