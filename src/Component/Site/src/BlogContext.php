@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Site;
 
-final class BlogContext implements BlogContextInterface
+final readonly class BlogContext implements BlogContextInterface
 {
     public function getCurrentBlogId(): int
     {

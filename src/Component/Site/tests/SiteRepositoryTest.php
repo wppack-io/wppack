@@ -48,7 +48,7 @@ final class SiteRepositoryTest extends TestCase
     {
         $id = $this->repository->findBySlug('nonexistent-slug-' . uniqid());
 
-        self::assertTrue($id === null || \is_int($id));
+        self::assertNull($id);
     }
 
     #[Test]

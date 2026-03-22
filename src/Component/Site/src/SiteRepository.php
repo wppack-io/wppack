@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Site;
 
-final class SiteRepository implements SiteRepositoryInterface
+final readonly class SiteRepository implements SiteRepositoryInterface
 {
     public function findAll(array $args = []): array
     {
