@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Routing\Attribute\Route;
+use WpPack\Component\Routing\Exception\MissingParametersException;
 use WpPack\Component\Routing\Exception\RouteNotFoundException;
 use WpPack\Component\Routing\Generator\UrlGenerator;
 use WpPack\Component\Routing\Response\TemplateResponse;
@@ -97,7 +98,7 @@ final class UrlGeneratorTest extends TestCase
     }
 
     #[Test]
-    public function generateWithMissingParamLeavesPlaceholder(): void
+    public function generateThrowsForMissingParams(): void
     {
         $registry = new RouteRegistry();
         $registry->register(new #[Route('/products/{product_slug}', name: 'product_missing')] class {
@@ -109,8 +110,30 @@ final class UrlGeneratorTest extends TestCase
 
         $generator = new UrlGenerator($registry);
 
-        // Missing params are not replaced — left as-is
-        self::assertSame('/products/{product_slug}', $generator->generate('product_missing'));
+        $this->expectException(MissingParametersException::class);
+        $this->expectExceptionMessage('Missing parameters "product_slug" for route "product_missing".');
+
+        $generator->generate('product_missing');
+    }
+
+    #[Test]
+    public function generateThrowsForPartiallyMissingParams(): void
+    {
+        $registry = new RouteRegistry();
+        $registry->register(new class {
+            #[Route('/events/{year}/{month}', name: 'event_partial')]
+            public function archive(): ?TemplateResponse
+            {
+                return null;
+            }
+        });
+
+        $generator = new UrlGenerator($registry);
+
+        $this->expectException(MissingParametersException::class);
+        $this->expectExceptionMessage('Missing parameters "month" for route "event_partial".');
+
+        $generator->generate('event_partial', ['year' => '2024']);
     }
 
     #[Test]

@@ -126,6 +126,9 @@ $url = $generator->generate('event_archive', ['year' => 2024, 'month' => '03']);
 
 // 存在しないルート → RouteNotFoundException
 $generator->generate('nonexistent'); // throws RouteNotFoundException
+
+// パラメータ不足 → MissingParametersException
+$generator->generate('product_detail'); // throws MissingParametersException
 ```
 
 ### DI での登録
@@ -158,7 +161,7 @@ class ProductController
 
 ## レスポンスタイプ
 
-Controller は `?RouteResponse` を返す。`null` を返すと WordPress 通常処理に委譲。
+Controller は `?Response` を返す。`null` を返すと WordPress 通常処理に委譲。
 
 ### TemplateResponse（クラシックテンプレート）
 
@@ -281,7 +284,7 @@ return new Response('', 204, ['X-Custom' => 'value']);
 `null` を返すと WordPress の通常テンプレート処理が続行。404 処理をテーマに委譲する場合に有用。
 
 ```php
-public function __invoke(string $productSlug): ?RouteResponse
+public function __invoke(string $productSlug): ?TemplateResponse
 {
     $product = $this->findProduct($productSlug);
 
@@ -295,7 +298,7 @@ public function __invoke(string $productSlug): ?RouteResponse
 
 ## AbstractController
 
-Symfony の `AbstractController` と同様のヘルパーメソッドを提供。使用は任意 — Controller は POPO（plain old PHP object）でも `RouteResponse` を `new` で直接返しても動作する。
+Symfony の `AbstractController` と同様のヘルパーメソッドを提供。使用は任意 — Controller は POPO（plain old PHP object）でもレスポンスを `new` で直接返しても動作する。
 
 ```php
 use WpPack\Component\Routing\AbstractController;

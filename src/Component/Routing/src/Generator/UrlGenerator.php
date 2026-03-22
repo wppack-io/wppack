@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Routing\Generator;
 
+use WpPack\Component\Routing\Exception\MissingParametersException;
+use WpPack\Component\Routing\RouteEntry;
 use WpPack\Component\Routing\RouteRegistry;
 
 final class UrlGenerator implements UrlGeneratorInterface
@@ -19,6 +21,15 @@ final class UrlGenerator implements UrlGeneratorInterface
 
         foreach ($parameters as $key => $value) {
             $path = str_replace('{' . $key . '}', (string) $value, $path);
+        }
+
+        $missing = RouteEntry::extractParams($path);
+        if ($missing !== []) {
+            throw new MissingParametersException(sprintf(
+                'Missing parameters "%s" for route "%s".',
+                implode('", "', $missing),
+                $name,
+            ));
         }
 
         return '/' . ltrim($path, '/');
