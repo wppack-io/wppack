@@ -9,6 +9,8 @@ use WpPack\Component\Messenger\MessageBusInterface;
 use WpPack\Component\Messenger\Serializer\SerializerInterface;
 use WpPack\Component\Messenger\Stamp\ReceivedStamp;
 use WpPack\Component\Serializer\Encoder\JsonEncoder;
+use WpPack\Component\Site\BlogSwitcher;
+use WpPack\Component\Site\BlogSwitcherInterface;
 
 final class SqsEventHandler
 {
@@ -25,6 +27,7 @@ final class SqsEventHandler
         private readonly SerializerInterface $serializer,
         private readonly ?LoggerInterface $logger = null,
         private readonly JsonEncoder $jsonEncoder = new JsonEncoder(),
+        private readonly BlogSwitcherInterface $blogSwitcher = new BlogSwitcher(),
     ) {}
 
     /**
@@ -70,14 +73,8 @@ final class SqsEventHandler
         $envelope = $this->serializer->decode($data);
 
         $multisiteStamp = $envelope->last(\WpPack\Component\Messenger\Stamp\MultisiteStamp::class);
-        $switched = false;
 
-        if ($multisiteStamp !== null) {
-            switch_to_blog($multisiteStamp->blogId);
-            $switched = true;
-        }
-
-        try {
+        $dispatch = function () use ($envelope, $record): void {
             $existingStamps = $envelope->all();
             $this->messageBus->dispatch(
                 $envelope->getMessage(),
@@ -88,10 +85,12 @@ final class SqsEventHandler
                 'messageId' => $record['messageId'],
                 'messageClass' => $envelope->getMessage()::class,
             ]);
-        } finally {
-            if ($switched) {
-                restore_current_blog();
-            }
+        };
+
+        if ($multisiteStamp !== null) {
+            $this->blogSwitcher->runInBlog($multisiteStamp->blogId, $dispatch);
+        } else {
+            $dispatch();
         }
     }
 

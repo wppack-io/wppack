@@ -405,7 +405,8 @@ final class S3StoragePluginServiceProviderTest extends TestCase
             prefix: 'uploads',
         );
 
-        $registrar = S3StoragePluginServiceProvider::createAttachmentRegistrar($bus, $config);
+        $blogSwitcher = $this->createMock(\WpPack\Component\Site\BlogSwitcherInterface::class);
+        $registrar = S3StoragePluginServiceProvider::createAttachmentRegistrar($bus, $config, $blogSwitcher);
 
         self::assertInstanceOf(AttachmentRegistrar::class, $registrar);
     }
@@ -421,7 +422,8 @@ final class S3StoragePluginServiceProviderTest extends TestCase
             prefix: 'uploads',
         );
 
-        $registrar = S3StoragePluginServiceProvider::createAttachmentRegistrar($bus, $config, $logger);
+        $blogSwitcher = $this->createMock(\WpPack\Component\Site\BlogSwitcherInterface::class);
+        $registrar = S3StoragePluginServiceProvider::createAttachmentRegistrar($bus, $config, $blogSwitcher, $logger);
 
         self::assertInstanceOf(AttachmentRegistrar::class, $registrar);
     }

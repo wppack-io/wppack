@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Security\Bridge\OAuth\Multisite;
 
+use WpPack\Component\Site\BlogContext;
+use WpPack\Component\Site\BlogContextInterface;
+use WpPack\Component\Site\SiteRepository;
+use WpPack\Component\Site\SiteRepositoryInterface;
+
 final class CrossSiteRedirector
 {
     private const TOKEN_TTL = 120;
@@ -15,6 +20,8 @@ final class CrossSiteRedirector
     public function __construct(
         private readonly array $allowedHosts = [],
         private readonly string $verifyPath = '/oauth/verify',
+        private readonly BlogContextInterface $blogContext = new BlogContext(),
+        private readonly SiteRepositoryInterface $siteRepository = new SiteRepository(),
     ) {}
 
     public function needsRedirect(string $targetUrl): bool
@@ -116,7 +123,7 @@ final class CrossSiteRedirector
 
     public function resolveBlogId(string $url): ?int
     {
-        if (!is_multisite()) {
+        if (!$this->blogContext->isMultisite()) {
             return null;
         }
 
@@ -127,9 +134,7 @@ final class CrossSiteRedirector
             return null;
         }
 
-        $blogId = get_blog_id_from_url($host, $path);
-
-        return $blogId > 0 ? $blogId : null;
+        return $this->siteRepository->findByUrl($host, $path);
     }
 
     private function isHostAllowed(string $host): bool
@@ -138,13 +143,11 @@ final class CrossSiteRedirector
             return true;
         }
 
-        if (is_multisite()) {
-            $sites = get_sites(['number' => 0]);
+        if ($this->blogContext->isMultisite()) {
+            $domains = $this->siteRepository->getAllDomains();
 
-            foreach ($sites as $site) {
-                if ($site->domain === $host) {
-                    return true;
-                }
+            if (in_array($host, $domains, true)) {
+                return true;
             }
         }
 

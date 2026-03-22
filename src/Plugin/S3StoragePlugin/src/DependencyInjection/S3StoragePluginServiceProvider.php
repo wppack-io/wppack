@@ -14,6 +14,10 @@ use WpPack\Component\Media\Storage\Subscriber\AttachmentSubscriber;
 use WpPack\Component\Media\Storage\Subscriber\UploadDirSubscriber;
 use WpPack\Component\Media\Storage\UrlResolver;
 use WpPack\Component\Messenger\MessageBusInterface;
+use WpPack\Component\Site\BlogContext;
+use WpPack\Component\Site\BlogContextInterface;
+use WpPack\Component\Site\BlogSwitcher;
+use WpPack\Component\Site\BlogSwitcherInterface;
 use WpPack\Component\Storage\Adapter\StorageAdapterInterface;
 use WpPack\Component\Storage\Bridge\S3\S3StorageAdapter;
 use WpPack\Component\Storage\StreamWrapper\StorageStreamWrapper;
@@ -33,6 +37,11 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
 {
     public function register(ContainerBuilder $builder): void
     {
+        // Site component services
+        $builder->register(BlogContextInterface::class, BlogContext::class);
+        $builder->register(BlogSwitcherInterface::class, BlogSwitcher::class)
+            ->addArgument(new Reference(BlogContextInterface::class));
+
         // Configuration
         $builder->register(S3StorageConfiguration::class)
             ->setFactory([S3StorageConfiguration::class, 'fromEnvironment']);
@@ -69,6 +78,7 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
         $builder->register(UploadDirSubscriber::class)
             ->addArgument(new Reference(StorageConfiguration::class))
             ->addArgument(new Reference(UrlResolver::class))
+            ->addArgument(new Reference(BlogContextInterface::class))
             ->addTag('hook.subscriber');
 
         $builder->register(AttachmentSubscriber::class)
@@ -92,7 +102,8 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
         $builder->register(AttachmentRegistrar::class)
             ->setFactory([self::class, 'createAttachmentRegistrar'])
             ->addArgument(new Reference(MessageBusInterface::class))
-            ->addArgument(new Reference(S3StorageConfiguration::class));
+            ->addArgument(new Reference(S3StorageConfiguration::class))
+            ->addArgument(new Reference(BlogSwitcherInterface::class));
 
         $builder->register(RegisterAttachmentController::class)
             ->addArgument(new Reference(AttachmentRegistrar::class))
@@ -119,6 +130,7 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
             ->addTag('messenger.message_handler');
 
         $builder->register(GenerateThumbnailsHandler::class)
+            ->addArgument(new Reference(BlogSwitcherInterface::class))
             ->addTag('messenger.message_handler');
     }
 
@@ -154,12 +166,14 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
     public static function createAttachmentRegistrar(
         MessageBusInterface $bus,
         S3StorageConfiguration $config,
+        BlogSwitcherInterface $blogSwitcher,
         ?LoggerInterface $logger = null,
     ): AttachmentRegistrar {
         return new AttachmentRegistrar(
             bus: $bus,
             prefix: $config->prefix,
             logger: $logger,
+            blogSwitcher: $blogSwitcher,
         );
     }
 

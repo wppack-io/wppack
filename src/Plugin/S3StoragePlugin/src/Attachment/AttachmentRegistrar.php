@@ -8,6 +8,7 @@ use Psr\Log\LoggerInterface;
 use WpPack\Component\Messenger\MessageBusInterface;
 use WpPack\Component\Mime\MimeTypes;
 use WpPack\Component\Mime\MimeTypesInterface;
+use WpPack\Component\Site\BlogSwitcherInterface;
 use WpPack\Plugin\S3StoragePlugin\Message\GenerateThumbnailsMessage;
 
 final readonly class AttachmentRegistrar
@@ -17,6 +18,7 @@ final readonly class AttachmentRegistrar
     public function __construct(
         private MessageBusInterface $bus,
         private string $prefix,
+        private BlogSwitcherInterface $blogSwitcher,
         ?MimeTypesInterface $mimeTypes = null,
         private ?LoggerInterface $logger = null,
     ) {
@@ -30,13 +32,8 @@ final readonly class AttachmentRegistrar
         }
 
         $blogId = $this->parseBlogId($key);
-        $isMultisite = $blogId > 1;
 
-        if ($isMultisite) {
-            switch_to_blog($blogId);
-        }
-
-        try {
+        return $this->blogSwitcher->runInBlogIfNeeded($blogId, function () use ($key, $blogId, $userId): ?int {
             $relativePath = $this->extractRelativePath($key, $blogId);
 
             $existingId = $this->findExistingAttachment($relativePath);
@@ -80,11 +77,7 @@ final readonly class AttachmentRegistrar
             }
 
             return $attachmentId > 0 ? $attachmentId : null;
-        } finally {
-            if ($isMultisite) {
-                restore_current_blog();
-            }
-        }
+        });
     }
 
     public function unregister(string $key): ?int
@@ -94,13 +87,8 @@ final readonly class AttachmentRegistrar
         }
 
         $blogId = $this->parseBlogId($key);
-        $isMultisite = $blogId > 1;
 
-        if ($isMultisite) {
-            switch_to_blog($blogId);
-        }
-
-        try {
+        return $this->blogSwitcher->runInBlogIfNeeded($blogId, function () use ($key, $blogId): ?int {
             $relativePath = $this->extractRelativePath($key, $blogId);
             $existingId = $this->findExistingAttachment($relativePath);
 
@@ -123,11 +111,7 @@ final readonly class AttachmentRegistrar
             }
 
             return $existingId;
-        } finally {
-            if ($isMultisite) {
-                restore_current_blog();
-            }
-        }
+        });
     }
 
     /**

@@ -7,10 +7,9 @@ namespace WpPack\Plugin\S3StoragePlugin\Tests\Handler;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Site\BlogSwitcher;
 use WpPack\Plugin\S3StoragePlugin\Handler\GenerateThumbnailsHandler;
 use WpPack\Plugin\S3StoragePlugin\Message\GenerateThumbnailsMessage;
-
-require_once __DIR__ . '/multisite-polyfill.php';
 
 #[CoversClass(GenerateThumbnailsHandler::class)]
 final class GenerateThumbnailsHandlerTest extends TestCase
@@ -19,7 +18,7 @@ final class GenerateThumbnailsHandlerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->handler = new GenerateThumbnailsHandler(logger: null);
+        $this->handler = new GenerateThumbnailsHandler(blogSwitcher: new BlogSwitcher());
     }
 
     #[Test]

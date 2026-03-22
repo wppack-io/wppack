@@ -9,12 +9,11 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Messenger\Envelope;
 use WpPack\Component\Messenger\MessageBusInterface;
+use WpPack\Component\Site\BlogSwitcher;
 use WpPack\Plugin\S3StoragePlugin\Attachment\AttachmentRegistrar;
 use WpPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
 use WpPack\Plugin\S3StoragePlugin\Handler\S3ObjectCreatedHandler;
 use WpPack\Plugin\S3StoragePlugin\Message\S3ObjectCreatedMessage;
-
-require_once __DIR__ . '/multisite-polyfill.php';
 
 #[CoversClass(S3ObjectCreatedHandler::class)]
 final class S3ObjectCreatedHandlerTest extends TestCase
@@ -36,6 +35,7 @@ final class S3ObjectCreatedHandlerTest extends TestCase
         $registrar = new AttachmentRegistrar(
             bus: $bus,
             prefix: 'uploads',
+            blogSwitcher: new BlogSwitcher(),
         );
 
         $handler = new S3ObjectCreatedHandler($registrar, $this->createConfig());
@@ -73,6 +73,7 @@ final class S3ObjectCreatedHandlerTest extends TestCase
         $registrar = new AttachmentRegistrar(
             bus: $bus,
             prefix: 'uploads',
+            blogSwitcher: new BlogSwitcher(),
         );
 
         $handler = new S3ObjectCreatedHandler($registrar, $this->createConfig());
@@ -96,6 +97,7 @@ final class S3ObjectCreatedHandlerTest extends TestCase
         $registrar = new AttachmentRegistrar(
             bus: $bus,
             prefix: 'uploads',
+            blogSwitcher: new BlogSwitcher(),
         );
 
         $handler = new S3ObjectCreatedHandler($registrar, $this->createConfig('expected-bucket'));
@@ -120,6 +122,7 @@ final class S3ObjectCreatedHandlerTest extends TestCase
         $registrar = new AttachmentRegistrar(
             bus: $bus,
             prefix: 'uploads',
+            blogSwitcher: new BlogSwitcher(),
         );
 
         $handler = new S3ObjectCreatedHandler($registrar, $this->createConfig());

@@ -6,24 +6,20 @@ namespace WpPack\Plugin\S3StoragePlugin\Handler;
 
 use Psr\Log\LoggerInterface;
 use WpPack\Component\Messenger\Attribute\AsMessageHandler;
+use WpPack\Component\Site\BlogSwitcherInterface;
 use WpPack\Plugin\S3StoragePlugin\Message\GenerateThumbnailsMessage;
 
 #[AsMessageHandler]
 final readonly class GenerateThumbnailsHandler
 {
     public function __construct(
+        private BlogSwitcherInterface $blogSwitcher,
         private ?LoggerInterface $logger = null,
     ) {}
 
     public function __invoke(GenerateThumbnailsMessage $message): void
     {
-        $isMultisite = $message->blogId > 1;
-
-        if ($isMultisite) {
-            switch_to_blog($message->blogId);
-        }
-
-        try {
+        $this->blogSwitcher->runInBlogIfNeeded($message->blogId, function () use ($message): void {
             $file = get_attached_file($message->attachmentId);
 
             if (!\is_string($file) || $file === '') {
@@ -43,10 +39,6 @@ final readonly class GenerateThumbnailsHandler
                     'id' => $message->attachmentId,
                 ]);
             }
-        } finally {
-            if ($isMultisite) {
-                restore_current_blog();
-            }
-        }
+        });
     }
 }

@@ -9,11 +9,10 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Messenger\MessageBusInterface;
+use WpPack\Component\Site\BlogSwitcher;
 use WpPack\Component\Storage\Adapter\StorageAdapterInterface;
 use WpPack\Plugin\S3StoragePlugin\Attachment\AttachmentRegistrar;
 use WpPack\Plugin\S3StoragePlugin\Attachment\RegisterAttachmentController;
-
-require_once __DIR__ . '/../Handler/multisite-polyfill.php';
 
 #[CoversClass(RegisterAttachmentController::class)]
 final class RegisterAttachmentControllerTest extends TestCase
@@ -25,6 +24,7 @@ final class RegisterAttachmentControllerTest extends TestCase
         $registrar ??= new AttachmentRegistrar(
             bus: $this->createMock(MessageBusInterface::class),
             prefix: 'uploads',
+            blogSwitcher: new BlogSwitcher(),
         );
         $adapter ??= $this->createMock(StorageAdapterInterface::class);
 
@@ -89,6 +89,7 @@ final class RegisterAttachmentControllerTest extends TestCase
         $registrar = new AttachmentRegistrar(
             bus: $bus,
             prefix: 'uploads',
+            blogSwitcher: new BlogSwitcher(),
         );
 
         $controller = $this->createController(registrar: $registrar, adapter: $adapter);
@@ -115,6 +116,7 @@ final class RegisterAttachmentControllerTest extends TestCase
         $registrar = new AttachmentRegistrar(
             bus: $bus,
             prefix: 'uploads',
+            blogSwitcher: new BlogSwitcher(),
         );
 
         $controller = $this->createController(registrar: $registrar, adapter: $adapter);
@@ -141,6 +143,7 @@ final class RegisterAttachmentControllerTest extends TestCase
         $registrar = new AttachmentRegistrar(
             bus: $bus,
             prefix: 'uploads',
+            blogSwitcher: new BlogSwitcher(),
         );
 
         $controller = $this->createController(registrar: $registrar, adapter: $adapter);

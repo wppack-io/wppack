@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Media\Storage\Subscriber;
 
-use WpPack\Component\Hook\Attribute\Filesystem\Filter\UploadDirFilter;
 use WpPack\Component\Hook\Attribute\AsHookSubscriber;
+use WpPack\Component\Hook\Attribute\Filesystem\Filter\UploadDirFilter;
 use WpPack\Component\Media\Storage\StorageConfiguration;
 use WpPack\Component\Media\Storage\UrlResolver;
+use WpPack\Component\Site\BlogContext;
+use WpPack\Component\Site\BlogContextInterface;
 
 #[AsHookSubscriber]
 final readonly class UploadDirSubscriber
@@ -15,6 +17,7 @@ final readonly class UploadDirSubscriber
     public function __construct(
         private StorageConfiguration $config,
         private UrlResolver $urlResolver,
+        private BlogContextInterface $blogContext = new BlogContext(),
     ) {}
 
     /**
@@ -31,8 +34,8 @@ final readonly class UploadDirSubscriber
 
         // Preserve multisite subdirectory (e.g., /sites/2/)
         $siteSubdir = '';
-        if (is_multisite()) {
-            $blogId = get_current_blog_id();
+        if ($this->blogContext->isMultisite()) {
+            $blogId = $this->blogContext->getCurrentBlogId();
             if ($blogId > 1) {
                 $siteSubdir = '/sites/' . $blogId;
             }
