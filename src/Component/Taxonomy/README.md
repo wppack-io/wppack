@@ -17,7 +17,8 @@ use WpPack\Component\Taxonomy\TermRepository;
 
 $repository = new TermRepository();
 
-// Find a term
+// Find terms
+$terms = $repository->findAll(['taxonomy' => 'category']);
 $term = $repository->find($termId, 'category');
 $term = $repository->findBySlug('my-term', 'category');
 

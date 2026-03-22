@@ -20,6 +20,43 @@ final class TermRepositoryTest extends TestCase
     }
 
     #[Test]
+    public function findAllReturnsArray(): void
+    {
+        $terms = $this->repository->findAll(['taxonomy' => 'category']);
+
+        self::assertIsArray($terms);
+    }
+
+    #[Test]
+    public function existsWithParentIdNullDoesNotFilterByParent(): void
+    {
+        $parentResult = wp_insert_term('Parent Exists ' . uniqid(), 'category');
+        self::assertIsArray($parentResult);
+
+        $parentId = (int) $parentResult['term_id'];
+        $childName = 'Child Exists ' . uniqid();
+        $childResult = wp_insert_term($childName, 'category', ['parent' => $parentId]);
+        self::assertIsArray($childResult);
+
+        $childId = (int) $childResult['term_id'];
+
+        // Without parentId — should find the child regardless of parent
+        $foundId = $this->repository->exists($childName, 'category');
+        self::assertSame($childId, $foundId);
+
+        // With explicit parentId — should find only under that parent
+        $foundId = $this->repository->exists($childName, 'category', $parentId);
+        self::assertSame($childId, $foundId);
+
+        // With parentId = 0 — should NOT find the child (it's not top-level)
+        $foundId = $this->repository->exists($childName, 'category', 0);
+        self::assertNull($foundId);
+
+        wp_delete_term($childId, 'category');
+        wp_delete_term($parentId, 'category');
+    }
+
+    #[Test]
     public function findReturnsTermForValidId(): void
     {
         $result = wp_insert_term('Test Find ' . uniqid(), 'category');

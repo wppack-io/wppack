@@ -66,10 +66,16 @@ use WpPack\Component\Site\SiteRepository;
 $repository = new SiteRepository();
 
 $sites = $repository->findAll();
-$site = $repository->findById(2);
-$blogId = $repository->findByUrl('example.com', '/blog/');
-$blogId = $repository->findBySlug('myblog');
+$site = $repository->find(2);
+$site = $repository->findByUrl('example.com', '/blog/');
+$site = $repository->findBySlug('myblog');
 $domains = $repository->getAllDomains();
+
+// Meta operations
+$repository->addMeta($blogId, 'custom_key', 'value');
+$value = $repository->getMeta($blogId, 'custom_key', single: true);
+$repository->updateMeta($blogId, 'custom_key', 'new_value');
+$repository->deleteMeta($blogId, 'custom_key');
 ```
 
 ## Documentation

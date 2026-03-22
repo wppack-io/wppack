@@ -6,6 +6,13 @@ namespace WpPack\Component\Taxonomy;
 
 interface TermRepositoryInterface
 {
+    /**
+     * @param array<string, mixed> $args get_terms() arguments
+     *
+     * @return list<\WP_Term>|\WP_Error
+     */
+    public function findAll(array $args = []): array|\WP_Error;
+
     public function find(int $termId, string $taxonomy = ''): ?\WP_Term;
 
     public function findBySlug(string $slug, string $taxonomy): ?\WP_Term;

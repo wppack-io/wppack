@@ -6,6 +6,13 @@ namespace WpPack\Component\User;
 
 interface UserRepositoryInterface
 {
+    /**
+     * @param array<string, mixed> $args get_users() arguments
+     *
+     * @return list<\WP_User>
+     */
+    public function findAll(array $args = []): array;
+
     public function find(int $userId): ?\WP_User;
 
     public function findByEmail(string $email): ?\WP_User;

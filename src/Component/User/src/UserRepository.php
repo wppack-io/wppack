@@ -6,6 +6,15 @@ namespace WpPack\Component\User;
 
 final readonly class UserRepository implements UserRepositoryInterface
 {
+    public function findAll(array $args = []): array
+    {
+        if (!\function_exists('get_users')) {
+            return [];
+        }
+
+        return get_users($args);
+    }
+
     public function find(int $userId): ?\WP_User
     {
         if (!\function_exists('get_userdata')) {

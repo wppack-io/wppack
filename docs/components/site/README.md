@@ -52,7 +52,7 @@ $blogId = $this->blogContext->getCurrentBlogId();
 $name = $this->blogSwitcher->runInBlog(2, fn () => get_option('blogname'));
 
 // サイト検索 — null 安全な戻り値
-$site = $this->siteRepository->findById(2);
+$site = $this->siteRepository->find(2);
 ```
 
 ## BlogContext
@@ -170,10 +170,14 @@ $result = $switcher->runInBlog(1, fn () => 'ok');
 | メソッド | 説明 | WordPress 関数 |
 |---------|------|----------------|
 | `findAll(array $args = []): array` | 全サイトを取得（`get_sites()` 引数対応） | `get_sites()` |
-| `findById(int $blogId): ?WP_Site` | ブログ ID でサイトを取得 | `get_blog_details()` |
-| `findByUrl(string $domain, string $path = '/'): ?int` | ドメイン + パスからブログ ID を解決 | `get_blog_id_from_url()` |
-| `findBySlug(string $slug): ?int` | スラッグからブログ ID を解決 | `get_id_from_blogname()` |
+| `find(int $blogId): ?WP_Site` | ブログ ID でサイトを取得 | `get_blog_details()` |
+| `findByUrl(string $domain, string $path = '/'): ?WP_Site` | ドメイン + パスからサイトを取得 | `get_blog_id_from_url()` + `get_blog_details()` |
+| `findBySlug(string $slug): ?WP_Site` | スラッグからサイトを取得 | `get_id_from_blogname()` + `get_blog_details()` |
 | `getAllDomains(): array` | 全サイトのユニークなドメイン一覧 | `get_sites()` + 重複排除 |
+| `getMeta(int $blogId, string $key, bool $single): mixed` | サイトメタを取得 | `get_site_meta()` |
+| `addMeta(int $blogId, string $key, mixed $value, bool $unique): int\|false` | サイトメタを追加 | `add_site_meta()` |
+| `updateMeta(int $blogId, string $key, mixed $value, mixed $previousValue): int\|bool` | サイトメタを更新 | `update_site_meta()` |
+| `deleteMeta(int $blogId, string $key, mixed $value): bool` | サイトメタを削除 | `delete_site_meta()` |
 
 ### 使用例
 
@@ -189,20 +193,26 @@ $sites = $repository->findAll();
 $sites = $repository->findAll(['public' => 1, 'number' => 10]);
 
 // ID で取得
-$site = $repository->findById(2);
+$site = $repository->find(2);
 // => WP_Site | null
 
-// URL からブログ ID を解決
-$blogId = $repository->findByUrl('example.com', '/blog/');
-// => int | null
+// URL からサイトを取得
+$site = $repository->findByUrl('example.com', '/blog/');
+// => WP_Site | null
 
-// スラッグから解決
-$blogId = $repository->findBySlug('myblog');
-// => int | null
+// スラッグからサイトを取得
+$site = $repository->findBySlug('myblog');
+// => WP_Site | null
 
 // 全ドメイン一覧
 $domains = $repository->getAllDomains();
 // => ['example.com', 'sub.example.com']
+
+// メタデータ操作
+$repository->addMeta($blogId, 'custom_key', 'value');
+$value = $repository->getMeta($blogId, 'custom_key', single: true);
+$repository->updateMeta($blogId, 'custom_key', 'new_value');
+$repository->deleteMeta($blogId, 'custom_key');
 ```
 
 ## DI パターン

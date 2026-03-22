@@ -15,7 +15,7 @@ final readonly class SiteRepository implements SiteRepositoryInterface
         return get_sites($args);
     }
 
-    public function findById(int $blogId): ?\WP_Site
+    public function find(int $blogId): ?\WP_Site
     {
         if (!\function_exists('get_blog_details')) {
             return null;
@@ -26,7 +26,7 @@ final readonly class SiteRepository implements SiteRepositoryInterface
         return $site instanceof \WP_Site ? $site : null;
     }
 
-    public function findByUrl(string $domain, string $path = '/'): ?int
+    public function findByUrl(string $domain, string $path = '/'): ?\WP_Site
     {
         if (!\function_exists('get_blog_id_from_url')) {
             return null;
@@ -34,16 +34,18 @@ final readonly class SiteRepository implements SiteRepositoryInterface
 
         $id = get_blog_id_from_url($domain, $path);
 
-        return $id > 0 ? $id : null;
+        return $id > 0 ? $this->find($id) : null;
     }
 
-    public function findBySlug(string $slug): ?int
+    public function findBySlug(string $slug): ?\WP_Site
     {
         if (!\function_exists('get_id_from_blogname')) {
             return null;
         }
 
-        return get_id_from_blogname($slug);
+        $id = get_id_from_blogname($slug);
+
+        return $id > 0 ? $this->find($id) : null;
     }
 
     public function getAllDomains(): array
@@ -57,5 +59,41 @@ final readonly class SiteRepository implements SiteRepositoryInterface
         return array_values(array_unique(
             array_map(static fn(\WP_Site $site): string => $site->domain, $sites),
         ));
+    }
+
+    public function getMeta(int $blogId, string $key = '', bool $single = false): mixed
+    {
+        if (!\function_exists('get_site_meta')) {
+            return $single ? '' : [];
+        }
+
+        return get_site_meta($blogId, $key, $single);
+    }
+
+    public function addMeta(int $blogId, string $key, mixed $value, bool $unique = false): int|false
+    {
+        if (!\function_exists('add_site_meta')) {
+            return false;
+        }
+
+        return add_site_meta($blogId, $key, $value, $unique);
+    }
+
+    public function updateMeta(int $blogId, string $key, mixed $value, mixed $previousValue = ''): int|bool
+    {
+        if (!\function_exists('update_site_meta')) {
+            return false;
+        }
+
+        return update_site_meta($blogId, $key, $value, $previousValue);
+    }
+
+    public function deleteMeta(int $blogId, string $key, mixed $value = ''): bool
+    {
+        if (!\function_exists('delete_site_meta')) {
+            return false;
+        }
+
+        return delete_site_meta($blogId, $key, $value);
     }
 }

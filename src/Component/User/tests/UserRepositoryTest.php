@@ -20,6 +20,14 @@ final class UserRepositoryTest extends TestCase
     }
 
     #[Test]
+    public function findAllReturnsArray(): void
+    {
+        $users = $this->repository->findAll();
+
+        self::assertIsArray($users);
+    }
+
+    #[Test]
     public function findReturnsUserForValidId(): void
     {
         $userId = wp_insert_user([

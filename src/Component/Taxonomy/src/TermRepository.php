@@ -6,6 +6,15 @@ namespace WpPack\Component\Taxonomy;
 
 final readonly class TermRepository implements TermRepositoryInterface
 {
+    public function findAll(array $args = []): array|\WP_Error
+    {
+        if (!\function_exists('get_terms')) {
+            return [];
+        }
+
+        return get_terms($args);
+    }
+
     public function find(int $termId, string $taxonomy = ''): ?\WP_Term
     {
         if (!\function_exists('get_term')) {
@@ -33,7 +42,7 @@ final readonly class TermRepository implements TermRepositoryInterface
             return null;
         }
 
-        $result = term_exists($term, $taxonomy !== '' ? $taxonomy : null, $parentId ?? 0);
+        $result = term_exists($term, $taxonomy !== '' ? $taxonomy : null, $parentId);
 
         if (\is_array($result)) {
             return (int) $result['term_id'];

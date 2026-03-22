@@ -17,7 +17,8 @@ use WpPack\Component\User\UserRepository;
 
 $repository = new UserRepository();
 
-// Find a user
+// Find users
+$users = $repository->findAll(['role' => 'editor']);
 $user = $repository->find($userId);
 $user = $repository->findByEmail('user@example.com');
 

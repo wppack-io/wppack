@@ -86,6 +86,7 @@ use WpPack\Component\User\UserRepositoryInterface;
 $repository = new UserRepository();
 
 // ユーザーの取得
+$users = $repository->findAll(['role' => 'editor']);  // list<WP_User>
 $user = $repository->find($userId);              // WP_User|null
 $user = $repository->findByEmail('user@example.com');
 $user = $repository->findByLogin('username');

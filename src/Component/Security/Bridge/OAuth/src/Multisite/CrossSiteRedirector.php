@@ -134,7 +134,9 @@ final class CrossSiteRedirector
             return null;
         }
 
-        return $this->siteRepository->findByUrl($host, $path);
+        $site = $this->siteRepository->findByUrl($host, $path);
+
+        return $site !== null ? (int) $site->blog_id : null;
     }
 
     private function isHostAllowed(string $host): bool

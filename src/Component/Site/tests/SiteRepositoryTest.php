@@ -28,9 +28,9 @@ final class SiteRepositoryTest extends TestCase
     }
 
     #[Test]
-    public function findByIdReturnsNullForInvalidId(): void
+    public function findReturnsNullForInvalidId(): void
     {
-        $site = $this->repository->findById(999999);
+        $site = $this->repository->find(999999);
 
         self::assertNull($site);
     }
@@ -38,17 +38,17 @@ final class SiteRepositoryTest extends TestCase
     #[Test]
     public function findByUrlReturnsNullWhenNotFound(): void
     {
-        $id = $this->repository->findByUrl('nonexistent.example.com');
+        $site = $this->repository->findByUrl('nonexistent.example.com');
 
-        self::assertNull($id);
+        self::assertNull($site);
     }
 
     #[Test]
     public function findBySlugReturnsNullWhenNotFound(): void
     {
-        $id = $this->repository->findBySlug('nonexistent-slug-' . uniqid());
+        $site = $this->repository->findBySlug('nonexistent-slug-' . uniqid());
 
-        self::assertNull($id);
+        self::assertNull($site);
     }
 
     #[Test]
@@ -58,5 +58,41 @@ final class SiteRepositoryTest extends TestCase
 
         self::assertIsArray($domains);
         self::assertSame(array_values(array_unique($domains)), $domains);
+    }
+
+    #[Test]
+    public function metaCrud(): void
+    {
+        if (!is_multisite()) {
+            self::markTestSkipped('Site meta requires multisite.');
+        }
+
+        $blogId = get_current_blog_id();
+
+        // addMeta
+        $metaId = $this->repository->addMeta($blogId, 'test_site_key', 'test_value');
+        self::assertIsInt($metaId);
+        self::assertGreaterThan(0, $metaId);
+
+        // getMeta (single)
+        $value = $this->repository->getMeta($blogId, 'test_site_key', true);
+        self::assertSame('test_value', $value);
+
+        // getMeta (all for key)
+        $values = $this->repository->getMeta($blogId, 'test_site_key');
+        self::assertIsArray($values);
+        self::assertContains('test_value', $values);
+
+        // updateMeta
+        $this->repository->updateMeta($blogId, 'test_site_key', 'updated_value');
+        $value = $this->repository->getMeta($blogId, 'test_site_key', true);
+        self::assertSame('updated_value', $value);
+
+        // deleteMeta
+        $deleted = $this->repository->deleteMeta($blogId, 'test_site_key');
+        self::assertTrue($deleted);
+
+        $value = $this->repository->getMeta($blogId, 'test_site_key', true);
+        self::assertSame('', $value);
     }
 }

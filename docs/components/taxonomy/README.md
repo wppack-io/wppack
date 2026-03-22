@@ -103,6 +103,7 @@ use WpPack\Component\Taxonomy\TermRepositoryInterface;
 $repository = new TermRepository();
 
 // タームの取得
+$terms = $repository->findAll(['taxonomy' => 'category']);  // list<WP_Term>|WP_Error
 $term = $repository->find($termId, 'category');   // WP_Term|null
 $term = $repository->findBySlug('my-term', 'category');
 $term = $repository->findByName('My Term', 'category');
