@@ -31,12 +31,12 @@ use WpPack\Component\Admin\Attribute\AsAdminPage;
 )]
 class MyPluginPage extends AbstractAdminPage
 {
-    public function render(): void
+    public function __invoke(): string
     {
-        echo '<div class="wrap">';
-        echo '<h1>' . esc_html($this->label) . '</h1>';
-        echo '<p>Plugin content here.</p>';
-        echo '</div>';
+        return '<div class="wrap">'
+            . '<h1>' . esc_html($this->label) . '</h1>'
+            . '<p>Plugin content here.</p>'
+            . '</div>';
     }
 }
 ```
@@ -67,36 +67,76 @@ class MyPluginPage extends AbstractAdminPage
 )]
 class MyPluginSettingsPage extends AbstractAdminPage
 {
-    public function render(): void
+    public function __invoke(): string
     {
-        echo '<div class="wrap">';
-        echo '<h1>Settings</h1>';
-        echo '</div>';
+        return '<div class="wrap"><h1>Settings</h1></div>';
     }
 }
 ```
 
-### スクリプト・スタイルのエンキュー
+### アセットのエンキュー
 
-`enqueueScripts()` / `enqueueStyles()` をオーバーライドすると、そのページでのみアセットがロードされます（hookSuffix によるページスコープ）。
+`enqueue()` をオーバーライドすると、そのページでのみアセットがロードされます。ページスコーピング（hookSuffix による判定）は自動で行われるため、サブクラスは hookSuffix を意識する必要はありません。
 
 ```php
 #[AsAdminPage(slug: 'my-plugin', label: 'My Plugin')]
 class MyPluginPage extends AbstractAdminPage
 {
-    public function render(): void
+    public function __invoke(): string
     {
-        echo '<div class="wrap"><h1>My Plugin</h1></div>';
+        return '<div class="wrap"><h1>My Plugin</h1></div>';
     }
 
-    protected function enqueueScripts(string $hookSuffix): void
+    protected function enqueue(): void
     {
         wp_enqueue_script('my-plugin-admin', plugins_url('assets/js/admin.js', MY_PLUGIN_FILE));
-    }
-
-    protected function enqueueStyles(string $hookSuffix): void
-    {
         wp_enqueue_style('my-plugin-admin', plugins_url('assets/css/admin.css', MY_PLUGIN_FILE));
+    }
+}
+```
+
+### Templating 連携
+
+`AdminPageRegistry` に `TemplateRendererInterface` を渡すと、登録時に各ページへ自動注入されます。`render()` ショートカットメソッドで `__invoke()` 内から簡潔にテンプレートを呼び出せます。
+
+```php
+use WpPack\Component\Admin\AdminPageRegistry;
+use WpPack\Component\Templating\TemplateRendererInterface;
+
+// Registry に TemplateRendererInterface を渡す
+$registry = new AdminPageRegistry($renderer);
+$registry->register(new MyPluginPage());
+```
+
+```php
+#[AsAdminPage(slug: 'my-plugin', label: 'My Plugin')]
+class MyPluginPage extends AbstractAdminPage
+{
+    // render() ショートカットを使用
+    public function __invoke(): string
+    {
+        return $this->render('admin/my-plugin.html.twig', [
+            'label' => $this->label,
+        ]);
+    }
+}
+```
+
+DI コンテナで直接 `TemplateRendererInterface` を注入する場合は、コンストラクタインジェクションも引き続き利用できます。
+
+```php
+#[AsAdminPage(slug: 'my-plugin', label: 'My Plugin')]
+class MyPluginPage extends AbstractAdminPage
+{
+    public function __construct(
+        private readonly TemplateRendererInterface $renderer,
+    ) {}
+
+    public function __invoke(): string
+    {
+        return $this->renderer->render('admin/my-plugin.html.twig', [
+            'label' => $this->label,
+        ]);
     }
 }
 ```

@@ -121,9 +121,9 @@ class MyPluginSettings extends AbstractSettingsPage
 
 #### オプションメソッド
 
+- `__invoke(): string` — ページレンダリング（デフォルトは `SettingsRenderer` に委譲して出力をキャプチャ。オーバーライドすれば Templating 等で自由にレンダリング可能）
 - `sanitize(array $input): array` — サニタイズ（型変換・正規化）
 - `validate(array $input, ValidationContext $context): array` — バリデーション（エラー通知）
-- `render(): void` — ページレンダリング（`SettingsRenderer` に委譲）
 - `createRenderer(): SettingsRenderer` — レンダラーの生成（サブクラスでオーバーライド可能）
 
 #### ヘルパーメソッド
@@ -270,7 +270,7 @@ class MyPluginSettings extends AbstractSettingsPage { /* ... */ }
 
 ### SettingsRenderer
 
-ページとフィールドのテンプレートを一つのクラスに集約するレンダラーです。`AbstractSettingsPage::render()` は `SettingsRenderer::renderPage()` に委譲します。
+ページとフィールドのテンプレートを一つのクラスに集約するレンダラーです。`AbstractSettingsPage::__invoke()` はデフォルトで `SettingsRenderer::renderPage()` の出力をキャプチャして返します。
 
 デフォルトの `SettingsRenderer` は WordPress Admin 標準のHTMLを出力します。サブクラス化してプラグインごとにカスタマイズできます。
 
@@ -330,6 +330,41 @@ class MyPluginSettings extends AbstractSettingsPage
     }
 }
 ```
+
+### Templating 連携
+
+`SettingsRegistry` に `TemplateRendererInterface` を渡すと、登録時に各ページへ自動注入されます。`render()` ショートカットメソッドで `__invoke()` をオーバーライドし、テンプレートベースのレンダリングに切り替えることができます。
+
+```php
+use WpPack\Component\Setting\SettingsRegistry;
+use WpPack\Component\Templating\TemplateRendererInterface;
+
+// Registry に TemplateRendererInterface を渡す
+$registry = new SettingsRegistry($renderer);
+$registry->register(new MyPluginSettings());
+```
+
+```php
+#[AsSettingsPage(slug: 'my-plugin', label: 'My Plugin Settings')]
+class MyPluginSettings extends AbstractSettingsPage
+{
+    protected function configure(SettingsConfigurator $settings): void
+    {
+        $settings->section('general', 'General')
+            ->text('api_key', 'API Key');
+    }
+
+    // render() ショートカットで Templating に委譲
+    public function __invoke(): string
+    {
+        return $this->render('setting/my-plugin.html.twig', [
+            'page' => $this,
+        ]);
+    }
+}
+```
+
+> デフォルトの `__invoke()` は `SettingsRenderer::renderPage()` の出力を `ob_start()` でキャプチャして返します。`render()` ショートカットを使う場合は `__invoke()` をオーバーライドして Templating ベースのレンダリングに置き換えます。
 
 ## Named Hook アトリビュート
 

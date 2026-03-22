@@ -6,6 +6,7 @@ namespace WpPack\Component\Admin;
 
 use WpPack\Component\Admin\Attribute\AsAdminPage;
 use WpPack\Component\Role\Authorization\IsGrantedChecker;
+use WpPack\Component\Templating\TemplateRendererInterface;
 
 abstract class AbstractAdminPage
 {
@@ -17,9 +18,9 @@ abstract class AbstractAdminPage
     public readonly ?string $icon;
     public readonly ?int $position;
 
+    private ?TemplateRendererInterface $renderer = null;
     private ?string $hookSuffix = null;
-    private ?bool $hasEnqueueScriptsOverride = null;
-    private ?bool $hasEnqueueStylesOverride = null;
+    private ?bool $hasEnqueueOverride = null;
 
     public function __construct()
     {
@@ -36,11 +37,36 @@ abstract class AbstractAdminPage
         $this->position = $attribute->position;
     }
 
-    abstract public function render(): void;
+    abstract public function __invoke(): string;
 
-    protected function enqueueScripts(string $hookSuffix): void {}
+    /** @internal */
+    public function setTemplateRenderer(TemplateRendererInterface $renderer): void
+    {
+        $this->renderer = $renderer;
+    }
 
-    protected function enqueueStyles(string $hookSuffix): void {}
+    /**
+     * @param array<string, mixed> $context
+     */
+    protected function render(string $template, array $context = []): string
+    {
+        if ($this->renderer === null) {
+            throw new \LogicException(sprintf(
+                'A TemplateRendererInterface is not available. Call setTemplateRenderer() to use render() in "%s".',
+                static::class,
+            ));
+        }
+
+        return $this->renderer->render($template, $context);
+    }
+
+    /** @internal */
+    public function handleRender(): void
+    {
+        echo $this();
+    }
+
+    protected function enqueue(): void {}
 
     public function addMenuPage(): void
     {
@@ -51,7 +77,7 @@ abstract class AbstractAdminPage
                 $this->menuLabel,
                 $this->capability,
                 $this->slug,
-                $this->render(...),
+                $this->handleRender(...),
             );
         } else {
             $this->hookSuffix = add_menu_page(
@@ -59,7 +85,7 @@ abstract class AbstractAdminPage
                 $this->menuLabel,
                 $this->capability,
                 $this->slug,
-                $this->render(...),
+                $this->handleRender(...),
                 $this->icon ?? '',
                 $this->position,
             );
@@ -72,35 +98,18 @@ abstract class AbstractAdminPage
             return;
         }
 
-        if ($this->hasEnqueueScriptsOverride()) {
-            $this->enqueueScripts($hookSuffix);
-        }
-
-        if ($this->hasEnqueueStylesOverride()) {
-            $this->enqueueStyles($hookSuffix);
-        }
+        $this->enqueue();
     }
 
     /** @internal */
-    public function hasEnqueueScriptsOverride(): bool
+    public function hasEnqueueOverride(): bool
     {
-        if ($this->hasEnqueueScriptsOverride === null) {
-            $method = new \ReflectionMethod($this, 'enqueueScripts');
-            $this->hasEnqueueScriptsOverride = $method->getDeclaringClass()->getName() !== self::class;
+        if ($this->hasEnqueueOverride === null) {
+            $method = new \ReflectionMethod($this, 'enqueue');
+            $this->hasEnqueueOverride = $method->getDeclaringClass()->getName() !== self::class;
         }
 
-        return $this->hasEnqueueScriptsOverride;
-    }
-
-    /** @internal */
-    public function hasEnqueueStylesOverride(): bool
-    {
-        if ($this->hasEnqueueStylesOverride === null) {
-            $method = new \ReflectionMethod($this, 'enqueueStyles');
-            $this->hasEnqueueStylesOverride = $method->getDeclaringClass()->getName() !== self::class;
-        }
-
-        return $this->hasEnqueueStylesOverride;
+        return $this->hasEnqueueOverride;
     }
 
     /**

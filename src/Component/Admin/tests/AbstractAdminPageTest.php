@@ -9,6 +9,7 @@ use PHPUnit\Framework\TestCase;
 use WpPack\Component\Admin\AbstractAdminPage;
 use WpPack\Component\Admin\Attribute\AsAdminPage;
 use WpPack\Component\Role\Attribute\IsGranted;
+use WpPack\Component\Templating\TemplateRendererInterface;
 
 final class AbstractAdminPageTest extends TestCase
 {
@@ -94,35 +95,19 @@ final class AbstractAdminPageTest extends TestCase
     }
 
     #[Test]
-    public function hasEnqueueScriptsOverrideReturnsFalseByDefault(): void
+    public function hasEnqueueOverrideReturnsFalseByDefault(): void
     {
         $page = new MinimalTestAdminPage();
 
-        self::assertFalse($page->hasEnqueueScriptsOverride());
+        self::assertFalse($page->hasEnqueueOverride());
     }
 
     #[Test]
-    public function hasEnqueueScriptsOverrideReturnsTrueWhenOverridden(): void
+    public function hasEnqueueOverrideReturnsTrueWhenOverridden(): void
     {
-        $page = new EnqueueScriptsTestAdminPage();
+        $page = new EnqueueTestAdminPage();
 
-        self::assertTrue($page->hasEnqueueScriptsOverride());
-    }
-
-    #[Test]
-    public function hasEnqueueStylesOverrideReturnsFalseByDefault(): void
-    {
-        $page = new MinimalTestAdminPage();
-
-        self::assertFalse($page->hasEnqueueStylesOverride());
-    }
-
-    #[Test]
-    public function hasEnqueueStylesOverrideReturnsTrueWhenOverridden(): void
-    {
-        $page = new EnqueueStylesTestAdminPage();
-
-        self::assertTrue($page->hasEnqueueStylesOverride());
+        self::assertTrue($page->hasEnqueueOverride());
     }
 
     #[Test]
@@ -148,12 +133,20 @@ final class AbstractAdminPageTest extends TestCase
     }
 
     #[Test]
-    public function renderIsCalled(): void
+    public function invokeReturnsString(): void
+    {
+        $page = new ConcreteTestAdminPage();
+
+        self::assertSame('<div>admin page content</div>', $page());
+    }
+
+    #[Test]
+    public function handleRenderEchoesInvokeOutput(): void
     {
         $page = new ConcreteTestAdminPage();
 
         ob_start();
-        $page->render();
+        $page->handleRender();
         $output = ob_get_clean();
 
         self::assertSame('<div>admin page content</div>', $output);
@@ -202,7 +195,7 @@ final class AbstractAdminPageTest extends TestCase
     #[Test]
     public function handleEnqueueCallsOnlyOnMatchingHookSuffix(): void
     {
-        $page = new EnqueueScriptsTestAdminPage();
+        $page = new EnqueueTestAdminPage();
         $page->addMenuPage();
 
         // Get hookSuffix via reflection
@@ -213,45 +206,66 @@ final class AbstractAdminPageTest extends TestCase
 
         // Should not throw or error when called with matching hookSuffix
         $page->handleEnqueue($hookSuffix);
-        self::assertTrue($page->scriptsEnqueued);
+        self::assertTrue($page->enqueued);
     }
 
     #[Test]
     public function handleEnqueueSkipsWhenHookSuffixDiffers(): void
     {
-        $page = new EnqueueScriptsTestAdminPage();
+        $page = new EnqueueTestAdminPage();
         $page->addMenuPage();
 
         $page->handleEnqueue('some_other_page');
-        self::assertFalse($page->scriptsEnqueued);
-    }
-
-    #[Test]
-    public function handleEnqueueCallsStylesOnMatchingHookSuffix(): void
-    {
-        $page = new EnqueueBothTestAdminPage();
-        $page->addMenuPage();
-
-        $ref = new \ReflectionProperty(AbstractAdminPage::class, 'hookSuffix');
-        $hookSuffix = $ref->getValue($page);
-
-        self::assertNotNull($hookSuffix);
-
-        $page->handleEnqueue($hookSuffix);
-
-        self::assertTrue($page->scriptsEnqueued);
-        self::assertTrue($page->stylesEnqueued);
+        self::assertFalse($page->enqueued);
     }
 
     #[Test]
     public function handleEnqueueBeforeAddMenuPageSkips(): void
     {
-        $page = new EnqueueScriptsTestAdminPage();
+        $page = new EnqueueTestAdminPage();
 
         // hookSuffix is null before addMenuPage is called
         $page->handleEnqueue('any-page');
 
-        self::assertFalse($page->scriptsEnqueued);
+        self::assertFalse($page->enqueued);
+    }
+
+    #[Test]
+    public function renderDelegatesToTemplateRenderer(): void
+    {
+        $renderer = $this->createMock(TemplateRendererInterface::class);
+        $renderer->expects(self::once())
+            ->method('render')
+            ->with('admin/test.html.twig', ['key' => 'value'])
+            ->willReturn('<div>rendered</div>');
+
+        $page = new TemplatingTestAdminPage();
+        $page->setTemplateRenderer($renderer);
+
+        self::assertSame('<div>rendered</div>', $page());
+    }
+
+    #[Test]
+    public function renderThrowsLogicExceptionWithoutRenderer(): void
+    {
+        $page = new TemplatingTestAdminPage();
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('TemplateRendererInterface is not available');
+
+        $page();
+    }
+
+    #[Test]
+    public function setTemplateRendererSetsRenderer(): void
+    {
+        $renderer = $this->createMock(TemplateRendererInterface::class);
+        $renderer->method('render')->willReturn('<p>ok</p>');
+
+        $page = new TemplatingTestAdminPage();
+        $page->setTemplateRenderer($renderer);
+
+        self::assertSame('<p>ok</p>', $page());
     }
 }
 
@@ -264,18 +278,18 @@ final class AbstractAdminPageTest extends TestCase
 )]
 class ConcreteTestAdminPage extends AbstractAdminPage
 {
-    public function render(): void
+    public function __invoke(): string
     {
-        echo '<div>admin page content</div>';
+        return '<div>admin page content</div>';
     }
 }
 
 #[AsAdminPage(slug: 'minimal-page', label: 'Minimal Page')]
 class MinimalTestAdminPage extends AbstractAdminPage
 {
-    public function render(): void
+    public function __invoke(): string
     {
-        echo '';
+        return '';
     }
 }
 
@@ -286,47 +300,33 @@ class MinimalTestAdminPage extends AbstractAdminPage
 )]
 class SubmenuTestAdminPage extends AbstractAdminPage
 {
-    public function render(): void
+    public function __invoke(): string
     {
-        echo '<div>submenu content</div>';
+        return '<div>submenu content</div>';
     }
 }
 
 class NoAttributeTestAdminPage extends AbstractAdminPage
 {
-    public function render(): void
+    public function __invoke(): string
     {
-        echo '';
+        return '';
     }
 }
 
-#[AsAdminPage(slug: 'enqueue-scripts-page', label: 'Enqueue Scripts Page')]
-class EnqueueScriptsTestAdminPage extends AbstractAdminPage
+#[AsAdminPage(slug: 'enqueue-test-page', label: 'Enqueue Test Page')]
+class EnqueueTestAdminPage extends AbstractAdminPage
 {
-    public bool $scriptsEnqueued = false;
+    public bool $enqueued = false;
 
-    public function render(): void
+    public function __invoke(): string
     {
-        echo '';
+        return '';
     }
 
-    protected function enqueueScripts(string $hookSuffix): void
+    protected function enqueue(): void
     {
-        $this->scriptsEnqueued = true;
-    }
-}
-
-#[AsAdminPage(slug: 'enqueue-styles-page', label: 'Enqueue Styles Page')]
-class EnqueueStylesTestAdminPage extends AbstractAdminPage
-{
-    public function render(): void
-    {
-        echo '';
-    }
-
-    protected function enqueueStyles(string $hookSuffix): void
-    {
-        // styles enqueued
+        $this->enqueued = true;
     }
 }
 
@@ -339,30 +339,17 @@ class EnqueueStylesTestAdminPage extends AbstractAdminPage
 )]
 class FullAttributeTestAdminPage extends AbstractAdminPage
 {
-    public function render(): void
+    public function __invoke(): string
     {
-        echo '';
+        return '';
     }
 }
 
-#[AsAdminPage(slug: 'enqueue-both-page', label: 'Enqueue Both Page')]
-class EnqueueBothTestAdminPage extends AbstractAdminPage
+#[AsAdminPage(slug: 'templating-test-page', label: 'Templating Test Page')]
+class TemplatingTestAdminPage extends AbstractAdminPage
 {
-    public bool $scriptsEnqueued = false;
-    public bool $stylesEnqueued = false;
-
-    public function render(): void
+    public function __invoke(): string
     {
-        echo '';
-    }
-
-    protected function enqueueScripts(string $hookSuffix): void
-    {
-        $this->scriptsEnqueued = true;
-    }
-
-    protected function enqueueStyles(string $hookSuffix): void
-    {
-        $this->stylesEnqueued = true;
+        return $this->render('admin/test.html.twig', ['key' => 'value']);
     }
 }

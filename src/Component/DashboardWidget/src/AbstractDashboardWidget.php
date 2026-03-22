@@ -7,6 +7,7 @@ namespace WpPack\Component\DashboardWidget;
 use WpPack\Component\DashboardWidget\Attribute\AsDashboardWidget;
 use WpPack\Component\Role\Attribute\IsGranted;
 use WpPack\Component\Role\Authorization\IsGrantedChecker;
+use WpPack\Component\Templating\TemplateRendererInterface;
 
 abstract class AbstractDashboardWidget
 {
@@ -19,6 +20,8 @@ abstract class AbstractDashboardWidget
     private readonly array $isGrantedAttributes;
 
     private readonly IsGrantedChecker $isGrantedChecker;
+
+    private ?TemplateRendererInterface $renderer = null;
 
     public function __construct(?IsGrantedChecker $isGrantedChecker = null)
     {
@@ -34,7 +37,34 @@ abstract class AbstractDashboardWidget
         $this->isGrantedChecker = $isGrantedChecker ?? new IsGrantedChecker();
     }
 
-    abstract public function render(): void;
+    abstract public function __invoke(): string;
+
+    /** @internal */
+    public function setTemplateRenderer(TemplateRendererInterface $renderer): void
+    {
+        $this->renderer = $renderer;
+    }
+
+    /**
+     * @param array<string, mixed> $context
+     */
+    protected function render(string $template, array $context = []): string
+    {
+        if ($this->renderer === null) {
+            throw new \LogicException(sprintf(
+                'A TemplateRendererInterface is not available. Call setTemplateRenderer() to use render() in "%s".',
+                static::class,
+            ));
+        }
+
+        return $this->renderer->render($template, $context);
+    }
+
+    /** @internal */
+    public function handleRender(): void
+    {
+        echo $this();
+    }
 
     public function configure(): void {}
 
@@ -49,7 +79,7 @@ abstract class AbstractDashboardWidget
         wp_add_dashboard_widget(
             $this->id,
             $this->label,
-            $this->render(...),
+            $this->handleRender(...),
             $configureCallback,
             null,
             $this->context,

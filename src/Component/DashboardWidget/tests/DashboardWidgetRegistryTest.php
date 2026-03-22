@@ -9,6 +9,7 @@ use PHPUnit\Framework\TestCase;
 use WpPack\Component\DashboardWidget\AbstractDashboardWidget;
 use WpPack\Component\DashboardWidget\Attribute\AsDashboardWidget;
 use WpPack\Component\DashboardWidget\DashboardWidgetRegistry;
+use WpPack\Component\Templating\TemplateRendererInterface;
 
 final class DashboardWidgetRegistryTest extends TestCase
 {
@@ -86,6 +87,19 @@ final class DashboardWidgetRegistryTest extends TestCase
     }
 
     #[Test]
+    public function registerSetsTemplateRendererWhenProvided(): void
+    {
+        $renderer = $this->createMock(TemplateRendererInterface::class);
+        $registry = new DashboardWidgetRegistry($renderer);
+
+        $widget = new RegistryTestDashboardWidget();
+        $registry->register($widget);
+
+        $ref = new \ReflectionProperty(AbstractDashboardWidget::class, 'renderer');
+        self::assertSame($renderer, $ref->getValue($widget));
+    }
+
+    #[Test]
     public function registerPassesWidgetPropertiesToMetaBox(): void
     {
         global $wp_meta_boxes;
@@ -102,8 +116,8 @@ final class DashboardWidgetRegistryTest extends TestCase
 #[AsDashboardWidget(id: 'test_registry_widget', label: 'Registry Test Widget')]
 class RegistryTestDashboardWidget extends AbstractDashboardWidget
 {
-    public function render(): void
+    public function __invoke(): string
     {
-        echo '<p>registry test</p>';
+        return '<p>registry test</p>';
     }
 }

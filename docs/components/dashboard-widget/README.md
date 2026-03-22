@@ -55,9 +55,9 @@ use WpPack\Component\Security\Attribute\IsGranted;
 )]
 class MyDashboardWidget extends AbstractDashboardWidget
 {
-    public function render(): void
+    public function __invoke(): string
     {
-        echo '<p>Total Posts: ' . wp_count_posts()->publish . '</p>';
+        return '<p>Total Posts: ' . wp_count_posts()->publish . '</p>';
     }
 
     public function configure(): void
@@ -90,20 +90,24 @@ use WpPack\Component\Security\Attribute\IsGranted;
 )]
 class SiteStatsWidget extends AbstractDashboardWidget
 {
-    public function render(): void
+    public function __invoke(): string
     {
         $postCount = wp_count_posts();
         $commentCount = wp_count_comments();
         $userCount = count_users();
 
-        ?>
-        <ul>
-            <li><?php printf(__('Published Posts: %d', 'my-plugin'), $postCount->publish); ?></li>
-            <li><?php printf(__('Draft Posts: %d', 'my-plugin'), $postCount->draft); ?></li>
-            <li><?php printf(__('Approved Comments: %d', 'my-plugin'), $commentCount->approved); ?></li>
-            <li><?php printf(__('Total Users: %d', 'my-plugin'), $userCount['total_users']); ?></li>
-        </ul>
-        <?php
+        return sprintf(
+            '<ul>'
+            . '<li>%s</li>'
+            . '<li>%s</li>'
+            . '<li>%s</li>'
+            . '<li>%s</li>'
+            . '</ul>',
+            sprintf(__('Published Posts: %d', 'my-plugin'), $postCount->publish),
+            sprintf(__('Draft Posts: %d', 'my-plugin'), $postCount->draft),
+            sprintf(__('Approved Comments: %d', 'my-plugin'), $commentCount->approved),
+            sprintf(__('Total Users: %d', 'my-plugin'), $userCount['total_users']),
+        );
     }
 }
 ```
@@ -122,7 +126,7 @@ class RecentActivityWidget extends AbstractDashboardWidget
         private readonly CacheManager $cache,
     ) {}
 
-    public function render(): void
+    public function __invoke(): string
     {
         $recentPosts = get_posts([
             'post_status' => 'publish',
@@ -132,20 +136,21 @@ class RecentActivityWidget extends AbstractDashboardWidget
         ]);
 
         if (empty($recentPosts)) {
-            echo '<p>' . __('No recent activity.', 'my-plugin') . '</p>';
-            return;
+            return '<p>' . __('No recent activity.', 'my-plugin') . '</p>';
         }
 
-        echo '<ul>';
+        $html = '<ul>';
         foreach ($recentPosts as $post) {
-            printf(
+            $html .= sprintf(
                 '<li><a href="%s">%s</a> — %s</li>',
                 esc_url(get_edit_post_link($post->ID)),
                 esc_html($post->post_title),
                 esc_html(human_time_diff(strtotime($post->post_modified)))
             );
         }
-        echo '</ul>';
+        $html .= '</ul>';
+
+        return $html;
     }
 }
 ```
@@ -160,7 +165,7 @@ class RecentActivityWidget extends AbstractDashboardWidget
 )]
 class CustomizableWidget extends AbstractDashboardWidget
 {
-    public function render(): void
+    public function __invoke(): string
     {
         $options = get_option('customizable_widget_options', [
             'post_count' => 5,
@@ -173,15 +178,17 @@ class CustomizableWidget extends AbstractDashboardWidget
             'post_status' => 'publish',
         ]);
 
-        echo '<ul>';
+        $html = '<ul>';
         foreach ($posts as $post) {
-            printf(
+            $html .= sprintf(
                 '<li><a href="%s">%s</a></li>',
                 esc_url(get_permalink($post)),
                 esc_html($post->post_title)
             );
         }
-        echo '</ul>';
+        $html .= '</ul>';
+
+        return $html;
     }
 
     public function configure(): void
@@ -215,6 +222,52 @@ class CustomizableWidget extends AbstractDashboardWidget
             </select>
         </p>
         <?php
+    }
+}
+```
+
+### Templating 連携
+
+`DashboardWidgetRegistry` に `TemplateRendererInterface` を渡すと、登録時に各ウィジェットへ自動注入されます。`render()` ショートカットメソッドで `__invoke()` 内から簡潔にテンプレートを呼び出せます。
+
+```php
+use WpPack\Component\DashboardWidget\DashboardWidgetRegistry;
+use WpPack\Component\Templating\TemplateRendererInterface;
+
+// Registry に TemplateRendererInterface を渡す
+$registry = new DashboardWidgetRegistry($renderer);
+$registry->register(new StatsWidget());
+```
+
+```php
+#[AsDashboardWidget(id: 'stats_widget', label: 'Stats')]
+class StatsWidget extends AbstractDashboardWidget
+{
+    // render() ショートカットを使用
+    public function __invoke(): string
+    {
+        return $this->render('dashboard/stats.html.twig', [
+            'post_count' => wp_count_posts()->publish,
+        ]);
+    }
+}
+```
+
+DI コンテナで直接 `TemplateRendererInterface` を注入する場合は、コンストラクタインジェクションも引き続き利用できます。
+
+```php
+#[AsDashboardWidget(id: 'stats_widget', label: 'Stats')]
+class StatsWidget extends AbstractDashboardWidget
+{
+    public function __construct(
+        private readonly TemplateRendererInterface $renderer,
+    ) {}
+
+    public function __invoke(): string
+    {
+        return $this->renderer->render('dashboard/stats.html.twig', [
+            'post_count' => wp_count_posts()->publish,
+        ]);
     }
 }
 ```

@@ -6,6 +6,7 @@ namespace WpPack\Component\Setting;
 
 use WpPack\Component\Role\Authorization\IsGrantedChecker;
 use WpPack\Component\Setting\Attribute\AsSettingsPage;
+use WpPack\Component\Templating\TemplateRendererInterface;
 
 abstract class AbstractSettingsPage
 {
@@ -19,6 +20,7 @@ abstract class AbstractSettingsPage
     public readonly ?string $icon;
     public readonly ?int $position;
 
+    private ?TemplateRendererInterface $templateRenderer = null;
     private ?SettingsRenderer $renderer = null;
     private ?bool $hasValidateOverride = null;
     private ?bool $hasSanitizeOverride = null;
@@ -60,6 +62,27 @@ abstract class AbstractSettingsPage
         return $input;
     }
 
+    /** @internal */
+    public function setTemplateRenderer(TemplateRendererInterface $templateRenderer): void
+    {
+        $this->templateRenderer = $templateRenderer;
+    }
+
+    /**
+     * @param array<string, mixed> $context
+     */
+    protected function render(string $template, array $context = []): string
+    {
+        if ($this->templateRenderer === null) {
+            throw new \LogicException(sprintf(
+                'A TemplateRendererInterface is not available. Call setTemplateRenderer() to use render() in "%s".',
+                static::class,
+            ));
+        }
+
+        return $this->templateRenderer->render($template, $context);
+    }
+
     public function getRenderer(): SettingsRenderer
     {
         return $this->renderer ??= $this->createRenderer();
@@ -70,9 +93,18 @@ abstract class AbstractSettingsPage
         return new SettingsRenderer();
     }
 
-    public function render(): void
+    public function __invoke(): string
     {
+        ob_start();
         $this->getRenderer()->renderPage($this);
+
+        return (string) ob_get_clean();
+    }
+
+    /** @internal */
+    public function handleRender(): void
+    {
+        echo $this();
     }
 
     /**
@@ -98,7 +130,7 @@ abstract class AbstractSettingsPage
                 $this->menuLabel,
                 $this->capability,
                 $this->slug,
-                $this->render(...),
+                $this->handleRender(...),
             );
         } else {
             add_menu_page(
@@ -106,7 +138,7 @@ abstract class AbstractSettingsPage
                 $this->menuLabel,
                 $this->capability,
                 $this->slug,
-                $this->render(...),
+                $this->handleRender(...),
                 $this->icon ?? '',
                 $this->position,
             );

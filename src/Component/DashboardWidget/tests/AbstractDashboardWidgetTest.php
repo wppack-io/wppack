@@ -11,6 +11,7 @@ use WpPack\Component\DashboardWidget\Attribute\AsDashboardWidget;
 use WpPack\Component\Role\Attribute\IsGranted;
 use WpPack\Component\Role\Authorization\AuthorizationCheckerInterface;
 use WpPack\Component\Role\Authorization\IsGrantedChecker;
+use WpPack\Component\Templating\TemplateRendererInterface;
 
 final class AbstractDashboardWidgetTest extends TestCase
 {
@@ -58,12 +59,20 @@ final class AbstractDashboardWidgetTest extends TestCase
     }
 
     #[Test]
-    public function renderIsCalled(): void
+    public function invokeReturnsString(): void
+    {
+        $widget = new ConcreteTestDashboardWidget();
+
+        self::assertSame('<p>dashboard content</p>', $widget());
+    }
+
+    #[Test]
+    public function handleRenderEchoesInvokeOutput(): void
     {
         $widget = new ConcreteTestDashboardWidget();
 
         ob_start();
-        $widget->render();
+        $widget->handleRender();
         $output = ob_get_clean();
 
         self::assertSame('<p>dashboard content</p>', $output);
@@ -259,15 +268,11 @@ final class AbstractDashboardWidgetTest extends TestCase
     }
 
     #[Test]
-    public function renderOutputsExpectedContent(): void
+    public function invokeReturnsExpectedContent(): void
     {
         $widget = new FullAttributeTestDashboardWidget();
 
-        ob_start();
-        $widget->render();
-        $output = ob_get_clean();
-
-        self::assertSame('<p>full widget</p>', $output);
+        self::assertSame('<p>full widget</p>', $widget());
     }
 
     #[Test]
@@ -311,6 +316,32 @@ final class AbstractDashboardWidgetTest extends TestCase
     }
 
     #[Test]
+    public function renderDelegatesToTemplateRenderer(): void
+    {
+        $renderer = $this->createMock(TemplateRendererInterface::class);
+        $renderer->expects(self::once())
+            ->method('render')
+            ->with('dashboard/test.html.twig', ['stat' => 42])
+            ->willReturn('<p>rendered</p>');
+
+        $widget = new TemplatingTestDashboardWidget();
+        $widget->setTemplateRenderer($renderer);
+
+        self::assertSame('<p>rendered</p>', $widget());
+    }
+
+    #[Test]
+    public function renderThrowsLogicExceptionWithoutRenderer(): void
+    {
+        $widget = new TemplatingTestDashboardWidget();
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('TemplateRendererInterface is not available');
+
+        $widget();
+    }
+
+    #[Test]
     public function registerSkipsWhenInjectedCheckerDenies(): void
     {
         set_current_screen('dashboard');
@@ -338,9 +369,9 @@ final class AbstractDashboardWidgetTest extends TestCase
 #[AsDashboardWidget(id: 'test_dashboard_widget', label: 'Test Dashboard Widget')]
 class ConcreteTestDashboardWidget extends AbstractDashboardWidget
 {
-    public function render(): void
+    public function __invoke(): string
     {
-        echo '<p>dashboard content</p>';
+        return '<p>dashboard content</p>';
     }
 }
 
@@ -353,17 +384,17 @@ class ConcreteTestDashboardWidget extends AbstractDashboardWidget
 )]
 class FullAttributeTestDashboardWidget extends AbstractDashboardWidget
 {
-    public function render(): void
+    public function __invoke(): string
     {
-        echo '<p>full widget</p>';
+        return '<p>full widget</p>';
     }
 }
 
 class NoAttributeTestDashboardWidget extends AbstractDashboardWidget
 {
-    public function render(): void
+    public function __invoke(): string
     {
-        echo '';
+        return '';
     }
 }
 
@@ -371,9 +402,9 @@ class NoAttributeTestDashboardWidget extends AbstractDashboardWidget
 #[AsDashboardWidget(id: 'capability_widget', label: 'Capability Widget')]
 class CapabilityTestDashboardWidget extends AbstractDashboardWidget
 {
-    public function render(): void
+    public function __invoke(): string
     {
-        echo '<p>capability widget</p>';
+        return '<p>capability widget</p>';
     }
 }
 
@@ -381,18 +412,27 @@ class CapabilityTestDashboardWidget extends AbstractDashboardWidget
 #[AsDashboardWidget(id: 'restricted_widget', label: 'Restricted Widget')]
 class RestrictedCapabilityTestDashboardWidget extends AbstractDashboardWidget
 {
-    public function render(): void
+    public function __invoke(): string
     {
-        echo '<p>restricted widget</p>';
+        return '<p>restricted widget</p>';
+    }
+}
+
+#[AsDashboardWidget(id: 'templating_widget', label: 'Templating Widget')]
+class TemplatingTestDashboardWidget extends AbstractDashboardWidget
+{
+    public function __invoke(): string
+    {
+        return $this->render('dashboard/test.html.twig', ['stat' => 42]);
     }
 }
 
 #[AsDashboardWidget(id: 'configurable_widget', label: 'Configurable Widget')]
 class ConfigurableTestDashboardWidget extends AbstractDashboardWidget
 {
-    public function render(): void
+    public function __invoke(): string
     {
-        echo '<p>configurable widget</p>';
+        return '<p>configurable widget</p>';
     }
 
     public function configure(): void

@@ -10,6 +10,7 @@ use WpPack\Component\Setting\AbstractSettingsPage;
 use WpPack\Component\Setting\Attribute\AsSettingsPage;
 use WpPack\Component\Setting\SettingsConfigurator;
 use WpPack\Component\Setting\SettingsRegistry;
+use WpPack\Component\Templating\TemplateRendererInterface;
 
 final class SettingsRegistryTest extends TestCase
 {
@@ -48,6 +49,19 @@ final class SettingsRegistryTest extends TestCase
         $this->registry->register($page);
 
         self::assertNotFalse(has_action('admin_init'));
+    }
+
+    #[Test]
+    public function registerSetsTemplateRendererWhenProvided(): void
+    {
+        $renderer = $this->createMock(TemplateRendererInterface::class);
+        $registry = new SettingsRegistry($renderer);
+
+        $page = new RegistryTestSettingsPage();
+        $registry->register($page);
+
+        $ref = new \ReflectionProperty(AbstractSettingsPage::class, 'templateRenderer');
+        self::assertSame($renderer, $ref->getValue($page));
     }
 
     #[Test]

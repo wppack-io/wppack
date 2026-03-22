@@ -12,6 +12,7 @@ use WpPack\Component\Setting\Attribute\AsSettingsPage;
 use WpPack\Component\Setting\SettingsConfigurator;
 use WpPack\Component\Setting\SettingsRenderer;
 use WpPack\Component\Setting\ValidationContext;
+use WpPack\Component\Templating\TemplateRendererInterface;
 
 final class AbstractSettingsPageTest extends TestCase
 {
@@ -225,7 +226,7 @@ final class AbstractSettingsPageTest extends TestCase
     }
 
     #[Test]
-    public function renderDelegatesToRenderer(): void
+    public function invokeReturnsRenderedContent(): void
     {
         // Set $title global so get_admin_page_title() returns early
         // without calling get_plugin_page_hookname() with null $plugin_page
@@ -234,13 +235,27 @@ final class AbstractSettingsPageTest extends TestCase
 
         $page = new MinimalTestSettingsPage();
 
-        ob_start();
-        $page->render();
-        $output = ob_get_clean();
+        $output = $page();
 
         self::assertStringContainsString('<div class="wrap">', $output);
         self::assertStringContainsString('<form', $output);
         self::assertStringContainsString('</div>', $output);
+    }
+
+    #[Test]
+    public function handleRenderEchoesInvokeOutput(): void
+    {
+        global $title;
+        $title = 'Test Page';
+
+        $page = new MinimalTestSettingsPage();
+
+        ob_start();
+        $page->handleRender();
+        $output = ob_get_clean();
+
+        self::assertStringContainsString('<div class="wrap">', $output);
+        self::assertStringContainsString('<form', $output);
     }
 
     #[Test]
@@ -441,6 +456,32 @@ final class AbstractSettingsPageTest extends TestCase
         self::assertArrayHasKey($page->optionName, $settings);
         self::assertEmpty($settings[$page->optionName]['sanitize_callback']);
     }
+
+    #[Test]
+    public function renderDelegatesToTemplateRenderer(): void
+    {
+        $renderer = $this->createMock(TemplateRendererInterface::class);
+        $renderer->expects(self::once())
+            ->method('render')
+            ->with('setting/test.html.twig', ['option' => 'val'])
+            ->willReturn('<div>rendered</div>');
+
+        $page = new TemplatingTestSettingsPage();
+        $page->setTemplateRenderer($renderer);
+
+        self::assertSame('<div>rendered</div>', $page());
+    }
+
+    #[Test]
+    public function renderThrowsLogicExceptionWithoutTemplateRenderer(): void
+    {
+        $page = new TemplatingTestSettingsPage();
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('TemplateRendererInterface is not available');
+
+        $page();
+    }
 }
 
 #[AsSettingsPage(
@@ -532,6 +573,17 @@ class RendererOverrideTestSettingsPage extends AbstractSettingsPage
     protected function createRenderer(): SettingsRenderer
     {
         return new OverrideTestRenderer();
+    }
+}
+
+#[AsSettingsPage(slug: 'templating-test', label: 'Templating Test')]
+class TemplatingTestSettingsPage extends AbstractSettingsPage
+{
+    protected function configure(SettingsConfigurator $settings): void {}
+
+    public function __invoke(): string
+    {
+        return $this->render('setting/test.html.twig', ['option' => 'val']);
     }
 }
 

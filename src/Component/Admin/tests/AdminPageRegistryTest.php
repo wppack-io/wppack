@@ -9,6 +9,7 @@ use PHPUnit\Framework\TestCase;
 use WpPack\Component\Admin\AbstractAdminPage;
 use WpPack\Component\Admin\AdminPageRegistry;
 use WpPack\Component\Admin\Attribute\AsAdminPage;
+use WpPack\Component\Templating\TemplateRendererInterface;
 
 final class AdminPageRegistryTest extends TestCase
 {
@@ -78,27 +79,40 @@ final class AdminPageRegistryTest extends TestCase
 
         self::assertTrue(true);
     }
+
+    #[Test]
+    public function registerSetsTemplateRendererWhenProvided(): void
+    {
+        $renderer = $this->createMock(TemplateRendererInterface::class);
+        $registry = new AdminPageRegistry($renderer);
+
+        $page = new RegistryTestAdminPage();
+        $registry->register($page);
+
+        $ref = new \ReflectionProperty(AbstractAdminPage::class, 'renderer');
+        self::assertSame($renderer, $ref->getValue($page));
+    }
 }
 
 #[AsAdminPage(slug: 'registry-test-admin', label: 'Registry Test')]
 class RegistryTestAdminPage extends AbstractAdminPage
 {
-    public function render(): void
+    public function __invoke(): string
     {
-        echo '<p>registry test</p>';
+        return '<p>registry test</p>';
     }
 }
 
 #[AsAdminPage(slug: 'registry-enqueue-test', label: 'Registry Enqueue Test')]
 class RegistryEnqueueTestAdminPage extends AbstractAdminPage
 {
-    public function render(): void
+    public function __invoke(): string
     {
-        echo '';
+        return '';
     }
 
-    protected function enqueueScripts(string $hookSuffix): void
+    protected function enqueue(): void
     {
-        // scripts enqueued
+        // scripts and styles enqueued
     }
 }
