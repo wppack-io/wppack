@@ -7,6 +7,7 @@ namespace WpPack\Component\Storage\Adapter;
 use WpPack\Component\Storage\Exception\StorageException;
 use WpPack\Component\Storage\Exception\UnsupportedOperationException;
 use WpPack\Component\Storage\ObjectMetadata;
+use WpPack\Component\Storage\Visibility;
 
 abstract class AbstractStorageAdapter implements StorageAdapterInterface
 {
@@ -65,6 +66,11 @@ abstract class AbstractStorageAdapter implements StorageAdapterInterface
     protected function doTemporaryUploadUrl(string $path, \DateTimeInterface $expiration, array $options = []): string
     {
         throw new UnsupportedOperationException('temporaryUploadUrl', $this->getName());
+    }
+
+    protected function doSetVisibility(string $path, Visibility $visibility): void
+    {
+        throw new UnsupportedOperationException('setVisibility', $this->getName());
     }
 
     /** @return iterable<ObjectMetadata> */
@@ -164,6 +170,13 @@ abstract class AbstractStorageAdapter implements StorageAdapterInterface
     public function temporaryUploadUrl(string $path, \DateTimeInterface $expiration, array $options = []): string
     {
         return $this->execute(fn(): string => $this->doTemporaryUploadUrl($path, $expiration, $options));
+    }
+
+    public function setVisibility(string $path, Visibility $visibility): void
+    {
+        $this->execute(function () use ($path, $visibility): void {
+            $this->doSetVisibility($path, $visibility);
+        });
     }
 
     public function listContents(string $path = '', bool $deep = false): iterable

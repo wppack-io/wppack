@@ -10,6 +10,7 @@ use AsyncAws\S3\Input\DeleteObjectsRequest;
 use AsyncAws\S3\Input\GetObjectRequest;
 use AsyncAws\S3\Input\HeadObjectRequest;
 use AsyncAws\S3\Input\ListObjectsV2Request;
+use AsyncAws\S3\Input\PutObjectAclRequest;
 use AsyncAws\S3\Input\PutObjectRequest;
 use AsyncAws\S3\Exception\NoSuchKeyException;
 use AsyncAws\S3\S3Client;
@@ -18,6 +19,7 @@ use AsyncAws\S3\ValueObject\ObjectIdentifier;
 use WpPack\Component\Storage\Adapter\AbstractStorageAdapter;
 use WpPack\Component\Storage\Exception\ObjectNotFoundException;
 use WpPack\Component\Storage\ObjectMetadata;
+use WpPack\Component\Storage\Visibility;
 
 final class S3StorageAdapter extends AbstractStorageAdapter
 {
@@ -321,6 +323,20 @@ final class S3StorageAdapter extends AbstractStorageAdapter
             new PutObjectRequest($input),
             \DateTimeImmutable::createFromInterface($expiration),
         );
+    }
+
+    protected function doSetVisibility(string $path, Visibility $visibility): void
+    {
+        $acl = match ($visibility) {
+            Visibility::PUBLIC => 'public-read',
+            Visibility::PRIVATE => 'private',
+        };
+
+        $this->s3Client->putObjectAcl(new PutObjectAclRequest([
+            'Bucket' => $this->bucket,
+            'Key' => $this->prefixPath($path),
+            'ACL' => $acl,
+        ]))->resolve();
     }
 
     protected function doListContents(string $path, bool $deep): iterable

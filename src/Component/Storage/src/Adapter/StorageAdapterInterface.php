@@ -7,6 +7,7 @@ namespace WpPack\Component\Storage\Adapter;
 use WpPack\Component\Storage\Exception\ObjectNotFoundException;
 use WpPack\Component\Storage\Exception\UnsupportedOperationException;
 use WpPack\Component\Storage\ObjectMetadata;
+use WpPack\Component\Storage\Visibility;
 
 interface StorageAdapterInterface
 {
@@ -60,6 +61,9 @@ interface StorageAdapterInterface
      * @throws UnsupportedOperationException
      */
     public function temporaryUploadUrl(string $path, \DateTimeInterface $expiration, array $options = []): string;
+
+    /** @throws UnsupportedOperationException */
+    public function setVisibility(string $path, Visibility $visibility): void;
 
     /** @return iterable<ObjectMetadata> */
     public function listContents(string $path = '', bool $deep = false): iterable;

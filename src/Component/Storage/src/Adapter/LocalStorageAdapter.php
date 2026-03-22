@@ -9,6 +9,7 @@ use WpPack\Component\Mime\MimeTypesInterface;
 use WpPack\Component\Storage\Exception\ObjectNotFoundException;
 use WpPack\Component\Storage\Exception\UnsupportedOperationException;
 use WpPack\Component\Storage\ObjectMetadata;
+use WpPack\Component\Storage\Visibility;
 
 final class LocalStorageAdapter extends AbstractStorageAdapter
 {
@@ -186,6 +187,11 @@ final class LocalStorageAdapter extends AbstractStorageAdapter
     protected function doTemporaryUrl(string $path, \DateTimeInterface $expiration): string
     {
         throw new UnsupportedOperationException('temporaryUrl', $this->getName());
+    }
+
+    protected function doSetVisibility(string $path, Visibility $visibility): void
+    {
+        // No-op: local filesystem does not support ACL-based visibility
     }
 
     protected function doListContents(string $path, bool $deep): iterable

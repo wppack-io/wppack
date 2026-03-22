@@ -8,6 +8,7 @@ use Google\Cloud\Storage\Bucket;
 use WpPack\Component\Storage\Adapter\AbstractStorageAdapter;
 use WpPack\Component\Storage\Exception\ObjectNotFoundException;
 use WpPack\Component\Storage\ObjectMetadata;
+use WpPack\Component\Storage\Visibility;
 use Google\Cloud\Core\Exception\NotFoundException;
 
 final class GcsStorageAdapter extends AbstractStorageAdapter
@@ -207,6 +208,17 @@ final class GcsStorageAdapter extends AbstractStorageAdapter
         }
 
         return $object->signedUrl($expiration, $signOptions);
+    }
+
+    protected function doSetVisibility(string $path, Visibility $visibility): void
+    {
+        $predefinedAcl = match ($visibility) {
+            Visibility::PUBLIC => 'publicRead',
+            Visibility::PRIVATE => 'private',
+        };
+
+        $object = $this->bucket->object($this->prefixPath($path));
+        $object->update([], ['predefinedAcl' => $predefinedAcl]);
     }
 
     protected function doListContents(string $path, bool $deep): iterable

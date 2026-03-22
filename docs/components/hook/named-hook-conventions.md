@@ -506,8 +506,17 @@ composer require wppack/hook
 | `#[WpGetAttachmentImageAttributesFilter]` | `wp_get_attachment_image_attributes` |
 | `#[GetAttachedFileFilter]` | `get_attached_file` |
 | `#[WpGetAttachmentUrlFilter]` | `wp_get_attachment_url` |
+| `#[WpGetAttachmentImageSrcFilter]` | `wp_get_attachment_image_src` |
+| `#[WpCalculateImageSrcsetFilter]` | `wp_calculate_image_srcset` |
 | `#[WpReadImageMetadataFilter]` | `wp_read_image_metadata` |
 | `#[WpResourceHintsFilter]` | `wp_resource_hints` |
+
+### Privacy（`Hook\Attribute\Privacy\`）
+
+| Attribute | WordPress フック |
+|-----------|-----------------|
+| `#[WpPrivacyPersonalDataExportFileAction]` | `wp_privacy_personal_data_export_file` |
+| `#[WpPrivacyPersonalDataExportFileCreatedAction]` | `wp_privacy_personal_data_export_file_created` |
 
 ### User（`Hook\Attribute\User\`）
 

@@ -14,9 +14,16 @@ use WpPack\Component\Media\AttachmentManager;
 use WpPack\Component\Media\AttachmentManagerInterface;
 use WpPack\Component\PostType\PostRepository;
 use WpPack\Component\PostType\PostRepositoryInterface;
+use WpPack\Component\Media\Storage\PrivateAttachmentChecker;
+use WpPack\Component\Media\Storage\SignedUrlCache;
 use WpPack\Component\Media\Storage\StorageConfiguration;
 use WpPack\Component\Media\Storage\Subscriber\AttachmentSubscriber;
+use WpPack\Component\Media\Storage\Subscriber\ImageEditorSubscriber;
+use WpPack\Component\Media\Storage\Subscriber\PrivacyExportSubscriber;
+use WpPack\Component\Media\Storage\Subscriber\PrivateAttachmentSubscriber;
+use WpPack\Component\Media\Storage\Subscriber\SideloadSubscriber;
 use WpPack\Component\Media\Storage\Subscriber\UploadDirSubscriber;
+use WpPack\Component\Media\Storage\ImageEditor\StorageImageEditor;
 use WpPack\Component\Media\Storage\UrlResolver;
 use WpPack\Component\Messenger\MessageBusInterface;
 use WpPack\Component\Nonce\NonceManager;
@@ -28,6 +35,7 @@ use WpPack\Component\Site\BlogSwitcherInterface;
 use WpPack\Component\Storage\Adapter\StorageAdapterInterface;
 use WpPack\Component\Storage\Bridge\S3\S3StorageAdapter;
 use WpPack\Component\Storage\StreamWrapper\StorageStreamWrapper;
+use WpPack\Component\Transient\TransientManager;
 use WpPack\Plugin\S3StoragePlugin\Attachment\AttachmentRegistrar;
 use WpPack\Plugin\S3StoragePlugin\Attachment\RegisterAttachmentController;
 use WpPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
@@ -39,6 +47,7 @@ use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\PreSignedUrlController;
 use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\PreSignedUrlGenerator;
 use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\UploadPolicy;
 use WpPack\Plugin\S3StoragePlugin\Subscriber\AdminAssetSubscriber;
+use WpPack\Plugin\S3StoragePlugin\Subscriber\PrivateAttachmentAclSubscriber;
 
 final class S3StoragePluginServiceProvider implements ServiceProviderInterface
 {
@@ -96,6 +105,41 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
             ->addArgument(new Reference(StorageConfiguration::class))
             ->addArgument(new Reference(UrlResolver::class))
             ->addArgument(new Reference(StorageAdapterInterface::class))
+            ->addTag('hook.subscriber');
+
+        $builder->register(ImageEditorSubscriber::class)
+            ->addArgument(StorageImageEditor::class)
+            ->addTag('hook.subscriber');
+
+        $builder->register(SideloadSubscriber::class)
+            ->addArgument(new Reference(StorageConfiguration::class))
+            ->addArgument(new Reference(StorageAdapterInterface::class))
+            ->addTag('hook.subscriber');
+
+        $builder->register(PrivacyExportSubscriber::class)
+            ->addArgument(new Reference(StorageConfiguration::class))
+            ->addArgument(new Reference(StorageAdapterInterface::class))
+            ->addTag('hook.subscriber');
+
+        // Private Attachment support
+        $builder->register(TransientManager::class);
+
+        $builder->register(PrivateAttachmentChecker::class);
+
+        $builder->register(SignedUrlCache::class)
+            ->addArgument(new Reference(TransientManager::class));
+
+        $builder->register(PrivateAttachmentSubscriber::class)
+            ->addArgument(new Reference(StorageConfiguration::class))
+            ->addArgument(new Reference(StorageAdapterInterface::class))
+            ->addArgument(new Reference(PrivateAttachmentChecker::class))
+            ->addArgument(new Reference(SignedUrlCache::class))
+            ->addTag('hook.subscriber');
+
+        $builder->register(PrivateAttachmentAclSubscriber::class)
+            ->addArgument(new Reference(StorageConfiguration::class))
+            ->addArgument(new Reference(StorageAdapterInterface::class))
+            ->addArgument(new Reference(PrivateAttachmentChecker::class))
             ->addTag('hook.subscriber');
 
         // Pre-Signed URL services

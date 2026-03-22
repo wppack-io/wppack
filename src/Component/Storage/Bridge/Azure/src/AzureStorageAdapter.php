@@ -12,7 +12,9 @@ use AzureOss\Storage\Blob\Models\BlobHttpHeaders;
 use AzureOss\Storage\Blob\Sas\BlobSasBuilder;
 use WpPack\Component\Storage\Adapter\AbstractStorageAdapter;
 use WpPack\Component\Storage\Exception\ObjectNotFoundException;
+use WpPack\Component\Storage\Exception\UnsupportedOperationException;
 use WpPack\Component\Storage\ObjectMetadata;
+use WpPack\Component\Storage\Visibility;
 
 final class AzureStorageAdapter extends AbstractStorageAdapter
 {
@@ -188,6 +190,11 @@ final class AzureStorageAdapter extends AbstractStorageAdapter
             ->setPermissions('cw');
 
         return (string) $this->client->generateSasUri($prefixedPath, $sasBuilder);
+    }
+
+    protected function doSetVisibility(string $path, Visibility $visibility): void
+    {
+        throw new UnsupportedOperationException('setVisibility', $this->getName());
     }
 
     protected function doListContents(string $path, bool $deep): iterable

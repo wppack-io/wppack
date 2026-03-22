@@ -398,6 +398,11 @@ final class MigrateCommandTest extends TestCase
             {
                 return $this->inner->listContents($path, $deep);
             }
+
+            public function setVisibility(string $path, \WpPack\Component\Storage\Visibility $visibility): void
+            {
+                $this->inner->setVisibility($path, $visibility);
+            }
         };
 
         $command = new MigrateCommand($failingAdapter, $this->config);

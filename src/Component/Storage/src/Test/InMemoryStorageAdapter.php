@@ -8,6 +8,7 @@ use WpPack\Component\Storage\Adapter\StorageAdapterInterface;
 use WpPack\Component\Storage\Exception\ObjectNotFoundException;
 use WpPack\Component\Storage\Exception\UnsupportedOperationException;
 use WpPack\Component\Storage\ObjectMetadata;
+use WpPack\Component\Storage\Visibility;
 
 final class InMemoryStorageAdapter implements StorageAdapterInterface
 {
@@ -16,6 +17,9 @@ final class InMemoryStorageAdapter implements StorageAdapterInterface
 
     /** @var array<string, true> */
     private array $directories = [];
+
+    /** @var array<string, Visibility> */
+    private array $visibilities = [];
 
     public function getName(): string
     {
@@ -156,6 +160,20 @@ final class InMemoryStorageAdapter implements StorageAdapterInterface
     public function temporaryUploadUrl(string $path, \DateTimeInterface $expiration, array $options = []): string
     {
         throw new UnsupportedOperationException('temporaryUploadUrl', $this->getName());
+    }
+
+    public function setVisibility(string $path, Visibility $visibility): void
+    {
+        if (!isset($this->objects[$path])) {
+            throw new ObjectNotFoundException($path);
+        }
+
+        $this->visibilities[$path] = $visibility;
+    }
+
+    public function getVisibility(string $path): ?Visibility
+    {
+        return $this->visibilities[$path] ?? null;
     }
 
     public function listContents(string $path = '', bool $deep = false): iterable

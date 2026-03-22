@@ -933,6 +933,7 @@ final class StorageStreamWrapperTest extends TestCase
             {
                 return [];
             }
+            public function setVisibility(string $path, \WpPack\Component\Storage\Visibility $visibility): void {}
         };
 
         StorageStreamWrapper::register('errtest', $errorAdapter);
@@ -1007,6 +1008,7 @@ final class StorageStreamWrapperTest extends TestCase
             {
                 return [];
             }
+            public function setVisibility(string $path, \WpPack\Component\Storage\Visibility $visibility): void {}
         };
 
         StorageStreamWrapper::register('unlinktest', $errorAdapter);
@@ -1077,6 +1079,7 @@ final class StorageStreamWrapperTest extends TestCase
             {
                 return [];
             }
+            public function setVisibility(string $path, \WpPack\Component\Storage\Visibility $visibility): void {}
         };
 
         StorageStreamWrapper::register('renametest', $errorAdapter);
@@ -1154,6 +1157,7 @@ final class StorageStreamWrapperTest extends TestCase
             {
                 throw new \RuntimeException('List failed');
             }
+            public function setVisibility(string $path, \WpPack\Component\Storage\Visibility $visibility): void {}
         };
 
         StorageStreamWrapper::register('dirtest', $errorAdapter);
@@ -1345,6 +1349,7 @@ final class StorageStreamWrapperTest extends TestCase
             {
                 return [];
             }
+            public function setVisibility(string $path, \WpPack\Component\Storage\Visibility $visibility): void {}
         };
 
         StorageStreamWrapper::register('appendtest', $errorAdapter);
@@ -1412,6 +1417,7 @@ final class StorageStreamWrapperTest extends TestCase
             {
                 return [];
             }
+            public function setVisibility(string $path, \WpPack\Component\Storage\Visibility $visibility): void {}
         };
 
         StorageStreamWrapper::register('cplustest', $errorAdapter);
@@ -1479,6 +1485,7 @@ final class StorageStreamWrapperTest extends TestCase
             {
                 return [];
             }
+            public function setVisibility(string $path, \WpPack\Component\Storage\Visibility $visibility): void {}
         };
 
         StorageStreamWrapper::register('xtest', $errorAdapter);
