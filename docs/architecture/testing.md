@@ -4,69 +4,134 @@ WpPack のテスト戦略と実行方法。
 
 ## 概要
 
-WpPack は **wp-phpunit** を使用した WordPress 統合テスト環境を採用しています。テストは2つのモードで動作し、`tests/wp-config.php` の有無により自動的に切り替わります。
+WpPack は **PHPUnit 11 + wp-phpunit + MySQL** による WordPress 統合テスト環境を採用しています。`tests/bootstrap.php` は常に WordPress をフルロードするため、すべてのテストで WordPress 関数が利用可能です。
 
-| モード | 条件 | WordPress 関数 | スキップ |
-|--------|------|----------------|----------|
-| 統合テスト | `tests/wp-config.php` あり | 利用可能 | なし |
-| ユニットテスト | `tests/wp-config.php` なし | 利用不可 | WordPress 依存テストをスキップ |
+| 項目 | 内容 |
+|------|------|
+| テストフレームワーク | PHPUnit 11（アトリビュートベース） |
+| WordPress 統合 | wp-phpunit + roots/wordpress-no-content |
+| 必須サービス | MySQL 8.0 |
+| オプションサービス | Valkey, DynamoDB Local, Memcached, Valkey Cluster, Valkey Sentinel |
 
 ## テスト実行
 
-### ユニットテスト（DB 不要）
+### ローカル実行
 
 ```bash
-vendor/bin/phpunit
-```
-
-WordPress に依存しないテストのみ実行されます。WordPress 関数を必要とするテストは `markTestSkipped` でスキップされます。
-
-### 統合テスト（WordPress + MySQL）
-
-```bash
-# 1. MySQL 起動
+# 1. サービス起動（MySQL は必須、他はテスト対象に応じて起動）
 docker compose up -d --wait
 
-# 2. 設定ファイル配置
-cp tests/wp-config.php.dist tests/wp-config.php
-
-# 3. テスト実行（全テスト）
+# 2. テスト実行
 vendor/bin/phpunit
 
-# 4. MySQL 停止
+# 3. サービス停止
 docker compose down
+```
+
+### 特定のテストスイート・ファイルのみ実行
+
+```bash
+# スイート指定
+vendor/bin/phpunit --testsuite Component
+
+# ファイル指定
+vendor/bin/phpunit src/Component/HttpClient/tests/HttpClientTest.php
 ```
 
 ## アーキテクチャ
 
 ### ブートストラップ
 
-`tests/bootstrap.php` が WordPress の有無を検出し、環境を切り替えます:
+`tests/bootstrap.php` は以下の処理を行います:
 
-```
-tests/wp-config.php あり
-  → WP_PHPUNIT__TESTS_CONFIG 設定
-  → wp-phpunit の bootstrap.php ロード
-  → WordPress 全関数が利用可能
+1. Composer オートローダーをロード
+2. `WP_PHPUNIT__TESTS_CONFIG` に `tests/wp-config.php` を設定
+3. wp-phpunit の `functions.php` と `bootstrap.php` をロードし、WordPress を初期化
+4. テストに必要な追加の admin includes をロード
 
-tests/wp-config.php なし
-  → PHPMailer のみロード（roots/wordpress-no-content から）
-  → WordPress 関数は利用不可
+```php
+// tests/bootstrap.php（抜粋）
+putenv('WP_PHPUNIT__TESTS_CONFIG=' . __DIR__ . '/wp-config.php');
+
+$_tests_dir = dirname(__DIR__) . '/vendor/wp-phpunit/wp-phpunit';
+require_once $_tests_dir . '/includes/functions.php';
+require_once $_tests_dir . '/includes/bootstrap.php';
+
+// Admin includes（DashboardWidget, Filesystem 等のテストに必要）
+$extraIncludes = [
+    ABSPATH . 'wp-admin/includes/dashboard.php',
+    ABSPATH . 'wp-admin/includes/template.php',
+    ABSPATH . 'wp-admin/includes/screen.php',
+    ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php',
+    ABSPATH . WPINC . '/class-wp-admin-bar.php',
+];
 ```
 
 ### テスト依存パッケージ
 
-| パッケージ | 用途 |
-|-----------|------|
-| `wp-phpunit/wp-phpunit` | WordPress テストフレームワーク |
-| `yoast/phpunit-polyfills` | PHPUnit バージョン互換性 |
-| `roots/wordpress-no-content` | WordPress コアファイル（ABSPATH） |
+| パッケージ | バージョン | 用途 |
+|-----------|-----------|------|
+| `phpunit/phpunit` | `^11.5` | テストフレームワーク |
+| `wp-phpunit/wp-phpunit` | `^6.9` | WordPress テストブートストラップ |
+| `yoast/phpunit-polyfills` | `^4.0` | PHPUnit バージョン互換性 |
+| `roots/wordpress-no-content` | `^6.9` | WordPress コアファイル（ABSPATH） |
 
-### データベース設定
+### データベース・サービス設定
 
-`tests/wp-config.php.dist` がテンプレートです。ローカル環境では `tests/wp-config.php` にコピーして使用します。このファイルは `.gitignore` で除外されています。
+`tests/wp-config.php` はリポジトリに直接コミットされています（`.dist` + コピー運用ではありません）。
 
-CI 環境では MySQL サービスコンテナを使用し、`wp-config.php.dist` をそのままコピーして利用します。
+```php
+// tests/wp-config.php（抜粋）
+define('ABSPATH', dirname(__DIR__) . '/vendor/roots/wordpress-no-content/');
+define('DB_NAME', 'wppack_test');
+define('DB_USER', 'root');
+define('DB_PASSWORD', 'root');
+define('DB_HOST', '127.0.0.1');
+
+// WP 6.8+: wp_is_block_theme() の _doing_it_wrong notice を回避
+$GLOBALS['wp_theme_directories'] = [
+    __DIR__ . '/../vendor/wp-phpunit/wp-phpunit/data/themedir1',
+];
+```
+
+### Docker サービス
+
+`docker-compose.yml` でテスト用サービスを提供します。すべて `tmpfs` マウントによりメモリ上で動作します。
+
+| サービス | イメージ | ポート | 用途 |
+|---------|---------|--------|------|
+| MySQL | `mysql:8.0` | 3306 | WordPress DB（必須） |
+| Valkey | `valkey/valkey:8` | 6379 | RedisCache テスト |
+| DynamoDB Local | `amazon/dynamodb-local` | 8000 | DynamoDbCache テスト |
+| Memcached | `memcached:1.6` | 11211 | MemcachedCache テスト |
+| Valkey Cluster | `valkey/valkey:8` | 7010-7012 | RedisCache Cluster モードテスト |
+| Valkey Sentinel | `valkey/valkey:8` | 6380-6381, 26379-26381 | RedisCache Sentinel モードテスト |
+
+Valkey Cluster は 3 ノード構成（`--cluster-replicas 0`）、Valkey Sentinel は master 1 + replica 1 + sentinel 3 構成です。
+
+## テストスイート構成
+
+`phpunit.xml.dist` で 3 つのテストスイートを定義しています:
+
+| スイート | ディレクトリ | 対象 |
+|---------|-------------|------|
+| Component | `src/Component/*/tests` | コンポーネントテスト |
+| Bridge | `src/Component/*/Bridge/*/tests` | ブリッジパッケージテスト |
+| Plugin | `src/Plugin/*/tests` | プラグインテスト |
+
+```xml
+<testsuites>
+    <testsuite name="Component">
+        <directory>src/Component/*/tests</directory>
+    </testsuite>
+    <testsuite name="Bridge">
+        <directory>src/Component/*/Bridge/*/tests</directory>
+    </testsuite>
+    <testsuite name="Plugin">
+        <directory>src/Plugin/*/tests</directory>
+    </testsuite>
+</testsuites>
+```
 
 ## テストの書き方
 
@@ -93,19 +158,40 @@ src/Component/Mailer/
                 └── AzureApiTransportTest.php
 ```
 
-### WordPress 関数の可用性ガード
+### テストクラスの基本構成
 
-WordPress に依存するテストメソッドには `function_exists` ガードを付けます:
+PHPUnit 11 のアトリビュート（`#[Test]`, `#[CoversClass]`）を使用し、`PHPUnit\Framework\TestCase` を拡張します。WordPress はブートストラップでフルロードされるため、`function_exists()` ガードは不要です。
 
 ```php
-#[Test]
-public function sendRequestReturnsResponse(): void
+<?php
+
+declare(strict_types=1);
+
+namespace WpPack\Component\NavigationMenu\Tests;
+
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+use WpPack\Component\NavigationMenu\MenuRegistry;
+
+#[CoversClass(MenuRegistry::class)]
+final class MenuRegistryTest extends TestCase
 {
-    if (!function_exists('wp_remote_request')) {
-        self::markTestSkipped('WordPress functions are not available.');
+    private MenuRegistry $registry;
+
+    protected function setUp(): void
+    {
+        $this->registry = new MenuRegistry();
     }
 
-    // WordPress 関数を使うテストコード
+    #[Test]
+    public function registerLocationAddsSingleLocation(): void
+    {
+        $this->registry->registerLocation('sidebar', 'Sidebar Menu');
+
+        self::assertTrue($this->registry->hasLocation('sidebar'));
+        self::assertSame('Sidebar Menu', $this->registry->all()['sidebar']);
+    }
 }
 ```
 
@@ -124,17 +210,12 @@ final class MyTransportTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-
-        if (function_exists('add_filter')) {
-            add_filter('pre_http_request', [$this, 'mockHttpResponse'], 10, 3);
-        }
+        add_filter('pre_http_request', [$this, 'mockHttpResponse'], 10, 3);
     }
 
     protected function tearDown(): void
     {
-        if (function_exists('remove_filter')) {
-            remove_filter('pre_http_request', [$this, 'mockHttpResponse'], 10);
-        }
+        remove_filter('pre_http_request', [$this, 'mockHttpResponse'], 10);
         $this->mockResponse = null;
         $this->capturedBody = null;
         parent::tearDown();
@@ -159,7 +240,6 @@ final class MyTransportTest extends TestCase
     #[Test]
     public function sendBuildsPayload(): void
     {
-        // テストごとにモックレスポンスを設定
         $this->mockResponse = [
             'headers' => ['content-type' => 'application/json'],
             'body' => json_encode(['id' => 'msg-123']),
@@ -168,11 +248,9 @@ final class MyTransportTest extends TestCase
             'filename' => null,
         ];
 
-        // トランスポートを実行
         $transport = new MyTransport();
         $transport->send($phpMailer);
 
-        // キャプチャしたリクエストボディを検証
         $payload = json_decode($this->capturedBody, true);
         self::assertArrayHasKey('to', $payload);
     }
@@ -208,32 +286,46 @@ final class MyTransportTest extends TestCase
 new \WP_Error('http_request_failed', 'Could not resolve host')
 ```
 
+### テストユーティリティ
+
+| ユーティリティ | 用途 |
+|--------------|------|
+| `EventDispatcherTestTrait` | EventDispatcher のテスト支援（リスナー登録・イベントディスパッチの検証） |
+
 ## CI
 
-GitHub Actions でテストを実行します。MySQL サービスコンテナが自動的に起動され、全テストが実行されます。
+GitHub Actions（`.github/workflows/ci.yml`）で 3 つのジョブを実行します。
 
-```yaml
-tests:
-  services:
-    mysql:
-      image: mysql:8.0
-      env:
-        MYSQL_ROOT_PASSWORD: root
-        MYSQL_DATABASE: wppack_test
-      ports:
-        - 3306:3306
-  steps:
-    - uses: actions/checkout@v4
-    - name: Setup PHP
-      uses: shivammathur/setup-php@v2
-    - run: composer install --no-interaction --prefer-dist
-    - run: cp tests/wp-config.php.dist tests/wp-config.php
-    - run: vendor/bin/phpunit
-```
+### ジョブ構成
+
+| ジョブ | 内容 | PHP バージョン |
+|-------|------|---------------|
+| PHPStan | 静的解析 | 8.2 |
+| Code Style | php-cs-fixer チェック | 8.2 |
+| Tests | PHPUnit テスト + カバレッジ | 8.2 / 8.3 / 8.4 / 8.5 |
+
+### Tests ジョブの詳細
+
+**サービスコンテナ:**
+
+| サービス | イメージ |
+|---------|---------|
+| MySQL | `mysql:8.0` |
+| Valkey | `valkey/valkey:8` |
+| DynamoDB Local | `amazon/dynamodb-local:latest` |
+| Memcached | `memcached:1.6-alpine` |
+
+**PHP 拡張:** redis, relay, memcached, apcu
+
+**追加セットアップ:**
+- Valkey Cluster: 3 ノードを `docker run` で個別起動し、`valkey-cli --cluster create` でクラスタ構成
+- Valkey Sentinel: master + replica を起動後、3 つの Sentinel プロセスを起動し、master 検出を待機
+
+**カバレッジ:** Xdebug でカバレッジを取得し、Codecov OIDC（`use_oidc: true`）でアップロード。テスト結果（JUnit XML）も同様にアップロード。
 
 ## ローカル環境
 
-`docker-compose.yml` でローカル用 MySQL を提供します。`tmpfs` マウントによりメモリ上で動作し、高速かつ永続化不要です。
+`docker-compose.yml` で全テスト用サービスを提供します。すべて `tmpfs` マウントによりメモリ上で動作し、高速かつ永続化不要です。
 
 ```yaml
 services:
@@ -247,4 +339,41 @@ services:
       - '3306:3306'
     tmpfs:
       - /var/lib/mysql
+
+  valkey:
+    image: valkey/valkey:8
+    ports:
+      - '6379:6379'
+    tmpfs:
+      - /data
+
+  dynamodb:
+    image: amazon/dynamodb-local:latest
+    ports:
+      - '8000:8000'
+    tmpfs:
+      - /home/dynamodblocal/data
+
+  valkey-cluster:
+    image: valkey/valkey:8
+    ports:
+      - '7010:7010'
+      - '7011:7011'
+      - '7012:7012'
+    # 3ノード Cluster（replicas 0）
+
+  valkey-sentinel:
+    image: valkey/valkey:8
+    ports:
+      - '6380:6380'
+      - '6381:6381'
+      - '26379:26379'
+      - '26380:26380'
+      - '26381:26381'
+    # master(6380) + replica(6381) + sentinel×3
+
+  memcached:
+    image: memcached:1.6
+    ports:
+      - '11211:11211'
 ```
