@@ -10,8 +10,6 @@ use WpPack\Component\DependencyInjection\ServiceProviderInterface;
 
 interface PluginInterface extends ServiceProviderInterface
 {
-    public function getPluginFile(): string;
-
     /**
      * @return CompilerPassInterface[]
      */

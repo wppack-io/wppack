@@ -22,11 +22,6 @@ final class AmazonMailerPlugin implements PluginInterface
         $this->serviceProvider = new AmazonMailerPluginServiceProvider();
     }
 
-    public function getPluginFile(): string
-    {
-        return \dirname(__DIR__) . '/amazon-mailer-plugin.php';
-    }
-
     public function register(ContainerBuilder $builder): void
     {
         $this->serviceProvider->register($builder);

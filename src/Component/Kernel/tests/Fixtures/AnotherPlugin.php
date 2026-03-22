@@ -13,11 +13,6 @@ class AnotherPlugin implements PluginInterface
     public bool $registered = false;
     public bool $booted = false;
 
-    public function getPluginFile(): string
-    {
-        return __FILE__;
-    }
-
     public function register(ContainerBuilder $builder): void
     {
         $this->registered = true;

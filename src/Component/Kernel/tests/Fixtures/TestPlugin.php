@@ -25,11 +25,6 @@ class TestPlugin implements PluginInterface
         $this->compilerPasses = $compilerPasses;
     }
 
-    public function getPluginFile(): string
-    {
-        return __FILE__;
-    }
-
     public function register(ContainerBuilder $builder): void
     {
         $this->registered = true;

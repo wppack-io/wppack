@@ -106,7 +106,7 @@ wp_loaded 以降               実行フェーズ（boot 実行）
 Kernel がコンテナのライフサイクルを管理します。各プラグインは `PluginInterface`、テーマは `ThemeInterface` として Kernel に登録します：
 
 ```php
-Kernel::registerPlugin(new MyPlugin());
+Kernel::registerPlugin(new MyPlugin(), __FILE__);
 Kernel::registerTheme(new MyTheme());
 ```
 
@@ -969,7 +969,7 @@ try {
 // my-plugin.php（プラグインメインファイル）
 use WpPack\Component\Kernel\Kernel;
 
-Kernel::registerPlugin(new MyPlugin());
+Kernel::registerPlugin(new MyPlugin(), __FILE__);
 ```
 
 ```php

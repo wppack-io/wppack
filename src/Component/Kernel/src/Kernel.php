@@ -40,11 +40,10 @@ class Kernel
         }
     }
 
-    public static function registerPlugin(PluginInterface $plugin): void
+    public static function registerPlugin(PluginInterface $plugin, string $pluginFile): void
     {
         self::getInstance()->addPlugin($plugin);
 
-        $pluginFile = $plugin->getPluginFile();
         register_activation_hook($pluginFile, [$plugin, 'onActivate']);
         register_deactivation_hook($pluginFile, [$plugin, 'onDeactivate']);
     }

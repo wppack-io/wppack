@@ -146,7 +146,6 @@ namespace WpPack\Plugin\AmazonMailerPlugin;
 
 final class AmazonMailerPlugin implements PluginInterface
 {
-    public function getPluginFile(): string;
     public function register(ContainerBuilder $builder): void;
     public function getCompilerPasses(): array;  // RegisterHookSubscribersPass, RegisterTransportFactoriesPass
     public function boot(Container $container): void;  // Mailer::boot() を呼ぶ

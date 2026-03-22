@@ -30,15 +30,6 @@ final class S3StoragePluginTest extends TestCase
     }
 
     #[Test]
-    public function getPluginFileReturnsEntryFilePath(): void
-    {
-        $pluginFile = $this->plugin->getPluginFile();
-
-        self::assertStringEndsWith('s3-storage-plugin.php', $pluginFile);
-        self::assertFileExists($pluginFile);
-    }
-
-    #[Test]
     public function getCompilerPassesReturnsHookAndRestPasses(): void
     {
         $passes = $this->plugin->getCompilerPasses();

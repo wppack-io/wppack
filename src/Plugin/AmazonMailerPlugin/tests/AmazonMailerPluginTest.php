@@ -31,15 +31,6 @@ final class AmazonMailerPluginTest extends TestCase
     }
 
     #[Test]
-    public function getPluginFileReturnsEntryFilePath(): void
-    {
-        $pluginFile = $this->plugin->getPluginFile();
-
-        self::assertStringEndsWith('amazon-mailer-plugin.php', $pluginFile);
-        self::assertFileExists($pluginFile);
-    }
-
-    #[Test]
     public function getCompilerPassesReturnsHookAndTransportPasses(): void
     {
         $passes = $this->plugin->getCompilerPasses();

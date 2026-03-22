@@ -129,11 +129,6 @@ final class KernelTest extends TestCase
                 return [$this->pass];
             }
 
-            public function getPluginFile(): string
-            {
-                return __FILE__;
-            }
-
             public function boot(Container $container): void {}
 
             public function onActivate(): void {}
@@ -170,11 +165,6 @@ final class KernelTest extends TestCase
         $plugin = new class ($order) implements PluginInterface {
             /** @param list<string> $order */
             public function __construct(private array &$order) {}
-
-            public function getPluginFile(): string
-            {
-                return __FILE__;
-            }
 
             public function register(ContainerBuilder $builder): void
             {
@@ -311,7 +301,7 @@ final class KernelTest extends TestCase
     #[Test]
     public function registerPluginAddsToInstance(): void
     {
-        Kernel::registerPlugin(new TestPlugin());
+        Kernel::registerPlugin(new TestPlugin(), __FILE__);
 
         $instance = Kernel::getInstance();
 
@@ -342,7 +332,7 @@ final class KernelTest extends TestCase
     #[Test]
     public function resetInstanceClearsState(): void
     {
-        Kernel::registerPlugin(new TestPlugin());
+        Kernel::registerPlugin(new TestPlugin(), __FILE__);
         $first = Kernel::getInstance();
 
         Kernel::resetInstance();
@@ -400,7 +390,7 @@ final class KernelTest extends TestCase
     public function autoBootBootsInstance(): void
     {
         $plugin = new TestPlugin();
-        Kernel::registerPlugin($plugin);
+        Kernel::registerPlugin($plugin, __FILE__);
 
         Kernel::autoBoot();
 

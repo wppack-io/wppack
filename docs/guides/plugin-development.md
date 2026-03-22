@@ -93,10 +93,10 @@ use MyPlugin\MyPlugin;
 use WpPack\Component\Kernel\Kernel;
 
 // Kernel に登録（init フックで自動ブート、有効化・無効化フックも自動登録）
-Kernel::registerPlugin(new MyPlugin());
+Kernel::registerPlugin(new MyPlugin(), __FILE__);
 ```
 
-`Kernel::registerPlugin()` は初回呼び出し時に Kernel インスタンスを自動生成し、`init` フック（priority 0）で `boot()` をスケジュールします。`PluginInterface::getPluginFile()` が返すパスを使って `register_activation_hook()` / `register_deactivation_hook()` が自動登録されるため、エントリーポイントで `__FILE__` を渡す必要はありません。
+`Kernel::registerPlugin()` は初回呼び出し時に Kernel インスタンスを自動生成し、`init` フック（priority 0）で `boot()` をスケジュールします。第2引数の `$pluginFile` を使って `register_activation_hook()` / `register_deactivation_hook()` が自動登録されます。
 
 > 詳細: [Kernel コンポーネント](../components/kernel/README.md)
 
@@ -120,11 +120,6 @@ use WpPack\Component\Kernel\PluginInterface;
 
 final class MyPlugin implements PluginInterface
 {
-    public function getPluginFile(): string
-    {
-        return dirname(__DIR__) . '/my-plugin.php';
-    }
-
     public function register(ContainerBuilder $builder): void
     {
         // Hook 基盤サービスの登録
@@ -170,7 +165,6 @@ final class MyPlugin implements PluginInterface
 
 | メソッド | フェーズ | 説明 |
 |---------|---------|------|
-| `getPluginFile()` | — | プラグインメインファイルのパスを返す |
 | `register()` | 登録 | ContainerBuilder にサービス・パラメータを登録 |
 | `getCompilerPasses()` | コンパイル | コンパイラーパスを返す（フック登録等の自動処理） |
 | `boot()` | ブート | コンテナ確定後の初期化処理 |
@@ -588,7 +582,7 @@ final class MyPlugin implements PluginInterface
 
 ### Kernel による自動登録
 
-`Kernel::registerPlugin(new MyPlugin())` を呼ぶだけで、`PluginInterface::getPluginFile()` が返すパスを使って `onActivate()` / `onDeactivate()` が WordPress の有効化・無効化フックに自動登録されます。手動で `register_activation_hook()` / `register_deactivation_hook()` を呼ぶ必要はありません。
+`Kernel::registerPlugin(new MyPlugin(), __FILE__)` を呼ぶだけで、第2引数の `$pluginFile` を使って `onActivate()` / `onDeactivate()` が WordPress の有効化・無効化フックに自動登録されます。手動で `register_activation_hook()` / `register_deactivation_hook()` を呼ぶ必要はありません。
 
 > [!NOTE]
 > `onActivate()` / `onDeactivate()` はコンテナのブート前に呼ばれるため、DI コンテナに依存しない処理を記述してください。
@@ -639,7 +633,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 use MyNotificationPlugin\MyNotificationPlugin;
 use WpPack\Component\Kernel\Kernel;
 
-Kernel::registerPlugin(new MyNotificationPlugin());
+Kernel::registerPlugin(new MyNotificationPlugin(), __FILE__);
 ```
 
 ### config/services.php
@@ -678,11 +672,6 @@ use WpPack\Component\Kernel\PluginInterface;
 
 final class MyNotificationPlugin implements PluginInterface
 {
-    public function getPluginFile(): string
-    {
-        return dirname(__DIR__) . '/my-notification-plugin.php';
-    }
-
     public function register(ContainerBuilder $builder): void
     {
         $builder->register(HookRegistry::class, HookRegistry::class)->setPublic(true);

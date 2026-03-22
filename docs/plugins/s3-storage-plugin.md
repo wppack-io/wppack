@@ -166,7 +166,6 @@ namespace WpPack\Plugin\S3StoragePlugin;
 
 final class S3StoragePlugin implements PluginInterface
 {
-    public function getPluginFile(): string;
     public function register(ContainerBuilder $builder): void;
     public function getCompilerPasses(): array;  // RegisterHookSubscribersPass, RegisterRestControllersPass
     public function boot(Container $container): void;

@@ -21,11 +21,6 @@ final class S3StoragePlugin implements PluginInterface
         $this->serviceProvider = new S3StoragePluginServiceProvider();
     }
 
-    public function getPluginFile(): string
-    {
-        return \dirname(__DIR__) . '/s3-storage-plugin.php';
-    }
-
     public function register(ContainerBuilder $builder): void
     {
         $this->serviceProvider->register($builder);
