@@ -4,19 +4,12 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Media\Storage\Subscriber;
 
-use WpPack\Component\Hook\Attribute\Filesystem\Filter\PreWpUniqueFilenameFileListFilter;
-use WpPack\Component\Hook\Attribute\AsHookSubscriber;
-use WpPack\Component\Hook\Attribute\Media\Action\DeleteAttachmentAction;
-use WpPack\Component\Hook\Attribute\Media\Filter\GetAttachedFileFilter;
-use WpPack\Component\Hook\Attribute\Media\Filter\WpGenerateAttachmentMetadataFilter;
-use WpPack\Component\Hook\Attribute\Media\Filter\WpGetAttachmentUrlFilter;
-use WpPack\Component\Hook\Attribute\Media\Filter\WpReadImageMetadataFilter;
-use WpPack\Component\Hook\Attribute\Media\Filter\WpResourceHintsFilter;
+use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
+use WpPack\Component\EventDispatcher\WordPressEvent;
 use WpPack\Component\Media\Storage\StorageConfiguration;
 use WpPack\Component\Media\Storage\UrlResolver;
 use WpPack\Component\Storage\Adapter\StorageAdapterInterface;
 
-#[AsHookSubscriber]
 final readonly class AttachmentSubscriber
 {
     public function __construct(
@@ -28,54 +21,67 @@ final readonly class AttachmentSubscriber
     /**
      * Convert WordPress attachment URL to CDN/storage URL.
      */
-    #[WpGetAttachmentUrlFilter]
-    public function filterAttachmentUrl(string $url, int $postId): string
+    #[AsEventListener(event: 'wp_get_attachment_url', acceptedArgs: 2)]
+    public function filterAttachmentUrl(WordPressEvent $event): void
     {
+        /** @var int $postId */
+        $postId = $event->args[1];
+
         $file = get_post_meta($postId, '_wp_attached_file', true);
         if (!\is_string($file) || $file === '') {
-            return $url;
+            return;
         }
 
         $key = $this->config->prefix . '/' . ltrim($file, '/');
 
-        return $this->urlResolver->resolve($key);
+        $event->filterValue = $this->urlResolver->resolve($key);
     }
 
     /**
      * Convert local file path to stream wrapper path.
      */
-    #[GetAttachedFileFilter]
-    public function filterGetAttachedFile(string $file, int $attachmentId): string
+    #[AsEventListener(event: 'get_attached_file', acceptedArgs: 2)]
+    public function filterGetAttachedFile(WordPressEvent $event): void
     {
+        /** @var string $file */
+        $file = $event->filterValue;
+        /** @var int $attachmentId */
+        $attachmentId = $event->args[1];
+
         // If already a stream wrapper path, return as is
         if (str_contains($file, '://')) {
-            return $file;
+            return;
         }
 
         // Get the relative path from post meta (stored as relative to uploads dir)
         $relativePath = get_post_meta($attachmentId, '_wp_attached_file', true);
         if (\is_string($relativePath) && $relativePath !== '') {
-            return sprintf(
+            $event->filterValue = sprintf(
                 '%s://%s/%s/%s',
                 $this->config->protocol,
                 $this->config->bucket,
                 $this->config->prefix,
                 ltrim($relativePath, '/'),
             );
+
+            return;
         }
 
         // Fallback: treat the file path as relative
         $key = ltrim($file, '/');
 
-        return sprintf('%s://%s/%s/%s', $this->config->protocol, $this->config->bucket, $this->config->prefix, $key);
+        $event->filterValue = sprintf('%s://%s/%s/%s', $this->config->protocol, $this->config->bucket, $this->config->prefix, $key);
     }
 
     /**
      * Delete file and thumbnails from storage when attachment is deleted.
      */
-    #[DeleteAttachmentAction]
-    public function onDeleteAttachment(int $postId): void
+    #[AsEventListener(event: 'delete_attachment')]
+    public function onDeleteAttachment(WordPressEvent $event): void
     {
+        /** @var int $postId */
+        $postId = $event->args[0];
+
         $file = get_post_meta($postId, '_wp_attached_file', true);
         if (!\is_string($file) || $file === '') {
             return;
@@ -102,20 +108,22 @@ final readonly class AttachmentSubscriber
 
     /**
      * Set filesize in attachment metadata for remote files.
-     *
-     * @param array<string, mixed> $metadata
-     * @return array<string, mixed>
      */
-    #[WpGenerateAttachmentMetadataFilter]
-    public function setFilesizeInMeta(array $metadata, int $attachmentId): array
+    #[AsEventListener(event: 'wp_generate_attachment_metadata', acceptedArgs: 2)]
+    public function setFilesizeInMeta(WordPressEvent $event): void
     {
+        /** @var array<string, mixed> $metadata */
+        $metadata = $event->filterValue;
+        /** @var int $attachmentId */
+        $attachmentId = $event->args[1];
+
         if (isset($metadata['filesize']) && $metadata['filesize'] > 0) {
-            return $metadata;
+            return;
         }
 
         $file = get_post_meta($attachmentId, '_wp_attached_file', true);
         if (!\is_string($file) || $file === '') {
-            return $metadata;
+            return;
         }
 
         $key = $this->config->prefix . '/' . ltrim($file, '/');
@@ -127,41 +135,41 @@ final readonly class AttachmentSubscriber
             }
         }
 
-        return $metadata;
+        $event->filterValue = $metadata;
     }
 
     /**
      * Return false for stream wrapper paths to skip EXIF reading on remote files.
-     *
-     * @param array<string, mixed>|false $meta
-     * @return array<string, mixed>|false
      */
-    #[WpReadImageMetadataFilter]
-    public function filterReadImageMetadata(array|false $meta, string $file): array|false
+    #[AsEventListener(event: 'wp_read_image_metadata', acceptedArgs: 2)]
+    public function filterReadImageMetadata(WordPressEvent $event): void
     {
+        /** @var string $file */
+        $file = $event->args[1];
+
         // Skip EXIF reading for stream wrapper paths (remote files)
         if (str_contains($file, '://') && !str_starts_with($file, 'file://')) {
-            return false;
+            $event->filterValue = false;
         }
-
-        return $meta;
     }
 
     /**
      * Add CDN domain to dns-prefetch hints.
-     *
-     * @param list<string> $hints
-     * @return list<string>
      */
-    #[WpResourceHintsFilter]
-    public function filterResourceHints(array $hints, string $relationType): array
+    #[AsEventListener(event: 'wp_resource_hints', acceptedArgs: 2)]
+    public function filterResourceHints(WordPressEvent $event): void
     {
+        /** @var list<string> $hints */
+        $hints = $event->filterValue;
+        /** @var string $relationType */
+        $relationType = $event->args[1];
+
         if ($relationType !== 'dns-prefetch') {
-            return $hints;
+            return;
         }
 
         if ($this->config->cdnUrl === null) {
-            return $hints;
+            return;
         }
 
         $cdnHost = (string) parse_url($this->config->cdnUrl, \PHP_URL_HOST);
@@ -169,27 +177,31 @@ final readonly class AttachmentSubscriber
             $hints[] = $cdnHost;
         }
 
-        return $hints;
+        $event->filterValue = $hints;
     }
 
     /**
      * List files in storage directory for unique filename generation.
-     *
-     * @param list<string>|null $files
-     * @return list<string>
      */
-    #[PreWpUniqueFilenameFileListFilter]
-    public function filterUniqueFilenameFileList(?array $files, string $dir, string $filename): array
+    #[AsEventListener(event: 'pre_wp_unique_filename_file_list', acceptedArgs: 3)]
+    public function filterUniqueFilenameFileList(WordPressEvent $event): void
     {
+        /** @var string $dir */
+        $dir = $event->args[1];
+
         // Only handle storage paths
         if (!str_contains($dir, '://') || str_starts_with($dir, 'file://')) {
-            return $files ?? [];
+            $event->filterValue = $event->filterValue ?? [];
+
+            return;
         }
 
         // Extract the storage key prefix from the stream wrapper path
         $pattern = sprintf('#^%s://%s/(.+)$#', preg_quote($this->config->protocol, '#'), preg_quote($this->config->bucket, '#'));
         if (!preg_match($pattern, rtrim($dir, '/'), $matches)) {
-            return $files ?? [];
+            $event->filterValue = $event->filterValue ?? [];
+
+            return;
         }
 
         $prefix = $matches[1] . '/';
@@ -199,6 +211,6 @@ final readonly class AttachmentSubscriber
             $result[] = basename($object->path);
         }
 
-        return $result;
+        $event->filterValue = $result;
     }
 }

@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Media\Storage\Subscriber;
 
-use WpPack\Component\Hook\Attribute\AsHookSubscriber;
-use WpPack\Component\Hook\Attribute\Media\Filter\WpImageEditorsFilter;
+use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
+use WpPack\Component\EventDispatcher\WordPressEvent;
 
-#[AsHookSubscriber]
 final readonly class ImageEditorSubscriber
 {
     /**
@@ -19,15 +18,13 @@ final readonly class ImageEditorSubscriber
 
     /**
      * Prepend StorageImageEditor to the editors list.
-     *
-     * @param list<class-string> $editors
-     * @return list<class-string>
      */
-    #[WpImageEditorsFilter(priority: 9)]
-    public function filterEditors(array $editors): array
+    #[AsEventListener(event: 'wp_image_editors', priority: 9)]
+    public function filterEditors(WordPressEvent $event): void
     {
+        /** @var list<class-string> $editors */
+        $editors = $event->filterValue;
         array_unshift($editors, $this->imageEditorClass);
-
-        return $editors;
+        $event->filterValue = $editors;
     }
 }

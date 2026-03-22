@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Media\Storage\Subscriber;
 
-use WpPack\Component\Hook\Attribute\AsHookSubscriber;
-use WpPack\Component\Hook\Attribute\Filesystem\Filter\UploadDirFilter;
+use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
+use WpPack\Component\EventDispatcher\WordPressEvent;
 use WpPack\Component\Media\Storage\StorageConfiguration;
 use WpPack\Component\Media\Storage\UrlResolver;
 use WpPack\Component\Site\BlogContext;
 use WpPack\Component\Site\BlogContextInterface;
 
-#[AsHookSubscriber]
 final readonly class UploadDirSubscriber
 {
     public function __construct(
@@ -22,13 +21,13 @@ final readonly class UploadDirSubscriber
 
     /**
      * Rewrite upload directory paths and URLs to use object storage.
-     *
-     * @param array<string, string> $dirs
-     * @return array<string, string>
      */
-    #[UploadDirFilter]
-    public function filterUploadDir(array $dirs): array
+    #[AsEventListener(event: 'upload_dir')]
+    public function filterUploadDir(WordPressEvent $event): void
     {
+        /** @var array<string, string> $dirs */
+        $dirs = $event->filterValue;
+
         $basePath = sprintf('%s://%s/%s', $this->config->protocol, $this->config->bucket, $this->config->prefix);
         $baseUrl = $this->urlResolver->resolve($this->config->prefix);
 
@@ -49,6 +48,6 @@ final readonly class UploadDirSubscriber
         $dirs['basedir'] = $basePath . $siteSubdir;
         $dirs['baseurl'] = $baseUrl . $siteSubdir;
 
-        return $dirs;
+        $event->filterValue = $dirs;
     }
 }
