@@ -80,8 +80,9 @@ WordPress の attachment 操作関数（`wp_insert_attachment()`、`wp_delete_at
 
 ```php
 use WpPack\Component\Media\AttachmentManager;
+use WpPack\Component\PostType\PostRepository;
 
-$attachment = new AttachmentManager();
+$attachment = new AttachmentManager(new PostRepository());
 
 // Attachment の登録
 $id = $attachment->insert([
@@ -118,13 +119,16 @@ $attachment->delete($id, force: true);
 | `generateMetadata()` | `wp_generate_attachment_metadata()` | メタデータ生成 |
 | `updateMetadata()` | `wp_update_attachment_metadata()` | メタデータ更新 |
 | `getMetadata()` | `wp_get_attachment_metadata()` | メタデータ取得 |
-| `findByMeta()` | `get_posts()` | メタキーで attachment 検索 |
+| `findByMeta()` | `PostRepositoryInterface::findOneByMeta()` | メタキーで attachment 検索 |
 
 ## Hook アトリビュート
 
 → 詳細は [Hook コンポーネント — Media](../hook/media.md) を参照してください。
 
 ## 依存関係
+
+### 必須
+- **PostType コンポーネント** - `AttachmentManager` が `PostRepositoryInterface` に依存
 
 ### 推奨
 - **Filesystem コンポーネント** - ファイル操作用

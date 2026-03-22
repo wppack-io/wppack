@@ -13,6 +13,8 @@ use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
 use WpPack\Component\Media\AttachmentManager;
+use WpPack\Component\PostType\PostRepository;
+use WpPack\Component\PostType\PostRepositoryInterface;
 use WpPack\Component\Media\Storage\StorageConfiguration;
 use WpPack\Component\Media\Storage\Subscriber\AttachmentSubscriber;
 use WpPack\Component\Media\Storage\Subscriber\UploadDirSubscriber;
@@ -410,7 +412,7 @@ final class S3StoragePluginServiceProviderTest extends TestCase
         );
 
         $blogSwitcher = $this->createMock(\WpPack\Component\Site\BlogSwitcherInterface::class);
-        $attachment = new AttachmentManager();
+        $attachment = new AttachmentManager(new PostRepository());
         $registrar = S3StoragePluginServiceProvider::createAttachmentRegistrar($bus, $config, $blogSwitcher, $attachment);
 
         self::assertInstanceOf(AttachmentRegistrar::class, $registrar);
@@ -428,7 +430,7 @@ final class S3StoragePluginServiceProviderTest extends TestCase
         );
 
         $blogSwitcher = $this->createMock(\WpPack\Component\Site\BlogSwitcherInterface::class);
-        $attachment = new AttachmentManager();
+        $attachment = new AttachmentManager(new PostRepository());
         $registrar = S3StoragePluginServiceProvider::createAttachmentRegistrar($bus, $config, $blogSwitcher, $attachment, $logger);
 
         self::assertInstanceOf(AttachmentRegistrar::class, $registrar);
@@ -449,11 +451,25 @@ final class S3StoragePluginServiceProviderTest extends TestCase
     }
 
     #[Test]
+    public function registersPostRepositoryInterface(): void
+    {
+        $this->provider->register($this->builder);
+
+        self::assertTrue($this->builder->hasDefinition(PostRepositoryInterface::class));
+    }
+
+    #[Test]
     public function registersAttachmentManager(): void
     {
         $this->provider->register($this->builder);
 
         self::assertTrue($this->builder->hasDefinition(AttachmentManager::class));
+
+        $definition = $this->builder->findDefinition(AttachmentManager::class);
+        $arguments = $definition->getArguments();
+        self::assertCount(1, $arguments);
+        self::assertInstanceOf(Reference::class, $arguments[0]);
+        self::assertSame(PostRepositoryInterface::class, (string) $arguments[0]);
     }
 
     #[Test]
@@ -492,6 +508,7 @@ final class S3StoragePluginServiceProviderTest extends TestCase
         self::assertTrue($this->builder->hasDefinition(AttachmentRegistrar::class));
         self::assertTrue($this->builder->hasDefinition(RegisterAttachmentController::class));
         self::assertTrue($this->builder->hasDefinition(AdminAssetSubscriber::class));
+        self::assertTrue($this->builder->hasDefinition(PostRepositoryInterface::class));
         self::assertTrue($this->builder->hasDefinition(AttachmentManager::class));
         self::assertTrue($this->builder->hasDefinition(NonceManager::class));
         self::assertTrue($this->builder->hasDefinition(RestUrlGenerator::class));

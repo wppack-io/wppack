@@ -327,6 +327,39 @@ class Product extends AbstractPostType
 - デフォルトの投稿タイプを使用するシンプルなブログ
 - カスタムフィールドが不要なサイト
 
+## Repository
+
+`PostRepositoryInterface` / `PostRepository` は、WordPress 投稿の CRUD 操作とメタデータ操作を提供します。
+
+```php
+use WpPack\Component\PostType\PostRepository;
+use WpPack\Component\PostType\PostRepositoryInterface;
+
+$repository = new PostRepository();
+
+// 投稿の取得
+$post = $repository->find($postId);              // WP_Post|null
+$posts = $repository->findAll(['post_status' => 'publish']);
+
+// 投稿の作成・更新・削除
+$newId = $repository->insert(['post_title' => 'New Post', 'post_status' => 'draft']);
+$repository->update(['ID' => $newId, 'post_title' => 'Updated Title']);
+$repository->delete($newId, force: true);
+
+// ゴミ箱操作
+$repository->trash($postId);
+$repository->untrash($postId);
+
+// メタデータ操作
+$repository->addMeta($postId, 'custom_key', 'value');
+$value = $repository->getMeta($postId, 'custom_key', single: true);
+$repository->updateMeta($postId, 'custom_key', 'new_value');
+$repository->deleteMeta($postId, 'custom_key');
+
+// メタキーによる投稿検索
+$foundId = $repository->findOneByMeta('_wp_attached_file', '2024/01/photo.jpg', 'attachment');
+```
+
 ## 依存関係
 
 ### 必須

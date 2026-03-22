@@ -9,6 +9,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Media\AttachmentManager;
+use WpPack\Component\PostType\PostRepository;
 use WpPack\Component\Messenger\MessageBusInterface;
 use WpPack\Component\Site\BlogSwitcher;
 use WpPack\Component\Storage\Adapter\StorageAdapterInterface;
@@ -22,7 +23,7 @@ final class RegisterAttachmentControllerTest extends TestCase
         ?AttachmentRegistrar $registrar = null,
         ?StorageAdapterInterface $adapter = null,
     ): RegisterAttachmentController {
-        $attachment = new AttachmentManager();
+        $attachment = new AttachmentManager(new PostRepository());
         $registrar ??= new AttachmentRegistrar(
             bus: $this->createMock(MessageBusInterface::class),
             prefix: 'uploads',
@@ -93,7 +94,7 @@ final class RegisterAttachmentControllerTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
-            attachment: new AttachmentManager(),
+            attachment: new AttachmentManager(new PostRepository()),
         );
 
         $controller = $this->createController(registrar: $registrar, adapter: $adapter);
@@ -121,7 +122,7 @@ final class RegisterAttachmentControllerTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
-            attachment: new AttachmentManager(),
+            attachment: new AttachmentManager(new PostRepository()),
         );
 
         $controller = $this->createController(registrar: $registrar, adapter: $adapter);
@@ -149,7 +150,7 @@ final class RegisterAttachmentControllerTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
-            attachment: new AttachmentManager(),
+            attachment: new AttachmentManager(new PostRepository()),
         );
 
         $controller = $this->createController(registrar: $registrar, adapter: $adapter);

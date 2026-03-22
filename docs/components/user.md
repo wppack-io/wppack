@@ -75,6 +75,38 @@ class UserHandler
 
 → 詳細は [Hook コンポーネント — User](./hook/user.md) を参照してください。
 
+## Repository
+
+`UserRepositoryInterface` / `UserRepository` は、WordPress ユーザーの CRUD 操作とメタデータ操作を提供します。
+
+```php
+use WpPack\Component\User\UserRepository;
+use WpPack\Component\User\UserRepositoryInterface;
+
+$repository = new UserRepository();
+
+// ユーザーの取得
+$user = $repository->find($userId);              // WP_User|null
+$user = $repository->findByEmail('user@example.com');
+$user = $repository->findByLogin('username');
+$user = $repository->findBySlug('user-slug');
+
+// ユーザーの作成・更新・削除
+$newId = $repository->insert([
+    'user_login' => 'newuser',
+    'user_pass' => 'password',
+    'user_email' => 'new@example.com',
+]);
+$repository->update(['ID' => $newId, 'display_name' => 'New Name']);
+$repository->delete($newId, reassignTo: 1);
+
+// メタデータ操作
+$repository->addMeta($userId, 'custom_key', 'value');
+$value = $repository->getMeta($userId, 'custom_key', single: true);
+$repository->updateMeta($userId, 'custom_key', 'new_value');
+$repository->deleteMeta($userId, 'custom_key');
+```
+
 ## 依存関係
 
 ### 推奨

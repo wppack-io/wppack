@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Media;
 
-final class AttachmentManager
+use WpPack\Component\PostType\PostRepositoryInterface;
+
+final readonly class AttachmentManager
 {
+    public function __construct(
+        private PostRepositoryInterface $postRepository,
+    ) {}
     /**
      * @param array<string, mixed> $data
      *
@@ -80,25 +85,8 @@ final class AttachmentManager
         return wp_get_attachment_metadata($id, $unfiltered);
     }
 
-    /**
-     * @see get_posts()
-     */
     public function findByMeta(string $metaKey, string $metaValue): ?int
     {
-        $existing = get_posts([
-            'post_type' => 'attachment',
-            'post_status' => 'any',
-            'meta_key' => $metaKey,
-            'meta_value' => $metaValue,
-            'posts_per_page' => 1,
-            'fields' => 'ids',
-            'no_found_rows' => true,
-        ]);
-
-        if ($existing !== []) {
-            return (int) $existing[0];
-        }
-
-        return null;
+        return $this->postRepository->findOneByMeta($metaKey, $metaValue, 'attachment');
     }
 }

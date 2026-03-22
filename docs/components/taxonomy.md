@@ -92,6 +92,40 @@ class ProductTaxonomy
 
 → 詳細は [Hook コンポーネント — Taxonomy](./hook/taxonomy.md) を参照してください。
 
+## Repository
+
+`TermRepositoryInterface` / `TermRepository` は、WordPress タームの CRUD 操作、メタデータ操作、オブジェクト-ターム関係操作を提供します。
+
+```php
+use WpPack\Component\Taxonomy\TermRepository;
+use WpPack\Component\Taxonomy\TermRepositoryInterface;
+
+$repository = new TermRepository();
+
+// タームの取得
+$term = $repository->find($termId, 'category');   // WP_Term|null
+$term = $repository->findBySlug('my-term', 'category');
+$term = $repository->findByName('My Term', 'category');
+$termId = $repository->exists('My Term', 'category');  // int|null
+
+// タームの作成・更新・削除
+$result = $repository->insert('New Category', 'category', ['slug' => 'new-cat']);
+$repository->update($termId, 'category', ['name' => 'Updated Name']);
+$repository->delete($termId, 'category');
+
+// メタデータ操作
+$repository->addMeta($termId, 'custom_key', 'value');
+$value = $repository->getMeta($termId, 'custom_key', single: true);
+$repository->updateMeta($termId, 'custom_key', 'new_value');
+$repository->deleteMeta($termId, 'custom_key');
+
+// オブジェクト-ターム関係操作
+$repository->setObjectTerms($postId, [$termId1, $termId2], 'category');
+$repository->addObjectTerms($postId, [$termId3], 'category');
+$repository->removeObjectTerms($postId, [$termId1], 'category');
+$terms = $repository->getObjectTerms($postId, 'category');
+```
+
 ## 依存関係
 
 ### 推奨

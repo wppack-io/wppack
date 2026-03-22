@@ -11,6 +11,8 @@ use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
 use WpPack\Component\Media\AttachmentManager;
+use WpPack\Component\PostType\PostRepository;
+use WpPack\Component\PostType\PostRepositoryInterface;
 use WpPack\Component\Media\Storage\StorageConfiguration;
 use WpPack\Component\Media\Storage\Subscriber\AttachmentSubscriber;
 use WpPack\Component\Media\Storage\Subscriber\UploadDirSubscriber;
@@ -106,8 +108,12 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
             ->addArgument(new Reference(UploadPolicy::class))
             ->addTag('rest.controller');
 
+        // PostType repository
+        $builder->register(PostRepositoryInterface::class, PostRepository::class);
+
         // Attachment manager
-        $builder->register(AttachmentManager::class);
+        $builder->register(AttachmentManager::class)
+            ->addArgument(new Reference(PostRepositoryInterface::class));
 
         // Attachment registration
         $builder->register(AttachmentRegistrar::class)

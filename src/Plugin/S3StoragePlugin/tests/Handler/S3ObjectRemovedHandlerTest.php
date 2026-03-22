@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Media\AttachmentManager;
+use WpPack\Component\PostType\PostRepository;
 use WpPack\Component\Messenger\Envelope;
 use WpPack\Component\Messenger\MessageBusInterface;
 use WpPack\Component\Site\BlogSwitcher;
@@ -37,7 +38,7 @@ final class S3ObjectRemovedHandlerTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
-            attachment: new AttachmentManager(),
+            attachment: new AttachmentManager(new PostRepository()),
         );
 
         // Create an attachment first so unregister has something to find
@@ -67,7 +68,7 @@ final class S3ObjectRemovedHandlerTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
-            attachment: new AttachmentManager(),
+            attachment: new AttachmentManager(new PostRepository()),
         );
 
         $handler = new S3ObjectRemovedHandler($registrar, $this->createConfig());
@@ -91,7 +92,7 @@ final class S3ObjectRemovedHandlerTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
-            attachment: new AttachmentManager(),
+            attachment: new AttachmentManager(new PostRepository()),
         );
 
         // Create an attachment
@@ -122,7 +123,7 @@ final class S3ObjectRemovedHandlerTest extends TestCase
             bus: $bus,
             prefix: 'uploads',
             blogSwitcher: new BlogSwitcher(),
-            attachment: new AttachmentManager(),
+            attachment: new AttachmentManager(new PostRepository()),
         );
 
         $handler = new S3ObjectRemovedHandler($registrar, $this->createConfig());

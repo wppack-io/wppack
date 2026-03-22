@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Media\AttachmentManager;
+use WpPack\Component\PostType\PostRepository;
 
 #[CoversClass(AttachmentManager::class)]
 final class AttachmentManagerTest extends TestCase
@@ -16,7 +17,7 @@ final class AttachmentManagerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->manager = new AttachmentManager();
+        $this->manager = new AttachmentManager(new PostRepository());
     }
 
     #[Test]
