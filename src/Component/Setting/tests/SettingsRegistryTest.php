@@ -126,6 +126,20 @@ final class SettingsRegistryTest extends TestCase
     }
 
     #[Test]
+    public function registerSetsResolverForBothParams(): void
+    {
+        $request = new Request();
+        $security = $this->createSecurityMock();
+        $registry = new SettingsRegistry(request: $request, security: $security);
+
+        $page = new RegistryBothInjectTestSettingsPage();
+        $registry->register($page);
+
+        $ref = new \ReflectionProperty(AbstractSettingsPage::class, 'invokeArgumentResolver');
+        self::assertNotNull($ref->getValue($page));
+    }
+
+    #[Test]
     public function registerDoesNotSetResolverForNoArgInvoke(): void
     {
         $request = new Request();
@@ -184,6 +198,26 @@ final class SettingsRegistryTest extends TestCase
         self::assertSame($user->display_name, $output);
     }
 
+    #[Test]
+    public function resolverInjectsBothIntoHandleRender(): void
+    {
+        wp_set_current_user(1);
+        $request = new Request(query: ['tab' => 'general']);
+        $user = wp_get_current_user();
+
+        $security = $this->createSecurityMock($user);
+        $registry = new SettingsRegistry(request: $request, security: $security);
+
+        $page = new RegistryBothInjectTestSettingsPage();
+        $registry->register($page);
+
+        ob_start();
+        $page->handleRender();
+        $output = ob_get_clean();
+
+        self::assertSame('general:' . $user->display_name, $output);
+    }
+
     private function createSecurityMock(?\WP_User $user = null): Security
     {
         $authChecker = $this->createMock(AuthorizationCheckerInterface::class);
@@ -239,5 +273,16 @@ class RegistryCurrentUserInjectTestSettingsPage extends AbstractSettingsPage
     public function __invoke(#[CurrentUser] \WP_User $user): string
     {
         return $user->display_name;
+    }
+}
+
+#[AsSettingsPage(slug: 'registry-both-inject', label: 'Registry Both Inject')]
+class RegistryBothInjectTestSettingsPage extends AbstractSettingsPage
+{
+    protected function configure(SettingsConfigurator $settings): void {}
+
+    public function __invoke(Request $request, #[CurrentUser] \WP_User $user): string
+    {
+        return $request->query->get('tab', 'default') . ':' . $user->display_name;
     }
 }

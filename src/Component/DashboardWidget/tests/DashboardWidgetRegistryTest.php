@@ -145,6 +145,20 @@ final class DashboardWidgetRegistryTest extends TestCase
     }
 
     #[Test]
+    public function registerSetsResolverForBothParams(): void
+    {
+        $request = new Request();
+        $security = $this->createSecurityMock();
+        $registry = new DashboardWidgetRegistry(request: $request, security: $security);
+
+        $widget = new RegistryBothInjectTestDashboardWidget();
+        $registry->register($widget);
+
+        $ref = new \ReflectionProperty(AbstractDashboardWidget::class, 'invokeArgumentResolver');
+        self::assertNotNull($ref->getValue($widget));
+    }
+
+    #[Test]
     public function registerDoesNotSetResolverForNoArgInvoke(): void
     {
         $request = new Request();
@@ -203,6 +217,26 @@ final class DashboardWidgetRegistryTest extends TestCase
         self::assertSame($user->display_name, $output);
     }
 
+    #[Test]
+    public function resolverInjectsBothIntoHandleRender(): void
+    {
+        wp_set_current_user(1);
+        $request = new Request(query: ['tab' => 'general']);
+        $user = wp_get_current_user();
+
+        $security = $this->createSecurityMock($user);
+        $registry = new DashboardWidgetRegistry(request: $request, security: $security);
+
+        $widget = new RegistryBothInjectTestDashboardWidget();
+        $registry->register($widget);
+
+        ob_start();
+        $widget->handleRender();
+        $output = ob_get_clean();
+
+        self::assertSame('general:' . $user->display_name, $output);
+    }
+
     private function createSecurityMock(?\WP_User $user = null): Security
     {
         $authChecker = $this->createMock(AuthorizationCheckerInterface::class);
@@ -243,5 +277,14 @@ class RegistryCurrentUserInjectTestDashboardWidget extends AbstractDashboardWidg
     public function __invoke(#[CurrentUser] \WP_User $user): string
     {
         return $user->display_name;
+    }
+}
+
+#[AsDashboardWidget(id: 'registry_both_inject_widget', label: 'Registry Both Inject')]
+class RegistryBothInjectTestDashboardWidget extends AbstractDashboardWidget
+{
+    public function __invoke(Request $request, #[CurrentUser] \WP_User $user): string
+    {
+        return $request->query->get('tab', 'default') . ':' . $user->display_name;
     }
 }
