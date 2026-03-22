@@ -126,4 +126,22 @@ final class AssetManagerTest extends TestCase
 
         self::assertTrue($result);
     }
+
+    #[Test]
+    public function addInlineScriptSupportsBeforePosition(): void
+    {
+        $this->asset->registerScript('position-test', '/js/position.js');
+
+        $result = $this->asset->addInlineScript('position-test', 'var x = 1;', 'before');
+
+        self::assertTrue($result);
+    }
+
+    #[Test]
+    public function enqueueStyleSupportsMediaParameter(): void
+    {
+        $this->asset->enqueueStyle('media-test', '/css/print.css', [], '1.0.0', 'print');
+
+        self::assertTrue($this->asset->styleIs('media-test', 'enqueued'));
+    }
 }

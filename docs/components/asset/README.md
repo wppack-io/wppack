@@ -119,6 +119,37 @@ $asset->addInlineStyle('handle', '.foo { color: red; }');           // インラ
 **代替を検討すべきケース:**
 - `$wp_scripts`/`$wp_styles` グローバルの読み取り専用イントロスペクション（Debug コンポーネントを使用）
 
+## Named Hook アトリビュート
+
+Asset コンポーネントは Hook コンポーネントの以下のアトリビュートと組み合わせて使用します:
+
+```php
+use WpPack\Component\Asset\AssetManager;
+use WpPack\Component\Hook\Attribute\Admin\Action\AdminEnqueueScriptsAction;
+use WpPack\Component\Hook\Attribute\Theme\Action\WpEnqueueScriptsAction;
+
+final class AssetSubscriber
+{
+    public function __construct(
+        private readonly AssetManager $asset,
+    ) {}
+
+    #[WpEnqueueScriptsAction]
+    public function enqueueFrontendAssets(): void
+    {
+        $this->asset->enqueueStyle('my-theme', get_stylesheet_uri());
+    }
+
+    #[AdminEnqueueScriptsAction]
+    public function enqueueAdminAssets(): void
+    {
+        $this->asset->enqueueScript('my-admin', '/js/admin.js', [], '1.0.0', true);
+    }
+}
+```
+
+→ [Hook コンポーネントのドキュメント](../hook/) も参照してください。
+
 ## 依存関係
 
 ### 必須

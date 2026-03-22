@@ -32,6 +32,26 @@ if ($asset->scriptIs('jquery', 'enqueued')) {
 }
 ```
 
+## Named Hook Attributes
+
+```php
+use WpPack\Component\Asset\AssetManager;
+use WpPack\Component\Hook\Attribute\Admin\Action\AdminEnqueueScriptsAction;
+
+final class AdminAssetSubscriber
+{
+    public function __construct(
+        private readonly AssetManager $asset,
+    ) {}
+
+    #[AdminEnqueueScriptsAction]
+    public function enqueueScripts(): void
+    {
+        $this->asset->enqueueScript('my-script', '/js/app.js', ['jquery'], '1.0.0', true);
+    }
+}
+```
+
 ## Documentation
 
 See [docs/components/asset/](../../../docs/components/asset/) for full documentation.
