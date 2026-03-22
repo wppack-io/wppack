@@ -4,13 +4,31 @@
 
 Custom post type and meta registration for WordPress.
 
-> [!WARNING]
-> This component is in the design phase. Source code implementation is not yet available. Please refer to the following as a design specification.
-
 ## Installation
 
 ```bash
 composer require wppack/post-type
+```
+
+## Quick Start
+
+```php
+use WpPack\Component\PostType\PostRepository;
+
+$repository = new PostRepository();
+
+// Find a post
+$post = $repository->find($postId);
+
+// Create a post
+$newId = $repository->insert(['post_title' => 'New Post', 'post_status' => 'draft']);
+
+// Update a post
+$repository->update(['ID' => $newId, 'post_title' => 'Updated Title']);
+
+// Meta operations
+$repository->updateMeta($postId, 'custom_key', 'value');
+$value = $repository->getMeta($postId, 'custom_key', single: true);
 ```
 
 ## Documentation

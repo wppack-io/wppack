@@ -4,13 +4,29 @@
 
 Taxonomy registration and management for WordPress.
 
-> [!WARNING]
-> This component is in the design phase. Source code implementation is not yet available. Please refer to the following as a design specification.
-
 ## Installation
 
 ```bash
 composer require wppack/taxonomy
+```
+
+## Quick Start
+
+```php
+use WpPack\Component\Taxonomy\TermRepository;
+
+$repository = new TermRepository();
+
+// Find a term
+$term = $repository->find($termId, 'category');
+$term = $repository->findBySlug('my-term', 'category');
+
+// Create a term
+$result = $repository->insert('New Category', 'category', ['slug' => 'new-cat']);
+
+// Object-term relationships
+$repository->setObjectTerms($postId, [$termId1, $termId2], 'category');
+$terms = $repository->getObjectTerms($postId, 'category');
 ```
 
 ## Documentation

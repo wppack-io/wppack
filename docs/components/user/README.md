@@ -6,8 +6,8 @@
 
 WordPress ユーザー関連フックを Named Hook アトリビュートで型安全に利用するためのコンポーネントです。
 
-> [!WARNING]
-> このコンポーネントは設計段階です。ソースコードの実装はまだありません。以下は設計仕様として参照してください。
+> [!NOTE]
+> このコンポーネントは設計段階です。Repository（`UserRepository`）は実装済みです。Hook アトリビュート等の機能は設計仕様として参照してください。
 
 ## インストール
 
@@ -73,7 +73,7 @@ class UserHandler
 
 ## Hook アトリビュート
 
-→ 詳細は [Hook コンポーネント — User](./hook/user.md) を参照してください。
+→ 詳細は [Hook コンポーネント — User](../hook/user.md) を参照してください。
 
 ## Repository
 

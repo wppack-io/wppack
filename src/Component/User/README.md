@@ -4,13 +4,33 @@
 
 User management utilities for WordPress.
 
-> [!WARNING]
-> This component is in the design phase. Source code implementation is not yet available. Please refer to the following as a design specification.
-
 ## Installation
 
 ```bash
 composer require wppack/user
+```
+
+## Quick Start
+
+```php
+use WpPack\Component\User\UserRepository;
+
+$repository = new UserRepository();
+
+// Find a user
+$user = $repository->find($userId);
+$user = $repository->findByEmail('user@example.com');
+
+// Create a user
+$newId = $repository->insert([
+    'user_login' => 'newuser',
+    'user_pass' => 'password',
+    'user_email' => 'new@example.com',
+]);
+
+// Meta operations
+$repository->updateMeta($userId, 'custom_key', 'value');
+$value = $repository->getMeta($userId, 'custom_key', single: true);
 ```
 
 ## Documentation

@@ -87,7 +87,7 @@ WordPress の機能領域をモダンなパターンで扱う。
 | [Admin](./admin/) | `wppack/admin` | 管理画面ページ・メニュー登録 |
 | [Rest](./rest/) | `wppack/rest` | REST API エンドポイント定義 |
 | [Routing](./routing/) | `wppack/routing` | URL ルーティング |
-| [PostType](./post-type.md) | `wppack/post-type` | カスタム投稿タイプ・メタ登録 |
+| [PostType](./post-type/) | `wppack/post-type` | カスタム投稿タイプ・メタ登録 |
 | [Scheduler](./scheduler/) | `wppack/scheduler` | Trigger ベースのタスクスケジューラー |
 | [EventBridgeScheduler](./scheduler/eventbridge-scheduler.md) | `wppack/eventbridge-scheduler` | EventBridge スケジューラー |
 | [Console](./console/) | `wppack/console` | WP-CLI コマンドフレームワーク |
@@ -107,11 +107,11 @@ WordPress のアプリケーション構成要素を抽象化する。
 | [Theme](./theme/) | `wppack/theme` | テーマ開発フレームワーク |
 | [Widget](./widget/) | `wppack/widget` | ウィジェット定義 |
 | [Setting](./setting/) | `wppack/setting` | Settings API ラッパー |
-| [User](./user.md) | `wppack/user` | ユーザー管理 |
+| [User](./user/) | `wppack/user` | ユーザー管理 |
 | [Block](./block.md) | `wppack/block` | ブロックエディタ統合 |
 | [Media](./media/) | `wppack/media` | メディア管理 |
 | [Comment](./comment.md) | `wppack/comment` | コメント管理 |
-| [Taxonomy](./taxonomy.md) | `wppack/taxonomy` | タクソノミー定義 |
+| [Taxonomy](./taxonomy/) | `wppack/taxonomy` | タクソノミー定義 |
 | [NavigationMenu](./navigation-menu/) | `wppack/navigation-menu` | メニュー管理 |
 | [Feed](./feed/) | `wppack/feed` | RSS/Atom フィード |
 | [OEmbed](./oembed/) | `wppack/oembed` | oEmbed プロバイダー |

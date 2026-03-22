@@ -152,7 +152,7 @@ wppack/messenger, wppack/site
 
 wppack/media
     ↓ requires
-wppack/storage, wppack/site
+wppack/post-type, wppack/storage, wppack/site
 
 wppack/s3-storage-plugin
     ↓ requires

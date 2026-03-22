@@ -6,8 +6,8 @@
 
 WordPress のタクソノミー登録関数 `register_taxonomy()` をアトリビュートでラップし、タームの CRUD フックを Named Hook アトリビュートとして提供するコンポーネントです。
 
-> [!WARNING]
-> このコンポーネントは設計段階です。ソースコードの実装はまだありません。以下は設計仕様として参照してください。
+> [!NOTE]
+> このコンポーネントは設計段階です。Repository（`TermRepository`）は実装済みです。タクソノミー登録・Hook アトリビュート等の機能は設計仕様として参照してください。
 
 ## インストール
 
@@ -90,7 +90,7 @@ class ProductTaxonomy
 
 ## Hook アトリビュート
 
-→ 詳細は [Hook コンポーネント — Taxonomy](./hook/taxonomy.md) を参照してください。
+→ 詳細は [Hook コンポーネント — Taxonomy](../hook/taxonomy.md) を参照してください。
 
 ## Repository
 
