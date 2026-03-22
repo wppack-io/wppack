@@ -24,7 +24,7 @@ jobs:
         run: composer install --no-interaction --prefer-dist
 
       - name: Run PHPStan
-        run: vendor/bin/phpstan analyse
+        run: vendor/bin/phpstan analyse --ansi
 
   cs-check:
     name: Code Style
@@ -42,7 +42,7 @@ jobs:
         run: composer install --no-interaction --prefer-dist
 
       - name: Check code style
-        run: vendor/bin/php-cs-fixer fix --dry-run --diff
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff --ansi
 
   tests:
     name: Tests (PHP ${{ matrix.php }})
@@ -131,7 +131,7 @@ jobs:
           done
 
       - name: Run tests
-        run: vendor/bin/phpunit --coverage-clover coverage.xml --log-junit junit.xml
+        run: vendor/bin/phpunit --colors=always --coverage-clover coverage.xml --log-junit junit.xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
