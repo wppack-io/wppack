@@ -23,14 +23,19 @@ composer require wppack/theme
 テーマのセットアップ（`add_theme_support()`、`register_nav_menus()`、`register_sidebar()` など）は Kernel コンポーネントの `ThemeInterface` を実装して行います。Theme コンポーネントはテーマ関連の WordPress フックを Named Hook Attributes として提供します。
 
 ```php
-// テーマのセットアップは ThemeInterface を実装（→ Kernel コンポーネント参照）
+// テーマのセットアップは AbstractTheme を継承（→ Kernel コンポーネント参照）
 use WpPack\Component\Kernel\Kernel;
-use WpPack\Component\Kernel\ThemeInterface;
+use WpPack\Component\Kernel\AbstractTheme;
 use WpPack\Component\DependencyInjection\Container;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 
-class MyTheme implements ThemeInterface
+class MyTheme extends AbstractTheme
 {
+    public function __construct(string $themeFile)
+    {
+        parent::__construct($themeFile);
+    }
+
     public function register(ContainerBuilder $container): void
     {
         $container->discover(
@@ -60,7 +65,7 @@ class MyTheme implements ThemeInterface
 }
 
 // functions.php で：
-Kernel::registerTheme(new MyTheme());
+Kernel::registerTheme(new MyTheme(__FILE__));
 ```
 
 Theme コンポーネントの Named Hook Attributes を使って、テーマ関連フックを宣言的に扱います：

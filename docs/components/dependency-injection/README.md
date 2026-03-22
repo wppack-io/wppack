@@ -106,8 +106,8 @@ wp_loaded 以降               実行フェーズ（boot 実行）
 Kernel がコンテナのライフサイクルを管理します。各プラグインは `PluginInterface`、テーマは `ThemeInterface` として Kernel に登録します：
 
 ```php
-Kernel::registerPlugin(new MyPlugin(), __FILE__);
-Kernel::registerTheme(new MyTheme());
+Kernel::registerPlugin(new MyPlugin(__FILE__));
+Kernel::registerTheme(new MyTheme(__FILE__));
 ```
 
 ### PluginInterface
@@ -117,10 +117,15 @@ Kernel::registerTheme(new MyTheme());
 ```php
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\Container;
-use WpPack\Component\Kernel\PluginInterface;
+use WpPack\Component\Kernel\AbstractPlugin;
 
-final class MyPlugin implements PluginInterface
+final class MyPlugin extends AbstractPlugin
 {
+    public function __construct(string $pluginFile)
+    {
+        parent::__construct($pluginFile);
+    }
+
     public function register(ContainerBuilder $builder): void
     {
         $builder->loadConfig(__DIR__ . '/config/services.php');
@@ -155,10 +160,15 @@ final class MyPlugin implements PluginInterface
 ```php
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\Container;
-use WpPack\Component\Kernel\ThemeInterface;
+use WpPack\Component\Kernel\AbstractTheme;
 
-final class MyTheme implements ThemeInterface
+final class MyTheme extends AbstractTheme
 {
+    public function __construct(string $themeFile)
+    {
+        parent::__construct($themeFile);
+    }
+
     public function register(ContainerBuilder $builder): void
     {
         $builder->loadConfig(__DIR__ . '/config/services.php');
@@ -374,10 +384,15 @@ return static function (ContainerConfigurator $services): void {
 
 ```php
 use WpPack\Component\DependencyInjection\ContainerBuilder;
-use WpPack\Component\Kernel\PluginInterface;
+use WpPack\Component\Kernel\AbstractPlugin;
 
-final class MyPlugin implements PluginInterface
+final class MyPlugin extends AbstractPlugin
 {
+    public function __construct(string $pluginFile)
+    {
+        parent::__construct($pluginFile);
+    }
+
     public function register(ContainerBuilder $builder): void
     {
         $builder->loadConfig(__DIR__ . '/config/services.php');
@@ -969,7 +984,7 @@ try {
 // my-plugin.php（プラグインメインファイル）
 use WpPack\Component\Kernel\Kernel;
 
-Kernel::registerPlugin(new MyPlugin(), __FILE__);
+Kernel::registerPlugin(new MyPlugin(__FILE__));
 ```
 
 ```php
@@ -991,10 +1006,15 @@ return static function (ContainerConfigurator $services): void {
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\Container;
 use WpPack\Component\DependencyInjection\WordPress\WordPressServiceProvider;
-use WpPack\Component\Kernel\PluginInterface;
+use WpPack\Component\Kernel\AbstractPlugin;
 
-final class MyPlugin implements PluginInterface
+final class MyPlugin extends AbstractPlugin
 {
+    public function __construct(string $pluginFile)
+    {
+        parent::__construct($pluginFile);
+    }
+
     public function register(ContainerBuilder $builder): void
     {
         // WordPress サービスの登録

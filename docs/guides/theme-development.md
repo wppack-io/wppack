@@ -29,7 +29,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 use MyTheme\MyTheme;
 use WpPack\Component\Kernel\Kernel;
 
-Kernel::registerTheme(new MyTheme());
+Kernel::registerTheme(new MyTheme(__FILE__));
 ```
 
 `Kernel::registerTheme()` は `Kernel::registerPlugin()` と同様に、初回呼び出し時に Kernel インスタンスを自動生成し、`init` フック（priority 0）で `boot()` をスケジュールします。
@@ -51,10 +51,15 @@ namespace MyTheme;
 use WpPack\Component\DependencyInjection\Container;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
-use WpPack\Component\Kernel\ThemeInterface;
+use WpPack\Component\Kernel\AbstractTheme;
 
-final class MyTheme implements ThemeInterface
+final class MyTheme extends AbstractTheme
 {
+    public function __construct(string $themeFile)
+    {
+        parent::__construct($themeFile);
+    }
+
     public function register(ContainerBuilder $builder): void
     {
         $builder->loadConfig(__DIR__ . '/../config/services.php');

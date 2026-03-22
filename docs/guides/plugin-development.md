@@ -93,10 +93,10 @@ use MyPlugin\MyPlugin;
 use WpPack\Component\Kernel\Kernel;
 
 // Kernel に登録（init フックで自動ブート、有効化・無効化フックも自動登録）
-Kernel::registerPlugin(new MyPlugin(), __FILE__);
+Kernel::registerPlugin(new MyPlugin(__FILE__));
 ```
 
-`Kernel::registerPlugin()` は初回呼び出し時に Kernel インスタンスを自動生成し、`init` フック（priority 0）で `boot()` をスケジュールします。第2引数の `$pluginFile` を使って `register_activation_hook()` / `register_deactivation_hook()` が自動登録されます。
+`Kernel::registerPlugin()` は初回呼び出し時に Kernel インスタンスを自動生成し、`init` フック（priority 0）で `boot()` をスケジュールします。`PluginInterface::getFile()` が返すプラグインファイルパスを使って `register_activation_hook()` / `register_deactivation_hook()` が自動登録されます。
 
 > 詳細: [Kernel コンポーネント](../components/kernel/README.md)
 
@@ -116,10 +116,15 @@ use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
 use WpPack\Component\Hook\HookDiscovery;
 use WpPack\Component\Hook\HookRegistry;
-use WpPack\Component\Kernel\PluginInterface;
+use WpPack\Component\Kernel\AbstractPlugin;
 
-final class MyPlugin implements PluginInterface
+final class MyPlugin extends AbstractPlugin
 {
+    public function __construct(string $pluginFile)
+    {
+        parent::__construct($pluginFile);
+    }
+
     public function register(ContainerBuilder $builder): void
     {
         // Hook 基盤サービスの登録
@@ -538,13 +543,16 @@ final class ApiIntegration
 `PluginInterface` の `onActivate()` と `onDeactivate()` は、`Kernel::registerPlugin()` により自動的に `register_activation_hook()` / `register_deactivation_hook()` に登録されます。エントリーポイントで手動登録する必要はありません。
 
 ```php
-final class MyPlugin implements PluginInterface
+final class MyPlugin extends AbstractPlugin
 {
     // ...
 
     public function __construct(
+        string $pluginFile,
         private readonly DatabaseManager $db,
-    ) {}
+    ) {
+        parent::__construct($pluginFile);
+    }
 
     public function onActivate(): void
     {
@@ -582,7 +590,7 @@ final class MyPlugin implements PluginInterface
 
 ### Kernel による自動登録
 
-`Kernel::registerPlugin(new MyPlugin(), __FILE__)` を呼ぶだけで、第2引数の `$pluginFile` を使って `onActivate()` / `onDeactivate()` が WordPress の有効化・無効化フックに自動登録されます。手動で `register_activation_hook()` / `register_deactivation_hook()` を呼ぶ必要はありません。
+`Kernel::registerPlugin(new MyPlugin(__FILE__))` を呼ぶだけで、`PluginInterface::getFile()` が返すプラグインファイルパスを使って `onActivate()` / `onDeactivate()` が WordPress の有効化・無効化フックに自動登録されます。手動で `register_activation_hook()` / `register_deactivation_hook()` を呼ぶ必要はありません。
 
 > [!NOTE]
 > `onActivate()` / `onDeactivate()` はコンテナのブート前に呼ばれるため、DI コンテナに依存しない処理を記述してください。
@@ -633,7 +641,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 use MyNotificationPlugin\MyNotificationPlugin;
 use WpPack\Component\Kernel\Kernel;
 
-Kernel::registerPlugin(new MyNotificationPlugin(), __FILE__);
+Kernel::registerPlugin(new MyNotificationPlugin(__FILE__));
 ```
 
 ### config/services.php
@@ -668,10 +676,15 @@ use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
 use WpPack\Component\Hook\HookDiscovery;
 use WpPack\Component\Hook\HookRegistry;
-use WpPack\Component\Kernel\PluginInterface;
+use WpPack\Component\Kernel\AbstractPlugin;
 
-final class MyNotificationPlugin implements PluginInterface
+final class MyNotificationPlugin extends AbstractPlugin
 {
+    public function __construct(string $pluginFile)
+    {
+        parent::__construct($pluginFile);
+    }
+
     public function register(ContainerBuilder $builder): void
     {
         $builder->register(HookRegistry::class, HookRegistry::class)->setPublic(true);

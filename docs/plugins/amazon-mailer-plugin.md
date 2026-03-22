@@ -145,7 +145,7 @@ define('MAILER_DSN', 'ses+api://default?region=ap-northeast-1');
 ```php
 namespace WpPack\Plugin\AmazonMailerPlugin;
 
-final class AmazonMailerPlugin implements PluginInterface
+final class AmazonMailerPlugin extends AbstractPlugin
 {
     public function register(ContainerBuilder $builder): void;
     public function getCompilerPasses(): array;  // RegisterHookSubscribersPass, RegisterTransportFactoriesPass
