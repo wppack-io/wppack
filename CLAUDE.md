@@ -276,6 +276,15 @@ wppack/logger
 - match式を活用
 - Named argumentsを適切に使用
 
+### `function_exists()` の使用方針
+
+WordPress がロードされていない環境を想定する必要はない。WordPress コア関数に対する `function_exists()` ガードは不要。
+
+- **不要:** `get_post`, `wp_insert_user`, `get_term_meta` 等の WordPress コア関数（WordPress がロードされていれば常に存在する）
+- **必要:** マルチサイト専用関数（`get_sites`, `switch_to_blog` 等 — シングルサイトでは存在しない）
+- **必要:** PHP 拡張の関数（`apcu_enabled`, `bzcompress`, `finfo_open` 等）
+- **必要:** `wp-admin` 専用関数で `require_once` が必要な場合（`dbDelta`, `wp_delete_user` 等）
+
 ### Named Hook 規約
 
 全 Named Hook アトリビュートは Hook コンポーネントに集約されている:
