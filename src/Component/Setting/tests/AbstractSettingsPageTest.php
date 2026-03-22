@@ -6,7 +6,9 @@ namespace WpPack\Component\Setting\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Role\Attribute\IsGranted;
+use WpPack\Component\Security\Attribute\CurrentUser;
 use WpPack\Component\Setting\AbstractSettingsPage;
 use WpPack\Component\Setting\Attribute\AsSettingsPage;
 use WpPack\Component\Setting\SettingsConfigurator;
@@ -226,24 +228,7 @@ final class AbstractSettingsPageTest extends TestCase
     }
 
     #[Test]
-    public function invokeReturnsRenderedContent(): void
-    {
-        // Set $title global so get_admin_page_title() returns early
-        // without calling get_plugin_page_hookname() with null $plugin_page
-        global $title;
-        $title = 'Test Page';
-
-        $page = new MinimalTestSettingsPage();
-
-        $output = $page();
-
-        self::assertStringContainsString('<div class="wrap">', $output);
-        self::assertStringContainsString('<form', $output);
-        self::assertStringContainsString('</div>', $output);
-    }
-
-    #[Test]
-    public function handleRenderEchoesInvokeOutput(): void
+    public function handleRenderRendersViaSettingsRendererByDefault(): void
     {
         global $title;
         $title = 'Test Page';
@@ -256,6 +241,23 @@ final class AbstractSettingsPageTest extends TestCase
 
         self::assertStringContainsString('<div class="wrap">', $output);
         self::assertStringContainsString('<form', $output);
+        self::assertStringContainsString('</div>', $output);
+    }
+
+    #[Test]
+    public function handleRenderCallsInvokeWhenOverridden(): void
+    {
+        $renderer = $this->createMock(TemplateRendererInterface::class);
+        $renderer->method('render')->willReturn('<p>custom render</p>');
+
+        $page = new TemplatingTestSettingsPage();
+        $page->setTemplateRenderer($renderer);
+
+        ob_start();
+        $page->handleRender();
+        $output = ob_get_clean();
+
+        self::assertSame('<p>custom render</p>', $output);
     }
 
     #[Test]
@@ -482,6 +484,68 @@ final class AbstractSettingsPageTest extends TestCase
 
         $page();
     }
+
+    #[Test]
+    public function handleRenderResolvesRequestArgument(): void
+    {
+        $request = new Request(query: ['tab' => 'advanced']);
+        $page = new RequestInjectTestSettingsPage();
+        $page->setInvokeArgumentResolver(static fn() => [$request]);
+
+        ob_start();
+        $page->handleRender();
+        $output = ob_get_clean();
+
+        self::assertSame('advanced', $output);
+    }
+
+    #[Test]
+    public function handleRenderResolvesCurrentUserArgument(): void
+    {
+        wp_set_current_user(1);
+        $user = wp_get_current_user();
+
+        $page = new CurrentUserInjectTestSettingsPage();
+        $page->setInvokeArgumentResolver(static fn() => [$user]);
+
+        ob_start();
+        $page->handleRender();
+        $output = ob_get_clean();
+
+        self::assertSame($user->display_name, $output);
+    }
+
+    #[Test]
+    public function handleRenderResolvesBothArguments(): void
+    {
+        wp_set_current_user(1);
+        $request = new Request(query: ['tab' => 'general']);
+        $user = wp_get_current_user();
+
+        $page = new BothInjectTestSettingsPage();
+        $page->setInvokeArgumentResolver(static fn() => [$request, $user]);
+
+        ob_start();
+        $page->handleRender();
+        $output = ob_get_clean();
+
+        self::assertSame('general:' . $user->display_name, $output);
+    }
+
+    #[Test]
+    public function handleRenderWithoutResolverWorksForDefaultInvoke(): void
+    {
+        global $title;
+        $title = 'Test Page';
+
+        $page = new MinimalTestSettingsPage();
+
+        ob_start();
+        $page->handleRender();
+        $output = ob_get_clean();
+
+        self::assertStringContainsString('<div class="wrap">', $output);
+    }
 }
 
 #[AsSettingsPage(
@@ -604,5 +668,38 @@ class SanitizeAndValidateTestSettingsPage extends AbstractSettingsPage
         }
 
         return $input;
+    }
+}
+
+#[AsSettingsPage(slug: 'request-inject-settings', label: 'Request Inject Settings')]
+class RequestInjectTestSettingsPage extends AbstractSettingsPage
+{
+    protected function configure(SettingsConfigurator $settings): void {}
+
+    public function __invoke(Request $request): string
+    {
+        return $request->query->get('tab', 'default');
+    }
+}
+
+#[AsSettingsPage(slug: 'user-inject-settings', label: 'User Inject Settings')]
+class CurrentUserInjectTestSettingsPage extends AbstractSettingsPage
+{
+    protected function configure(SettingsConfigurator $settings): void {}
+
+    public function __invoke(#[CurrentUser] \WP_User $user): string
+    {
+        return $user->display_name;
+    }
+}
+
+#[AsSettingsPage(slug: 'both-inject-settings', label: 'Both Inject Settings')]
+class BothInjectTestSettingsPage extends AbstractSettingsPage
+{
+    protected function configure(SettingsConfigurator $settings): void {}
+
+    public function __invoke(Request $request, #[CurrentUser] \WP_User $user): string
+    {
+        return $request->query->get('tab', 'default') . ':' . $user->display_name;
     }
 }

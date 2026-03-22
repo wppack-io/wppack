@@ -7,6 +7,9 @@
         "php": "^8.2",
         "wppack/mime": "^1.0"
     },
+    "suggest": {
+        "wppack/security": "Required for #[CurrentUser] parameter injection via InvokeArgumentResolverTrait"
+    },
     "autoload": {
         "psr-4": {
             "WpPack\\Component\\HttpFoundation\\": "src/"

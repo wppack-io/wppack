@@ -22,6 +22,7 @@ abstract class AbstractDashboardWidget
     private readonly IsGrantedChecker $isGrantedChecker;
 
     private ?TemplateRendererInterface $renderer = null;
+    private ?\Closure $invokeArgumentResolver = null;
 
     public function __construct(?IsGrantedChecker $isGrantedChecker = null)
     {
@@ -37,7 +38,11 @@ abstract class AbstractDashboardWidget
         $this->isGrantedChecker = $isGrantedChecker ?? new IsGrantedChecker();
     }
 
-    abstract public function __invoke(): string;
+    /** @internal */
+    public function setInvokeArgumentResolver(\Closure $resolver): void
+    {
+        $this->invokeArgumentResolver = $resolver;
+    }
 
     /** @internal */
     public function setTemplateRenderer(TemplateRendererInterface $renderer): void
@@ -63,7 +68,8 @@ abstract class AbstractDashboardWidget
     /** @internal */
     public function handleRender(): void
     {
-        echo $this();
+        $args = $this->invokeArgumentResolver !== null ? ($this->invokeArgumentResolver)() : [];
+        echo $this(...$args);
     }
 
     public function configure(): void {}
