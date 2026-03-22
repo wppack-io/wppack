@@ -147,6 +147,10 @@ WordPress コア / プラグイン
 | wppack/messenger | メッセージバス・ハンドラ基盤（SQS 経由の非同期処理） |
 | wppack/kernel | プラグインブートストラップ（`PluginInterface`, `Kernel`） |
 | wppack/role | 認可（`#[IsGranted]`） |
+| wppack/nonce | CSRF トークン管理（REST API nonce 生成） |
+| wppack/plugin | プラグインパス解決（`PluginPathResolver`） |
+| wppack/rest | REST URL 生成（`RestUrlGenerator`） |
+| wppack/asset | アセット管理（`AssetManager`） |
 | async-aws/s3 | S3 API（S3StorageAdapter 経由で使用） |
 
 ## 名前空間
@@ -188,6 +192,8 @@ final readonly class AttachmentRegistrar
     public function __construct(
         private MessageBusInterface $bus,
         private string $prefix,
+        private BlogSwitcherInterface $blogSwitcher,
+        private AttachmentManager $attachment,
         ?MimeTypesInterface $mimeTypes = null,
         private ?LoggerInterface $logger = null,
     ) {}
@@ -231,6 +237,7 @@ final class RegisterAttachmentController extends AbstractRestController
     public function __construct(
         private readonly AttachmentRegistrar $registrar,
         private readonly StorageAdapterInterface $adapter,
+        private readonly AttachmentManager $attachment,
     ) {}
 
     /**
@@ -340,8 +347,14 @@ Lambda 上でサムネイル画像を生成する。`get_attached_file()` → st
 namespace WpPack\Plugin\S3StoragePlugin\Handler;
 
 #[AsMessageHandler]
-final class GenerateThumbnailsHandler
+final readonly class GenerateThumbnailsHandler
 {
+    public function __construct(
+        private BlogSwitcherInterface $blogSwitcher,
+        private AttachmentManager $attachment,
+        private ?LoggerInterface $logger = null,
+    ) {}
+
     public function __invoke(GenerateThumbnailsMessage $message): void;
 }
 ```
@@ -373,8 +386,11 @@ namespace WpPack\Plugin\S3StoragePlugin\Subscriber;
 final readonly class AdminAssetSubscriber
 {
     public function __construct(
-        private string $pluginFile,
+        private PluginPathResolver $pluginPath,
         private UploadPolicy $policy,
+        private AssetManager $asset,
+        private NonceManager $nonce,
+        private RestUrlGenerator $restUrl,
     ) {}
 
     #[AdminEnqueueScriptsAction]

@@ -215,6 +215,26 @@ throw new ForbiddenException('Access denied.');         // 403
 | リクエスト | `Request` + パラメータ自動注入 | `Request` / `WP_REST_Request` |
 | パーミッション | `#[IsGranted]` | `#[Permission]` + `#[IsGranted]` |
 
+## RestUrlGenerator
+
+REST API の URL を生成するユーティリティクラス。`rest_url()` と `rest_get_url_prefix()` のラッパーとして、DI コンテナ経由でのインジェクションを可能にします。
+
+```php
+use WpPack\Component\Rest\RestUrlGenerator;
+
+$restUrl = new RestUrlGenerator();
+
+$restUrl->url('wppack/v1/s3/presigned-url');
+// => https://example.com/wp-json/wppack/v1/s3/presigned-url
+
+$restUrl->prefix();
+// => 'wp-json'
+```
+
+**主な利用場面:**
+- JavaScript に REST API URL を渡す際に、`rest_url()` の直接呼び出しを避けて DI 経由で注入したい場合
+- テスト時に REST URL をモック可能にしたい場合
+
 ## プラグイン / テーマでの配置
 
 プラグインやテーマで REST コントローラーを作成する場合、以下のディレクトリ構成を推奨します。

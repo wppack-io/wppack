@@ -96,6 +96,7 @@ src/Plugin/AmazonMailerPlugin/
 | wppack/dependency-injection | DI コンテナ |
 | wppack/kernel | プラグインブートストラップ（PluginInterface） |
 | wppack/hook | WordPress フック統合 |
+| wppack/option | WordPress options ラッパー（`OptionManager`、送信抑制リスト保存） |
 | wppack/messenger | メッセージバス（バウンス/苦情ハンドラ） |
 
 ## 名前空間
@@ -182,7 +183,9 @@ DI サービスプロバイダ。以下のサービスを登録します:
 - `TransportInterface` — DSN から解決されたトランスポート
 - `Mailer` — メーラー
 - `SesNotificationNormalizer` — SNS JSON パーサー
-- `BounceHandler` / `ComplaintHandler` — メッセージハンドラ（`messenger.message_handler` タグ）
+- `OptionManager` — WordPress options ラッパー
+- `SuppressionList` — 送信抑制リスト（`OptionManager` を注入）
+- `BounceHandler` / `ComplaintHandler` — メッセージハンドラ（`SuppressionList` を注入、`messenger.message_handler` タグ）
 
 ### Message\SesBounceMessage / SesComplaintMessage
 
@@ -254,7 +257,10 @@ namespace WpPack\Plugin\AmazonMailerPlugin\Handler;
 #[AsMessageHandler]
 final readonly class BounceHandler
 {
-    public function __construct(private ?LoggerInterface $logger = null);
+    public function __construct(
+        private SuppressionList $suppressionList,
+        private ?LoggerInterface $logger = null,
+    );
     public function __invoke(SesBounceMessage $message): void;
 }
 ```
@@ -269,7 +275,10 @@ namespace WpPack\Plugin\AmazonMailerPlugin\Handler;
 #[AsMessageHandler]
 final readonly class ComplaintHandler
 {
-    public function __construct(private ?LoggerInterface $logger = null);
+    public function __construct(
+        private SuppressionList $suppressionList,
+        private ?LoggerInterface $logger = null,
+    );
     public function __invoke(SesComplaintMessage $message): void;
 }
 ```

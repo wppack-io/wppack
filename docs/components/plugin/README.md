@@ -22,6 +22,26 @@ composer require wppack/plugin
 
 → 詳細は [Hook コンポーネント — Plugin](../hook/plugin.md) を参照してください。
 
+## ユーティリティクラス
+
+### PluginPathResolver
+
+プラグインファイルパスからディレクトリパス・URL・ベース名を解決するユーティリティ。`plugin_dir_url()`、`plugin_dir_path()`、`plugin_basename()` のラッパーとして、DI コンテナ経由でのインジェクションを可能にします。
+
+```php
+use WpPack\Component\Plugin\PluginPathResolver;
+
+$resolver = new PluginPathResolver(__FILE__);
+
+$resolver->getUrl();      // plugin_dir_url() — https://example.com/wp-content/plugins/my-plugin/
+$resolver->getPath();     // plugin_dir_path() — /var/www/html/wp-content/plugins/my-plugin/
+$resolver->getBasename(); // plugin_basename() — my-plugin/my-plugin.php
+```
+
+**主な利用場面:**
+- `AdminAssetSubscriber` 等で `plugins_url()` / `plugin_dir_url()` を直接呼ばずに、DI でプラグインパスを注入したい場合
+- テスト時にプラグインファイルパスをモック可能にしたい場合
+
 ## このコンポーネントの使用場面
 
 **最適な用途：**

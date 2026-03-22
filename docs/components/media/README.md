@@ -72,6 +72,54 @@ class MediaHandler
 }
 ```
 
+## ユーティリティクラス
+
+### AttachmentManager
+
+WordPress の attachment 操作関数（`wp_insert_attachment()`、`wp_delete_attachment()`、`wp_prepare_attachment_for_js()` 等）をラップするクラス。DI コンテナ経由でのインジェクションとテスト時のモックを可能にします。
+
+```php
+use WpPack\Component\Media\AttachmentManager;
+
+$attachment = new AttachmentManager();
+
+// Attachment の登録
+$id = $attachment->insert([
+    'post_title' => 'My Image',
+    'post_mime_type' => 'image/jpeg',
+    'post_status' => 'inherit',
+], '2024/01/photo.jpg');
+
+// JavaScript 向けデータの準備
+$data = $attachment->prepareForJs($id);
+
+// Attachment ファイルパスの取得
+$file = $attachment->getAttachedFile($id);
+
+// メタデータの生成・更新
+$metadata = $attachment->generateMetadata($id, $file);
+$attachment->updateMetadata($id, $metadata);
+
+// メタキーによる検索
+$existingId = $attachment->findByMeta('_wp_attached_file', '2024/01/photo.jpg');
+
+// Attachment の削除
+$attachment->delete($id, force: true);
+```
+
+**主なメソッド:**
+
+| メソッド | WordPress 関数 | 説明 |
+|---------|---------------|------|
+| `insert()` | `wp_insert_attachment()` | Attachment 登録 |
+| `delete()` | `wp_delete_attachment()` | Attachment 削除 |
+| `prepareForJs()` | `wp_prepare_attachment_for_js()` | JS 向けデータ準備 |
+| `getAttachedFile()` | `get_attached_file()` | ファイルパス取得 |
+| `generateMetadata()` | `wp_generate_attachment_metadata()` | メタデータ生成 |
+| `updateMetadata()` | `wp_update_attachment_metadata()` | メタデータ更新 |
+| `getMetadata()` | `wp_get_attachment_metadata()` | メタデータ取得 |
+| `findByMeta()` | `get_posts()` | メタキーで attachment 検索 |
+
 ## Hook アトリビュート
 
 → 詳細は [Hook コンポーネント — Media](../hook/media.md) を参照してください。
