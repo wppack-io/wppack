@@ -104,6 +104,58 @@ final class HttpHooks
 }
 ```
 
+### Safe Requests (SSRF Protection)
+
+When handling user-provided URLs (webhooks, callbacks, etc.), use SSRF protection to validate URLs before sending requests. This uses WordPress's `wp_http_validate_url()` (the same mechanism as `wp_safe_remote_request()`) to:
+
+- **Resolve hostnames via DNS and block private/reserved IPs** — `127.0.0.0/8`, `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`, `169.254.0.0/16` (cloud metadata endpoints)
+- **Restrict ports** to 80, 443, 8080 only
+- **Reject URLs with embedded credentials** — `http://user:pass@host/`
+- **Validate redirect targets** — prevents indirect SSRF via redirects
+
+Blocked requests throw `ConnectionException` with "A valid URL was not provided."
+
+Two approaches are available:
+
+**`safe()` fluent method** — ad-hoc use on `HttpClient`. Returns a new instance with `reject_unsafe_urls` enabled. Note: can be overridden by a subsequent `withOptions()` call.
+
+```php
+$response = $http->safe()->get($userProvidedUrl);
+
+$response = $http
+    ->safe()
+    ->withHeaders(['Authorization' => 'Bearer ' . $token])
+    ->timeout(10)
+    ->asJson()
+    ->post($userProvidedApiUrl, ['json' => $data]);
+```
+
+**`SafeHttpClient`** — tamper-proof subclass for DI injection. SSRF protection is always enabled and cannot be disabled via `withOptions()`. Use this for services that always handle user-provided URLs.
+
+```php
+use WpPack\Component\HttpClient\SafeHttpClient;
+
+class WebhookHandler
+{
+    public function __construct(private SafeHttpClient $http) {}
+
+    public function handle(string $url, array $payload): void
+    {
+        // reject_unsafe_urls is always enabled — cannot be disabled via withOptions()
+        $this->http->asJson()->post($url, ['json' => $payload]);
+    }
+}
+```
+
+| | `HttpClient` | `HttpClient::safe()` | `SafeHttpClient` |
+|---|---|---|---|
+| URL validation | None | `wp_http_validate_url()` | `wp_http_validate_url()` |
+| Private IP blocking | No | **Yes** | **Yes** |
+| Port restriction (80/443/8080) | No | **Yes** | **Yes** |
+| Redirect validation | No | **Yes** | **Yes** |
+| Can be disabled via `withOptions()` | — | Yes | **No** (tamper-proof) |
+| Type after fluent chaining | `HttpClient` | `HttpClient` | `SafeHttpClient` |
+
 ## Error Handling
 
 ```php

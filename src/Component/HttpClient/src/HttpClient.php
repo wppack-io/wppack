@@ -24,7 +24,7 @@ class HttpClient implements ClientInterface
     private array $queryParams = [];
 
     /** @var array<string, mixed> */
-    private array $options = [];
+    protected array $options = [];
 
     public function sendRequest(RequestInterface $request): ResponseInterface
     {
@@ -88,7 +88,7 @@ class HttpClient implements ClientInterface
     /**
      * @param array<string, string> $headers
      */
-    public function withHeaders(array $headers): self
+    public function withHeaders(array $headers): static
     {
         $clone = clone $this;
         $clone->headers = array_merge($clone->headers, $headers);
@@ -96,14 +96,14 @@ class HttpClient implements ClientInterface
         return $clone;
     }
 
-    public function withBasicAuth(string $user, string $password): self
+    public function withBasicAuth(string $user, string $password): static
     {
         return $this->withHeaders([
             'Authorization' => 'Basic ' . base64_encode($user . ':' . $password),
         ]);
     }
 
-    public function timeout(int $seconds): self
+    public function timeout(int $seconds): static
     {
         $clone = clone $this;
         $clone->timeout = $seconds;
@@ -111,7 +111,7 @@ class HttpClient implements ClientInterface
         return $clone;
     }
 
-    public function baseUri(string $baseUri): self
+    public function baseUri(string $baseUri): static
     {
         $clone = clone $this;
         $clone->baseUri = rtrim($baseUri, '/');
@@ -119,7 +119,7 @@ class HttpClient implements ClientInterface
         return $clone;
     }
 
-    public function asJson(): self
+    public function asJson(): static
     {
         $clone = clone $this;
         $clone->bodyFormat = 'json';
@@ -129,7 +129,7 @@ class HttpClient implements ClientInterface
         return $clone;
     }
 
-    public function asForm(): self
+    public function asForm(): static
     {
         $clone = clone $this;
         $clone->bodyFormat = 'form';
@@ -141,7 +141,7 @@ class HttpClient implements ClientInterface
     /**
      * @param array<string, string> $params
      */
-    public function query(array $params): self
+    public function query(array $params): static
     {
         $clone = clone $this;
         $clone->queryParams = array_merge($clone->queryParams, $params);
@@ -152,12 +152,17 @@ class HttpClient implements ClientInterface
     /**
      * @param array<string, mixed> $options
      */
-    public function withOptions(array $options): self
+    public function withOptions(array $options): static
     {
         $clone = clone $this;
         $clone->options = array_merge($clone->options, $options);
 
         return $clone;
+    }
+
+    public function safe(): static
+    {
+        return $this->withOptions(['reject_unsafe_urls' => true]);
     }
 
     /**

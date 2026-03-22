@@ -8,6 +8,7 @@ use Psr\Http\Client\ClientInterface;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
 use WpPack\Component\HttpClient\HttpClient;
+use WpPack\Component\HttpClient\SafeHttpClient;
 
 final class HttpClientServiceProvider implements ServiceProviderInterface
 {
@@ -15,5 +16,6 @@ final class HttpClientServiceProvider implements ServiceProviderInterface
     {
         $builder->register(HttpClient::class);
         $builder->setAlias(ClientInterface::class, HttpClient::class);
+        $builder->register(SafeHttpClient::class);
     }
 }

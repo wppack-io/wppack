@@ -11,6 +11,7 @@ use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
 use WpPack\Component\HttpClient\DependencyInjection\HttpClientServiceProvider;
 use WpPack\Component\HttpClient\HttpClient;
+use WpPack\Component\HttpClient\SafeHttpClient;
 
 final class HttpClientServiceProviderTest extends TestCase
 {
@@ -54,6 +55,29 @@ final class HttpClientServiceProviderTest extends TestCase
 
         self::assertTrue($container->has(HttpClient::class));
         self::assertInstanceOf(HttpClient::class, $container->get(HttpClient::class));
+    }
+
+    #[Test]
+    public function registersSafeHttpClient(): void
+    {
+        $builder = new ContainerBuilder();
+        $provider = new HttpClientServiceProvider();
+
+        $provider->register($builder);
+
+        self::assertTrue($builder->hasDefinition(SafeHttpClient::class));
+    }
+
+    #[Test]
+    public function compiledContainerResolvesSafeHttpClient(): void
+    {
+        $builder = new ContainerBuilder();
+        $builder->addServiceProvider(new HttpClientServiceProvider());
+
+        $container = $builder->compile();
+
+        self::assertTrue($container->has(SafeHttpClient::class));
+        self::assertInstanceOf(SafeHttpClient::class, $container->get(SafeHttpClient::class));
     }
 
     #[Test]

@@ -291,6 +291,143 @@ $thirdPartyService = new SomeExternalSdk(
 );
 ```
 
+## 安全なリクエスト（SSRF 防止）
+
+ユーザーが提供した URL（Webhook コールバック、外部 API エンドポイント等）にリクエストを送る場合、SSRF（Server-Side Request Forgery）防止が必要です。
+
+SSRF とは、攻撃者が URL パラメータを操作して、サーバーから内部ネットワークやローカルサービスにアクセスさせる攻撃です。例えば、Webhook URL に `http://169.254.169.254/latest/meta-data/` を指定することで、EC2 インスタンスメタデータ（IAM ロールの一時クレデンシャル等）を読み取られる可能性があります。
+
+### `reject_unsafe_urls` の挙動
+
+`HttpClient` はデフォルトでは URL のバリデーションを行わず、`wp_remote_request()` にそのまま渡します。`safe()` メソッドまたは `SafeHttpClient` を使用すると、WordPress の `wp_http_validate_url()` によるバリデーションが有効になります（WordPress の `wp_safe_remote_request()` と同じ仕組み）。
+
+バリデーションはリクエスト送信前に実行され、**URL のホスト名を DNS 解決してから IP アドレスを検査**します。これにより、`http://evil.example.com/`（内部 IP に解決されるドメイン）のような DNS リバインディング攻撃も防止できます。
+
+#### ブロックされるリクエスト
+
+| カテゴリ | 例 | 理由 |
+|---------|-----|------|
+| ループバック | `http://127.0.0.1/`, `http://localhost/` | ローカルサービスへのアクセス防止 |
+| プライベートネットワーク | `http://10.0.1.5/`, `http://192.168.1.1/` | 内部ネットワークへのアクセス防止 |
+| リンクローカル | `http://169.254.169.254/` | クラウドメタデータエンドポイント（AWS IMDSv1、GCP 等）の保護 |
+| 非標準ポート | `http://example.com:3306/` | データベース等の内部サービスポートへの接続防止 |
+| 認証情報付き URL | `http://user:pass@example.com/` | URL に埋め込まれた認証情報の漏洩防止 |
+| DNS 解決不能 | `http://nonexistent.internal/` | 存在しないホストの拒否 |
+
+#### 許可されるリクエスト
+
+| カテゴリ | 例 |
+|---------|-----|
+| 外部ドメイン（パブリック IP） | `https://api.example.com/webhook` |
+| 標準ポート（80, 443, 8080） | `https://api.example.com:443/` |
+| 自サイトの URL | `https://mysite.example.com/wp-json/...`（ポート制限なし） |
+
+#### ブロック時の挙動
+
+バリデーションに失敗した場合、WordPress は `WP_Error('http_request_failed', 'A valid URL was not provided.')` を返します。HttpClient はこれを `ConnectionException` に変換してスローします。
+
+```php
+use WpPack\Component\HttpClient\Exception\ConnectionException;
+
+try {
+    $response = $http->safe()->get('http://169.254.169.254/latest/meta-data/');
+} catch (ConnectionException $e) {
+    // "A valid URL was not provided."
+    $e->getMessage();
+}
+```
+
+リダイレクト先も同様にバリデーションされます。例えば、`https://evil.com/redirect`（→ `http://127.0.0.1/admin`）のような間接的な SSRF もブロックされます。
+
+### 2 つの方法
+
+SSRF 防止には 2 つの方法があります。
+
+#### `safe()` fluent メソッド
+
+`HttpClient` の fluent メソッドで、アドホックに SSRF 防止を有効化します。`asJson()` や `asForm()` と同じイミュータブルなパターンで、新しいインスタンスを返します。
+
+```php
+$http = new HttpClient();
+
+// ユーザーが入力した URL に対して安全にリクエスト
+$response = $http->safe()->get($userProvidedUrl);
+
+// 他の fluent メソッドとの組み合わせ
+$response = $http
+    ->safe()
+    ->withHeaders(['Authorization' => 'Bearer ' . $token])
+    ->timeout(10)
+    ->asJson()
+    ->post($userProvidedApiUrl, ['json' => $data]);
+```
+
+`safe()` は `HttpClient` のインスタンスを返すため、後から `withOptions(['reject_unsafe_urls' => false])` で無効化できる点に注意してください。これはアドホック利用（1 回のリクエストで safe にしたい場合）に適しています。
+
+#### `SafeHttpClient` クラス
+
+`HttpClient` を継承した専用サブクラスです。コンストラクタで `reject_unsafe_urls => true` を設定し、`withOptions()` をオーバーライドして無効化を防止します。
+
+```php
+use WpPack\Component\HttpClient\SafeHttpClient;
+
+$client = new SafeHttpClient();
+
+// reject_unsafe_urls は常に有効
+$response = $client->get($userProvidedUrl);
+
+// withOptions() で false にしても、内部で true に強制される（tamper-proof）
+$client2 = $client->withOptions(['reject_unsafe_urls' => false]);
+// → reject_unsafe_urls は true のまま
+
+// fluent メソッドチェーンでも SafeHttpClient 型が維持される
+$configured = $client->timeout(30)->asJson();
+// → $configured は SafeHttpClient のインスタンス
+```
+
+### `HttpClient` との違い
+
+| | `HttpClient` | `HttpClient::safe()` | `SafeHttpClient` |
+|---|---|---|---|
+| URL バリデーション | なし | `wp_http_validate_url()` で検証 | `wp_http_validate_url()` で検証 |
+| プライベート IP への接続 | 許可 | **ブロック** | **ブロック** |
+| ポート制限（80/443/8080 のみ） | なし | **あり** | **あり** |
+| リダイレクト先の検証 | なし | **あり** | **あり** |
+| `withOptions()` で無効化 | — | 可能 | **不可能**（tamper-proof） |
+| fluent チェーン後の型 | `HttpClient` | `HttpClient` | `SafeHttpClient` |
+| DI での型レベル強制 | — | — | `SafeHttpClient` 型で注入可能 |
+| WordPress 対応 | `wp_remote_request()` | `wp_safe_remote_request()` 相当 | `wp_safe_remote_request()` 相当 |
+
+### いつどちらを使うべきか
+
+| ケース | 推奨 | 理由 |
+|--------|------|------|
+| Webhook ハンドラー | `SafeHttpClient` | URL が常にユーザー提供。DI で型レベルの安全性を強制 |
+| OAuth コールバック検証 | `SafeHttpClient` | リダイレクト先が外部から制御可能 |
+| 管理画面での URL プレビュー | `SafeHttpClient` | 管理者入力でも内部ネットワークへのアクセスを防止 |
+| ユーザー入力 URL の一時的な検証 | `safe()` | 単発リクエストでアドホックに使用 |
+| 自社 API との連携 | `HttpClient` | URL がコード内にハードコードされており信頼できる |
+| サードパーティ API（固定 URL） | `HttpClient` | エンドポイントが既知で固定。SSRF リスクなし |
+
+### DI で SafeHttpClient を注入
+
+`SafeHttpClient` は DI コンテナに登録済みです。コンストラクタの型ヒントで注入するだけで、そのサービスが扱う URL が安全に処理されることが型レベルで保証されます。
+
+```php
+use WpPack\Component\HttpClient\SafeHttpClient;
+
+class WebhookHandler
+{
+    public function __construct(private SafeHttpClient $http) {}
+
+    public function handle(string $url, array $payload): void
+    {
+        // reject_unsafe_urls が常に有効 — 開発者が誤って無効化することもできない
+        $this->http->asJson()->post($url, ['json' => $payload]);
+    }
+}
+```
+
 ## Named Hook アトリビュート
 
 → [Hook コンポーネントのドキュメント](../hook/http-client.md) を参照してください。
@@ -344,6 +481,7 @@ $response->getHeaders();
 | クラス | 説明 |
 |-------|------|
 | `HttpClient` | PSR-18 準拠の HTTP クライアント（`ClientInterface` 実装） |
+| `SafeHttpClient` | SSRF 防止を強制する HttpClient サブクラス |
 | `Request` | PSR-7 `RequestInterface` 実装 |
 | `Response` | PSR-7 `ResponseInterface` 実装 + Fluent ヘルパー |
 | `RequestFactory` | PSR-17 `RequestFactoryInterface` 実装 |

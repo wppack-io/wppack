@@ -54,6 +54,7 @@ final class HttpClientTest extends TestCase
             'args' => $queryArgs,
             'headers' => $requestHeaders,
             'url' => $url,
+            'reject_unsafe_urls' => $parsedArgs['reject_unsafe_urls'] ?? false,
         ];
 
         if ($body !== '' && $body !== null) {
@@ -324,6 +325,25 @@ final class HttpClientTest extends TestCase
         $json = $response->json();
         self::assertSame('1', $json['args']['foo'] ?? null);
         self::assertSame('baz', $json['args']['bar'] ?? null);
+    }
+
+    #[Test]
+    public function safeReturnsNewInstance(): void
+    {
+        $client = new HttpClient();
+        $new = $client->safe();
+
+        self::assertNotSame($client, $new);
+    }
+
+    #[Test]
+    public function safeAddsRejectUnsafeUrlsOption(): void
+    {
+        $client = (new HttpClient())->safe();
+        $response = $client->get('https://httpbin.org/get');
+
+        $json = $response->json();
+        self::assertTrue($json['reject_unsafe_urls']);
     }
 
     #[Test]
