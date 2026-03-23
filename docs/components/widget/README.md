@@ -56,22 +56,21 @@ use WpPack\Component\Widget\Attribute\AsWidget;
 )]
 class RecentPostsWidget extends AbstractWidget
 {
-    protected function render(array $args, array $instance): string
+    public function __invoke(array $args, array $instance): string
     {
         $posts = get_posts(['numberposts' => 5]);
 
-        ob_start();
-        echo $args['before_widget'];
-        echo $args['before_title'] . 'Recent Posts' . $args['after_title'];
+        $html = $args['before_widget'];
+        $html .= $args['before_title'] . 'Recent Posts' . $args['after_title'];
 
-        echo '<ul>';
+        $html .= '<ul>';
         foreach ($posts as $post) {
-            printf('<li><a href="%s">%s</a></li>', get_permalink($post), esc_html($post->post_title));
+            $html .= sprintf('<li><a href="%s">%s</a></li>', get_permalink($post), esc_html($post->post_title));
         }
-        echo '</ul>';
+        $html .= '</ul>';
 
-        echo $args['after_widget'];
-        return ob_get_clean();
+        $html .= $args['after_widget'];
+        return $html;
     }
 }
 ```
@@ -82,6 +81,8 @@ class RecentPostsWidget extends AbstractWidget
 
 `WP_Widget` を拡張する抽象基底クラスです。`#[AsWidget]` アトリビュートからメタデータ（id / label / description）を自動解決し、`parent::__construct()` に渡します。
 
+サブクラスは `__invoke(array $args, array $instance): string` を実装してウィジェット出力を返します。`widget()` メソッドが WordPress コールバックとして `__invoke()` を呼び出し、戻り値を echo します。
+
 ```php
 use WpPack\Component\Widget\AbstractWidget;
 use WpPack\Component\Widget\Attribute\AsWidget;
@@ -89,18 +90,12 @@ use WpPack\Component\Widget\Attribute\AsWidget;
 #[AsWidget(id: 'social_links', label: 'Social Links', description: 'Social media links')]
 class SocialLinksWidget extends AbstractWidget
 {
-    protected function render(array $args, array $instance): string
+    public function __invoke(array $args, array $instance): string
     {
         return $args['before_widget'] . '<ul class="social-links">...</ul>' . $args['after_widget'];
     }
 
-    // form() と update() はオプション — デフォルト実装あり
-    public function form($instance): void
-    {
-        $title = $instance['title'] ?? '';
-        printf('<input type="text" name="%s" value="%s">', $this->get_field_name('title'), esc_attr($title));
-    }
-
+    // update() はオプション — デフォルト実装あり
     public function update($newInstance, $oldInstance): array
     {
         return ['title' => sanitize_text_field($newInstance['title'] ?? '')];
@@ -110,20 +105,100 @@ class SocialLinksWidget extends AbstractWidget
 
 `#[AsWidget]` アトリビュートなしでインスタンス化すると `LogicException` がスローされます。
 
-### WidgetRegistry
+### configure() パターン（フォーム設定）
 
-WordPress のウィジェット・サイドバー登録関数をラップするサービスクラスです。DI コンテナから注入できます。
+サブクラスでオプショナルな `configure(array $instance): string` メソッドを定義すると、`form()` がその戻り値を自動的に echo します。`configure()` を定義しない場合、`form()` は何も出力しません。
 
 ```php
+#[AsWidget(id: 'social_links', label: 'Social Links', description: 'Social media links')]
+class SocialLinksWidget extends AbstractWidget
+{
+    public function __invoke(array $args, array $instance): string
+    {
+        return $args['before_widget'] . '<ul class="social-links">...</ul>' . $args['after_widget'];
+    }
+
+    // オプショナル — 定義すると form() が自動的に echo する
+    public function configure(array $instance): string
+    {
+        $title = $instance['title'] ?? '';
+        return sprintf('<input type="text" name="%s" value="%s">', $this->get_field_name('title'), esc_attr($title));
+    }
+}
+```
+
+### Templating サポート
+
+`wppack/templating` をインストールすると、`render()` メソッドでテンプレートエンジンに委譲できます。`__invoke()` と `configure()` の両方で利用可能です。
+
+```php
+#[AsWidget(id: 'recent_posts', label: 'Recent Posts', description: 'Display recent posts')]
+class RecentPostsWidget extends AbstractWidget
+{
+    public function __invoke(array $args, array $instance): string
+    {
+        $posts = get_posts(['numberposts' => 5]);
+        return $this->render('widget/recent-posts.html.twig', [
+            'args' => $args,
+            'posts' => $posts,
+        ]);
+    }
+
+    public function configure(array $instance): string
+    {
+        return $this->render('widget/recent-posts-form.html.twig', [
+            'instance' => $instance,
+        ]);
+    }
+}
+```
+
+`TemplateRendererInterface` が設定されていない状態で `render()` を呼ぶと `LogicException` がスローされます。
+
+### DI パラメータ注入
+
+`__invoke()` と `configure()` の両方で、`Request` や `#[CurrentUser]` による DI パラメータ注入が利用可能です。`array` 型のパラメータ（`$args`, `$instance`）はスキップされるため衝突しません。
+
+```php
+use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Security\Attribute\CurrentUser;
+
+#[AsWidget(id: 'user_greeting', label: 'User Greeting')]
+class UserGreetingWidget extends AbstractWidget
+{
+    public function __invoke(array $args, array $instance, Request $request, #[CurrentUser] \WP_User $user): string
+    {
+        return sprintf('<p>Hello, %s!</p>', esc_html($user->display_name));
+    }
+
+    public function configure(array $instance, Request $request): string
+    {
+        return '<input type="text" name="greeting">';
+    }
+}
+```
+
+### WidgetRegistry
+
+WordPress のウィジェット・サイドバー登録関数をラップするサービスクラスです。DI コンテナから注入できます。`register()` は `AbstractWidget` インスタンスを受け取り、`TemplateRendererInterface` と DI パラメータリゾルバを自動注入します。
+
+```php
+use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Security\Security;
+use WpPack\Component\Templating\TemplateRendererInterface;
 use WpPack\Component\Widget\WidgetRegistry;
 
-$registry = new WidgetRegistry();
+$registry = new WidgetRegistry(
+    renderer: $templateRenderer,  // optional
+    request: $request,            // optional
+    security: $security,          // optional
+);
 
-// ウィジェット登録
-$registry->register(RecentPostsWidget::class);
-$registry->register(SocialLinksWidget::class);
+// ウィジェット登録（インスタンス）
+$registry->register(new RecentPostsWidget());
+$registry->register(new SocialLinksWidget());
 
-// ウィジェット登録解除
+// ウィジェット登録解除（クラス名）
 $registry->unregister(SocialLinksWidget::class);
 
 // サイドバー登録
@@ -146,8 +221,8 @@ $registry->registerSidebar([
 
 | クラス | 説明 |
 |-------|------|
-| `AbstractWidget` | `WP_Widget` 抽象ラッパー。`#[AsWidget]` からメタデータ自動解決 |
-| `WidgetRegistry` | ウィジェット/サイドバー登録サービス |
+| `AbstractWidget` | `WP_Widget` 抽象ラッパー。`__invoke()` でウィジェット出力、`configure()` でフォーム設定、`render()` で Templating 委譲 |
+| `WidgetRegistry` | ウィジェット/サイドバー登録サービス。Templating・DI パラメータ注入対応 |
 | `Attribute\AsWidget` | クラスレベルアトリビュート（id / label / description） |
 
 ## WordPress 統合
@@ -173,7 +248,11 @@ src/
 
 ## 依存関係
 
-### 推奨
+### 推奨（suggest）
+- **wppack/http-foundation** — `__invoke()` / `configure()` での Request パラメータ注入
+- **wppack/templating** — `render()` によるテンプレートレンダリング
+- **wppack/security** — `#[CurrentUser]` パラメータ注入
+
+### その他
 - **Cache コンポーネント** — パフォーマンス最適化用
-- **Security コンポーネント** — フォームフィールドのサニタイズ用
 - **Option コンポーネント** — 拡張設定ストレージ用

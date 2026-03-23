@@ -21,9 +21,54 @@ use WpPack\Component\Widget\Attribute\AsWidget;
 #[AsWidget(id: 'recent_posts', label: 'Recent Posts', description: 'Display recent posts')]
 class RecentPostsWidget extends AbstractWidget
 {
-    protected function render(array $args, array $instance): string
+    public function __invoke(array $args, array $instance): string
     {
         return $args['before_widget'] . '<p>Hello</p>' . $args['after_widget'];
+    }
+
+    // Optional — form() automatically echoes the return value
+    public function configure(array $instance): string
+    {
+        return '<input type="text" name="title">';
+    }
+}
+```
+
+### Templating Support
+
+```php
+#[AsWidget(id: 'recent_posts', label: 'Recent Posts', description: 'Display recent posts')]
+class RecentPostsWidget extends AbstractWidget
+{
+    public function __invoke(array $args, array $instance): string
+    {
+        return $this->render('widget/recent-posts.html.twig', [
+            'args' => $args,
+            'posts' => get_posts(['numberposts' => 5]),
+        ]);
+    }
+
+    public function configure(array $instance): string
+    {
+        return $this->render('widget/recent-posts-form.html.twig', [
+            'instance' => $instance,
+        ]);
+    }
+}
+```
+
+### DI Parameter Injection
+
+```php
+use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Security\Attribute\CurrentUser;
+
+#[AsWidget(id: 'user_greeting', label: 'User Greeting')]
+class UserGreetingWidget extends AbstractWidget
+{
+    public function __invoke(array $args, array $instance, Request $request, #[CurrentUser] \WP_User $user): string
+    {
+        return sprintf('<p>Hello, %s!</p>', esc_html($user->display_name));
     }
 }
 ```
@@ -33,8 +78,13 @@ class RecentPostsWidget extends AbstractWidget
 ```php
 use WpPack\Component\Widget\WidgetRegistry;
 
-$registry = new WidgetRegistry();
-$registry->register(RecentPostsWidget::class);
+$registry = new WidgetRegistry(
+    renderer: $templateRenderer,  // optional
+    request: $request,            // optional
+    security: $security,          // optional
+);
+
+$registry->register(new RecentPostsWidget());
 $registry->unregister(RecentPostsWidget::class);
 $registry->registerSidebar([
     'name' => 'Main Sidebar',
