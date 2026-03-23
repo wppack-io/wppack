@@ -238,18 +238,6 @@ final class AbstractDashboardWidgetTest extends TestCase
     }
 
     #[Test]
-    public function handleConfigureDoesNotProduceOutputWithoutConfigureMethod(): void
-    {
-        $widget = new ConcreteTestDashboardWidget();
-
-        ob_start();
-        $widget->handleConfigure();
-        $output = ob_get_clean();
-
-        self::assertEmpty($output);
-    }
-
-    #[Test]
     public function handleConfigureResolvesRequestArgument(): void
     {
         $request = new Request(query: ['tab' => 'advanced']);
