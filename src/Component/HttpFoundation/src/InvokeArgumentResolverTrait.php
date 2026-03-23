@@ -7,7 +7,7 @@ namespace WpPack\Component\HttpFoundation;
 use WpPack\Component\Security\Attribute\CurrentUser;
 
 /**
- * Resolves __invoke() parameter injection for admin-side page/widget registries.
+ * Resolves method parameter injection for admin-side page/widget registries.
  *
  * Expects the consuming class to have the following properties:
  *
@@ -16,13 +16,13 @@ use WpPack\Component\Security\Attribute\CurrentUser;
  */
 trait InvokeArgumentResolverTrait
 {
-    private function createInvokeArgumentResolver(object $target): ?\Closure
+    private function createArgumentResolver(object $target, string $methodName = '__invoke'): ?\Closure
     {
-        if (!method_exists($target, '__invoke')) {
+        if (!method_exists($target, $methodName)) {
             return null;
         }
 
-        $method = new \ReflectionMethod($target, '__invoke');
+        $method = new \ReflectionMethod($target, $methodName);
         $params = $method->getParameters();
 
         if ($params === []) {
