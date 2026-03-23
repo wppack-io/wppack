@@ -6,12 +6,15 @@ namespace WpPack\Component\Setting\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\HttpFoundation\ArgumentResolver;
 use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\HttpFoundation\RequestValueResolver;
 use WpPack\Component\Security\Authorization\AuthorizationCheckerInterface;
 use WpPack\Component\Security\Attribute\CurrentUser;
 use WpPack\Component\Security\Authentication\AuthenticationManagerInterface;
 use WpPack\Component\Security\Authentication\Token\TokenInterface;
 use WpPack\Component\Security\Security;
+use WpPack\Component\Security\ValueResolver\CurrentUserValueResolver;
 use WpPack\Component\Setting\AbstractSettingsPage;
 use WpPack\Component\Setting\Attribute\AsSettingsPage;
 use WpPack\Component\Setting\SettingsConfigurator;
@@ -103,7 +106,9 @@ final class SettingsRegistryTest extends TestCase
     public function registerSetsResolverForRequestParam(): void
     {
         $request = new Request(query: ['tab' => 'general']);
-        $registry = new SettingsRegistry(request: $request);
+        $registry = new SettingsRegistry(argumentResolver: new ArgumentResolver([
+            new RequestValueResolver($request),
+        ]));
 
         $page = new RegistryRequestInjectTestSettingsPage();
         $registry->register($page);
@@ -116,7 +121,9 @@ final class SettingsRegistryTest extends TestCase
     public function registerSetsResolverForCurrentUserParam(): void
     {
         $security = $this->createSecurityMock();
-        $registry = new SettingsRegistry(security: $security);
+        $registry = new SettingsRegistry(argumentResolver: new ArgumentResolver([
+            new CurrentUserValueResolver($security),
+        ]));
 
         $page = new RegistryCurrentUserInjectTestSettingsPage();
         $registry->register($page);
@@ -130,7 +137,10 @@ final class SettingsRegistryTest extends TestCase
     {
         $request = new Request();
         $security = $this->createSecurityMock();
-        $registry = new SettingsRegistry(request: $request, security: $security);
+        $registry = new SettingsRegistry(argumentResolver: new ArgumentResolver([
+            new RequestValueResolver($request),
+            new CurrentUserValueResolver($security),
+        ]));
 
         $page = new RegistryBothInjectTestSettingsPage();
         $registry->register($page);
@@ -144,7 +154,10 @@ final class SettingsRegistryTest extends TestCase
     {
         $request = new Request();
         $security = $this->createSecurityMock();
-        $registry = new SettingsRegistry(request: $request, security: $security);
+        $registry = new SettingsRegistry(argumentResolver: new ArgumentResolver([
+            new RequestValueResolver($request),
+            new CurrentUserValueResolver($security),
+        ]));
 
         $page = new RegistryTestSettingsPage();
         $registry->register($page);
@@ -154,7 +167,7 @@ final class SettingsRegistryTest extends TestCase
     }
 
     #[Test]
-    public function registerWorksWithoutRequestAndSecurity(): void
+    public function registerWorksWithoutArgumentResolver(): void
     {
         $page = new RegistryRequestInjectTestSettingsPage();
 
@@ -167,7 +180,9 @@ final class SettingsRegistryTest extends TestCase
     public function resolverInjectsRequestIntoHandleRender(): void
     {
         $request = new Request(query: ['tab' => 'advanced']);
-        $registry = new SettingsRegistry(request: $request);
+        $registry = new SettingsRegistry(argumentResolver: new ArgumentResolver([
+            new RequestValueResolver($request),
+        ]));
 
         $page = new RegistryRequestInjectTestSettingsPage();
         $registry->register($page);
@@ -186,7 +201,9 @@ final class SettingsRegistryTest extends TestCase
         $user = wp_get_current_user();
 
         $security = $this->createSecurityMock($user);
-        $registry = new SettingsRegistry(security: $security);
+        $registry = new SettingsRegistry(argumentResolver: new ArgumentResolver([
+            new CurrentUserValueResolver($security),
+        ]));
 
         $page = new RegistryCurrentUserInjectTestSettingsPage();
         $registry->register($page);
@@ -206,7 +223,10 @@ final class SettingsRegistryTest extends TestCase
         $user = wp_get_current_user();
 
         $security = $this->createSecurityMock($user);
-        $registry = new SettingsRegistry(request: $request, security: $security);
+        $registry = new SettingsRegistry(argumentResolver: new ArgumentResolver([
+            new RequestValueResolver($request),
+            new CurrentUserValueResolver($security),
+        ]));
 
         $page = new RegistryBothInjectTestSettingsPage();
         $registry->register($page);

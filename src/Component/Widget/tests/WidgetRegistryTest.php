@@ -6,12 +6,15 @@ namespace WpPack\Component\Widget\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\HttpFoundation\ArgumentResolver;
 use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\HttpFoundation\RequestValueResolver;
 use WpPack\Component\Security\Attribute\CurrentUser;
 use WpPack\Component\Security\Authentication\AuthenticationManagerInterface;
 use WpPack\Component\Security\Authentication\Token\TokenInterface;
 use WpPack\Component\Security\Authorization\AuthorizationCheckerInterface;
 use WpPack\Component\Security\Security;
+use WpPack\Component\Security\ValueResolver\CurrentUserValueResolver;
 use WpPack\Component\Templating\TemplateRendererInterface;
 use WpPack\Component\Widget\AbstractWidget;
 use WpPack\Component\Widget\Attribute\AsWidget;
@@ -96,7 +99,9 @@ final class WidgetRegistryTest extends TestCase
     public function registerSetsInvokeArgumentResolver(): void
     {
         $request = new Request(query: ['tab' => 'general']);
-        $registry = new WidgetRegistry(request: $request);
+        $registry = new WidgetRegistry(argumentResolver: new ArgumentResolver([
+            new RequestValueResolver($request),
+        ]));
 
         $widget = new RegistryRequestInjectTestWidget();
         $registry->register($widget);
@@ -109,7 +114,9 @@ final class WidgetRegistryTest extends TestCase
     public function registerSetsConfigureArgumentResolver(): void
     {
         $request = new Request(query: ['tab' => 'general']);
-        $registry = new WidgetRegistry(request: $request);
+        $registry = new WidgetRegistry(argumentResolver: new ArgumentResolver([
+            new RequestValueResolver($request),
+        ]));
 
         $widget = new RegistryConfigureRequestInjectTestWidget();
         $registry->register($widget);
@@ -133,7 +140,9 @@ final class WidgetRegistryTest extends TestCase
     public function resolverInjectsRequestIntoWidget(): void
     {
         $request = new Request(query: ['tab' => 'advanced']);
-        $registry = new WidgetRegistry(request: $request);
+        $registry = new WidgetRegistry(argumentResolver: new ArgumentResolver([
+            new RequestValueResolver($request),
+        ]));
 
         $widget = new RegistryRequestInjectTestWidget();
         $registry->register($widget);
@@ -155,7 +164,9 @@ final class WidgetRegistryTest extends TestCase
         $user = wp_get_current_user();
 
         $security = $this->createSecurityMock($user);
-        $registry = new WidgetRegistry(security: $security);
+        $registry = new WidgetRegistry(argumentResolver: new ArgumentResolver([
+            new CurrentUserValueResolver($security),
+        ]));
 
         $widget = new RegistryCurrentUserInjectTestWidget();
         $registry->register($widget);
@@ -178,7 +189,10 @@ final class WidgetRegistryTest extends TestCase
         $user = wp_get_current_user();
 
         $security = $this->createSecurityMock($user);
-        $registry = new WidgetRegistry(request: $request, security: $security);
+        $registry = new WidgetRegistry(argumentResolver: new ArgumentResolver([
+            new RequestValueResolver($request),
+            new CurrentUserValueResolver($security),
+        ]));
 
         $widget = new RegistryBothInjectTestWidget();
         $registry->register($widget);
@@ -197,7 +211,9 @@ final class WidgetRegistryTest extends TestCase
     public function resolverInjectsRequestIntoConfigure(): void
     {
         $request = new Request(query: ['tab' => 'advanced']);
-        $registry = new WidgetRegistry(request: $request);
+        $registry = new WidgetRegistry(argumentResolver: new ArgumentResolver([
+            new RequestValueResolver($request),
+        ]));
 
         $widget = new RegistryConfigureRequestInjectTestWidget();
         $registry->register($widget);
@@ -216,7 +232,9 @@ final class WidgetRegistryTest extends TestCase
         $user = wp_get_current_user();
 
         $security = $this->createSecurityMock($user);
-        $registry = new WidgetRegistry(security: $security);
+        $registry = new WidgetRegistry(argumentResolver: new ArgumentResolver([
+            new CurrentUserValueResolver($security),
+        ]));
 
         $widget = new RegistryConfigureCurrentUserInjectTestWidget();
         $registry->register($widget);

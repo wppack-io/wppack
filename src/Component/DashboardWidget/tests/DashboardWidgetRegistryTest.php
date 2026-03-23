@@ -9,12 +9,15 @@ use PHPUnit\Framework\TestCase;
 use WpPack\Component\DashboardWidget\AbstractDashboardWidget;
 use WpPack\Component\DashboardWidget\Attribute\AsDashboardWidget;
 use WpPack\Component\DashboardWidget\DashboardWidgetRegistry;
+use WpPack\Component\HttpFoundation\ArgumentResolver;
 use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\HttpFoundation\RequestValueResolver;
 use WpPack\Component\Security\Authorization\AuthorizationCheckerInterface;
 use WpPack\Component\Security\Attribute\CurrentUser;
 use WpPack\Component\Security\Authentication\AuthenticationManagerInterface;
 use WpPack\Component\Security\Authentication\Token\TokenInterface;
 use WpPack\Component\Security\Security;
+use WpPack\Component\Security\ValueResolver\CurrentUserValueResolver;
 use WpPack\Component\Templating\TemplateRendererInterface;
 
 final class DashboardWidgetRegistryTest extends TestCase
@@ -122,7 +125,9 @@ final class DashboardWidgetRegistryTest extends TestCase
     public function registerSetsResolverForRequestParam(): void
     {
         $request = new Request(query: ['tab' => 'general']);
-        $registry = new DashboardWidgetRegistry(request: $request);
+        $registry = new DashboardWidgetRegistry(argumentResolver: new ArgumentResolver([
+            new RequestValueResolver($request),
+        ]));
 
         $widget = new RegistryRequestInjectTestDashboardWidget();
         $registry->register($widget);
@@ -135,7 +140,9 @@ final class DashboardWidgetRegistryTest extends TestCase
     public function registerSetsResolverForCurrentUserParam(): void
     {
         $security = $this->createSecurityMock();
-        $registry = new DashboardWidgetRegistry(security: $security);
+        $registry = new DashboardWidgetRegistry(argumentResolver: new ArgumentResolver([
+            new CurrentUserValueResolver($security),
+        ]));
 
         $widget = new RegistryCurrentUserInjectTestDashboardWidget();
         $registry->register($widget);
@@ -149,7 +156,10 @@ final class DashboardWidgetRegistryTest extends TestCase
     {
         $request = new Request();
         $security = $this->createSecurityMock();
-        $registry = new DashboardWidgetRegistry(request: $request, security: $security);
+        $registry = new DashboardWidgetRegistry(argumentResolver: new ArgumentResolver([
+            new RequestValueResolver($request),
+            new CurrentUserValueResolver($security),
+        ]));
 
         $widget = new RegistryBothInjectTestDashboardWidget();
         $registry->register($widget);
@@ -163,7 +173,10 @@ final class DashboardWidgetRegistryTest extends TestCase
     {
         $request = new Request();
         $security = $this->createSecurityMock();
-        $registry = new DashboardWidgetRegistry(request: $request, security: $security);
+        $registry = new DashboardWidgetRegistry(argumentResolver: new ArgumentResolver([
+            new RequestValueResolver($request),
+            new CurrentUserValueResolver($security),
+        ]));
 
         $widget = new RegistryTestDashboardWidget();
         $registry->register($widget);
@@ -173,7 +186,7 @@ final class DashboardWidgetRegistryTest extends TestCase
     }
 
     #[Test]
-    public function registerWorksWithoutRequestAndSecurity(): void
+    public function registerWorksWithoutArgumentResolver(): void
     {
         $widget = new RegistryRequestInjectTestDashboardWidget();
 
@@ -186,7 +199,9 @@ final class DashboardWidgetRegistryTest extends TestCase
     public function resolverInjectsRequestIntoHandleRender(): void
     {
         $request = new Request(query: ['tab' => 'advanced']);
-        $registry = new DashboardWidgetRegistry(request: $request);
+        $registry = new DashboardWidgetRegistry(argumentResolver: new ArgumentResolver([
+            new RequestValueResolver($request),
+        ]));
 
         $widget = new RegistryRequestInjectTestDashboardWidget();
         $registry->register($widget);
@@ -205,7 +220,9 @@ final class DashboardWidgetRegistryTest extends TestCase
         $user = wp_get_current_user();
 
         $security = $this->createSecurityMock($user);
-        $registry = new DashboardWidgetRegistry(security: $security);
+        $registry = new DashboardWidgetRegistry(argumentResolver: new ArgumentResolver([
+            new CurrentUserValueResolver($security),
+        ]));
 
         $widget = new RegistryCurrentUserInjectTestDashboardWidget();
         $registry->register($widget);
@@ -225,7 +242,10 @@ final class DashboardWidgetRegistryTest extends TestCase
         $user = wp_get_current_user();
 
         $security = $this->createSecurityMock($user);
-        $registry = new DashboardWidgetRegistry(request: $request, security: $security);
+        $registry = new DashboardWidgetRegistry(argumentResolver: new ArgumentResolver([
+            new RequestValueResolver($request),
+            new CurrentUserValueResolver($security),
+        ]));
 
         $widget = new RegistryBothInjectTestDashboardWidget();
         $registry->register($widget);
@@ -241,7 +261,9 @@ final class DashboardWidgetRegistryTest extends TestCase
     public function registerSetsResolverForConfigureRequestParam(): void
     {
         $request = new Request(query: ['tab' => 'general']);
-        $registry = new DashboardWidgetRegistry(request: $request);
+        $registry = new DashboardWidgetRegistry(argumentResolver: new ArgumentResolver([
+            new RequestValueResolver($request),
+        ]));
 
         $widget = new RegistryConfigureRequestInjectTestDashboardWidget();
         $registry->register($widget);
@@ -254,7 +276,9 @@ final class DashboardWidgetRegistryTest extends TestCase
     public function registerSetsResolverForConfigureCurrentUserParam(): void
     {
         $security = $this->createSecurityMock();
-        $registry = new DashboardWidgetRegistry(security: $security);
+        $registry = new DashboardWidgetRegistry(argumentResolver: new ArgumentResolver([
+            new CurrentUserValueResolver($security),
+        ]));
 
         $widget = new RegistryConfigureCurrentUserInjectTestDashboardWidget();
         $registry->register($widget);
@@ -267,7 +291,9 @@ final class DashboardWidgetRegistryTest extends TestCase
     public function resolverInjectsRequestIntoHandleConfigure(): void
     {
         $request = new Request(query: ['tab' => 'advanced']);
-        $registry = new DashboardWidgetRegistry(request: $request);
+        $registry = new DashboardWidgetRegistry(argumentResolver: new ArgumentResolver([
+            new RequestValueResolver($request),
+        ]));
 
         $widget = new RegistryConfigureRequestInjectTestDashboardWidget();
         $registry->register($widget);
@@ -286,7 +312,9 @@ final class DashboardWidgetRegistryTest extends TestCase
         $user = wp_get_current_user();
 
         $security = $this->createSecurityMock($user);
-        $registry = new DashboardWidgetRegistry(security: $security);
+        $registry = new DashboardWidgetRegistry(argumentResolver: new ArgumentResolver([
+            new CurrentUserValueResolver($security),
+        ]));
 
         $widget = new RegistryConfigureCurrentUserInjectTestDashboardWidget();
         $registry->register($widget);

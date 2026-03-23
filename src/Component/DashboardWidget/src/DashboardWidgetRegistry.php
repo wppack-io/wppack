@@ -4,19 +4,14 @@ declare(strict_types=1);
 
 namespace WpPack\Component\DashboardWidget;
 
-use WpPack\Component\HttpFoundation\InvokeArgumentResolverTrait;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Security\Security;
+use WpPack\Component\HttpFoundation\ArgumentResolver;
 use WpPack\Component\Templating\TemplateRendererInterface;
 
 final class DashboardWidgetRegistry
 {
-    use InvokeArgumentResolverTrait;
-
     public function __construct(
         private readonly ?TemplateRendererInterface $renderer = null,
-        private readonly ?Request $request = null,
-        private readonly ?Security $security = null,
+        private readonly ?ArgumentResolver $argumentResolver = null,
     ) {}
 
     public function register(AbstractDashboardWidget $widget): void
@@ -25,12 +20,12 @@ final class DashboardWidgetRegistry
             $widget->setTemplateRenderer($this->renderer);
         }
 
-        $resolver = $this->createArgumentResolver($widget, $this->request, $this->security);
+        $resolver = $this->argumentResolver?->createResolver($widget);
         if ($resolver !== null) {
             $widget->setInvokeArgumentResolver($resolver);
         }
 
-        $configureResolver = $this->createArgumentResolver($widget, $this->request, $this->security, 'configure');
+        $configureResolver = $this->argumentResolver?->createResolver($widget, 'configure');
         if ($configureResolver !== null) {
             $widget->setConfigureArgumentResolver($configureResolver);
         }

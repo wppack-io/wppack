@@ -9,12 +9,15 @@ use PHPUnit\Framework\TestCase;
 use WpPack\Component\Admin\AbstractAdminPage;
 use WpPack\Component\Admin\AdminPageRegistry;
 use WpPack\Component\Admin\Attribute\AsAdminPage;
+use WpPack\Component\HttpFoundation\ArgumentResolver;
 use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\HttpFoundation\RequestValueResolver;
 use WpPack\Component\Security\Attribute\CurrentUser;
 use WpPack\Component\Security\Authentication\AuthenticationManagerInterface;
 use WpPack\Component\Security\Authentication\Token\TokenInterface;
 use WpPack\Component\Security\Security;
 use WpPack\Component\Security\Authorization\AuthorizationCheckerInterface;
+use WpPack\Component\Security\ValueResolver\CurrentUserValueResolver;
 use WpPack\Component\Templating\TemplateRendererInterface;
 
 final class AdminPageRegistryTest extends TestCase
@@ -103,7 +106,9 @@ final class AdminPageRegistryTest extends TestCase
     public function registerSetsResolverForRequestParam(): void
     {
         $request = new Request(query: ['tab' => 'general']);
-        $registry = new AdminPageRegistry(request: $request);
+        $registry = new AdminPageRegistry(argumentResolver: new ArgumentResolver([
+            new RequestValueResolver($request),
+        ]));
 
         $page = new RegistryRequestInjectTestAdminPage();
         $registry->register($page);
@@ -116,7 +121,9 @@ final class AdminPageRegistryTest extends TestCase
     public function registerSetsResolverForCurrentUserParam(): void
     {
         $security = $this->createSecurityMock();
-        $registry = new AdminPageRegistry(security: $security);
+        $registry = new AdminPageRegistry(argumentResolver: new ArgumentResolver([
+            new CurrentUserValueResolver($security),
+        ]));
 
         $page = new RegistryCurrentUserInjectTestAdminPage();
         $registry->register($page);
@@ -130,7 +137,10 @@ final class AdminPageRegistryTest extends TestCase
     {
         $request = new Request();
         $security = $this->createSecurityMock();
-        $registry = new AdminPageRegistry(request: $request, security: $security);
+        $registry = new AdminPageRegistry(argumentResolver: new ArgumentResolver([
+            new RequestValueResolver($request),
+            new CurrentUserValueResolver($security),
+        ]));
 
         $page = new RegistryBothInjectTestAdminPage();
         $registry->register($page);
@@ -144,7 +154,10 @@ final class AdminPageRegistryTest extends TestCase
     {
         $request = new Request();
         $security = $this->createSecurityMock();
-        $registry = new AdminPageRegistry(request: $request, security: $security);
+        $registry = new AdminPageRegistry(argumentResolver: new ArgumentResolver([
+            new RequestValueResolver($request),
+            new CurrentUserValueResolver($security),
+        ]));
 
         $page = new RegistryTestAdminPage();
         $registry->register($page);
@@ -154,7 +167,7 @@ final class AdminPageRegistryTest extends TestCase
     }
 
     #[Test]
-    public function registerWorksWithoutRequestAndSecurity(): void
+    public function registerWorksWithoutArgumentResolver(): void
     {
         $registry = new AdminPageRegistry();
 
@@ -168,7 +181,9 @@ final class AdminPageRegistryTest extends TestCase
     public function resolverInjectsRequestIntoHandleRender(): void
     {
         $request = new Request(query: ['tab' => 'advanced']);
-        $registry = new AdminPageRegistry(request: $request);
+        $registry = new AdminPageRegistry(argumentResolver: new ArgumentResolver([
+            new RequestValueResolver($request),
+        ]));
 
         $page = new RegistryRequestInjectTestAdminPage();
         $registry->register($page);
@@ -187,7 +202,9 @@ final class AdminPageRegistryTest extends TestCase
         $user = wp_get_current_user();
 
         $security = $this->createSecurityMock($user);
-        $registry = new AdminPageRegistry(security: $security);
+        $registry = new AdminPageRegistry(argumentResolver: new ArgumentResolver([
+            new CurrentUserValueResolver($security),
+        ]));
 
         $page = new RegistryCurrentUserInjectTestAdminPage();
         $registry->register($page);
@@ -207,7 +224,10 @@ final class AdminPageRegistryTest extends TestCase
         $user = wp_get_current_user();
 
         $security = $this->createSecurityMock($user);
-        $registry = new AdminPageRegistry(request: $request, security: $security);
+        $registry = new AdminPageRegistry(argumentResolver: new ArgumentResolver([
+            new RequestValueResolver($request),
+            new CurrentUserValueResolver($security),
+        ]));
 
         $page = new RegistryBothInjectTestAdminPage();
         $registry->register($page);

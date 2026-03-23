@@ -4,19 +4,14 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Admin;
 
-use WpPack\Component\HttpFoundation\InvokeArgumentResolverTrait;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Security\Security;
+use WpPack\Component\HttpFoundation\ArgumentResolver;
 use WpPack\Component\Templating\TemplateRendererInterface;
 
 final class AdminPageRegistry
 {
-    use InvokeArgumentResolverTrait;
-
     public function __construct(
         private readonly ?TemplateRendererInterface $renderer = null,
-        private readonly ?Request $request = null,
-        private readonly ?Security $security = null,
+        private readonly ?ArgumentResolver $argumentResolver = null,
     ) {}
 
     public function register(AbstractAdminPage $page): void
@@ -25,7 +20,7 @@ final class AdminPageRegistry
             $page->setTemplateRenderer($this->renderer);
         }
 
-        $resolver = $this->createArgumentResolver($page, $this->request, $this->security);
+        $resolver = $this->argumentResolver?->createResolver($page);
         if ($resolver !== null) {
             $page->setInvokeArgumentResolver($resolver);
         }
