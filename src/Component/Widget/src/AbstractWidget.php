@@ -4,10 +4,15 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Widget;
 
+use WpPack\Component\Templating\TemplateRendererInterface;
 use WpPack\Component\Widget\Attribute\AsWidget;
 
 abstract class AbstractWidget extends \WP_Widget
 {
+    private ?TemplateRendererInterface $templateRenderer = null;
+    private ?\Closure $invokeArgumentResolver = null;
+    private ?\Closure $configureArgumentResolver = null;
+
     public function __construct()
     {
         $attribute = $this->resolveWidgetAttribute();
@@ -23,21 +28,39 @@ abstract class AbstractWidget extends \WP_Widget
      * @param array<string, mixed> $args
      * @param array<string, mixed> $instance
      */
-    abstract protected function render(array $args, array $instance): string;
-
-    /**
-     * @param array<string, mixed> $args
-     * @param array<string, mixed> $instance
-     */
     public function widget($args, $instance): void
     {
-        echo $this->render($args, $instance);
+        $diArgs = $this->invokeArgumentResolver !== null ? ($this->invokeArgumentResolver)() : [];
+        echo $this($args, $instance, ...$diArgs);
+    }
+
+    /**
+     * @param array<string, mixed> $context
+     */
+    protected function render(string $template, array $context = []): string
+    {
+        if ($this->templateRenderer === null) {
+            throw new \LogicException(sprintf(
+                'A TemplateRendererInterface is not available. Call setTemplateRenderer() to use render() in "%s".',
+                static::class,
+            ));
+        }
+
+        return $this->templateRenderer->render($template, $context);
     }
 
     /**
      * @param array<string, mixed> $instance
      */
-    public function form($instance): void {}
+    public function form($instance): void
+    {
+        if (!method_exists($this, 'configure')) {
+            return;
+        }
+
+        $diArgs = $this->configureArgumentResolver !== null ? ($this->configureArgumentResolver)() : [];
+        echo $this->configure($instance, ...$diArgs);
+    }
 
     /**
      * @param array<string, mixed> $newInstance
@@ -47,6 +70,24 @@ abstract class AbstractWidget extends \WP_Widget
     public function update($newInstance, $oldInstance): array
     {
         return $newInstance;
+    }
+
+    /** @internal */
+    public function setTemplateRenderer(TemplateRendererInterface $renderer): void
+    {
+        $this->templateRenderer = $renderer;
+    }
+
+    /** @internal */
+    public function setInvokeArgumentResolver(\Closure $resolver): void
+    {
+        $this->invokeArgumentResolver = $resolver;
+    }
+
+    /** @internal */
+    public function setConfigureArgumentResolver(\Closure $resolver): void
+    {
+        $this->configureArgumentResolver = $resolver;
     }
 
     private function resolveWidgetAttribute(): AsWidget

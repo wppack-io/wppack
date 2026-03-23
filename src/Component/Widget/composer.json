@@ -6,6 +6,11 @@
     "require": {
         "php": "^8.2"
     },
+    "suggest": {
+        "wppack/http-foundation": "For Request parameter injection in __invoke()",
+        "wppack/templating": "For template rendering via render()",
+        "wppack/security": "For #[CurrentUser] parameter injection in __invoke()"
+    },
     "autoload": {
         "psr-4": {
             "WpPack\\Component\\Widget\\": "src/"

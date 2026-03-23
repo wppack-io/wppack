@@ -4,14 +4,38 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Widget;
 
+use WpPack\Component\HttpFoundation\InvokeArgumentResolverTrait;
+use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Security\Security;
+use WpPack\Component\Templating\TemplateRendererInterface;
+
 final class WidgetRegistry
 {
-    /**
-     * @param class-string<\WP_Widget> $widgetClass
-     */
-    public function register(string $widgetClass): void
+    use InvokeArgumentResolverTrait;
+
+    public function __construct(
+        private readonly ?TemplateRendererInterface $renderer = null,
+        private readonly ?Request $request = null,
+        private readonly ?Security $security = null,
+    ) {}
+
+    public function register(AbstractWidget $widget): void
     {
-        register_widget($widgetClass);
+        if ($this->renderer !== null) {
+            $widget->setTemplateRenderer($this->renderer);
+        }
+
+        $resolver = $this->createArgumentResolver($widget);
+        if ($resolver !== null) {
+            $widget->setInvokeArgumentResolver($resolver);
+        }
+
+        $configureResolver = $this->createArgumentResolver($widget, 'configure');
+        if ($configureResolver !== null) {
+            $widget->setConfigureArgumentResolver($configureResolver);
+        }
+
+        register_widget($widget);
     }
 
     /**
