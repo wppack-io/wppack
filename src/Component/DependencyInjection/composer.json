@@ -8,6 +8,9 @@
         "psr/container": "^2.0",
         "symfony/dependency-injection": "^6.4"
     },
+    "suggest": {
+        "wppack/http-foundation": "Required for ContainerValueResolver"
+    },
     "autoload": {
         "psr-4": {
             "WpPack\\Component\\DependencyInjection\\": "src/"
