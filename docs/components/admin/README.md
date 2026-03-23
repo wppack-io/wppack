@@ -249,7 +249,7 @@ src/
 ## 依存関係
 
 ### 必須
-- **HttpFoundation コンポーネント** (`wppack/http-foundation`) — `InvokeArgumentResolverTrait`、`Request` 注入
+- **HttpFoundation コンポーネント** (`wppack/http-foundation`) — メソッドパラメータ自動注入、`Request` 注入
 
 ### 推奨
 - **Security コンポーネント** (`wppack/security`) — `#[CurrentUser]` による WP_User 注入

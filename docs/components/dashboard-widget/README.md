@@ -46,6 +46,7 @@ function my_dashboard_widget_configure() {
 ```php
 use WpPack\Component\DashboardWidget\AbstractDashboardWidget;
 use WpPack\Component\DashboardWidget\Attribute\AsDashboardWidget;
+use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Security\Attribute\IsGranted;
 
 #[IsGranted('edit_posts')]
@@ -60,14 +61,14 @@ class MyDashboardWidget extends AbstractDashboardWidget
         return '<p>Total Posts: ' . wp_count_posts()->publish . '</p>';
     }
 
-    public function configure(): void
+    public function configure(Request $request): string
     {
-        // WordPress の configure callback をラップ
-        if (isset($_POST['submit'])) {
-            update_option('my_widget_settings', sanitize_text_field($_POST['setting']));
+        if ($request->isMethod('POST')) {
+            update_option('my_widget_settings', $request->request->getString('setting'));
         }
         $setting = get_option('my_widget_settings', '');
-        echo '<input type="text" name="setting" value="' . esc_attr($setting) . '">';
+
+        return '<input type="text" name="setting" value="' . esc_attr($setting) . '">';
     }
 }
 ```
@@ -157,7 +158,11 @@ class RecentActivityWidget extends AbstractDashboardWidget
 
 ### 設定（Configure）コールバック付きウィジェット
 
+`configure()` メソッドを定義すると、WordPress のダッシュボードウィジェット設定パネルが有効になります。`configure()` は `string` を返し、`Request` や `#[CurrentUser]` のパラメータ注入にも対応しています。
+
 ```php
+use WpPack\Component\HttpFoundation\Request;
+
 #[IsGranted('manage_options')]
 #[AsDashboardWidget(
     id: 'customizable_widget',
@@ -191,37 +196,56 @@ class CustomizableWidget extends AbstractDashboardWidget
         return $html;
     }
 
-    public function configure(): void
+    public function configure(Request $request): string
     {
         $options = get_option('customizable_widget_options', [
             'post_count' => 5,
             'post_type' => 'post',
         ]);
 
-        if (isset($_POST['widget_post_count'])) {
-            $options['post_count'] = absint($_POST['widget_post_count']);
-            $options['post_type'] = sanitize_text_field($_POST['widget_post_type']);
+        if ($request->isMethod('POST')) {
+            $options['post_count'] = absint($request->request->getInt('widget_post_count', 5));
+            $options['post_type'] = $request->request->getString('widget_post_type', 'post');
             update_option('customizable_widget_options', $options);
         }
 
-        ?>
-        <p>
-            <label for="widget_post_count"><?php _e('Number of posts:', 'my-plugin'); ?></label>
-            <input type="number" id="widget_post_count" name="widget_post_count"
-                   value="<?php echo esc_attr($options['post_count']); ?>" min="1" max="20">
-        </p>
-        <p>
-            <label for="widget_post_type"><?php _e('Post type:', 'my-plugin'); ?></label>
-            <select id="widget_post_type" name="widget_post_type">
-                <?php foreach (get_post_types(['public' => true], 'objects') as $pt): ?>
-                    <option value="<?php echo esc_attr($pt->name); ?>"
-                        <?php selected($options['post_type'], $pt->name); ?>>
-                        <?php echo esc_html($pt->label); ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </p>
-        <?php
+        return sprintf(
+            '<p><label for="widget_post_count">%s</label> '
+            . '<input type="number" id="widget_post_count" name="widget_post_count" value="%s" min="1" max="20"></p>'
+            . '<p><label for="widget_post_type">%s</label> '
+            . '<input type="text" id="widget_post_type" name="widget_post_type" value="%s"></p>',
+            __('Number of posts:', 'my-plugin'),
+            esc_attr((string) $options['post_count']),
+            __('Post type:', 'my-plugin'),
+            esc_attr($options['post_type']),
+        );
+    }
+}
+```
+
+#### Templating 連携で configure を実装
+
+`configure()` でも `render()` ショートカットが使えます。
+
+```php
+#[IsGranted('manage_options')]
+#[AsDashboardWidget(id: 'templated_config_widget', label: 'Templated Config Widget')]
+class TemplatedConfigWidget extends AbstractDashboardWidget
+{
+    public function __invoke(): string
+    {
+        return $this->render('dashboard/widget.html.twig');
+    }
+
+    public function configure(Request $request): string
+    {
+        if ($request->isMethod('POST')) {
+            update_option('my_widget_setting', $request->request->getString('setting'));
+        }
+
+        return $this->render('dashboard/widget_configure.html.twig', [
+            'setting' => get_option('my_widget_setting', ''),
+        ]);
     }
 }
 ```
@@ -274,7 +298,7 @@ class StatsWidget extends AbstractDashboardWidget
 
 ### Request / パラメータ自動注入
 
-`DashboardWidgetRegistry` に `Request` / `Security` を渡すと、`__invoke()` のパラメータに自動注入できます。
+`DashboardWidgetRegistry` に `Request` / `Security` を渡すと、`__invoke()` と `configure()` のパラメータに自動注入できます。
 
 #### Registry の設定
 
@@ -290,7 +314,7 @@ $registry = new DashboardWidgetRegistry(
 $registry->register(new SiteStatsWidget());
 ```
 
-#### Request 注入
+#### __invoke() への Request 注入
 
 ```php
 #[AsDashboardWidget(id: 'site_stats_widget', label: 'Site Statistics')]
@@ -305,9 +329,31 @@ class SiteStatsWidget extends AbstractDashboardWidget
 }
 ```
 
+#### configure() への Request 注入
+
+```php
+#[AsDashboardWidget(id: 'configurable_widget', label: 'Configurable Widget')]
+class ConfigurableWidget extends AbstractDashboardWidget
+{
+    public function __invoke(): string
+    {
+        return '<p>' . esc_html(get_option('my_widget_setting', '')) . '</p>';
+    }
+
+    public function configure(Request $request): string
+    {
+        if ($request->isMethod('POST')) {
+            update_option('my_widget_setting', $request->request->getString('setting'));
+        }
+
+        return '<input type="text" name="setting" value="' . esc_attr(get_option('my_widget_setting', '')) . '">';
+    }
+}
+```
+
 #### #[CurrentUser] による WP_User 注入
 
-`Security` コンポーネント (`wppack/security`) が必要です。
+`Security` コンポーネント (`wppack/security`) が必要です。`__invoke()` と `configure()` の両方で使えます。
 
 ```php
 use WpPack\Component\HttpFoundation\Request;
@@ -318,14 +364,18 @@ class UserActivityWidget extends AbstractDashboardWidget
 {
     public function __invoke(Request $request, #[CurrentUser] \WP_User $user): string
     {
-        // $request と $user が自動注入される
         return '<p>Welcome, ' . esc_html($user->display_name) . '</p>';
+    }
+
+    public function configure(#[CurrentUser] \WP_User $user): string
+    {
+        return '<p>Settings for: ' . esc_html($user->display_name) . '</p>';
     }
 }
 ```
 
 > [!NOTE]
-> 既存の引数なし `__invoke()` はそのまま動作します。パラメータ注入はオプトインです。
+> 既存の引数なし `__invoke()` はそのまま動作します。パラメータ注入はオプトインです。`configure()` の定義もオプションで、未定義のウィジェットは設定パネルなしで動作します。
 
 ## Named Hook アトリビュート
 
@@ -379,7 +429,7 @@ src/
 ## 依存関係
 
 ### 必須
-- **HttpFoundation コンポーネント** (`wppack/http-foundation`) — `InvokeArgumentResolverTrait`、`Request` 注入
+- **HttpFoundation コンポーネント** (`wppack/http-foundation`) — メソッドパラメータ自動注入、`Request` 注入
 
 ### 推奨
 - **Security コンポーネント** (`wppack/security`) — `#[CurrentUser]` による WP_User 注入
