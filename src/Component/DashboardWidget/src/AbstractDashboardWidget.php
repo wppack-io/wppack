@@ -23,6 +23,7 @@ abstract class AbstractDashboardWidget
 
     private ?TemplateRendererInterface $renderer = null;
     private ?\Closure $invokeArgumentResolver = null;
+    private ?\Closure $configureArgumentResolver = null;
 
     public function __construct(?IsGrantedChecker $isGrantedChecker = null)
     {
@@ -42,6 +43,12 @@ abstract class AbstractDashboardWidget
     public function setInvokeArgumentResolver(\Closure $resolver): void
     {
         $this->invokeArgumentResolver = $resolver;
+    }
+
+    /** @internal */
+    public function setConfigureArgumentResolver(\Closure $resolver): void
+    {
+        $this->configureArgumentResolver = $resolver;
     }
 
     /** @internal */
@@ -72,7 +79,16 @@ abstract class AbstractDashboardWidget
         echo $this(...$args);
     }
 
-    public function configure(): void {}
+    /** @internal */
+    public function handleConfigure(): void
+    {
+        if (!method_exists($this, 'configure')) {
+            return;
+        }
+
+        $args = $this->configureArgumentResolver !== null ? ($this->configureArgumentResolver)() : [];
+        echo $this->configure(...$args);
+    }
 
     public function register(): void
     {
@@ -80,7 +96,9 @@ abstract class AbstractDashboardWidget
             return;
         }
 
-        $configureCallback = $this->hasConfigureOverride() ? $this->configure(...) : null;
+        $configureCallback = method_exists($this, 'configure')
+            ? $this->handleConfigure(...)
+            : null;
 
         wp_add_dashboard_widget(
             $this->id,
@@ -109,12 +127,5 @@ abstract class AbstractDashboardWidget
         }
 
         return $attributes[0]->newInstance();
-    }
-
-    private function hasConfigureOverride(): bool
-    {
-        $method = new \ReflectionMethod($this, 'configure');
-
-        return $method->getDeclaringClass()->getName() !== self::class;
     }
 }

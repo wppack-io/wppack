@@ -81,12 +81,12 @@ final class AbstractDashboardWidgetTest extends TestCase
     }
 
     #[Test]
-    public function configureDefaultIsEmpty(): void
+    public function handleConfigureDoesNothingWithoutMethod(): void
     {
-        $widget = new ConcreteTestDashboardWidget();
+        $widget = new NoConfigureTestDashboardWidget();
 
         ob_start();
-        $widget->configure();
+        $widget->handleConfigure();
         $output = ob_get_clean();
 
         self::assertSame('', $output);
@@ -132,12 +132,12 @@ final class AbstractDashboardWidgetTest extends TestCase
     }
 
     #[Test]
-    public function configureOverrideIsDetected(): void
+    public function handleConfigureEchoesReturnValue(): void
     {
         $widget = new ConfigurableTestDashboardWidget();
 
         ob_start();
-        $widget->configure();
+        $widget->handleConfigure();
         $output = ob_get_clean();
 
         self::assertSame('<input type="text" name="setting">', $output);
@@ -186,7 +186,7 @@ final class AbstractDashboardWidgetTest extends TestCase
     }
 
     #[Test]
-    public function registerWithConfigureOverridePassesCallback(): void
+    public function registerWithConfigurePassesCallback(): void
     {
         set_current_screen('dashboard');
         wp_set_current_user(1);
@@ -201,7 +201,7 @@ final class AbstractDashboardWidgetTest extends TestCase
     }
 
     #[Test]
-    public function registerWithoutConfigureOverridePassesNull(): void
+    public function registerWithoutConfigurePassesNull(): void
     {
         set_current_screen('dashboard');
 
@@ -212,26 +212,6 @@ final class AbstractDashboardWidgetTest extends TestCase
         $widget->register();
 
         self::assertArrayNotHasKey($widget->id, $wp_dashboard_control_callbacks);
-    }
-
-    #[Test]
-    public function hasConfigureOverrideReturnsTrueForOverride(): void
-    {
-        $widget = new ConfigurableTestDashboardWidget();
-
-        $method = new \ReflectionMethod($widget, 'hasConfigureOverride');
-
-        self::assertTrue($method->invoke($widget));
-    }
-
-    #[Test]
-    public function hasConfigureOverrideReturnsFalseForDefault(): void
-    {
-        $widget = new ConcreteTestDashboardWidget();
-
-        $method = new \ReflectionMethod($widget, 'hasConfigureOverride');
-
-        self::assertFalse($method->invoke($widget));
     }
 
     #[Test]
@@ -258,15 +238,64 @@ final class AbstractDashboardWidgetTest extends TestCase
     }
 
     #[Test]
-    public function configureDefaultDoesNotProduceOutput(): void
+    public function handleConfigureDoesNotProduceOutputWithoutConfigureMethod(): void
     {
         $widget = new ConcreteTestDashboardWidget();
 
         ob_start();
-        $widget->configure();
+        $widget->handleConfigure();
         $output = ob_get_clean();
 
         self::assertEmpty($output);
+    }
+
+    #[Test]
+    public function handleConfigureResolvesRequestArgument(): void
+    {
+        $request = new Request(query: ['tab' => 'advanced']);
+        $widget = new ConfigureRequestInjectTestDashboardWidget();
+        $widget->setConfigureArgumentResolver(static fn() => [$request]);
+
+        ob_start();
+        $widget->handleConfigure();
+        $output = ob_get_clean();
+
+        self::assertSame('advanced', $output);
+    }
+
+    #[Test]
+    public function handleConfigureResolvesCurrentUserArgument(): void
+    {
+        wp_set_current_user(1);
+        $user = wp_get_current_user();
+
+        $widget = new ConfigureCurrentUserInjectTestDashboardWidget();
+        $widget->setConfigureArgumentResolver(static fn() => [$user]);
+
+        ob_start();
+        $widget->handleConfigure();
+        $output = ob_get_clean();
+
+        self::assertSame($user->display_name, $output);
+    }
+
+    #[Test]
+    public function handleConfigureWithRender(): void
+    {
+        $renderer = $this->createMock(TemplateRendererInterface::class);
+        $renderer->expects(self::once())
+            ->method('render')
+            ->with('dashboard/configure.html.twig', ['setting' => 'value'])
+            ->willReturn('<p>configure rendered</p>');
+
+        $widget = new ConfigureTemplatingTestDashboardWidget();
+        $widget->setTemplateRenderer($renderer);
+
+        ob_start();
+        $widget->handleConfigure();
+        $output = ob_get_clean();
+
+        self::assertSame('<p>configure rendered</p>', $output);
     }
 
     #[Test]
@@ -496,9 +525,60 @@ class ConfigurableTestDashboardWidget extends AbstractDashboardWidget
         return '<p>configurable widget</p>';
     }
 
-    public function configure(): void
+    public function configure(): string
     {
-        echo '<input type="text" name="setting">';
+        return '<input type="text" name="setting">';
+    }
+}
+
+#[AsDashboardWidget(id: 'no_configure_widget', label: 'No Configure Widget')]
+class NoConfigureTestDashboardWidget extends AbstractDashboardWidget
+{
+    public function __invoke(): string
+    {
+        return '<p>no configure</p>';
+    }
+}
+
+#[AsDashboardWidget(id: 'configure_request_inject_widget', label: 'Configure Request Inject')]
+class ConfigureRequestInjectTestDashboardWidget extends AbstractDashboardWidget
+{
+    public function __invoke(): string
+    {
+        return '';
+    }
+
+    public function configure(Request $request): string
+    {
+        return $request->query->get('tab', 'default');
+    }
+}
+
+#[AsDashboardWidget(id: 'configure_user_inject_widget', label: 'Configure User Inject')]
+class ConfigureCurrentUserInjectTestDashboardWidget extends AbstractDashboardWidget
+{
+    public function __invoke(): string
+    {
+        return '';
+    }
+
+    public function configure(#[CurrentUser] \WP_User $user): string
+    {
+        return $user->display_name;
+    }
+}
+
+#[AsDashboardWidget(id: 'configure_templating_widget', label: 'Configure Templating')]
+class ConfigureTemplatingTestDashboardWidget extends AbstractDashboardWidget
+{
+    public function __invoke(): string
+    {
+        return '';
+    }
+
+    public function configure(): string
+    {
+        return $this->render('dashboard/configure.html.twig', ['setting' => 'value']);
     }
 }
 

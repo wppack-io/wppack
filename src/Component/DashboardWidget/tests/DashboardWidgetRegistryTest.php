@@ -237,6 +237,67 @@ final class DashboardWidgetRegistryTest extends TestCase
         self::assertSame('general:' . $user->display_name, $output);
     }
 
+    #[Test]
+    public function registerSetsResolverForConfigureRequestParam(): void
+    {
+        $request = new Request(query: ['tab' => 'general']);
+        $registry = new DashboardWidgetRegistry(request: $request);
+
+        $widget = new RegistryConfigureRequestInjectTestDashboardWidget();
+        $registry->register($widget);
+
+        $ref = new \ReflectionProperty(AbstractDashboardWidget::class, 'configureArgumentResolver');
+        self::assertNotNull($ref->getValue($widget));
+    }
+
+    #[Test]
+    public function registerSetsResolverForConfigureCurrentUserParam(): void
+    {
+        $security = $this->createSecurityMock();
+        $registry = new DashboardWidgetRegistry(security: $security);
+
+        $widget = new RegistryConfigureCurrentUserInjectTestDashboardWidget();
+        $registry->register($widget);
+
+        $ref = new \ReflectionProperty(AbstractDashboardWidget::class, 'configureArgumentResolver');
+        self::assertNotNull($ref->getValue($widget));
+    }
+
+    #[Test]
+    public function resolverInjectsRequestIntoHandleConfigure(): void
+    {
+        $request = new Request(query: ['tab' => 'advanced']);
+        $registry = new DashboardWidgetRegistry(request: $request);
+
+        $widget = new RegistryConfigureRequestInjectTestDashboardWidget();
+        $registry->register($widget);
+
+        ob_start();
+        $widget->handleConfigure();
+        $output = ob_get_clean();
+
+        self::assertSame('advanced', $output);
+    }
+
+    #[Test]
+    public function resolverInjectsCurrentUserIntoHandleConfigure(): void
+    {
+        wp_set_current_user(1);
+        $user = wp_get_current_user();
+
+        $security = $this->createSecurityMock($user);
+        $registry = new DashboardWidgetRegistry(security: $security);
+
+        $widget = new RegistryConfigureCurrentUserInjectTestDashboardWidget();
+        $registry->register($widget);
+
+        ob_start();
+        $widget->handleConfigure();
+        $output = ob_get_clean();
+
+        self::assertSame($user->display_name, $output);
+    }
+
     private function createSecurityMock(?\WP_User $user = null): Security
     {
         $authChecker = $this->createMock(AuthorizationCheckerInterface::class);
@@ -286,5 +347,33 @@ class RegistryBothInjectTestDashboardWidget extends AbstractDashboardWidget
     public function __invoke(Request $request, #[CurrentUser] \WP_User $user): string
     {
         return $request->query->get('tab', 'default') . ':' . $user->display_name;
+    }
+}
+
+#[AsDashboardWidget(id: 'registry_configure_request_inject_widget', label: 'Registry Configure Request Inject')]
+class RegistryConfigureRequestInjectTestDashboardWidget extends AbstractDashboardWidget
+{
+    public function __invoke(): string
+    {
+        return '';
+    }
+
+    public function configure(Request $request): string
+    {
+        return $request->query->get('tab', 'default');
+    }
+}
+
+#[AsDashboardWidget(id: 'registry_configure_user_inject_widget', label: 'Registry Configure User Inject')]
+class RegistryConfigureCurrentUserInjectTestDashboardWidget extends AbstractDashboardWidget
+{
+    public function __invoke(): string
+    {
+        return '';
+    }
+
+    public function configure(#[CurrentUser] \WP_User $user): string
+    {
+        return $user->display_name;
     }
 }

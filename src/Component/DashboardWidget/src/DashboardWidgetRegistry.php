@@ -25,9 +25,14 @@ final class DashboardWidgetRegistry
             $widget->setTemplateRenderer($this->renderer);
         }
 
-        $resolver = $this->createInvokeArgumentResolver($widget);
+        $resolver = $this->createArgumentResolver($widget);
         if ($resolver !== null) {
             $widget->setInvokeArgumentResolver($resolver);
+        }
+
+        $configureResolver = $this->createArgumentResolver($widget, 'configure');
+        if ($configureResolver !== null) {
+            $widget->setConfigureArgumentResolver($configureResolver);
         }
 
         $widget->register();
