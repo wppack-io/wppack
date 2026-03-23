@@ -5,18 +5,14 @@ declare(strict_types=1);
 namespace WpPack\Component\HttpFoundation;
 
 use WpPack\Component\Security\Attribute\CurrentUser;
+use WpPack\Component\Security\Security;
 
 /**
  * Resolves method parameter injection for admin-side page/widget registries.
- *
- * Expects the consuming class to have the following properties:
- *
- * @property-read ?Request $request
- * @property-read ?(\WpPack\Component\Security\Security) $security
  */
 trait InvokeArgumentResolverTrait
 {
-    private function createArgumentResolver(object $target, string $methodName = '__invoke'): ?\Closure
+    private function createArgumentResolver(object $target, ?Request $request, ?Security $security, string $methodName = '__invoke'): ?\Closure
     {
         if (!method_exists($target, $methodName)) {
             return null;
@@ -47,9 +43,6 @@ trait InvokeArgumentResolverTrait
         if ($injections === []) {
             return null;
         }
-
-        $request = $this->request;
-        $security = $this->security;
 
         return static function () use ($injections, $request, $security): array {
             $args = [];

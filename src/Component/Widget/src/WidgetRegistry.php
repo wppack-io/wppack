@@ -25,12 +25,12 @@ final class WidgetRegistry
             $widget->setTemplateRenderer($this->renderer);
         }
 
-        $resolver = $this->createArgumentResolver($widget);
+        $resolver = $this->createArgumentResolver($widget, $this->request, $this->security);
         if ($resolver !== null) {
             $widget->setInvokeArgumentResolver($resolver);
         }
 
-        $configureResolver = $this->createArgumentResolver($widget, 'configure');
+        $configureResolver = $this->createArgumentResolver($widget, $this->request, $this->security, 'configure');
         if ($configureResolver !== null) {
             $widget->setConfigureArgumentResolver($configureResolver);
         }

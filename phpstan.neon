@@ -20,10 +20,6 @@ parameters:
             identifier: trait.unused
             reportUnmatched: false
         -
-            identifier: property.onlyWritten
-            path: src/Component/*/src/*Registry.php
-            reportUnmatched: false
-        -
             identifier: function.resultUnused
             path: src/Component/Scheduler/Bridge/EventBridge/src/Interceptor/*
             reportUnmatched: false

@@ -25,7 +25,7 @@ final class AdminPageRegistry
             $page->setTemplateRenderer($this->renderer);
         }
 
-        $resolver = $this->createArgumentResolver($page);
+        $resolver = $this->createArgumentResolver($page, $this->request, $this->security);
         if ($resolver !== null) {
             $page->setInvokeArgumentResolver($resolver);
         }
