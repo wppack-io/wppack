@@ -6,8 +6,11 @@ namespace WpPack\Component\Routing\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\HttpFoundation\ArgumentResolver;
 use WpPack\Component\HttpFoundation\Exception\ForbiddenException;
 use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\HttpFoundation\RequestValueResolver;
+use WpPack\Component\Security\ValueResolver\CurrentUserValueResolver;
 use WpPack\Component\Routing\AbstractController;
 use WpPack\Component\Routing\Attribute\RewriteTag;
 use WpPack\Component\Routing\Attribute\Route;
@@ -335,7 +338,7 @@ final class RouteRegistryTest extends TestCase
             }
         };
 
-        $registry = new RouteRegistry($request);
+        $registry = new RouteRegistry($request, argumentResolver: new ArgumentResolver([new RequestValueResolver($request)]));
         $registry->register($controller);
 
         $routes = $registry->all();
@@ -371,7 +374,7 @@ final class RouteRegistryTest extends TestCase
             }
         };
 
-        $registry = new RouteRegistry($request, $security);
+        $registry = new RouteRegistry($request, $security, argumentResolver: new ArgumentResolver([new CurrentUserValueResolver($security)]));
         $registry->register($controller);
 
         $routes = $registry->all();
@@ -439,7 +442,10 @@ final class RouteRegistryTest extends TestCase
             }
         };
 
-        $registry = new RouteRegistry($request, $security);
+        $registry = new RouteRegistry($request, $security, argumentResolver: new ArgumentResolver([
+            new RequestValueResolver($request),
+            new CurrentUserValueResolver($security),
+        ]));
         $registry->register($controller);
 
         $routes = $registry->all();
@@ -471,7 +477,7 @@ final class RouteRegistryTest extends TestCase
             }
         };
 
-        $registry = new RouteRegistry($request);
+        $registry = new RouteRegistry($request, argumentResolver: new ArgumentResolver([new RequestValueResolver($request)]));
         $registry->register($controller);
 
         $routes = $registry->all();
@@ -965,7 +971,7 @@ final class RouteRegistryTest extends TestCase
             }
         };
 
-        $registry = new RouteRegistry($request);
+        $registry = new RouteRegistry($request, argumentResolver: new ArgumentResolver([new RequestValueResolver($request)]));
         $registry->register($controller);
 
         $entry = $registry->get('attrs_test');

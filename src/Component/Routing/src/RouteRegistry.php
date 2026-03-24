@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Routing;
 
+use WpPack\Component\HttpFoundation\ArgumentResolver;
 use WpPack\Component\HttpFoundation\Exception\ForbiddenException;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Routing\Attribute\RewriteTag;
 use WpPack\Component\Routing\Attribute\Route;
 use WpPack\Component\Routing\Exception\RouteNotFoundException;
-use WpPack\Component\Security\Attribute\CurrentUser;
 use WpPack\Component\Role\Attribute\IsGranted;
 use WpPack\Component\Role\Authorization\IsGrantedChecker;
 use WpPack\Component\Role\Exception\AccessDeniedException;
@@ -26,6 +26,7 @@ final class RouteRegistry
         private readonly ?Security $security = null,
         private readonly ?TemplateRendererInterface $renderer = null,
         private readonly ?IsGrantedChecker $isGrantedChecker = null,
+        private readonly ?ArgumentResolver $argumentResolver = null,
     ) {}
 
     public function register(object $controller): void
@@ -162,21 +163,13 @@ final class RouteRegistry
         IsGrantedChecker $checker,
     ): \Closure {
         $methodName = $method->getName();
-        $requestParamIndex = null;
-        /** @var list<array{index: int}> */
-        $injectableParams = [];
+        $resolver = $this->argumentResolver?->createResolver($controller, $methodName);
         /** @var list<array{index: int, name: string}> */
         $routeParams = [];
+        $paramCount = count($method->getParameters());
 
         foreach ($method->getParameters() as $index => $parameter) {
-            $type = $parameter->getType();
-            if ($type instanceof \ReflectionNamedType && $type->getName() === Request::class) {
-                $requestParamIndex = $index;
-                continue;
-            }
-
-            if ($parameter->getAttributes(CurrentUser::class) !== []) {
-                $injectableParams[] = ['index' => $index];
+            if ($this->argumentResolver?->supports($parameter) === true) {
                 continue;
             }
 
@@ -184,9 +177,8 @@ final class RouteRegistry
         }
 
         $request = $this->request;
-        $security = $this->security;
 
-        return function () use ($controller, $methodName, $requestParamIndex, $injectableParams, $routeParams, $queryVarNames, $request, $security, $grants, $checker): mixed {
+        return function () use ($controller, $methodName, $resolver, $routeParams, $paramCount, $queryVarNames, $request, $grants, $checker): mixed {
             if ($grants !== []) {
                 try {
                     $checker->check($grants);
@@ -194,29 +186,21 @@ final class RouteRegistry
                     throw new ForbiddenException($e->getMessage());
                 }
             }
+
             if ($request !== null) {
                 foreach ($queryVarNames as $varName) {
                     $request->attributes->set($varName, get_query_var($varName));
                 }
             }
 
-            // Build injection map (index → value)
-            $injections = [];
-
-            if ($requestParamIndex !== null) {
-                $injections[$requestParamIndex] = $request;
-            }
-
-            foreach ($injectableParams as $injectable) {
-                $injections[$injectable['index']] = $security?->getUser();
-            }
+            $diArgs = $resolver !== null ? $resolver() : [];
 
             // Build full argument array in positional order
             $fullArgs = [];
             $routeIndex = 0;
-            for ($i = 0, $total = count($routeParams) + count($injections); $i < $total; $i++) {
-                if (array_key_exists($i, $injections)) {
-                    $fullArgs[] = $injections[$i];
+            for ($i = 0; $i < $paramCount; $i++) {
+                if (array_key_exists($i, $diArgs)) {
+                    $fullArgs[] = $diArgs[$i];
                 } else {
                     $fullArgs[] = $request?->attributes->get($routeParams[$routeIndex]['name']);
                     $routeIndex++;

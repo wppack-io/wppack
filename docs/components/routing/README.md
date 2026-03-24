@@ -666,13 +666,20 @@ class EventController
 - ルートパラメータは `Request::$attributes` にも格納されるため、`$request->attributes->get('product_slug')` でもアクセス可能
 
 ```php
+use WpPack\Component\HttpFoundation\ArgumentResolver;
 use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\HttpFoundation\RequestValueResolver;
 use WpPack\Component\Routing\AbstractController;
 use WpPack\Component\Routing\Attribute\Route;
 use WpPack\Component\Routing\Response\TemplateResponse;
 use WpPack\Component\Routing\RouteRegistry;
 
-$registry = new RouteRegistry(Request::createFromGlobals());
+$request = Request::createFromGlobals();
+$argumentResolver = new ArgumentResolver([
+    new RequestValueResolver($request),
+]);
+
+$registry = new RouteRegistry($request, argumentResolver: $argumentResolver);
 
 class ProductController extends AbstractController
 {
@@ -727,14 +734,21 @@ class DashboardController extends AbstractController
 ### 構成
 
 ```php
+use WpPack\Component\HttpFoundation\ArgumentResolver;
 use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\HttpFoundation\RequestValueResolver;
 use WpPack\Component\Routing\RouteRegistry;
 use WpPack\Component\Security\Security;
+use WpPack\Component\Security\ValueResolver\CurrentUserValueResolver;
 
-$registry = new RouteRegistry(
-    Request::createFromGlobals(),
-    $container->get(Security::class),
-);
+$request = Request::createFromGlobals();
+$security = $container->get(Security::class);
+$argumentResolver = new ArgumentResolver([
+    new RequestValueResolver($request),
+    new CurrentUserValueResolver($security),
+]);
+
+$registry = new RouteRegistry($request, $security, argumentResolver: $argumentResolver);
 ```
 
 ## Templating 統合
@@ -762,8 +776,9 @@ class ProductController extends AbstractController
     }
 }
 
+$request = Request::createFromGlobals();
 $registry = new RouteRegistry(
-    Request::createFromGlobals(),
+    $request,
     renderer: $container->get(TemplateRendererInterface::class),
 );
 $registry->register(new ProductController());
@@ -776,7 +791,8 @@ $registry->register(new ProductController());
 ```php
 use WpPack\Component\Routing\RouteRegistry;
 
-$registry = new RouteRegistry(Request::createFromGlobals(), $security);
+$request = Request::createFromGlobals();
+$registry = new RouteRegistry($request, $security, argumentResolver: $argumentResolver);
 
 // 単一アクション Controller
 $registry->register(new ShowProductController());
