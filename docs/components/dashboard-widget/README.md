@@ -158,7 +158,7 @@ class RecentActivityWidget extends AbstractDashboardWidget
 
 ### 設定（Configure）コールバック付きウィジェット
 
-`configure()` メソッドを定義すると、WordPress のダッシュボードウィジェット設定パネルが有効になります。`configure()` は `string` を返し、`Request` や `#[CurrentUser]` のパラメータ注入にも対応しています。
+`configure()` メソッドを定義すると、WordPress のダッシュボードウィジェット設定パネルが有効になります。`configure()` は `string` を返します。
 
 ```php
 use WpPack\Component\HttpFoundation\Request;
@@ -296,92 +296,6 @@ class StatsWidget extends AbstractDashboardWidget
 }
 ```
 
-### Request / パラメータ自動注入
-
-`DashboardWidgetRegistry` に `ArgumentResolver` を渡すと、`__invoke()` と `configure()` のパラメータに自動注入できます。
-
-#### Registry の設定
-
-```php
-use WpPack\Component\DashboardWidget\DashboardWidgetRegistry;
-use WpPack\Component\HttpFoundation\ArgumentResolver;
-use WpPack\Component\HttpFoundation\RequestValueResolver;
-use WpPack\Component\Security\ValueResolver\CurrentUserValueResolver;
-
-$argumentResolver = new ArgumentResolver([
-    new RequestValueResolver($request),
-    new CurrentUserValueResolver($security),  // wppack/security（任意）
-]);
-
-$registry = new DashboardWidgetRegistry(
-    argumentResolver: $argumentResolver,
-);
-$registry->register(new SiteStatsWidget());
-```
-
-#### __invoke() への Request 注入
-
-```php
-#[AsDashboardWidget(id: 'site_stats_widget', label: 'Site Statistics')]
-class SiteStatsWidget extends AbstractDashboardWidget
-{
-    public function __invoke(Request $request): string
-    {
-        $period = $request->query->getString('period', 'week');
-
-        return '<p>Stats for: ' . esc_html($period) . '</p>';
-    }
-}
-```
-
-#### configure() への Request 注入
-
-```php
-#[AsDashboardWidget(id: 'configurable_widget', label: 'Configurable Widget')]
-class ConfigurableWidget extends AbstractDashboardWidget
-{
-    public function __invoke(): string
-    {
-        return '<p>' . esc_html(get_option('my_widget_setting', '')) . '</p>';
-    }
-
-    public function configure(Request $request): string
-    {
-        if ($request->isMethod('POST')) {
-            update_option('my_widget_setting', $request->request->getString('setting'));
-        }
-
-        return '<input type="text" name="setting" value="' . esc_attr(get_option('my_widget_setting', '')) . '">';
-    }
-}
-```
-
-#### #[CurrentUser] による WP_User 注入
-
-`Security` コンポーネント (`wppack/security`) が必要です。`__invoke()` と `configure()` の両方で使えます。
-
-```php
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Security\Attribute\CurrentUser;
-
-#[AsDashboardWidget(id: 'user_activity_widget', label: 'My Activity')]
-class UserActivityWidget extends AbstractDashboardWidget
-{
-    public function __invoke(Request $request, #[CurrentUser] \WP_User $user): string
-    {
-        return '<p>Welcome, ' . esc_html($user->display_name) . '</p>';
-    }
-
-    public function configure(#[CurrentUser] \WP_User $user): string
-    {
-        return '<p>Settings for: ' . esc_html($user->display_name) . '</p>';
-    }
-}
-```
-
-> [!NOTE]
-> 既存の引数なし `__invoke()` はそのまま動作します。パラメータ注入はオプトインです。`configure()` の定義もオプションで、未定義のウィジェットは設定パネルなしで動作します。
-
 ## Named Hook アトリビュート
 
 → [Hook コンポーネントのドキュメント](../hook/dashboard-widget.md) を参照してください。
@@ -433,9 +347,5 @@ src/
 
 ## 依存関係
 
-### 必須
-- **HttpFoundation コンポーネント** (`wppack/http-foundation`) — メソッドパラメータ自動注入、`Request` 注入
-
 ### 推奨
-- **Security コンポーネント** (`wppack/security`) — `#[CurrentUser]` による WP_User 注入
 - **DependencyInjection コンポーネント** — サービス注入用

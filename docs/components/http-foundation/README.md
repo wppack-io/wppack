@@ -564,7 +564,7 @@ $argumentResolver = new ArgumentResolver([
 ]);
 ```
 
-Admin / DashboardWidget / Setting / Widget の各 Registry クラスは `ArgumentResolver` をコンストラクタで受け取り、`register()` 時に自動的にパラメータ注入を設定します。
+Routing コンポーネントの `Router` クラスは `ArgumentResolver` をコンストラクタで受け取り、ルートハンドラのパラメータ注入を自動的に設定します。
 
 ## 依存関係
 

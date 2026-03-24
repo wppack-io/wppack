@@ -10,8 +10,6 @@ use WpPack\Component\Widget\Attribute\AsWidget;
 abstract class AbstractWidget extends \WP_Widget
 {
     private ?TemplateRendererInterface $templateRenderer = null;
-    private ?\Closure $invokeArgumentResolver = null;
-    private ?\Closure $configureArgumentResolver = null;
 
     public function __construct()
     {
@@ -30,8 +28,7 @@ abstract class AbstractWidget extends \WP_Widget
      */
     public function widget($args, $instance): void
     {
-        $diArgs = $this->invokeArgumentResolver !== null ? ($this->invokeArgumentResolver)() : [];
-        echo $this($args, $instance, ...$diArgs);
+        echo $this($args, $instance);
     }
 
     /**
@@ -58,8 +55,7 @@ abstract class AbstractWidget extends \WP_Widget
             return;
         }
 
-        $diArgs = $this->configureArgumentResolver !== null ? ($this->configureArgumentResolver)() : [];
-        echo $this->configure($instance, ...$diArgs);
+        echo $this->configure($instance);
     }
 
     /**
@@ -76,18 +72,6 @@ abstract class AbstractWidget extends \WP_Widget
     public function setTemplateRenderer(TemplateRendererInterface $renderer): void
     {
         $this->templateRenderer = $renderer;
-    }
-
-    /** @internal */
-    public function setInvokeArgumentResolver(\Closure $resolver): void
-    {
-        $this->invokeArgumentResolver = $resolver;
-    }
-
-    /** @internal */
-    public function setConfigureArgumentResolver(\Closure $resolver): void
-    {
-        $this->configureArgumentResolver = $resolver;
     }
 
     private function resolveWidgetAttribute(): AsWidget

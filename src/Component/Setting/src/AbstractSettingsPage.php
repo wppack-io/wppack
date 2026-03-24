@@ -21,7 +21,6 @@ abstract class AbstractSettingsPage
     public readonly ?int $position;
 
     private ?TemplateRendererInterface $templateRenderer = null;
-    private ?\Closure $invokeArgumentResolver = null;
     private ?SettingsRenderer $renderer = null;
     private ?bool $hasValidateOverride = null;
     private ?bool $hasSanitizeOverride = null;
@@ -64,12 +63,6 @@ abstract class AbstractSettingsPage
     }
 
     /** @internal */
-    public function setInvokeArgumentResolver(\Closure $resolver): void
-    {
-        $this->invokeArgumentResolver = $resolver;
-    }
-
-    /** @internal */
     public function setTemplateRenderer(TemplateRendererInterface $templateRenderer): void
     {
         $this->templateRenderer = $templateRenderer;
@@ -104,8 +97,7 @@ abstract class AbstractSettingsPage
     public function handleRender(): void
     {
         if (method_exists($this, '__invoke')) {
-            $args = $this->invokeArgumentResolver !== null ? ($this->invokeArgumentResolver)() : [];
-            echo $this(...$args);
+            echo $this();
         } else {
             $this->getRenderer()->renderPage($this);
         }

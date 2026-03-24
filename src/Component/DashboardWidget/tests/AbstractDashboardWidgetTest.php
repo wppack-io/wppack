@@ -8,11 +8,9 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\DashboardWidget\AbstractDashboardWidget;
 use WpPack\Component\DashboardWidget\Attribute\AsDashboardWidget;
-use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Role\Attribute\IsGranted;
 use WpPack\Component\Role\Authorization\AuthorizationCheckerInterface;
 use WpPack\Component\Role\Authorization\IsGrantedChecker;
-use WpPack\Component\Security\Attribute\CurrentUser;
 use WpPack\Component\Templating\TemplateRendererInterface;
 
 final class AbstractDashboardWidgetTest extends TestCase
@@ -238,36 +236,6 @@ final class AbstractDashboardWidgetTest extends TestCase
     }
 
     #[Test]
-    public function handleConfigureResolvesRequestArgument(): void
-    {
-        $request = new Request(query: ['tab' => 'advanced']);
-        $widget = new ConfigureRequestInjectTestDashboardWidget();
-        $widget->setConfigureArgumentResolver(static fn() => [$request]);
-
-        ob_start();
-        $widget->handleConfigure();
-        $output = ob_get_clean();
-
-        self::assertSame('advanced', $output);
-    }
-
-    #[Test]
-    public function handleConfigureResolvesCurrentUserArgument(): void
-    {
-        wp_set_current_user(1);
-        $user = wp_get_current_user();
-
-        $widget = new ConfigureCurrentUserInjectTestDashboardWidget();
-        $widget->setConfigureArgumentResolver(static fn() => [$user]);
-
-        ob_start();
-        $widget->handleConfigure();
-        $output = ob_get_clean();
-
-        self::assertSame($user->display_name, $output);
-    }
-
-    #[Test]
     public function handleConfigureWithRender(): void
     {
         $renderer = $this->createMock(TemplateRendererInterface::class);
@@ -358,53 +326,6 @@ final class AbstractDashboardWidgetTest extends TestCase
         $this->expectExceptionMessage('TemplateRendererInterface is not available');
 
         $widget();
-    }
-
-    #[Test]
-    public function handleRenderResolvesRequestArgument(): void
-    {
-        $request = new Request(query: ['tab' => 'advanced']);
-        $widget = new RequestInjectTestDashboardWidget();
-        $widget->setInvokeArgumentResolver(static fn() => [$request]);
-
-        ob_start();
-        $widget->handleRender();
-        $output = ob_get_clean();
-
-        self::assertSame('advanced', $output);
-    }
-
-    #[Test]
-    public function handleRenderResolvesCurrentUserArgument(): void
-    {
-        wp_set_current_user(1);
-        $user = wp_get_current_user();
-
-        $widget = new CurrentUserInjectTestDashboardWidget();
-        $widget->setInvokeArgumentResolver(static fn() => [$user]);
-
-        ob_start();
-        $widget->handleRender();
-        $output = ob_get_clean();
-
-        self::assertSame($user->display_name, $output);
-    }
-
-    #[Test]
-    public function handleRenderResolvesBothArguments(): void
-    {
-        wp_set_current_user(1);
-        $request = new Request(query: ['tab' => 'general']);
-        $user = wp_get_current_user();
-
-        $widget = new BothInjectTestDashboardWidget();
-        $widget->setInvokeArgumentResolver(static fn() => [$request, $user]);
-
-        ob_start();
-        $widget->handleRender();
-        $output = ob_get_clean();
-
-        self::assertSame('general:' . $user->display_name, $output);
     }
 
     #[Test]
@@ -528,34 +449,6 @@ class NoConfigureTestDashboardWidget extends AbstractDashboardWidget
     }
 }
 
-#[AsDashboardWidget(id: 'configure_request_inject_widget', label: 'Configure Request Inject')]
-class ConfigureRequestInjectTestDashboardWidget extends AbstractDashboardWidget
-{
-    public function __invoke(): string
-    {
-        return '';
-    }
-
-    public function configure(Request $request): string
-    {
-        return $request->query->get('tab', 'default');
-    }
-}
-
-#[AsDashboardWidget(id: 'configure_user_inject_widget', label: 'Configure User Inject')]
-class ConfigureCurrentUserInjectTestDashboardWidget extends AbstractDashboardWidget
-{
-    public function __invoke(): string
-    {
-        return '';
-    }
-
-    public function configure(#[CurrentUser] \WP_User $user): string
-    {
-        return $user->display_name;
-    }
-}
-
 #[AsDashboardWidget(id: 'configure_templating_widget', label: 'Configure Templating')]
 class ConfigureTemplatingTestDashboardWidget extends AbstractDashboardWidget
 {
@@ -570,29 +463,3 @@ class ConfigureTemplatingTestDashboardWidget extends AbstractDashboardWidget
     }
 }
 
-#[AsDashboardWidget(id: 'request_inject_widget', label: 'Request Inject Widget')]
-class RequestInjectTestDashboardWidget extends AbstractDashboardWidget
-{
-    public function __invoke(Request $request): string
-    {
-        return $request->query->get('tab', 'default');
-    }
-}
-
-#[AsDashboardWidget(id: 'user_inject_widget', label: 'User Inject Widget')]
-class CurrentUserInjectTestDashboardWidget extends AbstractDashboardWidget
-{
-    public function __invoke(#[CurrentUser] \WP_User $user): string
-    {
-        return $user->display_name;
-    }
-}
-
-#[AsDashboardWidget(id: 'both_inject_widget', label: 'Both Inject Widget')]
-class BothInjectTestDashboardWidget extends AbstractDashboardWidget
-{
-    public function __invoke(Request $request, #[CurrentUser] \WP_User $user): string
-    {
-        return $request->query->get('tab', 'default') . ':' . $user->display_name;
-    }
-}

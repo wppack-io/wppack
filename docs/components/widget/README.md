@@ -155,48 +155,16 @@ class RecentPostsWidget extends AbstractWidget
 
 `TemplateRendererInterface` が設定されていない状態で `render()` を呼ぶと `LogicException` がスローされます。
 
-### DI パラメータ注入
-
-`__invoke()` と `configure()` の両方で、`Request` や `#[CurrentUser]` による DI パラメータ注入が利用可能です。`array` 型のパラメータ（`$args`, `$instance`）はスキップされるため衝突しません。
-
-```php
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Security\Attribute\CurrentUser;
-
-#[AsWidget(id: 'user_greeting', label: 'User Greeting')]
-class UserGreetingWidget extends AbstractWidget
-{
-    public function __invoke(array $args, array $instance, Request $request, #[CurrentUser] \WP_User $user): string
-    {
-        return sprintf('<p>Hello, %s!</p>', esc_html($user->display_name));
-    }
-
-    public function configure(array $instance, Request $request): string
-    {
-        return '<input type="text" name="greeting">';
-    }
-}
-```
-
 ### WidgetRegistry
 
-WordPress のウィジェット・サイドバー登録関数をラップするサービスクラスです。DI コンテナから注入できます。`register()` は `AbstractWidget` インスタンスを受け取り、`TemplateRendererInterface` と `ArgumentResolver` によるパラメータリゾルバを自動注入します。
+WordPress のウィジェット・サイドバー登録関数をラップするサービスクラスです。DI コンテナから注入できます。`register()` は `AbstractWidget` インスタンスを受け取り、`TemplateRendererInterface` を自動注入します。
 
 ```php
-use WpPack\Component\HttpFoundation\ArgumentResolver;
-use WpPack\Component\HttpFoundation\RequestValueResolver;
-use WpPack\Component\Security\ValueResolver\CurrentUserValueResolver;
 use WpPack\Component\Templating\TemplateRendererInterface;
 use WpPack\Component\Widget\WidgetRegistry;
 
-$argumentResolver = new ArgumentResolver([
-    new RequestValueResolver($request),
-    new CurrentUserValueResolver($security),
-]);
-
 $registry = new WidgetRegistry(
     renderer: $templateRenderer,      // optional
-    argumentResolver: $argumentResolver,  // optional
 );
 
 // ウィジェット登録（インスタンス）
@@ -227,7 +195,7 @@ $registry->registerSidebar([
 | クラス | 説明 |
 |-------|------|
 | `AbstractWidget` | `WP_Widget` 抽象ラッパー。`__invoke()` でウィジェット出力、`configure()` でフォーム設定、`render()` で Templating 委譲 |
-| `WidgetRegistry` | ウィジェット/サイドバー登録サービス。Templating・DI パラメータ注入対応 |
+| `WidgetRegistry` | ウィジェット/サイドバー登録サービス。Templating 対応 |
 | `Attribute\AsWidget` | クラスレベルアトリビュート（id / label / description） |
 
 ## WordPress 統合
@@ -254,9 +222,7 @@ src/
 ## 依存関係
 
 ### 推奨（suggest）
-- **wppack/http-foundation** — `__invoke()` / `configure()` での Request パラメータ注入
 - **wppack/templating** — `render()` によるテンプレートレンダリング
-- **wppack/security** — `#[CurrentUser]` パラメータ注入
 
 ### その他
 - **Cache コンポーネント** — パフォーマンス最適化用

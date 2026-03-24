@@ -8,9 +8,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Admin\AbstractAdminPage;
 use WpPack\Component\Admin\Attribute\AsAdminPage;
-use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Role\Attribute\IsGranted;
-use WpPack\Component\Security\Attribute\CurrentUser;
 use WpPack\Component\Templating\TemplateRendererInterface;
 
 final class AbstractAdminPageTest extends TestCase
@@ -271,53 +269,6 @@ final class AbstractAdminPageTest extends TestCase
     }
 
     #[Test]
-    public function handleRenderResolvesRequestArgument(): void
-    {
-        $request = new Request(query: ['tab' => 'advanced']);
-        $page = new RequestInjectTestAdminPage();
-        $page->setInvokeArgumentResolver(static fn() => [$request]);
-
-        ob_start();
-        $page->handleRender();
-        $output = ob_get_clean();
-
-        self::assertSame('advanced', $output);
-    }
-
-    #[Test]
-    public function handleRenderResolvesCurrentUserArgument(): void
-    {
-        wp_set_current_user(1);
-        $user = wp_get_current_user();
-
-        $page = new CurrentUserInjectTestAdminPage();
-        $page->setInvokeArgumentResolver(static fn() => [$user]);
-
-        ob_start();
-        $page->handleRender();
-        $output = ob_get_clean();
-
-        self::assertSame($user->display_name, $output);
-    }
-
-    #[Test]
-    public function handleRenderResolvesBothArguments(): void
-    {
-        wp_set_current_user(1);
-        $request = new Request(query: ['tab' => 'general']);
-        $user = wp_get_current_user();
-
-        $page = new BothInjectTestAdminPage();
-        $page->setInvokeArgumentResolver(static fn() => [$request, $user]);
-
-        ob_start();
-        $page->handleRender();
-        $output = ob_get_clean();
-
-        self::assertSame('general:' . $user->display_name, $output);
-    }
-
-    #[Test]
     public function handleRenderWithoutResolverWorksForNoArgInvoke(): void
     {
         $page = new ConcreteTestAdminPage();
@@ -415,29 +366,3 @@ class TemplatingTestAdminPage extends AbstractAdminPage
     }
 }
 
-#[AsAdminPage(slug: 'request-inject-page', label: 'Request Inject')]
-class RequestInjectTestAdminPage extends AbstractAdminPage
-{
-    public function __invoke(Request $request): string
-    {
-        return $request->query->get('tab', 'default');
-    }
-}
-
-#[AsAdminPage(slug: 'user-inject-page', label: 'User Inject')]
-class CurrentUserInjectTestAdminPage extends AbstractAdminPage
-{
-    public function __invoke(#[CurrentUser] \WP_User $user): string
-    {
-        return $user->display_name;
-    }
-}
-
-#[AsAdminPage(slug: 'both-inject-page', label: 'Both Inject')]
-class BothInjectTestAdminPage extends AbstractAdminPage
-{
-    public function __invoke(Request $request, #[CurrentUser] \WP_User $user): string
-    {
-        return $request->query->get('tab', 'default') . ':' . $user->display_name;
-    }
-}

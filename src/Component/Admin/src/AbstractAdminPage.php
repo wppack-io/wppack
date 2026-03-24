@@ -19,7 +19,6 @@ abstract class AbstractAdminPage
     public readonly ?int $position;
 
     private ?TemplateRendererInterface $renderer = null;
-    private ?\Closure $invokeArgumentResolver = null;
     private ?string $hookSuffix = null;
     private ?bool $hasEnqueueOverride = null;
 
@@ -36,12 +35,6 @@ abstract class AbstractAdminPage
         $this->parent = $attribute->parent;
         $this->icon = $attribute->icon;
         $this->position = $attribute->position;
-    }
-
-    /** @internal */
-    public function setInvokeArgumentResolver(\Closure $resolver): void
-    {
-        $this->invokeArgumentResolver = $resolver;
     }
 
     /** @internal */
@@ -68,8 +61,7 @@ abstract class AbstractAdminPage
     /** @internal */
     public function handleRender(): void
     {
-        $args = $this->invokeArgumentResolver !== null ? ($this->invokeArgumentResolver)() : [];
-        echo $this(...$args);
+        echo $this();
     }
 
     protected function enqueue(): void {}
