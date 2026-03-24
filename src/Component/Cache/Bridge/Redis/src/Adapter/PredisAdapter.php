@@ -7,9 +7,9 @@ namespace WpPack\Component\Cache\Bridge\Redis\Adapter;
 use Predis\Client;
 use Predis\Command\RawCommand;
 use Predis\Connection\Cluster\RedisCluster;
-use WpPack\Component\Cache\Adapter\AbstractAdapter;
+use WpPack\Component\Cache\Adapter\AbstractHashableAdapter;
 
-final class PredisAdapter extends AbstractAdapter
+final class PredisAdapter extends AbstractHashableAdapter
 {
     private ?Client $client = null;
 
@@ -171,6 +171,54 @@ final class PredisAdapter extends AbstractAdapter
         }
 
         return $client->decrby($key, $offset);
+    }
+
+    protected function doHashGetAll(string $key): array
+    {
+        $result = $this->getConnection()->hgetall($key);
+
+        if ($result === []) {
+            return [];
+        }
+
+        $fields = [];
+        foreach ($result as $field => $value) {
+            $fields[(string) $field] = (string) $value;
+        }
+
+        return $fields;
+    }
+
+    protected function doHashGet(string $key, string $field): ?string
+    {
+        $result = $this->getConnection()->hget($key, $field);
+
+        return $result === null ? null : (string) $result;
+    }
+
+    protected function doHashSetMultiple(string $key, array $fields): bool
+    {
+        if ($fields === []) {
+            return true;
+        }
+
+        $response = $this->getConnection()->hmset($key, $fields);
+
+        return (string) $response === 'OK';
+    }
+
+    protected function doHashDeleteMultiple(string $key, array $fields): bool
+    {
+        if ($fields === []) {
+            return true;
+        }
+
+        return $this->getConnection()->hdel($key, $fields) >= 0;
+    }
+
+    protected function doHashDelete(string $key): bool
+    {
+        return $this->getConnection()->del($key) >= 0;
     }
 
     protected function doFlush(string $prefix = ''): bool

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace WpPack\Component\Cache;
 
 use WpPack\Component\Cache\Adapter\AdapterInterface;
+use WpPack\Component\Cache\Adapter\HashableAdapterInterface;
+use WpPack\Component\Cache\Strategy\KeySplitStrategyInterface;
 
 final class ObjectCache
 {
@@ -23,9 +25,16 @@ final class ObjectCache
 
     private int $misses = 0;
 
+    /** @var array<string, array<string, string>> fullKey => [field => serialized value] */
+    private array $hashState = [];
+
+    /**
+     * @param list<KeySplitStrategyInterface> $splitStrategies
+     */
     public function __construct(
         private readonly ?AdapterInterface $adapter,
         private readonly string $prefix = '',
+        private readonly array $splitStrategies = [],
     ) {}
 
     public function get(string $key, string $group = 'default', bool $force = false, bool &$found = false): mixed
@@ -42,15 +51,33 @@ final class ObjectCache
 
         if ($this->adapter !== null && !$this->isNonPersistent($group)) {
             $fullKey = $this->buildKey($key, $group);
-            $value = $this->adapter->get($fullKey);
+            $strategy = $this->findSplitStrategy($key, $group);
 
-            if ($value !== null) {
-                $data = $this->unserialize($value);
-                $this->runtime[$group][$runtimeKey] = $data;
-                $found = true;
-                ++$this->hits;
+            if ($strategy !== null) {
+                /** @var HashableAdapterInterface $adapter */
+                $adapter = $this->adapter;
+                $fields = $adapter->hashGetAll($fullKey);
 
-                return $data;
+                if ($fields !== []) {
+                    $data = $strategy->deserialize($fields);
+                    $this->runtime[$group][$runtimeKey] = $data;
+                    $this->hashState[$fullKey] = $fields;
+                    $found = true;
+                    ++$this->hits;
+
+                    return $data;
+                }
+            } else {
+                $value = $this->adapter->get($fullKey);
+
+                if ($value !== null) {
+                    $data = $this->unserialize($value);
+                    $this->runtime[$group][$runtimeKey] = $data;
+                    $found = true;
+                    ++$this->hits;
+
+                    return $data;
+                }
             }
         }
 
@@ -120,6 +147,38 @@ final class ObjectCache
 
         if ($this->adapter !== null && !$this->isNonPersistent($group)) {
             $fullKey = $this->buildKey($key, $group);
+            $strategy = $this->findSplitStrategy($key, $group);
+
+            if ($strategy !== null) {
+                /** @var HashableAdapterInterface $adapter */
+                $adapter = $this->adapter;
+
+                $newFields = $strategy->serialize(\is_array($data) ? $data : []);
+                $oldFields = $this->hashState[$fullKey] ?? null;
+
+                if ($oldFields !== null) {
+                    $toDelete = array_diff_key($oldFields, $newFields);
+                    $toSet = array_diff_assoc($newFields, $oldFields);
+
+                    if ($toDelete !== []) {
+                        $adapter->hashDeleteMultiple($fullKey, array_keys($toDelete));
+                    }
+
+                    if ($toSet !== []) {
+                        $adapter->hashSetMultiple($fullKey, $toSet);
+                    }
+                } else {
+                    $adapter->hashDelete($fullKey);
+
+                    if ($newFields !== []) {
+                        $adapter->hashSetMultiple($fullKey, $newFields);
+                    }
+                }
+
+                $this->hashState[$fullKey] = $newFields;
+
+                return true;
+            }
 
             return $this->adapter->set($fullKey, $this->serialize($data), $expiration);
         }
@@ -230,6 +289,15 @@ final class ObjectCache
 
         if ($this->adapter !== null && !$this->isNonPersistent($group)) {
             $fullKey = $this->buildKey($key, $group);
+            $strategy = $this->findSplitStrategy($key, $group);
+
+            if ($strategy !== null) {
+                /** @var HashableAdapterInterface $adapter */
+                $adapter = $this->adapter;
+                unset($this->hashState[$fullKey]);
+
+                return $adapter->hashDelete($fullKey);
+            }
 
             return $this->adapter->delete($fullKey);
         }
@@ -315,6 +383,7 @@ final class ObjectCache
     public function flush(): bool
     {
         $this->runtime = [];
+        $this->hashState = [];
 
         if ($this->adapter !== null) {
             return $this->adapter->flush($this->prefix);
@@ -340,6 +409,7 @@ final class ObjectCache
     public function flushRuntime(): bool
     {
         $this->runtime = [];
+        $this->hashState = [];
 
         return true;
     }
@@ -349,6 +419,8 @@ final class ObjectCache
         return match ($feature) {
             'add_multiple', 'set_multiple', 'get_multiple', 'delete_multiple',
             'flush_runtime', 'flush_group' => true,
+            'split_alloptions' => $this->splitStrategies !== []
+                && $this->adapter instanceof HashableAdapterInterface,
             default => false,
         };
     }
@@ -422,6 +494,21 @@ final class ObjectCache
         $blogId = $this->isGlobal($group) ? 0 : $this->blogId;
 
         return $blogId . ':' . $key;
+    }
+
+    private function findSplitStrategy(string $key, string $group): ?KeySplitStrategyInterface
+    {
+        if (!$this->adapter instanceof HashableAdapterInterface) {
+            return null;
+        }
+
+        foreach ($this->splitStrategies as $strategy) {
+            if ($strategy->supports($key, $group)) {
+                return $strategy;
+            }
+        }
+
+        return null;
     }
 
     private function serialize(mixed $data): string

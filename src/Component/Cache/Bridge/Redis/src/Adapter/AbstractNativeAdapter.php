@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Cache\Bridge\Redis\Adapter;
 
-use WpPack\Component\Cache\Adapter\AbstractAdapter;
+use WpPack\Component\Cache\Adapter\AbstractHashableAdapter;
 
 /**
  * Base adapter for ext-redis and ext-relay standalone connections.
  *
  * Subclasses only need to implement getName() and createConnection().
  */
-abstract class AbstractNativeAdapter extends AbstractAdapter
+abstract class AbstractNativeAdapter extends AbstractHashableAdapter
 {
     /** @var \Redis|\Relay\Relay|null */
     private ?object $connection = null;
@@ -180,6 +180,52 @@ abstract class AbstractNativeAdapter extends AbstractAdapter
         }
 
         return $connection->decrby($key, $offset);
+    }
+
+    protected function doHashGetAll(string $key): array
+    {
+        $result = $this->getConnection()->hGetAll($key);
+
+        if ($result === false || $result === []) {
+            return [];
+        }
+
+        $fields = [];
+        foreach ($result as $field => $value) {
+            $fields[(string) $field] = (string) $value;
+        }
+
+        return $fields;
+    }
+
+    protected function doHashGet(string $key, string $field): ?string
+    {
+        $result = $this->getConnection()->hGet($key, $field);
+
+        return $result === false ? null : (string) $result;
+    }
+
+    protected function doHashSetMultiple(string $key, array $fields): bool
+    {
+        if ($fields === []) {
+            return true;
+        }
+
+        return $this->getConnection()->hMSet($key, $fields);
+    }
+
+    protected function doHashDeleteMultiple(string $key, array $fields): bool
+    {
+        if ($fields === []) {
+            return true;
+        }
+
+        return $this->getConnection()->hDel($key, ...$fields) >= 0;
+    }
+
+    protected function doHashDelete(string $key): bool
+    {
+        return $this->getConnection()->del($key) >= 0;
     }
 
     protected function doFlush(string $prefix = ''): bool

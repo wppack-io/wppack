@@ -18,6 +18,10 @@ declare(strict_types=1);
 use WpPack\Component\Cache\Adapter\Adapter;
 use WpPack\Component\Cache\Adapter\AdapterInterface;
 use WpPack\Component\Cache\ObjectCache;
+use WpPack\Component\Cache\Strategy\AllOptionsSplitStrategy;
+use WpPack\Component\Cache\Strategy\NotOptionsSplitStrategy;
+use WpPack\Component\Cache\Strategy\SiteNotOptionsSplitStrategy;
+use WpPack\Component\Cache\Strategy\SiteOptionsSplitStrategy;
 
 // Locate and load Composer autoloader.
 // Wrapped in an IIFE to avoid leaking variables into the global scope.
@@ -64,7 +68,15 @@ function wp_cache_init(): void
 
     $prefix = \defined('WPPACK_CACHE_PREFIX') ? WPPACK_CACHE_PREFIX : 'wp:';
 
-    $GLOBALS['wp_object_cache'] = new ObjectCache($adapter, $prefix);
+    $splitStrategies = [];
+    if (\defined('WPPACK_CACHE_SPLIT_ALLOPTIONS') && WPPACK_CACHE_SPLIT_ALLOPTIONS) {
+        $splitStrategies[] = new AllOptionsSplitStrategy();
+        $splitStrategies[] = new NotOptionsSplitStrategy();
+        $splitStrategies[] = new SiteOptionsSplitStrategy();
+        $splitStrategies[] = new SiteNotOptionsSplitStrategy();
+    }
+
+    $GLOBALS['wp_object_cache'] = new ObjectCache($adapter, $prefix, $splitStrategies);
 }
 
 /**

@@ -1,0 +1,37 @@
+<?php
+
+declare(strict_types=1);
+
+namespace WpPack\Component\Cache\Strategy;
+
+final class SiteNotOptionsSplitStrategy implements KeySplitStrategyInterface
+{
+    private const FLAG = '1';
+
+    public function supports(string $key, string $group): bool
+    {
+        return $group === 'site-options' && str_ends_with($key, ':notoptions');
+    }
+
+    public function serialize(array $value): array
+    {
+        $fields = [];
+
+        foreach ($value as $name => $flag) {
+            $fields[(string) $name] = self::FLAG;
+        }
+
+        return $fields;
+    }
+
+    public function deserialize(array $fields): array
+    {
+        $value = [];
+
+        foreach ($fields as $name => $flag) {
+            $value[$name] = true;
+        }
+
+        return $value;
+    }
+}
