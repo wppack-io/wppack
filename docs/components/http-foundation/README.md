@@ -476,7 +476,95 @@ final class MyService
 | `File\UploadedFile` | アップロードファイルラッパー（`File` 拡張） |
 | `File\Exception\FileException` | ファイル操作例外 |
 | `File\Exception\FileNotFoundException` | ファイル不在例外 |
-| `InvokeArgumentResolverTrait` | メソッドパラメータ自動注入（Admin / DashboardWidget / Setting で使用） |
+| `ValueResolverInterface` | パラメータ値解決のインターフェース |
+| `ArgumentResolver` | リゾルバチェーンによるメソッドパラメータ解決 |
+| `RequestValueResolver` | `Request` 型ヒントパラメータの解決 |
+
+## ArgumentResolver
+
+`ArgumentResolver` は、メソッドパラメータの自動注入を提供する仕組みです。`ValueResolverInterface` を実装したリゾルバのチェーンを使って、メソッドの各パラメータに対応する値を解決します。
+
+### ValueResolverInterface
+
+各パラメータの解決ロジックを定義するインターフェースです。
+
+```php
+use WpPack\Component\HttpFoundation\ValueResolverInterface;
+
+interface ValueResolverInterface
+{
+    public function supports(\ReflectionParameter $parameter): bool;
+    public function resolve(\ReflectionParameter $parameter): mixed;
+}
+```
+
+### ArgumentResolver の使い方
+
+`ArgumentResolver` はリゾルバの配列を受け取り、`createResolver()` で対象メソッドのパラメータリゾルバを生成します。
+
+```php
+use WpPack\Component\HttpFoundation\ArgumentResolver;
+use WpPack\Component\HttpFoundation\RequestValueResolver;
+use WpPack\Component\Security\ValueResolver\CurrentUserValueResolver;
+
+$argumentResolver = new ArgumentResolver([
+    new RequestValueResolver($request),
+    new CurrentUserValueResolver($security),
+]);
+
+// 対象オブジェクトのメソッドに対するリゾルバを生成
+$resolver = $argumentResolver->createResolver($target, '__invoke');
+```
+
+`createResolver()` は、対象メソッドに解決可能なパラメータがある場合は `\Closure` を、ない場合は `null` を返します。
+
+### RequestValueResolver
+
+`Request` 型ヒントのパラメータに現在のリクエストオブジェクトを注入します。
+
+```php
+use WpPack\Component\HttpFoundation\RequestValueResolver;
+
+$resolver = new RequestValueResolver($request);
+```
+
+### カスタムリゾルバの実装
+
+`ValueResolverInterface` を実装してカスタムリゾルバを追加できます。
+
+```php
+use WpPack\Component\HttpFoundation\ValueResolverInterface;
+
+final class MyServiceValueResolver implements ValueResolverInterface
+{
+    public function __construct(
+        private readonly MyService $service,
+    ) {}
+
+    public function supports(\ReflectionParameter $parameter): bool
+    {
+        $type = $parameter->getType();
+
+        return $type instanceof \ReflectionNamedType
+            && $type->getName() === MyService::class;
+    }
+
+    public function resolve(\ReflectionParameter $parameter): mixed
+    {
+        return $this->service;
+    }
+}
+```
+
+```php
+$argumentResolver = new ArgumentResolver([
+    new RequestValueResolver($request),
+    new CurrentUserValueResolver($security),
+    new MyServiceValueResolver($myService),
+]);
+```
+
+Admin / DashboardWidget / Setting / Widget の各 Registry クラスは `ArgumentResolver` をコンストラクタで受け取り、`register()` 時に自動的にパラメータ注入を設定します。
 
 ## 依存関係
 

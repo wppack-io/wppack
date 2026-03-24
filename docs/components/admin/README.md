@@ -143,18 +143,23 @@ class MyPluginPage extends AbstractAdminPage
 
 ### Request / パラメータ自動注入
 
-`AdminPageRegistry` に `Request` / `Security` を渡すと、`__invoke()` のパラメータに自動注入できます。
+`AdminPageRegistry` に `ArgumentResolver` を渡すと、`__invoke()` のパラメータに自動注入できます。
 
 #### Registry の設定
 
 ```php
 use WpPack\Component\Admin\AdminPageRegistry;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Security\Security;
+use WpPack\Component\HttpFoundation\ArgumentResolver;
+use WpPack\Component\HttpFoundation\RequestValueResolver;
+use WpPack\Component\Security\ValueResolver\CurrentUserValueResolver;
+
+$argumentResolver = new ArgumentResolver([
+    new RequestValueResolver($request),
+    new CurrentUserValueResolver($security),  // wppack/security（任意）
+]);
 
 $registry = new AdminPageRegistry(
-    request: $request,
-    security: $security,  // wppack/security（任意）
+    argumentResolver: $argumentResolver,
 );
 $registry->register(new MyPluginPage());
 ```

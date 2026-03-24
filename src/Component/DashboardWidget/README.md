@@ -43,8 +43,14 @@ class SiteStatsWidget extends AbstractDashboardWidget
 
 ```php
 use WpPack\Component\DashboardWidget\DashboardWidgetRegistry;
+use WpPack\Component\HttpFoundation\ArgumentResolver;
+use WpPack\Component\HttpFoundation\RequestValueResolver;
 
-$registry = new DashboardWidgetRegistry();
+$registry = new DashboardWidgetRegistry(
+    argumentResolver: new ArgumentResolver([
+        new RequestValueResolver($request),
+    ]),
+);
 $registry->register(new SiteStatsWidget());
 $registry->unregister('site_stats_widget');
 ```

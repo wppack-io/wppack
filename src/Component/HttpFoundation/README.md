@@ -88,6 +88,29 @@ throw new ForbiddenException('Access denied.');
 
 When using the Kernel component, `Request` is automatically registered as a synthetic service in the DI container during `Kernel::boot()`.
 
+## ArgumentResolver
+
+`ArgumentResolver` resolves method parameters from a chain of `ValueResolverInterface` implementations.
+
+```php
+use WpPack\Component\HttpFoundation\ArgumentResolver;
+use WpPack\Component\HttpFoundation\RequestValueResolver;
+
+$argumentResolver = new ArgumentResolver([
+    new RequestValueResolver($request),
+]);
+
+// Create a resolver closure for a target method
+$resolver = $argumentResolver->createResolver($target, '__invoke');
+```
+
+Built-in resolvers:
+- `RequestValueResolver` — resolves `Request` type-hinted parameters
+
+Other components provide additional resolvers:
+- `CurrentUserValueResolver` (`wppack/security`) — resolves `#[CurrentUser]` parameters
+- `ContainerValueResolver` (`wppack/dependency-injection`) — resolves parameters from the DI container
+
 ## Resources
 
 - [Documentation (Japanese)](../../../docs/components/http-foundation/README.md)

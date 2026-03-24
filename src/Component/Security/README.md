@@ -92,6 +92,32 @@ if ($security->isGranted('ROLE_SUPER_ADMIN')) {
 $blogId = $security->getToken()->getBlogId();
 ```
 
+### #[CurrentUser] Value Resolver
+
+`CurrentUserValueResolver` resolves `#[CurrentUser]` attributed parameters to the current `\WP_User`. Used with `ArgumentResolver` from the HttpFoundation component.
+
+```php
+use WpPack\Component\HttpFoundation\ArgumentResolver;
+use WpPack\Component\HttpFoundation\RequestValueResolver;
+use WpPack\Component\Security\ValueResolver\CurrentUserValueResolver;
+
+$argumentResolver = new ArgumentResolver([
+    new RequestValueResolver($request),
+    new CurrentUserValueResolver($security),
+]);
+```
+
+This enables parameter injection in Admin, DashboardWidget, Setting, and Widget components:
+
+```php
+use WpPack\Component\Security\Attribute\CurrentUser;
+
+public function __invoke(#[CurrentUser] \WP_User $user): string
+{
+    return 'Hello, ' . esc_html($user->display_name);
+}
+```
+
 ## Documentation
 
 For details, see [docs/components/security.md](../../docs/components/security.md).

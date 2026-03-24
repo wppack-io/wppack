@@ -180,18 +180,23 @@ class UserGreetingWidget extends AbstractWidget
 
 ### WidgetRegistry
 
-WordPress のウィジェット・サイドバー登録関数をラップするサービスクラスです。DI コンテナから注入できます。`register()` は `AbstractWidget` インスタンスを受け取り、`TemplateRendererInterface` と DI パラメータリゾルバを自動注入します。
+WordPress のウィジェット・サイドバー登録関数をラップするサービスクラスです。DI コンテナから注入できます。`register()` は `AbstractWidget` インスタンスを受け取り、`TemplateRendererInterface` と `ArgumentResolver` によるパラメータリゾルバを自動注入します。
 
 ```php
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Security\Security;
+use WpPack\Component\HttpFoundation\ArgumentResolver;
+use WpPack\Component\HttpFoundation\RequestValueResolver;
+use WpPack\Component\Security\ValueResolver\CurrentUserValueResolver;
 use WpPack\Component\Templating\TemplateRendererInterface;
 use WpPack\Component\Widget\WidgetRegistry;
 
+$argumentResolver = new ArgumentResolver([
+    new RequestValueResolver($request),
+    new CurrentUserValueResolver($security),
+]);
+
 $registry = new WidgetRegistry(
-    renderer: $templateRenderer,  // optional
-    request: $request,            // optional
-    security: $security,          // optional
+    renderer: $templateRenderer,      // optional
+    argumentResolver: $argumentResolver,  // optional
 );
 
 // ウィジェット登録（インスタンス）

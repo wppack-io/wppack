@@ -76,12 +76,15 @@ class UserGreetingWidget extends AbstractWidget
 ### WidgetRegistry
 
 ```php
+use WpPack\Component\HttpFoundation\ArgumentResolver;
+use WpPack\Component\HttpFoundation\RequestValueResolver;
 use WpPack\Component\Widget\WidgetRegistry;
 
 $registry = new WidgetRegistry(
-    renderer: $templateRenderer,  // optional
-    request: $request,            // optional
-    security: $security,          // optional
+    renderer: $templateRenderer,      // optional
+    argumentResolver: new ArgumentResolver([  // optional
+        new RequestValueResolver($request),
+    ]),
 );
 
 $registry->register(new RecentPostsWidget());

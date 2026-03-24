@@ -298,18 +298,23 @@ class StatsWidget extends AbstractDashboardWidget
 
 ### Request / パラメータ自動注入
 
-`DashboardWidgetRegistry` に `Request` / `Security` を渡すと、`__invoke()` と `configure()` のパラメータに自動注入できます。
+`DashboardWidgetRegistry` に `ArgumentResolver` を渡すと、`__invoke()` と `configure()` のパラメータに自動注入できます。
 
 #### Registry の設定
 
 ```php
 use WpPack\Component\DashboardWidget\DashboardWidgetRegistry;
-use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Security\Security;
+use WpPack\Component\HttpFoundation\ArgumentResolver;
+use WpPack\Component\HttpFoundation\RequestValueResolver;
+use WpPack\Component\Security\ValueResolver\CurrentUserValueResolver;
+
+$argumentResolver = new ArgumentResolver([
+    new RequestValueResolver($request),
+    new CurrentUserValueResolver($security),  // wppack/security（任意）
+]);
 
 $registry = new DashboardWidgetRegistry(
-    request: $request,
-    security: $security,  // wppack/security（任意）
+    argumentResolver: $argumentResolver,
 );
 $registry->register(new SiteStatsWidget());
 ```
