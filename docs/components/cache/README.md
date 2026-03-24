@@ -180,6 +180,9 @@ define('WPPACK_CACHE_DSN', 'redis://127.0.0.1:6379');
 // プレフィックス（オプション、デフォルト 'wp:'）
 define('WPPACK_CACHE_PREFIX', 'wp:');
 
+// alloptions Hash 分割（オプション、デフォルト false）
+define('WPPACK_CACHE_SPLIT_ALLOPTIONS', true);
+
 // オプション配列（オプション、DSN パラメータを上書き/補完）
 define('WPPACK_CACHE_OPTIONS', [
     'timeout' => 5,
@@ -242,6 +245,54 @@ WpPack の Object Cache ドロップインは Mailer コンポーネントと同
 | Memcached | [`wppack/memcached-cache`](memcached-cache.md) | `memcached://` | ext-memcached |
 | APCu | [`wppack/apcu-cache`](apcu-cache.md) | `apcu://` | ext-apcu |
 
+### alloptions Hash 分割
+
+#### 概要
+
+WordPress は `alloptions` キーに全自動読み込みオプションをシリアライズした単一の blob として保存します。この設計には以下の問題があります:
+
+- **Race condition**: 複数リクエストが同時にオプションを更新すると、一方の変更が上書きされる（lost update）
+- **帯域幅の浪費**: 1 つのオプションを変更するだけで、数十〜数百 KB の blob 全体を再書き込みする
+
+alloptions Hash 分割は、この blob を Redis Hash に変換し、各オプションを個別のフィールドとして保存します。これにより、個別オプションの更新が `HSET` / `HDEL` で完結し、race condition と帯域幅の問題を解決します。
+
+#### 有効化
+
+`wp-config.php` に以下を追加します:
+
+```php
+define('WPPACK_CACHE_SPLIT_ALLOPTIONS', true);
+```
+
+有効化すると、以下の 4 つの分割戦略が自動的に登録されます:
+
+| 戦略クラス | 対象キー | 対象グループ |
+|-----------|---------|------------|
+| `AllOptionsSplitStrategy` | `alloptions` | `options` |
+| `NotOptionsSplitStrategy` | `notoptions` | `options` |
+| `SiteOptionsSplitStrategy` | `*:all` | `site-options` |
+| `SiteNotOptionsSplitStrategy` | `*:notoptions` | `site-options` |
+
+#### 対応バックエンド
+
+Hash 分割にはアダプタが `HashableAdapterInterface` を実装している必要があります。
+
+| バックエンド | Hash 分割対応 | 備考 |
+|------------|:-----------:|------|
+| Redis / Valkey（ext-redis） | 対応 | Standalone / Cluster 両対応 |
+| Redis / Valkey（Relay） | 対応 | Standalone / Cluster 両対応 |
+| Redis / Valkey（Predis） | 対応 | |
+| Memcached | 非対応 | blob フォールバック（従来動作） |
+| APCu | 非対応 | blob フォールバック（従来動作） |
+| DynamoDB | 非対応 | blob フォールバック（従来動作） |
+
+非対応バックエンドでは `WPPACK_CACHE_SPLIT_ALLOPTIONS` を `true` に設定しても、アダプタが `HashableAdapterInterface` を実装していないため自動的に blob フォールバックになります。
+
+#### マイグレーション注意事項
+
+- **WRONGTYPE エラーの自動リカバリ**: Hash 分割を有効化すると、既存の blob 形式のキーに対して Hash コマンドが実行され Redis から `WRONGTYPE` エラーが返されます。`ObjectCache` はこのエラーを検知して既存キーを自動的に削除し、次回アクセス時に Hash 形式で再作成します
+- **全サーバーの統一**: ロードバランサー配下の全アプリケーションサーバーで同時に設定を切り替えてください。一部のサーバーだけ有効化すると、blob 形式と Hash 形式が混在し、繰り返しリカバリが発生します
+
 ### 動作確認
 
 ```bash
@@ -297,8 +348,15 @@ class CacheInvalidator
 | `ObjectCache` | WP_Object_Cache エンジン（ドロップイン用） |
 | `ObjectCacheMetrics` | キャッシュヒット/ミス統計（readonly VO） |
 | `Adapter\AdapterInterface` | 永続化アダプタのコントラクト |
+| `Adapter\HashableAdapterInterface` | Redis Hash 操作コントラクト（`AdapterInterface` 拡張） |
+| `Adapter\AbstractHashableAdapter` | Hash 操作のテンプレートメソッド基底クラス |
 | `Adapter\Adapter` | DSN からアダプタを自動検出するレジストリ |
 | `Adapter\Dsn` | DSN パーサー |
+| `Strategy\KeySplitStrategyInterface` | キー分割戦略コントラクト |
+| `Strategy\AllOptionsSplitStrategy` | `alloptions` を Redis Hash に分割保存 |
+| `Strategy\NotOptionsSplitStrategy` | `notoptions` を Redis Hash に分割保存 |
+| `Strategy\SiteOptionsSplitStrategy` | マルチサイト `site-options` を Redis Hash に分割保存 |
+| `Strategy\SiteNotOptionsSplitStrategy` | マルチサイト `site-notoptions` を Redis Hash に分割保存 |
 
 ## 依存関係
 

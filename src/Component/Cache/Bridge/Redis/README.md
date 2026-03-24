@@ -71,6 +71,15 @@ define('WPPACK_CACHE_OPTIONS', ['class' => \Relay\Relay::class]);
 define('WPPACK_CACHE_DSN', 'redis://127.0.0.1:6379?class=Relay%5CRelay');
 ```
 
+### Split Alloptions
+
+All Redis adapters implement `HashableAdapterInterface`, enabling the alloptions Hash split feature. When `WPPACK_CACHE_SPLIT_ALLOPTIONS` is enabled, WordPress's `alloptions` cache key is stored as a Redis Hash instead of a serialized blob, eliminating race conditions on concurrent option updates.
+
+```php
+// wp-config.php
+define('WPPACK_CACHE_SPLIT_ALLOPTIONS', true);
+```
+
 ## Supported Schemes
 
 | Scheme | Description |

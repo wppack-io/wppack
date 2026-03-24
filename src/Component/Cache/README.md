@@ -35,6 +35,17 @@ $cache->flush();
 $cache->flushGroup('my_app');
 ```
 
+### Split Alloptions
+
+WordPress stores all autoloaded options in a single serialized blob (`alloptions`). This causes race conditions when multiple requests update options simultaneously. Enable Hash splitting to store each option as a separate Redis Hash field:
+
+```php
+// wp-config.php
+define('WPPACK_CACHE_SPLIT_ALLOPTIONS', true);
+```
+
+> **Note:** Requires a Hash-capable backend (Redis / Valkey via ext-redis, Relay, or Predis). Non-Hash backends (Memcached, APCu, DynamoDB) automatically fall back to blob storage.
+
 ## Object Cache Drop-in
 
 WpPack provides an `object-cache.php` drop-in that replaces WordPress's default in-memory object cache with a persistent backend (Redis, Valkey, etc.).

@@ -9,21 +9,31 @@ wppack/cache（コア）
 ├── ObjectCache          ← WP_Object_Cache エンジン
 ├── CacheManager         ← WordPress Object Cache API ラッパー
 ├── Adapter/
-│   ├── AdapterInterface      ← 永続化コントラクト
-│   ├── AbstractAdapter       ← テンプレートメソッド基底クラス
-│   ├── AdapterFactoryInterface ← ファクトリコントラクト
-│   ├── Adapter               ← ファクトリレジストリ（DSN → アダプタ）
-│   └── Dsn                   ← DSN パーサー
+│   ├── AdapterInterface           ← 永続化コントラクト
+│   ├── AbstractAdapter            ← テンプレートメソッド基底クラス
+│   ├── HashableAdapterInterface   ← Redis Hash 操作コントラクト（AdapterInterface 拡張）
+│   ├── AbstractHashableAdapter    ← Hash 操作テンプレートメソッド基底クラス
+│   ├── AdapterFactoryInterface    ← ファクトリコントラクト
+│   ├── Adapter                    ← ファクトリレジストリ（DSN → アダプタ）
+│   └── Dsn                        ← DSN パーサー
+├── Strategy/
+│   ├── KeySplitStrategyInterface      ← キー分割戦略コントラクト
+│   ├── AllOptionsSplitStrategy        ← alloptions 分割
+│   ├── NotOptionsSplitStrategy        ← notoptions 分割
+│   ├── SiteOptionsSplitStrategy       ← site-options 分割
+│   └── SiteNotOptionsSplitStrategy    ← site-notoptions 分割
 └── Exception/
 
 wppack/redis-cache（Bridge）
 └── Adapter/
-    ├── RedisAdapterFactory   ← AdapterFactoryInterface 実装
-    ├── RedisAdapter          ← ext-redis Standalone
-    ├── RedisClusterAdapter   ← ext-redis Cluster
-    ├── RelayAdapter          ← ext-relay Standalone
-    ├── RelayClusterAdapter   ← ext-relay Cluster
-    └── PredisAdapter         ← Predis
+    ├── RedisAdapterFactory       ← AdapterFactoryInterface 実装
+    ├── AbstractNativeAdapter      ← ext-redis / Relay Standalone 共通基底
+    ├── AbstractNativeClusterAdapter ← ext-redis / Relay Cluster 共通基底
+    ├── RedisAdapter               ← ext-redis Standalone
+    ├── RedisClusterAdapter        ← ext-redis Cluster
+    ├── RelayAdapter               ← ext-relay Standalone
+    ├── RelayClusterAdapter        ← ext-relay Cluster
+    └── PredisAdapter              ← Predis
 ```
 
 ## コアクラス
@@ -94,6 +104,64 @@ abstract class AbstractAdapter implements AdapterInterface
             throw new AdapterException($e->getMessage(), 0, $e);
         }
     }
+}
+```
+
+### `HashableAdapterInterface`
+
+Redis Hash 操作のコントラクト。`AdapterInterface` を拡張し、Hash 固有のメソッドを追加します。ISP（Interface Segregation Principle）に基づき、`AdapterInterface` に直接追加せず別インターフェースとして定義しています。これにより、Hash 操作をサポートしないバックエンド（Memcached, APCu, DynamoDB）は `AdapterInterface` のみを実装すれば済みます。
+
+```php
+interface HashableAdapterInterface extends AdapterInterface
+{
+    /** @return array<string, string> */
+    public function hashGetAll(string $key): array;
+    public function hashGet(string $key, string $field): ?string;
+    /** @param array<string, string> $fields */
+    public function hashSetMultiple(string $key, array $fields): bool;
+    /** @param list<string> $fields */
+    public function hashDeleteMultiple(string $key, array $fields): bool;
+    public function hashDelete(string $key): bool;
+}
+```
+
+### `AbstractHashableAdapter`
+
+`AbstractAdapter` を拡張し `HashableAdapterInterface` を実装するテンプレートメソッド基底クラス。サブクラスは `doHashGetAll()`, `doHashGet()` 等の protected メソッドを実装します。
+
+```php
+abstract class AbstractHashableAdapter extends AbstractAdapter implements HashableAdapterInterface
+{
+    abstract protected function doHashGetAll(string $key): array;
+    abstract protected function doHashGet(string $key, string $field): ?string;
+    abstract protected function doHashSetMultiple(string $key, array $fields): bool;
+    abstract protected function doHashDeleteMultiple(string $key, array $fields): bool;
+    abstract protected function doHashDelete(string $key): bool;
+
+    public function hashGetAll(string $key): array
+    {
+        return $this->execute(fn() => $this->doHashGetAll($key));
+    }
+    // ... 他のメソッドも同様に execute() 経由で例外を統一
+}
+```
+
+### `KeySplitStrategyInterface`
+
+特定のキャッシュキーを Redis Hash に分割保存する戦略のコントラクト。`ObjectCache` は登録された戦略を順に試し、マッチした戦略で Hash 操作に変換します。
+
+```php
+interface KeySplitStrategyInterface
+{
+    /** このキー/グループの組み合わせを分割対象とするか */
+    public function supports(string $key, string $group): bool;
+
+    /** 値の配列を Hash フィールドにシリアライズ */
+    /** @return array<string, string> */
+    public function serialize(array $value): array;
+
+    /** Hash フィールドを値の配列にデシリアライズ */
+    public function deserialize(array $fields): array;
 }
 ```
 
@@ -311,6 +379,8 @@ private const FACTORY_CLASSES = [
 
 ## データフロー
 
+### 通常パス（blob 保存）
+
 ```
 WordPress                    WpPack
 ─────────                    ──────
@@ -333,6 +403,47 @@ ObjectCache::set()
         \Redis::setex($key, $ttl, $value)
 ```
 
+### Hash 分割パス（alloptions 等）
+
+`WPPACK_CACHE_SPLIT_ALLOPTIONS` が有効で、アダプタが `HashableAdapterInterface` を実装している場合:
+
+```
+WordPress                           WpPack
+─────────                           ──────
+wp_cache_set('alloptions', $opts, 'options')
+    │
+    ▼
+ObjectCache::set()
+    ├── findSplitStrategy('alloptions', 'options')
+    │       → AllOptionsSplitStrategy がマッチ
+    ├── strategy->serialize($opts)
+    │       → ['option_a' => serialize('val_a'), 'option_b' => serialize('val_b'), ...]
+    ├── 前回の hashState と差分比較
+    │       → 追加/変更フィールド: HMSET
+    │       → 削除フィールド: HDEL
+    ├── ランタイムキャッシュに保存
+    └── HashableAdapterInterface::hashSetMultiple() / hashDeleteMultiple()
+            │
+            ▼
+        RedisAdapter::doHashSetMultiple()
+            │
+            ▼
+        \Redis::hMSet($key, $fields)
+
+wp_cache_get('alloptions', 'options')
+    │
+    ▼
+ObjectCache::get()
+    ├── findSplitStrategy('alloptions', 'options')
+    │       → AllOptionsSplitStrategy がマッチ
+    ├── HashableAdapterInterface::hashGetAll()
+    │       → \Redis::hGetAll($key)
+    ├── strategy->deserialize($fields)
+    │       → ['option_a' => 'val_a', 'option_b' => 'val_b', ...]
+    ├── hashState を記録（次回 set 時の差分比較用）
+    └── ランタイムキャッシュに保存
+```
+
 ## Object Cache ドロップインでの利用
 
 `object-cache.php` は `Adapter::fromDsn()` を使って DSN からアダプタを自動生成します:
@@ -353,7 +464,16 @@ function wp_cache_init(): void
     }
 
     $prefix = defined('WPPACK_CACHE_PREFIX') ? WPPACK_CACHE_PREFIX : 'wp:';
-    $GLOBALS['wp_object_cache'] = new ObjectCache($adapter, $prefix);
+
+    $splitStrategies = [];
+    if (defined('WPPACK_CACHE_SPLIT_ALLOPTIONS') && WPPACK_CACHE_SPLIT_ALLOPTIONS) {
+        $splitStrategies[] = new AllOptionsSplitStrategy();
+        $splitStrategies[] = new NotOptionsSplitStrategy();
+        $splitStrategies[] = new SiteOptionsSplitStrategy();
+        $splitStrategies[] = new SiteNotOptionsSplitStrategy();
+    }
+
+    $GLOBALS['wp_object_cache'] = new ObjectCache($adapter, $prefix, $splitStrategies);
 }
 ```
 
@@ -367,9 +487,18 @@ function wp_cache_init(): void
 | `Adapter\AbstractAdapter` | wppack/cache | テンプレートメソッド基底（例外統一） |
 | `Adapter\AdapterFactoryInterface` | wppack/cache | ファクトリコントラクト |
 | `Adapter\Adapter` | wppack/cache | ファクトリレジストリ（DSN → アダプタ） |
+| `Adapter\HashableAdapterInterface` | wppack/cache | Hash 操作コントラクト（ISP 分離） |
+| `Adapter\AbstractHashableAdapter` | wppack/cache | Hash 操作テンプレートメソッド基底 |
 | `Adapter\Dsn` | wppack/cache | DSN パーサー |
+| `Strategy\KeySplitStrategyInterface` | wppack/cache | キー分割戦略コントラクト |
+| `Strategy\AllOptionsSplitStrategy` | wppack/cache | alloptions Hash 分割 |
+| `Strategy\NotOptionsSplitStrategy` | wppack/cache | notoptions Hash 分割 |
+| `Strategy\SiteOptionsSplitStrategy` | wppack/cache | site-options Hash 分割 |
+| `Strategy\SiteNotOptionsSplitStrategy` | wppack/cache | site-notoptions Hash 分割 |
 | `ObjectCache` | wppack/cache | WP_Object_Cache エンジン |
 | `Bridge\Redis\Adapter\RedisAdapterFactory` | wppack/redis-cache | Redis ファクトリ |
+| `Bridge\Redis\Adapter\AbstractNativeAdapter` | wppack/redis-cache | ext-redis / Relay Standalone 共通基底 |
+| `Bridge\Redis\Adapter\AbstractNativeClusterAdapter` | wppack/redis-cache | ext-redis / Relay Cluster 共通基底 |
 | `Bridge\Redis\Adapter\RedisAdapter` | wppack/redis-cache | ext-redis Standalone |
 | `Bridge\Redis\Adapter\RedisClusterAdapter` | wppack/redis-cache | ext-redis Cluster |
 | `Bridge\Redis\Adapter\RelayAdapter` | wppack/redis-cache | Relay Standalone |
