@@ -73,6 +73,7 @@ final class RelayAdapter extends AbstractNativeAdapter
         }
 
         $relay->setOption(\Relay\Relay::OPT_SERIALIZER, \Relay\Relay::SERIALIZER_NONE);
+        $this->configureCompressor($relay, \Relay\Relay::class);
 
         return $relay;
     }
@@ -136,6 +137,7 @@ final class RelayAdapter extends AbstractNativeAdapter
         }
 
         $relay->setOption(\Relay\Relay::OPT_SERIALIZER, \Relay\Relay::SERIALIZER_NONE);
+        $this->configureCompressor($relay, \Relay\Relay::class);
 
         return $relay;
     }

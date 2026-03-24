@@ -186,6 +186,13 @@ define('WPPACK_CACHE_MAX_TTL', 86400);
 // alloptions Hash 分割（オプション、デフォルト false）
 define('WPPACK_CACHE_SPLIT_ALLOPTIONS', true);
 
+// 圧縮（オプション、'none'（デフォルト）、'zstd'、'lz4'、'lzf'）
+// phpredis / Relay の OPT_COMPRESSOR で処理（Predis は非対応）
+define('WPPACK_CACHE_COMPRESSION', 'zstd');
+
+// Async Flush（オプション、デフォルト false — DEL の代わりに UNLINK を使用）
+define('WPPACK_CACHE_ASYNC_FLUSH', true);
+
 // オプション配列（オプション、DSN パラメータを上書き/補完）
 define('WPPACK_CACHE_OPTIONS', [
     'timeout' => 5,
@@ -265,6 +272,59 @@ define('WPPACK_CACHE_MAX_TTL', 86400); // 24 時間
 
 - `set()`, `setMultiple()`, `add()`, `addMultiple()`, `replace()` に適用
 - 負の TTL（即時削除）はクランプされず、そのままアダプタに渡される
+
+### 圧縮
+
+`ObjectCache` は PHP 標準の `serialize()` / `unserialize()` でデータをシリアライズします。圧縮は phpredis / Relay の `OPT_COMPRESSOR` でアダプタレベルで処理されます。
+
+```php
+// wp-config.php
+define('WPPACK_CACHE_COMPRESSION', 'zstd');
+```
+
+**対応圧縮アルゴリズム:**
+
+| 設定値 | 必要な拡張 | 備考 |
+|-------|-----------|------|
+| `'none'`（デフォルト） | なし | 圧縮なし |
+| `'zstd'` | ext-zstd | 高速・高圧縮率。推奨 |
+| `'lz4'` | ext-lz4 | 超高速。圧縮率は控えめ |
+| `'lzf'` | ext-lzf | 軽量圧縮 |
+
+> [!NOTE]
+> 圧縮は phpredis（ext-redis）および Relay のみ対応しています。Predis は `OPT_COMPRESSOR` に相当する機能がないため、圧縮設定は無視されます。
+
+### Async Flush
+
+Redis の `DEL` コマンドは同期的に実行され、大きな値の削除時にメインスレッドをブロックします。`UNLINK` はキーをキースペースから即座に切り離し（O(1)）、実際のメモリ解放をバックグラウンドスレッドで行います。
+
+Async Flush を有効にすると、アダプタの `delete`, `deleteMultiple`, `flush`（プレフィックス付き SCAN+DEL パス）, `hashDelete` で使用されるコマンドが `DEL` → `UNLINK` に切り替わります。
+
+```php
+// wp-config.php
+define('WPPACK_CACHE_ASYNC_FLUSH', true);
+```
+
+| 設定値 | 動作 |
+|-------|------|
+| `WPPACK_CACHE_ASYNC_FLUSH` 未定義 / `false` | `DEL`（デフォルト、同期削除） |
+| `true` | `UNLINK`（非同期削除） |
+
+- `flushdb()`（プレフィックスなしの全削除）は `FLUSHDB` コマンドを使用するため対象外
+- `HDEL`（Hash フィールド削除）は `UNLINK` に相当するコマンドがないため対象外
+- Redis 4.0+ / Valkey が必要（`UNLINK` コマンドのサポート）
+
+### `wp_cache_supports()` 機能テーブル
+
+| 機能 | 条件 |
+|------|------|
+| `add_multiple` | 常に `true` |
+| `set_multiple` | 常に `true` |
+| `get_multiple` | 常に `true` |
+| `delete_multiple` | 常に `true` |
+| `flush_runtime` | 常に `true` |
+| `flush_group` | 常に `true` |
+| `split_alloptions` | `splitStrategies` が設定済み かつ アダプタが `HashableAdapterInterface` |
 
 ### alloptions Hash 分割
 
@@ -367,6 +427,7 @@ class CacheInvalidator
 |-------|------|
 | `CacheManager` | WordPress Object Cache API のラッパー |
 | `ObjectCache` | WP_Object_Cache エンジン（ドロップイン用） |
+| `ObjectCacheConfig` | ObjectCache 設定 VO |
 | `ObjectCacheMetrics` | キャッシュヒット/ミス統計（readonly VO） |
 | `Adapter\AdapterInterface` | 永続化アダプタのコントラクト |
 | `Adapter\HashableAdapterInterface` | Redis Hash 操作コントラクト（`AdapterInterface` 拡張） |

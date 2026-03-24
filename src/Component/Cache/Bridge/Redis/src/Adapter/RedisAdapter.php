@@ -73,6 +73,7 @@ final class RedisAdapter extends AbstractNativeAdapter
         }
 
         $redis->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_NONE);
+        $this->configureCompressor($redis, \Redis::class);
 
         return $redis;
     }
@@ -136,6 +137,7 @@ final class RedisAdapter extends AbstractNativeAdapter
         }
 
         $redis->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_NONE);
+        $this->configureCompressor($redis, \Redis::class);
 
         return $redis;
     }

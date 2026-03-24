@@ -46,6 +46,28 @@ define('WPPACK_CACHE_MAX_TTL', 86400); // 24 hours
 
 Keys with TTL 0 (no expiration) or TTL exceeding `WPPACK_CACHE_MAX_TTL` are clamped to the configured value. Negative TTLs (immediate deletion) pass through unchanged.
 
+### Compression
+
+Enable adapter-level compression via phpredis / Relay `OPT_COMPRESSOR`:
+
+```php
+// wp-config.php
+define('WPPACK_CACHE_COMPRESSION', 'zstd'); // 'none' (default), 'zstd', 'lz4', 'lzf'
+```
+
+Compression is handled by the native extension (ext-redis or Relay). Predis does not support compression.
+
+### Async Flush
+
+Use Redis `UNLINK` (non-blocking) instead of `DEL` (blocking) for key deletions. `UNLINK` removes the key from the keyspace in O(1) and frees memory in a background thread, avoiding main-thread blocking on large values.
+
+```php
+// wp-config.php
+define('WPPACK_CACHE_ASYNC_FLUSH', true);
+```
+
+Applies to `delete`, `deleteMultiple`, prefix-based `flush`, and `hashDelete`. Does not affect `FLUSHDB` or `HDEL`. Requires Redis 4.0+ / Valkey.
+
 ### Split Alloptions
 
 WordPress stores all autoloaded options in a single serialized blob (`alloptions`). This causes race conditions when multiple requests update options simultaneously. Enable Hash splitting to store each option as a separate Redis Hash field:

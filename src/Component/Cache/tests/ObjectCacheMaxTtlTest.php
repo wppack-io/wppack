@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Cache\Adapter\AdapterInterface;
 use WpPack\Component\Cache\ObjectCache;
+use WpPack\Component\Cache\ObjectCacheConfig;
 use WpPack\Component\Cache\Tests\Adapter\InMemoryAdapter;
 
 final class ObjectCacheMaxTtlTest extends TestCase
@@ -102,7 +103,7 @@ final class ObjectCacheMaxTtlTest extends TestCase
     public function maxTtlClampsZeroExpiration(): void
     {
         $adapter = $this->createSpyAdapter();
-        $cache = new ObjectCache($adapter, 'wp:', [], 3600);
+        $cache = new ObjectCache($adapter, new ObjectCacheConfig(prefix: 'wp:', maxTtl: 3600));
 
         $cache->set('key', 'value', 'default', 0);
 
@@ -113,7 +114,7 @@ final class ObjectCacheMaxTtlTest extends TestCase
     public function maxTtlClampsExcessiveExpiration(): void
     {
         $adapter = $this->createSpyAdapter();
-        $cache = new ObjectCache($adapter, 'wp:', [], 3600);
+        $cache = new ObjectCache($adapter, new ObjectCacheConfig(prefix: 'wp:', maxTtl: 3600));
 
         $cache->set('key', 'value', 'default', 86400);
 
@@ -124,7 +125,7 @@ final class ObjectCacheMaxTtlTest extends TestCase
     public function maxTtlDoesNotAffectSmallerTtl(): void
     {
         $adapter = $this->createSpyAdapter();
-        $cache = new ObjectCache($adapter, 'wp:', [], 3600);
+        $cache = new ObjectCache($adapter, new ObjectCacheConfig(prefix: 'wp:', maxTtl: 3600));
 
         $cache->set('key', 'value', 'default', 1800);
 
@@ -135,7 +136,7 @@ final class ObjectCacheMaxTtlTest extends TestCase
     public function maxTtlNullDoesNotClamp(): void
     {
         $adapter = $this->createSpyAdapter();
-        $cache = new ObjectCache($adapter, 'wp:', [], null);
+        $cache = new ObjectCache($adapter, new ObjectCacheConfig(prefix: 'wp:'));
 
         $cache->set('key', 'value', 'default', 0);
 
@@ -146,7 +147,7 @@ final class ObjectCacheMaxTtlTest extends TestCase
     public function maxTtlZeroDoesNotClamp(): void
     {
         $adapter = $this->createSpyAdapter();
-        $cache = new ObjectCache($adapter, 'wp:', [], 0);
+        $cache = new ObjectCache($adapter, new ObjectCacheConfig(prefix: 'wp:', maxTtl: 0));
 
         $cache->set('key', 'value', 'default', 0);
 
@@ -157,7 +158,7 @@ final class ObjectCacheMaxTtlTest extends TestCase
     public function maxTtlClampsSetMultiple(): void
     {
         $adapter = $this->createSpyAdapter();
-        $cache = new ObjectCache($adapter, 'wp:', [], 3600);
+        $cache = new ObjectCache($adapter, new ObjectCacheConfig(prefix: 'wp:', maxTtl: 3600));
 
         $cache->setMultiple(['k1' => 'v1', 'k2' => 'v2'], 'default', 0);
 
@@ -168,7 +169,7 @@ final class ObjectCacheMaxTtlTest extends TestCase
     public function maxTtlClampsAdd(): void
     {
         $adapter = $this->createSpyAdapter();
-        $cache = new ObjectCache($adapter, 'wp:', [], 3600);
+        $cache = new ObjectCache($adapter, new ObjectCacheConfig(prefix: 'wp:', maxTtl: 3600));
 
         $cache->add('key', 'value', 'default', 86400);
 
@@ -179,7 +180,7 @@ final class ObjectCacheMaxTtlTest extends TestCase
     public function maxTtlClampsReplace(): void
     {
         $adapter = $this->createSpyAdapter();
-        $cache = new ObjectCache($adapter, 'wp:', [], 3600);
+        $cache = new ObjectCache($adapter, new ObjectCacheConfig(prefix: 'wp:', maxTtl: 3600));
 
         // First set, then replace
         $cache->set('key', 'old', 'default', 1800);
@@ -193,7 +194,7 @@ final class ObjectCacheMaxTtlTest extends TestCase
     public function maxTtlDoesNotAffectNegativeTtl(): void
     {
         $adapter = $this->createSpyAdapter();
-        $cache = new ObjectCache($adapter, 'wp:', [], 3600);
+        $cache = new ObjectCache($adapter, new ObjectCacheConfig(prefix: 'wp:', maxTtl: 3600));
 
         $cache->set('key', 'value', 'default', -1);
 
@@ -204,7 +205,7 @@ final class ObjectCacheMaxTtlTest extends TestCase
     public function maxTtlNegativeDoesNotClamp(): void
     {
         $adapter = $this->createSpyAdapter();
-        $cache = new ObjectCache($adapter, 'wp:', [], -100);
+        $cache = new ObjectCache($adapter, new ObjectCacheConfig(prefix: 'wp:', maxTtl: -100));
 
         $cache->set('key', 'value', 'default', 300);
 
@@ -215,7 +216,7 @@ final class ObjectCacheMaxTtlTest extends TestCase
     public function maxTtlDoesNotAffectEqualTtl(): void
     {
         $adapter = $this->createSpyAdapter();
-        $cache = new ObjectCache($adapter, 'wp:', [], 3600);
+        $cache = new ObjectCache($adapter, new ObjectCacheConfig(prefix: 'wp:', maxTtl: 3600));
 
         $cache->set('key', 'value', 'default', 3600);
 

@@ -8,6 +8,8 @@ use WpPack\Component\Cache\Exception\AdapterException;
 
 abstract class AbstractAdapter implements AdapterInterface
 {
+    protected bool $asyncFlush = false;
+
     abstract public function getName(): string;
 
     abstract protected function doGet(string $key): ?string;

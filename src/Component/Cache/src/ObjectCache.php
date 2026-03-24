@@ -28,15 +28,14 @@ final class ObjectCache
     /** @var array<string, array<string, string>> fullKey => [field => serialized value] */
     private array $hashState = [];
 
-    /**
-     * @param list<KeySplitStrategyInterface> $splitStrategies
-     */
+    private readonly ObjectCacheConfig $config;
+
     public function __construct(
         private readonly ?AdapterInterface $adapter,
-        private readonly string $prefix = '',
-        private readonly array $splitStrategies = [],
-        private readonly ?int $maxTtl = null,
-    ) {}
+        ObjectCacheConfig $config = new ObjectCacheConfig(),
+    ) {
+        $this->config = $config;
+    }
 
     public function get(string $key, string $group = 'default', bool $force = false, bool &$found = false): mixed
     {
@@ -72,7 +71,8 @@ final class ObjectCache
                 $value = $this->adapter->get($fullKey);
 
                 if ($value !== null) {
-                    $data = $this->unserialize($value);
+                    $data = \unserialize($value);
+
                     $this->runtime[$group][$runtimeKey] = $data;
                     $found = true;
                     ++$this->hits;
@@ -123,7 +123,8 @@ final class ObjectCache
                 $value = $fetched[$fullKey] ?? null;
 
                 if ($value !== null) {
-                    $data = $this->unserialize($value);
+                    $data = \unserialize($value);
+
                     $runtimeKey = $this->runtimeKey($key, $group);
                     $this->runtime[$group][$runtimeKey] = $data;
                     $results[$key] = $data;
@@ -181,7 +182,7 @@ final class ObjectCache
                 return true;
             }
 
-            return $this->adapter->set($fullKey, $this->serialize($data), $this->clampTtl($expiration));
+            return $this->adapter->set($fullKey, \serialize($data), $this->clampTtl($expiration));
         }
 
         return true;
@@ -206,7 +207,7 @@ final class ObjectCache
             $keyMap = [];
             foreach ($data as $key => $value) {
                 $fullKey = $this->buildKey($key, $group);
-                $serialized[$fullKey] = $this->serialize($value);
+                $serialized[$fullKey] = \serialize($value);
                 $keyMap[$fullKey] = $key;
             }
 
@@ -235,7 +236,7 @@ final class ObjectCache
 
         if ($this->adapter !== null && !$this->isNonPersistent($group)) {
             $fullKey = $this->buildKey($key, $group);
-            $result = $this->adapter->add($fullKey, $this->serialize($data), $this->clampTtl($expiration));
+            $result = $this->adapter->add($fullKey, \serialize($data), $this->clampTtl($expiration));
 
             if (!$result) {
                 return false;
@@ -349,13 +350,12 @@ final class ObjectCache
         $runtimeKey = $this->runtimeKey($key, $group);
 
         if (!isset($this->runtime[$group][$runtimeKey])) {
-            // Check adapter
             if ($this->adapter !== null && !$this->isNonPersistent($group)) {
                 $fullKey = $this->buildKey($key, $group);
                 $value = $this->adapter->get($fullKey);
 
                 if ($value !== null) {
-                    $this->runtime[$group][$runtimeKey] = $this->unserialize($value);
+                    $this->runtime[$group][$runtimeKey] = \unserialize($value);
                 }
             }
         }
@@ -370,7 +370,7 @@ final class ObjectCache
 
         if ($this->adapter !== null && !$this->isNonPersistent($group)) {
             $fullKey = $this->buildKey($key, $group);
-            $this->adapter->set($fullKey, $this->serialize($newValue));
+            $this->adapter->set($fullKey, \serialize($newValue));
         }
 
         return $newValue;
@@ -387,7 +387,7 @@ final class ObjectCache
         $this->hashState = [];
 
         if ($this->adapter !== null) {
-            return $this->adapter->flush($this->prefix);
+            return $this->adapter->flush($this->config->prefix);
         }
 
         return true;
@@ -420,7 +420,7 @@ final class ObjectCache
         return match ($feature) {
             'add_multiple', 'set_multiple', 'get_multiple', 'delete_multiple',
             'flush_runtime', 'flush_group' => true,
-            'split_alloptions' => $this->splitStrategies !== []
+            'split_alloptions' => $this->config->splitStrategies !== []
                 && $this->adapter instanceof HashableAdapterInterface,
             default => false,
         };
@@ -480,14 +480,14 @@ final class ObjectCache
     {
         $blogId = $this->isGlobal($group) ? 0 : $this->blogId;
 
-        return $this->prefix . $blogId . ':' . $group . ':' . $key;
+        return $this->config->prefix . $blogId . ':' . $group . ':' . $key;
     }
 
     private function buildGroupPrefix(string $group): string
     {
         $blogId = $this->isGlobal($group) ? 0 : $this->blogId;
 
-        return $this->prefix . $blogId . ':' . $group . ':';
+        return $this->config->prefix . $blogId . ':' . $group . ':';
     }
 
     private function runtimeKey(string $key, string $group): string
@@ -503,7 +503,7 @@ final class ObjectCache
             return null;
         }
 
-        foreach ($this->splitStrategies as $strategy) {
+        foreach ($this->config->splitStrategies as $strategy) {
             if ($strategy->supports($key, $group)) {
                 return $strategy;
             }
@@ -514,7 +514,7 @@ final class ObjectCache
 
     private function clampTtl(int $ttl): int
     {
-        if ($this->maxTtl === null || $this->maxTtl <= 0) {
+        if ($this->config->maxTtl === null || $this->config->maxTtl <= 0) {
             return $ttl;
         }
 
@@ -522,20 +522,10 @@ final class ObjectCache
             return $ttl;
         }
 
-        if ($ttl === 0 || $ttl > $this->maxTtl) {
-            return $this->maxTtl;
+        if ($ttl === 0 || $ttl > $this->config->maxTtl) {
+            return $this->config->maxTtl;
         }
 
         return $ttl;
-    }
-
-    private function serialize(mixed $data): string
-    {
-        return \serialize($data);
-    }
-
-    private function unserialize(string $data): mixed
-    {
-        return \unserialize($data);
     }
 }

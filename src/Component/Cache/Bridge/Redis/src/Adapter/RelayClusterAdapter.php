@@ -48,6 +48,7 @@ final class RelayClusterAdapter extends AbstractNativeClusterAdapter
 
         $relay->setOption(\Relay\Cluster::OPT_SLAVE_FAILOVER, $failover);
         $relay->setOption(\Relay\Relay::OPT_SERIALIZER, \Relay\Relay::SERIALIZER_NONE);
+        $this->configureCompressor($relay, \Relay\Relay::class);
 
         return $relay;
     }

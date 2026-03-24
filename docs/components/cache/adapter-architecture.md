@@ -78,9 +78,13 @@ interface AdapterInterface
 
 テンプレートメソッドパターンの基底クラス。`execute()` ラッパーですべての例外を `AdapterException` に変換します。
 
+`protected bool $asyncFlush` プロパティを持ち、`true` の場合は Redis の `DEL` を `UNLINK`（非同期削除）に切り替えます。各 Bridge アダプタはコンストラクタで `connectionParams['async_flush']` から値を抽出します。
+
 ```php
 abstract class AbstractAdapter implements AdapterInterface
 {
+    protected bool $asyncFlush = false;
+
     // サブクラスはこれらを実装
     abstract protected function doGet(string $key): string|false;
     abstract protected function doSet(string $key, string $value, int $ttl = 0): bool;
@@ -391,7 +395,7 @@ object-cache.php
     │
     ▼
 ObjectCache::set()
-    ├── シリアライズ ($data → string)
+    ├── \serialize($data)
     ├── キー構築 (prefix + blogId:group:key)
     ├── ランタイムキャッシュに保存
     └── AdapterInterface::set($fullKey, $serialized, $ttl)
@@ -446,7 +450,7 @@ ObjectCache::get()
 
 ## Object Cache ドロップインでの利用
 
-`object-cache.php` は `Adapter::fromDsn()` を使って DSN からアダプタを自動生成します:
+`object-cache.php` は `Adapter::fromDsn()` を使って DSN からアダプタを自動生成し、`ObjectCacheConfig` でオプションを構成します:
 
 ```php
 // object-cache.php (simplified)
@@ -456,6 +460,10 @@ function wp_cache_init(): void
 
     if (defined('WPPACK_CACHE_DSN') && WPPACK_CACHE_DSN !== '') {
         $options = defined('WPPACK_CACHE_OPTIONS') ? WPPACK_CACHE_OPTIONS : [];
+        $compressionType = defined('WPPACK_CACHE_COMPRESSION') ? WPPACK_CACHE_COMPRESSION : 'none';
+        if ($compressionType !== 'none') {
+            $options['compression'] = $compressionType;
+        }
         $adapter = Adapter::fromDsn(WPPACK_CACHE_DSN, $options);
 
         if (!$adapter->isAvailable()) {
@@ -463,19 +471,13 @@ function wp_cache_init(): void
         }
     }
 
-    $prefix = defined('WPPACK_CACHE_PREFIX') ? WPPACK_CACHE_PREFIX : 'wp:';
+    $config = new ObjectCacheConfig(
+        prefix: defined('WPPACK_CACHE_PREFIX') ? WPPACK_CACHE_PREFIX : 'wp:',
+        splitStrategies: [...],
+        maxTtl: defined('WPPACK_CACHE_MAX_TTL') ? WPPACK_CACHE_MAX_TTL : null,
+    );
 
-    $splitStrategies = [];
-    if (defined('WPPACK_CACHE_SPLIT_ALLOPTIONS') && WPPACK_CACHE_SPLIT_ALLOPTIONS) {
-        $splitStrategies[] = new AllOptionsSplitStrategy();
-        $splitStrategies[] = new NotOptionsSplitStrategy();
-        $splitStrategies[] = new SiteOptionsSplitStrategy();
-        $splitStrategies[] = new SiteNotOptionsSplitStrategy();
-    }
-
-    $maxTtl = defined('WPPACK_CACHE_MAX_TTL') ? WPPACK_CACHE_MAX_TTL : null;
-
-    $GLOBALS['wp_object_cache'] = new ObjectCache($adapter, $prefix, $splitStrategies, $maxTtl);
+    $GLOBALS['wp_object_cache'] = new ObjectCache($adapter, $config);
 }
 ```
 
@@ -498,6 +500,7 @@ function wp_cache_init(): void
 | `Strategy\SiteOptionsSplitStrategy` | wppack/cache | site-options Hash 分割 |
 | `Strategy\SiteNotOptionsSplitStrategy` | wppack/cache | site-notoptions Hash 分割 |
 | `ObjectCache` | wppack/cache | WP_Object_Cache エンジン |
+| `ObjectCacheConfig` | wppack/cache | ObjectCache 設定 VO |
 | `Bridge\Redis\Adapter\RedisAdapterFactory` | wppack/redis-cache | Redis ファクトリ |
 | `Bridge\Redis\Adapter\AbstractNativeAdapter` | wppack/redis-cache | ext-redis / Relay Standalone 共通基底 |
 | `Bridge\Redis\Adapter\AbstractNativeClusterAdapter` | wppack/redis-cache | ext-redis / Relay Cluster 共通基底 |

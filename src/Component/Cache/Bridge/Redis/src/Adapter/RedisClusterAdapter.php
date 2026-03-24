@@ -48,6 +48,7 @@ final class RedisClusterAdapter extends AbstractNativeClusterAdapter
 
         $redis->setOption(\RedisCluster::OPT_SLAVE_FAILOVER, $failover);
         $redis->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_NONE);
+        $this->configureCompressor($redis, \Redis::class);
 
         return $redis;
     }

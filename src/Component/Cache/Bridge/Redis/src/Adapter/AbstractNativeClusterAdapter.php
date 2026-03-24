@@ -21,7 +21,9 @@ abstract class AbstractNativeClusterAdapter extends AbstractHashableAdapter
      */
     public function __construct(
         protected readonly array $connectionParams,
-    ) {}
+    ) {
+        $this->asyncFlush = (bool) ($connectionParams['async_flush'] ?? false);
+    }
 
     /**
      * Create a new native cluster connection.
@@ -116,7 +118,9 @@ abstract class AbstractNativeClusterAdapter extends AbstractHashableAdapter
 
     protected function doDelete(string $key): bool
     {
-        return $this->getConnection()->del($key) >= 0;
+        $conn = $this->getConnection();
+
+        return ($this->asyncFlush ? $conn->unlink($key) : $conn->del($key)) >= 0;
     }
 
     protected function doDeleteMultiple(array $keys): array
@@ -129,7 +133,7 @@ abstract class AbstractNativeClusterAdapter extends AbstractHashableAdapter
         $results = [];
 
         foreach ($keys as $key) {
-            $results[$key] = $connection->del($key) >= 0;
+            $results[$key] = ($this->asyncFlush ? $connection->unlink($key) : $connection->del($key)) >= 0;
         }
 
         return $results;
@@ -200,7 +204,9 @@ abstract class AbstractNativeClusterAdapter extends AbstractHashableAdapter
 
     protected function doHashDelete(string $key): bool
     {
-        return $this->getConnection()->del($key) >= 0;
+        $conn = $this->getConnection();
+
+        return ($this->asyncFlush ? $conn->unlink($key) : $conn->del($key)) >= 0;
     }
 
     protected function doFlush(string $prefix = ''): bool
@@ -263,6 +269,26 @@ abstract class AbstractNativeClusterAdapter extends AbstractHashableAdapter
         return $this->connection;
     }
 
+    /**
+     * Configure the compressor option on the native connection.
+     *
+     * @param \RedisCluster|\Relay\Cluster $connection
+     * @param class-string                 $constantClass \Redis or \Relay\Relay
+     */
+    protected function configureCompressor(object $connection, string $constantClass): void
+    {
+        $compressor = match ($this->connectionParams['compression'] ?? null) {
+            'zstd' => \constant($constantClass . '::COMPRESSOR_ZSTD'),
+            'lz4' => \constant($constantClass . '::COMPRESSOR_LZ4'),
+            'lzf' => \constant($constantClass . '::COMPRESSOR_LZF'),
+            default => null,
+        };
+
+        if ($compressor !== null) {
+            $connection->setOption(\constant($constantClass . '::OPT_COMPRESSOR'), $compressor);
+        }
+    }
+
     protected function resolvePassword(): ?string
     {
         /** @var (\Closure(): string)|null $provider */
@@ -293,7 +319,7 @@ abstract class AbstractNativeClusterAdapter extends AbstractHashableAdapter
 
                 if ($keys !== false && $keys !== []) {
                     foreach ($keys as $key) {
-                        $connection->del($key);
+                        $this->asyncFlush ? $connection->unlink($key) : $connection->del($key);
                     }
                 }
             } while ($cursor > 0);

@@ -7,9 +7,11 @@
  *
  * Configuration (wp-config.php):
  *   define('WPPACK_CACHE_DSN', 'redis://127.0.0.1:6379');
- *   define('WPPACK_CACHE_PREFIX', 'wp:');           // optional, default 'wp:'
+ *   define('WPPACK_CACHE_PREFIX', 'wp:');              // optional, default 'wp:'
  *   define('WPPACK_CACHE_MAX_TTL', 86400);             // optional, max TTL in seconds
- *   define('WPPACK_CACHE_OPTIONS', ['timeout' => 5]); // optional
+ *   define('WPPACK_CACHE_OPTIONS', ['timeout' => 5]);  // optional
+ *   define('WPPACK_CACHE_COMPRESSION', 'zstd');         // optional, 'none' (default), 'zstd', 'lz4', 'lzf'
+ *   define('WPPACK_CACHE_ASYNC_FLUSH', true);           // optional, default false — use UNLINK instead of DEL
  *
  * @package wppack/cache
  */
@@ -19,6 +21,7 @@ declare(strict_types=1);
 use WpPack\Component\Cache\Adapter\Adapter;
 use WpPack\Component\Cache\Adapter\AdapterInterface;
 use WpPack\Component\Cache\ObjectCache;
+use WpPack\Component\Cache\ObjectCacheConfig;
 use WpPack\Component\Cache\Strategy\AllOptionsSplitStrategy;
 use WpPack\Component\Cache\Strategy\NotOptionsSplitStrategy;
 use WpPack\Component\Cache\Strategy\SiteNotOptionsSplitStrategy;
@@ -57,6 +60,13 @@ function wp_cache_init(): void
             $options = \defined('WPPACK_CACHE_OPTIONS') ? WPPACK_CACHE_OPTIONS : [];
             $prefix = \defined('WPPACK_CACHE_PREFIX') ? WPPACK_CACHE_PREFIX : 'wp:';
             $options['key_prefix'] ??= $prefix;
+            if (\defined('WPPACK_CACHE_ASYNC_FLUSH') && WPPACK_CACHE_ASYNC_FLUSH) {
+                $options['async_flush'] = true;
+            }
+            $compressionType = \defined('WPPACK_CACHE_COMPRESSION') ? WPPACK_CACHE_COMPRESSION : 'none';
+            if ($compressionType !== 'none') {
+                $options['compression'] = $compressionType;
+            }
             $adapter = Adapter::fromDsn(WPPACK_CACHE_DSN, $options);
 
             if (!$adapter->isAvailable()) {
@@ -79,7 +89,13 @@ function wp_cache_init(): void
 
     $maxTtl = \defined('WPPACK_CACHE_MAX_TTL') ? WPPACK_CACHE_MAX_TTL : null;
 
-    $GLOBALS['wp_object_cache'] = new ObjectCache($adapter, $prefix, $splitStrategies, $maxTtl);
+    $config = new ObjectCacheConfig(
+        prefix: $prefix,
+        splitStrategies: $splitStrategies,
+        maxTtl: $maxTtl,
+    );
+
+    $GLOBALS['wp_object_cache'] = new ObjectCache($adapter, $config);
 }
 
 /**

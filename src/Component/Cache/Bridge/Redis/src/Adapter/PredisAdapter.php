@@ -18,7 +18,9 @@ final class PredisAdapter extends AbstractHashableAdapter
      */
     public function __construct(
         private readonly array $connectionParams,
-    ) {}
+    ) {
+        $this->asyncFlush = (bool) ($connectionParams['async_flush'] ?? false);
+    }
 
     public function getName(): string
     {
@@ -126,7 +128,13 @@ final class PredisAdapter extends AbstractHashableAdapter
 
     protected function doDelete(string $key): bool
     {
-        return $this->getConnection()->del($key) >= 0;
+        $client = $this->getConnection();
+
+        if ($this->asyncFlush) {
+            return (int) $client->executeRaw(['UNLINK', $key]) >= 0;
+        }
+
+        return $client->del($key) >= 0;
     }
 
     protected function doDeleteMultiple(array $keys): array
@@ -137,10 +145,15 @@ final class PredisAdapter extends AbstractHashableAdapter
 
         $client = $this->getConnection();
         $results = [];
+        $asyncFlush = $this->asyncFlush;
 
-        $responses = $client->pipeline(function ($pipe) use ($keys): void {
+        $responses = $client->pipeline(function ($pipe) use ($keys, $asyncFlush): void {
             foreach ($keys as $key) {
-                $pipe->del($key);
+                if ($asyncFlush) {
+                    $pipe->executeCommand(RawCommand::create('UNLINK', $key));
+                } else {
+                    $pipe->del($key);
+                }
             }
         });
 
@@ -218,7 +231,13 @@ final class PredisAdapter extends AbstractHashableAdapter
 
     protected function doHashDelete(string $key): bool
     {
-        return $this->getConnection()->del($key) >= 0;
+        $client = $this->getConnection();
+
+        if ($this->asyncFlush) {
+            return (int) $client->executeRaw(['UNLINK', $key]) >= 0;
+        }
+
+        return $client->del($key) >= 0;
     }
 
     protected function doFlush(string $prefix = ''): bool
@@ -448,7 +467,7 @@ final class PredisAdapter extends AbstractHashableAdapter
             $keys = $response[1];
 
             foreach ($keys as $key) {
-                $node->executeCommand(RawCommand::create('DEL', $key));
+                $node->executeCommand(RawCommand::create($this->asyncFlush ? 'UNLINK' : 'DEL', $key));
             }
         } while ($cursor !== '0');
     }
@@ -462,7 +481,11 @@ final class PredisAdapter extends AbstractHashableAdapter
             [$cursor, $keys] = $client->scan($cursor, ['MATCH' => $pattern, 'COUNT' => 100]);
 
             if ($keys !== []) {
-                $client->del($keys);
+                if ($this->asyncFlush) {
+                    $client->executeRaw(array_merge(['UNLINK'], $keys));
+                } else {
+                    $client->del($keys);
+                }
             }
         } while ($cursor !== 0 && $cursor !== '0');
 

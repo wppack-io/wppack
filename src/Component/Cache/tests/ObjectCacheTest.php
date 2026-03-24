@@ -7,6 +7,7 @@ namespace WpPack\Component\Cache\Tests;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Cache\ObjectCache;
+use WpPack\Component\Cache\ObjectCacheConfig;
 use WpPack\Component\Cache\Tests\Adapter\InMemoryAdapter;
 
 final class ObjectCacheTest extends TestCase
@@ -17,7 +18,7 @@ final class ObjectCacheTest extends TestCase
     protected function setUp(): void
     {
         $this->adapter = new InMemoryAdapter();
-        $this->cache = new ObjectCache($this->adapter, 'wp:');
+        $this->cache = new ObjectCache($this->adapter, new ObjectCacheConfig(prefix: 'wp:'));
     }
 
     // --- Basic get/set ---

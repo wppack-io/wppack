@@ -7,6 +7,7 @@ namespace WpPack\Component\Cache\Tests;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Cache\ObjectCache;
+use WpPack\Component\Cache\ObjectCacheConfig;
 use WpPack\Component\Cache\Strategy\AllOptionsSplitStrategy;
 use WpPack\Component\Cache\Strategy\NotOptionsSplitStrategy;
 use WpPack\Component\Cache\Strategy\SiteNotOptionsSplitStrategy;
@@ -22,12 +23,15 @@ final class ObjectCacheHashSplitTest extends TestCase
     protected function setUp(): void
     {
         $this->adapter = new InMemoryHashableAdapter();
-        $this->cache = new ObjectCache($this->adapter, 'wp:', [
-            new AllOptionsSplitStrategy(),
-            new NotOptionsSplitStrategy(),
-            new SiteOptionsSplitStrategy(),
-            new SiteNotOptionsSplitStrategy(),
-        ]);
+        $this->cache = new ObjectCache($this->adapter, new ObjectCacheConfig(
+            prefix: 'wp:',
+            splitStrategies: [
+                new AllOptionsSplitStrategy(),
+                new NotOptionsSplitStrategy(),
+                new SiteOptionsSplitStrategy(),
+                new SiteNotOptionsSplitStrategy(),
+            ],
+        ));
     }
 
     // --- supports ---
@@ -41,9 +45,10 @@ final class ObjectCacheHashSplitTest extends TestCase
     #[Test]
     public function doesNotSupportSplitAlloptionsWithNonHashableAdapter(): void
     {
-        $cache = new ObjectCache(new InMemoryAdapter(), 'wp:', [
-            new AllOptionsSplitStrategy(),
-        ]);
+        $cache = new ObjectCache(new InMemoryAdapter(), new ObjectCacheConfig(
+            prefix: 'wp:',
+            splitStrategies: [new AllOptionsSplitStrategy()],
+        ));
 
         self::assertFalse($cache->supports('split_alloptions'));
     }
@@ -51,7 +56,7 @@ final class ObjectCacheHashSplitTest extends TestCase
     #[Test]
     public function doesNotSupportSplitAlloptionsWithoutStrategies(): void
     {
-        $cache = new ObjectCache($this->adapter, 'wp:');
+        $cache = new ObjectCache($this->adapter, new ObjectCacheConfig(prefix: 'wp:'));
 
         self::assertFalse($cache->supports('split_alloptions'));
     }
