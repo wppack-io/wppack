@@ -224,6 +224,7 @@ wppack/admin, wppack/setting, wppack/dashboard-widget
     ↓ requires
 wppack/role, wppack/http-foundation
     + wppack/security (suggest)
+    + wppack/templating (suggest)
 
 wppack/ajax, wppack/routing, wppack/rest
     ↓ requires
