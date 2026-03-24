@@ -199,4 +199,26 @@ final class ObjectCacheMaxTtlTest extends TestCase
 
         self::assertSame(-1, $this->lastTtl);
     }
+
+    #[Test]
+    public function maxTtlNegativeDoesNotClamp(): void
+    {
+        $adapter = $this->createSpyAdapter();
+        $cache = new ObjectCache($adapter, 'wp:', [], -100);
+
+        $cache->set('key', 'value', 'default', 300);
+
+        self::assertSame(300, $this->lastTtl);
+    }
+
+    #[Test]
+    public function maxTtlDoesNotAffectEqualTtl(): void
+    {
+        $adapter = $this->createSpyAdapter();
+        $cache = new ObjectCache($adapter, 'wp:', [], 3600);
+
+        $cache->set('key', 'value', 'default', 3600);
+
+        self::assertSame(3600, $this->lastTtl);
+    }
 }

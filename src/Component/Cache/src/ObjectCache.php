@@ -514,7 +514,7 @@ final class ObjectCache
 
     private function clampTtl(int $ttl): int
     {
-        if ($this->maxTtl === null || $this->maxTtl === 0) {
+        if ($this->maxTtl === null || $this->maxTtl <= 0) {
             return $ttl;
         }
 
