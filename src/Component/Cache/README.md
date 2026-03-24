@@ -35,6 +35,17 @@ $cache->flush();
 $cache->flushGroup('my_app');
 ```
 
+### Maximum TTL
+
+Enforce a maximum TTL on all cache writes to prevent unbounded expiration and memory exhaustion:
+
+```php
+// wp-config.php
+define('WPPACK_CACHE_MAX_TTL', 86400); // 24 hours
+```
+
+Keys with TTL 0 (no expiration) or TTL exceeding `WPPACK_CACHE_MAX_TTL` are clamped to the configured value. Negative TTLs (immediate deletion) pass through unchanged.
+
 ### Split Alloptions
 
 WordPress stores all autoloaded options in a single serialized blob (`alloptions`). This causes race conditions when multiple requests update options simultaneously. Enable Hash splitting to store each option as a separate Redis Hash field:

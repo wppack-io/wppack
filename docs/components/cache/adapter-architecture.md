@@ -473,7 +473,9 @@ function wp_cache_init(): void
         $splitStrategies[] = new SiteNotOptionsSplitStrategy();
     }
 
-    $GLOBALS['wp_object_cache'] = new ObjectCache($adapter, $prefix, $splitStrategies);
+    $maxTtl = defined('WPPACK_CACHE_MAX_TTL') ? WPPACK_CACHE_MAX_TTL : null;
+
+    $GLOBALS['wp_object_cache'] = new ObjectCache($adapter, $prefix, $splitStrategies, $maxTtl);
 }
 ```
 

@@ -180,6 +180,9 @@ define('WPPACK_CACHE_DSN', 'redis://127.0.0.1:6379');
 // プレフィックス（オプション、デフォルト 'wp:'）
 define('WPPACK_CACHE_PREFIX', 'wp:');
 
+// Maximum TTL（オプション、秒単位。TTL 0 や過大な TTL を強制クランプ）
+define('WPPACK_CACHE_MAX_TTL', 86400);
+
 // alloptions Hash 分割（オプション、デフォルト false）
 define('WPPACK_CACHE_SPLIT_ALLOPTIONS', true);
 
@@ -244,6 +247,24 @@ WpPack の Object Cache ドロップインは Mailer コンポーネントと同
 | DynamoDB | [`wppack/dynamodb-cache`](dynamodb-cache.md) | `dynamodb://` | async-aws/dynamo-db |
 | Memcached | [`wppack/memcached-cache`](memcached-cache.md) | `memcached://` | ext-memcached |
 | APCu | [`wppack/apcu-cache`](apcu-cache.md) | `apcu://` | ext-apcu |
+
+### Maximum TTL
+
+TTL 0（無期限）や過大な TTL で `set()` されたキーに最大 TTL を強制適用し、Redis のメモリ枯渇やデータの陳腐化を防止します。
+
+```php
+// wp-config.php
+define('WPPACK_CACHE_MAX_TTL', 86400); // 24 時間
+```
+
+| 設定値 | 動作 |
+|-------|------|
+| `WPPACK_CACHE_MAX_TTL` 未定義 / `null` | 制限なし（デフォルト） |
+| `0` | 制限なし |
+| `86400` 等の正の整数 | TTL 0（無期限）および `maxTtl` を超える TTL を `maxTtl` にクランプ |
+
+- `set()`, `setMultiple()`, `add()`, `addMultiple()`, `replace()` に適用
+- 負の TTL（即時削除）はクランプされず、そのままアダプタに渡される
 
 ### alloptions Hash 分割
 

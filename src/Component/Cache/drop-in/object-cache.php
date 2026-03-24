@@ -8,6 +8,7 @@
  * Configuration (wp-config.php):
  *   define('WPPACK_CACHE_DSN', 'redis://127.0.0.1:6379');
  *   define('WPPACK_CACHE_PREFIX', 'wp:');           // optional, default 'wp:'
+ *   define('WPPACK_CACHE_MAX_TTL', 86400);             // optional, max TTL in seconds
  *   define('WPPACK_CACHE_OPTIONS', ['timeout' => 5]); // optional
  *
  * @package wppack/cache
@@ -76,7 +77,9 @@ function wp_cache_init(): void
         $splitStrategies[] = new SiteNotOptionsSplitStrategy();
     }
 
-    $GLOBALS['wp_object_cache'] = new ObjectCache($adapter, $prefix, $splitStrategies);
+    $maxTtl = \defined('WPPACK_CACHE_MAX_TTL') ? WPPACK_CACHE_MAX_TTL : null;
+
+    $GLOBALS['wp_object_cache'] = new ObjectCache($adapter, $prefix, $splitStrategies, $maxTtl);
 }
 
 /**

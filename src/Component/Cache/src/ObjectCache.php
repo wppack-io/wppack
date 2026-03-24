@@ -35,6 +35,7 @@ final class ObjectCache
         private readonly ?AdapterInterface $adapter,
         private readonly string $prefix = '',
         private readonly array $splitStrategies = [],
+        private readonly ?int $maxTtl = null,
     ) {}
 
     public function get(string $key, string $group = 'default', bool $force = false, bool &$found = false): mixed
@@ -180,7 +181,7 @@ final class ObjectCache
                 return true;
             }
 
-            return $this->adapter->set($fullKey, $this->serialize($data), $expiration);
+            return $this->adapter->set($fullKey, $this->serialize($data), $this->clampTtl($expiration));
         }
 
         return true;
@@ -209,7 +210,7 @@ final class ObjectCache
                 $keyMap[$fullKey] = $key;
             }
 
-            $adapterResults = $this->adapter->setMultiple($serialized, $expiration);
+            $adapterResults = $this->adapter->setMultiple($serialized, $this->clampTtl($expiration));
 
             foreach ($adapterResults as $fullKey => $success) {
                 $results[$keyMap[$fullKey]] = $success;
@@ -234,7 +235,7 @@ final class ObjectCache
 
         if ($this->adapter !== null && !$this->isNonPersistent($group)) {
             $fullKey = $this->buildKey($key, $group);
-            $result = $this->adapter->add($fullKey, $this->serialize($data), $expiration);
+            $result = $this->adapter->add($fullKey, $this->serialize($data), $this->clampTtl($expiration));
 
             if (!$result) {
                 return false;
@@ -509,6 +510,23 @@ final class ObjectCache
         }
 
         return null;
+    }
+
+    private function clampTtl(int $ttl): int
+    {
+        if ($this->maxTtl === null || $this->maxTtl === 0) {
+            return $ttl;
+        }
+
+        if ($ttl < 0) {
+            return $ttl;
+        }
+
+        if ($ttl === 0 || $ttl > $this->maxTtl) {
+            return $this->maxTtl;
+        }
+
+        return $ttl;
     }
 
     private function serialize(mixed $data): string
