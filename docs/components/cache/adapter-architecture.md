@@ -17,11 +17,11 @@ wppack/cache（コア）
 │   ├── Adapter                    ← ファクトリレジストリ（DSN → アダプタ）
 │   └── Dsn                        ← DSN パーサー
 ├── Strategy/
-│   ├── KeySplitStrategyInterface      ← キー分割戦略コントラクト
-│   ├── AllOptionsSplitStrategy        ← alloptions 分割
-│   ├── NotOptionsSplitStrategy        ← notoptions 分割
-│   ├── SiteOptionsSplitStrategy       ← site-options 分割
-│   └── SiteNotOptionsSplitStrategy    ← site-notoptions 分割
+│   ├── HashStrategyInterface      ← Hash 格納戦略コントラクト
+│   ├── AllOptionsHashStrategy        ← alloptions Hash 格納
+│   ├── NotOptionsHashStrategy        ← notoptions Hash 格納
+│   ├── SiteOptionsHashStrategy       ← site-options Hash 格納
+│   └── SiteNotOptionsHashStrategy    ← site-notoptions Hash 格納
 └── Exception/
 
 wppack/redis-cache（Bridge）
@@ -150,14 +150,14 @@ abstract class AbstractHashableAdapter extends AbstractAdapter implements Hashab
 }
 ```
 
-### `KeySplitStrategyInterface`
+### `HashStrategyInterface`
 
-特定のキャッシュキーを Redis Hash に分割保存する戦略のコントラクト。`ObjectCache` は登録された戦略を順に試し、マッチした戦略で Hash 操作に変換します。
+特定のキャッシュキーを Redis Hash として格納する戦略のコントラクト。`ObjectCache` は登録された戦略を順に試し、マッチした戦略で Hash 操作に変換します。
 
 ```php
-interface KeySplitStrategyInterface
+interface HashStrategyInterface
 {
-    /** このキー/グループの組み合わせを分割対象とするか */
+    /** このキー/グループの組み合わせを Hash 格納対象とするか */
     public function supports(string $key, string $group): bool;
 
     /** 値の配列を Hash フィールドにシリアライズ */
@@ -407,9 +407,9 @@ ObjectCache::set()
         \Redis::setex($key, $ttl, $value)
 ```
 
-### Hash 分割パス（alloptions 等）
+### Hash 格納パス（alloptions 等）
 
-`WPPACK_CACHE_SPLIT_ALLOPTIONS` が有効で、アダプタが `HashableAdapterInterface` を実装している場合:
+`WPPACK_CACHE_HASH_ALLOPTIONS` が有効で、アダプタが `HashableAdapterInterface` を実装している場合:
 
 ```
 WordPress                           WpPack
@@ -418,8 +418,8 @@ wp_cache_set('alloptions', $opts, 'options')
     │
     ▼
 ObjectCache::set()
-    ├── findSplitStrategy('alloptions', 'options')
-    │       → AllOptionsSplitStrategy がマッチ
+    ├── findHashStrategy('alloptions', 'options')
+    │       → AllOptionsHashStrategy がマッチ
     ├── strategy->serialize($opts)
     │       → ['option_a' => serialize('val_a'), 'option_b' => serialize('val_b'), ...]
     ├── 前回の hashState と差分比較
@@ -438,8 +438,8 @@ wp_cache_get('alloptions', 'options')
     │
     ▼
 ObjectCache::get()
-    ├── findSplitStrategy('alloptions', 'options')
-    │       → AllOptionsSplitStrategy がマッチ
+    ├── findHashStrategy('alloptions', 'options')
+    │       → AllOptionsHashStrategy がマッチ
     ├── HashableAdapterInterface::hashGetAll()
     │       → \Redis::hGetAll($key)
     ├── strategy->deserialize($fields)
@@ -473,7 +473,7 @@ function wp_cache_init(): void
 
     $config = new ObjectCacheConfig(
         prefix: defined('WPPACK_CACHE_PREFIX') ? WPPACK_CACHE_PREFIX : 'wp:',
-        splitStrategies: [...],
+        hashStrategies: [...],
         maxTtl: defined('WPPACK_CACHE_MAX_TTL') ? WPPACK_CACHE_MAX_TTL : null,
     );
 
@@ -494,11 +494,11 @@ function wp_cache_init(): void
 | `Adapter\HashableAdapterInterface` | wppack/cache | Hash 操作コントラクト（ISP 分離） |
 | `Adapter\AbstractHashableAdapter` | wppack/cache | Hash 操作テンプレートメソッド基底 |
 | `Adapter\Dsn` | wppack/cache | DSN パーサー |
-| `Strategy\KeySplitStrategyInterface` | wppack/cache | キー分割戦略コントラクト |
-| `Strategy\AllOptionsSplitStrategy` | wppack/cache | alloptions Hash 分割 |
-| `Strategy\NotOptionsSplitStrategy` | wppack/cache | notoptions Hash 分割 |
-| `Strategy\SiteOptionsSplitStrategy` | wppack/cache | site-options Hash 分割 |
-| `Strategy\SiteNotOptionsSplitStrategy` | wppack/cache | site-notoptions Hash 分割 |
+| `Strategy\HashStrategyInterface` | wppack/cache | Hash 格納戦略コントラクト |
+| `Strategy\AllOptionsHashStrategy` | wppack/cache | alloptions Hash 格納 |
+| `Strategy\NotOptionsHashStrategy` | wppack/cache | notoptions Hash 格納 |
+| `Strategy\SiteOptionsHashStrategy` | wppack/cache | site-options Hash 格納 |
+| `Strategy\SiteNotOptionsHashStrategy` | wppack/cache | site-notoptions Hash 格納 |
 | `ObjectCache` | wppack/cache | WP_Object_Cache エンジン |
 | `ObjectCacheConfig` | wppack/cache | ObjectCache 設定 VO |
 | `Bridge\Redis\Adapter\RedisAdapterFactory` | wppack/redis-cache | Redis ファクトリ |

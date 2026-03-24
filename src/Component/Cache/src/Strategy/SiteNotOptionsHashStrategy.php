@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Cache\Strategy;
 
-final class NotOptionsSplitStrategy implements KeySplitStrategyInterface
+final class SiteNotOptionsHashStrategy implements HashStrategyInterface
 {
     private const FLAG = '1';
 
     public function supports(string $key, string $group): bool
     {
-        return $key === 'notoptions' && $group === 'options';
+        return $group === 'site-options' && str_ends_with($key, ':notoptions');
     }
 
     public function serialize(array $value): array

@@ -68,13 +68,13 @@ define('WPPACK_CACHE_ASYNC_FLUSH', true);
 
 Applies to `delete`, `deleteMultiple`, prefix-based `flush`, and `hashDelete`. Does not affect `FLUSHDB` or `HDEL`. Requires Redis 4.0+ / Valkey.
 
-### Split Alloptions
+### Hash Alloptions
 
-WordPress stores all autoloaded options in a single serialized blob (`alloptions`). This causes race conditions when multiple requests update options simultaneously. Enable Hash splitting to store each option as a separate Redis Hash field:
+WordPress stores all autoloaded options in a single serialized blob (`alloptions`). This causes race conditions when multiple requests update options simultaneously. Enable Hash storage to store each option as a separate Redis Hash field:
 
 ```php
 // wp-config.php
-define('WPPACK_CACHE_SPLIT_ALLOPTIONS', true);
+define('WPPACK_CACHE_HASH_ALLOPTIONS', true);
 ```
 
 > **Note:** Requires a Hash-capable backend (Redis / Valkey via ext-redis, Relay, or Predis). Non-Hash backends (Memcached, APCu, DynamoDB) automatically fall back to blob storage.

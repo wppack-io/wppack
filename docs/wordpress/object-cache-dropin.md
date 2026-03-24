@@ -70,7 +70,7 @@ WordPress デフォルトの `WP_Object_Cache` はリクエスト内メモリの
 | `delete_multiple` | `wp_cache_delete_multiple()` をサポート |
 | `flush_runtime` | `wp_cache_flush_runtime()` をサポート |
 | `flush_group` | `wp_cache_flush_group()` をサポート |
-| `split_alloptions` | `alloptions` 等の大きなキーを Redis Hash に分割保存（`HashableAdapterInterface` 対応アダプタ + `WPPACK_CACHE_SPLIT_ALLOPTIONS` 有効時） |
+| `hash_alloptions` | `alloptions` 等の大きなキーを Redis Hash に格納（`HashableAdapterInterface` 対応アダプタ + `WPPACK_CACHE_HASH_ALLOPTIONS` 有効時） |
 
 ## グループ管理
 

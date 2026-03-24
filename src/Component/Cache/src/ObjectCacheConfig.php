@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Cache;
 
-use WpPack\Component\Cache\Strategy\KeySplitStrategyInterface;
+use WpPack\Component\Cache\Strategy\HashStrategyInterface;
 
 final readonly class ObjectCacheConfig
 {
     /**
-     * @param list<KeySplitStrategyInterface> $splitStrategies
+     * @param list<HashStrategyInterface> $hashStrategies
      */
     public function __construct(
         public string $prefix = 'wp:',
-        public array $splitStrategies = [],
+        public array $hashStrategies = [],
         public ?int $maxTtl = null,
     ) {}
 }

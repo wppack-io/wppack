@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Cache\Strategy;
 
-interface KeySplitStrategyInterface
+interface HashStrategyInterface
 {
     public function supports(string $key, string $group): bool;
 

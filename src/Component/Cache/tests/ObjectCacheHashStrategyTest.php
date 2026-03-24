@@ -8,14 +8,14 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Cache\ObjectCache;
 use WpPack\Component\Cache\ObjectCacheConfig;
-use WpPack\Component\Cache\Strategy\AllOptionsSplitStrategy;
-use WpPack\Component\Cache\Strategy\NotOptionsSplitStrategy;
-use WpPack\Component\Cache\Strategy\SiteNotOptionsSplitStrategy;
-use WpPack\Component\Cache\Strategy\SiteOptionsSplitStrategy;
+use WpPack\Component\Cache\Strategy\AllOptionsHashStrategy;
+use WpPack\Component\Cache\Strategy\NotOptionsHashStrategy;
+use WpPack\Component\Cache\Strategy\SiteNotOptionsHashStrategy;
+use WpPack\Component\Cache\Strategy\SiteOptionsHashStrategy;
 use WpPack\Component\Cache\Tests\Adapter\InMemoryAdapter;
 use WpPack\Component\Cache\Tests\Adapter\InMemoryHashableAdapter;
 
-final class ObjectCacheHashSplitTest extends TestCase
+final class ObjectCacheHashStrategyTest extends TestCase
 {
     private ObjectCache $cache;
     private InMemoryHashableAdapter $adapter;
@@ -25,11 +25,11 @@ final class ObjectCacheHashSplitTest extends TestCase
         $this->adapter = new InMemoryHashableAdapter();
         $this->cache = new ObjectCache($this->adapter, new ObjectCacheConfig(
             prefix: 'wp:',
-            splitStrategies: [
-                new AllOptionsSplitStrategy(),
-                new NotOptionsSplitStrategy(),
-                new SiteOptionsSplitStrategy(),
-                new SiteNotOptionsSplitStrategy(),
+            hashStrategies: [
+                new AllOptionsHashStrategy(),
+                new NotOptionsHashStrategy(),
+                new SiteOptionsHashStrategy(),
+                new SiteNotOptionsHashStrategy(),
             ],
         ));
     }
@@ -37,28 +37,28 @@ final class ObjectCacheHashSplitTest extends TestCase
     // --- supports ---
 
     #[Test]
-    public function supportsSplitAlloptionsWithHashableAdapter(): void
+    public function supportsHashAlloptionsWithHashableAdapter(): void
     {
-        self::assertTrue($this->cache->supports('split_alloptions'));
+        self::assertTrue($this->cache->supports('hash_alloptions'));
     }
 
     #[Test]
-    public function doesNotSupportSplitAlloptionsWithNonHashableAdapter(): void
+    public function doesNotSupportHashAlloptionsWithNonHashableAdapter(): void
     {
         $cache = new ObjectCache(new InMemoryAdapter(), new ObjectCacheConfig(
             prefix: 'wp:',
-            splitStrategies: [new AllOptionsSplitStrategy()],
+            hashStrategies: [new AllOptionsHashStrategy()],
         ));
 
-        self::assertFalse($cache->supports('split_alloptions'));
+        self::assertFalse($cache->supports('hash_alloptions'));
     }
 
     #[Test]
-    public function doesNotSupportSplitAlloptionsWithoutStrategies(): void
+    public function doesNotSupportHashAlloptionsWithoutStrategies(): void
     {
         $cache = new ObjectCache($this->adapter, new ObjectCacheConfig(prefix: 'wp:'));
 
-        self::assertFalse($cache->supports('split_alloptions'));
+        self::assertFalse($cache->supports('hash_alloptions'));
     }
 
     // --- alloptions set/get ---
@@ -203,10 +203,10 @@ final class ObjectCacheHashSplitTest extends TestCase
         self::assertSame('1', $hashes[$fullKey]['missing_1']);
     }
 
-    // --- non-split keys are unaffected ---
+    // --- non-hash keys are unaffected ---
 
     #[Test]
-    public function nonSplitKeysUseNormalPath(): void
+    public function nonHashKeysUseNormalPath(): void
     {
         $this->cache->set('regular_key', 'value', 'options');
 
@@ -257,7 +257,7 @@ final class ObjectCacheHashSplitTest extends TestCase
     // --- get miss ---
 
     #[Test]
-    public function getMissOnSplitKeyReturnsFalse(): void
+    public function getMissOnHashKeyReturnsFalse(): void
     {
         $found = false;
         $result = $this->cache->get('alloptions', 'options', false, $found);

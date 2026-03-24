@@ -16,7 +16,7 @@ final class ObjectCacheConfigTest extends TestCase
         $config = new ObjectCacheConfig();
 
         self::assertSame('wp:', $config->prefix);
-        self::assertSame([], $config->splitStrategies);
+        self::assertSame([], $config->hashStrategies);
         self::assertNull($config->maxTtl);
     }
 

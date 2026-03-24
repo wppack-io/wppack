@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Cache\Strategy;
 
-final class SiteOptionsSplitStrategy implements KeySplitStrategyInterface
+final class AllOptionsHashStrategy implements HashStrategyInterface
 {
     public function supports(string $key, string $group): bool
     {
-        return $group === 'site-options' && str_ends_with($key, ':all');
+        return $key === 'alloptions' && $group === 'options';
     }
 
     public function serialize(array $value): array

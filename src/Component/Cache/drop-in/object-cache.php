@@ -22,10 +22,10 @@ use WpPack\Component\Cache\Adapter\Adapter;
 use WpPack\Component\Cache\Adapter\AdapterInterface;
 use WpPack\Component\Cache\ObjectCache;
 use WpPack\Component\Cache\ObjectCacheConfig;
-use WpPack\Component\Cache\Strategy\AllOptionsSplitStrategy;
-use WpPack\Component\Cache\Strategy\NotOptionsSplitStrategy;
-use WpPack\Component\Cache\Strategy\SiteNotOptionsSplitStrategy;
-use WpPack\Component\Cache\Strategy\SiteOptionsSplitStrategy;
+use WpPack\Component\Cache\Strategy\AllOptionsHashStrategy;
+use WpPack\Component\Cache\Strategy\NotOptionsHashStrategy;
+use WpPack\Component\Cache\Strategy\SiteNotOptionsHashStrategy;
+use WpPack\Component\Cache\Strategy\SiteOptionsHashStrategy;
 
 // Locate and load Composer autoloader.
 // Wrapped in an IIFE to avoid leaking variables into the global scope.
@@ -79,19 +79,19 @@ function wp_cache_init(): void
 
     $prefix = \defined('WPPACK_CACHE_PREFIX') ? WPPACK_CACHE_PREFIX : 'wp:';
 
-    $splitStrategies = [];
-    if (\defined('WPPACK_CACHE_SPLIT_ALLOPTIONS') && WPPACK_CACHE_SPLIT_ALLOPTIONS) {
-        $splitStrategies[] = new AllOptionsSplitStrategy();
-        $splitStrategies[] = new NotOptionsSplitStrategy();
-        $splitStrategies[] = new SiteOptionsSplitStrategy();
-        $splitStrategies[] = new SiteNotOptionsSplitStrategy();
+    $hashStrategies = [];
+    if (\defined('WPPACK_CACHE_HASH_ALLOPTIONS') && WPPACK_CACHE_HASH_ALLOPTIONS) {
+        $hashStrategies[] = new AllOptionsHashStrategy();
+        $hashStrategies[] = new NotOptionsHashStrategy();
+        $hashStrategies[] = new SiteOptionsHashStrategy();
+        $hashStrategies[] = new SiteNotOptionsHashStrategy();
     }
 
     $maxTtl = \defined('WPPACK_CACHE_MAX_TTL') ? WPPACK_CACHE_MAX_TTL : null;
 
     $config = new ObjectCacheConfig(
         prefix: $prefix,
-        splitStrategies: $splitStrategies,
+        hashStrategies: $hashStrategies,
         maxTtl: $maxTtl,
     );
 

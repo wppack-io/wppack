@@ -6,7 +6,7 @@ namespace WpPack\Component\Cache;
 
 use WpPack\Component\Cache\Adapter\AdapterInterface;
 use WpPack\Component\Cache\Adapter\HashableAdapterInterface;
-use WpPack\Component\Cache\Strategy\KeySplitStrategyInterface;
+use WpPack\Component\Cache\Strategy\HashStrategyInterface;
 
 final class ObjectCache
 {
@@ -51,7 +51,7 @@ final class ObjectCache
 
         if ($this->adapter !== null && !$this->isNonPersistent($group)) {
             $fullKey = $this->buildKey($key, $group);
-            $strategy = $this->findSplitStrategy($key, $group);
+            $strategy = $this->findHashStrategy($key, $group);
 
             if ($strategy !== null) {
                 /** @var HashableAdapterInterface $adapter */
@@ -149,7 +149,7 @@ final class ObjectCache
 
         if ($this->adapter !== null && !$this->isNonPersistent($group)) {
             $fullKey = $this->buildKey($key, $group);
-            $strategy = $this->findSplitStrategy($key, $group);
+            $strategy = $this->findHashStrategy($key, $group);
 
             if ($strategy !== null) {
                 /** @var HashableAdapterInterface $adapter */
@@ -291,7 +291,7 @@ final class ObjectCache
 
         if ($this->adapter !== null && !$this->isNonPersistent($group)) {
             $fullKey = $this->buildKey($key, $group);
-            $strategy = $this->findSplitStrategy($key, $group);
+            $strategy = $this->findHashStrategy($key, $group);
 
             if ($strategy !== null) {
                 /** @var HashableAdapterInterface $adapter */
@@ -420,7 +420,7 @@ final class ObjectCache
         return match ($feature) {
             'add_multiple', 'set_multiple', 'get_multiple', 'delete_multiple',
             'flush_runtime', 'flush_group' => true,
-            'split_alloptions' => $this->config->splitStrategies !== []
+            'hash_alloptions' => $this->config->hashStrategies !== []
                 && $this->adapter instanceof HashableAdapterInterface,
             default => false,
         };
@@ -497,13 +497,13 @@ final class ObjectCache
         return $blogId . ':' . $key;
     }
 
-    private function findSplitStrategy(string $key, string $group): ?KeySplitStrategyInterface
+    private function findHashStrategy(string $key, string $group): ?HashStrategyInterface
     {
         if (!$this->adapter instanceof HashableAdapterInterface) {
             return null;
         }
 
-        foreach ($this->config->splitStrategies as $strategy) {
+        foreach ($this->config->hashStrategies as $strategy) {
             if ($strategy->supports($key, $group)) {
                 return $strategy;
             }

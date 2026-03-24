@@ -4,19 +4,21 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Cache\Strategy;
 
-final class AllOptionsSplitStrategy implements KeySplitStrategyInterface
+final class NotOptionsHashStrategy implements HashStrategyInterface
 {
+    private const FLAG = '1';
+
     public function supports(string $key, string $group): bool
     {
-        return $key === 'alloptions' && $group === 'options';
+        return $key === 'notoptions' && $group === 'options';
     }
 
     public function serialize(array $value): array
     {
         $fields = [];
 
-        foreach ($value as $name => $optionValue) {
-            $fields[(string) $name] = \serialize($optionValue);
+        foreach ($value as $name => $flag) {
+            $fields[(string) $name] = self::FLAG;
         }
 
         return $fields;
@@ -26,8 +28,8 @@ final class AllOptionsSplitStrategy implements KeySplitStrategyInterface
     {
         $value = [];
 
-        foreach ($fields as $name => $serialized) {
-            $value[$name] = \unserialize($serialized);
+        foreach ($fields as $name => $flag) {
+            $value[$name] = true;
         }
 
         return $value;
