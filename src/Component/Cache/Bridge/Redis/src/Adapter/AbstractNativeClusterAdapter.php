@@ -277,16 +277,20 @@ abstract class AbstractNativeClusterAdapter extends AbstractHashableAdapter
      */
     protected function configureCompressor(object $connection, string $constantClass): void
     {
-        $compressor = match ($this->connectionParams['compression'] ?? null) {
-            'zstd' => \constant($constantClass . '::COMPRESSOR_ZSTD'),
-            'lz4' => \constant($constantClass . '::COMPRESSOR_LZ4'),
-            'lzf' => \constant($constantClass . '::COMPRESSOR_LZF'),
-            default => null,
-        };
+        $compression = $this->connectionParams['compression'] ?? null;
 
-        if ($compressor !== null) {
-            $connection->setOption(\constant($constantClass . '::OPT_COMPRESSOR'), $compressor);
+        if ($compression === null || $compression === 'none') {
+            return;
         }
+
+        $compressorConst = $constantClass . '::COMPRESSOR_' . strtoupper($compression);
+        $optConst = $constantClass . '::OPT_COMPRESSOR';
+
+        if (!\defined($compressorConst) || !\defined($optConst)) {
+            return;
+        }
+
+        $connection->setOption(\constant($optConst), \constant($compressorConst));
     }
 
     protected function resolvePassword(): ?string
