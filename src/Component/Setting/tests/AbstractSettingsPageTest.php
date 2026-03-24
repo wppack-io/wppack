@@ -621,4 +621,3 @@ class SanitizeAndValidateTestSettingsPage extends AbstractSettingsPage
         return $input;
     }
 }
-

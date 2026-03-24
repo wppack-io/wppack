@@ -462,4 +462,3 @@ class ConfigureTemplatingTestDashboardWidget extends AbstractDashboardWidget
         return $this->render('dashboard/configure.html.twig', ['setting' => 'value']);
     }
 }
-

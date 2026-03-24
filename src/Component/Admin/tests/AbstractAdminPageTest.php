@@ -365,4 +365,3 @@ class TemplatingTestAdminPage extends AbstractAdminPage
         return $this->render('admin/test.html.twig', ['key' => 'value']);
     }
 }
-
