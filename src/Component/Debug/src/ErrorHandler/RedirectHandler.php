@@ -143,13 +143,26 @@ final class RedirectHandler
         $phpRenderer = $this->toolbarRenderer?->getPhpRenderer()
             ?? $this->errorRenderer->getPhpRenderer();
         echo $phpRenderer->render('redirect', [
-            'location' => $this->pendingRedirect['location'],
+            'location' => $this->sanitizeRedirectUrl($this->pendingRedirect['location']),
             'status' => $this->pendingRedirect['status'],
             'requestMethod' => $_SERVER['REQUEST_METHOD'] ?? 'GET',
             'requestUri' => $_SERVER['REQUEST_URI'] ?? '/',
             'toolbarHtml' => $this->toolbarRenderer?->render() ?? '',
             'cssVariables' => CssTheme::cssVariables(),
         ]);
+    }
+
+    /**
+     * Reject non-HTTP(S) schemes to prevent javascript: URLs in href attributes.
+     */
+    private function sanitizeRedirectUrl(string $url): string
+    {
+        $scheme = parse_url($url, \PHP_URL_SCHEME);
+        if (\is_string($scheme) && !\in_array(strtolower($scheme), ['http', 'https'], true)) {
+            return '';
+        }
+
+        return $url;
     }
 
     private function collectProfile(int $statusCode): void

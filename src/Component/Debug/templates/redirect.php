@@ -141,9 +141,15 @@ body {
   </div>
   <div class="redirect-target">
     <span class="redirect-arrow">&rarr;</span>
+<?php if ($location !== ''): ?>
     <a href="<?= $view->e($location) ?>"><?= $view->e($location) ?></a>
+<?php else: ?>
+    <span>(blocked: unsafe URL scheme)</span>
+<?php endif; ?>
   </div>
+<?php if ($location !== ''): ?>
   <a class="redirect-btn" href="<?= $view->e($location) ?>">Follow redirect &rarr;</a>
+<?php endif; ?>
 </div>
 
 <?= $view->raw($toolbarHtml) ?>
