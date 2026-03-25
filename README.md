@@ -26,10 +26,10 @@ alternatives.
 | `wppack/transient` | Type-safe Transient API wrapper |
 | `wppack/role` | Role and capability management |
 | `wppack/templating` | Template engine abstraction |
-| `wppack/twig-templating` | Twig bridge |
+| ↳ `wppack/twig-templating` | Twig bridge |
 | `wppack/stopwatch` | Code execution timing and profiling |
 | `wppack/logger` | PSR-3 compatible logger |
-| `wppack/monolog-logger` | Monolog bridge |
+| ↳ `wppack/monolog-logger` | Monolog bridge |
 | `wppack/mime` | MIME type detection and extension mapping |
 | `wppack/site` | Multisite management (blog switching, context, site queries) |
 
@@ -38,33 +38,33 @@ alternatives.
 | Package | Description |
 |---------|-------------|
 | `wppack/cache` | PSR-6/PSR-16 cache abstraction |
-| `wppack/redis-cache` | Redis/Valkey cache adapter |
-| `wppack/elasticache-auth` | ElastiCache IAM authentication |
-| `wppack/dynamodb-cache` | DynamoDB cache adapter |
-| `wppack/memcached-cache` | Memcached cache adapter |
-| `wppack/apcu-cache` | APCu cache adapter |
+| ↳ `wppack/redis-cache` | Redis/Valkey adapter |
+| ↳ `wppack/dynamodb-cache` | DynamoDB adapter |
+| ↳ `wppack/memcached-cache` | Memcached adapter |
+| ↳ `wppack/apcu-cache` | APCu adapter |
+| ↳ `wppack/elasticache-auth` | ElastiCache IAM authentication |
 | `wppack/database` | Type-safe $wpdb wrapper and migrations |
 | `wppack/query` | WP_Query builder |
 | `wppack/security` | Authentication and authorization framework |
-| `wppack/saml-security` | SAML 2.0 SP authentication bridge |
-| `wppack/oauth-security` | OAuth 2.0 / OpenID Connect authentication bridge |
+| ↳ `wppack/saml-security` | SAML 2.0 SP bridge |
+| ↳ `wppack/oauth-security` | OAuth 2.0 / OpenID Connect bridge |
 | `wppack/sanitizer` | Input sanitization |
 | `wppack/escaper` | Output escaping |
 | `wppack/http-client` | HTTP client abstraction |
 | `wppack/http-foundation` | Request/Response abstraction |
 | `wppack/mailer` | Mail transport abstraction |
-| `wppack/amazon-mailer` | Amazon SES transport |
-| `wppack/azure-mailer` | Azure Communication Services transport |
-| `wppack/sendgrid-mailer` | SendGrid transport |
+| ↳ `wppack/amazon-mailer` | Amazon SES transport |
+| ↳ `wppack/azure-mailer` | Azure Communication Services transport |
+| ↳ `wppack/sendgrid-mailer` | SendGrid transport |
 | `wppack/messenger` | Transport-agnostic message bus |
-| `wppack/sqs-messenger` | Amazon SQS transport |
+| ↳ `wppack/sqs-messenger` | Amazon SQS transport |
 | `wppack/serializer` | Object serialization (Normalizer chain) |
 | `wppack/options-resolver` | Options resolver (Symfony OptionsResolver extension) |
 | `wppack/debug` | Debug and profiling |
 | `wppack/storage` | Object storage abstraction |
-| `wppack/s3-storage` | Amazon S3 storage adapter |
-| `wppack/azure-storage` | Azure Blob Storage adapter |
-| `wppack/gcs-storage` | Google Cloud Storage adapter |
+| ↳ `wppack/s3-storage` | Amazon S3 adapter |
+| ↳ `wppack/azure-storage` | Azure Blob Storage adapter |
+| ↳ `wppack/gcs-storage` | Google Cloud Storage adapter |
 
 ### Feature Layer
 
@@ -75,7 +75,7 @@ alternatives.
 | `wppack/routing` | URL routing |
 | `wppack/post-type` | Custom post type and meta registration |
 | `wppack/scheduler` | Trigger-based task scheduler |
-| `wppack/eventbridge-scheduler` | Amazon EventBridge scheduler |
+| ↳ `wppack/eventbridge-scheduler` | Amazon EventBridge bridge |
 | `wppack/console` | WP-CLI command framework |
 | `wppack/shortcode` | Shortcode registration |
 | `wppack/nonce` | CSRF token management |
@@ -107,11 +107,11 @@ alternatives.
 
 | Package | Description |
 |---------|-------------|
-| `wppack/eventbridge-scheduler-plugin` | EventBridge scheduler plugin |
-| `wppack/s3-storage-plugin` | Amazon S3 media storage plugin |
-| `wppack/amazon-mailer-plugin` | Amazon SES mailer plugin |
 | `wppack/debug-plugin` | Debug toolbar plugin |
 | `wppack/redis-cache-plugin` | Redis cache plugin |
+| `wppack/amazon-mailer-plugin` | Amazon SES mailer plugin |
+| `wppack/s3-storage-plugin` | Amazon S3 media storage plugin |
+| `wppack/eventbridge-scheduler-plugin` | EventBridge scheduler plugin |
 
 ## Installation
 
