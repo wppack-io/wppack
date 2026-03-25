@@ -63,7 +63,7 @@ final class RequestDataCollector extends AbstractDataCollector
             'response_headers' => $this->responseHeaders,
             'get_params' => $_GET,
             'post_params' => $this->maskSensitiveData($_POST),
-            'cookies' => $this->maskSensitiveData($_COOKIE),
+            'cookies' => $this->maskSensitiveCookies($_COOKIE),
             'server_vars' => $this->collectServerVars(),
             'http_api_calls' => $this->maskHttpApiCalls($this->httpApiCalls),
         ];
@@ -187,6 +187,50 @@ final class RequestDataCollector extends AbstractDataCollector
         }
 
         return $masked;
+    }
+
+    /** @var list<string> Longest prefix first to match most specific */
+    private const SENSITIVE_COOKIE_PREFIXES = [
+        'wordpress_logged_in_',
+        'wordpress_',
+    ];
+
+    /**
+     * @param array<string, mixed> $cookies
+     * @return array<string, mixed>
+     */
+    /**
+     * @param array<string, mixed> $cookies
+     * @return array<string, mixed>
+     */
+    private function maskSensitiveCookies(array $cookies): array
+    {
+        $masked = [];
+        foreach ($cookies as $key => $value) {
+            $maskedName = $this->maskCookieName((string) $key);
+            if ($maskedName !== null) {
+                $masked[$maskedName] = self::MASKED_VALUE;
+            } elseif ($this->isSensitiveKey((string) $key)) {
+                $masked[$key] = self::MASKED_VALUE;
+            } elseif (is_array($value)) {
+                $masked[$key] = $this->maskSensitiveData($value);
+            } else {
+                $masked[$key] = $value;
+            }
+        }
+
+        return $masked;
+    }
+
+    private function maskCookieName(string $name): ?string
+    {
+        foreach (self::SENSITIVE_COOKIE_PREFIXES as $prefix) {
+            if (str_starts_with($name, $prefix)) {
+                return $prefix . '*';
+            }
+        }
+
+        return null;
     }
 
     private function isSensitiveKey(string $key): bool

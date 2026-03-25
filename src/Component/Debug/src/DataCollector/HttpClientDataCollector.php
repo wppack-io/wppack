@@ -35,7 +35,7 @@ final class HttpClientDataCollector extends AbstractDataCollector
 
     public function getLabel(): string
     {
-        return 'HTTP';
+        return 'HTTP Client';
     }
 
     /**

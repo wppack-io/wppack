@@ -351,6 +351,127 @@ final class ContainerDataCollectorTest extends TestCase
         self::assertSame('s3cret', $data['parameters']['app.secret']);
     }
 
+    #[Test]
+    public function collectWithSnapshotUsesSnapshotData(): void
+    {
+        $snapshot = [
+            'service_count' => 3,
+            'public_count' => 1,
+            'private_count' => 2,
+            'autowired_count' => 2,
+            'lazy_count' => 0,
+            'services' => [
+                'App\\FooService' => [
+                    'class' => 'App\\FooService',
+                    'public' => true,
+                    'autowired' => true,
+                    'lazy' => false,
+                    'tags' => ['app.handler'],
+                ],
+                'App\\BarService' => [
+                    'class' => 'App\\BarService',
+                    'public' => false,
+                    'autowired' => true,
+                    'lazy' => false,
+                    'tags' => [],
+                ],
+                'App\\BazService' => [
+                    'class' => 'App\\BazService',
+                    'public' => false,
+                    'autowired' => false,
+                    'lazy' => false,
+                    'tags' => [],
+                ],
+            ],
+            'compiler_passes' => ['App\\SomePass'],
+            'tagged_services' => ['app.handler' => ['App\\FooService']],
+            'parameters' => ['debug' => true],
+        ];
+
+        $collector = new ContainerDataCollector();
+        $collector->setContainerSnapshot($snapshot);
+        $collector->collect();
+        $data = $collector->getData();
+
+        self::assertSame(3, $data['service_count']);
+        self::assertSame(1, $data['public_count']);
+        self::assertSame(2, $data['private_count']);
+        self::assertSame(2, $data['autowired_count']);
+        self::assertArrayHasKey('App\\FooService', $data['services']);
+        self::assertSame(['App\\SomePass'], $data['compiler_passes']);
+        self::assertSame(['app.handler' => ['App\\FooService']], $data['tagged_services']);
+        self::assertSame(['debug' => true], $data['parameters']);
+    }
+
+    #[Test]
+    public function snapshotTakesPrecedenceOverBuilder(): void
+    {
+        $definition = $this->createDefinition(
+            class: 'App\\Service\\MyService',
+            public: true,
+            autowired: true,
+            lazy: false,
+        );
+
+        $builder = new class ($definition) {
+            public function __construct(private readonly object $definition) {}
+
+            /** @return array<string, object> */
+            public function all(): array
+            {
+                return ['my_service' => $this->definition];
+            }
+        };
+
+        $snapshot = [
+            'service_count' => 10,
+            'public_count' => 5,
+            'private_count' => 5,
+            'autowired_count' => 3,
+            'lazy_count' => 1,
+            'services' => [],
+            'compiler_passes' => [],
+            'tagged_services' => [],
+            'parameters' => [],
+        ];
+
+        $collector = new ContainerDataCollector($builder);
+        $collector->setContainerSnapshot($snapshot);
+        $collector->collect();
+        $data = $collector->getData();
+
+        self::assertSame(10, $data['service_count']);
+        self::assertSame(5, $data['public_count']);
+    }
+
+    #[Test]
+    public function resetClearsSnapshot(): void
+    {
+        $snapshot = [
+            'service_count' => 5,
+            'public_count' => 2,
+            'private_count' => 3,
+            'autowired_count' => 1,
+            'lazy_count' => 0,
+            'services' => [],
+            'compiler_passes' => [],
+            'tagged_services' => [],
+            'parameters' => [],
+        ];
+
+        $collector = new ContainerDataCollector();
+        $collector->setContainerSnapshot($snapshot);
+        $collector->collect();
+        self::assertSame(5, $collector->getData()['service_count']);
+
+        $collector->reset();
+        self::assertEmpty($collector->getData());
+
+        // After reset, collect should return zero defaults (no snapshot, no builder)
+        $collector->collect();
+        self::assertSame(0, $collector->getData()['service_count']);
+    }
+
     /**
      * @param array<string, list<array<string, mixed>>> $tags
      */

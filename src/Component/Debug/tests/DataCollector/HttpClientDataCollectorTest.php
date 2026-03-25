@@ -26,7 +26,7 @@ final class HttpClientDataCollectorTest extends TestCase
     #[Test]
     public function getLabelReturnsHttp(): void
     {
-        self::assertSame('HTTP', $this->collector->getLabel());
+        self::assertSame('HTTP Client', $this->collector->getLabel());
     }
 
     #[Test]

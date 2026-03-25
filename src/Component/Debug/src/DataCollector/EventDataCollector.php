@@ -180,20 +180,34 @@ final class EventDataCollector extends AbstractDataCollector
 
     public function getIndicatorValue(): string
     {
-        return (string) $this->totalFirings;
+        $totalMs = $this->getTotalTimeMs();
+
+        return number_format($totalMs / 1000, 2) . ' s';
     }
 
     public function getIndicatorColor(): string
     {
-        if ($this->totalFirings >= 1000) {
+        $totalMs = $this->getTotalTimeMs();
+
+        if ($totalMs >= 2000.0) {
             return 'red';
         }
 
-        if ($this->totalFirings >= 500) {
+        if ($totalMs >= 1000.0) {
             return 'yellow';
         }
 
         return 'green';
+    }
+
+    private function getTotalTimeMs(): float
+    {
+        $totalMs = 0.0;
+        foreach ($this->hookTimings as $timing) {
+            $totalMs += $timing['total_time'];
+        }
+
+        return $totalMs;
     }
 
     public function reset(): void

@@ -76,7 +76,7 @@
         $listeners = $listenerCounts[$hook] ?? 0;
         $timing = $hookTimings[$hook] ?? null;
         $duration = $timing !== null ? $fmt->ms($timing['total_time']) : '-';
-        $hookStart = $timing !== null ? '+' . number_format(max(0, $timing['start']), 0) : '-';
+        $hookStart = $timing !== null ? '+' . number_format(max(0, $timing['start']), 0) . ' ms' : '-';
         ?>
 <tr>
 <td class="wpd-col-num"><?= $view->e((string) (++$index)) ?></td>

@@ -45,6 +45,7 @@ final class ToolbarSubscriber
         // Set request info on profile
         $this->profile->setUrl($_SERVER['REQUEST_URI'] ?? '/');
         $this->profile->setMethod($_SERVER['REQUEST_METHOD'] ?? 'GET');
+        $this->profile->setStatusCode(http_response_code() ?: 200);
 
         echo $this->renderer->render();
     }

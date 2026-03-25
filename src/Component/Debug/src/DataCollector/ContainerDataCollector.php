@@ -9,6 +9,9 @@ use WpPack\Component\Debug\Attribute\AsDataCollector;
 #[AsDataCollector(name: 'container', priority: 75)]
 final class ContainerDataCollector extends AbstractDataCollector
 {
+    /** @var array<string, mixed>|null */
+    private ?array $containerSnapshot = null;
+
     public function __construct(
         private readonly ?object $containerBuilder = null,
     ) {}
@@ -23,25 +26,39 @@ final class ContainerDataCollector extends AbstractDataCollector
         return 'Container';
     }
 
+    /**
+     * @param array<string, mixed> $snapshot
+     */
+    public function setContainerSnapshot(array $snapshot): void
+    {
+        $this->containerSnapshot = $snapshot;
+    }
+
     public function collect(): void
     {
-        if ($this->containerBuilder === null) {
-            $this->data = [
-                'service_count' => 0,
-                'public_count' => 0,
-                'private_count' => 0,
-                'autowired_count' => 0,
-                'lazy_count' => 0,
-                'services' => [],
-                'compiler_passes' => [],
-                'tagged_services' => [],
-                'parameters' => [],
-            ];
+        if ($this->containerSnapshot !== null) {
+            $this->data = $this->containerSnapshot;
 
             return;
         }
 
-        $this->collectFromContainer();
+        if ($this->containerBuilder !== null) {
+            $this->collectFromContainer();
+
+            return;
+        }
+
+        $this->data = [
+            'service_count' => 0,
+            'public_count' => 0,
+            'private_count' => 0,
+            'autowired_count' => 0,
+            'lazy_count' => 0,
+            'services' => [],
+            'compiler_passes' => [],
+            'tagged_services' => [],
+            'parameters' => [],
+        ];
     }
 
     public function getIndicatorValue(): string
@@ -54,6 +71,12 @@ final class ContainerDataCollector extends AbstractDataCollector
     public function getIndicatorColor(): string
     {
         return 'default';
+    }
+
+    public function reset(): void
+    {
+        parent::reset();
+        $this->containerSnapshot = null;
     }
 
     private function collectFromContainer(): void

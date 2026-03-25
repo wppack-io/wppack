@@ -72,54 +72,65 @@ final class EventDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function getIndicatorValueReturnsTotalFirings(): void
+    public function getIndicatorValueReturnsFormattedTime(): void
     {
-        self::assertSame('0', $this->collector->getIndicatorValue());
+        self::assertSame('0.00 s', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getIndicatorValueReflectsFiringsAfterCapture(): void
+    public function getIndicatorValueReflectsTimingsAfterCapture(): void
     {
-        // Simulate firings via reflection since current_filter() may not exist
-        $reflection = new \ReflectionProperty($this->collector, 'totalFirings');
-        $reflection->setValue($this->collector, 42);
+        $reflection = new \ReflectionProperty($this->collector, 'hookTimings');
+        $reflection->setValue($this->collector, [
+            'init' => ['count' => 1, 'total_time' => 1500.0, 'start' => 0.0],
+        ]);
 
-        self::assertSame('42', $this->collector->getIndicatorValue());
+        self::assertSame('1.50 s', $this->collector->getIndicatorValue());
     }
 
     #[Test]
-    public function getIndicatorColorReturnsGreenWhenBelowFiveHundred(): void
+    public function getIndicatorColorReturnsGreenWhenBelowOneSecond(): void
     {
-        $reflection = new \ReflectionProperty($this->collector, 'totalFirings');
-        $reflection->setValue($this->collector, 0);
+        $reflection = new \ReflectionProperty($this->collector, 'hookTimings');
+        $reflection->setValue($this->collector, []);
 
         self::assertSame('green', $this->collector->getIndicatorColor());
 
-        $reflection->setValue($this->collector, 499);
+        $reflection->setValue($this->collector, [
+            'init' => ['count' => 1, 'total_time' => 999.0, 'start' => 0.0],
+        ]);
         self::assertSame('green', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getIndicatorColorReturnsYellowWhenBelowOneThousand(): void
+    public function getIndicatorColorReturnsYellowWhenBelowTwoSeconds(): void
     {
-        $reflection = new \ReflectionProperty($this->collector, 'totalFirings');
-        $reflection->setValue($this->collector, 500);
+        $reflection = new \ReflectionProperty($this->collector, 'hookTimings');
+        $reflection->setValue($this->collector, [
+            'init' => ['count' => 1, 'total_time' => 1000.0, 'start' => 0.0],
+        ]);
 
         self::assertSame('yellow', $this->collector->getIndicatorColor());
 
-        $reflection->setValue($this->collector, 999);
+        $reflection->setValue($this->collector, [
+            'init' => ['count' => 1, 'total_time' => 1999.0, 'start' => 0.0],
+        ]);
         self::assertSame('yellow', $this->collector->getIndicatorColor());
     }
 
     #[Test]
-    public function getIndicatorColorReturnsRedWhenAtOrAboveOneThousand(): void
+    public function getIndicatorColorReturnsRedWhenAtOrAboveTwoSeconds(): void
     {
-        $reflection = new \ReflectionProperty($this->collector, 'totalFirings');
-        $reflection->setValue($this->collector, 1000);
+        $reflection = new \ReflectionProperty($this->collector, 'hookTimings');
+        $reflection->setValue($this->collector, [
+            'init' => ['count' => 1, 'total_time' => 2000.0, 'start' => 0.0],
+        ]);
 
         self::assertSame('red', $this->collector->getIndicatorColor());
 
-        $reflection->setValue($this->collector, 5000);
+        $reflection->setValue($this->collector, [
+            'init' => ['count' => 1, 'total_time' => 5000.0, 'start' => 0.0],
+        ]);
         self::assertSame('red', $this->collector->getIndicatorColor());
     }
 
