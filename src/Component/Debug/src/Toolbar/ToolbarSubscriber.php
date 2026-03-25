@@ -15,6 +15,7 @@ namespace WpPack\Component\Debug\Toolbar;
 
 use WpPack\Component\Debug\CssTheme;
 use WpPack\Component\Debug\DataCollector\DataCollectorInterface;
+use WpPack\Component\Debug\DataCollector\RequestDataCollector;
 use WpPack\Component\Debug\DebugConfig;
 use WpPack\Component\Debug\Profiler\Profile;
 
@@ -62,6 +63,15 @@ final class ToolbarSubscriber
     {
         if (!$this->config->shouldShowToolbar()) {
             return $location;
+        }
+
+        // Inject redirect status into RequestDataCollector before collect(),
+        // because status_header has not fired yet at this point
+        foreach ($this->collectors as $collector) {
+            if ($collector instanceof RequestDataCollector) {
+                $collector->captureStatusCode('', $status);
+                break;
+            }
         }
 
         $this->collectProfile($status);
