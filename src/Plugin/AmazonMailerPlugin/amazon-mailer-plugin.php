@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Plugin Name: WpPack Amazon Mailer Plugin
+ * Plugin Name: WpPack Amazon Mailer
  * Description: SES-based email delivery with bounce and complaint handling.
  * Version: 1.0.0
  * Requires PHP: 8.2

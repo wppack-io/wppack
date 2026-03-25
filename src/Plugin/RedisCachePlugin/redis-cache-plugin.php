@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Plugin Name: WpPack Redis Cache Plugin
+ * Plugin Name: WpPack Redis Cache
  * Description: Redis-based object cache with ElastiCache IAM auth support.
  * Version: 1.0.0
  * Requires PHP: 8.2

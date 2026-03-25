@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Plugin Name: WpPack Debug Plugin
+ * Plugin Name: WpPack Debug
  * Description: Debug toolbar and profiler for WordPress development.
  * Version: 1.0.0
  * Requires PHP: 8.2

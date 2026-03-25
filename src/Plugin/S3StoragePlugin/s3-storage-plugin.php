@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Plugin Name: WpPack S3 Storage Plugin
+ * Plugin Name: WpPack S3 Storage
  * Description: S3-based media storage with browser-direct upload support.
  * Version: 1.0.0
  * Requires PHP: 8.2
