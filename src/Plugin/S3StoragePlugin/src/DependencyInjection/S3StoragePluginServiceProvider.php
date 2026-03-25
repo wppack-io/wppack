@@ -25,7 +25,10 @@ use WpPack\Component\Media\Storage\Subscriber\SideloadSubscriber;
 use WpPack\Component\Media\Storage\Subscriber\UploadDirSubscriber;
 use WpPack\Component\Media\Storage\ImageEditor\StorageImageEditor;
 use WpPack\Component\Media\Storage\UrlResolver;
+use WpPack\Component\Messenger\Handler\HandlerLocator;
+use WpPack\Component\Messenger\MessageBus;
 use WpPack\Component\Messenger\MessageBusInterface;
+use WpPack\Component\Messenger\Middleware\HandleMessageMiddleware;
 use WpPack\Component\Nonce\NonceManager;
 use WpPack\Component\Rest\RestUrlGenerator;
 use WpPack\Component\Site\BlogContext;
@@ -57,6 +60,19 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
 
     public function register(ContainerBuilder $builder): void
     {
+        // Messenger (synchronous fallback if no dedicated Messenger plugin)
+        if (!$builder->hasDefinition(MessageBusInterface::class)) {
+            $builder->register(HandlerLocator::class);
+
+            $builder->register(HandleMessageMiddleware::class)
+                ->addArgument(new Reference(HandlerLocator::class));
+
+            $builder->register(MessageBus::class)
+                ->addArgument([new Reference(HandleMessageMiddleware::class)]);
+
+            $builder->setAlias(MessageBusInterface::class, MessageBus::class);
+        }
+
         // Site component services
         $builder->register(BlogContextInterface::class, BlogContext::class);
         $builder->register(BlogSwitcherInterface::class, BlogSwitcher::class)

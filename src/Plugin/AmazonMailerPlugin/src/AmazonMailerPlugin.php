@@ -10,6 +10,7 @@ use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
 use WpPack\Component\Kernel\AbstractPlugin;
 use WpPack\Component\Mailer\DependencyInjection\RegisterTransportFactoriesPass;
+use WpPack\Component\Messenger\DependencyInjection\RegisterMessageHandlersPass;
 use WpPack\Component\Mailer\Mailer;
 use WpPack\Plugin\AmazonMailerPlugin\DependencyInjection\AmazonMailerPluginServiceProvider;
 
@@ -34,6 +35,7 @@ final class AmazonMailerPlugin extends AbstractPlugin
     public function getCompilerPasses(): array
     {
         return [
+            new RegisterMessageHandlersPass(),
             new RegisterHookSubscribersPass(),
             new RegisterTransportFactoriesPass(),
         ];

@@ -8,6 +8,10 @@ use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
 use WpPack\Component\Mailer\Bridge\Amazon\Transport\SesTransportFactory;
+use WpPack\Component\Messenger\Handler\HandlerLocator;
+use WpPack\Component\Messenger\MessageBus;
+use WpPack\Component\Messenger\MessageBusInterface;
+use WpPack\Component\Messenger\Middleware\HandleMessageMiddleware;
 use WpPack\Component\Mailer\Mailer;
 use WpPack\Component\Mailer\Transport\NativeTransportFactory;
 use WpPack\Component\Mailer\Transport\Transport;
@@ -22,6 +26,19 @@ final class AmazonMailerPluginServiceProvider implements ServiceProviderInterfac
 {
     public function register(ContainerBuilder $builder): void
     {
+        // Messenger (synchronous fallback if no dedicated Messenger plugin)
+        if (!$builder->hasDefinition(MessageBusInterface::class)) {
+            $builder->register(HandlerLocator::class);
+
+            $builder->register(HandleMessageMiddleware::class)
+                ->addArgument(new Reference(HandlerLocator::class));
+
+            $builder->register(MessageBus::class)
+                ->addArgument([new Reference(HandleMessageMiddleware::class)]);
+
+            $builder->setAlias(MessageBusInterface::class, MessageBus::class);
+        }
+
         // Configuration
         $builder->register(AmazonMailerConfiguration::class)
             ->setFactory([AmazonMailerConfiguration::class, 'fromEnvironment']);

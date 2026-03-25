@@ -9,6 +9,7 @@ use WpPack\Component\DependencyInjection\Container;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
 use WpPack\Component\Kernel\AbstractPlugin;
+use WpPack\Component\Messenger\DependencyInjection\RegisterMessageHandlersPass;
 use WpPack\Component\Rest\DependencyInjection\RegisterRestControllersPass;
 use WpPack\Plugin\S3StoragePlugin\DependencyInjection\S3StoragePluginServiceProvider;
 
@@ -33,6 +34,7 @@ final class S3StoragePlugin extends AbstractPlugin
     public function getCompilerPasses(): array
     {
         return [
+            new RegisterMessageHandlersPass(),
             new RegisterHookSubscribersPass(),
             new RegisterRestControllersPass(),
         ];
