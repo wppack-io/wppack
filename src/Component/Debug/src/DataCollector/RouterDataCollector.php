@@ -78,6 +78,7 @@ final class RouterDataCollector extends AbstractDataCollector
             'is_search' => $isSearch,
             'query_type' => $queryType,
             'is_block_theme' => $isBlockTheme,
+            'theme_exists' => wp_get_theme()->exists(),
             'block_template' => $blockTemplate,
         ];
     }

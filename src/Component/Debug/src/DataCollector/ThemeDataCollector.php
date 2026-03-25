@@ -136,6 +136,7 @@ final class ThemeDataCollector extends AbstractDataCollector
         ];
 
         $this->data = [
+            'exists' => $theme->exists(),
             'name' => $theme->get('Name'),
             'version' => $theme->get('Version'),
             'is_child_theme' => $isChildTheme,

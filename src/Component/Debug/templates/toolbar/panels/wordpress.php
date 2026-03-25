@@ -43,7 +43,12 @@ if (!empty($constants)):
 echo $view->include('toolbar/partials/table-row', ['key' => 'Name', 'value' => $themeName]);
 if ($themeName !== 'N/A') {
     $isBlockTheme = (bool) ($themeData['is_block_theme'] ?? false);
-    $themeTypeLabel = $isBlockTheme ? 'Block (FSE)' : 'Classic';
+    $themeExists = (bool) ($themeData['exists'] ?? true);
+    $themeTypeLabel = match (true) {
+        $isBlockTheme => 'Block (FSE)',
+        $themeExists => 'Classic',
+        default => 'Unknown',
+    };
     echo $view->include('toolbar/partials/table-row', ['key' => 'Type', 'value' => '<span class="wpd-tag">' . $view->e($themeTypeLabel) . '</span>']);
 }
 $isChildTheme = (bool) ($themeData['is_child_theme'] ?? false);

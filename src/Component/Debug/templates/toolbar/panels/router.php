@@ -57,7 +57,8 @@ if ($isBlockTheme):
 <?php endif; ?>
 <?php else: ?>
 <div class="wpd-section">
-<h4 class="wpd-section-title">Template (Classic)</h4>
+<?php $themeExists = (bool) ($data['theme_exists'] ?? true); ?>
+<h4 class="wpd-section-title">Template (<?= $themeExists ? 'Classic' : 'Unknown' ?>)</h4>
 <table class="wpd-table wpd-table-kv">
 <?= $view->include('toolbar/partials/table-row', ['key' => 'Template', 'value' => $view->e($template ?: '-')]) ?>
 <?= $view->include('toolbar/partials/table-row', ['key' => 'Template Path', 'value' => $view->e($templatePath ?: '-')]) ?>
