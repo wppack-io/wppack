@@ -25,6 +25,7 @@ define('WP_DEBUG', true);
 define('WP_DEBUG_LOG', true);
 define('WP_DEBUG_DISPLAY', true);
 define('WP_ENVIRONMENT_TYPE', 'local');
+define('SAVEQUERIES', true);
 
 // Auth keys (dev only — do not use in production)
 define('AUTH_KEY', 'wppack-dev-auth-key');
