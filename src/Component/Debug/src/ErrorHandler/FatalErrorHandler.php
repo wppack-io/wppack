@@ -13,18 +13,26 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Debug\ErrorHandler;
 
+use WpPack\Component\Debug\DebugConfig;
+
 final class FatalErrorHandler
 {
     private const FATAL_ERROR_TYPES = E_ERROR | E_PARSE | E_CORE_ERROR | E_COMPILE_ERROR | E_USER_ERROR;
 
     public function __construct(
         private readonly ErrorRenderer $renderer,
+        private readonly ?DebugConfig $config = null,
     ) {}
 
     public function handle(): void
     {
         $error = error_get_last();
         if ($error === null || !($error['type'] & self::FATAL_ERROR_TYPES)) {
+            return;
+        }
+
+        // When access is denied, do not render — let PHP's display_errors handle it
+        if ($this->config !== null && !$this->config->isAccessAllowed()) {
             return;
         }
 

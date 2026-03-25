@@ -41,6 +41,7 @@
 declare(strict_types=1);
 
 use WpPack\Component\Debug\DataCollector\WpErrorDataCollector;
+use WpPack\Component\Debug\DebugConfig;
 use WpPack\Component\Debug\ErrorHandler\ErrorRenderer;
 use WpPack\Component\Debug\ErrorHandler\ExceptionHandler;
 use WpPack\Component\Debug\ErrorHandler\FatalErrorHandler;
@@ -82,15 +83,24 @@ if (!class_exists(FatalErrorHandler::class)) {
     return null;
 }
 
+// Minimal DebugConfig for the drop-in phase.
+// At this point current_user_can() may not be available yet, so
+// roleWhitelist is empty (= skip role check) and only IP whitelist is enforced.
+$config = new DebugConfig(
+    enabled: true,
+    ipWhitelist: ['127.0.0.1', '::1'],
+    roleWhitelist: [],
+);
+
 $renderer = new ErrorRenderer();
 
-$exceptionHandler = new ExceptionHandler($renderer);
+$exceptionHandler = new ExceptionHandler($renderer, $config);
 $exceptionHandler->register();
 
 // Register WP_Error data collector early so that all wp_error_added events
 // during the request are captured, including those before the DI container boots.
 // Also provides origin capture (WeakMap) for WpDieHandler.
-$redirectHandler = new RedirectHandler($renderer);
+$redirectHandler = new RedirectHandler($renderer, $config);
 $redirectHandler->register();
 $GLOBALS['_wppack_redirect_handler'] = $redirectHandler;
 
@@ -98,4 +108,4 @@ $wpErrorCollector = new WpErrorDataCollector();
 $wpErrorCollector->register();
 $GLOBALS['_wppack_wp_error_collector'] = $wpErrorCollector;
 
-return new FatalErrorHandler($renderer);
+return new FatalErrorHandler($renderer, $config);
