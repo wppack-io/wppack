@@ -10,18 +10,20 @@ DebugPlugin は `wppack/debug` の薄いラッパーです:
 - **ツールバー描画**: `wppack/debug` の `ToolbarRenderer` / `ToolbarSubscriber` がページ下部にツールバーを出力
 - **プロファイリング**: `wppack/debug` の `Profiler` / `Profile` が実行時間を計測
 - **エラーハンドラ**: `ExceptionHandler` / `WpDieHandler` がエラーを整形表示
-- **DebugPlugin** はプラグインブートストラップ、`DebugConfig` のオーバーライド（`enabled: true`, `showToolbar: true`）、コンパイラーパス登録のみを担当
+- **致命的エラーハンドラ**: `FatalErrorHandler` が `fatal-error-handler.php` ドロップイン経由で致命的エラーを整形表示
+- **早期例外ハンドラ**: `EarlyExceptionHandler` が同ドロップイン経由で DI コンテナ起動前の未キャッチ例外を整形表示
+- **DebugPlugin** はプラグインブートストラップ、`DebugConfig` のオーバーライド（`enabled: true`, `showToolbar: true`）、コンパイラーパス登録、ドロップイン管理を担当
 
 ## アーキテクチャ
 
 ### パッケージ構成
 
 ```
-wppack/debug            ← デバッグ基盤（DataCollector, Profiler, Toolbar, ErrorHandler）
+wppack/debug            ← デバッグ基盤（DataCollector, Profiler, Toolbar, ErrorHandler, FatalErrorHandler, EarlyExceptionHandler）
     ↑
 wppack/logger           ← PSR-3 ロガー（エラーハンドラのログ出力）
     ↑
-wppack/debug-plugin     ← WordPress 統合（ブートストラップ, 設定, DI）
+wppack/debug-plugin     ← WordPress 統合（ブートストラップ, 設定, DI, ドロップイン管理）
 ```
 
 ### レイヤー構成
@@ -63,6 +65,34 @@ WpPack\Plugin\DebugPlugin\
 define('WP_DEBUG', true);
 ```
 
+### Fatal Error Handler ドロップイン
+
+プラグイン有効化時に `fatal-error-handler.php` を `wp-content/` にコピーします。このドロップインは 2 層のエラーハンドリングを提供します:
+
+1. **`EarlyExceptionHandler`** — ドロップインロード時に `set_exception_handler()` で登録。プラグインロード中、DI コンテナコンパイル中、`Kernel::boot()` 内部等で発生する未キャッチ例外をキャッチ。`DebugPlugin::boot()` 後は `ExceptionHandler` が上書きし、`EarlyExceptionHandler` は previous handler として保持される
+2. **`FatalErrorHandler`** — `WP_Fatal_Error_Handler` 実装として return。致命的な PHP エラー（`E_ERROR`, `E_PARSE` 等）をシャットダウン時にキャッチ
+
+両方とも `ErrorRenderer` による詳細なエラーページを表示します。
+
+プラグイン無効化時には、WpPack が設置したドロップインのみ削除します（シグネチャで判定）。
+
+### `WPPACK_DEBUG_ENABLED` キルスイッチ
+
+サーバーレス環境等でドロップインファイルを削除できない場合は、`WPPACK_DEBUG_ENABLED` 定数で無効化できます:
+
+```php
+// wp-config.php
+define('WPPACK_DEBUG_ENABLED', false);
+```
+
+| 状態 | 動作 |
+|------|------|
+| 未定義 + `WP_DEBUG=true` | 有効（カスタムハンドラ） |
+| 未定義 + `WP_DEBUG=false` | 無効（WordPress デフォルト） |
+| `= false` | 強制無効（ファイル削除不要のキルスイッチ） |
+| `= true` + `WP_DEBUG=true` | 有効 |
+| `= true` + `WP_DEBUG=false` | 無効（`WP_DEBUG` が優先） |
+
 ### セーフティガード
 
 以下の条件ではプラグインがロードされません:
@@ -88,6 +118,8 @@ final class DebugPlugin extends AbstractPlugin
     public function register(ContainerBuilder $builder): void;
     public function getCompilerPasses(): array;
     public function boot(Container $container): void;
+    public function onActivate(): void;   // fatal-error-handler.php drop-in install
+    public function onDeactivate(): void; // fatal-error-handler.php drop-in removal
 }
 ```
 
@@ -110,6 +142,13 @@ final class DebugPlugin extends AbstractPlugin
 - `ToolbarSubscriber::register()` — `shutdown` フックでツールバーを出力
 - `ExceptionHandler::register()` — `set_exception_handler()` で例外を整形表示
 - `WpDieHandler::register()` — `wp_die_handler` フィルタでエラーを整形表示
+
+#### onActivate() / onDeactivate()
+
+`fatal-error-handler.php` ドロップインのライフサイクル管理:
+
+- **`onActivate()`**: `wp-content/fatal-error-handler.php` が未存在かつ書き込み可能な場合、`wppack/debug` の `drop-in/fatal-error-handler.php` をコピー
+- **`onDeactivate()`**: シグネチャ（`WpPack Fatal Error Handler Drop-in`）を確認し、WpPack 製のドロップインのみ削除
 
 ### DependencyInjection\DebugPluginServiceProvider
 

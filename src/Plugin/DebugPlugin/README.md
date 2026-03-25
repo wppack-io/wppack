@@ -11,7 +11,9 @@ DebugPlugin is a thin wrapper around the Debug component:
 - **Data collectors** are provided by `wppack/debug` (`DebugServiceProvider`)
 - **Toolbar rendering** is provided by `wppack/debug` (`ToolbarRenderer`, `ToolbarSubscriber`)
 - **Profiling** is provided by `wppack/debug` (`Profiler`, `Profile`)
-- **DebugPlugin** provides only: plugin bootstrap, `DebugConfig` override (`enabled: true`, `showToolbar: true`), and compiler pass registration
+- **Fatal error handling** is provided by `wppack/debug` (`FatalErrorHandler`) via the `fatal-error-handler.php` drop-in
+- **Early exception handling** is provided by `wppack/debug` (`EarlyExceptionHandler`) via the same drop-in — catches uncaught exceptions before the DI container is available
+- **DebugPlugin** provides only: plugin bootstrap, `DebugConfig` override (`enabled: true`, `showToolbar: true`), compiler pass registration, and drop-in management
 
 ## Installation
 
@@ -30,6 +32,34 @@ composer require wppack/debug-plugin
 The plugin automatically enables the debug toolbar when `WP_DEBUG` is `true`. No additional configuration is required.
 
 The toolbar is displayed for administrators accessing from localhost (`127.0.0.1` / `::1`) by default. These defaults come from `DebugConfig` in the Debug component.
+
+### Fatal Error Handler Drop-in
+
+On activation, the plugin copies `fatal-error-handler.php` to `wp-content/`. This drop-in provides two layers of error handling:
+
+1. **EarlyExceptionHandler** — registered via `set_exception_handler()` at drop-in load time. Catches uncaught exceptions thrown during plugin loading, DI container compilation, and `Kernel::boot()`. Once `DebugPlugin::boot()` runs, the full `ExceptionHandler` overwrites it, keeping `EarlyExceptionHandler` as the previous handler.
+2. **FatalErrorHandler** — returned as the `WP_Fatal_Error_Handler` implementation. Catches fatal PHP errors (E_ERROR, E_PARSE, etc.) at shutdown.
+
+Both use the Debug component's `ErrorRenderer` for detailed error pages.
+
+On deactivation, the drop-in is removed (only if it was installed by WpPack).
+
+### `WPPACK_DEBUG_ENABLED` Kill Switch
+
+In serverless or read-only environments where the drop-in file cannot be deleted, use the `WPPACK_DEBUG_ENABLED` constant to disable it:
+
+```php
+// wp-config.php
+define('WPPACK_DEBUG_ENABLED', false);
+```
+
+| State | Behavior |
+|-------|----------|
+| Not defined + `WP_DEBUG=true` | Enabled (custom handler) |
+| Not defined + `WP_DEBUG=false` | Disabled (WordPress default) |
+| `= false` | Force disabled (kill switch) |
+| `= true` + `WP_DEBUG=true` | Enabled |
+| `= true` + `WP_DEBUG=false` | Disabled (`WP_DEBUG` takes precedence) |
 
 ### Safety Guards
 

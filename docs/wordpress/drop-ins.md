@@ -185,7 +185,17 @@ WordPress がアップデート中などで `.maintenance` ファイルが存在
 
 WordPress 5.2+ で追加された致命的エラーハンドラの差し替え。`WP_Fatal_Error_Handler` クラスをカスタム実装に置き換えます。
 
-**要件**: `WP_Fatal_Error_Handler` 互換のクラスを返すか、同名のクラスを定義する。
+**読み込みロジック**:
+```php
+// wp-includes/error-protection.php — wp_register_fatal_error_handler()
+$handler = include WP_CONTENT_DIR . '/fatal-error-handler.php';
+if ( ! is_object( $handler ) || ! is_callable( array( $handler, 'handle' ) ) ) {
+    $handler = new WP_Fatal_Error_Handler();
+}
+register_shutdown_function( array( $handler, 'handle' ) );
+```
+
+**要件**: `handle()` メソッドを持つオブジェクトを `return` する。`null` や無効値を返すと WordPress デフォルト（`WP_Fatal_Error_Handler`）にフォールバック。
 
 **ユースケース**:
 - カスタムエラーページの表示
@@ -216,6 +226,15 @@ define('WPPACK_CACHE_ENABLED', false);
 
 `WPPACK_CACHE_ENABLED` が `false` の場合、ドロップインは外部キャッシュへの接続を行わず、インメモリフォールバック（`ObjectCache(null)`）で動作します。
 
+`wppack/debug` の `fatal-error-handler.php` も同様のキルスイッチを提供しています:
+
+```php
+// wp-config.php — デバッグ用致命的エラーハンドラを無効化
+define('WPPACK_DEBUG_ENABLED', false);
+```
+
+`WPPACK_DEBUG_ENABLED` が `false` の場合、ドロップインは `null` を返し、WordPress デフォルト（`WP_Fatal_Error_Handler`）にフォールバックします。
+
 ## 管理画面での確認
 
 WordPress 管理画面からドロップインの状態を確認できます:
@@ -229,6 +248,7 @@ WordPress 管理画面からドロップインの状態を確認できます:
 | ドロップイン | WpPack パッケージ | 状態 |
 |-------------|------------------|------|
 | `object-cache.php` | `wppack/cache` | 実装済み |
+| `fatal-error-handler.php` | `wppack/debug` | 実装済み |
 | `db.php` | `wppack/database`（候補） | 未実装 |
 | `advanced-cache.php` | — | 未計画 |
 | `sunrise.php` | `wppack/site`（候補） | 未計画 |
