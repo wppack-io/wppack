@@ -21,6 +21,11 @@ use WpPack\Component\Debug\Profiler\Profile;
 
 final class ToolbarSubscriber
 {
+    /** @var array{location: string, status: int}|null */
+    private ?array $pendingRedirect = null;
+
+    private bool $shutdownRegistered = false;
+
     /**
      * @param iterable<DataCollectorInterface> $collectors
      */
@@ -58,6 +63,19 @@ final class ToolbarSubscriber
      *
      * This allows inspecting WP_Error and other collected data that would
      * otherwise be lost during POST → redirect → GET flows.
+     *
+     * We must NOT call exit() inside this filter. WordPress calls
+     * wp_redirect() even when post-redirect processing still needs to
+     * complete (e.g. plugin activation writes the active_plugins option
+     * after the redirect call). Calling exit here would abort that
+     * processing and cause fatal-error-like failures.
+     *
+     * Instead we store the redirect data and register a single shutdown
+     * function that renders the intermediate page once WordPress has
+     * finished. When wp_redirect() is called multiple times, only the
+     * last redirect is shown.
+     *
+     * @return string Empty string to cancel the redirect
      */
     public function onRedirect(string $location, int $status): string
     {
@@ -76,26 +94,46 @@ final class ToolbarSubscriber
 
         $this->collectProfile($status);
 
-        $toolbarHtml = $this->renderer->render();
+        // Always overwrite — only the last redirect matters
+        $this->pendingRedirect = [
+            'location' => $location,
+            'status' => $status,
+        ];
 
-        // Clear any existing output buffers
+        if (!$this->shutdownRegistered) {
+            $this->shutdownRegistered = true;
+            register_shutdown_function($this->renderRedirectPage(...));
+            ob_start();
+        }
+
+        // Return empty to cancel wp_redirect()'s Location header
+        return '';
+    }
+
+    private function renderRedirectPage(): void
+    {
+        if ($this->pendingRedirect === null) {
+            return;
+        }
+
         while (ob_get_level()) {
             ob_end_clean();
         }
 
-        http_response_code(200);
+        if (!headers_sent()) {
+            header_remove('Location');
+            http_response_code(200);
+        }
 
         $phpRenderer = $this->renderer->getPhpRenderer();
         echo $phpRenderer->render('redirect', [
-            'location' => $location,
-            'status' => $status,
+            'location' => $this->pendingRedirect['location'],
+            'status' => $this->pendingRedirect['status'],
             'requestMethod' => $_SERVER['REQUEST_METHOD'] ?? 'GET',
             'requestUri' => $_SERVER['REQUEST_URI'] ?? '/',
-            'toolbarHtml' => $toolbarHtml,
+            'toolbarHtml' => $this->renderer->render(),
             'cssVariables' => CssTheme::cssVariables(),
         ]);
-
-        exit;
     }
 
     private function collectProfile(int $statusCode): void
