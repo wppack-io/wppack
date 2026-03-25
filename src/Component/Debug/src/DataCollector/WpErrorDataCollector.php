@@ -239,8 +239,11 @@ final class WpErrorDataCollector extends AbstractDataCollector
         $siteUrl = site_url();
 
         if ($homeUrl !== $siteUrl) {
-            $homePath = rtrim((string) parse_url($homeUrl, \PHP_URL_PATH), '/');
-            $sitePath = rtrim((string) parse_url($siteUrl, \PHP_URL_PATH), '/');
+            $rawHomePath = parse_url($homeUrl, \PHP_URL_PATH);
+            $homePath = \is_string($rawHomePath) ? rtrim($rawHomePath, '/') : '';
+
+            $rawSitePath = parse_url($siteUrl, \PHP_URL_PATH);
+            $sitePath = \is_string($rawSitePath) ? rtrim($rawSitePath, '/') : '';
 
             if ($sitePath !== $homePath && str_starts_with($sitePath, $homePath)) {
                 $suffix = ltrim(substr($sitePath, \strlen($homePath)), '/') . '/';
