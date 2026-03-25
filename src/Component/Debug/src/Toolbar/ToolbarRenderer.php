@@ -164,7 +164,7 @@ final class ToolbarRenderer
 
         $unknownNames = array_values(array_filter(
             array_diff($collectorNames, $knownNames),
-            fn (string $name): bool => !$this->isDisabledByRenderer($name),
+            fn(string $name): bool => !$this->isDisabledByRenderer($name),
         ));
 
         // Build icon and label maps

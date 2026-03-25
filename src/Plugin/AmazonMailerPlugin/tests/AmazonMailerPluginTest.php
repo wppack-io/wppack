@@ -13,6 +13,7 @@ use WpPack\Component\Kernel\AbstractPlugin;
 use WpPack\Component\Kernel\PluginInterface;
 use WpPack\Component\Mailer\DependencyInjection\RegisterTransportFactoriesPass;
 use WpPack\Component\Mailer\Mailer;
+use WpPack\Component\Messenger\DependencyInjection\RegisterMessageHandlersPass;
 use WpPack\Plugin\AmazonMailerPlugin\AmazonMailerPlugin;
 
 #[CoversClass(AmazonMailerPlugin::class)]
@@ -36,10 +37,11 @@ final class AmazonMailerPluginTest extends TestCase
     {
         $passes = $this->plugin->getCompilerPasses();
 
-        self::assertCount(2, $passes);
+        self::assertCount(3, $passes);
 
         $classes = array_map(static fn(object $pass): string => $pass::class, $passes);
 
+        self::assertContains(RegisterMessageHandlersPass::class, $classes);
         self::assertContains(RegisterHookSubscribersPass::class, $classes);
         self::assertContains(RegisterTransportFactoriesPass::class, $classes);
     }
