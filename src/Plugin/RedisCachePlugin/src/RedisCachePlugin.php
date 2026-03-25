@@ -18,11 +18,12 @@ use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
 use WpPack\Component\Kernel\AbstractPlugin;
+use WpPack\Component\Kernel\ManagesDropin;
 use WpPack\Plugin\RedisCachePlugin\DependencyInjection\RedisCachePluginServiceProvider;
 
 final class RedisCachePlugin extends AbstractPlugin
 {
-    private const DROPIN_SIGNATURE = 'WpPack Object Cache Drop-in';
+    use ManagesDropin;
 
     private readonly RedisCachePluginServiceProvider $serviceProvider;
 
@@ -49,34 +50,22 @@ final class RedisCachePlugin extends AbstractPlugin
 
     public function onActivate(): void
     {
-        $destination = WP_CONTENT_DIR . '/object-cache.php';
-
-        if (file_exists($destination) || !is_writable(WP_CONTENT_DIR)) {
-            return;
-        }
-
-        $source = $this->resolveDropinSource();
-
-        if ($source === null || !file_exists($source)) {
-            return;
-        }
-
-        copy($source, $destination);
+        $this->installDropin();
     }
 
     public function onDeactivate(): void
     {
-        $destination = WP_CONTENT_DIR . '/object-cache.php';
+        $this->uninstallDropin();
+    }
 
-        if (!file_exists($destination) || !is_writable($destination)) {
-            return;
-        }
+    private function getDropinFilename(): string
+    {
+        return 'object-cache.php';
+    }
 
-        $header = file_get_contents($destination, false, null, 0, 512);
-
-        if ($header !== false && str_contains($header, self::DROPIN_SIGNATURE)) {
-            unlink($destination);
-        }
+    private function getDropinSignature(): string
+    {
+        return 'WpPack Object Cache Drop-in';
     }
 
     private function resolveDropinSource(): ?string

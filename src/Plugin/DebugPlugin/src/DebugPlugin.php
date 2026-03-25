@@ -26,12 +26,13 @@ use WpPack\Component\DependencyInjection\Container;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
 use WpPack\Component\Kernel\AbstractPlugin;
+use WpPack\Component\Kernel\ManagesDropin;
 use WpPack\Component\Logger\DependencyInjection\RegisterLoggerPass;
 use WpPack\Plugin\DebugPlugin\DependencyInjection\DebugPluginServiceProvider;
 
 final class DebugPlugin extends AbstractPlugin
 {
-    private const DROPIN_SIGNATURE = 'WpPack Fatal Error Handler Drop-in';
+    use ManagesDropin;
 
     private readonly DebugPluginServiceProvider $serviceProvider;
 
@@ -81,34 +82,22 @@ final class DebugPlugin extends AbstractPlugin
 
     public function onActivate(): void
     {
-        $destination = WP_CONTENT_DIR . '/fatal-error-handler.php';
-
-        if (file_exists($destination) || !is_writable(WP_CONTENT_DIR)) {
-            return;
-        }
-
-        $source = $this->resolveDropinSource();
-
-        if ($source === null || !file_exists($source)) {
-            return;
-        }
-
-        copy($source, $destination);
+        $this->installDropin();
     }
 
     public function onDeactivate(): void
     {
-        $destination = WP_CONTENT_DIR . '/fatal-error-handler.php';
+        $this->uninstallDropin();
+    }
 
-        if (!file_exists($destination) || !is_writable($destination)) {
-            return;
-        }
+    private function getDropinFilename(): string
+    {
+        return 'fatal-error-handler.php';
+    }
 
-        $header = file_get_contents($destination, false, null, 0, 512);
-
-        if ($header !== false && str_contains($header, self::DROPIN_SIGNATURE)) {
-            unlink($destination);
-        }
+    private function getDropinSignature(): string
+    {
+        return 'WpPack Fatal Error Handler Drop-in';
     }
 
     private function resolveDropinSource(): ?string
