@@ -150,7 +150,7 @@ $collectors[] = new FakeCollector('environment', 'Environment', '', 'default', [
     'server' => [
         'software' => $_SERVER['SERVER_SOFTWARE'] ?? '',
         'web_server' => PHP_SAPI === 'cli-server'
-            ? ['name' => 'PHP Built-in', 'version' => PHP_VERSION, 'raw' => 'PHP ' . PHP_VERSION . ' Development Server']
+            ? ['name' => 'PHP Built-in', 'version' => PHP_VERSION, 'raw' => 'PHP Built-in Server']
             : ['name' => '', 'version' => '', 'raw' => $_SERVER['SERVER_SOFTWARE'] ?? ''],
         'name' => $_SERVER['SERVER_NAME'] ?? '',
         'port' => $_SERVER['SERVER_PORT'] ?? '',

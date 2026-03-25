@@ -134,7 +134,7 @@ final class EnvironmentDataCollector extends AbstractDataCollector
     {
         // PHP built-in development server
         if (PHP_SAPI === 'cli-server') {
-            return ['name' => 'PHP Built-in', 'version' => PHP_VERSION, 'raw' => 'PHP ' . PHP_VERSION . ' Development Server'];
+            return ['name' => 'PHP Built-in', 'version' => PHP_VERSION, 'raw' => 'PHP Built-in Server'];
         }
 
         if ($software === '') {
