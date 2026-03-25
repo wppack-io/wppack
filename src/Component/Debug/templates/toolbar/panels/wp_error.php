@@ -42,9 +42,15 @@
 <?= $view->include('toolbar/partials/table-row', ['key' => 'Object ID', 'value' => '<span class="wpd-text-dim">#' . $view->e((string) $objectId) . '</span>']) ?>
 </table>
 <?php if (!empty($trace)): ?>
-<details style="margin-top:6px">
-<summary style="cursor:pointer;font-size:12px;color:var(--wpd-gray-600)">Stack Trace (<?= $view->e((string) count($trace)) ?> frames)</summary>
-<div style="margin-top:4px;font-size:11px;line-height:1.6;overflow-x:auto">
+<details class="wpd-trace-toggle">
+<summary>Stack Trace (<?= $view->e((string) count($trace)) ?> frames)</summary>
+<table class="wpd-table wpd-table-full wpd-trace-table">
+<thead><tr>
+<th class="wpd-col-num">#</th>
+<th>Function</th>
+<th>File</th>
+</tr></thead>
+<tbody>
 <?php foreach ($trace as $i => $frame):
     $frameClass = (string) ($frame['class'] ?? '');
     $frameType = (string) ($frame['type'] ?? '');
@@ -55,13 +61,14 @@
     $callable = $frameClass !== '' ? $frameClass . $frameType . $frameFunction : $frameFunction;
     $argsStr = implode(', ', $frameArgs);
     ?>
-<div style="padding:2px 0;border-bottom:1px solid var(--wpd-gray-200)">
-<span class="wpd-text-dim">#<?= $view->e((string) $i) ?></span>
-<strong><?= $view->e($callable) ?></strong>(<?= $view->e($argsStr) ?>)<?php if ($frameFile !== ''): ?>
- &mdash; <code style="font-size:11px"><?= $view->e($frameFile) ?><?php if ($frameLine > 0): ?>:<?= $view->e((string) $frameLine) ?><?php endif; ?></code><?php endif; ?>
-</div>
+<tr>
+<td class="wpd-col-num"><?= $view->e((string) $i) ?></td>
+<td><code><?= $view->e($callable) ?>(<?= $view->e($argsStr) ?>)</code></td>
+<td class="wpd-text-dim"><?php if ($frameFile !== ''): ?><code><?= $view->e($frameFile) ?><?php if ($frameLine > 0): ?>:<?= $view->e((string) $frameLine) ?><?php endif; ?></code><?php endif; ?></td>
+</tr>
 <?php endforeach; ?>
-</div>
+</tbody>
+</table>
 </details>
 <?php endif; ?>
 </div>

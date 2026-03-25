@@ -773,6 +773,26 @@ final class ToolbarAssets
         #wppack-debug .wpd-text-orange { color: var(--wpd-orange); }
         #wppack-debug .wpd-text-dim { color: var(--wpd-gray-400); }
 
+        /* ---- Stack trace toggle ---- */
+        #wppack-debug .wpd-trace-toggle {
+            margin-top: 8px;
+        }
+        #wppack-debug .wpd-trace-toggle > summary {
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--wpd-gray-600);
+            user-select: none;
+        }
+        #wppack-debug .wpd-trace-toggle > summary:hover {
+            color: var(--wpd-gray-800);
+        }
+        #wppack-debug .wpd-trace-table {
+            margin-top: 6px;
+        }
+        #wppack-debug .wpd-trace-table td code {
+            font-size: 12px;
+        }
+
         /* ---- Code blocks ---- */
         #wppack-debug code {
             font-family: var(--wpd-font-mono);
