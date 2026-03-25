@@ -25,6 +25,10 @@ component_management:
       name: Filesystem
       paths:
         - src/Component/Filesystem/src/**
+    - component_id: handler
+      name: Handler
+      paths:
+        - src/Component/Handler/src/**
     - component_id: kernel
       name: Kernel
       paths:

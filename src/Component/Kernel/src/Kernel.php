@@ -13,9 +13,13 @@ class Kernel
 {
     private static ?self $instance = null;
 
+    private static ?Request $pendingRequest = null;
+
     private readonly string $environment;
 
     private readonly bool $debug;
+
+    private ?Request $request = null;
 
     /** @var PluginInterface[] */
     private array $plugins = [];
@@ -40,6 +44,18 @@ class Kernel
         }
     }
 
+    /**
+     * Pre-configures the Kernel with a Request before WordPress loads.
+     *
+     * Called by Handler to pass the Request that will be used during boot().
+     * The Kernel is not instantiated here — WordPress functions are not
+     * available yet. The pending Request is picked up by getInstance().
+     */
+    public static function create(?Request $request = null): void
+    {
+        self::$pendingRequest = $request;
+    }
+
     public static function registerPlugin(PluginInterface $plugin): void
     {
         self::getInstance()->addPlugin($plugin);
@@ -55,7 +71,16 @@ class Kernel
 
     public static function getInstance(): self
     {
-        return self::$instance ??= new self();
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
+
+        if (self::$pendingRequest !== null) {
+            self::$instance->request = self::$pendingRequest;
+            self::$pendingRequest = null;
+        }
+
+        return self::$instance;
     }
 
     public function getEnvironment(): string
@@ -86,6 +111,7 @@ class Kernel
         remove_action('init', [self::class, 'autoBoot'], 0);
 
         self::$instance = null;
+        self::$pendingRequest = null;
     }
 
     public function addPlugin(PluginInterface $plugin): self
@@ -123,7 +149,7 @@ class Kernel
         $builder = new ContainerBuilder();
 
         // Register Request as a synthetic service
-        $request = Request::createFromGlobals();
+        $request = $this->request ?? Request::createFromGlobals();
         $builder->getSymfonyBuilder()
             ->register(Request::class, Request::class)
             ->setSynthetic(true)

@@ -1,0 +1,26 @@
+{
+    "name": "wppack/handler",
+    "description": "Modern PHP request handler for WordPress with intelligent routing and multi-platform support",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "psr/log": "^3.0",
+        "wppack/http-foundation": "^1.0",
+        "wppack/mime": "^1.0"
+    },
+    "suggest": {
+        "wppack/kernel": "For automatic Kernel initialization on WordPress requests"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpPack\\Component\\Handler\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Component\\Handler\\Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "stable"
+}

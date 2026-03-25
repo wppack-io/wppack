@@ -188,6 +188,93 @@ class Request
         return $uri;
     }
 
+    public function getQueryString(): ?string
+    {
+        $qs = $this->server->getString('QUERY_STRING');
+
+        if ($qs !== '') {
+            return $qs;
+        }
+
+        $uri = $this->server->getString('REQUEST_URI');
+        $queryPos = strpos($uri, '?');
+
+        if ($queryPos !== false) {
+            $qs = substr($uri, $queryPos + 1);
+
+            return $qs !== '' ? $qs : null;
+        }
+
+        return null;
+    }
+
+    /**
+     * Creates a Request from a URI string.
+     *
+     * Useful for testing or creating requests programmatically
+     * outside of an HTTP context.
+     *
+     * @param array<string, mixed> $parameters GET or POST parameters depending on method
+     * @param array<string, mixed> $cookies
+     * @param array<string, mixed> $files
+     * @param array<string, mixed> $server
+     */
+    public static function create(
+        string $uri,
+        string $method = 'GET',
+        array $parameters = [],
+        array $cookies = [],
+        array $files = [],
+        array $server = [],
+        ?string $content = null,
+    ): self {
+        $defaults = [
+            'SERVER_NAME' => 'localhost',
+            'SERVER_PORT' => 80,
+            'HTTP_HOST' => 'localhost',
+            'REQUEST_METHOD' => strtoupper($method),
+            'REQUEST_URI' => $uri,
+            'SCRIPT_NAME' => '',
+            'SCRIPT_FILENAME' => '',
+        ];
+
+        $components = parse_url($uri);
+
+        if (isset($components['host'])) {
+            $defaults['SERVER_NAME'] = $components['host'];
+            $defaults['HTTP_HOST'] = $components['host'];
+        }
+
+        if (isset($components['port'])) {
+            $defaults['SERVER_PORT'] = $components['port'];
+            $defaults['HTTP_HOST'] .= ':' . $components['port'];
+        }
+
+        if (isset($components['scheme']) && $components['scheme'] === 'https') {
+            $defaults['HTTPS'] = 'on';
+            $defaults['SERVER_PORT'] = $components['port'] ?? 443;
+        }
+
+        if (isset($components['query'])) {
+            $defaults['QUERY_STRING'] = $components['query'];
+            parse_str($components['query'], $queryParams);
+        } else {
+            $queryParams = [];
+        }
+
+        $server = array_merge($defaults, $server);
+
+        if (\in_array(strtoupper($method), ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+            $query = $queryParams;
+            $post = $parameters;
+        } else {
+            $query = array_merge($queryParams, $parameters);
+            $post = [];
+        }
+
+        return new self($query, $post, [], $cookies, $files, $server, $content);
+    }
+
     public function getScheme(): string
     {
         return $this->isSecure() ? 'https' : 'http';

@@ -1,0 +1,17 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Basic usage — minimal front controller.
+ *
+ * Place this file as web/index.php and point your web server here.
+ */
+
+use WpPack\Component\Handler\Handler;
+use WpPack\Component\HttpFoundation\Request;
+
+require dirname(__DIR__, 4) . '/vendor/autoload.php';
+
+$request = Request::createFromGlobals();
+(new Handler())->handle($request);

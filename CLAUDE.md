@@ -42,6 +42,7 @@ WordPress プラグインとして配布。Component を利用。
 ### Infrastructure Layer
 | Component | パッケージ名 | 説明 |
 |-----------|-------------|------|
+| Handler | wppack/handler | モダン PHP リクエストハンドラー（フロントコントローラー） |
 | Hook | wppack/hook | アトリビュートベースの WordPress フック（アクション/フィルター）管理 |
 | DependencyInjection | wppack/dependency-injection | PSR-11 準拠のサービスコンテナ、オートワイヤリング、設定管理 |
 | EventDispatcher | wppack/event-dispatcher | PSR-14 準拠のイベントシステム |
@@ -137,6 +138,11 @@ WordPress プラグインとして配布。Component を利用。
 ## 主要な依存関係
 
 ```
+wppack/handler
+    ↓ requires
+wppack/http-foundation, wppack/mime
+    + wppack/kernel (suggest)
+
 wppack/eventbridge-scheduler-plugin
     ↓ requires
 wppack/scheduler
@@ -456,6 +462,7 @@ remove_filter('pre_http_request', [$this, 'mockHttpResponse'], 10);
 wppack/
 ├── src/
 │   ├── Component/          # WordPress コンポーネント
+│   │   ├── Handler/       → wppack/handler
 │   │   ├── Hook/          → wppack/hook
 │   │   ├── Mailer/        → wppack/mailer
 │   │   ├── Messenger/     → wppack/messenger

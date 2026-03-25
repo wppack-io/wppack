@@ -22,7 +22,7 @@ vendor/bin/wp core install \
     --skip-email
 
 # 4. Start the development server
-php -S localhost:8080 -t web web/router.php
+php -S localhost:8080 -t web web/handler.php
 ```
 
 ## Access
@@ -36,7 +36,7 @@ php -S localhost:8080 -t web web/router.php
 |------|-------------|
 | `web/wp/` | WordPress core (installed by Composer, gitignored) |
 | `web/wp-config.php` | WordPress configuration (DB: `wppack_dev`) |
-| `web/router.php` | Router for PHP built-in server |
+| `web/handler.php` | Front controller (WpPack Handler) |
 | `web/wp-content/mu-plugins/` | Loads Composer autoloader |
 | `web/wp-content/plugins/` | Symlinks to `src/Plugin/*` |
 
