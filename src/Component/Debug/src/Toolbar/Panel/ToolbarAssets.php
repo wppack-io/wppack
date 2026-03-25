@@ -39,7 +39,6 @@ final class ToolbarAssets
             display: flex;
             align-items: center;
             background: var(--wpd-white);
-            border-top: 1px solid var(--wpd-gray-200);
             box-shadow: 0 -4px 12px rgba(0,0,0,0.08);
             height: 40px;
             width: 100%;
@@ -293,7 +292,7 @@ final class ToolbarAssets
             height: min(75vh, calc(100vh - 40px));
             display: flex;
             z-index: 1;
-            border-top: 1px solid var(--wpd-gray-200);
+            background: var(--wpd-white);
             box-shadow: 0 -6px 20px rgba(0,0,0,0.10);
         }
 
@@ -452,6 +451,13 @@ final class ToolbarAssets
         }
 
         /* ---- Tables ---- */
+        #wppack-debug .wpd-table-wrap {
+            overflow-x: auto;
+        }
+        #wppack-debug .wpd-table-wrap .wpd-table thead {
+            position: relative;
+            top: auto;
+        }
         #wppack-debug .wpd-table {
             width: 100%;
             border-collapse: collapse;
@@ -475,6 +481,11 @@ final class ToolbarAssets
         #wppack-debug .wpd-table tbody:first-child tr:first-child td {
             border-top: 1px solid var(--wpd-gray-200);
         }
+        #wppack-debug .wpd-table thead {
+            position: sticky;
+            top: -21px;
+            z-index: 1;
+        }
         #wppack-debug .wpd-table thead th {
             font-size: 11px;
             font-weight: 500;
@@ -482,9 +493,6 @@ final class ToolbarAssets
             text-transform: uppercase;
             letter-spacing: 0.3px;
             background: var(--wpd-gray-50);
-            position: sticky;
-            top: 0;
-            z-index: 1;
         }
         #wppack-debug .wpd-table-kv thead th {
             background: var(--wpd-white);
@@ -754,12 +762,15 @@ final class ToolbarAssets
         #wppack-debug .wpd-text-yellow { color: var(--wpd-yellow); }
         #wppack-debug .wpd-text-red { color: var(--wpd-red); }
         #wppack-debug .wpd-text-orange { color: var(--wpd-orange); }
-        #wppack-debug .wpd-text-dim { color: var(--wpd-gray-400); font-style: italic; }
+        #wppack-debug .wpd-text-dim { color: var(--wpd-gray-400); }
 
         /* ---- Code blocks ---- */
         #wppack-debug code {
             font-family: var(--wpd-font-mono);
             font-size: 12px;
+            padding: 0;
+            margin: 0;
+            background: none;
         }
 
         /* ---- Performance cards ---- */
@@ -1153,6 +1164,37 @@ final class ToolbarAssets
                 root.classList.add('wpd-minimized');
             }
 
+            // Wrap non-kv tables for horizontal scroll
+            root.querySelectorAll('.wpd-table:not(.wpd-table-kv)').forEach(function(table) {
+                var wrap = document.createElement('div');
+                wrap.className = 'wpd-table-wrap';
+                table.parentNode.insertBefore(wrap, table);
+                wrap.appendChild(table);
+            });
+
+            // Sticky thead simulation for wrapped tables
+            var contentBody = root.querySelector('.wpd-content-body');
+            if (contentBody) {
+                function updateStickyTheads() {
+                    var bodyRect = contentBody.getBoundingClientRect();
+                    var stickyTop = bodyRect.top;
+                    root.querySelectorAll('.wpd-table-wrap thead').forEach(function(thead) {
+                        var table = thead.closest('table');
+                        // Reset to measure natural position
+                        thead.style.transform = '';
+                        var theadRect = thead.getBoundingClientRect();
+                        var tableRect = table.getBoundingClientRect();
+                        var theadHeight = theadRect.height;
+                        // Stick when thead scrolls above content body top,
+                        // stop when table bottom reaches thead bottom
+                        if (theadRect.top < stickyTop && tableRect.bottom > stickyTop + theadHeight) {
+                            thead.style.transform = 'translateY(' + (stickyTop - theadRect.top - 1) + 'px)';
+                        }
+                    });
+                }
+                contentBody.addEventListener('scroll', updateStickyTheads);
+            }
+
             var overlay = root.querySelector('.wpd-overlay');
             var contentHeader = root.querySelector('.wpd-content-header .wpd-panel-title');
             var activePanel = null;
@@ -1473,8 +1515,9 @@ final class ToolbarAssets
                 ajaxCount++;
                 var tr = document.createElement('tr');
                 var statusColor = status >= 200 && status < 300 ? 'var(--wpd-green)' : (status >= 400 ? 'var(--wpd-red)' : 'var(--wpd-yellow)');
+                var mc = {GET:'green',POST:'primary',PUT:'yellow',PATCH:'yellow',DELETE:'red'}[method] || 'gray';
                 tr.innerHTML = '<td><code>' + action + '</code></td>'
-                    + '<td>' + method + '</td>'
+                    + '<td><span class="wpd-badge wpd-badge-' + mc + '">' + method + '</span></td>'
                     + '<td><span style="color:' + statusColor + '">' + status + '</span></td>'
                     + '<td class="wpd-col-right">' + duration.toFixed(0) + ' ms</td>'
                     + '<td class="wpd-col-right">' + (size > 0 ? (size > 1024 ? (size/1024).toFixed(1) + ' KB' : size + ' B') : '-') + '</td>';

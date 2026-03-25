@@ -70,6 +70,16 @@ final class ToolbarRenderer
         $this->panelRenderers[$renderer->getName()] = $renderer;
     }
 
+    /**
+     * Whether a named panel is disabled by its renderer.
+     */
+    private function isDisabledByRenderer(string $name): bool
+    {
+        $renderer = $this->panelRenderers[$name] ?? null;
+
+        return $renderer !== null && !$renderer->isEnabled();
+    }
+
     public function render(): string
     {
         $collectors = $this->profile->getCollectors();
@@ -142,6 +152,9 @@ final class ToolbarRenderer
         foreach (self::SIDEBAR_GROUPS as $group) {
             $visibleItems = [];
             foreach ($group as $name) {
+                if ($this->isDisabledByRenderer($name)) {
+                    continue;
+                }
                 if (\in_array($name, $collectorNames, true) || isset($this->panelRenderers[$name])) {
                     $visibleItems[] = $name;
                 }
@@ -149,7 +162,10 @@ final class ToolbarRenderer
             $groups[] = $visibleItems;
         }
 
-        $unknownNames = array_values(array_diff($collectorNames, $knownNames));
+        $unknownNames = array_values(array_filter(
+            array_diff($collectorNames, $knownNames),
+            fn (string $name): bool => !$this->isDisabledByRenderer($name),
+        ));
 
         // Build icon and label maps
         $allNames = array_merge($collectorNames, array_keys($this->panelRenderers));
@@ -179,13 +195,16 @@ final class ToolbarRenderer
         $knownNames = array_merge(...self::SIDEBAR_GROUPS);
         $orderedNames = [];
         foreach ($knownNames as $name) {
+            if ($this->isDisabledByRenderer($name)) {
+                continue;
+            }
             if (isset($collectors[$name]) || isset($this->panelRenderers[$name])) {
                 $orderedNames[] = $name;
             }
         }
         // Add unknown collectors at the end
         foreach ($collectors as $name => $collector) {
-            if (!\in_array($name, $orderedNames, true)) {
+            if (!\in_array($name, $orderedNames, true) && !$this->isDisabledByRenderer($name)) {
                 $orderedNames[] = $name;
             }
         }
@@ -222,7 +241,7 @@ final class ToolbarRenderer
 
         // Unknown collectors at the end (skip wordpress/environment — rendered separately in the bar)
         foreach ($collectors as $name => $collector) {
-            if ($name !== 'wordpress' && $name !== 'environment' && !\in_array($name, $rendered, true)) {
+            if ($name !== 'wordpress' && $name !== 'environment' && !\in_array($name, $rendered, true) && !$this->isDisabledByRenderer($name)) {
                 $indicators .= $this->renderIndicator($collector);
             }
         }

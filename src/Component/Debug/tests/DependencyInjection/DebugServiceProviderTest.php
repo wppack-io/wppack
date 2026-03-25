@@ -7,7 +7,6 @@ namespace WpPack\Component\Debug\Tests\DependencyInjection;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Debug\Adapter\DebugBarPanelAdapter;
-use WpPack\Component\Debug\Adapter\QueryMonitorCollectorAdapter;
 use WpPack\Component\Debug\DataCollector\AdminDataCollector;
 use WpPack\Component\Debug\DataCollector\AjaxDataCollector;
 use WpPack\Component\Debug\DataCollector\AssetDataCollector;
@@ -123,7 +122,6 @@ final class DebugServiceProviderTest extends TestCase
             SecurityDataCollector::class,
             MailDataCollector::class,
             EventDataCollector::class,
-            LoggerDataCollector::class,
             RouterDataCollector::class,
             HttpClientDataCollector::class,
             TranslationDataCollector::class,
@@ -166,7 +164,6 @@ final class DebugServiceProviderTest extends TestCase
             SecurityPanelRenderer::class,
             MailPanelRenderer::class,
             EventPanelRenderer::class,
-            LoggerPanelRenderer::class,
             RouterPanelRenderer::class,
             HttpClientPanelRenderer::class,
             TranslationPanelRenderer::class,
@@ -198,50 +195,55 @@ final class DebugServiceProviderTest extends TestCase
     }
 
     #[Test]
-    public function registerRegistersAdapters(): void
+    public function registerRegistersDebugBarAdapterWhenPluginActive(): void
     {
-        self::assertTrue(
-            $this->builder->hasDefinition(DebugBarPanelAdapter::class),
-            'DebugBarPanelAdapter should be registered.',
-        );
-        self::assertTrue(
-            $this->builder->hasDefinition(QueryMonitorCollectorAdapter::class),
-            'QueryMonitorCollectorAdapter should be registered.',
-        );
-
-        // Adapters should also be tagged as data collectors
-        $taggedIds = $this->builder->findTaggedServiceIds(RegisterDataCollectorsPass::TAG);
-
-        self::assertArrayHasKey(
-            DebugBarPanelAdapter::class,
-            $taggedIds,
-            'DebugBarPanelAdapter should be tagged as a data collector.',
-        );
-        self::assertArrayHasKey(
-            QueryMonitorCollectorAdapter::class,
-            $taggedIds,
-            'QueryMonitorCollectorAdapter should be tagged as a data collector.',
-        );
+        // Debug Bar adapter is only registered when Debug_Bar_Panel class exists
+        // In test environment it does not exist, so it should not be registered
+        if (class_exists(\Debug_Bar_Panel::class)) {
+            self::assertTrue(
+                $this->builder->hasDefinition(DebugBarPanelAdapter::class),
+                'DebugBarPanelAdapter should be registered when Debug Bar is active.',
+            );
+        } else {
+            self::assertFalse(
+                $this->builder->hasDefinition(DebugBarPanelAdapter::class),
+                'DebugBarPanelAdapter should not be registered when Debug Bar is inactive.',
+            );
+        }
     }
 
     #[Test]
-    public function registerRegistersDebugHandlerWhenLoggerComponentAvailable(): void
+    public function registerRegistersDebugHandlerWhenLoggerFactoryAvailable(): void
     {
-        // Logger\Handler\HandlerInterface exists in this project,
-        // so DebugHandler should always be registered
         if (!interface_exists(\WpPack\Component\Logger\Handler\HandlerInterface::class)) {
             self::markTestSkipped('Logger component HandlerInterface is not available.');
         }
 
+        // Re-register with LoggerFactory pre-registered
+        $builder = new ContainerBuilder();
+        $builder->register(\WpPack\Component\Logger\LoggerFactory::class);
+        $provider = new DebugServiceProvider();
+        $provider->register($builder);
+
         self::assertTrue(
-            $this->builder->hasDefinition(DebugHandler::class),
-            'DebugHandler should be registered when Logger HandlerInterface is available.',
+            $builder->hasDefinition(DebugHandler::class),
+            'DebugHandler should be registered when LoggerFactory service is available.',
         );
 
-        $definition = $this->builder->findDefinition(DebugHandler::class);
+        $definition = $builder->findDefinition(DebugHandler::class);
         self::assertTrue(
             $definition->isAutowired(),
             'DebugHandler should be autowired.',
+        );
+    }
+
+    #[Test]
+    public function registerSkipsLoggerIntegrationWhenLoggerFactoryMissing(): void
+    {
+        // Default builder has no LoggerFactory registered
+        self::assertFalse(
+            $this->builder->hasDefinition(DebugHandler::class),
+            'DebugHandler should not be registered when LoggerFactory service is missing.',
         );
     }
 

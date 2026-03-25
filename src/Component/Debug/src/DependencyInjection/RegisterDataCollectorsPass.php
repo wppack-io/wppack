@@ -6,6 +6,7 @@ namespace WpPack\Component\Debug\DependencyInjection;
 
 use WpPack\Component\Debug\Attribute\AsDataCollector;
 use WpPack\Component\Debug\Profiler\Profile;
+use WpPack\Component\Debug\Toolbar\ToolbarSubscriber;
 use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\Reference;
@@ -59,6 +60,16 @@ final class RegisterDataCollectorsPass implements CompilerPassInterface
         // Add each collector to Profile
         foreach ($collectors as $collector) {
             $profileDefinition->addMethodCall('addCollector', [new Reference($collector['id'])]);
+        }
+
+        // Inject collectors into ToolbarSubscriber
+        if ($builder->hasDefinition(ToolbarSubscriber::class)) {
+            $references = array_map(
+                static fn(array $c): Reference => new Reference($c['id']),
+                $collectors,
+            );
+            $builder->findDefinition(ToolbarSubscriber::class)
+                ->setArgument('$collectors', $references);
         }
     }
 }

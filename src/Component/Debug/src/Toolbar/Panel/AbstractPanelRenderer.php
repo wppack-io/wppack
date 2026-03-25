@@ -30,6 +30,11 @@ abstract class AbstractPanelRenderer
 
     abstract public function getName(): string;
 
+    public function isEnabled(): bool
+    {
+        return true;
+    }
+
     public function renderIndicator(): string
     {
         try {
