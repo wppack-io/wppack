@@ -13,19 +13,12 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Debug\Toolbar;
 
-use WpPack\Component\Debug\CssTheme;
 use WpPack\Component\Debug\DataCollector\DataCollectorInterface;
-use WpPack\Component\Debug\DataCollector\RequestDataCollector;
 use WpPack\Component\Debug\DebugConfig;
 use WpPack\Component\Debug\Profiler\Profile;
 
 final class ToolbarSubscriber
 {
-    /** @var array{location: string, status: int}|null */
-    private ?array $pendingRedirect = null;
-
-    private bool $shutdownRegistered = false;
-
     /**
      * @param iterable<DataCollectorInterface> $collectors
      */
@@ -44,7 +37,6 @@ final class ToolbarSubscriber
 
         add_action('wp_footer', $this->onFooter(...), 9999);
         add_action('admin_footer', $this->onFooter(...), 9999);
-        add_filter('wp_redirect', $this->onRedirect(...), \PHP_INT_MAX, 2);
     }
 
     public function onFooter(): void
@@ -56,84 +48,6 @@ final class ToolbarSubscriber
         $this->collectProfile(http_response_code() ?: 200);
 
         echo $this->renderer->render();
-    }
-
-    /**
-     * Intercept redirects to show a toolbar-equipped intermediate page.
-     *
-     * This allows inspecting WP_Error and other collected data that would
-     * otherwise be lost during POST → redirect → GET flows.
-     *
-     * We must NOT call exit() inside this filter. WordPress calls
-     * wp_redirect() even when post-redirect processing still needs to
-     * complete (e.g. plugin activation writes the active_plugins option
-     * after the redirect call). Calling exit here would abort that
-     * processing and cause fatal-error-like failures.
-     *
-     * Instead we store the redirect data and register a single shutdown
-     * function that renders the intermediate page once WordPress has
-     * finished. When wp_redirect() is called multiple times, only the
-     * last redirect is shown.
-     *
-     * @return string Empty string to cancel the redirect
-     */
-    public function onRedirect(string $location, int $status): string
-    {
-        if (!$this->config->shouldShowToolbar()) {
-            return $location;
-        }
-
-        // Inject redirect status into RequestDataCollector before collect(),
-        // because status_header has not fired yet at this point
-        foreach ($this->collectors as $collector) {
-            if ($collector instanceof RequestDataCollector) {
-                $collector->captureStatusCode('', $status);
-                break;
-            }
-        }
-
-        $this->collectProfile($status);
-
-        // Always overwrite — only the last redirect matters
-        $this->pendingRedirect = [
-            'location' => $location,
-            'status' => $status,
-        ];
-
-        if (!$this->shutdownRegistered) {
-            $this->shutdownRegistered = true;
-            register_shutdown_function($this->renderRedirectPage(...));
-            ob_start();
-        }
-
-        // Return empty to cancel wp_redirect()'s Location header
-        return '';
-    }
-
-    private function renderRedirectPage(): void
-    {
-        if ($this->pendingRedirect === null) {
-            return;
-        }
-
-        while (ob_get_level()) {
-            ob_end_clean();
-        }
-
-        if (!headers_sent()) {
-            header_remove('Location');
-            http_response_code(200);
-        }
-
-        $phpRenderer = $this->renderer->getPhpRenderer();
-        echo $phpRenderer->render('redirect', [
-            'location' => $this->pendingRedirect['location'],
-            'status' => $this->pendingRedirect['status'],
-            'requestMethod' => $_SERVER['REQUEST_METHOD'] ?? 'GET',
-            'requestUri' => $_SERVER['REQUEST_URI'] ?? '/',
-            'toolbarHtml' => $this->renderer->render(),
-            'cssVariables' => CssTheme::cssVariables(),
-        ]);
     }
 
     private function collectProfile(int $statusCode): void

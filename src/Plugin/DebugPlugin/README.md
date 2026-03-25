@@ -12,7 +12,7 @@ DebugPlugin is a thin wrapper around the Debug component:
 - **Toolbar rendering** is provided by `wppack/debug` (`ToolbarRenderer`, `ToolbarSubscriber`)
 - **Profiling** is provided by `wppack/debug` (`Profiler`, `Profile`)
 - **Fatal error handling** is provided by `wppack/debug` (`FatalErrorHandler`) via the `fatal-error-handler.php` drop-in
-- **Early exception handling** is provided by `wppack/debug` (`EarlyExceptionHandler`) via the same drop-in — catches uncaught exceptions before the DI container is available
+- **Early exception handling** is provided by `wppack/debug` (`ExceptionHandler` in lightweight mode) via the same drop-in — catches uncaught exceptions before the DI container is available
 - **DebugPlugin** provides only: plugin bootstrap, `DebugConfig` override (`enabled: true`, `showToolbar: true`), compiler pass registration, and drop-in management
 
 ## Installation
@@ -37,7 +37,7 @@ The toolbar is displayed for administrators accessing from localhost (`127.0.0.1
 
 On activation, the plugin copies `fatal-error-handler.php` to `wp-content/`. This drop-in provides two layers of error handling:
 
-1. **EarlyExceptionHandler** — registered via `set_exception_handler()` at drop-in load time. Catches uncaught exceptions thrown during plugin loading, DI container compilation, and `Kernel::boot()`. Once `DebugPlugin::boot()` runs, the full `ExceptionHandler` overwrites it, keeping `EarlyExceptionHandler` as the previous handler.
+1. **ExceptionHandler** — registered via `set_exception_handler()` at drop-in load time (without DI dependencies). Catches uncaught exceptions thrown during plugin loading, DI container compilation, and `Kernel::boot()`. Once `DebugPlugin::boot()` runs, the full `ExceptionHandler` (with DI dependencies) overwrites it, keeping the early instance as the previous handler.
 2. **FatalErrorHandler** — returned as the `WP_Fatal_Error_Handler` implementation. Catches fatal PHP errors (E_ERROR, E_PARSE, etc.) at shutdown.
 
 Both use the Debug component's `ErrorRenderer` for detailed error pages.

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Debug\DependencyInjection;
 
 use WpPack\Component\Debug\Attribute\AsDataCollector;
+use WpPack\Component\Debug\ErrorHandler\RedirectHandler;
 use WpPack\Component\Debug\Profiler\Profile;
 use WpPack\Component\Debug\Toolbar\ToolbarSubscriber;
 use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
@@ -71,13 +72,19 @@ final class RegisterDataCollectorsPass implements CompilerPassInterface
             $profileDefinition->addMethodCall('addCollector', [new Reference($collector['id'])]);
         }
 
-        // Inject collectors into ToolbarSubscriber
+        // Inject collectors into ToolbarSubscriber and RedirectHandler
+        $references = array_map(
+            static fn(array $c): Reference => new Reference($c['id']),
+            $collectors,
+        );
+
         if ($builder->hasDefinition(ToolbarSubscriber::class)) {
-            $references = array_map(
-                static fn(array $c): Reference => new Reference($c['id']),
-                $collectors,
-            );
             $builder->findDefinition(ToolbarSubscriber::class)
+                ->setArgument('$collectors', $references);
+        }
+
+        if ($builder->hasDefinition(RedirectHandler::class)) {
+            $builder->findDefinition(RedirectHandler::class)
                 ->setArgument('$collectors', $references);
         }
     }

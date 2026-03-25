@@ -19,15 +19,16 @@
  *
  * When active, this drop-in provides two layers of error handling:
  *
- * 1. EarlyExceptionHandler — registered via set_exception_handler() at drop-in
+ * 1. ExceptionHandler — registered via set_exception_handler() at drop-in
  *    load time (before plugins load). Catches uncaught exceptions during plugin
  *    loading, DI container compilation, and Kernel::boot().
  *
  * 2. FatalErrorHandler — returned as the WP_Fatal_Error_Handler implementation.
  *    Catches fatal PHP errors (E_ERROR, E_PARSE, etc.) at shutdown.
  *
- * Once DebugPlugin::boot() runs, the full ExceptionHandler overwrites
- * set_exception_handler(), keeping EarlyExceptionHandler as the previous handler.
+ * Once DebugPlugin::boot() runs, the full ExceptionHandler (with DI dependencies)
+ * overwrites set_exception_handler(), keeping the early instance as the previous
+ * handler.
  *
  * Activation logic:
  *   - WPPACK_DEBUG_ENABLED = false → disabled (kill switch, return null)
@@ -40,9 +41,10 @@
 declare(strict_types=1);
 
 use WpPack\Component\Debug\DataCollector\WpErrorDataCollector;
-use WpPack\Component\Debug\ErrorHandler\EarlyExceptionHandler;
 use WpPack\Component\Debug\ErrorHandler\ErrorRenderer;
+use WpPack\Component\Debug\ErrorHandler\ExceptionHandler;
 use WpPack\Component\Debug\ErrorHandler\FatalErrorHandler;
+use WpPack\Component\Debug\ErrorHandler\RedirectHandler;
 
 // Kill switch: define('WPPACK_DEBUG_ENABLED', false) to disable
 if (\defined('WPPACK_DEBUG_ENABLED') && !WPPACK_DEBUG_ENABLED) {
@@ -80,16 +82,20 @@ if (!class_exists(FatalErrorHandler::class)) {
     return null;
 }
 
-$earlyRenderer = new ErrorRenderer();
+$renderer = new ErrorRenderer();
 
-$earlyExceptionHandler = new EarlyExceptionHandler($earlyRenderer);
-$earlyExceptionHandler->register();
+$exceptionHandler = new ExceptionHandler($renderer);
+$exceptionHandler->register();
 
 // Register WP_Error data collector early so that all wp_error_added events
 // during the request are captured, including those before the DI container boots.
 // Also provides origin capture (WeakMap) for WpDieHandler.
+$redirectHandler = new RedirectHandler($renderer);
+$redirectHandler->register();
+$GLOBALS['_wppack_redirect_handler'] = $redirectHandler;
+
 $wpErrorCollector = new WpErrorDataCollector();
 $wpErrorCollector->register();
 $GLOBALS['_wppack_wp_error_collector'] = $wpErrorCollector;
 
-return new FatalErrorHandler($earlyRenderer);
+return new FatalErrorHandler($renderer);

@@ -24,7 +24,7 @@ final class ExceptionHandler
 
     public function __construct(
         private readonly ErrorRenderer $renderer,
-        private readonly DebugConfig $config,
+        private readonly ?DebugConfig $config = null,
         private readonly ?ToolbarRenderer $toolbarRenderer = null,
         private ?Profile $profile = null,
         private readonly ?LoggerInterface $logger = null,
@@ -45,7 +45,7 @@ final class ExceptionHandler
 
     public function handleException(\Throwable $e): void
     {
-        if (!$this->config->isAccessAllowed()) {
+        if ($this->config !== null && !$this->config->isAccessAllowed()) {
             if ($this->previousHandler !== null) {
                 ($this->previousHandler)($e);
                 return;
@@ -53,19 +53,23 @@ final class ExceptionHandler
             throw $e;
         }
 
+        // In early mode (no config), clean up output buffers that may
+        // contain partial output from the aborted request
+        if ($this->config === null) {
+            while (ob_get_level()) {
+                ob_end_clean();
+            }
+        }
+
         $flat = FlattenException::createFromThrowable($e);
 
-        // Set HTTP status before rendering — rendering may trigger PHP
-        // warnings that leak to output, which would make headers_sent() true.
         if (!headers_sent()) {
-            status_header($flat->getStatusCode());
+            http_response_code($flat->getStatusCode());
             header('Content-Type: text/html; charset=UTF-8');
         }
 
         $toolbarHtml = $this->renderToolbar($flat->getStatusCode());
-        $html = $this->renderer->render($flat, $toolbarHtml);
-
-        echo $html;
+        echo $this->renderer->render($flat, $toolbarHtml);
     }
 
     public function onRoutingException(\Throwable $e): void

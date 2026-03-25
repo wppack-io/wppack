@@ -18,6 +18,7 @@ use WpPack\Component\Debug\DependencyInjection\InjectContainerSnapshotPass;
 use WpPack\Component\Debug\DependencyInjection\RegisterDataCollectorsPass;
 use WpPack\Component\Debug\DependencyInjection\RegisterPanelRenderersPass;
 use WpPack\Component\Debug\ErrorHandler\ExceptionHandler;
+use WpPack\Component\Debug\ErrorHandler\RedirectHandler;
 use WpPack\Component\Debug\ErrorHandler\WpDieHandler;
 use WpPack\Component\Debug\Toolbar\ToolbarSubscriber;
 use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
@@ -64,6 +65,10 @@ final class DebugPlugin extends AbstractPlugin
         /** @var ToolbarSubscriber $toolbar */
         $toolbar = $container->get(ToolbarSubscriber::class);
         $toolbar->register();
+
+        /** @var RedirectHandler $redirectHandler */
+        $redirectHandler = $container->get(RedirectHandler::class);
+        $redirectHandler->register();
 
         /** @var ExceptionHandler $exceptionHandler */
         $exceptionHandler = $container->get(ExceptionHandler::class);

@@ -11,7 +11,7 @@ DebugPlugin は `wppack/debug` の薄いラッパーです:
 - **プロファイリング**: `wppack/debug` の `Profiler` / `Profile` が実行時間を計測
 - **エラーハンドラ**: `ExceptionHandler` / `WpDieHandler` がエラーを整形表示
 - **致命的エラーハンドラ**: `FatalErrorHandler` が `fatal-error-handler.php` ドロップイン経由で致命的エラーを整形表示
-- **早期例外ハンドラ**: `EarlyExceptionHandler` が同ドロップイン経由で DI コンテナ起動前の未キャッチ例外を整形表示
+- **早期例外ハンドラ**: `ExceptionHandler`（軽量モード）が同ドロップイン経由で DI コンテナ起動前の未キャッチ例外を整形表示
 - **DebugPlugin** はプラグインブートストラップ、`DebugConfig` のオーバーライド（`enabled: true`, `showToolbar: true`）、コンパイラーパス登録、ドロップイン管理を担当
 
 ## アーキテクチャ
@@ -19,7 +19,7 @@ DebugPlugin は `wppack/debug` の薄いラッパーです:
 ### パッケージ構成
 
 ```
-wppack/debug            ← デバッグ基盤（DataCollector, Profiler, Toolbar, ErrorHandler, FatalErrorHandler, EarlyExceptionHandler）
+wppack/debug            ← デバッグ基盤（DataCollector, Profiler, Toolbar, ErrorHandler, FatalErrorHandler, ExceptionHandler）
     ↑
 wppack/logger           ← PSR-3 ロガー（エラーハンドラのログ出力）
     ↑
@@ -69,7 +69,7 @@ define('WP_DEBUG', true);
 
 プラグイン有効化時に `fatal-error-handler.php` を `wp-content/` にコピーします。このドロップインは 2 層のエラーハンドリングを提供します:
 
-1. **`EarlyExceptionHandler`** — ドロップインロード時に `set_exception_handler()` で登録。プラグインロード中、DI コンテナコンパイル中、`Kernel::boot()` 内部等で発生する未キャッチ例外をキャッチ。`DebugPlugin::boot()` 後は `ExceptionHandler` が上書きし、`EarlyExceptionHandler` は previous handler として保持される
+1. **`ExceptionHandler`** — ドロップインロード時に `set_exception_handler()` で登録（DI 依存なしの軽量モード）。プラグインロード中、DI コンテナコンパイル中、`Kernel::boot()` 内部等で発生する未キャッチ例外をキャッチ。`DebugPlugin::boot()` 後は DI 依存注入済みの `ExceptionHandler` が上書きし、早期インスタンスは previous handler として保持される
 2. **`FatalErrorHandler`** — `WP_Fatal_Error_Handler` 実装として return。致命的な PHP エラー（`E_ERROR`, `E_PARSE` 等）をシャットダウン時にキャッチ
 
 両方とも `ErrorRenderer` による詳細なエラーページを表示します。
