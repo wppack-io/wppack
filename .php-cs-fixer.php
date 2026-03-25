@@ -28,7 +28,7 @@ file that was distributed with this source code.
 EOF,
             'comment_type' => 'comment',
             'location' => 'after_open',
-            'separate' => 'bottom',
+            'separate' => 'both',
         ],
     ])
     ->setFinder($finder);
