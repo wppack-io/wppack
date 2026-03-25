@@ -190,6 +190,14 @@ DI サービスプロバイダ。以下のサービスを登録します:
 2. ファイル先頭 512 バイトに `WpPack Object Cache Drop-in` シグネチャがあるか確認
 3. WpPack 製のドロップインのみ削除（他のプラグインのドロップインは保護）
 
+### 手動コピー
+
+プラグイン有効化フックを使わずにドロップインを配置する場合:
+
+```bash
+cp vendor/wppack/cache/drop-in/object-cache.php wp-content/object-cache.php
+```
+
 ## 圧縮
 
 `WPPACK_CACHE_COMPRESSION` で Redis に格納するデータの圧縮アルゴリズムを選択できます:

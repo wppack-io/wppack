@@ -15,3 +15,4 @@ composer.lock
 /web/wp-content/uploads/*
 !/web/wp-content/uploads/.gitkeep
 /web/wp-content/debug.log
+/web/wp-content/object-cache.php
