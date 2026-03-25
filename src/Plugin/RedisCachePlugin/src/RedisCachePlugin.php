@@ -51,10 +51,12 @@ final class RedisCachePlugin extends AbstractPlugin
     public function onActivate(): void
     {
         $this->installDropin();
+        wp_cache_flush();
     }
 
     public function onDeactivate(): void
     {
+        wp_cache_flush();
         $this->uninstallDropin();
     }
 
