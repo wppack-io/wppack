@@ -458,7 +458,11 @@ final class ExceptionHandlerTest extends TestCase
                 ->with(self::stringContains('failed during toolbar rendering'));
 
             $handler = new ExceptionHandler(
-                new ErrorRenderer(), $config, $toolbarRenderer, $profile, $logger,
+                new ErrorRenderer(),
+                $config,
+                $toolbarRenderer,
+                $profile,
+                $logger,
             );
 
             ob_start();

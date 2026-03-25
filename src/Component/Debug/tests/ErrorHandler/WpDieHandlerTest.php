@@ -676,7 +676,11 @@ final class WpDieHandlerTest extends TestCase
                 ->with(self::stringContains('failed during toolbar rendering'));
 
             $handler = new WpDieHandler(
-                new ErrorRenderer(), $config, $toolbarRenderer, $profile, $logger,
+                new ErrorRenderer(),
+                $config,
+                $toolbarRenderer,
+                $profile,
+                $logger,
             );
             $handler->registerHtmlHandler('_default_wp_die_handler');
 
