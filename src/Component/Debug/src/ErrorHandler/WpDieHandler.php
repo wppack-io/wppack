@@ -16,6 +16,7 @@ namespace WpPack\Component\Debug\ErrorHandler;
 use Psr\Log\LoggerInterface;
 use WpPack\Component\Debug\DebugConfig;
 use WpPack\Component\Debug\Profiler\Profile;
+use WpPack\Component\Debug\DataCollector\WpErrorDataCollector;
 use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
 
 /**
@@ -39,7 +40,7 @@ final class WpDieHandler
         private readonly ?ToolbarRenderer $toolbarRenderer = null,
         private ?Profile $profile = null,
         private readonly ?LoggerInterface $logger = null,
-        private readonly ?WpErrorOriginCapture $wpErrorOriginCapture = null,
+        private readonly ?WpErrorDataCollector $wpErrorDataCollector = null,
     ) {}
 
     public function setProfile(Profile $profile): void
@@ -202,7 +203,7 @@ final class WpDieHandler
                 wpErrorCodes: $wpErrorCodes,
                 wpErrorData: $wpErrorData,
             );
-            $wpErrorOrigin = $this->wpErrorOriginCapture?->get($message);
+            $wpErrorOrigin = $this->wpErrorDataCollector?->getOrigin($message);
         } else {
             $messageText = $message;
         }

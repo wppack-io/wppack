@@ -28,7 +28,7 @@ final class ToolbarRenderer
     private const INDICATOR_ORDER = [
         'plugin', 'theme',
         'performance',
-        'request', 'router', 'rest', 'ajax', 'http_client',
+        'request', 'router', 'rest', 'ajax', 'http_client', 'wp_error',
         'stopwatch', 'memory', 'database', 'cache',
         'event', 'security', 'logger', 'container',
         'asset', 'widget', 'shortcode', 'admin',
@@ -40,7 +40,7 @@ final class ToolbarRenderer
     private const SIDEBAR_GROUPS = [
         ['wordpress', 'plugin', 'theme'],
         ['performance'],
-        ['request', 'router', 'rest', 'ajax', 'http_client'],
+        ['request', 'router', 'rest', 'ajax', 'http_client', 'wp_error'],
         ['stopwatch', 'memory', 'database', 'cache'],
         ['event', 'security', 'logger', 'container'],
         ['asset', 'widget', 'shortcode', 'admin'],

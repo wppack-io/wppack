@@ -39,10 +39,10 @@
 
 declare(strict_types=1);
 
+use WpPack\Component\Debug\DataCollector\WpErrorDataCollector;
 use WpPack\Component\Debug\ErrorHandler\EarlyExceptionHandler;
 use WpPack\Component\Debug\ErrorHandler\ErrorRenderer;
 use WpPack\Component\Debug\ErrorHandler\FatalErrorHandler;
-use WpPack\Component\Debug\ErrorHandler\WpErrorOriginCapture;
 
 // Kill switch: define('WPPACK_DEBUG_ENABLED', false) to disable
 if (\defined('WPPACK_DEBUG_ENABLED') && !WPPACK_DEBUG_ENABLED) {
@@ -85,10 +85,11 @@ $earlyRenderer = new ErrorRenderer();
 $earlyExceptionHandler = new EarlyExceptionHandler($earlyRenderer);
 $earlyExceptionHandler->register();
 
-// Register WP_Error origin capture early so that WP_Error objects created
-// before the DI container boots (e.g. during theme validation) are tracked.
-$wpErrorOriginCapture = new WpErrorOriginCapture();
-$wpErrorOriginCapture->register();
-$GLOBALS['_wppack_wp_error_origin_capture'] = $wpErrorOriginCapture;
+// Register WP_Error data collector early so that all wp_error_added events
+// during the request are captured, including those before the DI container boots.
+// Also provides origin capture (WeakMap) for WpDieHandler.
+$wpErrorCollector = new WpErrorDataCollector();
+$wpErrorCollector->register();
+$GLOBALS['_wppack_wp_error_collector'] = $wpErrorCollector;
 
 return new FatalErrorHandler($earlyRenderer);

@@ -33,6 +33,8 @@ final class ToolbarIcons
         'wordpress' => '<circle cx="12" cy="12" r="10"/><path d="M5.5 7.5 8 17.5l4-8 4 8 2.5-10"/>',
         // mail
         'mail' => '<path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/>',
+        // triangle-alert
+        'wp_error' => '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
         // zap (lightning bolt — event dispatch)
         'event' => '<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>',
         // file-text

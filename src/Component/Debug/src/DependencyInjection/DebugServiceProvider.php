@@ -21,6 +21,7 @@ use WpPack\Component\Debug\DataCollector\EventDataCollector;
 use WpPack\Component\Debug\DataCollector\HttpClientDataCollector;
 use WpPack\Component\Debug\DataCollector\LoggerDataCollector;
 use WpPack\Component\Debug\DataCollector\MailDataCollector;
+use WpPack\Component\Debug\DataCollector\WpErrorDataCollector;
 use WpPack\Component\Debug\Handler\DebugHandler;
 use WpPack\Component\Debug\DataCollector\MemoryDataCollector;
 use WpPack\Component\Debug\DataCollector\PluginDataCollector;
@@ -45,7 +46,6 @@ use WpPack\Component\Debug\DebugConfig;
 use WpPack\Component\Debug\ErrorHandler\ErrorRenderer;
 use WpPack\Component\Debug\ErrorHandler\ExceptionHandler;
 use WpPack\Component\Debug\ErrorHandler\WpDieHandler;
-use WpPack\Component\Debug\ErrorHandler\WpErrorOriginCapture;
 use WpPack\Component\Debug\Profiler\Profile;
 use WpPack\Component\Debug\Profiler\Profiler;
 use WpPack\Component\Stopwatch\Stopwatch;
@@ -57,6 +57,7 @@ use WpPack\Component\Debug\Toolbar\Panel\EventPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\HttpClientPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\LoggerPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\MailPanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\WpErrorPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\MemoryPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\PerformancePanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\PluginPanelRenderer;
@@ -102,8 +103,6 @@ final class DebugServiceProvider implements ServiceProviderInterface
         $builder->register(ToolbarRenderer::class)->autowire();
         $builder->register(ErrorRenderer::class)->autowire();
         $builder->register(ExceptionHandler::class)->autowire();
-        $builder->register(WpErrorOriginCapture::class)
-            ->setFactory([WpErrorOriginCapture::class, 'fromGlobal']);
         $builder->register(WpDieHandler::class)->autowire();
         $builder->register(ToolbarSubscriber::class)->autowire();
 
@@ -116,6 +115,10 @@ final class DebugServiceProvider implements ServiceProviderInterface
         $builder->register(WordPressDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
         $builder->register(SecurityDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
         $builder->register(MailDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
+        $builder->register(WpErrorDataCollector::class)
+            ->setFactory([WpErrorDataCollector::class, 'fromGlobal'])
+            ->addMethodCall('register')
+            ->addTag(RegisterDataCollectorsPass::TAG);
         $builder->register(EventDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
         $builder->register(RouterDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
         $builder->register(HttpClientDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
@@ -170,6 +173,7 @@ final class DebugServiceProvider implements ServiceProviderInterface
         $builder->register(WordPressPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
         $builder->register(SecurityPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
         $builder->register(MailPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
+        $builder->register(WpErrorPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
         $builder->register(EventPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
         $builder->register(RouterPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
         $builder->register(HttpClientPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
