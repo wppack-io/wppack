@@ -131,6 +131,8 @@ WordPress プラグインとして配布。Component を利用。
 | EventBridgeSchedulerPlugin | wppack/eventbridge-scheduler-plugin | EventBridge スケジューラープラグイン |
 | S3StoragePlugin | wppack/s3-storage-plugin | S3 ストレージプラグイン |
 | AmazonMailerPlugin | wppack/amazon-mailer-plugin | Amazon SES メーラープラグイン |
+| DebugPlugin | wppack/debug-plugin | デバッグツールバープラグイン |
+| RedisCachePlugin | wppack/redis-cache-plugin | Redis キャッシュプラグイン |
 
 ## 主要な依存関係
 
@@ -215,6 +217,11 @@ wppack/amazon-mailer-plugin
     ↓ requires
 wppack/amazon-mailer, wppack/mailer, wppack/hook
     + wppack/dependency-injection, wppack/kernel, wppack/messenger
+
+wppack/redis-cache-plugin
+    ↓ requires
+wppack/cache, wppack/redis-cache, wppack/elasticache-auth, wppack/hook
+    + wppack/dependency-injection, wppack/kernel
 
 wppack/security
     ↓ requires

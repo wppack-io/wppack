@@ -308,3 +308,11 @@ component_management:
       name: AmazonMailerPlugin
       paths:
         - src/Plugin/AmazonMailerPlugin/src/**
+    - component_id: debug_plugin
+      name: DebugPlugin
+      paths:
+        - src/Plugin/DebugPlugin/src/**
+    - component_id: redis_cache_plugin
+      name: RedisCachePlugin
+      paths:
+        - src/Plugin/RedisCachePlugin/src/**

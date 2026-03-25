@@ -107,6 +107,8 @@
             "WpPack\\Component\\Cache\\Bridge\\Memcached\\": "src/Component/Cache/Bridge/Memcached/src/",
             "WpPack\\Component\\Cache\\Bridge\\Apcu\\": "src/Component/Cache/Bridge/Apcu/src/",
             "WpPack\\Plugin\\AmazonMailerPlugin\\": "src/Plugin/AmazonMailerPlugin/src/",
+            "WpPack\\Plugin\\DebugPlugin\\": "src/Plugin/DebugPlugin/src/",
+            "WpPack\\Plugin\\RedisCachePlugin\\": "src/Plugin/RedisCachePlugin/src/",
             "WpPack\\Component\\Security\\Bridge\\SAML\\": "src/Component/Security/Bridge/SAML/src/",
             "WpPack\\Component\\Security\\Bridge\\OAuth\\": "src/Component/Security/Bridge/OAuth/src/",
             "WpPack\\Component\\Messenger\\Bridge\\Sqs\\": "src/Component/Messenger/Bridge/Sqs/src/",
@@ -194,7 +196,9 @@
             "WpPack\\Component\\Site\\Tests\\": "src/Component/Site/tests/",
             "WpPack\\Component\\Asset\\Tests\\": "src/Component/Asset/tests/",
             "WpPack\\Plugin\\S3StoragePlugin\\Tests\\": "src/Plugin/S3StoragePlugin/tests/",
-            "WpPack\\Plugin\\AmazonMailerPlugin\\Tests\\": "src/Plugin/AmazonMailerPlugin/tests/"
+            "WpPack\\Plugin\\AmazonMailerPlugin\\Tests\\": "src/Plugin/AmazonMailerPlugin/tests/",
+            "WpPack\\Plugin\\DebugPlugin\\Tests\\": "src/Plugin/DebugPlugin/tests/",
+            "WpPack\\Plugin\\RedisCachePlugin\\Tests\\": "src/Plugin/RedisCachePlugin/tests/"
         }
     },
     "replace": {
@@ -252,6 +256,8 @@
         "wppack/azure-mailer": "self.version",
         "wppack/sendgrid-mailer": "self.version",
         "wppack/amazon-mailer-plugin": "self.version",
+        "wppack/debug-plugin": "self.version",
+        "wppack/redis-cache-plugin": "self.version",
         "wppack/monolog-logger": "self.version",
         "wppack/redis-cache": "self.version",
         "wppack/dynamodb-cache": "self.version",
