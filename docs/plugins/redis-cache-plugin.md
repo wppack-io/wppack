@@ -97,6 +97,7 @@ define('WPPACK_CACHE_MAX_TTL', 86400);             // 最大 TTL（秒）
 define('WPPACK_CACHE_HASH_ALLOPTIONS', true);      // alloptions を Redis HASH で管理
 define('WPPACK_CACHE_ASYNC_FLUSH', true);           // DEL の代わりに UNLINK を使用
 define('WPPACK_CACHE_COMPRESSION', 'zstd');         // 圧縮: 'none', 'zstd', 'lz4', 'lzf'
+define('WPPACK_CACHE_ENABLED', false);              // ドロップイン無効化（キルスイッチ）
 ```
 
 ### DSN フォーマット
@@ -203,6 +204,21 @@ cp vendor/wppack/cache/drop-in/object-cache.php wp-content/object-cache.php
 2. ファイル先頭 512 バイトに `WpPack Object Cache Drop-in` シグネチャがあるか確認
 3. WpPack 製のドロップインのみ削除（他のプラグインのドロップインは保護）
 4. 読み取り専用ファイルシステムではスキップ
+
+### キルスイッチ（WPPACK_CACHE_ENABLED）
+
+Lambda 等の読み取り専用ファイルシステムでは、プラグイン無効化時にドロップインファイルを削除できません。`WPPACK_CACHE_DSN` が定義済みのままドロップインが残ると、プラグインが無効なのに Redis 接続を試みてしまいます。
+
+`WPPACK_CACHE_ENABLED` を `false` に設定すると、ドロップインは外部キャッシュへの接続を一切行わず、インメモリフォールバック（`ObjectCache(null)`）で動作します:
+
+```php
+// wp-config.php
+define('WPPACK_CACHE_ENABLED', false);
+```
+
+- `WPPACK_CACHE_ENABLED` 未定義 → 通常動作（既存の挙動に影響なし）
+- `WPPACK_CACHE_ENABLED` = `true` → 通常動作
+- `WPPACK_CACHE_ENABLED` = `false` → インメモリフォールバック（Redis 接続なし）
 
 ## 圧縮
 

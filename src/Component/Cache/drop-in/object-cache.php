@@ -12,6 +12,7 @@
  *   define('WPPACK_CACHE_OPTIONS', ['timeout' => 5]);  // optional
  *   define('WPPACK_CACHE_COMPRESSION', 'zstd');         // optional, 'none' (default), 'zstd', 'lz4', 'lzf'
  *   define('WPPACK_CACHE_ASYNC_FLUSH', true);           // optional, default false — use UNLINK instead of DEL
+ *   define('WPPACK_CACHE_ENABLED', false);              // optional, disable drop-in (kill switch)
  *
  * @package wppack/cache
  */
@@ -54,6 +55,13 @@ use WpPack\Component\Cache\Strategy\SiteOptionsHashStrategy;
  */
 function wp_cache_init(): void
 {
+    // Kill switch: define('WPPACK_CACHE_ENABLED', false) to disable
+    if (\defined('WPPACK_CACHE_ENABLED') && !WPPACK_CACHE_ENABLED) {
+        $GLOBALS['wp_object_cache'] = new ObjectCache(null);
+
+        return;
+    }
+
     $adapter = null;
 
     if (\defined('WPPACK_CACHE_DSN') && WPPACK_CACHE_DSN !== '') {

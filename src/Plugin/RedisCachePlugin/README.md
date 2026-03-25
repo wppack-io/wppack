@@ -40,6 +40,7 @@ define('WPPACK_CACHE_MAX_TTL', 86400);             // Max TTL in seconds
 define('WPPACK_CACHE_HASH_ALLOPTIONS', true);      // Use Redis HASH for alloptions
 define('WPPACK_CACHE_ASYNC_FLUSH', true);           // Use UNLINK instead of DEL
 define('WPPACK_CACHE_COMPRESSION', 'zstd');         // 'none', 'zstd', 'lz4', 'lzf'
+define('WPPACK_CACHE_ENABLED', false);              // Disable drop-in (kill switch)
 ```
 
 ### ElastiCache IAM Authentication
@@ -59,6 +60,14 @@ Amazon ElastiCache Valkey is supported with the `valkeys://` scheme:
 
 ```php
 define('WPPACK_CACHE_DSN', 'valkeys://clustername.cache.amazonaws.com:6379?iam_auth=1&iam_region=ap-northeast-1');
+```
+
+### Kill Switch
+
+On read-only filesystems (Lambda, containers), the drop-in cannot be deleted on plugin deactivation. Set `WPPACK_CACHE_ENABLED` to `false` to disable external cache connections without removing the file:
+
+```php
+define('WPPACK_CACHE_ENABLED', false); // Falls back to in-memory cache
 ```
 
 ## Drop-in Management
