@@ -23,18 +23,20 @@
         "azure-oss/storage": "^1.0",
         "dragonmantank/cron-expression": "^3.0",
         "firebase/php-jwt": "^7.0",
-        "google/cloud-storage": "^1.30",
         "friendsofphp/php-cs-fixer": "^3.68",
+        "google/cloud-storage": "^1.30",
         "monolog/monolog": "^3.10",
         "onelogin/php-saml": "^4.0",
         "phpstan/phpstan": "^2.1",
         "phpstan/phpstan-phpunit": "^2.0",
         "phpunit/phpunit": "^11.5",
         "predis/predis": "^2.0",
-        "roots/wordpress-no-content": "^6.9",
+        "roots/wordpress": "^6.9",
         "szepeviktor/phpstan-wordpress": "^2.0",
         "twig/twig": "^3.0",
         "woocommerce/action-scheduler": "^3.7",
+        "wp-cli/core-command": "^2.1",
+        "wp-cli/db-command": "^2.1",
         "wp-cli/wp-cli": "^2.11",
         "wp-phpunit/wp-phpunit": "^6.9",
         "yoast/phpunit-polyfills": "^4.0"
@@ -271,7 +273,24 @@
         "wppack/asset": "self.version"
     },
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "roots/wordpress-core-installer": true
+        }
+    },
+    "extra": {
+        "wordpress-install-dir": "web/wp",
+        "installer-paths": {
+            "web/wp-content/mu-plugins/{$name}/": [
+                "type:wordpress-muplugin"
+            ],
+            "web/wp-content/plugins/{$name}/": [
+                "type:wordpress-plugin"
+            ],
+            "web/wp-content/themes/{$name}/": [
+                "type:wordpress-theme"
+            ]
+        }
     },
     "minimum-stability": "stable"
 }
