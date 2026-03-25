@@ -31,12 +31,13 @@ use WpPack\Component\Cache\Strategy\SiteOptionsHashStrategy;
 // Wrapped in an IIFE to avoid leaking variables into the global scope.
 (static function (): void {
     $candidates = [
-        // Bedrock / standard vendor in project root
-        \dirname(ABSPATH) . '/vendor/autoload.php',
+        // Plugin standalone install
+        WP_CONTENT_DIR . '/plugins/wppack-redis-cache/vendor/autoload.php',
+        WP_CONTENT_DIR . '/mu-plugins/wppack-redis-cache/vendor/autoload.php',
         // Standard WordPress layout
         ABSPATH . 'vendor/autoload.php',
-        // wp-content vendor
-        WP_CONTENT_DIR . '/vendor/autoload.php',
+        // Bedrock / project root
+        \dirname(ABSPATH) . '/vendor/autoload.php',
     ];
 
     foreach ($candidates as $autoload) {
