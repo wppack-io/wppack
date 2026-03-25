@@ -404,4 +404,33 @@ final class KernelTest extends TestCase
         self::assertTrue($container->has(Request::class));
         self::assertInstanceOf(Request::class, $container->get(Request::class));
     }
+
+    #[Test]
+    public function createReturnsKernelInstance(): void
+    {
+        $kernel = Kernel::create();
+
+        self::assertInstanceOf(Kernel::class, $kernel);
+    }
+
+    #[Test]
+    public function createStoresRequest(): void
+    {
+        $request = Request::create('/test');
+        $kernel = Kernel::create($request);
+
+        $kernel->addPlugin(new TestPlugin());
+        $container = $kernel->boot();
+
+        self::assertSame($request, $container->get(Request::class));
+    }
+
+    #[Test]
+    public function createReturnsSameInstance(): void
+    {
+        $first = Kernel::create();
+        $second = Kernel::create();
+
+        self::assertSame($first, $second);
+    }
 }

@@ -21,12 +21,13 @@ The Handler operates in a unique execution context: it runs **before** WordPress
       │  ├─ PhpFileProcessor
       │  └─ WordPressProcessor         ← Sets SCRIPT_FILENAME to WP index.php
       ├─ preparePhpEnvironment()       ← Sets $_SERVER variables
-      ├─ Kernel::create($request)      ← Stores Request for later (optional)
+      ├─ Kernel::create($request)      ← Kernel instance created + Request stored (pre-WP)
       └─ require $wpFile               ← WordPress loads HERE
          └─ wp-settings.php
             ├─ plugins_loaded          ← Kernel::registerPlugin() called
+            │                             (autoBoot hook registered on first addPlugin/addTheme)
             ├─ wp_magic_quotes()       ← Superglobals modified
-            └─ init                    ← Kernel::autoBoot() → boot()
+            └─ init (priority 0)       ← Kernel::autoBoot() → boot()
                └─ Uses stored Request (not createFromGlobals)
 ```
 

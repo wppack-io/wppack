@@ -13,11 +13,9 @@ class Kernel
 {
     private static ?self $instance = null;
 
-    private static ?Request $pendingRequest = null;
+    private ?string $environment;
 
-    private readonly string $environment;
-
-    private readonly bool $debug;
+    private ?bool $debug;
 
     private ?Request $request = null;
 
@@ -31,29 +29,42 @@ class Kernel
 
     private ?Container $container = null;
 
+    private bool $autoBootPending = false;
+
     public function __construct(
         ?string $environment = null,
         ?bool $debug = null,
         bool $autoBoot = true,
     ) {
-        $this->environment = $environment ?? wp_get_environment_type();
-        $this->debug = $debug ?? (\defined('WP_DEBUG') && WP_DEBUG);
+        $this->environment = $environment;
+        $this->debug = $debug;
 
         if ($autoBoot) {
-            add_action('init', [self::class, 'autoBoot'], 0);
+            if (\function_exists('add_action')) {
+                add_action('init', [self::class, 'autoBoot'], 0);
+            } else {
+                $this->autoBootPending = true;
+            }
         }
     }
 
     /**
-     * Pre-configures the Kernel with a Request before WordPress loads.
+     * Creates (or returns) the shared Kernel instance.
      *
-     * Called by Handler to pass the Request that will be used during boot().
-     * The Kernel is not instantiated here — WordPress functions are not
-     * available yet. The pending Request is picked up by getInstance().
+     * Safe to call before WordPress loads — environment and debug
+     * values are resolved lazily on first access.
      */
-    public static function create(?Request $request = null): void
+    public static function create(?Request $request = null): self
     {
-        self::$pendingRequest = $request;
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
+
+        if ($request !== null) {
+            self::$instance->request = $request;
+        }
+
+        return self::$instance;
     }
 
     public static function registerPlugin(PluginInterface $plugin): void
@@ -71,26 +82,17 @@ class Kernel
 
     public static function getInstance(): self
     {
-        if (self::$instance === null) {
-            self::$instance = new self();
-        }
-
-        if (self::$pendingRequest !== null) {
-            self::$instance->request = self::$pendingRequest;
-            self::$pendingRequest = null;
-        }
-
-        return self::$instance;
+        return self::$instance ??= new self();
     }
 
     public function getEnvironment(): string
     {
-        return $this->environment;
+        return $this->environment ??= wp_get_environment_type();
     }
 
     public function isDebug(): bool
     {
-        return $this->debug;
+        return $this->debug ??= (\defined('WP_DEBUG') && WP_DEBUG);
     }
 
     /**
@@ -108,10 +110,11 @@ class Kernel
      */
     public static function resetInstance(): void
     {
-        remove_action('init', [self::class, 'autoBoot'], 0);
+        if (\function_exists('remove_action')) {
+            remove_action('init', [self::class, 'autoBoot'], 0);
+        }
 
         self::$instance = null;
-        self::$pendingRequest = null;
     }
 
     public function addPlugin(PluginInterface $plugin): self
@@ -123,6 +126,8 @@ class Kernel
         if (!in_array($plugin, $this->plugins, true)) {
             $this->plugins[] = $plugin;
         }
+
+        $this->flushAutoBootPending();
 
         return $this;
     }
@@ -137,7 +142,17 @@ class Kernel
             $this->themes[] = $theme;
         }
 
+        $this->flushAutoBootPending();
+
         return $this;
+    }
+
+    private function flushAutoBootPending(): void
+    {
+        if ($this->autoBootPending) {
+            $this->autoBootPending = false;
+            add_action('init', [self::class, 'autoBoot'], 0);
+        }
     }
 
     public function boot(): Container
