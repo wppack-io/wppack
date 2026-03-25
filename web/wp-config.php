@@ -21,6 +21,9 @@ define('DB_CHARSET', 'utf8');
 define('DB_COLLATE', '');
 $table_prefix = 'wpdev_';
 
+// Redis (Valkey) object cache
+define('WPPACK_CACHE_DSN', 'redis://127.0.0.1:6379');
+
 define('WP_DEBUG', true);
 define('WP_DEBUG_LOG', true);
 define('WP_DEBUG_DISPLAY', true);
