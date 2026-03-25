@@ -173,17 +173,16 @@ class MyPanelRenderer extends AbstractPanelRenderer
 
 The `RegisterPanelRenderersPass` compiler pass auto-discovers classes tagged with `#[AsPanelRenderer]`.
 
-## Error Handler
+## Error Handlers
 
-The `ExceptionHandler` renders a styled error page with:
+The Debug component provides four error handlers:
 
-- Exception class, message, and source location
-- Syntax-highlighted code snippet around the error line
-- Full stack trace with expandable code context per frame
-- Previous exception chain
-- Request, environment, and performance tabs
+- **`ExceptionHandler`** — Intercepts uncaught exceptions via `set_exception_handler()` and renders a styled error page with exception details, syntax-highlighted code snippets, full stack trace, previous exception chain, and request/environment/performance tabs. Falls back to the previous exception handler when debug mode is off.
+- **`WpDieHandler`** — Intercepts `wp_die()` via `wp_die_handler` / `wp_die_ajax_handler` / `wp_die_json_handler` filters and renders context-appropriate error pages (HTML, Ajax, JSON). Extracts the original call site from the backtrace for accurate file/line display.
+- **`RedirectHandler`** — Intercepts redirects via `wp_redirect` filter and renders an intermediate page with profiling data. Uses a shutdown function to display the page after WordPress cancels the redirect. In full-boot mode, includes the debug toolbar.
+- **`FatalErrorHandler`** — Implements `WP_Fatal_Error_Handler` to catch fatal PHP errors (E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR) at shutdown.
 
-The handler respects `DebugConfig::isEnabled()` and falls back to the previous exception handler when debug mode is off.
+All handlers use a unified architecture with nullable DI dependencies, allowing them to operate in two modes: lightweight (early boot via drop-in, without DI) and full (after `DebugPlugin::boot()`, with DI-injected dependencies including toolbar rendering).
 
 ## Adapters
 

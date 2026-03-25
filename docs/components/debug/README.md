@@ -323,9 +323,11 @@ DataCollector → Profile → PanelRenderer → ToolbarRenderer → HTML
 
 ## エラーハンドラー
 
-### 美麗なエラーページ
+Debug コンポーネントは 4 つのエラーハンドラーを提供します。すべてのハンドラーは「統一アーキテクチャ」を採用しており、DI 依存をコンストラクタで nullable にすることで、ドロップインによる早期登録（DI なし軽量モード）と `DebugPlugin::boot()` による DI 版置換の両方に対応します。
 
-`WP_DEBUG` 有効時、例外発生時にダークテーマの HTML エラーページを表示:
+### ExceptionHandler
+
+`set_exception_handler()` で未キャッチ例外をインターセプトし、ダークテーマの HTML エラーページを表示:
 
 1. 例外クラス名 + メッセージ + ファイル:行
 2. コードスニペット（エラー行ハイライト、±10行コンテキスト）
@@ -352,6 +354,39 @@ add_action('wppack_routing_exception', [$handler, 'onRoutingException']);
 ```
 
 本番環境（`isEnabled() === false`）では WordPress デフォルトに委譲。
+
+### WpDieHandler
+
+`wp_die_handler` / `wp_die_ajax_handler` / `wp_die_json_handler` フィルタで `wp_die()` をインターセプトし、コンテキストに応じた 3 つのハンドラバリアントで整形表示:
+
+- **HTML ハンドラ** — 美麗なエラーページ（ExceptionHandler と同じ UI）をレンダリング
+- **Ajax ハンドラ** — JSON レスポンスで返却
+- **JSON ハンドラ** — JSON レスポンスで返却
+
+`wp_die()` の呼び出し元をバックトレースから特定し、正確なファイル:行をエラーページに表示します。`WP_Error` が渡された場合はエラーコード・データも収集します。
+
+### RedirectHandler
+
+`wp_redirect` フィルタ（priority: `PHP_INT_MAX`）でリダイレクトをインターセプトし、プロファイルデータ付きの中間ページを表示:
+
+- shutdown function ベースで中間ページをレンダリング
+- DI 版（フルブート後）ではツールバー付きの中間ページを表示
+- 軽量モード（ドロップイン経由、DI なし）ではツールバーなしのシンプルな中間ページを表示
+- POST → redirect → GET パターンでのリクエストプロファイリングに有用
+
+### FatalErrorHandler
+
+`WP_Fatal_Error_Handler` インターフェースの実装。致命的な PHP エラー（`E_ERROR`, `E_PARSE`, `E_CORE_ERROR`, `E_COMPILE_ERROR`, `E_USER_ERROR`）をシャットダウン時にキャッチし、`ErrorRenderer` で整形表示します。`fatal-error-handler.php` ドロップインから return されることで WordPress に登録されます。
+
+### ドロップインによる二段階アーキテクチャ
+
+`fatal-error-handler.php` ドロップインは、DI コンテナ起動前（WordPress の `mu-plugins` ロード前）に以下を早期登録します:
+
+1. **ExceptionHandler**（軽量モード） — `set_exception_handler()` で登録
+2. **RedirectHandler**（軽量モード） — `wp_redirect` フィルタで登録
+3. **FatalErrorHandler** — `WP_Fatal_Error_Handler` として return
+
+`DebugPlugin::boot()` 実行後、DI コンテナから取得した完全版のハンドラーが `register()` で上書きします。これにより、プラグインロード中や DI コンテナコンパイル中の例外・リダイレクトもキャッチできます。
 
 ### FlattenException
 
@@ -386,7 +421,7 @@ $flat->getChain();      // Previous exception チェーン
 
 ### ToolbarSubscriber
 
-WordPress フックと統合して自動表示:
+WordPress フックと統合して自動表示。`wp_footer` / `admin_footer`（priority: 9999）にフックし、ページ下部にツールバーをレンダリングします:
 
 ```php
 use WpPack\Component\Debug\DebugConfig;
@@ -401,9 +436,11 @@ $subscriber = new ToolbarSubscriber(
     collectors: $collectors,  // iterable<DataCollectorInterface>
 );
 
-// wp_footer (priority: 9999) にフック
+// wp_footer / admin_footer (priority: 9999) にフック
 $subscriber->register();
 ```
+
+リダイレクト処理は `RedirectHandler` が担当します（`wp_redirect` フィルタ経由）。
 
 ## アダプター（サードパーティ拡張統合）
 

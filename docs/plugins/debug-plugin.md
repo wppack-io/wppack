@@ -10,8 +10,10 @@ DebugPlugin は `wppack/debug` の薄いラッパーです:
 - **ツールバー描画**: `wppack/debug` の `ToolbarRenderer` / `ToolbarSubscriber` がページ下部にツールバーを出力
 - **プロファイリング**: `wppack/debug` の `Profiler` / `Profile` が実行時間を計測
 - **エラーハンドラ**: `ExceptionHandler` / `WpDieHandler` がエラーを整形表示
+- **リダイレクトハンドラ**: `RedirectHandler` が POST → redirect → GET フローでツールバー付き中間ページを表示
 - **致命的エラーハンドラ**: `FatalErrorHandler` が `fatal-error-handler.php` ドロップイン経由で致命的エラーを整形表示
 - **早期例外ハンドラ**: `ExceptionHandler`（軽量モード）が同ドロップイン経由で DI コンテナ起動前の未キャッチ例外を整形表示
+- **早期リダイレクトハンドラ**: `RedirectHandler`（軽量モード）が同ドロップイン経由で DI コンテナ起動前のリダイレクトもインターセプト
 - **DebugPlugin** はプラグインブートストラップ、`DebugConfig` のオーバーライド（`enabled: true`, `showToolbar: true`）、コンパイラーパス登録、ドロップイン管理を担当
 
 ## アーキテクチャ
@@ -67,10 +69,11 @@ define('WP_DEBUG', true);
 
 ### Fatal Error Handler ドロップイン
 
-プラグイン有効化時に `fatal-error-handler.php` を `wp-content/` にコピーします。このドロップインは 2 層のエラーハンドリングを提供します:
+プラグイン有効化時に `fatal-error-handler.php` を `wp-content/` にコピーします。このドロップインは 3 つのサービスを早期登録します:
 
 1. **`ExceptionHandler`** — ドロップインロード時に `set_exception_handler()` で登録（DI 依存なしの軽量モード）。プラグインロード中、DI コンテナコンパイル中、`Kernel::boot()` 内部等で発生する未キャッチ例外をキャッチ。`DebugPlugin::boot()` 後は DI 依存注入済みの `ExceptionHandler` が上書きし、早期インスタンスは previous handler として保持される
-2. **`FatalErrorHandler`** — `WP_Fatal_Error_Handler` 実装として return。致命的な PHP エラー（`E_ERROR`, `E_PARSE` 等）をシャットダウン時にキャッチ
+2. **`RedirectHandler`** — `wp_redirect` フィルタでリダイレクトをインターセプト（DI 依存なしの軽量モード、ツールバーなし）。`DebugPlugin::boot()` 後は DI 依存注入済みの `RedirectHandler` が上書き
+3. **`FatalErrorHandler`** — `WP_Fatal_Error_Handler` 実装として return。致命的な PHP エラー（`E_ERROR`, `E_PARSE` 等）をシャットダウン時にキャッチ
 
 両方とも `ErrorRenderer` による詳細なエラーページを表示します。
 
@@ -139,7 +142,8 @@ final class DebugPlugin extends AbstractPlugin
 
 `boot()` で以下のサービスを起動します:
 
-- `ToolbarSubscriber::register()` — `shutdown` フックでツールバーを出力
+- `ToolbarSubscriber::register()` — `wp_footer` / `admin_footer` フックでツールバーを出力
+- `RedirectHandler::register()` — `wp_redirect` フィルタでリダイレクトをインターセプトし中間ページを表示
 - `ExceptionHandler::register()` — `set_exception_handler()` で例外を整形表示
 - `WpDieHandler::register()` — `wp_die_handler` フィルタでエラーを整形表示
 
