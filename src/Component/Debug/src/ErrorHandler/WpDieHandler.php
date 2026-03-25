@@ -24,18 +24,14 @@ final class WpDieHandler
     /** @var callable|string|null */
     private mixed $previousJsonHandler = null;
 
-    /** @var \WeakMap<\WP_Error, array{file: string, line: int, args: list<mixed>}> */
-    private \WeakMap $wpErrorOrigins;
-
     public function __construct(
         private readonly ErrorRenderer $renderer,
         private readonly DebugConfig $config,
         private readonly ?ToolbarRenderer $toolbarRenderer = null,
         private ?Profile $profile = null,
         private readonly ?LoggerInterface $logger = null,
-    ) {
-        $this->wpErrorOrigins = new \WeakMap();
-    }
+        private readonly ?WpErrorOriginCapture $wpErrorOriginCapture = null,
+    ) {}
 
     public function setProfile(Profile $profile): void
     {
@@ -47,7 +43,6 @@ final class WpDieHandler
         add_filter('wp_die_handler', $this->registerHtmlHandler(...), \PHP_INT_MAX);
         add_filter('wp_die_ajax_handler', $this->registerAjaxHandler(...), \PHP_INT_MAX);
         add_filter('wp_die_json_handler', $this->registerJsonHandler(...), \PHP_INT_MAX);
-        add_action('wp_error_added', $this->captureWpErrorOrigin(...), \PHP_INT_MAX, 4);
     }
 
     /**
@@ -198,7 +193,7 @@ final class WpDieHandler
                 wpErrorCodes: $wpErrorCodes,
                 wpErrorData: $wpErrorData,
             );
-            $wpErrorOrigin = $this->wpErrorOrigins[$message] ?? null;
+            $wpErrorOrigin = $this->wpErrorOriginCapture?->get($message);
         } else {
             $messageText = $message;
         }
@@ -342,38 +337,6 @@ final class WpDieHandler
 
         if (($args['exit'] ?? true) !== false) {
             exit; // @codeCoverageIgnore
-        }
-    }
-
-    /**
-     * Capture the creation site of a WP_Error via the wp_error_added action.
-     *
-     * Only records the first error code added (i.e. the __construct call).
-     */
-    public function captureWpErrorOrigin(string|int $code, string $message, mixed $data, \WP_Error $wpError): void
-    {
-        if (isset($this->wpErrorOrigins[$wpError])) {
-            return;
-        }
-
-        $backtrace = debug_backtrace(0, 10);
-
-        // The WP_Error::__construct frame's file/line points to
-        // where "new WP_Error(...)" was called in user code
-        foreach ($backtrace as $frame) {
-            if (
-                ($frame['class'] ?? '') === \WP_Error::class
-                && $frame['function'] === '__construct'
-                && isset($frame['file'], $frame['line'])
-            ) {
-                $this->wpErrorOrigins[$wpError] = [
-                    'file' => $frame['file'],
-                    'line' => $frame['line'],
-                    'args' => $frame['args'] ?? [],
-                ];
-
-                return;
-            }
         }
     }
 

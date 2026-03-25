@@ -36,6 +36,7 @@ use WpPack\Component\Debug\DebugConfig;
 use WpPack\Component\Debug\ErrorHandler\ErrorRenderer;
 use WpPack\Component\Debug\ErrorHandler\ExceptionHandler;
 use WpPack\Component\Debug\ErrorHandler\WpDieHandler;
+use WpPack\Component\Debug\ErrorHandler\WpErrorOriginCapture;
 use WpPack\Component\Debug\Profiler\Profile;
 use WpPack\Component\Debug\Profiler\Profiler;
 use WpPack\Component\Stopwatch\Stopwatch;
@@ -92,6 +93,8 @@ final class DebugServiceProvider implements ServiceProviderInterface
         $builder->register(ToolbarRenderer::class)->autowire();
         $builder->register(ErrorRenderer::class)->autowire();
         $builder->register(ExceptionHandler::class)->autowire();
+        $builder->register(WpErrorOriginCapture::class)
+            ->setFactory([WpErrorOriginCapture::class, 'fromGlobal']);
         $builder->register(WpDieHandler::class)->autowire();
         $builder->register(ToolbarSubscriber::class)->autowire();
 
