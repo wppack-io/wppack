@@ -40,13 +40,17 @@ final class RedisCachePlugin extends AbstractPlugin
 
     public function onActivate(): void
     {
+        $destination = WP_CONTENT_DIR . '/object-cache.php';
+
+        if (file_exists($destination) || !is_writable(WP_CONTENT_DIR)) {
+            return;
+        }
+
         $source = $this->resolveDropinSource();
 
         if ($source === null || !file_exists($source)) {
             return;
         }
-
-        $destination = WP_CONTENT_DIR . '/object-cache.php';
 
         copy($source, $destination);
     }
@@ -55,7 +59,7 @@ final class RedisCachePlugin extends AbstractPlugin
     {
         $destination = WP_CONTENT_DIR . '/object-cache.php';
 
-        if (!file_exists($destination)) {
+        if (!file_exists($destination) || !is_writable($destination)) {
             return;
         }
 

@@ -178,25 +178,31 @@ DI サービスプロバイダ。以下のサービスを登録します:
 
 ## ドロップイン管理
 
-### 有効化時（onActivate）
+`wp-content/object-cache.php` ドロップインは Redis バックエンドの動作に必須です。
 
-1. `InstalledVersions::getInstallPath('wppack/cache')` でソースパスを検出
-2. モノレポ環境では `dirname(__DIR__, 3) . '/Component/Cache'` にフォールバック
-3. `drop-in/object-cache.php` を `WP_CONTENT_DIR/object-cache.php` にコピー
+### 配置方法
 
-### 無効化時（onDeactivate）
+#### 1. プラグイン有効化（通常環境）
 
-1. `WP_CONTENT_DIR/object-cache.php` が存在するか確認
-2. ファイル先頭 512 バイトに `WpPack Object Cache Drop-in` シグネチャがあるか確認
-3. WpPack 製のドロップインのみ削除（他のプラグインのドロップインは保護）
+WordPress 管理画面でプラグインを有効化すると、`onActivate()` が `object-cache.php` を `wp-content/` に自動コピーします。
 
-### 手動コピー
+- 既にドロップインが存在する場合はスキップ（他プラグインのドロップインを上書きしない）
+- `wp-content/` が書き込み不可の場合はサイレントスキップ
 
-プラグイン有効化フックを使わずにドロップインを配置する場合:
+#### 2. ビルドステップで配置（CI/CD・Lambda 等）
+
+Lambda やコンテナ等の読み取り専用ファイルシステム環境では、デプロイアーティファクトにドロップインを含めます:
 
 ```bash
 cp vendor/wppack/cache/drop-in/object-cache.php wp-content/object-cache.php
 ```
+
+### 無効化時（onDeactivate）
+
+1. `WP_CONTENT_DIR/object-cache.php` が存在し、書き込み可能か確認
+2. ファイル先頭 512 バイトに `WpPack Object Cache Drop-in` シグネチャがあるか確認
+3. WpPack 製のドロップインのみ削除（他のプラグインのドロップインは保護）
+4. 読み取り専用ファイルシステムではスキップ
 
 ## 圧縮
 
