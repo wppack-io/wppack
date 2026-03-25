@@ -21,5 +21,8 @@
         "psr-4": {
             "WpPack\\Plugin\\RedisCachePlugin\\Tests\\": "tests/"
         }
+    },
+    "extra": {
+        "installer-name": "wppack-redis-cache"
     }
 }

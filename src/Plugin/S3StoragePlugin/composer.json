@@ -30,5 +30,8 @@
         "psr-4": {
             "WpPack\\Plugin\\S3StoragePlugin\\Tests\\": "tests/"
         }
+    },
+    "extra": {
+        "installer-name": "wppack-s3-storage"
     }
 }
