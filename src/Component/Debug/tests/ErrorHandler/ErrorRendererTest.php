@@ -199,12 +199,17 @@ final class ErrorRendererTest extends TestCase
     #[Test]
     public function shortenPathWithAbspath(): void
     {
-        // ABSPATH is defined by WordPress in the test environment
+        // ABSPATH is defined by WordPress in the test environment.
+        // When WP_HOME ≠ WP_SITEURL (subdirectory install), the base path
+        // is the document root, not ABSPATH. Use resolveBasePath() result
+        // to build the expected value.
+        $basePath = (new \ReflectionMethod($this->renderer, 'resolveBasePath'))->invoke($this->renderer);
         $path = ABSPATH . 'wp-content/plugins/my-plugin/file.php';
 
         $result = $this->renderer->shortenPath($path);
 
-        self::assertSame('wp-content/plugins/my-plugin/file.php', $result);
+        $expected = substr($path, \strlen($basePath));
+        self::assertSame($expected, $result);
     }
 
     #[Test]

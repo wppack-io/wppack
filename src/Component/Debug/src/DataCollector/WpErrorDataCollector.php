@@ -214,8 +214,9 @@ final class WpErrorDataCollector extends AbstractDataCollector
             return '';
         }
 
-        if (\defined('ABSPATH') && str_starts_with($path, ABSPATH)) {
-            return substr($path, \strlen(ABSPATH));
+        $basePath = $this->resolveBasePath();
+        if ($basePath !== '' && str_starts_with($path, $basePath)) {
+            return substr($path, \strlen($basePath));
         }
 
         $vendorPos = strpos($path, '/vendor/');
@@ -224,6 +225,33 @@ final class WpErrorDataCollector extends AbstractDataCollector
         }
 
         return $path;
+    }
+
+    private function resolveBasePath(): string
+    {
+        if (!\defined('ABSPATH')) {
+            return '';
+        }
+
+        // When WP core lives in a subdirectory (home_url ≠ site_url),
+        // use the document root (where home_url points) as the base path.
+        $homeUrl = home_url();
+        $siteUrl = site_url();
+
+        if ($homeUrl !== $siteUrl) {
+            $homePath = rtrim((string) parse_url($homeUrl, \PHP_URL_PATH), '/');
+            $sitePath = rtrim((string) parse_url($siteUrl, \PHP_URL_PATH), '/');
+
+            if ($sitePath !== $homePath && str_starts_with($sitePath, $homePath)) {
+                $suffix = ltrim(substr($sitePath, \strlen($homePath)), '/') . '/';
+
+                if (str_ends_with(ABSPATH, $suffix)) {
+                    return substr(ABSPATH, 0, -\strlen($suffix));
+                }
+            }
+        }
+
+        return ABSPATH;
     }
 
     /**
