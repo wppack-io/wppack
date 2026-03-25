@@ -29,7 +29,7 @@ wppack/redis-cache-plugin   ← WordPress 統合（ドロップイン管理, 設
 
 ```
 src/Plugin/RedisCachePlugin/
-├── redis-cache-plugin.php                        ← Bootstrap（Kernel::registerPlugin）
+├── wppack-redis-cache.php                        ← Bootstrap（Kernel::registerPlugin）
 ├── src/
 │   ├── RedisCachePlugin.php                      ← PluginInterface 実装
 │   ├── Configuration/

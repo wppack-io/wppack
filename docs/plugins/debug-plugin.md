@@ -30,7 +30,7 @@ wppack/debug-plugin     ← WordPress 統合（ブートストラップ, 設定,
 
 ```
 src/Plugin/DebugPlugin/
-├── debug-plugin.php                              ← Bootstrap（Kernel::registerPlugin）
+├── wppack-debug.php                              ← Bootstrap（Kernel::registerPlugin）
 ├── src/
 │   ├── DebugPlugin.php                           ← PluginInterface 実装
 │   └── DependencyInjection/

@@ -1,4 +1,12 @@
 <?php
+/*
+ * This file is part of the WpPack package.
+ *
+ * (c) Tsuyoshi Tsurushima
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
 declare(strict_types=1);
 
@@ -22,7 +30,7 @@ final class AdminAssetSubscriberTest extends TestCase
         $policy = new UploadPolicy(allowedMimeTypes: []);
         $restRegistry = new \WpPack\Component\Rest\RestRegistry($this->createMock(\WpPack\Component\HttpFoundation\Request::class));
         $subscriber = new AdminAssetSubscriber(
-            pluginUrl: plugin_dir_url(__DIR__ . '/../../s3-storage-plugin.php'),
+            pluginUrl: plugin_dir_url(__DIR__ . '/../../wppack-s3-storage.php'),
             policy: $policy,
             asset: new AssetManager(),
             nonce: new NonceManager(),
@@ -38,7 +46,7 @@ final class AdminAssetSubscriberTest extends TestCase
         $policy = new UploadPolicy(allowedMimeTypes: []);
         $restRegistry = new \WpPack\Component\Rest\RestRegistry($this->createMock(\WpPack\Component\HttpFoundation\Request::class));
         $subscriber = new AdminAssetSubscriber(
-            pluginUrl: plugin_dir_url(__DIR__ . '/../../s3-storage-plugin.php'),
+            pluginUrl: plugin_dir_url(__DIR__ . '/../../wppack-s3-storage.php'),
             policy: $policy,
             asset: new AssetManager(),
             nonce: new NonceManager(),

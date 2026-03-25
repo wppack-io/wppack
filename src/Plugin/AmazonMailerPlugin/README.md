@@ -20,7 +20,7 @@ composer require wppack/amazon-mailer-plugin
 
 AmazonMailerPlugin implements `PluginInterface` and bootstraps via `Kernel::registerPlugin()`:
 
-1. **Bootstrap** (`amazon-mailer-plugin.php`) registers the plugin with the Kernel
+1. **Bootstrap** (`wppack-amazon-mailer.php`) registers the plugin with the Kernel
 2. **ServiceProvider** registers Mailer, Transport, and Handler services in the DI container
 3. **`Mailer::boot()`** registers the `wp_mail` filter, replacing the global `$phpmailer` with an SES-backed transport
 4. **Handlers** process bounce/complaint notifications from SES via SNS → SQS → Messenger
