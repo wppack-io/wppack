@@ -20,4 +20,13 @@ $config = new Configuration([
 ]);
 
 $request = Request::createFromGlobals();
-(new Handler($config))->handle($request);
+$handler = new Handler($config);
+
+try {
+    $filePath = $handler->resolve($request);
+    if ($filePath !== null) {
+        require $filePath;
+    }
+} catch (\Exception $e) {
+    $handler->handleException($e);
+}

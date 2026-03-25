@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the WpPack package.
  *
@@ -45,30 +46,37 @@ class Handler implements HandlerInterface
         $this->initializeProcessors();
     }
 
-    public function handle(Request $request): void
+    public function resolve(Request $request): ?string
     {
         $this->environment->setup();
-
         $request = $this->prepareRequest($request);
 
+        $request = $this->processRequest($request);
+        if ($request === null) {
+            return null;
+        }
+
+        $filePath = $this->preparePhpEnvironment($request);
+        if ($filePath === null) {
+            $this->sendNotFoundResponse();
+
+            return null;
+        }
+
+        if (class_exists(Kernel::class)) {
+            Kernel::create($request);
+        }
+
+        return $filePath;
+    }
+
+    public function handle(Request $request): void
+    {
         try {
-            $request = $this->processRequest($request);
-            if ($request === null) {
-                return;
+            $filePath = $this->resolve($request);
+            if ($filePath !== null) {
+                require $filePath;
             }
-
-            $filePath = $this->preparePhpEnvironment($request);
-            if ($filePath === null) {
-                $this->sendNotFoundResponse();
-
-                return;
-            }
-
-            if (class_exists(Kernel::class)) {
-                Kernel::create($request);
-            }
-
-            require $filePath;
         } catch (\Exception $e) {
             $this->handleException($e);
         }
@@ -123,7 +131,7 @@ class Handler implements HandlerInterface
         (new Response('Not Found', 404))->send();
     }
 
-    private function handleException(\Exception $e): void
+    public function handleException(\Exception $e): void
     {
         if ($e instanceof SecurityException) {
             (new Response($e->getMessage(), 403))->send();
