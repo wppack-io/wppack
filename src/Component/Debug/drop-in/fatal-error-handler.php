@@ -30,6 +30,10 @@
 
 declare(strict_types=1);
 
+use WpPack\Component\Debug\ErrorHandler\EarlyExceptionHandler;
+use WpPack\Component\Debug\ErrorHandler\ErrorRenderer;
+use WpPack\Component\Debug\ErrorHandler\FatalErrorHandler;
+
 // Kill switch: define('WPPACK_DEBUG_ENABLED', false) to disable
 if (\defined('WPPACK_DEBUG_ENABLED') && !WPPACK_DEBUG_ENABLED) {
     return null;
@@ -62,13 +66,13 @@ if (!\defined('WP_DEBUG') || !WP_DEBUG) {
     }
 })();
 
-if (!class_exists(\WpPack\Component\Debug\ErrorHandler\FatalErrorHandler::class)) {
+if (!class_exists(FatalErrorHandler::class)) {
     return null;
 }
 
-$earlyRenderer = new \WpPack\Component\Debug\ErrorHandler\ErrorRenderer();
+$earlyRenderer = new ErrorRenderer();
 
-$earlyExceptionHandler = new \WpPack\Component\Debug\ErrorHandler\EarlyExceptionHandler($earlyRenderer);
+$earlyExceptionHandler = new EarlyExceptionHandler($earlyRenderer);
 $earlyExceptionHandler->register();
 
-return new \WpPack\Component\Debug\ErrorHandler\FatalErrorHandler($earlyRenderer);
+return new FatalErrorHandler($earlyRenderer);
