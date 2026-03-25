@@ -76,7 +76,7 @@ final class ToolbarSubscriber
         http_response_code(200);
 
         $phpRenderer = $this->renderer->getPhpRenderer();
-        echo $phpRenderer->render('toolbar/redirect', [
+        echo $phpRenderer->render('redirect', [
             'location' => $location,
             'status' => $status,
             'requestMethod' => $_SERVER['REQUEST_METHOD'] ?? 'GET',
