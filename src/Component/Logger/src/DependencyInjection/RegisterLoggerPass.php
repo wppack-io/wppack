@@ -52,7 +52,7 @@ final class RegisterLoggerPass implements CompilerPassInterface
                 $serviceId = 'logger.' . $channel;
 
                 if (!$builder->hasDefinition($serviceId)) {
-                    $builder->register($serviceId)
+                    $builder->register($serviceId, LoggerInterface::class)
                         ->setFactory([new Reference(LoggerFactory::class), 'create'])
                         ->setArgument(0, $channel);
                 }

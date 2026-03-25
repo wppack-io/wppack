@@ -15,7 +15,8 @@
     "suggest": {
         "wppack/database": "For database query profiling",
         "wppack/cache": "For cache operation monitoring",
-        "wppack/logger": "For automatic Logger component integration with Debug toolbar"
+        "wppack/logger": "For automatic Logger component integration with Debug toolbar",
+        "psr/log": "For logging within Debug error handlers (ExceptionHandler, WpDieHandler)"
     },
     "autoload": {
         "files": [

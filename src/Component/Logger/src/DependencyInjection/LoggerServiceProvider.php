@@ -30,7 +30,7 @@ final class LoggerServiceProvider implements ServiceProviderInterface
         $builder->register(LoggerFactory::class)
             ->addArgument([new Reference(ErrorLogHandler::class)]);
 
-        $builder->register(LoggerInterface::class)
+        $builder->register(LoggerInterface::class, LoggerInterface::class)
             ->setFactory([new Reference(LoggerFactory::class), 'create'])
             ->addArgument($this->defaultChannel);
 

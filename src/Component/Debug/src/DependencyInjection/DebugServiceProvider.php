@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace WpPack\Component\Debug\DependencyInjection;
 
 use WpPack\Component\Debug\Adapter\DebugBarPanelAdapter;
-use WpPack\Component\Debug\Adapter\QueryMonitorCollectorAdapter;
 use WpPack\Component\Debug\DataCollector\CacheDataCollector;
 use WpPack\Component\Debug\DataCollector\DatabaseDataCollector;
 use WpPack\Component\Debug\DataCollector\DumpDataCollector;
@@ -42,6 +41,7 @@ use WpPack\Component\Debug\Profiler\Profiler;
 use WpPack\Component\Stopwatch\Stopwatch;
 use WpPack\Component\Debug\Toolbar\Panel\CachePanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\DatabasePanelRenderer;
+use WpPack\Component\Debug\Toolbar\Panel\DebugBarPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\DumpPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\EventPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\HttpClientPanelRenderer;
@@ -71,6 +71,7 @@ use WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters;
 use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
 use WpPack\Component\Debug\Toolbar\ToolbarSubscriber;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
+use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
 use WpPack\Component\Templating\PhpRenderer;
 
@@ -121,8 +122,11 @@ final class DebugServiceProvider implements ServiceProviderInterface
         $builder->register(ThemeDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
         $builder->register(SchedulerDataCollector::class)->addTag(RegisterDataCollectorsPass::TAG);
 
-        // Logger Component integration (optional)
-        if (interface_exists(\WpPack\Component\Logger\Handler\HandlerInterface::class)) {
+        // Logger Component integration (optional — requires LoggerFactory service)
+        if (
+            interface_exists(\WpPack\Component\Logger\Handler\HandlerInterface::class)
+            && $builder->hasDefinition(\WpPack\Component\Logger\LoggerFactory::class)
+        ) {
             $builder->register(DebugHandler::class)->autowire();
             $builder->register(LoggerDataCollector::class)
                 ->addTag(RegisterDataCollectorsPass::TAG)
@@ -134,11 +138,16 @@ final class DebugServiceProvider implements ServiceProviderInterface
                 $builder->findDefinition(\WpPack\Component\Logger\ErrorHandler::class)
                     ->addMethodCall('register');
             }
+            $builder->findDefinition(ExceptionHandler::class)
+                ->setArgument('$logger', new Reference('logger.debug'));
+            $builder->findDefinition(WpDieHandler::class)
+                ->setArgument('$logger', new Reference('logger.debug'));
         }
 
-        // Adapters
-        $builder->register(DebugBarPanelAdapter::class)->addTag(RegisterDataCollectorsPass::TAG);
-        $builder->register(QueryMonitorCollectorAdapter::class)->addTag(RegisterDataCollectorsPass::TAG);
+        // Debug Bar adapter (only when Debug Bar plugin is active)
+        if (class_exists(\Debug_Bar_Panel::class)) {
+            $builder->register(DebugBarPanelAdapter::class)->addTag(RegisterDataCollectorsPass::TAG);
+        }
 
         // Built-in panel renderers
         $builder->register(DatabasePanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
@@ -167,5 +176,6 @@ final class DebugServiceProvider implements ServiceProviderInterface
         $builder->register(AjaxPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
         $builder->register(EnvironmentPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
         $builder->register(PerformancePanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
+        $builder->register(DebugBarPanelRenderer::class)->addTag(RegisterPanelRenderersPass::TAG)->autowire();
     }
 }

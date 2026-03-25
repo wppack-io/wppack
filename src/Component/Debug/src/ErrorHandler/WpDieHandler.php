@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Debug\ErrorHandler;
 
+use Psr\Log\LoggerInterface;
 use WpPack\Component\Debug\DebugConfig;
 use WpPack\Component\Debug\Profiler\Profile;
 use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
@@ -31,6 +32,7 @@ final class WpDieHandler
         private readonly DebugConfig $config,
         private readonly ?ToolbarRenderer $toolbarRenderer = null,
         private ?Profile $profile = null,
+        private readonly ?LoggerInterface $logger = null,
     ) {
         $this->wpErrorOrigins = new \WeakMap();
     }
@@ -99,14 +101,17 @@ final class WpDieHandler
         }
 
         $exception = $this->createException($message, $title, $args);
-        $flat = FlattenException::createFromThrowable($exception);
-        $toolbarHtml = $this->renderToolbar();
-        $html = $this->renderer->render($flat, $toolbarHtml);
 
+        // Set HTTP status before rendering — rendering may trigger PHP
+        // warnings that leak to output, which would make headers_sent() true.
         if (!headers_sent()) {
-            http_response_code($exception->getStatusCode());
+            status_header($exception->getStatusCode());
             header('Content-Type: text/html; charset=UTF-8');
         }
+
+        $flat = FlattenException::createFromThrowable($exception);
+        $toolbarHtml = $this->renderToolbar((int) ($args['response'] ?? 500));
+        $html = $this->renderer->render($flat, $toolbarHtml);
 
         echo $html;
 
@@ -283,8 +288,10 @@ final class WpDieHandler
 
             $ref = new \ReflectionProperty(\Exception::class, 'line');
             $ref->setValue($exception, $line);
-        } catch (\ReflectionException) {
-            // Silently ignore if reflection fails
+        } catch (\ReflectionException $e) {
+            $this->logger?->debug('Failed to override exception file/line: {message}', [
+                'message' => $e->getMessage(),
+            ]);
         }
     }
 
@@ -296,8 +303,10 @@ final class WpDieHandler
         try {
             $ref = new \ReflectionProperty(\Exception::class, 'trace');
             $ref->setValue($exception, $trace);
-        } catch (\ReflectionException) {
-            // Silently ignore if reflection fails
+        } catch (\ReflectionException $e) {
+            $this->logger?->debug('Failed to override exception trace: {message}', [
+                'message' => $e->getMessage(),
+            ]);
         }
     }
 
@@ -382,11 +391,27 @@ final class WpDieHandler
         return [];
     }
 
-    private function renderToolbar(): string
+    private function renderToolbar(int $statusCode = 500): string
     {
         if ($this->toolbarRenderer === null || $this->profile === null) {
             return '';
         }
+
+        foreach ($this->profile->getCollectors() as $collector) {
+            try {
+                $collector->collect();
+            } catch (\Throwable $e) {
+                $this->logger?->warning('Data collector "{collector}" failed during toolbar rendering: {message}', [
+                    'collector' => $collector->getName(),
+                    'message' => $e->getMessage(),
+                    'exception' => $e,
+                ]);
+            }
+        }
+
+        $this->profile->setUrl($_SERVER['REQUEST_URI'] ?? '/');
+        $this->profile->setMethod($_SERVER['REQUEST_METHOD'] ?? 'GET');
+        $this->profile->setStatusCode($statusCode);
 
         return $this->toolbarRenderer->render();
     }

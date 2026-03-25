@@ -1,0 +1,26 @@
+{
+    "name": "wppack/debug-plugin",
+    "description": "WordPress plugin for debug toolbar and profiler",
+    "type": "wordpress-plugin",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "wppack/debug": "^1.0",
+        "wppack/dependency-injection": "^1.0",
+        "wppack/hook": "^1.0",
+        "wppack/kernel": "^1.0",
+        "wppack/logger": "^1.0",
+        "wppack/stopwatch": "^1.0",
+        "wppack/templating": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpPack\\Plugin\\DebugPlugin\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Plugin\\DebugPlugin\\Tests\\": "tests/"
+        }
+    }
+}

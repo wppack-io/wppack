@@ -6,6 +6,9 @@ namespace WpPack\Component\Debug\Tests\ErrorHandler;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
+use WpPack\Component\Debug\DataCollector\DataCollectorInterface;
+use WpPack\Component\Debug\DataCollector\WordPressDataCollector;
 use WpPack\Component\Debug\DebugConfig;
 use WpPack\Component\Debug\ErrorHandler\ErrorRenderer;
 use WpPack\Component\Debug\ErrorHandler\WpDieHandler;
@@ -360,6 +363,8 @@ final class WpDieHandlerTest extends TestCase
             }
 
             $profile = new Profile('test');
+            $collector = new WordPressDataCollector();
+            $profile->addCollector($collector);
             $toolbarRenderer = new ToolbarRenderer($profile);
             $handler = new WpDieHandler(new ErrorRenderer(), $config, $toolbarRenderer);
             $handler->setProfile($profile);
@@ -371,6 +376,11 @@ final class WpDieHandlerTest extends TestCase
 
             self::assertIsString($output);
             self::assertStringContainsString('wppack-debug', $output);
+
+            // Verify that collect() was called — WP version should be populated
+            global $wp_version;
+            self::assertNotEmpty($collector->getData(), 'Collector data should not be empty after error handler renders toolbar');
+            self::assertSame($wp_version, $collector->getData()['wp_version'] ?? '');
         } finally {
             $this->tearDownAdminUser($userId);
         }
@@ -608,6 +618,74 @@ final class WpDieHandlerTest extends TestCase
 
         self::assertTrue($called);
         self::assertSame('hello', $capturedMsg);
+    }
+
+    #[Test]
+    public function handleHtmlWithFailingCollectorLogsWarning(): void
+    {
+        $userId = $this->setUpAdminUser();
+
+        try {
+            $config = new DebugConfig(enabled: true);
+
+            if (!$config->isAccessAllowed()) {
+                self::markTestSkipped('isAccessAllowed() is false in this environment.');
+            }
+
+            $failingCollector = new class implements DataCollectorInterface {
+                public function getName(): string
+                {
+                    return 'failing';
+                }
+
+                public function collect(): void
+                {
+                    throw new \RuntimeException('Collector exploded');
+                }
+
+                public function getData(): array
+                {
+                    return [];
+                }
+
+                public function getLabel(): string
+                {
+                    return 'Failing';
+                }
+
+                public function getIndicatorValue(): string
+                {
+                    return '';
+                }
+
+                public function getIndicatorColor(): string
+                {
+                    return '';
+                }
+
+                public function reset(): void {}
+            };
+
+            $profile = new Profile('test');
+            $profile->addCollector($failingCollector);
+            $toolbarRenderer = new ToolbarRenderer($profile);
+
+            $logger = $this->createMock(LoggerInterface::class);
+            $logger->expects(self::once())
+                ->method('warning')
+                ->with(self::stringContains('failed during toolbar rendering'));
+
+            $handler = new WpDieHandler(
+                new ErrorRenderer(), $config, $toolbarRenderer, $profile, $logger,
+            );
+            $handler->registerHtmlHandler('_default_wp_die_handler');
+
+            ob_start();
+            @$handler->handleHtml('toolbar fail test', 'Error', ['response' => 500, 'exit' => false]);
+            ob_get_clean();
+        } finally {
+            $this->tearDownAdminUser($userId);
+        }
     }
 
     #[Test]

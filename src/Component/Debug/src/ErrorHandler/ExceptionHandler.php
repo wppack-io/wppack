@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Debug\ErrorHandler;
 
+use Psr\Log\LoggerInterface;
 use WpPack\Component\Debug\DebugConfig;
 use WpPack\Component\Debug\Profiler\Profile;
 use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
@@ -17,6 +18,7 @@ final class ExceptionHandler
         private readonly DebugConfig $config,
         private readonly ?ToolbarRenderer $toolbarRenderer = null,
         private ?Profile $profile = null,
+        private readonly ?LoggerInterface $logger = null,
     ) {}
 
     public function setProfile(Profile $profile): void
@@ -43,13 +45,16 @@ final class ExceptionHandler
         }
 
         $flat = FlattenException::createFromThrowable($e);
-        $toolbarHtml = $this->renderToolbar();
-        $html = $this->renderer->render($flat, $toolbarHtml);
 
+        // Set HTTP status before rendering — rendering may trigger PHP
+        // warnings that leak to output, which would make headers_sent() true.
         if (!headers_sent()) {
-            http_response_code($flat->getStatusCode());
+            status_header($flat->getStatusCode());
             header('Content-Type: text/html; charset=UTF-8');
         }
+
+        $toolbarHtml = $this->renderToolbar($flat->getStatusCode());
+        $html = $this->renderer->render($flat, $toolbarHtml);
 
         echo $html;
     }
@@ -59,11 +64,27 @@ final class ExceptionHandler
         $this->handleException($e);
     }
 
-    private function renderToolbar(): string
+    private function renderToolbar(int $statusCode = 500): string
     {
         if ($this->toolbarRenderer === null || $this->profile === null) {
             return '';
         }
+
+        foreach ($this->profile->getCollectors() as $collector) {
+            try {
+                $collector->collect();
+            } catch (\Throwable $e) {
+                $this->logger?->warning('Data collector "{collector}" failed during toolbar rendering: {message}', [
+                    'collector' => $collector->getName(),
+                    'message' => $e->getMessage(),
+                    'exception' => $e,
+                ]);
+            }
+        }
+
+        $this->profile->setUrl($_SERVER['REQUEST_URI'] ?? '/');
+        $this->profile->setMethod($_SERVER['REQUEST_METHOD'] ?? 'GET');
+        $this->profile->setStatusCode($statusCode);
 
         return $this->toolbarRenderer->render();
     }

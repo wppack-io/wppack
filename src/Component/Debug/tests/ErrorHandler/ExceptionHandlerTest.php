@@ -6,6 +6,9 @@ namespace WpPack\Component\Debug\Tests\ErrorHandler;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
+use WpPack\Component\Debug\DataCollector\DataCollectorInterface;
+use WpPack\Component\Debug\DataCollector\WordPressDataCollector;
 use WpPack\Component\Debug\DebugConfig;
 use WpPack\Component\Debug\ErrorHandler\ErrorRenderer;
 use WpPack\Component\Debug\ErrorHandler\ExceptionHandler;
@@ -242,6 +245,8 @@ final class ExceptionHandlerTest extends TestCase
             }
 
             $profile = new Profile('test-token');
+            $collector = new WordPressDataCollector();
+            $profile->addCollector($collector);
             $toolbarRenderer = new ToolbarRenderer($profile);
 
             $handler = new ExceptionHandler(new ErrorRenderer(), $config, $toolbarRenderer, $profile);
@@ -253,6 +258,11 @@ final class ExceptionHandlerTest extends TestCase
             self::assertIsString($output);
             self::assertStringContainsString('toolbar test', $output);
             self::assertStringContainsString('wppack-debug', $output);
+
+            // Verify that collect() was called — WP version should be populated
+            global $wp_version;
+            self::assertNotEmpty($collector->getData(), 'Collector data should not be empty after error handler renders toolbar');
+            self::assertSame($wp_version, $collector->getData()['wp_version'] ?? '');
         } finally {
             $this->tearDownAdminUser($userId);
         }
@@ -387,6 +397,73 @@ final class ExceptionHandlerTest extends TestCase
 
             self::assertIsString($output);
             self::assertStringContainsString('no profile for toolbar', $output);
+        } finally {
+            $this->tearDownAdminUser($userId);
+        }
+    }
+
+    #[Test]
+    public function handleExceptionWithFailingCollectorLogsWarning(): void
+    {
+        $userId = $this->setUpAdminUser();
+
+        try {
+            $config = new DebugConfig(enabled: true);
+
+            if (!$config->isAccessAllowed()) {
+                self::markTestSkipped('isAccessAllowed() is false in this environment.');
+            }
+
+            $failingCollector = new class implements DataCollectorInterface {
+                public function getName(): string
+                {
+                    return 'failing';
+                }
+
+                public function collect(): void
+                {
+                    throw new \RuntimeException('Collector exploded');
+                }
+
+                public function getData(): array
+                {
+                    return [];
+                }
+
+                public function getLabel(): string
+                {
+                    return 'Failing';
+                }
+
+                public function getIndicatorValue(): string
+                {
+                    return '';
+                }
+
+                public function getIndicatorColor(): string
+                {
+                    return '';
+                }
+
+                public function reset(): void {}
+            };
+
+            $profile = new Profile('test');
+            $profile->addCollector($failingCollector);
+            $toolbarRenderer = new ToolbarRenderer($profile);
+
+            $logger = $this->createMock(LoggerInterface::class);
+            $logger->expects(self::once())
+                ->method('warning')
+                ->with(self::stringContains('failed during toolbar rendering'));
+
+            $handler = new ExceptionHandler(
+                new ErrorRenderer(), $config, $toolbarRenderer, $profile, $logger,
+            );
+
+            ob_start();
+            @$handler->handleException(new \RuntimeException('test'));
+            ob_get_clean();
         } finally {
             $this->tearDownAdminUser($userId);
         }
