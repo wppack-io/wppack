@@ -37,7 +37,7 @@ final class ObjectCache
         $this->config = $config;
     }
 
-    public function get(string $key, string $group = 'default', bool $force = false, bool &$found = false): mixed
+    public function get(string|int $key, string $group = 'default', bool $force = false, bool &$found = false): mixed
     {
         $group = $this->normalizeGroup($group);
         $runtimeKey = $this->runtimeKey($key, $group);
@@ -89,8 +89,8 @@ final class ObjectCache
     }
 
     /**
-     * @param list<string> $keys
-     * @return array<string, mixed>
+     * @param list<string|int> $keys
+     * @return array<string|int, mixed>
      */
     public function getMultiple(array $keys, string $group = 'default', bool $force = false): array
     {
@@ -140,7 +140,7 @@ final class ObjectCache
         return $results;
     }
 
-    public function set(string $key, mixed $data, string $group = 'default', int $expiration = 0): bool
+    public function set(string|int $key, mixed $data, string $group = 'default', int $expiration = 0): bool
     {
         $group = $this->normalizeGroup($group);
         $runtimeKey = $this->runtimeKey($key, $group);
@@ -189,8 +189,8 @@ final class ObjectCache
     }
 
     /**
-     * @param array<string, mixed> $data
-     * @return array<string, bool>
+     * @param array<string|int, mixed> $data
+     * @return array<string|int, bool>
      */
     public function setMultiple(array $data, string $group = 'default', int $expiration = 0): array
     {
@@ -225,7 +225,7 @@ final class ObjectCache
         return $results;
     }
 
-    public function add(string $key, mixed $data, string $group = 'default', int $expiration = 0): bool
+    public function add(string|int $key, mixed $data, string $group = 'default', int $expiration = 0): bool
     {
         $group = $this->normalizeGroup($group);
         $runtimeKey = $this->runtimeKey($key, $group);
@@ -249,8 +249,8 @@ final class ObjectCache
     }
 
     /**
-     * @param array<string, mixed> $data
-     * @return array<string, bool>
+     * @param array<string|int, mixed> $data
+     * @return array<string|int, bool>
      */
     public function addMultiple(array $data, string $group = 'default', int $expiration = 0): array
     {
@@ -263,7 +263,7 @@ final class ObjectCache
         return $results;
     }
 
-    public function replace(string $key, mixed $data, string $group = 'default', int $expiration = 0): bool
+    public function replace(string|int $key, mixed $data, string $group = 'default', int $expiration = 0): bool
     {
         $group = $this->normalizeGroup($group);
         $runtimeKey = $this->runtimeKey($key, $group);
@@ -282,7 +282,7 @@ final class ObjectCache
         return $this->set($key, $data, $group, $expiration);
     }
 
-    public function delete(string $key, string $group = 'default'): bool
+    public function delete(string|int $key, string $group = 'default'): bool
     {
         $group = $this->normalizeGroup($group);
         $runtimeKey = $this->runtimeKey($key, $group);
@@ -308,8 +308,8 @@ final class ObjectCache
     }
 
     /**
-     * @param list<string> $keys
-     * @return array<string, bool>
+     * @param list<string|int> $keys
+     * @return array<string|int, bool>
      */
     public function deleteMultiple(array $keys, string $group = 'default'): array
     {
@@ -344,7 +344,7 @@ final class ObjectCache
         return $results;
     }
 
-    public function increment(string $key, int $offset = 1, string $group = 'default'): int|false
+    public function increment(string|int $key, int $offset = 1, string $group = 'default'): int|false
     {
         $group = $this->normalizeGroup($group);
         $runtimeKey = $this->runtimeKey($key, $group);
@@ -376,7 +376,7 @@ final class ObjectCache
         return $newValue;
     }
 
-    public function decrement(string $key, int $offset = 1, string $group = 'default'): int|false
+    public function decrement(string|int $key, int $offset = 1, string $group = 'default'): int|false
     {
         return $this->increment($key, -$offset, $group);
     }
@@ -476,7 +476,7 @@ final class ObjectCache
         return isset($this->nonPersistentGroups[$group]);
     }
 
-    private function buildKey(string $key, string $group): string
+    private function buildKey(string|int $key, string $group): string
     {
         $blogId = $this->isGlobal($group) ? 0 : $this->blogId;
 
@@ -490,14 +490,14 @@ final class ObjectCache
         return $this->config->prefix . $blogId . ':' . $group . ':';
     }
 
-    private function runtimeKey(string $key, string $group): string
+    private function runtimeKey(string|int $key, string $group): string
     {
         $blogId = $this->isGlobal($group) ? 0 : $this->blogId;
 
         return $blogId . ':' . $key;
     }
 
-    private function findHashStrategy(string $key, string $group): ?HashStrategyInterface
+    private function findHashStrategy(string|int $key, string $group): ?HashStrategyInterface
     {
         if (!$this->adapter instanceof HashableAdapterInterface) {
             return null;
