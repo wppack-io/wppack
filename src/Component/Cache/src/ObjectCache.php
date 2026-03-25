@@ -465,6 +465,21 @@ final class ObjectCache
         );
     }
 
+    /**
+     * @return array<string, int> group => entry count
+     */
+    public function getGroupStats(): array
+    {
+        $stats = [];
+        foreach ($this->runtime as $group => $entries) {
+            $stats[$group] = \count($entries);
+        }
+
+        arsort($stats);
+
+        return $stats;
+    }
+
     public function close(): void
     {
         $this->adapter?->close();

@@ -46,7 +46,11 @@ final class CacheDataCollector extends AbstractDataCollector
 
         global $wp_object_cache;
 
-        if (isset($wp_object_cache)) {
+        if (isset($wp_object_cache) && method_exists($wp_object_cache, 'getMetrics')) {
+            $metrics = $wp_object_cache->getMetrics();
+            $hits = $metrics->hits;
+            $misses = $metrics->misses;
+        } elseif (isset($wp_object_cache)) {
             if (isset($wp_object_cache->cache_hits) && is_numeric($wp_object_cache->cache_hits)) {
                 $hits = (int) $wp_object_cache->cache_hits;
             }
@@ -176,6 +180,14 @@ final class CacheDataCollector extends AbstractDataCollector
             return 'none';
         }
 
+        if (method_exists($wp_object_cache, 'getMetrics')) {
+            $adapterName = $wp_object_cache->getMetrics()->adapterName;
+
+            if ($adapterName !== null) {
+                return $adapterName;
+            }
+        }
+
         $class = $wp_object_cache::class;
 
         return match (true) {
@@ -197,6 +209,10 @@ final class CacheDataCollector extends AbstractDataCollector
 
         if (!isset($wp_object_cache) || !is_object($wp_object_cache)) {
             return [];
+        }
+
+        if (method_exists($wp_object_cache, 'getGroupStats')) {
+            return $wp_object_cache->getGroupStats();
         }
 
         if (!property_exists($wp_object_cache, 'cache') || !is_array($wp_object_cache->cache)) {
