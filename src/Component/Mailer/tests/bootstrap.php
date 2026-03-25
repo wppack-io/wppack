@@ -9,8 +9,8 @@ $componentAutoload = __DIR__ . '/../vendor/autoload.php';
 if (file_exists($rootAutoload)) {
     require_once $rootAutoload;
 
-    // Load WordPress bundled PHPMailer from roots/wordpress-no-content
-    $wpIncludesDir = __DIR__ . '/../../../../vendor/roots/wordpress-no-content/wp-includes';
+    // Load WordPress bundled PHPMailer from web/wp
+    $wpIncludesDir = __DIR__ . '/../../../../web/wp/wp-includes';
     require_once $wpIncludesDir . '/PHPMailer/PHPMailer.php';
     require_once $wpIncludesDir . '/PHPMailer/Exception.php';
     require_once $wpIncludesDir . '/PHPMailer/SMTP.php';

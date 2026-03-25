@@ -14,7 +14,7 @@ $rootDir = dirname(__DIR__, 4);
 require_once $rootDir . '/vendor/autoload.php';
 
 // Define WordPress constants before loading wp-settings.php
-define('ABSPATH', $rootDir . '/vendor/roots/wordpress-no-content/');
+define('ABSPATH', $rootDir . '/web/wp/');
 
 define('DB_NAME', 'wppack_test');
 define('DB_USER', 'root');
