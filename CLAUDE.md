@@ -1,141 +1,141 @@
 # CLAUDE.md
 
-このファイルはClaude Codeがこのリポジトリで作業する際のガイダンスを提供します。
+This file provides guidance for Claude Code when working in this repository.
 
-## プロジェクト概要
+## Project Overview
 
-WpPackは、WordPressをモダンPHPで拡張するコンポーネントライブラリのモノレポです。
+WpPack is a monorepo of component libraries that extend WordPress with modern PHP.
 
-## アーキテクチャ方針
+## Architecture Principles
 
-### マルチクラウド対応（AWS / GCP / Azure）
+### Multi-Cloud Support (AWS / GCP / Azure)
 
-コアインターフェース（Abstraction Layer）はクラウド非依存。プロバイダ固有の実装は Bridge パッケージとして分離する。AWS ファーストで開発し、GCP・Azure に順次拡大。
+Core interfaces (Abstraction Layer) are cloud-agnostic. Provider-specific implementations are separated into Bridge packages. Development is AWS-first, with GCP and Azure support expanding incrementally.
 
-- 例: Mailer（コア） → AmazonMailer / AzureMailer / SendGridMailer
-- 例: Cache（コア） → RedisCache / DynamoDbCache / MemcachedCache / ApcuCache
-- Bridge 命名: `wppack/{provider}-{component}`
+- Example: Mailer (core) → AmazonMailer / AzureMailer / SendGridMailer
+- Example: Cache (core) → RedisCache / DynamoDbCache / MemcachedCache / ApcuCache
+- Bridge naming: `wppack/{provider}-{component}`
 
-### サーバーレス環境対応
+### Serverless Environment Support
 
-Lambda・Cloud Functions 等のサーバーレス環境をファーストクラスでサポート。ローカル / サーバーフル環境でも動作するグレースフルフォールバックを提供する。
+Serverless environments such as Lambda and Cloud Functions are first-class citizens. Graceful fallbacks are provided for local and server-based environments.
 
-- 例: Messenger（SQS/Lambda → 同期フォールバック）、Scheduler（EventBridge → WP-Cron フォールバック）
-- 詳細: [docs/architecture/infrastructure.md](docs/architecture/infrastructure.md)
+- Example: Messenger (SQS/Lambda → synchronous fallback), Scheduler (EventBridge → WP-Cron fallback)
+- Details: [docs/architecture/infrastructure.md](docs/architecture/infrastructure.md)
 
-## パッケージカテゴリ
+## Package Categories
 
-### Component（ライブラリ）
-WordPress コンポーネント。`composer require` でインストール。
-- 名前空間: `WpPack\Component\{Name}\`
-- パッケージ名: `wppack/{name}`
-- ディレクトリ: `src/Component/{Name}/`
+### Component (Library)
+WordPress components. Installed via `composer require`.
+- Namespace: `WpPack\Component\{Name}\`
+- Package name: `wppack/{name}`
+- Directory: `src/Component/{Name}/`
 
-### Plugin（WordPress プラグイン）
-WordPress プラグインとして配布。Component を利用。
-- 名前空間: `WpPack\Plugin\{Name}\`
-- パッケージ名: `wppack/{name}`
-- ディレクトリ: `src/Plugin/{Name}/`
+### Plugin (WordPress Plugin)
+Distributed as WordPress plugins. Built on top of Components.
+- Namespace: `WpPack\Plugin\{Name}\`
+- Package name: `wppack/{name}`
+- Directory: `src/Plugin/{Name}/`
 
-## コンポーネント一覧
+## Component List
 
 ### Infrastructure Layer
-| Component | パッケージ名 | 説明 |
+| Component | Package Name | Description |
 |-----------|-------------|------|
-| Handler | wppack/handler | モダン PHP リクエストハンドラー（フロントコントローラー） |
-| Hook | wppack/hook | アトリビュートベースの WordPress フック（アクション/フィルター）管理 |
-| DependencyInjection | wppack/dependency-injection | PSR-11 準拠のサービスコンテナ、オートワイヤリング、設定管理 |
-| EventDispatcher | wppack/event-dispatcher | PSR-14 準拠のイベントシステム |
-| Filesystem | wppack/filesystem | WP_Filesystem DI ラッパー、ファイル操作抽象化 |
-| Kernel | wppack/kernel | アプリケーションブートストラップ |
-| Option | wppack/option | wp_options の型安全ラッパー |
-| Transient | wppack/transient | Transient API の型安全ラッパー |
-| Role | wppack/role | ロール・権限管理 |
-| Templating | wppack/templating | テンプレートエンジン抽象化 |
-| TwigTemplating | wppack/twig-templating | Twig ブリッジ |
-| Stopwatch | wppack/stopwatch | コード実行時間の計測 |
-| Logger | wppack/logger | PSR-3 準拠ロガー |
-| MonologLogger | wppack/monolog-logger | Monolog ブリッジ |
-| Mime | wppack/mime | MIME 型判定・拡張子マッピング |
-| Site | wppack/site | マルチサイト管理（ブログ切替・コンテキスト・サイト照会） |
+| Handler | wppack/handler | Modern PHP request handler (front controller) |
+| Hook | wppack/hook | Attribute-based WordPress hook (action/filter) management |
+| DependencyInjection | wppack/dependency-injection | PSR-11 compliant service container, autowiring, configuration management |
+| EventDispatcher | wppack/event-dispatcher | PSR-14 compliant event system |
+| Filesystem | wppack/filesystem | WP_Filesystem DI wrapper, file operation abstraction |
+| Kernel | wppack/kernel | Application bootstrap |
+| Option | wppack/option | Type-safe wrapper for wp_options |
+| Transient | wppack/transient | Type-safe wrapper for the Transient API |
+| Role | wppack/role | Role and capability management |
+| Templating | wppack/templating | Template engine abstraction |
+| TwigTemplating | wppack/twig-templating | Twig bridge |
+| Stopwatch | wppack/stopwatch | Code execution time measurement |
+| Logger | wppack/logger | PSR-3 compliant logger |
+| MonologLogger | wppack/monolog-logger | Monolog bridge |
+| Mime | wppack/mime | MIME type detection and extension mapping |
+| Site | wppack/site | Multisite management (blog switching, context, site queries) |
 
 ### Abstraction Layer
-| Component | パッケージ名 | 説明 |
+| Component | Package Name | Description |
 |-----------|-------------|------|
-| Cache | wppack/cache | PSR-6/PSR-16 キャッシュ抽象化 |
-| RedisCache | wppack/redis-cache | Redis / Valkey キャッシュ |
-| ElastiCacheAuth | wppack/elasticache-auth | ElastiCache IAM 認証 |
-| DynamoDbCache | wppack/dynamodb-cache | DynamoDB キャッシュ |
-| MemcachedCache | wppack/memcached-cache | Memcached キャッシュ |
-| ApcuCache | wppack/apcu-cache | APCu キャッシュ |
-| Database | wppack/database | $wpdb の型安全ラッパー、マイグレーション |
-| Query | wppack/query | WP_Query ビルダー |
-| Security | wppack/security | 認証・認可フレームワーク |
-| SamlSecurity | wppack/saml-security | SAML 2.0 SP 認証ブリッジ |
-| OAuthSecurity | wppack/oauth-security | OAuth 2.0 / OpenID Connect 認証ブリッジ |
-| Sanitizer | wppack/sanitizer | 入力サニタイズ |
-| Escaper | wppack/escaper | 出力エスケープ |
-| HttpClient | wppack/http-client | HTTP クライアント抽象化 |
-| HttpFoundation | wppack/http-foundation | Request/Response 抽象化 |
-| Mailer | wppack/mailer | メール送信抽象化、TransportInterface |
-| AmazonMailer | wppack/amazon-mailer | SES トランスポート実装 |
-| AzureMailer | wppack/azure-mailer | Azure Communication Services トランスポート実装 |
-| SendGridMailer | wppack/sendgrid-mailer | SendGrid トランスポート実装 |
-| Messenger | wppack/messenger | トランスポート非依存のメッセージバス |
-| SqsMessenger | wppack/sqs-messenger | Amazon SQS トランスポート |
-| Serializer | wppack/serializer | オブジェクト直列化（Normalizer チェーン） |
-| OptionsResolver | wppack/options-resolver | オプション解決（Symfony OptionsResolver 拡張） |
-| Debug | wppack/debug | デバッグ・プロファイリング |
-| Storage | wppack/storage | オブジェクトストレージ抽象化 |
-| S3Storage | wppack/s3-storage | Amazon S3 ストレージアダプタ |
-| AzureStorage | wppack/azure-storage | Azure Blob Storage アダプタ |
-| GcsStorage | wppack/gcs-storage | Google Cloud Storage アダプタ |
+| Cache | wppack/cache | PSR-6/PSR-16 cache abstraction |
+| RedisCache | wppack/redis-cache | Redis / Valkey cache |
+| ElastiCacheAuth | wppack/elasticache-auth | ElastiCache IAM authentication |
+| DynamoDbCache | wppack/dynamodb-cache | DynamoDB cache |
+| MemcachedCache | wppack/memcached-cache | Memcached cache |
+| ApcuCache | wppack/apcu-cache | APCu cache |
+| Database | wppack/database | Type-safe wrapper for $wpdb, migrations |
+| Query | wppack/query | WP_Query builder |
+| Security | wppack/security | Authentication and authorization framework |
+| SamlSecurity | wppack/saml-security | SAML 2.0 SP authentication bridge |
+| OAuthSecurity | wppack/oauth-security | OAuth 2.0 / OpenID Connect authentication bridge |
+| Sanitizer | wppack/sanitizer | Input sanitization |
+| Escaper | wppack/escaper | Output escaping |
+| HttpClient | wppack/http-client | HTTP client abstraction |
+| HttpFoundation | wppack/http-foundation | Request/Response abstraction |
+| Mailer | wppack/mailer | Email sending abstraction, TransportInterface |
+| AmazonMailer | wppack/amazon-mailer | SES transport implementation |
+| AzureMailer | wppack/azure-mailer | Azure Communication Services transport implementation |
+| SendGridMailer | wppack/sendgrid-mailer | SendGrid transport implementation |
+| Messenger | wppack/messenger | Transport-agnostic message bus |
+| SqsMessenger | wppack/sqs-messenger | Amazon SQS transport |
+| Serializer | wppack/serializer | Object serialization (Normalizer chain) |
+| OptionsResolver | wppack/options-resolver | Option resolution (Symfony OptionsResolver extension) |
+| Debug | wppack/debug | Debugging and profiling |
+| Storage | wppack/storage | Object storage abstraction |
+| S3Storage | wppack/s3-storage | Amazon S3 storage adapter |
+| AzureStorage | wppack/azure-storage | Azure Blob Storage adapter |
+| GcsStorage | wppack/gcs-storage | Google Cloud Storage adapter |
 
 ### Feature Layer
-| Component | パッケージ名 | 説明 |
+| Component | Package Name | Description |
 |-----------|-------------|------|
-| Admin | wppack/admin | 管理画面ページ・メニュー登録 |
-| Rest | wppack/rest | REST API エンドポイント定義 |
-| Routing | wppack/routing | URL ルーティング |
-| PostType | wppack/post-type | カスタム投稿タイプ・メタ登録 |
-| Scheduler | wppack/scheduler | Trigger ベースのタスクスケジューラー |
-| EventBridgeScheduler | wppack/eventbridge-scheduler | EventBridge スケジューラー |
-| Console | wppack/console | WP-CLI コマンドフレームワーク |
-| Shortcode | wppack/shortcode | ショートコード登録 |
-| Nonce | wppack/nonce | CSRF トークン管理 |
-| Asset | wppack/asset | アセット管理（スクリプト・スタイル） |
-| Ajax | wppack/ajax | Admin Ajax ハンドラー |
-| Wpress | wppack/wpress | .wpress アーカイブ形式操作 |
+| Admin | wppack/admin | Admin page and menu registration |
+| Rest | wppack/rest | REST API endpoint definition |
+| Routing | wppack/routing | URL routing |
+| PostType | wppack/post-type | Custom post type and meta registration |
+| Scheduler | wppack/scheduler | Trigger-based task scheduler |
+| EventBridgeScheduler | wppack/eventbridge-scheduler | EventBridge scheduler |
+| Console | wppack/console | WP-CLI command framework |
+| Shortcode | wppack/shortcode | Shortcode registration |
+| Nonce | wppack/nonce | CSRF token management |
+| Asset | wppack/asset | Asset management (scripts and styles) |
+| Ajax | wppack/ajax | Admin Ajax handler |
+| Wpress | wppack/wpress | .wpress archive format operations |
 
 ### Application Layer
-| Component | パッケージ名 | 説明 |
+| Component | Package Name | Description |
 |-----------|-------------|------|
-| Plugin | wppack/plugin | プラグインライフサイクル管理 |
-| Theme | wppack/theme | テーマ開発フレームワーク |
-| Widget | wppack/widget | ウィジェット定義 |
-| Setting | wppack/setting | Settings API ラッパー |
-| User | wppack/user | ユーザー管理 |
-| Block | wppack/block | ブロックエディタ統合 |
-| Media | wppack/media | メディア管理 |
-| Comment | wppack/comment | コメント管理 |
-| Taxonomy | wppack/taxonomy | タクソノミー定義 |
-| NavigationMenu | wppack/navigation-menu | メニュー管理 |
-| Feed | wppack/feed | RSS/Atom フィード |
-| OEmbed | wppack/oembed | oEmbed プロバイダー |
-| SiteHealth | wppack/site-health | サイトヘルスチェック |
-| DashboardWidget | wppack/dashboard-widget | ダッシュボードウィジェット |
-| Translation | wppack/translation | 翻訳・国際化 |
+| Plugin | wppack/plugin | Plugin lifecycle management |
+| Theme | wppack/theme | Theme development framework |
+| Widget | wppack/widget | Widget definition |
+| Setting | wppack/setting | Settings API wrapper |
+| User | wppack/user | User management |
+| Block | wppack/block | Block editor integration |
+| Media | wppack/media | Media management |
+| Comment | wppack/comment | Comment management |
+| Taxonomy | wppack/taxonomy | Taxonomy definition |
+| NavigationMenu | wppack/navigation-menu | Menu management |
+| Feed | wppack/feed | RSS/Atom feed |
+| OEmbed | wppack/oembed | oEmbed provider |
+| SiteHealth | wppack/site-health | Site health checks |
+| DashboardWidget | wppack/dashboard-widget | Dashboard widget |
+| Translation | wppack/translation | Translation and internationalization |
 
-### Plugin パッケージ
-| Plugin | パッケージ名 | 説明 |
+### Plugin Packages
+| Plugin | Package Name | Description |
 |--------|-------------|------|
-| EventBridgeSchedulerPlugin | wppack/eventbridge-scheduler-plugin | EventBridge スケジューラープラグイン |
-| S3StoragePlugin | wppack/s3-storage-plugin | S3 ストレージプラグイン |
-| AmazonMailerPlugin | wppack/amazon-mailer-plugin | Amazon SES メーラープラグイン |
-| DebugPlugin | wppack/debug-plugin | デバッグツールバープラグイン |
-| RedisCachePlugin | wppack/redis-cache-plugin | Redis キャッシュプラグイン |
+| EventBridgeSchedulerPlugin | wppack/eventbridge-scheduler-plugin | EventBridge scheduler plugin |
+| S3StoragePlugin | wppack/s3-storage-plugin | S3 storage plugin |
+| AmazonMailerPlugin | wppack/amazon-mailer-plugin | Amazon SES mailer plugin |
+| DebugPlugin | wppack/debug-plugin | Debug toolbar plugin |
+| RedisCachePlugin | wppack/redis-cache-plugin | Redis cache plugin |
 
-## 主要な依存関係
+## Key Dependencies
 
 ```
 wppack/handler
@@ -269,31 +269,31 @@ wppack/logger
     + monolog/monolog
 ```
 
-## 開発ガイドライン
+## Development Guidelines
 
-### 言語
-- ドキュメント: 日本語
-- コード: 英語（変数名、クラス名、コメント）
+### Language
+- Documentation: English
+- Code: English (variable names, class names, comments)
 
-### PHP要件
-- PHP 8.2以上
-- PSR-4オートロード
+### PHP Requirements
+- PHP 8.2 or higher
+- PSR-4 autoloading
 
-### コーディング規約
+### Coding Standards
 
-**モダンPHPのベストプラクティスに従う。WordPress Coding Standardsは使用しない。**
+**Follow modern PHP best practices. Do NOT use WordPress Coding Standards.**
 
-- PER Coding Style (PSR-12後継) に準拠
-- 厳格な型宣言 (`declare(strict_types=1)`)
-- readonly プロパティを活用
-- Symfony のパターンに従う
-- コンストラクタプロパティプロモーションを活用
-- match式を活用
-- Named argumentsを適切に使用
+- Comply with PER Coding Style (successor to PSR-12)
+- Strict type declarations (`declare(strict_types=1)`)
+- Use readonly properties
+- Follow Symfony patterns
+- Use constructor property promotion
+- Use match expressions
+- Use named arguments where appropriate
 
-### `#[\SensitiveParameter]` の使用方針
+### `#[\SensitiveParameter]` Usage Policy
 
-パスワード・APIキー・アクセスキー等の秘密情報を受け取るパラメータには `#[\SensitiveParameter]` を付与する。例外スタックトレースで値が `SensitiveParameterValue` に置き換わり、ログや画面への漏洩を防ぐ。
+Apply `#[\SensitiveParameter]` to parameters that receive secret information such as passwords, API keys, and access keys. This replaces parameter values with `SensitiveParameterValue` in exception stack traces, preventing leakage to logs and screens.
 
 ```php
 public function __construct(
@@ -302,12 +302,12 @@ public function __construct(
 ) {}
 ```
 
-- **対象:** パスワード、APIキー、アクセスキー、暗号化キー、認証トークン（JWT 等）
-- **対象外:** 公開情報（`$clientId`、`$issuer`、JWKS 公開鍵）、CSRF nonce、オブジェクト型（スタックトレースに型名のみ表示）、DSN 文字列全体（スキーム・ホスト情報が失われるため、パスワード部分は `$password` で保護）、`$options` 配列全体（デバッグ困難になるため、個別の秘密情報パラメータで保護）
+- **Include:** Passwords, API keys, access keys, encryption keys, authentication tokens (JWT, etc.)
+- **Exclude:** Public information (`$clientId`, `$issuer`, JWKS public keys), CSRF nonces, object types (only type names appear in stack traces), entire DSN strings (scheme/host information would be lost — protect the password portion via a `$password` parameter instead), entire `$options` arrays (makes debugging difficult — protect individual secret parameters instead)
 
-### コミットメッセージ
+### Commit Messages
 
-[Conventional Commits](https://www.conventionalcommits.org/) ベースの形式を使用する。
+Use a format based on [Conventional Commits](https://www.conventionalcommits.org/).
 
 ```
 <type>(<scope>): <summary>
@@ -315,30 +315,30 @@ public function __construct(
 <body>
 ```
 
-#### サマリー行（1行目）
+#### Summary Line (first line)
 
-- **72文字以内**（`git log --oneline` で見切れない長さ）
-- **型プレフィックス**: 変更の種類を明示
-- **スコープ（任意）**: 変更対象のコンポーネント名やパッケージ名
-- **命令形**: "Add", "Fix", "Refactor" etc.（"Added", "Fixes" ではない）
+- **72 characters or fewer** (fits in `git log --oneline` without truncation)
+- **Type prefix**: Clarifies the kind of change
+- **Scope (optional)**: Target component or package name
+- **Imperative mood**: "Add", "Fix", "Refactor" etc. (not "Added" or "Fixes")
 
-| type | 用途 |
+| type | Purpose |
 |------|------|
-| `feat` | 新機能追加 |
-| `fix` | バグ修正 |
-| `refactor` | リファクタリング（動作変更なし） |
-| `docs` | ドキュメントのみの変更 |
-| `test` | テストの追加・修正のみ |
-| `chore` | ビルド、CI、依存関係等の雑務 |
+| `feat` | New feature |
+| `fix` | Bug fix |
+| `refactor` | Refactoring (no behavior change) |
+| `docs` | Documentation-only changes |
+| `test` | Test additions or modifications only |
+| `chore` | Build, CI, dependency maintenance, etc. |
 
-#### 本文（2行目以降）
+#### Body (subsequent lines)
 
-- サマリー行の後に**空行1行**を挟む
-- **箇条書き**（`-` 使用）で変更内容を構造化
-- 「なぜ」この変更が必要だったかを含める
-- 技術的な詳細は必要に応じて
+- Separate from the summary line with **one blank line**
+- Structure changes using **bullet points** (`-`)
+- Include **why** the change was needed
+- Add technical details as necessary
 
-#### 例
+#### Example
 
 ```
 feat(Admin,DashboardWidget,Setting): add render() shortcut
@@ -351,137 +351,137 @@ feat(Admin,DashboardWidget,Setting): add render() shortcut
   (SettingsRenderer)
 ```
 
-#### コミットの粒度
+#### Commit Granularity
 
-**1コミット = 1つの論理的な変更単位（atomic commit）** を原則とする。
+**1 commit = 1 logical unit of change (atomic commit)** as a general rule.
 
-- **同じコミットに含める**: 機能実装とそのテスト、機能実装と直接関連するドキュメント更新
-- **別コミットに分ける**: 独立したバグ修正同士、新機能と無関係なリファクタリング
-- **判断基準**: 「このコミットだけを `git revert` したとき、意味のある単位で元に戻せるか？」
+- **Include in the same commit**: Feature implementation and its tests, feature implementation and directly related documentation updates
+- **Separate into different commits**: Independent bug fixes, new features and unrelated refactoring
+- **Rule of thumb**: "If I `git revert` only this commit, does it revert a meaningful, self-contained unit?"
 
-### `function_exists()` の使用方針
+### `function_exists()` Usage Policy
 
-WordPress がロードされていない環境を想定する必要はない。WordPress コア関数に対する `function_exists()` ガードは不要。
+There is no need to assume environments where WordPress is not loaded. `function_exists()` guards for WordPress core functions are unnecessary.
 
-- **不要:** `get_post`, `wp_insert_user`, `get_term_meta` 等の WordPress コア関数（WordPress がロードされていれば常に存在する）
-- **必要:** マルチサイト専用関数（`get_sites`, `switch_to_blog` 等 — シングルサイトでは存在しない）
-- **必要:** PHP 拡張の関数（`apcu_enabled`, `bzcompress`, `finfo_open` 等）
-- **必要:** `wp-admin` 専用関数で `require_once` が必要な場合（`dbDelta`, `wp_delete_user` 等）
+- **Not needed:** WordPress core functions such as `get_post`, `wp_insert_user`, `get_term_meta` (always exist when WordPress is loaded)
+- **Needed:** Multisite-only functions (`get_sites`, `switch_to_blog`, etc. — do not exist on single-site installs)
+- **Needed:** PHP extension functions (`apcu_enabled`, `bzcompress`, `finfo_open`, etc.)
+- **Needed:** `wp-admin`-only functions that require `require_once` (`dbDelta`, `wp_delete_user`, etc.)
 
-### Hook vs EventDispatcher の使い分け
+### Hook vs EventDispatcher
 
-新規実装では **EventDispatcher を優先**する。EventDispatcher は WordPress の `$wp_filter` をバックエンドに使っており、WordPress フック（アクション・フィルター）も `WordPressEvent` / Extended Event クラスで型安全に扱える。
+**Prefer EventDispatcher** for new implementations. EventDispatcher uses WordPress's `$wp_filter` as its backend, so WordPress hooks (actions/filters) can also be handled in a type-safe manner via `WordPressEvent` / Extended Event classes.
 
-| ケース | 推奨 |
+| Case | Recommendation |
 |--------|------|
-| DI コンテナ起動前のフック（`plugins_loaded` 等） | WordPress 関数を直接使用（`add_action()` / `add_filter()`） |
-| WordPress フック全般（`init` 以降） | **EventDispatcher**（`WordPressEvent` / `#[AsEventListener]`） |
-| アプリケーション固有のドメインイベント | **EventDispatcher**（カスタムイベント + `#[AsEventListener]`） |
-| コンポーネント間の疎結合な通知 | **EventDispatcher** |
+| Hooks before DI container boot (`plugins_loaded`, etc.) | Use WordPress functions directly (`add_action()` / `add_filter()`) |
+| WordPress hooks in general (`init` and later) | **EventDispatcher** (`WordPressEvent` / `#[AsEventListener]`) |
+| Application-specific domain events | **EventDispatcher** (custom events + `#[AsEventListener]`) |
+| Loosely coupled notifications between components | **EventDispatcher** |
 
-Hook コンポーネントは既存コードとの互換性のために残すが、新規実装では EventDispatcher を使う。
+The Hook component is retained for compatibility with existing code, but new implementations should use EventDispatcher.
 
-### Named Hook 規約
+### Named Hook Conventions
 
-全 Named Hook アトリビュートは Hook コンポーネントに集約されている:
-- 詳細: [docs/components/hook/named-hook-conventions.md](docs/components/hook/named-hook-conventions.md)
-- Hook component がライフサイクルフック（`init`, `admin_init` 等）およびドメイン固有フックをすべて所有
-- 名前空間: `WpPack\Component\Hook\Attribute\{ComponentName}\Action\` / `Filter\`
-- ディレクトリ: `src/Component/Hook/src/Attribute/{ComponentName}/Action/` / `Filter/`
-- 自動検出: `ReflectionAttribute::IS_INSTANCEOF` により追加設定不要
+All Named Hook attributes are centralized in the Hook component:
+- Details: [docs/components/hook/named-hook-conventions.md](docs/components/hook/named-hook-conventions.md)
+- The Hook component owns all lifecycle hooks (`init`, `admin_init`, etc.) and domain-specific hooks
+- Namespace: `WpPack\Component\Hook\Attribute\{ComponentName}\Action\` / `Filter\`
+- Directory: `src/Component/Hook/src/Attribute/{ComponentName}/Action/` / `Filter/`
+- Auto-discovery: No additional configuration needed thanks to `ReflectionAttribute::IS_INSTANCEOF`
 
-### WordPress バージョン互換性
+### WordPress Version Compatibility
 
-WordPress のフックや関数がバージョン間でリネーム・廃止される場合は、`version_compare(get_bloginfo('version'), ...)` でバージョンを判定し、新旧両方に対応する。新しいバージョンのフックを優先し、古いバージョンにはフォールバックを提供する。
+When WordPress hooks or functions are renamed or deprecated between versions, use `version_compare(get_bloginfo('version'), ...)` to detect the version and support both old and new. Prefer the newer hook, with a fallback for older versions.
 
 ```php
-// 例: WP 6.8 で setted_transient → set_transient にリネーム
+// Example: setted_transient renamed to set_transient in WP 6.8
 $useNewHooks = version_compare(get_bloginfo('version'), '6.8', '>=');
 $setHook = $useNewHooks ? 'set_transient' : 'setted_transient';
 add_action($setHook, [$this, 'onTransientSet'], 10, 3);
 ```
 
-- 二重発火を避けるため、新旧両方を同時に登録しない（どちらか一方を条件分岐で選択）
-- 廃止されたフック／関数を使い続けない（deprecation warning の原因になる）
-- 対応バージョン範囲はコメントで明記する（例: `// WP 6.8+: ... / WP < 6.8: ...`）
+- Do not register both old and new hooks simultaneously to avoid double-firing (use conditional branching to select one)
+- Do not continue using deprecated hooks/functions (causes deprecation warnings)
+- Clearly document the supported version range in comments (e.g., `// WP 6.8+: ... / WP < 6.8: ...`)
 
-### 名前空間
+### Namespaces
 
 ```
-WpPack\Component\{Name}\  - コンポーネント
-WpPack\Plugin\{Name}\     - プラグイン
+WpPack\Component\{Name}\  - Components
+WpPack\Plugin\{Name}\     - Plugins
 ```
 
-### 静的解析・CI
+### Static Analysis & CI
 
 ```bash
-vendor/bin/phpstan analyse                      # 静的解析
-vendor/bin/php-cs-fixer fix --dry-run --diff    # コードスタイルチェック
-vendor/bin/phpunit                              # テスト実行
+vendor/bin/phpstan analyse                      # Static analysis
+vendor/bin/php-cs-fixer fix --dry-run --diff    # Code style check
+vendor/bin/phpunit                              # Run tests
 ```
 
-### テスト
+### Testing
 
-#### テスト構成
+#### Test Configuration
 
-テストは wp-phpunit + MySQL による WordPress 統合テスト環境で実行する。`tests/bootstrap.php` は常に WordPress をフルロードするため、テスト実行前に Docker で MySQL を起動する必要がある。
+Tests run in a WordPress integration test environment using wp-phpunit + MySQL. `tests/bootstrap.php` always fully loads WordPress, so MySQL must be started via Docker before running tests.
 
-#### ローカルでのテスト実行
+#### Running Tests Locally
 
 ```bash
-docker compose up -d --wait    # MySQL 起動（必須）
-vendor/bin/phpunit             # 全テスト実行
-docker compose down            # MySQL 停止
+docker compose up -d --wait    # Start MySQL (required)
+vendor/bin/phpunit             # Run all tests
+docker compose down            # Stop MySQL
 ```
 
-#### テストでの WordPress 関数モック
+#### Mocking WordPress Functions in Tests
 
-WordPress 関数に依存するテストでは `pre_http_request` フィルターで HTTP 呼び出しをモックする。`HttpClient` を匿名クラスで拡張するパターンは使用しない（clone ベースの immutability と相性が悪い）。
+For tests that depend on WordPress functions, mock HTTP calls using the `pre_http_request` filter. Do not use the pattern of extending `HttpClient` with anonymous classes (incompatible with clone-based immutability).
 
 ```php
-// setUp() でフィルター登録
+// Register filter in setUp()
 add_filter('pre_http_request', [$this, 'mockHttpResponse'], 10, 3);
 
-// tearDown() でフィルター解除
+// Remove filter in tearDown()
 remove_filter('pre_http_request', [$this, 'mockHttpResponse'], 10);
 ```
 
-#### テストファイル配置
+#### Test File Location
 
-各コンポーネントのテストは `src/Component/{Name}/tests/` に配置。
+Tests for each component are located in `src/Component/{Name}/tests/`.
 
-### モノレポ開発フロー
-- ルート `composer.json` で全パッケージを管理
-- `replace` セクションで自パッケージを宣言
-- splitsh-lite で各パッケージリポジトリに分割公開
-- GitHub Actions で CI/CD 実行
+### Monorepo Development Workflow
+- All packages managed via the root `composer.json`
+- Self-packages declared in the `replace` section
+- Individual package repositories published via splitsh-lite
+- CI/CD runs on GitHub Actions
 
-### コンポーネント追加時のチェックリスト
+### Checklist for Adding Components
 
-新しいコンポーネント / Bridge パッケージを追加する際は、以下のファイルをすべて更新すること:
+When adding a new component or Bridge package, update all of the following files:
 
-1. **ルート `composer.json`** — `autoload.psr-4`、`autoload-dev.psr-4`、`replace` に追加
-2. **`codecov.yml`** — `individual_components` に `component_id` / `name` / `paths` を追加
-3. **`CLAUDE.md`** — コンポーネント一覧テーブル、主要な依存関係に追加
-4. **`docs/`** — 該当コンポーネントのドキュメント作成・更新
+1. **Root `composer.json`** — Add to `autoload.psr-4`, `autoload-dev.psr-4`, and `replace`
+2. **`codecov.yml`** — Add `component_id` / `name` / `paths` to `individual_components`
+3. **`CLAUDE.md`** — Add to the component list table and key dependencies
+4. **`docs/`** — Create or update documentation for the component
 
-### ドキュメント・コンポーネント更新時の一貫性チェック
+### Consistency Checks for Documentation & Component Updates
 
-- **ドキュメント更新時**: `docs/components/README.md` のコンポーネント一覧テーブルで、リンク先パスが実在するか確認する。新規ドキュメント追加時はテーブルにリンクを追加し、既存リンクのパス形式（ファイル: `./name.md`、ディレクトリ: `./name/`）と整合させる
-- **コンポーネント更新時**: `CLAUDE.md` のコンポーネント一覧テーブル、`docs/components/README.md` のテーブル、`src/Component/{Name}/README.md`（パッケージ README）、および `src/` 配下の実装（名前空間・ディレクトリ名・`composer.json`）で、コンポーネント名・パッケージ名・説明の表記が一致しているか確認し、一貫性を保つ
+- **When updating documentation**: Verify that link targets in the component list table in `docs/components/README.md` actually exist. When adding new documentation, add a link to the table and ensure path format consistency with existing links (files: `./name.md`, directories: `./name/`)
+- **When updating components**: Ensure that component names, package names, and descriptions are consistent across: the component list table in `CLAUDE.md`, the table in `docs/components/README.md`, `src/Component/{Name}/README.md` (package README), and the implementation under `src/` (namespaces, directory names, `composer.json`)
 
-### ディレクトリ構造
+### Directory Structure
 
 ```
 wppack/
 ├── src/
-│   ├── Component/          # WordPress コンポーネント
+│   ├── Component/          # WordPress components
 │   │   ├── Handler/       → wppack/handler
 │   │   ├── Hook/          → wppack/hook
 │   │   ├── Mailer/        → wppack/mailer
 │   │   ├── Messenger/     → wppack/messenger
 │   │   └── ...
-│   └── Plugin/             # WordPress プラグイン
+│   └── Plugin/             # WordPress plugins
 │       ├── EventBridgeSchedulerPlugin/  → wppack/eventbridge-scheduler-plugin
 │       ├── S3StoragePlugin/  → wppack/s3-storage-plugin
 │       └── AmazonMailerPlugin/  → wppack/amazon-mailer-plugin
@@ -492,20 +492,20 @@ wppack/
 └── ...
 ```
 
-### 後方互換性
+### Backward Compatibility
 
-全パッケージがリリース前（設計中）のため、後方互換性は考慮しない。API の変更、パラメータ順序の変更、クラスのリネーム・削除は自由に行ってよい。
+All packages are pre-release (in design phase), so backward compatibility is not a concern. API changes, parameter reordering, class renames, and deletions may be done freely.
 
-## ステータス
+## Status
 
-- 全パッケージ: 設計中
+- All packages: In design phase
 
-## このファイルの更新について
+## Updating This File
 
-このCLAUDE.mdは、プロジェクトの変更に合わせて必要に応じて更新してください:
+Update this CLAUDE.md as needed when the project changes:
 
-- 新しいパッケージやモジュールが追加された場合
-- アーキテクチャや設計方針が変更された場合
-- コーディング規約が更新された場合
-- 重要な開発ルールやコマンドが追加された場合
-- プロジェクトステータスが変わった場合
+- When new packages or modules are added
+- When architecture or design principles change
+- When coding standards are updated
+- When important development rules or commands are added
+- When the project status changes
