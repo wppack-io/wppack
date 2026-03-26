@@ -19,23 +19,26 @@ use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
 use WpPack\Component\EventDispatcher\DependencyInjection\EventDispatcherServiceProvider;
 use WpPack\Component\EventDispatcher\EventDispatcher;
+use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Routing\RouteRegistry;
 use WpPack\Component\Security\Authentication\AuthenticationManager;
+use WpPack\Component\Security\Authentication\AuthenticationManagerInterface;
 use WpPack\Component\Security\Bridge\SAML\Configuration\IdpSettings;
 use WpPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
 use WpPack\Component\Security\Bridge\SAML\Configuration\SpSettings;
 use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
+use WpPack\Component\Security\Bridge\SAML\SamlAcsController;
 use WpPack\Component\Security\Bridge\SAML\SamlAuthenticator;
 use WpPack\Component\Security\Bridge\SAML\SamlEntryPoint;
 use WpPack\Component\Security\Bridge\SAML\SamlLogoutHandler;
+use WpPack\Component\Security\Bridge\SAML\SamlLogoutListener;
 use WpPack\Component\Security\Bridge\SAML\SamlMetadataController;
+use WpPack\Component\Security\Bridge\SAML\SamlSloController;
 use WpPack\Component\Security\Bridge\SAML\Session\SamlSessionManager;
-use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolver;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolverInterface;
 use WpPack\Component\Security\DependencyInjection\SecurityServiceProvider;
 use WpPack\Plugin\SamlLoginPlugin\Configuration\SamlLoginConfiguration;
-use WpPack\Plugin\SamlLoginPlugin\EventListener\SamlLogoutListener;
-use WpPack\Plugin\SamlLoginPlugin\Route\SamlRouteRegistrar;
 
 final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
 {
@@ -109,12 +112,20 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
         $builder->register(SamlMetadataController::class)
             ->addArgument(new Reference(SamlConfiguration::class));
 
-        // Route Registrar
-        $builder->register(SamlRouteRegistrar::class)
-            ->addArgument(new Reference(Request::class))
-            ->addArgument(new Reference(SamlMetadataController::class))
+        // ACS Controller
+        $builder->register(SamlAcsController::class)
+            ->addArgument(new Reference(AuthenticationManagerInterface::class));
+
+        // SLO Controller
+        $builder->register(SamlSloController::class)
             ->addArgument(new Reference(SamlLogoutHandler::class))
-            ->addArgument(new Reference(AuthenticationManager::class));
+            ->addArgument(new Reference(Request::class));
+
+        // Route Registry
+        if (!$builder->hasDefinition(RouteRegistry::class)) {
+            $builder->register(RouteRegistry::class)
+                ->addArgument(new Reference(Request::class));
+        }
     }
 
     public static function createIdpSettings(SamlLoginConfiguration $config): IdpSettings

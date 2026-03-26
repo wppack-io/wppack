@@ -18,12 +18,16 @@ use WpPack\Component\DependencyInjection\Container;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\EventDispatcher\DependencyInjection\RegisterEventListenersPass;
 use WpPack\Component\Kernel\AbstractPlugin;
+use WpPack\Component\Routing\RouteRegistry;
 use WpPack\Component\Security\Authentication\AuthenticationManager;
+use WpPack\Component\Security\Bridge\SAML\SamlAcsController;
 use WpPack\Component\Security\Bridge\SAML\SamlEntryPoint;
+use WpPack\Component\Security\Bridge\SAML\SamlLogoutListener;
+use WpPack\Component\Security\Bridge\SAML\SamlMetadataController;
+use WpPack\Component\Security\Bridge\SAML\SamlSloController;
 use WpPack\Component\Security\DependencyInjection\RegisterAuthenticatorsPass;
+use WpPack\Plugin\SamlLoginPlugin\Configuration\SamlLoginConfiguration;
 use WpPack\Plugin\SamlLoginPlugin\DependencyInjection\SamlLoginPluginServiceProvider;
-use WpPack\Plugin\SamlLoginPlugin\EventListener\SamlLogoutListener;
-use WpPack\Plugin\SamlLoginPlugin\Route\SamlRouteRegistrar;
 
 final class SamlLoginPlugin extends AbstractPlugin
 {
@@ -61,9 +65,14 @@ final class SamlLoginPlugin extends AbstractPlugin
         $entryPoint = $container->get(SamlEntryPoint::class);
         $entryPoint->register();
 
-        /** @var SamlRouteRegistrar $routeRegistrar */
-        $routeRegistrar = $container->get(SamlRouteRegistrar::class);
-        $routeRegistrar->register();
+        /** @var SamlLoginConfiguration $config */
+        $config = $container->get(SamlLoginConfiguration::class);
+
+        /** @var RouteRegistry $router */
+        $router = $container->get(RouteRegistry::class);
+        $router->addRoute($config->metadataPath, $container->get(SamlMetadataController::class), name: 'saml_metadata', methods: ['GET']);
+        $router->addRoute($config->acsPath, $container->get(SamlAcsController::class), name: 'saml_acs', methods: ['POST']);
+        $router->addRoute($config->sloPath, $container->get(SamlSloController::class), name: 'saml_slo');
 
         /** @var SamlLogoutListener $logoutListener */
         $logoutListener = $container->get(SamlLogoutListener::class);

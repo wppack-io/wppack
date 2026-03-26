@@ -7,7 +7,9 @@
         "php": "^8.2",
         "wppack/dependency-injection": "^1.0",
         "wppack/event-dispatcher": "^1.0",
+        "wppack/http-foundation": "^1.0",
         "wppack/kernel": "^1.0",
+        "wppack/routing": "^1.0",
         "wppack/saml-security": "^1.0",
         "wppack/security": "^1.0"
     },

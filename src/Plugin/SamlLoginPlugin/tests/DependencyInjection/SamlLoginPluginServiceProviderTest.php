@@ -21,21 +21,25 @@ use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
 use WpPack\Component\EventDispatcher\EventDispatcher;
 use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Routing\RouteRegistry;
 use WpPack\Component\Security\Authentication\AuthenticationManager;
+use WpPack\Component\Security\Authentication\AuthenticationManagerInterface;
 use WpPack\Component\Security\Bridge\SAML\Configuration\IdpSettings;
 use WpPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
 use WpPack\Component\Security\Bridge\SAML\Configuration\SpSettings;
 use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
+use WpPack\Component\Security\Bridge\SAML\SamlAcsController;
 use WpPack\Component\Security\Bridge\SAML\SamlAuthenticator;
 use WpPack\Component\Security\Bridge\SAML\SamlEntryPoint;
 use WpPack\Component\Security\Bridge\SAML\SamlLogoutHandler;
+use WpPack\Component\Security\Bridge\SAML\SamlLogoutListener;
 use WpPack\Component\Security\Bridge\SAML\SamlMetadataController;
+use WpPack\Component\Security\Bridge\SAML\SamlSloController;
 use WpPack\Component\Security\Bridge\SAML\Session\SamlSessionManager;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolver;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolverInterface;
 use WpPack\Plugin\SamlLoginPlugin\Configuration\SamlLoginConfiguration;
 use WpPack\Plugin\SamlLoginPlugin\DependencyInjection\SamlLoginPluginServiceProvider;
-use WpPack\Plugin\SamlLoginPlugin\Route\SamlRouteRegistrar;
 
 #[CoversClass(SamlLoginPluginServiceProvider::class)]
 final class SamlLoginPluginServiceProviderTest extends TestCase
@@ -209,19 +213,72 @@ final class SamlLoginPluginServiceProviderTest extends TestCase
     }
 
     #[Test]
-    public function registersSamlRouteRegistrar(): void
+    public function registersSamlAcsController(): void
     {
         $this->provider->register($this->builder);
 
-        self::assertTrue($this->builder->hasDefinition(SamlRouteRegistrar::class));
+        self::assertTrue($this->builder->hasDefinition(SamlAcsController::class));
 
-        $definition = $this->builder->findDefinition(SamlRouteRegistrar::class);
+        $definition = $this->builder->findDefinition(SamlAcsController::class);
         $arguments = $definition->getArguments();
-        self::assertCount(4, $arguments);
+        self::assertCount(1, $arguments);
+        self::assertInstanceOf(Reference::class, $arguments[0]);
+        self::assertSame(AuthenticationManagerInterface::class, (string) $arguments[0]);
+    }
+
+    #[Test]
+    public function registersSamlSloController(): void
+    {
+        $this->provider->register($this->builder);
+
+        self::assertTrue($this->builder->hasDefinition(SamlSloController::class));
+
+        $definition = $this->builder->findDefinition(SamlSloController::class);
+        $arguments = $definition->getArguments();
+        self::assertCount(2, $arguments);
+        self::assertSame(SamlLogoutHandler::class, (string) $arguments[0]);
+        self::assertSame(Request::class, (string) $arguments[1]);
+    }
+
+    #[Test]
+    public function registersRouteRegistry(): void
+    {
+        $this->provider->register($this->builder);
+
+        self::assertTrue($this->builder->hasDefinition(RouteRegistry::class));
+
+        $definition = $this->builder->findDefinition(RouteRegistry::class);
+        $arguments = $definition->getArguments();
+        self::assertCount(1, $arguments);
         self::assertSame(Request::class, (string) $arguments[0]);
-        self::assertSame(SamlMetadataController::class, (string) $arguments[1]);
-        self::assertSame(SamlLogoutHandler::class, (string) $arguments[2]);
-        self::assertSame(AuthenticationManager::class, (string) $arguments[3]);
+    }
+
+    #[Test]
+    public function doesNotOverrideExistingRouteRegistry(): void
+    {
+        $this->builder->register(RouteRegistry::class)
+            ->addArgument('custom');
+
+        $this->provider->register($this->builder);
+
+        $definition = $this->builder->findDefinition(RouteRegistry::class);
+        $arguments = $definition->getArguments();
+        self::assertCount(1, $arguments);
+        self::assertSame('custom', $arguments[0]);
+    }
+
+    #[Test]
+    public function registersSamlLogoutListenerFromBridge(): void
+    {
+        $this->provider->register($this->builder);
+
+        self::assertTrue($this->builder->hasDefinition(SamlLogoutListener::class));
+
+        $definition = $this->builder->findDefinition(SamlLogoutListener::class);
+        $arguments = $definition->getArguments();
+        self::assertCount(2, $arguments);
+        self::assertSame(SamlLogoutHandler::class, (string) $arguments[0]);
+        self::assertSame(SamlSessionManager::class, (string) $arguments[1]);
     }
 
     #[Test]
@@ -414,6 +471,9 @@ final class SamlLoginPluginServiceProviderTest extends TestCase
         self::assertTrue($this->builder->hasDefinition(SamlEntryPoint::class));
         self::assertTrue($this->builder->hasDefinition(SamlLogoutHandler::class));
         self::assertTrue($this->builder->hasDefinition(SamlMetadataController::class));
-        self::assertTrue($this->builder->hasDefinition(SamlRouteRegistrar::class));
+        self::assertTrue($this->builder->hasDefinition(SamlAcsController::class));
+        self::assertTrue($this->builder->hasDefinition(SamlSloController::class));
+        self::assertTrue($this->builder->hasDefinition(RouteRegistry::class));
+        self::assertTrue($this->builder->hasDefinition(SamlLogoutListener::class));
     }
 }

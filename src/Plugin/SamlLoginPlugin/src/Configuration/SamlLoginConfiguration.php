@@ -45,6 +45,9 @@ final readonly class SamlLoginConfiguration
         public ?string $roleAttribute = null,
         public ?array $roleMapping = null,
         public bool $addUserToBlog = true,
+        public string $metadataPath = '/saml/metadata',
+        public string $acsPath = '/saml/acs',
+        public string $sloPath = '/saml/slo',
     ) {}
 
     public static function fromEnvironment(): self
@@ -68,6 +71,9 @@ final readonly class SamlLoginConfiguration
             roleAttribute: self::getEnv('SAML_ROLE_ATTRIBUTE'),
             roleMapping: self::loadRoleMapping(),
             addUserToBlog: self::getBool('SAML_ADD_USER_TO_BLOG', true),
+            metadataPath: self::getEnv('SAML_METADATA_PATH') ?? '/saml/metadata',
+            acsPath: self::getEnv('SAML_ACS_PATH') ?? '/saml/acs',
+            sloPath: self::getEnv('SAML_SLO_PATH') ?? '/saml/slo',
         );
     }
 
