@@ -146,6 +146,39 @@ final class UrlGeneratorTest extends TestCase
     }
 
     #[Test]
+    public function generatePreservesTrailingSlash(): void
+    {
+        $registry = new RouteRegistry();
+        $registry->register(new class {
+            #[Route('/events/{year}/', name: 'event_trailing')]
+            public function archive(): ?TemplateResponse
+            {
+                return null;
+            }
+        });
+
+        $generator = new UrlGenerator($registry);
+
+        self::assertSame('/events/2024/', $generator->generate('event_trailing', ['year' => '2024']));
+    }
+
+    #[Test]
+    public function generateWithoutTrailingSlash(): void
+    {
+        $registry = new RouteRegistry();
+        $registry->register(new #[Route('/saml/metadata', name: 'saml_metadata')] class {
+            public function __invoke(): ?TemplateResponse
+            {
+                return null;
+            }
+        });
+
+        $generator = new UrlGenerator($registry);
+
+        self::assertSame('/saml/metadata', $generator->generate('saml_metadata'));
+    }
+
+    #[Test]
     public function generateNormalizesLeadingSlash(): void
     {
         $registry = new RouteRegistry();
