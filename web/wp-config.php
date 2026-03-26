@@ -38,6 +38,7 @@ define('SAML_IDP_X509_CERT', 'MIICmzCCAYMCBgGdKMBAvjANBgkqhkiG9w0BAQsFADARMQ8wDQ
 define('SAML_AUTO_PROVISION', true);
 define('SAML_STRICT', false);
 define('SAML_ALLOW_REPEAT_ATTRIBUTE_NAME', true);
+define('SAML_SSO_ONLY', false);
 
 // Auth keys (dev only — do not use in production)
 define('AUTH_KEY', 'wppack-dev-auth-key');

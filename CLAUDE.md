@@ -369,6 +369,58 @@ There is no need to assume environments where WordPress is not loaded. `function
 - **Needed:** PHP extension functions (`apcu_enabled`, `bzcompress`, `finfo_open`, etc.)
 - **Needed:** `wp-admin`-only functions that require `require_once` (`dbDelta`, `wp_delete_user`, etc.)
 
+### Wrapping WordPress Functions
+
+WordPress global functions (`wp_logout()`, `get_current_user_id()`, `wp_set_auth_cookie()`, etc.) should **not** be called directly from application code. Instead, wrap them in a dedicated class and inject that class via DI. This enables type-safe usage, testability (mockable), and a single point of change.
+
+#### Naming Conventions
+
+Follow Symfony's naming patterns — use a plain noun or compound noun **without** a suffix for thin façades/wrappers. Reserve the `*Manager` suffix for classes that orchestrate multiple sub-components.
+
+| Pattern | When to use | Examples |
+|---------|-------------|---------|
+| No suffix (plain noun) | Thin wrapper / façade over a small set of related functions | `AuthenticationSession`, `Security`, `TokenStorage`, `PasswordHasher` |
+| `*Manager` | Orchestrates multiple sub-components or manages CRUD lifecycle of a resource | `AuthenticationManager`, `AccessDecisionManager`, `SamlSessionManager` |
+
+#### Example
+
+```php
+// Good — wrapped in a class, injected via DI
+final class AuthenticationSession
+{
+    public function login(int $userId, bool $remember = false, bool $secure = false): void
+    {
+        wp_clear_auth_cookie();
+        wp_set_auth_cookie($userId, $remember, $secure);
+    }
+
+    public function logout(): void { wp_logout(); }
+    public function getCurrentUserId(): int { return get_current_user_id(); }
+}
+
+// Bad — calling WordPress functions directly in application code
+$this->establishAuthSession($token);
+// ...
+private function establishAuthSession(TokenInterface $token): void
+{
+    wp_clear_auth_cookie();
+    wp_set_auth_cookie($token->getUser()->ID, false, is_ssl());
+}
+```
+
+#### Scope
+
+- **Wrap:** WordPress functions used across multiple classes or that affect external state (auth cookies, sessions, user switching, rewrite rules, etc.)
+- **No need to wrap:** Functions called only inside a single, self-contained utility (e.g., `home_url()` in a URL builder) or inside hooks registered before the DI container boots
+- **Use existing components first:** Before calling a WordPress function directly, check if a WpPack component already wraps it. Use the component API instead of the raw WordPress function.
+
+| WordPress function | WpPack component method |
+|---|---|
+| `wp_logout()`, `wp_set_auth_cookie()`, `get_current_user_id()` | `AuthenticationSession::logout()`, `login()`, `getCurrentUserId()` |
+| `flush_rewrite_rules()`, `add_rewrite_rule()` | `RouteRegistry::flush()`, `addRoute()` |
+| `wp_insert_post()`, `get_post()` | `PostType` component |
+| `switch_to_blog()`, `restore_current_blog()` | `BlogContext` component |
+
 ### Hook vs EventDispatcher
 
 **Prefer EventDispatcher** for new implementations. EventDispatcher uses WordPress's `$wp_filter` as its backend, so WordPress hooks (actions/filters) can also be handled in a type-safe manner via `WordPressEvent` / Extended Event classes.
