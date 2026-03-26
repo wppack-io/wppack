@@ -18,6 +18,7 @@ final class CredentialsBadge implements BadgeInterface
     private bool $resolved = false;
 
     public function __construct(
+        #[\SensitiveParameter]
         private readonly string $password,
     ) {
         if ($password === '') {

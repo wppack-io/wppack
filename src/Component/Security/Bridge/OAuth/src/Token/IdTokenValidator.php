@@ -28,6 +28,7 @@ final class IdTokenValidator
      * @throws \RuntimeException on validation failure
      */
     public function validate(
+        #[\SensitiveParameter]
         string $idToken,
         string $nonce,
         string $clientId,

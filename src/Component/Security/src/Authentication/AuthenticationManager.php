@@ -43,7 +43,7 @@ final class AuthenticationManager implements AuthenticationManagerInterface
      *
      * Returns \WP_User on success, passes through $user otherwise.
      */
-    public function handleAuthentication(mixed $user, string $username, string $password): mixed
+    public function handleAuthentication(mixed $user, string $username, #[\SensitiveParameter] string $password): mixed
     {
         // If already authenticated (e.g., by another filter), pass through
         if ($user instanceof \WP_User) {
