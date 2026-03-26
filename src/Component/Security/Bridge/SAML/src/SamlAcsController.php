@@ -35,6 +35,6 @@ final class SamlAcsController
         }
 
         // No authenticator matched — fallback
-        return new RedirectResponse(wp_login_url() . '?action=saml_error');
+        return new RedirectResponse(site_url('wp-login.php', 'login') . '?saml_error=true');
     }
 }

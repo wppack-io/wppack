@@ -26,10 +26,21 @@ use WpPack\Plugin\SamlLoginPlugin\SamlLoginForm;
 #[CoversClass(SamlLoginForm::class)]
 final class SamlLoginFormTest extends TestCase
 {
+    private AuthenticationSession $authSession;
+
+    protected function setUp(): void
+    {
+        $this->authSession = new AuthenticationSession();
+        wp_set_current_user(0);
+    }
+
     protected function tearDown(): void
     {
+        remove_all_actions('login_init');
         remove_all_actions('login_footer');
-        remove_all_filters('login_message');
+        remove_all_filters('wp_login_errors');
+        remove_all_filters('wp_redirect');
+        wp_set_current_user(0);
     }
 
     private function createEntryPoint(string $loginUrl = 'https://idp.example.com/sso'): SamlEntryPoint
@@ -43,7 +54,7 @@ final class SamlLoginFormTest extends TestCase
 
         return new SamlEntryPoint(
             $factory,
-            new AuthenticationSession(),
+            $this->authSession,
             Request::create('https://example.com/wp-login.php'),
         );
     }
@@ -54,11 +65,12 @@ final class SamlLoginFormTest extends TestCase
         $entryPoint = $this->createEntryPoint();
         $request = Request::create('https://example.com/wp-login.php');
 
-        $form = new SamlLoginForm($entryPoint, $request);
+        $form = new SamlLoginForm($entryPoint, $this->authSession, $request);
         $form->register();
 
+        self::assertSame(10, has_action('login_init', [$form, 'redirectLoggedInUser']));
         self::assertSame(10, has_action('login_footer', [$form, 'renderButton']));
-        self::assertSame(10, has_filter('login_message', [$form, 'renderErrorMessage']));
+        self::assertSame(10, has_filter('wp_login_errors', [$form, 'addSamlError']));
     }
 
     #[Test]
@@ -67,7 +79,7 @@ final class SamlLoginFormTest extends TestCase
         $entryPoint = $this->createEntryPoint('https://idp.example.com/sso?SAMLRequest=encoded');
         $request = Request::create('https://example.com/wp-login.php');
 
-        $form = new SamlLoginForm($entryPoint, $request);
+        $form = new SamlLoginForm($entryPoint, $this->authSession, $request);
 
         ob_start();
         $form->renderButton();
@@ -97,13 +109,13 @@ final class SamlLoginFormTest extends TestCase
 
         $entryPoint = new SamlEntryPoint(
             $factory,
-            new AuthenticationSession(),
+            $this->authSession,
             Request::create('https://example.com/wp-login.php'),
         );
 
         $request = Request::create('https://example.com/wp-login.php?redirect_to=' . urlencode('https://example.com/wp-admin/edit.php'));
 
-        $form = new SamlLoginForm($entryPoint, $request);
+        $form = new SamlLoginForm($entryPoint, $this->authSession, $request);
 
         ob_start();
         $form->renderButton();
@@ -130,13 +142,13 @@ final class SamlLoginFormTest extends TestCase
 
         $entryPoint = new SamlEntryPoint(
             $factory,
-            new AuthenticationSession(),
+            $this->authSession,
             Request::create('https://example.com/wp-login.php'),
         );
 
         $request = Request::create('https://example.com/wp-login.php');
 
-        $form = new SamlLoginForm($entryPoint, $request);
+        $form = new SamlLoginForm($entryPoint, $this->authSession, $request);
 
         ob_start();
         $form->renderButton();
@@ -146,40 +158,179 @@ final class SamlLoginFormTest extends TestCase
     }
 
     #[Test]
-    public function renderErrorMessageShowsErrorOnSamlError(): void
+    public function redirectLoggedInUserRedirectsToAdminUrl(): void
     {
+        $capturedLocation = null;
+
+        add_filter('wp_redirect', function (string $location) use (&$capturedLocation): string {
+            $capturedLocation = $location;
+            throw new \RuntimeException('redirect intercepted');
+        });
+
         $entryPoint = $this->createEntryPoint();
-        $request = Request::create('https://example.com/wp-login.php?action=saml_error');
+        $request = Request::create('https://example.com/wp-login.php');
 
-        $form = new SamlLoginForm($entryPoint, $request);
-        $result = $form->renderErrorMessage('');
+        wp_set_current_user(1);
 
-        self::assertStringContainsString('login_error', $result);
-        self::assertStringContainsString('SAML authentication failed', $result);
+        $form = new SamlLoginForm($entryPoint, $this->authSession, $request);
+
+        try {
+            $form->redirectLoggedInUser();
+        } catch (\Throwable) {
+            // wp_safe_redirect throws to prevent exit
+        }
+
+        self::assertSame(admin_url(), $capturedLocation);
     }
 
     #[Test]
-    public function renderErrorMessageReturnsOriginalWithoutSamlError(): void
+    public function redirectLoggedInUserRedirectsToRedirectTo(): void
+    {
+        $capturedLocation = null;
+
+        add_filter('wp_redirect', function (string $location) use (&$capturedLocation): string {
+            $capturedLocation = $location;
+            throw new \RuntimeException('redirect intercepted');
+        });
+
+        $entryPoint = $this->createEntryPoint();
+        $redirectTo = home_url('/wp-admin/edit.php');
+        $request = Request::create('https://example.com/wp-login.php?redirect_to=' . urlencode($redirectTo));
+
+        wp_set_current_user(1);
+
+        $form = new SamlLoginForm($entryPoint, $this->authSession, $request);
+
+        try {
+            $form->redirectLoggedInUser();
+        } catch (\Throwable) {
+            // wp_safe_redirect throws to prevent exit
+        }
+
+        self::assertSame($redirectTo, $capturedLocation);
+    }
+
+    #[Test]
+    public function redirectLoggedInUserSkipsAnonymousUser(): void
+    {
+        $redirectCalled = false;
+
+        add_filter('wp_redirect', function (string $location) use (&$redirectCalled): string {
+            $redirectCalled = true;
+
+            return $location;
+        });
+
+        $entryPoint = $this->createEntryPoint();
+        $request = Request::create('https://example.com/wp-login.php');
+
+        $form = new SamlLoginForm($entryPoint, $this->authSession, $request);
+        $form->redirectLoggedInUser();
+
+        self::assertFalse($redirectCalled);
+    }
+
+    #[Test]
+    public function redirectLoggedInUserSkipsPostRequest(): void
+    {
+        $redirectCalled = false;
+
+        add_filter('wp_redirect', function (string $location) use (&$redirectCalled): string {
+            $redirectCalled = true;
+
+            return $location;
+        });
+
+        $entryPoint = $this->createEntryPoint();
+        $request = Request::create('https://example.com/wp-login.php', 'POST');
+
+        wp_set_current_user(1);
+
+        $form = new SamlLoginForm($entryPoint, $this->authSession, $request);
+        $form->redirectLoggedInUser();
+
+        self::assertFalse($redirectCalled);
+    }
+
+    #[Test]
+    public function redirectLoggedInUserSkipsWithAction(): void
+    {
+        $redirectCalled = false;
+
+        add_filter('wp_redirect', function (string $location) use (&$redirectCalled): string {
+            $redirectCalled = true;
+
+            return $location;
+        });
+
+        $entryPoint = $this->createEntryPoint();
+        $request = Request::create('https://example.com/wp-login.php?action=logout');
+
+        wp_set_current_user(1);
+
+        $form = new SamlLoginForm($entryPoint, $this->authSession, $request);
+        $form->redirectLoggedInUser();
+
+        self::assertFalse($redirectCalled);
+    }
+
+    #[Test]
+    public function redirectLoggedInUserSkipsWithLoggedout(): void
+    {
+        $redirectCalled = false;
+
+        add_filter('wp_redirect', function (string $location) use (&$redirectCalled): string {
+            $redirectCalled = true;
+
+            return $location;
+        });
+
+        $entryPoint = $this->createEntryPoint();
+        $request = Request::create('https://example.com/wp-login.php?loggedout=true');
+
+        wp_set_current_user(1);
+
+        $form = new SamlLoginForm($entryPoint, $this->authSession, $request);
+        $form->redirectLoggedInUser();
+
+        self::assertFalse($redirectCalled);
+    }
+
+    #[Test]
+    public function addSamlErrorAddsErrorOnSamlError(): void
+    {
+        $entryPoint = $this->createEntryPoint();
+        $request = Request::create('https://example.com/wp-login.php?saml_error=true');
+
+        $form = new SamlLoginForm($entryPoint, $this->authSession, $request);
+        $errors = $form->addSamlError(new \WP_Error());
+
+        self::assertSame('SAML authentication failed. Please try again.', $errors->get_error_message('saml_error'));
+    }
+
+    #[Test]
+    public function addSamlErrorDoesNothingWithoutSamlError(): void
     {
         $entryPoint = $this->createEntryPoint();
         $request = Request::create('https://example.com/wp-login.php');
 
-        $form = new SamlLoginForm($entryPoint, $request);
-        $result = $form->renderErrorMessage('existing message');
+        $form = new SamlLoginForm($entryPoint, $this->authSession, $request);
+        $errors = $form->addSamlError(new \WP_Error());
 
-        self::assertSame('existing message', $result);
+        self::assertEmpty($errors->get_error_codes());
     }
 
     #[Test]
-    public function renderErrorMessagePrependsToExistingMessage(): void
+    public function addSamlErrorPreservesExistingErrors(): void
     {
         $entryPoint = $this->createEntryPoint();
-        $request = Request::create('https://example.com/wp-login.php?action=saml_error');
+        $request = Request::create('https://example.com/wp-login.php?saml_error=true');
 
-        $form = new SamlLoginForm($entryPoint, $request);
-        $result = $form->renderErrorMessage('<p>Welcome</p>');
+        $form = new SamlLoginForm($entryPoint, $this->authSession, $request);
+        $existing = new \WP_Error('invalid_username', 'Unknown username.');
+        $errors = $form->addSamlError($existing);
 
-        self::assertStringContainsString('SAML authentication failed', $result);
-        self::assertStringContainsString('<p>Welcome</p>', $result);
+        self::assertSame('Unknown username.', $errors->get_error_message('invalid_username'));
+        self::assertSame('SAML authentication failed. Please try again.', $errors->get_error_message('saml_error'));
     }
 }

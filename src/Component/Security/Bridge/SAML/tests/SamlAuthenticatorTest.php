@@ -234,7 +234,7 @@ final class SamlAuthenticatorTest extends TestCase
         $response = $authenticator->onAuthenticationFailure($request, $exception);
 
         self::assertInstanceOf(RedirectResponse::class, $response);
-        self::assertStringContainsString('action=saml_error', $response->url);
+        self::assertSame(site_url('wp-login.php', 'login') . '?saml_error=true', $response->url);
     }
 
     #[Test]

@@ -38,7 +38,7 @@ final class SamlEntryPoint
 
         add_action('login_init', function (): void {
             // SSO-only: show error page instead of login form
-            if ($this->request->query->getString('action') === 'saml_error') {
+            if ($this->request->query->has('saml_error')) {
                 wp_die(
                     'SAML authentication failed. Please contact your administrator.',
                     'Authentication Error',
@@ -50,15 +50,17 @@ final class SamlEntryPoint
                 && !$this->request->query->has('action')
                 && !$this->request->query->has('loggedout')
             ) {
-                if ($this->authSession->isLoggedIn()) {
-                    return;
-                }
-
                 $redirectTo = $this->request->query->getString('redirect_to');
-                $returnTo = $redirectTo !== ''
+                $destination = $redirectTo !== ''
                     ? wp_validate_redirect($redirectTo, admin_url())
                     : admin_url();
-                $this->start($returnTo);
+
+                if ($this->authSession->isLoggedIn()) {
+                    wp_safe_redirect($destination);
+                    exit;
+                }
+
+                $this->start($destination);
             }
         });
     }

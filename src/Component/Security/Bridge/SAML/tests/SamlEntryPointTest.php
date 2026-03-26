@@ -219,20 +219,17 @@ final class SamlEntryPointTest extends TestCase
     }
 
     #[Test]
-    public function registerLoginInitSkipsLoggedInUser(): void
+    public function registerLoginInitRedirectsLoggedInUserToAdminUrl(): void
     {
-        $loginCalled = false;
+        $capturedLocation = null;
 
-        $auth = $this->createMock(Auth::class);
-        $auth->method('login')
-            ->willReturnCallback(function () use (&$loginCalled): void {
-                $loginCalled = true;
-            });
+        add_filter('wp_redirect', function (string $location) use (&$capturedLocation): string {
+            $capturedLocation = $location;
+            throw new \RuntimeException('redirect intercepted');
+        });
 
         $factory = $this->createMock(SamlAuthFactory::class);
-        $factory->method('create')->willReturn($auth);
 
-        // Simulate logged-in user
         wp_set_current_user(1);
 
         $entryPoint = new SamlEntryPoint(
@@ -242,9 +239,78 @@ final class SamlEntryPointTest extends TestCase
         );
         $entryPoint->register();
 
+        try {
+            do_action('login_init');
+        } catch (\Throwable) {
+            // wp_safe_redirect throws to prevent exit
+        }
+
+        remove_all_filters('wp_redirect');
+
+        self::assertSame(admin_url(), $capturedLocation);
+    }
+
+    #[Test]
+    public function registerLoginInitRedirectsLoggedInUserToRedirectTo(): void
+    {
+        $capturedLocation = null;
+
+        add_filter('wp_redirect', function (string $location) use (&$capturedLocation): string {
+            $capturedLocation = $location;
+            throw new \RuntimeException('redirect intercepted');
+        });
+
+        $factory = $this->createMock(SamlAuthFactory::class);
+
+        wp_set_current_user(1);
+
+        $redirectTo = home_url('/wp-admin/edit.php');
+
+        $entryPoint = new SamlEntryPoint(
+            $factory,
+            $this->authSession,
+            Request::create('http://example.org/wp-login.php?redirect_to=' . urlencode($redirectTo)),
+        );
+        $entryPoint->register();
+
+        try {
+            do_action('login_init');
+        } catch (\Throwable) {
+            // wp_safe_redirect throws to prevent exit
+        }
+
+        remove_all_filters('wp_redirect');
+
+        self::assertSame($redirectTo, $capturedLocation);
+    }
+
+    #[Test]
+    public function registerLoginInitDoesNotRedirectLoggedInUserWithAction(): void
+    {
+        $redirectCalled = false;
+
+        add_filter('wp_redirect', function (string $location) use (&$redirectCalled): string {
+            $redirectCalled = true;
+
+            return $location;
+        });
+
+        $factory = $this->createMock(SamlAuthFactory::class);
+
+        wp_set_current_user(1);
+
+        $entryPoint = new SamlEntryPoint(
+            $factory,
+            $this->authSession,
+            Request::create('https://example.com/wp-login.php?action=logout'),
+        );
+        $entryPoint->register();
+
         do_action('login_init');
 
-        self::assertFalse($loginCalled);
+        remove_all_filters('wp_redirect');
+
+        self::assertFalse($redirectCalled);
     }
 
     #[Test]
@@ -374,7 +440,7 @@ final class SamlEntryPointTest extends TestCase
         $entryPoint = new SamlEntryPoint(
             $factory,
             $this->authSession,
-            Request::create('https://example.com/wp-login.php?action=saml_error'),
+            Request::create('https://example.com/wp-login.php?saml_error=true'),
         );
         $entryPoint->register();
 

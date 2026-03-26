@@ -71,6 +71,6 @@ final class SamlAcsControllerTest extends TestCase
         $response = $controller();
 
         self::assertInstanceOf(RedirectResponse::class, $response);
-        self::assertSame(wp_login_url() . '?action=saml_error', $response->url);
+        self::assertSame(site_url('wp-login.php', 'login') . '?saml_error=true', $response->url);
     }
 }

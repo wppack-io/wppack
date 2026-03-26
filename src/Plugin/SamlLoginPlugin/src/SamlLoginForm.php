@@ -14,19 +14,40 @@ declare(strict_types=1);
 namespace WpPack\Plugin\SamlLoginPlugin;
 
 use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Security\AuthenticationSession;
 use WpPack\Component\Security\Bridge\SAML\SamlEntryPoint;
 
 final class SamlLoginForm
 {
     public function __construct(
         private readonly SamlEntryPoint $entryPoint,
+        private readonly AuthenticationSession $authSession,
         private readonly Request $request,
     ) {}
 
     public function register(): void
     {
+        add_action('login_init', [$this, 'redirectLoggedInUser']);
         add_action('login_footer', [$this, 'renderButton']);
-        add_filter('login_message', [$this, 'renderErrorMessage']);
+        add_filter('wp_login_errors', [$this, 'addSamlError']);
+    }
+
+    public function redirectLoggedInUser(): void
+    {
+        if (!$this->authSession->isLoggedIn()
+            || !$this->request->isMethod('GET')
+            || $this->request->query->has('action')
+            || $this->request->query->has('loggedout')
+        ) {
+            return;
+        }
+
+        $redirectTo = $this->request->query->getString('redirect_to');
+        $destination = $redirectTo !== ''
+            ? wp_validate_redirect($redirectTo, admin_url())
+            : admin_url();
+        wp_safe_redirect($destination);
+        exit;
     }
 
     public function renderButton(): void
@@ -55,12 +76,12 @@ final class SamlLoginForm
         HTML;
     }
 
-    public function renderErrorMessage(string $message): string
+    public function addSamlError(\WP_Error $errors): \WP_Error
     {
-        if ($this->request->query->getString('action') !== 'saml_error') {
-            return $message;
+        if ($this->request->query->has('saml_error')) {
+            $errors->add('saml_error', 'SAML authentication failed. Please try again.');
         }
 
-        return '<div id="login_error">SAML authentication failed. Please try again.</div>' . $message;
+        return $errors;
     }
 }
