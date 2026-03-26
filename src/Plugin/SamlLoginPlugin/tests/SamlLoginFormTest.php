@@ -113,7 +113,7 @@ final class SamlLoginFormTest extends TestCase
     }
 
     #[Test]
-    public function renderButtonPassesNullWhenNoRedirectTo(): void
+    public function renderButtonDefaultsToAdminUrlWhenNoRedirectTo(): void
     {
         $capturedReturnTo = 'not-called';
 
@@ -142,7 +142,7 @@ final class SamlLoginFormTest extends TestCase
         $form->renderButton();
         ob_end_clean();
 
-        self::assertNull($capturedReturnTo);
+        self::assertSame(admin_url(), $capturedReturnTo);
     }
 
     #[Test]

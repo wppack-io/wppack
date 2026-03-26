@@ -32,7 +32,7 @@ final class SamlLoginForm
     public function renderButton(): void
     {
         $redirectTo = $this->request->query->getString('redirect_to');
-        $returnTo = $redirectTo !== '' ? $redirectTo : null;
+        $returnTo = $redirectTo !== '' ? $redirectTo : admin_url();
         $url = esc_url($this->entryPoint->getLoginUrl($returnTo));
 
         echo <<<HTML
