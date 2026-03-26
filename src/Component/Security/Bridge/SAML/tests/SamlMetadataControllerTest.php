@@ -21,6 +21,7 @@ use PHPUnit\Framework\TestCase;
 use WpPack\Component\Security\Bridge\SAML\Configuration\IdpSettings;
 use WpPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
 use WpPack\Component\Security\Bridge\SAML\Configuration\SpSettings;
+use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Security\Bridge\SAML\SamlMetadataController;
 
 #[CoversClass(SamlMetadataController::class)]
@@ -146,5 +147,20 @@ final class SamlMetadataControllerTest extends TestCase
         $xml2 = $controller->getMetadataXml();
 
         self::assertSame($xml1, $xml2);
+    }
+
+    #[Test]
+    public function invokeReturnsXmlResponse(): void
+    {
+        $configuration = $this->createValidConfiguration();
+        $controller = new SamlMetadataController($configuration);
+
+        $response = $controller();
+
+        self::assertInstanceOf(Response::class, $response);
+        self::assertSame(200, $response->statusCode);
+        self::assertSame('application/xml', $response->headers['Content-Type']);
+        self::assertStringContainsString('EntityDescriptor', $response->content);
+        self::assertStringContainsString('https://sp.example.com/metadata', $response->content);
     }
 }

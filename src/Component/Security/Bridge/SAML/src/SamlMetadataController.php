@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Security\Bridge\SAML;
 
 use OneLogin\Saml2\Settings;
+use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
 
 final class SamlMetadataController
@@ -21,6 +22,15 @@ final class SamlMetadataController
     public function __construct(
         private readonly SamlConfiguration $configuration,
     ) {}
+
+    public function __invoke(): Response
+    {
+        return new Response(
+            $this->getMetadataXml(),
+            200,
+            ['Content-Type' => 'application/xml'],
+        );
+    }
 
     public function getMetadataXml(): string
     {
@@ -38,16 +48,5 @@ final class SamlMetadataController
         // @codeCoverageIgnoreEnd
 
         return $metadata;
-    }
-
-    /**
-     * @codeCoverageIgnore
-     */
-    public function serve(): never
-    {
-        header('Content-Type: application/xml');
-        echo $this->getMetadataXml();
-
-        exit;
     }
 }
