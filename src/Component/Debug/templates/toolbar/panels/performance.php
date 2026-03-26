@@ -12,6 +12,8 @@
  * @var array<string, string>                                               $categoryLabels
  * @var list<string>                                                        $usedCategories
  * @var \WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters            $fmt
+ * @var float                                                               $unmeasuredMs
+ * @var float                                                               $unmeasuredPct
  */
 ?>
 <div class="wpd-section">
@@ -53,18 +55,18 @@ if ($hasTimeline):
 <?php foreach ($timelineEntries as $entry):
     $color = $categoryColors[$entry['category']] ?? $categoryColors['default'];
     ?>
-<?= $view->include('toolbar/partials/timeline-row', ['entry' => $entry, 'color' => $color, 'totalTime' => $totalTime, 'fmt' => $fmt]) ?>
+<?= $view->include('toolbar/partials/timeline-row', ['entry' => $entry, 'color' => $color, 'totalTime' => $totalTime, 'fmt' => $fmt, 'unmeasuredMs' => $unmeasuredMs, 'unmeasuredPct' => $unmeasuredPct]) ?>
 <?php endforeach; ?>
 <?php if ($pluginTimelineEntries !== []): ?>
 <div class="wpd-perf-wf-divider"><span>Plugins</span></div>
 <?php foreach ($pluginTimelineEntries as $entry): ?>
-<?= $view->include('toolbar/partials/timeline-row', ['entry' => $entry, 'color' => $categoryColors['plugin'], 'totalTime' => $totalTime, 'fmt' => $fmt]) ?>
+<?= $view->include('toolbar/partials/timeline-row', ['entry' => $entry, 'color' => $categoryColors['plugin'], 'totalTime' => $totalTime, 'fmt' => $fmt, 'unmeasuredMs' => $unmeasuredMs, 'unmeasuredPct' => $unmeasuredPct]) ?>
 <?php endforeach; ?>
 <?php endif; ?>
 <?php if ($themeTimelineEntries !== []): ?>
 <div class="wpd-perf-wf-divider"><span>Theme</span></div>
 <?php foreach ($themeTimelineEntries as $entry): ?>
-<?= $view->include('toolbar/partials/timeline-row', ['entry' => $entry, 'color' => $categoryColors['theme_hooks'], 'totalTime' => $totalTime, 'fmt' => $fmt]) ?>
+<?= $view->include('toolbar/partials/timeline-row', ['entry' => $entry, 'color' => $categoryColors['theme_hooks'], 'totalTime' => $totalTime, 'fmt' => $fmt, 'unmeasuredMs' => $unmeasuredMs, 'unmeasuredPct' => $unmeasuredPct]) ?>
 <?php endforeach; ?>
 <?php endif; ?>
 </div>

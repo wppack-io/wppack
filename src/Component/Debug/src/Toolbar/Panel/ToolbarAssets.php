@@ -906,14 +906,30 @@ final class ToolbarAssets
             position: relative;
             background: var(--wpd-gray-100);
             border-radius: 4px;
+            overflow: hidden;
         }
         #wppack-debug .wpd-perf-wf-bar {
             position: absolute;
             top: 0;
             height: 100%;
             background: var(--wpd-primary);
-            border-radius: 4px;
             min-width: 2px;
+            z-index: 1;
+        }
+        #wppack-debug .wpd-perf-wf-unmeasured {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: repeating-linear-gradient(
+                -45deg,
+                var(--wpd-gray-200),
+                var(--wpd-gray-200) 2px,
+                var(--wpd-gray-100) 2px,
+                var(--wpd-gray-100) 6px
+            );
+            pointer-events: auto;
+            cursor: help;
         }
         #wppack-debug .wpd-perf-wf-bar[data-tooltip] {
             cursor: pointer;

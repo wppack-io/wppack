@@ -103,6 +103,11 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer implements Re
         // Build timeline entries
         $requestTimeFloat = (float) ($timeData['request_time_float'] ?? 0.0);
 
+        // Calculate unmeasured time before profiling started
+        $phases = $timeData['phases'] ?? [];
+        $unmeasuredMs = $phases !== [] ? min(array_values($phases)) : 0.0;
+        $unmeasuredPct = $totalTime > 0 ? ($unmeasuredMs / $totalTime) * 100 : 0.0;
+
         /** @var array<string, array{name: string, category: string, duration: float, memory: int, start_time: float, end_time: float}> $events */
         $events = $timeData['events'] ?? [];
 
@@ -134,6 +139,8 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer implements Re
             'categoryLabels' => self::CATEGORY_LABELS,
             'usedCategories' => $usedCategories,
             'fmt' => $fmt,
+            'unmeasuredMs' => $unmeasuredMs,
+            'unmeasuredPct' => $unmeasuredPct,
         ]);
     }
 
