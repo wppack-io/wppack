@@ -1143,6 +1143,82 @@ final class RouteRegistryTest extends TestCase
     }
 
     #[Test]
+    public function addRouteWithRequirementsCompilesCorrectRegex(): void
+    {
+        $controller = new class {
+            public function __invoke(): ?TemplateResponse
+            {
+                return null;
+            }
+        };
+
+        $registry = new RouteRegistry();
+        $registry->addRoute(
+            '/events/{year}/{month}',
+            $controller,
+            name: 'add_requirements',
+            requirements: ['year' => '\d{4}', 'month' => '\d{2}'],
+        );
+
+        $entry = $registry->get('add_requirements');
+        self::assertSame('^events/(?P<year>\d{4})/(?P<month>\d{2})/?$', $entry->regex);
+        self::assertSame('index.php?year=$matches[1]&month=$matches[2]', $entry->query);
+    }
+
+    #[Test]
+    public function addRouteWithVarsGeneratesCorrectQuery(): void
+    {
+        $controller = new class {
+            public function __invoke(): ?TemplateResponse
+            {
+                return null;
+            }
+        };
+
+        $registry = new RouteRegistry();
+        $registry->addRoute(
+            '/events/{year}',
+            $controller,
+            name: 'add_vars',
+            vars: ['post_type' => 'event'],
+        );
+
+        $entry = $registry->get('add_vars');
+        self::assertSame('index.php?post_type=event&year=$matches[1]', $entry->query);
+    }
+
+    #[Test]
+    public function addRouteWithIsGrantedDeniesAccess(): void
+    {
+        $request = new Request();
+
+        $controller = new class {
+            public bool $called = false;
+
+            #[IsGranted('manage_options')]
+            public function __invoke(): ?TemplateResponse
+            {
+                $this->called = true;
+
+                return null;
+            }
+        };
+
+        wp_set_current_user(0);
+        $registry = new RouteRegistry($request);
+        $registry->addRoute('/admin/page', $controller, name: 'add_granted_deny');
+
+        $entry = $registry->get('add_granted_deny');
+        set_query_var('_route_add_granted_deny', '1');
+
+        ob_start();
+        $entry->handleTemplateRedirect();
+        ob_end_clean();
+
+        self::assertFalse($controller->called);
+    }
+
+    #[Test]
     public function addRouteSetsSecurityOnAbstractController(): void
     {
         $user = new \WP_User();

@@ -36,11 +36,15 @@ final class SamlLoginConfigurationTest extends TestCase
         'SAML_STRICT',
         'SAML_DEBUG',
         'SAML_WANT_ASSERTIONS_SIGNED',
+        'SAML_ALLOW_REPEAT_ATTRIBUTE_NAME',
         'SAML_AUTO_PROVISION',
         'SAML_DEFAULT_ROLE',
         'SAML_ROLE_ATTRIBUTE',
         'SAML_ROLE_MAPPING',
         'SAML_ADD_USER_TO_BLOG',
+        'SAML_METADATA_PATH',
+        'SAML_ACS_PATH',
+        'SAML_SLO_PATH',
     ];
 
     protected function tearDown(): void
@@ -67,11 +71,15 @@ final class SamlLoginConfigurationTest extends TestCase
             strict: false,
             debug: true,
             wantAssertionsSigned: false,
+            allowRepeatAttributeName: true,
             autoProvision: true,
             defaultRole: 'editor',
             roleAttribute: 'groups',
             roleMapping: ['admins' => 'administrator'],
             addUserToBlog: false,
+            metadataPath: '/sso/metadata',
+            acsPath: '/sso/acs',
+            sloPath: '/sso/slo',
         );
 
         self::assertSame('https://idp.example.com', $config->idpEntityId);
@@ -86,11 +94,15 @@ final class SamlLoginConfigurationTest extends TestCase
         self::assertFalse($config->strict);
         self::assertTrue($config->debug);
         self::assertFalse($config->wantAssertionsSigned);
+        self::assertTrue($config->allowRepeatAttributeName);
         self::assertTrue($config->autoProvision);
         self::assertSame('editor', $config->defaultRole);
         self::assertSame('groups', $config->roleAttribute);
         self::assertSame(['admins' => 'administrator'], $config->roleMapping);
         self::assertFalse($config->addUserToBlog);
+        self::assertSame('/sso/metadata', $config->metadataPath);
+        self::assertSame('/sso/acs', $config->acsPath);
+        self::assertSame('/sso/slo', $config->sloPath);
     }
 
     #[Test]
@@ -111,11 +123,15 @@ final class SamlLoginConfigurationTest extends TestCase
         self::assertTrue($config->strict);
         self::assertFalse($config->debug);
         self::assertTrue($config->wantAssertionsSigned);
+        self::assertFalse($config->allowRepeatAttributeName);
         self::assertFalse($config->autoProvision);
         self::assertSame('subscriber', $config->defaultRole);
         self::assertNull($config->roleAttribute);
         self::assertNull($config->roleMapping);
         self::assertTrue($config->addUserToBlog);
+        self::assertSame('/saml/metadata', $config->metadataPath);
+        self::assertSame('/saml/acs', $config->acsPath);
+        self::assertSame('/saml/slo', $config->sloPath);
     }
 
     #[Test]
@@ -312,8 +328,26 @@ final class SamlLoginConfigurationTest extends TestCase
         self::assertTrue($config->strict);
         self::assertFalse($config->debug);
         self::assertTrue($config->wantAssertionsSigned);
+        self::assertFalse($config->allowRepeatAttributeName);
         self::assertFalse($config->autoProvision);
         self::assertTrue($config->addUserToBlog);
+    }
+
+    #[Test]
+    public function fromEnvironmentReadsPathEnvVars(): void
+    {
+        putenv('SAML_IDP_ENTITY_ID=https://idp.example.com');
+        putenv('SAML_IDP_SSO_URL=https://idp.example.com/sso');
+        putenv('SAML_IDP_X509_CERT=MIICert');
+        putenv('SAML_METADATA_PATH=/sso/metadata');
+        putenv('SAML_ACS_PATH=/sso/acs');
+        putenv('SAML_SLO_PATH=/sso/slo');
+
+        $config = SamlLoginConfiguration::fromEnvironment();
+
+        self::assertSame('/sso/metadata', $config->metadataPath);
+        self::assertSame('/sso/acs', $config->acsPath);
+        self::assertSame('/sso/slo', $config->sloPath);
     }
 
     #[Test]
