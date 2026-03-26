@@ -143,6 +143,7 @@ final class StopwatchDataCollectorTest extends TestCase
     public function phasesAreOrderedChronologically(): void
     {
         $_SERVER['REQUEST_TIME_FLOAT'] = microtime(true);
+        $this->collector->reset();
 
         $this->collector->onMuPluginsLoaded();
         usleep(100);
