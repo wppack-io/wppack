@@ -54,7 +54,6 @@ final class SamlLogoutHandler
         }
 
         wp_logout();
-        wp_clear_auth_cookie();
     }
 
     public function isLogoutRequest(): bool
