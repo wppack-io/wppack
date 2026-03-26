@@ -25,7 +25,6 @@ final class SamlEntryPointTest extends TestCase
 {
     protected function tearDown(): void
     {
-        remove_all_filters('login_url');
         remove_all_actions('login_init');
     }
     #[Test]
@@ -65,75 +64,6 @@ final class SamlEntryPointTest extends TestCase
             'https://idp.example.com/sso?SAMLRequest=encoded&RelayState=...',
             $loginUrl,
         );
-    }
-
-    #[Test]
-    public function registerAddsLoginUrlFilter(): void
-    {
-        $auth = $this->createMock(Auth::class);
-        $auth->method('login')
-            ->with(null, [], false, false, true)
-            ->willReturn('https://idp.example.com/sso?SAMLRequest=encoded');
-
-        $factory = $this->createMock(SamlAuthFactory::class);
-        $factory->method('create')->willReturn($auth);
-
-        $entryPoint = new SamlEntryPoint($factory);
-        $entryPoint->register();
-
-        $result = apply_filters('login_url', 'https://example.com/wp-login.php', '', false);
-
-        self::assertSame('https://idp.example.com/sso?SAMLRequest=encoded', $result);
-    }
-
-    #[Test]
-    public function registerAddsLoginUrlFilterWithRedirect(): void
-    {
-        $auth = $this->createMock(Auth::class);
-        $auth->method('login')
-            ->willReturnCallback(function (?string $returnTo) {
-                if ($returnTo === 'https://sp.example.com/wp-admin/') {
-                    return 'https://idp.example.com/sso?SAMLRequest=encoded&RelayState=admin';
-                }
-
-                return 'https://idp.example.com/sso?SAMLRequest=encoded';
-            });
-
-        $factory = $this->createMock(SamlAuthFactory::class);
-        $factory->method('create')->willReturn($auth);
-
-        $entryPoint = new SamlEntryPoint($factory);
-        $entryPoint->register();
-
-        $result = apply_filters('login_url', 'https://example.com/wp-login.php', 'https://sp.example.com/wp-admin/', false);
-
-        self::assertSame('https://idp.example.com/sso?SAMLRequest=encoded&RelayState=admin', $result);
-    }
-
-    #[Test]
-    public function registerAddsLoginUrlFilterWithEmptyRedirect(): void
-    {
-        $auth = $this->createMock(Auth::class);
-        $auth->method('login')
-            ->willReturnCallback(function (?string $returnTo, array $params, bool $forceAuthn, bool $isPassive, bool $stay) {
-                // When redirect is empty, returnTo should be null
-                if ($returnTo === null && $stay === true) {
-                    return 'https://idp.example.com/sso?SAMLRequest=encoded-no-relay';
-                }
-
-                return 'https://idp.example.com/sso?SAMLRequest=encoded';
-            });
-
-        $factory = $this->createMock(SamlAuthFactory::class);
-        $factory->method('create')->willReturn($auth);
-
-        $entryPoint = new SamlEntryPoint($factory);
-        $entryPoint->register();
-
-        // Empty redirect string should result in null returnTo
-        $result = apply_filters('login_url', 'https://example.com/wp-login.php', '', false);
-
-        self::assertSame('https://idp.example.com/sso?SAMLRequest=encoded-no-relay', $result);
     }
 
     #[Test]

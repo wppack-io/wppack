@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Security\Bridge\SAML;
 
+use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
 
 final class SamlLogoutHandler
@@ -36,10 +37,21 @@ final class SamlLogoutHandler
         );
     }
 
-    public function handleIdpLogoutRequest(): void
+    public function handleIdpLogoutRequest(Request $request): void
     {
         $auth = $this->authFactory->create();
-        $auth->processSLO(keepLocalSession: true, stay: true);
+
+        // onelogin/php-saml reads $_GET directly. WordPress's wp_magic_quotes()
+        // has already applied addslashes() to $_GET, corrupting encoded data.
+        // Temporarily replace $_GET with the clean (wp_unslash'd) Request data.
+        $originalGet = $_GET;
+        $_GET = $request->query->all();
+
+        try {
+            $auth->processSLO(keepLocalSession: true, stay: true);
+        } finally {
+            $_GET = $originalGet;
+        }
 
         wp_logout();
         wp_clear_auth_cookie();

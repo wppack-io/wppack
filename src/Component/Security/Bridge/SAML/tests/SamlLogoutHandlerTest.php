@@ -17,6 +17,7 @@ use OneLogin\Saml2\Auth;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
 use WpPack\Component\Security\Bridge\SAML\SamlLogoutHandler;
 
@@ -110,7 +111,42 @@ final class SamlLogoutHandlerTest extends TestCase
 
         $handler = new SamlLogoutHandler($factory);
 
-        $handler->handleIdpLogoutRequest();
+        $request = new Request(
+            query: ['SAMLRequest' => 'encoded-request', 'RelayState' => 'https://sp.example.com/'],
+            server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/saml/slo'],
+        );
+
+        $handler->handleIdpLogoutRequest($request);
+    }
+
+    #[Test]
+    public function handleIdpLogoutRequestRestoresGetAfterProcessing(): void
+    {
+        $auth = $this->createMock(Auth::class);
+        $auth->method('processSLO');
+
+        $factory = $this->createMock(SamlAuthFactory::class);
+        $factory->method('create')->willReturn($auth);
+
+        $handler = new SamlLogoutHandler($factory);
+
+        // Simulate wp_magic_quotes() having slashed $_GET
+        $originalGet = $_GET;
+        $_GET = ['SAMLRequest' => 'value\\with\\slashes', 'existing' => 'param'];
+
+        $request = new Request(
+            query: ['SAMLRequest' => 'clean-value', 'RelayState' => 'https://sp.example.com/'],
+            server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/saml/slo'],
+        );
+
+        try {
+            $handler->handleIdpLogoutRequest($request);
+        } finally {
+            // $_GET should be restored to the original slashed state
+            self::assertSame('value\\with\\slashes', $_GET['SAMLRequest']);
+            self::assertSame('param', $_GET['existing']);
+            $_GET = $originalGet;
+        }
     }
 
     #[Test]

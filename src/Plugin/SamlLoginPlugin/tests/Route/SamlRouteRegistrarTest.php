@@ -16,6 +16,9 @@ namespace WpPack\Plugin\SamlLoginPlugin\Tests\Route;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\EventDispatcher\EventDispatcher;
+use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Security\Authentication\AuthenticationManager;
 use WpPack\Component\Security\Bridge\SAML\Configuration\IdpSettings;
 use WpPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
 use WpPack\Component\Security\Bridge\SAML\Configuration\SpSettings;
@@ -27,7 +30,9 @@ use WpPack\Plugin\SamlLoginPlugin\Route\SamlRouteRegistrar;
 #[CoversClass(SamlRouteRegistrar::class)]
 final class SamlRouteRegistrarTest extends TestCase
 {
-    private SamlRouteRegistrar $registrar;
+    private SamlMetadataController $metadataController;
+    private SamlLogoutHandler $logoutHandler;
+    private AuthenticationManager $authenticationManager;
 
     protected function setUp(): void
     {
@@ -44,34 +49,42 @@ final class SamlRouteRegistrarTest extends TestCase
             ),
         );
 
-        $metadataController = new SamlMetadataController($samlConfig);
-        $logoutHandler = new SamlLogoutHandler(new SamlAuthFactory($samlConfig));
-
-        $this->registrar = new SamlRouteRegistrar($metadataController, $logoutHandler);
+        $this->metadataController = new SamlMetadataController($samlConfig);
+        $this->logoutHandler = new SamlLogoutHandler(new SamlAuthFactory($samlConfig));
+        $this->authenticationManager = new AuthenticationManager(new EventDispatcher());
     }
 
     protected function tearDown(): void
     {
         remove_all_actions('template_redirect');
-        unset($_SERVER['REQUEST_URI'], $_SERVER['REQUEST_METHOD']);
+    }
+
+    private function createRegistrar(Request $request): SamlRouteRegistrar
+    {
+        return new SamlRouteRegistrar(
+            $request,
+            $this->metadataController,
+            $this->logoutHandler,
+            $this->authenticationManager,
+        );
     }
 
     #[Test]
     public function registerAddsTemplateRedirectAction(): void
     {
-        $this->registrar->register();
+        $registrar = $this->createRegistrar(Request::create('/'));
+        $registrar->register();
 
-        self::assertSame(1, has_action('template_redirect', [$this->registrar, 'handleRequest']));
+        self::assertSame(1, has_action('template_redirect', [$registrar, 'handleRequest']));
     }
 
     #[Test]
     public function handleRequestDoesNothingForNonSamlPaths(): void
     {
-        $_SERVER['REQUEST_URI'] = '/about';
-        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $registrar = $this->createRegistrar(Request::create('/about'));
 
         // Should not throw or exit
-        $this->registrar->handleRequest();
+        $registrar->handleRequest();
 
         self::assertTrue(true);
     }
@@ -79,11 +92,10 @@ final class SamlRouteRegistrarTest extends TestCase
     #[Test]
     public function handleRequestDoesNothingForWrongMethod(): void
     {
-        $_SERVER['REQUEST_URI'] = '/saml/metadata';
-        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $registrar = $this->createRegistrar(Request::create('/saml/metadata', 'POST'));
 
         // Metadata only responds to GET, so POST should be ignored
-        $this->registrar->handleRequest();
+        $registrar->handleRequest();
 
         self::assertTrue(true);
     }
@@ -91,11 +103,10 @@ final class SamlRouteRegistrarTest extends TestCase
     #[Test]
     public function handleRequestParsesPathFromQueryString(): void
     {
-        $_SERVER['REQUEST_URI'] = '/about?foo=bar';
-        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $registrar = $this->createRegistrar(Request::create('/about?foo=bar'));
 
         // Should not throw or exit (path is /about, not a SAML path)
-        $this->registrar->handleRequest();
+        $registrar->handleRequest();
 
         self::assertTrue(true);
     }

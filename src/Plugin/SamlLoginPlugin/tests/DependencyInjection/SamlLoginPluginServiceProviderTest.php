@@ -20,6 +20,7 @@ use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
 use WpPack\Component\EventDispatcher\EventDispatcher;
+use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Security\Authentication\AuthenticationManager;
 use WpPack\Component\Security\Bridge\SAML\Configuration\IdpSettings;
 use WpPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
@@ -215,9 +216,11 @@ final class SamlLoginPluginServiceProviderTest extends TestCase
 
         $definition = $this->builder->findDefinition(SamlRouteRegistrar::class);
         $arguments = $definition->getArguments();
-        self::assertCount(2, $arguments);
-        self::assertSame(SamlMetadataController::class, (string) $arguments[0]);
-        self::assertSame(SamlLogoutHandler::class, (string) $arguments[1]);
+        self::assertCount(4, $arguments);
+        self::assertSame(Request::class, (string) $arguments[0]);
+        self::assertSame(SamlMetadataController::class, (string) $arguments[1]);
+        self::assertSame(SamlLogoutHandler::class, (string) $arguments[2]);
+        self::assertSame(AuthenticationManager::class, (string) $arguments[3]);
     }
 
     #[Test]

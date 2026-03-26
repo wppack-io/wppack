@@ -231,7 +231,7 @@ final class SamlAuthenticatorTest extends TestCase
         $response = $authenticator->onAuthenticationFailure($request, $exception);
 
         self::assertInstanceOf(RedirectResponse::class, $response);
-        self::assertStringContainsString('saml_error=1', $response->url);
+        self::assertStringContainsString('action=saml_error', $response->url);
     }
 
     #[Test]

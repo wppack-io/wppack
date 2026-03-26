@@ -65,7 +65,18 @@ final class SamlAuthenticator implements AuthenticatorInterface
         }
 
         $auth = $this->authFactory->create();
-        $auth->processResponse();
+
+        // onelogin/php-saml reads $_POST directly. WordPress's wp_magic_quotes()
+        // has already applied addslashes() to $_POST, corrupting Base64 data.
+        // Temporarily replace $_POST with the clean (wp_unslash'd) Request data.
+        $originalPost = $_POST;
+        $_POST = $request->post->all();
+
+        try {
+            $auth->processResponse();
+        } finally {
+            $_POST = $originalPost;
+        }
 
         $errors = $auth->getErrors();
 
@@ -146,9 +157,7 @@ final class SamlAuthenticator implements AuthenticatorInterface
     {
         do_action('wppack_saml_authentication_failed', $exception);
 
-        $loginUrl = wp_login_url();
-
-        return new RedirectResponse($loginUrl . '?saml_error=1');
+        return new RedirectResponse(wp_login_url() . '?action=saml_error');
     }
 
     private function isSameOrigin(string $url): bool

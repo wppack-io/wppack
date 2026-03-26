@@ -13,14 +13,18 @@ declare(strict_types=1);
 
 namespace WpPack\Plugin\SamlLoginPlugin\Route;
 
+use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Security\Authentication\AuthenticationManager;
 use WpPack\Component\Security\Bridge\SAML\SamlLogoutHandler;
 use WpPack\Component\Security\Bridge\SAML\SamlMetadataController;
 
 final class SamlRouteRegistrar
 {
     public function __construct(
+        private readonly Request $request,
         private readonly SamlMetadataController $metadataController,
         private readonly SamlLogoutHandler $logoutHandler,
+        private readonly AuthenticationManager $authenticationManager,
         private readonly string $metadataPath = '/saml/metadata',
         private readonly string $sloPath = '/saml/slo',
         private readonly string $acsPath = '/saml/acs',
@@ -33,10 +37,9 @@ final class SamlRouteRegistrar
 
     public function handleRequest(): void
     {
-        $path = $this->getRequestPath();
-        $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+        $path = $this->request->getPathInfo();
 
-        if ($path === $this->metadataPath && $method === 'GET') {
+        if ($path === $this->metadataPath && $this->request->isMethod('GET')) {
             $this->metadataController->serve();
         }
 
@@ -44,17 +47,9 @@ final class SamlRouteRegistrar
             $this->handleSlo();
         }
 
-        if ($path === $this->acsPath && $method === 'POST') {
+        if ($path === $this->acsPath && $this->request->isMethod('POST')) {
             $this->handleAcs();
         }
-    }
-
-    private function getRequestPath(): string
-    {
-        $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
-        $path = parse_url($requestUri, \PHP_URL_PATH);
-
-        return $path !== null && $path !== false ? $path : '/';
     }
 
     /**
@@ -63,7 +58,7 @@ final class SamlRouteRegistrar
     private function handleSlo(): void
     {
         if ($this->logoutHandler->isLogoutRequest()) {
-            $this->logoutHandler->handleIdpLogoutRequest();
+            $this->logoutHandler->handleIdpLogoutRequest($this->request);
             wp_safe_redirect(home_url());
 
             exit;
@@ -82,7 +77,11 @@ final class SamlRouteRegistrar
      */
     private function handleAcs(): void
     {
-        wp_signon(['user_login' => '', 'user_password' => '', 'remember' => false]);
+        $result = $this->authenticationManager->handleAuthentication(null, '', '');
+
+        if (!$result instanceof \WP_User) {
+            wp_safe_redirect(wp_login_url() . '?action=saml_error');
+        }
 
         exit;
     }

@@ -28,6 +28,7 @@ use WpPack\Component\Security\Bridge\SAML\SamlAuthenticator;
 use WpPack\Component\Security\Bridge\SAML\SamlEntryPoint;
 use WpPack\Component\Security\Bridge\SAML\SamlLogoutHandler;
 use WpPack\Component\Security\Bridge\SAML\SamlMetadataController;
+use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolver;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolverInterface;
 use WpPack\Component\Security\DependencyInjection\SecurityServiceProvider;
@@ -99,8 +100,10 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
 
         // Route Registrar
         $builder->register(SamlRouteRegistrar::class)
+            ->addArgument(new Reference(Request::class))
             ->addArgument(new Reference(SamlMetadataController::class))
-            ->addArgument(new Reference(SamlLogoutHandler::class));
+            ->addArgument(new Reference(SamlLogoutHandler::class))
+            ->addArgument(new Reference(AuthenticationManager::class));
     }
 
     public static function createIdpSettings(SamlLoginConfiguration $config): IdpSettings
