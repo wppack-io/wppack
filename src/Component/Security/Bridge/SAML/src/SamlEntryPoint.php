@@ -28,7 +28,9 @@ final class SamlEntryPoint
     /**
      * Register WordPress hooks for SSO-only configuration.
      *
-     * login_init action redirects GET requests to IdP (skips ?action= for logout/lostpassword/error).
+     * login_init action redirects GET requests to IdP.
+     * Allowed actions that bypass the redirect: logout, postpass.
+     * The loggedout parameter redirects to home_url() to avoid re-authentication loop.
      */
     public function register(): void
     {
@@ -46,9 +48,18 @@ final class SamlEntryPoint
                 );
             }
 
+            // Without SLO, logout lands on ?loggedout=true at wp-login.php.
+            // Redirecting to IdP would re-authenticate via live IdP session, so send to home_url().
+            if ($this->request->query->has('loggedout')) {
+                wp_safe_redirect(home_url());
+                exit;
+            }
+
+            $action = $this->request->query->getString('action');
+
             if ($this->request->isMethod('GET')
-                && !$this->request->query->has('action')
-                && !$this->request->query->has('loggedout')
+                && $action !== 'logout'
+                && $action !== 'postpass'
             ) {
                 $redirectTo = $this->request->query->getString('redirect_to');
                 $destination = $redirectTo !== ''

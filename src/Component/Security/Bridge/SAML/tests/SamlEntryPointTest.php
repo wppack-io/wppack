@@ -457,6 +457,36 @@ final class SamlEntryPointTest extends TestCase
     #[Test]
     public function registerLoginInitSkipsLoggedOutParam(): void
     {
+        $capturedLocation = null;
+
+        add_filter('wp_redirect', function (string $location) use (&$capturedLocation): string {
+            $capturedLocation = $location;
+            throw new \RuntimeException('redirect intercepted');
+        });
+
+        $factory = $this->createMock(SamlAuthFactory::class);
+
+        $entryPoint = new SamlEntryPoint(
+            $factory,
+            $this->authSession,
+            Request::create('https://example.com/wp-login.php?loggedout=true'),
+        );
+        $entryPoint->register();
+
+        try {
+            do_action('login_init');
+        } catch (\Throwable) {
+            // wp_safe_redirect throws to prevent exit
+        }
+
+        remove_all_filters('wp_redirect');
+
+        self::assertSame(home_url(), $capturedLocation);
+    }
+
+    #[Test]
+    public function registerLoginInitRedirectsLostpasswordAction(): void
+    {
         $loginCalled = false;
 
         $auth = $this->createMock(Auth::class);
@@ -471,7 +501,67 @@ final class SamlEntryPointTest extends TestCase
         $entryPoint = new SamlEntryPoint(
             $factory,
             $this->authSession,
-            Request::create('https://example.com/wp-login.php?loggedout=true'),
+            Request::create('https://example.com/wp-login.php?action=lostpassword'),
+        );
+        $entryPoint->register();
+
+        try {
+            do_action('login_init');
+        } catch (\Throwable) {
+            // start() may exit
+        }
+
+        self::assertTrue($loginCalled);
+    }
+
+    #[Test]
+    public function registerLoginInitRedirectsRegisterAction(): void
+    {
+        $loginCalled = false;
+
+        $auth = $this->createMock(Auth::class);
+        $auth->method('login')
+            ->willReturnCallback(function () use (&$loginCalled): void {
+                $loginCalled = true;
+            });
+
+        $factory = $this->createMock(SamlAuthFactory::class);
+        $factory->method('create')->willReturn($auth);
+
+        $entryPoint = new SamlEntryPoint(
+            $factory,
+            $this->authSession,
+            Request::create('https://example.com/wp-login.php?action=register'),
+        );
+        $entryPoint->register();
+
+        try {
+            do_action('login_init');
+        } catch (\Throwable) {
+            // start() may exit
+        }
+
+        self::assertTrue($loginCalled);
+    }
+
+    #[Test]
+    public function registerLoginInitSkipsPostpassAction(): void
+    {
+        $loginCalled = false;
+
+        $auth = $this->createMock(Auth::class);
+        $auth->method('login')
+            ->willReturnCallback(function () use (&$loginCalled): void {
+                $loginCalled = true;
+            });
+
+        $factory = $this->createMock(SamlAuthFactory::class);
+        $factory->method('create')->willReturn($auth);
+
+        $entryPoint = new SamlEntryPoint(
+            $factory,
+            $this->authSession,
+            Request::create('https://example.com/wp-login.php?action=postpass'),
         );
         $entryPoint->register();
 

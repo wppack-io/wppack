@@ -235,7 +235,7 @@ $entryPoint->register();
 | `login_url` フィルター | `wp-login.php` の URL を IdP SSO URL に差し替え |
 | `login_init` アクション | `wp-login.php` への GET アクセスを IdP にリダイレクト |
 
-`$_GET['action']` がある場合（`logout`, `lostpassword` 等）はリダイレクトをスキップし、WordPress 標準フローを維持します。
+`logout`・`postpass` 以外の `action` パラメータ（`lostpassword`, `register` 等）は IdP にリダイレクトされます。`?loggedout=true` は SLO 未構成時の再認証ループを防ぐため `home_url()` にリダイレクトします。
 
 ### SamlMetadataController
 
