@@ -46,6 +46,10 @@ final readonly class UserRepository implements UserRepositoryInterface
 
     public function insert(array $data): int
     {
+        if (!isset($data['user_login']) || '' === $data['user_login']) {
+            throw new UserException('Cannot create a user with an empty login name.');
+        }
+
         $result = wp_insert_user($data);
 
         if ($result instanceof \WP_Error) {
