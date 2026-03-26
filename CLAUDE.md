@@ -291,6 +291,20 @@ wppack/logger
 - match式を活用
 - Named argumentsを適切に使用
 
+### `#[\SensitiveParameter]` の使用方針
+
+パスワード・APIキー・アクセスキー等の秘密情報を受け取るパラメータには `#[\SensitiveParameter]` を付与する。例外スタックトレースで値が `SensitiveParameterValue` に置き換わり、ログや画面への漏洩を防ぐ。
+
+```php
+public function __construct(
+    #[\SensitiveParameter]
+    private readonly ?string $password,
+) {}
+```
+
+- **対象:** パスワード、APIキー、アクセスキー、暗号化キー、認証トークン（JWT 等）
+- **対象外:** 公開情報（`$clientId`、`$issuer`、JWKS 公開鍵）、CSRF nonce、オブジェクト型（スタックトレースに型名のみ表示）、DSN 文字列全体（スキーム・ホスト情報が失われるため、パスワード部分は `$password` で保護）、`$options` 配列全体（デバッグ困難になるため、個別の秘密情報パラメータで保護）
+
 ### コミットメッセージ
 
 [Conventional Commits](https://www.conventionalcommits.org/) ベースの形式を使用する。
