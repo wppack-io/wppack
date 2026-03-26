@@ -28,10 +28,12 @@ use WpPack\Component\Security\Bridge\SAML\SamlSloController;
 use WpPack\Component\Security\DependencyInjection\RegisterAuthenticatorsPass;
 use WpPack\Plugin\SamlLoginPlugin\Configuration\SamlLoginConfiguration;
 use WpPack\Plugin\SamlLoginPlugin\DependencyInjection\SamlLoginPluginServiceProvider;
+use WpPack\Plugin\SamlLoginPlugin\SamlLoginForm;
 
 final class SamlLoginPlugin extends AbstractPlugin
 {
     private readonly SamlLoginPluginServiceProvider $serviceProvider;
+    private ?RouteRegistry $router = null;
 
     public function __construct(string $pluginFile)
     {
@@ -61,15 +63,22 @@ final class SamlLoginPlugin extends AbstractPlugin
         $authManager = $container->get(AuthenticationManager::class);
         $authManager->register();
 
-        /** @var SamlEntryPoint $entryPoint */
-        $entryPoint = $container->get(SamlEntryPoint::class);
-        $entryPoint->register();
-
         /** @var SamlLoginConfiguration $config */
         $config = $container->get(SamlLoginConfiguration::class);
 
+        if ($config->ssoOnly) {
+            /** @var SamlEntryPoint $entryPoint */
+            $entryPoint = $container->get(SamlEntryPoint::class);
+            $entryPoint->register();
+        } else {
+            /** @var SamlLoginForm $loginForm */
+            $loginForm = $container->get(SamlLoginForm::class);
+            $loginForm->register();
+        }
+
         /** @var RouteRegistry $router */
         $router = $container->get(RouteRegistry::class);
+        $this->router = $router;
         $router->addRoute($config->metadataPath, $container->get(SamlMetadataController::class), name: 'saml_metadata', methods: ['GET']);
         $router->addRoute($config->acsPath, $container->get(SamlAcsController::class), name: 'saml_acs', methods: ['POST']);
         $router->addRoute($config->sloPath, $container->get(SamlSloController::class), name: 'saml_slo');
@@ -77,5 +86,15 @@ final class SamlLoginPlugin extends AbstractPlugin
         /** @var SamlLogoutListener $logoutListener */
         $logoutListener = $container->get(SamlLogoutListener::class);
         $logoutListener->register();
+    }
+
+    public function onActivate(): void
+    {
+        $this->router?->flush();
+    }
+
+    public function onDeactivate(): void
+    {
+        $this->router?->invalidate();
     }
 }

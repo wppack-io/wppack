@@ -32,7 +32,20 @@ final class SamlEntryPoint
      */
     public function register(): void
     {
+        add_filter('login_url', function (string $loginUrl, string $redirect): string {
+            return $this->getLoginUrl($redirect !== '' ? $redirect : null);
+        }, 10, 2);
+
         add_action('login_init', function (): void {
+            // SSO-only: show error page instead of login form
+            if ($this->request->query->getString('action') === 'saml_error') {
+                wp_die(
+                    'SAML authentication failed. Please contact your administrator.',
+                    'Authentication Error',
+                    ['response' => 403, 'back_link' => false],
+                );
+            }
+
             if ($this->request->isMethod('GET')
                 && !$this->request->query->has('action')
                 && !$this->request->query->has('loggedout')

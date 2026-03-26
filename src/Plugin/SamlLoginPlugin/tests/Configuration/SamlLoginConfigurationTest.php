@@ -42,6 +42,7 @@ final class SamlLoginConfigurationTest extends TestCase
         'SAML_ROLE_ATTRIBUTE',
         'SAML_ROLE_MAPPING',
         'SAML_ADD_USER_TO_BLOG',
+        'SAML_SSO_ONLY',
         'SAML_METADATA_PATH',
         'SAML_ACS_PATH',
         'SAML_SLO_PATH',
@@ -77,6 +78,7 @@ final class SamlLoginConfigurationTest extends TestCase
             roleAttribute: 'groups',
             roleMapping: ['admins' => 'administrator'],
             addUserToBlog: false,
+            ssoOnly: false,
             metadataPath: '/sso/metadata',
             acsPath: '/sso/acs',
             sloPath: '/sso/slo',
@@ -100,6 +102,7 @@ final class SamlLoginConfigurationTest extends TestCase
         self::assertSame('groups', $config->roleAttribute);
         self::assertSame(['admins' => 'administrator'], $config->roleMapping);
         self::assertFalse($config->addUserToBlog);
+        self::assertFalse($config->ssoOnly);
         self::assertSame('/sso/metadata', $config->metadataPath);
         self::assertSame('/sso/acs', $config->acsPath);
         self::assertSame('/sso/slo', $config->sloPath);
@@ -129,6 +132,7 @@ final class SamlLoginConfigurationTest extends TestCase
         self::assertNull($config->roleAttribute);
         self::assertNull($config->roleMapping);
         self::assertTrue($config->addUserToBlog);
+        self::assertFalse($config->ssoOnly);
         self::assertSame('/saml/metadata', $config->metadataPath);
         self::assertSame('/saml/acs', $config->acsPath);
         self::assertSame('/saml/slo', $config->sloPath);
@@ -331,6 +335,7 @@ final class SamlLoginConfigurationTest extends TestCase
         self::assertFalse($config->allowRepeatAttributeName);
         self::assertFalse($config->autoProvision);
         self::assertTrue($config->addUserToBlog);
+        self::assertFalse($config->ssoOnly);
     }
 
     #[Test]
@@ -359,12 +364,14 @@ final class SamlLoginConfigurationTest extends TestCase
         putenv('SAML_STRICT=false');
         putenv('SAML_DEBUG=true');
         putenv('SAML_AUTO_PROVISION=yes');
+        putenv('SAML_SSO_ONLY=true');
 
         $config = SamlLoginConfiguration::fromEnvironment();
 
         self::assertFalse($config->strict);
         self::assertTrue($config->debug);
         self::assertTrue($config->autoProvision);
+        self::assertTrue($config->ssoOnly);
     }
 
     #[Test]

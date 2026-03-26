@@ -37,6 +37,7 @@ final class SamlEntryPointTest extends TestCase
     protected function tearDown(): void
     {
         remove_all_actions('login_init');
+        remove_all_filters('login_url');
         wp_set_current_user(0);
     }
 
@@ -306,5 +307,110 @@ final class SamlEntryPointTest extends TestCase
         }
 
         self::assertSame(admin_url(), $capturedReturnTo);
+    }
+
+    #[Test]
+    public function registerLoginUrlFilterReturnsIdpUrl(): void
+    {
+        $auth = $this->createMock(Auth::class);
+        $auth->method('login')
+            ->with(null, [], false, false, true)
+            ->willReturn('https://idp.example.com/sso?SAMLRequest=encoded');
+
+        $factory = $this->createMock(SamlAuthFactory::class);
+        $factory->method('create')->willReturn($auth);
+
+        $entryPoint = new SamlEntryPoint(
+            $factory,
+            $this->authSession,
+            Request::create('https://example.com/wp-login.php'),
+        );
+        $entryPoint->register();
+
+        $url = apply_filters('login_url', 'https://example.com/wp-login.php', '');
+
+        self::assertSame('https://idp.example.com/sso?SAMLRequest=encoded', $url);
+    }
+
+    #[Test]
+    public function registerLoginUrlFilterPassesRedirectParam(): void
+    {
+        $capturedReturnTo = null;
+
+        $auth = $this->createMock(Auth::class);
+        $auth->method('login')
+            ->willReturnCallback(function (?string $returnTo) use (&$capturedReturnTo): string {
+                $capturedReturnTo = $returnTo;
+
+                return 'https://idp.example.com/sso';
+            });
+
+        $factory = $this->createMock(SamlAuthFactory::class);
+        $factory->method('create')->willReturn($auth);
+
+        $entryPoint = new SamlEntryPoint(
+            $factory,
+            $this->authSession,
+            Request::create('https://example.com/wp-login.php'),
+        );
+        $entryPoint->register();
+
+        apply_filters('login_url', 'https://example.com/wp-login.php', 'https://example.com/dashboard');
+
+        self::assertSame('https://example.com/dashboard', $capturedReturnTo);
+    }
+
+    #[Test]
+    public function registerLoginInitShowsErrorPageForSamlErrorAction(): void
+    {
+        $wpDieFilter = static fn(): \Closure => static function (string|\WP_Error $message = ''): never {
+            throw new \WPDieException(\is_string($message) ? $message : $message->get_error_message());
+        };
+
+        add_filter('wp_die_handler', $wpDieFilter, \PHP_INT_MAX);
+
+        $factory = $this->createMock(SamlAuthFactory::class);
+
+        $entryPoint = new SamlEntryPoint(
+            $factory,
+            $this->authSession,
+            Request::create('https://example.com/wp-login.php?action=saml_error'),
+        );
+        $entryPoint->register();
+
+        try {
+            do_action('login_init');
+            self::fail('Expected wp_die() to be called');
+        } catch (\WPDieException $e) {
+            self::assertStringContainsString('SAML authentication failed', $e->getMessage());
+        } finally {
+            remove_filter('wp_die_handler', $wpDieFilter, \PHP_INT_MAX);
+        }
+    }
+
+    #[Test]
+    public function registerLoginInitSkipsLoggedOutParam(): void
+    {
+        $loginCalled = false;
+
+        $auth = $this->createMock(Auth::class);
+        $auth->method('login')
+            ->willReturnCallback(function () use (&$loginCalled): void {
+                $loginCalled = true;
+            });
+
+        $factory = $this->createMock(SamlAuthFactory::class);
+        $factory->method('create')->willReturn($auth);
+
+        $entryPoint = new SamlEntryPoint(
+            $factory,
+            $this->authSession,
+            Request::create('https://example.com/wp-login.php?loggedout=true'),
+        );
+        $entryPoint->register();
+
+        do_action('login_init');
+
+        self::assertFalse($loginCalled);
     }
 }

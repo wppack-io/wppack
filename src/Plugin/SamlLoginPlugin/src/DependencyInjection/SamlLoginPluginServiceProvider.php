@@ -40,6 +40,7 @@ use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolver;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolverInterface;
 use WpPack\Component\Security\DependencyInjection\SecurityServiceProvider;
 use WpPack\Plugin\SamlLoginPlugin\Configuration\SamlLoginConfiguration;
+use WpPack\Plugin\SamlLoginPlugin\SamlLoginForm;
 
 final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
 {
@@ -125,6 +126,11 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
             ->addArgument(new Reference(SamlLogoutHandler::class))
             ->addArgument(new Reference(SamlSessionManager::class))
             ->addArgument(new Reference(AuthenticationSession::class))
+            ->addArgument(new Reference(Request::class));
+
+        // Login Form (mixed mode)
+        $builder->register(SamlLoginForm::class)
+            ->addArgument(new Reference(SamlEntryPoint::class))
             ->addArgument(new Reference(Request::class));
 
         // Route Registry
