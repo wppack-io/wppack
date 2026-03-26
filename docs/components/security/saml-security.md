@@ -53,9 +53,9 @@ SP（Service Provider = WordPress サイト）の情報を定義します:
 use WpPack\Component\Security\Bridge\SAML\Configuration\SpSettings;
 
 $spSettings = new SpSettings(
-    entityId: 'https://example.com/wp',
-    acsUrl: 'https://example.com/wp/sso/verify',
-    sloUrl: 'https://example.com/wp/sso/logout',     // 省略可
+    entityId: 'https://example.com',
+    acsUrl: 'https://example.com/saml/acs',
+    sloUrl: 'https://example.com/saml/slo',     // 省略可
     nameIdFormat: 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
 );
 ```
@@ -133,7 +133,7 @@ $authenticator = new SamlAuthenticator(
     authFactory: $factory,
     userResolver: $userResolver,
     dispatcher: $eventDispatcher,
-    acsPath: '/sso/verify',           // ACS パス（デフォルト: /sso/verify）
+    acsPath: '/saml/acs',           // ACS パス（デフォルト: /saml/acs）
     crossSiteRedirector: null,         // マルチサイト用（後述）
     addUserToBlog: true,               // マルチサイトでブログにユーザーを自動追加
 );
@@ -196,7 +196,7 @@ $xml = $metadata->getMetadataXml();
 $metadata->serve();
 ```
 
-IdP の管理画面で SP メタデータ URL（例: `https://example.com/wp/sso/metadata`）を登録する際に使用します。
+IdP の管理画面で SP メタデータ URL（例: `https://example.com`）を登録する際に使用します。
 
 ### SamlLogoutHandler
 
@@ -399,10 +399,10 @@ $authenticator = new SamlAuthenticator(
 SamlEntryPoint::start(returnTo: 'https://sub.example.com/wp-admin/')
     ↓ RelayState = 'https://sub.example.com/wp-admin/'
 [IdP で認証]
-    ↓ SAMLResponse を main.example.com/sso/verify に POST
+    ↓ SAMLResponse を main.example.com/saml/acs に POST
 SamlAuthenticator（main.example.com）
     ↓ CrossSiteRedirector::needsRedirect() → true
-    ↓ auto-submit フォームで sub.example.com/sso/verify にリダイレクト
+    ↓ auto-submit フォームで sub.example.com/saml/acs にリダイレクト
 SamlAuthenticator（sub.example.com）
     ↓ 通常の認証フロー
     ↓ wp_set_auth_cookie()
@@ -429,14 +429,14 @@ $idpSettings = new IdpSettings(
 );
 
 $spSettings = new SpSettings(
-    entityId: 'https://example.com/wp',
-    acsUrl: 'https://example.com/wp/sso/verify',
+    entityId: 'https://example.com',
+    acsUrl: 'https://example.com/saml/acs',
 );
 ```
 
 Okta 管理画面での設定:
-- **Single sign-on URL**: `https://example.com/wp/sso/verify`
-- **Audience URI (SP Entity ID)**: `https://example.com/wp`
+- **Single sign-on URL**: `https://example.com/saml/acs`
+- **Audience URI (SP Entity ID)**: `https://example.com`
 - **Name ID format**: EmailAddress
 
 ### Azure AD (Entra ID)
@@ -450,15 +450,15 @@ $idpSettings = new IdpSettings(
 );
 
 $spSettings = new SpSettings(
-    entityId: 'https://example.com/wp',
-    acsUrl: 'https://example.com/wp/sso/verify',
+    entityId: 'https://example.com',
+    acsUrl: 'https://example.com/saml/acs',
 );
 ```
 
 Azure Portal での設定:
-- **Identifier (Entity ID)**: `https://example.com/wp`
-- **Reply URL (Assertion Consumer Service URL)**: `https://example.com/wp/sso/verify`
-- **Sign on URL**: `https://example.com/wp/sso/login`
+- **Identifier (Entity ID)**: `https://example.com`
+- **Reply URL (Assertion Consumer Service URL)**: `https://example.com/saml/acs`
+- **Sign on URL**: `https://example.com/saml/login`
 
 ### Google Workspace
 
@@ -471,14 +471,14 @@ $idpSettings = new IdpSettings(
 );
 
 $spSettings = new SpSettings(
-    entityId: 'https://example.com/wp',
-    acsUrl: 'https://example.com/wp/sso/verify',
+    entityId: 'https://example.com',
+    acsUrl: 'https://example.com/saml/acs',
 );
 ```
 
 Google Admin での設定:
-- **ACS URL**: `https://example.com/wp/sso/verify`
-- **Entity ID**: `https://example.com/wp`
+- **ACS URL**: `https://example.com/saml/acs`
+- **Entity ID**: `https://example.com`
 - **Name ID**: Basic Information > Primary email
 
 ## セキュリティ考慮事項

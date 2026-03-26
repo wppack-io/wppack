@@ -36,7 +36,7 @@ final class SamlAuthenticator implements AuthenticatorInterface
         private readonly SamlAuthFactory $authFactory,
         private readonly SamlUserResolverInterface $userResolver,
         private readonly EventDispatcherInterface $dispatcher,
-        private readonly string $acsPath = '/sso/verify',
+        private readonly string $acsPath = '/saml/acs',
         private readonly ?CrossSiteRedirector $crossSiteRedirector = null,
         private readonly bool $addUserToBlog = true,
     ) {}

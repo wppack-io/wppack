@@ -124,7 +124,7 @@ final class CrossSiteRedirectorTest extends TestCase
     {
         $redirector = new CrossSiteRedirector(
             allowedHosts: ['myapp.local'],
-            acsPath: '/sso/verify',
+            acsPath: '/saml/acs',
         );
 
         // Should not throw -- the host is explicitly allowed
@@ -147,25 +147,25 @@ final class CrossSiteRedirectorTest extends TestCase
     #[Test]
     public function resolveAcsUrlEnforcesHttps(): void
     {
-        $redirector = new CrossSiteRedirector(acsPath: '/sso/verify');
+        $redirector = new CrossSiteRedirector(acsPath: '/saml/acs');
 
         $method = new \ReflectionMethod($redirector, 'resolveAcsUrl');
 
         // Even if target uses http, the resolved ACS URL should be https
         $result = $method->invoke($redirector, 'http://example.com/path');
         self::assertStringStartsWith('https://', $result);
-        self::assertSame('https://example.com/sso/verify', $result);
+        self::assertSame('https://example.com/saml/acs', $result);
     }
 
     #[Test]
     public function resolveAcsUrlPreservesPort(): void
     {
-        $redirector = new CrossSiteRedirector(acsPath: '/sso/verify');
+        $redirector = new CrossSiteRedirector(acsPath: '/saml/acs');
 
         $method = new \ReflectionMethod($redirector, 'resolveAcsUrl');
 
         $result = $method->invoke($redirector, 'https://example.com:8443/path');
-        self::assertSame('https://example.com:8443/sso/verify', $result);
+        self::assertSame('https://example.com:8443/saml/acs', $result);
     }
 
     #[Test]
@@ -177,13 +177,13 @@ final class CrossSiteRedirectorTest extends TestCase
 
         $html = $method->invoke(
             $redirector,
-            'https://target.example.com/sso/verify',
+            'https://target.example.com/saml/acs',
             'base64SAMLResponse',
             'https://target.example.com/dashboard',
         );
 
         self::assertStringContainsString('method="POST"', $html);
-        self::assertStringContainsString('action="https://target.example.com/sso/verify"', $html);
+        self::assertStringContainsString('action="https://target.example.com/saml/acs"', $html);
         self::assertStringContainsString('name="SAMLResponse"', $html);
         self::assertStringContainsString('value="base64SAMLResponse"', $html);
         self::assertStringContainsString('name="RelayState"', $html);
@@ -199,7 +199,7 @@ final class CrossSiteRedirectorTest extends TestCase
 
         $html = $method->invoke(
             $redirector,
-            'https://target.example.com/sso/verify?param=value&other=1',
+            'https://target.example.com/saml/acs?param=value&other=1',
             'response<script>alert(1)</script>',
             'state"onclick="hack',
         );
@@ -247,12 +247,12 @@ final class CrossSiteRedirectorTest extends TestCase
     #[Test]
     public function resolveAcsUrlWithoutPort(): void
     {
-        $redirector = new CrossSiteRedirector(acsPath: '/sso/verify');
+        $redirector = new CrossSiteRedirector(acsPath: '/saml/acs');
 
         $method = new \ReflectionMethod($redirector, 'resolveAcsUrl');
 
         $result = $method->invoke($redirector, 'https://example.com/path/to/resource');
-        self::assertSame('https://example.com/sso/verify', $result);
+        self::assertSame('https://example.com/saml/acs', $result);
     }
 
     #[Test]

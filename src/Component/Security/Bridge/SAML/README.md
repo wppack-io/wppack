@@ -25,9 +25,9 @@ $idpSettings = new IdpSettings(
 );
 
 $spSettings = new SpSettings(
-    entityId: 'https://example.com/wp',
-    acsUrl: 'https://example.com/wp/sso/verify',
-    sloUrl: 'https://example.com/wp/sso/logout',
+    entityId: 'https://example.com',
+    acsUrl: 'https://example.com/saml/acs',
+    sloUrl: 'https://example.com/saml/slo',
 );
 
 $configuration = new SamlConfiguration($idpSettings, $spSettings);
@@ -60,7 +60,7 @@ $authenticator = new SamlAuthenticator(
     authFactory: $factory,
     userResolver: $userResolver,
     dispatcher: $eventDispatcher,
-    acsPath: '/sso/verify',
+    acsPath: '/saml/acs',
 );
 ```
 

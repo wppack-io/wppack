@@ -25,7 +25,7 @@ final class CrossSiteRedirector
      */
     public function __construct(
         private readonly array $allowedHosts = [],
-        private readonly string $acsPath = '/sso/verify',
+        private readonly string $acsPath = '/saml/acs',
         private readonly BlogContextInterface $blogContext = new BlogContext(),
         private readonly SiteRepositoryInterface $siteRepository = new SiteRepository(),
     ) {}
