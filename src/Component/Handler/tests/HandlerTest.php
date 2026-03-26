@@ -16,7 +16,6 @@ namespace WpPack\Component\Handler\Tests;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Handler\Configuration;
-use WpPack\Component\Handler\Exception\SecurityException;
 use WpPack\Component\Handler\Handler;
 use WpPack\Component\HttpFoundation\Request;
 
@@ -49,7 +48,7 @@ final class HandlerTest extends TestCase
     }
 
     #[Test]
-    public function resolveReturnsFilePathForPhpFile(): void
+    public function runReturnsFilePathForPhpFile(): void
     {
         $config = new Configuration([
             'web_root' => $this->webRoot,
@@ -58,13 +57,13 @@ final class HandlerTest extends TestCase
         $handler = new Handler($config);
         $request = Request::create('/test.php');
 
-        $filePath = $handler->resolve($request);
+        $filePath = $handler->run($request);
 
         self::assertSame($this->testFile, $filePath);
     }
 
     #[Test]
-    public function resolveReturnsWordPressIndexForUnknownPath(): void
+    public function runReturnsWordPressIndexForUnknownPath(): void
     {
         $config = new Configuration([
             'web_root' => $this->webRoot,
@@ -73,13 +72,13 @@ final class HandlerTest extends TestCase
         $handler = new Handler($config);
         $request = Request::create('/some/page');
 
-        $filePath = $handler->resolve($request);
+        $filePath = $handler->run($request);
 
         self::assertSame($this->wpIndex, $filePath);
     }
 
     #[Test]
-    public function resolveReturnsNullForStaticFile(): void
+    public function runReturnsNullForStaticFile(): void
     {
         $staticFile = $this->webRoot . '/style.css';
         file_put_contents($staticFile, 'body {}');
@@ -91,13 +90,13 @@ final class HandlerTest extends TestCase
         $handler = new Handler($config);
         $request = Request::create('/style.css');
 
-        $filePath = $handler->resolve($request);
+        $filePath = $handler->run($request);
 
         self::assertNull($filePath);
     }
 
     #[Test]
-    public function resolveThrowsSecurityExceptionForBlockedPath(): void
+    public function runReturnsNullForBlockedPath(): void
     {
         $config = new Configuration([
             'web_root' => $this->webRoot,
@@ -106,8 +105,8 @@ final class HandlerTest extends TestCase
         $handler = new Handler($config);
         $request = Request::create('/.env');
 
-        $this->expectException(SecurityException::class);
+        $filePath = $handler->run($request);
 
-        $handler->resolve($request);
+        self::assertNull($filePath);
     }
 }

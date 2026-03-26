@@ -9,8 +9,8 @@ The Handler operates in a unique execution context: it runs **before** WordPress
 ```
 1. web/index.php
    └─ require autoload.php
-   └─ Request::createFromGlobals()     ← No WordPress yet
-   └─ Handler::handle($request)
+   └─ $result = Handler::run()
+      ├─ Request::createFromGlobals()  ← No WordPress yet
       ├─ Environment::setup()          ← Lambda directory creation
       ├─ Processor chain               ← All processors run without WordPress
       │  ├─ SecurityProcessor
@@ -22,13 +22,14 @@ The Handler operates in a unique execution context: it runs **before** WordPress
       │  └─ WordPressProcessor         ← Sets SCRIPT_FILENAME to WP index.php
       ├─ preparePhpEnvironment()       ← Sets $_SERVER variables
       ├─ Kernel::create($request)      ← Kernel instance created + Request stored (pre-WP)
-      └─ require $wpFile               ← WordPress loads HERE
-         └─ wp-settings.php
-            ├─ plugins_loaded          ← Kernel::registerPlugin() called
-            │                             (autoBoot hook registered on first addPlugin/addTheme)
-            ├─ wp_magic_quotes()       ← Superglobals modified
-            └─ init (priority 0)       ← Kernel::autoBoot() → boot()
-               └─ Uses stored Request (not createFromGlobals)
+      └─ return $filePath              ← File path returned to caller
+   └─ require $result                  ← WordPress loads HERE (in global scope)
+      └─ wp-settings.php
+         ├─ plugins_loaded             ← Kernel::registerPlugin() called
+         │                                (autoBoot hook registered on first addPlugin/addTheme)
+         ├─ wp_magic_quotes()          ← Superglobals modified
+         └─ init (priority 0)          ← Kernel::autoBoot() → boot()
+            └─ Uses stored Request (not createFromGlobals)
 ```
 
 ## Key Constraints

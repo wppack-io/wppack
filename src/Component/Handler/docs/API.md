@@ -8,21 +8,23 @@ use WpPack\Component\Handler\Configuration;
 use Psr\Log\LoggerInterface;
 
 $handler = new Handler(?Configuration $config = null, ?LoggerInterface $logger = null);
-$handler->handle(Request $request): void;
+$handler->run(?Request $request = null): ?string;
 $handler->addProcessor(ProcessorInterface $processor, int $priority = 100): void;
 ```
 
-### `handle(Request $request): void`
+### `run(?Request $request = null): ?string`
 
-Processes the request through the full lifecycle:
+Runs the front controller. Returns the resolved PHP file path, or `null` if the
+response was already sent (static files, redirects, errors):
 
 1. Sets up the environment (Lambda directories, etc.)
-2. Prepares the request (cleans server variables)
-3. Runs the processor chain
-4. If a processor returns a `Response`, sends it and returns
-5. If a PHP file is resolved, prepares `$_SERVER` variables
-6. If `wppack/kernel` is available, calls `Kernel::create($request)`
-7. `require`s the target PHP file
+2. Creates Request from globals if none provided
+3. Prepares the request (cleans server variables)
+4. Runs the processor chain
+5. If a processor returns a `Response`, sends it and returns `null`
+6. If a PHP file is resolved, prepares `$_SERVER` variables
+7. If `wppack/kernel` is available, calls `Kernel::create($request)`
+8. Returns the file path — the caller is responsible for `require`ing it
 
 ### `addProcessor(ProcessorInterface $processor, int $priority = 100): void`
 

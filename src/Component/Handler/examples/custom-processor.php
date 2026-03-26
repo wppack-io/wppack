@@ -41,5 +41,7 @@ $config = new Configuration(['web_root' => __DIR__]);
 $handler = new Handler($config);
 $handler->addProcessor(new MaintenanceProcessor(), priority: 1);
 
-$request = Request::createFromGlobals();
-$handler->handle($request);
+$result = $handler->run();
+if ($result !== null) {
+    require $result;
+}

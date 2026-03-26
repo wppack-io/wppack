@@ -46,39 +46,33 @@ class Handler implements HandlerInterface
         $this->initializeProcessors();
     }
 
-    public function resolve(Request $request): ?string
-    {
-        $this->environment->setup();
-        $request = $this->prepareRequest($request);
-
-        $request = $this->processRequest($request);
-        if ($request === null) {
-            return null;
-        }
-
-        $filePath = $this->preparePhpEnvironment($request);
-        if ($filePath === null) {
-            $this->sendNotFoundResponse();
-
-            return null;
-        }
-
-        if (class_exists(Kernel::class)) {
-            Kernel::create($request);
-        }
-
-        return $filePath;
-    }
-
-    public function handle(Request $request): void
+    public function run(?Request $request = null): ?string
     {
         try {
-            $filePath = $this->resolve($request);
-            if ($filePath !== null) {
-                require $filePath;
+            $this->environment->setup();
+            $request = $this->prepareRequest($request);
+
+            $request = $this->processRequest($request);
+            if ($request === null) {
+                return null;
             }
+
+            $filePath = $this->preparePhpEnvironment($request);
+            if ($filePath === null) {
+                $this->sendNotFoundResponse();
+
+                return null;
+            }
+
+            if (class_exists(Kernel::class)) {
+                Kernel::create($request);
+            }
+
+            return $filePath;
         } catch (\Exception $e) {
             $this->handleException($e);
+
+            return null;
         }
     }
 
@@ -92,8 +86,10 @@ class Handler implements HandlerInterface
         array_splice($this->processors, min($priority, \count($this->processors)), 0, [$processor]);
     }
 
-    private function prepareRequest(Request $request): Request
+    private function prepareRequest(?Request $request): Request
     {
+        $request ??= Request::createFromGlobals();
+
         $request->server->remove('SCRIPT_FILENAME');
         $request->server->remove('SCRIPT_NAME');
 
@@ -131,7 +127,7 @@ class Handler implements HandlerInterface
         (new Response('Not Found', 404))->send();
     }
 
-    public function handleException(\Exception $e): void
+    private function handleException(\Exception $e): void
     {
         if ($e instanceof SecurityException) {
             (new Response($e->getMessage(), 403))->send();

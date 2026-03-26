@@ -13,12 +13,13 @@ composer require wppack/handler
 ```php
 // web/index.php
 use WpPack\Component\Handler\Handler;
-use WpPack\Component\HttpFoundation\Request;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
-$request = Request::createFromGlobals();
-(new Handler())->handle($request);
+$result = (new Handler())->run();
+if ($result !== null) {
+    require $result;
+}
 ```
 
 ## Features
@@ -47,8 +48,10 @@ $config = new Configuration([
     'wp_directory'    => '/wp',
 ]);
 
-$request = Request::createFromGlobals();
-(new Handler($config))->handle($request);
+$result = (new Handler($config))->run();
+if ($result !== null) {
+    require $result;
+}
 ```
 
 ### Options
@@ -105,7 +108,11 @@ class MaintenanceProcessor implements ProcessorInterface
 
 $handler = new Handler($config);
 $handler->addProcessor(new MaintenanceProcessor(), priority: 1);
-$handler->handle($request);
+
+$result = $handler->run($request);
+if ($result !== null) {
+    require $result;
+}
 ```
 
 ## Kernel Integration

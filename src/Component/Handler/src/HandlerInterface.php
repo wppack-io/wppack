@@ -18,21 +18,15 @@ use WpPack\Component\HttpFoundation\Request;
 interface HandlerInterface
 {
     /**
-     * Resolves a request to a PHP file path without requiring it.
-     *
-     * Returns the resolved file path, or null if the response was already
-     * sent (static files, redirects, 404). The caller is responsible for
-     * requiring the returned file — typically in global scope so that
-     * WordPress admin globals are set correctly.
-     */
-    public function resolve(Request $request): ?string;
-
-    /**
-     * Handles an HTTP request through the full lifecycle.
+     * Runs the front controller.
      *
      * Processes the request through the processor chain, serves responses
-     * for static files and redirects, or requires the target PHP file
-     * (including WordPress) for execution.
+     * for static files and redirects, or returns the resolved PHP file path.
+     * The caller is responsible for requiring the returned file — typically
+     * in global scope so that WordPress admin globals are set correctly.
+     *
+     * Returns the resolved file path, or null if the response was already
+     * sent (static files, redirects, errors).
      */
-    public function handle(Request $request): void;
+    public function run(?Request $request = null): ?string;
 }

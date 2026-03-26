@@ -17,7 +17,6 @@ declare(strict_types=1);
 
 use WpPack\Component\Handler\Configuration;
 use WpPack\Component\Handler\Handler;
-use WpPack\Component\HttpFoundation\Request;
 
 require dirname(__DIR__, 4) . '/vendor/autoload.php';
 
@@ -25,5 +24,7 @@ $config = new Configuration([
     'web_root' => __DIR__,
 ]);
 
-$request = Request::createFromGlobals();
-(new Handler($config))->handle($request);
+$result = (new Handler($config))->run();
+if ($result !== null) {
+    require $result;
+}
