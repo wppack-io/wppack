@@ -25,6 +25,7 @@ final class SendGridApiTransport extends AbstractApiTransport
     private const API_ENDPOINT = 'https://api.sendgrid.com/v3/mail/send';
 
     public function __construct(
+        #[\SensitiveParameter]
         private readonly string $apiKey,
         private readonly ?HttpClient $httpClient = null,
         private readonly JsonEncoder $jsonEncoder = new JsonEncoder(),

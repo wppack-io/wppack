@@ -18,6 +18,7 @@ use WpPack\Component\Mailer\Transport\SmtpTransport;
 final class SendGridSmtpTransport extends SmtpTransport
 {
     public function __construct(
+        #[\SensitiveParameter]
         string $apiKey,
         string $encryption = 'tls',
         int $port = 587,

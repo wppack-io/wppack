@@ -28,6 +28,7 @@ final class AzureApiTransport extends AbstractApiTransport
 
     public function __construct(
         private readonly string $resourceName,
+        #[\SensitiveParameter]
         private readonly string $accessKey,
         private readonly string $apiVersion = self::DEFAULT_API_VERSION,
         private readonly ?HttpClient $httpClient = null,

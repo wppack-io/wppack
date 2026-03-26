@@ -24,6 +24,7 @@ final class Dsn
         private readonly string $scheme,
         private readonly string $host,
         private readonly ?string $user,
+        #[\SensitiveParameter]
         private readonly ?string $password,
         private readonly ?int $port,
         private readonly array $options,

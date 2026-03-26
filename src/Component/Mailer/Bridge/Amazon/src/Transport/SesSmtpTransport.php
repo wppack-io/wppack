@@ -19,6 +19,7 @@ final class SesSmtpTransport extends SmtpTransport
 {
     public function __construct(
         string $username,
+        #[\SensitiveParameter]
         string $password,
         string $region = 'us-east-1',
         string $encryption = 'tls',

@@ -22,6 +22,7 @@ class SmtpTransport extends AbstractTransport
         private readonly string $host,
         private readonly int $port = 587,
         private readonly ?string $username = null,
+        #[\SensitiveParameter]
         private readonly ?string $password = null,
         private readonly string $encryption = 'tls',
     ) {}

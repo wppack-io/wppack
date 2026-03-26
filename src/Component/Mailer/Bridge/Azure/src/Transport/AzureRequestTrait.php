@@ -151,7 +151,7 @@ trait AzureRequestTrait
      *
      * @return array<string, string>
      */
-    private function buildAzureAuthHeaders(string $url, string $body, string $accessKey): array
+    private function buildAzureAuthHeaders(string $url, string $body, #[\SensitiveParameter] string $accessKey): array
     {
         $parsed = parse_url($url);
         $host = $parsed['host'] ?? '';
@@ -185,7 +185,7 @@ trait AzureRequestTrait
      *
      * @return array<string, mixed>
      */
-    private function sendAzureRequest(string $endpoint, string $apiVersion, string $accessKey, string $body, ?HttpClient $httpClient = null): array
+    private function sendAzureRequest(string $endpoint, string $apiVersion, #[\SensitiveParameter] string $accessKey, string $body, ?HttpClient $httpClient = null): array
     {
         $url = sprintf('https://%s/emails:send?api-version=%s', $endpoint, $apiVersion);
         $headers = $this->buildAzureAuthHeaders($url, $body, $accessKey);
