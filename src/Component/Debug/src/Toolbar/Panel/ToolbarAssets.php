@@ -1488,6 +1488,15 @@ final class ToolbarAssets
                 }
             });
 
+            // Click outside toolbar closes overlay
+            document.addEventListener('click', function(e) {
+                if (activePanel !== null && !root.contains(e.target)) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    closeOverlay();
+                }
+            }, true);
+
             // Timeline bar tooltips
             var tooltip = document.createElement('div');
             tooltip.className = 'wpd-tooltip';
