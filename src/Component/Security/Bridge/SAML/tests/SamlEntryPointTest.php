@@ -17,16 +17,29 @@ use OneLogin\Saml2\Auth;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Security\AuthenticationSession;
 use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
 use WpPack\Component\Security\Bridge\SAML\SamlEntryPoint;
 
 #[CoversClass(SamlEntryPoint::class)]
 final class SamlEntryPointTest extends TestCase
 {
+    private AuthenticationSession $authSession;
+
+    protected function setUp(): void
+    {
+        $this->authSession = new AuthenticationSession();
+        // Ensure no user is logged in by default
+        wp_set_current_user(0);
+    }
+
     protected function tearDown(): void
     {
         remove_all_actions('login_init');
+        wp_set_current_user(0);
     }
+
     #[Test]
     public function getLoginUrl(): void
     {
@@ -39,7 +52,11 @@ final class SamlEntryPointTest extends TestCase
         $factory = $this->createMock(SamlAuthFactory::class);
         $factory->method('create')->willReturn($auth);
 
-        $entryPoint = new SamlEntryPoint($factory);
+        $entryPoint = new SamlEntryPoint(
+            $factory,
+            $this->authSession,
+            Request::create('https://example.com/wp-login.php'),
+        );
         $loginUrl = $entryPoint->getLoginUrl();
 
         self::assertSame('https://idp.example.com/sso?SAMLRequest=encoded', $loginUrl);
@@ -57,7 +74,11 @@ final class SamlEntryPointTest extends TestCase
         $factory = $this->createMock(SamlAuthFactory::class);
         $factory->method('create')->willReturn($auth);
 
-        $entryPoint = new SamlEntryPoint($factory);
+        $entryPoint = new SamlEntryPoint(
+            $factory,
+            $this->authSession,
+            Request::create('https://example.com/wp-login.php'),
+        );
         $loginUrl = $entryPoint->getLoginUrl('https://sp.example.com/dashboard');
 
         self::assertSame(
@@ -77,17 +98,16 @@ final class SamlEntryPointTest extends TestCase
         $factory = $this->createMock(SamlAuthFactory::class);
         $factory->method('create')->willReturn($auth);
 
-        $entryPoint = new SamlEntryPoint($factory);
+        $entryPoint = new SamlEntryPoint(
+            $factory,
+            $this->authSession,
+            Request::create('https://example.com/wp-login.php'),
+        );
 
-        // start() calls exit, so we can't test it directly in most cases
-        // But we can test that it properly delegates to auth->login()
-        // by testing through the login_init hook indirectly
-        // For now, verify that the method delegates to auth->login()
         try {
             $entryPoint->start('https://sp.example.com/dashboard');
         } catch (\Throwable) {
             // start() is declared as returning void but annotated @return never
-            // The exit will be caught if running in a test harness that converts exit
         }
     }
 
@@ -102,7 +122,11 @@ final class SamlEntryPointTest extends TestCase
         $factory = $this->createMock(SamlAuthFactory::class);
         $factory->method('create')->willReturn($auth);
 
-        $entryPoint = new SamlEntryPoint($factory);
+        $entryPoint = new SamlEntryPoint(
+            $factory,
+            $this->authSession,
+            Request::create('https://example.com/wp-login.php'),
+        );
 
         try {
             $entryPoint->start();
@@ -125,30 +149,17 @@ final class SamlEntryPointTest extends TestCase
         $factory = $this->createMock(SamlAuthFactory::class);
         $factory->method('create')->willReturn($auth);
 
-        $entryPoint = new SamlEntryPoint($factory);
+        $entryPoint = new SamlEntryPoint(
+            $factory,
+            $this->authSession,
+            Request::create('https://example.com/wp-login.php'),
+        );
         $entryPoint->register();
-
-        // Simulate GET request without action
-        $originalMethod = $_SERVER['REQUEST_METHOD'] ?? null;
-        $originalAction = $_GET['action'] ?? null;
-        $hasAction = isset($_GET['action']);
-
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        unset($_GET['action']);
 
         try {
             do_action('login_init');
         } catch (\Throwable) {
             // start() may exit
-        }
-
-        // Restore
-        if ($originalMethod !== null) {
-            $_SERVER['REQUEST_METHOD'] = $originalMethod;
-        }
-
-        if ($hasAction) {
-            $_GET['action'] = $originalAction;
         }
 
         self::assertTrue($loginCalled);
@@ -168,18 +179,14 @@ final class SamlEntryPointTest extends TestCase
         $factory = $this->createMock(SamlAuthFactory::class);
         $factory->method('create')->willReturn($auth);
 
-        $entryPoint = new SamlEntryPoint($factory);
+        $entryPoint = new SamlEntryPoint(
+            $factory,
+            $this->authSession,
+            Request::create('https://example.com/wp-login.php', 'POST'),
+        );
         $entryPoint->register();
 
-        // Simulate POST request
-        $originalMethod = $_SERVER['REQUEST_METHOD'] ?? null;
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-
         do_action('login_init');
-
-        if ($originalMethod !== null) {
-            $_SERVER['REQUEST_METHOD'] = $originalMethod;
-        }
 
         self::assertFalse($loginCalled);
     }
@@ -198,29 +205,106 @@ final class SamlEntryPointTest extends TestCase
         $factory = $this->createMock(SamlAuthFactory::class);
         $factory->method('create')->willReturn($auth);
 
-        $entryPoint = new SamlEntryPoint($factory);
+        $entryPoint = new SamlEntryPoint(
+            $factory,
+            $this->authSession,
+            Request::create('https://example.com/wp-login.php?action=logout'),
+        );
         $entryPoint->register();
-
-        // Simulate GET request with action (e.g., ?action=logout)
-        $originalMethod = $_SERVER['REQUEST_METHOD'] ?? null;
-        $hasAction = isset($_GET['action']);
-        $originalAction = $_GET['action'] ?? null;
-
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET['action'] = 'logout';
 
         do_action('login_init');
 
-        if ($originalMethod !== null) {
-            $_SERVER['REQUEST_METHOD'] = $originalMethod;
-        }
+        self::assertFalse($loginCalled);
+    }
 
-        if ($hasAction) {
-            $_GET['action'] = $originalAction;
-        } else {
-            unset($_GET['action']);
-        }
+    #[Test]
+    public function registerLoginInitSkipsLoggedInUser(): void
+    {
+        $loginCalled = false;
+
+        $auth = $this->createMock(Auth::class);
+        $auth->method('login')
+            ->willReturnCallback(function () use (&$loginCalled): void {
+                $loginCalled = true;
+            });
+
+        $factory = $this->createMock(SamlAuthFactory::class);
+        $factory->method('create')->willReturn($auth);
+
+        // Simulate logged-in user
+        wp_set_current_user(1);
+
+        $entryPoint = new SamlEntryPoint(
+            $factory,
+            $this->authSession,
+            Request::create('https://example.com/wp-login.php'),
+        );
+        $entryPoint->register();
+
+        do_action('login_init');
 
         self::assertFalse($loginCalled);
+    }
+
+    #[Test]
+    public function registerLoginInitPassesRedirectToAsReturnTo(): void
+    {
+        $capturedReturnTo = null;
+
+        $auth = $this->createMock(Auth::class);
+        $auth->method('login')
+            ->willReturnCallback(function (?string $returnTo) use (&$capturedReturnTo): void {
+                $capturedReturnTo = $returnTo;
+            });
+
+        $factory = $this->createMock(SamlAuthFactory::class);
+        $factory->method('create')->willReturn($auth);
+
+        $redirectTo = home_url('/wp-admin/edit.php');
+
+        $entryPoint = new SamlEntryPoint(
+            $factory,
+            $this->authSession,
+            Request::create('http://example.org/wp-login.php?redirect_to=' . urlencode($redirectTo)),
+        );
+        $entryPoint->register();
+
+        try {
+            do_action('login_init');
+        } catch (\Throwable) {
+            // start() may exit
+        }
+
+        self::assertSame($redirectTo, $capturedReturnTo);
+    }
+
+    #[Test]
+    public function registerLoginInitUsesAdminUrlWhenNoRedirectTo(): void
+    {
+        $capturedReturnTo = null;
+
+        $auth = $this->createMock(Auth::class);
+        $auth->method('login')
+            ->willReturnCallback(function (?string $returnTo) use (&$capturedReturnTo): void {
+                $capturedReturnTo = $returnTo;
+            });
+
+        $factory = $this->createMock(SamlAuthFactory::class);
+        $factory->method('create')->willReturn($auth);
+
+        $entryPoint = new SamlEntryPoint(
+            $factory,
+            $this->authSession,
+            Request::create('https://example.com/wp-login.php'),
+        );
+        $entryPoint->register();
+
+        try {
+            do_action('login_init');
+        } catch (\Throwable) {
+            // start() may exit
+        }
+
+        self::assertSame(admin_url(), $capturedReturnTo);
     }
 }

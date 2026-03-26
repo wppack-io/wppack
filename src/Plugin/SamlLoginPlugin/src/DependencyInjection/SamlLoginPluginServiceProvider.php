@@ -23,6 +23,7 @@ use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Routing\RouteRegistry;
 use WpPack\Component\Security\Authentication\AuthenticationManager;
 use WpPack\Component\Security\Authentication\AuthenticationManagerInterface;
+use WpPack\Component\Security\AuthenticationSession;
 use WpPack\Component\Security\Bridge\SAML\Configuration\IdpSettings;
 use WpPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
 use WpPack\Component\Security\Bridge\SAML\Configuration\SpSettings;
@@ -94,14 +95,17 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
 
         // Entry Point
         $builder->register(SamlEntryPoint::class)
-            ->addArgument(new Reference(SamlAuthFactory::class));
+            ->addArgument(new Reference(SamlAuthFactory::class))
+            ->addArgument(new Reference(AuthenticationSession::class))
+            ->addArgument(new Reference(Request::class));
 
         // SAML Session Manager
         $builder->register(SamlSessionManager::class);
 
         // Logout Handler
         $builder->register(SamlLogoutHandler::class)
-            ->addArgument(new Reference(SamlAuthFactory::class));
+            ->addArgument(new Reference(SamlAuthFactory::class))
+            ->addArgument(new Reference(AuthenticationSession::class));
 
         // Logout Listener (wp_logout → SAML SLO)
         $builder->register(SamlLogoutListener::class)
@@ -120,6 +124,7 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
         $builder->register(SamlSloController::class)
             ->addArgument(new Reference(SamlLogoutHandler::class))
             ->addArgument(new Reference(SamlSessionManager::class))
+            ->addArgument(new Reference(AuthenticationSession::class))
             ->addArgument(new Reference(Request::class));
 
         // Route Registry

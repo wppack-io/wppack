@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Security\Bridge\OAuth;
 
+use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Security\AuthenticationSession;
 use WpPack\Component\Security\Bridge\OAuth\Configuration\OAuthConfiguration;
 use WpPack\Component\Security\Bridge\OAuth\Pkce\PkceGenerator;
 use WpPack\Component\Security\Bridge\OAuth\Provider\ProviderInterface;
@@ -25,6 +27,8 @@ final class OAuthEntryPoint
         private readonly ProviderInterface $provider,
         private readonly OAuthConfiguration $configuration,
         private readonly OAuthStateStore $stateStore,
+        private readonly AuthenticationSession $authSession,
+        private readonly Request $request,
     ) {}
 
     /**
@@ -55,8 +59,16 @@ final class OAuthEntryPoint
         }, 10, 2);
 
         add_action('login_init', function (): void {
-            if ($_SERVER['REQUEST_METHOD'] === 'GET' && !isset($_GET['action'])) {
-                $this->start();
+            if ($this->request->isMethod('GET') && !$this->request->query->has('action')) {
+                if ($this->authSession->isLoggedIn()) {
+                    return;
+                }
+
+                $redirectTo = $this->request->query->getString('redirect_to');
+                $returnTo = $redirectTo !== ''
+                    ? wp_validate_redirect($redirectTo, admin_url())
+                    : admin_url();
+                $this->start($returnTo);
             }
         });
     }

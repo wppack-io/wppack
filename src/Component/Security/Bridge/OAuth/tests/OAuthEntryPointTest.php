@@ -16,6 +16,8 @@ namespace WpPack\Component\Security\Bridge\OAuth\Tests;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Security\AuthenticationSession;
 use WpPack\Component\Security\Bridge\OAuth\Configuration\OAuthConfiguration;
 use WpPack\Component\Security\Bridge\OAuth\OAuthEntryPoint;
 use WpPack\Component\Security\Bridge\OAuth\Provider\ProviderInterface;
@@ -24,11 +26,21 @@ use WpPack\Component\Security\Bridge\OAuth\State\OAuthStateStore;
 #[CoversClass(OAuthEntryPoint::class)]
 final class OAuthEntryPointTest extends TestCase
 {
+    private AuthenticationSession $authSession;
+
+    protected function setUp(): void
+    {
+        $this->authSession = new AuthenticationSession();
+        wp_set_current_user(0);
+    }
+
     protected function tearDown(): void
     {
         remove_all_filters('login_url');
         remove_all_actions('login_init');
+        wp_set_current_user(0);
     }
+
     private function createConfiguration(bool $pkceEnabled = false): OAuthConfiguration
     {
         return new OAuthConfiguration(
@@ -36,6 +48,21 @@ final class OAuthEntryPointTest extends TestCase
             clientSecret: 'test-client-secret',
             redirectUri: 'https://example.com/oauth/callback',
             pkceEnabled: $pkceEnabled,
+        );
+    }
+
+    private function createEntryPoint(
+        ?ProviderInterface $provider = null,
+        ?OAuthConfiguration $configuration = null,
+        ?OAuthStateStore $stateStore = null,
+        ?Request $request = null,
+    ): OAuthEntryPoint {
+        return new OAuthEntryPoint(
+            $provider ?? $this->createMock(ProviderInterface::class),
+            $configuration ?? $this->createConfiguration(),
+            $stateStore ?? new OAuthStateStore(),
+            $this->authSession,
+            $request ?? Request::create('https://example.com/wp-login.php'),
         );
     }
 
@@ -47,11 +74,7 @@ final class OAuthEntryPointTest extends TestCase
             ->method('getAuthorizationUrl')
             ->willReturn('https://idp.example.com/authorize?client_id=test&state=abc');
 
-        $entryPoint = new OAuthEntryPoint(
-            $provider,
-            $this->createConfiguration(pkceEnabled: false),
-            new OAuthStateStore(),
-        );
+        $entryPoint = $this->createEntryPoint(provider: $provider, configuration: $this->createConfiguration(pkceEnabled: false));
 
         $url = $entryPoint->getLoginUrl();
 
@@ -72,11 +95,7 @@ final class OAuthEntryPointTest extends TestCase
             )
             ->willReturn('https://idp.example.com/authorize?code_challenge=xxx');
 
-        $entryPoint = new OAuthEntryPoint(
-            $provider,
-            $this->createConfiguration(pkceEnabled: true),
-            new OAuthStateStore(),
-        );
+        $entryPoint = $this->createEntryPoint(provider: $provider, configuration: $this->createConfiguration(pkceEnabled: true));
 
         $url = $entryPoint->getLoginUrl();
 
@@ -90,11 +109,7 @@ final class OAuthEntryPointTest extends TestCase
         $provider->method('getAuthorizationUrl')
             ->willReturn('https://idp.example.com/authorize');
 
-        $entryPoint = new OAuthEntryPoint(
-            $provider,
-            $this->createConfiguration(pkceEnabled: false),
-            new OAuthStateStore(),
-        );
+        $entryPoint = $this->createEntryPoint(provider: $provider);
 
         $url = $entryPoint->getLoginUrl('https://app.example.com/dashboard');
 
@@ -108,11 +123,7 @@ final class OAuthEntryPointTest extends TestCase
         $provider->method('getAuthorizationUrl')
             ->willReturn('https://idp.example.com/authorize?client_id=test&state=abc');
 
-        $entryPoint = new OAuthEntryPoint(
-            $provider,
-            $this->createConfiguration(pkceEnabled: false),
-            new OAuthStateStore(),
-        );
+        $entryPoint = $this->createEntryPoint(provider: $provider);
 
         $entryPoint->register();
 
@@ -128,11 +139,7 @@ final class OAuthEntryPointTest extends TestCase
         $provider->method('getAuthorizationUrl')
             ->willReturn('https://idp.example.com/authorize');
 
-        $entryPoint = new OAuthEntryPoint(
-            $provider,
-            $this->createConfiguration(pkceEnabled: false),
-            new OAuthStateStore(),
-        );
+        $entryPoint = $this->createEntryPoint(provider: $provider);
 
         $entryPoint->register();
 
@@ -148,11 +155,7 @@ final class OAuthEntryPointTest extends TestCase
         $provider->method('getAuthorizationUrl')
             ->willReturn('https://idp.example.com/authorize');
 
-        $entryPoint = new OAuthEntryPoint(
-            $provider,
-            $this->createConfiguration(pkceEnabled: false),
-            new OAuthStateStore(),
-        );
+        $entryPoint = $this->createEntryPoint(provider: $provider);
 
         $entryPoint->register();
 
@@ -171,11 +174,7 @@ final class OAuthEntryPointTest extends TestCase
 
         $stateStore = new OAuthStateStore();
 
-        $entryPoint = new OAuthEntryPoint(
-            $provider,
-            $this->createConfiguration(pkceEnabled: false),
-            $stateStore,
-        );
+        $entryPoint = $this->createEntryPoint(provider: $provider, stateStore: $stateStore);
 
         // getLoginUrl should work without throwing
         $url = $entryPoint->getLoginUrl();
@@ -196,11 +195,7 @@ final class OAuthEntryPointTest extends TestCase
                 return 'https://idp.example.com/authorize';
             });
 
-        $entryPoint = new OAuthEntryPoint(
-            $provider,
-            $this->createConfiguration(pkceEnabled: true),
-            new OAuthStateStore(),
-        );
+        $entryPoint = $this->createEntryPoint(provider: $provider, configuration: $this->createConfiguration(pkceEnabled: true));
 
         $entryPoint->getLoginUrl();
 
@@ -224,35 +219,17 @@ final class OAuthEntryPointTest extends TestCase
         $provider->method('getAuthorizationUrl')
             ->willReturn('https://idp.example.com/authorize');
 
-        $entryPoint = new OAuthEntryPoint(
-            $provider,
-            $this->createConfiguration(pkceEnabled: false),
-            new OAuthStateStore(),
+        $entryPoint = $this->createEntryPoint(
+            provider: $provider,
+            request: Request::create('https://example.com/wp-login.php'),
         );
 
         $entryPoint->register();
-
-        // Simulate GET request without action
-        $originalMethod = $_SERVER['REQUEST_METHOD'] ?? null;
-        $hasAction = isset($_GET['action']);
-        $originalAction = $_GET['action'] ?? null;
-
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        unset($_GET['action']);
 
         try {
             do_action('login_init');
         } catch (\Throwable) {
             // wp_redirect throws to prevent exit
-        }
-
-        // Restore
-        if ($originalMethod !== null) {
-            $_SERVER['REQUEST_METHOD'] = $originalMethod;
-        }
-
-        if ($hasAction) {
-            $_GET['action'] = $originalAction;
         }
 
         remove_all_filters('wp_redirect');
@@ -271,26 +248,13 @@ final class OAuthEntryPointTest extends TestCase
             return $location;
         });
 
-        $provider = $this->createMock(ProviderInterface::class);
-        $provider->method('getAuthorizationUrl')
-            ->willReturn('https://idp.example.com/authorize');
-
-        $entryPoint = new OAuthEntryPoint(
-            $provider,
-            $this->createConfiguration(pkceEnabled: false),
-            new OAuthStateStore(),
+        $entryPoint = $this->createEntryPoint(
+            request: Request::create('https://example.com/wp-login.php', 'POST'),
         );
 
         $entryPoint->register();
 
-        $originalMethod = $_SERVER['REQUEST_METHOD'] ?? null;
-        $_SERVER['REQUEST_METHOD'] = 'POST';
-
         do_action('login_init');
-
-        if ($originalMethod !== null) {
-            $_SERVER['REQUEST_METHOD'] = $originalMethod;
-        }
 
         remove_all_filters('wp_redirect');
 
@@ -308,39 +272,79 @@ final class OAuthEntryPointTest extends TestCase
             return $location;
         });
 
-        $provider = $this->createMock(ProviderInterface::class);
-        $provider->method('getAuthorizationUrl')
-            ->willReturn('https://idp.example.com/authorize');
-
-        $entryPoint = new OAuthEntryPoint(
-            $provider,
-            $this->createConfiguration(pkceEnabled: false),
-            new OAuthStateStore(),
+        $entryPoint = $this->createEntryPoint(
+            request: Request::create('https://example.com/wp-login.php?action=logout'),
         );
 
         $entryPoint->register();
 
-        $originalMethod = $_SERVER['REQUEST_METHOD'] ?? null;
-        $hasAction = isset($_GET['action']);
-        $originalAction = $_GET['action'] ?? null;
-
-        $_SERVER['REQUEST_METHOD'] = 'GET';
-        $_GET['action'] = 'logout';
-
         do_action('login_init');
-
-        if ($originalMethod !== null) {
-            $_SERVER['REQUEST_METHOD'] = $originalMethod;
-        }
-
-        if ($hasAction) {
-            $_GET['action'] = $originalAction;
-        } else {
-            unset($_GET['action']);
-        }
 
         remove_all_filters('wp_redirect');
 
         self::assertFalse($redirectCalled);
+    }
+
+    #[Test]
+    public function registerLoginInitSkipsLoggedInUser(): void
+    {
+        $redirectCalled = false;
+
+        add_filter('wp_redirect', function (string $location) use (&$redirectCalled): string {
+            $redirectCalled = true;
+
+            return $location;
+        });
+
+        // Simulate logged-in user
+        wp_set_current_user(1);
+
+        $entryPoint = $this->createEntryPoint(
+            request: Request::create('https://example.com/wp-login.php'),
+        );
+
+        $entryPoint->register();
+
+        do_action('login_init');
+
+        remove_all_filters('wp_redirect');
+
+        self::assertFalse($redirectCalled);
+    }
+
+    #[Test]
+    public function registerLoginInitPassesRedirectToAsReturnTo(): void
+    {
+        $capturedLocation = null;
+
+        add_filter('wp_redirect', function (string $location) use (&$capturedLocation): string {
+            $capturedLocation = $location;
+            throw new \RuntimeException('redirect intercepted');
+        });
+
+        $provider = $this->createMock(ProviderInterface::class);
+        $provider->method('getAuthorizationUrl')
+            ->willReturn('https://idp.example.com/authorize');
+
+        $stateStore = new OAuthStateStore();
+
+        $entryPoint = $this->createEntryPoint(
+            provider: $provider,
+            stateStore: $stateStore,
+            request: Request::create('https://example.com/wp-login.php?redirect_to=' . urlencode('https://example.com/wp-admin/edit.php')),
+        );
+
+        $entryPoint->register();
+
+        try {
+            do_action('login_init');
+        } catch (\Throwable) {
+            // redirect intercepted
+        }
+
+        remove_all_filters('wp_redirect');
+
+        // The redirect goes to IdP, but the returnTo is stored in state
+        self::assertNotNull($capturedLocation);
     }
 }

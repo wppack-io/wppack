@@ -24,6 +24,7 @@ use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Routing\RouteRegistry;
 use WpPack\Component\Security\Authentication\AuthenticationManager;
 use WpPack\Component\Security\Authentication\AuthenticationManagerInterface;
+use WpPack\Component\Security\AuthenticationSession;
 use WpPack\Component\Security\Bridge\SAML\Configuration\IdpSettings;
 use WpPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
 use WpPack\Component\Security\Bridge\SAML\Configuration\SpSettings;
@@ -179,9 +180,13 @@ final class SamlLoginPluginServiceProviderTest extends TestCase
 
         $definition = $this->builder->findDefinition(SamlEntryPoint::class);
         $arguments = $definition->getArguments();
-        self::assertCount(1, $arguments);
+        self::assertCount(3, $arguments);
         self::assertInstanceOf(Reference::class, $arguments[0]);
         self::assertSame(SamlAuthFactory::class, (string) $arguments[0]);
+        self::assertInstanceOf(Reference::class, $arguments[1]);
+        self::assertSame(AuthenticationSession::class, (string) $arguments[1]);
+        self::assertInstanceOf(Reference::class, $arguments[2]);
+        self::assertSame(Request::class, (string) $arguments[2]);
     }
 
     #[Test]
@@ -193,9 +198,11 @@ final class SamlLoginPluginServiceProviderTest extends TestCase
 
         $definition = $this->builder->findDefinition(SamlLogoutHandler::class);
         $arguments = $definition->getArguments();
-        self::assertCount(1, $arguments);
+        self::assertCount(2, $arguments);
         self::assertInstanceOf(Reference::class, $arguments[0]);
         self::assertSame(SamlAuthFactory::class, (string) $arguments[0]);
+        self::assertInstanceOf(Reference::class, $arguments[1]);
+        self::assertSame(AuthenticationSession::class, (string) $arguments[1]);
     }
 
     #[Test]
@@ -235,10 +242,11 @@ final class SamlLoginPluginServiceProviderTest extends TestCase
 
         $definition = $this->builder->findDefinition(SamlSloController::class);
         $arguments = $definition->getArguments();
-        self::assertCount(3, $arguments);
+        self::assertCount(4, $arguments);
         self::assertSame(SamlLogoutHandler::class, (string) $arguments[0]);
         self::assertSame(SamlSessionManager::class, (string) $arguments[1]);
-        self::assertSame(Request::class, (string) $arguments[2]);
+        self::assertSame(AuthenticationSession::class, (string) $arguments[2]);
+        self::assertSame(Request::class, (string) $arguments[3]);
     }
 
     #[Test]
