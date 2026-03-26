@@ -105,7 +105,7 @@ class HttpClient implements ClientInterface
         return $clone;
     }
 
-    public function withBasicAuth(string $user, string $password): static
+    public function withBasicAuth(string $user, #[\SensitiveParameter] string $password): static
     {
         return $this->withHeaders([
             'Authorization' => 'Basic ' . base64_encode($user . ':' . $password),

@@ -23,7 +23,7 @@ final class EncryptedContentProcessor implements ContentProcessorInterface
 
     private readonly string $key;
 
-    public function __construct(string $password)
+    public function __construct(#[\SensitiveParameter] string $password)
     {
         $this->key = substr(sha1($password, true), 0, self::IV_SIZE);
     }
