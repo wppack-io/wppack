@@ -16,6 +16,7 @@ namespace WpPack\Component\Security\Bridge\OAuth\Tests;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Security\AuthenticationSession;
 use WpPack\Component\Security\Bridge\OAuth\OAuthLogoutHandler;
 use WpPack\Component\Security\Bridge\OAuth\Provider\ProviderInterface;
 
@@ -49,6 +50,7 @@ final class OAuthLogoutHandlerTest extends TestCase
 
         $handler = new OAuthLogoutHandler(
             $provider,
+            new AuthenticationSession(),
             'https://app.example.com/',
         );
 
@@ -66,7 +68,7 @@ final class OAuthLogoutHandlerTest extends TestCase
         $provider = $this->createMock(ProviderInterface::class);
         $provider->method('getEndSessionEndpoint')->willReturn(null);
 
-        $handler = new OAuthLogoutHandler($provider);
+        $handler = new OAuthLogoutHandler($provider, new AuthenticationSession());
 
         $url = $handler->initiateLogout();
 
@@ -77,7 +79,7 @@ final class OAuthLogoutHandlerTest extends TestCase
     public function handleLocalLogout(): void
     {
         $provider = $this->createMock(ProviderInterface::class);
-        $handler = new OAuthLogoutHandler($provider);
+        $handler = new OAuthLogoutHandler($provider, new AuthenticationSession());
 
         $handler->handleLocalLogout();
 
@@ -91,7 +93,7 @@ final class OAuthLogoutHandlerTest extends TestCase
         $provider->method('getEndSessionEndpoint')
             ->willReturn('https://idp.example.com/logout');
 
-        $handler = new OAuthLogoutHandler($provider);
+        $handler = new OAuthLogoutHandler($provider, new AuthenticationSession());
 
         self::assertTrue($handler->supportsRemoteLogout());
     }
@@ -102,7 +104,7 @@ final class OAuthLogoutHandlerTest extends TestCase
         $provider = $this->createMock(ProviderInterface::class);
         $provider->method('getEndSessionEndpoint')->willReturn(null);
 
-        $handler = new OAuthLogoutHandler($provider);
+        $handler = new OAuthLogoutHandler($provider, new AuthenticationSession());
 
         self::assertFalse($handler->supportsRemoteLogout());
     }
@@ -114,7 +116,7 @@ final class OAuthLogoutHandlerTest extends TestCase
         $provider->method('getEndSessionEndpoint')
             ->willReturn('https://idp.example.com/logout');
 
-        $handler = new OAuthLogoutHandler($provider);
+        $handler = new OAuthLogoutHandler($provider, new AuthenticationSession());
 
         $url = $handler->initiateLogout();
 
@@ -132,6 +134,7 @@ final class OAuthLogoutHandlerTest extends TestCase
 
         $handler = new OAuthLogoutHandler(
             $provider,
+            new AuthenticationSession(),
             'https://app.example.com/home',
         );
 
@@ -153,6 +156,7 @@ final class OAuthLogoutHandlerTest extends TestCase
 
         $handler = new OAuthLogoutHandler(
             $provider,
+            new AuthenticationSession(),
             'https://app.example.com/fallback',
         );
 
@@ -170,7 +174,7 @@ final class OAuthLogoutHandlerTest extends TestCase
         $provider->method('getEndSessionEndpoint')
             ->willReturn('https://idp.example.com/logout');
 
-        $handler = new OAuthLogoutHandler($provider);
+        $handler = new OAuthLogoutHandler($provider, new AuthenticationSession());
 
         $url = $handler->initiateLogout('my-id-token');
 

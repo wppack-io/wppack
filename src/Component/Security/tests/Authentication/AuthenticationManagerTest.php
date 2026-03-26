@@ -20,6 +20,7 @@ use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Security\Authentication\AuthenticationManager;
 use WpPack\Component\Security\Authentication\AuthenticatorInterface;
+use WpPack\Component\Security\AuthenticationSession;
 use WpPack\Component\Security\Authentication\Passport\Badge\CredentialsBadge;
 use WpPack\Component\Security\Authentication\Passport\Badge\UserBadge;
 use WpPack\Component\Security\Authentication\Passport\Passport;
@@ -56,7 +57,7 @@ final class AuthenticationManagerTest extends TestCase
 
         $request = Request::create('/');
 
-        $this->manager = new AuthenticationManager($this->dispatcher, $request);
+        $this->manager = new AuthenticationManager($this->dispatcher, $request, new AuthenticationSession());
     }
 
     protected function tearDown(): void

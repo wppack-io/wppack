@@ -20,6 +20,7 @@ use WpPack\Component\DependencyInjection\ServiceProviderInterface;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Security\Authentication\AuthenticationManager;
 use WpPack\Component\Security\Authentication\AuthenticationManagerInterface;
+use WpPack\Component\Security\AuthenticationSession;
 use WpPack\Component\Security\Authentication\Provider\UserProviderInterface;
 use WpPack\Component\Security\Authentication\Provider\WordPressUserProvider;
 use WpPack\Component\Security\Authorization\AuthorizationChecker;
@@ -39,10 +40,14 @@ final class SecurityServiceProvider implements ServiceProviderInterface
         $builder->register(WordPressUserProvider::class);
         $builder->setAlias(UserProviderInterface::class, WordPressUserProvider::class);
 
+        // Authentication Session
+        $builder->register(AuthenticationSession::class);
+
         // Authentication Manager
         $builder->register(AuthenticationManager::class)
             ->addArgument(new Reference(EventDispatcherInterface::class))
-            ->addArgument(new Reference(Request::class));
+            ->addArgument(new Reference(Request::class))
+            ->addArgument(new Reference(AuthenticationSession::class));
         $builder->setAlias(AuthenticationManagerInterface::class, AuthenticationManager::class);
 
         // Authorization

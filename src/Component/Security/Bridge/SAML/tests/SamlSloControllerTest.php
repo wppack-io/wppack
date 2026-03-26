@@ -20,6 +20,7 @@ use PHPUnit\Framework\TestCase;
 use WpPack\Component\HttpFoundation\RedirectResponse;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\HttpFoundation\Response;
+use WpPack\Component\Security\AuthenticationSession;
 use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
 use WpPack\Component\Security\Bridge\SAML\SamlLogoutHandler;
 use WpPack\Component\Security\Bridge\SAML\SamlSloController;
@@ -30,6 +31,7 @@ final class SamlSloControllerTest extends TestCase
 {
     private SamlLogoutHandler $logoutHandler;
     private SamlSessionManager $sessionManager;
+    private AuthenticationSession $authSession;
 
     /** @var array<string, string> */
     private array $originalGet;
@@ -42,7 +44,8 @@ final class SamlSloControllerTest extends TestCase
         $factory = $this->createMock(SamlAuthFactory::class);
         $factory->method('create')->willReturn($auth);
 
-        $this->logoutHandler = new SamlLogoutHandler($factory);
+        $this->authSession = new AuthenticationSession();
+        $this->logoutHandler = new SamlLogoutHandler($factory, $this->authSession);
         $this->sessionManager = new SamlSessionManager();
 
         $this->originalGet = $_GET;
@@ -63,7 +66,7 @@ final class SamlSloControllerTest extends TestCase
             server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/saml/slo'],
         );
 
-        $controller = new SamlSloController($this->logoutHandler, $this->sessionManager, $request);
+        $controller = new SamlSloController($this->logoutHandler, $this->sessionManager, $this->authSession, $request);
         $response = $controller();
 
         self::assertInstanceOf(RedirectResponse::class, $response);
@@ -80,7 +83,7 @@ final class SamlSloControllerTest extends TestCase
             server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/saml/slo'],
         );
 
-        $controller = new SamlSloController($this->logoutHandler, $this->sessionManager, $request);
+        $controller = new SamlSloController($this->logoutHandler, $this->sessionManager, $this->authSession, $request);
         $response = $controller();
 
         self::assertInstanceOf(RedirectResponse::class, $response);
@@ -96,7 +99,7 @@ final class SamlSloControllerTest extends TestCase
             server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/saml/slo'],
         );
 
-        $controller = new SamlSloController($this->logoutHandler, $this->sessionManager, $request);
+        $controller = new SamlSloController($this->logoutHandler, $this->sessionManager, $this->authSession, $request);
         $response = $controller();
 
         self::assertInstanceOf(Response::class, $response);
@@ -122,7 +125,7 @@ final class SamlSloControllerTest extends TestCase
             server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/saml/slo'],
         );
 
-        $controller = new SamlSloController($this->logoutHandler, $this->sessionManager, $request);
+        $controller = new SamlSloController($this->logoutHandler, $this->sessionManager, $this->authSession, $request);
         $controller();
 
         self::assertNull($this->sessionManager->getNameId($userId));
@@ -148,7 +151,7 @@ final class SamlSloControllerTest extends TestCase
             server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/saml/slo'],
         );
 
-        $controller = new SamlSloController($this->logoutHandler, $this->sessionManager, $request);
+        $controller = new SamlSloController($this->logoutHandler, $this->sessionManager, $this->authSession, $request);
         $controller();
 
         self::assertNull($this->sessionManager->getNameId($userId));

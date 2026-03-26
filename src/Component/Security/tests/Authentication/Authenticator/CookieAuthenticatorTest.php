@@ -18,6 +18,7 @@ use PHPUnit\Framework\TestCase;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Security\Authentication\Authenticator\CookieAuthenticator;
 use WpPack\Component\Security\Authentication\Passport\Badge\UserBadge;
+use WpPack\Component\Security\AuthenticationSession;
 use WpPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
 use WpPack\Component\Security\Authentication\Token\PostAuthenticationToken;
 use WpPack\Component\Security\Exception\AuthenticationException;
@@ -28,7 +29,7 @@ final class CookieAuthenticatorTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->authenticator = new CookieAuthenticator();
+        $this->authenticator = new CookieAuthenticator(new AuthenticationSession());
     }
 
     #[Test]

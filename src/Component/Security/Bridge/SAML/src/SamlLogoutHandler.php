@@ -14,12 +14,14 @@ declare(strict_types=1);
 namespace WpPack\Component\Security\Bridge\SAML;
 
 use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Security\AuthenticationSession;
 use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
 
 final class SamlLogoutHandler
 {
     public function __construct(
         private readonly SamlAuthFactory $authFactory,
+        private readonly AuthenticationSession $authSession,
         private readonly ?string $redirectAfterLogout = null,
     ) {}
 
@@ -53,7 +55,7 @@ final class SamlLogoutHandler
             $_GET = $originalGet;
         }
 
-        wp_logout();
+        $this->authSession->logout();
     }
 
     public function isLogoutRequest(): bool

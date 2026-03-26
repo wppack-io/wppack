@@ -20,6 +20,7 @@ use Symfony\Component\DependencyInjection\Reference;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Security\Authentication\AuthenticationManager;
+use WpPack\Component\Security\AuthenticationSession;
 use WpPack\Component\Security\Authorization\Voter\AccessDecisionManager;
 use WpPack\Component\Security\DependencyInjection\RegisterAuthenticatorsPass;
 use WpPack\Component\Security\DependencyInjection\RegisterVotersPass;
@@ -42,16 +43,20 @@ final class SecurityDependencyInjectionTest extends TestCase
         $provider = new SecurityServiceProvider();
         $provider->register($builder);
 
+        self::assertTrue($builder->hasDefinition(AuthenticationSession::class));
         self::assertTrue($builder->hasDefinition(AuthenticationManager::class));
         self::assertTrue($builder->hasDefinition(AccessDecisionManager::class));
         self::assertTrue($builder->hasDefinition(Security::class));
 
-        // AuthenticationManager receives Request as second argument
+        // AuthenticationManager receives Request as second argument and AuthenticationSession as third
         $symfonyDef = $builder->getSymfonyBuilder()->findDefinition(AuthenticationManager::class);
         $args = $symfonyDef->getArguments();
         self::assertArrayHasKey(1, $args);
         self::assertInstanceOf(Reference::class, $args[1]);
         self::assertSame(Request::class, (string) $args[1]);
+        self::assertArrayHasKey(2, $args);
+        self::assertInstanceOf(Reference::class, $args[2]);
+        self::assertSame(AuthenticationSession::class, (string) $args[2]);
     }
 
     // ---------------------------------------------------------------

@@ -16,6 +16,7 @@ namespace WpPack\Component\Security\Authentication;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Security\Authentication\Token\TokenInterface;
+use WpPack\Component\Security\AuthenticationSession;
 use WpPack\Component\Security\Event\AuthenticationFailureEvent;
 use WpPack\Component\Security\Event\AuthenticationSuccessEvent;
 use WpPack\Component\Security\Event\CheckPassportEvent;
@@ -31,6 +32,7 @@ final class AuthenticationManager implements AuthenticationManagerInterface
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly Request $request,
+        private readonly AuthenticationSession $authSession,
     ) {}
 
     public function addAuthenticator(AuthenticatorInterface $authenticator): void
@@ -150,10 +152,7 @@ final class AuthenticationManager implements AuthenticationManagerInterface
             return;
         }
 
-        $user = $token->getUser();
-
-        wp_clear_auth_cookie();
-        wp_set_auth_cookie($user->ID, false, is_ssl());
+        $this->authSession->login($token->getUser()->ID, false, is_ssl());
     }
 
     /**

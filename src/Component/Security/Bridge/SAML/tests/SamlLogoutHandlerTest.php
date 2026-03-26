@@ -18,6 +18,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Security\AuthenticationSession;
 use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
 use WpPack\Component\Security\Bridge\SAML\SamlLogoutHandler;
 
@@ -40,7 +41,7 @@ final class SamlLogoutHandlerTest extends TestCase
         $factory = $this->createMock(SamlAuthFactory::class);
         $factory->method('create')->willReturn($auth);
 
-        $handler = new SamlLogoutHandler($factory);
+        $handler = new SamlLogoutHandler($factory, new AuthenticationSession());
 
         try {
             $handler->initiateLogout('user@example.com', '_session123', 'https://sp.example.com/after-logout');
@@ -65,7 +66,7 @@ final class SamlLogoutHandlerTest extends TestCase
         $factory = $this->createMock(SamlAuthFactory::class);
         $factory->method('create')->willReturn($auth);
 
-        $handler = new SamlLogoutHandler($factory, 'https://sp.example.com/default-redirect');
+        $handler = new SamlLogoutHandler($factory, new AuthenticationSession(), 'https://sp.example.com/default-redirect');
 
         try {
             $handler->initiateLogout('user@example.com', '_session456');
@@ -90,7 +91,7 @@ final class SamlLogoutHandlerTest extends TestCase
         $factory = $this->createMock(SamlAuthFactory::class);
         $factory->method('create')->willReturn($auth);
 
-        $handler = new SamlLogoutHandler($factory);
+        $handler = new SamlLogoutHandler($factory, new AuthenticationSession());
 
         try {
             $handler->initiateLogout('user@example.com', null);
@@ -109,7 +110,7 @@ final class SamlLogoutHandlerTest extends TestCase
         $factory = $this->createMock(SamlAuthFactory::class);
         $factory->method('create')->willReturn($auth);
 
-        $handler = new SamlLogoutHandler($factory);
+        $handler = new SamlLogoutHandler($factory, new AuthenticationSession());
 
         $request = new Request(
             query: ['SAMLRequest' => 'encoded-request', 'RelayState' => 'https://sp.example.com/'],
@@ -128,7 +129,7 @@ final class SamlLogoutHandlerTest extends TestCase
         $factory = $this->createMock(SamlAuthFactory::class);
         $factory->method('create')->willReturn($auth);
 
-        $handler = new SamlLogoutHandler($factory);
+        $handler = new SamlLogoutHandler($factory, new AuthenticationSession());
 
         // Simulate wp_magic_quotes() having slashed $_GET
         $originalGet = $_GET;
@@ -153,7 +154,7 @@ final class SamlLogoutHandlerTest extends TestCase
     public function isLogoutRequestReturnsTrueWhenSamlRequestPresent(): void
     {
         $factory = $this->createMock(SamlAuthFactory::class);
-        $handler = new SamlLogoutHandler($factory);
+        $handler = new SamlLogoutHandler($factory, new AuthenticationSession());
 
         $originalGet = $_GET;
         $_GET['SAMLRequest'] = 'encoded-request';
@@ -169,7 +170,7 @@ final class SamlLogoutHandlerTest extends TestCase
     public function isLogoutRequestReturnsFalseWhenNoSamlRequest(): void
     {
         $factory = $this->createMock(SamlAuthFactory::class);
-        $handler = new SamlLogoutHandler($factory);
+        $handler = new SamlLogoutHandler($factory, new AuthenticationSession());
 
         $originalGet = $_GET;
         unset($_GET['SAMLRequest']);
@@ -185,7 +186,7 @@ final class SamlLogoutHandlerTest extends TestCase
     public function isLogoutResponseReturnsTrueWhenSamlResponsePresent(): void
     {
         $factory = $this->createMock(SamlAuthFactory::class);
-        $handler = new SamlLogoutHandler($factory);
+        $handler = new SamlLogoutHandler($factory, new AuthenticationSession());
 
         $originalGet = $_GET;
         $_GET['SAMLResponse'] = 'encoded-response';
@@ -201,7 +202,7 @@ final class SamlLogoutHandlerTest extends TestCase
     public function isLogoutResponseReturnsFalseWhenNoSamlResponse(): void
     {
         $factory = $this->createMock(SamlAuthFactory::class);
-        $handler = new SamlLogoutHandler($factory);
+        $handler = new SamlLogoutHandler($factory, new AuthenticationSession());
 
         $originalGet = $_GET;
         unset($_GET['SAMLResponse']);
@@ -217,7 +218,7 @@ final class SamlLogoutHandlerTest extends TestCase
     public function isLogoutRequestAndResponseAreIndependent(): void
     {
         $factory = $this->createMock(SamlAuthFactory::class);
-        $handler = new SamlLogoutHandler($factory);
+        $handler = new SamlLogoutHandler($factory, new AuthenticationSession());
 
         $originalGet = $_GET;
         $_GET['SAMLRequest'] = 'request';
@@ -247,7 +248,7 @@ final class SamlLogoutHandlerTest extends TestCase
         $factory = $this->createMock(SamlAuthFactory::class);
         $factory->method('create')->willReturn($auth);
 
-        $handler = new SamlLogoutHandler($factory, 'https://sp.example.com/default');
+        $handler = new SamlLogoutHandler($factory, new AuthenticationSession(), 'https://sp.example.com/default');
 
         try {
             $handler->initiateLogout('user@example.com', '_session789', 'https://sp.example.com/custom');

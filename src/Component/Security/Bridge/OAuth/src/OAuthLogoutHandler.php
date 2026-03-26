@@ -13,12 +13,14 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Security\Bridge\OAuth;
 
+use WpPack\Component\Security\AuthenticationSession;
 use WpPack\Component\Security\Bridge\OAuth\Provider\ProviderInterface;
 
 final class OAuthLogoutHandler
 {
     public function __construct(
         private readonly ProviderInterface $provider,
+        private readonly AuthenticationSession $authSession,
         private readonly ?string $redirectAfterLogout = null,
     ) {}
 
@@ -55,7 +57,7 @@ final class OAuthLogoutHandler
 
             do_action(
                 'wppack_oauth_logout',
-                get_current_user_id(),
+                $this->authSession->getCurrentUserId(),
                 true,
             );
 
@@ -64,7 +66,7 @@ final class OAuthLogoutHandler
 
         do_action(
             'wppack_oauth_logout',
-            get_current_user_id(),
+            $this->authSession->getCurrentUserId(),
             false,
         );
 
@@ -73,8 +75,7 @@ final class OAuthLogoutHandler
 
     public function handleLocalLogout(): void
     {
-        wp_logout();
-        wp_clear_auth_cookie();
+        $this->authSession->logout();
     }
 
     public function supportsRemoteLogout(): bool

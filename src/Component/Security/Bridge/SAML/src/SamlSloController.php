@@ -16,6 +16,7 @@ namespace WpPack\Component\Security\Bridge\SAML;
 use WpPack\Component\HttpFoundation\RedirectResponse;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\HttpFoundation\Response;
+use WpPack\Component\Security\AuthenticationSession;
 use WpPack\Component\Security\Bridge\SAML\Session\SamlSessionManager;
 
 final class SamlSloController
@@ -23,6 +24,7 @@ final class SamlSloController
     public function __construct(
         private readonly SamlLogoutHandler $logoutHandler,
         private readonly SamlSessionManager $sessionManager,
+        private readonly AuthenticationSession $authSession,
         private readonly Request $request,
     ) {}
 
@@ -37,7 +39,7 @@ final class SamlSloController
 
         if ($this->logoutHandler->isLogoutResponse()) {
             $this->clearSamlSession();
-            wp_logout();
+            $this->authSession->logout();
 
             return new RedirectResponse(home_url());
         }
@@ -47,7 +49,7 @@ final class SamlSloController
 
     private function clearSamlSession(): void
     {
-        $userId = get_current_user_id();
+        $userId = $this->authSession->getCurrentUserId();
         if ($userId > 0) {
             $this->sessionManager->clear($userId);
         }

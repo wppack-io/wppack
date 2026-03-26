@@ -131,6 +131,7 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
         // Login Form (mixed mode)
         $builder->register(SamlLoginForm::class)
             ->addArgument(new Reference(SamlEntryPoint::class))
+            ->addArgument(new Reference(AuthenticationSession::class))
             ->addArgument(new Reference(Request::class));
 
         // Route Registry

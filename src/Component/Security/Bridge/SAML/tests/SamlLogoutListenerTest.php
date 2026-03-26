@@ -16,6 +16,7 @@ namespace WpPack\Component\Security\Bridge\SAML\Tests;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Security\AuthenticationSession;
 use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
 use WpPack\Component\Security\Bridge\SAML\SamlLogoutHandler;
 use WpPack\Component\Security\Bridge\SAML\SamlLogoutListener;
@@ -49,7 +50,7 @@ final class SamlLogoutListenerTest extends TestCase
         $factory = $this->createMock(SamlAuthFactory::class);
         $factory->expects(self::never())->method('create');
 
-        $handler = new SamlLogoutHandler($factory);
+        $handler = new SamlLogoutHandler($factory, new AuthenticationSession());
         $listener = new SamlLogoutListener($handler, $this->sessionManager);
 
         // No SAML session saved for this user
@@ -66,7 +67,7 @@ final class SamlLogoutListenerTest extends TestCase
 
         $factory = $this->createMock(SamlAuthFactory::class);
         // initiateLogout will be called but we let it throw to prevent redirect/exit
-        $handler = new SamlLogoutHandler($factory);
+        $handler = new SamlLogoutHandler($factory, new AuthenticationSession());
         $listener = new SamlLogoutListener($handler, $this->sessionManager);
 
         try {

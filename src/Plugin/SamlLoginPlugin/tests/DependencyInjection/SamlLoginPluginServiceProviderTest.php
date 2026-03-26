@@ -41,6 +41,7 @@ use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolver;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolverInterface;
 use WpPack\Plugin\SamlLoginPlugin\Configuration\SamlLoginConfiguration;
 use WpPack\Plugin\SamlLoginPlugin\DependencyInjection\SamlLoginPluginServiceProvider;
+use WpPack\Plugin\SamlLoginPlugin\SamlLoginForm;
 
 #[CoversClass(SamlLoginPluginServiceProvider::class)]
 final class SamlLoginPluginServiceProviderTest extends TestCase
@@ -465,6 +466,24 @@ final class SamlLoginPluginServiceProviderTest extends TestCase
     }
 
     #[Test]
+    public function registersSamlLoginForm(): void
+    {
+        $this->provider->register($this->builder);
+
+        self::assertTrue($this->builder->hasDefinition(SamlLoginForm::class));
+
+        $definition = $this->builder->findDefinition(SamlLoginForm::class);
+        $arguments = $definition->getArguments();
+        self::assertCount(3, $arguments);
+        self::assertInstanceOf(Reference::class, $arguments[0]);
+        self::assertSame(SamlEntryPoint::class, (string) $arguments[0]);
+        self::assertInstanceOf(Reference::class, $arguments[1]);
+        self::assertSame(AuthenticationSession::class, (string) $arguments[1]);
+        self::assertInstanceOf(Reference::class, $arguments[2]);
+        self::assertSame(Request::class, (string) $arguments[2]);
+    }
+
+    #[Test]
     public function canBeAddedViaContainerBuilder(): void
     {
         $result = $this->builder->addServiceProvider($this->provider);
@@ -482,6 +501,7 @@ final class SamlLoginPluginServiceProviderTest extends TestCase
         self::assertTrue($this->builder->hasDefinition(SamlMetadataController::class));
         self::assertTrue($this->builder->hasDefinition(SamlAcsController::class));
         self::assertTrue($this->builder->hasDefinition(SamlSloController::class));
+        self::assertTrue($this->builder->hasDefinition(SamlLoginForm::class));
         self::assertTrue($this->builder->hasDefinition(RouteRegistry::class));
         self::assertTrue($this->builder->hasDefinition(SamlLogoutListener::class));
     }

@@ -21,6 +21,7 @@ use WpPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
 use WpPack\Component\Security\Authentication\StatelessAuthenticatorInterface;
 use WpPack\Component\Security\Authentication\Token\PostAuthenticationToken;
 use WpPack\Component\Security\Authentication\Token\TokenInterface;
+use WpPack\Component\Security\AuthenticationSession;
 use WpPack\Component\Security\Exception\AuthenticationException;
 use WpPack\Component\Site\BlogContext;
 use WpPack\Component\Site\BlogContextInterface;
@@ -28,6 +29,7 @@ use WpPack\Component\Site\BlogContextInterface;
 final class CookieAuthenticator implements StatelessAuthenticatorInterface
 {
     public function __construct(
+        private readonly AuthenticationSession $authSession,
         private readonly BlogContextInterface $blogContext = new BlogContext(),
     ) {}
     public function supports(Request $request): bool
@@ -37,7 +39,7 @@ final class CookieAuthenticator implements StatelessAuthenticatorInterface
 
     public function authenticate(Request $request): Passport
     {
-        $userId = wp_validate_auth_cookie('', 'logged_in');
+        $userId = $this->authSession->validateAuthCookie('', 'logged_in');
 
         if ($userId === false) {
             throw new AuthenticationException('Invalid authentication cookie.');
