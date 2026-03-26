@@ -21,4 +21,8 @@ $config = new Configuration([
 $result = (new Handler($config))->run();
 if ($result !== null) {
     require $result;
+
+    return true;
 }
+
+return false;

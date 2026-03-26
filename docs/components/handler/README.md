@@ -52,6 +52,7 @@ if ($result !== null) {
 
 - `Response` — レスポンスを即座に送信し、チェーンを停止
 - `Request` — 変更されたリクエストを次のプロセッサに渡す
+- `false` — チェーンを停止し、レスポンスを送信しない（サーバーに委譲。例: PHP 内蔵サーバーの静的ファイル直接配信）
 - `null` — 現在のリクエストのまま次のプロセッサに進む
 
 ## 設定
@@ -120,7 +121,7 @@ use WpPack\Component\Handler\Processor\ProcessorInterface;
 
 class MaintenanceProcessor implements ProcessorInterface
 {
-    public function process(Request $request, Configuration $config): Request|Response|null
+    public function process(Request $request, Configuration $config): Request|Response|false|null
     {
         if (file_exists($config->get('web_root') . '/.maintenance')) {
             return new Response('メンテナンス中です', 503);

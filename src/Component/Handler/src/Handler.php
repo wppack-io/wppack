@@ -53,7 +53,7 @@ class Handler implements HandlerInterface
             $request = $this->prepareRequest($request);
 
             $request = $this->processRequest($request);
-            if ($request === null) {
+            if (!$request instanceof Request) {
                 return null;
             }
 
@@ -101,12 +101,16 @@ class Handler implements HandlerInterface
     }
 
     /**
-     * @return Request|null The final request, or null if a response was sent
+     * @return Request|false|null The final request, false if delegated to server, or null if a response was sent
      */
-    private function processRequest(Request $request): ?Request
+    private function processRequest(Request $request): Request|false|null
     {
         foreach ($this->processors as $processor) {
             $result = $processor->process($request, $this->config);
+
+            if ($result === false) {
+                return false;
+            }
 
             if ($result instanceof Response) {
                 $result->send();

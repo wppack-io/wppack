@@ -28,13 +28,17 @@ class StaticFileProcessor implements ProcessorInterface
         $this->mimeTypes = new MimeTypes();
     }
 
-    public function process(Request $request, Configuration $config): Request|Response|null
+    public function process(Request $request, Configuration $config): Request|Response|false|null
     {
         $path = $request->server->get('PHP_SELF') ?: $request->getPathInfo();
         $webRoot = $config->get('web_root');
         $fullPath = $webRoot . $path;
 
         if (is_file($fullPath) && !str_ends_with(strtolower($path), '.php')) {
+            if (\PHP_SAPI === 'cli-server') {
+                return false;
+            }
+
             $mimeType = $this->getMimeType($fullPath);
 
             return new BinaryFileResponse($fullPath, headers: ['Content-Type' => $mimeType]);

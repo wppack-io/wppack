@@ -43,13 +43,14 @@ $config->all(): array;
 ```php
 interface ProcessorInterface
 {
-    public function process(Request $request, Configuration $config): Request|Response|null;
+    public function process(Request $request, Configuration $config): Request|Response|false|null;
 }
 ```
 
 Return values:
 - `Request` — Modified request, passed to the next processor
 - `Response` — Sent immediately, stops the chain
+- `false` — Stop chain, send no response (delegate to server, e.g. PHP built-in server static file serving)
 - `null` — Continue to the next processor with the current request
 
 ## Environment

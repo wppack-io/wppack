@@ -22,12 +22,37 @@ if ($result !== null) {
 }
 ```
 
+For PHP built-in server (`php -S`), the router script should return `false` to delegate static file serving to the server:
+
+```php
+// web/handler.php
+use WpPack\Component\Handler\Handler;
+use WpPack\Component\Handler\Configuration;
+
+require dirname(__DIR__) . '/vendor/autoload.php';
+
+$config = new Configuration([
+    'web_root' => __DIR__,
+    'wordpress_index' => '/wp/index.php',
+]);
+
+$result = (new Handler($config))->run();
+if ($result !== null) {
+    require $result;
+
+    return true;
+}
+
+return false;
+```
+
 ## Features
 
 - **Front Controller Pattern** — Single entry point manages the full request lifecycle
 - **Intelligent Routing** — Automatic handling of WordPress requests, static files, PHP files, and directories
 - **Security First** — Built-in protection against directory traversal, null bytes, symlink escapes, and sensitive file access
 - **Multisite Support** — URL rewriting for WordPress Multisite subdirectory installations
+- **CLI Server Optimized** — Delegates static files to PHP built-in server for direct serving
 - **AWS Lambda Ready** — Automatic environment detection and `/tmp` directory setup
 - **Kernel Integration** — Optionally initializes WpPack Kernel with the pre-built Request
 - **Extensible** — Custom processors can be inserted at any point in the chain
@@ -96,7 +121,7 @@ use WpPack\Component\HttpFoundation\Response;
 
 class MaintenanceProcessor implements ProcessorInterface
 {
-    public function process(Request $request, Configuration $config): Request|Response|null
+    public function process(Request $request, Configuration $config): Request|Response|false|null
     {
         if (file_exists($config->get('web_root') . '/.maintenance')) {
             return new Response('Site under maintenance', 503);

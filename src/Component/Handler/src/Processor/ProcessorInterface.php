@@ -22,9 +22,10 @@ interface ProcessorInterface
     /**
      * Process the request.
      *
-     * @return Request|Response|null Request: modified request to pass to the next processor.
-     *                               Response: immediately send this response.
-     *                               null: continue to the next processor with the current request.
+     * @return Request|Response|false|null Request: modified request to pass to the next processor.
+     *                                     Response: immediately send this response, stop chain.
+     *                                     false: stop chain, send no response (delegate to server).
+     *                                     null: continue to the next processor with the current request.
      */
-    public function process(Request $request, Configuration $config): Request|Response|null;
+    public function process(Request $request, Configuration $config): Request|Response|false|null;
 }
