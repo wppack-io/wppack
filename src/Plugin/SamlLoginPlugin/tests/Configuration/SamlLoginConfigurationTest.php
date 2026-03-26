@@ -122,7 +122,7 @@ final class SamlLoginConfigurationTest extends TestCase
         self::assertSame('', $config->spEntityId);
         self::assertSame('', $config->spAcsUrl);
         self::assertSame('', $config->spSloUrl);
-        self::assertSame('urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress', $config->spNameIdFormat);
+        self::assertSame('urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified', $config->spNameIdFormat);
         self::assertTrue($config->strict);
         self::assertFalse($config->debug);
         self::assertTrue($config->wantAssertionsSigned);

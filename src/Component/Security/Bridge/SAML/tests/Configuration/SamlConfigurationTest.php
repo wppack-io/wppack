@@ -71,7 +71,7 @@ final class SamlConfigurationTest extends TestCase
             acsUrl: 'https://sp.example.com/acs',
         );
 
-        self::assertSame('urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress', $sp->getNameIdFormat());
+        self::assertSame('urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified', $sp->getNameIdFormat());
         self::assertNull($sp->getSloUrl());
     }
 
@@ -114,7 +114,7 @@ final class SamlConfigurationTest extends TestCase
         self::assertSame('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST', $array['sp']['assertionConsumerService']['binding']);
         self::assertSame('https://sp.example.com/slo', $array['sp']['singleLogoutService']['url']);
         self::assertSame('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect', $array['sp']['singleLogoutService']['binding']);
-        self::assertSame('urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress', $array['sp']['NameIDFormat']);
+        self::assertSame('urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified', $array['sp']['NameIDFormat']);
 
         // IdP settings
         self::assertSame('https://idp.example.com/metadata', $array['idp']['entityId']);

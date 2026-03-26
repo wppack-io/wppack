@@ -19,7 +19,7 @@ final readonly class SpSettings
         private string $entityId,
         private string $acsUrl,
         private ?string $sloUrl = null,
-        private string $nameIdFormat = 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
+        private string $nameIdFormat = 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified',
     ) {}
 
     public function getEntityId(): string
