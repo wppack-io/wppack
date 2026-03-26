@@ -19,6 +19,7 @@ use PHPUnit\Framework\TestCase;
 use WpPack\Component\HttpFoundation\Exception\ForbiddenException;
 use WpPack\Component\HttpFoundation\Exception\NotFoundException;
 use WpPack\Component\HttpFoundation\JsonResponse;
+use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Routing\Response\BlockTemplateResponse;
 use WpPack\Component\Routing\Response\TemplateResponse;
@@ -251,7 +252,7 @@ final class RouteEntryTest extends TestCase
     }
 
     #[Test]
-    public function parsesEmptyQueryVars(): void
+    public function staticRouteWithVarsGetsSentinel(): void
     {
         $entry = new RouteEntry(
             'test_route',
@@ -262,7 +263,8 @@ final class RouteEntryTest extends TestCase
             fn() => null,
         );
 
-        self::assertSame([], $entry->queryVars);
+        self::assertSame(['_route_test_route'], $entry->queryVars);
+        self::assertSame('index.php?pagename=static&_route_test_route=1', $entry->query);
     }
 
     #[Test]
@@ -837,6 +839,210 @@ final class RouteEntryTest extends TestCase
         $this->expectExceptionMessage('Non-HTTP exception');
 
         $entry->handleTemplateRedirect();
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // Static route sentinel
+    // ──────────────────────────────────────────────────────────────
+
+    #[Test]
+    public function staticRouteGetsSentinelVariable(): void
+    {
+        $entry = new RouteEntry(
+            'my_static_route',
+            '^static-page/?$',
+            'index.php?',
+            RoutePosition::Top,
+            [],
+            fn() => null,
+        );
+
+        self::assertSame(['_route_my_static_route'], $entry->queryVars);
+        self::assertSame('index.php?_route_my_static_route=1', $entry->query);
+    }
+
+    #[Test]
+    public function staticRouteWithSpecialCharsInNameGetsSentinel(): void
+    {
+        $entry = new RouteEntry(
+            'my.static-route',
+            '^static-page/?$',
+            'index.php?',
+            RoutePosition::Top,
+            [],
+            fn() => null,
+        );
+
+        self::assertSame(['_route_my_static_route'], $entry->queryVars);
+    }
+
+    #[Test]
+    public function emptyNameRouteDoesNotGetSentinel(): void
+    {
+        $entry = new RouteEntry(
+            '',
+            '^static-page/?$',
+            'index.php?',
+            RoutePosition::Top,
+            [],
+            fn() => null,
+        );
+
+        self::assertSame([], $entry->queryVars);
+        self::assertSame('index.php?', $entry->query);
+    }
+
+    #[Test]
+    public function dynamicRouteDoesNotGetSentinel(): void
+    {
+        $entry = new RouteEntry(
+            'dynamic_route',
+            '^test/([^/]+)/?$',
+            'index.php?test_slug=$matches[1]',
+            RoutePosition::Top,
+            [],
+            fn() => null,
+        );
+
+        self::assertSame(['test_slug'], $entry->queryVars);
+        self::assertSame('index.php?test_slug=$matches[1]', $entry->query);
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // HTTP method filtering
+    // ──────────────────────────────────────────────────────────────
+
+    #[Test]
+    public function httpMethodFilterBlocksNonMatchingMethod(): void
+    {
+        $called = false;
+        $request = Request::create('/test', 'GET');
+
+        $entry = new RouteEntry(
+            'method_route',
+            '^test/?$',
+            'index.php?',
+            RoutePosition::Top,
+            [],
+            function () use (&$called) {
+                $called = true;
+
+                return null;
+            },
+            methods: ['POST'],
+            request: $request,
+        );
+
+        set_query_var('_route_method_route', '1');
+        $entry->handleTemplateRedirect();
+
+        self::assertFalse($called);
+    }
+
+    #[Test]
+    public function httpMethodFilterAllowsMatchingMethod(): void
+    {
+        $called = false;
+        $request = Request::create('/test', 'POST');
+
+        $entry = new RouteEntry(
+            'method_allow',
+            '^test/?$',
+            'index.php?',
+            RoutePosition::Top,
+            [],
+            function () use (&$called) {
+                $called = true;
+
+                return null;
+            },
+            methods: ['POST'],
+            request: $request,
+        );
+
+        set_query_var('_route_method_allow', '1');
+        $entry->handleTemplateRedirect();
+
+        self::assertTrue($called);
+    }
+
+    #[Test]
+    public function emptyMethodsArrayAllowsAllMethods(): void
+    {
+        $called = false;
+        $request = Request::create('/test', 'DELETE');
+
+        $entry = new RouteEntry(
+            'any_method',
+            '^test/?$',
+            'index.php?',
+            RoutePosition::Top,
+            [],
+            function () use (&$called) {
+                $called = true;
+
+                return null;
+            },
+            methods: [],
+            request: $request,
+        );
+
+        set_query_var('_route_any_method', '1');
+        $entry->handleTemplateRedirect();
+
+        self::assertTrue($called);
+    }
+
+    #[Test]
+    public function httpMethodFilterWithMultipleMethods(): void
+    {
+        $called = false;
+        $request = Request::create('/test', 'PUT');
+
+        $entry = new RouteEntry(
+            'multi_method',
+            '^test/?$',
+            'index.php?',
+            RoutePosition::Top,
+            [],
+            function () use (&$called) {
+                $called = true;
+
+                return null;
+            },
+            methods: ['GET', 'POST'],
+            request: $request,
+        );
+
+        set_query_var('_route_multi_method', '1');
+        $entry->handleTemplateRedirect();
+
+        self::assertFalse($called);
+    }
+
+    #[Test]
+    public function httpMethodFilterWithoutRequestAllowsAll(): void
+    {
+        $called = false;
+
+        $entry = new RouteEntry(
+            'no_request',
+            '^test/?$',
+            'index.php?',
+            RoutePosition::Top,
+            [],
+            function () use (&$called) {
+                $called = true;
+
+                return null;
+            },
+            methods: ['POST'],
+        );
+
+        set_query_var('_route_no_request', '1');
+        $entry->handleTemplateRedirect();
+
+        self::assertTrue($called);
     }
 
     #[Test]

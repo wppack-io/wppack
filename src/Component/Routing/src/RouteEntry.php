@@ -14,18 +14,20 @@ declare(strict_types=1);
 namespace WpPack\Component\Routing;
 
 use WpPack\Component\HttpFoundation\BinaryFileResponse;
-use WpPack\Component\Mime\MimeTypes;
 use WpPack\Component\HttpFoundation\Exception\HttpException;
 use WpPack\Component\HttpFoundation\Exception\NotFoundException;
 use WpPack\Component\HttpFoundation\JsonResponse;
 use WpPack\Component\HttpFoundation\RedirectResponse;
+use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\HttpFoundation\Response;
+use WpPack\Component\Mime\MimeTypes;
 use WpPack\Component\Routing\Response\BlockTemplateResponse;
 use WpPack\Component\Routing\Response\TemplateResponse;
 
 /** @internal */
 final class RouteEntry
 {
+    public readonly string $query;
     /** @var list<string> */
     public readonly array $queryVars;
 
@@ -34,17 +36,29 @@ final class RouteEntry
 
     /**
      * @param list<array{string, string}> $rewriteTags
+     * @param list<string> $methods
      */
     public function __construct(
         public readonly string $name,
         public readonly string $regex,
-        public readonly string $query,
+        string $query,
         public readonly RoutePosition $position,
         public readonly array $rewriteTags,
         private readonly \Closure $handler,
         public readonly string $path = '',
+        public readonly array $methods = [],
+        private readonly ?Request $request = null,
     ) {
-        $this->queryVars = self::parseQueryVars($query);
+        $parsed = self::parseQueryVars($query);
+        if ($parsed === [] && $name !== '') {
+            $sentinel = '_route_' . str_replace(['-', '.'], '_', $name);
+            $separator = str_ends_with($query, '?') ? '' : '&';
+            $this->query = $query . $separator . $sentinel . '=1';
+            $this->queryVars = [$sentinel];
+        } else {
+            $this->query = $query;
+            $this->queryVars = $parsed;
+        }
     }
 
     public function registerRoute(): void
@@ -66,6 +80,12 @@ final class RouteEntry
 
     public function handleTemplateRedirect(): void
     {
+        if ($this->methods !== [] && $this->request !== null
+            && !\in_array($this->request->getMethod(), $this->methods, true)
+        ) {
+            return;
+        }
+
         foreach ($this->queryVars as $var) {
             $value = get_query_var($var);
             if ($value !== '' && $value !== false) {

@@ -26,5 +26,7 @@ final class Route
         /** @var array<string, string> */
         public readonly array $vars = [],
         public readonly RoutePosition $position = RoutePosition::Top,
+        /** @var list<string> */
+        public readonly array $methods = [],
     ) {}
 }

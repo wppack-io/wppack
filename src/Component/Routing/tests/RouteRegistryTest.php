@@ -19,8 +19,8 @@ use WpPack\Component\HttpFoundation\ArgumentResolver;
 use WpPack\Component\HttpFoundation\Exception\ForbiddenException;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\HttpFoundation\RequestValueResolver;
-use WpPack\Component\Security\ValueResolver\CurrentUserValueResolver;
 use WpPack\Component\Routing\AbstractController;
+use WpPack\Component\Security\ValueResolver\CurrentUserValueResolver;
 use WpPack\Component\Routing\Attribute\RewriteTag;
 use WpPack\Component\Routing\Attribute\Route;
 use WpPack\Component\Routing\Exception\RouteNotFoundException;
@@ -991,6 +991,184 @@ final class RouteRegistryTest extends TestCase
 
         self::assertSame('2024', $request->attributes->get('year'));
         self::assertSame('03', $request->attributes->get('month'));
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // addRoute()
+    // ──────────────────────────────────────────────────────────────
+
+    #[Test]
+    public function addRouteRegistersInvokableController(): void
+    {
+        $controller = new class {
+            public bool $called = false;
+
+            public function __invoke(): ?TemplateResponse
+            {
+                $this->called = true;
+
+                return null;
+            }
+        };
+
+        $registry = new RouteRegistry();
+        $registry->addRoute('/test/path', $controller, name: 'add_invoke');
+
+        self::assertTrue($registry->has('add_invoke'));
+        $entry = $registry->get('add_invoke');
+        self::assertSame('/test/path', $entry->path);
+    }
+
+    #[Test]
+    public function addRouteRegistersNamedAction(): void
+    {
+        $controller = new class {
+            public bool $called = false;
+
+            public function handleAction(): ?TemplateResponse
+            {
+                $this->called = true;
+
+                return null;
+            }
+        };
+
+        $registry = new RouteRegistry();
+        $registry->addRoute('/test/action', $controller, action: 'handleAction', name: 'add_action');
+
+        self::assertTrue($registry->has('add_action'));
+    }
+
+    #[Test]
+    public function addRouteStaticPathDispatchesCorrectly(): void
+    {
+        $controller = new class {
+            public bool $called = false;
+
+            public function __invoke(): ?TemplateResponse
+            {
+                $this->called = true;
+
+                return null;
+            }
+        };
+
+        $registry = new RouteRegistry();
+        $registry->addRoute('/static/page', $controller, name: 'add_static');
+
+        $entry = $registry->get('add_static');
+        self::assertSame(['_route_add_static'], $entry->queryVars);
+
+        set_query_var('_route_add_static', '1');
+        $entry->handleTemplateRedirect();
+
+        self::assertTrue($controller->called);
+    }
+
+    #[Test]
+    public function addRouteMethodRestrictionBlocksNonMatchingMethod(): void
+    {
+        $controller = new class {
+            public bool $called = false;
+
+            public function __invoke(): ?TemplateResponse
+            {
+                $this->called = true;
+
+                return null;
+            }
+        };
+
+        $request = Request::create('/test', 'GET');
+        $registry = new RouteRegistry($request);
+        $registry->addRoute('/test/method', $controller, name: 'add_method', methods: ['POST']);
+
+        $entry = $registry->get('add_method');
+        set_query_var('_route_add_method', '1');
+        $entry->handleTemplateRedirect();
+
+        self::assertFalse($controller->called);
+    }
+
+    #[Test]
+    public function addRouteMethodRestrictionAllowsMatchingMethod(): void
+    {
+        $controller = new class {
+            public bool $called = false;
+
+            public function __invoke(): ?TemplateResponse
+            {
+                $this->called = true;
+
+                return null;
+            }
+        };
+
+        $request = Request::create('/test', 'POST');
+        $registry = new RouteRegistry($request);
+        $registry->addRoute('/test/method', $controller, name: 'add_method_ok', methods: ['POST']);
+
+        $entry = $registry->get('add_method_ok');
+        set_query_var('_route_add_method_ok', '1');
+        $entry->handleTemplateRedirect();
+
+        self::assertTrue($controller->called);
+    }
+
+    #[Test]
+    public function addRouteWithPathParams(): void
+    {
+        $request = new Request();
+        $controller = new class {
+            public ?string $capturedSlug = null;
+
+            public function __invoke(string $productSlug): ?TemplateResponse
+            {
+                $this->capturedSlug = $productSlug;
+
+                return null;
+            }
+        };
+
+        $registry = new RouteRegistry($request);
+        $registry->addRoute('/products/{product_slug}', $controller, name: 'add_params');
+
+        $entry = $registry->get('add_params');
+        self::assertSame(['product_slug'], $entry->queryVars);
+
+        set_query_var('product_slug', 'my-product');
+        $entry->handleTemplateRedirect();
+
+        self::assertSame('my-product', $controller->capturedSlug);
+    }
+
+    #[Test]
+    public function addRouteSetsSecurityOnAbstractController(): void
+    {
+        $user = new \WP_User();
+        $user->ID = 42;
+
+        $security = $this->createSecurity(user: $user);
+
+        $controller = new class extends AbstractController {
+            public ?\WP_User $capturedUser = null;
+
+            public function __invoke(): ?TemplateResponse
+            {
+                $this->capturedUser = $this->getUser();
+
+                return null;
+            }
+        };
+
+        $registry = new RouteRegistry(null, $security);
+        $registry->addRoute('/secure', $controller, name: 'add_secure');
+
+        $entry = $registry->get('add_secure');
+        set_query_var('_route_add_secure', '1');
+        $entry->handleTemplateRedirect();
+
+        self::assertSame($user, $controller->capturedUser);
     }
 
     /**

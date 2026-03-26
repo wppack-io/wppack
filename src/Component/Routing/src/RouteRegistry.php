@@ -84,6 +84,58 @@ final class RouteRegistry
         return $this->routes;
     }
 
+    /**
+     * @param list<string> $methods
+     * @param array<string, string> $requirements
+     * @param array<string, string> $vars
+     */
+    public function addRoute(
+        string $path,
+        object $controller,
+        string $action = '__invoke',
+        string $name = '',
+        array $requirements = [],
+        array $vars = [],
+        array $methods = [],
+        RoutePosition $position = RoutePosition::Top,
+    ): void {
+        if ($controller instanceof AbstractController) {
+            if ($this->security !== null) {
+                $controller->setSecurity($this->security);
+            }
+            if ($this->renderer !== null) {
+                $controller->setTemplateRenderer($this->renderer);
+            }
+        }
+
+        $reflection = new \ReflectionClass($controller);
+        $method = $reflection->getMethod($action);
+        $checker = $this->isGrantedChecker ?? new IsGrantedChecker($this->security);
+
+        $regex = RouteEntry::compilePath($path, $requirements);
+        $query = RouteEntry::buildQueryFromPath($path, $vars);
+        $queryVarNames = RouteEntry::parseQueryVars($query);
+
+        $entry = new RouteEntry(
+            $name,
+            $regex,
+            $query,
+            $position,
+            [],
+            $this->createHandler($controller, $method, $queryVarNames, IsGrantedChecker::resolve($reflection, $method), $checker),
+            $path,
+            $methods,
+            $this->request,
+        );
+
+        $this->routes[$name] = $entry;
+
+        add_action('init', $entry->registerRoute(...));
+        add_filter('query_vars', $entry->filterQueryVars(...));
+        add_action('template_redirect', $entry->handleTemplateRedirect(...));
+        add_filter('template_include', $entry->filterTemplateInclude(...));
+    }
+
     public function flush(): void
     {
         flush_rewrite_rules();
@@ -121,6 +173,8 @@ final class RouteRegistry
                 $classTags,
                 $this->createHandler($controller, $method, $queryVarNames, IsGrantedChecker::resolve($reflection, $method), $checker),
                 $route->path,
+                $route->methods,
+                $this->request,
             );
         }
 
@@ -147,6 +201,8 @@ final class RouteRegistry
                 array_merge($classTags, $methodTags),
                 $this->createHandler($controller, $method, $queryVarNames, IsGrantedChecker::resolve($reflection, $method), $checker),
                 $route->path,
+                $route->methods,
+                $this->request,
             );
         }
 
