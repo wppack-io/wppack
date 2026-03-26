@@ -26,6 +26,7 @@ use WpPack\Component\Security\Authentication\AuthenticationManagerInterface;
 use WpPack\Component\Security\AuthenticationSession;
 use WpPack\Component\Security\Bridge\SAML\Configuration\IdpSettings;
 use WpPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
+use WpPack\Component\Security\Bridge\SAML\Configuration\SpMetadataExporter;
 use WpPack\Component\Security\Bridge\SAML\Configuration\SpSettings;
 use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
 use WpPack\Component\Security\Bridge\SAML\SamlAcsController;
@@ -113,9 +114,13 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
             ->addArgument(new Reference(SamlLogoutHandler::class))
             ->addArgument(new Reference(SamlSessionManager::class));
 
+        // SP Metadata Exporter
+        $builder->register(SpMetadataExporter::class)
+            ->addArgument(new Reference(SamlConfiguration::class));
+
         // Metadata Controller
         $builder->register(SamlMetadataController::class)
-            ->addArgument(new Reference(SamlConfiguration::class));
+            ->addArgument(new Reference(SpMetadataExporter::class));
 
         // ACS Controller
         $builder->register(SamlAcsController::class)

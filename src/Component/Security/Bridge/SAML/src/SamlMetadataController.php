@@ -13,40 +13,21 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Security\Bridge\SAML;
 
-use OneLogin\Saml2\Settings;
 use WpPack\Component\HttpFoundation\Response;
-use WpPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
+use WpPack\Component\Security\Bridge\SAML\Configuration\SpMetadataExporter;
 
 final class SamlMetadataController
 {
     public function __construct(
-        private readonly SamlConfiguration $configuration,
+        private readonly SpMetadataExporter $exporter,
     ) {}
 
     public function __invoke(): Response
     {
         return new Response(
-            $this->getMetadataXml(),
+            $this->exporter->toXml(),
             200,
             ['Content-Type' => 'application/xml'],
         );
-    }
-
-    public function getMetadataXml(): string
-    {
-        $settings = new Settings($this->configuration->toOneLoginArray(), true);
-        $metadata = $settings->getSPMetadata();
-        $errors = $settings->validateMetadata($metadata);
-
-        // @codeCoverageIgnoreStart
-        if ($errors !== []) {
-            throw new \RuntimeException(\sprintf(
-                'Invalid SP metadata: %s',
-                implode(', ', $errors),
-            ));
-        }
-        // @codeCoverageIgnoreEnd
-
-        return $metadata;
     }
 }

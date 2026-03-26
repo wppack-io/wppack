@@ -27,6 +27,7 @@ use WpPack\Component\Security\Authentication\AuthenticationManagerInterface;
 use WpPack\Component\Security\AuthenticationSession;
 use WpPack\Component\Security\Bridge\SAML\Configuration\IdpSettings;
 use WpPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
+use WpPack\Component\Security\Bridge\SAML\Configuration\SpMetadataExporter;
 use WpPack\Component\Security\Bridge\SAML\Configuration\SpSettings;
 use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
 use WpPack\Component\Security\Bridge\SAML\SamlAcsController;
@@ -207,6 +208,20 @@ final class SamlLoginPluginServiceProviderTest extends TestCase
     }
 
     #[Test]
+    public function registersSpMetadataExporter(): void
+    {
+        $this->provider->register($this->builder);
+
+        self::assertTrue($this->builder->hasDefinition(SpMetadataExporter::class));
+
+        $definition = $this->builder->findDefinition(SpMetadataExporter::class);
+        $arguments = $definition->getArguments();
+        self::assertCount(1, $arguments);
+        self::assertInstanceOf(Reference::class, $arguments[0]);
+        self::assertSame(SamlConfiguration::class, (string) $arguments[0]);
+    }
+
+    #[Test]
     public function registersSamlMetadataController(): void
     {
         $this->provider->register($this->builder);
@@ -217,7 +232,7 @@ final class SamlLoginPluginServiceProviderTest extends TestCase
         $arguments = $definition->getArguments();
         self::assertCount(1, $arguments);
         self::assertInstanceOf(Reference::class, $arguments[0]);
-        self::assertSame(SamlConfiguration::class, (string) $arguments[0]);
+        self::assertSame(SpMetadataExporter::class, (string) $arguments[0]);
     }
 
     #[Test]
@@ -498,6 +513,7 @@ final class SamlLoginPluginServiceProviderTest extends TestCase
         self::assertTrue($this->builder->hasDefinition(SamlAuthenticator::class));
         self::assertTrue($this->builder->hasDefinition(SamlEntryPoint::class));
         self::assertTrue($this->builder->hasDefinition(SamlLogoutHandler::class));
+        self::assertTrue($this->builder->hasDefinition(SpMetadataExporter::class));
         self::assertTrue($this->builder->hasDefinition(SamlMetadataController::class));
         self::assertTrue($this->builder->hasDefinition(SamlAcsController::class));
         self::assertTrue($this->builder->hasDefinition(SamlSloController::class));
