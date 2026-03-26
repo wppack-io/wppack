@@ -17,6 +17,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
+use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Security\Authentication\AuthenticationManager;
 use WpPack\Component\Security\Authentication\AuthenticationManagerInterface;
 use WpPack\Component\Security\Authentication\Provider\UserProviderInterface;
@@ -40,7 +41,8 @@ final class SecurityServiceProvider implements ServiceProviderInterface
 
         // Authentication Manager
         $builder->register(AuthenticationManager::class)
-            ->addArgument(new Reference(EventDispatcherInterface::class));
+            ->addArgument(new Reference(EventDispatcherInterface::class))
+            ->addArgument(new Reference(Request::class));
         $builder->setAlias(AuthenticationManagerInterface::class, AuthenticationManager::class);
 
         // Authorization

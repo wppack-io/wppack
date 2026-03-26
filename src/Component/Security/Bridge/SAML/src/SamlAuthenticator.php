@@ -27,15 +27,20 @@ use WpPack\Component\Security\Bridge\SAML\Badge\SamlAttributesBadge;
 use WpPack\Component\Security\Bridge\SAML\Event\SamlResponseReceivedEvent;
 use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
 use WpPack\Component\Security\Bridge\SAML\Multisite\CrossSiteRedirector;
+use WpPack\Component\Security\Bridge\SAML\Session\SamlSessionManager;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolverInterface;
 use WpPack\Component\Security\Exception\AuthenticationException;
 
 final class SamlAuthenticator implements AuthenticatorInterface
 {
+    private ?string $lastNameId = null;
+    private ?string $lastSessionIndex = null;
+
     public function __construct(
         private readonly SamlAuthFactory $authFactory,
         private readonly SamlUserResolverInterface $userResolver,
         private readonly EventDispatcherInterface $dispatcher,
+        private readonly ?SamlSessionManager $sessionManager = null,
         private readonly string $acsPath = '/saml/acs',
         private readonly ?CrossSiteRedirector $crossSiteRedirector = null,
         private readonly bool $addUserToBlog = true,
@@ -81,14 +86,24 @@ final class SamlAuthenticator implements AuthenticatorInterface
         $errors = $auth->getErrors();
 
         if ($errors !== []) {
-            do_action('wppack_saml_authentication_error', $errors, $auth->getLastErrorReason());
+            $reason = $auth->getLastErrorReason();
+            $detail = sprintf(
+                'SAML authentication failed: [%s] %s',
+                implode(', ', $errors),
+                $reason ?? 'unknown reason',
+            );
 
-            throw new AuthenticationException('SAML authentication failed.');
+            do_action('wppack_saml_authentication_error', $errors, $reason);
+
+            throw new AuthenticationException($detail);
         }
 
         $nameId = $auth->getNameId();
         $attributes = $auth->getAttributes();
         $sessionIndex = $auth->getSessionIndex();
+
+        $this->lastNameId = $nameId;
+        $this->lastSessionIndex = $sessionIndex;
 
         $this->dispatcher->dispatch(new SamlResponseReceivedEvent(
             $nameId,
@@ -131,6 +146,10 @@ final class SamlAuthenticator implements AuthenticatorInterface
     public function onAuthenticationSuccess(Request $request, TokenInterface $token): Response
     {
         $user = $token->getUser();
+
+        if ($this->sessionManager !== null && $this->lastNameId !== null) {
+            $this->sessionManager->save($user->ID, $this->lastNameId, $this->lastSessionIndex);
+        }
 
         // @codeCoverageIgnoreStart
         if ($this->addUserToBlog && is_multisite()) {

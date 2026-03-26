@@ -30,6 +30,7 @@ use WpPack\Component\Security\Bridge\SAML\SamlAuthenticator;
 use WpPack\Component\Security\Bridge\SAML\SamlEntryPoint;
 use WpPack\Component\Security\Bridge\SAML\SamlLogoutHandler;
 use WpPack\Component\Security\Bridge\SAML\SamlMetadataController;
+use WpPack\Component\Security\Bridge\SAML\Session\SamlSessionManager;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolver;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolverInterface;
 use WpPack\Plugin\SamlLoginPlugin\Configuration\SamlLoginConfiguration;
@@ -384,11 +385,14 @@ final class SamlLoginPluginServiceProviderTest extends TestCase
         $userResolver = SamlLoginPluginServiceProvider::createUserResolver($config);
         $dispatcher = new EventDispatcher();
 
+        $sessionManager = new SamlSessionManager();
+
         $authenticator = SamlLoginPluginServiceProvider::createAuthenticator(
             $authFactory,
             $userResolver,
             $dispatcher,
             $config,
+            $sessionManager,
         );
 
         self::assertInstanceOf(SamlAuthenticator::class, $authenticator);

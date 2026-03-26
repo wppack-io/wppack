@@ -50,7 +50,7 @@ final class SamlAuthenticatorTest extends TestCase
             $this->factory,
             $this->userResolver,
             $this->eventDispatcher,
-            $acsPath,
+            acsPath: $acsPath,
         );
     }
 
@@ -168,13 +168,13 @@ final class SamlAuthenticatorTest extends TestCase
         );
 
         $this->expectException(AuthenticationException::class);
-        $this->expectExceptionMessage('SAML authentication failed.');
+        $this->expectExceptionMessage('SAML authentication failed: [invalid_response] Signature validation failed');
 
         $authenticator->authenticate($request);
     }
 
     #[Test]
-    public function authenticateWithErrorsDoesNotLeakDetails(): void
+    public function authenticateWithErrorsIncludesDetailInMessageButNotInSafeMessage(): void
     {
         $auth = $this->createMock(Auth::class);
         $auth->method('processResponse')->willReturn(null);
@@ -194,9 +194,12 @@ final class SamlAuthenticatorTest extends TestCase
             $authenticator->authenticate($request);
             self::fail('Expected AuthenticationException was not thrown.');
         } catch (AuthenticationException $e) {
-            self::assertStringNotContainsString('Signature validation failed', $e->getMessage());
-            self::assertStringNotContainsString('Certificate', $e->getMessage());
-            self::assertStringNotContainsString('invalid_response', $e->getMessage());
+            // getMessage() contains SAML error details for developers/logs
+            self::assertStringContainsString('invalid_response', $e->getMessage());
+            self::assertStringContainsString('Certificate mismatch', $e->getMessage());
+
+            // getSafeMessage() remains generic (no detail leak to users)
+            self::assertSame('Authentication failed.', $e->getSafeMessage());
         }
     }
 
@@ -392,8 +395,8 @@ final class SamlAuthenticatorTest extends TestCase
             $this->factory,
             $this->userResolver,
             $this->eventDispatcher,
-            '/saml/acs',
-            $crossSiteRedirector,
+            acsPath: '/saml/acs',
+            crossSiteRedirector: $crossSiteRedirector,
         );
 
         // Use a same-site relay state so needsRedirect returns false
@@ -428,8 +431,8 @@ final class SamlAuthenticatorTest extends TestCase
             $this->factory,
             $this->userResolver,
             $this->eventDispatcher,
-            '/saml/acs',
-            $crossSiteRedirector,
+            acsPath: '/saml/acs',
+            crossSiteRedirector: $crossSiteRedirector,
         );
 
         $request = new Request(
@@ -459,8 +462,8 @@ final class SamlAuthenticatorTest extends TestCase
             $this->factory,
             $this->userResolver,
             $this->eventDispatcher,
-            '/saml/acs',
-            $crossSiteRedirector,
+            acsPath: '/saml/acs',
+            crossSiteRedirector: $crossSiteRedirector,
         );
 
         $userBadge = new UserBadge('user@example.com', fn() => $user);
@@ -507,9 +510,7 @@ final class SamlAuthenticatorTest extends TestCase
             $this->factory,
             $this->userResolver,
             $this->eventDispatcher,
-            '/saml/acs',
-            null,
-            true,
+            addUserToBlog: true,
         );
 
         $request = new Request(
@@ -535,9 +536,7 @@ final class SamlAuthenticatorTest extends TestCase
             $this->factory,
             $this->userResolver,
             $this->eventDispatcher,
-            '/saml/acs',
-            null,
-            false,
+            addUserToBlog: false,
         );
 
         $request = new Request(

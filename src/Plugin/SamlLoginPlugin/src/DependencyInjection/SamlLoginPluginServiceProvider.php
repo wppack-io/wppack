@@ -28,11 +28,13 @@ use WpPack\Component\Security\Bridge\SAML\SamlAuthenticator;
 use WpPack\Component\Security\Bridge\SAML\SamlEntryPoint;
 use WpPack\Component\Security\Bridge\SAML\SamlLogoutHandler;
 use WpPack\Component\Security\Bridge\SAML\SamlMetadataController;
+use WpPack\Component\Security\Bridge\SAML\Session\SamlSessionManager;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolver;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolverInterface;
 use WpPack\Component\Security\DependencyInjection\SecurityServiceProvider;
 use WpPack\Plugin\SamlLoginPlugin\Configuration\SamlLoginConfiguration;
+use WpPack\Plugin\SamlLoginPlugin\EventListener\SamlLogoutListener;
 use WpPack\Plugin\SamlLoginPlugin\Route\SamlRouteRegistrar;
 
 final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
@@ -84,15 +86,24 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
             ->addArgument(new Reference(SamlUserResolverInterface::class))
             ->addArgument(new Reference(EventDispatcherInterface::class))
             ->addArgument(new Reference(SamlLoginConfiguration::class))
+            ->addArgument(new Reference(SamlSessionManager::class))
             ->addTag('security.authenticator');
 
         // Entry Point
         $builder->register(SamlEntryPoint::class)
             ->addArgument(new Reference(SamlAuthFactory::class));
 
+        // SAML Session Manager
+        $builder->register(SamlSessionManager::class);
+
         // Logout Handler
         $builder->register(SamlLogoutHandler::class)
             ->addArgument(new Reference(SamlAuthFactory::class));
+
+        // Logout Listener (wp_logout → SAML SLO)
+        $builder->register(SamlLogoutListener::class)
+            ->addArgument(new Reference(SamlLogoutHandler::class))
+            ->addArgument(new Reference(SamlSessionManager::class));
 
         // Metadata Controller
         $builder->register(SamlMetadataController::class)
@@ -138,6 +149,7 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
             strict: $config->strict,
             debug: $config->debug,
             wantAssertionsSigned: $config->wantAssertionsSigned,
+            allowRepeatAttributeName: $config->allowRepeatAttributeName,
         );
     }
 
@@ -156,11 +168,13 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
         SamlUserResolverInterface $userResolver,
         EventDispatcherInterface $dispatcher,
         SamlLoginConfiguration $config,
+        SamlSessionManager $sessionManager,
     ): SamlAuthenticator {
         return new SamlAuthenticator(
             authFactory: $authFactory,
             userResolver: $userResolver,
             dispatcher: $dispatcher,
+            sessionManager: $sessionManager,
             addUserToBlog: $config->addUserToBlog,
         );
     }

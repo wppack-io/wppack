@@ -54,7 +54,9 @@ final class AuthenticationManagerTest extends TestCase
             }
         };
 
-        $this->manager = new AuthenticationManager($this->dispatcher);
+        $request = Request::create('/');
+
+        $this->manager = new AuthenticationManager($this->dispatcher, $request);
     }
 
     protected function tearDown(): void

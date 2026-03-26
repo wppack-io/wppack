@@ -15,7 +15,6 @@ namespace WpPack\Component\Security\Authentication;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
 use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Security\Authentication\Token\TokenInterface;
 use WpPack\Component\Security\Event\AuthenticationFailureEvent;
 use WpPack\Component\Security\Event\AuthenticationSuccessEvent;
@@ -31,6 +30,7 @@ final class AuthenticationManager implements AuthenticationManagerInterface
 
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
+        private readonly Request $request,
     ) {}
 
     public function addAuthenticator(AuthenticatorInterface $authenticator): void
@@ -50,20 +50,18 @@ final class AuthenticationManager implements AuthenticationManagerInterface
             return $user;
         }
 
-        $request = Request::createFromGlobals();
-
         foreach ($this->authenticators as $authenticator) {
             // Skip stateless authenticators (handled by determine_current_user)
             if ($authenticator instanceof StatelessAuthenticatorInterface) {
                 continue;
             }
 
-            if (!$authenticator->supports($request)) {
+            if (!$authenticator->supports($this->request)) {
                 continue;
             }
 
             try {
-                $passport = $authenticator->authenticate($request);
+                $passport = $authenticator->authenticate($this->request);
                 $this->dispatcher->dispatch(new CheckPassportEvent($authenticator, $passport));
                 $passport->ensureAllBadgesResolved();
 
@@ -71,7 +69,7 @@ final class AuthenticationManager implements AuthenticationManagerInterface
                 $this->token = $token;
 
                 $this->dispatcher->dispatch(new AuthenticationSuccessEvent($token));
-                $response = $authenticator->onAuthenticationSuccess($request, $token);
+                $response = $authenticator->onAuthenticationSuccess($this->request, $token);
 
                 if ($response !== null) {
                     $this->establishAuthSession($token);
@@ -81,7 +79,7 @@ final class AuthenticationManager implements AuthenticationManagerInterface
                 return $token->getUser();
             } catch (AuthenticationException $e) {
                 $this->dispatcher->dispatch(new AuthenticationFailureEvent($e));
-                $response = $authenticator->onAuthenticationFailure($request, $e);
+                $response = $authenticator->onAuthenticationFailure($this->request, $e);
                 $response?->send();
 
                 return new \WP_Error('authentication_failed', $e->getSafeMessage());
@@ -103,19 +101,17 @@ final class AuthenticationManager implements AuthenticationManagerInterface
             return $userId;
         }
 
-        $request = Request::createFromGlobals();
-
         foreach ($this->authenticators as $authenticator) {
             if (!$authenticator instanceof StatelessAuthenticatorInterface) {
                 continue;
             }
 
-            if (!$authenticator->supports($request)) {
+            if (!$authenticator->supports($this->request)) {
                 continue;
             }
 
             try {
-                $passport = $authenticator->authenticate($request);
+                $passport = $authenticator->authenticate($this->request);
                 $this->dispatcher->dispatch(new CheckPassportEvent($authenticator, $passport));
                 $passport->ensureAllBadgesResolved();
 
@@ -123,7 +119,7 @@ final class AuthenticationManager implements AuthenticationManagerInterface
                 $this->token = $token;
 
                 $this->dispatcher->dispatch(new AuthenticationSuccessEvent($token));
-                $response = $authenticator->onAuthenticationSuccess($request, $token);
+                $response = $authenticator->onAuthenticationSuccess($this->request, $token);
 
                 if ($response !== null) {
                     $this->establishAuthSession($token);
@@ -133,7 +129,7 @@ final class AuthenticationManager implements AuthenticationManagerInterface
                 return $token->getUser()->ID;
             } catch (AuthenticationException $e) {
                 $this->dispatcher->dispatch(new AuthenticationFailureEvent($e));
-                $response = $authenticator->onAuthenticationFailure($request, $e);
+                $response = $authenticator->onAuthenticationFailure($this->request, $e);
                 $response?->send();
                 // For stateless auth, silently continue to next authenticator
                 continue;

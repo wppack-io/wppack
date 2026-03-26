@@ -16,7 +16,9 @@ namespace WpPack\Component\Security\Tests\DependencyInjection;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\DependencyInjection\Reference;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
+use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Security\Authentication\AuthenticationManager;
 use WpPack\Component\Security\Authorization\Voter\AccessDecisionManager;
 use WpPack\Component\Security\DependencyInjection\RegisterAuthenticatorsPass;
@@ -43,6 +45,13 @@ final class SecurityDependencyInjectionTest extends TestCase
         self::assertTrue($builder->hasDefinition(AuthenticationManager::class));
         self::assertTrue($builder->hasDefinition(AccessDecisionManager::class));
         self::assertTrue($builder->hasDefinition(Security::class));
+
+        // AuthenticationManager receives Request as second argument
+        $symfonyDef = $builder->getSymfonyBuilder()->findDefinition(AuthenticationManager::class);
+        $args = $symfonyDef->getArguments();
+        self::assertArrayHasKey(1, $args);
+        self::assertInstanceOf(Reference::class, $args[1]);
+        self::assertSame(Request::class, (string) $args[1]);
     }
 
     // ---------------------------------------------------------------

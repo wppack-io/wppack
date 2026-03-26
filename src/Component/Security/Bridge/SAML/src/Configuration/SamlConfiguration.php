@@ -22,6 +22,7 @@ final readonly class SamlConfiguration
         private bool $debug = false,
         private bool $wantAssertionsSigned = true,
         private bool $wantNameIdEncrypted = false,
+        private bool $allowRepeatAttributeName = false,
     ) {}
 
     public function getIdpSettings(): IdpSettings
@@ -103,6 +104,7 @@ final readonly class SamlConfiguration
             'security' => [
                 'wantAssertionsSigned' => $this->wantAssertionsSigned,
                 'wantNameIdEncrypted' => $this->wantNameIdEncrypted,
+                'allowRepeatAttributeName' => $this->allowRepeatAttributeName,
             ],
         ];
     }

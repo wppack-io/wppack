@@ -79,7 +79,9 @@ final class SamlRouteRegistrar
     {
         $result = $this->authenticationManager->handleAuthentication(null, '', '');
 
-        if (!$result instanceof \WP_User) {
+        if ($result instanceof \WP_User) {
+            wp_safe_redirect(admin_url());
+        } else {
             wp_safe_redirect(wp_login_url() . '?action=saml_error');
         }
 

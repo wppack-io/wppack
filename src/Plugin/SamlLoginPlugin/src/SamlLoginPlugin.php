@@ -22,6 +22,7 @@ use WpPack\Component\Security\Authentication\AuthenticationManager;
 use WpPack\Component\Security\Bridge\SAML\SamlEntryPoint;
 use WpPack\Component\Security\DependencyInjection\RegisterAuthenticatorsPass;
 use WpPack\Plugin\SamlLoginPlugin\DependencyInjection\SamlLoginPluginServiceProvider;
+use WpPack\Plugin\SamlLoginPlugin\EventListener\SamlLogoutListener;
 use WpPack\Plugin\SamlLoginPlugin\Route\SamlRouteRegistrar;
 
 final class SamlLoginPlugin extends AbstractPlugin
@@ -63,5 +64,9 @@ final class SamlLoginPlugin extends AbstractPlugin
         /** @var SamlRouteRegistrar $routeRegistrar */
         $routeRegistrar = $container->get(SamlRouteRegistrar::class);
         $routeRegistrar->register();
+
+        /** @var SamlLogoutListener $logoutListener */
+        $logoutListener = $container->get(SamlLogoutListener::class);
+        $logoutListener->register();
     }
 }

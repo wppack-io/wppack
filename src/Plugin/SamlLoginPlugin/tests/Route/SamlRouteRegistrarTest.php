@@ -51,7 +51,7 @@ final class SamlRouteRegistrarTest extends TestCase
 
         $this->metadataController = new SamlMetadataController($samlConfig);
         $this->logoutHandler = new SamlLogoutHandler(new SamlAuthFactory($samlConfig));
-        $this->authenticationManager = new AuthenticationManager(new EventDispatcher());
+        $this->authenticationManager = new AuthenticationManager(new EventDispatcher(), Request::create('/'));
     }
 
     protected function tearDown(): void

@@ -29,7 +29,10 @@ final class SamlEntryPoint
     public function register(): void
     {
         add_action('login_init', function (): void {
-            if ($_SERVER['REQUEST_METHOD'] === 'GET' && !isset($_GET['action'])) {
+            if ($_SERVER['REQUEST_METHOD'] === 'GET'
+                && !isset($_GET['action'])
+                && !isset($_GET['loggedout'])
+            ) {
                 $this->start();
             }
         });
