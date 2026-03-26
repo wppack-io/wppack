@@ -119,6 +119,7 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
         // SLO Controller
         $builder->register(SamlSloController::class)
             ->addArgument(new Reference(SamlLogoutHandler::class))
+            ->addArgument(new Reference(SamlSessionManager::class))
             ->addArgument(new Reference(Request::class));
 
         // Route Registry

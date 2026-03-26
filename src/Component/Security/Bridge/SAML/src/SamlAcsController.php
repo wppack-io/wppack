@@ -27,10 +27,14 @@ final class SamlAcsController
     {
         $result = $this->authenticationManager->handleAuthentication(null, '', '');
 
-        if ($result instanceof \WP_User) {
-            return new RedirectResponse(admin_url());
+        // AuthenticationManager already sent the redirect via Response::send()
+        // for both success (RelayState URL) and failure (login error page).
+        // Return empty 302 so RouteEntry exits without overriding Location header.
+        if ($result instanceof \WP_User || $result instanceof \WP_Error) {
+            return new Response('', 302);
         }
 
+        // No authenticator matched — fallback
         return new RedirectResponse(wp_login_url() . '?action=saml_error');
     }
 }

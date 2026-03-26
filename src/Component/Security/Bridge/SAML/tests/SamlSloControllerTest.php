@@ -23,11 +23,13 @@ use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
 use WpPack\Component\Security\Bridge\SAML\SamlLogoutHandler;
 use WpPack\Component\Security\Bridge\SAML\SamlSloController;
+use WpPack\Component\Security\Bridge\SAML\Session\SamlSessionManager;
 
 #[CoversClass(SamlSloController::class)]
 final class SamlSloControllerTest extends TestCase
 {
     private SamlLogoutHandler $logoutHandler;
+    private SamlSessionManager $sessionManager;
 
     /** @var array<string, string> */
     private array $originalGet;
@@ -41,6 +43,7 @@ final class SamlSloControllerTest extends TestCase
         $factory->method('create')->willReturn($auth);
 
         $this->logoutHandler = new SamlLogoutHandler($factory);
+        $this->sessionManager = new SamlSessionManager();
 
         $this->originalGet = $_GET;
     }
@@ -60,7 +63,7 @@ final class SamlSloControllerTest extends TestCase
             server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/saml/slo'],
         );
 
-        $controller = new SamlSloController($this->logoutHandler, $request);
+        $controller = new SamlSloController($this->logoutHandler, $this->sessionManager, $request);
         $response = $controller();
 
         self::assertInstanceOf(RedirectResponse::class, $response);
@@ -77,7 +80,7 @@ final class SamlSloControllerTest extends TestCase
             server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/saml/slo'],
         );
 
-        $controller = new SamlSloController($this->logoutHandler, $request);
+        $controller = new SamlSloController($this->logoutHandler, $this->sessionManager, $request);
         $response = $controller();
 
         self::assertInstanceOf(RedirectResponse::class, $response);
@@ -93,10 +96,62 @@ final class SamlSloControllerTest extends TestCase
             server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/saml/slo'],
         );
 
-        $controller = new SamlSloController($this->logoutHandler, $request);
+        $controller = new SamlSloController($this->logoutHandler, $this->sessionManager, $request);
         $response = $controller();
 
         self::assertInstanceOf(Response::class, $response);
         self::assertSame(400, $response->statusCode);
+    }
+
+    #[Test]
+    public function invokeClearsSamlSessionBeforeLogoutRequest(): void
+    {
+        $userId = (int) wp_insert_user([
+            'user_login' => 'slo_request_test_' . wp_generate_password(6, false),
+            'user_pass' => wp_generate_password(),
+            'user_email' => 'slo_request_test@example.com',
+        ]);
+        wp_set_current_user($userId);
+
+        $this->sessionManager->save($userId, 'user@example.com', '_session_idx');
+
+        $_GET = ['SAMLRequest' => 'encoded-request'];
+
+        $request = new Request(
+            query: ['SAMLRequest' => 'encoded-request'],
+            server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/saml/slo'],
+        );
+
+        $controller = new SamlSloController($this->logoutHandler, $this->sessionManager, $request);
+        $controller();
+
+        self::assertNull($this->sessionManager->getNameId($userId));
+        self::assertNull($this->sessionManager->getSessionIndex($userId));
+    }
+
+    #[Test]
+    public function invokeClearsSamlSessionBeforeLogoutResponse(): void
+    {
+        $userId = (int) wp_insert_user([
+            'user_login' => 'slo_response_test_' . wp_generate_password(6, false),
+            'user_pass' => wp_generate_password(),
+            'user_email' => 'slo_response_test@example.com',
+        ]);
+        wp_set_current_user($userId);
+
+        $this->sessionManager->save($userId, 'user@example.com', '_session_idx');
+
+        $_GET = ['SAMLResponse' => 'encoded-response'];
+
+        $request = new Request(
+            query: ['SAMLResponse' => 'encoded-response'],
+            server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/saml/slo'],
+        );
+
+        $controller = new SamlSloController($this->logoutHandler, $this->sessionManager, $request);
+        $controller();
+
+        self::assertNull($this->sessionManager->getNameId($userId));
+        self::assertNull($this->sessionManager->getSessionIndex($userId));
     }
 }

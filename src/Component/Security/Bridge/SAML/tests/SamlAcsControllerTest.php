@@ -17,6 +17,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\HttpFoundation\RedirectResponse;
+use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Security\Authentication\AuthenticationManagerInterface;
 use WpPack\Component\Security\Bridge\SAML\SamlAcsController;
 
@@ -24,7 +25,7 @@ use WpPack\Component\Security\Bridge\SAML\SamlAcsController;
 final class SamlAcsControllerTest extends TestCase
 {
     #[Test]
-    public function invokeRedirectsToAdminOnSuccess(): void
+    public function invokeReturnsEmptyResponseOnSuccess(): void
     {
         $user = new \WP_User();
         $user->ID = 1;
@@ -37,12 +38,13 @@ final class SamlAcsControllerTest extends TestCase
         $controller = new SamlAcsController($authManager);
         $response = $controller();
 
-        self::assertInstanceOf(RedirectResponse::class, $response);
-        self::assertSame(admin_url(), $response->url);
+        self::assertNotInstanceOf(RedirectResponse::class, $response);
+        self::assertSame(302, $response->statusCode);
+        self::assertSame('', $response->content);
     }
 
     #[Test]
-    public function invokeRedirectsToLoginOnFailure(): void
+    public function invokeReturnsEmptyResponseOnFailure(): void
     {
         $authManager = $this->createMock(AuthenticationManagerInterface::class);
         $authManager->method('handleAuthentication')
@@ -52,8 +54,9 @@ final class SamlAcsControllerTest extends TestCase
         $controller = new SamlAcsController($authManager);
         $response = $controller();
 
-        self::assertInstanceOf(RedirectResponse::class, $response);
-        self::assertSame(wp_login_url() . '?action=saml_error', $response->url);
+        self::assertNotInstanceOf(RedirectResponse::class, $response);
+        self::assertSame(302, $response->statusCode);
+        self::assertSame('', $response->content);
     }
 
     #[Test]
