@@ -106,7 +106,8 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer implements Re
         // Calculate unmeasured time before profiling started
         $phases = $timeData['phases'] ?? [];
         $unmeasuredMs = $phases !== [] ? min(array_values($phases)) : 0.0;
-        $unmeasuredPct = $totalTime > 0 ? ($unmeasuredMs / $totalTime) * 100 : 0.0;
+        $timelineTotal = ceil($totalTime);
+        $unmeasuredPct = $timelineTotal > 0 ? ($unmeasuredMs / $timelineTotal) * 100 : 0.0;
 
         /** @var array<string, array{name: string, category: string, duration: float, memory: int, start_time: float, end_time: float}> $events */
         $events = $timeData['events'] ?? [];
@@ -132,6 +133,7 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer implements Re
             'overviewCards' => $overviewCards,
             'totalTime' => $totalTime,
             'segments' => $segments,
+            'timelineTotal' => $timelineTotal,
             'timelineEntries' => $timelineEntries,
             'pluginTimelineEntries' => $pluginTimelineEntries,
             'themeTimelineEntries' => $themeTimelineEntries,

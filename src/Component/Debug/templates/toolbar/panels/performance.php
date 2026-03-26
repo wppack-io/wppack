@@ -5,6 +5,7 @@
  * @var list<array{label: string, value: string, unit: string, sub: string}> $overviewCards
  * @var float                                                                $totalTime
  * @var list<array{label: string, time: float, color: string}>              $segments
+ * @var float                                                               $timelineTotal
  * @var list<array>                                                         $timelineEntries
  * @var list<array>                                                         $pluginTimelineEntries
  * @var list<array>                                                         $themeTimelineEntries
@@ -55,18 +56,18 @@ if ($hasTimeline):
 <?php foreach ($timelineEntries as $entry):
     $color = $categoryColors[$entry['category']] ?? $categoryColors['default'];
     ?>
-<?= $view->include('toolbar/partials/timeline-row', ['entry' => $entry, 'color' => $color, 'totalTime' => $totalTime, 'fmt' => $fmt, 'unmeasuredMs' => $unmeasuredMs, 'unmeasuredPct' => $unmeasuredPct]) ?>
+<?= $view->include('toolbar/partials/timeline-row', ['entry' => $entry, 'color' => $color, 'totalTime' => $timelineTotal, 'fmt' => $fmt, 'unmeasuredMs' => $unmeasuredMs, 'unmeasuredPct' => $unmeasuredPct]) ?>
 <?php endforeach; ?>
 <?php if ($pluginTimelineEntries !== []): ?>
 <div class="wpd-perf-wf-divider"><span>Plugins</span></div>
 <?php foreach ($pluginTimelineEntries as $entry): ?>
-<?= $view->include('toolbar/partials/timeline-row', ['entry' => $entry, 'color' => $categoryColors['plugin'], 'totalTime' => $totalTime, 'fmt' => $fmt, 'unmeasuredMs' => $unmeasuredMs, 'unmeasuredPct' => $unmeasuredPct]) ?>
+<?= $view->include('toolbar/partials/timeline-row', ['entry' => $entry, 'color' => $categoryColors['plugin'], 'totalTime' => $timelineTotal, 'fmt' => $fmt, 'unmeasuredMs' => $unmeasuredMs, 'unmeasuredPct' => $unmeasuredPct]) ?>
 <?php endforeach; ?>
 <?php endif; ?>
 <?php if ($themeTimelineEntries !== []): ?>
 <div class="wpd-perf-wf-divider"><span>Theme</span></div>
 <?php foreach ($themeTimelineEntries as $entry): ?>
-<?= $view->include('toolbar/partials/timeline-row', ['entry' => $entry, 'color' => $categoryColors['theme_hooks'], 'totalTime' => $totalTime, 'fmt' => $fmt, 'unmeasuredMs' => $unmeasuredMs, 'unmeasuredPct' => $unmeasuredPct]) ?>
+<?= $view->include('toolbar/partials/timeline-row', ['entry' => $entry, 'color' => $categoryColors['theme_hooks'], 'totalTime' => $timelineTotal, 'fmt' => $fmt, 'unmeasuredMs' => $unmeasuredMs, 'unmeasuredPct' => $unmeasuredPct]) ?>
 <?php endforeach; ?>
 <?php endif; ?>
 </div>
