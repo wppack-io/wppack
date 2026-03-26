@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Security\Bridge\SAML\Tests;
 
+use OneLogin\Saml2\Auth;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -79,5 +80,23 @@ final class SamlLogoutListenerTest extends TestCase
         // Session data should be cleared regardless
         self::assertNull($this->sessionManager->getNameId($this->userId));
         self::assertNull($this->sessionManager->getSessionIndex($this->userId));
+    }
+
+    #[Test]
+    public function onLogoutPassesHomeUrlAsReturnTo(): void
+    {
+        $this->sessionManager->save($this->userId, 'user@example.com', '_session123');
+
+        $auth = $this->createMock(Auth::class);
+        $auth->expects(self::once())
+            ->method('logout')
+            ->with(home_url(), [], 'user@example.com', '_session123');
+
+        $factory = $this->createMock(SamlAuthFactory::class);
+        $factory->method('create')->willReturn($auth);
+
+        $handler = new SamlLogoutHandler($factory, new AuthenticationSession());
+        $listener = new SamlLogoutListener($handler, $this->sessionManager);
+        $listener->onLogout($this->userId);
     }
 }

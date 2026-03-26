@@ -36,6 +36,7 @@ use WpPack\Component\Security\Bridge\SAML\SamlLogoutHandler;
 use WpPack\Component\Security\Bridge\SAML\SamlLogoutListener;
 use WpPack\Component\Security\Bridge\SAML\SamlMetadataController;
 use WpPack\Component\Security\Bridge\SAML\SamlSloController;
+use WpPack\Component\Security\Bridge\SAML\Multisite\CrossSiteRedirector;
 use WpPack\Component\Security\Bridge\SAML\Session\SamlSessionManager;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolver;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolverInterface;
@@ -159,10 +160,12 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
 
     public static function createSpSettings(SamlLoginConfiguration $config): SpSettings
     {
+        $blogId = is_multisite() ? get_main_site_id() : null;
+
         return new SpSettings(
-            entityId: $config->spEntityId !== '' ? $config->spEntityId : home_url(),
-            acsUrl: $config->spAcsUrl !== '' ? $config->spAcsUrl : home_url('/saml/acs'),
-            sloUrl: $config->spSloUrl !== '' ? $config->spSloUrl : home_url('/saml/slo'),
+            entityId: $config->spEntityId !== '' ? $config->spEntityId : get_home_url($blogId),
+            acsUrl: $config->spAcsUrl !== '' ? $config->spAcsUrl : get_home_url($blogId, $config->acsPath),
+            sloUrl: $config->spSloUrl !== '' ? $config->spSloUrl : get_home_url($blogId, $config->sloPath),
             nameIdFormat: $config->spNameIdFormat,
         );
     }
@@ -199,11 +202,17 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
         SamlLoginConfiguration $config,
         SamlSessionManager $sessionManager,
     ): SamlAuthenticator {
+        $crossSiteRedirector = is_multisite()
+            ? new CrossSiteRedirector(acsPath: $config->acsPath)
+            : null;
+
         return new SamlAuthenticator(
             authFactory: $authFactory,
             userResolver: $userResolver,
             dispatcher: $dispatcher,
             sessionManager: $sessionManager,
+            acsPath: $config->acsPath,
+            crossSiteRedirector: $crossSiteRedirector,
             addUserToBlog: $config->addUserToBlog,
         );
     }

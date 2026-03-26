@@ -34,17 +34,49 @@ final class SamlSloController
             $this->clearSamlSession();
             $this->logoutHandler->handleIdpLogoutRequest($this->request);
 
-            return new RedirectResponse(home_url());
+            return new RedirectResponse($this->resolvePostLogoutRedirect());
         }
 
         if ($this->logoutHandler->isLogoutResponse()) {
             $this->clearSamlSession();
             $this->authSession->logout();
 
-            return new RedirectResponse(home_url());
+            return new RedirectResponse($this->resolvePostLogoutRedirect());
         }
 
         return new Response('', 400);
+    }
+
+    private function resolvePostLogoutRedirect(): string
+    {
+        $relayState = $this->request->query->get('RelayState');
+
+        if ($relayState === null) {
+            return home_url();
+        }
+
+        $parsed = parse_url($relayState);
+
+        if (
+            !isset($parsed['scheme'], $parsed['host'])
+            || !in_array($parsed['scheme'], ['http', 'https'], true)
+        ) {
+            return home_url();
+        }
+
+        // Same host — always allowed
+        $currentHost = parse_url(home_url(), \PHP_URL_HOST);
+
+        if ($parsed['host'] === $currentHost) {
+            return $relayState;
+        }
+
+        // Different host — only allowed for registered multisite domains
+        if (is_multisite() && get_blog_id_from_url($parsed['host']) > 0) {
+            return $relayState;
+        }
+
+        return home_url();
     }
 
     private function clearSamlSession(): void

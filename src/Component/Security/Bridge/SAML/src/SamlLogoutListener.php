@@ -45,7 +45,7 @@ final class SamlLogoutListener
         $this->sessionManager->clear($userId);
 
         // @codeCoverageIgnoreStart
-        $this->logoutHandler->initiateLogout($nameId, $sessionIndex);
+        $this->logoutHandler->initiateLogout($nameId, $sessionIndex, home_url());
         // @codeCoverageIgnoreEnd
     }
 }

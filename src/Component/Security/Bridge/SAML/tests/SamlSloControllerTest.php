@@ -91,6 +91,60 @@ final class SamlSloControllerTest extends TestCase
     }
 
     #[Test]
+    public function resolvePostLogoutRedirectUsesSameHostRelayState(): void
+    {
+        $relayState = home_url('/custom-page');
+        $_GET = ['SAMLResponse' => 'encoded-response', 'RelayState' => $relayState];
+
+        $request = new Request(
+            query: ['SAMLResponse' => 'encoded-response', 'RelayState' => $relayState],
+            server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/saml/slo'],
+        );
+
+        $controller = new SamlSloController($this->logoutHandler, $this->sessionManager, $this->authSession, $request);
+        $response = $controller();
+
+        self::assertInstanceOf(RedirectResponse::class, $response);
+        self::assertSame($relayState, $response->url);
+    }
+
+    #[Test]
+    public function resolvePostLogoutRedirectFallsBackForUnknownHost(): void
+    {
+        $relayState = 'https://unknown.example.com/wp-admin/';
+        $_GET = ['SAMLResponse' => 'encoded-response', 'RelayState' => $relayState];
+
+        $request = new Request(
+            query: ['SAMLResponse' => 'encoded-response', 'RelayState' => $relayState],
+            server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/saml/slo'],
+        );
+
+        $controller = new SamlSloController($this->logoutHandler, $this->sessionManager, $this->authSession, $request);
+        $response = $controller();
+
+        self::assertInstanceOf(RedirectResponse::class, $response);
+        self::assertSame(home_url(), $response->url);
+    }
+
+    #[Test]
+    public function resolvePostLogoutRedirectRejectsInvalidScheme(): void
+    {
+        $relayState = 'javascript:alert(1)';
+        $_GET = ['SAMLResponse' => 'encoded-response', 'RelayState' => $relayState];
+
+        $request = new Request(
+            query: ['SAMLResponse' => 'encoded-response', 'RelayState' => $relayState],
+            server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/saml/slo'],
+        );
+
+        $controller = new SamlSloController($this->logoutHandler, $this->sessionManager, $this->authSession, $request);
+        $response = $controller();
+
+        self::assertInstanceOf(RedirectResponse::class, $response);
+        self::assertSame(home_url(), $response->url);
+    }
+
+    #[Test]
     public function invokeReturnsBadRequestForUnknownRequest(): void
     {
         $_GET = [];

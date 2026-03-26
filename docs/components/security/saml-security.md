@@ -431,29 +431,44 @@ final class LdapSamlUserResolver implements SamlUserResolverInterface
 
 `addUserToBlog: true`（デフォルト）の場合、認証成功時にユーザーが現在のブログのメンバーでなければ自動追加します。
 
+### SP 設定（マルチサイト）
+
+マルチサイト環境では、SP の EntityID・ACS URL・SLO URL はメインサイトの URL が自動的に使用されます。IdP には単一の SP 設定を登録するだけで、すべてのサブサイトの認証を処理できます。
+
+```
+シングルサイト: home_url()          → https://example.com
+マルチサイト:   get_home_url(main)  → https://main.example.com
+```
+
+明示的に `SAML_SP_ENTITY_ID`、`SAML_SP_ACS_URL`、`SAML_SP_SLO_URL` を設定している場合は、その値が優先されます。
+
 ### クロスサイト SSO (CrossSiteRedirector)
 
-マルチサイトで複数のサブサイトが異なるドメインを持つ場合、IdP の ACS URL はメインサイト 1 つに設定し、`CrossSiteRedirector` で適切なサブサイトにリダイレクトします。
+マルチサイトで複数のサブサイトが異なるドメインを持つ場合、IdP の ACS URL はメインサイト 1 つに設定し、`CrossSiteRedirector` で適切なサブサイトにリダイレクトします。`SamlLoginPlugin` はマルチサイト環境を検出すると `CrossSiteRedirector` を自動的に注入します。
 
 ```php
 use WpPack\Component\Security\Bridge\SAML\Multisite\CrossSiteRedirector;
 
+// SamlLoginPlugin 使用時は自動注入されるため手動設定は不要
+// 手動構成の場合:
 $redirector = new CrossSiteRedirector(
     allowedHosts: ['main.example.com', 'sub.example.com'],
+    acsPath: '/saml/acs',
 );
 
 $authenticator = new SamlAuthenticator(
     authFactory: $factory,
     userResolver: $userResolver,
     dispatcher: $eventDispatcher,
+    acsPath: '/saml/acs',
     crossSiteRedirector: $redirector,
 );
 ```
 
-### フロー図
+### 認証フロー図
 
 ```
-[ユーザーが sub.example.com でログインクリック]
+[ユーザーが sub.example.com/wp-login.php でログインクリック]
     ↓
 SamlEntryPoint::start(returnTo: 'https://sub.example.com/wp-admin/')
     ↓ RelayState = 'https://sub.example.com/wp-admin/'
@@ -461,16 +476,37 @@ SamlEntryPoint::start(returnTo: 'https://sub.example.com/wp-admin/')
     ↓ SAMLResponse を main.example.com/saml/acs に POST
 SamlAuthenticator（main.example.com）
     ↓ CrossSiteRedirector::needsRedirect() → true
-    ↓ auto-submit フォームで sub.example.com/saml/acs にリダイレクト
+    ↓ auto-submit フォームで sub.example.com/saml/acs に再 POST
 SamlAuthenticator（sub.example.com）
     ↓ 通常の認証フロー
-    ↓ wp_set_auth_cookie()
+    ↓ wp_set_auth_cookie() + add_user_to_blog()
     ↓ sub.example.com/wp-admin/ にリダイレクト
+```
+
+### SLO フロー図（マルチサイト）
+
+```
+[ユーザーが sub.example.com でログアウト]
+    ↓
+SamlLogoutListener::onLogout()
+    ↓ returnTo = home_url() = 'https://sub.example.com'
+    ↓ IdP に LogoutRequest を送信（RelayState = returnTo）
+[IdP が LogoutResponse を返却]
+    ↓ main.example.com/saml/slo?SAMLResponse=...&RelayState=https://sub.example.com
+SamlSloController
+    ↓ resolvePostLogoutRedirect() → RelayState のホストがマルチサイトに登録済み
+    ↓ https://sub.example.com にリダイレクト
 ```
 
 `CrossSiteRedirector` は以下の方法でホストを許可します:
 - `allowedHosts` に明示的に指定（開発環境のドメインもここに追加）
 - マルチサイトの `get_sites()` に登録されたホスト
+
+`SamlSloController` の RelayState リダイレクトは以下のセキュリティチェックを行います:
+- スキームが `http` または `https` であること
+- 同一ホストの場合は常に許可
+- 異なるホストの場合、`get_blog_id_from_url()` でマルチサイトに登録されたドメインであることを検証
+- いずれにも該当しない場合は `home_url()` にフォールバック
 
 > [!NOTE]
 > リダイレクト先の ACS URL は常に HTTPS が強制されます。
