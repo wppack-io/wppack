@@ -86,6 +86,63 @@ $configuration = new SamlConfiguration(
 
 `SamlConfiguration::toOneLoginArray()` メソッドで `onelogin/php-saml` が要求する配列形式に変換されます。
 
+## IdP メタデータの取り込み
+
+### IdpMetadataParser
+
+IdP が提供するメタデータ XML から `IdpSettings` を自動生成できます。手動で `entityId`, `ssoUrl`, `x509Cert` 等を個別指定する代わりに、メタデータ XML を一括取り込みます。
+
+```php
+use WpPack\Component\Security\Bridge\SAML\Configuration\IdpMetadataParser;
+
+$parser = new IdpMetadataParser();
+
+// XML 文字列から
+$idpSettings = $parser->parseXml($xmlString);
+
+// ファイルから
+$idpSettings = $parser->parseFile('/path/to/idp-metadata.xml');
+
+// リモート URL から（IdP のメタデータエンドポイント）
+$idpSettings = $parser->parseRemoteUrl('https://idp.example.com/metadata');
+```
+
+パース結果は `IdpSettings` オブジェクトとして返されます:
+
+| メタデータ要素 | マッピング先 |
+|---------------|-------------|
+| `entityID` | `IdpSettings::$entityId` |
+| `SingleSignOnService[Redirect] Location` | `IdpSettings::$ssoUrl` |
+| `SingleLogoutService[Redirect] Location` | `IdpSettings::$sloUrl`（なければ `null`） |
+| `KeyDescriptor[signing] X509Certificate` | `IdpSettings::$x509Cert` |
+| 複数証明書の場合 | `x509certMulti.signing[0]` を使用 |
+
+`certFingerprint` はメタデータに証明書が含まれるため、常に `null` が設定されます。
+
+パース失敗時やメタデータに必須要素が欠けている場合は `InvalidArgumentException` がスローされます。
+
+## SP メタデータの出力
+
+### SpMetadataExporter
+
+SP メタデータ XML の生成とファイル書き出しを担当します:
+
+```php
+use WpPack\Component\Security\Bridge\SAML\Configuration\SpMetadataExporter;
+
+$exporter = new SpMetadataExporter($configuration);
+
+// XML 文字列として取得
+$xml = $exporter->toXml();
+
+// ファイルに書き出し
+$exporter->exportToFile('/path/to/sp-metadata.xml');
+```
+
+`toXml()` は `onelogin/php-saml` の `Settings::getSPMetadata()` を使用して、`SamlConfiguration` に基づいた SP メタデータ XML を生成します。生成された XML はバリデーション済みです。
+
+`exportToFile()` はファイル書き出しに失敗した場合 `RuntimeException` をスローします。
+
 ## 認証フロー
 
 ### SP-Initiated SSO
@@ -182,21 +239,22 @@ $entryPoint->register();
 
 ### SamlMetadataController
 
-SP メタデータ XML を IdP に提供するためのコントローラです:
+SP メタデータ XML を IdP に提供するためのコントローラです。内部で `SpMetadataExporter` に委譲します:
 
 ```php
+use WpPack\Component\Security\Bridge\SAML\Configuration\SpMetadataExporter;
 use WpPack\Component\Security\Bridge\SAML\SamlMetadataController;
 
-$metadata = new SamlMetadataController($configuration);
+$exporter = new SpMetadataExporter($configuration);
+$controller = new SamlMetadataController($exporter);
 
-// XML 文字列として取得
-$xml = $metadata->getMetadataXml();
-
-// HTTP レスポンスとして出力（Content-Type: application/xml）
-$metadata->serve();
+// HTTP レスポンスとして取得（Content-Type: application/xml）
+$response = $controller();
 ```
 
-IdP の管理画面で SP メタデータ URL（例: `https://example.com`）を登録する際に使用します。
+IdP の管理画面で SP メタデータ URL（例: `https://example.com/saml/metadata`）を登録する際に使用します。
+
+XML 文字列の直接取得やファイルへの書き出しが必要な場合は、`SpMetadataExporter` を直接使用してください（「SP メタデータの出力」セクション参照）。
 
 ### SamlLogoutHandler
 

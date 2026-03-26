@@ -166,6 +166,13 @@ define('SAML_IDP_X509_CERT', '-----BEGIN CERTIFICATE-----\nMIID...\n-----END CER
 
 完全な URN を直接指定することも可能です。
 
+## IdP メタデータからの設定
+
+環境変数で個別指定する代わりに、`IdpMetadataParser` を使って IdP メタデータ XML から `IdpSettings` を一括取り込みできます。詳細は [saml-security のドキュメント](../components/security/saml-security.md#idp-メタデータの取り込み) を参照してください。
+
+> [!NOTE]
+> プラグイン UI からのメタデータ取り込みは後続タスクで対応予定です。現時点ではコード経由での利用となります。
+
 ## IdP 設定ガイド
 
 ### Keycloak

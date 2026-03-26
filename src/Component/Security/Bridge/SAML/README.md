@@ -67,10 +67,37 @@ $authenticator = new SamlAuthenticator(
 ### SP Metadata
 
 ```php
+use WpPack\Component\Security\Bridge\SAML\Configuration\SpMetadataExporter;
 use WpPack\Component\Security\Bridge\SAML\SamlMetadataController;
 
-$metadata = new SamlMetadataController($configuration);
-$metadata->serve(); // Outputs XML response
+$exporter = new SpMetadataExporter($configuration);
+
+// As HTTP response (Content-Type: application/xml)
+$controller = new SamlMetadataController($exporter);
+$response = $controller();
+
+// As XML string
+$xml = $exporter->toXml();
+
+// Export to file
+$exporter->exportToFile('/path/to/sp-metadata.xml');
+```
+
+### IdP Metadata Import
+
+```php
+use WpPack\Component\Security\Bridge\SAML\Configuration\IdpMetadataParser;
+
+$parser = new IdpMetadataParser();
+
+// From XML string
+$idpSettings = $parser->parseXml($xmlString);
+
+// From file
+$idpSettings = $parser->parseFile('/path/to/idp-metadata.xml');
+
+// From remote URL
+$idpSettings = $parser->parseRemoteUrl('https://idp.example.com/metadata');
 ```
 
 ### Single Logout
