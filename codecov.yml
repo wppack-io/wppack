@@ -320,3 +320,7 @@ component_management:
       name: RedisCachePlugin
       paths:
         - src/Plugin/RedisCachePlugin/src/**
+    - component_id: saml_login_plugin
+      name: SamlLoginPlugin
+      paths:
+        - src/Plugin/SamlLoginPlugin/src/**

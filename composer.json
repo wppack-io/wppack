@@ -121,7 +121,8 @@
             "WpPack\\Component\\Storage\\Bridge\\Azure\\": "src/Component/Storage/Bridge/Azure/src/",
             "WpPack\\Component\\Storage\\Bridge\\Gcs\\": "src/Component/Storage/Bridge/Gcs/src/",
             "WpPack\\Component\\Site\\": "src/Component/Site/src/",
-            "WpPack\\Component\\Asset\\": "src/Component/Asset/src/"
+            "WpPack\\Component\\Asset\\": "src/Component/Asset/src/",
+            "WpPack\\Plugin\\SamlLoginPlugin\\": "src/Plugin/SamlLoginPlugin/src/"
         }
     },
     "autoload-dev": {
@@ -200,7 +201,8 @@
             "WpPack\\Plugin\\S3StoragePlugin\\Tests\\": "src/Plugin/S3StoragePlugin/tests/",
             "WpPack\\Plugin\\AmazonMailerPlugin\\Tests\\": "src/Plugin/AmazonMailerPlugin/tests/",
             "WpPack\\Plugin\\DebugPlugin\\Tests\\": "src/Plugin/DebugPlugin/tests/",
-            "WpPack\\Plugin\\RedisCachePlugin\\Tests\\": "src/Plugin/RedisCachePlugin/tests/"
+            "WpPack\\Plugin\\RedisCachePlugin\\Tests\\": "src/Plugin/RedisCachePlugin/tests/",
+            "WpPack\\Plugin\\SamlLoginPlugin\\Tests\\": "src/Plugin/SamlLoginPlugin/tests/"
         }
     },
     "replace": {
@@ -279,7 +281,8 @@
         "wppack/azure-storage": "self.version",
         "wppack/gcs-storage": "self.version",
         "wppack/site": "self.version",
-        "wppack/asset": "self.version"
+        "wppack/asset": "self.version",
+        "wppack/saml-login-plugin": "self.version"
     },
     "config": {
         "sort-packages": true,

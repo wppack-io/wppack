@@ -1,0 +1,27 @@
+{
+    "name": "wppack/saml-login-plugin",
+    "description": "WordPress plugin for SAML 2.0 SSO authentication",
+    "type": "wordpress-plugin",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "wppack/dependency-injection": "^1.0",
+        "wppack/event-dispatcher": "^1.0",
+        "wppack/kernel": "^1.0",
+        "wppack/saml-security": "^1.0",
+        "wppack/security": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpPack\\Plugin\\SamlLoginPlugin\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Plugin\\SamlLoginPlugin\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "installer-name": "wppack-saml-login"
+    }
+}

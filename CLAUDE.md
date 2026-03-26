@@ -134,6 +134,7 @@ Distributed as WordPress plugins. Built on top of Components.
 | AmazonMailerPlugin | wppack/amazon-mailer-plugin | Amazon SES mailer plugin |
 | DebugPlugin | wppack/debug-plugin | Debug toolbar plugin |
 | RedisCachePlugin | wppack/redis-cache-plugin | Redis cache plugin |
+| SamlLoginPlugin | wppack/saml-login-plugin | SAML 2.0 SSO login plugin |
 
 ## Key Dependencies
 
