@@ -37,6 +37,16 @@ final class RouteRegistryTest extends TestCase
 {
     use SecurityTestTrait;
 
+    protected function setUp(): void
+    {
+        remove_all_filters('redirect_canonical');
+    }
+
+    protected function tearDown(): void
+    {
+        remove_all_filters('redirect_canonical');
+    }
+
     #[Test]
     public function resolvesSingleActionController(): void
     {
@@ -240,6 +250,22 @@ final class RouteRegistryTest extends TestCase
     }
 
     #[Test]
+    public function registerAddsRedirectCanonicalFilter(): void
+    {
+        $controller = new #[Route('/wp-canonical/{wp_canonical}', name: 'wp_canonical_route')] class {
+            public function __invoke(): ?TemplateResponse
+            {
+                return null;
+            }
+        };
+
+        $registry = new RouteRegistry();
+        $registry->register($controller);
+
+        self::assertNotFalse(has_filter('redirect_canonical'));
+    }
+
+    #[Test]
     public function registerAddsTemplateIncludeHook(): void
     {
         $controller = new #[Route('/wp-include/{wp_include}', name: 'wp_include_route')] class {
@@ -271,6 +297,18 @@ final class RouteRegistryTest extends TestCase
 
         // flush_rewrite_rules() does not throw and resets rewrite rules
         self::assertTrue(true);
+    }
+
+    #[Test]
+    public function invalidateDeletesRewriteRulesOption(): void
+    {
+        update_option('rewrite_rules', ['dummy' => 'rule']);
+        self::assertNotFalse(get_option('rewrite_rules'));
+
+        $registry = new RouteRegistry();
+        $registry->invalidate();
+
+        self::assertFalse(get_option('rewrite_rules'));
     }
 
     #[Test]
@@ -1245,6 +1283,165 @@ final class RouteRegistryTest extends TestCase
         $entry->handleTemplateRedirect();
 
         self::assertSame($user, $controller->capturedUser);
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // redirect_canonical filter integration tests
+    // ──────────────────────────────────────────────────────────────
+
+    #[Test]
+    public function redirectCanonicalFilterNormalizesTrailingSlashViaApplyFilters(): void
+    {
+        $controller = new #[Route('/canonical/{canonical_slug}', name: 'canonical_cancel')] class {
+            public function __invoke(): ?TemplateResponse
+            {
+                return null;
+            }
+        };
+
+        $registry = new RouteRegistry();
+        $registry->register($controller);
+
+        set_query_var('canonical_slug', 'test-value');
+
+        $result = apply_filters('redirect_canonical', 'https://example.com/canonical/test-value/', 'https://example.com/canonical/test-value');
+
+        self::assertSame('https://example.com/canonical/test-value', $result);
+    }
+
+    #[Test]
+    public function redirectCanonicalFilterPassesThroughWhenNoMatchViaApplyFilters(): void
+    {
+        $controller = new #[Route('/canonical-pass/{pass_slug}', name: 'canonical_pass')] class {
+            public function __invoke(): ?TemplateResponse
+            {
+                return null;
+            }
+        };
+
+        $registry = new RouteRegistry();
+        $registry->register($controller);
+
+        // Do not set query var — no match
+        $result = apply_filters('redirect_canonical', 'https://example.com/other-page/', 'https://example.com/other-page');
+
+        self::assertSame('https://example.com/other-page/', $result);
+    }
+
+    #[Test]
+    public function redirectCanonicalFilterWithMultipleRoutes(): void
+    {
+        $controllerA = new #[Route('/multi-a/{multi_a_slug}', name: 'multi_a')] class {
+            public function __invoke(): ?TemplateResponse
+            {
+                return null;
+            }
+        };
+        $controllerB = new #[Route('/multi-b/{multi_b_slug}', name: 'multi_b')] class {
+            public function __invoke(): ?TemplateResponse
+            {
+                return null;
+            }
+        };
+
+        $registry = new RouteRegistry();
+        $registry->register($controllerA);
+        $registry->register($controllerB);
+
+        // Only route A matches
+        set_query_var('multi_a_slug', 'matched');
+
+        $result = apply_filters('redirect_canonical', 'https://example.com/multi-a/matched/', 'https://example.com/multi-a/matched');
+
+        // Route A normalizes trailing slash, route B passes through
+        self::assertSame('https://example.com/multi-a/matched', $result);
+    }
+
+    #[Test]
+    public function redirectCanonicalFilterWithMultipleRoutesNoneMatching(): void
+    {
+        $controllerA = new #[Route('/none-a/{none_a_slug}', name: 'none_a')] class {
+            public function __invoke(): ?TemplateResponse
+            {
+                return null;
+            }
+        };
+        $controllerB = new #[Route('/none-b/{none_b_slug}', name: 'none_b')] class {
+            public function __invoke(): ?TemplateResponse
+            {
+                return null;
+            }
+        };
+
+        $registry = new RouteRegistry();
+        $registry->register($controllerA);
+        $registry->register($controllerB);
+
+        // Neither query var set
+        $result = apply_filters('redirect_canonical', 'https://example.com/unrelated/', 'https://example.com/unrelated');
+
+        self::assertSame('https://example.com/unrelated/', $result);
+    }
+
+    #[Test]
+    public function redirectCanonicalFilterWithSentinelRouteViaApplyFilters(): void
+    {
+        $controller = new #[Route('/static/page', name: 'canonical_sentinel')] class {
+            public function __invoke(): ?TemplateResponse
+            {
+                return null;
+            }
+        };
+
+        $registry = new RouteRegistry();
+        $registry->register($controller);
+
+        // Static path uses sentinel query var
+        set_query_var('_route_canonical_sentinel', '1');
+
+        $result = apply_filters('redirect_canonical', 'https://example.com/static/page/', 'https://example.com/static/page');
+
+        self::assertSame('https://example.com/static/page', $result);
+    }
+
+    #[Test]
+    public function addRouteRegistersWorkingRedirectCanonicalFilter(): void
+    {
+        $controller = new class {
+            public function __invoke(): ?TemplateResponse
+            {
+                return null;
+            }
+        };
+
+        $registry = new RouteRegistry();
+        $registry->addRoute('/api-route/{api_slug}', $controller, name: 'add_canonical');
+
+        set_query_var('api_slug', 'test');
+
+        $result = apply_filters('redirect_canonical', 'https://example.com/api-route/test/', 'https://example.com/api-route/test');
+
+        self::assertSame('https://example.com/api-route/test', $result);
+    }
+
+    #[Test]
+    public function redirectCanonicalFilterNormalizesTrailingSlashForTrailingSlashRoute(): void
+    {
+        $controller = new #[Route('/trailing/{trailing_slug}/', name: 'trailing_route')] class {
+            public function __invoke(): ?TemplateResponse
+            {
+                return null;
+            }
+        };
+
+        $registry = new RouteRegistry();
+        $registry->register($controller);
+
+        set_query_var('trailing_slug', 'test');
+
+        $result = apply_filters('redirect_canonical', 'https://example.com/trailing/test', 'https://example.com/trailing/test');
+
+        self::assertSame('https://example.com/trailing/test/', $result);
     }
 
     /**

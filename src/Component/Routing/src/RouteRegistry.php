@@ -117,6 +117,11 @@ final class RouteRegistry
         flush_rewrite_rules();
     }
 
+    public function invalidate(): void
+    {
+        delete_option('rewrite_rules');
+    }
+
     private function setupController(object $controller): void
     {
         if ($controller instanceof AbstractController) {
@@ -137,6 +142,7 @@ final class RouteRegistry
         add_filter('query_vars', $entry->filterQueryVars(...));
         add_action('template_redirect', $entry->handleTemplateRedirect(...));
         add_filter('template_include', $entry->filterTemplateInclude(...));
+        add_filter('redirect_canonical', $entry->filterRedirectCanonical(...));
     }
 
     /**

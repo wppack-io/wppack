@@ -34,6 +34,8 @@ final class RouteEntry
     private ?TemplateResponse $pendingTemplate = null;
     private ?string $pendingBlockTemplate = null;
 
+    public readonly bool $trailingSlash;
+
     /**
      * @param list<array{string, string}> $rewriteTags
      * @param list<string> $methods
@@ -49,6 +51,8 @@ final class RouteEntry
         public readonly array $methods = [],
         private readonly ?Request $request = null,
     ) {
+        $this->trailingSlash = $path !== '' && str_ends_with($path, '/');
+
         $parsed = self::parseQueryVars($query);
         if ($parsed === [] && $name !== '') {
             $sentinel = '_route_' . str_replace(['-', '.'], '_', $name);
@@ -89,11 +93,45 @@ final class RouteEntry
         foreach ($this->queryVars as $var) {
             $value = get_query_var($var);
             if ($value !== '' && $value !== false) {
+                $this->redirectTrailingSlash();
                 $this->dispatch();
 
                 return;
             }
         }
+    }
+
+    /**
+     * @param string|false $redirectUrl
+     * @return string|false
+     */
+    public function filterRedirectCanonical(string|false $redirectUrl): string|false
+    {
+        if ($redirectUrl === false) {
+            return false;
+        }
+
+        foreach ($this->queryVars as $var) {
+            $value = get_query_var($var);
+            if ($value !== '' && $value !== false) {
+                return $this->normalizeTrailingSlash($redirectUrl);
+            }
+        }
+
+        return $redirectUrl;
+    }
+
+    private function normalizeTrailingSlash(string $url): string
+    {
+        $queryPos = strpos($url, '?');
+        $base = $queryPos !== false ? substr($url, 0, $queryPos) : $url;
+        $suffix = $queryPos !== false ? substr($url, $queryPos) : '';
+
+        $normalized = $this->trailingSlash
+            ? rtrim($base, '/') . '/'
+            : rtrim($base, '/');
+
+        return $normalized . $suffix;
     }
 
     public function filterTemplateInclude(string $template): string
@@ -116,7 +154,7 @@ final class RouteEntry
      */
     public static function compilePath(string $path, array $requirements = []): string
     {
-        $path = ltrim($path, '/');
+        $path = trim($path, '/');
         $params = self::extractParams($path);
 
         $regex = $path;
@@ -159,6 +197,35 @@ final class RouteEntry
         preg_match_all('/\{([^}]+)\}/', $path, $matches);
 
         return $matches[1];
+    }
+
+    /**
+     * @codeCoverageIgnore
+     */
+    private function redirectTrailingSlash(): void
+    {
+        if ($this->request === null) {
+            return;
+        }
+
+        $method = $this->request->getMethod();
+        if ($method !== 'GET' && $method !== 'HEAD') {
+            return;
+        }
+
+        $path = $this->request->getPathInfo();
+        $hasTrailingSlash = $path !== '/' && str_ends_with($path, '/');
+
+        if ($this->trailingSlash === $hasTrailingSlash) {
+            return;
+        }
+
+        $canonicalPath = $this->trailingSlash ? $path . '/' : rtrim($path, '/');
+        $queryString = $this->request->getQueryString();
+        $url = $canonicalPath . ($queryString !== null ? '?' . $queryString : '');
+
+        wp_redirect($url, 301);
+        exit;
     }
 
     private function dispatch(): void

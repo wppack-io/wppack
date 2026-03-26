@@ -93,6 +93,81 @@ final class RouteEntryTest extends TestCase
         self::assertSame('^static-page/?$', $regex);
     }
 
+    #[Test]
+    public function compilePathWithTrailingSlash(): void
+    {
+        $regex = RouteEntry::compilePath('/events/{year}/');
+
+        self::assertSame('^events/(?P<year>[^/]+)/?$', $regex);
+    }
+
+    #[Test]
+    public function compilePathWithTrailingSlashAndRequirements(): void
+    {
+        $regex = RouteEntry::compilePath('/events/{year}/', ['year' => '\d{4}']);
+
+        self::assertSame('^events/(?P<year>\d{4})/?$', $regex);
+    }
+
+    #[Test]
+    public function compilePathStaticWithTrailingSlash(): void
+    {
+        $regex = RouteEntry::compilePath('/static-page/');
+
+        self::assertSame('^static-page/?$', $regex);
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // trailingSlash property
+    // ──────────────────────────────────────────────────────────────
+
+    #[Test]
+    public function trailingSlashTrueWhenPathEndsWithSlash(): void
+    {
+        $entry = new RouteEntry(
+            'test_route',
+            '^events/(?P<year>[^/]+)/?$',
+            'index.php?year=$matches[1]',
+            RoutePosition::Top,
+            [],
+            fn() => null,
+            '/events/{year}/',
+        );
+
+        self::assertTrue($entry->trailingSlash);
+    }
+
+    #[Test]
+    public function trailingSlashFalseWhenPathDoesNotEndWithSlash(): void
+    {
+        $entry = new RouteEntry(
+            'test_route',
+            '^products/(?P<product_slug>[^/]+)/?$',
+            'index.php?product_slug=$matches[1]',
+            RoutePosition::Top,
+            [],
+            fn() => null,
+            '/products/{product_slug}',
+        );
+
+        self::assertFalse($entry->trailingSlash);
+    }
+
+    #[Test]
+    public function trailingSlashFalseWhenPathIsEmpty(): void
+    {
+        $entry = new RouteEntry(
+            'test_route',
+            '^test/?$',
+            'index.php?page=$matches[1]',
+            RoutePosition::Top,
+            [],
+            fn() => null,
+        );
+
+        self::assertFalse($entry->trailingSlash);
+    }
+
     // ──────────────────────────────────────────────────────────────
     // buildQueryFromPath
     // ──────────────────────────────────────────────────────────────
@@ -839,6 +914,147 @@ final class RouteEntryTest extends TestCase
         $this->expectExceptionMessage('Non-HTTP exception');
 
         $entry->handleTemplateRedirect();
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // filterRedirectCanonical
+    // ──────────────────────────────────────────────────────────────
+
+    #[Test]
+    public function filterRedirectCanonicalNormalizesTrailingSlashWhenRouteMatches(): void
+    {
+        $entry = new RouteEntry(
+            'test_route',
+            '^test/([^/]+)/?$',
+            'index.php?test_slug=$matches[1]',
+            RoutePosition::Top,
+            [],
+            fn() => null,
+        );
+
+        set_query_var('test_slug', 'hello');
+
+        self::assertSame(
+            'https://example.com/test/hello',
+            $entry->filterRedirectCanonical('https://example.com/test/hello/'),
+        );
+    }
+
+    #[Test]
+    public function filterRedirectCanonicalPassesThroughWhenNoMatch(): void
+    {
+        $entry = new RouteEntry(
+            'test_route',
+            '^test/([^/]+)/?$',
+            'index.php?test_slug=$matches[1]',
+            RoutePosition::Top,
+            [],
+            fn() => null,
+        );
+
+        set_query_var('test_slug', '');
+
+        self::assertSame(
+            'https://example.com/other/',
+            $entry->filterRedirectCanonical('https://example.com/other/'),
+        );
+    }
+
+    #[Test]
+    public function filterRedirectCanonicalPassesThroughFalse(): void
+    {
+        $entry = new RouteEntry(
+            'test_route',
+            '^test/([^/]+)/?$',
+            'index.php?test_slug=$matches[1]',
+            RoutePosition::Top,
+            [],
+            fn() => null,
+        );
+
+        self::assertFalse($entry->filterRedirectCanonical(false));
+    }
+
+    #[Test]
+    public function filterRedirectCanonicalNormalizesTrailingSlashWithSentinelRoute(): void
+    {
+        $entry = new RouteEntry(
+            'static_route',
+            '^static-page/?$',
+            'index.php?',
+            RoutePosition::Top,
+            [],
+            fn() => null,
+        );
+
+        set_query_var('_route_static_route', '1');
+
+        self::assertSame(
+            'https://example.com/static-page',
+            $entry->filterRedirectCanonical('https://example.com/static-page/'),
+        );
+    }
+
+    #[Test]
+    public function filterRedirectCanonicalPreservesTrailingSlashForTrailingSlashRoute(): void
+    {
+        $entry = new RouteEntry(
+            'trailing_route',
+            '^test/([^/]+)/?$',
+            'index.php?slug=$matches[1]',
+            RoutePosition::Top,
+            [],
+            fn() => null,
+            '/test/{slug}/',
+        );
+
+        set_query_var('slug', 'hello');
+
+        self::assertSame(
+            'https://example.com/test/hello/',
+            $entry->filterRedirectCanonical('https://example.com/test/hello'),
+        );
+    }
+
+    #[Test]
+    public function filterRedirectCanonicalPreservesQueryString(): void
+    {
+        $entry = new RouteEntry(
+            'test_route',
+            '^test/([^/]+)/?$',
+            'index.php?test_slug=$matches[1]',
+            RoutePosition::Top,
+            [],
+            fn() => null,
+        );
+
+        set_query_var('test_slug', 'hello');
+
+        self::assertSame(
+            'https://example.com/test/hello?utm=1',
+            $entry->filterRedirectCanonical('https://example.com/test/hello/?utm=1'),
+        );
+    }
+
+    #[Test]
+    public function filterRedirectCanonicalPreservesNonSlashChanges(): void
+    {
+        $entry = new RouteEntry(
+            'test_route',
+            '^test/([^/]+)/?$',
+            'index.php?test_slug=$matches[1]',
+            RoutePosition::Top,
+            [],
+            fn() => null,
+        );
+
+        set_query_var('test_slug', 'hello');
+
+        // http→https change is preserved, only trailing slash is removed
+        self::assertSame(
+            'https://example.com/test/hello',
+            $entry->filterRedirectCanonical('https://example.com/test/hello/'),
+        );
     }
 
     // ──────────────────────────────────────────────────────────────
