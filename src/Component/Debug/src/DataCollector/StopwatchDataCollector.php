@@ -53,6 +53,12 @@ final class StopwatchDataCollector extends AbstractDataCollector
         private readonly Stopwatch $stopwatch,
     ) {
         $this->registerHooks();
+
+        // If constructed during a hook, start measuring the current phase
+        $currentAction = current_action();
+        if (\is_string($currentAction) && $currentAction !== '' && !$this->stopwatch->isStarted($currentAction)) {
+            $this->markPhase($currentAction);
+        }
     }
 
     public function getName(): string
@@ -73,6 +79,9 @@ final class StopwatchDataCollector extends AbstractDataCollector
         // Stop any phases that are still running
         $this->stopRunningPhases();
 
+        // Compute hrtime origin (hrtime value at request start)
+        $hrtimeOrigin = hrtime(true) / 1e6 - $totalTime;
+
         $events = [];
         foreach ($this->stopwatch->getEvents() as $name => $event) {
             $events[$name] = [
@@ -80,8 +89,8 @@ final class StopwatchDataCollector extends AbstractDataCollector
                 'category' => $event->category,
                 'duration' => $event->duration,
                 'memory' => $event->memory,
-                'start_time' => $event->startTime,
-                'end_time' => $event->endTime,
+                'start_time' => round($event->startTime - $hrtimeOrigin, 2),
+                'end_time' => round($event->endTime - $hrtimeOrigin, 2),
             ];
         }
 
@@ -234,28 +243,14 @@ final class StopwatchDataCollector extends AbstractDataCollector
     {
         $requestTimeFloat = $_SERVER['REQUEST_TIME_FLOAT'] ?? microtime(true);
         $this->phases[$name] = round((microtime(true) - (float) $requestTimeFloat) * 1000, 2);
-
-        // Stop previous phase and start new one in the stopwatch
-        $previousPhase = $this->findPreviousPhase($name);
-        if ($previousPhase !== null && $this->stopwatch->isStarted($previousPhase)) {
-            $this->stopwatch->stop($previousPhase);
-        }
-
         $this->stopwatch->start($name, 'wordpress');
     }
 
-    private function findPreviousPhase(string $current): ?string
+    private function endPhase(string $name): void
     {
-        $phaseOrder = $this->getActivePhaseOrder();
-
-        $currentIndex = array_search($current, $phaseOrder, true);
-        if ($currentIndex === false || $currentIndex === 0) {
-            return null;
+        if ($this->stopwatch->isStarted($name)) {
+            $this->stopwatch->stop($name);
         }
-
-        $previousName = $phaseOrder[$currentIndex - 1];
-
-        return isset($this->phases[$previousName]) ? $previousName : null;
     }
 
     private function stopRunningPhases(): void
@@ -269,19 +264,9 @@ final class StopwatchDataCollector extends AbstractDataCollector
         }
     }
 
-    /**
-     * Determine active phase order based on recorded phases.
-     *
-     * @return list<string>
-     */
-    private function getActivePhaseOrder(): array
-    {
-        return isset($this->phases['admin_init']) ? self::ADMIN_PHASES : self::FRONTEND_PHASES;
-    }
-
     private function registerHooks(): void
     {
-        // Common phases
+        // Common phases (start at PHP_INT_MIN)
         add_action('muplugins_loaded', [$this, 'onMuPluginsLoaded'], PHP_INT_MIN);
         add_action('plugins_loaded', [$this, 'onPluginsLoaded'], PHP_INT_MIN);
         add_action('setup_theme', [$this, 'onSetupTheme'], PHP_INT_MIN);
@@ -289,17 +274,23 @@ final class StopwatchDataCollector extends AbstractDataCollector
         add_action('init', [$this, 'onInit'], PHP_INT_MIN);
         add_action('wp_loaded', [$this, 'onWpLoaded'], PHP_INT_MIN);
 
-        // Frontend phases
+        // Frontend phases (start at PHP_INT_MIN)
         add_action('wp', [$this, 'onWp'], PHP_INT_MIN);
         add_action('template_redirect', [$this, 'onTemplateRedirect'], PHP_INT_MIN);
         add_action('wp_head', [$this, 'onWpHead'], PHP_INT_MIN);
         add_action('wp_footer', [$this, 'onWpFooter'], PHP_INT_MIN);
 
-        // Admin phases
+        // Admin phases (start at PHP_INT_MIN)
         add_action('admin_init', [$this, 'onAdminInit'], PHP_INT_MIN);
         add_action('admin_menu', [$this, 'onAdminMenu'], PHP_INT_MIN);
         add_action('admin_enqueue_scripts', [$this, 'onAdminEnqueueScripts'], PHP_INT_MIN);
         add_action('admin_head', [$this, 'onAdminHead'], PHP_INT_MIN);
         add_action('admin_footer', [$this, 'onAdminFooter'], PHP_INT_MIN);
+
+        // End callbacks (stop at PHP_INT_MAX)
+        $allHooks = array_unique([...self::FRONTEND_PHASES, ...self::ADMIN_PHASES]);
+        foreach ($allHooks as $hook) {
+            add_action($hook, fn() => $this->endPhase($hook), PHP_INT_MAX);
+        }
     }
 }

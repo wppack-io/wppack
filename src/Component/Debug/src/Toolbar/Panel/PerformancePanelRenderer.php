@@ -325,19 +325,22 @@ final class PerformancePanelRenderer extends AbstractPanelRenderer implements Re
     ): array {
         $timelineEntries = [];
 
-        // 1. Lifecycle phases
-        $phases = $timeData['phases'] ?? [];
-        $previousTime = 0.0;
-        foreach ($phases as $phaseName => $phaseTime) {
-            $duration = $phaseTime - $previousTime;
+        // 1. Lifecycle phases (from Stopwatch events)
+        $lifecycleEvents = array_filter($events, static fn(array $e): bool => $e['category'] === 'wordpress');
+        foreach ($lifecycleEvents as $event) {
+            $eventStart = (float) $event['start_time'];
+            $eventDuration = (float) $event['duration'];
+            if ($eventDuration <= 0) {
+                continue;
+            }
+            $eventEnd = $eventStart + $eventDuration;
             $timelineEntries[] = [
-                'name' => $phaseName,
-                'start' => $previousTime,
-                'duration' => $duration,
+                'name' => $event['name'],
+                'start' => $eventStart,
+                'duration' => $eventDuration,
                 'category' => 'wordpress',
-                'title' => $phaseName . "\n" . $fmt->ms($previousTime) . ' → ' . $fmt->ms($phaseTime) . ' (' . $fmt->ms($duration) . ')',
+                'title' => $event['name'] . "\n" . $fmt->ms($eventStart) . ' → ' . $fmt->ms($eventEnd) . ' (' . $fmt->ms($eventDuration) . ')',
             ];
-            $previousTime = $phaseTime;
         }
 
         // 2. DB queries

@@ -245,6 +245,7 @@ final class ToolbarRendererTest extends TestCase
             'request_time_float' => microtime(true) - 0.198,
             'phases' => ['muplugins_loaded' => 20.0],
             'events' => [
+                'muplugins_loaded' => ['name' => 'muplugins_loaded', 'category' => 'wordpress', 'duration' => 20.0, 'memory' => 0, 'start_time' => 0.0, 'end_time' => 20.0],
                 'my_event' => ['name' => 'my_event', 'category' => 'default', 'duration' => 10.0, 'memory' => 1024, 'start_time' => 0.0, 'end_time' => 10.0],
             ],
         ]));
