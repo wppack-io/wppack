@@ -139,6 +139,14 @@ final class WpDieHandler
             return;
         }
 
+        // wp_send_json() calls wp_die('', '', ['response' => null]) for clean exit.
+        // Don't intercept to avoid corrupting the already-written JSON response.
+        if ($message === '' && \array_key_exists('response', $args) && $args['response'] === null) {
+            $this->callPreviousHandler($this->previousAjaxHandler, $message, $title, $args);
+
+            return;
+        }
+
         $exception = $this->createException($message, $title, $args);
 
         $this->sendJson([
@@ -160,6 +168,14 @@ final class WpDieHandler
     public function handleJson(string|\WP_Error $message, string $title = '', array $args = []): void
     {
         if (!$this->config->isAccessAllowed()) {
+            $this->callPreviousHandler($this->previousJsonHandler, $message, $title, $args);
+
+            return;
+        }
+
+        // wp_send_json() calls wp_die('', '', ['response' => null]) for clean exit.
+        // Don't intercept to avoid corrupting the already-written JSON response.
+        if ($message === '' && \array_key_exists('response', $args) && $args['response'] === null) {
             $this->callPreviousHandler($this->previousJsonHandler, $message, $title, $args);
 
             return;

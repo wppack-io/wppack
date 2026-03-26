@@ -702,6 +702,70 @@ final class WpDieHandlerTest extends TestCase
     }
 
     #[Test]
+    public function handleAjaxDelegatesToPreviousForWpSendJsonCleanup(): void
+    {
+        $userId = $this->setUpAdminUser();
+
+        try {
+            $config = new DebugConfig(enabled: true);
+
+            if (!$config->isAccessAllowed()) {
+                self::markTestSkipped('isAccessAllowed() is false in this environment.');
+            }
+
+            $handler = new WpDieHandler(new ErrorRenderer(), $config);
+
+            $previousCalled = false;
+            $capturedMessage = null;
+
+            $handler->registerAjaxHandler(function (string|\WP_Error $message) use (&$previousCalled, &$capturedMessage): void {
+                $previousCalled = true;
+                $capturedMessage = $message;
+            });
+
+            // wp_send_json() cleanup pattern: wp_die('', '', ['response' => null])
+            $handler->handleAjax('', '', ['response' => null, 'exit' => false]);
+
+            self::assertTrue($previousCalled, 'Expected previous handler to be called for wp_send_json cleanup');
+            self::assertSame('', $capturedMessage);
+        } finally {
+            $this->tearDownAdminUser($userId);
+        }
+    }
+
+    #[Test]
+    public function handleJsonDelegatesToPreviousForWpSendJsonCleanup(): void
+    {
+        $userId = $this->setUpAdminUser();
+
+        try {
+            $config = new DebugConfig(enabled: true);
+
+            if (!$config->isAccessAllowed()) {
+                self::markTestSkipped('isAccessAllowed() is false in this environment.');
+            }
+
+            $handler = new WpDieHandler(new ErrorRenderer(), $config);
+
+            $previousCalled = false;
+            $capturedMessage = null;
+
+            $handler->registerJsonHandler(function (string|\WP_Error $message) use (&$previousCalled, &$capturedMessage): void {
+                $previousCalled = true;
+                $capturedMessage = $message;
+            });
+
+            // wp_send_json() cleanup pattern: wp_die('', '', ['response' => null])
+            $handler->handleJson('', '', ['response' => null, 'exit' => false]);
+
+            self::assertTrue($previousCalled, 'Expected previous handler to be called for wp_send_json cleanup');
+            self::assertSame('', $capturedMessage);
+        } finally {
+            $this->tearDownAdminUser($userId);
+        }
+    }
+
+    #[Test]
     public function callPreviousHandlerFallsBackToDefaultWhenNull(): void
     {
         $handler = new WpDieHandler(new ErrorRenderer(), new DebugConfig(enabled: true));
