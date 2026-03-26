@@ -129,7 +129,7 @@ WpPack\Plugin\SamlLoginPlugin\
 | `SAML_SP_ENTITY_ID` | `home_url()` | SP Entity ID |
 | `SAML_SP_ACS_URL` | `home_url('/saml/acs')` | SP ACS URL |
 | `SAML_SP_SLO_URL` | `home_url('/saml/slo')` | SP SLO URL |
-| `SAML_SP_NAMEID_FORMAT` | `emailAddress` | NameID フォーマット |
+| `SAML_SP_NAMEID_FORMAT` | `unspecified` | NameID フォーマット |
 | `SAML_STRICT` | `true` | Strict モード |
 | `SAML_DEBUG` | `false` | デバッグモード |
 | `SAML_WANT_ASSERTIONS_SIGNED` | `true` | 署名検証 |
@@ -228,7 +228,7 @@ define('SAML_AUTO_PROVISION', true);
 define('SAML_DEFAULT_ROLE', 'subscriber');
 ```
 
-SAML 属性から以下のユーザー情報が同期されます:
+SAML 属性から以下のユーザー情報が同期されます（新規作成時および既存ユーザーのログイン時）:
 - `email` → `user_email`
 - `firstName` → `first_name`
 - `lastName` → `last_name`

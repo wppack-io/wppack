@@ -640,6 +640,141 @@ final class SamlUserResolverTest extends TestCase
     }
 
     #[Test]
+    public function resolveUserByNameIdMeta(): void
+    {
+        $nameId = 'saml-meta-' . uniqid();
+        $email = 'saml-meta-' . uniqid() . '@example.com';
+        $userId = wp_insert_user([
+            'user_login' => 'saml_meta_' . uniqid(),
+            'user_email' => $email,
+            'user_pass' => wp_generate_password(),
+        ]);
+
+        self::assertIsInt($userId);
+
+        // Pre-bind NameID via meta
+        update_user_meta($userId, '_wppack_saml_nameid', $nameId);
+
+        $resolver = new SamlUserResolver();
+
+        $user = $resolver->resolveUser(
+            $nameId,
+            ['email' => [$email]],
+        );
+
+        self::assertInstanceOf(\WP_User::class, $user);
+        self::assertSame($userId, $user->ID);
+    }
+
+    #[Test]
+    public function resolveUserByNameIdMetaSyncsEmail(): void
+    {
+        $nameId = 'saml-meta-sync-' . uniqid();
+        $oldEmail = 'saml-old-' . uniqid() . '@example.com';
+        $newEmail = 'saml-new-' . uniqid() . '@example.com';
+        $userId = wp_insert_user([
+            'user_login' => 'saml_meta_sync_' . uniqid(),
+            'user_email' => $oldEmail,
+            'user_pass' => wp_generate_password(),
+        ]);
+
+        self::assertIsInt($userId);
+
+        update_user_meta($userId, '_wppack_saml_nameid', $nameId);
+
+        $resolver = new SamlUserResolver();
+
+        $user = $resolver->resolveUser(
+            $nameId,
+            ['email' => [$newEmail]],
+        );
+
+        $refreshed = get_user_by('id', $user->ID);
+        self::assertInstanceOf(\WP_User::class, $refreshed);
+        self::assertSame($newEmail, $refreshed->user_email);
+    }
+
+    #[Test]
+    public function resolveUserByNameIdMetaDoesNotSyncInvalidEmail(): void
+    {
+        $nameId = 'saml-meta-invalid-' . uniqid();
+        $originalEmail = 'saml-original-' . uniqid() . '@example.com';
+        $userId = wp_insert_user([
+            'user_login' => 'saml_meta_invalid_' . uniqid(),
+            'user_email' => $originalEmail,
+            'user_pass' => wp_generate_password(),
+        ]);
+
+        self::assertIsInt($userId);
+
+        update_user_meta($userId, '_wppack_saml_nameid', $nameId);
+
+        $resolver = new SamlUserResolver();
+
+        $user = $resolver->resolveUser(
+            $nameId,
+            ['email' => ['not-an-email']],
+        );
+
+        $refreshed = get_user_by('id', $user->ID);
+        self::assertInstanceOf(\WP_User::class, $refreshed);
+        self::assertSame($originalEmail, $refreshed->user_email);
+    }
+
+    #[Test]
+    public function resolveUserByNameIdMetaSkipsEmailSyncWhenSame(): void
+    {
+        $nameId = 'saml-meta-same-' . uniqid();
+        $email = 'saml-same-' . uniqid() . '@example.com';
+        $userId = wp_insert_user([
+            'user_login' => 'saml_meta_same_' . uniqid(),
+            'user_email' => $email,
+            'user_pass' => wp_generate_password(),
+        ]);
+
+        self::assertIsInt($userId);
+
+        update_user_meta($userId, '_wppack_saml_nameid', $nameId);
+
+        $resolver = new SamlUserResolver();
+
+        $user = $resolver->resolveUser(
+            $nameId,
+            ['email' => [$email]],
+        );
+
+        self::assertInstanceOf(\WP_User::class, $user);
+        self::assertSame($userId, $user->ID);
+        self::assertSame($email, $user->user_email);
+    }
+
+    #[Test]
+    public function resolveUserLoginFallbackSyncsEmail(): void
+    {
+        $login = 'saml_login_sync_' . uniqid();
+        $oldEmail = 'saml-login-old-' . uniqid() . '@example.com';
+        $newEmail = 'saml-login-new-' . uniqid() . '@example.com';
+        $userId = wp_insert_user([
+            'user_login' => $login,
+            'user_email' => $oldEmail,
+            'user_pass' => wp_generate_password(),
+        ]);
+
+        self::assertIsInt($userId);
+
+        $resolver = new SamlUserResolver();
+
+        $user = $resolver->resolveUser(
+            $login,
+            ['email' => [$newEmail]],
+        );
+
+        $refreshed = get_user_by('id', $user->ID);
+        self::assertInstanceOf(\WP_User::class, $refreshed);
+        self::assertSame($newEmail, $refreshed->user_email);
+    }
+
+    #[Test]
     public function roleMapWithEmptyRoleValues(): void
     {
         $login = 'saml_empty_roles_' . uniqid();

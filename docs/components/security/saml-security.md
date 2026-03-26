@@ -65,7 +65,7 @@ $spSettings = new SpSettings(
 | `entityId` | `string` | — | SP のエンティティ ID |
 | `acsUrl` | `string` | — | Assertion Consumer Service URL |
 | `sloUrl` | `?string` | `null` | Single Logout URL |
-| `nameIdFormat` | `string` | `emailAddress` | NameID フォーマット |
+| `nameIdFormat` | `string` | `unspecified` | NameID フォーマット |
 
 ### SAML 設定 (SamlConfiguration)
 
@@ -369,13 +369,14 @@ $userResolver = new SamlUserResolver(
 
 `autoProvision: true` を設定すると、SAML 認証成功時にユーザーが存在しない場合、WordPress ユーザーを自動作成します:
 
-1. `email` 属性（`sanitize_email()` 済み）でメールアドレス検索
-2. NameID（`sanitize_user()` 済み）でログイン名検索
-3. いずれも見つからない場合、`wp_insert_user()` で新規作成
+1. NameID メタ（`_wppack_saml_nameid`）で検索 — バインド済みユーザーの優先解決
+2. `email` 属性（`sanitize_email()` 済み）でメールアドレス検索 — 初回ログインフォールバック
+3. NameID（`sanitize_user()` 済み）でログイン名検索 — 初回ログインフォールバック
+4. いずれも見つからない場合、`wp_insert_user()` で新規作成
 
 #### NameID バインディング
 
-初回ログイン時、SAML NameID がユーザーメタ（`_wppack_saml_nameid`）に保存されます。以降のログインでは、メールアドレスで既存ユーザーが見つかった場合でも、保存済み NameID との一致を検証します。これにより、IdP 側でメールアドレスを変更してもアカウント乗っ取りを防止します。
+初回ログイン時、SAML NameID がユーザーメタ（`_wppack_saml_nameid`）に保存されます。以降のログインではメタ検索で直接ユーザーを解決するため、IdP 側でメールアドレスやユーザー名が変更されても正しいアカウントに紐づきます。メールアドレスによるフォールバック検索では、保存済み NameID との一致を検証し、アカウント乗っ取りを防止します。
 
 #### 属性サニタイズ
 
@@ -385,7 +386,7 @@ $userResolver = new SamlUserResolver(
 - メールアドレス: `sanitize_email()`
 - 名前系フィールド（first_name, last_name, display_name）: `sanitize_text_field()`
 
-既存ユーザーの場合は、SAML 属性に基づいてプロフィール情報（名前、表示名）を同期更新します。
+既存ユーザーの場合は、SAML 属性に基づいてプロフィール情報（メールアドレス、名前、表示名）を同期更新します。
 
 ### ロールマッピング
 

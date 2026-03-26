@@ -54,6 +54,15 @@ final class SamlUserResolver implements SamlUserResolverInterface
             }
         }
 
+        $user = $this->findByNameId($sanitizedNameId);
+
+        if ($user instanceof \WP_User) {
+            $this->syncUserAttributes($user, $attributes, $email);
+            $this->mapUserRole($user, $attributes);
+
+            return $user;
+        }
+
         if ($email !== null) {
             $user = get_user_by('email', $email);
 
@@ -62,7 +71,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
                     throw new AuthenticationException('SAML NameID mismatch for existing user.');
                 }
 
-                $this->syncUserAttributes($user, $attributes);
+                $this->syncUserAttributes($user, $attributes, $email);
                 $this->mapUserRole($user, $attributes);
 
                 return $user;
@@ -73,7 +82,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
 
         if ($user instanceof \WP_User) {
             $this->bindNameId($user, $sanitizedNameId);
-            $this->syncUserAttributes($user, $attributes);
+            $this->syncUserAttributes($user, $attributes, $email);
             $this->mapUserRole($user, $attributes);
 
             return $user;
@@ -153,10 +162,15 @@ final class SamlUserResolver implements SamlUserResolverInterface
     /**
      * @param array<string, list<string>> $attributes
      */
-    private function syncUserAttributes(\WP_User $user, array $attributes): void
+    private function syncUserAttributes(\WP_User $user, array $attributes, ?string $email = null): void
     {
         $userdata = ['ID' => $user->ID];
         $needsUpdate = false;
+
+        if ($email !== null && $email !== $user->user_email) {
+            $userdata['user_email'] = $email;
+            $needsUpdate = true;
+        }
 
         if ($this->firstNameAttribute !== null) {
             $firstName = $this->getAttributeValue($attributes, $this->firstNameAttribute);
@@ -234,6 +248,17 @@ final class SamlUserResolver implements SamlUserResolverInterface
         }
 
         return $storedNameId === $nameId;
+    }
+
+    private function findByNameId(string $nameId): ?\WP_User
+    {
+        $users = get_users([
+            'meta_key' => self::SAML_NAMEID_META_KEY,
+            'meta_value' => $nameId,
+            'number' => 1,
+        ]);
+
+        return $users[0] ?? null;
     }
 
     private function bindNameId(\WP_User $user, string $nameId): void
