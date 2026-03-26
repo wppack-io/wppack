@@ -40,22 +40,10 @@ final class RouteRegistry
 
     public function register(object $controller): void
     {
-        if ($controller instanceof AbstractController) {
-            if ($this->security !== null) {
-                $controller->setSecurity($this->security);
-            }
-            if ($this->renderer !== null) {
-                $controller->setTemplateRenderer($this->renderer);
-            }
-        }
+        $this->setupController($controller);
 
         foreach ($this->resolveRoutes($controller) as $entry) {
-            $this->routes[$entry->name] = $entry;
-
-            add_action('init', $entry->registerRoute(...));
-            add_filter('query_vars', $entry->filterQueryVars(...));
-            add_action('template_redirect', $entry->handleTemplateRedirect(...));
-            add_filter('template_include', $entry->filterTemplateInclude(...));
+            $this->registerEntry($entry);
         }
     }
 
@@ -99,14 +87,7 @@ final class RouteRegistry
         array $methods = [],
         RoutePosition $position = RoutePosition::Top,
     ): void {
-        if ($controller instanceof AbstractController) {
-            if ($this->security !== null) {
-                $controller->setSecurity($this->security);
-            }
-            if ($this->renderer !== null) {
-                $controller->setTemplateRenderer($this->renderer);
-            }
-        }
+        $this->setupController($controller);
 
         $reflection = new \ReflectionClass($controller);
         $method = $reflection->getMethod($action);
@@ -128,17 +109,34 @@ final class RouteRegistry
             $this->request,
         );
 
-        $this->routes[$name] = $entry;
-
-        add_action('init', $entry->registerRoute(...));
-        add_filter('query_vars', $entry->filterQueryVars(...));
-        add_action('template_redirect', $entry->handleTemplateRedirect(...));
-        add_filter('template_include', $entry->filterTemplateInclude(...));
+        $this->registerEntry($entry);
     }
 
     public function flush(): void
     {
         flush_rewrite_rules();
+    }
+
+    private function setupController(object $controller): void
+    {
+        if ($controller instanceof AbstractController) {
+            if ($this->security !== null) {
+                $controller->setSecurity($this->security);
+            }
+            if ($this->renderer !== null) {
+                $controller->setTemplateRenderer($this->renderer);
+            }
+        }
+    }
+
+    private function registerEntry(RouteEntry $entry): void
+    {
+        $this->routes[$entry->name] = $entry;
+
+        add_action('init', $entry->registerRoute(...));
+        add_filter('query_vars', $entry->filterQueryVars(...));
+        add_action('template_redirect', $entry->handleTemplateRedirect(...));
+        add_filter('template_include', $entry->filterTemplateInclude(...));
     }
 
     /**
