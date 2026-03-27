@@ -1,0 +1,9 @@
+{
+    "name": "wppack/theme-directory-plugin",
+    "description": "Register default theme directory",
+    "type": "wordpress-muplugin",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2"
+    }
+}

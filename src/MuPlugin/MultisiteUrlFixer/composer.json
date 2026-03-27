@@ -1,5 +1,5 @@
 {
-    "name": "wppack/multisite-url-fixer",
+    "name": "wppack/multisite-url-fixer-plugin",
     "description": "Fix asset and content URLs for WordPress Multisite",
     "type": "wordpress-muplugin",
     "license": "MIT",

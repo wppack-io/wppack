@@ -1,4 +1,4 @@
-# wppack/multisite-url-fixer
+# wppack/multisite-url-fixer-plugin
 
 Fix asset and content URLs for WordPress Multisite with Bedrock.
 
@@ -7,7 +7,7 @@ In Bedrock-style installations where WordPress is installed in a `/wp` subdirect
 ## Installation
 
 ```bash
-composer require wppack/multisite-url-fixer
+composer require wppack/multisite-url-fixer-plugin
 ```
 
 ## Requirements

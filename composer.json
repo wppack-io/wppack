@@ -294,7 +294,9 @@
         "wppack/site": "self.version",
         "wppack/asset": "self.version",
         "wppack/saml-login-plugin": "self.version",
-        "wppack/multisite-url-fixer": "self.version"
+        "wppack/multisite-url-fixer-plugin": "self.version",
+        "wppack/lambda-plugin": "self.version",
+        "wppack/theme-directory-plugin": "self.version"
     },
     "config": {
         "sort-packages": true,

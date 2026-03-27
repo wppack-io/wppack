@@ -1,0 +1,9 @@
+{
+    "name": "wppack/lambda-plugin",
+    "description": "Lambda environment support for WordPress",
+    "type": "wordpress-muplugin",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2"
+    }
+}
