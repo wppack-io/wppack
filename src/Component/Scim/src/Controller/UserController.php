@@ -123,8 +123,17 @@ final class UserController extends AbstractRestController
                 throw new InvalidValueException('userName is required.');
             }
 
+            if (!isset($body['emails']) || !\is_array($body['emails']) || $body['emails'] === []) {
+                throw new InvalidValueException('emails is required and must contain at least one email.');
+            }
+
             $mapped = $this->mapper->toWordPress($body);
             $this->validateMappedEmail($mapped);
+
+            $userLogin = $mapped['data']['user_login'] ?? '';
+            if ($userLogin === '') {
+                throw new InvalidValueException('userName must produce a valid login name.');
+            }
 
             if (isset($body['externalId'])) {
                 $byExtId = $this->userRepository->findByExternalId($body['externalId']);

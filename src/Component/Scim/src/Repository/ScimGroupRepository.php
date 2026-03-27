@@ -91,6 +91,13 @@ final readonly class ScimGroupRepository
      */
     public function setMembers(string $roleName, array $userIds): void
     {
+        // Validate all user IDs upfront to prevent partial membership changes
+        foreach ($userIds as $userId) {
+            if ($this->userRepository->find($userId) === null) {
+                throw new InvalidValueException(sprintf('User "%d" does not exist.', $userId));
+            }
+        }
+
         $currentMembers = $this->getMembersOfRole($roleName);
         $currentIds = array_map(static fn(\WP_User $u): int => $u->ID, $currentMembers);
 

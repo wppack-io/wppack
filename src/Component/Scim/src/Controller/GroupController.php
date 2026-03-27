@@ -286,8 +286,8 @@ final class GroupController extends AbstractRestController
     {
         $ids = [];
         foreach ($members as $member) {
-            if (!isset($member['value']) || $member['value'] === '') {
-                throw new InvalidValueException('Each member must have a "value" attribute.');
+            if (!isset($member['value']) || $member['value'] === '' || !ctype_digit((string) $member['value'])) {
+                throw new InvalidValueException('Each member must have a numeric "value" attribute.');
             }
             $ids[] = (int) $member['value'];
         }

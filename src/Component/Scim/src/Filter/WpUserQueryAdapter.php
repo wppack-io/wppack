@@ -153,6 +153,11 @@ final class WpUserQueryAdapter
             throw new InvalidFilterException('OR filter combining non-meta attributes is not supported.');
         }
 
+        // AND with conflicting search params would silently discard one side via array_merge
+        if ($relation === 'AND' && isset($left['search']) && isset($right['search'])) {
+            throw new InvalidFilterException('AND filter combining multiple search attributes is not supported.');
+        }
+
         $merged = array_merge($left, $right);
 
         if ($leftMeta !== [] || $rightMeta !== []) {

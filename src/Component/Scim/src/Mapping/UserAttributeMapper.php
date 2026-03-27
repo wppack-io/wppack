@@ -80,6 +80,10 @@ final readonly class UserAttributeMapper implements UserAttributeMapperInterface
     public function toScim(\WP_User $user): array
     {
         $active = get_user_meta($user->ID, ScimConstants::META_ACTIVE, true);
+        $locale = get_user_meta($user->ID, 'locale', true);
+        $timezone = get_user_meta($user->ID, ScimConstants::META_TIMEZONE, true);
+        $title = get_user_meta($user->ID, ScimConstants::META_TITLE, true);
+        $externalId = get_user_meta($user->ID, ScimConstants::META_EXTERNAL_ID, true);
 
         return [
             'userName' => $user->user_login,
@@ -98,10 +102,10 @@ final readonly class UserAttributeMapper implements UserAttributeMapperInterface
                 ],
             ],
             'active' => $active !== '0',
-            'locale' => get_user_meta($user->ID, 'locale', true) ?: null,
-            'timezone' => get_user_meta($user->ID, ScimConstants::META_TIMEZONE, true) ?: null,
-            'title' => get_user_meta($user->ID, ScimConstants::META_TITLE, true) ?: null,
-            'externalId' => get_user_meta($user->ID, ScimConstants::META_EXTERNAL_ID, true) ?: null,
+            'locale' => $locale !== '' ? $locale : null,
+            'timezone' => $timezone !== '' ? $timezone : null,
+            'title' => $title !== '' ? $title : null,
+            'externalId' => $externalId !== '' ? $externalId : null,
         ];
     }
 
