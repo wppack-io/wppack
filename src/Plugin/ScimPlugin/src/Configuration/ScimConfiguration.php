@@ -60,7 +60,7 @@ final readonly class ScimConfiguration
     {
         $value = self::envString($name, (string) $default);
 
-        return (int) $value;
+        return max(1, min(1000, (int) $value));
     }
 
     private static function envBool(string $name, bool $default): bool

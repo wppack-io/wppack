@@ -143,8 +143,8 @@ final class UserController extends AbstractRestController
             }
 
             // Check if user_login already exists
-            $existingUser = get_user_by('login', $mapped['data']['user_login'] ?? '');
-            if ($existingUser !== false) {
+            $existingUser = $this->userRepository->findByLogin($userLogin);
+            if ($existingUser !== null) {
                 throw new ResourceConflictException(sprintf('User with userName "%s" already exists.', $body['userName']));
             }
 

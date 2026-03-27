@@ -79,6 +79,11 @@ final class PatchProcessor
         }
 
         $this->checkImmutablePath($operation->path);
+
+        if ($operation->value === null) {
+            throw new InvalidPatchException('Add operation with a path requires a value.');
+        }
+
         $segments = PathParser::parse($operation->path);
 
         // For multi-valued attributes, append instead of replace
@@ -109,6 +114,11 @@ final class PatchProcessor
         }
 
         $this->checkImmutablePath($operation->path);
+
+        if ($operation->value === null) {
+            throw new InvalidPatchException('Replace operation with a path requires a value.');
+        }
+
         $segments = PathParser::parse($operation->path);
 
         return PathParser::setValueAtPath($resource, $segments, $operation->value);

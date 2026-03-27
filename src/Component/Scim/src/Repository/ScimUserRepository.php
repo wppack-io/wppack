@@ -30,6 +30,11 @@ final readonly class ScimUserRepository
         return $this->userRepository->find($userId);
     }
 
+    public function findByLogin(string $login): ?\WP_User
+    {
+        return $this->userRepository->findByLogin($login);
+    }
+
     public function findByExternalId(string $externalId): ?\WP_User
     {
         $users = $this->userRepository->findAll([

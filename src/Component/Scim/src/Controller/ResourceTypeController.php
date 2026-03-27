@@ -21,6 +21,7 @@ use WpPack\Component\Role\Attribute\IsGranted;
 use WpPack\Component\Scim\Schema\GroupSchema;
 use WpPack\Component\Scim\Schema\ScimConstants;
 use WpPack\Component\Scim\Schema\UserSchema;
+use WpPack\Component\Scim\Serialization\ErrorSerializer;
 use WpPack\Component\Scim\Serialization\ListResponseSerializer;
 
 #[RestRoute(namespace: 'scim/v2', route: '/ResourceTypes')]
@@ -52,7 +53,7 @@ final class ResourceTypeController extends AbstractRestController
 
         if ($type === null) {
             return $this->json(
-                ['schemas' => [ScimConstants::ERROR_SCHEMA], 'status' => '404', 'detail' => 'ResourceType not found.'],
+                ErrorSerializer::fromMessage('ResourceType not found.', 404),
                 404,
                 ['Content-Type' => ScimConstants::CONTENT_TYPE],
             );

@@ -105,6 +105,8 @@ final class FilterParser
             if ($inner !== null) {
                 return $inner;
             }
+
+            throw new InvalidFilterException(sprintf('Unterminated quoted string: %s', $raw));
         }
 
         // Boolean

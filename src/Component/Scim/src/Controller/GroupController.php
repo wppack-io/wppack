@@ -123,7 +123,8 @@ final class GroupController extends AbstractRestController
                 throw new ResourceConflictException(sprintf('Group "%s" already exists.', $roleName));
             }
 
-            $this->groupRepository->create($roleName, $body['displayName']);
+            $displayName = sanitize_text_field($body['displayName']);
+            $this->groupRepository->create($roleName, $displayName);
 
             // Handle initial members
             if (isset($body['members']) && \is_array($body['members'])) {
@@ -133,7 +134,7 @@ final class GroupController extends AbstractRestController
                 $this->dispatcher->dispatch(new GroupMembershipChangedEvent($roleName, $memberIds, []));
             }
 
-            $this->dispatcher->dispatch(new GroupProvisionedEvent($roleName, $body['displayName']));
+            $this->dispatcher->dispatch(new GroupProvisionedEvent($roleName, $displayName));
 
             $role = $this->groupRepository->findByName($roleName);
             $members = $this->groupRepository->getMembersOfRole($roleName);
@@ -162,7 +163,7 @@ final class GroupController extends AbstractRestController
             $body = $this->decodeBody($request);
 
             if (isset($body['displayName'])) {
-                $this->groupRepository->update($id, $body['displayName']);
+                $this->groupRepository->update($id, sanitize_text_field($body['displayName']));
             }
 
             // Replace members
@@ -226,7 +227,7 @@ final class GroupController extends AbstractRestController
 
             // Update displayName if changed
             if (isset($patched['displayName']) && $patched['displayName'] !== $role['name']) {
-                $this->groupRepository->update($id, $patched['displayName']);
+                $this->groupRepository->update($id, sanitize_text_field($patched['displayName']));
             }
 
             // Update members if changed
