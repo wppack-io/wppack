@@ -96,6 +96,7 @@ WordPress の機能領域をモダンなパターンで扱う。
 | [Nonce](./nonce/) | `wppack/nonce` | CSRF トークン管理 |
 | [Asset](./asset/) | `wppack/asset` | アセット管理（スクリプト・スタイル） |
 | [Ajax](./ajax/) | `wppack/ajax` | Admin Ajax ハンドラー |
+| [Scim](./scim/) | `wppack/scim` | SCIM 2.0 プロビジョニング |
 | [Wpress](./wpress/) | `wppack/wpress` | .wpress アーカイブ形式操作 |
 
 ## Application Layer（アプリケーション層）

@@ -1,4 +1,6 @@
-# WpPack SCIM Plugin
+# wppack/scim-plugin
+
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=scim_plugin)](https://codecov.io/github/wppack-io/wppack)
 
 A WordPress plugin that provides SCIM 2.0 (RFC 7643/7644) provisioning endpoints. Enables automatic user and group provisioning from Identity Providers such as Azure AD, Okta, and OneLogin.
 
@@ -8,9 +10,35 @@ A WordPress plugin that provides SCIM 2.0 (RFC 7643/7644) provisioning endpoints
 composer require wppack/scim-plugin
 ```
 
+## Requirements
+
+- PHP 8.2+
+- WordPress 6.x
+- SCIM 2.0 compatible Identity Provider (Azure AD, Okta, OneLogin, etc.)
+
+## Architecture
+
+ScimPlugin implements `PluginInterface` and bootstraps via `Kernel::registerPlugin()`:
+
+1. **Bootstrap** registers the plugin with the Kernel
+2. **ServiceProvider** registers SCIM controllers, authenticator, and repositories in the DI container
+3. **AuthenticationManager** registers `determine_current_user` filter for Bearer token authentication
+4. **RestRegistry** registers all SCIM REST controllers (Users, Groups, Schemas, ResourceTypes, ServiceProviderConfig)
+5. **Controllers** handle SCIM API requests with event dispatching
+
 ## Configuration
 
-Set the following environment variables:
+Set environment variables in `wp-config.php`:
+
+```php
+// Required
+define('SCIM_BEARER_TOKEN', 'your-secure-random-token');
+
+// Optional
+define('SCIM_SERVICE_ACCOUNT_USER_ID', 1);
+define('SCIM_DEFAULT_ROLE', 'subscriber');
+define('SCIM_ALLOW_USER_DELETION', false);
+```
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
@@ -34,6 +62,10 @@ Set the following environment variables:
 | GET/PUT/PATCH/DELETE | `/wp-json/scim/v2/Users/{id}` | User operations |
 | GET/POST | `/wp-json/scim/v2/Groups` | List/create groups |
 | GET/PUT/PATCH/DELETE | `/wp-json/scim/v2/Groups/{id}` | Group operations |
+
+## Documentation
+
+See [full documentation](../../docs/plugins/scim-plugin.md) for details.
 
 ## License
 

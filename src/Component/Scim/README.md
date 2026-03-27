@@ -1,5 +1,7 @@
 # WpPack Scim
 
+[![codecov](https://img.shields.io/codecov/c/github/wppack-io/wppack?component=scim)](https://codecov.io/github/wppack-io/wppack)
+
 A component that provides SCIM 2.0 (RFC 7643/7644) provisioning support for WordPress. Enables automatic user and group provisioning from Identity Providers such as Azure AD, Okta, and OneLogin.
 
 ## Installation
@@ -38,7 +40,7 @@ $restRegistry->register($groupController);
 
 ## Documentation
 
-For details, see [docs/components/scim.md](../../docs/components/scim.md).
+For details, see [docs/components/scim/](../../docs/components/scim/).
 
 ## Resources
 
