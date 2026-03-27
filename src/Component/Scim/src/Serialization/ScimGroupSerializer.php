@@ -30,7 +30,7 @@ final readonly class ScimGroupSerializer
      */
     public function serialize(string $roleName, array $role, array $members, string $baseUrl = ''): array
     {
-        $scimAttributes = $this->mapper->toScim($roleName, $role, $members);
+        $scimAttributes = $this->mapper->toScim($roleName, $role, $members, $baseUrl);
 
         return [
             'schemas' => [ScimConstants::GROUP_SCHEMA],

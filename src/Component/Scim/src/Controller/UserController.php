@@ -277,7 +277,10 @@ final class UserController extends AbstractRestController
                 $this->dispatcher->dispatch(new UserDeletedEvent($id, $userLogin));
             } else {
                 $this->userRepository->deactivate($id);
-                $this->dispatcher->dispatch(new UserDeactivatedEvent($user));
+                $deactivatedUser = $this->userRepository->find($id);
+                if ($deactivatedUser !== null) {
+                    $this->dispatcher->dispatch(new UserDeactivatedEvent($deactivatedUser));
+                }
             }
 
             return $this->noContent();

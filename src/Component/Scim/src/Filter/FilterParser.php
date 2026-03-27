@@ -121,7 +121,7 @@ final class FilterParser
     }
 
     /**
-     * Split expression by a logical operator, respecting parentheses.
+     * Split expression by a logical operator, respecting parentheses and quoted strings.
      *
      * @return list<string>
      */
@@ -129,6 +129,7 @@ final class FilterParser
     {
         $parts = [];
         $depth = 0;
+        $inQuote = false;
         $current = '';
         $tokens = preg_split('/(\s+)/', $expression, -1, \PREG_SPLIT_DELIM_CAPTURE);
 
@@ -147,10 +148,18 @@ final class FilterParser
                 continue;
             }
 
-            // Track parentheses depth
-            $depth += substr_count($token, '(') - substr_count($token, ')');
+            // Track quote state (count unescaped quotes)
+            $quoteCount = substr_count($token, '"') - substr_count($token, '\\"');
+            if ($quoteCount % 2 !== 0) {
+                $inQuote = !$inQuote;
+            }
 
-            if ($depth === 0 && strtolower($token) === $operator) {
+            // Track parentheses depth (only outside quotes)
+            if (!$inQuote) {
+                $depth += substr_count($token, '(') - substr_count($token, ')');
+            }
+
+            if ($depth === 0 && !$inQuote && strtolower($token) === $operator) {
                 $parts[] = trim($current);
                 $current = '';
             } else {

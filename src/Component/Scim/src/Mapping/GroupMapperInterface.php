@@ -23,5 +23,5 @@ interface GroupMapperInterface
      *
      * @return array<string, mixed>
      */
-    public function toScim(string $roleName, array $role, array $members): array;
+    public function toScim(string $roleName, array $role, array $members, string $baseUrl = ''): array;
 }

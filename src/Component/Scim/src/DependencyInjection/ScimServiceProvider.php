@@ -41,7 +41,9 @@ final class ScimServiceProvider implements ServiceProviderInterface
     public function register(ContainerBuilder $builder): void
     {
         // Schema
-        $builder->register(ServiceProviderConfig::class);
+        if (!$builder->hasDefinition(ServiceProviderConfig::class)) {
+            $builder->register(ServiceProviderConfig::class);
+        }
 
         // Mapping
         $builder->register(UserAttributeMapper::class);

@@ -22,7 +22,6 @@ final readonly class ScimConfiguration
         public string $defaultRole = 'subscriber',
         public bool $allowGroupManagement = true,
         public bool $allowUserDeletion = false,
-        public ?int $blogId = null,
         public int $maxResults = 100,
     ) {}
 
@@ -42,7 +41,6 @@ final readonly class ScimConfiguration
             defaultRole: self::envString('SCIM_DEFAULT_ROLE', 'subscriber'),
             allowGroupManagement: self::envBool('SCIM_ALLOW_GROUP_MANAGEMENT', true),
             allowUserDeletion: self::envBool('SCIM_ALLOW_USER_DELETION', false),
-            blogId: self::envIntOrNull('SCIM_BLOG_ID'),
             maxResults: self::envInt('SCIM_MAX_RESULTS', 100),
         );
     }
@@ -72,14 +70,4 @@ final readonly class ScimConfiguration
         return filter_var($value, \FILTER_VALIDATE_BOOLEAN);
     }
 
-    private static function envIntOrNull(string $name): ?int
-    {
-        if (\defined($name)) {
-            return (int) \constant($name);
-        }
-
-        $value = getenv($name);
-
-        return $value !== false ? (int) $value : null;
-    }
 }

@@ -15,14 +15,14 @@ namespace WpPack\Component\Scim\Mapping;
 
 final readonly class GroupMapper implements GroupMapperInterface
 {
-    public function toScim(string $roleName, array $role, array $members): array
+    public function toScim(string $roleName, array $role, array $members, string $baseUrl = ''): array
     {
         $memberList = [];
         foreach ($members as $user) {
             $memberList[] = [
                 'value' => (string) $user->ID,
                 'display' => $user->display_name,
-                '$ref' => '/scim/v2/Users/' . $user->ID,
+                '$ref' => $baseUrl . '/scim/v2/Users/' . $user->ID,
             ];
         }
 

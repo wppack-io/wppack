@@ -66,11 +66,26 @@ final class PatchProcessor
 
             $this->checkImmutableAttributes($operation->value, $resource);
 
-            return array_merge($resource, $operation->value);
+            // Append to existing multi-valued (list) attributes, replace others
+            foreach ($operation->value as $key => $val) {
+                if (\is_array($val) && isset($resource[$key]) && \is_array($resource[$key]) && array_is_list($resource[$key])) {
+                    $resource[$key] = array_merge($resource[$key], $val);
+                } else {
+                    $resource[$key] = $val;
+                }
+            }
+
+            return $resource;
         }
 
         $this->checkImmutablePath($operation->path);
         $segments = PathParser::parse($operation->path);
+
+        // For multi-valued attributes, append instead of replace
+        $existing = self::getValueAtPath($resource, $segments);
+        if (\is_array($existing) && array_is_list($existing) && \is_array($operation->value)) {
+            return PathParser::setValueAtPath($resource, $segments, array_merge($existing, $operation->value));
+        }
 
         return PathParser::setValueAtPath($resource, $segments, $operation->value);
     }
@@ -114,6 +129,22 @@ final class PatchProcessor
         $segments = PathParser::parse($operation->path);
 
         return PathParser::removeValueAtPath($resource, $segments);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     * @param list<string> $segments
+     */
+    private static function getValueAtPath(array $data, array $segments): mixed
+    {
+        foreach ($segments as $segment) {
+            if (!\is_array($data) || !isset($data[$segment])) {
+                return null;
+            }
+            $data = $data[$segment];
+        }
+
+        return $data;
     }
 
     private function checkImmutablePath(string $path): void
