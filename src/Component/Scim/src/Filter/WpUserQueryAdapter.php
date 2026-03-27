@@ -102,12 +102,12 @@ final class WpUserQueryAdapter
             ],
             'sw' => [
                 'meta_query' => [
-                    ['key' => $metaKey, 'value' => '^' . $node->value, 'compare' => 'REGEXP'],
+                    ['key' => $metaKey, 'value' => '^' . preg_quote((string) $node->value, '/'), 'compare' => 'REGEXP'],
                 ],
             ],
             'ew' => [
                 'meta_query' => [
-                    ['key' => $metaKey, 'value' => $node->value . '$', 'compare' => 'REGEXP'],
+                    ['key' => $metaKey, 'value' => preg_quote((string) $node->value, '/') . '$', 'compare' => 'REGEXP'],
                 ],
             ],
             'pr' => [

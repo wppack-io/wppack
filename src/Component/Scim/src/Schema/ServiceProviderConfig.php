@@ -29,7 +29,7 @@ final readonly class ServiceProviderConfig
     /**
      * @return array<string, mixed>
      */
-    public function toArray(): array
+    public function toArray(string $baseUrl = ''): array
     {
         return [
             'schemas' => [ScimConstants::SERVICE_PROVIDER_CONFIG_SCHEMA],
@@ -65,7 +65,7 @@ final readonly class ServiceProviderConfig
             ],
             'meta' => [
                 'resourceType' => 'ServiceProviderConfig',
-                'location' => '/scim/v2/ServiceProviderConfig',
+                'location' => $baseUrl . '/scim/v2/ServiceProviderConfig',
             ],
         ];
     }

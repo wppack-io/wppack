@@ -27,10 +27,11 @@ final class ServiceProviderConfigController extends AbstractRestController
 {
     public function __construct(
         private readonly ServiceProviderConfig $config,
+        private readonly string $baseUrl = '',
     ) {}
 
     public function __invoke(): JsonResponse
     {
-        return $this->json($this->config->toArray(), headers: ['Content-Type' => ScimConstants::CONTENT_TYPE]);
+        return $this->json($this->config->toArray($this->baseUrl), headers: ['Content-Type' => ScimConstants::CONTENT_TYPE]);
     }
 }

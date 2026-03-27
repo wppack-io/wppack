@@ -22,6 +22,7 @@ use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Rest\RestRegistry;
 use WpPack\Component\Scim\Authentication\ScimBearerAuthenticator;
 use WpPack\Component\Scim\Controller\GroupController;
+use WpPack\Component\Scim\Controller\ServiceProviderConfigController;
 use WpPack\Component\Scim\Controller\UserController;
 use WpPack\Component\Scim\DependencyInjection\ScimServiceProvider;
 use WpPack\Component\Scim\Schema\ServiceProviderConfig;
@@ -73,12 +74,16 @@ final class ScimPluginServiceProvider implements ServiceProviderInterface
             ->setArgument('$maxResults', '%scim.max_results%')
             ->setArgument('$baseUrl', '%scim.base_url%')
             ->setArgument('$defaultRole', '%scim.default_role%')
-            ->setArgument('$allowUserDeletion', '%scim.allow_user_deletion%');
+            ->setArgument('$allowUserDeletion', '%scim.allow_user_deletion%')
+            ->setArgument('$autoProvision', '%scim.auto_provision%');
 
         $builder->findDefinition(GroupController::class)
             ->setArgument('$maxResults', '%scim.max_results%')
             ->setArgument('$baseUrl', '%scim.base_url%')
             ->setArgument('$allowGroupManagement', '%scim.allow_group_management%');
+
+        $builder->findDefinition(ServiceProviderConfigController::class)
+            ->setArgument('$baseUrl', '%scim.base_url%');
 
         // SCIM Bearer Authenticator
         $builder->register(ScimBearerAuthenticator::class)

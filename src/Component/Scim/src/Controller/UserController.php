@@ -57,6 +57,7 @@ final class UserController extends AbstractRestController
         private readonly string $baseUrl = '',
         private readonly string $defaultRole = 'subscriber',
         private readonly bool $allowUserDeletion = false,
+        private readonly bool $autoProvision = true,
     ) {}
 
     #[RestRoute(methods: [HttpMethod::GET])]
@@ -111,18 +112,18 @@ final class UserController extends AbstractRestController
     public function create(Request $request): JsonResponse
     {
         try {
+            if (!$this->autoProvision) {
+                throw new ScimException('User provisioning is disabled.', 403);
+            }
+
             $body = $this->decodeBody($request);
 
             if (!isset($body['userName'])) {
                 throw new InvalidValueException('userName is required.');
             }
 
-            // Validate email
             $mapped = $this->mapper->toWordPress($body);
-            $email = $mapped['data']['user_email'] ?? '';
-            if ($email === '' || !is_email($email)) {
-                throw new InvalidValueException('A valid email address is required.');
-            }
+            $this->validateMappedEmail($mapped);
 
             if (isset($body['externalId'])) {
                 $byExtId = $this->userRepository->findByExternalId($body['externalId']);
@@ -147,6 +148,12 @@ final class UserController extends AbstractRestController
 
             if ($user === null) {
                 throw new ScimException('Failed to create user.', 500);
+            }
+
+            // Deactivate if provisioned with active=false
+            if (isset($body['active']) && $body['active'] === false) {
+                $this->userRepository->deactivate($userId);
+                $this->dispatcher->dispatch(new UserDeactivatedEvent($user));
             }
 
             $this->dispatcher->dispatch(new UserProvisionedEvent($user, $body));
@@ -178,14 +185,19 @@ final class UserController extends AbstractRestController
                 throw new MutabilityException('userName is immutable after creation.');
             }
 
+            // externalId uniqueness check
+            if (isset($body['externalId'])) {
+                $byExtId = $this->userRepository->findByExternalId($body['externalId']);
+                if ($byExtId !== null && $byExtId->ID !== $id) {
+                    throw new ResourceConflictException(sprintf('User with externalId "%s" already exists.', $body['externalId']));
+                }
+            }
+
             $mapped = $this->mapper->toWordPress($body);
+            $this->validateMappedEmail($mapped);
             $this->userRepository->update($id, $mapped['data'], $mapped['meta']);
 
-            // Handle active flag
-            if (isset($body['active']) && $body['active'] === false) {
-                $this->userRepository->deactivate($id);
-                $this->dispatcher->dispatch(new UserDeactivatedEvent($user));
-            }
+            $this->handleActiveFlag($id, $body, $user);
 
             $updatedUser = $this->userRepository->find($id);
             if ($updatedUser === null) {
@@ -221,13 +233,10 @@ final class UserController extends AbstractRestController
             $patched = $this->patchProcessor->apply($currentScim, $patchRequest);
 
             $mapped = $this->mapper->toWordPress($patched);
+            $this->validateMappedEmail($mapped);
             $this->userRepository->update($id, $mapped['data'], $mapped['meta']);
 
-            // Handle active flag
-            if (isset($patched['active']) && $patched['active'] === false) {
-                $this->userRepository->deactivate($id);
-                $this->dispatcher->dispatch(new UserDeactivatedEvent($user));
-            }
+            $this->handleActiveFlag($id, $patched, $user);
 
             $updatedUser = $this->userRepository->find($id);
             if ($updatedUser === null) {
@@ -270,4 +279,25 @@ final class UserController extends AbstractRestController
         }
     }
 
+    /**
+     * @param array{data: array<string, mixed>, meta: array<string, mixed>} $mapped
+     */
+    private function validateMappedEmail(array $mapped): void
+    {
+        $email = $mapped['data']['user_email'] ?? '';
+        if ($email !== '' && !is_email($email)) {
+            throw new InvalidValueException('A valid email address is required.');
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function handleActiveFlag(int $id, array $data, \WP_User $user): void
+    {
+        if (isset($data['active']) && $data['active'] === false) {
+            $this->userRepository->deactivate($id);
+            $this->dispatcher->dispatch(new UserDeactivatedEvent($user));
+        }
+    }
 }

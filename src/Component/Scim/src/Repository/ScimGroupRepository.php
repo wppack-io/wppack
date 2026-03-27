@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Scim\Repository;
 
+use WpPack\Component\Scim\Exception\InvalidValueException;
 use WpPack\Component\User\UserRepositoryInterface;
 
 final readonly class ScimGroupRepository
@@ -108,13 +109,23 @@ final readonly class ScimGroupRepository
     public function addMember(string $roleName, int $userId): void
     {
         $user = $this->userRepository->find($userId);
-        $user?->add_role($roleName);
+
+        if ($user === null) {
+            throw new InvalidValueException(sprintf('User "%d" does not exist.', $userId));
+        }
+
+        $user->add_role($roleName);
     }
 
     public function removeMember(string $roleName, int $userId): void
     {
         $user = $this->userRepository->find($userId);
-        $user?->remove_role($roleName);
+
+        if ($user === null) {
+            throw new InvalidValueException(sprintf('User "%d" does not exist.', $userId));
+        }
+
+        $user->remove_role($roleName);
     }
 
     /**

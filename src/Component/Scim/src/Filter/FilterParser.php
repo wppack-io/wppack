@@ -99,9 +99,12 @@ final class FilterParser
     {
         $raw = trim($raw);
 
-        // Quoted string
-        if (str_starts_with($raw, '"') && str_ends_with($raw, '"')) {
-            return substr($raw, 1, -1);
+        // Quoted string — handle backslash-escaped characters (e.g., "O\"Brien")
+        if (str_starts_with($raw, '"') && \strlen($raw) >= 2) {
+            $inner = $this->extractQuotedString($raw);
+            if ($inner !== null) {
+                return $inner;
+            }
         }
 
         // Boolean
@@ -162,5 +165,34 @@ final class FilterParser
         }
 
         return $parts;
+    }
+
+    /**
+     * Extract the content of a JSON-style quoted string, handling backslash escapes.
+     *
+     * Scans from the opening `"` and finds the matching unescaped closing `"`.
+     * Returns the unescaped content, or null if no valid closing quote is found.
+     */
+    private function extractQuotedString(string $raw): ?string
+    {
+        $len = \strlen($raw);
+        $result = '';
+
+        for ($i = 1; $i < $len; $i++) {
+            if ($raw[$i] === '\\' && $i + 1 < $len) {
+                $result .= $raw[$i + 1];
+                $i++;
+                continue;
+            }
+
+            if ($raw[$i] === '"') {
+                // Valid closing quote — must be at end of string
+                return $i === $len - 1 ? $result : null;
+            }
+
+            $result .= $raw[$i];
+        }
+
+        return null;
     }
 }
