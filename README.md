@@ -81,6 +81,7 @@ alternatives.
 | `wppack/nonce` | CSRF token management |
 | `wppack/asset` | Asset management (scripts and styles) |
 | `wppack/ajax` | Admin Ajax handler |
+| `wppack/scim` | SCIM 2.0 provisioning |
 | `wppack/wpress` | .wpress archive format operations |
 
 ### Application Layer
@@ -112,6 +113,8 @@ alternatives.
 | `wppack/amazon-mailer-plugin` | Amazon SES mailer plugin |
 | `wppack/s3-storage-plugin` | Amazon S3 media storage plugin |
 | `wppack/eventbridge-scheduler-plugin` | EventBridge scheduler plugin |
+| `wppack/saml-login-plugin` | SAML 2.0 SSO login plugin |
+| `wppack/scim-plugin` | SCIM 2.0 provisioning plugin |
 
 ## Installation
 
