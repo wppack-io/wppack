@@ -15,6 +15,7 @@ namespace WpPack\Component\EventDispatcher\DependencyInjection;
 
 use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
+use WpPack\Component\DependencyInjection\Definition;
 use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
 use WpPack\Component\EventDispatcher\EventDispatcher;
@@ -55,8 +56,8 @@ final class RegisterEventListenersPass implements CompilerPassInterface
      * @param \ReflectionClass<object> $reflection
      */
     private function processAttributes(
-        \WpPack\Component\DependencyInjection\Definition $dispatcherDefinition,
-        \WpPack\Component\DependencyInjection\Definition $serviceDefinition,
+        Definition $dispatcherDefinition,
+        Definition $serviceDefinition,
         \ReflectionClass $reflection,
     ): bool {
         $found = false;
