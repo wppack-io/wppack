@@ -25,6 +25,7 @@
             <directory suffix=".php">src/Component/*/src</directory>
             <directory suffix=".php">src/Component/*/Bridge/*/src</directory>
             <directory suffix=".php">src/Plugin/*/src</directory>
+            <directory suffix=".php">src/MuPlugin/*/src</directory>
         </include>
     </source>
 </phpunit>

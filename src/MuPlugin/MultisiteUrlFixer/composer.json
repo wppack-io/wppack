@@ -1,0 +1,22 @@
+{
+    "name": "wppack/multisite-url-fixer",
+    "description": "Fix asset and content URLs for WordPress Multisite",
+    "type": "wordpress-muplugin",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "wppack/dependency-injection": "^1.0",
+        "wppack/event-dispatcher": "^1.0",
+        "wppack/kernel": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpPack\\MuPlugin\\MultisiteUrlFixer\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\MuPlugin\\MultisiteUrlFixer\\Tests\\": "tests/"
+        }
+    }
+}

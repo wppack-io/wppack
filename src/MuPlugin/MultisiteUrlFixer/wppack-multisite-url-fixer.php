@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 /**
  * Plugin Name:  WpPack Multisite URL Fixer
- * Description:  Fix asset and content URLs for WordPress Multisite with Bedrock
+ * Description:  Fix asset and content URLs for WordPress Multisite
  * Version:      1.0.0
  * Author:       WpPack
  * License:      MIT License

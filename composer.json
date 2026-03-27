@@ -293,7 +293,8 @@
         "wppack/gcs-storage": "self.version",
         "wppack/site": "self.version",
         "wppack/asset": "self.version",
-        "wppack/saml-login-plugin": "self.version"
+        "wppack/saml-login-plugin": "self.version",
+        "wppack/multisite-url-fixer": "self.version"
     },
     "config": {
         "sort-packages": true,
