@@ -18,6 +18,7 @@ use WpPack\Component\HttpFoundation\JsonResponse;
 use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Rest\Attribute\Permission;
 use WpPack\Component\Role\Attribute\IsGranted;
+use WpPack\Component\Role\Authorization\IsGrantedChecker;
 
 final class RestEntry
 {
@@ -37,6 +38,7 @@ final class RestEntry
         public readonly array $isGrantedAttributes = [],
         public readonly string $name = '',
         public readonly string $path = '',
+        private readonly ?IsGrantedChecker $isGrantedChecker = null,
     ) {}
 
     /**
@@ -133,6 +135,11 @@ final class RestEntry
         }
 
         if ($hasIsGranted && (!$hasPermission || $this->permission->public)) {
+            $checker = $this->isGrantedChecker;
+            if ($checker !== null) {
+                return static fn(\WP_REST_Request $request): bool => $checker->isAllGranted($isGrantedAttributes);
+            }
+
             return static function (\WP_REST_Request $request) use ($isGrantedAttributes): bool {
                 foreach ($isGrantedAttributes as $grant) {
                     if ($grant->subject !== null ? !current_user_can($grant->attribute, $grant->subject) : !current_user_can($grant->attribute)) {
@@ -150,6 +157,17 @@ final class RestEntry
 
             if (!$hasIsGranted) {
                 return static fn(\WP_REST_Request $request): bool => $controller->{$method}($request);
+            }
+
+            $checker = $this->isGrantedChecker;
+            if ($checker !== null) {
+                return static function (\WP_REST_Request $request) use ($controller, $method, $isGrantedAttributes, $checker): bool {
+                    if (!$controller->{$method}($request)) {
+                        return false;
+                    }
+
+                    return $checker->isAllGranted($isGrantedAttributes);
+                };
             }
 
             return static function (\WP_REST_Request $request) use ($controller, $method, $isGrantedAttributes): bool {

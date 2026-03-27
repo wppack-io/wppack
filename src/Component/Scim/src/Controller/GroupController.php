@@ -38,7 +38,7 @@ use WpPack\Component\Scim\Serialization\ListResponseSerializer;
 use WpPack\Component\Scim\Serialization\ScimGroupSerializer;
 
 #[RestRoute(namespace: 'scim/v2', route: '/Groups')]
-#[IsGranted('manage_options')]
+#[IsGranted('scim_provision')]
 final class GroupController extends AbstractRestController
 {
     public function __construct(

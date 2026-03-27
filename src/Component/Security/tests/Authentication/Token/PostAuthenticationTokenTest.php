@@ -64,14 +64,11 @@ final class PostAuthenticationTokenTest extends TestCase
     }
 
     #[Test]
-    public function nullTokenThrowsOnGetUser(): void
+    public function nullTokenGetUserReturnsNull(): void
     {
         $token = new NullToken();
 
-        $this->expectException(\LogicException::class);
-        $this->expectExceptionMessage('NullToken does not have a user.');
-
-        $token->getUser();
+        self::assertNull($token->getUser());
     }
 
     #[Test]

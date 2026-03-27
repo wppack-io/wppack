@@ -16,6 +16,7 @@ namespace WpPack\Component\Security\Tests\Authorization\Voter;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Security\Authentication\Token\NullToken;
+use WpPack\Component\Security\Authentication\Token\ServiceToken;
 use WpPack\Component\Security\Authorization\Voter\CapabilityVoter;
 use WpPack\Component\Security\Authorization\Voter\VoterInterface;
 
@@ -109,6 +110,30 @@ final class CapabilityVoterTest extends TestCase
         } finally {
             wp_delete_user($authorId);
         }
+    }
+
+    #[Test]
+    public function grantedForServiceTokenWithMatchingCapability(): void
+    {
+        $token = new ServiceToken('scim-service', capabilities: ['scim_provision']);
+
+        self::assertSame(VoterInterface::ACCESS_GRANTED, $this->voter->vote($token, 'scim_provision'));
+    }
+
+    #[Test]
+    public function deniedForServiceTokenWithoutMatchingCapability(): void
+    {
+        $token = new ServiceToken('scim-service', capabilities: ['scim_provision']);
+
+        self::assertSame(VoterInterface::ACCESS_DENIED, $this->voter->vote($token, 'manage_options'));
+    }
+
+    #[Test]
+    public function deniedForServiceTokenWithEmptyCapabilities(): void
+    {
+        $token = new ServiceToken('scim-service');
+
+        self::assertSame(VoterInterface::ACCESS_DENIED, $this->voter->vote($token, 'scim_provision'));
     }
 
     #[Test]

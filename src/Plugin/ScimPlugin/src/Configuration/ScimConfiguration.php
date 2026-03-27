@@ -18,7 +18,6 @@ final readonly class ScimConfiguration
     public function __construct(
         #[\SensitiveParameter]
         public string $bearerToken,
-        public int $serviceAccountUserId = 1,
         public bool $autoProvision = true,
         public string $defaultRole = 'subscriber',
         public bool $allowGroupManagement = true,
@@ -39,7 +38,6 @@ final readonly class ScimConfiguration
 
         return new self(
             bearerToken: $token,
-            serviceAccountUserId: self::envInt('SCIM_SERVICE_ACCOUNT_USER_ID', 1),
             autoProvision: self::envBool('SCIM_AUTO_PROVISION', true),
             defaultRole: self::envString('SCIM_DEFAULT_ROLE', 'subscriber'),
             allowGroupManagement: self::envBool('SCIM_ALLOW_GROUP_MANAGEMENT', true),

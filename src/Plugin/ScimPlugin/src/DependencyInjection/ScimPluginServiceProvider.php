@@ -94,7 +94,6 @@ final class ScimPluginServiceProvider implements ServiceProviderInterface
     {
         return new ScimBearerAuthenticator(
             bearerToken: $config->bearerToken,
-            serviceAccountUserId: $config->serviceAccountUserId,
         );
     }
 }

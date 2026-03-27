@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Security\Authorization\Voter;
 
+use WpPack\Component\Security\Authentication\Token\ServiceToken;
 use WpPack\Component\Security\Authentication\Token\TokenInterface;
 
 final class CapabilityVoter implements VoterInterface
@@ -29,6 +30,12 @@ final class CapabilityVoter implements VoterInterface
         }
 
         $user = $token->getUser();
+
+        if ($user === null) {
+            return ($token instanceof ServiceToken && \in_array($attribute, $token->getCapabilities(), true))
+                ? self::ACCESS_GRANTED
+                : self::ACCESS_DENIED;
+        }
 
         // Use user_can() for subject-based checks, otherwise check capability directly
         if ($subject !== null) {

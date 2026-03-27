@@ -41,7 +41,7 @@ use WpPack\Component\Scim\Serialization\ListResponseSerializer;
 use WpPack\Component\Scim\Serialization\ScimUserSerializer;
 
 #[RestRoute(namespace: 'scim/v2', route: '/Users')]
-#[IsGranted('manage_options')]
+#[IsGranted('scim_provision')]
 final class UserController extends AbstractRestController
 {
     public function __construct(

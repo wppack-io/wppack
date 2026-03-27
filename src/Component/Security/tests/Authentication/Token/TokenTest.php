@@ -17,6 +17,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Security\Authentication\Token\NullToken;
 use WpPack\Component\Security\Authentication\Token\PostAuthenticationToken;
+use WpPack\Component\Security\Authentication\Token\ServiceToken;
 use WpPack\Component\Security\Authentication\Token\TokenInterface;
 
 final class TokenTest extends TestCase
@@ -184,27 +185,11 @@ final class TokenTest extends TestCase
     }
 
     #[Test]
-    public function nullTokenGetUserThrowsLogicException(): void
+    public function nullTokenGetUserReturnsNull(): void
     {
         $token = new NullToken();
 
-        $this->expectException(\LogicException::class);
-        $this->expectExceptionMessage('NullToken does not have a user.');
-
-        $token->getUser();
-    }
-
-    #[Test]
-    public function nullTokenGetUserExceptionMessageSuggestsCheckingAuthentication(): void
-    {
-        $token = new NullToken();
-
-        try {
-            $token->getUser();
-            self::fail('Expected LogicException was not thrown.');
-        } catch (\LogicException $e) {
-            self::assertStringContainsString('Check isAuthenticated() first', $e->getMessage());
-        }
+        self::assertNull($token->getUser());
     }
 
     #[Test]
@@ -263,6 +248,90 @@ final class TokenTest extends TestCase
         // Blog ID
         self::assertSame(1, $authToken->getBlogId());
         self::assertNull($nullToken->getBlogId());
+    }
+
+    // ---------------------------------------------------------------
+    // ServiceToken
+    // ---------------------------------------------------------------
+
+    #[Test]
+    public function serviceTokenImplementsTokenInterface(): void
+    {
+        $token = new ServiceToken('scim-service');
+
+        self::assertInstanceOf(TokenInterface::class, $token);
+    }
+
+    #[Test]
+    public function serviceTokenIsAlwaysAuthenticated(): void
+    {
+        $token = new ServiceToken('scim-service');
+
+        self::assertTrue($token->isAuthenticated());
+    }
+
+    #[Test]
+    public function serviceTokenGetUserReturnsNull(): void
+    {
+        $token = new ServiceToken('scim-service');
+
+        self::assertNull($token->getUser());
+    }
+
+    #[Test]
+    public function serviceTokenReturnsServiceIdentifier(): void
+    {
+        $token = new ServiceToken('scim-service');
+
+        self::assertSame('scim-service', $token->getServiceIdentifier());
+    }
+
+    #[Test]
+    public function serviceTokenReturnsCapabilities(): void
+    {
+        $token = new ServiceToken('scim-service', capabilities: ['scim_provision', 'manage_users']);
+
+        self::assertSame(['scim_provision', 'manage_users'], $token->getCapabilities());
+    }
+
+    #[Test]
+    public function serviceTokenReturnsEmptyCapabilitiesByDefault(): void
+    {
+        $token = new ServiceToken('scim-service');
+
+        self::assertSame([], $token->getCapabilities());
+    }
+
+    #[Test]
+    public function serviceTokenReturnsRoles(): void
+    {
+        $token = new ServiceToken('scim-service', roles: ['service']);
+
+        self::assertSame(['service'], $token->getRoles());
+    }
+
+    #[Test]
+    public function serviceTokenReturnsEmptyRolesByDefault(): void
+    {
+        $token = new ServiceToken('scim-service');
+
+        self::assertSame([], $token->getRoles());
+    }
+
+    #[Test]
+    public function serviceTokenBlogIdIsNullByDefault(): void
+    {
+        $token = new ServiceToken('scim-service');
+
+        self::assertNull($token->getBlogId());
+    }
+
+    #[Test]
+    public function serviceTokenReturnsBlogIdWhenProvided(): void
+    {
+        $token = new ServiceToken('scim-service', blogId: 3);
+
+        self::assertSame(3, $token->getBlogId());
     }
 
     private function createWpUser(int $id, string $login = 'testuser'): \WP_User

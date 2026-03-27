@@ -19,7 +19,7 @@ use WpPack\Component\Security\Authentication\Passport\Badge\UserBadge;
 use WpPack\Component\Security\Authentication\Passport\Passport;
 use WpPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
 use WpPack\Component\Security\Authentication\StatelessAuthenticatorInterface;
-use WpPack\Component\Security\Authentication\Token\PostAuthenticationToken;
+use WpPack\Component\Security\Authentication\Token\ServiceToken;
 use WpPack\Component\Security\Authentication\Token\TokenInterface;
 use WpPack\Component\Security\Exception\AuthenticationException;
 
@@ -28,7 +28,6 @@ final class ScimBearerAuthenticator implements StatelessAuthenticatorInterface
     public function __construct(
         #[\SensitiveParameter]
         private readonly string $bearerToken,
-        private readonly int $serviceAccountUserId,
         private readonly string $pathPrefix = '/wp-json/scim/v2',
     ) {}
 
@@ -58,30 +57,16 @@ final class ScimBearerAuthenticator implements StatelessAuthenticatorInterface
             throw new AuthenticationException('Invalid bearer token.');
         }
 
-        $userId = $this->serviceAccountUserId;
-
         return new SelfValidatingPassport(
-            new UserBadge(
-                (string) $userId,
-                static function () use ($userId): \WP_User {
-                    $user = get_userdata($userId);
-                    if ($user === false) {
-                        throw new AuthenticationException('SCIM service account user not found.');
-                    }
-
-                    return $user;
-                },
-            ),
+            new UserBadge('scim-service'),
         );
     }
 
     public function createToken(Passport $passport): TokenInterface
     {
-        $user = $passport->getUser();
-
-        return new PostAuthenticationToken(
-            $user,
-            array_values($user->roles),
+        return new ServiceToken(
+            serviceIdentifier: 'scim-service',
+            capabilities: ['scim_provision'],
         );
     }
 

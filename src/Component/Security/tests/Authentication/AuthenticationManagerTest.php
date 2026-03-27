@@ -27,6 +27,7 @@ use WpPack\Component\Security\Authentication\Passport\Passport;
 use WpPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
 use WpPack\Component\Security\Authentication\StatelessAuthenticatorInterface;
 use WpPack\Component\Security\Authentication\Token\PostAuthenticationToken;
+use WpPack\Component\Security\Authentication\Token\ServiceToken;
 use WpPack\Component\Security\Authentication\Token\TokenInterface;
 use WpPack\Component\Security\Event\AuthenticationFailureEvent;
 use WpPack\Component\Security\Event\AuthenticationSuccessEvent;
@@ -334,6 +335,19 @@ final class AuthenticationManagerTest extends TestCase
     }
 
     #[Test]
+    public function handleStatelessAuthenticationReturnsZeroForServiceToken(): void
+    {
+        $authenticator = $this->createServiceTokenStatelessAuthenticator();
+        $this->manager->addAuthenticator($authenticator);
+
+        $result = $this->manager->handleStatelessAuthentication(0);
+
+        self::assertSame(0, $result);
+        self::assertNotNull($this->manager->getToken());
+        self::assertInstanceOf(ServiceToken::class, $this->manager->getToken());
+    }
+
+    #[Test]
     public function handleStatelessAuthenticationFailureWithResponse(): void
     {
         $authenticator = $this->createFailingStatelessAuthenticatorWithResponse();
@@ -586,6 +600,41 @@ final class AuthenticationManagerTest extends TestCase
             public function onAuthenticationSuccess(Request $request, TokenInterface $token): ?Response
             {
                 return new Response('Success', 200);
+            }
+
+            public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
+            {
+                return null;
+            }
+        };
+    }
+
+    private function createServiceTokenStatelessAuthenticator(): StatelessAuthenticatorInterface
+    {
+        return new class implements StatelessAuthenticatorInterface {
+            public function supports(Request $request): bool
+            {
+                return true;
+            }
+
+            public function authenticate(Request $request): Passport
+            {
+                return new SelfValidatingPassport(
+                    new UserBadge('scim-service'),
+                );
+            }
+
+            public function createToken(Passport $passport): TokenInterface
+            {
+                return new ServiceToken(
+                    serviceIdentifier: 'scim-service',
+                    capabilities: ['scim_provision'],
+                );
+            }
+
+            public function onAuthenticationSuccess(Request $request, TokenInterface $token): ?Response
+            {
+                return null;
             }
 
             public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response

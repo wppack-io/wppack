@@ -34,6 +34,7 @@ final class RestRegistry
     public function __construct(
         private readonly Request $request,
         private readonly ?Security $security = null,
+        private readonly ?IsGrantedChecker $isGrantedChecker = null,
     ) {}
 
     public function register(object $controller): void
@@ -148,6 +149,7 @@ final class RestRegistry
                 $isGrantedAttributes,
                 $classRoute->name,
                 $fullPath,
+                $this->isGrantedChecker,
             );
         }
 
@@ -193,6 +195,7 @@ final class RestRegistry
                     $isGrantedAttributes,
                     $methodRoute->name,
                     $fullPath,
+                    $this->isGrantedChecker,
                 );
             }
         }

@@ -61,22 +61,26 @@ composer require wppack/scim
 │                                                 │
 │  3. ScimBearerAuthenticator::authenticate()     │
 │     → hash_equals() で定数時間トークン比較       │
-│     → SelfValidatingPassport（サービスアカウント）│
+│     → SelfValidatingPassport（サービス識別子）    │
 │                                                 │
-│  4. PostAuthenticationToken 生成                 │
-│     → サービスアカウントユーザーとして認証完了     │
+│  4. ServiceToken 生成                            │
+│     → capabilities: ['scim_provision']           │
+│     → WordPress ユーザーなし（トークンベース認可）│
+│                                                 │
+│  5. CapabilityVoter                              │
+│     → ServiceToken の capabilities をチェック     │
+│     → 'scim_provision' あり → GRANTED            │
 │                                                 │
 └─────────────────────────────────────────────────┘
 ```
 
-`ScimBearerAuthenticator` は Security コンポーネントの `StatelessAuthenticatorInterface` を実装し、`determine_current_user` フィルター経由で毎リクエスト検証されます。
+`ScimBearerAuthenticator` は Security コンポーネントの `StatelessAuthenticatorInterface` を実装し、`determine_current_user` フィルター経由で毎リクエスト検証されます。認証成功時は `ServiceToken` を生成し、WordPress ユーザーに依存しないトークンベースの認可を行います。
 
 ```php
 use WpPack\Component\Scim\Authentication\ScimBearerAuthenticator;
 
 $authenticator = new ScimBearerAuthenticator(
     bearerToken: $token,               // #[\SensitiveParameter]
-    serviceAccountUserId: 1,
 );
 ```
 
@@ -324,7 +328,7 @@ SCIM コンポーネントは `wppack/site` に依存し、マルチサイト環
 |------|------|---------|
 | トークン漏洩 | `#[\SensitiveParameter]` でスタックトレースからの漏洩防止 | `ScimBearerAuthenticator`, `ScimConfiguration` |
 | タイミング攻撃 | `hash_equals()` による定数時間比較 | `ScimBearerAuthenticator::authenticate()` |
-| 不正アクセス | `#[IsGranted('manage_options')]` による権限チェック | `UserController`, `GroupController` |
+| 不正アクセス | `#[IsGranted('scim_provision')]` + `ServiceToken` によるトークンベース認可 | `UserController`, `GroupController` |
 | XSS / インジェクション | WordPress サニタイズ関数による入力検証 | `UserAttributeMapper` |
 | userName 変更 | `MutabilityException` でイミュータブル属性の変更を拒否 | `UserController`, `PatchProcessor` |
 | 不正なフィルター | `InvalidFilterException` でパース失敗を安全にハンドリング | `FilterParser` |

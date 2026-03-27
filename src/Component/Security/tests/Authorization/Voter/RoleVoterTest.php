@@ -16,6 +16,7 @@ namespace WpPack\Component\Security\Tests\Authorization\Voter;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Security\Authentication\Token\NullToken;
+use WpPack\Component\Security\Authentication\Token\ServiceToken;
 use WpPack\Component\Security\Authentication\Token\TokenInterface;
 use WpPack\Component\Security\Authorization\Voter\RoleVoter;
 use WpPack\Component\Security\Authorization\Voter\VoterInterface;
@@ -83,6 +84,14 @@ final class RoleVoterTest extends TestCase
 
         // On single-site, administrators have delete_users capability, so is_super_admin() returns true
         self::assertSame(VoterInterface::ACCESS_GRANTED, $this->voter->vote($token, 'ROLE_SUPER_ADMIN'));
+    }
+
+    #[Test]
+    public function superAdminDeniedForServiceToken(): void
+    {
+        $token = new ServiceToken('scim-service', capabilities: ['scim_provision']);
+
+        self::assertSame(VoterInterface::ACCESS_DENIED, $this->voter->vote($token, 'ROLE_SUPER_ADMIN'));
     }
 
     #[Test]

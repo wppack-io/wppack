@@ -51,7 +51,7 @@ src/Plugin/ScimPlugin/
 │                                                 │
 │  2. ScimBearerAuthenticator                     │
 │     → hash_equals() でトークン検証               │
-│     → サービスアカウントとして認証                │
+│     → ServiceToken 生成（トークンベース認可）     │
 │                                                 │
 │  3. UserController::create()                    │
 │     → externalId 重複チェック                    │
@@ -140,7 +140,6 @@ WpPack\Plugin\ScimPlugin\
 
 | 変数 | デフォルト | 説明 |
 |------|-----------|------|
-| `SCIM_SERVICE_ACCOUNT_USER_ID` | `1` | SCIM サービスアカウントの WordPress ユーザー ID |
 | `SCIM_AUTO_PROVISION` | `true` | 自動ユーザープロビジョニングの有効化 |
 | `SCIM_DEFAULT_ROLE` | `subscriber` | プロビジョニング時のデフォルトロール |
 | `SCIM_ALLOW_GROUP_MANAGEMENT` | `true` | SCIM によるグループ（ロール）管理の許可 |
@@ -153,7 +152,6 @@ WpPack\Plugin\ScimPlugin\
 ```php
 // wp-config.php
 define('SCIM_BEARER_TOKEN', 'your-secure-random-token');
-define('SCIM_SERVICE_ACCOUNT_USER_ID', 1);
 define('SCIM_DEFAULT_ROLE', 'subscriber');
 define('SCIM_ALLOW_USER_DELETION', false);
 ```
@@ -224,5 +222,5 @@ define('SCIM_BEARER_TOKEN', 'your-onelogin-provisioning-token');
 - **SensitiveParameter**: `ScimConfiguration::$bearerToken` は `#[\SensitiveParameter]` でスタックトレースからの漏洩を防止
 - **定数時間比較**: `hash_equals()` によるタイミング攻撃対策
 - **HTTPS 必須**: Bearer トークンは平文で送信されるため、本番環境では HTTPS を必須化
-- **サービスアカウント**: `SCIM_SERVICE_ACCOUNT_USER_ID` には管理者権限を持つ専用アカウントを指定。共有アカウントの使用は非推奨
+- **トークンベース認可**: SCIM API は `ServiceToken` を使用し、WordPress ユーザーに依存しない最小権限（`scim_provision`）で認可。`manage_options` のような広い権限を付与しない
 - **削除制御**: デフォルトで `SCIM_ALLOW_USER_DELETION=false`（無効化のみ）。完全削除は明示的に有効化が必要

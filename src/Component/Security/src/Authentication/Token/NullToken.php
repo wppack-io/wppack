@@ -15,9 +15,9 @@ namespace WpPack\Component\Security\Authentication\Token;
 
 final class NullToken implements TokenInterface
 {
-    public function getUser(): \WP_User
+    public function getUser(): ?\WP_User
     {
-        throw new \LogicException('NullToken does not have a user. Check isAuthenticated() first.');
+        return null;
     }
 
     public function getRoles(): array

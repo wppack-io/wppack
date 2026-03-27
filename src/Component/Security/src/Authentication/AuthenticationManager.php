@@ -128,7 +128,9 @@ final class AuthenticationManager implements AuthenticationManagerInterface
                     $response->send();
                 }
 
-                return $token->getUser()->ID;
+                $user = $token->getUser();
+
+                return $user !== null ? $user->ID : 0;
             } catch (AuthenticationException $e) {
                 $this->dispatcher->dispatch(new AuthenticationFailureEvent($e));
                 $response = $authenticator->onAuthenticationFailure($this->request, $e);
@@ -148,11 +150,13 @@ final class AuthenticationManager implements AuthenticationManagerInterface
 
     private function establishAuthSession(TokenInterface $token): void
     {
-        if (headers_sent()) {
+        $user = $token->getUser();
+
+        if ($user === null || headers_sent()) {
             return;
         }
 
-        $this->authSession->login($token->getUser()->ID, false, is_ssl());
+        $this->authSession->login($user->ID, false, is_ssl());
     }
 
     /**
