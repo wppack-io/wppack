@@ -15,6 +15,7 @@ namespace WpPack\Component\Scim\Authentication;
 
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\HttpFoundation\Response;
+use WpPack\Component\Scim\Schema\ScimConstants;
 use WpPack\Component\Security\Authentication\Passport\Badge\UserBadge;
 use WpPack\Component\Security\Authentication\Passport\Passport;
 use WpPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
@@ -29,7 +30,11 @@ final class ScimBearerAuthenticator implements StatelessAuthenticatorInterface
         #[\SensitiveParameter]
         private readonly string $bearerToken,
         private readonly string $pathPrefix = '/wp-json/scim/v2',
-    ) {}
+    ) {
+        if ($bearerToken === '') {
+            throw new \InvalidArgumentException('Bearer token must not be empty.');
+        }
+    }
 
     public function supports(Request $request): bool
     {
@@ -53,7 +58,7 @@ final class ScimBearerAuthenticator implements StatelessAuthenticatorInterface
 
         $token = substr($authHeader, 7);
 
-        if (!hash_equals($this->bearerToken, $token)) {
+        if ($token === '' || !hash_equals($this->bearerToken, $token)) {
             throw new AuthenticationException('Invalid bearer token.');
         }
 
@@ -66,7 +71,7 @@ final class ScimBearerAuthenticator implements StatelessAuthenticatorInterface
     {
         return new ServiceToken(
             serviceIdentifier: 'scim-service',
-            capabilities: ['scim_provision'],
+            capabilities: [ScimConstants::CAPABILITY_PROVISION],
         );
     }
 

@@ -112,6 +112,16 @@ final readonly class ScimUserRepository
         $this->userRepository->updateMeta($userId, ScimConstants::META_LAST_MODIFIED, $now);
     }
 
+    public function reactivate(int $userId, string $defaultRole): void
+    {
+        $this->userRepository->updateMeta($userId, ScimConstants::META_ACTIVE, '1');
+
+        $user = $this->find($userId);
+        if ($user !== null && $user->roles === []) {
+            $user->set_role($defaultRole);
+        }
+    }
+
     public function deactivate(int $userId): void
     {
         $this->userRepository->updateMeta($userId, ScimConstants::META_ACTIVE, '0');

@@ -39,7 +39,13 @@ final class PathParser
             throw new InvalidPatchException(sprintf('Invalid attribute path: "%s".', $path), 'invalidPath');
         }
 
-        return explode('.', $cleaned);
+        $segments = array_values(array_filter(explode('.', $cleaned), static fn(string $s): bool => $s !== ''));
+
+        if ($segments === []) {
+            throw new InvalidPatchException(sprintf('Invalid attribute path: "%s".', $path), 'invalidPath');
+        }
+
+        return $segments;
     }
 
     /**

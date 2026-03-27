@@ -24,7 +24,7 @@ use WpPack\Component\Scim\Schema\UserSchema;
 use WpPack\Component\Scim\Serialization\ListResponseSerializer;
 
 #[RestRoute(namespace: 'scim/v2', route: '/ResourceTypes')]
-#[IsGranted('scim_provision')]
+#[IsGranted(ScimConstants::CAPABILITY_PROVISION)]
 final class ResourceTypeController extends AbstractRestController
 {
     #[RestRoute(methods: [HttpMethod::GET])]

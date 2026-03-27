@@ -157,17 +157,11 @@ final class WpUserQueryAdapter
 
         if ($leftMeta !== [] || $rightMeta !== []) {
             $metaQuery = ['relation' => $relation];
-            foreach ($leftMeta as $clause) {
-                if (!\is_array($clause) || isset($clause['relation'])) {
-                    continue;
-                }
-                $metaQuery[] = $clause;
+            if ($leftMeta !== []) {
+                $metaQuery[] = $leftMeta;
             }
-            foreach ($rightMeta as $clause) {
-                if (!\is_array($clause) || isset($clause['relation'])) {
-                    continue;
-                }
-                $metaQuery[] = $clause;
+            if ($rightMeta !== []) {
+                $metaQuery[] = $rightMeta;
             }
             $merged['meta_query'] = $metaQuery;
         }

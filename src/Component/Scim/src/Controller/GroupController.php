@@ -38,7 +38,7 @@ use WpPack\Component\Scim\Serialization\ListResponseSerializer;
 use WpPack\Component\Scim\Serialization\ScimGroupSerializer;
 
 #[RestRoute(namespace: 'scim/v2', route: '/Groups')]
-#[IsGranted('scim_provision')]
+#[IsGranted(ScimConstants::CAPABILITY_PROVISION)]
 final class GroupController extends AbstractRestController
 {
     use ScimBodyDecoderTrait;
@@ -115,6 +115,10 @@ final class GroupController extends AbstractRestController
 
             $roleName = sanitize_key($body['displayName']);
 
+            if ($roleName === '') {
+                throw new InvalidValueException('displayName must produce a valid role name.');
+            }
+
             if ($this->groupRepository->findByName($roleName) !== null) {
                 throw new ResourceConflictException(sprintf('Group "%s" already exists.', $roleName));
             }
@@ -123,10 +127,7 @@ final class GroupController extends AbstractRestController
 
             // Handle initial members
             if (isset($body['members']) && \is_array($body['members'])) {
-                $memberIds = array_map(
-                    static fn(array $member): int => (int) $member['value'],
-                    $body['members'],
-                );
+                $memberIds = self::extractMemberIds($body['members']);
                 $this->groupRepository->setMembers($roleName, $memberIds);
 
                 $this->dispatcher->dispatch(new GroupMembershipChangedEvent($roleName, $memberIds, []));
@@ -169,10 +170,7 @@ final class GroupController extends AbstractRestController
                 $currentMembers = $this->groupRepository->getMembersOfRole($id);
                 $currentIds = array_map(static fn(\WP_User $u): int => $u->ID, $currentMembers);
 
-                $newMemberIds = array_map(
-                    static fn(array $member): int => (int) $member['value'],
-                    $body['members'],
-                );
+                $newMemberIds = self::extractMemberIds($body['members']);
                 $this->groupRepository->setMembers($id, $newMemberIds);
 
                 $added = array_values(array_diff($newMemberIds, $currentIds));
@@ -233,10 +231,7 @@ final class GroupController extends AbstractRestController
 
             // Update members if changed
             if (isset($patched['members']) && \is_array($patched['members'])) {
-                $newMemberIds = array_map(
-                    static fn(array $member): int => (int) $member['value'],
-                    $patched['members'],
-                );
+                $newMemberIds = self::extractMemberIds($patched['members']);
                 $this->groupRepository->setMembers($id, $newMemberIds);
 
                 $added = array_values(array_diff($newMemberIds, $currentMemberIds));
@@ -280,6 +275,24 @@ final class GroupController extends AbstractRestController
         } catch (ScimException $e) {
             return $this->json(ErrorSerializer::fromException($e), $e->getHttpStatus(), ['Content-Type' => ScimConstants::CONTENT_TYPE]);
         }
+    }
+
+    /**
+     * @param list<array<string, mixed>> $members
+     *
+     * @return list<int>
+     */
+    private static function extractMemberIds(array $members): array
+    {
+        $ids = [];
+        foreach ($members as $member) {
+            if (!isset($member['value']) || $member['value'] === '') {
+                throw new InvalidValueException('Each member must have a "value" attribute.');
+            }
+            $ids[] = (int) $member['value'];
+        }
+
+        return $ids;
     }
 
     private function ensureGroupManagementAllowed(): void

@@ -22,7 +22,7 @@ use WpPack\Component\Scim\Schema\ScimConstants;
 use WpPack\Component\Scim\Schema\ServiceProviderConfig;
 
 #[RestRoute(namespace: 'scim/v2', route: '/ServiceProviderConfig', methods: [HttpMethod::GET])]
-#[IsGranted('scim_provision')]
+#[IsGranted(ScimConstants::CAPABILITY_PROVISION)]
 final class ServiceProviderConfigController extends AbstractRestController
 {
     public function __construct(

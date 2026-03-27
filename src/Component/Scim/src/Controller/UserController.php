@@ -24,6 +24,7 @@ use WpPack\Component\Role\Attribute\IsGranted;
 use WpPack\Component\Scim\Event\UserDeactivatedEvent;
 use WpPack\Component\Scim\Event\UserDeletedEvent;
 use WpPack\Component\Scim\Event\UserProvisionedEvent;
+use WpPack\Component\Scim\Event\UserReactivatedEvent;
 use WpPack\Component\Scim\Event\UserUpdatedEvent;
 use WpPack\Component\Scim\Exception\InvalidValueException;
 use WpPack\Component\Scim\Exception\MutabilityException;
@@ -41,7 +42,7 @@ use WpPack\Component\Scim\Serialization\ListResponseSerializer;
 use WpPack\Component\Scim\Serialization\ScimUserSerializer;
 
 #[RestRoute(namespace: 'scim/v2', route: '/Users')]
-#[IsGranted('scim_provision')]
+#[IsGranted(ScimConstants::CAPABILITY_PROVISION)]
 final class UserController extends AbstractRestController
 {
     use ScimBodyDecoderTrait;
@@ -150,13 +151,17 @@ final class UserController extends AbstractRestController
                 throw new ScimException('Failed to create user.', 500);
             }
 
+            $this->dispatcher->dispatch(new UserProvisionedEvent($user, $body));
+
             // Deactivate if provisioned with active=false
             if (isset($body['active']) && $body['active'] === false) {
                 $this->userRepository->deactivate($userId);
+                $user = $this->userRepository->find($userId);
+                if ($user === null) {
+                    throw new ScimException('Failed to retrieve user after deactivation.', 500);
+                }
                 $this->dispatcher->dispatch(new UserDeactivatedEvent($user));
             }
-
-            $this->dispatcher->dispatch(new UserProvisionedEvent($user, $body));
 
             return $this->json(
                 $this->serializer->serialize($user, $this->baseUrl),
@@ -193,11 +198,12 @@ final class UserController extends AbstractRestController
                 }
             }
 
+            $wasActive = $this->isActive($user);
             $mapped = $this->mapper->toWordPress($body);
             $this->validateMappedEmail($mapped);
             $this->userRepository->update($id, $mapped['data'], $mapped['meta']);
 
-            $this->handleActiveFlag($id, $body, $user);
+            $this->handleActiveFlag($id, $body, $wasActive);
 
             $updatedUser = $this->userRepository->find($id);
             if ($updatedUser === null) {
@@ -232,11 +238,12 @@ final class UserController extends AbstractRestController
             $currentScim = $this->mapper->toScim($user);
             $patched = $this->patchProcessor->apply($currentScim, $patchRequest);
 
+            $wasActive = $this->isActive($user);
             $mapped = $this->mapper->toWordPress($patched);
             $this->validateMappedEmail($mapped);
             $this->userRepository->update($id, $mapped['data'], $mapped['meta']);
 
-            $this->handleActiveFlag($id, $patched, $user);
+            $this->handleActiveFlag($id, $patched, $wasActive);
 
             $updatedUser = $this->userRepository->find($id);
             if ($updatedUser === null) {
@@ -290,14 +297,34 @@ final class UserController extends AbstractRestController
         }
     }
 
+    private function isActive(\WP_User $user): bool
+    {
+        $meta = get_user_meta($user->ID, ScimConstants::META_ACTIVE, true);
+
+        return $meta !== '0';
+    }
+
     /**
      * @param array<string, mixed> $data
      */
-    private function handleActiveFlag(int $id, array $data, \WP_User $user): void
+    private function handleActiveFlag(int $id, array $data, bool $wasActive): void
     {
-        if (isset($data['active']) && $data['active'] === false) {
+        if (!isset($data['active'])) {
+            return;
+        }
+
+        if ($data['active'] === false && $wasActive) {
             $this->userRepository->deactivate($id);
-            $this->dispatcher->dispatch(new UserDeactivatedEvent($user));
+            $user = $this->userRepository->find($id);
+            if ($user !== null) {
+                $this->dispatcher->dispatch(new UserDeactivatedEvent($user));
+            }
+        } elseif ($data['active'] === true && !$wasActive) {
+            $this->userRepository->reactivate($id, $this->defaultRole);
+            $user = $this->userRepository->find($id);
+            if ($user !== null) {
+                $this->dispatcher->dispatch(new UserReactivatedEvent($user));
+            }
         }
     }
 }

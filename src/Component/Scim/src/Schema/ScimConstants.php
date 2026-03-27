@@ -26,6 +26,9 @@ final class ScimConstants
 
     public const CONTENT_TYPE = 'application/scim+json';
 
+    // Capability
+    public const CAPABILITY_PROVISION = 'scim_provision';
+
     // User meta keys
     public const META_EXTERNAL_ID = '_wppack_scim_external_id';
     public const META_ACTIVE = '_wppack_scim_active';
