@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace WpPack\Plugin\ScimPlugin\DependencyInjection;
 
-use Psr\EventDispatcher\EventDispatcherInterface;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
@@ -72,11 +71,14 @@ final class ScimPluginServiceProvider implements ServiceProviderInterface
         // Override controller arguments with plugin-specific config
         $builder->findDefinition(UserController::class)
             ->setArgument('$maxResults', '%scim.max_results%')
-            ->setArgument('$baseUrl', '%scim.base_url%');
+            ->setArgument('$baseUrl', '%scim.base_url%')
+            ->setArgument('$defaultRole', '%scim.default_role%')
+            ->setArgument('$allowUserDeletion', '%scim.allow_user_deletion%');
 
         $builder->findDefinition(GroupController::class)
             ->setArgument('$maxResults', '%scim.max_results%')
-            ->setArgument('$baseUrl', '%scim.base_url%');
+            ->setArgument('$baseUrl', '%scim.base_url%')
+            ->setArgument('$allowGroupManagement', '%scim.allow_group_management%');
 
         // SCIM Bearer Authenticator
         $builder->register(ScimBearerAuthenticator::class)

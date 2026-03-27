@@ -13,13 +13,10 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Scim\Mapping;
 
+use WpPack\Component\Scim\Schema\ScimConstants;
+
 final readonly class UserAttributeMapper implements UserAttributeMapperInterface
 {
-    private const EXTERNAL_ID_META = '_wppack_scim_external_id';
-    private const ACTIVE_META = '_wppack_scim_active';
-    private const TIMEZONE_META = '_wppack_scim_timezone';
-    private const TITLE_META = '_wppack_scim_title';
-
     public function toWordPress(array $scimAttributes): array
     {
         $data = [];
@@ -58,11 +55,11 @@ final readonly class UserAttributeMapper implements UserAttributeMapperInterface
         }
 
         if (isset($scimAttributes['externalId'])) {
-            $meta[self::EXTERNAL_ID_META] = sanitize_text_field($scimAttributes['externalId']);
+            $meta[ScimConstants::META_EXTERNAL_ID] = sanitize_text_field($scimAttributes['externalId']);
         }
 
         if (isset($scimAttributes['active'])) {
-            $meta[self::ACTIVE_META] = $scimAttributes['active'] ? '1' : '0';
+            $meta[ScimConstants::META_ACTIVE] = $scimAttributes['active'] ? '1' : '0';
         }
 
         if (isset($scimAttributes['locale'])) {
@@ -70,11 +67,11 @@ final readonly class UserAttributeMapper implements UserAttributeMapperInterface
         }
 
         if (isset($scimAttributes['timezone'])) {
-            $meta[self::TIMEZONE_META] = sanitize_text_field($scimAttributes['timezone']);
+            $meta[ScimConstants::META_TIMEZONE] = sanitize_text_field($scimAttributes['timezone']);
         }
 
         if (isset($scimAttributes['title'])) {
-            $meta[self::TITLE_META] = sanitize_text_field($scimAttributes['title']);
+            $meta[ScimConstants::META_TITLE] = sanitize_text_field($scimAttributes['title']);
         }
 
         return ['data' => $data, 'meta' => $meta];
@@ -82,7 +79,7 @@ final readonly class UserAttributeMapper implements UserAttributeMapperInterface
 
     public function toScim(\WP_User $user): array
     {
-        $active = get_user_meta($user->ID, self::ACTIVE_META, true);
+        $active = get_user_meta($user->ID, ScimConstants::META_ACTIVE, true);
 
         return [
             'userName' => $user->user_login,
@@ -102,9 +99,9 @@ final readonly class UserAttributeMapper implements UserAttributeMapperInterface
             ],
             'active' => $active !== '0',
             'locale' => get_user_meta($user->ID, 'locale', true) ?: null,
-            'timezone' => get_user_meta($user->ID, self::TIMEZONE_META, true) ?: null,
-            'title' => get_user_meta($user->ID, self::TITLE_META, true) ?: null,
-            'externalId' => get_user_meta($user->ID, self::EXTERNAL_ID_META, true) ?: null,
+            'timezone' => get_user_meta($user->ID, ScimConstants::META_TIMEZONE, true) ?: null,
+            'title' => get_user_meta($user->ID, ScimConstants::META_TITLE, true) ?: null,
+            'externalId' => get_user_meta($user->ID, ScimConstants::META_EXTERNAL_ID, true) ?: null,
         ];
     }
 

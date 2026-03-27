@@ -35,7 +35,6 @@ Set environment variables in `wp-config.php`:
 define('SCIM_BEARER_TOKEN', 'your-secure-random-token');
 
 // Optional
-define('SCIM_SERVICE_ACCOUNT_USER_ID', 1);
 define('SCIM_DEFAULT_ROLE', 'subscriber');
 define('SCIM_ALLOW_USER_DELETION', false);
 ```
@@ -43,7 +42,6 @@ define('SCIM_ALLOW_USER_DELETION', false);
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `SCIM_BEARER_TOKEN` | Yes | — | Bearer token for SCIM API authentication |
-| `SCIM_SERVICE_ACCOUNT_USER_ID` | No | `1` | WordPress user ID for the SCIM service account |
 | `SCIM_AUTO_PROVISION` | No | `true` | Enable automatic user provisioning |
 | `SCIM_DEFAULT_ROLE` | No | `subscriber` | Default role for provisioned users |
 | `SCIM_ALLOW_GROUP_MANAGEMENT` | No | `true` | Allow SCIM to manage WordPress roles |

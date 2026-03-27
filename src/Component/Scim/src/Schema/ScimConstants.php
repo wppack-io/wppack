@@ -25,4 +25,11 @@ final class ScimConstants
     public const SCHEMA_SCHEMA = 'urn:ietf:params:scim:schemas:core:2.0:Schema';
 
     public const CONTENT_TYPE = 'application/scim+json';
+
+    // User meta keys
+    public const META_EXTERNAL_ID = '_wppack_scim_external_id';
+    public const META_ACTIVE = '_wppack_scim_active';
+    public const META_TIMEZONE = '_wppack_scim_timezone';
+    public const META_TITLE = '_wppack_scim_title';
+    public const META_LAST_MODIFIED = '_wppack_scim_last_modified';
 }

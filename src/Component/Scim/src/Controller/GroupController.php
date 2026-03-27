@@ -41,6 +41,8 @@ use WpPack\Component\Scim\Serialization\ScimGroupSerializer;
 #[IsGranted('scim_provision')]
 final class GroupController extends AbstractRestController
 {
+    use ScimBodyDecoderTrait;
+
     public function __construct(
         private readonly ScimGroupRepository $groupRepository,
         private readonly ScimGroupSerializer $serializer,
@@ -48,6 +50,7 @@ final class GroupController extends AbstractRestController
         private readonly EventDispatcherInterface $dispatcher,
         private readonly int $maxResults = 100,
         private readonly string $baseUrl = '',
+        private readonly bool $allowGroupManagement = true,
     ) {}
 
     #[RestRoute(methods: [HttpMethod::GET])]
@@ -103,6 +106,7 @@ final class GroupController extends AbstractRestController
     public function create(Request $request): JsonResponse
     {
         try {
+            $this->ensureGroupManagementAllowed();
             $body = $this->decodeBody($request);
 
             if (!isset($body['displayName'])) {
@@ -147,6 +151,7 @@ final class GroupController extends AbstractRestController
     public function replace(string $id, Request $request): JsonResponse
     {
         try {
+            $this->ensureGroupManagementAllowed();
             $role = $this->groupRepository->findByName($id);
 
             if ($role === null) {
@@ -196,6 +201,7 @@ final class GroupController extends AbstractRestController
     public function patch(string $id, Request $request): JsonResponse
     {
         try {
+            $this->ensureGroupManagementAllowed();
             $role = $this->groupRepository->findByName($id);
 
             if ($role === null) {
@@ -259,6 +265,7 @@ final class GroupController extends AbstractRestController
     public function delete(string $id): Response
     {
         try {
+            $this->ensureGroupManagementAllowed();
             $role = $this->groupRepository->findByName($id);
 
             if ($role === null) {
@@ -275,21 +282,10 @@ final class GroupController extends AbstractRestController
         }
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    private function decodeBody(Request $request): array
+    private function ensureGroupManagementAllowed(): void
     {
-        $content = $request->getContent();
-        if ($content === '') {
-            throw new InvalidValueException('Request body is empty.');
+        if (!$this->allowGroupManagement) {
+            throw new ScimException('Group management is disabled.', 403);
         }
-
-        $body = json_decode($content, true, 512, \JSON_THROW_ON_ERROR);
-        if (!\is_array($body)) {
-            throw new InvalidValueException('Request body must be a JSON object.');
-        }
-
-        return $body;
     }
 }

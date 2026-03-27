@@ -19,14 +19,9 @@ use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\EventDispatcher\DependencyInjection\RegisterEventListenersPass;
 use WpPack\Component\Kernel\AbstractPlugin;
 use WpPack\Component\Rest\DependencyInjection\RegisterRestControllersPass;
-use WpPack\Component\Rest\RestRegistry;
-use WpPack\Component\Scim\Controller\GroupController;
-use WpPack\Component\Scim\Controller\ResourceTypeController;
-use WpPack\Component\Scim\Controller\SchemaController;
-use WpPack\Component\Scim\Controller\ServiceProviderConfigController;
-use WpPack\Component\Scim\Controller\UserController;
 use WpPack\Component\Security\Authentication\AuthenticationManager;
 use WpPack\Component\Security\DependencyInjection\RegisterAuthenticatorsPass;
+use WpPack\Plugin\ScimPlugin\Configuration\ScimConfiguration;
 use WpPack\Plugin\ScimPlugin\DependencyInjection\ScimPluginServiceProvider;
 
 final class ScimPlugin extends AbstractPlugin
@@ -41,8 +36,13 @@ final class ScimPlugin extends AbstractPlugin
 
     public function register(ContainerBuilder $builder): void
     {
-        $builder->setParameter('scim.max_results', 100);
-        $builder->setParameter('scim.base_url', '');
+        $config = ScimConfiguration::fromEnvironment();
+
+        $builder->setParameter('scim.max_results', $config->maxResults);
+        $builder->setParameter('scim.base_url', rtrim(rest_url(), '/'));
+        $builder->setParameter('scim.default_role', $config->defaultRole);
+        $builder->setParameter('scim.allow_group_management', $config->allowGroupManagement);
+        $builder->setParameter('scim.allow_user_deletion', $config->allowUserDeletion);
 
         $this->serviceProvider->register($builder);
     }
@@ -64,13 +64,5 @@ final class ScimPlugin extends AbstractPlugin
         /** @var AuthenticationManager $authManager */
         $authManager = $container->get(AuthenticationManager::class);
         $authManager->register();
-
-        /** @var RestRegistry $restRegistry */
-        $restRegistry = $container->get(RestRegistry::class);
-        $restRegistry->register($container->get(UserController::class));
-        $restRegistry->register($container->get(GroupController::class));
-        $restRegistry->register($container->get(ServiceProviderConfigController::class));
-        $restRegistry->register($container->get(SchemaController::class));
-        $restRegistry->register($container->get(ResourceTypeController::class));
     }
 }

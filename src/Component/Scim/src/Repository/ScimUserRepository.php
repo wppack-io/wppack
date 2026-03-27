@@ -15,13 +15,11 @@ namespace WpPack\Component\Scim\Repository;
 
 use WpPack\Component\Scim\Filter\FilterNode;
 use WpPack\Component\Scim\Filter\WpUserQueryAdapter;
+use WpPack\Component\Scim\Schema\ScimConstants;
 use WpPack\Component\User\UserRepositoryInterface;
 
 final readonly class ScimUserRepository
 {
-    private const EXTERNAL_ID_META = '_wppack_scim_external_id';
-    private const ACTIVE_META = '_wppack_scim_active';
-
     public function __construct(
         private UserRepositoryInterface $userRepository,
         private WpUserQueryAdapter $queryAdapter = new WpUserQueryAdapter(),
@@ -35,7 +33,7 @@ final readonly class ScimUserRepository
     public function findByExternalId(string $externalId): ?\WP_User
     {
         $users = $this->userRepository->findAll([
-            'meta_key' => self::EXTERNAL_ID_META,
+            'meta_key' => ScimConstants::META_EXTERNAL_ID,
             'meta_value' => $externalId,
             'number' => 1,
         ]);
@@ -87,8 +85,8 @@ final readonly class ScimUserRepository
         }
 
         // Mark as SCIM active by default
-        if (!isset($meta[self::ACTIVE_META])) {
-            $this->userRepository->updateMeta($userId, self::ACTIVE_META, '1');
+        if (!isset($meta[ScimConstants::META_ACTIVE])) {
+            $this->userRepository->updateMeta($userId, ScimConstants::META_ACTIVE, '1');
         }
 
         return $userId;
@@ -108,11 +106,15 @@ final readonly class ScimUserRepository
         foreach ($meta as $key => $value) {
             $this->userRepository->updateMeta($userId, $key, $value);
         }
+
+        // Track lastModified as ISO 8601 for SCIM meta
+        $now = (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format(\DateTimeInterface::ATOM);
+        $this->userRepository->updateMeta($userId, ScimConstants::META_LAST_MODIFIED, $now);
     }
 
     public function deactivate(int $userId): void
     {
-        $this->userRepository->updateMeta($userId, self::ACTIVE_META, '0');
+        $this->userRepository->updateMeta($userId, ScimConstants::META_ACTIVE, '0');
 
         // Strip all roles
         $user = $this->find($userId);

@@ -65,12 +65,14 @@ final readonly class ScimUserSerializer
             $resource['title'] = $scimAttributes['title'];
         }
 
-        $resource['groups'] = $this->serializeGroups($user);
+        $resource['groups'] = $this->serializeGroups($user, $baseUrl);
+
+        $lastModified = get_user_meta($user->ID, ScimConstants::META_LAST_MODIFIED, true);
 
         $resource['meta'] = [
             'resourceType' => 'User',
-            'created' => $user->user_registered,
-            'lastModified' => $user->user_registered,
+            'created' => self::toIso8601($user->user_registered),
+            'lastModified' => $lastModified !== '' ? $lastModified : self::toIso8601($user->user_registered),
             'location' => $baseUrl . '/scim/v2/Users/' . $user->ID,
         ];
 
@@ -80,7 +82,7 @@ final readonly class ScimUserSerializer
     /**
      * @return list<array<string, string>>
      */
-    private function serializeGroups(\WP_User $user): array
+    private function serializeGroups(\WP_User $user, string $baseUrl): array
     {
         $groups = [];
 
@@ -88,10 +90,21 @@ final readonly class ScimUserSerializer
             $groups[] = [
                 'value' => $role,
                 'display' => wp_roles()->get_names()[$role] ?? $role,
-                '$ref' => '/scim/v2/Groups/' . $role,
+                '$ref' => $baseUrl . '/scim/v2/Groups/' . $role,
             ];
         }
 
         return $groups;
+    }
+
+    private static function toIso8601(string $mysqlDate): string
+    {
+        $dt = \DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $mysqlDate, new \DateTimeZone('UTC'));
+
+        if ($dt === false) {
+            return $mysqlDate;
+        }
+
+        return $dt->format(\DateTimeInterface::ATOM);
     }
 }

@@ -44,6 +44,8 @@ use WpPack\Component\Scim\Serialization\ScimUserSerializer;
 #[IsGranted('scim_provision')]
 final class UserController extends AbstractRestController
 {
+    use ScimBodyDecoderTrait;
+
     public function __construct(
         private readonly ScimUserRepository $userRepository,
         private readonly UserAttributeMapperInterface $mapper,
@@ -53,6 +55,8 @@ final class UserController extends AbstractRestController
         private readonly FilterParser $filterParser,
         private readonly int $maxResults = 100,
         private readonly string $baseUrl = '',
+        private readonly string $defaultRole = 'subscriber',
+        private readonly bool $allowUserDeletion = false,
     ) {}
 
     #[RestRoute(methods: [HttpMethod::GET])]
@@ -113,8 +117,13 @@ final class UserController extends AbstractRestController
                 throw new InvalidValueException('userName is required.');
             }
 
-            // Check for existing user with same userName or externalId
-            $existing = $this->userRepository->findFiltered(null, 1, 1);
+            // Validate email
+            $mapped = $this->mapper->toWordPress($body);
+            $email = $mapped['data']['user_email'] ?? '';
+            if ($email === '' || !is_email($email)) {
+                throw new InvalidValueException('A valid email address is required.');
+            }
+
             if (isset($body['externalId'])) {
                 $byExtId = $this->userRepository->findByExternalId($body['externalId']);
                 if ($byExtId !== null) {
@@ -122,12 +131,15 @@ final class UserController extends AbstractRestController
                 }
             }
 
-            $mapped = $this->mapper->toWordPress($body);
-
             // Check if user_login already exists
             $existingUser = get_user_by('login', $mapped['data']['user_login'] ?? '');
             if ($existingUser !== false) {
                 throw new ResourceConflictException(sprintf('User with userName "%s" already exists.', $body['userName']));
+            }
+
+            // Assign default role
+            if (!isset($mapped['data']['role'])) {
+                $mapped['data']['role'] = $this->defaultRole;
             }
 
             $userId = $this->userRepository->create($mapped['data'], $mapped['meta']);
@@ -243,10 +255,14 @@ final class UserController extends AbstractRestController
                 throw new ResourceNotFoundException(sprintf('User "%d" not found.', $id));
             }
 
-            $userLogin = $user->user_login;
-            $this->userRepository->delete($id);
-
-            $this->dispatcher->dispatch(new UserDeletedEvent($id, $userLogin));
+            if ($this->allowUserDeletion) {
+                $userLogin = $user->user_login;
+                $this->userRepository->delete($id);
+                $this->dispatcher->dispatch(new UserDeletedEvent($id, $userLogin));
+            } else {
+                $this->userRepository->deactivate($id);
+                $this->dispatcher->dispatch(new UserDeactivatedEvent($user));
+            }
 
             return $this->noContent();
         } catch (ScimException $e) {
@@ -254,21 +270,4 @@ final class UserController extends AbstractRestController
         }
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    private function decodeBody(Request $request): array
-    {
-        $content = $request->getContent();
-        if ($content === '') {
-            throw new InvalidValueException('Request body is empty.');
-        }
-
-        $body = json_decode($content, true, 512, \JSON_THROW_ON_ERROR);
-        if (!\is_array($body)) {
-            throw new InvalidValueException('Request body must be a JSON object.');
-        }
-
-        return $body;
-    }
 }

@@ -14,21 +14,22 @@ declare(strict_types=1);
 namespace WpPack\Component\Scim\Filter;
 
 use WpPack\Component\Scim\Exception\InvalidFilterException;
+use WpPack\Component\Scim\Schema\ScimConstants;
 
 final class WpUserQueryAdapter
 {
     private const ATTRIBUTE_MAP = [
         'userName' => 'login',
         'displayName' => 'display_name',
+        'emails.value' => 'email',
         'name.givenName' => 'first_name',
         'name.familyName' => 'last_name',
-        'emails.value' => 'email',
-        'externalId' => '_wppack_scim_external_id',
-        'active' => '_wppack_scim_active',
+        'externalId' => ScimConstants::META_EXTERNAL_ID,
+        'active' => ScimConstants::META_ACTIVE,
     ];
 
     private const META_ATTRIBUTES = [
-        'externalId', 'active',
+        'externalId', 'active', 'name.givenName', 'name.familyName',
     ];
 
     /**
@@ -86,28 +87,32 @@ final class WpUserQueryAdapter
         return match ($node->operator) {
             'eq' => [
                 'meta_query' => [
-                    [
-                        'key' => $metaKey,
-                        'value' => $node->value,
-                        'compare' => '=',
-                    ],
+                    ['key' => $metaKey, 'value' => $node->value, 'compare' => '='],
                 ],
             ],
             'ne' => [
                 'meta_query' => [
-                    [
-                        'key' => $metaKey,
-                        'value' => $node->value,
-                        'compare' => '!=',
-                    ],
+                    ['key' => $metaKey, 'value' => $node->value, 'compare' => '!='],
+                ],
+            ],
+            'co' => [
+                'meta_query' => [
+                    ['key' => $metaKey, 'value' => $node->value, 'compare' => 'LIKE'],
+                ],
+            ],
+            'sw' => [
+                'meta_query' => [
+                    ['key' => $metaKey, 'value' => '^' . $node->value, 'compare' => 'REGEXP'],
+                ],
+            ],
+            'ew' => [
+                'meta_query' => [
+                    ['key' => $metaKey, 'value' => $node->value . '$', 'compare' => 'REGEXP'],
                 ],
             ],
             'pr' => [
                 'meta_query' => [
-                    [
-                        'key' => $metaKey,
-                        'compare' => 'EXISTS',
-                    ],
+                    ['key' => $metaKey, 'compare' => 'EXISTS'],
                 ],
             ],
             default => throw new InvalidFilterException(sprintf('Operator "%s" not supported for meta attribute "%s".', $node->operator, $node->attributePath)),
@@ -142,6 +147,11 @@ final class WpUserQueryAdapter
         $leftMeta = $left['meta_query'] ?? [];
         $rightMeta = $right['meta_query'] ?? [];
         unset($left['meta_query'], $right['meta_query']);
+
+        // OR on non-meta fields (search/search_columns/login) is not supported by WP_User_Query
+        if ($relation === 'OR' && $left !== [] && $right !== []) {
+            throw new InvalidFilterException('OR filter combining non-meta attributes is not supported.');
+        }
 
         $merged = array_merge($left, $right);
 
