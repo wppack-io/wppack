@@ -7,6 +7,9 @@ composer.lock
 /docs/specifications/
 
 /web/wp/
+/web/wp-content/mu-plugins/*
+!/web/wp-content/mu-plugins/.gitkeep
+!/web/wp-content/mu-plugins/wppack-*
 /web/wp-content/plugins/*
 !/web/wp-content/plugins/.gitkeep
 !/web/wp-content/plugins/wppack-*

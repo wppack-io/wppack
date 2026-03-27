@@ -50,7 +50,7 @@ define('SAML_ALLOW_REPEAT_ATTRIBUTE_NAME', true);
 define('SAML_SP_ENTITY_ID', 'http://localhost:8080');
 define('SAML_SP_ACS_URL', 'http://localhost:8080/saml/acs');
 define('SAML_SP_SLO_URL', 'http://localhost:8080/saml/slo');
-//define('SAML_SSO_ONLY', true);
+define('SAML_SSO_ONLY', true);
 
 // Auth keys (dev only — do not use in production)
 define('AUTH_KEY', 'wppack-dev-auth-key');

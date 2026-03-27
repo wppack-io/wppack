@@ -1,0 +1,25 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Plugin Name:  WpPack Lambda
+ * Description:  Lambda environment support (URL rewriting, Site Health adjustments)
+ * Version:      1.0.0
+ * Author:       WpPack
+ * License:      MIT License
+ */
+
+if (getenv('LAMBDA_TASK_ROOT')) {
+    add_filter('got_url_rewrite', '__return_true');
+
+    add_filter('site_status_tests', function (array $tests): array {
+        unset(
+            $tests['direct']['available_updates_disk_space'],
+            $tests['direct']['update_temp_backup_writable'],
+            $tests['async']['background_updates'],
+        );
+
+        return $tests;
+    });
+}

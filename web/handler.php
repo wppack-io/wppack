@@ -16,6 +16,7 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 $config = new Configuration([
     'web_root' => __DIR__,
     'wordpress_index' => '/wp/index.php',
+    'multisite' => true,
 ]);
 
 $result = (new Handler($config))->run();
