@@ -1,0 +1,28 @@
+{
+    "name": "wppack/scim-plugin",
+    "description": "WordPress plugin for SCIM 2.0 user provisioning",
+    "type": "wordpress-plugin",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "wppack/scim": "^1.0",
+        "wppack/dependency-injection": "^1.0",
+        "wppack/event-dispatcher": "^1.0",
+        "wppack/hook": "^1.0",
+        "wppack/kernel": "^1.0",
+        "wppack/security": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpPack\\Plugin\\ScimPlugin\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Plugin\\ScimPlugin\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "installer-name": "wppack-scim"
+    }
+}

@@ -132,6 +132,8 @@
             "WpPack\\Component\\Site\\": "src/Component/Site/src/",
             "WpPack\\Component\\Asset\\": "src/Component/Asset/src/",
             "WpPack\\Plugin\\SamlLoginPlugin\\": "src/Plugin/SamlLoginPlugin/src/",
+            "WpPack\\Component\\Scim\\": "src/Component/Scim/src/",
+            "WpPack\\Plugin\\ScimPlugin\\": "src/Plugin/ScimPlugin/src/",
             "WpPack\\MuPlugin\\MultisiteUrlFixer\\": "src/MuPlugin/MultisiteUrlFixer/src/"
         }
     },
@@ -213,6 +215,8 @@
             "WpPack\\Plugin\\DebugPlugin\\Tests\\": "src/Plugin/DebugPlugin/tests/",
             "WpPack\\Plugin\\RedisCachePlugin\\Tests\\": "src/Plugin/RedisCachePlugin/tests/",
             "WpPack\\Plugin\\SamlLoginPlugin\\Tests\\": "src/Plugin/SamlLoginPlugin/tests/",
+            "WpPack\\Component\\Scim\\Tests\\": "src/Component/Scim/tests/",
+            "WpPack\\Plugin\\ScimPlugin\\Tests\\": "src/Plugin/ScimPlugin/tests/",
             "WpPack\\MuPlugin\\MultisiteUrlFixer\\Tests\\": "src/MuPlugin/MultisiteUrlFixer/tests/"
         }
     },
@@ -294,6 +298,8 @@
         "wppack/site": "self.version",
         "wppack/asset": "self.version",
         "wppack/saml-login-plugin": "self.version",
+        "wppack/scim": "self.version",
+        "wppack/scim-plugin": "self.version",
         "wppack/multisite-url-fixer-plugin": "self.version",
         "wppack/lambda-plugin": "self.version",
         "wppack/theme-directory-plugin": "self.version"

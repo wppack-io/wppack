@@ -324,3 +324,11 @@ component_management:
       name: SamlLoginPlugin
       paths:
         - src/Plugin/SamlLoginPlugin/src/**
+    - component_id: scim
+      name: Scim
+      paths:
+        - src/Component/Scim/src/**
+    - component_id: scim_plugin
+      name: ScimPlugin
+      paths:
+        - src/Plugin/ScimPlugin/src/**

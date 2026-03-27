@@ -105,6 +105,7 @@ Distributed as WordPress plugins. Built on top of Components.
 | Nonce | wppack/nonce | CSRF token management |
 | Asset | wppack/asset | Asset management (scripts and styles) |
 | Ajax | wppack/ajax | Admin Ajax handler |
+| Scim | wppack/scim | SCIM 2.0 provisioning |
 | Wpress | wppack/wpress | .wpress archive format operations |
 
 ### Application Layer
@@ -135,6 +136,7 @@ Distributed as WordPress plugins. Built on top of Components.
 | DebugPlugin | wppack/debug-plugin | Debug toolbar plugin |
 | RedisCachePlugin | wppack/redis-cache-plugin | Redis cache plugin |
 | SamlLoginPlugin | wppack/saml-login-plugin | SAML 2.0 SSO login plugin |
+| ScimPlugin | wppack/scim-plugin | SCIM 2.0 provisioning plugin |
 
 ## Key Dependencies
 
@@ -268,6 +270,16 @@ wppack/monolog-logger
     ↓ requires
 wppack/logger
     + monolog/monolog
+
+wppack/scim
+    ↓ requires
+wppack/rest, wppack/user, wppack/role, wppack/security
+wppack/http-foundation, wppack/event-dispatcher, wppack/site
+
+wppack/scim-plugin
+    ↓ requires
+wppack/scim, wppack/kernel, wppack/dependency-injection, wppack/hook
+    + wppack/event-dispatcher, wppack/security
 ```
 
 ## Development Guidelines
