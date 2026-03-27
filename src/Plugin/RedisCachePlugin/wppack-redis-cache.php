@@ -16,6 +16,8 @@ declare(strict_types=1);
  * Description: Redis-based object cache with ElastiCache IAM auth support.
  * Version: 1.0.0
  * Requires PHP: 8.2
+ * Requires at least: 6.9
+ * Author: WpPack
  * License: MIT
  */
 

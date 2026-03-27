@@ -16,6 +16,8 @@ declare(strict_types=1);
  * Description: S3-based media storage with browser-direct upload support.
  * Version: 1.0.0
  * Requires PHP: 8.2
+ * Requires at least: 6.9
+ * Author: WpPack
  * License: MIT
  */
 
