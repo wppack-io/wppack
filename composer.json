@@ -3,6 +3,13 @@
     "description": "Modern WordPress Component Library",
     "type": "library",
     "license": "MIT",
+    "repositories": [
+        {
+            "name": "wp-packages",
+            "type": "composer",
+            "url": "https://repo.wp-packages.org"
+        }
+    ],
     "require": {
         "php": "^8.2",
         "psr/container": "^2.0",
@@ -37,8 +44,10 @@
         "woocommerce/action-scheduler": "^3.7",
         "wp-cli/core-command": "^2.1",
         "wp-cli/db-command": "^2.1",
+        "wp-cli/entity-command": "^2.8",
         "wp-cli/wp-cli": "^2.11",
         "wp-phpunit/wp-phpunit": "^6.9",
+        "wp-theme/twentytwentyfive": "*",
         "yoast/phpunit-polyfills": "^4.0"
     },
     "autoload": {
@@ -122,7 +131,8 @@
             "WpPack\\Component\\Storage\\Bridge\\Gcs\\": "src/Component/Storage/Bridge/Gcs/src/",
             "WpPack\\Component\\Site\\": "src/Component/Site/src/",
             "WpPack\\Component\\Asset\\": "src/Component/Asset/src/",
-            "WpPack\\Plugin\\SamlLoginPlugin\\": "src/Plugin/SamlLoginPlugin/src/"
+            "WpPack\\Plugin\\SamlLoginPlugin\\": "src/Plugin/SamlLoginPlugin/src/",
+            "WpPack\\MuPlugin\\MultisiteUrlFixer\\": "src/MuPlugin/MultisiteUrlFixer/src/"
         }
     },
     "autoload-dev": {
@@ -202,7 +212,8 @@
             "WpPack\\Plugin\\AmazonMailerPlugin\\Tests\\": "src/Plugin/AmazonMailerPlugin/tests/",
             "WpPack\\Plugin\\DebugPlugin\\Tests\\": "src/Plugin/DebugPlugin/tests/",
             "WpPack\\Plugin\\RedisCachePlugin\\Tests\\": "src/Plugin/RedisCachePlugin/tests/",
-            "WpPack\\Plugin\\SamlLoginPlugin\\Tests\\": "src/Plugin/SamlLoginPlugin/tests/"
+            "WpPack\\Plugin\\SamlLoginPlugin\\Tests\\": "src/Plugin/SamlLoginPlugin/tests/",
+            "WpPack\\MuPlugin\\MultisiteUrlFixer\\Tests\\": "src/MuPlugin/MultisiteUrlFixer/tests/"
         }
     },
     "replace": {
@@ -288,7 +299,8 @@
         "sort-packages": true,
         "allow-plugins": {
             "php-http/discovery": true,
-            "roots/wordpress-core-installer": true
+            "roots/wordpress-core-installer": true,
+            "composer/installers": true
         }
     },
     "extra": {

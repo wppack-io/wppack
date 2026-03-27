@@ -15,6 +15,9 @@
         <testsuite name="Plugin">
             <directory>src/Plugin/*/tests</directory>
         </testsuite>
+        <testsuite name="MuPlugin">
+            <directory>src/MuPlugin/*/tests</directory>
+        </testsuite>
     </testsuites>
 
     <source>
