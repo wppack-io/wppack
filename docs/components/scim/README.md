@@ -124,6 +124,14 @@ SCIM Group は WordPress のロールに対応します:
 | `displayName` | ロールラベル | 例: "Editor", "Administrator" |
 | `members` | ロールに属するユーザー一覧 | `value` = ユーザー ID |
 
+> **WordPress の複数ロールサポート**
+>
+> WordPress は `WP_User::$roles`（配列）で 1 ユーザーに対し複数ロールを保持できます。SCIM のメンバー操作はこの仕組みに対応しています:
+>
+> - **メンバー追加** — `add_role()` を使用し、既存ロールを保持したまま新しいロールを追加
+> - **メンバー削除** — `remove_role()` を使用し、該当ロールのみを削除（他のロールには影響しない）
+> - **SCIM User レスポンス** — `groups` 配列にユーザーが持つ全ロールが含まれる
+
 ### グループ CRUD
 
 | 操作 | HTTP メソッド | エンドポイント | 説明 |
