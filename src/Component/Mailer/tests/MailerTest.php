@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Mailer\Tests;
 
+use PHPMailer\PHPMailer\PHPMailer as BasePhpMailer;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Mailer\Email;
@@ -502,7 +503,7 @@ final class MailerTest extends TestCase
 
         try {
             $initData = null;
-            add_action('phpmailer_init', static function (PhpMailer $pm) use (&$initData): void {
+            add_action('phpmailer_init', static function (BasePhpMailer $pm) use (&$initData): void {
                 $initData = ['From' => $pm->From];
             });
 
@@ -530,7 +531,7 @@ final class MailerTest extends TestCase
 
         try {
             $initData = null;
-            add_action('phpmailer_init', static function (PhpMailer $pm) use (&$initData): void {
+            add_action('phpmailer_init', static function (BasePhpMailer $pm) use (&$initData): void {
                 $initData = ['FromName' => $pm->FromName];
             });
 
@@ -558,7 +559,7 @@ final class MailerTest extends TestCase
 
         try {
             $initData = null;
-            add_action('phpmailer_init', static function (PhpMailer $pm) use (&$initData): void {
+            add_action('phpmailer_init', static function (BasePhpMailer $pm) use (&$initData): void {
                 $initData = ['From' => $pm->From];
             });
 

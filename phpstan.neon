@@ -12,7 +12,7 @@ parameters:
         - src/Component/*/templates/*
     scanDirectories:
         - web/wp/wp-includes/
-        - vendor/woocommerce/action-scheduler/
+        - web/wp-content/plugins/action-scheduler/
     scanFiles:
         - vendor/wp-cli/wp-cli/php/utils.php
     ignoreErrors:
