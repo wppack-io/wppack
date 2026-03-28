@@ -20,9 +20,11 @@ use WpPack\Component\EventDispatcher\EventDispatcher;
 use WpPack\Component\Security\Bridge\SAML\Event\SamlUserAttributesMappedEvent;
 use WpPack\Component\Security\Bridge\SAML\Event\SamlUserProvisionedEvent;
 use WpPack\Component\Security\Bridge\SAML\Event\SamlUserUpdatedEvent;
+use WpPack\Component\Sanitizer\Sanitizer;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlAttributeMapping;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolver;
 use WpPack\Component\Security\Exception\AuthenticationException;
+use WpPack\Component\User\UserRepository;
 
 #[CoversClass(SamlUserResolver::class)]
 final class SamlUserResolverTest extends TestCase
@@ -42,7 +44,7 @@ final class SamlUserResolverTest extends TestCase
         $createdUser = get_user_by('id', $userId);
         self::assertInstanceOf(\WP_User::class, $createdUser);
 
-        $resolver = new SamlUserResolver();
+        $resolver = new SamlUserResolver(new UserRepository(), new Sanitizer());
 
         // First resolve binds the NameID
         $user = $resolver->resolveUser(
@@ -72,7 +74,7 @@ final class SamlUserResolverTest extends TestCase
         $createdUser = get_user_by('id', $userId);
         self::assertInstanceOf(\WP_User::class, $createdUser);
 
-        $resolver = new SamlUserResolver();
+        $resolver = new SamlUserResolver(new UserRepository(), new Sanitizer());
 
         $this->expectException(AuthenticationException::class);
         $this->expectExceptionMessage('NameID mismatch');
@@ -95,7 +97,7 @@ final class SamlUserResolverTest extends TestCase
 
         self::assertIsInt($userId);
 
-        $resolver = new SamlUserResolver();
+        $resolver = new SamlUserResolver(new UserRepository(), new Sanitizer());
 
         $user = $resolver->resolveUser(
             $login,
@@ -109,7 +111,7 @@ final class SamlUserResolverTest extends TestCase
     #[Test]
     public function resolveUserNotFoundThrowsException(): void
     {
-        $resolver = new SamlUserResolver(autoProvision: false);
+        $resolver = new SamlUserResolver(new UserRepository(), new Sanitizer(), autoProvision: false);
 
         $this->expectException(AuthenticationException::class);
 
@@ -122,7 +124,7 @@ final class SamlUserResolverTest extends TestCase
     #[Test]
     public function resolveUserRejectsEmptyNameId(): void
     {
-        $resolver = new SamlUserResolver();
+        $resolver = new SamlUserResolver(new UserRepository(), new Sanitizer());
 
         $this->expectException(AuthenticationException::class);
         $this->expectExceptionMessage('Invalid SAML NameID');
@@ -139,7 +141,7 @@ final class SamlUserResolverTest extends TestCase
     {
         $email = 'saml-provision-' . uniqid() . '@example.com';
         $nameId = 'provisioned_user_' . uniqid();
-        $resolver = new SamlUserResolver(autoProvision: true);
+        $resolver = new SamlUserResolver(new UserRepository(), new Sanitizer(), autoProvision: true);
 
         $user = $resolver->resolveUser(
             $nameId,
@@ -154,7 +156,7 @@ final class SamlUserResolverTest extends TestCase
     #[Test]
     public function resolveUserRejectsNullByteInNameId(): void
     {
-        $resolver = new SamlUserResolver();
+        $resolver = new SamlUserResolver(new UserRepository(), new Sanitizer());
 
         $this->expectException(AuthenticationException::class);
         $this->expectExceptionMessage('Invalid SAML NameID');
@@ -178,7 +180,7 @@ final class SamlUserResolverTest extends TestCase
 
         self::assertIsInt($userId);
 
-        $resolver = new SamlUserResolver();
+        $resolver = new SamlUserResolver(new UserRepository(), new Sanitizer());
 
         // Invalid email format should be skipped, resolver falls through to login lookup
         $user = $resolver->resolveUser(
@@ -194,7 +196,7 @@ final class SamlUserResolverTest extends TestCase
     public function autoProvisionWithXssInAttributes(): void
     {
         $nameId = 'provisioned_xss_' . uniqid();
-        $resolver = new SamlUserResolver(autoProvision: true);
+        $resolver = new SamlUserResolver(new UserRepository(), new Sanitizer(), autoProvision: true);
 
         $user = $resolver->resolveUser(
             $nameId,
@@ -229,6 +231,8 @@ final class SamlUserResolverTest extends TestCase
         self::assertIsInt($userId);
 
         $resolver = new SamlUserResolver(
+            new UserRepository(),
+            new Sanitizer(),
             roleMapping: ['Admin' => 'administrator', 'Editor' => 'editor'],
             roleAttribute: 'groups',
         );
@@ -260,6 +264,8 @@ final class SamlUserResolverTest extends TestCase
         $wpUser->set_role('editor');
 
         $resolver = new SamlUserResolver(
+            new UserRepository(),
+            new Sanitizer(),
             roleMapping: ['Admin' => 'administrator'],
             roleAttribute: 'groups',
         );
@@ -290,7 +296,7 @@ final class SamlUserResolverTest extends TestCase
         $wpUser = get_user_by('id', $userId);
         $wpUser->set_role('subscriber');
 
-        $resolver = new SamlUserResolver();
+        $resolver = new SamlUserResolver(new UserRepository(), new Sanitizer());
 
         $user = $resolver->resolveUser(
             $login,
@@ -316,7 +322,7 @@ final class SamlUserResolverTest extends TestCase
 
         self::assertIsInt($userId);
 
-        $resolver = new SamlUserResolver();
+        $resolver = new SamlUserResolver(new UserRepository(), new Sanitizer());
 
         $user = $resolver->resolveUser(
             $nameId,
@@ -351,7 +357,7 @@ final class SamlUserResolverTest extends TestCase
 
         self::assertIsInt($userId);
 
-        $resolver = new SamlUserResolver();
+        $resolver = new SamlUserResolver(new UserRepository(), new Sanitizer());
 
         $user = $resolver->resolveUser(
             $nameId,
@@ -373,6 +379,8 @@ final class SamlUserResolverTest extends TestCase
         $nameId = 'provisioned_full_' . uniqid();
         $email = 'saml-full-' . uniqid() . '@example.com';
         $resolver = new SamlUserResolver(
+            new UserRepository(),
+            new Sanitizer(),
             autoProvision: true,
             defaultRole: 'editor',
         );
@@ -403,6 +411,8 @@ final class SamlUserResolverTest extends TestCase
     {
         $nameId = 'provisioned_minimal_' . uniqid();
         $resolver = new SamlUserResolver(
+            new UserRepository(),
+            new Sanitizer(),
             autoProvision: true,
             firstNameAttribute: null,
             lastNameAttribute: null,
@@ -424,7 +434,7 @@ final class SamlUserResolverTest extends TestCase
         // Use an email-like NameID so it serves as a valid fallback email
         // when no email attribute is provided (user_email = nameId).
         $nameId = 'noemail-' . uniqid() . '@example.com';
-        $resolver = new SamlUserResolver(autoProvision: true);
+        $resolver = new SamlUserResolver(new UserRepository(), new Sanitizer(), autoProvision: true);
 
         $user = $resolver->resolveUser(
             $nameId,
@@ -451,6 +461,8 @@ final class SamlUserResolverTest extends TestCase
         self::assertIsInt($userId);
 
         $resolver = new SamlUserResolver(
+            new UserRepository(),
+            new Sanitizer(),
             firstNameAttribute: null,
             lastNameAttribute: null,
             displayNameAttribute: null,
@@ -478,7 +490,7 @@ final class SamlUserResolverTest extends TestCase
 
         self::assertIsInt($userId);
 
-        $resolver = new SamlUserResolver();
+        $resolver = new SamlUserResolver(new UserRepository(), new Sanitizer());
 
         $resolver->resolveUser($login, []);
 
@@ -490,6 +502,8 @@ final class SamlUserResolverTest extends TestCase
     {
         $nameId = 'provisioned_role_' . uniqid();
         $resolver = new SamlUserResolver(
+            new UserRepository(),
+            new Sanitizer(),
             autoProvision: true,
             defaultRole: 'subscriber',
             roleMapping: ['Admin' => 'administrator'],
@@ -526,6 +540,8 @@ final class SamlUserResolverTest extends TestCase
         $wpUser->set_role('subscriber');
 
         $resolver = new SamlUserResolver(
+            new UserRepository(),
+            new Sanitizer(),
             roleMapping: ['Admin' => 'administrator'],
             roleAttribute: null,
         );
@@ -554,7 +570,7 @@ final class SamlUserResolverTest extends TestCase
         // Pre-bind with same NameID
         update_user_meta($userId, '_wppack_saml_nameid', $nameId);
 
-        $resolver = new SamlUserResolver();
+        $resolver = new SamlUserResolver(new UserRepository(), new Sanitizer());
 
         $user = $resolver->resolveUser(
             $nameId,
@@ -577,7 +593,7 @@ final class SamlUserResolverTest extends TestCase
 
         self::assertIsInt($userId);
 
-        $resolver = new SamlUserResolver();
+        $resolver = new SamlUserResolver(new UserRepository(), new Sanitizer());
 
         // Empty email value should be skipped
         $user = $resolver->resolveUser(
@@ -604,7 +620,7 @@ final class SamlUserResolverTest extends TestCase
 
         self::assertIsInt($userId);
 
-        $resolver = new SamlUserResolver(autoProvision: true);
+        $resolver = new SamlUserResolver(new UserRepository(), new Sanitizer(), autoProvision: true);
 
         // Try to auto-provision with the same login but a different email
         // This should fail because the login already exists (will be found by login lookup)
@@ -629,7 +645,7 @@ final class SamlUserResolverTest extends TestCase
             return ''; // Force empty login which wp_insert_user will reject
         });
 
-        $resolver = new SamlUserResolver(autoProvision: true);
+        $resolver = new SamlUserResolver(new UserRepository(), new Sanitizer(), autoProvision: true);
 
         try {
             $this->expectException(AuthenticationException::class);
@@ -660,7 +676,7 @@ final class SamlUserResolverTest extends TestCase
         // Pre-bind NameID via meta
         update_user_meta($userId, '_wppack_saml_nameid', $nameId);
 
-        $resolver = new SamlUserResolver();
+        $resolver = new SamlUserResolver(new UserRepository(), new Sanitizer());
 
         $user = $resolver->resolveUser(
             $nameId,
@@ -687,7 +703,7 @@ final class SamlUserResolverTest extends TestCase
 
         update_user_meta($userId, '_wppack_saml_nameid', $nameId);
 
-        $resolver = new SamlUserResolver();
+        $resolver = new SamlUserResolver(new UserRepository(), new Sanitizer());
 
         $user = $resolver->resolveUser(
             $nameId,
@@ -714,7 +730,7 @@ final class SamlUserResolverTest extends TestCase
 
         update_user_meta($userId, '_wppack_saml_nameid', $nameId);
 
-        $resolver = new SamlUserResolver();
+        $resolver = new SamlUserResolver(new UserRepository(), new Sanitizer());
 
         $user = $resolver->resolveUser(
             $nameId,
@@ -741,7 +757,7 @@ final class SamlUserResolverTest extends TestCase
 
         update_user_meta($userId, '_wppack_saml_nameid', $nameId);
 
-        $resolver = new SamlUserResolver();
+        $resolver = new SamlUserResolver(new UserRepository(), new Sanitizer());
 
         $user = $resolver->resolveUser(
             $nameId,
@@ -767,7 +783,7 @@ final class SamlUserResolverTest extends TestCase
 
         self::assertIsInt($userId);
 
-        $resolver = new SamlUserResolver();
+        $resolver = new SamlUserResolver(new UserRepository(), new Sanitizer());
 
         $user = $resolver->resolveUser(
             $login,
@@ -797,6 +813,8 @@ final class SamlUserResolverTest extends TestCase
         $wpUser->set_role('subscriber');
 
         $resolver = new SamlUserResolver(
+            new UserRepository(),
+            new Sanitizer(),
             roleMapping: ['Admin' => 'administrator'],
             roleAttribute: 'groups',
         );
@@ -817,6 +835,8 @@ final class SamlUserResolverTest extends TestCase
         $email = 'saml-custom-' . uniqid() . '@example.com';
 
         $resolver = new SamlUserResolver(
+            new UserRepository(),
+            new Sanitizer(),
             autoProvision: true,
             customMappings: [
                 new SamlAttributeMapping('department', 'org_department'),
@@ -848,6 +868,8 @@ final class SamlUserResolverTest extends TestCase
         self::assertIsInt($userId);
 
         $resolver = new SamlUserResolver(
+            new UserRepository(),
+            new Sanitizer(),
             customMappings: [
                 new SamlAttributeMapping('department', 'org_department'),
             ],
@@ -882,6 +904,8 @@ final class SamlUserResolverTest extends TestCase
         });
 
         $resolver = new SamlUserResolver(
+            new UserRepository(),
+            new Sanitizer(),
             autoProvision: true,
             dispatcher: $dispatcher,
         );
@@ -935,6 +959,8 @@ final class SamlUserResolverTest extends TestCase
         });
 
         $resolver = new SamlUserResolver(
+            new UserRepository(),
+            new Sanitizer(),
             dispatcher: $dispatcher,
         );
 

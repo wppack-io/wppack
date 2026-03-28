@@ -13,7 +13,14 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Security\Bridge\OAuth\UserResolution;
 
+use Psr\EventDispatcher\EventDispatcherInterface;
+use WpPack\Component\Sanitizer\Sanitizer;
+use WpPack\Component\Security\Bridge\OAuth\Event\OAuthUserProvisionedEvent;
+use WpPack\Component\Security\Bridge\OAuth\Event\OAuthUserProvisionFailedEvent;
+use WpPack\Component\Security\Bridge\OAuth\Event\OAuthUserUpdatedEvent;
 use WpPack\Component\Security\Exception\AuthenticationException;
+use WpPack\Component\User\Exception\UserException;
+use WpPack\Component\User\UserRepositoryInterface;
 
 final class OAuthUserResolver implements OAuthUserResolverInterface
 {
@@ -32,6 +39,8 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
      */
     public function __construct(
         private readonly string $providerName,
+        private readonly UserRepositoryInterface $userRepository,
+        private readonly Sanitizer $sanitizer,
         private readonly bool $autoProvision = false,
         private readonly string $defaultRole = 'subscriber',
         private readonly string $emailClaim = 'email',
@@ -40,11 +49,12 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
         private readonly ?string $displayNameClaim = 'name',
         private readonly ?array $roleMapping = null,
         private readonly ?string $roleClaim = null,
+        private readonly ?EventDispatcherInterface $dispatcher = null,
     ) {}
 
     public function resolveUser(string $subject, array $claims): \WP_User
     {
-        $sanitizedSubject = sanitize_user($subject, true);
+        $sanitizedSubject = $this->sanitizer->user($subject, true);
 
         if ($sanitizedSubject === '') {
             throw new AuthenticationException('Invalid OAuth subject identifier.');
@@ -64,7 +74,7 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
         $email = $this->getClaimValue($claims, $this->emailClaim);
 
         if ($email !== null) {
-            $email = sanitize_email($email);
+            $email = $this->sanitizer->email($email);
 
             if ($email === '' || !filter_var($email, \FILTER_VALIDATE_EMAIL)) {
                 $email = null;
@@ -72,7 +82,7 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
         }
 
         if ($email !== null) {
-            $user = get_user_by('email', $email);
+            $user = $this->userRepository->findByEmail($email);
 
             if ($user instanceof \WP_User) {
                 if (!$this->isSubjectBound($user, $sanitizedSubject)) {
@@ -88,7 +98,7 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
         }
 
         // 3. Try by login
-        $user = get_user_by('login', $sanitizedSubject);
+        $user = $this->userRepository->findByLogin($sanitizedSubject);
 
         if ($user instanceof \WP_User) {
             $this->bindSubject($user, $sanitizedSubject);
@@ -116,7 +126,7 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
 
     private function findBySubject(string $subject): ?\WP_User
     {
-        $users = get_users([
+        $users = $this->userRepository->findAll([
             'meta_key' => $this->getSubjectMetaKey(),
             'meta_value' => $subject,
             'number' => 1,
@@ -127,7 +137,7 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
 
     private function isSubjectBound(\WP_User $user, string $subject): bool
     {
-        $storedSubject = get_user_meta($user->ID, $this->getSubjectMetaKey(), true);
+        $storedSubject = $this->userRepository->getMeta($user->ID, $this->getSubjectMetaKey(), true);
 
         if ($storedSubject === '' || $storedSubject === false) {
             return true; // Not yet bound, OK to bind
@@ -138,7 +148,7 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
 
     private function bindSubject(\WP_User $user, string $subject): void
     {
-        update_user_meta($user->ID, $this->getSubjectMetaKey(), $subject);
+        $this->userRepository->updateMeta($user->ID, $this->getSubjectMetaKey(), $subject);
     }
 
     /**
@@ -157,7 +167,7 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
             $firstName = $this->getClaimValue($claims, $this->firstNameClaim);
 
             if ($firstName !== null) {
-                $userdata['first_name'] = sanitize_text_field($firstName);
+                $userdata['first_name'] = $this->sanitizer->text($firstName);
             }
         }
 
@@ -165,7 +175,7 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
             $lastName = $this->getClaimValue($claims, $this->lastNameClaim);
 
             if ($lastName !== null) {
-                $userdata['last_name'] = sanitize_text_field($lastName);
+                $userdata['last_name'] = $this->sanitizer->text($lastName);
             }
         }
 
@@ -173,20 +183,22 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
             $displayName = $this->getClaimValue($claims, $this->displayNameClaim);
 
             if ($displayName !== null) {
-                $userdata['display_name'] = sanitize_text_field($displayName);
+                $userdata['display_name'] = $this->sanitizer->text($displayName);
             }
         }
 
-        /** @var int|\WP_Error $userId */
-        $userId = wp_insert_user($userdata);
-
-        if ($userId instanceof \WP_Error) {
-            do_action('wppack_oauth_user_provision_failed', $subject, $userId);
+        try {
+            $userId = $this->userRepository->insert($userdata);
+        } catch (UserException $e) {
+            $this->dispatcher?->dispatch(new OAuthUserProvisionFailedEvent(
+                $subject,
+                new \WP_Error('provision_failed', $e->getMessage()),
+            ));
 
             throw new AuthenticationException('User provisioning failed.');
         }
 
-        $user = get_user_by('id', $userId);
+        $user = $this->userRepository->find($userId);
 
         if (!$user instanceof \WP_User) {
             throw new AuthenticationException(\sprintf('Failed to retrieve provisioned user "%s".', $subject));
@@ -195,7 +207,7 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
         $this->bindSubject($user, $subject);
         $this->mapUserRole($user, $claims);
 
-        do_action('wppack_oauth_user_provisioned', $user, $subject, $claims);
+        $this->dispatcher?->dispatch(new OAuthUserProvisionedEvent($user, $subject, $claims));
 
         return $user;
     }
@@ -212,7 +224,7 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
             $firstName = $this->getClaimValue($claims, $this->firstNameClaim);
 
             if ($firstName !== null) {
-                $firstName = sanitize_text_field($firstName);
+                $firstName = $this->sanitizer->text($firstName);
 
                 if ($firstName !== $user->first_name) {
                     $userdata['first_name'] = $firstName;
@@ -225,7 +237,7 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
             $lastName = $this->getClaimValue($claims, $this->lastNameClaim);
 
             if ($lastName !== null) {
-                $lastName = sanitize_text_field($lastName);
+                $lastName = $this->sanitizer->text($lastName);
 
                 if ($lastName !== $user->last_name) {
                     $userdata['last_name'] = $lastName;
@@ -238,7 +250,7 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
             $displayName = $this->getClaimValue($claims, $this->displayNameClaim);
 
             if ($displayName !== null) {
-                $displayName = sanitize_text_field($displayName);
+                $displayName = $this->sanitizer->text($displayName);
 
                 if ($displayName !== $user->display_name) {
                     $userdata['display_name'] = $displayName;
@@ -248,8 +260,8 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
         }
 
         if ($needsUpdate) {
-            wp_update_user($userdata);
-            do_action('wppack_oauth_user_updated', $user, $claims);
+            $this->userRepository->update($userdata);
+            $this->dispatcher?->dispatch(new OAuthUserUpdatedEvent($user, $claims));
         }
     }
 

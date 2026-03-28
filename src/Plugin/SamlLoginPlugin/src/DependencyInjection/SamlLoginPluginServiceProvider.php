@@ -40,6 +40,7 @@ use WpPack\Component\Security\Bridge\SAML\SamlSloController;
 use WpPack\Component\Security\Bridge\SAML\Session\SamlSessionManager;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolver;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolverInterface;
+use WpPack\Component\Sanitizer\Sanitizer;
 use WpPack\Component\Security\DependencyInjection\SecurityServiceProvider;
 use WpPack\Component\Site\BlogContextInterface;
 use WpPack\Component\User\UserRepositoryInterface;
@@ -86,7 +87,9 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
         $builder->register(SamlUserResolver::class)
             ->setFactory([self::class, 'createUserResolver'])
             ->addArgument(new Reference(SamlLoginConfiguration::class))
-            ->addArgument(new Reference(EventDispatcherInterface::class));
+            ->addArgument(new Reference(EventDispatcherInterface::class))
+            ->addArgument(new Reference(UserRepositoryInterface::class))
+            ->addArgument(new Reference(Sanitizer::class));
         $builder->setAlias(SamlUserResolverInterface::class, SamlUserResolver::class);
 
         // SamlAuthenticator (tagged for RegisterAuthenticatorsPass)
@@ -193,8 +196,12 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
     public static function createUserResolver(
         SamlLoginConfiguration $config,
         EventDispatcherInterface $dispatcher,
+        UserRepositoryInterface $userRepository,
+        Sanitizer $sanitizer,
     ): SamlUserResolver {
         return new SamlUserResolver(
+            userRepository: $userRepository,
+            sanitizer: $sanitizer,
             autoProvision: $config->autoProvision,
             defaultRole: $config->defaultRole,
             emailAttribute: $config->emailAttribute,

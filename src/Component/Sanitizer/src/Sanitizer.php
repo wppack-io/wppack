@@ -176,9 +176,9 @@ final class Sanitizer
      *
      * @see sanitize_user()
      */
-    public function user(string $value): string
+    public function user(string $value, bool $strict = false): string
     {
-        return sanitize_user($value);
+        return sanitize_user($value, $strict);
     }
 
     /**

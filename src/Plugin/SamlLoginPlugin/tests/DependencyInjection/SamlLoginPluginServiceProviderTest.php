@@ -39,6 +39,7 @@ use WpPack\Component\Security\Bridge\SAML\SamlMetadataController;
 use WpPack\Component\Security\Bridge\SAML\SamlSloController;
 use WpPack\Component\Security\Bridge\SAML\Session\SamlSessionManager;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolver;
+use WpPack\Component\Sanitizer\Sanitizer;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolverInterface;
 use WpPack\Component\Site\BlogContext;
 use WpPack\Component\User\UserRepository;
@@ -447,7 +448,7 @@ final class SamlLoginPluginServiceProviderTest extends TestCase
             roleMapping: ['admins' => 'administrator'],
         );
 
-        $resolver = SamlLoginPluginServiceProvider::createUserResolver($config, new EventDispatcher());
+        $resolver = SamlLoginPluginServiceProvider::createUserResolver($config, new EventDispatcher(), new UserRepository(), new Sanitizer());
 
         self::assertInstanceOf(SamlUserResolver::class, $resolver);
     }
@@ -466,7 +467,7 @@ final class SamlLoginPluginServiceProviderTest extends TestCase
         $spSettings = SamlLoginPluginServiceProvider::createSpSettings($config);
         $samlConfig = SamlLoginPluginServiceProvider::createSamlConfiguration($config, $idpSettings, $spSettings);
         $authFactory = new SamlAuthFactory($samlConfig);
-        $userResolver = SamlLoginPluginServiceProvider::createUserResolver($config, new EventDispatcher());
+        $userResolver = SamlLoginPluginServiceProvider::createUserResolver($config, new EventDispatcher(), new UserRepository(), new Sanitizer());
         $dispatcher = new EventDispatcher();
 
         $sessionManager = new SamlSessionManager(new UserRepository());

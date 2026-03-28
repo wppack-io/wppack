@@ -16,8 +16,10 @@ namespace WpPack\Component\Security\Bridge\OAuth\Tests\UserResolution;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Sanitizer\Sanitizer;
 use WpPack\Component\Security\Bridge\OAuth\UserResolution\OAuthUserResolver;
 use WpPack\Component\Security\Exception\AuthenticationException;
+use WpPack\Component\User\UserRepository;
 
 #[CoversClass(OAuthUserResolver::class)]
 final class OAuthUserResolverTest extends TestCase
@@ -37,7 +39,7 @@ final class OAuthUserResolverTest extends TestCase
         $createdUser = get_user_by('id', $userId);
         self::assertInstanceOf(\WP_User::class, $createdUser);
 
-        $resolver = new OAuthUserResolver(providerName: 'google');
+        $resolver = new OAuthUserResolver('google', new UserRepository(), new Sanitizer());
 
         $user = $resolver->resolveUser(
             $subject,
@@ -64,7 +66,7 @@ final class OAuthUserResolverTest extends TestCase
         // Pre-bind the subject
         update_user_meta($userId, '_wppack_oauth_sub_azure', $subject);
 
-        $resolver = new OAuthUserResolver(providerName: 'azure');
+        $resolver = new OAuthUserResolver('azure', new UserRepository(), new Sanitizer());
 
         $user = $resolver->resolveUser($subject, ['email' => 'different@example.com']);
 
@@ -89,7 +91,7 @@ final class OAuthUserResolverTest extends TestCase
         $createdUser = get_user_by('id', $userId);
         self::assertInstanceOf(\WP_User::class, $createdUser);
 
-        $resolver = new OAuthUserResolver(providerName: 'github');
+        $resolver = new OAuthUserResolver('github', new UserRepository(), new Sanitizer());
 
         $this->expectException(AuthenticationException::class);
         $this->expectExceptionMessage('subject mismatch');
@@ -112,7 +114,7 @@ final class OAuthUserResolverTest extends TestCase
 
         self::assertIsInt($userId);
 
-        $resolver = new OAuthUserResolver(providerName: 'google');
+        $resolver = new OAuthUserResolver('google', new UserRepository(), new Sanitizer());
 
         $user = $resolver->resolveUser($login, []);
 
@@ -124,7 +126,7 @@ final class OAuthUserResolverTest extends TestCase
     #[Test]
     public function resolveUserNotFoundThrowsException(): void
     {
-        $resolver = new OAuthUserResolver(providerName: 'google', autoProvision: false);
+        $resolver = new OAuthUserResolver('google', new UserRepository(), new Sanitizer(), autoProvision: false);
 
         $this->expectException(AuthenticationException::class);
 
@@ -137,7 +139,7 @@ final class OAuthUserResolverTest extends TestCase
     #[Test]
     public function resolveUserRejectsEmptySubject(): void
     {
-        $resolver = new OAuthUserResolver(providerName: 'google');
+        $resolver = new OAuthUserResolver('google', new UserRepository(), new Sanitizer());
 
         $this->expectException(AuthenticationException::class);
         $this->expectExceptionMessage('Invalid OAuth subject identifier');
@@ -154,7 +156,7 @@ final class OAuthUserResolverTest extends TestCase
     {
         $email = 'oauth-provision-' . uniqid() . '@example.com';
         $subject = 'provisioned_user_' . uniqid();
-        $resolver = new OAuthUserResolver(providerName: 'google', autoProvision: true);
+        $resolver = new OAuthUserResolver('google', new UserRepository(), new Sanitizer(), autoProvision: true);
 
         $user = $resolver->resolveUser(
             $subject,
@@ -179,7 +181,9 @@ final class OAuthUserResolverTest extends TestCase
     {
         $subject = 'provisioned_editor_' . uniqid();
         $resolver = new OAuthUserResolver(
-            providerName: 'google',
+            'google',
+            new UserRepository(),
+            new Sanitizer(),
             autoProvision: true,
             defaultRole: 'editor',
         );
@@ -207,7 +211,9 @@ final class OAuthUserResolverTest extends TestCase
         self::assertIsInt($userId);
 
         $resolver = new OAuthUserResolver(
-            providerName: 'google',
+            'google',
+            new UserRepository(),
+            new Sanitizer(),
             roleMapping: ['admin_group' => 'administrator', 'editor_group' => 'editor'],
             roleClaim: 'role',
         );
@@ -234,7 +240,9 @@ final class OAuthUserResolverTest extends TestCase
         self::assertIsInt($userId);
 
         $resolver = new OAuthUserResolver(
-            providerName: 'google',
+            'google',
+            new UserRepository(),
+            new Sanitizer(),
             roleMapping: ['admin_group' => 'administrator', 'editor_group' => 'editor'],
             roleClaim: 'groups',
         );
@@ -264,7 +272,7 @@ final class OAuthUserResolverTest extends TestCase
         $wpUser = get_user_by('id', $userId);
         $wpUser->set_role('subscriber');
 
-        $resolver = new OAuthUserResolver(providerName: 'google');
+        $resolver = new OAuthUserResolver('google', new UserRepository(), new Sanitizer());
 
         $user = $resolver->resolveUser(
             $login,
@@ -292,7 +300,7 @@ final class OAuthUserResolverTest extends TestCase
         // Pre-bind the subject
         update_user_meta($userId, '_wppack_oauth_sub_google', $subject);
 
-        $resolver = new OAuthUserResolver(providerName: 'google');
+        $resolver = new OAuthUserResolver('google', new UserRepository(), new Sanitizer());
 
         $user = $resolver->resolveUser(
             $subject,
@@ -330,7 +338,7 @@ final class OAuthUserResolverTest extends TestCase
         // Pre-bind the subject
         update_user_meta($userId, '_wppack_oauth_sub_google', $subject);
 
-        $resolver = new OAuthUserResolver(providerName: 'google');
+        $resolver = new OAuthUserResolver('google', new UserRepository(), new Sanitizer());
 
         // Should not throw or error even when claims match existing values
         $user = $resolver->resolveUser(
@@ -361,8 +369,8 @@ final class OAuthUserResolverTest extends TestCase
         $googleSubject = 'google-sub-' . uniqid();
         $azureSubject = 'azure-sub-' . uniqid();
 
-        $googleResolver = new OAuthUserResolver(providerName: 'google');
-        $azureResolver = new OAuthUserResolver(providerName: 'azure');
+        $googleResolver = new OAuthUserResolver('google', new UserRepository(), new Sanitizer());
+        $azureResolver = new OAuthUserResolver('azure', new UserRepository(), new Sanitizer());
 
         // Resolve with Google first
         $googleResolver->resolveUser($login, []);
@@ -380,7 +388,9 @@ final class OAuthUserResolverTest extends TestCase
     public function constructorWithAllOptions(): void
     {
         $resolver = new OAuthUserResolver(
-            providerName: 'custom',
+            'custom',
+            new UserRepository(),
+            new Sanitizer(),
             autoProvision: true,
             defaultRole: 'editor',
             emailClaim: 'preferred_email',
@@ -411,7 +421,9 @@ final class OAuthUserResolverTest extends TestCase
         update_user_meta($userId, '_wppack_oauth_sub_google', $login);
 
         $resolver = new OAuthUserResolver(
-            providerName: 'google',
+            'google',
+            new UserRepository(),
+            new Sanitizer(),
             firstNameClaim: 'numeric_name',
         );
 
@@ -427,7 +439,7 @@ final class OAuthUserResolverTest extends TestCase
     #[Test]
     public function resolveUserRejectsNullByteInSubject(): void
     {
-        $resolver = new OAuthUserResolver(providerName: 'google');
+        $resolver = new OAuthUserResolver('google', new UserRepository(), new Sanitizer());
 
         $this->expectException(AuthenticationException::class);
         $this->expectExceptionMessage('Invalid OAuth subject identifier');
@@ -451,7 +463,7 @@ final class OAuthUserResolverTest extends TestCase
 
         self::assertIsInt($userId);
 
-        $resolver = new OAuthUserResolver(providerName: 'google');
+        $resolver = new OAuthUserResolver('google', new UserRepository(), new Sanitizer());
 
         // Invalid email format should be skipped, resolver falls through to login lookup
         $user = $resolver->resolveUser(
@@ -467,7 +479,7 @@ final class OAuthUserResolverTest extends TestCase
     public function autoProvisionWithXssInDisplayName(): void
     {
         $subject = 'provisioned_xss_' . uniqid();
-        $resolver = new OAuthUserResolver(providerName: 'google', autoProvision: true);
+        $resolver = new OAuthUserResolver('google', new UserRepository(), new Sanitizer(), autoProvision: true);
 
         $user = $resolver->resolveUser(
             $subject,
@@ -506,7 +518,9 @@ final class OAuthUserResolverTest extends TestCase
         $wpUser->set_role('editor');
 
         $resolver = new OAuthUserResolver(
-            providerName: 'google',
+            'google',
+            new UserRepository(),
+            new Sanitizer(),
             roleMapping: ['admin_group' => 'administrator'],
             roleClaim: 'role',
         );
@@ -531,7 +545,7 @@ final class OAuthUserResolverTest extends TestCase
 
         self::assertIsInt($userId);
 
-        $resolver = new OAuthUserResolver(providerName: 'google');
+        $resolver = new OAuthUserResolver('google', new UserRepository(), new Sanitizer());
 
         // Resolve by login (no email or bound subject)
         $user = $resolver->resolveUser($login, []);
@@ -555,7 +569,9 @@ final class OAuthUserResolverTest extends TestCase
         update_user_meta($userId, '_wppack_oauth_sub_google', $subject);
 
         $resolver = new OAuthUserResolver(
-            providerName: 'google',
+            'google',
+            new UserRepository(),
+            new Sanitizer(),
             firstNameClaim: 'bool_claim',
         );
 
@@ -583,7 +599,9 @@ final class OAuthUserResolverTest extends TestCase
         update_user_meta($userId, '_wppack_oauth_sub_google', $subject);
 
         $resolver = new OAuthUserResolver(
-            providerName: 'google',
+            'google',
+            new UserRepository(),
+            new Sanitizer(),
             firstNameClaim: 'float_claim',
         );
 
@@ -611,7 +629,9 @@ final class OAuthUserResolverTest extends TestCase
         update_user_meta($userId, '_wppack_oauth_sub_google', $subject);
 
         $resolver = new OAuthUserResolver(
-            providerName: 'google',
+            'google',
+            new UserRepository(),
+            new Sanitizer(),
             firstNameClaim: 'array_claim',
         );
 
@@ -628,7 +648,7 @@ final class OAuthUserResolverTest extends TestCase
     public function autoProvisionWithoutEmail(): void
     {
         $subject = 'provisioned_noemail_' . uniqid();
-        $resolver = new OAuthUserResolver(providerName: 'google', autoProvision: true);
+        $resolver = new OAuthUserResolver('google', new UserRepository(), new Sanitizer(), autoProvision: true);
 
         $user = $resolver->resolveUser(
             $subject,
@@ -649,7 +669,9 @@ final class OAuthUserResolverTest extends TestCase
     {
         $subject = 'provisioned_nullclaims_' . uniqid();
         $resolver = new OAuthUserResolver(
-            providerName: 'google',
+            'google',
+            new UserRepository(),
+            new Sanitizer(),
             autoProvision: true,
             firstNameClaim: null,
             lastNameClaim: null,
@@ -684,7 +706,9 @@ final class OAuthUserResolverTest extends TestCase
         update_user_meta($userId, '_wppack_oauth_sub_google', $subject);
 
         $resolver = new OAuthUserResolver(
-            providerName: 'google',
+            'google',
+            new UserRepository(),
+            new Sanitizer(),
             firstNameClaim: null,
             lastNameClaim: null,
             displayNameClaim: null,
@@ -717,7 +741,9 @@ final class OAuthUserResolverTest extends TestCase
         $wpUser->set_role('subscriber');
 
         $resolver = new OAuthUserResolver(
-            providerName: 'google',
+            'google',
+            new UserRepository(),
+            new Sanitizer(),
             roleMapping: ['admin_group' => 'administrator'],
             roleClaim: 'groups',
         );
@@ -737,7 +763,7 @@ final class OAuthUserResolverTest extends TestCase
         // Use a login > 60 chars to cause wp_insert_user to return WP_Error
         $longSubject = str_repeat('a', 61);
 
-        $resolver = new OAuthUserResolver(providerName: 'google', autoProvision: true);
+        $resolver = new OAuthUserResolver('google', new UserRepository(), new Sanitizer(), autoProvision: true);
 
         $this->expectException(AuthenticationException::class);
         $this->expectExceptionMessage('User provisioning failed.');
@@ -755,7 +781,9 @@ final class OAuthUserResolverTest extends TestCase
         $customEmail = 'custom-' . uniqid() . '@example.com';
 
         $resolver = new OAuthUserResolver(
-            providerName: 'google',
+            'google',
+            new UserRepository(),
+            new Sanitizer(),
             autoProvision: true,
             emailClaim: 'preferred_email',
         );

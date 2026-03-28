@@ -14,11 +14,13 @@ declare(strict_types=1);
 namespace WpPack\Component\Security\Bridge\SAML\UserResolution;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
+use WpPack\Component\Sanitizer\Sanitizer;
 use WpPack\Component\Security\Bridge\SAML\Event\SamlUserAttributesMappedEvent;
 use WpPack\Component\Security\Bridge\SAML\Event\SamlUserProvisionedEvent;
 use WpPack\Component\Security\Bridge\SAML\Event\SamlUserProvisionFailedEvent;
 use WpPack\Component\Security\Bridge\SAML\Event\SamlUserUpdatedEvent;
 use WpPack\Component\Security\Exception\AuthenticationException;
+use WpPack\Component\User\UserRepositoryInterface;
 
 final class SamlUserResolver implements SamlUserResolverInterface
 {
@@ -27,6 +29,8 @@ final class SamlUserResolver implements SamlUserResolverInterface
      * @param list<SamlAttributeMapping>  $customMappings Custom SAML attribute → user meta mappings
      */
     public function __construct(
+        private readonly UserRepositoryInterface $userRepository,
+        private readonly Sanitizer $sanitizer,
         private readonly bool $autoProvision = false,
         private readonly string $defaultRole = 'subscriber',
         private readonly string $emailAttribute = 'email',
@@ -46,7 +50,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
      */
     public function resolveUser(string $nameId, array $attributes): \WP_User
     {
-        $sanitizedNameId = sanitize_user($nameId, true);
+        $sanitizedNameId = $this->sanitizer->user($nameId, true);
 
         if ($sanitizedNameId === '') {
             throw new AuthenticationException('Invalid SAML NameID.');
@@ -55,7 +59,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
         $email = $this->getAttributeValue($attributes, $this->emailAttribute);
 
         if ($email !== null) {
-            $email = sanitize_email($email);
+            $email = $this->sanitizer->email($email);
 
             if ($email === '' || !filter_var($email, \FILTER_VALIDATE_EMAIL)) {
                 $email = null;
@@ -72,7 +76,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
         }
 
         if ($email !== null) {
-            $user = get_user_by('email', $email);
+            $user = $this->userRepository->findByEmail($email);
 
             if ($user instanceof \WP_User) {
                 if (!$this->isNameIdBound($user, $sanitizedNameId)) {
@@ -86,7 +90,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
             }
         }
 
-        $user = get_user_by('login', $sanitizedNameId);
+        $user = $this->userRepository->findByLogin($sanitizedNameId);
 
         if ($user instanceof \WP_User) {
             $this->bindNameId($user, $sanitizedNameId);
@@ -122,7 +126,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
             $firstName = $this->getAttributeValue($attributes, $this->firstNameAttribute);
 
             if ($firstName !== null) {
-                $userdata['first_name'] = sanitize_text_field($firstName);
+                $userdata['first_name'] = $this->sanitizer->text($firstName);
             }
         }
 
@@ -130,7 +134,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
             $lastName = $this->getAttributeValue($attributes, $this->lastNameAttribute);
 
             if ($lastName !== null) {
-                $userdata['last_name'] = sanitize_text_field($lastName);
+                $userdata['last_name'] = $this->sanitizer->text($lastName);
             }
         }
 
@@ -138,7 +142,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
             $displayName = $this->getAttributeValue($attributes, $this->displayNameAttribute);
 
             if ($displayName !== null) {
-                $userdata['display_name'] = sanitize_text_field($displayName);
+                $userdata['display_name'] = $this->sanitizer->text($displayName);
             }
         }
 
@@ -149,7 +153,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
             $value = $this->getAttributeValue($attributes, $mapping->samlAttribute);
 
             if ($value !== null) {
-                $userMeta[$mapping->metaKey] = sanitize_text_field($value);
+                $userMeta[$mapping->metaKey] = $this->sanitizer->text($value);
             }
         }
 
@@ -161,16 +165,15 @@ final class SamlUserResolver implements SamlUserResolverInterface
             $userMeta = $event->getUserMeta();
         }
 
-        /** @var int|\WP_Error $userId */
-        $userId = wp_insert_user($userdata);
-
-        if ($userId instanceof \WP_Error) {
-            $this->dispatcher?->dispatch(new SamlUserProvisionFailedEvent($nameId, $userId));
+        try {
+            $userId = $this->userRepository->insert($userdata);
+        } catch (\Throwable $e) {
+            $this->dispatcher?->dispatch(new SamlUserProvisionFailedEvent($nameId, new \WP_Error('provision_failed', $e->getMessage())));
 
             throw new AuthenticationException('User provisioning failed.');
         }
 
-        $user = get_user_by('id', $userId);
+        $user = $this->userRepository->find($userId);
 
         // @codeCoverageIgnoreStart
         if (!$user instanceof \WP_User) {
@@ -179,7 +182,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
         // @codeCoverageIgnoreEnd
 
         foreach ($userMeta as $key => $value) {
-            update_user_meta($userId, $key, $value);
+            $this->userRepository->updateMeta($userId, $key, $value);
         }
 
         $this->bindNameId($user, $nameId);
@@ -207,7 +210,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
             $firstName = $this->getAttributeValue($attributes, $this->firstNameAttribute);
 
             if ($firstName !== null) {
-                $firstName = sanitize_text_field($firstName);
+                $firstName = $this->sanitizer->text($firstName);
 
                 if ($firstName !== $user->first_name) {
                     $userdata['first_name'] = $firstName;
@@ -220,7 +223,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
             $lastName = $this->getAttributeValue($attributes, $this->lastNameAttribute);
 
             if ($lastName !== null) {
-                $lastName = sanitize_text_field($lastName);
+                $lastName = $this->sanitizer->text($lastName);
 
                 if ($lastName !== $user->last_name) {
                     $userdata['last_name'] = $lastName;
@@ -233,7 +236,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
             $displayName = $this->getAttributeValue($attributes, $this->displayNameAttribute);
 
             if ($displayName !== null) {
-                $displayName = sanitize_text_field($displayName);
+                $displayName = $this->sanitizer->text($displayName);
 
                 if ($displayName !== $user->display_name) {
                     $userdata['display_name'] = $displayName;
@@ -249,7 +252,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
             $value = $this->getAttributeValue($attributes, $mapping->samlAttribute);
 
             if ($value !== null) {
-                $userMeta[$mapping->metaKey] = sanitize_text_field($value);
+                $userMeta[$mapping->metaKey] = $this->sanitizer->text($value);
             }
         }
 
@@ -265,11 +268,11 @@ final class SamlUserResolver implements SamlUserResolverInterface
         }
 
         if ($needsUpdate) {
-            wp_update_user($userdata);
+            $this->userRepository->update($userdata);
         }
 
         foreach ($userMeta as $key => $value) {
-            update_user_meta($user->ID, $key, $value);
+            $this->userRepository->updateMeta($user->ID, $key, $value);
         }
 
         if ($needsUpdate || $userMeta !== []) {
@@ -299,7 +302,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
 
     private function isNameIdBound(\WP_User $user, string $nameId): bool
     {
-        $storedNameId = get_user_meta($user->ID, self::SAML_NAMEID_META_KEY, true);
+        $storedNameId = $this->userRepository->getMeta($user->ID, self::SAML_NAMEID_META_KEY, true);
 
         if ($storedNameId === '' || $storedNameId === false) {
             $this->bindNameId($user, $nameId);
@@ -312,7 +315,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
 
     private function findByNameId(string $nameId): ?\WP_User
     {
-        $users = get_users([
+        $users = $this->userRepository->findAll([
             'meta_key' => self::SAML_NAMEID_META_KEY,
             'meta_value' => $nameId,
             'number' => 1,
@@ -323,7 +326,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
 
     private function bindNameId(\WP_User $user, string $nameId): void
     {
-        update_user_meta($user->ID, self::SAML_NAMEID_META_KEY, $nameId);
+        $this->userRepository->updateMeta($user->ID, self::SAML_NAMEID_META_KEY, $nameId);
     }
 
     /**
