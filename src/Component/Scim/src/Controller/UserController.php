@@ -224,7 +224,7 @@ final class UserController extends AbstractRestController
 
             return $this->json(
                 $this->serializer->serialize($updatedUser, $this->baseUrl),
-                headers: ['Content-Type' => ScimConstants::CONTENT_TYPE],
+                headers: ['Content-Type' => ScimConstants::CONTENT_TYPE, 'Location' => $this->baseUrl . '/scim/v2/Users/' . $id],
             );
         } catch (ScimException $e) {
             return $this->json(ErrorSerializer::fromException($e), $e->getHttpStatus(), ['Content-Type' => ScimConstants::CONTENT_TYPE]);
@@ -264,7 +264,7 @@ final class UserController extends AbstractRestController
 
             return $this->json(
                 $this->serializer->serialize($updatedUser, $this->baseUrl),
-                headers: ['Content-Type' => ScimConstants::CONTENT_TYPE],
+                headers: ['Content-Type' => ScimConstants::CONTENT_TYPE, 'Location' => $this->baseUrl . '/scim/v2/Users/' . $id],
             );
         } catch (ScimException $e) {
             return $this->json(ErrorSerializer::fromException($e), $e->getHttpStatus(), ['Content-Type' => ScimConstants::CONTENT_TYPE]);

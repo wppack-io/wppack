@@ -128,13 +128,19 @@ final readonly class SamlLoginConfiguration
             return null;
         }
 
-        /** @var array<string, string>|null $decoded */
         $decoded = json_decode($json, true);
 
-        if ($decoded === null) {
+        if (!\is_array($decoded)) {
             throw new \RuntimeException('SAML_ROLE_MAPPING is not valid JSON.');
         }
 
+        foreach ($decoded as $key => $value) {
+            if (!\is_string($key) || !\is_string($value)) {
+                throw new \RuntimeException('SAML_ROLE_MAPPING must be a JSON object mapping strings to strings.');
+            }
+        }
+
+        /** @var array<string, string> $decoded */
         return $decoded;
     }
 

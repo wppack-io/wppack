@@ -99,6 +99,12 @@ final class SamlAuthenticator implements AuthenticatorInterface
         }
 
         $nameId = $auth->getNameId();
+
+        // onelogin/php-saml declares string return type but may return empty
+        if ($nameId === '') {
+            throw new AuthenticationException('No NameID in SAML response.');
+        }
+
         $attributes = $auth->getAttributes();
         $sessionIndex = $auth->getSessionIndex();
 

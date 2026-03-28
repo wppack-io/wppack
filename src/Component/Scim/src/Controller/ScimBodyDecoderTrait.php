@@ -29,7 +29,7 @@ trait ScimBodyDecoderTrait
         }
 
         try {
-            $body = json_decode($content, true, 512, \JSON_THROW_ON_ERROR);
+            $body = json_decode($content, true, 20, \JSON_THROW_ON_ERROR);
         } catch (\JsonException $e) {
             throw new InvalidValueException(sprintf('Invalid JSON: %s', $e->getMessage()));
         }

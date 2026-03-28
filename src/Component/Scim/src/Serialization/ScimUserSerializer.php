@@ -104,7 +104,7 @@ final readonly class ScimUserSerializer
         $dt = \DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $mysqlDate, new \DateTimeZone('UTC'));
 
         if ($dt === false) {
-            return $mysqlDate;
+            return (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format(\DateTimeInterface::ATOM);
         }
 
         return $dt->format(\DateTimeInterface::ATOM);

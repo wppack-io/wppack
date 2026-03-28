@@ -260,10 +260,8 @@ final class SamlUserResolver implements SamlUserResolverInterface
             $userdata = $event->getUserdata();
             $userMeta = $event->getUserMeta();
 
-            // Re-evaluate needsUpdate after event listeners may have added fields
-            if (\count($userdata) > 1) {
-                $needsUpdate = true;
-            }
+            // Re-evaluate needsUpdate based on whether userdata has fields beyond 'ID'
+            $needsUpdate = \count($userdata) > 1;
         }
 
         if ($needsUpdate) {
