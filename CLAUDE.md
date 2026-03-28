@@ -305,6 +305,21 @@ wppack/http-foundation, wppack/rest, wppack/site, wppack/user
 - Use match expressions
 - Use named arguments where appropriate
 
+### `final` Keyword Policy
+
+Do **not** add `final` to classes that may be extended or mocked in tests. Follow Symfony's approach — preserve testability (`createMock()`) and library extensibility.
+
+| Class type | `final` | Reason |
+|------------|---------|--------|
+| Core infrastructure (ContainerBuilder, Definition, Request, etc.) | No | Mocked in tests, may be extended by users |
+| Factories (SamlAuthFactory, etc.) | No | Mocked in tests |
+| Event classes | No | Mocked or instantiated directly in tests |
+| Service implementations with interface (Mapper, Repository, Controller, etc.) | `final` | Mockable via interface |
+| Value objects / DTOs | `final readonly` | Immutable, no extension needed |
+| Configuration classes | `final readonly` | Immutable, no extension needed |
+
+**Rule of thumb:** If `createMock(ClassName::class)` is used in tests → no `final`. If the class has an interface for mocking → `final`.
+
 ### `#[\SensitiveParameter]` Usage Policy
 
 Apply `#[\SensitiveParameter]` to parameters that receive secret information such as passwords, API keys, and access keys. This replaces parameter values with `SensitiveParameterValue` in exception stack traces, preventing leakage to logs and screens.
