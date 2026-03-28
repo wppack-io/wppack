@@ -17,6 +17,8 @@ use WpPack\Component\Scim\Schema\ScimConstants;
 
 final class ListResponseSerializer
 {
+    private function __construct() {}
+
     /**
      * @param list<array<string, mixed>> $resources
      *

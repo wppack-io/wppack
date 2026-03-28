@@ -15,11 +15,13 @@ namespace WpPack\Component\Scim\Mapping;
 
 use WpPack\Component\Sanitizer\Sanitizer;
 use WpPack\Component\Scim\Schema\ScimConstants;
+use WpPack\Component\User\UserRepositoryInterface;
 
 final readonly class UserAttributeMapper implements UserAttributeMapperInterface
 {
     public function __construct(
-        private Sanitizer $sanitizer = new Sanitizer(),
+        private UserRepositoryInterface $userRepository,
+        private Sanitizer $sanitizer,
     ) {}
 
     public function toWordPress(array $scimAttributes): array
@@ -84,11 +86,12 @@ final readonly class UserAttributeMapper implements UserAttributeMapperInterface
 
     public function toScim(\WP_User $user): array
     {
-        $active = get_user_meta($user->ID, ScimConstants::META_ACTIVE, true);
-        $locale = get_user_meta($user->ID, 'locale', true);
-        $timezone = get_user_meta($user->ID, ScimConstants::META_TIMEZONE, true);
-        $title = get_user_meta($user->ID, ScimConstants::META_TITLE, true);
-        $externalId = get_user_meta($user->ID, ScimConstants::META_EXTERNAL_ID, true);
+        $active = $this->userRepository->getMeta($user->ID, ScimConstants::META_ACTIVE, true);
+        $locale = $this->userRepository->getMeta($user->ID, 'locale', true);
+        $timezone = $this->userRepository->getMeta($user->ID, ScimConstants::META_TIMEZONE, true);
+        $title = $this->userRepository->getMeta($user->ID, ScimConstants::META_TITLE, true);
+        $externalId = $this->userRepository->getMeta($user->ID, ScimConstants::META_EXTERNAL_ID, true);
+        $lastModified = $this->userRepository->getMeta($user->ID, ScimConstants::META_LAST_MODIFIED, true);
 
         return [
             'userName' => $user->user_login,
@@ -111,6 +114,7 @@ final readonly class UserAttributeMapper implements UserAttributeMapperInterface
             'timezone' => $timezone !== '' ? $timezone : null,
             'title' => $title !== '' ? $title : null,
             'externalId' => $externalId !== '' ? $externalId : null,
+            'lastModified' => $lastModified !== '' ? $lastModified : null,
         ];
     }
 

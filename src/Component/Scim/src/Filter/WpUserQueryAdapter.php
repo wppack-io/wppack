@@ -15,9 +15,14 @@ namespace WpPack\Component\Scim\Filter;
 
 use WpPack\Component\Scim\Exception\InvalidFilterException;
 use WpPack\Component\Scim\Schema\ScimConstants;
+use WpPack\Component\User\UserRepositoryInterface;
 
-final class WpUserQueryAdapter
+final readonly class WpUserQueryAdapter
 {
+    public function __construct(
+        private UserRepositoryInterface $userRepository,
+    ) {}
+
     private const ATTRIBUTE_MAP = [
         'userName' => 'login',
         'displayName' => 'display_name',
@@ -202,9 +207,8 @@ final class WpUserQueryAdapter
     private function findUserIdsByField(string $wpField, ?string $value): array
     {
         $args = $this->equalitySearch($wpField, $value);
-        $args['fields'] = 'ID';
-        $users = get_users($args);
+        $users = $this->userRepository->findAll($args);
 
-        return array_map('intval', $users);
+        return array_map(static fn(\WP_User $user): int => $user->ID, $users);
     }
 }

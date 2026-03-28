@@ -18,6 +18,8 @@ use WpPack\Component\Scim\Schema\ScimConstants;
 
 final class ErrorSerializer
 {
+    private function __construct() {}
+
     /**
      * @return array<string, mixed>
      */

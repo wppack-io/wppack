@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Scim\Repository;
 
+use WpPack\Component\Role\RoleProvider;
 use WpPack\Component\Scim\Exception\InvalidValueException;
 use WpPack\Component\User\UserRepositoryInterface;
 
@@ -20,6 +21,7 @@ final readonly class ScimGroupRepository
 {
     public function __construct(
         private UserRepositoryInterface $userRepository,
+        private RoleProvider $roleProvider,
     ) {}
 
     /**
@@ -27,13 +29,7 @@ final readonly class ScimGroupRepository
      */
     public function findByName(string $roleName): ?array
     {
-        $wpRoles = wp_roles();
-
-        if (!isset($wpRoles->roles[$roleName])) {
-            return null;
-        }
-
-        return $wpRoles->roles[$roleName];
+        return $this->roleProvider->find($roleName);
     }
 
     /**
@@ -41,8 +37,7 @@ final readonly class ScimGroupRepository
      */
     public function findAll(int $startIndex, int $count): array
     {
-        $wpRoles = wp_roles();
-        $allRoles = $wpRoles->roles;
+        $allRoles = $this->roleProvider->all();
         $totalResults = \count($allRoles);
 
         $roleNames = array_keys($allRoles);
@@ -68,22 +63,17 @@ final readonly class ScimGroupRepository
      */
     public function create(string $name, string $label, array $capabilities = []): void
     {
-        add_role($name, $label, $capabilities);
+        $this->roleProvider->add($name, $label, $capabilities);
     }
 
     public function update(string $name, string $label): void
     {
-        $wpRoles = wp_roles();
-
-        if (isset($wpRoles->roles[$name])) {
-            $wpRoles->roles[$name]['name'] = $label;
-            update_option($wpRoles->role_key, $wpRoles->roles);
-        }
+        $this->roleProvider->updateLabel($name, $label);
     }
 
     public function delete(string $name): void
     {
-        remove_role($name);
+        $this->roleProvider->remove($name);
     }
 
     /**

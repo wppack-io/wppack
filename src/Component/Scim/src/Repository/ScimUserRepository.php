@@ -22,7 +22,7 @@ final readonly class ScimUserRepository
 {
     public function __construct(
         private UserRepositoryInterface $userRepository,
-        private WpUserQueryAdapter $queryAdapter = new WpUserQueryAdapter(),
+        private WpUserQueryAdapter $queryAdapter,
     ) {}
 
     public function find(int $userId): ?\WP_User

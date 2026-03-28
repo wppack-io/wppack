@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Scim\Serialization;
 
+use WpPack\Component\Role\RoleProvider;
 use WpPack\Component\Scim\Mapping\UserAttributeMapperInterface;
 use WpPack\Component\Scim\Schema\ScimConstants;
 
@@ -20,6 +21,7 @@ final readonly class ScimUserSerializer
 {
     public function __construct(
         private UserAttributeMapperInterface $mapper,
+        private RoleProvider $roleProvider,
     ) {}
 
     /**
@@ -67,12 +69,10 @@ final readonly class ScimUserSerializer
 
         $resource['groups'] = $this->serializeGroups($user, $baseUrl);
 
-        $lastModified = get_user_meta($user->ID, ScimConstants::META_LAST_MODIFIED, true);
-
         $resource['meta'] = [
             'resourceType' => 'User',
             'created' => self::toIso8601($user->user_registered),
-            'lastModified' => $lastModified !== '' ? $lastModified : self::toIso8601($user->user_registered),
+            'lastModified' => $scimAttributes['lastModified'] ?? self::toIso8601($user->user_registered),
             'location' => $baseUrl . '/scim/v2/Users/' . $user->ID,
         ];
 
@@ -89,7 +89,7 @@ final readonly class ScimUserSerializer
         foreach ($user->roles as $role) {
             $groups[] = [
                 'value' => $role,
-                'display' => wp_roles()->get_names()[$role] ?? $role,
+                'display' => $this->roleProvider->getNames()[$role] ?? $role,
                 '$ref' => $baseUrl . '/scim/v2/Groups/' . $role,
             ];
         }

@@ -26,6 +26,10 @@ final class RoleManager
     /** @var array<string, RoleDefinition> */
     private array $definitions = [];
 
+    public function __construct(
+        private readonly RoleProvider $roleProvider = new RoleProvider(),
+    ) {}
+
     public function addDefinition(RoleDefinition $definition): void
     {
         $this->definitions[$definition->name] = $definition;
@@ -71,23 +75,21 @@ final class RoleManager
 
         // Phase 1: Apply current definitions (add/update)
         foreach ($this->definitions as $definition) {
-            $wpRole = get_role($definition->name);
+            $existing = $this->roleProvider->find($definition->name);
 
-            if ($wpRole === null) {
+            if ($existing === null) {
                 $capabilities = array_fill_keys($definition->capabilities, true);
-                add_role($definition->name, $definition->label, $capabilities);
+                $this->roleProvider->add($definition->name, $definition->label, $capabilities);
             } else {
                 // Update label if it differs
-                $wpRoles = wp_roles();
-                if ($wpRoles->roles[$definition->name]['name'] !== $definition->label) {
-                    $wpRoles->roles[$definition->name]['name'] = $definition->label;
-                    update_option($wpRoles->role_key, $wpRoles->roles);
+                if ($existing['name'] !== $definition->label) {
+                    $this->roleProvider->updateLabel($definition->name, $definition->label);
                 }
 
                 // Add missing capabilities
                 foreach ($definition->capabilities as $cap) {
-                    if (!isset($wpRole->capabilities[$cap]) || !$wpRole->capabilities[$cap]) {
-                        $wpRole->add_cap($cap);
+                    if (!isset($existing['capabilities'][$cap]) || !$existing['capabilities'][$cap]) {
+                        $this->roleProvider->addCapability($definition->name, $cap);
                     }
                 }
             }
@@ -96,20 +98,15 @@ final class RoleManager
             $previousCaps = $previousState[$definition->name] ?? [];
             $orphanCaps = array_diff($previousCaps, $definition->capabilities);
 
-            if ($orphanCaps !== []) {
-                $wpRole = get_role($definition->name);
-                if ($wpRole !== null) {
-                    foreach ($orphanCaps as $cap) {
-                        $wpRole->remove_cap($cap);
-                    }
-                }
+            foreach ($orphanCaps as $cap) {
+                $this->roleProvider->removeCapability($definition->name, $cap);
             }
         }
 
         // Phase 3: Remove orphan roles (managed by us before, not in current definitions)
         foreach (array_keys($previousState) as $roleName) {
             if (!isset($this->definitions[$roleName]) && !\in_array($roleName, self::BUILTIN_ROLES, true)) {
-                remove_role($roleName);
+                $this->roleProvider->remove($roleName);
             }
         }
 
@@ -119,7 +116,7 @@ final class RoleManager
 
     public function unregister(string $roleName): void
     {
-        remove_role($roleName);
+        $this->roleProvider->remove($roleName);
         unset($this->definitions[$roleName]);
         $this->removeManagedRole($roleName);
     }

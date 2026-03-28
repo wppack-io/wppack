@@ -17,6 +17,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
+use WpPack\Component\Role\RoleProvider;
 use WpPack\Component\Scim\Controller\GroupController;
 use WpPack\Component\Scim\Controller\ResourceTypeController;
 use WpPack\Component\Scim\Controller\SchemaController;
@@ -46,6 +47,11 @@ final class ScimServiceProvider implements ServiceProviderInterface
             $builder->register(Sanitizer::class);
         }
 
+        // RoleProvider
+        if (!$builder->hasDefinition(RoleProvider::class)) {
+            $builder->register(RoleProvider::class);
+        }
+
         // Schema
         if (!$builder->hasDefinition(ServiceProviderConfig::class)) {
             $builder->register(ServiceProviderConfig::class);
@@ -53,6 +59,7 @@ final class ScimServiceProvider implements ServiceProviderInterface
 
         // Mapping
         $builder->register(UserAttributeMapper::class)
+            ->addArgument(new Reference(UserRepositoryInterface::class))
             ->addArgument(new Reference(Sanitizer::class));
         $builder->setAlias(UserAttributeMapperInterface::class, UserAttributeMapper::class);
 
@@ -61,14 +68,16 @@ final class ScimServiceProvider implements ServiceProviderInterface
 
         // Serialization
         $builder->register(ScimUserSerializer::class)
-            ->addArgument(new Reference(UserAttributeMapperInterface::class));
+            ->addArgument(new Reference(UserAttributeMapperInterface::class))
+            ->addArgument(new Reference(RoleProvider::class));
 
         $builder->register(ScimGroupSerializer::class)
             ->addArgument(new Reference(GroupMapperInterface::class));
 
         // Filter
         $builder->register(FilterParser::class);
-        $builder->register(WpUserQueryAdapter::class);
+        $builder->register(WpUserQueryAdapter::class)
+            ->addArgument(new Reference(UserRepositoryInterface::class));
 
         // Patch
         $builder->register(PatchProcessor::class);
@@ -79,7 +88,8 @@ final class ScimServiceProvider implements ServiceProviderInterface
             ->addArgument(new Reference(WpUserQueryAdapter::class));
 
         $builder->register(ScimGroupRepository::class)
-            ->addArgument(new Reference(UserRepositoryInterface::class));
+            ->addArgument(new Reference(UserRepositoryInterface::class))
+            ->addArgument(new Reference(RoleProvider::class));
 
         // Controllers
         $builder->register(UserController::class)
