@@ -61,6 +61,11 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
             (new SecurityServiceProvider())->register($builder);
         }
 
+        // Sanitizer
+        if (!$builder->hasDefinition(Sanitizer::class)) {
+            $builder->register(Sanitizer::class);
+        }
+
         // Configuration
         $builder->register(SamlLoginConfiguration::class)
             ->setFactory([SamlLoginConfiguration::class, 'fromEnvironment']);
