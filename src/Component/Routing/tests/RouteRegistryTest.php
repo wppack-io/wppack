@@ -305,7 +305,7 @@ final class RouteRegistryTest extends TestCase
         update_option('rewrite_rules', ['dummy' => 'rule']);
         self::assertNotFalse(get_option('rewrite_rules'));
 
-        $registry = new RouteRegistry();
+        $registry = new RouteRegistry(optionManager: new \WpPack\Component\Option\OptionManager());
         $registry->invalidate();
 
         self::assertFalse(get_option('rewrite_rules'));
