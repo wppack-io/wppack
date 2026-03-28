@@ -15,6 +15,7 @@ namespace WpPack\Component\Scim\Serialization;
 
 use WpPack\Component\Role\RoleProvider;
 use WpPack\Component\Scim\Mapping\UserAttributeMapperInterface;
+use WpPack\Component\Scim\Repository\ScimGroupRepository;
 use WpPack\Component\Scim\Schema\ScimConstants;
 
 final readonly class ScimUserSerializer
@@ -22,6 +23,7 @@ final readonly class ScimUserSerializer
     public function __construct(
         private UserAttributeMapperInterface $mapper,
         private RoleProvider $roleProvider,
+        private ScimGroupRepository $groupRepository,
     ) {}
 
     /**
@@ -86,11 +88,11 @@ final readonly class ScimUserSerializer
     {
         $groups = [];
 
-        foreach ($user->roles as $role) {
+        foreach ($this->groupRepository->getGroupNamesForUser($user->ID) as $roleName) {
             $groups[] = [
-                'value' => $role,
-                'display' => $this->roleProvider->getNames()[$role] ?? $role,
-                '$ref' => $baseUrl . '/scim/v2/Groups/' . $role,
+                'value' => $roleName,
+                'display' => $this->roleProvider->getNames()[$roleName] ?? $roleName,
+                '$ref' => $baseUrl . '/scim/v2/Groups/' . $roleName,
             ];
         }
 

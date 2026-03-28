@@ -36,6 +36,10 @@ final class ScimPlugin extends AbstractPlugin
 
     public function register(ContainerBuilder $builder): void
     {
+        if (!is_main_site()) {
+            return;
+        }
+
         $config = ScimConfiguration::fromEnvironment();
 
         $builder->setParameter('scim.max_results', $config->maxResults);
@@ -44,7 +48,6 @@ final class ScimPlugin extends AbstractPlugin
         $builder->setParameter('scim.allow_group_management', $config->allowGroupManagement);
         $builder->setParameter('scim.allow_user_deletion', $config->allowUserDeletion);
         $builder->setParameter('scim.auto_provision', $config->autoProvision);
-        $builder->setParameter('scim.blog_id', $config->blogId);
 
         $this->serviceProvider->register($builder);
     }
@@ -63,6 +66,10 @@ final class ScimPlugin extends AbstractPlugin
 
     public function boot(Container $container): void
     {
+        if (!is_main_site()) {
+            return;
+        }
+
         /** @var AuthenticationManager $authManager */
         $authManager = $container->get(AuthenticationManager::class);
         $authManager->register();

@@ -11,7 +11,7 @@ ScimPlugin は `wppack/scim` の SCIM 2.0 プロビジョニング機能を Word
 - **Bearer トークン認証**: ステートレスな API 認証
 - **環境変数設定**: `wp-config.php` の `define()` または環境変数で設定
 - **イベント連携**: プロビジョニングライフサイクルイベントの発行
-- **マルチサイト対応**: ブログ ID 指定によるターゲットサイト選択
+- **マルチサイト対応**: メインサイトのみでルート登録、全サイトにロール定義を伝播
 
 ## アーキテクチャ
 
@@ -101,11 +101,12 @@ src/Plugin/ScimPlugin/
 └─────────────────────────────────────────────────┘
 ```
 
-> **ロール操作の詳細**
+> **メンバーシップとロール操作**
 >
-> - メンバー追加は `add_role()` で既存ロールを保持したまま新しいロールを付与
-> - メンバー削除は `remove_role()` で該当ロールのみを削除（他のロールには影響しない）
-> - ユーザー無効化時（`active=false`）は `set_role('')` で全ロールを剥奪
+> - SCIM グループメンバーシップはユーザーメタ（`_wppack_scim_group_{roleName} = '1'`）として保存される
+> - メンバー追加・削除は WordPress ロール割り当てに影響しない（メタデータのみ）
+> - ロール割り当ては将来の設定画面で制御予定
+> - ユーザー無効化時（`active=false`）は全サイトで `set_role('')` によるロール剥奪 + `wp_authenticate_user` フィルターによるログインブロック + マルチサイトでは `update_user_status()` によるネイティブ無効化
 
 ## 依存パッケージ
 
@@ -148,7 +149,6 @@ WpPack\Plugin\ScimPlugin\
 | `SCIM_ALLOW_GROUP_MANAGEMENT` | `true` | SCIM によるグループ（ロール）管理の許可 |
 | `SCIM_ALLOW_USER_DELETION` | `false` | 永続的なユーザー削除の許可（false = 無効化のみ） |
 | `SCIM_MAX_RESULTS` | `100` | 一覧リクエストの最大結果数 |
-| `SCIM_BLOG_ID` | `null` | マルチサイト環境でのターゲットブログ ID（未設定時はカレントブログ） |
 
 ### 設定例
 
@@ -227,3 +227,5 @@ define('SCIM_BEARER_TOKEN', 'your-onelogin-provisioning-token');
 - **HTTPS 必須**: Bearer トークンは平文で送信されるため、本番環境では HTTPS を必須化
 - **トークンベース認可**: SCIM API は `ServiceToken` を使用し、WordPress ユーザーに依存しない最小権限（`scim_provision`）で認可。`manage_options` のような広い権限を付与しない
 - **削除制御**: デフォルトで `SCIM_ALLOW_USER_DELETION=false`（無効化のみ）。完全削除は明示的に有効化が必要
+- **ユーザー無効化の多層防御**: SCIM メタ（`_wppack_scim_active = '0'`）+ `wp_authenticate_user` フィルターによるログインブロック + 全サイトでのロール剥奪 + マルチサイトでの `update_user_status()` ネイティブ無効化
+- **マルチサイト**: SCIM エンドポイントはメインサイトのみで登録。ロール定義 CRUD は全サイトに伝播

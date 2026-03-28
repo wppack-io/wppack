@@ -15,13 +15,20 @@ namespace WpPack\Component\Scim\Repository;
 
 use WpPack\Component\Role\RoleProvider;
 use WpPack\Component\Scim\Exception\InvalidValueException;
+use WpPack\Component\Scim\Schema\ScimConstants;
+use WpPack\Component\Site\BlogSwitcherInterface;
+use WpPack\Component\Site\SiteRepositoryInterface;
 use WpPack\Component\User\UserRepositoryInterface;
 
-final readonly class ScimGroupRepository
+final class ScimGroupRepository
 {
+    use MultisiteAwareTrait;
+
     public function __construct(
-        private UserRepositoryInterface $userRepository,
-        private RoleProvider $roleProvider,
+        private readonly UserRepositoryInterface $userRepository,
+        private readonly RoleProvider $roleProvider,
+        private readonly ?BlogSwitcherInterface $blogSwitcher = null,
+        private readonly ?SiteRepositoryInterface $siteRepository = null,
     ) {}
 
     /**
@@ -63,17 +70,22 @@ final readonly class ScimGroupRepository
      */
     public function create(string $name, string $label, array $capabilities = []): void
     {
-        $this->roleProvider->add($name, $label, $capabilities);
+        $this->forEachSite(fn() => $this->roleProvider->add($name, $label, $capabilities));
     }
 
     public function update(string $name, string $label): void
     {
-        $this->roleProvider->updateLabel($name, $label);
+        $this->forEachSite(fn() => $this->roleProvider->updateLabel($name, $label));
     }
 
     public function delete(string $name): void
     {
-        $this->roleProvider->remove($name);
+        $members = $this->getMembersOfRole($name);
+        foreach ($members as $member) {
+            $this->userRepository->deleteMeta($member->ID, ScimConstants::META_GROUP_PREFIX . $name);
+        }
+
+        $this->forEachSite(fn() => $this->roleProvider->remove($name));
     }
 
     /**
@@ -111,7 +123,7 @@ final readonly class ScimGroupRepository
             throw new InvalidValueException(sprintf('User "%d" does not exist.', $userId));
         }
 
-        $user->add_role($roleName);
+        $this->userRepository->updateMeta($userId, ScimConstants::META_GROUP_PREFIX . $roleName, '1');
     }
 
     public function removeMember(string $roleName, int $userId): void
@@ -122,7 +134,7 @@ final readonly class ScimGroupRepository
             throw new InvalidValueException(sprintf('User "%d" does not exist.', $userId));
         }
 
-        $user->remove_role($roleName);
+        $this->userRepository->deleteMeta($userId, ScimConstants::META_GROUP_PREFIX . $roleName);
     }
 
     /**
@@ -130,6 +142,32 @@ final readonly class ScimGroupRepository
      */
     public function getMembersOfRole(string $roleName): array
     {
-        return $this->userRepository->findAll(['role' => $roleName]);
+        return $this->userRepository->findAll([
+            'meta_key' => ScimConstants::META_GROUP_PREFIX . $roleName,
+            'meta_value' => '1',
+        ]);
+    }
+
+    /**
+     * @return list<string> Role names the user belongs to via SCIM
+     */
+    public function getGroupNamesForUser(int $userId): array
+    {
+        $allMeta = $this->userRepository->getMeta($userId);
+        if (!\is_array($allMeta)) {
+            return [];
+        }
+
+        $prefix = ScimConstants::META_GROUP_PREFIX;
+        $prefixLen = \strlen($prefix);
+        $groups = [];
+
+        foreach ($allMeta as $key => $values) {
+            if (str_starts_with($key, $prefix) && ($values[0] ?? '') === '1') {
+                $groups[] = substr($key, $prefixLen);
+            }
+        }
+
+        return $groups;
     }
 }

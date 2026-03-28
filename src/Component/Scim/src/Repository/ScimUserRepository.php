@@ -16,13 +16,19 @@ namespace WpPack\Component\Scim\Repository;
 use WpPack\Component\Scim\Filter\FilterNode;
 use WpPack\Component\Scim\Filter\WpUserQueryAdapter;
 use WpPack\Component\Scim\Schema\ScimConstants;
+use WpPack\Component\Site\BlogSwitcherInterface;
+use WpPack\Component\Site\SiteRepositoryInterface;
 use WpPack\Component\User\UserRepositoryInterface;
 
-final readonly class ScimUserRepository
+final class ScimUserRepository
 {
+    use MultisiteAwareTrait;
+
     public function __construct(
-        private UserRepositoryInterface $userRepository,
-        private WpUserQueryAdapter $queryAdapter,
+        private readonly UserRepositoryInterface $userRepository,
+        private readonly WpUserQueryAdapter $queryAdapter,
+        private readonly ?BlogSwitcherInterface $blogSwitcher = null,
+        private readonly ?SiteRepositoryInterface $siteRepository = null,
     ) {}
 
     public function find(int $userId): ?\WP_User
@@ -121,10 +127,16 @@ final readonly class ScimUserRepository
     {
         $this->userRepository->updateMeta($userId, ScimConstants::META_ACTIVE, '1');
 
-        $user = $this->find($userId);
-        if ($user !== null && $user->roles === []) {
-            $user->set_role($defaultRole);
+        if (is_multisite() && function_exists('update_user_status')) {
+            update_user_status($userId, 'deleted', 0);
         }
+
+        $this->forEachSite(function () use ($userId, $defaultRole): void {
+            $user = $this->userRepository->find($userId);
+            if ($user !== null && $user->roles === []) {
+                $user->set_role($defaultRole);
+            }
+        });
     }
 
     public function isActive(int $userId): bool
@@ -138,11 +150,14 @@ final readonly class ScimUserRepository
     {
         $this->userRepository->updateMeta($userId, ScimConstants::META_ACTIVE, '0');
 
-        // Strip all roles
-        $user = $this->find($userId);
-        if ($user !== null) {
-            $user->set_role('');
+        if (is_multisite() && function_exists('update_user_status')) {
+            update_user_status($userId, 'deleted', 1);
         }
+
+        $this->forEachSite(function () use ($userId): void {
+            $user = $this->userRepository->find($userId);
+            $user?->set_role('');
+        });
     }
 
     public function delete(int $userId): void

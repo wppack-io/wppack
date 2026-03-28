@@ -21,7 +21,6 @@ use WpPack\Component\Rest\AbstractRestController;
 use WpPack\Component\Rest\Attribute\RestRoute;
 use WpPack\Component\Rest\HttpMethod;
 use WpPack\Component\Role\Attribute\IsGranted;
-use WpPack\Component\Site\BlogSwitcherInterface;
 use WpPack\Component\Scim\Event\UserDeactivatedEvent;
 use WpPack\Component\Scim\Event\UserDeletedEvent;
 use WpPack\Component\Scim\Event\UserProvisionedEvent;
@@ -46,7 +45,6 @@ use WpPack\Component\Scim\Serialization\ScimUserSerializer;
 #[IsGranted(ScimConstants::CAPABILITY_PROVISION)]
 final class UserController extends AbstractRestController
 {
-    use MultisiteScopeTrait;
     use ScimBodyDecoderTrait;
 
     public function __construct(
@@ -61,258 +59,244 @@ final class UserController extends AbstractRestController
         private readonly string $defaultRole = 'subscriber',
         private readonly bool $allowUserDeletion = false,
         private readonly bool $autoProvision = true,
-        private readonly ?int $blogId = null,
-        private readonly ?BlogSwitcherInterface $blogSwitcher = null,
     ) {}
 
     #[RestRoute(methods: [HttpMethod::GET])]
     public function list(Request $request): JsonResponse
     {
-        return $this->inBlogContext(function () use ($request): JsonResponse {
-            try {
-                $filter = $request->query->get('filter');
-                $startIndex = max(1, $request->query->getInt('startIndex', 1));
-                $count = min($this->maxResults, max(1, $request->query->getInt('count', $this->maxResults)));
+        try {
+            $filter = $request->query->get('filter');
+            $startIndex = max(1, $request->query->getInt('startIndex', 1));
+            $count = min($this->maxResults, max(1, $request->query->getInt('count', $this->maxResults)));
 
-                $filterNode = null;
-                if ($filter !== null && $filter !== '') {
-                    $filterNode = $this->filterParser->parse($filter);
-                }
-
-                $result = $this->userRepository->findFiltered($filterNode, $startIndex, $count);
-
-                $resources = [];
-                foreach ($result['users'] as $user) {
-                    $resources[] = $this->serializer->serialize($user, $this->baseUrl);
-                }
-
-                return $this->json(
-                    ListResponseSerializer::serialize($resources, $result['totalResults'], $startIndex, $count),
-                    headers: ['Content-Type' => ScimConstants::CONTENT_TYPE],
-                );
-            } catch (ScimException $e) {
-                return $this->json(ErrorSerializer::fromException($e), $e->getHttpStatus(), ['Content-Type' => ScimConstants::CONTENT_TYPE]);
+            $filterNode = null;
+            if ($filter !== null && $filter !== '') {
+                $filterNode = $this->filterParser->parse($filter);
             }
-        });
+
+            $result = $this->userRepository->findFiltered($filterNode, $startIndex, $count);
+
+            $resources = [];
+            foreach ($result['users'] as $user) {
+                $resources[] = $this->serializer->serialize($user, $this->baseUrl);
+            }
+
+            return $this->json(
+                ListResponseSerializer::serialize($resources, $result['totalResults'], $startIndex, $count),
+                headers: ['Content-Type' => ScimConstants::CONTENT_TYPE],
+            );
+        } catch (ScimException $e) {
+            return $this->json(ErrorSerializer::fromException($e), $e->getHttpStatus(), ['Content-Type' => ScimConstants::CONTENT_TYPE]);
+        }
     }
 
     #[RestRoute(route: '/{id}', methods: [HttpMethod::GET], requirements: ['id' => '\d+'])]
     public function get(int $id): JsonResponse
     {
-        return $this->inBlogContext(function () use ($id): JsonResponse {
-            try {
-                $user = $this->userRepository->find($id);
+        try {
+            $user = $this->userRepository->find($id);
 
-                if ($user === null) {
-                    throw new ResourceNotFoundException(sprintf('User "%d" not found.', $id));
-                }
-
-                return $this->json(
-                    $this->serializer->serialize($user, $this->baseUrl),
-                    headers: ['Content-Type' => ScimConstants::CONTENT_TYPE],
-                );
-            } catch (ScimException $e) {
-                return $this->json(ErrorSerializer::fromException($e), $e->getHttpStatus(), ['Content-Type' => ScimConstants::CONTENT_TYPE]);
+            if ($user === null) {
+                throw new ResourceNotFoundException(sprintf('User "%d" not found.', $id));
             }
-        });
+
+            return $this->json(
+                $this->serializer->serialize($user, $this->baseUrl),
+                headers: ['Content-Type' => ScimConstants::CONTENT_TYPE],
+            );
+        } catch (ScimException $e) {
+            return $this->json(ErrorSerializer::fromException($e), $e->getHttpStatus(), ['Content-Type' => ScimConstants::CONTENT_TYPE]);
+        }
     }
 
     #[RestRoute(methods: [HttpMethod::POST])]
     public function create(Request $request): JsonResponse
     {
-        return $this->inBlogContext(function () use ($request): JsonResponse {
-            try {
-                if (!$this->autoProvision) {
-                    throw new ScimException('User provisioning is disabled.', 403);
-                }
-
-                $body = $this->decodeBody($request);
-
-                if (!isset($body['userName'])) {
-                    throw new InvalidValueException('userName is required.');
-                }
-
-                if (!isset($body['emails']) || !\is_array($body['emails']) || $body['emails'] === []) {
-                    throw new InvalidValueException('emails is required and must contain at least one email.');
-                }
-
-                $mapped = $this->mapper->toWordPress($body);
-                $this->validateMappedEmail($mapped);
-
-                $userLogin = $mapped['data']['user_login'] ?? '';
-                if ($userLogin === '') {
-                    throw new InvalidValueException('userName must produce a valid login name.');
-                }
-
-                if (isset($body['externalId'])) {
-                    $byExtId = $this->userRepository->findByExternalId($body['externalId']);
-                    if ($byExtId !== null) {
-                        throw new ResourceConflictException(sprintf('User with externalId "%s" already exists.', $body['externalId']));
-                    }
-                }
-
-                // Check if user_login already exists
-                $existingUser = $this->userRepository->findByLogin($userLogin);
-                if ($existingUser !== null) {
-                    throw new ResourceConflictException(sprintf('User with userName "%s" already exists.', $body['userName']));
-                }
-
-                // Assign default role
-                if (!isset($mapped['data']['role'])) {
-                    $mapped['data']['role'] = $this->defaultRole;
-                }
-
-                $userId = $this->userRepository->create($mapped['data'], $mapped['meta']);
-
-                // Deactivate before dispatching provisioned event so listeners see final state
-                $shouldDeactivate = isset($body['active']) && $body['active'] === false;
-
-                if ($shouldDeactivate) {
-                    $this->userRepository->deactivate($userId);
-                }
-
-                $user = $this->userRepository->find($userId);
-                if ($user === null) {
-                    throw new ScimException('Failed to create user.', 500);
-                }
-
-                $this->dispatcher->dispatch(new UserProvisionedEvent($user, $body));
-
-                if ($shouldDeactivate) {
-                    $this->dispatcher->dispatch(new UserDeactivatedEvent($user));
-                }
-
-                return $this->json(
-                    $this->serializer->serialize($user, $this->baseUrl),
-                    201,
-                    ['Content-Type' => ScimConstants::CONTENT_TYPE, 'Location' => $this->baseUrl . '/scim/v2/Users/' . $userId],
-                );
-            } catch (ScimException $e) {
-                return $this->json(ErrorSerializer::fromException($e), $e->getHttpStatus(), ['Content-Type' => ScimConstants::CONTENT_TYPE]);
+        try {
+            if (!$this->autoProvision) {
+                throw new ScimException('User provisioning is disabled.', 403);
             }
-        });
+
+            $body = $this->decodeBody($request);
+
+            if (!isset($body['userName'])) {
+                throw new InvalidValueException('userName is required.');
+            }
+
+            if (!isset($body['emails']) || !\is_array($body['emails']) || $body['emails'] === []) {
+                throw new InvalidValueException('emails is required and must contain at least one email.');
+            }
+
+            $mapped = $this->mapper->toWordPress($body);
+            $this->validateMappedEmail($mapped);
+
+            $userLogin = $mapped['data']['user_login'] ?? '';
+            if ($userLogin === '') {
+                throw new InvalidValueException('userName must produce a valid login name.');
+            }
+
+            if (isset($body['externalId'])) {
+                $byExtId = $this->userRepository->findByExternalId($body['externalId']);
+                if ($byExtId !== null) {
+                    throw new ResourceConflictException(sprintf('User with externalId "%s" already exists.', $body['externalId']));
+                }
+            }
+
+            // Check if user_login already exists
+            $existingUser = $this->userRepository->findByLogin($userLogin);
+            if ($existingUser !== null) {
+                throw new ResourceConflictException(sprintf('User with userName "%s" already exists.', $body['userName']));
+            }
+
+            // Assign default role
+            if (!isset($mapped['data']['role'])) {
+                $mapped['data']['role'] = $this->defaultRole;
+            }
+
+            $userId = $this->userRepository->create($mapped['data'], $mapped['meta']);
+
+            // Deactivate before dispatching provisioned event so listeners see final state
+            $shouldDeactivate = isset($body['active']) && $body['active'] === false;
+
+            if ($shouldDeactivate) {
+                $this->userRepository->deactivate($userId);
+            }
+
+            $user = $this->userRepository->find($userId);
+            if ($user === null) {
+                throw new ScimException('Failed to create user.', 500);
+            }
+
+            $this->dispatcher->dispatch(new UserProvisionedEvent($user, $body));
+
+            if ($shouldDeactivate) {
+                $this->dispatcher->dispatch(new UserDeactivatedEvent($user));
+            }
+
+            return $this->json(
+                $this->serializer->serialize($user, $this->baseUrl),
+                201,
+                ['Content-Type' => ScimConstants::CONTENT_TYPE, 'Location' => $this->baseUrl . '/scim/v2/Users/' . $userId],
+            );
+        } catch (ScimException $e) {
+            return $this->json(ErrorSerializer::fromException($e), $e->getHttpStatus(), ['Content-Type' => ScimConstants::CONTENT_TYPE]);
+        }
     }
 
     #[RestRoute(route: '/{id}', methods: [HttpMethod::PUT], requirements: ['id' => '\d+'])]
     public function replace(int $id, Request $request): JsonResponse
     {
-        return $this->inBlogContext(function () use ($id, $request): JsonResponse {
-            try {
-                $user = $this->userRepository->find($id);
+        try {
+            $user = $this->userRepository->find($id);
 
-                if ($user === null) {
-                    throw new ResourceNotFoundException(sprintf('User "%d" not found.', $id));
-                }
-
-                $body = $this->decodeBody($request);
-
-                // userName immutability check
-                if (isset($body['userName']) && $body['userName'] !== $user->user_login) {
-                    throw new MutabilityException('userName is immutable after creation.');
-                }
-
-                // externalId uniqueness check
-                if (isset($body['externalId'])) {
-                    $byExtId = $this->userRepository->findByExternalId($body['externalId']);
-                    if ($byExtId !== null && $byExtId->ID !== $id) {
-                        throw new ResourceConflictException(sprintf('User with externalId "%s" already exists.', $body['externalId']));
-                    }
-                }
-
-                $wasActive = $this->isActive($user);
-                $mapped = $this->mapper->toWordPress($body);
-                $this->validateMappedEmail($mapped);
-                $this->userRepository->update($id, $mapped['data'], $mapped['meta']);
-
-                $this->handleActiveFlag($id, $body, $wasActive);
-
-                $updatedUser = $this->userRepository->find($id);
-                if ($updatedUser === null) {
-                    throw new ScimException('Failed to retrieve updated user.', 500);
-                }
-
-                $this->dispatcher->dispatch(new UserUpdatedEvent($updatedUser, $body));
-
-                return $this->json(
-                    $this->serializer->serialize($updatedUser, $this->baseUrl),
-                    headers: ['Content-Type' => ScimConstants::CONTENT_TYPE],
-                );
-            } catch (ScimException $e) {
-                return $this->json(ErrorSerializer::fromException($e), $e->getHttpStatus(), ['Content-Type' => ScimConstants::CONTENT_TYPE]);
+            if ($user === null) {
+                throw new ResourceNotFoundException(sprintf('User "%d" not found.', $id));
             }
-        });
+
+            $body = $this->decodeBody($request);
+
+            // userName immutability check
+            if (isset($body['userName']) && $body['userName'] !== $user->user_login) {
+                throw new MutabilityException('userName is immutable after creation.');
+            }
+
+            // externalId uniqueness check
+            if (isset($body['externalId'])) {
+                $byExtId = $this->userRepository->findByExternalId($body['externalId']);
+                if ($byExtId !== null && $byExtId->ID !== $id) {
+                    throw new ResourceConflictException(sprintf('User with externalId "%s" already exists.', $body['externalId']));
+                }
+            }
+
+            $wasActive = $this->isActive($user);
+            $mapped = $this->mapper->toWordPress($body);
+            $this->validateMappedEmail($mapped);
+            $this->userRepository->update($id, $mapped['data'], $mapped['meta']);
+
+            $this->handleActiveFlag($id, $body, $wasActive);
+
+            $updatedUser = $this->userRepository->find($id);
+            if ($updatedUser === null) {
+                throw new ScimException('Failed to retrieve updated user.', 500);
+            }
+
+            $this->dispatcher->dispatch(new UserUpdatedEvent($updatedUser, $body));
+
+            return $this->json(
+                $this->serializer->serialize($updatedUser, $this->baseUrl),
+                headers: ['Content-Type' => ScimConstants::CONTENT_TYPE],
+            );
+        } catch (ScimException $e) {
+            return $this->json(ErrorSerializer::fromException($e), $e->getHttpStatus(), ['Content-Type' => ScimConstants::CONTENT_TYPE]);
+        }
     }
 
     #[RestRoute(route: '/{id}', methods: [HttpMethod::PATCH], requirements: ['id' => '\d+'])]
     public function patch(int $id, Request $request): JsonResponse
     {
-        return $this->inBlogContext(function () use ($id, $request): JsonResponse {
-            try {
-                $user = $this->userRepository->find($id);
+        try {
+            $user = $this->userRepository->find($id);
 
-                if ($user === null) {
-                    throw new ResourceNotFoundException(sprintf('User "%d" not found.', $id));
-                }
-
-                $body = $this->decodeBody($request);
-                $patchRequest = PatchRequest::fromArray($body);
-
-                // Get current SCIM representation, apply patches, then map back
-                $currentScim = $this->mapper->toScim($user);
-                $patched = $this->patchProcessor->apply($currentScim, $patchRequest);
-
-                $wasActive = $this->isActive($user);
-                $mapped = $this->mapper->toWordPress($patched);
-                $this->validateMappedEmail($mapped);
-                $this->userRepository->update($id, $mapped['data'], $mapped['meta']);
-
-                $this->handleActiveFlag($id, $patched, $wasActive);
-
-                $updatedUser = $this->userRepository->find($id);
-                if ($updatedUser === null) {
-                    throw new ScimException('Failed to retrieve updated user.', 500);
-                }
-
-                $this->dispatcher->dispatch(new UserUpdatedEvent($updatedUser, $patched));
-
-                return $this->json(
-                    $this->serializer->serialize($updatedUser, $this->baseUrl),
-                    headers: ['Content-Type' => ScimConstants::CONTENT_TYPE],
-                );
-            } catch (ScimException $e) {
-                return $this->json(ErrorSerializer::fromException($e), $e->getHttpStatus(), ['Content-Type' => ScimConstants::CONTENT_TYPE]);
+            if ($user === null) {
+                throw new ResourceNotFoundException(sprintf('User "%d" not found.', $id));
             }
-        });
+
+            $body = $this->decodeBody($request);
+            $patchRequest = PatchRequest::fromArray($body);
+
+            // Get current SCIM representation, apply patches, then map back
+            $currentScim = $this->mapper->toScim($user);
+            $patched = $this->patchProcessor->apply($currentScim, $patchRequest);
+
+            $wasActive = $this->isActive($user);
+            $mapped = $this->mapper->toWordPress($patched);
+            $this->validateMappedEmail($mapped);
+            $this->userRepository->update($id, $mapped['data'], $mapped['meta']);
+
+            $this->handleActiveFlag($id, $patched, $wasActive);
+
+            $updatedUser = $this->userRepository->find($id);
+            if ($updatedUser === null) {
+                throw new ScimException('Failed to retrieve updated user.', 500);
+            }
+
+            $this->dispatcher->dispatch(new UserUpdatedEvent($updatedUser, $patched));
+
+            return $this->json(
+                $this->serializer->serialize($updatedUser, $this->baseUrl),
+                headers: ['Content-Type' => ScimConstants::CONTENT_TYPE],
+            );
+        } catch (ScimException $e) {
+            return $this->json(ErrorSerializer::fromException($e), $e->getHttpStatus(), ['Content-Type' => ScimConstants::CONTENT_TYPE]);
+        }
     }
 
     #[RestRoute(route: '/{id}', methods: [HttpMethod::DELETE], requirements: ['id' => '\d+'])]
     public function delete(int $id): Response
     {
-        return $this->inBlogContext(function () use ($id): Response {
-            try {
-                $user = $this->userRepository->find($id);
+        try {
+            $user = $this->userRepository->find($id);
 
-                if ($user === null) {
-                    throw new ResourceNotFoundException(sprintf('User "%d" not found.', $id));
-                }
-
-                if ($this->allowUserDeletion) {
-                    $userLogin = $user->user_login;
-                    $this->userRepository->delete($id);
-                    $this->dispatcher->dispatch(new UserDeletedEvent($id, $userLogin));
-                } else {
-                    $this->userRepository->deactivate($id);
-                    $deactivatedUser = $this->userRepository->find($id);
-                    if ($deactivatedUser !== null) {
-                        $this->dispatcher->dispatch(new UserDeactivatedEvent($deactivatedUser));
-                    }
-                }
-
-                return $this->noContent();
-            } catch (ScimException $e) {
-                return $this->json(ErrorSerializer::fromException($e), $e->getHttpStatus(), ['Content-Type' => ScimConstants::CONTENT_TYPE]);
+            if ($user === null) {
+                throw new ResourceNotFoundException(sprintf('User "%d" not found.', $id));
             }
-        });
+
+            if ($this->allowUserDeletion) {
+                $userLogin = $user->user_login;
+                $this->userRepository->delete($id);
+                $this->dispatcher->dispatch(new UserDeletedEvent($id, $userLogin));
+            } else {
+                $this->userRepository->deactivate($id);
+                $deactivatedUser = $this->userRepository->find($id);
+                if ($deactivatedUser !== null) {
+                    $this->dispatcher->dispatch(new UserDeactivatedEvent($deactivatedUser));
+                }
+            }
+
+            return $this->noContent();
+        } catch (ScimException $e) {
+            return $this->json(ErrorSerializer::fromException($e), $e->getHttpStatus(), ['Content-Type' => ScimConstants::CONTENT_TYPE]);
+        }
     }
 
     /**

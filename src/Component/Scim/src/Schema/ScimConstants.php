@@ -37,4 +37,5 @@ final class ScimConstants
     public const META_TIMEZONE = '_wppack_scim_timezone';
     public const META_TITLE = '_wppack_scim_title';
     public const META_LAST_MODIFIED = '_wppack_scim_last_modified';
+    public const META_GROUP_PREFIX = '_wppack_scim_group_';
 }
