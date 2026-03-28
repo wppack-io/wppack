@@ -278,7 +278,7 @@ wppack/http-foundation, wppack/event-dispatcher
 
 wppack/scim-plugin
     ↓ requires
-wppack/scim, wppack/kernel, wppack/dependency-injection, wppack/hook
+wppack/scim, wppack/kernel, wppack/dependency-injection
     + wppack/event-dispatcher, wppack/security
 ```
 

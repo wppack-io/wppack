@@ -144,7 +144,6 @@ WpPack\Plugin\ScimPlugin\
 | `SCIM_DEFAULT_ROLE` | `subscriber` | プロビジョニング時のデフォルトロール |
 | `SCIM_ALLOW_GROUP_MANAGEMENT` | `true` | SCIM によるグループ（ロール）管理の許可 |
 | `SCIM_ALLOW_USER_DELETION` | `false` | 永続的なユーザー削除の許可（false = 無効化のみ） |
-| `SCIM_BLOG_ID` | `null` | マルチサイトでのターゲットブログ ID |
 | `SCIM_MAX_RESULTS` | `100` | 一覧リクエストの最大結果数 |
 
 ### 設定例
