@@ -144,9 +144,10 @@ final class PatchProcessor
             if (\is_array($existing) && array_is_list($existing)) {
                 $valuesToRemove = [];
                 foreach ($operation->value as $item) {
-                    if (\is_array($item) && isset($item['value'])) {
-                        $valuesToRemove[] = (string) $item['value'];
+                    if (!\is_array($item) || !isset($item['value'])) {
+                        throw new InvalidPatchException('Each item in remove value must have a "value" property.');
                     }
+                    $valuesToRemove[] = (string) $item['value'];
                 }
 
                 if ($valuesToRemove !== []) {

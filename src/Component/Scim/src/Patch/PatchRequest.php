@@ -41,6 +41,10 @@ final readonly class PatchRequest
 
         $operations = [];
         foreach ($body['Operations'] ?? [] as $op) {
+            if (!\is_array($op)) {
+                throw new InvalidPatchException('Each operation must be a JSON object.');
+            }
+
             $opName = strtolower($op['op'] ?? '');
             if (!\in_array($opName, ['add', 'replace', 'remove'], true)) {
                 throw new InvalidPatchException(sprintf('Invalid patch operation: "%s".', $op['op'] ?? ''));

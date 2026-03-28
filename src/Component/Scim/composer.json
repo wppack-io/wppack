@@ -12,7 +12,6 @@
         "wppack/role": "^1.0",
         "wppack/sanitizer": "^1.0",
         "wppack/security": "^1.0",
-        "wppack/site": "^1.0",
         "wppack/user": "^1.0"
     },
     "autoload": {

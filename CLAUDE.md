@@ -274,7 +274,7 @@ wppack/logger
 wppack/scim
     ↓ requires
 wppack/rest, wppack/user, wppack/role, wppack/security
-wppack/http-foundation, wppack/event-dispatcher, wppack/site
+wppack/http-foundation, wppack/event-dispatcher
 
 wppack/scim-plugin
     ↓ requires
