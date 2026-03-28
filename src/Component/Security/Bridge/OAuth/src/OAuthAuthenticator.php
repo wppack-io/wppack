@@ -56,26 +56,13 @@ final class OAuthAuthenticator implements AuthenticatorInterface
         private readonly ?HttpClient $httpClient = null,
         private readonly bool $addUserToBlog = true,
         private readonly string $verifyPath = '/oauth/verify',
-        private readonly string $providerName = '',
     ) {}
 
     public function supports(Request $request): bool
     {
         // Pattern 1: IdP callback (GET + code + state, exact path match)
         if ($request->isMethod('GET') && $request->query->has('code') && $request->query->has('state')) {
-            if ($request->getPathInfo() !== $this->callbackPath) {
-                return false;
-            }
-
-            // Multi-provider: check that the stored state belongs to this provider
-            if ($this->providerName !== '') {
-                $state = $request->query->get('state', '');
-                $stored = $this->stateStore->peek($state);
-
-                return $stored !== null && $stored->getProviderName() === $this->providerName;
-            }
-
-            return true;
+            return $request->getPathInfo() === $this->callbackPath;
         }
 
         // Pattern 2: Cross-site transfer (POST + _wppack_oauth_token, exact path match)

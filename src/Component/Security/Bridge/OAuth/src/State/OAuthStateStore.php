@@ -31,38 +31,7 @@ final class OAuthStateStore
             'code_verifier' => $storedState->getCodeVerifier(),
             'return_to' => $storedState->getReturnTo(),
             'created_at' => $storedState->getCreatedAt(),
-            'provider' => $storedState->getProviderName(),
         ], self::DEFAULT_TTL);
-    }
-
-    /**
-     * Read the stored state without consuming it.
-     *
-     * Unlike retrieve(), peek() does not delete the transient. This is
-     * useful for routing decisions (e.g., checking the provider name)
-     * before the actual authentication flow consumes the state.
-     */
-    public function peek(string $state): ?StoredState
-    {
-        $data = $this->transientManager->get(self::TRANSIENT_PREFIX . $state);
-
-        if (!\is_array($data)) {
-            return null;
-        }
-
-        $storedState = new StoredState(
-            nonce: (string) ($data['nonce'] ?? ''),
-            codeVerifier: isset($data['code_verifier']) ? (string) $data['code_verifier'] : null,
-            returnTo: isset($data['return_to']) ? (string) $data['return_to'] : null,
-            createdAt: (int) ($data['created_at'] ?? 0),
-            providerName: isset($data['provider']) ? (string) $data['provider'] : null,
-        );
-
-        if ($storedState->isExpired(self::DEFAULT_TTL)) {
-            return null;
-        }
-
-        return $storedState;
     }
 
     public function retrieve(string $state): ?StoredState
@@ -81,7 +50,6 @@ final class OAuthStateStore
             codeVerifier: isset($data['code_verifier']) ? (string) $data['code_verifier'] : null,
             returnTo: isset($data['return_to']) ? (string) $data['return_to'] : null,
             createdAt: (int) ($data['created_at'] ?? 0),
-            providerName: isset($data['provider']) ? (string) $data['provider'] : null,
         );
 
         if ($storedState->isExpired(self::DEFAULT_TTL)) {

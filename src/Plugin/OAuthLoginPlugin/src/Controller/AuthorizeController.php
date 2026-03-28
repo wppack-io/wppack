@@ -19,32 +19,23 @@ use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Security\Bridge\OAuth\OAuthEntryPoint;
 
 /**
- * Handles /oauth/authorize?provider=NAME requests.
+ * Handles /oauth/{provider}/authorize requests.
  *
- * Resolves the provider name from the query string, looks up the
- * corresponding OAuthEntryPoint, and redirects to the IdP authorization URL.
+ * Each provider gets its own controller instance bound to a specific
+ * OAuthEntryPoint, eliminating the need for query-parameter-based dispatch.
  */
 final class AuthorizeController
 {
-    /**
-     * @param array<string, OAuthEntryPoint> $entryPoints Provider name => OAuthEntryPoint
-     */
     public function __construct(
-        private readonly array $entryPoints,
+        private readonly OAuthEntryPoint $entryPoint,
         private readonly Request $request,
     ) {}
 
     public function __invoke(): Response
     {
-        $provider = $this->request->query->get('provider', '');
         $returnTo = $this->request->query->get('return_to');
 
-        if ($provider === '' || !isset($this->entryPoints[$provider])) {
-            return new RedirectResponse(wp_login_url() . '?oauth_error=1');
-        }
-
-        $entryPoint = $this->entryPoints[$provider];
-        $url = $entryPoint->getLoginUrl($returnTo);
+        $url = $this->entryPoint->getLoginUrl($returnTo);
 
         return new RedirectResponse($url);
     }

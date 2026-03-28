@@ -65,7 +65,15 @@ class OAuthLoginPlugin extends AbstractPlugin
         /** @var OAuthLoginConfiguration $config */
         $config = $container->get(OAuthLoginConfiguration::class);
 
-        // Build entry point map for the authorize controller
+        /** @var Request $request */
+        $request = $container->get(Request::class);
+
+        // Register routes
+        /** @var RouteRegistry $router */
+        $router = $container->get(RouteRegistry::class);
+        $this->router = $router;
+
+        // Build entry point map and register per-provider routes
         $entryPoints = [];
 
         foreach ($config->providers as $name => $providerConfig) {
@@ -73,19 +81,13 @@ class OAuthLoginPlugin extends AbstractPlugin
             /** @var OAuthEntryPoint $entryPoint */
             $entryPoint = $container->get($entryPointId);
             $entryPoints[$name] = $entryPoint;
+
+            $authorizeController = new AuthorizeController($entryPoint, $request);
+
+            $router->addRoute($config->getAuthorizePath($name), $authorizeController, name: 'oauth_' . $name . '_authorize', methods: ['GET']);
+            $router->addRoute($config->getCallbackPath($name), $container->get(CallbackController::class), name: 'oauth_' . $name . '_callback', methods: ['GET']);
+            $router->addRoute($config->getVerifyPath($name), $container->get(VerifyController::class), name: 'oauth_' . $name . '_verify', methods: ['POST']);
         }
-
-        /** @var Request $request */
-        $request = $container->get(Request::class);
-        $authorizeController = new AuthorizeController($entryPoints, $request);
-
-        // Register routes
-        /** @var RouteRegistry $router */
-        $router = $container->get(RouteRegistry::class);
-        $this->router = $router;
-        $router->addRoute($config->authorizePath, $authorizeController, name: 'oauth_authorize', methods: ['GET']);
-        $router->addRoute($config->callbackPath, $container->get(CallbackController::class), name: 'oauth_callback', methods: ['GET']);
-        $router->addRoute($config->verifyPath, $container->get(VerifyController::class), name: 'oauth_verify', methods: ['POST']);
 
         // Register login form or SSO-only entry point
         if ($config->ssoOnly) {

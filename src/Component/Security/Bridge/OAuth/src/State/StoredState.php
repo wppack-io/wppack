@@ -20,7 +20,6 @@ final readonly class StoredState
         private ?string $codeVerifier = null,
         private ?string $returnTo = null,
         private int $createdAt = 0,
-        private ?string $providerName = null,
     ) {}
 
     public function getNonce(): string
@@ -43,11 +42,6 @@ final readonly class StoredState
         return $this->createdAt;
     }
 
-    public function getProviderName(): ?string
-    {
-        return $this->providerName;
-    }
-
     public function isExpired(int $ttl = 600): bool
     {
         return time() >= ($this->createdAt + $ttl);
@@ -57,14 +51,12 @@ final readonly class StoredState
         string $nonce,
         ?string $codeVerifier = null,
         ?string $returnTo = null,
-        ?string $providerName = null,
     ): self {
         return new self(
             nonce: $nonce,
             codeVerifier: $codeVerifier,
             returnTo: $returnTo,
             createdAt: time(),
-            providerName: $providerName,
         );
     }
 }

@@ -172,7 +172,6 @@ final class OAuthLoginPluginServiceProvider implements ServiceProviderInterface
         $entryPointId = OAuthEntryPoint::class . '.' . $name;
         $builder->register($entryPointId, OAuthEntryPoint::class)
             ->setFactory([self::class, 'createEntryPoint'])
-            ->addArgument($providerConfig)
             ->addArgument(new Reference($providerId))
             ->addArgument(new Reference($configId))
             ->addArgument(new Reference(OAuthStateStore::class))
@@ -214,7 +213,7 @@ final class OAuthLoginPluginServiceProvider implements ServiceProviderInterface
         OAuthLoginConfiguration $config,
     ): OAuthConfiguration {
         $blogId = is_multisite() ? get_main_site_id() : null;
-        $redirectUri = get_home_url($blogId, $config->callbackPath);
+        $redirectUri = get_home_url($blogId, $config->getCallbackPath($providerConfig->name));
 
         $scopes = $providerConfig->scopes ?? match ($providerConfig->type) {
             'github' => ['user:email'],
@@ -279,7 +278,6 @@ final class OAuthLoginPluginServiceProvider implements ServiceProviderInterface
     }
 
     public static function createEntryPoint(
-        ProviderConfiguration $providerConfig,
         ProviderInterface $provider,
         OAuthConfiguration $oauthConfig,
         OAuthStateStore $stateStore,
@@ -292,7 +290,6 @@ final class OAuthLoginPluginServiceProvider implements ServiceProviderInterface
             stateStore: $stateStore,
             authSession: $authSession,
             request: $request,
-            providerName: $providerConfig->name,
         );
     }
 
@@ -318,7 +315,7 @@ final class OAuthLoginPluginServiceProvider implements ServiceProviderInterface
                 blogContext: $blogContext,
                 siteRepository: $siteRepository,
                 transientManager: $transientManager,
-                verifyPath: $config->verifyPath,
+                verifyPath: $config->getVerifyPath($providerConfig->name),
             )
             : null;
 
@@ -331,13 +328,12 @@ final class OAuthLoginPluginServiceProvider implements ServiceProviderInterface
             dispatcher: $dispatcher,
             blogContext: $blogContext,
             userRepository: $userRepository,
-            callbackPath: $config->callbackPath,
+            callbackPath: $config->getCallbackPath($providerConfig->name),
             idTokenValidator: $provider->supportsOidc() ? $idTokenValidator : null,
             jwksProvider: $provider->supportsOidc() ? $jwksProvider : null,
             crossSiteRedirector: $crossSiteRedirector,
             httpClient: $httpClient,
-            verifyPath: $config->verifyPath,
-            providerName: $providerConfig->name,
+            verifyPath: $config->getVerifyPath($providerConfig->name),
         );
     }
 
@@ -348,7 +344,7 @@ final class OAuthLoginPluginServiceProvider implements ServiceProviderInterface
     ): OAuthLoginForm {
         return new OAuthLoginForm(
             providers: array_values($config->providers),
-            authorizePath: $config->authorizePath,
+            config: $config,
             authSession: $authSession,
             request: $request,
         );

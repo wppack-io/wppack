@@ -15,6 +15,7 @@ namespace WpPack\Plugin\OAuthLoginPlugin;
 
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Security\AuthenticationSession;
+use WpPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration;
 use WpPack\Plugin\OAuthLoginPlugin\Configuration\ProviderConfiguration;
 
 final class OAuthLoginForm
@@ -24,7 +25,7 @@ final class OAuthLoginForm
      */
     public function __construct(
         private readonly array $providers,
-        private readonly string $authorizePath,
+        private readonly OAuthLoginConfiguration $config,
         private readonly AuthenticationSession $authSession,
         private readonly Request $request,
     ) {}
@@ -67,9 +68,8 @@ final class OAuthLoginForm
 
         foreach ($this->providers as $provider) {
             $url = esc_url(add_query_arg([
-                'provider' => $provider->name,
                 'return_to' => $returnTo,
-            ], home_url($this->authorizePath)));
+            ], home_url($this->config->getAuthorizePath($provider->name))));
             $label = esc_html($provider->label);
 
             $buttons .= <<<HTML

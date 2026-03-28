@@ -29,7 +29,6 @@ final class OAuthEntryPoint
         private readonly OAuthStateStore $stateStore,
         private readonly AuthenticationSession $authSession,
         private readonly Request $request,
-        private readonly ?string $providerName = null,
     ) {}
 
     /**
@@ -88,7 +87,7 @@ final class OAuthEntryPoint
             $codeChallenge = $pkce['code_challenge'];
         }
 
-        $storedState = StoredState::create($nonce, $codeVerifier, $returnTo, $this->providerName);
+        $storedState = StoredState::create($nonce, $codeVerifier, $returnTo);
         $this->stateStore->store($state, $storedState);
 
         return $this->provider->getAuthorizationUrl($state, $nonce, $codeChallenge);

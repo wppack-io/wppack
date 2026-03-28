@@ -23,10 +23,23 @@ final readonly class OAuthLoginConfiguration
         public bool $ssoOnly = false,
         public bool $autoProvision = false,
         public string $defaultRole = 'subscriber',
-        public string $callbackPath = '/oauth/callback',
-        public string $authorizePath = '/oauth/authorize',
-        public string $verifyPath = '/oauth/verify',
+        public string $basePath = '/oauth',
     ) {}
+
+    public function getAuthorizePath(string $provider): string
+    {
+        return $this->basePath . '/' . $provider . '/authorize';
+    }
+
+    public function getCallbackPath(string $provider): string
+    {
+        return $this->basePath . '/' . $provider . '/callback';
+    }
+
+    public function getVerifyPath(string $provider): string
+    {
+        return $this->basePath . '/' . $provider . '/verify';
+    }
 
     public static function fromEnvironment(): self
     {
@@ -61,18 +74,14 @@ final readonly class OAuthLoginConfiguration
         }
 
         $ssoOnly = \defined('OAUTH_SSO_ONLY') && \constant('OAUTH_SSO_ONLY');
-        $callbackPath = \defined('OAUTH_CALLBACK_PATH') ? (string) \constant('OAUTH_CALLBACK_PATH') : '/oauth/callback';
-        $authorizePath = \defined('OAUTH_AUTHORIZE_PATH') ? (string) \constant('OAUTH_AUTHORIZE_PATH') : '/oauth/authorize';
-        $verifyPath = \defined('OAUTH_VERIFY_PATH') ? (string) \constant('OAUTH_VERIFY_PATH') : '/oauth/verify';
+        $basePath = \defined('OAUTH_BASE_PATH') ? (string) \constant('OAUTH_BASE_PATH') : '/oauth';
 
         return new self(
             providers: $providers,
             ssoOnly: $ssoOnly,
             autoProvision: $globalAutoProvision,
             defaultRole: $globalDefaultRole,
-            callbackPath: $callbackPath,
-            authorizePath: $authorizePath,
-            verifyPath: $verifyPath,
+            basePath: $basePath,
         );
     }
 
