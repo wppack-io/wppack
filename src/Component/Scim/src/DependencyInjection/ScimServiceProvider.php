@@ -61,7 +61,8 @@ final class ScimServiceProvider implements ServiceProviderInterface
         // Mapping
         $builder->register(UserAttributeMapper::class)
             ->addArgument(new Reference(UserRepositoryInterface::class))
-            ->addArgument(new Reference(Sanitizer::class));
+            ->addArgument(new Reference(Sanitizer::class))
+            ->addArgument(new Reference(EventDispatcherInterface::class));
         $builder->setAlias(UserAttributeMapperInterface::class, UserAttributeMapper::class);
 
         $builder->register(GroupMapper::class);

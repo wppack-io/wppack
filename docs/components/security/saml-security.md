@@ -362,6 +362,11 @@ $userResolver = new SamlUserResolver(
         'Author' => 'author',
     ],
     roleAttribute: 'groups',          // ロール属性名
+    customMappings: [                  // カスタム属性マッピング
+        new SamlAttributeMapping('department', 'department'),
+        new SamlAttributeMapping('employeeNumber', 'employee_number'),
+    ],
+    dispatcher: $eventDispatcher,      // EventDispatcher（マッピングイベント用）
 );
 ```
 
@@ -405,6 +410,74 @@ $userResolver = new SamlUserResolver(
 ```
 
 `roleAttribute` で指定した SAML 属性の値が `roleMapping` のキーと一致する場合、対応する WordPress ロールが設定されます。最初にマッチしたロールが適用されます。
+
+### 属性マッピングのカスタマイズ
+
+#### カスタムマッピング定義 (SamlAttributeMapping)
+
+SAML 属性を WordPress ユーザーメタにマッピングするカスタム定義です。`SamlAttributeMapping` で SAML 属性名とメタキーの対応を定義します:
+
+```php
+use WpPack\Component\Security\Bridge\SAML\Mapping\SamlAttributeMapping;
+
+// コンストラクタ: SamlAttributeMapping(string $samlAttribute, string $metaKey)
+new SamlAttributeMapping('department', 'department');
+```
+
+DI でカスタムマッピングを `SamlUserResolver` に注入します:
+
+```php
+use WpPack\Component\Security\Bridge\SAML\Mapping\SamlAttributeMapping;
+use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolver;
+
+$builder->findDefinition(SamlUserResolver::class)
+    ->setArgument('$customMappings', [
+        new SamlAttributeMapping('department', 'department'),
+        new SamlAttributeMapping('employeeNumber', 'employee_number'),
+        new SamlAttributeMapping('title', 'job_title'),
+    ]);
+```
+
+#### マッピングイベント (SamlUserAttributesMappedEvent)
+
+属性マッピング完了後、永続化前にディスパッチされるイベントです。`$userdata`（`wp_insert_user` / `wp_update_user` 引数）と `$userMeta`（ユーザーメタ）は変更可能、`$attributes`・`$nameId`・`$isNewUser` は読み取り専用です。
+
+```php
+use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
+use WpPack\Component\Security\Bridge\SAML\Event\SamlUserAttributesMappedEvent;
+
+final class CustomSamlAttributeListener
+{
+    #[AsEventListener(event: SamlUserAttributesMappedEvent::class)]
+    public function onAttributesMapped(SamlUserAttributesMappedEvent $event): void
+    {
+        $attributes = $event->getAttributes();
+        $userMeta = $event->getUserMeta();
+
+        // SAML 属性からカスタムメタに書き込み
+        $costCenter = $attributes['costCenter'][0] ?? null;
+        if ($costCenter !== null) {
+            $userMeta['cost_center'] = sanitize_text_field($costCenter);
+            $event->setUserMeta($userMeta);
+        }
+
+        // 新規ユーザーのみの処理
+        if ($event->isNewUser()) {
+            $userMeta['onboarding_status'] = 'pending';
+            $event->setUserMeta($userMeta);
+        }
+    }
+}
+```
+
+#### フロー
+
+属性マッピングは以下の順序で処理されます:
+
+1. **デフォルトマッピング** — 標準属性（email, firstName, lastName, displayName）の変換
+2. **カスタムマッピング** — `SamlAttributeMapping` で定義されたメタへの変換
+3. **イベント** — `SamlUserAttributesMappedEvent` によるリスナーでの追加カスタマイズ
+4. **永続化** — `wp_insert_user()` / `wp_update_user()` + `update_user_meta()` で保存
 
 ### カスタム UserResolver
 
@@ -589,7 +662,7 @@ Google Admin での設定:
 | セッション固定 | 認証成功時に既存セッションをクリアしてから再発行 | `SamlAuthenticator` |
 | 情報漏洩 | エラーメッセージを汎用化、詳細はフック経由で通知 | `SamlAuthenticator` |
 | クロスサイト攻撃 | `allowedHosts` でリダイレクト先を制限、HTTPS 強制 | `CrossSiteRedirector` |
-| プロビジョニング失敗時の情報漏洩防止 | `wp_insert_user()` のエラー詳細を例外に含めず、`wppack_saml_user_provision_failed` フックで通知 | `SamlUserResolver` |
+| プロビジョニング失敗時の情報漏洩防止 | `wp_insert_user()` のエラー詳細を例外に含めず、`SamlUserProvisionFailedEvent` で通知 | `SamlUserResolver` |
 | ユーザー列挙 | 認証失敗時の一律エラーページ | `onAuthenticationFailure()` |
 | 権限昇格 | JIT プロビジョニング時のデフォルトロール制限 | `SamlUserResolver` |
 
@@ -608,13 +681,40 @@ Google Admin での設定:
 | `wppack_saml_authenticated` | SAML 認証成功時 | `$nameId`, `$attributes` |
 | `wppack_saml_authentication_failed` | 認証失敗時 | `$exception` |
 | `wppack_saml_authentication_error` | SAML レスポンス検証エラー時 | `$errors`, `$lastErrorReason` |
-| `wppack_saml_user_provisioned` | JIT プロビジョニングでユーザー作成時 | `$user`, `$nameId`, `$attributes` |
-| `wppack_saml_user_provision_failed` | JIT ユーザー作成失敗時 | `$nameId`, `$wpError` |
-| `wppack_saml_user_updated` | 既存ユーザーの属性同期更新時 | `$user`, `$attributes` |
+| `SamlUserProvisionedEvent` | JIT プロビジョニングでユーザー作成後 | `$user`, `$nameId`, `$attributes` |
+| `SamlUserUpdatedEvent` | 既存ユーザーの属性同期更新後 | `$user`, `$attributes` |
+| `SamlUserProvisionFailedEvent` | JIT ユーザー作成失敗時 | `$nameId`, `$error` |
+| `SamlUserAttributesMappedEvent` | 属性マッピング後（永続化前） | `$userdata`, `$userMeta`, `$attributes`, `$nameId`, `$isNewUser` |
 | `wppack_saml_cross_site_redirect` | クロスサイトリダイレクト実行時 | `$targetUrl` |
 
 ```php
-// 使用例: 認証イベントのロギング（LoggerInterface を DI またはクロージャ経由で注入）
+use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
+use WpPack\Component\Security\Bridge\SAML\Event\SamlUserProvisionedEvent;
+use WpPack\Component\Security\Bridge\SAML\Event\SamlUserUpdatedEvent;
+use WpPack\Component\Security\Bridge\SAML\Event\SamlUserProvisionFailedEvent;
+
+final class SamlAuditListener
+{
+    #[AsEventListener(event: SamlUserProvisionedEvent::class)]
+    public function onUserProvisioned(SamlUserProvisionedEvent $event): void
+    {
+        // $event->getUser(), $event->getNameId(), $event->getAttributes()
+    }
+
+    #[AsEventListener(event: SamlUserUpdatedEvent::class)]
+    public function onUserUpdated(SamlUserUpdatedEvent $event): void
+    {
+        // $event->getUser(), $event->getAttributes()
+    }
+
+    #[AsEventListener(event: SamlUserProvisionFailedEvent::class)]
+    public function onProvisionFailed(SamlUserProvisionFailedEvent $event): void
+    {
+        // $event->getNameId(), $event->getError()
+    }
+}
+
+// WordPress フック（認証フロー全体のログ）
 add_action('wppack_saml_authenticated', function (string $nameId, array $attributes) use ($logger): void {
     $logger->info('SAML login', ['nameId' => $nameId]);
 });

@@ -83,7 +83,8 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
         // User Resolver
         $builder->register(SamlUserResolver::class)
             ->setFactory([self::class, 'createUserResolver'])
-            ->addArgument(new Reference(SamlLoginConfiguration::class));
+            ->addArgument(new Reference(SamlLoginConfiguration::class))
+            ->addArgument(new Reference(EventDispatcherInterface::class));
         $builder->setAlias(SamlUserResolverInterface::class, SamlUserResolver::class);
 
         // SamlAuthenticator (tagged for RegisterAuthenticatorsPass)
@@ -185,13 +186,20 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
         );
     }
 
-    public static function createUserResolver(SamlLoginConfiguration $config): SamlUserResolver
-    {
+    public static function createUserResolver(
+        SamlLoginConfiguration $config,
+        EventDispatcherInterface $dispatcher,
+    ): SamlUserResolver {
         return new SamlUserResolver(
             autoProvision: $config->autoProvision,
             defaultRole: $config->defaultRole,
+            emailAttribute: $config->emailAttribute,
+            firstNameAttribute: $config->firstNameAttribute,
+            lastNameAttribute: $config->lastNameAttribute,
+            displayNameAttribute: $config->displayNameAttribute,
             roleMapping: $config->roleMapping,
             roleAttribute: $config->roleAttribute,
+            dispatcher: $dispatcher,
         );
     }
 

@@ -22,6 +22,8 @@ final class IdpMetadataParser
      */
     public function parseXml(string $xml): IdpSettings
     {
+        $prev = libxml_use_internal_errors(true);
+
         try {
             $parsed = OneLoginIdPMetadataParser::parseXML($xml);
         } catch (\Exception $e) {
@@ -29,6 +31,8 @@ final class IdpMetadataParser
                 'Failed to parse IdP metadata XML: %s',
                 $e->getMessage(),
             ), previous: $e);
+        } finally {
+            libxml_use_internal_errors($prev);
         }
 
         return $this->buildIdpSettings($parsed);

@@ -13,12 +13,18 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Security\Bridge\SAML\UserResolution;
 
+use Psr\EventDispatcher\EventDispatcherInterface;
+use WpPack\Component\Security\Bridge\SAML\Event\SamlUserAttributesMappedEvent;
+use WpPack\Component\Security\Bridge\SAML\Event\SamlUserProvisionedEvent;
+use WpPack\Component\Security\Bridge\SAML\Event\SamlUserProvisionFailedEvent;
+use WpPack\Component\Security\Bridge\SAML\Event\SamlUserUpdatedEvent;
 use WpPack\Component\Security\Exception\AuthenticationException;
 
 final class SamlUserResolver implements SamlUserResolverInterface
 {
     /**
-     * @param array<string, string>|null $roleMapping SAML group value => WordPress role name
+     * @param array<string, string>|null  $roleMapping    SAML group value => WordPress role name
+     * @param list<SamlAttributeMapping>  $customMappings Custom SAML attribute → user meta mappings
      */
     public function __construct(
         private readonly bool $autoProvision = false,
@@ -29,6 +35,8 @@ final class SamlUserResolver implements SamlUserResolverInterface
         private readonly ?string $displayNameAttribute = 'displayName',
         private readonly ?array $roleMapping = null,
         private readonly ?string $roleAttribute = null,
+        private readonly array $customMappings = [],
+        private readonly ?EventDispatcherInterface $dispatcher = null,
     ) {}
 
     private const SAML_NAMEID_META_KEY = '_wppack_saml_nameid';
@@ -57,7 +65,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
         $user = $this->findByNameId($sanitizedNameId);
 
         if ($user instanceof \WP_User) {
-            $this->syncUserAttributes($user, $attributes, $email);
+            $this->syncUserAttributes($user, $sanitizedNameId, $attributes, $email);
             $this->mapUserRole($user, $attributes);
 
             return $user;
@@ -71,7 +79,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
                     throw new AuthenticationException('SAML NameID mismatch for existing user.');
                 }
 
-                $this->syncUserAttributes($user, $attributes, $email);
+                $this->syncUserAttributes($user, $sanitizedNameId, $attributes, $email);
                 $this->mapUserRole($user, $attributes);
 
                 return $user;
@@ -82,7 +90,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
 
         if ($user instanceof \WP_User) {
             $this->bindNameId($user, $sanitizedNameId);
-            $this->syncUserAttributes($user, $attributes, $email);
+            $this->syncUserAttributes($user, $sanitizedNameId, $attributes, $email);
             $this->mapUserRole($user, $attributes);
 
             return $user;
@@ -134,11 +142,30 @@ final class SamlUserResolver implements SamlUserResolverInterface
             }
         }
 
+        // Apply custom mappings to user meta
+        $userMeta = [];
+
+        foreach ($this->customMappings as $mapping) {
+            $value = $this->getAttributeValue($attributes, $mapping->samlAttribute);
+
+            if ($value !== null) {
+                $userMeta[$mapping->metaKey] = sanitize_text_field($value);
+            }
+        }
+
+        if ($this->dispatcher !== null) {
+            $event = $this->dispatcher->dispatch(
+                new SamlUserAttributesMappedEvent($userdata, $userMeta, $attributes, $nameId, isNewUser: true),
+            );
+            $userdata = $event->getUserdata();
+            $userMeta = $event->getUserMeta();
+        }
+
         /** @var int|\WP_Error $userId */
         $userId = wp_insert_user($userdata);
 
         if ($userId instanceof \WP_Error) {
-            do_action('wppack_saml_user_provision_failed', $nameId, $userId);
+            $this->dispatcher?->dispatch(new SamlUserProvisionFailedEvent($nameId, $userId));
 
             throw new AuthenticationException('User provisioning failed.');
         }
@@ -151,10 +178,14 @@ final class SamlUserResolver implements SamlUserResolverInterface
         }
         // @codeCoverageIgnoreEnd
 
+        foreach ($userMeta as $key => $value) {
+            update_user_meta($userId, $key, $value);
+        }
+
         $this->bindNameId($user, $nameId);
         $this->mapUserRole($user, $attributes);
 
-        do_action('wppack_saml_user_provisioned', $user, $nameId, $attributes);
+        $this->dispatcher?->dispatch(new SamlUserProvisionedEvent($user, $nameId, $attributes));
 
         return $user;
     }
@@ -162,7 +193,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
     /**
      * @param array<string, list<string>> $attributes
      */
-    private function syncUserAttributes(\WP_User $user, array $attributes, ?string $email = null): void
+    private function syncUserAttributes(\WP_User $user, string $nameId, array $attributes, ?string $email = null): void
     {
         $userdata = ['ID' => $user->ID];
         $needsUpdate = false;
@@ -211,9 +242,40 @@ final class SamlUserResolver implements SamlUserResolverInterface
             }
         }
 
+        // Apply custom mappings to user meta
+        $userMeta = [];
+
+        foreach ($this->customMappings as $mapping) {
+            $value = $this->getAttributeValue($attributes, $mapping->samlAttribute);
+
+            if ($value !== null) {
+                $userMeta[$mapping->metaKey] = sanitize_text_field($value);
+            }
+        }
+
+        if ($this->dispatcher !== null) {
+            $event = $this->dispatcher->dispatch(
+                new SamlUserAttributesMappedEvent($userdata, $userMeta, $attributes, $nameId, isNewUser: false),
+            );
+            $userdata = $event->getUserdata();
+            $userMeta = $event->getUserMeta();
+
+            // Re-evaluate needsUpdate after event listeners may have added fields
+            if (\count($userdata) > 1) {
+                $needsUpdate = true;
+            }
+        }
+
         if ($needsUpdate) {
             wp_update_user($userdata);
-            do_action('wppack_saml_user_updated', $user, $attributes);
+        }
+
+        foreach ($userMeta as $key => $value) {
+            update_user_meta($user->ID, $key, $value);
+        }
+
+        if ($needsUpdate || $userMeta !== []) {
+            $this->dispatcher?->dispatch(new SamlUserUpdatedEvent($user, $attributes));
         }
     }
 

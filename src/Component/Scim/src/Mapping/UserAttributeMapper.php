@@ -13,15 +13,23 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Scim\Mapping;
 
+use Psr\EventDispatcher\EventDispatcherInterface;
 use WpPack\Component\Sanitizer\Sanitizer;
+use WpPack\Component\Scim\Event\ScimUserAttributesMappedEvent;
+use WpPack\Component\Scim\Event\ScimUserSerializedEvent;
 use WpPack\Component\Scim\Schema\ScimConstants;
 use WpPack\Component\User\UserRepositoryInterface;
 
 final readonly class UserAttributeMapper implements UserAttributeMapperInterface
 {
+    /**
+     * @param list<ScimAttributeMapping> $customMappings
+     */
     public function __construct(
         private UserRepositoryInterface $userRepository,
         private Sanitizer $sanitizer,
+        private EventDispatcherInterface $dispatcher,
+        private array $customMappings = [],
     ) {}
 
     public function toWordPress(array $scimAttributes): array
@@ -81,7 +89,20 @@ final readonly class UserAttributeMapper implements UserAttributeMapperInterface
             $meta[ScimConstants::META_TITLE] = $this->sanitizer->text($scimAttributes['title']);
         }
 
-        return ['data' => $data, 'meta' => $meta];
+        // Apply custom mappings
+        foreach ($this->customMappings as $mapping) {
+            $value = $scimAttributes[$mapping->scimPath] ?? null;
+
+            if ($value !== null && \is_string($value)) {
+                $meta[$mapping->metaKey] = $this->sanitizer->text($value);
+            }
+        }
+
+        $event = $this->dispatcher->dispatch(
+            new ScimUserAttributesMappedEvent($data, $meta, $scimAttributes),
+        );
+
+        return ['data' => $event->getData(), 'meta' => $event->getMeta()];
     }
 
     public function toScim(\WP_User $user): array
@@ -93,7 +114,7 @@ final readonly class UserAttributeMapper implements UserAttributeMapperInterface
         $externalId = $this->userRepository->getMeta($user->ID, ScimConstants::META_EXTERNAL_ID, true);
         $lastModified = $this->userRepository->getMeta($user->ID, ScimConstants::META_LAST_MODIFIED, true);
 
-        return [
+        $scimAttributes = [
             'userName' => $user->user_login,
             'name' => [
                 'givenName' => $user->first_name,
@@ -116,6 +137,21 @@ final readonly class UserAttributeMapper implements UserAttributeMapperInterface
             'externalId' => $externalId !== '' ? $externalId : null,
             'lastModified' => $lastModified !== '' ? $lastModified : null,
         ];
+
+        // Apply custom mappings (reverse direction: meta → SCIM)
+        foreach ($this->customMappings as $mapping) {
+            $value = $this->userRepository->getMeta($user->ID, $mapping->metaKey, true);
+
+            if (\is_string($value) && $value !== '') {
+                $scimAttributes[$mapping->scimPath] = $value;
+            }
+        }
+
+        $event = $this->dispatcher->dispatch(
+            new ScimUserSerializedEvent($scimAttributes, $user),
+        );
+
+        return $event->getScimAttributes();
     }
 
     /**
