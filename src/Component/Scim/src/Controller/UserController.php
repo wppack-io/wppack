@@ -154,21 +154,20 @@ final class UserController extends AbstractRestController
             }
 
             $userId = $this->userRepository->create($mapped['data'], $mapped['meta']);
-            $user = $this->userRepository->find($userId);
 
+            // Deactivate before dispatching provisioned event so listeners see final state
+            if (isset($body['active']) && $body['active'] === false) {
+                $this->userRepository->deactivate($userId);
+            }
+
+            $user = $this->userRepository->find($userId);
             if ($user === null) {
                 throw new ScimException('Failed to create user.', 500);
             }
 
             $this->dispatcher->dispatch(new UserProvisionedEvent($user, $body));
 
-            // Deactivate if provisioned with active=false
             if (isset($body['active']) && $body['active'] === false) {
-                $this->userRepository->deactivate($userId);
-                $user = $this->userRepository->find($userId);
-                if ($user === null) {
-                    throw new ScimException('Failed to retrieve user after deactivation.', 500);
-                }
                 $this->dispatcher->dispatch(new UserDeactivatedEvent($user));
             }
 

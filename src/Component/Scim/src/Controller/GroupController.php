@@ -29,6 +29,7 @@ use WpPack\Component\Scim\Exception\InvalidValueException;
 use WpPack\Component\Scim\Exception\ResourceConflictException;
 use WpPack\Component\Scim\Exception\ResourceNotFoundException;
 use WpPack\Component\Scim\Exception\ScimException;
+use WpPack\Component\Sanitizer\Sanitizer;
 use WpPack\Component\Scim\Patch\PatchProcessor;
 use WpPack\Component\Scim\Patch\PatchRequest;
 use WpPack\Component\Scim\Repository\ScimGroupRepository;
@@ -48,6 +49,7 @@ final class GroupController extends AbstractRestController
         private readonly ScimGroupSerializer $serializer,
         private readonly PatchProcessor $patchProcessor,
         private readonly EventDispatcherInterface $dispatcher,
+        private readonly Sanitizer $sanitizer,
         private readonly int $maxResults = 100,
         private readonly string $baseUrl = '',
         private readonly bool $allowGroupManagement = true,
@@ -113,7 +115,7 @@ final class GroupController extends AbstractRestController
                 throw new InvalidValueException('displayName is required.');
             }
 
-            $roleName = sanitize_key($body['displayName']);
+            $roleName = $this->sanitizer->key($body['displayName']);
 
             if ($roleName === '') {
                 throw new InvalidValueException('displayName must produce a valid role name.');
@@ -123,7 +125,10 @@ final class GroupController extends AbstractRestController
                 throw new ResourceConflictException(sprintf('Group "%s" already exists.', $roleName));
             }
 
-            $displayName = sanitize_text_field($body['displayName']);
+            $displayName = $this->sanitizer->text($body['displayName']);
+            if ($displayName === '') {
+                throw new InvalidValueException('displayName must contain valid text content.');
+            }
             $this->groupRepository->create($roleName, $displayName);
 
             // Handle initial members
@@ -163,7 +168,11 @@ final class GroupController extends AbstractRestController
             $body = $this->decodeBody($request);
 
             if (isset($body['displayName'])) {
-                $this->groupRepository->update($id, sanitize_text_field($body['displayName']));
+                $sanitizedName = $this->sanitizer->text($body['displayName']);
+                if ($sanitizedName === '') {
+                    throw new InvalidValueException('displayName must contain valid text content.');
+                }
+                $this->groupRepository->update($id, $sanitizedName);
             }
 
             // Replace members
@@ -227,7 +236,11 @@ final class GroupController extends AbstractRestController
 
             // Update displayName if changed
             if (isset($patched['displayName']) && $patched['displayName'] !== $role['name']) {
-                $this->groupRepository->update($id, sanitize_text_field($patched['displayName']));
+                $sanitizedName = $this->sanitizer->text($patched['displayName']);
+                if ($sanitizedName === '') {
+                    throw new InvalidValueException('displayName must contain valid text content.');
+                }
+                $this->groupRepository->update($id, $sanitizedName);
             }
 
             // Update members if changed

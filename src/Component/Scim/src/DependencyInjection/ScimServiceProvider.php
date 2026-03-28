@@ -26,6 +26,7 @@ use WpPack\Component\Scim\Filter\FilterParser;
 use WpPack\Component\Scim\Filter\WpUserQueryAdapter;
 use WpPack\Component\Scim\Mapping\GroupMapper;
 use WpPack\Component\Scim\Mapping\GroupMapperInterface;
+use WpPack\Component\Sanitizer\Sanitizer;
 use WpPack\Component\Scim\Mapping\UserAttributeMapper;
 use WpPack\Component\Scim\Mapping\UserAttributeMapperInterface;
 use WpPack\Component\Scim\Patch\PatchProcessor;
@@ -40,13 +41,19 @@ final class ScimServiceProvider implements ServiceProviderInterface
 {
     public function register(ContainerBuilder $builder): void
     {
+        // Sanitizer
+        if (!$builder->hasDefinition(Sanitizer::class)) {
+            $builder->register(Sanitizer::class);
+        }
+
         // Schema
         if (!$builder->hasDefinition(ServiceProviderConfig::class)) {
             $builder->register(ServiceProviderConfig::class);
         }
 
         // Mapping
-        $builder->register(UserAttributeMapper::class);
+        $builder->register(UserAttributeMapper::class)
+            ->addArgument(new Reference(Sanitizer::class));
         $builder->setAlias(UserAttributeMapperInterface::class, UserAttributeMapper::class);
 
         $builder->register(GroupMapper::class);
@@ -89,6 +96,7 @@ final class ScimServiceProvider implements ServiceProviderInterface
             ->addArgument(new Reference(ScimGroupSerializer::class))
             ->addArgument(new Reference(PatchProcessor::class))
             ->addArgument(new Reference(EventDispatcherInterface::class))
+            ->addArgument(new Reference(Sanitizer::class))
             ->addTag('rest.controller');
 
         $builder->register(ServiceProviderConfigController::class)
