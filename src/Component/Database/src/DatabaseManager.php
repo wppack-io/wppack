@@ -207,7 +207,7 @@ final class DatabaseManager
                 return null;
             }
 
-            return reset($rows[0]);
+            return $rows[0] !== [] ? reset($rows[0]) : null;
         }
 
         $sql = $this->prepareIfNeeded($query, $params);

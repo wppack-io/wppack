@@ -36,7 +36,7 @@ final class AllOptionsHashStrategy implements HashStrategyInterface
         $value = [];
 
         foreach ($fields as $name => $serialized) {
-            $value[$name] = \unserialize($serialized);
+            $value[$name] = \unserialize($serialized, ['allowed_classes' => false]);
         }
 
         return $value;

@@ -24,7 +24,13 @@ class Configuration
     public function __construct(array $config = [])
     {
         if (!isset($config['web_root'])) {
-            $config['web_root'] = getcwd();
+            $cwd = getcwd();
+
+            if ($cwd === false) {
+                throw new \RuntimeException('Unable to determine current working directory.');
+            }
+
+            $config['web_root'] = $cwd;
         }
 
         $this->config = $this->normalizeConfig($config);

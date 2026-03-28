@@ -324,7 +324,9 @@ final class WpressArchive implements \Countable
             }
 
             // Skip this entry's content
-            fseek($this->handle, ftell($this->handle) + $header->size);
+            if (fseek($this->handle, ftell($this->handle) + $header->size) === -1) {
+                return null;
+            }
         }
 
         return null;
