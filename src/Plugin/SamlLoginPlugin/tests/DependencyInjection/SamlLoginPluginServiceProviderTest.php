@@ -445,7 +445,7 @@ final class SamlLoginPluginServiceProviderTest extends TestCase
             roleMapping: ['admins' => 'administrator'],
         );
 
-        $resolver = SamlLoginPluginServiceProvider::createUserResolver($config);
+        $resolver = SamlLoginPluginServiceProvider::createUserResolver($config, new EventDispatcher());
 
         self::assertInstanceOf(SamlUserResolver::class, $resolver);
     }
@@ -464,7 +464,7 @@ final class SamlLoginPluginServiceProviderTest extends TestCase
         $spSettings = SamlLoginPluginServiceProvider::createSpSettings($config);
         $samlConfig = SamlLoginPluginServiceProvider::createSamlConfiguration($config, $idpSettings, $spSettings);
         $authFactory = new SamlAuthFactory($samlConfig);
-        $userResolver = SamlLoginPluginServiceProvider::createUserResolver($config);
+        $userResolver = SamlLoginPluginServiceProvider::createUserResolver($config, new EventDispatcher());
         $dispatcher = new EventDispatcher();
 
         $sessionManager = new SamlSessionManager();
