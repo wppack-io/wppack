@@ -15,6 +15,7 @@ namespace WpPack\Component\Setting\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Option\OptionManager;
 use WpPack\Component\Role\Attribute\IsGranted;
 use WpPack\Component\Setting\AbstractSettingsPage;
 use WpPack\Component\Setting\Attribute\AsSettingsPage;
@@ -271,6 +272,7 @@ final class AbstractSettingsPageTest extends TestCase
     public function getOptionReturnsStoredValue(): void
     {
         $page = new MinimalTestSettingsPage();
+        $page->setOptionManager(new OptionManager());
 
         update_option($page->optionName, ['api_key' => 'test-key']);
 
@@ -283,6 +285,7 @@ final class AbstractSettingsPageTest extends TestCase
     public function getOptionReturnsDefaultWhenKeyMissing(): void
     {
         $page = new MinimalTestSettingsPage();
+        $page->setOptionManager(new OptionManager());
 
         update_option($page->optionName, ['other_key' => 'value']);
 
@@ -295,6 +298,7 @@ final class AbstractSettingsPageTest extends TestCase
     public function getOptionReturnsDefaultWhenOptionNotArray(): void
     {
         $page = new MinimalTestSettingsPage();
+        $page->setOptionManager(new OptionManager());
 
         update_option($page->optionName, 'not-an-array');
 
@@ -408,6 +412,7 @@ final class AbstractSettingsPageTest extends TestCase
     public function initSettingsWithValidateOverrideExecutesValidateCallback(): void
     {
         $page = new ValidateTestSettingsPage();
+        $page->setOptionManager(new OptionManager());
         $page->initSettings();
 
         $settings = get_registered_settings();
@@ -432,6 +437,7 @@ final class AbstractSettingsPageTest extends TestCase
     public function initSettingsWithBothOverridesExecutesBoth(): void
     {
         $page = new SanitizeAndValidateTestSettingsPage();
+        $page->setOptionManager(new OptionManager());
         $page->initSettings();
 
         $settings = get_registered_settings();

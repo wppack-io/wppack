@@ -15,6 +15,7 @@ namespace WpPack\Component\Setting\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Option\OptionManager;
 use WpPack\Component\Setting\ValidationContext;
 
 final class ValidationContextTest extends TestCase
@@ -25,7 +26,7 @@ final class ValidationContextTest extends TestCase
         global $wp_settings_errors;
         $wp_settings_errors = [];
 
-        $context = new ValidationContext('my_group', 'my_option');
+        $context = new ValidationContext('my_group', 'my_option', new OptionManager());
         $context->error('api_key_required', 'API Key is required.');
 
         self::assertCount(1, $wp_settings_errors);
@@ -41,7 +42,7 @@ final class ValidationContextTest extends TestCase
         global $wp_settings_errors;
         $wp_settings_errors = [];
 
-        $context = new ValidationContext('my_group', 'my_option');
+        $context = new ValidationContext('my_group', 'my_option', new OptionManager());
         $context->warning('cache_ttl_min', 'Cache TTL must be at least 60 seconds.');
 
         self::assertCount(1, $wp_settings_errors);
@@ -55,7 +56,7 @@ final class ValidationContextTest extends TestCase
         global $wp_settings_errors;
         $wp_settings_errors = [];
 
-        $context = new ValidationContext('my_group', 'my_option');
+        $context = new ValidationContext('my_group', 'my_option', new OptionManager());
         $context->info('settings_saved', 'Settings have been saved.');
 
         self::assertCount(1, $wp_settings_errors);
@@ -68,7 +69,7 @@ final class ValidationContextTest extends TestCase
     {
         update_option('my_option', ['api_key' => 'old-key', 'debug' => true]);
 
-        $context = new ValidationContext('my_group', 'my_option');
+        $context = new ValidationContext('my_group', 'my_option', new OptionManager());
 
         self::assertSame('old-key', $context->oldValue('api_key'));
         self::assertTrue($context->oldValue('debug'));
@@ -81,7 +82,7 @@ final class ValidationContextTest extends TestCase
     {
         update_option('my_option', ['api_key' => 'key']);
 
-        $context = new ValidationContext('my_group', 'my_option');
+        $context = new ValidationContext('my_group', 'my_option', new OptionManager());
 
         self::assertNull($context->oldValue('nonexistent'));
         self::assertSame('fallback', $context->oldValue('nonexistent', 'fallback'));
@@ -94,7 +95,7 @@ final class ValidationContextTest extends TestCase
     {
         update_option('my_option', 'not-an-array');
 
-        $context = new ValidationContext('my_group', 'my_option');
+        $context = new ValidationContext('my_group', 'my_option', new OptionManager());
 
         self::assertSame('default', $context->oldValue('any_key', 'default'));
 
@@ -106,7 +107,7 @@ final class ValidationContextTest extends TestCase
     {
         delete_option('nonexistent_option');
 
-        $context = new ValidationContext('my_group', 'nonexistent_option');
+        $context = new ValidationContext('my_group', 'nonexistent_option', new OptionManager());
 
         self::assertNull($context->oldValue('any_key'));
         self::assertSame('default', $context->oldValue('any_key', 'default'));
@@ -118,7 +119,7 @@ final class ValidationContextTest extends TestCase
         global $wp_settings_errors;
         $wp_settings_errors = [];
 
-        $context = new ValidationContext('my_group', 'my_option');
+        $context = new ValidationContext('my_group', 'my_option', new OptionManager());
         $context->error('err_one', 'First error.');
         $context->error('err_two', 'Second error.');
         $context->warning('warn_one', 'First warning.');

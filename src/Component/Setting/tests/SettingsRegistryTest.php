@@ -64,7 +64,7 @@ final class SettingsRegistryTest extends TestCase
     public function registerSetsTemplateRendererWhenProvided(): void
     {
         $renderer = $this->createMock(TemplateRendererInterface::class);
-        $registry = new SettingsRegistry($renderer);
+        $registry = new SettingsRegistry(renderer: $renderer);
 
         $page = new RegistryTestSettingsPage();
         $registry->register($page);

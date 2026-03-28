@@ -15,6 +15,7 @@ namespace WpPack\Component\Setting\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Option\OptionManager;
 use WpPack\Component\Setting\AbstractSettingsPage;
 use WpPack\Component\Setting\Attribute\AsSettingsPage;
 use WpPack\Component\Setting\SectionDefinition;
@@ -334,6 +335,7 @@ final class SectionDefinitionTest extends TestCase
     public function rendererFieldCallbackRendersNonCheckboxField(): void
     {
         $page = new FieldTypeTestSettingsPage();
+        $page->setOptionManager(new OptionManager());
         $configurator = new SettingsConfigurator($page);
 
         update_option($page->optionName, ['api_key' => 'stored-value']);
@@ -359,6 +361,7 @@ final class SectionDefinitionTest extends TestCase
     public function rendererFieldCallbackRendersCheckboxField(): void
     {
         $page = new FieldTypeTestSettingsPage();
+        $page->setOptionManager(new OptionManager());
         $configurator = new SettingsConfigurator($page);
 
         update_option($page->optionName, ['debug' => true]);
@@ -384,6 +387,7 @@ final class SectionDefinitionTest extends TestCase
     public function fieldWithStringTypeCallbackInvokesRenderer(): void
     {
         $page = new FieldTypeTestSettingsPage();
+        $page->setOptionManager(new OptionManager());
         $configurator = new SettingsConfigurator($page);
 
         update_option($page->optionName, ['api_key' => 'my-key']);

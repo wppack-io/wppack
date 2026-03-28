@@ -207,6 +207,10 @@ abstract class AbstractSettingsPage
         }
 
         if ($this->hasValidateOverride()) {
+            if ($this->optionManager === null) {
+                throw new \LogicException('OptionManager is not set. Call setOptionManager() or register via SettingsRegistry.');
+            }
+
             $context = new ValidationContext($this->optionGroup, $this->optionName, $this->optionManager);
             $input = $this->validate($input, $context);
         }
