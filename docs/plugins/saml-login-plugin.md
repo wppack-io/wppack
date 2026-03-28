@@ -135,6 +135,10 @@ WpPack\Plugin\SamlLoginPlugin\
 | `SAML_WANT_ASSERTIONS_SIGNED` | `true` | 署名検証 |
 | `SAML_AUTO_PROVISION` | `false` | JIT プロビジョニング |
 | `SAML_DEFAULT_ROLE` | `subscriber` | 新規ユーザーのデフォルトロール |
+| `SAML_EMAIL_ATTRIBUTE` | `email` | メールアドレス属性名 |
+| `SAML_FIRST_NAME_ATTRIBUTE` | `firstName` | 名属性名 |
+| `SAML_LAST_NAME_ATTRIBUTE` | `lastName` | 姓属性名 |
+| `SAML_DISPLAY_NAME_ATTRIBUTE` | `displayName` | 表示名属性名 |
 | `SAML_ROLE_ATTRIBUTE` | `null` | ロール属性名 |
 | `SAML_ROLE_MAPPING` | `null` | JSON ロールマッピング |
 | `SAML_ADD_USER_TO_BLOG` | `true` | マルチサイトでブログに自動追加 |
@@ -233,6 +237,78 @@ SAML 属性から以下のユーザー情報が同期されます（新規作成
 - `firstName` → `first_name`
 - `lastName` → `last_name`
 - `displayName` → `display_name`
+
+#### 属性名のカスタマイズ
+
+IdP の属性名がデフォルト値と異なる場合、環境変数でオーバーライドできます:
+
+```php
+// Azure AD (Entra ID) の場合
+define('SAML_EMAIL_ATTRIBUTE', 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress');
+define('SAML_FIRST_NAME_ATTRIBUTE', 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname');
+define('SAML_LAST_NAME_ATTRIBUTE', 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname');
+define('SAML_DISPLAY_NAME_ATTRIBUTE', 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name');
+```
+
+### カスタム属性マッピング
+
+デフォルトの属性マッピングに加え、SAML 属性を WordPress ユーザーメタにマッピングできます。
+
+#### 宣言的マッピング（SamlAttributeMapping）
+
+`SamlAttributeMapping` で SAML 属性名と WordPress メタキーの対応を定義します:
+
+```php
+use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlAttributeMapping;
+use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolver;
+
+// カスタム ServiceProvider でオーバーライド
+$builder->findDefinition(SamlUserResolver::class)
+    ->setArgument('$customMappings', [
+        new SamlAttributeMapping('department', 'org_department'),
+        new SamlAttributeMapping('employeeNumber', 'employee_id'),
+        new SamlAttributeMapping('title', 'job_title'),
+    ]);
+```
+
+カスタムマッピングで保存される値は `sanitize_text_field()` でサニタイズされます。
+
+#### イベントによるカスタマイズ
+
+条件分岐や値の結合など、宣言的マッピングで対応できない複雑なロジックにはイベントリスナーを使用します:
+
+```php
+use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
+use WpPack\Component\Security\Bridge\SAML\Event\SamlUserAttributesMappedEvent;
+
+final class CustomSamlMapper
+{
+    #[AsEventListener]
+    public function __invoke(SamlUserAttributesMappedEvent $event): void
+    {
+        $attrs = $event->getAttributes();
+        $meta = $event->getUserMeta();
+
+        // 複数属性を結合してメタに保存
+        $dept = $attrs['department'][0] ?? '';
+        $org = $attrs['organization'][0] ?? '';
+        if ($dept !== '' && $org !== '') {
+            $meta['org_department'] = $org . ' / ' . $dept;
+            $event->setUserMeta($meta);
+        }
+    }
+}
+```
+
+詳細は [saml-security のドキュメント](../components/security/saml-security.md#属性マッピングのカスタマイズ) を参照してください。
+
+#### 将来の管理画面対応
+
+管理画面を追加する際は以下のステップで対応可能です。コンポーネント側の変更は不要です:
+
+1. 管理画面でマッピングルール（SAML 属性名 → メタキー）を CRUD → `wp_options` に JSON 保存
+2. プラグインの ServiceProvider で `wp_options` から読み込み → `SamlAttributeMapping[]` を構築
+3. `setArgument('$customMappings', ...)` で `SamlUserResolver` に渡す
 
 ### ロールマッピング
 

@@ -418,7 +418,7 @@ $userResolver = new SamlUserResolver(
 SAML 属性を WordPress ユーザーメタにマッピングするカスタム定義です。`SamlAttributeMapping` で SAML 属性名とメタキーの対応を定義します:
 
 ```php
-use WpPack\Component\Security\Bridge\SAML\Mapping\SamlAttributeMapping;
+use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlAttributeMapping;
 
 // コンストラクタ: SamlAttributeMapping(string $samlAttribute, string $metaKey)
 new SamlAttributeMapping('department', 'department');
@@ -427,7 +427,7 @@ new SamlAttributeMapping('department', 'department');
 DI でカスタムマッピングを `SamlUserResolver` に注入します:
 
 ```php
-use WpPack\Component\Security\Bridge\SAML\Mapping\SamlAttributeMapping;
+use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlAttributeMapping;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolver;
 
 $builder->findDefinition(SamlUserResolver::class)
