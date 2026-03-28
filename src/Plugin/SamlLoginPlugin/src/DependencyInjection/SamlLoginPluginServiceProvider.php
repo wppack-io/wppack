@@ -41,6 +41,8 @@ use WpPack\Component\Security\Bridge\SAML\Session\SamlSessionManager;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolver;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolverInterface;
 use WpPack\Component\Security\DependencyInjection\SecurityServiceProvider;
+use WpPack\Component\Site\BlogContextInterface;
+use WpPack\Component\User\UserRepositoryInterface;
 use WpPack\Plugin\SamlLoginPlugin\Configuration\SamlLoginConfiguration;
 use WpPack\Plugin\SamlLoginPlugin\SamlLoginForm;
 
@@ -95,6 +97,7 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
             ->addArgument(new Reference(EventDispatcherInterface::class))
             ->addArgument(new Reference(SamlLoginConfiguration::class))
             ->addArgument(new Reference(SamlSessionManager::class))
+            ->addArgument(new Reference(BlogContextInterface::class))
             ->addTag('security.authenticator');
 
         // Entry Point
@@ -104,7 +107,8 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
             ->addArgument(new Reference(Request::class));
 
         // SAML Session Manager
-        $builder->register(SamlSessionManager::class);
+        $builder->register(SamlSessionManager::class)
+            ->addArgument(new Reference(UserRepositoryInterface::class));
 
         // Logout Handler
         $builder->register(SamlLogoutHandler::class)
@@ -209,8 +213,9 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
         EventDispatcherInterface $dispatcher,
         SamlLoginConfiguration $config,
         SamlSessionManager $sessionManager,
+        BlogContextInterface $blogContext,
     ): SamlAuthenticator {
-        $crossSiteRedirector = is_multisite()
+        $crossSiteRedirector = $blogContext->isMultisite()
             ? new CrossSiteRedirector(acsPath: $config->acsPath)
             : null;
 
@@ -222,6 +227,7 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
             acsPath: $config->acsPath,
             crossSiteRedirector: $crossSiteRedirector,
             addUserToBlog: $config->addUserToBlog,
+            blogContext: $blogContext,
         );
     }
 }

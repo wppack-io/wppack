@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Security\Bridge\SAML\Session;
 
+use WpPack\Component\User\UserRepositoryInterface;
+
 /**
  * Persists SAML session data (nameId, sessionIndex) in WordPress user meta
  * for use during Single Logout (SLO).
@@ -22,34 +24,69 @@ final class SamlSessionManager
     private const META_NAME_ID = '_saml_name_id';
     private const META_SESSION_INDEX = '_saml_session_index';
 
+    public function __construct(
+        private readonly ?UserRepositoryInterface $userRepository = null,
+    ) {}
+
     public function save(int $userId, string $nameId, ?string $sessionIndex): void
     {
-        update_user_meta($userId, self::META_NAME_ID, $nameId);
+        $this->updateMeta($userId, self::META_NAME_ID, $nameId);
 
         if ($sessionIndex !== null) {
-            update_user_meta($userId, self::META_SESSION_INDEX, $sessionIndex);
+            $this->updateMeta($userId, self::META_SESSION_INDEX, $sessionIndex);
         } else {
-            delete_user_meta($userId, self::META_SESSION_INDEX);
+            $this->deleteMeta($userId, self::META_SESSION_INDEX);
         }
     }
 
     public function getNameId(int $userId): ?string
     {
-        $value = get_user_meta($userId, self::META_NAME_ID, true);
+        $value = $this->getMeta($userId, self::META_NAME_ID);
 
         return \is_string($value) && $value !== '' ? $value : null;
     }
 
     public function getSessionIndex(int $userId): ?string
     {
-        $value = get_user_meta($userId, self::META_SESSION_INDEX, true);
+        $value = $this->getMeta($userId, self::META_SESSION_INDEX);
 
         return \is_string($value) && $value !== '' ? $value : null;
     }
 
     public function clear(int $userId): void
     {
-        delete_user_meta($userId, self::META_NAME_ID);
-        delete_user_meta($userId, self::META_SESSION_INDEX);
+        $this->deleteMeta($userId, self::META_NAME_ID);
+        $this->deleteMeta($userId, self::META_SESSION_INDEX);
+    }
+
+    private function getMeta(int $userId, string $key): mixed
+    {
+        if ($this->userRepository !== null) {
+            return $this->userRepository->getMeta($userId, $key, true);
+        }
+
+        return get_user_meta($userId, $key, true);
+    }
+
+    private function updateMeta(int $userId, string $key, string $value): void
+    {
+        if ($this->userRepository !== null) {
+            $this->userRepository->updateMeta($userId, $key, $value);
+
+            return;
+        }
+
+        update_user_meta($userId, $key, $value);
+    }
+
+    private function deleteMeta(int $userId, string $key): void
+    {
+        if ($this->userRepository !== null) {
+            $this->userRepository->deleteMeta($userId, $key);
+
+            return;
+        }
+
+        delete_user_meta($userId, $key);
     }
 }

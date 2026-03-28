@@ -26,6 +26,8 @@ use WpPack\Component\Security\Authentication\Token\TokenInterface;
 use WpPack\Component\Security\Bridge\SAML\Badge\SamlAttributesBadge;
 use WpPack\Component\Security\Bridge\SAML\Event\SamlResponseReceivedEvent;
 use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
+use WpPack\Component\Site\BlogContext;
+use WpPack\Component\Site\BlogContextInterface;
 use WpPack\Component\Security\Bridge\SAML\Multisite\CrossSiteRedirector;
 use WpPack\Component\Security\Bridge\SAML\Session\SamlSessionManager;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolverInterface;
@@ -44,6 +46,7 @@ final class SamlAuthenticator implements AuthenticatorInterface
         private readonly string $acsPath = '/saml/acs',
         private readonly ?CrossSiteRedirector $crossSiteRedirector = null,
         private readonly bool $addUserToBlog = true,
+        private readonly BlogContextInterface $blogContext = new BlogContext(),
     ) {}
 
     public function supports(Request $request): bool
@@ -136,11 +139,9 @@ final class SamlAuthenticator implements AuthenticatorInterface
 
         $blogId = null;
 
-        // @codeCoverageIgnoreStart
-        if ($this->crossSiteRedirector !== null && is_multisite()) {
-            $blogId = get_current_blog_id();
+        if ($this->crossSiteRedirector !== null && $this->blogContext->isMultisite()) {
+            $blogId = $this->blogContext->getCurrentBlogId();
         }
-        // @codeCoverageIgnoreEnd
 
         return new PostAuthenticationToken(
             $user,
@@ -157,14 +158,12 @@ final class SamlAuthenticator implements AuthenticatorInterface
             $this->sessionManager->save($user->ID, $this->lastNameId, $this->lastSessionIndex);
         }
 
-        // @codeCoverageIgnoreStart
-        if ($this->addUserToBlog && is_multisite()) {
+        if ($this->addUserToBlog && $this->blogContext->isMultisite()) {
             if (!is_user_member_of_blog($user->ID)) {
                 $role = !empty($user->roles) ? $user->roles[0] : 'subscriber';
-                add_user_to_blog(get_current_blog_id(), $user->ID, $role);
+                add_user_to_blog($this->blogContext->getCurrentBlogId(), $user->ID, $role);
             }
         }
-        // @codeCoverageIgnoreEnd
 
         $relayState = $request->post->get('RelayState');
         $fallback = admin_url();

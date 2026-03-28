@@ -40,6 +40,7 @@ use WpPack\Component\Security\Bridge\SAML\SamlSloController;
 use WpPack\Component\Security\Bridge\SAML\Session\SamlSessionManager;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolver;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolverInterface;
+use WpPack\Component\Site\BlogContext;
 use WpPack\Plugin\SamlLoginPlugin\Configuration\SamlLoginConfiguration;
 use WpPack\Plugin\SamlLoginPlugin\DependencyInjection\SamlLoginPluginServiceProvider;
 use WpPack\Plugin\SamlLoginPlugin\SamlLoginForm;
@@ -468,6 +469,7 @@ final class SamlLoginPluginServiceProviderTest extends TestCase
         $dispatcher = new EventDispatcher();
 
         $sessionManager = new SamlSessionManager();
+        $blogContext = new BlogContext();
 
         $authenticator = SamlLoginPluginServiceProvider::createAuthenticator(
             $authFactory,
@@ -475,6 +477,7 @@ final class SamlLoginPluginServiceProviderTest extends TestCase
             $dispatcher,
             $config,
             $sessionManager,
+            $blogContext,
         );
 
         self::assertInstanceOf(SamlAuthenticator::class, $authenticator);
