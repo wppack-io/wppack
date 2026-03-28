@@ -46,10 +46,6 @@ final readonly class PatchRequest
                 throw new InvalidPatchException(sprintf('Invalid patch operation: "%s".', $op['op'] ?? ''));
             }
 
-            if ($opName === 'remove' && isset($op['value'])) {
-                throw new InvalidPatchException('Remove operation must not have a value.');
-            }
-
             $operations[] = new PatchOperation(
                 op: $opName,
                 path: $op['path'] ?? null,

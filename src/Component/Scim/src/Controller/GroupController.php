@@ -142,10 +142,13 @@ final class GroupController extends AbstractRestController
             $this->dispatcher->dispatch(new GroupProvisionedEvent($roleName, $displayName));
 
             $role = $this->groupRepository->findByName($roleName);
+            if ($role === null) {
+                throw new ScimException('Failed to create group.', 500);
+            }
             $members = $this->groupRepository->getMembersOfRole($roleName);
 
             return $this->json(
-                $this->serializer->serialize($roleName, $role ?? ['name' => $displayName, 'capabilities' => []], $members, $this->baseUrl),
+                $this->serializer->serialize($roleName, $role, $members, $this->baseUrl),
                 201,
                 ['Content-Type' => ScimConstants::CONTENT_TYPE, 'Location' => $this->baseUrl . '/scim/v2/Groups/' . $roleName],
             );
@@ -194,10 +197,13 @@ final class GroupController extends AbstractRestController
             $this->dispatcher->dispatch(new GroupUpdatedEvent($id, $body));
 
             $updatedRole = $this->groupRepository->findByName($id);
+            if ($updatedRole === null) {
+                throw new ScimException('Failed to retrieve updated group.', 500);
+            }
             $members = $this->groupRepository->getMembersOfRole($id);
 
             return $this->json(
-                $this->serializer->serialize($id, $updatedRole ?? $role, $members, $this->baseUrl),
+                $this->serializer->serialize($id, $updatedRole, $members, $this->baseUrl),
                 headers: ['Content-Type' => ScimConstants::CONTENT_TYPE],
             );
         } catch (ScimException $e) {
@@ -259,10 +265,13 @@ final class GroupController extends AbstractRestController
             $this->dispatcher->dispatch(new GroupUpdatedEvent($id, $patched));
 
             $updatedRole = $this->groupRepository->findByName($id);
+            if ($updatedRole === null) {
+                throw new ScimException('Failed to retrieve updated group.', 500);
+            }
             $members = $this->groupRepository->getMembersOfRole($id);
 
             return $this->json(
-                $this->serializer->serialize($id, $updatedRole ?? $role, $members, $this->baseUrl),
+                $this->serializer->serialize($id, $updatedRole, $members, $this->baseUrl),
                 headers: ['Content-Type' => ScimConstants::CONTENT_TYPE],
             );
         } catch (ScimException $e) {

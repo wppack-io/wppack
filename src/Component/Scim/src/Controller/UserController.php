@@ -156,7 +156,9 @@ final class UserController extends AbstractRestController
             $userId = $this->userRepository->create($mapped['data'], $mapped['meta']);
 
             // Deactivate before dispatching provisioned event so listeners see final state
-            if (isset($body['active']) && $body['active'] === false) {
+            $shouldDeactivate = isset($body['active']) && $body['active'] === false;
+
+            if ($shouldDeactivate) {
                 $this->userRepository->deactivate($userId);
             }
 
@@ -167,7 +169,7 @@ final class UserController extends AbstractRestController
 
             $this->dispatcher->dispatch(new UserProvisionedEvent($user, $body));
 
-            if (isset($body['active']) && $body['active'] === false) {
+            if ($shouldDeactivate) {
                 $this->dispatcher->dispatch(new UserDeactivatedEvent($user));
             }
 

@@ -138,6 +138,30 @@ final class PatchProcessor
         $this->checkImmutablePath($operation->path);
         $segments = PathParser::parse($operation->path);
 
+        // Targeted removal from multi-valued attributes (e.g. Azure AD group member removal)
+        if ($operation->value !== null && \is_array($operation->value)) {
+            $existing = self::getValueAtPath($resource, $segments);
+            if (\is_array($existing) && array_is_list($existing)) {
+                $valuesToRemove = [];
+                foreach ($operation->value as $item) {
+                    if (\is_array($item) && isset($item['value'])) {
+                        $valuesToRemove[] = (string) $item['value'];
+                    }
+                }
+
+                if ($valuesToRemove !== []) {
+                    $filtered = array_values(array_filter(
+                        $existing,
+                        static fn(mixed $item): bool => !\is_array($item)
+                            || !isset($item['value'])
+                            || !\in_array((string) $item['value'], $valuesToRemove, true),
+                    ));
+
+                    return PathParser::setValueAtPath($resource, $segments, $filtered);
+                }
+            }
+        }
+
         return PathParser::removeValueAtPath($resource, $segments);
     }
 
