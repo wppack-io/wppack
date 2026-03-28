@@ -79,6 +79,10 @@ final readonly class OAuthTokenSet
      */
     public static function fromArray(array $data): self
     {
+        if (!isset($data['access_token']) || !\is_string($data['access_token'])) {
+            throw new \RuntimeException('OAuth token response does not contain a valid access_token.');
+        }
+
         return new self(
             accessToken: $data['access_token'],
             tokenType: $data['token_type'] ?? 'Bearer',
