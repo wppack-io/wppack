@@ -15,7 +15,7 @@ namespace WpPack\Component\Scim\Exception;
 
 class InvalidPatchException extends ScimException
 {
-    public function __construct(string $message = 'Invalid patch operation.', ?string $scimType = 'invalidPath', ?\Throwable $previous = null)
+    public function __construct(string $message = 'Invalid patch operation.', ?string $scimType = 'invalidValue', ?\Throwable $previous = null)
     {
         parent::__construct($message, 400, $scimType, $previous);
     }

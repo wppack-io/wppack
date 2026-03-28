@@ -127,6 +127,13 @@ final readonly class ScimUserRepository
         }
     }
 
+    public function isActive(int $userId): bool
+    {
+        $meta = $this->userRepository->getMeta($userId, ScimConstants::META_ACTIVE, true);
+
+        return $meta !== '0';
+    }
+
     public function deactivate(int $userId): void
     {
         $this->userRepository->updateMeta($userId, ScimConstants::META_ACTIVE, '0');

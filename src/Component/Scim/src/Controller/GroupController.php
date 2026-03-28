@@ -140,7 +140,7 @@ final class GroupController extends AbstractRestController
             $members = $this->groupRepository->getMembersOfRole($roleName);
 
             return $this->json(
-                $this->serializer->serialize($roleName, $role ?? ['name' => $body['displayName'], 'capabilities' => []], $members, $this->baseUrl),
+                $this->serializer->serialize($roleName, $role ?? ['name' => $displayName, 'capabilities' => []], $members, $this->baseUrl),
                 201,
                 ['Content-Type' => ScimConstants::CONTENT_TYPE, 'Location' => $this->baseUrl . '/scim/v2/Groups/' . $roleName],
             );

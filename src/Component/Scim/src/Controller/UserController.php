@@ -311,9 +311,7 @@ final class UserController extends AbstractRestController
 
     private function isActive(\WP_User $user): bool
     {
-        $meta = get_user_meta($user->ID, ScimConstants::META_ACTIVE, true);
-
-        return $meta !== '0';
+        return $this->userRepository->isActive($user->ID);
     }
 
     /**
