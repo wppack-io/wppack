@@ -23,14 +23,15 @@ use WpPack\Component\Security\Authentication\Token\PostAuthenticationToken;
 use WpPack\Component\Security\Authentication\Token\TokenInterface;
 use WpPack\Component\Security\AuthenticationSession;
 use WpPack\Component\Security\Exception\AuthenticationException;
-use WpPack\Component\Site\BlogContext;
 use WpPack\Component\Site\BlogContextInterface;
+use WpPack\Component\User\UserRepositoryInterface;
 
 final class CookieAuthenticator implements StatelessAuthenticatorInterface
 {
     public function __construct(
         private readonly AuthenticationSession $authSession,
-        private readonly BlogContextInterface $blogContext = new BlogContext(),
+        private readonly BlogContextInterface $blogContext,
+        private readonly UserRepositoryInterface $userRepository,
     ) {}
 
     public function supports(Request $request): bool
@@ -46,11 +47,13 @@ final class CookieAuthenticator implements StatelessAuthenticatorInterface
             throw new AuthenticationException('Invalid authentication cookie.');
         }
 
-        return new SelfValidatingPassport(
-            new UserBadge((string) $userId, static function (string $identifier): \WP_User {
-                $user = get_user_by('id', (int) $identifier);
+        $userRepository = $this->userRepository;
 
-                if ($user === false) {
+        return new SelfValidatingPassport(
+            new UserBadge((string) $userId, static function (string $identifier) use ($userRepository): \WP_User {
+                $user = $userRepository->find((int) $identifier);
+
+                if ($user === null) {
                     throw new AuthenticationException('User not found.');
                 }
 

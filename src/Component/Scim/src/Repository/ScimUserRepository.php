@@ -127,7 +127,7 @@ final readonly class ScimUserRepository
     {
         $this->userRepository->updateMeta($userId, ScimConstants::META_ACTIVE, '1');
 
-        if (is_multisite() && function_exists('update_user_status')) {
+        if ($this->blogSwitcher !== null && function_exists('update_user_status')) {
             update_user_status($userId, 'deleted', 0);
         }
 
@@ -150,7 +150,7 @@ final readonly class ScimUserRepository
     {
         $this->userRepository->updateMeta($userId, ScimConstants::META_ACTIVE, '0');
 
-        if (is_multisite() && function_exists('update_user_status')) {
+        if ($this->blogSwitcher !== null && function_exists('update_user_status')) {
             update_user_status($userId, 'deleted', 1);
         }
 

@@ -140,7 +140,8 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
             ->addArgument(new Reference(SamlLogoutHandler::class))
             ->addArgument(new Reference(SamlSessionManager::class))
             ->addArgument(new Reference(AuthenticationSession::class))
-            ->addArgument(new Reference(Request::class));
+            ->addArgument(new Reference(Request::class))
+            ->addArgument(new Reference(BlogContextInterface::class));
 
         // Login Form (mixed mode)
         $builder->register(SamlLoginForm::class)

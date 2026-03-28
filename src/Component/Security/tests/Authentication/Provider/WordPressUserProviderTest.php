@@ -17,6 +17,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Security\Authentication\Provider\WordPressUserProvider;
 use WpPack\Component\Security\Exception\UserNotFoundException;
+use WpPack\Component\User\UserRepository;
 
 final class WordPressUserProviderTest extends TestCase
 {
@@ -27,7 +28,7 @@ final class WordPressUserProviderTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->provider = new WordPressUserProvider();
+        $this->provider = new WordPressUserProvider(new UserRepository());
     }
 
     protected function tearDown(): void

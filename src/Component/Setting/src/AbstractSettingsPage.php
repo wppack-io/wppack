@@ -125,9 +125,11 @@ abstract class AbstractSettingsPage
      */
     public function getOption(string $key, mixed $default = null): mixed
     {
-        $options = $this->optionManager !== null
-            ? $this->optionManager->get($this->optionName, [])
-            : get_option($this->optionName, []);
+        if ($this->optionManager === null) {
+            throw new \LogicException('OptionManager is not set. Call setOptionManager() or register via SettingsRegistry.');
+        }
+
+        $options = $this->optionManager->get($this->optionName, []);
 
         if (!\is_array($options)) {
             return $default;

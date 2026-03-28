@@ -125,7 +125,7 @@ final class CrossSiteRedirector
         }
 
         // One-time use: delete after successful verification
-        delete_transient($key);
+        $this->transientManager->delete($key);
 
         return $userId > 0 ? $userId : null;
     }

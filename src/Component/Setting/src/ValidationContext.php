@@ -23,11 +23,9 @@ final class ValidationContext
     public function __construct(
         private readonly string $optionGroup,
         string $optionName,
-        ?OptionManager $optionManager = null,
+        OptionManager $optionManager,
     ) {
-        $values = $optionManager !== null
-            ? $optionManager->get($optionName, [])
-            : get_option($optionName, []);
+        $values = $optionManager->get($optionName, []);
         $this->oldValues = \is_array($values) ? $values : [];
     }
 

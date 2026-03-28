@@ -121,13 +121,11 @@ final class RouteRegistry
 
     public function invalidate(): void
     {
-        if ($this->optionManager !== null) {
-            $this->optionManager->delete('rewrite_rules');
-
-            return;
+        if ($this->optionManager === null) {
+            throw new \LogicException('OptionManager is not set. Inject it via the constructor.');
         }
 
-        delete_option('rewrite_rules');
+        $this->optionManager->delete('rewrite_rules');
     }
 
     private function setupController(object $controller): void

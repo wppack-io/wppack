@@ -36,6 +36,7 @@ use WpPack\Component\Security\Bridge\OAuth\Token\TokenExchanger;
 use WpPack\Component\Security\Bridge\OAuth\UserResolution\OAuthUserResolverInterface;
 use WpPack\Component\Security\Exception\AuthenticationException;
 use WpPack\Component\Site\BlogContextInterface;
+use WpPack\Component\User\UserRepositoryInterface;
 
 final class OAuthAuthenticator implements AuthenticatorInterface
 {
@@ -47,6 +48,7 @@ final class OAuthAuthenticator implements AuthenticatorInterface
         private readonly OAuthUserResolverInterface $userResolver,
         private readonly EventDispatcherInterface $dispatcher,
         private readonly BlogContextInterface $blogContext,
+        private readonly UserRepositoryInterface $userRepository,
         private readonly string $callbackPath = '/oauth/callback',
         private readonly ?IdTokenValidator $idTokenValidator = null,
         private readonly ?JwksProvider $jwksProvider = null,
@@ -247,9 +249,9 @@ final class OAuthAuthenticator implements AuthenticatorInterface
             throw new AuthenticationException('OAuth authentication failed.');
         }
 
-        $user = get_user_by('id', $userId);
+        $user = $this->userRepository->find($userId);
 
-        if (!$user instanceof \WP_User) {
+        if ($user === null) {
             throw new AuthenticationException('OAuth authentication failed.');
         }
 

@@ -18,6 +18,7 @@ use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Security\AuthenticationSession;
 use WpPack\Component\Security\Bridge\SAML\Session\SamlSessionManager;
+use WpPack\Component\Site\BlogContextInterface;
 
 final class SamlSloController
 {
@@ -26,6 +27,7 @@ final class SamlSloController
         private readonly SamlSessionManager $sessionManager,
         private readonly AuthenticationSession $authSession,
         private readonly Request $request,
+        private readonly BlogContextInterface $blogContext,
     ) {}
 
     public function __invoke(): Response
@@ -72,7 +74,7 @@ final class SamlSloController
         }
 
         // Different host — only allowed for registered multisite domains
-        if (is_multisite() && get_blog_id_from_url($parsed['host']) > 0) {
+        if ($this->blogContext->isMultisite() && get_blog_id_from_url($parsed['host']) > 0) {
             return $relayState;
         }
 

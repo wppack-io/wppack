@@ -22,6 +22,8 @@ use WpPack\Component\Security\AuthenticationSession;
 use WpPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
 use WpPack\Component\Security\Authentication\Token\PostAuthenticationToken;
 use WpPack\Component\Security\Exception\AuthenticationException;
+use WpPack\Component\Site\BlogContext;
+use WpPack\Component\User\UserRepository;
 
 final class CookieAuthenticatorTest extends TestCase
 {
@@ -29,7 +31,7 @@ final class CookieAuthenticatorTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->authenticator = new CookieAuthenticator(new AuthenticationSession());
+        $this->authenticator = new CookieAuthenticator(new AuthenticationSession(), new BlogContext(), new UserRepository());
     }
 
     #[Test]

@@ -261,11 +261,12 @@ final class SamlLoginPluginServiceProviderTest extends TestCase
 
         $definition = $this->builder->findDefinition(SamlSloController::class);
         $arguments = $definition->getArguments();
-        self::assertCount(4, $arguments);
+        self::assertCount(5, $arguments);
         self::assertSame(SamlLogoutHandler::class, (string) $arguments[0]);
         self::assertSame(SamlSessionManager::class, (string) $arguments[1]);
         self::assertSame(AuthenticationSession::class, (string) $arguments[2]);
         self::assertSame(Request::class, (string) $arguments[3]);
+        self::assertSame(\WpPack\Component\Site\BlogContextInterface::class, (string) $arguments[4]);
     }
 
     #[Test]

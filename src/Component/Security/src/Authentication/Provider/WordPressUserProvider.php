@@ -14,18 +14,23 @@ declare(strict_types=1);
 namespace WpPack\Component\Security\Authentication\Provider;
 
 use WpPack\Component\Security\Exception\UserNotFoundException;
+use WpPack\Component\User\UserRepositoryInterface;
 
 final class WordPressUserProvider implements UserProviderInterface
 {
+    public function __construct(
+        private readonly UserRepositoryInterface $userRepository,
+    ) {}
+
     public function loadUserByIdentifier(string $identifier): \WP_User
     {
-        $user = get_user_by('login', $identifier);
+        $user = $this->userRepository->findByLogin($identifier);
 
-        if ($user === false) {
-            $user = get_user_by('email', $identifier);
+        if ($user === null) {
+            $user = $this->userRepository->findByEmail($identifier);
         }
 
-        if ($user === false) {
+        if ($user === null) {
             $exception = new UserNotFoundException();
             $exception->setUserIdentifier($identifier);
 

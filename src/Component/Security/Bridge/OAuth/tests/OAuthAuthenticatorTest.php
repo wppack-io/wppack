@@ -39,6 +39,7 @@ use WpPack\Component\Security\Exception\AuthenticationException;
 use WpPack\Component\Site\BlogContext;
 use WpPack\Component\Site\SiteRepository;
 use WpPack\Component\Transient\TransientManager;
+use WpPack\Component\User\UserRepository;
 
 #[CoversClass(OAuthAuthenticator::class)]
 final class OAuthAuthenticatorTest extends TestCase
@@ -106,6 +107,7 @@ final class OAuthAuthenticatorTest extends TestCase
             $this->userResolver,
             $this->eventDispatcher,
             new BlogContext(),
+            new UserRepository(),
             $callbackPath,
             $idTokenValidator,
             $jwksProvider,

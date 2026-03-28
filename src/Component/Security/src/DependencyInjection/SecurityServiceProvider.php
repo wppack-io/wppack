@@ -31,13 +31,15 @@ use WpPack\Component\Security\Authorization\Voter\RoleVoter;
 use WpPack\Component\Role\Authorization\IsGrantedChecker;
 use WpPack\Component\Security\EventListener\CheckCredentialsListener;
 use WpPack\Component\Security\Security;
+use WpPack\Component\User\UserRepositoryInterface;
 
 final class SecurityServiceProvider implements ServiceProviderInterface
 {
     public function register(ContainerBuilder $builder): void
     {
         // User Provider
-        $builder->register(WordPressUserProvider::class);
+        $builder->register(WordPressUserProvider::class)
+            ->addArgument(new Reference(UserRepositoryInterface::class));
         $builder->setAlias(UserProviderInterface::class, WordPressUserProvider::class);
 
         // Authentication Session

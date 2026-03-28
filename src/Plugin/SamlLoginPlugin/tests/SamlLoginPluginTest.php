@@ -15,6 +15,7 @@ namespace WpPack\Plugin\SamlLoginPlugin\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Option\OptionManager;
 use WpPack\Component\Routing\RouteRegistry;
 use WpPack\Plugin\SamlLoginPlugin\SamlLoginPlugin;
 
@@ -23,7 +24,7 @@ final class SamlLoginPluginTest extends TestCase
     #[Test]
     public function onActivateFlushesRewriteRules(): void
     {
-        $router = new RouteRegistry();
+        $router = new RouteRegistry(optionManager: new OptionManager());
 
         $plugin = new SamlLoginPlugin(__FILE__);
 
@@ -43,7 +44,7 @@ final class SamlLoginPluginTest extends TestCase
         // Ensure rewrite_rules option exists first
         update_option('rewrite_rules', ['dummy' => 'rule']);
 
-        $router = new RouteRegistry();
+        $router = new RouteRegistry(optionManager: new OptionManager());
 
         $plugin = new SamlLoginPlugin(__FILE__);
 
