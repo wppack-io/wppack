@@ -22,6 +22,7 @@ use WpPack\Component\Security\Bridge\OAuth\Configuration\OAuthConfiguration;
 use WpPack\Component\Security\Bridge\OAuth\OAuthEntryPoint;
 use WpPack\Component\Security\Bridge\OAuth\Provider\ProviderInterface;
 use WpPack\Component\Security\Bridge\OAuth\State\OAuthStateStore;
+use WpPack\Component\Transient\TransientManager;
 
 #[CoversClass(OAuthEntryPoint::class)]
 final class OAuthEntryPointTest extends TestCase
@@ -60,7 +61,7 @@ final class OAuthEntryPointTest extends TestCase
         return new OAuthEntryPoint(
             $provider ?? $this->createMock(ProviderInterface::class),
             $configuration ?? $this->createConfiguration(),
-            $stateStore ?? new OAuthStateStore(),
+            $stateStore ?? new OAuthStateStore(new TransientManager()),
             $this->authSession,
             $request ?? Request::create('https://example.com/wp-login.php'),
         );
@@ -172,7 +173,7 @@ final class OAuthEntryPointTest extends TestCase
         $provider->method('getAuthorizationUrl')
             ->willReturn('https://idp.example.com/authorize');
 
-        $stateStore = new OAuthStateStore();
+        $stateStore = new OAuthStateStore(new TransientManager());
 
         $entryPoint = $this->createEntryPoint(provider: $provider, stateStore: $stateStore);
 
@@ -326,7 +327,7 @@ final class OAuthEntryPointTest extends TestCase
         $provider->method('getAuthorizationUrl')
             ->willReturn('https://idp.example.com/authorize');
 
-        $stateStore = new OAuthStateStore();
+        $stateStore = new OAuthStateStore(new TransientManager());
 
         $entryPoint = $this->createEntryPoint(
             provider: $provider,

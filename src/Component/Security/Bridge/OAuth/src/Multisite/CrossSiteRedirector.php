@@ -13,10 +13,9 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Security\Bridge\OAuth\Multisite;
 
-use WpPack\Component\Site\BlogContext;
 use WpPack\Component\Site\BlogContextInterface;
-use WpPack\Component\Site\SiteRepository;
 use WpPack\Component\Site\SiteRepositoryInterface;
+use WpPack\Component\Transient\TransientManager;
 
 final class CrossSiteRedirector
 {
@@ -27,10 +26,11 @@ final class CrossSiteRedirector
      * @param list<string> $allowedHosts
      */
     public function __construct(
+        private readonly BlogContextInterface $blogContext,
+        private readonly SiteRepositoryInterface $siteRepository,
+        private readonly TransientManager $transientManager,
         private readonly array $allowedHosts = [],
         private readonly string $verifyPath = '/oauth/verify',
-        private readonly BlogContextInterface $blogContext = new BlogContext(),
-        private readonly SiteRepositoryInterface $siteRepository = new SiteRepository(),
     ) {}
 
     public function needsRedirect(string $targetUrl): bool
@@ -73,7 +73,7 @@ final class CrossSiteRedirector
         $payload = $userId . '|' . $timestamp . '|' . $token;
         $hmac = wp_hash($payload);
 
-        set_transient(
+        $this->transientManager->set(
             self::TRANSIENT_PREFIX . hash('sha256', $token),
             [
                 'user_id' => $userId,
@@ -100,7 +100,7 @@ final class CrossSiteRedirector
     public function verifyToken(string $token): ?int
     {
         $key = self::TRANSIENT_PREFIX . hash('sha256', $token);
-        $data = get_transient($key);
+        $data = $this->transientManager->get($key);
 
         if (!\is_array($data)) {
             return null;
@@ -112,7 +112,7 @@ final class CrossSiteRedirector
 
         // Check expiry
         if ((time() - $createdAt) > self::TOKEN_TTL) {
-            delete_transient($key);
+            $this->transientManager->delete($key);
             return null;
         }
 

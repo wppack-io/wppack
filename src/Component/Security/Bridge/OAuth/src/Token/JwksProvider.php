@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Security\Bridge\OAuth\Token;
 
 use WpPack\Component\HttpClient\HttpClient;
+use WpPack\Component\Transient\TransientManager;
 
 final class JwksProvider
 {
@@ -22,6 +23,7 @@ final class JwksProvider
 
     public function __construct(
         private readonly HttpClient $httpClient,
+        private readonly TransientManager $transientManager,
     ) {}
 
     /**
@@ -34,7 +36,7 @@ final class JwksProvider
     {
         $cacheKey = self::TRANSIENT_PREFIX . md5($jwksUri);
 
-        $cached = get_transient($cacheKey);
+        $cached = $this->transientManager->get($cacheKey);
 
         if (\is_array($cached)) {
             return $cached;
@@ -59,7 +61,7 @@ final class JwksProvider
         /** @var array<int, array<string, mixed>> $keys */
         $keys = $data['keys'];
 
-        set_transient($cacheKey, $keys, self::CACHE_TTL);
+        $this->transientManager->set($cacheKey, $keys, self::CACHE_TTL);
 
         return $keys;
     }

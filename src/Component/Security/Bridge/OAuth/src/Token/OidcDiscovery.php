@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Security\Bridge\OAuth\Token;
 
 use WpPack\Component\HttpClient\HttpClient;
+use WpPack\Component\Transient\TransientManager;
 
 final class OidcDiscovery
 {
@@ -22,6 +23,7 @@ final class OidcDiscovery
 
     public function __construct(
         private readonly HttpClient $httpClient,
+        private readonly TransientManager $transientManager,
     ) {}
 
     /**
@@ -33,7 +35,7 @@ final class OidcDiscovery
     {
         $cacheKey = self::TRANSIENT_PREFIX . md5($discoveryUrl);
 
-        $cached = get_transient($cacheKey);
+        $cached = $this->transientManager->get($cacheKey);
 
         if (\is_array($cached)) {
             return DiscoveryDocument::fromArray($cached);
@@ -57,7 +59,7 @@ final class OidcDiscovery
 
         $document = DiscoveryDocument::fromArray($data);
 
-        set_transient($cacheKey, $data, self::CACHE_TTL);
+        $this->transientManager->set($cacheKey, $data, self::CACHE_TTL);
 
         return $document;
     }

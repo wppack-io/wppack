@@ -13,14 +13,20 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Security\Bridge\OAuth\State;
 
+use WpPack\Component\Transient\TransientManager;
+
 final class OAuthStateStore
 {
     private const TRANSIENT_PREFIX = '_wppack_oauth_state_';
     private const DEFAULT_TTL = 600;
 
+    public function __construct(
+        private readonly TransientManager $transientManager,
+    ) {}
+
     public function store(string $state, StoredState $storedState): void
     {
-        set_transient(self::TRANSIENT_PREFIX . $state, [
+        $this->transientManager->set(self::TRANSIENT_PREFIX . $state, [
             'nonce' => $storedState->getNonce(),
             'code_verifier' => $storedState->getCodeVerifier(),
             'return_to' => $storedState->getReturnTo(),
@@ -30,10 +36,10 @@ final class OAuthStateStore
 
     public function retrieve(string $state): ?StoredState
     {
-        $data = get_transient(self::TRANSIENT_PREFIX . $state);
+        $data = $this->transientManager->get(self::TRANSIENT_PREFIX . $state);
 
         // One-time use: delete immediately
-        delete_transient(self::TRANSIENT_PREFIX . $state);
+        $this->transientManager->delete(self::TRANSIENT_PREFIX . $state);
 
         if (!\is_array($data)) {
             return null;

@@ -17,6 +17,9 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Security\Bridge\OAuth\Multisite\CrossSiteRedirector;
+use WpPack\Component\Site\BlogContext;
+use WpPack\Component\Site\SiteRepository;
+use WpPack\Component\Transient\TransientManager;
 
 #[CoversClass(CrossSiteRedirector::class)]
 final class CrossSiteRedirectorTest extends TestCase
@@ -24,7 +27,7 @@ final class CrossSiteRedirectorTest extends TestCase
     #[Test]
     public function needsRedirectReturnsFalseForSameHost(): void
     {
-        $redirector = new CrossSiteRedirector();
+        $redirector = new CrossSiteRedirector(new BlogContext(), new SiteRepository(), new TransientManager());
 
         self::assertFalse($redirector->needsRedirect(site_url('/some-path')));
     }
@@ -32,7 +35,7 @@ final class CrossSiteRedirectorTest extends TestCase
     #[Test]
     public function needsRedirectReturnsFalseForInvalidUrl(): void
     {
-        $redirector = new CrossSiteRedirector();
+        $redirector = new CrossSiteRedirector(new BlogContext(), new SiteRepository(), new TransientManager());
 
         self::assertFalse($redirector->needsRedirect('not-a-url'));
     }
@@ -40,7 +43,7 @@ final class CrossSiteRedirectorTest extends TestCase
     #[Test]
     public function needsRedirectReturnsTrueForDifferentHost(): void
     {
-        $redirector = new CrossSiteRedirector();
+        $redirector = new CrossSiteRedirector(new BlogContext(), new SiteRepository(), new TransientManager());
 
         self::assertTrue($redirector->needsRedirect('https://different.example.com/path'));
     }
@@ -48,7 +51,7 @@ final class CrossSiteRedirectorTest extends TestCase
     #[Test]
     public function redirectThrowsForInvalidTargetUrl(): void
     {
-        $redirector = new CrossSiteRedirector();
+        $redirector = new CrossSiteRedirector(new BlogContext(), new SiteRepository(), new TransientManager());
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Invalid target URL');
@@ -59,7 +62,7 @@ final class CrossSiteRedirectorTest extends TestCase
     #[Test]
     public function redirectThrowsForDisallowedHost(): void
     {
-        $redirector = new CrossSiteRedirector();
+        $redirector = new CrossSiteRedirector(new BlogContext(), new SiteRepository(), new TransientManager());
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('is not allowed');
@@ -70,7 +73,7 @@ final class CrossSiteRedirectorTest extends TestCase
     #[Test]
     public function redirectThrowsForLocalDomain(): void
     {
-        $redirector = new CrossSiteRedirector();
+        $redirector = new CrossSiteRedirector(new BlogContext(), new SiteRepository(), new TransientManager());
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('is not allowed');
@@ -81,7 +84,7 @@ final class CrossSiteRedirectorTest extends TestCase
     #[Test]
     public function redirectThrowsForLocalhostDomain(): void
     {
-        $redirector = new CrossSiteRedirector();
+        $redirector = new CrossSiteRedirector(new BlogContext(), new SiteRepository(), new TransientManager());
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('is not allowed');
@@ -93,6 +96,9 @@ final class CrossSiteRedirectorTest extends TestCase
     public function localDomainAllowedWhenExplicitlyConfigured(): void
     {
         $redirector = new CrossSiteRedirector(
+            new BlogContext(),
+            new SiteRepository(),
+            new TransientManager(),
             allowedHosts: ['myapp.local'],
             verifyPath: '/oauth/verify',
         );
@@ -105,7 +111,7 @@ final class CrossSiteRedirectorTest extends TestCase
     #[Test]
     public function resolveVerifyUrlEnforcesHttps(): void
     {
-        $redirector = new CrossSiteRedirector(verifyPath: '/oauth/verify');
+        $redirector = new CrossSiteRedirector(new BlogContext(), new SiteRepository(), new TransientManager(), verifyPath: '/oauth/verify');
 
         $method = new \ReflectionMethod($redirector, 'resolveVerifyUrl');
 
@@ -117,7 +123,7 @@ final class CrossSiteRedirectorTest extends TestCase
     #[Test]
     public function resolveVerifyUrlPreservesPort(): void
     {
-        $redirector = new CrossSiteRedirector(verifyPath: '/oauth/verify');
+        $redirector = new CrossSiteRedirector(new BlogContext(), new SiteRepository(), new TransientManager(), verifyPath: '/oauth/verify');
 
         $method = new \ReflectionMethod($redirector, 'resolveVerifyUrl');
 
@@ -128,7 +134,7 @@ final class CrossSiteRedirectorTest extends TestCase
     #[Test]
     public function verifyTokenReturnsNullForInvalidToken(): void
     {
-        $redirector = new CrossSiteRedirector();
+        $redirector = new CrossSiteRedirector(new BlogContext(), new SiteRepository(), new TransientManager());
 
         self::assertNull($redirector->verifyToken('invalid-token'));
     }
@@ -152,7 +158,7 @@ final class CrossSiteRedirectorTest extends TestCase
             120,
         );
 
-        $redirector = new CrossSiteRedirector();
+        $redirector = new CrossSiteRedirector(new BlogContext(), new SiteRepository(), new TransientManager());
 
         self::assertSame($userId, $redirector->verifyToken($token));
     }
@@ -178,7 +184,7 @@ final class CrossSiteRedirectorTest extends TestCase
             300,
         );
 
-        $redirector = new CrossSiteRedirector();
+        $redirector = new CrossSiteRedirector(new BlogContext(), new SiteRepository(), new TransientManager());
 
         self::assertNull($redirector->verifyToken($token));
         self::assertFalse(get_transient($key));
@@ -203,7 +209,7 @@ final class CrossSiteRedirectorTest extends TestCase
             120,
         );
 
-        $redirector = new CrossSiteRedirector();
+        $redirector = new CrossSiteRedirector(new BlogContext(), new SiteRepository(), new TransientManager());
 
         self::assertSame($userId, $redirector->verifyToken($token));
         self::assertNull($redirector->verifyToken($token));
@@ -226,7 +232,7 @@ final class CrossSiteRedirectorTest extends TestCase
             120,
         );
 
-        $redirector = new CrossSiteRedirector();
+        $redirector = new CrossSiteRedirector(new BlogContext(), new SiteRepository(), new TransientManager());
 
         self::assertNull($redirector->verifyToken($token));
     }
@@ -238,7 +244,7 @@ final class CrossSiteRedirectorTest extends TestCase
             self::markTestSkipped('This test requires a non-multisite installation.');
         }
 
-        $redirector = new CrossSiteRedirector();
+        $redirector = new CrossSiteRedirector(new BlogContext(), new SiteRepository(), new TransientManager());
 
         self::assertNull($redirector->resolveBlogId('https://sub.example.com'));
     }
@@ -246,7 +252,7 @@ final class CrossSiteRedirectorTest extends TestCase
     #[Test]
     public function resolveBlogIdReturnsNullForInvalidUrl(): void
     {
-        $redirector = new CrossSiteRedirector();
+        $redirector = new CrossSiteRedirector(new BlogContext(), new SiteRepository(), new TransientManager());
 
         self::assertNull($redirector->resolveBlogId('not-a-url'));
     }
@@ -254,7 +260,7 @@ final class CrossSiteRedirectorTest extends TestCase
     #[Test]
     public function buildAutoSubmitFormContainsFormElements(): void
     {
-        $redirector = new CrossSiteRedirector();
+        $redirector = new CrossSiteRedirector(new BlogContext(), new SiteRepository(), new TransientManager());
 
         $method = new \ReflectionMethod($redirector, 'buildAutoSubmitForm');
 
@@ -277,7 +283,7 @@ final class CrossSiteRedirectorTest extends TestCase
     #[Test]
     public function buildAutoSubmitFormEscapesHtmlEntities(): void
     {
-        $redirector = new CrossSiteRedirector();
+        $redirector = new CrossSiteRedirector(new BlogContext(), new SiteRepository(), new TransientManager());
 
         $method = new \ReflectionMethod($redirector, 'buildAutoSubmitForm');
 
@@ -298,7 +304,7 @@ final class CrossSiteRedirectorTest extends TestCase
     #[Test]
     public function customVerifyPath(): void
     {
-        $redirector = new CrossSiteRedirector(verifyPath: '/custom/verify/path');
+        $redirector = new CrossSiteRedirector(new BlogContext(), new SiteRepository(), new TransientManager(), verifyPath: '/custom/verify/path');
 
         $method = new \ReflectionMethod($redirector, 'resolveVerifyUrl');
 
@@ -325,7 +331,7 @@ final class CrossSiteRedirectorTest extends TestCase
             120,
         );
 
-        $redirector = new CrossSiteRedirector();
+        $redirector = new CrossSiteRedirector(new BlogContext(), new SiteRepository(), new TransientManager());
 
         self::assertNull($redirector->verifyToken($token));
     }
@@ -333,7 +339,7 @@ final class CrossSiteRedirectorTest extends TestCase
     #[Test]
     public function needsRedirectReturnsFalseForUrlWithoutHost(): void
     {
-        $redirector = new CrossSiteRedirector();
+        $redirector = new CrossSiteRedirector(new BlogContext(), new SiteRepository(), new TransientManager());
 
         self::assertFalse($redirector->needsRedirect('/relative/path'));
     }
@@ -341,7 +347,7 @@ final class CrossSiteRedirectorTest extends TestCase
     #[Test]
     public function verifyTokenReturnsNullForMissingTransientData(): void
     {
-        $redirector = new CrossSiteRedirector();
+        $redirector = new CrossSiteRedirector(new BlogContext(), new SiteRepository(), new TransientManager());
 
         // Token with no corresponding transient
         self::assertNull($redirector->verifyToken('completely-nonexistent-token'));
@@ -357,7 +363,7 @@ final class CrossSiteRedirectorTest extends TestCase
             120,
         );
 
-        $redirector = new CrossSiteRedirector();
+        $redirector = new CrossSiteRedirector(new BlogContext(), new SiteRepository(), new TransientManager());
 
         self::assertNull($redirector->verifyToken($token));
 

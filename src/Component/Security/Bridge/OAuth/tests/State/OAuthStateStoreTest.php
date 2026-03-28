@@ -18,6 +18,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Security\Bridge\OAuth\State\OAuthStateStore;
 use WpPack\Component\Security\Bridge\OAuth\State\StoredState;
+use WpPack\Component\Transient\TransientManager;
 
 #[CoversClass(OAuthStateStore::class)]
 final class OAuthStateStoreTest extends TestCase
@@ -25,7 +26,7 @@ final class OAuthStateStoreTest extends TestCase
     #[Test]
     public function storeAndRetrieve(): void
     {
-        $store = new OAuthStateStore();
+        $store = new OAuthStateStore(new TransientManager());
         $state = bin2hex(random_bytes(16));
         $storedState = StoredState::create('test-nonce', 'test-verifier', 'https://example.com/return');
 
@@ -41,7 +42,7 @@ final class OAuthStateStoreTest extends TestCase
     #[Test]
     public function retrieveIsOneTimeUse(): void
     {
-        $store = new OAuthStateStore();
+        $store = new OAuthStateStore(new TransientManager());
         $state = bin2hex(random_bytes(16));
         $storedState = StoredState::create('test-nonce', null, null);
 
@@ -59,7 +60,7 @@ final class OAuthStateStoreTest extends TestCase
     #[Test]
     public function retrieveReturnsNullForNonExistentState(): void
     {
-        $store = new OAuthStateStore();
+        $store = new OAuthStateStore(new TransientManager());
 
         self::assertNull($store->retrieve('non-existent-state'));
     }
@@ -67,7 +68,7 @@ final class OAuthStateStoreTest extends TestCase
     #[Test]
     public function retrieveReturnsNullForExpiredState(): void
     {
-        $store = new OAuthStateStore();
+        $store = new OAuthStateStore(new TransientManager());
         $state = bin2hex(random_bytes(16));
 
         // Create a state with a very old timestamp

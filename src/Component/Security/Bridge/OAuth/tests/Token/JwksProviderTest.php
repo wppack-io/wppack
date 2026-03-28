@@ -18,6 +18,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\HttpClient\HttpClient;
 use WpPack\Component\Security\Bridge\OAuth\Token\JwksProvider;
+use WpPack\Component\Transient\TransientManager;
 
 #[CoversClass(JwksProvider::class)]
 final class JwksProviderTest extends TestCase
@@ -31,7 +32,7 @@ final class JwksProviderTest extends TestCase
     protected function setUp(): void
     {
         $this->httpClient = new HttpClient();
-        $this->provider = new JwksProvider($this->httpClient);
+        $this->provider = new JwksProvider($this->httpClient, new TransientManager());
 
         add_filter('pre_http_request', [$this, 'mockHttpResponse'], 10, 3);
     }

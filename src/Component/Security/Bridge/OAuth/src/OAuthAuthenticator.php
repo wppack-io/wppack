@@ -35,6 +35,7 @@ use WpPack\Component\Security\Bridge\OAuth\Token\JwksProvider;
 use WpPack\Component\Security\Bridge\OAuth\Token\TokenExchanger;
 use WpPack\Component\Security\Bridge\OAuth\UserResolution\OAuthUserResolverInterface;
 use WpPack\Component\Security\Exception\AuthenticationException;
+use WpPack\Component\Site\BlogContextInterface;
 
 final class OAuthAuthenticator implements AuthenticatorInterface
 {
@@ -45,6 +46,7 @@ final class OAuthAuthenticator implements AuthenticatorInterface
         private readonly TokenExchanger $tokenExchanger,
         private readonly OAuthUserResolverInterface $userResolver,
         private readonly EventDispatcherInterface $dispatcher,
+        private readonly BlogContextInterface $blogContext,
         private readonly string $callbackPath = '/oauth/callback',
         private readonly ?IdTokenValidator $idTokenValidator = null,
         private readonly ?JwksProvider $jwksProvider = null,
@@ -96,8 +98,8 @@ final class OAuthAuthenticator implements AuthenticatorInterface
 
         $blogId = null;
 
-        if ($this->crossSiteRedirector !== null && is_multisite()) {
-            $blogId = get_current_blog_id();
+        if ($this->crossSiteRedirector !== null && $this->blogContext->isMultisite()) {
+            $blogId = $this->blogContext->getCurrentBlogId();
         }
 
         return new PostAuthenticationToken(
@@ -111,10 +113,10 @@ final class OAuthAuthenticator implements AuthenticatorInterface
     {
         $user = $token->getUser();
 
-        if ($this->addUserToBlog && is_multisite()) {
+        if ($this->addUserToBlog && $this->blogContext->isMultisite()) {
             if (!is_user_member_of_blog($user->ID)) {
                 $role = !empty($user->roles) ? $user->roles[0] : 'subscriber';
-                add_user_to_blog(get_current_blog_id(), $user->ID, $role);
+                add_user_to_blog($this->blogContext->getCurrentBlogId(), $user->ID, $role);
             }
         }
 

@@ -36,6 +36,9 @@ use WpPack\Component\Security\Bridge\OAuth\Token\OAuthTokenSet;
 use WpPack\Component\Security\Bridge\OAuth\Token\TokenExchanger;
 use WpPack\Component\Security\Bridge\OAuth\UserResolution\OAuthUserResolverInterface;
 use WpPack\Component\Security\Exception\AuthenticationException;
+use WpPack\Component\Site\BlogContext;
+use WpPack\Component\Site\SiteRepository;
+use WpPack\Component\Transient\TransientManager;
 
 #[CoversClass(OAuthAuthenticator::class)]
 final class OAuthAuthenticatorTest extends TestCase
@@ -51,7 +54,7 @@ final class OAuthAuthenticatorTest extends TestCase
     protected function setUp(): void
     {
         $this->provider = $this->createMock(ProviderInterface::class);
-        $this->stateStore = new OAuthStateStore();
+        $this->stateStore = new OAuthStateStore(new TransientManager());
         $this->userResolver = $this->createMock(OAuthUserResolverInterface::class);
         $this->eventDispatcher = $this->createMock(EventDispatcherInterface::class);
 
@@ -102,6 +105,7 @@ final class OAuthAuthenticatorTest extends TestCase
             new TokenExchanger(new HttpClient()),
             $this->userResolver,
             $this->eventDispatcher,
+            new BlogContext(),
             $callbackPath,
             $idTokenValidator,
             $jwksProvider,
@@ -348,6 +352,9 @@ final class OAuthAuthenticatorTest extends TestCase
         );
 
         $crossSiteRedirector = new CrossSiteRedirector(
+            new BlogContext(),
+            new SiteRepository(),
+            new TransientManager(),
             allowedHosts: ['example.com'],
             verifyPath: '/oauth/verify',
         );
@@ -591,7 +598,7 @@ final class OAuthAuthenticatorTest extends TestCase
         // Create a JwksProvider that returns our test keys via transient cache
         $jwksCacheKey = '_wppack_oauth_jwks_' . md5('https://www.googleapis.com/oauth2/v3/certs');
         set_transient($jwksCacheKey, $jwks, 3600);
-        $jwksProvider = new JwksProvider(new HttpClient());
+        $jwksProvider = new JwksProvider(new HttpClient(), new TransientManager());
 
         // We need to override the stored state nonce to match
         // Store state with the correct nonce
@@ -739,6 +746,9 @@ final class OAuthAuthenticatorTest extends TestCase
     public function authenticateCrossSiteWithInvalidToken(): void
     {
         $crossSiteRedirector = new CrossSiteRedirector(
+            new BlogContext(),
+            new SiteRepository(),
+            new TransientManager(),
             allowedHosts: ['example.com'],
             verifyPath: '/oauth/verify',
         );
@@ -778,6 +788,9 @@ final class OAuthAuthenticatorTest extends TestCase
         );
 
         $crossSiteRedirector = new CrossSiteRedirector(
+            new BlogContext(),
+            new SiteRepository(),
+            new TransientManager(),
             allowedHosts: ['example.com'],
             verifyPath: '/oauth/verify',
         );
@@ -973,6 +986,9 @@ final class OAuthAuthenticatorTest extends TestCase
         }, 10, 3);
 
         $crossSiteRedirector = new CrossSiteRedirector(
+            new BlogContext(),
+            new SiteRepository(),
+            new TransientManager(),
             allowedHosts: ['example.com'],
             verifyPath: '/oauth/verify',
         );

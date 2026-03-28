@@ -19,6 +19,7 @@ use PHPUnit\Framework\TestCase;
 use WpPack\Component\HttpClient\HttpClient;
 use WpPack\Component\Security\Bridge\OAuth\Token\DiscoveryDocument;
 use WpPack\Component\Security\Bridge\OAuth\Token\OidcDiscovery;
+use WpPack\Component\Transient\TransientManager;
 
 #[CoversClass(OidcDiscovery::class)]
 final class OidcDiscoveryTest extends TestCase
@@ -32,7 +33,7 @@ final class OidcDiscoveryTest extends TestCase
     protected function setUp(): void
     {
         $this->httpClient = new HttpClient();
-        $this->discovery = new OidcDiscovery($this->httpClient);
+        $this->discovery = new OidcDiscovery($this->httpClient, new TransientManager());
 
         add_filter('pre_http_request', [$this, 'mockHttpResponse'], 10, 3);
     }
