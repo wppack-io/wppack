@@ -75,10 +75,7 @@ if (empty($trace)): ?>
     ?>
 <li class="trace-frame<?= $openClass ?>">
 <div class="trace-header">
-<span class="trace-index">#<?= $index ?></span>
-<span class="trace-function"><?= $view->raw($funcHtml) ?></span>
-<span class="trace-location"><?= $view->raw($locHtml) ?></span>
-<span class="trace-toggle"><span class="wpd-log-indicator"><?= $indicator ?></span></span>
+<span class="trace-index">#<?= $index ?></span><span class="trace-content"><span class="trace-function"><?= $view->raw($funcHtml) ?></span> <span class="trace-location"><?= $view->raw($locHtml) ?></span></span><span class="trace-toggle"><span class="wpd-log-indicator"><?= $indicator ?></span></span>
 </div>
 <?php if ($bodyHtml !== ''): ?>
 <div class="trace-body"><?= $view->raw($bodyHtml) ?></div>

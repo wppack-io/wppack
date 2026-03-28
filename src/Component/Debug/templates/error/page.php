@@ -131,7 +131,7 @@ body {
     user-select: none;
     -webkit-user-select: none;
     transition: background .15s;
-    flex-wrap: wrap;
+    line-height: 1.6;
 }
 .trace-header:hover { background: var(--wpd-white); }
 .trace-frame.open .trace-header { border-bottom: 1px solid var(--wpd-gray-200); }
@@ -143,12 +143,25 @@ body {
     text-align: right;
     flex-shrink: 0;
 }
+.trace-index {
+    font-family: var(--wpd-font-mono);
+    font-size: 11px;
+    color: var(--wpd-gray-400);
+    flex-shrink: 0;
+}
+.trace-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 8px;
+}
 .trace-function {
     font-family: var(--wpd-font-mono);
     font-size: 12px;
     color: var(--wpd-gray-900);
-    flex: 1;
-    word-break: break-all;
+    overflow-wrap: break-word;
 }
 .trace-function .class-name { color: var(--wpd-primary); }
 .trace-function .method-name { color: var(--wpd-green); }
@@ -158,7 +171,7 @@ body {
     font-family: var(--wpd-font-mono);
     font-size: 11px;
     color: var(--wpd-gray-400);
-    flex-shrink: 0;
+    margin-left: auto;
 }
 .trace-location .loc-file { color: var(--wpd-gray-500); }
 .trace-location .loc-line { color: var(--wpd-gray-900); font-weight: 600; }
