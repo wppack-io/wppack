@@ -274,12 +274,13 @@ wppack/logger
 wppack/scim
     ↓ requires
 wppack/rest, wppack/user, wppack/role, wppack/security
-wppack/http-foundation, wppack/event-dispatcher, wppack/site
+wppack/http-foundation, wppack/event-dispatcher, wppack/sanitizer, wppack/site
 
 wppack/scim-plugin
     ↓ requires
 wppack/scim, wppack/kernel, wppack/dependency-injection
-    + wppack/event-dispatcher, wppack/security
+wppack/event-dispatcher, wppack/security
+wppack/http-foundation, wppack/rest, wppack/site, wppack/user
 ```
 
 ## Development Guidelines

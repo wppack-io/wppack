@@ -115,8 +115,11 @@ src/Plugin/ScimPlugin/
 | wppack/security | 認証基盤（AuthenticationManager, StatelessAuthenticatorInterface） |
 | wppack/dependency-injection | DI コンテナ |
 | wppack/event-dispatcher | イベントシステム |
+| wppack/http-foundation | Request/Response 抽象化 |
 | wppack/kernel | プラグインブートストラップ（PluginInterface） |
-| wppack/hook | WordPress フック統合 |
+| wppack/rest | REST API エンドポイント登録（RestRegistry） |
+| wppack/site | マルチサイト対応（BlogSwitcher） |
+| wppack/user | ユーザーリポジトリ（UserRepositoryInterface） |
 
 ## 名前空間
 
