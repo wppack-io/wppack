@@ -42,6 +42,7 @@ use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolver;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolverInterface;
 use WpPack\Component\Sanitizer\Sanitizer;
 use WpPack\Component\Security\DependencyInjection\SecurityServiceProvider;
+use WpPack\Component\Site\BlogContext;
 use WpPack\Component\Site\BlogContextInterface;
 use WpPack\Component\Transient\TransientManager;
 use WpPack\Component\User\UserRepositoryInterface;
@@ -64,6 +65,16 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
         // Sanitizer
         if (!$builder->hasDefinition(Sanitizer::class)) {
             $builder->register(Sanitizer::class);
+        }
+
+        // Blog Context
+        if (!$builder->hasDefinition(BlogContextInterface::class)) {
+            $builder->register(BlogContextInterface::class, BlogContext::class);
+        }
+
+        // Transient Manager
+        if (!$builder->hasDefinition(TransientManager::class)) {
+            $builder->register(TransientManager::class);
         }
 
         // Configuration
@@ -109,11 +120,6 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
             ->addArgument(new Reference(BlogContextInterface::class))
             ->addArgument(new Reference(TransientManager::class))
             ->addTag('security.authenticator');
-
-        // Transient Manager (for SAML InResponseTo validation)
-        if (!$builder->hasDefinition(TransientManager::class)) {
-            $builder->register(TransientManager::class);
-        }
 
         // Entry Point
         $builder->register(SamlEntryPoint::class)
