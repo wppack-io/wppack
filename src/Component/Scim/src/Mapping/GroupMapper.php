@@ -15,6 +15,12 @@ namespace WpPack\Component\Scim\Mapping;
 
 final readonly class GroupMapper implements GroupMapperInterface
 {
+    /**
+     * @param array{name: string, capabilities: array<string, bool>} $role
+     * @param list<\WP_User> $members
+     *
+     * @return array<string, mixed>
+     */
     public function toScim(string $roleName, array $role, array $members, string $baseUrl = ''): array
     {
         $memberList = [];

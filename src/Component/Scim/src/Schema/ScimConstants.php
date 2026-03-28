@@ -28,6 +28,10 @@ final class ScimConstants
 
     public const CONTENT_TYPE = 'application/scim+json';
 
+    // RFC documentation URIs
+    public const RFC7644_URI = 'https://tools.ietf.org/html/rfc7644';
+    public const RFC6750_URI = 'https://tools.ietf.org/html/rfc6750';
+
     // Capability
     public const CAPABILITY_PROVISION = 'scim_provision';
 

@@ -33,7 +33,7 @@ final readonly class ServiceProviderConfig
     {
         return [
             'schemas' => [ScimConstants::SERVICE_PROVIDER_CONFIG_SCHEMA],
-            'documentationUri' => 'https://tools.ietf.org/html/rfc7644',
+            'documentationUri' => ScimConstants::RFC7644_URI,
             'patch' => [
                 'supported' => $this->patchSupported,
             ],
@@ -60,7 +60,7 @@ final readonly class ServiceProviderConfig
                     'type' => 'oauthbearertoken',
                     'name' => 'OAuth Bearer Token',
                     'description' => 'Authentication scheme using the OAuth Bearer Token Standard',
-                    'specUri' => 'https://tools.ietf.org/html/rfc6750',
+                    'specUri' => ScimConstants::RFC6750_URI,
                 ],
             ],
             'meta' => [

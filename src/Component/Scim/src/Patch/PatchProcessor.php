@@ -18,6 +18,7 @@ use WpPack\Component\Scim\Exception\MutabilityException;
 
 final class PatchProcessor
 {
+    /** @see RFC 7644 Section 3.5.2 — server-managed and immutable attributes */
     private const IMMUTABLE_ATTRIBUTES = ['userName', 'id'];
 
     /**
