@@ -80,7 +80,7 @@ final class ObjectCache
                 $value = $this->adapter->get($fullKey);
 
                 if ($value !== null) {
-                    $data = \unserialize($value, ['allowed_classes' => false]);
+                    $data = \unserialize($value);
 
                     $this->runtime[$group][$runtimeKey] = $data;
                     $found = true;
@@ -132,7 +132,7 @@ final class ObjectCache
                 $value = $fetched[$fullKey] ?? null;
 
                 if ($value !== null) {
-                    $data = \unserialize($value, ['allowed_classes' => false]);
+                    $data = \unserialize($value);
 
                     $runtimeKey = $this->runtimeKey($key, $group);
                     $this->runtime[$group][$runtimeKey] = $data;
@@ -364,7 +364,7 @@ final class ObjectCache
                 $value = $this->adapter->get($fullKey);
 
                 if ($value !== null) {
-                    $this->runtime[$group][$runtimeKey] = \unserialize($value, ['allowed_classes' => false]);
+                    $this->runtime[$group][$runtimeKey] = \unserialize($value);
                 }
             }
         }
