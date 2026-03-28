@@ -30,14 +30,14 @@ final class SamlSloController
 
     public function __invoke(): Response
     {
-        if ($this->logoutHandler->isLogoutRequest()) {
+        if ($this->logoutHandler->isLogoutRequest($this->request)) {
             $this->clearSamlSession();
             $this->logoutHandler->handleIdpLogoutRequest($this->request);
 
             return new RedirectResponse($this->resolvePostLogoutRedirect());
         }
 
-        if ($this->logoutHandler->isLogoutResponse()) {
+        if ($this->logoutHandler->isLogoutResponse($this->request)) {
             $this->clearSamlSession();
             $this->authSession->logout();
 

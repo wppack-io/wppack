@@ -58,13 +58,13 @@ final class SamlLogoutHandler
         $this->authSession->logout();
     }
 
-    public function isLogoutRequest(): bool
+    public function isLogoutRequest(Request $request): bool
     {
-        return isset($_GET['SAMLRequest']);
+        return $request->query->has('SAMLRequest');
     }
 
-    public function isLogoutResponse(): bool
+    public function isLogoutResponse(Request $request): bool
     {
-        return isset($_GET['SAMLResponse']);
+        return $request->query->has('SAMLResponse');
     }
 }

@@ -155,15 +155,9 @@ final class SamlLogoutHandlerTest extends TestCase
     {
         $factory = $this->createMock(SamlAuthFactory::class);
         $handler = new SamlLogoutHandler($factory, new AuthenticationSession());
+        $request = Request::create('/saml/slo', 'GET', ['SAMLRequest' => 'encoded-request']);
 
-        $originalGet = $_GET;
-        $_GET['SAMLRequest'] = 'encoded-request';
-
-        try {
-            self::assertTrue($handler->isLogoutRequest());
-        } finally {
-            $_GET = $originalGet;
-        }
+        self::assertTrue($handler->isLogoutRequest($request));
     }
 
     #[Test]
@@ -171,15 +165,9 @@ final class SamlLogoutHandlerTest extends TestCase
     {
         $factory = $this->createMock(SamlAuthFactory::class);
         $handler = new SamlLogoutHandler($factory, new AuthenticationSession());
+        $request = Request::create('/saml/slo');
 
-        $originalGet = $_GET;
-        unset($_GET['SAMLRequest']);
-
-        try {
-            self::assertFalse($handler->isLogoutRequest());
-        } finally {
-            $_GET = $originalGet;
-        }
+        self::assertFalse($handler->isLogoutRequest($request));
     }
 
     #[Test]
@@ -187,15 +175,9 @@ final class SamlLogoutHandlerTest extends TestCase
     {
         $factory = $this->createMock(SamlAuthFactory::class);
         $handler = new SamlLogoutHandler($factory, new AuthenticationSession());
+        $request = Request::create('/saml/slo', 'GET', ['SAMLResponse' => 'encoded-response']);
 
-        $originalGet = $_GET;
-        $_GET['SAMLResponse'] = 'encoded-response';
-
-        try {
-            self::assertTrue($handler->isLogoutResponse());
-        } finally {
-            $_GET = $originalGet;
-        }
+        self::assertTrue($handler->isLogoutResponse($request));
     }
 
     #[Test]
@@ -203,15 +185,9 @@ final class SamlLogoutHandlerTest extends TestCase
     {
         $factory = $this->createMock(SamlAuthFactory::class);
         $handler = new SamlLogoutHandler($factory, new AuthenticationSession());
+        $request = Request::create('/saml/slo');
 
-        $originalGet = $_GET;
-        unset($_GET['SAMLResponse']);
-
-        try {
-            self::assertFalse($handler->isLogoutResponse());
-        } finally {
-            $_GET = $originalGet;
-        }
+        self::assertFalse($handler->isLogoutResponse($request));
     }
 
     #[Test]
@@ -219,17 +195,10 @@ final class SamlLogoutHandlerTest extends TestCase
     {
         $factory = $this->createMock(SamlAuthFactory::class);
         $handler = new SamlLogoutHandler($factory, new AuthenticationSession());
+        $request = Request::create('/saml/slo', 'GET', ['SAMLRequest' => 'request']);
 
-        $originalGet = $_GET;
-        $_GET['SAMLRequest'] = 'request';
-        unset($_GET['SAMLResponse']);
-
-        try {
-            self::assertTrue($handler->isLogoutRequest());
-            self::assertFalse($handler->isLogoutResponse());
-        } finally {
-            $_GET = $originalGet;
-        }
+        self::assertTrue($handler->isLogoutRequest($request));
+        self::assertFalse($handler->isLogoutResponse($request));
     }
 
     #[Test]
