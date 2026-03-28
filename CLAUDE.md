@@ -249,7 +249,7 @@ wppack/role, wppack/http-foundation
 wppack/saml-security
     ↓ requires
 wppack/security, wppack/site
-    + onelogin/php-saml
+    + litesaml/lightsaml
 
 wppack/oauth-security
     ↓ requires

@@ -13,6 +13,12 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Security\Bridge\SAML;
 
+use LightSaml\Binding\HttpRedirectBinding;
+use LightSaml\Context\Profile\MessageContext;
+use LightSaml\Helper;
+use LightSaml\Model\Assertion\Issuer;
+use LightSaml\Model\Protocol\AuthnRequest;
+use LightSaml\SamlConstants;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Security\AuthenticationSession;
 use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
@@ -77,18 +83,61 @@ final class SamlEntryPoint
     }
 
     /**
+     * Initiate SAML SSO by redirecting to the IdP.
+     *
      * @return never
      */
     public function start(?string $returnTo = null): void
     {
-        $auth = $this->authFactory->create();
-        $auth->login($returnTo);
+        $config = $this->authFactory->getConfiguration();
+
+        $authnRequest = $this->buildAuthnRequest($config, $returnTo);
+
+        $messageContext = new MessageContext();
+        $messageContext->setMessage($authnRequest);
+
+        $binding = new HttpRedirectBinding();
+        /** @var \Symfony\Component\HttpFoundation\RedirectResponse $symfonyResponse */
+        $symfonyResponse = $binding->send($messageContext);
+
+        // @codeCoverageIgnoreStart
+        header('Location: ' . $symfonyResponse->getTargetUrl());
+        exit;
+        // @codeCoverageIgnoreEnd
     }
 
     public function getLoginUrl(?string $returnTo = null): string
     {
-        $auth = $this->authFactory->create();
+        $config = $this->authFactory->getConfiguration();
 
-        return $auth->login($returnTo, [], false, false, true);
+        $authnRequest = $this->buildAuthnRequest($config, $returnTo);
+
+        $messageContext = new MessageContext();
+        $messageContext->setMessage($authnRequest);
+
+        $binding = new HttpRedirectBinding();
+        /** @var \Symfony\Component\HttpFoundation\RedirectResponse $symfonyResponse */
+        $symfonyResponse = $binding->send($messageContext);
+
+        return $symfonyResponse->getTargetUrl();
+    }
+
+    private function buildAuthnRequest(
+        Configuration\SamlConfiguration $config,
+        ?string $returnTo,
+    ): AuthnRequest {
+        $authnRequest = new AuthnRequest();
+        $authnRequest->setID(Helper::generateID());
+        $authnRequest->setIssueInstant(new \DateTime());
+        $authnRequest->setDestination($config->getIdpSsoUrl());
+        $authnRequest->setAssertionConsumerServiceURL($config->getSpAcsUrl());
+        $authnRequest->setProtocolBinding(SamlConstants::BINDING_SAML2_HTTP_POST);
+        $authnRequest->setIssuer(new Issuer($config->getSpEntityId()));
+
+        if ($returnTo !== null) {
+            $authnRequest->setRelayState($returnTo);
+        }
+
+        return $authnRequest;
     }
 }

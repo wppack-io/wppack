@@ -22,7 +22,6 @@ final readonly class SamlConfiguration
         private bool $debug = false,
         private bool $wantAssertionsSigned = true,
         private bool $wantNameIdEncrypted = false,
-        private bool $allowRepeatAttributeName = false,
     ) {}
 
     public function getIdpSettings(): IdpSettings
@@ -55,57 +54,38 @@ final readonly class SamlConfiguration
         return $this->wantNameIdEncrypted;
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    public function toOneLoginArray(): array
+    public function getIdpSsoUrl(): string
     {
-        $sp = [
-            'entityId' => $this->spSettings->getEntityId(),
-            'assertionConsumerService' => [
-                'url' => $this->spSettings->getAcsUrl(),
-                'binding' => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST',
-            ],
-            'NameIDFormat' => $this->spSettings->getNameIdFormat(),
-        ];
+        return $this->idpSettings->getSsoUrl();
+    }
 
-        if ($this->spSettings->getSloUrl() !== null) {
-            $sp['singleLogoutService'] = [
-                'url' => $this->spSettings->getSloUrl(),
-                'binding' => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
-            ];
-        }
+    public function getIdpSloUrl(): ?string
+    {
+        return $this->idpSettings->getSloUrl();
+    }
 
-        $idp = [
-            'entityId' => $this->idpSettings->getEntityId(),
-            'singleSignOnService' => [
-                'url' => $this->idpSettings->getSsoUrl(),
-                'binding' => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
-            ],
-            'x509cert' => $this->idpSettings->getX509Cert(),
-        ];
+    public function getSpAcsUrl(): string
+    {
+        return $this->spSettings->getAcsUrl();
+    }
 
-        if ($this->idpSettings->getSloUrl() !== null) {
-            $idp['singleLogoutService'] = [
-                'url' => $this->idpSettings->getSloUrl(),
-                'binding' => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
-            ];
-        }
+    public function getSpSloUrl(): ?string
+    {
+        return $this->spSettings->getSloUrl();
+    }
 
-        if ($this->idpSettings->getCertFingerprint() !== null) {
-            $idp['certFingerprint'] = $this->idpSettings->getCertFingerprint();
-        }
+    public function getSpEntityId(): string
+    {
+        return $this->spSettings->getEntityId();
+    }
 
-        return [
-            'strict' => $this->strict,
-            'debug' => $this->debug,
-            'sp' => $sp,
-            'idp' => $idp,
-            'security' => [
-                'wantAssertionsSigned' => $this->wantAssertionsSigned,
-                'wantNameIdEncrypted' => $this->wantNameIdEncrypted,
-                'allowRepeatAttributeName' => $this->allowRepeatAttributeName,
-            ],
-        ];
+    public function getIdpEntityId(): string
+    {
+        return $this->idpSettings->getEntityId();
+    }
+
+    public function getIdpX509Cert(): string
+    {
+        return $this->idpSettings->getX509Cert();
     }
 }

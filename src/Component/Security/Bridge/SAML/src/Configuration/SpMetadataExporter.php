@@ -13,7 +13,12 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Security\Bridge\SAML\Configuration;
 
-use OneLogin\Saml2\Settings;
+use LightSaml\Model\Context\SerializationContext;
+use LightSaml\Model\Metadata\AssertionConsumerService;
+use LightSaml\Model\Metadata\EntityDescriptor;
+use LightSaml\Model\Metadata\SingleLogoutService;
+use LightSaml\Model\Metadata\SpSsoDescriptor;
+use LightSaml\SamlConstants;
 
 final class SpMetadataExporter
 {
@@ -26,20 +31,41 @@ final class SpMetadataExporter
      */
     public function toXml(): string
     {
-        $settings = new Settings($this->configuration->toOneLoginArray(), true);
-        $metadata = $settings->getSPMetadata();
-        $errors = $settings->validateMetadata($metadata);
+        $sp = $this->configuration->getSpSettings();
 
-        // @codeCoverageIgnoreStart
-        if ($errors !== []) {
-            throw new \RuntimeException(\sprintf(
-                'Invalid SP metadata: %s',
-                implode(', ', $errors),
-            ));
+        $spDescriptor = new SpSsoDescriptor();
+        $spDescriptor->addNameIDFormat($sp->getNameIdFormat());
+        $spDescriptor->setWantAssertionsSigned($this->configuration->wantAssertionsSigned());
+
+        $acs = new AssertionConsumerService(
+            $sp->getAcsUrl(),
+            SamlConstants::BINDING_SAML2_HTTP_POST,
+        );
+        $acs->setIndex(0);
+        $spDescriptor->addAssertionConsumerService($acs);
+
+        if ($sp->getSloUrl() !== null) {
+            $slo = new SingleLogoutService(
+                $sp->getSloUrl(),
+                SamlConstants::BINDING_SAML2_HTTP_REDIRECT,
+            );
+            $spDescriptor->addSingleLogoutService($slo);
         }
-        // @codeCoverageIgnoreEnd
 
-        return $metadata;
+        $entityDescriptor = new EntityDescriptor($sp->getEntityId(), [$spDescriptor]);
+
+        $context = new SerializationContext();
+        $entityDescriptor->serialize($context->getDocument(), $context);
+
+        $xml = $context->getDocument()->saveXML();
+
+        if ($xml === false) {
+            // @codeCoverageIgnoreStart
+            throw new \RuntimeException('Failed to generate SP metadata XML.');
+            // @codeCoverageIgnoreEnd
+        }
+
+        return $xml;
     }
 
     /**

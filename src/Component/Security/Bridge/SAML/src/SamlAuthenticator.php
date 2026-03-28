@@ -13,6 +13,10 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Security\Bridge\SAML;
 
+use LightSaml\Context\Profile\MessageContext;
+use LightSaml\Model\Assertion\Assertion;
+use LightSaml\Model\Protocol\Response as SamlResponse;
+use LightSaml\Model\XmlDSig\AbstractSignatureReader;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use WpPack\Component\HttpFoundation\RedirectResponse;
 use WpPack\Component\HttpFoundation\Request;
@@ -26,11 +30,11 @@ use WpPack\Component\Security\Authentication\Token\TokenInterface;
 use WpPack\Component\Security\Bridge\SAML\Badge\SamlAttributesBadge;
 use WpPack\Component\Security\Bridge\SAML\Event\SamlResponseReceivedEvent;
 use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
-use WpPack\Component\Site\BlogContextInterface;
 use WpPack\Component\Security\Bridge\SAML\Multisite\CrossSiteRedirector;
 use WpPack\Component\Security\Bridge\SAML\Session\SamlSessionManager;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolverInterface;
 use WpPack\Component\Security\Exception\AuthenticationException;
+use WpPack\Component\Site\BlogContextInterface;
 
 final class SamlAuthenticator implements AuthenticatorInterface
 {
@@ -71,44 +75,63 @@ final class SamlAuthenticator implements AuthenticatorInterface
             }
         }
 
-        $auth = $this->authFactory->create();
-
-        // onelogin/php-saml reads $_POST directly. WordPress's wp_magic_quotes()
-        // has already applied addslashes() to $_POST, corrupting Base64 data.
-        // Temporarily replace $_POST with the clean (wp_unslash'd) Request data.
-        $originalPost = $_POST;
-        $_POST = $request->post->all();
+        $symfonyRequest = SamlAuthFactory::toSymfonyRequest($request);
+        $bindingFactory = $this->authFactory->createBindingFactory();
 
         try {
-            $auth->processResponse();
-        } finally {
-            $_POST = $originalPost;
+            $binding = $bindingFactory->getBindingByRequest($symfonyRequest);
+            $messageContext = new MessageContext();
+            $binding->receive($symfonyRequest, $messageContext);
+        } catch (\Throwable $e) {
+            do_action('wppack_saml_authentication_error', [$e->getMessage()], $e->getMessage());
+
+            throw new AuthenticationException(\sprintf(
+                'SAML authentication failed: %s',
+                $e->getMessage(),
+            ), previous: $e);
         }
 
-        $errors = $auth->getErrors();
+        $response = $messageContext->asResponse();
 
-        if ($errors !== []) {
-            $reason = $auth->getLastErrorReason();
-            $detail = sprintf(
-                'SAML authentication failed: [%s] %s',
-                implode(', ', $errors),
-                $reason ?? 'unknown reason',
+        if (!$response instanceof SamlResponse) {
+            throw new AuthenticationException('SAML message is not a Response.');
+        }
+
+        // Validate status
+        $status = $response->getStatus();
+        if (!$status->isSuccess()) {
+            $statusCode = $status->getStatusCode()->getValue();
+            $statusMessage = $status->getStatusMessage();
+            $detail = \sprintf(
+                'SAML authentication failed: status=%s %s',
+                $statusCode,
+                $statusMessage ?? '',
             );
 
-            do_action('wppack_saml_authentication_error', $errors, $reason);
+            do_action('wppack_saml_authentication_error', [$statusCode], $statusMessage);
 
-            throw new AuthenticationException($detail);
+            throw new AuthenticationException(trim($detail));
         }
 
-        $nameId = $auth->getNameId();
+        // Validate signature on response or assertion
+        $this->validateSignature($response);
 
-        // onelogin/php-saml declares string return type but may return empty
+        $assertion = $response->getFirstAssertion();
+
+        if ($assertion === null) {
+            throw new AuthenticationException('No Assertion in SAML response.');
+        }
+
+        $subject = $assertion->getSubject();
+        $nameIdObj = $subject->getNameID();
+        $nameId = $nameIdObj->getValue();
+
         if ($nameId === '') {
             throw new AuthenticationException('No NameID in SAML response.');
         }
 
-        $attributes = $auth->getAttributes();
-        $sessionIndex = $auth->getSessionIndex();
+        $attributes = $this->extractAttributes($assertion);
+        $sessionIndex = $assertion->getFirstAuthnStatement()?->getSessionIndex();
 
         $this->lastNameId = $nameId;
         $this->lastSessionIndex = $sessionIndex;
@@ -181,6 +204,67 @@ final class SamlAuthenticator implements AuthenticatorInterface
         do_action('wppack_saml_authentication_failed', $exception);
 
         return new RedirectResponse(site_url('wp-login.php', 'login') . '?saml_error=true');
+    }
+
+    /**
+     * Validate the XML signature on the SAML Response or its first Assertion.
+     */
+    private function validateSignature(SamlResponse $response): void
+    {
+        $config = $this->authFactory->getConfiguration();
+
+        if (!$config->wantAssertionsSigned() && !$config->isStrict()) {
+            return;
+        }
+
+        $credential = $this->authFactory->createCredential();
+
+        // Try response-level signature first
+        $signature = $response->getSignature();
+        if ($signature instanceof AbstractSignatureReader) {
+            $signature->validate($credential->getPublicKey());
+
+            return;
+        }
+
+        // Try assertion-level signature
+        $assertion = $response->getFirstAssertion();
+        if ($assertion !== null) {
+            $assertionSignature = $assertion->getSignature();
+            if ($assertionSignature instanceof AbstractSignatureReader) {
+                $assertionSignature->validate($credential->getPublicKey());
+
+                return;
+            }
+        }
+
+        if ($config->wantAssertionsSigned()) {
+            throw new AuthenticationException('SAML response has no valid signature.');
+        }
+    }
+
+    /**
+     * Extract attributes from all AttributeStatements in the Assertion.
+     *
+     * @return array<string, list<string>>
+     */
+    private function extractAttributes(Assertion $assertion): array
+    {
+        $attributes = [];
+
+        foreach ($assertion->getAllAttributeStatements() as $statement) {
+            foreach ($statement->getAllAttributes() as $attribute) {
+                $name = $attribute->getName();
+                $values = $attribute->getAllAttributeValues();
+                if (isset($attributes[$name])) {
+                    $attributes[$name] = array_merge($attributes[$name], $values);
+                } else {
+                    $attributes[$name] = $values;
+                }
+            }
+        }
+
+        return $attributes;
     }
 
     private function isSameOrigin(string $url): bool

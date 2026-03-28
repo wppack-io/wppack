@@ -8,7 +8,7 @@
         "wppack/security": "^1.0",
         "wppack/site": "^1.0",
         "wppack/http-foundation": "^1.0",
-        "onelogin/php-saml": "^4.0"
+        "litesaml/lightsaml": "^4.0"
     },
     "autoload": {
         "psr-4": {

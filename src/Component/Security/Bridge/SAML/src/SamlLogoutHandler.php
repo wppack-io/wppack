@@ -13,6 +13,13 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Security\Bridge\SAML;
 
+use LightSaml\Binding\HttpRedirectBinding;
+use LightSaml\Context\Profile\MessageContext;
+use LightSaml\Helper;
+use LightSaml\Model\Assertion\Issuer;
+use LightSaml\Model\Assertion\NameID;
+use LightSaml\Model\Protocol\LogoutRequest;
+use LightSaml\SamlConstants;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Security\AuthenticationSession;
 use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
@@ -26,35 +33,60 @@ final class SamlLogoutHandler
     ) {}
 
     /**
+     * Build and send a SAML LogoutRequest to the IdP.
+     *
      * @return never
      */
     public function initiateLogout(?string $nameId, ?string $sessionIndex, ?string $returnTo = null): void
     {
-        $auth = $this->authFactory->create();
-        $auth->logout(
-            $returnTo ?? $this->redirectAfterLogout,
-            [],
-            $nameId,
-            $sessionIndex,
-        );
-    }
+        $config = $this->authFactory->getConfiguration();
 
-    public function handleIdpLogoutRequest(Request $request): void
-    {
-        $auth = $this->authFactory->create();
+        $logoutRequest = new LogoutRequest();
+        $logoutRequest->setID(Helper::generateID());
+        $logoutRequest->setIssueInstant(new \DateTime());
+        $logoutRequest->setDestination($config->getIdpSloUrl());
+        $logoutRequest->setIssuer(new Issuer($config->getSpEntityId()));
 
-        // onelogin/php-saml reads $_GET directly. WordPress's wp_magic_quotes()
-        // has already applied addslashes() to $_GET, corrupting encoded data.
-        // Temporarily replace $_GET with the clean (wp_unslash'd) Request data.
-        $originalGet = $_GET;
-        $_GET = $request->query->all();
-
-        try {
-            $auth->processSLO(keepLocalSession: true, stay: true);
-        } finally {
-            $_GET = $originalGet;
+        if ($nameId !== null) {
+            $logoutRequest->setNameID(new NameID($nameId, SamlConstants::NAME_ID_FORMAT_UNSPECIFIED));
         }
 
+        if ($sessionIndex !== null) {
+            $logoutRequest->setSessionIndex($sessionIndex);
+        }
+
+        $relayState = $returnTo ?? $this->redirectAfterLogout;
+        if ($relayState !== null) {
+            $logoutRequest->setRelayState($relayState);
+        }
+
+        $messageContext = new MessageContext();
+        $messageContext->setMessage($logoutRequest);
+
+        $binding = new HttpRedirectBinding();
+        /** @var \Symfony\Component\HttpFoundation\RedirectResponse $symfonyResponse */
+        $symfonyResponse = $binding->send($messageContext);
+
+        // @codeCoverageIgnoreStart
+        header('Location: ' . $symfonyResponse->getTargetUrl());
+        exit;
+        // @codeCoverageIgnoreEnd
+    }
+
+    /**
+     * Handle an IdP-initiated LogoutRequest received via HTTP-Redirect binding.
+     */
+    public function handleIdpLogoutRequest(Request $request): void
+    {
+        $symfonyRequest = SamlAuthFactory::toSymfonyRequest($request);
+        $bindingFactory = $this->authFactory->createBindingFactory();
+
+        $binding = $bindingFactory->getBindingByRequest($symfonyRequest);
+        $messageContext = new MessageContext();
+        $binding->receive($symfonyRequest, $messageContext);
+
+        // The received message should be a LogoutRequest — process it
+        // by logging out the local WordPress session.
         $this->authSession->logout();
     }
 

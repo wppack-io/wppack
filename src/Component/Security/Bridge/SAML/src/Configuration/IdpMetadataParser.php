@@ -13,7 +13,10 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Security\Bridge\SAML\Configuration;
 
-use OneLogin\Saml2\IdPMetadataParser as OneLoginIdPMetadataParser;
+use LightSaml\Model\Metadata\EntityDescriptor;
+use LightSaml\Model\Metadata\IdpSsoDescriptor;
+use LightSaml\Model\Metadata\KeyDescriptor;
+use LightSaml\SamlConstants;
 
 final class IdpMetadataParser
 {
@@ -25,7 +28,7 @@ final class IdpMetadataParser
         $prev = libxml_use_internal_errors(true);
 
         try {
-            $parsed = OneLoginIdPMetadataParser::parseXML($xml);
+            $entityDescriptor = EntityDescriptor::loadXml($xml);
         } catch (\Exception $e) {
             throw new \InvalidArgumentException(\sprintf(
                 'Failed to parse IdP metadata XML: %s',
@@ -35,7 +38,7 @@ final class IdpMetadataParser
             libxml_use_internal_errors($prev);
         }
 
-        return $this->buildIdpSettings($parsed);
+        return $this->buildIdpSettings($entityDescriptor);
     }
 
     /**
@@ -67,46 +70,54 @@ final class IdpMetadataParser
      */
     public function parseRemoteUrl(string $url): IdpSettings
     {
-        try {
-            $parsed = OneLoginIdPMetadataParser::parseRemoteXML($url);
-        } catch (\Exception $e) {
+        $response = wp_remote_get($url, ['timeout' => 30]);
+
+        if (is_wp_error($response)) {
             throw new \InvalidArgumentException(\sprintf(
                 'Failed to fetch IdP metadata from URL "%s": %s',
                 $url,
-                $e->getMessage(),
-            ), previous: $e);
+                $response->get_error_message(),
+            ));
         }
 
-        return $this->buildIdpSettings($parsed);
+        $body = wp_remote_retrieve_body($response);
+
+        if ($body === '') {
+            throw new \InvalidArgumentException(\sprintf(
+                'Empty response body from IdP metadata URL "%s".',
+                $url,
+            ));
+        }
+
+        return $this->parseXml($body);
     }
 
-    /**
-     * @param array<string, mixed> $parsed
-     */
-    private function buildIdpSettings(array $parsed): IdpSettings
+    private function buildIdpSettings(EntityDescriptor $entityDescriptor): IdpSettings
     {
-        if (!isset($parsed['idp'])) {
-            throw new \InvalidArgumentException('Parsed metadata does not contain IdP settings.');
-        }
+        $entityId = $entityDescriptor->getEntityID();
 
-        $idp = $parsed['idp'];
-
-        $entityId = $idp['entityId'] ?? null;
-        if (!\is_string($entityId) || $entityId === '') {
+        if ($entityId === '') {
             throw new \InvalidArgumentException('IdP metadata does not contain a valid entityId.');
         }
 
-        $ssoUrl = $idp['singleSignOnService']['url'] ?? null;
-        if (!\is_string($ssoUrl) || $ssoUrl === '') {
+        $idpDescriptor = $entityDescriptor->getFirstIdpSsoDescriptor();
+
+        if (!$idpDescriptor instanceof IdpSsoDescriptor) {
+            throw new \InvalidArgumentException('Parsed metadata does not contain IdP settings.');
+        }
+
+        $ssoService = $idpDescriptor->getFirstSingleSignOnService(SamlConstants::BINDING_SAML2_HTTP_REDIRECT)
+            ?? $idpDescriptor->getFirstSingleSignOnService();
+        if ($ssoService === null) {
             throw new \InvalidArgumentException('IdP metadata does not contain a valid SSO URL.');
         }
+        $ssoUrl = $ssoService->getLocation();
 
-        $sloUrl = $idp['singleLogoutService']['url'] ?? null;
-        if (!\is_string($sloUrl) || $sloUrl === '') {
-            $sloUrl = null;
-        }
+        $sloService = $idpDescriptor->getFirstSingleLogoutService(SamlConstants::BINDING_SAML2_HTTP_REDIRECT)
+            ?? $idpDescriptor->getFirstSingleLogoutService();
+        $sloUrl = $sloService !== null ? $sloService->getLocation() : null;
 
-        $x509Cert = $this->extractCertificate($idp);
+        $x509Cert = $this->extractCertificate($idpDescriptor);
 
         return new IdpSettings(
             entityId: $entityId,
@@ -116,18 +127,20 @@ final class IdpMetadataParser
         );
     }
 
-    /**
-     * @param array<string, mixed> $idp
-     */
-    private function extractCertificate(array $idp): string
+    private function extractCertificate(IdpSsoDescriptor $idpDescriptor): string
     {
-        // Prefer multi-cert signing[0] if available
-        if (isset($idp['x509certMulti']['signing'][0]) && \is_string($idp['x509certMulti']['signing'][0]) && $idp['x509certMulti']['signing'][0] !== '') {
-            return $idp['x509certMulti']['signing'][0];
+        // Prefer signing key descriptor
+        $signingKeys = $idpDescriptor->getAllKeyDescriptorsByUse(KeyDescriptor::USE_SIGNING);
+
+        if ($signingKeys !== []) {
+            return $signingKeys[0]->getCertificate()->getData();
         }
 
-        if (isset($idp['x509cert']) && \is_string($idp['x509cert']) && $idp['x509cert'] !== '') {
-            return $idp['x509cert'];
+        // Fall back to any key descriptor
+        $firstKey = $idpDescriptor->getFirstKeyDescriptor();
+
+        if ($firstKey !== null) {
+            return $firstKey->getCertificate()->getData();
         }
 
         throw new \InvalidArgumentException('IdP metadata does not contain a valid x509 certificate.');
