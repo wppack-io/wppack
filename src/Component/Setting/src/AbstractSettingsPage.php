@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Setting;
 
+use WpPack\Component\Option\OptionManager;
 use WpPack\Component\Role\Authorization\IsGrantedChecker;
 use WpPack\Component\Setting\Attribute\AsSettingsPage;
 use WpPack\Component\Templating\TemplateRendererInterface;
@@ -29,6 +30,7 @@ abstract class AbstractSettingsPage
     public readonly ?string $icon;
     public readonly ?int $position;
 
+    private ?OptionManager $optionManager = null;
     private ?TemplateRendererInterface $templateRenderer = null;
     private ?SettingsRenderer $renderer = null;
     private ?bool $hasValidateOverride = null;
@@ -69,6 +71,12 @@ abstract class AbstractSettingsPage
     protected function validate(array $input, ValidationContext $context): array
     {
         return $input;
+    }
+
+    /** @internal */
+    public function setOptionManager(OptionManager $optionManager): void
+    {
+        $this->optionManager = $optionManager;
     }
 
     /** @internal */
@@ -117,7 +125,9 @@ abstract class AbstractSettingsPage
      */
     public function getOption(string $key, mixed $default = null): mixed
     {
-        $options = get_option($this->optionName, []);
+        $options = $this->optionManager !== null
+            ? $this->optionManager->get($this->optionName, [])
+            : get_option($this->optionName, []);
 
         if (!\is_array($options)) {
             return $default;
@@ -195,7 +205,7 @@ abstract class AbstractSettingsPage
         }
 
         if ($this->hasValidateOverride()) {
-            $context = new ValidationContext($this->optionGroup, $this->optionName);
+            $context = new ValidationContext($this->optionGroup, $this->optionName, $this->optionManager);
             $input = $this->validate($input, $context);
         }
 

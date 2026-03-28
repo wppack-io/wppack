@@ -16,12 +16,13 @@ namespace WpPack\Component\Routing;
 use WpPack\Component\HttpFoundation\ArgumentResolver;
 use WpPack\Component\HttpFoundation\Exception\ForbiddenException;
 use WpPack\Component\HttpFoundation\Request;
-use WpPack\Component\Routing\Attribute\RewriteTag;
-use WpPack\Component\Routing\Attribute\Route;
-use WpPack\Component\Routing\Exception\RouteNotFoundException;
+use WpPack\Component\Option\OptionManager;
 use WpPack\Component\Role\Attribute\IsGranted;
 use WpPack\Component\Role\Authorization\IsGrantedChecker;
 use WpPack\Component\Role\Exception\AccessDeniedException;
+use WpPack\Component\Routing\Attribute\RewriteTag;
+use WpPack\Component\Routing\Attribute\Route;
+use WpPack\Component\Routing\Exception\RouteNotFoundException;
 use WpPack\Component\Security\Security;
 use WpPack\Component\Templating\TemplateRendererInterface;
 
@@ -36,6 +37,7 @@ final class RouteRegistry
         private readonly ?TemplateRendererInterface $renderer = null,
         private readonly ?IsGrantedChecker $isGrantedChecker = null,
         private readonly ?ArgumentResolver $argumentResolver = null,
+        private readonly ?OptionManager $optionManager = null,
     ) {}
 
     public function register(object $controller): void
@@ -119,6 +121,12 @@ final class RouteRegistry
 
     public function invalidate(): void
     {
+        if ($this->optionManager !== null) {
+            $this->optionManager->delete('rewrite_rules');
+
+            return;
+        }
+
         delete_option('rewrite_rules');
     }
 

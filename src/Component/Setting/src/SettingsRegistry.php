@@ -13,16 +13,22 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Setting;
 
+use WpPack\Component\Option\OptionManager;
 use WpPack\Component\Templating\TemplateRendererInterface;
 
 final class SettingsRegistry
 {
     public function __construct(
+        private readonly ?OptionManager $optionManager = null,
         private readonly ?TemplateRendererInterface $renderer = null,
     ) {}
 
     public function register(AbstractSettingsPage $page): void
     {
+        if ($this->optionManager !== null) {
+            $page->setOptionManager($this->optionManager);
+        }
+
         if ($this->renderer !== null) {
             $page->setTemplateRenderer($this->renderer);
         }

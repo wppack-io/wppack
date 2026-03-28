@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Setting;
 
+use WpPack\Component\Option\OptionManager;
+
 final class ValidationContext
 {
     /** @var array<string, mixed> */
@@ -21,8 +23,11 @@ final class ValidationContext
     public function __construct(
         private readonly string $optionGroup,
         string $optionName,
+        ?OptionManager $optionManager = null,
     ) {
-        $values = get_option($optionName, []);
+        $values = $optionManager !== null
+            ? $optionManager->get($optionName, [])
+            : get_option($optionName, []);
         $this->oldValues = \is_array($values) ? $values : [];
     }
 
