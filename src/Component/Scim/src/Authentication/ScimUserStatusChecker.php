@@ -16,10 +16,15 @@ namespace WpPack\Component\Scim\Authentication;
 use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
 use WpPack\Component\EventDispatcher\WordPressEvent;
 use WpPack\Component\Scim\Schema\ScimConstants;
+use WpPack\Component\User\UserRepositoryInterface;
 
 #[AsEventListener(event: 'wp_authenticate_user', priority: 30)]
 final readonly class ScimUserStatusChecker
 {
+    public function __construct(
+        private UserRepositoryInterface $userRepository,
+    ) {}
+
     public function __invoke(WordPressEvent $event): void
     {
         $user = $event->filterValue;
@@ -28,7 +33,7 @@ final readonly class ScimUserStatusChecker
             return;
         }
 
-        $active = get_user_meta($user->ID, ScimConstants::META_ACTIVE, true);
+        $active = $this->userRepository->getMeta($user->ID, ScimConstants::META_ACTIVE, true);
 
         if ($active === '0') {
             $event->filterValue = new \WP_Error(

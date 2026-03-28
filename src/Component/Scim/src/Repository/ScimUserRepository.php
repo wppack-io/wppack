@@ -20,15 +20,15 @@ use WpPack\Component\Site\BlogSwitcherInterface;
 use WpPack\Component\Site\SiteRepositoryInterface;
 use WpPack\Component\User\UserRepositoryInterface;
 
-final class ScimUserRepository
+final readonly class ScimUserRepository
 {
     use MultisiteAwareTrait;
 
     public function __construct(
-        private readonly UserRepositoryInterface $userRepository,
-        private readonly WpUserQueryAdapter $queryAdapter,
-        private readonly ?BlogSwitcherInterface $blogSwitcher = null,
-        private readonly ?SiteRepositoryInterface $siteRepository = null,
+        private UserRepositoryInterface $userRepository,
+        private WpUserQueryAdapter $queryAdapter,
+        private ?BlogSwitcherInterface $blogSwitcher = null,
+        private ?SiteRepositoryInterface $siteRepository = null,
     ) {}
 
     public function find(int $userId): ?\WP_User

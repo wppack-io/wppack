@@ -24,12 +24,12 @@ use WpPack\Component\Security\Authentication\Token\ServiceToken;
 use WpPack\Component\Security\Authentication\Token\TokenInterface;
 use WpPack\Component\Security\Exception\AuthenticationException;
 
-final class ScimBearerAuthenticator implements StatelessAuthenticatorInterface
+final readonly class ScimBearerAuthenticator implements StatelessAuthenticatorInterface
 {
     public function __construct(
         #[\SensitiveParameter]
-        private readonly string $bearerToken,
-        private readonly string $pathPrefix = '/wp-json/scim/v2',
+        private string $bearerToken,
+        private string $pathPrefix = '/wp-json/scim/v2',
     ) {
         if ($bearerToken === '') {
             throw new \InvalidArgumentException('Bearer token must not be empty.');

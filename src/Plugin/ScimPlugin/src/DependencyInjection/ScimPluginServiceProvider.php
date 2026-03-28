@@ -27,6 +27,8 @@ use WpPack\Component\Scim\Controller\SchemaController;
 use WpPack\Component\Scim\Controller\ServiceProviderConfigController;
 use WpPack\Component\Scim\Controller\UserController;
 use WpPack\Component\Scim\DependencyInjection\ScimServiceProvider;
+use WpPack\Component\Scim\Repository\ScimGroupRepository;
+use WpPack\Component\Scim\Repository\ScimUserRepository;
 use WpPack\Component\Scim\Schema\ServiceProviderConfig;
 use WpPack\Component\Security\Authentication\AuthenticationManager;
 use WpPack\Component\Security\DependencyInjection\SecurityServiceProvider;
@@ -88,6 +90,15 @@ final class ScimPluginServiceProvider implements ServiceProviderInterface
 
         // Register SCIM component services
         (new ScimServiceProvider())->register($builder);
+
+        // Override repository Site dependencies for multisite support
+        $builder->findDefinition(ScimUserRepository::class)
+            ->setArgument('$blogSwitcher', new Reference(BlogSwitcherInterface::class))
+            ->setArgument('$siteRepository', new Reference(SiteRepositoryInterface::class));
+
+        $builder->findDefinition(ScimGroupRepository::class)
+            ->setArgument('$blogSwitcher', new Reference(BlogSwitcherInterface::class))
+            ->setArgument('$siteRepository', new Reference(SiteRepositoryInterface::class));
 
         // Override controller arguments with plugin-specific config
         $builder->findDefinition(UserController::class)

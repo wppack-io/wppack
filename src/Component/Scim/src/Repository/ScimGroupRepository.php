@@ -20,15 +20,15 @@ use WpPack\Component\Site\BlogSwitcherInterface;
 use WpPack\Component\Site\SiteRepositoryInterface;
 use WpPack\Component\User\UserRepositoryInterface;
 
-final class ScimGroupRepository
+final readonly class ScimGroupRepository
 {
     use MultisiteAwareTrait;
 
     public function __construct(
-        private readonly UserRepositoryInterface $userRepository,
-        private readonly RoleProvider $roleProvider,
-        private readonly ?BlogSwitcherInterface $blogSwitcher = null,
-        private readonly ?SiteRepositoryInterface $siteRepository = null,
+        private UserRepositoryInterface $userRepository,
+        private RoleProvider $roleProvider,
+        private ?BlogSwitcherInterface $blogSwitcher = null,
+        private ?SiteRepositoryInterface $siteRepository = null,
     ) {}
 
     /**

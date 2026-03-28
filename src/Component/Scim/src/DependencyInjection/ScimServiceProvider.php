@@ -30,15 +30,13 @@ use WpPack\Component\Scim\Mapping\GroupMapper;
 use WpPack\Component\Scim\Mapping\GroupMapperInterface;
 use WpPack\Component\Scim\Mapping\UserAttributeMapper;
 use WpPack\Component\Scim\Mapping\UserAttributeMapperInterface;
-use WpPack\Component\Scim\Patch\PatchProcessor;
 use WpPack\Component\Scim\Authentication\ScimUserStatusChecker;
+use WpPack\Component\Scim\Patch\PatchProcessor;
 use WpPack\Component\Scim\Repository\ScimGroupRepository;
 use WpPack\Component\Scim\Repository\ScimUserRepository;
 use WpPack\Component\Scim\Schema\ServiceProviderConfig;
 use WpPack\Component\Scim\Serialization\ScimGroupSerializer;
 use WpPack\Component\Scim\Serialization\ScimUserSerializer;
-use WpPack\Component\Site\BlogSwitcherInterface;
-use WpPack\Component\Site\SiteRepositoryInterface;
 use WpPack\Component\User\UserRepositoryInterface;
 
 final class ScimServiceProvider implements ServiceProviderInterface
@@ -70,7 +68,8 @@ final class ScimServiceProvider implements ServiceProviderInterface
         $builder->setAlias(GroupMapperInterface::class, GroupMapper::class);
 
         // Authentication
-        $builder->register(ScimUserStatusChecker::class);
+        $builder->register(ScimUserStatusChecker::class)
+            ->addArgument(new Reference(UserRepositoryInterface::class));
 
         // Serialization
         $builder->register(ScimUserSerializer::class)
@@ -92,15 +91,11 @@ final class ScimServiceProvider implements ServiceProviderInterface
         // Repository
         $builder->register(ScimUserRepository::class)
             ->addArgument(new Reference(UserRepositoryInterface::class))
-            ->addArgument(new Reference(WpUserQueryAdapter::class))
-            ->addArgument(new Reference(BlogSwitcherInterface::class))
-            ->addArgument(new Reference(SiteRepositoryInterface::class));
+            ->addArgument(new Reference(WpUserQueryAdapter::class));
 
         $builder->register(ScimGroupRepository::class)
             ->addArgument(new Reference(UserRepositoryInterface::class))
-            ->addArgument(new Reference(RoleProvider::class))
-            ->addArgument(new Reference(BlogSwitcherInterface::class))
-            ->addArgument(new Reference(SiteRepositoryInterface::class));
+            ->addArgument(new Reference(RoleProvider::class));
 
         // Controllers
         $builder->register(UserController::class)

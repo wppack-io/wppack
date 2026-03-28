@@ -69,5 +69,4 @@ final readonly class ScimConfiguration
 
         return filter_var($value, \FILTER_VALIDATE_BOOLEAN);
     }
-
 }

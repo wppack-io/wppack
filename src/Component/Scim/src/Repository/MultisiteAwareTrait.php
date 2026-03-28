@@ -13,9 +13,6 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Scim\Repository;
 
-use WpPack\Component\Site\BlogSwitcherInterface;
-use WpPack\Component\Site\SiteRepositoryInterface;
-
 trait MultisiteAwareTrait
 {
     private function forEachSite(callable $callback): void
