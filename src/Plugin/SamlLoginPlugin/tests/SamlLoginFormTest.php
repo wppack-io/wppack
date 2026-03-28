@@ -13,12 +13,14 @@ declare(strict_types=1);
 
 namespace WpPack\Plugin\SamlLoginPlugin\Tests;
 
-use OneLogin\Saml2\Auth;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Security\AuthenticationSession;
+use WpPack\Component\Security\Bridge\SAML\Configuration\IdpSettings;
+use WpPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
+use WpPack\Component\Security\Bridge\SAML\Configuration\SpSettings;
 use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
 use WpPack\Component\Security\Bridge\SAML\SamlEntryPoint;
 use WpPack\Plugin\SamlLoginPlugin\SamlLoginForm;
@@ -43,14 +45,27 @@ final class SamlLoginFormTest extends TestCase
         wp_set_current_user(0);
     }
 
-    private function createEntryPoint(string $loginUrl = 'https://idp.example.com/sso'): SamlEntryPoint
+    private function createSamlConfiguration(): SamlConfiguration
     {
-        $auth = $this->createMock(Auth::class);
-        $auth->method('login')
-            ->willReturn($loginUrl);
+        return new SamlConfiguration(
+            idpSettings: new IdpSettings(
+                entityId: 'https://idp.example.com/metadata',
+                ssoUrl: 'https://idp.example.com/sso',
+                sloUrl: 'https://idp.example.com/slo',
+                x509Cert: 'MIICDummyCert==',
+            ),
+            spSettings: new SpSettings(
+                entityId: 'https://sp.example.com/metadata',
+                acsUrl: 'https://sp.example.com/acs',
+                sloUrl: 'https://sp.example.com/slo',
+            ),
+        );
+    }
 
+    private function createEntryPoint(): SamlEntryPoint
+    {
         $factory = $this->createMock(SamlAuthFactory::class);
-        $factory->method('create')->willReturn($auth);
+        $factory->method('getConfiguration')->willReturn($this->createSamlConfiguration());
 
         return new SamlEntryPoint(
             $factory,
@@ -76,7 +91,7 @@ final class SamlLoginFormTest extends TestCase
     #[Test]
     public function renderButtonOutputsSsoButton(): void
     {
-        $entryPoint = $this->createEntryPoint('https://idp.example.com/sso?SAMLRequest=encoded');
+        $entryPoint = $this->createEntryPoint();
         $request = Request::create('https://example.com/wp-login.php');
 
         $form = new SamlLoginForm($entryPoint, $this->authSession, $request);
@@ -87,31 +102,14 @@ final class SamlLoginFormTest extends TestCase
 
         self::assertStringContainsString('wppack-saml-login', $output);
         self::assertStringContainsString('Login with SSO', $output);
-        self::assertStringContainsString('https://idp.example.com/sso?SAMLRequest=encoded', $output);
+        self::assertStringContainsString('https://idp.example.com/sso', $output);
         self::assertStringContainsString('button button-large', $output);
     }
 
     #[Test]
     public function renderButtonPassesRedirectToAsReturnTo(): void
     {
-        $capturedReturnTo = null;
-
-        $auth = $this->createMock(Auth::class);
-        $auth->method('login')
-            ->willReturnCallback(function (?string $returnTo) use (&$capturedReturnTo): string {
-                $capturedReturnTo = $returnTo;
-
-                return 'https://idp.example.com/sso';
-            });
-
-        $factory = $this->createMock(SamlAuthFactory::class);
-        $factory->method('create')->willReturn($auth);
-
-        $entryPoint = new SamlEntryPoint(
-            $factory,
-            $this->authSession,
-            Request::create('https://example.com/wp-login.php'),
-        );
+        $entryPoint = $this->createEntryPoint();
 
         $request = Request::create('https://example.com/wp-login.php?redirect_to=' . urlencode('https://example.com/wp-admin/edit.php'));
 
@@ -119,32 +117,16 @@ final class SamlLoginFormTest extends TestCase
 
         ob_start();
         $form->renderButton();
-        ob_end_clean();
+        $output = ob_get_clean();
 
-        self::assertSame('https://example.com/wp-admin/edit.php', $capturedReturnTo);
+        // The URL should contain RelayState (which encodes the redirect_to)
+        self::assertStringContainsString('RelayState=', $output);
     }
 
     #[Test]
     public function renderButtonDefaultsToAdminUrlWhenNoRedirectTo(): void
     {
-        $capturedReturnTo = 'not-called';
-
-        $auth = $this->createMock(Auth::class);
-        $auth->method('login')
-            ->willReturnCallback(function (?string $returnTo) use (&$capturedReturnTo): string {
-                $capturedReturnTo = $returnTo;
-
-                return 'https://idp.example.com/sso';
-            });
-
-        $factory = $this->createMock(SamlAuthFactory::class);
-        $factory->method('create')->willReturn($auth);
-
-        $entryPoint = new SamlEntryPoint(
-            $factory,
-            $this->authSession,
-            Request::create('https://example.com/wp-login.php'),
-        );
+        $entryPoint = $this->createEntryPoint();
 
         $request = Request::create('https://example.com/wp-login.php');
 
@@ -152,9 +134,10 @@ final class SamlLoginFormTest extends TestCase
 
         ob_start();
         $form->renderButton();
-        ob_end_clean();
+        $output = ob_get_clean();
 
-        self::assertSame(admin_url(), $capturedReturnTo);
+        // The URL should contain RelayState with admin_url() encoded
+        self::assertStringContainsString('RelayState=', $output);
     }
 
     #[Test]

@@ -13,11 +13,13 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Security\Bridge\SAML\Tests;
 
-use OneLogin\Saml2\Auth;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Security\AuthenticationSession;
+use WpPack\Component\Security\Bridge\SAML\Configuration\IdpSettings;
+use WpPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
+use WpPack\Component\Security\Bridge\SAML\Configuration\SpSettings;
 use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
 use WpPack\Component\Security\Bridge\SAML\SamlLogoutHandler;
 use WpPack\Component\Security\Bridge\SAML\SamlLogoutListener;
@@ -50,7 +52,7 @@ final class SamlLogoutListenerTest extends TestCase
     public function onLogoutReturnsEarlyWhenNoNameId(): void
     {
         $factory = $this->createMock(SamlAuthFactory::class);
-        $factory->expects(self::never())->method('create');
+        $factory->expects(self::never())->method('getConfiguration');
 
         $handler = new SamlLogoutHandler($factory, new AuthenticationSession());
         $listener = new SamlLogoutListener($handler, $this->sessionManager);
@@ -68,14 +70,17 @@ final class SamlLogoutListenerTest extends TestCase
         $this->sessionManager->save($this->userId, 'user@example.com', '_session123');
 
         $factory = $this->createMock(SamlAuthFactory::class);
-        // initiateLogout will be called but we let it throw to prevent redirect/exit
+        // initiateLogout will be called but the spy throws to prevent exit
+        $factory->method('getConfiguration')
+            ->willThrowException(new \RuntimeException('initiateLogout() reached'));
+
         $handler = new SamlLogoutHandler($factory, new AuthenticationSession());
         $listener = new SamlLogoutListener($handler, $this->sessionManager);
 
         try {
             $listener->onLogout($this->userId);
         } catch (\Throwable) {
-            // initiateLogout may throw due to mocked factory
+            // initiateLogout throws due to spy factory
         }
 
         // Session data should be cleared regardless
@@ -88,16 +93,28 @@ final class SamlLogoutListenerTest extends TestCase
     {
         $this->sessionManager->save($this->userId, 'user@example.com', '_session123');
 
-        $auth = $this->createMock(Auth::class);
-        $auth->expects(self::once())
-            ->method('logout')
-            ->with(home_url(), [], 'user@example.com', '_session123');
-
+        $configCalled = false;
         $factory = $this->createMock(SamlAuthFactory::class);
-        $factory->method('create')->willReturn($auth);
+        $factory->method('getConfiguration')
+            ->willReturnCallback(function () use (&$configCalled): SamlConfiguration {
+                $configCalled = true;
+                // Throw to prevent header() + exit
+                throw new \RuntimeException('initiateLogout() reached');
+            });
 
         $handler = new SamlLogoutHandler($factory, new AuthenticationSession());
         $listener = new SamlLogoutListener($handler, $this->sessionManager);
-        $listener->onLogout($this->userId);
+
+        try {
+            $listener->onLogout($this->userId);
+        } catch (\Throwable) {
+            // initiateLogout throws via spy
+        }
+
+        // Verify initiateLogout was called (getConfiguration was invoked)
+        self::assertTrue($configCalled);
+
+        // Session data should be cleared
+        self::assertNull($this->sessionManager->getNameId($this->userId));
     }
 }

@@ -94,7 +94,7 @@ final class SamlConfigurationTest extends TestCase
     }
 
     #[Test]
-    public function toOneLoginArray(): void
+    public function shortcutGetters(): void
     {
         $config = new SamlConfiguration(
             idpSettings: $this->idpSettings,
@@ -103,35 +103,17 @@ final class SamlConfigurationTest extends TestCase
             debug: false,
         );
 
-        $array = $config->toOneLoginArray();
-
-        self::assertTrue($array['strict']);
-        self::assertFalse($array['debug']);
-
-        // SP settings
-        self::assertSame('https://sp.example.com/metadata', $array['sp']['entityId']);
-        self::assertSame('https://sp.example.com/acs', $array['sp']['assertionConsumerService']['url']);
-        self::assertSame('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST', $array['sp']['assertionConsumerService']['binding']);
-        self::assertSame('https://sp.example.com/slo', $array['sp']['singleLogoutService']['url']);
-        self::assertSame('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect', $array['sp']['singleLogoutService']['binding']);
-        self::assertSame('urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified', $array['sp']['NameIDFormat']);
-
-        // IdP settings
-        self::assertSame('https://idp.example.com/metadata', $array['idp']['entityId']);
-        self::assertSame('https://idp.example.com/sso', $array['idp']['singleSignOnService']['url']);
-        self::assertSame('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect', $array['idp']['singleSignOnService']['binding']);
-        self::assertSame('https://idp.example.com/slo', $array['idp']['singleLogoutService']['url']);
-        self::assertSame('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect', $array['idp']['singleLogoutService']['binding']);
-        self::assertSame('MIICDummyCert==', $array['idp']['x509cert']);
-
-        // Security section
-        self::assertArrayHasKey('security', $array);
-        self::assertTrue($array['security']['wantAssertionsSigned']);
-        self::assertFalse($array['security']['wantNameIdEncrypted']);
+        self::assertSame('https://idp.example.com/sso', $config->getIdpSsoUrl());
+        self::assertSame('https://idp.example.com/slo', $config->getIdpSloUrl());
+        self::assertSame('https://sp.example.com/acs', $config->getSpAcsUrl());
+        self::assertSame('https://sp.example.com/slo', $config->getSpSloUrl());
+        self::assertSame('https://sp.example.com/metadata', $config->getSpEntityId());
+        self::assertSame('https://idp.example.com/metadata', $config->getIdpEntityId());
+        self::assertSame('MIICDummyCert==', $config->getIdpX509Cert());
     }
 
     #[Test]
-    public function toOneLoginArrayWithNullSloUrl(): void
+    public function shortcutGettersWithNullSloUrl(): void
     {
         $idp = new IdpSettings(
             entityId: 'https://idp.example.com/metadata',
@@ -146,10 +128,8 @@ final class SamlConfigurationTest extends TestCase
         );
 
         $config = new SamlConfiguration(idpSettings: $idp, spSettings: $sp);
-        $array = $config->toOneLoginArray();
 
-        // When SLO URLs are null, singleLogoutService keys should not be present
-        self::assertArrayNotHasKey('singleLogoutService', $array['sp']);
-        self::assertArrayNotHasKey('singleLogoutService', $array['idp']);
+        self::assertNull($config->getIdpSloUrl());
+        self::assertNull($config->getSpSloUrl());
     }
 }

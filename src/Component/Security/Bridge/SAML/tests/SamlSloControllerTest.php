@@ -13,7 +13,10 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Security\Bridge\SAML\Tests;
 
-use OneLogin\Saml2\Auth;
+use LightSaml\Binding\AbstractBinding;
+use LightSaml\Binding\BindingFactory;
+use LightSaml\Context\Profile\MessageContext;
+use LightSaml\Model\Protocol\LogoutRequest;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -35,34 +38,28 @@ final class SamlSloControllerTest extends TestCase
     private SamlSessionManager $sessionManager;
     private AuthenticationSession $authSession;
 
-    /** @var array<string, string> */
-    private array $originalGet;
-
     protected function setUp(): void
     {
-        $auth = $this->createMock(Auth::class);
-        $auth->method('processSLO');
+        $binding = $this->createMock(AbstractBinding::class);
+        $binding->method('receive')
+            ->willReturnCallback(function ($request, MessageContext $messageContext): void {
+                $messageContext->setMessage(new LogoutRequest());
+            });
+
+        $bindingFactory = $this->createMock(BindingFactory::class);
+        $bindingFactory->method('getBindingByRequest')->willReturn($binding);
 
         $factory = $this->createMock(SamlAuthFactory::class);
-        $factory->method('create')->willReturn($auth);
+        $factory->method('createBindingFactory')->willReturn($bindingFactory);
 
         $this->authSession = new AuthenticationSession();
         $this->logoutHandler = new SamlLogoutHandler($factory, $this->authSession);
         $this->sessionManager = new SamlSessionManager(new UserRepository());
-
-        $this->originalGet = $_GET;
-    }
-
-    protected function tearDown(): void
-    {
-        $_GET = $this->originalGet;
     }
 
     #[Test]
     public function invokeHandlesLogoutRequest(): void
     {
-        $_GET = ['SAMLRequest' => 'encoded-request'];
-
         $request = new Request(
             query: ['SAMLRequest' => 'encoded-request'],
             server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/saml/slo'],
@@ -78,8 +75,6 @@ final class SamlSloControllerTest extends TestCase
     #[Test]
     public function invokeHandlesLogoutResponse(): void
     {
-        $_GET = ['SAMLResponse' => 'encoded-response'];
-
         $request = new Request(
             query: ['SAMLResponse' => 'encoded-response'],
             server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/saml/slo'],
@@ -96,7 +91,6 @@ final class SamlSloControllerTest extends TestCase
     public function resolvePostLogoutRedirectUsesSameHostRelayState(): void
     {
         $relayState = home_url('/custom-page');
-        $_GET = ['SAMLResponse' => 'encoded-response', 'RelayState' => $relayState];
 
         $request = new Request(
             query: ['SAMLResponse' => 'encoded-response', 'RelayState' => $relayState],
@@ -114,7 +108,6 @@ final class SamlSloControllerTest extends TestCase
     public function resolvePostLogoutRedirectFallsBackForUnknownHost(): void
     {
         $relayState = 'https://unknown.example.com/wp-admin/';
-        $_GET = ['SAMLResponse' => 'encoded-response', 'RelayState' => $relayState];
 
         $request = new Request(
             query: ['SAMLResponse' => 'encoded-response', 'RelayState' => $relayState],
@@ -132,7 +125,6 @@ final class SamlSloControllerTest extends TestCase
     public function resolvePostLogoutRedirectRejectsInvalidScheme(): void
     {
         $relayState = 'javascript:alert(1)';
-        $_GET = ['SAMLResponse' => 'encoded-response', 'RelayState' => $relayState];
 
         $request = new Request(
             query: ['SAMLResponse' => 'encoded-response', 'RelayState' => $relayState],
@@ -149,8 +141,6 @@ final class SamlSloControllerTest extends TestCase
     #[Test]
     public function invokeReturnsBadRequestForUnknownRequest(): void
     {
-        $_GET = [];
-
         $request = new Request(
             server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/saml/slo'],
         );
@@ -173,8 +163,6 @@ final class SamlSloControllerTest extends TestCase
         wp_set_current_user($userId);
 
         $this->sessionManager->save($userId, 'user@example.com', '_session_idx');
-
-        $_GET = ['SAMLRequest' => 'encoded-request'];
 
         $request = new Request(
             query: ['SAMLRequest' => 'encoded-request'],
@@ -199,8 +187,6 @@ final class SamlSloControllerTest extends TestCase
         wp_set_current_user($userId);
 
         $this->sessionManager->save($userId, 'user@example.com', '_session_idx');
-
-        $_GET = ['SAMLResponse' => 'encoded-response'];
 
         $request = new Request(
             query: ['SAMLResponse' => 'encoded-response'],

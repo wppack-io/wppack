@@ -13,7 +13,22 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Security\Bridge\SAML\Tests;
 
-use OneLogin\Saml2\Auth;
+use LightSaml\Binding\AbstractBinding;
+use LightSaml\Binding\BindingFactory;
+use LightSaml\Context\Profile\MessageContext;
+use LightSaml\Credential\X509Credential;
+use LightSaml\Model\Assertion\Assertion;
+use LightSaml\Model\Assertion\Attribute;
+use LightSaml\Model\Assertion\AttributeStatement;
+use LightSaml\Model\Assertion\AuthnStatement;
+use LightSaml\Model\Assertion\NameID;
+use LightSaml\Model\Assertion\Subject;
+use LightSaml\Model\Protocol\Response as SamlResponse;
+use LightSaml\Model\Protocol\Status;
+use LightSaml\Model\Protocol\StatusCode;
+use LightSaml\Model\XmlDSig\AbstractSignatureReader;
+use LightSaml\SamlConstants;
+use RobRichards\XMLSecLibs\XMLSecurityKey;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -24,6 +39,9 @@ use WpPack\Component\Security\Authentication\Passport\Badge\UserBadge;
 use WpPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
 use WpPack\Component\Security\Authentication\Token\PostAuthenticationToken;
 use WpPack\Component\Security\Bridge\SAML\Badge\SamlAttributesBadge;
+use WpPack\Component\Security\Bridge\SAML\Configuration\IdpSettings;
+use WpPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
+use WpPack\Component\Security\Bridge\SAML\Configuration\SpSettings;
 use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
 use WpPack\Component\Security\Bridge\SAML\Multisite\CrossSiteRedirector;
 use WpPack\Component\Security\Bridge\SAML\SamlAuthenticator;
@@ -54,6 +72,98 @@ final class SamlAuthenticatorTest extends TestCase
             blogContext: new BlogContext(),
             acsPath: $acsPath,
         );
+    }
+
+    /**
+     * Configure factory mock to return a BindingFactory whose binding
+     * populates the MessageContext with the given SamlResponse.
+     */
+    private function configureMockBinding(SamlResponse $samlResponse): void
+    {
+        $binding = $this->createMock(AbstractBinding::class);
+        $binding->method('receive')
+            ->willReturnCallback(function ($request, MessageContext $messageContext) use ($samlResponse): void {
+                $messageContext->setMessage($samlResponse);
+            });
+
+        $bindingFactory = $this->createMock(BindingFactory::class);
+        $bindingFactory->method('getBindingByRequest')->willReturn($binding);
+
+        $this->factory->method('createBindingFactory')->willReturn($bindingFactory);
+    }
+
+    /**
+     * Build a successful SamlResponse with the given attributes.
+     *
+     * @param array<string, list<string>> $attributes
+     */
+    private function buildSamlResponse(
+        string $nameId = 'user@example.com',
+        array $attributes = [],
+        ?string $sessionIndex = '_session123',
+        bool $signed = true,
+    ): SamlResponse {
+        $nameIdObj = new NameID($nameId, SamlConstants::NAME_ID_FORMAT_UNSPECIFIED);
+
+        $subject = new Subject();
+        $subject->setNameID($nameIdObj);
+
+        $assertion = new Assertion();
+        $assertion->setSubject($subject);
+
+        if ($attributes !== []) {
+            $attrStatement = new AttributeStatement();
+            foreach ($attributes as $name => $values) {
+                $attr = new Attribute($name);
+                foreach ($values as $value) {
+                    $attr->addAttributeValue($value);
+                }
+                $attrStatement->addAttribute($attr);
+            }
+            $assertion->addItem($attrStatement);
+        }
+
+        if ($sessionIndex !== null) {
+            $authnStatement = new AuthnStatement();
+            $authnStatement->setSessionIndex($sessionIndex);
+            $assertion->addItem($authnStatement);
+        }
+
+        if ($signed) {
+            $signature = $this->createMock(AbstractSignatureReader::class);
+            $assertion->setSignature($signature);
+        }
+
+        $status = new Status(new StatusCode(SamlConstants::STATUS_SUCCESS));
+
+        $response = new SamlResponse();
+        $response->setStatus($status);
+        $response->addAssertion($assertion);
+
+        return $response;
+    }
+
+    private function configureFactoryWithConfiguration(): void
+    {
+        $config = new SamlConfiguration(
+            idpSettings: new IdpSettings(
+                entityId: 'https://idp.example.com',
+                ssoUrl: 'https://idp.example.com/sso',
+                sloUrl: 'https://idp.example.com/slo',
+                x509Cert: 'MIICDummyCert==',
+            ),
+            spSettings: new SpSettings(
+                entityId: 'https://sp.example.com',
+                acsUrl: 'https://sp.example.com/acs',
+            ),
+        );
+
+        $this->factory->method('getConfiguration')->willReturn($config);
+
+        $mockKey = $this->createMock(XMLSecurityKey::class);
+        $credential = $this->createMock(X509Credential::class);
+        $credential->method('getPublicKey')->willReturn($mockKey);
+        $this->factory->method('createCredential')->willReturn($credential);
     }
 
     #[Test]
@@ -123,14 +233,14 @@ final class SamlAuthenticatorTest extends TestCase
     #[Test]
     public function authenticate(): void
     {
-        $auth = $this->createMock(Auth::class);
-        $auth->method('processResponse')->willReturn(null);
-        $auth->method('getErrors')->willReturn([]);
-        $auth->method('getNameId')->willReturn('user@example.com');
-        $auth->method('getAttributes')->willReturn(['email' => ['user@example.com']]);
-        $auth->method('getSessionIndex')->willReturn('_session123');
+        $samlResponse = $this->buildSamlResponse(
+            nameId: 'user@example.com',
+            attributes: ['email' => ['user@example.com']],
+            sessionIndex: '_session123',
+        );
 
-        $this->factory->method('create')->willReturn($auth);
+        $this->configureMockBinding($samlResponse);
+        $this->configureFactoryWithConfiguration();
 
         $authenticator = $this->createAuthenticator();
 
@@ -155,12 +265,11 @@ final class SamlAuthenticatorTest extends TestCase
     #[Test]
     public function authenticateWithErrors(): void
     {
-        $auth = $this->createMock(Auth::class);
-        $auth->method('processResponse')->willReturn(null);
-        $auth->method('getErrors')->willReturn(['invalid_response']);
-        $auth->method('getLastErrorReason')->willReturn('Signature validation failed');
+        $bindingFactory = $this->createMock(BindingFactory::class);
+        $bindingFactory->method('getBindingByRequest')
+            ->willThrowException(new \RuntimeException('Signature validation failed'));
 
-        $this->factory->method('create')->willReturn($auth);
+        $this->factory->method('createBindingFactory')->willReturn($bindingFactory);
 
         $authenticator = $this->createAuthenticator();
 
@@ -170,7 +279,7 @@ final class SamlAuthenticatorTest extends TestCase
         );
 
         $this->expectException(AuthenticationException::class);
-        $this->expectExceptionMessage('SAML authentication failed: [invalid_response] Signature validation failed');
+        $this->expectExceptionMessage('SAML authentication failed: Signature validation failed');
 
         $authenticator->authenticate($request);
     }
@@ -178,12 +287,11 @@ final class SamlAuthenticatorTest extends TestCase
     #[Test]
     public function authenticateWithErrorsIncludesDetailInMessageButNotInSafeMessage(): void
     {
-        $auth = $this->createMock(Auth::class);
-        $auth->method('processResponse')->willReturn(null);
-        $auth->method('getErrors')->willReturn(['invalid_response']);
-        $auth->method('getLastErrorReason')->willReturn('Signature validation failed. Certificate mismatch.');
+        $bindingFactory = $this->createMock(BindingFactory::class);
+        $bindingFactory->method('getBindingByRequest')
+            ->willThrowException(new \RuntimeException('Signature validation failed. Certificate mismatch.'));
 
-        $this->factory->method('create')->willReturn($auth);
+        $this->factory->method('createBindingFactory')->willReturn($bindingFactory);
 
         $authenticator = $this->createAuthenticator();
 
@@ -197,7 +305,7 @@ final class SamlAuthenticatorTest extends TestCase
             self::fail('Expected AuthenticationException was not thrown.');
         } catch (AuthenticationException $e) {
             // getMessage() contains SAML error details for developers/logs
-            self::assertStringContainsString('invalid_response', $e->getMessage());
+            self::assertStringContainsString('Signature validation failed', $e->getMessage());
             self::assertStringContainsString('Certificate mismatch', $e->getMessage());
 
             // getSafeMessage() remains generic (no detail leak to users)
@@ -355,14 +463,14 @@ final class SamlAuthenticatorTest extends TestCase
     #[Test]
     public function authenticateDispatchesEvent(): void
     {
-        $auth = $this->createMock(\OneLogin\Saml2\Auth::class);
-        $auth->method('processResponse')->willReturn(null);
-        $auth->method('getErrors')->willReturn([]);
-        $auth->method('getNameId')->willReturn('user@example.com');
-        $auth->method('getAttributes')->willReturn(['email' => ['user@example.com']]);
-        $auth->method('getSessionIndex')->willReturn('_session456');
+        $samlResponse = $this->buildSamlResponse(
+            nameId: 'user@example.com',
+            attributes: ['email' => ['user@example.com']],
+            sessionIndex: '_session456',
+        );
 
-        $this->factory->method('create')->willReturn($auth);
+        $this->configureMockBinding($samlResponse);
+        $this->configureFactoryWithConfiguration();
 
         $this->eventDispatcher->expects(self::once())
             ->method('dispatch');
@@ -380,14 +488,14 @@ final class SamlAuthenticatorTest extends TestCase
     #[Test]
     public function authenticateWithCrossSiteRedirectorNoRedirectNeeded(): void
     {
-        $auth = $this->createMock(Auth::class);
-        $auth->method('processResponse')->willReturn(null);
-        $auth->method('getErrors')->willReturn([]);
-        $auth->method('getNameId')->willReturn('user@example.com');
-        $auth->method('getAttributes')->willReturn(['email' => ['user@example.com']]);
-        $auth->method('getSessionIndex')->willReturn('_session');
+        $samlResponse = $this->buildSamlResponse(
+            nameId: 'user@example.com',
+            attributes: ['email' => ['user@example.com']],
+            sessionIndex: '_session',
+        );
 
-        $this->factory->method('create')->willReturn($auth);
+        $this->configureMockBinding($samlResponse);
+        $this->configureFactoryWithConfiguration();
 
         // CrossSiteRedirector is final, use a real instance
         // needsRedirect returns false for same-host URLs
@@ -418,14 +526,14 @@ final class SamlAuthenticatorTest extends TestCase
     #[Test]
     public function authenticateWithCrossSiteRedirectorWithNullRelayState(): void
     {
-        $auth = $this->createMock(Auth::class);
-        $auth->method('processResponse')->willReturn(null);
-        $auth->method('getErrors')->willReturn([]);
-        $auth->method('getNameId')->willReturn('user@example.com');
-        $auth->method('getAttributes')->willReturn(['email' => ['user@example.com']]);
-        $auth->method('getSessionIndex')->willReturn('_session');
+        $samlResponse = $this->buildSamlResponse(
+            nameId: 'user@example.com',
+            attributes: ['email' => ['user@example.com']],
+            sessionIndex: '_session',
+        );
 
-        $this->factory->method('create')->willReturn($auth);
+        $this->configureMockBinding($samlResponse);
+        $this->configureFactoryWithConfiguration();
 
         // CrossSiteRedirector is final, use a real instance
         $crossSiteRedirector = new CrossSiteRedirector();
@@ -560,14 +668,14 @@ final class SamlAuthenticatorTest extends TestCase
     #[Test]
     public function authenticateWithNullSessionIndex(): void
     {
-        $auth = $this->createMock(\OneLogin\Saml2\Auth::class);
-        $auth->method('processResponse')->willReturn(null);
-        $auth->method('getErrors')->willReturn([]);
-        $auth->method('getNameId')->willReturn('user@example.com');
-        $auth->method('getAttributes')->willReturn([]);
-        $auth->method('getSessionIndex')->willReturn(null);
+        $samlResponse = $this->buildSamlResponse(
+            nameId: 'user@example.com',
+            attributes: [],
+            sessionIndex: null,
+        );
 
-        $this->factory->method('create')->willReturn($auth);
+        $this->configureMockBinding($samlResponse);
+        $this->configureFactoryWithConfiguration();
 
         $authenticator = $this->createAuthenticator();
 

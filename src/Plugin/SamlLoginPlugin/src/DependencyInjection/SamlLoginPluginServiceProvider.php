@@ -190,7 +190,6 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
             strict: $config->strict,
             debug: $config->debug,
             wantAssertionsSigned: $config->wantAssertionsSigned,
-            allowRepeatAttributeName: $config->allowRepeatAttributeName,
         );
     }
 

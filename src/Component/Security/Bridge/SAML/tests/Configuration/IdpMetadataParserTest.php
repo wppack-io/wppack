@@ -24,6 +24,25 @@ final class IdpMetadataParserTest extends TestCase
 {
     private IdpMetadataParser $parser;
 
+    /**
+     * A valid self-signed X.509 certificate (base64 body only, no PEM headers).
+     * LightSAML requires real certificates when parsing KeyDescriptor elements.
+     */
+    private static string $testCert;
+
+    public static function setUpBeforeClass(): void
+    {
+        $key = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => \OPENSSL_KEYTYPE_RSA]);
+        $csr = openssl_csr_new(['commonName' => 'Test IdP'], $key);
+        $cert = openssl_csr_sign($csr, null, $key, 365);
+        openssl_x509_export($cert, $pem);
+
+        $lines = explode("\n", trim($pem));
+        array_shift($lines); // remove -----BEGIN CERTIFICATE-----
+        array_pop($lines);   // remove -----END CERTIFICATE-----
+        self::$testCert = implode('', $lines);
+    }
+
     protected function setUp(): void
     {
         $this->parser = new IdpMetadataParser();
@@ -36,7 +55,7 @@ final class IdpMetadataParserTest extends TestCase
             entityId: 'https://idp.example.com/metadata',
             ssoUrl: 'https://idp.example.com/sso',
             sloUrl: 'https://idp.example.com/slo',
-            x509Cert: 'MIICDummyCertBase64==',
+            x509Cert: self::$testCert,
         );
 
         $settings = $this->parser->parseXml($xml);
@@ -45,7 +64,7 @@ final class IdpMetadataParserTest extends TestCase
         self::assertSame('https://idp.example.com/metadata', $settings->getEntityId());
         self::assertSame('https://idp.example.com/sso', $settings->getSsoUrl());
         self::assertSame('https://idp.example.com/slo', $settings->getSloUrl());
-        self::assertSame('MIICDummyCertBase64==', $settings->getX509Cert());
+        self::assertSame(self::$testCert, $settings->getX509Cert());
         self::assertNull($settings->getCertFingerprint());
     }
 
@@ -56,7 +75,7 @@ final class IdpMetadataParserTest extends TestCase
             entityId: 'https://idp.example.com/metadata',
             ssoUrl: 'https://idp.example.com/sso',
             sloUrl: null,
-            x509Cert: 'MIICDummyCertBase64==',
+            x509Cert: self::$testCert,
         );
 
         $settings = $this->parser->parseXml($xml);
@@ -67,16 +86,26 @@ final class IdpMetadataParserTest extends TestCase
     #[Test]
     public function parseXmlWithMultiCertUsesFirstSigningCert(): void
     {
+        // Generate a second certificate to test multi-cert parsing
+        $key2 = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => \OPENSSL_KEYTYPE_RSA]);
+        $csr2 = openssl_csr_new(['commonName' => 'Test IdP 2'], $key2);
+        $cert2 = openssl_csr_sign($csr2, null, $key2, 365);
+        openssl_x509_export($cert2, $pem2);
+        $lines2 = explode("\n", trim($pem2));
+        array_shift($lines2);
+        array_pop($lines2);
+        $secondCert = implode('', $lines2);
+
         $xml = $this->createIdpMetadataXmlWithMultiCert(
             entityId: 'https://idp.example.com/metadata',
             ssoUrl: 'https://idp.example.com/sso',
-            signingCerts: ['MIICSigningCert1==', 'MIICSigningCert2=='],
-            encryptionCert: 'MIICEncryptionCert==',
+            signingCerts: [self::$testCert, $secondCert],
+            encryptionCert: $secondCert,
         );
 
         $settings = $this->parser->parseXml($xml);
 
-        self::assertSame('MIICSigningCert1==', $settings->getX509Cert());
+        self::assertSame(self::$testCert, $settings->getX509Cert());
     }
 
     #[Test]
@@ -95,7 +124,7 @@ final class IdpMetadataParserTest extends TestCase
             entityId: 'https://idp.example.com/metadata',
             ssoUrl: 'https://idp.example.com/sso',
             sloUrl: 'https://idp.example.com/slo',
-            x509Cert: 'MIICDummyCertBase64==',
+            x509Cert: self::$testCert,
         );
 
         $tmpFile = tempnam(sys_get_temp_dir(), 'idp_metadata_');
