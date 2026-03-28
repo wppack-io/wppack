@@ -56,6 +56,10 @@ final readonly class OAuthLoginConfiguration
         $providerConfigs = \constant('OAUTH_PROVIDERS');
 
         foreach ($providerConfigs as $name => $p) {
+            if (!isset($p['type'], $p['client_id'], $p['client_secret'])) {
+                throw new \RuntimeException(\sprintf('OAuth provider "%s" is missing required fields: type, client_id, client_secret.', $name));
+            }
+
             $providers[$name] = new ProviderConfiguration(
                 name: $name,
                 type: (string) $p['type'],

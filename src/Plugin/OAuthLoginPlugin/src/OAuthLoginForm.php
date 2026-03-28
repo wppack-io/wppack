@@ -18,7 +18,7 @@ use WpPack\Component\Security\AuthenticationSession;
 use WpPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration;
 use WpPack\Plugin\OAuthLoginPlugin\Configuration\ProviderConfiguration;
 
-final class OAuthLoginForm
+class OAuthLoginForm
 {
     /**
      * @param list<ProviderConfiguration> $providers

@@ -16,7 +16,7 @@ namespace WpPack\Component\Security\Bridge\OAuth\Provider;
 use WpPack\Component\Security\Bridge\OAuth\Configuration\OAuthConfiguration;
 use WpPack\Component\Security\Bridge\OAuth\Token\DiscoveryDocument;
 
-class GenericOidcProvider implements ProviderInterface
+final class GenericOidcProvider implements ProviderInterface
 {
     private ?DiscoveryDocument $discoveryDocument = null;
 

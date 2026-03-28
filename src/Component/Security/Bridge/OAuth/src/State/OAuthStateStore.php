@@ -26,7 +26,7 @@ final class OAuthStateStore
 
     public function store(string $state, StoredState $storedState): void
     {
-        $this->transientManager->set(self::TRANSIENT_PREFIX . $state, [
+        $this->transientManager->set(self::TRANSIENT_PREFIX . hash('sha256', $state), [
             'nonce' => $storedState->getNonce(),
             'code_verifier' => $storedState->getCodeVerifier(),
             'return_to' => $storedState->getReturnTo(),
@@ -36,10 +36,12 @@ final class OAuthStateStore
 
     public function retrieve(string $state): ?StoredState
     {
-        $data = $this->transientManager->get(self::TRANSIENT_PREFIX . $state);
+        $hashedKey = self::TRANSIENT_PREFIX . hash('sha256', $state);
+
+        $data = $this->transientManager->get($hashedKey);
 
         // One-time use: delete immediately
-        $this->transientManager->delete(self::TRANSIENT_PREFIX . $state);
+        $this->transientManager->delete($hashedKey);
 
         if (!\is_array($data)) {
             return null;

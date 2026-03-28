@@ -150,7 +150,8 @@ final class OAuthLoginPluginServiceProvider implements ServiceProviderInterface
         $builder->register($configId, OAuthConfiguration::class)
             ->setFactory([self::class, 'createOAuthConfiguration'])
             ->addArgument($providerConfig)
-            ->addArgument($config);
+            ->addArgument($config)
+            ->addArgument(new Reference(BlogContextInterface::class));
 
         // Provider instance
         $providerId = ProviderInterface::class . '.' . $name;
@@ -211,8 +212,9 @@ final class OAuthLoginPluginServiceProvider implements ServiceProviderInterface
     public static function createOAuthConfiguration(
         ProviderConfiguration $providerConfig,
         OAuthLoginConfiguration $config,
+        BlogContextInterface $blogContext,
     ): OAuthConfiguration {
-        $blogId = is_multisite() ? get_main_site_id() : null;
+        $blogId = $blogContext->isMultisite() ? $blogContext->getMainSiteId() : null;
         $redirectUri = get_home_url($blogId, $config->getCallbackPath($providerConfig->name));
 
         $scopes = $providerConfig->scopes ?? match ($providerConfig->type) {
