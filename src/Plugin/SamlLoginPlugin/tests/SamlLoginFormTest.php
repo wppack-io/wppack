@@ -23,6 +23,7 @@ use WpPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
 use WpPack\Component\Security\Bridge\SAML\Configuration\SpSettings;
 use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
 use WpPack\Component\Security\Bridge\SAML\SamlEntryPoint;
+use WpPack\Component\Transient\TransientManager;
 use WpPack\Plugin\SamlLoginPlugin\SamlLoginForm;
 
 #[CoversClass(SamlLoginForm::class)]
@@ -71,6 +72,7 @@ final class SamlLoginFormTest extends TestCase
             $factory,
             $this->authSession,
             Request::create('https://example.com/wp-login.php'),
+            new TransientManager(),
         );
     }
 

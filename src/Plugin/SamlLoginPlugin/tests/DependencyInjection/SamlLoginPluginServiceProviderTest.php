@@ -42,6 +42,7 @@ use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolver;
 use WpPack\Component\Sanitizer\Sanitizer;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolverInterface;
 use WpPack\Component\Site\BlogContext;
+use WpPack\Component\Transient\TransientManager;
 use WpPack\Component\User\UserRepository;
 use WpPack\Plugin\SamlLoginPlugin\Configuration\SamlLoginConfiguration;
 use WpPack\Plugin\SamlLoginPlugin\DependencyInjection\SamlLoginPluginServiceProvider;
@@ -185,13 +186,15 @@ final class SamlLoginPluginServiceProviderTest extends TestCase
 
         $definition = $this->builder->findDefinition(SamlEntryPoint::class);
         $arguments = $definition->getArguments();
-        self::assertCount(3, $arguments);
+        self::assertCount(4, $arguments);
         self::assertInstanceOf(Reference::class, $arguments[0]);
         self::assertSame(SamlAuthFactory::class, (string) $arguments[0]);
         self::assertInstanceOf(Reference::class, $arguments[1]);
         self::assertSame(AuthenticationSession::class, (string) $arguments[1]);
         self::assertInstanceOf(Reference::class, $arguments[2]);
         self::assertSame(Request::class, (string) $arguments[2]);
+        self::assertInstanceOf(Reference::class, $arguments[3]);
+        self::assertSame(TransientManager::class, (string) $arguments[3]);
     }
 
     #[Test]
@@ -481,6 +484,7 @@ final class SamlLoginPluginServiceProviderTest extends TestCase
             $config,
             $sessionManager,
             $blogContext,
+            new TransientManager(),
         );
 
         self::assertInstanceOf(SamlAuthenticator::class, $authenticator);

@@ -43,6 +43,7 @@ use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolverInterfa
 use WpPack\Component\Sanitizer\Sanitizer;
 use WpPack\Component\Security\DependencyInjection\SecurityServiceProvider;
 use WpPack\Component\Site\BlogContextInterface;
+use WpPack\Component\Transient\TransientManager;
 use WpPack\Component\User\UserRepositoryInterface;
 use WpPack\Plugin\SamlLoginPlugin\Configuration\SamlLoginConfiguration;
 use WpPack\Plugin\SamlLoginPlugin\SamlLoginForm;
@@ -101,13 +102,20 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
             ->addArgument(new Reference(SamlLoginConfiguration::class))
             ->addArgument(new Reference(SamlSessionManager::class))
             ->addArgument(new Reference(BlogContextInterface::class))
+            ->addArgument(new Reference(TransientManager::class))
             ->addTag('security.authenticator');
+
+        // Transient Manager (for SAML InResponseTo validation)
+        if (!$builder->hasDefinition(TransientManager::class)) {
+            $builder->register(TransientManager::class);
+        }
 
         // Entry Point
         $builder->register(SamlEntryPoint::class)
             ->addArgument(new Reference(SamlAuthFactory::class))
             ->addArgument(new Reference(AuthenticationSession::class))
-            ->addArgument(new Reference(Request::class));
+            ->addArgument(new Reference(Request::class))
+            ->addArgument(new Reference(TransientManager::class));
 
         // SAML Session Manager
         $builder->register(SamlSessionManager::class)
@@ -221,6 +229,7 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
         SamlLoginConfiguration $config,
         SamlSessionManager $sessionManager,
         BlogContextInterface $blogContext,
+        TransientManager $transientManager,
     ): SamlAuthenticator {
         $crossSiteRedirector = $blogContext->isMultisite()
             ? new CrossSiteRedirector(acsPath: $config->acsPath)
@@ -230,11 +239,12 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
             authFactory: $authFactory,
             userResolver: $userResolver,
             dispatcher: $dispatcher,
+            blogContext: $blogContext,
             sessionManager: $sessionManager,
             acsPath: $config->acsPath,
             crossSiteRedirector: $crossSiteRedirector,
+            transientManager: $transientManager,
             addUserToBlog: $config->addUserToBlog,
-            blogContext: $blogContext,
         );
     }
 }

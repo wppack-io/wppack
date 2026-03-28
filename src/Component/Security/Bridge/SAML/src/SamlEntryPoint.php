@@ -21,14 +21,20 @@ use LightSaml\Model\Protocol\AuthnRequest;
 use LightSaml\SamlConstants;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Security\AuthenticationSession;
+use WpPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
 use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
+use WpPack\Component\Transient\TransientManager;
 
 final class SamlEntryPoint
 {
+    private const REQUEST_ID_TRANSIENT = '_wppack_saml_request_id';
+    private const REQUEST_ID_TTL = 600;
+
     public function __construct(
         private readonly SamlAuthFactory $authFactory,
         private readonly AuthenticationSession $authSession,
         private readonly Request $request,
+        private readonly TransientManager $transientManager,
     ) {}
 
     /**
@@ -123,7 +129,7 @@ final class SamlEntryPoint
     }
 
     private function buildAuthnRequest(
-        Configuration\SamlConfiguration $config,
+        SamlConfiguration $config,
         ?string $returnTo,
     ): AuthnRequest {
         $authnRequest = new AuthnRequest();
@@ -137,6 +143,9 @@ final class SamlEntryPoint
         if ($returnTo !== null) {
             $authnRequest->setRelayState($returnTo);
         }
+
+        // Store request ID for InResponseTo validation
+        $this->transientManager->set(self::REQUEST_ID_TRANSIENT, $authnRequest->getID(), self::REQUEST_ID_TTL);
 
         return $authnRequest;
     }

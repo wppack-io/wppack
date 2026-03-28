@@ -48,6 +48,7 @@ use WpPack\Component\Security\Bridge\SAML\SamlAuthenticator;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolverInterface;
 use WpPack\Component\Security\Exception\AuthenticationException;
 use WpPack\Component\Site\BlogContext;
+use WpPack\Component\Transient\TransientManager;
 
 #[CoversClass(SamlAuthenticator::class)]
 final class SamlAuthenticatorTest extends TestCase
@@ -70,6 +71,7 @@ final class SamlAuthenticatorTest extends TestCase
             $this->userResolver,
             $this->eventDispatcher,
             blogContext: new BlogContext(),
+            transientManager: new TransientManager(),
             acsPath: $acsPath,
         );
     }
@@ -506,6 +508,7 @@ final class SamlAuthenticatorTest extends TestCase
             $this->userResolver,
             $this->eventDispatcher,
             blogContext: new BlogContext(),
+            transientManager: new TransientManager(),
             acsPath: '/saml/acs',
             crossSiteRedirector: $crossSiteRedirector,
         );
@@ -543,6 +546,7 @@ final class SamlAuthenticatorTest extends TestCase
             $this->userResolver,
             $this->eventDispatcher,
             blogContext: new BlogContext(),
+            transientManager: new TransientManager(),
             acsPath: '/saml/acs',
             crossSiteRedirector: $crossSiteRedirector,
         );
@@ -575,6 +579,7 @@ final class SamlAuthenticatorTest extends TestCase
             $this->userResolver,
             $this->eventDispatcher,
             blogContext: new BlogContext(),
+            transientManager: new TransientManager(),
             acsPath: '/saml/acs',
             crossSiteRedirector: $crossSiteRedirector,
         );
@@ -624,6 +629,7 @@ final class SamlAuthenticatorTest extends TestCase
             $this->userResolver,
             $this->eventDispatcher,
             blogContext: new BlogContext(),
+            transientManager: new TransientManager(),
             addUserToBlog: true,
         );
 
@@ -651,6 +657,7 @@ final class SamlAuthenticatorTest extends TestCase
             $this->userResolver,
             $this->eventDispatcher,
             blogContext: new BlogContext(),
+            transientManager: new TransientManager(),
             addUserToBlog: false,
         );
 

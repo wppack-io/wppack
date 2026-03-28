@@ -23,6 +23,7 @@ use WpPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
 use WpPack\Component\Security\Bridge\SAML\Configuration\SpSettings;
 use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
 use WpPack\Component\Security\Bridge\SAML\SamlEntryPoint;
+use WpPack\Component\Transient\TransientManager;
 
 #[CoversClass(SamlEntryPoint::class)]
 final class SamlEntryPointTest extends TestCase
@@ -97,6 +98,7 @@ final class SamlEntryPointTest extends TestCase
             $factory,
             $this->authSession,
             Request::create('https://example.com/wp-login.php'),
+            new TransientManager(),
         );
         $loginUrl = $entryPoint->getLoginUrl();
 
@@ -113,6 +115,7 @@ final class SamlEntryPointTest extends TestCase
             $factory,
             $this->authSession,
             Request::create('https://example.com/wp-login.php'),
+            new TransientManager(),
         );
         $loginUrl = $entryPoint->getLoginUrl('https://sp.example.com/dashboard');
 
@@ -131,6 +134,7 @@ final class SamlEntryPointTest extends TestCase
             $factory,
             $this->authSession,
             Request::create('https://example.com/wp-login.php'),
+            new TransientManager(),
         );
         $entryPoint->register();
 
@@ -153,6 +157,7 @@ final class SamlEntryPointTest extends TestCase
             $factory,
             $this->authSession,
             Request::create('https://example.com/wp-login.php', 'POST'),
+            new TransientManager(),
         );
         $entryPoint->register();
 
@@ -171,6 +176,7 @@ final class SamlEntryPointTest extends TestCase
             $factory,
             $this->authSession,
             Request::create('https://example.com/wp-login.php?action=logout'),
+            new TransientManager(),
         );
         $entryPoint->register();
 
@@ -197,6 +203,7 @@ final class SamlEntryPointTest extends TestCase
             $factory,
             $this->authSession,
             Request::create('https://example.com/wp-login.php'),
+            new TransientManager(),
         );
         $entryPoint->register();
 
@@ -231,6 +238,7 @@ final class SamlEntryPointTest extends TestCase
             $factory,
             $this->authSession,
             Request::create('http://example.org/wp-login.php?redirect_to=' . urlencode($redirectTo)),
+            new TransientManager(),
         );
         $entryPoint->register();
 
@@ -264,6 +272,7 @@ final class SamlEntryPointTest extends TestCase
             $factory,
             $this->authSession,
             Request::create('https://example.com/wp-login.php?action=logout'),
+            new TransientManager(),
         );
         $entryPoint->register();
 
@@ -285,6 +294,7 @@ final class SamlEntryPointTest extends TestCase
             $factory,
             $this->authSession,
             Request::create('http://example.org/wp-login.php?redirect_to=' . urlencode($redirectTo)),
+            new TransientManager(),
         );
 
         // Verify indirectly by checking getLoginUrl includes the relay state
@@ -302,6 +312,7 @@ final class SamlEntryPointTest extends TestCase
             $factory,
             $this->authSession,
             Request::create('https://example.com/wp-login.php'),
+            new TransientManager(),
         );
         $entryPoint->register();
 
@@ -324,6 +335,7 @@ final class SamlEntryPointTest extends TestCase
             $factory,
             $this->authSession,
             Request::create('https://example.com/wp-login.php'),
+            new TransientManager(),
         );
         $entryPoint->register();
 
@@ -342,6 +354,7 @@ final class SamlEntryPointTest extends TestCase
             $factory,
             $this->authSession,
             Request::create('https://example.com/wp-login.php'),
+            new TransientManager(),
         );
         $entryPoint->register();
 
@@ -366,6 +379,7 @@ final class SamlEntryPointTest extends TestCase
             $factory,
             $this->authSession,
             Request::create('https://example.com/wp-login.php?saml_error=true'),
+            new TransientManager(),
         );
         $entryPoint->register();
 
@@ -395,6 +409,7 @@ final class SamlEntryPointTest extends TestCase
             $factory,
             $this->authSession,
             Request::create('https://example.com/wp-login.php?loggedout=true'),
+            new TransientManager(),
         );
         $entryPoint->register();
 
@@ -419,6 +434,7 @@ final class SamlEntryPointTest extends TestCase
             $factory,
             $this->authSession,
             Request::create('https://example.com/wp-login.php?action=lostpassword'),
+            new TransientManager(),
         );
         $entryPoint->register();
 
@@ -441,6 +457,7 @@ final class SamlEntryPointTest extends TestCase
             $factory,
             $this->authSession,
             Request::create('https://example.com/wp-login.php?action=register'),
+            new TransientManager(),
         );
         $entryPoint->register();
 
@@ -463,6 +480,7 @@ final class SamlEntryPointTest extends TestCase
             $factory,
             $this->authSession,
             Request::create('https://example.com/wp-login.php?action=postpass'),
+            new TransientManager(),
         );
         $entryPoint->register();
 

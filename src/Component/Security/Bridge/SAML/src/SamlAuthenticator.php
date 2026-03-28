@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Security\Bridge\SAML;
 
 use LightSaml\Context\Profile\MessageContext;
+use LightSaml\Helper;
 use LightSaml\Model\Assertion\Assertion;
 use LightSaml\Model\Protocol\Response as SamlResponse;
 use LightSaml\Model\XmlDSig\AbstractSignatureReader;
@@ -35,9 +36,12 @@ use WpPack\Component\Security\Bridge\SAML\Session\SamlSessionManager;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolverInterface;
 use WpPack\Component\Security\Exception\AuthenticationException;
 use WpPack\Component\Site\BlogContextInterface;
+use WpPack\Component\Transient\TransientManager;
 
 final class SamlAuthenticator implements AuthenticatorInterface
 {
+    private const REQUEST_ID_TRANSIENT = '_wppack_saml_request_id';
+
     private ?string $lastNameId = null;
     private ?string $lastSessionIndex = null;
 
@@ -46,6 +50,7 @@ final class SamlAuthenticator implements AuthenticatorInterface
         private readonly SamlUserResolverInterface $userResolver,
         private readonly EventDispatcherInterface $dispatcher,
         private readonly BlogContextInterface $blogContext,
+        private readonly TransientManager $transientManager,
         private readonly ?SamlSessionManager $sessionManager = null,
         private readonly string $acsPath = '/saml/acs',
         private readonly ?CrossSiteRedirector $crossSiteRedirector = null,
@@ -116,11 +121,17 @@ final class SamlAuthenticator implements AuthenticatorInterface
         // Validate signature on response or assertion
         $this->validateSignature($response);
 
+        // Validate InResponseTo to prevent response substitution attacks
+        $this->validateInResponseTo($response);
+
         $assertion = $response->getFirstAssertion();
 
         if ($assertion === null) {
             throw new AuthenticationException('No Assertion in SAML response.');
         }
+
+        // Validate assertion time conditions (NotBefore / NotOnOrAfter)
+        $this->validateAssertionConditions($assertion);
 
         $subject = $assertion->getSubject();
         $nameIdObj = $subject->getNameID();
@@ -240,6 +251,67 @@ final class SamlAuthenticator implements AuthenticatorInterface
 
         if ($config->wantAssertionsSigned()) {
             throw new AuthenticationException('SAML response has no valid signature.');
+        }
+    }
+
+    /**
+     * Validate InResponseTo attribute matches the original AuthnRequest ID.
+     *
+     * The request ID is stored in a transient by SamlEntryPoint when the
+     * AuthnRequest is sent. This prevents response substitution attacks
+     * where an attacker replays a response from a different request.
+     *
+     * For IdP-initiated SSO (no prior AuthnRequest), InResponseTo is absent
+     * and validation is skipped.
+     */
+    private function validateInResponseTo(SamlResponse $response): void
+    {
+        $inResponseTo = $response->getInResponseTo();
+
+        if ($inResponseTo === null || $inResponseTo === '') {
+            // IdP-initiated SSO — no InResponseTo to validate
+            return;
+        }
+
+        $storedRequestId = $this->transientManager->get(self::REQUEST_ID_TRANSIENT);
+
+        // One-time use: delete after retrieval
+        $this->transientManager->delete(self::REQUEST_ID_TRANSIENT);
+
+        if (!\is_string($storedRequestId) || $storedRequestId === '') {
+            throw new AuthenticationException('SAML InResponseTo validation failed: no stored request ID.');
+        }
+
+        if ($inResponseTo !== $storedRequestId) {
+            throw new AuthenticationException('SAML InResponseTo validation failed: response does not match request.');
+        }
+    }
+
+    /**
+     * Validate Assertion time conditions (NotBefore / NotOnOrAfter).
+     *
+     * Allows 120 seconds clock skew to accommodate clock differences between
+     * IdP and SP servers.
+     */
+    private function validateAssertionConditions(Assertion $assertion): void
+    {
+        $conditions = $assertion->getConditions();
+
+        if ($conditions === null) {
+            return;
+        }
+
+        $now = time();
+        $allowedSkew = 120;
+
+        $notBefore = $conditions->getNotBeforeTimestamp();
+        if ($notBefore !== null && !Helper::validateNotBefore($notBefore, $now, $allowedSkew)) {
+            throw new AuthenticationException('Assertion condition NotBefore is in the future.');
+        }
+
+        $notOnOrAfter = $conditions->getNotOnOrAfterTimestamp();
+        if ($notOnOrAfter !== null && !Helper::validateNotOnOrAfter($notOnOrAfter, $now, $allowedSkew)) {
+            throw new AuthenticationException('Assertion condition NotOnOrAfter is in the past.');
         }
     }
 
