@@ -127,7 +127,7 @@ $authenticator = new ScimBearerAuthenticator(
 ```php
 use WpPack\Component\Scim\Mapping\ScimAttributeMapping;
 
-// コンストラクタ: ScimAttributeMapping(string $scimAttribute, string $metaKey)
+// コンストラクタ: ScimAttributeMapping(string $scimPath, string $metaKey)
 new ScimAttributeMapping('urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.department', 'department');
 ```
 

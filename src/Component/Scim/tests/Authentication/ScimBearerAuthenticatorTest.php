@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Scim\Tests\Authentication;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\HttpFoundation\Request;
@@ -20,6 +21,7 @@ use WpPack\Component\Scim\Authentication\ScimBearerAuthenticator;
 use WpPack\Component\Security\Authentication\Token\ServiceToken;
 use WpPack\Component\Security\Exception\AuthenticationException;
 
+#[CoversClass(ScimBearerAuthenticator::class)]
 final class ScimBearerAuthenticatorTest extends TestCase
 {
     private ScimBearerAuthenticator $authenticator;

@@ -108,6 +108,65 @@ src/Plugin/ScimPlugin/
 > - ロール割り当ては将来の設定画面で制御予定
 > - ユーザー無効化時（`active=false`）は全サイトで `set_role('')` によるロール剥奪 + `wp_authenticate_user` フィルターによるログインブロック + マルチサイトでは `update_user_status()` によるネイティブ無効化
 
+## カスタム属性マッピング
+
+デフォルトの SCIM 属性マッピングに加え、カスタム SCIM 属性を WordPress ユーザーメタにマッピングできます。
+
+### 宣言的マッピング（ScimAttributeMapping）
+
+`ScimAttributeMapping` で SCIM 属性パスと WordPress メタキーの対応を定義します:
+
+```php
+use WpPack\Component\Scim\Mapping\ScimAttributeMapping;
+use WpPack\Component\Scim\Mapping\UserAttributeMapper;
+
+// カスタム ServiceProvider でオーバーライド
+$builder->findDefinition(UserAttributeMapper::class)
+    ->setArgument('$customMappings', [
+        new ScimAttributeMapping('urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.department', 'department'),
+        new ScimAttributeMapping('urn:ietf:params:scim:schemas:extension:enterprise:2.0:User.employeeNumber', 'employee_number'),
+    ]);
+```
+
+カスタムマッピングは双方向に動作します:
+- **SCIM → WordPress**: SCIM 属性から値を読み取り、`sanitize_text_field()` でサニタイズしてユーザーメタに保存
+- **WordPress → SCIM**: ユーザーメタから値を読み取り、SCIM レスポンスに含める
+
+### イベントによるカスタマイズ
+
+条件分岐や値の結合など、宣言的マッピングで対応できない複雑なロジックにはイベントリスナーを使用します:
+
+```php
+use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
+use WpPack\Component\Scim\Event\ScimUserAttributesMappedEvent;
+
+final class CustomScimMapper
+{
+    #[AsEventListener]
+    public function __invoke(ScimUserAttributesMappedEvent $event): void
+    {
+        $scim = $event->getScimAttributes();
+        $meta = $event->getMeta();
+
+        // 条件付きマッピング
+        if (isset($scim['title']) && str_contains($scim['title'], 'Manager')) {
+            $meta['is_manager'] = '1';
+            $event->setMeta($meta);
+        }
+    }
+}
+```
+
+詳細は [Scim コンポーネントのドキュメント](../components/scim/README.md#カスタム属性マッピング) を参照してください。
+
+### 将来の管理画面対応
+
+管理画面を追加する際は以下のステップで対応可能です。コンポーネント側の変更は不要です:
+
+1. 管理画面でマッピングルール（SCIM 属性パス → メタキー）を CRUD → `wp_options` に JSON 保存
+2. プラグインの ServiceProvider で `wp_options` から読み込み → `ScimAttributeMapping[]` を構築
+3. `setArgument('$customMappings', ...)` で `UserAttributeMapper` に渡す
+
 ## 依存パッケージ
 
 | パッケージ | 用途 |
