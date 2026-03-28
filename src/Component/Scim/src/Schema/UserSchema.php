@@ -15,6 +15,8 @@ namespace WpPack\Component\Scim\Schema;
 
 final class UserSchema
 {
+    private function __construct() {}
+
     public static function definition(): SchemaDefinition
     {
         return new SchemaDefinition(

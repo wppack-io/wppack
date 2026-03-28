@@ -88,31 +88,32 @@ final readonly class WpUserQueryAdapter
     private function metaComparison(ComparisonNode $node): array
     {
         $metaKey = self::ATTRIBUTE_MAP[$node->attributePath] ?? $node->attributePath;
+        $value = $this->resolveMetaValue($metaKey, $node->value);
 
         return match ($node->operator) {
             'eq' => [
                 'meta_query' => [
-                    ['key' => $metaKey, 'value' => $node->value, 'compare' => '='],
+                    ['key' => $metaKey, 'value' => $value, 'compare' => '='],
                 ],
             ],
             'ne' => [
                 'meta_query' => [
-                    ['key' => $metaKey, 'value' => $node->value, 'compare' => '!='],
+                    ['key' => $metaKey, 'value' => $value, 'compare' => '!='],
                 ],
             ],
             'co' => [
                 'meta_query' => [
-                    ['key' => $metaKey, 'value' => $node->value, 'compare' => 'LIKE'],
+                    ['key' => $metaKey, 'value' => $value, 'compare' => 'LIKE'],
                 ],
             ],
             'sw' => [
                 'meta_query' => [
-                    ['key' => $metaKey, 'value' => '^' . preg_quote((string) $node->value, '/'), 'compare' => 'REGEXP'],
+                    ['key' => $metaKey, 'value' => '^' . preg_quote((string) $value, '/'), 'compare' => 'REGEXP'],
                 ],
             ],
             'ew' => [
                 'meta_query' => [
-                    ['key' => $metaKey, 'value' => preg_quote((string) $node->value, '/') . '$', 'compare' => 'REGEXP'],
+                    ['key' => $metaKey, 'value' => preg_quote((string) $value, '/') . '$', 'compare' => 'REGEXP'],
                 ],
             ],
             'pr' => [
@@ -122,6 +123,19 @@ final readonly class WpUserQueryAdapter
             ],
             default => throw new InvalidFilterException(sprintf('Operator "%s" not supported for meta attribute "%s".', $node->operator, $node->attributePath)),
         };
+    }
+
+    private function resolveMetaValue(string $metaKey, ?string $value): ?string
+    {
+        if ($metaKey === ScimConstants::META_ACTIVE) {
+            return match ($value) {
+                'true' => '1',
+                'false' => '0',
+                default => $value,
+            };
+        }
+
+        return $value;
     }
 
     /**

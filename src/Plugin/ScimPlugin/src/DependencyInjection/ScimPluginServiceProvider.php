@@ -22,6 +22,8 @@ use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Rest\RestRegistry;
 use WpPack\Component\Scim\Authentication\ScimBearerAuthenticator;
 use WpPack\Component\Scim\Controller\GroupController;
+use WpPack\Component\Scim\Controller\ResourceTypeController;
+use WpPack\Component\Scim\Controller\SchemaController;
 use WpPack\Component\Scim\Controller\ServiceProviderConfigController;
 use WpPack\Component\Scim\Controller\UserController;
 use WpPack\Component\Scim\DependencyInjection\ScimServiceProvider;
@@ -83,6 +85,12 @@ final class ScimPluginServiceProvider implements ServiceProviderInterface
             ->setArgument('$allowGroupManagement', '%scim.allow_group_management%');
 
         $builder->findDefinition(ServiceProviderConfigController::class)
+            ->setArgument('$baseUrl', '%scim.base_url%');
+
+        $builder->findDefinition(SchemaController::class)
+            ->setArgument('$baseUrl', '%scim.base_url%');
+
+        $builder->findDefinition(ResourceTypeController::class)
             ->setArgument('$baseUrl', '%scim.base_url%');
 
         // SCIM Bearer Authenticator

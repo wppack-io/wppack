@@ -28,7 +28,7 @@ final readonly class SchemaDefinition
     /**
      * @return array<string, mixed>
      */
-    public function toArray(): array
+    public function toArray(string $baseUrl = ''): array
     {
         return [
             'schemas' => [ScimConstants::SCHEMA_SCHEMA],
@@ -38,7 +38,7 @@ final readonly class SchemaDefinition
             'attributes' => $this->attributes,
             'meta' => [
                 'resourceType' => 'Schema',
-                'location' => '/scim/v2/Schemas/' . $this->id,
+                'location' => $baseUrl . '/scim/v2/Schemas/' . $this->id,
             ],
         ];
     }

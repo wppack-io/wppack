@@ -28,12 +28,16 @@ use WpPack\Component\Scim\Serialization\ListResponseSerializer;
 #[IsGranted(ScimConstants::CAPABILITY_PROVISION)]
 final class ResourceTypeController extends AbstractRestController
 {
+    public function __construct(
+        private readonly string $baseUrl = '',
+    ) {}
+
     #[RestRoute(methods: [HttpMethod::GET])]
     public function list(): JsonResponse
     {
         $types = [
-            UserSchema::resourceType()->toArray(),
-            GroupSchema::resourceType()->toArray(),
+            UserSchema::resourceType()->toArray($this->baseUrl),
+            GroupSchema::resourceType()->toArray($this->baseUrl),
         ];
 
         return $this->json(
@@ -59,6 +63,6 @@ final class ResourceTypeController extends AbstractRestController
             );
         }
 
-        return $this->json($type->toArray(), headers: ['Content-Type' => ScimConstants::CONTENT_TYPE]);
+        return $this->json($type->toArray($this->baseUrl), headers: ['Content-Type' => ScimConstants::CONTENT_TYPE]);
     }
 }

@@ -17,6 +17,8 @@ use WpPack\Component\Scim\Exception\InvalidPatchException;
 
 final class PathParser
 {
+    private function __construct() {}
+
     /**
      * Parse a SCIM attribute path into segments.
      *

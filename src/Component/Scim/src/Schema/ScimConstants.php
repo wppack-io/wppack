@@ -15,6 +15,8 @@ namespace WpPack\Component\Scim\Schema;
 
 final class ScimConstants
 {
+    private function __construct() {}
+
     public const USER_SCHEMA = 'urn:ietf:params:scim:schemas:core:2.0:User';
     public const GROUP_SCHEMA = 'urn:ietf:params:scim:schemas:core:2.0:Group';
     public const ERROR_SCHEMA = 'urn:ietf:params:scim:api:messages:2.0:Error';

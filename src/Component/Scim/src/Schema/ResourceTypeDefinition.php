@@ -30,7 +30,7 @@ final readonly class ResourceTypeDefinition
     /**
      * @return array<string, mixed>
      */
-    public function toArray(): array
+    public function toArray(string $baseUrl = ''): array
     {
         return [
             'schemas' => [ScimConstants::RESOURCE_TYPE_SCHEMA],
@@ -42,7 +42,7 @@ final readonly class ResourceTypeDefinition
             'schemaExtensions' => $this->schemaExtensions,
             'meta' => [
                 'resourceType' => 'ResourceType',
-                'location' => '/scim/v2/ResourceTypes/' . $this->id,
+                'location' => $baseUrl . '/scim/v2/ResourceTypes/' . $this->id,
             ],
         ];
     }
