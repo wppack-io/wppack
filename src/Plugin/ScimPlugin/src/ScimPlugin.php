@@ -44,6 +44,7 @@ final class ScimPlugin extends AbstractPlugin
         $builder->setParameter('scim.allow_group_management', $config->allowGroupManagement);
         $builder->setParameter('scim.allow_user_deletion', $config->allowUserDeletion);
         $builder->setParameter('scim.auto_provision', $config->autoProvision);
+        $builder->setParameter('scim.blog_id', $config->blogId);
 
         $this->serviceProvider->register($builder);
     }

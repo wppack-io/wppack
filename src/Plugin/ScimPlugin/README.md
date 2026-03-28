@@ -47,6 +47,7 @@ define('SCIM_ALLOW_USER_DELETION', false);
 | `SCIM_ALLOW_GROUP_MANAGEMENT` | No | `true` | Allow SCIM to manage WordPress roles |
 | `SCIM_ALLOW_USER_DELETION` | No | `false` | Allow permanent user deletion (false = deactivate only) |
 | `SCIM_MAX_RESULTS` | No | `100` | Maximum results per list request |
+| `SCIM_BLOG_ID` | No | — | Target blog ID for multisite |
 
 ## Endpoints
 

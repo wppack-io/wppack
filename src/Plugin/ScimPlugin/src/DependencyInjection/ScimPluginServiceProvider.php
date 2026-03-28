@@ -21,6 +21,10 @@ use WpPack\Component\EventDispatcher\EventDispatcher;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Rest\RestRegistry;
 use WpPack\Component\Scim\Authentication\ScimBearerAuthenticator;
+use WpPack\Component\Site\BlogContext;
+use WpPack\Component\Site\BlogContextInterface;
+use WpPack\Component\Site\BlogSwitcher;
+use WpPack\Component\Site\BlogSwitcherInterface;
 use WpPack\Component\Scim\Controller\GroupController;
 use WpPack\Component\Scim\Controller\ResourceTypeController;
 use WpPack\Component\Scim\Controller\SchemaController;
@@ -59,6 +63,15 @@ final class ScimPluginServiceProvider implements ServiceProviderInterface
                 ->addArgument(new Reference(Request::class));
         }
 
+        // Site component services
+        if (!$builder->hasDefinition(BlogContextInterface::class)) {
+            $builder->register(BlogContextInterface::class, BlogContext::class);
+        }
+        if (!$builder->hasDefinition(BlogSwitcherInterface::class)) {
+            $builder->register(BlogSwitcherInterface::class, BlogSwitcher::class)
+                ->addArgument(new Reference(BlogContextInterface::class));
+        }
+
         // Configuration
         $builder->register(ScimConfiguration::class)
             ->setFactory([ScimConfiguration::class, 'fromEnvironment']);
@@ -77,12 +90,16 @@ final class ScimPluginServiceProvider implements ServiceProviderInterface
             ->setArgument('$baseUrl', '%scim.base_url%')
             ->setArgument('$defaultRole', '%scim.default_role%')
             ->setArgument('$allowUserDeletion', '%scim.allow_user_deletion%')
-            ->setArgument('$autoProvision', '%scim.auto_provision%');
+            ->setArgument('$autoProvision', '%scim.auto_provision%')
+            ->setArgument('$blogId', '%scim.blog_id%')
+            ->setArgument('$blogSwitcher', new Reference(BlogSwitcherInterface::class));
 
         $builder->findDefinition(GroupController::class)
             ->setArgument('$maxResults', '%scim.max_results%')
             ->setArgument('$baseUrl', '%scim.base_url%')
-            ->setArgument('$allowGroupManagement', '%scim.allow_group_management%');
+            ->setArgument('$allowGroupManagement', '%scim.allow_group_management%')
+            ->setArgument('$blogId', '%scim.blog_id%')
+            ->setArgument('$blogSwitcher', new Reference(BlogSwitcherInterface::class));
 
         $builder->findDefinition(ServiceProviderConfigController::class)
             ->setArgument('$baseUrl', '%scim.base_url%');

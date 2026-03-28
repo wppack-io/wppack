@@ -145,6 +145,7 @@ WpPack\Plugin\ScimPlugin\
 | `SCIM_ALLOW_GROUP_MANAGEMENT` | `true` | SCIM によるグループ（ロール）管理の許可 |
 | `SCIM_ALLOW_USER_DELETION` | `false` | 永続的なユーザー削除の許可（false = 無効化のみ） |
 | `SCIM_MAX_RESULTS` | `100` | 一覧リクエストの最大結果数 |
+| `SCIM_BLOG_ID` | `null` | マルチサイト環境でのターゲットブログ ID（未設定時はカレントブログ） |
 
 ### 設定例
 

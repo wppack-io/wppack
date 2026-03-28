@@ -23,6 +23,7 @@ final readonly class ScimConfiguration
         public bool $allowGroupManagement = true,
         public bool $allowUserDeletion = false,
         public int $maxResults = 100,
+        public ?int $blogId = null,
     ) {}
 
     public static function fromEnvironment(): self
@@ -42,6 +43,7 @@ final readonly class ScimConfiguration
             allowGroupManagement: self::envBool('SCIM_ALLOW_GROUP_MANAGEMENT', true),
             allowUserDeletion: self::envBool('SCIM_ALLOW_USER_DELETION', false),
             maxResults: self::envInt('SCIM_MAX_RESULTS', 100),
+            blogId: self::envNullableInt('SCIM_BLOG_ID'),
         );
     }
 
@@ -61,6 +63,17 @@ final readonly class ScimConfiguration
         $value = self::envString($name, (string) $default);
 
         return max(1, min(1000, (int) $value));
+    }
+
+    private static function envNullableInt(string $name): ?int
+    {
+        if (\defined($name)) {
+            return (int) \constant($name);
+        }
+
+        $value = getenv($name);
+
+        return $value !== false && $value !== '' ? (int) $value : null;
     }
 
     private static function envBool(string $name, bool $default): bool

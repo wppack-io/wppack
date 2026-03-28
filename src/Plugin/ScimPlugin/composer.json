@@ -12,6 +12,7 @@
         "wppack/rest": "^1.0",
         "wppack/scim": "^1.0",
         "wppack/security": "^1.0",
+        "wppack/site": "^1.0",
         "wppack/user": "^1.0"
     },
     "autoload": {
