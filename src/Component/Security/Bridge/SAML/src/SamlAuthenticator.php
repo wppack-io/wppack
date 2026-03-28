@@ -26,7 +26,6 @@ use WpPack\Component\Security\Authentication\Token\TokenInterface;
 use WpPack\Component\Security\Bridge\SAML\Badge\SamlAttributesBadge;
 use WpPack\Component\Security\Bridge\SAML\Event\SamlResponseReceivedEvent;
 use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
-use WpPack\Component\Site\BlogContext;
 use WpPack\Component\Site\BlogContextInterface;
 use WpPack\Component\Security\Bridge\SAML\Multisite\CrossSiteRedirector;
 use WpPack\Component\Security\Bridge\SAML\Session\SamlSessionManager;
@@ -42,11 +41,11 @@ final class SamlAuthenticator implements AuthenticatorInterface
         private readonly SamlAuthFactory $authFactory,
         private readonly SamlUserResolverInterface $userResolver,
         private readonly EventDispatcherInterface $dispatcher,
+        private readonly BlogContextInterface $blogContext,
         private readonly ?SamlSessionManager $sessionManager = null,
         private readonly string $acsPath = '/saml/acs',
         private readonly ?CrossSiteRedirector $crossSiteRedirector = null,
         private readonly bool $addUserToBlog = true,
-        private readonly BlogContextInterface $blogContext = new BlogContext(),
     ) {}
 
     public function supports(Request $request): bool

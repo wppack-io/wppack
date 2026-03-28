@@ -22,9 +22,14 @@ use WpPack\Component\Security\Authentication\StatelessAuthenticatorInterface;
 use WpPack\Component\Security\Authentication\Token\PostAuthenticationToken;
 use WpPack\Component\Security\Authentication\Token\TokenInterface;
 use WpPack\Component\Security\Exception\AuthenticationException;
+use WpPack\Component\Site\BlogContextInterface;
 
 final class ApplicationPasswordAuthenticator implements StatelessAuthenticatorInterface
 {
+    public function __construct(
+        private readonly BlogContextInterface $blogContext,
+    ) {}
+
     public function supports(Request $request): bool
     {
         $authHeader = $request->headers->get('Authorization', '');
@@ -63,7 +68,7 @@ final class ApplicationPasswordAuthenticator implements StatelessAuthenticatorIn
     public function createToken(Passport $passport): TokenInterface
     {
         $user = $passport->getUser();
-        $blogId = get_current_blog_id();
+        $blogId = $this->blogContext->getCurrentBlogId();
 
         return new PostAuthenticationToken($user, $user->roles, $blogId);
     }

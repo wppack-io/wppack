@@ -21,6 +21,7 @@ use WpPack\Component\Security\Authentication\Passport\Badge\UserBadge;
 use WpPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
 use WpPack\Component\Security\Authentication\Token\PostAuthenticationToken;
 use WpPack\Component\Security\Exception\AuthenticationException;
+use WpPack\Component\Site\BlogContext;
 
 final class ApplicationPasswordAuthenticatorTest extends TestCase
 {
@@ -28,7 +29,7 @@ final class ApplicationPasswordAuthenticatorTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->authenticator = new ApplicationPasswordAuthenticator();
+        $this->authenticator = new ApplicationPasswordAuthenticator(new BlogContext());
     }
 
     /**

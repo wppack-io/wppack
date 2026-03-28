@@ -29,6 +29,7 @@ use WpPack\Component\Security\Bridge\SAML\Multisite\CrossSiteRedirector;
 use WpPack\Component\Security\Bridge\SAML\SamlAuthenticator;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolverInterface;
 use WpPack\Component\Security\Exception\AuthenticationException;
+use WpPack\Component\Site\BlogContext;
 
 #[CoversClass(SamlAuthenticator::class)]
 final class SamlAuthenticatorTest extends TestCase
@@ -50,6 +51,7 @@ final class SamlAuthenticatorTest extends TestCase
             $this->factory,
             $this->userResolver,
             $this->eventDispatcher,
+            blogContext: new BlogContext(),
             acsPath: $acsPath,
         );
     }
@@ -395,6 +397,7 @@ final class SamlAuthenticatorTest extends TestCase
             $this->factory,
             $this->userResolver,
             $this->eventDispatcher,
+            blogContext: new BlogContext(),
             acsPath: '/saml/acs',
             crossSiteRedirector: $crossSiteRedirector,
         );
@@ -431,6 +434,7 @@ final class SamlAuthenticatorTest extends TestCase
             $this->factory,
             $this->userResolver,
             $this->eventDispatcher,
+            blogContext: new BlogContext(),
             acsPath: '/saml/acs',
             crossSiteRedirector: $crossSiteRedirector,
         );
@@ -462,6 +466,7 @@ final class SamlAuthenticatorTest extends TestCase
             $this->factory,
             $this->userResolver,
             $this->eventDispatcher,
+            blogContext: new BlogContext(),
             acsPath: '/saml/acs',
             crossSiteRedirector: $crossSiteRedirector,
         );
@@ -510,6 +515,7 @@ final class SamlAuthenticatorTest extends TestCase
             $this->factory,
             $this->userResolver,
             $this->eventDispatcher,
+            blogContext: new BlogContext(),
             addUserToBlog: true,
         );
 
@@ -536,6 +542,7 @@ final class SamlAuthenticatorTest extends TestCase
             $this->factory,
             $this->userResolver,
             $this->eventDispatcher,
+            blogContext: new BlogContext(),
             addUserToBlog: false,
         );
 

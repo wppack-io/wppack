@@ -41,6 +41,7 @@ use WpPack\Component\Security\Bridge\SAML\Session\SamlSessionManager;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolver;
 use WpPack\Component\Security\Bridge\SAML\UserResolution\SamlUserResolverInterface;
 use WpPack\Component\Site\BlogContext;
+use WpPack\Component\User\UserRepository;
 use WpPack\Plugin\SamlLoginPlugin\Configuration\SamlLoginConfiguration;
 use WpPack\Plugin\SamlLoginPlugin\DependencyInjection\SamlLoginPluginServiceProvider;
 use WpPack\Plugin\SamlLoginPlugin\SamlLoginForm;
@@ -468,7 +469,7 @@ final class SamlLoginPluginServiceProviderTest extends TestCase
         $userResolver = SamlLoginPluginServiceProvider::createUserResolver($config, new EventDispatcher());
         $dispatcher = new EventDispatcher();
 
-        $sessionManager = new SamlSessionManager();
+        $sessionManager = new SamlSessionManager(new UserRepository());
         $blogContext = new BlogContext();
 
         $authenticator = SamlLoginPluginServiceProvider::createAuthenticator(

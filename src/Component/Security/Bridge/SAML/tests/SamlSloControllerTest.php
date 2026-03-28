@@ -25,6 +25,7 @@ use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
 use WpPack\Component\Security\Bridge\SAML\SamlLogoutHandler;
 use WpPack\Component\Security\Bridge\SAML\SamlSloController;
 use WpPack\Component\Security\Bridge\SAML\Session\SamlSessionManager;
+use WpPack\Component\User\UserRepository;
 
 #[CoversClass(SamlSloController::class)]
 final class SamlSloControllerTest extends TestCase
@@ -46,7 +47,7 @@ final class SamlSloControllerTest extends TestCase
 
         $this->authSession = new AuthenticationSession();
         $this->logoutHandler = new SamlLogoutHandler($factory, $this->authSession);
-        $this->sessionManager = new SamlSessionManager();
+        $this->sessionManager = new SamlSessionManager(new UserRepository());
 
         $this->originalGet = $_GET;
     }

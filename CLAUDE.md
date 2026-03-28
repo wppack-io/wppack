@@ -441,6 +441,7 @@ private function establishAuthSession(TokenInterface $token): void
 - **Wrap:** WordPress functions used across multiple classes or that affect external state (auth cookies, sessions, user switching, rewrite rules, etc.)
 - **No need to wrap:** Functions called only inside a single, self-contained utility (e.g., `home_url()` in a URL builder) or inside hooks registered before the DI container boots
 - **Use existing components first:** Before calling a WordPress function directly, check if a WpPack component already wraps it. Use the component API instead of the raw WordPress function.
+- **Prefer DI over `new`:** Always inject dependencies via the constructor rather than using `new ClassName()` as default parameter values. This ensures dependencies are properly managed by the DI container and makes the dependency graph explicit.
 
 | WordPress function | WpPack component method |
 |---|---|

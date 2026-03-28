@@ -23,6 +23,7 @@ use WpPack\Component\Security\Authentication\Passport\Badge\UserBadge;
 use WpPack\Component\Security\Authentication\Passport\SelfValidatingPassport;
 use WpPack\Component\Security\Authentication\Token\PostAuthenticationToken;
 use WpPack\Component\Security\Exception\AuthenticationException;
+use WpPack\Component\Site\BlogContext;
 
 final class FormLoginAuthenticatorTest extends TestCase
 {
@@ -30,7 +31,7 @@ final class FormLoginAuthenticatorTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->authenticator = new FormLoginAuthenticator();
+        $this->authenticator = new FormLoginAuthenticator(new BlogContext());
     }
 
     #[Test]

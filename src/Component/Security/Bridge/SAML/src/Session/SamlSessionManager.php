@@ -25,7 +25,7 @@ final class SamlSessionManager
     private const META_SESSION_INDEX = '_saml_session_index';
 
     public function __construct(
-        private readonly ?UserRepositoryInterface $userRepository = null,
+        private readonly UserRepositoryInterface $userRepository,
     ) {}
 
     public function save(int $userId, string $nameId, ?string $sessionIndex): void
@@ -61,32 +61,16 @@ final class SamlSessionManager
 
     private function getMeta(int $userId, string $key): mixed
     {
-        if ($this->userRepository !== null) {
-            return $this->userRepository->getMeta($userId, $key, true);
-        }
-
-        return get_user_meta($userId, $key, true);
+        return $this->userRepository->getMeta($userId, $key, true);
     }
 
     private function updateMeta(int $userId, string $key, string $value): void
     {
-        if ($this->userRepository !== null) {
-            $this->userRepository->updateMeta($userId, $key, $value);
-
-            return;
-        }
-
-        update_user_meta($userId, $key, $value);
+        $this->userRepository->updateMeta($userId, $key, $value);
     }
 
     private function deleteMeta(int $userId, string $key): void
     {
-        if ($this->userRepository !== null) {
-            $this->userRepository->deleteMeta($userId, $key);
-
-            return;
-        }
-
-        delete_user_meta($userId, $key);
+        $this->userRepository->deleteMeta($userId, $key);
     }
 }

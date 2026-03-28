@@ -22,6 +22,7 @@ use WpPack\Component\Security\Bridge\SAML\Factory\SamlAuthFactory;
 use WpPack\Component\Security\Bridge\SAML\SamlLogoutHandler;
 use WpPack\Component\Security\Bridge\SAML\SamlLogoutListener;
 use WpPack\Component\Security\Bridge\SAML\Session\SamlSessionManager;
+use WpPack\Component\User\UserRepository;
 
 #[CoversClass(SamlLogoutListener::class)]
 final class SamlLogoutListenerTest extends TestCase
@@ -37,7 +38,7 @@ final class SamlLogoutListenerTest extends TestCase
             'user_email' => 'saml_logout_' . wp_generate_password(8, false) . '@example.com',
         ]);
 
-        $this->sessionManager = new SamlSessionManager();
+        $this->sessionManager = new SamlSessionManager(new UserRepository());
     }
 
     protected function tearDown(): void
