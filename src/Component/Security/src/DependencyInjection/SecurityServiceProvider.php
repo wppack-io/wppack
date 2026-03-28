@@ -28,8 +28,8 @@ use WpPack\Component\Security\Authorization\AuthorizationCheckerInterface;
 use WpPack\Component\Security\Authorization\Voter\AccessDecisionManager;
 use WpPack\Component\Security\Authorization\Voter\CapabilityVoter;
 use WpPack\Component\Security\Authorization\Voter\RoleVoter;
-use WpPack\Component\Security\EventListener\CheckCredentialsListener;
 use WpPack\Component\Role\Authorization\IsGrantedChecker;
+use WpPack\Component\Security\EventListener\CheckCredentialsListener;
 use WpPack\Component\Security\Security;
 
 final class SecurityServiceProvider implements ServiceProviderInterface

@@ -32,6 +32,7 @@ final class CookieAuthenticator implements StatelessAuthenticatorInterface
         private readonly AuthenticationSession $authSession,
         private readonly BlogContextInterface $blogContext = new BlogContext(),
     ) {}
+
     public function supports(Request $request): bool
     {
         return $request->cookies->has(\LOGGED_IN_COOKIE); // @phpstan-ignore constant.notFound

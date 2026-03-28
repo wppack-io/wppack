@@ -15,7 +15,7 @@ namespace WpPack\Component\Logger\Test;
 
 use WpPack\Component\Logger\Handler\HandlerInterface;
 
-final class TestHandler implements HandlerInterface
+class TestHandler implements HandlerInterface
 {
     /** @var list<array{level: string, message: string, context: array<string, mixed>}> */
     private array $records = [];

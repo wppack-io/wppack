@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace WpPack\Component\HttpClient;
 
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
-use Psr\Http\Message\RequestInterface;
 use WpPack\Component\HttpClient\Exception\RequestException;
 
 final class Response implements ResponseInterface

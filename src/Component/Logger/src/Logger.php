@@ -18,7 +18,7 @@ use WpPack\Component\Logger\Context\LoggerContext;
 use WpPack\Component\Logger\Exception\InvalidArgumentException;
 use WpPack\Component\Logger\Handler\HandlerInterface;
 
-class Logger extends AbstractLogger
+final class Logger extends AbstractLogger
 {
     /**
      * RFC 5424 severity levels.
