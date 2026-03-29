@@ -547,6 +547,28 @@ When adding a new component or Bridge package, update all of the following files
 3. **`CLAUDE.md`** — Add to the component list table and key dependencies
 4. **`docs/`** — Create or update documentation for the component
 
+### Checklist for Adding Plugins
+
+When adding a new WordPress plugin package:
+
+1. **Plugin directory** — Create `src/Plugin/{Name}/` with:
+   - `wppack-{slug}.php` — Bootstrap file (`Kernel::registerPlugin`)
+   - `src/` — Plugin source code
+   - `tests/` — Tests
+   - `composer.json` — Package definition
+   - `README.md` — Package README
+   - `.github/` — PR template and workflows (copy from existing plugin)
+   - `.gitignore` — Git ignore rules
+   - `LICENSE` — MIT license file
+2. **Root `composer.json`** — Add to `autoload.psr-4`, `autoload-dev.psr-4`, and `replace`
+3. **`codecov.yml`** — Add coverage configuration
+4. **Symlink** — Create symlink in `web/wp-content/plugins/`:
+   ```bash
+   cd web/wp-content/plugins && ln -s ../../../src/Plugin/{Name} wppack-{slug}
+   ```
+5. **`CLAUDE.md`** — Add to Plugin Packages table
+6. **`docs/plugins/`** — Create plugin documentation
+
 ### Consistency Checks for Documentation & Component Updates
 
 - **When updating documentation**: Verify that link targets in the component list table in `docs/components/README.md` actually exist. When adding new documentation, add a link to the table and ensure path format consistency with existing links (files: `./name.md`, directories: `./name/`)
