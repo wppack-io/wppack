@@ -268,7 +268,7 @@ final class SamlAuthenticator implements AuthenticatorInterface
     {
         $inResponseTo = $response->getInResponseTo();
 
-        if ($inResponseTo === null || $inResponseTo === '') {
+        if ($inResponseTo === '') {
             // IdP-initiated SSO — no InResponseTo to validate
             return;
         }
