@@ -60,9 +60,11 @@ final class OAuthAuthenticator implements AuthenticatorInterface
 
     public function supports(Request $request): bool
     {
-        // Pattern 1: IdP callback (GET + code + state, exact path match)
-        if ($request->isMethod('GET') && $request->query->has('code') && $request->query->has('state')) {
-            return $request->getPathInfo() === $this->callbackPath;
+        // Pattern 1: IdP callback — success (code + state) or error (error + state)
+        if ($request->isMethod('GET') && $request->query->has('state')) {
+            if ($request->query->has('code') || $request->query->has('error')) {
+                return $request->getPathInfo() === $this->callbackPath;
+            }
         }
 
         // Pattern 2: Cross-site transfer (POST + _wppack_oauth_token, exact path match)
