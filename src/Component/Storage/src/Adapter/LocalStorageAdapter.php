@@ -53,7 +53,11 @@ final class LocalStorageAdapter extends AbstractStorageAdapter
         $this->ensureDirectory(\dirname($fullPath));
 
         $dest = fopen($fullPath, 'w');
-        \assert($dest !== false);
+
+        if ($dest === false) {
+            throw new \RuntimeException(\sprintf('Failed to open file for writing: %s', $fullPath));
+        }
+
         stream_copy_to_stream($resource, $dest);
         fclose($dest);
     }
@@ -67,7 +71,10 @@ final class LocalStorageAdapter extends AbstractStorageAdapter
         }
 
         $contents = file_get_contents($fullPath);
-        \assert($contents !== false);
+
+        if ($contents === false) {
+            throw new \RuntimeException(\sprintf('Failed to read file: %s', $fullPath));
+        }
 
         return $contents;
     }
@@ -81,7 +88,10 @@ final class LocalStorageAdapter extends AbstractStorageAdapter
         }
 
         $stream = fopen($fullPath, 'r');
-        \assert($stream !== false);
+
+        if ($stream === false) {
+            throw new \RuntimeException(\sprintf('Failed to open file for reading: %s', $fullPath));
+        }
 
         return $stream;
     }
@@ -251,6 +261,10 @@ final class LocalStorageAdapter extends AbstractStorageAdapter
 
     private function fullPath(string $path): string
     {
+        if (str_contains($path, '..') || str_contains($path, "\0")) {
+            throw new \InvalidArgumentException('Invalid storage path.');
+        }
+
         return $this->rootDir . '/' . ltrim($path, '/');
     }
 
