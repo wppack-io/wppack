@@ -39,6 +39,18 @@ final class ErrorLogInterceptor
 
     public function __construct() {}
 
+    /**
+     * Set LoggerFactory to feed captured entries into the Logger pipeline.
+     */
+    public function setLoggerFactory(LoggerFactory $loggerFactory): void
+    {
+        $this->addListener(static function (string $level, string $message) use ($loggerFactory): void {
+            $loggerFactory->create('error_log')->log($level, $message, [
+                '_source' => 'error_log',
+            ]);
+        });
+    }
+
     public static function getInstance(): ?self
     {
         return self::$instance;

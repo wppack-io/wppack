@@ -158,14 +158,8 @@ final class DebugServiceProvider implements ServiceProviderInterface
                 $builder->findDefinition(\WpPack\Component\Logger\ErrorHandler::class)
                     ->addMethodCall('register');
             }
-            // ErrorLogInterceptor: reuse singleton or fallback register
+            // ErrorLogInterceptor: wire to LoggerDataCollector for toolbar display
             if ($builder->hasDefinition(ErrorLogInterceptor::class)) {
-                $builder->findDefinition(ErrorLogInterceptor::class)
-                    ->setFactory([ErrorLogInterceptor::class, 'create']);
-                if (ErrorLogInterceptor::getInstance() === null) {
-                    $builder->findDefinition(ErrorLogInterceptor::class)
-                        ->addMethodCall('register');
-                }
                 $builder->findDefinition(LoggerDataCollector::class)
                     ->addMethodCall('setErrorLogInterceptor', [
                         new Reference(ErrorLogInterceptor::class),

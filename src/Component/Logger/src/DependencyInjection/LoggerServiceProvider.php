@@ -52,6 +52,13 @@ final class LoggerServiceProvider implements ServiceProviderInterface
             ->addArgument(new Reference(ChannelResolverInterface::class))
             ->addArgument($this->captureAllErrors);
 
-        $builder->register(ErrorLogInterceptor::class);
+        $builder->register(ErrorLogInterceptor::class)
+            ->setFactory([ErrorLogInterceptor::class, 'create']);
+        if (ErrorLogInterceptor::getInstance() === null) {
+            $builder->findDefinition(ErrorLogInterceptor::class)
+                ->addMethodCall('register');
+        }
+        $builder->findDefinition(ErrorLogInterceptor::class)
+            ->addMethodCall('setLoggerFactory', [new Reference(LoggerFactory::class)]);
     }
 }
