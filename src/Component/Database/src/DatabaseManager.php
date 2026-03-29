@@ -427,7 +427,10 @@ final class DatabaseManager
 
         /** @phpstan-ignore property.protected */
         $dbh = $this->wpdb->dbh;
-        \assert($dbh instanceof \mysqli);
+
+        if (!$dbh instanceof \mysqli) {
+            throw new QueryException($sql, 'Database handle is not a mysqli instance.');
+        }
         $stmt = $dbh->prepare($sql);
 
         if ($stmt === false) {
@@ -476,7 +479,10 @@ final class DatabaseManager
 
         /** @phpstan-ignore property.protected */
         $dbh = $this->wpdb->dbh;
-        \assert($dbh instanceof \mysqli);
+
+        if (!$dbh instanceof \mysqli) {
+            throw new QueryException($sql, 'Database handle is not a mysqli instance.');
+        }
         $stmt = $dbh->prepare($sql);
 
         if ($stmt === false) {
