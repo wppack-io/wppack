@@ -93,6 +93,25 @@ $handler->hasInfo('Payment successful');           // true
 $handler->hasInfoThatContains('Payment', ['amount' => 100]); // true
 ```
 
+## error_log() Capture
+
+`ErrorLogInterceptor` captures `error_log()` output from WordPress core and third-party plugins by redirecting to a per-request temporary file:
+
+```php
+use WpPack\Component\Logger\ErrorLogInterceptor;
+
+$interceptor = ErrorLogInterceptor::create(); // singleton
+$interceptor->register(); // redirects error_log to temp file
+
+$interceptor->addListener(function (string $level, string $message): void {
+    // Process captured entries
+});
+
+$interceptor->collect(); // read temp file and notify listeners
+```
+
+When used with the Debug component, entries are displayed in the debug toolbar's Logger panel. See [docs/components/logger/](../../../docs/components/logger/) for details.
+
 ## Documentation
 
 For details, see [docs/components/logger/](../../../docs/components/logger/).

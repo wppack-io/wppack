@@ -96,7 +96,7 @@ Built-in collectors gather profiling data and display it in the toolbar:
 | `RestDataCollector` | Endpoint count | REST API endpoint information |
 | `AssetDataCollector` | Asset count | Registered/enqueued scripts and styles |
 | `AdminDataCollector` | Admin page | Admin screen information |
-| `LoggerDataCollector` | Log count | Log messages, PHP errors, WordPress deprecation/doing_it_wrong notices |
+| `LoggerDataCollector` | Log count | Log messages, PHP errors, `error_log()` capture, WordPress deprecation/doing_it_wrong notices |
 | `DumpDataCollector` | Dump count | Captured dump() calls with file/line info |
 | `MailDataCollector` | Email count | Emails sent via wp_mail(), success/failure tracking |
 | `SecurityDataCollector` | Username | Current user, roles, capabilities, authentication, nonce tracking |
@@ -218,6 +218,12 @@ $builder->registerProvider(new DebugServiceProvider());
 $builder->addCompilerPass(new RegisterDataCollectorsPass());
 $builder->addCompilerPass(new RegisterPanelRenderersPass());
 ```
+
+## error_log() Capture
+
+When the Logger component is installed, `ErrorLogInterceptor` redirects `error_log()` output to a per-request temporary file and feeds captured entries into `LoggerDataCollector` for display in the toolbar's Logger panel. This captures output from WordPress core and third-party plugins that call `error_log()` directly.
+
+**Note:** Set `WP_DEBUG_LOG = false` in `wp-config.php` when using the Debug component. WordPress's `wp_debug_mode()` overwrites `ini_set('error_log')`, which conflicts with the interceptor's temp file redirect.
 
 ## Requirements
 

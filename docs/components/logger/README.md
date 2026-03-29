@@ -736,24 +736,103 @@ $resolver->resolve(WP_PLUGIN_DIR . '/akismet/akismet.php');  // 'plugin:akismet'
 
 `LoggerServiceProvider` はデフォルトで `WordPressChannelResolver` を `ChannelResolverInterface` として登録します。
 
+## error_log() キャプチャ（ErrorLogInterceptor）
+
+WordPress コアやサードパーティプラグインが `error_log()` を直接呼び出す場合、Logger パイプラインを経由しないため通常は Debug ツールバーに表示されません。`ErrorLogInterceptor` はこの問題を解決します。
+
+### 仕組み
+
+1. `register()` — リクエスト開始時に仮ファイルを作成し、`ini_set('error_log', $tempFile)` で PHP の出力先を差し替え
+2. リクエスト処理中 — すべての `error_log()` 呼び出しが仮ファイルに書き込まれる
+3. `collect()` — 仮ファイルを読み取り、エントリをパースしてリスナーに通知
+4. `restore()` — 元の `error_log` 設定に復元し、仮ファイルを削除
+
+リクエストごとに独立した仮ファイルを使用するため、同時リクエスト間でのログ混在が発生しません。
+
+### シングルトンパターン
+
+`ErrorLogInterceptor` はシングルトンとして設計されています。drop-in（early boot）と DI（late boot）の両方から同一インスタンスにアクセスするためです:
+
+```php
+use WpPack\Component\Logger\ErrorLogInterceptor;
+
+$interceptor = ErrorLogInterceptor::create(); // singleton を取得または作成
+$interceptor->register();
+
+// リスナーの追加
+$interceptor->addListener(function (string $level, string $message): void {
+    // $level: 'debug', 'notice', 'warning', 'critical'
+});
+
+$interceptor->collect(); // エントリを読み取り、リスナーに通知
+```
+
+### ログレベルの自動判定
+
+PHP エラーフォーマット（`[timestamp] PHP Warning: ...`）を自動的にパースし、適切なログレベルに変換します:
+
+| PHP エラー種別 | ログレベル |
+|---------------|----------|
+| `Fatal error`, `Parse error` | `critical` |
+| `Warning` | `warning` |
+| `Notice`, `Deprecated`, `Strict Standards` | `notice` |
+| その他（タイムスタンプ付きメッセージ） | `debug` |
+| タイムスタンプなし | `debug` |
+
+マルチラインエントリ（スタックトレース含む）も正しくパースされます。
+
+### WP_DEBUG_LOG との関係
+
+WordPress は `WP_DEBUG_LOG = true` の場合、`wp_debug_mode()` で `ini_set('error_log', 'wp-content/debug.log')` を実行します。これは `ErrorLogInterceptor` の `ini_set` を上書きするため、**`WP_DEBUG_LOG = false` を推奨**します:
+
+```php
+// wp-config.php（推奨設定）
+define('WP_DEBUG', true);
+define('WP_DEBUG_LOG', false);    // ErrorLogInterceptor が error_log を管理
+define('WP_DEBUG_DISPLAY', false);
+```
+
+`WP_DEBUG_LOG = false` でも `ErrorLogHandler` が `error_log()` 関数経由で PHP の error_log INI 設定先に出力するため、Logger パイプラインのログは失われません。
+
+### drop-in との連携
+
+Debug コンポーネントの `fatal-error-handler.php` drop-in は、WordPress のブートプロセスの最初期に `ErrorLogInterceptor` を登録します。さらに `muplugins_loaded` フックで再登録し、`wp_debug_mode()` による `ini_set` の上書きに対応します:
+
+```
+fatal-error-handler.php → ErrorLogInterceptor::register()
+  → wp_debug_mode() が ini_set('error_log') を上書き（WP_DEBUG_LOG=true の場合）
+    → muplugins_loaded → ErrorLogInterceptor::register()（再適用）
+      → 通常プラグイン読み込み → error_log() は仮ファイルへ
+```
+
+drop-in が未インストールの場合は、`DebugServiceProvider` が DI ブート時（`init` フック）にフォールバック登録します。
+
+## LoggerFactory::pushHandler()
+
+`LoggerFactory` にハンドラーを後から追加できます。既に `create()` 済みのロガーインスタンスにも自動的に push されます:
+
+```php
+$factory->pushHandler(new CustomHandler());
+// 既存の全ロガー + 今後作成されるロガーに CustomHandler が追加される
+```
+
+Debug コンポーネントはこのメソッドを使って `DebugHandler` を DI 経由で注入します。
+
 ## Debug コンポーネント統合
 
-Logger と Debug の両方がインストールされている場合:
+Logger と Debug の両方がインストールされている場合、3つのソースからログがツールバーに集約されます:
 
-1. **ErrorHandler** が PHP エラーをキャプチャ → Logger 経由で `DebugHandler` → ツールバーに表示
-2. **WordPress deprecation** フック → `LoggerDataCollector` が Logger 経由でログ → ツールバーに表示
-3. **アプリケーションコード** の `$logger->info(...)` → 同じパイプラインでツールバーに表示
+1. **アプリケーションコード**（`$logger->info(...)`）→ `DebugHandler` → `LoggerDataCollector` → ツールバー
+2. **PHP エラー**（`E_WARNING` 等）→ `ErrorHandler` → Logger → `DebugHandler` → ツールバー
+3. **`error_log()` 呼び出し** → 仮ファイル → `ErrorLogInterceptor::collect()` → `LoggerDataCollector` → ツールバー
+4. **WordPress deprecation** フック → `LoggerDataCollector` が直接キャプチャ → ツールバー
 
 ```
-PHP Error → ErrorHandler → WordPressChannelResolver → LoggerFactory
-                                                          ↓
-                                                    Logger::log()
-                                                    ↓           ↓
-                                            ErrorLogHandler  DebugHandler
-                                            (error_log())    (ツールバー)
+$logger->info()     → Logger::log() → DebugHandler → LoggerDataCollector
+PHP Error           → ErrorHandler  → Logger::log() → DebugHandler → LoggerDataCollector
+error_log('...')    → 仮ファイル    → ErrorLogInterceptor::collect() → LoggerDataCollector
+WP deprecation hook →                                                  LoggerDataCollector
 ```
-
-Logger 未インストール時は `LoggerDataCollector` および `LoggerPanelRenderer` は登録されません（`LoggerFactory` が必須コンストラクタ引数のため）。
 
 ## 主要クラス
 
@@ -768,6 +847,7 @@ Logger 未インストール時は `LoggerDataCollector` および `LoggerPanelR
 | `Handler\HandlerInterface` | カスタムハンドラー用インターフェース |
 | `Handler\ErrorLogHandler` | PHP `error_log()` ハンドラー |
 | `Context\LoggerContext` | 永続的なロギングコンテキスト |
+| `ErrorLogInterceptor` | `error_log()` 出力キャプチャ（仮ファイル方式、シングルトン） |
 | `Test\TestHandler` | テスト用ハンドラー |
 | `Attribute\LoggerChannel` | DI チャンネル指定アトリビュート |
 | `DependencyInjection\RegisterLoggerPass` | チャンネルロガー自動登録コンパイラーパス |
