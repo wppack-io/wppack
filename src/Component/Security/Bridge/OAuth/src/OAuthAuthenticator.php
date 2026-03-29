@@ -125,10 +125,10 @@ final class OAuthAuthenticator implements AuthenticatorInterface
         }
 
         // For cross-site: use returnTo from POST
-        $returnTo = $request->post->get('returnTo');
+        $returnTo = $request->post->getString('returnTo');
         $fallback = admin_url();
 
-        if ($returnTo !== null && $this->isSameOrigin($returnTo)) {
+        if ($returnTo !== '' && $this->isSameOrigin($returnTo)) {
             $redirect = wp_validate_redirect($returnTo, $fallback);
         } else {
             $redirect = $fallback;
@@ -215,6 +215,9 @@ final class OAuthAuthenticator implements AuthenticatorInterface
         if ($subject === '') {
             throw new AuthenticationException('OAuth authentication failed.');
         }
+
+        // Provider-specific claim validation (e.g., Google hosted domain)
+        $this->provider->validateClaims($claims);
 
         // Check if cross-site redirect needed
         $returnTo = $storedState->getReturnTo();

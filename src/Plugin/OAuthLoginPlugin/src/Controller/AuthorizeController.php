@@ -33,7 +33,8 @@ final class AuthorizeController
 
     public function __invoke(): Response
     {
-        $returnTo = $this->request->query->get('return_to');
+        $returnTo = $this->request->query->getString('return_to');
+        $returnTo = $returnTo !== '' ? wp_validate_redirect($returnTo, admin_url()) : null;
 
         $url = $this->entryPoint->getLoginUrl($returnTo);
 

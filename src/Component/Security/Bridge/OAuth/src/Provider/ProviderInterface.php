@@ -41,4 +41,13 @@ interface ProviderInterface
     public function normalizeUserInfo(array $data): array;
 
     public function supportsOidc(): bool;
+
+    /**
+     * Validate provider-specific claims after authentication.
+     *
+     * @param array<string, mixed> $claims
+     *
+     * @throws \WpPack\Component\Security\Exception\AuthenticationException
+     */
+    public function validateClaims(array $claims): void;
 }

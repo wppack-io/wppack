@@ -142,6 +142,11 @@ final class GoogleProvider implements ProviderInterface
         }
     }
 
+    public function validateClaims(array $claims): void
+    {
+        $this->validateHostedDomain($claims);
+    }
+
     public function setDiscoveryDocument(DiscoveryDocument $discoveryDocument): void
     {
         $this->discoveryDocument = $discoveryDocument;
