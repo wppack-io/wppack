@@ -198,6 +198,10 @@ final class OAuthAuthenticator implements AuthenticatorInterface
                     'Accept' => 'application/json',
                 ])->get($userInfoEndpoint);
 
+                if (!$response->successful()) {
+                    throw new AuthenticationException('Failed to fetch user info from OAuth provider.');
+                }
+
                 /** @var array<string, mixed> $rawClaims */
                 $rawClaims = json_decode($response->body(), true) ?? [];
                 $claims = $this->provider->normalizeUserInfo($rawClaims);

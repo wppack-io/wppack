@@ -62,7 +62,7 @@ class OAuthLoginForm
         }
 
         $redirectTo = $this->request->query->getString('redirect_to');
-        $returnTo = $redirectTo !== '' ? $redirectTo : admin_url();
+        $returnTo = $redirectTo !== '' ? wp_validate_redirect($redirectTo, admin_url()) : admin_url();
 
         $buttons = '';
 

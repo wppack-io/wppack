@@ -32,7 +32,7 @@ final class CallbackController
         $result = $this->authenticationManager->handleAuthentication(null, '', '');
 
         if ($result instanceof \WP_User || $result instanceof \WP_Error) {
-            return new Response('', 302);
+            return new RedirectResponse(admin_url());
         }
 
         return new RedirectResponse(wp_login_url() . '?oauth_error=1');

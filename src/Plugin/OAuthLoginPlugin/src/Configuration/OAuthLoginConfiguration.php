@@ -56,6 +56,10 @@ final readonly class OAuthLoginConfiguration
         $providerConfigs = \constant('OAUTH_PROVIDERS');
 
         foreach ($providerConfigs as $name => $p) {
+            if (!preg_match('/^[a-z0-9\-]+$/', $name)) {
+                throw new \RuntimeException(\sprintf('OAuth provider name "%s" is invalid. Use only lowercase letters, numbers, and hyphens.', $name));
+            }
+
             if (!isset($p['type'], $p['client_id'], $p['client_secret'])) {
                 throw new \RuntimeException(\sprintf('OAuth provider "%s" is missing required fields: type, client_id, client_secret.', $name));
             }
