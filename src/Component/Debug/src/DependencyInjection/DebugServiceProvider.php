@@ -82,6 +82,7 @@ use WpPack\Component\Debug\Toolbar\Panel\WordPressPanelRenderer;
 use WpPack\Component\Debug\Toolbar\Panel\TemplateFormatters;
 use WpPack\Component\Debug\Toolbar\ToolbarRenderer;
 use WpPack\Component\Debug\Toolbar\ToolbarSubscriber;
+use WpPack\Component\Logger\ErrorLogInterceptor;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
@@ -145,6 +146,8 @@ final class DebugServiceProvider implements ServiceProviderInterface
             && $builder->hasDefinition(\WpPack\Component\Logger\LoggerFactory::class)
         ) {
             $builder->register(DebugHandler::class)->autowire();
+            $builder->findDefinition(\WpPack\Component\Logger\LoggerFactory::class)
+                ->addMethodCall('pushHandler', [new Reference(DebugHandler::class)]);
             $builder->register(LoggerDataCollector::class)
                 ->addTag(RegisterDataCollectorsPass::TAG)
                 ->autowire();
@@ -154,6 +157,19 @@ final class DebugServiceProvider implements ServiceProviderInterface
             if ($builder->hasDefinition(\WpPack\Component\Logger\ErrorHandler::class)) {
                 $builder->findDefinition(\WpPack\Component\Logger\ErrorHandler::class)
                     ->addMethodCall('register');
+            }
+            // ErrorLogInterceptor: reuse singleton or fallback register
+            if ($builder->hasDefinition(ErrorLogInterceptor::class)) {
+                $builder->findDefinition(ErrorLogInterceptor::class)
+                    ->setFactory([ErrorLogInterceptor::class, 'create']);
+                if (ErrorLogInterceptor::getInstance() === null) {
+                    $builder->findDefinition(ErrorLogInterceptor::class)
+                        ->addMethodCall('register');
+                }
+                $builder->findDefinition(LoggerDataCollector::class)
+                    ->addMethodCall('setErrorLogInterceptor', [
+                        new Reference(ErrorLogInterceptor::class),
+                    ]);
             }
             $builder->findDefinition(ExceptionHandler::class)
                 ->setArgument('$logger', new Reference('logger.debug'));

@@ -20,6 +20,7 @@ use WpPack\Component\DependencyInjection\ServiceProviderInterface;
 use WpPack\Component\Logger\ChannelResolver\ChannelResolverInterface;
 use WpPack\Component\Logger\ChannelResolver\WordPressChannelResolver;
 use WpPack\Component\Logger\ErrorHandler;
+use WpPack\Component\Logger\ErrorLogInterceptor;
 use WpPack\Component\Logger\Handler\ErrorLogHandler;
 use WpPack\Component\Logger\LoggerFactory;
 
@@ -50,5 +51,7 @@ final class LoggerServiceProvider implements ServiceProviderInterface
             ->addArgument(new Reference(LoggerFactory::class))
             ->addArgument(new Reference(ChannelResolverInterface::class))
             ->addArgument($this->captureAllErrors);
+
+        $builder->register(ErrorLogInterceptor::class);
     }
 }

@@ -46,6 +46,7 @@ use WpPack\Component\Debug\ErrorHandler\ErrorRenderer;
 use WpPack\Component\Debug\ErrorHandler\ExceptionHandler;
 use WpPack\Component\Debug\ErrorHandler\FatalErrorHandler;
 use WpPack\Component\Debug\ErrorHandler\RedirectHandler;
+use WpPack\Component\Logger\ErrorLogInterceptor;
 
 // Kill switch: define('WPPACK_DEBUG_ENABLED', false) to disable
 if (\defined('WPPACK_DEBUG_ENABLED') && !WPPACK_DEBUG_ENABLED) {
@@ -107,5 +108,18 @@ $GLOBALS['_wppack_redirect_handler'] = $redirectHandler;
 $wpErrorCollector = new WpErrorDataCollector();
 $wpErrorCollector->register();
 $GLOBALS['_wppack_wp_error_collector'] = $wpErrorCollector;
+
+// Capture error_log() output early, then re-register after wp_debug_mode()
+if (class_exists(ErrorLogInterceptor::class)) {
+    $errorLogInterceptor = ErrorLogInterceptor::create();
+    $errorLogInterceptor->register();
+
+    // Re-register after wp_debug_mode() may overwrite error_log ini
+    if (\function_exists('add_action')) {
+        add_action('muplugins_loaded', static function () use ($errorLogInterceptor): void {
+            $errorLogInterceptor->register();
+        }, \PHP_INT_MIN);
+    }
+}
 
 return new FatalErrorHandler($renderer, $config);

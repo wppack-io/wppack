@@ -24,8 +24,17 @@ final class LoggerFactory
      * @param HandlerInterface[] $defaultHandlers
      */
     public function __construct(
-        private readonly array $defaultHandlers = [],
+        private array $defaultHandlers = [],
     ) {}
+
+    public function pushHandler(HandlerInterface $handler): void
+    {
+        $this->defaultHandlers[] = $handler;
+
+        foreach ($this->loggers as $logger) {
+            $logger->pushHandler($handler);
+        }
+    }
 
     public function create(string $name): Logger
     {

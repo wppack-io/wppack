@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Debug\DataCollector;
 
 use WpPack\Component\Debug\Attribute\AsDataCollector;
-use WpPack\Component\Logger\LoggerFactory;
+use WpPack\Component\Logger\ErrorLogInterceptor;
 
 #[AsDataCollector(name: 'logger', priority: 100)]
 final class LoggerDataCollector extends AbstractDataCollector
@@ -32,10 +32,19 @@ final class LoggerDataCollector extends AbstractDataCollector
     /** @var list<array{level: string, message: string, context: array<string, mixed>, timestamp: float, channel: string, file: string, line: int}> */
     private array $logs = [];
 
-    public function __construct(
-        private readonly LoggerFactory $loggerFactory,
-    ) {
+    private ?ErrorLogInterceptor $errorLogInterceptor = null;
+
+    public function __construct()
+    {
         $this->registerHooks();
+    }
+
+    public function setErrorLogInterceptor(ErrorLogInterceptor $interceptor): void
+    {
+        $this->errorLogInterceptor = $interceptor;
+        $interceptor->addListener(function (string $level, string $message): void {
+            $this->log($level, $message, ['_source' => 'error_log'], 'error_log');
+        });
     }
 
     public function getName(): string
@@ -101,7 +110,7 @@ final class LoggerDataCollector extends AbstractDataCollector
             }
         }
 
-        $context = [
+        $this->log('notice', $message, [
             '_type' => 'deprecation',
             'type' => 'deprecation',
             'function' => $function,
@@ -109,9 +118,7 @@ final class LoggerDataCollector extends AbstractDataCollector
             'version' => $version,
             '_file' => $file,
             '_line' => $line,
-        ];
-
-        $this->loggerFactory->create('wordpress')->notice($message, $context);
+        ], 'wordpress');
     }
 
     /**
@@ -138,7 +145,7 @@ final class LoggerDataCollector extends AbstractDataCollector
             }
         }
 
-        $context = [
+        $this->log('notice', $logMessage, [
             '_type' => 'deprecation',
             'type' => 'deprecated_hook',
             'hook' => $hook,
@@ -146,9 +153,7 @@ final class LoggerDataCollector extends AbstractDataCollector
             'version' => $version,
             '_file' => $file,
             '_line' => $line,
-        ];
-
-        $this->loggerFactory->create('wordpress')->notice($logMessage, $context);
+        ], 'wordpress');
     }
 
     /**
@@ -175,20 +180,21 @@ final class LoggerDataCollector extends AbstractDataCollector
             }
         }
 
-        $context = [
+        $this->log('notice', $logMessage, [
             '_type' => 'deprecation',
             'type' => 'doing_it_wrong',
             'function' => $function,
             'version' => $version,
             '_file' => $file,
             '_line' => $line,
-        ];
-
-        $this->loggerFactory->create('wordpress')->notice($logMessage, $context);
+        ], 'wordpress');
     }
 
     public function collect(): void
     {
+        // Flush captured error_log entries before collecting
+        $this->errorLogInterceptor?->collect();
+
         $levelCounts = [];
         $channelCounts = [];
         $deprecationCount = 0;

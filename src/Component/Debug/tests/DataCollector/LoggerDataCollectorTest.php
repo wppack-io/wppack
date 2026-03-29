@@ -29,7 +29,7 @@ final class LoggerDataCollectorTest extends TestCase
     {
         $this->handler = new TestHandler();
         $this->factory = new LoggerFactory([$this->handler]);
-        $this->collector = new LoggerDataCollector($this->factory);
+        $this->collector = new LoggerDataCollector();
     }
 
     protected function tearDown(): void
@@ -128,15 +128,18 @@ final class LoggerDataCollectorTest extends TestCase
     {
         $this->collector->captureDeprecation('old_function', 'new_function', '5.0');
 
-        $records = $this->handler->getRecords();
-        self::assertCount(1, $records);
-        self::assertSame('notice', $records[0]['level']);
-        self::assertStringContainsString('old_function', $records[0]['message']);
-        self::assertStringContainsString('deprecated', $records[0]['message']);
-        self::assertStringContainsString('5.0', $records[0]['message']);
-        self::assertStringContainsString('new_function', $records[0]['message']);
-        self::assertSame('deprecation', $records[0]['context']['_type']);
-        self::assertSame('deprecation', $records[0]['context']['type']);
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertCount(1, $data['logs']);
+        self::assertSame('notice', $data['logs'][0]['level']);
+        self::assertStringContainsString('old_function', $data['logs'][0]['message']);
+        self::assertStringContainsString('deprecated', $data['logs'][0]['message']);
+        self::assertStringContainsString('5.0', $data['logs'][0]['message']);
+        self::assertStringContainsString('new_function', $data['logs'][0]['message']);
+        self::assertSame('deprecation', $data['logs'][0]['context']['_type']);
+        self::assertSame('deprecation', $data['logs'][0]['context']['type']);
+        self::assertSame('wordpress', $data['logs'][0]['channel']);
     }
 
     #[Test]
@@ -144,9 +147,11 @@ final class LoggerDataCollectorTest extends TestCase
     {
         $this->collector->captureDeprecation('old_function', '', '5.0');
 
-        $records = $this->handler->getRecords();
-        self::assertCount(1, $records);
-        self::assertStringContainsString('an alternative', $records[0]['message']);
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertCount(1, $data['logs']);
+        self::assertStringContainsString('an alternative', $data['logs'][0]['message']);
     }
 
     #[Test]
@@ -154,13 +159,15 @@ final class LoggerDataCollectorTest extends TestCase
     {
         $this->collector->captureDeprecatedHook('old_hook', 'new_hook', '5.0', '');
 
-        $records = $this->handler->getRecords();
-        self::assertCount(1, $records);
-        self::assertSame('notice', $records[0]['level']);
-        self::assertStringContainsString('old_hook', $records[0]['message']);
-        self::assertStringContainsString('deprecated', $records[0]['message']);
-        self::assertSame('deprecation', $records[0]['context']['_type']);
-        self::assertSame('deprecated_hook', $records[0]['context']['type']);
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertCount(1, $data['logs']);
+        self::assertSame('notice', $data['logs'][0]['level']);
+        self::assertStringContainsString('old_hook', $data['logs'][0]['message']);
+        self::assertStringContainsString('deprecated', $data['logs'][0]['message']);
+        self::assertSame('deprecation', $data['logs'][0]['context']['_type']);
+        self::assertSame('deprecated_hook', $data['logs'][0]['context']['type']);
     }
 
     #[Test]
@@ -168,14 +175,16 @@ final class LoggerDataCollectorTest extends TestCase
     {
         $this->collector->captureDoingItWrong('some_function', 'You are doing it wrong.', '5.0');
 
-        $records = $this->handler->getRecords();
-        self::assertCount(1, $records);
-        self::assertSame('notice', $records[0]['level']);
-        self::assertStringContainsString('some_function', $records[0]['message']);
-        self::assertStringContainsString('incorrectly', $records[0]['message']);
-        self::assertStringContainsString('5.0', $records[0]['message']);
-        self::assertSame('deprecation', $records[0]['context']['_type']);
-        self::assertSame('doing_it_wrong', $records[0]['context']['type']);
+        $this->collector->collect();
+        $data = $this->collector->getData();
+
+        self::assertCount(1, $data['logs']);
+        self::assertSame('notice', $data['logs'][0]['level']);
+        self::assertStringContainsString('some_function', $data['logs'][0]['message']);
+        self::assertStringContainsString('incorrectly', $data['logs'][0]['message']);
+        self::assertStringContainsString('5.0', $data['logs'][0]['message']);
+        self::assertSame('deprecation', $data['logs'][0]['context']['_type']);
+        self::assertSame('doing_it_wrong', $data['logs'][0]['context']['type']);
     }
 
     #[Test]
