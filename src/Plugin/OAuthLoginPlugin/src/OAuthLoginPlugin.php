@@ -24,9 +24,9 @@ use WpPack\Component\Security\Authentication\AuthenticationManager;
 use WpPack\Component\Security\Bridge\OAuth\OAuthEntryPoint;
 use WpPack\Component\Security\DependencyInjection\RegisterAuthenticatorsPass;
 use WpPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration;
-use WpPack\Plugin\OAuthLoginPlugin\Controller\AuthorizeController;
-use WpPack\Plugin\OAuthLoginPlugin\Controller\CallbackController;
-use WpPack\Plugin\OAuthLoginPlugin\Controller\VerifyController;
+use WpPack\Component\Security\Bridge\OAuth\OAuthAuthorizeController;
+use WpPack\Component\Security\Bridge\OAuth\OAuthCallbackController;
+use WpPack\Component\Security\Bridge\OAuth\OAuthVerifyController;
 use WpPack\Plugin\OAuthLoginPlugin\DependencyInjection\OAuthLoginPluginServiceProvider;
 
 class OAuthLoginPlugin extends AbstractPlugin
@@ -82,11 +82,11 @@ class OAuthLoginPlugin extends AbstractPlugin
             $entryPoint = $container->get($entryPointId);
             $entryPoints[$name] = $entryPoint;
 
-            $authorizeController = new AuthorizeController($entryPoint, $request);
+            $authorizeController = new OAuthAuthorizeController($entryPoint, $request);
 
             $router->addRoute($config->getAuthorizePath($name), $authorizeController, name: 'oauth_' . $name . '_authorize', methods: ['GET']);
-            $router->addRoute($config->getCallbackPath($name), $container->get(CallbackController::class), name: 'oauth_' . $name . '_callback', methods: ['GET']);
-            $router->addRoute($config->getVerifyPath($name), $container->get(VerifyController::class), name: 'oauth_' . $name . '_verify', methods: ['POST']);
+            $router->addRoute($config->getCallbackPath($name), $container->get(OAuthCallbackController::class), name: 'oauth_' . $name . '_callback', methods: ['GET']);
+            $router->addRoute($config->getVerifyPath($name), $container->get(OAuthVerifyController::class), name: 'oauth_' . $name . '_verify', methods: ['POST']);
         }
 
         // Register login form or SSO-only entry point

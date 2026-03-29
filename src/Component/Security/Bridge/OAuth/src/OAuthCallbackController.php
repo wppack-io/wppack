@@ -11,17 +11,17 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\OAuthLoginPlugin\Controller;
+namespace WpPack\Component\Security\Bridge\OAuth;
 
 use WpPack\Component\HttpFoundation\RedirectResponse;
 use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Security\Authentication\AuthenticationManagerInterface;
 
 /**
- * Handles /oauth/callback — delegates to AuthenticationManager which
- * finds the matching OAuthAuthenticator via supports().
+ * Handles /oauth/{provider}/callback — delegates to AuthenticationManager
+ * which finds the matching OAuthAuthenticator via supports().
  */
-final class CallbackController
+final class OAuthCallbackController
 {
     public function __construct(
         private readonly AuthenticationManagerInterface $authenticationManager,

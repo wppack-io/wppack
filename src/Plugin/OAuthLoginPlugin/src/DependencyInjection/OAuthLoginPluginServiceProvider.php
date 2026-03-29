@@ -41,6 +41,8 @@ use WpPack\Component\Security\Bridge\OAuth\Token\IdTokenValidator;
 use WpPack\Component\Security\Bridge\OAuth\Token\JwksProvider;
 use WpPack\Component\Security\Bridge\OAuth\Token\TokenExchanger;
 use WpPack\Component\Security\Bridge\OAuth\UserResolution\OAuthUserResolver;
+use WpPack\Component\Security\Bridge\OAuth\OAuthCallbackController;
+use WpPack\Component\Security\Bridge\OAuth\OAuthVerifyController;
 use WpPack\Component\Security\Bridge\OAuth\UserResolution\OAuthUserResolverInterface;
 use WpPack\Component\Security\DependencyInjection\SecurityServiceProvider;
 use WpPack\Component\Site\BlogContext;
@@ -51,8 +53,6 @@ use WpPack\Component\Transient\TransientManager;
 use WpPack\Component\User\UserRepositoryInterface;
 use WpPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration;
 use WpPack\Plugin\OAuthLoginPlugin\Configuration\ProviderConfiguration;
-use WpPack\Plugin\OAuthLoginPlugin\Controller\CallbackController;
-use WpPack\Plugin\OAuthLoginPlugin\Controller\VerifyController;
 use WpPack\Plugin\OAuthLoginPlugin\OAuthLoginForm;
 
 final class OAuthLoginPluginServiceProvider implements ServiceProviderInterface
@@ -124,10 +124,10 @@ final class OAuthLoginPluginServiceProvider implements ServiceProviderInterface
         }
 
         // Controllers (AuthorizeController is created in boot() with resolved entry points)
-        $builder->register(CallbackController::class)
+        $builder->register(OAuthCallbackController::class)
             ->addArgument(new Reference(AuthenticationManagerInterface::class));
 
-        $builder->register(VerifyController::class)
+        $builder->register(OAuthVerifyController::class)
             ->addArgument(new Reference(AuthenticationManagerInterface::class));
 
         // Login Form

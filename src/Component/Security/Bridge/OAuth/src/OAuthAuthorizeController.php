@@ -11,12 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\OAuthLoginPlugin\Controller;
+namespace WpPack\Component\Security\Bridge\OAuth;
 
 use WpPack\Component\HttpFoundation\RedirectResponse;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\HttpFoundation\Response;
-use WpPack\Component\Security\Bridge\OAuth\OAuthEntryPoint;
 
 /**
  * Handles /oauth/{provider}/authorize requests.
@@ -24,7 +23,7 @@ use WpPack\Component\Security\Bridge\OAuth\OAuthEntryPoint;
  * Each provider gets its own controller instance bound to a specific
  * OAuthEntryPoint, eliminating the need for query-parameter-based dispatch.
  */
-final class AuthorizeController
+final class OAuthAuthorizeController
 {
     public function __construct(
         private readonly OAuthEntryPoint $entryPoint,
