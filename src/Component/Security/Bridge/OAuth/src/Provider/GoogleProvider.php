@@ -15,6 +15,7 @@ namespace WpPack\Component\Security\Bridge\OAuth\Provider;
 
 use WpPack\Component\Security\Bridge\OAuth\Configuration\OAuthConfiguration;
 use WpPack\Component\Security\Bridge\OAuth\Token\DiscoveryDocument;
+use WpPack\Component\Security\Exception\AuthenticationException;
 
 final class GoogleProvider implements ProviderInterface
 {
@@ -117,7 +118,7 @@ final class GoogleProvider implements ProviderInterface
      * Validate that the `hd` claim in the ID token matches the configured hosted domain(s).
      *
      * @param array<string, mixed> $claims
-     * @throws \InvalidArgumentException if the hosted domain does not match
+     * @throws AuthenticationException if the hosted domain does not match
      */
     public function validateHostedDomain(array $claims): void
     {
@@ -128,16 +129,15 @@ final class GoogleProvider implements ProviderInterface
         $hd = $claims['hd'] ?? null;
 
         if ($hd === null) {
-            throw new \InvalidArgumentException('The ID token does not contain a "hd" claim.');
+            throw new AuthenticationException('The ID token does not contain a "hd" claim.');
         }
 
         $allowedDomains = \is_array($this->hostedDomain) ? $this->hostedDomain : [$this->hostedDomain];
 
         if (!\in_array($hd, $allowedDomains, true)) {
-            throw new \InvalidArgumentException(\sprintf(
-                'The hosted domain "%s" is not allowed. Allowed domains: %s',
+            throw new AuthenticationException(\sprintf(
+                'The hosted domain "%s" is not allowed.',
                 $hd,
-                implode(', ', $allowedDomains),
             ));
         }
     }

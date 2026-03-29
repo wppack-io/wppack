@@ -18,6 +18,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Security\Bridge\OAuth\Configuration\OAuthConfiguration;
 use WpPack\Component\Security\Bridge\OAuth\Provider\GoogleProvider;
+use WpPack\Component\Security\Exception\AuthenticationException;
 
 #[CoversClass(GoogleProvider::class)]
 final class GoogleProviderTest extends TestCase
@@ -84,7 +85,7 @@ final class GoogleProviderTest extends TestCase
     {
         $provider = new GoogleProvider($this->configuration, hostedDomain: 'example.com');
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(AuthenticationException::class);
         $this->expectExceptionMessage('The hosted domain "other.com" is not allowed');
 
         $provider->validateHostedDomain(['hd' => 'other.com']);
@@ -95,7 +96,7 @@ final class GoogleProviderTest extends TestCase
     {
         $provider = new GoogleProvider($this->configuration, hostedDomain: 'example.com');
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(AuthenticationException::class);
         $this->expectExceptionMessage('does not contain a "hd" claim');
 
         $provider->validateHostedDomain(['sub' => '123']);
@@ -115,7 +116,7 @@ final class GoogleProviderTest extends TestCase
     {
         $provider = new GoogleProvider($this->configuration, hostedDomain: ['primary.com', 'secondary.com']);
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(AuthenticationException::class);
         $provider->validateHostedDomain(['hd' => 'unknown.com']);
     }
 
