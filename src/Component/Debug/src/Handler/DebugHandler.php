@@ -32,8 +32,8 @@ final class DebugHandler implements HandlerInterface
         $channel = $context['_channel'] ?? 'app';
         $filteredContext = array_diff_key($context, ['_channel' => true]);
 
-        // Skip backtrace if _file is already provided (e.g. from ErrorHandler)
-        if (!isset($filteredContext['_file']) || $filteredContext['_file'] === '') {
+        // Skip backtrace if _file is already provided (e.g. from ErrorHandler, ErrorLogInterceptor)
+        if (!isset($filteredContext['_file'])) {
             $file = '';
             $line = 0;
             $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 8);

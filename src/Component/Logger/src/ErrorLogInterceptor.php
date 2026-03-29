@@ -47,6 +47,8 @@ final class ErrorLogInterceptor
         $this->addListener(static function (string $level, string $message) use ($loggerFactory): void {
             $loggerFactory->create('error_log')->log($level, $message, [
                 '_source' => 'error_log',
+                '_file' => '',
+                '_line' => 0,
             ]);
         });
     }
@@ -139,6 +141,9 @@ final class ErrorLogInterceptor
         if (!\is_string($content) || $content === '') {
             return;
         }
+
+        // Truncate to avoid re-reading on next collect()
+        @file_put_contents($this->tempFile, '');
 
         $this->collecting = true;
 

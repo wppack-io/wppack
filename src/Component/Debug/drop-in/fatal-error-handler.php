@@ -114,11 +114,15 @@ if (class_exists(ErrorLogInterceptor::class)) {
     $errorLogInterceptor = ErrorLogInterceptor::create();
     $errorLogInterceptor->register();
 
-    // Re-register after wp_debug_mode() may overwrite error_log ini
+    // Re-register after wp_debug_mode() overwrites error_log ini.
+    // Hook at multiple points to ensure coverage across all plugin loading phases.
     if (\function_exists('add_action')) {
-        add_action('muplugins_loaded', static function () use ($errorLogInterceptor): void {
+        $reRegister = static function () use ($errorLogInterceptor): void {
             $errorLogInterceptor->register();
-        }, \PHP_INT_MIN);
+        };
+        add_action('muplugins_loaded', $reRegister, \PHP_INT_MIN);
+        add_action('network_plugin_loaded', $reRegister, \PHP_INT_MIN);
+        add_action('plugins_loaded', $reRegister, \PHP_INT_MIN);
     }
 }
 

@@ -42,9 +42,6 @@ final class LoggerDataCollector extends AbstractDataCollector
     public function setErrorLogInterceptor(ErrorLogInterceptor $interceptor): void
     {
         $this->errorLogInterceptor = $interceptor;
-        $interceptor->addListener(function (string $level, string $message): void {
-            $this->log($level, $message, ['_source' => 'error_log'], 'error_log');
-        });
     }
 
     public function getName(): string
