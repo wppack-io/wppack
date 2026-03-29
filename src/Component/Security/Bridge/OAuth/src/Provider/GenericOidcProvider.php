@@ -103,9 +103,7 @@ final class GenericOidcProvider implements ProviderInterface
         return true;
     }
 
-    public function validateClaims(array $claims): void
-    {
-    }
+    public function validateClaims(array $claims): void {}
 
     public function setDiscoveryDocument(DiscoveryDocument $discoveryDocument): void
     {

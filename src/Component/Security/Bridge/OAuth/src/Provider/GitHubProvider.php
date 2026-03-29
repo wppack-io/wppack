@@ -103,7 +103,5 @@ final class GitHubProvider implements ProviderInterface
         return false;
     }
 
-    public function validateClaims(array $claims): void
-    {
-    }
+    public function validateClaims(array $claims): void {}
 }
