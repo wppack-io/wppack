@@ -73,6 +73,10 @@ final readonly class DiscoveryDocument
             'end_session_endpoint',
         ];
 
+        if (!isset($data['issuer'], $data['authorization_endpoint'], $data['token_endpoint'])) {
+            throw new \RuntimeException('Discovery document is missing required fields: issuer, authorization_endpoint, token_endpoint.');
+        }
+
         foreach ($httpsEndpoints as $key) {
             if (isset($data[$key]) && !str_starts_with($data[$key], 'https://')) {
                 throw new \RuntimeException(\sprintf('Endpoint "%s" must use HTTPS.', $key));

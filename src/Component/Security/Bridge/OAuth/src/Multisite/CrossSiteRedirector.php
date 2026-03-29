@@ -121,6 +121,8 @@ final class CrossSiteRedirector
         $expectedHmac = wp_hash($payload);
 
         if (!hash_equals($expectedHmac, $storedHmac)) {
+            $this->transientManager->delete($key);
+
             return null;
         }
 

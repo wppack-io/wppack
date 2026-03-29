@@ -49,7 +49,7 @@ final class AzureProvider implements ProviderInterface
             'client_id' => $this->configuration->getClientId(),
             'redirect_uri' => $this->configuration->getRedirectUri(),
             'response_type' => 'code',
-            'scope' => implode(' ', $this->configuration->getScopes()),
+            'scope' => implode(' ', $this->configuration->getScopes() ?: ['openid', 'email', 'profile']),
             'state' => $state,
             'nonce' => $nonce,
             'prompt' => 'select_account',

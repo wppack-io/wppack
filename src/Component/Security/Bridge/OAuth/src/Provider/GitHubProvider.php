@@ -34,7 +34,7 @@ final class GitHubProvider implements ProviderInterface
         $params = [
             'client_id' => $this->configuration->getClientId(),
             'redirect_uri' => $this->configuration->getRedirectUri(),
-            'scope' => implode(' ', $this->configuration->getScopes()),
+            'scope' => implode(' ', $this->configuration->getScopes() ?: ['read:user', 'user:email']),
             'state' => $state,
         ];
 
