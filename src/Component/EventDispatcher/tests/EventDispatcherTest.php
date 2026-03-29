@@ -110,7 +110,7 @@ final class EventDispatcherTest extends TestCase
 
         $this->dispatcher->addListener('wppack_test_hook', function (WordPressEvent $event) use (&$received): void {
             $received = $event;
-        }, acceptedArgs: 2);
+        });
 
         do_action('wppack_test_hook', 'arg1', 'arg2');
 
@@ -127,7 +127,7 @@ final class EventDispatcherTest extends TestCase
 
         $this->dispatcher->addListener('wppack_custom_hook', function (TestWordPressEvent $event) use (&$received): void {
             $received = $event;
-        }, acceptedArgs: 2, eventClass: TestWordPressEvent::class);
+        }, eventClass: TestWordPressEvent::class);
 
         do_action('wppack_custom_hook', 42, 'value');
 
@@ -222,7 +222,7 @@ final class EventDispatcherTest extends TestCase
 
         $this->dispatcher->addListener(SavePostTestEvent::class, function (SavePostTestEvent $event) use (&$received): void {
             $received = $event;
-        }, acceptedArgs: 3);
+        });
 
         do_action('save_post', 42, 'post_obj', true);
 

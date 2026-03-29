@@ -41,14 +41,14 @@ final class EventDispatcher implements EventDispatcherInterface
      * @param string                          $event        FQCN or WordPress hook name
      * @param callable                        $listener     Listener callable
      * @param int                             $priority     Priority (WordPress style: lower = earlier)
-     * @param int                             $acceptedArgs Number of arguments for WordPress hooks
+     * @param int                             $acceptedArgs Number of arguments for WordPress hooks (default: PHP_INT_MAX = all)
      * @param string|null $eventClass  Event class for WordPress hooks
      */
     public function addListener(
         string $event,
         callable $listener,
         int $priority = 10,
-        int $acceptedArgs = 1,
+        int $acceptedArgs = \PHP_INT_MAX,
         ?string $eventClass = null,
     ): void {
         if ($eventClass !== null && !is_subclass_of($eventClass, WordPressEvent::class) && $eventClass !== WordPressEvent::class) {
@@ -147,7 +147,7 @@ final class EventDispatcher implements EventDispatcherInterface
         /** @var int $priority */
         $priority = $params[1] ?? 10;
         /** @var int $acceptedArgs */
-        $acceptedArgs = $params[2] ?? 1;
+        $acceptedArgs = $params[2] ?? \PHP_INT_MAX;
         /** @var string|null $eventClass */
         $eventClass = $params[3] ?? null;
 

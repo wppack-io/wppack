@@ -62,7 +62,7 @@ final class AsEventListenerTest extends TestCase
         self::assertNull($listener->event);
         self::assertNull($listener->method);
         self::assertSame(10, $listener->priority);
-        self::assertSame(1, $listener->acceptedArgs);
+        self::assertSame(\PHP_INT_MAX, $listener->acceptedArgs);
     }
 
     #[Test]

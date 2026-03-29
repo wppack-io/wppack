@@ -23,8 +23,8 @@ interface EventSubscriberInterface
      *
      *  - A method name:                       'methodName'
      *  - An array of [method, priority]:      ['methodName', 20]
-     *  - An array of [method, priority, acceptedArgs]:           ['methodName', 10, 3]
-     *  - An array of [method, priority, acceptedArgs, eventClass]: ['methodName', 10, 1, EventClass::class]
+     *  - An array of [method, priority, acceptedArgs]:           ['methodName', 10, 3]  (default: PHP_INT_MAX, accepts all)
+     *  - An array of [method, priority, acceptedArgs, eventClass]: ['methodName', 10, PHP_INT_MAX, EventClass::class]
      *  - An array of arrays for multiple listeners:
      *      [['methodName1', 10], ['methodName2', 20]]
      *

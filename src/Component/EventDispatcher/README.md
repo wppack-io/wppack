@@ -47,7 +47,7 @@ use WpPack\Component\EventDispatcher\WordPressEvent;
 $dispatcher->addListener('save_post', function (WordPressEvent $event): void {
     [$postId, $post, $update] = $event->args;
     // Handle save...
-}, acceptedArgs: 3);
+});
 ```
 
 ### Extended Event Classes
@@ -71,7 +71,6 @@ $dispatcher->addListener(
         $event->getPost();    // → \WP_Post
         $event->getUpdate();  // → bool
     },
-    acceptedArgs: 3,
 );
 ```
 
@@ -94,7 +93,7 @@ final class OrderHandler
     #[AsEventListener(event: OrderPlacedEvent::class, priority: 10)]
     public function onPlaced(OrderPlacedEvent $event): void { ... }
 
-    #[AsEventListener(event: 'save_post', acceptedArgs: 3)]
+    #[AsEventListener(event: 'save_post')]
     public function onSavePost(WordPressEvent $event): void { ... }
 }
 ```
@@ -111,7 +110,7 @@ class OrderSubscriber implements EventSubscriberInterface
         return [
             OrderPlacedEvent::class => 'onPlaced',
             OrderCancelledEvent::class => ['onCancelled', 20],
-            'save_post' => ['onSavePost', 10, 3],
+            'save_post' => 'onSavePost',
         ];
     }
 

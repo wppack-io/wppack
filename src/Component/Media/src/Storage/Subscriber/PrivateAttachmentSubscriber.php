@@ -42,7 +42,7 @@ final readonly class PrivateAttachmentSubscriber
      *
      * Runs after AttachmentSubscriber (priority 10) to transform the storage URL.
      */
-    #[AsEventListener(event: 'wp_get_attachment_url', priority: 20, acceptedArgs: 2)]
+    #[AsEventListener(event: 'wp_get_attachment_url', priority: 20)]
     public function filterAttachmentUrl(WordPressEvent $event): void
     {
         /** @var int $attachmentId */
@@ -68,7 +68,7 @@ final readonly class PrivateAttachmentSubscriber
     /**
      * Convert image src URL to signed URL for private attachments.
      */
-    #[AsEventListener(event: 'wp_get_attachment_image_src', acceptedArgs: 4)]
+    #[AsEventListener(event: 'wp_get_attachment_image_src')]
     public function filterAttachmentImageSrc(WordPressEvent $event): void
     {
         /** @var array{0: string, 1: int, 2: int, 3: bool}|false $image */
@@ -103,7 +103,7 @@ final readonly class PrivateAttachmentSubscriber
     /**
      * Convert srcset source URLs to signed URLs for private attachments.
      */
-    #[AsEventListener(event: 'wp_calculate_image_srcset', acceptedArgs: 5)]
+    #[AsEventListener(event: 'wp_calculate_image_srcset')]
     public function filterImageSrcset(WordPressEvent $event): void
     {
         /** @var array<int, array{url: string, descriptor: string, value: int}>|false $sources */

@@ -30,7 +30,7 @@ final readonly class AttachmentSubscriber
     /**
      * Convert WordPress attachment URL to CDN/storage URL.
      */
-    #[AsEventListener(event: 'wp_get_attachment_url', acceptedArgs: 2)]
+    #[AsEventListener(event: 'wp_get_attachment_url')]
     public function filterAttachmentUrl(WordPressEvent $event): void
     {
         /** @var int $postId */
@@ -49,7 +49,7 @@ final readonly class AttachmentSubscriber
     /**
      * Convert local file path to stream wrapper path.
      */
-    #[AsEventListener(event: 'get_attached_file', acceptedArgs: 2)]
+    #[AsEventListener(event: 'get_attached_file')]
     public function filterGetAttachedFile(WordPressEvent $event): void
     {
         /** @var string $file */
@@ -118,7 +118,7 @@ final readonly class AttachmentSubscriber
     /**
      * Set filesize in attachment metadata for remote files.
      */
-    #[AsEventListener(event: 'wp_generate_attachment_metadata', acceptedArgs: 2)]
+    #[AsEventListener(event: 'wp_generate_attachment_metadata')]
     public function setFilesizeInMeta(WordPressEvent $event): void
     {
         /** @var array<string, mixed> $metadata */
@@ -150,7 +150,7 @@ final readonly class AttachmentSubscriber
     /**
      * Return false for stream wrapper paths to skip EXIF reading on remote files.
      */
-    #[AsEventListener(event: 'wp_read_image_metadata', acceptedArgs: 2)]
+    #[AsEventListener(event: 'wp_read_image_metadata')]
     public function filterReadImageMetadata(WordPressEvent $event): void
     {
         /** @var string $file */
@@ -165,7 +165,7 @@ final readonly class AttachmentSubscriber
     /**
      * Add CDN domain to dns-prefetch hints.
      */
-    #[AsEventListener(event: 'wp_resource_hints', acceptedArgs: 2)]
+    #[AsEventListener(event: 'wp_resource_hints')]
     public function filterResourceHints(WordPressEvent $event): void
     {
         /** @var list<string> $hints */
@@ -192,7 +192,7 @@ final readonly class AttachmentSubscriber
     /**
      * List files in storage directory for unique filename generation.
      */
-    #[AsEventListener(event: 'pre_wp_unique_filename_file_list', acceptedArgs: 3)]
+    #[AsEventListener(event: 'pre_wp_unique_filename_file_list')]
     public function filterUniqueFilenameFileList(WordPressEvent $event): void
     {
         /** @var string $dir */

@@ -25,8 +25,8 @@ final readonly class UrlFixerSubscriber
     /**
      * Fix CSS/JS asset URLs for subdirectory multisite.
      */
-    #[AsEventListener(event: 'style_loader_src', priority: 5, acceptedArgs: 2)]
-    #[AsEventListener(event: 'script_loader_src', priority: 5, acceptedArgs: 2)]
+    #[AsEventListener(event: 'style_loader_src', priority: 5)]
+    #[AsEventListener(event: 'script_loader_src', priority: 5)]
     public function fixAssetLoaderSrc(WordPressEvent $event): void
     {
         if (!\is_string($event->filterValue) || $event->filterValue === '') {
@@ -39,7 +39,7 @@ final readonly class UrlFixerSubscriber
     /**
      * Fix network_site_url — ensure /wp is included for network admin.
      */
-    #[AsEventListener(event: 'network_site_url', priority: 5, acceptedArgs: 3)]
+    #[AsEventListener(event: 'network_site_url', priority: 5)]
     public function fixNetworkSiteUrl(WordPressEvent $event): void
     {
         if (!\is_string($event->filterValue) || $event->filterValue === '') {
@@ -60,7 +60,7 @@ final readonly class UrlFixerSubscriber
     /**
      * Fix option_home — remove trailing /wp.
      */
-    #[AsEventListener(event: 'option_home', priority: 5, acceptedArgs: 2)]
+    #[AsEventListener(event: 'option_home', priority: 5)]
     public function fixHomeUrl(WordPressEvent $event): void
     {
         $value = $event->filterValue;
@@ -77,7 +77,7 @@ final readonly class UrlFixerSubscriber
     /**
      * Fix option_siteurl — ensure /wp is at the end.
      */
-    #[AsEventListener(event: 'option_siteurl', priority: 5, acceptedArgs: 2)]
+    #[AsEventListener(event: 'option_siteurl', priority: 5)]
     public function fixOptionSiteUrl(WordPressEvent $event): void
     {
         $value = $event->filterValue;
@@ -102,7 +102,7 @@ final readonly class UrlFixerSubscriber
     /**
      * Fix includes_url for subdirectory multisite.
      */
-    #[AsEventListener(event: 'includes_url', priority: 5, acceptedArgs: 3)]
+    #[AsEventListener(event: 'includes_url', priority: 5)]
     public function fixIncludesUrl(WordPressEvent $event): void
     {
         if (!\is_string($event->filterValue) || $event->filterValue === '') {
@@ -115,7 +115,7 @@ final readonly class UrlFixerSubscriber
     /**
      * Fix admin_url for subdirectory multisite (static files only).
      */
-    #[AsEventListener(event: 'admin_url', priority: 5, acceptedArgs: 3)]
+    #[AsEventListener(event: 'admin_url', priority: 5)]
     public function fixAdminUrl(WordPressEvent $event): void
     {
         if (!\is_string($event->filterValue) || $event->filterValue === '') {

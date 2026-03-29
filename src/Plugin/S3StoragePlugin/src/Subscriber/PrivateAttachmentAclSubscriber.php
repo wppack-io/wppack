@@ -40,7 +40,7 @@ final readonly class PrivateAttachmentAclSubscriber
      *
      * Runs after AttachmentSubscriber::setFilesizeInMeta (priority 10).
      */
-    #[AsEventListener(event: 'wp_generate_attachment_metadata', priority: 20, acceptedArgs: 2)]
+    #[AsEventListener(event: 'wp_generate_attachment_metadata', priority: 20)]
     public function setVisibilityOnGenerate(WordPressEvent $event): void
     {
         /** @var array<string, mixed> $metadata */

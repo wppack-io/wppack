@@ -108,7 +108,7 @@ use WpPack\Component\EventDispatcher\WordPressEvent;
 $dispatcher->addListener('save_post', function (WordPressEvent $event): void {
     [$postId, $post, $update] = $event->args;
     // フック名: $event->hookName
-}, acceptedArgs: 3);
+});
 ```
 
 #### カスタム WordPressEvent サブクラス
@@ -135,7 +135,6 @@ $dispatcher->addListener(
         $event->getPost();    // → \WP_Post（args[1]）
         $event->getUpdate();  // → bool（args[2]）
     },
-    acceptedArgs: 3,
 );
 ```
 
@@ -147,7 +146,7 @@ $dispatcher->addListener(
 $dispatcher->addListener('the_content', function (WordPressEvent $event): void {
     // filterValue は args[0]（フィルター対象の値）で初期化される
     $event->filterValue = $event->filterValue . '<p>Appended content</p>';
-}, acceptedArgs: 1);
+});
 ```
 
 ## イベントリスナー
@@ -161,7 +160,7 @@ $dispatcher->addListener('the_content', function (WordPressEvent $event): void {
 | `event` | `?string` | `null` | イベントクラス FQCN（省略時はメソッドの第1引数の型から自動解決） |
 | `method` | `?string` | `null` | 呼び出すメソッド名（省略時はクラスレベルで `__invoke`、メソッドレベルで付与先メソッド） |
 | `priority` | `int` | `10` | 実行優先度（WordPress 準拠: 小さい = 早い） |
-| `acceptedArgs` | `int` | `1` | WordPress フック用の引数数 |
+| `acceptedArgs` | `int` | `PHP_INT_MAX` | WordPress フック用の引数数（デフォルトで全引数を受信） |
 
 #### クラスレベル（単一イベント Invokable リスナー）
 
@@ -201,7 +200,7 @@ final class OrderEventHandler
         // ...
     }
 
-    #[AsEventListener(event: 'save_post', acceptedArgs: 3)]
+    #[AsEventListener(event: 'save_post')]
     public function onSavePost(WordPressEvent $event): void
     {
         // WordPress フックの場合は event パラメータでフック名を指定
@@ -225,14 +224,13 @@ $dispatcher->addListener(
     priority: 10,
 );
 
-// WordPress フックリスナー
+// WordPress フックリスナー（全引数が自動的に $event->args で利用可能）
 $dispatcher->addListener(
     'save_post',
     function (WordPressEvent $event): void {
         [$postId, $post, $update] = $event->args;
     },
     priority: 10,
-    acceptedArgs: 3,
 );
 
 // WordPress フックリスナー（カスタムイベントクラス指定）
@@ -242,7 +240,6 @@ $dispatcher->addListener(
         $event->getPostId();
     },
     priority: 10,
-    acceptedArgs: 3,
     eventClass: SavePostEvent::class,
 );
 ```
@@ -268,8 +265,8 @@ final class UserLifecycleSubscriber implements EventSubscriberInterface
             UserUpdatedEvent::class => 'syncUserData',
             // [メソッド名, priority]
             UserDeletedEvent::class => ['cleanupUserData', 5],
-            // [メソッド名, priority, acceptedArgs]（WordPress フック用）
-            'save_post' => ['onSavePost', 10, 3],
+            // [メソッド名, priority]
+            'save_post' => ['onSavePost', 10],
             // 同一イベントに複数リスナー
             UserRegisteredEvent::class => [
                 ['trackRegistration', 20],
@@ -303,8 +300,8 @@ final class UserLifecycleSubscriber implements EventSubscriberInterface
 |-------------|------|------|
 | `string` | `'methodName'` | メソッド名のみ（priority: 10） |
 | `[string, int]` | `['methodName', 20]` | メソッド名 + 優先度 |
-| `[string, int, int]` | `['methodName', 10, 3]` | + acceptedArgs（WordPress フック用） |
-| `[string, int, int, class-string]` | `['methodName', 10, 1, SavePostEvent::class]` | + eventClass（WordPressEvent サブクラス指定） |
+| `[string, int, int]` | `['methodName', 10, 3]` | + acceptedArgs（デフォルト `PHP_INT_MAX` で全引数受信のため通常不要） |
+| `[string, int, int, class-string]` | `['methodName', 10, PHP_INT_MAX, SavePostEvent::class]` | + eventClass（WordPressEvent サブクラス指定） |
 | `list<above>` | `[['method1', 10], ['method2', 20]]` | 同一イベントに複数リスナー |
 
 ## イベントのディスパッチ
@@ -356,7 +353,7 @@ $dispatcher->addListener('wp_enqueue_scripts', function (WordPressEvent $event):
 // the_content フィルター
 $dispatcher->addListener('the_content', function (WordPressEvent $event): void {
     $event->filterValue = $event->filterValue . '<p class="disclaimer">※ 個人の感想です</p>';
-}, acceptedArgs: 1);
+});
 
 // body_class フィルター
 $dispatcher->addListener('body_class', function (WordPressEvent $event): void {
@@ -368,7 +365,7 @@ $dispatcher->addListener('body_class', function (WordPressEvent $event): void {
     }
 
     $event->filterValue = $classes;
-}, acceptedArgs: 1);
+});
 ```
 
 ### アトリビュートでの WordPress フック登録
@@ -385,7 +382,7 @@ final class ContentEnhancer
         private readonly AdManager $adManager,
     ) {}
 
-    #[AsEventListener(event: 'the_content', priority: 20, acceptedArgs: 1)]
+    #[AsEventListener(event: 'the_content', priority: 20)]
     public function insertAds(WordPressEvent $event): void
     {
         if (is_single()) {
@@ -403,7 +400,7 @@ final class ContentEnhancer
 
 ### サブスクライバーでの WordPress フック登録
 
-`EventSubscriberInterface` でも WordPress フックを扱えます。`acceptedArgs` は配列の第3要素で指定します：
+`EventSubscriberInterface` でも WordPress フックを扱えます。デフォルトで全引数を受信するため、`acceptedArgs` の指定は通常不要です：
 
 ```php
 use WpPack\Component\EventDispatcher\EventSubscriberInterface;
@@ -416,8 +413,8 @@ final class ThemeSetupSubscriber implements EventSubscriberInterface
         return [
             'after_setup_theme' => 'setup',
             'wp_enqueue_scripts' => 'enqueueAssets',
-            'body_class' => ['filterBodyClass', 10, 1],
-            'save_post' => ['onSavePost', 10, 3],
+            'body_class' => ['filterBodyClass', 10],
+            'save_post' => ['onSavePost', 10],
         ];
     }
 
@@ -470,7 +467,7 @@ final class SavePostEvent extends WordPressEvent
 
 final class PostCacheInvalidator
 {
-    #[AsEventListener(event: SavePostEvent::class, acceptedArgs: 3)]
+    #[AsEventListener(event: SavePostEvent::class)]
     public function invalidateCache(SavePostEvent $event): void
     {
         // マジック getter で型安全にアクセス
@@ -508,7 +505,7 @@ final class PostTypeRegistrar
     }
 
     // ✅ フィルター値の変更や複雑なロジック → EventDispatcher
-    #[AsEventListener(event: 'the_content', priority: 20, acceptedArgs: 1)]
+    #[AsEventListener(event: 'the_content', priority: 20)]
     public function enhanceContent(WordPressEvent $event): void
     {
         if (get_post_type() === 'product') {

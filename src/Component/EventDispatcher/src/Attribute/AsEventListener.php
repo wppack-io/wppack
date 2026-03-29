@@ -20,6 +20,6 @@ final class AsEventListener
         public readonly ?string $event = null,
         public readonly ?string $method = null,
         public readonly int $priority = 10,
-        public readonly int $acceptedArgs = 1,
+        public readonly int $acceptedArgs = \PHP_INT_MAX,
     ) {}
 }

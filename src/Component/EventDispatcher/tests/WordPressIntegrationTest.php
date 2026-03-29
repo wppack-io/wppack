@@ -62,7 +62,7 @@ final class WordPressIntegrationTest extends TestCase
 
         $this->dispatcher->addListener('wppack_action_multi', function (WordPressEvent $e) use (&$received): void {
             $received = $e;
-        }, acceptedArgs: 3);
+        });
 
         do_action('wppack_action_multi', 42, 'post_title', ['tag1', 'tag2']);
 
@@ -184,7 +184,7 @@ final class WordPressIntegrationTest extends TestCase
             $receivedEvent = $e;
             // Modify based on additional args
             $e->filterValue = $e->args[0] . ':' . $e->args[1] . ':' . $e->args[2];
-        }, acceptedArgs: 3);
+        });
 
         $result = apply_filters('wppack_filter_args', 'base', 'extra1', 'extra2');
 
@@ -274,7 +274,7 @@ final class WordPressIntegrationTest extends TestCase
 
         $this->dispatcher->addListener(IntegrationSavePostEvent::class, function (IntegrationSavePostEvent $e) use (&$received): void {
             $received = $e;
-        }, acceptedArgs: 3);
+        });
 
         do_action('save_post', 123, (object) ['post_title' => 'Test'], false);
 
@@ -289,7 +289,7 @@ final class WordPressIntegrationTest extends TestCase
     {
         $this->dispatcher->addListener('wppack_typed_filter', function (IntegrationFilterEvent $e): void {
             $e->filterValue = $e->filterValue * 2 + $e->getMultiplier();
-        }, acceptedArgs: 2, eventClass: IntegrationFilterEvent::class);
+        }, eventClass: IntegrationFilterEvent::class);
 
         $result = apply_filters('wppack_typed_filter', 10, 5);
 

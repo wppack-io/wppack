@@ -441,7 +441,7 @@ final class TransitionPostStatusListener
         private readonly EventDispatcherInterface $dispatcher,
     ) {}
 
-    #[AsEventListener(event: 'transition_post_status', acceptedArgs: 3)]
+    #[AsEventListener(event: 'transition_post_status')]
     public function onTransitionPostStatus(WordPressEvent $event): void
     {
         [$newStatus, $oldStatus, $post] = $event->args;
@@ -1072,7 +1072,7 @@ final class SendPublishNotification
         private readonly EventDispatcherInterface $dispatcher,
     ) {}
 
-    #[AsEventListener(event: 'transition_post_status', acceptedArgs: 3)]
+    #[AsEventListener(event: 'transition_post_status')]
     public function onTransitionPostStatus(WordPressEvent $event): void
     {
         [$newStatus, $oldStatus, $post] = $event->args;
