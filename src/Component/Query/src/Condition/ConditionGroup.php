@@ -300,7 +300,9 @@ final class ConditionGroup
         }
 
         // CompoundExpression: convert to nested ConditionGroup
-        \assert($parsed instanceof CompoundExpression);
+        if (!$parsed instanceof CompoundExpression) {
+            throw new \LogicException('Expected CompoundExpression.');
+        }
         $group = $this->buildGroupFromCompound($parsed);
         $nestedType = ($type === 'and') ? 'nested_and' : 'nested_or';
         $this->entries[] = ['type' => $nestedType, 'group' => $group];

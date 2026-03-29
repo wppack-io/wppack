@@ -383,7 +383,8 @@ final class RouteEntry
         $mimeType = MimeTypes::getDefault()->guessMimeType($response->path) ?? 'application/octet-stream';
 
         header('Content-Type: ' . $mimeType);
-        header('Content-Disposition: ' . $response->disposition . '; filename="' . $filename . '"');
+        $safeFilename = str_replace(['"', "\r", "\n"], '', $filename);
+        header('Content-Disposition: ' . $response->disposition . '; filename="' . $safeFilename . '"');
         header('Content-Length: ' . (string) filesize($response->path));
         $this->sendHeaders($response);
 
