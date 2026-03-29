@@ -266,9 +266,10 @@ final class SamlAuthenticator implements AuthenticatorInterface
      */
     private function validateInResponseTo(SamlResponse $response): void
     {
+        /** @var string|null $inResponseTo LightSAML declares string but returns null when unset */
         $inResponseTo = $response->getInResponseTo();
 
-        if ($inResponseTo === '') {
+        if ($inResponseTo === null || $inResponseTo === '') {
             // IdP-initiated SSO — no InResponseTo to validate
             return;
         }
