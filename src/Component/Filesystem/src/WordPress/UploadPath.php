@@ -44,7 +44,11 @@ final class UploadPath
      */
     public function subdir(string $name): string
     {
-        $path = $this->getBasePath() . '/' . $name;
+        if (str_contains($name, '..') || str_contains($name, "\0")) {
+            throw new \InvalidArgumentException('Invalid subdirectory name.');
+        }
+
+        $path = $this->getBasePath() . '/' . ltrim($name, '/');
 
         if (!is_dir($path)) {
             wp_mkdir_p($path);

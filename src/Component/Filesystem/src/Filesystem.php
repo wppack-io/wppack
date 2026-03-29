@@ -160,7 +160,9 @@ final class Filesystem
 
         $parent = dirname($path);
         if ($parent !== $path && !$this->wpFilesystem->is_dir($parent)) {
-            $this->mkdirRecursiveWp($parent);
+            if (!$this->mkdirRecursiveWp($parent)) {
+                return false;
+            }
         }
 
         return $this->wpFilesystem->mkdir($path);
