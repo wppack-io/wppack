@@ -328,7 +328,9 @@ final class ConditionGroup
                 $group->entries[] = ['type' => $childType, 'expression' => $child];
                 $prefixes[] = $child->prefix;
             } else {
-                \assert($child instanceof CompoundExpression);
+                if (!$child instanceof CompoundExpression) {
+                    throw new \LogicException('Expected CompoundExpression.');
+                }
                 $nested = $group->buildGroupFromCompound($child);
                 $nestedType = ($childType === 'and') ? 'nested_and' : 'nested_or';
                 $group->entries[] = ['type' => $nestedType, 'group' => $nested];
@@ -362,7 +364,9 @@ final class ConditionGroup
             if ($child instanceof ParsedExpression) {
                 $prefixes[] = $child->prefix;
             } else {
-                \assert($child instanceof CompoundExpression);
+                if (!$child instanceof CompoundExpression) {
+                    throw new \LogicException('Expected CompoundExpression.');
+                }
                 $prefixes = [...$prefixes, ...$this->collectPrefixes($child)];
             }
         }

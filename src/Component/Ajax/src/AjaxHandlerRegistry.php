@@ -119,7 +119,10 @@ final class AjaxHandlerRegistry
                     }
                 }
             } catch (HttpException $e) {
-                wp_send_json_error($e->getMessage(), $e->getStatusCode());
+                $message = $e->getStatusCode() < 500
+                    ? $e->getMessage()
+                    : 'An internal error occurred.';
+                wp_send_json_error($message, $e->getStatusCode());
             }
         };
     }

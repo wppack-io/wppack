@@ -39,6 +39,11 @@ final class TemplateLocator
      */
     public function locate(string $template, string $variant = ''): ?string
     {
+        $this->validateTemplateName($template);
+        if ($variant !== '') {
+            $this->validateTemplateName($variant);
+        }
+
         $candidates = $this->buildCandidates($template, $variant);
 
         // 1. WordPress theme template lookup
@@ -71,6 +76,13 @@ final class TemplateLocator
     public function getPaths(): array
     {
         return $this->paths;
+    }
+
+    private function validateTemplateName(string $name): void
+    {
+        if (str_contains($name, '..') || str_contains($name, "\0")) {
+            throw new \InvalidArgumentException('Invalid template name.');
+        }
     }
 
     /**

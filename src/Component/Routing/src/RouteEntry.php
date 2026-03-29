@@ -224,7 +224,7 @@ final class RouteEntry
         $queryString = $this->request->getQueryString();
         $url = $canonicalPath . ($queryString !== null ? '?' . $queryString : '');
 
-        wp_redirect($url, 301);
+        wp_safe_redirect($url, 301);
         exit;
     }
 
