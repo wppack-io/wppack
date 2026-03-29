@@ -50,13 +50,23 @@ final class GenericOidcProvider implements ProviderInterface
         $authorizationEndpoint = $this->discoveryDocument?->getAuthorizationEndpoint()
             ?? $this->configuration->getAuthorizationEndpoint();
 
+        if ($authorizationEndpoint === null) {
+            throw new \RuntimeException('Authorization endpoint is not configured. Provide a discovery URL or set the endpoint explicitly.');
+        }
+
         return $authorizationEndpoint . '?' . http_build_query($params, '', '&', \PHP_QUERY_RFC3986);
     }
 
     public function getTokenEndpoint(): string
     {
-        return $this->discoveryDocument?->getTokenEndpoint()
+        $endpoint = $this->discoveryDocument?->getTokenEndpoint()
             ?? $this->configuration->getTokenEndpoint();
+
+        if ($endpoint === null) {
+            throw new \RuntimeException('Token endpoint is not configured. Provide a discovery URL or set the endpoint explicitly.');
+        }
+
+        return $endpoint;
     }
 
     public function getUserInfoEndpoint(): ?string

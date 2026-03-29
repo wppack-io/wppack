@@ -20,6 +20,7 @@ final readonly class OAuthConfiguration
      */
     public function __construct(
         private string $clientId,
+        #[\SensitiveParameter]
         private string $clientSecret,
         private string $redirectUri,
         private array $scopes = ['openid', 'email', 'profile'],
