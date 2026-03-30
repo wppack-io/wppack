@@ -190,6 +190,7 @@ function ProviderPanel( { name, provider, onChange, onDelete, onRename, onMoveUp
 				<div className="wpp-oauth-button-preview">
 					<a
 						className={ `wpp-oauth-login-button${ buttonDisplay === 'icon-left' ? ' is-icon-left' : '' }${ buttonDisplay === 'icon-only' ? ' is-icon-only' : '' }` }
+						title={ buttonDisplay === 'icon-only' ? `${ f.label || name } でログイン` : undefined }
 						style={ {
 							background: currentStyle.bg,
 							color: currentStyle.text,

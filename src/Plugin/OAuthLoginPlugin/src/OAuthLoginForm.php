@@ -98,9 +98,11 @@ class OAuthLoginForm
                 $btnStyle = 'display:flex;align-items:center;justify-content:center;gap:8px;width:100%;box-sizing:border-box;padding:0 12px;height:40px;';
             }
 
+            $titleAttr = $display === 'icon-only' ? ' title="' . esc_attr(sprintf(__('%s でログイン', 'wppack-oauth-login'), $provider->label)) . '"' : '';
+
             $buttons .= <<<HTML
                 <p>
-                    <a href="{$url}" style="{$btnStyle}border-radius:4px;background:{$bg};color:{$text};border:1px solid {$border};text-decoration:none;font-size:14px;font-weight:500;cursor:pointer;">{$iconHtml}{$textHtml}</a>
+                    <a href="{$url}"{$titleAttr} style="{$btnStyle}border-radius:4px;background:{$bg};color:{$text};border:1px solid {$border};text-decoration:none;font-size:14px;font-weight:500;cursor:pointer;">{$iconHtml}{$textHtml}</a>
                 </p>
             HTML;
         }
