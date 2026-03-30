@@ -139,13 +139,13 @@ export default function App() {
 								<SourceBadge source={ s( 'bearerToken' ).source } />
 							</>
 						}
-						help={ __( 'Token for SCIM API authentication. Leave as masked to keep current value.', 'wppack-scim' ) }
 					>
 						<TextControl
 							id="bearerToken"
 							value={ form.bearerToken || '' }
 							onChange={ update( 'bearerToken' ) }
 							disabled={ s( 'bearerToken' ).readonly }
+							help={ __( 'Token for SCIM API authentication. Leave as masked to keep current value.', 'wppack-scim' ) }
 							__nextHasNoMarginBottom
 						/>
 					</BaseControl>
@@ -216,7 +216,6 @@ export default function App() {
 								<SourceBadge source={ s( 'maxResults' ).source } />
 							</>
 						}
-						help={ __( 'Maximum number of resources returned per list request (1-1000).', 'wppack-scim' ) }
 					>
 						<TextControl
 							id="maxResults"
@@ -227,6 +226,7 @@ export default function App() {
 							onChange={ ( val ) => update( 'maxResults' )( parseInt( val, 10 ) || 100 ) }
 							disabled={ s( 'maxResults' ).readonly }
 							className="wpp-scim-small-input"
+							help={ __( 'Maximum number of resources returned per list request (1-1000).', 'wppack-scim' ) }
 							__nextHasNoMarginBottom
 						/>
 					</BaseControl>

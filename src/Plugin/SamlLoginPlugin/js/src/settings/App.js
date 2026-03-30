@@ -76,13 +76,13 @@ function Field( { id, label, field, value, onChange, help } ) {
 					<SourceBadge source={ source } />
 				</>
 			}
-			help={ help }
 		>
 			<TextControl
 				id={ id }
 				value={ value || '' }
 				onChange={ onChange }
 				disabled={ isReadonly }
+				help={ help }
 				__nextHasNoMarginBottom
 			/>
 		</BaseControl>

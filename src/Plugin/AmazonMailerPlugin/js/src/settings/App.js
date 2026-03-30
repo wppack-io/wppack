@@ -176,21 +176,16 @@ export default function App() {
 						}
 						return (
 							<div key={ f.name } style={ wrapStyle }>
-								<BaseControl
-									id={ `mailer-${ f.name }` }
+								<TextControl
 									label={ f.label + ( f.required ? ' *' : '' ) }
 									help={ f.help || undefined }
-								>
-									<TextControl
-										id={ `mailer-${ f.name }` }
-										type={ f.type === 'password' ? 'password' : f.type === 'number' ? 'number' : 'text' }
-										value={ fields[ f.name ] || effectiveDefault }
-										onChange={ ( val ) => setFields( ( prev ) => ( { ...prev, [ f.name ]: val } ) ) }
-										disabled={ isReadonly }
-										placeholder={ f.default || '' }
-										__nextHasNoMarginBottom
-									/>
-								</BaseControl>
+									type={ f.type === 'password' ? 'password' : f.type === 'number' ? 'number' : 'text' }
+									value={ fields[ f.name ] || effectiveDefault }
+									onChange={ ( val ) => setFields( ( prev ) => ( { ...prev, [ f.name ]: val } ) ) }
+									disabled={ isReadonly }
+									placeholder={ f.default || '' }
+									__nextHasNoMarginBottom
+								/>
 							</div>
 						);
 					} ) }
