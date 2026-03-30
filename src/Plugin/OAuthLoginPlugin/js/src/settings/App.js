@@ -10,6 +10,7 @@ import {
 	Notice,
 	Spinner,
 	BaseControl,
+	Tooltip,
 } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
@@ -188,26 +189,44 @@ function ProviderPanel( { name, provider, onChange, onDelete, onRename, onMoveUp
 			) }
 			<BaseControl label={ __( 'ログインボタンプレビュー', 'wppack-oauth-login' ) }>
 				<div className="wpp-oauth-button-preview">
-					<a
-						className={ `wpp-oauth-login-button${ buttonDisplay === 'icon-left' ? ' is-icon-left' : '' }${ buttonDisplay === 'icon-only' ? ' is-icon-only' : '' }` }
-						title={ buttonDisplay === 'icon-only' ? `${ f.label || name } でログイン` : undefined }
-						style={ {
-							background: currentStyle.bg,
-							color: currentStyle.text,
-							border: `1px solid ${ currentStyle.border }`,
-						} }
-					>
-						{ buttonDisplay !== 'text-only' && icon && (
-							<span
-								className="wpp-oauth-login-icon"
-								style={ currentStyle.icon !== 'original' ? { color: currentStyle.icon } : {} }
-								dangerouslySetInnerHTML={ { __html: icon } }
-							/>
-						) }
-						{ buttonDisplay !== 'icon-only' && (
+					{ buttonDisplay === 'icon-only' ? (
+						<Tooltip text={ `${ f.label || name } でログイン` }>
+							<a
+								className="wpp-oauth-login-button is-icon-only"
+								style={ {
+									background: currentStyle.bg,
+									color: currentStyle.text,
+									border: `1px solid ${ currentStyle.border }`,
+								} }
+							>
+								{ icon && (
+									<span
+										className="wpp-oauth-login-icon"
+										style={ currentStyle.icon !== 'original' ? { color: currentStyle.icon } : {} }
+										dangerouslySetInnerHTML={ { __html: icon } }
+									/>
+								) }
+							</a>
+						</Tooltip>
+					) : (
+						<a
+							className={ `wpp-oauth-login-button${ buttonDisplay === 'icon-left' ? ' is-icon-left' : '' }` }
+							style={ {
+								background: currentStyle.bg,
+								color: currentStyle.text,
+								border: `1px solid ${ currentStyle.border }`,
+							} }
+						>
+							{ buttonDisplay !== 'text-only' && icon && (
+								<span
+									className="wpp-oauth-login-icon"
+									style={ currentStyle.icon !== 'original' ? { color: currentStyle.icon } : {} }
+									dangerouslySetInnerHTML={ { __html: icon } }
+								/>
+							) }
 							<span className="wpp-oauth-login-text">{ `${ f.label || name } でログイン` }</span>
-						) }
-					</a>
+						</a>
+					) }
 				</div>
 			</BaseControl>
 			<Field
