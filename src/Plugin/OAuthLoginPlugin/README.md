@@ -12,7 +12,7 @@ composer require wppack/oauth-login-plugin
 
 - PHP 8.2+
 - WordPress 6.x
-- OAuth 2.0 / OpenID Connect provider (Google, Azure AD, GitHub, Keycloak, etc.)
+- OAuth 2.0 / OpenID Connect provider
 
 ## Architecture
 
@@ -57,10 +57,22 @@ define('OAUTH_DEFAULT_ROLE', 'subscriber');
 
 | Type | Provider | Requires |
 |------|----------|----------|
-| `google` | Google Workspace / Google Account | `client_id`, `client_secret` |
-| `azure` | Azure AD (Entra ID) | `client_id`, `client_secret`, `tenant_id` |
+| `apple` | Apple | `client_id`, `client_secret` |
+| `auth0` | Auth0 | `client_id`, `client_secret`, `domain` |
+| `cognito` | AWS Cognito | `client_id`, `client_secret`, `domain` |
+| `discord` | Discord | `client_id`, `client_secret` |
+| `entra-id` | Microsoft Entra ID | `client_id`, `client_secret`, `tenant_id` |
+| `facebook` | Facebook | `client_id`, `client_secret` |
 | `github` | GitHub | `client_id`, `client_secret` |
-| `oidc` | Generic OpenID Connect | `client_id`, `client_secret`, `discovery_url` |
+| `google` | Google | `client_id`, `client_secret` |
+| `keycloak` | Keycloak | `client_id`, `client_secret`, `domain` |
+| `line` | LINE | `client_id`, `client_secret` |
+| `okta` | Okta | `client_id`, `client_secret`, `domain` |
+| `onelogin` | OneLogin | `client_id`, `client_secret`, `domain` |
+| `slack` | Slack | `client_id`, `client_secret` |
+| `oidc` | Generic OIDC | `client_id`, `client_secret`, `discovery_url` |
+
+Settings page available at **Settings > OAuth Login** in the WordPress admin.
 
 ## Documentation
 

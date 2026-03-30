@@ -6,7 +6,7 @@ OAuth 2.0 / OpenID Connect authentication bridge (WpPack Security Bridge)
 
 ## Overview
 
-Integrates OAuth 2.0 / OpenID Connect SSO authentication with external IdPs (Google, Azure AD, Okta, GitHub, etc.) into WordPress.
+Integrates OAuth 2.0 / OpenID Connect SSO authentication with external IdPs into WordPress.
 
 ## Installation
 
@@ -22,12 +22,22 @@ composer require wppack/oauth-security
 
 ## Supported Providers
 
-| Provider | OIDC | RP-Initiated Logout | PKCE |
-|----------|------|---------------------|------|
-| Google | Yes | No | Yes |
-| Azure AD | Yes | Yes | Yes |
-| GitHub | No | No | No |
-| Generic OIDC | Yes | Yes (if supported) | Yes |
+| Provider | Type | OIDC | Required Config |
+|----------|------|------|-----------------|
+| Apple | `apple` | Yes | client_id, client_secret |
+| Auth0 | `auth0` | Yes | client_id, client_secret, **domain** |
+| AWS Cognito | `cognito` | Yes | client_id, client_secret, **domain** |
+| Discord | `discord` | No | client_id, client_secret |
+| Facebook | `facebook` | No | client_id, client_secret |
+| GitHub | `github` | No | client_id, client_secret |
+| Google | `google` | Yes | client_id, client_secret |
+| Keycloak | `keycloak` | Yes | client_id, client_secret, **domain** |
+| LINE | `line` | Yes | client_id, client_secret |
+| Microsoft Entra ID | `entra-id` | Yes | client_id, client_secret, **tenant_id** |
+| Okta | `okta` | Yes | client_id, client_secret, **domain** |
+| OneLogin | `onelogin` | Yes | client_id, client_secret, **domain** |
+| Slack | `slack` | Yes | client_id, client_secret |
+| Generic OIDC | `oidc` | Yes | client_id, client_secret, discovery_url |
 
 ## Documentation
 

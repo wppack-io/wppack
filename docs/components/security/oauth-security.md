@@ -11,7 +11,7 @@ OAuth 2.0 / OpenID Connect 認証ブリッジ
 | レイヤー | Abstraction（Bridge） |
 | 依存 | `wppack/security`, `firebase/php-jwt` |
 
-外部 IdP（Google, Azure AD, Okta, GitHub 等）による OAuth 2.0 / OpenID Connect SSO 認証を WpPack Security コンポーネントに統合する Bridge パッケージです。`firebase/php-jwt` を使用した ID トークン検証と、自前の OAuth/OIDC フロー実装を組み合わせています。
+外部 IdP による OAuth 2.0 / OpenID Connect SSO 認証を WpPack Security コンポーネントに統合する Bridge パッケージです。14 種の専用プロバイダーと Generic OIDC プロバイダーをサポートし、`firebase/php-jwt` を使用した ID トークン検証と自前の OAuth/OIDC フロー実装を組み合わせています。
 
 ## インストール
 
@@ -83,21 +83,20 @@ $provider = new GoogleProvider(
 - RP-Initiated Logout: 非対応（`getEndSessionEndpoint() = null`）
 - `hd` パラメータによるドメインヒント + ID トークンの `hd` クレームのサーバーサイド検証
 
-### AzureProvider
+### EntraIdProvider
 
-Azure AD (Entra ID) に対応:
+Microsoft Entra ID（旧 Azure AD）に対応:
 
 ```php
-use WpPack\Component\Security\Bridge\OAuth\Provider\AzureProvider;
+use WpPack\Component\Security\Bridge\OAuth\Provider\EntraIdProvider;
 
-$provider = new AzureProvider(
+$provider = new EntraIdProvider(
     configuration: $configuration,
     tenantId: 'your-tenant-id',
 );
 ```
 
-- OIDC 対応: `supportsOidc() = true`
-- RP-Initiated Logout: 対応（`end_session_endpoint` + `post_logout_redirect_uri`）
+- OIDC 対応、RP-Initiated Logout 対応
 - テナント ID からエンドポイントを自動構築
 - `prompt=select_account` をデフォルトで追加
 
@@ -106,31 +105,99 @@ $provider = new AzureProvider(
 GitHub OAuth 2.0 に対応:
 
 ```php
-use WpPack\Component\Security\Bridge\OAuth\Provider\GitHubProvider;
+$provider = new GitHubProvider(configuration: $configuration);
+```
 
-$provider = new GitHubProvider(
+- OAuth 2.0（OIDC 非対応）
+- `/user` API でユーザー情報を取得、OIDC 標準クレームに正規化
+
+### AppleProvider
+
+Sign in with Apple に対応:
+
+```php
+$provider = new AppleProvider(configuration: $configuration);
+```
+
+- OIDC 対応、`response_mode=form_post`
+- ユーザー情報は ID トークンから取得（UserInfo エンドポイントなし）
+
+### DiscordProvider
+
+Discord OAuth 2.0 に対応:
+
+```php
+$provider = new DiscordProvider(configuration: $configuration);
+```
+
+- OAuth 2.0（OIDC 非対応）
+- デフォルトスコープ: `identify`, `email`
+- アバター URL を自動構築
+
+### FacebookProvider
+
+Facebook Login に対応:
+
+```php
+$provider = new FacebookProvider(configuration: $configuration);
+```
+
+- OAuth 2.0（OIDC 非対応）、Graph API v21.0
+- デフォルトスコープ: `email`, `public_profile`
+
+### SlackProvider
+
+Slack の OpenID Connect に対応:
+
+```php
+$provider = new SlackProvider(configuration: $configuration);
+```
+
+- OIDC 対応、標準クレーム
+
+### LineProvider
+
+LINE Login v2.1 に対応:
+
+```php
+$provider = new LineProvider(configuration: $configuration);
+```
+
+- OIDC 対応
+- `userId` → `sub`、`displayName` → `name` に正規化
+
+### ドメインベースプロバイダー
+
+Okta, Auth0, OneLogin, Keycloak, Cognito は `domain` パラメータからエンドポイントを自動構築します。Discovery URL のユーザー指定は不要です:
+
+```php
+use WpPack\Component\Security\Bridge\OAuth\Provider\OktaProvider;
+
+$provider = new OktaProvider(
     configuration: $configuration,
+    domain: 'dev-123456.okta.com',
 );
 ```
 
-- OIDC 対応: 非対応（`supportsOidc() = false`）
-- RP-Initiated Logout: 非対応
-- `/user` API でユーザー情報を取得
-- UserInfo を OIDC 標準クレームに正規化（`login` → `preferred_username`、`id` → `sub` 等）
+| クラス | domain 例 |
+|-------|-----------|
+| `OktaProvider` | `dev-123456.okta.com` |
+| `Auth0Provider` | `your-tenant.auth0.com` |
+| `OneLoginProvider` | `your-company.onelogin.com` |
+| `KeycloakProvider` | `keycloak.example.com/realms/myrealm` |
+| `CognitoProvider` | `your-domain.auth.us-east-1.amazoncognito.com` |
+
+すべて OIDC 対応、Discovery Document による動的エンドポイント取得にも対応。
 
 ### GenericOidcProvider
 
 任意の OIDC 準拠 IdP に対応:
 
 ```php
-use WpPack\Component\Security\Bridge\OAuth\Provider\GenericOidcProvider;
-
-$provider = new GenericOidcProvider(
-    configuration: $configuration,
-);
+$provider = new GenericOidcProvider(configuration: $configuration);
 ```
 
-OIDC Discovery（`.well-known/openid-configuration`）によるエンドポイント自動取得に対応。`OAuthConfiguration` のエンドポイント設定をフォールバックとして使用します。
+OIDC Discovery（`.well-known/openid-configuration`）によるエンドポイント自動取得に対応。`OAuthConfiguration` の `discoveryUrl` でディスカバリー URL を指定します。
 
 ## 認証フロー
 
