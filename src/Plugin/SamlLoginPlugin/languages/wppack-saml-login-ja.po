@@ -217,5 +217,5 @@ msgstr "保存中…"
 msgid "Save Settings"
 msgstr "設定を保存"
 
-msgid "Login with SSO"
-msgstr "SSO でログイン"
+msgid "Login with %s"
+msgstr "%s でログイン"
