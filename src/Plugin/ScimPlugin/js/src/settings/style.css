@@ -60,17 +60,7 @@
 	margin-bottom: 16px;
 }
 
-.wpp-scim-endpoints {
-	display: flex;
-	flex-direction: column;
-	gap: 4px;
+.wpp-scim-small-input input {
+	max-width: 120px;
 }
 
-.wpp-scim-endpoints code {
-	display: block;
-	padding: 4px 8px;
-	background: #f0f0f0;
-	border-radius: 2px;
-	font-size: 12px;
-	word-break: break-all;
-}

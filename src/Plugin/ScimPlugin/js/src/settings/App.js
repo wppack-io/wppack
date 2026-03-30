@@ -225,6 +225,7 @@ export default function App() {
 							value={ String( form.maxResults || 100 ) }
 							onChange={ ( val ) => update( 'maxResults' )( parseInt( val, 10 ) || 100 ) }
 							disabled={ s( 'maxResults' ).readonly }
+							className="wpp-scim-small-input"
 							__nextHasNoMarginBottom
 						/>
 					</BaseControl>
@@ -234,23 +235,36 @@ export default function App() {
 					title={ __( 'SCIM Endpoints', 'wppack-scim' ) }
 					initialOpen={ false }
 				>
-					<div className="wpp-scim-endpoints">
-						<BaseControl label="Users">
-							<code>{ `${ baseUrl }/scim/v2/Users` }</code>
-						</BaseControl>
-						<BaseControl label="Groups">
-							<code>{ `${ baseUrl }/scim/v2/Groups` }</code>
-						</BaseControl>
-						<BaseControl label="ServiceProviderConfig">
-							<code>{ `${ baseUrl }/scim/v2/ServiceProviderConfig` }</code>
-						</BaseControl>
-						<BaseControl label="Schemas">
-							<code>{ `${ baseUrl }/scim/v2/Schemas` }</code>
-						</BaseControl>
-						<BaseControl label="ResourceTypes">
-							<code>{ `${ baseUrl }/scim/v2/ResourceTypes` }</code>
-						</BaseControl>
-					</div>
+					<TextControl
+						label="Users"
+						value={ `${ baseUrl }/scim/v2/Users` }
+						readOnly
+						__nextHasNoMarginBottom
+					/>
+					<TextControl
+						label="Groups"
+						value={ `${ baseUrl }/scim/v2/Groups` }
+						readOnly
+						__nextHasNoMarginBottom
+					/>
+					<TextControl
+						label="ServiceProviderConfig"
+						value={ `${ baseUrl }/scim/v2/ServiceProviderConfig` }
+						readOnly
+						__nextHasNoMarginBottom
+					/>
+					<TextControl
+						label="Schemas"
+						value={ `${ baseUrl }/scim/v2/Schemas` }
+						readOnly
+						__nextHasNoMarginBottom
+					/>
+					<TextControl
+						label="ResourceTypes"
+						value={ `${ baseUrl }/scim/v2/ResourceTypes` }
+						readOnly
+						__nextHasNoMarginBottom
+					/>
 				</PanelBody>
 			</Panel>
 
