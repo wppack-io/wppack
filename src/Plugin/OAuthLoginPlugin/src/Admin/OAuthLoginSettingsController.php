@@ -99,6 +99,7 @@ final class OAuthLoginSettingsController extends AbstractRestController
             'authorizePath' => ['const' => 'OAUTH_AUTHORIZE_PATH', 'value' => $this->configuration->authorizePath],
             'callbackPath' => ['const' => 'OAUTH_CALLBACK_PATH', 'value' => $this->configuration->callbackPath],
             'verifyPath' => ['const' => 'OAUTH_VERIFY_PATH', 'value' => $this->configuration->verifyPath],
+            'buttonDisplay' => ['const' => 'OAUTH_BUTTON_DISPLAY', 'value' => $this->configuration->buttonDisplay],
         ];
 
         $result = [];
@@ -191,6 +192,7 @@ final class OAuthLoginSettingsController extends AbstractRestController
                 'authorizePath' => 'OAUTH_AUTHORIZE_PATH',
                 'callbackPath' => 'OAUTH_CALLBACK_PATH',
                 'verifyPath' => 'OAUTH_VERIFY_PATH',
+                'buttonDisplay' => 'OAUTH_BUTTON_DISPLAY',
             ];
             foreach ($globalFields as $key => $constName) {
                 if (\defined($constName) || !\array_key_exists($key, $globalInput)) {

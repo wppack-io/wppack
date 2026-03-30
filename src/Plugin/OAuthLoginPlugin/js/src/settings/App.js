@@ -104,7 +104,7 @@ function PathField( { id, label, field, value, onChange, prefix, disabled } ) {
 	);
 }
 
-function ProviderPanel( { name, provider, onChange, onDelete, onMoveUp, onMoveDown, isFirst, isLast, isReadonly, icons, allStyles } ) {
+function ProviderPanel( { name, provider, onChange, onDelete, onMoveUp, onMoveDown, isFirst, isLast, isReadonly, icons, allStyles, buttonDisplay } ) {
 	const f = provider.fields || {};
 	const icon = icons[ f.type ] || icons[ name ] || provider.icon;
 	const providerStyles = allStyles[ f.type ] || allStyles[ name ] || {};
@@ -117,6 +117,12 @@ function ProviderPanel( { name, provider, onChange, onDelete, onMoveUp, onMoveDo
 
 	const titleElement = (
 		<span className="wpp-oauth-panel-title">
+			<span className="wpp-oauth-move-buttons">
+				{ /* eslint-disable-next-line jsx-a11y/click-events-have-key-events */ }
+				<span role="button" tabIndex={ 0 } className={ `wpp-oauth-move-btn${ isFirst ? ' is-disabled' : '' }` } onClick={ ( e ) => { e.stopPropagation(); if ( ! isFirst ) onMoveUp( name ); } }>▲</span>
+				{ /* eslint-disable-next-line jsx-a11y/click-events-have-key-events */ }
+				<span role="button" tabIndex={ 0 } className={ `wpp-oauth-move-btn${ isLast ? ' is-disabled' : '' }` } onClick={ ( e ) => { e.stopPropagation(); if ( ! isLast ) onMoveDown( name ); } }>▼</span>
+			</span>
 			{ icon && (
 				<span
 					className="wpp-oauth-panel-icon"
@@ -124,7 +130,7 @@ function ProviderPanel( { name, provider, onChange, onDelete, onMoveUp, onMoveDo
 					dangerouslySetInnerHTML={ { __html: icon } }
 				/>
 			) }
-			{ `${ f.label || name } (${ f.type || '?' })` }
+			{ f.label || name }
 		</span>
 	);
 
@@ -159,7 +165,7 @@ function ProviderPanel( { name, provider, onChange, onDelete, onMoveUp, onMoveDo
 			/>
 			{ styleKeys.length > 0 && (
 				<SelectControl
-					label={ __( 'Button Style', 'wppack-oauth-login' ) }
+					label={ __( 'ボタンスタイル', 'wppack-oauth-login' ) }
 					value={ selectedStyle }
 					onChange={ update( 'button_style' ) }
 					disabled={ isReadonly }
@@ -170,7 +176,7 @@ function ProviderPanel( { name, provider, onChange, onDelete, onMoveUp, onMoveDo
 					__nextHasNoMarginBottom
 				/>
 			) }
-			<BaseControl label={ __( 'Login Button Preview', 'wppack-oauth-login' ) }>
+			<BaseControl label={ __( 'ログインボタンプレビュー', 'wppack-oauth-login' ) }>
 				<div className="wpp-oauth-button-preview">
 					<a
 						className="wpp-oauth-login-button"
@@ -180,14 +186,16 @@ function ProviderPanel( { name, provider, onChange, onDelete, onMoveUp, onMoveDo
 							border: `1px solid ${ currentStyle.border }`,
 						} }
 					>
-						{ icon && (
+						{ buttonDisplay !== 'text-only' && icon && (
 							<span
 								className="wpp-oauth-login-icon"
 								style={ currentStyle.icon !== 'original' ? { color: currentStyle.icon } : {} }
 								dangerouslySetInnerHTML={ { __html: icon } }
 							/>
 						) }
-						{ `Login with ${ f.label || name }` }
+						{ buttonDisplay !== 'icon-only' && (
+							<span className="wpp-oauth-login-text">{ `Login with ${ f.label || name }` }</span>
+						) }
 					</a>
 				</div>
 			</BaseControl>
@@ -325,26 +333,8 @@ function ProviderPanel( { name, provider, onChange, onDelete, onMoveUp, onMoveDo
 					__nextHasNoMarginBottom
 				/>
 			</BaseControl>
-			<div className="wpp-oauth-provider-actions">
-				<div className="wpp-oauth-move-buttons">
-					<Button
-						variant="secondary"
-						size="small"
-						disabled={ isFirst }
-						onClick={ () => onMoveUp( name ) }
-					>
-						▲
-					</Button>
-					<Button
-						variant="secondary"
-						size="small"
-						disabled={ isLast }
-						onClick={ () => onMoveDown( name ) }
-					>
-						▼
-					</Button>
-				</div>
-				{ ! isReadonly && (
+			{ ! isReadonly && (
+				<div className="wpp-oauth-delete-provider">
 					<Button
 						variant="secondary"
 						isDestructive
@@ -352,8 +342,8 @@ function ProviderPanel( { name, provider, onChange, onDelete, onMoveUp, onMoveDo
 					>
 						{ __( 'Delete Provider', 'wppack-oauth-login' ) }
 					</Button>
-				) }
-			</div>
+				</div>
+			) }
 		</PanelBody>
 	);
 }
@@ -643,6 +633,23 @@ export default function App() {
 						onChange={ updateGlobal( 'verifyPath' ) }
 						prefix={ siteUrl }
 					/>
+					<SelectControl
+						label={
+							<>
+								{ __( 'ボタン表示', 'wppack-oauth-login' ) }
+								<SourceBadge source={ g( 'buttonDisplay' ).source } />
+							</>
+						}
+						value={ globalForm.buttonDisplay || 'icon-text' }
+						onChange={ updateGlobal( 'buttonDisplay' ) }
+						disabled={ g( 'buttonDisplay' ).readonly }
+						options={ [
+							{ label: 'アイコン + テキスト', value: 'icon-text' },
+							{ label: 'アイコンのみ', value: 'icon-only' },
+							{ label: 'テキストのみ', value: 'text-only' },
+						] }
+						__nextHasNoMarginBottom
+					/>
 				</PanelBody>
 
 				{ providerOrder.map(
@@ -667,6 +674,7 @@ export default function App() {
 								isReadonly={ provider.readonly }
 								icons={ icons }
 								allStyles={ styles }
+								buttonDisplay={ globalForm.buttonDisplay || 'icon-text' }
 							/>
 						);
 					}

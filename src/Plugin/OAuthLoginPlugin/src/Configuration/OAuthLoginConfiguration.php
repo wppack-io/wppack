@@ -26,6 +26,7 @@ final readonly class OAuthLoginConfiguration
         public string $authorizePath = '/oauth/{provider}/authorize',
         public string $callbackPath = '/oauth/{provider}/callback',
         public string $verifyPath = '/oauth/{provider}/verify',
+        public string $buttonDisplay = 'icon-text',
     ) {}
 
     public function getAuthorizePath(string $provider): string
@@ -80,6 +81,9 @@ final readonly class OAuthLoginConfiguration
         $verifyPath = \defined('OAUTH_VERIFY_PATH')
             ? (string) \constant('OAUTH_VERIFY_PATH')
             : (string) ($savedConfig['verifyPath'] ?? '/oauth/{provider}/verify');
+        $buttonDisplay = \defined('OAUTH_BUTTON_DISPLAY')
+            ? (string) \constant('OAUTH_BUTTON_DISPLAY')
+            : (string) ($savedConfig['buttonDisplay'] ?? 'icon-text');
 
         // Merge: constant providers override saved ones by name
         $mergedProviders = $savedProviders;
@@ -124,6 +128,7 @@ final readonly class OAuthLoginConfiguration
             authorizePath: $authorizePath,
             callbackPath: $callbackPath,
             verifyPath: $verifyPath,
+            buttonDisplay: $buttonDisplay,
         );
     }
 

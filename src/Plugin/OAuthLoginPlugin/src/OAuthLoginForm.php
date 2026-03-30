@@ -64,6 +64,7 @@ class OAuthLoginForm
 
         $redirectTo = $this->request->query->getString('redirect_to');
         $returnTo = $redirectTo !== '' ? wp_validate_redirect($redirectTo, admin_url()) : admin_url();
+        $display = $this->config->buttonDisplay;
 
         $buttons = '';
 
@@ -73,16 +74,21 @@ class OAuthLoginForm
             ], home_url($this->config->getAuthorizePath($provider->name))));
             $label = esc_html($provider->label);
             $icon = ProviderIcons::svg($provider->type) ?? ProviderIcons::svg($provider->name) ?? '';
-            $iconHtml = $icon !== '' ? '<span style="display:inline-flex;width:20px;height:20px;flex-shrink:0;">' . $icon . '</span>' : '';
 
             $color = ProviderIcons::brandColor($provider->type) ?? ProviderIcons::brandColor($provider->name) ?? ['bg' => '#f0f0f0', 'text' => '#1d2327'];
             $bg = esc_attr($color['bg']);
             $text = esc_attr($color['text']);
             $border = isset($color['border']) ? esc_attr($color['border']) : $bg;
+            $iconColor = isset($color['icon']) && $color['icon'] !== 'original' ? 'color:' . esc_attr($color['icon']) . ';' : '';
+
+            $showIcon = $display !== 'text-only' && $icon !== '';
+            $showText = $display !== 'icon-only';
+            $iconHtml = $showIcon ? '<span style="position:absolute;left:12px;display:inline-flex;width:20px;height:20px;' . $iconColor . '">' . $icon . '</span>' : '';
+            $textHtml = $showText ? '<span style="flex:1;text-align:center;">Login with ' . $label . '</span>' : '';
 
             $buttons .= <<<HTML
                 <p>
-                    <a href="{$url}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;box-sizing:border-box;padding:0 12px;height:40px;border-radius:4px;background:{$bg};color:{$text};border:1px solid {$border};text-decoration:none;font-size:14px;font-weight:500;cursor:pointer;">{$iconHtml}Login with {$label}</a>
+                    <a href="{$url}" style="display:flex;align-items:center;position:relative;width:100%;box-sizing:border-box;padding:0 12px;height:40px;border-radius:4px;background:{$bg};color:{$text};border:1px solid {$border};text-decoration:none;font-size:14px;font-weight:500;cursor:pointer;">{$iconHtml}{$textHtml}</a>
                 </p>
             HTML;
         }
