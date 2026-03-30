@@ -161,8 +161,11 @@ final class OAuthLoginPluginServiceProvider implements ServiceProviderInterface
             ->addArgument(new Reference(HttpClient::class))
             ->addArgument(new Reference(TransientManager::class));
 
-        // Per-provider services
+        // Per-provider services (skip providers missing required fields)
         foreach ($config->providers as $providerConfig) {
+            if (!self::isProviderConfigComplete($providerConfig)) {
+                continue;
+            }
             $this->registerProvider($builder, $config, $providerConfig);
         }
 
@@ -307,6 +310,28 @@ final class OAuthLoginPluginServiceProvider implements ServiceProviderInterface
             ),
             default => new $class(configuration: $oauthConfig),
         };
+    }
+
+    private static function isProviderConfigComplete(ProviderConfiguration $config): bool
+    {
+        if ($config->clientId === '' || $config->clientSecret === '') {
+            return false;
+        }
+
+        $definition = ProviderRegistry::definition($config->type);
+        if ($definition === null) {
+            return false;
+        }
+
+        $fieldMap = ['tenant_id' => 'tenantId', 'domain' => 'domain', 'discovery_url' => 'discoveryUrl'];
+        foreach ($definition->requiredFields as $field) {
+            $property = $fieldMap[$field] ?? $field;
+            if (!isset($config->{$property}) || $config->{$property} === '') {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static function requireField(ProviderConfiguration $config, string $property, string $fieldName): string
