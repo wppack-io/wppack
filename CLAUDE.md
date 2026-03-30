@@ -137,6 +137,7 @@ Distributed as WordPress plugins. Built on top of Components.
 | RedisCachePlugin | wppack/redis-cache-plugin | Redis cache plugin |
 | SamlLoginPlugin | wppack/saml-login-plugin | SAML 2.0 SSO login plugin |
 | ScimPlugin | wppack/scim-plugin | SCIM 2.0 provisioning plugin |
+| OAuthLoginPlugin | wppack/oauth-login-plugin | OAuth 2.0 / OpenID Connect login plugin |
 
 ## Key Dependencies
 

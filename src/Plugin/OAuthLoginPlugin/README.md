@@ -70,6 +70,9 @@ define('OAUTH_DEFAULT_ROLE', 'subscriber');
 | `okta` | Okta | `client_id`, `client_secret`, `domain` |
 | `onelogin` | OneLogin | `client_id`, `client_secret`, `domain` |
 | `slack` | Slack | `client_id`, `client_secret` |
+| `yahoo` | Yahoo | `client_id`, `client_secret` |
+| `yahoo-japan` | Yahoo! JAPAN | `client_id`, `client_secret` |
+| `d-account` | d Account | `client_id`, `client_secret` |
 | `oidc` | Generic OIDC | `client_id`, `client_secret`, `discovery_url` |
 
 Settings page available at **Settings > OAuth Login** in the WordPress admin.

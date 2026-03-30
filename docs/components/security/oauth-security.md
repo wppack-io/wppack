@@ -11,7 +11,7 @@ OAuth 2.0 / OpenID Connect 認証ブリッジ
 | レイヤー | Abstraction（Bridge） |
 | 依存 | `wppack/security`, `firebase/php-jwt` |
 
-外部 IdP による OAuth 2.0 / OpenID Connect SSO 認証を WpPack Security コンポーネントに統合する Bridge パッケージです。14 種の専用プロバイダーと Generic OIDC プロバイダーをサポートし、`firebase/php-jwt` を使用した ID トークン検証と自前の OAuth/OIDC フロー実装を組み合わせています。
+外部 IdP による OAuth 2.0 / OpenID Connect SSO 認証を WpPack Security コンポーネントに統合する Bridge パッケージです。17 種の専用プロバイダーと Generic OIDC プロバイダーをサポートし、`firebase/php-jwt` を使用した ID トークン検証と自前の OAuth/OIDC フロー実装を組み合わせています。
 
 ## インストール
 
@@ -198,6 +198,74 @@ $provider = new GenericOidcProvider(configuration: $configuration);
 ```
 
 OIDC Discovery（`.well-known/openid-configuration`）によるエンドポイント自動取得に対応。`OAuthConfiguration` の `discoveryUrl` でディスカバリー URL を指定します。
+
+### YahooProvider
+
+Yahoo (global) の OpenID Connect に対応:
+
+```php
+$provider = new YahooProvider(configuration: $configuration);
+```
+
+- OIDC 対応
+- Discovery URL: `https://api.login.yahoo.com/.well-known/openid-configuration`
+
+### YahooJapanProvider
+
+Yahoo! JAPAN YConnect v2 に対応:
+
+```php
+$provider = new YahooJapanProvider(configuration: $configuration);
+```
+
+- OIDC 対応
+- Discovery URL: `https://auth.login.yahoo.co.jp/yconnect/v2/.well-known/openid-configuration`
+
+### DAccountProvider
+
+NTT docomo d Account Connect に対応:
+
+```php
+$provider = new DAccountProvider(configuration: $configuration);
+```
+
+- OIDC 対応
+- Discovery URL: `https://conf.uw.docomo.ne.jp/.well-known/openid-configuration`
+
+### ProviderDefinition / ProviderRegistry
+
+各プロバイダーは `ProviderDefinition` を返す `definition()` メソッドを実装しています:
+
+```php
+use WpPack\Component\Security\Bridge\OAuth\Provider\ProviderDefinition;
+use WpPack\Component\Security\Bridge\OAuth\Provider\ProviderRegistry;
+
+// 全プロバイダー定義を取得
+$definitions = ProviderRegistry::definitions();
+
+// 特定プロバイダーの定義
+$def = ProviderRegistry::definition('google');
+$def->type;           // 'google'
+$def->label;          // 'Google'
+$def->dropdownLabel;  // 'Google'
+$def->oidc;           // true
+$def->requiredFields; // []
+$def->defaultScopes;  // ['openid', 'email', 'profile']
+
+// プロバイダークラスを取得
+$class = ProviderRegistry::providerClass('google'); // GoogleProvider::class
+```
+
+`ProviderDefinition` のプロパティ:
+
+| プロパティ | 型 | 説明 |
+|-----------|------|------|
+| `type` | `string` | プロバイダー識別子（`google`, `entra-id` 等） |
+| `label` | `string` | 表示名（`Google`, `Entra ID` 等） |
+| `dropdownLabel` | `string` | ドロップダウン用表示名（`Google`, `Microsoft Entra ID` 等） |
+| `oidc` | `bool` | OIDC 対応かどうか |
+| `requiredFields` | `list<string>` | 追加必須フィールド（`['domain']`, `['tenant_id']` 等） |
+| `defaultScopes` | `list<string>` | デフォルトスコープ |
 
 ## 認証フロー
 

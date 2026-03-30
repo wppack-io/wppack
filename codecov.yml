@@ -167,6 +167,10 @@ component_management:
       name: OAuthSecurity
       paths:
         - src/Component/Security/Bridge/OAuth/src/**
+    - component_id: oauth_login_plugin
+      name: OAuthLoginPlugin
+      paths:
+        - src/Plugin/OAuthLoginPlugin/src/**
     - component_id: messenger
       name: Messenger
       paths:
