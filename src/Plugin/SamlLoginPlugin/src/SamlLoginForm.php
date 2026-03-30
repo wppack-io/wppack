@@ -55,12 +55,14 @@ final class SamlLoginForm
         $redirectTo = $this->request->query->getString('redirect_to');
         $returnTo = $redirectTo !== '' ? $redirectTo : admin_url();
         $url = esc_url($this->entryPoint->getLoginUrl($returnTo));
+        $label = esc_html(__('SSO でログイン', 'wppack-saml-login'));
 
         echo <<<HTML
         <div id="wppack-saml-login" style="display:none;clear:both;">
             <div style="display:flex;align-items:center;gap:8px;padding:16px 0;color:#72777c;"><span style="flex:1;border-top:1px solid #c3c4c7;"></span>or<span style="flex:1;border-top:1px solid #c3c4c7;"></span></div>
             <p>
-                <a href="{$url}" class="button button-large" style="width:100%;text-align:center;box-sizing:border-box;">Login with SSO</a>
+                <a href="{$url}" style="display:flex;align-items:center;justify-content:center;width:100%;height:36px;box-sizing:border-box;border-radius:4px;background:#fff;color:#1d2327;border:1px solid #ddd;text-decoration:none;font-size:13px;font-weight:500;cursor:pointer;transition:filter .15s;"
+                   onmouseover="this.style.filter='brightness(.92)'" onmouseout="this.style.filter=''">{$label}</a>
             </p>
         </div>
         <script>
