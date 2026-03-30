@@ -36,6 +36,7 @@ composer require wppack/oauth-security
 | Microsoft Entra ID | `entra-id` | Yes | client_id, client_secret, **tenant_id** |
 | Okta | `okta` | Yes | client_id, client_secret, **domain** |
 | OneLogin | `onelogin` | Yes | client_id, client_secret, **domain** |
+| Microsoft (Personal) | `microsoft` | Yes | client_id, client_secret |
 | Slack | `slack` | Yes | client_id, client_secret |
 | Yahoo | `yahoo` | Yes | client_id, client_secret |
 | Yahoo! JAPAN | `yahoo-japan` | Yes | client_id, client_secret |

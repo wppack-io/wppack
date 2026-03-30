@@ -31,6 +31,7 @@ final class ProviderRegistry
         'google' => GoogleProvider::class,
         'keycloak' => KeycloakProvider::class,
         'line' => LineProvider::class,
+        'microsoft' => MicrosoftProvider::class,
         'okta' => OktaProvider::class,
         'onelogin' => OneLoginProvider::class,
         'slack' => SlackProvider::class,

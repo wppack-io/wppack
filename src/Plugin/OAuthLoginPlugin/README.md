@@ -67,6 +67,7 @@ define('OAUTH_DEFAULT_ROLE', 'subscriber');
 | `google` | Google | `client_id`, `client_secret` |
 | `keycloak` | Keycloak | `client_id`, `client_secret`, `domain` |
 | `line` | LINE | `client_id`, `client_secret` |
+| `microsoft` | Microsoft (Personal) | `client_id`, `client_secret` |
 | `okta` | Okta | `client_id`, `client_secret`, `domain` |
 | `onelogin` | OneLogin | `client_id`, `client_secret`, `domain` |
 | `slack` | Slack | `client_id`, `client_secret` |
