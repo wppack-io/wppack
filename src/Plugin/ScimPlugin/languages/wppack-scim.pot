@@ -1,0 +1,115 @@
+# Copyright (C) 2026 @wppack/scim-plugin
+# This file is distributed under the GPL v2 or later license.
+msgid ""
+msgstr ""
+"Project-Id-Version: @wppack/scim-plugin 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugins/wppack-scim\n"
+"MIME-Version: 1.0\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+"POT-Creation-Date: 2026-03-30T14:24:32.862Z\n"
+"PO-Revision-Date: 2026-MO-DA HO:MI+ZONE\n"
+"Last-Translator: WpPack <dev@wppack.io>\n"
+"Language-Team: WpPack <dev@wppack.io>\n"
+"X-Generator: @wp-blocks/make-pot 1.6.6\n"
+"Language: en\n"
+"X-Domain: wppack-scim\n"
+
+#: wppack-scim.php
+#. Name of the plugin
+msgid "@wppack/scim-plugin"
+msgstr ""
+
+#: wppack-scim.php
+#. Author of the plugin
+msgid "WpPack"
+msgstr ""
+
+#: js/src/settings/App.js:25
+msgid "Constant"
+msgstr ""
+
+#: js/src/settings/App.js:26
+msgid "Saved"
+msgstr ""
+
+#: js/src/settings/App.js:65
+msgid "Failed to load settings."
+msgstr ""
+
+#: js/src/settings/App.js:84
+msgid "Settings saved."
+msgstr ""
+
+#: js/src/settings/App.js:90
+msgid "Failed to save settings."
+msgstr ""
+
+#: js/src/settings/App.js:117
+msgid "SCIM Settings"
+msgstr ""
+
+#: js/src/settings/App.js:131
+msgid "Authentication"
+msgstr ""
+
+#: js/src/settings/App.js:138
+msgid "Bearer Token"
+msgstr ""
+
+#: js/src/settings/App.js:142
+msgid "Token for SCIM API authentication. Leave as masked to keep current value."
+msgstr ""
+
+#: js/src/settings/App.js:155
+msgid "Provisioning"
+msgstr ""
+
+#: js/src/settings/App.js:161
+msgid "Auto Provision"
+msgstr ""
+
+#: js/src/settings/App.js:165
+msgid "Automatically create WordPress users from SCIM requests."
+msgstr ""
+
+#: js/src/settings/App.js:174
+msgid "Default Role"
+msgstr ""
+
+#: js/src/settings/App.js:187
+msgid "Allow Group Management"
+msgstr ""
+
+#: js/src/settings/App.js:191
+msgid "Allow SCIM to manage WordPress roles as groups."
+msgstr ""
+
+#: js/src/settings/App.js:200
+msgid "Allow User Deletion"
+msgstr ""
+
+#: js/src/settings/App.js:204
+msgid "Allow SCIM DELETE requests to remove WordPress users."
+msgstr ""
+
+#: js/src/settings/App.js:214
+msgid "Max Results"
+msgstr ""
+
+#: js/src/settings/App.js:218
+msgid "Maximum number of resources returned per list request (1-1000)."
+msgstr ""
+
+#: js/src/settings/App.js:235
+msgid "SCIM Endpoints"
+msgstr ""
+
+#: js/src/settings/App.js:279
+msgid "Saving?"
+msgstr ""
+
+#: js/src/settings/App.js:280
+msgid "Save Settings"
+msgstr ""

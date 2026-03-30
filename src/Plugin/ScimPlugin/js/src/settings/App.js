@@ -179,6 +179,7 @@ export default function App() {
 						onChange={ update( 'defaultRole' ) }
 						disabled={ s( 'defaultRole' ).readonly }
 						options={ roleOptions }
+						className="wpp-scim-small-select"
 						__nextHasNoMarginBottom
 					/>
 					<ToggleControl
