@@ -331,6 +331,13 @@ final class OAuthLoginPluginServiceProvider implements ServiceProviderInterface
             }
         }
 
+        // Validate tenant_id format for Entra ID
+        if ($config->type === 'entra-id' && $config->tenantId !== null) {
+            if (!preg_match('/^[a-f0-9\-]{36}$|^(common|organizations|consumers)$/i', $config->tenantId)) {
+                return false;
+            }
+        }
+
         return true;
     }
 
@@ -426,8 +433,13 @@ final class OAuthLoginPluginServiceProvider implements ServiceProviderInterface
         AuthenticationSession $authSession,
         Request $request,
     ): OAuthLoginForm {
+        $completeProviders = array_filter(
+            $config->providers,
+            static fn (ProviderConfiguration $p) => self::isProviderConfigComplete($p),
+        );
+
         return new OAuthLoginForm(
-            providers: array_values($config->providers),
+            providers: array_values($completeProviders),
             config: $config,
             authSession: $authSession,
             request: $request,

@@ -103,6 +103,9 @@ class OAuthLoginPlugin extends AbstractPlugin
 
         foreach ($config->providers as $name => $providerConfig) {
             $entryPointId = OAuthEntryPoint::class . '.' . $name;
+            if (!$container->has($entryPointId)) {
+                continue;
+            }
             /** @var OAuthEntryPoint $entryPoint */
             $entryPoint = $container->get($entryPointId);
             $entryPoints[$name] = $entryPoint;
