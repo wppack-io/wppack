@@ -216,3 +216,6 @@ msgstr "保存中…"
 #: js/src/settings/App.js:490
 msgid "Save Settings"
 msgstr "設定を保存"
+
+msgid "Login with SSO"
+msgstr "SSO でログイン"

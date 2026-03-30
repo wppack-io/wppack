@@ -1,0 +1,1 @@
+The string "Login with %s" contains placeholders but has no "translators:" comment to clarify their meaning. (src/OAuthLoginForm.php:96)

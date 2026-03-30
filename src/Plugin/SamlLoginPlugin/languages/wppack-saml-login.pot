@@ -9,7 +9,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Content-Type: text/plain; charset=iso-8859-1\n"
 "Plural-Forms: nplurals=2; plural=(n!=1);\n"
-"POT-Creation-Date: 2026-03-30T04:56:16.149Z\n"
+"POT-Creation-Date: 2026-03-30T17:15:29.140Z\n"
 "PO-Revision-Date: 2026-MO-DA HO:MI+ZONE\n"
 "Last-Translator: WpPack <dev@wppack.io>\n"
 "Language-Team: WpPack <dev@wppack.io>\n"
@@ -27,6 +27,10 @@ msgstr ""
 msgid "WpPack"
 msgstr ""
 
+#: src/SamlLoginForm.php:58
+msgid "Login with SSO"
+msgstr ""
+
 #: js/src/settings/App.js:26
 msgid "Constant"
 msgstr ""
@@ -39,181 +43,181 @@ msgstr ""
 msgid "Saved"
 msgstr ""
 
-#: js/src/settings/App.js:142
+#: js/src/settings/App.js:137
 msgid "Failed to load settings."
 msgstr ""
 
-#: js/src/settings/App.js:161
+#: js/src/settings/App.js:156
 msgid "Settings saved."
 msgstr ""
 
-#: js/src/settings/App.js:167
+#: js/src/settings/App.js:162
 msgid "Failed to save settings."
 msgstr ""
 
-#: js/src/settings/App.js:194
+#: js/src/settings/App.js:189
 msgid "Failed to download metadata. Ensure SAML is configured."
 msgstr ""
 
-#: js/src/settings/App.js:216
+#: js/src/settings/App.js:211
 msgid "SAML Login Settings"
 msgstr ""
 
-#: js/src/settings/App.js:230
+#: js/src/settings/App.js:225
 msgid "Identity Provider (IdP)"
 msgstr ""
 
-#: js/src/settings/App.js:235
-#: js/src/settings/App.js:301
+#: js/src/settings/App.js:230
+#: js/src/settings/App.js:292
 msgid "Entity ID"
 msgstr ""
 
-#: js/src/settings/App.js:242
+#: js/src/settings/App.js:237
 msgid "SSO URL"
 msgstr ""
 
-#: js/src/settings/App.js:249
+#: js/src/settings/App.js:244
 msgid "SLO URL"
 msgstr ""
 
-#: js/src/settings/App.js:253
+#: js/src/settings/App.js:248
 msgid "Single Logout URL (optional)"
 msgstr ""
 
-#: js/src/settings/App.js:259
+#: js/src/settings/App.js:254
 msgid "X.509 Certificate"
 msgstr ""
 
-#: js/src/settings/App.js:275
+#: js/src/settings/App.js:267
 msgid "PEM format. Leave as masked to keep current value."
 msgstr ""
 
-#: js/src/settings/App.js:284
+#: js/src/settings/App.js:275
 msgid "Certificate Fingerprint"
 msgstr ""
 
-#: js/src/settings/App.js:288
+#: js/src/settings/App.js:279
 msgid "Leave as masked to keep current value."
 msgstr ""
 
-#: js/src/settings/App.js:296
+#: js/src/settings/App.js:287
 msgid "Service Provider (SP)"
 msgstr ""
 
-#: js/src/settings/App.js:305
+#: js/src/settings/App.js:296
 msgid "Defaults to site URL if empty."
 msgstr ""
 
-#: js/src/settings/App.js:309
+#: js/src/settings/App.js:300
 msgid "Metadata Path"
 msgstr ""
 
-#: js/src/settings/App.js:317
+#: js/src/settings/App.js:308
 msgid "ACS Path"
 msgstr ""
 
-#: js/src/settings/App.js:325
+#: js/src/settings/App.js:316
 msgid "SLO Path"
 msgstr ""
 
-#: js/src/settings/App.js:334
+#: js/src/settings/App.js:326
 msgid "NameID Format"
 msgstr ""
 
-#: js/src/settings/App.js:366
+#: js/src/settings/App.js:358
 msgid "Download SP Metadata"
 msgstr ""
 
-#: js/src/settings/App.js:372
+#: js/src/settings/App.js:364
 msgid "Security"
 msgstr ""
 
-#: js/src/settings/App.js:377
+#: js/src/settings/App.js:369
 msgid "Strict Mode"
 msgstr ""
 
-#: js/src/settings/App.js:384
+#: js/src/settings/App.js:376
 msgid "Require Signed Assertions"
 msgstr ""
 
-#: js/src/settings/App.js:395
+#: js/src/settings/App.js:387
 msgid "User Provisioning"
 msgstr ""
 
-#: js/src/settings/App.js:400
+#: js/src/settings/App.js:392
 msgid "Auto-create Users"
 msgstr ""
 
-#: js/src/settings/App.js:408
+#: js/src/settings/App.js:401
 msgid "Default Role"
 msgstr ""
 
-#: js/src/settings/App.js:426
+#: js/src/settings/App.js:419
 msgid "Email Attribute"
 msgstr ""
 
-#: js/src/settings/App.js:433
+#: js/src/settings/App.js:426
 msgid "First Name Attribute"
 msgstr ""
 
-#: js/src/settings/App.js:440
+#: js/src/settings/App.js:433
 msgid "Last Name Attribute"
 msgstr ""
 
-#: js/src/settings/App.js:447
+#: js/src/settings/App.js:440
 msgid "Display Name Attribute"
 msgstr ""
 
-#: js/src/settings/App.js:454
+#: js/src/settings/App.js:448
 msgid "Role Attribute"
 msgstr ""
 
-#: js/src/settings/App.js:458
+#: js/src/settings/App.js:452
 msgid "SAML attribute name for role mapping."
 msgstr ""
 
-#: js/src/settings/App.js:467
+#: js/src/settings/App.js:462
 msgid "Role Mapping (JSON)"
 msgstr ""
 
-#: js/src/settings/App.js:471
+#: js/src/settings/App.js:466
 msgid ""
 "JSON object mapping SAML roles to WordPress roles, e.g. "
 "{\"admin\":\"administrator\",\"member\":\"subscriber\"}"
 msgstr ""
 
-#: js/src/settings/App.js:487
+#: js/src/settings/App.js:478
 msgid "Add User to Blog"
 msgstr ""
 
-#: js/src/settings/App.js:491
+#: js/src/settings/App.js:482
 msgid "Multisite: add user to the current blog on login."
 msgstr ""
 
-#: js/src/settings/App.js:499
+#: js/src/settings/App.js:490
 msgid "Advanced"
 msgstr ""
 
-#: js/src/settings/App.js:504
+#: js/src/settings/App.js:495
 msgid "SSO Only Mode"
 msgstr ""
 
-#: js/src/settings/App.js:508
+#: js/src/settings/App.js:499
 msgid "Disable WordPress login form and redirect to SAML IdP."
 msgstr ""
 
-#: js/src/settings/App.js:515
+#: js/src/settings/App.js:506
 msgid "Debug Mode"
 msgstr ""
 
-#: js/src/settings/App.js:522
+#: js/src/settings/App.js:513
 msgid "Allow Repeat Attribute Name"
 msgstr ""
 
-#: js/src/settings/App.js:541
+#: js/src/settings/App.js:532
 msgid "Saving?"
 msgstr ""
 
-#: js/src/settings/App.js:542
+#: js/src/settings/App.js:533
 msgid "Save Settings"
 msgstr ""

@@ -12,7 +12,7 @@ import {
 	BaseControl,
 	Tooltip,
 } from '@wordpress/components';
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
 
 import './style.css';
@@ -189,7 +189,7 @@ function ProviderPanel( { name, provider, onChange, onDelete, onRename, onMoveUp
 			<BaseControl label={ __( 'ログインボタンプレビュー', 'wppack-oauth-login' ) }>
 				<div className="wpp-oauth-button-preview">
 					{ buttonDisplay === 'icon-only' ? (
-						<Tooltip text={ `${ f.label || name }  Login` }>
+						<Tooltip text={ sprintf( __( 'Login with %s', 'wppack-oauth-login' ), f.label || name ) }>
 							<a
 								className="wpp-oauth-login-button is-icon-only"
 								style={ {
@@ -223,7 +223,7 @@ function ProviderPanel( { name, provider, onChange, onDelete, onRename, onMoveUp
 									dangerouslySetInnerHTML={ { __html: icon } }
 								/>
 							) }
-							<span className="wpp-oauth-login-text">{ `${ f.label || name }  Login` }</span>
+							<span className="wpp-oauth-login-text">{ sprintf( __( 'Login with %s', 'wppack-oauth-login' ), f.label || name ) }</span>
 						</a>
 					) }
 				</div>

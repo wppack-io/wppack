@@ -146,3 +146,21 @@ msgstr "プロバイダーを追加"
 
 msgid "Save Settings"
 msgstr "設定を保存"
+
+msgid "Login with %s"
+msgstr "%s でログイン"
+
+msgid "Login Button Preview"
+msgstr "ログインボタンプレビュー"
+
+msgid "Button Style"
+msgstr "ボタンスタイル"
+
+msgid "Button Display"
+msgstr "ボタン表示"
+
+msgid "Provider identifier used in URLs."
+msgstr "URL で使用されるプロバイダー識別子。"
+
+msgid "Domain"
+msgstr "ドメイン"
