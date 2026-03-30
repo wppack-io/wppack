@@ -19,6 +19,8 @@ declare(strict_types=1);
  * Requires at least: 6.9
  * Author: WpPack
  * License: MIT
+ * Text Domain: wppack-saml-login
+ * Domain Path: /languages
  */
 
 use WpPack\Component\Kernel\Kernel;

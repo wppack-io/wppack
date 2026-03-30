@@ -65,6 +65,12 @@ final class SamlLoginSettingsPage extends AbstractAdminPage
             $asset['version'],
         );
 
+        wp_set_script_translations(
+            'wppack-saml-login-settings',
+            'wppack-saml-login',
+            \dirname($this->pluginFile) . '/languages',
+        );
+
         wp_localize_script('wppack-saml-login-settings', 'wppSamlLogin', [
             'restUrl' => rest_url('wppack/v1/saml-login'),
             'nonce' => wp_create_nonce('wp_rest'),

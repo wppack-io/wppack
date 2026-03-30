@@ -1,0 +1,212 @@
+# Japanese translation for WpPack SAML Login
+msgid ""
+msgstr ""
+"Project-Id-Version: @wppack/saml-login-plugin 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugins/wppack-saml-login\n"
+"MIME-Version: 1.0\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"PO-Revision-Date: 2026-03-30 00:00+0900\n"
+"Last-Translator: WpPack <dev@wppack.io>\n"
+"Language-Team: WpPack <dev@wppack.io>\n"
+"Language: ja\n"
+"X-Domain: wppack-saml-login\n"
+
+#: wppack-saml-login.php
+msgid "@wppack/saml-login-plugin"
+msgstr "WpPack SAML Login"
+
+#: wppack-saml-login.php
+msgid "WpPack"
+msgstr "WpPack"
+
+#: js/src/settings/App.js:26
+msgid "Constant"
+msgstr "定数"
+
+#: js/src/settings/App.js:27
+msgid "Env"
+msgstr "環境変数"
+
+#: js/src/settings/App.js:28
+msgid "Saved"
+msgstr "保存済み"
+
+#: js/src/settings/App.js:107
+msgid "Failed to load settings."
+msgstr "設定の読み込みに失敗しました。"
+
+#: js/src/settings/App.js:131
+msgid "Settings saved."
+msgstr "設定を保存しました。"
+
+#: js/src/settings/App.js:137
+msgid "Failed to save settings."
+msgstr "設定の保存に失敗しました。"
+
+#: js/src/settings/App.js:161
+msgid "SAML Login Settings"
+msgstr "SAML ログイン設定"
+
+#: js/src/settings/App.js:175
+msgid "Identity Provider (IdP)"
+msgstr "ID プロバイダー (IdP)"
+
+#: js/src/settings/App.js:180
+#: js/src/settings/App.js:246
+msgid "Entity ID"
+msgstr "エンティティ ID"
+
+#: js/src/settings/App.js:187
+msgid "SSO URL"
+msgstr "SSO URL"
+
+#: js/src/settings/App.js:194
+#: js/src/settings/App.js:261
+msgid "SLO URL"
+msgstr "SLO URL"
+
+#: js/src/settings/App.js:198
+msgid "Single Logout URL (optional)"
+msgstr "シングルログアウト URL（任意）"
+
+#: js/src/settings/App.js:204
+msgid "X.509 Certificate"
+msgstr "X.509 証明書"
+
+#: js/src/settings/App.js:220
+msgid "PEM format. Leave as masked to keep current value."
+msgstr "PEM 形式。現在の値を維持する場合はマスクのままにしてください。"
+
+#: js/src/settings/App.js:229
+msgid "Certificate Fingerprint"
+msgstr "証明書フィンガープリント"
+
+#: js/src/settings/App.js:233
+msgid "Leave as masked to keep current value."
+msgstr "現在の値を維持する場合はマスクのままにしてください。"
+
+#: js/src/settings/App.js:241
+msgid "Service Provider (SP)"
+msgstr "サービスプロバイダー (SP)"
+
+#: js/src/settings/App.js:250
+msgid "Defaults to site URL if empty."
+msgstr "空の場合はサイト URL がデフォルトになります。"
+
+#: js/src/settings/App.js:254
+msgid "ACS URL"
+msgstr "ACS URL"
+
+#: js/src/settings/App.js:269
+msgid "NameID Format"
+msgstr "NameID フォーマット"
+
+#: js/src/settings/App.js:299
+msgid "Security"
+msgstr "セキュリティ"
+
+#: js/src/settings/App.js:304
+msgid "Strict Mode"
+msgstr "厳格モード"
+
+#: js/src/settings/App.js:311
+msgid "Require Signed Assertions"
+msgstr "署名付きアサーションを要求"
+
+#: js/src/settings/App.js:322
+msgid "User Provisioning"
+msgstr "ユーザープロビジョニング"
+
+#: js/src/settings/App.js:327
+msgid "Auto-create Users"
+msgstr "ユーザーの自動作成"
+
+#: js/src/settings/App.js:335
+msgid "Default Role"
+msgstr "デフォルトロール"
+
+#: js/src/settings/App.js:353
+msgid "Email Attribute"
+msgstr "メール属性"
+
+#: js/src/settings/App.js:360
+msgid "First Name Attribute"
+msgstr "名属性"
+
+#: js/src/settings/App.js:367
+msgid "Last Name Attribute"
+msgstr "姓属性"
+
+#: js/src/settings/App.js:374
+msgid "Display Name Attribute"
+msgstr "表示名属性"
+
+#: js/src/settings/App.js:381
+msgid "Role Attribute"
+msgstr "ロール属性"
+
+#: js/src/settings/App.js:385
+msgid "SAML attribute name for role mapping."
+msgstr "ロールマッピング用の SAML 属性名。"
+
+#: js/src/settings/App.js:394
+msgid "Role Mapping (JSON)"
+msgstr "ロールマッピング (JSON)"
+
+#: js/src/settings/App.js:398
+msgid ""
+"JSON object mapping SAML roles to WordPress roles, e.g. "
+"{\"admin\":\"administrator\",\"member\":\"subscriber\"}"
+msgstr ""
+"SAML ロールを WordPress ロールにマッピングする JSON オブジェクト（例: "
+"{\"admin\":\"administrator\",\"member\":\"subscriber\"}）"
+
+#: js/src/settings/App.js:414
+msgid "Add User to Blog"
+msgstr "ブログにユーザーを追加"
+
+#: js/src/settings/App.js:418
+msgid "Multisite: add user to the current blog on login."
+msgstr "マルチサイト: ログイン時にユーザーを現在のブログに追加します。"
+
+#: js/src/settings/App.js:426
+msgid "Advanced"
+msgstr "詳細設定"
+
+#: js/src/settings/App.js:431
+msgid "SSO Only Mode"
+msgstr "SSO 専用モード"
+
+#: js/src/settings/App.js:435
+msgid "Disable WordPress login form and redirect to SAML IdP."
+msgstr "WordPress のログインフォームを無効にし、SAML IdP にリダイレクトします。"
+
+#: js/src/settings/App.js:442
+msgid "Debug Mode"
+msgstr "デバッグモード"
+
+#: js/src/settings/App.js:449
+msgid "Allow Repeat Attribute Name"
+msgstr "属性名の重複を許可"
+
+#: js/src/settings/App.js:459
+msgid "Metadata Path"
+msgstr "メタデータパス"
+
+#: js/src/settings/App.js:466
+msgid "ACS Path"
+msgstr "ACS パス"
+
+#: js/src/settings/App.js:473
+msgid "SLO Path"
+msgstr "SLO パス"
+
+#: js/src/settings/App.js:489
+msgid "Saving…"
+msgstr "保存中…"
+
+#: js/src/settings/App.js:490
+msgid "Save Settings"
+msgstr "設定を保存"
