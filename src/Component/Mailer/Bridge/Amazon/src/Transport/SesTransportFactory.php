@@ -25,28 +25,28 @@ final class SesTransportFactory implements TransportFactoryInterface
 {
     /** @var list<array{label: string, value: string}> */
     private const REGION_OPTIONS = [
-        ['label' => 'US East (N. Virginia) - us-east-1', 'value' => 'us-east-1'],
-        ['label' => 'US East (Ohio) - us-east-2', 'value' => 'us-east-2'],
-        ['label' => 'US West (Oregon) - us-west-2', 'value' => 'us-west-2'],
-        ['label' => 'Asia Pacific (Mumbai) - ap-south-1', 'value' => 'ap-south-1'],
-        ['label' => 'Asia Pacific (Tokyo) - ap-northeast-1', 'value' => 'ap-northeast-1'],
-        ['label' => 'Asia Pacific (Seoul) - ap-northeast-2', 'value' => 'ap-northeast-2'],
-        ['label' => 'Asia Pacific (Singapore) - ap-southeast-1', 'value' => 'ap-southeast-1'],
-        ['label' => 'Asia Pacific (Sydney) - ap-southeast-2', 'value' => 'ap-southeast-2'],
-        ['label' => 'Canada (Central) - ca-central-1', 'value' => 'ca-central-1'],
-        ['label' => 'Europe (Frankfurt) - eu-central-1', 'value' => 'eu-central-1'],
-        ['label' => 'Europe (Ireland) - eu-west-1', 'value' => 'eu-west-1'],
-        ['label' => 'Europe (London) - eu-west-2', 'value' => 'eu-west-2'],
-        ['label' => 'Europe (Stockholm) - eu-north-1', 'value' => 'eu-north-1'],
-        ['label' => 'Middle East (Bahrain) - me-south-1', 'value' => 'me-south-1'],
-        ['label' => 'South America (São Paulo) - sa-east-1', 'value' => 'sa-east-1'],
-        ['label' => 'Africa (Cape Town) - af-south-1', 'value' => 'af-south-1'],
-        ['label' => 'Israel (Tel Aviv) - il-central-1', 'value' => 'il-central-1'],
+        ['label' => 'us-east-1', 'value' => 'us-east-1'],
+        ['label' => 'us-east-2', 'value' => 'us-east-2'],
+        ['label' => 'us-west-2', 'value' => 'us-west-2'],
+        ['label' => 'ap-south-1', 'value' => 'ap-south-1'],
+        ['label' => 'ap-northeast-1', 'value' => 'ap-northeast-1'],
+        ['label' => 'ap-northeast-2', 'value' => 'ap-northeast-2'],
+        ['label' => 'ap-southeast-1', 'value' => 'ap-southeast-1'],
+        ['label' => 'ap-southeast-2', 'value' => 'ap-southeast-2'],
+        ['label' => 'ca-central-1', 'value' => 'ca-central-1'],
+        ['label' => 'eu-central-1', 'value' => 'eu-central-1'],
+        ['label' => 'eu-west-1', 'value' => 'eu-west-1'],
+        ['label' => 'eu-west-2', 'value' => 'eu-west-2'],
+        ['label' => 'eu-north-1', 'value' => 'eu-north-1'],
+        ['label' => 'me-south-1', 'value' => 'me-south-1'],
+        ['label' => 'sa-east-1', 'value' => 'sa-east-1'],
+        ['label' => 'af-south-1', 'value' => 'af-south-1'],
+        ['label' => 'il-central-1', 'value' => 'il-central-1'],
     ];
 
     public static function definitions(): array
     {
-        $regionField = new TransportField('region', 'Region', required: true, default: 'us-east-1', dsnPart: 'option:region', options: self::REGION_OPTIONS, maxWidth: '360px');
+        $regionField = new TransportField('region', 'Region', required: true, default: 'us-east-1', dsnPart: 'option:region', options: self::REGION_OPTIONS, maxWidth: '200px');
 
         return [
             new TransportDefinition(
