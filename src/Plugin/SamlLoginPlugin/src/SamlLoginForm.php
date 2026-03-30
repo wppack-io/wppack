@@ -55,7 +55,7 @@ final class SamlLoginForm
         $redirectTo = $this->request->query->getString('redirect_to');
         $returnTo = $redirectTo !== '' ? $redirectTo : admin_url();
         $url = esc_url($this->entryPoint->getLoginUrl($returnTo));
-        $label = esc_html(__('SSO でログイン', 'wppack-saml-login'));
+        $label = esc_html(__('Login with SSO', 'wppack-saml-login'));
 
         echo <<<HTML
         <div id="wppack-saml-login" style="display:none;clear:both;">

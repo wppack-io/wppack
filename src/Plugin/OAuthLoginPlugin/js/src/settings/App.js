@@ -189,7 +189,7 @@ function ProviderPanel( { name, provider, onChange, onDelete, onRename, onMoveUp
 			<BaseControl label={ __( 'ログインボタンプレビュー', 'wppack-oauth-login' ) }>
 				<div className="wpp-oauth-button-preview">
 					{ buttonDisplay === 'icon-only' ? (
-						<Tooltip text={ `${ f.label || name } でログイン` }>
+						<Tooltip text={ `${ f.label || name }  Login` }>
 							<a
 								className="wpp-oauth-login-button is-icon-only"
 								style={ {
@@ -223,10 +223,7 @@ function ProviderPanel( { name, provider, onChange, onDelete, onRename, onMoveUp
 									dangerouslySetInnerHTML={ { __html: icon } }
 								/>
 							) }
-							<span className="wpp-oauth-login-text">{ `${ f.label || name } でログイン` }</span>
-							{ buttonDisplay === 'icon-left' && icon && (
-								<span style={ { width: 20, flexShrink: 0 } } />
-							) }
+							<span className="wpp-oauth-login-text">{ `${ f.label || name }  Login` }</span>
 						</a>
 					) }
 				</div>

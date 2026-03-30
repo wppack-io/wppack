@@ -89,24 +89,25 @@ class OAuthLoginForm
             $showIcon = $display !== 'text-only' && $icon !== '';
             $showText = $display !== 'icon-only';
 
+            $btnClass = 'wol-btn';
+            $iconStyle = $iconColor !== '' ? ' style="' . $iconColor . '"' : '';
+            $titleAttr = '';
+            $iconSpan = $showIcon ? '<span class="wol-icon"' . $iconStyle . '>' . $icon . '</span>' : '';
+            $label = esc_html(sprintf(__('Login with %s', 'wppack-oauth-login'), $provider->label));
+
             if ($display === 'icon-left' && $showIcon) {
-                $iconHtml = '<span style="display:inline-flex;width:20px;height:20px;flex-shrink:0;' . $iconColor . '">' . $icon . '</span>';
-                $textHtml = $showText ? '<span style="flex:1;text-align:center;">' . esc_html(sprintf(__('%s でログイン', 'wppack-oauth-login'), $provider->label)) . '</span><span style="width:20px;flex-shrink:0;"></span>' : '';
-                $btnStyle = 'display:flex;align-items:center;gap:0;width:100%;box-sizing:border-box;padding:0 12px;height:36px;';
+                $btnClass .= ' wol-icon-left';
+                $content = $iconSpan . ($showText ? '<span class="wol-text">' . $label . '</span>' : '');
             } elseif ($display === 'icon-only' && $showIcon) {
-                $iconHtml = '<span style="display:inline-flex;width:20px;height:20px;' . $iconColor . '">' . $icon . '</span>';
-                $textHtml = '';
-                $btnStyle = 'display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;';
+                $btnClass .= ' wol-icon-only';
+                $titleAttr = ' title="' . esc_attr($label) . '"';
+                $content = $iconSpan;
             } else {
-                $iconHtml = $showIcon ? '<span style="display:inline-flex;width:20px;height:20px;' . $iconColor . '">' . $icon . '</span>' : '';
-                $textHtml = $showText ? esc_html(sprintf(__('%s でログイン', 'wppack-oauth-login'), $provider->label)) : '';
-                $btnStyle = 'display:flex;align-items:center;justify-content:center;gap:8px;width:100%;box-sizing:border-box;padding:0 12px;height:36px;';
+                $content = $iconSpan . ($showText ? $label : '');
             }
 
-            $titleAttr = $display === 'icon-only' ? ' title="' . esc_attr(sprintf(__('%s でログイン', 'wppack-oauth-login'), $provider->label)) . '"' : '';
-
             $buttons .= <<<HTML
-                <a href="{$url}"{$titleAttr} style="{$btnStyle}border-radius:4px;background:{$bg};color:{$text};border:1px solid {$border};text-decoration:none;font-size:13px;font-weight:500;cursor:pointer;">{$iconHtml}{$textHtml}</a>
+                <a href="{$url}"{$titleAttr} class="{$btnClass}" style="background:{$bg};color:{$text};border-color:{$border};">{$content}</a>
             HTML;
         }
 
@@ -115,7 +116,15 @@ class OAuthLoginForm
             : 'display:flex;flex-direction:column;gap:8px;';
 
         echo <<<HTML
-        <style>#wppack-oauth-login a{transition:filter .15s}#wppack-oauth-login a:hover{filter:brightness(.92)}</style>
+        <style>
+        .wol-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;box-sizing:border-box;padding:0 12px;height:36px;border-radius:4px;border:1px solid;text-decoration:none;font-size:13px;font-weight:500;cursor:pointer;transition:filter .15s}
+        .wol-btn:hover{filter:brightness(.92)}
+        .wol-icon{display:inline-flex;width:20px;height:20px;flex:none}
+        .wol-icon svg{width:100%;height:100%}
+        .wol-text{flex:1;text-align:center}
+        .wol-icon-left{gap:8px}
+        .wol-icon-only{width:36px;padding:0}
+        </style>
         <div id="wppack-oauth-login" style="display:none;clear:both;">
             <div style="display:flex;align-items:center;gap:8px;padding:16px 0;color:#72777c;"><span style="flex:1;border-top:1px solid #c3c4c7;"></span>or<span style="flex:1;border-top:1px solid #c3c4c7;"></span></div>
             <div style="{$wrapStyle}">{$buttons}</div>

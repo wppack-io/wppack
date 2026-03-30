@@ -435,7 +435,7 @@ final class OAuthLoginPluginServiceProvider implements ServiceProviderInterface
     ): OAuthLoginForm {
         $completeProviders = array_filter(
             $config->providers,
-            static fn (ProviderConfiguration $p) => self::isProviderConfigComplete($p),
+            static fn(ProviderConfiguration $p) => self::isProviderConfigComplete($p),
         );
 
         return new OAuthLoginForm(

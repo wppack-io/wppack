@@ -114,8 +114,8 @@ final class OAuthLoginFormTest extends TestCase
         $output = ob_get_clean();
 
         self::assertStringContainsString('wppack-oauth-login', $output);
-        self::assertStringContainsString('Google でログイン', $output);
-        self::assertStringContainsString('GitHub でログイン', $output);
+        self::assertStringContainsString('Login with Google', $output);
+        self::assertStringContainsString('Login with GitHub', $output);
         self::assertStringContainsString('/oauth/google/authorize', $output);
         self::assertStringContainsString('/oauth/github/authorize', $output);
     }

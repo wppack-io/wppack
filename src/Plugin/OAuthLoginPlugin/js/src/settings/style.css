@@ -217,11 +217,10 @@
 	width: 100%;
 	max-width: 280px;
 	box-sizing: border-box;
-	gap: 0;
 }
 
 .wpp-oauth-login-button.is-icon-left .wpp-oauth-login-icon {
-	flex-shrink: 0;
+	flex: none;
 }
 
 .wpp-oauth-login-button.is-icon-left .wpp-oauth-login-text {
