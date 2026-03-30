@@ -31,11 +31,21 @@ use WpPack\Component\Security\Bridge\OAuth\Configuration\OAuthConfiguration;
 use WpPack\Component\Security\Bridge\OAuth\Multisite\CrossSiteRedirector;
 use WpPack\Component\Security\Bridge\OAuth\OAuthAuthenticator;
 use WpPack\Component\Security\Bridge\OAuth\OAuthEntryPoint;
-use WpPack\Component\Security\Bridge\OAuth\Provider\AzureProvider;
+use WpPack\Component\Security\Bridge\OAuth\Provider\AppleProvider;
+use WpPack\Component\Security\Bridge\OAuth\Provider\Auth0Provider;
+use WpPack\Component\Security\Bridge\OAuth\Provider\CognitoProvider;
+use WpPack\Component\Security\Bridge\OAuth\Provider\DiscordProvider;
+use WpPack\Component\Security\Bridge\OAuth\Provider\EntraIdProvider;
+use WpPack\Component\Security\Bridge\OAuth\Provider\FacebookProvider;
 use WpPack\Component\Security\Bridge\OAuth\Provider\GenericOidcProvider;
 use WpPack\Component\Security\Bridge\OAuth\Provider\GitHubProvider;
 use WpPack\Component\Security\Bridge\OAuth\Provider\GoogleProvider;
+use WpPack\Component\Security\Bridge\OAuth\Provider\KeycloakProvider;
+use WpPack\Component\Security\Bridge\OAuth\Provider\LineProvider;
+use WpPack\Component\Security\Bridge\OAuth\Provider\OktaProvider;
+use WpPack\Component\Security\Bridge\OAuth\Provider\OneLoginProvider;
 use WpPack\Component\Security\Bridge\OAuth\Provider\ProviderInterface;
+use WpPack\Component\Security\Bridge\OAuth\Provider\SlackProvider;
 use WpPack\Component\Security\Bridge\OAuth\State\OAuthStateStore;
 use WpPack\Component\Security\Bridge\OAuth\Token\IdTokenValidator;
 use WpPack\Component\Security\Bridge\OAuth\Token\JwksProvider;
@@ -254,6 +264,8 @@ final class OAuthLoginPluginServiceProvider implements ServiceProviderInterface
 
         $scopes = $providerConfig->scopes ?? match ($providerConfig->type) {
             'github' => ['user:email'],
+            'discord' => ['identify', 'email'],
+            'facebook' => ['email', 'public_profile'],
             default => ['openid', 'email', 'profile'],
         };
 
@@ -275,15 +287,38 @@ final class OAuthLoginPluginServiceProvider implements ServiceProviderInterface
                 configuration: $oauthConfig,
                 hostedDomain: $providerConfig->hostedDomain,
             ),
-            'azure' => new AzureProvider(
+            'entra-id' => new EntraIdProvider(
                 configuration: $oauthConfig,
                 tenantId: $providerConfig->tenantId ?? throw new \RuntimeException(\sprintf(
                     'Provider "%s" requires a "tenant_id" configuration.',
                     $providerConfig->name,
                 )),
             ),
-            'github' => new GitHubProvider(
+            'github' => new GitHubProvider(configuration: $oauthConfig),
+            'apple' => new AppleProvider(configuration: $oauthConfig),
+            'discord' => new DiscordProvider(configuration: $oauthConfig),
+            'facebook' => new FacebookProvider(configuration: $oauthConfig),
+            'slack' => new SlackProvider(configuration: $oauthConfig),
+            'line' => new LineProvider(configuration: $oauthConfig),
+            'okta' => new OktaProvider(
                 configuration: $oauthConfig,
+                domain: $providerConfig->domain ?? throw new \RuntimeException(\sprintf('Provider "%s" requires a "domain" configuration.', $providerConfig->name)),
+            ),
+            'auth0' => new Auth0Provider(
+                configuration: $oauthConfig,
+                domain: $providerConfig->domain ?? throw new \RuntimeException(\sprintf('Provider "%s" requires a "domain" configuration.', $providerConfig->name)),
+            ),
+            'onelogin' => new OneLoginProvider(
+                configuration: $oauthConfig,
+                domain: $providerConfig->domain ?? throw new \RuntimeException(\sprintf('Provider "%s" requires a "domain" configuration.', $providerConfig->name)),
+            ),
+            'keycloak' => new KeycloakProvider(
+                configuration: $oauthConfig,
+                domain: $providerConfig->domain ?? throw new \RuntimeException(\sprintf('Provider "%s" requires a "domain" configuration.', $providerConfig->name)),
+            ),
+            'cognito' => new CognitoProvider(
+                configuration: $oauthConfig,
+                domain: $providerConfig->domain ?? throw new \RuntimeException(\sprintf('Provider "%s" requires a "domain" configuration.', $providerConfig->name)),
             ),
             'oidc' => new GenericOidcProvider(
                 configuration: $oauthConfig,

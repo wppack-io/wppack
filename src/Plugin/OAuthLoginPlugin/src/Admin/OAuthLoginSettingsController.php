@@ -142,6 +142,7 @@ final class OAuthLoginSettingsController extends AbstractRestController
             'client_secret' => OAuthLoginConfiguration::MASKED_VALUE,
             'label' => $provider->label,
             'tenant_id' => $provider->tenantId,
+            'domain' => $provider->domain,
             'hosted_domain' => $provider->hostedDomain,
             'discovery_url' => $provider->discoveryUrl,
             'scopes' => $provider->scopes !== null ? implode(' ', $provider->scopes) : '',

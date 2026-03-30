@@ -27,7 +27,7 @@ use WpPack\Component\Security\Bridge\OAuth\Configuration\OAuthConfiguration;
 use WpPack\Component\Security\Bridge\OAuth\OAuthAuthenticator;
 use WpPack\Component\Security\Bridge\OAuth\OAuthCallbackController;
 use WpPack\Component\Security\Bridge\OAuth\OAuthVerifyController;
-use WpPack\Component\Security\Bridge\OAuth\Provider\AzureProvider;
+use WpPack\Component\Security\Bridge\OAuth\Provider\EntraIdProvider;
 use WpPack\Component\Security\Bridge\OAuth\Provider\GenericOidcProvider;
 use WpPack\Component\Security\Bridge\OAuth\Provider\GitHubProvider;
 use WpPack\Component\Security\Bridge\OAuth\Provider\GoogleProvider;
@@ -263,11 +263,11 @@ final class OAuthLoginPluginServiceProviderTest extends TestCase
     }
 
     #[Test]
-    public function createProviderReturnsAzureProvider(): void
+    public function createProviderReturnsEntraIdProvider(): void
     {
         $providerConfig = new ProviderConfiguration(
             name: 'azure',
-            type: 'azure',
+            type: 'entra-id',
             clientId: 'id',
             clientSecret: 'secret',
             label: 'Azure',
@@ -282,7 +282,7 @@ final class OAuthLoginPluginServiceProviderTest extends TestCase
 
         $provider = OAuthLoginPluginServiceProvider::createProvider($providerConfig, $oauthConfig);
 
-        self::assertInstanceOf(AzureProvider::class, $provider);
+        self::assertInstanceOf(EntraIdProvider::class, $provider);
     }
 
     #[Test]
@@ -357,7 +357,7 @@ final class OAuthLoginPluginServiceProviderTest extends TestCase
     {
         $providerConfig = new ProviderConfiguration(
             name: 'azure',
-            type: 'azure',
+            type: 'entra-id',
             clientId: 'id',
             clientSecret: 'secret',
             label: 'Azure',

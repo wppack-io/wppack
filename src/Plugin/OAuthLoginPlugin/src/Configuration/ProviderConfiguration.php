@@ -30,6 +30,7 @@ final readonly class ProviderConfiguration
         public string $clientSecret,
         public string $label,
         public ?string $tenantId = null,
+        public ?string $domain = null,
         public ?string $hostedDomain = null,
         public ?string $discoveryUrl = null,
         public ?array $scopes = null,

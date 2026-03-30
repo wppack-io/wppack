@@ -36,6 +36,12 @@ msgstr "コールバックパス"
 msgid "Verify Path"
 msgstr "検証パス"
 
+msgid "Name"
+msgstr "名前"
+
+msgid "Provider identifier used in URLs. Lowercase letters, numbers, and hyphens only."
+msgstr "URL で使用されるプロバイダー識別子。小文字、数字、ハイフンのみ。"
+
 msgid "Type"
 msgstr "タイプ"
 
@@ -122,6 +128,21 @@ msgstr "グローバルデフォルト。プロバイダーごとに上書き可
 
 msgid "Saving…"
 msgstr "保存中…"
+
+msgid "Delete Provider"
+msgstr "プロバイダーを削除"
+
+msgid "Provider name must contain only lowercase letters, numbers, and hyphens."
+msgstr "プロバイダー名は小文字、数字、ハイフンのみ使用できます。"
+
+msgid "A provider with this name already exists."
+msgstr "この名前のプロバイダーは既に存在します。"
+
+msgid "New Provider Name"
+msgstr "新しいプロバイダー名"
+
+msgid "Add Provider"
+msgstr "プロバイダーを追加"
 
 msgid "Save Settings"
 msgstr "設定を保存"

@@ -151,9 +151,20 @@ function ProviderPanel( { name, provider, onChange, onDelete, onRename, isReadon
 				onChange={ update( 'type' ) }
 				disabled={ isReadonly }
 				options={ [
-					{ label: 'Google', value: 'google' },
-					{ label: 'Azure AD', value: 'azure' },
+					{ label: 'Apple', value: 'apple' },
+					{ label: 'Auth0', value: 'auth0' },
+					{ label: 'AWS Cognito', value: 'cognito' },
+					{ label: 'Discord', value: 'discord' },
+					{ label: 'Facebook', value: 'facebook' },
 					{ label: 'GitHub', value: 'github' },
+					{ label: 'Google', value: 'google' },
+					{ label: 'Keycloak', value: 'keycloak' },
+					{ label: 'LINE', value: 'line' },
+					{ label: 'Microsoft Entra ID', value: 'entra-id' },
+					{ label: 'Okta', value: 'okta' },
+					{ label: 'OneLogin', value: 'onelogin' },
+					{ label: 'Slack', value: 'slack' },
+					{ label: 'X (Twitter)', value: 'x' },
 					{ label: 'Generic OIDC', value: 'oidc' },
 				] }
 				__nextHasNoMarginBottom
@@ -187,14 +198,24 @@ function ProviderPanel( { name, provider, onChange, onDelete, onRename, isReadon
 				onChange={ update( 'label' ) }
 				disabled={ isReadonly }
 			/>
-			{ ( f.type === 'azure' || ! f.type ) && (
+			{ f.type === 'entra-id' && (
 				<Field
 					id={ `${ name }-tenant-id` }
 					label={ __( 'Tenant ID', 'wppack-oauth-login' ) }
 					value={ f.tenant_id }
 					onChange={ update( 'tenant_id' ) }
 					disabled={ isReadonly }
-					help={ __( 'Required for Azure AD.', 'wppack-oauth-login' ) }
+					help={ __( 'Required for Microsoft Entra ID.', 'wppack-oauth-login' ) }
+				/>
+			) }
+			{ [ 'okta', 'auth0', 'onelogin', 'keycloak', 'cognito' ].includes( f.type ) && (
+				<Field
+					id={ `${ name }-domain` }
+					label={ __( 'Domain', 'wppack-oauth-login' ) }
+					value={ f.domain }
+					onChange={ update( 'domain' ) }
+					disabled={ isReadonly }
+					help={ __( 'Provider domain (e.g., your-tenant.okta.com).', 'wppack-oauth-login' ) }
 				/>
 			) }
 			{ ( f.type === 'google' || ! f.type ) && (
