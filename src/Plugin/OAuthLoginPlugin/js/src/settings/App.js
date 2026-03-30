@@ -105,6 +105,7 @@ function PathField( { id, label, field, value, onChange, prefix, disabled } ) {
 }
 
 function ProviderPanel( { name, provider, onChange, onDelete, onRename, onMoveUp, onMoveDown, isFirst, isLast, isReadonly, icons, allStyles, buttonDisplay, definitions } ) {
+	const [ editName, setEditName ] = useState( name );
 	const f = provider.fields || {};
 	const icon = icons[ f.type ] || icons[ name ] || provider.icon;
 	const providerStyles = allStyles[ f.type ] || allStyles[ name ] || {};
@@ -151,14 +152,20 @@ function ProviderPanel( { name, provider, onChange, onDelete, onRename, onMoveUp
 					) }
 				</Notice>
 			) }
-			<Field
+			<BaseControl
 				id={ `${ name }-name` }
 				label={ __( 'Name', 'wppack-oauth-login' ) }
-				value={ name }
-				disabled={ isReadonly }
-				onChange={ ( val ) => onRename( name, val.toLowerCase().replace( /[^a-z0-9]+/g, '-' ).replace( /^-|-$/g, '' ) ) }
 				help={ __( 'Provider identifier used in URLs.', 'wppack-oauth-login' ) }
-			/>
+			>
+				<TextControl
+					id={ `${ name }-name` }
+					value={ editName }
+					onChange={ ( val ) => setEditName( val.toLowerCase().replace( /[^a-z0-9-]+/g, '-' ).replace( /^-|-$/g, '' ) ) }
+					onBlur={ () => { if ( editName && editName !== name ) onRename( name, editName ); } }
+					disabled={ isReadonly }
+					__nextHasNoMarginBottom
+				/>
+			</BaseControl>
 			<Field
 				id={ `${ name }-type` }
 				label={ __( 'Type', 'wppack-oauth-login' ) }
