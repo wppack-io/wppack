@@ -68,7 +68,7 @@ function Field( { id, label, field, value, onChange, help } ) {
 	const source = field?.source || 'default';
 
 	return (
-		<BaseControl
+		<TextControl
 			id={ id }
 			label={
 				<>
@@ -76,16 +76,12 @@ function Field( { id, label, field, value, onChange, help } ) {
 					<SourceBadge source={ source } />
 				</>
 			}
-		>
-			<TextControl
-				id={ id }
-				value={ value || '' }
-				onChange={ onChange }
-				disabled={ isReadonly }
-				help={ help }
-				__nextHasNoMarginBottom
-			/>
-		</BaseControl>
+			value={ value || '' }
+			onChange={ onChange }
+			disabled={ isReadonly }
+			help={ help }
+			__nextHasNoMarginBottom
+		/>
 	);
 }
 
@@ -93,20 +89,19 @@ function BoolField( { id, label, field, value, onChange, help } ) {
 	const isReadonly = field?.readonly;
 
 	return (
-		<BaseControl help={ help }>
-			<ToggleControl
-				label={
-					<>
-						{ label }
-						<SourceBadge source={ field?.source } />
-					</>
-				}
-				checked={ !! value }
-				onChange={ onChange }
-				disabled={ isReadonly }
-				__nextHasNoMarginBottom
-			/>
-		</BaseControl>
+		<ToggleControl
+			label={
+				<>
+					{ label }
+					<SourceBadge source={ field?.source } />
+				</>
+			}
+			help={ help }
+			checked={ !! value }
+			onChange={ onChange }
+			disabled={ isReadonly }
+			__nextHasNoMarginBottom
+		/>
 	);
 }
 
@@ -252,7 +247,7 @@ export default function App() {
 						onChange={ updateField( 'idpSloUrl' ) }
 						help={ __( 'Single Logout URL (optional)', 'wppack-saml-login' ) }
 					/>
-					<BaseControl
+					<TextareaControl
 						id="idpX509Cert"
 						label={
 							<>
@@ -260,25 +255,21 @@ export default function App() {
 								<SourceBadge source={ f( 'idpX509Cert' ).source } />
 							</>
 						}
-					>
-						<TextareaControl
-							id="idpX509Cert"
-							value={
-								isSensitive( 'idpX509Cert' ) &&
-								formData.idpX509Cert === SENSITIVE_MASK
-									? SENSITIVE_MASK
-									: formData.idpX509Cert || ''
-							}
-							onChange={ updateField( 'idpX509Cert' ) }
-							disabled={ f( 'idpX509Cert' ).readonly }
-							rows={ 4 }
-							help={ __(
-								'PEM format. Leave as masked to keep current value.',
-								'wppack-saml-login'
-							) }
-							__nextHasNoMarginBottom
-						/>
-					</BaseControl>
+						value={
+							isSensitive( 'idpX509Cert' ) &&
+							formData.idpX509Cert === SENSITIVE_MASK
+								? SENSITIVE_MASK
+								: formData.idpX509Cert || ''
+						}
+						onChange={ updateField( 'idpX509Cert' ) }
+						disabled={ f( 'idpX509Cert' ).readonly }
+						rows={ 4 }
+						help={ __(
+							'PEM format. Leave as masked to keep current value.',
+							'wppack-saml-login'
+						) }
+						__nextHasNoMarginBottom
+					/>
 					<Field
 						id="idpCertFingerprint"
 						label={ __( 'Certificate Fingerprint', 'wppack-saml-login' ) }
@@ -460,7 +451,7 @@ export default function App() {
 							'wppack-saml-login'
 						) }
 					/>
-					<BaseControl
+					<TextareaControl
 						id="roleMapping"
 						label={
 							<>
@@ -472,16 +463,12 @@ export default function App() {
 							'JSON object mapping SAML roles to WordPress roles, e.g. {"admin":"administrator","member":"subscriber"}',
 							'wppack-saml-login'
 						) }
-					>
-						<TextareaControl
-							id="roleMapping"
-							value={ formData.roleMapping || '' }
-							onChange={ updateField( 'roleMapping' ) }
-							disabled={ f( 'roleMapping' ).readonly }
-							rows={ 3 }
-							__nextHasNoMarginBottom
-						/>
-					</BaseControl>
+						value={ formData.roleMapping || '' }
+						onChange={ updateField( 'roleMapping' ) }
+						disabled={ f( 'roleMapping' ).readonly }
+						rows={ 3 }
+						__nextHasNoMarginBottom
+					/>
 					<BoolField
 						id="addUserToBlog"
 						label={ __( 'Add User to Blog', 'wppack-saml-login' ) }

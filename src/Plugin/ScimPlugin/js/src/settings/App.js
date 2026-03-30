@@ -131,7 +131,7 @@ export default function App() {
 					title={ __( 'Authentication', 'wppack-scim' ) }
 					initialOpen={ true }
 				>
-					<BaseControl
+					<TextControl
 						id="bearerToken"
 						label={
 							<>
@@ -139,16 +139,12 @@ export default function App() {
 								<SourceBadge source={ s( 'bearerToken' ).source } />
 							</>
 						}
-					>
-						<TextControl
-							id="bearerToken"
-							value={ form.bearerToken || '' }
-							onChange={ update( 'bearerToken' ) }
-							disabled={ s( 'bearerToken' ).readonly }
-							help={ __( 'Token for SCIM API authentication. Leave as masked to keep current value.', 'wppack-scim' ) }
-							__nextHasNoMarginBottom
-						/>
-					</BaseControl>
+						value={ form.bearerToken || '' }
+						onChange={ update( 'bearerToken' ) }
+						disabled={ s( 'bearerToken' ).readonly }
+						help={ __( 'Token for SCIM API authentication. Leave as masked to keep current value.', 'wppack-scim' ) }
+						__nextHasNoMarginBottom
+					/>
 				</PanelBody>
 
 				<PanelBody
@@ -208,7 +204,7 @@ export default function App() {
 						disabled={ s( 'allowUserDeletion' ).readonly }
 						__nextHasNoMarginBottom
 					/>
-					<BaseControl
+					<TextControl
 						id="maxResults"
 						label={
 							<>
@@ -216,20 +212,16 @@ export default function App() {
 								<SourceBadge source={ s( 'maxResults' ).source } />
 							</>
 						}
-					>
-						<TextControl
-							id="maxResults"
-							type="number"
-							min={ 1 }
-							max={ 1000 }
-							value={ String( form.maxResults || 100 ) }
-							onChange={ ( val ) => update( 'maxResults' )( parseInt( val, 10 ) || 100 ) }
-							disabled={ s( 'maxResults' ).readonly }
-							className="wpp-scim-small-input"
-							help={ __( 'Maximum number of resources returned per list request (1-1000).', 'wppack-scim' ) }
-							__nextHasNoMarginBottom
-						/>
-					</BaseControl>
+						type="number"
+						min={ 1 }
+						max={ 1000 }
+						value={ String( form.maxResults || 100 ) }
+						onChange={ ( val ) => update( 'maxResults' )( parseInt( val, 10 ) || 100 ) }
+						disabled={ s( 'maxResults' ).readonly }
+						className="wpp-scim-small-input"
+						help={ __( 'Maximum number of resources returned per list request (1-1000).', 'wppack-scim' ) }
+						__nextHasNoMarginBottom
+					/>
 				</PanelBody>
 
 				<PanelBody

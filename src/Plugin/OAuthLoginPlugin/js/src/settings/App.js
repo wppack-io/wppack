@@ -37,7 +37,7 @@ function SourceBadge( { source } ) {
 function Field( { id, label, field, value, onChange, help, disabled } ) {
 	const isReadonly = disabled || field?.readonly;
 	return (
-		<BaseControl
+		<TextControl
 			id={ id }
 			label={
 				<>
@@ -45,36 +45,31 @@ function Field( { id, label, field, value, onChange, help, disabled } ) {
 					<SourceBadge source={ field?.source } />
 				</>
 			}
-		>
-			<TextControl
-				id={ id }
-				value={ value || '' }
-				onChange={ onChange }
-				disabled={ isReadonly }
-				help={ help }
-				__nextHasNoMarginBottom
-			/>
-		</BaseControl>
+			value={ value || '' }
+			onChange={ onChange }
+			disabled={ isReadonly }
+			help={ help }
+			__nextHasNoMarginBottom
+		/>
 	);
 }
 
 function BoolField( { label, field, value, onChange, help, disabled } ) {
 	const isReadonly = disabled || field?.readonly;
 	return (
-		<BaseControl help={ help }>
-			<ToggleControl
-				label={
-					<>
-						{ label }
-						<SourceBadge source={ field?.source } />
-					</>
-				}
-				checked={ !! value }
-				onChange={ onChange }
-				disabled={ isReadonly }
-				__nextHasNoMarginBottom
-			/>
-		</BaseControl>
+		<ToggleControl
+			label={
+				<>
+					{ label }
+					<SourceBadge source={ field?.source } />
+				</>
+			}
+			help={ help }
+			checked={ !! value }
+			onChange={ onChange }
+			disabled={ isReadonly }
+			__nextHasNoMarginBottom
+		/>
 	);
 }
 
@@ -343,23 +338,19 @@ function ProviderPanel( { name, provider, onChange, onDelete, onRename, onMoveUp
 					'wppack-oauth-login'
 				) }
 			/>
-			<BaseControl
+			<TextareaControl
 				id={ `${ name }-role-mapping` }
 				label={ __( 'Role Mapping (JSON)', 'wppack-oauth-login' ) }
 				help={ __(
 					'e.g. {"Admin":"administrator","Member":"subscriber"}',
 					'wppack-oauth-login'
 				) }
-			>
-				<TextareaControl
-					id={ `${ name }-role-mapping` }
-					value={ f.role_mapping || '' }
-					onChange={ update( 'role_mapping' ) }
-					disabled={ isReadonly }
-					rows={ 3 }
-					__nextHasNoMarginBottom
-				/>
-			</BaseControl>
+				value={ f.role_mapping || '' }
+				onChange={ update( 'role_mapping' ) }
+				disabled={ isReadonly }
+				rows={ 3 }
+				__nextHasNoMarginBottom
+			/>
 			{ ! isReadonly && (
 				<div className="wpp-oauth-delete-provider">
 					<Button
