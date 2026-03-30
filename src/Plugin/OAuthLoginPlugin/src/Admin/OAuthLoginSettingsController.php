@@ -256,6 +256,25 @@ final class OAuthLoginSettingsController extends AbstractRestController
             $saved['providers'] = $savedProviders;
         }
 
+        // Reorder providers
+        if (isset($input['providerOrder']) && \is_array($input['providerOrder'])) {
+            /** @var array<string, array<string, mixed>> $currentProviders */
+            $currentProviders = $saved['providers'] ?? [];
+            $ordered = [];
+            foreach ($input['providerOrder'] as $name) {
+                if (\is_string($name) && isset($currentProviders[$name])) {
+                    $ordered[$name] = $currentProviders[$name];
+                }
+            }
+            // Append any providers not in order list (e.g. constant-defined)
+            foreach ($currentProviders as $name => $data) {
+                if (!isset($ordered[$name])) {
+                    $ordered[$name] = $data;
+                }
+            }
+            $saved['providers'] = $ordered;
+        }
+
         // Delete providers (only wp_options-sourced ones)
         if (isset($input['deletedProviders']) && \is_array($input['deletedProviders'])) {
             $constProviderNames ??= \defined('OAUTH_PROVIDERS') && \is_array(\constant('OAUTH_PROVIDERS'))

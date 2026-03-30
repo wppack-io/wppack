@@ -107,9 +107,17 @@
 	height: 100%;
 }
 
-.wpp-oauth-delete-provider {
+.wpp-oauth-provider-actions {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
 	margin-top: 16px;
 	margin-bottom: 16px;
+}
+
+.wpp-oauth-move-buttons {
+	display: flex;
+	gap: 4px;
 }
 
 .wpp-oauth-add-provider {

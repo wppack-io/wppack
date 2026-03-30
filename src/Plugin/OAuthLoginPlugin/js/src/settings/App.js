@@ -104,7 +104,7 @@ function PathField( { id, label, field, value, onChange, prefix, disabled } ) {
 	);
 }
 
-function ProviderPanel( { name, provider, onChange, onDelete, isReadonly, icons, allStyles } ) {
+function ProviderPanel( { name, provider, onChange, onDelete, onMoveUp, onMoveDown, isFirst, isLast, isReadonly, icons, allStyles } ) {
 	const f = provider.fields || {};
 	const icon = icons[ f.type ] || icons[ name ] || provider.icon;
 	const providerStyles = allStyles[ f.type ] || allStyles[ name ] || {};
@@ -325,8 +325,26 @@ function ProviderPanel( { name, provider, onChange, onDelete, isReadonly, icons,
 					__nextHasNoMarginBottom
 				/>
 			</BaseControl>
-			{ ! isReadonly && (
-				<div className="wpp-oauth-delete-provider">
+			<div className="wpp-oauth-provider-actions">
+				<div className="wpp-oauth-move-buttons">
+					<Button
+						variant="secondary"
+						size="small"
+						disabled={ isFirst }
+						onClick={ () => onMoveUp( name ) }
+					>
+						▲
+					</Button>
+					<Button
+						variant="secondary"
+						size="small"
+						disabled={ isLast }
+						onClick={ () => onMoveDown( name ) }
+					>
+						▼
+					</Button>
+				</div>
+				{ ! isReadonly && (
 					<Button
 						variant="secondary"
 						isDestructive
@@ -334,8 +352,8 @@ function ProviderPanel( { name, provider, onChange, onDelete, isReadonly, icons,
 					>
 						{ __( 'Delete Provider', 'wppack-oauth-login' ) }
 					</Button>
-				</div>
-			) }
+				) }
+			</div>
 		</PanelBody>
 	);
 }
@@ -349,6 +367,7 @@ export default function App() {
 	const [ globalForm, setGlobalForm ] = useState( {} );
 	const [ providerForm, setProviderForm ] = useState( {} );
 	const [ deletedProviders, setDeletedProviders ] = useState( [] );
+	const [ providerOrder, setProviderOrder ] = useState( [] );
 	const [ newProviderType, setNewProviderType ] = useState( '' );
 	const [ saving, setSaving ] = useState( false );
 	const [ notice, setNotice ] = useState( null );
@@ -360,6 +379,7 @@ export default function App() {
 		setStyles( data.styles || {} );
 		setGlobalSettings( data.global );
 		setProviders( data.providers || {} );
+		setProviderOrder( Object.keys( data.providers || {} ) );
 
 		const gf = {};
 		Object.entries( data.global || {} ).forEach( ( [ k, m ] ) => {
@@ -404,6 +424,7 @@ export default function App() {
 			data: {
 				global: globalForm,
 				providers: providerForm,
+				providerOrder,
 				deletedProviders,
 			},
 		} )
@@ -479,6 +500,7 @@ export default function App() {
 			...prev,
 			[ name ]: defaultFields,
 		} ) );
+		setProviderOrder( ( prev ) => [ ...prev, name ] );
 		setNewProviderType( '' );
 	};
 
@@ -492,6 +514,19 @@ export default function App() {
 		setProviderForm( ( prev ) => {
 			const next = { ...prev };
 			delete next[ name ];
+			return next;
+		} );
+		setProviderOrder( ( prev ) => prev.filter( ( n ) => n !== name ) );
+	};
+
+	const handleMoveProvider = ( name, direction ) => {
+		setProviderOrder( ( prev ) => {
+			const idx = prev.indexOf( name );
+			if ( idx < 0 ) return prev;
+			const target = idx + direction;
+			if ( target < 0 || target >= prev.length ) return prev;
+			const next = [ ...prev ];
+			[ next[ idx ], next[ target ] ] = [ next[ target ], next[ idx ] ];
 			return next;
 		} );
 	};
@@ -610,23 +645,31 @@ export default function App() {
 					/>
 				</PanelBody>
 
-				{ Object.entries( providers ).map(
-					( [ name, provider ] ) => (
-						<ProviderPanel
-							key={ name }
-							name={ name }
-							provider={ {
-								...provider,
-								fields:
-									providerForm[ name ] || provider.fields,
-							} }
-							onChange={ updateProvider }
-							onDelete={ handleDeleteProvider }
-							isReadonly={ provider.readonly }
-							icons={ icons }
-							allStyles={ styles }
-						/>
-					)
+				{ providerOrder.map(
+					( name, idx ) => {
+						const provider = providers[ name ];
+						if ( ! provider ) return null;
+						return (
+							<ProviderPanel
+								key={ name }
+								name={ name }
+								provider={ {
+									...provider,
+									fields:
+										providerForm[ name ] || provider.fields,
+								} }
+								onChange={ updateProvider }
+								onDelete={ handleDeleteProvider }
+								onMoveUp={ ( n ) => handleMoveProvider( n, -1 ) }
+								onMoveDown={ ( n ) => handleMoveProvider( n, 1 ) }
+								isFirst={ idx === 0 }
+								isLast={ idx === providerOrder.length - 1 }
+								isReadonly={ provider.readonly }
+								icons={ icons }
+								allStyles={ styles }
+							/>
+						);
+					}
 				) }
 			</Panel>
 
