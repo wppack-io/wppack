@@ -144,7 +144,12 @@ final class RouteRegistry
     {
         $this->routes[$entry->name] = $entry;
 
-        add_action('init', $entry->registerRoute(...));
+        // If init has already fired, register routes immediately
+        if (did_action('init')) {
+            $entry->registerRoute();
+        } else {
+            add_action('init', $entry->registerRoute(...));
+        }
         add_filter('query_vars', $entry->filterQueryVars(...));
         add_action('template_redirect', $entry->handleTemplateRedirect(...));
         add_filter('template_include', $entry->filterTemplateInclude(...));

@@ -37,6 +37,6 @@ final class OAuthAuthorizeController
 
         $url = $this->entryPoint->getLoginUrl($returnTo);
 
-        return new RedirectResponse($url);
+        return new RedirectResponse($url, safe: false);
     }
 }
