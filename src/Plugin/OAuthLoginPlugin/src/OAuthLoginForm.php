@@ -75,7 +75,12 @@ class OAuthLoginForm
             $label = esc_html($provider->label);
             $icon = ProviderIcons::svg($provider->type) ?? ProviderIcons::svg($provider->name) ?? '';
 
-            $color = ProviderIcons::brandColor($provider->type) ?? ProviderIcons::brandColor($provider->name) ?? ['bg' => '#f0f0f0', 'text' => '#1d2327'];
+            $color = null;
+            if ($provider->buttonStyle !== null) {
+                $color = ProviderIcons::style($provider->type, $provider->buttonStyle)
+                    ?? ProviderIcons::style($provider->name, $provider->buttonStyle);
+            }
+            $color ??= ProviderIcons::brandColor($provider->type) ?? ProviderIcons::brandColor($provider->name) ?? ['bg' => '#f0f0f0', 'text' => '#1d2327'];
             $bg = esc_attr($color['bg']);
             $text = esc_attr($color['text']);
             $border = isset($color['border']) ? esc_attr($color['border']) : $bg;
