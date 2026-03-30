@@ -25,6 +25,9 @@ namespace WpPack\Component\Mailer\Transport;
  */
 final readonly class TransportField
 {
+    /**
+     * @param list<array{label: string, value: string}>|null $options Select options (null = free text input)
+     */
     public function __construct(
         public string $name,
         public string $label,
@@ -33,5 +36,7 @@ final readonly class TransportField
         public ?string $default = null,
         public ?string $help = null,
         public ?string $dsnPart = null,
+        public ?array $options = null,
+        public ?string $maxWidth = null,
     ) {}
 }

@@ -141,7 +141,7 @@ final class AmazonMailerSettingsController extends AbstractRestController
     {
         $fields = [];
         foreach ($def->fields as $field) {
-            $fields[] = [
+            $f = [
                 'name' => $field->name,
                 'label' => $field->label,
                 'type' => $field->type,
@@ -149,6 +149,13 @@ final class AmazonMailerSettingsController extends AbstractRestController
                 'default' => $field->default,
                 'help' => $field->help,
             ];
+            if ($field->options !== null) {
+                $f['options'] = $field->options;
+            }
+            if ($field->maxWidth !== null) {
+                $f['maxWidth'] = $field->maxWidth;
+            }
+            $fields[] = $f;
         }
 
         return [

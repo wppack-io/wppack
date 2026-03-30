@@ -152,24 +152,43 @@ export default function App() {
 						className="wpp-mailer-small-select"
 						__nextHasNoMarginBottom
 					/>
-					{ def && def.fields.map( ( f ) => (
-						<BaseControl
-							key={ f.name }
-							id={ `mailer-${ f.name }` }
-							label={ f.label + ( f.required ? ' *' : '' ) }
-							help={ f.help || undefined }
-						>
-							<TextControl
+					{ def && def.fields.map( ( f ) => {
+						const fieldStyle = f.maxWidth ? { maxWidth: f.maxWidth } : {};
+						if ( f.options ) {
+							return (
+								<SelectControl
+									key={ f.name }
+									label={ f.label + ( f.required ? ' *' : '' ) }
+									help={ f.help || undefined }
+									value={ fields[ f.name ] || f.default || '' }
+									onChange={ ( val ) => setFields( ( prev ) => ( { ...prev, [ f.name ]: val } ) ) }
+									options={ f.options }
+									disabled={ isReadonly }
+									style={ fieldStyle }
+									__nextHasNoMarginBottom
+								/>
+							);
+						}
+						return (
+							<BaseControl
+								key={ f.name }
 								id={ `mailer-${ f.name }` }
-								type={ f.type === 'password' ? 'password' : f.type === 'number' ? 'number' : 'text' }
-								value={ fields[ f.name ] || f.default || '' }
-								onChange={ ( val ) => setFields( ( prev ) => ( { ...prev, [ f.name ]: val } ) ) }
-								disabled={ isReadonly }
-								placeholder={ f.default || '' }
-								__nextHasNoMarginBottom
-							/>
-						</BaseControl>
-					) ) }
+								label={ f.label + ( f.required ? ' *' : '' ) }
+								help={ f.help || undefined }
+							>
+								<TextControl
+									id={ `mailer-${ f.name }` }
+									type={ f.type === 'password' ? 'password' : f.type === 'number' ? 'number' : 'text' }
+									value={ fields[ f.name ] || f.default || '' }
+									onChange={ ( val ) => setFields( ( prev ) => ( { ...prev, [ f.name ]: val } ) ) }
+									disabled={ isReadonly }
+									placeholder={ f.default || '' }
+									style={ fieldStyle }
+									__nextHasNoMarginBottom
+								/>
+							</BaseControl>
+						);
+					} ) }
 				</PanelBody>
 
 				{ isSes && suppression.length > 0 && (

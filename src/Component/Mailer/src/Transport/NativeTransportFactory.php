@@ -25,7 +25,7 @@ final class NativeTransportFactory implements TransportFactoryInterface
                 label: 'SMTP',
                 fields: [
                     new TransportField('host', 'Host', required: true, default: 'localhost', dsnPart: 'host'),
-                    new TransportField('port', 'Port', type: 'number', default: '587', dsnPart: 'port'),
+                    new TransportField('port', 'Port', type: 'number', default: '587', dsnPart: 'port', maxWidth: '120px'),
                     new TransportField('username', 'Username', dsnPart: 'user'),
                     new TransportField('password', 'Password', type: 'password', dsnPart: 'password'),
                 ],
