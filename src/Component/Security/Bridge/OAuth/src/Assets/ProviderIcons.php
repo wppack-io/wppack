@@ -48,7 +48,7 @@ final class ProviderIcons
     /**
      * Button style variants per provider. Only officially approved styles.
      *
-     * @var array<string, array<string, array{label: string, bg: string, text: string, border: string, icon: string, hover?: string}>>
+     * @var array<string, array<string, array{label: string, bg: string, text: string, border: string, icon: string}>>
      */
     private const STYLES = [
         'apple' => [
@@ -95,7 +95,7 @@ final class ProviderIcons
         ],
         'line' => [
             'light' => ['label' => 'ライト', 'bg' => '#FFFFFF', 'text' => '#1E1E1E', 'border' => '#DADCE0', 'icon' => '#06C755'],
-            'brand' => ['label' => 'ブランド', 'bg' => '#06C755', 'text' => '#FFFFFF', 'border' => '#06C755', 'icon' => '#FFFFFF', 'hover' => '#05b34c'],
+            'brand' => ['label' => 'ブランド', 'bg' => '#06C755', 'text' => '#FFFFFF', 'border' => '#06C755', 'icon' => '#FFFFFF'],
         ],
         'microsoft' => [
             'light' => ['label' => 'ライト', 'bg' => '#FFFFFF', 'text' => '#5E5E5E', 'border' => '#8C8C8C', 'icon' => 'original'],
