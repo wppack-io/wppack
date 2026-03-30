@@ -73,11 +73,16 @@ class OAuthLoginForm
             ], home_url($this->config->getAuthorizePath($provider->name))));
             $label = esc_html($provider->label);
             $icon = ProviderIcons::svg($provider->type) ?? ProviderIcons::svg($provider->name) ?? '';
-            $iconHtml = $icon !== '' ? '<span style="display:inline-block;width:20px;height:20px;vertical-align:middle;margin-right:8px;">' . $icon . '</span>' : '';
+            $iconHtml = $icon !== '' ? '<span style="display:inline-flex;width:20px;height:20px;flex-shrink:0;">' . $icon . '</span>' : '';
+
+            $color = ProviderIcons::brandColor($provider->type) ?? ProviderIcons::brandColor($provider->name) ?? ['bg' => '#f0f0f0', 'text' => '#1d2327'];
+            $bg = esc_attr($color['bg']);
+            $text = esc_attr($color['text']);
+            $border = isset($color['border']) ? esc_attr($color['border']) : $bg;
 
             $buttons .= <<<HTML
                 <p>
-                    <a href="{$url}" class="button button-large" style="width:100%;text-align:center;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:8px;">{$iconHtml}Login with {$label}</a>
+                    <a href="{$url}" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;box-sizing:border-box;padding:0 12px;height:40px;border-radius:4px;background:{$bg};color:{$text};border:1px solid {$border};text-decoration:none;font-size:14px;font-weight:500;cursor:pointer;">{$iconHtml}Login with {$label}</a>
                 </p>
             HTML;
         }

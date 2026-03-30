@@ -69,13 +69,16 @@ final class OAuthLoginSettingsController extends AbstractRestController
     private function buildResponse(?int $blogId): array
     {
         $icons = [];
+        $styles = [];
         foreach (ProviderIcons::providers() as $type) {
             $icons[$type] = ProviderIcons::svg($type);
+            $styles[$type] = ProviderIcons::styles($type);
         }
 
         return [
             'siteUrl' => get_home_url($blogId),
             'icons' => $icons,
+            'styles' => $styles,
             'global' => $this->buildGlobalDisplay(),
             'providers' => $this->buildProvidersDisplay(),
         ];
@@ -162,6 +165,7 @@ final class OAuthLoginSettingsController extends AbstractRestController
             'role_mapping' => $provider->roleMapping !== null
                 ? json_encode($provider->roleMapping, \JSON_UNESCAPED_UNICODE)
                 : '',
+            'button_style' => $provider->buttonStyle,
         ];
 
         return $fields;

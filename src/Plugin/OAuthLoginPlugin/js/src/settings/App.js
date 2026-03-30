@@ -104,9 +104,13 @@ function PathField( { id, label, field, value, onChange, prefix, disabled } ) {
 	);
 }
 
-function ProviderPanel( { name, provider, onChange, onDelete, isReadonly, icons } ) {
+function ProviderPanel( { name, provider, onChange, onDelete, isReadonly, icons, allStyles } ) {
 	const f = provider.fields || {};
 	const icon = icons[ f.type ] || icons[ name ] || provider.icon;
+	const providerStyles = allStyles[ f.type ] || allStyles[ name ] || {};
+	const styleKeys = Object.keys( providerStyles );
+	const selectedStyle = f.button_style || styleKeys[ 0 ] || '';
+	const currentStyle = providerStyles[ selectedStyle ] || providerStyles[ styleKeys[ 0 ] ] || { bg: '#f0f0f0', text: '#1d2327', border: '#ddd', icon: 'original' };
 	const update = ( key ) => ( val ) => {
 		onChange( name, { ...f, [ key ]: val } );
 	};
@@ -152,12 +156,33 @@ function ProviderPanel( { name, provider, onChange, onDelete, isReadonly, icons 
 				disabled={ true }
 				onChange={ () => {} }
 			/>
+			{ styleKeys.length > 0 && (
+				<SelectControl
+					label={ __( 'Button Style', 'wppack-oauth-login' ) }
+					value={ selectedStyle }
+					onChange={ update( 'button_style' ) }
+					disabled={ isReadonly }
+					options={ styleKeys.map( ( key ) => ( {
+						label: providerStyles[ key ].label,
+						value: key,
+					} ) ) }
+					__nextHasNoMarginBottom
+				/>
+			) }
 			<BaseControl label={ __( 'Login Button Preview', 'wppack-oauth-login' ) }>
 				<div className="wpp-oauth-button-preview">
-					<a className="button button-large wpp-oauth-login-button">
+					<a
+						className="wpp-oauth-login-button"
+						style={ {
+							background: currentStyle.bg,
+							color: currentStyle.text,
+							border: `1px solid ${ currentStyle.border }`,
+						} }
+					>
 						{ icon && (
 							<span
 								className="wpp-oauth-login-icon"
+								style={ currentStyle.icon !== 'original' ? { color: currentStyle.icon } : {} }
 								dangerouslySetInnerHTML={ { __html: icon } }
 							/>
 						) }
@@ -318,6 +343,7 @@ export default function App() {
 	const [ globalSettings, setGlobalSettings ] = useState( null );
 	const [ providers, setProviders ] = useState( {} );
 	const [ icons, setIcons ] = useState( {} );
+	const [ styles, setStyles ] = useState( {} );
 	const [ siteUrl, setSiteUrl ] = useState( '' );
 	const [ globalForm, setGlobalForm ] = useState( {} );
 	const [ providerForm, setProviderForm ] = useState( {} );
@@ -330,6 +356,7 @@ export default function App() {
 	const applyResponse = ( data ) => {
 		setSiteUrl( data.siteUrl || '' );
 		setIcons( data.icons || {} );
+		setStyles( data.styles || {} );
 		setGlobalSettings( data.global );
 		setProviders( data.providers || {} );
 
@@ -594,6 +621,7 @@ export default function App() {
 							onDelete={ handleDeleteProvider }
 							isReadonly={ provider.readonly }
 							icons={ icons }
+							allStyles={ styles }
 						/>
 					)
 				) }

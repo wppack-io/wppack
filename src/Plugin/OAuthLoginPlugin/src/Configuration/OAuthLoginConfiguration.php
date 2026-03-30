@@ -112,6 +112,7 @@ final readonly class OAuthLoginConfiguration
                 defaultRole: (string) ($p['default_role'] ?? $globalDefaultRole),
                 roleClaim: isset($p['role_claim']) ? (string) $p['role_claim'] : null,
                 roleMapping: isset($p['role_mapping']) && \is_array($p['role_mapping']) ? $p['role_mapping'] : null,
+                buttonStyle: isset($p['button_style']) ? (string) $p['button_style'] : null,
             );
         }
 
@@ -164,6 +165,7 @@ final readonly class OAuthLoginConfiguration
                 defaultRole: (string) ($p['default_role'] ?? $globalDefaultRole),
                 roleClaim: isset($p['role_claim']) ? (string) $p['role_claim'] : null,
                 roleMapping: isset($p['role_mapping']) && \is_array($p['role_mapping']) ? $p['role_mapping'] : null,
+                buttonStyle: isset($p['button_style']) ? (string) $p['button_style'] : null,
             );
         }
 

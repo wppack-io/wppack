@@ -118,7 +118,7 @@ final class OAuthLoginFormTest extends TestCase
         self::assertStringContainsString('Login with GitHub', $output);
         self::assertStringContainsString('/oauth/google/authorize', $output);
         self::assertStringContainsString('/oauth/github/authorize', $output);
-        self::assertStringContainsString('button button-large', $output);
+        self::assertStringContainsString('Login with', $output);
     }
 
     #[Test]

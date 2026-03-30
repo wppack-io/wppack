@@ -38,5 +38,6 @@ final readonly class ProviderConfiguration
         public string $defaultRole = 'subscriber',
         public ?string $roleClaim = null,
         public ?array $roleMapping = null,
+        public ?string $buttonStyle = null,
     ) {}
 }
