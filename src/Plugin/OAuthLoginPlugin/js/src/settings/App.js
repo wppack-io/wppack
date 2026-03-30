@@ -120,6 +120,7 @@ function ProviderPanel( { name, provider, onChange, onDelete, isReadonly, icons,
 			{ icon && (
 				<span
 					className="wpp-oauth-panel-icon"
+					style={ currentStyle.icon !== 'original' ? { color: currentStyle.icon } : {} }
 					dangerouslySetInnerHTML={ { __html: icon } }
 				/>
 			) }
