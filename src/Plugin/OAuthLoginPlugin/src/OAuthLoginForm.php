@@ -15,6 +15,7 @@ namespace WpPack\Plugin\OAuthLoginPlugin;
 
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Security\AuthenticationSession;
+use WpPack\Component\Security\Bridge\OAuth\Assets\ProviderIcons;
 use WpPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration;
 use WpPack\Plugin\OAuthLoginPlugin\Configuration\ProviderConfiguration;
 
@@ -71,10 +72,12 @@ class OAuthLoginForm
                 'return_to' => $returnTo,
             ], home_url($this->config->getAuthorizePath($provider->name))));
             $label = esc_html($provider->label);
+            $icon = ProviderIcons::svg($provider->type) ?? ProviderIcons::svg($provider->name) ?? '';
+            $iconHtml = $icon !== '' ? '<span style="display:inline-block;width:20px;height:20px;vertical-align:middle;margin-right:8px;">' . $icon . '</span>' : '';
 
             $buttons .= <<<HTML
                 <p>
-                    <a href="{$url}" class="button button-large" style="width:100%;text-align:center;box-sizing:border-box;">Login with {$label}</a>
+                    <a href="{$url}" class="button button-large" style="width:100%;text-align:center;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:8px;">{$iconHtml}Login with {$label}</a>
                 </p>
             HTML;
         }

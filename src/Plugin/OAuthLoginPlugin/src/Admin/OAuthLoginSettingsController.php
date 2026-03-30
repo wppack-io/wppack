@@ -20,6 +20,7 @@ use WpPack\Component\Rest\HttpMethod;
 use WpPack\Component\Role\Attribute\IsGranted;
 use WpPack\Component\Role\RoleProvider;
 use WpPack\Component\Sanitizer\Sanitizer;
+use WpPack\Component\Security\Bridge\OAuth\Assets\ProviderIcons;
 use WpPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration;
 use WpPack\Plugin\OAuthLoginPlugin\Configuration\ProviderConfiguration;
 
@@ -122,6 +123,7 @@ final class OAuthLoginSettingsController extends AbstractRestController
             $result[$name] = [
                 'source' => $isConst ? 'constant' : 'option',
                 'readonly' => $isConst,
+                'icon' => ProviderIcons::svg($provider->type) ?? ProviderIcons::svg($name),
                 'fields' => $this->buildProviderFields($provider),
             ];
         }
@@ -237,6 +239,24 @@ final class OAuthLoginSettingsController extends AbstractRestController
             }
 
             $saved['providers'] = $savedProviders;
+        }
+
+        // Delete providers (only wp_options-sourced ones)
+        if (isset($input['deletedProviders']) && \is_array($input['deletedProviders'])) {
+            $constProviderNames ??= \defined('OAUTH_PROVIDERS') && \is_array(\constant('OAUTH_PROVIDERS'))
+                ? array_keys(\constant('OAUTH_PROVIDERS'))
+                : [];
+
+            /** @var array<string, array<string, mixed>> $providers */
+            $providers = $saved['providers'] ?? [];
+
+            foreach ($input['deletedProviders'] as $name) {
+                if (\is_string($name) && !\in_array($name, $constProviderNames, true)) {
+                    unset($providers[$name]);
+                }
+            }
+
+            $saved['providers'] = $providers;
         }
 
         update_option(OAuthLoginConfiguration::OPTION_NAME, $saved);

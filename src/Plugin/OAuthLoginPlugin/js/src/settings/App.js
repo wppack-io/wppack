@@ -104,15 +104,28 @@ function PathField( { id, label, field, value, onChange, prefix, disabled } ) {
 	);
 }
 
-function ProviderPanel( { name, provider, onChange, isReadonly } ) {
+function ProviderPanel( { name, provider, onChange, onDelete, onRename, isReadonly } ) {
 	const f = provider.fields || {};
+	const icon = provider.icon;
 	const update = ( key ) => ( val ) => {
 		onChange( name, { ...f, [ key ]: val } );
 	};
 
+	const titleElement = (
+		<span className="wpp-oauth-panel-title">
+			{ icon && (
+				<span
+					className="wpp-oauth-panel-icon"
+					dangerouslySetInnerHTML={ { __html: icon } }
+				/>
+			) }
+			{ `${ f.label || name } (${ f.type || '?' })` }
+		</span>
+	);
+
 	return (
 		<PanelBody
-			title={ `${ f.label || name } (${ f.type || '?' })` }
+			title={ titleElement }
 			initialOpen={ false }
 			className="wpp-oauth-provider-panel"
 		>
@@ -124,6 +137,14 @@ function ProviderPanel( { name, provider, onChange, isReadonly } ) {
 					) }
 				</Notice>
 			) }
+			<Field
+				id={ `${ name }-name` }
+				label={ __( 'Name', 'wppack-oauth-login' ) }
+				value={ name }
+				disabled={ isReadonly }
+				onChange={ ( newName ) => onRename( name, newName ) }
+				help={ __( 'Provider identifier used in URLs. Lowercase letters, numbers, and hyphens only.', 'wppack-oauth-login' ) }
+			/>
 			<SelectControl
 				label={ __( 'Type', 'wppack-oauth-login' ) }
 				value={ f.type || '' }
@@ -261,6 +282,17 @@ function ProviderPanel( { name, provider, onChange, isReadonly } ) {
 					__nextHasNoMarginBottom
 				/>
 			</BaseControl>
+			{ ! isReadonly && (
+				<div className="wpp-oauth-delete-provider">
+					<Button
+						variant="secondary"
+						isDestructive
+						onClick={ () => onDelete( name ) }
+					>
+						{ __( 'Delete Provider', 'wppack-oauth-login' ) }
+					</Button>
+				</div>
+			) }
 		</PanelBody>
 	);
 }
@@ -271,6 +303,7 @@ export default function App() {
 	const [ siteUrl, setSiteUrl ] = useState( '' );
 	const [ globalForm, setGlobalForm ] = useState( {} );
 	const [ providerForm, setProviderForm ] = useState( {} );
+	const [ deletedProviders, setDeletedProviders ] = useState( [] );
 	const [ saving, setSaving ] = useState( false );
 	const [ notice, setNotice ] = useState( null );
 	const [ loading, setLoading ] = useState( true );
@@ -320,10 +353,15 @@ export default function App() {
 		apiFetch( {
 			path: '/wppack/v1/oauth-login/settings',
 			method: 'POST',
-			data: { global: globalForm, providers: providerForm },
+			data: {
+				global: globalForm,
+				providers: providerForm,
+				deletedProviders,
+			},
 		} )
 			.then( ( data ) => {
 				applyResponse( data );
+				setDeletedProviders( [] );
 				setNotice( {
 					type: 'success',
 					message: __(
@@ -350,6 +388,85 @@ export default function App() {
 
 	const updateProvider = ( name, fields ) => {
 		setProviderForm( ( prev ) => ( { ...prev, [ name ]: fields } ) );
+	};
+
+	const handleRenameProvider = ( oldName, newName ) => {
+		newName = newName.trim().toLowerCase();
+		if ( ! /^[a-z0-9-]*$/.test( newName ) ) {
+			return;
+		}
+		if ( newName && newName !== oldName && ( providers[ newName ] || providerForm[ newName ] ) ) {
+			setNotice( {
+				type: 'error',
+				message: __(
+					'A provider with this name already exists.',
+					'wppack-oauth-login'
+				),
+			} );
+			return;
+		}
+
+		// Move data from old key to new key
+		setProviders( ( prev ) => {
+			const next = {};
+			Object.entries( prev ).forEach( ( [ k, v ] ) => {
+				next[ k === oldName ? ( newName || oldName ) : k ] = v;
+			} );
+			return next;
+		} );
+		setProviderForm( ( prev ) => {
+			const next = {};
+			Object.entries( prev ).forEach( ( [ k, v ] ) => {
+				next[ k === oldName ? ( newName || oldName ) : k ] = v;
+			} );
+			return next;
+		} );
+
+		// Track old name for deletion on save
+		if ( newName && newName !== oldName ) {
+			setDeletedProviders( ( prev ) => [ ...prev, oldName ] );
+		}
+	};
+
+	const handleAddProvider = () => {
+		let index = 1;
+		let name = `provider-${ index }`;
+		while ( providerForm[ name ] || providers[ name ] ) {
+			index++;
+			name = `provider-${ index }`;
+		}
+
+		const defaultFields = {
+			type: 'oidc',
+			client_id: '',
+			client_secret: '',
+			label: name,
+			auto_provision: false,
+			default_role: 'subscriber',
+		};
+
+		setProviders( ( prev ) => ( {
+			...prev,
+			[ name ]: { source: 'option', readonly: false, fields: defaultFields },
+		} ) );
+		setProviderForm( ( prev ) => ( {
+			...prev,
+			[ name ]: defaultFields,
+		} ) );
+	};
+
+	const handleDeleteProvider = ( name ) => {
+		setDeletedProviders( ( prev ) => [ ...prev, name ] );
+		setProviders( ( prev ) => {
+			const next = { ...prev };
+			delete next[ name ];
+			return next;
+		} );
+		setProviderForm( ( prev ) => {
+			const next = { ...prev };
+			delete next[ name ];
+			return next;
+		} );
 	};
 
 	if ( loading ) {
@@ -477,11 +594,22 @@ export default function App() {
 									providerForm[ name ] || provider.fields,
 							} }
 							onChange={ updateProvider }
+							onDelete={ handleDeleteProvider }
+							onRename={ handleRenameProvider }
 							isReadonly={ provider.readonly }
 						/>
 					)
 				) }
 			</Panel>
+
+			<div className="wpp-oauth-add-provider">
+				<Button
+					variant="secondary"
+					onClick={ handleAddProvider }
+				>
+					{ __( 'Add Provider', 'wppack-oauth-login' ) }
+				</Button>
+			</div>
 
 			<div className="wpp-oauth-actions">
 				<Button

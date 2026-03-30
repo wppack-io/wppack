@@ -33,6 +33,10 @@ composer require wppack/oauth-security
 
 For detailed documentation, see [docs/components/security/oauth-security.md](../../../../docs/components/security/oauth-security.md).
 
+## Third-party Notices
+
+This component includes provider logo SVG data in `ProviderIcons`. All logos are trademarks of their respective owners and are used solely for identifying sign-in providers in accordance with each provider's branding guidelines. OpenID icon is from [Simple Icons](https://simpleicons.org), licensed under CC0 1.0 Universal.
+
 ## License
 
 MIT
