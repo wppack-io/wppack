@@ -174,6 +174,31 @@ export default function App() {
 		setFormData( ( prev ) => ( { ...prev, [ key ]: value } ) );
 	};
 
+	const handleDownloadMetadata = () => {
+		apiFetch( {
+			path: '/wppack/v1/saml-login/metadata',
+			parse: false,
+		} )
+			.then( ( response ) => response.blob() )
+			.then( ( blob ) => {
+				const url = URL.createObjectURL( blob );
+				const a = document.createElement( 'a' );
+				a.href = url;
+				a.download = 'sp-metadata.xml';
+				a.click();
+				URL.revokeObjectURL( url );
+			} )
+			.catch( () => {
+				setNotice( {
+					type: 'error',
+					message: __(
+						'Failed to download metadata. Ensure SAML is configured.',
+						'wppack-saml-login'
+					),
+				} );
+			} );
+	};
+
 	if ( loading ) {
 		return (
 			<div className="wpp-saml-loading">
@@ -333,6 +358,14 @@ export default function App() {
 						] }
 						__nextHasNoMarginBottom
 					/>
+					<div className="wpp-saml-metadata-download">
+						<Button
+							variant="secondary"
+							onClick={ handleDownloadMetadata }
+						>
+							{ __( 'Download SP Metadata', 'wppack-saml-login' ) }
+						</Button>
+					</div>
 				</PanelBody>
 
 				<PanelBody

@@ -54,7 +54,20 @@
 	border: 1px solid #90caf9;
 }
 
+.wpp-saml-settings .components-panel__body.is-opened {
+	padding-bottom: 0;
+}
+
+.wpp-saml-settings .components-panel__body.is-opened > .components-panel__body-title {
+	margin-bottom: 16px;
+}
+
 .wpp-saml-settings .components-notice {
+	margin-bottom: 16px;
+}
+
+.wpp-saml-metadata-download {
+	margin-top: 16px;
 	margin-bottom: 16px;
 }
 

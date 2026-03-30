@@ -14,12 +14,14 @@ declare(strict_types=1);
 namespace WpPack\Plugin\SamlLoginPlugin\Admin;
 
 use WpPack\Component\HttpFoundation\JsonResponse;
+use WpPack\Component\HttpFoundation\Response;
 use WpPack\Component\Rest\AbstractRestController;
 use WpPack\Component\Rest\Attribute\RestRoute;
 use WpPack\Component\Rest\HttpMethod;
 use WpPack\Component\Role\Attribute\IsGranted;
 use WpPack\Component\Role\RoleProvider;
 use WpPack\Component\Sanitizer\Sanitizer;
+use WpPack\Component\Security\Bridge\SAML\Configuration\SpMetadataExporter;
 use WpPack\Plugin\SamlLoginPlugin\Configuration\SamlLoginConfiguration;
 
 #[RestRoute(namespace: 'wppack/v1/saml-login')]
@@ -41,6 +43,7 @@ final class SamlLoginSettingsController extends AbstractRestController
         private readonly SamlLoginConfiguration $configuration,
         private readonly Sanitizer $sanitizer,
         private readonly RoleProvider $roleProvider,
+        private readonly ?SpMetadataExporter $metadataExporter = null,
     ) {}
 
     #[RestRoute(route: '/settings', methods: HttpMethod::GET)]
@@ -51,6 +54,21 @@ final class SamlLoginSettingsController extends AbstractRestController
         return $this->json([
             'siteUrl' => get_home_url($blogId),
             'fields' => $this->buildDisplayArray(),
+        ]);
+    }
+
+    #[RestRoute(route: '/metadata', methods: HttpMethod::GET)]
+    public function downloadMetadata(): Response
+    {
+        if ($this->metadataExporter === null) {
+            return $this->response('SP metadata is not available. SAML is not fully configured.', 400);
+        }
+
+        $xml = $this->metadataExporter->toXml();
+
+        return $this->response($xml, 200, [
+            'Content-Type' => 'application/xml',
+            'Content-Disposition' => 'attachment; filename="sp-metadata.xml"',
         ]);
     }
 

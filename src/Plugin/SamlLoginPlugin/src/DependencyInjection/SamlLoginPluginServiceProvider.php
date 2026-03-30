@@ -103,7 +103,8 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
         $builder->register(SamlLoginSettingsController::class)
             ->addArgument(new Reference(SamlLoginConfiguration::class))
             ->addArgument(new Reference(Sanitizer::class))
-            ->addArgument(new Reference(\WpPack\Component\Role\RoleProvider::class));
+            ->addArgument(new Reference(\WpPack\Component\Role\RoleProvider::class))
+            ->addArgument(new Reference(SpMetadataExporter::class));
 
         // Role Provider
         if (!$builder->hasDefinition(\WpPack\Component\Role\RoleProvider::class)) {

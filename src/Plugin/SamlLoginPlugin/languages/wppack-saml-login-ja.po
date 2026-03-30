@@ -47,7 +47,7 @@ msgstr "設定の保存に失敗しました。"
 
 #: js/src/settings/App.js:161
 msgid "SAML Login Settings"
-msgstr "SAML ログイン設定"
+msgstr "SAML Login 設定"
 
 #: js/src/settings/App.js:175
 msgid "Identity Provider (IdP)"
@@ -204,6 +204,12 @@ msgid "SLO Path"
 msgstr "SLO パス"
 
 #: js/src/settings/App.js:489
+msgid "Download SP Metadata"
+msgstr "SP メタデータをダウンロード"
+
+msgid "Failed to download metadata. Ensure SAML is configured."
+msgstr "メタデータのダウンロードに失敗しました。SAML が設定されていることを確認してください。"
+
 msgid "Saving…"
 msgstr "保存中…"
 
