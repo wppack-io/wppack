@@ -104,7 +104,7 @@ function PathField( { id, label, field, value, onChange, prefix, disabled } ) {
 	);
 }
 
-function ProviderPanel( { name, provider, onChange, onDelete, onMoveUp, onMoveDown, isFirst, isLast, isReadonly, icons, allStyles, buttonDisplay, definitions } ) {
+function ProviderPanel( { name, provider, onChange, onDelete, onRename, onMoveUp, onMoveDown, isFirst, isLast, isReadonly, icons, allStyles, buttonDisplay, definitions } ) {
 	const f = provider.fields || {};
 	const icon = icons[ f.type ] || icons[ name ] || provider.icon;
 	const providerStyles = allStyles[ f.type ] || allStyles[ name ] || {};
@@ -155,8 +155,8 @@ function ProviderPanel( { name, provider, onChange, onDelete, onMoveUp, onMoveDo
 				id={ `${ name }-name` }
 				label={ __( 'Name', 'wppack-oauth-login' ) }
 				value={ name }
-				disabled={ true }
-				onChange={ () => {} }
+				disabled={ isReadonly }
+				onChange={ ( val ) => onRename( name, val.toLowerCase().replace( /[^a-z0-9]+/g, '-' ).replace( /^-|-$/g, '' ) ) }
 				help={ __( 'Provider identifier used in URLs.', 'wppack-oauth-login' ) }
 			/>
 			<Field
@@ -454,11 +454,12 @@ export default function App() {
 			return;
 		}
 
-		// Generate unique name from type
-		let name = type;
+		// Use custom name or generate from type
+		const baseName = type;
+		let name = baseName;
 		let index = 1;
 		while ( providerForm[ name ] || providers[ name ] ) {
-			name = `${ type }-${ index }`;
+			name = `${ baseName }-${ index }`;
 			index++;
 		}
 
@@ -483,6 +484,7 @@ export default function App() {
 		} ) );
 		setProviderOrder( ( prev ) => [ ...prev, name ] );
 		setNewProviderType( '' );
+		setNewProviderName( '' );
 	};
 
 	const handleDeleteProvider = ( name ) => {
@@ -498,6 +500,28 @@ export default function App() {
 			return next;
 		} );
 		setProviderOrder( ( prev ) => prev.filter( ( n ) => n !== name ) );
+	};
+
+	const handleRenameProvider = ( oldName, newName ) => {
+		if ( ! newName || newName === oldName || providerForm[ newName ] || providers[ newName ] ) {
+			return;
+		}
+		setProviders( ( prev ) => {
+			const next = {};
+			Object.entries( prev ).forEach( ( [ k, v ] ) => {
+				next[ k === oldName ? newName : k ] = v;
+			} );
+			return next;
+		} );
+		setProviderForm( ( prev ) => {
+			const next = {};
+			Object.entries( prev ).forEach( ( [ k, v ] ) => {
+				next[ k === oldName ? newName : k ] = v;
+			} );
+			return next;
+		} );
+		setProviderOrder( ( prev ) => prev.map( ( n ) => n === oldName ? newName : n ) );
+		setDeletedProviders( ( prev ) => [ ...prev, oldName ] );
 	};
 
 	const handleMoveProvider = ( name, direction ) => {
@@ -659,6 +683,7 @@ export default function App() {
 								} }
 								onChange={ updateProvider }
 								onDelete={ handleDeleteProvider }
+								onRename={ handleRenameProvider }
 								onMoveUp={ ( n ) => handleMoveProvider( n, -1 ) }
 								onMoveDown={ ( n ) => handleMoveProvider( n, 1 ) }
 								isFirst={ idx === 0 }
@@ -681,8 +706,10 @@ export default function App() {
 					options={ [
 						{ label: __( '— Select Provider —', 'wppack-oauth-login' ), value: '' },
 						...Object.values( definitions )
+							.filter( ( def ) => def.type !== 'oidc' )
 							.sort( ( a, b ) => a.dropdownLabel.localeCompare( b.dropdownLabel ) )
 							.map( ( def ) => ( { label: def.dropdownLabel, value: def.type } ) ),
+						...( definitions.oidc ? [ { label: definitions.oidc.dropdownLabel, value: 'oidc' } ] : [] ),
 					] }
 					__nextHasNoMarginBottom
 				/>
