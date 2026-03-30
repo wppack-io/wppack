@@ -85,11 +85,19 @@ class PathValidator
             return $filePath;
         }
 
-        if (!str_starts_with($realPath, $this->webRoot)) {
-            throw new SecurityException('Path outside web root');
+        if (str_starts_with($realPath, $this->webRoot)) {
+            return $realPath;
         }
 
-        return $realPath;
+        // Allow symlinks whose entry point is within the web root.
+        // Directory traversal is already blocked by validate().
+        $normalized = $this->normalizePath($filePath);
+        $normalizedWebRoot = $this->normalizePath($this->webRoot);
+        if (str_starts_with($normalized, $normalizedWebRoot)) {
+            return $filePath;
+        }
+
+        throw new SecurityException('Path outside web root');
     }
 
     public function isHiddenPath(string $path): bool

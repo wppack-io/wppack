@@ -17,7 +17,9 @@ use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use WpPack\Component\DependencyInjection\Container;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\EventDispatcher\DependencyInjection\RegisterEventListenersPass;
+use WpPack\Component\Admin\AdminPageRegistry;
 use WpPack\Component\Kernel\AbstractPlugin;
+use WpPack\Component\Rest\RestRegistry;
 use WpPack\Component\Routing\RouteRegistry;
 use WpPack\Component\Security\Authentication\AuthenticationManager;
 use WpPack\Component\Security\Bridge\SAML\SamlAcsController;
@@ -26,6 +28,8 @@ use WpPack\Component\Security\Bridge\SAML\SamlLogoutListener;
 use WpPack\Component\Security\Bridge\SAML\SamlMetadataController;
 use WpPack\Component\Security\Bridge\SAML\SamlSloController;
 use WpPack\Component\Security\DependencyInjection\RegisterAuthenticatorsPass;
+use WpPack\Plugin\SamlLoginPlugin\Admin\SamlLoginSettingsController;
+use WpPack\Plugin\SamlLoginPlugin\Admin\SamlLoginSettingsPage;
 use WpPack\Plugin\SamlLoginPlugin\Configuration\SamlLoginConfiguration;
 use WpPack\Plugin\SamlLoginPlugin\DependencyInjection\SamlLoginPluginServiceProvider;
 use WpPack\Plugin\SamlLoginPlugin\SamlLoginForm;
@@ -59,33 +63,56 @@ final class SamlLoginPlugin extends AbstractPlugin
 
     public function boot(Container $container): void
     {
-        /** @var AuthenticationManager $authManager */
-        $authManager = $container->get(AuthenticationManager::class);
-        $authManager->register();
-
         /** @var SamlLoginConfiguration $config */
         $config = $container->get(SamlLoginConfiguration::class);
 
-        if ($config->ssoOnly) {
-            /** @var SamlEntryPoint $entryPoint */
-            $entryPoint = $container->get(SamlEntryPoint::class);
-            $entryPoint->register();
-        } else {
-            /** @var SamlLoginForm $loginForm */
-            $loginForm = $container->get(SamlLoginForm::class);
-            $loginForm->register();
+        // SAML authentication requires at minimum an IdP Entity ID
+        $samlConfigured = $config->idpEntityId !== '' && $config->idpSsoUrl !== '';
+
+        if ($samlConfigured) {
+            /** @var AuthenticationManager $authManager */
+            $authManager = $container->get(AuthenticationManager::class);
+            $authManager->register();
         }
 
-        /** @var RouteRegistry $router */
-        $router = $container->get(RouteRegistry::class);
-        $this->router = $router;
-        $router->addRoute($config->metadataPath, $container->get(SamlMetadataController::class), name: 'saml_metadata', methods: ['GET']);
-        $router->addRoute($config->acsPath, $container->get(SamlAcsController::class), name: 'saml_acs', methods: ['POST']);
-        $router->addRoute($config->sloPath, $container->get(SamlSloController::class), name: 'saml_slo');
+        if ($samlConfigured) {
+            if ($config->ssoOnly) {
+                /** @var SamlEntryPoint $entryPoint */
+                $entryPoint = $container->get(SamlEntryPoint::class);
+                $entryPoint->register();
+            } else {
+                /** @var SamlLoginForm $loginForm */
+                $loginForm = $container->get(SamlLoginForm::class);
+                $loginForm->register();
+            }
 
-        /** @var SamlLogoutListener $logoutListener */
-        $logoutListener = $container->get(SamlLogoutListener::class);
-        $logoutListener->register();
+            /** @var RouteRegistry $router */
+            $router = $container->get(RouteRegistry::class);
+            $this->router = $router;
+            $router->addRoute($config->metadataPath, $container->get(SamlMetadataController::class), name: 'saml_metadata', methods: ['GET']);
+            $router->addRoute($config->acsPath, $container->get(SamlAcsController::class), name: 'saml_acs', methods: ['POST']);
+            $router->addRoute($config->sloPath, $container->get(SamlSloController::class), name: 'saml_slo');
+
+            /** @var SamlLogoutListener $logoutListener */
+            $logoutListener = $container->get(SamlLogoutListener::class);
+            $logoutListener->register();
+        }
+
+        // Admin Settings Page
+        if (is_admin()) {
+            /** @var SamlLoginSettingsPage $settingsPage */
+            $settingsPage = $container->get(SamlLoginSettingsPage::class);
+            $settingsPage->setPluginFile($this->getFile());
+
+            /** @var AdminPageRegistry $adminRegistry */
+            $adminRegistry = $container->get(AdminPageRegistry::class);
+            $adminRegistry->register($settingsPage);
+        }
+
+        // REST API Settings Endpoint
+        /** @var RestRegistry $restRegistry */
+        $restRegistry = $container->get(RestRegistry::class);
+        $restRegistry->register($container->get(SamlLoginSettingsController::class));
     }
 
     public function onActivate(): void

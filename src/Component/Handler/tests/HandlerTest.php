@@ -90,7 +90,9 @@ final class HandlerTest extends TestCase
         $handler = new Handler($config);
         $request = Request::create('/style.css');
 
+        ob_start();
         $filePath = $handler->run($request);
+        ob_end_clean();
 
         self::assertNull($filePath);
     }
@@ -105,7 +107,9 @@ final class HandlerTest extends TestCase
         $handler = new Handler($config);
         $request = Request::create('/.env');
 
+        ob_start();
         $filePath = $handler->run($request);
+        ob_end_clean();
 
         self::assertNull($filePath);
     }

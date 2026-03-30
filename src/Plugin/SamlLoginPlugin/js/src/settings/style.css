@@ -1,0 +1,59 @@
+.wpp-saml-settings {
+	max-width: 800px;
+	margin-top: 16px;
+}
+
+.wpp-saml-settings h1 {
+	margin-bottom: 16px;
+}
+
+.wpp-saml-settings .components-panel {
+	margin-bottom: 16px;
+}
+
+.wpp-saml-settings .components-panel__body .components-base-control {
+	margin-bottom: 16px;
+}
+
+.wpp-saml-loading {
+	display: flex;
+	justify-content: center;
+	padding: 48px;
+}
+
+.wpp-saml-actions {
+	margin-top: 16px;
+}
+
+.wpp-saml-source-badge {
+	display: inline-block;
+	font-size: 11px;
+	font-weight: 500;
+	line-height: 1;
+	padding: 2px 6px;
+	border-radius: 3px;
+	margin-left: 6px;
+	vertical-align: middle;
+}
+
+.wpp-saml-source-constant {
+	background: #f0f0f0;
+	color: #757575;
+	border: 1px solid #ccc;
+}
+
+.wpp-saml-source-env {
+	background: #e7f5e7;
+	color: #2e7d32;
+	border: 1px solid #a5d6a7;
+}
+
+.wpp-saml-source-option {
+	background: #e3f2fd;
+	color: #1565c0;
+	border: 1px solid #90caf9;
+}
+
+.wpp-saml-settings .components-notice {
+	margin-bottom: 16px;
+}

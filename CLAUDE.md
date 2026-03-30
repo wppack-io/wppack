@@ -574,6 +574,19 @@ When adding a new WordPress plugin package:
 - **When updating documentation**: Verify that link targets in the component list table in `docs/components/README.md` actually exist. When adding new documentation, add a link to the table and ensure path format consistency with existing links (files: `./name.md`, directories: `./name/`)
 - **When updating components**: Ensure that component names, package names, and descriptions are consistent across: the component list table in `CLAUDE.md`, the table in `docs/components/README.md`, `src/Component/{Name}/README.md` (package README), and the implementation under `src/` (namespaces, directory names, `composer.json`)
 
+### Plugin Settings Pages (WordPress Components)
+
+For plugin settings pages, use WordPress Components (`@wordpress/components`) with `@wordpress/scripts` for the build pipeline. Follow the modern WordPress admin UI patterns:
+
+- [How to use DataForm to create plugin settings pages](https://developer.wordpress.org/news/2026/01/how-to-use-dataform-to-create-plugin-settings-pages/)
+- [How to use WordPress React components for plugin pages](https://developer.wordpress.org/news/2024/03/how-to-use-wordpress-react-components-for-plugin-pages/)
+
+Key patterns:
+- Enqueue `wp-components`, `wp-element`, `wp-api-fetch` as dependencies
+- Use custom REST API endpoints (`/wppack/v1/...`) for settings CRUD
+- Sensitive fields (certificates, keys) must be masked in API responses
+- Fields sourced from constants should be displayed as readonly
+
 ### Directory Structure
 
 ```

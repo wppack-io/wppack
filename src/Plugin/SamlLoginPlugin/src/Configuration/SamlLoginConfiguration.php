@@ -55,6 +55,82 @@ final readonly class SamlLoginConfiguration
         public string $sloPath = '/saml/slo',
     ) {}
 
+    private const OPTION_NAME = 'wppack_saml_login';
+
+    /**
+     * Map of constructor parameter names to environment variable names.
+     *
+     * @var array<string, string>
+     */
+    public const ENV_MAP = [
+        'idpEntityId' => 'SAML_IDP_ENTITY_ID',
+        'idpSsoUrl' => 'SAML_IDP_SSO_URL',
+        'idpX509Cert' => 'SAML_IDP_X509_CERT',
+        'idpSloUrl' => 'SAML_IDP_SLO_URL',
+        'idpCertFingerprint' => 'SAML_IDP_CERT_FINGERPRINT',
+        'spEntityId' => 'SAML_SP_ENTITY_ID',
+        'spAcsUrl' => 'SAML_SP_ACS_URL',
+        'spSloUrl' => 'SAML_SP_SLO_URL',
+        'spNameIdFormat' => 'SAML_SP_NAMEID_FORMAT',
+        'strict' => 'SAML_STRICT',
+        'debug' => 'SAML_DEBUG',
+        'wantAssertionsSigned' => 'SAML_WANT_ASSERTIONS_SIGNED',
+        'allowRepeatAttributeName' => 'SAML_ALLOW_REPEAT_ATTRIBUTE_NAME',
+        'autoProvision' => 'SAML_AUTO_PROVISION',
+        'defaultRole' => 'SAML_DEFAULT_ROLE',
+        'emailAttribute' => 'SAML_EMAIL_ATTRIBUTE',
+        'firstNameAttribute' => 'SAML_FIRST_NAME_ATTRIBUTE',
+        'lastNameAttribute' => 'SAML_LAST_NAME_ATTRIBUTE',
+        'displayNameAttribute' => 'SAML_DISPLAY_NAME_ATTRIBUTE',
+        'roleAttribute' => 'SAML_ROLE_ATTRIBUTE',
+        'roleMapping' => 'SAML_ROLE_MAPPING',
+        'addUserToBlog' => 'SAML_ADD_USER_TO_BLOG',
+        'ssoOnly' => 'SAML_SSO_ONLY',
+        'metadataPath' => 'SAML_METADATA_PATH',
+        'acsPath' => 'SAML_ACS_PATH',
+        'sloPath' => 'SAML_SLO_PATH',
+    ];
+
+    /**
+     * Create from environment variables/constants with wp_options fallback.
+     *
+     * Priority: constant > wp_options > env > default
+     */
+    public static function fromEnvironmentOrOptions(): self
+    {
+        $raw = get_option(self::OPTION_NAME, []);
+        $options = \is_array($raw) ? $raw : [];
+
+        return new self(
+            idpEntityId: self::resolveString('SAML_IDP_ENTITY_ID', $options, '') ?: self::getEnv('SAML_IDP_ENTITY_ID') ?? '',
+            idpSsoUrl: self::resolveString('SAML_IDP_SSO_URL', $options, '') ?: self::getEnv('SAML_IDP_SSO_URL') ?? '',
+            idpX509Cert: self::resolveString('SAML_IDP_X509_CERT', $options, '') ?: self::loadCertificateOrEmpty(),
+            idpSloUrl: self::resolveNullableString('SAML_IDP_SLO_URL', $options),
+            idpCertFingerprint: self::resolveNullableString('SAML_IDP_CERT_FINGERPRINT', $options),
+            spEntityId: self::resolveString('SAML_SP_ENTITY_ID', $options, ''),
+            spAcsUrl: self::resolveString('SAML_SP_ACS_URL', $options, ''),
+            spSloUrl: self::resolveString('SAML_SP_SLO_URL', $options, ''),
+            spNameIdFormat: self::resolveNameIdFormat(self::resolveString('SAML_SP_NAMEID_FORMAT', $options, 'unspecified')),
+            strict: self::resolveBool('SAML_STRICT', $options, true),
+            debug: self::resolveBool('SAML_DEBUG', $options, false),
+            wantAssertionsSigned: self::resolveBool('SAML_WANT_ASSERTIONS_SIGNED', $options, true),
+            allowRepeatAttributeName: self::resolveBool('SAML_ALLOW_REPEAT_ATTRIBUTE_NAME', $options, false),
+            autoProvision: self::resolveBool('SAML_AUTO_PROVISION', $options, false),
+            defaultRole: self::resolveString('SAML_DEFAULT_ROLE', $options, 'subscriber'),
+            emailAttribute: self::resolveString('SAML_EMAIL_ATTRIBUTE', $options, 'email'),
+            firstNameAttribute: self::resolveNullableString('SAML_FIRST_NAME_ATTRIBUTE', $options) ?? 'firstName',
+            lastNameAttribute: self::resolveNullableString('SAML_LAST_NAME_ATTRIBUTE', $options) ?? 'lastName',
+            displayNameAttribute: self::resolveNullableString('SAML_DISPLAY_NAME_ATTRIBUTE', $options) ?? 'displayName',
+            roleAttribute: self::resolveNullableString('SAML_ROLE_ATTRIBUTE', $options),
+            roleMapping: self::resolveRoleMapping($options),
+            addUserToBlog: self::resolveBool('SAML_ADD_USER_TO_BLOG', $options, true),
+            ssoOnly: self::resolveBool('SAML_SSO_ONLY', $options, false),
+            metadataPath: self::resolveString('SAML_METADATA_PATH', $options, '/saml/metadata'),
+            acsPath: self::resolveString('SAML_ACS_PATH', $options, '/saml/acs'),
+            sloPath: self::resolveString('SAML_SLO_PATH', $options, '/saml/slo'),
+        );
+    }
+
     public static function fromEnvironment(): self
     {
         return new self(
@@ -177,6 +253,121 @@ final readonly class SamlLoginConfiguration
         $value = getenv($name);
 
         return ($value !== false && $value !== '') ? $value : null;
+    }
+
+    /**
+     * Resolve string: constant > option > env > default.
+     *
+     * @param array<string, mixed> $options
+     */
+    private static function resolveString(string $envName, array $options, string $default): string
+    {
+        if (\defined($envName)) {
+            $v = \constant($envName);
+
+            return \is_string($v) && $v !== '' ? $v : $default;
+        }
+
+        $paramName = self::envToParam($envName);
+        if (isset($options[$paramName]) && \is_string($options[$paramName]) && $options[$paramName] !== '') {
+            return $options[$paramName];
+        }
+
+        return self::getEnv($envName) ?? $default;
+    }
+
+    /**
+     * Resolve nullable string: constant > option > env > null.
+     *
+     * @param array<string, mixed> $options
+     */
+    private static function resolveNullableString(string $envName, array $options): ?string
+    {
+        if (\defined($envName)) {
+            $v = \constant($envName);
+
+            return \is_string($v) && $v !== '' ? $v : null;
+        }
+
+        $paramName = self::envToParam($envName);
+        if (isset($options[$paramName]) && \is_string($options[$paramName]) && $options[$paramName] !== '') {
+            return $options[$paramName];
+        }
+
+        return self::getEnv($envName);
+    }
+
+    /**
+     * Resolve bool: constant > option > env > default.
+     *
+     * @param array<string, mixed> $options
+     */
+    private static function resolveBool(string $envName, array $options, bool $default): bool
+    {
+        if (\defined($envName)) {
+            return (bool) \constant($envName);
+        }
+
+        $paramName = self::envToParam($envName);
+        if (isset($options[$paramName])) {
+            return (bool) $options[$paramName];
+        }
+
+        return self::getBool($envName, $default);
+    }
+
+    /**
+     * Resolve role mapping: constant > option > env > null.
+     *
+     * @param array<string, mixed> $options
+     * @return array<string, string>|null
+     */
+    private static function resolveRoleMapping(array $options): ?array
+    {
+        if (\defined('SAML_ROLE_MAPPING')) {
+            $json = \constant('SAML_ROLE_MAPPING');
+            if (\is_string($json)) {
+                $decoded = json_decode($json, true);
+
+                return \is_array($decoded) ? $decoded : null;
+            }
+
+            return null;
+        }
+
+        if (isset($options['roleMapping'])) {
+            if (\is_array($options['roleMapping'])) {
+                return $options['roleMapping'];
+            }
+            if (\is_string($options['roleMapping'])) {
+                $decoded = json_decode($options['roleMapping'], true);
+
+                return \is_array($decoded) ? $decoded : null;
+            }
+        }
+
+        return self::loadRoleMapping();
+    }
+
+    private static function loadCertificateOrEmpty(): string
+    {
+        try {
+            return self::loadCertificate();
+        } catch (\RuntimeException) {
+            return '';
+        }
+    }
+
+    /**
+     * Convert environment variable name to parameter name.
+     * e.g., SAML_IDP_ENTITY_ID → idpEntityId
+     */
+    private static function envToParam(string $envName): string
+    {
+        static $flipped = null;
+        $flipped ??= array_flip(self::ENV_MAP);
+
+        return $flipped[$envName] ?? $envName;
     }
 
     private static function getBool(string $name, bool $default): bool

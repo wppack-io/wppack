@@ -34,7 +34,4 @@ if (file_exists(__DIR__ . '/vendor/autoload.php')) {
     require_once __DIR__ . '/../../vendor/autoload.php';
 }
 
-// Requires SAML_IDP_ENTITY_ID constant or environment variable
-if (defined('SAML_IDP_ENTITY_ID') || getenv('SAML_IDP_ENTITY_ID') !== false) {
-    Kernel::registerPlugin(new SamlLoginPlugin(__FILE__));
-}
+Kernel::registerPlugin(new SamlLoginPlugin(__FILE__));

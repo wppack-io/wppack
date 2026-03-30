@@ -46,6 +46,10 @@ use WpPack\Component\Site\BlogContext;
 use WpPack\Component\Site\BlogContextInterface;
 use WpPack\Component\Transient\TransientManager;
 use WpPack\Component\User\UserRepositoryInterface;
+use WpPack\Component\Admin\AdminPageRegistry;
+use WpPack\Component\Rest\RestRegistry;
+use WpPack\Plugin\SamlLoginPlugin\Admin\SamlLoginSettingsController;
+use WpPack\Plugin\SamlLoginPlugin\Admin\SamlLoginSettingsPage;
 use WpPack\Plugin\SamlLoginPlugin\Configuration\SamlLoginConfiguration;
 use WpPack\Plugin\SamlLoginPlugin\SamlLoginForm;
 
@@ -77,9 +81,34 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
             $builder->register(TransientManager::class);
         }
 
-        // Configuration
+        // Admin Page Registry
+        if (!$builder->hasDefinition(AdminPageRegistry::class)) {
+            $builder->register(AdminPageRegistry::class);
+        }
+
+        // REST Registry
+        if (!$builder->hasDefinition(RestRegistry::class)) {
+            $builder->register(RestRegistry::class)
+                ->addArgument(new Reference(Request::class));
+        }
+
+        // Configuration (constant > wp_options > env > default)
         $builder->register(SamlLoginConfiguration::class)
-            ->setFactory([SamlLoginConfiguration::class, 'fromEnvironment']);
+            ->setFactory([SamlLoginConfiguration::class, 'fromEnvironmentOrOptions']);
+
+        // Admin Settings Page
+        $builder->register(SamlLoginSettingsPage::class);
+
+        // REST API Settings Controller
+        $builder->register(SamlLoginSettingsController::class)
+            ->addArgument(new Reference(SamlLoginConfiguration::class))
+            ->addArgument(new Reference(Sanitizer::class))
+            ->addArgument(new Reference(\WpPack\Component\Role\RoleProvider::class));
+
+        // Role Provider
+        if (!$builder->hasDefinition(\WpPack\Component\Role\RoleProvider::class)) {
+            $builder->register(\WpPack\Component\Role\RoleProvider::class);
+        }
 
         // SAML Configuration objects
         $builder->register(IdpSettings::class)

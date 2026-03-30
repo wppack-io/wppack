@@ -77,7 +77,7 @@ final class SamlLoginPluginServiceProviderTest extends TestCase
         $factory = $definition->getFactory();
         self::assertNotNull($factory);
         self::assertSame(SamlLoginConfiguration::class, $factory[0]);
-        self::assertSame('fromEnvironment', $factory[1]);
+        self::assertSame('fromEnvironmentOrOptions', $factory[1]);
     }
 
     #[Test]
