@@ -63,6 +63,8 @@ final class SamlLoginPlugin extends AbstractPlugin
 
     public function boot(Container $container): void
     {
+        load_plugin_textdomain('wppack-saml-login', false, \dirname(plugin_basename($this->getFile())) . '/languages');
+
         /** @var SamlLoginConfiguration $config */
         $config = $container->get(SamlLoginConfiguration::class);
 

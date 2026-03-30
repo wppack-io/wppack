@@ -217,6 +217,7 @@
 	width: 100%;
 	max-width: 280px;
 	box-sizing: border-box;
+	padding-right: 24px;
 }
 
 .wpp-oauth-login-button.is-icon-left .wpp-oauth-login-icon {

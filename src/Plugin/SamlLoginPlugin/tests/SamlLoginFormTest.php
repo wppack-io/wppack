@@ -105,7 +105,7 @@ final class SamlLoginFormTest extends TestCase
         self::assertStringContainsString('wppack-saml-login', $output);
         self::assertStringContainsString('Login with SSO', $output);
         self::assertStringContainsString('https://idp.example.com/sso', $output);
-        self::assertStringContainsString('button button-large', $output);
+        self::assertStringContainsString('height:36px', $output);
     }
 
     #[Test]

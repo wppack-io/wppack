@@ -62,6 +62,8 @@ class OAuthLoginPlugin extends AbstractPlugin
 
     public function boot(Container $container): void
     {
+        load_plugin_textdomain('wppack-oauth-login', false, \dirname(plugin_basename($this->getFile())) . '/languages');
+
         /** @var OAuthLoginConfiguration $config */
         $config = $container->get(OAuthLoginConfiguration::class);
 

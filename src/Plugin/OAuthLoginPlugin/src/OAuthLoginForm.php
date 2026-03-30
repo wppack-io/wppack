@@ -122,7 +122,7 @@ class OAuthLoginForm
         .wol-icon{display:inline-flex;width:20px;height:20px;flex:none}
         .wol-icon svg{width:100%;height:100%}
         .wol-text{flex:1;text-align:center}
-        .wol-icon-left{gap:8px}
+        .wol-icon-left{gap:8px;padding-right:24px}
         .wol-icon-only{width:36px;padding:0}
         </style>
         <div id="wppack-oauth-login" style="display:none;clear:both;">
