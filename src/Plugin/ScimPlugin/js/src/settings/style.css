@@ -70,9 +70,8 @@
 	max-width: 120px;
 }
 
-.wpp-scim-small-select,
-.wpp-scim-small-select .components-input-control__container,
-.wpp-scim-small-select select {
-	max-width: 200px;
+.wpp-scim-small-select .components-base-control__field,
+.wpp-scim-small-select .components-select-control__input {
+	max-width: 200px !important;
 }
 
