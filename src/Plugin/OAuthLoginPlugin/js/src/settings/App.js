@@ -104,9 +104,9 @@ function PathField( { id, label, field, value, onChange, prefix, disabled } ) {
 	);
 }
 
-function ProviderPanel( { name, provider, onChange, onDelete, isReadonly } ) {
+function ProviderPanel( { name, provider, onChange, onDelete, isReadonly, icons } ) {
 	const f = provider.fields || {};
-	const icon = provider.icon;
+	const icon = icons[ f.type ] || icons[ name ] || provider.icon;
 	const update = ( key ) => ( val ) => {
 		onChange( name, { ...f, [ key ]: val } );
 	};
@@ -317,6 +317,7 @@ function ProviderPanel( { name, provider, onChange, onDelete, isReadonly } ) {
 export default function App() {
 	const [ globalSettings, setGlobalSettings ] = useState( null );
 	const [ providers, setProviders ] = useState( {} );
+	const [ icons, setIcons ] = useState( {} );
 	const [ siteUrl, setSiteUrl ] = useState( '' );
 	const [ globalForm, setGlobalForm ] = useState( {} );
 	const [ providerForm, setProviderForm ] = useState( {} );
@@ -328,6 +329,7 @@ export default function App() {
 
 	const applyResponse = ( data ) => {
 		setSiteUrl( data.siteUrl || '' );
+		setIcons( data.icons || {} );
 		setGlobalSettings( data.global );
 		setProviders( data.providers || {} );
 
@@ -591,6 +593,7 @@ export default function App() {
 							onChange={ updateProvider }
 							onDelete={ handleDeleteProvider }
 							isReadonly={ provider.readonly }
+							icons={ icons }
 						/>
 					)
 				) }

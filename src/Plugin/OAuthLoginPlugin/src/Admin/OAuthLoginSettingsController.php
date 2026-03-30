@@ -43,11 +43,7 @@ final class OAuthLoginSettingsController extends AbstractRestController
     {
         $blogId = is_multisite() ? get_main_site_id() : null;
 
-        return $this->json([
-            'siteUrl' => get_home_url($blogId),
-            'global' => $this->buildGlobalDisplay(),
-            'providers' => $this->buildProvidersDisplay(),
-        ]);
+        return $this->json($this->buildResponse($blogId));
     }
 
     #[RestRoute(route: '/settings', methods: HttpMethod::POST)]
@@ -64,11 +60,25 @@ final class OAuthLoginSettingsController extends AbstractRestController
         // Rebuild display from updated config
         $ctrl = new self($updated, $this->sanitizer, $this->roleProvider);
 
-        return $this->json([
+        return $this->json($ctrl->buildResponse($blogId));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildResponse(?int $blogId): array
+    {
+        $icons = [];
+        foreach (ProviderIcons::providers() as $type) {
+            $icons[$type] = ProviderIcons::svg($type);
+        }
+
+        return [
             'siteUrl' => get_home_url($blogId),
-            'global' => $ctrl->buildGlobalDisplay(),
-            'providers' => $ctrl->buildProvidersDisplay(),
-        ]);
+            'icons' => $icons,
+            'global' => $this->buildGlobalDisplay(),
+            'providers' => $this->buildProvidersDisplay(),
+        ];
     }
 
     /**
