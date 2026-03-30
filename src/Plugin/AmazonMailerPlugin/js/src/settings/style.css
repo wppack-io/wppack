@@ -1,0 +1,91 @@
+.wpp-mailer-settings {
+	max-width: 800px;
+	margin-top: 16px;
+}
+
+.wpp-mailer-settings input[readonly],
+.wpp-mailer-settings input[disabled],
+.wpp-mailer-settings select[disabled] {
+	cursor: default;
+}
+
+.wpp-mailer-settings h1 {
+	margin-bottom: 16px;
+}
+
+.wpp-mailer-settings .components-panel {
+	margin-bottom: 16px;
+}
+
+.wpp-mailer-settings .components-panel__body .components-base-control {
+	margin-bottom: 16px;
+}
+
+.wpp-mailer-settings .components-panel__body.is-opened {
+	padding-bottom: 0;
+}
+
+.wpp-mailer-settings .components-panel__body.is-opened > .components-panel__body-title {
+	margin-bottom: 16px;
+}
+
+.wpp-mailer-loading {
+	display: flex;
+	justify-content: center;
+	padding: 48px;
+}
+
+.wpp-mailer-actions {
+	margin-top: 16px;
+	display: flex;
+	gap: 8px;
+}
+
+.wpp-mailer-source-badge {
+	display: inline-block;
+	font-size: 11px;
+	font-weight: 500;
+	line-height: 1;
+	padding: 2px 6px;
+	border-radius: 3px;
+	margin-left: 6px;
+	vertical-align: middle;
+}
+
+.wpp-mailer-source-constant {
+	background: #f0f0f0;
+	color: #757575;
+	border: 1px solid #ccc;
+}
+
+.wpp-mailer-source-option {
+	background: #e3f2fd;
+	color: #1565c0;
+	border: 1px solid #90caf9;
+}
+
+.wpp-mailer-settings .components-notice {
+	margin-bottom: 16px;
+}
+
+.wpp-mailer-suppression-list {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.wpp-mailer-suppression-item {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 4px 8px;
+	background: #f9f9f9;
+	border: 1px solid #e0e0e0;
+	border-radius: 2px;
+	font-size: 13px;
+}
+
+.wpp-mailer-small-select .components-base-control__field,
+.wpp-mailer-small-select .components-select-control__input {
+	max-width: 300px !important;
+}

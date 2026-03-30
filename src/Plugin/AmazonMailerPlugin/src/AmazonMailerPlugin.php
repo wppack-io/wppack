@@ -13,14 +13,19 @@ declare(strict_types=1);
 
 namespace WpPack\Plugin\AmazonMailerPlugin;
 
+use WpPack\Component\Admin\AdminPageRegistry;
 use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use WpPack\Component\DependencyInjection\Container;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
 use WpPack\Component\Kernel\AbstractPlugin;
 use WpPack\Component\Mailer\DependencyInjection\RegisterTransportFactoriesPass;
-use WpPack\Component\Messenger\DependencyInjection\RegisterMessageHandlersPass;
 use WpPack\Component\Mailer\Mailer;
+use WpPack\Component\Messenger\DependencyInjection\RegisterMessageHandlersPass;
+use WpPack\Component\Rest\RestRegistry;
+use WpPack\Plugin\AmazonMailerPlugin\Admin\AmazonMailerSettingsController;
+use WpPack\Plugin\AmazonMailerPlugin\Admin\AmazonMailerSettingsPage;
+use WpPack\Plugin\AmazonMailerPlugin\Configuration\AmazonMailerConfiguration;
 use WpPack\Plugin\AmazonMailerPlugin\DependencyInjection\AmazonMailerPluginServiceProvider;
 
 final class AmazonMailerPlugin extends AbstractPlugin
@@ -35,6 +40,12 @@ final class AmazonMailerPlugin extends AbstractPlugin
 
     public function register(ContainerBuilder $builder): void
     {
+        $this->serviceProvider->registerAdmin($builder);
+
+        if (!AmazonMailerConfiguration::hasConfiguration()) {
+            return;
+        }
+
         $this->serviceProvider->register($builder);
     }
 
@@ -52,6 +63,23 @@ final class AmazonMailerPlugin extends AbstractPlugin
 
     public function boot(Container $container): void
     {
+        if (is_admin() || is_network_admin()) {
+            /** @var AdminPageRegistry $pageRegistry */
+            $pageRegistry = $container->get(AdminPageRegistry::class);
+            /** @var AmazonMailerSettingsPage $settingsPage */
+            $settingsPage = $container->get(AmazonMailerSettingsPage::class);
+            $settingsPage->setPluginFile($this->getFile());
+            $pageRegistry->register($settingsPage);
+
+            /** @var RestRegistry $restRegistry */
+            $restRegistry = $container->get(RestRegistry::class);
+            $restRegistry->register($container->get(AmazonMailerSettingsController::class));
+        }
+
+        if (!$container->has(Mailer::class)) {
+            return;
+        }
+
         /** @var Mailer $mailer */
         $mailer = $container->get(Mailer::class);
         $mailer->boot();

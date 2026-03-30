@@ -16,11 +16,33 @@ namespace WpPack\Component\Mailer\Bridge\SendGrid\Transport;
 use WpPack\Component\Mailer\Exception\InvalidArgumentException;
 use WpPack\Component\Mailer\Exception\UnsupportedSchemeException;
 use WpPack\Component\Mailer\Transport\Dsn;
+use WpPack\Component\Mailer\Transport\TransportDefinition;
 use WpPack\Component\Mailer\Transport\TransportFactoryInterface;
+use WpPack\Component\Mailer\Transport\TransportField;
 use WpPack\Component\Mailer\Transport\TransportInterface;
 
 final class SendGridTransportFactory implements TransportFactoryInterface
 {
+    public static function definitions(): array
+    {
+        return [
+            new TransportDefinition(
+                scheme: 'sendgrid+api',
+                label: 'SendGrid (API)',
+                fields: [
+                    new TransportField('apiKey', 'API Key', type: 'password', required: true, dsnPart: 'user'),
+                ],
+            ),
+            new TransportDefinition(
+                scheme: 'sendgrid+smtp',
+                label: 'SendGrid (SMTP)',
+                fields: [
+                    new TransportField('apiKey', 'API Key', type: 'password', required: true, dsnPart: 'password'),
+                ],
+            ),
+        ];
+    }
+
     public function create(Dsn $dsn): TransportInterface
     {
         if (!$this->supports($dsn)) {

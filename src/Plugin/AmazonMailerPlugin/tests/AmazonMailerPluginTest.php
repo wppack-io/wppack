@@ -58,6 +58,8 @@ final class AmazonMailerPluginTest extends TestCase
     #[Test]
     public function registerDelegatesToServiceProvider(): void
     {
+        update_option('wppack_mailer', ['dsn' => 'native://default']);
+
         $builder = new ContainerBuilder();
 
         $this->plugin->register($builder);

@@ -16,11 +16,38 @@ namespace WpPack\Component\Mailer\Bridge\Amazon\Transport;
 use AsyncAws\Ses\SesClient;
 use WpPack\Component\Mailer\Exception\UnsupportedSchemeException;
 use WpPack\Component\Mailer\Transport\Dsn;
+use WpPack\Component\Mailer\Transport\TransportDefinition;
 use WpPack\Component\Mailer\Transport\TransportFactoryInterface;
+use WpPack\Component\Mailer\Transport\TransportField;
 use WpPack\Component\Mailer\Transport\TransportInterface;
 
 final class SesTransportFactory implements TransportFactoryInterface
 {
+    public static function definitions(): array
+    {
+        return [
+            new TransportDefinition(
+                scheme: 'ses+api',
+                label: 'Amazon SES (API)',
+                fields: [
+                    new TransportField('accessKey', 'Access Key ID', dsnPart: 'user', help: 'Leave empty to use IAM role'),
+                    new TransportField('secretKey', 'Secret Access Key', type: 'password', dsnPart: 'password'),
+                    new TransportField('region', 'Region', required: true, default: 'us-east-1', dsnPart: 'option:region'),
+                    new TransportField('configurationSet', 'Configuration Set', dsnPart: 'option:configuration_set'),
+                ],
+            ),
+            new TransportDefinition(
+                scheme: 'ses+smtp',
+                label: 'Amazon SES (SMTP)',
+                fields: [
+                    new TransportField('username', 'SMTP Username', required: true, dsnPart: 'user'),
+                    new TransportField('password', 'SMTP Password', type: 'password', required: true, dsnPart: 'password'),
+                    new TransportField('region', 'Region', required: true, default: 'us-east-1', dsnPart: 'option:region'),
+                ],
+            ),
+        ];
+    }
+
     public function create(Dsn $dsn): TransportInterface
     {
         return match ($dsn->getScheme()) {

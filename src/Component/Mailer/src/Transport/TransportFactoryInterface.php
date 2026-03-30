@@ -15,6 +15,11 @@ namespace WpPack\Component\Mailer\Transport;
 
 interface TransportFactoryInterface
 {
+    /**
+     * @return list<TransportDefinition>
+     */
+    public static function definitions(): array;
+
     public function create(Dsn $dsn): TransportInterface;
 
     public function supports(Dsn $dsn): bool;

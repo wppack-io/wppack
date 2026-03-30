@@ -17,6 +17,26 @@ use WpPack\Component\Mailer\Exception\UnsupportedSchemeException;
 
 final class NativeTransportFactory implements TransportFactoryInterface
 {
+    public static function definitions(): array
+    {
+        return [
+            new TransportDefinition(
+                scheme: 'smtp',
+                label: 'SMTP',
+                fields: [
+                    new TransportField('host', 'Host', required: true, default: 'localhost', dsnPart: 'host'),
+                    new TransportField('port', 'Port', type: 'number', default: '587', dsnPart: 'port'),
+                    new TransportField('username', 'Username', dsnPart: 'user'),
+                    new TransportField('password', 'Password', type: 'password', dsnPart: 'password'),
+                ],
+            ),
+            new TransportDefinition(
+                scheme: 'native',
+                label: 'PHP mail()',
+            ),
+        ];
+    }
+
     public function create(Dsn $dsn): TransportInterface
     {
         return match ($dsn->getScheme()) {

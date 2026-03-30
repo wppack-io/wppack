@@ -29,10 +29,30 @@ use WpPack\Plugin\AmazonMailerPlugin\Configuration\AmazonMailerConfiguration;
 use WpPack\Plugin\AmazonMailerPlugin\Handler\BounceHandler;
 use WpPack\Plugin\AmazonMailerPlugin\Handler\ComplaintHandler;
 use WpPack\Plugin\AmazonMailerPlugin\Message\SesNotificationNormalizer;
+use WpPack\Component\Admin\AdminPageRegistry;
+use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Rest\RestRegistry;
+use WpPack\Plugin\AmazonMailerPlugin\Admin\AmazonMailerSettingsController;
+use WpPack\Plugin\AmazonMailerPlugin\Admin\AmazonMailerSettingsPage;
 use WpPack\Plugin\AmazonMailerPlugin\SuppressionList;
 
 final class AmazonMailerPluginServiceProvider implements ServiceProviderInterface
 {
+    public function registerAdmin(ContainerBuilder $builder): void
+    {
+        if (!$builder->hasDefinition(AdminPageRegistry::class)) {
+            $builder->register(AdminPageRegistry::class);
+        }
+
+        if (!$builder->hasDefinition(RestRegistry::class)) {
+            $builder->register(RestRegistry::class)
+                ->addArgument(new Reference(Request::class));
+        }
+
+        $builder->register(AmazonMailerSettingsPage::class);
+        $builder->register(AmazonMailerSettingsController::class);
+    }
+
     public function register(ContainerBuilder $builder): void
     {
         // Messenger (synchronous fallback if no dedicated Messenger plugin)
