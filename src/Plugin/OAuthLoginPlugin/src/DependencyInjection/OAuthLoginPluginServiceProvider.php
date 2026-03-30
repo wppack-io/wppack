@@ -204,7 +204,7 @@ final class OAuthLoginPluginServiceProvider implements ServiceProviderInterface
 
         // Provider instance
         $providerId = ProviderInterface::class . '.' . $name;
-        $builder->register($providerId)
+        $builder->register($providerId, ProviderInterface::class)
             ->setFactory([self::class, 'createProvider'])
             ->addArgument($providerConfig)
             ->addArgument(new Reference($configId));
