@@ -232,17 +232,15 @@ final class RouteEntry
     {
         try {
             $response = ($this->handler)();
+
+            if ($response === null) {
+                return;
+            }
+
+            $this->sendResponse($response);
         } catch (HttpException $e) {
             $this->handleException($e);
-
-            return;
         }
-
-        if ($response === null) {
-            return;
-        }
-
-        $this->sendResponse($response);
     }
 
     private function sendResponse(Response $response): void
@@ -366,6 +364,13 @@ final class RouteEntry
     {
         $this->sendHeaders($response);
         if ($response->safe) {
+            $validated = wp_validate_redirect($response->url, '');
+            if ($validated === '') {
+                throw new HttpException(
+                    \sprintf('Redirect to an untrusted external URL was blocked: %s', $response->url),
+                    403,
+                );
+            }
             wp_safe_redirect($response->url, $response->statusCode);
         } else {
             wp_redirect($response->url, $response->statusCode);
