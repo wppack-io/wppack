@@ -110,6 +110,14 @@ final class AmazonMailerPluginServiceProvider implements ServiceProviderInterfac
 
     public static function createMailer(AmazonMailerConfiguration $config): Mailer
     {
+        // WordPress bundles PHPMailer but it's not in Composer autoload.
+        // Load WP_PHPMailer (WP 6.8+) which provides i18n support.
+        if (!class_exists(\WP_PHPMailer::class, false)) {
+            require_once ABSPATH . 'wp-includes/PHPMailer/PHPMailer.php';
+            require_once ABSPATH . 'wp-includes/PHPMailer/Exception.php';
+            require_once ABSPATH . 'wp-includes/class-wp-phpmailer.php';
+        }
+
         return new Mailer(transport: $config->dsn);
     }
 }

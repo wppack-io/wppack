@@ -13,10 +13,9 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Mailer;
 
-use PHPMailer\PHPMailer\PHPMailer as BasePhpMailer;
 use WpPack\Component\Mailer\Transport\TransportInterface;
 
-class PhpMailer extends BasePhpMailer
+class PhpMailer extends \WP_PHPMailer
 {
     private ?TransportInterface $transport = null;
 
