@@ -19,6 +19,7 @@ use WpPack\Component\DependencyInjection\Container;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
 use WpPack\Component\Kernel\AbstractPlugin;
+use WpPack\Component\Kernel\Attribute\TextDomain;
 use WpPack\Component\Mailer\DependencyInjection\RegisterTransportFactoriesPass;
 use WpPack\Component\Mailer\Mailer;
 use WpPack\Component\Messenger\DependencyInjection\RegisterMessageHandlersPass;
@@ -28,6 +29,7 @@ use WpPack\Plugin\AmazonMailerPlugin\Admin\AmazonMailerSettingsPage;
 use WpPack\Plugin\AmazonMailerPlugin\Configuration\AmazonMailerConfiguration;
 use WpPack\Plugin\AmazonMailerPlugin\DependencyInjection\AmazonMailerPluginServiceProvider;
 
+#[TextDomain(domain: 'wppack-mailer')]
 final class AmazonMailerPlugin extends AbstractPlugin
 {
     private readonly AmazonMailerPluginServiceProvider $serviceProvider;
@@ -63,8 +65,6 @@ final class AmazonMailerPlugin extends AbstractPlugin
 
     public function boot(Container $container): void
     {
-        load_plugin_textdomain('wppack-mailer', false, \dirname(plugin_basename($this->getFile())) . '/languages');
-
         if (is_admin() || is_network_admin()) {
             /** @var AdminPageRegistry $pageRegistry */
             $pageRegistry = $container->get(AdminPageRegistry::class);

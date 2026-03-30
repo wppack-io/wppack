@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Translation;
 
-use WpPack\Component\Translation\Attribute\PluginTextDomain;
-use WpPack\Component\Translation\Attribute\ThemeTextDomain;
+use WpPack\Component\Kernel\Attribute\TextDomain;
 
 class Translator
 {
@@ -64,22 +63,15 @@ class Translator
     {
         $reflection = new \ReflectionClass($this);
 
-        /** @var list<\ReflectionAttribute<PluginTextDomain>> $pluginAttributes */
-        $pluginAttributes = $reflection->getAttributes(PluginTextDomain::class);
+        /** @var list<\ReflectionAttribute<TextDomain>> $attributes */
+        $attributes = $reflection->getAttributes(TextDomain::class);
 
-        if ($pluginAttributes !== []) {
-            return $pluginAttributes[0]->newInstance()->domain;
-        }
-
-        /** @var list<\ReflectionAttribute<ThemeTextDomain>> $themeAttributes */
-        $themeAttributes = $reflection->getAttributes(ThemeTextDomain::class);
-
-        if ($themeAttributes !== []) {
-            return $themeAttributes[0]->newInstance()->domain;
+        if ($attributes !== []) {
+            return $attributes[0]->newInstance()->domain;
         }
 
         throw new \LogicException(sprintf(
-            'Class "%s" must either pass a domain to the constructor or have a #[PluginTextDomain] or #[ThemeTextDomain] attribute.',
+            'Class "%s" must either pass a domain to the constructor or have a #[TextDomain] attribute.',
             static::class,
         ));
     }

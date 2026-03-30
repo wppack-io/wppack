@@ -15,26 +15,17 @@ namespace WpPack\Component\Translation\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Translation\Attribute\PluginTextDomain;
-use WpPack\Component\Translation\Attribute\ThemeTextDomain;
+use WpPack\Component\Kernel\Attribute\TextDomain;
 use WpPack\Component\Translation\Translator;
 
 final class TranslatorTest extends TestCase
 {
     #[Test]
-    public function resolveDomainFromPluginTextDomainAttribute(): void
+    public function resolveDomainFromTextDomainAttribute(): void
     {
         $translator = new PluginTranslatorStub();
 
         self::assertSame('my-plugin', $translator->domain);
-    }
-
-    #[Test]
-    public function resolveDomainFromThemeTextDomainAttribute(): void
-    {
-        $translator = new ThemeTranslatorStub();
-
-        self::assertSame('my-theme', $translator->domain);
     }
 
     #[Test]
@@ -57,7 +48,7 @@ final class TranslatorTest extends TestCase
     public function throwsLogicExceptionWithoutDomainOrAttribute(): void
     {
         $this->expectException(\LogicException::class);
-        $this->expectExceptionMessage('must either pass a domain to the constructor or have a #[PluginTextDomain] or #[ThemeTextDomain] attribute');
+        $this->expectExceptionMessage('must either pass a domain to the constructor or have a #[TextDomain] attribute');
 
         new NoDomainTranslatorStub();
     }
@@ -125,10 +116,7 @@ final class TranslatorTest extends TestCase
     }
 }
 
-#[PluginTextDomain(domain: 'my-plugin', path: 'my-plugin/languages')]
+#[TextDomain(domain: 'my-plugin')]
 class PluginTranslatorStub extends Translator {}
-
-#[ThemeTextDomain(domain: 'my-theme')]
-class ThemeTranslatorStub extends Translator {}
 
 class NoDomainTranslatorStub extends Translator {}

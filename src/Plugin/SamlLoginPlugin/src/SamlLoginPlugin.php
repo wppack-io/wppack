@@ -19,6 +19,7 @@ use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\EventDispatcher\DependencyInjection\RegisterEventListenersPass;
 use WpPack\Component\Admin\AdminPageRegistry;
 use WpPack\Component\Kernel\AbstractPlugin;
+use WpPack\Component\Kernel\Attribute\TextDomain;
 use WpPack\Component\Rest\RestRegistry;
 use WpPack\Component\Routing\RouteRegistry;
 use WpPack\Component\Security\Authentication\AuthenticationManager;
@@ -34,6 +35,7 @@ use WpPack\Plugin\SamlLoginPlugin\Configuration\SamlLoginConfiguration;
 use WpPack\Plugin\SamlLoginPlugin\DependencyInjection\SamlLoginPluginServiceProvider;
 use WpPack\Plugin\SamlLoginPlugin\SamlLoginForm;
 
+#[TextDomain(domain: 'wppack-saml-login')]
 final class SamlLoginPlugin extends AbstractPlugin
 {
     private readonly SamlLoginPluginServiceProvider $serviceProvider;
@@ -63,8 +65,6 @@ final class SamlLoginPlugin extends AbstractPlugin
 
     public function boot(Container $container): void
     {
-        load_plugin_textdomain('wppack-saml-login', false, \dirname(plugin_basename($this->getFile())) . '/languages');
-
         /** @var SamlLoginConfiguration $config */
         $config = $container->get(SamlLoginConfiguration::class);
 

@@ -34,9 +34,9 @@ echo _x('Post', 'verb', 'my-plugin');
 
 ```php
 use WpPack\Component\Translation\Translator;
-use WpPack\Component\Translation\Attribute\PluginTextDomain;
+use WpPack\Component\Kernel\Attribute\TextDomain;
 
-#[PluginTextDomain(domain: 'my-plugin', path: 'my-plugin/languages')]
+#[TextDomain(domain: 'my-plugin')]
 class MyPluginTranslator extends Translator
 {
     public function welcome(): string
@@ -66,34 +66,17 @@ class MyPluginTranslator extends Translator
 
 ## テキストドメインアトリビュート
 
-プラグインとテーマで異なるアトリビュートを使用します（WordPress API が異なるため）。
-
-### PluginTextDomain — プラグイン用
+テキストドメインの宣言には Kernel コンポーネントの `#[TextDomain]` アトリビュートを使用します。プラグインクラスに付与すると、Kernel が `boot()` の前に自動で `load_plugin_textdomain()` を呼び出します。
 
 ```php
-use WpPack\Component\Translation\Attribute\PluginTextDomain;
+use WpPack\Component\Kernel\Attribute\TextDomain;
 
-#[PluginTextDomain(domain: 'my-plugin', path: 'my-plugin/languages')]
+#[TextDomain(domain: 'my-plugin')]
 class PluginTranslator extends Translator {}
 ```
 
-- `path`: `WP_PLUGIN_DIR` からの相対パス。空の場合は `{domain}/languages` がデフォルト
-
-### ThemeTextDomain — テーマ用
-
-```php
-use WpPack\Component\Translation\Attribute\ThemeTextDomain;
-
-#[ThemeTextDomain(domain: 'my-theme', path: 'languages')]
-class ThemeTranslator extends Translator {}
-```
-
-- `path`: テーマディレクトリからの相対パス。デフォルトは `languages`
-
-内部的には以下の WordPress 関数を呼び出します：
-
-- `load_plugin_textdomain($domain, false, $path)` — プラグイン用
-- `load_theme_textdomain($domain, $path)` — テーマ用
+- `domain`: テキストドメイン名
+- `path`: 言語ファイルのパス。デフォルトは `languages`
 
 ## Translator クラス
 
@@ -109,7 +92,7 @@ $text = $translator->translate('Hello');
 ### サブクラスでの使用
 
 ```php
-#[PluginTextDomain(domain: 'my-shop', path: 'my-shop/languages')]
+#[TextDomain(domain: 'my-shop')]
 final class ShopTranslator extends Translator
 {
     public function addToCart(): string
@@ -161,41 +144,6 @@ $safe = $translator->escHtml('User input here');
 $safe = $translator->escAttr('Title text');
 ```
 
-## TextDomainRegistry
-
-テキストドメインの登録状態を管理するレジストリです。**Translator に限らず、任意のオブジェクト**を受け付けます。
-
-### register() — アトリビュートからテキストドメインを登録
-
-```php
-$registry = new TextDomainRegistry();
-
-// Translator サブクラス
-$registry->register(new ShopTranslator());
-
-// Translator 以外のオブジェクトも可
-#[PluginTextDomain(domain: 'my-plugin', path: 'my-plugin/languages')]
-class MyPlugin {}
-$registry->register(new MyPlugin());
-```
-
-### static convenience メソッド — アトリビュート不要
-
-```php
-// プラグイン用
-TextDomainRegistry::loadPlugin('my-plugin', 'my-plugin/languages');
-
-// テーマ用
-TextDomainRegistry::loadTheme('my-theme', 'languages');
-```
-
-### 状態確認
-
-```php
-$registry->has('my-plugin');          // bool
-$registry->all();                     // array<string, PluginTextDomain|ThemeTextDomain>
-```
-
 ## Named Hook アトリビュート
 
 → [Hook コンポーネントのドキュメント](../hook/translation.md) を参照してください。
@@ -211,9 +159,9 @@ declare(strict_types=1);
 namespace MyPlugin\Translation;
 
 use WpPack\Component\Translation\Translator;
-use WpPack\Component\Translation\Attribute\PluginTextDomain;
+use WpPack\Component\Kernel\Attribute\TextDomain;
 
-#[PluginTextDomain(domain: 'my-shop', path: 'my-shop/languages')]
+#[TextDomain(domain: 'my-shop')]
 final class ShopTranslator extends Translator
 {
     public function productCount(int $count): string

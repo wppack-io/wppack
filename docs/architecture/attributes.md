@@ -77,12 +77,11 @@ WordPress のデータ構造を定義するための Attribute。
 |-----------|-----------|--------------|
 | `#[Table]` | `name: string` | `dbDelta()` |
 
-### 翻訳（Translation コンポーネント）
+### テキストドメイン（Kernel コンポーネント）
 
 | Attribute | パラメータ | WordPress API |
 |-----------|-----------|--------------|
-| `#[PluginTextDomain]` | `domain: string`, `path?: string = ''` | `load_plugin_textdomain()` |
-| `#[ThemeTextDomain]` | `domain: string`, `path?: string = 'languages'` | `load_theme_textdomain()` |
+| `#[TextDomain]` | `domain: string`, `path?: string = 'languages'` | `load_plugin_textdomain()` / `load_theme_textdomain()` |
 
 ### ロガー（Logger コンポーネント）
 

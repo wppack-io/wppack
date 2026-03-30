@@ -20,6 +20,7 @@ use WpPack\Component\EventDispatcher\DependencyInjection\RegisterEventListenersP
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Admin\AdminPageRegistry;
 use WpPack\Component\Kernel\AbstractPlugin;
+use WpPack\Component\Kernel\Attribute\TextDomain;
 use WpPack\Component\Rest\RestRegistry;
 use WpPack\Component\Routing\RouteRegistry;
 use WpPack\Component\Security\Authentication\AuthenticationManager;
@@ -33,6 +34,7 @@ use WpPack\Component\Security\Bridge\OAuth\OAuthCallbackController;
 use WpPack\Component\Security\Bridge\OAuth\OAuthVerifyController;
 use WpPack\Plugin\OAuthLoginPlugin\DependencyInjection\OAuthLoginPluginServiceProvider;
 
+#[TextDomain(domain: 'wppack-oauth-login')]
 class OAuthLoginPlugin extends AbstractPlugin
 {
     private readonly OAuthLoginPluginServiceProvider $serviceProvider;
@@ -62,8 +64,6 @@ class OAuthLoginPlugin extends AbstractPlugin
 
     public function boot(Container $container): void
     {
-        load_plugin_textdomain('wppack-oauth-login', false, \dirname(plugin_basename($this->getFile())) . '/languages');
-
         /** @var OAuthLoginConfiguration $config */
         $config = $container->get(OAuthLoginConfiguration::class);
 

@@ -11,10 +11,17 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Translation\Attribute;
+namespace WpPack\Component\Kernel\Attribute;
 
-#[\Attribute(\Attribute::TARGET_CLASS)]
-final class ThemeTextDomain
+/**
+ * Declares a text domain for automatic loading by the Kernel.
+ *
+ * Place on a plugin class extending AbstractPlugin. The Kernel reads
+ * this attribute via reflection and calls load_plugin_textdomain()
+ * before boot().
+ */
+#[\Attribute(\Attribute::TARGET_CLASS | \Attribute::IS_REPEATABLE)]
+final class TextDomain
 {
     public function __construct(
         public readonly string $domain,

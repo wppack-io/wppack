@@ -19,6 +19,7 @@ use WpPack\Component\DependencyInjection\Container;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\EventDispatcher\DependencyInjection\RegisterEventListenersPass;
 use WpPack\Component\Kernel\AbstractPlugin;
+use WpPack\Component\Kernel\Attribute\TextDomain;
 use WpPack\Component\Rest\DependencyInjection\RegisterRestControllersPass;
 use WpPack\Component\Rest\RestRegistry;
 use WpPack\Component\Security\Authentication\AuthenticationManager;
@@ -28,6 +29,7 @@ use WpPack\Plugin\ScimPlugin\Admin\ScimSettingsPage;
 use WpPack\Plugin\ScimPlugin\Configuration\ScimConfiguration;
 use WpPack\Plugin\ScimPlugin\DependencyInjection\ScimPluginServiceProvider;
 
+#[TextDomain(domain: 'wppack-scim')]
 final class ScimPlugin extends AbstractPlugin
 {
     private readonly ScimPluginServiceProvider $serviceProvider;

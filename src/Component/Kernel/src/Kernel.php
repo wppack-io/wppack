@@ -16,6 +16,7 @@ namespace WpPack\Component\Kernel;
 use WpPack\Component\DependencyInjection\Container;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Kernel\Attribute\TextDomain;
 use WpPack\Component\Kernel\Exception\KernelAlreadyBootedException;
 
 class Kernel
@@ -213,6 +214,7 @@ class Kernel
 
         // 4. Boot all plugins and themes
         foreach ($this->plugins as $plugin) {
+            $this->loadTextDomains($plugin);
             $plugin->boot($this->container);
         }
 
@@ -253,5 +255,15 @@ class Kernel
     public function getThemes(): array
     {
         return $this->themes;
+    }
+
+    private function loadTextDomains(PluginInterface $plugin): void
+    {
+        $ref = new \ReflectionClass($plugin);
+        foreach ($ref->getAttributes(TextDomain::class) as $attr) {
+            $td = $attr->newInstance();
+            $dir = \dirname(plugin_basename($plugin->getFile()));
+            load_plugin_textdomain($td->domain, false, $dir . '/' . $td->path);
+        }
     }
 }
