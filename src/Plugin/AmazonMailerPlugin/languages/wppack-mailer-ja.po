@@ -1,0 +1,89 @@
+# Japanese translation for wppack-mailer
+# Copyright (C) 2026 @wppack/amazon-mailer-plugin
+# This file is distributed under the GPL v2 or later license.
+msgid ""
+msgstr ""
+"Project-Id-Version: @wppack/amazon-mailer-plugin 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugins/wppack-mailer\n"
+"MIME-Version: 1.0\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"POT-Creation-Date: 2026-03-30T17:47:18.570Z\n"
+"PO-Revision-Date: 2026-03-30 17:47+0900\n"
+"Last-Translator: WpPack <dev@wppack.io>\n"
+"Language-Team: Japanese <dev@wppack.io>\n"
+"X-Generator: @wp-blocks/make-pot 1.6.6\n"
+"Language: ja\n"
+"X-Domain: wppack-mailer\n"
+
+#: wppack-mailer.php
+#. Name of the plugin
+msgid "@wppack/amazon-mailer-plugin"
+msgstr ""
+
+#: wppack-mailer.php
+#. Author of the plugin
+msgid "WpPack"
+msgstr ""
+
+#: js/src/settings/App.js:63
+msgid "Failed to load settings."
+msgstr "設定の読み込みに失敗しました。"
+
+#: js/src/settings/App.js:78
+msgid "Settings saved."
+msgstr "設定を保存しました。"
+
+#: js/src/settings/App.js:81
+msgid "Failed to save settings."
+msgstr "設定の保存に失敗しました。"
+
+#: js/src/settings/App.js:94
+msgid "Test email sent to "
+msgstr "テストメールを送信しました: "
+
+#: js/src/settings/App.js:95
+#: js/src/settings/App.js:99
+msgid "Failed to send test email."
+msgstr "テストメールの送信に失敗しました。"
+
+#: js/src/settings/App.js:120
+msgid "— Select —"
+msgstr "— 選択 —"
+
+#: js/src/settings/App.js:135
+msgid "Mail Settings"
+msgstr "メール送信設定"
+
+#: js/src/settings/App.js:146
+msgid "Transport"
+msgstr "トランスポート"
+
+#: js/src/settings/App.js:148
+msgid "Provider"
+msgstr "プロバイダー"
+
+#: js/src/settings/App.js:195
+msgid "Suppression List"
+msgstr "サプレッションリスト"
+
+#: js/src/settings/App.js:206
+msgid "Remove"
+msgstr "削除"
+
+#: js/src/settings/App.js:222
+msgid "Saving…"
+msgstr "保存中…"
+
+#: js/src/settings/App.js:222
+msgid "Save Settings"
+msgstr "設定を保存"
+
+#: js/src/settings/App.js:230
+msgid "Sending…"
+msgstr "送信中…"
+
+#: js/src/settings/App.js:230
+msgid "Send Test Email"
+msgstr "テストメール送信"

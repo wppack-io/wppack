@@ -63,6 +63,8 @@ final class AmazonMailerPlugin extends AbstractPlugin
 
     public function boot(Container $container): void
     {
+        load_plugin_textdomain('wppack-mailer', false, \dirname(plugin_basename($this->getFile())) . '/languages');
+
         if (is_admin() || is_network_admin()) {
             /** @var AdminPageRegistry $pageRegistry */
             $pageRegistry = $container->get(AdminPageRegistry::class);

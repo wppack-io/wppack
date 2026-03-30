@@ -5,9 +5,12 @@
   "author": "WpPack",
   "scripts": {
     "build": "wp-scripts build",
-    "start": "wp-scripts start"
+    "start": "wp-scripts start",
+    "make-pot": "makepot . languages --domain=plugin --slug=wppack-mailer --headers=email:dev@wppack.io",
+    "make-json": "makejson js/build languages --slug=wppack-mailer"
   },
   "devDependencies": {
-    "@wordpress/scripts": "^30.0.0"
+    "@wordpress/scripts": "^30.0.0",
+    "@wp-blocks/make-pot": "^1.6.0"
   }
 }
