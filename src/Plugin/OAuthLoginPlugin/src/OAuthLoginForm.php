@@ -87,31 +87,33 @@ class OAuthLoginForm
             if ($display === 'icon-left' && $showIcon) {
                 $iconHtml = '<span style="position:absolute;left:12px;display:inline-flex;width:20px;height:20px;' . $iconColor . '">' . $icon . '</span>';
                 $textHtml = $showText ? '<span style="flex:1;text-align:center;">' . esc_html(sprintf(__('%s でログイン', 'wppack-oauth-login'), $provider->label)) . '</span>' : '';
-                $btnStyle = 'display:flex;align-items:center;position:relative;width:100%;box-sizing:border-box;padding:0 12px;height:40px;';
+                $btnStyle = 'display:flex;align-items:center;position:relative;width:100%;box-sizing:border-box;padding:0 12px;height:36px;';
             } elseif ($display === 'icon-only' && $showIcon) {
                 $iconHtml = '<span style="display:inline-flex;width:20px;height:20px;' . $iconColor . '">' . $icon . '</span>';
                 $textHtml = '';
-                $btnStyle = 'display:inline-flex;align-items:center;justify-content:center;width:48px;height:40px;';
+                $btnStyle = 'display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;';
             } else {
                 $iconHtml = $showIcon ? '<span style="display:inline-flex;width:20px;height:20px;' . $iconColor . '">' . $icon . '</span>' : '';
                 $textHtml = $showText ? esc_html(sprintf(__('%s でログイン', 'wppack-oauth-login'), $provider->label)) : '';
-                $btnStyle = 'display:flex;align-items:center;justify-content:center;gap:8px;width:100%;box-sizing:border-box;padding:0 12px;height:40px;';
+                $btnStyle = 'display:flex;align-items:center;justify-content:center;gap:8px;width:100%;box-sizing:border-box;padding:0 12px;height:36px;';
             }
 
             $titleAttr = $display === 'icon-only' ? ' title="' . esc_attr(sprintf(__('%s でログイン', 'wppack-oauth-login'), $provider->label)) . '"' : '';
 
             $buttons .= <<<HTML
-                <p>
-                    <a href="{$url}"{$titleAttr} style="{$btnStyle}border-radius:4px;background:{$bg};color:{$text};border:1px solid {$border};text-decoration:none;font-size:14px;font-weight:500;cursor:pointer;">{$iconHtml}{$textHtml}</a>
-                </p>
+                <a href="{$url}"{$titleAttr} style="{$btnStyle}border-radius:4px;background:{$bg};color:{$text};border:1px solid {$border};text-decoration:none;font-size:13px;font-weight:500;cursor:pointer;">{$iconHtml}{$textHtml}</a>
             HTML;
         }
+
+        $wrapStyle = $display === 'icon-only'
+            ? 'display:flex;flex-wrap:wrap;gap:8px;'
+            : 'display:flex;flex-direction:column;gap:8px;';
 
         echo <<<HTML
         <style>#wppack-oauth-login a{transition:filter .15s}#wppack-oauth-login a:hover{filter:brightness(.92)}</style>
         <div id="wppack-oauth-login" style="display:none;clear:both;">
             <div style="display:flex;align-items:center;gap:8px;padding:16px 0;color:#72777c;"><span style="flex:1;border-top:1px solid #c3c4c7;"></span>or<span style="flex:1;border-top:1px solid #c3c4c7;"></span></div>
-            {$buttons}
+            <div style="{$wrapStyle}">{$buttons}</div>
         </div>
         <script>
         (function(){
