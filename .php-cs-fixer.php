@@ -8,6 +8,8 @@ $finder = (new PhpCsFixer\Finder())
         __DIR__ . '/tests',
     ])
     ->notPath('templates/')
+    ->notPath('js/build/')
+    ->notPath('node_modules/')
     ->notPath('Debug/src/Toolbar/Panel/ToolbarIcons.php')
     ->notPath('Mime/src/MimeTypeMap.php');
 
