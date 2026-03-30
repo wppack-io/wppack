@@ -18,11 +18,15 @@ use WpPack\Component\DependencyInjection\Container;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\EventDispatcher\DependencyInjection\RegisterEventListenersPass;
 use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Admin\AdminPageRegistry;
 use WpPack\Component\Kernel\AbstractPlugin;
+use WpPack\Component\Rest\RestRegistry;
 use WpPack\Component\Routing\RouteRegistry;
 use WpPack\Component\Security\Authentication\AuthenticationManager;
 use WpPack\Component\Security\Bridge\OAuth\OAuthEntryPoint;
 use WpPack\Component\Security\DependencyInjection\RegisterAuthenticatorsPass;
+use WpPack\Plugin\OAuthLoginPlugin\Admin\OAuthLoginSettingsController;
+use WpPack\Plugin\OAuthLoginPlugin\Admin\OAuthLoginSettingsPage;
 use WpPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration;
 use WpPack\Component\Security\Bridge\OAuth\OAuthAuthorizeController;
 use WpPack\Component\Security\Bridge\OAuth\OAuthCallbackController;
@@ -58,12 +62,33 @@ class OAuthLoginPlugin extends AbstractPlugin
 
     public function boot(Container $container): void
     {
+        /** @var OAuthLoginConfiguration $config */
+        $config = $container->get(OAuthLoginConfiguration::class);
+
+        // Admin Settings Page
+        if (is_admin()) {
+            /** @var OAuthLoginSettingsPage $settingsPage */
+            $settingsPage = $container->get(OAuthLoginSettingsPage::class);
+            $settingsPage->setPluginFile($this->getFile());
+
+            /** @var AdminPageRegistry $adminRegistry */
+            $adminRegistry = $container->get(AdminPageRegistry::class);
+            $adminRegistry->register($settingsPage);
+        }
+
+        // REST API Settings Endpoint
+        /** @var RestRegistry $restRegistry */
+        $restRegistry = $container->get(RestRegistry::class);
+        $restRegistry->register($container->get(OAuthLoginSettingsController::class));
+
+        // Skip OAuth functionality if no providers configured
+        if ($config->providers === []) {
+            return;
+        }
+
         /** @var AuthenticationManager $authManager */
         $authManager = $container->get(AuthenticationManager::class);
         $authManager->register();
-
-        /** @var OAuthLoginConfiguration $config */
-        $config = $container->get(OAuthLoginConfiguration::class);
 
         /** @var Request $request */
         $request = $container->get(Request::class);

@@ -1,0 +1,170 @@
+# Copyright (C) 2026 @wppack/oauth-login-plugin
+# This file is distributed under the GPL v2 or later license.
+msgid ""
+msgstr ""
+"Project-Id-Version: @wppack/oauth-login-plugin 1.0.0\n"
+"Report-Msgid-Bugs-To: "
+"https://wordpress.org/support/plugins/wppack-oauth-login\n"
+"MIME-Version: 1.0\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+"POT-Creation-Date: 2026-03-30T06:13:47.696Z\n"
+"PO-Revision-Date: 2026-MO-DA HO:MI+ZONE\n"
+"Last-Translator: WpPack <dev@wppack.io>\n"
+"Language-Team: WpPack <dev@wppack.io>\n"
+"X-Generator: @wp-blocks/make-pot 1.6.6\n"
+"Language: en\n"
+"X-Domain: wppack-oauth-login\n"
+
+#: wppack-oauth-login.php
+#. Name of the plugin
+msgid "@wppack/oauth-login-plugin"
+msgstr ""
+
+#: wppack-oauth-login.php
+#. Author of the plugin
+msgid "WpPack"
+msgstr ""
+
+#: js/src/settings/App.js:26
+msgid "Constant"
+msgstr ""
+
+#: js/src/settings/App.js:27
+msgid "Saved"
+msgstr ""
+
+#: js/src/settings/App.js:121
+msgid "This provider is defined via constant and cannot be edited."
+msgstr ""
+
+#: js/src/settings/App.js:128
+msgid "Type"
+msgstr ""
+
+#: js/src/settings/App.js:142
+msgid "Client ID"
+msgstr ""
+
+#: js/src/settings/App.js:149
+msgid "Client Secret"
+msgstr ""
+
+#: js/src/settings/App.js:155
+msgid "Leave as masked to keep current value."
+msgstr ""
+
+#: js/src/settings/App.js:164
+msgid "Label"
+msgstr ""
+
+#: js/src/settings/App.js:172
+msgid "Tenant ID"
+msgstr ""
+
+#: js/src/settings/App.js:176
+msgid "Required for Azure AD."
+msgstr ""
+
+#: js/src/settings/App.js:182
+msgid "Hosted Domain"
+msgstr ""
+
+#: js/src/settings/App.js:186
+msgid "Restrict to Google Workspace domain."
+msgstr ""
+
+#: js/src/settings/App.js:195
+msgid "Discovery URL"
+msgstr ""
+
+#: js/src/settings/App.js:199
+msgid "OpenID Connect discovery endpoint."
+msgstr ""
+
+#: js/src/settings/App.js:207
+msgid "Scopes"
+msgstr ""
+
+#: js/src/settings/App.js:211
+msgid "Space-separated. Leave empty for defaults."
+msgstr ""
+
+#: js/src/settings/App.js:217
+#: js/src/settings/App.js:395
+msgid "Auto-create Users"
+msgstr ""
+
+#: js/src/settings/App.js:223
+#: js/src/settings/App.js:410
+msgid "Default Role"
+msgstr ""
+
+#: js/src/settings/App.js:238
+msgid "Role Claim"
+msgstr ""
+
+#: js/src/settings/App.js:242
+msgid "JWT claim name containing role."
+msgstr ""
+
+#: js/src/settings/App.js:249
+msgid "Role Mapping (JSON)"
+msgstr ""
+
+#: js/src/settings/App.js:250
+msgid "e.g. {\"Admin\":\"administrator\",\"Member\":\"subscriber\"}"
+msgstr ""
+
+#: js/src/settings/App.js:307
+msgid "Failed to load settings."
+msgstr ""
+
+#: js/src/settings/App.js:329
+msgid "Settings saved."
+msgstr ""
+
+#: js/src/settings/App.js:338
+msgid "Failed to save settings."
+msgstr ""
+
+#: js/src/settings/App.js:367
+msgid "OAuth Login Settings"
+msgstr ""
+
+#: js/src/settings/App.js:381
+msgid "Global Settings"
+msgstr ""
+
+#: js/src/settings/App.js:385
+msgid "SSO Only Mode"
+msgstr ""
+
+#: js/src/settings/App.js:389
+msgid "Disable WordPress login form."
+msgstr ""
+
+#: js/src/settings/App.js:402
+msgid "Global default. Can be overridden per provider."
+msgstr ""
+
+#: js/src/settings/App.js:436
+msgid "Authorize Path"
+msgstr ""
+
+#: js/src/settings/App.js:447
+msgid "Callback Path"
+msgstr ""
+
+#: js/src/settings/App.js:458
+msgid "Verify Path"
+msgstr ""
+
+#: js/src/settings/App.js:494
+msgid "Saving?"
+msgstr ""
+
+#: js/src/settings/App.js:495
+msgid "Save Settings"
+msgstr ""

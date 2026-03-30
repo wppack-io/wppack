@@ -23,22 +23,106 @@ final readonly class OAuthLoginConfiguration
         public bool $ssoOnly = false,
         public bool $autoProvision = false,
         public string $defaultRole = 'subscriber',
-        public string $basePath = '/oauth',
+        public string $authorizePath = '/oauth/{provider}/authorize',
+        public string $callbackPath = '/oauth/{provider}/callback',
+        public string $verifyPath = '/oauth/{provider}/verify',
     ) {}
 
     public function getAuthorizePath(string $provider): string
     {
-        return $this->basePath . '/' . $provider . '/authorize';
+        return str_replace('{provider}', $provider, $this->authorizePath);
     }
 
     public function getCallbackPath(string $provider): string
     {
-        return $this->basePath . '/' . $provider . '/callback';
+        return str_replace('{provider}', $provider, $this->callbackPath);
     }
 
     public function getVerifyPath(string $provider): string
     {
-        return $this->basePath . '/' . $provider . '/verify';
+        return str_replace('{provider}', $provider, $this->verifyPath);
+    }
+
+    public const OPTION_NAME = 'wppack_oauth_login';
+
+    public const MASKED_VALUE = '********';
+
+    /**
+     * Create from constants with wp_options fallback.
+     */
+    public static function fromEnvironmentOrOptions(): self
+    {
+        $raw = get_option(self::OPTION_NAME, []);
+        $savedConfig = \is_array($raw) ? $raw : [];
+
+        // Providers: constant takes priority, then wp_options
+        $constProviders = \defined('OAUTH_PROVIDERS') && \is_array(\constant('OAUTH_PROVIDERS'))
+            ? \constant('OAUTH_PROVIDERS')
+            : [];
+        /** @var array<string, array<string, mixed>> $savedProviders */
+        $savedProviders = $savedConfig['providers'] ?? [];
+
+        $globalAutoProvision = \defined('OAUTH_AUTO_PROVISION')
+            ? (bool) \constant('OAUTH_AUTO_PROVISION')
+            : (bool) ($savedConfig['autoProvision'] ?? false);
+        $globalDefaultRole = \defined('OAUTH_DEFAULT_ROLE')
+            ? (string) \constant('OAUTH_DEFAULT_ROLE')
+            : (string) ($savedConfig['defaultRole'] ?? 'subscriber');
+        $ssoOnly = \defined('OAUTH_SSO_ONLY')
+            ? (bool) \constant('OAUTH_SSO_ONLY')
+            : (bool) ($savedConfig['ssoOnly'] ?? false);
+        $authorizePath = \defined('OAUTH_AUTHORIZE_PATH')
+            ? (string) \constant('OAUTH_AUTHORIZE_PATH')
+            : (string) ($savedConfig['authorizePath'] ?? '/oauth/{provider}/authorize');
+        $callbackPath = \defined('OAUTH_CALLBACK_PATH')
+            ? (string) \constant('OAUTH_CALLBACK_PATH')
+            : (string) ($savedConfig['callbackPath'] ?? '/oauth/{provider}/callback');
+        $verifyPath = \defined('OAUTH_VERIFY_PATH')
+            ? (string) \constant('OAUTH_VERIFY_PATH')
+            : (string) ($savedConfig['verifyPath'] ?? '/oauth/{provider}/verify');
+
+        // Merge: constant providers override saved ones by name
+        $mergedProviders = $savedProviders;
+        foreach ($constProviders as $name => $p) {
+            $mergedProviders[$name] = $p;
+        }
+
+        $providers = [];
+        foreach ($mergedProviders as $name => $p) {
+            $name = (string) $name;
+            if (!preg_match('/^[a-z0-9\-]+$/', $name)) {
+                continue;
+            }
+            if (!isset($p['type'], $p['client_id'], $p['client_secret'])) {
+                continue;
+            }
+
+            $providers[$name] = new ProviderConfiguration(
+                name: $name,
+                type: (string) $p['type'],
+                clientId: (string) $p['client_id'],
+                clientSecret: (string) $p['client_secret'],
+                label: (string) ($p['label'] ?? $name),
+                tenantId: isset($p['tenant_id']) ? (string) $p['tenant_id'] : null,
+                hostedDomain: isset($p['hosted_domain']) ? (string) $p['hosted_domain'] : null,
+                discoveryUrl: isset($p['discovery_url']) ? (string) $p['discovery_url'] : null,
+                scopes: isset($p['scopes']) && \is_array($p['scopes']) ? $p['scopes'] : null,
+                autoProvision: (bool) ($p['auto_provision'] ?? $globalAutoProvision),
+                defaultRole: (string) ($p['default_role'] ?? $globalDefaultRole),
+                roleClaim: isset($p['role_claim']) ? (string) $p['role_claim'] : null,
+                roleMapping: isset($p['role_mapping']) && \is_array($p['role_mapping']) ? $p['role_mapping'] : null,
+            );
+        }
+
+        return new self(
+            providers: $providers,
+            ssoOnly: $ssoOnly,
+            autoProvision: $globalAutoProvision,
+            defaultRole: $globalDefaultRole,
+            authorizePath: $authorizePath,
+            callbackPath: $callbackPath,
+            verifyPath: $verifyPath,
+        );
     }
 
     public static function fromEnvironment(): self
@@ -82,14 +166,18 @@ final readonly class OAuthLoginConfiguration
         }
 
         $ssoOnly = \defined('OAUTH_SSO_ONLY') && \constant('OAUTH_SSO_ONLY');
-        $basePath = \defined('OAUTH_BASE_PATH') ? (string) \constant('OAUTH_BASE_PATH') : '/oauth';
+        $authorizePath = \defined('OAUTH_AUTHORIZE_PATH') ? (string) \constant('OAUTH_AUTHORIZE_PATH') : '/oauth/{provider}/authorize';
+        $callbackPath = \defined('OAUTH_CALLBACK_PATH') ? (string) \constant('OAUTH_CALLBACK_PATH') : '/oauth/{provider}/callback';
+        $verifyPath = \defined('OAUTH_VERIFY_PATH') ? (string) \constant('OAUTH_VERIFY_PATH') : '/oauth/{provider}/verify';
 
         return new self(
             providers: $providers,
             ssoOnly: $ssoOnly,
             autoProvision: $globalAutoProvision,
             defaultRole: $globalDefaultRole,
-            basePath: $basePath,
+            authorizePath: $authorizePath,
+            callbackPath: $callbackPath,
+            verifyPath: $verifyPath,
         );
     }
 

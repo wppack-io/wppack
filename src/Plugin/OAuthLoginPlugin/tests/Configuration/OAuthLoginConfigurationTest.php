@@ -39,14 +39,16 @@ final class OAuthLoginConfigurationTest extends TestCase
             ssoOnly: true,
             autoProvision: true,
             defaultRole: 'editor',
-            basePath: '/sso',
+            authorizePath: '/sso/{provider}/authorize',
+            callbackPath: '/sso/{provider}/callback',
+            verifyPath: '/sso/{provider}/verify',
         );
 
         self::assertSame(['google' => $google], $config->providers);
         self::assertTrue($config->ssoOnly);
         self::assertTrue($config->autoProvision);
         self::assertSame('editor', $config->defaultRole);
-        self::assertSame('/sso', $config->basePath);
+        self::assertSame('/sso/{provider}/authorize', $config->authorizePath);
     }
 
     #[Test]
@@ -58,7 +60,9 @@ final class OAuthLoginConfigurationTest extends TestCase
         self::assertFalse($config->ssoOnly);
         self::assertFalse($config->autoProvision);
         self::assertSame('subscriber', $config->defaultRole);
-        self::assertSame('/oauth', $config->basePath);
+        self::assertSame('/oauth/{provider}/authorize', $config->authorizePath);
+        self::assertSame('/oauth/{provider}/callback', $config->callbackPath);
+        self::assertSame('/oauth/{provider}/verify', $config->verifyPath);
     }
 
     #[Test]
@@ -103,13 +107,18 @@ final class OAuthLoginConfigurationTest extends TestCase
     }
 
     #[Test]
-    public function pathsUseCustomBasePath(): void
+    public function pathsUseCustomPaths(): void
     {
-        $config = new OAuthLoginConfiguration(providers: [], basePath: '/sso');
+        $config = new OAuthLoginConfiguration(
+            providers: [],
+            authorizePath: '/sso/{provider}/login',
+            callbackPath: '/sso/{provider}/return',
+            verifyPath: '/sso/{provider}/check',
+        );
 
-        self::assertSame('/sso/azure/authorize', $config->getAuthorizePath('azure'));
-        self::assertSame('/sso/azure/callback', $config->getCallbackPath('azure'));
-        self::assertSame('/sso/azure/verify', $config->getVerifyPath('azure'));
+        self::assertSame('/sso/azure/login', $config->getAuthorizePath('azure'));
+        self::assertSame('/sso/azure/return', $config->getCallbackPath('azure'));
+        self::assertSame('/sso/azure/check', $config->getVerifyPath('azure'));
     }
 
     #[Test]
@@ -144,7 +153,7 @@ final class OAuthLoginConfigurationTest extends TestCase
             'sso_only' => $config->ssoOnly,
             'auto_provision' => $config->autoProvision,
             'default_role' => $config->defaultRole,
-            'base_path' => $config->basePath,
+            'authorize_path' => $config->authorizePath,
         ]);
         PHP;
 
@@ -170,7 +179,7 @@ final class OAuthLoginConfigurationTest extends TestCase
             self::assertFalse($result['sso_only']);
             self::assertFalse($result['auto_provision']);
             self::assertSame('subscriber', $result['default_role']);
-            self::assertSame('/oauth', $result['base_path']);
+            self::assertSame('/oauth/{provider}/authorize', $result['authorize_path']);
         } finally {
             unlink($tmpFile);
         }
@@ -355,14 +364,14 @@ final class OAuthLoginConfigurationTest extends TestCase
     }
 
     #[Test]
-    public function fromEnvironmentCustomBasePath(): void
+    public function fromEnvironmentCustomPaths(): void
     {
         $script = <<<'PHP'
         <?php
         define('ABSPATH', '%s');
         require_once '%s';
 
-        define('OAUTH_BASE_PATH', '/sso');
+        define('OAUTH_AUTHORIZE_PATH', '/sso/{provider}/login');
         define('OAUTH_PROVIDERS', [
             'google' => [
                 'type' => 'google',
@@ -372,7 +381,7 @@ final class OAuthLoginConfigurationTest extends TestCase
         ]);
 
         $config = \WpPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration::fromEnvironment();
-        echo $config->basePath;
+        echo $config->authorizePath;
         PHP;
 
         $abspath = \defined('ABSPATH') ? ABSPATH : '/tmp/';
@@ -385,7 +394,7 @@ final class OAuthLoginConfigurationTest extends TestCase
 
         try {
             $output = shell_exec('php ' . escapeshellarg($tmpFile) . ' 2>&1');
-            self::assertSame('/sso', trim($output ?? ''));
+            self::assertSame('/sso/{provider}/login', trim($output ?? ''));
         } finally {
             unlink($tmpFile);
         }

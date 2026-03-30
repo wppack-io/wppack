@@ -51,6 +51,11 @@ use WpPack\Component\Site\SiteRepository;
 use WpPack\Component\Site\SiteRepositoryInterface;
 use WpPack\Component\Transient\TransientManager;
 use WpPack\Component\User\UserRepositoryInterface;
+use WpPack\Component\Admin\AdminPageRegistry;
+use WpPack\Component\Rest\RestRegistry;
+use WpPack\Component\Role\RoleProvider;
+use WpPack\Plugin\OAuthLoginPlugin\Admin\OAuthLoginSettingsController;
+use WpPack\Plugin\OAuthLoginPlugin\Admin\OAuthLoginSettingsPage;
 use WpPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration;
 use WpPack\Plugin\OAuthLoginPlugin\Configuration\ProviderConfiguration;
 use WpPack\Plugin\OAuthLoginPlugin\OAuthLoginForm;
@@ -92,12 +97,42 @@ final class OAuthLoginPluginServiceProvider implements ServiceProviderInterface
             $builder->register(TransientManager::class);
         }
 
+        // Admin Page Registry
+        if (!$builder->hasDefinition(AdminPageRegistry::class)) {
+            $builder->register(AdminPageRegistry::class);
+        }
+
+        // REST Registry
+        if (!$builder->hasDefinition(RestRegistry::class)) {
+            $builder->register(RestRegistry::class)
+                ->addArgument(new Reference(Request::class));
+        }
+
+        // Role Provider
+        if (!$builder->hasDefinition(RoleProvider::class)) {
+            $builder->register(RoleProvider::class);
+        }
+
         // Read configuration eagerly so per-provider services can be registered
-        $config = OAuthLoginConfiguration::fromEnvironment();
+        $config = OAuthLoginConfiguration::fromEnvironmentOrOptions();
 
         $builder->register(OAuthLoginConfiguration::class)
             ->setFactory([self::class, 'returnConfig'])
             ->addArgument($config);
+
+        // Admin Settings Page
+        $builder->register(OAuthLoginSettingsPage::class);
+
+        // REST API Settings Controller
+        $builder->register(OAuthLoginSettingsController::class)
+            ->addArgument(new Reference(OAuthLoginConfiguration::class))
+            ->addArgument(new Reference(Sanitizer::class))
+            ->addArgument(new Reference(RoleProvider::class));
+
+        // Skip OAuth service registration if no providers configured
+        if ($config->providers === []) {
+            return;
+        }
 
         // Shared services
         $builder->register(OAuthStateStore::class)

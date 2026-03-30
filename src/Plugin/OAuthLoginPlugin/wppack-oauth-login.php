@@ -19,6 +19,8 @@ declare(strict_types=1);
  * Requires at least: 6.9
  * Author: WpPack
  * License: MIT
+ * Text Domain: wppack-oauth-login
+ * Domain Path: /languages
  */
 
 use WpPack\Component\Kernel\Kernel;
@@ -34,7 +36,4 @@ if (file_exists(__DIR__ . '/vendor/autoload.php')) {
     require_once __DIR__ . '/../../vendor/autoload.php';
 }
 
-// Requires OAUTH_PROVIDERS constant
-if (defined('OAUTH_PROVIDERS') && is_array(constant('OAUTH_PROVIDERS'))) {
-    Kernel::registerPlugin(new OAuthLoginPlugin(__FILE__));
-}
+Kernel::registerPlugin(new OAuthLoginPlugin(__FILE__));

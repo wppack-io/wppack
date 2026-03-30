@@ -1,0 +1,127 @@
+# Japanese translation for WpPack OAuth Login
+msgid ""
+msgstr ""
+"Project-Id-Version: @wppack/oauth-login-plugin 1.0.0\n"
+"MIME-Version: 1.0\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"PO-Revision-Date: 2026-03-30 00:00+0900\n"
+"Last-Translator: WpPack <dev@wppack.io>\n"
+"Language-Team: WpPack <dev@wppack.io>\n"
+"Language: ja\n"
+"X-Domain: wppack-oauth-login\n"
+
+msgid "@wppack/oauth-login-plugin"
+msgstr "WpPack OAuth Login"
+
+msgid "WpPack"
+msgstr "WpPack"
+
+msgid "Constant"
+msgstr "定数"
+
+msgid "Saved"
+msgstr "保存済み"
+
+msgid "This provider is defined via constant and cannot be edited."
+msgstr "このプロバイダーは定数で定義されているため編集できません。"
+
+msgid "Authorize Path"
+msgstr "認可パス"
+
+msgid "Callback Path"
+msgstr "コールバックパス"
+
+msgid "Verify Path"
+msgstr "検証パス"
+
+msgid "Type"
+msgstr "タイプ"
+
+msgid "Client ID"
+msgstr "クライアント ID"
+
+msgid "Client Secret"
+msgstr "クライアントシークレット"
+
+msgid "Leave as masked to keep current value."
+msgstr "現在の値を維持する場合はマスクのままにしてください。"
+
+msgid "Label"
+msgstr "ラベル"
+
+msgid "Tenant ID"
+msgstr "テナント ID"
+
+msgid "Required for Azure AD."
+msgstr "Azure AD では必須です。"
+
+msgid "Hosted Domain"
+msgstr "ホストドメイン"
+
+msgid "Restrict to Google Workspace domain."
+msgstr "Google Workspace ドメインに制限します。"
+
+msgid "Discovery URL"
+msgstr "ディスカバリー URL"
+
+msgid "OpenID Connect discovery endpoint."
+msgstr "OpenID Connect ディスカバリーエンドポイント。"
+
+msgid "Scopes"
+msgstr "スコープ"
+
+msgid "Space-separated. Leave empty for defaults."
+msgstr "スペース区切り。空の場合はデフォルトを使用します。"
+
+msgid "Auto-create Users"
+msgstr "ユーザーの自動作成"
+
+msgid "Default Role"
+msgstr "デフォルトロール"
+
+msgid "Role Claim"
+msgstr "ロールクレーム"
+
+msgid "JWT claim name containing role."
+msgstr "ロールを含む JWT クレーム名。"
+
+msgid "Role Mapping (JSON)"
+msgstr "ロールマッピング (JSON)"
+
+msgid ""
+"e.g. {\"Admin\":\"administrator\",\"Member\":\"subscriber\"}"
+msgstr ""
+"例: {\"Admin\":\"administrator\",\"Member\":\"subscriber\"}"
+
+msgid "Failed to load settings."
+msgstr "設定の読み込みに失敗しました。"
+
+msgid "Settings saved."
+msgstr "設定を保存しました。"
+
+msgid "Failed to save settings."
+msgstr "設定の保存に失敗しました。"
+
+msgid "OAuth Login Settings"
+msgstr "OAuth Login 設定"
+
+msgid "Global Settings"
+msgstr "グローバル設定"
+
+msgid "SSO Only Mode"
+msgstr "SSO 専用モード"
+
+msgid "Disable WordPress login form."
+msgstr "WordPress のログインフォームを無効にします。"
+
+msgid "Global default. Can be overridden per provider."
+msgstr "グローバルデフォルト。プロバイダーごとに上書き可能です。"
+
+
+msgid "Saving…"
+msgstr "保存中…"
+
+msgid "Save Settings"
+msgstr "設定を保存"
