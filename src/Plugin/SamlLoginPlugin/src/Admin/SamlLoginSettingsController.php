@@ -80,6 +80,8 @@ final class SamlLoginSettingsController extends AbstractRestController
 
         $this->persistOptions($params);
 
+        delete_option('rewrite_rules');
+
         $updated = SamlLoginConfiguration::fromEnvironmentOrOptions();
         $blogId = is_multisite() ? get_main_site_id() : null;
 

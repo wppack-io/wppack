@@ -43,6 +43,8 @@ final class ScimSettingsController extends AbstractRestController
 
         $this->persistOptions($params);
 
+        delete_option('rewrite_rules');
+
         return $this->json($this->buildResponse());
     }
 

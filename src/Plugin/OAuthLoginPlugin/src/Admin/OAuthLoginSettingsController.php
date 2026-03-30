@@ -55,6 +55,9 @@ final class OAuthLoginSettingsController extends AbstractRestController
 
         $this->persistOptions($params);
 
+        // Flush rewrite rules so route changes take effect
+        delete_option('rewrite_rules');
+
         $updated = OAuthLoginConfiguration::fromEnvironmentOrOptions();
         $blogId = is_multisite() ? get_main_site_id() : null;
 
