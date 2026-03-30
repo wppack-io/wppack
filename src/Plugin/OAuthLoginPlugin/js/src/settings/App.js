@@ -104,7 +104,7 @@ function PathField( { id, label, field, value, onChange, prefix, disabled } ) {
 	);
 }
 
-function ProviderPanel( { name, provider, onChange, onDelete, onRename, isReadonly } ) {
+function ProviderPanel( { name, provider, onChange, onDelete, isReadonly } ) {
 	const f = provider.fields || {};
 	const icon = provider.icon;
 	const update = ( key ) => ( val ) => {
@@ -141,34 +141,30 @@ function ProviderPanel( { name, provider, onChange, onDelete, onRename, isReadon
 				id={ `${ name }-name` }
 				label={ __( 'Name', 'wppack-oauth-login' ) }
 				value={ name }
-				disabled={ isReadonly }
-				onChange={ ( newName ) => onRename( name, newName ) }
-				help={ __( 'Provider identifier used in URLs. Lowercase letters, numbers, and hyphens only.', 'wppack-oauth-login' ) }
+				disabled={ true }
+				onChange={ () => {} }
+				help={ __( 'Provider identifier used in URLs.', 'wppack-oauth-login' ) }
 			/>
-			<SelectControl
+			<Field
+				id={ `${ name }-type` }
 				label={ __( 'Type', 'wppack-oauth-login' ) }
 				value={ f.type || '' }
-				onChange={ update( 'type' ) }
-				disabled={ isReadonly }
-				options={ [
-					{ label: 'Apple', value: 'apple' },
-					{ label: 'Auth0', value: 'auth0' },
-					{ label: 'AWS Cognito', value: 'cognito' },
-					{ label: 'Discord', value: 'discord' },
-					{ label: 'Facebook', value: 'facebook' },
-					{ label: 'GitHub', value: 'github' },
-					{ label: 'Google', value: 'google' },
-					{ label: 'Keycloak', value: 'keycloak' },
-					{ label: 'LINE', value: 'line' },
-					{ label: 'Microsoft Entra ID', value: 'entra-id' },
-					{ label: 'Okta', value: 'okta' },
-					{ label: 'OneLogin', value: 'onelogin' },
-					{ label: 'Slack', value: 'slack' },
-					{ label: 'X (Twitter)', value: 'x' },
-					{ label: 'Generic OIDC', value: 'oidc' },
-				] }
-				__nextHasNoMarginBottom
+				disabled={ true }
+				onChange={ () => {} }
 			/>
+			<BaseControl label={ __( 'Login Button Preview', 'wppack-oauth-login' ) }>
+				<div className="wpp-oauth-button-preview">
+					<a className="button button-large wpp-oauth-login-button">
+						{ icon && (
+							<span
+								className="wpp-oauth-login-icon"
+								dangerouslySetInnerHTML={ { __html: icon } }
+							/>
+						) }
+						{ `Login with ${ f.label || name }` }
+					</a>
+				</div>
+			</BaseControl>
 			<Field
 				id={ `${ name }-client-id` }
 				label={ __( 'Client ID', 'wppack-oauth-login' ) }
@@ -325,6 +321,7 @@ export default function App() {
 	const [ globalForm, setGlobalForm ] = useState( {} );
 	const [ providerForm, setProviderForm ] = useState( {} );
 	const [ deletedProviders, setDeletedProviders ] = useState( [] );
+	const [ newProviderType, setNewProviderType ] = useState( '' );
 	const [ saving, setSaving ] = useState( false );
 	const [ notice, setNotice ] = useState( null );
 	const [ loading, setLoading ] = useState( true );
@@ -411,57 +408,33 @@ export default function App() {
 		setProviderForm( ( prev ) => ( { ...prev, [ name ]: fields } ) );
 	};
 
-	const handleRenameProvider = ( oldName, newName ) => {
-		newName = newName.trim().toLowerCase();
-		if ( ! /^[a-z0-9-]*$/.test( newName ) ) {
-			return;
-		}
-		if ( newName && newName !== oldName && ( providers[ newName ] || providerForm[ newName ] ) ) {
-			setNotice( {
-				type: 'error',
-				message: __(
-					'A provider with this name already exists.',
-					'wppack-oauth-login'
-				),
-			} );
-			return;
-		}
-
-		// Move data from old key to new key
-		setProviders( ( prev ) => {
-			const next = {};
-			Object.entries( prev ).forEach( ( [ k, v ] ) => {
-				next[ k === oldName ? ( newName || oldName ) : k ] = v;
-			} );
-			return next;
-		} );
-		setProviderForm( ( prev ) => {
-			const next = {};
-			Object.entries( prev ).forEach( ( [ k, v ] ) => {
-				next[ k === oldName ? ( newName || oldName ) : k ] = v;
-			} );
-			return next;
-		} );
-
-		// Track old name for deletion on save
-		if ( newName && newName !== oldName ) {
-			setDeletedProviders( ( prev ) => [ ...prev, oldName ] );
-		}
-	};
-
 	const handleAddProvider = () => {
-		let index = 1;
-		let name = `provider-${ index }`;
-		while ( providerForm[ name ] || providers[ name ] ) {
-			index++;
-			name = `provider-${ index }`;
+		const type = newProviderType;
+		if ( ! type ) {
+			return;
 		}
+
+		// Generate unique name from type
+		let name = type;
+		let index = 1;
+		while ( providerForm[ name ] || providers[ name ] ) {
+			name = `${ type }-${ index }`;
+			index++;
+		}
+
+		const typeLabels = {
+			apple: 'Apple', auth0: 'Auth0', cognito: 'AWS Cognito',
+			discord: 'Discord', 'entra-id': 'Microsoft Entra ID',
+			facebook: 'Facebook', github: 'GitHub', google: 'Google',
+			keycloak: 'Keycloak', line: 'LINE', okta: 'Okta',
+			onelogin: 'OneLogin', slack: 'Slack', x: 'X', oidc: 'OIDC',
+		};
 
 		const defaultFields = {
-			type: 'oidc',
+			type,
 			client_id: '',
 			client_secret: '',
-			label: name,
+			label: typeLabels[ type ] || name,
 			auto_provision: false,
 			default_role: 'subscriber',
 		};
@@ -474,6 +447,7 @@ export default function App() {
 			...prev,
 			[ name ]: defaultFields,
 		} ) );
+		setNewProviderType( '' );
 	};
 
 	const handleDeleteProvider = ( name ) => {
@@ -616,7 +590,6 @@ export default function App() {
 							} }
 							onChange={ updateProvider }
 							onDelete={ handleDeleteProvider }
-							onRename={ handleRenameProvider }
 							isReadonly={ provider.readonly }
 						/>
 					)
@@ -624,9 +597,33 @@ export default function App() {
 			</Panel>
 
 			<div className="wpp-oauth-add-provider">
+				<SelectControl
+					value={ newProviderType }
+					onChange={ setNewProviderType }
+					options={ [
+						{ label: __( '— Select Provider —', 'wppack-oauth-login' ), value: '' },
+						{ label: 'Apple', value: 'apple' },
+						{ label: 'Auth0', value: 'auth0' },
+						{ label: 'AWS Cognito', value: 'cognito' },
+						{ label: 'Discord', value: 'discord' },
+						{ label: 'Facebook', value: 'facebook' },
+						{ label: 'GitHub', value: 'github' },
+						{ label: 'Google', value: 'google' },
+						{ label: 'Keycloak', value: 'keycloak' },
+						{ label: 'LINE', value: 'line' },
+						{ label: 'Microsoft Entra ID', value: 'entra-id' },
+						{ label: 'Okta', value: 'okta' },
+						{ label: 'OneLogin', value: 'onelogin' },
+						{ label: 'Slack', value: 'slack' },
+						{ label: 'X (Twitter)', value: 'x' },
+						{ label: 'Generic OIDC', value: 'oidc' },
+					] }
+					__nextHasNoMarginBottom
+				/>
 				<Button
 					variant="secondary"
 					onClick={ handleAddProvider }
+					disabled={ ! newProviderType }
 				>
 					{ __( 'Add Provider', 'wppack-oauth-login' ) }
 				</Button>

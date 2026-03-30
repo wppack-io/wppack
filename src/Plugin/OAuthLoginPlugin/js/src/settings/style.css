@@ -113,7 +113,45 @@
 }
 
 .wpp-oauth-add-provider {
+	display: flex;
+	align-items: flex-end;
+	gap: 8px;
 	margin-top: 16px;
+}
+
+.wpp-oauth-add-provider .components-base-control {
+	flex: 1;
+	margin-bottom: 0;
+}
+
+.wpp-oauth-button-preview {
+	padding: 12px;
+	background: #f9f9f9;
+	border: 1px solid #e0e0e0;
+	border-radius: 4px;
+}
+
+.wpp-oauth-login-button {
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	width: 100%;
+	text-align: center;
+	text-decoration: none !important;
+	cursor: default;
+}
+
+.wpp-oauth-login-icon {
+	display: inline-flex;
+	width: 20px;
+	height: 20px;
+	flex-shrink: 0;
+}
+
+.wpp-oauth-login-icon svg {
+	width: 100%;
+	height: 100%;
 }
 
 .wpp-oauth-endpoints {
