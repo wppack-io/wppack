@@ -34,6 +34,35 @@ function SourceBadge( { source } ) {
 	);
 }
 
+function PathField( { id, label, field, value, onChange, prefix } ) {
+	const isReadonly = field?.readonly;
+	const source = field?.source || 'default';
+
+	return (
+		<BaseControl
+			id={ id }
+			label={
+				<>
+					{ label }
+					<SourceBadge source={ source } />
+				</>
+			}
+		>
+			<div className="wpp-saml-path-field">
+				<span className="wpp-saml-path-prefix">{ prefix }</span>
+				<input
+					type="text"
+					id={ id }
+					className="components-text-control__input"
+					value={ value || '' }
+					onChange={ ( e ) => onChange( e.target.value ) }
+					disabled={ isReadonly }
+				/>
+			</div>
+		</BaseControl>
+	);
+}
+
 function Field( { id, label, field, value, onChange, help } ) {
 	const isReadonly = field?.readonly;
 	const source = field?.source || 'default';
@@ -83,22 +112,28 @@ function BoolField( { id, label, field, value, onChange, help } ) {
 
 export default function App() {
 	const [ settings, setSettings ] = useState( null );
+	const [ siteUrl, setSiteUrl ] = useState( '' );
 	const [ formData, setFormData ] = useState( {} );
 	const [ saving, setSaving ] = useState( false );
 	const [ notice, setNotice ] = useState( null );
 	const [ loading, setLoading ] = useState( true );
+
+	const applyResponse = ( data ) => {
+		setSiteUrl( data.siteUrl || '' );
+		setSettings( data.fields );
+		const values = {};
+		Object.entries( data.fields ).forEach( ( [ key, meta ] ) => {
+			values[ key ] = meta.value;
+		} );
+		setFormData( values );
+	};
 
 	useEffect( () => {
 		apiFetch( {
 			path: '/wppack/v1/saml-login/settings',
 		} )
 			.then( ( data ) => {
-				setSettings( data );
-				const initial = {};
-				Object.entries( data ).forEach( ( [ key, meta ] ) => {
-					initial[ key ] = meta.value;
-				} );
-				setFormData( initial );
+				applyResponse( data );
 				setLoading( false );
 			} )
 			.catch( () => {
@@ -120,12 +155,7 @@ export default function App() {
 			data: formData,
 		} )
 			.then( ( data ) => {
-				setSettings( data );
-				const updated = {};
-				Object.entries( data ).forEach( ( [ key, meta ] ) => {
-					updated[ key ] = meta.value;
-				} );
-				setFormData( updated );
+				applyResponse( data );
 				setNotice( {
 					type: 'success',
 					message: __( 'Settings saved.', 'wppack-saml-login' ),
@@ -249,19 +279,29 @@ export default function App() {
 						onChange={ updateField( 'spEntityId' ) }
 						help={ __( 'Defaults to site URL if empty.', 'wppack-saml-login' ) }
 					/>
-					<Field
-						id="spAcsUrl"
-						label={ __( 'ACS URL', 'wppack-saml-login' ) }
-						field={ f( 'spAcsUrl' ) }
-						value={ formData.spAcsUrl }
-						onChange={ updateField( 'spAcsUrl' ) }
+					<PathField
+						id="metadataPath"
+						label={ __( 'Metadata Path', 'wppack-saml-login' ) }
+						field={ f( 'metadataPath' ) }
+						value={ formData.metadataPath }
+						onChange={ updateField( 'metadataPath' ) }
+						prefix={ siteUrl }
 					/>
-					<Field
-						id="spSloUrl"
-						label={ __( 'SLO URL', 'wppack-saml-login' ) }
-						field={ f( 'spSloUrl' ) }
-						value={ formData.spSloUrl }
-						onChange={ updateField( 'spSloUrl' ) }
+					<PathField
+						id="acsPath"
+						label={ __( 'ACS Path', 'wppack-saml-login' ) }
+						field={ f( 'acsPath' ) }
+						value={ formData.acsPath }
+						onChange={ updateField( 'acsPath' ) }
+						prefix={ siteUrl }
+					/>
+					<PathField
+						id="sloPath"
+						label={ __( 'SLO Path', 'wppack-saml-login' ) }
+						field={ f( 'sloPath' ) }
+						value={ formData.sloPath }
+						onChange={ updateField( 'sloPath' ) }
+						prefix={ siteUrl }
 					/>
 					<SelectControl
 						label={
@@ -453,27 +493,6 @@ export default function App() {
 						field={ f( 'allowRepeatAttributeName' ) }
 						value={ formData.allowRepeatAttributeName }
 						onChange={ updateField( 'allowRepeatAttributeName' ) }
-					/>
-					<Field
-						id="metadataPath"
-						label={ __( 'Metadata Path', 'wppack-saml-login' ) }
-						field={ f( 'metadataPath' ) }
-						value={ formData.metadataPath }
-						onChange={ updateField( 'metadataPath' ) }
-					/>
-					<Field
-						id="acsPath"
-						label={ __( 'ACS Path', 'wppack-saml-login' ) }
-						field={ f( 'acsPath' ) }
-						value={ formData.acsPath }
-						onChange={ updateField( 'acsPath' ) }
-					/>
-					<Field
-						id="sloPath"
-						label={ __( 'SLO Path', 'wppack-saml-login' ) }
-						field={ f( 'sloPath' ) }
-						value={ formData.sloPath }
-						onChange={ updateField( 'sloPath' ) }
 					/>
 				</PanelBody>
 			</Panel>

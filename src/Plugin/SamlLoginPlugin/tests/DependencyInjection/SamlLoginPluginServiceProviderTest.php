@@ -402,16 +402,16 @@ final class SamlLoginPluginServiceProviderTest extends TestCase
             idpSsoUrl: 'https://idp.example.com/sso',
             idpX509Cert: 'MIICert',
             spEntityId: 'https://custom-sp.example.com',
-            spAcsUrl: 'https://custom-sp.example.com/acs',
-            spSloUrl: 'https://custom-sp.example.com/slo',
             spNameIdFormat: 'urn:oasis:names:tc:SAML:2.0:nameid-format:persistent',
+            acsPath: '/custom/acs',
+            sloPath: '/custom/slo',
         );
 
         $settings = SamlLoginPluginServiceProvider::createSpSettings($config);
 
         self::assertSame('https://custom-sp.example.com', $settings->getEntityId());
-        self::assertSame('https://custom-sp.example.com/acs', $settings->getAcsUrl());
-        self::assertSame('https://custom-sp.example.com/slo', $settings->getSloUrl());
+        self::assertStringEndsWith('/custom/acs', $settings->getAcsUrl());
+        self::assertStringEndsWith('/custom/slo', $settings->getSloUrl());
         self::assertSame('urn:oasis:names:tc:SAML:2.0:nameid-format:persistent', $settings->getNameIdFormat());
     }
 

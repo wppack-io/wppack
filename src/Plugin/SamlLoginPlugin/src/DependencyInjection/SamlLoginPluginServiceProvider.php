@@ -221,8 +221,8 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
 
         return new SpSettings(
             entityId: $config->spEntityId !== '' ? $config->spEntityId : get_home_url($blogId),
-            acsUrl: $config->spAcsUrl !== '' ? $config->spAcsUrl : get_home_url($blogId, $config->acsPath),
-            sloUrl: $config->spSloUrl !== '' ? $config->spSloUrl : get_home_url($blogId, $config->sloPath),
+            acsUrl: get_home_url($blogId, $config->acsPath),
+            sloUrl: get_home_url($blogId, $config->sloPath),
             nameIdFormat: $config->spNameIdFormat,
         );
     }

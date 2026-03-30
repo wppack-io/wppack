@@ -32,7 +32,7 @@ final class SamlLoginSettingsController extends AbstractRestController
 
     private const MASKED_VALUE = '********';
 
-    private const URL_FIELDS = ['idpSsoUrl', 'idpSloUrl', 'spEntityId', 'spAcsUrl', 'spSloUrl'];
+    private const URL_FIELDS = ['idpSsoUrl', 'idpSloUrl', 'spEntityId'];
 
     private const PATH_FIELDS = ['metadataPath', 'acsPath', 'sloPath'];
 
@@ -46,7 +46,12 @@ final class SamlLoginSettingsController extends AbstractRestController
     #[RestRoute(route: '/settings', methods: HttpMethod::GET)]
     public function getSettings(): JsonResponse
     {
-        return $this->json($this->buildDisplayArray());
+        $blogId = is_multisite() ? get_main_site_id() : null;
+
+        return $this->json([
+            'siteUrl' => get_home_url($blogId),
+            'fields' => $this->buildDisplayArray(),
+        ]);
     }
 
     #[RestRoute(route: '/settings', methods: HttpMethod::POST)]
@@ -58,8 +63,12 @@ final class SamlLoginSettingsController extends AbstractRestController
         $this->persistOptions($params);
 
         $updated = SamlLoginConfiguration::fromEnvironmentOrOptions();
+        $blogId = is_multisite() ? get_main_site_id() : null;
 
-        return $this->json($this->buildDisplayArrayFrom($updated));
+        return $this->json([
+            'siteUrl' => get_home_url($blogId),
+            'fields' => $this->buildDisplayArrayFrom($updated),
+        ]);
     }
 
     /**

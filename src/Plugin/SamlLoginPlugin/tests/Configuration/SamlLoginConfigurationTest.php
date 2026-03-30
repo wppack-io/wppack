@@ -66,8 +66,6 @@ final class SamlLoginConfigurationTest extends TestCase
             idpSloUrl: 'https://idp.example.com/slo',
             idpCertFingerprint: 'AA:BB:CC',
             spEntityId: 'https://sp.example.com',
-            spAcsUrl: 'https://sp.example.com/saml/acs',
-            spSloUrl: 'https://sp.example.com/saml/slo',
             spNameIdFormat: 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
             strict: false,
             debug: true,
@@ -90,8 +88,6 @@ final class SamlLoginConfigurationTest extends TestCase
         self::assertSame('https://idp.example.com/slo', $config->idpSloUrl);
         self::assertSame('AA:BB:CC', $config->idpCertFingerprint);
         self::assertSame('https://sp.example.com', $config->spEntityId);
-        self::assertSame('https://sp.example.com/saml/acs', $config->spAcsUrl);
-        self::assertSame('https://sp.example.com/saml/slo', $config->spSloUrl);
         self::assertSame('urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress', $config->spNameIdFormat);
         self::assertFalse($config->strict);
         self::assertTrue($config->debug);
@@ -120,8 +116,6 @@ final class SamlLoginConfigurationTest extends TestCase
         self::assertNull($config->idpSloUrl);
         self::assertNull($config->idpCertFingerprint);
         self::assertSame('', $config->spEntityId);
-        self::assertSame('', $config->spAcsUrl);
-        self::assertSame('', $config->spSloUrl);
         self::assertSame('urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified', $config->spNameIdFormat);
         self::assertTrue($config->strict);
         self::assertFalse($config->debug);
