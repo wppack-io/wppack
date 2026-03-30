@@ -59,7 +59,7 @@ final class AmazonMailerPluginServiceProviderTest extends TestCase
         $factory = $definition->getFactory();
         self::assertNotNull($factory);
         self::assertSame(AmazonMailerConfiguration::class, $factory[0]);
-        self::assertSame('fromEnvironment', $factory[1]);
+        self::assertSame('fromEnvironmentOrOptions', $factory[1]);
     }
 
     #[Test]

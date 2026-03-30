@@ -70,7 +70,7 @@ final class AmazonMailerPluginServiceProvider implements ServiceProviderInterfac
 
         // Configuration
         $builder->register(AmazonMailerConfiguration::class)
-            ->setFactory([AmazonMailerConfiguration::class, 'fromEnvironment']);
+            ->setFactory([AmazonMailerConfiguration::class, 'fromEnvironmentOrOptions']);
 
         // Transport Factories
         $builder->register(SesTransportFactory::class)
