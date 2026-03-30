@@ -51,105 +51,86 @@ final class ProviderIcons
      * @var array<string, array<string, array{label: string, bg: string, text: string, border: string, icon: string, hover?: string}>>
      */
     private const STYLES = [
-        // Apple HIG: black, white, outlined
         'apple' => [
-            'black' => ['label' => 'Black', 'bg' => '#000000', 'text' => '#FFFFFF', 'border' => '#000000', 'icon' => '#FFFFFF'],
-            'white' => ['label' => 'White', 'bg' => '#FFFFFF', 'text' => '#000000', 'border' => '#000000', 'icon' => '#000000'],
+            'white' => ['label' => 'ホワイト', 'bg' => '#FFFFFF', 'text' => '#000000', 'border' => '#000000', 'icon' => '#000000'],
+            'black' => ['label' => 'ブラック', 'bg' => '#000000', 'text' => '#FFFFFF', 'border' => '#000000', 'icon' => '#FFFFFF'],
         ],
-        // Auth0: brand, dark, light
         'auth0' => [
-            'brand' => ['label' => 'Brand', 'bg' => '#EB5424', 'text' => '#FFFFFF', 'border' => '#EB5424', 'icon' => '#FFFFFF'],
-            'dark' => ['label' => 'Dark', 'bg' => '#1E1E1E', 'text' => '#FFFFFF', 'border' => '#1E1E1E', 'icon' => '#FFFFFF'],
-            'light' => ['label' => 'Light', 'bg' => '#FFFFFF', 'text' => '#1E1E1E', 'border' => '#DADCE0', 'icon' => '#EB5424'],
+            'light' => ['label' => 'ライト', 'bg' => '#FFFFFF', 'text' => '#1E1E1E', 'border' => '#DADCE0', 'icon' => '#EB5424'],
+            'brand' => ['label' => 'ブランド', 'bg' => '#EB5424', 'text' => '#FFFFFF', 'border' => '#EB5424', 'icon' => '#FFFFFF'],
+            'dark' => ['label' => 'ダーク', 'bg' => '#1E1E1E', 'text' => '#FFFFFF', 'border' => '#1E1E1E', 'icon' => '#FFFFFF'],
         ],
-        // AWS Cognito: light only (multicolor icon)
         'cognito' => [
-            'light' => ['label' => 'Light', 'bg' => '#FFFFFF', 'text' => '#232F3E', 'border' => '#DADCE0', 'icon' => 'original'],
+            'light' => ['label' => 'ライト', 'bg' => '#FFFFFF', 'text' => '#232F3E', 'border' => '#DADCE0', 'icon' => 'original'],
         ],
-        // d Account: brand, light (docomo brand red)
         'd-account' => [
-            'brand' => ['label' => 'Brand', 'bg' => '#CC0033', 'text' => '#FFFFFF', 'border' => '#CC0033', 'icon' => '#FFFFFF'],
-            'light' => ['label' => 'Light', 'bg' => '#FFFFFF', 'text' => '#1E1E1E', 'border' => '#DADCE0', 'icon' => '#CC0033'],
+            'light' => ['label' => 'ライト', 'bg' => '#FFFFFF', 'text' => '#1E1E1E', 'border' => '#DADCE0', 'icon' => '#CC0033'],
+            'brand' => ['label' => 'ブランド', 'bg' => '#CC0033', 'text' => '#FFFFFF', 'border' => '#CC0033', 'icon' => '#FFFFFF'],
         ],
-        // Discord: blurple, dark, light
         'discord' => [
-            'blurple' => ['label' => 'Blurple', 'bg' => '#5865F2', 'text' => '#FFFFFF', 'border' => '#5865F2', 'icon' => '#FFFFFF'],
-            'dark' => ['label' => 'Dark', 'bg' => '#1E1E1E', 'text' => '#FFFFFF', 'border' => '#1E1E1E', 'icon' => '#5865F2'],
-            'light' => ['label' => 'Light', 'bg' => '#FFFFFF', 'text' => '#1E1E1E', 'border' => '#DADCE0', 'icon' => '#5865F2'],
+            'light' => ['label' => 'ライト', 'bg' => '#FFFFFF', 'text' => '#1E1E1E', 'border' => '#DADCE0', 'icon' => '#5865F2'],
+            'blurple' => ['label' => 'ブラープル', 'bg' => '#5865F2', 'text' => '#FFFFFF', 'border' => '#5865F2', 'icon' => '#FFFFFF'],
+            'dark' => ['label' => 'ダーク', 'bg' => '#1E1E1E', 'text' => '#FFFFFF', 'border' => '#1E1E1E', 'icon' => '#5865F2'],
         ],
-        // Microsoft Entra ID: dark, light
         'entra-id' => [
-            'dark' => ['label' => 'Dark', 'bg' => '#2F2F2F', 'text' => '#FFFFFF', 'border' => '#2F2F2F', 'icon' => '#FFFFFF'],
-            'light' => ['label' => 'Light', 'bg' => '#FFFFFF', 'text' => '#5E5E5E', 'border' => '#8C8C8C', 'icon' => 'original'],
+            'light' => ['label' => 'ライト', 'bg' => '#FFFFFF', 'text' => '#5E5E5E', 'border' => '#8C8C8C', 'icon' => 'original'],
+            'dark' => ['label' => 'ダーク', 'bg' => '#2F2F2F', 'text' => '#FFFFFF', 'border' => '#2F2F2F', 'icon' => '#FFFFFF'],
         ],
-        // Facebook: brand, dark, light (SVG color: #0866FF)
         'facebook' => [
-            'brand' => ['label' => 'Brand', 'bg' => '#FFFFFF', 'text' => '#1E1E1E', 'border' => '#DADCE0', 'icon' => 'original'],
-            'dark' => ['label' => 'Dark', 'bg' => '#1E1E1E', 'text' => '#FFFFFF', 'border' => '#1E1E1E', 'icon' => 'original'],
-            'light' => ['label' => 'Light', 'bg' => '#FFFFFF', 'text' => '#1E1E1E', 'border' => '#DADCE0', 'icon' => 'original'],
+            'light' => ['label' => 'ライト', 'bg' => '#FFFFFF', 'text' => '#1E1E1E', 'border' => '#DADCE0', 'icon' => 'original'],
+            'brand' => ['label' => 'ブランド', 'bg' => '#FFFFFF', 'text' => '#1E1E1E', 'border' => '#DADCE0', 'icon' => 'original'],
+            'dark' => ['label' => 'ダーク', 'bg' => '#1E1E1E', 'text' => '#FFFFFF', 'border' => '#1E1E1E', 'icon' => 'original'],
         ],
-        // GitHub: dark, light
         'github' => [
-            'dark' => ['label' => 'Dark', 'bg' => '#24292E', 'text' => '#FFFFFF', 'border' => '#24292E', 'icon' => '#FFFFFF'],
-            'light' => ['label' => 'Light', 'bg' => '#FFFFFF', 'text' => '#24292E', 'border' => '#D0D7DE', 'icon' => '#24292E'],
+            'light' => ['label' => 'ライト', 'bg' => '#FFFFFF', 'text' => '#24292E', 'border' => '#D0D7DE', 'icon' => '#24292E'],
+            'dark' => ['label' => 'ダーク', 'bg' => '#24292E', 'text' => '#FFFFFF', 'border' => '#24292E', 'icon' => '#FFFFFF'],
         ],
-        // Google: light, neutral, dark (per Sign in with Google guidelines)
         'google' => [
-            'light' => ['label' => 'Light', 'bg' => '#FFFFFF', 'text' => '#3C4043', 'border' => '#DADCE0', 'icon' => 'original'],
-            'neutral' => ['label' => 'Neutral', 'bg' => '#F2F2F2', 'text' => '#3C4043', 'border' => '#F2F2F2', 'icon' => 'original'],
-            'dark' => ['label' => 'Dark', 'bg' => '#131314', 'text' => '#E3E3E3', 'border' => '#8E918F', 'icon' => 'original'],
+            'light' => ['label' => 'ライト', 'bg' => '#FFFFFF', 'text' => '#3C4043', 'border' => '#DADCE0', 'icon' => 'original'],
+            'neutral' => ['label' => 'ニュートラル', 'bg' => '#F2F2F2', 'text' => '#3C4043', 'border' => '#F2F2F2', 'icon' => 'original'],
+            'dark' => ['label' => 'ダーク', 'bg' => '#131314', 'text' => '#E3E3E3', 'border' => '#8E918F', 'icon' => 'original'],
         ],
-        // Keycloak: light only (multicolor icon)
         'keycloak' => [
-            'light' => ['label' => 'Light', 'bg' => '#FFFFFF', 'text' => '#4D4D4D', 'border' => '#DADCE0', 'icon' => 'original'],
+            'light' => ['label' => 'ライト', 'bg' => '#FFFFFF', 'text' => '#4D4D4D', 'border' => '#DADCE0', 'icon' => 'original'],
         ],
-        // LINE: brand (green bg), light (white bg)
         'line' => [
-            'brand' => ['label' => 'Brand', 'bg' => '#06C755', 'text' => '#FFFFFF', 'border' => '#06C755', 'icon' => '#FFFFFF', 'hover' => '#05b34c'],
-            'light' => ['label' => 'Light', 'bg' => '#FFFFFF', 'text' => '#1E1E1E', 'border' => '#DADCE0', 'icon' => '#06C755'],
+            'light' => ['label' => 'ライト', 'bg' => '#FFFFFF', 'text' => '#1E1E1E', 'border' => '#DADCE0', 'icon' => '#06C755'],
+            'brand' => ['label' => 'ブランド', 'bg' => '#06C755', 'text' => '#FFFFFF', 'border' => '#06C755', 'icon' => '#FFFFFF', 'hover' => '#05b34c'],
         ],
-        // Microsoft: dark, light
         'microsoft' => [
-            'dark' => ['label' => 'Dark', 'bg' => '#2F2F2F', 'text' => '#FFFFFF', 'border' => '#2F2F2F', 'icon' => 'original'],
-            'light' => ['label' => 'Light', 'bg' => '#FFFFFF', 'text' => '#5E5E5E', 'border' => '#8C8C8C', 'icon' => 'original'],
+            'light' => ['label' => 'ライト', 'bg' => '#FFFFFF', 'text' => '#5E5E5E', 'border' => '#8C8C8C', 'icon' => 'original'],
+            'dark' => ['label' => 'ダーク', 'bg' => '#2F2F2F', 'text' => '#FFFFFF', 'border' => '#2F2F2F', 'icon' => 'original'],
         ],
-        // Okta: brand, dark, light
         'okta' => [
-            'brand' => ['label' => 'Brand', 'bg' => '#007DC1', 'text' => '#FFFFFF', 'border' => '#007DC1', 'icon' => '#FFFFFF'],
-            'dark' => ['label' => 'Dark', 'bg' => '#1E1E1E', 'text' => '#FFFFFF', 'border' => '#1E1E1E', 'icon' => '#007DC1'],
-            'light' => ['label' => 'Light', 'bg' => '#FFFFFF', 'text' => '#1E1E1E', 'border' => '#DADCE0', 'icon' => '#007DC1'],
+            'light' => ['label' => 'ライト', 'bg' => '#FFFFFF', 'text' => '#1E1E1E', 'border' => '#DADCE0', 'icon' => '#007DC1'],
+            'brand' => ['label' => 'ブランド', 'bg' => '#007DC1', 'text' => '#FFFFFF', 'border' => '#007DC1', 'icon' => '#FFFFFF'],
+            'dark' => ['label' => 'ダーク', 'bg' => '#1E1E1E', 'text' => '#FFFFFF', 'border' => '#1E1E1E', 'icon' => '#007DC1'],
         ],
-        // OneLogin: dark, light
         'onelogin' => [
-            'dark' => ['label' => 'Dark', 'bg' => '#1C1F2A', 'text' => '#FFFFFF', 'border' => '#1C1F2A', 'icon' => '#FFFFFF'],
-            'light' => ['label' => 'Light', 'bg' => '#FFFFFF', 'text' => '#1C1F2A', 'border' => '#DADCE0', 'icon' => '#1C1F2A'],
+            'light' => ['label' => 'ライト', 'bg' => '#FFFFFF', 'text' => '#1C1F2A', 'border' => '#DADCE0', 'icon' => '#1C1F2A'],
+            'dark' => ['label' => 'ダーク', 'bg' => '#1C1F2A', 'text' => '#FFFFFF', 'border' => '#1C1F2A', 'icon' => '#FFFFFF'],
         ],
-        // OpenID: brand, light
         'openid' => [
-            'brand' => ['label' => 'Brand', 'bg' => '#F78C40', 'text' => '#FFFFFF', 'border' => '#F78C40', 'icon' => '#FFFFFF'],
-            'light' => ['label' => 'Light', 'bg' => '#FFFFFF', 'text' => '#1E1E1E', 'border' => '#DADCE0', 'icon' => '#F78C40'],
+            'light' => ['label' => 'ライト', 'bg' => '#FFFFFF', 'text' => '#1E1E1E', 'border' => '#DADCE0', 'icon' => '#F78C40'],
+            'brand' => ['label' => 'ブランド', 'bg' => '#F78C40', 'text' => '#FFFFFF', 'border' => '#F78C40', 'icon' => '#FFFFFF'],
         ],
-        // Slack: brand, dark, light
         'slack' => [
-            'brand' => ['label' => 'Brand', 'bg' => '#4A154B', 'text' => '#FFFFFF', 'border' => '#4A154B', 'icon' => '#FFFFFF'],
-            'dark' => ['label' => 'Dark', 'bg' => '#1E1E1E', 'text' => '#FFFFFF', 'border' => '#1E1E1E', 'icon' => 'original'],
-            'light' => ['label' => 'Light', 'bg' => '#FFFFFF', 'text' => '#1E1E1E', 'border' => '#DADCE0', 'icon' => 'original'],
+            'light' => ['label' => 'ライト', 'bg' => '#FFFFFF', 'text' => '#1E1E1E', 'border' => '#DADCE0', 'icon' => 'original'],
+            'brand' => ['label' => 'ブランド', 'bg' => '#4A154B', 'text' => '#FFFFFF', 'border' => '#4A154B', 'icon' => '#FFFFFF'],
+            'dark' => ['label' => 'ダーク', 'bg' => '#1E1E1E', 'text' => '#FFFFFF', 'border' => '#1E1E1E', 'icon' => 'original'],
         ],
-        // X: black, white
         'x' => [
-            'black' => ['label' => 'Black', 'bg' => '#000000', 'text' => '#FFFFFF', 'border' => '#000000', 'icon' => '#FFFFFF'],
-            'white' => ['label' => 'White', 'bg' => '#FFFFFF', 'text' => '#000000', 'border' => '#000000', 'icon' => '#000000'],
+            'white' => ['label' => 'ホワイト', 'bg' => '#FFFFFF', 'text' => '#000000', 'border' => '#000000', 'icon' => '#000000'],
+            'black' => ['label' => 'ブラック', 'bg' => '#000000', 'text' => '#FFFFFF', 'border' => '#000000', 'icon' => '#FFFFFF'],
         ],
-        // Yahoo: brand, purple, white (per Sign in with Yahoo guidelines)
         'yahoo' => [
-            'brand' => ['label' => 'Brand', 'bg' => '#FFFFFF', 'text' => '#232A31', 'border' => '#DADCE0', 'icon' => '#7E1FFF'],
-            'purple' => ['label' => 'Purple', 'bg' => '#7E1FFF', 'text' => '#FFFFFF', 'border' => '#7E1FFF', 'icon' => '#FFFFFF'],
-            'white' => ['label' => 'White', 'bg' => '#FFFFFF', 'text' => '#232A31', 'border' => '#232A31', 'icon' => '#232A31'],
+            'brand' => ['label' => 'ブランド', 'bg' => '#FFFFFF', 'text' => '#232A31', 'border' => '#DADCE0', 'icon' => '#7E1FFF'],
+            'purple' => ['label' => 'パープル', 'bg' => '#7E1FFF', 'text' => '#FFFFFF', 'border' => '#7E1FFF', 'icon' => '#FFFFFF'],
+            'white' => ['label' => 'ホワイト', 'bg' => '#FFFFFF', 'text' => '#232A31', 'border' => '#232A31', 'icon' => '#232A31'],
         ],
-        // Yahoo! JAPAN: brand, light (per Yahoo! JAPAN login button guidelines)
         'yahoo-japan' => [
-            'brand' => ['label' => 'Brand', 'bg' => '#FF0033', 'text' => '#FFFFFF', 'border' => '#FF0033', 'icon' => '#FFFFFF'],
-            'light' => ['label' => 'Light', 'bg' => '#FFFFFF', 'text' => '#1E1E1E', 'border' => '#DADCE0', 'icon' => '#FF0033'],
+            'light' => ['label' => 'ライト', 'bg' => '#FFFFFF', 'text' => '#1E1E1E', 'border' => '#DADCE0', 'icon' => '#FF0033'],
+            'brand' => ['label' => 'ブランド', 'bg' => '#FF0033', 'text' => '#FFFFFF', 'border' => '#FF0033', 'icon' => '#FFFFFF'],
         ],
     ];
 
