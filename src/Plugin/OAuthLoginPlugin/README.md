@@ -57,6 +57,7 @@ define('OAUTH_DEFAULT_ROLE', 'subscriber');
 
 | Type | Provider | Requires |
 |------|----------|----------|
+| `amazon` | Amazon | `client_id`, `client_secret` |
 | `apple` | Apple | `client_id`, `client_secret` |
 | `auth0` | Auth0 | `client_id`, `client_secret`, `domain` |
 | `cognito` | AWS Cognito | `client_id`, `client_secret`, `domain` |

@@ -24,6 +24,7 @@ composer require wppack/oauth-security
 
 | Provider | Type | OIDC | Required Config |
 |----------|------|------|-----------------|
+| Amazon | `amazon` | No | client_id, client_secret |
 | Apple | `apple` | Yes | client_id, client_secret |
 | Auth0 | `auth0` | Yes | client_id, client_secret, **domain** |
 | AWS Cognito | `cognito` | Yes | client_id, client_secret, **domain** |

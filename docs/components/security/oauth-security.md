@@ -11,7 +11,7 @@ OAuth 2.0 / OpenID Connect 認証ブリッジ
 | レイヤー | Abstraction（Bridge） |
 | 依存 | `wppack/security`, `firebase/php-jwt` |
 
-外部 IdP による OAuth 2.0 / OpenID Connect SSO 認証を WpPack Security コンポーネントに統合する Bridge パッケージです。17 種の専用プロバイダーと Generic OIDC プロバイダーをサポートし、`firebase/php-jwt` を使用した ID トークン検証と自前の OAuth/OIDC フロー実装を組み合わせています。
+外部 IdP による OAuth 2.0 / OpenID Connect SSO 認証を WpPack Security コンポーネントに統合する Bridge パッケージです。19 種の専用プロバイダーと Generic OIDC プロバイダーをサポートし、`firebase/php-jwt` を使用した ID トークン検証と自前の OAuth/OIDC フロー実装を組み合わせています。
 
 ## インストール
 
@@ -231,6 +231,29 @@ $provider = new DAccountProvider(configuration: $configuration);
 
 - OIDC 対応
 - Discovery URL: `https://conf.uw.docomo.ne.jp/.well-known/openid-configuration`
+
+### AmazonProvider
+
+Login with Amazon (LWA) に対応:
+
+```php
+$provider = new AmazonProvider(configuration: $configuration);
+```
+
+- OAuth 2.0（OIDC 非対応）
+- デフォルトスコープ: `profile`
+- `user_id` → `sub` に正規化
+
+### MicrosoftProvider
+
+Microsoft 個人アカウント（outlook.com、live.com 等）に対応:
+
+```php
+$provider = new MicrosoftProvider(configuration: $configuration);
+```
+
+- OIDC 対応、テナント `consumers` 固定
+- Entra ID と同じ Microsoft identity platform を使用（組織アカウントは `EntraIdProvider` を使用）
 
 ### ProviderDefinition / ProviderRegistry
 

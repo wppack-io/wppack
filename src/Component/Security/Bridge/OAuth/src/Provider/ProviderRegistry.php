@@ -20,6 +20,7 @@ final class ProviderRegistry
 {
     /** @var array<string, class-string<ProviderInterface>> */
     private const PROVIDERS = [
+        'amazon' => AmazonProvider::class,
         'apple' => AppleProvider::class,
         'auth0' => Auth0Provider::class,
         'cognito' => CognitoProvider::class,
