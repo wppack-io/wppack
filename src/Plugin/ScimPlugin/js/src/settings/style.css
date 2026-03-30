@@ -3,6 +3,12 @@
 	margin-top: 16px;
 }
 
+.wpp-scim-settings input[readonly],
+.wpp-scim-settings input[disabled],
+.wpp-scim-settings select[disabled] {
+	cursor: default;
+}
+
 .wpp-scim-settings h1 {
 	margin-bottom: 16px;
 }

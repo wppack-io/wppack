@@ -3,6 +3,14 @@
 	margin-top: 16px;
 }
 
+.wpp-saml-settings input[readonly],
+.wpp-saml-settings input[disabled],
+.wpp-saml-settings select[disabled],
+.wpp-saml-settings textarea[readonly],
+.wpp-saml-settings textarea[disabled] {
+	cursor: default;
+}
+
 .wpp-saml-settings h1 {
 	margin-bottom: 16px;
 }
