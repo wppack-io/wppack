@@ -111,6 +111,7 @@ function ProviderPanel( { name, provider, onChange, onDelete, onMoveUp, onMoveDo
 	const styleKeys = Object.keys( providerStyles );
 	const selectedStyle = f.button_style || styleKeys[ 0 ] || '';
 	const currentStyle = providerStyles[ selectedStyle ] || providerStyles[ styleKeys[ 0 ] ] || { bg: '#f0f0f0', text: '#1d2327', border: '#ddd', icon: 'original' };
+	const firstStyle = providerStyles[ styleKeys[ 0 ] ] || currentStyle;
 	const update = ( key ) => ( val ) => {
 		onChange( name, { ...f, [ key ]: val } );
 	};
@@ -126,7 +127,7 @@ function ProviderPanel( { name, provider, onChange, onDelete, onMoveUp, onMoveDo
 			{ icon && (
 				<span
 					className="wpp-oauth-panel-icon"
-					style={ currentStyle.icon !== 'original' ? { color: currentStyle.icon } : {} }
+					style={ firstStyle.icon !== 'original' ? { color: firstStyle.icon } : {} }
 					dangerouslySetInnerHTML={ { __html: icon } }
 				/>
 			) }
@@ -179,7 +180,7 @@ function ProviderPanel( { name, provider, onChange, onDelete, onMoveUp, onMoveDo
 			<BaseControl label={ __( 'ログインボタンプレビュー', 'wppack-oauth-login' ) }>
 				<div className="wpp-oauth-button-preview">
 					<a
-						className="wpp-oauth-login-button"
+						className={ `wpp-oauth-login-button${ buttonDisplay === 'icon-left' ? ' is-icon-left' : '' }${ buttonDisplay === 'icon-only' ? ' is-icon-only' : '' }` }
 						style={ {
 							background: currentStyle.bg,
 							color: currentStyle.text,
@@ -194,7 +195,7 @@ function ProviderPanel( { name, provider, onChange, onDelete, onMoveUp, onMoveDo
 							/>
 						) }
 						{ buttonDisplay !== 'icon-only' && (
-							<span className="wpp-oauth-login-text">{ `Login with ${ f.label || name }` }</span>
+							<span className="wpp-oauth-login-text">{ `${ f.label || name } でログイン` }</span>
 						) }
 					</a>
 				</div>
@@ -465,8 +466,8 @@ export default function App() {
 
 		const typeLabels = {
 			apple: 'Apple', auth0: 'Auth0', cognito: 'AWS Cognito',
-			'd-account': 'd Account', discord: 'Discord',
-			'entra-id': 'Microsoft Entra ID', facebook: 'Facebook',
+			'd-account': 'dアカウント', discord: 'Discord',
+			'entra-id': 'Entra ID', facebook: 'Facebook',
 			github: 'GitHub', google: 'Google', keycloak: 'Keycloak',
 			line: 'LINE', okta: 'Okta', onelogin: 'OneLogin',
 			slack: 'Slack', x: 'X', yahoo: 'Yahoo',
@@ -645,6 +646,7 @@ export default function App() {
 						disabled={ g( 'buttonDisplay' ).readonly }
 						options={ [
 							{ label: 'アイコン + テキスト', value: 'icon-text' },
+							{ label: 'アイコン左寄せ + テキスト', value: 'icon-left' },
 							{ label: 'アイコンのみ', value: 'icon-only' },
 							{ label: 'テキストのみ', value: 'text-only' },
 						] }
@@ -690,7 +692,7 @@ export default function App() {
 						{ label: 'Apple', value: 'apple' },
 						{ label: 'Auth0', value: 'auth0' },
 						{ label: 'AWS Cognito', value: 'cognito' },
-						{ label: 'd Account', value: 'd-account' },
+						{ label: 'dアカウント (d Account)', value: 'd-account' },
 						{ label: 'Discord', value: 'discord' },
 						{ label: 'Facebook', value: 'facebook' },
 						{ label: 'GitHub', value: 'github' },

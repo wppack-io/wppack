@@ -83,12 +83,24 @@ class OAuthLoginForm
 
             $showIcon = $display !== 'text-only' && $icon !== '';
             $showText = $display !== 'icon-only';
-            $iconHtml = $showIcon ? '<span style="position:absolute;left:12px;display:inline-flex;width:20px;height:20px;' . $iconColor . '">' . $icon . '</span>' : '';
-            $textHtml = $showText ? '<span style="flex:1;text-align:center;">Login with ' . $label . '</span>' : '';
+
+            if ($display === 'icon-left' && $showIcon) {
+                $iconHtml = '<span style="position:absolute;left:12px;display:inline-flex;width:20px;height:20px;' . $iconColor . '">' . $icon . '</span>';
+                $textHtml = $showText ? '<span style="flex:1;text-align:center;">' . esc_html(sprintf(__('%s でログイン', 'wppack-oauth-login'), $provider->label)) . '</span>' : '';
+                $btnStyle = 'display:flex;align-items:center;position:relative;width:100%;box-sizing:border-box;padding:0 12px;height:40px;';
+            } elseif ($display === 'icon-only' && $showIcon) {
+                $iconHtml = '<span style="display:inline-flex;width:20px;height:20px;' . $iconColor . '">' . $icon . '</span>';
+                $textHtml = '';
+                $btnStyle = 'display:inline-flex;align-items:center;justify-content:center;width:48px;height:40px;';
+            } else {
+                $iconHtml = $showIcon ? '<span style="display:inline-flex;width:20px;height:20px;' . $iconColor . '">' . $icon . '</span>' : '';
+                $textHtml = $showText ? esc_html(sprintf(__('%s でログイン', 'wppack-oauth-login'), $provider->label)) : '';
+                $btnStyle = 'display:flex;align-items:center;justify-content:center;gap:8px;width:100%;box-sizing:border-box;padding:0 12px;height:40px;';
+            }
 
             $buttons .= <<<HTML
                 <p>
-                    <a href="{$url}" style="display:flex;align-items:center;position:relative;width:100%;box-sizing:border-box;padding:0 12px;height:40px;border-radius:4px;background:{$bg};color:{$text};border:1px solid {$border};text-decoration:none;font-size:14px;font-weight:500;cursor:pointer;">{$iconHtml}{$textHtml}</a>
+                    <a href="{$url}" style="{$btnStyle}border-radius:4px;background:{$bg};color:{$text};border:1px solid {$border};text-decoration:none;font-size:14px;font-weight:500;cursor:pointer;">{$iconHtml}{$textHtml}</a>
                 </p>
             HTML;
         }
