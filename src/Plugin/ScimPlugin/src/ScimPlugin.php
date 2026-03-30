@@ -13,14 +13,18 @@ declare(strict_types=1);
 
 namespace WpPack\Plugin\ScimPlugin;
 
+use WpPack\Component\Admin\AdminPageRegistry;
 use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use WpPack\Component\DependencyInjection\Container;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\EventDispatcher\DependencyInjection\RegisterEventListenersPass;
 use WpPack\Component\Kernel\AbstractPlugin;
 use WpPack\Component\Rest\DependencyInjection\RegisterRestControllersPass;
+use WpPack\Component\Rest\RestRegistry;
 use WpPack\Component\Security\Authentication\AuthenticationManager;
 use WpPack\Component\Security\DependencyInjection\RegisterAuthenticatorsPass;
+use WpPack\Plugin\ScimPlugin\Admin\ScimSettingsController;
+use WpPack\Plugin\ScimPlugin\Admin\ScimSettingsPage;
 use WpPack\Plugin\ScimPlugin\Configuration\ScimConfiguration;
 use WpPack\Plugin\ScimPlugin\DependencyInjection\ScimPluginServiceProvider;
 
@@ -40,7 +44,15 @@ final class ScimPlugin extends AbstractPlugin
             return;
         }
 
-        $config = ScimConfiguration::fromEnvironment();
+        // Always register admin/settings services
+        $this->serviceProvider->registerAdmin($builder);
+
+        // Skip SCIM services if no token configured
+        if (!ScimConfiguration::hasToken()) {
+            return;
+        }
+
+        $config = ScimConfiguration::fromEnvironmentOrOptions();
 
         $builder->setParameter('scim.max_results', $config->maxResults);
         $builder->setParameter('scim.base_url', rtrim(rest_url(), '/'));
@@ -67,6 +79,25 @@ final class ScimPlugin extends AbstractPlugin
     public function boot(Container $container): void
     {
         if (!is_main_site()) {
+            return;
+        }
+
+        // Admin settings page
+        if (is_admin() || is_network_admin()) {
+            /** @var AdminPageRegistry $pageRegistry */
+            $pageRegistry = $container->get(AdminPageRegistry::class);
+            /** @var ScimSettingsPage $settingsPage */
+            $settingsPage = $container->get(ScimSettingsPage::class);
+            $settingsPage->setPluginFile($this->getFile());
+            $pageRegistry->register($settingsPage);
+
+            /** @var RestRegistry $restRegistry */
+            $restRegistry = $container->get(RestRegistry::class);
+            $restRegistry->register($container->get(ScimSettingsController::class));
+        }
+
+        // SCIM services (only when token is configured)
+        if (!$container->has(AuthenticationManager::class)) {
             return;
         }
 

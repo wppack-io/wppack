@@ -40,10 +40,38 @@ use WpPack\Component\Site\SiteRepository;
 use WpPack\Component\Site\SiteRepositoryInterface;
 use WpPack\Component\User\UserRepository;
 use WpPack\Component\User\UserRepositoryInterface;
+use WpPack\Component\Admin\AdminPageRegistry;
+use WpPack\Component\Role\RoleProvider;
+use WpPack\Plugin\ScimPlugin\Admin\ScimSettingsController;
+use WpPack\Plugin\ScimPlugin\Admin\ScimSettingsPage;
 use WpPack\Plugin\ScimPlugin\Configuration\ScimConfiguration;
 
 final class ScimPluginServiceProvider implements ServiceProviderInterface
 {
+    /**
+     * Register admin/settings services (always, even without SCIM token).
+     */
+    public function registerAdmin(ContainerBuilder $builder): void
+    {
+        if (!$builder->hasDefinition(AdminPageRegistry::class)) {
+            $builder->register(AdminPageRegistry::class);
+        }
+
+        if (!$builder->hasDefinition(RestRegistry::class)) {
+            $builder->register(RestRegistry::class)
+                ->addArgument(new Reference(Request::class));
+        }
+
+        if (!$builder->hasDefinition(RoleProvider::class)) {
+            $builder->register(RoleProvider::class);
+        }
+
+        $builder->register(ScimSettingsPage::class);
+
+        $builder->register(ScimSettingsController::class)
+            ->addArgument(new Reference(RoleProvider::class));
+    }
+
     public function register(ContainerBuilder $builder): void
     {
         // Auto-register dependent service providers

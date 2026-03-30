@@ -34,7 +34,4 @@ if (file_exists(__DIR__ . '/vendor/autoload.php')) {
     require_once __DIR__ . '/../../vendor/autoload.php';
 }
 
-// Requires SCIM_BEARER_TOKEN constant or environment variable
-if (defined('SCIM_BEARER_TOKEN') || getenv('SCIM_BEARER_TOKEN') !== false) {
-    Kernel::registerPlugin(new ScimPlugin(__FILE__));
-}
+Kernel::registerPlugin(new ScimPlugin(__FILE__));

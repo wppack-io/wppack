@@ -1,0 +1,76 @@
+.wpp-scim-settings {
+	max-width: 800px;
+	margin-top: 16px;
+}
+
+.wpp-scim-settings h1 {
+	margin-bottom: 16px;
+}
+
+.wpp-scim-settings .components-panel {
+	margin-bottom: 16px;
+}
+
+.wpp-scim-settings .components-panel__body .components-base-control {
+	margin-bottom: 16px;
+}
+
+.wpp-scim-settings .components-panel__body.is-opened {
+	padding-bottom: 0;
+}
+
+.wpp-scim-settings .components-panel__body.is-opened > .components-panel__body-title {
+	margin-bottom: 16px;
+}
+
+.wpp-scim-loading {
+	display: flex;
+	justify-content: center;
+	padding: 48px;
+}
+
+.wpp-scim-actions {
+	margin-top: 16px;
+}
+
+.wpp-scim-source-badge {
+	display: inline-block;
+	font-size: 11px;
+	font-weight: 500;
+	line-height: 1;
+	padding: 2px 6px;
+	border-radius: 3px;
+	margin-left: 6px;
+	vertical-align: middle;
+}
+
+.wpp-scim-source-constant {
+	background: #f0f0f0;
+	color: #757575;
+	border: 1px solid #ccc;
+}
+
+.wpp-scim-source-option {
+	background: #e3f2fd;
+	color: #1565c0;
+	border: 1px solid #90caf9;
+}
+
+.wpp-scim-settings .components-notice {
+	margin-bottom: 16px;
+}
+
+.wpp-scim-endpoints {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.wpp-scim-endpoints code {
+	display: block;
+	padding: 4px 8px;
+	background: #f0f0f0;
+	border-radius: 2px;
+	font-size: 12px;
+	word-break: break-all;
+}
