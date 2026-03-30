@@ -24,6 +24,7 @@ AmazonMailerPlugin implements `PluginInterface` and bootstraps via `Kernel::regi
 2. **ServiceProvider** registers Mailer, Transport, and Handler services in the DI container
 3. **`Mailer::boot()`** registers the `wp_mail` filter, replacing the global `$phpmailer` with an SES-backed transport
 4. **Handlers** process bounce/complaint notifications from SES via SNS → SQS → Messenger
+5. **Settings page** provides a WordPress admin UI (`Settings > Mail`) built with WordPress Components for transport configuration and test email sending
 
 ## Configuration
 
@@ -81,6 +82,17 @@ SES bounce and complaint notifications are processed via SNS → SQS → WpPack 
 - **Permanent bounces** are logged and added to the suppression list (`wp_options`)
 - **Transient bounces** are logged only
 - **Complaints** are logged and added to the suppression list
+
+## Settings Page
+
+The plugin provides a settings page at **Settings > Mail** in the WordPress admin. Built with WordPress Components (`@wordpress/components`), it allows:
+
+- Selecting mail transport provider (SES, Azure, SendGrid, SMTP, or direct DSN input)
+- Configuring transport-specific fields (region, credentials, etc.)
+- Sending test emails
+- Viewing the suppression list
+
+Settings sourced from `MAILER_DSN` constant or environment variable are displayed as readonly. Sensitive fields (passwords, secret keys) are masked in API responses.
 
 ## Documentation
 

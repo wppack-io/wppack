@@ -30,6 +30,9 @@ src/Plugin/AmazonMailerPlugin/
 ├── wppack-amazon-mailer.php                     ← Bootstrap（Kernel::registerPlugin）
 ├── src/
 │   ├── AmazonMailerPlugin.php                   ← PluginInterface 実装
+│   ├── Admin/
+│   │   ├── AmazonMailerSettingsPage.php         ← 設定ページ UI（WordPress Components）
+│   │   └── AmazonMailerSettingsController.php   ← 設定 REST API
 │   ├── Configuration/
 │   │   └── AmazonMailerConfiguration.php        ← 設定 VO（MAILER_DSN）
 │   ├── DependencyInjection/
@@ -38,9 +41,10 @@ src/Plugin/AmazonMailerPlugin/
 │   │   ├── SesBounceMessage.php                 ← バウンス DTO
 │   │   ├── SesComplaintMessage.php              ← 苦情 DTO
 │   │   └── SesNotificationNormalizer.php        ← SNS JSON パーサー
-│   └── Handler/
-│       ├── BounceHandler.php                    ← バウンス処理
-│       └── ComplaintHandler.php                 ← 苦情処理
+│   ├── Handler/
+│   │   ├── BounceHandler.php                    ← バウンス処理
+│   │   └── ComplaintHandler.php                 ← 苦情処理
+│   └── SuppressionList.php                      ← 送信抑制リスト管理
 └── tests/
 ```
 
@@ -341,8 +345,33 @@ final readonly class CustomBounceHandler
 - **苦情**: すべての苦情タイプでアドレスを追加
 - **Transient バウンス**: ログに記録するのみ（抑制リストには追加しない）
 
+## 設定ページ
+
+管理画面の **設定 > Mail** に設定ページを提供します。WordPress Components（`@wordpress/components`）で構築され、カスタム REST API エンドポイント（`/wppack/v1/mailer/settings`）を使用します。
+
+### 機能
+
+- **トランスポート選択**: SES、Azure Communication Services、SendGrid、SMTP、または直接 DSN 入力から選択
+- **プロバイダ固有のフィールド**: 各トランスポートの `TransportDefinition` から動的にフィールドを生成
+- **テストメール送信**: 管理者メールアドレスにテストメールを送信（`/wppack/v1/mailer/test`）
+- **送信抑制リスト表示**: バウンス/苦情で追加されたアドレスを確認
+
+### セキュリティ
+
+- `#[IsGranted('manage_options')]` による権限チェック
+- `MAILER_DSN` が定数/環境変数で設定されている場合は readonly 表示
+- パスワード部分は API レスポンスでマスク（`AmazonMailerConfiguration::MASKED_VALUE`）
+- マスク値がそのまま送信された場合は既存値を保持
+
+### REST API エンドポイント
+
+| メソッド | エンドポイント | 説明 |
+|---------|--------------|------|
+| GET | `/wppack/v1/mailer/settings` | 現在の設定を取得 |
+| POST | `/wppack/v1/mailer/settings` | 設定を保存 |
+| POST | `/wppack/v1/mailer/test` | テストメールを送信 |
+
 ## 将来の拡張（未実装）
 
-- `Admin\SettingsPage` — 管理画面の SES 設定ページ
 - `Command\VerifyIdentityCommand` — Identity 検証 WP-CLI コマンド
 - `Command\TestEmailCommand` — テストメール WP-CLI コマンド

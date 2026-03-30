@@ -47,7 +47,7 @@ Distributed as WordPress plugins. Built on top of Components.
 | DependencyInjection | wppack/dependency-injection | PSR-11 compliant service container, autowiring, configuration management |
 | EventDispatcher | wppack/event-dispatcher | PSR-14 compliant event system |
 | Filesystem | wppack/filesystem | WP_Filesystem DI wrapper, file operation abstraction |
-| Kernel | wppack/kernel | Application bootstrap |
+| Kernel | wppack/kernel | Application bootstrap, #[TextDomain] attribute |
 | Option | wppack/option | Type-safe wrapper for wp_options |
 | Transient | wppack/transient | Type-safe wrapper for the Transient API |
 | Role | wppack/role | Role and capability management |

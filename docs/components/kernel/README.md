@@ -357,6 +357,31 @@ class CachedKernel extends Kernel
 
 `LogicException` を継承。二重ブートやブート後のプラグイン/テーマ追加時にスローされます。
 
+## `#[TextDomain]` アトリビュート
+
+Kernel は `#[TextDomain]` アトリビュートを提供し、プラグインやテーマのテキストドメインを宣言的に登録できます。`boot()` の前に Kernel がリフレクションでこのアトリビュートを読み取り、`load_plugin_textdomain()` / `load_theme_textdomain()` を自動的に呼び出します。
+
+```php
+use WpPack\Component\Kernel\Attribute\TextDomain;
+use WpPack\Component\Translation\Translator;
+
+#[TextDomain(domain: 'my-plugin')]
+final class MyTranslator extends Translator
+{
+    public function welcome(): string
+    {
+        return $this->translate('Welcome');
+    }
+}
+```
+
+| パラメータ | 型 | デフォルト | 説明 |
+|-----------|-----|-----------|------|
+| `domain` | `string` | *(必須)* | テキストドメイン名 |
+| `path` | `string` | `'languages'` | 言語ファイルのパス |
+
+Translation コンポーネントの `Translator` クラスと組み合わせて使用します。詳細は [Translation コンポーネント](../translation/) を参照してください。
+
 ## 主要クラス
 
 | クラス | 説明 |
@@ -366,4 +391,5 @@ class CachedKernel extends Kernel
 | `AbstractPlugin` | `PluginInterface` のデフォルト実装（パス解決付き） |
 | `ThemeInterface` | テーマ用インターフェース |
 | `AbstractTheme` | `ThemeInterface` のデフォルト実装（パス解決付き） |
+| `Attribute\TextDomain` | テキストドメイン自動登録アトリビュート |
 | `Exception\KernelAlreadyBootedException` | 二重ブート防止例外 |

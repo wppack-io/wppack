@@ -25,6 +25,7 @@ ScimPlugin implements `PluginInterface` and bootstraps via `Kernel::registerPlug
 3. **AuthenticationManager** registers `determine_current_user` filter for Bearer token authentication
 4. **RestRegistry** registers all SCIM REST controllers (Users, Groups, Schemas, ResourceTypes, ServiceProviderConfig)
 5. **Controllers** handle SCIM API requests with event dispatching
+6. **Settings page** provides a WordPress admin UI (`Settings > SCIM`) built with WordPress Components for SCIM configuration
 
 ## Configuration
 
@@ -60,6 +61,16 @@ define('SCIM_ALLOW_USER_DELETION', false);
 | GET/PUT/PATCH/DELETE | `/wp-json/scim/v2/Users/{id}` | User operations |
 | GET/POST | `/wp-json/scim/v2/Groups` | List/create groups |
 | GET/PUT/PATCH/DELETE | `/wp-json/scim/v2/Groups/{id}` | Group operations |
+
+## Settings Page
+
+The plugin provides a settings page at **Settings > SCIM** in the WordPress admin. Built with WordPress Components (`@wordpress/components`), it allows:
+
+- Configuring Bearer token, default role, and provisioning options
+- Viewing the SCIM API base URL
+- Toggling group management and user deletion
+
+Settings sourced from PHP constants or environment variables are displayed as readonly. The Bearer token is masked in API responses.
 
 ## Documentation
 

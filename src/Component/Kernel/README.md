@@ -10,6 +10,12 @@ Application bootstrap for WordPress.
 composer require wppack/kernel
 ```
 
+## Features
+
+- Plugin and theme lifecycle management (register, compile, boot)
+- Shared DI container across all plugins and themes
+- `#[TextDomain]` attribute for automatic textdomain loading via `load_plugin_textdomain()` / `load_theme_textdomain()`
+
 ## Documentation
 
 See [docs/components/kernel/](../../../docs/components/kernel/) for full documentation.
