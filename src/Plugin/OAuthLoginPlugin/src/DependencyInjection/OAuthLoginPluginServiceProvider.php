@@ -46,6 +46,7 @@ use WpPack\Component\Security\Bridge\OAuth\Provider\LineProvider;
 use WpPack\Component\Security\Bridge\OAuth\Provider\OktaProvider;
 use WpPack\Component\Security\Bridge\OAuth\Provider\OneLoginProvider;
 use WpPack\Component\Security\Bridge\OAuth\Provider\ProviderInterface;
+use WpPack\Component\Security\Bridge\OAuth\Provider\ProviderRegistry;
 use WpPack\Component\Security\Bridge\OAuth\Provider\SlackProvider;
 use WpPack\Component\Security\Bridge\OAuth\Provider\YahooJapanProvider;
 use WpPack\Component\Security\Bridge\OAuth\Provider\YahooProvider;
@@ -265,12 +266,8 @@ final class OAuthLoginPluginServiceProvider implements ServiceProviderInterface
         $blogId = $blogContext->isMultisite() ? $blogContext->getMainSiteId() : null;
         $redirectUri = get_home_url($blogId, $config->getCallbackPath($providerConfig->name));
 
-        $scopes = $providerConfig->scopes ?? match ($providerConfig->type) {
-            'github' => ['user:email'],
-            'discord' => ['identify', 'email'],
-            'facebook' => ['email', 'public_profile'],
-            default => ['openid', 'email', 'profile'],
-        };
+        $definition = ProviderRegistry::definition($providerConfig->type);
+        $scopes = $providerConfig->scopes ?? ($definition !== null ? $definition->defaultScopes : ['openid', 'email', 'profile']);
 
         return new OAuthConfiguration(
             clientId: $providerConfig->clientId,
@@ -285,56 +282,40 @@ final class OAuthLoginPluginServiceProvider implements ServiceProviderInterface
         ProviderConfiguration $providerConfig,
         OAuthConfiguration $oauthConfig,
     ): ProviderInterface {
-        return match ($providerConfig->type) {
-            'google' => new GoogleProvider(
-                configuration: $oauthConfig,
-                hostedDomain: $providerConfig->hostedDomain,
-            ),
-            'entra-id' => new EntraIdProvider(
-                configuration: $oauthConfig,
-                tenantId: $providerConfig->tenantId ?? throw new \RuntimeException(\sprintf(
-                    'Provider "%s" requires a "tenant_id" configuration.',
-                    $providerConfig->name,
-                )),
-            ),
-            'github' => new GitHubProvider(configuration: $oauthConfig),
-            'apple' => new AppleProvider(configuration: $oauthConfig),
-            'discord' => new DiscordProvider(configuration: $oauthConfig),
-            'facebook' => new FacebookProvider(configuration: $oauthConfig),
-            'slack' => new SlackProvider(configuration: $oauthConfig),
-            'line' => new LineProvider(configuration: $oauthConfig),
-            'okta' => new OktaProvider(
-                configuration: $oauthConfig,
-                domain: $providerConfig->domain ?? throw new \RuntimeException(\sprintf('Provider "%s" requires a "domain" configuration.', $providerConfig->name)),
-            ),
-            'auth0' => new Auth0Provider(
-                configuration: $oauthConfig,
-                domain: $providerConfig->domain ?? throw new \RuntimeException(\sprintf('Provider "%s" requires a "domain" configuration.', $providerConfig->name)),
-            ),
-            'onelogin' => new OneLoginProvider(
-                configuration: $oauthConfig,
-                domain: $providerConfig->domain ?? throw new \RuntimeException(\sprintf('Provider "%s" requires a "domain" configuration.', $providerConfig->name)),
-            ),
-            'keycloak' => new KeycloakProvider(
-                configuration: $oauthConfig,
-                domain: $providerConfig->domain ?? throw new \RuntimeException(\sprintf('Provider "%s" requires a "domain" configuration.', $providerConfig->name)),
-            ),
-            'cognito' => new CognitoProvider(
-                configuration: $oauthConfig,
-                domain: $providerConfig->domain ?? throw new \RuntimeException(\sprintf('Provider "%s" requires a "domain" configuration.', $providerConfig->name)),
-            ),
-            'd-account' => new DAccountProvider(configuration: $oauthConfig),
-            'yahoo' => new YahooProvider(configuration: $oauthConfig),
-            'yahoo-japan' => new YahooJapanProvider(configuration: $oauthConfig),
-            'oidc' => new GenericOidcProvider(
-                configuration: $oauthConfig,
-            ),
-            default => throw new \RuntimeException(\sprintf(
+        $class = ProviderRegistry::providerClass($providerConfig->type);
+        if ($class === null) {
+            throw new \RuntimeException(\sprintf(
                 'Unknown OAuth provider type "%s" for provider "%s".',
                 $providerConfig->type,
                 $providerConfig->name,
-            )),
+            ));
+        }
+
+        // Provider-specific constructor arguments
+        return match ($providerConfig->type) {
+            'google' => new $class(
+                configuration: $oauthConfig,
+                hostedDomain: $providerConfig->hostedDomain,
+            ),
+            'entra-id' => new $class(
+                configuration: $oauthConfig,
+                tenantId: self::requireField($providerConfig, 'tenantId', 'tenant_id'),
+            ),
+            'okta', 'auth0', 'onelogin', 'keycloak', 'cognito' => new $class(
+                configuration: $oauthConfig,
+                domain: self::requireField($providerConfig, 'domain', 'domain'),
+            ),
+            default => new $class(configuration: $oauthConfig),
         };
+    }
+
+    private static function requireField(ProviderConfiguration $config, string $property, string $fieldName): string
+    {
+        return $config->{$property} ?? throw new \RuntimeException(\sprintf(
+            'Provider "%s" requires a "%s" configuration.',
+            $config->name,
+            $fieldName,
+        ));
     }
 
     public static function createUserResolver(

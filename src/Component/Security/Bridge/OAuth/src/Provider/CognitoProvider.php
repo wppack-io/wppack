@@ -33,6 +33,17 @@ final class CognitoProvider implements ProviderInterface
         $this->discoveryDocument = $discoveryDocument;
     }
 
+    public static function definition(): ProviderDefinition
+    {
+        return new ProviderDefinition(
+            type: 'cognito',
+            label: 'AWS Cognito',
+            dropdownLabel: 'AWS Cognito',
+            oidc: true,
+            requiredFields: ['domain'],
+        );
+    }
+
     public function getDiscoveryUrl(): string
     {
         return \sprintf('https://%s/.well-known/openid-configuration', $this->domain);

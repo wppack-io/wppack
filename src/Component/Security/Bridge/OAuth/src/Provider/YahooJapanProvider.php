@@ -39,6 +39,16 @@ final class YahooJapanProvider implements ProviderInterface
         $this->discoveryDocument = $discoveryDocument;
     }
 
+    public static function definition(): ProviderDefinition
+    {
+        return new ProviderDefinition(
+            type: 'yahoo-japan',
+            label: 'Yahoo! JAPAN',
+            dropdownLabel: 'Yahoo! JAPAN',
+            oidc: true,
+        );
+    }
+
     public function getDiscoveryUrl(): string
     {
         return self::DISCOVERY_URL;

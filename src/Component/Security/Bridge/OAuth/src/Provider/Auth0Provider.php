@@ -33,6 +33,17 @@ final class Auth0Provider implements ProviderInterface
         $this->discoveryDocument = $discoveryDocument;
     }
 
+    public static function definition(): ProviderDefinition
+    {
+        return new ProviderDefinition(
+            type: 'auth0',
+            label: 'Auth0',
+            dropdownLabel: 'Auth0',
+            oidc: true,
+            requiredFields: ['domain'],
+        );
+    }
+
     public function getDiscoveryUrl(): string
     {
         return \sprintf('https://%s/.well-known/openid-configuration', $this->domain);

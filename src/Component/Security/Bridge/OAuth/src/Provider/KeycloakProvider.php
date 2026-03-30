@@ -34,6 +34,17 @@ final class KeycloakProvider implements ProviderInterface
         $this->discoveryDocument = $discoveryDocument;
     }
 
+    public static function definition(): ProviderDefinition
+    {
+        return new ProviderDefinition(
+            type: 'keycloak',
+            label: 'Keycloak',
+            dropdownLabel: 'Keycloak',
+            oidc: true,
+            requiredFields: ['domain'],
+        );
+    }
+
     public function getDiscoveryUrl(): string
     {
         return \sprintf('https://%s/.well-known/openid-configuration', $this->domain);

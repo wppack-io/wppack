@@ -27,6 +27,16 @@ final class LineProvider implements ProviderInterface
         private readonly OAuthConfiguration $configuration,
     ) {}
 
+    public static function definition(): ProviderDefinition
+    {
+        return new ProviderDefinition(
+            type: 'line',
+            label: 'LINE',
+            dropdownLabel: 'LINE',
+            oidc: true,
+        );
+    }
+
     public function getAuthorizationUrl(
         string $state,
         string $nonce,

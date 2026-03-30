@@ -21,6 +21,7 @@ use WpPack\Component\Role\Attribute\IsGranted;
 use WpPack\Component\Role\RoleProvider;
 use WpPack\Component\Sanitizer\Sanitizer;
 use WpPack\Component\Security\Bridge\OAuth\Assets\ProviderIcons;
+use WpPack\Component\Security\Bridge\OAuth\Provider\ProviderRegistry;
 use WpPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration;
 use WpPack\Plugin\OAuthLoginPlugin\Configuration\ProviderConfiguration;
 
@@ -75,10 +76,23 @@ final class OAuthLoginSettingsController extends AbstractRestController
             $styles[$type] = ProviderIcons::styles($type);
         }
 
+        $definitions = [];
+        foreach (ProviderRegistry::definitions() as $type => $def) {
+            $definitions[$type] = [
+                'type' => $def->type,
+                'label' => $def->label,
+                'dropdownLabel' => $def->dropdownLabel,
+                'oidc' => $def->oidc,
+                'requiredFields' => $def->requiredFields,
+                'defaultScopes' => $def->defaultScopes,
+            ];
+        }
+
         return [
             'siteUrl' => get_home_url($blogId),
             'icons' => $icons,
             'styles' => $styles,
+            'definitions' => $definitions,
             'global' => $this->buildGlobalDisplay(),
             'providers' => $this->buildProvidersDisplay(),
         ];

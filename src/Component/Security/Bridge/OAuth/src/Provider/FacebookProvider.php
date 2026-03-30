@@ -25,6 +25,17 @@ final class FacebookProvider implements ProviderInterface
         private readonly OAuthConfiguration $configuration,
     ) {}
 
+    public static function definition(): ProviderDefinition
+    {
+        return new ProviderDefinition(
+            type: 'facebook',
+            label: 'Facebook',
+            dropdownLabel: 'Facebook',
+            oidc: false,
+            defaultScopes: ['email', 'public_profile'],
+        );
+    }
+
     public function getAuthorizationUrl(
         string $state,
         string $nonce,

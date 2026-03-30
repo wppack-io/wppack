@@ -27,6 +27,16 @@ final class SlackProvider implements ProviderInterface
         private readonly OAuthConfiguration $configuration,
     ) {}
 
+    public static function definition(): ProviderDefinition
+    {
+        return new ProviderDefinition(
+            type: 'slack',
+            label: 'Slack',
+            dropdownLabel: 'Slack',
+            oidc: true,
+        );
+    }
+
     public function getAuthorizationUrl(
         string $state,
         string $nonce,

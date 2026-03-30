@@ -33,6 +33,17 @@ final class OneLoginProvider implements ProviderInterface
         $this->discoveryDocument = $discoveryDocument;
     }
 
+    public static function definition(): ProviderDefinition
+    {
+        return new ProviderDefinition(
+            type: 'onelogin',
+            label: 'OneLogin',
+            dropdownLabel: 'OneLogin',
+            oidc: true,
+            requiredFields: ['domain'],
+        );
+    }
+
     public function getDiscoveryUrl(): string
     {
         return \sprintf('https://%s/oidc/2/.well-known/openid-configuration', $this->domain);

@@ -27,6 +27,17 @@ final class GenericOidcProvider implements ProviderInterface
         $this->discoveryDocument = $discoveryDocument;
     }
 
+    public static function definition(): ProviderDefinition
+    {
+        return new ProviderDefinition(
+            type: 'oidc',
+            label: 'OIDC',
+            dropdownLabel: 'Generic OIDC',
+            oidc: true,
+            requiredFields: ['discovery_url'],
+        );
+    }
+
     public function getAuthorizationUrl(
         string $state,
         string $nonce,

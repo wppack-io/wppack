@@ -16,9 +16,17 @@ namespace WpPack\Component\Security\Bridge\OAuth\Provider;
 use WpPack\Component\Security\Bridge\OAuth\Configuration\OAuthConfiguration;
 use WpPack\Component\Security\Bridge\OAuth\Token\DiscoveryDocument;
 
+/**
+ * @deprecated Use EntraIdProvider instead.
+ */
 final class AzureProvider implements ProviderInterface
 {
     private const BASE_URL = 'https://login.microsoftonline.com';
+
+    public static function definition(): ProviderDefinition
+    {
+        return EntraIdProvider::definition();
+    }
 
     private ?DiscoveryDocument $discoveryDocument = null;
 

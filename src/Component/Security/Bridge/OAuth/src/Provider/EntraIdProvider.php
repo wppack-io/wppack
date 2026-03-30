@@ -34,6 +34,17 @@ final class EntraIdProvider implements ProviderInterface
         $this->discoveryDocument = $discoveryDocument;
     }
 
+    public static function definition(): ProviderDefinition
+    {
+        return new ProviderDefinition(
+            type: 'entra-id',
+            label: 'Entra ID',
+            dropdownLabel: 'Microsoft Entra ID',
+            oidc: true,
+            requiredFields: ['tenant_id'],
+        );
+    }
+
     public function getDiscoveryUrl(): string
     {
         return \sprintf('%s/%s/v2.0/.well-known/openid-configuration', self::BASE_URL, $this->tenantId);

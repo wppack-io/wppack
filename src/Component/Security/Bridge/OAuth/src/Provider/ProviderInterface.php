@@ -15,6 +15,8 @@ namespace WpPack\Component\Security\Bridge\OAuth\Provider;
 
 interface ProviderInterface
 {
+    public static function definition(): ProviderDefinition;
+
     public function getAuthorizationUrl(
         string $state,
         string $nonce,

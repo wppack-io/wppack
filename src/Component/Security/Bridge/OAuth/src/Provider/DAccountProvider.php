@@ -40,6 +40,16 @@ final class DAccountProvider implements ProviderInterface
         $this->discoveryDocument = $discoveryDocument;
     }
 
+    public static function definition(): ProviderDefinition
+    {
+        return new ProviderDefinition(
+            type: 'd-account',
+            label: 'dアカウント',
+            dropdownLabel: 'dアカウント (d Account)',
+            oidc: true,
+        );
+    }
+
     public function getDiscoveryUrl(): string
     {
         return self::DISCOVERY_URL;

@@ -104,7 +104,7 @@ function PathField( { id, label, field, value, onChange, prefix, disabled } ) {
 	);
 }
 
-function ProviderPanel( { name, provider, onChange, onDelete, onMoveUp, onMoveDown, isFirst, isLast, isReadonly, icons, allStyles, buttonDisplay } ) {
+function ProviderPanel( { name, provider, onChange, onDelete, onMoveUp, onMoveDown, isFirst, isLast, isReadonly, icons, allStyles, buttonDisplay, definitions } ) {
 	const f = provider.fields || {};
 	const icon = icons[ f.type ] || icons[ name ] || provider.icon;
 	const providerStyles = allStyles[ f.type ] || allStyles[ name ] || {};
@@ -112,6 +112,8 @@ function ProviderPanel( { name, provider, onChange, onDelete, onMoveUp, onMoveDo
 	const selectedStyle = f.button_style || styleKeys[ 0 ] || '';
 	const currentStyle = providerStyles[ selectedStyle ] || providerStyles[ styleKeys[ 0 ] ] || { bg: '#f0f0f0', text: '#1d2327', border: '#ddd', icon: 'original' };
 	const firstStyle = providerStyles[ styleKeys[ 0 ] ] || currentStyle;
+	const def = definitions[ f.type ] || {};
+	const reqFields = def.requiredFields || [];
 	const update = ( key ) => ( val ) => {
 		onChange( name, { ...f, [ key ]: val } );
 	};
@@ -229,27 +231,34 @@ function ProviderPanel( { name, provider, onChange, onDelete, onMoveUp, onMoveDo
 				onChange={ update( 'label' ) }
 				disabled={ isReadonly }
 			/>
-			{ f.type === 'entra-id' && (
+			{ reqFields.includes( 'tenant_id' ) && (
 				<Field
 					id={ `${ name }-tenant-id` }
 					label={ __( 'Tenant ID', 'wppack-oauth-login' ) }
 					value={ f.tenant_id }
 					onChange={ update( 'tenant_id' ) }
 					disabled={ isReadonly }
-					help={ __( 'Required for Microsoft Entra ID.', 'wppack-oauth-login' ) }
 				/>
 			) }
-			{ [ 'okta', 'auth0', 'onelogin', 'keycloak', 'cognito' ].includes( f.type ) && (
+			{ reqFields.includes( 'domain' ) && (
 				<Field
 					id={ `${ name }-domain` }
 					label={ __( 'Domain', 'wppack-oauth-login' ) }
 					value={ f.domain }
 					onChange={ update( 'domain' ) }
 					disabled={ isReadonly }
-					help={ __( 'Provider domain (e.g., your-tenant.okta.com).', 'wppack-oauth-login' ) }
 				/>
 			) }
-			{ ( f.type === 'google' || ! f.type ) && (
+			{ reqFields.includes( 'discovery_url' ) && (
+				<Field
+					id={ `${ name }-discovery-url` }
+					label={ __( 'Discovery URL', 'wppack-oauth-login' ) }
+					value={ f.discovery_url }
+					onChange={ update( 'discovery_url' ) }
+					disabled={ isReadonly }
+				/>
+			) }
+			{ f.type === 'google' && (
 				<Field
 					id={ `${ name }-hosted-domain` }
 					label={ __( 'Hosted Domain', 'wppack-oauth-login' ) }
@@ -258,19 +267,6 @@ function ProviderPanel( { name, provider, onChange, onDelete, onMoveUp, onMoveDo
 					disabled={ isReadonly }
 					help={ __(
 						'Restrict to Google Workspace domain.',
-						'wppack-oauth-login'
-					) }
-				/>
-			) }
-			{ ( f.type === 'oidc' || ! f.type ) && (
-				<Field
-					id={ `${ name }-discovery-url` }
-					label={ __( 'Discovery URL', 'wppack-oauth-login' ) }
-					value={ f.discovery_url }
-					onChange={ update( 'discovery_url' ) }
-					disabled={ isReadonly }
-					help={ __(
-						'OpenID Connect discovery endpoint.',
 						'wppack-oauth-login'
 					) }
 				/>
@@ -354,6 +350,7 @@ export default function App() {
 	const [ providers, setProviders ] = useState( {} );
 	const [ icons, setIcons ] = useState( {} );
 	const [ styles, setStyles ] = useState( {} );
+	const [ definitions, setDefinitions ] = useState( {} );
 	const [ siteUrl, setSiteUrl ] = useState( '' );
 	const [ globalForm, setGlobalForm ] = useState( {} );
 	const [ providerForm, setProviderForm ] = useState( {} );
@@ -368,6 +365,7 @@ export default function App() {
 		setSiteUrl( data.siteUrl || '' );
 		setIcons( data.icons || {} );
 		setStyles( data.styles || {} );
+		setDefinitions( data.definitions || {} );
 		setGlobalSettings( data.global );
 		setProviders( data.providers || {} );
 		setProviderOrder( Object.keys( data.providers || {} ) );
@@ -464,21 +462,13 @@ export default function App() {
 			index++;
 		}
 
-		const typeLabels = {
-			apple: 'Apple', auth0: 'Auth0', cognito: 'AWS Cognito',
-			'd-account': 'dアカウント', discord: 'Discord',
-			'entra-id': 'Entra ID', facebook: 'Facebook',
-			github: 'GitHub', google: 'Google', keycloak: 'Keycloak',
-			line: 'LINE', okta: 'Okta', onelogin: 'OneLogin',
-			slack: 'Slack', x: 'X', yahoo: 'Yahoo',
-			'yahoo-japan': 'Yahoo! JAPAN', oidc: 'OIDC',
-		};
+		const def = definitions[ type ];
 
 		const defaultFields = {
 			type,
 			client_id: '',
 			client_secret: '',
-			label: typeLabels[ type ] || name,
+			label: def?.label || name,
 			auto_provision: false,
 			default_role: 'subscriber',
 		};
@@ -677,6 +667,7 @@ export default function App() {
 								icons={ icons }
 								allStyles={ styles }
 								buttonDisplay={ globalForm.buttonDisplay || 'icon-text' }
+								definitions={ definitions }
 							/>
 						);
 					}
@@ -689,24 +680,9 @@ export default function App() {
 					onChange={ setNewProviderType }
 					options={ [
 						{ label: __( '— Select Provider —', 'wppack-oauth-login' ), value: '' },
-						{ label: 'Apple', value: 'apple' },
-						{ label: 'Auth0', value: 'auth0' },
-						{ label: 'AWS Cognito', value: 'cognito' },
-						{ label: 'dアカウント (d Account)', value: 'd-account' },
-						{ label: 'Discord', value: 'discord' },
-						{ label: 'Facebook', value: 'facebook' },
-						{ label: 'GitHub', value: 'github' },
-						{ label: 'Google', value: 'google' },
-						{ label: 'Keycloak', value: 'keycloak' },
-						{ label: 'LINE', value: 'line' },
-						{ label: 'Microsoft Entra ID', value: 'entra-id' },
-						{ label: 'Okta', value: 'okta' },
-						{ label: 'OneLogin', value: 'onelogin' },
-						{ label: 'Slack', value: 'slack' },
-						{ label: 'X (Twitter)', value: 'x' },
-						{ label: 'Yahoo', value: 'yahoo' },
-						{ label: 'Yahoo! JAPAN', value: 'yahoo-japan' },
-						{ label: 'Generic OIDC', value: 'oidc' },
+						...Object.values( definitions )
+							.sort( ( a, b ) => a.dropdownLabel.localeCompare( b.dropdownLabel ) )
+							.map( ( def ) => ( { label: def.dropdownLabel, value: def.type } ) ),
 					] }
 					__nextHasNoMarginBottom
 				/>

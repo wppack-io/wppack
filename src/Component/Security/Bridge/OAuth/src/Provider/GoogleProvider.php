@@ -40,6 +40,16 @@ final class GoogleProvider implements ProviderInterface
         $this->discoveryDocument = $discoveryDocument;
     }
 
+    public static function definition(): ProviderDefinition
+    {
+        return new ProviderDefinition(
+            type: 'google',
+            label: 'Google',
+            dropdownLabel: 'Google',
+            oidc: true,
+        );
+    }
+
     public function getAuthorizationUrl(
         string $state,
         string $nonce,

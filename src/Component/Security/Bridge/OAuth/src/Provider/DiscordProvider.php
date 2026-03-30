@@ -25,6 +25,17 @@ final class DiscordProvider implements ProviderInterface
         private readonly OAuthConfiguration $configuration,
     ) {}
 
+    public static function definition(): ProviderDefinition
+    {
+        return new ProviderDefinition(
+            type: 'discord',
+            label: 'Discord',
+            dropdownLabel: 'Discord',
+            oidc: false,
+            defaultScopes: ['identify', 'email'],
+        );
+    }
+
     public function getAuthorizationUrl(
         string $state,
         string $nonce,

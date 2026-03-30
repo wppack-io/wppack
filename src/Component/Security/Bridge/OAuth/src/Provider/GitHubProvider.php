@@ -25,6 +25,17 @@ final class GitHubProvider implements ProviderInterface
         private readonly OAuthConfiguration $configuration,
     ) {}
 
+    public static function definition(): ProviderDefinition
+    {
+        return new ProviderDefinition(
+            type: 'github',
+            label: 'GitHub',
+            dropdownLabel: 'GitHub',
+            oidc: false,
+            defaultScopes: ['user:email'],
+        );
+    }
+
     public function getAuthorizationUrl(
         string $state,
         string $nonce,
