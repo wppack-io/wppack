@@ -13,6 +13,10 @@
 	margin-bottom: 16px;
 }
 
+.wpp-oauth-narrow {
+	max-width: 280px;
+}
+
 .wpp-oauth-settings .components-panel {
 	margin-bottom: 16px;
 }
@@ -183,10 +187,11 @@
 }
 
 .wpp-oauth-login-button {
-	display: inline-flex !important;
+	display: flex !important;
 	align-items: center;
 	justify-content: center;
 	gap: 8px;
+	width: 100%;
 	max-width: 280px;
 	height: 36px;
 	padding: 0 12px;

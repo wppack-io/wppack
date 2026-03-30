@@ -503,6 +503,8 @@ vendor/bin/php-cs-fixer fix --dry-run --diff    # Code style check
 vendor/bin/phpunit                              # Run tests
 ```
 
+**Important:** Before every `git commit`, always run `vendor/bin/php-cs-fixer fix` and `vendor/bin/phpstan analyse` to ensure code style compliance and no static analysis errors. CI will fail if these checks are not passed.
+
 ### Testing
 
 #### Test Configuration

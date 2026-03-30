@@ -11,6 +11,10 @@
 	cursor: default;
 }
 
+.wpp-saml-narrow {
+	max-width: 280px;
+}
+
 .wpp-saml-settings h1 {
 	margin-bottom: 16px;
 }

@@ -320,6 +320,7 @@ export default function App() {
 						prefix={ siteUrl }
 					/>
 					<SelectControl
+						className="wpp-saml-narrow"
 						label={
 							<>
 								{ __( 'NameID Format', 'wppack-saml-login' ) }
@@ -394,6 +395,7 @@ export default function App() {
 						onChange={ updateField( 'autoProvision' ) }
 					/>
 					<SelectControl
+						className="wpp-saml-narrow"
 						label={
 							<>
 								{ __( 'Default Role', 'wppack-saml-login' ) }
@@ -440,17 +442,19 @@ export default function App() {
 						value={ formData.displayNameAttribute }
 						onChange={ updateField( 'displayNameAttribute' ) }
 					/>
-					<Field
-						id="roleAttribute"
-						label={ __( 'Role Attribute', 'wppack-saml-login' ) }
-						field={ f( 'roleAttribute' ) }
-						value={ formData.roleAttribute }
-						onChange={ updateField( 'roleAttribute' ) }
+					<div className="wpp-saml-narrow">
+						<Field
+							id="roleAttribute"
+							label={ __( 'Role Attribute', 'wppack-saml-login' ) }
+							field={ f( 'roleAttribute' ) }
+							value={ formData.roleAttribute }
+							onChange={ updateField( 'roleAttribute' ) }
 						help={ __(
 							'SAML attribute name for role mapping.',
 							'wppack-saml-login'
 						) }
 					/>
+					</div>
 					<TextareaControl
 						id="roleMapping"
 						label={

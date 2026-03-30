@@ -152,6 +152,7 @@ function ProviderPanel( { name, provider, onChange, onDelete, onRename, onMoveUp
 				id={ `${ name }-name` }
 				label={ __( 'Name', 'wppack-oauth-login' ) }
 				help={ __( 'Provider identifier used in URLs.', 'wppack-oauth-login' ) }
+				className="wpp-oauth-narrow"
 			>
 				<TextControl
 					id={ `${ name }-name` }
@@ -162,15 +163,18 @@ function ProviderPanel( { name, provider, onChange, onDelete, onRename, onMoveUp
 					__nextHasNoMarginBottom
 				/>
 			</BaseControl>
-			<Field
-				id={ `${ name }-type` }
-				label={ __( 'Type', 'wppack-oauth-login' ) }
-				value={ f.type || '' }
-				disabled={ true }
-				onChange={ () => {} }
-			/>
+			<div className="wpp-oauth-narrow">
+				<Field
+					id={ `${ name }-type` }
+					label={ __( 'Type', 'wppack-oauth-login' ) }
+					value={ f.type || '' }
+					disabled={ true }
+					onChange={ () => {} }
+				/>
+			</div>
 			{ styleKeys.length > 0 && (
 				<SelectControl
+					className="wpp-oauth-narrow"
 					label={ __( 'ボタンスタイル', 'wppack-oauth-login' ) }
 					value={ selectedStyle }
 					onChange={ update( 'button_style' ) }
@@ -249,13 +253,15 @@ function ProviderPanel( { name, provider, onChange, onDelete, onRename, onMoveUp
 						: undefined
 				}
 			/>
-			<Field
-				id={ `${ name }-label` }
-				label={ __( 'Label', 'wppack-oauth-login' ) }
-				value={ f.label }
-				onChange={ update( 'label' ) }
-				disabled={ isReadonly }
-			/>
+			<div className="wpp-oauth-narrow">
+				<Field
+					id={ `${ name }-label` }
+					label={ __( 'Label', 'wppack-oauth-login' ) }
+					value={ f.label }
+					onChange={ update( 'label' ) }
+					disabled={ isReadonly }
+				/>
+			</div>
 			{ reqFields.includes( 'tenant_id' ) && (
 				<Field
 					id={ `${ name }-tenant-id` }
@@ -314,6 +320,7 @@ function ProviderPanel( { name, provider, onChange, onDelete, onRename, onMoveUp
 				disabled={ isReadonly }
 			/>
 			<SelectControl
+				className="wpp-oauth-narrow"
 				label={ __( 'Default Role', 'wppack-oauth-login' ) }
 				value={ f.default_role || 'subscriber' }
 				onChange={ update( 'default_role' ) }
@@ -610,6 +617,7 @@ export default function App() {
 						) }
 					/>
 					<SelectControl
+						className="wpp-oauth-narrow"
 						label={
 							<>
 								{ __(
@@ -670,6 +678,7 @@ export default function App() {
 						prefix={ siteUrl }
 					/>
 					<SelectControl
+						className="wpp-oauth-narrow"
 						label={
 							<>
 								{ __( 'ボタン表示', 'wppack-oauth-login' ) }
