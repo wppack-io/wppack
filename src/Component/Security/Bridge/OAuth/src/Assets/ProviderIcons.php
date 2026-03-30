@@ -140,8 +140,9 @@ final class ProviderIcons
             'black' => ['label' => 'Black', 'bg' => '#000000', 'text' => '#FFFFFF', 'border' => '#000000', 'icon' => '#FFFFFF'],
             'white' => ['label' => 'White', 'bg' => '#FFFFFF', 'text' => '#000000', 'border' => '#000000', 'icon' => '#000000'],
         ],
-        // Yahoo: purple, white, outline (per Sign in with Yahoo guidelines)
+        // Yahoo: brand, purple, white (per Sign in with Yahoo guidelines)
         'yahoo' => [
+            'brand' => ['label' => 'Brand', 'bg' => '#FFFFFF', 'text' => '#232A31', 'border' => '#DADCE0', 'icon' => '#7E1FFF'],
             'purple' => ['label' => 'Purple', 'bg' => '#7E1FFF', 'text' => '#FFFFFF', 'border' => '#7E1FFF', 'icon' => '#FFFFFF'],
             'white' => ['label' => 'White', 'bg' => '#FFFFFF', 'text' => '#232A31', 'border' => '#232A31', 'icon' => '#232A31'],
         ],
