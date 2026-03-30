@@ -225,6 +225,9 @@ function ProviderPanel( { name, provider, onChange, onDelete, onRename, onMoveUp
 								/>
 							) }
 							<span className="wpp-oauth-login-text">{ `${ f.label || name } でログイン` }</span>
+							{ buttonDisplay === 'icon-left' && icon && (
+								<span style={ { width: 20, flexShrink: 0 } } />
+							) }
 						</a>
 					) }
 				</div>

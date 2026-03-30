@@ -85,9 +85,9 @@ class OAuthLoginForm
             $showText = $display !== 'icon-only';
 
             if ($display === 'icon-left' && $showIcon) {
-                $iconHtml = '<span style="position:absolute;left:12px;display:inline-flex;width:20px;height:20px;' . $iconColor . '">' . $icon . '</span>';
-                $textHtml = $showText ? '<span style="flex:1;text-align:center;">' . esc_html(sprintf(__('%s でログイン', 'wppack-oauth-login'), $provider->label)) . '</span>' : '';
-                $btnStyle = 'display:flex;align-items:center;position:relative;width:100%;box-sizing:border-box;padding:0 12px;height:36px;';
+                $iconHtml = '<span style="display:inline-flex;width:20px;height:20px;flex-shrink:0;' . $iconColor . '">' . $icon . '</span>';
+                $textHtml = $showText ? '<span style="flex:1;text-align:center;">' . esc_html(sprintf(__('%s でログイン', 'wppack-oauth-login'), $provider->label)) . '</span><span style="width:20px;flex-shrink:0;"></span>' : '';
+                $btnStyle = 'display:flex;align-items:center;gap:0;width:100%;box-sizing:border-box;padding:0 12px;height:36px;';
             } elseif ($display === 'icon-only' && $showIcon) {
                 $iconHtml = '<span style="display:inline-flex;width:20px;height:20px;' . $iconColor . '">' . $icon . '</span>';
                 $textHtml = '';
