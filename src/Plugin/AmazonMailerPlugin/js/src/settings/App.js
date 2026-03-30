@@ -153,40 +153,40 @@ export default function App() {
 						__nextHasNoMarginBottom
 					/>
 					{ def && def.fields.map( ( f ) => {
-						const fieldStyle = f.maxWidth ? { maxWidth: f.maxWidth } : {};
+						const wrapStyle = f.maxWidth ? { maxWidth: f.maxWidth } : {};
 						if ( f.options ) {
 							return (
-								<SelectControl
-									key={ f.name }
-									label={ f.label + ( f.required ? ' *' : '' ) }
-									help={ f.help || undefined }
-									value={ fields[ f.name ] || f.default || '' }
-									onChange={ ( val ) => setFields( ( prev ) => ( { ...prev, [ f.name ]: val } ) ) }
-									options={ f.options }
-									disabled={ isReadonly }
-									style={ fieldStyle }
-									__nextHasNoMarginBottom
-								/>
+								<div key={ f.name } style={ wrapStyle }>
+									<SelectControl
+										label={ f.label + ( f.required ? ' *' : '' ) }
+										help={ f.help || undefined }
+										value={ fields[ f.name ] || f.default || '' }
+										onChange={ ( val ) => setFields( ( prev ) => ( { ...prev, [ f.name ]: val } ) ) }
+										options={ f.options }
+										disabled={ isReadonly }
+										__nextHasNoMarginBottom
+									/>
+								</div>
 							);
 						}
 						return (
-							<BaseControl
-								key={ f.name }
-								id={ `mailer-${ f.name }` }
-								label={ f.label + ( f.required ? ' *' : '' ) }
-								help={ f.help || undefined }
-							>
-								<TextControl
+							<div key={ f.name } style={ wrapStyle }>
+								<BaseControl
 									id={ `mailer-${ f.name }` }
-									type={ f.type === 'password' ? 'password' : f.type === 'number' ? 'number' : 'text' }
-									value={ fields[ f.name ] || f.default || '' }
-									onChange={ ( val ) => setFields( ( prev ) => ( { ...prev, [ f.name ]: val } ) ) }
-									disabled={ isReadonly }
-									placeholder={ f.default || '' }
-									style={ fieldStyle }
-									__nextHasNoMarginBottom
-								/>
-							</BaseControl>
+									label={ f.label + ( f.required ? ' *' : '' ) }
+									help={ f.help || undefined }
+								>
+									<TextControl
+										id={ `mailer-${ f.name }` }
+										type={ f.type === 'password' ? 'password' : f.type === 'number' ? 'number' : 'text' }
+										value={ fields[ f.name ] || f.default || '' }
+										onChange={ ( val ) => setFields( ( prev ) => ( { ...prev, [ f.name ]: val } ) ) }
+										disabled={ isReadonly }
+										placeholder={ f.default || '' }
+										__nextHasNoMarginBottom
+									/>
+								</BaseControl>
+							</div>
 						);
 					} ) }
 				</PanelBody>
