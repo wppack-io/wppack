@@ -35,6 +35,7 @@ export default function App() {
 	const [ source, setSource ] = useState( 'default' );
 	const [ isReadonly, setIsReadonly ] = useState( false );
 	const [ suppression, setSuppression ] = useState( [] );
+	const [ awsRegion, setAwsRegion ] = useState( '' );
 	const [ saving, setSaving ] = useState( false );
 	const [ testing, setTesting ] = useState( false );
 	const [ notice, setNotice ] = useState( null );
@@ -47,6 +48,9 @@ export default function App() {
 		setSource( data.source || 'default' );
 		setIsReadonly( data.readonly || false );
 		setSuppression( data.suppression || [] );
+		if ( data.awsRegion ) {
+			setAwsRegion( data.awsRegion );
+		}
 	};
 
 	useEffect( () => {
@@ -154,13 +158,14 @@ export default function App() {
 					/>
 					{ def && def.fields.map( ( f ) => {
 						const wrapStyle = f.maxWidth ? { maxWidth: f.maxWidth } : {};
+						const effectiveDefault = ( f.name === 'region' && awsRegion ) ? awsRegion : ( f.default || '' );
 						if ( f.options ) {
 							return (
 								<div key={ f.name } style={ wrapStyle }>
 									<SelectControl
 										label={ f.label + ( f.required ? ' *' : '' ) }
 										help={ f.help || undefined }
-										value={ fields[ f.name ] || f.default || '' }
+										value={ fields[ f.name ] || effectiveDefault }
 										onChange={ ( val ) => setFields( ( prev ) => ( { ...prev, [ f.name ]: val } ) ) }
 										options={ f.options }
 										disabled={ isReadonly }
@@ -179,7 +184,7 @@ export default function App() {
 									<TextControl
 										id={ `mailer-${ f.name }` }
 										type={ f.type === 'password' ? 'password' : f.type === 'number' ? 'number' : 'text' }
-										value={ fields[ f.name ] || f.default || '' }
+										value={ fields[ f.name ] || effectiveDefault }
 										onChange={ ( val ) => setFields( ( prev ) => ( { ...prev, [ f.name ]: val } ) ) }
 										disabled={ isReadonly }
 										placeholder={ f.default || '' }

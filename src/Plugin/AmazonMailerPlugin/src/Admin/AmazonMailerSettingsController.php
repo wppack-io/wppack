@@ -123,6 +123,12 @@ final class AmazonMailerSettingsController extends AbstractRestController
         $suppressionRaw = get_option('wppack_ses_suppression_list', '[]');
         $suppression = json_decode(\is_string($suppressionRaw) ? $suppressionRaw : '[]', true);
 
+        // Detect AWS region from environment
+        $awsRegion = \defined('AWS_DEFAULT_REGION') ? (string) \constant('AWS_DEFAULT_REGION') : '';
+        if ($awsRegion === '') {
+            $awsRegion = getenv('AWS_DEFAULT_REGION') ?: (getenv('AWS_REGION') ?: '');
+        }
+
         return [
             'dsn' => $maskedDsn,
             'provider' => $saved['provider'] ?? '',
@@ -131,6 +137,7 @@ final class AmazonMailerSettingsController extends AbstractRestController
             'readonly' => $source === 'constant',
             'definitions' => $definitions,
             'suppression' => \is_array($suppression) ? $suppression : [],
+            'awsRegion' => $awsRegion,
         ];
     }
 
