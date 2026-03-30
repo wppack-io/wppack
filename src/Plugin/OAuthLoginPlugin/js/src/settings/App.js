@@ -453,10 +453,12 @@ export default function App() {
 
 		const typeLabels = {
 			apple: 'Apple', auth0: 'Auth0', cognito: 'AWS Cognito',
-			discord: 'Discord', 'entra-id': 'Microsoft Entra ID',
-			facebook: 'Facebook', github: 'GitHub', google: 'Google',
-			keycloak: 'Keycloak', line: 'LINE', okta: 'Okta',
-			onelogin: 'OneLogin', slack: 'Slack', x: 'X', oidc: 'OIDC',
+			'd-account': 'd Account', discord: 'Discord',
+			'entra-id': 'Microsoft Entra ID', facebook: 'Facebook',
+			github: 'GitHub', google: 'Google', keycloak: 'Keycloak',
+			line: 'LINE', okta: 'Okta', onelogin: 'OneLogin',
+			slack: 'Slack', x: 'X', yahoo: 'Yahoo',
+			'yahoo-japan': 'Yahoo! JAPAN', oidc: 'OIDC',
 		};
 
 		const defaultFields = {
@@ -636,6 +638,7 @@ export default function App() {
 						{ label: 'Apple', value: 'apple' },
 						{ label: 'Auth0', value: 'auth0' },
 						{ label: 'AWS Cognito', value: 'cognito' },
+						{ label: 'd Account', value: 'd-account' },
 						{ label: 'Discord', value: 'discord' },
 						{ label: 'Facebook', value: 'facebook' },
 						{ label: 'GitHub', value: 'github' },
@@ -647,6 +650,8 @@ export default function App() {
 						{ label: 'OneLogin', value: 'onelogin' },
 						{ label: 'Slack', value: 'slack' },
 						{ label: 'X (Twitter)', value: 'x' },
+						{ label: 'Yahoo', value: 'yahoo' },
+						{ label: 'Yahoo! JAPAN', value: 'yahoo-japan' },
 						{ label: 'Generic OIDC', value: 'oidc' },
 					] }
 					__nextHasNoMarginBottom

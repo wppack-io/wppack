@@ -34,6 +34,7 @@ use WpPack\Component\Security\Bridge\OAuth\OAuthEntryPoint;
 use WpPack\Component\Security\Bridge\OAuth\Provider\AppleProvider;
 use WpPack\Component\Security\Bridge\OAuth\Provider\Auth0Provider;
 use WpPack\Component\Security\Bridge\OAuth\Provider\CognitoProvider;
+use WpPack\Component\Security\Bridge\OAuth\Provider\DAccountProvider;
 use WpPack\Component\Security\Bridge\OAuth\Provider\DiscordProvider;
 use WpPack\Component\Security\Bridge\OAuth\Provider\EntraIdProvider;
 use WpPack\Component\Security\Bridge\OAuth\Provider\FacebookProvider;
@@ -46,6 +47,8 @@ use WpPack\Component\Security\Bridge\OAuth\Provider\OktaProvider;
 use WpPack\Component\Security\Bridge\OAuth\Provider\OneLoginProvider;
 use WpPack\Component\Security\Bridge\OAuth\Provider\ProviderInterface;
 use WpPack\Component\Security\Bridge\OAuth\Provider\SlackProvider;
+use WpPack\Component\Security\Bridge\OAuth\Provider\YahooJapanProvider;
+use WpPack\Component\Security\Bridge\OAuth\Provider\YahooProvider;
 use WpPack\Component\Security\Bridge\OAuth\State\OAuthStateStore;
 use WpPack\Component\Security\Bridge\OAuth\Token\IdTokenValidator;
 use WpPack\Component\Security\Bridge\OAuth\Token\JwksProvider;
@@ -320,6 +323,9 @@ final class OAuthLoginPluginServiceProvider implements ServiceProviderInterface
                 configuration: $oauthConfig,
                 domain: $providerConfig->domain ?? throw new \RuntimeException(\sprintf('Provider "%s" requires a "domain" configuration.', $providerConfig->name)),
             ),
+            'd-account' => new DAccountProvider(configuration: $oauthConfig),
+            'yahoo' => new YahooProvider(configuration: $oauthConfig),
+            'yahoo-japan' => new YahooJapanProvider(configuration: $oauthConfig),
             'oidc' => new GenericOidcProvider(
                 configuration: $oauthConfig,
             ),

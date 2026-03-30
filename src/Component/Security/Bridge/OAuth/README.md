@@ -37,6 +37,9 @@ composer require wppack/oauth-security
 | Okta | `okta` | Yes | client_id, client_secret, **domain** |
 | OneLogin | `onelogin` | Yes | client_id, client_secret, **domain** |
 | Slack | `slack` | Yes | client_id, client_secret |
+| Yahoo | `yahoo` | Yes | client_id, client_secret |
+| Yahoo! JAPAN | `yahoo-japan` | Yes | client_id, client_secret |
+| d Account | `d-account` | Yes | client_id, client_secret |
 | Generic OIDC | `oidc` | Yes | client_id, client_secret, discovery_url |
 
 ## Documentation
