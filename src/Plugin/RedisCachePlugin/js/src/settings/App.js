@@ -282,22 +282,22 @@ export default function App() {
 						disabled={ !! globalReadonly.maxTtl }
 						__nextHasNoMarginBottom
 					/>
-					<ToggleControl
-						label={ <><span>{ __( 'Hash Alloptions', 'wppack-cache' ) }</span>{ globalReadonly.hashAlloptions && <SourceBadge source="constant" /> }</> }
-						checked={ globalForm.hashAlloptions }
-						onChange={ ( val ) => setGlobalForm( ( prev ) => ( { ...prev, hashAlloptions: val } ) ) }
-						disabled={ !! globalReadonly.hashAlloptions }
-						__nextHasNoMarginBottom
-					/>
-					<ToggleControl
-						label={ <><span>{ __( 'Async Flush', 'wppack-cache' ) }</span>{ globalReadonly.asyncFlush && <SourceBadge source="constant" /> }</> }
-						checked={ globalForm.asyncFlush }
-						onChange={ ( val ) => setGlobalForm( ( prev ) => ( { ...prev, asyncFlush: val } ) ) }
-						disabled={ !! globalReadonly.asyncFlush }
-						__nextHasNoMarginBottom
-					/>
 					{ /^redis/.test( provider ) && (
 						<>
+							<ToggleControl
+								label={ <><span>{ __( 'Hash Alloptions', 'wppack-cache' ) }</span>{ globalReadonly.hashAlloptions && <SourceBadge source="constant" /> }</> }
+								checked={ globalForm.hashAlloptions }
+								onChange={ ( val ) => setGlobalForm( ( prev ) => ( { ...prev, hashAlloptions: val } ) ) }
+								disabled={ !! globalReadonly.hashAlloptions }
+								__nextHasNoMarginBottom
+							/>
+							<ToggleControl
+								label={ <><span>{ __( 'Async Flush', 'wppack-cache' ) }</span>{ globalReadonly.asyncFlush && <SourceBadge source="constant" /> }</> }
+								checked={ globalForm.asyncFlush }
+								onChange={ ( val ) => setGlobalForm( ( prev ) => ( { ...prev, asyncFlush: val } ) ) }
+								disabled={ !! globalReadonly.asyncFlush }
+								__nextHasNoMarginBottom
+							/>
 							<SelectControl
 								className="wpp-cache-narrow-select"
 								label={ <><span>{ __( 'Compression', 'wppack-cache' ) }</span>{ globalReadonly.compression && <SourceBadge source="constant" /> }</> }
