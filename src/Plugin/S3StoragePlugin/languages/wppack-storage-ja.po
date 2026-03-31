@@ -1,0 +1,116 @@
+# Japanese translation for wppack-storage
+# Copyright (C) 2026 @wppack/s3-storage-plugin
+# This file is distributed under the GPL v2 or later license.
+msgid ""
+msgstr ""
+"Project-Id-Version: @wppack/s3-storage-plugin 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugins/wppack-storage\n"
+"MIME-Version: 1.0\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"POT-Creation-Date: 2026-03-31T04:20:38.821Z\n"
+"PO-Revision-Date: 2026-03-31 13:20+0900\n"
+"Last-Translator: WpPack <dev@wppack.io>\n"
+"Language-Team: Japanese <dev@wppack.io>\n"
+"X-Generator: @wp-blocks/make-pot 1.6.6\n"
+"Language: ja\n"
+"X-Domain: wppack-storage\n"
+
+#: wppack-storage.php
+#. Name of the plugin
+msgid "@wppack/s3-storage-plugin"
+msgstr ""
+
+#: wppack-storage.php
+#. Author of the plugin
+msgid "WpPack"
+msgstr ""
+
+#: js/src/settings/App.js
+msgid "Constant"
+msgstr "定数"
+
+#: js/src/settings/App.js
+msgid "Saved"
+msgstr "保存済み"
+
+#: js/src/settings/App.js
+msgid "This storage is defined via constant and cannot be edited."
+msgstr "このストレージは定数で定義されているため編集できません。"
+
+#: js/src/settings/App.js
+msgid "Name"
+msgstr "名前"
+
+#: js/src/settings/App.js
+msgid "Storage identifier (e.g. media, backup)."
+msgstr "ストレージ識別子（例: media, backup）。"
+
+#: js/src/settings/App.js
+msgid "Provider"
+msgstr "プロバイダー"
+
+#: js/src/settings/App.js
+msgid "Upload Prefix"
+msgstr "アップロードプレフィックス"
+
+#: js/src/settings/App.js
+msgid "Path prefix for uploaded files (e.g. uploads)."
+msgstr "アップロードファイルのパスプレフィックス（例: uploads）。"
+
+#: js/src/settings/App.js
+msgid "CDN URL"
+msgstr "CDN URL"
+
+#: js/src/settings/App.js
+msgid "CDN base URL for public file access."
+msgstr "公開ファイルアクセス用の CDN ベース URL。"
+
+#: js/src/settings/App.js
+msgid "Delete Storage Settings"
+msgstr "ストレージ設定を削除"
+
+#: js/src/settings/App.js
+msgid "Failed to load settings."
+msgstr "設定の読み込みに失敗しました。"
+
+#: js/src/settings/App.js
+msgid "Settings saved."
+msgstr "設定を保存しました。"
+
+#: js/src/settings/App.js
+msgid "Failed to save settings."
+msgstr "設定の保存に失敗しました。"
+
+#: js/src/settings/App.js
+msgid "— Select Provider —"
+msgstr "— プロバイダーを選択 —"
+
+#: js/src/settings/App.js
+msgid "— Select —"
+msgstr "— 選択 —"
+
+#: js/src/settings/App.js
+msgid "Storage Settings"
+msgstr "ストレージ設定"
+
+#: js/src/settings/App.js
+msgid "Add Storage"
+msgstr "ストレージを追加"
+
+#: js/src/settings/App.js
+msgid "Primary Storage"
+msgstr "プライマリストレージ"
+
+#: js/src/settings/App.js
+msgid "The storage used for WordPress media uploads."
+msgstr "WordPress メディアアップロードに使用されるストレージ。"
+
+#: js/src/settings/App.js
+msgid "Saving…"
+msgstr "保存中…"
+
+#: js/src/settings/App.js
+msgid "Save Settings"
+msgstr "設定を保存"

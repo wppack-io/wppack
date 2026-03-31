@@ -15,10 +15,12 @@ namespace WpPack\Plugin\S3StoragePlugin\DependencyInjection;
 
 use AsyncAws\S3\S3Client;
 use Psr\Log\LoggerInterface;
+use WpPack\Component\Admin\AdminPageRegistry;
 use WpPack\Component\Asset\AssetManager;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
+use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Media\AttachmentManager;
 use WpPack\Component\Media\AttachmentManagerInterface;
 use WpPack\Component\PostType\PostRepository;
@@ -39,6 +41,7 @@ use WpPack\Component\Messenger\MessageBus;
 use WpPack\Component\Messenger\MessageBusInterface;
 use WpPack\Component\Messenger\Middleware\HandleMessageMiddleware;
 use WpPack\Component\Nonce\NonceManager;
+use WpPack\Component\Rest\RestRegistry;
 use WpPack\Component\Rest\RestUrlGenerator;
 use WpPack\Component\Site\BlogContext;
 use WpPack\Component\Site\BlogContextInterface;
@@ -48,6 +51,8 @@ use WpPack\Component\Storage\Adapter\StorageAdapterInterface;
 use WpPack\Component\Storage\Bridge\S3\S3StorageAdapter;
 use WpPack\Component\Storage\StreamWrapper\StorageStreamWrapper;
 use WpPack\Component\Transient\TransientManager;
+use WpPack\Plugin\S3StoragePlugin\Admin\S3StorageSettingsController;
+use WpPack\Plugin\S3StoragePlugin\Admin\S3StorageSettingsPage;
 use WpPack\Plugin\S3StoragePlugin\Attachment\AttachmentRegistrar;
 use WpPack\Plugin\S3StoragePlugin\Attachment\RegisterAttachmentController;
 use WpPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
@@ -66,6 +71,21 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
     public function __construct(
         private readonly string $pluginFile,
     ) {}
+
+    public function registerAdmin(ContainerBuilder $builder): void
+    {
+        if (!$builder->hasDefinition(AdminPageRegistry::class)) {
+            $builder->register(AdminPageRegistry::class);
+        }
+
+        if (!$builder->hasDefinition(RestRegistry::class)) {
+            $builder->register(RestRegistry::class)
+                ->addArgument(new Reference(Request::class));
+        }
+
+        $builder->register(S3StorageSettingsPage::class);
+        $builder->register(S3StorageSettingsController::class);
+    }
 
     public function register(ContainerBuilder $builder): void
     {
@@ -89,7 +109,7 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
 
         // Configuration
         $builder->register(S3StorageConfiguration::class)
-            ->setFactory([S3StorageConfiguration::class, 'fromEnvironment']);
+            ->setFactory([S3StorageConfiguration::class, 'fromEnvironmentOrOptions']);
 
         $builder->register(StorageConfiguration::class)
             ->setFactory([new Reference(S3StorageConfiguration::class), 'toStorageConfiguration']);

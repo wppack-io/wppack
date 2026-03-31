@@ -15,6 +15,9 @@ namespace WpPack\Component\Storage\Adapter;
 
 interface StorageAdapterFactoryInterface
 {
+    /** @return list<StorageAdapterDefinition> */
+    public static function definitions(): array;
+
     /** @param array<string, mixed> $options */
     public function create(Dsn $dsn, array $options = []): StorageAdapterInterface;
 

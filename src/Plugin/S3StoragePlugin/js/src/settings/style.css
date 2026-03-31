@@ -1,0 +1,115 @@
+.wpp-storage-settings {
+	max-width: 800px;
+	margin-top: 16px;
+}
+
+.wpp-storage-settings input[readonly],
+.wpp-storage-settings input[disabled],
+.wpp-storage-settings select[disabled] {
+	cursor: default;
+}
+
+.wpp-storage-settings h1 {
+	margin-bottom: 16px;
+}
+
+.wpp-storage-narrow {
+	max-width: 280px;
+}
+
+.wpp-storage-settings .components-panel {
+	margin-bottom: 16px;
+}
+
+.wpp-storage-settings .components-panel__body .components-base-control {
+	margin-bottom: 16px;
+}
+
+.wpp-storage-settings .components-panel__body.is-opened {
+	padding-bottom: 0;
+}
+
+.wpp-storage-settings .components-panel__body.is-opened > .components-panel__body-title {
+	margin-bottom: 16px;
+}
+
+.wpp-storage-loading {
+	display: flex;
+	justify-content: center;
+	padding: 48px;
+}
+
+.wpp-storage-actions {
+	margin-top: 16px;
+}
+
+.wpp-storage-source-badge {
+	display: inline-block;
+	font-size: 11px;
+	font-weight: 500;
+	line-height: 1;
+	padding: 2px 6px;
+	border-radius: 3px;
+	margin-left: 6px;
+	vertical-align: middle;
+}
+
+.wpp-storage-source-constant {
+	background: #f0f0f0;
+	color: #757575;
+	border: 1px solid #ccc;
+}
+
+.wpp-storage-source-option {
+	background: #e3f2fd;
+	color: #1565c0;
+	border: 1px solid #90caf9;
+}
+
+.wpp-storage-settings .components-notice {
+	margin-bottom: 16px;
+}
+
+.wpp-storage-provider-panel .components-panel__body-title button {
+	font-weight: 600;
+}
+
+.wpp-storage-panel-title {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.wpp-storage-delete-storage {
+	margin-top: 16px;
+	margin-bottom: 16px;
+}
+
+.wpp-storage-add-storage {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: 16px;
+}
+
+.wpp-storage-add-storage .components-base-control {
+	flex: 1;
+	margin-bottom: 0;
+}
+
+.wpp-storage-add-storage .components-base-control__field {
+	margin-bottom: 0;
+}
+
+.wpp-storage-add-storage .components-button {
+	height: 36px;
+	flex-shrink: 0;
+}
+
+.wpp-storage-primary-select {
+	margin-top: 16px;
+}
+
+.wpp-storage-primary-select .components-base-control__field {
+	max-width: 300px;
+}

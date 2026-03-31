@@ -15,12 +15,71 @@ namespace WpPack\Component\Storage\Bridge\S3;
 
 use AsyncAws\S3\S3Client;
 use WpPack\Component\Storage\Adapter\Dsn;
+use WpPack\Component\Storage\Adapter\StorageAdapterDefinition;
 use WpPack\Component\Storage\Adapter\StorageAdapterFactoryInterface;
+use WpPack\Component\Storage\Adapter\StorageAdapterField;
 use WpPack\Component\Storage\Adapter\StorageAdapterInterface;
 use WpPack\Component\Storage\Exception\InvalidArgumentException;
 
 final class S3StorageAdapterFactory implements StorageAdapterFactoryInterface
 {
+    /** @var list<array{label: string, value: string}> */
+    private const REGION_OPTIONS = [
+        ['label' => 'us-east-1 (N. Virginia)', 'value' => 'us-east-1'],
+        ['label' => 'us-east-2 (Ohio)', 'value' => 'us-east-2'],
+        ['label' => 'us-west-1 (N. California)', 'value' => 'us-west-1'],
+        ['label' => 'us-west-2 (Oregon)', 'value' => 'us-west-2'],
+        ['label' => 'af-south-1 (Cape Town)', 'value' => 'af-south-1'],
+        ['label' => 'ap-east-1 (Hong Kong)', 'value' => 'ap-east-1'],
+        ['label' => 'ap-east-2 (Taipei)', 'value' => 'ap-east-2'],
+        ['label' => 'ap-south-1 (Mumbai)', 'value' => 'ap-south-1'],
+        ['label' => 'ap-south-2 (Hyderabad)', 'value' => 'ap-south-2'],
+        ['label' => 'ap-northeast-1 (Tokyo)', 'value' => 'ap-northeast-1'],
+        ['label' => 'ap-northeast-2 (Seoul)', 'value' => 'ap-northeast-2'],
+        ['label' => 'ap-northeast-3 (Osaka)', 'value' => 'ap-northeast-3'],
+        ['label' => 'ap-southeast-1 (Singapore)', 'value' => 'ap-southeast-1'],
+        ['label' => 'ap-southeast-2 (Sydney)', 'value' => 'ap-southeast-2'],
+        ['label' => 'ap-southeast-3 (Jakarta)', 'value' => 'ap-southeast-3'],
+        ['label' => 'ap-southeast-4 (Melbourne)', 'value' => 'ap-southeast-4'],
+        ['label' => 'ap-southeast-5 (Malaysia)', 'value' => 'ap-southeast-5'],
+        ['label' => 'ap-southeast-6 (New Zealand)', 'value' => 'ap-southeast-6'],
+        ['label' => 'ap-southeast-7 (Thailand)', 'value' => 'ap-southeast-7'],
+        ['label' => 'ca-central-1 (Canada)', 'value' => 'ca-central-1'],
+        ['label' => 'ca-west-1 (Calgary)', 'value' => 'ca-west-1'],
+        ['label' => 'eu-central-1 (Frankfurt)', 'value' => 'eu-central-1'],
+        ['label' => 'eu-central-2 (Zurich)', 'value' => 'eu-central-2'],
+        ['label' => 'eu-north-1 (Stockholm)', 'value' => 'eu-north-1'],
+        ['label' => 'eu-south-1 (Milan)', 'value' => 'eu-south-1'],
+        ['label' => 'eu-south-2 (Spain)', 'value' => 'eu-south-2'],
+        ['label' => 'eu-west-1 (Ireland)', 'value' => 'eu-west-1'],
+        ['label' => 'eu-west-2 (London)', 'value' => 'eu-west-2'],
+        ['label' => 'eu-west-3 (Paris)', 'value' => 'eu-west-3'],
+        ['label' => 'il-central-1 (Tel Aviv)', 'value' => 'il-central-1'],
+        ['label' => 'me-central-1 (UAE)', 'value' => 'me-central-1'],
+        ['label' => 'me-south-1 (Bahrain)', 'value' => 'me-south-1'],
+        ['label' => 'mx-central-1 (Mexico)', 'value' => 'mx-central-1'],
+        ['label' => 'sa-east-1 (São Paulo)', 'value' => 'sa-east-1'],
+        ['label' => 'us-gov-east-1 (GovCloud US-East)', 'value' => 'us-gov-east-1'],
+        ['label' => 'us-gov-west-1 (GovCloud US-West)', 'value' => 'us-gov-west-1'],
+    ];
+
+    public static function definitions(): array
+    {
+        return [
+            new StorageAdapterDefinition(
+                scheme: 's3',
+                label: 'Amazon S3',
+                fields: [
+                    new StorageAdapterField('bucket', 'Bucket', required: true, dsnPart: 'host'),
+                    new StorageAdapterField('region', 'Region', required: true, dsnPart: 'option:region', options: self::REGION_OPTIONS, maxWidth: '280px'),
+                    new StorageAdapterField('accessKey', 'Access Key ID', dsnPart: 'user', help: 'Leave empty to use IAM role'),
+                    new StorageAdapterField('secretKey', 'Secret Access Key', type: 'password', dsnPart: 'password'),
+                    new StorageAdapterField('endpoint', 'Endpoint', dsnPart: 'option:endpoint', help: 'Custom endpoint for MinIO, R2, LocalStack'),
+                ],
+            ),
+        ];
+    }
+
     public function create(Dsn $dsn, array $options = []): StorageAdapterInterface
     {
         [$bucket, $region] = $this->parseHost($dsn, $options);

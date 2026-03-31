@@ -138,4 +138,110 @@ final class S3StorageConfigurationTest extends TestCase
         self::assertSame('uploads', $storageConfig->prefix);
         self::assertNull($storageConfig->cdnUrl);
     }
+
+    #[Test]
+    public function hasConfigurationReturnsFalseByDefault(): void
+    {
+        delete_option(S3StorageConfiguration::OPTION_NAME);
+
+        self::assertFalse(S3StorageConfiguration::hasConfiguration());
+    }
+
+    #[Test]
+    public function hasConfigurationReturnsTrueWithWpOption(): void
+    {
+        update_option(S3StorageConfiguration::OPTION_NAME, [
+            'storages' => [
+                'media' => [
+                    'provider' => 's3',
+                    'fields' => ['bucket' => 'my-bucket', 'region' => 'us-east-1'],
+                    'prefix' => 'uploads',
+                ],
+            ],
+            'primary' => 'media',
+        ]);
+
+        self::assertTrue(S3StorageConfiguration::hasConfiguration());
+
+        delete_option(S3StorageConfiguration::OPTION_NAME);
+    }
+
+    #[Test]
+    public function hasConfigurationReturnsTrueWithEnvVar(): void
+    {
+        putenv('S3_BUCKET=env-bucket');
+
+        self::assertTrue(S3StorageConfiguration::hasConfiguration());
+    }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsReadsWpOption(): void
+    {
+        update_option(S3StorageConfiguration::OPTION_NAME, [
+            'storages' => [
+                'media' => [
+                    'provider' => 's3',
+                    'fields' => ['bucket' => 'option-bucket', 'region' => 'eu-west-1'],
+                    'prefix' => 'media-files',
+                    'cdnUrl' => 'https://cdn.example.com',
+                ],
+            ],
+            'primary' => 'media',
+        ]);
+
+        $config = S3StorageConfiguration::fromEnvironmentOrOptions();
+
+        self::assertSame('option-bucket', $config->bucket);
+        self::assertSame('eu-west-1', $config->region);
+        self::assertSame('media-files', $config->prefix);
+        self::assertSame('https://cdn.example.com', $config->cdnUrl);
+
+        delete_option(S3StorageConfiguration::OPTION_NAME);
+    }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsThrowsWhenNothingConfigured(): void
+    {
+        delete_option(S3StorageConfiguration::OPTION_NAME);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('S3 storage is not configured.');
+
+        S3StorageConfiguration::fromEnvironmentOrOptions();
+    }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsPrefersEnvOverOption(): void
+    {
+        putenv('S3_BUCKET=env-bucket');
+
+        update_option(S3StorageConfiguration::OPTION_NAME, [
+            'storages' => [
+                'media' => [
+                    'provider' => 's3',
+                    'fields' => ['bucket' => 'option-bucket'],
+                    'prefix' => 'uploads',
+                ],
+            ],
+            'primary' => 'media',
+        ]);
+
+        $config = S3StorageConfiguration::fromEnvironmentOrOptions();
+
+        self::assertSame('env-bucket', $config->bucket);
+
+        delete_option(S3StorageConfiguration::OPTION_NAME);
+    }
+
+    #[Test]
+    public function optionNameConstant(): void
+    {
+        self::assertSame('wppack_storage', S3StorageConfiguration::OPTION_NAME);
+    }
+
+    #[Test]
+    public function maskedValueConstant(): void
+    {
+        self::assertSame('********', S3StorageConfiguration::MASKED_VALUE);
+    }
 }

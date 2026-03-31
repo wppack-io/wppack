@@ -17,6 +17,19 @@ use WpPack\Component\Storage\Exception\InvalidArgumentException;
 
 final class LocalStorageAdapterFactory implements StorageAdapterFactoryInterface
 {
+    public static function definitions(): array
+    {
+        return [
+            new StorageAdapterDefinition(
+                scheme: 'local',
+                label: 'Local Filesystem',
+                fields: [
+                    new StorageAdapterField('path', 'Path', required: true, dsnPart: 'path', help: 'Absolute or relative path to storage directory'),
+                ],
+            ),
+        ];
+    }
+
     public function create(Dsn $dsn, array $options = []): StorageAdapterInterface
     {
         $rootDir = $this->parseRootDir($dsn, $options);

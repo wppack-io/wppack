@@ -46,6 +46,8 @@ use WpPack\Plugin\S3StoragePlugin\Message\S3EventNormalizer;
 use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\PreSignedUrlController;
 use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\PreSignedUrlGenerator;
 use WpPack\Plugin\S3StoragePlugin\PreSignedUrl\UploadPolicy;
+use WpPack\Plugin\S3StoragePlugin\Admin\S3StorageSettingsController;
+use WpPack\Plugin\S3StoragePlugin\Admin\S3StorageSettingsPage;
 use WpPack\Plugin\S3StoragePlugin\Subscriber\AdminAssetSubscriber;
 
 #[CoversClass(S3StoragePluginServiceProvider::class)]
@@ -67,6 +69,15 @@ final class S3StoragePluginServiceProviderTest extends TestCase
     }
 
     #[Test]
+    public function registerAdminRegistersSettingsPageAndController(): void
+    {
+        $this->provider->registerAdmin($this->builder);
+
+        self::assertTrue($this->builder->hasDefinition(S3StorageSettingsPage::class));
+        self::assertTrue($this->builder->hasDefinition(S3StorageSettingsController::class));
+    }
+
+    #[Test]
     public function registersS3StorageConfiguration(): void
     {
         $this->provider->register($this->builder);
@@ -77,7 +88,7 @@ final class S3StoragePluginServiceProviderTest extends TestCase
         $factory = $definition->getFactory();
         self::assertNotNull($factory);
         self::assertSame(S3StorageConfiguration::class, $factory[0]);
-        self::assertSame('fromEnvironment', $factory[1]);
+        self::assertSame('fromEnvironmentOrOptions', $factory[1]);
     }
 
     #[Test]

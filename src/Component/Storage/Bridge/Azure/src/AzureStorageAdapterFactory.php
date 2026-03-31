@@ -15,12 +15,30 @@ namespace WpPack\Component\Storage\Bridge\Azure;
 
 use AzureOss\Storage\Blob\BlobServiceClient;
 use WpPack\Component\Storage\Adapter\Dsn;
+use WpPack\Component\Storage\Adapter\StorageAdapterDefinition;
 use WpPack\Component\Storage\Adapter\StorageAdapterFactoryInterface;
+use WpPack\Component\Storage\Adapter\StorageAdapterField;
 use WpPack\Component\Storage\Adapter\StorageAdapterInterface;
 use WpPack\Component\Storage\Exception\InvalidArgumentException;
 
 final class AzureStorageAdapterFactory implements StorageAdapterFactoryInterface
 {
+    public static function definitions(): array
+    {
+        return [
+            new StorageAdapterDefinition(
+                scheme: 'azure',
+                label: 'Azure Blob Storage',
+                fields: [
+                    new StorageAdapterField('account', 'Account Name', required: true, dsnPart: 'host'),
+                    new StorageAdapterField('accountKey', 'Account Key', type: 'password', dsnPart: 'password'),
+                    new StorageAdapterField('container', 'Container', required: true, dsnPart: 'path'),
+                    new StorageAdapterField('connectionString', 'Connection String', type: 'password', dsnPart: 'option:connection_string', help: 'Full connection string (overrides account name and key)'),
+                ],
+            ),
+        ];
+    }
+
     public function create(Dsn $dsn, array $options = []): StorageAdapterInterface
     {
         $account = $this->parseAccount($dsn, $options);

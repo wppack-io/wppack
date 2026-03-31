@@ -16,12 +16,29 @@ namespace WpPack\Component\Storage\Bridge\Gcs;
 use Google\Cloud\Storage\Bucket;
 use Google\Cloud\Storage\StorageClient;
 use WpPack\Component\Storage\Adapter\Dsn;
+use WpPack\Component\Storage\Adapter\StorageAdapterDefinition;
 use WpPack\Component\Storage\Adapter\StorageAdapterFactoryInterface;
+use WpPack\Component\Storage\Adapter\StorageAdapterField;
 use WpPack\Component\Storage\Adapter\StorageAdapterInterface;
 use WpPack\Component\Storage\Exception\InvalidArgumentException;
 
 final class GcsStorageAdapterFactory implements StorageAdapterFactoryInterface
 {
+    public static function definitions(): array
+    {
+        return [
+            new StorageAdapterDefinition(
+                scheme: 'gcs',
+                label: 'Google Cloud Storage',
+                fields: [
+                    new StorageAdapterField('bucket', 'Bucket', required: true, dsnPart: 'host'),
+                    new StorageAdapterField('project', 'Project ID', dsnPart: 'option:project'),
+                    new StorageAdapterField('keyFile', 'Key File Path', dsnPart: 'option:key_file'),
+                ],
+            ),
+        ];
+    }
+
     public function create(Dsn $dsn, array $options = []): StorageAdapterInterface
     {
         $bucketName = $this->parseBucket($dsn, $options);

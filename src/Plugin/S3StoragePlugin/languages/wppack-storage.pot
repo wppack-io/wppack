@@ -1,0 +1,115 @@
+# Copyright (C) 2026 @wppack/s3-storage-plugin
+# This file is distributed under the GPL v2 or later license.
+msgid ""
+msgstr ""
+"Project-Id-Version: @wppack/s3-storage-plugin 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugins/wppack-storage\n"
+"MIME-Version: 1.0\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+"POT-Creation-Date: 2026-03-31T04:20:38.821Z\n"
+"PO-Revision-Date: 2026-MO-DA HO:MI+ZONE\n"
+"Last-Translator: WpPack <dev@wppack.io>\n"
+"Language-Team: WpPack <dev@wppack.io>\n"
+"X-Generator: @wp-blocks/make-pot 1.6.6\n"
+"Language: en\n"
+"X-Domain: wppack-storage\n"
+
+#: wppack-storage.php
+#. Name of the plugin
+msgid "@wppack/s3-storage-plugin"
+msgstr ""
+
+#: wppack-storage.php
+#. Author of the plugin
+msgid "WpPack"
+msgstr ""
+
+#: js/src/settings/App.js:24
+msgid "Constant"
+msgstr ""
+
+#: js/src/settings/App.js:25
+msgid "Saved"
+msgstr ""
+
+#: js/src/settings/App.js:67
+msgid "This storage is defined via constant and cannot be edited."
+msgstr ""
+
+#: js/src/settings/App.js:75
+msgid "Name"
+msgstr ""
+
+#: js/src/settings/App.js:76
+msgid "Storage identifier (e.g. media, backup)."
+msgstr ""
+
+#: js/src/settings/App.js:91
+msgid "Provider"
+msgstr ""
+
+#: js/src/settings/App.js:115
+msgid "Upload Prefix"
+msgstr ""
+
+#: js/src/settings/App.js:116
+msgid "Path prefix for uploaded files (e.g. uploads)."
+msgstr ""
+
+#: js/src/settings/App.js:123
+msgid "CDN URL"
+msgstr ""
+
+#: js/src/settings/App.js:124
+msgid "CDN base URL for public file access."
+msgstr ""
+
+#: js/src/settings/App.js:137
+msgid "Delete Storage"
+msgstr ""
+
+#: js/src/settings/App.js:175
+msgid "Failed to load settings."
+msgstr ""
+
+#: js/src/settings/App.js:202
+msgid "Settings saved."
+msgstr ""
+
+#: js/src/settings/App.js:205
+msgid "Failed to save settings."
+msgstr ""
+
+#: js/src/settings/App.js:280
+msgid "? Select Provider ?"
+msgstr ""
+
+#: js/src/settings/App.js:287
+msgid "? Select ?"
+msgstr ""
+
+#: js/src/settings/App.js:293
+msgid "Storage Settings"
+msgstr ""
+
+#: js/src/settings/App.js:333
+msgid "Add Storage"
+msgstr ""
+
+#: js/src/settings/App.js:340
+msgid "Primary Storage"
+msgstr ""
+
+#: js/src/settings/App.js:341
+msgid "The storage used for WordPress media uploads."
+msgstr ""
+
+#: js/src/settings/App.js:357
+msgid "Saving?"
+msgstr ""
+
+#: js/src/settings/App.js:357
+msgid "Save Settings"
+msgstr ""
