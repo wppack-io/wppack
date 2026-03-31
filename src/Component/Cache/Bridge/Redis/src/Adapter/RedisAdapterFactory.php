@@ -26,6 +26,45 @@ final class RedisAdapterFactory implements AdapterFactoryInterface
 {
     private const SUPPORTED_SCHEMES = ['redis', 'rediss', 'valkey', 'valkeys'];
 
+    /**
+     * @var list<array{label: string, value: string}>
+     *
+     * @see https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/Endpoints.html
+     */
+    private const ELASTICACHE_REGION_OPTIONS = [
+        ['label' => 'us-east-1 (N. Virginia)', 'value' => 'us-east-1'],
+        ['label' => 'us-east-2 (Ohio)', 'value' => 'us-east-2'],
+        ['label' => 'us-west-1 (N. California)', 'value' => 'us-west-1'],
+        ['label' => 'us-west-2 (Oregon)', 'value' => 'us-west-2'],
+        ['label' => 'af-south-1 (Cape Town)', 'value' => 'af-south-1'],
+        ['label' => 'ap-east-1 (Hong Kong)', 'value' => 'ap-east-1'],
+        ['label' => 'ap-south-1 (Mumbai)', 'value' => 'ap-south-1'],
+        ['label' => 'ap-south-2 (Hyderabad)', 'value' => 'ap-south-2'],
+        ['label' => 'ap-northeast-1 (Tokyo)', 'value' => 'ap-northeast-1'],
+        ['label' => 'ap-northeast-2 (Seoul)', 'value' => 'ap-northeast-2'],
+        ['label' => 'ap-northeast-3 (Osaka)', 'value' => 'ap-northeast-3'],
+        ['label' => 'ap-southeast-1 (Singapore)', 'value' => 'ap-southeast-1'],
+        ['label' => 'ap-southeast-2 (Sydney)', 'value' => 'ap-southeast-2'],
+        ['label' => 'ap-southeast-3 (Jakarta)', 'value' => 'ap-southeast-3'],
+        ['label' => 'ap-southeast-4 (Melbourne)', 'value' => 'ap-southeast-4'],
+        ['label' => 'ca-central-1 (Canada)', 'value' => 'ca-central-1'],
+        ['label' => 'ca-west-1 (Calgary)', 'value' => 'ca-west-1'],
+        ['label' => 'eu-central-1 (Frankfurt)', 'value' => 'eu-central-1'],
+        ['label' => 'eu-central-2 (Zurich)', 'value' => 'eu-central-2'],
+        ['label' => 'eu-north-1 (Stockholm)', 'value' => 'eu-north-1'],
+        ['label' => 'eu-south-1 (Milan)', 'value' => 'eu-south-1'],
+        ['label' => 'eu-south-2 (Spain)', 'value' => 'eu-south-2'],
+        ['label' => 'eu-west-1 (Ireland)', 'value' => 'eu-west-1'],
+        ['label' => 'eu-west-2 (London)', 'value' => 'eu-west-2'],
+        ['label' => 'eu-west-3 (Paris)', 'value' => 'eu-west-3'],
+        ['label' => 'il-central-1 (Tel Aviv)', 'value' => 'il-central-1'],
+        ['label' => 'me-central-1 (UAE)', 'value' => 'me-central-1'],
+        ['label' => 'me-south-1 (Bahrain)', 'value' => 'me-south-1'],
+        ['label' => 'sa-east-1 (São Paulo)', 'value' => 'sa-east-1'],
+        ['label' => 'us-gov-east-1 (GovCloud US-East)', 'value' => 'us-gov-east-1'],
+        ['label' => 'us-gov-west-1 (GovCloud US-West)', 'value' => 'us-gov-west-1'],
+    ];
+
     public static function definitions(): array
     {
         $standaloneFields = [
@@ -43,8 +82,20 @@ final class RedisAdapterFactory implements AdapterFactoryInterface
             ),
             new AdapterDefinition(
                 scheme: 'rediss',
-                label: 'Redis Standalone TLS',
+                label: 'Redis Standalone (TLS)',
                 fields: $standaloneFields,
+            ),
+            new AdapterDefinition(
+                scheme: 'rediss-iam',
+                label: 'ElastiCache / Valkey (IAM Auth)',
+                fields: [
+                    new AdapterField('host', 'Endpoint', required: true, dsnPart: 'host', help: 'e.g., my-cluster.xxxxx.apne1.cache.amazonaws.com'),
+                    new AdapterField('port', 'Port', type: 'number', default: '6379', dsnPart: 'port', maxWidth: '120px'),
+                    new AdapterField('iamRegion', 'Region', required: true, dsnPart: 'option:iam_region', options: self::ELASTICACHE_REGION_OPTIONS, maxWidth: '280px'),
+                    new AdapterField('iamUserId', 'IAM User ID', required: true, dsnPart: 'option:iam_user_id'),
+                ],
+                dsnScheme: 'rediss',
+                extraOptions: ['iam_auth' => '1'],
             ),
             new AdapterDefinition(
                 scheme: 'redis-cluster',
