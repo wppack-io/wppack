@@ -138,10 +138,24 @@ final class RedisCacheSettingsController extends AbstractRestController
         // Global options (constant → saved → default)
         $globalOptions = $this->buildGlobalOptions($saved);
 
+        // Parse DSN into fields for readonly display when set via constant/env
+        $parsedFields = [];
+        $parsedProvider = '';
+        if ($source === 'constant') {
+            $rawDsn = \defined('WPPACK_CACHE_DSN') ? (string) \constant('WPPACK_CACHE_DSN') : (getenv('WPPACK_CACHE_DSN') ?: '');
+            if ($rawDsn !== '') {
+                $parsed = $this->parseDsnToFields($rawDsn, $definitions);
+                $parsedProvider = $parsed['provider'];
+                $parsedFields = $parsed['fields'];
+            }
+        }
+
         return [
             'dsn' => $maskedDsn,
-            'provider' => $saved['provider'] ?? '',
-            'fields' => $saved['fields'] ?? [],
+            'provider' => $saved['provider'] ?? $parsedProvider,
+            'fields' => $saved['fields'] ?? $parsedFields,
+            'parsedProvider' => $parsedProvider,
+            'parsedFields' => $parsedFields,
             'source' => $source,
             'readonly' => $source === 'constant',
             'definitions' => $definitions,
@@ -289,5 +303,132 @@ final class RedisCacheSettingsController extends AbstractRestController
         }
 
         return null;
+    }
+
+    /**
+     * Parse a DSN string into provider + field values for readonly display.
+     *
+     * @param array<string, mixed> $definitions
+     * @return array{provider: string, fields: array<string, string>}
+     */
+    private function parseDsnToFields(string $dsn, array $definitions): array
+    {
+        $colonPos = strpos($dsn, ':');
+        if ($colonPos === false) {
+            return ['provider' => 'dsn', 'fields' => ['dsn' => $dsn]];
+        }
+
+        $scheme = substr($dsn, 0, $colonPos);
+        $fields = [];
+
+        // Try to match a definition
+        $matchedScheme = '';
+        foreach ($definitions as $defScheme => $def) {
+            if ($defScheme === $scheme || (isset($def['dsnScheme']) && $def['dsnScheme'] === $scheme)) {
+                $matchedScheme = (string) $defScheme;
+                break;
+            }
+        }
+
+        if ($matchedScheme === '') {
+            // Check for cluster/sentinel
+            if (str_contains($dsn, 'redis_cluster=')) {
+                $matchedScheme = 'redis-cluster';
+            } elseif (str_contains($dsn, 'redis_sentinel=')) {
+                $matchedScheme = 'redis-sentinel';
+            } else {
+                $matchedScheme = $scheme;
+            }
+        }
+
+        // Parse using parse_url-like extraction
+        $rest = substr($dsn, $colonPos + 1);
+        $query = '';
+
+        if (str_starts_with($rest, '//')) {
+            $authority = substr($rest, 2);
+            $qPos = strpos($authority, '?');
+            if ($qPos !== false) {
+                $query = substr($authority, $qPos + 1);
+                $authority = substr($authority, 0, $qPos);
+            }
+
+            $atPos = strpos($authority, '@');
+            if ($atPos !== false) {
+                $userinfo = substr($authority, 0, $atPos);
+                $authority = substr($authority, $atPos + 1);
+                $colonInUser = strpos($userinfo, ':');
+                if ($colonInUser !== false) {
+                    $fields['password'] = RedisCacheConfiguration::MASKED_VALUE;
+                    $user = substr($userinfo, 0, $colonInUser);
+                    if ($user !== '') {
+                        $fields['user'] = urldecode($user);
+                    }
+                } elseif ($userinfo !== '') {
+                    $fields['user'] = urldecode($userinfo);
+                }
+            }
+
+            // host:port/path
+            $slashPos = strpos($authority, '/');
+            if ($slashPos !== false) {
+                $fields['path'] = substr($authority, $slashPos + 1);
+                $authority = substr($authority, 0, $slashPos);
+            }
+
+            $bracketPos = strpos($authority, ':');
+            if ($bracketPos !== false) {
+                $fields['host'] = substr($authority, 0, $bracketPos);
+                $fields['port'] = substr($authority, $bracketPos + 1);
+            } else {
+                $fields['host'] = $authority;
+            }
+        } elseif (str_starts_with($rest, '?')) {
+            $query = substr($rest, 1);
+        }
+
+        // Parse query string options
+        if ($query !== '') {
+            parse_str($query, $parsed);
+            foreach ($parsed as $key => $value) {
+                if ($key === 'host' && \is_array($value)) {
+                    $fields['nodes'] = implode("\n", $value);
+                } elseif ($key === 'redis_sentinel' && \is_string($value)) {
+                    $fields['masterName'] = $value;
+                } elseif (\is_string($value)) {
+                    $fields[$key] = $value;
+                }
+            }
+        }
+
+        // Map generic fields to definition field names
+        $mappedFields = [];
+        $def = $definitions[$matchedScheme] ?? null;
+        if ($def !== null && isset($def['fields'])) {
+            foreach ($def['fields'] as $fieldDef) {
+                $dsnPart = $fieldDef['dsnPart'] ?? null;
+                $name = $fieldDef['name'];
+                if ($dsnPart === 'host' && isset($fields['host'])) {
+                    $mappedFields[$name] = $fields['host'];
+                } elseif ($dsnPart === 'port' && isset($fields['port'])) {
+                    $mappedFields[$name] = $fields['port'];
+                } elseif ($dsnPart === 'user' && isset($fields['user'])) {
+                    $mappedFields[$name] = $fields['user'];
+                } elseif ($dsnPart === 'password' && isset($fields['password'])) {
+                    $mappedFields[$name] = $fields['password'];
+                } elseif ($dsnPart === 'path' && isset($fields['path'])) {
+                    $mappedFields[$name] = $fields['path'];
+                } elseif ($dsnPart === 'hosts' && isset($fields['nodes'])) {
+                    $mappedFields[$name] = $fields['nodes'];
+                } elseif ($dsnPart !== null && str_starts_with($dsnPart, 'option:')) {
+                    $optKey = substr($dsnPart, 7);
+                    if (isset($fields[$optKey])) {
+                        $mappedFields[$name] = $fields[$optKey];
+                    }
+                }
+            }
+        }
+
+        return ['provider' => $matchedScheme, 'fields' => $mappedFields];
     }
 }

@@ -3,6 +3,7 @@ import {
 	Panel,
 	PanelBody,
 	TextControl,
+	TextareaControl,
 	SelectControl,
 	ToggleControl,
 	Button,
@@ -157,10 +158,7 @@ export default function App() {
 
 	return (
 		<div className="wpp-cache-settings">
-			<h1>
-				{ __( 'Cache Settings', 'wppack-cache' ) }
-				<SourceBadge source={ source } />
-			</h1>
+			<h1>{ __( 'Cache Settings', 'wppack-cache' ) }</h1>
 
 			{ notice && (
 				<Notice status={ notice.type } isDismissible onDismiss={ () => setNotice( null ) }>
@@ -171,7 +169,7 @@ export default function App() {
 			<Panel>
 				<PanelBody title={ __( 'Provider', 'wppack-cache' ) } initialOpen={ true }>
 					<SelectControl
-						label={ __( 'Provider', 'wppack-cache' ) }
+						label={ <><span>{ __( 'Provider', 'wppack-cache' ) }</span>{ isReadonly && <SourceBadge source="constant" /> }</> }
 						value={ provider }
 						onChange={ ( val ) => {
 							setProvider( val );
@@ -200,6 +198,21 @@ export default function App() {
 								</div>
 							);
 						}
+						if ( f.type === 'textarea' ) {
+							return (
+								<div key={ f.name } style={ wrapStyle }>
+									<TextareaControl
+										label={ f.label + ( f.required ? ' *' : '' ) }
+										help={ f.help || undefined }
+										value={ fields[ f.name ] || effectiveDefault }
+										onChange={ ( val ) => setFields( ( prev ) => ( { ...prev, [ f.name ]: val } ) ) }
+										disabled={ isReadonly }
+										rows={ 3 }
+										__nextHasNoMarginBottom
+									/>
+								</div>
+							);
+						}
 						return (
 							<div key={ f.name } style={ wrapStyle }>
 								<TextControl
@@ -219,7 +232,7 @@ export default function App() {
 
 				<PanelBody title={ __( 'Options', 'wppack-cache' ) } initialOpen={ true }>
 					<TextControl
-						label={ __( 'Key Prefix', 'wppack-cache' ) }
+						label={ <><span>{ __( 'Key Prefix', 'wppack-cache' ) }</span>{ globalReadonly.prefix && <SourceBadge source="constant" /> }</> }
 						value={ globalForm.prefix }
 						onChange={ ( val ) => setGlobalForm( ( prev ) => ( { ...prev, prefix: val } ) ) }
 						disabled={ !! globalReadonly.prefix }
@@ -227,7 +240,7 @@ export default function App() {
 					/>
 					<div style={ { maxWidth: '120px' } }>
 						<TextControl
-							label={ __( 'Max TTL', 'wppack-cache' ) }
+							label={ <><span>{ __( 'Max TTL', 'wppack-cache' ) }</span>{ globalReadonly.maxTtl && <SourceBadge source="constant" /> }</> }
 							type="number"
 							value={ globalForm.maxTtl }
 							onChange={ ( val ) => setGlobalForm( ( prev ) => ( { ...prev, maxTtl: val } ) ) }
@@ -236,14 +249,14 @@ export default function App() {
 						/>
 					</div>
 					<ToggleControl
-						label={ __( 'Hash Alloptions', 'wppack-cache' ) }
+						label={ <><span>{ __( 'Hash Alloptions', 'wppack-cache' ) }</span>{ globalReadonly.hashAlloptions && <SourceBadge source="constant" /> }</> }
 						checked={ globalForm.hashAlloptions }
 						onChange={ ( val ) => setGlobalForm( ( prev ) => ( { ...prev, hashAlloptions: val } ) ) }
 						disabled={ !! globalReadonly.hashAlloptions }
 						__nextHasNoMarginBottom
 					/>
 					<ToggleControl
-						label={ __( 'Async Flush', 'wppack-cache' ) }
+						label={ <><span>{ __( 'Async Flush', 'wppack-cache' ) }</span>{ globalReadonly.asyncFlush && <SourceBadge source="constant" /> }</> }
 						checked={ globalForm.asyncFlush }
 						onChange={ ( val ) => setGlobalForm( ( prev ) => ( { ...prev, asyncFlush: val } ) ) }
 						disabled={ !! globalReadonly.asyncFlush }
@@ -251,7 +264,7 @@ export default function App() {
 					/>
 					<div style={ { maxWidth: '200px' } }>
 						<SelectControl
-							label={ __( 'Compression', 'wppack-cache' ) }
+							label={ <><span>{ __( 'Compression', 'wppack-cache' ) }</span>{ globalReadonly.compression && <SourceBadge source="constant" /> }</> }
 							value={ globalForm.compression }
 							onChange={ ( val ) => setGlobalForm( ( prev ) => ( { ...prev, compression: val } ) ) }
 							options={ compressionOptions }
