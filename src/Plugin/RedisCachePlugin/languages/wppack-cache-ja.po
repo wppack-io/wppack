@@ -106,3 +106,15 @@ msgstr "テスト中…"
 #: js/src/settings/App.js
 msgid "Test Connection"
 msgstr "接続テスト"
+
+msgid "Serializer"
+msgstr "シリアライザー"
+
+msgid "Redis-side serializer. Requires ext-igbinary or ext-msgpack."
+msgstr "Redis 側のシリアライザー。ext-igbinary または ext-msgpack が必要です。"
+
+msgid "Client Library"
+msgstr "クライアントライブラリ"
+
+msgid "Enter an AWS endpoint to enable IAM authentication"
+msgstr "IAM 認証を有効にするには AWS エンドポイントを入力してください"

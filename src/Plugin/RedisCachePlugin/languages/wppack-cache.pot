@@ -8,7 +8,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Content-Type: text/plain; charset=iso-8859-1\n"
 "Plural-Forms: nplurals=2; plural=(n!=1);\n"
-"POT-Creation-Date: 2026-03-31T01:20:30.633Z\n"
+"POT-Creation-Date: 2026-03-31T03:34:34.853Z\n"
 "PO-Revision-Date: 2026-MO-DA HO:MI+ZONE\n"
 "Last-Translator: WpPack <dev@wppack.io>\n"
 "Language-Team: WpPack <dev@wppack.io>\n"
@@ -26,84 +26,100 @@ msgstr ""
 msgid "WpPack"
 msgstr ""
 
-#: js/src/settings/App.js:24
+#: js/src/settings/App.js:25
 msgid "Constant"
 msgstr ""
 
-#: js/src/settings/App.js:25
+#: js/src/settings/App.js:26
 msgid "Saved"
 msgstr ""
 
-#: js/src/settings/App.js:83
+#: js/src/settings/App.js:88
 msgid "Failed to load settings."
 msgstr ""
 
-#: js/src/settings/App.js:108
+#: js/src/settings/App.js:115
 msgid "Settings saved."
 msgstr ""
 
-#: js/src/settings/App.js:111
+#: js/src/settings/App.js:118
 msgid "Failed to save settings."
 msgstr ""
 
-#: js/src/settings/App.js:124
+#: js/src/settings/App.js:131
 msgid "Connection test passed."
 msgstr ""
 
-#: js/src/settings/App.js:125
-#: js/src/settings/App.js:129
+#: js/src/settings/App.js:132
+#: js/src/settings/App.js:136
 msgid "Connection test failed."
 msgstr ""
 
-#: js/src/settings/App.js:141
+#: js/src/settings/App.js:148
 msgid "? Select ?"
 msgstr ""
 
-#: js/src/settings/App.js:161
+#: js/src/settings/App.js:167
 msgid "Cache Settings"
 msgstr ""
 
-#: js/src/settings/App.js:172
-#: js/src/settings/App.js:174
+#: js/src/settings/App.js:176
+#: js/src/settings/App.js:178
 msgid "Provider"
 msgstr ""
 
-#: js/src/settings/App.js:220
+#: js/src/settings/App.js:210
+msgid "Enter an AWS endpoint to enable IAM authentication"
+msgstr ""
+
+#: js/src/settings/App.js:266
 msgid "Options"
 msgstr ""
 
-#: js/src/settings/App.js:222
+#: js/src/settings/App.js:268
 msgid "Key Prefix"
 msgstr ""
 
-#: js/src/settings/App.js:230
+#: js/src/settings/App.js:276
 msgid "Max TTL"
 msgstr ""
 
-#: js/src/settings/App.js:239
+#: js/src/settings/App.js:284
 msgid "Hash Alloptions"
 msgstr ""
 
-#: js/src/settings/App.js:246
+#: js/src/settings/App.js:291
 msgid "Async Flush"
 msgstr ""
 
-#: js/src/settings/App.js:254
+#: js/src/settings/App.js:299
 msgid "Compression"
 msgstr ""
 
-#: js/src/settings/App.js:272
+#: js/src/settings/App.js:308
+msgid "Serializer"
+msgstr ""
+
+#: js/src/settings/App.js:317
+msgid "Redis-side serializer. Requires ext-igbinary or ext-msgpack."
+msgstr ""
+
+#: js/src/settings/App.js:322
+msgid "Client Library"
+msgstr ""
+
+#: js/src/settings/App.js:344
 msgid "Saving?"
 msgstr ""
 
-#: js/src/settings/App.js:272
+#: js/src/settings/App.js:344
 msgid "Save Settings"
 msgstr ""
 
-#: js/src/settings/App.js:280
+#: js/src/settings/App.js:352
 msgid "Testing?"
 msgstr ""
 
-#: js/src/settings/App.js:280
+#: js/src/settings/App.js:352
 msgid "Test Connection"
 msgstr ""

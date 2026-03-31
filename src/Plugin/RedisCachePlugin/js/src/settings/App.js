@@ -271,16 +271,15 @@ export default function App() {
 						disabled={ !! globalReadonly.prefix }
 						__nextHasNoMarginBottom
 					/>
-					<div style={ { maxWidth: '120px' } }>
-						<TextControl
-							label={ <><span>{ __( 'Max TTL', 'wppack-cache' ) }</span>{ globalReadonly.maxTtl && <SourceBadge source="constant" /> }</> }
-							type="number"
-							value={ globalForm.maxTtl }
-							onChange={ ( val ) => setGlobalForm( ( prev ) => ( { ...prev, maxTtl: val } ) ) }
-							disabled={ !! globalReadonly.maxTtl }
-							__nextHasNoMarginBottom
-						/>
-					</div>
+					<TextControl
+						className="wpp-cache-narrow-input"
+						label={ <><span>{ __( 'Max TTL', 'wppack-cache' ) }</span>{ globalReadonly.maxTtl && <SourceBadge source="constant" /> }</> }
+						type="number"
+						value={ globalForm.maxTtl }
+						onChange={ ( val ) => setGlobalForm( ( prev ) => ( { ...prev, maxTtl: val } ) ) }
+						disabled={ !! globalReadonly.maxTtl }
+						__nextHasNoMarginBottom
+					/>
 					<ToggleControl
 						label={ <><span>{ __( 'Hash Alloptions', 'wppack-cache' ) }</span>{ globalReadonly.hashAlloptions && <SourceBadge source="constant" /> }</> }
 						checked={ globalForm.hashAlloptions }
@@ -295,46 +294,43 @@ export default function App() {
 						disabled={ !! globalReadonly.asyncFlush }
 						__nextHasNoMarginBottom
 					/>
-					<div style={ { maxWidth: '200px' } }>
-						<SelectControl
-							label={ <><span>{ __( 'Compression', 'wppack-cache' ) }</span>{ globalReadonly.compression && <SourceBadge source="constant" /> }</> }
-							value={ globalForm.compression }
-							onChange={ ( val ) => setGlobalForm( ( prev ) => ( { ...prev, compression: val } ) ) }
-							options={ compressionOptions }
-							disabled={ !! globalReadonly.compression }
-							__nextHasNoMarginBottom
-						/>
-					</div>
-					<div style={ { maxWidth: '200px' } }>
-						<SelectControl
-							label={ <><span>{ __( 'Serializer', 'wppack-cache' ) }</span>{ globalReadonly.serializer && <SourceBadge source="constant" /> }</> }
-							value={ globalForm.serializer || 'none' }
-							onChange={ ( val ) => setGlobalForm( ( prev ) => ( { ...prev, serializer: val } ) ) }
-							options={ [
-								{ label: 'PHP (default)', value: 'none' },
-								{ label: 'igbinary', value: 'igbinary' },
-								{ label: 'msgpack', value: 'msgpack' },
-							] }
-							disabled={ !! globalReadonly.serializer }
-							help={ __( 'Redis-side serializer. Requires ext-igbinary or ext-msgpack.', 'wppack-cache' ) }
-							__nextHasNoMarginBottom
-						/>
-					</div>
-					<div style={ { maxWidth: '200px' } }>
-						<SelectControl
-							label={ <><span>{ __( 'Client Library', 'wppack-cache' ) }</span>{ globalReadonly.clientLibrary && <SourceBadge source="constant" /> }</> }
-							value={ globalForm.clientLibrary || '' }
-							onChange={ ( val ) => setGlobalForm( ( prev ) => ( { ...prev, clientLibrary: val } ) ) }
-							options={ [
-								{ label: 'Auto-detect', value: '' },
-								{ label: 'PhpRedis (ext-redis)', value: 'Redis' },
-								{ label: 'Relay (ext-relay)', value: 'Relay\\Relay' },
-								{ label: 'Predis', value: 'Predis\\Client' },
-							] }
-							disabled={ !! globalReadonly.clientLibrary }
-							__nextHasNoMarginBottom
-						/>
-					</div>
+					<SelectControl
+						className="wpp-cache-narrow-select"
+						label={ <><span>{ __( 'Compression', 'wppack-cache' ) }</span>{ globalReadonly.compression && <SourceBadge source="constant" /> }</> }
+						value={ globalForm.compression }
+						onChange={ ( val ) => setGlobalForm( ( prev ) => ( { ...prev, compression: val } ) ) }
+						options={ compressionOptions }
+						disabled={ !! globalReadonly.compression }
+						__nextHasNoMarginBottom
+					/>
+					<SelectControl
+						className="wpp-cache-narrow-select"
+						label={ <><span>{ __( 'Serializer', 'wppack-cache' ) }</span>{ globalReadonly.serializer && <SourceBadge source="constant" /> }</> }
+						value={ globalForm.serializer || 'none' }
+						onChange={ ( val ) => setGlobalForm( ( prev ) => ( { ...prev, serializer: val } ) ) }
+						options={ [
+							{ label: 'PHP (default)', value: 'none' },
+							{ label: 'igbinary', value: 'igbinary' },
+							{ label: 'msgpack', value: 'msgpack' },
+						] }
+						disabled={ !! globalReadonly.serializer }
+						help={ __( 'Redis-side serializer. Requires ext-igbinary or ext-msgpack.', 'wppack-cache' ) }
+						__nextHasNoMarginBottom
+					/>
+					<SelectControl
+						className="wpp-cache-narrow-select"
+						label={ <><span>{ __( 'Client Library', 'wppack-cache' ) }</span>{ globalReadonly.clientLibrary && <SourceBadge source="constant" /> }</> }
+						value={ globalForm.clientLibrary || '' }
+						onChange={ ( val ) => setGlobalForm( ( prev ) => ( { ...prev, clientLibrary: val } ) ) }
+						options={ [
+							{ label: 'Auto-detect', value: '' },
+							{ label: 'PhpRedis (ext-redis)', value: 'Redis' },
+							{ label: 'Relay (ext-relay)', value: 'Relay\\Relay' },
+							{ label: 'Predis', value: 'Predis\\Client' },
+						] }
+						disabled={ !! globalReadonly.clientLibrary }
+						__nextHasNoMarginBottom
+					/>
 				</PanelBody>
 			</Panel>
 

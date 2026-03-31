@@ -13,6 +13,14 @@
 	margin-bottom: 16px;
 }
 
+.wpp-cache-narrow-select .components-base-control__field {
+	max-width: 200px;
+}
+
+.wpp-cache-narrow-input .components-base-control__field {
+	max-width: 120px;
+}
+
 .wpp-cache-settings .components-panel {
 	margin-bottom: 16px;
 }
