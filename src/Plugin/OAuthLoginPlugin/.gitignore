@@ -2,3 +2,4 @@ vendor/
 composer.lock
 phpunit.xml
 node_modules/
+package-lock.json

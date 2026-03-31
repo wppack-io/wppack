@@ -589,6 +589,7 @@ Key patterns:
 - Use custom REST API endpoints (`/wppack/v1/...`) for settings CRUD
 - Sensitive fields (certificates, keys) must be masked in API responses
 - Fields sourced from constants should be displayed as readonly
+- **npm install must always use `--ignore-scripts`** (e.g., `npm install --ignore-scripts`). This prevents arbitrary script execution from dependencies.
 
 ### Directory Structure
 
