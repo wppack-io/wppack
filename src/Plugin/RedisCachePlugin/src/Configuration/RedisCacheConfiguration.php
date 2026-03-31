@@ -38,7 +38,7 @@ final readonly class RedisCacheConfiguration
             hashAlloptions: self::getBool('WPPACK_CACHE_HASH_ALLOPTIONS'),
             asyncFlush: self::getBool('WPPACK_CACHE_ASYNC_FLUSH'),
             compression: self::getEnv('WPPACK_CACHE_COMPRESSION') ?? 'none',
-            serializer: self::getEnv('WPPACK_CACHE_SERIALIZER') ?? 'none',
+            serializer: self::getEnv('WPPACK_CACHE_REDIS_SERIALIZER') ?? 'none',
         );
     }
 
@@ -107,7 +107,7 @@ final readonly class RedisCacheConfiguration
             hashAlloptions: $hashAlloptions !== null ? (bool) $hashAlloptions : self::getBool('WPPACK_CACHE_HASH_ALLOPTIONS'),
             asyncFlush: $asyncFlush !== null ? (bool) $asyncFlush : self::getBool('WPPACK_CACHE_ASYNC_FLUSH'),
             compression: $compression ?? self::getEnv('WPPACK_CACHE_COMPRESSION') ?? 'none',
-            serializer: $serializer ?? self::getEnv('WPPACK_CACHE_SERIALIZER') ?? 'none',
+            serializer: $serializer ?? self::getEnv('WPPACK_CACHE_REDIS_SERIALIZER') ?? 'none',
         );
     }
 

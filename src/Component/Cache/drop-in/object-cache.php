@@ -21,7 +21,7 @@
  *   define('WPPACK_CACHE_OPTIONS', ['timeout' => 5]);  // optional
  *   define('WPPACK_CACHE_COMPRESSION', 'zstd');         // optional, 'none' (default), 'zstd', 'lz4', 'lzf'
  *   define('WPPACK_CACHE_ASYNC_FLUSH', true);           // optional, default false — use UNLINK instead of DEL
- *   define('WPPACK_CACHE_SERIALIZER', 'igbinary');      // optional, 'none' (default), 'php', 'igbinary', 'msgpack'
+ *   define('WPPACK_CACHE_REDIS_SERIALIZER', 'igbinary');      // optional, 'none' (default), 'php', 'igbinary', 'msgpack'
  *   define('WPPACK_CACHE_ENABLED', false);              // optional, disable drop-in (kill switch)
  *
  * @package wppack/cache
@@ -86,6 +86,10 @@ function wp_cache_init(): void
             if ($compressionType !== 'none') {
                 $options['compression'] = $compressionType;
             }
+            $redisClient = \defined('WPPACK_CACHE_REDIS_CLIENT') ? \constant('WPPACK_CACHE_REDIS_CLIENT') : (getenv('WPPACK_CACHE_REDIS_CLIENT') ?: '');
+            if ($redisClient !== '') {
+                $options['class'] = $redisClient;
+            }
             $adapter = Adapter::fromDsn(WPPACK_CACHE_DSN, $options);
 
             if (!$adapter->isAvailable()) {
@@ -107,7 +111,7 @@ function wp_cache_init(): void
     }
 
     $maxTtl = \defined('WPPACK_CACHE_MAX_TTL') ? WPPACK_CACHE_MAX_TTL : null;
-    $serializer = \defined('WPPACK_CACHE_SERIALIZER') ? \constant('WPPACK_CACHE_SERIALIZER') : (getenv('WPPACK_CACHE_SERIALIZER') ?: 'none');
+    $serializer = \defined('WPPACK_CACHE_REDIS_SERIALIZER') ? \constant('WPPACK_CACHE_REDIS_SERIALIZER') : (getenv('WPPACK_CACHE_REDIS_SERIALIZER') ?: 'none');
 
     $config = new ObjectCacheConfig(
         prefix: $prefix,

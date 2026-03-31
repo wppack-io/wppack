@@ -45,6 +45,8 @@ export default function App() {
 		hashAlloptions: false,
 		asyncFlush: false,
 		compression: 'none',
+		serializer: 'none',
+		clientLibrary: '',
 	} );
 	const [ globalReadonly, setGlobalReadonly ] = useState( {} );
 	const [ saving, setSaving ] = useState( false );
@@ -69,6 +71,8 @@ export default function App() {
 				hashAlloptions: !! go.hashAlloptions,
 				asyncFlush: !! go.asyncFlush,
 				compression: go.compression ?? 'none',
+				serializer: go.serializer ?? 'none',
+				clientLibrary: go.clientLibrary ?? '',
 			} );
 			setGlobalReadonly( go.readonlyFields || {} );
 		}
@@ -101,6 +105,8 @@ export default function App() {
 					hashAlloptions: globalForm.hashAlloptions,
 					asyncFlush: globalForm.asyncFlush,
 					compression: globalForm.compression,
+					serializer: globalForm.serializer,
+					clientLibrary: globalForm.clientLibrary,
 				},
 			},
 		} )
@@ -296,6 +302,36 @@ export default function App() {
 							onChange={ ( val ) => setGlobalForm( ( prev ) => ( { ...prev, compression: val } ) ) }
 							options={ compressionOptions }
 							disabled={ !! globalReadonly.compression }
+							__nextHasNoMarginBottom
+						/>
+					</div>
+					<div style={ { maxWidth: '200px' } }>
+						<SelectControl
+							label={ <><span>{ __( 'Serializer', 'wppack-cache' ) }</span>{ globalReadonly.serializer && <SourceBadge source="constant" /> }</> }
+							value={ globalForm.serializer || 'none' }
+							onChange={ ( val ) => setGlobalForm( ( prev ) => ( { ...prev, serializer: val } ) ) }
+							options={ [
+								{ label: 'PHP (default)', value: 'none' },
+								{ label: 'igbinary', value: 'igbinary' },
+								{ label: 'msgpack', value: 'msgpack' },
+							] }
+							disabled={ !! globalReadonly.serializer }
+							help={ __( 'Redis-side serializer. Requires ext-igbinary or ext-msgpack.', 'wppack-cache' ) }
+							__nextHasNoMarginBottom
+						/>
+					</div>
+					<div style={ { maxWidth: '200px' } }>
+						<SelectControl
+							label={ <><span>{ __( 'Client Library', 'wppack-cache' ) }</span>{ globalReadonly.clientLibrary && <SourceBadge source="constant" /> }</> }
+							value={ globalForm.clientLibrary || '' }
+							onChange={ ( val ) => setGlobalForm( ( prev ) => ( { ...prev, clientLibrary: val } ) ) }
+							options={ [
+								{ label: 'Auto-detect', value: '' },
+								{ label: 'PhpRedis (ext-redis)', value: 'Redis' },
+								{ label: 'Relay (ext-relay)', value: 'Relay\\Relay' },
+								{ label: 'Predis', value: 'Predis\\Client' },
+							] }
+							disabled={ !! globalReadonly.clientLibrary }
 							__nextHasNoMarginBottom
 						/>
 					</div>
