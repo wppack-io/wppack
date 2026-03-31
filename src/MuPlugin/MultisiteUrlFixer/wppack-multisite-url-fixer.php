@@ -27,8 +27,7 @@ declare(strict_types=1);
  * Subdomain mode:    no URL fixing needed (paths are already correct)
  */
 
-use WpPack\Component\Kernel\Kernel;
-use WpPack\MuPlugin\MultisiteUrlFixer\MultisiteUrlFixerPlugin;
+use WpPack\MuPlugin\MultisiteUrlFixer\Subscriber\UrlFixerSubscriber;
 
 if (!is_multisite()) {
     return;
@@ -40,4 +39,5 @@ if ($wpPath === '') {
     return;
 }
 
-Kernel::registerPlugin(new MultisiteUrlFixerPlugin(__FILE__, $wpPath));
+// Register filters directly — must be active before init (Kernel boot).
+(new UrlFixerSubscriber($wpPath))->register();

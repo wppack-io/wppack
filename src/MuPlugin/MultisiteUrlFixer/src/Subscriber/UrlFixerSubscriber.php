@@ -13,81 +13,70 @@ declare(strict_types=1);
 
 namespace WpPack\MuPlugin\MultisiteUrlFixer\Subscriber;
 
-use WpPack\Component\EventDispatcher\Attribute\AsEventListener;
-use WpPack\Component\EventDispatcher\WordPressEvent;
-
+/**
+ * Fix asset and content URLs for WordPress Multisite on Bedrock structure.
+ *
+ * Registers filters directly via add_filter() so they are active
+ * immediately — before Kernel boots at init.
+ */
 final readonly class UrlFixerSubscriber
 {
     public function __construct(
         private string $wpPath,
     ) {}
 
-    /**
-     * Fix CSS/JS asset URLs for subdirectory multisite.
-     */
-    #[AsEventListener(event: 'style_loader_src', priority: 5)]
-    #[AsEventListener(event: 'script_loader_src', priority: 5)]
-    public function fixAssetLoaderSrc(WordPressEvent $event): void
+    public function register(): void
     {
-        if (!\is_string($event->filterValue) || $event->filterValue === '') {
-            return;
-        }
-
-        $event->filterValue = $this->fixCoreUrl($event->filterValue, ['wp-admin', 'wp-includes']);
+        add_filter('style_loader_src', [$this, 'fixAssetLoaderSrc'], 5);
+        add_filter('script_loader_src', [$this, 'fixAssetLoaderSrc'], 5);
+        add_filter('network_site_url', [$this, 'fixNetworkSiteUrl'], 5);
+        add_filter('option_home', [$this, 'fixHomeUrl'], 5);
+        add_filter('option_siteurl', [$this, 'fixOptionSiteUrl'], 5);
+        add_filter('includes_url', [$this, 'fixIncludesUrl'], 5);
+        add_filter('admin_url', [$this, 'fixAdminUrl'], 5);
     }
 
-    /**
-     * Fix network_site_url — ensure /wp is included for network admin.
-     */
-    #[AsEventListener(event: 'network_site_url', priority: 5)]
-    public function fixNetworkSiteUrl(WordPressEvent $event): void
+    public function fixAssetLoaderSrc(string $url): string
     {
-        if (!\is_string($event->filterValue) || $event->filterValue === '') {
-            return;
+        return $this->fixCoreUrl($url, ['wp-admin', 'wp-includes']);
+    }
+
+    public function fixNetworkSiteUrl(string $url): string
+    {
+        if ($url === '') {
+            return $url;
         }
 
-        $url = $event->filterValue;
-
         if (str_contains($url, $this->wpPath . '/')) {
-            return;
+            return $url;
         }
 
         $fixed = preg_replace('#^([^:]+://[^/]+)/#', '$1' . $this->wpPath . '/', $url, 1);
 
-        $event->filterValue = \is_string($fixed) ? $fixed : $url;
+        return \is_string($fixed) ? $fixed : $url;
     }
 
-    /**
-     * Fix option_home — remove trailing /wp.
-     */
-    #[AsEventListener(event: 'option_home', priority: 5)]
-    public function fixHomeUrl(WordPressEvent $event): void
+    public function fixHomeUrl(mixed $value): mixed
     {
-        $value = $event->filterValue;
-
         if (!\is_string($value) || $value === '') {
-            return;
+            return $value;
         }
 
         if (str_ends_with($value, $this->wpPath)) {
-            $event->filterValue = substr($value, 0, -\strlen($this->wpPath));
+            return substr($value, 0, -\strlen($this->wpPath));
         }
+
+        return $value;
     }
 
-    /**
-     * Fix option_siteurl — ensure /wp is at the end.
-     */
-    #[AsEventListener(event: 'option_siteurl', priority: 5)]
-    public function fixOptionSiteUrl(WordPressEvent $event): void
+    public function fixOptionSiteUrl(mixed $value): mixed
     {
-        $value = $event->filterValue;
-
         if (!\is_string($value) || $value === '') {
-            return;
+            return $value;
         }
 
-        if (!is_main_site() && !(function_exists('is_subdomain_install') && is_subdomain_install())) {
-            return;
+        if (!is_main_site() && !(\function_exists('is_subdomain_install') && is_subdomain_install())) {
+            return $value;
         }
 
         $value = rtrim($value, '/');
@@ -96,37 +85,21 @@ final readonly class UrlFixerSubscriber
             $value .= $this->wpPath;
         }
 
-        $event->filterValue = $value;
+        return $value;
     }
 
-    /**
-     * Fix includes_url for subdirectory multisite.
-     */
-    #[AsEventListener(event: 'includes_url', priority: 5)]
-    public function fixIncludesUrl(WordPressEvent $event): void
+    public function fixIncludesUrl(string $url): string
     {
-        if (!\is_string($event->filterValue) || $event->filterValue === '') {
-            return;
-        }
-
-        $event->filterValue = $this->fixCoreUrl($event->filterValue, ['wp-includes']);
+        return $this->fixCoreUrl($url, ['wp-includes']);
     }
 
-    /**
-     * Fix admin_url for subdirectory multisite (static files only).
-     */
-    #[AsEventListener(event: 'admin_url', priority: 5)]
-    public function fixAdminUrl(WordPressEvent $event): void
+    public function fixAdminUrl(string $url): string
     {
-        if (!\is_string($event->filterValue) || $event->filterValue === '') {
-            return;
+        if (!$this->isStaticFile($url)) {
+            return $url;
         }
 
-        if (!$this->isStaticFile($event->filterValue)) {
-            return;
-        }
-
-        $event->filterValue = $this->fixCoreUrl($event->filterValue, ['wp-admin']);
+        return $this->fixCoreUrl($url, ['wp-admin']);
     }
 
     private function getSitePath(): string
@@ -149,7 +122,11 @@ final readonly class UrlFixerSubscriber
      */
     private function fixCoreUrl(string $url, array $wpDirs): string
     {
-        if (function_exists('is_subdomain_install') && is_subdomain_install()) {
+        if ($url === '') {
+            return $url;
+        }
+
+        if (\function_exists('is_subdomain_install') && is_subdomain_install()) {
             return $url;
         }
 
