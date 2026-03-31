@@ -296,17 +296,17 @@ export default function App() {
 						disabled={ !! globalReadonly.asyncFlush }
 						__nextHasNoMarginBottom
 					/>
-					<SelectControl
-						className="wpp-cache-narrow-select"
-						label={ <><span>{ __( 'Compression', 'wppack-cache' ) }</span>{ globalReadonly.compression && <SourceBadge source="constant" /> }</> }
-						value={ globalForm.compression }
-						onChange={ ( val ) => setGlobalForm( ( prev ) => ( { ...prev, compression: val } ) ) }
-						options={ compressionOptions }
-						disabled={ !! globalReadonly.compression }
-						__nextHasNoMarginBottom
-					/>
 					{ /^redis/.test( provider ) && (
 						<>
+							<SelectControl
+								className="wpp-cache-narrow-select"
+								label={ <><span>{ __( 'Compression', 'wppack-cache' ) }</span>{ globalReadonly.compression && <SourceBadge source="constant" /> }</> }
+								value={ globalForm.compression }
+								onChange={ ( val ) => setGlobalForm( ( prev ) => ( { ...prev, compression: val } ) ) }
+								options={ compressionOptions }
+								disabled={ !! globalReadonly.compression }
+								__nextHasNoMarginBottom
+							/>
 							<SelectControl
 								className="wpp-cache-narrow-select"
 								label={ <><span>{ __( 'Serializer', 'wppack-cache' ) }</span>{ globalReadonly.serializer && <SourceBadge source="constant" /> }</> }
