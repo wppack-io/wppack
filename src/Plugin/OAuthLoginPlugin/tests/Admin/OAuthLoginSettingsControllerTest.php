@@ -317,4 +317,104 @@ final class OAuthLoginSettingsControllerTest extends TestCase
         self::assertSame('subscriber', $saved['defaultRole']);
         self::assertSame('icon-only', $saved['buttonDisplay']);
     }
+
+    #[Test]
+    public function saveSettingsAcceptsEmptyPath(): void
+    {
+        $request = new \WP_REST_Request('POST');
+        $request->set_header('Content-Type', 'application/json');
+        $request->set_body(json_encode([
+            'global' => ['authorizePath' => ''],
+        ]));
+
+        $this->controller->saveSettings($request);
+
+        $saved = get_option(OAuthLoginConfiguration::OPTION_NAME);
+        self::assertSame('', $saved['authorizePath']);
+    }
+
+    #[Test]
+    public function saveSettingsAcceptsValidUrlField(): void
+    {
+        $request = new \WP_REST_Request('POST');
+        $request->set_header('Content-Type', 'application/json');
+        $request->set_body(json_encode([
+            'providers' => [
+                'oidc' => [
+                    'type' => 'oidc',
+                    'client_id' => 'oidc-id',
+                    'client_secret' => 'oidc-secret',
+                    'label' => 'OIDC',
+                    'discovery_url' => 'https://idp.example.com/.well-known/openid-configuration',
+                ],
+            ],
+        ]));
+
+        $this->controller->saveSettings($request);
+
+        $saved = get_option(OAuthLoginConfiguration::OPTION_NAME);
+        self::assertSame(
+            'https://idp.example.com/.well-known/openid-configuration',
+            $saved['providers']['oidc']['discovery_url'],
+        );
+    }
+
+    #[Test]
+    public function getSettingsReturnsIconsAndStyles(): void
+    {
+        $response = $this->controller->getSettings();
+
+        /** @var array<string, mixed> $data */
+        $data = json_decode($response->content, true);
+
+        self::assertNotEmpty($data['icons']);
+        self::assertNotEmpty($data['styles']);
+        self::assertArrayHasKey('google', $data['icons']);
+        self::assertArrayHasKey('google', $data['styles']);
+    }
+
+    #[Test]
+    public function getSettingsReturnsProviderSourceOption(): void
+    {
+        update_option(OAuthLoginConfiguration::OPTION_NAME, [
+            'providers' => [
+                'google' => [
+                    'type' => 'google',
+                    'client_id' => 'gid',
+                    'client_secret' => 'gs',
+                    'label' => 'Google',
+                ],
+            ],
+        ]);
+
+        $config = OAuthLoginConfiguration::fromEnvironmentOrOptions();
+        $controller = new OAuthLoginSettingsController(
+            $config,
+            new Sanitizer(),
+            new RoleProvider(),
+        );
+
+        $response = $controller->getSettings();
+
+        /** @var array<string, mixed> $data */
+        $data = json_decode($response->content, true);
+
+        self::assertSame('option', $data['providers']['google']['source']);
+        self::assertFalse($data['providers']['google']['readonly']);
+    }
+
+    #[Test]
+    public function saveSettingsEmptyDefaultRoleAccepted(): void
+    {
+        $request = new \WP_REST_Request('POST');
+        $request->set_header('Content-Type', 'application/json');
+        $request->set_body(json_encode([
+            'global' => ['defaultRole' => ''],
+        ]));
+
+        $this->controller->saveSettings($request);
+
+        $saved = get_option(OAuthLoginConfiguration::OPTION_NAME);
+        self::assertSame('', $saved['defaultRole']);
+    }
 }

@@ -218,4 +218,100 @@ final class SamlLoginSettingsControllerTest extends TestCase
         $saved = get_option('wppack_saml_login');
         self::assertSame('/custom/metadata', $saved['metadataPath']);
     }
+
+    #[Test]
+    public function saveSettingsAcceptsValidRole(): void
+    {
+        $request = new \WP_REST_Request('POST');
+        $request->set_header('Content-Type', 'application/json');
+        $request->set_body(json_encode([
+            'defaultRole' => 'subscriber',
+        ]));
+
+        $this->controller->saveSettings($request);
+
+        $saved = get_option('wppack_saml_login');
+        self::assertSame('subscriber', $saved['defaultRole']);
+    }
+
+    #[Test]
+    public function getSettingsEncodesRoleMappingAsJson(): void
+    {
+        update_option('wppack_saml_login', [
+            'idpEntityId' => 'https://idp.test',
+            'roleMapping' => ['admin' => 'administrator'],
+        ]);
+
+        $config = SamlLoginConfiguration::fromEnvironmentOrOptions();
+        $controller = new SamlLoginSettingsController(
+            $config,
+            new Sanitizer(),
+            new RoleProvider(),
+        );
+
+        $response = $controller->getSettings();
+
+        /** @var array<string, mixed> $data */
+        $data = json_decode($response->content, true);
+
+        // roleMapping should be JSON-encoded string in the response
+        self::assertIsString($data['fields']['roleMapping']['value']);
+        self::assertStringContainsString('administrator', $data['fields']['roleMapping']['value']);
+    }
+
+    #[Test]
+    public function saveSettingsAcceptsEmptyPath(): void
+    {
+        $request = new \WP_REST_Request('POST');
+        $request->set_header('Content-Type', 'application/json');
+        $request->set_body(json_encode([
+            'metadataPath' => '',
+        ]));
+
+        $this->controller->saveSettings($request);
+
+        $saved = get_option('wppack_saml_login');
+        self::assertSame('', $saved['metadataPath']);
+    }
+
+    #[Test]
+    public function saveSettingsPersistsBooleanField(): void
+    {
+        $request = new \WP_REST_Request('POST');
+        $request->set_header('Content-Type', 'application/json');
+        $request->set_body(json_encode([
+            'autoProvision' => true,
+            'ssoOnly' => true,
+            'wantAssertionsSigned' => false,
+        ]));
+
+        $this->controller->saveSettings($request);
+
+        $saved = get_option('wppack_saml_login');
+        self::assertTrue($saved['autoProvision']);
+        self::assertTrue($saved['ssoOnly']);
+        self::assertFalse($saved['wantAssertionsSigned']);
+    }
+
+    #[Test]
+    public function saveSettingsUpdatesFieldAndReturnsUpdated(): void
+    {
+        $request = new \WP_REST_Request('POST');
+        $request->set_header('Content-Type', 'application/json');
+        $request->set_body(json_encode([
+            'idpEntityId' => 'https://new-idp.example.com',
+            'idpSsoUrl' => 'https://new-idp.example.com/sso',
+            'idpX509Cert' => 'MIIC...',
+        ]));
+
+        $response = $this->controller->saveSettings($request);
+
+        /** @var array<string, mixed> $data */
+        $data = json_decode($response->content, true);
+
+        self::assertSame('https://new-idp.example.com', $data['fields']['idpEntityId']['value']);
+        self::assertSame('option', $data['fields']['idpEntityId']['source']);
+        // Certificate should be masked in response
+        self::assertSame('********', $data['fields']['idpX509Cert']['value']);
+    }
 }

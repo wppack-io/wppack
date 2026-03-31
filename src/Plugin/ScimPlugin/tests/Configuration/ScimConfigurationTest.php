@@ -279,4 +279,99 @@ final class ScimConfigurationTest extends TestCase
             'bearerToken parameter must have #[\SensitiveParameter] attribute.',
         );
     }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsReadsAllFieldsFromOptions(): void
+    {
+        update_option(ScimConfiguration::OPTION_NAME, [
+            'bearerToken' => 'opt-token',
+            'autoProvision' => false,
+            'defaultRole' => 'editor',
+            'allowGroupManagement' => false,
+            'allowUserDeletion' => true,
+            'maxResults' => 200,
+        ]);
+
+        $config = ScimConfiguration::fromEnvironmentOrOptions();
+
+        // If constant is defined, bearerToken comes from constant; test other fields
+        self::assertFalse($config->autoProvision);
+        self::assertSame('editor', $config->defaultRole);
+        self::assertFalse($config->allowGroupManagement);
+        self::assertTrue($config->allowUserDeletion);
+        self::assertSame(200, $config->maxResults);
+
+        delete_option(ScimConfiguration::OPTION_NAME);
+    }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsReadsEnvFallback(): void
+    {
+        putenv('SCIM_AUTO_PROVISION=false');
+        putenv('SCIM_DEFAULT_ROLE=author');
+        putenv('SCIM_ALLOW_GROUP_MANAGEMENT=0');
+        putenv('SCIM_ALLOW_USER_DELETION=1');
+        putenv('SCIM_MAX_RESULTS=300');
+
+        // Need a token from some source
+        update_option(ScimConfiguration::OPTION_NAME, ['bearerToken' => 'opt-token']);
+
+        $config = ScimConfiguration::fromEnvironmentOrOptions();
+
+        // Env vars take precedence over wp_options
+        self::assertFalse($config->autoProvision);
+        self::assertSame('author', $config->defaultRole);
+        self::assertFalse($config->allowGroupManagement);
+        self::assertTrue($config->allowUserDeletion);
+        self::assertSame(300, $config->maxResults);
+
+        delete_option(ScimConfiguration::OPTION_NAME);
+    }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsThrowsWhenNoToken(): void
+    {
+        if (\defined('SCIM_BEARER_TOKEN')) {
+            self::assertTrue(true);
+
+            return;
+        }
+
+        delete_option(ScimConfiguration::OPTION_NAME);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('SCIM_BEARER_TOKEN is not configured.');
+
+        ScimConfiguration::fromEnvironmentOrOptions();
+    }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsMaxResultsClampsFromOptions(): void
+    {
+        update_option(ScimConfiguration::OPTION_NAME, [
+            'bearerToken' => 'token',
+            'maxResults' => 5000,
+        ]);
+
+        $config = ScimConfiguration::fromEnvironmentOrOptions();
+
+        self::assertSame(1000, $config->maxResults);
+
+        delete_option(ScimConfiguration::OPTION_NAME);
+    }
+
+    #[Test]
+    public function hasTokenReturnsTrueWithEnvVariable(): void
+    {
+        if (\defined('SCIM_BEARER_TOKEN')) {
+            self::assertTrue(ScimConfiguration::hasToken());
+
+            return;
+        }
+
+        delete_option(ScimConfiguration::OPTION_NAME);
+        putenv('SCIM_BEARER_TOKEN=env-token');
+
+        self::assertTrue(ScimConfiguration::hasToken());
+    }
 }

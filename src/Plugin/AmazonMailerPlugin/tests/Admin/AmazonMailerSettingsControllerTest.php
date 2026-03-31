@@ -196,4 +196,119 @@ final class AmazonMailerSettingsControllerTest extends TestCase
         self::assertArrayHasKey('success', $data);
         self::assertArrayHasKey('to', $data);
     }
+
+    #[Test]
+    public function getSettingsReturnsDefinitionFields(): void
+    {
+        $response = $this->controller->getSettings();
+
+        /** @var array<string, mixed> $data */
+        $data = json_decode($response->content, true);
+
+        $sesDef = $data['definitions']['ses+api'];
+        self::assertNotEmpty($sesDef['fields']);
+
+        $fieldNames = array_column($sesDef['fields'], 'name');
+        self::assertContains('region', $fieldNames);
+    }
+
+    #[Test]
+    public function saveSettingsBuildsDsnFromSesFields(): void
+    {
+        $request = new \WP_REST_Request('POST');
+        $request->set_header('Content-Type', 'application/json');
+        $request->set_body(json_encode([
+            'provider' => 'ses+api',
+            'fields' => ['accessKey' => 'KEY', 'secretKey' => 'SECRET', 'region' => 'ap-northeast-1'],
+        ]));
+
+        $this->controller->saveSettings($request);
+
+        $saved = get_option(AmazonMailerConfiguration::OPTION_NAME);
+        self::assertStringStartsWith('ses+api://', $saved['dsn']);
+        self::assertStringContainsString('ap-northeast-1', $saved['dsn']);
+    }
+
+    #[Test]
+    public function saveSettingsRestoresMaskedPasswordInFields(): void
+    {
+        update_option(AmazonMailerConfiguration::OPTION_NAME, [
+            'dsn' => 'ses+api://KEY:SECRET@default?region=us-east-1',
+            'provider' => 'ses+api',
+            'fields' => ['accessKey' => 'KEY', 'secretKey' => 'SECRET', 'region' => 'us-east-1'],
+        ]);
+
+        $request = new \WP_REST_Request('POST');
+        $request->set_header('Content-Type', 'application/json');
+        $request->set_body(json_encode([
+            'provider' => 'ses+api',
+            'fields' => ['accessKey' => 'KEY', 'secretKey' => AmazonMailerConfiguration::MASKED_VALUE, 'region' => 'us-east-1'],
+        ]));
+
+        $this->controller->saveSettings($request);
+
+        $saved = get_option(AmazonMailerConfiguration::OPTION_NAME);
+        self::assertSame('SECRET', $saved['fields']['secretKey']);
+    }
+
+    #[Test]
+    public function saveSettingsHandlesUnknownProvider(): void
+    {
+        $request = new \WP_REST_Request('POST');
+        $request->set_header('Content-Type', 'application/json');
+        $request->set_body(json_encode([
+            'provider' => 'unknown-transport',
+            'fields' => [],
+        ]));
+
+        $this->controller->saveSettings($request);
+
+        $saved = get_option(AmazonMailerConfiguration::OPTION_NAME);
+        self::assertSame('unknown-transport', $saved['provider']);
+    }
+
+    #[Test]
+    public function saveSettingsHandlesEmptyProvider(): void
+    {
+        $request = new \WP_REST_Request('POST');
+        $request->set_header('Content-Type', 'application/json');
+        $request->set_body(json_encode([
+            'provider' => '',
+            'fields' => [],
+        ]));
+
+        $this->controller->saveSettings($request);
+
+        $saved = get_option(AmazonMailerConfiguration::OPTION_NAME);
+        self::assertSame('', $saved['provider']);
+    }
+
+    #[Test]
+    public function getSettingsReturnsSmtpDefinition(): void
+    {
+        $response = $this->controller->getSettings();
+
+        /** @var array<string, mixed> $data */
+        $data = json_decode($response->content, true);
+
+        self::assertArrayHasKey('smtp', $data['definitions']);
+        self::assertSame('SMTP', $data['definitions']['smtp']['label']);
+    }
+
+    #[Test]
+    public function saveSettingsBuildsDsnFromSmtpFields(): void
+    {
+        $request = new \WP_REST_Request('POST');
+        $request->set_header('Content-Type', 'application/json');
+        $request->set_body(json_encode([
+            'provider' => 'smtp',
+            'fields' => ['host' => 'smtp.example.com', 'port' => '587', 'username' => 'user', 'password' => 'pass'],
+        ]));
+
+        $this->controller->saveSettings($request);
+
+        $saved = get_option(AmazonMailerConfiguration::OPTION_NAME);
+        self::assertStringStartsWith('smtp://', $saved['dsn']);
+        self::assertStringContainsString('smtp.example.com', $saved['dsn']);
+    }
 }

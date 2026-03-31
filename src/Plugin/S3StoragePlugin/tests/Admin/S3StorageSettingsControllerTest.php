@@ -227,6 +227,84 @@ final class S3StorageSettingsControllerTest extends TestCase
     }
 
     #[Test]
+    public function saveSettingsDeletesRemovedStorages(): void
+    {
+        update_option(S3StorageConfiguration::OPTION_NAME, [
+            'storages' => [
+                'media' => ['provider' => 's3', 'fields' => ['bucket' => 'b1', 'region' => 'us-east-1'], 'prefix' => ''],
+                'backup' => ['provider' => 'gcs', 'fields' => ['bucket' => 'b2'], 'prefix' => ''],
+            ],
+            'primary' => 'media',
+        ]);
+
+        $request = new \WP_REST_Request('POST');
+        $request->set_header('Content-Type', 'application/json');
+        $request->set_body(json_encode([
+            'storages' => [
+                'media' => [
+                    'provider' => 's3',
+                    'fields' => ['bucket' => 'b1', 'region' => 'us-east-1'],
+                    'prefix' => '',
+                ],
+            ],
+            'primary' => 'media',
+        ]));
+
+        $this->controller->saveSettings($request);
+
+        $saved = get_option(S3StorageConfiguration::OPTION_NAME);
+        self::assertCount(1, $saved['storages']);
+        self::assertArrayHasKey('media', $saved['storages']);
+        self::assertArrayNotHasKey('backup', $saved['storages']);
+    }
+
+    #[Test]
+    public function getSettingsMasksAzurePasswordFields(): void
+    {
+        update_option(S3StorageConfiguration::OPTION_NAME, [
+            'storages' => [
+                'azure' => [
+                    'provider' => 'azure',
+                    'fields' => ['account' => 'myaccount', 'container' => 'data', 'accountKey' => 'my-key'],
+                    'prefix' => 'uploads',
+                ],
+            ],
+            'primary' => 'azure',
+        ]);
+
+        $response = $this->controller->getSettings();
+
+        /** @var array<string, mixed> $data */
+        $data = json_decode($response->content, true);
+
+        self::assertSame(S3StorageConfiguration::MASKED_VALUE, $data['storages']['azure']['fields']['accountKey']);
+        self::assertSame('myaccount', $data['storages']['azure']['fields']['account']);
+    }
+
+    #[Test]
+    public function getSettingsReturnsCdnUrl(): void
+    {
+        update_option(S3StorageConfiguration::OPTION_NAME, [
+            'storages' => [
+                'media' => [
+                    'provider' => 's3',
+                    'fields' => ['bucket' => 'b1', 'region' => 'us-east-1'],
+                    'prefix' => 'uploads',
+                    'cdnUrl' => 'https://cdn.example.com',
+                ],
+            ],
+            'primary' => 'media',
+        ]);
+
+        $response = $this->controller->getSettings();
+
+        /** @var array<string, mixed> $data */
+        $data = json_decode($response->content, true);
+
+        self::assertSame('https://cdn.example.com', $data['storages']['media']['cdnUrl']);
+    }
+
+    #[Test]
     public function saveSettingsHandlesMultipleStorages(): void
     {
         $request = new \WP_REST_Request('POST');

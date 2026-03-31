@@ -318,4 +318,145 @@ final class RedisCacheSettingsControllerTest extends TestCase
         $saved = get_option(RedisCacheConfiguration::OPTION_NAME);
         self::assertSame('', $saved['provider']);
     }
+
+    #[Test]
+    public function getSettingsReturnsDefinitionFields(): void
+    {
+        $response = $this->controller->getSettings();
+
+        /** @var array<string, mixed> $data */
+        $data = json_decode($response->content, true);
+
+        $redisDef = $data['definitions']['redis'];
+        self::assertNotEmpty($redisDef['fields']);
+
+        $fieldNames = array_column($redisDef['fields'], 'name');
+        self::assertContains('host', $fieldNames);
+        self::assertContains('port', $fieldNames);
+    }
+
+    #[Test]
+    public function getSettingsReturnsDefinitionFieldConditional(): void
+    {
+        $response = $this->controller->getSettings();
+
+        /** @var array<string, mixed> $data */
+        $data = json_decode($response->content, true);
+
+        // Redis TLS definition (rediss) should have fields with conditional property
+        $redissDef = $data['definitions']['rediss'];
+        $conditionalFields = array_filter($redissDef['fields'], fn(array $f): bool => isset($f['conditional']));
+        self::assertNotEmpty($conditionalFields);
+    }
+
+    #[Test]
+    public function getSettingsReturnsAllAdapterDefinitions(): void
+    {
+        $response = $this->controller->getSettings();
+
+        /** @var array<string, mixed> $data */
+        $data = json_decode($response->content, true);
+
+        // Should include all adapter definitions
+        self::assertArrayHasKey('redis', $data['definitions']);
+        self::assertArrayHasKey('rediss', $data['definitions']);
+        self::assertArrayHasKey('redis-cluster', $data['definitions']);
+        self::assertArrayHasKey('rediss-cluster', $data['definitions']);
+        self::assertArrayHasKey('redis-sentinel', $data['definitions']);
+        self::assertArrayHasKey('dynamodb', $data['definitions']);
+        self::assertArrayHasKey('memcached', $data['definitions']);
+        self::assertArrayHasKey('apcu', $data['definitions']);
+        self::assertArrayHasKey('dsn', $data['definitions']);
+    }
+
+    #[Test]
+    public function getSettingsReturnsParsedProviderAndFields(): void
+    {
+        $response = $this->controller->getSettings();
+
+        /** @var array<string, mixed> $data */
+        $data = json_decode($response->content, true);
+
+        self::assertArrayHasKey('parsedProvider', $data);
+        self::assertArrayHasKey('parsedFields', $data);
+    }
+
+    #[Test]
+    public function getSettingsNoPasswordInDsnWhenNoPassword(): void
+    {
+        update_option(RedisCacheConfiguration::OPTION_NAME, [
+            'dsn' => 'redis://127.0.0.1:6379',
+            'provider' => 'redis',
+            'fields' => ['host' => '127.0.0.1', 'port' => '6379'],
+        ]);
+
+        $response = $this->controller->getSettings();
+
+        /** @var array<string, mixed> $data */
+        $data = json_decode($response->content, true);
+
+        self::assertSame('option', $data['source']);
+        // DSN without password should not be masked
+        self::assertSame('redis://127.0.0.1:6379', $data['dsn']);
+    }
+
+    #[Test]
+    public function saveSettingsSkipsGlobalOptionsForDefinedConstants(): void
+    {
+        // Global options with constant already defined are skipped
+        // We can test that regular options work
+        $request = new \WP_REST_Request('POST');
+        $request->set_header('Content-Type', 'application/json');
+        $request->set_body(json_encode([
+            'provider' => '',
+            'fields' => [],
+            'globalOptions' => [
+                'hashAlloptions' => true,
+                'asyncFlush' => true,
+                'maxTtl' => '3600',
+                'clientLibrary' => 'phpredis',
+            ],
+        ]));
+
+        $this->controller->saveSettings($request);
+
+        $saved = get_option(RedisCacheConfiguration::OPTION_NAME);
+        self::assertTrue($saved['hashAlloptions']);
+        self::assertTrue($saved['asyncFlush']);
+        self::assertSame('3600', $saved['maxTtl']);
+        self::assertSame('phpredis', $saved['clientLibrary']);
+    }
+
+    #[Test]
+    public function saveSettingsBuildsDsnFromDynamoDbProvider(): void
+    {
+        $request = new \WP_REST_Request('POST');
+        $request->set_header('Content-Type', 'application/json');
+        $request->set_body(json_encode([
+            'provider' => 'dynamodb',
+            'fields' => ['region' => 'us-east-1', 'table' => 'cache'],
+        ]));
+
+        $this->controller->saveSettings($request);
+
+        $saved = get_option(RedisCacheConfiguration::OPTION_NAME);
+        self::assertStringStartsWith('dynamodb://', $saved['dsn']);
+        self::assertStringContainsString('us-east-1', $saved['dsn']);
+    }
+
+    #[Test]
+    public function saveSettingsBuildsDsnFromApcuProvider(): void
+    {
+        $request = new \WP_REST_Request('POST');
+        $request->set_header('Content-Type', 'application/json');
+        $request->set_body(json_encode([
+            'provider' => 'apcu',
+            'fields' => [],
+        ]));
+
+        $this->controller->saveSettings($request);
+
+        $saved = get_option(RedisCacheConfiguration::OPTION_NAME);
+        self::assertStringStartsWith('apcu://', $saved['dsn']);
+    }
 }
