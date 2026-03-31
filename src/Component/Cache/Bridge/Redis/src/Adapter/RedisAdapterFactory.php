@@ -13,12 +13,12 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Cache\Bridge\Redis\Adapter;
 
+use AsyncAws\Core\Credentials\Credentials;
 use WpPack\Component\Cache\Adapter\AdapterDefinition;
 use WpPack\Component\Cache\Adapter\AdapterFactoryInterface;
 use WpPack\Component\Cache\Adapter\AdapterField;
 use WpPack\Component\Cache\Adapter\AdapterInterface;
 use WpPack\Component\Cache\Adapter\Dsn;
-use AsyncAws\Core\Credentials\Credentials;
 use WpPack\Component\Cache\Bridge\ElastiCacheAuth\ElastiCacheIamTokenGenerator;
 use WpPack\Component\Cache\Exception\AdapterException;
 use WpPack\Component\Cache\Exception\UnsupportedSchemeException;

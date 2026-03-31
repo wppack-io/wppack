@@ -249,7 +249,7 @@ final class RedisAdapterFactoryTest extends TestCase
         }
 
         $this->expectException(AdapterException::class);
-        $this->expectExceptionMessage('iam_region is required');
+        $this->expectExceptionMessage('Cannot detect region from host');
 
         $this->factory->create(
             Dsn::fromString('rediss://my-cluster.xxxxx.apne1.cache.amazonaws.com:6379'),

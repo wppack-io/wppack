@@ -193,8 +193,8 @@ export default function App() {
 						const wrapStyle = f.maxWidth ? { maxWidth: f.maxWidth } : {};
 						const effectiveDefault = ( f.name === 'region' && awsRegion ) ? awsRegion : ( f.default || '' );
 						if ( f.type === 'boolean' ) {
-							const hostVal = fields.host || '';
-							const isAwsHost = /\.cache\.amazonaws\.com$|\.memorydb\.amazonaws\.com$/.test( hostVal );
+							const awsPattern = /\.cache\.amazonaws\.com|\.memorydb\.amazonaws\.com/;
+							const isAwsHost = awsPattern.test( fields.host || '' ) || awsPattern.test( fields.nodes || '' );
 							const iamDisabled = isReadonly || ( f.name === 'iamAuth' && ! isAwsHost );
 							return (
 								<ToggleControl
