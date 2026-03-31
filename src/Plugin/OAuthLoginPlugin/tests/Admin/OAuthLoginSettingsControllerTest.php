@@ -266,6 +266,39 @@ final class OAuthLoginSettingsControllerTest extends TestCase
     }
 
     #[Test]
+    public function saveSettingsReorderAppendsProvidersNotInOrderList(): void
+    {
+        update_option(OAuthLoginConfiguration::OPTION_NAME, [
+            'providers' => [
+                'google' => ['type' => 'google', 'client_id' => 'gid', 'client_secret' => 'gs', 'label' => 'Google'],
+                'github' => ['type' => 'github', 'client_id' => 'hid', 'client_secret' => 'hs', 'label' => 'GitHub'],
+                'apple' => ['type' => 'apple', 'client_id' => 'aid', 'client_secret' => 'as', 'label' => 'Apple'],
+            ],
+        ]);
+
+        $config = OAuthLoginConfiguration::fromEnvironmentOrOptions();
+        $controller = new OAuthLoginSettingsController(
+            $config,
+            new Sanitizer(),
+            new RoleProvider(),
+        );
+
+        $request = new \WP_REST_Request('POST');
+        $request->set_header('Content-Type', 'application/json');
+        $request->set_body(json_encode([
+            'providerOrder' => ['github'],
+        ]));
+
+        $controller->saveSettings($request);
+
+        $saved = get_option(OAuthLoginConfiguration::OPTION_NAME);
+        $keys = array_keys($saved['providers']);
+        // github first (from order), then google and apple appended
+        self::assertSame('github', $keys[0]);
+        self::assertCount(3, $keys);
+    }
+
+    #[Test]
     public function saveSettingsSkipsInvalidRole(): void
     {
         $request = new \WP_REST_Request('POST');
@@ -401,6 +434,66 @@ final class OAuthLoginSettingsControllerTest extends TestCase
 
         self::assertSame('option', $data['providers']['google']['source']);
         self::assertFalse($data['providers']['google']['readonly']);
+    }
+
+    #[Test]
+    public function saveSettingsRemovesMaskedSecretWhenNoSavedValue(): void
+    {
+        // No pre-existing providers
+        delete_option(OAuthLoginConfiguration::OPTION_NAME);
+
+        $request = new \WP_REST_Request('POST');
+        $request->set_header('Content-Type', 'application/json');
+        $request->set_body(json_encode([
+            'providers' => [
+                'newprov' => [
+                    'type' => 'google',
+                    'client_id' => 'id',
+                    'client_secret' => OAuthLoginConfiguration::MASKED_VALUE,
+                    'label' => 'New',
+                ],
+            ],
+        ]));
+
+        $this->controller->saveSettings($request);
+
+        $saved = get_option(OAuthLoginConfiguration::OPTION_NAME);
+        // Masked secret with no saved value → field should be unset
+        self::assertArrayNotHasKey('client_secret', $saved['providers']['newprov']);
+    }
+
+    #[Test]
+    public function getSettingsReturnsProviderFieldsWithRoleMappingAndScopes(): void
+    {
+        $oidc = new ProviderConfiguration(
+            name: 'oidc',
+            type: 'oidc',
+            clientId: 'id',
+            clientSecret: 'secret',
+            label: 'OIDC',
+            scopes: ['openid', 'profile'],
+            roleMapping: ['admin' => 'administrator'],
+            roleClaim: 'roles',
+            buttonStyle: 'brand',
+        );
+
+        $config = new OAuthLoginConfiguration(providers: ['oidc' => $oidc]);
+        $controller = new OAuthLoginSettingsController(
+            $config,
+            new Sanitizer(),
+            new RoleProvider(),
+        );
+
+        $response = $controller->getSettings();
+
+        /** @var array<string, mixed> $data */
+        $data = json_decode($response->content, true);
+
+        $fields = $data['providers']['oidc']['fields'];
+        self::assertSame('openid profile', $fields['scopes']);
+        self::assertSame('{"admin":"administrator"}', $fields['role_mapping']);
+        self::assertSame('roles', $fields['role_claim']);
+        self::assertSame('brand', $fields['button_style']);
     }
 
     #[Test]

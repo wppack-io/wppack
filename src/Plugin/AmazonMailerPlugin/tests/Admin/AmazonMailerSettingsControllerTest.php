@@ -94,6 +94,27 @@ final class AmazonMailerSettingsControllerTest extends TestCase
     }
 
     #[Test]
+    public function getSettingsReturnsConstantSourceWhenEnvSet(): void
+    {
+        // If MAILER_DSN constant is already defined from another test, this tests line 85-87
+        // Otherwise test the env branch (lines 88-90)
+        if (!\defined('MAILER_DSN')) {
+            putenv('MAILER_DSN=ses+api://default?region=us-east-1');
+        }
+
+        $response = $this->controller->getSettings();
+
+        /** @var array<string, mixed> $data */
+        $data = json_decode($response->content, true);
+
+        self::assertSame('constant', $data['source']);
+        self::assertTrue($data['readonly']);
+        self::assertSame(AmazonMailerConfiguration::MASKED_VALUE, $data['dsn']);
+
+        putenv('MAILER_DSN');
+    }
+
+    #[Test]
     public function getSettingsReturnsTransportDefinitions(): void
     {
         $response = $this->controller->getSettings();
@@ -265,6 +286,28 @@ final class AmazonMailerSettingsControllerTest extends TestCase
 
         $saved = get_option(AmazonMailerConfiguration::OPTION_NAME);
         self::assertSame('unknown-transport', $saved['provider']);
+    }
+
+    #[Test]
+    public function saveSettingsDoesNotPersistWhenConstantDefined(): void
+    {
+        // MAILER_DSN constant is defined from AmazonMailerConfigurationTest
+        if (!\defined('MAILER_DSN')) {
+            self::markTestSkipped('MAILER_DSN constant not defined in this run.');
+        }
+
+        $request = new \WP_REST_Request('POST');
+        $request->set_header('Content-Type', 'application/json');
+        $request->set_body(json_encode([
+            'provider' => 'dsn',
+            'fields' => ['dsn' => 'native://default'],
+        ]));
+
+        $this->controller->saveSettings($request);
+
+        // persistOptions returns early, so no option is saved
+        $saved = get_option(AmazonMailerConfiguration::OPTION_NAME, []);
+        self::assertEmpty($saved);
     }
 
     #[Test]

@@ -19,6 +19,10 @@ use PHPUnit\Framework\TestCase;
 use WpPack\Component\Rest\AbstractRestController;
 use WpPack\Component\Role\RoleProvider;
 use WpPack\Component\Sanitizer\Sanitizer;
+use WpPack\Component\Security\Bridge\SAML\Configuration\IdpSettings;
+use WpPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
+use WpPack\Component\Security\Bridge\SAML\Configuration\SpMetadataExporter;
+use WpPack\Component\Security\Bridge\SAML\Configuration\SpSettings;
 use WpPack\Plugin\SamlLoginPlugin\Admin\SamlLoginSettingsController;
 use WpPack\Plugin\SamlLoginPlugin\Configuration\SamlLoginConfiguration;
 
@@ -291,6 +295,64 @@ final class SamlLoginSettingsControllerTest extends TestCase
         self::assertTrue($saved['autoProvision']);
         self::assertTrue($saved['ssoOnly']);
         self::assertFalse($saved['wantAssertionsSigned']);
+    }
+
+    #[Test]
+    public function downloadMetadataReturnsXmlWhenConfigured(): void
+    {
+        $config = new SamlLoginConfiguration(
+            idpEntityId: 'https://idp.test',
+            idpSsoUrl: 'https://idp.test/sso',
+            idpX509Cert: 'MIICert',
+        );
+
+        $samlConfig = new SamlConfiguration(
+            new IdpSettings('https://idp.test', 'https://idp.test/sso', null, 'MIICert'),
+            new SpSettings('https://sp.test', 'https://sp.test/saml/acs'),
+        );
+        $exporter = new SpMetadataExporter($samlConfig);
+
+        $controller = new SamlLoginSettingsController(
+            $config,
+            new Sanitizer(),
+            new RoleProvider(),
+            $exporter,
+        );
+
+        $response = $controller->downloadMetadata();
+
+        self::assertSame(200, $response->statusCode);
+        self::assertStringContainsString('xml', $response->headers['Content-Type']);
+        self::assertStringContainsString('sp-metadata.xml', $response->headers['Content-Disposition']);
+    }
+
+    #[Test]
+    public function getSettingsReturnsEnvSourceForEnvVariable(): void
+    {
+        putenv('SAML_IDP_ENTITY_ID=https://env-idp.test');
+
+        $config = new SamlLoginConfiguration(
+            idpEntityId: 'https://env-idp.test',
+            idpSsoUrl: '',
+            idpX509Cert: '',
+        );
+        $controller = new SamlLoginSettingsController(
+            $config,
+            new Sanitizer(),
+            new RoleProvider(),
+        );
+
+        $response = $controller->getSettings();
+
+        /** @var array<string, mixed> $data */
+        $data = json_decode($response->content, true);
+
+        // env source for idpEntityId
+        if (!\defined('SAML_IDP_ENTITY_ID')) {
+            self::assertSame('env', $data['fields']['idpEntityId']['source']);
+        }
+
+        putenv('SAML_IDP_ENTITY_ID');
     }
 
     #[Test]

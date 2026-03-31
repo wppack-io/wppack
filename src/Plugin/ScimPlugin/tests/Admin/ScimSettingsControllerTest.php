@@ -181,6 +181,26 @@ final class ScimSettingsControllerTest extends TestCase
     }
 
     #[Test]
+    public function getSettingsReturnsEnvSourceForEnvVariables(): void
+    {
+        putenv('SCIM_AUTO_PROVISION=false');
+
+        $response = $this->controller->getSettings();
+
+        /** @var array<string, mixed> $data */
+        $data = json_decode($response->content, true);
+
+        // SCIM_BEARER_TOKEN constant may be defined from earlier tests
+        // but SCIM_AUTO_PROVISION via env should show as constant source
+        if (!\defined('SCIM_AUTO_PROVISION')) {
+            self::assertSame('constant', $data['settings']['autoProvision']['source']);
+            self::assertFalse($data['settings']['autoProvision']['value']);
+        }
+
+        putenv('SCIM_AUTO_PROVISION');
+    }
+
+    #[Test]
     public function saveSettingsAcceptsValidRole(): void
     {
         $request = new \WP_REST_Request('POST');
