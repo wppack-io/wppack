@@ -273,6 +273,22 @@ final class RedisCacheConfigurationTest extends TestCase
     }
 
     #[Test]
+    public function fromEnvironmentOrOptionsReadsSerializerFromOption(): void
+    {
+        update_option(RedisCacheConfiguration::OPTION_NAME, [
+            'dsn' => 'redis://option-host:6379',
+            'serializer' => 'igbinary',
+        ]);
+
+        $config = RedisCacheConfiguration::fromEnvironmentOrOptions();
+
+        self::assertSame('redis://option-host:6379', $config->dsn);
+        self::assertSame('igbinary', $config->serializer);
+
+        delete_option(RedisCacheConfiguration::OPTION_NAME);
+    }
+
+    #[Test]
     public function fromEnvironmentOrOptionsThrowsWhenNothingConfigured(): void
     {
         delete_option(RedisCacheConfiguration::OPTION_NAME);

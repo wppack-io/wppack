@@ -369,6 +369,28 @@ final class SamlLoginConfigurationTest extends TestCase
     }
 
     #[Test]
+    public function fromEnvironmentOrOptionsReadsFromWpOptions(): void
+    {
+        update_option('wppack_saml_login', [
+            'idpEntityId' => 'https://idp.example.com',
+            'idpSsoUrl' => 'https://idp.example.com/sso',
+            'idpX509Cert' => 'MIICertFromOption',
+            'autoProvision' => true,
+            'defaultRole' => 'editor',
+        ]);
+
+        $config = SamlLoginConfiguration::fromEnvironmentOrOptions();
+
+        self::assertSame('https://idp.example.com', $config->idpEntityId);
+        self::assertSame('https://idp.example.com/sso', $config->idpSsoUrl);
+        self::assertSame('MIICertFromOption', $config->idpX509Cert);
+        self::assertTrue($config->autoProvision);
+        self::assertSame('editor', $config->defaultRole);
+
+        delete_option('wppack_saml_login');
+    }
+
+    #[Test]
     public function fromEnvironmentReadsOptionalSettings(): void
     {
         putenv('SAML_IDP_ENTITY_ID=https://idp.example.com');

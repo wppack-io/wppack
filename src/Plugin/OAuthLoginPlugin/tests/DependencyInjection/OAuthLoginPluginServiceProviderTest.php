@@ -27,11 +27,22 @@ use WpPack\Component\Security\Bridge\OAuth\Configuration\OAuthConfiguration;
 use WpPack\Component\Security\Bridge\OAuth\OAuthAuthenticator;
 use WpPack\Component\Security\Bridge\OAuth\OAuthCallbackController;
 use WpPack\Component\Security\Bridge\OAuth\OAuthVerifyController;
+use WpPack\Component\Security\Bridge\OAuth\Provider\AmazonProvider;
+use WpPack\Component\Security\Bridge\OAuth\Provider\AppleProvider;
+use WpPack\Component\Security\Bridge\OAuth\Provider\DAccountProvider;
+use WpPack\Component\Security\Bridge\OAuth\Provider\DiscordProvider;
 use WpPack\Component\Security\Bridge\OAuth\Provider\EntraIdProvider;
+use WpPack\Component\Security\Bridge\OAuth\Provider\FacebookProvider;
 use WpPack\Component\Security\Bridge\OAuth\Provider\GenericOidcProvider;
 use WpPack\Component\Security\Bridge\OAuth\Provider\GitHubProvider;
 use WpPack\Component\Security\Bridge\OAuth\Provider\GoogleProvider;
+use WpPack\Component\Security\Bridge\OAuth\Provider\LineProvider;
+use WpPack\Component\Security\Bridge\OAuth\Provider\MicrosoftProvider;
+use WpPack\Component\Security\Bridge\OAuth\Provider\OktaProvider;
 use WpPack\Component\Security\Bridge\OAuth\Provider\ProviderInterface;
+use WpPack\Component\Security\Bridge\OAuth\Provider\SlackProvider;
+use WpPack\Component\Security\Bridge\OAuth\Provider\YahooJapanProvider;
+use WpPack\Component\Security\Bridge\OAuth\Provider\YahooProvider;
 use WpPack\Component\Security\Bridge\OAuth\UserResolution\OAuthUserResolver;
 use WpPack\Component\Security\Bridge\OAuth\UserResolution\OAuthUserResolverInterface;
 use WpPack\Component\User\UserRepository;
@@ -374,6 +385,284 @@ final class OAuthLoginPluginServiceProviderTest extends TestCase
         $this->expectExceptionMessage('requires a "tenant_id"');
 
         OAuthLoginPluginServiceProvider::createProvider($providerConfig, $oauthConfig);
+    }
+
+    #[Test]
+    public function createProviderReturnsOktaProvider(): void
+    {
+        $providerConfig = new ProviderConfiguration(
+            name: 'okta',
+            type: 'okta',
+            clientId: 'id',
+            clientSecret: 'secret',
+            label: 'Okta',
+            domain: 'dev-123.okta.com',
+        );
+
+        $oauthConfig = new OAuthConfiguration(
+            clientId: 'id',
+            clientSecret: 'secret',
+            redirectUri: 'https://example.com/oauth/okta/callback',
+        );
+
+        $provider = OAuthLoginPluginServiceProvider::createProvider($providerConfig, $oauthConfig);
+
+        self::assertInstanceOf(OktaProvider::class, $provider);
+    }
+
+    #[Test]
+    public function createProviderReturnsAppleProvider(): void
+    {
+        $providerConfig = new ProviderConfiguration(
+            name: 'apple',
+            type: 'apple',
+            clientId: 'id',
+            clientSecret: 'secret',
+            label: 'Apple',
+        );
+
+        $oauthConfig = new OAuthConfiguration(
+            clientId: 'id',
+            clientSecret: 'secret',
+            redirectUri: 'https://example.com/oauth/apple/callback',
+        );
+
+        $provider = OAuthLoginPluginServiceProvider::createProvider($providerConfig, $oauthConfig);
+
+        self::assertInstanceOf(AppleProvider::class, $provider);
+    }
+
+    #[Test]
+    public function createProviderReturnsDiscordProvider(): void
+    {
+        $providerConfig = new ProviderConfiguration(
+            name: 'discord',
+            type: 'discord',
+            clientId: 'id',
+            clientSecret: 'secret',
+            label: 'Discord',
+        );
+
+        $oauthConfig = new OAuthConfiguration(
+            clientId: 'id',
+            clientSecret: 'secret',
+            redirectUri: 'https://example.com/oauth/discord/callback',
+        );
+
+        $provider = OAuthLoginPluginServiceProvider::createProvider($providerConfig, $oauthConfig);
+
+        self::assertInstanceOf(DiscordProvider::class, $provider);
+    }
+
+    #[Test]
+    public function createProviderReturnsLineProvider(): void
+    {
+        $providerConfig = new ProviderConfiguration(
+            name: 'line',
+            type: 'line',
+            clientId: 'id',
+            clientSecret: 'secret',
+            label: 'LINE',
+        );
+
+        $oauthConfig = new OAuthConfiguration(
+            clientId: 'id',
+            clientSecret: 'secret',
+            redirectUri: 'https://example.com/oauth/line/callback',
+        );
+
+        $provider = OAuthLoginPluginServiceProvider::createProvider($providerConfig, $oauthConfig);
+
+        self::assertInstanceOf(LineProvider::class, $provider);
+    }
+
+    #[Test]
+    public function createProviderReturnsDAccountProvider(): void
+    {
+        $providerConfig = new ProviderConfiguration(
+            name: 'd-account',
+            type: 'd-account',
+            clientId: 'id',
+            clientSecret: 'secret',
+            label: 'dアカウント',
+        );
+
+        $oauthConfig = new OAuthConfiguration(
+            clientId: 'id',
+            clientSecret: 'secret',
+            redirectUri: 'https://example.com/oauth/d-account/callback',
+        );
+
+        $provider = OAuthLoginPluginServiceProvider::createProvider($providerConfig, $oauthConfig);
+
+        self::assertInstanceOf(DAccountProvider::class, $provider);
+    }
+
+    #[Test]
+    public function createProviderReturnsAmazonProvider(): void
+    {
+        $providerConfig = new ProviderConfiguration(
+            name: 'amazon',
+            type: 'amazon',
+            clientId: 'id',
+            clientSecret: 'secret',
+            label: 'Amazon',
+        );
+
+        $oauthConfig = new OAuthConfiguration(
+            clientId: 'id',
+            clientSecret: 'secret',
+            redirectUri: 'https://example.com/oauth/amazon/callback',
+        );
+
+        $provider = OAuthLoginPluginServiceProvider::createProvider($providerConfig, $oauthConfig);
+
+        self::assertInstanceOf(AmazonProvider::class, $provider);
+    }
+
+    #[Test]
+    public function createProviderReturnsMicrosoftProvider(): void
+    {
+        $providerConfig = new ProviderConfiguration(
+            name: 'microsoft',
+            type: 'microsoft',
+            clientId: 'id',
+            clientSecret: 'secret',
+            label: 'Microsoft',
+        );
+
+        $oauthConfig = new OAuthConfiguration(
+            clientId: 'id',
+            clientSecret: 'secret',
+            redirectUri: 'https://example.com/oauth/microsoft/callback',
+        );
+
+        $provider = OAuthLoginPluginServiceProvider::createProvider($providerConfig, $oauthConfig);
+
+        self::assertInstanceOf(MicrosoftProvider::class, $provider);
+    }
+
+    #[Test]
+    public function createProviderReturnsYahooProvider(): void
+    {
+        $providerConfig = new ProviderConfiguration(
+            name: 'yahoo',
+            type: 'yahoo',
+            clientId: 'id',
+            clientSecret: 'secret',
+            label: 'Yahoo',
+        );
+
+        $oauthConfig = new OAuthConfiguration(
+            clientId: 'id',
+            clientSecret: 'secret',
+            redirectUri: 'https://example.com/oauth/yahoo/callback',
+        );
+
+        $provider = OAuthLoginPluginServiceProvider::createProvider($providerConfig, $oauthConfig);
+
+        self::assertInstanceOf(YahooProvider::class, $provider);
+    }
+
+    #[Test]
+    public function createProviderReturnsYahooJapanProvider(): void
+    {
+        $providerConfig = new ProviderConfiguration(
+            name: 'yahoo-japan',
+            type: 'yahoo-japan',
+            clientId: 'id',
+            clientSecret: 'secret',
+            label: 'Yahoo! JAPAN',
+        );
+
+        $oauthConfig = new OAuthConfiguration(
+            clientId: 'id',
+            clientSecret: 'secret',
+            redirectUri: 'https://example.com/oauth/yahoo-japan/callback',
+        );
+
+        $provider = OAuthLoginPluginServiceProvider::createProvider($providerConfig, $oauthConfig);
+
+        self::assertInstanceOf(YahooJapanProvider::class, $provider);
+    }
+
+    #[Test]
+    public function createProviderReturnsFacebookProvider(): void
+    {
+        $providerConfig = new ProviderConfiguration(
+            name: 'facebook',
+            type: 'facebook',
+            clientId: 'id',
+            clientSecret: 'secret',
+            label: 'Facebook',
+        );
+
+        $oauthConfig = new OAuthConfiguration(
+            clientId: 'id',
+            clientSecret: 'secret',
+            redirectUri: 'https://example.com/oauth/facebook/callback',
+        );
+
+        $provider = OAuthLoginPluginServiceProvider::createProvider($providerConfig, $oauthConfig);
+
+        self::assertInstanceOf(FacebookProvider::class, $provider);
+    }
+
+    #[Test]
+    public function createProviderReturnsSlackProvider(): void
+    {
+        $providerConfig = new ProviderConfiguration(
+            name: 'slack',
+            type: 'slack',
+            clientId: 'id',
+            clientSecret: 'secret',
+            label: 'Slack',
+        );
+
+        $oauthConfig = new OAuthConfiguration(
+            clientId: 'id',
+            clientSecret: 'secret',
+            redirectUri: 'https://example.com/oauth/slack/callback',
+        );
+
+        $provider = OAuthLoginPluginServiceProvider::createProvider($providerConfig, $oauthConfig);
+
+        self::assertInstanceOf(SlackProvider::class, $provider);
+    }
+
+    #[Test]
+    public function isProviderConfigCompleteReturnsFalseForEmptyClientId(): void
+    {
+        $incompleteProvider = new ProviderConfiguration(
+            name: 'incomplete',
+            type: 'google',
+            clientId: '',
+            clientSecret: 'secret',
+            label: 'Incomplete',
+        );
+
+        $completeProvider = new ProviderConfiguration(
+            name: 'google',
+            type: 'google',
+            clientId: 'id',
+            clientSecret: 'secret',
+            label: 'Google',
+        );
+
+        $config = new OAuthLoginConfiguration(
+            providers: [
+                'incomplete' => $incompleteProvider,
+                'google' => $completeProvider,
+            ],
+        );
+
+        $authSession = new \WpPack\Component\Security\AuthenticationSession();
+        $request = \WpPack\Component\HttpFoundation\Request::create('https://example.com/wp-login.php');
+
+        $form = OAuthLoginPluginServiceProvider::createLoginForm($config, $authSession, $request);
+
+        // The login form should only contain the complete provider
+        self::assertInstanceOf(OAuthLoginForm::class, $form);
     }
 
     #[Test]

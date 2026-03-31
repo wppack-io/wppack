@@ -23,6 +23,8 @@ use WpPack\Component\Mailer\Bridge\Amazon\Transport\SesTransportFactory;
 use WpPack\Component\Mailer\Mailer;
 use WpPack\Component\Mailer\Transport\NativeTransportFactory;
 use WpPack\Component\Mailer\Transport\Transport;
+use WpPack\Plugin\AmazonMailerPlugin\Admin\AmazonMailerSettingsController;
+use WpPack\Plugin\AmazonMailerPlugin\Admin\AmazonMailerSettingsPage;
 use WpPack\Plugin\AmazonMailerPlugin\Configuration\AmazonMailerConfiguration;
 use WpPack\Plugin\AmazonMailerPlugin\DependencyInjection\AmazonMailerPluginServiceProvider;
 use WpPack\Plugin\AmazonMailerPlugin\Handler\BounceHandler;
@@ -167,6 +169,15 @@ final class AmazonMailerPluginServiceProviderTest extends TestCase
         self::assertCount(1, $arguments);
         self::assertInstanceOf(Reference::class, $arguments[0]);
         self::assertSame(SuppressionList::class, (string) $arguments[0]);
+    }
+
+    #[Test]
+    public function registerAdminRegistersSettingsServices(): void
+    {
+        $this->provider->registerAdmin($this->builder);
+
+        self::assertTrue($this->builder->hasDefinition(AmazonMailerSettingsPage::class));
+        self::assertTrue($this->builder->hasDefinition(AmazonMailerSettingsController::class));
     }
 
     #[Test]

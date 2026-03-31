@@ -200,6 +200,19 @@ final class S3StorageConfigurationTest extends TestCase
     }
 
     #[Test]
+    public function hasConfigurationReturnsFalseWhenOptionExistsButEmpty(): void
+    {
+        update_option(S3StorageConfiguration::OPTION_NAME, [
+            'storages' => [],
+            'primary' => 'media',
+        ]);
+
+        self::assertFalse(S3StorageConfiguration::hasConfiguration());
+
+        delete_option(S3StorageConfiguration::OPTION_NAME);
+    }
+
+    #[Test]
     public function fromEnvironmentOrOptionsThrowsWhenNothingConfigured(): void
     {
         delete_option(S3StorageConfiguration::OPTION_NAME);

@@ -28,6 +28,8 @@ use WpPack\Component\Scim\Controller\ServiceProviderConfigController;
 use WpPack\Component\Scim\Controller\UserController;
 use WpPack\Component\Scim\Schema\ServiceProviderConfig;
 use WpPack\Component\Security\Authentication\AuthenticationManager;
+use WpPack\Plugin\ScimPlugin\Admin\ScimSettingsController;
+use WpPack\Plugin\ScimPlugin\Admin\ScimSettingsPage;
 use WpPack\Plugin\ScimPlugin\Configuration\ScimConfiguration;
 use WpPack\Plugin\ScimPlugin\DependencyInjection\ScimPluginServiceProvider;
 
@@ -195,6 +197,15 @@ final class ScimPluginServiceProviderTest extends TestCase
         $result = ScimPluginServiceProvider::createAuthenticator($config);
 
         self::assertInstanceOf(ScimBearerAuthenticator::class, $result);
+    }
+
+    #[Test]
+    public function registerAdminRegistersSettingsServices(): void
+    {
+        $this->provider->registerAdmin($this->builder);
+
+        self::assertTrue($this->builder->hasDefinition(ScimSettingsPage::class));
+        self::assertTrue($this->builder->hasDefinition(ScimSettingsController::class));
     }
 
     #[Test]
