@@ -305,34 +305,38 @@ export default function App() {
 						disabled={ !! globalReadonly.compression }
 						__nextHasNoMarginBottom
 					/>
-					<SelectControl
-						className="wpp-cache-narrow-select"
-						label={ <><span>{ __( 'Serializer', 'wppack-cache' ) }</span>{ globalReadonly.serializer && <SourceBadge source="constant" /> }</> }
-						value={ globalForm.serializer || 'none' }
-						onChange={ ( val ) => setGlobalForm( ( prev ) => ( { ...prev, serializer: val } ) ) }
-						options={ [
-							{ label: 'PHP (default)', value: 'none' },
-							{ label: extensions.igbinary ? 'igbinary' : 'igbinary (not installed)', value: 'igbinary' },
-							{ label: extensions.msgpack ? 'msgpack' : 'msgpack (not installed)', value: 'msgpack' },
-						] }
-						disabled={ !! globalReadonly.serializer }
-						help={ __( 'Redis-side serializer. Requires ext-igbinary or ext-msgpack.', 'wppack-cache' ) }
-						__nextHasNoMarginBottom
-					/>
-					<SelectControl
-						className="wpp-cache-narrow-select"
-						label={ <><span>{ __( 'Client Library', 'wppack-cache' ) }</span>{ globalReadonly.clientLibrary && <SourceBadge source="constant" /> }</> }
-						value={ globalForm.clientLibrary || '' }
-						onChange={ ( val ) => setGlobalForm( ( prev ) => ( { ...prev, clientLibrary: val } ) ) }
-						options={ [
-							{ label: 'Auto-detect', value: '' },
-							{ label: extensions.redis ? 'PhpRedis (ext-redis)' : 'PhpRedis (not installed)', value: 'Redis' },
-							{ label: extensions.relay ? 'Relay (ext-relay)' : 'Relay (not installed)', value: 'Relay\\Relay' },
-							{ label: extensions.predis ? 'Predis' : 'Predis (not installed)', value: 'Predis\\Client' },
-						] }
-						disabled={ !! globalReadonly.clientLibrary }
-						__nextHasNoMarginBottom
-					/>
+					{ /^redis/.test( provider ) && (
+						<>
+							<SelectControl
+								className="wpp-cache-narrow-select"
+								label={ <><span>{ __( 'Serializer', 'wppack-cache' ) }</span>{ globalReadonly.serializer && <SourceBadge source="constant" /> }</> }
+								value={ globalForm.serializer || 'none' }
+								onChange={ ( val ) => setGlobalForm( ( prev ) => ( { ...prev, serializer: val } ) ) }
+								options={ [
+									{ label: 'PHP (default)', value: 'none' },
+									{ label: extensions.igbinary ? 'igbinary' : 'igbinary (not installed)', value: 'igbinary' },
+									{ label: extensions.msgpack ? 'msgpack' : 'msgpack (not installed)', value: 'msgpack' },
+								] }
+								disabled={ !! globalReadonly.serializer }
+								help={ __( 'Redis-side serializer. Requires ext-igbinary or ext-msgpack.', 'wppack-cache' ) }
+								__nextHasNoMarginBottom
+							/>
+							<SelectControl
+								className="wpp-cache-narrow-select"
+								label={ <><span>{ __( 'Client Library', 'wppack-cache' ) }</span>{ globalReadonly.clientLibrary && <SourceBadge source="constant" /> }</> }
+								value={ globalForm.clientLibrary || '' }
+								onChange={ ( val ) => setGlobalForm( ( prev ) => ( { ...prev, clientLibrary: val } ) ) }
+								options={ [
+									{ label: 'Auto-detect', value: '' },
+									{ label: extensions.redis ? 'PhpRedis (ext-redis)' : 'PhpRedis (not installed)', value: 'Redis' },
+									{ label: extensions.relay ? 'Relay (ext-relay)' : 'Relay (not installed)', value: 'Relay\\Relay' },
+									{ label: extensions.predis ? 'Predis' : 'Predis (not installed)', value: 'Predis\\Client' },
+								] }
+								disabled={ !! globalReadonly.clientLibrary }
+								__nextHasNoMarginBottom
+							/>
+						</>
+					) }
 				</PanelBody>
 			</Panel>
 
