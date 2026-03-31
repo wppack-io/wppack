@@ -188,14 +188,19 @@ export default function App() {
 						const wrapStyle = f.maxWidth ? { maxWidth: f.maxWidth } : {};
 						const effectiveDefault = ( f.name === 'region' && awsRegion ) ? awsRegion : ( f.default || '' );
 						if ( f.type === 'boolean' ) {
+							const hostVal = fields.host || '';
+							const isAwsHost = /\.cache\.amazonaws\.com$|\.memorydb\.amazonaws\.com$/.test( hostVal );
+							const iamDisabled = isReadonly || ( f.name === 'iamAuth' && ! isAwsHost );
 							return (
 								<ToggleControl
 									key={ f.name }
 									label={ f.label }
-									help={ f.help || undefined }
+									help={ iamDisabled && f.name === 'iamAuth' && ! isReadonly
+										? __( 'Enter an AWS endpoint to enable IAM authentication', 'wppack-cache' )
+										: ( f.help || undefined ) }
 									checked={ !! fields[ f.name ] }
 									onChange={ ( val ) => setFields( ( prev ) => ( { ...prev, [ f.name ]: val } ) ) }
-									disabled={ isReadonly }
+									disabled={ iamDisabled }
 									__nextHasNoMarginBottom
 								/>
 							);

@@ -37,8 +37,8 @@ final class RedisAdapterFactory implements AdapterFactoryInterface
     public static function definitions(): array
     {
         $clientField = new AdapterField('class', 'Client Library', options: self::CLIENT_OPTIONS, dsnPart: 'option:class', maxWidth: '200px');
-        $iamAuthField = new AdapterField('iamAuth', 'IAM Auth', type: 'boolean', dsnPart: 'option:iam_auth', help: 'Use IAM authentication (ElastiCache / Valkey)');
-        $iamUserIdField = new AdapterField('iamUserId', 'IAM User ID', required: true, dsnPart: 'option:iam_user_id', conditional: 'iamAuth');
+        $iamAuthField = new AdapterField('iamAuth', 'Use IAM Authentication', type: 'boolean', dsnPart: 'option:iam_auth', help: 'For Amazon ElastiCache / Valkey with IAM-based access control');
+        $iamUserIdField = new AdapterField('iamUserId', 'ElastiCache User ID', required: true, dsnPart: 'option:iam_user_id', conditional: 'iamAuth', help: 'The user ID defined in ElastiCache user management');
 
         return [
             new AdapterDefinition(
