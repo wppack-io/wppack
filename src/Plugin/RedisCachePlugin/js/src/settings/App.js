@@ -39,6 +39,7 @@ export default function App() {
 	const [ source, setSource ] = useState( 'default' );
 	const [ isReadonly, setIsReadonly ] = useState( false );
 	const [ awsRegion, setAwsRegion ] = useState( '' );
+	const [ extensions, setExtensions ] = useState( {} );
 	const [ globalForm, setGlobalForm ] = useState( {
 		prefix: 'wp:',
 		maxTtl: '',
@@ -62,6 +63,7 @@ export default function App() {
 		setIsReadonly( data.readonly || false );
 		if ( data.awsRegion ) {
 			setAwsRegion( data.awsRegion );
+		setExtensions( data.extensions || {} );
 		}
 		if ( data.globalOptions ) {
 			const go = data.globalOptions;
@@ -157,9 +159,9 @@ export default function App() {
 
 	const compressionOptions = [
 		{ label: 'none', value: 'none' },
-		{ label: 'zstd', value: 'zstd' },
-		{ label: 'lz4', value: 'lz4' },
-		{ label: 'lzf', value: 'lzf' },
+		{ label: extensions.zstd ? 'zstd' : 'zstd (not installed)', value: 'zstd' },
+		{ label: extensions.lz4 ? 'lz4' : 'lz4 (not installed)', value: 'lz4' },
+		{ label: extensions.lzf ? 'lzf' : 'lzf (not installed)', value: 'lzf' },
 	];
 
 	return (
@@ -310,8 +312,8 @@ export default function App() {
 						onChange={ ( val ) => setGlobalForm( ( prev ) => ( { ...prev, serializer: val } ) ) }
 						options={ [
 							{ label: 'PHP (default)', value: 'none' },
-							{ label: 'igbinary', value: 'igbinary' },
-							{ label: 'msgpack', value: 'msgpack' },
+							{ label: extensions.igbinary ? 'igbinary' : 'igbinary (not installed)', value: 'igbinary' },
+							{ label: extensions.msgpack ? 'msgpack' : 'msgpack (not installed)', value: 'msgpack' },
 						] }
 						disabled={ !! globalReadonly.serializer }
 						help={ __( 'Redis-side serializer. Requires ext-igbinary or ext-msgpack.', 'wppack-cache' ) }
@@ -324,9 +326,9 @@ export default function App() {
 						onChange={ ( val ) => setGlobalForm( ( prev ) => ( { ...prev, clientLibrary: val } ) ) }
 						options={ [
 							{ label: 'Auto-detect', value: '' },
-							{ label: 'PhpRedis (ext-redis)', value: 'Redis' },
-							{ label: 'Relay (ext-relay)', value: 'Relay\\Relay' },
-							{ label: 'Predis', value: 'Predis\\Client' },
+							{ label: extensions.redis ? 'PhpRedis (ext-redis)' : 'PhpRedis (not installed)', value: 'Redis' },
+							{ label: extensions.relay ? 'Relay (ext-relay)' : 'Relay (not installed)', value: 'Relay\\Relay' },
+							{ label: extensions.predis ? 'Predis' : 'Predis (not installed)', value: 'Predis\\Client' },
 						] }
 						disabled={ !! globalReadonly.clientLibrary }
 						__nextHasNoMarginBottom

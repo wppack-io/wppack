@@ -163,6 +163,16 @@ final class RedisCacheSettingsController extends AbstractRestController
             'definitions' => $definitions,
             'awsRegion' => $awsRegion,
             'globalOptions' => $globalOptions,
+            'extensions' => [
+                'redis' => \extension_loaded('redis'),
+                'relay' => \extension_loaded('relay'),
+                'predis' => class_exists(\Predis\Client::class),
+                'igbinary' => \extension_loaded('igbinary'),
+                'msgpack' => \extension_loaded('msgpack'),
+                'zstd' => \extension_loaded('zstd'),
+                'lz4' => \extension_loaded('lz4'),
+                'lzf' => \extension_loaded('lzf'),
+            ],
         ];
     }
 
