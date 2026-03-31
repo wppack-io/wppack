@@ -511,4 +511,122 @@ final class OAuthLoginConfigurationTest extends TestCase
         self::assertNull($provider->roleClaim);
         self::assertNull($provider->roleMapping);
     }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsSkipsMissingRequiredFields(): void
+    {
+        update_option(OAuthLoginConfiguration::OPTION_NAME, [
+            'providers' => [
+                'incomplete' => [
+                    'type' => 'google',
+                    // missing client_id and client_secret
+                ],
+            ],
+        ]);
+
+        $config = OAuthLoginConfiguration::fromEnvironmentOrOptions();
+
+        self::assertEmpty($config->providers);
+
+        delete_option(OAuthLoginConfiguration::OPTION_NAME);
+    }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsReadsAllProviderOptionalFields(): void
+    {
+        update_option(OAuthLoginConfiguration::OPTION_NAME, [
+            'providers' => [
+                'oidc' => [
+                    'type' => 'oidc',
+                    'client_id' => 'oid',
+                    'client_secret' => 'osecret',
+                    'label' => 'OIDC Provider',
+                    'tenant_id' => 'tid',
+                    'domain' => 'example.com',
+                    'hosted_domain' => 'corp.example.com',
+                    'discovery_url' => 'https://idp.example.com/.well-known',
+                    'scopes' => ['openid', 'profile'],
+                    'auto_provision' => true,
+                    'default_role' => 'editor',
+                    'role_claim' => 'roles',
+                    'role_mapping' => ['Admin' => 'administrator'],
+                    'button_style' => 'brand',
+                ],
+            ],
+            'autoProvision' => true,
+            'defaultRole' => 'author',
+            'buttonDisplay' => 'icon-only',
+        ]);
+
+        $config = OAuthLoginConfiguration::fromEnvironmentOrOptions();
+
+        $oidc = $config->providers['oidc'];
+        self::assertSame('oidc', $oidc->type);
+        self::assertSame('tid', $oidc->tenantId);
+        self::assertSame('example.com', $oidc->domain);
+        self::assertSame('corp.example.com', $oidc->hostedDomain);
+        self::assertSame('https://idp.example.com/.well-known', $oidc->discoveryUrl);
+        self::assertSame(['openid', 'profile'], $oidc->scopes);
+        self::assertTrue($oidc->autoProvision);
+        self::assertSame('editor', $oidc->defaultRole);
+        self::assertSame('roles', $oidc->roleClaim);
+        self::assertSame(['Admin' => 'administrator'], $oidc->roleMapping);
+        self::assertSame('brand', $oidc->buttonStyle);
+        self::assertTrue($config->autoProvision);
+        self::assertSame('author', $config->defaultRole);
+        self::assertSame('icon-only', $config->buttonDisplay);
+
+        delete_option(OAuthLoginConfiguration::OPTION_NAME);
+    }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsReadsGlobalSettingsFromOptions(): void
+    {
+        update_option(OAuthLoginConfiguration::OPTION_NAME, [
+            'ssoOnly' => true,
+            'autoProvision' => true,
+            'defaultRole' => 'editor',
+            'authorizePath' => '/sso/{provider}/login',
+            'callbackPath' => '/sso/{provider}/return',
+            'verifyPath' => '/sso/{provider}/check',
+            'buttonDisplay' => 'text-only',
+        ]);
+
+        $config = OAuthLoginConfiguration::fromEnvironmentOrOptions();
+
+        self::assertTrue($config->ssoOnly);
+        self::assertTrue($config->autoProvision);
+        self::assertSame('editor', $config->defaultRole);
+        self::assertSame('/sso/{provider}/login', $config->authorizePath);
+        self::assertSame('/sso/{provider}/return', $config->callbackPath);
+        self::assertSame('/sso/{provider}/check', $config->verifyPath);
+        self::assertSame('text-only', $config->buttonDisplay);
+
+        delete_option(OAuthLoginConfiguration::OPTION_NAME);
+    }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsReturnsEmptyWhenNoProviders(): void
+    {
+        delete_option(OAuthLoginConfiguration::OPTION_NAME);
+
+        $config = OAuthLoginConfiguration::fromEnvironmentOrOptions();
+
+        self::assertEmpty($config->providers);
+    }
+
+    #[Test]
+    public function providerConfigurationDomainProperty(): void
+    {
+        $provider = new ProviderConfiguration(
+            name: 'oidc',
+            type: 'oidc',
+            clientId: 'id',
+            clientSecret: 'secret',
+            label: 'OIDC',
+            domain: 'example.com',
+        );
+
+        self::assertSame('example.com', $provider->domain);
+    }
 }

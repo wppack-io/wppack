@@ -336,4 +336,77 @@ final class RedisCacheConfigurationTest extends TestCase
     {
         self::assertSame('********', RedisCacheConfiguration::MASKED_VALUE);
     }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsReadsAllGlobalOptionsFromWpOptions(): void
+    {
+        update_option(RedisCacheConfiguration::OPTION_NAME, [
+            'dsn' => 'redis://127.0.0.1:6379',
+            'prefix' => 'mysite:',
+            'maxTtl' => 3600,
+            'hashAlloptions' => true,
+            'asyncFlush' => true,
+            'compression' => 'zstd',
+            'serializer' => 'msgpack',
+        ]);
+
+        $config = RedisCacheConfiguration::fromEnvironmentOrOptions();
+
+        self::assertSame('redis://127.0.0.1:6379', $config->dsn);
+        self::assertSame('mysite:', $config->prefix);
+        self::assertSame(3600, $config->maxTtl);
+        self::assertTrue($config->hashAlloptions);
+        self::assertTrue($config->asyncFlush);
+        self::assertSame('zstd', $config->compression);
+        self::assertSame('msgpack', $config->serializer);
+
+        delete_option(RedisCacheConfiguration::OPTION_NAME);
+    }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsReadsEnvFallback(): void
+    {
+        $_ENV['WPPACK_CACHE_DSN'] = 'redis://env-host:6379';
+
+        $config = RedisCacheConfiguration::fromEnvironmentOrOptions();
+
+        self::assertSame('redis://env-host:6379', $config->dsn);
+
+        unset($_ENV['WPPACK_CACHE_DSN']);
+    }
+
+    #[Test]
+    public function hasConfigurationReturnsTrueForEnvSuperglobal(): void
+    {
+        $_ENV['WPPACK_CACHE_DSN'] = 'redis://env:6379';
+
+        self::assertTrue(RedisCacheConfiguration::hasConfiguration());
+
+        unset($_ENV['WPPACK_CACHE_DSN']);
+    }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsMaxTtlAsString(): void
+    {
+        update_option(RedisCacheConfiguration::OPTION_NAME, [
+            'dsn' => 'redis://localhost:6379',
+            'maxTtl' => '7200',
+        ]);
+
+        $config = RedisCacheConfiguration::fromEnvironmentOrOptions();
+
+        self::assertSame(7200, $config->maxTtl);
+
+        delete_option(RedisCacheConfiguration::OPTION_NAME);
+    }
+
+    #[Test]
+    public function hasConfigurationReturnsFalseForEmptyDsn(): void
+    {
+        update_option(RedisCacheConfiguration::OPTION_NAME, ['dsn' => '']);
+
+        self::assertFalse(RedisCacheConfiguration::hasConfiguration());
+
+        delete_option(RedisCacheConfiguration::OPTION_NAME);
+    }
 }

@@ -257,4 +257,140 @@ final class S3StorageConfigurationTest extends TestCase
     {
         self::assertSame('********', S3StorageConfiguration::MASKED_VALUE);
     }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsFromWpOptionsWithCdnUrl(): void
+    {
+        update_option(S3StorageConfiguration::OPTION_NAME, [
+            'storages' => [
+                'media' => [
+                    'provider' => 's3',
+                    'fields' => ['bucket' => 'cdn-bucket', 'region' => 'eu-west-1'],
+                    'prefix' => 'assets',
+                    'cdnUrl' => 'https://cdn.example.com',
+                ],
+            ],
+            'primary' => 'media',
+        ]);
+
+        $config = S3StorageConfiguration::fromEnvironmentOrOptions();
+
+        self::assertSame('cdn-bucket', $config->bucket);
+        self::assertSame('eu-west-1', $config->region);
+        self::assertSame('assets', $config->prefix);
+        self::assertSame('https://cdn.example.com', $config->cdnUrl);
+
+        delete_option(S3StorageConfiguration::OPTION_NAME);
+    }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsDefaultsRegionWhenMissing(): void
+    {
+        update_option(S3StorageConfiguration::OPTION_NAME, [
+            'storages' => [
+                'media' => [
+                    'provider' => 's3',
+                    'fields' => ['bucket' => 'test-bucket'],
+                    'prefix' => 'uploads',
+                ],
+            ],
+            'primary' => 'media',
+        ]);
+
+        $config = S3StorageConfiguration::fromEnvironmentOrOptions();
+
+        self::assertSame('us-east-1', $config->region);
+
+        delete_option(S3StorageConfiguration::OPTION_NAME);
+    }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsThrowsForNonS3Provider(): void
+    {
+        update_option(S3StorageConfiguration::OPTION_NAME, [
+            'storages' => [
+                'media' => [
+                    'provider' => 'gcs',
+                    'fields' => ['bucket' => 'test-bucket'],
+                    'prefix' => 'uploads',
+                ],
+            ],
+            'primary' => 'media',
+        ]);
+
+        $this->expectException(\RuntimeException::class);
+
+        S3StorageConfiguration::fromEnvironmentOrOptions();
+
+        delete_option(S3StorageConfiguration::OPTION_NAME);
+    }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsThrowsForEmptyBucket(): void
+    {
+        update_option(S3StorageConfiguration::OPTION_NAME, [
+            'storages' => [
+                'media' => [
+                    'provider' => 's3',
+                    'fields' => ['bucket' => ''],
+                    'prefix' => 'uploads',
+                ],
+            ],
+            'primary' => 'media',
+        ]);
+
+        $this->expectException(\RuntimeException::class);
+
+        S3StorageConfiguration::fromEnvironmentOrOptions();
+
+        delete_option(S3StorageConfiguration::OPTION_NAME);
+    }
+
+    #[Test]
+    public function hasConfigurationReturnsTrueWithEnvSuperglobal(): void
+    {
+        $_ENV['S3_BUCKET'] = 'env-bucket';
+
+        self::assertTrue(S3StorageConfiguration::hasConfiguration());
+    }
+
+    #[Test]
+    public function hasConfigurationReturnsTrueWithWpOptionsAndBucket(): void
+    {
+        update_option(S3StorageConfiguration::OPTION_NAME, [
+            'storages' => [
+                'media' => [
+                    'provider' => 's3',
+                    'fields' => ['bucket' => 'my-bucket'],
+                ],
+            ],
+            'primary' => 'media',
+        ]);
+
+        self::assertTrue(S3StorageConfiguration::hasConfiguration());
+
+        delete_option(S3StorageConfiguration::OPTION_NAME);
+    }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsNullCdnUrlWhenEmpty(): void
+    {
+        update_option(S3StorageConfiguration::OPTION_NAME, [
+            'storages' => [
+                'media' => [
+                    'provider' => 's3',
+                    'fields' => ['bucket' => 'test', 'region' => 'us-east-1'],
+                    'prefix' => 'uploads',
+                    'cdnUrl' => '',
+                ],
+            ],
+            'primary' => 'media',
+        ]);
+
+        $config = S3StorageConfiguration::fromEnvironmentOrOptions();
+
+        self::assertNull($config->cdnUrl);
+
+        delete_option(S3StorageConfiguration::OPTION_NAME);
+    }
 }
