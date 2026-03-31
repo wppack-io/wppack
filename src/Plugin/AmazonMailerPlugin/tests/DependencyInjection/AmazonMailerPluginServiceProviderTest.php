@@ -172,6 +172,18 @@ final class AmazonMailerPluginServiceProviderTest extends TestCase
     }
 
     #[Test]
+    public function registerSkipsMessengerWhenAlreadyRegistered(): void
+    {
+        // Pre-register MessageBusInterface
+        $this->builder->register(\WpPack\Component\Messenger\MessageBusInterface::class);
+
+        $this->provider->register($this->builder);
+
+        // HandlerLocator should NOT be registered by this provider
+        self::assertFalse($this->builder->hasDefinition(\WpPack\Component\Messenger\Handler\HandlerLocator::class));
+    }
+
+    #[Test]
     public function registerAdminRegistersSettingsServices(): void
     {
         $this->provider->registerAdmin($this->builder);

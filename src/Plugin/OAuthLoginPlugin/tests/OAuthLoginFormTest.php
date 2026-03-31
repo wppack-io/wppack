@@ -355,6 +355,34 @@ final class OAuthLoginFormTest extends TestCase
     }
 
     #[Test]
+    public function renderButtonsWithButtonStyle(): void
+    {
+        $google = new ProviderConfiguration(
+            name: 'google',
+            type: 'google',
+            clientId: 'google-id',
+            clientSecret: 'google-secret',
+            label: 'Google',
+            buttonStyle: 'light',
+        );
+
+        $config = new OAuthLoginConfiguration(
+            providers: ['google' => $google],
+        );
+        $request = Request::create('https://example.com/wp-login.php');
+
+        $form = new OAuthLoginForm([$google], $config, $this->authSession, $request);
+
+        ob_start();
+        $form->renderButtons();
+        $output = ob_get_clean();
+
+        self::assertStringContainsString('Login with Google', $output);
+        // Light style should have specific background
+        self::assertStringContainsString('background:', $output);
+    }
+
+    #[Test]
     public function redirectLoggedInUserSkipsWithLoggedout(): void
     {
         $redirectCalled = false;

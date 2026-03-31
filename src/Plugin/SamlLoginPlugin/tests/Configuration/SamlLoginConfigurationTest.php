@@ -408,4 +408,206 @@ final class SamlLoginConfigurationTest extends TestCase
         self::assertSame('https://sp.example.com', $config->spEntityId);
         self::assertSame('groups', $config->roleAttribute);
     }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsReadsRoleMappingAsArray(): void
+    {
+        update_option('wppack_saml_login', [
+            'idpEntityId' => 'https://idp.test',
+            'idpSsoUrl' => 'https://idp.test/sso',
+            'idpX509Cert' => 'cert',
+            'roleMapping' => ['admin' => 'administrator', 'user' => 'subscriber'],
+        ]);
+
+        $config = SamlLoginConfiguration::fromEnvironmentOrOptions();
+
+        self::assertSame(['admin' => 'administrator', 'user' => 'subscriber'], $config->roleMapping);
+
+        delete_option('wppack_saml_login');
+    }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsReadsRoleMappingAsJson(): void
+    {
+        update_option('wppack_saml_login', [
+            'idpEntityId' => 'https://idp.test',
+            'idpSsoUrl' => 'https://idp.test/sso',
+            'idpX509Cert' => 'cert',
+            'roleMapping' => '{"admin":"administrator"}',
+        ]);
+
+        $config = SamlLoginConfiguration::fromEnvironmentOrOptions();
+
+        self::assertSame(['admin' => 'administrator'], $config->roleMapping);
+
+        delete_option('wppack_saml_login');
+    }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsReadsNullableStringsFromOptions(): void
+    {
+        update_option('wppack_saml_login', [
+            'idpEntityId' => 'https://idp.test',
+            'idpSsoUrl' => 'https://idp.test/sso',
+            'idpX509Cert' => 'cert',
+            'idpSloUrl' => 'https://idp.test/slo',
+            'idpCertFingerprint' => 'AA:BB:CC',
+            'roleAttribute' => 'groups',
+        ]);
+
+        $config = SamlLoginConfiguration::fromEnvironmentOrOptions();
+
+        self::assertSame('https://idp.test/slo', $config->idpSloUrl);
+        self::assertSame('AA:BB:CC', $config->idpCertFingerprint);
+        self::assertSame('groups', $config->roleAttribute);
+
+        delete_option('wppack_saml_login');
+    }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsReadsAllBoolsFromOptions(): void
+    {
+        update_option('wppack_saml_login', [
+            'idpEntityId' => 'https://idp.test',
+            'idpSsoUrl' => 'https://idp.test/sso',
+            'idpX509Cert' => 'cert',
+            'strict' => false,
+            'debug' => true,
+            'wantAssertionsSigned' => false,
+            'allowRepeatAttributeName' => true,
+            'autoProvision' => true,
+            'addUserToBlog' => false,
+            'ssoOnly' => true,
+        ]);
+
+        $config = SamlLoginConfiguration::fromEnvironmentOrOptions();
+
+        self::assertFalse($config->strict);
+        self::assertTrue($config->debug);
+        self::assertFalse($config->wantAssertionsSigned);
+        self::assertTrue($config->allowRepeatAttributeName);
+        self::assertTrue($config->autoProvision);
+        self::assertFalse($config->addUserToBlog);
+        self::assertTrue($config->ssoOnly);
+
+        delete_option('wppack_saml_login');
+    }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsReadsPathsFromOptions(): void
+    {
+        update_option('wppack_saml_login', [
+            'idpEntityId' => 'https://idp.test',
+            'idpSsoUrl' => 'https://idp.test/sso',
+            'idpX509Cert' => 'cert',
+            'metadataPath' => '/custom/metadata',
+            'acsPath' => '/custom/acs',
+            'sloPath' => '/custom/slo',
+        ]);
+
+        $config = SamlLoginConfiguration::fromEnvironmentOrOptions();
+
+        self::assertSame('/custom/metadata', $config->metadataPath);
+        self::assertSame('/custom/acs', $config->acsPath);
+        self::assertSame('/custom/slo', $config->sloPath);
+
+        delete_option('wppack_saml_login');
+    }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsNameIdFormatMapping(): void
+    {
+        update_option('wppack_saml_login', [
+            'idpEntityId' => 'https://idp.test',
+            'idpSsoUrl' => 'https://idp.test/sso',
+            'idpX509Cert' => 'cert',
+            'spNameIdFormat' => 'emailAddress',
+        ]);
+
+        $config = SamlLoginConfiguration::fromEnvironmentOrOptions();
+
+        self::assertSame('urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress', $config->spNameIdFormat);
+
+        delete_option('wppack_saml_login');
+    }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsEnvFallbackForStrings(): void
+    {
+        putenv('SAML_EMAIL_ATTRIBUTE=mail');
+        putenv('SAML_DEFAULT_ROLE=author');
+        putenv('SAML_FIRST_NAME_ATTRIBUTE=givenName');
+        putenv('SAML_LAST_NAME_ATTRIBUTE=sn');
+        putenv('SAML_DISPLAY_NAME_ATTRIBUTE=cn');
+
+        // No wp_options, env should be used
+        $config = SamlLoginConfiguration::fromEnvironmentOrOptions();
+
+        self::assertSame('mail', $config->emailAttribute);
+        self::assertSame('author', $config->defaultRole);
+        self::assertSame('givenName', $config->firstNameAttribute);
+        self::assertSame('sn', $config->lastNameAttribute);
+        self::assertSame('cn', $config->displayNameAttribute);
+    }
+
+    #[Test]
+    public function fromEnvironmentReadsRoleMappingFromEnv(): void
+    {
+        putenv('SAML_IDP_ENTITY_ID=https://idp.example.com');
+        putenv('SAML_IDP_SSO_URL=https://idp.example.com/sso');
+        putenv('SAML_IDP_X509_CERT=MIICert');
+        putenv('SAML_ROLE_MAPPING={"Admin":"administrator","User":"subscriber"}');
+
+        $config = SamlLoginConfiguration::fromEnvironment();
+
+        self::assertSame(['Admin' => 'administrator', 'User' => 'subscriber'], $config->roleMapping);
+    }
+
+    #[Test]
+    public function fromEnvironmentCustomPaths(): void
+    {
+        putenv('SAML_IDP_ENTITY_ID=https://idp.example.com');
+        putenv('SAML_IDP_SSO_URL=https://idp.example.com/sso');
+        putenv('SAML_IDP_X509_CERT=MIICert');
+        putenv('SAML_METADATA_PATH=/sso/metadata');
+        putenv('SAML_ACS_PATH=/sso/acs');
+        putenv('SAML_SLO_PATH=/sso/slo');
+
+        $config = SamlLoginConfiguration::fromEnvironment();
+
+        self::assertSame('/sso/metadata', $config->metadataPath);
+        self::assertSame('/sso/acs', $config->acsPath);
+        self::assertSame('/sso/slo', $config->sloPath);
+    }
+
+    #[Test]
+    public function fromEnvironmentCertificateWithEscapedNewlines(): void
+    {
+        putenv('SAML_IDP_ENTITY_ID=https://idp.example.com');
+        putenv('SAML_IDP_SSO_URL=https://idp.example.com/sso');
+        putenv('SAML_IDP_X509_CERT=-----BEGIN CERTIFICATE-----\nMIIC...\n-----END CERTIFICATE-----');
+
+        $config = SamlLoginConfiguration::fromEnvironment();
+
+        self::assertStringContainsString("\n", $config->idpX509Cert);
+        self::assertStringNotContainsString('\\n', $config->idpX509Cert);
+    }
+
+    #[Test]
+    public function fromEnvironmentCertificateFromFile(): void
+    {
+        $tmpFile = tempnam(sys_get_temp_dir(), 'saml_cert_');
+        self::assertNotFalse($tmpFile);
+        file_put_contents($tmpFile, '-----BEGIN CERTIFICATE-----MIICFileCert-----END CERTIFICATE-----');
+
+        putenv('SAML_IDP_ENTITY_ID=https://idp.example.com');
+        putenv('SAML_IDP_SSO_URL=https://idp.example.com/sso');
+        putenv('SAML_IDP_X509_CERT_FILE=' . $tmpFile);
+
+        $config = SamlLoginConfiguration::fromEnvironment();
+
+        self::assertStringContainsString('MIICFileCert', $config->idpX509Cert);
+
+        unlink($tmpFile);
+    }
 }
