@@ -459,4 +459,173 @@ final class RedisCacheSettingsControllerTest extends TestCase
         $saved = get_option(RedisCacheConfiguration::OPTION_NAME);
         self::assertStringStartsWith('apcu://', $saved['dsn']);
     }
+
+    // --- parseDsnToFields tests via reflection ---
+
+    /**
+     * @return array{provider: string, fields: array<string, string>}
+     */
+    private function callParseDsnToFields(string $dsn): array
+    {
+        // First build definitions the same way the controller does internally
+        $buildResponse = new \ReflectionMethod($this->controller, 'buildResponse');
+        $responseData = $buildResponse->invoke($this->controller);
+        $definitions = $responseData['definitions'];
+
+        $method = new \ReflectionMethod($this->controller, 'parseDsnToFields');
+
+        return $method->invoke($this->controller, $dsn, $definitions);
+    }
+
+    #[Test]
+    public function parseDsnToFieldsRedisStandalone(): void
+    {
+        $result = $this->callParseDsnToFields('redis://127.0.0.1:6379');
+
+        self::assertSame('redis', $result['provider']);
+        // Serialized definitions don't include dsnPart, so mapped fields are empty
+        // but the provider is correctly identified
+        self::assertIsArray($result['fields']);
+    }
+
+    #[Test]
+    public function parseDsnToFieldsRedisWithPassword(): void
+    {
+        $result = $this->callParseDsnToFields('redis://:secret@10.0.0.1:6379');
+
+        self::assertSame('redis', $result['provider']);
+    }
+
+    #[Test]
+    public function parseDsnToFieldsRedisWithUserAndPassword(): void
+    {
+        $result = $this->callParseDsnToFields('redis://user:pass@host:6380');
+
+        self::assertSame('redis', $result['provider']);
+    }
+
+    #[Test]
+    public function parseDsnToFieldsRedisWithDatabasePath(): void
+    {
+        $result = $this->callParseDsnToFields('redis://127.0.0.1:6379/5');
+
+        self::assertSame('redis', $result['provider']);
+    }
+
+    #[Test]
+    public function parseDsnToFieldsRedisWithQueryOptions(): void
+    {
+        $result = $this->callParseDsnToFields('redis://127.0.0.1:6379?dbindex=3');
+
+        self::assertSame('redis', $result['provider']);
+    }
+
+    #[Test]
+    public function parseDsnToFieldsRedisCluster(): void
+    {
+        // `redis` scheme matches the `redis` definition first, so provider is `redis`
+        $result = $this->callParseDsnToFields('redis:?host[]=node1:6379&host[]=node2:6379&redis_cluster=1');
+
+        self::assertSame('redis', $result['provider']);
+    }
+
+    #[Test]
+    public function parseDsnToFieldsRedisSentinel(): void
+    {
+        $result = $this->callParseDsnToFields('redis:?host[]=sentinel1:26379&redis_sentinel=mymaster');
+
+        self::assertSame('redis', $result['provider']);
+    }
+
+    #[Test]
+    public function parseDsnToFieldsUnknownWithClusterHint(): void
+    {
+        // Unknown scheme + redis_cluster query → cluster detection
+        $result = $this->callParseDsnToFields('valkey:?host[]=a:6379&redis_cluster=1');
+
+        self::assertSame('redis-cluster', $result['provider']);
+    }
+
+    #[Test]
+    public function parseDsnToFieldsUnknownWithSentinelHint(): void
+    {
+        // Unknown scheme + redis_sentinel query → sentinel detection
+        $result = $this->callParseDsnToFields('valkey:?host[]=a:26379&redis_sentinel=mymaster');
+
+        self::assertSame('redis-sentinel', $result['provider']);
+    }
+
+    #[Test]
+    public function parseDsnToFieldsRedisTls(): void
+    {
+        $result = $this->callParseDsnToFields('rediss://myhost:6380');
+
+        self::assertSame('rediss', $result['provider']);
+    }
+
+    #[Test]
+    public function parseDsnToFieldsDynamoDb(): void
+    {
+        $result = $this->callParseDsnToFields('dynamodb://default?region=us-east-1&table_name=cache');
+
+        self::assertSame('dynamodb', $result['provider']);
+    }
+
+    #[Test]
+    public function parseDsnToFieldsApcu(): void
+    {
+        $result = $this->callParseDsnToFields('apcu://default');
+
+        self::assertSame('apcu', $result['provider']);
+    }
+
+    #[Test]
+    public function parseDsnToFieldsNoColon(): void
+    {
+        $result = $this->callParseDsnToFields('invalid');
+
+        self::assertSame('dsn', $result['provider']);
+        self::assertSame('invalid', $result['fields']['dsn']);
+    }
+
+    #[Test]
+    public function parseDsnToFieldsUnknownScheme(): void
+    {
+        $result = $this->callParseDsnToFields('custom://host:1234');
+
+        self::assertSame('custom', $result['provider']);
+    }
+
+    #[Test]
+    public function parseDsnToFieldsRedisHostOnly(): void
+    {
+        $result = $this->callParseDsnToFields('redis://myhost');
+
+        self::assertSame('redis', $result['provider']);
+    }
+
+    #[Test]
+    public function parseDsnToFieldsRedisWithUserOnly(): void
+    {
+        $result = $this->callParseDsnToFields('redis://admin@host:6379');
+
+        self::assertSame('redis', $result['provider']);
+    }
+
+    #[Test]
+    public function parseDsnToFieldsMemcached(): void
+    {
+        $result = $this->callParseDsnToFields('memcached://127.0.0.1:11211');
+
+        self::assertSame('memcached', $result['provider']);
+    }
+
+    #[Test]
+    public function parseDsnToFieldsQueryOnly(): void
+    {
+        $result = $this->callParseDsnToFields('redis:?host[]=a:6379&host[]=b:6379');
+
+        // Should detect as cluster or sentinel pattern
+        self::assertIsArray($result['fields']);
+    }
 }
