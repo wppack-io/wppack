@@ -242,6 +242,7 @@ final class RedisCacheSettingsController extends AbstractRestController
             'scheme' => $def->scheme,
             'label' => $def->label,
             'fields' => $fields,
+            'capabilities' => $def->capabilities,
         ];
     }
 

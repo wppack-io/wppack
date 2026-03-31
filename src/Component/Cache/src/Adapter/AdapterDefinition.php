@@ -21,6 +21,7 @@ final readonly class AdapterDefinition
     /**
      * @param list<AdapterField>         $fields
      * @param array<string, string>      $extraOptions Extra query params merged into the DSN (e.g., ['redis_cluster' => '1'])
+     * @param list<string>               $capabilities Supported global options (e.g., 'compression', 'serializer', 'clientLibrary', 'hashAlloptions', 'asyncFlush')
      */
     public function __construct(
         public string $scheme,
@@ -28,6 +29,7 @@ final readonly class AdapterDefinition
         public array $fields = [],
         public ?string $dsnScheme = null,
         public array $extraOptions = [],
+        public array $capabilities = [],
     ) {}
 
     /**

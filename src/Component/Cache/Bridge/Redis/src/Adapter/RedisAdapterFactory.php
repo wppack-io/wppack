@@ -27,6 +27,8 @@ final class RedisAdapterFactory implements AdapterFactoryInterface
 {
     private const SUPPORTED_SCHEMES = ['redis', 'rediss', 'valkey', 'valkeys'];
 
+    private const REDIS_CAPABILITIES = ['compression', 'serializer', 'clientLibrary', 'hashAlloptions', 'asyncFlush'];
+
     public static function definitions(): array
     {
         $iamAuthField = new AdapterField('iamAuth', 'Use IAM Authentication', type: 'boolean', dsnPart: 'option:iam_auth', help: 'For Amazon ElastiCache / Valkey with IAM-based access control');
@@ -45,6 +47,7 @@ final class RedisAdapterFactory implements AdapterFactoryInterface
                     new AdapterField('password', 'Password', type: 'password', dsnPart: 'password'),
                     new AdapterField('database', 'Database', type: 'number', default: '0', dsnPart: 'option:dbindex', maxWidth: '80px'),
                 ],
+                capabilities: self::REDIS_CAPABILITIES,
             ),
             new AdapterDefinition(
                 scheme: 'rediss',
@@ -59,6 +62,7 @@ final class RedisAdapterFactory implements AdapterFactoryInterface
                     $iamUserIdField,
                     new AdapterField('database', 'Database', type: 'number', default: '0', dsnPart: 'option:dbindex', maxWidth: '80px'),
                 ],
+                capabilities: self::REDIS_CAPABILITIES,
             ),
             new AdapterDefinition(
                 scheme: 'redis-cluster',
@@ -69,6 +73,7 @@ final class RedisAdapterFactory implements AdapterFactoryInterface
                 ],
                 dsnScheme: 'redis',
                 extraOptions: ['redis_cluster' => '1'],
+                capabilities: self::REDIS_CAPABILITIES,
             ),
             new AdapterDefinition(
                 scheme: 'rediss-cluster',
@@ -83,6 +88,7 @@ final class RedisAdapterFactory implements AdapterFactoryInterface
                 ],
                 dsnScheme: 'rediss',
                 extraOptions: ['redis_cluster' => '1'],
+                capabilities: self::REDIS_CAPABILITIES,
             ),
             new AdapterDefinition(
                 scheme: 'redis-sentinel',
@@ -93,6 +99,7 @@ final class RedisAdapterFactory implements AdapterFactoryInterface
                     new AdapterField('password', 'Password', type: 'password', dsnPart: 'password'),
                 ],
                 dsnScheme: 'redis',
+                capabilities: self::REDIS_CAPABILITIES,
             ),
         ];
     }
