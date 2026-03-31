@@ -219,6 +219,47 @@ final class ScimConfigurationTest extends TestCase
     }
 
     #[Test]
+    public function fromEnvironmentOrOptionsReadsBearerTokenFromWpOptions(): void
+    {
+        update_option(ScimConfiguration::OPTION_NAME, ['bearerToken' => 'test-token']);
+
+        $config = ScimConfiguration::fromEnvironmentOrOptions();
+
+        // If SCIM_BEARER_TOKEN constant is defined, it takes priority.
+        // Otherwise the wp_options value is used.
+        if (\defined('SCIM_BEARER_TOKEN')) {
+            self::assertSame('constant-token', $config->bearerToken);
+        } else {
+            self::assertSame('test-token', $config->bearerToken);
+        }
+
+        delete_option(ScimConfiguration::OPTION_NAME);
+    }
+
+    #[Test]
+    public function hasTokenReturnsTrueWithWpOptions(): void
+    {
+        update_option(ScimConfiguration::OPTION_NAME, ['bearerToken' => 'test-token']);
+
+        self::assertTrue(ScimConfiguration::hasToken());
+
+        delete_option(ScimConfiguration::OPTION_NAME);
+    }
+
+    #[Test]
+    public function hasTokenReturnsFalseWithNoConfiguration(): void
+    {
+        delete_option(ScimConfiguration::OPTION_NAME);
+
+        // If SCIM_BEARER_TOKEN constant is defined, hasToken() always returns true
+        if (\defined('SCIM_BEARER_TOKEN')) {
+            self::assertTrue(ScimConfiguration::hasToken());
+        } else {
+            self::assertFalse(ScimConfiguration::hasToken());
+        }
+    }
+
+    #[Test]
     public function bearerTokenHasSensitiveParameterAttribute(): void
     {
         $constructor = new \ReflectionMethod(ScimConfiguration::class, '__construct');

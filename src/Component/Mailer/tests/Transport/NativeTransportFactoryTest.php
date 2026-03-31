@@ -181,6 +181,18 @@ final class NativeTransportFactoryTest extends TestCase
     }
 
     #[Test]
+    public function definitionsReturnsTwoDefinitions(): void
+    {
+        $definitions = NativeTransportFactory::definitions();
+
+        self::assertCount(2, $definitions);
+
+        $schemes = array_map(static fn($d) => $d->scheme, $definitions);
+        self::assertContains('smtp', $schemes);
+        self::assertContains('native', $schemes);
+    }
+
+    #[Test]
     public function classIsFinal(): void
     {
         $reflection = new \ReflectionClass(NativeTransportFactory::class);

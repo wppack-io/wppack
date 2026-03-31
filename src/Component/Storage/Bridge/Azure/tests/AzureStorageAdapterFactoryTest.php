@@ -26,6 +26,15 @@ use WpPack\Component\Storage\Exception\InvalidArgumentException;
 final class AzureStorageAdapterFactoryTest extends TestCase
 {
     #[Test]
+    public function definitionsReturnsOneDefinition(): void
+    {
+        $definitions = AzureStorageAdapterFactory::definitions();
+
+        self::assertCount(1, $definitions);
+        self::assertSame('azure', $definitions[0]->scheme);
+    }
+
+    #[Test]
     public function supportsAzureScheme(): void
     {
         $factory = new AzureStorageAdapterFactory();

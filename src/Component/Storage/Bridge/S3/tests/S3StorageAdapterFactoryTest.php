@@ -26,6 +26,15 @@ use WpPack\Component\Storage\Exception\InvalidArgumentException;
 final class S3StorageAdapterFactoryTest extends TestCase
 {
     #[Test]
+    public function definitionsReturnsOneDefinition(): void
+    {
+        $definitions = S3StorageAdapterFactory::definitions();
+
+        self::assertCount(1, $definitions);
+        self::assertSame('s3', $definitions[0]->scheme);
+    }
+
+    #[Test]
     public function supportsS3Scheme(): void
     {
         $factory = new S3StorageAdapterFactory();

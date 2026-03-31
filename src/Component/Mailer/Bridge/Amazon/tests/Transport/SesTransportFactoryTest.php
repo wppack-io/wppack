@@ -117,6 +117,19 @@ final class SesTransportFactoryTest extends TestCase
         self::assertInstanceOf(SesApiTransport::class, $transport);
     }
 
+    #[Test]
+    public function definitionsReturnsThreeDefinitions(): void
+    {
+        $definitions = SesTransportFactory::definitions();
+
+        self::assertCount(3, $definitions);
+
+        $schemes = array_map(static fn($d) => $d->scheme, $definitions);
+        self::assertContains('ses+api', $schemes);
+        self::assertContains('ses+https', $schemes);
+        self::assertContains('ses+smtp', $schemes);
+    }
+
     /** @return iterable<string, array{string, bool}> */
     public static function supportedSchemes(): iterable
     {

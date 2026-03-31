@@ -33,6 +33,15 @@ final class ApcuAdapterFactoryTest extends TestCase
     }
 
     #[Test]
+    public function definitionsReturnsOneDefinition(): void
+    {
+        $definitions = ApcuAdapterFactory::definitions();
+
+        self::assertCount(1, $definitions);
+        self::assertSame('apcu', $definitions[0]->scheme);
+    }
+
+    #[Test]
     public function supportsApcuScheme(): void
     {
         self::assertTrue($this->factory->supports(Dsn::fromString('apcu://')));

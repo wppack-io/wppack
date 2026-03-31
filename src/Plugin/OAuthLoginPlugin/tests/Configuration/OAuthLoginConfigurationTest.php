@@ -401,6 +401,63 @@ final class OAuthLoginConfigurationTest extends TestCase
     }
 
     #[Test]
+    public function fromEnvironmentOrOptionsReadsFromWpOptions(): void
+    {
+        update_option(OAuthLoginConfiguration::OPTION_NAME, [
+            'providers' => [
+                'google' => [
+                    'type' => 'google',
+                    'client_id' => 'id',
+                    'client_secret' => 'secret',
+                    'label' => 'Google',
+                ],
+            ],
+            'ssoOnly' => true,
+        ]);
+
+        $config = OAuthLoginConfiguration::fromEnvironmentOrOptions();
+
+        self::assertCount(1, $config->providers);
+        self::assertArrayHasKey('google', $config->providers);
+        self::assertSame('google', $config->providers['google']->type);
+        self::assertSame('id', $config->providers['google']->clientId);
+        self::assertSame('secret', $config->providers['google']->clientSecret);
+        self::assertSame('Google', $config->providers['google']->label);
+        self::assertTrue($config->ssoOnly);
+
+        delete_option(OAuthLoginConfiguration::OPTION_NAME);
+    }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsSkipsInvalidProviderNames(): void
+    {
+        update_option(OAuthLoginConfiguration::OPTION_NAME, [
+            'providers' => [
+                'valid-name' => [
+                    'type' => 'google',
+                    'client_id' => 'id',
+                    'client_secret' => 'secret',
+                    'label' => 'Valid',
+                ],
+                'invalid name' => [
+                    'type' => 'google',
+                    'client_id' => 'id2',
+                    'client_secret' => 'secret2',
+                    'label' => 'Invalid',
+                ],
+            ],
+        ]);
+
+        $config = OAuthLoginConfiguration::fromEnvironmentOrOptions();
+
+        self::assertCount(1, $config->providers);
+        self::assertArrayHasKey('valid-name', $config->providers);
+        self::assertArrayNotHasKey('invalid name', $config->providers);
+
+        delete_option(OAuthLoginConfiguration::OPTION_NAME);
+    }
+
+    #[Test]
     public function providerConfigurationStoresAllProperties(): void
     {
         $provider = new ProviderConfiguration(

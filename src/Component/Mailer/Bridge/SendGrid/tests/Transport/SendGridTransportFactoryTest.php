@@ -103,6 +103,18 @@ final class SendGridTransportFactoryTest extends TestCase
         $factory->create($dsn);
     }
 
+    #[Test]
+    public function definitionsReturnsTwoDefinitions(): void
+    {
+        $definitions = SendGridTransportFactory::definitions();
+
+        self::assertCount(2, $definitions);
+
+        $schemes = array_map(static fn($d) => $d->scheme, $definitions);
+        self::assertContains('sendgrid+api', $schemes);
+        self::assertContains('sendgrid+smtp', $schemes);
+    }
+
     /** @return iterable<string, array{string, bool}> */
     public static function supportedSchemes(): iterable
     {

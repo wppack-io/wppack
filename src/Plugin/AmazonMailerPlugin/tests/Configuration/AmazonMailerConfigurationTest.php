@@ -25,6 +25,7 @@ final class AmazonMailerConfigurationTest extends TestCase
     {
         putenv('MAILER_DSN');
         unset($_ENV['MAILER_DSN']);
+        delete_option(AmazonMailerConfiguration::OPTION_NAME);
     }
 
     #[Test]
@@ -87,5 +88,43 @@ final class AmazonMailerConfigurationTest extends TestCase
         $this->expectExceptionMessage('MAILER_DSN is not configured');
 
         AmazonMailerConfiguration::fromEnvironment();
+    }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsReadsDsnFromWpOptions(): void
+    {
+        if (\defined('MAILER_DSN')) {
+            $this->markTestSkipped('MAILER_DSN constant already defined, cannot test wp_options fallback.');
+        }
+
+        update_option(AmazonMailerConfiguration::OPTION_NAME, ['dsn' => 'native://default']);
+
+        $config = AmazonMailerConfiguration::fromEnvironmentOrOptions();
+
+        self::assertSame('native://default', $config->dsn);
+    }
+
+    #[Test]
+    public function hasConfigurationReturnsTrueWithWpOptions(): void
+    {
+        if (\defined('MAILER_DSN')) {
+            $this->markTestSkipped('MAILER_DSN constant already defined, cannot test wp_options fallback.');
+        }
+
+        update_option(AmazonMailerConfiguration::OPTION_NAME, ['dsn' => 'native://default']);
+
+        self::assertTrue(AmazonMailerConfiguration::hasConfiguration());
+    }
+
+    #[Test]
+    public function hasConfigurationReturnsFalseWhenEmpty(): void
+    {
+        if (\defined('MAILER_DSN')) {
+            $this->markTestSkipped('MAILER_DSN constant already defined, cannot test empty config.');
+        }
+
+        delete_option(AmazonMailerConfiguration::OPTION_NAME);
+
+        self::assertFalse(AmazonMailerConfiguration::hasConfiguration());
     }
 }

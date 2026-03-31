@@ -30,6 +30,15 @@ final class DynamoDbAdapterFactoryTest extends TestCase
     }
 
     #[Test]
+    public function definitionsReturnsOneDefinition(): void
+    {
+        $definitions = DynamoDbAdapterFactory::definitions();
+
+        self::assertCount(1, $definitions);
+        self::assertSame('dynamodb', $definitions[0]->scheme);
+    }
+
+    #[Test]
     public function supportsDynamoDbScheme(): void
     {
         self::assertTrue($this->factory->supports(Dsn::fromString('dynamodb://ap-northeast-1/cache')));

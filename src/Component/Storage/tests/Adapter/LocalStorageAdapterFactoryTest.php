@@ -25,6 +25,15 @@ use WpPack\Component\Storage\Exception\InvalidArgumentException;
 final class LocalStorageAdapterFactoryTest extends TestCase
 {
     #[Test]
+    public function definitionsReturnsOneDefinition(): void
+    {
+        $definitions = LocalStorageAdapterFactory::definitions();
+
+        self::assertCount(1, $definitions);
+        self::assertSame('local', $definitions[0]->scheme);
+    }
+
+    #[Test]
     public function supportsLocalScheme(): void
     {
         $factory = new LocalStorageAdapterFactory();

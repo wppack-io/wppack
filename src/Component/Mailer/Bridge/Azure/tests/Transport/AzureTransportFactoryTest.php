@@ -81,6 +81,15 @@ final class AzureTransportFactoryTest extends TestCase
         $factory->create($dsn);
     }
 
+    #[Test]
+    public function definitionsReturnsOneDefinition(): void
+    {
+        $definitions = AzureTransportFactory::definitions();
+
+        self::assertCount(1, $definitions);
+        self::assertSame('azure+api', $definitions[0]->scheme);
+    }
+
     /** @return iterable<string, array{string, bool}> */
     public static function supportedSchemes(): iterable
     {

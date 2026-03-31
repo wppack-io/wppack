@@ -35,6 +35,21 @@ final class RedisAdapterFactoryTest extends TestCase
     }
 
     #[Test]
+    public function definitionsReturnsFiveDefinitions(): void
+    {
+        $definitions = RedisAdapterFactory::definitions();
+
+        self::assertCount(5, $definitions);
+
+        $schemes = array_map(static fn($d) => $d->scheme, $definitions);
+        self::assertContains('redis', $schemes);
+        self::assertContains('rediss', $schemes);
+        self::assertContains('redis-cluster', $schemes);
+        self::assertContains('rediss-cluster', $schemes);
+        self::assertContains('redis-sentinel', $schemes);
+    }
+
+    #[Test]
     public function supportsRedisSchemes(): void
     {
         if (!$this->hasAnyClient()) {

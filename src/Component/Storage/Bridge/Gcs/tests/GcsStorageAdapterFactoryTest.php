@@ -26,6 +26,15 @@ use WpPack\Component\Storage\Exception\InvalidArgumentException;
 final class GcsStorageAdapterFactoryTest extends TestCase
 {
     #[Test]
+    public function definitionsReturnsOneDefinition(): void
+    {
+        $definitions = GcsStorageAdapterFactory::definitions();
+
+        self::assertCount(1, $definitions);
+        self::assertSame('gcs', $definitions[0]->scheme);
+    }
+
+    #[Test]
     public function supportsGcsScheme(): void
     {
         $factory = new GcsStorageAdapterFactory();

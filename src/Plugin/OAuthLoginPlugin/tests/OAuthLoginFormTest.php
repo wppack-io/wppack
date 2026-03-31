@@ -287,6 +287,73 @@ final class OAuthLoginFormTest extends TestCase
         self::assertFalse($redirectCalled);
     }
 
+    private function createFormWithButtonDisplay(string $buttonDisplay): OAuthLoginForm
+    {
+        $providers = $this->createProviders();
+        $google = new ProviderConfiguration(
+            name: 'google',
+            type: 'google',
+            clientId: 'google-id',
+            clientSecret: 'google-secret',
+            label: 'Google',
+        );
+
+        $github = new ProviderConfiguration(
+            name: 'github',
+            type: 'github',
+            clientId: 'github-id',
+            clientSecret: 'github-secret',
+            label: 'GitHub',
+        );
+
+        $config = new OAuthLoginConfiguration(
+            providers: ['google' => $google, 'github' => $github],
+            buttonDisplay: $buttonDisplay,
+        );
+        $request = Request::create('https://example.com/wp-login.php');
+
+        return new OAuthLoginForm($providers, $config, $this->authSession, $request);
+    }
+
+    #[Test]
+    public function renderButtonsWithIconLeftMode(): void
+    {
+        $form = $this->createFormWithButtonDisplay('icon-left');
+
+        ob_start();
+        $form->renderButtons();
+        $output = ob_get_clean();
+
+        self::assertStringContainsString('wol-icon-left', $output);
+    }
+
+    #[Test]
+    public function renderButtonsWithIconOnlyMode(): void
+    {
+        $form = $this->createFormWithButtonDisplay('icon-only');
+
+        ob_start();
+        $form->renderButtons();
+        $output = ob_get_clean();
+
+        self::assertStringContainsString('wol-icon-only', $output);
+        self::assertStringContainsString('title=', $output);
+    }
+
+    #[Test]
+    public function renderButtonsWithTextOnlyMode(): void
+    {
+        $form = $this->createFormWithButtonDisplay('text-only');
+
+        ob_start();
+        $form->renderButtons();
+        $output = ob_get_clean();
+
+        // The CSS class definitions always contain 'wol-icon', but the actual
+        // button markup should not contain <span class="wol-icon">.
+        self::assertStringNotContainsString('<span class="wol-icon"', $output);
+    }
+
     #[Test]
     public function redirectLoggedInUserSkipsWithLoggedout(): void
     {

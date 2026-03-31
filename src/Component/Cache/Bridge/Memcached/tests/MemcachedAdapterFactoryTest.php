@@ -33,6 +33,15 @@ final class MemcachedAdapterFactoryTest extends TestCase
     }
 
     #[Test]
+    public function definitionsReturnsOneDefinition(): void
+    {
+        $definitions = MemcachedAdapterFactory::definitions();
+
+        self::assertCount(1, $definitions);
+        self::assertSame('memcached', $definitions[0]->scheme);
+    }
+
+    #[Test]
     public function supportsMemcachedScheme(): void
     {
         self::assertTrue($this->factory->supports(Dsn::fromString('memcached://localhost')));
