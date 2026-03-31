@@ -262,4 +262,60 @@ final class RedisCacheSettingsControllerTest extends TestCase
 
         self::assertArrayHasKey('success', $data);
     }
+
+    #[Test]
+    public function saveSettingsRestoresMaskedPasswords(): void
+    {
+        update_option(RedisCacheConfiguration::OPTION_NAME, [
+            'dsn' => 'redis://:original-pass@127.0.0.1:6379',
+            'provider' => 'redis',
+            'fields' => ['host' => '127.0.0.1', 'port' => '6379', 'password' => 'original-pass'],
+        ]);
+
+        $request = new \WP_REST_Request('POST');
+        $request->set_header('Content-Type', 'application/json');
+        $request->set_body(json_encode([
+            'provider' => 'redis',
+            'fields' => ['host' => '127.0.0.1', 'port' => '6379', 'password' => RedisCacheConfiguration::MASKED_VALUE],
+        ]));
+
+        $this->controller->saveSettings($request);
+
+        $saved = get_option(RedisCacheConfiguration::OPTION_NAME);
+        self::assertSame('original-pass', $saved['fields']['password']);
+    }
+
+    #[Test]
+    public function saveSettingsHandlesUnknownProvider(): void
+    {
+        $request = new \WP_REST_Request('POST');
+        $request->set_header('Content-Type', 'application/json');
+        $request->set_body(json_encode([
+            'provider' => 'unknown-provider',
+            'fields' => ['host' => 'localhost'],
+        ]));
+
+        $this->controller->saveSettings($request);
+
+        $saved = get_option(RedisCacheConfiguration::OPTION_NAME);
+        // DSN should not be set because findDefinition returned null
+        self::assertArrayNotHasKey('dsn', $saved);
+        self::assertSame('unknown-provider', $saved['provider']);
+    }
+
+    #[Test]
+    public function saveSettingsHandlesEmptyProvider(): void
+    {
+        $request = new \WP_REST_Request('POST');
+        $request->set_header('Content-Type', 'application/json');
+        $request->set_body(json_encode([
+            'provider' => '',
+            'fields' => [],
+        ]));
+
+        $this->controller->saveSettings($request);
+
+        $saved = get_option(RedisCacheConfiguration::OPTION_NAME);
+        self::assertSame('', $saved['provider']);
+    }
 }

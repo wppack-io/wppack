@@ -127,4 +127,69 @@ final class AmazonMailerConfigurationTest extends TestCase
 
         self::assertFalse(AmazonMailerConfiguration::hasConfiguration());
     }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsThrowsWhenNotConfigured(): void
+    {
+        if (\defined('MAILER_DSN')) {
+            $this->markTestSkipped('MAILER_DSN constant already defined.');
+        }
+
+        delete_option(AmazonMailerConfiguration::OPTION_NAME);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('MAILER_DSN is not configured.');
+
+        AmazonMailerConfiguration::fromEnvironmentOrOptions();
+    }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsReadsEnvSuperglobal(): void
+    {
+        if (\defined('MAILER_DSN')) {
+            $this->markTestSkipped('MAILER_DSN constant already defined.');
+        }
+
+        $_ENV['MAILER_DSN'] = 'smtp://user:pass@smtp.example.com:587';
+
+        $config = AmazonMailerConfiguration::fromEnvironmentOrOptions();
+
+        self::assertSame('smtp://user:pass@smtp.example.com:587', $config->dsn);
+    }
+
+    #[Test]
+    public function hasConfigurationReturnsTrueWithEnvVariable(): void
+    {
+        if (\defined('MAILER_DSN')) {
+            $this->markTestSkipped('MAILER_DSN constant already defined.');
+        }
+
+        putenv('MAILER_DSN=smtp://localhost');
+
+        self::assertTrue(AmazonMailerConfiguration::hasConfiguration());
+    }
+
+    #[Test]
+    public function maskedValueConstant(): void
+    {
+        self::assertSame('********', AmazonMailerConfiguration::MASKED_VALUE);
+    }
+
+    #[Test]
+    public function optionNameConstant(): void
+    {
+        self::assertSame('wppack_mailer', AmazonMailerConfiguration::OPTION_NAME);
+    }
+
+    #[Test]
+    public function hasConfigurationReturnsFalseWithEmptyDsn(): void
+    {
+        if (\defined('MAILER_DSN')) {
+            $this->markTestSkipped('MAILER_DSN constant already defined.');
+        }
+
+        update_option(AmazonMailerConfiguration::OPTION_NAME, ['dsn' => '']);
+
+        self::assertFalse(AmazonMailerConfiguration::hasConfiguration());
+    }
 }

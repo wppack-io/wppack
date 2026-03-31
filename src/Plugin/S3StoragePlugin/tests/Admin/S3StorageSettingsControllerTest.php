@@ -154,4 +154,107 @@ final class S3StorageSettingsControllerTest extends TestCase
         self::assertSame('new-bucket', $saved['storages']['media']['fields']['bucket']);
         self::assertSame('media', $saved['primary']);
     }
+
+    #[Test]
+    public function saveSettingsRestoresMaskedPasswords(): void
+    {
+        update_option(S3StorageConfiguration::OPTION_NAME, [
+            'storages' => [
+                'media' => [
+                    'provider' => 's3',
+                    'fields' => ['bucket' => 'test', 'region' => 'us-east-1', 'secretKey' => 'original-secret'],
+                    'prefix' => 'uploads',
+                ],
+            ],
+            'primary' => 'media',
+        ]);
+
+        $request = new \WP_REST_Request('POST');
+        $request->set_header('Content-Type', 'application/json');
+        $request->set_body(json_encode([
+            'storages' => [
+                'media' => [
+                    'provider' => 's3',
+                    'fields' => ['bucket' => 'test', 'region' => 'us-east-1', 'secretKey' => S3StorageConfiguration::MASKED_VALUE],
+                    'prefix' => 'uploads',
+                ],
+            ],
+            'primary' => 'media',
+        ]));
+
+        $this->controller->saveSettings($request);
+
+        $saved = get_option(S3StorageConfiguration::OPTION_NAME);
+        self::assertSame('original-secret', $saved['storages']['media']['fields']['secretKey']);
+    }
+
+    #[Test]
+    public function saveSettingsSkipsReadonlyStorages(): void
+    {
+        $request = new \WP_REST_Request('POST');
+        $request->set_header('Content-Type', 'application/json');
+        $request->set_body(json_encode([
+            'storages' => [
+                'media' => [
+                    'provider' => 's3',
+                    'fields' => ['bucket' => 'test', 'region' => 'us-east-1'],
+                    'prefix' => 'uploads',
+                    'readonly' => true,
+                ],
+            ],
+            'primary' => 'media',
+        ]));
+
+        $this->controller->saveSettings($request);
+
+        $saved = get_option(S3StorageConfiguration::OPTION_NAME);
+        self::assertEmpty($saved['storages']);
+    }
+
+    #[Test]
+    public function getSettingsReturnsMultipleProviderDefinitions(): void
+    {
+        $response = $this->controller->getSettings();
+
+        /** @var array<string, mixed> $data */
+        $data = json_decode($response->content, true);
+
+        // S3, Azure, GCS, and Local should all be present
+        self::assertArrayHasKey('s3', $data['definitions']);
+        self::assertArrayHasKey('azure', $data['definitions']);
+        self::assertArrayHasKey('gcs', $data['definitions']);
+        self::assertArrayHasKey('local', $data['definitions']);
+    }
+
+    #[Test]
+    public function saveSettingsHandlesMultipleStorages(): void
+    {
+        $request = new \WP_REST_Request('POST');
+        $request->set_header('Content-Type', 'application/json');
+        $request->set_body(json_encode([
+            'storages' => [
+                'media' => [
+                    'provider' => 's3',
+                    'fields' => ['bucket' => 'media-bucket', 'region' => 'us-east-1'],
+                    'prefix' => 'uploads',
+                    'cdnUrl' => '',
+                ],
+                'backup' => [
+                    'provider' => 'gcs',
+                    'fields' => ['bucket' => 'backup-bucket'],
+                    'prefix' => 'archives',
+                    'cdnUrl' => '',
+                ],
+            ],
+            'primary' => 'media',
+        ]));
+
+        $this->controller->saveSettings($request);
+
+        $saved = get_option(S3StorageConfiguration::OPTION_NAME);
+        self::assertCount(2, $saved['storages']);
+        self::assertSame('s3', $saved['storages']['media']['provider']);
+        self::assertSame('gcs', $saved['storages']['backup']['provider']);
+        self::assertSame('media', $saved['primary']);
+    }
 }
