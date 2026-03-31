@@ -34,7 +34,4 @@ if (file_exists(__DIR__ . '/vendor/autoload.php')) {
     require_once __DIR__ . '/../../vendor/autoload.php';
 }
 
-// Requires WPPACK_CACHE_DSN constant or environment variable
-if (defined('WPPACK_CACHE_DSN') || getenv('WPPACK_CACHE_DSN') !== false) {
-    Kernel::registerPlugin(new RedisCachePlugin(__FILE__));
-}
+Kernel::registerPlugin(new RedisCachePlugin(__FILE__));

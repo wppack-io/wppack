@@ -13,12 +13,23 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Cache\Bridge\Apcu;
 
+use WpPack\Component\Cache\Adapter\AdapterDefinition;
 use WpPack\Component\Cache\Adapter\AdapterFactoryInterface;
 use WpPack\Component\Cache\Adapter\AdapterInterface;
 use WpPack\Component\Cache\Adapter\Dsn;
 
 final class ApcuAdapterFactory implements AdapterFactoryInterface
 {
+    public static function definitions(): array
+    {
+        return [
+            new AdapterDefinition(
+                scheme: 'apcu',
+                label: 'APCu',
+            ),
+        ];
+    }
+
     public function create(Dsn $dsn, array $options = []): AdapterInterface
     {
         return new ApcuAdapter();

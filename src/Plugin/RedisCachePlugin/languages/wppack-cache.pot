@@ -1,0 +1,109 @@
+# Copyright (C) 2026 @wppack/redis-cache-plugin
+# This file is distributed under the GPL v2 or later license.
+msgid ""
+msgstr ""
+"Project-Id-Version: @wppack/redis-cache-plugin 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugins/wppack-cache\n"
+"MIME-Version: 1.0\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+"POT-Creation-Date: 2026-03-31T01:20:30.633Z\n"
+"PO-Revision-Date: 2026-MO-DA HO:MI+ZONE\n"
+"Last-Translator: WpPack <dev@wppack.io>\n"
+"Language-Team: WpPack <dev@wppack.io>\n"
+"X-Generator: @wp-blocks/make-pot 1.6.6\n"
+"Language: en\n"
+"X-Domain: wppack-cache\n"
+
+#: wppack-cache.php
+#. Name of the plugin
+msgid "@wppack/redis-cache-plugin"
+msgstr ""
+
+#: wppack-cache.php
+#. Author of the plugin
+msgid "WpPack"
+msgstr ""
+
+#: js/src/settings/App.js:24
+msgid "Constant"
+msgstr ""
+
+#: js/src/settings/App.js:25
+msgid "Saved"
+msgstr ""
+
+#: js/src/settings/App.js:83
+msgid "Failed to load settings."
+msgstr ""
+
+#: js/src/settings/App.js:108
+msgid "Settings saved."
+msgstr ""
+
+#: js/src/settings/App.js:111
+msgid "Failed to save settings."
+msgstr ""
+
+#: js/src/settings/App.js:124
+msgid "Connection test passed."
+msgstr ""
+
+#: js/src/settings/App.js:125
+#: js/src/settings/App.js:129
+msgid "Connection test failed."
+msgstr ""
+
+#: js/src/settings/App.js:141
+msgid "? Select ?"
+msgstr ""
+
+#: js/src/settings/App.js:161
+msgid "Cache Settings"
+msgstr ""
+
+#: js/src/settings/App.js:172
+#: js/src/settings/App.js:174
+msgid "Provider"
+msgstr ""
+
+#: js/src/settings/App.js:220
+msgid "Options"
+msgstr ""
+
+#: js/src/settings/App.js:222
+msgid "Key Prefix"
+msgstr ""
+
+#: js/src/settings/App.js:230
+msgid "Max TTL"
+msgstr ""
+
+#: js/src/settings/App.js:239
+msgid "Hash Alloptions"
+msgstr ""
+
+#: js/src/settings/App.js:246
+msgid "Async Flush"
+msgstr ""
+
+#: js/src/settings/App.js:254
+msgid "Compression"
+msgstr ""
+
+#: js/src/settings/App.js:272
+msgid "Saving?"
+msgstr ""
+
+#: js/src/settings/App.js:272
+msgid "Save Settings"
+msgstr ""
+
+#: js/src/settings/App.js:280
+msgid "Testing?"
+msgstr ""
+
+#: js/src/settings/App.js:280
+msgid "Test Connection"
+msgstr ""

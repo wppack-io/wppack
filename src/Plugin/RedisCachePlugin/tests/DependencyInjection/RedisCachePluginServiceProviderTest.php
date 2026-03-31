@@ -16,10 +16,14 @@ namespace WpPack\Plugin\RedisCachePlugin\Tests\DependencyInjection;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Admin\AdminPageRegistry;
 use WpPack\Component\Cache\CacheManager;
 use WpPack\Component\Cache\ObjectCache;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
+use WpPack\Component\Rest\RestRegistry;
+use WpPack\Plugin\RedisCachePlugin\Admin\RedisCacheSettingsController;
+use WpPack\Plugin\RedisCachePlugin\Admin\RedisCacheSettingsPage;
 use WpPack\Plugin\RedisCachePlugin\Configuration\RedisCacheConfiguration;
 use WpPack\Plugin\RedisCachePlugin\DependencyInjection\RedisCachePluginServiceProvider;
 
@@ -52,7 +56,7 @@ final class RedisCachePluginServiceProviderTest extends TestCase
         $factory = $definition->getFactory();
         self::assertNotNull($factory);
         self::assertSame(RedisCacheConfiguration::class, $factory[0]);
-        self::assertSame('fromEnvironment', $factory[1]);
+        self::assertSame('fromEnvironmentOrOptions', $factory[1]);
     }
 
     #[Test]
@@ -101,5 +105,30 @@ final class RedisCachePluginServiceProviderTest extends TestCase
         self::assertTrue($this->builder->hasDefinition(RedisCacheConfiguration::class));
         self::assertTrue($this->builder->hasDefinition(ObjectCache::class));
         self::assertTrue($this->builder->hasDefinition(CacheManager::class));
+    }
+
+    #[Test]
+    public function registerAdminRegistersSettingsPageAndController(): void
+    {
+        $this->provider->registerAdmin($this->builder);
+
+        self::assertTrue($this->builder->hasDefinition(AdminPageRegistry::class));
+        self::assertTrue($this->builder->hasDefinition(RestRegistry::class));
+        self::assertTrue($this->builder->hasDefinition(RedisCacheSettingsPage::class));
+        self::assertTrue($this->builder->hasDefinition(RedisCacheSettingsController::class));
+    }
+
+    #[Test]
+    public function registerAdminDoesNotOverrideExistingRegistries(): void
+    {
+        $this->builder->register(AdminPageRegistry::class);
+        $this->builder->register(RestRegistry::class);
+
+        $this->provider->registerAdmin($this->builder);
+
+        self::assertTrue($this->builder->hasDefinition(AdminPageRegistry::class));
+        self::assertTrue($this->builder->hasDefinition(RestRegistry::class));
+        self::assertTrue($this->builder->hasDefinition(RedisCacheSettingsPage::class));
+        self::assertTrue($this->builder->hasDefinition(RedisCacheSettingsController::class));
     }
 }

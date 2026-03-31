@@ -237,4 +237,87 @@ final class RedisCacheConfigurationTest extends TestCase
         self::assertFalse($config->hashAlloptions);
         self::assertFalse($config->asyncFlush);
     }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsReadsEnv(): void
+    {
+        putenv('WPPACK_CACHE_DSN=redis://env-host:6379');
+
+        $config = RedisCacheConfiguration::fromEnvironmentOrOptions();
+
+        self::assertSame('redis://env-host:6379', $config->dsn);
+    }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsReadsOption(): void
+    {
+        update_option(RedisCacheConfiguration::OPTION_NAME, [
+            'dsn' => 'redis://option-host:6379',
+            'prefix' => 'site1:',
+            'maxTtl' => 3600,
+            'hashAlloptions' => true,
+            'asyncFlush' => false,
+            'compression' => 'lz4',
+        ]);
+
+        $config = RedisCacheConfiguration::fromEnvironmentOrOptions();
+
+        self::assertSame('redis://option-host:6379', $config->dsn);
+        self::assertSame('site1:', $config->prefix);
+        self::assertSame(3600, $config->maxTtl);
+        self::assertTrue($config->hashAlloptions);
+        self::assertFalse($config->asyncFlush);
+        self::assertSame('lz4', $config->compression);
+
+        delete_option(RedisCacheConfiguration::OPTION_NAME);
+    }
+
+    #[Test]
+    public function fromEnvironmentOrOptionsThrowsWhenNothingConfigured(): void
+    {
+        delete_option(RedisCacheConfiguration::OPTION_NAME);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('WPPACK_CACHE_DSN is not configured.');
+
+        RedisCacheConfiguration::fromEnvironmentOrOptions();
+    }
+
+    #[Test]
+    public function hasConfigurationReturnsTrueForEnv(): void
+    {
+        putenv('WPPACK_CACHE_DSN=redis://localhost:6379');
+
+        self::assertTrue(RedisCacheConfiguration::hasConfiguration());
+    }
+
+    #[Test]
+    public function hasConfigurationReturnsTrueForOption(): void
+    {
+        update_option(RedisCacheConfiguration::OPTION_NAME, ['dsn' => 'redis://localhost:6379']);
+
+        self::assertTrue(RedisCacheConfiguration::hasConfiguration());
+
+        delete_option(RedisCacheConfiguration::OPTION_NAME);
+    }
+
+    #[Test]
+    public function hasConfigurationReturnsFalseWhenEmpty(): void
+    {
+        delete_option(RedisCacheConfiguration::OPTION_NAME);
+
+        self::assertFalse(RedisCacheConfiguration::hasConfiguration());
+    }
+
+    #[Test]
+    public function optionNameConstant(): void
+    {
+        self::assertSame('wppack_redis_cache', RedisCacheConfiguration::OPTION_NAME);
+    }
+
+    #[Test]
+    public function maskedValueConstant(): void
+    {
+        self::assertSame('********', RedisCacheConfiguration::MASKED_VALUE);
+    }
 }

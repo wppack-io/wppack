@@ -13,12 +13,30 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Cache\Bridge\Memcached;
 
+use WpPack\Component\Cache\Adapter\AdapterDefinition;
 use WpPack\Component\Cache\Adapter\AdapterFactoryInterface;
+use WpPack\Component\Cache\Adapter\AdapterField;
 use WpPack\Component\Cache\Adapter\AdapterInterface;
 use WpPack\Component\Cache\Adapter\Dsn;
 
 final class MemcachedAdapterFactory implements AdapterFactoryInterface
 {
+    public static function definitions(): array
+    {
+        return [
+            new AdapterDefinition(
+                scheme: 'memcached',
+                label: 'Memcached',
+                fields: [
+                    new AdapterField('host', 'Host', default: '127.0.0.1', dsnPart: 'host'),
+                    new AdapterField('port', 'Port', type: 'number', default: '11211', dsnPart: 'port', maxWidth: '120px'),
+                    new AdapterField('username', 'Username', dsnPart: 'user'),
+                    new AdapterField('password', 'Password', type: 'password', dsnPart: 'password'),
+                ],
+            ),
+        ];
+    }
+
     public function create(Dsn $dsn, array $options = []): AdapterInterface
     {
         $persistentId = $options['persistent_id'] ?? $dsn->getOption('persistent_id') ?? '';

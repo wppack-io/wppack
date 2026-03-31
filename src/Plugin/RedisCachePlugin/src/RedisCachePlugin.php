@@ -14,13 +14,21 @@ declare(strict_types=1);
 namespace WpPack\Plugin\RedisCachePlugin;
 
 use Composer\InstalledVersions;
+use WpPack\Component\Admin\AdminPageRegistry;
 use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use WpPack\Component\DependencyInjection\Container;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
 use WpPack\Component\Kernel\AbstractPlugin;
+use WpPack\Component\Kernel\Attribute\TextDomain;
 use WpPack\Component\Kernel\ManagesDropin;
+use WpPack\Component\Rest\RestRegistry;
+use WpPack\Plugin\RedisCachePlugin\Admin\RedisCacheSettingsController;
+use WpPack\Plugin\RedisCachePlugin\Admin\RedisCacheSettingsPage;
+use WpPack\Plugin\RedisCachePlugin\Configuration\RedisCacheConfiguration;
 use WpPack\Plugin\RedisCachePlugin\DependencyInjection\RedisCachePluginServiceProvider;
 
+#[TextDomain(domain: 'wppack-cache')]
 final class RedisCachePlugin extends AbstractPlugin
 {
     use ManagesDropin;
@@ -35,6 +43,12 @@ final class RedisCachePlugin extends AbstractPlugin
 
     public function register(ContainerBuilder $builder): void
     {
+        $this->serviceProvider->registerAdmin($builder);
+
+        if (!RedisCacheConfiguration::hasConfiguration()) {
+            return;
+        }
+
         $this->serviceProvider->register($builder);
     }
 
@@ -46,6 +60,22 @@ final class RedisCachePlugin extends AbstractPlugin
         return [
             new RegisterHookSubscribersPass(),
         ];
+    }
+
+    public function boot(Container $container): void
+    {
+        if (is_admin() || is_network_admin()) {
+            /** @var AdminPageRegistry $pageRegistry */
+            $pageRegistry = $container->get(AdminPageRegistry::class);
+            /** @var RedisCacheSettingsPage $settingsPage */
+            $settingsPage = $container->get(RedisCacheSettingsPage::class);
+            $settingsPage->setPluginFile($this->getFile());
+            $pageRegistry->register($settingsPage);
+
+            /** @var RestRegistry $restRegistry */
+            $restRegistry = $container->get(RestRegistry::class);
+            $restRegistry->register($container->get(RedisCacheSettingsController::class));
+        }
     }
 
     public function onActivate(): void

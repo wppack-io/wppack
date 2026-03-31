@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Cache\Bridge\Redis\Adapter;
 
+use WpPack\Component\Cache\Adapter\AdapterDefinition;
 use WpPack\Component\Cache\Adapter\AdapterFactoryInterface;
+use WpPack\Component\Cache\Adapter\AdapterField;
 use WpPack\Component\Cache\Adapter\AdapterInterface;
 use WpPack\Component\Cache\Adapter\Dsn;
 use WpPack\Component\Cache\Bridge\ElastiCacheAuth\ElastiCacheIamTokenGenerator;
@@ -23,6 +25,49 @@ use WpPack\Component\Cache\Exception\UnsupportedSchemeException;
 final class RedisAdapterFactory implements AdapterFactoryInterface
 {
     private const SUPPORTED_SCHEMES = ['redis', 'rediss', 'valkey', 'valkeys'];
+
+    public static function definitions(): array
+    {
+        $standaloneFields = [
+            new AdapterField('host', 'Host', default: '127.0.0.1', dsnPart: 'host'),
+            new AdapterField('port', 'Port', type: 'number', default: '6379', dsnPart: 'port', maxWidth: '120px'),
+            new AdapterField('password', 'Password', type: 'password', dsnPart: 'password'),
+            new AdapterField('database', 'Database', type: 'number', default: '0', dsnPart: 'option:dbindex', maxWidth: '80px'),
+        ];
+
+        return [
+            new AdapterDefinition(
+                scheme: 'redis',
+                label: 'Redis Standalone',
+                fields: $standaloneFields,
+            ),
+            new AdapterDefinition(
+                scheme: 'rediss',
+                label: 'Redis Standalone TLS',
+                fields: $standaloneFields,
+            ),
+            new AdapterDefinition(
+                scheme: 'redis-cluster',
+                label: 'Redis Cluster',
+                fields: [
+                    new AdapterField('nodes', 'Nodes', type: 'textarea', required: true, help: 'One host:port per line', dsnPart: 'hosts'),
+                    new AdapterField('password', 'Password', type: 'password', dsnPart: 'password'),
+                ],
+                dsnScheme: 'redis',
+                extraOptions: ['redis_cluster' => '1'],
+            ),
+            new AdapterDefinition(
+                scheme: 'redis-sentinel',
+                label: 'Redis Sentinel',
+                fields: [
+                    new AdapterField('sentinelNodes', 'Sentinel Nodes', type: 'textarea', required: true, help: 'One host:port per line', dsnPart: 'hosts'),
+                    new AdapterField('masterName', 'Master Name', required: true, dsnPart: 'option:redis_sentinel'),
+                    new AdapterField('password', 'Password', type: 'password', dsnPart: 'password'),
+                ],
+                dsnScheme: 'redis',
+            ),
+        ];
+    }
 
     public function create(Dsn $dsn, array $options = []): AdapterInterface
     {
