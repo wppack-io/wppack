@@ -56,9 +56,19 @@ final class RedisClusterAdapter extends AbstractNativeClusterAdapter
         );
 
         $redis->setOption(\RedisCluster::OPT_SLAVE_FAILOVER, $failover);
-        $redis->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_NONE);
+        $redis->setOption(\Redis::OPT_SERIALIZER, self::resolveRedisSerializer($this->connectionParams['serializer'] ?? 'none'));
         $this->configureCompressor($redis, \Redis::class);
 
         return $redis;
+    }
+
+    private static function resolveRedisSerializer(string $name): int
+    {
+        return match ($name) {
+            'php' => \Redis::SERIALIZER_PHP,
+            'igbinary' => \Redis::SERIALIZER_IGBINARY,
+            'msgpack' => \Redis::SERIALIZER_MSGPACK,
+            default => \Redis::SERIALIZER_NONE,
+        };
     }
 }

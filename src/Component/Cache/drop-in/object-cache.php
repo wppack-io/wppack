@@ -21,6 +21,7 @@
  *   define('WPPACK_CACHE_OPTIONS', ['timeout' => 5]);  // optional
  *   define('WPPACK_CACHE_COMPRESSION', 'zstd');         // optional, 'none' (default), 'zstd', 'lz4', 'lzf'
  *   define('WPPACK_CACHE_ASYNC_FLUSH', true);           // optional, default false — use UNLINK instead of DEL
+ *   define('WPPACK_CACHE_SERIALIZER', 'igbinary');      // optional, 'none' (default), 'php', 'igbinary', 'msgpack'
  *   define('WPPACK_CACHE_ENABLED', false);              // optional, disable drop-in (kill switch)
  *
  * @package wppack/cache
@@ -106,11 +107,13 @@ function wp_cache_init(): void
     }
 
     $maxTtl = \defined('WPPACK_CACHE_MAX_TTL') ? WPPACK_CACHE_MAX_TTL : null;
+    $serializer = \defined('WPPACK_CACHE_SERIALIZER') ? \constant('WPPACK_CACHE_SERIALIZER') : (getenv('WPPACK_CACHE_SERIALIZER') ?: 'none');
 
     $config = new ObjectCacheConfig(
         prefix: $prefix,
         hashStrategies: $hashStrategies,
         maxTtl: $maxTtl,
+        serializer: $serializer,
     );
 
     $GLOBALS['wp_object_cache'] = new ObjectCache($adapter, $config);

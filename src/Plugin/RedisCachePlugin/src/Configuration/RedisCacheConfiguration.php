@@ -26,6 +26,7 @@ final readonly class RedisCacheConfiguration
         public bool $hashAlloptions = false,
         public bool $asyncFlush = false,
         public string $compression = 'none',
+        public string $serializer = 'none',
     ) {}
 
     public static function fromEnvironment(): self
@@ -37,6 +38,7 @@ final readonly class RedisCacheConfiguration
             hashAlloptions: self::getBool('WPPACK_CACHE_HASH_ALLOPTIONS'),
             asyncFlush: self::getBool('WPPACK_CACHE_ASYNC_FLUSH'),
             compression: self::getEnv('WPPACK_CACHE_COMPRESSION') ?? 'none',
+            serializer: self::getEnv('WPPACK_CACHE_SERIALIZER') ?? 'none',
         );
     }
 
@@ -66,6 +68,7 @@ final readonly class RedisCacheConfiguration
                 $saved['hashAlloptions'] ?? null,
                 $saved['asyncFlush'] ?? null,
                 $saved['compression'] ?? null,
+                $saved['serializer'] ?? null,
             );
         }
 
@@ -95,6 +98,7 @@ final readonly class RedisCacheConfiguration
         bool|string|null $hashAlloptions = null,
         bool|string|null $asyncFlush = null,
         ?string $compression = null,
+        ?string $serializer = null,
     ): self {
         return new self(
             dsn: $dsn,
@@ -103,6 +107,7 @@ final readonly class RedisCacheConfiguration
             hashAlloptions: $hashAlloptions !== null ? (bool) $hashAlloptions : self::getBool('WPPACK_CACHE_HASH_ALLOPTIONS'),
             asyncFlush: $asyncFlush !== null ? (bool) $asyncFlush : self::getBool('WPPACK_CACHE_ASYNC_FLUSH'),
             compression: $compression ?? self::getEnv('WPPACK_CACHE_COMPRESSION') ?? 'none',
+            serializer: $serializer ?? self::getEnv('WPPACK_CACHE_SERIALIZER') ?? 'none',
         );
     }
 

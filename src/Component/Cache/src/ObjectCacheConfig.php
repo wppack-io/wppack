@@ -19,10 +19,12 @@ final readonly class ObjectCacheConfig
 {
     /**
      * @param list<HashStrategyInterface> $hashStrategies
+     * @param string $serializer Redis-side serializer: 'none', 'php', 'igbinary', 'msgpack'
      */
     public function __construct(
         public string $prefix = 'wp:',
         public array $hashStrategies = [],
         public ?int $maxTtl = null,
+        public string $serializer = 'none',
     ) {}
 }

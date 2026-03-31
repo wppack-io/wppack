@@ -44,6 +44,7 @@ final class RedisCacheSettingsController extends AbstractRestController
         'hashAlloptions' => 'WPPACK_CACHE_HASH_ALLOPTIONS',
         'asyncFlush' => 'WPPACK_CACHE_ASYNC_FLUSH',
         'compression' => 'WPPACK_CACHE_COMPRESSION',
+        'serializer' => 'WPPACK_CACHE_SERIALIZER',
     ];
 
     #[RestRoute(route: '/settings', methods: HttpMethod::GET)]
@@ -176,6 +177,7 @@ final class RedisCacheSettingsController extends AbstractRestController
             'hashAlloptions' => false,
             'asyncFlush' => false,
             'compression' => 'none',
+            'serializer' => 'none',
         ];
 
         $result = [];

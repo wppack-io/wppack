@@ -81,10 +81,20 @@ final class RelayAdapter extends AbstractNativeAdapter
             $relay->select($dbindex);
         }
 
-        $relay->setOption(\Relay\Relay::OPT_SERIALIZER, \Relay\Relay::SERIALIZER_NONE);
+        $relay->setOption(\Relay\Relay::OPT_SERIALIZER, self::resolveRelaySerializer($this->connectionParams['serializer'] ?? 'none'));
         $this->configureCompressor($relay, \Relay\Relay::class);
 
         return $relay;
+    }
+
+    private static function resolveRelaySerializer(string $name): int
+    {
+        return match ($name) {
+            'php' => \Relay\Relay::SERIALIZER_PHP,
+            'igbinary' => \Relay\Relay::SERIALIZER_IGBINARY,
+            'msgpack' => \Relay\Relay::SERIALIZER_MSGPACK,
+            default => \Relay\Relay::SERIALIZER_NONE,
+        };
     }
 
     /**
@@ -145,7 +155,7 @@ final class RelayAdapter extends AbstractNativeAdapter
             $relay->select($dbindex);
         }
 
-        $relay->setOption(\Relay\Relay::OPT_SERIALIZER, \Relay\Relay::SERIALIZER_NONE);
+        $relay->setOption(\Relay\Relay::OPT_SERIALIZER, self::resolveRelaySerializer($this->connectionParams['serializer'] ?? 'none'));
         $this->configureCompressor($relay, \Relay\Relay::class);
 
         return $relay;

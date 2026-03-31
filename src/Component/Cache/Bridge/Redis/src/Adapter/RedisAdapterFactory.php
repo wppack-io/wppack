@@ -38,6 +38,11 @@ final class RedisAdapterFactory implements AdapterFactoryInterface
     public static function definitions(): array
     {
         $clientField = new AdapterField('class', 'Client Library', options: self::CLIENT_OPTIONS, dsnPart: 'option:class', maxWidth: '200px');
+        $serializerField = new AdapterField('serializer', 'Serializer', options: [
+            ['label' => 'PHP (default)', 'value' => ''],
+            ['label' => 'igbinary', 'value' => 'igbinary'],
+            ['label' => 'msgpack', 'value' => 'msgpack'],
+        ], dsnPart: 'option:serializer', maxWidth: '200px');
         $iamAuthField = new AdapterField('iamAuth', 'Use IAM Authentication', type: 'boolean', dsnPart: 'option:iam_auth', help: 'For Amazon ElastiCache / Valkey with IAM-based access control');
         $iamAccessKeyField = new AdapterField('iamAccessKey', 'Access Key ID', dsnPart: 'option:iam_access_key', conditional: 'iamAuth', help: 'Leave empty to use IAM role');
         $iamSecretKeyField = new AdapterField('iamSecretKey', 'Secret Access Key', type: 'password', dsnPart: 'option:iam_secret_key', conditional: 'iamAuth');
@@ -54,6 +59,7 @@ final class RedisAdapterFactory implements AdapterFactoryInterface
                     new AdapterField('password', 'Password', type: 'password', dsnPart: 'password'),
                     new AdapterField('database', 'Database', type: 'number', default: '0', dsnPart: 'option:dbindex', maxWidth: '80px'),
                     $clientField,
+                    $serializerField,
                 ],
             ),
             new AdapterDefinition(
@@ -69,6 +75,7 @@ final class RedisAdapterFactory implements AdapterFactoryInterface
                     $iamUserIdField,
                     new AdapterField('database', 'Database', type: 'number', default: '0', dsnPart: 'option:dbindex', maxWidth: '80px'),
                     $clientField,
+                    $serializerField,
                 ],
             ),
             new AdapterDefinition(
@@ -78,6 +85,7 @@ final class RedisAdapterFactory implements AdapterFactoryInterface
                     new AdapterField('nodes', 'Nodes', type: 'textarea', required: true, help: 'One host:port per line', dsnPart: 'hosts'),
                     new AdapterField('password', 'Password', type: 'password', dsnPart: 'password'),
                     $clientField,
+                    $serializerField,
                 ],
                 dsnScheme: 'redis',
                 extraOptions: ['redis_cluster' => '1'],
@@ -93,6 +101,7 @@ final class RedisAdapterFactory implements AdapterFactoryInterface
                     $iamSecretKeyField,
                     $iamUserIdField,
                     $clientField,
+                    $serializerField,
                 ],
                 dsnScheme: 'rediss',
                 extraOptions: ['redis_cluster' => '1'],
@@ -105,6 +114,7 @@ final class RedisAdapterFactory implements AdapterFactoryInterface
                     new AdapterField('masterName', 'Master Name', required: true, dsnPart: 'option:redis_sentinel'),
                     new AdapterField('password', 'Password', type: 'password', dsnPart: 'password'),
                     $clientField,
+                    $serializerField,
                 ],
                 dsnScheme: 'redis',
             ),
@@ -236,6 +246,12 @@ final class RedisAdapterFactory implements AdapterFactoryInterface
             if ($value !== null) {
                 $params[$optName] = $value;
             }
+        }
+
+        // Serializer
+        $serializer = $dsn->getOption('serializer');
+        if ($serializer !== null) {
+            $params['serializer'] = $serializer;
         }
 
         // iam_auth (boolean/string)

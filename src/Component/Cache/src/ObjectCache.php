@@ -80,7 +80,7 @@ final class ObjectCache
                 $value = $this->adapter->get($fullKey);
 
                 if ($value !== null) {
-                    $data = \unserialize($value);
+                    $data = $this->shouldSerialize() ? \unserialize($value) : $value;
 
                     $this->runtime[$group][$runtimeKey] = $data;
                     $found = true;
@@ -132,7 +132,7 @@ final class ObjectCache
                 $value = $fetched[$fullKey] ?? null;
 
                 if ($value !== null) {
-                    $data = \unserialize($value);
+                    $data = $this->shouldSerialize() ? \unserialize($value) : $value;
 
                     $runtimeKey = $this->runtimeKey($key, $group);
                     $this->runtime[$group][$runtimeKey] = $data;
@@ -191,7 +191,7 @@ final class ObjectCache
                 return true;
             }
 
-            return $this->adapter->set($fullKey, \serialize($data), $this->clampTtl($expiration));
+            return $this->adapter->set($fullKey, $this->shouldSerialize() ? \serialize($data) : $data, $this->clampTtl($expiration));
         }
 
         return true;
@@ -214,9 +214,10 @@ final class ObjectCache
         if ($this->adapter !== null && !$this->isNonPersistent($group)) {
             $serialized = [];
             $keyMap = [];
+            $shouldSerialize = $this->shouldSerialize();
             foreach ($data as $key => $value) {
                 $fullKey = $this->buildKey($key, $group);
-                $serialized[$fullKey] = \serialize($value);
+                $serialized[$fullKey] = $shouldSerialize ? \serialize($value) : $value;
                 $keyMap[$fullKey] = $key;
             }
 
@@ -245,7 +246,7 @@ final class ObjectCache
 
         if ($this->adapter !== null && !$this->isNonPersistent($group)) {
             $fullKey = $this->buildKey($key, $group);
-            $result = $this->adapter->add($fullKey, \serialize($data), $this->clampTtl($expiration));
+            $result = $this->adapter->add($fullKey, $this->shouldSerialize() ? \serialize($data) : $data, $this->clampTtl($expiration));
 
             if (!$result) {
                 return false;
@@ -364,7 +365,7 @@ final class ObjectCache
                 $value = $this->adapter->get($fullKey);
 
                 if ($value !== null) {
-                    $this->runtime[$group][$runtimeKey] = \unserialize($value);
+                    $this->runtime[$group][$runtimeKey] = $this->shouldSerialize() ? \unserialize($value) : $value;
                 }
             }
         }
@@ -379,7 +380,7 @@ final class ObjectCache
 
         if ($this->adapter !== null && !$this->isNonPersistent($group)) {
             $fullKey = $this->buildKey($key, $group);
-            $this->adapter->set($fullKey, \serialize($newValue));
+            $this->adapter->set($fullKey, $this->shouldSerialize() ? \serialize($newValue) : $newValue);
         }
 
         return $newValue;
@@ -534,6 +535,11 @@ final class ObjectCache
         }
 
         return null;
+    }
+
+    private function shouldSerialize(): bool
+    {
+        return $this->config->serializer === 'none';
     }
 
     private function clampTtl(int $ttl): int
