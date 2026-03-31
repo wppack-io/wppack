@@ -16,14 +16,21 @@ namespace WpPack\Plugin\AmazonMailerPlugin\Tests;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Admin\AdminPageRegistry;
+use WpPack\Component\DependencyInjection\Container;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
+use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Kernel\AbstractPlugin;
 use WpPack\Component\Kernel\PluginInterface;
 use WpPack\Component\Mailer\DependencyInjection\RegisterTransportFactoriesPass;
 use WpPack\Component\Mailer\Mailer;
 use WpPack\Component\Messenger\DependencyInjection\RegisterMessageHandlersPass;
+use WpPack\Component\Rest\RestRegistry;
+use WpPack\Plugin\AmazonMailerPlugin\Admin\AmazonMailerSettingsController;
+use WpPack\Plugin\AmazonMailerPlugin\Admin\AmazonMailerSettingsPage;
 use WpPack\Plugin\AmazonMailerPlugin\AmazonMailerPlugin;
+use WpPack\Plugin\AmazonMailerPlugin\Configuration\AmazonMailerConfiguration;
 
 #[CoversClass(AmazonMailerPlugin::class)]
 final class AmazonMailerPluginTest extends TestCase
@@ -93,5 +100,69 @@ final class AmazonMailerPluginTest extends TestCase
     public function extendsAbstractPlugin(): void
     {
         self::assertInstanceOf(AbstractPlugin::class, $this->plugin);
+    }
+
+    #[Test]
+    public function bootRegistersAdminPageAndRestWhenIsAdmin(): void
+    {
+        Mailer::reset();
+        set_current_screen('dashboard');
+
+        $settingsPage = new AmazonMailerSettingsPage();
+        $settingsController = new AmazonMailerSettingsController();
+        $adminRegistry = new AdminPageRegistry();
+        $restRegistry = new RestRegistry(new Request());
+        $mailer = new Mailer('null://default');
+
+        $symfonyContainer = new \Symfony\Component\DependencyInjection\Container();
+        $symfonyContainer->set(AdminPageRegistry::class, $adminRegistry);
+        $symfonyContainer->set(AmazonMailerSettingsPage::class, $settingsPage);
+        $symfonyContainer->set(RestRegistry::class, $restRegistry);
+        $symfonyContainer->set(AmazonMailerSettingsController::class, $settingsController);
+        $symfonyContainer->set(Mailer::class, $mailer);
+
+        $container = new Container($symfonyContainer);
+
+        $this->plugin->boot($container);
+
+        self::assertNotFalse(has_action('admin_menu'));
+        self::assertNotFalse(has_action('rest_api_init'));
+        self::assertNotFalse(has_filter('wp_mail', [$mailer, 'onWpMail']));
+
+        set_current_screen('front');
+        Mailer::reset();
+        remove_all_actions('admin_menu');
+        remove_all_actions('admin_enqueue_scripts');
+        remove_all_actions('rest_api_init');
+    }
+
+    #[Test]
+    public function bootSkipsMailerWhenNotAvailable(): void
+    {
+        Mailer::reset();
+
+        $symfonyContainer = new \Symfony\Component\DependencyInjection\Container();
+        $container = new Container($symfonyContainer);
+
+        // boot() without Mailer in container should not throw
+        $this->plugin->boot($container);
+
+        self::assertTrue(true);
+
+        Mailer::reset();
+    }
+
+    #[Test]
+    public function registerSkipsServicesWithoutConfig(): void
+    {
+        delete_option(AmazonMailerConfiguration::OPTION_NAME);
+
+        $builder = new ContainerBuilder();
+
+        $this->plugin->register($builder);
+
+        // Admin services should always be registered
+        self::assertTrue($builder->hasDefinition(AmazonMailerSettingsPage::class));
+        self::assertTrue($builder->hasDefinition(AmazonMailerSettingsController::class));
     }
 }

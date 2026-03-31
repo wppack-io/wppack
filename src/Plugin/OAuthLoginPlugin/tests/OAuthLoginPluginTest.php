@@ -16,11 +16,20 @@ namespace WpPack\Plugin\OAuthLoginPlugin\Tests;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Admin\AdminPageRegistry;
 use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use WpPack\Component\DependencyInjection\Container;
 use WpPack\Component\EventDispatcher\DependencyInjection\RegisterEventListenersPass;
+use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Option\OptionManager;
+use WpPack\Component\Rest\RestRegistry;
+use WpPack\Component\Role\RoleProvider;
 use WpPack\Component\Routing\RouteRegistry;
+use WpPack\Component\Sanitizer\Sanitizer;
 use WpPack\Component\Security\DependencyInjection\RegisterAuthenticatorsPass;
+use WpPack\Plugin\OAuthLoginPlugin\Admin\OAuthLoginSettingsController;
+use WpPack\Plugin\OAuthLoginPlugin\Admin\OAuthLoginSettingsPage;
+use WpPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration;
 use WpPack\Plugin\OAuthLoginPlugin\OAuthLoginPlugin;
 
 #[CoversClass(OAuthLoginPlugin::class)]
@@ -95,5 +104,75 @@ final class OAuthLoginPluginTest extends TestCase
         $plugin->onDeactivate();
 
         self::assertTrue(true);
+    }
+
+    #[Test]
+    public function bootRegistersAdminPageAndRestEndpoint(): void
+    {
+        set_current_screen('dashboard');
+
+        $config = new OAuthLoginConfiguration(providers: []);
+        $settingsPage = new OAuthLoginSettingsPage();
+        $settingsController = new OAuthLoginSettingsController(
+            $config,
+            new Sanitizer(),
+            new RoleProvider(),
+        );
+        $adminRegistry = new AdminPageRegistry();
+        $restRegistry = new RestRegistry(new Request());
+
+        $symfonyContainer = new \Symfony\Component\DependencyInjection\Container();
+        $symfonyContainer->set(OAuthLoginConfiguration::class, $config);
+        $symfonyContainer->set(OAuthLoginSettingsPage::class, $settingsPage);
+        $symfonyContainer->set(AdminPageRegistry::class, $adminRegistry);
+        $symfonyContainer->set(RestRegistry::class, $restRegistry);
+        $symfonyContainer->set(OAuthLoginSettingsController::class, $settingsController);
+
+        $container = new Container($symfonyContainer);
+
+        $plugin = new OAuthLoginPlugin(__FILE__);
+        $plugin->boot($container);
+
+        self::assertNotFalse(has_action('admin_menu'));
+        self::assertNotFalse(has_action('rest_api_init'));
+
+        set_current_screen('front');
+        remove_all_actions('admin_menu');
+        remove_all_actions('admin_enqueue_scripts');
+        remove_all_actions('rest_api_init');
+    }
+
+    #[Test]
+    public function bootSkipsOAuthWhenNoProvidersConfigured(): void
+    {
+        $config = new OAuthLoginConfiguration(providers: []);
+        $settingsPage = new OAuthLoginSettingsPage();
+        $settingsController = new OAuthLoginSettingsController(
+            $config,
+            new Sanitizer(),
+            new RoleProvider(),
+        );
+        $adminRegistry = new AdminPageRegistry();
+        $restRegistry = new RestRegistry(new Request());
+
+        $symfonyContainer = new \Symfony\Component\DependencyInjection\Container();
+        $symfonyContainer->set(OAuthLoginConfiguration::class, $config);
+        $symfonyContainer->set(OAuthLoginSettingsPage::class, $settingsPage);
+        $symfonyContainer->set(AdminPageRegistry::class, $adminRegistry);
+        $symfonyContainer->set(RestRegistry::class, $restRegistry);
+        $symfonyContainer->set(OAuthLoginSettingsController::class, $settingsController);
+
+        $container = new Container($symfonyContainer);
+
+        $plugin = new OAuthLoginPlugin(__FILE__);
+        $plugin->boot($container);
+
+        // No router set when providers is empty
+        $reflection = new \ReflectionProperty($plugin, 'router');
+        self::assertNull($reflection->getValue($plugin));
+
+        remove_all_actions('admin_menu');
+        remove_all_actions('admin_enqueue_scripts');
+        remove_all_actions('rest_api_init');
     }
 }

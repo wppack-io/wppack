@@ -17,12 +17,15 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Admin\AdminPageRegistry;
+use WpPack\Component\DependencyInjection\Container;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
+use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Kernel\AbstractPlugin;
 use WpPack\Component\Kernel\PluginInterface;
 use WpPack\Component\Messenger\DependencyInjection\RegisterMessageHandlersPass;
 use WpPack\Component\Rest\DependencyInjection\RegisterRestControllersPass;
+use WpPack\Component\Rest\RestRegistry;
 use WpPack\Plugin\S3StoragePlugin\Admin\S3StorageSettingsController;
 use WpPack\Plugin\S3StoragePlugin\Admin\S3StorageSettingsPage;
 use WpPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
@@ -117,5 +120,34 @@ final class S3StoragePluginTest extends TestCase
     public function extendsAbstractPlugin(): void
     {
         self::assertInstanceOf(AbstractPlugin::class, $this->plugin);
+    }
+
+    #[Test]
+    public function bootRegistersAdminPageAndRestController(): void
+    {
+        set_current_screen('dashboard');
+
+        $settingsPage = new S3StorageSettingsPage();
+        $settingsController = new S3StorageSettingsController();
+        $adminRegistry = new AdminPageRegistry();
+        $restRegistry = new RestRegistry(new Request());
+
+        $symfonyContainer = new \Symfony\Component\DependencyInjection\Container();
+        $symfonyContainer->set(AdminPageRegistry::class, $adminRegistry);
+        $symfonyContainer->set(S3StorageSettingsPage::class, $settingsPage);
+        $symfonyContainer->set(RestRegistry::class, $restRegistry);
+        $symfonyContainer->set(S3StorageSettingsController::class, $settingsController);
+
+        $container = new Container($symfonyContainer);
+
+        $this->plugin->boot($container);
+
+        self::assertNotFalse(has_action('admin_menu'));
+        self::assertNotFalse(has_action('rest_api_init'));
+
+        set_current_screen('front');
+        remove_all_actions('admin_menu');
+        remove_all_actions('admin_enqueue_scripts');
+        remove_all_actions('rest_api_init');
     }
 }

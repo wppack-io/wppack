@@ -16,8 +16,16 @@ namespace WpPack\Plugin\RedisCachePlugin\Tests;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Admin\AdminPageRegistry;
+use WpPack\Component\DependencyInjection\Container;
+use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
+use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Kernel\ManagesDropin;
+use WpPack\Component\Rest\RestRegistry;
+use WpPack\Plugin\RedisCachePlugin\Admin\RedisCacheSettingsController;
+use WpPack\Plugin\RedisCachePlugin\Admin\RedisCacheSettingsPage;
+use WpPack\Plugin\RedisCachePlugin\Configuration\RedisCacheConfiguration;
 use WpPack\Plugin\RedisCachePlugin\RedisCachePlugin;
 
 #[CoversClass(RedisCachePlugin::class)]
@@ -131,5 +139,52 @@ final class RedisCachePluginTest extends TestCase
         $plugin->onDeactivate();
 
         self::assertFalse(file_exists($this->dropinPath));
+    }
+
+    #[Test]
+    public function bootRegistersAdminPageAndRestController(): void
+    {
+        set_current_screen('dashboard');
+
+        $settingsPage = new RedisCacheSettingsPage();
+        $settingsController = new RedisCacheSettingsController();
+        $adminRegistry = new AdminPageRegistry();
+        $restRegistry = new RestRegistry(new Request());
+
+        $symfonyContainer = new \Symfony\Component\DependencyInjection\Container();
+        $symfonyContainer->set(AdminPageRegistry::class, $adminRegistry);
+        $symfonyContainer->set(RedisCacheSettingsPage::class, $settingsPage);
+        $symfonyContainer->set(RestRegistry::class, $restRegistry);
+        $symfonyContainer->set(RedisCacheSettingsController::class, $settingsController);
+
+        $container = new Container($symfonyContainer);
+
+        $plugin = new RedisCachePlugin(__FILE__);
+        $plugin->boot($container);
+
+        // Verify admin_menu action was registered
+        self::assertNotFalse(has_action('admin_menu'));
+        // Verify rest_api_init was registered
+        self::assertNotFalse(has_action('rest_api_init'));
+
+        set_current_screen('front');
+        remove_all_actions('admin_menu');
+        remove_all_actions('admin_enqueue_scripts');
+        remove_all_actions('rest_api_init');
+    }
+
+    #[Test]
+    public function registerSkipsServiceRegistrationWithoutConfig(): void
+    {
+        delete_option(RedisCacheConfiguration::OPTION_NAME);
+
+        $plugin = new RedisCachePlugin(__FILE__);
+        $builder = new ContainerBuilder();
+
+        $plugin->register($builder);
+
+        // Admin services are always registered
+        self::assertTrue($builder->hasDefinition(RedisCacheSettingsPage::class));
+        self::assertTrue($builder->hasDefinition(RedisCacheSettingsController::class));
     }
 }
