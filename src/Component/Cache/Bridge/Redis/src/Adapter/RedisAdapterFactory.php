@@ -26,36 +26,44 @@ final class RedisAdapterFactory implements AdapterFactoryInterface
 {
     private const SUPPORTED_SCHEMES = ['redis', 'rediss', 'valkey', 'valkeys'];
 
+    /** @var list<array{label: string, value: string}> */
+    private const CLIENT_OPTIONS = [
+        ['label' => 'Auto-detect', 'value' => ''],
+        ['label' => 'PhpRedis (ext-redis)', 'value' => 'Redis'],
+        ['label' => 'Relay (ext-relay)', 'value' => 'Relay\\Relay'],
+        ['label' => 'Predis', 'value' => 'Predis\\Client'],
+    ];
+
     public static function definitions(): array
     {
-        $standaloneFields = [
-            new AdapterField('host', 'Host', default: '127.0.0.1', dsnPart: 'host'),
-            new AdapterField('port', 'Port', type: 'number', default: '6379', dsnPart: 'port', maxWidth: '120px'),
-            new AdapterField('password', 'Password', type: 'password', dsnPart: 'password'),
-            new AdapterField('database', 'Database', type: 'number', default: '0', dsnPart: 'option:dbindex', maxWidth: '80px'),
-        ];
+        $clientField = new AdapterField('class', 'Client Library', options: self::CLIENT_OPTIONS, dsnPart: 'option:class', maxWidth: '200px');
+        $iamAuthField = new AdapterField('iamAuth', 'IAM Auth', type: 'boolean', dsnPart: 'option:iam_auth', help: 'Use IAM authentication (ElastiCache / Valkey)');
+        $iamUserIdField = new AdapterField('iamUserId', 'IAM User ID', required: true, dsnPart: 'option:iam_user_id', conditional: 'iamAuth');
 
         return [
             new AdapterDefinition(
                 scheme: 'redis',
                 label: 'Redis Standalone',
-                fields: $standaloneFields,
+                fields: [
+                    new AdapterField('host', 'Host', default: '127.0.0.1', dsnPart: 'host'),
+                    new AdapterField('port', 'Port', type: 'number', default: '6379', dsnPart: 'port', maxWidth: '120px'),
+                    new AdapterField('password', 'Password', type: 'password', dsnPart: 'password'),
+                    new AdapterField('database', 'Database', type: 'number', default: '0', dsnPart: 'option:dbindex', maxWidth: '80px'),
+                    $clientField,
+                ],
             ),
             new AdapterDefinition(
                 scheme: 'rediss',
                 label: 'Redis Standalone (TLS)',
-                fields: $standaloneFields,
-            ),
-            new AdapterDefinition(
-                scheme: 'rediss-iam',
-                label: 'ElastiCache / Valkey (IAM Auth)',
                 fields: [
-                    new AdapterField('host', 'Endpoint', required: true, dsnPart: 'host', help: 'e.g., my-cluster.xxxxx.apne1.cache.amazonaws.com'),
+                    new AdapterField('host', 'Host', default: '127.0.0.1', dsnPart: 'host'),
                     new AdapterField('port', 'Port', type: 'number', default: '6379', dsnPart: 'port', maxWidth: '120px'),
-                    new AdapterField('user', 'User ID', required: true, dsnPart: 'user', help: 'ElastiCache user ID for IAM authentication'),
+                    new AdapterField('password', 'Password', type: 'password', dsnPart: 'password'),
+                    new AdapterField('database', 'Database', type: 'number', default: '0', dsnPart: 'option:dbindex', maxWidth: '80px'),
+                    $clientField,
+                    $iamAuthField,
+                    $iamUserIdField,
                 ],
-                dsnScheme: 'rediss',
-                extraOptions: ['iam_auth' => '1'],
             ),
             new AdapterDefinition(
                 scheme: 'redis-cluster',
@@ -63,8 +71,22 @@ final class RedisAdapterFactory implements AdapterFactoryInterface
                 fields: [
                     new AdapterField('nodes', 'Nodes', type: 'textarea', required: true, help: 'One host:port per line', dsnPart: 'hosts'),
                     new AdapterField('password', 'Password', type: 'password', dsnPart: 'password'),
+                    $clientField,
                 ],
                 dsnScheme: 'redis',
+                extraOptions: ['redis_cluster' => '1'],
+            ),
+            new AdapterDefinition(
+                scheme: 'rediss-cluster',
+                label: 'Redis Cluster (TLS)',
+                fields: [
+                    new AdapterField('nodes', 'Nodes', type: 'textarea', required: true, help: 'One host:port per line', dsnPart: 'hosts'),
+                    new AdapterField('password', 'Password', type: 'password', dsnPart: 'password'),
+                    $clientField,
+                    $iamAuthField,
+                    $iamUserIdField,
+                ],
+                dsnScheme: 'rediss',
                 extraOptions: ['redis_cluster' => '1'],
             ),
             new AdapterDefinition(
@@ -74,6 +96,7 @@ final class RedisAdapterFactory implements AdapterFactoryInterface
                     new AdapterField('sentinelNodes', 'Sentinel Nodes', type: 'textarea', required: true, help: 'One host:port per line', dsnPart: 'hosts'),
                     new AdapterField('masterName', 'Master Name', required: true, dsnPart: 'option:redis_sentinel'),
                     new AdapterField('password', 'Password', type: 'password', dsnPart: 'password'),
+                    $clientField,
                 ],
                 dsnScheme: 'redis',
             ),
@@ -262,8 +285,8 @@ final class RedisAdapterFactory implements AdapterFactoryInterface
 
             $host = $params['host']
                 ?? throw new AdapterException('Host is required for IAM authentication.');
-            $iamUserId = $params['iam_user_id'] ?? $params['user']
-                ?? throw new AdapterException('iam_user_id or DSN user is required when iam_auth is enabled.');
+            $iamUserId = $params['iam_user_id']
+                ?? throw new AdapterException('iam_user_id is required when iam_auth is enabled.');
             $iamRegion = $params['iam_region'] ?? self::extractRegionFromHost($host);
             $port = (int) ($params['port'] ?? 6379);
 

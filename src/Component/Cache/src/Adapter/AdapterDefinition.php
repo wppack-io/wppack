@@ -47,7 +47,16 @@ final readonly class AdapterDefinition
         $options = $this->extraOptions;
 
         foreach ($this->fields as $field) {
-            $value = $values[$field->name] ?? $field->default ?? '';
+            /** @var mixed $raw */
+            $raw = $values[$field->name] ?? $field->default ?? '';
+            // Boolean fields: convert true/false to '1'/''
+            if ($raw === true) {
+                $value = '1';
+            } elseif ($raw === false || $raw === '') {
+                $value = '';
+            } else {
+                $value = (string) $raw;
+            }
             if ($value === '' || $field->dsnPart === null) {
                 continue;
             }

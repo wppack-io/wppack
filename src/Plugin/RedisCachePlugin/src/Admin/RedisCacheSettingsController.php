@@ -218,6 +218,9 @@ final class RedisCacheSettingsController extends AbstractRestController
             if ($field->maxWidth !== null) {
                 $f['maxWidth'] = $field->maxWidth;
             }
+            if ($field->conditional !== null) {
+                $f['conditional'] = $field->conditional;
+            }
             $fields[] = $f;
         }
 

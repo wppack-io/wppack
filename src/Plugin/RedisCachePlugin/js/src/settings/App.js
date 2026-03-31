@@ -181,8 +181,25 @@ export default function App() {
 						__nextHasNoMarginBottom
 					/>
 					{ def && def.fields.map( ( f ) => {
+						// Conditional: only show if the referenced field is truthy
+						if ( f.conditional && ! fields[ f.conditional ] ) {
+							return null;
+						}
 						const wrapStyle = f.maxWidth ? { maxWidth: f.maxWidth } : {};
 						const effectiveDefault = ( f.name === 'region' && awsRegion ) ? awsRegion : ( f.default || '' );
+						if ( f.type === 'boolean' ) {
+							return (
+								<ToggleControl
+									key={ f.name }
+									label={ f.label }
+									help={ f.help || undefined }
+									checked={ !! fields[ f.name ] }
+									onChange={ ( val ) => setFields( ( prev ) => ( { ...prev, [ f.name ]: val } ) ) }
+									disabled={ isReadonly }
+									__nextHasNoMarginBottom
+								/>
+							);
+						}
 						if ( f.options ) {
 							return (
 								<div key={ f.name } style={ wrapStyle }>

@@ -28,7 +28,7 @@ namespace WpPack\Component\Cache\Adapter;
 final readonly class AdapterField
 {
     /**
-     * @param list<array{label: string, value: string}>|null $options Select options (null = free text input)
+     * @param list<array{label: string, value: string}>|null $options
      */
     public function __construct(
         public string $name,
@@ -40,5 +40,6 @@ final readonly class AdapterField
         public ?string $dsnPart = null,
         public ?array $options = null,
         public ?string $maxWidth = null,
+        public ?string $conditional = null,
     ) {}
 }
