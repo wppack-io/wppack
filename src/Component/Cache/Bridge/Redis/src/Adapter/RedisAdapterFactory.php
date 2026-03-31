@@ -18,6 +18,7 @@ use WpPack\Component\Cache\Adapter\AdapterFactoryInterface;
 use WpPack\Component\Cache\Adapter\AdapterField;
 use WpPack\Component\Cache\Adapter\AdapterInterface;
 use WpPack\Component\Cache\Adapter\Dsn;
+use AsyncAws\Core\Credentials\Credentials;
 use WpPack\Component\Cache\Bridge\ElastiCacheAuth\ElastiCacheIamTokenGenerator;
 use WpPack\Component\Cache\Exception\AdapterException;
 use WpPack\Component\Cache\Exception\UnsupportedSchemeException;
@@ -38,7 +39,10 @@ final class RedisAdapterFactory implements AdapterFactoryInterface
     {
         $clientField = new AdapterField('class', 'Client Library', options: self::CLIENT_OPTIONS, dsnPart: 'option:class', maxWidth: '200px');
         $iamAuthField = new AdapterField('iamAuth', 'Use IAM Authentication', type: 'boolean', dsnPart: 'option:iam_auth', help: 'For Amazon ElastiCache / Valkey with IAM-based access control');
+        $iamAccessKeyField = new AdapterField('iamAccessKey', 'Access Key ID', dsnPart: 'option:iam_access_key', conditional: 'iamAuth', help: 'Leave empty to use IAM role');
+        $iamSecretKeyField = new AdapterField('iamSecretKey', 'Secret Access Key', type: 'password', dsnPart: 'option:iam_secret_key', conditional: 'iamAuth');
         $iamUserIdField = new AdapterField('iamUserId', 'ElastiCache User ID', required: true, dsnPart: 'option:iam_user_id', conditional: 'iamAuth', help: 'The user ID defined in ElastiCache user management');
+        $passwordField = new AdapterField('password', 'Password', type: 'password', dsnPart: 'password', conditional: '!iamAuth');
 
         return [
             new AdapterDefinition(
@@ -58,11 +62,13 @@ final class RedisAdapterFactory implements AdapterFactoryInterface
                 fields: [
                     new AdapterField('host', 'Host', default: '127.0.0.1', dsnPart: 'host'),
                     new AdapterField('port', 'Port', type: 'number', default: '6379', dsnPart: 'port', maxWidth: '120px'),
-                    new AdapterField('password', 'Password', type: 'password', dsnPart: 'password'),
+                    $iamAuthField,
+                    $passwordField,
+                    $iamAccessKeyField,
+                    $iamSecretKeyField,
+                    $iamUserIdField,
                     new AdapterField('database', 'Database', type: 'number', default: '0', dsnPart: 'option:dbindex', maxWidth: '80px'),
                     $clientField,
-                    $iamAuthField,
-                    $iamUserIdField,
                 ],
             ),
             new AdapterDefinition(
@@ -81,10 +87,12 @@ final class RedisAdapterFactory implements AdapterFactoryInterface
                 label: 'Redis Cluster (TLS)',
                 fields: [
                     new AdapterField('nodes', 'Nodes', type: 'textarea', required: true, help: 'One host:port per line', dsnPart: 'hosts'),
-                    new AdapterField('password', 'Password', type: 'password', dsnPart: 'password'),
-                    $clientField,
                     $iamAuthField,
+                    $passwordField,
+                    $iamAccessKeyField,
+                    $iamSecretKeyField,
                     $iamUserIdField,
+                    $clientField,
                 ],
                 dsnScheme: 'rediss',
                 extraOptions: ['redis_cluster' => '1'],
@@ -290,7 +298,14 @@ final class RedisAdapterFactory implements AdapterFactoryInterface
             $iamRegion = $params['iam_region'] ?? self::extractRegionFromHost($host);
             $port = (int) ($params['port'] ?? 6379);
 
-            $generator = new ElastiCacheIamTokenGenerator($iamRegion, $iamUserId);
+            $iamAccessKey = $params['iam_access_key'] ?? null;
+            $iamSecretKey = $params['iam_secret_key'] ?? null;
+            $credentialProvider = null;
+            if (\is_string($iamAccessKey) && $iamAccessKey !== '' && \is_string($iamSecretKey) && $iamSecretKey !== '') {
+                $credentialProvider = new Credentials($iamAccessKey, $iamSecretKey);
+            }
+
+            $generator = new ElastiCacheIamTokenGenerator($iamRegion, $iamUserId, $credentialProvider);
             $params['credential_provider'] = $generator->createProvider($host . ':' . $port);
 
             // Remove static auth if set (IAM replaces it)

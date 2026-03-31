@@ -181,9 +181,14 @@ export default function App() {
 						__nextHasNoMarginBottom
 					/>
 					{ def && def.fields.map( ( f ) => {
-						// Conditional: only show if the referenced field is truthy
-						if ( f.conditional && ! fields[ f.conditional ] ) {
-							return null;
+						// Conditional: show/hide based on another field's value
+						if ( f.conditional ) {
+							const isNeg = f.conditional.startsWith( '!' );
+							const refName = isNeg ? f.conditional.slice( 1 ) : f.conditional;
+							const refVal = !! fields[ refName ];
+							if ( isNeg ? refVal : ! refVal ) {
+								return null;
+							}
 						}
 						const wrapStyle = f.maxWidth ? { maxWidth: f.maxWidth } : {};
 						const effectiveDefault = ( f.name === 'region' && awsRegion ) ? awsRegion : ( f.default || '' );
