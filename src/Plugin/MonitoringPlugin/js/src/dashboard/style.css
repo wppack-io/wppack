@@ -57,6 +57,11 @@
 	margin-bottom: 16px;
 }
 
+.wpp-monitoring-provider .components-card-body {
+	padding: 0 !important;
+	overflow: hidden;
+}
+
 .wpp-monitoring-provider-header {
 	flex: 1;
 }
@@ -87,22 +92,25 @@
 .wpp-monitoring-metrics-grid {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-	gap: 12px;
+	gap: 0;
+	margin-right: -1px;
+	margin-bottom: -1px;
 }
 
-/* Metric card */
+/* Metric card — bottom/right borders create internal grid lines;
+   the outer Card component handles the surrounding border. */
 .wpp-monitoring-card {
 	background: #fff;
-	border: 1px solid #e0e0e0;
-	border-radius: 4px;
-	padding: 12px;
+	padding: 16px;
 	display: flex;
 	flex-direction: column;
 	gap: 2px;
+	border-right: 1px solid #f0f0f0;
+	border-bottom: 1px solid #f0f0f0;
 }
 
 .wpp-monitoring-card--error {
-	border-color: #d63638;
+	background: #fef7f7;
 }
 
 .wpp-monitoring-card-label {
