@@ -13,10 +13,13 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Monitoring;
 
-interface MetricSourceProviderInterface
+final readonly class ProviderSettings
 {
-    /**
-     * @return list<MetricSource>
-     */
-    public function getSources(): array;
+    public function __construct(
+        public string $region = '',
+        #[\SensitiveParameter]
+        public string $accessKeyId = '',
+        #[\SensitiveParameter]
+        public string $secretAccessKey = '',
+    ) {}
 }

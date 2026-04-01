@@ -14,11 +14,12 @@ declare(strict_types=1);
 namespace WpPack\Component\Monitoring\Rest;
 
 use WpPack\Component\HttpFoundation\JsonResponse;
+use WpPack\Component\Monitoring\MetricDefinition;
 use WpPack\Component\Monitoring\MetricPoint;
 use WpPack\Component\Monitoring\MetricResult;
-use WpPack\Component\Monitoring\MetricSource;
 use WpPack\Component\Monitoring\MetricTimeRange;
 use WpPack\Component\Monitoring\MonitoringCollector;
+use WpPack\Component\Monitoring\MonitoringProvider;
 use WpPack\Component\Monitoring\MonitoringRegistry;
 use WpPack\Component\Rest\AbstractRestController;
 use WpPack\Component\Rest\Attribute\RestRoute;
@@ -53,13 +54,12 @@ final class MonitoringController extends AbstractRestController
         return $this->json($this->buildMetricsResponse($results));
     }
 
-    #[RestRoute(route: '/sources', methods: HttpMethod::GET)]
-    public function getSources(): JsonResponse
+    #[RestRoute(route: '/providers', methods: HttpMethod::GET)]
+    public function getProviders(): JsonResponse
     {
         return $this->json([
-            'sources' => array_map($this->serializeSource(...), $this->registry->all()),
-            'providers' => $this->registry->providers(),
-            'groups' => $this->registry->groups(),
+            'providers' => array_map($this->serializeProvider(...), $this->registry->all()),
+            'bridges' => $this->registry->bridges(),
         ]);
     }
 
@@ -80,8 +80,8 @@ final class MonitoringController extends AbstractRestController
     {
         return [
             'results' => array_map($this->serializeResult(...), $results),
-            'sources' => array_map($this->serializeSource(...), $this->registry->all()),
-            'providers' => $this->registry->providers(),
+            'providers' => array_map($this->serializeProvider(...), $this->registry->all()),
+            'bridges' => $this->registry->bridges(),
         ];
     }
 
@@ -116,19 +116,36 @@ final class MonitoringController extends AbstractRestController
     /**
      * @return array<string, mixed>
      */
-    private function serializeSource(MetricSource $source): array
+    private function serializeProvider(MonitoringProvider $provider): array
     {
         return [
-            'id' => $source->id,
-            'label' => $source->label,
-            'provider' => $source->provider,
-            'namespace' => $source->namespace,
-            'metricName' => $source->metricName,
-            'unit' => $source->unit,
-            'stat' => $source->stat,
-            'dimensions' => $source->dimensions,
-            'periodSeconds' => $source->periodSeconds,
-            'group' => $source->group,
+            'id' => $provider->id,
+            'label' => $provider->label,
+            'bridge' => $provider->bridge,
+            'settings' => [
+                'region' => $provider->settings->region,
+            ],
+            'metrics' => array_map($this->serializeMetric(...), $provider->metrics),
+            'locked' => $provider->locked,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function serializeMetric(MetricDefinition $metric): array
+    {
+        return [
+            'id' => $metric->id,
+            'label' => $metric->label,
+            'description' => $metric->description,
+            'namespace' => $metric->namespace,
+            'metricName' => $metric->metricName,
+            'unit' => $metric->unit,
+            'stat' => $metric->stat,
+            'dimensions' => $metric->dimensions,
+            'periodSeconds' => $metric->periodSeconds,
+            'locked' => $metric->locked,
         ];
     }
 }

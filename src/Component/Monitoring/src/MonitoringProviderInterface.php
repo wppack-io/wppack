@@ -13,9 +13,10 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Monitoring;
 
-interface CollectableMetricProviderInterface extends MetricProviderInterface
+interface MonitoringProviderInterface
 {
-    public function collect(MonitoringProvider $provider): void;
-
-    public function getCollectInterval(): int;
+    /**
+     * @return list<MonitoringProvider>
+     */
+    public function getProviders(): array;
 }

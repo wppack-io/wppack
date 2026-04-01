@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Monitoring;
 
-final readonly class MetricSource
+final readonly class MetricDefinition
 {
     /**
      * @param array<string, string> $dimensions
@@ -21,13 +21,13 @@ final readonly class MetricSource
     public function __construct(
         public string $id,
         public string $label,
-        public string $provider,
-        public string $namespace,
-        public string $metricName,
+        public string $description = '',
+        public string $namespace = '',
+        public string $metricName = '',
         public string $unit = 'Count',
         public string $stat = 'Average',
         public array $dimensions = [],
         public int $periodSeconds = 300,
-        public string $group = 'default',
+        public bool $locked = false,
     ) {}
 }

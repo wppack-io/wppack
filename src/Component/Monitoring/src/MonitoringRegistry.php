@@ -15,59 +15,48 @@ namespace WpPack\Component\Monitoring;
 
 class MonitoringRegistry
 {
-    /** @var list<MetricSource> */
-    private array $sources = [];
+    /** @var list<MonitoringProvider> */
+    private array $providers = [];
 
-    public function add(MetricSource $source): void
+    public function addProvider(MonitoringProvider $provider): void
     {
-        $this->sources[] = $source;
+        $this->providers[] = $provider;
     }
 
-    public function addFromProvider(MetricSourceProviderInterface $provider): void
+    public function addFromSource(MonitoringProviderInterface $source): void
     {
-        foreach ($provider->getSources() as $source) {
-            $this->add($source);
+        foreach ($source->getProviders() as $provider) {
+            $this->addProvider($provider);
         }
     }
 
     /**
-     * @return list<MetricSource>
+     * @return list<MonitoringProvider>
      */
     public function all(): array
     {
-        return $this->sources;
+        return $this->providers;
     }
 
-    /**
-     * @return list<MetricSource>
-     */
-    public function byProvider(string $provider): array
+    public function get(string $id): ?MonitoringProvider
     {
-        return array_values(array_filter(
-            $this->sources,
-            static fn(MetricSource $s): bool => $s->provider === $provider,
-        ));
-    }
+        foreach ($this->providers as $provider) {
+            if ($provider->id === $id) {
+                return $provider;
+            }
+        }
 
-    /**
-     * @return list<string>
-     */
-    public function providers(): array
-    {
-        return array_values(array_unique(array_map(
-            static fn(MetricSource $s): string => $s->provider,
-            $this->sources,
-        )));
+        return null;
     }
 
     /**
      * @return list<string>
      */
-    public function groups(): array
+    public function bridges(): array
     {
         return array_values(array_unique(array_map(
-            static fn(MetricSource $s): string => $s->group,
-            $this->sources,
+            static fn(MonitoringProvider $p): string => $p->bridge,
+            $this->providers,
         )));
     }
 }

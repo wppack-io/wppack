@@ -18,7 +18,10 @@ use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
 use WpPack\Component\Monitoring\MonitoringCollector;
 use WpPack\Component\Monitoring\MonitoringRegistry;
+use WpPack\Component\Monitoring\MonitoringStore;
 use WpPack\Component\Monitoring\Rest\MonitoringController;
+use WpPack\Component\Monitoring\Rest\MonitoringSettingsController;
+use WpPack\Component\Option\OptionManager;
 use WpPack\Component\Transient\TransientManager;
 
 final class MonitoringServiceProvider implements ServiceProviderInterface
@@ -29,6 +32,11 @@ final class MonitoringServiceProvider implements ServiceProviderInterface
 
     public function register(ContainerBuilder $builder): void
     {
+        // OptionManager
+        if (!$builder->hasDefinition(OptionManager::class)) {
+            $builder->register(OptionManager::class);
+        }
+
         // TransientManager
         if (!$builder->hasDefinition(TransientManager::class)) {
             $builder->register(TransientManager::class);
@@ -37,6 +45,11 @@ final class MonitoringServiceProvider implements ServiceProviderInterface
         // Registry
         $builder->register(MonitoringRegistry::class);
 
+        // Store (MonitoringProviderInterface — user-managed providers)
+        $builder->register(MonitoringStore::class)
+            ->addArgument(new Reference(OptionManager::class))
+            ->addTag(RegisterMetricProvidersPass::TAG);
+
         // Collector
         $builder->register(MonitoringCollector::class)
             ->addArgument(new Reference(MonitoringRegistry::class))
@@ -44,9 +57,14 @@ final class MonitoringServiceProvider implements ServiceProviderInterface
             ->addArgument(new Reference(TransientManager::class))
             ->addArgument($this->cacheTtl);
 
-        // REST controller
+        // REST controllers
         $builder->register(MonitoringController::class)
             ->addArgument(new Reference(MonitoringCollector::class))
+            ->addArgument(new Reference(MonitoringRegistry::class))
+            ->addTag('rest.controller');
+
+        $builder->register(MonitoringSettingsController::class)
+            ->addArgument(new Reference(MonitoringStore::class))
             ->addArgument(new Reference(MonitoringRegistry::class))
             ->addTag('rest.controller');
     }

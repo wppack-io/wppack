@@ -20,7 +20,7 @@ use WpPack\Component\Monitoring\MonitoringRegistry;
 
 final class RegisterMetricProvidersPass implements CompilerPassInterface
 {
-    public const TAG = 'monitoring.metric_source_provider';
+    public const TAG = 'monitoring.provider';
 
     public function process(ContainerBuilder $builder): void
     {
@@ -31,7 +31,7 @@ final class RegisterMetricProvidersPass implements CompilerPassInterface
         $registryDefinition = $builder->findDefinition(MonitoringRegistry::class);
 
         foreach ($builder->findTaggedServiceIds(self::TAG) as $serviceId => $tags) {
-            $registryDefinition->addMethodCall('addFromProvider', [new Reference($serviceId)]);
+            $registryDefinition->addMethodCall('addFromSource', [new Reference($serviceId)]);
         }
     }
 }

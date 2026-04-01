@@ -20,11 +20,11 @@ class MonitoringCollector
     private const string CACHE_KEY = 'wppack_monitoring_metrics';
 
     /**
-     * @param array<string, MetricProviderInterface> $providers
+     * @param array<string, MetricProviderInterface> $bridges keyed by bridge name
      */
     public function __construct(
         private readonly MonitoringRegistry $registry,
-        private readonly array $providers,
+        private readonly array $bridges,
         private readonly TransientManager $transients,
         private readonly int $cacheTtl = 300,
     ) {}
@@ -50,26 +50,21 @@ class MonitoringCollector
 
         $results = [];
 
-        foreach ($this->registry->providers() as $providerName) {
-            $provider = $this->providers[$providerName] ?? null;
-            if ($provider === null || !$provider->isAvailable()) {
-                continue;
-            }
-
-            $sources = $this->registry->byProvider($providerName);
-            if ($sources === []) {
+        foreach ($this->registry->all() as $provider) {
+            $bridge = $this->bridges[$provider->bridge] ?? null;
+            if ($bridge === null || !$bridge->isAvailable()) {
                 continue;
             }
 
             try {
-                $results = [...$results, ...$provider->query($sources, $range)];
+                $results = [...$results, ...$bridge->query($provider, $range)];
             } catch (\Throwable $e) {
-                foreach ($sources as $source) {
+                foreach ($provider->metrics as $metric) {
                     $results[] = new MetricResult(
-                        sourceId: $source->id,
-                        label: $source->label,
-                        unit: $source->unit,
-                        group: $source->group,
+                        sourceId: $metric->id,
+                        label: $metric->label,
+                        unit: $metric->unit,
+                        group: $provider->id,
                         error: $e->getMessage(),
                     );
                 }
@@ -82,23 +77,22 @@ class MonitoringCollector
     }
 
     /**
-     * Run collect() on all CollectableMetricProviderInterface providers.
+     * Run collect() on all CollectableMetricProviderInterface bridges.
      */
     public function runCollectors(): void
     {
-        foreach ($this->registry->providers() as $providerName) {
-            $provider = $this->providers[$providerName] ?? null;
-            if (!$provider instanceof CollectableMetricProviderInterface) {
+        foreach ($this->registry->all() as $provider) {
+            $bridge = $this->bridges[$provider->bridge] ?? null;
+            if (!$bridge instanceof CollectableMetricProviderInterface) {
                 continue;
             }
 
-            if (!$provider->isAvailable()) {
+            if (!$bridge->isAvailable()) {
                 continue;
             }
 
-            $sources = $this->registry->byProvider($providerName);
-            if ($sources !== []) {
-                $provider->collect($sources);
+            if ($provider->metrics !== []) {
+                $bridge->collect($provider);
             }
         }
     }

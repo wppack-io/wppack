@@ -19,17 +19,18 @@ use AsyncAws\CloudWatch\ValueObject\Dimension;
 use AsyncAws\CloudWatch\ValueObject\Metric;
 use AsyncAws\CloudWatch\ValueObject\MetricDataQuery;
 use AsyncAws\CloudWatch\ValueObject\MetricStat;
+use WpPack\Component\Monitoring\MetricDefinition;
 use WpPack\Component\Monitoring\MetricPoint;
 use WpPack\Component\Monitoring\MetricProviderInterface;
 use WpPack\Component\Monitoring\MetricResult;
-use WpPack\Component\Monitoring\MetricSource;
 use WpPack\Component\Monitoring\MetricTimeRange;
+use WpPack\Component\Monitoring\MonitoringProvider;
+use WpPack\Component\Monitoring\ProviderSettings;
 
 class CloudWatchMetricProvider implements MetricProviderInterface
 {
-    public function __construct(
-        private readonly CloudWatchClient $client,
-    ) {}
+    /** @var array<string, CloudWatchClient> */
+    private array $clients = [];
 
     public function getName(): string
     {
@@ -42,42 +43,63 @@ class CloudWatchMetricProvider implements MetricProviderInterface
     }
 
     /**
-     * Uses GetMetricData (batch API) — up to 500 queries per call.
-     *
-     * @param list<MetricSource> $sources
      * @return list<MetricResult>
      */
-    public function query(array $sources, MetricTimeRange $range): array
+    public function query(MonitoringProvider $provider, MetricTimeRange $range): array
     {
-        if ($sources === []) {
+        if ($provider->metrics === []) {
             return [];
         }
 
-        $queries = [];
-        /** @var array<string, MetricSource> $sourceMap */
-        $sourceMap = [];
+        $client = $this->getClient($provider->settings);
 
-        foreach ($sources as $i => $source) {
+        return $this->queryMetrics($client, $provider, $range);
+    }
+
+    private function getClient(ProviderSettings $settings): CloudWatchClient
+    {
+        $config = ['region' => $settings->region !== '' ? $settings->region : 'us-east-1'];
+
+        if ($settings->accessKeyId !== '' && $settings->secretAccessKey !== '') {
+            $config['accessKeyId'] = $settings->accessKeyId;
+            $config['accessKeySecret'] = $settings->secretAccessKey;
+        }
+
+        $key = md5(serialize($config));
+
+        return $this->clients[$key] ??= new CloudWatchClient($config);
+    }
+
+    /**
+     * @return list<MetricResult>
+     */
+    private function queryMetrics(CloudWatchClient $client, MonitoringProvider $provider, MetricTimeRange $range): array
+    {
+        $queries = [];
+        /** @var array<string, MetricDefinition> $metricMap */
+        $metricMap = [];
+
+        foreach ($provider->metrics as $i => $metric) {
             $queryId = 'q' . $i;
-            $sourceMap[$queryId] = $source;
+            $metricMap[$queryId] = $metric;
 
             $dimensions = [];
-            foreach ($source->dimensions as $name => $value) {
+            foreach ($metric->dimensions as $name => $value) {
                 $dimensions[] = new Dimension(['Name' => $name, 'Value' => $value]);
             }
 
             $metricStat = [
                 'Metric' => new Metric([
-                    'Namespace' => $source->namespace,
-                    'MetricName' => $source->metricName,
+                    'Namespace' => $metric->namespace,
+                    'MetricName' => $metric->metricName,
                     'Dimensions' => $dimensions,
                 ]),
-                'Period' => $source->periodSeconds,
-                'Stat' => $source->stat,
+                'Period' => $metric->periodSeconds,
+                'Stat' => $metric->stat,
             ];
 
-            if ($source->unit !== '') {
-                $metricStat['Unit'] = $source->unit;
+            if ($metric->unit !== '') {
+                $metricStat['Unit'] = $metric->unit;
             }
 
             $queries[] = new MetricDataQuery([
@@ -86,7 +108,7 @@ class CloudWatchMetricProvider implements MetricProviderInterface
             ]);
         }
 
-        $response = $this->client->getMetricData(new GetMetricDataInput([
+        $response = $client->getMetricData(new GetMetricDataInput([
             'MetricDataQueries' => $queries,
             'StartTime' => $range->start,
             'EndTime' => $range->end,
@@ -97,9 +119,9 @@ class CloudWatchMetricProvider implements MetricProviderInterface
 
         foreach ($response->getMetricDataResults() as $data) {
             $queryId = $data->getId();
-            $source = $sourceMap[$queryId] ?? null;
+            $metric = $metricMap[$queryId] ?? null;
 
-            if ($source === null) {
+            if ($metric === null) {
                 continue;
             }
 
@@ -111,17 +133,17 @@ class CloudWatchMetricProvider implements MetricProviderInterface
                 $datapoints[] = new MetricPoint(
                     timestamp: \DateTimeImmutable::createFromInterface($ts),
                     value: $values[$j] ?? 0.0,
-                    stat: $source->stat,
+                    stat: $metric->stat,
                 );
             }
 
             usort($datapoints, static fn(MetricPoint $a, MetricPoint $b): int => $a->timestamp <=> $b->timestamp);
 
             $results[] = new MetricResult(
-                sourceId: $source->id,
-                label: $source->label,
-                unit: $source->unit,
-                group: $source->group,
+                sourceId: $metric->id,
+                label: $metric->label,
+                unit: $metric->unit,
+                group: $provider->id,
                 datapoints: $datapoints,
                 fetchedAt: $now,
             );

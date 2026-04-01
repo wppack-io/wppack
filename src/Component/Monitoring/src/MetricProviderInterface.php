@@ -20,8 +20,7 @@ interface MetricProviderInterface
     public function isAvailable(): bool;
 
     /**
-     * @param list<MetricSource> $sources
      * @return list<MetricResult>
      */
-    public function query(array $sources, MetricTimeRange $range): array;
+    public function query(MonitoringProvider $provider, MetricTimeRange $range): array;
 }

@@ -55,7 +55,7 @@ final class RedisCachePluginServiceProvider implements ServiceProviderInterface
 
         // Monitoring integration
         $builder->register(RedisCacheMetricSourceProvider::class)
-            ->addTag('monitoring.metric_source_provider');
+            ->addTag('monitoring.provider');
     }
 
     public static function getObjectCache(): ObjectCache
