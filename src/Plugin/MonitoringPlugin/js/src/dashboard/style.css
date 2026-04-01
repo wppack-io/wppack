@@ -167,7 +167,10 @@
 }
 
 /* Compensate negative margin on first/last columns */
-.dataviews-view-table tr th:first-child,
+.dataviews-view-table tr th:first-child {
+	padding-left: 16px !important;
+}
+
 .dataviews-view-table tr td:first-child {
 	padding-left: 24px !important;
 }
