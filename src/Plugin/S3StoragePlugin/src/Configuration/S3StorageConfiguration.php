@@ -22,56 +22,99 @@ final readonly class S3StorageConfiguration
     public const MASKED_VALUE = '********';
 
     public function __construct(
+        #[\SensitiveParameter]
+        public string $dsn,
         public string $bucket,
         public string $region,
-        public string $prefix = 'uploads',
+        public string $uploadsPath = 'wp-content/uploads',
         public ?string $cdnUrl = null,
+        #[\SensitiveParameter]
+        public ?string $accessKeyId = null,
+        #[\SensitiveParameter]
+        public ?string $secretAccessKey = null,
     ) {}
 
-    public static function fromEnvironment(): self
+    /**
+     * Parse a DSN string into its component parts.
+     *
+     * DSN format: s3://accessKey:secretKey@bucket?region=ap-northeast-1
+     *
+     * @return array{scheme: string, bucket: string, region: string, accessKeyId: string, secretAccessKey: string}
+     */
+    public static function parseDsn(#[\SensitiveParameter] string $dsn): array
     {
-        return new self(
-            bucket: self::requireEnv('S3_BUCKET'),
-            region: self::getEnv('S3_REGION') ?? self::getEnv('AWS_REGION') ?? 'us-east-1',
-            prefix: self::getEnv('S3_PREFIX') ?? 'uploads',
-            cdnUrl: self::getEnv('CDN_URL'),
-        );
+        $parsed = parse_url($dsn);
+
+        if ($parsed === false || !isset($parsed['scheme'], $parsed['host'])) {
+            throw new \InvalidArgumentException('Invalid DSN format. Expected: s3://[accessKey:secretKey@]bucket?region=...');
+        }
+
+        $query = [];
+        if (isset($parsed['query'])) {
+            parse_str($parsed['query'], $query);
+        }
+
+        return [
+            'scheme' => $parsed['scheme'],
+            'bucket' => $parsed['host'],
+            'region' => isset($query['region']) && $query['region'] !== '' ? (string) $query['region'] : 'us-east-1',
+            'accessKeyId' => isset($parsed['user']) ? urldecode($parsed['user']) : '',
+            'secretAccessKey' => isset($parsed['pass']) ? urldecode($parsed['pass']) : '',
+        ];
     }
 
+    /**
+     * Build a configuration from constant, environment variable, or wp_options.
+     *
+     * Priority:
+     * 1. STORAGE_DSN constant or environment variable
+     * 2. wp_options primary storage DSN
+     */
     public static function fromEnvironmentOrOptions(): self
     {
-        // Constants take precedence
-        if (self::hasConstantConfiguration()) {
-            return self::fromEnvironment();
+        // 1. STORAGE_DSN constant or environment variable
+        $dsn = self::getEnv('STORAGE_DSN');
+        if ($dsn !== null) {
+            $uploadsPath = self::getEnv('WPPACK_STORAGE_UPLOADS_PATH') ?? 'wp-content/uploads';
+            $parts = self::parseDsn($dsn);
+
+            return new self(
+                dsn: $dsn,
+                bucket: $parts['bucket'],
+                region: $parts['region'],
+                uploadsPath: $uploadsPath,
+                accessKeyId: $parts['accessKeyId'] !== '' ? $parts['accessKeyId'] : null,
+                secretAccessKey: $parts['secretAccessKey'] !== '' ? $parts['secretAccessKey'] : null,
+            );
         }
 
-        // Environment variables
-        $envBucket = self::getEnvVar('S3_BUCKET');
-        if ($envBucket !== null) {
-            return self::fromEnvironment();
-        }
-
-        // wp_options: read primary storage
+        // 2. wp_options: read primary storage
         $raw = get_option(self::OPTION_NAME, []);
         $saved = \is_array($raw) ? $raw : [];
-        $primary = $saved['primary'] ?? 'media';
+        $primaryUri = $saved['primary'] ?? '';
+        $uploadsPath = $saved['uploadsPath'] ?? 'wp-content/uploads';
         $storages = $saved['storages'] ?? [];
 
-        if (isset($storages[$primary]) && \is_array($storages[$primary])) {
-            $storage = $storages[$primary];
-            $fields = $storage['fields'] ?? [];
+        if ($primaryUri !== '' && isset($storages[$primaryUri]) && \is_array($storages[$primaryUri])) {
+            $storage = $storages[$primaryUri];
+            $storageDsn = $storage['dsn'] ?? '';
 
-            if (($storage['provider'] ?? '') === 's3' && isset($fields['bucket']) && $fields['bucket'] !== '') {
+            if ($storageDsn !== '') {
+                $parts = self::parseDsn($storageDsn);
+
                 return new self(
-                    bucket: (string) $fields['bucket'],
-                    region: (string) ($fields['region'] ?? 'us-east-1'),
-                    prefix: (string) ($storage['prefix'] ?? 'uploads'),
+                    dsn: $storageDsn,
+                    bucket: $parts['bucket'],
+                    region: $parts['region'],
+                    uploadsPath: $uploadsPath,
                     cdnUrl: isset($storage['cdnUrl']) && $storage['cdnUrl'] !== '' ? (string) $storage['cdnUrl'] : null,
+                    accessKeyId: $parts['accessKeyId'] !== '' ? $parts['accessKeyId'] : null,
+                    secretAccessKey: $parts['secretAccessKey'] !== '' ? $parts['secretAccessKey'] : null,
                 );
             }
         }
 
-        throw new \RuntimeException('S3 storage is not configured. Define S3_BUCKET constant, set environment variable, or configure via Storage Settings.');
+        throw new \RuntimeException('S3 storage is not configured. Define STORAGE_DSN constant, set environment variable, or configure via Storage Settings.');
     }
 
     /**
@@ -79,24 +122,19 @@ final readonly class S3StorageConfiguration
      */
     public static function hasConfiguration(): bool
     {
-        if (self::hasConstantConfiguration()) {
-            return true;
-        }
-
-        if (self::getEnvVar('S3_BUCKET') !== null) {
+        if (self::getEnv('STORAGE_DSN') !== null) {
             return true;
         }
 
         $raw = get_option(self::OPTION_NAME, []);
         $saved = \is_array($raw) ? $raw : [];
-        $primary = $saved['primary'] ?? 'media';
+        $primaryUri = $saved['primary'] ?? '';
         $storages = $saved['storages'] ?? [];
 
-        if (isset($storages[$primary]) && \is_array($storages[$primary])) {
-            $storage = $storages[$primary];
-            $fields = $storage['fields'] ?? [];
+        if ($primaryUri !== '' && isset($storages[$primaryUri]) && \is_array($storages[$primaryUri])) {
+            $storage = $storages[$primaryUri];
 
-            return ($storage['provider'] ?? '') !== '' && isset($fields['bucket']) && $fields['bucket'] !== '';
+            return isset($storage['dsn']) && $storage['dsn'] !== '';
         }
 
         return false;
@@ -107,46 +145,56 @@ final readonly class S3StorageConfiguration
         return new StorageConfiguration(
             protocol: 's3',
             bucket: $this->bucket,
-            prefix: $this->prefix,
+            prefix: $this->uploadsPath,
             cdnUrl: $this->cdnUrl,
         );
     }
 
-    private static function hasConstantConfiguration(): bool
+    /**
+     * Build a URI for display (without credentials).
+     *
+     * e.g. "s3://my-bucket"
+     */
+    public static function buildUri(string $bucket): string
     {
-        if (\defined('S3_BUCKET')) {
-            $value = \constant('S3_BUCKET');
-
-            return \is_string($value) && $value !== '';
-        }
-
-        return false;
+        return 's3://' . $bucket;
     }
 
-    private static function getEnvVar(string $name): ?string
+    /**
+     * Mask credentials in a DSN string for API responses.
+     */
+    public static function maskDsn(#[\SensitiveParameter] string $dsn): string
     {
-        $value = $_ENV[$name] ?? false;
+        $parsed = parse_url($dsn);
 
-        if ($value !== false && $value !== '') {
-            return $value;
+        if ($parsed === false || !isset($parsed['scheme'], $parsed['host'])) {
+            return $dsn;
         }
 
-        $value = getenv($name);
+        $masked = $parsed['scheme'] . '://';
 
-        return ($value !== false && $value !== '') ? $value : null;
-    }
-
-    private static function requireEnv(string $name): string
-    {
-        $value = self::getEnv($name);
-
-        if ($value === null) {
-            throw new \RuntimeException(sprintf('Required environment variable "%s" is not set.', $name));
+        if (isset($parsed['user']) && $parsed['user'] !== '') {
+            $masked .= self::MASKED_VALUE;
+            if (isset($parsed['pass']) && $parsed['pass'] !== '') {
+                $masked .= ':' . self::MASKED_VALUE;
+            }
+            $masked .= '@';
         }
 
-        return $value;
+        $masked .= $parsed['host'];
+
+        if (isset($parsed['query']) && $parsed['query'] !== '') {
+            $masked .= '?' . $parsed['query'];
+        }
+
+        return $masked;
     }
 
+    /**
+     * Read a value from constant or environment variable.
+     *
+     * Constants take precedence over environment variables.
+     */
     private static function getEnv(string $name): ?string
     {
         if (\defined($name)) {
@@ -158,7 +206,7 @@ final readonly class S3StorageConfiguration
         $value = $_ENV[$name] ?? false;
 
         if ($value !== false && $value !== '') {
-            return $value;
+            return (string) $value;
         }
 
         $value = getenv($name);

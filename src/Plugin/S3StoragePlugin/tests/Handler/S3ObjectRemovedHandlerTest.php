@@ -33,7 +33,11 @@ final class S3ObjectRemovedHandlerTest extends TestCase
 
     private function createConfig(string $bucket = self::BUCKET): S3StorageConfiguration
     {
-        return new S3StorageConfiguration(bucket: $bucket, region: 'us-east-1');
+        return new S3StorageConfiguration(
+            dsn: 's3://' . $bucket . '?region=us-east-1',
+            bucket: $bucket,
+            region: 'us-east-1',
+        );
     }
 
     #[Test]
@@ -45,13 +49,13 @@ final class S3ObjectRemovedHandlerTest extends TestCase
 
         $registrar = new AttachmentRegistrar(
             bus: $bus,
-            prefix: 'uploads',
+            prefix: 'wp-content/uploads',
             blogSwitcher: new BlogSwitcher(),
             attachment: new AttachmentManager(new PostRepository()),
         );
 
         // Create an attachment first so unregister has something to find
-        $key = 'uploads/2024/01/handler-remove-' . uniqid() . '.jpg';
+        $key = 'wp-content/uploads/2024/01/handler-remove-' . uniqid() . '.jpg';
         $createdId = $registrar->register($key);
         self::assertIsInt($createdId);
 
@@ -75,7 +79,7 @@ final class S3ObjectRemovedHandlerTest extends TestCase
 
         $registrar = new AttachmentRegistrar(
             bus: $bus,
-            prefix: 'uploads',
+            prefix: 'wp-content/uploads',
             blogSwitcher: new BlogSwitcher(),
             attachment: new AttachmentManager(new PostRepository()),
         );
@@ -84,7 +88,7 @@ final class S3ObjectRemovedHandlerTest extends TestCase
 
         $message = new S3ObjectRemovedMessage(
             bucket: self::BUCKET,
-            key: 'uploads/2024/01/photo-100x200.jpg',
+            key: 'wp-content/uploads/2024/01/photo-100x200.jpg',
         );
 
         ($handler)($message);
@@ -99,13 +103,13 @@ final class S3ObjectRemovedHandlerTest extends TestCase
 
         $registrar = new AttachmentRegistrar(
             bus: $bus,
-            prefix: 'uploads',
+            prefix: 'wp-content/uploads',
             blogSwitcher: new BlogSwitcher(),
             attachment: new AttachmentManager(new PostRepository()),
         );
 
         // Create an attachment
-        $key = 'uploads/2024/01/handler-bucket-' . uniqid() . '.jpg';
+        $key = 'wp-content/uploads/2024/01/handler-bucket-' . uniqid() . '.jpg';
         $createdId = $registrar->register($key);
         self::assertIsInt($createdId);
 
@@ -130,7 +134,7 @@ final class S3ObjectRemovedHandlerTest extends TestCase
 
         $registrar = new AttachmentRegistrar(
             bus: $bus,
-            prefix: 'uploads',
+            prefix: 'wp-content/uploads',
             blogSwitcher: new BlogSwitcher(),
             attachment: new AttachmentManager(new PostRepository()),
         );
@@ -139,7 +143,7 @@ final class S3ObjectRemovedHandlerTest extends TestCase
 
         $message = new S3ObjectRemovedMessage(
             bucket: self::BUCKET,
-            key: 'uploads/2024/01/nonexistent-' . uniqid() . '.jpg',
+            key: 'wp-content/uploads/2024/01/nonexistent-' . uniqid() . '.jpg',
         );
 
         ($handler)($message);

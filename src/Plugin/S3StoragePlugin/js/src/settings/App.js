@@ -30,27 +30,89 @@ function SourceBadge( { source } ) {
 	);
 }
 
-function StoragePanel( { name, storage, definitions, awsRegion, onChange, onDelete, onRename, isReadonly } ) {
-	const [ editName, setEditName ] = useState( name );
-	const provider = storage.provider || '';
-	const fields = storage.fields || {};
-	const def = definitions[ provider ] || {};
-	const defFields = def.fields || [];
+/**
+ * Parse a DSN string into individual fields.
+ *
+ * DSN format: scheme://accessKey:secretKey@bucket?region=value
+ */
+function parseDsn( dsn ) {
+	if ( ! dsn ) {
+		return {};
+	}
+	try {
+		const match = dsn.match( /^(\w+):\/\/([^:]*):([^@]*)@([^?]+)\??(.*)$/ );
+		if ( ! match ) {
+			return {};
+		}
+		const params = new URLSearchParams( match[ 5 ] );
+		return {
+			accessKey: match[ 2 ] || '',
+			secretKey: match[ 3 ] || '',
+			region: params.get( 'region' ) || '',
+		};
+	} catch {
+		return {};
+	}
+}
+
+/**
+ * Build a DSN string from individual fields.
+ */
+function buildDsn( scheme, bucket, fields ) {
+	const accessKey = fields.accessKey || '';
+	const secretKey = fields.secretKey || '';
+	const params = new URLSearchParams();
+	if ( fields.region ) {
+		params.set( 'region', fields.region );
+	}
+	const query = params.toString();
+	return `${ scheme }://${ accessKey }:${ secretKey }@${ bucket }${ query ? '?' + query : '' }`;
+}
+
+/**
+ * Extract bucket name from a URI like "s3://my-bucket".
+ */
+function bucketFromUri( uri ) {
+	const match = uri.match( /^\w+:\/\/(.+)$/ );
+	return match ? match[ 1 ] : '';
+}
+
+/**
+ * Extract scheme from a URI like "s3://my-bucket".
+ */
+function schemeFromUri( uri ) {
+	const match = uri.match( /^(\w+):\/\// );
+	return match ? match[ 1 ] : '';
+}
+
+function StoragePanel( { uri, storage, definitions, onChange, onDelete, isReadonly } ) {
+	const scheme = schemeFromUri( uri );
+	const def = Object.values( definitions ).find( ( d ) => d.scheme === scheme ) || {};
+	const dsnFields = parseDsn( storage.dsn );
 
 	const updateField = ( key ) => ( val ) => {
-		onChange( name, {
+		const bucket = bucketFromUri( uri );
+		const newFields = { ...dsnFields, [ key ]: val };
+		// Preserve masked values — don't overwrite server-side secrets
+		if ( dsnFields.accessKey === MASKED && key !== 'accessKey' ) {
+			newFields.accessKey = MASKED;
+		}
+		if ( dsnFields.secretKey === MASKED && key !== 'secretKey' ) {
+			newFields.secretKey = MASKED;
+		}
+		onChange( uri, {
 			...storage,
-			fields: { ...fields, [ key ]: val },
+			dsn: buildDsn( scheme, bucket, newFields ),
 		} );
 	};
 
-	const updateMeta = ( key ) => ( val ) => {
-		onChange( name, { ...storage, [ key ]: val } );
+	const updateCdnUrl = ( val ) => {
+		onChange( uri, { ...storage, cdnUrl: val } );
 	};
 
 	const titleElement = (
 		<span className="wpp-storage-panel-title">
-			{ storage.fields?.bucket || storage.fields?.account || storage.fields?.rootDir || name }
+			{ uri }
 			{ isReadonly && <SourceBadge source="constant" /> }
 		</span>
 	);
@@ -69,52 +131,35 @@ function StoragePanel( { name, storage, definitions, awsRegion, onChange, onDele
 					) }
 				</Notice>
 			) }
-			<BaseControl
-				id={ `${ name }-name` }
-				label={ __( 'Name', 'wppack-storage' ) }
-				help={ __( 'Storage identifier (e.g. media, backup).', 'wppack-storage' ) }
-				className="wpp-storage-narrow"
-			>
-				<TextControl
-					id={ `${ name }-name` }
-					value={ editName }
-					onChange={ ( val ) => setEditName( val.toLowerCase().replace( /[^a-z0-9-]+/g, '-' ).replace( /^-|-$/g, '' ) ) }
-					onBlur={ () => { if ( editName && editName !== name ) onRename( name, editName ); } }
-					disabled={ isReadonly }
-					__nextHasNoMarginBottom
-				/>
-			</BaseControl>
 			<div className="wpp-storage-narrow">
 				<TextControl
-					id={ `${ name }-provider` }
 					label={ __( 'Provider', 'wppack-storage' ) }
-					value={ def.label || provider }
+					value={ def.label || scheme }
 					disabled={ true }
 					onChange={ () => {} }
 					__nextHasNoMarginBottom
 				/>
 			</div>
-			{ defFields.map( ( f ) => {
-				const effectiveDefault = ( f.name === 'region' && awsRegion ) ? awsRegion : ( f.default || '' );
-				return (
-					<TextControl
-						key={ f.name }
-						label={ f.label + ( f.required ? ' *' : '' ) }
-						help={ f.help || undefined }
-						type={ f.type === 'password' ? 'password' : 'text' }
-						value={ fields[ f.name ] || effectiveDefault }
-						onChange={ updateField( f.name ) }
-						disabled={ isReadonly }
-						placeholder={ f.default || '' }
-						__nextHasNoMarginBottom
-					/>
-				);
-			} ) }
 			<TextControl
-				label={ __( 'Upload Prefix', 'wppack-storage' ) }
-				help={ __( 'Path prefix for uploaded files (e.g. uploads).', 'wppack-storage' ) }
-				value={ storage.prefix || '' }
-				onChange={ updateMeta( 'prefix' ) }
+				label={ __( 'Region', 'wppack-storage' ) }
+				value={ dsnFields.region || '' }
+				onChange={ updateField( 'region' ) }
+				disabled={ isReadonly }
+				__nextHasNoMarginBottom
+			/>
+			<TextControl
+				label={ __( 'Access Key', 'wppack-storage' ) }
+				type="password"
+				value={ dsnFields.accessKey || '' }
+				onChange={ updateField( 'accessKey' ) }
+				disabled={ isReadonly }
+				__nextHasNoMarginBottom
+			/>
+			<TextControl
+				label={ __( 'Secret Key', 'wppack-storage' ) }
+				type="password"
+				value={ dsnFields.secretKey || '' }
+				onChange={ updateField( 'secretKey' ) }
 				disabled={ isReadonly }
 				__nextHasNoMarginBottom
 			/>
@@ -122,7 +167,7 @@ function StoragePanel( { name, storage, definitions, awsRegion, onChange, onDele
 				label={ __( 'CDN URL', 'wppack-storage' ) }
 				help={ __( 'CDN base URL for public file access.', 'wppack-storage' ) }
 				value={ storage.cdnUrl || '' }
-				onChange={ updateMeta( 'cdnUrl' ) }
+				onChange={ updateCdnUrl }
 				disabled={ isReadonly }
 				__nextHasNoMarginBottom
 			/>
@@ -131,7 +176,7 @@ function StoragePanel( { name, storage, definitions, awsRegion, onChange, onDele
 					<Button
 						variant="secondary"
 						isDestructive
-						onClick={ () => onDelete( name ) }
+						onClick={ () => onDelete( uri ) }
 					>
 						{ __( 'Delete Storage Settings', 'wppack-storage' ) }
 					</Button>
@@ -144,11 +189,15 @@ function StoragePanel( { name, storage, definitions, awsRegion, onChange, onDele
 export default function App() {
 	const [ definitions, setDefinitions ] = useState( {} );
 	const [ storages, setStorages ] = useState( {} );
-	const [ storageOrder, setStorageOrder ] = useState( [] );
+	const [ storageUris, setStorageUris ] = useState( [] );
 	const [ primary, setPrimary ] = useState( '' );
+	const [ uploadsPath, setUploadsPath ] = useState( '' );
 	const [ source, setSource ] = useState( 'default' );
-	const [ awsRegion, setAwsRegion ] = useState( '' );
 	const [ newProviderType, setNewProviderType ] = useState( '' );
+	const [ newBucket, setNewBucket ] = useState( '' );
+	const [ newRegion, setNewRegion ] = useState( '' );
+	const [ newAccessKey, setNewAccessKey ] = useState( '' );
+	const [ newSecretKey, setNewSecretKey ] = useState( '' );
 	const [ saving, setSaving ] = useState( false );
 	const [ notice, setNotice ] = useState( null );
 	const [ loading, setLoading ] = useState( true );
@@ -156,12 +205,10 @@ export default function App() {
 	const applyResponse = ( data ) => {
 		setDefinitions( data.definitions || {} );
 		setStorages( data.storages || {} );
-		setStorageOrder( Object.keys( data.storages || {} ) );
+		setStorageUris( Object.keys( data.storages || {} ) );
 		setPrimary( data.primary || '' );
+		setUploadsPath( data.uploadsPath || '' );
 		setSource( data.source || 'default' );
-		if ( data.awsRegion ) {
-			setAwsRegion( data.awsRegion );
-		}
 	};
 
 	useEffect( () => {
@@ -180,11 +227,13 @@ export default function App() {
 		setSaving( true );
 		setNotice( null );
 
-		// Build storages payload in order
 		const orderedStorages = {};
-		storageOrder.forEach( ( name ) => {
-			if ( storages[ name ] ) {
-				orderedStorages[ name ] = storages[ name ];
+		storageUris.forEach( ( uri ) => {
+			if ( storages[ uri ] ) {
+				orderedStorages[ uri ] = {
+					dsn: storages[ uri ].dsn,
+					cdnUrl: storages[ uri ].cdnUrl,
+				};
 			}
 		} );
 
@@ -194,6 +243,7 @@ export default function App() {
 			data: {
 				storages: orderedStorages,
 				primary,
+				uploadsPath,
 			},
 		} )
 			.then( ( data ) => {
@@ -206,68 +256,73 @@ export default function App() {
 			.finally( () => setSaving( false ) );
 	};
 
-	const updateStorage = ( name, storage ) => {
-		setStorages( ( prev ) => ( { ...prev, [ name ]: storage } ) );
+	const updateStorage = ( uri, storage ) => {
+		setStorages( ( prev ) => ( { ...prev, [ uri ]: storage } ) );
 	};
+
+	/**
+	 * Resolve the scheme for a given provider key from definitions.
+	 */
+	const schemeForProvider = ( providerKey ) => {
+		const def = definitions[ providerKey ];
+		return def?.scheme || providerKey;
+	};
+
+	const newUri = newProviderType && newBucket
+		? `${ schemeForProvider( newProviderType ) }://${ newBucket }`
+		: '';
 
 	const handleAddStorage = () => {
-		const type = newProviderType;
-		if ( ! type ) {
+		if ( ! newProviderType || ! newBucket ) {
 			return;
 		}
 
-		const baseName = type === 's3' ? 'media' : type;
-		let name = baseName;
-		let index = 1;
-		while ( storages[ name ] ) {
-			name = `${ baseName }-${ index }`;
-			index++;
+		const scheme = schemeForProvider( newProviderType );
+		const uri = `${ scheme }://${ newBucket }`;
+
+		if ( storages[ uri ] ) {
+			setNotice( { type: 'error', message: __( 'A storage with this URI already exists.', 'wppack-storage' ) } );
+			return;
 		}
+
+		const dsn = buildDsn( scheme, newBucket, {
+			accessKey: newAccessKey,
+			secretKey: newSecretKey,
+			region: newRegion,
+		} );
 
 		const newStorage = {
-			provider: type,
-			fields: {},
-			prefix: 'uploads',
+			dsn,
 			cdnUrl: '',
 			readonly: false,
+			uri,
 		};
 
-		setStorages( ( prev ) => ( { ...prev, [ name ]: newStorage } ) );
-		setStorageOrder( ( prev ) => [ ...prev, name ] );
-		setNewProviderType( '' );
+		setStorages( ( prev ) => ( { ...prev, [ uri ]: newStorage } ) );
+		setStorageUris( ( prev ) => [ ...prev, uri ] );
 
-		// Auto-select as primary if it's the first storage
-		if ( storageOrder.length === 0 || ( storageOrder.length === 1 && storages[ storageOrder[ 0 ] ]?.readonly ) ) {
-			setPrimary( name );
+		// Auto-select as primary if it's the first editable storage
+		if ( storageUris.length === 0 || ( storageUris.length === 1 && storages[ storageUris[ 0 ] ]?.readonly ) ) {
+			setPrimary( uri );
 		}
+
+		// Reset form
+		setNewProviderType( '' );
+		setNewBucket( '' );
+		setNewRegion( '' );
+		setNewAccessKey( '' );
+		setNewSecretKey( '' );
 	};
 
-	const handleDeleteStorage = ( name ) => {
+	const handleDeleteStorage = ( uri ) => {
 		setStorages( ( prev ) => {
 			const next = { ...prev };
-			delete next[ name ];
+			delete next[ uri ];
 			return next;
 		} );
-		setStorageOrder( ( prev ) => prev.filter( ( n ) => n !== name ) );
-		if ( primary === name ) {
+		setStorageUris( ( prev ) => prev.filter( ( u ) => u !== uri ) );
+		if ( primary === uri ) {
 			setPrimary( '' );
-		}
-	};
-
-	const handleRenameStorage = ( oldName, newName ) => {
-		if ( ! newName || newName === oldName || storages[ newName ] ) {
-			return;
-		}
-		setStorages( ( prev ) => {
-			const next = {};
-			Object.entries( prev ).forEach( ( [ k, v ] ) => {
-				next[ k === oldName ? newName : k ] = v;
-			} );
-			return next;
-		} );
-		setStorageOrder( ( prev ) => prev.map( ( n ) => n === oldName ? newName : n ) );
-		if ( primary === oldName ) {
-			setPrimary( newName );
 		}
 	};
 
@@ -277,14 +332,14 @@ export default function App() {
 
 	const providerOptions = [
 		{ label: __( '— Select Provider —', 'wppack-storage' ), value: '' },
-		...Object.values( definitions )
-			.sort( ( a, b ) => a.label.localeCompare( b.label ) )
-			.map( ( d ) => ( { label: d.label, value: d.provider } ) ),
+		...Object.entries( definitions )
+			.sort( ( [ , a ], [ , b ] ) => a.label.localeCompare( b.label ) )
+			.map( ( [ key, d ] ) => ( { label: d.label, value: key } ) ),
 	];
 
 	const primaryOptions = [
 		{ label: __( '— Select —', 'wppack-storage' ), value: '' },
-		...storageOrder.map( ( name ) => ( { label: name, value: name } ) ),
+		...storageUris.map( ( uri ) => ( { label: uri, value: uri } ) ),
 	];
 
 	return (
@@ -299,21 +354,19 @@ export default function App() {
 					</Notice>
 				) }
 
-				{ storageOrder.length > 0 && (
+				{ storageUris.length > 0 && (
 					<Panel>
-						{ storageOrder.map( ( name ) => {
-							const storage = storages[ name ];
+						{ storageUris.map( ( uri ) => {
+							const storage = storages[ uri ];
 							if ( ! storage ) return null;
 							return (
 								<StoragePanel
-									key={ name }
-									name={ name }
+									key={ uri }
+									uri={ uri }
 									storage={ storage }
 									definitions={ definitions }
-									awsRegion={ awsRegion }
 									onChange={ updateStorage }
 									onDelete={ handleDeleteStorage }
-									onRename={ handleRenameStorage }
 									isReadonly={ !! storage.readonly }
 								/>
 							);
@@ -321,30 +374,78 @@ export default function App() {
 					</Panel>
 				) }
 
-				<div className="wpp-storage-add-storage">
-					<SelectControl
-						value={ newProviderType }
-						onChange={ setNewProviderType }
-						options={ providerOptions }
-						__nextHasNoMarginBottom
-					/>
+				<div className="wpp-storage-add-section">
+					<div className="wpp-storage-add-row">
+						<SelectControl
+							label={ __( 'Provider', 'wppack-storage' ) }
+							value={ newProviderType }
+							onChange={ setNewProviderType }
+							options={ providerOptions }
+							__nextHasNoMarginBottom
+						/>
+						<TextControl
+							label={ __( 'Bucket', 'wppack-storage' ) }
+							value={ newBucket }
+							onChange={ ( val ) => setNewBucket( val.toLowerCase().replace( /[^a-z0-9._-]+/g, '' ) ) }
+							__nextHasNoMarginBottom
+						/>
+					</div>
+					<div className="wpp-storage-add-row">
+						<TextControl
+							label={ __( 'Region', 'wppack-storage' ) }
+							value={ newRegion }
+							onChange={ setNewRegion }
+							placeholder="ap-northeast-1"
+							__nextHasNoMarginBottom
+						/>
+						<TextControl
+							label={ __( 'Access Key', 'wppack-storage' ) }
+							type="password"
+							value={ newAccessKey }
+							onChange={ setNewAccessKey }
+							__nextHasNoMarginBottom
+						/>
+						<TextControl
+							label={ __( 'Secret Key', 'wppack-storage' ) }
+							type="password"
+							value={ newSecretKey }
+							onChange={ setNewSecretKey }
+							__nextHasNoMarginBottom
+						/>
+					</div>
+					{ newUri && (
+						<div className="wpp-storage-uri-preview">
+							{ __( 'URI Preview:', 'wppack-storage' ) }
+							{ ' ' }
+							<code>{ newUri }</code>
+						</div>
+					) }
 					<Button
 						variant="secondary"
 						onClick={ handleAddStorage }
-						disabled={ ! newProviderType }
+						disabled={ ! newProviderType || ! newBucket }
 					>
 						{ __( 'Add Storage', 'wppack-storage' ) }
 					</Button>
 				</div>
 
-				{ storageOrder.length > 0 && (
-					<div className="wpp-storage-primary-select">
-						<SelectControl
-							label={ __( 'Primary Storage', 'wppack-storage' ) }
-							help={ __( 'The storage used for WordPress media uploads.', 'wppack-storage' ) }
-							value={ primary }
-							onChange={ setPrimary }
-							options={ primaryOptions }
+				{ storageUris.length > 0 && (
+					<div className="wpp-storage-global-settings">
+						<div className="wpp-storage-primary-select">
+							<SelectControl
+								label={ __( 'Primary Storage', 'wppack-storage' ) }
+								help={ __( 'The storage used for WordPress media uploads.', 'wppack-storage' ) }
+								value={ primary }
+								onChange={ setPrimary }
+								options={ primaryOptions }
+								__nextHasNoMarginBottom
+							/>
+						</div>
+						<TextControl
+							label={ __( 'Uploads Path', 'wppack-storage' ) }
+							help={ __( 'Path prefix for uploaded files (e.g. wp-content/uploads).', 'wppack-storage' ) }
+							value={ uploadsPath }
+							onChange={ setUploadsPath }
 							__nextHasNoMarginBottom
 						/>
 					</div>

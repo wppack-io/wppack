@@ -262,7 +262,14 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
 
     public static function createS3Client(S3StorageConfiguration $config): S3Client
     {
-        return new S3Client(['region' => $config->region]);
+        $options = ['region' => $config->region];
+
+        if ($config->accessKeyId !== null && $config->secretAccessKey !== null) {
+            $options['accessKeyId'] = $config->accessKeyId;
+            $options['accessKeySecret'] = $config->secretAccessKey;
+        }
+
+        return new S3Client($options);
     }
 
     public static function createS3StorageAdapter(
@@ -272,7 +279,7 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
         return new S3StorageAdapter(
             s3Client: $s3Client,
             bucket: $config->bucket,
-            prefix: $config->prefix,
+            prefix: $config->uploadsPath,
             publicUrl: $config->cdnUrl,
         );
     }
@@ -298,7 +305,7 @@ final class S3StoragePluginServiceProvider implements ServiceProviderInterface
     ): AttachmentRegistrar {
         return new AttachmentRegistrar(
             bus: $bus,
-            prefix: $config->prefix,
+            prefix: $config->uploadsPath,
             blogSwitcher: $blogSwitcher,
             attachment: $attachment,
             logger: $logger,

@@ -33,6 +33,10 @@ final class S3StorageSettingsControllerTest extends TestCase
     protected function tearDown(): void
     {
         delete_option(S3StorageConfiguration::OPTION_NAME);
+
+        putenv('STORAGE_DSN');
+        putenv('WPPACK_STORAGE_UPLOADS_PATH');
+        unset($_ENV['STORAGE_DSN'], $_ENV['WPPACK_STORAGE_UPLOADS_PATH']);
     }
 
     #[Test]
@@ -54,8 +58,8 @@ final class S3StorageSettingsControllerTest extends TestCase
         self::assertArrayHasKey('definitions', $data);
         self::assertArrayHasKey('storages', $data);
         self::assertArrayHasKey('primary', $data);
+        self::assertArrayHasKey('uploadsPath', $data);
         self::assertArrayHasKey('source', $data);
-        self::assertArrayHasKey('awsRegion', $data);
     }
 
     #[Test]
@@ -68,13 +72,13 @@ final class S3StorageSettingsControllerTest extends TestCase
 
         self::assertArrayHasKey('s3', $data['definitions']);
         self::assertSame('Amazon S3', $data['definitions']['s3']['label']);
+        self::assertSame('s3', $data['definitions']['s3']['scheme']);
+        self::assertSame(['bucket', 'region', 'accessKey', 'secretKey'], $data['definitions']['s3']['fields']);
     }
 
     #[Test]
     public function getSettingsReturnsDefaultSource(): void
     {
-        delete_option(S3StorageConfiguration::OPTION_NAME);
-
         $response = $this->controller->getSettings();
 
         /** @var array<string, mixed> $data */
@@ -88,13 +92,14 @@ final class S3StorageSettingsControllerTest extends TestCase
     {
         update_option(S3StorageConfiguration::OPTION_NAME, [
             'storages' => [
-                'media' => [
-                    'provider' => 's3',
-                    'fields' => ['bucket' => 'test-bucket', 'region' => 'us-east-1'],
-                    'prefix' => 'uploads',
+                's3://test-bucket' => [
+                    'dsn' => 's3://AKIA:secret@test-bucket?region=us-east-1',
+                    'cdnUrl' => null,
+                    'readonly' => false,
                 ],
             ],
-            'primary' => 'media',
+            'primary' => 's3://test-bucket',
+            'uploadsPath' => 'wp-content/uploads',
         ]);
 
         $response = $this->controller->getSettings();
@@ -103,22 +108,36 @@ final class S3StorageSettingsControllerTest extends TestCase
         $data = json_decode($response->content, true);
 
         self::assertSame('option', $data['source']);
-        self::assertArrayHasKey('media', $data['storages']);
-        self::assertSame('s3', $data['storages']['media']['provider']);
+        self::assertArrayHasKey('s3://test-bucket', $data['storages']);
     }
 
     #[Test]
-    public function getSettingsMasksPasswordFields(): void
+    public function getSettingsReturnsConstantSourceWithEnvDsn(): void
+    {
+        putenv('STORAGE_DSN=s3://AKIA:secret@env-bucket?region=ap-northeast-1');
+
+        $response = $this->controller->getSettings();
+
+        /** @var array<string, mixed> $data */
+        $data = json_decode($response->content, true);
+
+        self::assertSame('constant', $data['source']);
+        self::assertArrayHasKey('s3://env-bucket', $data['storages']);
+        self::assertTrue($data['storages']['s3://env-bucket']['readonly']);
+    }
+
+    #[Test]
+    public function getSettingsMasksDsnCredentials(): void
     {
         update_option(S3StorageConfiguration::OPTION_NAME, [
             'storages' => [
-                'media' => [
-                    'provider' => 's3',
-                    'fields' => ['bucket' => 'test', 'region' => 'us-east-1', 'secretKey' => 'my-secret'],
-                    'prefix' => 'uploads',
+                's3://test-bucket' => [
+                    'dsn' => 's3://AKIA:secret@test-bucket?region=us-east-1',
+                    'cdnUrl' => null,
+                    'readonly' => false,
                 ],
             ],
-            'primary' => 'media',
+            'primary' => 's3://test-bucket',
         ]);
 
         $response = $this->controller->getSettings();
@@ -126,7 +145,55 @@ final class S3StorageSettingsControllerTest extends TestCase
         /** @var array<string, mixed> $data */
         $data = json_decode($response->content, true);
 
-        self::assertSame(S3StorageConfiguration::MASKED_VALUE, $data['storages']['media']['fields']['secretKey']);
+        self::assertSame(
+            's3://********:********@test-bucket?region=us-east-1',
+            $data['storages']['s3://test-bucket']['dsn'],
+        );
+    }
+
+    #[Test]
+    public function getSettingsReturnsCdnUrl(): void
+    {
+        update_option(S3StorageConfiguration::OPTION_NAME, [
+            'storages' => [
+                's3://test-bucket' => [
+                    'dsn' => 's3://test-bucket?region=us-east-1',
+                    'cdnUrl' => 'https://cdn.example.com',
+                    'readonly' => false,
+                ],
+            ],
+            'primary' => 's3://test-bucket',
+        ]);
+
+        $response = $this->controller->getSettings();
+
+        /** @var array<string, mixed> $data */
+        $data = json_decode($response->content, true);
+
+        self::assertSame('https://cdn.example.com', $data['storages']['s3://test-bucket']['cdnUrl']);
+    }
+
+    #[Test]
+    public function getSettingsReturnsUploadsPath(): void
+    {
+        update_option(S3StorageConfiguration::OPTION_NAME, [
+            'storages' => [
+                's3://test-bucket' => [
+                    'dsn' => 's3://test-bucket?region=us-east-1',
+                    'cdnUrl' => null,
+                    'readonly' => false,
+                ],
+            ],
+            'primary' => 's3://test-bucket',
+            'uploadsPath' => 'custom/uploads',
+        ]);
+
+        $response = $this->controller->getSettings();
+
+        /** @var array<string, mixed> $data */
+        $data = json_decode($response->content, true);
+
+        self::assertSame('custom/uploads', $data['uploadsPath']);
     }
 
     #[Test]
@@ -136,14 +203,13 @@ final class S3StorageSettingsControllerTest extends TestCase
         $request->set_header('Content-Type', 'application/json');
         $request->set_body(json_encode([
             'storages' => [
-                'media' => [
-                    'provider' => 's3',
-                    'fields' => ['bucket' => 'new-bucket', 'region' => 'ap-northeast-1'],
-                    'prefix' => 'uploads',
+                's3://new-bucket' => [
+                    'dsn' => 's3://AKIA:secret@new-bucket?region=ap-northeast-1',
                     'cdnUrl' => 'https://cdn.example.com',
                 ],
             ],
-            'primary' => 'media',
+            'primary' => 's3://new-bucket',
+            'uploadsPath' => 'wp-content/uploads',
         ]));
 
         $response = $this->controller->saveSettings($request);
@@ -151,41 +217,45 @@ final class S3StorageSettingsControllerTest extends TestCase
         self::assertSame(200, $response->statusCode);
 
         $saved = get_option(S3StorageConfiguration::OPTION_NAME);
-        self::assertSame('new-bucket', $saved['storages']['media']['fields']['bucket']);
-        self::assertSame('media', $saved['primary']);
+        self::assertSame('s3://new-bucket', $saved['primary']);
+        self::assertSame('wp-content/uploads', $saved['uploadsPath']);
+        self::assertSame('s3://AKIA:secret@new-bucket?region=ap-northeast-1', $saved['storages']['s3://new-bucket']['dsn']);
     }
 
     #[Test]
-    public function saveSettingsRestoresMaskedPasswords(): void
+    public function saveSettingsRestoresMaskedDsn(): void
     {
         update_option(S3StorageConfiguration::OPTION_NAME, [
             'storages' => [
-                'media' => [
-                    'provider' => 's3',
-                    'fields' => ['bucket' => 'test', 'region' => 'us-east-1', 'secretKey' => 'original-secret'],
-                    'prefix' => 'uploads',
+                's3://test-bucket' => [
+                    'dsn' => 's3://AKIA:original-secret@test-bucket?region=us-east-1',
+                    'cdnUrl' => null,
+                    'readonly' => false,
                 ],
             ],
-            'primary' => 'media',
+            'primary' => 's3://test-bucket',
         ]);
 
         $request = new \WP_REST_Request('POST');
         $request->set_header('Content-Type', 'application/json');
         $request->set_body(json_encode([
             'storages' => [
-                'media' => [
-                    'provider' => 's3',
-                    'fields' => ['bucket' => 'test', 'region' => 'us-east-1', 'secretKey' => S3StorageConfiguration::MASKED_VALUE],
-                    'prefix' => 'uploads',
+                's3://test-bucket' => [
+                    'dsn' => 's3://********:********@test-bucket?region=us-east-1',
+                    'cdnUrl' => '',
                 ],
             ],
-            'primary' => 'media',
+            'primary' => 's3://test-bucket',
+            'uploadsPath' => 'wp-content/uploads',
         ]));
 
         $this->controller->saveSettings($request);
 
         $saved = get_option(S3StorageConfiguration::OPTION_NAME);
-        self::assertSame('original-secret', $saved['storages']['media']['fields']['secretKey']);
+        self::assertSame(
+            's3://AKIA:original-secret@test-bucket?region=us-east-1',
+            $saved['storages']['s3://test-bucket']['dsn'],
+        );
     }
 
     #[Test]
@@ -195,14 +265,14 @@ final class S3StorageSettingsControllerTest extends TestCase
         $request->set_header('Content-Type', 'application/json');
         $request->set_body(json_encode([
             'storages' => [
-                'media' => [
-                    'provider' => 's3',
-                    'fields' => ['bucket' => 'test', 'region' => 'us-east-1'],
-                    'prefix' => 'uploads',
+                's3://readonly-bucket' => [
+                    'dsn' => 's3://readonly-bucket?region=us-east-1',
+                    'cdnUrl' => null,
                     'readonly' => true,
                 ],
             ],
-            'primary' => 'media',
+            'primary' => 's3://readonly-bucket',
+            'uploadsPath' => 'wp-content/uploads',
         ]));
 
         $this->controller->saveSettings($request);
@@ -231,77 +301,39 @@ final class S3StorageSettingsControllerTest extends TestCase
     {
         update_option(S3StorageConfiguration::OPTION_NAME, [
             'storages' => [
-                'media' => ['provider' => 's3', 'fields' => ['bucket' => 'b1', 'region' => 'us-east-1'], 'prefix' => ''],
-                'backup' => ['provider' => 'gcs', 'fields' => ['bucket' => 'b2'], 'prefix' => ''],
+                's3://bucket1' => [
+                    'dsn' => 's3://bucket1?region=us-east-1',
+                    'cdnUrl' => null,
+                    'readonly' => false,
+                ],
+                's3://bucket2' => [
+                    'dsn' => 's3://bucket2?region=eu-west-1',
+                    'cdnUrl' => null,
+                    'readonly' => false,
+                ],
             ],
-            'primary' => 'media',
+            'primary' => 's3://bucket1',
         ]);
 
         $request = new \WP_REST_Request('POST');
         $request->set_header('Content-Type', 'application/json');
         $request->set_body(json_encode([
             'storages' => [
-                'media' => [
-                    'provider' => 's3',
-                    'fields' => ['bucket' => 'b1', 'region' => 'us-east-1'],
-                    'prefix' => '',
+                's3://bucket1' => [
+                    'dsn' => 's3://bucket1?region=us-east-1',
+                    'cdnUrl' => '',
                 ],
             ],
-            'primary' => 'media',
+            'primary' => 's3://bucket1',
+            'uploadsPath' => 'wp-content/uploads',
         ]));
 
         $this->controller->saveSettings($request);
 
         $saved = get_option(S3StorageConfiguration::OPTION_NAME);
         self::assertCount(1, $saved['storages']);
-        self::assertArrayHasKey('media', $saved['storages']);
-        self::assertArrayNotHasKey('backup', $saved['storages']);
-    }
-
-    #[Test]
-    public function getSettingsMasksAzurePasswordFields(): void
-    {
-        update_option(S3StorageConfiguration::OPTION_NAME, [
-            'storages' => [
-                'azure' => [
-                    'provider' => 'azure',
-                    'fields' => ['account' => 'myaccount', 'container' => 'data', 'accountKey' => 'my-key'],
-                    'prefix' => 'uploads',
-                ],
-            ],
-            'primary' => 'azure',
-        ]);
-
-        $response = $this->controller->getSettings();
-
-        /** @var array<string, mixed> $data */
-        $data = json_decode($response->content, true);
-
-        self::assertSame(S3StorageConfiguration::MASKED_VALUE, $data['storages']['azure']['fields']['accountKey']);
-        self::assertSame('myaccount', $data['storages']['azure']['fields']['account']);
-    }
-
-    #[Test]
-    public function getSettingsReturnsCdnUrl(): void
-    {
-        update_option(S3StorageConfiguration::OPTION_NAME, [
-            'storages' => [
-                'media' => [
-                    'provider' => 's3',
-                    'fields' => ['bucket' => 'b1', 'region' => 'us-east-1'],
-                    'prefix' => 'uploads',
-                    'cdnUrl' => 'https://cdn.example.com',
-                ],
-            ],
-            'primary' => 'media',
-        ]);
-
-        $response = $this->controller->getSettings();
-
-        /** @var array<string, mixed> $data */
-        $data = json_decode($response->content, true);
-
-        self::assertSame('https://cdn.example.com', $data['storages']['media']['cdnUrl']);
+        self::assertArrayHasKey('s3://bucket1', $saved['storages']);
+        self::assertArrayNotHasKey('s3://bucket2', $saved['storages']);
     }
 
     #[Test]
@@ -311,28 +343,84 @@ final class S3StorageSettingsControllerTest extends TestCase
         $request->set_header('Content-Type', 'application/json');
         $request->set_body(json_encode([
             'storages' => [
-                'media' => [
-                    'provider' => 's3',
-                    'fields' => ['bucket' => 'media-bucket', 'region' => 'us-east-1'],
-                    'prefix' => 'uploads',
+                's3://media-bucket' => [
+                    'dsn' => 's3://media-bucket?region=us-east-1',
                     'cdnUrl' => '',
                 ],
-                'backup' => [
-                    'provider' => 'gcs',
-                    'fields' => ['bucket' => 'backup-bucket'],
-                    'prefix' => 'archives',
+                's3://backup-bucket' => [
+                    'dsn' => 's3://backup-bucket?region=eu-west-1',
                     'cdnUrl' => '',
                 ],
             ],
-            'primary' => 'media',
+            'primary' => 's3://media-bucket',
+            'uploadsPath' => 'wp-content/uploads',
         ]));
 
         $this->controller->saveSettings($request);
 
         $saved = get_option(S3StorageConfiguration::OPTION_NAME);
         self::assertCount(2, $saved['storages']);
-        self::assertSame('s3', $saved['storages']['media']['provider']);
-        self::assertSame('gcs', $saved['storages']['backup']['provider']);
-        self::assertSame('media', $saved['primary']);
+        self::assertArrayHasKey('s3://media-bucket', $saved['storages']);
+        self::assertArrayHasKey('s3://backup-bucket', $saved['storages']);
+        self::assertSame('s3://media-bucket', $saved['primary']);
+    }
+
+    #[Test]
+    public function getSettingsReturnsStorageUri(): void
+    {
+        update_option(S3StorageConfiguration::OPTION_NAME, [
+            'storages' => [
+                's3://test-bucket' => [
+                    'dsn' => 's3://test-bucket?region=us-east-1',
+                    'cdnUrl' => null,
+                    'readonly' => false,
+                    'uri' => 's3://test-bucket',
+                ],
+            ],
+            'primary' => 's3://test-bucket',
+        ]);
+
+        $response = $this->controller->getSettings();
+
+        /** @var array<string, mixed> $data */
+        $data = json_decode($response->content, true);
+
+        self::assertSame('s3://test-bucket', $data['storages']['s3://test-bucket']['uri']);
+    }
+
+    #[Test]
+    public function getSettingsConstantSourceReadsUploadsPathFromEnv(): void
+    {
+        putenv('STORAGE_DSN=s3://env-bucket?region=us-east-1');
+        putenv('WPPACK_STORAGE_UPLOADS_PATH=custom/path');
+
+        $response = $this->controller->getSettings();
+
+        /** @var array<string, mixed> $data */
+        $data = json_decode($response->content, true);
+
+        self::assertSame('custom/path', $data['uploadsPath']);
+    }
+
+    #[Test]
+    public function getSettingsDsnWithoutCredentialsNotMasked(): void
+    {
+        update_option(S3StorageConfiguration::OPTION_NAME, [
+            'storages' => [
+                's3://test-bucket' => [
+                    'dsn' => 's3://test-bucket?region=us-east-1',
+                    'cdnUrl' => null,
+                    'readonly' => false,
+                ],
+            ],
+            'primary' => 's3://test-bucket',
+        ]);
+
+        $response = $this->controller->getSettings();
+
+        /** @var array<string, mixed> $data */
+        $data = json_decode($response->content, true);
+
+        self::assertSame('s3://test-bucket?region=us-east-1', $data['storages']['s3://test-bucket']['dsn']);
     }
 }

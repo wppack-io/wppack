@@ -85,13 +85,13 @@ final class S3StoragePluginTest extends TestCase
         // Set up wp_options configuration so hasConfiguration() returns true
         update_option(S3StorageConfiguration::OPTION_NAME, [
             'storages' => [
-                'media' => [
-                    'provider' => 's3',
-                    'fields' => ['bucket' => 'test-bucket', 'region' => 'us-east-1'],
-                    'prefix' => 'uploads',
+                's3://test-bucket' => [
+                    'dsn' => 's3://test-bucket?region=us-east-1',
+                    'cdnUrl' => null,
+                    'readonly' => false,
                 ],
             ],
-            'primary' => 'media',
+            'primary' => 's3://test-bucket',
         ]);
 
         $builder = new ContainerBuilder();

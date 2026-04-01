@@ -39,51 +39,33 @@ final class S3StorageSettingsController extends AbstractRestController
 
         if (class_exists(S3StorageAdapterFactory::class)) {
             $definitions['s3'] = [
-                'provider' => 's3',
                 'label' => 'Amazon S3',
-                'fields' => [
-                    ['name' => 'bucket', 'label' => 'Bucket', 'type' => 'text', 'required' => true],
-                    ['name' => 'region', 'label' => 'Region', 'type' => 'text', 'required' => false, 'default' => 'us-east-1'],
-                    ['name' => 'endpoint', 'label' => 'Endpoint', 'type' => 'text', 'required' => false, 'help' => 'Custom endpoint URL (for S3-compatible services like MinIO).'],
-                    ['name' => 'accessKey', 'label' => 'Access Key', 'type' => 'text', 'required' => false, 'help' => 'Leave empty to use IAM role.'],
-                    ['name' => 'secretKey', 'label' => 'Secret Key', 'type' => 'password', 'required' => false, 'help' => 'Leave empty to use IAM role.'],
-                ],
+                'scheme' => 's3',
+                'fields' => ['bucket', 'region', 'accessKey', 'secretKey'],
             ];
         }
 
         if (class_exists(AzureStorageAdapterFactory::class)) {
             $definitions['azure'] = [
-                'provider' => 'azure',
                 'label' => 'Azure Blob Storage',
-                'fields' => [
-                    ['name' => 'account', 'label' => 'Account Name', 'type' => 'text', 'required' => true],
-                    ['name' => 'container', 'label' => 'Container', 'type' => 'text', 'required' => true],
-                    ['name' => 'accountKey', 'label' => 'Account Key', 'type' => 'password', 'required' => false, 'help' => 'Leave empty to use Managed Identity.'],
-                    ['name' => 'connectionString', 'label' => 'Connection String', 'type' => 'password', 'required' => false, 'help' => 'If provided, takes precedence over account name + key.'],
-                ],
+                'scheme' => 'azure',
+                'fields' => ['account', 'container', 'accountKey', 'connectionString'],
             ];
         }
 
         if (class_exists(GcsStorageAdapterFactory::class)) {
             $definitions['gcs'] = [
-                'provider' => 'gcs',
                 'label' => 'Google Cloud Storage',
-                'fields' => [
-                    ['name' => 'bucket', 'label' => 'Bucket', 'type' => 'text', 'required' => true],
-                    ['name' => 'project', 'label' => 'Project ID', 'type' => 'text', 'required' => false],
-                    ['name' => 'keyFile', 'label' => 'Key File Path', 'type' => 'text', 'required' => false, 'help' => 'Path to service account JSON key file.'],
-                ],
+                'scheme' => 'gcs',
+                'fields' => ['bucket', 'project', 'keyFile'],
             ];
         }
 
         if (class_exists(LocalStorageAdapterFactory::class)) {
             $definitions['local'] = [
-                'provider' => 'local',
                 'label' => 'Local Filesystem',
-                'fields' => [
-                    ['name' => 'rootDir', 'label' => 'Root Directory', 'type' => 'text', 'required' => true, 'help' => 'Absolute path to the storage directory.'],
-                    ['name' => 'publicUrl', 'label' => 'Public URL', 'type' => 'text', 'required' => false, 'help' => 'Base URL for publicly accessible files.'],
-                ],
+                'scheme' => 'local',
+                'fields' => ['rootDir', 'publicUrl'],
             ];
         }
 
@@ -117,66 +99,90 @@ final class S3StorageSettingsController extends AbstractRestController
 
         $storages = $saved['storages'] ?? [];
         $primary = $saved['primary'] ?? '';
+        $uploadsPath = $saved['uploadsPath'] ?? 'wp-content/uploads';
 
         // Source detection
         $source = 'default';
         $constantStorage = null;
 
-        if (\defined('S3_BUCKET') && \constant('S3_BUCKET') !== '') {
+        $constantDsn = $this->getConstantDsn();
+        if ($constantDsn !== null) {
             $source = 'constant';
-            $constantStorage = $this->buildConstantStorage();
-        } elseif ($this->hasEnvVar('S3_BUCKET')) {
-            $source = 'constant';
-            $constantStorage = $this->buildConstantStorage();
+            $constantStorage = $this->buildConstantStorage($constantDsn);
+            $constantUri = $constantStorage['uri'];
+
+            // Inject constant storage and override primary
+            $storages[$constantUri] = $constantStorage;
+            if ($primary === '') {
+                $primary = $constantUri;
+            }
+
+            // Read uploads path from constant/env if available
+            $constUploadsPath = $this->getConstantUploadsPath();
+            if ($constUploadsPath !== null) {
+                $uploadsPath = $constUploadsPath;
+            }
         } elseif (!empty($storages)) {
             $source = 'option';
-        }
-
-        // If constant-defined, inject as 'media' storage (readonly)
-        if ($constantStorage !== null) {
-            $storages['media'] = $constantStorage;
-            if ($primary === '') {
-                $primary = 'media';
-            }
         }
 
         // Mask sensitive fields in storages
         $maskedStorages = $this->maskStorages($storages);
 
-        // Detect AWS region from environment
-        $awsRegion = \defined('AWS_DEFAULT_REGION') ? (string) \constant('AWS_DEFAULT_REGION') : '';
-        if ($awsRegion === '') {
-            $awsRegion = getenv('AWS_DEFAULT_REGION') ?: (getenv('AWS_REGION') ?: '');
-        }
-
         return [
-            'definitions' => $this->getProviderDefinitions(),
             'storages' => $maskedStorages,
             'primary' => $primary,
+            'uploadsPath' => $uploadsPath,
             'source' => $source,
-            'awsRegion' => $awsRegion,
+            'definitions' => $this->getProviderDefinitions(),
         ];
+    }
+
+    /**
+     * Get DSN from STORAGE_DSN constant or environment variable.
+     */
+    private function getConstantDsn(): ?string
+    {
+        if (\defined('STORAGE_DSN')) {
+            $value = \constant('STORAGE_DSN');
+
+            if (\is_string($value) && $value !== '') {
+                return $value;
+            }
+        }
+
+        return $this->getEnvValue('STORAGE_DSN');
+    }
+
+    /**
+     * Get uploads path from WPPACK_STORAGE_UPLOADS_PATH constant or environment variable.
+     */
+    private function getConstantUploadsPath(): ?string
+    {
+        if (\defined('WPPACK_STORAGE_UPLOADS_PATH')) {
+            $value = \constant('WPPACK_STORAGE_UPLOADS_PATH');
+
+            if (\is_string($value) && $value !== '') {
+                return $value;
+            }
+        }
+
+        return $this->getEnvValue('WPPACK_STORAGE_UPLOADS_PATH');
     }
 
     /**
      * @return array<string, mixed>
      */
-    private function buildConstantStorage(): array
+    private function buildConstantStorage(string $dsn): array
     {
-        $bucket = \defined('S3_BUCKET') ? (string) \constant('S3_BUCKET') : ($this->getEnvValue('S3_BUCKET') ?? '');
-        $region = \defined('S3_REGION') ? (string) \constant('S3_REGION') : ($this->getEnvValue('S3_REGION') ?? $this->getEnvValue('AWS_REGION') ?? 'us-east-1');
-        $prefix = \defined('S3_PREFIX') ? (string) \constant('S3_PREFIX') : ($this->getEnvValue('S3_PREFIX') ?? 'uploads');
-        $cdnUrl = \defined('CDN_URL') ? (string) \constant('CDN_URL') : ($this->getEnvValue('CDN_URL') ?? '');
+        $parts = S3StorageConfiguration::parseDsn($dsn);
+        $uri = S3StorageConfiguration::buildUri($parts['bucket']);
 
         return [
-            'provider' => 's3',
-            'fields' => [
-                'bucket' => $bucket,
-                'region' => $region,
-            ],
-            'prefix' => $prefix,
-            'cdnUrl' => $cdnUrl,
+            'dsn' => $dsn,
+            'cdnUrl' => null,
             'readonly' => true,
+            'uri' => $uri,
         ];
     }
 
@@ -186,27 +192,17 @@ final class S3StorageSettingsController extends AbstractRestController
      */
     private function maskStorages(array $storages): array
     {
-        $definitions = $this->getProviderDefinitions();
         $masked = [];
 
-        foreach ($storages as $name => $storage) {
-            $provider = $storage['provider'] ?? '';
-            $fields = $storage['fields'] ?? [];
+        foreach ($storages as $uri => $storage) {
+            $dsn = $storage['dsn'] ?? '';
+            $maskedDsn = $dsn !== '' ? S3StorageConfiguration::maskDsn($dsn) : '';
 
-            if (isset($definitions[$provider])) {
-                foreach ($definitions[$provider]['fields'] as $fieldDef) {
-                    if ($fieldDef['type'] === 'password' && isset($fields[$fieldDef['name']]) && $fields[$fieldDef['name']] !== '') {
-                        $fields[$fieldDef['name']] = S3StorageConfiguration::MASKED_VALUE;
-                    }
-                }
-            }
-
-            $masked[$name] = [
-                'provider' => $provider,
-                'fields' => $fields,
-                'prefix' => $storage['prefix'] ?? '',
-                'cdnUrl' => $storage['cdnUrl'] ?? '',
+            $masked[$uri] = [
+                'dsn' => $maskedDsn,
+                'cdnUrl' => $storage['cdnUrl'] ?? null,
                 'readonly' => $storage['readonly'] ?? false,
+                'uri' => $storage['uri'] ?? (string) $uri,
             ];
         }
 
@@ -224,12 +220,12 @@ final class S3StorageSettingsController extends AbstractRestController
 
         $inputStorages = isset($input['storages']) && \is_array($input['storages']) ? $input['storages'] : [];
         $inputPrimary = isset($input['primary']) && \is_string($input['primary']) ? $input['primary'] : '';
+        $inputUploadsPath = isset($input['uploadsPath']) && \is_string($input['uploadsPath']) ? $input['uploadsPath'] : 'wp-content/uploads';
 
-        $definitions = $this->getProviderDefinitions();
         $newStorages = [];
 
-        foreach ($inputStorages as $name => $storage) {
-            if (!\is_string($name) || !\is_array($storage)) {
+        foreach ($inputStorages as $uri => $storage) {
+            if (!\is_string($uri) || !\is_array($storage)) {
                 continue;
             }
 
@@ -238,37 +234,49 @@ final class S3StorageSettingsController extends AbstractRestController
                 continue;
             }
 
-            $provider = isset($storage['provider']) && \is_string($storage['provider']) ? $storage['provider'] : '';
-            $fields = isset($storage['fields']) && \is_array($storage['fields']) ? $storage['fields'] : [];
-            $prefix = isset($storage['prefix']) && \is_string($storage['prefix']) ? $storage['prefix'] : '';
+            $dsn = isset($storage['dsn']) && \is_string($storage['dsn']) ? $storage['dsn'] : '';
             $cdnUrl = isset($storage['cdnUrl']) && \is_string($storage['cdnUrl']) ? $storage['cdnUrl'] : '';
 
-            // Restore masked password values from existing saved data
-            if (isset($definitions[$provider])) {
-                foreach ($definitions[$provider]['fields'] as $fieldDef) {
-                    if ($fieldDef['type'] === 'password' && isset($fields[$fieldDef['name']]) && $fields[$fieldDef['name']] === S3StorageConfiguration::MASKED_VALUE) {
-                        $fields[$fieldDef['name']] = $existingStorages[$name]['fields'][$fieldDef['name']] ?? '';
-                    }
+            // Restore masked DSN from existing saved data
+            if ($dsn !== '' && $this->isMaskedDsn($dsn) && isset($existingStorages[$uri])) {
+                $dsn = $existingStorages[$uri]['dsn'] ?? '';
+            }
+
+            // Build URI from DSN if possible
+            $storageUri = (string) $uri;
+            if ($dsn !== '' && !$this->isMaskedDsn($dsn)) {
+                try {
+                    $parts = S3StorageConfiguration::parseDsn($dsn);
+                    $storageUri = S3StorageConfiguration::buildUri($parts['bucket']);
+                } catch (\InvalidArgumentException) {
+                    // Keep original URI if DSN is invalid
                 }
             }
 
-            $newStorages[$name] = [
-                'provider' => $provider,
-                'fields' => $fields,
-                'prefix' => $prefix,
-                'cdnUrl' => $cdnUrl,
+            $newStorages[$storageUri] = [
+                'dsn' => $dsn,
+                'cdnUrl' => $cdnUrl !== '' ? $cdnUrl : null,
+                'readonly' => false,
+                'uri' => $storageUri,
             ];
         }
 
+        // Update primary if its URI changed due to DSN re-parsing
+        $newPrimary = $inputPrimary;
+
         $saved['storages'] = $newStorages;
-        $saved['primary'] = $inputPrimary;
+        $saved['primary'] = $newPrimary;
+        $saved['uploadsPath'] = $inputUploadsPath;
 
         update_option(S3StorageConfiguration::OPTION_NAME, $saved);
     }
 
-    private function hasEnvVar(string $name): bool
+    /**
+     * Check if a DSN string contains masked values.
+     */
+    private function isMaskedDsn(string $dsn): bool
     {
-        return $this->getEnvValue($name) !== null;
+        return str_contains($dsn, S3StorageConfiguration::MASKED_VALUE);
     }
 
     private function getEnvValue(string $name): ?string

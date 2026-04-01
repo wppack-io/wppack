@@ -33,7 +33,11 @@ final class S3ObjectCreatedHandlerTest extends TestCase
 
     private function createConfig(string $bucket = self::BUCKET): S3StorageConfiguration
     {
-        return new S3StorageConfiguration(bucket: $bucket, region: 'us-east-1');
+        return new S3StorageConfiguration(
+            dsn: 's3://' . $bucket . '?region=us-east-1',
+            bucket: $bucket,
+            region: 'us-east-1',
+        );
     }
 
     #[Test]
@@ -45,14 +49,14 @@ final class S3ObjectCreatedHandlerTest extends TestCase
 
         $registrar = new AttachmentRegistrar(
             bus: $bus,
-            prefix: 'uploads',
+            prefix: 'wp-content/uploads',
             blogSwitcher: new BlogSwitcher(),
             attachment: new AttachmentManager(new PostRepository()),
         );
 
         $handler = new S3ObjectCreatedHandler($registrar, $this->createConfig());
 
-        $uniqueKey = 'uploads/2024/01/handler-delegate-' . uniqid() . '.jpg';
+        $uniqueKey = 'wp-content/uploads/2024/01/handler-delegate-' . uniqid() . '.jpg';
 
         $message = new S3ObjectCreatedMessage(
             bucket: self::BUCKET,
@@ -63,7 +67,7 @@ final class S3ObjectCreatedHandlerTest extends TestCase
 
         ($handler)($message);
 
-        $relativePath = substr($uniqueKey, \strlen('uploads/'));
+        $relativePath = substr($uniqueKey, \strlen('wp-content/uploads/'));
         $existing = get_posts([
             'post_type' => 'attachment',
             'post_status' => 'any',
@@ -84,7 +88,7 @@ final class S3ObjectCreatedHandlerTest extends TestCase
 
         $registrar = new AttachmentRegistrar(
             bus: $bus,
-            prefix: 'uploads',
+            prefix: 'wp-content/uploads',
             blogSwitcher: new BlogSwitcher(),
             attachment: new AttachmentManager(new PostRepository()),
         );
@@ -93,7 +97,7 @@ final class S3ObjectCreatedHandlerTest extends TestCase
 
         $message = new S3ObjectCreatedMessage(
             bucket: self::BUCKET,
-            key: 'uploads/2024/01/photo-100x200.jpg',
+            key: 'wp-content/uploads/2024/01/photo-100x200.jpg',
             size: 5000,
             eTag: 'abc123',
         );
@@ -109,7 +113,7 @@ final class S3ObjectCreatedHandlerTest extends TestCase
 
         $registrar = new AttachmentRegistrar(
             bus: $bus,
-            prefix: 'uploads',
+            prefix: 'wp-content/uploads',
             blogSwitcher: new BlogSwitcher(),
             attachment: new AttachmentManager(new PostRepository()),
         );
@@ -118,7 +122,7 @@ final class S3ObjectCreatedHandlerTest extends TestCase
 
         $message = new S3ObjectCreatedMessage(
             bucket: 'other-bucket',
-            key: 'uploads/2024/01/photo.jpg',
+            key: 'wp-content/uploads/2024/01/photo.jpg',
             size: 5000,
             eTag: 'abc123',
         );
@@ -135,14 +139,14 @@ final class S3ObjectCreatedHandlerTest extends TestCase
 
         $registrar = new AttachmentRegistrar(
             bus: $bus,
-            prefix: 'uploads',
+            prefix: 'wp-content/uploads',
             blogSwitcher: new BlogSwitcher(),
             attachment: new AttachmentManager(new PostRepository()),
         );
 
         $handler = new S3ObjectCreatedHandler($registrar, $this->createConfig());
 
-        $uniqueKey = 'uploads/2024/03/handler-key-' . uniqid() . '.pdf';
+        $uniqueKey = 'wp-content/uploads/2024/03/handler-key-' . uniqid() . '.pdf';
 
         $message = new S3ObjectCreatedMessage(
             bucket: self::BUCKET,
@@ -153,7 +157,7 @@ final class S3ObjectCreatedHandlerTest extends TestCase
 
         ($handler)($message);
 
-        $relativePath = substr($uniqueKey, \strlen('uploads/'));
+        $relativePath = substr($uniqueKey, \strlen('wp-content/uploads/'));
         $existing = get_posts([
             'post_type' => 'attachment',
             'post_status' => 'any',

@@ -37,7 +37,7 @@ final class AttachmentRegistrarTest extends TestCase
         $bus = $this->createMock(MessageBusInterface::class);
         $this->registrar = new AttachmentRegistrar(
             bus: $bus,
-            prefix: 'uploads',
+            prefix: 'wp-content/uploads',
             blogSwitcher: new BlogSwitcher(),
             attachment: new AttachmentManager(new PostRepository()),
         );
@@ -55,15 +55,15 @@ final class AttachmentRegistrarTest extends TestCase
      */
     public static function resizedImageProvider(): iterable
     {
-        yield 'width x height' => ['uploads/2024/01/photo-100x200.jpg'];
-        yield 'large dimensions' => ['uploads/2024/01/image-1920x1080.png'];
-        yield 'small dimensions' => ['uploads/2024/01/thumb-1x1.gif'];
-        yield 'scaled' => ['uploads/2024/01/photo-scaled.jpg'];
-        yield 'rotated' => ['uploads/2024/01/image-rotated.png'];
-        yield 'edited timestamp' => ['uploads/2024/01/photo-e1234567890.jpg'];
-        yield 'edited long timestamp' => ['uploads/2024/01/photo-e12345678901234.webp'];
-        yield 'nested path with dimensions' => ['uploads/sites/2/2024/01/photo-300x300.jpg'];
-        yield 'nested path with scaled' => ['uploads/sites/3/2024/01/photo-scaled.png'];
+        yield 'width x height' => ['wp-content/uploads/2024/01/photo-100x200.jpg'];
+        yield 'large dimensions' => ['wp-content/uploads/2024/01/image-1920x1080.png'];
+        yield 'small dimensions' => ['wp-content/uploads/2024/01/thumb-1x1.gif'];
+        yield 'scaled' => ['wp-content/uploads/2024/01/photo-scaled.jpg'];
+        yield 'rotated' => ['wp-content/uploads/2024/01/image-rotated.png'];
+        yield 'edited timestamp' => ['wp-content/uploads/2024/01/photo-e1234567890.jpg'];
+        yield 'edited long timestamp' => ['wp-content/uploads/2024/01/photo-e12345678901234.webp'];
+        yield 'nested path with dimensions' => ['wp-content/uploads/sites/2/2024/01/photo-300x300.jpg'];
+        yield 'nested path with scaled' => ['wp-content/uploads/sites/3/2024/01/photo-scaled.png'];
     }
 
     #[Test]
@@ -78,38 +78,38 @@ final class AttachmentRegistrarTest extends TestCase
      */
     public static function nonResizedImageProvider(): iterable
     {
-        yield 'original image' => ['uploads/2024/01/photo.jpg'];
-        yield 'original png' => ['uploads/2024/01/image.png'];
-        yield 'pdf file' => ['uploads/2024/01/document.pdf'];
-        yield 'video file' => ['uploads/2024/01/video.mp4'];
-        yield 'dimensions in name' => ['uploads/2024/01/100x200.jpg'];
-        yield 'name with number' => ['uploads/2024/01/photo-1.jpg'];
-        yield 'name with text suffix' => ['uploads/2024/01/photo-edited.jpg'];
-        yield 'short e timestamp' => ['uploads/2024/01/photo-e12345.jpg'];
-        yield 'no extension' => ['uploads/2024/01/README'];
-        yield 'multiple dots' => ['uploads/2024/01/file.backup.jpg'];
+        yield 'original image' => ['wp-content/uploads/2024/01/photo.jpg'];
+        yield 'original png' => ['wp-content/uploads/2024/01/image.png'];
+        yield 'pdf file' => ['wp-content/uploads/2024/01/document.pdf'];
+        yield 'video file' => ['wp-content/uploads/2024/01/video.mp4'];
+        yield 'dimensions in name' => ['wp-content/uploads/2024/01/100x200.jpg'];
+        yield 'name with number' => ['wp-content/uploads/2024/01/photo-1.jpg'];
+        yield 'name with text suffix' => ['wp-content/uploads/2024/01/photo-edited.jpg'];
+        yield 'short e timestamp' => ['wp-content/uploads/2024/01/photo-e12345.jpg'];
+        yield 'no extension' => ['wp-content/uploads/2024/01/README'];
+        yield 'multiple dots' => ['wp-content/uploads/2024/01/file.backup.jpg'];
     }
 
     #[Test]
     public function parseBlogIdReturnsMainSiteIdForMainSite(): void
     {
-        self::assertSame(get_main_site_id(), $this->registrar->parseBlogId('uploads/2024/01/photo.jpg'));
+        self::assertSame(get_main_site_id(), $this->registrar->parseBlogId('wp-content/uploads/2024/01/photo.jpg'));
     }
 
     #[Test]
     public function parseBlogIdFromMultisite(): void
     {
-        self::assertSame(2, $this->registrar->parseBlogId('uploads/sites/2/2024/01/photo.jpg'));
-        self::assertSame(42, $this->registrar->parseBlogId('uploads/sites/42/2024/01/photo.jpg'));
-        self::assertSame(100, $this->registrar->parseBlogId('uploads/sites/100/image.png'));
+        self::assertSame(2, $this->registrar->parseBlogId('wp-content/uploads/sites/2/2024/01/photo.jpg'));
+        self::assertSame(42, $this->registrar->parseBlogId('wp-content/uploads/sites/42/2024/01/photo.jpg'));
+        self::assertSame(100, $this->registrar->parseBlogId('wp-content/uploads/sites/100/image.png'));
     }
 
     #[Test]
     public function parseBlogIdReturnsMainSiteIdForPathWithoutSitesPattern(): void
     {
-        self::assertSame(get_main_site_id(), $this->registrar->parseBlogId('uploads/2024/01/file.pdf'));
+        self::assertSame(get_main_site_id(), $this->registrar->parseBlogId('wp-content/uploads/2024/01/file.pdf'));
         self::assertSame(get_main_site_id(), $this->registrar->parseBlogId('other-prefix/image.jpg'));
-        self::assertSame(get_main_site_id(), $this->registrar->parseBlogId('uploads/sites/file.jpg'));
+        self::assertSame(get_main_site_id(), $this->registrar->parseBlogId('wp-content/uploads/sites/file.jpg'));
     }
 
     #[Test]
@@ -120,12 +120,12 @@ final class AttachmentRegistrarTest extends TestCase
 
         $registrar = new AttachmentRegistrar(
             bus: $bus,
-            prefix: 'uploads',
+            prefix: 'wp-content/uploads',
             blogSwitcher: new BlogSwitcher(),
             attachment: new AttachmentManager(new PostRepository()),
         );
 
-        $result = $registrar->register('uploads/2024/01/photo-100x200.jpg');
+        $result = $registrar->register('wp-content/uploads/2024/01/photo-100x200.jpg');
 
         self::assertNull($result);
     }
@@ -140,12 +140,12 @@ final class AttachmentRegistrarTest extends TestCase
 
         $registrar = new AttachmentRegistrar(
             bus: $bus,
-            prefix: 'uploads',
+            prefix: 'wp-content/uploads',
             blogSwitcher: new BlogSwitcher(),
             attachment: new AttachmentManager(new PostRepository()),
         );
 
-        $key = 'uploads/2024/01/registrar-original-' . uniqid() . '.jpg';
+        $key = 'wp-content/uploads/2024/01/registrar-original-' . uniqid() . '.jpg';
         $result = $registrar->register($key);
 
         self::assertIsInt($result);
@@ -161,12 +161,12 @@ final class AttachmentRegistrarTest extends TestCase
 
         $registrar = new AttachmentRegistrar(
             bus: $bus,
-            prefix: 'uploads',
+            prefix: 'wp-content/uploads',
             blogSwitcher: new BlogSwitcher(),
             attachment: new AttachmentManager(new PostRepository()),
         );
 
-        $key = 'uploads/2024/01/registrar-user-' . uniqid() . '.jpg';
+        $key = 'wp-content/uploads/2024/01/registrar-user-' . uniqid() . '.jpg';
         $result = $registrar->register($key, 42);
 
         self::assertIsInt($result);
@@ -182,12 +182,12 @@ final class AttachmentRegistrarTest extends TestCase
 
         $registrar = new AttachmentRegistrar(
             bus: $bus,
-            prefix: 'uploads',
+            prefix: 'wp-content/uploads',
             blogSwitcher: new BlogSwitcher(),
             attachment: new AttachmentManager(new PostRepository()),
         );
 
-        $key = 'uploads/2024/01/registrar-dup-' . uniqid() . '.jpg';
+        $key = 'wp-content/uploads/2024/01/registrar-dup-' . uniqid() . '.jpg';
 
         // First call creates
         $firstId = $registrar->register($key);
@@ -199,7 +199,7 @@ final class AttachmentRegistrarTest extends TestCase
 
         $registrar2 = new AttachmentRegistrar(
             bus: $bus2,
-            prefix: 'uploads',
+            prefix: 'wp-content/uploads',
             blogSwitcher: new BlogSwitcher(),
             attachment: new AttachmentManager(new PostRepository()),
         );
@@ -224,12 +224,12 @@ final class AttachmentRegistrarTest extends TestCase
 
         $registrar = new AttachmentRegistrar(
             bus: $bus,
-            prefix: 'uploads',
+            prefix: 'wp-content/uploads',
             blogSwitcher: new BlogSwitcher(),
             attachment: new AttachmentManager(new PostRepository()),
         );
 
-        $key = 'uploads/sites/2/2024/01/registrar-multi-' . uniqid() . '.jpg';
+        $key = 'wp-content/uploads/sites/2/2024/01/registrar-multi-' . uniqid() . '.jpg';
         $registrar->register($key);
 
         self::assertSame($currentBlogId, get_current_blog_id());
@@ -246,12 +246,12 @@ final class AttachmentRegistrarTest extends TestCase
 
         $registrar = new AttachmentRegistrar(
             bus: $bus,
-            prefix: 'uploads',
+            prefix: 'wp-content/uploads',
             blogSwitcher: new BlogSwitcher(),
             attachment: new AttachmentManager(new PostRepository()),
         );
 
-        $key = 'uploads/sites/4/2024/01/registrar-exc-' . uniqid() . '.jpg';
+        $key = 'wp-content/uploads/sites/4/2024/01/registrar-exc-' . uniqid() . '.jpg';
 
         try {
             $registrar->register($key);
@@ -274,13 +274,13 @@ final class AttachmentRegistrarTest extends TestCase
 
         $registrar = new AttachmentRegistrar(
             bus: $bus,
-            prefix: 'uploads',
+            prefix: 'wp-content/uploads',
             blogSwitcher: new BlogSwitcher(),
             attachment: new AttachmentManager(new PostRepository()),
             mimeTypes: $mimeTypes,
         );
 
-        $key = 'uploads/2024/01/registrar-mime-' . uniqid() . '.webp';
+        $key = 'wp-content/uploads/2024/01/registrar-mime-' . uniqid() . '.webp';
         $result = $registrar->register($key);
 
         self::assertIsInt($result);
@@ -298,13 +298,13 @@ final class AttachmentRegistrarTest extends TestCase
 
         $registrar = new AttachmentRegistrar(
             bus: $bus,
-            prefix: 'uploads',
+            prefix: 'wp-content/uploads',
             blogSwitcher: new BlogSwitcher(),
             attachment: new AttachmentManager(new PostRepository()),
             mimeTypes: $mimeTypes,
         );
 
-        $key = 'uploads/2024/01/registrar-null-' . uniqid() . '.xyz';
+        $key = 'wp-content/uploads/2024/01/registrar-null-' . uniqid() . '.xyz';
         $result = $registrar->register($key);
 
         self::assertIsInt($result);
@@ -321,13 +321,13 @@ final class AttachmentRegistrarTest extends TestCase
 
         $registrar = new AttachmentRegistrar(
             bus: $bus,
-            prefix: 'uploads',
+            prefix: 'wp-content/uploads',
             blogSwitcher: new BlogSwitcher(),
             attachment: new AttachmentManager(new PostRepository()),
             logger: $logger,
         );
 
-        $key = 'uploads/2024/01/registrar-log-' . uniqid() . '.jpg';
+        $key = 'wp-content/uploads/2024/01/registrar-log-' . uniqid() . '.jpg';
         $result = $registrar->register($key);
 
         self::assertIsInt($result);
@@ -342,12 +342,12 @@ final class AttachmentRegistrarTest extends TestCase
 
         $registrar = new AttachmentRegistrar(
             bus: $bus,
-            prefix: 'uploads/',
+            prefix: 'wp-content/uploads/',
             blogSwitcher: new BlogSwitcher(),
             attachment: new AttachmentManager(new PostRepository()),
         );
 
-        $key = 'uploads/2024/01/registrar-trail-' . uniqid() . '.jpg';
+        $key = 'wp-content/uploads/2024/01/registrar-trail-' . uniqid() . '.jpg';
         $result = $registrar->register($key);
 
         self::assertIsInt($result);
@@ -362,12 +362,12 @@ final class AttachmentRegistrarTest extends TestCase
 
         $registrar = new AttachmentRegistrar(
             bus: $bus,
-            prefix: 'uploads',
+            prefix: 'wp-content/uploads',
             blogSwitcher: new BlogSwitcher(),
             attachment: new AttachmentManager(new PostRepository()),
         );
 
-        $key = 'uploads/2024/01/unregister-' . uniqid() . '.jpg';
+        $key = 'wp-content/uploads/2024/01/unregister-' . uniqid() . '.jpg';
         $createdId = $registrar->register($key);
         self::assertIsInt($createdId);
 
@@ -385,12 +385,12 @@ final class AttachmentRegistrarTest extends TestCase
 
         $registrar = new AttachmentRegistrar(
             bus: $bus,
-            prefix: 'uploads',
+            prefix: 'wp-content/uploads',
             blogSwitcher: new BlogSwitcher(),
             attachment: new AttachmentManager(new PostRepository()),
         );
 
-        $key = 'uploads/2024/01/nonexistent-' . uniqid() . '.jpg';
+        $key = 'wp-content/uploads/2024/01/nonexistent-' . uniqid() . '.jpg';
         $result = $registrar->unregister($key);
 
         self::assertNull($result);
@@ -404,12 +404,12 @@ final class AttachmentRegistrarTest extends TestCase
 
         $registrar = new AttachmentRegistrar(
             bus: $bus,
-            prefix: 'uploads',
+            prefix: 'wp-content/uploads',
             blogSwitcher: new BlogSwitcher(),
             attachment: new AttachmentManager(new PostRepository()),
         );
 
-        $result = $registrar->unregister('uploads/2024/01/photo-100x200.jpg');
+        $result = $registrar->unregister('wp-content/uploads/2024/01/photo-100x200.jpg');
 
         self::assertNull($result);
     }
@@ -425,12 +425,12 @@ final class AttachmentRegistrarTest extends TestCase
 
         $registrar = new AttachmentRegistrar(
             bus: $bus,
-            prefix: 'uploads',
+            prefix: 'wp-content/uploads',
             blogSwitcher: new BlogSwitcher(),
             attachment: new AttachmentManager(new PostRepository()),
         );
 
-        $key = 'uploads/sites/2/2024/01/unregister-multi-' . uniqid() . '.jpg';
+        $key = 'wp-content/uploads/sites/2/2024/01/unregister-multi-' . uniqid() . '.jpg';
         $registrar->register($key);
         $registrar->unregister($key);
 
@@ -452,13 +452,13 @@ final class AttachmentRegistrarTest extends TestCase
 
         $registrar = new AttachmentRegistrar(
             bus: $bus,
-            prefix: 'uploads',
+            prefix: 'wp-content/uploads',
             blogSwitcher: new BlogSwitcher(),
             attachment: new AttachmentManager(new PostRepository()),
             logger: $logger,
         );
 
-        $key = 'uploads/2024/01/unregister-log-' . uniqid() . '.jpg';
+        $key = 'wp-content/uploads/2024/01/unregister-log-' . uniqid() . '.jpg';
         $result = $registrar->unregister($key);
 
         self::assertNull($result);

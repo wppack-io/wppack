@@ -62,6 +62,25 @@ final class S3StoragePluginServiceProviderTest extends TestCase
         $this->provider = new S3StoragePluginServiceProvider('/path/to/plugin.php');
     }
 
+    private function createConfig(
+        string $bucket = 'test-bucket',
+        string $region = 'us-east-1',
+        string $uploadsPath = 'wp-content/uploads',
+        ?string $cdnUrl = null,
+        ?string $accessKeyId = null,
+        ?string $secretAccessKey = null,
+    ): S3StorageConfiguration {
+        return new S3StorageConfiguration(
+            dsn: 's3://' . ($accessKeyId !== null && $secretAccessKey !== null ? $accessKeyId . ':' . $secretAccessKey . '@' : '') . $bucket . '?region=' . $region,
+            bucket: $bucket,
+            region: $region,
+            uploadsPath: $uploadsPath,
+            cdnUrl: $cdnUrl,
+            accessKeyId: $accessKeyId,
+            secretAccessKey: $secretAccessKey,
+        );
+    }
+
     #[Test]
     public function implementsServiceProviderInterface(): void
     {
@@ -328,9 +347,19 @@ final class S3StoragePluginServiceProviderTest extends TestCase
     #[Test]
     public function createS3ClientReturnsS3ClientInstance(): void
     {
-        $config = new S3StorageConfiguration(
-            bucket: 'test-bucket',
-            region: 'us-east-1',
+        $config = $this->createConfig();
+
+        $client = S3StoragePluginServiceProvider::createS3Client($config);
+
+        self::assertInstanceOf(S3Client::class, $client);
+    }
+
+    #[Test]
+    public function createS3ClientWithCredentials(): void
+    {
+        $config = $this->createConfig(
+            accessKeyId: 'AKIAEXAMPLE',
+            secretAccessKey: 'secret-key',
         );
 
         $client = S3StoragePluginServiceProvider::createS3Client($config);
@@ -342,10 +371,8 @@ final class S3StoragePluginServiceProviderTest extends TestCase
     public function createS3StorageAdapterReturnsAdapterInstance(): void
     {
         $s3Client = new S3Client(['region' => 'us-east-1']);
-        $config = new S3StorageConfiguration(
-            bucket: 'test-bucket',
-            region: 'us-east-1',
-            prefix: 'uploads',
+        $config = $this->createConfig(
+            uploadsPath: 'wp-content/uploads',
             cdnUrl: 'https://cdn.example.com',
         );
 
@@ -358,10 +385,7 @@ final class S3StoragePluginServiceProviderTest extends TestCase
     public function createS3StorageAdapterWithoutCdnUrl(): void
     {
         $s3Client = new S3Client(['region' => 'us-east-1']);
-        $config = new S3StorageConfiguration(
-            bucket: 'test-bucket',
-            region: 'us-east-1',
-        );
+        $config = $this->createConfig();
 
         $adapter = S3StoragePluginServiceProvider::createS3StorageAdapter($s3Client, $config);
 
@@ -372,10 +396,7 @@ final class S3StoragePluginServiceProviderTest extends TestCase
     public function registerStreamWrapperRegistersS3Protocol(): void
     {
         $s3Client = new S3Client(['region' => 'us-east-1']);
-        $config = new S3StorageConfiguration(
-            bucket: 'test-bucket',
-            region: 'us-east-1',
-        );
+        $config = $this->createConfig();
         $adapter = S3StoragePluginServiceProvider::createS3StorageAdapter($s3Client, $config);
 
         // Unregister if already registered from a previous test
@@ -395,11 +416,7 @@ final class S3StoragePluginServiceProviderTest extends TestCase
     public function createUrlResolverReturnsUrlResolverInstance(): void
     {
         $s3Client = new S3Client(['region' => 'us-east-1']);
-        $config = new S3StorageConfiguration(
-            bucket: 'test-bucket',
-            region: 'us-east-1',
-            cdnUrl: 'https://cdn.example.com',
-        );
+        $config = $this->createConfig(cdnUrl: 'https://cdn.example.com');
         $adapter = S3StoragePluginServiceProvider::createS3StorageAdapter($s3Client, $config);
 
         $resolver = S3StoragePluginServiceProvider::createUrlResolver($adapter, $config);
@@ -411,10 +428,7 @@ final class S3StoragePluginServiceProviderTest extends TestCase
     public function createUrlResolverWithoutCdnUrl(): void
     {
         $s3Client = new S3Client(['region' => 'us-east-1']);
-        $config = new S3StorageConfiguration(
-            bucket: 'test-bucket',
-            region: 'us-east-1',
-        );
+        $config = $this->createConfig();
         $adapter = S3StoragePluginServiceProvider::createS3StorageAdapter($s3Client, $config);
 
         $resolver = S3StoragePluginServiceProvider::createUrlResolver($adapter, $config);
@@ -426,11 +440,7 @@ final class S3StoragePluginServiceProviderTest extends TestCase
     public function createAttachmentRegistrarReturnsRegistrarInstance(): void
     {
         $bus = $this->createMock(MessageBusInterface::class);
-        $config = new S3StorageConfiguration(
-            bucket: 'test-bucket',
-            region: 'us-east-1',
-            prefix: 'uploads',
-        );
+        $config = $this->createConfig(uploadsPath: 'wp-content/uploads');
 
         $blogSwitcher = $this->createMock(\WpPack\Component\Site\BlogSwitcherInterface::class);
         $attachment = new AttachmentManager(new PostRepository());
@@ -444,11 +454,7 @@ final class S3StoragePluginServiceProviderTest extends TestCase
     {
         $bus = $this->createMock(MessageBusInterface::class);
         $logger = $this->createMock(\Psr\Log\LoggerInterface::class);
-        $config = new S3StorageConfiguration(
-            bucket: 'test-bucket',
-            region: 'us-east-1',
-            prefix: 'uploads',
-        );
+        $config = $this->createConfig(uploadsPath: 'wp-content/uploads');
 
         $blogSwitcher = $this->createMock(\WpPack\Component\Site\BlogSwitcherInterface::class);
         $attachment = new AttachmentManager(new PostRepository());
