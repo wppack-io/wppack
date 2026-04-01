@@ -7,10 +7,10 @@
     "start": "wp-scripts start"
   },
   "dependencies": {
-    "@wordpress/admin-ui": "^1.10.0",
+    "@wordpress/admin-ui": "^1.11.0",
     "@wordpress/dataviews": "^14.0.0"
   },
   "devDependencies": {
-    "@wordpress/scripts": "^30.0.0"
+    "@wordpress/scripts": "^31.8.0"
   }
 }

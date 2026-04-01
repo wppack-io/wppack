@@ -10,10 +10,10 @@
     "make-json": "makejson js/build languages --slug=wppack-cache"
   },
   "dependencies": {
-    "@wordpress/admin-ui": "^1.10.0"
+    "@wordpress/admin-ui": "^1.11.0"
   },
   "devDependencies": {
-    "@wordpress/scripts": "^30.0.0",
+    "@wordpress/scripts": "^31.8.0",
     "@wp-blocks/make-pot": "^1.6.0"
   }
 }
