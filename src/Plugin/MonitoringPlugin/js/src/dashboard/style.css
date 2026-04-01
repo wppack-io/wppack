@@ -147,6 +147,8 @@
 }
 
 .wpp-monitoring-sparkline {
+	display: block;
+	width: 100%;
 	color: #3858e9;
 	margin-top: 4px;
 }

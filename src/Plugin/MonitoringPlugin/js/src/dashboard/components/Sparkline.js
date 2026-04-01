@@ -1,8 +1,9 @@
-export default function Sparkline( { datapoints, width = 120, height = 32 } ) {
+export default function Sparkline( { datapoints, height = 32 } ) {
 	if ( ! datapoints || datapoints.length < 2 ) {
 		return null;
 	}
 
+	const viewWidth = 200;
 	const values = datapoints.map( ( d ) => d.value );
 	const min = Math.min( ...values );
 	const max = Math.max( ...values );
@@ -10,7 +11,7 @@ export default function Sparkline( { datapoints, width = 120, height = 32 } ) {
 
 	const points = values
 		.map( ( v, i ) => {
-			const x = ( i / ( values.length - 1 ) ) * width;
+			const x = ( i / ( values.length - 1 ) ) * viewWidth;
 			const y =
 				height - ( ( v - min ) / range ) * ( height - 4 ) - 2;
 			return `${ x },${ y }`;
@@ -20,9 +21,9 @@ export default function Sparkline( { datapoints, width = 120, height = 32 } ) {
 	return (
 		<svg
 			className="wpp-monitoring-sparkline"
-			width={ width }
 			height={ height }
-			viewBox={ `0 0 ${ width } ${ height }` }
+			viewBox={ `0 0 ${ viewWidth } ${ height }` }
+			preserveAspectRatio="none"
 		>
 			<polyline
 				fill="none"
