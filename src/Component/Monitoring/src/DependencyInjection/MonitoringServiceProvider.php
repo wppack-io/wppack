@@ -17,6 +17,8 @@ use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
 use WpPack\Component\Monitoring\Bridge\CloudWatch\CloudWatchMetricProvider;
+use WpPack\Component\Monitoring\Bridge\Mock\MockMetricProvider;
+use WpPack\Component\Monitoring\Bridge\Mock\MockMonitoringProvider;
 use WpPack\Component\Monitoring\MonitoringCollector;
 use WpPack\Component\Monitoring\MonitoringRegistry;
 use WpPack\Component\Monitoring\MonitoringStore;
@@ -62,6 +64,15 @@ final class MonitoringServiceProvider implements ServiceProviderInterface
         if (class_exists(CloudWatchMetricProvider::class)) {
             $builder->register(CloudWatchMetricProvider::class)
                 ->addTag(RegisterMetricBridgesPass::TAG, ['name' => 'cloudwatch']);
+        }
+
+        // Mock bridge + sample providers for local development
+        if (\defined('WP_ENVIRONMENT_TYPE') && WP_ENVIRONMENT_TYPE === 'local') {
+            $builder->register(MockMetricProvider::class)
+                ->addTag(RegisterMetricBridgesPass::TAG, ['name' => 'mock']);
+
+            $builder->register(MockMonitoringProvider::class)
+                ->addTag(RegisterMetricProvidersPass::TAG);
         }
 
         // REST controllers

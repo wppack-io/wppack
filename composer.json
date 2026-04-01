@@ -138,6 +138,7 @@
             "WpPack\\Plugin\\OAuthLoginPlugin\\": "src/Plugin/OAuthLoginPlugin/src/",
             "WpPack\\Component\\Monitoring\\": "src/Component/Monitoring/src/",
             "WpPack\\Component\\Monitoring\\Bridge\\CloudWatch\\": "src/Component/Monitoring/Bridge/CloudWatch/src/",
+            "WpPack\\Component\\Monitoring\\Bridge\\Mock\\": "src/Component/Monitoring/Bridge/Mock/",
             "WpPack\\Component\\Scim\\": "src/Component/Scim/src/",
             "WpPack\\Plugin\\ScimPlugin\\": "src/Plugin/ScimPlugin/src/",
             "WpPack\\Plugin\\MonitoringPlugin\\": "src/Plugin/MonitoringPlugin/src/",
