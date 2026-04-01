@@ -199,6 +199,12 @@
 	fill: currentColor;
 }
 
+.wpp-monitoring-align-end {
+	flex: 1;
+	display: flex;
+	justify-content: flex-end;
+}
+
 .wpp-monitoring-readonly-notice {
 	margin-bottom: 16px;
 }

@@ -42,6 +42,11 @@ const PROVIDER_FIELDS = [
 		label: 'Metrics',
 		type: 'integer',
 		getValue: ( { item } ) => item.metrics?.length || 0,
+		render: ( { item } ) => (
+			<span className="wpp-monitoring-align-end">
+				{ item.metrics?.length || 0 }
+			</span>
+		),
 	},
 ];
 
@@ -114,12 +119,7 @@ export default function SettingsPage() {
 			'locked',
 			'metricsCount',
 		],
-		layout: {
-			density: 'comfortable',
-			styles: {
-				metricsCount: { align: 'end' },
-			},
-		},
+		layout: { density: 'comfortable' },
 	} );
 
 	const fetchProviders = async () => {
@@ -266,7 +266,10 @@ export default function SettingsPage() {
 										( f ) =>
 											f.id !== 'settings.accessKeyId' &&
 											f.id !== 'settings.secretAccessKey'
-									).map( ( f ) => ( { ...f, Edit: 'text' } ) )
+									).map( ( f ) => ( {
+										...f,
+										readOnly: true,
+									} ) )
 								: PROVIDER_FORM_FIELDS
 						}
 						form={
