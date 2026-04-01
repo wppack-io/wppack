@@ -482,12 +482,17 @@ export default function SettingsPage() {
 										const provider = {
 											...selectedProvider,
 											id: selectedProvider.label.toLowerCase().replace( /[^a-z0-9]+/g, '-' ),
-											metrics: selectedProvider.metrics.map( ( m ) => ( {
-												...m,
-												dimensions: dimensionValue
-													? { [ selectedTemplate.dimensionKey ]: dimensionValue }
-													: {},
-											} ) ),
+											metrics: selectedProvider.metrics.map( ( m, i ) => {
+												const tmplMetric = selectedTemplate.metrics[ i ] || {};
+												return {
+													...m,
+													dimensions: {
+														...( dimensionValue ? { [ selectedTemplate.dimensionKey ]: dimensionValue } : {} ),
+														...( tmplMetric.extraDimensions || {} ),
+													},
+													periodSeconds: tmplMetric.period || m.periodSeconds,
+												};
+											} ),
 										};
 										await handleSaveProvider( provider );
 										setAddMode( false );

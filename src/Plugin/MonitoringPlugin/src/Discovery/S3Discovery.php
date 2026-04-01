@@ -17,6 +17,7 @@ use WpPack\Component\Monitoring\MetricDefinition;
 use WpPack\Component\Monitoring\MonitoringProvider;
 use WpPack\Component\Monitoring\MonitoringProviderInterface;
 use WpPack\Component\Monitoring\ProviderSettings;
+use WpPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
 
 final class S3Discovery implements MonitoringProviderInterface
 {
@@ -27,15 +28,14 @@ final class S3Discovery implements MonitoringProviderInterface
 
     public function getProviders(): array
     {
-        $bucket = $this->resolveBucket();
+        $storage = $this->resolveStorage();
 
-        if ($bucket === '') {
+        if ($storage === null) {
             return [];
         }
 
-        $region = $this->resolveRegion();
         $dimensions = [
-            'BucketName' => $bucket,
+            'BucketName' => $storage['bucket'],
             'StorageType' => 'AllStorageTypes',
         ];
 
@@ -44,7 +44,7 @@ final class S3Discovery implements MonitoringProviderInterface
                 id: 's3',
                 label: 'S3 Storage',
                 bridge: 'cloudwatch',
-                settings: new ProviderSettings(region: $region),
+                settings: new ProviderSettings(region: $storage['region']),
                 metrics: [
                     new MetricDefinition(
                         id: 's3.bucket_size_bytes',
@@ -66,7 +66,10 @@ final class S3Discovery implements MonitoringProviderInterface
                         metricName: 'NumberOfObjects',
                         unit: 'Count',
                         stat: 'Average',
-                        dimensions: $dimensions,
+                        dimensions: [
+                            'BucketName' => $storage['bucket'],
+                            'StorageType' => 'AllStorageTypes',
+                        ],
                         periodSeconds: self::PERIOD_SECONDS,
                         locked: true,
                     ),
@@ -76,7 +79,49 @@ final class S3Discovery implements MonitoringProviderInterface
         ];
     }
 
-    private function resolveBucket(): string
+    /**
+     * Resolve S3 storage configuration.
+     *
+     * Priority:
+     * 1. STORAGE_DSN constant/env (if S3 scheme)
+     * 2. wp_options primary storage (if S3 scheme)
+     * 3. Legacy S3_BUCKET / WPPACK_S3_BUCKET constants
+     *
+     * @return array{bucket: string, region: string}|null
+     */
+    private function resolveStorage(): ?array
+    {
+        // 1-2. Storage plugin configuration (STORAGE_DSN or wp_options)
+        if (class_exists(S3StorageConfiguration::class) && S3StorageConfiguration::hasConfiguration()) {
+            try {
+                $config = S3StorageConfiguration::fromEnvironmentOrOptions();
+                // Only use S3 scheme storages
+                $parts = S3StorageConfiguration::parseDsn($config->dsn);
+                if ($parts['scheme'] === 's3') {
+                    return [
+                        'bucket' => $config->bucket,
+                        'region' => $config->region,
+                    ];
+                }
+            } catch (\Throwable) {
+                // Fall through to legacy resolution
+            }
+        }
+
+        // 3. Legacy constants
+        $bucket = $this->resolveLegacyBucket();
+
+        if ($bucket === '') {
+            return null;
+        }
+
+        return [
+            'bucket' => $bucket,
+            'region' => $this->resolveLegacyRegion(),
+        ];
+    }
+
+    private function resolveLegacyBucket(): string
     {
         if (\defined('S3_BUCKET') && \constant('S3_BUCKET') !== '') {
             return (string) \constant('S3_BUCKET');
@@ -89,7 +134,7 @@ final class S3Discovery implements MonitoringProviderInterface
         return $_ENV['S3_BUCKET'] ?? $_ENV['WPPACK_S3_BUCKET'] ?? '';
     }
 
-    private function resolveRegion(): string
+    private function resolveLegacyRegion(): string
     {
         if (\defined('S3_REGION') && \constant('S3_REGION') !== '') {
             return (string) \constant('S3_REGION');

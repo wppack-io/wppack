@@ -96,6 +96,19 @@ export const METRIC_TEMPLATES = [
 		],
 	},
 	{
+		id: 's3',
+		label: 'S3',
+		namespace: 'AWS/S3',
+		bridge: 'cloudwatch',
+		dimensionKey: 'BucketName',
+		dimensionLabel: __( 'Bucket Name', 'wppack-monitoring' ),
+		dimensionPlaceholder: 'my-bucket',
+		metrics: [
+			{ metricName: 'BucketSizeBytes', label: __( 'Bucket Size', 'wppack-monitoring' ), description: __( 'Total bucket size', 'wppack-monitoring' ), stat: 'Average', unit: 'Bytes', period: 86400, extraDimensions: { StorageType: 'StandardStorage' } },
+			{ metricName: 'NumberOfObjects', label: __( 'Object Count', 'wppack-monitoring' ), description: __( 'Total number of objects', 'wppack-monitoring' ), stat: 'Average', unit: 'Count', period: 86400, extraDimensions: { StorageType: 'AllStorageTypes' } },
+		],
+	},
+	{
 		id: 'ec2',
 		label: 'EC2',
 		namespace: 'AWS/EC2',
