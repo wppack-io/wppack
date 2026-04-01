@@ -167,7 +167,7 @@ export default function SettingsPage() {
 		{
 			id: 'view',
 			label: __( 'View Details', 'wppack-monitoring' ),
-			isPrimary: false,
+			isPrimary: true,
 			callback: ( items ) => {
 				if ( items[ 0 ] ) {
 					setSelectedProvider( items[ 0 ] );
