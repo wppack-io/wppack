@@ -34,6 +34,7 @@ use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Rest\RestRegistry;
 use WpPack\Plugin\AmazonMailerPlugin\Admin\AmazonMailerSettingsController;
 use WpPack\Plugin\AmazonMailerPlugin\Admin\AmazonMailerSettingsPage;
+use WpPack\Plugin\AmazonMailerPlugin\Monitoring\SesMonitoringProvider;
 use WpPack\Plugin\AmazonMailerPlugin\SuppressionList;
 
 final class AmazonMailerPluginServiceProvider implements ServiceProviderInterface
@@ -106,6 +107,10 @@ final class AmazonMailerPluginServiceProvider implements ServiceProviderInterfac
         $builder->register(ComplaintHandler::class)
             ->addArgument(new Reference(SuppressionList::class))
             ->addTag('messenger.message_handler');
+
+        // Monitoring integration
+        $builder->register(SesMonitoringProvider::class)
+            ->addTag('monitoring.provider');
     }
 
     public static function createMailer(AmazonMailerConfiguration $config): Mailer
