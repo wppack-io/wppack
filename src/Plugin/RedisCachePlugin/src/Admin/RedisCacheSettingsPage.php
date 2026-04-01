@@ -23,7 +23,7 @@ use WpPack\Component\Role\Attribute\IsGranted;
     label: 'Cache Settings',
     menuLabel: 'Cache',
     parent: 'options-general.php',
-    position: 100,
+    position: 101,
     scope: AdminScope::Auto,
 )]
 #[IsGranted('manage_options')]

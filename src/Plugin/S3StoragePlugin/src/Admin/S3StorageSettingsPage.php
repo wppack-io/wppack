@@ -23,7 +23,7 @@ use WpPack\Component\Role\Attribute\IsGranted;
     label: 'Storage Settings',
     menuLabel: 'Storage',
     parent: 'options-general.php',
-    position: 100,
+    position: 102,
     scope: AdminScope::Auto,
 )]
 #[IsGranted('manage_options')]

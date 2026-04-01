@@ -594,15 +594,17 @@ Key patterns:
 
 ### Plugin Settings Menu Position
 
-Submenu `position` is grouped by category in increments of 100. Items within the same category share the same position value and are ordered by WordPress's default registration order.
+Submenu `position` is grouped by category in increments of 100. Each plugin within a category gets a unique position value (base + 1, 2, 3...) to ensure deterministic ordering. `AdminPageRegistry` sorts WpPack submenu items by position after WordPress core items.
 
 | position | Category | Plugins |
 |----------|----------|---------|
-| 100 | Infrastructure (Cache, Storage, Mail) | RedisCachePlugin, S3StoragePlugin, AmazonMailerPlugin |
-| 200 | Authentication (SSO, OAuth) | SamlLoginPlugin, OAuthLoginPlugin |
-| 300 | Provisioning | ScimPlugin |
+| 101–103 | Infrastructure (Cache, Storage, Mail) | RedisCachePlugin (101), S3StoragePlugin (102), AmazonMailerPlugin (103) |
+| 201–202 | Authentication (SSO, OAuth) | SamlLoginPlugin (201), OAuthLoginPlugin (202) |
+| 300 | Provisioning | ScimPlugin (300) |
 
-When adding a new plugin, use the existing category's position if applicable. If a new category is needed, assign a new multiple of 100.
+MonitoringPlugin uses a top-level menu (not under Settings) with `position: 90` in the WordPress admin sidebar.
+
+When adding a new plugin, assign the next sequential position within the existing category. If a new category is needed, use a new multiple of 100 as the base.
 
 ### Directory Structure
 
