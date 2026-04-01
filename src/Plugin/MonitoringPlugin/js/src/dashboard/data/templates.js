@@ -8,6 +8,7 @@ export const METRIC_TEMPLATES = [
 		bridge: 'cloudwatch',
 		dimensionKey: 'DBInstanceIdentifier',
 		dimensionLabel: __( 'DB Instance ID', 'wppack-monitoring' ),
+		dimensionPlaceholder: 'prod-db-001',
 		metrics: [
 			{ metricName: 'CPUUtilization', label: __( 'CPU Utilization', 'wppack-monitoring' ), description: __( 'CPU usage percentage', 'wppack-monitoring' ), stat: 'Average', unit: 'Percent' },
 			{ metricName: 'DatabaseConnections', label: __( 'DB Connections', 'wppack-monitoring' ), description: __( 'Active database connections', 'wppack-monitoring' ), stat: 'Average', unit: 'Count' },
@@ -24,6 +25,7 @@ export const METRIC_TEMPLATES = [
 		bridge: 'cloudwatch',
 		dimensionKey: 'CacheClusterId',
 		dimensionLabel: __( 'Cache Cluster ID', 'wppack-monitoring' ),
+		dimensionPlaceholder: 'prod-redis-001',
 		metrics: [
 			{ metricName: 'CacheHits', label: __( 'Cache Hits', 'wppack-monitoring' ), description: __( 'Successful cache lookups', 'wppack-monitoring' ), stat: 'Sum', unit: 'Count' },
 			{ metricName: 'CacheMisses', label: __( 'Cache Misses', 'wppack-monitoring' ), description: __( 'Unsuccessful cache lookups', 'wppack-monitoring' ), stat: 'Sum', unit: 'Count' },
@@ -39,6 +41,7 @@ export const METRIC_TEMPLATES = [
 		bridge: 'cloudwatch',
 		dimensionKey: 'DistributionId',
 		dimensionLabel: __( 'Distribution ID', 'wppack-monitoring' ),
+		dimensionPlaceholder: 'E1A2B3C4D5E6F7',
 		metrics: [
 			{ metricName: 'Requests', label: __( 'Requests', 'wppack-monitoring' ), description: __( 'Total requests', 'wppack-monitoring' ), stat: 'Sum', unit: 'Count' },
 			{ metricName: 'BytesDownloaded', label: __( 'Downloaded', 'wppack-monitoring' ), description: __( 'Bytes downloaded', 'wppack-monitoring' ), stat: 'Sum', unit: 'Bytes' },
@@ -53,6 +56,7 @@ export const METRIC_TEMPLATES = [
 		bridge: 'cloudwatch',
 		dimensionKey: 'FunctionName',
 		dimensionLabel: __( 'Function Name', 'wppack-monitoring' ),
+		dimensionPlaceholder: 'my-wordpress-function',
 		metrics: [
 			{ metricName: 'Invocations', label: __( 'Invocations', 'wppack-monitoring' ), description: __( 'Function invocations', 'wppack-monitoring' ), stat: 'Sum', unit: 'Count' },
 			{ metricName: 'Duration', label: __( 'Duration', 'wppack-monitoring' ), description: __( 'Execution time', 'wppack-monitoring' ), stat: 'Average', unit: 'Milliseconds' },
@@ -67,6 +71,7 @@ export const METRIC_TEMPLATES = [
 		bridge: 'cloudwatch',
 		dimensionKey: 'QueueName',
 		dimensionLabel: __( 'Queue Name', 'wppack-monitoring' ),
+		dimensionPlaceholder: 'wordpress-queue',
 		metrics: [
 			{ metricName: 'NumberOfMessagesSent', label: __( 'Messages Sent', 'wppack-monitoring' ), description: __( 'Messages sent to queue', 'wppack-monitoring' ), stat: 'Sum', unit: 'Count' },
 			{ metricName: 'ApproximateNumberOfMessagesVisible', label: __( 'Queue Depth', 'wppack-monitoring' ), description: __( 'Messages in queue', 'wppack-monitoring' ), stat: 'Average', unit: 'Count' },
@@ -80,6 +85,7 @@ export const METRIC_TEMPLATES = [
 		bridge: 'cloudwatch',
 		dimensionKey: 'InstanceId',
 		dimensionLabel: __( 'Instance ID', 'wppack-monitoring' ),
+		dimensionPlaceholder: 'i-0123456789abcdef0',
 		metrics: [
 			{ metricName: 'CPUUtilization', label: __( 'CPU Utilization', 'wppack-monitoring' ), description: __( 'CPU usage percentage', 'wppack-monitoring' ), stat: 'Average', unit: 'Percent' },
 			{ metricName: 'NetworkIn', label: __( 'Network In', 'wppack-monitoring' ), description: __( 'Network bytes received', 'wppack-monitoring' ), stat: 'Sum', unit: 'Bytes' },

@@ -44,7 +44,14 @@
             "Namespace": ["名前空間"],
             "Metric": ["メトリクス名"],
             "Stat": ["統計"],
-            "Unit": ["単位"]
+            "Unit": ["単位"],
+            "IAM Policy": ["IAM ポリシー"],
+            "The following IAM permission is required for metric data retrieval.": ["メトリクスデータの取得に以下の IAM 権限が必要です。"],
+            "Note: cloudwatch:GetMetricData does not support resource-level restrictions. Resource must be \"*\" per AWS specification.": ["注: cloudwatch:GetMetricData はリソースレベルの制限をサポートしていません。AWS の仕様上、Resource は \"*\" にする必要があります。"],
+            "Copy": ["コピー"],
+            "Copied!": ["コピーしました！"],
+            "Template": ["テンプレート"],
+            "\u2014 Select template \u2014": ["\u2014 テンプレートを選択 \u2014"]
         }
     }
 }

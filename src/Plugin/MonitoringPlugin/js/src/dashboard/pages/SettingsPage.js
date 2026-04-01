@@ -6,6 +6,18 @@ import { lock } from '@wordpress/icons';
 import apiFetch from '@wordpress/api-fetch';
 import { METRIC_TEMPLATES } from '../data/templates';
 
+const IAM_POLICY_JSON = `{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "WpPackMonitoring",
+      "Effect": "Allow",
+      "Action": "cloudwatch:GetMetricData",
+      "Resource": "*"
+    }
+  ]
+}`;
+
 const PROVIDER_FIELDS = [
 	{
 		id: 'label',
@@ -414,7 +426,7 @@ export default function SettingsPage() {
 								}
 							/>
 							<TextControl
-								label={ __( 'Region', 'wppack-monitoring' ) }
+								label={ __( 'Region', 'wppack-monitoring' ) + ' *' }
 								value={ selectedProvider.settings?.region || '' }
 								placeholder="ap-northeast-1"
 								onChange={ ( value ) =>
@@ -423,12 +435,15 @@ export default function SettingsPage() {
 										settings: { ...prev.settings, region: value },
 									} ) )
 								}
+								__nextHasNoMarginBottom
 							/>
 							<TextControl
-								label={ selectedTemplate.dimensionLabel }
+								label={ selectedTemplate.dimensionLabel + ' *' }
 								value={ dimensionValue }
-								help={ `${ __( 'Dimension key:', 'wppack-monitoring' ) } ${ selectedTemplate.dimensionKey }` }
+								placeholder={ selectedTemplate.dimensionPlaceholder || '' }
+								help={ selectedTemplate.dimensionKey }
 								onChange={ ( value ) => setDimensionValue( value ) }
+								__nextHasNoMarginBottom
 							/>
 
 							{ selectedProvider.metrics?.length > 0 && (
@@ -464,6 +479,7 @@ export default function SettingsPage() {
 							<div className="wpp-monitoring-modal-actions">
 								<Button
 									variant="primary"
+									disabled={ ! selectedProvider.label || ! selectedProvider.settings?.region || ! dimensionValue }
 									onClick={ async () => {
 										const provider = {
 											...selectedProvider,
@@ -501,17 +517,26 @@ export default function SettingsPage() {
 					<p className="wpp-monitoring-iam-note">
 						{ __( 'Note: cloudwatch:GetMetricData does not support resource-level restrictions. Resource must be "*" per AWS specification.', 'wppack-monitoring' ) }
 					</p>
-					<pre className="wpp-monitoring-iam-code">{ `{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "WpPackMonitoring",
-      "Effect": "Allow",
-      "Action": "cloudwatch:GetMetricData",
-      "Resource": "*"
-    }
-  ]
-}` }</pre>
+					<div className="wpp-monitoring-iam-block">
+						<pre className="wpp-monitoring-iam-code">{ IAM_POLICY_JSON }</pre>
+						<Button
+							variant="secondary"
+							size="compact"
+							className="wpp-monitoring-iam-copy"
+							onClick={ () => {
+								navigator.clipboard.writeText( IAM_POLICY_JSON ).then( () => {
+									const btn = document.querySelector( '.wpp-monitoring-iam-copy' );
+									if ( btn ) {
+										const orig = btn.textContent;
+										btn.textContent = __( 'Copied!', 'wppack-monitoring' );
+										setTimeout( () => { btn.textContent = orig; }, 2000 );
+									}
+								} );
+							} }
+						>
+							{ __( 'Copy', 'wppack-monitoring' ) }
+						</Button>
+					</div>
 				</Modal>
 			) }
 		</div>

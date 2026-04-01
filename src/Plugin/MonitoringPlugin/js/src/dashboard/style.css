@@ -290,6 +290,11 @@
 	color: #757575;
 }
 
+.wpp-monitoring-iam-block {
+	position: relative;
+	margin-top: 12px;
+}
+
 .wpp-monitoring-iam-code {
 	background: #f0f0f0;
 	padding: 12px;
@@ -297,8 +302,14 @@
 	font-size: 12px;
 	font-family: monospace;
 	overflow-x: auto;
-	margin-top: 12px;
 	white-space: pre;
+	margin: 0;
+}
+
+.wpp-monitoring-iam-copy {
+	position: absolute;
+	top: 8px;
+	right: 8px;
 }
 
 /* ── Template metrics table ──────────────── */
