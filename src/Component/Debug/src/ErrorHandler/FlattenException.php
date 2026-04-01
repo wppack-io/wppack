@@ -129,6 +129,82 @@ final class FlattenException
     }
 
     /**
+     * Generate a plain text representation for copying to LLM / issue trackers.
+     *
+     * @param \Closure(string): string $shortenPath Path shortener
+     */
+    public function toPlainText(\Closure $shortenPath): string
+    {
+        $lines = [];
+
+        // Primary exception
+        $header = $this->class;
+        if ($this->code !== 0) {
+            $header .= ' (code ' . $this->code . ')';
+        }
+        $header .= ': ' . $this->message;
+        $lines[] = $header;
+        $lines[] = '';
+        $lines[] = 'Stack Trace:';
+        $lines = [...$lines, ...self::traceToPlainText($this->trace, $shortenPath)];
+
+        // Previous exceptions
+        for ($i = 1, $count = \count($this->chain); $i < $count; $i++) {
+            $item = $this->chain[$i];
+            $lines[] = '';
+            $prevHeader = 'Caused by: ' . $item['class'];
+            if ($item['code'] !== 0) {
+                $prevHeader .= ' (code ' . $item['code'] . ')';
+            }
+            $prevHeader .= ': ' . $item['message'];
+            $lines[] = $prevHeader;
+            if (!empty($item['trace'])) {
+                $lines = [...$lines, ...self::traceToPlainText($item['trace'], $shortenPath)];
+            }
+        }
+
+        return implode("\n", $lines);
+    }
+
+    /**
+     * @param list<array{file: string, line: int, function: string, class: string, type: string, args: list<string>, code_context: list<string>, highlight_line: int}> $trace
+     * @param \Closure(string): string $shortenPath
+     *
+     * @return list<string>
+     */
+    private static function traceToPlainText(array $trace, \Closure $shortenPath): array
+    {
+        $lines = [];
+
+        foreach ($trace as $index => $frame) {
+            $entry = '#' . $index . ' ';
+
+            if ($frame['function'] === '') {
+                $entry .= $frame['file'] !== '' ? $shortenPath($frame['file']) : '{unknown}';
+                if ($frame['line'] > 0) {
+                    $entry .= ':' . $frame['line'];
+                }
+            } else {
+                if ($frame['class'] !== '') {
+                    $entry .= $frame['class'] . $frame['type'];
+                }
+                $entry .= $frame['function'] . '(' . implode(', ', $frame['args']) . ')';
+
+                if ($frame['file'] !== '') {
+                    $entry .= ' at ' . $shortenPath($frame['file']);
+                    if ($frame['line'] > 0) {
+                        $entry .= ':' . $frame['line'];
+                    }
+                }
+            }
+
+            $lines[] = $entry;
+        }
+
+        return $lines;
+    }
+
+    /**
      * @return list<array{file: string, line: int, function: string, class: string, type: string, args: list<string>, code_context: list<string>, highlight_line: int}>
      */
     private static function buildTrace(\Throwable $exception): array
@@ -269,7 +345,7 @@ final class FlattenException
             is_null($arg) => 'null',
             is_bool($arg) => $arg ? 'true' : 'false',
             is_int($arg), is_float($arg) => (string) $arg,
-            is_string($arg) => strlen($arg) > 50 ? '"' . substr($arg, 0, 50) . '..."' : '"' . $arg . '"',
+            is_string($arg) => mb_strlen($arg) > 100 ? '"' . mb_substr($arg, 0, 100) . '..."' : '"' . $arg . '"',
             is_array($arg) => 'array(' . count($arg) . ')',
             is_object($arg) => $arg::class,
             is_resource($arg) => 'resource(' . get_resource_type($arg) . ')',

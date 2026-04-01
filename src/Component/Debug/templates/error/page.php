@@ -10,6 +10,7 @@
  * @var string $traceHtml        Stack trace HTML
  * @var string $chainHtml        Previous exception chain HTML
  * @var int    $chainCount       Total chain count (including primary exception)
+ * @var string $plainText        Plain text for clipboard copy
  * @var string $toolbarHtml      Debug toolbar HTML
  */
 ?>
@@ -46,6 +47,28 @@ body {
     padding: 16px;
 }
 .header-inner { max-width: 1400px; margin: 0 auto; }
+.header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+.copy-btn {
+    flex-shrink: 0;
+    padding: 4px 12px;
+    font-size: 11px;
+    font-family: var(--wpd-font-sans);
+    font-weight: 500;
+    color: var(--wpd-red);
+    background: transparent;
+    border: 1px solid var(--wpd-red-a12);
+    border-radius: var(--wpd-radius);
+    cursor: pointer;
+    transition: background .15s, color .15s;
+    white-space: nowrap;
+}
+.copy-btn:hover { background: var(--wpd-red-a12); }
+.copy-btn.copied { color: var(--wpd-green); border-color: var(--wpd-green); }
 .exception-class {
     font-size: 20px;
     font-weight: 600;
@@ -238,10 +261,16 @@ body {
 <!-- ═══ Header ═══ -->
 <div class="header">
   <div class="header-inner">
-    <div class="exception-class"><?= $view->e($class) ?><?= $view->raw($codeLabel) ?></div>
-    <div class="exception-message"><?= $view->e($message) ?></div>
+    <div class="header-top">
+      <div>
+        <div class="exception-class"><?= $view->e($class) ?><?= $view->raw($codeLabel) ?></div>
+        <div class="exception-message"><?= $view->e($message) ?></div>
+      </div>
+      <button class="copy-btn" id="copy-btn">Copy</button>
+    </div>
   </div>
 </div>
+<script type="application/json" id="plaintext-data"><?= json_encode($plainText, \JSON_UNESCAPED_UNICODE | \JSON_INVALID_UTF8_SUBSTITUTE) ?: '""' ?></script>
 
 <div class="container">
 
@@ -275,6 +304,24 @@ document.querySelectorAll('.trace-header').forEach(function(header) {
         if (indicator) indicator.textContent = opening ? '\u2212' : '+';
     });
 });
+
+/* ── Copy to clipboard ── */
+(function() {
+    var btn = document.getElementById('copy-btn');
+    var dataEl = document.getElementById('plaintext-data');
+    if (!btn || !dataEl) return;
+    var text = JSON.parse(dataEl.textContent);
+    btn.addEventListener('click', function() {
+        navigator.clipboard.writeText(text).then(function() {
+            btn.textContent = 'Copied!';
+            btn.classList.add('copied');
+            setTimeout(function() {
+                btn.textContent = 'Copy';
+                btn.classList.remove('copied');
+            }, 2000);
+        });
+    });
+})();
 </script>
 </body>
 </html>

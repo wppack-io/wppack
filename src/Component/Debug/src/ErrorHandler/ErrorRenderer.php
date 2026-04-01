@@ -51,6 +51,7 @@ final class ErrorRenderer
         ]);
 
         $chainCount = count($exception->getChain());
+        $plainText = $exception->toPlainText($this->shortenPath(...));
 
         return $this->getPhpRenderer()->render('error/page', [
             'shortClass' => $this->shortClassName($exception->getClass()),
@@ -61,6 +62,7 @@ final class ErrorRenderer
             'traceHtml' => $traceHtml,
             'chainHtml' => $chainHtml,
             'chainCount' => $chainCount,
+            'plainText' => $plainText,
             'toolbarHtml' => $toolbarHtml,
         ]);
     }

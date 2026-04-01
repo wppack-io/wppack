@@ -172,6 +172,56 @@ final class FlattenExceptionTest extends TestCase
         self::fail('Expected RuntimeException to be thrown');
     }
 
+    #[Test]
+    public function toPlainTextContainsClassAndMessage(): void
+    {
+        $exception = new \RuntimeException('Something broke', 42);
+        $flat = FlattenException::createFromThrowable($exception);
+
+        $text = $flat->toPlainText(fn(string $p): string => $p);
+
+        self::assertStringContainsString('RuntimeException (code 42): Something broke', $text);
+        self::assertStringContainsString('Stack Trace:', $text);
+        self::assertStringContainsString('#0 ', $text);
+    }
+
+    #[Test]
+    public function toPlainTextOmitsCodeWhenZero(): void
+    {
+        $exception = new \LogicException('no code');
+        $flat = FlattenException::createFromThrowable($exception);
+
+        $text = $flat->toPlainText(fn(string $p): string => $p);
+
+        self::assertStringContainsString('LogicException: no code', $text);
+        self::assertStringNotContainsString('(code ', $text);
+    }
+
+    #[Test]
+    public function toPlainTextIncludesPreviousException(): void
+    {
+        $previous = new \InvalidArgumentException('root cause', 7);
+        $exception = new \RuntimeException('wrapper', 0, $previous);
+        $flat = FlattenException::createFromThrowable($exception);
+
+        $text = $flat->toPlainText(fn(string $p): string => $p);
+
+        self::assertStringContainsString('RuntimeException: wrapper', $text);
+        self::assertStringContainsString('Caused by: InvalidArgumentException (code 7): root cause', $text);
+    }
+
+    #[Test]
+    public function toPlainTextAppliesShortenPath(): void
+    {
+        $exception = new \RuntimeException('path test');
+        $flat = FlattenException::createFromThrowable($exception);
+
+        $text = $flat->toPlainText(fn(string $p): string => str_replace(\dirname(__DIR__, 4) . '/', '', $p));
+
+        // Trace should contain shortened paths (no leading project root)
+        self::assertStringNotContainsString(\dirname(__DIR__, 4) . '/', $text);
+    }
+
     /**
      * Helper to throw an exception with various argument types for trace inspection.
      */
