@@ -565,10 +565,11 @@ When adding a new WordPress plugin package:
    - `LICENSE` — MIT license file
 2. **Root `composer.json`** — Add to `autoload.psr-4`, `autoload-dev.psr-4`, and `replace`
 3. **`codecov.yml`** — Add coverage configuration
-4. **Symlink** — Create symlink in `web/wp-content/plugins/`:
+4. **Symlink (required)** — Create a symlink in `web/wp-content/plugins/` and commit it to Git:
    ```bash
    cd web/wp-content/plugins && ln -s ../../../src/Plugin/{Name} wppack-{slug}
    ```
+   Required for WordPress to discover the plugin. Always use relative paths.
 5. **`CLAUDE.md`** — Add to Plugin Packages table
 6. **`docs/plugins/`** — Create plugin documentation
 
