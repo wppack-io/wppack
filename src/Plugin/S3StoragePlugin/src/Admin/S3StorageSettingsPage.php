@@ -38,7 +38,7 @@ final class S3StorageSettingsPage extends AbstractAdminPage
 
     public function __invoke(): string
     {
-        return '<div class="wrap"><div id="wppack-storage-settings"></div></div>';
+        return '<div id="wppack-storage-settings"></div>';
     }
 
     protected function enqueue(): void

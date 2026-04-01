@@ -9,6 +9,9 @@
     "make-pot": "makepot . languages --domain=plugin --slug=wppack-scim --headers=email:dev@wppack.io",
     "make-json": "makejson js/build languages --slug=wppack-scim"
   },
+  "dependencies": {
+    "@wordpress/admin-ui": "^1.10.0"
+  },
   "devDependencies": {
     "@wordpress/scripts": "^30.0.0",
     "@wp-blocks/make-pot": "^1.6.0"

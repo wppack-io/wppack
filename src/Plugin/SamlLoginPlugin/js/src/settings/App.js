@@ -11,10 +11,9 @@ import {
 	Spinner,
 	BaseControl,
 } from '@wordpress/components';
+import { Page } from '@wordpress/admin-ui';
 import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
-
-import './style.css';
 
 const SENSITIVE_MASK = '********';
 
@@ -207,10 +206,9 @@ export default function App() {
 		[ 'idpX509Cert', 'idpCertFingerprint' ].includes( key );
 
 	return (
-		<div className="wpp-saml-settings">
-			<h1>{ __( 'SAML Login Settings', 'wppack-saml-login' ) }</h1>
-
-			{ notice && (
+		<Page title={ __( 'SAML Login Settings', 'wppack-saml-login' ) } hasPadding>
+			<div className="wpp-saml-settings">
+				{ notice && (
 				<Notice
 					status={ notice.type }
 					isDismissible
@@ -533,6 +531,7 @@ export default function App() {
 						: __( 'Save Settings', 'wppack-saml-login' ) }
 				</Button>
 			</div>
-		</div>
+			</div>
+		</Page>
 	);
 }

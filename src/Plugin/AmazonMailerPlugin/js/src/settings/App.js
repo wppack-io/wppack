@@ -9,10 +9,9 @@ import {
 	Spinner,
 	BaseControl,
 } from '@wordpress/components';
+import { Page } from '@wordpress/admin-ui';
 import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
-
-import './style.css';
 
 const MASKED = '********';
 
@@ -130,106 +129,106 @@ export default function App() {
 	const isSes = provider.startsWith( 'ses' );
 
 	return (
-		<div className="wpp-mailer-settings">
-			<h1>
-				{ __( 'Mail Settings', 'wppack-mailer' ) }
-				<SourceBadge source={ source } />
-			</h1>
+		<Page
+			title={ __( 'Mail Settings', 'wppack-mailer' ) }
+			hasPadding
+		>
+			<div className="wpp-mailer-settings">
+				{ notice && (
+					<Notice status={ notice.type } isDismissible onDismiss={ () => setNotice( null ) }>
+						{ notice.message }
+					</Notice>
+				) }
 
-			{ notice && (
-				<Notice status={ notice.type } isDismissible onDismiss={ () => setNotice( null ) }>
-					{ notice.message }
-				</Notice>
-			) }
-
-			<Panel>
-				<PanelBody title={ __( 'Transport', 'wppack-mailer' ) } initialOpen={ true }>
-					<SelectControl
-						label={ __( 'Provider', 'wppack-mailer' ) }
-						value={ provider }
-						onChange={ ( val ) => {
-							setProvider( val );
-							setFields( {} );
-						} }
-						options={ providerOptions }
-						disabled={ isReadonly }
-						className="wpp-mailer-small-select"
-						__nextHasNoMarginBottom
-					/>
-					{ def && def.fields.map( ( f ) => {
-						const wrapStyle = f.maxWidth ? { maxWidth: f.maxWidth } : {};
-						const effectiveDefault = ( f.name === 'region' && awsRegion ) ? awsRegion : ( f.default || '' );
-						if ( f.options ) {
+				<Panel>
+					<PanelBody title={ __( 'Transport', 'wppack-mailer' ) } initialOpen={ true }>
+						<SelectControl
+							label={ __( 'Provider', 'wppack-mailer' ) }
+							value={ provider }
+							onChange={ ( val ) => {
+								setProvider( val );
+								setFields( {} );
+							} }
+							options={ providerOptions }
+							disabled={ isReadonly }
+							className="wpp-mailer-small-select"
+							__nextHasNoMarginBottom
+						/>
+						{ def && def.fields.map( ( f ) => {
+							const wrapStyle = f.maxWidth ? { maxWidth: f.maxWidth } : {};
+							const effectiveDefault = ( f.name === 'region' && awsRegion ) ? awsRegion : ( f.default || '' );
+							if ( f.options ) {
+								return (
+									<div key={ f.name } style={ wrapStyle }>
+										<SelectControl
+											label={ f.label + ( f.required ? ' *' : '' ) }
+											help={ f.help || undefined }
+											value={ fields[ f.name ] || effectiveDefault }
+											onChange={ ( val ) => setFields( ( prev ) => ( { ...prev, [ f.name ]: val } ) ) }
+											options={ f.options }
+											disabled={ isReadonly }
+											__nextHasNoMarginBottom
+										/>
+									</div>
+								);
+							}
 							return (
 								<div key={ f.name } style={ wrapStyle }>
-									<SelectControl
+									<TextControl
 										label={ f.label + ( f.required ? ' *' : '' ) }
 										help={ f.help || undefined }
+										type={ f.type === 'password' ? 'password' : f.type === 'number' ? 'number' : 'text' }
 										value={ fields[ f.name ] || effectiveDefault }
 										onChange={ ( val ) => setFields( ( prev ) => ( { ...prev, [ f.name ]: val } ) ) }
-										options={ f.options }
 										disabled={ isReadonly }
+										placeholder={ f.default || '' }
 										__nextHasNoMarginBottom
 									/>
 								</div>
 							);
-						}
-						return (
-							<div key={ f.name } style={ wrapStyle }>
-								<TextControl
-									label={ f.label + ( f.required ? ' *' : '' ) }
-									help={ f.help || undefined }
-									type={ f.type === 'password' ? 'password' : f.type === 'number' ? 'number' : 'text' }
-									value={ fields[ f.name ] || effectiveDefault }
-									onChange={ ( val ) => setFields( ( prev ) => ( { ...prev, [ f.name ]: val } ) ) }
-									disabled={ isReadonly }
-									placeholder={ f.default || '' }
-									__nextHasNoMarginBottom
-								/>
-							</div>
-						);
-					} ) }
-				</PanelBody>
-
-				{ isSes && suppression.length > 0 && (
-					<PanelBody title={ __( 'Suppression List', 'wppack-mailer' ) } initialOpen={ false }>
-						<div className="wpp-mailer-suppression-list">
-							{ suppression.map( ( email ) => (
-								<div key={ email } className="wpp-mailer-suppression-item">
-									<span>{ email }</span>
-									<Button
-										variant="tertiary"
-										isDestructive
-										size="small"
-										onClick={ () => handleRemoveSuppression( email ) }
-									>
-										{ __( 'Remove', 'wppack-mailer' ) }
-									</Button>
-								</div>
-							) ) }
-						</div>
+						} ) }
 					</PanelBody>
-				) }
-			</Panel>
 
-			<div className="wpp-mailer-actions">
-				<Button
-					variant="primary"
-					onClick={ handleSave }
-					isBusy={ saving }
-					disabled={ saving || ! provider }
-				>
-					{ saving ? __( 'Saving…', 'wppack-mailer' ) : __( 'Save Settings', 'wppack-mailer' ) }
-				</Button>
-				<Button
-					variant="secondary"
-					onClick={ handleTest }
-					isBusy={ testing }
-					disabled={ testing || source === 'default' }
-				>
-					{ testing ? __( 'Sending…', 'wppack-mailer' ) : __( 'Send Test Email', 'wppack-mailer' ) }
-				</Button>
+					{ isSes && suppression.length > 0 && (
+						<PanelBody title={ __( 'Suppression List', 'wppack-mailer' ) } initialOpen={ false }>
+							<div className="wpp-mailer-suppression-list">
+								{ suppression.map( ( email ) => (
+									<div key={ email } className="wpp-mailer-suppression-item">
+										<span>{ email }</span>
+										<Button
+											variant="tertiary"
+											isDestructive
+											size="small"
+											onClick={ () => handleRemoveSuppression( email ) }
+										>
+											{ __( 'Remove', 'wppack-mailer' ) }
+										</Button>
+									</div>
+								) ) }
+							</div>
+						</PanelBody>
+					) }
+				</Panel>
+
+				<div className="wpp-mailer-actions">
+					<Button
+						variant="primary"
+						onClick={ handleSave }
+						isBusy={ saving }
+						disabled={ saving || ! provider }
+					>
+						{ saving ? __( 'Saving…', 'wppack-mailer' ) : __( 'Save Settings', 'wppack-mailer' ) }
+					</Button>
+					<Button
+						variant="secondary"
+						onClick={ handleTest }
+						isBusy={ testing }
+						disabled={ testing || source === 'default' }
+					>
+						{ testing ? __( 'Sending…', 'wppack-mailer' ) : __( 'Send Test Email', 'wppack-mailer' ) }
+					</Button>
+				</div>
 			</div>
-		</div>
+		</Page>
 	);
 }

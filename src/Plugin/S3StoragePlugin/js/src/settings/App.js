@@ -9,10 +9,9 @@ import {
 	Spinner,
 	BaseControl,
 } from '@wordpress/components';
+import { Page } from '@wordpress/admin-ui';
 import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
-
-import './style.css';
 
 const MASKED = '********';
 
@@ -289,74 +288,77 @@ export default function App() {
 	];
 
 	return (
-		<div className="wpp-storage-settings">
-			<h1>{ __( 'Storage Settings', 'wppack-storage' ) }</h1>
+		<Page
+			title={ __( 'Storage Settings', 'wppack-storage' ) }
+			hasPadding
+		>
+			<div className="wpp-storage-settings">
+				{ notice && (
+					<Notice status={ notice.type } isDismissible onDismiss={ () => setNotice( null ) }>
+						{ notice.message }
+					</Notice>
+				) }
 
-			{ notice && (
-				<Notice status={ notice.type } isDismissible onDismiss={ () => setNotice( null ) }>
-					{ notice.message }
-				</Notice>
-			) }
+				<Panel>
+					{ storageOrder.map( ( name ) => {
+						const storage = storages[ name ];
+						if ( ! storage ) return null;
+						return (
+							<StoragePanel
+								key={ name }
+								name={ name }
+								storage={ storage }
+								definitions={ definitions }
+								awsRegion={ awsRegion }
+								onChange={ updateStorage }
+								onDelete={ handleDeleteStorage }
+								onRename={ handleRenameStorage }
+								isReadonly={ !! storage.readonly }
+							/>
+						);
+					} ) }
+				</Panel>
 
-			<Panel>
-				{ storageOrder.map( ( name ) => {
-					const storage = storages[ name ];
-					if ( ! storage ) return null;
-					return (
-						<StoragePanel
-							key={ name }
-							name={ name }
-							storage={ storage }
-							definitions={ definitions }
-							awsRegion={ awsRegion }
-							onChange={ updateStorage }
-							onDelete={ handleDeleteStorage }
-							onRename={ handleRenameStorage }
-							isReadonly={ !! storage.readonly }
-						/>
-					);
-				} ) }
-			</Panel>
-
-			<div className="wpp-storage-add-storage">
-				<SelectControl
-					value={ newProviderType }
-					onChange={ setNewProviderType }
-					options={ providerOptions }
-					__nextHasNoMarginBottom
-				/>
-				<Button
-					variant="secondary"
-					onClick={ handleAddStorage }
-					disabled={ ! newProviderType }
-				>
-					{ __( 'Add Storage', 'wppack-storage' ) }
-				</Button>
-			</div>
-
-			{ storageOrder.length > 0 && (
-				<div className="wpp-storage-primary-select">
+				<div className="wpp-storage-add-storage">
 					<SelectControl
-						label={ __( 'Primary Storage', 'wppack-storage' ) }
-						help={ __( 'The storage used for WordPress media uploads.', 'wppack-storage' ) }
-						value={ primary }
-						onChange={ setPrimary }
-						options={ primaryOptions }
+						value={ newProviderType }
+						onChange={ setNewProviderType }
+						options={ providerOptions }
 						__nextHasNoMarginBottom
 					/>
+					<Button
+						variant="secondary"
+						onClick={ handleAddStorage }
+						disabled={ ! newProviderType }
+					>
+						{ __( 'Add Storage', 'wppack-storage' ) }
+					</Button>
 				</div>
-			) }
 
-			<div className="wpp-storage-actions">
-				<Button
-					variant="primary"
-					onClick={ handleSave }
-					isBusy={ saving }
-					disabled={ saving || storageOrder.length === 0 }
-				>
-					{ saving ? __( 'Saving…', 'wppack-storage' ) : __( 'Save Settings', 'wppack-storage' ) }
-				</Button>
+				{ storageOrder.length > 0 && (
+					<div className="wpp-storage-primary-select">
+						<SelectControl
+							label={ __( 'Primary Storage', 'wppack-storage' ) }
+							help={ __( 'The storage used for WordPress media uploads.', 'wppack-storage' ) }
+							value={ primary }
+							onChange={ setPrimary }
+							options={ primaryOptions }
+							__nextHasNoMarginBottom
+						/>
+					</div>
+				) }
+
+				<div className="wpp-storage-actions">
+					<Button
+						variant="primary"
+						onClick={ handleSave }
+						isBusy={ saving }
+						disabled={ saving || storageOrder.length === 0 }
+					>
+						{ saving ? __( 'Saving…', 'wppack-storage' ) : __( 'Save Settings', 'wppack-storage' ) }
+					</Button>
+				</div>
 			</div>
-		</div>
+		</Page>
 	);
 }

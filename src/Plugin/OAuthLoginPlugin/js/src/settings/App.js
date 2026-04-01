@@ -12,10 +12,9 @@ import {
 	BaseControl,
 	Tooltip,
 } from '@wordpress/components';
+import { Page } from '@wordpress/admin-ui';
 import { __, sprintf } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
-
-import './style.css';
 
 const MASKED = '********';
 
@@ -572,10 +571,9 @@ export default function App() {
 	const g = ( key ) => globalSettings?.[ key ] || {};
 
 	return (
-		<div className="wpp-oauth-settings">
-			<h1>{ __( 'OAuth Login Settings', 'wppack-oauth-login' ) }</h1>
-
-			{ notice && (
+		<Page title={ __( 'OAuth Login Settings', 'wppack-oauth-login' ) } hasPadding>
+			<div className="wpp-oauth-settings">
+				{ notice && (
 				<Notice
 					status={ notice.type }
 					isDismissible
@@ -761,6 +759,7 @@ export default function App() {
 						: __( 'Save Settings', 'wppack-oauth-login' ) }
 				</Button>
 			</div>
-		</div>
+			</div>
+		</Page>
 	);
 }

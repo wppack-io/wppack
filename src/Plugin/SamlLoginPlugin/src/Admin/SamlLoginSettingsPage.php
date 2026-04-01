@@ -38,7 +38,7 @@ final class SamlLoginSettingsPage extends AbstractAdminPage
 
     public function __invoke(): string
     {
-        return '<div class="wrap"><div id="wppack-saml-login-settings"></div></div>';
+        return '<div id="wppack-saml-login-settings"></div>';
     }
 
     protected function enqueue(): void

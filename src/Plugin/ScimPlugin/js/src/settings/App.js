@@ -10,10 +10,9 @@ import {
 	Spinner,
 	BaseControl,
 } from '@wordpress/components';
+import { Page } from '@wordpress/admin-ui';
 import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
-
-import './style.css';
 
 const MASKED = '********';
 
@@ -113,10 +112,9 @@ export default function App() {
 	} ) );
 
 	return (
-		<div className="wpp-scim-settings">
-			<h1>{ __( 'SCIM Settings', 'wppack-scim' ) }</h1>
-
-			{ notice && (
+		<Page title={ __( 'SCIM Settings', 'wppack-scim' ) } hasPadding>
+			<div className="wpp-scim-settings">
+				{ notice && (
 				<Notice
 					status={ notice.type }
 					isDismissible
@@ -273,6 +271,7 @@ export default function App() {
 						: __( 'Save Settings', 'wppack-scim' ) }
 				</Button>
 			</div>
-		</div>
+			</div>
+		</Page>
 	);
 }

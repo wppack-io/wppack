@@ -1,3 +1,15 @@
+.settings_page_wppack-scim #wpcontent {
+    --wp-admin-theme-color: #3858e9;
+    --wp-admin-theme-color--rgb: 56, 88, 233;
+    --wp-admin-theme-color-darker-10: #2145e6;
+    --wp-admin-theme-color-darker-10--rgb: 33, 69, 230;
+    --wp-admin-theme-color-darker-20: #183ad6;
+    --wp-admin-theme-color-darker-20--rgb: 24, 58, 214;
+    --wp-components-color-accent: #3858e9;
+    --wp-components-color-accent-darker-10: #2145e6;
+    --wp-components-color-accent-darker-20: #183ad6;
+}
+
 .wpp-scim-settings {
 	max-width: 800px;
 	margin-top: 16px;

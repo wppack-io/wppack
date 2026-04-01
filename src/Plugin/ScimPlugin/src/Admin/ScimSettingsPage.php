@@ -38,7 +38,7 @@ final class ScimSettingsPage extends AbstractAdminPage
 
     public function __invoke(): string
     {
-        return '<div class="wrap"><div id="wppack-scim-settings"></div></div>';
+        return '<div id="wppack-scim-settings"></div>';
     }
 
     protected function enqueue(): void

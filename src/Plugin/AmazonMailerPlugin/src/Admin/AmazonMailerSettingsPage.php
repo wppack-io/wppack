@@ -38,7 +38,7 @@ final class AmazonMailerSettingsPage extends AbstractAdminPage
 
     public function __invoke(): string
     {
-        return '<div class="wrap"><div id="wppack-mailer-settings"></div></div>';
+        return '<div id="wppack-mailer-settings"></div>';
     }
 
     protected function enqueue(): void

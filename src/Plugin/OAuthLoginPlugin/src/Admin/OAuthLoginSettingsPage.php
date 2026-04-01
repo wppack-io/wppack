@@ -38,7 +38,7 @@ final class OAuthLoginSettingsPage extends AbstractAdminPage
 
     public function __invoke(): string
     {
-        return '<div class="wrap"><div id="wppack-oauth-login-settings"></div></div>';
+        return '<div id="wppack-oauth-login-settings"></div>';
     }
 
     protected function enqueue(): void

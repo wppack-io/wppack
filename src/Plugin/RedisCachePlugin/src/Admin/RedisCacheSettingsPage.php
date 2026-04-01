@@ -38,7 +38,7 @@ final class RedisCacheSettingsPage extends AbstractAdminPage
 
     public function __invoke(): string
     {
-        return '<div class="wrap"><div id="wppack-cache-settings"></div></div>';
+        return '<div id="wppack-cache-settings"></div>';
     }
 
     protected function enqueue(): void
