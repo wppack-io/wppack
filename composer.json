@@ -140,6 +140,7 @@
             "WpPack\\Component\\Monitoring\\Bridge\\CloudWatch\\": "src/Component/Monitoring/Bridge/CloudWatch/src/",
             "WpPack\\Component\\Scim\\": "src/Component/Scim/src/",
             "WpPack\\Plugin\\ScimPlugin\\": "src/Plugin/ScimPlugin/src/",
+            "WpPack\\Plugin\\MonitoringPlugin\\": "src/Plugin/MonitoringPlugin/src/",
             "WpPack\\MuPlugin\\MultisiteUrlFixer\\": "src/MuPlugin/MultisiteUrlFixer/src/"
         }
     },
@@ -226,6 +227,7 @@
             "WpPack\\Component\\Monitoring\\Bridge\\CloudWatch\\Tests\\": "src/Component/Monitoring/Bridge/CloudWatch/tests/",
             "WpPack\\Component\\Scim\\Tests\\": "src/Component/Scim/tests/",
             "WpPack\\Plugin\\ScimPlugin\\Tests\\": "src/Plugin/ScimPlugin/tests/",
+            "WpPack\\Plugin\\MonitoringPlugin\\Tests\\": "src/Plugin/MonitoringPlugin/tests/",
             "WpPack\\MuPlugin\\MultisiteUrlFixer\\Tests\\": "src/MuPlugin/MultisiteUrlFixer/tests/"
         }
     },
@@ -312,6 +314,7 @@
         "wppack/cloudwatch-monitoring": "self.version",
         "wppack/scim": "self.version",
         "wppack/scim-plugin": "self.version",
+        "wppack/monitoring-plugin": "self.version",
         "wppack/multisite-url-fixer-plugin": "self.version",
         "wppack/lambda-plugin": "self.version",
         "wppack/theme-directory-plugin": "self.version"

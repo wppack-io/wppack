@@ -1,0 +1,30 @@
+{
+    "name": "wppack/monitoring-plugin",
+    "description": "WordPress plugin for infrastructure monitoring dashboard",
+    "type": "wordpress-plugin",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "wppack/admin": "^1.0",
+        "wppack/dependency-injection": "^1.0",
+        "wppack/kernel": "^1.0",
+        "wppack/monitoring": "^1.0",
+        "wppack/rest": "^1.0"
+    },
+    "suggest": {
+        "wppack/cloudwatch-monitoring": "Required for AWS CloudWatch metric collection"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpPack\\Plugin\\MonitoringPlugin\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Plugin\\MonitoringPlugin\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "installer-name": "wppack-monitoring"
+    }
+}
