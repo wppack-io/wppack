@@ -177,6 +177,7 @@ abstract class AbstractSettingsPage
                 $this->capability,
                 $this->slug,
                 $this->handleRender(...),
+                $this->position,
             );
         } else {
             add_menu_page(

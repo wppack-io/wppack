@@ -23,6 +23,7 @@ use WpPack\Component\Role\Attribute\IsGranted;
     label: 'OAuth Login Settings',
     menuLabel: 'OAuth Login',
     parent: 'options-general.php',
+    position: 200,
     scope: AdminScope::Auto,
 )]
 #[IsGranted('manage_options')]

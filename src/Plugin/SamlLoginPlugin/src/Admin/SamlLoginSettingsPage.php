@@ -23,6 +23,7 @@ use WpPack\Component\Role\Attribute\IsGranted;
     label: 'SAML Login Settings',
     menuLabel: 'SAML Login',
     parent: 'options-general.php',
+    position: 200,
     scope: AdminScope::Auto,
 )]
 #[IsGranted('manage_options')]

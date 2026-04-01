@@ -591,6 +591,18 @@ Key patterns:
 - Fields sourced from constants should be displayed as readonly
 - **npm install must always use `--ignore-scripts`** (e.g., `npm install --ignore-scripts`). This prevents arbitrary script execution from dependencies.
 
+### Plugin Settings Menu Position
+
+Submenu `position` is grouped by category in increments of 100. Items within the same category share the same position value and are ordered by WordPress's default registration order.
+
+| position | Category | Plugins |
+|----------|----------|---------|
+| 100 | Infrastructure (Cache, Storage, Mail) | RedisCachePlugin, S3StoragePlugin, AmazonMailerPlugin |
+| 200 | Authentication (SSO, OAuth) | SamlLoginPlugin, OAuthLoginPlugin |
+| 300 | Provisioning | ScimPlugin |
+
+When adding a new plugin, use the existing category's position if applicable. If a new category is needed, assign a new multiple of 100.
+
 ### Directory Structure
 
 ```

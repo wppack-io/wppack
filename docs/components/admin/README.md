@@ -75,6 +75,18 @@ class MyPluginSettingsPage extends AbstractAdminPage
 }
 ```
 
+### サブメニューの表示位置
+
+`position` を指定するとサブメニュー内の並び順を制御できます。WpPack プラグインではカテゴリごとに 100 刻みで統一しています。
+
+| position | カテゴリ | 例 |
+|----------|---------|-----|
+| 100 | インフラ（Cache, Storage, Mail 等） | RedisCachePlugin, S3StoragePlugin, AmazonMailerPlugin |
+| 200 | 認証（SSO, OAuth 等） | SamlLoginPlugin, OAuthLoginPlugin |
+| 300 | プロビジョニング | ScimPlugin |
+
+同カテゴリ内の順序は WordPress の登録順に従います。新カテゴリが必要な場合は 100 刻みの空き番号を割り当てます。
+
 ### アセットのエンキュー
 
 `enqueue()` をオーバーライドすると、そのページでのみアセットがロードされます。ページスコーピング（hookSuffix による判定）は自動で行われるため、サブクラスは hookSuffix を意識する必要はありません。

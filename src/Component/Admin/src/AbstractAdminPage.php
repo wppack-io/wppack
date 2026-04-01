@@ -115,6 +115,7 @@ abstract class AbstractAdminPage
                 $this->capability,
                 $this->slug,
                 $this->handleRender(...),
+                $this->position,
             );
         } else {
             $this->hookSuffix = add_menu_page(

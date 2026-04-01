@@ -23,6 +23,7 @@ use WpPack\Component\Role\Attribute\IsGranted;
     label: 'SCIM Settings',
     menuLabel: 'SCIM',
     parent: 'options-general.php',
+    position: 300,
     scope: AdminScope::Network,
 )]
 #[IsGranted('manage_options')]

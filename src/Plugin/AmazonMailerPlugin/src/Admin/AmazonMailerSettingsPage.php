@@ -23,6 +23,7 @@ use WpPack\Component\Role\Attribute\IsGranted;
     label: 'Mail Settings',
     menuLabel: 'Mail',
     parent: 'options-general.php',
+    position: 100,
     scope: AdminScope::Auto,
 )]
 #[IsGranted('manage_options')]
