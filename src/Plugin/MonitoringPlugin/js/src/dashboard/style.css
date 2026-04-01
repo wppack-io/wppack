@@ -167,7 +167,38 @@
 	margin-top: 4px;
 }
 
-/* ── DataViews overrides ───────────────── */
+/* ── DataViews table styles ────────────── */
+.dataviews-view-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.dataviews-view-table th {
+	text-align: left;
+	font-size: 13px;
+	font-weight: 600;
+	color: #1d2327;
+	padding: 8px 12px;
+	border-bottom: 1px solid #c3c4c7;
+}
+
+.dataviews-view-table td {
+	padding: 8px 12px;
+	border-bottom: 1px solid #f0f0f0;
+	font-size: 13px;
+	vertical-align: middle;
+}
+
+.dataviews-view-table tbody tr:hover {
+	background: #f6f7f7;
+	cursor: pointer;
+}
+
+.dataviews-view-table .dataviews-view-table__checkbox-column {
+	width: 30px;
+}
+
+/* DataViews settings panel */
 .dataviews-settings-section {
 	grid-template-columns: auto 1fr !important;
 	gap: 16px !important;
@@ -179,6 +210,17 @@
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
 	white-space: nowrap;
+}
+
+/* DataViews search and toolbar */
+.dataviews-search {
+	max-width: 280px;
+}
+
+.dataviews-filters__view-actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
 }
 
 /* ── Settings ──────────────────────────── */
