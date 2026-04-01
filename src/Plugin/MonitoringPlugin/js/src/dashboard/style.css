@@ -1,17 +1,17 @@
-.wpp-monitoring-dashboard {
+.wpp-monitoring {
 	margin-top: 16px;
-	max-width: 800px;
 }
 
-.wpp-monitoring-dashboard h1 {
+/* ── Dashboard ─────────────────────────── */
+.wpp-monitoring-dashboard .components-notice {
 	margin-bottom: 16px;
 }
 
-.wpp-monitoring-header {
+.wpp-monitoring-toolbar {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	margin-bottom: 16px;
+	margin-bottom: 20px;
 }
 
 .wpp-monitoring-loading {
@@ -20,20 +20,45 @@
 	padding: 48px;
 }
 
-.wpp-monitoring-dashboard .components-panel {
+/* Provider section */
+.wpp-monitoring-provider {
 	margin-bottom: 16px;
 }
 
-.wpp-monitoring-dashboard .components-notice {
-	margin-bottom: 16px;
+.wpp-monitoring-provider-header {
+	flex: 1;
 }
 
-.wpp-monitoring-grid {
+.wpp-monitoring-provider-title {
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.wpp-monitoring-provider-subtitle {
+	font-size: 12px;
+	color: #757575;
+	margin-top: 2px;
+}
+
+.wpp-monitoring-badge {
+	font-size: 11px;
+	font-weight: 500;
+	padding: 2px 8px;
+	border-radius: 3px;
+	background: #f0f0f0;
+	border: 1px solid #ccc;
+	color: #757575;
+	white-space: nowrap;
+}
+
+/* Metrics grid */
+.wpp-monitoring-metrics-grid {
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+	grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
 	gap: 12px;
 }
 
+/* Metric card */
 .wpp-monitoring-card {
 	background: #fff;
 	border: 1px solid #e0e0e0;
@@ -41,7 +66,7 @@
 	padding: 12px;
 	display: flex;
 	flex-direction: column;
-	gap: 4px;
+	gap: 2px;
 }
 
 .wpp-monitoring-card--error {
@@ -50,7 +75,7 @@
 
 .wpp-monitoring-card-label {
 	font-size: 11px;
-	font-weight: 500;
+	font-weight: 600;
 	color: #757575;
 	text-transform: uppercase;
 	letter-spacing: 0.3px;
@@ -63,6 +88,19 @@
 	line-height: 1.2;
 }
 
+.wpp-monitoring-card-meta {
+	font-size: 11px;
+	color: #949494;
+	margin-top: 2px;
+}
+
+.wpp-monitoring-card-desc {
+	font-size: 11px;
+	color: #757575;
+	margin-top: 4px;
+	line-height: 1.4;
+}
+
 .wpp-monitoring-card-error {
 	font-size: 12px;
 	color: #d63638;
@@ -71,4 +109,52 @@
 .wpp-monitoring-sparkline {
 	color: #3858e9;
 	margin-top: 4px;
+}
+
+/* ── Settings ──────────────────────────── */
+.wpp-monitoring-settings .components-notice {
+	margin-bottom: 16px;
+}
+
+.wpp-monitoring-settings-header {
+	display: flex;
+	justify-content: flex-end;
+	margin-bottom: 12px;
+}
+
+.wpp-monitoring-metrics-list {
+	margin-top: 24px;
+}
+
+.wpp-monitoring-metrics-list h3 {
+	font-size: 13px;
+	font-weight: 600;
+	margin-bottom: 8px;
+}
+
+.wpp-monitoring-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 13px;
+}
+
+.wpp-monitoring-table th,
+.wpp-monitoring-table td {
+	text-align: left;
+	padding: 6px 8px;
+	border-bottom: 1px solid #e0e0e0;
+}
+
+.wpp-monitoring-table th {
+	font-weight: 600;
+	color: #1d2327;
+	background: #f9f9f9;
+}
+
+.wpp-monitoring-modal-actions {
+	display: flex;
+	gap: 8px;
+	margin-top: 24px;
+	padding-top: 16px;
+	border-top: 1px solid #e0e0e0;
 }

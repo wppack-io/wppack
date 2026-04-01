@@ -6,6 +6,9 @@
     "build": "wp-scripts build",
     "start": "wp-scripts start"
   },
+  "dependencies": {
+    "@wordpress/dataviews": "^4.0.0"
+  },
   "devDependencies": {
     "@wordpress/scripts": "^30.0.0"
   }

@@ -1,0 +1,315 @@
+import { DataViews, DataForm } from '@wordpress/dataviews/wp';
+import { useState, useEffect } from '@wordpress/element';
+import { Button, Spinner, Notice, Modal } from '@wordpress/components';
+import apiFetch from '@wordpress/api-fetch';
+
+const PROVIDER_FIELDS = [
+	{
+		id: 'label',
+		label: 'Label',
+		type: 'text',
+		enableGlobalSearch: true,
+	},
+	{
+		id: 'bridge',
+		label: 'Bridge',
+		type: 'text',
+		render: ( { item } ) =>
+			item.bridge === 'cloudwatch' ? 'CloudWatch' : item.bridge,
+	},
+	{
+		id: 'settings.region',
+		label: 'Region',
+		type: 'text',
+		getValue: ( { item } ) => item.settings?.region || '\u2014',
+	},
+	{
+		id: 'locked',
+		label: 'Source',
+		type: 'text',
+		render: ( { item } ) => ( item.locked ? '\uD83D\uDD12 Plugin' : 'Custom' ),
+	},
+	{
+		id: 'metricsCount',
+		label: 'Metrics',
+		type: 'integer',
+		getValue: ( { item } ) => item.metrics?.length || 0,
+	},
+];
+
+const PROVIDER_FORM_FIELDS = [
+	{ id: 'label', label: 'Label', type: 'text' },
+	{
+		id: 'bridge',
+		label: 'Bridge',
+		type: 'text',
+		elements: [ { value: 'cloudwatch', label: 'AWS CloudWatch' } ],
+	},
+	{
+		id: 'settings.region',
+		label: 'Region',
+		type: 'text',
+		description: 'e.g., ap-northeast-1',
+		getValue: ( { item } ) => item.settings?.region || '',
+		setValue: ( value ) => ( { settings: { region: value } } ),
+	},
+	{
+		id: 'settings.accessKeyId',
+		label: 'Access Key ID',
+		type: 'text',
+		description: 'Optional \u2014 falls back to IAM role',
+		getValue: ( { item } ) => item.settings?.accessKeyId || '',
+		setValue: ( value ) => ( { settings: { accessKeyId: value } } ),
+	},
+	{
+		id: 'settings.secretAccessKey',
+		label: 'Secret Access Key',
+		type: 'password',
+		description: 'Optional \u2014 falls back to IAM role',
+		getValue: ( { item } ) => item.settings?.secretAccessKey || '',
+		setValue: ( value ) => ( { settings: { secretAccessKey: value } } ),
+	},
+];
+
+const PROVIDER_FORM = {
+	fields: [
+		{
+			id: 'general',
+			label: 'General',
+			children: [ 'label', 'bridge' ],
+			layout: { type: 'regular' },
+		},
+		{
+			id: 'aws',
+			label: 'AWS Credentials',
+			children: [
+				'settings.region',
+				'settings.accessKeyId',
+				'settings.secretAccessKey',
+			],
+			layout: { type: 'regular' },
+		},
+	],
+};
+
+export default function SettingsPage() {
+	const [ providers, setProviders ] = useState( [] );
+	const [ loading, setLoading ] = useState( true );
+	const [ error, setError ] = useState( null );
+	const [ selectedProvider, setSelectedProvider ] = useState( null );
+	const [ view, setView ] = useState( {
+		type: 'table',
+		fields: [
+			'label',
+			'bridge',
+			'settings.region',
+			'locked',
+			'metricsCount',
+		],
+		layout: { density: 'comfortable' },
+	} );
+
+	const fetchProviders = async () => {
+		try {
+			setLoading( true );
+			const result = await apiFetch( {
+				path: 'wppack/v1/monitoring/providers',
+			} );
+			setProviders( result.providers || [] );
+			setError( null );
+		} catch ( err ) {
+			setError( err.message );
+		} finally {
+			setLoading( false );
+		}
+	};
+
+	useEffect( () => {
+		fetchProviders();
+	}, [] );
+
+	const handleSaveProvider = async ( provider ) => {
+		const isNew = ! providers.find( ( p ) => p.id === provider.id );
+		await apiFetch( {
+			path: 'wppack/v1/monitoring/providers',
+			method: isNew ? 'POST' : 'PUT',
+			data: provider,
+		} );
+		await fetchProviders();
+		setSelectedProvider( null );
+	};
+
+	const handleDeleteProvider = async ( id ) => {
+		await apiFetch( {
+			path: 'wppack/v1/monitoring/providers',
+			method: 'DELETE',
+			data: { id },
+		} );
+		await fetchProviders();
+		setSelectedProvider( null );
+	};
+
+	const actions = [
+		{
+			id: 'delete',
+			label: 'Delete',
+			isPrimary: false,
+			isEligible: ( item ) => ! item.locked,
+			callback: async ( items ) => {
+				for ( const item of items ) {
+					await handleDeleteProvider( item.id );
+				}
+			},
+		},
+	];
+
+	if ( loading ) {
+		return (
+			<div className="wpp-monitoring-loading">
+				<Spinner />
+			</div>
+		);
+	}
+
+	return (
+		<div className="wpp-monitoring-settings">
+			{ error && (
+				<Notice status="error" isDismissible={ false }>
+					{ error }
+				</Notice>
+			) }
+
+			<div className="wpp-monitoring-settings-header">
+				<Button
+					variant="primary"
+					onClick={ () =>
+						setSelectedProvider( {
+							id: '',
+							label: '',
+							bridge: 'cloudwatch',
+							settings: {
+								region: '',
+								accessKeyId: '',
+								secretAccessKey: '',
+							},
+							metrics: [],
+							locked: false,
+						} )
+					}
+					size="compact"
+				>
+					Add Provider
+				</Button>
+			</div>
+
+			<DataViews
+				data={ providers }
+				fields={ PROVIDER_FIELDS }
+				view={ view }
+				onChangeView={ setView }
+				actions={ actions }
+				getItemId={ ( item ) => item.id }
+				isItemClickable={ () => true }
+				onClickItem={ ( { item } ) => setSelectedProvider( item ) }
+				defaultLayouts={ { table: {} } }
+				paginationInfo={ {
+					totalItems: providers.length,
+					totalPages: 1,
+				} }
+			/>
+
+			{ selectedProvider && (
+				<Modal
+					title={
+						selectedProvider.id
+							? selectedProvider.label || 'Edit Provider'
+							: 'Add Provider'
+					}
+					onRequestClose={ () => setSelectedProvider( null ) }
+					size="large"
+				>
+					<DataForm
+						data={ selectedProvider }
+						fields={ PROVIDER_FORM_FIELDS.map( ( f ) => ( {
+							...f,
+							readOnly: selectedProvider.locked,
+						} ) ) }
+						form={ PROVIDER_FORM }
+						onChange={ ( edits ) => {
+							setSelectedProvider( ( prev ) => {
+								const next = { ...prev };
+								for ( const [ key, value ] of Object.entries(
+									edits
+								) ) {
+									if ( key === 'settings' ) {
+										next.settings = {
+											...next.settings,
+											...value,
+										};
+									} else {
+										next[ key ] = value;
+									}
+								}
+								return next;
+							} );
+						} }
+					/>
+
+					{ /* Metrics table */ }
+					{ selectedProvider.metrics?.length > 0 && (
+						<div className="wpp-monitoring-metrics-list">
+							<h3>Metrics</h3>
+							<table className="wpp-monitoring-table">
+								<thead>
+									<tr>
+										<th>Label</th>
+										<th>Namespace</th>
+										<th>Metric</th>
+										<th>Stat</th>
+										<th>Unit</th>
+									</tr>
+								</thead>
+								<tbody>
+									{ selectedProvider.metrics.map( ( m ) => (
+										<tr key={ m.id }>
+											<td>{ m.label }</td>
+											<td>{ m.namespace }</td>
+											<td>{ m.metricName }</td>
+											<td>{ m.stat }</td>
+											<td>{ m.unit }</td>
+										</tr>
+									) ) }
+								</tbody>
+							</table>
+						</div>
+					) }
+
+					{ ! selectedProvider.locked && (
+						<div className="wpp-monitoring-modal-actions">
+							<Button
+								variant="primary"
+								onClick={ () =>
+									handleSaveProvider( selectedProvider )
+								}
+							>
+								Save
+							</Button>
+							{ selectedProvider.id && (
+								<Button
+									isDestructive
+									onClick={ () =>
+										handleDeleteProvider(
+											selectedProvider.id
+										)
+									}
+								>
+									Delete
+								</Button>
+							) }
+						</div>
+					) }
+				</Modal>
+			) }
+		</div>
+	);
+}

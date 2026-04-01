@@ -1,7 +1,9 @@
 import Sparkline from './Sparkline';
 
-export default function MetricCard( { result } ) {
-	const { label, unit, datapoints, error } = result;
+export default function MetricCard( { metric, result } ) {
+	const { label, description, stat, unit } = metric;
+	const error = result?.error;
+	const datapoints = result?.datapoints || [];
 
 	if ( error ) {
 		return (
@@ -24,11 +26,23 @@ export default function MetricCard( { result } ) {
 		if ( unit === 'Percent' ) {
 			return `${ val.toFixed( 1 ) }%`;
 		}
+		if ( unit === 'Bytes' ) {
+			if ( val >= 1_073_741_824 ) {
+				return `${ ( val / 1_073_741_824 ).toFixed( 1 ) } GB`;
+			}
+			if ( val >= 1_048_576 ) {
+				return `${ ( val / 1_048_576 ).toFixed( 1 ) } MB`;
+			}
+			if ( val >= 1024 ) {
+				return `${ ( val / 1024 ).toFixed( 1 ) } KB`;
+			}
+			return `${ val.toFixed( 0 ) } B`;
+		}
 		if ( val >= 1_000_000 ) {
 			return `${ ( val / 1_000_000 ).toFixed( 1 ) }M`;
 		}
-		if ( val >= 1_000 ) {
-			return `${ ( val / 1_000 ).toFixed( 1 ) }K`;
+		if ( val >= 1000 ) {
+			return `${ ( val / 1000 ).toFixed( 1 ) }K`;
 		}
 		return val.toFixed( 0 );
 	};
@@ -40,6 +54,12 @@ export default function MetricCard( { result } ) {
 				{ formatValue( lastValue ) }
 			</div>
 			{ datapoints.length > 1 && <Sparkline datapoints={ datapoints } /> }
+			<div className="wpp-monitoring-card-meta">
+				{ stat } &middot; { unit }
+			</div>
+			{ description && (
+				<div className="wpp-monitoring-card-desc">{ description }</div>
+			) }
 		</div>
 	);
 }

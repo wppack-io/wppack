@@ -1,7 +1,8 @@
 import { createRoot } from '@wordpress/element';
 import App from './App';
+import './style.css';
 
-const container = document.getElementById( 'wppack-monitoring' );
+const container = document.getElementById( 'wppack-monitoring-dashboard' );
 
 if ( container ) {
 	const root = createRoot( container );

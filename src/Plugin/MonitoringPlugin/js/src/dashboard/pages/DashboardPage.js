@@ -1,0 +1,99 @@
+import { useState, useEffect, useCallback } from '@wordpress/element';
+import { Button, Spinner, Notice } from '@wordpress/components';
+import apiFetch from '@wordpress/api-fetch';
+import ProviderSection from '../components/ProviderSection';
+import PeriodSelector from '../components/PeriodSelector';
+
+export default function DashboardPage() {
+	const [ data, setData ] = useState( null );
+	const [ period, setPeriod ] = useState( 3 );
+	const [ loading, setLoading ] = useState( true );
+	const [ refreshing, setRefreshing ] = useState( false );
+	const [ error, setError ] = useState( null );
+
+	const fetchMetrics = useCallback(
+		async ( force = false ) => {
+			try {
+				if ( force ) {
+					setRefreshing( true );
+				} else {
+					setLoading( true );
+				}
+				const path = force
+					? 'wppack/v1/monitoring/refresh'
+					: `wppack/v1/monitoring/metrics?period=${ period }`;
+				const method = force ? 'POST' : 'GET';
+				const result = await apiFetch( { path, method } );
+				setData( result );
+				setError( null );
+			} catch ( err ) {
+				setError( err.message || 'Failed to fetch metrics' );
+			} finally {
+				setLoading( false );
+				setRefreshing( false );
+			}
+		},
+		[ period ]
+	);
+
+	useEffect( () => {
+		fetchMetrics();
+	}, [ fetchMetrics ] );
+
+	// Group results by provider
+	const resultsByProvider = {};
+	if ( data?.results ) {
+		data.results.forEach( ( r ) => {
+			if ( ! resultsByProvider[ r.group ] ) {
+				resultsByProvider[ r.group ] = [];
+			}
+			resultsByProvider[ r.group ].push( r );
+		} );
+	}
+
+	if ( loading ) {
+		return (
+			<div className="wpp-monitoring-loading">
+				<Spinner />
+			</div>
+		);
+	}
+
+	return (
+		<div className="wpp-monitoring-dashboard">
+			<div className="wpp-monitoring-toolbar">
+				<PeriodSelector value={ period } onChange={ setPeriod } />
+				<Button
+					variant="secondary"
+					isBusy={ refreshing }
+					onClick={ () => fetchMetrics( true ) }
+					disabled={ refreshing }
+					size="compact"
+				>
+					{ refreshing ? 'Refreshing\u2026' : 'Refresh' }
+				</Button>
+			</div>
+
+			{ error && (
+				<Notice status="error" isDismissible={ false }>
+					{ error }
+				</Notice>
+			) }
+
+			{ data?.providers?.length === 0 && (
+				<Notice status="warning" isDismissible={ false }>
+					No monitoring providers configured. Go to Settings to add
+					one.
+				</Notice>
+			) }
+
+			{ data?.providers?.map( ( provider ) => (
+				<ProviderSection
+					key={ provider.id }
+					provider={ provider }
+					results={ resultsByProvider[ provider.id ] || [] }
+				/>
+			) ) }
+		</div>
+	);
+}
