@@ -263,36 +263,13 @@ export default function SettingsPage() {
 						data={ selectedProvider }
 						fields={
 							selectedProvider.locked
-								? PROVIDER_FORM_FIELDS.filter(
-										( f ) =>
-											f.id !== 'settings.accessKeyId' &&
-											f.id !== 'settings.secretAccessKey'
-									).map( ( f ) => ( {
+								? PROVIDER_FORM_FIELDS.map( ( f ) => ( {
 										...f,
 										readOnly: true,
 									} ) )
 								: PROVIDER_FORM_FIELDS
 						}
-						form={
-							selectedProvider.locked
-								? {
-										fields: [
-											{
-												id: 'general',
-												label: __( 'General', 'wppack-monitoring' ),
-												children: [ 'label', 'bridge' ],
-												layout: { type: 'regular' },
-											},
-											{
-												id: 'aws',
-												label: __( 'AWS Settings', 'wppack-monitoring' ),
-												children: [ 'settings.region' ],
-												layout: { type: 'regular' },
-											},
-										],
-									}
-								: PROVIDER_FORM
-						}
+						form={ PROVIDER_FORM }
 						onChange={
 							selectedProvider.locked
 								? () => {}
