@@ -2,7 +2,7 @@ import { DataViews, DataForm } from '@wordpress/dataviews/wp';
 import { useState, useEffect } from '@wordpress/element';
 import { Button, Spinner, Notice, Modal, Icon, SelectControl, TextControl } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
-import { lock } from '@wordpress/icons';
+import { lock, copy } from '@wordpress/icons';
 import apiFetch from '@wordpress/api-fetch';
 import { METRIC_TEMPLATES } from '../data/templates';
 
@@ -518,22 +518,14 @@ export default function SettingsPage() {
 					<div className="wpp-monitoring-iam-block">
 						<pre className="wpp-monitoring-iam-code">{ IAM_POLICY_JSON }</pre>
 						<Button
-							variant="secondary"
-							size="compact"
+							icon={ copy }
+							label={ __( 'Copy', 'wppack-monitoring' ) }
+							size="small"
 							className="wpp-monitoring-iam-copy"
 							onClick={ () => {
-								navigator.clipboard.writeText( IAM_POLICY_JSON ).then( () => {
-									const btn = document.querySelector( '.wpp-monitoring-iam-copy' );
-									if ( btn ) {
-										const orig = btn.textContent;
-										btn.textContent = __( 'Copied!', 'wppack-monitoring' );
-										setTimeout( () => { btn.textContent = orig; }, 2000 );
-									}
-								} );
+								navigator.clipboard.writeText( IAM_POLICY_JSON );
 							} }
-						>
-							{ __( 'Copy', 'wppack-monitoring' ) }
-						</Button>
+						/>
 					</div>
 				</Modal>
 			) }
