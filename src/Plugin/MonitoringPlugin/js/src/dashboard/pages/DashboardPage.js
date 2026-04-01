@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from '@wordpress/element';
 import { Button, Spinner, Notice } from '@wordpress/components';
+import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
 import ProviderSection from '../components/ProviderSection';
 import PeriodSelector from '../components/PeriodSelector';
@@ -27,7 +28,7 @@ export default function DashboardPage() {
 				setData( result );
 				setError( null );
 			} catch ( err ) {
-				setError( err.message || 'Failed to fetch metrics' );
+				setError( err.message || __( 'Failed to fetch metrics', 'wppack-monitoring' ) );
 			} finally {
 				setLoading( false );
 				setRefreshing( false );
@@ -70,7 +71,7 @@ export default function DashboardPage() {
 					disabled={ refreshing }
 					size="compact"
 				>
-					{ refreshing ? 'Refreshing\u2026' : 'Refresh' }
+					{ refreshing ? __( 'Refreshing\u2026', 'wppack-monitoring' ) : __( 'Refresh', 'wppack-monitoring' ) }
 				</Button>
 			</div>
 
@@ -82,8 +83,7 @@ export default function DashboardPage() {
 
 			{ data?.providers?.length === 0 && (
 				<Notice status="warning" isDismissible={ false }>
-					No monitoring providers configured. Go to Settings to add
-					one.
+					{ __( 'No monitoring providers configured. Go to Settings to add one.', 'wppack-monitoring' ) }
 				</Notice>
 			) }
 

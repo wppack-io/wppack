@@ -1,45 +1,46 @@
 import { DataViews, DataForm } from '@wordpress/dataviews/wp';
 import { useState, useEffect } from '@wordpress/element';
 import { Button, Spinner, Notice, Modal, Icon } from '@wordpress/components';
+import { __ } from '@wordpress/i18n';
 import { lock } from '@wordpress/icons';
 import apiFetch from '@wordpress/api-fetch';
 
 const PROVIDER_FIELDS = [
 	{
 		id: 'label',
-		label: 'Label',
+		label: __( 'Label', 'wppack-monitoring' ),
 		type: 'text',
 		enableGlobalSearch: true,
 	},
 	{
 		id: 'bridge',
-		label: 'Bridge',
+		label: __( 'Bridge', 'wppack-monitoring' ),
 		type: 'text',
 		render: ( { item } ) =>
-			item.bridge === 'cloudwatch' ? 'CloudWatch' : item.bridge,
+			item.bridge === 'cloudwatch' ? __( 'CloudWatch', 'wppack-monitoring' ) : item.bridge,
 	},
 	{
 		id: 'settings.region',
-		label: 'Region',
+		label: __( 'Region', 'wppack-monitoring' ),
 		type: 'text',
 		getValue: ( { item } ) => item.settings?.region || '\u2014',
 	},
 	{
 		id: 'locked',
-		label: 'Source',
+		label: __( 'Source', 'wppack-monitoring' ),
 		type: 'text',
 		render: ( { item } ) =>
 			item.locked ? (
 				<span className="wpp-monitoring-source-badge">
-					<Icon icon={ lock } size={ 14 } /> Plugin
+					<Icon icon={ lock } size={ 14 } /> { __( 'Plugin', 'wppack-monitoring' ) }
 				</span>
 			) : (
-				'Custom'
+				__( 'Custom', 'wppack-monitoring' )
 			),
 	},
 	{
 		id: 'metricsCount',
-		label: 'Metrics',
+		label: __( 'Metrics', 'wppack-monitoring' ),
 		type: 'integer',
 		getValue: ( { item } ) => item.metrics?.length || 0,
 		render: ( { item } ) => (
@@ -51,34 +52,34 @@ const PROVIDER_FIELDS = [
 ];
 
 const PROVIDER_FORM_FIELDS = [
-	{ id: 'label', label: 'Label', type: 'text' },
+	{ id: 'label', label: __( 'Label', 'wppack-monitoring' ), type: 'text' },
 	{
 		id: 'bridge',
-		label: 'Bridge',
+		label: __( 'Bridge', 'wppack-monitoring' ),
 		type: 'text',
-		elements: [ { value: 'cloudwatch', label: 'AWS CloudWatch' } ],
+		elements: [ { value: 'cloudwatch', label: __( 'AWS CloudWatch', 'wppack-monitoring' ) } ],
 	},
 	{
 		id: 'settings.region',
-		label: 'Region',
+		label: __( 'Region', 'wppack-monitoring' ),
 		type: 'text',
-		description: 'e.g., ap-northeast-1',
+		description: __( 'e.g., ap-northeast-1', 'wppack-monitoring' ),
 		getValue: ( { item } ) => item.settings?.region || '',
 		setValue: ( value ) => ( { settings: { region: value } } ),
 	},
 	{
 		id: 'settings.accessKeyId',
-		label: 'Access Key ID',
+		label: __( 'Access Key ID', 'wppack-monitoring' ),
 		type: 'text',
-		description: 'Optional \u2014 falls back to IAM role',
+		description: __( 'Optional \u2014 falls back to IAM role', 'wppack-monitoring' ),
 		getValue: ( { item } ) => item.settings?.accessKeyId || '',
 		setValue: ( value ) => ( { settings: { accessKeyId: value } } ),
 	},
 	{
 		id: 'settings.secretAccessKey',
-		label: 'Secret Access Key',
+		label: __( 'Secret Access Key', 'wppack-monitoring' ),
 		type: 'password',
-		description: 'Optional \u2014 falls back to IAM role',
+		description: __( 'Optional \u2014 falls back to IAM role', 'wppack-monitoring' ),
 		getValue: ( { item } ) => item.settings?.secretAccessKey || '',
 		setValue: ( value ) => ( { settings: { secretAccessKey: value } } ),
 	},
@@ -88,13 +89,13 @@ const PROVIDER_FORM = {
 	fields: [
 		{
 			id: 'general',
-			label: 'General',
+			label: __( 'General', 'wppack-monitoring' ),
 			children: [ 'label', 'bridge' ],
 			layout: { type: 'regular' },
 		},
 		{
 			id: 'aws',
-			label: 'AWS Credentials',
+			label: __( 'AWS Credentials', 'wppack-monitoring' ),
 			children: [
 				'settings.region',
 				'settings.accessKeyId',
@@ -165,7 +166,7 @@ export default function SettingsPage() {
 	const actions = [
 		{
 			id: 'view',
-			label: 'View Details',
+			label: __( 'View Details', 'wppack-monitoring' ),
 			isPrimary: false,
 			callback: ( items ) => {
 				if ( items[ 0 ] ) {
@@ -175,7 +176,7 @@ export default function SettingsPage() {
 		},
 		{
 			id: 'delete',
-			label: 'Delete',
+			label: __( 'Delete', 'wppack-monitoring' ),
 			isPrimary: false,
 			isEligible: ( item ) => ! item.locked,
 			callback: async ( items ) => {
@@ -221,7 +222,7 @@ export default function SettingsPage() {
 					}
 					size="compact"
 				>
-					Add Provider
+					{ __( 'Add Provider', 'wppack-monitoring' ) }
 				</Button>
 			</div>
 
@@ -247,15 +248,15 @@ export default function SettingsPage() {
 						selectedProvider.locked
 							? selectedProvider.label
 							: selectedProvider.id
-								? 'Edit Provider'
-								: 'Add Provider'
+								? __( 'Edit Provider', 'wppack-monitoring' )
+								: __( 'Add Provider', 'wppack-monitoring' )
 					}
 					onRequestClose={ () => setSelectedProvider( null ) }
 					size="large"
 				>
 					{ selectedProvider.locked && (
 						<Notice status="info" isDismissible={ false } className="wpp-monitoring-readonly-notice">
-							This provider is managed by a plugin and cannot be edited.
+							{ __( 'This provider is managed by a plugin and cannot be edited.', 'wppack-monitoring' ) }
 						</Notice>
 					) }
 					<DataForm
@@ -278,13 +279,13 @@ export default function SettingsPage() {
 										fields: [
 											{
 												id: 'general',
-												label: 'General',
+												label: __( 'General', 'wppack-monitoring' ),
 												children: [ 'label', 'bridge' ],
 												layout: { type: 'regular' },
 											},
 											{
 												id: 'aws',
-												label: 'AWS Settings',
+												label: __( 'AWS Settings', 'wppack-monitoring' ),
 												children: [ 'settings.region' ],
 												layout: { type: 'regular' },
 											},
@@ -320,16 +321,16 @@ export default function SettingsPage() {
 					{ /* Metrics table */ }
 					{ selectedProvider.metrics?.length > 0 && (
 						<div className="wpp-monitoring-metrics-list">
-							<h3>Metrics</h3>
+							<h3>{ __( 'Metrics', 'wppack-monitoring' ) }</h3>
 							<table className="widefat striped">
 								<thead>
 									<tr>
-										<th>Label</th>
-										<th>Description</th>
-										<th>Namespace</th>
-										<th>Metric</th>
-										<th>Stat</th>
-										<th>Unit</th>
+										<th>{ __( 'Label', 'wppack-monitoring' ) }</th>
+										<th>{ __( 'Description', 'wppack-monitoring' ) }</th>
+										<th>{ __( 'Namespace', 'wppack-monitoring' ) }</th>
+										<th>{ __( 'Metric', 'wppack-monitoring' ) }</th>
+										<th>{ __( 'Stat', 'wppack-monitoring' ) }</th>
+										<th>{ __( 'Unit', 'wppack-monitoring' ) }</th>
 									</tr>
 								</thead>
 								<tbody>
@@ -356,7 +357,7 @@ export default function SettingsPage() {
 									handleSaveProvider( selectedProvider )
 								}
 							>
-								Save
+								{ __( 'Save', 'wppack-monitoring' ) }
 							</Button>
 							{ selectedProvider.id && (
 								<Button
@@ -367,7 +368,7 @@ export default function SettingsPage() {
 										)
 									}
 								>
-									Delete
+									{ __( 'Delete', 'wppack-monitoring' ) }
 								</Button>
 							) }
 						</div>

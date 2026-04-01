@@ -1,0 +1,50 @@
+{
+    "translation-revision-date": "2026-04-01T00:00:00+00:00",
+    "generator": "WpPack",
+    "source": "js/build/dashboard.js",
+    "domain": "wppack-monitoring",
+    "locale_data": {
+        "wppack-monitoring": {
+            "": {
+                "domain": "wppack-monitoring",
+                "lang": "ja",
+                "plural-forms": "nplurals=1; plural=0;"
+            },
+            "Infrastructure Monitoring": ["インフラ モニタリング"],
+            "Dashboard": ["ダッシュボード"],
+            "Settings": ["設定"],
+            "Refresh": ["更新"],
+            "Refreshing\u2026": ["更新中\u2026"],
+            "Failed to fetch metrics": ["メトリクスの取得に失敗しました"],
+            "No monitoring providers configured. Go to Settings to add one.": ["モニタリングプロバイダが設定されていません。設定から追加してください。"],
+            "Add Provider": ["プロバイダを追加"],
+            "Edit Provider": ["プロバイダを編集"],
+            "View Details": ["詳細を表示"],
+            "Delete": ["削除"],
+            "Save": ["保存"],
+            "This provider is managed by a plugin and cannot be edited.": ["このプロバイダはプラグインによって管理されており、編集できません。"],
+            "Label": ["ラベル"],
+            "Bridge": ["ブリッジ"],
+            "Region": ["リージョン"],
+            "Source": ["ソース"],
+            "Metrics": ["メトリクス"],
+            "Actions": ["操作"],
+            "Plugin": ["プラグイン"],
+            "Custom": ["カスタム"],
+            "CloudWatch": ["CloudWatch"],
+            "AWS CloudWatch": ["AWS CloudWatch"],
+            "General": ["一般"],
+            "AWS Credentials": ["AWS 認証情報"],
+            "AWS Settings": ["AWS 設定"],
+            "Access Key ID": ["アクセスキー ID"],
+            "Secret Access Key": ["シークレットアクセスキー"],
+            "Optional \u2014 falls back to IAM role": ["オプション — IAM ロールにフォールバック"],
+            "e.g., ap-northeast-1": ["例: ap-northeast-1"],
+            "Description": ["説明"],
+            "Namespace": ["名前空間"],
+            "Metric": ["メトリクス名"],
+            "Stat": ["統計"],
+            "Unit": ["単位"]
+        }
+    }
+}

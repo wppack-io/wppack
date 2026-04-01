@@ -1,4 +1,5 @@
 import { Card, CardHeader, CardBody } from '@wordpress/components';
+import { __ } from '@wordpress/i18n';
 import MetricCard from './MetricCard';
 
 export default function ProviderSection( { provider, results } ) {
@@ -34,7 +35,7 @@ export default function ProviderSection( { provider, results } ) {
 					) }
 				</div>
 				{ provider.locked && (
-					<span className="wpp-monitoring-badge">Plugin</span>
+					<span className="wpp-monitoring-badge">{ __( 'Plugin', 'wppack-monitoring' ) }</span>
 				) }
 			</CardHeader>
 			<CardBody>
