@@ -226,6 +226,11 @@
 	justify-content: flex-end;
 }
 
+.wpp-monitoring-detail-table th {
+	width: 160px;
+	font-weight: 600;
+}
+
 .wpp-monitoring-readonly-notice {
 	margin-bottom: 16px;
 }

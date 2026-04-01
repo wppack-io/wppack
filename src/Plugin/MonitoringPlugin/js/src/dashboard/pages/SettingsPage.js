@@ -259,41 +259,49 @@ export default function SettingsPage() {
 							{ __( 'This provider is managed by a plugin and cannot be edited.', 'wppack-monitoring' ) }
 						</Notice>
 					) }
-					<DataForm
-						data={ selectedProvider }
-						fields={
-							selectedProvider.locked
-								? PROVIDER_FORM_FIELDS.map( ( f ) => ( {
-										...f,
-										readOnly: true,
-									} ) )
-								: PROVIDER_FORM_FIELDS
-						}
-						form={ PROVIDER_FORM }
-						onChange={
-							selectedProvider.locked
-								? () => {}
-								: ( edits ) => {
-										setSelectedProvider( ( prev ) => {
-											const next = { ...prev };
-											for ( const [
-												key,
-												value,
-											] of Object.entries( edits ) ) {
-												if ( key === 'settings' ) {
-													next.settings = {
-														...next.settings,
-														...value,
-													};
-												} else {
-													next[ key ] = value;
-												}
-											}
-											return next;
-										} );
+					{ selectedProvider.locked ? (
+						<table className="widefat striped wpp-monitoring-detail-table">
+							<tbody>
+								<tr>
+									<th>{ __( 'Label', 'wppack-monitoring' ) }</th>
+									<td>{ selectedProvider.label }</td>
+								</tr>
+								<tr>
+									<th>{ __( 'Bridge', 'wppack-monitoring' ) }</th>
+									<td>{ selectedProvider.bridge === 'cloudwatch' ? 'AWS CloudWatch' : selectedProvider.bridge }</td>
+								</tr>
+								<tr>
+									<th>{ __( 'Region', 'wppack-monitoring' ) }</th>
+									<td>{ selectedProvider.settings?.region || '\u2014' }</td>
+								</tr>
+							</tbody>
+						</table>
+					) : (
+						<DataForm
+							data={ selectedProvider }
+							fields={ PROVIDER_FORM_FIELDS }
+							form={ PROVIDER_FORM }
+							onChange={ ( edits ) => {
+								setSelectedProvider( ( prev ) => {
+									const next = { ...prev };
+									for ( const [
+										key,
+										value,
+									] of Object.entries( edits ) ) {
+										if ( key === 'settings' ) {
+											next.settings = {
+												...next.settings,
+												...value,
+											};
+										} else {
+											next[ key ] = value;
+										}
 									}
-						}
-					/>
+									return next;
+								} );
+							} }
+						/>
+					) }
 
 					{ /* Metrics table */ }
 					{ selectedProvider.metrics?.length > 0 && (
