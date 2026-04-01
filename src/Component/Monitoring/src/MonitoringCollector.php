@@ -59,13 +59,14 @@ class MonitoringCollector
             try {
                 $results = [...$results, ...$bridge->query($provider, $range)];
             } catch (\Throwable $e) {
+                $errorMessage = $this->formatError($e);
                 foreach ($provider->metrics as $metric) {
                     $results[] = new MetricResult(
                         sourceId: $metric->id,
                         label: $metric->label,
                         unit: $metric->unit,
                         group: $provider->id,
-                        error: $e->getMessage(),
+                        error: $errorMessage,
                     );
                 }
             }
@@ -95,6 +96,25 @@ class MonitoringCollector
                 $bridge->collect($provider);
             }
         }
+    }
+
+    private function formatError(\Throwable $e): string
+    {
+        $message = $e->getMessage();
+
+        if (str_contains($message, 'MissingAuthenticationToken') || str_contains($message, 'InvalidSignature')) {
+            return 'AWS authentication failed. Check credentials.';
+        }
+
+        if (str_contains($message, 'AccessDenied') || str_contains($message, 'UnauthorizedAccess')) {
+            return 'Access denied. Check IAM permissions.';
+        }
+
+        if (str_contains($message, 'cURL error') || str_contains($message, 'Could not resolve host')) {
+            return 'Connection failed. Check network.';
+        }
+
+        return mb_strlen($message) > 100 ? mb_substr($message, 0, 100) . '…' : $message;
     }
 
     public function invalidate(): void

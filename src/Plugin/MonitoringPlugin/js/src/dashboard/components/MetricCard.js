@@ -9,6 +9,9 @@ export default function MetricCard( { metric, result } ) {
 		return (
 			<div className="wpp-monitoring-card wpp-monitoring-card--error">
 				<div className="wpp-monitoring-card-label">{ label }</div>
+				<div className="wpp-monitoring-card-value wpp-monitoring-card-value--muted">
+					&mdash;
+				</div>
 				<div className="wpp-monitoring-card-error">{ error }</div>
 			</div>
 		);

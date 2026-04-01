@@ -120,9 +120,17 @@
 	line-height: 1.4;
 }
 
+.wpp-monitoring-card-value--muted {
+	font-weight: 300;
+	color: #757575;
+}
+
 .wpp-monitoring-card-error {
-	font-size: 12px;
+	font-size: 11px;
 	color: #d63638;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .wpp-monitoring-sparkline {
