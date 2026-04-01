@@ -260,7 +260,7 @@ export default function SettingsPage() {
 						</Notice>
 					) }
 					{ selectedProvider.locked ? (
-						<table className="widefat wpp-monitoring-detail-table">
+						<table className="wpp-monitoring-modal-table wpp-monitoring-detail-table">
 							<tbody>
 								<tr>
 									<th>{ __( 'Label', 'wppack-monitoring' ) }</th>
@@ -307,7 +307,7 @@ export default function SettingsPage() {
 					{ selectedProvider.metrics?.length > 0 && (
 						<div className="wpp-monitoring-metrics-list">
 							<h3>{ __( 'Metrics', 'wppack-monitoring' ) }</h3>
-							<table className="widefat">
+							<table className="wpp-monitoring-modal-table">
 								<thead>
 									<tr>
 										<th>{ __( 'Label', 'wppack-monitoring' ) }</th>
