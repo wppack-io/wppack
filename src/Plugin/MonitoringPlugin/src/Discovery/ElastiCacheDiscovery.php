@@ -11,31 +11,31 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\RedisCachePlugin\Monitoring;
+namespace WpPack\Plugin\MonitoringPlugin\Discovery;
 
 use WpPack\Component\Monitoring\MetricDefinition;
 use WpPack\Component\Monitoring\MonitoringProvider;
 use WpPack\Component\Monitoring\MonitoringProviderInterface;
 use WpPack\Component\Monitoring\ProviderSettings;
 
-final class RedisCacheMetricSourceProvider implements MonitoringProviderInterface
+final class ElastiCacheDiscovery implements MonitoringProviderInterface
 {
     public function getProviders(): array
     {
-        $dimensions = $this->resolveDimensions();
+        $endpoint = $this->parseElastiCacheEndpoint();
 
-        if ($dimensions === []) {
+        if ($endpoint === null) {
             return [];
         }
 
-        $region = $this->resolveRegion();
+        $dimensions = ['CacheClusterId' => $endpoint['clusterId']];
 
         return [
             new MonitoringProvider(
                 id: 'redis',
                 label: 'ElastiCache Redis',
                 bridge: 'cloudwatch',
-                settings: new ProviderSettings(region: $region),
+                settings: new ProviderSettings(region: $endpoint['region']),
                 metrics: [
                     new MetricDefinition(
                         id: 'redis.cache_hits',
@@ -97,6 +97,7 @@ final class RedisCacheMetricSourceProvider implements MonitoringProviderInterfac
      * Parse ElastiCache endpoint from WPPACK_CACHE_DSN.
      *
      * Endpoint format: {cluster-id}.{hash}.{region}.cache.amazonaws.com
+     * Cluster mode:    {cluster-id}.{hash}.clustercfg.{region}.cache.amazonaws.com
      *
      * @return array{clusterId: string, region: string}|null
      */
@@ -134,22 +135,5 @@ final class RedisCacheMetricSourceProvider implements MonitoringProviderInterfac
             'clusterId' => $clusterId,
             'region' => $parts[$regionPos],
         ];
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    private function resolveDimensions(): array
-    {
-        $endpoint = $this->parseElastiCacheEndpoint();
-
-        return $endpoint !== null ? ['CacheClusterId' => $endpoint['clusterId']] : [];
-    }
-
-    private function resolveRegion(): string
-    {
-        $endpoint = $this->parseElastiCacheEndpoint();
-
-        return $endpoint['region'] ?? $_ENV['AWS_DEFAULT_REGION'] ?? 'us-east-1';
     }
 }

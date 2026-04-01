@@ -282,3 +282,30 @@
 	padding-top: 16px;
 	border-top: 1px solid #e0e0e0;
 }
+
+/* ── IAM Notice ──────────────────────────── */
+.wpp-monitoring-iam-notice {
+	margin-bottom: 16px;
+}
+
+.wpp-monitoring-iam-code {
+	background: #f0f0f0;
+	padding: 12px;
+	border-radius: 4px;
+	font-size: 12px;
+	font-family: monospace;
+	overflow-x: auto;
+	margin-top: 8px;
+	white-space: pre;
+}
+
+/* ── Template metrics table ──────────────── */
+.wpp-monitoring-template-metrics {
+	margin-top: 16px;
+}
+
+.wpp-monitoring-template-metrics h3 {
+	font-size: 13px;
+	font-weight: 600;
+	margin-bottom: 8px;
+}

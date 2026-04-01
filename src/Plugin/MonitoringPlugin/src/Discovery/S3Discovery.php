@@ -1,0 +1,104 @@
+<?php
+
+/*
+ * This file is part of the WpPack package.
+ *
+ * (c) Tsuyoshi Tsurushima
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
+namespace WpPack\Plugin\MonitoringPlugin\Discovery;
+
+use WpPack\Component\Monitoring\MetricDefinition;
+use WpPack\Component\Monitoring\MonitoringProvider;
+use WpPack\Component\Monitoring\MonitoringProviderInterface;
+use WpPack\Component\Monitoring\ProviderSettings;
+
+final class S3Discovery implements MonitoringProviderInterface
+{
+    /**
+     * S3 metrics use a 1-day (86400 seconds) reporting period.
+     */
+    private const PERIOD_SECONDS = 86400;
+
+    public function getProviders(): array
+    {
+        $bucket = $this->resolveBucket();
+
+        if ($bucket === '') {
+            return [];
+        }
+
+        $region = $this->resolveRegion();
+        $dimensions = [
+            'BucketName' => $bucket,
+            'StorageType' => 'AllStorageTypes',
+        ];
+
+        return [
+            new MonitoringProvider(
+                id: 's3',
+                label: 'S3 Storage',
+                bridge: 'cloudwatch',
+                settings: new ProviderSettings(region: $region),
+                metrics: [
+                    new MetricDefinition(
+                        id: 's3.bucket_size_bytes',
+                        label: 'Bucket Size',
+                        description: 'Total bucket size',
+                        namespace: 'AWS/S3',
+                        metricName: 'BucketSizeBytes',
+                        unit: 'Bytes',
+                        stat: 'Average',
+                        dimensions: $dimensions,
+                        periodSeconds: self::PERIOD_SECONDS,
+                        locked: true,
+                    ),
+                    new MetricDefinition(
+                        id: 's3.number_of_objects',
+                        label: 'Object Count',
+                        description: 'Total number of objects in the bucket',
+                        namespace: 'AWS/S3',
+                        metricName: 'NumberOfObjects',
+                        unit: 'Count',
+                        stat: 'Average',
+                        dimensions: $dimensions,
+                        periodSeconds: self::PERIOD_SECONDS,
+                        locked: true,
+                    ),
+                ],
+                locked: true,
+            ),
+        ];
+    }
+
+    private function resolveBucket(): string
+    {
+        if (\defined('S3_BUCKET') && \constant('S3_BUCKET') !== '') {
+            return (string) \constant('S3_BUCKET');
+        }
+
+        if (\defined('WPPACK_S3_BUCKET') && \constant('WPPACK_S3_BUCKET') !== '') {
+            return (string) \constant('WPPACK_S3_BUCKET');
+        }
+
+        return $_ENV['S3_BUCKET'] ?? $_ENV['WPPACK_S3_BUCKET'] ?? '';
+    }
+
+    private function resolveRegion(): string
+    {
+        if (\defined('S3_REGION') && \constant('S3_REGION') !== '') {
+            return (string) \constant('S3_REGION');
+        }
+
+        if (\defined('WPPACK_S3_REGION') && \constant('WPPACK_S3_REGION') !== '') {
+            return (string) \constant('WPPACK_S3_REGION');
+        }
+
+        return $_ENV['S3_REGION'] ?? $_ENV['WPPACK_S3_REGION'] ?? $_ENV['AWS_DEFAULT_REGION'] ?? 'us-east-1';
+    }
+}

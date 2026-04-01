@@ -24,7 +24,6 @@ use WpPack\Component\Rest\RestRegistry;
 use WpPack\Plugin\RedisCachePlugin\Admin\RedisCacheSettingsController;
 use WpPack\Plugin\RedisCachePlugin\Admin\RedisCacheSettingsPage;
 use WpPack\Plugin\RedisCachePlugin\Configuration\RedisCacheConfiguration;
-use WpPack\Plugin\RedisCachePlugin\Monitoring\RedisCacheMetricSourceProvider;
 
 final class RedisCachePluginServiceProvider implements ServiceProviderInterface
 {
@@ -41,12 +40,6 @@ final class RedisCachePluginServiceProvider implements ServiceProviderInterface
 
         $builder->register(RedisCacheSettingsPage::class);
         $builder->register(RedisCacheSettingsController::class);
-    }
-
-    public function registerMonitoring(ContainerBuilder $builder): void
-    {
-        $builder->register(RedisCacheMetricSourceProvider::class)
-            ->addTag('monitoring.provider');
     }
 
     public function register(ContainerBuilder $builder): void

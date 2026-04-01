@@ -1,9 +1,10 @@
 import { DataViews, DataForm } from '@wordpress/dataviews/wp';
 import { useState, useEffect } from '@wordpress/element';
-import { Button, Spinner, Notice, Modal, Icon } from '@wordpress/components';
+import { Button, Spinner, Notice, Modal, Icon, SelectControl, TextControl } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import { lock } from '@wordpress/icons';
 import apiFetch from '@wordpress/api-fetch';
+import { METRIC_TEMPLATES } from '../data/templates';
 
 const PROVIDER_FIELDS = [
 	{
@@ -107,6 +108,9 @@ export default function SettingsPage() {
 	const [ loading, setLoading ] = useState( true );
 	const [ error, setError ] = useState( null );
 	const [ selectedProvider, setSelectedProvider ] = useState( null );
+	const [ addMode, setAddMode ] = useState( false );
+	const [ selectedTemplate, setSelectedTemplate ] = useState( null );
+	const [ dimensionValue, setDimensionValue ] = useState( '' );
 	const [ view, setView ] = useState( {
 		type: 'table',
 		fields: [
@@ -202,25 +206,26 @@ export default function SettingsPage() {
 			<div className="wpp-monitoring-settings-header">
 				<Button
 					variant="primary"
-					onClick={ () =>
-						setSelectedProvider( {
-							id: '',
-							label: '',
-							bridge: 'cloudwatch',
-							settings: {
-								region: '',
-								accessKeyId: '',
-								secretAccessKey: '',
-							},
-							metrics: [],
-							locked: false,
-						} )
-					}
+					onClick={ () => setAddMode( true ) }
 					size="compact"
 				>
 					{ __( 'Add Provider', 'wppack-monitoring' ) }
 				</Button>
 			</div>
+
+			<Notice status="info" isDismissible={ true } className="wpp-monitoring-iam-notice">
+				<p>{ __( 'Required IAM Policy:', 'wppack-monitoring' ) }</p>
+				<pre className="wpp-monitoring-iam-code">{ `{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": ["cloudwatch:GetMetricData"],
+      "Resource": "*"
+    }
+  ]
+}` }</pre>
+			</Notice>
 
 			<DataViews
 				data={ providers }
@@ -238,7 +243,7 @@ export default function SettingsPage() {
 				} }
 			/>
 
-			{ selectedProvider && (
+			{ selectedProvider && ! addMode && (
 				<Modal
 					title={
 						selectedProvider.locked
@@ -353,6 +358,140 @@ export default function SettingsPage() {
 								</Button>
 							) }
 						</div>
+					) }
+				</Modal>
+			) }
+
+			{ addMode && (
+				<Modal
+					title={ __( 'Add Provider from Template', 'wppack-monitoring' ) }
+					onRequestClose={ () => {
+						setAddMode( false );
+						setSelectedTemplate( null );
+						setDimensionValue( '' );
+						setSelectedProvider( null );
+					} }
+					size="large"
+				>
+					<SelectControl
+						label={ __( 'Template', 'wppack-monitoring' ) }
+						value={ selectedTemplate?.id || '' }
+						onChange={ ( templateId ) => {
+							const tmpl = METRIC_TEMPLATES.find( ( t ) => t.id === templateId );
+							setSelectedTemplate( tmpl || null );
+							setDimensionValue( '' );
+							if ( tmpl ) {
+								setSelectedProvider( {
+									id: '',
+									label: tmpl.label,
+									bridge: tmpl.bridge,
+									settings: { region: '', accessKeyId: '', secretAccessKey: '' },
+									metrics: tmpl.metrics.map( ( m ) => ( {
+										id: `${ tmpl.id }.${ m.metricName.toLowerCase() }`,
+										label: m.label,
+										description: m.description,
+										namespace: tmpl.namespace,
+										metricName: m.metricName,
+										unit: m.unit,
+										stat: m.stat,
+										dimensions: {},
+										periodSeconds: 300,
+										locked: false,
+									} ) ),
+									locked: false,
+								} );
+							} else {
+								setSelectedProvider( null );
+							}
+						} }
+						options={ [
+							{ value: '', label: __( '\u2014 Select template \u2014', 'wppack-monitoring' ) },
+							...METRIC_TEMPLATES.map( ( t ) => ( { value: t.id, label: t.label } ) ),
+						] }
+					/>
+
+					{ selectedTemplate && selectedProvider && (
+						<>
+							<TextControl
+								label={ __( 'Label', 'wppack-monitoring' ) }
+								value={ selectedProvider.label }
+								onChange={ ( value ) =>
+									setSelectedProvider( ( prev ) => ( { ...prev, label: value } ) )
+								}
+							/>
+							<TextControl
+								label={ __( 'Region', 'wppack-monitoring' ) }
+								value={ selectedProvider.settings?.region || '' }
+								placeholder="ap-northeast-1"
+								onChange={ ( value ) =>
+									setSelectedProvider( ( prev ) => ( {
+										...prev,
+										settings: { ...prev.settings, region: value },
+									} ) )
+								}
+							/>
+							<TextControl
+								label={ selectedTemplate.dimensionLabel }
+								value={ dimensionValue }
+								help={ `${ __( 'Dimension key:', 'wppack-monitoring' ) } ${ selectedTemplate.dimensionKey }` }
+								onChange={ ( value ) => setDimensionValue( value ) }
+							/>
+
+							{ selectedProvider.metrics?.length > 0 && (
+								<div className="wpp-monitoring-template-metrics">
+									<h3>{ __( 'Metrics', 'wppack-monitoring' ) }</h3>
+									<table className="wpp-monitoring-modal-table">
+										<thead>
+											<tr>
+												<th>{ __( 'Label', 'wppack-monitoring' ) }</th>
+												<th>{ __( 'Description', 'wppack-monitoring' ) }</th>
+												<th>{ __( 'Namespace', 'wppack-monitoring' ) }</th>
+												<th>{ __( 'Metric', 'wppack-monitoring' ) }</th>
+												<th>{ __( 'Stat', 'wppack-monitoring' ) }</th>
+												<th>{ __( 'Unit', 'wppack-monitoring' ) }</th>
+											</tr>
+										</thead>
+										<tbody>
+											{ selectedProvider.metrics.map( ( m ) => (
+												<tr key={ m.id }>
+													<td>{ m.label }</td>
+													<td className="wpp-monitoring-table-desc">{ m.description }</td>
+													<td>{ m.namespace }</td>
+													<td>{ m.metricName }</td>
+													<td>{ m.stat }</td>
+													<td>{ m.unit }</td>
+												</tr>
+											) ) }
+										</tbody>
+									</table>
+								</div>
+							) }
+
+							<div className="wpp-monitoring-modal-actions">
+								<Button
+									variant="primary"
+									onClick={ async () => {
+										const provider = {
+											...selectedProvider,
+											id: selectedProvider.label.toLowerCase().replace( /[^a-z0-9]+/g, '-' ),
+											metrics: selectedProvider.metrics.map( ( m ) => ( {
+												...m,
+												dimensions: dimensionValue
+													? { [ selectedTemplate.dimensionKey ]: dimensionValue }
+													: {},
+											} ) ),
+										};
+										await handleSaveProvider( provider );
+										setAddMode( false );
+										setSelectedTemplate( null );
+										setDimensionValue( '' );
+										setSelectedProvider( null );
+									} }
+								>
+									{ __( 'Save', 'wppack-monitoring' ) }
+								</Button>
+							</div>
+						</>
 					) }
 				</Modal>
 			) }

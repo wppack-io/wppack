@@ -11,18 +11,30 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\AmazonMailerPlugin\Monitoring;
+namespace WpPack\Plugin\MonitoringPlugin\Discovery;
 
 use WpPack\Component\Monitoring\MetricDefinition;
 use WpPack\Component\Monitoring\MonitoringProvider;
 use WpPack\Component\Monitoring\MonitoringProviderInterface;
 use WpPack\Component\Monitoring\ProviderSettings;
 
-final class SesMonitoringProvider implements MonitoringProviderInterface
+final class SesDiscovery implements MonitoringProviderInterface
 {
     public function getProviders(): array
     {
-        $region = $this->resolveRegion();
+        $dsn = $this->resolveMailerDsn();
+
+        if ($dsn === '') {
+            return [];
+        }
+
+        $scheme = parse_url($dsn, \PHP_URL_SCHEME);
+
+        if (!\is_string($scheme) || ($scheme !== 'ses' && !str_starts_with($scheme, 'ses+'))) {
+            return [];
+        }
+
+        $region = $this->extractRegionFromDsn($dsn);
 
         return [
             new MonitoringProvider(
@@ -87,12 +99,28 @@ final class SesMonitoringProvider implements MonitoringProviderInterface
         ];
     }
 
-    private function resolveRegion(): string
+    private function resolveMailerDsn(): string
     {
-        if (\defined('WPPACK_MONITORING_SES_REGION')) {
-            return (string) \constant('WPPACK_MONITORING_SES_REGION');
+        if (\defined('MAILER_DSN')) {
+            return (string) \constant('MAILER_DSN');
         }
 
-        return $_ENV['WPPACK_MONITORING_SES_REGION'] ?? $_ENV['AWS_DEFAULT_REGION'] ?? 'us-east-1';
+        return $_ENV['MAILER_DSN'] ?? '';
+    }
+
+    /**
+     * Extract region from SES DSN host (email.{region}.amazonaws.com).
+     *
+     * Falls back to AWS_DEFAULT_REGION or us-east-1.
+     */
+    private function extractRegionFromDsn(string $dsn): string
+    {
+        $host = parse_url($dsn, \PHP_URL_HOST);
+
+        if (\is_string($host) && preg_match('/^email\.([a-z0-9-]+)\.amazonaws\.com$/', $host, $matches) === 1) {
+            return $matches[1];
+        }
+
+        return $_ENV['AWS_DEFAULT_REGION'] ?? 'us-east-1';
     }
 }

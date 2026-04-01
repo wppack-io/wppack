@@ -44,7 +44,6 @@ final class RedisCachePlugin extends AbstractPlugin
     public function register(ContainerBuilder $builder): void
     {
         $this->serviceProvider->registerAdmin($builder);
-        $this->serviceProvider->registerMonitoring($builder);
 
         if (!RedisCacheConfiguration::hasConfiguration()) {
             return;
