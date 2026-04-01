@@ -81,6 +81,13 @@ final class MonitoringDashboardPage extends AbstractAdminPage
             \dirname($this->pluginFile) . '/languages',
         );
 
+        // Translations for bundled DataViews (default text domain)
+        wp_set_script_translations(
+            'wppack-monitoring-dashboard',
+            'default',
+            \dirname($this->pluginFile) . '/languages',
+        );
+
         wp_localize_script('wppack-monitoring-dashboard', 'wppMonitoring', [
             'restUrl' => rest_url('wppack/v1/monitoring'),
             'nonce' => wp_create_nonce('wp_rest'),
