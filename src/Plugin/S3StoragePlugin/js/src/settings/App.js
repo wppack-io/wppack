@@ -299,25 +299,27 @@ export default function App() {
 					</Notice>
 				) }
 
-				<Panel>
-					{ storageOrder.map( ( name ) => {
-						const storage = storages[ name ];
-						if ( ! storage ) return null;
-						return (
-							<StoragePanel
-								key={ name }
-								name={ name }
-								storage={ storage }
-								definitions={ definitions }
-								awsRegion={ awsRegion }
-								onChange={ updateStorage }
-								onDelete={ handleDeleteStorage }
-								onRename={ handleRenameStorage }
-								isReadonly={ !! storage.readonly }
-							/>
-						);
-					} ) }
-				</Panel>
+				{ storageOrder.length > 0 && (
+					<Panel>
+						{ storageOrder.map( ( name ) => {
+							const storage = storages[ name ];
+							if ( ! storage ) return null;
+							return (
+								<StoragePanel
+									key={ name }
+									name={ name }
+									storage={ storage }
+									definitions={ definitions }
+									awsRegion={ awsRegion }
+									onChange={ updateStorage }
+									onDelete={ handleDeleteStorage }
+									onRename={ handleRenameStorage }
+									isReadonly={ !! storage.readonly }
+								/>
+							);
+						} ) }
+					</Panel>
+				) }
 
 				<div className="wpp-storage-add-storage">
 					<SelectControl
@@ -353,7 +355,7 @@ export default function App() {
 						variant="primary"
 						onClick={ handleSave }
 						isBusy={ saving }
-						disabled={ saving || storageOrder.length === 0 }
+						disabled={ saving }
 					>
 						{ saving ? __( 'Saving…', 'wppack-storage' ) : __( 'Save Settings', 'wppack-storage' ) }
 					</Button>
