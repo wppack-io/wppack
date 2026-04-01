@@ -132,6 +132,8 @@ jobs:
 
       - name: Run tests
         run: vendor/bin/phpunit --colors=always --coverage-clover coverage.xml --log-junit junit.xml
+        env:
+          WPPACK_TEST_DB_PORT: '3306'
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5

@@ -4,13 +4,21 @@ services:
     platform: linux/amd64
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: wppack_test
+      MYSQL_DATABASE: wppack_dev
     ports:
       - '3306:3306'
+    volumes:
+      - mysql-data:/var/lib/mysql
+  mysql-test:
+    image: mysql:8.0
+    platform: linux/amd64
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: wppack_test
+    ports:
+      - '3307:3306'
     tmpfs:
       - /var/lib/mysql
-    volumes:
-      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
   valkey:
     image: valkey/valkey:8
     ports:
@@ -80,3 +88,6 @@ services:
       - '8081:8080'
     volumes:
       - ./docker/keycloak/master-realm.json:/opt/keycloak/data/import/master-realm.json:ro
+
+volumes:
+  mysql-data:

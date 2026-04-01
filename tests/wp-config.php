@@ -16,7 +16,7 @@ define('ABSPATH', dirname(__DIR__) . '/web/wp/');
 define('DB_NAME', 'wppack_test');
 define('DB_USER', 'root');
 define('DB_PASSWORD', 'root');
-define('DB_HOST', '127.0.0.1');
+define('DB_HOST', '127.0.0.1:' . ($_SERVER['WPPACK_TEST_DB_PORT'] ?? '3307'));
 define('DB_CHARSET', 'utf8');
 define('DB_COLLATE', '');
 
