@@ -18,6 +18,10 @@ module.exports = {
 				__dirname,
 				'node_modules/@wordpress/dataviews/build-style'
 			),
+			'@wordpress/admin-ui/build-style': path.resolve(
+				__dirname,
+				'node_modules/@wordpress/admin-ui/build-style'
+			),
 		},
 	},
 };

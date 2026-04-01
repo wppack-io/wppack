@@ -1,5 +1,6 @@
 import { createRoot } from '@wordpress/element';
 import App from './App';
+import './style-admin-ui.css';
 import './style-dataviews.css';
 import './style.css';
 

@@ -1,6 +1,6 @@
 import { useState } from '@wordpress/element';
 import { TabPanel } from '@wordpress/components';
-import PageLayout from './components/PageLayout';
+import { Page } from '@wordpress/admin-ui';
 import DashboardPage from './pages/DashboardPage';
 import SettingsPage from './pages/SettingsPage';
 
@@ -13,8 +13,9 @@ export default function App() {
 	];
 
 	return (
-		<PageLayout
+		<Page
 			title="Infrastructure Monitoring"
+			hasPadding
 			actions={
 				<TabPanel
 					tabs={ tabs }
@@ -27,6 +28,6 @@ export default function App() {
 		>
 			{ activeTab === 'dashboard' && <DashboardPage /> }
 			{ activeTab === 'settings' && <SettingsPage /> }
-		</PageLayout>
+		</Page>
 	);
 }
