@@ -408,16 +408,22 @@ export default function App() {
 						options={ providerOptions }
 						__nextHasNoMarginBottom
 					/>
-					{ newProviderType && (
+					{ newProviderType && ( () => {
+						const isLocal = definitions[ newProviderType ]?.scheme === 'local';
+						const idLabel = isLocal
+							? __( 'Root Path', 'wppack-storage' )
+							: ( FIELD_LABELS.bucket || 'Bucket' );
+						return (
 						<>
 							<TextControl
-								label={ FIELD_LABELS.bucket || 'Bucket' }
+								label={ idLabel }
 								value={ newBucket }
-								onChange={ ( val ) => setNewBucket( val.toLowerCase().replace( /[^a-z0-9._-]+/g, '' ) ) }
+								placeholder={ isLocal ? '/var/www' : '' }
+								onChange={ ( val ) => setNewBucket( isLocal ? val : val.toLowerCase().replace( /[^a-z0-9._-]+/g, '' ) ) }
 								__nextHasNoMarginBottom
 							/>
 							{ ( definitions[ newProviderType ]?.fields || [] )
-								.filter( ( f ) => f !== 'bucket' && f !== 'container' )
+								.filter( ( f ) => ! [ 'bucket', 'container', 'rootDir' ].includes( f ) )
 								.map( ( fieldKey ) => {
 									const isSensitive = [ 'secretKey', 'accountKey', 'keyFile', 'connectionString' ].includes( fieldKey );
 									const stateMap = { region: [ newRegion, setNewRegion ], accessKey: [ newAccessKey, setNewAccessKey ], secretKey: [ newSecretKey, setNewSecretKey ] };
@@ -434,7 +440,8 @@ export default function App() {
 									);
 								} ) }
 						</>
-					) }
+					);
+					} )() }
 					{ newUri && (
 						<div className="wpp-storage-uri-preview">
 							{ __( 'URI Preview:', 'wppack-storage' ) }

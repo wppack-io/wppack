@@ -65,7 +65,7 @@ final class S3StorageSettingsController extends AbstractRestController
             $definitions['local'] = [
                 'label' => 'Local Filesystem',
                 'scheme' => 'local',
-                'fields' => ['rootDir', 'publicUrl'],
+                'fields' => ['rootDir'],
             ];
         }
 

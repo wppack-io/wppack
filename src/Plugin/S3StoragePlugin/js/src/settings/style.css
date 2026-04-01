@@ -118,6 +118,10 @@
 	background: #fafafa;
 }
 
+.wpp-storage-add-section .components-base-control {
+	margin-bottom: 16px;
+}
+
 .wpp-storage-add-row {
 	display: flex;
 	gap: 12px;
