@@ -43,11 +43,6 @@ const PROVIDER_FIELDS = [
 		label: __( 'Metrics', 'wppack-monitoring' ),
 		type: 'integer',
 		getValue: ( { item } ) => item.metrics?.length || 0,
-		render: ( { item } ) => (
-			<span className="wpp-monitoring-align-end">
-				{ item.metrics?.length || 0 }
-			</span>
-		),
 	},
 ];
 

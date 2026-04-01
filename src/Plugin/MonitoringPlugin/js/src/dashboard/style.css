@@ -218,12 +218,6 @@
 	fill: currentColor;
 }
 
-.wpp-monitoring-align-end {
-	flex: 1;
-	display: flex;
-	justify-content: flex-end;
-}
-
 /* ── Modal tables (DataViews pattern) ──── */
 .wpp-monitoring-modal-table {
 	width: calc(100% + 64px);
