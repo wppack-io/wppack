@@ -19,6 +19,23 @@ export const METRIC_TEMPLATES = [
 		],
 	},
 	{
+		id: 'aurora-cluster',
+		label: 'Aurora Cluster',
+		namespace: 'AWS/RDS',
+		bridge: 'cloudwatch',
+		dimensionKey: 'DBClusterIdentifier',
+		dimensionLabel: __( 'DB Cluster ID', 'wppack-monitoring' ),
+		dimensionPlaceholder: 'prod-aurora-cluster',
+		metrics: [
+			{ metricName: 'CPUUtilization', label: __( 'CPU Utilization', 'wppack-monitoring' ), description: __( 'CPU usage percentage', 'wppack-monitoring' ), stat: 'Average', unit: 'Percent' },
+			{ metricName: 'DatabaseConnections', label: __( 'DB Connections', 'wppack-monitoring' ), description: __( 'Active database connections', 'wppack-monitoring' ), stat: 'Average', unit: 'Count' },
+			{ metricName: 'FreeableMemory', label: __( 'Freeable Memory', 'wppack-monitoring' ), description: __( 'Available RAM', 'wppack-monitoring' ), stat: 'Average', unit: 'Bytes' },
+			{ metricName: 'ServerlessDatabaseCapacity', label: __( 'ACU', 'wppack-monitoring' ), description: __( 'Current Aurora Capacity Units (Serverless)', 'wppack-monitoring' ), stat: 'Average', unit: 'Count' },
+			{ metricName: 'ACUUtilization', label: __( 'ACU Utilization', 'wppack-monitoring' ), description: __( 'ACU usage percentage (Serverless)', 'wppack-monitoring' ), stat: 'Average', unit: 'Percent' },
+			{ metricName: 'VolumeBytesUsed', label: __( 'Storage Used', 'wppack-monitoring' ), description: __( 'Cluster storage volume size', 'wppack-monitoring' ), stat: 'Average', unit: 'Bytes' },
+		],
+	},
+	{
 		id: 'elasticache',
 		label: 'ElastiCache (Redis)',
 		namespace: 'AWS/ElastiCache',

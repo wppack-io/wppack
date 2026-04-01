@@ -435,7 +435,6 @@ export default function SettingsPage() {
 										settings: { ...prev.settings, region: value },
 									} ) )
 								}
-								__nextHasNoMarginBottom
 							/>
 							<TextControl
 								label={ selectedTemplate.dimensionLabel + ' *' }
@@ -443,7 +442,6 @@ export default function SettingsPage() {
 								placeholder={ selectedTemplate.dimensionPlaceholder || '' }
 								help={ selectedTemplate.dimensionKey }
 								onChange={ ( value ) => setDimensionValue( value ) }
-								__nextHasNoMarginBottom
 							/>
 
 							{ selectedProvider.metrics?.length > 0 && (
