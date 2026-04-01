@@ -22,8 +22,8 @@ use WpPack\Component\Role\Attribute\IsGranted;
     slug: 'wppack-monitoring',
     label: 'Infrastructure Monitoring',
     menuLabel: 'Monitoring',
-    parent: 'tools.php',
-    position: 100,
+    icon: 'dashicons-chart-area',
+    position: 90,
     scope: AdminScope::Auto,
 )]
 #[IsGranted('manage_options')]
