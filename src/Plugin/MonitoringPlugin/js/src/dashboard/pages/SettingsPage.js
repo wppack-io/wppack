@@ -114,7 +114,12 @@ export default function SettingsPage() {
 			'locked',
 			'metricsCount',
 		],
-		layout: { density: 'comfortable' },
+		layout: {
+			density: 'comfortable',
+			styles: {
+				metricsCount: { align: 'end' },
+			},
+		},
 	} );
 
 	const fetchProviders = async () => {
@@ -255,29 +260,58 @@ export default function SettingsPage() {
 					) }
 					<DataForm
 						data={ selectedProvider }
-						fields={ PROVIDER_FORM_FIELDS.map( ( f ) => ( {
-							...f,
-							readOnly: selectedProvider.locked,
-						} ) ) }
-						form={ PROVIDER_FORM }
-						onChange={ ( edits ) => {
-							setSelectedProvider( ( prev ) => {
-								const next = { ...prev };
-								for ( const [ key, value ] of Object.entries(
-									edits
-								) ) {
-									if ( key === 'settings' ) {
-										next.settings = {
-											...next.settings,
-											...value,
-										};
-									} else {
-										next[ key ] = value;
+						fields={
+							selectedProvider.locked
+								? PROVIDER_FORM_FIELDS.filter(
+										( f ) =>
+											f.id !== 'settings.accessKeyId' &&
+											f.id !== 'settings.secretAccessKey'
+									).map( ( f ) => ( { ...f, Edit: 'text' } ) )
+								: PROVIDER_FORM_FIELDS
+						}
+						form={
+							selectedProvider.locked
+								? {
+										fields: [
+											{
+												id: 'general',
+												label: 'General',
+												children: [ 'label', 'bridge' ],
+												layout: { type: 'regular' },
+											},
+											{
+												id: 'aws',
+												label: 'AWS Settings',
+												children: [ 'settings.region' ],
+												layout: { type: 'regular' },
+											},
+										],
 									}
-								}
-								return next;
-							} );
-						} }
+								: PROVIDER_FORM
+						}
+						onChange={
+							selectedProvider.locked
+								? () => {}
+								: ( edits ) => {
+										setSelectedProvider( ( prev ) => {
+											const next = { ...prev };
+											for ( const [
+												key,
+												value,
+											] of Object.entries( edits ) ) {
+												if ( key === 'settings' ) {
+													next.settings = {
+														...next.settings,
+														...value,
+													};
+												} else {
+													next[ key ] = value;
+												}
+											}
+											return next;
+										} );
+									}
+						}
 					/>
 
 					{ /* Metrics table */ }
