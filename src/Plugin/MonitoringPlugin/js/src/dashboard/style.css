@@ -167,6 +167,19 @@
 	margin-top: 4px;
 }
 
+/* ── DataViews overrides ───────────────── */
+.dataviews-settings-section__title {
+	font-size: 11px !important;
+	font-weight: 500 !important;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.dataviews-settings-section__sidebar {
+	width: auto !important;
+	min-width: 80px;
+}
+
 /* ── Settings ──────────────────────────── */
 .wpp-monitoring-settings .components-notice {
 	margin-bottom: 16px;

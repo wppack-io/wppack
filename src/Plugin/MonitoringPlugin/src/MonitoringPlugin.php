@@ -20,6 +20,7 @@ use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\Hook\DependencyInjection\RegisterHookSubscribersPass;
 use WpPack\Component\Kernel\AbstractPlugin;
 use WpPack\Component\Kernel\Attribute\TextDomain;
+use WpPack\Component\Monitoring\DependencyInjection\RegisterMetricBridgesPass;
 use WpPack\Component\Monitoring\DependencyInjection\RegisterMetricProvidersPass;
 use WpPack\Component\Monitoring\Rest\MonitoringController;
 use WpPack\Component\Rest\DependencyInjection\RegisterRestControllersPass;
@@ -51,6 +52,7 @@ final class MonitoringPlugin extends AbstractPlugin
     {
         return [
             new RegisterMetricProvidersPass(),
+            new RegisterMetricBridgesPass(),
             new RegisterRestControllersPass(),
             new RegisterHookSubscribersPass(),
         ];

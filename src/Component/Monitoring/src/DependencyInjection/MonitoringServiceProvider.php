@@ -16,6 +16,7 @@ namespace WpPack\Component\Monitoring\DependencyInjection;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
+use WpPack\Component\Monitoring\Bridge\CloudWatch\CloudWatchMetricProvider;
 use WpPack\Component\Monitoring\MonitoringCollector;
 use WpPack\Component\Monitoring\MonitoringRegistry;
 use WpPack\Component\Monitoring\MonitoringStore;
@@ -56,6 +57,12 @@ final class MonitoringServiceProvider implements ServiceProviderInterface
             ->addArgument([])
             ->addArgument(new Reference(TransientManager::class))
             ->addArgument($this->cacheTtl);
+
+        // Auto-discover bridges
+        if (class_exists(CloudWatchMetricProvider::class)) {
+            $builder->register(CloudWatchMetricProvider::class)
+                ->addTag(RegisterMetricBridgesPass::TAG, ['name' => 'cloudwatch']);
+        }
 
         // REST controllers
         $builder->register(MonitoringController::class)
