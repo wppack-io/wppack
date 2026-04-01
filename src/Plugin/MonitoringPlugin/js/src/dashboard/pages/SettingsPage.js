@@ -1,6 +1,7 @@
 import { DataViews, DataForm } from '@wordpress/dataviews/wp';
 import { useState, useEffect } from '@wordpress/element';
-import { Button, Spinner, Notice, Modal } from '@wordpress/components';
+import { Button, Spinner, Notice, Modal, Icon } from '@wordpress/components';
+import { lock } from '@wordpress/icons';
 import apiFetch from '@wordpress/api-fetch';
 
 const PROVIDER_FIELDS = [
@@ -27,7 +28,14 @@ const PROVIDER_FIELDS = [
 		id: 'locked',
 		label: 'Source',
 		type: 'text',
-		render: ( { item } ) => ( item.locked ? '\uD83D\uDD12 Plugin' : 'Custom' ),
+		render: ( { item } ) =>
+			item.locked ? (
+				<span className="wpp-monitoring-source-badge">
+					<Icon icon={ lock } size={ 14 } /> Plugin
+				</span>
+			) : (
+				'Custom'
+			),
 	},
 	{
 		id: 'metricsCount',
@@ -152,9 +160,8 @@ export default function SettingsPage() {
 	const actions = [
 		{
 			id: 'view',
-			label: 'View',
-			isPrimary: true,
-			icon: 'visibility',
+			label: 'View Details',
+			isPrimary: false,
 			callback: ( items ) => {
 				if ( items[ 0 ] ) {
 					setSelectedProvider( items[ 0 ] );
@@ -277,7 +284,7 @@ export default function SettingsPage() {
 					{ selectedProvider.metrics?.length > 0 && (
 						<div className="wpp-monitoring-metrics-list">
 							<h3>Metrics</h3>
-							<table className="wpp-monitoring-table">
+							<table className="widefat striped">
 								<thead>
 									<tr>
 										<th>Label</th>

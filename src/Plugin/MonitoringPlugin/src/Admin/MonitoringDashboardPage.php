@@ -62,7 +62,7 @@ final class MonitoringDashboardPage extends AbstractAdminPage
         );
 
         wp_enqueue_style(
-            'wppack-monitoring-dataviews',
+            'wppack-monitoring-vendor',
             plugins_url('js/build/dashboard.css', $this->pluginFile),
             ['wp-components'],
             $asset['version'],
@@ -71,7 +71,7 @@ final class MonitoringDashboardPage extends AbstractAdminPage
         wp_enqueue_style(
             'wppack-monitoring-dashboard',
             plugins_url('js/build/style-dashboard.css', $this->pluginFile),
-            ['wp-components', 'wppack-monitoring-dataviews'],
+            ['wp-components', 'wppack-monitoring-vendor'],
             $asset['version'],
         );
 

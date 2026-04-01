@@ -130,41 +130,22 @@
 	margin-top: 4px;
 }
 
-/* ── DataViews table styles ────────────── */
-.dataviews-view-table {
-	width: 100%;
-	border-collapse: collapse;
+/* ── DataViews overrides for WP admin ─── */
+/* Reset editor-specific 48px padding to standard admin padding */
+.dataviews__view-actions,
+.dataviews-filters__container {
+	padding-left: 0;
+	padding-right: 0;
 }
 
-.dataviews-view-table th {
-	text-align: left;
-	font-size: 13px;
-	font-weight: 600;
-	color: #1d2327;
-	padding: 8px 12px;
-	border-bottom: 1px solid #c3c4c7;
+.dataviews-view-table tr th:first-child,
+.dataviews-view-table tr td:first-child {
+	padding-left: 8px;
 }
 
-.dataviews-view-table td {
-	padding: 8px 12px;
-	border-bottom: 1px solid #f0f0f0;
-	font-size: 13px;
-	vertical-align: middle;
-}
-
-.dataviews-view-table tbody tr:hover {
-	background: #f6f7f7;
-	cursor: pointer;
-}
-
-.dataviews-view-table .dataviews-view-table__checkbox-column {
-	width: 30px;
-}
-
-/* DataViews settings panel */
-.dataviews-settings-section {
-	grid-template-columns: auto 1fr !important;
-	gap: 16px !important;
+.dataviews-view-table tr th:last-child,
+.dataviews-view-table tr td:last-child {
+	padding-right: 8px;
 }
 
 .dataviews-settings-section__title {
@@ -173,17 +154,6 @@
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
 	white-space: nowrap;
-}
-
-/* DataViews search and toolbar */
-.dataviews-search {
-	max-width: 280px;
-}
-
-.dataviews-filters__view-actions {
-	display: flex;
-	align-items: center;
-	gap: 8px;
 }
 
 /* ── Settings ──────────────────────────── */
@@ -207,30 +177,26 @@
 	margin-bottom: 8px;
 }
 
-.wpp-monitoring-table {
-	width: 100%;
-	border-collapse: collapse;
-	font-size: 13px;
+.wpp-monitoring-metrics-list .widefat {
+	margin-top: 8px;
 }
 
-.wpp-monitoring-table th,
-.wpp-monitoring-table td {
-	text-align: left;
-	padding: 6px 8px;
-	border-bottom: 1px solid #e0e0e0;
-}
-
-.wpp-monitoring-table th {
-	font-weight: 600;
-	color: #1d2327;
-	background: #f9f9f9;
-}
-
-.wpp-monitoring-table-desc {
+.wpp-monitoring-metrics-list td.wpp-monitoring-table-desc {
 	color: #757575;
 	font-size: 12px;
 	word-break: break-word;
-	max-width: 200px;
+	max-width: 240px;
+}
+
+.wpp-monitoring-source-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 2px;
+	color: #757575;
+}
+
+.wpp-monitoring-source-badge svg {
+	fill: currentColor;
 }
 
 .wpp-monitoring-readonly-notice {
