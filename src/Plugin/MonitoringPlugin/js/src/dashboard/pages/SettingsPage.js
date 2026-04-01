@@ -14,7 +14,7 @@ const PROVIDER_FIELDS = [
 	},
 	{
 		id: 'bridge',
-		label: __( 'Bridge', 'wppack-monitoring' ),
+		label: __( 'Provider', 'wppack-monitoring' ),
 		type: 'text',
 		render: ( { item } ) =>
 			item.bridge === 'cloudwatch' ? __( 'CloudWatch', 'wppack-monitoring' ) : item.bridge,
@@ -51,7 +51,7 @@ const PROVIDER_FORM_FIELDS = [
 	{ id: 'label', label: __( 'Label', 'wppack-monitoring' ), type: 'text' },
 	{
 		id: 'bridge',
-		label: __( 'Bridge', 'wppack-monitoring' ),
+		label: __( 'Provider', 'wppack-monitoring' ),
 		type: 'text',
 		elements: [ { value: 'cloudwatch', label: __( 'AWS CloudWatch', 'wppack-monitoring' ) } ],
 	},
@@ -263,7 +263,7 @@ export default function SettingsPage() {
 									<td>{ selectedProvider.label }</td>
 								</tr>
 								<tr>
-									<th>{ __( 'Bridge', 'wppack-monitoring' ) }</th>
+									<th>{ __( 'Provider', 'wppack-monitoring' ) }</th>
 									<td>{ selectedProvider.bridge === 'cloudwatch' ? 'AWS CloudWatch' : selectedProvider.bridge }</td>
 								</tr>
 								<tr>

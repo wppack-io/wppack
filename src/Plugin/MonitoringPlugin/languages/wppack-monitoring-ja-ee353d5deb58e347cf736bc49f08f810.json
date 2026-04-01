@@ -24,7 +24,7 @@
             "Save": ["保存"],
             "This provider is managed by a plugin and cannot be edited.": ["このプロバイダはプラグインによって管理されており、編集できません。"],
             "Label": ["ラベル"],
-            "Bridge": ["ブリッジ"],
+            "Provider": ["プロバイダ"],
             "Region": ["リージョン"],
             "Source": ["ソース"],
             "Metrics": ["メトリクス"],
