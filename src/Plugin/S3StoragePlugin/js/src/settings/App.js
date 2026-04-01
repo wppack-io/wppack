@@ -85,21 +85,37 @@ function schemeFromUri( uri ) {
 	return match ? match[ 1 ] : '';
 }
 
+const FIELD_LABELS = {
+	bucket: __( 'Bucket', 'wppack-storage' ),
+	region: __( 'Region', 'wppack-storage' ),
+	accessKey: __( 'Access Key', 'wppack-storage' ),
+	secretKey: __( 'Secret Key', 'wppack-storage' ),
+	account: __( 'Account', 'wppack-storage' ),
+	container: __( 'Container', 'wppack-storage' ),
+	accountKey: __( 'Account Key', 'wppack-storage' ),
+	connectionString: __( 'Connection String', 'wppack-storage' ),
+	project: __( 'Project', 'wppack-storage' ),
+	keyFile: __( 'Key File', 'wppack-storage' ),
+	rootDir: __( 'Root Directory', 'wppack-storage' ),
+	publicUrl: __( 'Public URL', 'wppack-storage' ),
+};
+
 function StoragePanel( { uri, storage, definitions, onChange, onDelete, isReadonly } ) {
 	const scheme = schemeFromUri( uri );
 	const def = Object.values( definitions ).find( ( d ) => d.scheme === scheme ) || {};
 	const dsnFields = parseDsn( storage.dsn );
 
+	const sensitiveFields = [ 'secretKey', 'accountKey', 'keyFile', 'connectionString', 'accessKey' ];
+
 	const updateField = ( key ) => ( val ) => {
 		const bucket = bucketFromUri( uri );
 		const newFields = { ...dsnFields, [ key ]: val };
 		// Preserve masked values — don't overwrite server-side secrets
-		if ( dsnFields.accessKey === MASKED && key !== 'accessKey' ) {
-			newFields.accessKey = MASKED;
-		}
-		if ( dsnFields.secretKey === MASKED && key !== 'secretKey' ) {
-			newFields.secretKey = MASKED;
-		}
+		sensitiveFields.forEach( ( sf ) => {
+			if ( sf !== key && dsnFields[ sf ] === MASKED ) {
+				newFields[ sf ] = MASKED;
+			}
+		} );
 		onChange( uri, {
 			...storage,
 			dsn: buildDsn( scheme, bucket, newFields ),
@@ -140,29 +156,33 @@ function StoragePanel( { uri, storage, definitions, onChange, onDelete, isReadon
 					__nextHasNoMarginBottom
 				/>
 			</div>
-			<TextControl
-				label={ __( 'Region', 'wppack-storage' ) }
-				value={ dsnFields.region || '' }
-				onChange={ updateField( 'region' ) }
-				disabled={ isReadonly }
-				__nextHasNoMarginBottom
-			/>
-			<TextControl
-				label={ __( 'Access Key', 'wppack-storage' ) }
-				type="password"
-				value={ dsnFields.accessKey || '' }
-				onChange={ updateField( 'accessKey' ) }
-				disabled={ isReadonly }
-				__nextHasNoMarginBottom
-			/>
-			<TextControl
-				label={ __( 'Secret Key', 'wppack-storage' ) }
-				type="password"
-				value={ dsnFields.secretKey || '' }
-				onChange={ updateField( 'secretKey' ) }
-				disabled={ isReadonly }
-				__nextHasNoMarginBottom
-			/>
+			{ ( def.fields || [] ).map( ( fieldKey ) => {
+				const isBucket = [ 'bucket', 'container' ].includes( fieldKey );
+				if ( isBucket ) {
+					return (
+						<TextControl
+							key={ fieldKey }
+							label={ FIELD_LABELS[ fieldKey ] || fieldKey }
+							value={ bucketFromUri( uri ) }
+							disabled={ true }
+							onChange={ () => {} }
+							__nextHasNoMarginBottom
+						/>
+					);
+				}
+				const isSensitive = [ 'secretKey', 'accountKey', 'keyFile', 'connectionString' ].includes( fieldKey );
+				return (
+					<TextControl
+						key={ fieldKey }
+						label={ FIELD_LABELS[ fieldKey ] || fieldKey }
+						type={ isSensitive ? 'password' : 'text' }
+						value={ dsnFields[ fieldKey ] || '' }
+						onChange={ updateField( fieldKey ) }
+						disabled={ isReadonly }
+						__nextHasNoMarginBottom
+					/>
+				);
+			} ) }
 			<TextControl
 				label={ __( 'CDN URL', 'wppack-storage' ) }
 				help={ __( 'CDN base URL for public file access.', 'wppack-storage' ) }
