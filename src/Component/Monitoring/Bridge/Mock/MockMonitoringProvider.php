@@ -54,6 +54,17 @@ final class MockMonitoringProvider implements MonitoringProviderInterface
                 ],
                 locked: true,
             ),
+            new MonitoringProvider(
+                id: 'mock-s3',
+                label: 'S3 Storage (Mock)',
+                bridge: 'mock',
+                settings: new ProviderSettings(region: 'ap-northeast-1'),
+                metrics: [
+                    new MetricDefinition(id: 'mock.s3.bucket_size', label: 'Bucket Size', description: 'Total bucket size', namespace: 'AWS/S3', metricName: 'BucketSizeBytes', unit: 'Bytes', stat: 'Average', dimensions: ['BucketName' => 'my-bucket', 'StorageType' => 'StandardStorage'], locked: true),
+                    new MetricDefinition(id: 'mock.s3.object_count', label: 'Object Count', description: 'Total number of objects', namespace: 'AWS/S3', metricName: 'NumberOfObjects', unit: 'Count', stat: 'Average', dimensions: ['BucketName' => 'my-bucket', 'StorageType' => 'AllStorageTypes'], locked: true),
+                ],
+                locked: true,
+            ),
         ];
     }
 }

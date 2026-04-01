@@ -26,26 +26,32 @@ export default function MetricCard( { metric, result } ) {
 		if ( val === null ) {
 			return '\u2014';
 		}
+
+		const u = ( text ) => <span className="wpp-monitoring-card-unit">{ text }</span>;
+
 		if ( unit === 'Percent' ) {
-			return `${ val.toFixed( 1 ) }%`;
+			return <>{ val.toFixed( 1 ) }{ u( '%' ) }</>;
 		}
 		if ( unit === 'Bytes' ) {
 			if ( val >= 1_073_741_824 ) {
-				return `${ ( val / 1_073_741_824 ).toFixed( 1 ) } GB`;
+				return <>{ ( val / 1_073_741_824 ).toFixed( 1 ) } { u( 'GB' ) }</>;
 			}
 			if ( val >= 1_048_576 ) {
-				return `${ ( val / 1_048_576 ).toFixed( 1 ) } MB`;
+				return <>{ ( val / 1_048_576 ).toFixed( 1 ) } { u( 'MB' ) }</>;
 			}
 			if ( val >= 1024 ) {
-				return `${ ( val / 1024 ).toFixed( 1 ) } KB`;
+				return <>{ ( val / 1024 ).toFixed( 1 ) } { u( 'KB' ) }</>;
 			}
-			return `${ val.toFixed( 0 ) } B`;
+			return <>{ val.toFixed( 0 ) } { u( 'B' ) }</>;
+		}
+		if ( unit === 'Milliseconds' ) {
+			return <>{ val.toFixed( 0 ) } { u( 'ms' ) }</>;
 		}
 		if ( val >= 1_000_000 ) {
-			return `${ ( val / 1_000_000 ).toFixed( 1 ) }M`;
+			return <>{ ( val / 1_000_000 ).toFixed( 1 ) } { u( 'M' ) }</>;
 		}
 		if ( val >= 1000 ) {
-			return `${ ( val / 1000 ).toFixed( 1 ) }K`;
+			return <>{ ( val / 1000 ).toFixed( 1 ) } { u( 'K' ) }</>;
 		}
 		return val.toFixed( 0 );
 	};
