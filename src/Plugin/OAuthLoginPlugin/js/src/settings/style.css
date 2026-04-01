@@ -1,3 +1,21 @@
+/* ── Reset WP admin chrome ─────────────── */
+.settings_page_wppack-oauth-login #wpcontent {
+	padding-left: 0;
+}
+
+.settings_page_wppack-oauth-login #wpbody-content {
+	padding-bottom: 0;
+}
+
+.settings_page_wppack-oauth-login #wpfooter {
+	display: none;
+}
+
+/* ── Admin UI Page overrides ──────────── */
+.admin-ui-page {
+	min-height: calc(100vh - 32px);
+}
+
 .settings_page_wppack-oauth-login #wpcontent {
     --wp-admin-theme-color: #3858e9;
     --wp-admin-theme-color--rgb: 56, 88, 233;

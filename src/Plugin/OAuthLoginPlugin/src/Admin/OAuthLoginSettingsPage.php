@@ -62,9 +62,16 @@ final class OAuthLoginSettingsPage extends AbstractAdminPage
         );
 
         wp_enqueue_style(
+            'wppack-oauth-login-vendor',
+            plugins_url('js/build/settings.css', $this->pluginFile),
+            ['wp-components'],
+            $asset['version'],
+        );
+
+        wp_enqueue_style(
             'wppack-oauth-login-settings',
             plugins_url('js/build/style-settings.css', $this->pluginFile),
-            ['wp-components'],
+            ['wp-components', 'wppack-oauth-login-vendor'],
             $asset['version'],
         );
 

@@ -62,9 +62,16 @@ final class RedisCacheSettingsPage extends AbstractAdminPage
         );
 
         wp_enqueue_style(
+            'wppack-cache-vendor',
+            plugins_url('js/build/settings.css', $this->pluginFile),
+            ['wp-components'],
+            $asset['version'],
+        );
+
+        wp_enqueue_style(
             'wppack-cache-settings',
             plugins_url('js/build/style-settings.css', $this->pluginFile),
-            ['wp-components'],
+            ['wp-components', 'wppack-cache-vendor'],
             $asset['version'],
         );
 

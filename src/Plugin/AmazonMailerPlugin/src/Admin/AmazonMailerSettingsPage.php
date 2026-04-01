@@ -62,9 +62,16 @@ final class AmazonMailerSettingsPage extends AbstractAdminPage
         );
 
         wp_enqueue_style(
+            'wppack-mailer-vendor',
+            plugins_url('js/build/settings.css', $this->pluginFile),
+            ['wp-components'],
+            $asset['version'],
+        );
+
+        wp_enqueue_style(
             'wppack-mailer-settings',
             plugins_url('js/build/style-settings.css', $this->pluginFile),
-            ['wp-components'],
+            ['wp-components', 'wppack-mailer-vendor'],
             $asset['version'],
         );
 

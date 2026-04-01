@@ -62,9 +62,16 @@ final class S3StorageSettingsPage extends AbstractAdminPage
         );
 
         wp_enqueue_style(
+            'wppack-storage-vendor',
+            plugins_url('js/build/settings.css', $this->pluginFile),
+            ['wp-components'],
+            $asset['version'],
+        );
+
+        wp_enqueue_style(
             'wppack-storage-settings',
             plugins_url('js/build/style-settings.css', $this->pluginFile),
-            ['wp-components'],
+            ['wp-components', 'wppack-storage-vendor'],
             $asset['version'],
         );
 

@@ -62,9 +62,16 @@ final class ScimSettingsPage extends AbstractAdminPage
         );
 
         wp_enqueue_style(
+            'wppack-scim-vendor',
+            plugins_url('js/build/settings.css', $this->pluginFile),
+            ['wp-components'],
+            $asset['version'],
+        );
+
+        wp_enqueue_style(
             'wppack-scim-settings',
             plugins_url('js/build/style-settings.css', $this->pluginFile),
-            ['wp-components'],
+            ['wp-components', 'wppack-scim-vendor'],
             $asset['version'],
         );
 
