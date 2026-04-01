@@ -99,7 +99,7 @@ function PathField( { id, label, field, value, onChange, prefix, disabled } ) {
 	);
 }
 
-function ProviderPanel( { name, provider, onChange, onDelete, onRename, onMoveUp, onMoveDown, isFirst, isLast, isReadonly, icons, allStyles, buttonDisplay, definitions } ) {
+function ProviderPanel( { name, provider, onChange, onDelete, onRename, onMoveUp, onMoveDown, isFirst, isLast, isReadonly, icons, allStyles, buttonDisplay, definitions, initialOpen } ) {
 	const [ editName, setEditName ] = useState( name );
 	const f = provider.fields || {};
 	const icon = icons[ f.type ] || icons[ name ] || provider.icon;
@@ -136,7 +136,7 @@ function ProviderPanel( { name, provider, onChange, onDelete, onRename, onMoveUp
 	return (
 		<PanelBody
 			title={ titleElement }
-			initialOpen={ false }
+			initialOpen={ initialOpen }
 			className="wpp-oauth-provider-panel"
 		>
 			{ isReadonly && (
@@ -381,6 +381,7 @@ export default function App() {
 	const [ deletedProviders, setDeletedProviders ] = useState( [] );
 	const [ providerOrder, setProviderOrder ] = useState( [] );
 	const [ newProviderType, setNewProviderType ] = useState( '' );
+	const [ lastAdded, setLastAdded ] = useState( null );
 	const [ saving, setSaving ] = useState( false );
 	const [ notice, setNotice ] = useState( null );
 	const [ loading, setLoading ] = useState( true );
@@ -507,6 +508,7 @@ export default function App() {
 			[ name ]: defaultFields,
 		} ) );
 		setProviderOrder( ( prev ) => [ ...prev, name ] );
+		setLastAdded( name );
 		setNewProviderType( '' );
 		setNewProviderName( '' );
 	};
@@ -718,6 +720,7 @@ export default function App() {
 								allStyles={ styles }
 								buttonDisplay={ globalForm.buttonDisplay || 'icon-text' }
 								definitions={ definitions }
+								initialOpen={ name === lastAdded }
 							/>
 						);
 					}
