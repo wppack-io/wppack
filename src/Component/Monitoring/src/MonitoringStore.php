@@ -17,8 +17,8 @@ use WpPack\Component\Option\OptionManager;
 
 class MonitoringStore implements MonitoringProviderInterface
 {
-    private const string OPTION_NAME = 'wppack_monitoring_providers';
-    private const string MASKED_VALUE = '********';
+    private const OPTION_NAME = 'wppack_monitoring_providers';
+    private const MASKED_VALUE = '********';
 
     public function __construct(
         private readonly OptionManager $options,

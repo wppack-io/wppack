@@ -55,7 +55,7 @@ final class RedisCacheSettingsPageTest extends TestCase
         $page = new RedisCacheSettingsPage();
 
         self::assertStringContainsString('wppack-cache-settings', $page());
-        self::assertStringContainsString('<div class="wrap">', $page());
+        self::assertStringContainsString('<div id="wppack-cache-settings"></div>', $page());
     }
 
     #[Test]

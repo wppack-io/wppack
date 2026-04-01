@@ -241,7 +241,7 @@ final class S3DiscoveryTest extends TestCase
         $providers = $discovery->getProviders();
         $metrics = $providers[0]->metrics;
 
-        $metricNames = array_map(fn ($m) => $m->metricName, $metrics);
+        $metricNames = array_map(fn($m) => $m->metricName, $metrics);
 
         self::assertContains('BucketSizeBytes', $metricNames);
         self::assertContains('NumberOfObjects', $metricNames);

@@ -55,7 +55,7 @@ final class SamlLoginSettingsPageTest extends TestCase
         $page = new SamlLoginSettingsPage();
 
         self::assertStringContainsString('wppack-saml-login-settings', $page());
-        self::assertStringContainsString('<div class="wrap">', $page());
+        self::assertStringContainsString('<div id="wppack-saml-login-settings"></div>', $page());
     }
 
     #[Test]

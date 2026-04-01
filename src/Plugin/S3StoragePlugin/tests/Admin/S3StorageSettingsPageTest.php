@@ -59,7 +59,7 @@ final class S3StorageSettingsPageTest extends TestCase
         $html = $page();
 
         self::assertStringContainsString('wppack-storage-settings', $html);
-        self::assertStringContainsString('<div class="wrap">', $html);
+        self::assertStringContainsString('<div id="wppack-storage-settings"></div>', $html);
     }
 
     #[Test]

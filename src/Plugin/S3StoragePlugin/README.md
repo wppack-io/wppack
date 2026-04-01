@@ -104,16 +104,29 @@ wp media:migrate-storage --batch-size=100
 
 ## Configuration
 
-Set environment variables:
+### Settings UI
+
+Configure via Settings → Storage in WordPress admin. Supports multiple storage providers (S3, Azure, GCS, Local) with a primary storage selector and CDN URL per storage.
+
+### Environment Variable / Constant
+
+Set `STORAGE_DSN` as an environment variable or PHP constant:
 
 ```bash
-AWS_ACCESS_KEY_ID=your-access-key
-AWS_SECRET_ACCESS_KEY=your-secret-key
-AWS_REGION=ap-northeast-1
-S3_BUCKET=my-wordpress-media
-S3_PREFIX=uploads
-CDN_URL=https://cdn.example.com   # Optional
+# DSN format: s3://accessKey:secretKey@bucket?region=region
+STORAGE_DSN=s3://AKIAIOSFODNN7EXAMPLE:secretKey@my-bucket?region=ap-northeast-1
+
+# Uploads path prefix (optional, defaults to wp-content/uploads)
+WPPACK_STORAGE_UPLOADS_PATH=wp-content/uploads
 ```
+
+When using IAM roles, credentials can be omitted:
+
+```bash
+STORAGE_DSN=s3://my-bucket?region=ap-northeast-1
+```
+
+Environment variables take precedence over wp_options settings.
 
 ### S3 CORS Configuration
 

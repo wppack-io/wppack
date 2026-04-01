@@ -59,7 +59,7 @@ final class OAuthLoginSettingsPageTest extends TestCase
         $html = $page();
 
         self::assertStringContainsString('wppack-oauth-login-settings', $html);
-        self::assertStringContainsString('<div class="wrap">', $html);
+        self::assertStringContainsString('<div id="wppack-oauth-login-settings"></div>', $html);
     }
 
     #[Test]

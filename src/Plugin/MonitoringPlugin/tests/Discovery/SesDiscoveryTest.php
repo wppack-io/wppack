@@ -28,6 +28,10 @@ final class SesDiscoveryTest extends TestCase
     #[Test]
     public function returnsEmptyWhenNoDsnConfigured(): void
     {
+        if (\defined('MAILER_DSN')) {
+            $this->markTestSkipped('MAILER_DSN constant already defined.');
+        }
+
         unset($_ENV['MAILER_DSN']);
 
         $discovery = new SesDiscovery();
@@ -38,6 +42,10 @@ final class SesDiscoveryTest extends TestCase
     #[Test]
     public function discoversSesDsn(): void
     {
+        if (\defined('MAILER_DSN')) {
+            $this->markTestSkipped('MAILER_DSN constant already defined.');
+        }
+
         $_ENV['MAILER_DSN'] = 'ses://AKIA:secret@email.ap-northeast-1.amazonaws.com';
 
         $discovery = new SesDiscovery();
@@ -56,6 +64,10 @@ final class SesDiscoveryTest extends TestCase
     #[Test]
     public function discoversSesPlusSchemeDsn(): void
     {
+        if (\defined('MAILER_DSN')) {
+            $this->markTestSkipped('MAILER_DSN constant already defined.');
+        }
+
         $_ENV['MAILER_DSN'] = 'ses+https://AKIA:secret@email.us-west-2.amazonaws.com';
 
         $discovery = new SesDiscovery();
@@ -68,6 +80,10 @@ final class SesDiscoveryTest extends TestCase
     #[Test]
     public function returnsEmptyForNonSesDsn(): void
     {
+        if (\defined('MAILER_DSN')) {
+            $this->markTestSkipped('MAILER_DSN constant already defined.');
+        }
+
         $_ENV['MAILER_DSN'] = 'smtp://localhost:587';
 
         $discovery = new SesDiscovery();
@@ -78,6 +94,10 @@ final class SesDiscoveryTest extends TestCase
     #[Test]
     public function returnsEmptyForEmptyDsn(): void
     {
+        if (\defined('MAILER_DSN')) {
+            $this->markTestSkipped('MAILER_DSN constant already defined.');
+        }
+
         $_ENV['MAILER_DSN'] = '';
 
         $discovery = new SesDiscovery();
@@ -88,6 +108,10 @@ final class SesDiscoveryTest extends TestCase
     #[Test]
     public function fallsBackToDefaultRegionWhenHostNotAwsPattern(): void
     {
+        if (\defined('MAILER_DSN')) {
+            $this->markTestSkipped('MAILER_DSN constant already defined.');
+        }
+
         $_ENV['MAILER_DSN'] = 'ses://AKIA:secret@default';
         $_ENV['AWS_DEFAULT_REGION'] = 'eu-central-1';
 
@@ -103,6 +127,10 @@ final class SesDiscoveryTest extends TestCase
     #[Test]
     public function fallsBackToUsEast1WhenNoRegionHint(): void
     {
+        if (\defined('MAILER_DSN')) {
+            $this->markTestSkipped('MAILER_DSN constant already defined.');
+        }
+
         $_ENV['MAILER_DSN'] = 'ses://AKIA:secret@default';
 
         $discovery = new SesDiscovery();
@@ -115,13 +143,17 @@ final class SesDiscoveryTest extends TestCase
     #[Test]
     public function metricsIncludeExpectedSesMetrics(): void
     {
+        if (\defined('MAILER_DSN')) {
+            $this->markTestSkipped('MAILER_DSN constant already defined.');
+        }
+
         $_ENV['MAILER_DSN'] = 'ses://AKIA:secret@email.ap-northeast-1.amazonaws.com';
 
         $discovery = new SesDiscovery();
         $providers = $discovery->getProviders();
         $metrics = $providers[0]->metrics;
 
-        $metricNames = array_map(fn ($m) => $m->metricName, $metrics);
+        $metricNames = array_map(fn($m) => $m->metricName, $metrics);
 
         self::assertContains('Send', $metricNames);
         self::assertContains('Delivery', $metricNames);
@@ -133,6 +165,10 @@ final class SesDiscoveryTest extends TestCase
     #[Test]
     public function allMetricsAreLocked(): void
     {
+        if (\defined('MAILER_DSN')) {
+            $this->markTestSkipped('MAILER_DSN constant already defined.');
+        }
+
         $_ENV['MAILER_DSN'] = 'ses://AKIA:secret@email.ap-northeast-1.amazonaws.com';
 
         $discovery = new SesDiscovery();
@@ -146,6 +182,10 @@ final class SesDiscoveryTest extends TestCase
     #[Test]
     public function allMetricsUseSesNamespace(): void
     {
+        if (\defined('MAILER_DSN')) {
+            $this->markTestSkipped('MAILER_DSN constant already defined.');
+        }
+
         $_ENV['MAILER_DSN'] = 'ses://AKIA:secret@email.ap-northeast-1.amazonaws.com';
 
         $discovery = new SesDiscovery();

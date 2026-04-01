@@ -136,9 +136,14 @@ $config = new StorageConfiguration(
 ```php
 use WpPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
 
-$s3Config = S3StorageConfiguration::fromEnvironment();
+$s3Config = S3StorageConfiguration::fromEnvironmentOrOptions();
 $storageConfig = $s3Config->toStorageConfiguration();
 ```
+
+`fromEnvironmentOrOptions()` は以下の優先順位で設定を読み込みます:
+
+1. `STORAGE_DSN` 定数または環境変数
+2. `wp_options`（`wppack_storage`）のプライマリストレージ DSN
 
 ## UrlResolver
 

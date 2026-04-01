@@ -28,7 +28,7 @@ use WpPack\Component\Role\Attribute\IsGranted;
 #[IsGranted('manage_options')]
 final class MonitoringSettingsController extends AbstractRestController
 {
-    private const string MASKED_VALUE = '********';
+    private const MASKED_VALUE = '********';
 
     public function __construct(
         private readonly MonitoringStore $store,

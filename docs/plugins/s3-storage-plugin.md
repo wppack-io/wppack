@@ -439,33 +439,66 @@ uploads/sites/3/2024/01/photo.jpg → blog_id: 3
 
 ### S3StorageConfiguration
 
-S3 固有の設定。環境変数から生成し、`StorageConfiguration`（Media コンポーネント）に変換可能。
+ストレージ接続の設定。DSN 文字列または wp_options から設定を読み込み、`StorageConfiguration`（Media コンポーネント）に変換可能。
 
 ```php
 namespace WpPack\Plugin\S3StoragePlugin\Configuration;
 
 final readonly class S3StorageConfiguration
 {
-    public static function fromEnvironment(): self;
+    public const OPTION_NAME = 'wppack_storage';
+
+    public static function fromEnvironmentOrOptions(): self;
+    public static function hasConfiguration(): bool;
+    public static function parseDsn(string $dsn): array;
+    public static function maskDsn(string $dsn): string;
+    public static function buildUri(string $bucket): string;
     public function toStorageConfiguration(): StorageConfiguration;
 }
 ```
 
-## 環境変数
+**設定の優先順位:**
+
+1. `STORAGE_DSN` 定数または環境変数（最優先）
+2. `wp_options`（`wppack_storage`）のプライマリストレージ DSN
+
+**DSN 形式:**
+
+```
+s3://accessKey:secretKey@bucket?region=ap-northeast-1
+```
+
+- `accessKey:secretKey` — AWS 認証情報（省略可。省略時は IAM ロール等を使用）
+- `bucket` — S3 バケット名
+- `region` — AWS リージョン（省略時は `us-east-1`）
+
+## 設定
+
+### 設定 UI
+
+Settings → Storage（`/wp-admin/options-general.php?page=wppack-storage`）から GUI で設定できます。
+
+- **マルチプロバイダ対応**: S3, Azure Blob Storage, Google Cloud Storage, Local Filesystem
+- **プライマリストレージ**: WordPress メディアアップロードに使用するストレージを選択
+- **アップロードパス**: ファイルのキープレフィックス（デフォルト: `wp-content/uploads`）
+- **CDN URL**: ファイルの公開 URL に使用する CDN ベース URL
+
+定数/環境変数で設定されたストレージは読み取り専用として表示され、UI から編集できません。
+
+### 環境変数 / 定数
 
 ```bash
-# AWS 認証情報
-AWS_ACCESS_KEY_ID=your-access-key
-AWS_SECRET_ACCESS_KEY=your-secret-key
-AWS_REGION=ap-northeast-1
+# ストレージ DSN（定数または環境変数）
+STORAGE_DSN=s3://AKIAIOSFODNN7EXAMPLE:wJalrXUtnFEMI@my-bucket?region=ap-northeast-1
 
-# S3 設定
-S3_BUCKET=my-wordpress-media
-S3_REGION=ap-northeast-1          # 省略時は AWS_REGION を使用
-S3_PREFIX=uploads                  # S3 キーのプレフィックス
+# アップロードパス（オプション）
+WPPACK_STORAGE_UPLOADS_PATH=wp-content/uploads
+```
 
-# CDN 設定（オプション）
-CDN_URL=https://cdn.example.com
+環境変数が設定されている場合、wp_options の設定より優先されます。AWS 認証情報は IAM ロールを使用する場合は DSN から省略できます:
+
+```bash
+STORAGE_DSN=s3://my-bucket?region=ap-northeast-1
 ```
 
 ## S3 CORS 設定

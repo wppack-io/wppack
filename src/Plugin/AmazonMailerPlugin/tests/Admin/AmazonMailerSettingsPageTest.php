@@ -55,7 +55,7 @@ final class AmazonMailerSettingsPageTest extends TestCase
         $page = new AmazonMailerSettingsPage();
 
         self::assertStringContainsString('wppack-mailer-settings', $page());
-        self::assertStringContainsString('<div class="wrap">', $page());
+        self::assertStringContainsString('<div id="wppack-mailer-settings"></div>', $page());
     }
 
     #[Test]

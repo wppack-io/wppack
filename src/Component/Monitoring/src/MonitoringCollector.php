@@ -17,7 +17,7 @@ use WpPack\Component\Transient\TransientManager;
 
 class MonitoringCollector
 {
-    private const string CACHE_KEY = 'wppack_monitoring_metrics';
+    private const CACHE_KEY = 'wppack_monitoring_metrics';
 
     /**
      * @param array<string, MetricProviderInterface> $bridges keyed by bridge name

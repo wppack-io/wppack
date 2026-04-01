@@ -67,7 +67,7 @@ final class MonitoringServiceProvider implements ServiceProviderInterface
         }
 
         // Mock bridge + sample providers for local development
-        if (\defined('WP_ENVIRONMENT_TYPE') && WP_ENVIRONMENT_TYPE === 'local') {
+        if (wp_get_environment_type() === 'local') {
             $builder->register(MockMetricProvider::class)
                 ->addTag(RegisterMetricBridgesPass::TAG, ['name' => 'mock']);
 

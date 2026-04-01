@@ -80,7 +80,7 @@ final class AdminPageRegistry
             }
 
             // Sort WpPack items by position
-            usort($wppackItems, fn (array $a, array $b): int => $slugPositions[$a[2]] <=> $slugPositions[$b[2]]);
+            usort($wppackItems, fn(array $a, array $b): int => $slugPositions[$a[2]] <=> $slugPositions[$b[2]]);
 
             // Append sorted WpPack items after core items
             $submenu[$parent] = array_merge($otherItems, $wppackItems);

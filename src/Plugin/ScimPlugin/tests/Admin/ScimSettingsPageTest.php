@@ -55,7 +55,7 @@ final class ScimSettingsPageTest extends TestCase
         $page = new ScimSettingsPage();
 
         self::assertStringContainsString('wppack-scim-settings', $page());
-        self::assertStringContainsString('<div class="wrap">', $page());
+        self::assertStringContainsString('<div id="wppack-scim-settings"></div>', $page());
     }
 
     #[Test]

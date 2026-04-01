@@ -102,7 +102,7 @@ final class ElastiCacheDiscoveryTest extends TestCase
         $providers = $discovery->getProviders();
         $metrics = $providers[0]->metrics;
 
-        $metricNames = array_map(fn ($m) => $m->metricName, $metrics);
+        $metricNames = array_map(fn($m) => $m->metricName, $metrics);
 
         self::assertContains('CacheHits', $metricNames);
         self::assertContains('CacheMisses', $metricNames);
