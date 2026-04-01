@@ -43,6 +43,7 @@ final class AmazonMailerPlugin extends AbstractPlugin
     public function register(ContainerBuilder $builder): void
     {
         $this->serviceProvider->registerAdmin($builder);
+        $this->serviceProvider->registerMonitoring($builder);
 
         if (!AmazonMailerConfiguration::hasConfiguration()) {
             return;

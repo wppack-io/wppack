@@ -43,6 +43,12 @@ final class RedisCachePluginServiceProvider implements ServiceProviderInterface
         $builder->register(RedisCacheSettingsController::class);
     }
 
+    public function registerMonitoring(ContainerBuilder $builder): void
+    {
+        $builder->register(RedisCacheMetricSourceProvider::class)
+            ->addTag('monitoring.provider');
+    }
+
     public function register(ContainerBuilder $builder): void
     {
         $builder->register(RedisCacheConfiguration::class, RedisCacheConfiguration::class)
@@ -52,10 +58,6 @@ final class RedisCachePluginServiceProvider implements ServiceProviderInterface
             ->setFactory([self::class, 'getObjectCache']);
 
         $builder->register(CacheManager::class, CacheManager::class);
-
-        // Monitoring integration
-        $builder->register(RedisCacheMetricSourceProvider::class)
-            ->addTag('monitoring.provider');
     }
 
     public static function getObjectCache(): ObjectCache

@@ -54,6 +54,12 @@ final class AmazonMailerPluginServiceProvider implements ServiceProviderInterfac
         $builder->register(AmazonMailerSettingsController::class);
     }
 
+    public function registerMonitoring(ContainerBuilder $builder): void
+    {
+        $builder->register(SesMonitoringProvider::class)
+            ->addTag('monitoring.provider');
+    }
+
     public function register(ContainerBuilder $builder): void
     {
         // Messenger (synchronous fallback if no dedicated Messenger plugin)
@@ -107,10 +113,6 @@ final class AmazonMailerPluginServiceProvider implements ServiceProviderInterfac
         $builder->register(ComplaintHandler::class)
             ->addArgument(new Reference(SuppressionList::class))
             ->addTag('messenger.message_handler');
-
-        // Monitoring integration
-        $builder->register(SesMonitoringProvider::class)
-            ->addTag('monitoring.provider');
     }
 
     public static function createMailer(AmazonMailerConfiguration $config): Mailer
