@@ -143,23 +143,23 @@
 	padding-right: 24px;
 }
 
-/* Table cell padding */
-.dataviews-view-table th {
+/* Table cell padding — must match density class specificity */
+.dataviews-view-table.has-comfortable-density th {
 	padding: 8px 12px;
 }
 
-.dataviews-view-table td {
+.dataviews-view-table.has-comfortable-density td {
 	padding: 12px;
 }
 
 /* Compensate negative margin on first/last columns */
-.dataviews-view-table tr th:first-child,
-.dataviews-view-table tr td:first-child {
+.dataviews-view-table.has-comfortable-density tr th:first-child,
+.dataviews-view-table.has-comfortable-density tr td:first-child {
 	padding-left: 24px;
 }
 
-.dataviews-view-table tr th:last-child,
-.dataviews-view-table tr td:last-child {
+.dataviews-view-table.has-comfortable-density tr th:last-child,
+.dataviews-view-table.has-comfortable-density tr td:last-child {
 	padding-right: 24px;
 }
 
