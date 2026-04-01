@@ -395,44 +395,46 @@ export default function App() {
 				) }
 
 				<div className="wpp-storage-add-section">
-					<div className="wpp-storage-add-row">
-						<SelectControl
-							label={ __( 'Provider', 'wppack-storage' ) }
-							value={ newProviderType }
-							onChange={ setNewProviderType }
-							options={ providerOptions }
-							__nextHasNoMarginBottom
-						/>
-						<TextControl
-							label={ __( 'Bucket', 'wppack-storage' ) }
-							value={ newBucket }
-							onChange={ ( val ) => setNewBucket( val.toLowerCase().replace( /[^a-z0-9._-]+/g, '' ) ) }
-							__nextHasNoMarginBottom
-						/>
-					</div>
-					<div className="wpp-storage-add-row">
-						<TextControl
-							label={ __( 'Region', 'wppack-storage' ) }
-							value={ newRegion }
-							onChange={ setNewRegion }
-							placeholder="ap-northeast-1"
-							__nextHasNoMarginBottom
-						/>
-						<TextControl
-							label={ __( 'Access Key', 'wppack-storage' ) }
-							type="password"
-							value={ newAccessKey }
-							onChange={ setNewAccessKey }
-							__nextHasNoMarginBottom
-						/>
-						<TextControl
-							label={ __( 'Secret Key', 'wppack-storage' ) }
-							type="password"
-							value={ newSecretKey }
-							onChange={ setNewSecretKey }
-							__nextHasNoMarginBottom
-						/>
-					</div>
+					<SelectControl
+						label={ __( 'Provider', 'wppack-storage' ) }
+						value={ newProviderType }
+						onChange={ ( val ) => {
+							setNewProviderType( val );
+							setNewBucket( '' );
+							setNewRegion( '' );
+							setNewAccessKey( '' );
+							setNewSecretKey( '' );
+						} }
+						options={ providerOptions }
+						__nextHasNoMarginBottom
+					/>
+					{ newProviderType && (
+						<>
+							<TextControl
+								label={ FIELD_LABELS.bucket || 'Bucket' }
+								value={ newBucket }
+								onChange={ ( val ) => setNewBucket( val.toLowerCase().replace( /[^a-z0-9._-]+/g, '' ) ) }
+								__nextHasNoMarginBottom
+							/>
+							{ ( definitions[ newProviderType ]?.fields || [] )
+								.filter( ( f ) => f !== 'bucket' && f !== 'container' )
+								.map( ( fieldKey ) => {
+									const isSensitive = [ 'secretKey', 'accountKey', 'keyFile', 'connectionString' ].includes( fieldKey );
+									const stateMap = { region: [ newRegion, setNewRegion ], accessKey: [ newAccessKey, setNewAccessKey ], secretKey: [ newSecretKey, setNewSecretKey ] };
+									const [ val, setVal ] = stateMap[ fieldKey ] || [ '', () => {} ];
+									return (
+										<TextControl
+											key={ fieldKey }
+											label={ FIELD_LABELS[ fieldKey ] || fieldKey }
+											type={ isSensitive ? 'password' : 'text' }
+											value={ val }
+											onChange={ setVal }
+											__nextHasNoMarginBottom
+										/>
+									);
+								} ) }
+						</>
+					) }
 					{ newUri && (
 						<div className="wpp-storage-uri-preview">
 							{ __( 'URI Preview:', 'wppack-storage' ) }
