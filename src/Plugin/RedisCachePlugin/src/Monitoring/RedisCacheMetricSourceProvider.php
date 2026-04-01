@@ -94,27 +94,62 @@ final class RedisCacheMetricSourceProvider implements MonitoringProviderInterfac
     }
 
     /**
+     * Parse ElastiCache endpoint from WPPACK_CACHE_DSN.
+     *
+     * Endpoint format: {cluster-id}.{hash}.{region}.cache.amazonaws.com
+     *
+     * @return array{clusterId: string, region: string}|null
+     */
+    private function parseElastiCacheEndpoint(): ?array
+    {
+        $dsn = \defined('WPPACK_CACHE_DSN') ? (string) \constant('WPPACK_CACHE_DSN') : ($_ENV['WPPACK_CACHE_DSN'] ?? '');
+
+        if ($dsn === '') {
+            return null;
+        }
+
+        $host = parse_url($dsn, \PHP_URL_HOST);
+
+        if (!\is_string($host) || !str_contains($host, '.cache.amazonaws.com')) {
+            return null;
+        }
+
+        // {cluster-id}.{hash}.{region}.cache.amazonaws.com
+        // or {cluster-id}.{hash}.clustercfg.{region}.cache.amazonaws.com (cluster mode)
+        $parts = explode('.', $host);
+        $cachePos = array_search('cache', $parts, true);
+
+        if ($cachePos === false || $cachePos < 2) {
+            return null;
+        }
+
+        $clusterId = $parts[0];
+        // Region is right before "cache" (or before "clustercfg" then "cache")
+        $regionPos = $cachePos - 1;
+        if ($parts[$regionPos] === 'clustercfg' && $regionPos > 1) {
+            $regionPos--;
+        }
+
+        return [
+            'clusterId' => $clusterId,
+            'region' => $parts[$regionPos],
+        ];
+    }
+
+    /**
      * @return array<string, string>
      */
     private function resolveDimensions(): array
     {
-        $clusterId = \defined('WPPACK_MONITORING_ELASTICACHE_CLUSTER_ID')
-            ? (string) \constant('WPPACK_MONITORING_ELASTICACHE_CLUSTER_ID')
-            : ($_ENV['WPPACK_MONITORING_ELASTICACHE_CLUSTER_ID'] ?? '');
+        $endpoint = $this->parseElastiCacheEndpoint();
 
-        if ($clusterId === '') {
-            return [];
-        }
-
-        return ['CacheClusterId' => $clusterId];
+        return $endpoint !== null ? ['CacheClusterId' => $endpoint['clusterId']] : [];
     }
 
     private function resolveRegion(): string
     {
-        if (\defined('WPPACK_MONITORING_ELASTICACHE_REGION')) {
-            return (string) \constant('WPPACK_MONITORING_ELASTICACHE_REGION');
-        }
+        $endpoint = $this->parseElastiCacheEndpoint();
 
-        return $_ENV['WPPACK_MONITORING_ELASTICACHE_REGION'] ?? $_ENV['AWS_DEFAULT_REGION'] ?? 'us-east-1';
+        return $endpoint['region'] ?? $_ENV['AWS_DEFAULT_REGION'] ?? 'us-east-1';
     }
 }
