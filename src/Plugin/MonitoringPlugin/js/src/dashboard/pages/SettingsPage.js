@@ -43,6 +43,7 @@ const PROVIDER_FIELDS = [
 		label: __( 'Metrics', 'wppack-monitoring' ),
 		type: 'integer',
 		enableSorting: true,
+		getValue: ( { item } ) => item.metrics?.length || 0,
 	},
 ];
 

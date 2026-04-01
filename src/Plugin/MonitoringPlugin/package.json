@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@wordpress/admin-ui": "^1.10.0",
-    "@wordpress/dataviews": "^4.0.0"
+    "@wordpress/dataviews": "^14.0.0"
   },
   "devDependencies": {
     "@wordpress/scripts": "^30.0.0"

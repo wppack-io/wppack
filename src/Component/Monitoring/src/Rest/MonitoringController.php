@@ -126,7 +126,6 @@ final class MonitoringController extends AbstractRestController
                 'region' => $provider->settings->region,
             ],
             'metrics' => array_map($this->serializeMetric(...), $provider->metrics),
-            'metricsCount' => \count($provider->metrics),
             'locked' => $provider->locked,
         ];
     }
