@@ -1,5 +1,61 @@
-.wpp-monitoring {
-	margin-top: 16px;
+/* ── Reset WP admin chrome ─────────────── */
+.toplevel_page_wppack-monitoring #wpcontent {
+	padding-left: 0;
+}
+
+.toplevel_page_wppack-monitoring #wpbody-content {
+	padding-bottom: 0;
+}
+
+.toplevel_page_wppack-monitoring #wpfooter {
+	display: none;
+}
+
+/* ── Page Layout ───────────────────────── */
+.wpp-monitoring-page {
+	display: flex;
+	flex-direction: column;
+	min-height: calc(100vh - 32px); /* 32px = WP admin bar */
+	background: #fff;
+	color: #1e1e1e;
+}
+
+.wpp-monitoring-page__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 12px 24px;
+	border-bottom: 1px solid #e0e0e0;
+	background: #fff;
+	position: sticky;
+	top: 0;
+	z-index: 1;
+}
+
+.wpp-monitoring-page__title {
+	font-size: 15px;
+	font-weight: 500;
+	line-height: 28px;
+	margin: 0;
+	white-space: nowrap;
+}
+
+.wpp-monitoring-page__header-actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-shrink: 0;
+}
+
+.wpp-monitoring-page__header-actions .components-tab-panel__tabs {
+	margin-bottom: 0;
+	border-bottom: none;
+}
+
+.wpp-monitoring-page__content {
+	flex-grow: 1;
+	padding: 16px 24px;
 }
 
 /* ── Dashboard ─────────────────────────── */

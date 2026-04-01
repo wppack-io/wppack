@@ -38,7 +38,7 @@ final class MonitoringDashboardPage extends AbstractAdminPage
 
     public function __invoke(): string
     {
-        return '<div class="wrap"><div id="wppack-monitoring-dashboard"></div></div>';
+        return '<div id="wppack-monitoring-dashboard"></div>';
     }
 
     protected function enqueue(): void
