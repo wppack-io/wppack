@@ -111,6 +111,7 @@ export default function SettingsPage() {
 	const [ addMode, setAddMode ] = useState( false );
 	const [ selectedTemplate, setSelectedTemplate ] = useState( null );
 	const [ dimensionValue, setDimensionValue ] = useState( '' );
+	const [ showIam, setShowIam ] = useState( false );
 	const [ view, setView ] = useState( {
 		type: 'table',
 		fields: [
@@ -205,6 +206,13 @@ export default function SettingsPage() {
 
 			<div className="wpp-monitoring-settings-header">
 				<Button
+					variant="tertiary"
+					onClick={ () => setShowIam( true ) }
+					size="compact"
+				>
+					{ __( 'IAM Policy', 'wppack-monitoring' ) }
+				</Button>
+				<Button
 					variant="primary"
 					onClick={ () => setAddMode( true ) }
 					size="compact"
@@ -212,20 +220,6 @@ export default function SettingsPage() {
 					{ __( 'Add Provider', 'wppack-monitoring' ) }
 				</Button>
 			</div>
-
-			<Notice status="info" isDismissible={ true } className="wpp-monitoring-iam-notice">
-				<p>{ __( 'Required IAM Policy:', 'wppack-monitoring' ) }</p>
-				<pre className="wpp-monitoring-iam-code">{ `{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": ["cloudwatch:GetMetricData"],
-      "Resource": "*"
-    }
-  ]
-}` }</pre>
-			</Notice>
 
 			<DataViews
 				data={ providers }
@@ -493,6 +487,31 @@ export default function SettingsPage() {
 							</div>
 						</>
 					) }
+				</Modal>
+			) }
+			{ showIam && (
+				<Modal
+					title={ __( 'IAM Policy', 'wppack-monitoring' ) }
+					onRequestClose={ () => setShowIam( false ) }
+					size="medium"
+				>
+					<p>
+						{ __( 'The following IAM permission is required for metric data retrieval.', 'wppack-monitoring' ) }
+					</p>
+					<p className="wpp-monitoring-iam-note">
+						{ __( 'Note: cloudwatch:GetMetricData does not support resource-level restrictions. Resource must be "*" per AWS specification.', 'wppack-monitoring' ) }
+					</p>
+					<pre className="wpp-monitoring-iam-code">{ `{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "WpPackMonitoring",
+      "Effect": "Allow",
+      "Action": "cloudwatch:GetMetricData",
+      "Resource": "*"
+    }
+  ]
+}` }</pre>
 				</Modal>
 			) }
 		</div>

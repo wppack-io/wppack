@@ -188,6 +188,7 @@
 .wpp-monitoring-settings-header {
 	display: flex;
 	justify-content: flex-end;
+	gap: 8px;
 	margin-bottom: 12px;
 }
 
@@ -283,9 +284,10 @@
 	border-top: 1px solid #e0e0e0;
 }
 
-/* ── IAM Notice ──────────────────────────── */
-.wpp-monitoring-iam-notice {
-	margin-bottom: 16px;
+/* ── IAM Modal ───────────────────────────── */
+.wpp-monitoring-iam-note {
+	font-size: 12px;
+	color: #757575;
 }
 
 .wpp-monitoring-iam-code {
@@ -295,7 +297,7 @@
 	font-size: 12px;
 	font-family: monospace;
 	overflow-x: auto;
-	margin-top: 8px;
+	margin-top: 12px;
 	white-space: pre;
 }
 
