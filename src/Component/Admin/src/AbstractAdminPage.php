@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Admin;
 
+use WpPack\Component\Admin\Attribute\AdminScope;
 use WpPack\Component\Admin\Attribute\AsAdminPage;
 use WpPack\Component\Role\Authorization\IsGrantedChecker;
 use WpPack\Component\Templating\TemplateRendererInterface;
@@ -26,7 +27,9 @@ abstract class AbstractAdminPage
     public readonly ?string $parent;
     public readonly ?string $icon;
     public readonly ?int $position;
+    public readonly AdminScope $scope;
 
+    private bool $network = false;
     private ?TemplateRendererInterface $renderer = null;
     private ?string $hookSuffix = null;
     private ?bool $hasEnqueueOverride = null;
@@ -44,6 +47,26 @@ abstract class AbstractAdminPage
         $this->parent = $attribute->parent;
         $this->icon = $attribute->icon;
         $this->position = $attribute->position;
+        $this->scope = $attribute->scope;
+
+        if ($this->scope === AdminScope::Network) {
+            $this->network = true;
+        }
+    }
+
+    /**
+     * Set network mode. Only applies when scope is Auto.
+     */
+    public function setNetwork(bool $network): void
+    {
+        if ($this->scope === AdminScope::Auto) {
+            $this->network = $network;
+        }
+    }
+
+    public function isNetwork(): bool
+    {
+        return $this->network;
     }
 
     /** @internal */
@@ -77,9 +100,16 @@ abstract class AbstractAdminPage
 
     public function addMenuPage(): void
     {
-        if ($this->parent !== null) {
+        $parent = $this->parent;
+
+        // Network admin uses settings.php instead of options-general.php
+        if ($this->network && $parent === 'options-general.php') {
+            $parent = 'settings.php';
+        }
+
+        if ($parent !== null) {
             $this->hookSuffix = (string) add_submenu_page(
-                $this->parent,
+                $parent,
                 $this->label,
                 $this->menuLabel,
                 $this->capability,

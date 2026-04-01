@@ -70,7 +70,7 @@ final class S3StoragePlugin extends AbstractPlugin
             /** @var S3StorageSettingsPage $settingsPage */
             $settingsPage = $container->get(S3StorageSettingsPage::class);
             $settingsPage->setPluginFile($this->getFile());
-            $pageRegistry->register($settingsPage);
+            $pageRegistry->register($settingsPage, $this->isNetworkActivated());
 
             /** @var RestRegistry $restRegistry */
             $restRegistry = $container->get(RestRegistry::class);

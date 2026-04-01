@@ -17,6 +17,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Admin\AbstractAdminPage;
 use WpPack\Component\Admin\AdminPageRegistry;
+use WpPack\Component\Admin\Attribute\AdminScope;
 use WpPack\Component\Admin\Attribute\AsAdminPage;
 use WpPack\Component\Templating\TemplateRendererInterface;
 
@@ -101,6 +102,46 @@ final class AdminPageRegistryTest extends TestCase
         $ref = new \ReflectionProperty(AbstractAdminPage::class, 'renderer');
         self::assertSame($renderer, $ref->getValue($page));
     }
+
+    #[Test]
+    public function registerWithNetworkTrueUsesNetworkAdminMenuHook(): void
+    {
+        global $wp_filter;
+        unset($wp_filter['network_admin_menu']);
+
+        $page = new RegistryAutoScopedAdminPage();
+
+        $this->registry->register($page, true);
+
+        self::assertNotFalse(has_action('network_admin_menu'));
+    }
+
+    #[Test]
+    public function registerWithNetworkFalseUsesAdminMenuHook(): void
+    {
+        global $wp_filter;
+        unset($wp_filter['admin_menu']);
+
+        $page = new RegistryAutoScopedAdminPage();
+
+        $this->registry->register($page, false);
+
+        self::assertNotFalse(has_action('admin_menu'));
+    }
+
+    #[Test]
+    public function registerNetworkScopedPageAlwaysUsesNetworkHook(): void
+    {
+        global $wp_filter;
+        unset($wp_filter['network_admin_menu']);
+
+        $page = new RegistryNetworkScopedAdminPage();
+
+        // Even though $network=false, the Network scope should force network_admin_menu
+        $this->registry->register($page, false);
+
+        self::assertNotFalse(has_action('network_admin_menu'));
+    }
 }
 
 #[AsAdminPage(slug: 'registry-test-admin', label: 'Registry Test')]
@@ -123,5 +164,23 @@ class RegistryEnqueueTestAdminPage extends AbstractAdminPage
     protected function enqueue(): void
     {
         // scripts and styles enqueued
+    }
+}
+
+#[AsAdminPage(slug: 'registry-auto-scoped', label: 'Registry Auto Scoped', scope: AdminScope::Auto)]
+class RegistryAutoScopedAdminPage extends AbstractAdminPage
+{
+    public function __invoke(): string
+    {
+        return '';
+    }
+}
+
+#[AsAdminPage(slug: 'registry-network-scoped', label: 'Registry Network Scoped', scope: AdminScope::Network)]
+class RegistryNetworkScopedAdminPage extends AbstractAdminPage
+{
+    public function __invoke(): string
+    {
+        return '';
     }
 }

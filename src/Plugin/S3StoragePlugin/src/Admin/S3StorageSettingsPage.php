@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace WpPack\Plugin\S3StoragePlugin\Admin;
 
 use WpPack\Component\Admin\AbstractAdminPage;
+use WpPack\Component\Admin\Attribute\AdminScope;
 use WpPack\Component\Admin\Attribute\AsAdminPage;
 use WpPack\Component\Role\Attribute\IsGranted;
 
@@ -22,6 +23,7 @@ use WpPack\Component\Role\Attribute\IsGranted;
     label: 'Storage Settings',
     menuLabel: 'Storage',
     parent: 'options-general.php',
+    scope: AdminScope::Auto,
 )]
 #[IsGranted('manage_options')]
 final class S3StorageSettingsPage extends AbstractAdminPage

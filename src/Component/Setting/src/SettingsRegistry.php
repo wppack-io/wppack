@@ -23,8 +23,10 @@ final class SettingsRegistry
         private readonly ?TemplateRendererInterface $renderer = null,
     ) {}
 
-    public function register(AbstractSettingsPage $page): void
+    public function register(AbstractSettingsPage $page, bool $network = false): void
     {
+        $page->setNetwork($network);
+
         if ($this->optionManager !== null) {
             $page->setOptionManager($this->optionManager);
         }
@@ -33,7 +35,8 @@ final class SettingsRegistry
             $page->setTemplateRenderer($this->renderer);
         }
 
-        add_action('admin_menu', $page->addMenuPage(...));
+        $menuHook = $page->isNetwork() ? 'network_admin_menu' : 'admin_menu';
+        add_action($menuHook, $page->addMenuPage(...));
         add_action('admin_init', $page->initSettings(...));
     }
 }

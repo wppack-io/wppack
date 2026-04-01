@@ -21,13 +21,16 @@ final class AdminPageRegistry
         private readonly ?TemplateRendererInterface $renderer = null,
     ) {}
 
-    public function register(AbstractAdminPage $page): void
+    public function register(AbstractAdminPage $page, bool $network = false): void
     {
+        $page->setNetwork($network);
+
         if ($this->renderer !== null) {
             $page->setTemplateRenderer($this->renderer);
         }
 
-        add_action('admin_menu', $page->addMenuPage(...));
+        $menuHook = $page->isNetwork() ? 'network_admin_menu' : 'admin_menu';
+        add_action($menuHook, $page->addMenuPage(...));
 
         if ($page->hasEnqueueOverride()) {
             add_action('admin_enqueue_scripts', $page->handleEnqueue(...));

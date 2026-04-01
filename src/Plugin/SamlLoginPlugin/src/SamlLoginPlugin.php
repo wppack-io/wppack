@@ -101,14 +101,14 @@ final class SamlLoginPlugin extends AbstractPlugin
         }
 
         // Admin Settings Page
-        if (is_admin()) {
+        if (is_admin() || is_network_admin()) {
             /** @var SamlLoginSettingsPage $settingsPage */
             $settingsPage = $container->get(SamlLoginSettingsPage::class);
             $settingsPage->setPluginFile($this->getFile());
 
             /** @var AdminPageRegistry $adminRegistry */
             $adminRegistry = $container->get(AdminPageRegistry::class);
-            $adminRegistry->register($settingsPage);
+            $adminRegistry->register($settingsPage, $this->isNetworkActivated());
         }
 
         // REST API Settings Endpoint

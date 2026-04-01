@@ -15,6 +15,7 @@ namespace WpPack\Component\Setting\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Admin\Attribute\AdminScope;
 use WpPack\Component\Setting\AbstractSettingsPage;
 use WpPack\Component\Setting\Attribute\AsSettingsPage;
 use WpPack\Component\Setting\SettingsConfigurator;
@@ -101,6 +102,46 @@ final class SettingsRegistryTest extends TestCase
         self::assertSame($adminMenuBefore + 2, $countCallbacks('admin_menu'));
         self::assertSame($adminInitBefore + 2, $countCallbacks('admin_init'));
     }
+
+    #[Test]
+    public function registerWithNetworkTrueUsesNetworkAdminMenuHook(): void
+    {
+        global $wp_filter;
+        unset($wp_filter['network_admin_menu']);
+
+        $page = new RegistryAutoScopedSettingsPage();
+
+        $this->registry->register($page, true);
+
+        self::assertNotFalse(has_action('network_admin_menu'));
+    }
+
+    #[Test]
+    public function registerWithNetworkFalseUsesAdminMenuHook(): void
+    {
+        global $wp_filter;
+        unset($wp_filter['admin_menu']);
+
+        $page = new RegistryAutoScopedSettingsPage();
+
+        $this->registry->register($page, false);
+
+        self::assertNotFalse(has_action('admin_menu'));
+    }
+
+    #[Test]
+    public function registerNetworkScopedPageAlwaysUsesNetworkHook(): void
+    {
+        global $wp_filter;
+        unset($wp_filter['network_admin_menu']);
+
+        $page = new RegistryNetworkScopedSettingsPage();
+
+        // Even though $network=false, the Network scope should force network_admin_menu
+        $this->registry->register($page, false);
+
+        self::assertNotFalse(has_action('network_admin_menu'));
+    }
 }
 
 #[AsSettingsPage(slug: 'registry-test', label: 'Registry Test')]
@@ -120,5 +161,25 @@ class RegistryTestSecondSettingsPage extends AbstractSettingsPage
     {
         $settings->section('options', 'Options')
             ->field('another_field', 'Another Field', fn(array $args) => null);
+    }
+}
+
+#[AsSettingsPage(slug: 'registry-auto-scoped-settings', label: 'Registry Auto Scoped Settings', scope: AdminScope::Auto)]
+class RegistryAutoScopedSettingsPage extends AbstractSettingsPage
+{
+    protected function configure(SettingsConfigurator $settings): void
+    {
+        $settings->section('general', 'General')
+            ->field('test_field', 'Test Field', fn(array $args) => null);
+    }
+}
+
+#[AsSettingsPage(slug: 'registry-network-scoped-settings', label: 'Registry Network Settings', scope: AdminScope::Network)]
+class RegistryNetworkScopedSettingsPage extends AbstractSettingsPage
+{
+    protected function configure(SettingsConfigurator $settings): void
+    {
+        $settings->section('general', 'General')
+            ->field('test_field', 'Test Field', fn(array $args) => null);
     }
 }

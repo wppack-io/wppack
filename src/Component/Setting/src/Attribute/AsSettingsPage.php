@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Setting\Attribute;
 
+use WpPack\Component\Admin\Attribute\AdminScope;
+
 #[\Attribute(\Attribute::TARGET_CLASS)]
 final class AsSettingsPage
 {
@@ -25,5 +27,6 @@ final class AsSettingsPage
         public readonly ?string $parent = 'options-general.php',
         public readonly ?string $icon = null,
         public readonly ?int $position = null,
+        public readonly AdminScope $scope = AdminScope::Site,
     ) {}
 }

@@ -71,7 +71,7 @@ final class AmazonMailerPlugin extends AbstractPlugin
             /** @var AmazonMailerSettingsPage $settingsPage */
             $settingsPage = $container->get(AmazonMailerSettingsPage::class);
             $settingsPage->setPluginFile($this->getFile());
-            $pageRegistry->register($settingsPage);
+            $pageRegistry->register($settingsPage, $this->isNetworkActivated());
 
             /** @var RestRegistry $restRegistry */
             $restRegistry = $container->get(RestRegistry::class);

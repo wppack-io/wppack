@@ -70,7 +70,7 @@ final class RedisCachePlugin extends AbstractPlugin
             /** @var RedisCacheSettingsPage $settingsPage */
             $settingsPage = $container->get(RedisCacheSettingsPage::class);
             $settingsPage->setPluginFile($this->getFile());
-            $pageRegistry->register($settingsPage);
+            $pageRegistry->register($settingsPage, $this->isNetworkActivated());
 
             /** @var RestRegistry $restRegistry */
             $restRegistry = $container->get(RestRegistry::class);

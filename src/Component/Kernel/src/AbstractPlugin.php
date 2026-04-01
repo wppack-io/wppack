@@ -41,6 +41,19 @@ abstract class AbstractPlugin implements PluginInterface
         return plugin_basename($this->pluginFile);
     }
 
+    public function isNetworkActivated(): bool
+    {
+        if (!is_multisite()) {
+            return false;
+        }
+
+        if (!\function_exists('is_plugin_active_for_network')) {
+            require_once ABSPATH . 'wp-admin/includes/plugin.php';
+        }
+
+        return is_plugin_active_for_network($this->getBasename());
+    }
+
     public function getCompilerPasses(): array
     {
         return [];

@@ -51,6 +51,7 @@ class MyPluginPage extends AbstractAdminPage
 | `parent` | `?string` | `null` | 親メニュースラッグ（null = トップレベル） |
 | `icon` | `?string` | `null` | メニューアイコン URL / dashicons クラス |
 | `position` | `?int` | `null` | メニュー表示位置 |
+| `scope` | `AdminScope` | `AdminScope::Site` | 登録先スコープ（Site / Network / Auto） |
 
 > [!NOTE]
 > `#[IsGranted('capability')]`（Security コンポーネント）をクラスに付与して必要な権限を指定します。未指定時のデフォルトは `'manage_options'` です。
@@ -159,6 +160,70 @@ $registry->unregister('my-plugin');
 // サブメニュー削除
 $registry->unregisterSubmenu('my-plugin', 'my-plugin-settings');
 ```
+
+## Network Admin Support (AdminScope)
+
+The Admin component supports registering pages in the network admin for multisite environments via the `AdminScope` enum.
+
+### AdminScope Enum
+
+| Value | Description |
+|-------|-------------|
+| `AdminScope::Site` | Always register in the site admin (`admin_menu`). This is the default. |
+| `AdminScope::Network` | Always register in the network admin (`network_admin_menu`). |
+| `AdminScope::Auto` | Auto-detect based on whether the plugin is network-activated. |
+
+### Usage
+
+Specify the `scope` parameter on the `#[AsAdminPage]` attribute:
+
+```php
+use WpPack\Component\Admin\AbstractAdminPage;
+use WpPack\Component\Admin\Attribute\AdminScope;
+use WpPack\Component\Admin\Attribute\AsAdminPage;
+
+#[AsAdminPage(
+    slug: 'my-plugin',
+    label: 'My Plugin',
+    parent: 'options-general.php',
+    scope: AdminScope::Auto,
+)]
+class MyPluginPage extends AbstractAdminPage
+{
+    public function __invoke(): string
+    {
+        return '<div class="wrap"><h1>My Plugin</h1></div>';
+    }
+}
+```
+
+### How Auto-Detection Works
+
+When `AdminScope::Auto` is used, the registry determines the target admin screen at registration time. In the plugin's `boot()` method, pass the result of `AbstractPlugin::isNetworkActivated()` to `AdminPageRegistry::register()`:
+
+```php
+public function boot(Container $container): void
+{
+    $pageRegistry = $container->get(AdminPageRegistry::class);
+    $page = $container->get(MyPluginPage::class);
+    $pageRegistry->register($page, $this->isNetworkActivated());
+}
+```
+
+`isNetworkActivated()` returns `true` when the plugin is network-activated on a multisite installation, and `false` otherwise (including single-site). The registry calls `setNetwork()` on the page, which only takes effect when the scope is `Auto`.
+
+### Parent Menu Auto-Adjustment
+
+When a page is registered in network admin mode, the parent menu slug `options-general.php` is automatically adjusted to `settings.php`, because the network admin uses `settings.php` instead of `options-general.php`. This adjustment happens transparently in `addMenuPage()`, so page classes do not need to handle this difference.
+
+### Hook Selection
+
+Based on the resolved network flag, `AdminPageRegistry` hooks the page into the appropriate menu action:
+
+| Mode | Hook |
+|------|------|
+| Site admin | `admin_menu` |
+| Network admin | `network_admin_menu` |
 
 ## Named Hook アトリビュート
 

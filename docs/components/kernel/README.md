@@ -349,6 +349,20 @@ class CachedKernel extends Kernel
 
 `PluginInterface` のデフォルト実装。コンストラクタで `$pluginFile` を受け取り、`plugin_dir_path()` / `plugin_dir_url()` / `plugin_basename()` を使ってパス解決を提供する。`getCompilerPasses()`, `boot()`, `onActivate()`, `onDeactivate()` は空のデフォルト実装を持つ。
 
+#### `isNetworkActivated(): bool`
+
+Returns whether the plugin is network-activated on a multisite installation. On single-site installs, this always returns `false`. Internally it calls `is_plugin_active_for_network()` (loading `wp-admin/includes/plugin.php` if needed).
+
+This method is typically used in `boot()` to pass the network activation status to registries that support `AdminScope::Auto`:
+
+```php
+public function boot(Container $container): void
+{
+    $pageRegistry = $container->get(AdminPageRegistry::class);
+    $pageRegistry->register($page, $this->isNetworkActivated());
+}
+```
+
 ### AbstractTheme
 
 `ThemeInterface` のデフォルト実装。コンストラクタで `$themeFile` を受け取り、`dirname()` / `get_theme_root_uri()` を使ってパス解決を提供する。`getCompilerPasses()`, `boot()` は空のデフォルト実装を持つ。

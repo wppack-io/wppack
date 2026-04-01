@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Setting;
 
+use WpPack\Component\Admin\Attribute\AdminScope;
 use WpPack\Component\Option\OptionManager;
 use WpPack\Component\Role\Authorization\IsGrantedChecker;
 use WpPack\Component\Setting\Attribute\AsSettingsPage;
@@ -29,7 +30,9 @@ abstract class AbstractSettingsPage
     public readonly ?string $parent;
     public readonly ?string $icon;
     public readonly ?int $position;
+    public readonly AdminScope $scope;
 
+    private bool $network = false;
     private ?OptionManager $optionManager = null;
     private ?TemplateRendererInterface $templateRenderer = null;
     private ?SettingsRenderer $renderer = null;
@@ -51,6 +54,26 @@ abstract class AbstractSettingsPage
         $this->parent = $attribute->parent;
         $this->icon = $attribute->icon;
         $this->position = $attribute->position;
+        $this->scope = $attribute->scope;
+
+        if ($this->scope === AdminScope::Network) {
+            $this->network = true;
+        }
+    }
+
+    /**
+     * Set network mode. Only applies when scope is Auto.
+     */
+    public function setNetwork(bool $network): void
+    {
+        if ($this->scope === AdminScope::Auto) {
+            $this->network = $network;
+        }
+    }
+
+    public function isNetwork(): bool
+    {
+        return $this->network;
     }
 
     abstract protected function configure(SettingsConfigurator $settings): void;
@@ -140,9 +163,15 @@ abstract class AbstractSettingsPage
 
     public function addMenuPage(): void
     {
-        if ($this->parent !== null) {
+        $parent = $this->parent;
+
+        if ($this->network && $parent === 'options-general.php') {
+            $parent = 'settings.php';
+        }
+
+        if ($parent !== null) {
             add_submenu_page(
-                $this->parent,
+                $parent,
                 $this->label,
                 $this->menuLabel,
                 $this->capability,

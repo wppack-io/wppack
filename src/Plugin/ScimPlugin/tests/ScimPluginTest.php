@@ -91,11 +91,12 @@ final class ScimPluginTest extends TestCase
         $plugin = new ScimPlugin(__FILE__);
         $plugin->boot($container);
 
-        self::assertNotFalse(has_action('admin_menu'));
+        // ScimSettingsPage has scope=Network, so it registers on network_admin_menu
+        self::assertNotFalse(has_action('network_admin_menu'));
         self::assertNotFalse(has_action('rest_api_init'));
 
         set_current_screen('front');
-        remove_all_actions('admin_menu');
+        remove_all_actions('network_admin_menu');
         remove_all_actions('admin_enqueue_scripts');
         remove_all_actions('rest_api_init');
     }

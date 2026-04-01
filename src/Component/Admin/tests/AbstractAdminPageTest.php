@@ -16,6 +16,7 @@ namespace WpPack\Component\Admin\Tests;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Admin\AbstractAdminPage;
+use WpPack\Component\Admin\Attribute\AdminScope;
 use WpPack\Component\Admin\Attribute\AsAdminPage;
 use WpPack\Component\Role\Attribute\IsGranted;
 use WpPack\Component\Templating\TemplateRendererInterface;
@@ -288,6 +289,75 @@ final class AbstractAdminPageTest extends TestCase
 
         self::assertSame('<div>admin page content</div>', $output);
     }
+
+    #[Test]
+    public function scopeDefaultsToSite(): void
+    {
+        $page = new MinimalTestAdminPage();
+
+        self::assertSame(AdminScope::Site, $page->scope);
+        self::assertFalse($page->isNetwork());
+    }
+
+    #[Test]
+    public function scopeReadsNetworkFromAttribute(): void
+    {
+        $page = new NetworkScopedTestAdminPage();
+
+        self::assertSame(AdminScope::Network, $page->scope);
+        self::assertTrue($page->isNetwork());
+    }
+
+    #[Test]
+    public function scopeReadsAutoFromAttribute(): void
+    {
+        $page = new AutoScopedTestAdminPage();
+
+        self::assertSame(AdminScope::Auto, $page->scope);
+        self::assertFalse($page->isNetwork());
+    }
+
+    #[Test]
+    public function setNetworkOnlyAppliesWhenScopeIsAuto(): void
+    {
+        $sitePage = new MinimalTestAdminPage();
+        $sitePage->setNetwork(true);
+        self::assertFalse($sitePage->isNetwork(), 'Site scope should not change with setNetwork(true)');
+
+        $networkPage = new NetworkScopedTestAdminPage();
+        $networkPage->setNetwork(false);
+        self::assertTrue($networkPage->isNetwork(), 'Network scope should not change with setNetwork(false)');
+
+        $autoPage = new AutoScopedTestAdminPage();
+        self::assertFalse($autoPage->isNetwork());
+        $autoPage->setNetwork(true);
+        self::assertTrue($autoPage->isNetwork(), 'Auto scope should change with setNetwork(true)');
+        $autoPage->setNetwork(false);
+        self::assertFalse($autoPage->isNetwork(), 'Auto scope should change with setNetwork(false)');
+    }
+
+    #[Test]
+    public function addMenuPageUsesSettingsPhpForNetworkParent(): void
+    {
+        wp_set_current_user(1);
+
+        global $submenu;
+
+        $page = new NetworkSubmenuTestAdminPage();
+        $page->addMenuPage();
+
+        // The parent should be settings.php, not options-general.php
+        self::assertArrayHasKey('settings.php', $submenu);
+
+        $found = false;
+        foreach ($submenu['settings.php'] as $item) {
+            if ($item[2] === $page->slug) {
+                $found = true;
+                break;
+            }
+        }
+        self::assertTrue($found, 'Network submenu page should be registered under settings.php');
+    }
 }
 
 #[AsAdminPage(
@@ -372,5 +442,37 @@ class TemplatingTestAdminPage extends AbstractAdminPage
     public function __invoke(): string
     {
         return $this->render('admin/test.html.twig', ['key' => 'value']);
+    }
+}
+
+#[AsAdminPage(slug: 'network-scoped-page', label: 'Network Scoped Page', scope: AdminScope::Network)]
+class NetworkScopedTestAdminPage extends AbstractAdminPage
+{
+    public function __invoke(): string
+    {
+        return '';
+    }
+}
+
+#[AsAdminPage(slug: 'auto-scoped-page', label: 'Auto Scoped Page', scope: AdminScope::Auto)]
+class AutoScopedTestAdminPage extends AbstractAdminPage
+{
+    public function __invoke(): string
+    {
+        return '';
+    }
+}
+
+#[AsAdminPage(
+    slug: 'network-submenu-page',
+    label: 'Network Submenu Page',
+    parent: 'options-general.php',
+    scope: AdminScope::Network,
+)]
+class NetworkSubmenuTestAdminPage extends AbstractAdminPage
+{
+    public function __invoke(): string
+    {
+        return '<div>network submenu content</div>';
     }
 }

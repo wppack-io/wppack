@@ -106,6 +106,14 @@ final class AbstractPluginTest extends TestCase
         $this->addToAssertionCount(1);
     }
 
+    #[Test]
+    public function isNetworkActivatedReturnsFalseOnNonMultisite(): void
+    {
+        $plugin = $this->createPlugin(WP_PLUGIN_DIR . '/test-plugin/test-plugin.php');
+
+        self::assertFalse($plugin->isNetworkActivated());
+    }
+
     private function createPlugin(string $pluginFile): AbstractPlugin
     {
         return new class ($pluginFile) extends AbstractPlugin {

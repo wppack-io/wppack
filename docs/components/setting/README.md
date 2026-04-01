@@ -107,6 +107,7 @@ class MyPluginSettings extends AbstractSettingsPage
     parent: 'options-general.php',// 親メニュー（null でトップレベル、デフォルト: options-general.php）
     icon: null,                   // トップレベルメニュー用アイコン
     position: null,               // メニュー位置
+    scope: AdminScope::Site,      // 登録先スコープ（Site / Network / Auto）
 )]
 // 権限チェック: #[IsGranted('manage_options')]（デフォルト）
 ```
@@ -365,6 +366,26 @@ class MyPluginSettings extends AbstractSettingsPage
 ```
 
 > デフォルトの `__invoke()` は `SettingsRenderer::renderPage()` の出力を `ob_start()` でキャプチャして返します。`render()` ショートカットを使う場合は `__invoke()` をオーバーライドして Templating ベースのレンダリングに置き換えます。
+
+## Network Admin Support
+
+`AsSettingsPage` also accepts the `scope` parameter using `AdminScope` from the Admin component:
+
+```php
+use WpPack\Component\Admin\Attribute\AdminScope;
+
+#[AsSettingsPage(
+    slug: 'my-plugin',
+    label: 'My Plugin Settings',
+    parent: 'options-general.php',
+    scope: AdminScope::Auto,
+)]
+class MyPluginSettings extends AbstractSettingsPage { /* ... */ }
+```
+
+When `AdminScope::Auto` is used, the settings page is automatically registered in either the site admin or network admin based on the plugin's network activation status. The parent menu auto-adjustment (`options-general.php` to `settings.php`) also applies.
+
+For details on `AdminScope`, auto-detection via `isNetworkActivated()`, and parent menu adjustment, see the [Admin component documentation](../admin/).
 
 ## Named Hook アトリビュート
 
