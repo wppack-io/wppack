@@ -119,7 +119,7 @@ export default function SettingsPage() {
 			'locked',
 			'metricsCount',
 		],
-		layout: { density: 'comfortable' },
+		layout: { density: 'balanced' },
 	} );
 
 	const fetchProviders = async () => {
