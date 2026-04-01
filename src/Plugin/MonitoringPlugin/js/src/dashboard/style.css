@@ -131,21 +131,36 @@
 }
 
 /* ── DataViews overrides for WP admin ─── */
-/* Reset editor-specific 48px padding to standard admin padding */
-.dataviews__view-actions,
-.dataviews-filters__container {
-	padding-left: 0;
-	padding-right: 0;
+/* Reset editor-specific padding and stretch to full page width */
+.wpp-monitoring-settings .dataviews-wrapper {
+	margin-left: -24px;
+	margin-right: -24px;
 }
 
+.dataviews__view-actions,
+.dataviews-filters__container {
+	padding-left: 24px;
+	padding-right: 24px;
+}
+
+/* Table cell padding */
+.dataviews-view-table th {
+	padding: 8px 12px;
+}
+
+.dataviews-view-table td {
+	padding: 12px;
+}
+
+/* Compensate negative margin on first/last columns */
 .dataviews-view-table tr th:first-child,
 .dataviews-view-table tr td:first-child {
-	padding-left: 8px;
+	padding-left: 24px;
 }
 
 .dataviews-view-table tr th:last-child,
 .dataviews-view-table tr td:last-child {
-	padding-right: 8px;
+	padding-right: 24px;
 }
 
 .dataviews-settings-section__title {
