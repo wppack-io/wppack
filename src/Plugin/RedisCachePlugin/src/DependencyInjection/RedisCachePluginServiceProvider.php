@@ -24,6 +24,7 @@ use WpPack\Component\Rest\RestRegistry;
 use WpPack\Plugin\RedisCachePlugin\Admin\RedisCacheSettingsController;
 use WpPack\Plugin\RedisCachePlugin\Admin\RedisCacheSettingsPage;
 use WpPack\Plugin\RedisCachePlugin\Configuration\RedisCacheConfiguration;
+use WpPack\Plugin\RedisCachePlugin\Monitoring\RedisCacheMetricSourceProvider;
 
 final class RedisCachePluginServiceProvider implements ServiceProviderInterface
 {
@@ -51,6 +52,10 @@ final class RedisCachePluginServiceProvider implements ServiceProviderInterface
             ->setFactory([self::class, 'getObjectCache']);
 
         $builder->register(CacheManager::class, CacheManager::class);
+
+        // Monitoring integration
+        $builder->register(RedisCacheMetricSourceProvider::class)
+            ->addTag('monitoring.metric_source_provider');
     }
 
     public static function getObjectCache(): ObjectCache
