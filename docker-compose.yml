@@ -87,7 +87,9 @@ services:
     ports:
       - '8081:8080'
     volumes:
+      - keycloak-data:/opt/keycloak/data
       - ./docker/keycloak/master-realm.json:/opt/keycloak/data/import/master-realm.json:ro
 
 volumes:
   mysql-data:
+  keycloak-data:
