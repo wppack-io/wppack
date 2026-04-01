@@ -151,6 +151,17 @@ export default function SettingsPage() {
 
 	const actions = [
 		{
+			id: 'view',
+			label: 'View',
+			isPrimary: true,
+			icon: 'visibility',
+			callback: ( items ) => {
+				if ( items[ 0 ] ) {
+					setSelectedProvider( items[ 0 ] );
+				}
+			},
+		},
+		{
 			id: 'delete',
 			label: 'Delete',
 			isPrimary: false,
@@ -221,13 +232,20 @@ export default function SettingsPage() {
 			{ selectedProvider && (
 				<Modal
 					title={
-						selectedProvider.id
-							? selectedProvider.label || 'Edit Provider'
-							: 'Add Provider'
+						selectedProvider.locked
+							? selectedProvider.label
+							: selectedProvider.id
+								? 'Edit Provider'
+								: 'Add Provider'
 					}
 					onRequestClose={ () => setSelectedProvider( null ) }
 					size="large"
 				>
+					{ selectedProvider.locked && (
+						<Notice status="info" isDismissible={ false } className="wpp-monitoring-readonly-notice">
+							This provider is managed by a plugin and cannot be edited.
+						</Notice>
+					) }
 					<DataForm
 						data={ selectedProvider }
 						fields={ PROVIDER_FORM_FIELDS.map( ( f ) => ( {
@@ -263,6 +281,7 @@ export default function SettingsPage() {
 								<thead>
 									<tr>
 										<th>Label</th>
+										<th>Description</th>
 										<th>Namespace</th>
 										<th>Metric</th>
 										<th>Stat</th>
@@ -273,6 +292,7 @@ export default function SettingsPage() {
 									{ selectedProvider.metrics.map( ( m ) => (
 										<tr key={ m.id }>
 											<td>{ m.label }</td>
+											<td className="wpp-monitoring-table-desc">{ m.description }</td>
 											<td>{ m.namespace }</td>
 											<td>{ m.metricName }</td>
 											<td>{ m.stat }</td>

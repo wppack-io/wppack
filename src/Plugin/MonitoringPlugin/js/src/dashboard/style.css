@@ -226,6 +226,17 @@
 	background: #f9f9f9;
 }
 
+.wpp-monitoring-table-desc {
+	color: #757575;
+	font-size: 12px;
+	word-break: break-word;
+	max-width: 200px;
+}
+
+.wpp-monitoring-readonly-notice {
+	margin-bottom: 16px;
+}
+
 .wpp-monitoring-modal-actions {
 	display: flex;
 	gap: 8px;
