@@ -51,6 +51,12 @@ final class MonitoringSettingsController extends AbstractRestController
     {
         /** @var array<string, mixed> $data */
         $data = $request->get_json_params();
+
+        $error = $this->validateProviderData($data);
+        if ($error !== null) {
+            return $this->json(['error' => $error], 400);
+        }
+
         $this->store->saveProvider($data);
 
         return $this->created(['success' => true]);
@@ -61,6 +67,17 @@ final class MonitoringSettingsController extends AbstractRestController
     {
         /** @var array<string, mixed> $data */
         $data = $request->get_json_params();
+        $id = (string) ($data['id'] ?? '');
+
+        if ($this->isLockedProvider($id)) {
+            return $this->json(['error' => 'This provider is locked and cannot be modified.'], 403);
+        }
+
+        $error = $this->validateProviderData($data);
+        if ($error !== null) {
+            return $this->json(['error' => $error], 400);
+        }
+
         $this->store->saveProvider($data);
 
         return $this->json(['success' => true]);
@@ -73,8 +90,12 @@ final class MonitoringSettingsController extends AbstractRestController
         $data = $request->get_json_params();
         $id = (string) ($data['id'] ?? '');
 
-        if ($id === '') {
-            return $this->json(['error' => 'Missing provider id'], 400);
+        if ($id === '' || !$this->isValidId($id)) {
+            return $this->json(['error' => 'Invalid provider id.'], 400);
+        }
+
+        if ($this->isLockedProvider($id)) {
+            return $this->json(['error' => 'This provider is locked and cannot be deleted.'], 403);
         }
 
         $this->store->deleteProvider($id);
@@ -90,8 +111,17 @@ final class MonitoringSettingsController extends AbstractRestController
         $providerId = (string) ($data['providerId'] ?? '');
         $metric = $data['metric'] ?? [];
 
-        if ($providerId === '' || !\is_array($metric)) {
-            return $this->json(['error' => 'Missing providerId or metric data'], 400);
+        if (!$this->isValidId($providerId) || !\is_array($metric)) {
+            return $this->json(['error' => 'Invalid providerId or metric data.'], 400);
+        }
+
+        if ($this->isLockedProvider($providerId)) {
+            return $this->json(['error' => 'This provider is locked.'], 403);
+        }
+
+        $error = $this->validateMetricData($metric);
+        if ($error !== null) {
+            return $this->json(['error' => $error], 400);
         }
 
         $this->store->saveMetric($providerId, $metric);
@@ -107,8 +137,17 @@ final class MonitoringSettingsController extends AbstractRestController
         $providerId = (string) ($data['providerId'] ?? '');
         $metric = $data['metric'] ?? [];
 
-        if ($providerId === '' || !\is_array($metric)) {
-            return $this->json(['error' => 'Missing providerId or metric data'], 400);
+        if (!$this->isValidId($providerId) || !\is_array($metric)) {
+            return $this->json(['error' => 'Invalid providerId or metric data.'], 400);
+        }
+
+        if ($this->isLockedProvider($providerId)) {
+            return $this->json(['error' => 'This provider is locked.'], 403);
+        }
+
+        $error = $this->validateMetricData($metric);
+        if ($error !== null) {
+            return $this->json(['error' => $error], 400);
         }
 
         $this->store->saveMetric($providerId, $metric);
@@ -124,13 +163,75 @@ final class MonitoringSettingsController extends AbstractRestController
         $providerId = (string) ($data['providerId'] ?? '');
         $metricId = (string) ($data['metricId'] ?? '');
 
-        if ($providerId === '' || $metricId === '') {
-            return $this->json(['error' => 'Missing providerId or metricId'], 400);
+        if (!$this->isValidId($providerId) || !$this->isValidId($metricId)) {
+            return $this->json(['error' => 'Invalid providerId or metricId.'], 400);
+        }
+
+        if ($this->isLockedProvider($providerId)) {
+            return $this->json(['error' => 'This provider is locked.'], 403);
         }
 
         $this->store->deleteMetric($providerId, $metricId);
 
         return $this->noContent();
+    }
+
+    private function isValidId(string $id): bool
+    {
+        return $id !== '' && preg_match('/^[a-zA-Z0-9._-]+$/', $id) === 1;
+    }
+
+    private function isLockedProvider(string $id): bool
+    {
+        return $this->registry->get($id)?->locked === true;
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function validateProviderData(array $data): ?string
+    {
+        $id = (string) ($data['id'] ?? '');
+        $label = (string) ($data['label'] ?? '');
+        $bridge = (string) ($data['bridge'] ?? '');
+
+        if ($id !== '' && !$this->isValidId($id)) {
+            return 'Invalid provider id format.';
+        }
+
+        if ($label === '' || mb_strlen($label) > 200) {
+            return 'Label is required and must be under 200 characters.';
+        }
+
+        if ($bridge === '') {
+            return 'Bridge is required.';
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private function validateMetricData(array $data): ?string
+    {
+        $label = (string) ($data['label'] ?? '');
+        $namespace = (string) ($data['namespace'] ?? '');
+        $metricName = (string) ($data['metricName'] ?? '');
+
+        if ($label === '' || mb_strlen($label) > 200) {
+            return 'Metric label is required and must be under 200 characters.';
+        }
+
+        if ($namespace === '') {
+            return 'Metric namespace is required.';
+        }
+
+        if ($metricName === '') {
+            return 'Metric name is required.';
+        }
+
+        return null;
     }
 
     /**

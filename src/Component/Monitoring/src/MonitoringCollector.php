@@ -114,7 +114,7 @@ final class MonitoringCollector
             return 'Connection failed. Check network.';
         }
 
-        return mb_strlen($message) > 100 ? mb_substr($message, 0, 100) . '…' : $message;
+        return 'Metric query failed. Check provider configuration.';
     }
 
 }

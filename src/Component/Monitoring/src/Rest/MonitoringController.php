@@ -65,7 +65,7 @@ final class MonitoringController extends AbstractRestController
 
     private function buildTimeRange(\WP_REST_Request $request): MetricTimeRange
     {
-        $hours = (int) ($request->get_param('period') ?? 3);
+        $hours = max(1, min(168, (int) ($request->get_param('period') ?? 3)));
         $end = new \DateTimeImmutable('now');
         $start = $end->modify("-{$hours} hours");
 
