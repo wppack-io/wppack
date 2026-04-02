@@ -79,6 +79,8 @@ class CloudWatchMetricProvider implements MetricProviderInterface
         /** @var array<string, MetricDefinition> $metricMap */
         $metricMap = [];
 
+        $rangeSeconds = $range->end->getTimestamp() - $range->start->getTimestamp();
+
         foreach ($provider->metrics as $i => $metric) {
             $queryId = 'q' . $i;
             $metricMap[$queryId] = $metric;
@@ -94,7 +96,7 @@ class CloudWatchMetricProvider implements MetricProviderInterface
                     'MetricName' => $metric->metricName,
                     'Dimensions' => $dimensions,
                 ]),
-                'Period' => $metric->periodSeconds,
+                'Period' => $this->resolvePeriod($metric->periodSeconds, $rangeSeconds),
                 'Stat' => $metric->stat,
             ];
 
@@ -150,5 +152,21 @@ class CloudWatchMetricProvider implements MetricProviderInterface
         }
 
         return $results;
+    }
+
+    /**
+     * Adjust the metric period based on the requested time range
+     * to keep data point counts reasonable.
+     */
+    private function resolvePeriod(int $metricPeriod, int $rangeSeconds): int
+    {
+        $minPeriod = match (true) {
+            $rangeSeconds <= 21_600 => 60,      // ≤ 6h: metric default
+            $rangeSeconds <= 86_400 => 300,      // ≤ 1d: 5 min
+            $rangeSeconds <= 259_200 => 900,     // ≤ 3d: 15 min
+            default => 3600,                     // > 3d: 1 hour
+        };
+
+        return max($metricPeriod, $minPeriod);
     }
 }

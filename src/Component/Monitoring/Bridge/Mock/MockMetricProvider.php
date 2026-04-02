@@ -39,9 +39,11 @@ class MockMetricProvider implements MetricProviderInterface
         $results = [];
         $now = new \DateTimeImmutable();
 
+        $rangeSeconds = $range->end->getTimestamp() - $range->start->getTimestamp();
+
         foreach ($provider->metrics as $metric) {
             $datapoints = [];
-            $intervalSeconds = $metric->periodSeconds > 0 ? $metric->periodSeconds : 300;
+            $intervalSeconds = $this->resolvePeriod($metric->periodSeconds > 0 ? $metric->periodSeconds : 300, $rangeSeconds);
             $start = $range->start->getTimestamp();
             $end = $range->end->getTimestamp();
 
@@ -68,6 +70,18 @@ class MockMetricProvider implements MetricProviderInterface
         }
 
         return $results;
+    }
+
+    private function resolvePeriod(int $metricPeriod, int $rangeSeconds): int
+    {
+        $minPeriod = match (true) {
+            $rangeSeconds <= 21_600 => 60,
+            $rangeSeconds <= 86_400 => 300,
+            $rangeSeconds <= 259_200 => 900,
+            default => 3600,
+        };
+
+        return max($metricPeriod, $minPeriod);
     }
 
     private function baseValueForUnit(string $unit): float

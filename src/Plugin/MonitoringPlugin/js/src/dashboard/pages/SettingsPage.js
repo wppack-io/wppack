@@ -6,6 +6,49 @@ import { lock, copy } from '@wordpress/icons';
 import apiFetch from '@wordpress/api-fetch';
 import { METRIC_TEMPLATES } from '../data/templates';
 
+const AWS_REGIONS = [
+	{ value: '', label: '\u2014' },
+	{ value: 'us-east-1', label: 'us-east-1 \u2014 US East (N. Virginia)' },
+	{ value: 'us-east-2', label: 'us-east-2 \u2014 US East (Ohio)' },
+	{ value: 'us-west-1', label: 'us-west-1 \u2014 US West (N. California)' },
+	{ value: 'us-west-2', label: 'us-west-2 \u2014 US West (Oregon)' },
+	{ value: 'us-gov-east-1', label: 'us-gov-east-1 \u2014 AWS GovCloud (US-East)' },
+	{ value: 'us-gov-west-1', label: 'us-gov-west-1 \u2014 AWS GovCloud (US-West)' },
+	{ value: 'af-south-1', label: 'af-south-1 \u2014 Africa (Cape Town)' },
+	{ value: 'ap-east-1', label: 'ap-east-1 \u2014 Asia Pacific (Hong Kong)' },
+	{ value: 'ap-east-2', label: 'ap-east-2 \u2014 Asia Pacific (Taipei)' },
+	{ value: 'ap-south-1', label: 'ap-south-1 \u2014 Asia Pacific (Mumbai)' },
+	{ value: 'ap-south-2', label: 'ap-south-2 \u2014 Asia Pacific (Hyderabad)' },
+	{ value: 'ap-southeast-1', label: 'ap-southeast-1 \u2014 Asia Pacific (Singapore)' },
+	{ value: 'ap-southeast-2', label: 'ap-southeast-2 \u2014 Asia Pacific (Sydney)' },
+	{ value: 'ap-southeast-3', label: 'ap-southeast-3 \u2014 Asia Pacific (Jakarta)' },
+	{ value: 'ap-southeast-4', label: 'ap-southeast-4 \u2014 Asia Pacific (Melbourne)' },
+	{ value: 'ap-southeast-5', label: 'ap-southeast-5 \u2014 Asia Pacific (Malaysia)' },
+	{ value: 'ap-southeast-6', label: 'ap-southeast-6 \u2014 Asia Pacific (New Zealand)' },
+	{ value: 'ap-southeast-7', label: 'ap-southeast-7 \u2014 Asia Pacific (Thailand)' },
+	{ value: 'ap-northeast-1', label: 'ap-northeast-1 \u2014 Asia Pacific (Tokyo)' },
+	{ value: 'ap-northeast-2', label: 'ap-northeast-2 \u2014 Asia Pacific (Seoul)' },
+	{ value: 'ap-northeast-3', label: 'ap-northeast-3 \u2014 Asia Pacific (Osaka)' },
+	{ value: 'ca-central-1', label: 'ca-central-1 \u2014 Canada (Central)' },
+	{ value: 'ca-west-1', label: 'ca-west-1 \u2014 Canada West (Calgary)' },
+	{ value: 'cn-north-1', label: 'cn-north-1 \u2014 China (Beijing)' },
+	{ value: 'cn-northwest-1', label: 'cn-northwest-1 \u2014 China (Ningxia)' },
+	{ value: 'eu-central-1', label: 'eu-central-1 \u2014 Europe (Frankfurt)' },
+	{ value: 'eu-central-2', label: 'eu-central-2 \u2014 Europe (Zurich)' },
+	{ value: 'eu-west-1', label: 'eu-west-1 \u2014 Europe (Ireland)' },
+	{ value: 'eu-west-2', label: 'eu-west-2 \u2014 Europe (London)' },
+	{ value: 'eu-west-3', label: 'eu-west-3 \u2014 Europe (Paris)' },
+	{ value: 'eu-south-1', label: 'eu-south-1 \u2014 Europe (Milan)' },
+	{ value: 'eu-south-2', label: 'eu-south-2 \u2014 Europe (Spain)' },
+	{ value: 'eu-north-1', label: 'eu-north-1 \u2014 Europe (Stockholm)' },
+	{ value: 'eusc-de-east-1', label: 'eusc-de-east-1 \u2014 European Sovereign Cloud (Germany)' },
+	{ value: 'il-central-1', label: 'il-central-1 \u2014 Israel (Tel Aviv)' },
+	{ value: 'mx-central-1', label: 'mx-central-1 \u2014 Mexico (Central)' },
+	{ value: 'me-south-1', label: 'me-south-1 \u2014 Middle East (Bahrain)' },
+	{ value: 'me-central-1', label: 'me-central-1 \u2014 Middle East (UAE)' },
+	{ value: 'sa-east-1', label: 'sa-east-1 \u2014 South America (São Paulo)' },
+];
+
 const IAM_POLICY_JSON = `{
   "Version": "2012-10-17",
   "Statement": [
@@ -72,7 +115,7 @@ const PROVIDER_FORM_FIELDS = [
 		id: 'settings.region',
 		label: __( 'Region', 'wppack-monitoring' ),
 		type: 'text',
-		description: __( 'e.g., ap-northeast-1', 'wppack-monitoring' ),
+		elements: AWS_REGIONS.filter( ( r ) => r.value !== '' ),
 		getValue: ( { item } ) => item.settings?.region || '',
 		setValue: ( value ) => ( { settings: { region: value } } ),
 	},
@@ -425,10 +468,10 @@ export default function SettingsPage() {
 									setSelectedProvider( ( prev ) => ( { ...prev, label: value } ) )
 								}
 							/>
-							<TextControl
+							<SelectControl
 								label={ __( 'Region', 'wppack-monitoring' ) + ' *' }
 								value={ selectedProvider.settings?.region || '' }
-								placeholder="ap-northeast-1"
+								options={ AWS_REGIONS }
 								onChange={ ( value ) =>
 									setSelectedProvider( ( prev ) => ( {
 										...prev,
