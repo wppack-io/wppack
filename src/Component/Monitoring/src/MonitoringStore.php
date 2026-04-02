@@ -68,14 +68,19 @@ final class MonitoringStore implements MonitoringProviderInterface
             }
         }
 
-        // Preserve sensitive values: restore from existing when masked or missing
+        // Preserve settings from existing provider when not provided or masked
         if ($existing !== null) {
-            $settings = $data['settings'] ?? [];
-            if (!\is_array($settings) || $settings === []) {
-                $settings = [];
-            }
             $existingSettings = $existing['settings'] ?? [];
-            if (\is_array($existingSettings)) {
+            if (!\is_array($existingSettings)) {
+                $existingSettings = [];
+            }
+
+            if (!isset($data['settings']) || !\is_array($data['settings']) || $data['settings'] === []) {
+                // Settings not provided — keep existing entirely
+                $data['settings'] = $existingSettings;
+            } else {
+                // Settings provided — restore masked/empty sensitive fields
+                $settings = $data['settings'];
                 $bridge = (string) ($data['bridge'] ?? '');
                 $settingsClass = self::resolveSettingsClass($bridge);
                 foreach ($settingsClass::sensitiveFields() as $field) {
@@ -84,14 +89,8 @@ final class MonitoringStore implements MonitoringProviderInterface
                         $settings[$field] = $existingSettings[$field] ?? '';
                     }
                 }
-                // Preserve non-sensitive fields that are missing from the update
-                foreach ($existingSettings as $key => $existingValue) {
-                    if (!isset($settings[$key]) || $settings[$key] === '') {
-                        $settings[$key] = $existingValue;
-                    }
-                }
+                $data['settings'] = $settings;
             }
-            $data['settings'] = $settings;
         }
 
         $updated = [];
