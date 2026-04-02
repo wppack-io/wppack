@@ -25,5 +25,6 @@ final readonly class MonitoringProvider
         public ProviderSettings $settings,
         public array $metrics = [],
         public bool $locked = false,
+        public ?string $templateId = null,
     ) {}
 }

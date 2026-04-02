@@ -25,6 +25,8 @@ use WpPack\Plugin\MonitoringPlugin\Discovery\DatabaseDiscovery;
 use WpPack\Plugin\MonitoringPlugin\Discovery\ElastiCacheDiscovery;
 use WpPack\Plugin\MonitoringPlugin\Discovery\S3Discovery;
 use WpPack\Plugin\MonitoringPlugin\Discovery\SesDiscovery;
+use WpPack\Plugin\MonitoringPlugin\Rest\SyncTemplatesController;
+use WpPack\Plugin\MonitoringPlugin\Template\MetricTemplateRegistry;
 
 final class MonitoringPluginServiceProvider implements ServiceProviderInterface
 {
@@ -40,6 +42,8 @@ final class MonitoringPluginServiceProvider implements ServiceProviderInterface
         }
 
         $builder->register(MonitoringDashboardPage::class);
+        $builder->register(MetricTemplateRegistry::class);
+        $builder->register(SyncTemplatesController::class);
     }
 
     public function register(ContainerBuilder $builder): void

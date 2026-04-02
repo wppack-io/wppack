@@ -253,6 +253,7 @@ final class MonitoringSettingsController extends AbstractRestController
             'settings' => $settings,
             'metrics' => array_map($this->serializeMetric(...), $provider->metrics),
             'locked' => $provider->locked,
+            'templateId' => $provider->templateId,
         ];
     }
 

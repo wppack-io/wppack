@@ -194,6 +194,84 @@ final class MonitoringStore implements MonitoringProviderInterface
     }
 
     /**
+     * Sync a provider's metrics with a template definition.
+     * Only updates metrics — settings are never touched.
+     *
+     * @param list<array{metricName: string, label: string, description: string, namespace: string, unit: string, stat: string, periodSeconds?: int, extraDimensions?: array<string, string>}> $templateMetrics
+     *
+     * @return bool True if metrics were updated
+     */
+    public function syncMetrics(string $providerId, array $templateMetrics): bool
+    {
+        $all = $this->loadRaw();
+
+        foreach ($all as &$entry) {
+            if (($entry['id'] ?? '') !== $providerId) {
+                continue;
+            }
+
+            $existingMetrics = $entry['metrics'] ?? [];
+            if (!\is_array($existingMetrics)) {
+                $existingMetrics = [];
+            }
+
+            // Index existing metrics by metricName for lookup
+            $existingByName = [];
+            foreach ($existingMetrics as $m) {
+                if (isset($m['metricName'])) {
+                    $existingByName[$m['metricName']] = $m;
+                }
+            }
+
+            // Get existing dimensions from first metric (shared across all metrics)
+            $existingDimensions = [];
+            if ($existingMetrics !== []) {
+                $existingDimensions = $existingMetrics[0]['dimensions'] ?? [];
+                if (!\is_array($existingDimensions)) {
+                    $existingDimensions = [];
+                }
+            }
+
+            // Build current and template metricName lists for comparison
+            $currentNames = array_map(fn(array $m): string => (string) ($m['metricName'] ?? ''), $existingMetrics);
+            $templateNames = array_map(fn(array $m): string => $m['metricName'], $templateMetrics);
+            sort($currentNames);
+            sort($templateNames);
+
+            if ($currentNames === $templateNames) {
+                return false; // No change needed
+            }
+
+            // Build synced metrics
+            $synced = [];
+            foreach ($templateMetrics as $tmpl) {
+                $existing = $existingByName[$tmpl['metricName']] ?? null;
+                $extraDims = $tmpl['extraDimensions'] ?? [];
+
+                $synced[] = [
+                    'id' => $existing['id'] ?? $providerId . '.' . strtolower($tmpl['metricName']),
+                    'label' => $tmpl['label'],
+                    'description' => $tmpl['description'],
+                    'namespace' => $tmpl['namespace'],
+                    'metricName' => $tmpl['metricName'],
+                    'unit' => $tmpl['unit'],
+                    'stat' => $tmpl['stat'],
+                    'dimensions' => array_merge($existingDimensions, $extraDims),
+                    'periodSeconds' => $tmpl['periodSeconds'] ?? $existing['periodSeconds'] ?? 300,
+                    'locked' => $existing['locked'] ?? false,
+                ];
+            }
+
+            $entry['metrics'] = $synced;
+            $this->options->update(self::OPTION_NAME, $all);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * @return list<array<string, mixed>>
      */
     private function loadRaw(): array
@@ -239,6 +317,7 @@ final class MonitoringStore implements MonitoringProviderInterface
             settings: $settingsClass::fromArray($settings),
             metrics: $metrics,
             locked: (bool) ($entry['locked'] ?? false),
+            templateId: isset($entry['templateId']) && \is_string($entry['templateId']) ? $entry['templateId'] : null,
         );
     }
 

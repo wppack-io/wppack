@@ -200,6 +200,8 @@ export default function SettingsPage() {
 	const [ dimensionValue, setDimensionValue ] = useState( '' );
 	const [ showIam, setShowIam ] = useState( false );
 	const [ showCloudflare, setShowCloudflare ] = useState( false );
+	const [ syncing, setSyncing ] = useState( false );
+	const [ syncNotice, setSyncNotice ] = useState( null );
 	const [ view, setView ] = useState( {
 		type: 'table',
 		fields: [
@@ -291,6 +293,11 @@ export default function SettingsPage() {
 					{ error }
 				</Notice>
 			) }
+			{ syncNotice && (
+				<Notice status={ syncNotice.type } isDismissible onDismiss={ () => setSyncNotice( null ) }>
+					{ syncNotice.message }
+				</Notice>
+			) }
 
 			<div className="wpp-monitoring-settings-header">
 				<Button
@@ -306,6 +313,34 @@ export default function SettingsPage() {
 					size="compact"
 				>
 					{ __( 'Cloudflare API Token', 'wppack-monitoring' ) }
+				</Button>
+				<Button
+					variant="secondary"
+					onClick={ async () => {
+						setSyncing( true );
+						setSyncNotice( null );
+						try {
+							const result = await apiFetch( {
+								path: 'wppack/v1/monitoring/sync-templates',
+								method: 'POST',
+							} );
+							if ( result.updated > 0 ) {
+								setSyncNotice( { type: 'success', message: result.updated + __( ' providers synced with templates.', 'wppack-monitoring' ) } );
+								await fetchProviders();
+							} else {
+								setSyncNotice( { type: 'info', message: __( 'All providers are up to date.', 'wppack-monitoring' ) } );
+							}
+						} catch ( err ) {
+							setSyncNotice( { type: 'error', message: err.message } );
+						} finally {
+							setSyncing( false );
+						}
+					} }
+					isBusy={ syncing }
+					disabled={ syncing }
+					size="compact"
+				>
+					{ __( 'Sync Templates', 'wppack-monitoring' ) }
 				</Button>
 				<Button
 					variant="primary"
@@ -605,6 +640,7 @@ export default function SettingsPage() {
 										const provider = {
 											...selectedProvider,
 											id: selectedProvider.label.toLowerCase().replace( /[^a-z0-9]+/g, '-' ),
+											templateId: selectedTemplate.id,
 											metrics: selectedProvider.metrics.map( ( m, i ) => {
 												const tmplMetric = selectedTemplate.metrics[ i ] || {};
 												return {
