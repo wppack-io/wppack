@@ -17,10 +17,17 @@ export default function MetricCard( { metric, result } ) {
 		);
 	}
 
-	const lastValue =
-		datapoints.length > 0
-			? datapoints[ datapoints.length - 1 ].value
-			: null;
+	const displayValue = ( () => {
+		if ( datapoints.length === 0 ) {
+			return null;
+		}
+		// Sum metrics: show total across the period
+		if ( stat === 'Sum' ) {
+			return datapoints.reduce( ( acc, dp ) => acc + dp.value, 0 );
+		}
+		// Average/Maximum/Minimum: show latest value
+		return datapoints[ datapoints.length - 1 ].value;
+	} )();
 
 	const formatValue = ( val ) => {
 		if ( val === null ) {
@@ -60,7 +67,7 @@ export default function MetricCard( { metric, result } ) {
 		<div className="wpp-monitoring-card">
 			<div className="wpp-monitoring-card-label">{ label }</div>
 			<div className="wpp-monitoring-card-value">
-				{ formatValue( lastValue ) }
+				{ formatValue( displayValue ) }
 			</div>
 			{ datapoints.length > 1 && <Sparkline datapoints={ datapoints } /> }
 			<div className="wpp-monitoring-card-meta">
