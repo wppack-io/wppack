@@ -333,6 +333,17 @@
 	height: 16px;
 }
 
+/* ── Cloudflare setup steps ─────────────── */
+.wpp-monitoring-cf-steps {
+	margin: 12px 0;
+	padding-left: 20px;
+}
+
+.wpp-monitoring-cf-steps li {
+	margin-bottom: 8px;
+	line-height: 1.6;
+}
+
 /* ── Template metrics table ──────────────── */
 .wpp-monitoring-template-metrics {
 	margin-top: 16px;

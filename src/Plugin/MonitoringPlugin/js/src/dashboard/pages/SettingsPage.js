@@ -199,6 +199,7 @@ export default function SettingsPage() {
 	const [ selectedTemplate, setSelectedTemplate ] = useState( null );
 	const [ dimensionValue, setDimensionValue ] = useState( '' );
 	const [ showIam, setShowIam ] = useState( false );
+	const [ showCloudflare, setShowCloudflare ] = useState( false );
 	const [ view, setView ] = useState( {
 		type: 'table',
 		fields: [
@@ -297,7 +298,14 @@ export default function SettingsPage() {
 					onClick={ () => setShowIam( true ) }
 					size="compact"
 				>
-					{ __( 'IAM Policy', 'wppack-monitoring' ) }
+					{ __( 'AWS IAM Policy', 'wppack-monitoring' ) }
+				</Button>
+				<Button
+					variant="tertiary"
+					onClick={ () => setShowCloudflare( true ) }
+					size="compact"
+				>
+					{ __( 'Cloudflare API Token', 'wppack-monitoring' ) }
 				</Button>
 				<Button
 					variant="primary"
@@ -627,6 +635,52 @@ export default function SettingsPage() {
 							} }
 						/>
 					</div>
+				</Modal>
+			) }
+			{ showCloudflare && (
+				<Modal
+					title={ __( 'Cloudflare API Token Setup', 'wppack-monitoring' ) }
+					onRequestClose={ () => setShowCloudflare( false ) }
+					size="medium"
+				>
+					<p>
+						{ __( 'To retrieve analytics data from Cloudflare, you need to create an API Token with read access to Zone Analytics.', 'wppack-monitoring' ) }
+					</p>
+					<h3>{ __( 'Steps', 'wppack-monitoring' ) }</h3>
+					<ol className="wpp-monitoring-cf-steps">
+						<li>
+							{ __( 'Go to the Cloudflare dashboard and navigate to', 'wppack-monitoring' ) }
+							{ ' ' }
+							<strong>My Profile &rarr; API Tokens</strong>
+						</li>
+						<li>
+							{ __( 'Click', 'wppack-monitoring' ) }
+							{ ' ' }
+							<strong>Create Token</strong>
+						</li>
+						<li>
+							{ __( 'Select the "Create Custom Token" template', 'wppack-monitoring' ) }
+						</li>
+						<li>
+							{ __( 'Set the following permission:', 'wppack-monitoring' ) }
+							<div className="wpp-monitoring-iam-block">
+								<pre className="wpp-monitoring-iam-code">{ 'Zone \u2014 Analytics \u2014 Read' }</pre>
+							</div>
+						</li>
+						<li>
+							{ __( 'Under "Zone Resources", select the zones you want to monitor (or "All zones")', 'wppack-monitoring' ) }
+						</li>
+						<li>
+							{ __( 'Click "Continue to summary" and then "Create Token"', 'wppack-monitoring' ) }
+						</li>
+						<li>
+							{ __( 'Copy the generated token and paste it into the API Token field when adding a Cloudflare provider', 'wppack-monitoring' ) }
+						</li>
+					</ol>
+					<h3>{ __( 'Finding Your Zone ID', 'wppack-monitoring' ) }</h3>
+					<p>
+						{ __( 'The Zone ID is displayed on the right sidebar of your domain\'s Overview page in the Cloudflare dashboard, under the "API" section.', 'wppack-monitoring' ) }
+					</p>
 				</Modal>
 			) }
 		</div>
