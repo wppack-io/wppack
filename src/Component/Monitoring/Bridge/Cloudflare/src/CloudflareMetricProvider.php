@@ -129,9 +129,9 @@ final class CloudflareMetricProvider implements MetricProviderInterface
 
     private function resolveDatetimeField(int $adaptiveMinutes, string $dataset): string
     {
-        // 1h groups only support datetimeHour
+        // 1h groups use "datetime" (not "datetimeHour")
         if ($dataset === 'httpRequests1hGroups') {
-            return 'datetimeHour';
+            return 'datetime';
         }
 
         // 1m groups support datetimeMinute, datetimeFifteenMinutes, datetimeHour

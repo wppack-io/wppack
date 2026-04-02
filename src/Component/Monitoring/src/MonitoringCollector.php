@@ -115,7 +115,8 @@ final class MonitoringCollector
         }
 
         if (str_contains($message, 'Cloudflare API error')) {
-            return 'Cloudflare API error. Check API token and zone ID.';
+            // Include API error detail for debugging (no credentials are exposed)
+            return $message;
         }
 
         return 'Metric query failed. Check provider configuration.';
