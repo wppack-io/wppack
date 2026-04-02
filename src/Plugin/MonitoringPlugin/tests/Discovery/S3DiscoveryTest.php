@@ -15,7 +15,6 @@ namespace WpPack\Plugin\MonitoringPlugin\Tests\Discovery;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Monitoring\MonitoringProvider;
 use WpPack\Plugin\MonitoringPlugin\Discovery\S3Discovery;
 use WpPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
 

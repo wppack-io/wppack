@@ -195,8 +195,8 @@ final class MonitoringSettingsController extends AbstractRestController
         $label = (string) ($data['label'] ?? '');
         $bridge = (string) ($data['bridge'] ?? '');
 
-        if ($id !== '' && !$this->isValidId($id)) {
-            return 'Invalid provider id format.';
+        if ($id === '' || !$this->isValidId($id)) {
+            return 'Provider id is required and must be alphanumeric.';
         }
 
         if ($label === '' || mb_strlen($label) > 200) {

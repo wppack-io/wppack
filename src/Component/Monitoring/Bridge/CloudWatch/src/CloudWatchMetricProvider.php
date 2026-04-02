@@ -65,7 +65,7 @@ final class CloudWatchMetricProvider implements MetricProviderInterface
             $config['accessKeySecret'] = $settings->secretAccessKey;
         }
 
-        $key = $config['region'] . ':' . ($settings->accessKeyId !== '' ? md5($settings->accessKeyId) : 'iam');
+        $key = $config['region'] . ':' . ($settings->accessKeyId !== '' ? $settings->accessKeyId : 'iam');
 
         return $this->clients[$key] ??= new CloudWatchClient($config);
     }
