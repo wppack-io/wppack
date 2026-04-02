@@ -43,7 +43,9 @@ final class MonitoringPluginServiceProvider implements ServiceProviderInterface
 
         $builder->register(MonitoringDashboardPage::class);
         $builder->register(MetricTemplateRegistry::class);
-        $builder->register(SyncTemplatesController::class);
+        $builder->register(SyncTemplatesController::class)
+            ->addArgument(new Reference(\WpPack\Component\Monitoring\MonitoringStore::class))
+            ->addArgument(new Reference(MetricTemplateRegistry::class));
     }
 
     public function register(ContainerBuilder $builder): void
