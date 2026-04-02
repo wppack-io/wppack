@@ -15,7 +15,7 @@ namespace WpPack\Component\Monitoring;
 
 use WpPack\Component\Transient\TransientManager;
 
-class MonitoringCollector
+final class MonitoringCollector
 {
     private const CACHE_KEY = 'wppack_monitoring_metrics';
 
@@ -117,8 +117,4 @@ class MonitoringCollector
         return mb_strlen($message) > 100 ? mb_substr($message, 0, 100) . '…' : $message;
     }
 
-    public function invalidate(): void
-    {
-        $this->transients->delete(self::CACHE_KEY);
-    }
 }

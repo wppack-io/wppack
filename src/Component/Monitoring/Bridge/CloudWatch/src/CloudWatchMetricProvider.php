@@ -27,7 +27,7 @@ use WpPack\Component\Monitoring\MetricTimeRange;
 use WpPack\Component\Monitoring\MonitoringProvider;
 use WpPack\Component\Monitoring\ProviderSettings;
 
-class CloudWatchMetricProvider implements MetricProviderInterface
+final class CloudWatchMetricProvider implements MetricProviderInterface
 {
     /** @var array<string, CloudWatchClient> */
     private array $clients = [];

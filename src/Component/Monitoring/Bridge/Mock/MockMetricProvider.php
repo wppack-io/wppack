@@ -22,7 +22,7 @@ use WpPack\Component\Monitoring\MonitoringProvider;
 /**
  * Mock metric provider that generates random data for development/testing.
  */
-class MockMetricProvider implements MetricProviderInterface
+final class MockMetricProvider implements MetricProviderInterface
 {
     public function getName(): string
     {

@@ -15,7 +15,7 @@ namespace WpPack\Component\Monitoring;
 
 use WpPack\Component\Option\OptionManager;
 
-class MonitoringStore implements MonitoringProviderInterface
+final class MonitoringStore implements MonitoringProviderInterface
 {
     private const OPTION_NAME = 'wppack_monitoring_providers';
     private const MASKED_VALUE = '********';

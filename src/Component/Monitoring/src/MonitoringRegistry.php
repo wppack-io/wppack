@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Monitoring;
 
-class MonitoringRegistry
+final class MonitoringRegistry
 {
     /** @var list<MonitoringProvider> */
     private array $providers = [];
