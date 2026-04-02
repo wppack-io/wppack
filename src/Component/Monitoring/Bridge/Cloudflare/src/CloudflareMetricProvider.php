@@ -222,6 +222,42 @@ GRAPHQL;
         MetricTimeRange $range,
         int $adaptiveMinutes,
     ): ?array {
+        $rangeSeconds = $range->end->getTimestamp() - $range->start->getTimestamp();
+        $maxChunkSeconds = 259_200; // 3 days
+
+        // Split into chunks if range exceeds 3 days
+        $chunks = [];
+        $chunkStart = $range->start;
+        while ($chunkStart < $range->end) {
+            $chunkEnd = $chunkStart->modify('+' . $maxChunkSeconds . ' seconds');
+            if ($chunkEnd > $range->end) {
+                $chunkEnd = $range->end;
+            }
+            $chunks[] = new MetricTimeRange($chunkStart, $chunkEnd);
+            $chunkStart = $chunkEnd;
+        }
+
+        $allMerged = [];
+        foreach ($chunks as $chunk) {
+            $chunkResult = $this->fetchFirewallEventsChunk($apiToken, $zoneId, $chunk, $adaptiveMinutes);
+            if ($chunkResult !== null) {
+                $allMerged = [...$allMerged, ...$chunkResult];
+            }
+        }
+
+        return $allMerged !== [] ? $allMerged : null;
+    }
+
+    /**
+     * @return list<array<string, mixed>>|null
+     */
+    private function fetchFirewallEventsChunk(
+        #[\SensitiveParameter]
+        string $apiToken,
+        string $zoneId,
+        MetricTimeRange $range,
+        int $adaptiveMinutes,
+    ): ?array {
         $dtField = $this->resolveDatetimeField($adaptiveMinutes, 'firewallEventsAdaptiveGroups');
 
         $query = <<<GRAPHQL
