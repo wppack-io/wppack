@@ -449,17 +449,20 @@ GRAPHQL;
 
             $ts = new \DateTimeImmutable($tsString);
 
+            $totalRequests = (float) ($sum['requests'] ?? 0);
+            $cachedRequests = (float) ($sum['cachedRequests'] ?? 0);
+
             $fieldMap = [
-                'requests' => (float) ($sum['requests'] ?? 0),
-                'cachedRequests' => (float) ($sum['cachedRequests'] ?? 0),
+                'requests' => $totalRequests,
+                'cachedRequests' => $cachedRequests,
+                'cacheRate' => $totalRequests > 0 ? round($cachedRequests / $totalRequests * 100, 2) : 0.0,
                 'bandwidth' => (float) ($sum['bytes'] ?? 0),
                 'cachedBandwidth' => (float) ($sum['cachedBytes'] ?? 0),
-                'encryptedRequests' => (float) ($sum['encryptedRequests'] ?? 0),
-                'encryptedBandwidth' => (float) ($sum['encryptedBytes'] ?? 0),
                 'threats' => (float) ($sum['threats'] ?? 0),
                 'pageViews' => (float) ($sum['pageViews'] ?? 0),
                 'uniques' => (float) ($uniques['uniques'] ?? 0),
                 'status2xx' => 0.0,
+                'status3xx' => 0.0,
                 'status4xx' => 0.0,
                 'status5xx' => 0.0,
             ];
@@ -471,6 +474,8 @@ GRAPHQL;
                     $count = (float) ($entry['requests'] ?? 0);
                     if ($code >= 200 && $code < 300) {
                         $fieldMap['status2xx'] += $count;
+                    } elseif ($code >= 300 && $code < 400) {
+                        $fieldMap['status3xx'] += $count;
                     } elseif ($code >= 400 && $code < 500) {
                         $fieldMap['status4xx'] += $count;
                     } elseif ($code >= 500) {
