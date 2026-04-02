@@ -257,7 +257,15 @@ export default function SettingsPage() {
 			};
 		} );
 
-		const updated = { ...provider, metrics: syncedMetrics };
+		// Only update metrics, preserve settings (which may be masked/excluded)
+		const updated = {
+			id: provider.id,
+			label: provider.label,
+			bridge: provider.bridge,
+			settings: provider.settings,
+			metrics: syncedMetrics,
+			locked: provider.locked,
+		};
 		await apiFetch( {
 			path: 'wppack/v1/monitoring/providers',
 			method: 'PUT',

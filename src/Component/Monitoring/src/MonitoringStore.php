@@ -68,22 +68,30 @@ final class MonitoringStore implements MonitoringProviderInterface
             }
         }
 
-        // Preserve masked secret values
+        // Preserve sensitive values: restore from existing when masked or missing
         if ($existing !== null) {
             $settings = $data['settings'] ?? [];
-            if (\is_array($settings)) {
-                $existingSettings = $existing['settings'] ?? [];
-                if (\is_array($existingSettings)) {
-                    $bridge = (string) ($data['bridge'] ?? '');
-                    $settingsClass = self::resolveSettingsClass($bridge);
-                    foreach ($settingsClass::sensitiveFields() as $field) {
-                        if (($settings[$field] ?? '') === self::MASKED_VALUE) {
-                            $settings[$field] = $existingSettings[$field] ?? '';
-                        }
+            if (!\is_array($settings) || $settings === []) {
+                $settings = [];
+            }
+            $existingSettings = $existing['settings'] ?? [];
+            if (\is_array($existingSettings)) {
+                $bridge = (string) ($data['bridge'] ?? '');
+                $settingsClass = self::resolveSettingsClass($bridge);
+                foreach ($settingsClass::sensitiveFields() as $field) {
+                    $value = $settings[$field] ?? '';
+                    if ($value === '' || $value === self::MASKED_VALUE) {
+                        $settings[$field] = $existingSettings[$field] ?? '';
                     }
-                    $data['settings'] = $settings;
+                }
+                // Preserve non-sensitive fields that are missing from the update
+                foreach ($existingSettings as $key => $existingValue) {
+                    if (!isset($settings[$key]) || $settings[$key] === '') {
+                        $settings[$key] = $existingValue;
+                    }
                 }
             }
+            $data['settings'] = $settings;
         }
 
         $updated = [];
