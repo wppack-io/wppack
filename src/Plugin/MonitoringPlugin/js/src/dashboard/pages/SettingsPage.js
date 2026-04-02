@@ -212,13 +212,94 @@ export default function SettingsPage() {
 		layout: { density: 'balanced' },
 	} );
 
+	/**
+	 * Find the matching template for a provider by checking if the provider's
+	 * metrics match a template's metric names and bridge.
+	 */
+	const findTemplateForProvider = ( provider ) => {
+		return METRIC_TEMPLATES.find( ( tmpl ) => {
+			if ( tmpl.bridge !== provider.bridge ) {
+				return false;
+			}
+			// Match by checking if the provider has at least one metric
+			// whose metricName is in this template
+			const tmplNames = new Set( tmpl.metrics.map( ( m ) => m.metricName ) );
+			return provider.metrics?.some( ( m ) => tmplNames.has( m.metricName ) );
+		} );
+	};
+
+	/**
+	 * Sync a provider's metrics with its template definition.
+	 * Adds new metrics, removes deleted ones, updates changed ones.
+	 * Preserves provider-specific dimensions (e.g., ZoneId, DBInstanceIdentifier).
+	 */
+	const syncProviderWithTemplate = async ( provider, template ) => {
+		const existingDimensions = provider.metrics?.[ 0 ]?.dimensions || {};
+		const existingById = {};
+		( provider.metrics || [] ).forEach( ( m ) => {
+			existingById[ m.metricName ] = m;
+		} );
+
+		const syncedMetrics = template.metrics.map( ( tmplMetric ) => {
+			const existing = existingById[ tmplMetric.metricName ];
+			const extraDims = tmplMetric.extraDimensions || {};
+			return {
+				id: existing?.id || `${ provider.id }.${ tmplMetric.metricName.toLowerCase() }`,
+				label: tmplMetric.label,
+				description: tmplMetric.description,
+				namespace: template.namespace,
+				metricName: tmplMetric.metricName,
+				unit: tmplMetric.unit,
+				stat: tmplMetric.stat,
+				dimensions: { ...existingDimensions, ...extraDims },
+				periodSeconds: tmplMetric.period || existing?.periodSeconds || 300,
+				locked: existing?.locked ?? false,
+			};
+		} );
+
+		const updated = { ...provider, metrics: syncedMetrics };
+		await apiFetch( {
+			path: 'wppack/v1/monitoring/providers',
+			method: 'PUT',
+			data: updated,
+		} );
+	};
+
 	const fetchProviders = async () => {
 		try {
 			setLoading( true );
 			const result = await apiFetch( {
 				path: 'wppack/v1/monitoring/providers',
 			} );
-			setProviders( result.providers || [] );
+			const fetched = result.providers || [];
+
+			// Auto-sync non-locked providers with their templates
+			let needsRefetch = false;
+			for ( const provider of fetched ) {
+				if ( provider.locked ) {
+					continue;
+				}
+				const tmpl = findTemplateForProvider( provider );
+				if ( ! tmpl ) {
+					continue;
+				}
+				const tmplNames = tmpl.metrics.map( ( m ) => m.metricName ).sort().join( ',' );
+				const provNames = ( provider.metrics || [] ).map( ( m ) => m.metricName ).sort().join( ',' );
+				if ( tmplNames !== provNames ) {
+					await syncProviderWithTemplate( provider, tmpl );
+					needsRefetch = true;
+				}
+			}
+
+			if ( needsRefetch ) {
+				const refreshed = await apiFetch( {
+					path: 'wppack/v1/monitoring/providers',
+				} );
+				setProviders( refreshed.providers || [] );
+			} else {
+				setProviders( fetched );
+			}
+
 			setError( null );
 		} catch ( err ) {
 			setError( err.message );
