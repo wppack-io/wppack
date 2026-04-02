@@ -102,17 +102,18 @@ final class CloudflareMetricProvider implements MetricProviderInterface
     private function resolveAdaptiveMinutes(int $rangeSeconds): int
     {
         return match (true) {
-            $rangeSeconds <= 21_600 => 5,
-            $rangeSeconds <= 86_400 => 15,
-            $rangeSeconds <= 259_200 => 60,
-            default => 360,
+            $rangeSeconds <= 3_600 => 1,       // ≤ 1h: 1 min
+            $rangeSeconds <= 21_600 => 5,      // ≤ 6h: 5 min
+            $rangeSeconds <= 86_400 => 15,     // ≤ 1d: 15 min
+            $rangeSeconds <= 259_200 => 60,    // ≤ 3d: 1 hour
+            default => 360,                    // > 3d: 6 hours
         };
     }
 
     private function resolveDatetimeField(int $adaptiveMinutes): string
     {
         return match ($adaptiveMinutes) {
-            5 => 'datetimeFiveMinutes',
+            1, 5 => 'datetimeMinute',
             15 => 'datetimeFifteenMinutes',
             60 => 'datetimeHour',
             default => 'datetimeHour',
@@ -135,7 +136,7 @@ final class CloudflareMetricProvider implements MetricProviderInterface
 query ZoneAnalytics(\$zoneTag: string!, \$since: Time!, \$until: Time!, \$limit: Int!) {
   viewer {
     zones(filter: { zoneTag: \$zoneTag }) {
-      httpRequestsAdaptiveGroups(
+      httpRequests1mGroups(
         filter: { datetime_geq: \$since, datetime_lt: \$until }
         limit: \$limit
         orderBy: [{$dtField}_ASC]
@@ -157,7 +158,7 @@ query ZoneAnalytics(\$zoneTag: string!, \$since: Time!, \$until: Time!, \$limit:
             requests
           }
         }
-        uniques {
+        uniq {
           uniques
         }
       }
@@ -168,7 +169,7 @@ GRAPHQL;
 
         $result = $this->executeQuery($apiToken, $query, $zoneId, $range, $adaptiveMinutes);
 
-        return $result['data']['viewer']['zones'][0]['httpRequestsAdaptiveGroups'] ?? null;
+        return $result['data']['viewer']['zones'][0]['httpRequests1mGroups'] ?? null;
     }
 
     /**
@@ -336,7 +337,7 @@ GRAPHQL;
         foreach ($zoneGroups as $group) {
             $dimensions = $group['dimensions'] ?? [];
             $sum = $group['sum'] ?? [];
-            $uniques = $group['uniques'] ?? [];
+            $uniques = $group['uniq'] ?? [];
             $tsString = $dimensions[array_key_first($dimensions)] ?? null;
 
             if (!\is_string($tsString)) {
