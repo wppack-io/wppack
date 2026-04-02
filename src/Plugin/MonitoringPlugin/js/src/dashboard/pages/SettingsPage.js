@@ -644,9 +644,10 @@ export default function SettingsPage() {
 					size="medium"
 				>
 					<p>
-						{ __( 'To retrieve analytics data from Cloudflare, you need to create an API Token with read access to Zone Analytics.', 'wppack-monitoring' ) }
+						{ __( 'Cloudflare analytics data is retrieved via API Token. We recommend creating an Account API Token, which allows monitoring all zones in the account with a single token.', 'wppack-monitoring' ) }
 					</p>
-					<h3>{ __( 'Steps', 'wppack-monitoring' ) }</h3>
+
+					<h3>{ __( 'Creating an Account API Token (Recommended)', 'wppack-monitoring' ) }</h3>
 					<ol className="wpp-monitoring-cf-steps">
 						<li>
 							{ __( 'Go to the Cloudflare dashboard and navigate to', 'wppack-monitoring' ) }
@@ -654,32 +655,37 @@ export default function SettingsPage() {
 							<strong>My Profile &rarr; API Tokens</strong>
 						</li>
 						<li>
-							{ __( 'Click', 'wppack-monitoring' ) }
-							{ ' ' }
-							<strong>Create Token</strong>
+							{ __( 'Click "Create Token"', 'wppack-monitoring' ) }
 						</li>
 						<li>
-							{ __( 'Select the "Create Custom Token" template', 'wppack-monitoring' ) }
+							{ __( 'Select "Create Custom Token"', 'wppack-monitoring' ) }
 						</li>
 						<li>
-							{ __( 'Set the following permission:', 'wppack-monitoring' ) }
+							{ __( 'Set the following permissions:', 'wppack-monitoring' ) }
 							<div className="wpp-monitoring-iam-block">
-								<pre className="wpp-monitoring-iam-code">{ 'Zone \u2014 Analytics \u2014 Read' }</pre>
+								<pre className="wpp-monitoring-iam-code">{ 'Account \u2014 Account Analytics \u2014 Read\nZone   \u2014 Analytics         \u2014 Read' }</pre>
 							</div>
 						</li>
 						<li>
-							{ __( 'Under "Zone Resources", select the zones you want to monitor (or "All zones")', 'wppack-monitoring' ) }
+							{ __( 'Under "Account Resources", select the target account', 'wppack-monitoring' ) }
 						</li>
 						<li>
-							{ __( 'Click "Continue to summary" and then "Create Token"', 'wppack-monitoring' ) }
+							{ __( 'Under "Zone Resources", select "All zones" (or specific zones)', 'wppack-monitoring' ) }
 						</li>
 						<li>
-							{ __( 'Copy the generated token and paste it into the API Token field when adding a Cloudflare provider', 'wppack-monitoring' ) }
+							{ __( 'Click "Continue to summary", then "Create Token"', 'wppack-monitoring' ) }
+						</li>
+						<li>
+							{ __( 'Copy the token and paste it into the API Token field when adding a Cloudflare provider', 'wppack-monitoring' ) }
 						</li>
 					</ol>
+					<p className="wpp-monitoring-iam-note">
+						{ __( 'Tip: A single API Token can be reused across multiple Cloudflare providers (Zone analytics, WAF, etc.) as long as it has the required permissions.', 'wppack-monitoring' ) }
+					</p>
+
 					<h3>{ __( 'Finding Your Zone ID', 'wppack-monitoring' ) }</h3>
 					<p>
-						{ __( 'The Zone ID is displayed on the right sidebar of your domain\'s Overview page in the Cloudflare dashboard, under the "API" section.', 'wppack-monitoring' ) }
+						{ __( 'The Zone ID is shown on the right sidebar of your domain\'s Overview page in the Cloudflare dashboard, under the "API" section.', 'wppack-monitoring' ) }
 					</p>
 				</Modal>
 			) }
