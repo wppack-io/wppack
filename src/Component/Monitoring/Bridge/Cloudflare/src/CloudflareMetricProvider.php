@@ -120,16 +120,21 @@ final class CloudflareMetricProvider implements MetricProviderInterface
      */
     private function resolveZoneDataset(int $rangeSeconds): string
     {
-        // 1m data retained ~24h; switch to 1h for longer ranges
         return match (true) {
-            $rangeSeconds <= 43_200 => 'httpRequests1mGroups',  // ≤ 12h
-            default => 'httpRequests1hGroups',
+            $rangeSeconds <= 43_200 => 'httpRequests1mGroups',  // ≤ 12h: 1m data
+            $rangeSeconds <= 259_200 => 'httpRequests1hGroups', // ≤ 3d: 1h data
+            default => 'httpRequests1dGroups',                  // > 3d: 1d data
         };
     }
 
     private function resolveDatetimeField(int $adaptiveMinutes, string $dataset): string
     {
-        // 1h groups use "datetime" (not "datetimeHour")
+        // 1d groups use "date"
+        if ($dataset === 'httpRequests1dGroups') {
+            return 'date';
+        }
+
+        // 1h groups use "datetime"
         if ($dataset === 'httpRequests1hGroups') {
             return 'datetime';
         }
@@ -163,13 +168,16 @@ final class CloudflareMetricProvider implements MetricProviderInterface
         string $dataset,
     ): ?array {
         $dtField = $this->resolveDatetimeField($adaptiveMinutes, $dataset);
+        $isDaily = $dataset === 'httpRequests1dGroups';
+        $varType = $isDaily ? 'Date' : 'Time';
+        $filterField = $isDaily ? 'date' : 'datetime';
 
         $query = <<<GRAPHQL
-query ZoneAnalytics(\$zoneTag: string!, \$since: Time!, \$until: Time!, \$limit: Int!) {
+query ZoneAnalytics(\$zoneTag: string!, \$since: {$varType}!, \$until: {$varType}!, \$limit: Int!) {
   viewer {
     zones(filter: { zoneTag: \$zoneTag }) {
       {$dataset}(
-        filter: { datetime_geq: \$since, datetime_lt: \$until }
+        filter: { {$filterField}_geq: \$since, {$filterField}_lt: \$until }
         limit: \$limit
         orderBy: [{$dtField}_ASC]
       ) {
@@ -199,7 +207,7 @@ query ZoneAnalytics(\$zoneTag: string!, \$since: Time!, \$until: Time!, \$limit:
 }
 GRAPHQL;
 
-        $result = $this->executeQuery($apiToken, $query, $zoneId, $range, $adaptiveMinutes);
+        $result = $this->executeQuery($apiToken, $query, $zoneId, $range, $adaptiveMinutes, $isDaily);
 
         return $result['data']['viewer']['zones'][0][$dataset] ?? null;
     }
@@ -316,8 +324,10 @@ GRAPHQL;
         string $zoneId,
         MetricTimeRange $range,
         int $adaptiveMinutes,
+        bool $dateOnly = false,
     ): array {
         $maxPoints = (int) ceil(($range->end->getTimestamp() - $range->start->getTimestamp()) / ($adaptiveMinutes * 60));
+        $dateFormat = $dateOnly ? 'Y-m-d' : \DateTimeInterface::ATOM;
 
         $response = wp_remote_post(self::API_URL, [
             'headers' => [
@@ -328,8 +338,8 @@ GRAPHQL;
                 'query' => $query,
                 'variables' => [
                     'zoneTag' => $zoneId,
-                    'since' => $range->start->format(\DateTimeInterface::ATOM),
-                    'until' => $range->end->format(\DateTimeInterface::ATOM),
+                    'since' => $range->start->format($dateFormat),
+                    'until' => $range->end->format($dateFormat),
                     'limit' => min($maxPoints, 10000),
                 ],
             ]),
