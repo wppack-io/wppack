@@ -204,7 +204,7 @@ query ZoneAnalytics(\$zoneTag: string!, \$since: Time!, \$until: Time!, \$limit:
 }
 GRAPHQL;
 
-        $result = $this->executeQuery($apiToken, $query, $zoneId, $range, $adaptiveMinutes);
+        $result = $this->executeQuery($apiToken, $query, $zoneId, $range);
 
         return $result['data']['viewer']['zones'][0][$dataset] ?? null;
     }
@@ -331,7 +331,7 @@ query FirewallAnalytics(\$zoneTag: string!, \$since: Time!, \$until: Time!, \$li
 }
 GRAPHQL;
 
-        $result = $this->executeQuery($apiToken, $query, $zoneId, $range, $adaptiveMinutes);
+        $result = $this->executeQuery($apiToken, $query, $zoneId, $range);
         $zones = $result['data']['viewer']['zones'][0] ?? null;
 
         if ($zones === null) {
@@ -389,10 +389,7 @@ GRAPHQL;
         string $query,
         string $zoneId,
         MetricTimeRange $range,
-        int $adaptiveMinutes,
     ): array {
-        $maxPoints = (int) ceil(($range->end->getTimestamp() - $range->start->getTimestamp()) / ($adaptiveMinutes * 60));
-
         $response = wp_remote_post(self::API_URL, [
             'headers' => [
                 'Authorization' => 'Bearer ' . $apiToken,
@@ -404,7 +401,7 @@ GRAPHQL;
                     'zoneTag' => $zoneId,
                     'since' => $range->start->format(\DateTimeInterface::ATOM),
                     'until' => $range->end->format(\DateTimeInterface::ATOM),
-                    'limit' => min($maxPoints, 10000),
+                    'limit' => 10000,
                 ],
             ]),
             'timeout' => 30,
