@@ -40,6 +40,9 @@ export default function MetricCard( { metric, result } ) {
 			return <>{ val.toFixed( 1 ) }{ u( '%' ) }</>;
 		}
 		if ( unit === 'Bytes' ) {
+			if ( val >= 1_099_511_627_776 ) {
+				return <>{ ( val / 1_099_511_627_776 ).toFixed( 1 ) } { u( 'TB' ) }</>;
+			}
 			if ( val >= 1_073_741_824 ) {
 				return <>{ ( val / 1_073_741_824 ).toFixed( 1 ) } { u( 'GB' ) }</>;
 			}
