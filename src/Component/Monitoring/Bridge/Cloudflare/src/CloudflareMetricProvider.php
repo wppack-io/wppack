@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Monitoring\Bridge\Cloudflare;
 
 use WpPack\Component\Monitoring\CloudflareProviderSettings;
+use WpPack\Component\Monitoring\MetricDefinition;
 use WpPack\Component\Monitoring\MetricPoint;
 use WpPack\Component\Monitoring\MetricProviderInterface;
 use WpPack\Component\Monitoring\MetricResult;
@@ -23,12 +24,55 @@ use WpPack\Component\Monitoring\MonitoringProvider;
 /**
  * Cloudflare Analytics GraphQL API bridge.
  *
- * Uses httpRequestsAdaptiveGroups for zone analytics and
- * firewallEventsAdaptiveGroups for WAF metrics.
+ * Builds GraphQL queries dynamically based on the provider's metric definitions.
+ * Only fields required by configured metrics are requested.
  */
 final class CloudflareMetricProvider implements MetricProviderInterface
 {
     private const API_URL = 'https://api.cloudflare.com/client/v4/graphql';
+
+    /**
+     * Maps metricName → [source, field/config].
+     *
+     * Sources:
+     * - 'sum'       → direct field in sum { ... }
+     * - 'uniq'      → field in uniq { ... }
+     * - 'computed'   → derived from other sum fields
+     * - 'statusMap'  → aggregated from responseStatusMap
+     * - 'waf'        → firewallEventsAdaptiveGroups alias (null = no action filter)
+     *
+     * @var array<string, array{0: string, 1: mixed}>
+     */
+    private const FIELD_MAP = [
+        'requests'            => ['sum', 'requests'],
+        'cachedRequests'      => ['sum', 'cachedRequests'],
+        'bandwidth'           => ['sum', 'bytes'],
+        'cachedBandwidth'     => ['sum', 'cachedBytes'],
+        'threats'             => ['sum', 'threats'],
+        'pageViews'           => ['sum', 'pageViews'],
+        'uniques'             => ['uniq', 'uniques'],
+        'cacheRate'           => ['computed', ['requests', 'cachedRequests']],
+        'status2xx'           => ['statusMap', 200],
+        'status3xx'           => ['statusMap', 300],
+        'status4xx'           => ['statusMap', 400],
+        'status5xx'           => ['statusMap', 500],
+        'wafTotal'            => ['waf', null],
+        'wafBlocked'          => ['waf', 'block'],
+        'wafChallenged'       => ['waf', 'js_challenge'],
+        'wafManagedChallenge' => ['waf', 'managed_challenge'],
+    ];
+
+    /**
+     * WAF metric alias names (metricName → GraphQL alias).
+     *
+     * @var array<string, string>
+     */
+    private const WAF_ALIASES = [
+        'wafTotal'            => 'total',
+        'wafBlocked'          => 'blocked',
+        'wafChallenged'       => 'challenged',
+        'wafManagedChallenge' => 'managedChallenge',
+    ];
 
     public function getName(): string
     {
@@ -62,101 +106,105 @@ final class CloudflareMetricProvider implements MetricProviderInterface
         $rangeSeconds = $range->end->getTimestamp() - $range->start->getTimestamp();
         $adaptiveMinutes = $this->resolveAdaptiveMinutes($rangeSeconds);
 
-        // Determine which datasets are needed based on metric namespaces
-        $needsZone = false;
-        $needsWaf = false;
-        foreach ($provider->metrics as $metric) {
-            if ($metric->namespace === 'Cloudflare/WAF') {
-                $needsWaf = true;
-            } else {
-                $needsZone = true;
-            }
-        }
+        // Analyze required fields from provider metrics
+        $requirements = $this->analyzeRequirements($provider->metrics);
 
         $zoneGroups = [];
         $wafGroups = [];
 
-        if ($needsZone) {
+        if ($requirements['needsZone']) {
             $dataset = $this->resolveZoneDataset($rangeSeconds);
-            $maxChunkSeconds = $dataset === 'httpRequests1hGroups' ? 259_200 : 0; // 3d limit for 1h groups
+            $maxChunkSeconds = $dataset === 'httpRequests1hGroups' ? 259_200 : 0;
             if ($maxChunkSeconds > 0 && $rangeSeconds > $maxChunkSeconds) {
-                $zoneGroups = $this->fetchZoneAnalyticsChunked($apiToken, $zoneId, $range, $adaptiveMinutes, $dataset, $maxChunkSeconds);
+                $zoneGroups = $this->fetchZoneAnalyticsChunked($apiToken, $zoneId, $range, $adaptiveMinutes, $dataset, $maxChunkSeconds, $requirements);
             } else {
-                $zoneGroups = $this->fetchZoneAnalytics($apiToken, $zoneId, $range, $adaptiveMinutes, $dataset) ?? [];
+                $zoneGroups = $this->fetchZoneAnalytics($apiToken, $zoneId, $range, $adaptiveMinutes, $dataset, $requirements) ?? [];
             }
         }
 
-        if ($needsWaf) {
-            $wafGroups = $this->fetchFirewallEvents($apiToken, $zoneId, $range, $adaptiveMinutes) ?? [];
+        if ($requirements['wafAliases'] !== []) {
+            $wafGroups = $this->fetchFirewallEvents($apiToken, $zoneId, $range, $adaptiveMinutes, $requirements['wafAliases']) ?? [];
         }
 
         return $this->mapResults($provider, $zoneGroups, $wafGroups);
     }
 
-    private function extractZoneId(MonitoringProvider $provider): string
+    // ──────────────────────────────────────────────
+    // Requirement analysis
+    // ──────────────────────────────────────────────
+
+    /**
+     * Analyze provider metrics to determine which GraphQL fields are needed.
+     *
+     * @param list<MetricDefinition> $metrics
+     * @return array{needsZone: bool, sumFields: list<string>, needsUniq: bool, needsStatusMap: bool, wafAliases: array<string, string|null>}
+     */
+    private function analyzeRequirements(array $metrics): array
     {
-        foreach ($provider->metrics as $metric) {
-            $zoneId = $metric->dimensions['ZoneId'] ?? '';
-            if ($zoneId !== '') {
-                return $zoneId;
+        $sumFields = [];
+        $needsUniq = false;
+        $needsStatusMap = false;
+        $needsZone = false;
+        /** @var array<string, string|null> $wafAliases alias => action filter */
+        $wafAliases = [];
+
+        foreach ($metrics as $metric) {
+            $mapping = self::FIELD_MAP[$metric->metricName] ?? null;
+            if ($mapping === null) {
+                // Unknown metric — try direct sum field
+                $sumFields[] = $metric->metricName;
+                $needsZone = true;
+
+                continue;
+            }
+
+            [$source, $config] = $mapping;
+
+            switch ($source) {
+                case 'sum':
+                    $sumFields[] = $config;
+                    $needsZone = true;
+                    break;
+                case 'uniq':
+                    $needsUniq = true;
+                    $needsZone = true;
+                    break;
+                case 'computed':
+                    // Add dependency fields
+                    foreach ((array) $config as $dep) {
+                        $depMapping = self::FIELD_MAP[$dep] ?? null;
+                        if ($depMapping !== null && $depMapping[0] === 'sum') {
+                            $sumFields[] = $depMapping[1];
+                        }
+                    }
+                    $needsZone = true;
+                    break;
+                case 'statusMap':
+                    $needsStatusMap = true;
+                    $needsZone = true;
+                    break;
+                case 'waf':
+                    $alias = self::WAF_ALIASES[$metric->metricName] ?? $metric->metricName;
+                    $wafAliases[$alias] = $config;
+                    break;
             }
         }
 
-        return '';
+        return [
+            'needsZone' => $needsZone,
+            'sumFields' => array_values(array_unique($sumFields)),
+            'needsUniq' => $needsUniq,
+            'needsStatusMap' => $needsStatusMap,
+            'wafAliases' => $wafAliases,
+        ];
     }
 
-    private function resolveAdaptiveMinutes(int $rangeSeconds): int
-    {
-        return match (true) {
-            $rangeSeconds <= 3_600 => 1,       // ≤ 1h: 1 min
-            $rangeSeconds <= 21_600 => 5,      // ≤ 6h: 5 min
-            $rangeSeconds <= 86_400 => 15,     // ≤ 1d: 15 min
-            $rangeSeconds <= 259_200 => 60,    // ≤ 3d: 1 hour
-            default => 360,                    // > 3d: 6 hours
-        };
-    }
+    // ──────────────────────────────────────────────
+    // Zone analytics
+    // ──────────────────────────────────────────────
 
     /**
-     * Resolve the appropriate Cloudflare zone dataset based on time range.
-     *
-     * - httpRequests1mGroups: up to ~24h of data (1-minute granularity)
-     * - httpRequests1hGroups: up to 3 days per query (1-hour granularity)
-     *
-     * For ranges > 3d, httpRequests1hGroups is used with chunked queries.
-     */
-    private function resolveZoneDataset(int $rangeSeconds): string
-    {
-        return match (true) {
-            $rangeSeconds <= 43_200 => 'httpRequests1mGroups',  // ≤ 12h: 1m data
-            default => 'httpRequests1hGroups',                  // > 12h: 1h data (chunked if > 3d)
-        };
-    }
-
-    private function resolveDatetimeField(int $adaptiveMinutes, string $dataset): string
-    {
-        // 1h groups use "datetime"
-        if ($dataset === 'httpRequests1hGroups') {
-            return 'datetime';
-        }
-
-        // 1m groups support datetimeMinute, datetimeFifteenMinutes, datetimeHour
-        if ($dataset === 'httpRequests1mGroups') {
-            return match ($adaptiveMinutes) {
-                1, 5 => 'datetimeMinute',
-                15 => 'datetimeFifteenMinutes',
-                default => 'datetimeHour',
-            };
-        }
-
-        // Adaptive groups (firewall etc.) support datetimeFiveMinutes, datetimeFifteenMinutes, datetimeHour
-        return match ($adaptiveMinutes) {
-            1, 5 => 'datetimeFiveMinutes',
-            15 => 'datetimeFifteenMinutes',
-            default => 'datetimeHour',
-        };
-    }
-
-    /**
+     * @param array{sumFields: list<string>, needsUniq: bool, needsStatusMap: bool, wafAliases: array<string, string|null>, needsZone: bool} $requirements
      * @return list<array<string, mixed>>|null
      */
     private function fetchZoneAnalytics(
@@ -166,8 +214,10 @@ final class CloudflareMetricProvider implements MetricProviderInterface
         MetricTimeRange $range,
         int $adaptiveMinutes,
         string $dataset,
+        array $requirements,
     ): ?array {
         $dtField = $this->resolveDatetimeField($adaptiveMinutes, $dataset);
+        $sumBlock = $this->buildSumBlock($requirements);
 
         $query = <<<GRAPHQL
 query ZoneAnalytics(\$zoneTag: string!, \$since: Time!, \$until: Time!, \$limit: Int!) {
@@ -181,21 +231,7 @@ query ZoneAnalytics(\$zoneTag: string!, \$since: Time!, \$until: Time!, \$limit:
         dimensions {
           {$dtField}
         }
-        sum {
-          requests
-          cachedRequests
-          bytes
-          cachedBytes
-          threats
-          pageViews
-          responseStatusMap {
-            edgeResponseStatus
-            requests
-          }
-        }
-        uniq {
-          uniques
-        }
+{$sumBlock}
       }
     }
   }
@@ -208,6 +244,7 @@ GRAPHQL;
     }
 
     /**
+     * @param array{sumFields: list<string>, needsUniq: bool, needsStatusMap: bool, wafAliases: array<string, string|null>, needsZone: bool} $requirements
      * @return list<array<string, mixed>>
      */
     private function fetchZoneAnalyticsChunked(
@@ -218,6 +255,7 @@ GRAPHQL;
         int $adaptiveMinutes,
         string $dataset,
         int $maxChunkSeconds,
+        array $requirements,
     ): array {
         $allGroups = [];
         $chunkStart = $range->start;
@@ -229,7 +267,7 @@ GRAPHQL;
             }
 
             $chunk = new MetricTimeRange($chunkStart, $chunkEnd);
-            $groups = $this->fetchZoneAnalytics($apiToken, $zoneId, $chunk, $adaptiveMinutes, $dataset);
+            $groups = $this->fetchZoneAnalytics($apiToken, $zoneId, $chunk, $adaptiveMinutes, $dataset, $requirements);
             if ($groups !== null) {
                 $allGroups = [...$allGroups, ...$groups];
             }
@@ -241,6 +279,43 @@ GRAPHQL;
     }
 
     /**
+     * Build the GraphQL sum/uniq block based on requirements.
+     *
+     * @param array{sumFields: list<string>, needsUniq: bool, needsStatusMap: bool} $requirements
+     */
+    private function buildSumBlock(array $requirements): string
+    {
+        $lines = [];
+
+        if ($requirements['sumFields'] !== [] || $requirements['needsStatusMap']) {
+            $lines[] = '        sum {';
+            foreach ($requirements['sumFields'] as $field) {
+                $lines[] = '          ' . $field;
+            }
+            if ($requirements['needsStatusMap']) {
+                $lines[] = '          responseStatusMap {';
+                $lines[] = '            edgeResponseStatus';
+                $lines[] = '            requests';
+                $lines[] = '          }';
+            }
+            $lines[] = '        }';
+        }
+
+        if ($requirements['needsUniq']) {
+            $lines[] = '        uniq {';
+            $lines[] = '          uniques';
+            $lines[] = '        }';
+        }
+
+        return implode("\n", $lines);
+    }
+
+    // ──────────────────────────────────────────────
+    // WAF / Firewall events
+    // ──────────────────────────────────────────────
+
+    /**
+     * @param array<string, string|null> $wafAliases alias => action filter (null = no filter)
      * @return list<array<string, mixed>>|null
      */
     private function fetchFirewallEvents(
@@ -249,11 +324,11 @@ GRAPHQL;
         string $zoneId,
         MetricTimeRange $range,
         int $adaptiveMinutes,
+        array $wafAliases,
     ): ?array {
         $rangeSeconds = $range->end->getTimestamp() - $range->start->getTimestamp();
-        $maxChunkSeconds = 259_200; // 3 days
+        $maxChunkSeconds = 259_200;
 
-        // Split into chunks if range exceeds 3 days
         $chunks = [];
         $chunkStart = $range->start;
         while ($chunkStart < $range->end) {
@@ -267,7 +342,7 @@ GRAPHQL;
 
         $allMerged = [];
         foreach ($chunks as $chunk) {
-            $chunkResult = $this->fetchFirewallEventsChunk($apiToken, $zoneId, $chunk, $adaptiveMinutes);
+            $chunkResult = $this->fetchFirewallEventsChunk($apiToken, $zoneId, $chunk, $adaptiveMinutes, $wafAliases);
             if ($chunkResult !== null) {
                 $allMerged = [...$allMerged, ...$chunkResult];
             }
@@ -277,6 +352,7 @@ GRAPHQL;
     }
 
     /**
+     * @param array<string, string|null> $wafAliases
      * @return list<array<string, mixed>>|null
      */
     private function fetchFirewallEventsChunk(
@@ -285,45 +361,16 @@ GRAPHQL;
         string $zoneId,
         MetricTimeRange $range,
         int $adaptiveMinutes,
+        array $wafAliases,
     ): ?array {
         $dtField = $this->resolveDatetimeField($adaptiveMinutes, 'firewallEventsAdaptiveGroups');
+        $aliasQueries = $this->buildWafAliasQueries($wafAliases, $dtField);
 
         $query = <<<GRAPHQL
 query FirewallAnalytics(\$zoneTag: string!, \$since: Time!, \$until: Time!, \$limit: Int!) {
   viewer {
     zones(filter: { zoneTag: \$zoneTag }) {
-      total: firewallEventsAdaptiveGroups(
-        filter: { datetime_geq: \$since, datetime_lt: \$until }
-        limit: \$limit
-        orderBy: [{$dtField}_ASC]
-      ) {
-        dimensions { {$dtField} }
-        count
-      }
-      blocked: firewallEventsAdaptiveGroups(
-        filter: { datetime_geq: \$since, datetime_lt: \$until, action: "block" }
-        limit: \$limit
-        orderBy: [{$dtField}_ASC]
-      ) {
-        dimensions { {$dtField} }
-        count
-      }
-      challenged: firewallEventsAdaptiveGroups(
-        filter: { datetime_geq: \$since, datetime_lt: \$until, action: "js_challenge" }
-        limit: \$limit
-        orderBy: [{$dtField}_ASC]
-      ) {
-        dimensions { {$dtField} }
-        count
-      }
-      managedChallenge: firewallEventsAdaptiveGroups(
-        filter: { datetime_geq: \$since, datetime_lt: \$until, action: "managed_challenge" }
-        limit: \$limit
-        orderBy: [{$dtField}_ASC]
-      ) {
-        dimensions { {$dtField} }
-        count
-      }
+{$aliasQueries}
     }
   }
 }
@@ -336,20 +383,46 @@ GRAPHQL;
             return null;
         }
 
-        // Merge aliased results into a unified timeline
-        return $this->mergeFirewallGroups($zones);
+        return $this->mergeFirewallGroups($zones, array_keys($wafAliases));
+    }
+
+    /**
+     * @param array<string, string|null> $wafAliases
+     */
+    private function buildWafAliasQueries(array $wafAliases, string $dtField): string
+    {
+        $lines = [];
+
+        foreach ($wafAliases as $alias => $actionFilter) {
+            $filter = 'datetime_geq: $since, datetime_lt: $until';
+            if ($actionFilter !== null) {
+                $filter .= ', action: "' . $actionFilter . '"';
+            }
+
+            $lines[] = "      {$alias}: firewallEventsAdaptiveGroups(";
+            $lines[] = "        filter: { {$filter} }";
+            $lines[] = '        limit: $limit';
+            $lines[] = "        orderBy: [{$dtField}_ASC]";
+            $lines[] = '      ) {';
+            $lines[] = "        dimensions { {$dtField} }";
+            $lines[] = '        count';
+            $lines[] = '      }';
+        }
+
+        return implode("\n", $lines);
     }
 
     /**
      * @param array<string, mixed> $zones
+     * @param list<string> $aliases
      * @return list<array<string, mixed>>
      */
-    private function mergeFirewallGroups(array $zones): array
+    private function mergeFirewallGroups(array $zones, array $aliases): array
     {
         /** @var array<string, array<string, float>> $timeline */
         $timeline = [];
 
-        foreach (['total', 'blocked', 'challenged', 'managedChallenge'] as $alias) {
+        foreach ($aliases as $alias) {
             $groups = $zones[$alias] ?? [];
             if (!\is_array($groups)) {
                 continue;
@@ -366,16 +439,72 @@ GRAPHQL;
 
         $merged = [];
         foreach ($timeline as $ts => $counts) {
-            $merged[] = [
-                'timestamp' => $ts,
-                'wafTotal' => $counts['total'] ?? 0.0,
-                'wafBlocked' => $counts['blocked'] ?? 0.0,
-                'wafChallenged' => $counts['challenged'] ?? 0.0,
-                'wafManagedChallenge' => $counts['managedChallenge'] ?? 0.0,
-            ];
+            $entry = ['timestamp' => $ts];
+            foreach ($aliases as $alias) {
+                // Map alias back to metricName
+                $metricName = array_search($alias, self::WAF_ALIASES, true);
+                $entry[$metricName !== false ? $metricName : $alias] = $counts[$alias] ?? 0.0;
+            }
+            $merged[] = $entry;
         }
 
         return $merged;
+    }
+
+    // ──────────────────────────────────────────────
+    // Shared helpers
+    // ──────────────────────────────────────────────
+
+    private function extractZoneId(MonitoringProvider $provider): string
+    {
+        foreach ($provider->metrics as $metric) {
+            $zoneId = $metric->dimensions['ZoneId'] ?? '';
+            if ($zoneId !== '') {
+                return $zoneId;
+            }
+        }
+
+        return '';
+    }
+
+    private function resolveAdaptiveMinutes(int $rangeSeconds): int
+    {
+        return match (true) {
+            $rangeSeconds <= 3_600 => 1,
+            $rangeSeconds <= 21_600 => 5,
+            $rangeSeconds <= 86_400 => 15,
+            $rangeSeconds <= 259_200 => 60,
+            default => 360,
+        };
+    }
+
+    private function resolveZoneDataset(int $rangeSeconds): string
+    {
+        return match (true) {
+            $rangeSeconds <= 43_200 => 'httpRequests1mGroups',
+            default => 'httpRequests1hGroups',
+        };
+    }
+
+    private function resolveDatetimeField(int $adaptiveMinutes, string $dataset): string
+    {
+        if ($dataset === 'httpRequests1hGroups') {
+            return 'datetime';
+        }
+
+        if ($dataset === 'httpRequests1mGroups') {
+            return match ($adaptiveMinutes) {
+                1, 5 => 'datetimeMinute',
+                15 => 'datetimeFifteenMinutes',
+                default => 'datetimeHour',
+            };
+        }
+
+        return match ($adaptiveMinutes) {
+            1, 5 => 'datetimeFiveMinutes',
+            15 => 'datetimeFifteenMinutes',
+            default => 'datetimeHour',
+        };
     }
 
     /**
@@ -424,6 +553,10 @@ GRAPHQL;
         return $body;
     }
 
+    // ──────────────────────────────────────────────
+    // Result mapping
+    // ──────────────────────────────────────────────
+
     /**
      * @param list<array<string, mixed>> $zoneGroups
      * @param list<array<string, mixed>> $wafGroups
@@ -438,7 +571,7 @@ GRAPHQL;
         foreach ($zoneGroups as $group) {
             $dimensions = $group['dimensions'] ?? [];
             $sum = $group['sum'] ?? [];
-            $uniques = $group['uniq'] ?? [];
+            $uniq = $group['uniq'] ?? [];
             $tsString = $dimensions[array_key_first($dimensions)] ?? null;
 
             if (!\is_string($tsString)) {
@@ -447,13 +580,11 @@ GRAPHQL;
 
             $ts = new \DateTimeImmutable($tsString);
 
-            $totalRequests = (float) ($sum['requests'] ?? 0);
-            $cachedRequests = (float) ($sum['cachedRequests'] ?? 0);
-
-            // Compute status code aggregates from responseStatusMap
-            $statusCounts = ['status2xx' => 0.0, 'status3xx' => 0.0, 'status4xx' => 0.0, 'status5xx' => 0.0];
+            // Pre-compute status counts if needed
+            $statusCounts = null;
             $statusMap = $sum['responseStatusMap'] ?? [];
-            if (\is_array($statusMap)) {
+            if (\is_array($statusMap) && $statusMap !== []) {
+                $statusCounts = ['status2xx' => 0.0, 'status3xx' => 0.0, 'status4xx' => 0.0, 'status5xx' => 0.0];
                 foreach ($statusMap as $entry) {
                     $code = (int) ($entry['edgeResponseStatus'] ?? 0);
                     $count = (float) ($entry['requests'] ?? 0);
@@ -469,20 +600,22 @@ GRAPHQL;
                 }
             }
 
-            // Resolve metric values dynamically per provider metric
             foreach ($provider->metrics as $metric) {
-                $value = match ($metric->metricName) {
-                    // Aliases: metricName differs from API field name
-                    'bandwidth' => (float) ($sum['bytes'] ?? 0),
-                    'cachedBandwidth' => (float) ($sum['cachedBytes'] ?? 0),
-                    // Computed fields
-                    'cacheRate' => $totalRequests > 0 ? round($cachedRequests / $totalRequests * 100, 2) : 0.0,
-                    'uniques' => (float) ($uniques['uniques'] ?? 0),
-                    // Status code aggregates
-                    'status2xx', 'status3xx', 'status4xx', 'status5xx' => $statusCounts[$metric->metricName],
-                    // Direct: read from sum by metricName
-                    default => isset($sum[$metric->metricName]) ? (float) $sum[$metric->metricName] : null,
-                };
+                $mapping = self::FIELD_MAP[$metric->metricName] ?? null;
+
+                if ($mapping === null) {
+                    // Unknown metric — try direct sum field
+                    $value = isset($sum[$metric->metricName]) ? (float) $sum[$metric->metricName] : null;
+                } else {
+                    [$source] = $mapping;
+                    $value = match ($source) {
+                        'sum' => isset($sum[$mapping[1]]) ? (float) $sum[$mapping[1]] : null,
+                        'uniq' => isset($uniq[$mapping[1]]) ? (float) $uniq[$mapping[1]] : null,
+                        'computed' => $this->computeValue($metric->metricName, $sum),
+                        'statusMap' => $statusCounts[$metric->metricName] ?? null,
+                        default => null,
+                    };
+                }
 
                 if ($value === null) {
                     continue;
@@ -499,21 +632,24 @@ GRAPHQL;
         // Map WAF events
         foreach ($wafGroups as $group) {
             $tsString = $group['timestamp'] ?? null;
-
             if (!\is_string($tsString)) {
                 continue;
             }
 
             $ts = new \DateTimeImmutable($tsString);
 
-            $fieldMap = [
-                'wafTotal' => (float) ($group['wafTotal'] ?? 0),
-                'wafBlocked' => (float) ($group['wafBlocked'] ?? 0),
-                'wafChallenged' => (float) ($group['wafChallenged'] ?? 0),
-                'wafManagedChallenge' => (float) ($group['wafManagedChallenge'] ?? 0),
-            ];
+            foreach ($provider->metrics as $metric) {
+                $value = $group[$metric->metricName] ?? null;
+                if ($value === null) {
+                    continue;
+                }
 
-            $this->addPoints($pointsByMetric, $provider, $fieldMap, $ts);
+                $pointsByMetric[$metric->id][] = new MetricPoint(
+                    timestamp: $ts,
+                    value: (float) $value,
+                    stat: $metric->stat,
+                );
+            }
         }
 
         $now = new \DateTimeImmutable();
@@ -537,22 +673,18 @@ GRAPHQL;
     }
 
     /**
-     * @param array<string, list<MetricPoint>> $pointsByMetric
-     * @param array<string, float> $fieldMap
+     * @param array<string, mixed> $sum
      */
-    private function addPoints(array &$pointsByMetric, MonitoringProvider $provider, array $fieldMap, \DateTimeImmutable $ts): void
+    private function computeValue(string $metricName, array $sum): ?float
     {
-        foreach ($provider->metrics as $metric) {
-            $value = $fieldMap[$metric->metricName] ?? null;
-            if ($value === null) {
-                continue;
-            }
+        return match ($metricName) {
+            'cacheRate' => (function () use ($sum): float {
+                $total = (float) ($sum['requests'] ?? 0);
+                $cached = (float) ($sum['cachedRequests'] ?? 0);
 
-            $pointsByMetric[$metric->id][] = new MetricPoint(
-                timestamp: $ts,
-                value: $value,
-                stat: $metric->stat,
-            );
-        }
+                return $total > 0 ? round($cached / $total * 100, 2) : 0.0;
+            })(),
+            default => null,
+        };
     }
 }
