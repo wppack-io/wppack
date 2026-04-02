@@ -186,8 +186,6 @@ query ZoneAnalytics(\$zoneTag: string!, \$since: Time!, \$until: Time!, \$limit:
           cachedRequests
           bytes
           cachedBytes
-          encryptedBytes
-          encryptedRequests
           threats
           pageViews
           responseStatusMap {
@@ -452,39 +450,50 @@ GRAPHQL;
             $totalRequests = (float) ($sum['requests'] ?? 0);
             $cachedRequests = (float) ($sum['cachedRequests'] ?? 0);
 
-            $fieldMap = [
-                'requests' => $totalRequests,
-                'cachedRequests' => $cachedRequests,
-                'cacheRate' => $totalRequests > 0 ? round($cachedRequests / $totalRequests * 100, 2) : 0.0,
-                'bandwidth' => (float) ($sum['bytes'] ?? 0),
-                'cachedBandwidth' => (float) ($sum['cachedBytes'] ?? 0),
-                'threats' => (float) ($sum['threats'] ?? 0),
-                'pageViews' => (float) ($sum['pageViews'] ?? 0),
-                'uniques' => (float) ($uniques['uniques'] ?? 0),
-                'status2xx' => 0.0,
-                'status3xx' => 0.0,
-                'status4xx' => 0.0,
-                'status5xx' => 0.0,
-            ];
-
+            // Compute status code aggregates from responseStatusMap
+            $statusCounts = ['status2xx' => 0.0, 'status3xx' => 0.0, 'status4xx' => 0.0, 'status5xx' => 0.0];
             $statusMap = $sum['responseStatusMap'] ?? [];
             if (\is_array($statusMap)) {
                 foreach ($statusMap as $entry) {
                     $code = (int) ($entry['edgeResponseStatus'] ?? 0);
                     $count = (float) ($entry['requests'] ?? 0);
                     if ($code >= 200 && $code < 300) {
-                        $fieldMap['status2xx'] += $count;
+                        $statusCounts['status2xx'] += $count;
                     } elseif ($code >= 300 && $code < 400) {
-                        $fieldMap['status3xx'] += $count;
+                        $statusCounts['status3xx'] += $count;
                     } elseif ($code >= 400 && $code < 500) {
-                        $fieldMap['status4xx'] += $count;
+                        $statusCounts['status4xx'] += $count;
                     } elseif ($code >= 500) {
-                        $fieldMap['status5xx'] += $count;
+                        $statusCounts['status5xx'] += $count;
                     }
                 }
             }
 
-            $this->addPoints($pointsByMetric, $provider, $fieldMap, $ts);
+            // Resolve metric values dynamically per provider metric
+            foreach ($provider->metrics as $metric) {
+                $value = match ($metric->metricName) {
+                    // Aliases: metricName differs from API field name
+                    'bandwidth' => (float) ($sum['bytes'] ?? 0),
+                    'cachedBandwidth' => (float) ($sum['cachedBytes'] ?? 0),
+                    // Computed fields
+                    'cacheRate' => $totalRequests > 0 ? round($cachedRequests / $totalRequests * 100, 2) : 0.0,
+                    'uniques' => (float) ($uniques['uniques'] ?? 0),
+                    // Status code aggregates
+                    'status2xx', 'status3xx', 'status4xx', 'status5xx' => $statusCounts[$metric->metricName],
+                    // Direct: read from sum by metricName
+                    default => isset($sum[$metric->metricName]) ? (float) $sum[$metric->metricName] : null,
+                };
+
+                if ($value === null) {
+                    continue;
+                }
+
+                $pointsByMetric[$metric->id][] = new MetricPoint(
+                    timestamp: $ts,
+                    value: $value,
+                    stat: $metric->stat,
+                );
+            }
         }
 
         // Map WAF events
