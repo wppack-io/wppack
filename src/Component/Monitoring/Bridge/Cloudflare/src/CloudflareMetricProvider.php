@@ -78,7 +78,12 @@ final class CloudflareMetricProvider implements MetricProviderInterface
 
         if ($needsZone) {
             $dataset = $this->resolveZoneDataset($rangeSeconds);
-            $zoneGroups = $this->fetchZoneAnalytics($apiToken, $zoneId, $range, $adaptiveMinutes, $dataset) ?? [];
+            $maxChunkSeconds = $dataset === 'httpRequests1hGroups' ? 259_200 : 0; // 3d limit for 1h groups
+            if ($maxChunkSeconds > 0 && $rangeSeconds > $maxChunkSeconds) {
+                $zoneGroups = $this->fetchZoneAnalyticsChunked($apiToken, $zoneId, $range, $adaptiveMinutes, $dataset, $maxChunkSeconds);
+            } else {
+                $zoneGroups = $this->fetchZoneAnalytics($apiToken, $zoneId, $range, $adaptiveMinutes, $dataset) ?? [];
+            }
         }
 
         if ($needsWaf) {
@@ -115,25 +120,20 @@ final class CloudflareMetricProvider implements MetricProviderInterface
      * Resolve the appropriate Cloudflare zone dataset based on time range.
      *
      * - httpRequests1mGroups: up to ~24h of data (1-minute granularity)
-     * - httpRequests1hGroups: up to ~30 days (1-hour granularity)
-     * - httpRequests1dGroups: longer periods (1-day granularity)
+     * - httpRequests1hGroups: up to 3 days per query (1-hour granularity)
+     *
+     * For ranges > 3d, httpRequests1hGroups is used with chunked queries.
      */
     private function resolveZoneDataset(int $rangeSeconds): string
     {
         return match (true) {
             $rangeSeconds <= 43_200 => 'httpRequests1mGroups',  // ≤ 12h: 1m data
-            $rangeSeconds <= 259_200 => 'httpRequests1hGroups', // ≤ 3d: 1h data
-            default => 'httpRequests1dGroups',                  // > 3d: 1d data
+            default => 'httpRequests1hGroups',                  // > 12h: 1h data (chunked if > 3d)
         };
     }
 
     private function resolveDatetimeField(int $adaptiveMinutes, string $dataset): string
     {
-        // 1d groups use "date"
-        if ($dataset === 'httpRequests1dGroups') {
-            return 'date';
-        }
-
         // 1h groups use "datetime"
         if ($dataset === 'httpRequests1hGroups') {
             return 'datetime';
@@ -168,16 +168,13 @@ final class CloudflareMetricProvider implements MetricProviderInterface
         string $dataset,
     ): ?array {
         $dtField = $this->resolveDatetimeField($adaptiveMinutes, $dataset);
-        $isDaily = $dataset === 'httpRequests1dGroups';
-        $varType = $isDaily ? 'Date' : 'Time';
-        $filterField = $isDaily ? 'date' : 'datetime';
 
         $query = <<<GRAPHQL
-query ZoneAnalytics(\$zoneTag: string!, \$since: {$varType}!, \$until: {$varType}!, \$limit: Int!) {
+query ZoneAnalytics(\$zoneTag: string!, \$since: Time!, \$until: Time!, \$limit: Int!) {
   viewer {
     zones(filter: { zoneTag: \$zoneTag }) {
       {$dataset}(
-        filter: { {$filterField}_geq: \$since, {$filterField}_lt: \$until }
+        filter: { datetime_geq: \$since, datetime_lt: \$until }
         limit: \$limit
         orderBy: [{$dtField}_ASC]
       ) {
@@ -207,9 +204,42 @@ query ZoneAnalytics(\$zoneTag: string!, \$since: {$varType}!, \$until: {$varType
 }
 GRAPHQL;
 
-        $result = $this->executeQuery($apiToken, $query, $zoneId, $range, $adaptiveMinutes, $isDaily);
+        $result = $this->executeQuery($apiToken, $query, $zoneId, $range, $adaptiveMinutes);
 
         return $result['data']['viewer']['zones'][0][$dataset] ?? null;
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function fetchZoneAnalyticsChunked(
+        #[\SensitiveParameter]
+        string $apiToken,
+        string $zoneId,
+        MetricTimeRange $range,
+        int $adaptiveMinutes,
+        string $dataset,
+        int $maxChunkSeconds,
+    ): array {
+        $allGroups = [];
+        $chunkStart = $range->start;
+
+        while ($chunkStart < $range->end) {
+            $chunkEnd = $chunkStart->modify('+' . $maxChunkSeconds . ' seconds');
+            if ($chunkEnd > $range->end) {
+                $chunkEnd = $range->end;
+            }
+
+            $chunk = new MetricTimeRange($chunkStart, $chunkEnd);
+            $groups = $this->fetchZoneAnalytics($apiToken, $zoneId, $chunk, $adaptiveMinutes, $dataset);
+            if ($groups !== null) {
+                $allGroups = [...$allGroups, ...$groups];
+            }
+
+            $chunkStart = $chunkEnd;
+        }
+
+        return $allGroups;
     }
 
     /**
@@ -360,10 +390,8 @@ GRAPHQL;
         string $zoneId,
         MetricTimeRange $range,
         int $adaptiveMinutes,
-        bool $dateOnly = false,
     ): array {
         $maxPoints = (int) ceil(($range->end->getTimestamp() - $range->start->getTimestamp()) / ($adaptiveMinutes * 60));
-        $dateFormat = $dateOnly ? 'Y-m-d' : \DateTimeInterface::ATOM;
 
         $response = wp_remote_post(self::API_URL, [
             'headers' => [
@@ -374,8 +402,8 @@ GRAPHQL;
                 'query' => $query,
                 'variables' => [
                     'zoneTag' => $zoneId,
-                    'since' => $range->start->format($dateFormat),
-                    'until' => $range->end->format($dateFormat),
+                    'since' => $range->start->format(\DateTimeInterface::ATOM),
+                    'until' => $range->end->format(\DateTimeInterface::ATOM),
                     'limit' => min($maxPoints, 10000),
                 ],
             ]),
