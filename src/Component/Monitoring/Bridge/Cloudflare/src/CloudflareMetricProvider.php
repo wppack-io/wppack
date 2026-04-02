@@ -77,7 +77,8 @@ final class CloudflareMetricProvider implements MetricProviderInterface
         $wafGroups = [];
 
         if ($needsZone) {
-            $zoneGroups = $this->fetchZoneAnalytics($apiToken, $zoneId, $range, $adaptiveMinutes) ?? [];
+            $dataset = $this->resolveZoneDataset($rangeSeconds);
+            $zoneGroups = $this->fetchZoneAnalytics($apiToken, $zoneId, $range, $adaptiveMinutes, $dataset) ?? [];
         }
 
         if ($needsWaf) {
@@ -110,12 +111,42 @@ final class CloudflareMetricProvider implements MetricProviderInterface
         };
     }
 
-    private function resolveDatetimeField(int $adaptiveMinutes): string
+    /**
+     * Resolve the appropriate Cloudflare zone dataset based on time range.
+     *
+     * - httpRequests1mGroups: up to ~24h of data (1-minute granularity)
+     * - httpRequests1hGroups: up to ~30 days (1-hour granularity)
+     * - httpRequests1dGroups: longer periods (1-day granularity)
+     */
+    private function resolveZoneDataset(int $rangeSeconds): string
     {
+        // 1m data retained ~24h; switch to 1h for longer ranges
+        return match (true) {
+            $rangeSeconds <= 43_200 => 'httpRequests1mGroups',  // ≤ 12h
+            default => 'httpRequests1hGroups',
+        };
+    }
+
+    private function resolveDatetimeField(int $adaptiveMinutes, string $dataset): string
+    {
+        // 1h groups only support datetimeHour
+        if ($dataset === 'httpRequests1hGroups') {
+            return 'datetimeHour';
+        }
+
+        // 1m groups support datetimeMinute, datetimeFifteenMinutes, datetimeHour
+        if ($dataset === 'httpRequests1mGroups') {
+            return match ($adaptiveMinutes) {
+                1, 5 => 'datetimeMinute',
+                15 => 'datetimeFifteenMinutes',
+                default => 'datetimeHour',
+            };
+        }
+
+        // Adaptive groups (firewall etc.) support datetimeFiveMinutes, datetimeFifteenMinutes, datetimeHour
         return match ($adaptiveMinutes) {
-            1, 5 => 'datetimeMinute',
+            1, 5 => 'datetimeFiveMinutes',
             15 => 'datetimeFifteenMinutes',
-            60 => 'datetimeHour',
             default => 'datetimeHour',
         };
     }
@@ -129,14 +160,15 @@ final class CloudflareMetricProvider implements MetricProviderInterface
         string $zoneId,
         MetricTimeRange $range,
         int $adaptiveMinutes,
+        string $dataset,
     ): ?array {
-        $dtField = $this->resolveDatetimeField($adaptiveMinutes);
+        $dtField = $this->resolveDatetimeField($adaptiveMinutes, $dataset);
 
         $query = <<<GRAPHQL
 query ZoneAnalytics(\$zoneTag: string!, \$since: Time!, \$until: Time!, \$limit: Int!) {
   viewer {
     zones(filter: { zoneTag: \$zoneTag }) {
-      httpRequests1mGroups(
+      {$dataset}(
         filter: { datetime_geq: \$since, datetime_lt: \$until }
         limit: \$limit
         orderBy: [{$dtField}_ASC]
@@ -169,7 +201,7 @@ GRAPHQL;
 
         $result = $this->executeQuery($apiToken, $query, $zoneId, $range, $adaptiveMinutes);
 
-        return $result['data']['viewer']['zones'][0]['httpRequests1mGroups'] ?? null;
+        return $result['data']['viewer']['zones'][0][$dataset] ?? null;
     }
 
     /**
@@ -182,7 +214,7 @@ GRAPHQL;
         MetricTimeRange $range,
         int $adaptiveMinutes,
     ): ?array {
-        $dtField = $this->resolveDatetimeField($adaptiveMinutes);
+        $dtField = $this->resolveDatetimeField($adaptiveMinutes, 'firewallEventsAdaptiveGroups');
 
         $query = <<<GRAPHQL
 query FirewallAnalytics(\$zoneTag: string!, \$since: Time!, \$until: Time!, \$limit: Int!) {
