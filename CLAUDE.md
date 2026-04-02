@@ -56,6 +56,9 @@ Distributed as WordPress plugins. Built on top of Components.
 | Stopwatch | wppack/stopwatch | Code execution time measurement |
 | Logger | wppack/logger | PSR-3 compliant logger |
 | MonologLogger | wppack/monolog-logger | Monolog bridge |
+| Monitoring | wppack/monitoring | Infrastructure monitoring abstraction |
+| CloudWatchMonitoring | wppack/cloudwatch-monitoring | AWS CloudWatch monitoring bridge |
+| CloudflareMonitoring | wppack/cloudflare-monitoring | Cloudflare Analytics monitoring bridge |
 | Mime | wppack/mime | MIME type detection and extension mapping |
 | Site | wppack/site | Multisite management (blog switching, context, site queries) |
 
@@ -137,6 +140,7 @@ Distributed as WordPress plugins. Built on top of Components.
 | RedisCachePlugin | wppack/redis-cache-plugin | Redis cache plugin |
 | SamlLoginPlugin | wppack/saml-login-plugin | SAML 2.0 SSO login plugin |
 | ScimPlugin | wppack/scim-plugin | SCIM 2.0 provisioning plugin |
+| MonitoringPlugin | wppack/monitoring-plugin | Infrastructure monitoring dashboard plugin |
 | OAuthLoginPlugin | wppack/oauth-login-plugin | OAuth 2.0 / OpenID Connect login plugin |
 
 ## Key Dependencies

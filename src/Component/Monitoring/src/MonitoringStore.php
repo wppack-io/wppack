@@ -74,11 +74,12 @@ final class MonitoringStore implements MonitoringProviderInterface
             if (\is_array($settings)) {
                 $existingSettings = $existing['settings'] ?? [];
                 if (\is_array($existingSettings)) {
-                    if (($settings['accessKeyId'] ?? '') === self::MASKED_VALUE) {
-                        $settings['accessKeyId'] = $existingSettings['accessKeyId'] ?? '';
-                    }
-                    if (($settings['secretAccessKey'] ?? '') === self::MASKED_VALUE) {
-                        $settings['secretAccessKey'] = $existingSettings['secretAccessKey'] ?? '';
+                    $bridge = (string) ($data['bridge'] ?? '');
+                    $settingsClass = self::resolveSettingsClass($bridge);
+                    foreach ($settingsClass::sensitiveFields() as $field) {
+                        if (($settings[$field] ?? '') === self::MASKED_VALUE) {
+                            $settings[$field] = $existingSettings[$field] ?? '';
+                        }
                     }
                     $data['settings'] = $settings;
                 }
@@ -221,18 +222,29 @@ final class MonitoringStore implements MonitoringProviderInterface
             }
         }
 
+        $bridge = (string) ($entry['bridge'] ?? '');
+        $settingsClass = self::resolveSettingsClass($bridge);
+
         return new MonitoringProvider(
             id: (string) ($entry['id'] ?? ''),
             label: (string) ($entry['label'] ?? ''),
-            bridge: (string) ($entry['bridge'] ?? ''),
-            settings: new ProviderSettings(
-                region: (string) ($settings['region'] ?? ''),
-                accessKeyId: (string) ($settings['accessKeyId'] ?? ''),
-                secretAccessKey: (string) ($settings['secretAccessKey'] ?? ''),
-            ),
+            bridge: $bridge,
+            settings: $settingsClass::fromArray($settings),
             metrics: $metrics,
             locked: (bool) ($entry['locked'] ?? false),
         );
+    }
+
+    /**
+     * @return class-string<ProviderSettings>
+     */
+    private static function resolveSettingsClass(string $bridge): string
+    {
+        return match ($bridge) {
+            'cloudwatch', 'mock-aws' => AwsProviderSettings::class,
+            'cloudflare', 'mock-cloudflare' => CloudflareProviderSettings::class,
+            default => AwsProviderSettings::class,
+        };
     }
 
     /**

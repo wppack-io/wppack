@@ -13,32 +13,29 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Monitoring;
 
-/**
- * Base provider settings. Bridge-specific subclasses add their own fields.
- */
-readonly class ProviderSettings
+final readonly class CloudflareProviderSettings extends ProviderSettings
 {
-    /**
-     * @return list<string> Field names that contain sensitive values (for masking)
-     */
+    public function __construct(
+        #[\SensitiveParameter]
+        public string $apiToken = '',
+    ) {}
+
     public static function sensitiveFields(): array
     {
-        return [];
+        return ['apiToken'];
     }
 
-    /**
-     * @return array<string, string>
-     */
     public function toArray(): array
     {
-        return [];
+        return [
+            'apiToken' => $this->apiToken,
+        ];
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
     public static function fromArray(array $data): self
     {
-        return new self();
+        return new self(
+            apiToken: (string) ($data['apiToken'] ?? ''),
+        );
     }
 }

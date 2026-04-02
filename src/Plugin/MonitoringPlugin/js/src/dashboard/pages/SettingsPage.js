@@ -73,7 +73,7 @@ const PROVIDER_FIELDS = [
 		label: __( 'Provider', 'wppack-monitoring' ),
 		type: 'text',
 		render: ( { item } ) =>
-			item.bridge === 'cloudwatch' ? __( 'CloudWatch', 'wppack-monitoring' ) : item.bridge,
+			BRIDGE_OPTIONS.find( ( b ) => b.value === item.bridge )?.label || item.bridge,
 	},
 	{
 		id: 'settings.region',
@@ -103,14 +103,24 @@ const PROVIDER_FIELDS = [
 	},
 ];
 
-const PROVIDER_FORM_FIELDS = [
+const BRIDGE_OPTIONS = [
+	{ value: 'cloudwatch', label: __( 'AWS CloudWatch', 'wppack-monitoring' ) },
+	{ value: 'cloudflare', label: __( 'Cloudflare', 'wppack-monitoring' ) },
+	{ value: 'mock-aws', label: __( 'Mock (AWS)', 'wppack-monitoring' ) },
+	{ value: 'mock-cloudflare', label: __( 'Mock (Cloudflare)', 'wppack-monitoring' ) },
+];
+
+const COMMON_FORM_FIELDS = [
 	{ id: 'label', label: __( 'Label', 'wppack-monitoring' ), type: 'text' },
 	{
 		id: 'bridge',
 		label: __( 'Provider', 'wppack-monitoring' ),
 		type: 'text',
-		elements: [ { value: 'cloudwatch', label: __( 'AWS CloudWatch', 'wppack-monitoring' ) } ],
+		elements: BRIDGE_OPTIONS,
 	},
+];
+
+const AWS_FORM_FIELDS = [
 	{
 		id: 'settings.region',
 		label: __( 'Region', 'wppack-monitoring' ),
@@ -137,26 +147,48 @@ const PROVIDER_FORM_FIELDS = [
 	},
 ];
 
-const PROVIDER_FORM = {
-	fields: [
-		{
-			id: 'general',
-			label: __( 'General', 'wppack-monitoring' ),
-			children: [ 'label', 'bridge' ],
-			layout: { type: 'regular' },
-		},
-		{
-			id: 'aws',
-			label: __( 'AWS Credentials', 'wppack-monitoring' ),
-			children: [
-				'settings.region',
-				'settings.accessKeyId',
-				'settings.secretAccessKey',
-			],
-			layout: { type: 'regular' },
-		},
-	],
-};
+const CLOUDFLARE_FORM_FIELDS = [
+	{
+		id: 'settings.apiToken',
+		label: __( 'API Token', 'wppack-monitoring' ),
+		type: 'password',
+		description: __( 'Cloudflare API Token with Zone Analytics permission', 'wppack-monitoring' ),
+		getValue: ( { item } ) => item.settings?.apiToken || '',
+		setValue: ( value ) => ( { settings: { apiToken: value } } ),
+	},
+];
+
+function getProviderFormFields( bridge ) {
+	const credentialFields = bridge === 'cloudflare' ? CLOUDFLARE_FORM_FIELDS : AWS_FORM_FIELDS;
+	return [ ...COMMON_FORM_FIELDS, ...credentialFields ];
+}
+
+function getProviderForm( bridge ) {
+	const credentialChildren = bridge === 'cloudflare'
+		? [ 'settings.apiToken' ]
+		: [ 'settings.region', 'settings.accessKeyId', 'settings.secretAccessKey' ];
+
+	const credentialLabel = bridge === 'cloudflare'
+		? __( 'Cloudflare Credentials', 'wppack-monitoring' )
+		: __( 'AWS Credentials', 'wppack-monitoring' );
+
+	return {
+		fields: [
+			{
+				id: 'general',
+				label: __( 'General', 'wppack-monitoring' ),
+				children: [ 'label', 'bridge' ],
+				layout: { type: 'regular' },
+			},
+			{
+				id: 'credentials',
+				label: credentialLabel,
+				children: credentialChildren,
+				layout: { type: 'regular' },
+			},
+		],
+	};
+}
 
 export default function SettingsPage() {
 	const [ providers, setProviders ] = useState( [] );
@@ -318,19 +350,21 @@ export default function SettingsPage() {
 								</tr>
 								<tr>
 									<th>{ __( 'Provider', 'wppack-monitoring' ) }</th>
-									<td>{ selectedProvider.bridge === 'cloudwatch' ? 'AWS CloudWatch' : selectedProvider.bridge }</td>
+									<td>{ BRIDGE_OPTIONS.find( ( b ) => b.value === selectedProvider.bridge )?.label || selectedProvider.bridge }</td>
 								</tr>
-								<tr>
-									<th>{ __( 'Region', 'wppack-monitoring' ) }</th>
-									<td>{ selectedProvider.settings?.region || '\u2014' }</td>
-								</tr>
+								{ selectedProvider.settings?.region && (
+									<tr>
+										<th>{ __( 'Region', 'wppack-monitoring' ) }</th>
+										<td>{ selectedProvider.settings.region }</td>
+									</tr>
+								) }
 							</tbody>
 						</table>
 					) : (
 						<DataForm
 							data={ selectedProvider }
-							fields={ PROVIDER_FORM_FIELDS }
-							form={ PROVIDER_FORM }
+							fields={ getProviderFormFields( selectedProvider.bridge ) }
+							form={ getProviderForm( selectedProvider.bridge ) }
 							onChange={ ( edits ) => {
 								setSelectedProvider( ( prev ) => {
 									const next = { ...prev };
@@ -468,17 +502,31 @@ export default function SettingsPage() {
 									setSelectedProvider( ( prev ) => ( { ...prev, label: value } ) )
 								}
 							/>
-							<SelectControl
-								label={ __( 'Region', 'wppack-monitoring' ) + ' *' }
-								value={ selectedProvider.settings?.region || '' }
-								options={ AWS_REGIONS }
-								onChange={ ( value ) =>
-									setSelectedProvider( ( prev ) => ( {
-										...prev,
-										settings: { ...prev.settings, region: value },
-									} ) )
-								}
-							/>
+							{ selectedTemplate.bridge === 'cloudflare' ? (
+								<TextControl
+									label={ __( 'API Token', 'wppack-monitoring' ) + ' *' }
+									type="password"
+									value={ selectedProvider.settings?.apiToken || '' }
+									onChange={ ( value ) =>
+										setSelectedProvider( ( prev ) => ( {
+											...prev,
+											settings: { ...prev.settings, apiToken: value },
+										} ) )
+									}
+								/>
+							) : (
+								<SelectControl
+									label={ __( 'Region', 'wppack-monitoring' ) + ' *' }
+									value={ selectedProvider.settings?.region || '' }
+									options={ AWS_REGIONS }
+									onChange={ ( value ) =>
+										setSelectedProvider( ( prev ) => ( {
+											...prev,
+											settings: { ...prev.settings, region: value },
+										} ) )
+									}
+								/>
+							) }
 							<TextControl
 								label={ selectedTemplate.dimensionLabel + ' *' }
 								value={ dimensionValue }
@@ -520,7 +568,11 @@ export default function SettingsPage() {
 							<div className="wpp-monitoring-modal-actions">
 								<Button
 									variant="primary"
-									disabled={ ! selectedProvider.label || ! selectedProvider.settings?.region || ! dimensionValue }
+									disabled={ ! selectedProvider.label || ! dimensionValue || (
+										selectedTemplate.bridge === 'cloudflare'
+											? ! selectedProvider.settings?.apiToken
+											: ! selectedProvider.settings?.region
+									) }
 									onClick={ async () => {
 										const provider = {
 											...selectedProvider,

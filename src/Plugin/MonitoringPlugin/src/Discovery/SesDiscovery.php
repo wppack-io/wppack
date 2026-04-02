@@ -16,7 +16,7 @@ namespace WpPack\Plugin\MonitoringPlugin\Discovery;
 use WpPack\Component\Monitoring\MetricDefinition;
 use WpPack\Component\Monitoring\MonitoringProvider;
 use WpPack\Component\Monitoring\MonitoringProviderInterface;
-use WpPack\Component\Monitoring\ProviderSettings;
+use WpPack\Component\Monitoring\AwsProviderSettings;
 
 final class SesDiscovery implements MonitoringProviderInterface
 {
@@ -41,7 +41,7 @@ final class SesDiscovery implements MonitoringProviderInterface
                 id: 'ses',
                 label: 'SES (Email)',
                 bridge: 'cloudwatch',
-                settings: new ProviderSettings(region: $region),
+                settings: new AwsProviderSettings(region: $region),
                 metrics: [
                     new MetricDefinition(
                         id: 'ses.send',

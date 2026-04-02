@@ -16,6 +16,7 @@ namespace WpPack\Component\Monitoring\DependencyInjection;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
+use WpPack\Component\Monitoring\Bridge\Cloudflare\CloudflareMetricProvider;
 use WpPack\Component\Monitoring\Bridge\CloudWatch\CloudWatchMetricProvider;
 use WpPack\Component\Monitoring\Bridge\Mock\MockMetricProvider;
 use WpPack\Component\Monitoring\Bridge\Mock\MockMonitoringProvider;
@@ -66,10 +67,16 @@ final class MonitoringServiceProvider implements ServiceProviderInterface
                 ->addTag(RegisterMetricBridgesPass::TAG, ['name' => 'cloudwatch']);
         }
 
+        if (class_exists(CloudflareMetricProvider::class)) {
+            $builder->register(CloudflareMetricProvider::class)
+                ->addTag(RegisterMetricBridgesPass::TAG, ['name' => 'cloudflare']);
+        }
+
         // Mock bridge + sample providers for local development
         if (wp_get_environment_type() === 'local') {
             $builder->register(MockMetricProvider::class)
-                ->addTag(RegisterMetricBridgesPass::TAG, ['name' => 'mock']);
+                ->addTag(RegisterMetricBridgesPass::TAG, ['name' => 'mock-aws'])
+                ->addTag(RegisterMetricBridgesPass::TAG, ['name' => 'mock-cloudflare']);
 
             $builder->register(MockMonitoringProvider::class)
                 ->addTag(RegisterMetricProvidersPass::TAG);

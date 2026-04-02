@@ -118,13 +118,16 @@ final class MonitoringController extends AbstractRestController
      */
     private function serializeProvider(MonitoringProvider $provider): array
     {
+        $settings = $provider->settings->toArray();
+        foreach ($provider->settings::sensitiveFields() as $field) {
+            unset($settings[$field]);
+        }
+
         return [
             'id' => $provider->id,
             'label' => $provider->label,
             'bridge' => $provider->bridge,
-            'settings' => [
-                'region' => $provider->settings->region,
-            ],
+            'settings' => $settings,
             'metrics' => array_map($this->serializeMetric(...), $provider->metrics),
             'locked' => $provider->locked,
         ];

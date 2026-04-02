@@ -16,7 +16,7 @@ namespace WpPack\Plugin\MonitoringPlugin\Discovery;
 use WpPack\Component\Monitoring\MetricDefinition;
 use WpPack\Component\Monitoring\MonitoringProvider;
 use WpPack\Component\Monitoring\MonitoringProviderInterface;
-use WpPack\Component\Monitoring\ProviderSettings;
+use WpPack\Component\Monitoring\AwsProviderSettings;
 
 final class ElastiCacheDiscovery implements MonitoringProviderInterface
 {
@@ -35,7 +35,7 @@ final class ElastiCacheDiscovery implements MonitoringProviderInterface
                 id: 'redis',
                 label: 'ElastiCache Redis',
                 bridge: 'cloudwatch',
-                settings: new ProviderSettings(region: $endpoint['region']),
+                settings: new AwsProviderSettings(region: $endpoint['region']),
                 metrics: [
                     new MetricDefinition(
                         id: 'redis.cache_hits',

@@ -16,7 +16,7 @@ namespace WpPack\Plugin\MonitoringPlugin\Discovery;
 use WpPack\Component\Monitoring\MetricDefinition;
 use WpPack\Component\Monitoring\MonitoringProvider;
 use WpPack\Component\Monitoring\MonitoringProviderInterface;
-use WpPack\Component\Monitoring\ProviderSettings;
+use WpPack\Component\Monitoring\AwsProviderSettings;
 
 final class DatabaseDiscovery implements MonitoringProviderInterface
 {
@@ -47,7 +47,7 @@ final class DatabaseDiscovery implements MonitoringProviderInterface
                 id: 'rds',
                 label: $endpoint['type'] === 'aurora' ? 'Aurora Cluster' : 'RDS Instance',
                 bridge: 'cloudwatch',
-                settings: new ProviderSettings(region: $endpoint['region']),
+                settings: new AwsProviderSettings(region: $endpoint['region']),
                 metrics: $metrics,
                 locked: true,
             ),

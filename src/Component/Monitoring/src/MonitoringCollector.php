@@ -114,6 +114,10 @@ final class MonitoringCollector
             return 'Connection failed. Check network.';
         }
 
+        if (str_contains($message, 'Cloudflare API error')) {
+            return 'Cloudflare API error. Check API token and zone ID.';
+        }
+
         return 'Metric query failed. Check provider configuration.';
     }
 

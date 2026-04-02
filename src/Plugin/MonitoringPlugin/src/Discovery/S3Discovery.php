@@ -16,7 +16,7 @@ namespace WpPack\Plugin\MonitoringPlugin\Discovery;
 use WpPack\Component\Monitoring\MetricDefinition;
 use WpPack\Component\Monitoring\MonitoringProvider;
 use WpPack\Component\Monitoring\MonitoringProviderInterface;
-use WpPack\Component\Monitoring\ProviderSettings;
+use WpPack\Component\Monitoring\AwsProviderSettings;
 use WpPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
 
 final class S3Discovery implements MonitoringProviderInterface
@@ -44,7 +44,7 @@ final class S3Discovery implements MonitoringProviderInterface
                 id: 's3',
                 label: 'S3 Storage',
                 bridge: 'cloudwatch',
-                settings: new ProviderSettings(region: $storage['region']),
+                settings: new AwsProviderSettings(region: $storage['region']),
                 metrics: [
                     new MetricDefinition(
                         id: 's3.bucket_size_bytes',

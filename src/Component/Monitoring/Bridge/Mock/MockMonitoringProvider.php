@@ -16,7 +16,8 @@ namespace WpPack\Component\Monitoring\Bridge\Mock;
 use WpPack\Component\Monitoring\MetricDefinition;
 use WpPack\Component\Monitoring\MonitoringProvider;
 use WpPack\Component\Monitoring\MonitoringProviderInterface;
-use WpPack\Component\Monitoring\ProviderSettings;
+use WpPack\Component\Monitoring\AwsProviderSettings;
+use WpPack\Component\Monitoring\CloudflareProviderSettings;
 
 /**
  * Provides sample monitoring providers with mock data for local development.
@@ -29,8 +30,8 @@ final class MockMonitoringProvider implements MonitoringProviderInterface
             new MonitoringProvider(
                 id: 'mock-ses',
                 label: 'SES (Mock)',
-                bridge: 'mock',
-                settings: new ProviderSettings(region: 'ap-northeast-1'),
+                bridge: 'mock-aws',
+                settings: new AwsProviderSettings(region: 'ap-northeast-1'),
                 metrics: [
                     new MetricDefinition(id: 'mock.ses.send', label: 'Emails Sent', description: 'Total number of emails sent', namespace: 'AWS/SES', metricName: 'Send', unit: 'Count', stat: 'Sum', locked: true),
                     new MetricDefinition(id: 'mock.ses.delivery', label: 'Delivered', description: 'Emails successfully delivered to recipient mail server', namespace: 'AWS/SES', metricName: 'Delivery', unit: 'Count', stat: 'Sum', locked: true),
@@ -42,8 +43,8 @@ final class MockMonitoringProvider implements MonitoringProviderInterface
             new MonitoringProvider(
                 id: 'mock-rds',
                 label: 'RDS MySQL (Mock)',
-                bridge: 'mock',
-                settings: new ProviderSettings(region: 'ap-northeast-1'),
+                bridge: 'mock-aws',
+                settings: new AwsProviderSettings(region: 'ap-northeast-1'),
                 metrics: [
                     new MetricDefinition(id: 'mock.rds.cpu', label: 'CPU Utilization', description: 'CPU usage percentage', namespace: 'AWS/RDS', metricName: 'CPUUtilization', unit: 'Percent', stat: 'Average', locked: true),
                     new MetricDefinition(id: 'mock.rds.connections', label: 'DB Connections', description: 'Active database connections', namespace: 'AWS/RDS', metricName: 'DatabaseConnections', unit: 'Count', stat: 'Average', locked: true),
@@ -57,11 +58,26 @@ final class MockMonitoringProvider implements MonitoringProviderInterface
             new MonitoringProvider(
                 id: 'mock-s3',
                 label: 'S3 Storage (Mock)',
-                bridge: 'mock',
-                settings: new ProviderSettings(region: 'ap-northeast-1'),
+                bridge: 'mock-aws',
+                settings: new AwsProviderSettings(region: 'ap-northeast-1'),
                 metrics: [
                     new MetricDefinition(id: 'mock.s3.bucket_size', label: 'Bucket Size', description: 'Total bucket size', namespace: 'AWS/S3', metricName: 'BucketSizeBytes', unit: 'Bytes', stat: 'Average', dimensions: ['BucketName' => 'my-bucket', 'StorageType' => 'StandardStorage'], locked: true),
                     new MetricDefinition(id: 'mock.s3.object_count', label: 'Object Count', description: 'Total number of objects', namespace: 'AWS/S3', metricName: 'NumberOfObjects', unit: 'Count', stat: 'Average', dimensions: ['BucketName' => 'my-bucket', 'StorageType' => 'AllStorageTypes'], locked: true),
+                ],
+                locked: true,
+            ),
+            new MonitoringProvider(
+                id: 'mock-cloudflare',
+                label: 'Cloudflare (Mock)',
+                bridge: 'mock-cloudflare',
+                settings: new CloudflareProviderSettings(apiToken: 'mock-token'),
+                metrics: [
+                    new MetricDefinition(id: 'mock.cf.requests', label: 'Requests', description: 'Total HTTP requests', namespace: 'Cloudflare/Analytics', metricName: 'requests', unit: 'Count', stat: 'Sum', dimensions: ['ZoneId' => 'mock-zone'], locked: true),
+                    new MetricDefinition(id: 'mock.cf.cached', label: 'Cached Requests', description: 'Requests served from cache', namespace: 'Cloudflare/Analytics', metricName: 'cachedRequests', unit: 'Count', stat: 'Sum', dimensions: ['ZoneId' => 'mock-zone'], locked: true),
+                    new MetricDefinition(id: 'mock.cf.bandwidth', label: 'Bandwidth', description: 'Total bandwidth served', namespace: 'Cloudflare/Analytics', metricName: 'bandwidth', unit: 'Bytes', stat: 'Sum', dimensions: ['ZoneId' => 'mock-zone'], locked: true),
+                    new MetricDefinition(id: 'mock.cf.threats', label: 'Threats', description: 'Total threats blocked', namespace: 'Cloudflare/Analytics', metricName: 'threats', unit: 'Count', stat: 'Sum', dimensions: ['ZoneId' => 'mock-zone'], locked: true),
+                    new MetricDefinition(id: 'mock.cf.status_5xx', label: '5xx Errors', description: 'Server error responses', namespace: 'Cloudflare/Analytics', metricName: 'status5xx', unit: 'Count', stat: 'Sum', dimensions: ['ZoneId' => 'mock-zone'], locked: true),
+                    new MetricDefinition(id: 'mock.cf.waf_blocked', label: 'WAF Blocked', description: 'Requests blocked by WAF', namespace: 'Cloudflare/WAF', metricName: 'wafBlocked', unit: 'Count', stat: 'Sum', dimensions: ['ZoneId' => 'mock-zone'], locked: true),
                 ],
                 locked: true,
             ),

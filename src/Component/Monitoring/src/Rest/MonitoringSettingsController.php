@@ -239,19 +239,18 @@ final class MonitoringSettingsController extends AbstractRestController
      */
     private function serializeProviderWithMask(MonitoringProvider $provider): array
     {
+        $settings = $provider->settings->toArray();
+        foreach ($provider->settings::sensitiveFields() as $field) {
+            if (isset($settings[$field]) && $settings[$field] !== '') {
+                $settings[$field] = self::MASKED_VALUE;
+            }
+        }
+
         return [
             'id' => $provider->id,
             'label' => $provider->label,
             'bridge' => $provider->bridge,
-            'settings' => [
-                'region' => $provider->settings->region,
-                'accessKeyId' => $provider->settings->accessKeyId !== ''
-                    ? self::MASKED_VALUE
-                    : '',
-                'secretAccessKey' => $provider->settings->secretAccessKey !== ''
-                    ? self::MASKED_VALUE
-                    : '',
-            ],
+            'settings' => $settings,
             'metrics' => array_map($this->serializeMetric(...), $provider->metrics),
             'locked' => $provider->locked,
         ];

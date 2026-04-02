@@ -25,7 +25,7 @@ use WpPack\Component\Monitoring\MetricProviderInterface;
 use WpPack\Component\Monitoring\MetricResult;
 use WpPack\Component\Monitoring\MetricTimeRange;
 use WpPack\Component\Monitoring\MonitoringProvider;
-use WpPack\Component\Monitoring\ProviderSettings;
+use WpPack\Component\Monitoring\AwsProviderSettings;
 
 final class CloudWatchMetricProvider implements MetricProviderInterface
 {
@@ -47,7 +47,7 @@ final class CloudWatchMetricProvider implements MetricProviderInterface
      */
     public function query(MonitoringProvider $provider, MetricTimeRange $range): array
     {
-        if ($provider->metrics === []) {
+        if ($provider->metrics === [] || !$provider->settings instanceof AwsProviderSettings) {
             return [];
         }
 
@@ -56,7 +56,7 @@ final class CloudWatchMetricProvider implements MetricProviderInterface
         return $this->queryMetrics($client, $provider, $range);
     }
 
-    private function getClient(ProviderSettings $settings): CloudWatchClient
+    private function getClient(AwsProviderSettings $settings): CloudWatchClient
     {
         $config = ['region' => $settings->region !== '' ? $settings->region : 'us-east-1'];
 
