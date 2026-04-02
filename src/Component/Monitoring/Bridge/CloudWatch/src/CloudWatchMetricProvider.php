@@ -25,12 +25,17 @@ use WpPack\Component\Monitoring\MetricProviderInterface;
 use WpPack\Component\Monitoring\MetricResult;
 use WpPack\Component\Monitoring\MetricTimeRange;
 use WpPack\Component\Monitoring\MonitoringProvider;
+use Psr\Log\LoggerInterface;
 use WpPack\Component\Monitoring\AwsProviderSettings;
 
 final class CloudWatchMetricProvider implements MetricProviderInterface
 {
     /** @var array<string, CloudWatchClient> */
     private array $clients = [];
+
+    public function __construct(
+        private readonly ?LoggerInterface $logger = null,
+    ) {}
 
     public function getName(): string
     {
@@ -48,12 +53,21 @@ final class CloudWatchMetricProvider implements MetricProviderInterface
     public function query(MonitoringProvider $provider, MetricTimeRange $range): array
     {
         if ($provider->metrics === [] || !$provider->settings instanceof AwsProviderSettings) {
+            $this->logger?->warning('CloudWatch provider "{id}": invalid settings type, skipping.', ['id' => $provider->id]);
+
             return [];
         }
 
         $client = $this->getClient($provider->settings);
+        $results = $this->queryMetrics($client, $provider, $range);
 
-        return $this->queryMetrics($client, $provider, $range);
+        $this->logger?->debug('CloudWatch region "{region}": fetched {count} metrics for provider "{id}".', [
+            'region' => $provider->settings->region,
+            'count' => \count($results),
+            'id' => $provider->id,
+        ]);
+
+        return $results;
     }
 
     private function getClient(AwsProviderSettings $settings): CloudWatchClient

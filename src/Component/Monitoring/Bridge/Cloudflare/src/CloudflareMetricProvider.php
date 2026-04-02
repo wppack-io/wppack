@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Monitoring\Bridge\Cloudflare;
 
+use Psr\Log\LoggerInterface;
 use WpPack\Component\Monitoring\CloudflareProviderSettings;
 use WpPack\Component\Monitoring\MetricDefinition;
 use WpPack\Component\Monitoring\MetricPoint;
@@ -30,6 +31,10 @@ use WpPack\Component\Monitoring\MonitoringProvider;
 final class CloudflareMetricProvider implements MetricProviderInterface
 {
     private const API_URL = 'https://api.cloudflare.com/client/v4/graphql';
+
+    public function __construct(
+        private readonly ?LoggerInterface $logger = null,
+    ) {}
 
     /**
      * Maps metricName → [source, field/config].
@@ -90,16 +95,22 @@ final class CloudflareMetricProvider implements MetricProviderInterface
     public function query(MonitoringProvider $provider, MetricTimeRange $range): array
     {
         if ($provider->metrics === [] || !$provider->settings instanceof CloudflareProviderSettings) {
+            $this->logger?->warning('Cloudflare provider "{id}": invalid settings type, skipping.', ['id' => $provider->id]);
+
             return [];
         }
 
         $zoneId = $this->extractZoneId($provider);
         if ($zoneId === '') {
+            $this->logger?->warning('Cloudflare provider "{id}": missing ZoneId, skipping.', ['id' => $provider->id]);
+
             return [];
         }
 
         $apiToken = $provider->settings->apiToken;
         if ($apiToken === '') {
+            $this->logger?->warning('Cloudflare provider "{id}": missing apiToken, skipping.', ['id' => $provider->id]);
+
             return [];
         }
 
@@ -535,18 +546,27 @@ GRAPHQL;
         ]);
 
         if (is_wp_error($response)) {
+            $this->logger?->error('Cloudflare API request failed: {error}', ['error' => $response->get_error_message()]);
+
             throw new \RuntimeException('Cloudflare API request failed: ' . $response->get_error_message());
         }
 
         $body = json_decode(wp_remote_retrieve_body($response), true);
 
         if (!\is_array($body)) {
+            $this->logger?->error('Failed to parse Cloudflare API response.');
+
             throw new \RuntimeException('Failed to parse Cloudflare API response.');
         }
 
         $errors = $body['errors'] ?? [];
         if (\is_array($errors) && $errors !== []) {
             $msg = $errors[0]['message'] ?? 'Unknown Cloudflare API error';
+            $this->logger?->error('Cloudflare API error for zone "{zoneId}": {message}', [
+                'zoneId' => $zoneId,
+                'message' => $msg,
+            ]);
+
             throw new \RuntimeException('Cloudflare API error: ' . $msg);
         }
 

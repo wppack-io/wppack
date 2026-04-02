@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Monitoring;
 
+use Psr\Log\LoggerInterface;
 use WpPack\Component\Transient\TransientManager;
 
 final class MonitoringCollector
@@ -27,6 +28,7 @@ final class MonitoringCollector
         private readonly array $bridges,
         private readonly TransientManager $transients,
         private readonly int $cacheTtl = 300,
+        private readonly ?LoggerInterface $logger = null,
     ) {}
 
     /**
@@ -43,22 +45,37 @@ final class MonitoringCollector
         if (!$forceRefresh) {
             $cached = $this->transients->get($cacheKey);
             if (\is_array($cached)) {
+                $this->logger?->debug('Metrics cache hit for key "{key}".', ['key' => $cacheKey]);
+
                 /** @var list<MetricResult> */
                 return $cached;
             }
         }
 
         $results = [];
+        $providerCount = 0;
 
         foreach ($this->registry->all() as $provider) {
             $bridge = $this->bridges[$provider->bridge] ?? null;
             if ($bridge === null || !$bridge->isAvailable()) {
+                $this->logger?->warning('Bridge "{bridge}" not available for provider "{id}", skipping.', [
+                    'bridge' => $provider->bridge,
+                    'id' => $provider->id,
+                ]);
+
                 continue;
             }
 
             try {
                 $results = [...$results, ...$bridge->query($provider, $range)];
+                $providerCount++;
             } catch (\Throwable $e) {
+                $this->logger?->error('Metric query failed for provider "{id}": {error}', [
+                    'id' => $provider->id,
+                    'bridge' => $provider->bridge,
+                    'error' => $e->getMessage(),
+                ]);
+
                 $errorMessage = $this->formatError($e);
                 foreach ($provider->metrics as $metric) {
                     $results[] = new MetricResult(
@@ -71,6 +88,11 @@ final class MonitoringCollector
                 }
             }
         }
+
+        $this->logger?->debug('Fetched {count} metric results for {providers} providers.', [
+            'count' => \count($results),
+            'providers' => $providerCount,
+        ]);
 
         $this->transients->set($cacheKey, $results, $this->cacheTtl);
 
@@ -115,11 +137,9 @@ final class MonitoringCollector
         }
 
         if (str_contains($message, 'Cloudflare API error')) {
-            // Include API error detail for debugging (no credentials are exposed)
             return $message;
         }
 
         return 'Metric query failed. Check provider configuration.';
     }
-
 }

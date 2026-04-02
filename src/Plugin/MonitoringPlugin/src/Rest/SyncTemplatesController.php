@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace WpPack\Plugin\MonitoringPlugin\Rest;
 
+use Psr\Log\LoggerInterface;
 use WpPack\Component\HttpFoundation\JsonResponse;
 use WpPack\Component\Monitoring\MonitoringStore;
 use WpPack\Component\Rest\AbstractRestController;
@@ -28,6 +29,7 @@ final class SyncTemplatesController extends AbstractRestController
     public function __construct(
         private readonly MonitoringStore $store,
         private readonly MetricTemplateRegistry $templates,
+        private readonly ?LoggerInterface $logger = null,
     ) {}
 
     #[RestRoute(route: '/sync-templates', methods: HttpMethod::POST)]
@@ -50,6 +52,8 @@ final class SyncTemplatesController extends AbstractRestController
                 $updated++;
             }
         }
+
+        $this->logger?->info('Template sync completed: {count} providers updated.', ['count' => $updated]);
 
         return $this->json(['updated' => $updated]);
     }

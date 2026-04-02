@@ -25,6 +25,7 @@ use WpPack\Component\Monitoring\MonitoringRegistry;
 use WpPack\Component\Monitoring\MonitoringStore;
 use WpPack\Component\Monitoring\Rest\MonitoringController;
 use WpPack\Component\Monitoring\Rest\MonitoringSettingsController;
+use Psr\Log\LoggerInterface;
 use WpPack\Component\Option\OptionManager;
 use WpPack\Component\Transient\TransientManager;
 
@@ -49,27 +50,41 @@ final class MonitoringServiceProvider implements ServiceProviderInterface
         // Registry
         $builder->register(MonitoringRegistry::class);
 
+        $hasLogger = $builder->hasDefinition(LoggerInterface::class);
+
         // Store (MonitoringProviderInterface — user-managed providers)
-        $builder->register(MonitoringStore::class)
+        $storeDefinition = $builder->register(MonitoringStore::class)
             ->addArgument(new Reference(OptionManager::class))
             ->addTag(RegisterMetricProvidersPass::TAG);
+        if ($hasLogger) {
+            $storeDefinition->addArgument(new Reference(LoggerInterface::class));
+        }
 
         // Collector
-        $builder->register(MonitoringCollector::class)
+        $collectorDefinition = $builder->register(MonitoringCollector::class)
             ->addArgument(new Reference(MonitoringRegistry::class))
             ->addArgument([])
             ->addArgument(new Reference(TransientManager::class))
             ->addArgument($this->cacheTtl);
+        if ($hasLogger) {
+            $collectorDefinition->addArgument(new Reference(LoggerInterface::class));
+        }
 
         // Auto-discover bridges
         if (class_exists(CloudWatchMetricProvider::class)) {
-            $builder->register(CloudWatchMetricProvider::class)
+            $cwDefinition = $builder->register(CloudWatchMetricProvider::class)
                 ->addTag(RegisterMetricBridgesPass::TAG, ['name' => 'cloudwatch']);
+            if ($hasLogger) {
+                $cwDefinition->addArgument(new Reference(LoggerInterface::class));
+            }
         }
 
         if (class_exists(CloudflareMetricProvider::class)) {
-            $builder->register(CloudflareMetricProvider::class)
+            $cfDefinition = $builder->register(CloudflareMetricProvider::class)
                 ->addTag(RegisterMetricBridgesPass::TAG, ['name' => 'cloudflare']);
+            if ($hasLogger) {
+                $cfDefinition->addArgument(new Reference(LoggerInterface::class));
+            }
         }
 
         // Mock bridge + sample providers for local development

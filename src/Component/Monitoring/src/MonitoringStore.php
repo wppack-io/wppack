@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Monitoring;
 
+use Psr\Log\LoggerInterface;
 use WpPack\Component\Option\OptionManager;
 
 final class MonitoringStore implements MonitoringProviderInterface
@@ -22,6 +23,7 @@ final class MonitoringStore implements MonitoringProviderInterface
 
     public function __construct(
         private readonly OptionManager $options,
+        private readonly ?LoggerInterface $logger = null,
     ) {}
 
     /**
@@ -264,6 +266,12 @@ final class MonitoringStore implements MonitoringProviderInterface
 
             $entry['metrics'] = $synced;
             $this->options->update(self::OPTION_NAME, $all);
+
+            $this->logger?->info('Synced metrics for provider "{id}": {added} added, {removed} removed.', [
+                'id' => $providerId,
+                'added' => \count(array_diff($templateNames, $currentNames)),
+                'removed' => \count(array_diff($currentNames, $templateNames)),
+            ]);
 
             return true;
         }
