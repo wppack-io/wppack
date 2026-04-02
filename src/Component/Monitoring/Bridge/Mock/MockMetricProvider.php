@@ -50,8 +50,11 @@ class MockMetricProvider implements MetricProviderInterface
             $base = $this->baseValueForUnit($metric->unit);
 
             for ($t = $start; $t <= $end; $t += $intervalSeconds) {
+                // Deterministic: same metric + timestamp → same value
+                $hash = abs(crc32($metric->id . ':' . $t));
+                $rand = ($hash % 10000) / 10000.0;
                 $variation = $base * 0.3;
-                $value = $base + (mt_rand() / mt_getrandmax() * $variation * 2) - $variation;
+                $value = $base + ($rand * $variation * 2) - $variation;
                 $datapoints[] = new MetricPoint(
                     timestamp: (new \DateTimeImmutable())->setTimestamp($t),
                     value: max(0.0, round($value, 2)),

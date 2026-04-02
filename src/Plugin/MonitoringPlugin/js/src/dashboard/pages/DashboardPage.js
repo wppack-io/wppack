@@ -21,7 +21,7 @@ export default function DashboardPage() {
 					setLoading( true );
 				}
 				const path = force
-					? 'wppack/v1/monitoring/refresh'
+					? `wppack/v1/monitoring/refresh?period=${ period }`
 					: `wppack/v1/monitoring/metrics?period=${ period }`;
 				const method = force ? 'POST' : 'GET';
 				const result = await apiFetch( { path, method } );
