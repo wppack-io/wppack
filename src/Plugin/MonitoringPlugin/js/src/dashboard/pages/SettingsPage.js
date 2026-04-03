@@ -401,12 +401,6 @@ export default function SettingsPage() {
 										<td>{ selectedProvider.settings.region }</td>
 									</tr>
 								) }
-								{ selectedProvider.metrics?.[ 0 ]?.dimensions?.ZoneId && (
-									<tr>
-										<th>{ __( 'Zone ID', 'wppack-monitoring' ) }</th>
-										<td><code>{ selectedProvider.metrics[ 0 ].dimensions.ZoneId }</code></td>
-									</tr>
-								) }
 							</tbody>
 						</table>
 					) : (
@@ -436,18 +430,19 @@ export default function SettingsPage() {
 						/>
 					) }
 
-					{ /* Dimension info (e.g., Zone ID) */ }
+					{ /* Dimensions as readonly fields */ }
 					{ selectedProvider.metrics?.[ 0 ]?.dimensions && Object.keys( selectedProvider.metrics[ 0 ].dimensions ).length > 0 && (
-						<table className="wpp-monitoring-modal-table wpp-monitoring-detail-table wpp-monitoring-dimensions-table">
-							<tbody>
-								{ Object.entries( selectedProvider.metrics[ 0 ].dimensions ).map( ( [ key, value ] ) => (
-									<tr key={ key }>
-										<th>{ key }</th>
-										<td><code>{ value }</code></td>
-									</tr>
-								) ) }
-							</tbody>
-						</table>
+						<div className="wpp-monitoring-dimensions-fields">
+							{ Object.entries( selectedProvider.metrics[ 0 ].dimensions ).map( ( [ key, value ] ) => (
+								<TextControl
+									key={ key }
+									label={ key }
+									value={ value }
+									disabled
+									__nextHasNoMarginBottom
+								/>
+							) ) }
+						</div>
 					) }
 
 					{ /* Metrics table */ }

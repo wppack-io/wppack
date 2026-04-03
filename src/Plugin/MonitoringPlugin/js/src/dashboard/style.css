@@ -333,6 +333,15 @@
 	height: 16px;
 }
 
+/* ── Dimensions readonly fields ─────────── */
+.wpp-monitoring-dimensions-fields {
+	margin-top: 16px;
+}
+
+.wpp-monitoring-dimensions-fields .components-base-control {
+	margin-bottom: 12px;
+}
+
 /* ── Cloudflare setup steps ─────────────── */
 .wpp-monitoring-cf-steps {
 	margin: 12px 0;
