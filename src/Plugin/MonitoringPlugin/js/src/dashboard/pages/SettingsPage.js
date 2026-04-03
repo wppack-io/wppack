@@ -112,6 +112,20 @@ const BRIDGE_OPTIONS = [
 
 const COMMON_FORM_FIELDS = [
 	{ id: 'label', label: __( 'Label', 'wppack-monitoring' ), type: 'text' },
+	{
+		id: 'bridge',
+		label: __( 'Provider', 'wppack-monitoring' ),
+		type: 'text',
+		Edit: ( { data, field } ) => (
+			<TextControl
+				id={ field.id }
+				label={ field.label }
+				value={ BRIDGE_OPTIONS.find( ( b ) => b.value === data.bridge )?.label || data.bridge }
+				disabled
+				__nextHasNoMarginBottom
+			/>
+		),
+	},
 ];
 
 const AWS_FORM_FIELDS = [
@@ -152,12 +166,35 @@ const CLOUDFLARE_FORM_FIELDS = [
 	},
 ];
 
-function getProviderFormFields( bridge ) {
-	const credentialFields = bridge === 'cloudflare' ? CLOUDFLARE_FORM_FIELDS : AWS_FORM_FIELDS;
-	return [ ...COMMON_FORM_FIELDS, ...credentialFields ];
+function getDimensionFields( provider ) {
+	const dims = provider.metrics?.[ 0 ]?.dimensions;
+	if ( ! dims || Object.keys( dims ).length === 0 ) {
+		return [];
+	}
+	return Object.entries( dims ).map( ( [ key, value ] ) => ( {
+		id: `dim.${ key }`,
+		label: key,
+		type: 'text',
+		getValue: () => value,
+		Edit: ( { field } ) => (
+			<TextControl
+				id={ field.id }
+				label={ field.label }
+				value={ value }
+				disabled
+				__nextHasNoMarginBottom
+			/>
+		),
+	} ) );
 }
 
-function getProviderForm( bridge ) {
+function getProviderFormFields( bridge, provider ) {
+	const credentialFields = bridge === 'cloudflare' ? CLOUDFLARE_FORM_FIELDS : AWS_FORM_FIELDS;
+	const dimensionFields = getDimensionFields( provider );
+	return [ ...COMMON_FORM_FIELDS, ...credentialFields, ...dimensionFields ];
+}
+
+function getProviderForm( bridge, provider ) {
 	const credentialChildren = bridge === 'cloudflare'
 		? [ 'settings.apiToken' ]
 		: [ 'settings.region', 'settings.accessKeyId', 'settings.secretAccessKey' ];
@@ -166,22 +203,34 @@ function getProviderForm( bridge ) {
 		? __( 'Cloudflare Credentials', 'wppack-monitoring' )
 		: __( 'AWS Credentials', 'wppack-monitoring' );
 
-	return {
-		fields: [
-			{
-				id: 'general',
-				label: __( 'General', 'wppack-monitoring' ),
-				children: [ 'label' ],
-				layout: { type: 'regular' },
-			},
-			{
-				id: 'credentials',
-				label: credentialLabel,
-				children: credentialChildren,
-				layout: { type: 'regular' },
-			},
-		],
-	};
+	const dims = provider?.metrics?.[ 0 ]?.dimensions;
+	const dimensionIds = dims ? Object.keys( dims ).map( ( k ) => `dim.${ k }` ) : [];
+
+	const sections = [
+		{
+			id: 'general',
+			label: __( 'General', 'wppack-monitoring' ),
+			children: [ 'label', 'bridge' ],
+			layout: { type: 'regular' },
+		},
+		{
+			id: 'credentials',
+			label: credentialLabel,
+			children: credentialChildren,
+			layout: { type: 'regular' },
+		},
+	];
+
+	if ( dimensionIds.length > 0 ) {
+		sections.push( {
+			id: 'dimensions',
+			label: __( 'Dimensions', 'wppack-monitoring' ),
+			children: dimensionIds,
+			layout: { type: 'regular' },
+		} );
+	}
+
+	return { fields: sections };
 }
 
 export default function SettingsPage() {
@@ -402,17 +451,10 @@ export default function SettingsPage() {
 							) }
 						</div>
 					) : (
-						<>
-						<TextControl
-							label={ __( 'Provider', 'wppack-monitoring' ) }
-							value={ BRIDGE_OPTIONS.find( ( b ) => b.value === selectedProvider.bridge )?.label || selectedProvider.bridge }
-							disabled
-							__nextHasNoMarginBottom
-						/>
 						<div className="wpp-monitoring-dataform-wrap"><DataForm
 							data={ selectedProvider }
-							fields={ getProviderFormFields( selectedProvider.bridge ) }
-							form={ getProviderForm( selectedProvider.bridge ) }
+							fields={ getProviderFormFields( selectedProvider.bridge, selectedProvider ) }
+							form={ getProviderForm( selectedProvider.bridge, selectedProvider ) }
 							onChange={ ( edits ) => {
 								setSelectedProvider( ( prev ) => {
 									const next = { ...prev };
@@ -433,27 +475,8 @@ export default function SettingsPage() {
 								} );
 							} }
 						/>
-					</div></>) }
+					</div>) }
 
-					{ /* Dimensions as readonly fields */ }
-					{ selectedProvider.metrics?.[ 0 ]?.dimensions && Object.keys( selectedProvider.metrics[ 0 ].dimensions ).length > 0 && (
-						<div className="wpp-monitoring-dimensions-fields">
-							{ Object.entries( selectedProvider.metrics[ 0 ].dimensions ).map( ( [ key, value ] ) => (
-								<div key={ key } style={ { marginBottom: '16px' } }>
-									<label style={ { display: 'block', marginBottom: '4px', fontSize: '11px', fontWeight: 'normal', textTransform: 'none', color: '#1e1e1e' } }>
-										{ key }
-									</label>
-									<input
-										type="text"
-										className="components-text-control__input"
-										value={ value }
-										disabled
-										style={ { width: '100%', boxSizing: 'border-box' } }
-									/>
-								</div>
-							) ) }
-						</div>
-					) }
 
 					{ /* Metrics table */ }
 					{ selectedProvider.metrics?.length > 0 && (
@@ -524,6 +547,7 @@ export default function SettingsPage() {
 					} }
 					size="large"
 				>
+					<div className="wpp-monitoring-add-form">
 					<SelectControl
 						label={ __( 'Template', 'wppack-monitoring' ) }
 						value={ selectedTemplate?.id || '' }
@@ -669,6 +693,7 @@ export default function SettingsPage() {
 							</div>
 						</>
 					) }
+				</div>
 				</Modal>
 			) }
 			{ showIam && (

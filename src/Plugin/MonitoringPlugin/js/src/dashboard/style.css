@@ -361,15 +361,13 @@
 	min-height: 32px !important;
 }
 
-.wpp-monitoring-dataform-wrap .components-base-control__field {
+.wpp-monitoring-dataform-wrap .components-base-control__field,
+.wpp-monitoring-add-form .components-base-control__field {
 	margin-bottom: 16px;
 }
 
 
 /* ── Dimensions readonly fields ─────────── */
-.wpp-monitoring-dimensions-fields {
-	margin-top: 16px;
-}
 
 
 /* ── Cloudflare setup steps ─────────────── */
