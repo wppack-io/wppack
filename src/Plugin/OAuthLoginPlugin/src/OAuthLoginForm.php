@@ -44,6 +44,7 @@ class OAuthLoginForm
             || !$this->request->isMethod('GET')
             || $this->request->query->has('action')
             || $this->request->query->has('loggedout')
+            || $this->request->query->has('interim-login')
         ) {
             return;
         }
@@ -65,6 +66,8 @@ class OAuthLoginForm
         $redirectTo = $this->request->query->getString('redirect_to');
         $returnTo = $redirectTo !== '' ? wp_validate_redirect($redirectTo, admin_url()) : admin_url();
         $display = $this->config->buttonDisplay;
+        $isInterim = $this->request->query->has('interim-login');
+        $targetAttr = $isInterim ? ' target="_blank"' : '';
 
         $buttons = '';
 
@@ -107,7 +110,7 @@ class OAuthLoginForm
             }
 
             $buttons .= <<<HTML
-                <a href="{$url}"{$titleAttr} class="{$btnClass}" style="background:{$bg};color:{$text};border-color:{$border};">{$content}</a>
+                <a href="{$url}"{$titleAttr}{$targetAttr} class="{$btnClass}" style="background:{$bg};color:{$text};border-color:{$border};">{$content}</a>
             HTML;
         }
 

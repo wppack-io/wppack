@@ -69,6 +69,12 @@ final class SamlEntryPoint
 
             $action = $this->request->query->getString('action');
 
+            // Interim-login (session expired modal): skip redirect, let WP show
+            // the login form with SSO buttons opening in a new tab.
+            if ($this->request->query->has('interim-login')) {
+                return;
+            }
+
             if ($this->request->isMethod('GET')
                 && $action !== 'logout'
                 && $action !== 'postpass'

@@ -119,6 +119,9 @@ class OAuthLoginPlugin extends AbstractPlugin
             $router->addRoute($config->getVerifyPath($name), $container->get(OAuthVerifyController::class), name: 'oauth_' . $name . '_verify', methods: ['POST']);
         }
 
+        /** @var OAuthLoginForm $loginForm */
+        $loginForm = $container->get(OAuthLoginForm::class);
+
         // Register login form or SSO-only entry point
         if ($config->ssoOnly) {
             // In SSO-only mode with a single provider, redirect directly
@@ -126,18 +129,10 @@ class OAuthLoginPlugin extends AbstractPlugin
                 $singleEntryPoint = reset($entryPoints);
                 $singleEntryPoint->register();
             }
-            // With multiple providers, show a provider selection page on login
-            // by registering the login form (no WP form, just buttons)
-            else {
-                /** @var OAuthLoginForm $loginForm */
-                $loginForm = $container->get(OAuthLoginForm::class);
-                $loginForm->register();
-            }
-        } else {
-            /** @var OAuthLoginForm $loginForm */
-            $loginForm = $container->get(OAuthLoginForm::class);
-            $loginForm->register();
         }
+
+        // Always register login form for SSO buttons (needed for interim-login modal)
+        $loginForm->register();
     }
 
     public function onActivate(): void

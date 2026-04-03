@@ -78,15 +78,17 @@ final class SamlLoginPlugin extends AbstractPlugin
         }
 
         if ($samlConfigured) {
+            /** @var SamlLoginForm $loginForm */
+            $loginForm = $container->get(SamlLoginForm::class);
+
             if ($config->ssoOnly) {
                 /** @var SamlEntryPoint $entryPoint */
                 $entryPoint = $container->get(SamlEntryPoint::class);
                 $entryPoint->register();
-            } else {
-                /** @var SamlLoginForm $loginForm */
-                $loginForm = $container->get(SamlLoginForm::class);
-                $loginForm->register();
             }
+
+            // Always register login form for SSO buttons (needed for interim-login modal)
+            $loginForm->register();
 
             /** @var RouteRegistry $router */
             $router = $container->get(RouteRegistry::class);

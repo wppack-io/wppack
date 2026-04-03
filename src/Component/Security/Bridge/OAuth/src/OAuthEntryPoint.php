@@ -59,6 +59,12 @@ final class OAuthEntryPoint
         }, 10, 2);
 
         add_action('login_init', function (): void {
+            // Interim-login (session expired modal): skip redirect, let WP show
+            // the login form with SSO buttons opening in a new tab.
+            if ($this->request->query->has('interim-login')) {
+                return;
+            }
+
             if ($this->request->isMethod('GET') && !$this->request->query->has('action')) {
                 if ($this->authSession->isLoggedIn()) {
                     return;
