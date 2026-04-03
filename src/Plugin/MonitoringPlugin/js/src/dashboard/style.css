@@ -368,6 +368,11 @@
 	border-color: rgba(0, 0, 0, 0.1);
 }
 
+/* ── Locked provider rows in table ────── */
+.wpp-monitoring-settings .dataviews-view-table__row:has(.wpp-monitoring-source-badge) {
+	color: rgba(0, 0, 0, 0.4);
+}
+
 
 /* ── Cloudflare setup steps ─────────────── */
 .wpp-monitoring-cf-steps {
