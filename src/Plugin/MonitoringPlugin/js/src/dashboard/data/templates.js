@@ -1,6 +1,51 @@
 import { __ } from '@wordpress/i18n';
 
 export const METRIC_TEMPLATES = [
+	// ── Compute ──
+	{
+		id: 'ec2',
+		label: 'EC2',
+		namespace: 'AWS/EC2',
+		bridge: 'cloudwatch',
+		dimensionKey: 'InstanceId',
+		dimensionLabel: __( 'Instance ID', 'wppack-monitoring' ),
+		dimensionPlaceholder: 'i-0123456789abcdef0',
+		metrics: [
+			{ metricName: 'CPUUtilization', label: __( 'CPU Utilization', 'wppack-monitoring' ), description: __( 'CPU usage percentage', 'wppack-monitoring' ), stat: 'Average', unit: 'Percent' },
+			{ metricName: 'NetworkIn', label: __( 'Network In', 'wppack-monitoring' ), description: __( 'Network bytes received', 'wppack-monitoring' ), stat: 'Sum', unit: 'Bytes' },
+			{ metricName: 'NetworkOut', label: __( 'Network Out', 'wppack-monitoring' ), description: __( 'Network bytes sent', 'wppack-monitoring' ), stat: 'Sum', unit: 'Bytes' },
+			{ metricName: 'StatusCheckFailed', label: __( 'Status Check', 'wppack-monitoring' ), description: __( 'Instance status check failures', 'wppack-monitoring' ), stat: 'Maximum', unit: 'Count' },
+		],
+	},
+	{
+		id: 'ecs',
+		label: 'ECS',
+		namespace: 'AWS/ECS',
+		bridge: 'cloudwatch',
+		dimensionKey: 'ClusterName',
+		dimensionLabel: __( 'Cluster Name', 'wppack-monitoring' ),
+		dimensionPlaceholder: 'my-ecs-cluster',
+		metrics: [
+			{ metricName: 'CPUUtilization', label: __( 'CPU Utilization', 'wppack-monitoring' ), description: __( 'Cluster CPU utilization', 'wppack-monitoring' ), stat: 'Average', unit: 'Percent' },
+			{ metricName: 'MemoryUtilization', label: __( 'Memory Utilization', 'wppack-monitoring' ), description: __( 'Cluster memory utilization', 'wppack-monitoring' ), stat: 'Average', unit: 'Percent' },
+		],
+	},
+	{
+		id: 'lambda',
+		label: 'Lambda',
+		namespace: 'AWS/Lambda',
+		bridge: 'cloudwatch',
+		dimensionKey: 'FunctionName',
+		dimensionLabel: __( 'Function Name', 'wppack-monitoring' ),
+		dimensionPlaceholder: 'my-wordpress-function',
+		metrics: [
+			{ metricName: 'Invocations', label: __( 'Invocations', 'wppack-monitoring' ), description: __( 'Function invocations', 'wppack-monitoring' ), stat: 'Sum', unit: 'Count' },
+			{ metricName: 'Duration', label: __( 'Duration', 'wppack-monitoring' ), description: __( 'Execution time', 'wppack-monitoring' ), stat: 'Average', unit: 'Milliseconds' },
+			{ metricName: 'Errors', label: __( 'Errors', 'wppack-monitoring' ), description: __( 'Function errors', 'wppack-monitoring' ), stat: 'Sum', unit: 'Count' },
+			{ metricName: 'Throttles', label: __( 'Throttles', 'wppack-monitoring' ), description: __( 'Throttled invocations', 'wppack-monitoring' ), stat: 'Sum', unit: 'Count' },
+		],
+	},
+	// ── Database ──
 	{
 		id: 'rds',
 		label: 'RDS / Aurora',
@@ -52,78 +97,6 @@ export const METRIC_TEMPLATES = [
 		],
 	},
 	{
-		id: 'cloudfront',
-		label: 'CloudFront',
-		namespace: 'AWS/CloudFront',
-		bridge: 'cloudwatch',
-		dimensionKey: 'DistributionId',
-		dimensionLabel: __( 'Distribution ID', 'wppack-monitoring' ),
-		dimensionPlaceholder: 'E1A2B3C4D5E6F7',
-		metrics: [
-			{ metricName: 'Requests', label: __( 'Requests', 'wppack-monitoring' ), description: __( 'Total requests', 'wppack-monitoring' ), stat: 'Sum', unit: 'Count' },
-			{ metricName: 'BytesDownloaded', label: __( 'Downloaded', 'wppack-monitoring' ), description: __( 'Bytes downloaded', 'wppack-monitoring' ), stat: 'Sum', unit: 'Bytes' },
-			{ metricName: '4xxErrorRate', label: __( '4xx Error Rate', 'wppack-monitoring' ), description: __( 'Client error rate', 'wppack-monitoring' ), stat: 'Average', unit: 'Percent' },
-			{ metricName: '5xxErrorRate', label: __( '5xx Error Rate', 'wppack-monitoring' ), description: __( 'Server error rate', 'wppack-monitoring' ), stat: 'Average', unit: 'Percent' },
-		],
-	},
-	{
-		id: 'lambda',
-		label: 'Lambda',
-		namespace: 'AWS/Lambda',
-		bridge: 'cloudwatch',
-		dimensionKey: 'FunctionName',
-		dimensionLabel: __( 'Function Name', 'wppack-monitoring' ),
-		dimensionPlaceholder: 'my-wordpress-function',
-		metrics: [
-			{ metricName: 'Invocations', label: __( 'Invocations', 'wppack-monitoring' ), description: __( 'Function invocations', 'wppack-monitoring' ), stat: 'Sum', unit: 'Count' },
-			{ metricName: 'Duration', label: __( 'Duration', 'wppack-monitoring' ), description: __( 'Execution time', 'wppack-monitoring' ), stat: 'Average', unit: 'Milliseconds' },
-			{ metricName: 'Errors', label: __( 'Errors', 'wppack-monitoring' ), description: __( 'Function errors', 'wppack-monitoring' ), stat: 'Sum', unit: 'Count' },
-			{ metricName: 'Throttles', label: __( 'Throttles', 'wppack-monitoring' ), description: __( 'Throttled invocations', 'wppack-monitoring' ), stat: 'Sum', unit: 'Count' },
-		],
-	},
-	{
-		id: 'sqs',
-		label: 'SQS',
-		namespace: 'AWS/SQS',
-		bridge: 'cloudwatch',
-		dimensionKey: 'QueueName',
-		dimensionLabel: __( 'Queue Name', 'wppack-monitoring' ),
-		dimensionPlaceholder: 'wordpress-queue',
-		metrics: [
-			{ metricName: 'NumberOfMessagesSent', label: __( 'Messages Sent', 'wppack-monitoring' ), description: __( 'Messages sent to queue', 'wppack-monitoring' ), stat: 'Sum', unit: 'Count' },
-			{ metricName: 'ApproximateNumberOfMessagesVisible', label: __( 'Queue Depth', 'wppack-monitoring' ), description: __( 'Messages in queue', 'wppack-monitoring' ), stat: 'Average', unit: 'Count' },
-			{ metricName: 'ApproximateAgeOfOldestMessage', label: __( 'Oldest Message', 'wppack-monitoring' ), description: __( 'Age of oldest message', 'wppack-monitoring' ), stat: 'Maximum', unit: 'Seconds' },
-		],
-	},
-	{
-		id: 's3',
-		label: 'S3',
-		namespace: 'AWS/S3',
-		bridge: 'cloudwatch',
-		dimensionKey: 'BucketName',
-		dimensionLabel: __( 'Bucket Name', 'wppack-monitoring' ),
-		dimensionPlaceholder: 'my-bucket',
-		metrics: [
-			{ metricName: 'BucketSizeBytes', label: __( 'Bucket Size', 'wppack-monitoring' ), description: __( 'Total bucket size', 'wppack-monitoring' ), stat: 'Average', unit: 'Bytes', period: 86400, extraDimensions: { StorageType: 'StandardStorage' } },
-			{ metricName: 'NumberOfObjects', label: __( 'Object Count', 'wppack-monitoring' ), description: __( 'Total number of objects', 'wppack-monitoring' ), stat: 'Average', unit: 'Count', period: 86400, extraDimensions: { StorageType: 'AllStorageTypes' } },
-		],
-	},
-	{
-		id: 'ec2',
-		label: 'EC2',
-		namespace: 'AWS/EC2',
-		bridge: 'cloudwatch',
-		dimensionKey: 'InstanceId',
-		dimensionLabel: __( 'Instance ID', 'wppack-monitoring' ),
-		dimensionPlaceholder: 'i-0123456789abcdef0',
-		metrics: [
-			{ metricName: 'CPUUtilization', label: __( 'CPU Utilization', 'wppack-monitoring' ), description: __( 'CPU usage percentage', 'wppack-monitoring' ), stat: 'Average', unit: 'Percent' },
-			{ metricName: 'NetworkIn', label: __( 'Network In', 'wppack-monitoring' ), description: __( 'Network bytes received', 'wppack-monitoring' ), stat: 'Sum', unit: 'Bytes' },
-			{ metricName: 'NetworkOut', label: __( 'Network Out', 'wppack-monitoring' ), description: __( 'Network bytes sent', 'wppack-monitoring' ), stat: 'Sum', unit: 'Bytes' },
-			{ metricName: 'StatusCheckFailed', label: __( 'Status Check', 'wppack-monitoring' ), description: __( 'Instance status check failures', 'wppack-monitoring' ), stat: 'Maximum', unit: 'Count' },
-		],
-	},
-	{
 		id: 'dynamodb',
 		label: 'DynamoDB',
 		namespace: 'AWS/DynamoDB',
@@ -140,6 +113,7 @@ export const METRIC_TEMPLATES = [
 			{ metricName: 'UserErrors', label: __( 'User Errors', 'wppack-monitoring' ), description: __( 'Client-side errors', 'wppack-monitoring' ), stat: 'Sum', unit: 'Count' },
 		],
 	},
+	// ── Network ──
 	{
 		id: 'alb',
 		label: 'ALB',
@@ -159,6 +133,21 @@ export const METRIC_TEMPLATES = [
 		],
 	},
 	{
+		id: 'cloudfront',
+		label: 'CloudFront',
+		namespace: 'AWS/CloudFront',
+		bridge: 'cloudwatch',
+		dimensionKey: 'DistributionId',
+		dimensionLabel: __( 'Distribution ID', 'wppack-monitoring' ),
+		dimensionPlaceholder: 'E1A2B3C4D5E6F7',
+		metrics: [
+			{ metricName: 'Requests', label: __( 'Requests', 'wppack-monitoring' ), description: __( 'Total requests', 'wppack-monitoring' ), stat: 'Sum', unit: 'Count' },
+			{ metricName: 'BytesDownloaded', label: __( 'Downloaded', 'wppack-monitoring' ), description: __( 'Bytes downloaded', 'wppack-monitoring' ), stat: 'Sum', unit: 'Bytes' },
+			{ metricName: '4xxErrorRate', label: __( '4xx Error Rate', 'wppack-monitoring' ), description: __( 'Client error rate', 'wppack-monitoring' ), stat: 'Average', unit: 'Percent' },
+			{ metricName: '5xxErrorRate', label: __( '5xx Error Rate', 'wppack-monitoring' ), description: __( 'Server error rate', 'wppack-monitoring' ), stat: 'Average', unit: 'Percent' },
+		],
+	},
+	{
 		id: 'natgw',
 		label: 'NAT Gateway',
 		namespace: 'AWS/NATGateway',
@@ -174,19 +163,36 @@ export const METRIC_TEMPLATES = [
 			{ metricName: 'ActiveConnectionCount', label: __( 'Active Connections', 'wppack-monitoring' ), description: __( 'Active connections', 'wppack-monitoring' ), stat: 'Maximum', unit: 'Count' },
 		],
 	},
+	// ── Storage ──
 	{
-		id: 'ecs',
-		label: 'ECS',
-		namespace: 'AWS/ECS',
+		id: 's3',
+		label: 'S3',
+		namespace: 'AWS/S3',
 		bridge: 'cloudwatch',
-		dimensionKey: 'ClusterName',
-		dimensionLabel: __( 'Cluster Name', 'wppack-monitoring' ),
-		dimensionPlaceholder: 'my-ecs-cluster',
+		dimensionKey: 'BucketName',
+		dimensionLabel: __( 'Bucket Name', 'wppack-monitoring' ),
+		dimensionPlaceholder: 'my-bucket',
 		metrics: [
-			{ metricName: 'CPUUtilization', label: __( 'CPU Utilization', 'wppack-monitoring' ), description: __( 'Cluster CPU utilization', 'wppack-monitoring' ), stat: 'Average', unit: 'Percent' },
-			{ metricName: 'MemoryUtilization', label: __( 'Memory Utilization', 'wppack-monitoring' ), description: __( 'Cluster memory utilization', 'wppack-monitoring' ), stat: 'Average', unit: 'Percent' },
+			{ metricName: 'BucketSizeBytes', label: __( 'Bucket Size', 'wppack-monitoring' ), description: __( 'Total bucket size', 'wppack-monitoring' ), stat: 'Average', unit: 'Bytes', period: 86400, extraDimensions: { StorageType: 'StandardStorage' } },
+			{ metricName: 'NumberOfObjects', label: __( 'Object Count', 'wppack-monitoring' ), description: __( 'Total number of objects', 'wppack-monitoring' ), stat: 'Average', unit: 'Count', period: 86400, extraDimensions: { StorageType: 'AllStorageTypes' } },
 		],
 	},
+	// ── Messaging ──
+	{
+		id: 'sqs',
+		label: 'SQS',
+		namespace: 'AWS/SQS',
+		bridge: 'cloudwatch',
+		dimensionKey: 'QueueName',
+		dimensionLabel: __( 'Queue Name', 'wppack-monitoring' ),
+		dimensionPlaceholder: 'wordpress-queue',
+		metrics: [
+			{ metricName: 'NumberOfMessagesSent', label: __( 'Messages Sent', 'wppack-monitoring' ), description: __( 'Messages sent to queue', 'wppack-monitoring' ), stat: 'Sum', unit: 'Count' },
+			{ metricName: 'ApproximateNumberOfMessagesVisible', label: __( 'Queue Depth', 'wppack-monitoring' ), description: __( 'Messages in queue', 'wppack-monitoring' ), stat: 'Average', unit: 'Count' },
+			{ metricName: 'ApproximateAgeOfOldestMessage', label: __( 'Oldest Message', 'wppack-monitoring' ), description: __( 'Age of oldest message', 'wppack-monitoring' ), stat: 'Maximum', unit: 'Seconds' },
+		],
+	},
+	// ── Security ──
 	{
 		id: 'aws-waf',
 		label: 'AWS WAF',
@@ -201,6 +207,7 @@ export const METRIC_TEMPLATES = [
 			{ metricName: 'CountedRequests', label: __( 'Counted Requests', 'wppack-monitoring' ), description: __( 'Requests in count mode', 'wppack-monitoring' ), stat: 'Sum', unit: 'Count', extraDimensions: { Rule: 'ALL' } },
 		],
 	},
+	// ── Cloudflare ──
 	{
 		id: 'cloudflare-zone',
 		label: 'Cloudflare Zone',

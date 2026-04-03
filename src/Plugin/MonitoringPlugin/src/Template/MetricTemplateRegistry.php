@@ -62,6 +62,42 @@ final class MetricTemplateRegistry
     private function definitions(): array
     {
         return [
+            // Compute
+            [
+                'id' => 'ec2',
+                'bridge' => 'cloudwatch',
+                'namespace' => 'AWS/EC2',
+                'dimensionKey' => 'InstanceId',
+                'metrics' => [
+                    ['metricName' => 'CPUUtilization', 'label' => 'CPU Utilization', 'description' => 'CPU usage percentage', 'stat' => 'Average', 'unit' => 'Percent'],
+                    ['metricName' => 'NetworkIn', 'label' => 'Network In', 'description' => 'Network bytes received', 'stat' => 'Sum', 'unit' => 'Bytes'],
+                    ['metricName' => 'NetworkOut', 'label' => 'Network Out', 'description' => 'Network bytes sent', 'stat' => 'Sum', 'unit' => 'Bytes'],
+                    ['metricName' => 'StatusCheckFailed', 'label' => 'Status Check', 'description' => 'Instance status check failures', 'stat' => 'Maximum', 'unit' => 'Count'],
+                ],
+            ],
+            [
+                'id' => 'ecs',
+                'bridge' => 'cloudwatch',
+                'namespace' => 'AWS/ECS',
+                'dimensionKey' => 'ClusterName',
+                'metrics' => [
+                    ['metricName' => 'CPUUtilization', 'label' => 'CPU Utilization', 'description' => 'Cluster CPU utilization', 'stat' => 'Average', 'unit' => 'Percent'],
+                    ['metricName' => 'MemoryUtilization', 'label' => 'Memory Utilization', 'description' => 'Cluster memory utilization', 'stat' => 'Average', 'unit' => 'Percent'],
+                ],
+            ],
+            [
+                'id' => 'lambda',
+                'bridge' => 'cloudwatch',
+                'namespace' => 'AWS/Lambda',
+                'dimensionKey' => 'FunctionName',
+                'metrics' => [
+                    ['metricName' => 'Invocations', 'label' => 'Invocations', 'description' => 'Function invocations', 'stat' => 'Sum', 'unit' => 'Count'],
+                    ['metricName' => 'Duration', 'label' => 'Duration', 'description' => 'Execution time', 'stat' => 'Average', 'unit' => 'Milliseconds'],
+                    ['metricName' => 'Errors', 'label' => 'Errors', 'description' => 'Function errors', 'stat' => 'Sum', 'unit' => 'Count'],
+                    ['metricName' => 'Throttles', 'label' => 'Throttles', 'description' => 'Throttled invocations', 'stat' => 'Sum', 'unit' => 'Count'],
+                ],
+            ],
+            // Database
             [
                 'id' => 'rds',
                 'bridge' => 'cloudwatch',
@@ -104,63 +140,6 @@ final class MetricTemplateRegistry
                 ],
             ],
             [
-                'id' => 'cloudfront',
-                'bridge' => 'cloudwatch',
-                'namespace' => 'AWS/CloudFront',
-                'dimensionKey' => 'DistributionId',
-                'metrics' => [
-                    ['metricName' => 'Requests', 'label' => 'Requests', 'description' => 'Total requests', 'stat' => 'Sum', 'unit' => 'Count'],
-                    ['metricName' => 'BytesDownloaded', 'label' => 'Downloaded', 'description' => 'Bytes downloaded', 'stat' => 'Sum', 'unit' => 'Bytes'],
-                    ['metricName' => '4xxErrorRate', 'label' => '4xx Error Rate', 'description' => 'Client error rate', 'stat' => 'Average', 'unit' => 'Percent'],
-                    ['metricName' => '5xxErrorRate', 'label' => '5xx Error Rate', 'description' => 'Server error rate', 'stat' => 'Average', 'unit' => 'Percent'],
-                ],
-            ],
-            [
-                'id' => 'lambda',
-                'bridge' => 'cloudwatch',
-                'namespace' => 'AWS/Lambda',
-                'dimensionKey' => 'FunctionName',
-                'metrics' => [
-                    ['metricName' => 'Invocations', 'label' => 'Invocations', 'description' => 'Function invocations', 'stat' => 'Sum', 'unit' => 'Count'],
-                    ['metricName' => 'Duration', 'label' => 'Duration', 'description' => 'Execution time', 'stat' => 'Average', 'unit' => 'Milliseconds'],
-                    ['metricName' => 'Errors', 'label' => 'Errors', 'description' => 'Function errors', 'stat' => 'Sum', 'unit' => 'Count'],
-                    ['metricName' => 'Throttles', 'label' => 'Throttles', 'description' => 'Throttled invocations', 'stat' => 'Sum', 'unit' => 'Count'],
-                ],
-            ],
-            [
-                'id' => 'sqs',
-                'bridge' => 'cloudwatch',
-                'namespace' => 'AWS/SQS',
-                'dimensionKey' => 'QueueName',
-                'metrics' => [
-                    ['metricName' => 'NumberOfMessagesSent', 'label' => 'Messages Sent', 'description' => 'Messages sent to queue', 'stat' => 'Sum', 'unit' => 'Count'],
-                    ['metricName' => 'ApproximateNumberOfMessagesVisible', 'label' => 'Queue Depth', 'description' => 'Messages in queue', 'stat' => 'Average', 'unit' => 'Count'],
-                    ['metricName' => 'ApproximateAgeOfOldestMessage', 'label' => 'Oldest Message', 'description' => 'Age of oldest message', 'stat' => 'Maximum', 'unit' => 'Seconds'],
-                ],
-            ],
-            [
-                'id' => 's3',
-                'bridge' => 'cloudwatch',
-                'namespace' => 'AWS/S3',
-                'dimensionKey' => 'BucketName',
-                'metrics' => [
-                    ['metricName' => 'BucketSizeBytes', 'label' => 'Bucket Size', 'description' => 'Total bucket size', 'stat' => 'Average', 'unit' => 'Bytes', 'periodSeconds' => 86400, 'extraDimensions' => ['StorageType' => 'StandardStorage']],
-                    ['metricName' => 'NumberOfObjects', 'label' => 'Object Count', 'description' => 'Total number of objects', 'stat' => 'Average', 'unit' => 'Count', 'periodSeconds' => 86400, 'extraDimensions' => ['StorageType' => 'AllStorageTypes']],
-                ],
-            ],
-            [
-                'id' => 'ec2',
-                'bridge' => 'cloudwatch',
-                'namespace' => 'AWS/EC2',
-                'dimensionKey' => 'InstanceId',
-                'metrics' => [
-                    ['metricName' => 'CPUUtilization', 'label' => 'CPU Utilization', 'description' => 'CPU usage percentage', 'stat' => 'Average', 'unit' => 'Percent'],
-                    ['metricName' => 'NetworkIn', 'label' => 'Network In', 'description' => 'Network bytes received', 'stat' => 'Sum', 'unit' => 'Bytes'],
-                    ['metricName' => 'NetworkOut', 'label' => 'Network Out', 'description' => 'Network bytes sent', 'stat' => 'Sum', 'unit' => 'Bytes'],
-                    ['metricName' => 'StatusCheckFailed', 'label' => 'Status Check', 'description' => 'Instance status check failures', 'stat' => 'Maximum', 'unit' => 'Count'],
-                ],
-            ],
-            [
                 'id' => 'dynamodb',
                 'bridge' => 'cloudwatch',
                 'namespace' => 'AWS/DynamoDB',
@@ -174,6 +153,7 @@ final class MetricTemplateRegistry
                     ['metricName' => 'UserErrors', 'label' => 'User Errors', 'description' => 'Client-side errors', 'stat' => 'Sum', 'unit' => 'Count'],
                 ],
             ],
+            // Network
             [
                 'id' => 'alb',
                 'bridge' => 'cloudwatch',
@@ -190,6 +170,18 @@ final class MetricTemplateRegistry
                 ],
             ],
             [
+                'id' => 'cloudfront',
+                'bridge' => 'cloudwatch',
+                'namespace' => 'AWS/CloudFront',
+                'dimensionKey' => 'DistributionId',
+                'metrics' => [
+                    ['metricName' => 'Requests', 'label' => 'Requests', 'description' => 'Total requests', 'stat' => 'Sum', 'unit' => 'Count'],
+                    ['metricName' => 'BytesDownloaded', 'label' => 'Downloaded', 'description' => 'Bytes downloaded', 'stat' => 'Sum', 'unit' => 'Bytes'],
+                    ['metricName' => '4xxErrorRate', 'label' => '4xx Error Rate', 'description' => 'Client error rate', 'stat' => 'Average', 'unit' => 'Percent'],
+                    ['metricName' => '5xxErrorRate', 'label' => '5xx Error Rate', 'description' => 'Server error rate', 'stat' => 'Average', 'unit' => 'Percent'],
+                ],
+            ],
+            [
                 'id' => 'natgw',
                 'bridge' => 'cloudwatch',
                 'namespace' => 'AWS/NATGateway',
@@ -202,16 +194,30 @@ final class MetricTemplateRegistry
                     ['metricName' => 'ActiveConnectionCount', 'label' => 'Active Connections', 'description' => 'Active connections', 'stat' => 'Maximum', 'unit' => 'Count'],
                 ],
             ],
+            // Storage
             [
-                'id' => 'ecs',
+                'id' => 's3',
                 'bridge' => 'cloudwatch',
-                'namespace' => 'AWS/ECS',
-                'dimensionKey' => 'ClusterName',
+                'namespace' => 'AWS/S3',
+                'dimensionKey' => 'BucketName',
                 'metrics' => [
-                    ['metricName' => 'CPUUtilization', 'label' => 'CPU Utilization', 'description' => 'Cluster CPU utilization', 'stat' => 'Average', 'unit' => 'Percent'],
-                    ['metricName' => 'MemoryUtilization', 'label' => 'Memory Utilization', 'description' => 'Cluster memory utilization', 'stat' => 'Average', 'unit' => 'Percent'],
+                    ['metricName' => 'BucketSizeBytes', 'label' => 'Bucket Size', 'description' => 'Total bucket size', 'stat' => 'Average', 'unit' => 'Bytes', 'periodSeconds' => 86400, 'extraDimensions' => ['StorageType' => 'StandardStorage']],
+                    ['metricName' => 'NumberOfObjects', 'label' => 'Object Count', 'description' => 'Total number of objects', 'stat' => 'Average', 'unit' => 'Count', 'periodSeconds' => 86400, 'extraDimensions' => ['StorageType' => 'AllStorageTypes']],
                 ],
             ],
+            // Messaging
+            [
+                'id' => 'sqs',
+                'bridge' => 'cloudwatch',
+                'namespace' => 'AWS/SQS',
+                'dimensionKey' => 'QueueName',
+                'metrics' => [
+                    ['metricName' => 'NumberOfMessagesSent', 'label' => 'Messages Sent', 'description' => 'Messages sent to queue', 'stat' => 'Sum', 'unit' => 'Count'],
+                    ['metricName' => 'ApproximateNumberOfMessagesVisible', 'label' => 'Queue Depth', 'description' => 'Messages in queue', 'stat' => 'Average', 'unit' => 'Count'],
+                    ['metricName' => 'ApproximateAgeOfOldestMessage', 'label' => 'Oldest Message', 'description' => 'Age of oldest message', 'stat' => 'Maximum', 'unit' => 'Seconds'],
+                ],
+            ],
+            // Security
             [
                 'id' => 'aws-waf',
                 'bridge' => 'cloudwatch',
@@ -223,6 +229,7 @@ final class MetricTemplateRegistry
                     ['metricName' => 'CountedRequests', 'label' => 'Counted Requests', 'description' => 'Requests in count mode', 'stat' => 'Sum', 'unit' => 'Count', 'extraDimensions' => ['Rule' => 'ALL']],
                 ],
             ],
+            // Cloudflare
             [
                 'id' => 'cloudflare-zone',
                 'bridge' => 'cloudflare',
