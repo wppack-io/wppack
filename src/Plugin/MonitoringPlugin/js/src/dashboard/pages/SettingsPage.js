@@ -233,6 +233,56 @@ function getProviderForm( bridge, provider ) {
 	return { fields: sections };
 }
 
+function getAddFormFields( template ) {
+	const credentialFields = template.bridge === 'cloudflare'
+		? CLOUDFLARE_FORM_FIELDS
+		: AWS_FORM_FIELDS;
+	return [
+		...COMMON_FORM_FIELDS,
+		...credentialFields,
+		{
+			id: '_dimensionValue',
+			label: template.dimensionLabel,
+			type: 'text',
+			description: template.dimensionPlaceholder || '',
+			getValue: ( { item } ) => item._dimensionValue || '',
+		},
+	];
+}
+
+function getAddForm( template ) {
+	const credentialChildren = template.bridge === 'cloudflare'
+		? [ 'settings.apiToken' ]
+		: [ 'settings.region', 'settings.accessKeyId', 'settings.secretAccessKey' ];
+
+	const credentialLabel = template.bridge === 'cloudflare'
+		? __( 'Cloudflare Credentials', 'wppack-monitoring' )
+		: __( 'AWS Credentials', 'wppack-monitoring' );
+
+	return {
+		fields: [
+			{
+				id: 'general',
+				label: __( 'General', 'wppack-monitoring' ),
+				children: [ 'label', 'bridge' ],
+				layout: { type: 'regular' },
+			},
+			{
+				id: 'credentials',
+				label: credentialLabel,
+				children: credentialChildren,
+				layout: { type: 'regular' },
+			},
+			{
+				id: 'dimensions',
+				label: __( 'Dimensions', 'wppack-monitoring' ),
+				children: [ '_dimensionValue' ],
+				layout: { type: 'regular' },
+			},
+		],
+	};
+}
+
 export default function SettingsPage() {
 	const [ providers, setProviders ] = useState( [] );
 	const [ loading, setLoading ] = useState( true );
@@ -240,7 +290,6 @@ export default function SettingsPage() {
 	const [ selectedProvider, setSelectedProvider ] = useState( null );
 	const [ addMode, setAddMode ] = useState( false );
 	const [ selectedTemplate, setSelectedTemplate ] = useState( null );
-	const [ dimensionValue, setDimensionValue ] = useState( '' );
 	const [ showIam, setShowIam ] = useState( false );
 	const [ showCloudflare, setShowCloudflare ] = useState( false );
 	const [ syncing, setSyncing ] = useState( false );
@@ -542,7 +591,6 @@ export default function SettingsPage() {
 					onRequestClose={ () => {
 						setAddMode( false );
 						setSelectedTemplate( null );
-						setDimensionValue( '' );
 						setSelectedProvider( null );
 					} }
 					size="large"
@@ -554,13 +602,14 @@ export default function SettingsPage() {
 						onChange={ ( templateId ) => {
 							const tmpl = METRIC_TEMPLATES.find( ( t ) => t.id === templateId );
 							setSelectedTemplate( tmpl || null );
-							setDimensionValue( '' );
 							if ( tmpl ) {
 								setSelectedProvider( {
 									id: '',
 									label: tmpl.label,
 									bridge: tmpl.bridge,
-									settings: { region: '', accessKeyId: '', secretAccessKey: '' },
+									settings: tmpl.bridge === 'cloudflare'
+										? { apiToken: '' }
+										: { region: '', accessKeyId: '', secretAccessKey: '' },
 									metrics: tmpl.metrics.map( ( m ) => ( {
 										id: `${ tmpl.id }.${ m.metricName.toLowerCase() }`,
 										label: m.label,
@@ -574,6 +623,7 @@ export default function SettingsPage() {
 										locked: false,
 									} ) ),
 									locked: false,
+									_dimensionValue: '',
 								} );
 							} else {
 								setSelectedProvider( null );
@@ -587,47 +637,33 @@ export default function SettingsPage() {
 
 					{ selectedTemplate && selectedProvider && (
 						<>
-							<TextControl
-								label={ __( 'Label', 'wppack-monitoring' ) }
-								value={ selectedProvider.label }
-								onChange={ ( value ) =>
-									setSelectedProvider( ( prev ) => ( { ...prev, label: value } ) )
-								}
-							/>
-							{ selectedTemplate.bridge === 'cloudflare' ? (
-								<TextControl
-									label={ __( 'API Token', 'wppack-monitoring' ) + ' *' }
-									type="password"
-									value={ selectedProvider.settings?.apiToken || '' }
-									onChange={ ( value ) =>
-										setSelectedProvider( ( prev ) => ( {
-											...prev,
-											settings: { ...prev.settings, apiToken: value },
-										} ) )
-									}
-								/>
-							) : (
-								<SelectControl
-									label={ __( 'Region', 'wppack-monitoring' ) + ' *' }
-									value={ selectedProvider.settings?.region || '' }
-									options={ AWS_REGIONS }
-									onChange={ ( value ) =>
-										setSelectedProvider( ( prev ) => ( {
-											...prev,
-											settings: { ...prev.settings, region: value },
-										} ) )
-									}
-								/>
-							) }
-							<TextControl
-								label={ selectedTemplate.dimensionLabel + ' *' }
-								value={ dimensionValue }
-								placeholder={ selectedTemplate.dimensionPlaceholder || '' }
-								onChange={ ( value ) => setDimensionValue( value ) }
-							/>
+							<div className="wpp-monitoring-dataform-wrap"><DataForm
+								data={ selectedProvider }
+								fields={ getAddFormFields( selectedTemplate ) }
+								form={ getAddForm( selectedTemplate ) }
+								onChange={ ( edits ) => {
+									setSelectedProvider( ( prev ) => {
+										const next = { ...prev };
+										for ( const [
+											key,
+											value,
+										] of Object.entries( edits ) ) {
+											if ( key === 'settings' ) {
+												next.settings = {
+													...next.settings,
+													...value,
+												};
+											} else {
+												next[ key ] = value;
+											}
+										}
+										return next;
+									} );
+								} }
+							/></div>
 
 							{ selectedProvider.metrics?.length > 0 && (
-								<div className="wpp-monitoring-template-metrics">
+								<div className="wpp-monitoring-metrics-list">
 									<h3>{ __( 'Metrics', 'wppack-monitoring' ) }</h3>
 									<table className="wpp-monitoring-modal-table">
 										<thead>
@@ -659,12 +695,13 @@ export default function SettingsPage() {
 							<div className="wpp-monitoring-modal-actions">
 								<Button
 									variant="primary"
-									disabled={ ! selectedProvider.label || ! dimensionValue || (
+									disabled={ ! selectedProvider.label || ! selectedProvider._dimensionValue || (
 										selectedTemplate.bridge === 'cloudflare'
 											? ! selectedProvider.settings?.apiToken
 											: ! selectedProvider.settings?.region
 									) }
 									onClick={ async () => {
+										const dimVal = selectedProvider._dimensionValue;
 										const provider = {
 											...selectedProvider,
 											id: selectedProvider.label.toLowerCase().replace( /[^a-z0-9]+/g, '-' ),
@@ -674,17 +711,17 @@ export default function SettingsPage() {
 												return {
 													...m,
 													dimensions: {
-														...( dimensionValue ? { [ selectedTemplate.dimensionKey ]: dimensionValue } : {} ),
+														...( dimVal ? { [ selectedTemplate.dimensionKey ]: dimVal } : {} ),
 														...( tmplMetric.extraDimensions || {} ),
 													},
 													periodSeconds: tmplMetric.period || m.periodSeconds,
 												};
 											} ),
 										};
+										delete provider._dimensionValue;
 										await handleSaveProvider( provider );
 										setAddMode( false );
 										setSelectedTemplate( null );
-										setDimensionValue( '' );
 										setSelectedProvider( null );
 									} }
 								>

@@ -377,13 +377,3 @@
 	line-height: 1.6;
 }
 
-/* ── Template metrics table ──────────────── */
-.wpp-monitoring-template-metrics {
-	margin-top: 16px;
-}
-
-.wpp-monitoring-template-metrics h3 {
-	font-size: 13px;
-	font-weight: 600;
-	margin-bottom: 8px;
-}
