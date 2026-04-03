@@ -112,12 +112,6 @@ const BRIDGE_OPTIONS = [
 
 const COMMON_FORM_FIELDS = [
 	{ id: 'label', label: __( 'Label', 'wppack-monitoring' ), type: 'text' },
-	{
-		id: 'bridge',
-		label: __( 'Provider', 'wppack-monitoring' ),
-		type: 'text',
-		elements: BRIDGE_OPTIONS,
-	},
 ];
 
 const AWS_FORM_FIELDS = [
@@ -177,7 +171,7 @@ function getProviderForm( bridge ) {
 			{
 				id: 'general',
 				label: __( 'General', 'wppack-monitoring' ),
-				children: [ 'label', 'bridge' ],
+				children: [ 'label' ],
 				layout: { type: 'regular' },
 			},
 			{
@@ -408,6 +402,13 @@ export default function SettingsPage() {
 							) }
 						</div>
 					) : (
+						<>
+						<TextControl
+							label={ __( 'Provider', 'wppack-monitoring' ) }
+							value={ BRIDGE_OPTIONS.find( ( b ) => b.value === selectedProvider.bridge )?.label || selectedProvider.bridge }
+							disabled
+							__nextHasNoMarginBottom
+						/>
 						<div className="wpp-monitoring-dataform-wrap"><DataForm
 							data={ selectedProvider }
 							fields={ getProviderFormFields( selectedProvider.bridge ) }
@@ -432,7 +433,7 @@ export default function SettingsPage() {
 								} );
 							} }
 						/>
-					</div>) }
+					</div></>) }
 
 					{ /* Dimensions as readonly fields */ }
 					{ selectedProvider.metrics?.[ 0 ]?.dimensions && Object.keys( selectedProvider.metrics[ 0 ].dimensions ).length > 0 && (
