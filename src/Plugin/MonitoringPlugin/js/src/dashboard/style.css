@@ -333,9 +333,20 @@
 	height: 16px;
 }
 
-/* ── Match DataForm input height with standard TextControl (32px) ── */
-.wpp-monitoring-settings .components-modal__content .components-input-control__input {
+/* ── DataForm: match standard TextControl/SelectControl style ─── */
+.wpp-monitoring-dataform-wrap .components-input-control__input {
 	height: 32px !important;
+	min-height: 32px !important;
+}
+
+.wpp-monitoring-dataform-wrap .components-input-control__backdrop {
+	border-width: 1px !important;
+	border-style: solid !important;
+	border-color: #949494 !important;
+	border-radius: 2px !important;
+}
+
+.wpp-monitoring-dataform-wrap .components-input-control__container {
 	min-height: 32px !important;
 }
 
@@ -344,9 +355,6 @@
 	margin-top: 16px;
 }
 
-.wpp-monitoring-dimensions-fields .components-base-control {
-	margin-bottom: 12px;
-}
 
 /* ── Cloudflare setup steps ─────────────── */
 .wpp-monitoring-cf-steps {

@@ -404,7 +404,7 @@ export default function SettingsPage() {
 							</tbody>
 						</table>
 					) : (
-						<DataForm
+						<div className="wpp-monitoring-dataform-wrap"><DataForm
 							data={ selectedProvider }
 							fields={ getProviderFormFields( selectedProvider.bridge ) }
 							form={ getProviderForm( selectedProvider.bridge ) }
@@ -428,19 +428,24 @@ export default function SettingsPage() {
 								} );
 							} }
 						/>
-					) }
+					</div>) }
 
 					{ /* Dimensions as readonly fields */ }
 					{ selectedProvider.metrics?.[ 0 ]?.dimensions && Object.keys( selectedProvider.metrics[ 0 ].dimensions ).length > 0 && (
 						<div className="wpp-monitoring-dimensions-fields">
 							{ Object.entries( selectedProvider.metrics[ 0 ].dimensions ).map( ( [ key, value ] ) => (
-								<TextControl
-									key={ key }
-									label={ key }
-									value={ value }
-									disabled
-									__nextHasNoMarginBottom
-								/>
+								<div key={ key } style={ { marginBottom: '16px' } }>
+									<label style={ { display: 'block', marginBottom: '4px', fontSize: '11px', fontWeight: 'normal', textTransform: 'none', color: '#1e1e1e' } }>
+										{ key }
+									</label>
+									<input
+										type="text"
+										className="components-text-control__input"
+										value={ value }
+										disabled
+										style={ { width: '100%', boxSizing: 'border-box' } }
+									/>
+								</div>
 							) ) }
 						</div>
 					) }
