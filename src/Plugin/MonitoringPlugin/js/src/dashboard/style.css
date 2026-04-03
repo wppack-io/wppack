@@ -350,6 +350,13 @@
 	min-height: 32px !important;
 }
 
+.wpp-monitoring-dataform-wrap .components-input-control__container select {
+	height: 32px !important;
+	min-height: 32px !important;
+	padding: 0 26px 0 8px !important;
+}
+
+
 /* ── Dimensions readonly fields ─────────── */
 .wpp-monitoring-dimensions-fields {
 	margin-top: 16px;
