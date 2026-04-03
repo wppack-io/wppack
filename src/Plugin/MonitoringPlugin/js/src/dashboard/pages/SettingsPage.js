@@ -166,6 +166,19 @@ const CLOUDFLARE_FORM_FIELDS = [
 	},
 ];
 
+const DIMENSION_LABELS = {
+	DBInstanceIdentifier: __( 'DB Instance ID', 'wppack-monitoring' ),
+	DBClusterIdentifier: __( 'DB Cluster ID', 'wppack-monitoring' ),
+	CacheClusterId: __( 'Cache Cluster ID', 'wppack-monitoring' ),
+	DistributionId: __( 'Distribution ID', 'wppack-monitoring' ),
+	FunctionName: __( 'Function Name', 'wppack-monitoring' ),
+	QueueName: __( 'Queue Name', 'wppack-monitoring' ),
+	BucketName: __( 'Bucket Name', 'wppack-monitoring' ),
+	InstanceId: __( 'Instance ID', 'wppack-monitoring' ),
+	ZoneId: __( 'Zone ID', 'wppack-monitoring' ),
+	StorageType: __( 'Storage Type', 'wppack-monitoring' ),
+};
+
 function getDimensionFields( provider ) {
 	const dims = provider.metrics?.[ 0 ]?.dimensions;
 	if ( ! dims || Object.keys( dims ).length === 0 ) {
@@ -173,7 +186,7 @@ function getDimensionFields( provider ) {
 	}
 	return Object.entries( dims ).map( ( [ key, value ] ) => ( {
 		id: `dim.${ key }`,
-		label: key,
+		label: DIMENSION_LABELS[ key ] || key,
 		type: 'text',
 		getValue: () => value,
 		Edit: ( { field } ) => (
@@ -192,6 +205,38 @@ function getProviderFormFields( bridge, provider ) {
 	const credentialFields = bridge === 'cloudflare' ? CLOUDFLARE_FORM_FIELDS : AWS_FORM_FIELDS;
 	const dimensionFields = getDimensionFields( provider );
 	return [ ...COMMON_FORM_FIELDS, ...credentialFields, ...dimensionFields ];
+}
+
+function getLockedFormFields( bridge, provider ) {
+	const fields = getProviderFormFields( bridge, provider );
+	return fields.map( ( field ) => {
+		if ( field.Edit ) {
+			return field;
+		}
+		return {
+			...field,
+			Edit: ( { data, field: f } ) => {
+				let value = field.getValue
+					? field.getValue( { item: data } )
+					: data[ field.id ] ?? '';
+				if ( field.elements ) {
+					const el = field.elements.find( ( e ) => e.value === value );
+					if ( el ) {
+						value = el.label;
+					}
+				}
+				return (
+					<TextControl
+						id={ f.id }
+						label={ f.label }
+						value={ String( value ) }
+						disabled
+						__nextHasNoMarginBottom
+					/>
+				);
+			},
+		};
+	} );
 }
 
 function getProviderForm( bridge, provider ) {
@@ -476,35 +521,15 @@ export default function SettingsPage() {
 							{ __( 'This provider is managed by a plugin and cannot be edited.', 'wppack-monitoring' ) }
 						</Notice>
 					) }
-					{ selectedProvider.locked ? (
-						<div>
-							<TextControl
-								label={ __( 'Label', 'wppack-monitoring' ) }
-								value={ selectedProvider.label }
-								disabled
-								__nextHasNoMarginBottom
-							/>
-							<TextControl
-								label={ __( 'Provider', 'wppack-monitoring' ) }
-								value={ BRIDGE_OPTIONS.find( ( b ) => b.value === selectedProvider.bridge )?.label || selectedProvider.bridge }
-								disabled
-								__nextHasNoMarginBottom
-							/>
-							{ selectedProvider.settings?.region && (
-								<TextControl
-									label={ __( 'Region', 'wppack-monitoring' ) }
-									value={ selectedProvider.settings.region }
-									disabled
-									__nextHasNoMarginBottom
-								/>
-							) }
-						</div>
-					) : (
-						<div className="wpp-monitoring-dataform-wrap"><DataForm
-							data={ selectedProvider }
-							fields={ getProviderFormFields( selectedProvider.bridge, selectedProvider ) }
-							form={ getProviderForm( selectedProvider.bridge, selectedProvider ) }
-							onChange={ ( edits ) => {
+					<div className="wpp-monitoring-dataform-wrap"><DataForm
+						data={ selectedProvider }
+						fields={ selectedProvider.locked
+							? getLockedFormFields( selectedProvider.bridge, selectedProvider )
+							: getProviderFormFields( selectedProvider.bridge, selectedProvider ) }
+						form={ getProviderForm( selectedProvider.bridge, selectedProvider ) }
+						onChange={ selectedProvider.locked
+							? () => {}
+							: ( edits ) => {
 								setSelectedProvider( ( prev ) => {
 									const next = { ...prev };
 									for ( const [
@@ -523,8 +548,7 @@ export default function SettingsPage() {
 									return next;
 								} );
 							} }
-						/>
-					</div>) }
+					/></div>
 
 
 					{ /* Metrics table */ }
