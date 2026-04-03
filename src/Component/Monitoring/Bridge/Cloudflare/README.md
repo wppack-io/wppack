@@ -1,6 +1,6 @@
 # wppack/cloudflare-monitoring
 
-Cloudflare Analytics bridge for the WpPack Monitoring component. Queries Cloudflare GraphQL Analytics API for CDN and WAF metrics.
+Cloudflare Analytics bridge for WpPack Monitoring component. Implements `MetricProviderInterface` to query Cloudflare analytics via the GraphQL API.
 
 ## Installation
 
@@ -12,32 +12,41 @@ composer require wppack/cloudflare-monitoring
 
 - PHP 8.2+
 - `wppack/monitoring` ^1.0
-- Cloudflare API Token with `Zone.Analytics` permission
 
-## Metrics
+No external Cloudflare SDK required; uses WordPress `wp_remote_post()` for API calls.
 
-### Zone Analytics (CDN)
+## Usage
 
-| Metric | Description |
-|--------|-------------|
-| requests | Total HTTP requests |
-| cachedRequests | Requests served from cache |
-| bandwidth | Total bandwidth (bytes) |
-| cachedBandwidth | Cached bandwidth (bytes) |
-| threats | Threats blocked |
-| pageViews | Page views |
+CloudflareMetricProvider implements MetricProviderInterface:
+- getName() returns 'cloudflare'
+- isAvailable() always returns true
+- query() calls Cloudflare GraphQL Analytics API
 
-### WAF
+Supports zone analytics (CDN metrics) and WAF/firewall events.
 
-| Metric | Description |
-|--------|-------------|
-| wafBlocked | Requests blocked by WAF |
+## Supported Metrics
 
-## API Token
+### Zone Analytics
 
-Create a Cloudflare API Token with the following permission:
+requests, cachedRequests, cacheRate (computed), bandwidth, cachedBandwidth, threats, pageViews, uniques, status2xx/3xx/4xx/5xx
 
-- **Zone** > **Analytics** > **Read**
+### WAF Events
+
+wafTotal, wafBlocked, wafChallenged, wafManagedChallenge
+
+## Adaptive Time Resolution
+
+- ≤1 hour: 1-minute
+- ≤6 hours: 5-minute
+- ≤24 hours: 15-minute
+- ≤3 days: 1-hour
+- >3 days: 6-hour
+
+## Cloudflare API Token
+
+Requires an API Token with:
+- Account > Account Analytics > Read
+- Zone > Analytics > Read
 
 ## License
 

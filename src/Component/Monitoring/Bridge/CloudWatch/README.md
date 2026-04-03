@@ -1,6 +1,6 @@
 # wppack/cloudwatch-monitoring
 
-AWS CloudWatch bridge for the WpPack Monitoring component. Queries CloudWatch `GetMetricData` API for metric retrieval.
+AWS CloudWatch bridge for WpPack Monitoring component. Implements `MetricProviderInterface` to query CloudWatch metrics via the GetMetricData API.
 
 ## Installation
 
@@ -16,34 +16,30 @@ composer require wppack/cloudwatch-monitoring
 
 ## Usage
 
-The bridge is auto-registered via DI when the class is available. No manual configuration needed.
+CloudWatchMetricProvider implements MetricProviderInterface:
+- getName() returns 'cloudwatch'
+- isAvailable() always returns true
+- query() calls CloudWatch GetMetricData and returns MetricResult[]
 
-```php
-use WpPack\Component\Monitoring\Bridge\CloudWatch\CloudWatchMetricProvider;
+Supports per-provider credentials (accessKeyId/secretAccessKey) or IAM role fallback. Maintains per-region client cache.
 
-// Registered automatically by MonitoringServiceProvider
-$provider = new CloudWatchMetricProvider();
-$results = $provider->query($monitoringProvider, $timeRange);
-```
+## Adaptive Period Resolution
 
-## Features
-
-- Automatic `Period` adjustment based on time range (5min for ≤1d, 15min for ≤3d, 1h for >3d)
-- Per-region CloudWatch client caching
-- Optional IAM credentials (falls back to instance role / environment)
+- ≤6 hours: 60s (1 min)
+- ≤1 day: 300s (5 min)
+- ≤3 days: 900s (15 min)
+- >3 days: 3600s (1 hour)
 
 ## IAM Policy
 
 ```json
 {
   "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": "cloudwatch:GetMetricData",
-      "Resource": "*"
-    }
-  ]
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": "cloudwatch:GetMetricData",
+    "Resource": "*"
+  }]
 }
 ```
 
