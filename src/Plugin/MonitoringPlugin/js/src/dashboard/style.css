@@ -333,10 +333,10 @@
 	height: 16px;
 }
 
-/* ── Match TextControl input height with DataForm InputControl ── */
-.wpp-monitoring-settings .components-modal__content .components-text-control__input {
-	height: 40px;
-	padding: 1px 12px;
+/* ── Match DataForm input height with standard TextControl (32px) ── */
+.wpp-monitoring-settings .components-modal__content .components-input-control__input {
+	height: 32px !important;
+	min-height: 32px !important;
 }
 
 /* ── Dimensions readonly fields ─────────── */
