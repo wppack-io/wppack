@@ -333,6 +333,12 @@
 	height: 16px;
 }
 
+/* ── Match TextControl input height with DataForm InputControl ── */
+.wpp-monitoring-settings .components-modal__content .components-text-control__input {
+	height: 40px;
+	padding: 1px 12px;
+}
+
 /* ── Dimensions readonly fields ─────────── */
 .wpp-monitoring-dimensions-fields {
 	margin-top: 16px;
@@ -340,17 +346,6 @@
 
 .wpp-monitoring-dimensions-fields .components-base-control {
 	margin-bottom: 12px;
-}
-
-.wpp-monitoring-dimensions-fields .components-base-control__label {
-	text-transform: none;
-	font-weight: normal;
-	font-size: 11px;
-}
-
-.wpp-monitoring-dimensions-fields .components-text-control__input {
-	height: 40px;
-	padding: 1px 12px;
 }
 
 /* ── Cloudflare setup steps ─────────────── */
