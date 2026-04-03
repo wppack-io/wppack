@@ -385,24 +385,28 @@ export default function SettingsPage() {
 						</Notice>
 					) }
 					{ selectedProvider.locked ? (
-						<table className="wpp-monitoring-modal-table wpp-monitoring-detail-table">
-							<tbody>
-								<tr>
-									<th>{ __( 'Label', 'wppack-monitoring' ) }</th>
-									<td>{ selectedProvider.label }</td>
-								</tr>
-								<tr>
-									<th>{ __( 'Provider', 'wppack-monitoring' ) }</th>
-									<td>{ BRIDGE_OPTIONS.find( ( b ) => b.value === selectedProvider.bridge )?.label || selectedProvider.bridge }</td>
-								</tr>
-								{ selectedProvider.settings?.region && (
-									<tr>
-										<th>{ __( 'Region', 'wppack-monitoring' ) }</th>
-										<td>{ selectedProvider.settings.region }</td>
-									</tr>
-								) }
-							</tbody>
-						</table>
+						<div>
+							<TextControl
+								label={ __( 'Label', 'wppack-monitoring' ) }
+								value={ selectedProvider.label }
+								disabled
+								__nextHasNoMarginBottom
+							/>
+							<TextControl
+								label={ __( 'Provider', 'wppack-monitoring' ) }
+								value={ BRIDGE_OPTIONS.find( ( b ) => b.value === selectedProvider.bridge )?.label || selectedProvider.bridge }
+								disabled
+								__nextHasNoMarginBottom
+							/>
+							{ selectedProvider.settings?.region && (
+								<TextControl
+									label={ __( 'Region', 'wppack-monitoring' ) }
+									value={ selectedProvider.settings.region }
+									disabled
+									__nextHasNoMarginBottom
+								/>
+							) }
+						</div>
 					) : (
 						<div className="wpp-monitoring-dataform-wrap"><DataForm
 							data={ selectedProvider }
