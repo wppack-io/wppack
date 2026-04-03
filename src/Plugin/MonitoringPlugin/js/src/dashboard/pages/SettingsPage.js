@@ -436,7 +436,7 @@ export default function SettingsPage() {
 							{ Object.entries( selectedProvider.metrics[ 0 ].dimensions ).map( ( [ key, value ] ) => (
 								<TextControl
 									key={ key }
-									label={ key }
+									label={ key.replace( /([a-z])([A-Z])/g, '$1 $2' ).replace( /([A-Z]+)([A-Z][a-z])/g, '$1 $2' ) }
 									value={ value }
 									disabled
 									__nextHasNoMarginBottom
