@@ -138,3 +138,7 @@
 	border-radius: 0 2px 2px 0;
 	min-width: 0;
 }
+
+.wpp-saml-path-field:has(input[disabled]) .wpp-saml-path-prefix {
+	border-color: rgba(0, 0, 0, 0.1);
+}

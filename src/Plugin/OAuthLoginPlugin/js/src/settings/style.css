@@ -126,6 +126,10 @@
 	min-width: 0;
 }
 
+.wpp-oauth-path-field:has(input[disabled]) .wpp-oauth-path-prefix {
+	border-color: rgba(0, 0, 0, 0.1);
+}
+
 .wpp-oauth-provider-panel .components-panel__body-title button {
 	font-weight: 600;
 }
