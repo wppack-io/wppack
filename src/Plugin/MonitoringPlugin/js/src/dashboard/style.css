@@ -356,6 +356,10 @@
 	padding: 0 26px 0 8px !important;
 }
 
+.wpp-monitoring-dataform-wrap .components-base-control__field {
+	margin-bottom: 16px;
+}
+
 
 /* ── Dimensions readonly fields ─────────── */
 .wpp-monitoring-dimensions-fields {

@@ -594,7 +594,6 @@ export default function SettingsPage() {
 								label={ selectedTemplate.dimensionLabel + ' *' }
 								value={ dimensionValue }
 								placeholder={ selectedTemplate.dimensionPlaceholder || '' }
-								help={ selectedTemplate.dimensionKey }
 								onChange={ ( value ) => setDimensionValue( value ) }
 							/>
 
