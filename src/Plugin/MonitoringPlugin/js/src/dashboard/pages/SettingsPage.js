@@ -653,11 +653,19 @@ export default function SettingsPage() {
 								setSelectedProvider( null );
 							}
 						} }
-						options={ [
-							{ value: '', label: __( '\u2014 Select template \u2014', 'wppack-monitoring' ) },
-							...METRIC_TEMPLATES.map( ( t ) => ( { value: t.id, label: t.label } ) ),
-						] }
-					/>
+					>
+						<option value="">{ __( '\u2014 Select template \u2014', 'wppack-monitoring' ) }</option>
+						<optgroup label={ __( 'AWS CloudWatch', 'wppack-monitoring' ) }>
+							{ METRIC_TEMPLATES.filter( ( t ) => t.bridge === 'cloudwatch' ).map( ( t ) => (
+								<option key={ t.id } value={ t.id }>{ t.label }</option>
+							) ) }
+						</optgroup>
+						<optgroup label={ __( 'Cloudflare', 'wppack-monitoring' ) }>
+							{ METRIC_TEMPLATES.filter( ( t ) => t.bridge === 'cloudflare' ).map( ( t ) => (
+								<option key={ t.id } value={ t.id }>{ t.label }</option>
+							) ) }
+						</optgroup>
+					</SelectControl>
 
 					{ selectedTemplate && selectedProvider && (
 						<>
