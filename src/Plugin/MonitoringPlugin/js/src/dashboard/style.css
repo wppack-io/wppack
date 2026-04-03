@@ -363,7 +363,10 @@
 
 
 
-/* ── Dimensions readonly fields ─────────── */
+/* ── Disabled / readonly fields ────────── */
+.wpp-monitoring-dataform-wrap .components-text-control__input:disabled {
+	border-color: rgba(0, 0, 0, 0.1);
+}
 
 
 /* ── Cloudflare setup steps ─────────────── */
