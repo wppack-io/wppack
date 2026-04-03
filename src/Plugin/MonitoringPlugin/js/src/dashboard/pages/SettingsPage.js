@@ -177,6 +177,12 @@ const DIMENSION_LABELS = {
 	InstanceId: __( 'Instance ID', 'wppack-monitoring' ),
 	ZoneId: __( 'Zone ID', 'wppack-monitoring' ),
 	StorageType: __( 'Storage Type', 'wppack-monitoring' ),
+	TableName: __( 'Table Name', 'wppack-monitoring' ),
+	LoadBalancer: __( 'Load Balancer', 'wppack-monitoring' ),
+	NatGatewayId: __( 'NAT Gateway ID', 'wppack-monitoring' ),
+	ClusterName: __( 'Cluster Name', 'wppack-monitoring' ),
+	WebACL: __( 'Web ACL Name', 'wppack-monitoring' ),
+	Rule: __( 'Rule', 'wppack-monitoring' ),
 };
 
 function getDimensionFields( provider ) {

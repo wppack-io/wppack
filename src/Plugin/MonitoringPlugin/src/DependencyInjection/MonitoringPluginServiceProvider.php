@@ -22,6 +22,7 @@ use WpPack\Component\Monitoring\DependencyInjection\MonitoringServiceProvider;
 use WpPack\Component\Rest\RestRegistry;
 use WpPack\Plugin\MonitoringPlugin\Admin\MonitoringDashboardPage;
 use WpPack\Plugin\MonitoringPlugin\Discovery\DatabaseDiscovery;
+use WpPack\Plugin\MonitoringPlugin\Discovery\DynamoDbDiscovery;
 use WpPack\Plugin\MonitoringPlugin\Discovery\ElastiCacheDiscovery;
 use WpPack\Plugin\MonitoringPlugin\Discovery\S3Discovery;
 use WpPack\Plugin\MonitoringPlugin\Discovery\SesDiscovery;
@@ -62,6 +63,9 @@ final class MonitoringPluginServiceProvider implements ServiceProviderInterface
             ->addTag('monitoring.provider');
 
         $builder->register(S3Discovery::class)
+            ->addTag('monitoring.provider');
+
+        $builder->register(DynamoDbDiscovery::class)
             ->addTag('monitoring.provider');
     }
 }
