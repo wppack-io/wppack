@@ -132,7 +132,7 @@ class OAuthLoginPlugin extends AbstractPlugin
         }
 
         // Always register login form for SSO buttons (needed for interim-login modal)
-        $loginForm->register();
+        $loginForm->register(ssoOnly: $config->ssoOnly);
     }
 
     public function onActivate(): void

@@ -21,6 +21,8 @@ use WpPack\Plugin\OAuthLoginPlugin\Configuration\ProviderConfiguration;
 
 class OAuthLoginForm
 {
+    private bool $ssoOnly = false;
+
     /**
      * @param list<ProviderConfiguration> $providers
      */
@@ -31,8 +33,9 @@ class OAuthLoginForm
         private readonly Request $request,
     ) {}
 
-    public function register(): void
+    public function register(bool $ssoOnly = false): void
     {
+        $this->ssoOnly = $ssoOnly;
         add_action('login_init', [$this, 'redirectLoggedInUser']);
         add_action('login_footer', [$this, 'renderButtons']);
         add_filter('wp_login_errors', [$this, 'addOAuthError']);
@@ -129,7 +132,7 @@ class OAuthLoginForm
         .wol-icon-only{width:36px;padding:0}
         </style>
         <div id="wppack-oauth-login" style="display:none;clear:both;">
-            <div style="display:flex;align-items:center;gap:8px;padding:16px 0;color:#72777c;"><span style="flex:1;border-top:1px solid #c3c4c7;"></span>or<span style="flex:1;border-top:1px solid #c3c4c7;"></span></div>
+            {$this->renderSeparator()}
             <div style="{$wrapStyle}">{$buttons}</div>
         </div>
         <script>
@@ -140,9 +143,28 @@ class OAuthLoginForm
                 loginForm.appendChild(ssoBox);
                 ssoBox.style.display='';
             }
+            if({$this->ssoOnlyJs()}&&loginForm){
+                Array.from(loginForm.children).forEach(function(el){
+                    if(el.id!=='wppack-oauth-login')el.style.display='none';
+                });
+            }
         })();
         </script>
         HTML;
+    }
+
+    private function renderSeparator(): string
+    {
+        if ($this->ssoOnly) {
+            return '';
+        }
+
+        return '<div style="display:flex;align-items:center;gap:8px;padding:16px 0;color:#72777c;"><span style="flex:1;border-top:1px solid #c3c4c7;"></span>or<span style="flex:1;border-top:1px solid #c3c4c7;"></span></div>';
+    }
+
+    private function ssoOnlyJs(): string
+    {
+        return $this->ssoOnly ? 'true' : 'false';
     }
 
     public function addOAuthError(\WP_Error $errors): \WP_Error

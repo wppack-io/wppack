@@ -19,14 +19,17 @@ use WpPack\Component\Security\Bridge\SAML\SamlEntryPoint;
 
 final class SamlLoginForm
 {
+    private bool $ssoOnly = false;
+
     public function __construct(
         private readonly SamlEntryPoint $entryPoint,
         private readonly AuthenticationSession $authSession,
         private readonly Request $request,
     ) {}
 
-    public function register(): void
+    public function register(bool $ssoOnly = false): void
     {
+        $this->ssoOnly = $ssoOnly;
         add_action('login_init', [$this, 'redirectLoggedInUser']);
         add_action('login_footer', [$this, 'renderButton']);
         add_filter('wp_login_errors', [$this, 'addSamlError']);
@@ -59,9 +62,11 @@ final class SamlLoginForm
         $label = esc_html(sprintf(__('Login with %s', 'wppack-saml-login'), 'SSO'));
         $target = $this->request->query->has('interim-login') ? ' target="_blank"' : '';
 
+        $separator = $this->ssoOnly ? '' : '<div style="display:flex;align-items:center;gap:8px;padding:16px 0;color:#72777c;"><span style="flex:1;border-top:1px solid #c3c4c7;"></span>or<span style="flex:1;border-top:1px solid #c3c4c7;"></span></div>';
+
         echo <<<HTML
         <div id="wppack-saml-login" style="display:none;clear:both;">
-            <div style="display:flex;align-items:center;gap:8px;padding:16px 0;color:#72777c;"><span style="flex:1;border-top:1px solid #c3c4c7;"></span>or<span style="flex:1;border-top:1px solid #c3c4c7;"></span></div>
+            {$separator}
             <p>
                 <a href="{$url}"{$target} style="display:flex;align-items:center;justify-content:center;width:100%;height:36px;box-sizing:border-box;border-radius:4px;background:#fff;color:#1d2327;border:1px solid #ddd;text-decoration:none;font-size:13px;font-weight:500;cursor:pointer;transition:filter .15s;"
                    onmouseover="this.style.filter='brightness(.92)'" onmouseout="this.style.filter=''">{$label}</a>
@@ -75,9 +80,19 @@ final class SamlLoginForm
                 loginForm.appendChild(ssoBox);
                 ssoBox.style.display='';
             }
+            if({$this->ssoOnlyJs()}&&loginForm){
+                Array.from(loginForm.children).forEach(function(el){
+                    if(el.id!=='wppack-saml-login')el.style.display='none';
+                });
+            }
         })();
         </script>
         HTML;
+    }
+
+    private function ssoOnlyJs(): string
+    {
+        return $this->ssoOnly ? 'true' : 'false';
     }
 
     public function addSamlError(\WP_Error $errors): \WP_Error
