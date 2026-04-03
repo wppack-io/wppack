@@ -37,6 +37,7 @@
 .wpp-oauth-settings input[disabled],
 .wpp-oauth-settings select[disabled] {
 	cursor: default;
+	border-color: rgba(0, 0, 0, 0.1);
 }
 
 .wpp-oauth-settings h1 {

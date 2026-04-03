@@ -36,6 +36,7 @@
 .wpp-mailer-settings input[disabled],
 .wpp-mailer-settings select[disabled] {
 	cursor: default;
+	border-color: rgba(0, 0, 0, 0.1);
 }
 
 .wpp-mailer-settings .components-panel {

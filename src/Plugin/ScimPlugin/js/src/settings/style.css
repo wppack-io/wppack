@@ -37,6 +37,7 @@
 .wpp-scim-settings input[disabled],
 .wpp-scim-settings select[disabled] {
 	cursor: default;
+	border-color: rgba(0, 0, 0, 0.1);
 }
 
 .wpp-scim-settings h1 {
