@@ -36,6 +36,7 @@
             "Cloudflare": ["Cloudflare"],
             "Mock (AWS)": ["モック (AWS)"],
             "Mock (Cloudflare)": ["モック (Cloudflare)"],
+            "Dimensions": ["ディメンション"],
             "General": ["一般"],
             "AWS Credentials": ["AWS 認証情報"],
             "Cloudflare Credentials": ["Cloudflare 認証情報"],
@@ -177,7 +178,8 @@
             "Network Out": ["ネットワーク送信"],
             "Network bytes sent": ["送信バイト数"],
             "Status Check": ["ステータスチェック"],
-            "Instance status check failures": ["インスタンスステータスチェック失敗"]
+            "Instance status check failures": ["インスタンスステータスチェック失敗"],
+            "Storage Type": ["ストレージタイプ"]
         }
     }
 }

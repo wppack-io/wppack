@@ -377,3 +377,8 @@
 	line-height: 1.6;
 }
 
+/* ── Add form: spacing between template selector and DataForm ── */
+.wpp-monitoring-add-form .wpp-monitoring-dataform-wrap {
+	margin-top: 16px;
+}
+
