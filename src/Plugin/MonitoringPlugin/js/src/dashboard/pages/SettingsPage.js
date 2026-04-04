@@ -12,7 +12,7 @@ const BRIDGE_DATA = window.wppMonitoring?.bridges ?? {};
 // Build BRIDGE_OPTIONS dynamically from available bridges
 const BRIDGE_OPTIONS = Object.entries( BRIDGE_DATA ).map( ( [ name, meta ] ) => ( {
 	value: name,
-	label: meta.label,
+	label: __( meta.label, 'wppack-monitoring' ),
 } ) );
 
 // Merge dimension labels from all bridges
@@ -191,7 +191,7 @@ function getProviderForm( bridge, provider ) {
 	const meta = getBridge( bridge );
 	const credentialChildren = meta.credentialFieldIds || [];
 	const credentialLabel = meta.label
-		? __( '%s Credentials', 'wppack-monitoring' ).replace( '%s', meta.label )
+		? __( '%s Credentials', 'wppack-monitoring' ).replace( '%s', __( meta.label, 'wppack-monitoring' ) )
 		: __( 'Credentials', 'wppack-monitoring' );
 
 	const dims = provider?.metrics?.[ 0 ]?.dimensions;
@@ -243,7 +243,7 @@ function getAddForm( template ) {
 	const meta = getBridge( template.bridge );
 	const credentialChildren = meta.credentialFieldIds || [];
 	const credentialLabel = meta.label
-		? __( '%s Credentials', 'wppack-monitoring' ).replace( '%s', meta.label )
+		? __( '%s Credentials', 'wppack-monitoring' ).replace( '%s', __( meta.label, 'wppack-monitoring' ) )
 		: __( 'Credentials', 'wppack-monitoring' );
 
 	return {
@@ -593,7 +593,7 @@ export default function SettingsPage() {
 						{ Object.entries( BRIDGE_DATA )
 							.filter( ( [ name, meta ] ) => ! name.startsWith( 'mock-' ) && meta.templates?.length > 0 )
 							.map( ( [ bridgeName, meta ] ) => (
-								<optgroup key={ bridgeName } label={ meta.label }>
+								<optgroup key={ bridgeName } label={ __( meta.label, 'wppack-monitoring' ) }>
 									{ METRIC_TEMPLATES.filter( ( t ) => t.bridge === bridgeName ).map( ( t ) => (
 										<option key={ t.id } value={ t.id }>{ t.label }</option>
 									) ) }

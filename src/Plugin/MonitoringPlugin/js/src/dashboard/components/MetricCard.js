@@ -1,7 +1,10 @@
+import { __ } from '@wordpress/i18n';
 import Sparkline from './Sparkline';
 
 export default function MetricCard( { metric, result } ) {
-	const { label, description, stat, unit } = metric;
+	const { stat, unit } = metric;
+	const label = __( metric.label, 'wppack-monitoring' );
+	const description = metric.description ? __( metric.description, 'wppack-monitoring' ) : '';
 	const error = result?.error;
 	const datapoints = result?.datapoints || [];
 
