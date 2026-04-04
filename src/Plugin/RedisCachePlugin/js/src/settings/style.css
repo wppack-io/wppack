@@ -51,10 +51,6 @@
 	margin-bottom: 16px;
 }
 
-.wpp-cache-settings .components-panel__body.is-opened {
-	padding-bottom: 0;
-}
-
 .wpp-cache-loading {
 	display: flex;
 	justify-content: center;
