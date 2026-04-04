@@ -20,6 +20,8 @@ use WpPack\Component\Rest\AbstractRestController;
 use WpPack\Component\Rest\Attribute\RestRoute;
 use WpPack\Component\Rest\HttpMethod;
 use WpPack\Component\Role\Attribute\IsGranted;
+use WpPack\Component\Monitoring\MonitoringProvider;
+use WpPack\Plugin\MonitoringPlugin\Template\MetricTemplate;
 use WpPack\Plugin\MonitoringPlugin\Template\MetricTemplateRegistry;
 
 #[RestRoute(namespace: 'wppack/v1/monitoring')]
@@ -39,11 +41,14 @@ final class SyncTemplatesController extends AbstractRestController
         $updated = 0;
 
         foreach ($providers as $provider) {
-            if ($provider->locked || $provider->templateId === null) {
+            if ($provider->locked) {
                 continue;
             }
 
-            $template = $this->templates->get($provider->templateId);
+            $template = $provider->templateId !== null
+                ? $this->templates->get($provider->templateId)
+                : $this->findMatchingTemplate($provider);
+
             if ($template === null) {
                 continue;
             }
@@ -56,5 +61,36 @@ final class SyncTemplatesController extends AbstractRestController
         $this->logger?->info('Template sync completed: {count} providers updated.', ['count' => $updated]);
 
         return $this->json(['updated' => $updated]);
+    }
+
+    /**
+     * Find a matching template for a provider without templateId by matching
+     * bridge type and metric names.
+     */
+    private function findMatchingTemplate(MonitoringProvider $provider): ?MetricTemplate
+    {
+        $providerMetricNames = array_map(
+            static fn($m) => $m->metricName,
+            $provider->metrics,
+        );
+        sort($providerMetricNames);
+
+        foreach ($this->templates->all() as $template) {
+            if ($template->bridge !== $provider->bridge) {
+                continue;
+            }
+
+            $templateMetricNames = array_map(
+                static fn(array $m): string => $m['metricName'],
+                $template->metrics,
+            );
+            sort($templateMetricNames);
+
+            if ($providerMetricNames === $templateMetricNames) {
+                return $template;
+            }
+        }
+
+        return null;
     }
 }

@@ -240,7 +240,20 @@ final class MonitoringStore implements MonitoringProviderInterface
             sort($currentNames);
             sort($templateNames);
 
-            if ($currentNames === $templateNames) {
+            // Check if any label or description differs
+            $labelsMatch = true;
+            foreach ($templateMetrics as $tmpl) {
+                $existing = $existingByName[$tmpl['metricName']] ?? null;
+                if ($existing !== null && (
+                    ($existing['label'] ?? '') !== $tmpl['label']
+                    || ($existing['description'] ?? '') !== $tmpl['description']
+                )) {
+                    $labelsMatch = false;
+                    break;
+                }
+            }
+
+            if ($currentNames === $templateNames && $labelsMatch) {
                 return false; // No change needed
             }
 

@@ -506,8 +506,8 @@ export default function SettingsPage() {
 								<tbody>
 									{ selectedProvider.metrics.map( ( m ) => (
 										<tr key={ m.id }>
-											<td>{ m.label }</td>
-											<td className="wpp-monitoring-table-desc">{ m.description }</td>
+											<td>{ __( m.label, 'wppack-monitoring' ) }</td>
+											<td className="wpp-monitoring-table-desc">{ m.description ? __( m.description, 'wppack-monitoring' ) : '' }</td>
 											<td>{ m.namespace }</td>
 											<td>{ m.metricName }</td>
 											<td>{ m.stat }</td>
