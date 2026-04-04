@@ -1,4 +1,5 @@
-import { useState, useEffect } from '@wordpress/element';
+import { DataForm } from '@wordpress/dataviews/wp';
+import { useState, useEffect, useMemo } from '@wordpress/element';
 import {
 	Panel,
 	PanelBody,
@@ -7,7 +8,6 @@ import {
 	Button,
 	Notice,
 	Spinner,
-	BaseControl,
 } from '@wordpress/components';
 import { Page } from '@wordpress/admin-ui';
 import { __ } from '@wordpress/i18n';
@@ -27,29 +27,42 @@ function SourceBadge( { source } ) {
 	);
 }
 
+function badgeLabel( label, showBadge ) {
+	if ( ! showBadge ) {
+		return label;
+	}
+	return <><span>{ label }</span><SourceBadge source="constant" /></>;
+}
+
 export default function App() {
-	const [ definitions, setDefinitions ] = useState( {} );
-	const [ provider, setProvider ] = useState( '' );
-	const [ fields, setFields ] = useState( {} );
-	const [ source, setSource ] = useState( 'default' );
-	const [ isReadonly, setIsReadonly ] = useState( false );
-	const [ suppression, setSuppression ] = useState( [] );
-	const [ awsRegion, setAwsRegion ] = useState( '' );
+	const [ formData, setFormData ] = useState( {
+		provider: '',
+		fields: {},
+	} );
+	const [ meta, setMeta ] = useState( {
+		definitions: {},
+		source: 'default',
+		isReadonly: false,
+		suppression: [],
+		awsRegion: '',
+	} );
 	const [ saving, setSaving ] = useState( false );
 	const [ testing, setTesting ] = useState( false );
 	const [ notice, setNotice ] = useState( null );
 	const [ loading, setLoading ] = useState( true );
 
 	const applyResponse = ( data ) => {
-		setDefinitions( data.definitions || {} );
-		setProvider( data.provider || '' );
-		setFields( data.fields || {} );
-		setSource( data.source || 'default' );
-		setIsReadonly( data.readonly || false );
-		setSuppression( data.suppression || [] );
-		if ( data.awsRegion ) {
-			setAwsRegion( data.awsRegion );
-		}
+		setFormData( {
+			provider: data.provider || '',
+			fields: data.fields || {},
+		} );
+		setMeta( {
+			definitions: data.definitions || {},
+			source: data.source || 'default',
+			isReadonly: data.readonly || false,
+			suppression: data.suppression || [],
+			awsRegion: data.awsRegion || '',
+		} );
 	};
 
 	useEffect( () => {
@@ -70,7 +83,7 @@ export default function App() {
 		apiFetch( {
 			path: '/wppack/v1/mailer/settings',
 			method: 'POST',
-			data: { provider, fields },
+			data: { provider: formData.provider, fields: formData.fields },
 		} )
 			.then( ( data ) => {
 				applyResponse( data );
@@ -105,7 +118,131 @@ export default function App() {
 			path: `/wppack/v1/mailer/suppression/${ encodeURIComponent( email ) }`,
 			method: 'DELETE',
 		} ).then( () => {
-			setSuppression( ( prev ) => prev.filter( ( e ) => e !== email ) );
+			setMeta( ( prev ) => ( {
+				...prev,
+				suppression: prev.suppression.filter( ( e ) => e !== email ),
+			} ) );
+		} );
+	};
+
+	const def = meta.definitions[ formData.provider ] || null;
+
+	const lastSchemes = [ 'smtp', 'native', 'dsn' ];
+	const providerOptions = useMemo( () => [
+		...Object.values( meta.definitions )
+			.filter( ( d ) => ! lastSchemes.includes( d.scheme ) )
+			.sort( ( a, b ) => a.label.localeCompare( b.label ) )
+			.map( ( d ) => ( { label: d.label, value: d.scheme } ) ),
+		...lastSchemes
+			.filter( ( s ) => meta.definitions[ s ] )
+			.map( ( s ) => ( { label: meta.definitions[ s ].label, value: s } ) ),
+	], [ meta.definitions ] );
+
+	// ── DataForm fields ──
+
+	const transportFields = useMemo( () => {
+		const result = [
+			{
+				id: 'provider',
+				label: badgeLabel( __( 'Provider', 'wppack-mailer' ), meta.isReadonly ),
+				type: 'text',
+				elements: providerOptions,
+				getValue: ( { item } ) => item.provider,
+				Edit: meta.isReadonly
+					? ( { data, field } ) => (
+						<SelectControl
+							id={ field.id }
+							label={ field.label }
+							value={ data.provider }
+							options={ [ { value: '', label: '—' }, ...providerOptions ] }
+							disabled
+							__nextHasNoMarginBottom
+						/>
+					)
+					: undefined,
+			},
+		];
+
+		if ( ! def ) {
+			return result;
+		}
+
+		for ( const f of def.fields ) {
+			const fieldId = `fields.${ f.name }`;
+			const effectiveDefault = ( f.name === 'region' && meta.awsRegion ) ? meta.awsRegion : ( f.default || '' );
+
+			if ( f.options ) {
+				result.push( {
+					id: fieldId,
+					label: f.label + ( f.required ? ' *' : '' ),
+					type: 'text',
+					description: f.help || undefined,
+					elements: f.options,
+					getValue: ( { item } ) => item.fields[ f.name ] || effectiveDefault,
+					setValue: ( value ) => ( { fields: { [ f.name ]: value } } ),
+					Edit: meta.isReadonly
+						? ( { data, field } ) => (
+							<SelectControl
+								id={ field.id }
+								label={ field.label }
+								value={ data.fields[ f.name ] || effectiveDefault }
+								options={ f.options }
+								disabled
+								__nextHasNoMarginBottom
+							/>
+						)
+						: undefined,
+				} );
+				continue;
+			}
+
+			result.push( {
+				id: fieldId,
+				label: f.label + ( f.required ? ' *' : '' ),
+				type: f.type === 'password' ? 'password' : 'text',
+				description: f.help || undefined,
+				getValue: ( { item } ) => item.fields[ f.name ] || effectiveDefault,
+				setValue: ( value ) => ( { fields: { [ f.name ]: value } } ),
+				Edit: meta.isReadonly
+					? ( { data, field } ) => (
+						<TextControl
+							id={ field.id }
+							label={ field.label }
+							value={ data.fields[ f.name ] || effectiveDefault }
+							disabled
+							__nextHasNoMarginBottom
+						/>
+					)
+					: undefined,
+			} );
+		}
+
+		return result;
+	}, [ def, meta.isReadonly, meta.awsRegion, providerOptions ] );
+
+	const transportForm = useMemo( () => ( {
+		fields: [ {
+			id: 'transport-section',
+			label: __( 'Transport', 'wppack-mailer' ),
+			children: transportFields.map( ( f ) => f.id ),
+			layout: { type: 'regular' },
+		} ],
+	} ), [ transportFields ] );
+
+	const handleFormChange = ( edits ) => {
+		setFormData( ( prev ) => {
+			const next = { ...prev };
+			for ( const [ key, value ] of Object.entries( edits ) ) {
+				if ( key === 'provider' ) {
+					next.provider = value;
+					next.fields = {};
+				} else if ( key === 'fields' ) {
+					next.fields = { ...next.fields, ...value };
+				} else {
+					next[ key ] = value;
+				}
+			}
+			return next;
 		} );
 	};
 
@@ -113,26 +250,10 @@ export default function App() {
 		return <div className="wpp-mailer-loading"><Spinner /></div>;
 	}
 
-	const def = definitions[ provider ] || null;
-	const lastSchemes = [ 'smtp', 'native', 'dsn' ];
-	const providerOptions = [
-		{ label: __( '— Select —', 'wppack-mailer' ), value: '' },
-		...Object.values( definitions )
-			.filter( ( d ) => ! lastSchemes.includes( d.scheme ) )
-			.sort( ( a, b ) => a.label.localeCompare( b.label ) )
-			.map( ( d ) => ( { label: d.label, value: d.scheme } ) ),
-		...lastSchemes
-			.filter( ( s ) => definitions[ s ] )
-			.map( ( s ) => ( { label: definitions[ s ].label, value: s } ) ),
-	];
-
-	const isSes = provider.startsWith( 'ses' );
+	const isSes = formData.provider.startsWith( 'ses' );
 
 	return (
-		<Page
-			title={ __( 'Mail Settings', 'wppack-mailer' ) }
-			hasPadding
-		>
+		<Page title={ __( 'Mail Settings', 'wppack-mailer' ) } hasPadding>
 			<div className="wpp-mailer-settings">
 				{ notice && (
 					<Notice status={ notice.type } isDismissible onDismiss={ () => setNotice( null ) }>
@@ -140,59 +261,20 @@ export default function App() {
 					</Notice>
 				) }
 
-				<Panel>
-					<PanelBody title={ __( 'Transport', 'wppack-mailer' ) } initialOpen={ true }>
-						<SelectControl
-							label={ __( 'Provider', 'wppack-mailer' ) }
-							value={ provider }
-							onChange={ ( val ) => {
-								setProvider( val );
-								setFields( {} );
-							} }
-							options={ providerOptions }
-							disabled={ isReadonly }
-							className="wpp-mailer-small-select"
-							__nextHasNoMarginBottom
-						/>
-						{ def && def.fields.map( ( f ) => {
-							const wrapStyle = f.maxWidth ? { maxWidth: f.maxWidth } : {};
-							const effectiveDefault = ( f.name === 'region' && awsRegion ) ? awsRegion : ( f.default || '' );
-							if ( f.options ) {
-								return (
-									<div key={ f.name } style={ wrapStyle }>
-										<SelectControl
-											label={ f.label + ( f.required ? ' *' : '' ) }
-											help={ f.help || undefined }
-											value={ fields[ f.name ] || effectiveDefault }
-											onChange={ ( val ) => setFields( ( prev ) => ( { ...prev, [ f.name ]: val } ) ) }
-											options={ f.options }
-											disabled={ isReadonly }
-											__nextHasNoMarginBottom
-										/>
-									</div>
-								);
-							}
-							return (
-								<div key={ f.name } style={ wrapStyle }>
-									<TextControl
-										label={ f.label + ( f.required ? ' *' : '' ) }
-										help={ f.help || undefined }
-										type={ f.type === 'password' ? 'password' : f.type === 'number' ? 'number' : 'text' }
-										value={ fields[ f.name ] || effectiveDefault }
-										onChange={ ( val ) => setFields( ( prev ) => ( { ...prev, [ f.name ]: val } ) ) }
-										disabled={ isReadonly }
-										placeholder={ f.default || '' }
-										__nextHasNoMarginBottom
-									/>
-								</div>
-							);
-						} ) }
-					</PanelBody>
+				<div className="wpp-mailer-dataform-wrap">
+					<DataForm
+						data={ formData }
+						fields={ transportFields }
+						form={ transportForm }
+						onChange={ handleFormChange }
+					/>
+				</div>
 
-					{ isSes && suppression.length > 0 && (
+				{ isSes && meta.suppression.length > 0 && (
+					<Panel>
 						<PanelBody title={ __( 'Suppression List', 'wppack-mailer' ) } initialOpen={ false }>
 							<div className="wpp-mailer-suppression-list">
-								{ suppression.map( ( email ) => (
+								{ meta.suppression.map( ( email ) => (
 									<div key={ email } className="wpp-mailer-suppression-item">
 										<span>{ email }</span>
 										<Button
@@ -207,15 +289,15 @@ export default function App() {
 								) ) }
 							</div>
 						</PanelBody>
-					) }
-				</Panel>
+					</Panel>
+				) }
 
 				<div className="wpp-mailer-actions">
 					<Button
 						variant="primary"
 						onClick={ handleSave }
 						isBusy={ saving }
-						disabled={ saving || ! provider }
+						disabled={ saving || ! formData.provider }
 					>
 						{ saving ? __( 'Saving…', 'wppack-mailer' ) : __( 'Save Settings', 'wppack-mailer' ) }
 					</Button>
@@ -223,7 +305,7 @@ export default function App() {
 						variant="secondary"
 						onClick={ handleTest }
 						isBusy={ testing }
-						disabled={ testing || source === 'default' }
+						disabled={ testing || meta.source === 'default' }
 					>
 						{ testing ? __( 'Sending…', 'wppack-mailer' ) : __( 'Send Test Email', 'wppack-mailer' ) }
 					</Button>

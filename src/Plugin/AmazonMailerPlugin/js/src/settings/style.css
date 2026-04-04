@@ -40,19 +40,7 @@
 }
 
 .wpp-mailer-settings .components-panel {
-	margin-bottom: 16px;
-}
-
-.wpp-mailer-settings .components-panel__body .components-base-control {
-	margin-bottom: 16px;
-}
-
-.wpp-mailer-settings .components-panel__body.is-opened {
-	padding-bottom: 0;
-}
-
-.wpp-mailer-settings .components-panel__body.is-opened > .components-panel__body-title {
-	margin-bottom: 16px;
+	margin-top: 16px;
 }
 
 .wpp-mailer-loading {
@@ -114,4 +102,34 @@
 .wpp-mailer-small-select .components-base-control__field,
 .wpp-mailer-small-select .components-select-control__input {
 	max-width: 300px !important;
+}
+
+/* ── DataForm: match standard TextControl/SelectControl height ── */
+.wpp-mailer-dataform-wrap .components-input-control__input,
+.wpp-mailer-dataform-wrap .components-text-control__input {
+	height: 32px !important;
+	min-height: 32px !important;
+}
+
+.wpp-mailer-dataform-wrap .components-input-control__backdrop {
+	border-width: 1px !important;
+	border-style: solid !important;
+	border-color: #949494 !important;
+	border-radius: 2px !important;
+}
+
+.wpp-mailer-dataform-wrap .components-input-control__container {
+	min-height: 32px !important;
+}
+
+.wpp-mailer-dataform-wrap .components-input-control__container select,
+.wpp-mailer-dataform-wrap .components-select-control__input {
+	height: 32px !important;
+	min-height: 32px !important;
+	padding: 0 26px 0 8px !important;
+}
+
+.wpp-mailer-dataform-wrap .components-combobox-control__suggestions-container .components-flex {
+	height: 32px !important;
+	min-height: 32px !important;
 }
