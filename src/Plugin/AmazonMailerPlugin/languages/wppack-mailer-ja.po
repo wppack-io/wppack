@@ -54,7 +54,10 @@ msgstr "— 選択 —"
 
 #: js/src/settings/App.js:135
 msgid "Mail Settings"
-msgstr "メール送信設定"
+msgstr "メール設定"
+
+msgid "Mail"
+msgstr "メール"
 
 #: js/src/settings/App.js:146
 msgid "Transport"

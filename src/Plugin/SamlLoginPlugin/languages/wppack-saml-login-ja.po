@@ -47,7 +47,10 @@ msgstr "設定の保存に失敗しました。"
 
 #: js/src/settings/App.js:161
 msgid "SAML Login Settings"
-msgstr "SAML Login 設定"
+msgstr "SAML ログイン設定"
+
+msgid "SAML Login"
+msgstr "SAML ログイン"
 
 #: js/src/settings/App.js:175
 msgid "Identity Provider (IdP)"

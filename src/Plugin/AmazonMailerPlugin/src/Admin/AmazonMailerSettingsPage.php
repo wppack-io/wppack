@@ -25,6 +25,7 @@ use WpPack\Component\Role\Attribute\IsGranted;
     parent: 'options-general.php',
     position: 103,
     scope: AdminScope::Auto,
+    textDomain: 'wppack-mailer',
 )]
 #[IsGranted('manage_options')]
 final class AmazonMailerSettingsPage extends AbstractAdminPage

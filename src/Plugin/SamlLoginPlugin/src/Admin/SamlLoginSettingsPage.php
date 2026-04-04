@@ -25,6 +25,7 @@ use WpPack\Component\Role\Attribute\IsGranted;
     parent: 'options-general.php',
     position: 201,
     scope: AdminScope::Auto,
+    textDomain: 'wppack-saml-login',
 )]
 #[IsGranted('manage_options')]
 final class SamlLoginSettingsPage extends AbstractAdminPage

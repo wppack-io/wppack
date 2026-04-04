@@ -25,6 +25,7 @@ use WpPack\Component\Role\Attribute\IsGranted;
     parent: 'options-general.php',
     position: 101,
     scope: AdminScope::Auto,
+    textDomain: 'wppack-cache',
 )]
 #[IsGranted('manage_options')]
 final class RedisCacheSettingsPage extends AbstractAdminPage

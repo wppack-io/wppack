@@ -95,6 +95,9 @@ msgstr "— 選択 —"
 msgid "Storage Settings"
 msgstr "ストレージ設定"
 
+msgid "Storage"
+msgstr "ストレージ"
+
 #: js/src/settings/App.js
 msgid "Add Storage"
 msgstr "ストレージを追加"

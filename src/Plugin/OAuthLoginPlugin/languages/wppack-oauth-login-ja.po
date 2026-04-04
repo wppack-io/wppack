@@ -111,7 +111,10 @@ msgid "Failed to save settings."
 msgstr "設定の保存に失敗しました。"
 
 msgid "OAuth Login Settings"
-msgstr "OAuth Login 設定"
+msgstr "OAuth ログイン設定"
+
+msgid "OAuth Login"
+msgstr "OAuth ログイン"
 
 msgid "Global Settings"
 msgstr "グローバル設定"

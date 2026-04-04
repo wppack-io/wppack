@@ -25,6 +25,7 @@ use WpPack\Component\Role\Attribute\IsGranted;
     parent: 'options-general.php',
     position: 102,
     scope: AdminScope::Auto,
+    textDomain: 'wppack-storage',
 )]
 #[IsGranted('manage_options')]
 final class S3StorageSettingsPage extends AbstractAdminPage

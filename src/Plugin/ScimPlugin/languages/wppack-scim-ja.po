@@ -28,6 +28,9 @@ msgstr "設定の保存に失敗しました。"
 msgid "SCIM Settings"
 msgstr "SCIM 設定"
 
+msgid "SCIM"
+msgstr "SCIM"
+
 msgid "Authentication"
 msgstr "認証"
 
@@ -70,7 +73,7 @@ msgstr "一覧リクエストあたりの最大返却件数（1〜1000）。"
 msgid "SCIM Endpoints"
 msgstr "SCIM エンドポイント"
 
-msgid "Saving\u2026"
+msgid "Saving…"
 msgstr "保存中…"
 
 msgid "Save Settings"

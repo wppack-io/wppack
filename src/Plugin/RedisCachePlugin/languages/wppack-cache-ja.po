@@ -63,6 +63,9 @@ msgstr "— 選択 —"
 msgid "Cache Settings"
 msgstr "キャッシュ設定"
 
+msgid "Cache"
+msgstr "キャッシュ"
+
 #: js/src/settings/App.js
 msgid "Provider"
 msgstr "プロバイダー"

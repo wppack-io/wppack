@@ -25,6 +25,7 @@ use WpPack\Component\Role\Attribute\IsGranted;
     parent: 'options-general.php',
     position: 202,
     scope: AdminScope::Auto,
+    textDomain: 'wppack-oauth-login',
 )]
 #[IsGranted('manage_options')]
 final class OAuthLoginSettingsPage extends AbstractAdminPage

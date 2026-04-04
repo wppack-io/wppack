@@ -25,6 +25,7 @@ use WpPack\Component\Role\Attribute\IsGranted;
     parent: 'options-general.php',
     position: 300,
     scope: AdminScope::Network,
+    textDomain: 'wppack-scim',
 )]
 #[IsGranted('manage_options')]
 final class ScimSettingsPage extends AbstractAdminPage
