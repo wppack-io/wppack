@@ -40,6 +40,8 @@
             "General": ["一般"],
             "AWS Credentials": ["AWS 認証情報"],
             "Cloudflare Credentials": ["Cloudflare 認証情報"],
+            "%s Credentials": ["%s 認証情報"],
+            "Credentials": ["認証情報"],
             "Access Key ID": ["アクセスキー ID"],
             "Secret Access Key": ["シークレットアクセスキー"],
             "Optional \u2014 falls back to IAM role": ["オプション — IAM ロールにフォールバック"],

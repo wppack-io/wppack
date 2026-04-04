@@ -26,6 +26,7 @@ use WpPack\Component\Role\Attribute\IsGranted;
     icon: 'dashicons-chart-area',
     position: 90,
     scope: AdminScope::Auto,
+    textDomain: 'wppack-monitoring',
 )]
 #[IsGranted('manage_options')]
 final class MonitoringDashboardPage extends AbstractAdminPage

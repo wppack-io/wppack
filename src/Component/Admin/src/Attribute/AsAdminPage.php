@@ -24,5 +24,6 @@ final class AsAdminPage
         public readonly ?string $icon = null,
         public readonly ?int $position = null,
         public readonly AdminScope $scope = AdminScope::Site,
+        public readonly ?string $textDomain = null,
     ) {}
 }

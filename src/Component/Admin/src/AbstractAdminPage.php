@@ -41,8 +41,10 @@ abstract class AbstractAdminPage
         $attribute = $this->resolveAttribute($reflection);
 
         $this->slug = $attribute->slug;
-        $this->label = $attribute->label;
-        $this->menuLabel = $attribute->menuLabel !== '' ? $attribute->menuLabel : $attribute->label;
+        $textDomain = $attribute->textDomain;
+        $this->label = $textDomain !== null ? __($attribute->label, $textDomain) : $attribute->label;
+        $menuLabel = $attribute->menuLabel !== '' ? $attribute->menuLabel : $attribute->label;
+        $this->menuLabel = $textDomain !== null ? __($menuLabel, $textDomain) : $menuLabel;
         $this->capability = IsGrantedChecker::extractCapability($reflection);
         $this->parent = $attribute->parent;
         $this->icon = $attribute->icon;
