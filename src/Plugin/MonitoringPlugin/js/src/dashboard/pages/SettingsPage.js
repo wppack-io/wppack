@@ -26,9 +26,19 @@ const DIMENSION_LABELS = Object.assign(
 	} )
 );
 
-// Get bridge metadata by name (falls back to first available bridge)
+// Get bridge metadata by name.
+// Mock bridges (empty formFields) inherit from the first real bridge.
 function getBridge( name ) {
-	return BRIDGE_DATA[ name ] || Object.values( BRIDGE_DATA )[ 0 ] || {};
+	const bridge = BRIDGE_DATA[ name ];
+	if ( bridge && bridge.formFields?.length > 0 ) {
+		return bridge;
+	}
+	for ( const meta of Object.values( BRIDGE_DATA ) ) {
+		if ( meta.formFields?.length > 0 ) {
+			return { ...meta, ...( bridge ? { name: bridge.name, label: bridge.label } : {} ) };
+		}
+	}
+	return bridge || {};
 }
 
 // Build DataForm-compatible credential fields from bridge metadata
