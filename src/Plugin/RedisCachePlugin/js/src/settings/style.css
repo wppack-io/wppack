@@ -47,10 +47,6 @@
 	max-width: 120px;
 }
 
-.wpp-cache-settings .components-panel {
-	margin-bottom: 16px;
-}
-
 .wpp-cache-loading {
 	display: flex;
 	justify-content: center;
@@ -96,7 +92,8 @@
 }
 
 /* ── DataForm: match standard TextControl/SelectControl height ── */
-.wpp-cache-dataform-wrap .components-input-control__input {
+.wpp-cache-dataform-wrap .components-input-control__input,
+.wpp-cache-dataform-wrap .components-text-control__input {
 	height: 32px !important;
 	min-height: 32px !important;
 }
@@ -112,7 +109,8 @@
 	min-height: 32px !important;
 }
 
-.wpp-cache-dataform-wrap .components-input-control__container select {
+.wpp-cache-dataform-wrap .components-input-control__container select,
+.wpp-cache-dataform-wrap .components-select-control__input {
 	height: 32px !important;
 	min-height: 32px !important;
 	padding: 0 26px 0 8px !important;

@@ -1,8 +1,6 @@
 import { DataForm } from '@wordpress/dataviews/wp';
 import { useState, useEffect, useMemo } from '@wordpress/element';
 import {
-	Panel,
-	PanelBody,
 	TextControl,
 	TextareaControl,
 	SelectControl,
@@ -319,14 +317,7 @@ export default function App() {
 		} );
 	}, [ def, meta.isReadonly, meta.awsRegion, providerOptions, formData.fields ] );
 
-	const providerForm = useMemo( () => ( {
-		fields: [ {
-			id: 'provider-section',
-			label: __( 'Provider', 'wppack-cache' ),
-			children: providerFields.map( ( f ) => f.id ),
-			layout: { type: 'regular' },
-		} ],
-	} ), [ providerFields ] );
+	// providerForm removed — merged into combinedForm below
 
 	// ── Options DataForm fields ──
 
@@ -506,14 +497,22 @@ export default function App() {
 		return result;
 	}, [ def, meta.extensions, meta.globalReadonly ] );
 
-	const optionsForm = useMemo( () => ( {
-		fields: [ {
-			id: 'options-section',
-			label: __( 'Options', 'wppack-cache' ),
-			children: optionsFields.map( ( f ) => f.id ),
-			layout: { type: 'regular' },
-		} ],
-	} ), [ optionsFields ] );
+	const combinedForm = useMemo( () => ( {
+		fields: [
+			{
+				id: 'provider-section',
+				label: __( 'Provider', 'wppack-cache' ),
+				children: providerFields.map( ( f ) => f.id ),
+				layout: { type: 'regular' },
+			},
+			{
+				id: 'options-section',
+				label: __( 'Options', 'wppack-cache' ),
+				children: optionsFields.map( ( f ) => f.id ),
+				layout: { type: 'regular' },
+			},
+		],
+	} ), [ providerFields, optionsFields ] );
 
 	const handleFormChange = ( edits ) => {
 		setFormData( ( prev ) => {
@@ -547,29 +546,14 @@ export default function App() {
 					</Notice>
 				) }
 
-				<Panel>
-					<PanelBody title={ __( 'Provider', 'wppack-cache' ) } initialOpen={ true }>
-						<div className="wpp-cache-dataform-wrap">
-							<DataForm
-								data={ formData }
-								fields={ providerFields }
-								form={ providerForm }
-								onChange={ handleFormChange }
-							/>
-						</div>
-					</PanelBody>
-
-					<PanelBody title={ __( 'Options', 'wppack-cache' ) } initialOpen={ true }>
-						<div className="wpp-cache-dataform-wrap">
-							<DataForm
-								data={ formData }
-								fields={ optionsFields }
-								form={ optionsForm }
-								onChange={ handleFormChange }
-							/>
-						</div>
-					</PanelBody>
-				</Panel>
+				<div className="wpp-cache-dataform-wrap">
+					<DataForm
+						data={ formData }
+						fields={ [ ...providerFields, ...optionsFields ] }
+						form={ combinedForm }
+						onChange={ handleFormChange }
+					/>
+				</div>
 
 				<div className="wpp-cache-actions">
 					<Button
