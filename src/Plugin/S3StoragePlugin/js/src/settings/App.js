@@ -85,6 +85,11 @@ function schemeFromUri( uri ) {
 	return match ? match[ 1 ] : '';
 }
 
+const AWS_REGIONS = [
+	{ value: '', label: '\u2014' },
+	...( window.wppStorage?.awsRegions ?? [] ),
+];
+
 const FIELD_LABELS = {
 	bucket: __( 'Bucket', 'wppack-storage' ),
 	region: __( 'Region', 'wppack-storage' ),
@@ -428,6 +433,18 @@ export default function App() {
 									const isSensitive = [ 'secretKey', 'accountKey', 'keyFile', 'connectionString' ].includes( fieldKey );
 									const stateMap = { region: [ newRegion, setNewRegion ], accessKey: [ newAccessKey, setNewAccessKey ], secretKey: [ newSecretKey, setNewSecretKey ] };
 									const [ val, setVal ] = stateMap[ fieldKey ] || [ '', () => {} ];
+									if ( fieldKey === 'region' ) {
+										return (
+											<SelectControl
+												key={ fieldKey }
+												label={ FIELD_LABELS[ fieldKey ] || fieldKey }
+												value={ val }
+												options={ AWS_REGIONS }
+												onChange={ setVal }
+												__nextHasNoMarginBottom
+											/>
+										);
+									}
 									return (
 										<TextControl
 											key={ fieldKey }
