@@ -106,3 +106,31 @@
 .wpp-cache-small-select .components-select-control__input {
 	max-width: 300px !important;
 }
+
+/* ── DataForm: match standard TextControl/SelectControl height ── */
+.wpp-cache-dataform-wrap .components-input-control__input {
+	height: 32px !important;
+	min-height: 32px !important;
+}
+
+.wpp-cache-dataform-wrap .components-input-control__backdrop {
+	border-width: 1px !important;
+	border-style: solid !important;
+	border-color: #949494 !important;
+	border-radius: 2px !important;
+}
+
+.wpp-cache-dataform-wrap .components-input-control__container {
+	min-height: 32px !important;
+}
+
+.wpp-cache-dataform-wrap .components-input-control__container select {
+	height: 32px !important;
+	min-height: 32px !important;
+	padding: 0 26px 0 8px !important;
+}
+
+.wpp-cache-dataform-wrap .components-combobox-control__suggestions-container .components-flex {
+	height: 32px !important;
+	min-height: 32px !important;
+}
