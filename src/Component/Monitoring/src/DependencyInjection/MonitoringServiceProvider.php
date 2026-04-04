@@ -18,8 +18,9 @@ use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
 use WpPack\Component\Monitoring\Bridge\Cloudflare\CloudflareMetricProvider;
 use WpPack\Component\Monitoring\Bridge\CloudWatch\CloudWatchMetricProvider;
-use WpPack\Component\Monitoring\Bridge\Mock\MockMetricProvider;
-use WpPack\Component\Monitoring\Bridge\Mock\MockMonitoringProvider;
+use WpPack\Component\Monitoring\MockMetricProvider;
+use WpPack\Component\Monitoring\Bridge\CloudWatch\MockCloudWatchMonitoringProvider;
+use WpPack\Component\Monitoring\Bridge\Cloudflare\MockCloudflareMonitoringProvider;
 use WpPack\Component\Monitoring\MonitoringCollector;
 use WpPack\Component\Monitoring\MonitoringRegistry;
 use WpPack\Component\Monitoring\MonitoringStore;
@@ -87,14 +88,23 @@ final class MonitoringServiceProvider implements ServiceProviderInterface
             }
         }
 
-        // Mock bridge + sample providers for local development
+        // Mock bridges + sample providers for local development
         if (wp_get_environment_type() === 'local') {
-            $builder->register(MockMetricProvider::class)
-                ->addTag(RegisterMetricBridgesPass::TAG, ['name' => 'mock-aws'])
-                ->addTag(RegisterMetricBridgesPass::TAG, ['name' => 'mock-cloudflare']);
+            if (class_exists(MockMetricProvider::class)) {
+                $builder->register(MockMetricProvider::class)
+                    ->addTag(RegisterMetricBridgesPass::TAG, ['name' => 'mock-aws'])
+                    ->addTag(RegisterMetricBridgesPass::TAG, ['name' => 'mock-cloudflare']);
+            }
 
-            $builder->register(MockMonitoringProvider::class)
-                ->addTag(RegisterMetricProvidersPass::TAG);
+            if (class_exists(MockCloudWatchMonitoringProvider::class)) {
+                $builder->register(MockCloudWatchMonitoringProvider::class)
+                    ->addTag(RegisterMetricProvidersPass::TAG);
+            }
+
+            if (class_exists(MockCloudflareMonitoringProvider::class)) {
+                $builder->register(MockCloudflareMonitoringProvider::class)
+                    ->addTag(RegisterMetricProvidersPass::TAG);
+            }
         }
 
         // REST controllers

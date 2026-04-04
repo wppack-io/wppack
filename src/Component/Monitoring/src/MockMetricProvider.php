@@ -11,13 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Monitoring\Bridge\Mock;
-
-use WpPack\Component\Monitoring\MetricPoint;
-use WpPack\Component\Monitoring\MetricProviderInterface;
-use WpPack\Component\Monitoring\MetricResult;
-use WpPack\Component\Monitoring\MetricTimeRange;
-use WpPack\Component\Monitoring\MonitoringProvider;
+namespace WpPack\Component\Monitoring;
 
 /**
  * Mock metric provider that generates random data for development/testing.

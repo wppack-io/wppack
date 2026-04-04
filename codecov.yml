@@ -328,6 +328,22 @@ component_management:
       name: SamlLoginPlugin
       paths:
         - src/Plugin/SamlLoginPlugin/src/**
+    - component_id: monitoring
+      name: Monitoring
+      paths:
+        - src/Component/Monitoring/src/**
+    - component_id: cloudwatch_monitoring
+      name: CloudWatchMonitoring
+      paths:
+        - src/Component/Monitoring/Bridge/CloudWatch/src/**
+    - component_id: cloudflare_monitoring
+      name: CloudflareMonitoring
+      paths:
+        - src/Component/Monitoring/Bridge/Cloudflare/src/**
+    - component_id: monitoring_plugin
+      name: MonitoringPlugin
+      paths:
+        - src/Plugin/MonitoringPlugin/src/**
     - component_id: scim
       name: Scim
       paths:
