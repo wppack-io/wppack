@@ -16,6 +16,7 @@ namespace WpPack\Plugin\MonitoringPlugin\Admin;
 use WpPack\Component\Admin\AbstractAdminPage;
 use WpPack\Component\Admin\Attribute\AdminScope;
 use WpPack\Component\Admin\Attribute\AsAdminPage;
+use WpPack\Component\Monitoring\MonitoringCollector;
 use WpPack\Component\Role\Attribute\IsGranted;
 
 #[AsAdminPage(
@@ -30,10 +31,16 @@ use WpPack\Component\Role\Attribute\IsGranted;
 final class MonitoringDashboardPage extends AbstractAdminPage
 {
     private string $pluginFile;
+    private MonitoringCollector $collector;
 
     public function setPluginFile(string $pluginFile): void
     {
         $this->pluginFile = $pluginFile;
+    }
+
+    public function setCollector(MonitoringCollector $collector): void
+    {
+        $this->collector = $collector;
     }
 
     public function __invoke(): string
@@ -84,6 +91,7 @@ final class MonitoringDashboardPage extends AbstractAdminPage
         wp_localize_script('wppack-monitoring-dashboard', 'wppMonitoring', [
             'restUrl' => rest_url('wppack/v1/monitoring'),
             'nonce' => wp_create_nonce('wp_rest'),
+            'bridges' => $this->collector->getBridgeMetadata(),
         ]);
     }
 }

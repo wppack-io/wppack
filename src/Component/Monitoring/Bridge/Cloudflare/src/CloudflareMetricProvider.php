@@ -89,6 +89,105 @@ final class CloudflareMetricProvider implements MetricProviderInterface
         return true;
     }
 
+    public function getLabel(): string
+    {
+        return 'Cloudflare';
+    }
+
+    public function getFormFields(): array
+    {
+        return [
+            [
+                'id' => 'settings.apiToken',
+                'label' => 'API Token',
+                'type' => 'password',
+                'description' => 'Cloudflare API Token with Zone Analytics permission',
+            ],
+        ];
+    }
+
+    public function getTemplates(): array
+    {
+        return [
+            [
+                'id' => 'cloudflare-zone',
+                'label' => 'Cloudflare Zone',
+                'namespace' => 'Cloudflare/Analytics',
+                'dimensionKey' => 'ZoneId',
+                'dimensionLabel' => 'Zone ID',
+                'dimensionPlaceholder' => 'abc123def456ghi789',
+                'metrics' => [
+                    ['metricName' => 'requests', 'label' => 'Requests', 'description' => 'Total HTTP requests', 'stat' => 'Sum', 'unit' => 'Count'],
+                    ['metricName' => 'cachedRequests', 'label' => 'Cached Requests', 'description' => 'Requests served from cache', 'stat' => 'Sum', 'unit' => 'Count'],
+                    ['metricName' => 'cacheRate', 'label' => 'Cache Rate', 'description' => 'Percentage of requests served from cache', 'stat' => 'Average', 'unit' => 'Percent'],
+                    ['metricName' => 'bandwidth', 'label' => 'Data Transfer', 'description' => 'Total data transfer', 'stat' => 'Sum', 'unit' => 'Bytes'],
+                    ['metricName' => 'cachedBandwidth', 'label' => 'Cached Transfer', 'description' => 'Data transfer served from cache', 'stat' => 'Sum', 'unit' => 'Bytes'],
+                    ['metricName' => 'threats', 'label' => 'Threats', 'description' => 'Total threats blocked', 'stat' => 'Sum', 'unit' => 'Count'],
+                    ['metricName' => 'pageViews', 'label' => 'Page Views', 'description' => 'Total page views', 'stat' => 'Sum', 'unit' => 'Count'],
+                    ['metricName' => 'uniques', 'label' => 'Unique Visitors', 'description' => 'Unique visitors', 'stat' => 'Sum', 'unit' => 'Count'],
+                    ['metricName' => 'status2xx', 'label' => '2xx Responses', 'description' => 'Successful responses', 'stat' => 'Sum', 'unit' => 'Count'],
+                    ['metricName' => 'status3xx', 'label' => '3xx Redirects', 'description' => 'Redirect responses', 'stat' => 'Sum', 'unit' => 'Count'],
+                    ['metricName' => 'status4xx', 'label' => '4xx Errors', 'description' => 'Client error responses', 'stat' => 'Sum', 'unit' => 'Count'],
+                    ['metricName' => 'status5xx', 'label' => '5xx Errors', 'description' => 'Server error responses', 'stat' => 'Sum', 'unit' => 'Count'],
+                ],
+            ],
+            [
+                'id' => 'cloudflare-waf',
+                'label' => 'Cloudflare WAF',
+                'namespace' => 'Cloudflare/WAF',
+                'dimensionKey' => 'ZoneId',
+                'dimensionLabel' => 'Zone ID',
+                'dimensionPlaceholder' => 'abc123def456ghi789',
+                'metrics' => [
+                    ['metricName' => 'wafTotal', 'label' => 'WAF Events', 'description' => 'Total firewall events', 'stat' => 'Sum', 'unit' => 'Count'],
+                    ['metricName' => 'wafBlocked', 'label' => 'WAF Blocked', 'description' => 'Requests blocked by WAF', 'stat' => 'Sum', 'unit' => 'Count'],
+                    ['metricName' => 'wafChallenged', 'label' => 'JS Challenged', 'description' => 'Requests given JS challenge', 'stat' => 'Sum', 'unit' => 'Count'],
+                    ['metricName' => 'wafManagedChallenge', 'label' => 'Managed Challenge', 'description' => 'Requests given managed challenge', 'stat' => 'Sum', 'unit' => 'Count'],
+                ],
+            ],
+        ];
+    }
+
+    public function getDimensionLabels(): array
+    {
+        return ['ZoneId' => 'Zone ID'];
+    }
+
+    public function getDefaultSettings(): array
+    {
+        return ['apiToken' => ''];
+    }
+
+    public function getSetupGuide(): array
+    {
+        return [
+            'buttonLabel' => 'Cloudflare API Token',
+            'title' => 'Cloudflare API Token Setup',
+            'content' => [
+                ['type' => 'paragraph', 'text' => 'Cloudflare analytics data is retrieved via API Token. We recommend creating an Account API Token, which allows monitoring all zones in the account with a single token.'],
+                ['type' => 'heading', 'text' => 'Creating an Account API Token (Recommended)'],
+                ['type' => 'steps', 'items' => [
+                    'Go to the Cloudflare dashboard and navigate to <strong>My Profile → API Tokens</strong>',
+                    'Click "Create Token"',
+                    'Select "Create Custom Token"',
+                    "Set the following permissions:\nAccount — Account Analytics — Read\nZone   — Analytics         — Read",
+                    'Under "Account Resources", select the target account',
+                    'Under "Zone Resources", select "All zones" (or specific zones)',
+                    'Click "Continue to summary", then "Create Token"',
+                    'Copy the token and paste it into the API Token field when adding a Cloudflare provider',
+                ]],
+                ['type' => 'note', 'text' => 'Tip: A single API Token can be reused across multiple Cloudflare providers (Zone analytics, WAF, etc.) as long as it has the required permissions.'],
+                ['type' => 'heading', 'text' => 'Finding Your Zone ID'],
+                ['type' => 'paragraph', 'text' => 'The Zone ID is shown on the right sidebar of your domain\'s Overview page in the Cloudflare dashboard, under the "API" section.'],
+            ],
+        ];
+    }
+
+    public function validateSettings(array $settings): bool
+    {
+        return !empty($settings['apiToken']);
+    }
+
     /**
      * @return list<MetricResult>
      */

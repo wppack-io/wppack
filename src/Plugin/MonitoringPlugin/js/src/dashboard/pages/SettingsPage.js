@@ -6,60 +6,56 @@ import { lock, copy } from '@wordpress/icons';
 import apiFetch from '@wordpress/api-fetch';
 import { METRIC_TEMPLATES } from '../data/templates';
 
-const AWS_REGIONS = [
-	{ value: '', label: '\u2014' },
-	{ value: 'us-east-1', label: 'us-east-1 \u2014 US East (N. Virginia)' },
-	{ value: 'us-east-2', label: 'us-east-2 \u2014 US East (Ohio)' },
-	{ value: 'us-west-1', label: 'us-west-1 \u2014 US West (N. California)' },
-	{ value: 'us-west-2', label: 'us-west-2 \u2014 US West (Oregon)' },
-	{ value: 'us-gov-east-1', label: 'us-gov-east-1 \u2014 AWS GovCloud (US-East)' },
-	{ value: 'us-gov-west-1', label: 'us-gov-west-1 \u2014 AWS GovCloud (US-West)' },
-	{ value: 'af-south-1', label: 'af-south-1 \u2014 Africa (Cape Town)' },
-	{ value: 'ap-east-1', label: 'ap-east-1 \u2014 Asia Pacific (Hong Kong)' },
-	{ value: 'ap-east-2', label: 'ap-east-2 \u2014 Asia Pacific (Taipei)' },
-	{ value: 'ap-south-1', label: 'ap-south-1 \u2014 Asia Pacific (Mumbai)' },
-	{ value: 'ap-south-2', label: 'ap-south-2 \u2014 Asia Pacific (Hyderabad)' },
-	{ value: 'ap-southeast-1', label: 'ap-southeast-1 \u2014 Asia Pacific (Singapore)' },
-	{ value: 'ap-southeast-2', label: 'ap-southeast-2 \u2014 Asia Pacific (Sydney)' },
-	{ value: 'ap-southeast-3', label: 'ap-southeast-3 \u2014 Asia Pacific (Jakarta)' },
-	{ value: 'ap-southeast-4', label: 'ap-southeast-4 \u2014 Asia Pacific (Melbourne)' },
-	{ value: 'ap-southeast-5', label: 'ap-southeast-5 \u2014 Asia Pacific (Malaysia)' },
-	{ value: 'ap-southeast-6', label: 'ap-southeast-6 \u2014 Asia Pacific (New Zealand)' },
-	{ value: 'ap-southeast-7', label: 'ap-southeast-7 \u2014 Asia Pacific (Thailand)' },
-	{ value: 'ap-northeast-1', label: 'ap-northeast-1 \u2014 Asia Pacific (Tokyo)' },
-	{ value: 'ap-northeast-2', label: 'ap-northeast-2 \u2014 Asia Pacific (Seoul)' },
-	{ value: 'ap-northeast-3', label: 'ap-northeast-3 \u2014 Asia Pacific (Osaka)' },
-	{ value: 'ca-central-1', label: 'ca-central-1 \u2014 Canada (Central)' },
-	{ value: 'ca-west-1', label: 'ca-west-1 \u2014 Canada West (Calgary)' },
-	{ value: 'cn-north-1', label: 'cn-north-1 \u2014 China (Beijing)' },
-	{ value: 'cn-northwest-1', label: 'cn-northwest-1 \u2014 China (Ningxia)' },
-	{ value: 'eu-central-1', label: 'eu-central-1 \u2014 Europe (Frankfurt)' },
-	{ value: 'eu-central-2', label: 'eu-central-2 \u2014 Europe (Zurich)' },
-	{ value: 'eu-west-1', label: 'eu-west-1 \u2014 Europe (Ireland)' },
-	{ value: 'eu-west-2', label: 'eu-west-2 \u2014 Europe (London)' },
-	{ value: 'eu-west-3', label: 'eu-west-3 \u2014 Europe (Paris)' },
-	{ value: 'eu-south-1', label: 'eu-south-1 \u2014 Europe (Milan)' },
-	{ value: 'eu-south-2', label: 'eu-south-2 \u2014 Europe (Spain)' },
-	{ value: 'eu-north-1', label: 'eu-north-1 \u2014 Europe (Stockholm)' },
-	{ value: 'eusc-de-east-1', label: 'eusc-de-east-1 \u2014 European Sovereign Cloud (Germany)' },
-	{ value: 'il-central-1', label: 'il-central-1 \u2014 Israel (Tel Aviv)' },
-	{ value: 'mx-central-1', label: 'mx-central-1 \u2014 Mexico (Central)' },
-	{ value: 'me-south-1', label: 'me-south-1 \u2014 Middle East (Bahrain)' },
-	{ value: 'me-central-1', label: 'me-central-1 \u2014 Middle East (UAE)' },
-	{ value: 'sa-east-1', label: 'sa-east-1 \u2014 South America (São Paulo)' },
-];
+// Bridge metadata from PHP (via wp_localize_script)
+const BRIDGE_DATA = window.wppMonitoring?.bridges ?? {};
 
-const IAM_POLICY_JSON = `{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "WpPackMonitoring",
-      "Effect": "Allow",
-      "Action": "cloudwatch:GetMetricData",
-      "Resource": "*"
-    }
-  ]
-}`;
+// Build BRIDGE_OPTIONS dynamically from available bridges
+const BRIDGE_OPTIONS = Object.entries( BRIDGE_DATA ).map( ( [ name, meta ] ) => ( {
+	value: name,
+	label: meta.label,
+} ) );
+
+// Merge dimension labels from all bridges
+const DIMENSION_LABELS = Object.assign(
+	{}, ...Object.values( BRIDGE_DATA ).map( ( m ) => {
+		const labels = {};
+		for ( const [ key, label ] of Object.entries( m.dimensionLabels || {} ) ) {
+			labels[ key ] = __( label, 'wppack-monitoring' );
+		}
+		return labels;
+	} )
+);
+
+// Get bridge metadata by name (falls back to first available bridge)
+function getBridge( name ) {
+	return BRIDGE_DATA[ name ] || Object.values( BRIDGE_DATA )[ 0 ] || {};
+}
+
+// Build DataForm-compatible credential fields from bridge metadata
+function buildCredentialFields( bridgeMeta ) {
+	return ( bridgeMeta.formFields || [] ).map( ( f ) => {
+		const settingsKey = f.id.replace( 'settings.', '' );
+		const field = {
+			id: f.id,
+			label: __( f.label, 'wppack-monitoring' ),
+			type: f.type || 'text',
+			getValue: ( { item } ) => item.settings?.[ settingsKey ] || '',
+			setValue: ( value ) => ( { settings: { [ settingsKey ]: value } } ),
+		};
+		if ( f.description ) {
+			field.description = __( f.description, 'wppack-monitoring' );
+		}
+		if ( f.elements ) {
+			field.elements = f.elements;
+		}
+		return field;
+	} );
+}
+
+// Bridges that have setup guides
+const GUIDE_BRIDGES = Object.entries( BRIDGE_DATA )
+	.filter( ( [ , meta ] ) => meta.setupGuide )
+	.map( ( [ name, meta ] ) => ( { name, ...meta.setupGuide } ) );
 
 const PROVIDER_FIELDS = [
 	{
@@ -103,13 +99,6 @@ const PROVIDER_FIELDS = [
 	},
 ];
 
-const BRIDGE_OPTIONS = [
-	{ value: 'cloudwatch', label: __( 'AWS CloudWatch', 'wppack-monitoring' ) },
-	{ value: 'cloudflare', label: __( 'Cloudflare', 'wppack-monitoring' ) },
-	{ value: 'mock-aws', label: __( 'Mock (AWS)', 'wppack-monitoring' ) },
-	{ value: 'mock-cloudflare', label: __( 'Mock (Cloudflare)', 'wppack-monitoring' ) },
-];
-
 const COMMON_FORM_FIELDS = [
 	{ id: 'label', label: __( 'Label', 'wppack-monitoring' ), type: 'text' },
 	{
@@ -127,63 +116,6 @@ const COMMON_FORM_FIELDS = [
 		),
 	},
 ];
-
-const AWS_FORM_FIELDS = [
-	{
-		id: 'settings.region',
-		label: __( 'Region', 'wppack-monitoring' ),
-		type: 'text',
-		elements: AWS_REGIONS.filter( ( r ) => r.value !== '' ),
-		getValue: ( { item } ) => item.settings?.region || '',
-		setValue: ( value ) => ( { settings: { region: value } } ),
-	},
-	{
-		id: 'settings.accessKeyId',
-		label: __( 'Access Key ID', 'wppack-monitoring' ),
-		type: 'text',
-		description: __( 'Optional \u2014 falls back to IAM role', 'wppack-monitoring' ),
-		getValue: ( { item } ) => item.settings?.accessKeyId || '',
-		setValue: ( value ) => ( { settings: { accessKeyId: value } } ),
-	},
-	{
-		id: 'settings.secretAccessKey',
-		label: __( 'Secret Access Key', 'wppack-monitoring' ),
-		type: 'password',
-		description: __( 'Optional \u2014 falls back to IAM role', 'wppack-monitoring' ),
-		getValue: ( { item } ) => item.settings?.secretAccessKey || '',
-		setValue: ( value ) => ( { settings: { secretAccessKey: value } } ),
-	},
-];
-
-const CLOUDFLARE_FORM_FIELDS = [
-	{
-		id: 'settings.apiToken',
-		label: __( 'API Token', 'wppack-monitoring' ),
-		type: 'password',
-		description: __( 'Cloudflare API Token with Zone Analytics permission', 'wppack-monitoring' ),
-		getValue: ( { item } ) => item.settings?.apiToken || '',
-		setValue: ( value ) => ( { settings: { apiToken: value } } ),
-	},
-];
-
-const DIMENSION_LABELS = {
-	DBInstanceIdentifier: __( 'DB Instance ID', 'wppack-monitoring' ),
-	DBClusterIdentifier: __( 'DB Cluster ID', 'wppack-monitoring' ),
-	CacheClusterId: __( 'Cache Cluster ID', 'wppack-monitoring' ),
-	DistributionId: __( 'Distribution ID', 'wppack-monitoring' ),
-	FunctionName: __( 'Function Name', 'wppack-monitoring' ),
-	QueueName: __( 'Queue Name', 'wppack-monitoring' ),
-	BucketName: __( 'Bucket Name', 'wppack-monitoring' ),
-	InstanceId: __( 'Instance ID', 'wppack-monitoring' ),
-	ZoneId: __( 'Zone ID', 'wppack-monitoring' ),
-	StorageType: __( 'Storage Type', 'wppack-monitoring' ),
-	TableName: __( 'Table Name', 'wppack-monitoring' ),
-	LoadBalancer: __( 'Load Balancer', 'wppack-monitoring' ),
-	NatGatewayId: __( 'NAT Gateway ID', 'wppack-monitoring' ),
-	ClusterName: __( 'Cluster Name', 'wppack-monitoring' ),
-	WebACL: __( 'Web ACL Name', 'wppack-monitoring' ),
-	Rule: __( 'Rule', 'wppack-monitoring' ),
-};
 
 function getDimensionFields( provider ) {
 	const dims = provider.metrics?.[ 0 ]?.dimensions;
@@ -208,7 +140,7 @@ function getDimensionFields( provider ) {
 }
 
 function getProviderFormFields( bridge, provider ) {
-	const credentialFields = bridge === 'cloudflare' ? CLOUDFLARE_FORM_FIELDS : AWS_FORM_FIELDS;
+	const credentialFields = buildCredentialFields( getBridge( bridge ) );
 	const dimensionFields = getDimensionFields( provider );
 	return [ ...COMMON_FORM_FIELDS, ...credentialFields, ...dimensionFields ];
 }
@@ -246,13 +178,11 @@ function getLockedFormFields( bridge, provider ) {
 }
 
 function getProviderForm( bridge, provider ) {
-	const credentialChildren = bridge === 'cloudflare'
-		? [ 'settings.apiToken' ]
-		: [ 'settings.region', 'settings.accessKeyId', 'settings.secretAccessKey' ];
-
-	const credentialLabel = bridge === 'cloudflare'
-		? __( 'Cloudflare Credentials', 'wppack-monitoring' )
-		: __( 'AWS Credentials', 'wppack-monitoring' );
+	const meta = getBridge( bridge );
+	const credentialChildren = meta.credentialFieldIds || [];
+	const credentialLabel = meta.label
+		? __( '%s Credentials', 'wppack-monitoring' ).replace( '%s', meta.label )
+		: __( 'Credentials', 'wppack-monitoring' );
 
 	const dims = provider?.metrics?.[ 0 ]?.dimensions;
 	const dimensionIds = dims ? Object.keys( dims ).map( ( k ) => `dim.${ k }` ) : [];
@@ -285,9 +215,7 @@ function getProviderForm( bridge, provider ) {
 }
 
 function getAddFormFields( template ) {
-	const credentialFields = template.bridge === 'cloudflare'
-		? CLOUDFLARE_FORM_FIELDS
-		: AWS_FORM_FIELDS;
+	const credentialFields = buildCredentialFields( getBridge( template.bridge ) );
 	return [
 		...COMMON_FORM_FIELDS,
 		...credentialFields,
@@ -302,13 +230,11 @@ function getAddFormFields( template ) {
 }
 
 function getAddForm( template ) {
-	const credentialChildren = template.bridge === 'cloudflare'
-		? [ 'settings.apiToken' ]
-		: [ 'settings.region', 'settings.accessKeyId', 'settings.secretAccessKey' ];
-
-	const credentialLabel = template.bridge === 'cloudflare'
-		? __( 'Cloudflare Credentials', 'wppack-monitoring' )
-		: __( 'AWS Credentials', 'wppack-monitoring' );
+	const meta = getBridge( template.bridge );
+	const credentialChildren = meta.credentialFieldIds || [];
+	const credentialLabel = meta.label
+		? __( '%s Credentials', 'wppack-monitoring' ).replace( '%s', meta.label )
+		: __( 'Credentials', 'wppack-monitoring' );
 
 	return {
 		fields: [
@@ -341,8 +267,7 @@ export default function SettingsPage() {
 	const [ selectedProvider, setSelectedProvider ] = useState( null );
 	const [ addMode, setAddMode ] = useState( false );
 	const [ selectedTemplate, setSelectedTemplate ] = useState( null );
-	const [ showIam, setShowIam ] = useState( false );
-	const [ showCloudflare, setShowCloudflare ] = useState( false );
+	const [ activeGuide, setActiveGuide ] = useState( null );
 	const [ syncing, setSyncing ] = useState( false );
 	const [ syncNotice, setSyncNotice ] = useState( null );
 	const [ view, setView ] = useState( {
@@ -443,20 +368,16 @@ export default function SettingsPage() {
 			) }
 
 			<div className="wpp-monitoring-settings-header">
-				<Button
-					variant="tertiary"
-					onClick={ () => setShowIam( true ) }
-					size="compact"
-				>
-					{ __( 'AWS IAM Policy', 'wppack-monitoring' ) }
-				</Button>
-				<Button
-					variant="tertiary"
-					onClick={ () => setShowCloudflare( true ) }
-					size="compact"
-				>
-					{ __( 'Cloudflare API Token', 'wppack-monitoring' ) }
-				</Button>
+				{ GUIDE_BRIDGES.map( ( g ) => (
+					<Button
+						key={ g.name }
+						variant="tertiary"
+						onClick={ () => setActiveGuide( g.name ) }
+						size="compact"
+					>
+						{ __( g.buttonLabel, 'wppack-monitoring' ) }
+					</Button>
+				) ) }
 				<Button
 					variant="secondary"
 					onClick={ async () => {
@@ -637,9 +558,7 @@ export default function SettingsPage() {
 									id: '',
 									label: tmpl.label,
 									bridge: tmpl.bridge,
-									settings: tmpl.bridge === 'cloudflare'
-										? { apiToken: '' }
-										: { region: '', accessKeyId: '', secretAccessKey: '' },
+									settings: { ...( getBridge( tmpl.bridge ).defaultSettings || {} ) },
 									metrics: tmpl.metrics.map( ( m ) => ( {
 										id: `${ tmpl.id }.${ m.metricName.toLowerCase() }`,
 										label: m.label,
@@ -661,16 +580,15 @@ export default function SettingsPage() {
 						} }
 					>
 						<option value="">{ __( '\u2014 Select template \u2014', 'wppack-monitoring' ) }</option>
-						<optgroup label={ __( 'AWS CloudWatch', 'wppack-monitoring' ) }>
-							{ METRIC_TEMPLATES.filter( ( t ) => t.bridge === 'cloudwatch' ).map( ( t ) => (
-								<option key={ t.id } value={ t.id }>{ t.label }</option>
+						{ Object.entries( BRIDGE_DATA )
+							.filter( ( [ name, meta ] ) => ! name.startsWith( 'mock-' ) && meta.templates?.length > 0 )
+							.map( ( [ bridgeName, meta ] ) => (
+								<optgroup key={ bridgeName } label={ meta.label }>
+									{ METRIC_TEMPLATES.filter( ( t ) => t.bridge === bridgeName ).map( ( t ) => (
+										<option key={ t.id } value={ t.id }>{ t.label }</option>
+									) ) }
+								</optgroup>
 							) ) }
-						</optgroup>
-						<optgroup label={ __( 'Cloudflare', 'wppack-monitoring' ) }>
-							{ METRIC_TEMPLATES.filter( ( t ) => t.bridge === 'cloudflare' ).map( ( t ) => (
-								<option key={ t.id } value={ t.id }>{ t.label }</option>
-							) ) }
-						</optgroup>
 					</SelectControl>
 
 					{ selectedTemplate && selectedProvider && (
@@ -734,10 +652,8 @@ export default function SettingsPage() {
 								<Button
 									variant="primary"
 									disabled={ ! selectedProvider.label || ! selectedProvider._dimensionValue || (
-										selectedTemplate.bridge === 'cloudflare'
-											? ! selectedProvider.settings?.apiToken
-											: ! selectedProvider.settings?.region
-									) }
+										getBridge( selectedTemplate.bridge ).requiredFields || []
+									).some( ( fid ) => ! selectedProvider.settings?.[ fid.replace( 'settings.', '' ) ] ) }
 									onClick={ async () => {
 										const dimVal = selectedProvider._dimensionValue;
 										const provider = {
@@ -771,84 +687,57 @@ export default function SettingsPage() {
 				</div>
 				</Modal>
 			) }
-			{ showIam && (
-				<Modal
-					title={ __( 'IAM Policy', 'wppack-monitoring' ) }
-					onRequestClose={ () => setShowIam( false ) }
-					size="medium"
-				>
-					<p>
-						{ __( 'The following IAM permission is required for metric data retrieval.', 'wppack-monitoring' ) }
-					</p>
-					<p className="wpp-monitoring-iam-note">
-						{ __( 'Note: cloudwatch:GetMetricData does not support resource-level restrictions. Resource must be "*" per AWS specification.', 'wppack-monitoring' ) }
-					</p>
-					<div className="wpp-monitoring-iam-block">
-						<pre className="wpp-monitoring-iam-code">{ IAM_POLICY_JSON }</pre>
-						<Button
-							icon={ copy }
-							label={ __( 'Copy', 'wppack-monitoring' ) }
-							size="small"
-							className="wpp-monitoring-iam-copy"
-							onClick={ () => {
-								navigator.clipboard.writeText( IAM_POLICY_JSON );
-							} }
-						/>
-					</div>
-				</Modal>
-			) }
-			{ showCloudflare && (
-				<Modal
-					title={ __( 'Cloudflare API Token Setup', 'wppack-monitoring' ) }
-					onRequestClose={ () => setShowCloudflare( false ) }
-					size="medium"
-				>
-					<p>
-						{ __( 'Cloudflare analytics data is retrieved via API Token. We recommend creating an Account API Token, which allows monitoring all zones in the account with a single token.', 'wppack-monitoring' ) }
-					</p>
-
-					<h3>{ __( 'Creating an Account API Token (Recommended)', 'wppack-monitoring' ) }</h3>
-					<ol className="wpp-monitoring-cf-steps">
-						<li>
-							{ __( 'Go to the Cloudflare dashboard and navigate to', 'wppack-monitoring' ) }
-							{ ' ' }
-							<strong>My Profile &rarr; API Tokens</strong>
-						</li>
-						<li>
-							{ __( 'Click "Create Token"', 'wppack-monitoring' ) }
-						</li>
-						<li>
-							{ __( 'Select "Create Custom Token"', 'wppack-monitoring' ) }
-						</li>
-						<li>
-							{ __( 'Set the following permissions:', 'wppack-monitoring' ) }
-							<div className="wpp-monitoring-iam-block">
-								<pre className="wpp-monitoring-iam-code">{ 'Account \u2014 Account Analytics \u2014 Read\nZone   \u2014 Analytics         \u2014 Read' }</pre>
-							</div>
-						</li>
-						<li>
-							{ __( 'Under "Account Resources", select the target account', 'wppack-monitoring' ) }
-						</li>
-						<li>
-							{ __( 'Under "Zone Resources", select "All zones" (or specific zones)', 'wppack-monitoring' ) }
-						</li>
-						<li>
-							{ __( 'Click "Continue to summary", then "Create Token"', 'wppack-monitoring' ) }
-						</li>
-						<li>
-							{ __( 'Copy the token and paste it into the API Token field when adding a Cloudflare provider', 'wppack-monitoring' ) }
-						</li>
-					</ol>
-					<p className="wpp-monitoring-iam-note">
-						{ __( 'Tip: A single API Token can be reused across multiple Cloudflare providers (Zone analytics, WAF, etc.) as long as it has the required permissions.', 'wppack-monitoring' ) }
-					</p>
-
-					<h3>{ __( 'Finding Your Zone ID', 'wppack-monitoring' ) }</h3>
-					<p>
-						{ __( 'The Zone ID is shown on the right sidebar of your domain\'s Overview page in the Cloudflare dashboard, under the "API" section.', 'wppack-monitoring' ) }
-					</p>
-				</Modal>
-			) }
+			{ activeGuide && ( () => {
+				const guide = getBridge( activeGuide )?.setupGuide;
+				if ( ! guide ) {
+					return null;
+				}
+				return (
+					<Modal
+						title={ __( guide.title, 'wppack-monitoring' ) }
+						onRequestClose={ () => setActiveGuide( null ) }
+						size="medium"
+					>
+						{ ( guide.content || [] ).map( ( block, i ) => {
+							switch ( block.type ) {
+								case 'paragraph':
+									return <p key={ i }>{ __( block.text, 'wppack-monitoring' ) }</p>;
+								case 'note':
+									return <p key={ i } className="wpp-monitoring-iam-note">{ __( block.text, 'wppack-monitoring' ) }</p>;
+								case 'heading':
+									return <h3 key={ i }>{ __( block.text, 'wppack-monitoring' ) }</h3>;
+								case 'code':
+									return (
+										<div key={ i } className="wpp-monitoring-iam-block">
+											<pre className="wpp-monitoring-iam-code">{ block.code }</pre>
+											{ block.copyable && (
+												<Button
+													icon={ copy }
+													label={ __( 'Copy', 'wppack-monitoring' ) }
+													size="small"
+													className="wpp-monitoring-iam-copy"
+													onClick={ () => {
+														navigator.clipboard.writeText( block.code );
+													} }
+												/>
+											) }
+										</div>
+									);
+								case 'steps':
+									return (
+										<ol key={ i } className="wpp-monitoring-cf-steps">
+											{ block.items.map( ( item, j ) => (
+												<li key={ j } dangerouslySetInnerHTML={ { __html: __( item, 'wppack-monitoring' ) } } />
+											) ) }
+										</ol>
+									);
+								default:
+									return null;
+							}
+						} ) }
+					</Modal>
+				);
+			} )() }
 		</div>
 	);
 }

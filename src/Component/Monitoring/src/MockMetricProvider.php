@@ -28,6 +28,44 @@ final class MockMetricProvider implements MetricProviderInterface
         return true;
     }
 
+    public function getLabel(): string
+    {
+        return 'Mock';
+    }
+
+    public function getFormFields(): array
+    {
+        return [];
+    }
+
+    public function getTemplates(): array
+    {
+        return [];
+    }
+
+    public function getDimensionLabels(): array
+    {
+        return [];
+    }
+
+    public function getDefaultSettings(): array
+    {
+        return [];
+    }
+
+    public function getSetupGuide(): ?array
+    {
+        return null;
+    }
+
+    /**
+     * @param array<string, mixed> $settings
+     */
+    public function validateSettings(array $settings): bool
+    {
+        return true;
+    }
+
     public function query(MonitoringProvider $provider, MetricTimeRange $range): array
     {
         $results = [];

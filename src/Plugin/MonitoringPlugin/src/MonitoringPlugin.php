@@ -22,6 +22,7 @@ use WpPack\Component\Kernel\AbstractPlugin;
 use WpPack\Component\Kernel\Attribute\TextDomain;
 use WpPack\Component\Monitoring\DependencyInjection\RegisterMetricBridgesPass;
 use WpPack\Component\Monitoring\DependencyInjection\RegisterMetricProvidersPass;
+use WpPack\Component\Monitoring\MonitoringCollector;
 use WpPack\Component\Monitoring\Rest\MonitoringController;
 use WpPack\Component\Rest\DependencyInjection\RegisterRestControllersPass;
 use WpPack\Component\Rest\RestRegistry;
@@ -66,6 +67,9 @@ final class MonitoringPlugin extends AbstractPlugin
             /** @var MonitoringDashboardPage $dashboardPage */
             $dashboardPage = $container->get(MonitoringDashboardPage::class);
             $dashboardPage->setPluginFile($this->getFile());
+            /** @var MonitoringCollector $collector */
+            $collector = $container->get(MonitoringCollector::class);
+            $dashboardPage->setCollector($collector);
             $pageRegistry->register($dashboardPage, $this->isNetworkActivated());
 
             /** @var RestRegistry $restRegistry */

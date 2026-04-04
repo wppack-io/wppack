@@ -120,6 +120,34 @@ final class MonitoringCollector
         }
     }
 
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    public function getBridgeMetadata(): array
+    {
+        $metadata = [];
+
+        foreach ($this->bridges as $name => $bridge) {
+            $formFields = $bridge->getFormFields();
+            $metadata[$name] = [
+                'name' => $name,
+                'label' => $bridge->getLabel(),
+                'formFields' => $formFields,
+                'credentialFieldIds' => array_column($formFields, 'id'),
+                'templates' => $bridge->getTemplates(),
+                'dimensionLabels' => $bridge->getDimensionLabels(),
+                'defaultSettings' => $bridge->getDefaultSettings(),
+                'setupGuide' => $bridge->getSetupGuide(),
+                'requiredFields' => array_values(array_filter(
+                    array_column($formFields, 'id'),
+                    static fn(string $id): bool => !str_contains($id, 'accessKeyId') && !str_contains($id, 'secretAccessKey'),
+                )),
+            ];
+        }
+
+        return $metadata;
+    }
+
     private function formatError(\Throwable $e): string
     {
         $message = $e->getMessage();

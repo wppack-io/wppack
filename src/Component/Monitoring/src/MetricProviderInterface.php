@@ -19,6 +19,38 @@ interface MetricProviderInterface
 
     public function isAvailable(): bool;
 
+    public function getLabel(): string;
+
+    /**
+     * @return list<array{id: string, label: string, type: string, description?: string, elements?: list<array{value: string, label: string}>, getValue?: string}>
+     */
+    public function getFormFields(): array;
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    public function getTemplates(): array;
+
+    /**
+     * @return array<string, string>
+     */
+    public function getDimensionLabels(): array;
+
+    /**
+     * @return array<string, string>
+     */
+    public function getDefaultSettings(): array;
+
+    /**
+     * @return array{buttonLabel: string, title: string, content: list<array<string, mixed>>}|null
+     */
+    public function getSetupGuide(): ?array;
+
+    /**
+     * @param array<string, mixed> $settings
+     */
+    public function validateSettings(array $settings): bool;
+
     /**
      * @return list<MetricResult>
      */
