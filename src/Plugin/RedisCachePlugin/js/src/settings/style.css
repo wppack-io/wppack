@@ -51,16 +51,8 @@
 	margin-bottom: 16px;
 }
 
-.wpp-cache-settings .components-panel__body .components-base-control {
-	margin-bottom: 16px;
-}
-
 .wpp-cache-settings .components-panel__body.is-opened {
 	padding-bottom: 0;
-}
-
-.wpp-cache-settings .components-panel__body.is-opened > .components-panel__body-title {
-	margin-bottom: 16px;
 }
 
 .wpp-cache-loading {

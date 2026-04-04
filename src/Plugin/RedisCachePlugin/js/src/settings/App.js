@@ -338,11 +338,20 @@ export default function App() {
 				type: 'text',
 				getValue: ( { item } ) => item.globalOptions.prefix,
 				setValue: ( value ) => ( { globalOptions: { prefix: value } } ),
-				Edit: meta.globalReadonly.prefix
-					? ( { data, field } ) => (
-						<TextControl id={ field.id } label={ field.label } value={ data.globalOptions.prefix } disabled __nextHasNoMarginBottom />
-					)
-					: undefined,
+				Edit: ( { data, field } ) => (
+					<TextControl
+						className="wpp-cache-narrow-input"
+						id={ field.id }
+						label={ field.label }
+						value={ data.globalOptions.prefix }
+						onChange={ ( val ) => setFormData( ( prev ) => ( {
+							...prev,
+							globalOptions: { ...prev.globalOptions, prefix: val },
+						} ) ) }
+						disabled={ !! meta.globalReadonly.prefix }
+						__nextHasNoMarginBottom
+					/>
+				),
 			},
 			{
 				id: 'globalOptions.maxTtl',
