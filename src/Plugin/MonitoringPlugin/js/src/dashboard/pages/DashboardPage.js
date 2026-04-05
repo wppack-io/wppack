@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from '@wordpress/element';
+import { useState, useEffect, useCallback, useRef } from '@wordpress/element';
 import { Button, Spinner, Notice } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
@@ -20,14 +20,15 @@ export default function DashboardPage() {
 	const [ refreshing, setRefreshing ] = useState( false );
 	const [ error, setError ] = useState( null );
 	const [ selectedMetric, setSelectedMetric ] = useState( null );
+	const isInitial = useRef( true );
 
 	const fetchMetrics = useCallback(
 		async ( force = false ) => {
 			try {
-				if ( force ) {
-					setRefreshing( true );
-				} else {
+				if ( isInitial.current ) {
 					setLoading( true );
+				} else {
+					setRefreshing( true );
 				}
 				const path = force
 					? `wppack/v1/monitoring/refresh?period=${ period }`
@@ -41,6 +42,7 @@ export default function DashboardPage() {
 			} finally {
 				setLoading( false );
 				setRefreshing( false );
+				isInitial.current = false;
 			}
 		},
 		[ period ]
@@ -96,14 +98,16 @@ export default function DashboardPage() {
 				</Notice>
 			) }
 
-			{ data?.providers?.map( ( provider ) => (
-				<ProviderSection
-					key={ provider.id }
-					provider={ provider }
-					results={ resultsByProvider[ provider.id ] || [] }
-					onSelectMetric={ ( metric, result ) => setSelectedMetric( { metric, result } ) }
-				/>
-			) ) }
+			<div className={ refreshing ? 'wpp-monitoring-content is-refreshing' : 'wpp-monitoring-content' }>
+				{ data?.providers?.map( ( provider ) => (
+					<ProviderSection
+						key={ provider.id }
+						provider={ provider }
+						results={ resultsByProvider[ provider.id ] || [] }
+						onSelectMetric={ ( metric, result ) => setSelectedMetric( { metric, result } ) }
+					/>
+				) ) }
+			</div>
 
 			{ selectedMetric && (
 				<MetricDetailModal
