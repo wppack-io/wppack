@@ -1,4 +1,5 @@
-import { useState, useEffect } from '@wordpress/element';
+import { DataForm } from '@wordpress/dataviews/wp';
+import { useState, useEffect, useMemo } from '@wordpress/element';
 import {
 	Panel,
 	PanelBody,
@@ -7,7 +8,6 @@ import {
 	Button,
 	Notice,
 	Spinner,
-	BaseControl,
 } from '@wordpress/components';
 import { Page } from '@wordpress/admin-ui';
 import { __ } from '@wordpress/i18n';
@@ -105,31 +105,167 @@ const FIELD_LABELS = {
 	publicUrl: __( 'Public URL', 'wppack-storage' ),
 };
 
+const SENSITIVE_FIELDS = [ 'secretKey', 'accountKey', 'keyFile', 'connectionString', 'accessKey' ];
+
 function StoragePanel( { uri, storage, definitions, onChange, onDelete, isReadonly } ) {
 	const scheme = schemeFromUri( uri );
 	const def = Object.values( definitions ).find( ( d ) => d.scheme === scheme ) || {};
 	const dsnFields = parseDsn( storage.dsn );
 
-	const sensitiveFields = [ 'secretKey', 'accountKey', 'keyFile', 'connectionString', 'accessKey' ];
+	const panelData = useMemo( () => ( {
+		provider: def.label || scheme,
+		bucket: bucketFromUri( uri ),
+		...Object.fromEntries(
+			( def.fields || [] )
+				.filter( ( f ) => ! [ 'bucket', 'container' ].includes( f ) )
+				.map( ( f ) => [ f, dsnFields[ f ] || '' ] )
+		),
+		cdnUrl: storage.cdnUrl || '',
+	} ), [ def, scheme, uri, dsnFields, storage.cdnUrl ] );
 
-	const updateField = ( key ) => ( val ) => {
+	const handlePanelChange = ( edits ) => {
 		const bucket = bucketFromUri( uri );
-		const newFields = { ...dsnFields, [ key ]: val };
-		// Preserve masked values — don't overwrite server-side secrets
-		sensitiveFields.forEach( ( sf ) => {
-			if ( sf !== key && dsnFields[ sf ] === MASKED ) {
-				newFields[ sf ] = MASKED;
+		const newDsnFields = { ...dsnFields };
+		let newCdnUrl = storage.cdnUrl || '';
+
+		for ( const [ key, value ] of Object.entries( edits ) ) {
+			if ( key === 'cdnUrl' ) {
+				newCdnUrl = value;
+			} else if ( key !== 'provider' && key !== 'bucket' ) {
+				newDsnFields[ key ] = value;
+				// Preserve masked values for other sensitive fields
+				SENSITIVE_FIELDS.forEach( ( sf ) => {
+					if ( sf !== key && dsnFields[ sf ] === MASKED ) {
+						newDsnFields[ sf ] = MASKED;
+					}
+				} );
 			}
-		} );
+		}
+
 		onChange( uri, {
 			...storage,
-			dsn: buildDsn( scheme, bucket, newFields ),
+			dsn: buildDsn( scheme, bucket, newDsnFields ),
+			cdnUrl: newCdnUrl,
 		} );
 	};
 
-	const updateCdnUrl = ( val ) => {
-		onChange( uri, { ...storage, cdnUrl: val } );
-	};
+	const panelFields = useMemo( () => {
+		const result = [
+			{
+				id: 'provider',
+				label: __( 'Provider', 'wppack-storage' ),
+				type: 'text',
+				Edit: ( { data, field } ) => (
+					<TextControl
+						id={ field.id }
+						label={ field.label }
+						value={ data.provider }
+						disabled
+						onChange={ () => {} }
+						__nextHasNoMarginBottom
+					/>
+				),
+			},
+			{
+				id: 'bucket',
+				label: FIELD_LABELS.bucket,
+				type: 'text',
+				Edit: ( { data, field } ) => (
+					<TextControl
+						id={ field.id }
+						label={ field.label }
+						value={ data.bucket }
+						disabled
+						onChange={ () => {} }
+						__nextHasNoMarginBottom
+					/>
+				),
+			},
+		];
+
+		for ( const fieldKey of ( def.fields || [] ) ) {
+			if ( [ 'bucket', 'container' ].includes( fieldKey ) ) {
+				continue;
+			}
+
+			const isSensitive = [ 'secretKey', 'accountKey', 'keyFile', 'connectionString' ].includes( fieldKey );
+
+			if ( fieldKey === 'region' ) {
+				result.push( {
+					id: fieldKey,
+					label: FIELD_LABELS[ fieldKey ] || fieldKey,
+					type: 'text',
+					Edit: isReadonly
+						? ( { data, field } ) => (
+							<SelectControl
+								id={ field.id }
+								label={ field.label }
+								value={ data[ fieldKey ] || '' }
+								options={ AWS_REGIONS }
+								disabled
+								__nextHasNoMarginBottom
+							/>
+						)
+						: ( { data, field, onChange: onFieldChange } ) => (
+							<SelectControl
+								id={ field.id }
+								label={ field.label }
+								value={ data[ fieldKey ] || '' }
+								options={ AWS_REGIONS }
+								onChange={ ( val ) => onFieldChange( { [ fieldKey ]: val } ) }
+								__nextHasNoMarginBottom
+							/>
+						),
+				} );
+				continue;
+			}
+
+			result.push( {
+				id: fieldKey,
+				label: FIELD_LABELS[ fieldKey ] || fieldKey,
+				type: isSensitive ? 'password' : 'text',
+				Edit: isReadonly
+					? ( { data, field } ) => (
+						<TextControl
+							id={ field.id }
+							label={ field.label }
+							type={ isSensitive ? 'password' : 'text' }
+							value={ data[ fieldKey ] || '' }
+							disabled
+							onChange={ () => {} }
+							__nextHasNoMarginBottom
+						/>
+					)
+					: undefined,
+			} );
+		}
+
+		result.push( {
+			id: 'cdnUrl',
+			label: __( 'CDN URL', 'wppack-storage' ),
+			type: 'text',
+			description: __( 'CDN base URL for public file access.', 'wppack-storage' ),
+			Edit: isReadonly
+				? ( { data, field } ) => (
+					<TextControl
+						id={ field.id }
+						label={ field.label }
+						help={ __( 'CDN base URL for public file access.', 'wppack-storage' ) }
+						value={ data.cdnUrl || '' }
+						disabled
+						onChange={ () => {} }
+						__nextHasNoMarginBottom
+					/>
+				)
+				: undefined,
+		} );
+
+		return result;
+	}, [ def, isReadonly ] );
+
+	const panelForm = useMemo( () => ( {
+		fields: panelFields.map( ( f ) => f.id ),
+	} ), [ panelFields ] );
 
 	const titleElement = (
 		<span className="wpp-storage-panel-title">
@@ -152,50 +288,14 @@ function StoragePanel( { uri, storage, definitions, onChange, onDelete, isReadon
 					) }
 				</Notice>
 			) }
-			<div className="wpp-storage-narrow">
-				<TextControl
-					label={ __( 'Provider', 'wppack-storage' ) }
-					value={ def.label || scheme }
-					disabled={ true }
-					onChange={ () => {} }
-					__nextHasNoMarginBottom
+			<div className="wpp-storage-dataform-wrap">
+				<DataForm
+					data={ panelData }
+					fields={ panelFields }
+					form={ panelForm }
+					onChange={ handlePanelChange }
 				/>
 			</div>
-			{ ( def.fields || [] ).map( ( fieldKey ) => {
-				const isBucket = [ 'bucket', 'container' ].includes( fieldKey );
-				if ( isBucket ) {
-					return (
-						<TextControl
-							key={ fieldKey }
-							label={ FIELD_LABELS[ fieldKey ] || fieldKey }
-							value={ bucketFromUri( uri ) }
-							disabled={ true }
-							onChange={ () => {} }
-							__nextHasNoMarginBottom
-						/>
-					);
-				}
-				const isSensitive = [ 'secretKey', 'accountKey', 'keyFile', 'connectionString' ].includes( fieldKey );
-				return (
-					<TextControl
-						key={ fieldKey }
-						label={ FIELD_LABELS[ fieldKey ] || fieldKey }
-						type={ isSensitive ? 'password' : 'text' }
-						value={ dsnFields[ fieldKey ] || '' }
-						onChange={ updateField( fieldKey ) }
-						disabled={ isReadonly }
-						__nextHasNoMarginBottom
-					/>
-				);
-			} ) }
-			<TextControl
-				label={ __( 'CDN URL', 'wppack-storage' ) }
-				help={ __( 'CDN base URL for public file access.', 'wppack-storage' ) }
-				value={ storage.cdnUrl || '' }
-				onChange={ updateCdnUrl }
-				disabled={ isReadonly }
-				__nextHasNoMarginBottom
-			/>
 			{ ! isReadonly && (
 				<div className="wpp-storage-delete-storage">
 					<Button
@@ -218,11 +318,13 @@ export default function App() {
 	const [ primary, setPrimary ] = useState( '' );
 	const [ uploadsPath, setUploadsPath ] = useState( '' );
 	const [ source, setSource ] = useState( 'default' );
-	const [ newProviderType, setNewProviderType ] = useState( '' );
-	const [ newBucket, setNewBucket ] = useState( '' );
-	const [ newRegion, setNewRegion ] = useState( '' );
-	const [ newAccessKey, setNewAccessKey ] = useState( '' );
-	const [ newSecretKey, setNewSecretKey ] = useState( '' );
+	const [ newStorage, setNewStorage ] = useState( {
+		providerType: '',
+		bucket: '',
+		region: '',
+		accessKey: '',
+		secretKey: '',
+	} );
 	const [ saving, setSaving ] = useState( false );
 	const [ notice, setNotice ] = useState( null );
 	const [ loading, setLoading ] = useState( true );
@@ -293,37 +395,37 @@ export default function App() {
 		return def?.scheme || providerKey;
 	};
 
-	const newUri = newProviderType && newBucket
-		? `${ schemeForProvider( newProviderType ) }://${ newBucket }`
+	const newUri = newStorage.providerType && newStorage.bucket
+		? `${ schemeForProvider( newStorage.providerType ) }://${ newStorage.bucket }`
 		: '';
 
 	const handleAddStorage = () => {
-		if ( ! newProviderType || ! newBucket ) {
+		if ( ! newStorage.providerType || ! newStorage.bucket ) {
 			return;
 		}
 
-		const scheme = schemeForProvider( newProviderType );
-		const uri = `${ scheme }://${ newBucket }`;
+		const scheme = schemeForProvider( newStorage.providerType );
+		const uri = `${ scheme }://${ newStorage.bucket }`;
 
 		if ( storages[ uri ] ) {
 			setNotice( { type: 'error', message: __( 'A storage with this URI already exists.', 'wppack-storage' ) } );
 			return;
 		}
 
-		const dsn = buildDsn( scheme, newBucket, {
-			accessKey: newAccessKey,
-			secretKey: newSecretKey,
-			region: newRegion,
+		const dsn = buildDsn( scheme, newStorage.bucket, {
+			accessKey: newStorage.accessKey,
+			secretKey: newStorage.secretKey,
+			region: newStorage.region,
 		} );
 
-		const newStorage = {
+		const entry = {
 			dsn,
 			cdnUrl: '',
 			readonly: false,
 			uri,
 		};
 
-		setStorages( ( prev ) => ( { ...prev, [ uri ]: newStorage } ) );
+		setStorages( ( prev ) => ( { ...prev, [ uri ]: entry } ) );
 		setStorageUris( ( prev ) => [ ...prev, uri ] );
 
 		// Auto-select as primary if it's the first editable storage
@@ -332,11 +434,7 @@ export default function App() {
 		}
 
 		// Reset form
-		setNewProviderType( '' );
-		setNewBucket( '' );
-		setNewRegion( '' );
-		setNewAccessKey( '' );
-		setNewSecretKey( '' );
+		setNewStorage( { providerType: '', bucket: '', region: '', accessKey: '', secretKey: '' } );
 	};
 
 	const handleDeleteStorage = ( uri ) => {
@@ -366,6 +464,163 @@ export default function App() {
 		{ label: __( '— Select —', 'wppack-storage' ), value: '' },
 		...storageUris.map( ( uri ) => ( { label: uri, value: uri } ) ),
 	];
+
+	// ── Add Storage DataForm fields ──
+
+	const addDef = definitions[ newStorage.providerType ] || null;
+	const isLocal = addDef?.scheme === 'local';
+
+	const addFields = useMemo( () => {
+		const result = [
+			{
+				id: 'providerType',
+				label: __( 'Provider', 'wppack-storage' ),
+				type: 'text',
+				elements: providerOptions,
+				Edit: ( { data, field, onChange: onFieldChange } ) => (
+					<SelectControl
+						id={ field.id }
+						label={ field.label }
+						value={ data.providerType }
+						options={ providerOptions }
+						onChange={ ( val ) => onFieldChange( {
+							providerType: val,
+							bucket: '',
+							region: '',
+							accessKey: '',
+							secretKey: '',
+						} ) }
+						__nextHasNoMarginBottom
+					/>
+				),
+			},
+		];
+
+		if ( ! newStorage.providerType ) {
+			return result;
+		}
+
+		const idLabel = isLocal
+			? __( 'Root Path', 'wppack-storage' )
+			: ( FIELD_LABELS.bucket || 'Bucket' );
+
+		result.push( {
+			id: 'bucket',
+			label: idLabel,
+			type: 'text',
+			Edit: ( { data, field, onChange: onFieldChange } ) => (
+				<TextControl
+					id={ field.id }
+					label={ field.label }
+					value={ data.bucket }
+					placeholder={ isLocal ? '/var/www' : '' }
+					onChange={ ( val ) => onFieldChange( {
+						bucket: isLocal ? val : val.toLowerCase().replace( /[^a-z0-9._-]+/g, '' ),
+					} ) }
+					__nextHasNoMarginBottom
+				/>
+			),
+		} );
+
+		const dynamicFields = ( addDef?.fields || [] ).filter(
+			( f ) => ! [ 'bucket', 'container', 'rootDir' ].includes( f )
+		);
+
+		for ( const fieldKey of dynamicFields ) {
+			const isSensitive = [ 'secretKey', 'accountKey', 'keyFile', 'connectionString' ].includes( fieldKey );
+
+			if ( fieldKey === 'region' ) {
+				result.push( {
+					id: 'region',
+					label: FIELD_LABELS.region || 'Region',
+					type: 'text',
+					Edit: ( { data, field, onChange: onFieldChange } ) => (
+						<SelectControl
+							id={ field.id }
+							label={ field.label }
+							value={ data.region || '' }
+							options={ AWS_REGIONS }
+							onChange={ ( val ) => onFieldChange( { region: val } ) }
+							__nextHasNoMarginBottom
+						/>
+					),
+				} );
+				continue;
+			}
+
+			result.push( {
+				id: fieldKey,
+				label: FIELD_LABELS[ fieldKey ] || fieldKey,
+				type: isSensitive ? 'password' : 'text',
+			} );
+		}
+
+		return result;
+	}, [ newStorage.providerType, providerOptions, addDef, isLocal ] );
+
+	const addForm = useMemo( () => ( {
+		fields: [ {
+			id: 'add-section',
+			label: __( 'Add Storage', 'wppack-storage' ),
+			children: addFields.map( ( f ) => f.id ),
+			layout: { type: 'regular' },
+		} ],
+	} ), [ addFields ] );
+
+	const handleAddFormChange = ( edits ) => {
+		setNewStorage( ( prev ) => ( { ...prev, ...edits } ) );
+	};
+
+	// ── Global Settings DataForm fields ──
+
+	const globalFields = useMemo( () => [
+		{
+			id: 'primary',
+			label: __( 'Primary Storage', 'wppack-storage' ),
+			type: 'text',
+			description: __( 'The storage used for WordPress media uploads.', 'wppack-storage' ),
+			Edit: ( { data, field, onChange: onFieldChange } ) => (
+				<SelectControl
+					id={ field.id }
+					label={ field.label }
+					help={ __( 'The storage used for WordPress media uploads.', 'wppack-storage' ) }
+					value={ data.primary }
+					options={ primaryOptions }
+					onChange={ ( val ) => onFieldChange( { primary: val } ) }
+					__nextHasNoMarginBottom
+				/>
+			),
+		},
+		{
+			id: 'uploadsPath',
+			label: __( 'Uploads Path', 'wppack-storage' ),
+			type: 'text',
+			description: __( 'Path prefix for uploaded files (e.g. wp-content/uploads).', 'wppack-storage' ),
+		},
+	], [ primaryOptions ] );
+
+	const globalForm = useMemo( () => ( {
+		fields: [ {
+			id: 'settings-section',
+			label: __( 'Settings', 'wppack-storage' ),
+			children: globalFields.map( ( f ) => f.id ),
+			layout: { type: 'regular' },
+		} ],
+	} ), [ globalFields ] );
+
+	const globalData = useMemo( () => ( {
+		primary,
+		uploadsPath,
+	} ), [ primary, uploadsPath ] );
+
+	const handleGlobalChange = ( edits ) => {
+		if ( 'primary' in edits ) {
+			setPrimary( edits.primary );
+		}
+		if ( 'uploadsPath' in edits ) {
+			setUploadsPath( edits.uploadsPath );
+		}
+	};
 
 	return (
 		<Page
@@ -399,66 +654,13 @@ export default function App() {
 					</Panel>
 				) }
 
-				<div className="wpp-storage-add-section">
-					<SelectControl
-						label={ __( 'Provider', 'wppack-storage' ) }
-						value={ newProviderType }
-						onChange={ ( val ) => {
-							setNewProviderType( val );
-							setNewBucket( '' );
-							setNewRegion( '' );
-							setNewAccessKey( '' );
-							setNewSecretKey( '' );
-						} }
-						options={ providerOptions }
-						__nextHasNoMarginBottom
+				<div className="wpp-storage-add-section wpp-storage-dataform-wrap">
+					<DataForm
+						data={ newStorage }
+						fields={ addFields }
+						form={ addForm }
+						onChange={ handleAddFormChange }
 					/>
-					{ newProviderType && ( () => {
-						const isLocal = definitions[ newProviderType ]?.scheme === 'local';
-						const idLabel = isLocal
-							? __( 'Root Path', 'wppack-storage' )
-							: ( FIELD_LABELS.bucket || 'Bucket' );
-						return (
-						<>
-							<TextControl
-								label={ idLabel }
-								value={ newBucket }
-								placeholder={ isLocal ? '/var/www' : '' }
-								onChange={ ( val ) => setNewBucket( isLocal ? val : val.toLowerCase().replace( /[^a-z0-9._-]+/g, '' ) ) }
-								__nextHasNoMarginBottom
-							/>
-							{ ( definitions[ newProviderType ]?.fields || [] )
-								.filter( ( f ) => ! [ 'bucket', 'container', 'rootDir' ].includes( f ) )
-								.map( ( fieldKey ) => {
-									const isSensitive = [ 'secretKey', 'accountKey', 'keyFile', 'connectionString' ].includes( fieldKey );
-									const stateMap = { region: [ newRegion, setNewRegion ], accessKey: [ newAccessKey, setNewAccessKey ], secretKey: [ newSecretKey, setNewSecretKey ] };
-									const [ val, setVal ] = stateMap[ fieldKey ] || [ '', () => {} ];
-									if ( fieldKey === 'region' ) {
-										return (
-											<SelectControl
-												key={ fieldKey }
-												label={ FIELD_LABELS[ fieldKey ] || fieldKey }
-												value={ val }
-												options={ AWS_REGIONS }
-												onChange={ setVal }
-												__nextHasNoMarginBottom
-											/>
-										);
-									}
-									return (
-										<TextControl
-											key={ fieldKey }
-											label={ FIELD_LABELS[ fieldKey ] || fieldKey }
-											type={ isSensitive ? 'password' : 'text' }
-											value={ val }
-											onChange={ setVal }
-											__nextHasNoMarginBottom
-										/>
-									);
-								} ) }
-						</>
-					);
-					} )() }
 					{ newUri && (
 						<div className="wpp-storage-uri-preview">
 							{ __( 'URI Preview:', 'wppack-storage' ) }
@@ -469,30 +671,19 @@ export default function App() {
 					<Button
 						variant="secondary"
 						onClick={ handleAddStorage }
-						disabled={ ! newProviderType || ! newBucket }
+						disabled={ ! newStorage.providerType || ! newStorage.bucket }
 					>
 						{ __( 'Add Storage', 'wppack-storage' ) }
 					</Button>
 				</div>
 
 				{ storageUris.length > 0 && (
-					<div className="wpp-storage-global-settings">
-						<div className="wpp-storage-primary-select">
-							<SelectControl
-								label={ __( 'Primary Storage', 'wppack-storage' ) }
-								help={ __( 'The storage used for WordPress media uploads.', 'wppack-storage' ) }
-								value={ primary }
-								onChange={ setPrimary }
-								options={ primaryOptions }
-								__nextHasNoMarginBottom
-							/>
-						</div>
-						<TextControl
-							label={ __( 'Uploads Path', 'wppack-storage' ) }
-							help={ __( 'Path prefix for uploaded files (e.g. wp-content/uploads).', 'wppack-storage' ) }
-							value={ uploadsPath }
-							onChange={ setUploadsPath }
-							__nextHasNoMarginBottom
+					<div className="wpp-storage-global-settings wpp-storage-dataform-wrap">
+						<DataForm
+							data={ globalData }
+							fields={ globalFields }
+							form={ globalForm }
+							onChange={ handleGlobalChange }
 						/>
 					</div>
 				) }

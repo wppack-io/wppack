@@ -10,7 +10,8 @@
     "make-json": "makejson js/build languages --slug=wppack-storage"
   },
   "dependencies": {
-    "@wordpress/admin-ui": "^1.11.0"
+    "@wordpress/admin-ui": "^1.11.0",
+    "@wordpress/dataviews": "^14.0.0"
   },
   "devDependencies": {
     "@wordpress/scripts": "^31.8.0",
