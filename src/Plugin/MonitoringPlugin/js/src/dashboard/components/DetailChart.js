@@ -161,19 +161,19 @@ function computeTimeTicks( tMin, tMax ) {
 	}
 
 	// Snap to the first aligned boundary after tMin (local timezone)
-	let first;
-	if ( intervalMs >= 24 * 60 * 60 * 1000 ) {
-		// Day-level: snap to local midnight
-		const d = new Date( tMin );
-		d.setHours( 0, 0, 0, 0 );
-		if ( d.getTime() < tMin ) {
-			d.setDate( d.getDate() + 1 );
-		}
-		first = d.getTime();
-	} else {
-		// Sub-day: snap to UTC interval boundary
-		first = Math.ceil( tMin / intervalMs ) * intervalMs;
+	const intervalHours = intervalMs / ( 3600 * 1000 );
+	const d0 = new Date( tMin );
+	d0.setMinutes( 0, 0, 0 );
+	// Round up to next aligned hour (0, 6, 12, 18 for 6h; 0, 3, 6... for 3h; etc.)
+	const curHour = d0.getHours();
+	const nextHour = Math.ceil( curHour / intervalHours ) * intervalHours;
+	if ( nextHour > curHour || d0.getTime() < tMin ) {
+		d0.setHours( nextHour );
 	}
+	if ( d0.getTime() <= tMin ) {
+		d0.setTime( d0.getTime() + intervalMs );
+	}
+	const first = d0.getTime();
 
 	const ticks = [];
 	for ( let t = first; t <= tMax; t += intervalMs ) {
