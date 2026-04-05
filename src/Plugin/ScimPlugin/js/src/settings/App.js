@@ -1,14 +1,12 @@
-import { useState, useEffect } from '@wordpress/element';
+import { DataForm } from '@wordpress/dataviews/wp';
+import { useState, useEffect, useMemo } from '@wordpress/element';
 import {
-	Panel,
-	PanelBody,
 	TextControl,
 	ToggleControl,
 	SelectControl,
 	Button,
 	Notice,
 	Spinner,
-	BaseControl,
 } from '@wordpress/components';
 import { Page } from '@wordpress/admin-ui';
 import { __ } from '@wordpress/i18n';
@@ -31,25 +29,43 @@ function SourceBadge( { source } ) {
 	);
 }
 
+function badgeLabel( label, showBadge ) {
+	if ( ! showBadge ) {
+		return label;
+	}
+	return <><span>{ label }</span><SourceBadge source="constant" /></>;
+}
+
 export default function App() {
-	const [ settings, setSettings ] = useState( null );
-	const [ form, setForm ] = useState( {} );
-	const [ baseUrl, setBaseUrl ] = useState( '' );
-	const [ roles, setRoles ] = useState( {} );
+	const [ formData, setFormData ] = useState( {
+		bearerToken: '',
+		autoProvision: false,
+		defaultRole: 'subscriber',
+		allowGroupManagement: false,
+		allowUserDeletion: false,
+		maxResults: 100,
+	} );
+	const [ meta, setMeta ] = useState( {
+		settings: {},
+		baseUrl: '',
+		roles: {},
+	} );
 	const [ saving, setSaving ] = useState( false );
 	const [ notice, setNotice ] = useState( null );
 	const [ loading, setLoading ] = useState( true );
 
 	const applyResponse = ( data ) => {
-		setSettings( data.settings );
-		setBaseUrl( data.baseUrl || '' );
-		setRoles( data.roles || {} );
-
-		const f = {};
-		Object.entries( data.settings || {} ).forEach( ( [ k, m ] ) => {
-			f[ k ] = m.value;
+		const s = data.settings || {};
+		const fd = {};
+		Object.entries( s ).forEach( ( [ k, m ] ) => {
+			fd[ k ] = m.value;
 		} );
-		setForm( f );
+		setFormData( ( prev ) => ( { ...prev, ...fd } ) );
+		setMeta( {
+			settings: s,
+			baseUrl: data.baseUrl || '',
+			roles: data.roles || {},
+		} );
 	};
 
 	useEffect( () => {
@@ -59,10 +75,7 @@ export default function App() {
 				setLoading( false );
 			} )
 			.catch( () => {
-				setNotice( {
-					type: 'error',
-					message: __( 'Failed to load settings.', 'wppack-scim' ),
-				} );
+				setNotice( { type: 'error', message: __( 'Failed to load settings.', 'wppack-scim' ) } );
 				setLoading( false );
 			} );
 	}, [] );
@@ -70,207 +83,236 @@ export default function App() {
 	const handleSave = () => {
 		setSaving( true );
 		setNotice( null );
-
 		apiFetch( {
 			path: '/wppack/v1/scim/settings',
 			method: 'POST',
-			data: form,
+			data: formData,
 		} )
 			.then( ( data ) => {
 				applyResponse( data );
-				setNotice( {
-					type: 'success',
-					message: __( 'Settings saved.', 'wppack-scim' ),
-				} );
+				setNotice( { type: 'success', message: __( 'Settings saved.', 'wppack-scim' ) } );
 			} )
 			.catch( () => {
-				setNotice( {
-					type: 'error',
-					message: __( 'Failed to save settings.', 'wppack-scim' ),
-				} );
+				setNotice( { type: 'error', message: __( 'Failed to save settings.', 'wppack-scim' ) } );
 			} )
 			.finally( () => setSaving( false ) );
 	};
 
-	const update = ( key ) => ( value ) => {
-		setForm( ( prev ) => ( { ...prev, [ key ]: value } ) );
+	const s = ( key ) => meta.settings[ key ] || {};
+
+	const roleOptions = useMemo( () =>
+		Object.entries( meta.roles ).map( ( [ value, label ] ) => ( { label, value } ) ),
+	[ meta.roles ] );
+
+	// ── Authentication fields ──
+
+	const authFields = useMemo( () => [
+		{
+			id: 'bearerToken',
+			label: badgeLabel( __( 'Bearer Token', 'wppack-scim' ), s( 'bearerToken' ).source === 'constant' ),
+			type: 'text',
+			description: __( 'Token for SCIM API authentication. Leave as masked to keep current value.', 'wppack-scim' ),
+			getValue: ( { item } ) => item.bearerToken || '',
+			Edit: ( { data, field } ) => (
+				<TextControl
+					id={ field.id }
+					label={ field.label }
+					value={ data.bearerToken || '' }
+					onChange={ ( val ) => setFormData( ( prev ) => ( { ...prev, bearerToken: val } ) ) }
+					disabled={ !! s( 'bearerToken' ).readonly }
+					help={ field.description }
+					__nextHasNoMarginBottom
+				/>
+			),
+		},
+	], [ meta.settings ] );
+
+	// ── Provisioning fields ──
+
+	const provisioningFields = useMemo( () => [
+		{
+			id: 'autoProvision',
+			label: badgeLabel( __( 'Auto Provision', 'wppack-scim' ), s( 'autoProvision' ).source === 'constant' ),
+			type: 'text',
+			getValue: ( { item } ) => item.autoProvision,
+			Edit: ( { data, field } ) => (
+				<ToggleControl
+					label={ field.label }
+					help={ __( 'Automatically create WordPress users from SCIM requests.', 'wppack-scim' ) }
+					checked={ !! data.autoProvision }
+					onChange={ ( val ) => setFormData( ( prev ) => ( { ...prev, autoProvision: val } ) ) }
+					disabled={ !! s( 'autoProvision' ).readonly }
+					__nextHasNoMarginBottom
+				/>
+			),
+		},
+		{
+			id: 'defaultRole',
+			label: badgeLabel( __( 'Default Role', 'wppack-scim' ), s( 'defaultRole' ).source === 'constant' ),
+			type: 'text',
+			getValue: ( { item } ) => item.defaultRole || 'subscriber',
+			Edit: ( { data, field } ) => (
+				<SelectControl
+					id={ field.id }
+					label={ field.label }
+					value={ data.defaultRole || 'subscriber' }
+					onChange={ ( val ) => setFormData( ( prev ) => ( { ...prev, defaultRole: val } ) ) }
+					disabled={ !! s( 'defaultRole' ).readonly }
+					options={ roleOptions }
+					className="wpp-scim-small-select"
+					__nextHasNoMarginBottom
+				/>
+			),
+		},
+		{
+			id: 'allowGroupManagement',
+			label: badgeLabel( __( 'Allow Group Management', 'wppack-scim' ), s( 'allowGroupManagement' ).source === 'constant' ),
+			type: 'text',
+			getValue: ( { item } ) => item.allowGroupManagement,
+			Edit: ( { data, field } ) => (
+				<ToggleControl
+					label={ field.label }
+					help={ __( 'Allow SCIM to manage WordPress roles as groups.', 'wppack-scim' ) }
+					checked={ !! data.allowGroupManagement }
+					onChange={ ( val ) => setFormData( ( prev ) => ( { ...prev, allowGroupManagement: val } ) ) }
+					disabled={ !! s( 'allowGroupManagement' ).readonly }
+					__nextHasNoMarginBottom
+				/>
+			),
+		},
+		{
+			id: 'allowUserDeletion',
+			label: badgeLabel( __( 'Allow User Deletion', 'wppack-scim' ), s( 'allowUserDeletion' ).source === 'constant' ),
+			type: 'text',
+			getValue: ( { item } ) => item.allowUserDeletion,
+			Edit: ( { data, field } ) => (
+				<ToggleControl
+					label={ field.label }
+					help={ __( 'Allow SCIM DELETE requests to remove WordPress users.', 'wppack-scim' ) }
+					checked={ !! data.allowUserDeletion }
+					onChange={ ( val ) => setFormData( ( prev ) => ( { ...prev, allowUserDeletion: val } ) ) }
+					disabled={ !! s( 'allowUserDeletion' ).readonly }
+					__nextHasNoMarginBottom
+				/>
+			),
+		},
+		{
+			id: 'maxResults',
+			label: badgeLabel( __( 'Max Results', 'wppack-scim' ), s( 'maxResults' ).source === 'constant' ),
+			type: 'text',
+			getValue: ( { item } ) => String( item.maxResults || 100 ),
+			Edit: ( { data, field } ) => (
+				<TextControl
+					id={ field.id }
+					label={ field.label }
+					type="number"
+					min={ 1 }
+					max={ 1000 }
+					value={ String( data.maxResults || 100 ) }
+					onChange={ ( val ) => setFormData( ( prev ) => ( { ...prev, maxResults: parseInt( val, 10 ) || 100 } ) ) }
+					disabled={ !! s( 'maxResults' ).readonly }
+					className="wpp-scim-small-input"
+					help={ __( 'Maximum number of resources returned per list request (1-1000).', 'wppack-scim' ) }
+					__nextHasNoMarginBottom
+				/>
+			),
+		},
+	], [ meta.settings, roleOptions ] );
+
+	// ── SCIM Endpoints fields ──
+
+	const endpointFields = useMemo( () => {
+		const base = meta.baseUrl;
+		const endpoints = [
+			{ id: 'endpointUsers', label: 'Users', path: '/scim/v2/Users' },
+			{ id: 'endpointGroups', label: 'Groups', path: '/scim/v2/Groups' },
+			{ id: 'endpointServiceProviderConfig', label: 'ServiceProviderConfig', path: '/scim/v2/ServiceProviderConfig' },
+			{ id: 'endpointSchemas', label: 'Schemas', path: '/scim/v2/Schemas' },
+			{ id: 'endpointResourceTypes', label: 'ResourceTypes', path: '/scim/v2/ResourceTypes' },
+		];
+		return endpoints.map( ( ep ) => ( {
+			id: ep.id,
+			label: ep.label,
+			type: 'text',
+			getValue: () => `${ base }${ ep.path }`,
+			Edit: ( { field } ) => (
+				<TextControl
+					id={ field.id }
+					label={ field.label }
+					value={ `${ base }${ ep.path }` }
+					readOnly
+					__nextHasNoMarginBottom
+				/>
+			),
+		} ) );
+	}, [ meta.baseUrl ] );
+
+	// ── Combined form layout ──
+
+	const allFields = useMemo(
+		() => [ ...authFields, ...provisioningFields, ...endpointFields ],
+		[ authFields, provisioningFields, endpointFields ]
+	);
+
+	const formLayout = useMemo( () => ( {
+		fields: [
+			{
+				id: 'auth-section',
+				label: __( 'Authentication', 'wppack-scim' ),
+				children: authFields.map( ( f ) => f.id ),
+				layout: { type: 'regular' },
+			},
+			{
+				id: 'provisioning-section',
+				label: __( 'Provisioning', 'wppack-scim' ),
+				children: provisioningFields.map( ( f ) => f.id ),
+				layout: { type: 'regular' },
+			},
+			{
+				id: 'endpoints-section',
+				label: __( 'SCIM Endpoints', 'wppack-scim' ),
+				children: endpointFields.map( ( f ) => f.id ),
+				layout: { type: 'regular' },
+			},
+		],
+	} ), [ authFields, provisioningFields, endpointFields ] );
+
+	const handleFormChange = ( edits ) => {
+		setFormData( ( prev ) => ( { ...prev, ...edits } ) );
 	};
 
-	const s = ( key ) => settings?.[ key ] || {};
-
 	if ( loading ) {
-		return (
-			<div className="wpp-scim-loading">
-				<Spinner />
-			</div>
-		);
+		return <div className="wpp-scim-loading"><Spinner /></div>;
 	}
-
-	const roleOptions = Object.entries( roles ).map( ( [ value, label ] ) => ( {
-		label,
-		value,
-	} ) );
 
 	return (
 		<Page title={ __( 'SCIM Settings', 'wppack-scim' ) } hasPadding>
 			<div className="wpp-scim-settings">
 				{ notice && (
-				<Notice
-					status={ notice.type }
-					isDismissible
-					onDismiss={ () => setNotice( null ) }
-				>
-					{ notice.message }
-				</Notice>
-			) }
+					<Notice status={ notice.type } isDismissible onDismiss={ () => setNotice( null ) }>
+						{ notice.message }
+					</Notice>
+				) }
 
-			<Panel>
-				<PanelBody
-					title={ __( 'Authentication', 'wppack-scim' ) }
-					initialOpen={ true }
-				>
-					<TextControl
-						id="bearerToken"
-						label={
-							<>
-								{ __( 'Bearer Token', 'wppack-scim' ) }
-								<SourceBadge source={ s( 'bearerToken' ).source } />
-							</>
-						}
-						value={ form.bearerToken || '' }
-						onChange={ update( 'bearerToken' ) }
-						disabled={ s( 'bearerToken' ).readonly }
-						help={ __( 'Token for SCIM API authentication. Leave as masked to keep current value.', 'wppack-scim' ) }
-						__nextHasNoMarginBottom
+				<div className="wpp-scim-dataform-wrap">
+					<DataForm
+						data={ formData }
+						fields={ allFields }
+						form={ formLayout }
+						onChange={ handleFormChange }
 					/>
-				</PanelBody>
+				</div>
 
-				<PanelBody
-					title={ __( 'Provisioning', 'wppack-scim' ) }
-					initialOpen={ true }
-				>
-					<ToggleControl
-						label={
-							<>
-								{ __( 'Auto Provision', 'wppack-scim' ) }
-								<SourceBadge source={ s( 'autoProvision' ).source } />
-							</>
-						}
-						help={ __( 'Automatically create WordPress users from SCIM requests.', 'wppack-scim' ) }
-						checked={ !! form.autoProvision }
-						onChange={ update( 'autoProvision' ) }
-						disabled={ s( 'autoProvision' ).readonly }
-						__nextHasNoMarginBottom
-					/>
-					<SelectControl
-						label={
-							<>
-								{ __( 'Default Role', 'wppack-scim' ) }
-								<SourceBadge source={ s( 'defaultRole' ).source } />
-							</>
-						}
-						value={ form.defaultRole || 'subscriber' }
-						onChange={ update( 'defaultRole' ) }
-						disabled={ s( 'defaultRole' ).readonly }
-						options={ roleOptions }
-						className="wpp-scim-small-select"
-						__nextHasNoMarginBottom
-					/>
-					<ToggleControl
-						label={
-							<>
-								{ __( 'Allow Group Management', 'wppack-scim' ) }
-								<SourceBadge source={ s( 'allowGroupManagement' ).source } />
-							</>
-						}
-						help={ __( 'Allow SCIM to manage WordPress roles as groups.', 'wppack-scim' ) }
-						checked={ !! form.allowGroupManagement }
-						onChange={ update( 'allowGroupManagement' ) }
-						disabled={ s( 'allowGroupManagement' ).readonly }
-						__nextHasNoMarginBottom
-					/>
-					<ToggleControl
-						label={
-							<>
-								{ __( 'Allow User Deletion', 'wppack-scim' ) }
-								<SourceBadge source={ s( 'allowUserDeletion' ).source } />
-							</>
-						}
-						help={ __( 'Allow SCIM DELETE requests to remove WordPress users.', 'wppack-scim' ) }
-						checked={ !! form.allowUserDeletion }
-						onChange={ update( 'allowUserDeletion' ) }
-						disabled={ s( 'allowUserDeletion' ).readonly }
-						__nextHasNoMarginBottom
-					/>
-					<TextControl
-						id="maxResults"
-						label={
-							<>
-								{ __( 'Max Results', 'wppack-scim' ) }
-								<SourceBadge source={ s( 'maxResults' ).source } />
-							</>
-						}
-						type="number"
-						min={ 1 }
-						max={ 1000 }
-						value={ String( form.maxResults || 100 ) }
-						onChange={ ( val ) => update( 'maxResults' )( parseInt( val, 10 ) || 100 ) }
-						disabled={ s( 'maxResults' ).readonly }
-						className="wpp-scim-small-input"
-						help={ __( 'Maximum number of resources returned per list request (1-1000).', 'wppack-scim' ) }
-						__nextHasNoMarginBottom
-					/>
-				</PanelBody>
-
-				<PanelBody
-					title={ __( 'SCIM Endpoints', 'wppack-scim' ) }
-					initialOpen={ false }
-				>
-					<TextControl
-						label="Users"
-						value={ `${ baseUrl }/scim/v2/Users` }
-						readOnly
-						__nextHasNoMarginBottom
-					/>
-					<TextControl
-						label="Groups"
-						value={ `${ baseUrl }/scim/v2/Groups` }
-						readOnly
-						__nextHasNoMarginBottom
-					/>
-					<TextControl
-						label="ServiceProviderConfig"
-						value={ `${ baseUrl }/scim/v2/ServiceProviderConfig` }
-						readOnly
-						__nextHasNoMarginBottom
-					/>
-					<TextControl
-						label="Schemas"
-						value={ `${ baseUrl }/scim/v2/Schemas` }
-						readOnly
-						__nextHasNoMarginBottom
-					/>
-					<TextControl
-						label="ResourceTypes"
-						value={ `${ baseUrl }/scim/v2/ResourceTypes` }
-						readOnly
-						__nextHasNoMarginBottom
-					/>
-				</PanelBody>
-			</Panel>
-
-			<div className="wpp-scim-actions">
-				<Button
-					variant="primary"
-					onClick={ handleSave }
-					isBusy={ saving }
-					disabled={ saving }
-				>
-					{ saving
-						? __( 'Saving…', 'wppack-scim' )
-						: __( 'Save Settings', 'wppack-scim' ) }
-				</Button>
-			</div>
+				<div className="wpp-scim-actions">
+					<Button
+						variant="primary"
+						onClick={ handleSave }
+						isBusy={ saving }
+						disabled={ saving }
+					>
+						{ saving ? __( 'Saving…', 'wppack-scim' ) : __( 'Save Settings', 'wppack-scim' ) }
+					</Button>
+				</div>
 			</div>
 		</Page>
 	);

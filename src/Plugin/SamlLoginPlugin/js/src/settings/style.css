@@ -30,7 +30,6 @@
 
 .wpp-saml-settings {
 	max-width: 800px;
-	margin-top: 16px;
 }
 
 .wpp-saml-settings input[readonly],
@@ -44,18 +43,6 @@
 
 .wpp-saml-narrow {
 	max-width: 280px;
-}
-
-.wpp-saml-settings h1 {
-	margin-bottom: 16px;
-}
-
-.wpp-saml-settings .components-panel {
-	margin-bottom: 16px;
-}
-
-.wpp-saml-settings .components-panel__body .components-base-control {
-	margin-bottom: 16px;
 }
 
 .wpp-saml-loading {
@@ -97,21 +84,12 @@
 	border: 1px solid #90caf9;
 }
 
-.wpp-saml-settings .components-panel__body.is-opened {
-	padding-bottom: 0;
-}
-
-.wpp-saml-settings .components-panel__body.is-opened > .components-panel__body-title {
-	margin-bottom: 16px;
-}
-
 .wpp-saml-settings .components-notice {
 	margin-bottom: 16px;
 }
 
 .wpp-saml-metadata-download {
 	margin-top: 16px;
-	margin-bottom: 16px;
 }
 
 .wpp-saml-path-field {
@@ -141,4 +119,38 @@
 
 .wpp-saml-path-field:has(input[disabled]) .wpp-saml-path-prefix {
 	border-color: rgba(0, 0, 0, 0.1);
+}
+
+/* ── DataForm: match standard TextControl/SelectControl height ── */
+.wpp-saml-dataform-wrap .components-base-control__label {
+	text-transform: none;
+}
+
+.wpp-saml-dataform-wrap .components-input-control__input,
+.wpp-saml-dataform-wrap .components-text-control__input {
+	height: 32px !important;
+	min-height: 32px !important;
+}
+
+.wpp-saml-dataform-wrap .components-input-control__backdrop {
+	border-width: 1px !important;
+	border-style: solid !important;
+	border-color: #949494 !important;
+	border-radius: 2px !important;
+}
+
+.wpp-saml-dataform-wrap .components-input-control__container {
+	min-height: 32px !important;
+}
+
+.wpp-saml-dataform-wrap .components-input-control__container select,
+.wpp-saml-dataform-wrap .components-select-control__input {
+	height: 32px !important;
+	min-height: 32px !important;
+	padding: 0 26px 0 8px !important;
+}
+
+.wpp-saml-dataform-wrap .components-combobox-control__suggestions-container .components-flex {
+	height: 32px !important;
+	min-height: 32px !important;
 }

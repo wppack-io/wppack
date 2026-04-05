@@ -48,19 +48,15 @@
 	max-width: 280px;
 }
 
+.wpp-oauth-settings > .wpp-oauth-dataform-wrap {
+	margin-bottom: 16px;
+}
+
+.wpp-oauth-dataform-wrap .components-base-control {
+	margin-bottom: 0;
+}
+
 .wpp-oauth-settings .components-panel {
-	margin-bottom: 16px;
-}
-
-.wpp-oauth-settings .components-panel__body .components-base-control {
-	margin-bottom: 16px;
-}
-
-.wpp-oauth-settings .components-panel__body.is-opened {
-	padding-bottom: 0;
-}
-
-.wpp-oauth-settings .components-panel__body.is-opened > .components-panel__body-title {
 	margin-bottom: 16px;
 }
 
@@ -193,25 +189,16 @@
 	color: #757575;
 }
 
-.wpp-oauth-add-provider {
-	display: flex;
-	align-items: center;
-	gap: 8px;
+.wpp-oauth-add-section {
 	margin-top: 16px;
+	padding: 16px;
+	border: 1px solid #e0e0e0;
+	border-radius: 4px;
+	background: #fafafa;
 }
 
-.wpp-oauth-add-provider .components-base-control {
-	flex: 1;
-	margin-bottom: 0;
-}
-
-.wpp-oauth-add-provider .components-base-control__field {
-	margin-bottom: 0;
-}
-
-.wpp-oauth-add-provider .components-button {
-	height: 36px;
-	flex-shrink: 0;
+.wpp-oauth-add-section > .components-button {
+	margin-top: 16px;
 }
 
 .wpp-oauth-button-preview {
@@ -297,4 +284,38 @@
 	border-radius: 2px;
 	font-size: 12px;
 	word-break: break-all;
+}
+
+/* ── DataForm: match standard TextControl/SelectControl height ── */
+.wpp-oauth-dataform-wrap .components-base-control__label {
+	text-transform: none;
+}
+
+.wpp-oauth-dataform-wrap .components-input-control__input,
+.wpp-oauth-dataform-wrap .components-text-control__input {
+	height: 32px !important;
+	min-height: 32px !important;
+}
+
+.wpp-oauth-dataform-wrap .components-input-control__backdrop {
+	border-width: 1px !important;
+	border-style: solid !important;
+	border-color: #949494 !important;
+	border-radius: 2px !important;
+}
+
+.wpp-oauth-dataform-wrap .components-input-control__container {
+	min-height: 32px !important;
+}
+
+.wpp-oauth-dataform-wrap .components-input-control__container select,
+.wpp-oauth-dataform-wrap .components-select-control__input {
+	height: 32px !important;
+	min-height: 32px !important;
+	padding: 0 26px 0 8px !important;
+}
+
+.wpp-oauth-dataform-wrap .components-combobox-control__suggestions-container .components-flex {
+	height: 32px !important;
+	min-height: 32px !important;
 }

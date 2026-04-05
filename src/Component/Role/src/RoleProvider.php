@@ -42,7 +42,7 @@ final readonly class RoleProvider
      */
     public function getNames(): array
     {
-        return wp_roles()->get_names();
+        return array_map('translate_user_role', wp_roles()->get_names());
     }
 
     /**

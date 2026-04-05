@@ -105,6 +105,10 @@
 }
 
 /* ── DataForm: match standard TextControl/SelectControl height ── */
+.wpp-mailer-dataform-wrap .components-base-control__label {
+	text-transform: none;
+}
+
 .wpp-mailer-dataform-wrap .components-input-control__input,
 .wpp-mailer-dataform-wrap .components-text-control__input {
 	height: 32px !important;

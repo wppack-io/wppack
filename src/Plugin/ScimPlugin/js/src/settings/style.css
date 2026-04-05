@@ -44,22 +44,6 @@
 	margin-bottom: 16px;
 }
 
-.wpp-scim-settings .components-panel {
-	margin-bottom: 16px;
-}
-
-.wpp-scim-settings .components-panel__body .components-base-control {
-	margin-bottom: 16px;
-}
-
-.wpp-scim-settings .components-panel__body.is-opened {
-	padding-bottom: 0;
-}
-
-.wpp-scim-settings .components-panel__body.is-opened > .components-panel__body-title {
-	margin-bottom: 16px;
-}
-
 .wpp-scim-loading {
 	display: flex;
 	justify-content: center;
@@ -106,3 +90,36 @@
 	max-width: 200px !important;
 }
 
+/* ── DataForm: match standard TextControl/SelectControl height ── */
+.wpp-scim-dataform-wrap .components-base-control__label {
+	text-transform: none;
+}
+
+.wpp-scim-dataform-wrap .components-input-control__input,
+.wpp-scim-dataform-wrap .components-text-control__input {
+	height: 32px !important;
+	min-height: 32px !important;
+}
+
+.wpp-scim-dataform-wrap .components-input-control__backdrop {
+	border-width: 1px !important;
+	border-style: solid !important;
+	border-color: #949494 !important;
+	border-radius: 2px !important;
+}
+
+.wpp-scim-dataform-wrap .components-input-control__container {
+	min-height: 32px !important;
+}
+
+.wpp-scim-dataform-wrap .components-input-control__container select,
+.wpp-scim-dataform-wrap .components-select-control__input {
+	height: 32px !important;
+	min-height: 32px !important;
+	padding: 0 26px 0 8px !important;
+}
+
+.wpp-scim-dataform-wrap .components-combobox-control__suggestions-container .components-flex {
+	height: 32px !important;
+	min-height: 32px !important;
+}

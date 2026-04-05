@@ -92,6 +92,10 @@
 }
 
 /* ── DataForm: match standard TextControl/SelectControl height ── */
+.wpp-cache-dataform-wrap .components-base-control__label {
+	text-transform: none;
+}
+
 .wpp-cache-dataform-wrap .components-input-control__input,
 .wpp-cache-dataform-wrap .components-text-control__input {
 	height: 32px !important;

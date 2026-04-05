@@ -334,6 +334,10 @@
 }
 
 /* ── DataForm: match standard TextControl/SelectControl style ─── */
+.wpp-monitoring-dataform-wrap .components-base-control__label {
+	text-transform: none;
+}
+
 .wpp-monitoring-dataform-wrap .components-input-control__input {
 	height: 32px !important;
 	min-height: 32px !important;

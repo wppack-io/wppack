@@ -1,7 +1,6 @@
-import { useState, useEffect } from '@wordpress/element';
+import { DataForm } from '@wordpress/dataviews/wp';
+import { useState, useEffect, useMemo } from '@wordpress/element';
 import {
-	Panel,
-	PanelBody,
 	TextControl,
 	TextareaControl,
 	ToggleControl,
@@ -18,7 +17,7 @@ import apiFetch from '@wordpress/api-fetch';
 const SENSITIVE_MASK = '********';
 
 function SourceBadge( { source } ) {
-	if ( source === 'default' ) {
+	if ( ! source || source === 'default' ) {
 		return null;
 	}
 	const labels = {
@@ -33,20 +32,16 @@ function SourceBadge( { source } ) {
 	);
 }
 
-function PathField( { id, label, field, value, onChange, prefix } ) {
-	const isReadonly = field?.readonly;
-	const source = field?.source || 'default';
+function badgeLabel( label, source ) {
+	if ( ! source || source === 'default' ) {
+		return label;
+	}
+	return <><span>{ label }</span><SourceBadge source={ source } /></>;
+}
 
+function PathField( { id, label, value, onChange, prefix, disabled } ) {
 	return (
-		<BaseControl
-			id={ id }
-			label={
-				<>
-					{ label }
-					<SourceBadge source={ source } />
-				</>
-			}
-		>
+		<BaseControl id={ id } label={ label }>
 			<div className="wpp-saml-path-field">
 				<span className="wpp-saml-path-prefix">{ prefix }</span>
 				<input
@@ -55,79 +50,39 @@ function PathField( { id, label, field, value, onChange, prefix } ) {
 					className="components-text-control__input"
 					value={ value || '' }
 					onChange={ ( e ) => onChange( e.target.value ) }
-					disabled={ isReadonly }
+					disabled={ disabled }
 				/>
 			</div>
 		</BaseControl>
 	);
 }
 
-function Field( { id, label, field, value, onChange, help } ) {
-	const isReadonly = field?.readonly;
-	const source = field?.source || 'default';
-
-	return (
-		<TextControl
-			id={ id }
-			label={
-				<>
-					{ label }
-					<SourceBadge source={ source } />
-				</>
-			}
-			value={ value || '' }
-			onChange={ onChange }
-			disabled={ isReadonly }
-			help={ help }
-			__nextHasNoMarginBottom
-		/>
-	);
-}
-
-function BoolField( { id, label, field, value, onChange, help } ) {
-	const isReadonly = field?.readonly;
-
-	return (
-		<ToggleControl
-			label={
-				<>
-					{ label }
-					<SourceBadge source={ field?.source } />
-				</>
-			}
-			help={ help }
-			checked={ !! value }
-			onChange={ onChange }
-			disabled={ isReadonly }
-			__nextHasNoMarginBottom
-		/>
-	);
-}
-
 export default function App() {
-	const [ settings, setSettings ] = useState( null );
-	const [ siteUrl, setSiteUrl ] = useState( '' );
-	const [ roles, setRoles ] = useState( {} );
 	const [ formData, setFormData ] = useState( {} );
+	const [ meta, setMeta ] = useState( {
+		fields: {},
+		siteUrl: '',
+		roles: {},
+	} );
 	const [ saving, setSaving ] = useState( false );
 	const [ notice, setNotice ] = useState( null );
 	const [ loading, setLoading ] = useState( true );
 
 	const applyResponse = ( data ) => {
-		setSiteUrl( data.siteUrl || '' );
-		setRoles( data.roles || {} );
-		setSettings( data.fields );
 		const values = {};
-		Object.entries( data.fields ).forEach( ( [ key, meta ] ) => {
-			values[ key ] = meta.value;
+		Object.entries( data.fields ).forEach( ( [ key, m ] ) => {
+			values[ key ] = m.value;
 		} );
 		setFormData( values );
+		setMeta( {
+			fields: data.fields,
+			siteUrl: data.siteUrl || '',
+			roles: data.roles || {},
+		} );
 	};
 
 	useEffect( () => {
-		apiFetch( {
-			path: '/wppack/v1/saml-login/settings',
-		} )
+		apiFetch( { path: '/wppack/v1/saml-login/settings' } )
 			.then( ( data ) => {
 				applyResponse( data );
 				setLoading( false );
@@ -166,10 +121,6 @@ export default function App() {
 			.finally( () => setSaving( false ) );
 	};
 
-	const updateField = ( key ) => ( value ) => {
-		setFormData( ( prev ) => ( { ...prev, [ key ]: value } ) );
-	};
-
 	const handleDownloadMetadata = () => {
 		apiFetch( {
 			path: '/wppack/v1/saml-login/metadata',
@@ -195,77 +146,141 @@ export default function App() {
 			} );
 	};
 
-	if ( loading ) {
-		return (
-			<div className="wpp-saml-loading">
-				<Spinner />
-			</div>
-		);
-	}
-
-	const f = ( key ) => settings?.[ key ] || {};
+	const f = ( key ) => meta.fields[ key ] || {};
 	const isSensitive = ( key ) =>
 		[ 'idpX509Cert', 'idpCertFingerprint' ].includes( key );
-	const roleOptions = Object.entries( roles ).map( ( [ value, label ] ) => ( {
-		label,
-		value,
-	} ) );
 
-	return (
-		<Page title={ __( 'SAML Login Settings', 'wppack-saml-login' ) } hasPadding>
-			<div className="wpp-saml-settings">
-				{ notice && (
-				<Notice
-					status={ notice.type }
-					isDismissible
-					onDismiss={ () => setNotice( null ) }
-				>
-					{ notice.message }
-				</Notice>
-			) }
+	const roleOptions = useMemo(
+		() =>
+			Object.entries( meta.roles ).map( ( [ value, label ] ) => ( {
+				label,
+				value,
+			} ) ),
+		[ meta.roles ]
+	);
 
-			<Panel>
-				<PanelBody
-					title={ __( 'Identity Provider (IdP)', 'wppack-saml-login' ) }
-					initialOpen={ true }
-				>
-					<Field
-						id="idpEntityId"
-						label={ __( 'Entity ID', 'wppack-saml-login' ) }
-						field={ f( 'idpEntityId' ) }
-						value={ formData.idpEntityId }
-						onChange={ updateField( 'idpEntityId' ) }
-					/>
-					<Field
-						id="idpSsoUrl"
-						label={ __( 'SSO URL', 'wppack-saml-login' ) }
-						field={ f( 'idpSsoUrl' ) }
-						value={ formData.idpSsoUrl }
-						onChange={ updateField( 'idpSsoUrl' ) }
-					/>
-					<Field
-						id="idpSloUrl"
-						label={ __( 'SLO URL', 'wppack-saml-login' ) }
-						field={ f( 'idpSloUrl' ) }
-						value={ formData.idpSloUrl }
-						onChange={ updateField( 'idpSloUrl' ) }
-						help={ __( 'Single Logout URL (optional)', 'wppack-saml-login' ) }
-					/>
-					<TextareaControl
-						id="idpX509Cert"
-						label={
-							<>
-								{ __( 'X.509 Certificate', 'wppack-saml-login' ) }
-								<SourceBadge source={ f( 'idpX509Cert' ).source } />
-							</>
+	const nameIdOptions = useMemo(
+		() => [
+			{
+				label: 'Unspecified',
+				value: 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified',
+			},
+			{
+				label: 'Email Address',
+				value: 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
+			},
+			{
+				label: 'Persistent',
+				value: 'urn:oasis:names:tc:SAML:2.0:nameid-format:persistent',
+			},
+			{
+				label: 'Transient',
+				value: 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient',
+			},
+		],
+		[]
+	);
+
+	// ── Identity Provider fields ──
+
+	const idpFields = useMemo(
+		() => [
+			{
+				id: 'idpEntityId',
+				label: badgeLabel(
+					__( 'Entity ID', 'wppack-saml-login' ),
+					f( 'idpEntityId' ).source
+				),
+				type: 'text',
+				Edit: ( { data, field } ) => (
+					<TextControl
+						id={ field.id }
+						label={ field.label }
+						value={ data.idpEntityId || '' }
+						onChange={ ( val ) =>
+							setFormData( ( prev ) => ( {
+								...prev,
+								idpEntityId: val,
+							} ) )
 						}
+						disabled={ f( 'idpEntityId' ).readonly }
+						__nextHasNoMarginBottom
+					/>
+				),
+			},
+			{
+				id: 'idpSsoUrl',
+				label: badgeLabel(
+					__( 'SSO URL', 'wppack-saml-login' ),
+					f( 'idpSsoUrl' ).source
+				),
+				type: 'text',
+				Edit: ( { data, field } ) => (
+					<TextControl
+						id={ field.id }
+						label={ field.label }
+						value={ data.idpSsoUrl || '' }
+						onChange={ ( val ) =>
+							setFormData( ( prev ) => ( {
+								...prev,
+								idpSsoUrl: val,
+							} ) )
+						}
+						disabled={ f( 'idpSsoUrl' ).readonly }
+						__nextHasNoMarginBottom
+					/>
+				),
+			},
+			{
+				id: 'idpSloUrl',
+				label: badgeLabel(
+					__( 'SLO URL', 'wppack-saml-login' ),
+					f( 'idpSloUrl' ).source
+				),
+				type: 'text',
+				Edit: ( { data, field } ) => (
+					<TextControl
+						id={ field.id }
+						label={ field.label }
+						value={ data.idpSloUrl || '' }
+						onChange={ ( val ) =>
+							setFormData( ( prev ) => ( {
+								...prev,
+								idpSloUrl: val,
+							} ) )
+						}
+						disabled={ f( 'idpSloUrl' ).readonly }
+						help={ __(
+							'Single Logout URL (optional)',
+							'wppack-saml-login'
+						) }
+						__nextHasNoMarginBottom
+					/>
+				),
+			},
+			{
+				id: 'idpX509Cert',
+				label: badgeLabel(
+					__( 'X.509 Certificate', 'wppack-saml-login' ),
+					f( 'idpX509Cert' ).source
+				),
+				type: 'text',
+				Edit: ( { data, field } ) => (
+					<TextareaControl
+						id={ field.id }
+						label={ field.label }
 						value={
 							isSensitive( 'idpX509Cert' ) &&
-							formData.idpX509Cert === SENSITIVE_MASK
+							data.idpX509Cert === SENSITIVE_MASK
 								? SENSITIVE_MASK
-								: formData.idpX509Cert || ''
+								: data.idpX509Cert || ''
 						}
-						onChange={ updateField( 'idpX509Cert' ) }
+						onChange={ ( val ) =>
+							setFormData( ( prev ) => ( {
+								...prev,
+								idpX509Cert: val,
+							} ) )
+						}
 						disabled={ f( 'idpX509Cert' ).readonly }
 						rows={ 4 }
 						help={ __(
@@ -274,263 +289,651 @@ export default function App() {
 						) }
 						__nextHasNoMarginBottom
 					/>
-					<Field
-						id="idpCertFingerprint"
-						label={ __( 'Certificate Fingerprint', 'wppack-saml-login' ) }
-						field={ f( 'idpCertFingerprint' ) }
-						value={ formData.idpCertFingerprint }
-						onChange={ updateField( 'idpCertFingerprint' ) }
+				),
+			},
+			{
+				id: 'idpCertFingerprint',
+				label: badgeLabel(
+					__( 'Certificate Fingerprint', 'wppack-saml-login' ),
+					f( 'idpCertFingerprint' ).source
+				),
+				type: 'text',
+				Edit: ( { data, field } ) => (
+					<TextControl
+						id={ field.id }
+						label={ field.label }
+						value={ data.idpCertFingerprint || '' }
+						onChange={ ( val ) =>
+							setFormData( ( prev ) => ( {
+								...prev,
+								idpCertFingerprint: val,
+							} ) )
+						}
+						disabled={ f( 'idpCertFingerprint' ).readonly }
 						help={ __(
 							'Leave as masked to keep current value.',
 							'wppack-saml-login'
 						) }
-					/>
-				</PanelBody>
-
-				<PanelBody
-					title={ __( 'Service Provider (SP)', 'wppack-saml-login' ) }
-					initialOpen={ false }
-				>
-					<Field
-						id="spEntityId"
-						label={ __( 'Entity ID', 'wppack-saml-login' ) }
-						field={ f( 'spEntityId' ) }
-						value={ formData.spEntityId }
-						onChange={ updateField( 'spEntityId' ) }
-						help={ __( 'Defaults to site URL if empty.', 'wppack-saml-login' ) }
-					/>
-					<PathField
-						id="metadataPath"
-						label={ __( 'Metadata Path', 'wppack-saml-login' ) }
-						field={ f( 'metadataPath' ) }
-						value={ formData.metadataPath }
-						onChange={ updateField( 'metadataPath' ) }
-						prefix={ siteUrl }
-					/>
-					<PathField
-						id="acsPath"
-						label={ __( 'ACS Path', 'wppack-saml-login' ) }
-						field={ f( 'acsPath' ) }
-						value={ formData.acsPath }
-						onChange={ updateField( 'acsPath' ) }
-						prefix={ siteUrl }
-					/>
-					<PathField
-						id="sloPath"
-						label={ __( 'SLO Path', 'wppack-saml-login' ) }
-						field={ f( 'sloPath' ) }
-						value={ formData.sloPath }
-						onChange={ updateField( 'sloPath' ) }
-						prefix={ siteUrl }
-					/>
-					<SelectControl
-						className="wpp-saml-narrow"
-						label={
-							<>
-								{ __( 'NameID Format', 'wppack-saml-login' ) }
-								<SourceBadge source={ f( 'spNameIdFormat' ).source } />
-							</>
-						}
-						value={ formData.spNameIdFormat }
-						onChange={ updateField( 'spNameIdFormat' ) }
-						disabled={ f( 'spNameIdFormat' ).readonly }
-						options={ [
-							{
-								label: 'Unspecified',
-								value: 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified',
-							},
-							{
-								label: 'Email Address',
-								value: 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
-							},
-							{
-								label: 'Persistent',
-								value: 'urn:oasis:names:tc:SAML:2.0:nameid-format:persistent',
-							},
-							{
-								label: 'Transient',
-								value: 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient',
-							},
-						] }
 						__nextHasNoMarginBottom
 					/>
-					<div className="wpp-saml-metadata-download">
-						<Button
-							variant="secondary"
-							onClick={ handleDownloadMetadata }
-						>
-							{ __( 'Download SP Metadata', 'wppack-saml-login' ) }
-						</Button>
-					</div>
-				</PanelBody>
+				),
+			},
+		],
+		[ meta.fields ]
+	);
 
-				<PanelBody
-					title={ __( 'Security', 'wppack-saml-login' ) }
-					initialOpen={ false }
-				>
-					<BoolField
-						id="strict"
-						label={ __( 'Strict Mode', 'wppack-saml-login' ) }
-						field={ f( 'strict' ) }
-						value={ formData.strict }
-						onChange={ updateField( 'strict' ) }
-					/>
-					<BoolField
-						id="wantAssertionsSigned"
-						label={ __(
-							'Require Signed Assertions',
+	// ── Service Provider fields ──
+
+	const spFields = useMemo(
+		() => [
+			{
+				id: 'spEntityId',
+				label: badgeLabel(
+					__( 'Entity ID', 'wppack-saml-login' ),
+					f( 'spEntityId' ).source
+				),
+				type: 'text',
+				Edit: ( { data, field } ) => (
+					<TextControl
+						id={ field.id }
+						label={ field.label }
+						value={ data.spEntityId || '' }
+						onChange={ ( val ) =>
+							setFormData( ( prev ) => ( {
+								...prev,
+								spEntityId: val,
+							} ) )
+						}
+						disabled={ f( 'spEntityId' ).readonly }
+						help={ __(
+							'Defaults to site URL if empty.',
 							'wppack-saml-login'
 						) }
-						field={ f( 'wantAssertionsSigned' ) }
-						value={ formData.wantAssertionsSigned }
-						onChange={ updateField( 'wantAssertionsSigned' ) }
+						__nextHasNoMarginBottom
 					/>
-				</PanelBody>
-
-				<PanelBody
-					title={ __( 'User Provisioning', 'wppack-saml-login' ) }
-					initialOpen={ false }
-				>
-					<BoolField
-						id="autoProvision"
-						label={ __( 'Auto-create Users', 'wppack-saml-login' ) }
-						field={ f( 'autoProvision' ) }
-						value={ formData.autoProvision }
-						onChange={ updateField( 'autoProvision' ) }
+				),
+			},
+			{
+				id: 'metadataPath',
+				label: badgeLabel(
+					__( 'Metadata Path', 'wppack-saml-login' ),
+					f( 'metadataPath' ).source
+				),
+				type: 'text',
+				Edit: ( { data, field } ) => (
+					<PathField
+						id={ field.id }
+						label={ field.label }
+						value={ data.metadataPath }
+						onChange={ ( val ) =>
+							setFormData( ( prev ) => ( {
+								...prev,
+								metadataPath: val,
+							} ) )
+						}
+						prefix={ meta.siteUrl }
+						disabled={ f( 'metadataPath' ).readonly }
 					/>
+				),
+			},
+			{
+				id: 'acsPath',
+				label: badgeLabel(
+					__( 'ACS Path', 'wppack-saml-login' ),
+					f( 'acsPath' ).source
+				),
+				type: 'text',
+				Edit: ( { data, field } ) => (
+					<PathField
+						id={ field.id }
+						label={ field.label }
+						value={ data.acsPath }
+						onChange={ ( val ) =>
+							setFormData( ( prev ) => ( {
+								...prev,
+								acsPath: val,
+							} ) )
+						}
+						prefix={ meta.siteUrl }
+						disabled={ f( 'acsPath' ).readonly }
+					/>
+				),
+			},
+			{
+				id: 'sloPath',
+				label: badgeLabel(
+					__( 'SLO Path', 'wppack-saml-login' ),
+					f( 'sloPath' ).source
+				),
+				type: 'text',
+				Edit: ( { data, field } ) => (
+					<PathField
+						id={ field.id }
+						label={ field.label }
+						value={ data.sloPath }
+						onChange={ ( val ) =>
+							setFormData( ( prev ) => ( {
+								...prev,
+								sloPath: val,
+							} ) )
+						}
+						prefix={ meta.siteUrl }
+						disabled={ f( 'sloPath' ).readonly }
+					/>
+				),
+			},
+			{
+				id: 'spNameIdFormat',
+				label: badgeLabel(
+					__( 'NameID Format', 'wppack-saml-login' ),
+					f( 'spNameIdFormat' ).source
+				),
+				type: 'text',
+				elements: nameIdOptions,
+				Edit: ( { data, field } ) => (
 					<SelectControl
 						className="wpp-saml-narrow"
-						label={
-							<>
-								{ __( 'Default Role', 'wppack-saml-login' ) }
-								<SourceBadge source={ f( 'defaultRole' ).source } />
-							</>
+						id={ field.id }
+						label={ field.label }
+						value={ data.spNameIdFormat }
+						onChange={ ( val ) =>
+							setFormData( ( prev ) => ( {
+								...prev,
+								spNameIdFormat: val,
+							} ) )
 						}
-						value={ formData.defaultRole }
-						onChange={ updateField( 'defaultRole' ) }
+						disabled={ f( 'spNameIdFormat' ).readonly }
+						options={ nameIdOptions }
+						__nextHasNoMarginBottom
+					/>
+				),
+			},
+		],
+		[ meta.fields, meta.siteUrl, nameIdOptions ]
+	);
+
+	// ── Security fields ──
+
+	const securityFields = useMemo(
+		() => [
+			{
+				id: 'strict',
+				label: badgeLabel(
+					__( 'Strict Mode', 'wppack-saml-login' ),
+					f( 'strict' ).source
+				),
+				type: 'text',
+				Edit: ( { data, field } ) => (
+					<ToggleControl
+						label={ field.label }
+						checked={ !! data.strict }
+						onChange={ ( val ) =>
+							setFormData( ( prev ) => ( {
+								...prev,
+								strict: val,
+							} ) )
+						}
+						disabled={ f( 'strict' ).readonly }
+						__nextHasNoMarginBottom
+					/>
+				),
+			},
+			{
+				id: 'wantAssertionsSigned',
+				label: badgeLabel(
+					__(
+						'Require Signed Assertions',
+						'wppack-saml-login'
+					),
+					f( 'wantAssertionsSigned' ).source
+				),
+				type: 'text',
+				Edit: ( { data, field } ) => (
+					<ToggleControl
+						label={ field.label }
+						checked={ !! data.wantAssertionsSigned }
+						onChange={ ( val ) =>
+							setFormData( ( prev ) => ( {
+								...prev,
+								wantAssertionsSigned: val,
+							} ) )
+						}
+						disabled={ f( 'wantAssertionsSigned' ).readonly }
+						__nextHasNoMarginBottom
+					/>
+				),
+			},
+		],
+		[ meta.fields ]
+	);
+
+	// ── User Provisioning fields ──
+
+	const provisioningFields = useMemo(
+		() => [
+			{
+				id: 'autoProvision',
+				label: badgeLabel(
+					__( 'Auto-create Users', 'wppack-saml-login' ),
+					f( 'autoProvision' ).source
+				),
+				type: 'text',
+				Edit: ( { data, field } ) => (
+					<ToggleControl
+						label={ field.label }
+						checked={ !! data.autoProvision }
+						onChange={ ( val ) =>
+							setFormData( ( prev ) => ( {
+								...prev,
+								autoProvision: val,
+							} ) )
+						}
+						disabled={ f( 'autoProvision' ).readonly }
+						__nextHasNoMarginBottom
+					/>
+				),
+			},
+			{
+				id: 'defaultRole',
+				label: badgeLabel(
+					__( 'Default Role', 'wppack-saml-login' ),
+					f( 'defaultRole' ).source
+				),
+				type: 'text',
+				elements: roleOptions,
+				Edit: ( { data, field } ) => (
+					<SelectControl
+						className="wpp-saml-narrow"
+						id={ field.id }
+						label={ field.label }
+						value={ data.defaultRole }
+						onChange={ ( val ) =>
+							setFormData( ( prev ) => ( {
+								...prev,
+								defaultRole: val,
+							} ) )
+						}
 						disabled={ f( 'defaultRole' ).readonly }
 						options={ roleOptions }
 						__nextHasNoMarginBottom
 					/>
-					<Field
-						id="emailAttribute"
-						label={ __( 'Email Attribute', 'wppack-saml-login' ) }
-						field={ f( 'emailAttribute' ) }
-						value={ formData.emailAttribute }
-						onChange={ updateField( 'emailAttribute' ) }
-					/>
-					<Field
-						id="firstNameAttribute"
-						label={ __( 'First Name Attribute', 'wppack-saml-login' ) }
-						field={ f( 'firstNameAttribute' ) }
-						value={ formData.firstNameAttribute }
-						onChange={ updateField( 'firstNameAttribute' ) }
-					/>
-					<Field
-						id="lastNameAttribute"
-						label={ __( 'Last Name Attribute', 'wppack-saml-login' ) }
-						field={ f( 'lastNameAttribute' ) }
-						value={ formData.lastNameAttribute }
-						onChange={ updateField( 'lastNameAttribute' ) }
-					/>
-					<Field
-						id="displayNameAttribute"
-						label={ __( 'Display Name Attribute', 'wppack-saml-login' ) }
-						field={ f( 'displayNameAttribute' ) }
-						value={ formData.displayNameAttribute }
-						onChange={ updateField( 'displayNameAttribute' ) }
-					/>
-					<div className="wpp-saml-narrow">
-						<Field
-							id="roleAttribute"
-							label={ __( 'Role Attribute', 'wppack-saml-login' ) }
-							field={ f( 'roleAttribute' ) }
-							value={ formData.roleAttribute }
-							onChange={ updateField( 'roleAttribute' ) }
-						help={ __(
-							'SAML attribute name for role mapping.',
-							'wppack-saml-login'
-						) }
-					/>
-					</div>
-					<TextareaControl
-						id="roleMapping"
-						label={
-							<>
-								{ __( 'Role Mapping (JSON)', 'wppack-saml-login' ) }
-								<SourceBadge source={ f( 'roleMapping' ).source } />
-							</>
+				),
+			},
+			{
+				id: 'emailAttribute',
+				label: badgeLabel(
+					__( 'Email Attribute', 'wppack-saml-login' ),
+					f( 'emailAttribute' ).source
+				),
+				type: 'text',
+				Edit: ( { data, field } ) => (
+					<TextControl
+						id={ field.id }
+						label={ field.label }
+						value={ data.emailAttribute || '' }
+						onChange={ ( val ) =>
+							setFormData( ( prev ) => ( {
+								...prev,
+								emailAttribute: val,
+							} ) )
 						}
+						disabled={ f( 'emailAttribute' ).readonly }
+						__nextHasNoMarginBottom
+					/>
+				),
+			},
+			{
+				id: 'firstNameAttribute',
+				label: badgeLabel(
+					__( 'First Name Attribute', 'wppack-saml-login' ),
+					f( 'firstNameAttribute' ).source
+				),
+				type: 'text',
+				Edit: ( { data, field } ) => (
+					<TextControl
+						id={ field.id }
+						label={ field.label }
+						value={ data.firstNameAttribute || '' }
+						onChange={ ( val ) =>
+							setFormData( ( prev ) => ( {
+								...prev,
+								firstNameAttribute: val,
+							} ) )
+						}
+						disabled={ f( 'firstNameAttribute' ).readonly }
+						__nextHasNoMarginBottom
+					/>
+				),
+			},
+			{
+				id: 'lastNameAttribute',
+				label: badgeLabel(
+					__( 'Last Name Attribute', 'wppack-saml-login' ),
+					f( 'lastNameAttribute' ).source
+				),
+				type: 'text',
+				Edit: ( { data, field } ) => (
+					<TextControl
+						id={ field.id }
+						label={ field.label }
+						value={ data.lastNameAttribute || '' }
+						onChange={ ( val ) =>
+							setFormData( ( prev ) => ( {
+								...prev,
+								lastNameAttribute: val,
+							} ) )
+						}
+						disabled={ f( 'lastNameAttribute' ).readonly }
+						__nextHasNoMarginBottom
+					/>
+				),
+			},
+			{
+				id: 'displayNameAttribute',
+				label: badgeLabel(
+					__( 'Display Name Attribute', 'wppack-saml-login' ),
+					f( 'displayNameAttribute' ).source
+				),
+				type: 'text',
+				Edit: ( { data, field } ) => (
+					<TextControl
+						id={ field.id }
+						label={ field.label }
+						value={ data.displayNameAttribute || '' }
+						onChange={ ( val ) =>
+							setFormData( ( prev ) => ( {
+								...prev,
+								displayNameAttribute: val,
+							} ) )
+						}
+						disabled={ f( 'displayNameAttribute' ).readonly }
+						__nextHasNoMarginBottom
+					/>
+				),
+			},
+			{
+				id: 'roleAttribute',
+				label: badgeLabel(
+					__( 'Role Attribute', 'wppack-saml-login' ),
+					f( 'roleAttribute' ).source
+				),
+				type: 'text',
+				Edit: ( { data, field } ) => (
+					<div className="wpp-saml-narrow">
+						<TextControl
+							id={ field.id }
+							label={ field.label }
+							value={ data.roleAttribute || '' }
+							onChange={ ( val ) =>
+								setFormData( ( prev ) => ( {
+									...prev,
+									roleAttribute: val,
+								} ) )
+							}
+							disabled={ f( 'roleAttribute' ).readonly }
+							help={ __(
+								'SAML attribute name for role mapping.',
+								'wppack-saml-login'
+							) }
+							__nextHasNoMarginBottom
+						/>
+					</div>
+				),
+			},
+			{
+				id: 'roleMapping',
+				label: badgeLabel(
+					__( 'Role Mapping (JSON)', 'wppack-saml-login' ),
+					f( 'roleMapping' ).source
+				),
+				type: 'text',
+				Edit: ( { data, field } ) => (
+					<TextareaControl
+						id={ field.id }
+						label={ field.label }
 						help={ __(
 							'JSON object mapping SAML roles to WordPress roles, e.g. {"admin":"administrator","member":"subscriber"}',
 							'wppack-saml-login'
 						) }
-						value={ formData.roleMapping || '' }
-						onChange={ updateField( 'roleMapping' ) }
+						value={ data.roleMapping || '' }
+						onChange={ ( val ) =>
+							setFormData( ( prev ) => ( {
+								...prev,
+								roleMapping: val,
+							} ) )
+						}
 						disabled={ f( 'roleMapping' ).readonly }
 						rows={ 3 }
 						__nextHasNoMarginBottom
 					/>
-					<BoolField
-						id="addUserToBlog"
-						label={ __( 'Add User to Blog', 'wppack-saml-login' ) }
-						field={ f( 'addUserToBlog' ) }
-						value={ formData.addUserToBlog }
-						onChange={ updateField( 'addUserToBlog' ) }
+				),
+			},
+			{
+				id: 'addUserToBlog',
+				label: badgeLabel(
+					__( 'Add User to Blog', 'wppack-saml-login' ),
+					f( 'addUserToBlog' ).source
+				),
+				type: 'text',
+				Edit: ( { data, field } ) => (
+					<ToggleControl
+						label={ field.label }
+						checked={ !! data.addUserToBlog }
+						onChange={ ( val ) =>
+							setFormData( ( prev ) => ( {
+								...prev,
+								addUserToBlog: val,
+							} ) )
+						}
+						disabled={ f( 'addUserToBlog' ).readonly }
 						help={ __(
 							'Multisite: add user to the current blog on login.',
 							'wppack-saml-login'
 						) }
+						__nextHasNoMarginBottom
 					/>
-				</PanelBody>
+				),
+			},
+		],
+		[ meta.fields, roleOptions ]
+	);
 
-				<PanelBody
-					title={ __( 'Advanced', 'wppack-saml-login' ) }
-					initialOpen={ false }
-				>
-					<BoolField
-						id="ssoOnly"
-						label={ __( 'SSO Only Mode', 'wppack-saml-login' ) }
-						field={ f( 'ssoOnly' ) }
-						value={ formData.ssoOnly }
-						onChange={ updateField( 'ssoOnly' ) }
+	// ── Advanced fields ──
+
+	const advancedFields = useMemo(
+		() => [
+			{
+				id: 'ssoOnly',
+				label: badgeLabel(
+					__( 'SSO Only Mode', 'wppack-saml-login' ),
+					f( 'ssoOnly' ).source
+				),
+				type: 'text',
+				Edit: ( { data, field } ) => (
+					<ToggleControl
+						label={ field.label }
+						checked={ !! data.ssoOnly }
+						onChange={ ( val ) =>
+							setFormData( ( prev ) => ( {
+								...prev,
+								ssoOnly: val,
+							} ) )
+						}
+						disabled={ f( 'ssoOnly' ).readonly }
 						help={ __(
 							'Disable WordPress login form and redirect to SAML IdP.',
 							'wppack-saml-login'
 						) }
+						__nextHasNoMarginBottom
 					/>
-					<BoolField
-						id="debug"
-						label={ __( 'Debug Mode', 'wppack-saml-login' ) }
-						field={ f( 'debug' ) }
-						value={ formData.debug }
-						onChange={ updateField( 'debug' ) }
+				),
+			},
+			{
+				id: 'debug',
+				label: badgeLabel(
+					__( 'Debug Mode', 'wppack-saml-login' ),
+					f( 'debug' ).source
+				),
+				type: 'text',
+				Edit: ( { data, field } ) => (
+					<ToggleControl
+						label={ field.label }
+						checked={ !! data.debug }
+						onChange={ ( val ) =>
+							setFormData( ( prev ) => ( {
+								...prev,
+								debug: val,
+							} ) )
+						}
+						disabled={ f( 'debug' ).readonly }
+						__nextHasNoMarginBottom
 					/>
-					<BoolField
-						id="allowRepeatAttributeName"
-						label={ __(
-							'Allow Repeat Attribute Name',
-							'wppack-saml-login'
-						) }
-						field={ f( 'allowRepeatAttributeName' ) }
-						value={ formData.allowRepeatAttributeName }
-						onChange={ updateField( 'allowRepeatAttributeName' ) }
+				),
+			},
+			{
+				id: 'allowRepeatAttributeName',
+				label: badgeLabel(
+					__(
+						'Allow Repeat Attribute Name',
+						'wppack-saml-login'
+					),
+					f( 'allowRepeatAttributeName' ).source
+				),
+				type: 'text',
+				Edit: ( { data, field } ) => (
+					<ToggleControl
+						label={ field.label }
+						checked={ !! data.allowRepeatAttributeName }
+						onChange={ ( val ) =>
+							setFormData( ( prev ) => ( {
+								...prev,
+								allowRepeatAttributeName: val,
+							} ) )
+						}
+						disabled={ f( 'allowRepeatAttributeName' ).readonly }
+						__nextHasNoMarginBottom
 					/>
-				</PanelBody>
-			</Panel>
+				),
+			},
+		],
+		[ meta.fields ]
+	);
 
-			<div className="wpp-saml-actions">
-				<Button
-					variant="primary"
-					onClick={ handleSave }
-					isBusy={ saving }
-					disabled={ saving }
-				>
-					{ saving
-						? __( 'Saving…', 'wppack-saml-login' )
-						: __( 'Save Settings', 'wppack-saml-login' ) }
-				</Button>
+	// ── Combined form layout ──
+
+	const allFields = useMemo(
+		() => [
+			...idpFields,
+			...spFields,
+			...securityFields,
+			...provisioningFields,
+			...advancedFields,
+		],
+		[ idpFields, spFields, securityFields, provisioningFields, advancedFields ]
+	);
+
+	const formConfig = useMemo(
+		() => ( {
+			fields: [
+				{
+					id: 'idp-section',
+					label: __(
+						'Identity Provider (IdP)',
+						'wppack-saml-login'
+					),
+					children: idpFields.map( ( fld ) => fld.id ),
+					layout: { type: 'regular' },
+				},
+				{
+					id: 'sp-section',
+					label: __(
+						'Service Provider (SP)',
+						'wppack-saml-login'
+					),
+					children: spFields.map( ( fld ) => fld.id ),
+					layout: { type: 'regular' },
+				},
+				{
+					id: 'security-section',
+					label: __( 'Security', 'wppack-saml-login' ),
+					children: securityFields.map( ( fld ) => fld.id ),
+					layout: { type: 'regular' },
+				},
+				{
+					id: 'provisioning-section',
+					label: __(
+						'User Provisioning',
+						'wppack-saml-login'
+					),
+					children: provisioningFields.map( ( fld ) => fld.id ),
+					layout: { type: 'regular' },
+				},
+				{
+					id: 'advanced-section',
+					label: __( 'Advanced', 'wppack-saml-login' ),
+					children: advancedFields.map( ( fld ) => fld.id ),
+					layout: { type: 'regular' },
+				},
+			],
+		} ),
+		[ idpFields, spFields, securityFields, provisioningFields, advancedFields ]
+	);
+
+	const handleFormChange = ( edits ) => {
+		setFormData( ( prev ) => ( { ...prev, ...edits } ) );
+	};
+
+	if ( loading ) {
+		return (
+			<div className="wpp-saml-loading">
+				<Spinner />
 			</div>
+		);
+	}
+
+	return (
+		<Page title={ __( 'SAML Login Settings', 'wppack-saml-login' ) } hasPadding>
+			<div className="wpp-saml-settings">
+				{ notice && (
+					<Notice
+						status={ notice.type }
+						isDismissible
+						onDismiss={ () => setNotice( null ) }
+					>
+						{ notice.message }
+					</Notice>
+				) }
+
+				<div className="wpp-saml-dataform-wrap">
+					<DataForm
+						data={ formData }
+						fields={ allFields }
+						form={ formConfig }
+						onChange={ handleFormChange }
+					/>
+				</div>
+
+				<div className="wpp-saml-metadata-download">
+					<Button
+						variant="secondary"
+						onClick={ handleDownloadMetadata }
+					>
+						{ __( 'Download SP Metadata', 'wppack-saml-login' ) }
+					</Button>
+				</div>
+
+				<div className="wpp-saml-actions">
+					<Button
+						variant="primary"
+						onClick={ handleSave }
+						isBusy={ saving }
+						disabled={ saving }
+					>
+						{ saving
+							? __( 'Saving…', 'wppack-saml-login' )
+							: __( 'Save Settings', 'wppack-saml-login' ) }
+					</Button>
+				</div>
 			</div>
 		</Page>
 	);

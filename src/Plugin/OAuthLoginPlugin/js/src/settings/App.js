@@ -1,4 +1,5 @@
-import { useState, useEffect } from '@wordpress/element';
+import { DataForm } from '@wordpress/dataviews/wp';
+import { useState, useEffect, useMemo } from '@wordpress/element';
 import {
 	Panel,
 	PanelBody,
@@ -18,57 +19,21 @@ import apiFetch from '@wordpress/api-fetch';
 
 const MASKED = '********';
 
-function SourceBadge( { source } ) {
+function badgeLabel( label, source ) {
 	if ( ! source || source === 'default' ) {
-		return null;
+		return label;
 	}
 	const labels = {
 		constant: __( 'Constant', 'wppack-oauth-login' ),
 		option: __( 'Saved', 'wppack-oauth-login' ),
 	};
 	return (
-		<span className={ `wpp-oauth-source-badge wpp-oauth-source-${ source }` }>
-			{ labels[ source ] || source }
-		</span>
-	);
-}
-
-function Field( { id, label, field, value, onChange, help, disabled } ) {
-	const isReadonly = disabled || field?.readonly;
-	return (
-		<TextControl
-			id={ id }
-			label={
-				<>
-					{ label }
-					<SourceBadge source={ field?.source } />
-				</>
-			}
-			value={ value || '' }
-			onChange={ onChange }
-			disabled={ isReadonly }
-			help={ help }
-			__nextHasNoMarginBottom
-		/>
-	);
-}
-
-function BoolField( { label, field, value, onChange, help, disabled } ) {
-	const isReadonly = disabled || field?.readonly;
-	return (
-		<ToggleControl
-			label={
-				<>
-					{ label }
-					<SourceBadge source={ field?.source } />
-				</>
-			}
-			help={ help }
-			checked={ !! value }
-			onChange={ onChange }
-			disabled={ isReadonly }
-			__nextHasNoMarginBottom
-		/>
+		<>
+			<span>{ label }</span>
+			<span className={ `wpp-oauth-source-badge wpp-oauth-source-${ source }` }>
+				{ labels[ source ] || source }
+			</span>
+		</>
 	);
 }
 
@@ -78,10 +43,7 @@ function PathField( { id, label, field, value, onChange, prefix, disabled } ) {
 		<BaseControl
 			id={ id }
 			label={
-				<>
-					{ label }
-					<SourceBadge source={ field?.source } />
-				</>
+				badgeLabel( label, field?.source )
 			}
 		>
 			<div className="wpp-oauth-path-field">
@@ -99,9 +61,9 @@ function PathField( { id, label, field, value, onChange, prefix, disabled } ) {
 	);
 }
 
-function ProviderPanel( { name, provider, onChange, onDelete, onRename, onMoveUp, onMoveDown, isFirst, isLast, isReadonly, icons, allStyles, buttonDisplay, definitions, roleOptions, initialOpen } ) {
+function ProviderPanel( { name, provider, providerFields, onChange, onDelete, onRename, onMoveUp, onMoveDown, isFirst, isLast, isReadonly, icons, allStyles, buttonDisplay, definitions, roleOptions, initialOpen } ) {
 	const [ editName, setEditName ] = useState( name );
-	const f = provider.fields || {};
+	const f = providerFields || {};
 	const icon = icons[ f.type ] || icons[ name ] || provider.icon;
 	const providerStyles = allStyles[ f.type ] || allStyles[ name ] || {};
 	const styleKeys = Object.keys( providerStyles );
@@ -110,17 +72,357 @@ function ProviderPanel( { name, provider, onChange, onDelete, onRename, onMoveUp
 	const firstStyle = providerStyles[ styleKeys[ 0 ] ] || currentStyle;
 	const def = definitions[ f.type ] || {};
 	const reqFields = [ ...( def.requiredFields || [] ), ...( def.optionalFields || [] ) ];
-	const update = ( key ) => ( val ) => {
-		onChange( name, { ...f, [ key ]: val } );
+
+	const panelData = useMemo( () => ( {
+		type: f.type || '',
+		client_id: f.client_id || '',
+		client_secret: f.client_secret || '',
+		label: f.label || '',
+		scopes: f.scopes || '',
+		tenant_id: f.tenant_id || '',
+		domain: f.domain || '',
+		discovery_url: f.discovery_url || '',
+		hosted_domain: f.hosted_domain || '',
+		auto_provision: !! f.auto_provision,
+		default_role: f.default_role || 'subscriber',
+		role_claim: f.role_claim || '',
+		role_mapping: f.role_mapping || '',
+		button_style: selectedStyle,
+	} ), [ f, selectedStyle ] );
+
+	const handlePanelChange = ( edits ) => {
+		const newFields = { ...f };
+		for ( const [ key, value ] of Object.entries( edits ) ) {
+			if ( key !== 'type' ) {
+				newFields[ key ] = value;
+			}
+		}
+		onChange( name, newFields );
 	};
+
+	const panelFormFields = useMemo( () => {
+		const result = [
+			{
+				id: 'type',
+				label: __( 'Type', 'wppack-oauth-login' ),
+				type: 'text',
+				Edit: ( { data, field } ) => (
+					<TextControl
+						id={ field.id }
+						label={ field.label }
+						value={ data.type }
+						disabled
+						onChange={ () => {} }
+						__nextHasNoMarginBottom
+					/>
+				),
+			},
+			{
+				id: 'client_id',
+				label: badgeLabel( __( 'Client ID', 'wppack-oauth-login' ), isReadonly ? 'constant' : undefined ),
+				type: 'text',
+				Edit: isReadonly
+					? ( { data, field } ) => (
+						<TextControl
+							id={ field.id }
+							label={ field.label }
+							value={ data.client_id }
+							disabled
+							onChange={ () => {} }
+							__nextHasNoMarginBottom
+						/>
+					)
+					: undefined,
+			},
+			{
+				id: 'client_secret',
+				label: badgeLabel( __( 'Client Secret', 'wppack-oauth-login' ), isReadonly ? 'constant' : undefined ),
+				type: 'text',
+				Edit: ( { data, field, onChange: onFieldChange } ) => (
+					<TextControl
+						id={ field.id }
+						label={ field.label }
+						value={ data.client_secret }
+						onChange={ ( val ) => onFieldChange( { client_secret: val } ) }
+						disabled={ isReadonly }
+						help={
+							data.client_secret === MASKED
+								? __( 'Leave as masked to keep current value.', 'wppack-oauth-login' )
+								: undefined
+						}
+						__nextHasNoMarginBottom
+					/>
+				),
+			},
+			{
+				id: 'scopes',
+				label: badgeLabel( __( 'Scopes', 'wppack-oauth-login' ), isReadonly ? 'constant' : undefined ),
+				type: 'text',
+				description: __( 'Space-separated. Leave empty for defaults.', 'wppack-oauth-login' ),
+				Edit: isReadonly
+					? ( { data, field } ) => (
+						<TextControl
+							id={ field.id }
+							label={ field.label }
+							help={ __( 'Space-separated. Leave empty for defaults.', 'wppack-oauth-login' ) }
+							value={ data.scopes }
+							disabled
+							onChange={ () => {} }
+							__nextHasNoMarginBottom
+						/>
+					)
+					: undefined,
+			},
+		];
+
+		if ( reqFields.includes( 'tenant_id' ) ) {
+			result.push( {
+				id: 'tenant_id',
+				label: badgeLabel( __( 'Tenant ID', 'wppack-oauth-login' ), isReadonly ? 'constant' : undefined ),
+				type: 'text',
+				Edit: isReadonly
+					? ( { data, field } ) => (
+						<TextControl
+							id={ field.id }
+							label={ field.label }
+							value={ data.tenant_id }
+							disabled
+							onChange={ () => {} }
+							__nextHasNoMarginBottom
+						/>
+					)
+					: undefined,
+			} );
+		}
+
+		if ( reqFields.includes( 'domain' ) ) {
+			result.push( {
+				id: 'domain',
+				label: badgeLabel( __( 'Domain', 'wppack-oauth-login' ), isReadonly ? 'constant' : undefined ),
+				type: 'text',
+				Edit: isReadonly
+					? ( { data, field } ) => (
+						<TextControl
+							id={ field.id }
+							label={ field.label }
+							value={ data.domain }
+							disabled
+							onChange={ () => {} }
+							__nextHasNoMarginBottom
+						/>
+					)
+					: undefined,
+			} );
+		}
+
+		if ( reqFields.includes( 'discovery_url' ) ) {
+			result.push( {
+				id: 'discovery_url',
+				label: badgeLabel( __( 'Discovery URL', 'wppack-oauth-login' ), isReadonly ? 'constant' : undefined ),
+				type: 'text',
+				Edit: isReadonly
+					? ( { data, field } ) => (
+						<TextControl
+							id={ field.id }
+							label={ field.label }
+							value={ data.discovery_url }
+							disabled
+							onChange={ () => {} }
+							__nextHasNoMarginBottom
+						/>
+					)
+					: undefined,
+			} );
+		}
+
+		if ( reqFields.includes( 'hosted_domain' ) ) {
+			result.push( {
+				id: 'hosted_domain',
+				label: badgeLabel( __( 'Hosted Domain', 'wppack-oauth-login' ), isReadonly ? 'constant' : undefined ),
+				type: 'text',
+				description: __( 'Restrict to Google Workspace domain.', 'wppack-oauth-login' ),
+				Edit: isReadonly
+					? ( { data, field } ) => (
+						<TextControl
+							id={ field.id }
+							label={ field.label }
+							help={ __( 'Restrict to Google Workspace domain.', 'wppack-oauth-login' ) }
+							value={ data.hosted_domain }
+							disabled
+							onChange={ () => {} }
+							__nextHasNoMarginBottom
+						/>
+					)
+					: undefined,
+			} );
+		}
+
+		result.push(
+			{
+				id: 'auto_provision',
+				label: badgeLabel( __( 'Auto-create Users', 'wppack-oauth-login' ), isReadonly ? 'constant' : undefined ),
+				type: 'text',
+				Edit: ( { data, field, onChange: onFieldChange } ) => (
+					<ToggleControl
+						label={ field.label }
+						checked={ !! data.auto_provision }
+						onChange={ ( val ) => onFieldChange( { auto_provision: val } ) }
+						disabled={ isReadonly }
+						__nextHasNoMarginBottom
+					/>
+				),
+			},
+			{
+				id: 'default_role',
+				label: badgeLabel( __( 'Default Role', 'wppack-oauth-login' ), isReadonly ? 'constant' : undefined ),
+				type: 'text',
+				elements: roleOptions,
+				Edit: isReadonly
+					? ( { data, field } ) => {
+						const el = roleOptions.find( ( r ) => r.value === data.default_role );
+						return (
+							<TextControl
+								id={ field.id }
+								label={ field.label }
+								value={ el ? el.label : data.default_role }
+								disabled
+								onChange={ () => {} }
+								__nextHasNoMarginBottom
+							/>
+						);
+					}
+					: undefined,
+			},
+			{
+				id: 'role_claim',
+				label: badgeLabel( __( 'Role Claim', 'wppack-oauth-login' ), isReadonly ? 'constant' : undefined ),
+				type: 'text',
+				description: __( 'JWT claim name containing role.', 'wppack-oauth-login' ),
+				Edit: isReadonly
+					? ( { data, field } ) => (
+						<TextControl
+							id={ field.id }
+							label={ field.label }
+							help={ __( 'JWT claim name containing role.', 'wppack-oauth-login' ) }
+							value={ data.role_claim }
+							disabled
+							onChange={ () => {} }
+							__nextHasNoMarginBottom
+						/>
+					)
+					: undefined,
+			},
+			{
+				id: 'role_mapping',
+				label: badgeLabel( __( 'Role Mapping (JSON)', 'wppack-oauth-login' ), isReadonly ? 'constant' : undefined ),
+				type: 'text',
+				Edit: ( { data, field, onChange: onFieldChange } ) => (
+					<TextareaControl
+						label={ field.label }
+						help={ __( 'e.g. {"Admin":"administrator","Member":"subscriber"}', 'wppack-oauth-login' ) }
+						value={ data.role_mapping }
+						onChange={ ( val ) => onFieldChange( { role_mapping: val } ) }
+						disabled={ isReadonly }
+						rows={ 3 }
+						__nextHasNoMarginBottom
+					/>
+				),
+			},
+		);
+
+		result.push( {
+			id: 'label',
+			label: badgeLabel( __( 'Label', 'wppack-oauth-login' ), isReadonly ? 'constant' : undefined ),
+			type: 'text',
+			Edit: isReadonly
+				? ( { data, field } ) => (
+					<TextControl
+						id={ field.id }
+						label={ field.label }
+						value={ data.label }
+						disabled
+						onChange={ () => {} }
+						__nextHasNoMarginBottom
+					/>
+				)
+				: undefined,
+		} );
+
+		if ( styleKeys.length > 0 ) {
+			result.push( {
+				id: 'button_style',
+				label: badgeLabel( __( 'Button Style', 'wppack-oauth-login' ), isReadonly ? 'constant' : undefined ),
+				type: 'text',
+				elements: styleKeys.map( ( key ) => ( {
+					label: providerStyles[ key ].label,
+					value: key,
+				} ) ),
+				Edit: isReadonly
+					? ( { data, field } ) => {
+						const el = styleKeys.find( ( k ) => k === data.button_style );
+						return (
+							<TextControl
+								id={ field.id }
+								label={ field.label }
+								value={ el ? providerStyles[ el ].label : data.button_style }
+								disabled
+								onChange={ () => {} }
+								__nextHasNoMarginBottom
+							/>
+						);
+					}
+					: undefined,
+			} );
+		}
+
+		result.push( {
+			id: '_buttonPreview',
+			label: __( 'Login Button Preview', 'wppack-oauth-login' ),
+			type: 'text',
+			Edit: ( { data } ) => {
+				const style = providerStyles[ data.button_style ] || providerStyles[ styleKeys[ 0 ] ] || { bg: '#f0f0f0', text: '#1d2327', border: '#ddd', icon: 'original' };
+				const displayLabel = data.label || name;
+				return (
+					<BaseControl label={ __( 'Login Button Preview', 'wppack-oauth-login' ) }>
+						<div className="wpp-oauth-button-preview">
+							{ buttonDisplay === 'icon-only' ? (
+								<Tooltip text={ sprintf( __( 'Login with %s', 'wppack-oauth-login' ), displayLabel ) }>
+									<a
+										className="wpp-oauth-login-button is-icon-only"
+										style={ { background: style.bg, color: style.text, border: `1px solid ${ style.border }` } }
+									>
+										{ icon && <span className="wpp-oauth-login-icon" style={ style.icon !== 'original' ? { color: style.icon } : {} } dangerouslySetInnerHTML={ { __html: icon } } /> }
+									</a>
+								</Tooltip>
+							) : (
+								<a
+									className={ `wpp-oauth-login-button${ buttonDisplay === 'icon-left' ? ' is-icon-left' : '' }` }
+									style={ { background: style.bg, color: style.text, border: `1px solid ${ style.border }` } }
+								>
+									{ buttonDisplay !== 'text-only' && icon && <span className="wpp-oauth-login-icon" style={ style.icon !== 'original' ? { color: style.icon } : {} } dangerouslySetInnerHTML={ { __html: icon } } /> }
+									<span className="wpp-oauth-login-text">{ sprintf( __( 'Login with %s', 'wppack-oauth-login' ), displayLabel ) }</span>
+								</a>
+							) }
+						</div>
+					</BaseControl>
+				);
+			},
+		} );
+
+		return result;
+	}, [ reqFields, isReadonly, roleOptions, styleKeys, providerStyles, buttonDisplay, name, icon ] );
+
+	const panelForm = useMemo( () => ( {
+		fields: panelFormFields.map( ( pf ) => pf.id ),
+	} ), [ panelFormFields ] );
 
 	const titleElement = (
 		<span className="wpp-oauth-panel-title">
 			<span className="wpp-oauth-move-buttons">
 				{ /* eslint-disable-next-line jsx-a11y/click-events-have-key-events */ }
-				<span role="button" tabIndex={ 0 } className={ `wpp-oauth-move-btn${ isFirst ? ' is-disabled' : '' }` } onClick={ ( e ) => { e.stopPropagation(); if ( ! isFirst ) onMoveUp( name ); } }>▲</span>
+				<span role="button" tabIndex={ 0 } className={ `wpp-oauth-move-btn${ isFirst ? ' is-disabled' : '' }` } onClick={ ( e ) => { e.stopPropagation(); if ( ! isFirst ) onMoveUp( name ); } }>&#9650;</span>
 				{ /* eslint-disable-next-line jsx-a11y/click-events-have-key-events */ }
-				<span role="button" tabIndex={ 0 } className={ `wpp-oauth-move-btn${ isLast ? ' is-disabled' : '' }` } onClick={ ( e ) => { e.stopPropagation(); if ( ! isLast ) onMoveDown( name ); } }>▼</span>
+				<span role="button" tabIndex={ 0 } className={ `wpp-oauth-move-btn${ isLast ? ' is-disabled' : '' }` } onClick={ ( e ) => { e.stopPropagation(); if ( ! isLast ) onMoveDown( name ); } }>&#9660;</span>
 			</span>
 			{ icon && (
 				<span
@@ -162,192 +464,14 @@ function ProviderPanel( { name, provider, onChange, onDelete, onRename, onMoveUp
 					__nextHasNoMarginBottom
 				/>
 			</BaseControl>
-			<div className="wpp-oauth-narrow">
-				<Field
-					id={ `${ name }-type` }
-					label={ __( 'Type', 'wppack-oauth-login' ) }
-					value={ f.type || '' }
-					disabled={ true }
-					onChange={ () => {} }
+			<div className="wpp-oauth-dataform-wrap">
+				<DataForm
+					data={ panelData }
+					fields={ panelFormFields }
+					form={ panelForm }
+					onChange={ handlePanelChange }
 				/>
 			</div>
-			{ styleKeys.length > 0 && (
-				<SelectControl
-					className="wpp-oauth-narrow"
-					label={ __( 'ボタンスタイル', 'wppack-oauth-login' ) }
-					value={ selectedStyle }
-					onChange={ update( 'button_style' ) }
-					disabled={ isReadonly }
-					options={ styleKeys.map( ( key ) => ( {
-						label: providerStyles[ key ].label,
-						value: key,
-					} ) ) }
-					__nextHasNoMarginBottom
-				/>
-			) }
-			<BaseControl label={ __( 'ログインボタンプレビュー', 'wppack-oauth-login' ) }>
-				<div className="wpp-oauth-button-preview">
-					{ buttonDisplay === 'icon-only' ? (
-						<Tooltip text={ sprintf( __( 'Login with %s', 'wppack-oauth-login' ), f.label || name ) }>
-							<a
-								className="wpp-oauth-login-button is-icon-only"
-								style={ {
-									background: currentStyle.bg,
-									color: currentStyle.text,
-									border: `1px solid ${ currentStyle.border }`,
-								} }
-							>
-								{ icon && (
-									<span
-										className="wpp-oauth-login-icon"
-										style={ currentStyle.icon !== 'original' ? { color: currentStyle.icon } : {} }
-										dangerouslySetInnerHTML={ { __html: icon } }
-									/>
-								) }
-							</a>
-						</Tooltip>
-					) : (
-						<a
-							className={ `wpp-oauth-login-button${ buttonDisplay === 'icon-left' ? ' is-icon-left' : '' }` }
-							style={ {
-								background: currentStyle.bg,
-								color: currentStyle.text,
-								border: `1px solid ${ currentStyle.border }`,
-							} }
-						>
-							{ buttonDisplay !== 'text-only' && icon && (
-								<span
-									className="wpp-oauth-login-icon"
-									style={ currentStyle.icon !== 'original' ? { color: currentStyle.icon } : {} }
-									dangerouslySetInnerHTML={ { __html: icon } }
-								/>
-							) }
-							<span className="wpp-oauth-login-text">{ sprintf( __( 'Login with %s', 'wppack-oauth-login' ), f.label || name ) }</span>
-						</a>
-					) }
-				</div>
-			</BaseControl>
-			<Field
-				id={ `${ name }-client-id` }
-				label={ __( 'Client ID', 'wppack-oauth-login' ) }
-				value={ f.client_id }
-				onChange={ update( 'client_id' ) }
-				disabled={ isReadonly }
-			/>
-			<Field
-				id={ `${ name }-client-secret` }
-				label={ __( 'Client Secret', 'wppack-oauth-login' ) }
-				value={ f.client_secret }
-				onChange={ update( 'client_secret' ) }
-				disabled={ isReadonly }
-				help={
-					f.client_secret === MASKED
-						? __(
-								'Leave as masked to keep current value.',
-								'wppack-oauth-login'
-						  )
-						: undefined
-				}
-			/>
-			<div className="wpp-oauth-narrow">
-				<Field
-					id={ `${ name }-label` }
-					label={ __( 'Label', 'wppack-oauth-login' ) }
-					value={ f.label }
-					onChange={ update( 'label' ) }
-					disabled={ isReadonly }
-				/>
-			</div>
-			{ reqFields.includes( 'tenant_id' ) && (
-				<Field
-					id={ `${ name }-tenant-id` }
-					label={ __( 'Tenant ID', 'wppack-oauth-login' ) }
-					value={ f.tenant_id }
-					onChange={ update( 'tenant_id' ) }
-					disabled={ isReadonly }
-				/>
-			) }
-			{ reqFields.includes( 'domain' ) && (
-				<Field
-					id={ `${ name }-domain` }
-					label={ __( 'Domain', 'wppack-oauth-login' ) }
-					value={ f.domain }
-					onChange={ update( 'domain' ) }
-					disabled={ isReadonly }
-				/>
-			) }
-			{ reqFields.includes( 'discovery_url' ) && (
-				<Field
-					id={ `${ name }-discovery-url` }
-					label={ __( 'Discovery URL', 'wppack-oauth-login' ) }
-					value={ f.discovery_url }
-					onChange={ update( 'discovery_url' ) }
-					disabled={ isReadonly }
-				/>
-			) }
-			{ reqFields.includes( 'hosted_domain' ) && (
-				<Field
-					id={ `${ name }-hosted-domain` }
-					label={ __( 'Hosted Domain', 'wppack-oauth-login' ) }
-					value={ f.hosted_domain }
-					onChange={ update( 'hosted_domain' ) }
-					disabled={ isReadonly }
-					help={ __(
-						'Restrict to Google Workspace domain.',
-						'wppack-oauth-login'
-					) }
-				/>
-			) }
-			<Field
-				id={ `${ name }-scopes` }
-				label={ __( 'Scopes', 'wppack-oauth-login' ) }
-				value={ f.scopes }
-				onChange={ update( 'scopes' ) }
-				disabled={ isReadonly }
-				help={ __(
-					'Space-separated. Leave empty for defaults.',
-					'wppack-oauth-login'
-				) }
-			/>
-			<BoolField
-				label={ __( 'Auto-create Users', 'wppack-oauth-login' ) }
-				value={ f.auto_provision }
-				onChange={ update( 'auto_provision' ) }
-				disabled={ isReadonly }
-			/>
-			<SelectControl
-				className="wpp-oauth-narrow"
-				label={ __( 'Default Role', 'wppack-oauth-login' ) }
-				value={ f.default_role || 'subscriber' }
-				onChange={ update( 'default_role' ) }
-				disabled={ isReadonly }
-				options={ roleOptions }
-				__nextHasNoMarginBottom
-			/>
-			<Field
-				id={ `${ name }-role-claim` }
-				label={ __( 'Role Claim', 'wppack-oauth-login' ) }
-				value={ f.role_claim }
-				onChange={ update( 'role_claim' ) }
-				disabled={ isReadonly }
-				help={ __(
-					'JWT claim name containing role.',
-					'wppack-oauth-login'
-				) }
-			/>
-			<TextareaControl
-				id={ `${ name }-role-mapping` }
-				label={ __( 'Role Mapping (JSON)', 'wppack-oauth-login' ) }
-				help={ __(
-					'e.g. {"Admin":"administrator","Member":"subscriber"}',
-					'wppack-oauth-login'
-				) }
-				value={ f.role_mapping || '' }
-				onChange={ update( 'role_mapping' ) }
-				disabled={ isReadonly }
-				rows={ 3 }
-				__nextHasNoMarginBottom
-			/>
 			{ ! isReadonly && (
 				<div className="wpp-oauth-delete-provider">
 					<Button
@@ -461,10 +585,6 @@ export default function App() {
 			.finally( () => setSaving( false ) );
 	};
 
-	const updateGlobal = ( key ) => ( value ) => {
-		setGlobalForm( ( prev ) => ( { ...prev, [ key ]: value } ) );
-	};
-
 	const updateProvider = ( name, fields ) => {
 		setProviderForm( ( prev ) => ( { ...prev, [ name ]: fields } ) );
 	};
@@ -475,7 +595,6 @@ export default function App() {
 			return;
 		}
 
-		// Use custom name or generate from type
 		const baseName = type;
 		let name = baseName;
 		let index = 1;
@@ -506,7 +625,6 @@ export default function App() {
 		setProviderOrder( ( prev ) => [ ...prev, name ] );
 		setLastAdded( name );
 		setNewProviderType( '' );
-		setNewProviderName( '' );
 	};
 
 	const handleDeleteProvider = ( name ) => {
@@ -558,6 +676,214 @@ export default function App() {
 		} );
 	};
 
+	// ── Global Settings DataForm ──
+
+	const g = ( key ) => globalSettings?.[ key ] || {};
+
+	const roleOptions = useMemo( () =>
+		Object.entries( roles ).map( ( [ value, label ] ) => ( {
+			label,
+			value,
+		} ) ),
+	[ roles ] );
+
+	const globalData = useMemo( () => ( {
+		ssoOnly: !! globalForm.ssoOnly,
+		autoProvision: !! globalForm.autoProvision,
+		defaultRole: globalForm.defaultRole || 'subscriber',
+		buttonDisplay: globalForm.buttonDisplay || 'icon-text',
+		authorizePath: globalForm.authorizePath || '',
+		callbackPath: globalForm.callbackPath || '',
+		verifyPath: globalForm.verifyPath || '',
+	} ), [ globalForm ] );
+
+	const globalFields = useMemo( () => [
+		{
+			id: 'ssoOnly',
+			label: badgeLabel( __( 'SSO Only Mode', 'wppack-oauth-login' ), g( 'ssoOnly' ).source ),
+			type: 'text',
+			Edit: ( { data, field, onChange: onFieldChange } ) => (
+				<ToggleControl
+					label={ field.label }
+					help={ __( 'Disable WordPress login form.', 'wppack-oauth-login' ) }
+					checked={ !! data.ssoOnly }
+					onChange={ ( val ) => onFieldChange( { ssoOnly: val } ) }
+					disabled={ g( 'ssoOnly' ).readonly }
+					__nextHasNoMarginBottom
+				/>
+			),
+		},
+		{
+			id: 'autoProvision',
+			label: badgeLabel( __( 'Auto-create Users', 'wppack-oauth-login' ), g( 'autoProvision' ).source ),
+			type: 'text',
+			Edit: ( { data, field, onChange: onFieldChange } ) => (
+				<ToggleControl
+					label={ field.label }
+					help={ __( 'Global default. Can be overridden per provider.', 'wppack-oauth-login' ) }
+					checked={ !! data.autoProvision }
+					onChange={ ( val ) => onFieldChange( { autoProvision: val } ) }
+					disabled={ g( 'autoProvision' ).readonly }
+					__nextHasNoMarginBottom
+				/>
+			),
+		},
+		{
+			id: 'defaultRole',
+			label: badgeLabel( __( 'Default Role', 'wppack-oauth-login' ), g( 'defaultRole' ).source ),
+			type: 'text',
+			elements: roleOptions,
+			Edit: g( 'defaultRole' ).readonly
+				? ( { data, field } ) => {
+					const el = roleOptions.find( ( r ) => r.value === data.defaultRole );
+					return (
+						<TextControl
+							id={ field.id }
+							label={ field.label }
+							value={ el ? el.label : data.defaultRole }
+							disabled
+							onChange={ () => {} }
+							__nextHasNoMarginBottom
+						/>
+					);
+				}
+				: undefined,
+		},
+		{
+			id: 'authorizePath',
+			label: __( 'Authorize Path', 'wppack-oauth-login' ),
+			type: 'text',
+			Edit: ( { data, onChange: onFieldChange } ) => (
+				<PathField
+					id="authorizePath"
+					label={ __( 'Authorize Path', 'wppack-oauth-login' ) }
+					field={ g( 'authorizePath' ) }
+					value={ data.authorizePath }
+					onChange={ ( val ) => onFieldChange( { authorizePath: val } ) }
+					prefix={ siteUrl }
+				/>
+			),
+		},
+		{
+			id: 'callbackPath',
+			label: __( 'Callback Path', 'wppack-oauth-login' ),
+			type: 'text',
+			Edit: ( { data, onChange: onFieldChange } ) => (
+				<PathField
+					id="callbackPath"
+					label={ __( 'Callback Path', 'wppack-oauth-login' ) }
+					field={ g( 'callbackPath' ) }
+					value={ data.callbackPath }
+					onChange={ ( val ) => onFieldChange( { callbackPath: val } ) }
+					prefix={ siteUrl }
+				/>
+			),
+		},
+		{
+			id: 'verifyPath',
+			label: __( 'Verify Path', 'wppack-oauth-login' ),
+			type: 'text',
+			Edit: ( { data, onChange: onFieldChange } ) => (
+				<PathField
+					id="verifyPath"
+					label={ __( 'Verify Path', 'wppack-oauth-login' ) }
+					field={ g( 'verifyPath' ) }
+					value={ data.verifyPath }
+					onChange={ ( val ) => onFieldChange( { verifyPath: val } ) }
+					prefix={ siteUrl }
+				/>
+			),
+		},
+		{
+			id: 'buttonDisplay',
+			label: badgeLabel( __( 'Button Display', 'wppack-oauth-login' ), g( 'buttonDisplay' ).source ),
+			type: 'text',
+			elements: [
+				{ label: __( 'Icon + Text', 'wppack-oauth-login' ), value: 'icon-text' },
+				{ label: __( 'Icon Left + Text', 'wppack-oauth-login' ), value: 'icon-left' },
+				{ label: __( 'Icon Only', 'wppack-oauth-login' ), value: 'icon-only' },
+				{ label: __( 'Text Only', 'wppack-oauth-login' ), value: 'text-only' },
+			],
+			Edit: g( 'buttonDisplay' ).readonly
+				? ( { data, field } ) => {
+					const displayLabels = { 'icon-text': __( 'Icon + Text', 'wppack-oauth-login' ), 'icon-left': __( 'Icon Left + Text', 'wppack-oauth-login' ), 'icon-only': __( 'Icon Only', 'wppack-oauth-login' ), 'text-only': __( 'Text Only', 'wppack-oauth-login' ) };
+					return (
+						<TextControl
+							id={ field.id }
+							label={ field.label }
+							value={ displayLabels[ data.buttonDisplay ] || data.buttonDisplay }
+							disabled
+							onChange={ () => {} }
+							__nextHasNoMarginBottom
+						/>
+					);
+				}
+				: undefined,
+		},
+	], [ globalSettings, roleOptions, siteUrl ] );
+
+	const globalFormDef = useMemo( () => ( {
+		fields: [ {
+			id: 'global-section',
+			label: __( 'Global Settings', 'wppack-oauth-login' ),
+			children: globalFields.map( ( gf ) => gf.id ),
+			layout: { type: 'regular' },
+		} ],
+	} ), [ globalFields ] );
+
+	const handleGlobalChange = ( edits ) => {
+		setGlobalForm( ( prev ) => ( { ...prev, ...edits } ) );
+	};
+
+	// ── Add Provider DataForm ──
+
+	const addProviderOptions = useMemo( () => [
+		{ label: __( '-- Select Provider --', 'wppack-oauth-login' ), value: '' },
+		...Object.values( definitions )
+			.filter( ( def ) => def.type !== 'oidc' )
+			.sort( ( a, b ) => a.dropdownLabel.localeCompare( b.dropdownLabel ) )
+			.map( ( def ) => ( { label: def.dropdownLabel, value: def.type } ) ),
+		...( definitions.oidc ? [ { label: definitions.oidc.dropdownLabel, value: 'oidc' } ] : [] ),
+	], [ definitions ] );
+
+	const addData = useMemo( () => ( {
+		providerType: newProviderType,
+	} ), [ newProviderType ] );
+
+	const addFields = useMemo( () => [
+		{
+			id: 'providerType',
+			label: __( 'Provider Type', 'wppack-oauth-login' ),
+			type: 'text',
+			elements: addProviderOptions.filter( ( o ) => o.value !== '' ),
+			Edit: ( { data, field, onChange: onFieldChange } ) => (
+				<SelectControl
+					id={ field.id }
+					label={ field.label }
+					value={ data.providerType }
+					options={ addProviderOptions }
+					onChange={ ( val ) => onFieldChange( { providerType: val } ) }
+					__nextHasNoMarginBottom
+				/>
+			),
+		},
+	], [ addProviderOptions ] );
+
+	const addForm = useMemo( () => ( {
+		fields: [ {
+			id: 'add-section',
+			label: __( 'Add Provider', 'wppack-oauth-login' ),
+			children: [ 'providerType' ],
+			layout: { type: 'regular' },
+		} ],
+	} ), [] );
+
+	const handleAddFormChange = ( edits ) => {
+		if ( 'providerType' in edits ) {
+			setNewProviderType( edits.providerType );
+		}
+	};
+
 	if ( loading ) {
 		return (
 			<div className="wpp-oauth-loading">
@@ -566,194 +892,87 @@ export default function App() {
 		);
 	}
 
-	const g = ( key ) => globalSettings?.[ key ] || {};
-	const roleOptions = Object.entries( roles ).map( ( [ value, label ] ) => ( {
-		label,
-		value,
-	} ) );
-
 	return (
 		<Page title={ __( 'OAuth Login Settings', 'wppack-oauth-login' ) } hasPadding>
 			<div className="wpp-oauth-settings">
 				{ notice && (
-				<Notice
-					status={ notice.type }
-					isDismissible
-					onDismiss={ () => setNotice( null ) }
-				>
-					{ notice.message }
-				</Notice>
-			) }
-
-			<Panel>
-				<PanelBody
-					title={ __( 'Global Settings', 'wppack-oauth-login' ) }
-					initialOpen={ true }
-				>
-					<BoolField
-						label={ __( 'SSO Only Mode', 'wppack-oauth-login' ) }
-						field={ g( 'ssoOnly' ) }
-						value={ globalForm.ssoOnly }
-						onChange={ updateGlobal( 'ssoOnly' ) }
-						help={ __(
-							'Disable WordPress login form.',
-							'wppack-oauth-login'
-						) }
-					/>
-					<BoolField
-						label={ __(
-							'Auto-create Users',
-							'wppack-oauth-login'
-						) }
-						field={ g( 'autoProvision' ) }
-						value={ globalForm.autoProvision }
-						onChange={ updateGlobal( 'autoProvision' ) }
-						help={ __(
-							'Global default. Can be overridden per provider.',
-							'wppack-oauth-login'
-						) }
-					/>
-					<SelectControl
-						className="wpp-oauth-narrow"
-						label={
-							<>
-								{ __(
-									'Default Role',
-									'wppack-oauth-login'
-								) }
-								<SourceBadge
-									source={ g( 'defaultRole' ).source }
-								/>
-							</>
-						}
-						value={ globalForm.defaultRole || 'subscriber' }
-						onChange={ updateGlobal( 'defaultRole' ) }
-						disabled={ g( 'defaultRole' ).readonly }
-						options={ roleOptions }
-						__nextHasNoMarginBottom
-					/>
-					<PathField
-						id="authorizePath"
-						label={ __(
-							'Authorize Path',
-							'wppack-oauth-login'
-						) }
-						field={ g( 'authorizePath' ) }
-						value={ globalForm.authorizePath }
-						onChange={ updateGlobal( 'authorizePath' ) }
-						prefix={ siteUrl }
-					/>
-					<PathField
-						id="callbackPath"
-						label={ __(
-							'Callback Path',
-							'wppack-oauth-login'
-						) }
-						field={ g( 'callbackPath' ) }
-						value={ globalForm.callbackPath }
-						onChange={ updateGlobal( 'callbackPath' ) }
-						prefix={ siteUrl }
-					/>
-					<PathField
-						id="verifyPath"
-						label={ __(
-							'Verify Path',
-							'wppack-oauth-login'
-						) }
-						field={ g( 'verifyPath' ) }
-						value={ globalForm.verifyPath }
-						onChange={ updateGlobal( 'verifyPath' ) }
-						prefix={ siteUrl }
-					/>
-					<SelectControl
-						className="wpp-oauth-narrow"
-						label={
-							<>
-								{ __( 'ボタン表示', 'wppack-oauth-login' ) }
-								<SourceBadge source={ g( 'buttonDisplay' ).source } />
-							</>
-						}
-						value={ globalForm.buttonDisplay || 'icon-text' }
-						onChange={ updateGlobal( 'buttonDisplay' ) }
-						disabled={ g( 'buttonDisplay' ).readonly }
-						options={ [
-							{ label: 'アイコン + テキスト', value: 'icon-text' },
-							{ label: 'アイコン左寄せ + テキスト', value: 'icon-left' },
-							{ label: 'アイコンのみ', value: 'icon-only' },
-							{ label: 'テキストのみ', value: 'text-only' },
-						] }
-						__nextHasNoMarginBottom
-					/>
-				</PanelBody>
-
-				{ providerOrder.map(
-					( name, idx ) => {
-						const provider = providers[ name ];
-						if ( ! provider ) return null;
-						return (
-							<ProviderPanel
-								key={ name }
-								name={ name }
-								provider={ {
-									...provider,
-									fields:
-										providerForm[ name ] || provider.fields,
-								} }
-								onChange={ updateProvider }
-								onDelete={ handleDeleteProvider }
-								onRename={ handleRenameProvider }
-								onMoveUp={ ( n ) => handleMoveProvider( n, -1 ) }
-								onMoveDown={ ( n ) => handleMoveProvider( n, 1 ) }
-								isFirst={ idx === 0 }
-								isLast={ idx === providerOrder.length - 1 }
-								isReadonly={ provider.readonly }
-								icons={ icons }
-								allStyles={ styles }
-								buttonDisplay={ globalForm.buttonDisplay || 'icon-text' }
-								definitions={ definitions }
-								roleOptions={ roleOptions }
-								initialOpen={ name === lastAdded }
-							/>
-						);
-					}
+					<Notice
+						status={ notice.type }
+						isDismissible
+						onDismiss={ () => setNotice( null ) }
+					>
+						{ notice.message }
+					</Notice>
 				) }
-			</Panel>
 
-			<div className="wpp-oauth-add-provider">
-				<SelectControl
-					value={ newProviderType }
-					onChange={ setNewProviderType }
-					options={ [
-						{ label: __( '— Select Provider —', 'wppack-oauth-login' ), value: '' },
-						...Object.values( definitions )
-							.filter( ( def ) => def.type !== 'oidc' )
-							.sort( ( a, b ) => a.dropdownLabel.localeCompare( b.dropdownLabel ) )
-							.map( ( def ) => ( { label: def.dropdownLabel, value: def.type } ) ),
-						...( definitions.oidc ? [ { label: definitions.oidc.dropdownLabel, value: 'oidc' } ] : [] ),
-					] }
-					__nextHasNoMarginBottom
-				/>
-				<Button
-					variant="secondary"
-					onClick={ handleAddProvider }
-					disabled={ ! newProviderType }
-				>
-					{ __( 'Add Provider', 'wppack-oauth-login' ) }
-				</Button>
-			</div>
+				<div className="wpp-oauth-dataform-wrap">
+					<DataForm
+						data={ globalData }
+						fields={ globalFields }
+						form={ globalFormDef }
+						onChange={ handleGlobalChange }
+					/>
+				</div>
 
-			<div className="wpp-oauth-actions">
-				<Button
-					variant="primary"
-					onClick={ handleSave }
-					isBusy={ saving }
-					disabled={ saving }
-				>
-					{ saving
-						? __( 'Saving…', 'wppack-oauth-login' )
-						: __( 'Save Settings', 'wppack-oauth-login' ) }
-				</Button>
-			</div>
+				<Panel>
+					{ providerOrder.map(
+						( name, idx ) => {
+							const provider = providers[ name ];
+							if ( ! provider ) return null;
+							return (
+								<ProviderPanel
+									key={ name }
+									name={ name }
+									provider={ provider }
+									providerFields={ providerForm[ name ] || provider.fields }
+									onChange={ updateProvider }
+									onDelete={ handleDeleteProvider }
+									onRename={ handleRenameProvider }
+									onMoveUp={ ( n ) => handleMoveProvider( n, -1 ) }
+									onMoveDown={ ( n ) => handleMoveProvider( n, 1 ) }
+									isFirst={ idx === 0 }
+									isLast={ idx === providerOrder.length - 1 }
+									isReadonly={ provider.readonly }
+									icons={ icons }
+									allStyles={ styles }
+									buttonDisplay={ globalForm.buttonDisplay || 'icon-text' }
+									definitions={ definitions }
+									roleOptions={ roleOptions }
+									initialOpen={ name === lastAdded }
+								/>
+							);
+						}
+					) }
+				</Panel>
+
+				<div className="wpp-oauth-add-section wpp-oauth-dataform-wrap">
+					<DataForm
+						data={ addData }
+						fields={ addFields }
+						form={ addForm }
+						onChange={ handleAddFormChange }
+					/>
+					<Button
+						variant="secondary"
+						onClick={ handleAddProvider }
+						disabled={ ! newProviderType }
+					>
+						{ __( 'Add Provider', 'wppack-oauth-login' ) }
+					</Button>
+				</div>
+
+				<div className="wpp-oauth-actions">
+					<Button
+						variant="primary"
+						onClick={ handleSave }
+						isBusy={ saving }
+						disabled={ saving }
+					>
+						{ saving
+							? __( 'Saving...', 'wppack-oauth-login' )
+							: __( 'Save Settings', 'wppack-oauth-login' ) }
+					</Button>
+				</div>
 			</div>
 		</Page>
 	);
