@@ -38,8 +38,10 @@ final class MonitoringCollector
     {
         // Round end timestamp to cacheTtl boundary so cache hits within the TTL window
         $roundedEnd = intdiv($range->end->getTimestamp(), $this->cacheTtl) * $this->cacheTtl;
+        $rangeSeconds = $range->end->getTimestamp() - $range->start->getTimestamp();
         $cacheKey = self::CACHE_KEY . '_' . md5(serialize([
             $roundedEnd,
+            $rangeSeconds,
             $range->periodSeconds,
         ]));
 
