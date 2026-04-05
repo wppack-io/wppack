@@ -389,3 +389,102 @@
 	margin-top: 16px;
 }
 
+/* ── Metric detail modal ──────────────── */
+.wpp-monitoring-card--clickable {
+	cursor: pointer;
+	transition: box-shadow 0.15s;
+}
+
+.wpp-monitoring-card--clickable:hover {
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.wpp-monitoring-detail-modal .components-modal__content {
+	padding: 16px 24px 24px;
+}
+
+.wpp-monitoring-detail-desc {
+	color: #757575;
+	margin: 0 0 16px;
+	font-size: 13px;
+}
+
+.wpp-monitoring-detail-error {
+	color: #d63638;
+	padding: 16px;
+	background: #fcf0f1;
+	border-radius: 4px;
+}
+
+.wpp-monitoring-detail-chart {
+	position: relative;
+	margin-bottom: 24px;
+}
+
+.wpp-monitoring-detail-chart svg {
+	width: 100%;
+	height: auto;
+	max-height: 300px;
+}
+
+.wpp-monitoring-detail-chart-empty {
+	text-align: center;
+	color: #757575;
+	padding: 48px;
+}
+
+.wpp-monitoring-detail-tooltip {
+	position: absolute;
+	top: 0;
+	transform: translateX(-50%);
+	background: #1e1e1e;
+	color: #fff;
+	padding: 4px 8px;
+	border-radius: 4px;
+	font-size: 12px;
+	white-space: nowrap;
+	pointer-events: none;
+	z-index: 10;
+}
+
+.wpp-monitoring-detail-tooltip-time {
+	font-size: 11px;
+	color: #a0a0a0;
+}
+
+.wpp-monitoring-detail-stats {
+	display: flex;
+	gap: 16px;
+	margin-bottom: 16px;
+	flex-wrap: wrap;
+}
+
+.wpp-monitoring-stat-box {
+	flex: 1;
+	min-width: 100px;
+	padding: 12px;
+	background: #f9f9f9;
+	border: 1px solid #e0e0e0;
+	border-radius: 4px;
+	text-align: center;
+}
+
+.wpp-monitoring-stat-label {
+	font-size: 11px;
+	color: #757575;
+	text-transform: uppercase;
+	margin-bottom: 4px;
+}
+
+.wpp-monitoring-stat-value {
+	font-size: 16px;
+	font-weight: 600;
+}
+
+.wpp-monitoring-detail-meta {
+	display: flex;
+	gap: 16px;
+	font-size: 12px;
+	color: #757575;
+	flex-wrap: wrap;
+}

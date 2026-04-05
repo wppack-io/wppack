@@ -1,16 +1,29 @@
 import { __ } from '@wordpress/i18n';
 import Sparkline from './Sparkline';
 
-export default function MetricCard( { metric, result } ) {
+export default function MetricCard( { metric, result, onSelect } ) {
 	const { stat, unit } = metric;
 	const label = __( metric.label, 'wppack-monitoring' );
 	const description = metric.description ? __( metric.description, 'wppack-monitoring' ) : '';
 	const error = result?.error;
 	const datapoints = result?.datapoints || [];
 
+	const handleClick = () => onSelect && onSelect( metric, result );
+	const handleKeyDown = ( e ) => {
+		if ( ( e.key === 'Enter' || e.key === ' ' ) && onSelect ) {
+			e.preventDefault();
+			onSelect( metric, result );
+		}
+	};
+
+	const clickableClass = onSelect ? ' wpp-monitoring-card--clickable' : '';
+	const clickableProps = onSelect
+		? { role: 'button', tabIndex: 0, onClick: handleClick, onKeyDown: handleKeyDown }
+		: {};
+
 	if ( error ) {
 		return (
-			<div className="wpp-monitoring-card wpp-monitoring-card--error">
+			<div className={ `wpp-monitoring-card wpp-monitoring-card--error${ clickableClass }` } { ...clickableProps }>
 				<div className="wpp-monitoring-card-label">{ label }</div>
 				<div className="wpp-monitoring-card-value wpp-monitoring-card-value--muted">
 					&mdash;
@@ -70,7 +83,7 @@ export default function MetricCard( { metric, result } ) {
 	};
 
 	return (
-		<div className="wpp-monitoring-card">
+		<div className={ `wpp-monitoring-card${ clickableClass }` } { ...clickableProps }>
 			<div className="wpp-monitoring-card-label">{ label }</div>
 			<div className="wpp-monitoring-card-value">
 				{ formatValue( displayValue ) }

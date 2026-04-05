@@ -4,6 +4,7 @@ import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
 import ProviderSection from '../components/ProviderSection';
 import PeriodSelector from '../components/PeriodSelector';
+import MetricDetailModal from '../components/MetricDetailModal';
 
 export default function DashboardPage() {
 	const [ data, setData ] = useState( null );
@@ -11,6 +12,7 @@ export default function DashboardPage() {
 	const [ loading, setLoading ] = useState( true );
 	const [ refreshing, setRefreshing ] = useState( false );
 	const [ error, setError ] = useState( null );
+	const [ selectedMetric, setSelectedMetric ] = useState( null );
 
 	const fetchMetrics = useCallback(
 		async ( force = false ) => {
@@ -92,8 +94,17 @@ export default function DashboardPage() {
 					key={ provider.id }
 					provider={ provider }
 					results={ resultsByProvider[ provider.id ] || [] }
+					onSelectMetric={ ( metric, result ) => setSelectedMetric( { metric, result } ) }
 				/>
 			) ) }
+
+			{ selectedMetric && (
+				<MetricDetailModal
+					metric={ selectedMetric.metric }
+					result={ selectedMetric.result }
+					onClose={ () => setSelectedMetric( null ) }
+				/>
+			) }
 		</div>
 	);
 }

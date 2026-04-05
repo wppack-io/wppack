@@ -2,7 +2,7 @@ import { Card, CardHeader, CardBody } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import MetricCard from './MetricCard';
 
-export default function ProviderSection( { provider, results } ) {
+export default function ProviderSection( { provider, results, onSelectMetric } ) {
 	// Build dimension summary for header
 	const dimensions =
 		provider.metrics.length > 0
@@ -45,6 +45,7 @@ export default function ProviderSection( { provider, results } ) {
 							key={ metric.id }
 							metric={ metric }
 							result={ resultMap[ metric.id ] }
+							onSelect={ onSelectMetric }
 						/>
 					) ) }
 				</div>
