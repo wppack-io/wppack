@@ -8,7 +8,14 @@ import MetricDetailModal from '../components/MetricDetailModal';
 
 export default function DashboardPage() {
 	const [ data, setData ] = useState( null );
-	const [ period, setPeriod ] = useState( 3 );
+	const [ period, setPeriodState ] = useState( () => {
+		const saved = localStorage.getItem( 'wppack_monitoring_period' );
+		return saved ? Number( saved ) : 3;
+	} );
+	const setPeriod = ( v ) => {
+		setPeriodState( v );
+		localStorage.setItem( 'wppack_monitoring_period', String( v ) );
+	};
 	const [ loading, setLoading ] = useState( true );
 	const [ refreshing, setRefreshing ] = useState( false );
 	const [ error, setError ] = useState( null );
