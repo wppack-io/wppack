@@ -1,14 +1,51 @@
-import { Modal } from '@wordpress/components';
+import { useState, useEffect } from '@wordpress/element';
+import { Modal, Button, ButtonGroup, Spinner } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
+import apiFetch from '@wordpress/api-fetch';
 import DetailChart from './DetailChart';
 
-export default function MetricDetailModal( { metric, result, onClose } ) {
+const PERIODS = [
+	{ label: '1h', value: 1 },
+	{ label: '3h', value: 3 },
+	{ label: '6h', value: 6 },
+	{ label: '12h', value: 12 },
+	{ label: '1d', value: 24 },
+	{ label: '3d', value: 72 },
+	{ label: '7d', value: 168 },
+];
+
+export default function MetricDetailModal( { metric, result, initialPeriod, onClose } ) {
 	const label = __( metric.label, 'wppack-monitoring' );
 	const description = metric.description ? __( metric.description, 'wppack-monitoring' ) : '';
-	const datapoints = result?.datapoints || [];
-	const error = result?.error;
 
-	const stats = computeStats( datapoints, metric.stat );
+	const [ period, setPeriod ] = useState( initialPeriod || 3 );
+	const [ currentResult, setCurrentResult ] = useState( result );
+	const [ fetching, setFetching ] = useState( false );
+
+	useEffect( () => {
+		if ( period === initialPeriod ) {
+			setCurrentResult( result );
+			return;
+		}
+
+		setFetching( true );
+		apiFetch( {
+			path: `wppack/v1/monitoring/metrics?period=${ period }`,
+		} )
+			.then( ( data ) => {
+				const matched = ( data.results || [] ).find(
+					( r ) => r.sourceId === metric.id
+				);
+				if ( matched ) {
+					setCurrentResult( matched );
+				}
+			} )
+			.finally( () => setFetching( false ) );
+	}, [ period ] );
+
+	const datapoints = currentResult?.datapoints || [];
+	const error = currentResult?.error;
+	const stats = computeStats( datapoints );
 
 	return (
 		<Modal
@@ -17,9 +54,24 @@ export default function MetricDetailModal( { metric, result, onClose } ) {
 			size="large"
 			className="wpp-monitoring-detail-modal"
 		>
-			{ description && <p className="wpp-monitoring-detail-desc">{ description }</p> }
+			<div className="wpp-monitoring-detail-period">
+				<ButtonGroup>
+					{ PERIODS.map( ( p ) => (
+						<Button
+							key={ p.value }
+							variant={ period === p.value ? 'primary' : 'secondary' }
+							size="small"
+							onClick={ () => setPeriod( p.value ) }
+						>
+							{ p.label }
+						</Button>
+					) ) }
+				</ButtonGroup>
+			</div>
 
-			{ error ? (
+			{ fetching ? (
+				<div className="wpp-monitoring-detail-loading"><Spinner /></div>
+			) : error ? (
 				<div className="wpp-monitoring-detail-error">{ error }</div>
 			) : (
 				<>
@@ -39,6 +91,7 @@ export default function MetricDetailModal( { metric, result, onClose } ) {
 						{ metric.namespace && <span>{ __( 'Namespace', 'wppack-monitoring' ) }: { metric.namespace }</span> }
 						{ metric.metricName && <span>{ __( 'Metric', 'wppack-monitoring' ) }: { metric.metricName }</span> }
 					</div>
+					{ description && <p className="wpp-monitoring-detail-desc">{ description }</p> }
 				</>
 			) }
 		</Modal>
@@ -70,7 +123,7 @@ function formatStatValue( value, unit ) {
 	return value.toLocaleString( undefined, { maximumFractionDigits: 2 } );
 }
 
-function computeStats( datapoints, stat ) {
+function computeStats( datapoints ) {
 	if ( ! datapoints || datapoints.length === 0 ) {
 		return { latest: null, avg: null, min: null, max: null, count: 0 };
 	}

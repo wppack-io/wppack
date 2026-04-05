@@ -102,6 +102,7 @@ export default function DashboardPage() {
 				<MetricDetailModal
 					metric={ selectedMetric.metric }
 					result={ selectedMetric.result }
+					initialPeriod={ period }
 					onClose={ () => setSelectedMetric( null ) }
 				/>
 			) }

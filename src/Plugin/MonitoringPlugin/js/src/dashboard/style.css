@@ -403,6 +403,16 @@
 	padding: 16px 24px 24px;
 }
 
+.wpp-monitoring-detail-period {
+	margin-bottom: 16px;
+}
+
+.wpp-monitoring-detail-loading {
+	display: flex;
+	justify-content: center;
+	padding: 48px;
+}
+
 .wpp-monitoring-detail-desc {
 	color: #757575;
 	margin: 0 0 16px;
