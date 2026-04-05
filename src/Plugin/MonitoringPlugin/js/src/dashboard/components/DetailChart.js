@@ -21,10 +21,18 @@ export default function DetailChart( { datapoints, unit } ) {
 	const max = Math.max( ...values );
 	const range = max - min || 1;
 
-	const toX = ( i ) => PADDING.left + ( i / ( datapoints.length - 1 ) ) * plotW;
+	// Time-based X axis
+	const timestamps = datapoints.map( ( dp ) => new Date( dp.timestamp ).getTime() );
+	const tMin = timestamps[ 0 ];
+	const tMax = timestamps[ timestamps.length - 1 ];
+	const tRange = tMax - tMin || 1;
+
+	const toX = ( t ) => PADDING.left + ( ( t - tMin ) / tRange ) * plotW;
 	const toY = ( v ) => PADDING.top + plotH - ( ( v - min ) / range ) * plotH;
 
-	const points = datapoints.map( ( dp, i ) => `${ toX( i ) },${ toY( dp.value ) }` ).join( ' ' );
+	const points = datapoints.map( ( dp, i ) =>
+		`${ toX( timestamps[ i ] ) },${ toY( dp.value ) }`
+	).join( ' ' );
 
 	// Y-axis labels (5 ticks)
 	const yTicks = Array.from( { length: 5 }, ( _, i ) => {
@@ -32,12 +40,8 @@ export default function DetailChart( { datapoints, unit } ) {
 		return { y: toY( v ), label: formatAxisValue( v, unit ) };
 	} );
 
-	// X-axis labels (5 ticks)
-	const xTicks = Array.from( { length: 5 }, ( _, i ) => {
-		const idx = Math.round( ( i / 4 ) * ( datapoints.length - 1 ) );
-		const dp = datapoints[ idx ];
-		return { x: toX( idx ), label: formatTime( dp.timestamp ) };
-	} );
+	// X-axis: aligned to nice time boundaries
+	const xTicks = computeTimeTicks( tMin, tMax, plotW );
 
 	const handleMouseMove = ( e ) => {
 		const svg = svgRef.current;
@@ -49,10 +53,20 @@ export default function DetailChart( { datapoints, unit } ) {
 			setHover( null );
 			return;
 		}
-		const idx = Math.round( ( relX / plotW ) * ( datapoints.length - 1 ) );
-		const dp = datapoints[ idx ];
+		// Find nearest datapoint by timestamp
+		const mouseT = tMin + ( relX / plotW ) * tRange;
+		let nearest = 0;
+		let nearestDist = Infinity;
+		for ( let i = 0; i < timestamps.length; i++ ) {
+			const dist = Math.abs( timestamps[ i ] - mouseT );
+			if ( dist < nearestDist ) {
+				nearestDist = dist;
+				nearest = i;
+			}
+		}
+		const dp = datapoints[ nearest ];
 		if ( dp ) {
-			setHover( { x: toX( idx ), y: toY( dp.value ), dp, idx } );
+			setHover( { x: toX( timestamps[ nearest ] ), y: toY( dp.value ), dp, idx: nearest } );
 		}
 	};
 
@@ -75,9 +89,12 @@ export default function DetailChart( { datapoints, unit } ) {
 					<text key={ `y${ i }` } x={ PADDING.left - 8 } y={ t.y + 4 } textAnchor="end" fontSize="10" fill="#757575">{ t.label }</text>
 				) ) }
 
-				{ /* X-axis labels */ }
+				{ /* X-axis tick lines + labels */ }
 				{ xTicks.map( ( t, i ) => (
-					<text key={ `x${ i }` } x={ t.x } y={ CHART_HEIGHT - 6 } textAnchor="middle" fontSize="10" fill="#757575">{ t.label }</text>
+					<g key={ `x${ i }` }>
+						<line x1={ toX( t.time ) } y1={ PADDING.top } x2={ toX( t.time ) } y2={ PADDING.top + plotH } stroke="#f0f0f0" strokeWidth="0.5" />
+						<text x={ toX( t.time ) } y={ CHART_HEIGHT - 6 } textAnchor="middle" fontSize="10" fill="#757575">{ t.label }</text>
+					</g>
 				) ) }
 
 				{ /* Data line */ }
@@ -104,6 +121,53 @@ export default function DetailChart( { datapoints, unit } ) {
 			) }
 		</div>
 	);
+}
+
+/**
+ * Compute nice time-aligned X-axis ticks.
+ */
+function computeTimeTicks( tMin, tMax ) {
+	const rangeMs = tMax - tMin;
+	const rangeHours = rangeMs / ( 3600 * 1000 );
+
+	let intervalMs;
+	let formatFn;
+
+	if ( rangeHours <= 2 ) {
+		// ≤2h: every 15 min
+		intervalMs = 15 * 60 * 1000;
+		formatFn = ( d ) => d.toLocaleTimeString( [], { hour: '2-digit', minute: '2-digit' } );
+	} else if ( rangeHours <= 6 ) {
+		// ≤6h: every 1 hour
+		intervalMs = 60 * 60 * 1000;
+		formatFn = ( d ) => d.toLocaleTimeString( [], { hour: '2-digit', minute: '2-digit' } );
+	} else if ( rangeHours <= 24 ) {
+		// ≤1d: every 3 hours
+		intervalMs = 3 * 60 * 60 * 1000;
+		formatFn = ( d ) => d.toLocaleTimeString( [], { hour: '2-digit', minute: '2-digit' } );
+	} else if ( rangeHours <= 72 ) {
+		// ≤3d: every 6 hours
+		intervalMs = 6 * 60 * 60 * 1000;
+		formatFn = ( d ) => {
+			const h = d.getHours();
+			return h === 0
+				? d.toLocaleDateString( [], { month: 'short', day: 'numeric' } )
+				: d.toLocaleTimeString( [], { hour: '2-digit', minute: '2-digit' } );
+		};
+	} else {
+		// >3d: every 1 day
+		intervalMs = 24 * 60 * 60 * 1000;
+		formatFn = ( d ) => d.toLocaleDateString( [], { month: 'short', day: 'numeric' } );
+	}
+
+	// Snap to the first aligned boundary after tMin
+	const first = Math.ceil( tMin / intervalMs ) * intervalMs;
+	const ticks = [];
+	for ( let t = first; t <= tMax; t += intervalMs ) {
+		ticks.push( { time: t, label: formatFn( new Date( t ) ) } );
+	}
+
+	return ticks;
 }
 
 function formatAxisValue( value, unit ) {
@@ -133,11 +197,6 @@ function formatDisplayValue( value, unit ) {
 	if ( unit === 'Milliseconds' ) return value.toFixed( 2 ) + ' ms';
 	if ( unit === 'Seconds' ) return value.toFixed( 4 ) + ' s';
 	return value.toLocaleString( undefined, { maximumFractionDigits: 2 } );
-}
-
-function formatTime( ts ) {
-	const d = new Date( ts );
-	return d.toLocaleTimeString( [], { hour: '2-digit', minute: '2-digit' } );
 }
 
 function formatDateTime( ts ) {
