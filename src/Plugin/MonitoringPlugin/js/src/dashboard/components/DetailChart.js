@@ -155,9 +155,14 @@ function computeTimeTicks( tMin, tMax ) {
 				: d.toLocaleTimeString( [], { hour: '2-digit', minute: '2-digit' } );
 		};
 	} else {
-		// >3d: every 1 day
-		intervalMs = 24 * 60 * 60 * 1000;
-		formatFn = ( d ) => d.toLocaleDateString( [], { month: 'short', day: 'numeric' } );
+		// >3d: every 12 hours
+		intervalMs = 12 * 60 * 60 * 1000;
+		formatFn = ( d ) => {
+			const h = d.getHours();
+			return h === 0
+				? d.toLocaleDateString( [], { month: 'short', day: 'numeric' } )
+				: d.toLocaleDateString( [], { month: 'short', day: 'numeric' } ) + ' ' + d.toLocaleTimeString( [], { hour: '2-digit', minute: '2-digit' } );
+		};
 	}
 
 	// Snap to the first aligned boundary after tMin
