@@ -392,11 +392,11 @@
 /* ── Metric detail modal ──────────────── */
 .wpp-monitoring-card--clickable {
 	cursor: pointer;
-	transition: box-shadow 0.15s;
+	transition: background-color 0.15s;
 }
 
 .wpp-monitoring-card--clickable:hover {
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+	background-color: rgba(0, 0, 0, 0.02);
 }
 
 .wpp-monitoring-detail-modal .components-modal__content {
