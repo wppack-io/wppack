@@ -536,6 +536,26 @@ export default function App() {
 			} );
 		}
 
+		result.push( {
+			id: '_uriPreview',
+			label: __( 'URI Preview', 'wppack-storage' ),
+			type: 'text',
+			Edit: ( { data } ) => {
+				if ( ! data.providerType || ! data.bucket ) {
+					return null;
+				}
+				const scheme = schemeForProvider( data.providerType );
+				return (
+					<TextControl
+						label={ __( 'URI Preview', 'wppack-storage' ) }
+						value={ `${ scheme }://${ data.bucket }` }
+						readOnly
+						__nextHasNoMarginBottom
+					/>
+				);
+			},
+		} );
+
 		return result;
 	}, [ newStorage.providerType, providerOptions, addDef, isLocal ] );
 
@@ -646,14 +666,6 @@ export default function App() {
 						form={ addForm }
 						onChange={ handleAddFormChange }
 					/>
-					{ newUri && (
-						<TextControl
-							label={ __( 'URI Preview', 'wppack-storage' ) }
-							value={ newUri }
-							readOnly
-							__nextHasNoMarginBottom
-						/>
-					) }
 					<Button
 						variant="secondary"
 						onClick={ handleAddStorage }
