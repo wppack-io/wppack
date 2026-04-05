@@ -195,27 +195,21 @@ function StoragePanel( { uri, storage, definitions, onChange, onDelete, isReadon
 					id: fieldKey,
 					label: FIELD_LABELS[ fieldKey ] || fieldKey,
 					type: 'text',
+					elements: AWS_REGIONS.filter( ( r ) => r.value !== '' ),
 					Edit: isReadonly
-						? ( { data, field } ) => (
-							<SelectControl
-								id={ field.id }
-								label={ field.label }
-								value={ data[ fieldKey ] || '' }
-								options={ AWS_REGIONS }
-								disabled
-								__nextHasNoMarginBottom
-							/>
-						)
-						: ( { data, field, onChange: onFieldChange } ) => (
-							<SelectControl
-								id={ field.id }
-								label={ field.label }
-								value={ data[ fieldKey ] || '' }
-								options={ AWS_REGIONS }
-								onChange={ ( val ) => onFieldChange( { [ fieldKey ]: val } ) }
-								__nextHasNoMarginBottom
-							/>
-						),
+						? ( { data, field } ) => {
+							const el = AWS_REGIONS.find( ( r ) => r.value === ( data[ fieldKey ] || '' ) );
+							return (
+								<TextControl
+									id={ field.id }
+									label={ field.label }
+									value={ el ? el.label : data[ fieldKey ] || '' }
+									disabled
+									__nextHasNoMarginBottom
+								/>
+							);
+						}
+						: undefined,
 				} );
 				continue;
 			}
@@ -449,10 +443,6 @@ export default function App() {
 		}
 	};
 
-	if ( loading ) {
-		return <div className="wpp-storage-loading"><Spinner /></div>;
-	}
-
 	const providerOptions = [
 		{ label: __( '— Select Provider —', 'wppack-storage' ), value: '' },
 		...Object.entries( definitions )
@@ -534,16 +524,7 @@ export default function App() {
 					id: 'region',
 					label: FIELD_LABELS.region || 'Region',
 					type: 'text',
-					Edit: ( { data, field, onChange: onFieldChange } ) => (
-						<SelectControl
-							id={ field.id }
-							label={ field.label }
-							value={ data.region || '' }
-							options={ AWS_REGIONS }
-							onChange={ ( val ) => onFieldChange( { region: val } ) }
-							__nextHasNoMarginBottom
-						/>
-					),
+					elements: AWS_REGIONS.filter( ( r ) => r.value !== '' ),
 				} );
 				continue;
 			}
@@ -621,6 +602,10 @@ export default function App() {
 			setUploadsPath( edits.uploadsPath );
 		}
 	};
+
+	if ( loading ) {
+		return <div className="wpp-storage-loading"><Spinner /></div>;
+	}
 
 	return (
 		<Page

@@ -47,17 +47,6 @@
 	margin-bottom: 16px;
 }
 
-.wpp-storage-settings .components-panel__body .components-base-control {
-	margin-bottom: 16px;
-}
-
-.wpp-storage-settings .components-panel__body.is-opened {
-	padding-bottom: 0;
-}
-
-.wpp-storage-settings .components-panel__body.is-opened > .components-panel__body-title {
-	margin-bottom: 16px;
-}
 
 .wpp-storage-loading {
 	display: flex;
@@ -119,8 +108,9 @@
 	background: #fafafa;
 }
 
-.wpp-storage-add-section .components-base-control {
-	margin-bottom: 16px;
+
+.wpp-storage-add-section > .components-button {
+	margin-top: 16px;
 }
 
 .wpp-storage-add-row {
