@@ -416,10 +416,13 @@
 	margin-bottom: 16px;
 }
 
-.wpp-monitoring-detail-loading {
-	display: flex;
-	justify-content: center;
-	padding: 48px;
+.wpp-monitoring-detail-body {
+	transition: opacity 0.2s;
+}
+
+.wpp-monitoring-detail-body.is-refreshing {
+	opacity: 0.5;
+	pointer-events: none;
 }
 
 .wpp-monitoring-detail-desc {

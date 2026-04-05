@@ -69,12 +69,10 @@ export default function MetricDetailModal( { metric, result, initialPeriod, onCl
 				</ButtonGroup>
 			</div>
 
-			{ fetching ? (
-				<div className="wpp-monitoring-detail-loading"><Spinner /></div>
-			) : error ? (
+			{ error ? (
 				<div className="wpp-monitoring-detail-error">{ error }</div>
 			) : (
-				<>
+				<div className={ fetching ? 'wpp-monitoring-detail-body is-refreshing' : 'wpp-monitoring-detail-body' }>
 					<DetailChart datapoints={ datapoints } unit={ metric.unit } />
 
 					<div className="wpp-monitoring-detail-stats">
@@ -92,7 +90,7 @@ export default function MetricDetailModal( { metric, result, initialPeriod, onCl
 						{ metric.metricName && <span>{ __( 'Metric', 'wppack-monitoring' ) }: { metric.metricName }</span> }
 					</div>
 					{ description && <p className="wpp-monitoring-detail-desc">{ description }</p> }
-				</>
+				</div>
 			) }
 		</Modal>
 	);
