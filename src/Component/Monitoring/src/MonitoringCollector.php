@@ -36,9 +36,10 @@ final class MonitoringCollector
      */
     public function query(MetricTimeRange $range, bool $forceRefresh = false): array
     {
+        // Round end timestamp to cacheTtl boundary so cache hits within the TTL window
+        $roundedEnd = intdiv($range->end->getTimestamp(), $this->cacheTtl) * $this->cacheTtl;
         $cacheKey = self::CACHE_KEY . '_' . md5(serialize([
-            $range->start->getTimestamp(),
-            $range->end->getTimestamp(),
+            $roundedEnd,
             $range->periodSeconds,
         ]));
 
