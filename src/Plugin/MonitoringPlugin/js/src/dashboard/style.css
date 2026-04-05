@@ -409,7 +409,11 @@
 }
 
 .wpp-monitoring-detail-modal .components-modal__content {
-	padding: 16px 24px 24px;
+	padding: 24px;
+}
+
+.wpp-monitoring-detail-modal .components-modal__header {
+	padding: 24px 24px 0;
 }
 
 .wpp-monitoring-detail-period {
