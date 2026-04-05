@@ -273,27 +273,6 @@ function ProviderPanel( { name, provider, providerFields, onChange, onDelete, on
 				),
 			},
 			{
-				id: 'default_role',
-				label: badgeLabel( __( 'Default Role', 'wppack-oauth-login' ), isReadonly ? 'constant' : undefined ),
-				type: 'text',
-				elements: roleOptions,
-				Edit: isReadonly
-					? ( { data, field } ) => {
-						const el = roleOptions.find( ( r ) => r.value === data.default_role );
-						return (
-							<TextControl
-								id={ field.id }
-								label={ field.label }
-								value={ el ? el.label : data.default_role }
-								disabled
-								onChange={ () => {} }
-								__nextHasNoMarginBottom
-							/>
-						);
-					}
-					: undefined,
-			},
-			{
 				id: 'role_claim',
 				label: badgeLabel( __( 'Role Claim', 'wppack-oauth-login' ), isReadonly ? 'constant' : undefined ),
 				type: 'text',
