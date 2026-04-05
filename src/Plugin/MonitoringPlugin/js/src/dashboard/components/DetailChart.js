@@ -155,18 +155,26 @@ function computeTimeTicks( tMin, tMax ) {
 				: d.toLocaleTimeString( [], { hour: '2-digit', minute: '2-digit' } );
 		};
 	} else {
-		// >3d: every 12 hours
-		intervalMs = 12 * 60 * 60 * 1000;
-		formatFn = ( d ) => {
-			const h = d.getHours();
-			return h === 0
-				? d.toLocaleDateString( [], { month: 'short', day: 'numeric' } )
-				: d.toLocaleDateString( [], { month: 'short', day: 'numeric' } ) + ' ' + d.toLocaleTimeString( [], { hour: '2-digit', minute: '2-digit' } );
-		};
+		// >3d: every 1 day at 0:00
+		intervalMs = 24 * 60 * 60 * 1000;
+		formatFn = ( d ) => d.toLocaleDateString( [], { month: 'short', day: 'numeric' } );
 	}
 
-	// Snap to the first aligned boundary after tMin
-	const first = Math.ceil( tMin / intervalMs ) * intervalMs;
+	// Snap to the first aligned boundary after tMin (local timezone)
+	let first;
+	if ( intervalMs >= 24 * 60 * 60 * 1000 ) {
+		// Day-level: snap to local midnight
+		const d = new Date( tMin );
+		d.setHours( 0, 0, 0, 0 );
+		if ( d.getTime() < tMin ) {
+			d.setDate( d.getDate() + 1 );
+		}
+		first = d.getTime();
+	} else {
+		// Sub-day: snap to UTC interval boundary
+		first = Math.ceil( tMin / intervalMs ) * intervalMs;
+	}
+
 	const ticks = [];
 	for ( let t = first; t <= tMax; t += intervalMs ) {
 		ticks.push( { time: t, label: formatFn( new Date( t ) ) } );
