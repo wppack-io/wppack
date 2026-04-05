@@ -47,6 +47,7 @@ final class GoogleProvider implements ProviderInterface
             label: 'Google',
             dropdownLabel: 'Google',
             oidc: true,
+            optionalFields: ['hosted_domain'],
         );
     }
 

@@ -87,6 +87,7 @@ final class OAuthLoginSettingsController extends AbstractRestController
                 'dropdownLabel' => $def->dropdownLabel,
                 'oidc' => $def->oidc,
                 'requiredFields' => $def->requiredFields,
+                'optionalFields' => $def->optionalFields,
                 'defaultScopes' => $def->defaultScopes,
             ];
         }
@@ -96,6 +97,7 @@ final class OAuthLoginSettingsController extends AbstractRestController
             'icons' => $icons,
             'styles' => $styles,
             'definitions' => $definitions,
+            'roles' => $this->roleProvider->getNames(),
             'global' => $this->buildGlobalDisplay(),
             'providers' => $this->buildProvidersDisplay(),
         ];

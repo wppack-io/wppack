@@ -54,6 +54,7 @@ final class SamlLoginSettingsController extends AbstractRestController
         return $this->json([
             'siteUrl' => get_home_url($blogId),
             'fields' => $this->buildDisplayArray(),
+            'roles' => $this->roleProvider->getNames(),
         ]);
     }
 
@@ -88,6 +89,7 @@ final class SamlLoginSettingsController extends AbstractRestController
         return $this->json([
             'siteUrl' => get_home_url($blogId),
             'fields' => $this->buildDisplayArrayFrom($updated),
+            'roles' => $this->roleProvider->getNames(),
         ]);
     }
 

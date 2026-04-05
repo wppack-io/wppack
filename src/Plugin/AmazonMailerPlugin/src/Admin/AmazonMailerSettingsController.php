@@ -165,11 +165,17 @@ final class AmazonMailerSettingsController extends AbstractRestController
             $fields[] = $f;
         }
 
-        return [
+        $result = [
             'scheme' => $def->scheme,
             'label' => $def->label,
             'fields' => $fields,
         ];
+
+        if ($def->capabilities !== []) {
+            $result['capabilities'] = $def->capabilities;
+        }
+
+        return $result;
     }
 
     /**

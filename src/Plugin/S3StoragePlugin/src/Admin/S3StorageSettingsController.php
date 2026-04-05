@@ -41,7 +41,12 @@ final class S3StorageSettingsController extends AbstractRestController
             $definitions['s3'] = [
                 'label' => 'Amazon S3',
                 'scheme' => 's3',
-                'fields' => ['bucket', 'region', 'accessKey', 'secretKey'],
+                'fields' => [
+                    ['name' => 'bucket', 'label' => 'Bucket'],
+                    ['name' => 'region', 'label' => 'Region'],
+                    ['name' => 'accessKey', 'label' => 'Access Key', 'sensitive' => true],
+                    ['name' => 'secretKey', 'label' => 'Secret Key', 'sensitive' => true],
+                ],
             ];
         }
 
@@ -49,7 +54,12 @@ final class S3StorageSettingsController extends AbstractRestController
             $definitions['azure'] = [
                 'label' => 'Azure Blob Storage',
                 'scheme' => 'azure',
-                'fields' => ['account', 'container', 'accountKey', 'connectionString'],
+                'fields' => [
+                    ['name' => 'account', 'label' => 'Account'],
+                    ['name' => 'container', 'label' => 'Container'],
+                    ['name' => 'accountKey', 'label' => 'Account Key', 'sensitive' => true],
+                    ['name' => 'connectionString', 'label' => 'Connection String', 'sensitive' => true],
+                ],
             ];
         }
 
@@ -57,7 +67,11 @@ final class S3StorageSettingsController extends AbstractRestController
             $definitions['gcs'] = [
                 'label' => 'Google Cloud Storage',
                 'scheme' => 'gcs',
-                'fields' => ['bucket', 'project', 'keyFile'],
+                'fields' => [
+                    ['name' => 'bucket', 'label' => 'Bucket'],
+                    ['name' => 'project', 'label' => 'Project'],
+                    ['name' => 'keyFile', 'label' => 'Key File', 'sensitive' => true],
+                ],
             ];
         }
 
@@ -65,7 +79,9 @@ final class S3StorageSettingsController extends AbstractRestController
             $definitions['local'] = [
                 'label' => 'Local Filesystem',
                 'scheme' => 'local',
-                'fields' => ['rootDir'],
+                'fields' => [
+                    ['name' => 'rootDir', 'label' => 'Root Directory'],
+                ],
             ];
         }
 

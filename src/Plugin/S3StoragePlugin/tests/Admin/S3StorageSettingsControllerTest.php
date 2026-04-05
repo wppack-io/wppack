@@ -73,7 +73,12 @@ final class S3StorageSettingsControllerTest extends TestCase
         self::assertArrayHasKey('s3', $data['definitions']);
         self::assertSame('Amazon S3', $data['definitions']['s3']['label']);
         self::assertSame('s3', $data['definitions']['s3']['scheme']);
-        self::assertSame(['bucket', 'region', 'accessKey', 'secretKey'], $data['definitions']['s3']['fields']);
+        self::assertSame([
+            ['name' => 'bucket', 'label' => 'Bucket'],
+            ['name' => 'region', 'label' => 'Region'],
+            ['name' => 'accessKey', 'label' => 'Access Key', 'sensitive' => true],
+            ['name' => 'secretKey', 'label' => 'Secret Key', 'sensitive' => true],
+        ], $data['definitions']['s3']['fields']);
     }
 
     #[Test]

@@ -17,12 +17,14 @@ namespace WpPack\Component\Security\Bridge\OAuth\Provider;
  * Self-describing metadata for an OAuth provider type.
  *
  * @param list<string> $requiredFields Additional required config fields (e.g. ['domain'], ['tenant_id'])
+ * @param list<string> $optionalFields Additional optional config fields (e.g. ['hosted_domain'])
  * @param list<string> $defaultScopes Default OAuth scopes
  */
 final readonly class ProviderDefinition
 {
     /**
      * @param list<string> $requiredFields
+     * @param list<string> $optionalFields
      * @param list<string> $defaultScopes
      */
     public function __construct(
@@ -31,6 +33,7 @@ final readonly class ProviderDefinition
         public string $dropdownLabel,
         public bool $oidc,
         public array $requiredFields = [],
+        public array $optionalFields = [],
         public array $defaultScopes = ['openid', 'email', 'profile'],
     ) {}
 }

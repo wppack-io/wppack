@@ -107,6 +107,7 @@ function BoolField( { id, label, field, value, onChange, help } ) {
 export default function App() {
 	const [ settings, setSettings ] = useState( null );
 	const [ siteUrl, setSiteUrl ] = useState( '' );
+	const [ roles, setRoles ] = useState( {} );
 	const [ formData, setFormData ] = useState( {} );
 	const [ saving, setSaving ] = useState( false );
 	const [ notice, setNotice ] = useState( null );
@@ -114,6 +115,7 @@ export default function App() {
 
 	const applyResponse = ( data ) => {
 		setSiteUrl( data.siteUrl || '' );
+		setRoles( data.roles || {} );
 		setSettings( data.fields );
 		const values = {};
 		Object.entries( data.fields ).forEach( ( [ key, meta ] ) => {
@@ -204,6 +206,10 @@ export default function App() {
 	const f = ( key ) => settings?.[ key ] || {};
 	const isSensitive = ( key ) =>
 		[ 'idpX509Cert', 'idpCertFingerprint' ].includes( key );
+	const roleOptions = Object.entries( roles ).map( ( [ value, label ] ) => ( {
+		label,
+		value,
+	} ) );
 
 	return (
 		<Page title={ __( 'SAML Login Settings', 'wppack-saml-login' ) } hasPadding>
@@ -403,13 +409,7 @@ export default function App() {
 						value={ formData.defaultRole }
 						onChange={ updateField( 'defaultRole' ) }
 						disabled={ f( 'defaultRole' ).readonly }
-						options={ [
-							{ label: 'Subscriber', value: 'subscriber' },
-							{ label: 'Contributor', value: 'contributor' },
-							{ label: 'Author', value: 'author' },
-							{ label: 'Editor', value: 'editor' },
-							{ label: 'Administrator', value: 'administrator' },
-						] }
+						options={ roleOptions }
 						__nextHasNoMarginBottom
 					/>
 					<Field

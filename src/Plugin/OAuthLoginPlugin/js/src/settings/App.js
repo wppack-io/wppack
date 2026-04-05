@@ -99,7 +99,7 @@ function PathField( { id, label, field, value, onChange, prefix, disabled } ) {
 	);
 }
 
-function ProviderPanel( { name, provider, onChange, onDelete, onRename, onMoveUp, onMoveDown, isFirst, isLast, isReadonly, icons, allStyles, buttonDisplay, definitions, initialOpen } ) {
+function ProviderPanel( { name, provider, onChange, onDelete, onRename, onMoveUp, onMoveDown, isFirst, isLast, isReadonly, icons, allStyles, buttonDisplay, definitions, roleOptions, initialOpen } ) {
 	const [ editName, setEditName ] = useState( name );
 	const f = provider.fields || {};
 	const icon = icons[ f.type ] || icons[ name ] || provider.icon;
@@ -109,7 +109,7 @@ function ProviderPanel( { name, provider, onChange, onDelete, onRename, onMoveUp
 	const currentStyle = providerStyles[ selectedStyle ] || providerStyles[ styleKeys[ 0 ] ] || { bg: '#f0f0f0', text: '#1d2327', border: '#ddd', icon: 'original' };
 	const firstStyle = providerStyles[ styleKeys[ 0 ] ] || currentStyle;
 	const def = definitions[ f.type ] || {};
-	const reqFields = def.requiredFields || [];
+	const reqFields = [ ...( def.requiredFields || [] ), ...( def.optionalFields || [] ) ];
 	const update = ( key ) => ( val ) => {
 		onChange( name, { ...f, [ key ]: val } );
 	};
@@ -285,7 +285,7 @@ function ProviderPanel( { name, provider, onChange, onDelete, onRename, onMoveUp
 					disabled={ isReadonly }
 				/>
 			) }
-			{ f.type === 'google' && (
+			{ reqFields.includes( 'hosted_domain' ) && (
 				<Field
 					id={ `${ name }-hosted-domain` }
 					label={ __( 'Hosted Domain', 'wppack-oauth-login' ) }
@@ -321,13 +321,7 @@ function ProviderPanel( { name, provider, onChange, onDelete, onRename, onMoveUp
 				value={ f.default_role || 'subscriber' }
 				onChange={ update( 'default_role' ) }
 				disabled={ isReadonly }
-				options={ [
-					{ label: 'Subscriber', value: 'subscriber' },
-					{ label: 'Contributor', value: 'contributor' },
-					{ label: 'Author', value: 'author' },
-					{ label: 'Editor', value: 'editor' },
-					{ label: 'Administrator', value: 'administrator' },
-				] }
+				options={ roleOptions }
 				__nextHasNoMarginBottom
 			/>
 			<Field
@@ -375,6 +369,7 @@ export default function App() {
 	const [ icons, setIcons ] = useState( {} );
 	const [ styles, setStyles ] = useState( {} );
 	const [ definitions, setDefinitions ] = useState( {} );
+	const [ roles, setRoles ] = useState( {} );
 	const [ siteUrl, setSiteUrl ] = useState( '' );
 	const [ globalForm, setGlobalForm ] = useState( {} );
 	const [ providerForm, setProviderForm ] = useState( {} );
@@ -391,6 +386,7 @@ export default function App() {
 		setIcons( data.icons || {} );
 		setStyles( data.styles || {} );
 		setDefinitions( data.definitions || {} );
+		setRoles( data.roles || {} );
 		setGlobalSettings( data.global );
 		setProviders( data.providers || {} );
 		setProviderOrder( Object.keys( data.providers || {} ) );
@@ -571,6 +567,10 @@ export default function App() {
 	}
 
 	const g = ( key ) => globalSettings?.[ key ] || {};
+	const roleOptions = Object.entries( roles ).map( ( [ value, label ] ) => ( {
+		label,
+		value,
+	} ) );
 
 	return (
 		<Page title={ __( 'OAuth Login Settings', 'wppack-oauth-login' ) } hasPadding>
@@ -629,16 +629,7 @@ export default function App() {
 						value={ globalForm.defaultRole || 'subscriber' }
 						onChange={ updateGlobal( 'defaultRole' ) }
 						disabled={ g( 'defaultRole' ).readonly }
-						options={ [
-							{ label: 'Subscriber', value: 'subscriber' },
-							{ label: 'Contributor', value: 'contributor' },
-							{ label: 'Author', value: 'author' },
-							{ label: 'Editor', value: 'editor' },
-							{
-								label: 'Administrator',
-								value: 'administrator',
-							},
-						] }
+						options={ roleOptions }
 						__nextHasNoMarginBottom
 					/>
 					<PathField
@@ -720,6 +711,7 @@ export default function App() {
 								allStyles={ styles }
 								buttonDisplay={ globalForm.buttonDisplay || 'icon-text' }
 								definitions={ definitions }
+								roleOptions={ roleOptions }
 								initialOpen={ name === lastAdded }
 							/>
 						);

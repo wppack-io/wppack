@@ -90,38 +90,40 @@ const AWS_REGIONS = [
 	...( window.wppStorage?.awsRegions ?? [] ),
 ];
 
-const FIELD_LABELS = {
-	bucket: __( 'Bucket', 'wppack-storage' ),
-	region: __( 'Region', 'wppack-storage' ),
-	accessKey: __( 'Access Key', 'wppack-storage' ),
-	secretKey: __( 'Secret Key', 'wppack-storage' ),
-	account: __( 'Account', 'wppack-storage' ),
-	container: __( 'Container', 'wppack-storage' ),
-	accountKey: __( 'Account Key', 'wppack-storage' ),
-	connectionString: __( 'Connection String', 'wppack-storage' ),
-	project: __( 'Project', 'wppack-storage' ),
-	keyFile: __( 'Key File', 'wppack-storage' ),
-	rootDir: __( 'Root Directory', 'wppack-storage' ),
-	publicUrl: __( 'Public URL', 'wppack-storage' ),
-};
+/**
+ * Build a lookup of sensitive field names from a definition's fields array.
+ */
+function getSensitiveFieldNames( fields ) {
+	return ( fields || [] )
+		.filter( ( f ) => f.sensitive )
+		.map( ( f ) => f.name );
+}
 
-const SENSITIVE_FIELDS = [ 'secretKey', 'accountKey', 'keyFile', 'connectionString', 'accessKey' ];
+/**
+ * Find a field object by name from a definition's fields array.
+ */
+function findField( fields, name ) {
+	return ( fields || [] ).find( ( f ) => f.name === name );
+}
 
 function StoragePanel( { uri, storage, definitions, onChange, onDelete, isReadonly } ) {
 	const scheme = schemeFromUri( uri );
 	const def = Object.values( definitions ).find( ( d ) => d.scheme === scheme ) || {};
 	const dsnFields = parseDsn( storage.dsn );
 
+	const defFields = def.fields || [];
+	const sensitiveFieldNames = useMemo( () => getSensitiveFieldNames( defFields ), [ defFields ] );
+
 	const panelData = useMemo( () => ( {
 		provider: def.label || scheme,
 		bucket: bucketFromUri( uri ),
 		...Object.fromEntries(
-			( def.fields || [] )
-				.filter( ( f ) => ! [ 'bucket', 'container' ].includes( f ) )
-				.map( ( f ) => [ f, dsnFields[ f ] || '' ] )
+			defFields
+				.filter( ( f ) => ! [ 'bucket', 'container' ].includes( f.name ) )
+				.map( ( f ) => [ f.name, dsnFields[ f.name ] || '' ] )
 		),
 		cdnUrl: storage.cdnUrl || '',
-	} ), [ def, scheme, uri, dsnFields, storage.cdnUrl ] );
+	} ), [ def, scheme, uri, dsnFields, storage.cdnUrl, defFields ] );
 
 	const handlePanelChange = ( edits ) => {
 		const bucket = bucketFromUri( uri );
@@ -134,7 +136,7 @@ function StoragePanel( { uri, storage, definitions, onChange, onDelete, isReadon
 			} else if ( key !== 'provider' && key !== 'bucket' ) {
 				newDsnFields[ key ] = value;
 				// Preserve masked values for other sensitive fields
-				SENSITIVE_FIELDS.forEach( ( sf ) => {
+				sensitiveFieldNames.forEach( ( sf ) => {
 					if ( sf !== key && dsnFields[ sf ] === MASKED ) {
 						newDsnFields[ sf ] = MASKED;
 					}
@@ -150,6 +152,8 @@ function StoragePanel( { uri, storage, definitions, onChange, onDelete, isReadon
 	};
 
 	const panelFields = useMemo( () => {
+		const bucketField = findField( defFields, 'bucket' ) || findField( defFields, 'container' );
+
 		const result = [
 			{
 				id: 'provider',
@@ -168,7 +172,7 @@ function StoragePanel( { uri, storage, definitions, onChange, onDelete, isReadon
 			},
 			{
 				id: 'bucket',
-				label: FIELD_LABELS.bucket,
+				label: bucketField?.label || 'Bucket',
 				type: 'text',
 				Edit: ( { data, field } ) => (
 					<TextControl
@@ -183,17 +187,19 @@ function StoragePanel( { uri, storage, definitions, onChange, onDelete, isReadon
 			},
 		];
 
-		for ( const fieldKey of ( def.fields || [] ) ) {
+		for ( const fieldDef of defFields ) {
+			const fieldKey = fieldDef.name;
+
 			if ( [ 'bucket', 'container' ].includes( fieldKey ) ) {
 				continue;
 			}
 
-			const isSensitive = [ 'secretKey', 'accountKey', 'keyFile', 'connectionString' ].includes( fieldKey );
+			const isSensitive = !! fieldDef.sensitive;
 
 			if ( fieldKey === 'region' ) {
 				result.push( {
 					id: fieldKey,
-					label: FIELD_LABELS[ fieldKey ] || fieldKey,
+					label: fieldDef.label || fieldKey,
 					type: 'text',
 					elements: AWS_REGIONS.filter( ( r ) => r.value !== '' ),
 					Edit: isReadonly
@@ -216,7 +222,7 @@ function StoragePanel( { uri, storage, definitions, onChange, onDelete, isReadon
 
 			result.push( {
 				id: fieldKey,
-				label: FIELD_LABELS[ fieldKey ] || fieldKey,
+				label: fieldDef.label || fieldKey,
 				type: isSensitive ? 'password' : 'text',
 				Edit: isReadonly
 					? ( { data, field } ) => (
@@ -255,7 +261,7 @@ function StoragePanel( { uri, storage, definitions, onChange, onDelete, isReadon
 		} );
 
 		return result;
-	}, [ def, isReadonly ] );
+	}, [ defFields, isReadonly ] );
 
 	const panelForm = useMemo( () => ( {
 		fields: panelFields.map( ( f ) => f.id ),
@@ -490,9 +496,13 @@ export default function App() {
 			return result;
 		}
 
+		const addDefFields = addDef?.fields || [];
+		const bucketFieldDef = findField( addDefFields, 'bucket' )
+			|| findField( addDefFields, 'container' )
+			|| findField( addDefFields, 'rootDir' );
 		const idLabel = isLocal
 			? __( 'Root Path', 'wppack-storage' )
-			: ( FIELD_LABELS.bucket || 'Bucket' );
+			: ( bucketFieldDef?.label || 'Bucket' );
 
 		result.push( {
 			id: 'bucket',
@@ -512,17 +522,18 @@ export default function App() {
 			),
 		} );
 
-		const dynamicFields = ( addDef?.fields || [] ).filter(
-			( f ) => ! [ 'bucket', 'container', 'rootDir' ].includes( f )
+		const dynamicFields = addDefFields.filter(
+			( f ) => ! [ 'bucket', 'container', 'rootDir' ].includes( f.name )
 		);
 
-		for ( const fieldKey of dynamicFields ) {
-			const isSensitive = [ 'secretKey', 'accountKey', 'keyFile', 'connectionString' ].includes( fieldKey );
+		for ( const fieldDef of dynamicFields ) {
+			const fieldKey = fieldDef.name;
+			const isSensitive = !! fieldDef.sensitive;
 
 			if ( fieldKey === 'region' ) {
 				result.push( {
 					id: 'region',
-					label: FIELD_LABELS.region || 'Region',
+					label: fieldDef.label || 'Region',
 					type: 'text',
 					elements: AWS_REGIONS.filter( ( r ) => r.value !== '' ),
 				} );
@@ -531,7 +542,7 @@ export default function App() {
 
 			result.push( {
 				id: fieldKey,
-				label: FIELD_LABELS[ fieldKey ] || fieldKey,
+				label: fieldDef.label || fieldKey,
 				type: isSensitive ? 'password' : 'text',
 			} );
 		}
@@ -541,14 +552,12 @@ export default function App() {
 			label: __( 'URI Preview', 'wppack-storage' ),
 			type: 'text',
 			Edit: ( { data } ) => {
-				if ( ! data.providerType || ! data.bucket ) {
-					return null;
-				}
 				const scheme = schemeForProvider( data.providerType );
+				const uri = data.bucket ? `${ scheme }://${ data.bucket }` : `${ scheme }://`;
 				return (
 					<TextControl
 						label={ __( 'URI Preview', 'wppack-storage' ) }
-						value={ `${ scheme }://${ data.bucket }` }
+						value={ uri }
 						readOnly
 						__nextHasNoMarginBottom
 					/>

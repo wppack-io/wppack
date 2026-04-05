@@ -19,12 +19,14 @@ namespace WpPack\Component\Mailer\Transport;
 final readonly class TransportDefinition
 {
     /**
-     * @param list<TransportField> $fields
+     * @param list<TransportField>  $fields
+     * @param list<string>          $capabilities
      */
     public function __construct(
         public string $scheme,
         public string $label,
         public array $fields = [],
+        public array $capabilities = [],
     ) {}
 
     /**

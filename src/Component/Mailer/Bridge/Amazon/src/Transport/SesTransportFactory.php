@@ -74,6 +74,7 @@ final class SesTransportFactory implements TransportFactoryInterface
                     $regionField,
                     new TransportField('configurationSet', 'Configuration Set', dsnPart: 'option:configuration_set'),
                 ],
+                capabilities: ['suppression'],
             ),
             new TransportDefinition(
                 scheme: 'ses+https',
@@ -84,6 +85,7 @@ final class SesTransportFactory implements TransportFactoryInterface
                     $regionField,
                     new TransportField('configurationSet', 'Configuration Set', dsnPart: 'option:configuration_set'),
                 ],
+                capabilities: ['suppression'],
             ),
             new TransportDefinition(
                 scheme: 'ses+smtp',
@@ -93,6 +95,7 @@ final class SesTransportFactory implements TransportFactoryInterface
                     new TransportField('password', 'SMTP Password', type: 'password', required: true, dsnPart: 'password'),
                     $regionField,
                 ],
+                capabilities: ['suppression'],
             ),
         ];
     }

@@ -250,7 +250,7 @@ export default function App() {
 		return <div className="wpp-mailer-loading"><Spinner /></div>;
 	}
 
-	const isSes = formData.provider.startsWith( 'ses' );
+	const hasSuppression = def?.capabilities?.includes( 'suppression' );
 
 	return (
 		<Page title={ __( 'Mail Settings', 'wppack-mailer' ) } hasPadding>
@@ -270,7 +270,7 @@ export default function App() {
 					/>
 				</div>
 
-				{ isSes && meta.suppression.length > 0 && (
+				{ hasSuppression && meta.suppression.length > 0 && (
 					<Panel>
 						<PanelBody title={ __( 'Suppression List', 'wppack-mailer' ) } initialOpen={ false }>
 							<div className="wpp-mailer-suppression-list">
