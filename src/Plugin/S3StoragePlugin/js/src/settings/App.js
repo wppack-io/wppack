@@ -443,17 +443,17 @@ export default function App() {
 		}
 	};
 
-	const providerOptions = [
+	const providerOptions = useMemo( () => [
 		{ label: __( '— Select Provider —', 'wppack-storage' ), value: '' },
 		...Object.entries( definitions )
 			.sort( ( [ , a ], [ , b ] ) => a.label.localeCompare( b.label ) )
 			.map( ( [ key, d ] ) => ( { label: d.label, value: key } ) ),
-	];
+	], [ definitions ] );
 
-	const primaryOptions = [
+	const primaryOptions = useMemo( () => [
 		{ label: __( '— Select —', 'wppack-storage' ), value: '' },
 		...storageUris.map( ( uri ) => ( { label: uri, value: uri } ) ),
-	];
+	], [ storageUris ] );
 
 	// ── Add Storage DataForm fields ──
 
@@ -647,11 +647,12 @@ export default function App() {
 						onChange={ handleAddFormChange }
 					/>
 					{ newUri && (
-						<div className="wpp-storage-uri-preview">
-							{ __( 'URI Preview:', 'wppack-storage' ) }
-							{ ' ' }
-							<code>{ newUri }</code>
-						</div>
+						<TextControl
+							label={ __( 'URI Preview', 'wppack-storage' ) }
+							value={ newUri }
+							readOnly
+							__nextHasNoMarginBottom
+						/>
 					) }
 					<Button
 						variant="secondary"

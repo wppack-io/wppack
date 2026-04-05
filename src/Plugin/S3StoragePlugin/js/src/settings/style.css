@@ -97,7 +97,6 @@
 
 .wpp-storage-delete-storage {
 	margin-top: 16px;
-	margin-bottom: 16px;
 }
 
 .wpp-storage-add-section {
@@ -141,10 +140,6 @@
 
 .wpp-storage-global-settings {
 	margin-top: 16px;
-}
-
-.wpp-storage-global-settings .components-base-control {
-	margin-bottom: 16px;
 }
 
 .wpp-storage-primary-select .components-base-control__field {
