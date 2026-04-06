@@ -1,0 +1,29 @@
+{
+    "name": "wppack/passkey-login-plugin",
+    "description": "WebAuthn/Passkey passwordless login for WordPress",
+    "type": "wordpress-plugin",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "wppack/passkey-security": "^1.0",
+        "wppack/kernel": "^1.0",
+        "wppack/dependency-injection": "^1.0",
+        "wppack/hook": "^1.0"
+    },
+    "suggest": {
+        "wppack/security": "Required for authentication framework"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpPack\\Plugin\\PasskeyLoginPlugin\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Plugin\\PasskeyLoginPlugin\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "installer-name": "wppack-passkey-login"
+    }
+}
