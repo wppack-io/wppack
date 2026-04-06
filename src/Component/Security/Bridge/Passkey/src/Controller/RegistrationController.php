@@ -31,6 +31,7 @@ use WpPack\Component\Security\Bridge\Passkey\Configuration\PasskeyConfiguration;
 use WpPack\Component\Security\Bridge\Passkey\Storage\AaguidResolver;
 use WpPack\Component\Security\Bridge\Passkey\Storage\CredentialRepositoryInterface;
 use WpPack\Component\Security\Bridge\Passkey\Storage\PasskeyCredential;
+use WpPack\Component\Site\BlogContextInterface;
 
 /**
  * REST endpoints for passkey registration (attestation ceremony).
@@ -47,6 +48,7 @@ final class RegistrationController extends AbstractRestController
         private readonly PasskeyConfiguration $config,
         private readonly AuthenticationSession $authenticationSession,
         private readonly LoggerInterface $logger,
+        private readonly ?BlogContextInterface $blogContext = null,
     ) {}
 
     /**
@@ -152,7 +154,11 @@ final class RegistrationController extends AbstractRestController
             return $this->config->rpId;
         }
 
-        return parse_url(home_url(), \PHP_URL_HOST) ?: 'localhost';
+        $blogId = ($this->blogContext !== null && $this->blogContext->isMultisite())
+            ? $this->blogContext->getMainSiteId()
+            : null;
+
+        return parse_url(get_home_url($blogId), \PHP_URL_HOST) ?: 'localhost';
     }
 
     private function createSerializer(): \Symfony\Component\Serializer\SerializerInterface

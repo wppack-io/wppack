@@ -31,6 +31,8 @@ use WpPack\Component\Security\Bridge\Passkey\Controller\CredentialController;
 use WpPack\Component\Security\Bridge\Passkey\Controller\RegistrationController;
 use WpPack\Component\Security\Bridge\Passkey\Storage\CredentialRepositoryInterface;
 use WpPack\Component\Security\Bridge\Passkey\Storage\DatabaseCredentialRepository;
+use WpPack\Component\Site\BlogContext;
+use WpPack\Component\Site\BlogContextInterface;
 use WpPack\Component\Transient\TransientManager;
 use WpPack\Plugin\PasskeyLoginPlugin\Admin\PasskeyLoginSettingsController;
 use WpPack\Plugin\PasskeyLoginPlugin\Admin\PasskeyLoginSettingsPage;
@@ -84,6 +86,11 @@ final class PasskeyLoginPluginServiceProvider implements ServiceProviderInterfac
             $builder->register(AuthenticationSession::class);
         }
 
+        // Blog Context
+        if (!$builder->hasDefinition(BlogContextInterface::class)) {
+            $builder->register(BlogContextInterface::class, BlogContext::class);
+        }
+
         // REST Registry
         if (!$builder->hasDefinition(RestRegistry::class)) {
             $builder->register(RestRegistry::class)
@@ -114,7 +121,8 @@ final class PasskeyLoginPluginServiceProvider implements ServiceProviderInterfac
         $builder->register(CeremonyManager::class)
             ->addArgument(new Reference(PasskeyConfiguration::class))
             ->addArgument(new Reference(CredentialRepositoryInterface::class))
-            ->addArgument(new Reference(TransientManager::class));
+            ->addArgument(new Reference(TransientManager::class))
+            ->addArgument(new Reference(BlogContextInterface::class));
 
         // Authentication Controller
         $builder->register(AuthenticationController::class)
@@ -122,7 +130,8 @@ final class PasskeyLoginPluginServiceProvider implements ServiceProviderInterfac
             ->addArgument(new Reference(CredentialRepositoryInterface::class))
             ->addArgument(new Reference(PasskeyConfiguration::class))
             ->addArgument(new Reference(AuthenticationSession::class))
-            ->addArgument(new Reference(LoggerInterface::class));
+            ->addArgument(new Reference(LoggerInterface::class))
+            ->addArgument(new Reference(BlogContextInterface::class));
 
         // Registration Controller
         $builder->register(RegistrationController::class)
@@ -130,7 +139,8 @@ final class PasskeyLoginPluginServiceProvider implements ServiceProviderInterfac
             ->addArgument(new Reference(CredentialRepositoryInterface::class))
             ->addArgument(new Reference(PasskeyConfiguration::class))
             ->addArgument(new Reference(AuthenticationSession::class))
-            ->addArgument(new Reference(LoggerInterface::class));
+            ->addArgument(new Reference(LoggerInterface::class))
+            ->addArgument(new Reference(BlogContextInterface::class));
 
         // Credential Controller
         $builder->register(CredentialController::class)

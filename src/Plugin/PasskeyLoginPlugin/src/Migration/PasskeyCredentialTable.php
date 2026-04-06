@@ -22,7 +22,8 @@ final class PasskeyCredentialTable implements TableInterface
 {
     public function schema(DatabaseManager $db): string
     {
-        $tableName = $db->prefix() . 'wppack_passkey_credentials';
+        // Use base prefix for network-wide credential storage (shared across all sites)
+        $tableName = $db->basePrefix() . 'wppack_passkey_credentials';
         $charsetCollate = $db->charsetCollate();
 
         return "CREATE TABLE {$tableName} (

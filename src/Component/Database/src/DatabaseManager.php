@@ -387,6 +387,18 @@ final class DatabaseManager
         return $this->wpdb->prefix;
     }
 
+    /**
+     * Return the base table prefix (network-wide, not blog-specific).
+     *
+     * On single-site this is the same as prefix(). On multisite, prefix()
+     * returns a blog-specific prefix (e.g. "wp_2_") while basePrefix()
+     * always returns the root prefix (e.g. "wp_").
+     */
+    public function basePrefix(): string
+    {
+        return $this->wpdb->base_prefix;
+    }
+
     public function charsetCollate(): string
     {
         return $this->wpdb->get_charset_collate();

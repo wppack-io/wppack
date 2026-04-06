@@ -25,7 +25,7 @@ final class DatabaseCredentialRepository implements CredentialRepositoryInterfac
 
     public function findByUserId(int $userId): array
     {
-        $table = $this->db->prefix() . self::TABLE;
+        $table = $this->tableName();
 
         $rows = $this->db->fetchAllAssociative(
             "SELECT * FROM {$table} WHERE user_id = %d ORDER BY created_at DESC",
@@ -37,7 +37,7 @@ final class DatabaseCredentialRepository implements CredentialRepositoryInterfac
 
     public function findByCredentialId(string $credentialId): ?PasskeyCredential
     {
-        $table = $this->db->prefix() . self::TABLE;
+        $table = $this->tableName();
 
         $row = $this->db->fetchAssociative(
             "SELECT * FROM {$table} WHERE credential_id = %s LIMIT 1",
@@ -49,7 +49,7 @@ final class DatabaseCredentialRepository implements CredentialRepositoryInterfac
 
     public function save(PasskeyCredential $credential): void
     {
-        $this->db->insert(self::TABLE, [
+        $this->db->wpdb()->insert($this->tableName(), [
             'user_id' => $credential->userId,
             'credential_id' => $credential->credentialId,
             'public_key' => $credential->publicKey,
@@ -65,13 +65,13 @@ final class DatabaseCredentialRepository implements CredentialRepositoryInterfac
 
     public function updateCounter(int $id, int $newCounter): void
     {
-        $this->db->update(self::TABLE, ['counter' => $newCounter], ['id' => $id]);
+        $this->db->wpdb()->update($this->tableName(), ['counter' => $newCounter], ['id' => $id]);
     }
 
     public function updateLastUsed(int $id): void
     {
-        $this->db->update(
-            self::TABLE,
+        $this->db->wpdb()->update(
+            $this->tableName(),
             ['last_used_at' => current_time('mysql')],
             ['id' => $id],
         );
@@ -79,23 +79,35 @@ final class DatabaseCredentialRepository implements CredentialRepositoryInterfac
 
     public function updateDeviceName(int $id, string $name): void
     {
-        $this->db->update(self::TABLE, ['device_name' => $name], ['id' => $id]);
+        $this->db->wpdb()->update($this->tableName(), ['device_name' => $name], ['id' => $id]);
     }
 
     public function delete(int $id): void
     {
-        $this->db->delete(self::TABLE, ['id' => $id]);
+        $this->db->wpdb()->delete($this->tableName(), ['id' => $id]);
     }
 
     public function findAll(): array
     {
-        $table = $this->db->prefix() . self::TABLE;
+        $table = $this->tableName();
 
         $rows = $this->db->fetchAllAssociative(
             "SELECT * FROM {$table} ORDER BY created_at DESC",
         );
 
         return array_map($this->hydrate(...), $rows);
+    }
+
+    /**
+     * Return the fully-qualified table name using the base prefix.
+     *
+     * Passkey credentials are network-wide (shared across all sites in
+     * multisite), so the table always uses the base prefix rather than
+     * the blog-specific prefix.
+     */
+    private function tableName(): string
+    {
+        return $this->db->basePrefix() . self::TABLE;
     }
 
     /**

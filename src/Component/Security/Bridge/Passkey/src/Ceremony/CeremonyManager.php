@@ -23,6 +23,7 @@ use Webauthn\PublicKeyCredentialUserEntity;
 use WpPack\Component\Security\Bridge\Passkey\Configuration\PasskeyConfiguration;
 use WpPack\Component\Security\Bridge\Passkey\Storage\CredentialRepositoryInterface;
 use WpPack\Component\Security\Bridge\Passkey\Storage\PasskeyCredential;
+use WpPack\Component\Site\BlogContextInterface;
 use WpPack\Component\Transient\TransientManager;
 
 final class CeremonyManager
@@ -34,6 +35,7 @@ final class CeremonyManager
         private readonly PasskeyConfiguration $config,
         private readonly CredentialRepositoryInterface $repository,
         private readonly TransientManager $transients,
+        private readonly ?BlogContextInterface $blogContext = null,
     ) {}
 
     /**
@@ -147,7 +149,11 @@ final class CeremonyManager
 
     private function extractDomain(): string
     {
-        return parse_url(home_url(), PHP_URL_HOST) ?: 'localhost';
+        $blogId = ($this->blogContext !== null && $this->blogContext->isMultisite())
+            ? $this->blogContext->getMainSiteId()
+            : null;
+
+        return parse_url(get_home_url($blogId), PHP_URL_HOST) ?: 'localhost';
     }
 
     private function setChallengeKey(string $key): void

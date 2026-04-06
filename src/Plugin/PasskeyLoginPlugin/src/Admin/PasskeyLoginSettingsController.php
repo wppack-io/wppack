@@ -27,7 +27,12 @@ final class PasskeyLoginSettingsController extends AbstractRestController
     #[RestRoute(route: '/settings', methods: HttpMethod::GET)]
     public function getSettings(): JsonResponse
     {
-        return $this->json($this->buildResponse());
+        $blogId = is_multisite() ? get_main_site_id() : null;
+
+        return $this->json([
+            'siteUrl' => get_home_url($blogId),
+            ...$this->buildResponse(),
+        ]);
     }
 
     #[RestRoute(route: '/settings', methods: HttpMethod::POST)]
@@ -38,7 +43,12 @@ final class PasskeyLoginSettingsController extends AbstractRestController
 
         $this->persistOptions($params);
 
-        return $this->json($this->buildResponse());
+        $blogId = is_multisite() ? get_main_site_id() : null;
+
+        return $this->json([
+            'siteUrl' => get_home_url($blogId),
+            ...$this->buildResponse(),
+        ]);
     }
 
     /**

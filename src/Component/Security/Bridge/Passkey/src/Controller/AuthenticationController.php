@@ -33,6 +33,7 @@ use WpPack\Component\Security\AuthenticationSession;
 use WpPack\Component\Security\Bridge\Passkey\Ceremony\CeremonyManager;
 use WpPack\Component\Security\Bridge\Passkey\Configuration\PasskeyConfiguration;
 use WpPack\Component\Security\Bridge\Passkey\Storage\CredentialRepositoryInterface;
+use WpPack\Component\Site\BlogContextInterface;
 
 /**
  * REST endpoints for passkey authentication (assertion ceremony).
@@ -49,6 +50,7 @@ final class AuthenticationController extends AbstractRestController
         private readonly PasskeyConfiguration $config,
         private readonly AuthenticationSession $authenticationSession,
         private readonly LoggerInterface $logger,
+        private readonly ?BlogContextInterface $blogContext = null,
     ) {}
 
     /**
@@ -139,6 +141,14 @@ final class AuthenticationController extends AbstractRestController
                 return $this->json(['error' => 'User not found.'], 400);
             }
 
+            // Multisite: ensure the user is a member of the current blog
+            if ($this->blogContext !== null && $this->blogContext->isMultisite()) {
+                if (!is_user_member_of_blog($user->ID)) {
+                    $role = !empty($user->roles) ? $user->roles[0] : 'subscriber';
+                    add_user_to_blog($this->blogContext->getCurrentBlogId(), $user->ID, $role);
+                }
+            }
+
             $this->authenticationSession->login($user->ID, secure: is_ssl());
 
             return $this->json([
@@ -161,7 +171,11 @@ final class AuthenticationController extends AbstractRestController
             return $this->config->rpId;
         }
 
-        return parse_url(home_url(), \PHP_URL_HOST) ?: 'localhost';
+        $blogId = ($this->blogContext !== null && $this->blogContext->isMultisite())
+            ? $this->blogContext->getMainSiteId()
+            : null;
+
+        return parse_url(get_home_url($blogId), \PHP_URL_HOST) ?: 'localhost';
     }
 
     private function createSerializer(): \Symfony\Component\Serializer\SerializerInterface
