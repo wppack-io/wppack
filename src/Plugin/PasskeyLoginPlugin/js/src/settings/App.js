@@ -170,6 +170,7 @@ export default function App() {
 			getValue: ( { item } ) => item.rpName || '',
 			Edit: ( { data, field } ) => (
 				<TextControl
+					className="wpp-passkey-narrow"
 					id={ field.id }
 					label={ field.label }
 					value={ data.rpName || '' }
@@ -188,6 +189,7 @@ export default function App() {
 			getValue: ( { item } ) => item.rpId || '',
 			Edit: ( { data, field } ) => (
 				<TextControl
+					className="wpp-passkey-narrow"
 					id={ field.id }
 					label={ field.label }
 					value={ data.rpId || '' }
@@ -248,13 +250,14 @@ export default function App() {
 			label: badgeLabel( __( 'COSE Algorithms', 'wppack-passkey-login' ), s( 'algorithms' ).source === 'constant' ),
 			type: 'text',
 			getValue: ( { item } ) => ( item.algorithms || [] ).join( ', ' ),
+			description: __( 'Select which COSE algorithms to accept for credential registration.', 'wppack-passkey-login' ),
 			Edit: ( { field } ) => {
 				const readonly = !! s( 'algorithms' ).readonly;
 				const selected = formData.algorithms || [];
 				return (
-					<fieldset className="wpp-passkey-algorithms-fieldset" disabled={ readonly }>
-						<legend className="components-base-control__label">{ field.label }</legend>
-						<p className="components-base-control__help">
+					<div className="wpp-passkey-algorithms">
+						<div className="wpp-passkey-algorithms-label">{ field.label }</div>
+						<p className="wpp-passkey-algorithms-help">
 							{ __( 'Select which COSE algorithms to accept for credential registration.', 'wppack-passkey-login' ) }
 						</p>
 						{ coseAlgorithms.map( ( alg ) => (
@@ -273,7 +276,7 @@ export default function App() {
 								__nextHasNoMarginBottom
 							/>
 						) ) }
-					</fieldset>
+					</div>
 				);
 			},
 		},
@@ -324,6 +327,7 @@ export default function App() {
 			getValue: ( { item } ) => String( item.timeout || 60000 ),
 			Edit: ( { data, field } ) => (
 				<NumberControl
+					className="wpp-passkey-narrow-sm"
 					id={ field.id }
 					label={ field.label }
 					value={ data.timeout ?? 60000 }

@@ -86,6 +86,44 @@
 	max-width: 200px !important;
 }
 
+.wpp-passkey-narrow .components-base-control__field,
+.wpp-passkey-narrow .components-input-control__container {
+	max-width: 400px !important;
+}
+
+.wpp-passkey-narrow-sm .components-base-control__field,
+.wpp-passkey-narrow-sm .components-input-control__container {
+	max-width: 160px !important;
+}
+
+/* ── COSE Algorithms checkboxes ────────── */
+.wpp-passkey-algorithms {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.wpp-passkey-algorithms-label {
+	font-size: 11px;
+	font-weight: 500;
+	text-transform: uppercase;
+	color: #1e1e1e;
+}
+
+.wpp-passkey-algorithms-help {
+	font-size: 12px;
+	color: #757575;
+	margin: 0 0 4px;
+}
+
+.wpp-passkey-algorithms .components-checkbox-control__label {
+	font-size: 13px;
+}
+
+.wpp-passkey-dataform-wrap .components-base-control__field {
+	margin-bottom: 0 !important;
+}
+
 /* ── DataForm: match standard TextControl/SelectControl height ── */
 .wpp-passkey-dataform-wrap .components-base-control__label {
 	text-transform: none;
