@@ -17,7 +17,8 @@ export default function App() {
 		<Page
 			title={ __( 'Infrastructure Monitoring', 'wppack-monitoring' ) }
 			hasPadding
-			actions={
+		>
+			<div className="wpp-monitoring-tabs">
 				<TabPanel
 					tabs={ tabs }
 					onSelect={ setActiveTab }
@@ -25,8 +26,7 @@ export default function App() {
 				>
 					{ () => null }
 				</TabPanel>
-			}
-		>
+			</div>
 			{ activeTab === 'dashboard' && <DashboardPage /> }
 			{ activeTab === 'settings' && <SettingsPage /> }
 		</Page>
