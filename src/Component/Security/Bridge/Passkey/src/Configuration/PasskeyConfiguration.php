@@ -15,6 +15,9 @@ namespace WpPack\Component\Security\Bridge\Passkey\Configuration;
 
 final readonly class PasskeyConfiguration
 {
+    /**
+     * @param list<int> $algorithms COSE algorithm identifiers (e.g. [-7, -257])
+     */
     public function __construct(
         public string $rpName = '',
         public string $rpId = '',
@@ -22,6 +25,8 @@ final readonly class PasskeyConfiguration
         public int $timeout = 60000,
         public string $attestation = 'none',
         public string $userVerification = 'preferred',
-        public bool $requireResidentKey = true,
+        public string $residentKey = 'required',
+        public array $algorithms = [-7, -257],
+        public string $authenticatorAttachment = '',
     ) {}
 }

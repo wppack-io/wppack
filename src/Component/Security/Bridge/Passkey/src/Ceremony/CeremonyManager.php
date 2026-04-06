@@ -65,24 +65,24 @@ final class CeremonyManager
         );
 
         $authenticatorSelection = AuthenticatorSelectionCriteria::create(
-            residentKey: AuthenticatorSelectionCriteria::RESIDENT_KEY_REQUIREMENT_REQUIRED,
+            authenticatorAttachment: $this->config->authenticatorAttachment !== '' ? $this->config->authenticatorAttachment : null,
+            residentKey: $this->config->residentKey,
             userVerification: $this->config->userVerification,
+        );
+
+        $pubKeyCredParams = array_map(
+            static fn(int $alg): PublicKeyCredentialParameters => PublicKeyCredentialParameters::create(
+                type: PublicKeyCredentialDescriptor::CREDENTIAL_TYPE_PUBLIC_KEY,
+                alg: $alg,
+            ),
+            $this->config->algorithms ?: [-7, -257],
         );
 
         $options = PublicKeyCredentialCreationOptions::create(
             rp: $rpEntity,
             user: $userEntity,
             challenge: random_bytes(32),
-            pubKeyCredParams: [
-                PublicKeyCredentialParameters::create(
-                    type: PublicKeyCredentialDescriptor::CREDENTIAL_TYPE_PUBLIC_KEY,
-                    alg: -7,
-                ),
-                PublicKeyCredentialParameters::create(
-                    type: PublicKeyCredentialDescriptor::CREDENTIAL_TYPE_PUBLIC_KEY,
-                    alg: -257,
-                ),
-            ],
+            pubKeyCredParams: $pubKeyCredParams,
             authenticatorSelection: $authenticatorSelection,
             attestation: $this->config->attestation,
             excludeCredentials: $excludeCredentials,

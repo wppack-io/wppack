@@ -65,6 +65,11 @@ final class PasskeyLoginSettingsController extends AbstractRestController
             'rpId' => ['const' => 'PASSKEY_RP_ID', 'default' => ''],
             'allowSignup' => ['const' => 'PASSKEY_ALLOW_SIGNUP', 'default' => false],
             'requireUserVerification' => ['const' => 'PASSKEY_REQUIRE_USER_VERIFICATION', 'default' => 'preferred'],
+            'algorithms' => ['const' => 'PASSKEY_ALGORITHMS', 'default' => [-7, -257]],
+            'attestation' => ['const' => 'PASSKEY_ATTESTATION', 'default' => 'none'],
+            'authenticatorAttachment' => ['const' => 'PASSKEY_AUTHENTICATOR_ATTACHMENT', 'default' => ''],
+            'timeout' => ['const' => 'PASSKEY_TIMEOUT', 'default' => 60000],
+            'residentKey' => ['const' => 'PASSKEY_RESIDENT_KEY', 'default' => 'required'],
         ];
 
         $settings = [];
@@ -86,6 +91,11 @@ final class PasskeyLoginSettingsController extends AbstractRestController
             // Cast booleans
             if (\is_bool($meta['default'])) {
                 $value = filter_var($value, \FILTER_VALIDATE_BOOLEAN);
+            }
+
+            // Cast int
+            if (\is_int($meta['default'])) {
+                $value = (int) $value;
             }
 
             $settings[$key] = [
@@ -114,9 +124,18 @@ final class PasskeyLoginSettingsController extends AbstractRestController
             'rpId' => 'PASSKEY_RP_ID',
             'allowSignup' => 'PASSKEY_ALLOW_SIGNUP',
             'requireUserVerification' => 'PASSKEY_REQUIRE_USER_VERIFICATION',
+            'algorithms' => 'PASSKEY_ALGORITHMS',
+            'attestation' => 'PASSKEY_ATTESTATION',
+            'authenticatorAttachment' => 'PASSKEY_AUTHENTICATOR_ATTACHMENT',
+            'timeout' => 'PASSKEY_TIMEOUT',
+            'residentKey' => 'PASSKEY_RESIDENT_KEY',
         ];
 
         $allowedUserVerification = ['preferred', 'required', 'discouraged'];
+        $allowedAttestation = ['none', 'indirect', 'direct', 'enterprise'];
+        $allowedAttachment = ['', 'platform', 'cross-platform'];
+        $allowedResidentKey = ['required', 'preferred', 'discouraged'];
+        $validCoseIds = [-7, -257, -8, -35, -36, -258, -259];
 
         foreach ($fieldMap as $key => $constName) {
             if (\defined($constName) || !\array_key_exists($key, $input)) {
@@ -125,6 +144,47 @@ final class PasskeyLoginSettingsController extends AbstractRestController
 
             // Validate requireUserVerification
             if ($key === 'requireUserVerification' && !\in_array($input[$key], $allowedUserVerification, true)) {
+                continue;
+            }
+
+            // Validate algorithms
+            if ($key === 'algorithms') {
+                if (!\is_array($input[$key])) {
+                    continue;
+                }
+                $algos = array_values(array_map('intval', $input[$key]));
+                $invalid = array_diff($algos, $validCoseIds);
+                if ($algos === [] || $invalid !== []) {
+                    continue;
+                }
+                $saved[$key] = $algos;
+
+                continue;
+            }
+
+            // Validate attestation
+            if ($key === 'attestation' && !\in_array($input[$key], $allowedAttestation, true)) {
+                continue;
+            }
+
+            // Validate authenticatorAttachment
+            if ($key === 'authenticatorAttachment' && !\in_array($input[$key], $allowedAttachment, true)) {
+                continue;
+            }
+
+            // Validate timeout (1000–300000 ms)
+            if ($key === 'timeout') {
+                $timeout = (int) $input[$key];
+                if ($timeout < 1000 || $timeout > 300000) {
+                    continue;
+                }
+                $saved[$key] = $timeout;
+
+                continue;
+            }
+
+            // Validate residentKey
+            if ($key === 'residentKey' && !\in_array($input[$key], $allowedResidentKey, true)) {
                 continue;
             }
 

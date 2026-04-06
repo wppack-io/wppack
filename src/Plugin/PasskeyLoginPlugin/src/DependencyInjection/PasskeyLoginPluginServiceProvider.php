@@ -166,7 +166,12 @@ final class PasskeyLoginPluginServiceProvider implements ServiceProviderInterfac
         return new PasskeyConfiguration(
             rpName: $config->rpName,
             rpId: $config->rpId,
+            timeout: $config->timeout,
+            attestation: $config->attestation,
             userVerification: $config->requireUserVerification,
+            residentKey: $config->residentKey,
+            algorithms: $config->algorithms,
+            authenticatorAttachment: $config->authenticatorAttachment,
         );
     }
 }

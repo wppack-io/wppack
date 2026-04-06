@@ -28,14 +28,27 @@ final readonly class PasskeyLoginConfiguration
         'rpId' => 'PASSKEY_RP_ID',
         'allowSignup' => 'PASSKEY_ALLOW_SIGNUP',
         'requireUserVerification' => 'PASSKEY_REQUIRE_USER_VERIFICATION',
+        'algorithms' => 'PASSKEY_ALGORITHMS',
+        'attestation' => 'PASSKEY_ATTESTATION',
+        'authenticatorAttachment' => 'PASSKEY_AUTHENTICATOR_ATTACHMENT',
+        'timeout' => 'PASSKEY_TIMEOUT',
+        'residentKey' => 'PASSKEY_RESIDENT_KEY',
     ];
 
+    /**
+     * @param list<int> $algorithms COSE algorithm identifiers
+     */
     public function __construct(
         public bool $enabled = true,
         public string $rpName = '',
         public string $rpId = '',
         public bool $allowSignup = false,
         public string $requireUserVerification = 'preferred',
+        public array $algorithms = [-7, -257],
+        public string $attestation = 'none',
+        public string $authenticatorAttachment = '',
+        public int $timeout = 60000,
+        public string $residentKey = 'required',
     ) {}
 
     /**
@@ -54,6 +67,11 @@ final readonly class PasskeyLoginConfiguration
             rpId: self::resolveString('PASSKEY_RP_ID', $options, ''),
             allowSignup: self::resolveBool('PASSKEY_ALLOW_SIGNUP', $options, false),
             requireUserVerification: self::resolveString('PASSKEY_REQUIRE_USER_VERIFICATION', $options, 'preferred'),
+            algorithms: self::resolveAlgorithms('PASSKEY_ALGORITHMS', $options, [-7, -257]),
+            attestation: self::resolveString('PASSKEY_ATTESTATION', $options, 'none'),
+            authenticatorAttachment: self::resolveString('PASSKEY_AUTHENTICATOR_ATTACHMENT', $options, ''),
+            timeout: self::resolveInt('PASSKEY_TIMEOUT', $options, 60000),
+            residentKey: self::resolveString('PASSKEY_RESIDENT_KEY', $options, 'required'),
         );
     }
 
@@ -95,6 +113,67 @@ final readonly class PasskeyLoginConfiguration
         }
 
         return self::getBool($envName, $default);
+    }
+
+    /**
+     * Resolve int: constant > option > env > default.
+     *
+     * @param array<string, mixed> $options
+     */
+    private static function resolveInt(string $envName, array $options, int $default): int
+    {
+        if (\defined($envName)) {
+            return (int) \constant($envName);
+        }
+
+        $paramName = self::envToParam($envName);
+        if (isset($options[$paramName]) && is_numeric($options[$paramName])) {
+            return (int) $options[$paramName];
+        }
+
+        $env = self::getEnv($envName);
+
+        return $env !== null && is_numeric($env) ? (int) $env : $default;
+    }
+
+    /**
+     * Resolve algorithms: constant > option > env > default.
+     *
+     * Constant/env value is a comma-separated string of COSE IDs (e.g. "-7,-257,-8").
+     *
+     * @param array<string, mixed> $options
+     * @param list<int>            $default
+     *
+     * @return list<int>
+     */
+    private static function resolveAlgorithms(string $envName, array $options, array $default): array
+    {
+        if (\defined($envName)) {
+            $v = \constant($envName);
+
+            return \is_string($v) ? self::parseAlgorithms($v) : $default;
+        }
+
+        $paramName = self::envToParam($envName);
+        if (isset($options[$paramName]) && \is_array($options[$paramName])) {
+            return array_values(array_map('intval', $options[$paramName]));
+        }
+
+        $env = self::getEnv($envName);
+
+        return $env !== null ? self::parseAlgorithms($env) : $default;
+    }
+
+    /**
+     * Parse comma-separated COSE algorithm IDs.
+     *
+     * @return list<int>
+     */
+    private static function parseAlgorithms(string $value): array
+    {
+        $parts = array_filter(array_map('trim', explode(',', $value)), static fn(string $s): bool => $s !== '');
+
+        return array_values(array_map('intval', $parts));
     }
 
     private static function getEnv(string $name): ?string

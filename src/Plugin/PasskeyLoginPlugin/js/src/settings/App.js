@@ -1,9 +1,11 @@
 import { DataForm } from '@wordpress/dataviews/wp';
-import { useState, useEffect, useMemo } from '@wordpress/element';
+import { useState, useEffect, useMemo, useCallback } from '@wordpress/element';
 import {
 	TextControl,
 	ToggleControl,
 	SelectControl,
+	CheckboxControl,
+	__experimentalNumberControl as NumberControl,
 	Button,
 	Notice,
 	Spinner,
@@ -41,6 +43,11 @@ export default function App() {
 		rpId: '',
 		allowSignup: false,
 		requireUserVerification: 'preferred',
+		algorithms: [ -7, -257 ],
+		attestation: 'none',
+		authenticatorAttachment: '',
+		timeout: 60000,
+		residentKey: 'required',
 	} );
 	const [ meta, setMeta ] = useState( {
 		settings: {},
@@ -96,6 +103,45 @@ export default function App() {
 		{ label: __( 'Required', 'wppack-passkey-login' ), value: 'required' },
 		{ label: __( 'Discouraged', 'wppack-passkey-login' ), value: 'discouraged' },
 	], [] );
+
+	const coseAlgorithms = useMemo( () => [
+		{ id: -7, name: 'ES256', recommended: true },
+		{ id: -257, name: 'RS256', recommended: true },
+		{ id: -8, name: 'EdDSA', recommended: true },
+		{ id: -35, name: 'ES384', recommended: false },
+		{ id: -36, name: 'ES512', recommended: false },
+		{ id: -258, name: 'RS384', recommended: false },
+		{ id: -259, name: 'RS512', recommended: false },
+	], [] );
+
+	const attestationOptions = useMemo( () => [
+		{ label: 'none', value: 'none' },
+		{ label: 'indirect', value: 'indirect' },
+		{ label: 'direct', value: 'direct' },
+		{ label: 'enterprise', value: 'enterprise' },
+	], [] );
+
+	const authenticatorAttachmentOptions = useMemo( () => [
+		{ label: __( 'Any', 'wppack-passkey-login' ), value: '' },
+		{ label: __( 'Platform (built-in biometrics)', 'wppack-passkey-login' ), value: 'platform' },
+		{ label: __( 'Cross-platform (security keys)', 'wppack-passkey-login' ), value: 'cross-platform' },
+	], [] );
+
+	const residentKeyOptions = useMemo( () => [
+		{ label: __( 'Required', 'wppack-passkey-login' ), value: 'required' },
+		{ label: __( 'Preferred', 'wppack-passkey-login' ), value: 'preferred' },
+		{ label: __( 'Discouraged', 'wppack-passkey-login' ), value: 'discouraged' },
+	], [] );
+
+	const toggleAlgorithm = useCallback( ( alg, checked ) => {
+		setFormData( ( prev ) => {
+			const current = prev.algorithms || [];
+			const next = checked
+				? [ ...current, alg ]
+				: current.filter( ( a ) => a !== alg );
+			return { ...prev, algorithms: next };
+		} );
+	}, [] );
 
 	// ── General fields ──
 
@@ -194,11 +240,131 @@ export default function App() {
 		},
 	], [ meta.settings, userVerificationOptions ] );
 
+	// ── Advanced fields ──
+
+	const advancedFields = useMemo( () => [
+		{
+			id: 'algorithms',
+			label: badgeLabel( __( 'COSE Algorithms', 'wppack-passkey-login' ), s( 'algorithms' ).source === 'constant' ),
+			type: 'text',
+			getValue: ( { item } ) => ( item.algorithms || [] ).join( ', ' ),
+			Edit: ( { field } ) => {
+				const readonly = !! s( 'algorithms' ).readonly;
+				const selected = formData.algorithms || [];
+				return (
+					<fieldset className="wpp-passkey-algorithms-fieldset" disabled={ readonly }>
+						<legend className="components-base-control__label">{ field.label }</legend>
+						<p className="components-base-control__help">
+							{ __( 'Select which COSE algorithms to accept for credential registration.', 'wppack-passkey-login' ) }
+						</p>
+						{ coseAlgorithms.map( ( alg ) => (
+							<CheckboxControl
+								key={ alg.id }
+								label={
+									alg.recommended
+										? `${ alg.name } (${ alg.id })`
+										: `${ alg.name } (${ alg.id }) — ${ alg.id === -258 || alg.id === -259
+											? __( 'Not recommended', 'wppack-passkey-login' )
+											: __( 'Limited support', 'wppack-passkey-login' ) }`
+								}
+								checked={ selected.includes( alg.id ) }
+								onChange={ ( val ) => toggleAlgorithm( alg.id, val ) }
+								disabled={ readonly }
+								__nextHasNoMarginBottom
+							/>
+						) ) }
+					</fieldset>
+				);
+			},
+		},
+		{
+			id: 'attestation',
+			label: badgeLabel( __( 'Attestation Conveyance', 'wppack-passkey-login' ), s( 'attestation' ).source === 'constant' ),
+			type: 'text',
+			getValue: ( { item } ) => item.attestation || 'none',
+			Edit: ( { data, field } ) => (
+				<SelectControl
+					id={ field.id }
+					label={ field.label }
+					value={ data.attestation || 'none' }
+					onChange={ ( val ) => setFormData( ( prev ) => ( { ...prev, attestation: val } ) ) }
+					disabled={ !! s( 'attestation' ).readonly }
+					options={ attestationOptions }
+					help={ data.attestation === 'enterprise'
+						? __( 'Enterprise attestation requires pre-registration with the authenticator vendor.', 'wppack-passkey-login' )
+						: __( 'Controls whether the authenticator provides an attestation statement.', 'wppack-passkey-login' ) }
+					className="wpp-passkey-small-select"
+					__nextHasNoMarginBottom
+				/>
+			),
+		},
+		{
+			id: 'authenticatorAttachment',
+			label: badgeLabel( __( 'Authenticator Attachment', 'wppack-passkey-login' ), s( 'authenticatorAttachment' ).source === 'constant' ),
+			type: 'text',
+			getValue: ( { item } ) => item.authenticatorAttachment || '',
+			Edit: ( { data, field } ) => (
+				<SelectControl
+					id={ field.id }
+					label={ field.label }
+					value={ data.authenticatorAttachment || '' }
+					onChange={ ( val ) => setFormData( ( prev ) => ( { ...prev, authenticatorAttachment: val } ) ) }
+					disabled={ !! s( 'authenticatorAttachment' ).readonly }
+					options={ authenticatorAttachmentOptions }
+					help={ __( 'Restrict which authenticator types are allowed.', 'wppack-passkey-login' ) }
+					className="wpp-passkey-small-select"
+					__nextHasNoMarginBottom
+				/>
+			),
+		},
+		{
+			id: 'timeout',
+			label: badgeLabel( __( 'Ceremony Timeout', 'wppack-passkey-login' ), s( 'timeout' ).source === 'constant' ),
+			type: 'text',
+			getValue: ( { item } ) => String( item.timeout || 60000 ),
+			Edit: ( { data, field } ) => (
+				<NumberControl
+					id={ field.id }
+					label={ field.label }
+					value={ data.timeout ?? 60000 }
+					onChange={ ( val ) => setFormData( ( prev ) => ( { ...prev, timeout: Number( val ) } ) ) }
+					disabled={ !! s( 'timeout' ).readonly }
+					min={ 1000 }
+					max={ 300000 }
+					step={ 1000 }
+					help={ __( 'Timeout in milliseconds (1000 - 300000).', 'wppack-passkey-login' ) }
+					__nextHasNoMarginBottom
+				/>
+			),
+		},
+		{
+			id: 'residentKey',
+			label: badgeLabel( __( 'Resident Key', 'wppack-passkey-login' ), s( 'residentKey' ).source === 'constant' ),
+			type: 'text',
+			getValue: ( { item } ) => item.residentKey || 'required',
+			Edit: ( { data, field } ) => (
+				<SelectControl
+					id={ field.id }
+					label={ field.label }
+					value={ data.residentKey || 'required' }
+					onChange={ ( val ) => setFormData( ( prev ) => ( { ...prev, residentKey: val } ) ) }
+					disabled={ !! s( 'residentKey' ).readonly }
+					options={ residentKeyOptions }
+					help={ data.residentKey === 'discouraged'
+						? __( 'Discouraged: passkeys may not work without resident key support.', 'wppack-passkey-login' )
+						: __( 'Controls whether a discoverable credential (resident key) is required.', 'wppack-passkey-login' ) }
+					className="wpp-passkey-small-select"
+					__nextHasNoMarginBottom
+				/>
+			),
+		},
+	], [ meta.settings, coseAlgorithms, attestationOptions, authenticatorAttachmentOptions, residentKeyOptions, formData.algorithms, toggleAlgorithm ] );
+
 	// ── Combined form layout ──
 
 	const allFields = useMemo(
-		() => [ ...generalFields, ...securityFields ],
-		[ generalFields, securityFields ]
+		() => [ ...generalFields, ...securityFields, ...advancedFields ],
+		[ generalFields, securityFields, advancedFields ]
 	);
 
 	const formLayout = useMemo( () => ( {
@@ -215,8 +381,14 @@ export default function App() {
 				children: securityFields.map( ( f ) => f.id ),
 				layout: { type: 'regular' },
 			},
+			{
+				id: 'advanced-section',
+				label: __( 'Advanced', 'wppack-passkey-login' ),
+				children: advancedFields.map( ( f ) => f.id ),
+				layout: { type: 'regular' },
+			},
 		],
-	} ), [ generalFields, securityFields ] );
+	} ), [ generalFields, securityFields, advancedFields ] );
 
 	const handleFormChange = ( edits ) => {
 		setFormData( ( prev ) => ( { ...prev, ...edits } ) );
