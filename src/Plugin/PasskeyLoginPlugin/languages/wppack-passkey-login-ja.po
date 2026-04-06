@@ -170,8 +170,8 @@ msgid "Failed to delete passkey."
 msgstr "パスキーの削除に失敗しました。"
 
 #: js/src/profile/App.js
-msgid "Device Name"
-msgstr "デバイス名"
+msgid "Name"
+msgstr "名前"
 
 #: js/src/profile/App.js
 msgid "Type"
@@ -236,6 +236,18 @@ msgstr "このパスキーを削除しますか？この操作は取り消せま
 #: js/src/profile/App.js
 msgid "No passkeys registered yet. Add one to enable passwordless login."
 msgstr "パスキーがまだ登録されていません。追加してパスワードレスログインを有効にしましょう。"
+
+#: js/src/profile/App.js
+msgid "Revoke"
+msgstr "取消"
+
+#: js/src/profile/App.js
+msgid "Edit Passkey Name"
+msgstr "パスキー名を編集"
+
+#: js/src/profile/App.js
+msgid "Show more details"
+msgstr "詳細を追加表示"
 
 #: js/src/settings/App.js
 msgid "Button Display"

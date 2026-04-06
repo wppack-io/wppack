@@ -40,8 +40,6 @@ function formatDate( dateStr ) {
 			year: 'numeric',
 			month: 'short',
 			day: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit',
 		} );
 	} catch {
 		return dateStr;
@@ -53,7 +51,7 @@ export default function App() {
 	const [ loading, setLoading ] = useState( true );
 	const [ notice, setNotice ] = useState( null );
 	const [ registering, setRegistering ] = useState( false );
-	const [ editingId, setEditingId ] = useState( null );
+	const [ editingCred, setEditingCred ] = useState( null );
 	const [ editName, setEditName ] = useState( '' );
 	const [ deletingId, setDeletingId ] = useState( null );
 
@@ -133,14 +131,17 @@ export default function App() {
 		}
 	};
 
-	const handleRename = ( id ) => {
+	const handleRename = () => {
+		if ( ! editingCred ) {
+			return;
+		}
 		apiFetch( {
-			path: `/wppack/v1/passkey/credentials/${ id }`,
+			path: `/wppack/v1/passkey/credentials/${ editingCred.id }`,
 			method: 'PUT',
 			data: { deviceName: editName },
 		} )
 			.then( () => {
-				setEditingId( null );
+				setEditingCred( null );
 				setEditName( '' );
 				fetchCredentials();
 			} )
@@ -177,71 +178,64 @@ export default function App() {
 			) }
 
 			{ credentials.length > 0 && (
-				<table className="widefat wpp-passkey-profile-table">
+				<table className="wp-list-table widefat fixed striped table-view-list">
 					<thead>
 						<tr>
-							<th>{ __( 'Device Name', 'wppack-passkey-login' ) }</th>
-							<th>{ __( 'Type', 'wppack-passkey-login' ) }</th>
-							<th>{ __( 'Registered', 'wppack-passkey-login' ) }</th>
-							<th>{ __( 'Last Used', 'wppack-passkey-login' ) }</th>
-							<th>{ __( 'Actions', 'wppack-passkey-login' ) }</th>
+							<th className="manage-column column-name column-primary">{ __( 'Name', 'wppack-passkey-login' ) }</th>
+							<th className="manage-column column-type">{ __( 'Type', 'wppack-passkey-login' ) }</th>
+							<th className="manage-column column-created">{ __( 'Registered', 'wppack-passkey-login' ) }</th>
+							<th className="manage-column column-last_used">{ __( 'Last Used', 'wppack-passkey-login' ) }</th>
+							<th className="manage-column column-revoke">{ __( 'Actions', 'wppack-passkey-login' ) }</th>
 						</tr>
 					</thead>
 					<tbody>
 						{ credentials.map( ( cred ) => (
 							<tr key={ cred.id }>
-								<td>
-									{ editingId === cred.id ? (
-										<span className="wpp-passkey-inline-edit">
-											<TextControl
-												value={ editName }
-												onChange={ setEditName }
-												__nextHasNoMarginBottom
-											/>
-											<Button
-												variant="primary"
-												size="small"
-												onClick={ () => handleRename( cred.id ) }
-											>
-												{ __( 'Save', 'wppack-passkey-login' ) }
-											</Button>
-											<Button
-												variant="tertiary"
-												size="small"
-												onClick={ () => setEditingId( null ) }
-											>
-												{ __( 'Cancel', 'wppack-passkey-login' ) }
-											</Button>
-										</span>
-									) : (
-										<>
-											{ cred.deviceName || __( 'Unnamed', 'wppack-passkey-login' ) }
-											<Button
-												variant="tertiary"
-												size="small"
-												className="wpp-passkey-edit-btn"
-												onClick={ () => {
-													setEditingId( cred.id );
+								<td className="name column-name has-row-actions column-primary" data-colname={ __( 'Name', 'wppack-passkey-login' ) }>
+									{ cred.deviceName || __( 'Unnamed', 'wppack-passkey-login' ) }
+									<div className="row-actions">
+										<span className="edit">
+											{ /* eslint-disable-next-line jsx-a11y/anchor-is-valid */ }
+											<a
+												href="#"
+												onClick={ ( e ) => {
+													e.preventDefault();
+													setEditingCred( cred );
 													setEditName( cred.deviceName || '' );
 												} }
 											>
 												{ __( 'Edit', 'wppack-passkey-login' ) }
-											</Button>
-										</>
-									) }
+											</a>
+										</span>
+									</div>
+									<button
+										type="button"
+										className="toggle-row"
+										onClick={ ( e ) => {
+											e.currentTarget.closest( 'tr' ).classList.toggle( 'is-expanded' );
+										} }
+									>
+										<span className="screen-reader-text">{ __( 'Show more details', 'wppack-passkey-login' ) }</span>
+									</button>
 								</td>
-								<td>{ cred.backupEligible ? __( 'Synced', 'wppack-passkey-login' ) : __( 'Device-bound', 'wppack-passkey-login' ) }</td>
-								<td>{ formatDate( cred.createdAt ) }</td>
-								<td>{ formatDate( cred.lastUsedAt ) }</td>
-								<td>
-									<Button
-										variant="tertiary"
-										size="small"
-										isDestructive
+								<td className="type column-type" data-colname={ __( 'Type', 'wppack-passkey-login' ) }>
+									{ cred.backupEligible ? __( 'Synced', 'wppack-passkey-login' ) : __( 'Device-bound', 'wppack-passkey-login' ) }
+								</td>
+								<td className="created column-created" data-colname={ __( 'Registered', 'wppack-passkey-login' ) }>
+									{ formatDate( cred.createdAt ) }
+								</td>
+								<td className="last_used column-last_used" data-colname={ __( 'Last Used', 'wppack-passkey-login' ) }>
+									{ formatDate( cred.lastUsedAt ) }
+								</td>
+								<td className="revoke column-revoke" data-colname={ __( 'Actions', 'wppack-passkey-login' ) }>
+									<button
+										type="button"
+										className="button delete"
+										aria-label={ `${ __( 'Revoke', 'wppack-passkey-login' ) } "${ cred.deviceName || __( 'Unnamed', 'wppack-passkey-login' ) }"` }
 										onClick={ () => setDeletingId( cred.id ) }
 									>
-										{ __( 'Delete', 'wppack-passkey-login' ) }
-									</Button>
+										{ __( 'Revoke', 'wppack-passkey-login' ) }
+									</button>
 								</td>
 							</tr>
 						) ) }
@@ -265,6 +259,35 @@ export default function App() {
 					{ registering ? __( 'Registering…', 'wppack-passkey-login' ) : __( 'Add Passkey', 'wppack-passkey-login' ) }
 				</button>
 			</div>
+
+			{ editingCred && (
+				<Modal
+					title={ __( 'Edit Passkey Name', 'wppack-passkey-login' ) }
+					onRequestClose={ () => setEditingCred( null ) }
+					size="small"
+				>
+					<TextControl
+						label={ __( 'Name', 'wppack-passkey-login' ) }
+						value={ editName }
+						onChange={ setEditName }
+						__nextHasNoMarginBottom
+					/>
+					<div className="wpp-passkey-modal-actions">
+						<Button
+							variant="primary"
+							onClick={ handleRename }
+						>
+							{ __( 'Save', 'wppack-passkey-login' ) }
+						</Button>
+						<Button
+							variant="tertiary"
+							onClick={ () => setEditingCred( null ) }
+						>
+							{ __( 'Cancel', 'wppack-passkey-login' ) }
+						</Button>
+					</div>
+				</Modal>
+			) }
 
 			{ deletingId && (
 				<Modal
