@@ -21,7 +21,8 @@
         "psr/log": "^3.0",
         "symfony/config": "^6.4",
         "symfony/dependency-injection": "^6.4",
-        "symfony/options-resolver": "^7.0 || ^8.0"
+        "symfony/options-resolver": "^7.0 || ^8.0",
+        "web-auth/webauthn-lib": "^5.2"
     },
     "require-dev": {
         "async-aws/cloud-watch": "^1.0",
@@ -142,6 +143,8 @@
             "WpPack\\Component\\Scim\\": "src/Component/Scim/src/",
             "WpPack\\Plugin\\ScimPlugin\\": "src/Plugin/ScimPlugin/src/",
             "WpPack\\Plugin\\MonitoringPlugin\\": "src/Plugin/MonitoringPlugin/src/",
+            "WpPack\\Component\\Security\\Bridge\\Passkey\\": "src/Component/Security/Bridge/Passkey/src/",
+            "WpPack\\Plugin\\PasskeyLoginPlugin\\": "src/Plugin/PasskeyLoginPlugin/src/",
             "WpPack\\MuPlugin\\MultisiteUrlFixer\\": "src/MuPlugin/MultisiteUrlFixer/src/"
         }
     },
@@ -318,6 +321,8 @@
         "wppack/scim": "self.version",
         "wppack/scim-plugin": "self.version",
         "wppack/monitoring-plugin": "self.version",
+        "wppack/passkey-security": "self.version",
+        "wppack/passkey-login-plugin": "self.version",
         "wppack/multisite-url-fixer-plugin": "self.version",
         "wppack/lambda-plugin": "self.version",
         "wppack/theme-directory-plugin": "self.version"

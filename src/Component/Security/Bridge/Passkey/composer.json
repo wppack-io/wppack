@@ -1,0 +1,21 @@
+{
+    "name": "wppack/passkey-security",
+    "description": "WebAuthn/Passkey authentication bridge for WpPack Security",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "wppack/security": "^1.0",
+        "web-auth/webauthn-lib": "^5.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpPack\\Component\\Security\\Bridge\\Passkey\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Component\\Security\\Bridge\\Passkey\\Tests\\": "tests/"
+        }
+    }
+}
