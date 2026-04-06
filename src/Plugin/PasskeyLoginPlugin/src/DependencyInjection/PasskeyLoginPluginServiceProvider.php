@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace WpPack\Plugin\PasskeyLoginPlugin\DependencyInjection;
 
 use Psr\Log\LoggerInterface;
+use WpPack\Component\Admin\AdminPageRegistry;
 use WpPack\Component\Database\DatabaseManager;
 use WpPack\Component\Database\SchemaManager;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
@@ -31,12 +32,36 @@ use WpPack\Component\Security\Bridge\Passkey\Controller\RegistrationController;
 use WpPack\Component\Security\Bridge\Passkey\Storage\CredentialRepositoryInterface;
 use WpPack\Component\Security\Bridge\Passkey\Storage\DatabaseCredentialRepository;
 use WpPack\Component\Transient\TransientManager;
+use WpPack\Plugin\PasskeyLoginPlugin\Admin\PasskeyLoginSettingsController;
+use WpPack\Plugin\PasskeyLoginPlugin\Admin\PasskeyLoginSettingsPage;
 use WpPack\Plugin\PasskeyLoginPlugin\Configuration\PasskeyLoginConfiguration;
 use WpPack\Plugin\PasskeyLoginPlugin\LoginForm\PasskeyLoginForm;
 use WpPack\Plugin\PasskeyLoginPlugin\Migration\PasskeyCredentialTable;
+use WpPack\Plugin\PasskeyLoginPlugin\Profile\PasskeyProfileSection;
 
 final class PasskeyLoginPluginServiceProvider implements ServiceProviderInterface
 {
+    /**
+     * Register admin/settings services (always, regardless of enabled state).
+     */
+    public function registerAdmin(ContainerBuilder $builder): void
+    {
+        if (!$builder->hasDefinition(AdminPageRegistry::class)) {
+            $builder->register(AdminPageRegistry::class);
+        }
+
+        if (!$builder->hasDefinition(RestRegistry::class)) {
+            $builder->register(RestRegistry::class)
+                ->addArgument(new Reference(Request::class));
+        }
+
+        $builder->register(PasskeyLoginSettingsPage::class);
+
+        $builder->register(PasskeyLoginSettingsController::class);
+
+        $builder->register(PasskeyProfileSection::class);
+    }
+
     public function register(ContainerBuilder $builder): void
     {
         // Logger

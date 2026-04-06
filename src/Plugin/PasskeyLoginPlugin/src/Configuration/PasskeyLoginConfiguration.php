@@ -15,7 +15,7 @@ namespace WpPack\Plugin\PasskeyLoginPlugin\Configuration;
 
 final readonly class PasskeyLoginConfiguration
 {
-    private const OPTION_NAME = 'wppack_passkey_login';
+    public const OPTION_NAME = 'wppack_passkey_login';
 
     /**
      * Map of constructor parameter names to environment variable names.

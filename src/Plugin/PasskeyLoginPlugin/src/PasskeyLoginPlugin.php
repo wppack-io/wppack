@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace WpPack\Plugin\PasskeyLoginPlugin;
 
+use WpPack\Component\Admin\AdminPageRegistry;
 use WpPack\Component\Database\SchemaManager;
 use WpPack\Component\DependencyInjection\Container;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
@@ -22,9 +23,12 @@ use WpPack\Component\Rest\RestRegistry;
 use WpPack\Component\Security\Bridge\Passkey\Controller\AuthenticationController;
 use WpPack\Component\Security\Bridge\Passkey\Controller\CredentialController;
 use WpPack\Component\Security\Bridge\Passkey\Controller\RegistrationController;
+use WpPack\Plugin\PasskeyLoginPlugin\Admin\PasskeyLoginSettingsController;
+use WpPack\Plugin\PasskeyLoginPlugin\Admin\PasskeyLoginSettingsPage;
 use WpPack\Plugin\PasskeyLoginPlugin\Configuration\PasskeyLoginConfiguration;
 use WpPack\Plugin\PasskeyLoginPlugin\DependencyInjection\PasskeyLoginPluginServiceProvider;
 use WpPack\Plugin\PasskeyLoginPlugin\LoginForm\PasskeyLoginForm;
+use WpPack\Plugin\PasskeyLoginPlugin\Profile\PasskeyProfileSection;
 
 #[TextDomain(domain: 'wppack-passkey-login')]
 final class PasskeyLoginPlugin extends AbstractPlugin
@@ -40,6 +44,9 @@ final class PasskeyLoginPlugin extends AbstractPlugin
 
     public function register(ContainerBuilder $builder): void
     {
+        // Always register admin/settings services
+        $this->serviceProvider->registerAdmin($builder);
+
         $this->serviceProvider->register($builder);
     }
 
@@ -49,6 +56,26 @@ final class PasskeyLoginPlugin extends AbstractPlugin
         $schemaManager = $container->get(SchemaManager::class);
         $this->schemaManager = $schemaManager;
 
+        // Admin settings page (always available)
+        if (is_admin()) {
+            /** @var AdminPageRegistry $pageRegistry */
+            $pageRegistry = $container->get(AdminPageRegistry::class);
+            /** @var PasskeyLoginSettingsPage $settingsPage */
+            $settingsPage = $container->get(PasskeyLoginSettingsPage::class);
+            $settingsPage->setPluginFile($this->getFile());
+            $pageRegistry->register($settingsPage);
+
+            /** @var RestRegistry $restRegistry */
+            $restRegistry = $container->get(RestRegistry::class);
+            $restRegistry->register($container->get(PasskeyLoginSettingsController::class));
+
+            // Profile passkey management section
+            /** @var PasskeyProfileSection $profileSection */
+            $profileSection = $container->get(PasskeyProfileSection::class);
+            $profileSection->setPluginFile($this->getFile());
+            $profileSection->register();
+        }
+
         /** @var PasskeyLoginConfiguration $config */
         $config = $container->get(PasskeyLoginConfiguration::class);
 
@@ -56,7 +83,7 @@ final class PasskeyLoginPlugin extends AbstractPlugin
             return;
         }
 
-        // REST API controllers
+        // REST API controllers (passkey ceremony endpoints)
         /** @var RestRegistry $restRegistry */
         $restRegistry = $container->get(RestRegistry::class);
         $restRegistry->register($container->get(AuthenticationController::class));
