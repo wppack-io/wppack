@@ -107,7 +107,7 @@ final class CloudflareMetricProvider implements MetricProviderInterface
                 'id' => 'settings.hostname',
                 'label' => 'Hostname Filter',
                 'type' => 'text',
-                'description' => 'Filter by hostname (e.g. example.com). Comma-separated for multiple. Leave empty for all.',
+                'description' => 'Filter by hostname (e.g. example.com). Comma-separated for multiple. Wildcards not supported. Leave empty for all.',
             ],
         ];
     }
