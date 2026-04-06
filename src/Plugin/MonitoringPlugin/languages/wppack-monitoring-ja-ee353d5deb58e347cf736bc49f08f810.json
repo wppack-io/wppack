@@ -234,7 +234,9 @@
             "Min": ["最小"],
             "Max": ["最大"],
             "Data Points": ["データポイント数"],
-            "Not enough data points.": ["データポイントが不足しています。"]
+            "Not enough data points.": ["データポイントが不足しています。"],
+            "Hostname Filter": ["ホスト名フィルター"],
+            "Filter by hostname (e.g. example.com). Comma-separated for multiple. Wildcards not supported. Leave empty for all.": ["ホスト名でフィルター（例: example.com）。複数はカンマ区切り。ワイルドカード非対応。空欄で全ホスト。"]
         }
     }
 }
