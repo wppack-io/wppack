@@ -31,13 +31,7 @@
 
 /* ── Tabs ─────────────────────────────── */
 .wpp-monitoring-tabs {
-	margin: 0 -24px 16px;
-}
-
-.wpp-monitoring-tabs .components-tab-panel__tabs {
-	margin-bottom: 0;
-	border-bottom: 1px solid #e0e0e0;
-	padding-left: 24px;
+	margin-bottom: 16px;
 }
 
 /* ── Dashboard ─────────────────────────── */
