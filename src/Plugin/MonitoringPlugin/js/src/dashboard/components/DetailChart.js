@@ -17,7 +17,7 @@ export default function DetailChart( { datapoints, unit } ) {
 	const plotH = CHART_HEIGHT - PADDING.top - PADDING.bottom;
 
 	const values = datapoints.map( ( dp ) => dp.value );
-	const min = Math.min( ...values );
+	const min = 0;
 	const max = Math.max( ...values );
 	const range = max - min || 1;
 
