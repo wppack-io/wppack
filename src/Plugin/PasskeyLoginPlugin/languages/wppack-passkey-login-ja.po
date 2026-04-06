@@ -1,0 +1,222 @@
+# Japanese translation for WpPack Passkey Login
+msgid ""
+msgstr ""
+"Project-Id-Version: @wppack/passkey-login-plugin 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugins/wppack-passkey-login\n"
+"MIME-Version: 1.0\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"PO-Revision-Date: 2026-04-03 00:00+0900\n"
+"Last-Translator: WpPack <dev@wppack.io>\n"
+"Language-Team: WpPack <dev@wppack.io>\n"
+"Language: ja\n"
+"X-Domain: wppack-passkey-login\n"
+
+#: wppack-passkey-login.php
+msgid "@wppack/passkey-login-plugin"
+msgstr "WpPack Passkey Login"
+
+#: wppack-passkey-login.php
+msgid "WpPack"
+msgstr "WpPack"
+
+#: src/Admin/PasskeyLoginSettingsPage.php:28
+msgid "Passkey Login Settings"
+msgstr "パスキーログイン設定"
+
+#: src/Admin/PasskeyLoginSettingsPage.php:29
+msgid "Passkey Login"
+msgstr "パスキーログイン"
+
+#: src/Profile/PasskeyProfileSection.php:41
+msgid "Passkeys"
+msgstr "パスキー"
+
+#: src/LoginForm/PasskeyLoginForm.php:74
+msgid "Sign in with Passkey"
+msgstr "パスキーでサインイン"
+
+#: js/src/settings/App.js
+msgid "Constant"
+msgstr "定数"
+
+#: js/src/settings/App.js
+msgid "Saved"
+msgstr "保存済み"
+
+#: js/src/settings/App.js
+msgid "Failed to load settings."
+msgstr "設定の読み込みに失敗しました。"
+
+#: js/src/settings/App.js
+msgid "Settings saved."
+msgstr "設定を保存しました。"
+
+#: js/src/settings/App.js
+msgid "Failed to save settings."
+msgstr "設定の保存に失敗しました。"
+
+#: js/src/settings/App.js
+msgid "Preferred"
+msgstr "推奨"
+
+#: js/src/settings/App.js
+msgid "Required"
+msgstr "必須"
+
+#: js/src/settings/App.js
+msgid "Discouraged"
+msgstr "非推奨"
+
+#: js/src/settings/App.js
+msgid "Enabled"
+msgstr "有効"
+
+#: js/src/settings/App.js
+msgid "Enable passkey authentication on the login page."
+msgstr "ログインページでパスキー認証を有効にします。"
+
+#: js/src/settings/App.js
+msgid "Relying Party Name"
+msgstr "リライングパーティ名"
+
+#: js/src/settings/App.js
+msgid "Display name shown in the passkey prompt (e.g. your site name)."
+msgstr "パスキープロンプトに表示される名前（例: サイト名）。"
+
+#: js/src/settings/App.js
+msgid "Relying Party ID"
+msgstr "リライングパーティ ID"
+
+#: js/src/settings/App.js
+msgid "Domain of the relying party (e.g. example.com). Must match the site domain."
+msgstr "リライングパーティのドメイン（例: example.com）。サイトドメインと一致させてください。"
+
+#: js/src/settings/App.js
+msgid "Allow Signup"
+msgstr "新規登録を許可"
+
+#: js/src/settings/App.js
+msgid "Allow new users to register via passkey."
+msgstr "パスキーによる新規ユーザー登録を許可します。"
+
+#: js/src/settings/App.js
+msgid "User Verification"
+msgstr "ユーザー検証"
+
+#: js/src/settings/App.js
+msgid "Controls whether biometric/PIN verification is required."
+msgstr "生体認証/PIN の検証を要求するかどうかを制御します。"
+
+#: js/src/settings/App.js
+msgid "General"
+msgstr "一般"
+
+#: js/src/settings/App.js
+msgid "Security"
+msgstr "セキュリティ"
+
+#: js/src/settings/App.js
+msgid "Saving…"
+msgstr "保存中…"
+
+#: js/src/settings/App.js
+msgid "Save Settings"
+msgstr "設定を保存"
+
+#: js/src/profile/App.js
+msgid "Failed to load passkeys."
+msgstr "パスキーの読み込みに失敗しました。"
+
+#: js/src/profile/App.js
+msgid "Passkey registered successfully."
+msgstr "パスキーを登録しました。"
+
+#: js/src/profile/App.js
+msgid "Registration was cancelled."
+msgstr "登録がキャンセルされました。"
+
+#: js/src/profile/App.js
+msgid "Failed to register passkey."
+msgstr "パスキーの登録に失敗しました。"
+
+#: js/src/profile/App.js
+msgid "Failed to rename passkey."
+msgstr "パスキーの名前変更に失敗しました。"
+
+#: js/src/profile/App.js
+msgid "Passkey deleted."
+msgstr "パスキーを削除しました。"
+
+#: js/src/profile/App.js
+msgid "Failed to delete passkey."
+msgstr "パスキーの削除に失敗しました。"
+
+#: js/src/profile/App.js
+msgid "Device Name"
+msgstr "デバイス名"
+
+#: js/src/profile/App.js
+msgid "Type"
+msgstr "タイプ"
+
+#: js/src/profile/App.js
+msgid "Registered"
+msgstr "登録日時"
+
+#: js/src/profile/App.js
+msgid "Last Used"
+msgstr "最終使用"
+
+#: js/src/profile/App.js
+msgid "Actions"
+msgstr "操作"
+
+#: js/src/profile/App.js
+msgid "Save"
+msgstr "保存"
+
+#: js/src/profile/App.js
+msgid "Cancel"
+msgstr "キャンセル"
+
+#: js/src/profile/App.js
+msgid "Unnamed"
+msgstr "名前なし"
+
+#: js/src/profile/App.js
+msgid "Edit"
+msgstr "編集"
+
+#: js/src/profile/App.js
+msgid "Synced"
+msgstr "同期"
+
+#: js/src/profile/App.js
+msgid "Device-bound"
+msgstr "デバイス固定"
+
+#: js/src/profile/App.js
+msgid "Delete"
+msgstr "削除"
+
+#: js/src/profile/App.js
+msgid "Registering…"
+msgstr "登録中…"
+
+#: js/src/profile/App.js
+msgid "Add Passkey"
+msgstr "パスキーを追加"
+
+#: js/src/profile/App.js
+msgid "Delete Passkey"
+msgstr "パスキーを削除"
+
+#: js/src/profile/App.js
+msgid "Are you sure you want to delete this passkey? This action cannot be undone."
+msgstr "このパスキーを削除しますか？この操作は取り消せません。"
+
+#: js/src/profile/App.js
+msgid "No passkeys registered yet. Add one to enable passwordless sign-in."
+msgstr "パスキーがまだ登録されていません。追加してパスワードレスサインインを有効にしましょう。"

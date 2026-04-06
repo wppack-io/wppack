@@ -167,6 +167,10 @@ component_management:
       name: OAuthSecurity
       paths:
         - src/Component/Security/Bridge/OAuth/src/**
+    - component_id: passkey_security
+      name: PasskeySecurity
+      paths:
+        - src/Component/Security/Bridge/Passkey/src/**
     - component_id: oauth_login_plugin
       name: OAuthLoginPlugin
       paths:
@@ -328,6 +332,10 @@ component_management:
       name: SamlLoginPlugin
       paths:
         - src/Plugin/SamlLoginPlugin/src/**
+    - component_id: passkey_login_plugin
+      name: PasskeyLoginPlugin
+      paths:
+        - src/Plugin/PasskeyLoginPlugin/src/**
     - component_id: monitoring
       name: Monitoring
       paths:

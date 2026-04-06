@@ -76,6 +76,7 @@ Distributed as WordPress plugins. Built on top of Components.
 | Security | wppack/security | Authentication and authorization framework |
 | SamlSecurity | wppack/saml-security | SAML 2.0 SP authentication bridge |
 | OAuthSecurity | wppack/oauth-security | OAuth 2.0 / OpenID Connect authentication bridge |
+| PasskeySecurity | wppack/passkey-security | WebAuthn/Passkey authentication bridge |
 | Sanitizer | wppack/sanitizer | Input sanitization |
 | Escaper | wppack/escaper | Output escaping |
 | HttpClient | wppack/http-client | HTTP client abstraction |
@@ -142,6 +143,7 @@ Distributed as WordPress plugins. Built on top of Components.
 | ScimPlugin | wppack/scim-plugin | SCIM 2.0 provisioning plugin |
 | MonitoringPlugin | wppack/monitoring-plugin | Infrastructure monitoring dashboard plugin |
 | OAuthLoginPlugin | wppack/oauth-login-plugin | OAuth 2.0 / OpenID Connect login plugin |
+| PasskeyLoginPlugin | wppack/passkey-login-plugin | WebAuthn/Passkey passwordless login plugin |
 
 ## Key Dependencies
 
@@ -260,6 +262,16 @@ wppack/oauth-security
     ↓ requires
 wppack/security, wppack/site
     + firebase/php-jwt
+
+wppack/passkey-security
+    ↓ requires
+wppack/security
+    + web-auth/webauthn-lib
+
+wppack/passkey-login-plugin
+    ↓ requires
+wppack/passkey-security, wppack/kernel, wppack/dependency-injection, wppack/hook
+    + wppack/security, wppack/rest, wppack/database, wppack/transient
 
 wppack/eventbridge-scheduler
     ↓ requires
@@ -603,7 +615,7 @@ Submenu `position` is grouped by category in increments of 100. Each plugin with
 | position | Category | Plugins |
 |----------|----------|---------|
 | 101–103 | Infrastructure (Cache, Storage, Mail) | RedisCachePlugin (101), S3StoragePlugin (102), AmazonMailerPlugin (103) |
-| 201–202 | Authentication (SSO, OAuth) | SamlLoginPlugin (201), OAuthLoginPlugin (202) |
+| 201–203 | Authentication (SSO, OAuth, Passkey) | SamlLoginPlugin (201), OAuthLoginPlugin (202), PasskeyLoginPlugin (203) |
 | 300 | Provisioning | ScimPlugin (300) |
 
 MonitoringPlugin uses a top-level menu (not under Settings) with `position: 90` in the WordPress admin sidebar.
