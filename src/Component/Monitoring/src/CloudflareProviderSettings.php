@@ -18,6 +18,7 @@ final readonly class CloudflareProviderSettings extends ProviderSettings
     public function __construct(
         #[\SensitiveParameter]
         public string $apiToken = '',
+        public string $hostname = '',
     ) {}
 
     public static function sensitiveFields(): array
@@ -29,6 +30,7 @@ final readonly class CloudflareProviderSettings extends ProviderSettings
     {
         return [
             'apiToken' => $this->apiToken,
+            'hostname' => $this->hostname,
         ];
     }
 
@@ -36,6 +38,7 @@ final readonly class CloudflareProviderSettings extends ProviderSettings
     {
         return new self(
             apiToken: (string) ($data['apiToken'] ?? ''),
+            hostname: (string) ($data['hostname'] ?? ''),
         );
     }
 }

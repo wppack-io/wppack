@@ -103,6 +103,12 @@ final class CloudflareMetricProvider implements MetricProviderInterface
                 'type' => 'password',
                 'description' => 'Cloudflare API Token with Zone Analytics permission',
             ],
+            [
+                'id' => 'settings.hostname',
+                'label' => 'Hostname Filter',
+                'type' => 'text',
+                'description' => 'Filter by hostname (e.g. example.com). Comma-separated for multiple. Leave empty for all.',
+            ],
         ];
     }
 
@@ -155,7 +161,7 @@ final class CloudflareMetricProvider implements MetricProviderInterface
 
     public function getDefaultSettings(): array
     {
-        return ['apiToken' => ''];
+        return ['apiToken' => '', 'hostname' => ''];
     }
 
     public function getSetupGuide(): array
@@ -215,6 +221,7 @@ final class CloudflareMetricProvider implements MetricProviderInterface
 
         $rangeSeconds = $range->end->getTimestamp() - $range->start->getTimestamp();
         $adaptiveMinutes = $this->resolveAdaptiveMinutes($rangeSeconds);
+        $hostnameFilter = $this->buildHostnameFilter($provider);
 
         // Analyze required fields from provider metrics
         $requirements = $this->analyzeRequirements($provider->metrics);
@@ -226,14 +233,14 @@ final class CloudflareMetricProvider implements MetricProviderInterface
             $dataset = $this->resolveZoneDataset($rangeSeconds);
             $maxChunkSeconds = $dataset === 'httpRequests1hGroups' ? 259_200 : 0;
             if ($maxChunkSeconds > 0 && $rangeSeconds > $maxChunkSeconds) {
-                $zoneGroups = $this->fetchZoneAnalyticsChunked($apiToken, $zoneId, $range, $adaptiveMinutes, $dataset, $maxChunkSeconds, $requirements);
+                $zoneGroups = $this->fetchZoneAnalyticsChunked($apiToken, $zoneId, $range, $adaptiveMinutes, $dataset, $maxChunkSeconds, $requirements, $hostnameFilter);
             } else {
-                $zoneGroups = $this->fetchZoneAnalytics($apiToken, $zoneId, $range, $adaptiveMinutes, $dataset, $requirements) ?? [];
+                $zoneGroups = $this->fetchZoneAnalytics($apiToken, $zoneId, $range, $adaptiveMinutes, $dataset, $requirements, $hostnameFilter) ?? [];
             }
         }
 
         if ($requirements['wafAliases'] !== []) {
-            $wafGroups = $this->fetchFirewallEvents($apiToken, $zoneId, $range, $adaptiveMinutes, $requirements['wafAliases']) ?? [];
+            $wafGroups = $this->fetchFirewallEvents($apiToken, $zoneId, $range, $adaptiveMinutes, $requirements['wafAliases'], $hostnameFilter) ?? [];
         }
 
         return $this->mapResults($provider, $zoneGroups, $wafGroups);
@@ -325,6 +332,7 @@ final class CloudflareMetricProvider implements MetricProviderInterface
         int $adaptiveMinutes,
         string $dataset,
         array $requirements,
+        string $hostnameFilter = '',
     ): ?array {
         $dtField = $this->resolveDatetimeField($adaptiveMinutes, $dataset);
         $sumBlock = $this->buildSumBlock($requirements);
@@ -334,7 +342,7 @@ query ZoneAnalytics(\$zoneTag: string!, \$since: Time!, \$until: Time!, \$limit:
   viewer {
     zones(filter: { zoneTag: \$zoneTag }) {
       {$dataset}(
-        filter: { datetime_geq: \$since, datetime_lt: \$until }
+        filter: { datetime_geq: \$since, datetime_lt: \$until{$hostnameFilter} }
         limit: \$limit
         orderBy: [{$dtField}_ASC]
       ) {
@@ -366,6 +374,7 @@ GRAPHQL;
         string $dataset,
         int $maxChunkSeconds,
         array $requirements,
+        string $hostnameFilter = '',
     ): array {
         $allGroups = [];
         $chunkStart = $range->start;
@@ -377,7 +386,7 @@ GRAPHQL;
             }
 
             $chunk = new MetricTimeRange($chunkStart, $chunkEnd);
-            $groups = $this->fetchZoneAnalytics($apiToken, $zoneId, $chunk, $adaptiveMinutes, $dataset, $requirements);
+            $groups = $this->fetchZoneAnalytics($apiToken, $zoneId, $chunk, $adaptiveMinutes, $dataset, $requirements, $hostnameFilter);
             if ($groups !== null) {
                 $allGroups = [...$allGroups, ...$groups];
             }
@@ -435,6 +444,7 @@ GRAPHQL;
         MetricTimeRange $range,
         int $adaptiveMinutes,
         array $wafAliases,
+        string $hostnameFilter = '',
     ): ?array {
         $rangeSeconds = $range->end->getTimestamp() - $range->start->getTimestamp();
         $maxChunkSeconds = 259_200;
@@ -452,7 +462,7 @@ GRAPHQL;
 
         $allMerged = [];
         foreach ($chunks as $chunk) {
-            $chunkResult = $this->fetchFirewallEventsChunk($apiToken, $zoneId, $chunk, $adaptiveMinutes, $wafAliases);
+            $chunkResult = $this->fetchFirewallEventsChunk($apiToken, $zoneId, $chunk, $adaptiveMinutes, $wafAliases, $hostnameFilter);
             if ($chunkResult !== null) {
                 $allMerged = [...$allMerged, ...$chunkResult];
             }
@@ -472,9 +482,10 @@ GRAPHQL;
         MetricTimeRange $range,
         int $adaptiveMinutes,
         array $wafAliases,
+        string $hostnameFilter = '',
     ): ?array {
         $dtField = $this->resolveDatetimeField($adaptiveMinutes, 'firewallEventsAdaptiveGroups');
-        $aliasQueries = $this->buildWafAliasQueries($wafAliases, $dtField);
+        $aliasQueries = $this->buildWafAliasQueries($wafAliases, $dtField, $hostnameFilter);
 
         $query = <<<GRAPHQL
 query FirewallAnalytics(\$zoneTag: string!, \$since: Time!, \$until: Time!, \$limit: Int!) {
@@ -499,7 +510,7 @@ GRAPHQL;
     /**
      * @param array<string, string|null> $wafAliases
      */
-    private function buildWafAliasQueries(array $wafAliases, string $dtField): string
+    private function buildWafAliasQueries(array $wafAliases, string $dtField, string $hostnameFilter = ''): string
     {
         $lines = [];
 
@@ -508,6 +519,7 @@ GRAPHQL;
             if ($actionFilter !== null) {
                 $filter .= ', action: "' . $actionFilter . '"';
             }
+            $filter .= $hostnameFilter;
 
             $lines[] = "      {$alias}: firewallEventsAdaptiveGroups(";
             $lines[] = "        filter: { {$filter} }";
@@ -564,6 +576,39 @@ GRAPHQL;
     // ──────────────────────────────────────────────
     // Shared helpers
     // ──────────────────────────────────────────────
+
+    /**
+     * Build the hostname filter fragment for GraphQL queries.
+     *
+     * Parses the hostname setting and returns the appropriate filter string:
+     * - Empty string → no filter (empty return)
+     * - Single hostname → clientRequestHTTPHost: "example.com"
+     * - Multiple hostnames → clientRequestHTTPHost_in: ["a.com", "b.com"]
+     */
+    private function buildHostnameFilter(MonitoringProvider $provider): string
+    {
+        $hostname = $provider->settings instanceof CloudflareProviderSettings
+            ? $provider->settings->hostname
+            : '';
+
+        if ($hostname === '') {
+            return '';
+        }
+
+        $hosts = array_filter(array_map('trim', explode(',', $hostname)));
+
+        if ($hosts === []) {
+            return '';
+        }
+
+        if (\count($hosts) === 1) {
+            return ', clientRequestHTTPHost: "' . $hosts[0] . '"';
+        }
+
+        $quoted = array_map(static fn(string $h): string => '"' . $h . '"', $hosts);
+
+        return ', clientRequestHTTPHost_in: [' . implode(', ', $quoted) . ']';
+    }
 
     private function extractZoneId(MonitoringProvider $provider): string
     {
