@@ -370,7 +370,8 @@ function ProviderPanel( { name, provider, providerFields, onChange, onDelete, on
 										className="wpp-oauth-login-button is-icon-only"
 										style={ { background: style.bg, color: style.text, border: `1px solid ${ style.border }` } }
 									>
-										{ icon && <span className="wpp-oauth-login-icon" style={ style.icon !== 'original' ? { color: style.icon } : {} } dangerouslySetInnerHTML={ { __html: icon } } /> }
+										{ /* Safe: SVG icon HTML is generated server-side by PHP, not from user input */ }
+									{ icon && <span className="wpp-oauth-login-icon" style={ style.icon !== 'original' ? { color: style.icon } : {} } dangerouslySetInnerHTML={ { __html: icon } } /> }
 									</a>
 								</Tooltip>
 							) : (
@@ -378,7 +379,8 @@ function ProviderPanel( { name, provider, providerFields, onChange, onDelete, on
 									className={ `wpp-oauth-login-button${ buttonDisplay === 'icon-left' ? ' is-icon-left' : '' }` }
 									style={ { background: style.bg, color: style.text, border: `1px solid ${ style.border }` } }
 								>
-									{ buttonDisplay !== 'text-only' && icon && <span className="wpp-oauth-login-icon" style={ style.icon !== 'original' ? { color: style.icon } : {} } dangerouslySetInnerHTML={ { __html: icon } } /> }
+									{ /* Safe: SVG icon HTML is generated server-side by PHP, not from user input */ }
+								{ buttonDisplay !== 'text-only' && icon && <span className="wpp-oauth-login-icon" style={ style.icon !== 'original' ? { color: style.icon } : {} } dangerouslySetInnerHTML={ { __html: icon } } /> }
 									<span className="wpp-oauth-login-text">{ sprintf( __( 'Login with %s', 'wppack-oauth-login' ), displayLabel ) }</span>
 								</a>
 							) }
@@ -403,6 +405,7 @@ function ProviderPanel( { name, provider, providerFields, onChange, onDelete, on
 				{ /* eslint-disable-next-line jsx-a11y/click-events-have-key-events */ }
 				<span role="button" tabIndex={ 0 } className={ `wpp-oauth-move-btn${ isLast ? ' is-disabled' : '' }` } onClick={ ( e ) => { e.stopPropagation(); if ( ! isLast ) onMoveDown( name ); } }>&#9660;</span>
 			</span>
+			{ /* Safe: SVG icon HTML is generated server-side by PHP, not from user input */ }
 			{ icon && (
 				<span
 					className="wpp-oauth-panel-icon"

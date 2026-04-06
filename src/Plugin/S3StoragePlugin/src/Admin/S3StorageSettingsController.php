@@ -100,6 +100,11 @@ final class S3StorageSettingsController extends AbstractRestController
         /** @var array<string, mixed> $params */
         $params = $request->get_json_params();
 
+        $error = $this->validateDsns($params);
+        if ($error !== null) {
+            return $this->json(['error' => $error], 400);
+        }
+
         $this->persistOptions($params);
 
         return $this->json($this->buildResponse());
@@ -223,6 +228,28 @@ final class S3StorageSettingsController extends AbstractRestController
         }
 
         return $masked;
+    }
+
+    /**
+     * @param array<string, mixed> $input
+     */
+    private function validateDsns(array $input): ?string
+    {
+        $storages = isset($input['storages']) && \is_array($input['storages']) ? $input['storages'] : [];
+
+        foreach ($storages as $storage) {
+            if (!\is_array($storage)) {
+                continue;
+            }
+
+            $dsn = isset($storage['dsn']) && \is_string($storage['dsn']) ? $storage['dsn'] : '';
+
+            if ($dsn !== '' && !$this->isMaskedDsn($dsn) && parse_url($dsn, \PHP_URL_SCHEME) === null) {
+                return 'Invalid DSN format.';
+            }
+        }
+
+        return null;
     }
 
     /**

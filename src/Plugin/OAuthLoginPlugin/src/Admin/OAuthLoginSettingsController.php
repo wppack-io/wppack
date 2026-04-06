@@ -53,7 +53,10 @@ final class OAuthLoginSettingsController extends AbstractRestController
         /** @var array<string, mixed> $params */
         $params = $request->get_json_params();
 
-        $this->persistOptions($params);
+        $error = $this->persistOptions($params);
+        if ($error !== null) {
+            return $error;
+        }
 
         // Flush rewrite rules so route changes take effect
         delete_option('rewrite_rules');
@@ -194,7 +197,7 @@ final class OAuthLoginSettingsController extends AbstractRestController
     /**
      * @param array<string, mixed> $input
      */
-    private function persistOptions(array $input): void
+    private function persistOptions(array $input): ?JsonResponse
     {
         $raw = get_option(OAuthLoginConfiguration::OPTION_NAME, []);
         $saved = \is_array($raw) ? $raw : [];
@@ -271,6 +274,16 @@ final class OAuthLoginSettingsController extends AbstractRestController
                     }
                 }
 
+                // Validate role_mapping JSON schema: must be an object with string keys and values
+                if (isset($providerInput['role_mapping']) && \is_array($providerInput['role_mapping'])) {
+                    foreach ($providerInput['role_mapping'] as $k => $v) {
+                        if (!\is_string($k) || !\is_string($v)) {
+                            return $this->json(['error' => 'Role mapping must be an object with string keys and values.'], 400);
+                        }
+                    }
+                    $providerInput['role_mapping'] = json_encode($providerInput['role_mapping'], \JSON_UNESCAPED_UNICODE);
+                }
+
                 $savedProviders[$name] = $providerInput;
             }
 
@@ -315,5 +328,7 @@ final class OAuthLoginSettingsController extends AbstractRestController
         }
 
         update_option(OAuthLoginConfiguration::OPTION_NAME, $saved);
+
+        return null;
     }
 }

@@ -79,7 +79,10 @@ final class SamlLoginSettingsController extends AbstractRestController
         /** @var array<string, mixed> $params */
         $params = $request->get_json_params();
 
-        $this->persistOptions($params);
+        $error = $this->persistOptions($params);
+        if ($error !== null) {
+            return $error;
+        }
 
         delete_option('rewrite_rules');
 
@@ -146,7 +149,7 @@ final class SamlLoginSettingsController extends AbstractRestController
     /**
      * @param array<string, mixed> $input
      */
-    private function persistOptions(array $input): void
+    private function persistOptions(array $input): ?JsonResponse
     {
         $raw = get_option(self::OPTION_NAME, []);
         $options = \is_array($raw) ? $raw : [];
@@ -191,10 +194,22 @@ final class SamlLoginSettingsController extends AbstractRestController
                 }
             }
 
+            if ($name === 'roleMapping' && \is_array($value)) {
+                // Validate all values are strings
+                foreach ($value as $k => $v) {
+                    if (!\is_string($k) || !\is_string($v)) {
+                        return $this->json(['error' => 'Role mapping must be an object with string keys and values.'], 400);
+                    }
+                }
+                $value = json_encode($value, \JSON_UNESCAPED_UNICODE);
+            }
+
             $options[$name] = $value;
         }
 
         update_option(self::OPTION_NAME, $options);
+
+        return null;
     }
 
     private function getEnvValue(string $name): ?string

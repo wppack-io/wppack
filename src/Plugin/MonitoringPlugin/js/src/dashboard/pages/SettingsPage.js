@@ -737,6 +737,7 @@ export default function SettingsPage() {
 									return (
 										<ol key={ i } className="wpp-monitoring-cf-steps">
 											{ block.items.map( ( item, j ) => (
+												// Safe: HTML content is from PHP bridge setup guide, not user input
 												<li key={ j } dangerouslySetInnerHTML={ { __html: __( item, 'wppack-monitoring' ) } } />
 											) ) }
 										</ol>

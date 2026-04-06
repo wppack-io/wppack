@@ -60,6 +60,11 @@ final class RedisCacheSettingsController extends AbstractRestController
         /** @var array<string, mixed> $params */
         $params = $request->get_json_params();
 
+        $error = $this->validateDsn($params);
+        if ($error !== null) {
+            return $this->json(['error' => $error], 400);
+        }
+
         $this->persistOptions($params);
 
         delete_option('rewrite_rules');
@@ -244,6 +249,26 @@ final class RedisCacheSettingsController extends AbstractRestController
             'fields' => $fields,
             'capabilities' => $def->capabilities,
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $input
+     */
+    private function validateDsn(array $input): ?string
+    {
+        $provider = isset($input['provider']) && \is_string($input['provider']) ? $input['provider'] : '';
+        if ($provider !== 'dsn') {
+            return null;
+        }
+
+        $fields = isset($input['fields']) && \is_array($input['fields']) ? $input['fields'] : [];
+        $dsn = isset($fields['dsn']) && \is_string($fields['dsn']) ? $fields['dsn'] : '';
+
+        if ($dsn !== '' && $dsn !== RedisCacheConfiguration::MASKED_VALUE && parse_url($dsn, \PHP_URL_SCHEME) === null) {
+            return 'Invalid DSN format.';
+        }
+
+        return null;
     }
 
     /**
