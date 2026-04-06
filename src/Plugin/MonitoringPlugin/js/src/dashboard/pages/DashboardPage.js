@@ -75,15 +75,22 @@ export default function DashboardPage() {
 		<div className="wpp-monitoring-dashboard">
 			<div className="wpp-monitoring-toolbar">
 				<PeriodSelector value={ period } onChange={ setPeriod } />
-				<Button
-					variant="secondary"
-					isBusy={ refreshing }
-					onClick={ () => fetchMetrics( true ) }
-					disabled={ refreshing }
-					size="compact"
-				>
-					{ refreshing ? __( 'Refreshing\u2026', 'wppack-monitoring' ) : __( 'Refresh', 'wppack-monitoring' ) }
-				</Button>
+				<div className="wpp-monitoring-toolbar-right">
+					{ data?.results?.[ 0 ]?.fetchedAt && (
+						<span className="wpp-monitoring-last-updated">
+							{ __( 'Last updated:', 'wppack-monitoring' ) } { new Date( data.results[ 0 ].fetchedAt ).toLocaleString( [], { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' } ) }
+						</span>
+					) }
+					<Button
+						variant="secondary"
+						isBusy={ refreshing }
+						onClick={ () => fetchMetrics( true ) }
+						disabled={ refreshing }
+						size="compact"
+					>
+						{ refreshing ? __( 'Refreshing\u2026', 'wppack-monitoring' ) : __( 'Refresh', 'wppack-monitoring' ) }
+					</Button>
+				</div>
 			</div>
 
 			{ error && (

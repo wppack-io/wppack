@@ -227,7 +227,14 @@
             "Allowed Requests": ["許可されたリクエスト"],
             "Requests allowed by WAF": ["WAF によって許可されたリクエスト"],
             "Counted Requests": ["カウントされたリクエスト"],
-            "Requests in count mode": ["カウントモードのリクエスト"]
+            "Requests in count mode": ["カウントモードのリクエスト"],
+            "Last updated:": ["最終更新:"],
+            "Latest": ["最新値"],
+            "Average": ["平均"],
+            "Min": ["最小"],
+            "Max": ["最大"],
+            "Data Points": ["データポイント数"],
+            "Not enough data points.": ["データポイントが不足しています。"]
         }
     }
 }

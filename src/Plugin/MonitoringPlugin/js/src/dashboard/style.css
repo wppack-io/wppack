@@ -46,6 +46,17 @@
 	margin-bottom: 20px;
 }
 
+.wpp-monitoring-toolbar-right {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.wpp-monitoring-last-updated {
+	font-size: 12px;
+	color: #757575;
+}
+
 .wpp-monitoring-content {
 	transition: opacity 0.2s;
 }
