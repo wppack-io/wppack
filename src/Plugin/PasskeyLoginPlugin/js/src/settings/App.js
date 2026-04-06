@@ -185,7 +185,7 @@ export default function App() {
 			id: 'rpId',
 			label: badgeLabel( __( 'Relying Party ID', 'wppack-passkey-login' ), s( 'rpId' ).source === 'constant' ),
 			type: 'text',
-			description: __( 'Domain of the relying party (e.g. example.com). Must match the site domain.', 'wppack-passkey-login' ),
+			description: __( 'Leave empty to auto-detect. For subdomain multisite, the main site domain is used so passkeys work across all subsites. Cross-domain multisite cannot share passkeys.', 'wppack-passkey-login' ),
 			getValue: ( { item } ) => item.rpId || '',
 			Edit: ( { data, field } ) => (
 				<TextControl
