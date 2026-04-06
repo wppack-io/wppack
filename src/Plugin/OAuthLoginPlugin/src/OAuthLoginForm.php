@@ -159,7 +159,9 @@ class OAuthLoginForm
             return '';
         }
 
-        return '<div style="display:flex;align-items:center;gap:8px;padding:16px 0;color:#72777c;"><span style="flex:1;border-top:1px solid #c3c4c7;"></span>or<span style="flex:1;border-top:1px solid #c3c4c7;"></span></div>';
+        $or = esc_html(__('or', 'wppack-oauth-login'));
+
+        return '<div style="display:flex;align-items:center;gap:8px;padding:16px 0;color:#72777c;"><span style="flex:1;border-top:1px solid #c3c4c7;"></span>' . $or . '<span style="flex:1;border-top:1px solid #c3c4c7;"></span></div>';
     }
 
     private function ssoOnlyJs(): string

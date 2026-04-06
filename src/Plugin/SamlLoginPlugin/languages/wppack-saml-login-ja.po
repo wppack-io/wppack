@@ -222,3 +222,7 @@ msgstr "設定を保存"
 
 msgid "Login with %s"
 msgstr "%s でログイン"
+
+#: src/SamlLoginForm.php
+msgid "or"
+msgstr "または"

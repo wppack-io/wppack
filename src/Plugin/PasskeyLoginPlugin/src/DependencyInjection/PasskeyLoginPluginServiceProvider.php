@@ -150,7 +150,8 @@ final class PasskeyLoginPluginServiceProvider implements ServiceProviderInterfac
         // Login Form
         $builder->register(PasskeyLoginForm::class)
             ->addArgument(new Reference(AuthenticationSession::class))
-            ->addArgument(new Reference(Request::class));
+            ->addArgument(new Reference(Request::class))
+            ->addArgument(new Reference(PasskeyLoginConfiguration::class));
 
         // DB Migration Table
         $builder->register(PasskeyCredentialTable::class);

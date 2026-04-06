@@ -40,8 +40,10 @@ final class CeremonyManager
 
     /**
      * Create registration options for a logged-in user.
+     *
+     * @return array{options: PublicKeyCredentialCreationOptions, challengeKey: string}
      */
-    public function createRegistrationOptions(\WP_User $user): PublicKeyCredentialCreationOptions
+    public function createRegistrationOptions(\WP_User $user): array
     {
         $rpEntity = PublicKeyCredentialRpEntity::create(
             name: $this->config->rpName ?: get_bloginfo('name'),
@@ -96,15 +98,15 @@ final class CeremonyManager
             'type' => 'registration',
         ], self::CHALLENGE_TTL);
 
-        $this->setChallengeKey($challengeKey);
-
-        return $options;
+        return ['options' => $options, 'challengeKey' => $challengeKey];
     }
 
     /**
      * Create authentication options (for login).
+     *
+     * @return array{options: PublicKeyCredentialRequestOptions, challengeKey: string}
      */
-    public function createAuthenticationOptions(): PublicKeyCredentialRequestOptions
+    public function createAuthenticationOptions(): array
     {
         $options = PublicKeyCredentialRequestOptions::create(
             challenge: random_bytes(32),
@@ -119,30 +121,22 @@ final class CeremonyManager
             'type' => 'authentication',
         ], self::CHALLENGE_TTL);
 
-        $this->setChallengeKey($challengeKey);
-
-        return $options;
+        return ['options' => $options, 'challengeKey' => $challengeKey];
     }
 
     /**
-     * Retrieve and consume stored ceremony data.
+     * Retrieve and consume stored ceremony data by key.
      *
      * @return array{options: string, userId?: int, type: string}|null
      */
-    public function consumeChallenge(): ?array
+    public function consumeChallenge(string $challengeKey): ?array
     {
-        $challengeKey = $this->getChallengeKey();
-        if ($challengeKey === null) {
-            return null;
-        }
-
         $data = $this->transients->get($challengeKey);
         if (!\is_array($data)) {
             return null;
         }
 
         $this->transients->delete($challengeKey);
-        $this->clearChallengeKey();
 
         return $data;
     }
@@ -156,34 +150,4 @@ final class CeremonyManager
         return parse_url(get_home_url($blogId), PHP_URL_HOST) ?: 'localhost';
     }
 
-    private function setChallengeKey(string $key): void
-    {
-        if (!headers_sent()) {
-            setcookie('wppack_passkey_ck', $key, [
-                'expires' => time() + self::CHALLENGE_TTL,
-                'path' => '/',
-                'httponly' => true,
-                'secure' => is_ssl(),
-                'samesite' => 'Strict',
-            ]);
-            $_COOKIE['wppack_passkey_ck'] = $key;
-        }
-    }
-
-    private function getChallengeKey(): ?string
-    {
-        return $_COOKIE['wppack_passkey_ck'] ?? null;
-    }
-
-    private function clearChallengeKey(): void
-    {
-        setcookie('wppack_passkey_ck', '', [
-            'expires' => time() - 3600,
-            'path' => '/',
-            'httponly' => true,
-            'secure' => is_ssl(),
-            'samesite' => 'Strict',
-        ]);
-        unset($_COOKIE['wppack_passkey_ck']);
-    }
 }

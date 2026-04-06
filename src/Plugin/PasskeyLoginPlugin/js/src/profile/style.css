@@ -1,6 +1,4 @@
-.wpp-passkey-profile {
-	max-width: 800px;
-}
+.wpp-passkey-profile {}
 
 .wpp-passkey-profile-loading {
 	display: flex;
@@ -37,7 +35,6 @@
 
 .wpp-passkey-empty {
 	color: #757575;
-	font-style: italic;
 }
 
 .wpp-passkey-profile-actions {

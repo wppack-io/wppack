@@ -33,9 +33,25 @@ msgstr "パスキーログイン"
 msgid "Passkeys"
 msgstr "パスキー"
 
-#: src/LoginForm/PasskeyLoginForm.php:74
-msgid "Sign in with Passkey"
-msgstr "パスキーでサインイン"
+#: src/LoginForm/PasskeyLoginForm.php
+msgid "Log in with Passkey"
+msgstr "パスキーでログイン"
+
+#: src/LoginForm/PasskeyLoginForm.php
+msgid "or"
+msgstr "または"
+
+#: src/LoginForm/PasskeyLoginForm.php
+msgid "Passkey authentication was cancelled."
+msgstr "パスキー認証がキャンセルされました。"
+
+#: src/LoginForm/PasskeyLoginForm.php
+msgid "Passkey authentication failed."
+msgstr "パスキー認証に失敗しました。"
+
+#: src/LoginForm/PasskeyLoginForm.php
+msgid "Passkey authentication failed. Please try again."
+msgstr "パスキー認証に失敗しました。もう一度お試しください。"
 
 #: js/src/settings/App.js
 msgid "Constant"
@@ -218,5 +234,104 @@ msgid "Are you sure you want to delete this passkey? This action cannot be undon
 msgstr "このパスキーを削除しますか？この操作は取り消せません。"
 
 #: js/src/profile/App.js
-msgid "No passkeys registered yet. Add one to enable passwordless sign-in."
-msgstr "パスキーがまだ登録されていません。追加してパスワードレスサインインを有効にしましょう。"
+msgid "No passkeys registered yet. Add one to enable passwordless login."
+msgstr "パスキーがまだ登録されていません。追加してパスワードレスログインを有効にしましょう。"
+
+#: js/src/settings/App.js
+msgid "Button Display"
+msgstr "ボタン表示"
+
+#: js/src/settings/App.js
+msgid "Icon + Text"
+msgstr "アイコン + テキスト"
+
+#: js/src/settings/App.js
+msgid "Icon Left + Text"
+msgstr "アイコン左 + テキスト"
+
+msgid "Text Only"
+msgstr "テキストのみ"
+
+#: js/src/settings/App.js
+msgid "Icon Only"
+msgstr "アイコンのみ"
+
+#: js/src/settings/App.js
+msgid "Controls how the passkey login button is displayed."
+msgstr "パスキーログインボタンの表示方法を制御します。"
+
+#: js/src/settings/App.js
+msgid "Leave empty to auto-detect. For multisite, the main site domain is used and authentication is performed on the main site, so passkeys work across all subsites regardless of domain."
+msgstr "空欄で自動検出。マルチサイトではメインサイトのドメインで認証が行われるため、ドメインに関わらず全サブサイトでパスキーが使用できます。"
+
+#: js/src/settings/App.js
+msgid "Advanced"
+msgstr "詳細設定"
+
+#: js/src/settings/App.js
+msgid "COSE Algorithms"
+msgstr "COSE アルゴリズム"
+
+#: js/src/settings/App.js
+msgid "Select which COSE algorithms to accept for credential registration."
+msgstr "クレデンシャル登録時に受け入れる COSE アルゴリズムを選択します。"
+
+#: js/src/settings/App.js
+msgid "Not recommended"
+msgstr "非推奨"
+
+#: js/src/settings/App.js
+msgid "Limited support"
+msgstr "サポート限定的"
+
+#: js/src/settings/App.js
+msgid "Attestation Conveyance"
+msgstr "アテステーション"
+
+#: js/src/settings/App.js
+msgid "Enterprise attestation requires pre-registration with the authenticator vendor."
+msgstr "エンタープライズアテステーションには認証器ベンダーへの事前登録が必要です。"
+
+#: js/src/settings/App.js
+msgid "Controls whether the authenticator provides an attestation statement."
+msgstr "認証器がアテステーションステートメントを提供するかどうかを制御します。"
+
+#: js/src/settings/App.js
+msgid "Authenticator Attachment"
+msgstr "認証器の接続方式"
+
+#: js/src/settings/App.js
+msgid "Any"
+msgstr "すべて"
+
+#: js/src/settings/App.js
+msgid "Platform (built-in biometrics)"
+msgstr "プラットフォーム（内蔵生体認証）"
+
+#: js/src/settings/App.js
+msgid "Cross-platform (security keys)"
+msgstr "クロスプラットフォーム（セキュリティキー）"
+
+#: js/src/settings/App.js
+msgid "Restrict which authenticator types are allowed."
+msgstr "許可する認証器の種類を制限します。"
+
+#: js/src/settings/App.js
+msgid "Ceremony Timeout"
+msgstr "セレモニータイムアウト"
+
+#: js/src/settings/App.js
+msgid "Timeout in milliseconds (1000 - 300000)."
+msgstr "タイムアウト（ミリ秒、1000 - 300000）。"
+
+#: js/src/settings/App.js
+msgid "Resident Key"
+msgstr "レジデントキー"
+
+#: js/src/settings/App.js
+msgid "Discouraged: passkeys may not work without resident key support."
+msgstr "非推奨: レジデントキーのサポートなしではパスキーが機能しない場合があります。"
+
+#: js/src/settings/App.js
+msgid "Controls whether a discoverable credential (resident key) is required."
+msgstr "検出可能なクレデンシャル（レジデントキー）が必要かどうかを制御します。"

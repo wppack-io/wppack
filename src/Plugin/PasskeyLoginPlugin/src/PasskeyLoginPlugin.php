@@ -33,6 +33,9 @@ use WpPack\Plugin\PasskeyLoginPlugin\Profile\PasskeyProfileSection;
 #[TextDomain(domain: 'wppack-passkey-login')]
 final class PasskeyLoginPlugin extends AbstractPlugin
 {
+    private const SCHEMA_VERSION = 1;
+    private const SCHEMA_VERSION_OPTION = 'wppack_passkey_login_schema_version';
+
     private readonly PasskeyLoginPluginServiceProvider $serviceProvider;
     private ?SchemaManager $schemaManager = null;
 
@@ -55,6 +58,13 @@ final class PasskeyLoginPlugin extends AbstractPlugin
         /** @var SchemaManager $schemaManager */
         $schemaManager = $container->get(SchemaManager::class);
         $this->schemaManager = $schemaManager;
+
+        // Auto-migrate schema if version mismatch (handles deployment without re-activation)
+        $currentVersion = (int) get_site_option(self::SCHEMA_VERSION_OPTION, 0);
+        if ($currentVersion < self::SCHEMA_VERSION) {
+            $schemaManager->updateSchema();
+            update_site_option(self::SCHEMA_VERSION_OPTION, self::SCHEMA_VERSION);
+        }
 
         // Admin settings page (always available)
         if (is_admin() || is_network_admin()) {

@@ -24,25 +24,20 @@ final class PasskeyProfileSection
 
     public function register(): void
     {
+        // Enqueue assets early (admin_enqueue_scripts fires before page body)
+        add_action('admin_enqueue_scripts', [$this, 'enqueueOnProfilePage']);
+
+        // Render inside the form (show_user_profile), then JS relocates after the form
         add_action('show_user_profile', [$this, 'render']);
         add_action('edit_user_profile', [$this, 'render']);
     }
 
-    public function render(\WP_User $user): void
+    public function enqueueOnProfilePage(string $hookSuffix): void
     {
-        // Only show for the user viewing their own profile, or admins
-        if (get_current_user_id() !== $user->ID && !current_user_can('manage_options')) {
+        if ($hookSuffix !== 'profile.php' && $hookSuffix !== 'user-edit.php') {
             return;
         }
 
-        $this->enqueue($user);
-
-        echo '<h2>' . esc_html__('Passkeys', 'wppack-passkey-login') . '</h2>';
-        echo '<div id="wppack-passkey-profile"></div>';
-    }
-
-    private function enqueue(\WP_User $user): void
-    {
         $buildDir = \dirname($this->pluginFile) . '/js/build';
         $assetFile = $buildDir . '/profile.asset.php';
 
@@ -73,11 +68,24 @@ final class PasskeyProfileSection
             'wppack-passkey-login',
             \dirname($this->pluginFile) . '/languages',
         );
+    }
+
+    public function render(\WP_User $user): void
+    {
+        if (get_current_user_id() !== $user->ID && !current_user_can('manage_options')) {
+            return;
+        }
 
         wp_localize_script('wppack-passkey-login-profile', 'wppPasskeyProfile', [
             'restUrl' => rest_url('wppack/v1/passkey'),
             'nonce' => wp_create_nonce('wp_rest'),
             'userId' => $user->ID,
         ]);
+
+        // Output inside the form; JS will relocate after the form within #wpbody-content
+        echo '<div id="wppack-passkey-profile-wrapper" style="display:none">';
+        echo '<h2>' . esc_html__('Passkeys', 'wppack-passkey-login') . '</h2>';
+        echo '<div id="wppack-passkey-profile"></div>';
+        echo '</div>';
     }
 }

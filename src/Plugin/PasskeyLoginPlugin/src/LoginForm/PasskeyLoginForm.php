@@ -15,12 +15,14 @@ namespace WpPack\Plugin\PasskeyLoginPlugin\LoginForm;
 
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Security\AuthenticationSession;
+use WpPack\Plugin\PasskeyLoginPlugin\Configuration\PasskeyLoginConfiguration;
 
 final class PasskeyLoginForm
 {
     public function __construct(
         private readonly AuthenticationSession $authSession,
         private readonly Request $request,
+        private readonly PasskeyLoginConfiguration $config,
     ) {}
 
     public function register(): void
@@ -70,26 +72,58 @@ final class PasskeyLoginForm
         $restUrl = esc_url(rest_url('wppack/v1/passkey'));
         $redirectTo = $this->request->query->getString('redirect_to');
         $returnTo = esc_js($redirectTo !== '' ? wp_validate_redirect($redirectTo, admin_url()) : admin_url());
-        $label = esc_html(__('Sign in with Passkey', 'wppack-passkey-login'));
+        $label = esc_html(__('Log in with Passkey', 'wppack-passkey-login'));
+        $or = esc_html(__('or', 'wppack-passkey-login'));
         $nonce = esc_js(wp_create_nonce('wp_rest'));
+        $display = $this->config->buttonDisplay;
+
+        // Translatable error messages for inline JS
+        $errCancelled = esc_js(__('Passkey authentication was cancelled.', 'wppack-passkey-login'));
+        $errFailed = esc_js(__('Passkey authentication failed.', 'wppack-passkey-login'));
+
+        // Build button — same structure as OAuthLoginForm (wpl-btn/wpl-icon/wpl-text/wpl-icon-left/wpl-icon-only)
+        $iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></svg>';
+
+        $showIcon = $display !== 'text-only';
+        $showText = $display !== 'icon-only';
+        $iconSpan = $showIcon ? '<span class="wpl-icon">' . $iconSvg . '</span>' : '';
+
+        $btnClass = 'wpl-btn';
+        $titleAttr = '';
+
+        if ($display === 'icon-left' && $showIcon) {
+            $btnClass .= ' wpl-icon-left';
+            $btnContent = $iconSpan . ($showText ? '<span class="wpl-text">' . $label . '</span>' : '');
+        } elseif ($display === 'icon-only' && $showIcon) {
+            $btnClass .= ' wpl-icon-only';
+            $titleAttr = ' title="' . $label . '"';
+            $btnContent = $iconSpan;
+        } else {
+            $btnContent = $iconSpan . ($showText ? $label : '');
+        }
 
         echo <<<HTML
+        <style>
+        .wpl-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;box-sizing:border-box;padding:0 12px;height:36px;border-radius:4px;background:#fff;color:#1d2327;border:1px solid #ddd;text-decoration:none;font-size:13px;font-weight:500;cursor:pointer;transition:filter .15s}
+        .wpl-btn:hover{filter:brightness(.92)}
+        .wpl-icon{display:inline-flex;width:20px;height:20px;flex:none}
+        .wpl-icon svg{width:100%;height:100%}
+        .wpl-text{flex:1;text-align:center}
+        .wpl-icon-left{gap:8px;padding-right:18px}
+        .wpl-icon-only{width:36px;padding:0}
+        </style>
         <div id="wppack-passkey-login" style="display:none;clear:both;">
-            <div style="display:flex;align-items:center;gap:8px;padding:16px 0;color:#72777c;"><span style="flex:1;border-top:1px solid #c3c4c7;"></span>or<span style="flex:1;border-top:1px solid #c3c4c7;"></span></div>
-            <p>
-                <button type="button" id="wppack-passkey-btn" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:36px;box-sizing:border-box;border-radius:4px;background:#fff;color:#1d2327;border:1px solid #ddd;text-decoration:none;font-size:13px;font-weight:500;cursor:pointer;transition:filter .15s;"
-                    onmouseover="this.style.filter='brightness(.92)'" onmouseout="this.style.filter=''">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="1"/><path d="M12 12h4"/></svg>
-                    {$label}
-                </button>
-            </p>
-            <p id="wppack-passkey-error" style="display:none;color:#d63638;font-size:13px;text-align:center;"></p>
+            <div style="display:flex;align-items:center;gap:8px;padding:16px 0;color:#72777c;"><span style="flex:1;border-top:1px solid #c3c4c7;"></span>{$or}<span style="flex:1;border-top:1px solid #c3c4c7;"></span></div>
+            <button type="button" id="wppack-passkey-btn" class="{$btnClass}"{$titleAttr}>{$btnContent}</button>
+            <p id="wppack-passkey-error" style="display:none;color:#d63638;font-size:13px;text-align:center;margin-top:8px;"></p>
         </div>
         <script>
         (function(){
             var API='{$restUrl}';
             var REDIRECT='{$returnTo}';
             var NONCE='{$nonce}';
+            var ERR_CANCELLED='{$errCancelled}';
+            var ERR_FAILED='{$errFailed}';
             var ssoBox=document.getElementById('wppack-passkey-login');
             var loginForm=document.getElementById('loginform');
             if(ssoBox&&loginForm){
@@ -118,11 +152,12 @@ final class PasskeyLoginForm
                 }).then(function(r){return r.json()});
             }
 
-            function verifyAssertion(assertion){
+            function verifyAssertion(assertion,challengeKey){
                 var body={
                     id:assertion.id,
                     rawId:b64url(assertion.rawId),
                     type:assertion.type,
+                    challengeKey:challengeKey,
                     response:{
                         authenticatorData:b64url(assertion.response.authenticatorData),
                         clientDataJSON:b64url(assertion.response.clientDataJSON),
@@ -145,7 +180,11 @@ final class PasskeyLoginForm
                 if(el){el.textContent=msg;el.style.display='';}
             }
 
-            function handleAssertion(opts,mediation){
+            // AbortController to cancel conditional UI when button is clicked
+            var conditionalAbort=null;
+
+            function handleAssertion(opts,mediation,signal){
+                var challengeKey=opts.challengeKey||'';
                 var challenge=opts.challenge||'';
                 var allowCreds=(opts.allowCredentials||[]).map(function(c){
                     return{type:c.type,id:b64urlDec(c.id),transports:c.transports};
@@ -159,13 +198,14 @@ final class PasskeyLoginForm
                 if(allowCreds.length)pubKey.allowCredentials=allowCreds;
                 var credOpts={publicKey:pubKey};
                 if(mediation)credOpts.mediation=mediation;
+                if(signal)credOpts.signal=signal;
                 return navigator.credentials.get(credOpts).then(function(cred){
-                    return verifyAssertion(cred);
+                    return verifyAssertion(cred,challengeKey);
                 }).then(function(result){
                     if(result.success){
                         window.location.href=result.redirectUrl||REDIRECT;
                     }else{
-                        showError(result.error||'Authentication failed.');
+                        showError(result.error||ERR_FAILED);
                     }
                 });
             }
@@ -174,11 +214,14 @@ final class PasskeyLoginForm
             var btn=document.getElementById('wppack-passkey-btn');
             if(btn){
                 btn.addEventListener('click',function(){
+                    // Abort conditional UI before starting modal
+                    if(conditionalAbort){conditionalAbort.abort();conditionalAbort=null;}
                     btn.disabled=true;
                     fetchOptions().then(function(opts){
                         return handleAssertion(opts);
                     }).catch(function(e){
-                        showError(e.name==='NotAllowedError'?'Passkey authentication was cancelled.':'Passkey authentication failed.');
+                        if(e.name==='AbortError')return;
+                        showError(e.name==='NotAllowedError'?ERR_CANCELLED:ERR_FAILED);
                     }).finally(function(){btn.disabled=false;});
                 });
             }
@@ -187,9 +230,10 @@ final class PasskeyLoginForm
             if(window.PublicKeyCredential&&typeof PublicKeyCredential.isConditionalMediationAvailable==='function'){
                 PublicKeyCredential.isConditionalMediationAvailable().then(function(ok){
                     if(!ok)return;
+                    conditionalAbort=new AbortController();
                     fetchOptions().then(function(opts){
-                        return handleAssertion(opts,'conditional');
-                    }).catch(function(){/* user did not select a passkey via autofill */});
+                        return handleAssertion(opts,'conditional',conditionalAbort.signal);
+                    }).catch(function(){/* user did not select a passkey via autofill, or aborted */});
                 });
             }
         })();
@@ -200,7 +244,7 @@ final class PasskeyLoginForm
     public function addPasskeyError(\WP_Error $errors): \WP_Error
     {
         if ($this->request->query->has('passkey_error')) {
-            $errors->add('passkey_error', 'Passkey authentication failed. Please try again.');
+            $errors->add('passkey_error', __('Passkey authentication failed. Please try again.', 'wppack-passkey-login'));
         }
 
         return $errors;

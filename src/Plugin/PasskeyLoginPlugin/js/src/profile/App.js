@@ -61,7 +61,7 @@ export default function App() {
 		setLoading( true );
 		apiFetch( { path: '/wppack/v1/passkey/credentials' } )
 			.then( ( data ) => {
-				setCredentials( data.credentials || [] );
+				setCredentials( Array.isArray( data ) ? data : [] );
 				setLoading( false );
 			} )
 			.catch( () => {
@@ -104,6 +104,7 @@ export default function App() {
 				id: credential.id,
 				rawId: b64urlEncode( credential.rawId ),
 				type: credential.type,
+				challengeKey: options.challengeKey,
 				response: {
 					attestationObject: b64urlEncode( credential.response.attestationObject ),
 					clientDataJSON: b64urlEncode( credential.response.clientDataJSON ),
@@ -229,7 +230,7 @@ export default function App() {
 										</>
 									) }
 								</td>
-								<td>{ cred.synced ? __( 'Synced', 'wppack-passkey-login' ) : __( 'Device-bound', 'wppack-passkey-login' ) }</td>
+								<td>{ cred.backupEligible ? __( 'Synced', 'wppack-passkey-login' ) : __( 'Device-bound', 'wppack-passkey-login' ) }</td>
 								<td>{ formatDate( cred.createdAt ) }</td>
 								<td>{ formatDate( cred.lastUsedAt ) }</td>
 								<td>
@@ -250,19 +251,19 @@ export default function App() {
 
 			{ credentials.length === 0 && (
 				<p className="wpp-passkey-empty">
-					{ __( 'No passkeys registered yet. Add one to enable passwordless sign-in.', 'wppack-passkey-login' ) }
+					{ __( 'No passkeys registered yet. Add one to enable passwordless login.', 'wppack-passkey-login' ) }
 				</p>
 			) }
 
 			<div className="wpp-passkey-profile-actions">
-				<Button
-					variant="primary"
+				<button
+					type="button"
+					className="button button-secondary"
 					onClick={ handleRegister }
-					isBusy={ registering }
 					disabled={ registering }
 				>
 					{ registering ? __( 'Registering…', 'wppack-passkey-login' ) : __( 'Add Passkey', 'wppack-passkey-login' ) }
-				</Button>
+				</button>
 			</div>
 
 			{ deletingId && (

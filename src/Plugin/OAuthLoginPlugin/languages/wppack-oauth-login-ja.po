@@ -167,3 +167,8 @@ msgstr "URL で使用されるプロバイダー識別子。"
 
 msgid "Domain"
 msgstr "ドメイン"
+
+
+#: src/OAuthLoginForm.php
+msgid "or"
+msgstr "または"

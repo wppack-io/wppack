@@ -59,13 +59,14 @@ final class AuthenticationController extends AbstractRestController
     #[RestRoute(route: '/authenticate/options', methods: HttpMethod::POST)]
     public function options(\WP_REST_Request $request): JsonResponse
     {
-        $options = $this->ceremony->createAuthenticationOptions();
+        $result = $this->ceremony->createAuthenticationOptions();
 
         $serializer = $this->createSerializer();
-        $json = $serializer->serialize($options, 'json');
+        $json = $serializer->serialize($result['options'], 'json');
 
         /** @var array<string, mixed> $decoded */
         $decoded = json_decode($json, true, flags: \JSON_THROW_ON_ERROR);
+        $decoded['challengeKey'] = $result['challengeKey'];
 
         return $this->json($decoded);
     }
@@ -78,7 +79,8 @@ final class AuthenticationController extends AbstractRestController
     {
         $params = $request->get_json_params();
 
-        $challengeData = $this->ceremony->consumeChallenge();
+        $challengeKey = $params['challengeKey'] ?? '';
+        $challengeData = $this->ceremony->consumeChallenge($challengeKey);
         if ($challengeData === null || $challengeData['type'] !== 'authentication') {
             return $this->json(['error' => 'Invalid or expired challenge.'], 400);
         }

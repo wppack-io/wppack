@@ -33,6 +33,7 @@ final readonly class PasskeyLoginConfiguration
         'authenticatorAttachment' => 'PASSKEY_AUTHENTICATOR_ATTACHMENT',
         'timeout' => 'PASSKEY_TIMEOUT',
         'residentKey' => 'PASSKEY_RESIDENT_KEY',
+        'buttonDisplay' => 'PASSKEY_BUTTON_DISPLAY',
     ];
 
     /**
@@ -49,6 +50,7 @@ final readonly class PasskeyLoginConfiguration
         public string $authenticatorAttachment = '',
         public int $timeout = 60000,
         public string $residentKey = 'required',
+        public string $buttonDisplay = 'icon-text',
     ) {}
 
     /**
@@ -72,6 +74,7 @@ final readonly class PasskeyLoginConfiguration
             authenticatorAttachment: self::resolveString('PASSKEY_AUTHENTICATOR_ATTACHMENT', $options, ''),
             timeout: self::resolveInt('PASSKEY_TIMEOUT', $options, 60000),
             residentKey: self::resolveString('PASSKEY_RESIDENT_KEY', $options, 'required'),
+            buttonDisplay: self::resolveString('PASSKEY_BUTTON_DISPLAY', $options, 'icon-text'),
         );
     }
 

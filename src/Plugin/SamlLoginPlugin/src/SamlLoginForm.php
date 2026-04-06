@@ -62,7 +62,8 @@ final class SamlLoginForm
         $label = esc_html(sprintf(__('Login with %s', 'wppack-saml-login'), 'SSO'));
         $target = $this->request->query->has('interim-login') ? ' target="_blank"' : '';
 
-        $separator = $this->ssoOnly ? '' : '<div style="display:flex;align-items:center;gap:8px;padding:16px 0;color:#72777c;"><span style="flex:1;border-top:1px solid #c3c4c7;"></span>or<span style="flex:1;border-top:1px solid #c3c4c7;"></span></div>';
+        $or = esc_html(__('or', 'wppack-saml-login'));
+        $separator = $this->ssoOnly ? '' : '<div style="display:flex;align-items:center;gap:8px;padding:16px 0;color:#72777c;"><span style="flex:1;border-top:1px solid #c3c4c7;"></span>' . $or . '<span style="flex:1;border-top:1px solid #c3c4c7;"></span></div>';
 
         echo <<<HTML
         <div id="wppack-saml-login" style="display:none;clear:both;">

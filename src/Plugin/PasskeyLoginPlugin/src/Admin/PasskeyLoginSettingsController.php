@@ -70,6 +70,7 @@ final class PasskeyLoginSettingsController extends AbstractRestController
             'authenticatorAttachment' => ['const' => 'PASSKEY_AUTHENTICATOR_ATTACHMENT', 'default' => ''],
             'timeout' => ['const' => 'PASSKEY_TIMEOUT', 'default' => 60000],
             'residentKey' => ['const' => 'PASSKEY_RESIDENT_KEY', 'default' => 'required'],
+            'buttonDisplay' => ['const' => 'PASSKEY_BUTTON_DISPLAY', 'default' => 'icon-text'],
         ];
 
         $settings = [];
@@ -129,12 +130,14 @@ final class PasskeyLoginSettingsController extends AbstractRestController
             'authenticatorAttachment' => 'PASSKEY_AUTHENTICATOR_ATTACHMENT',
             'timeout' => 'PASSKEY_TIMEOUT',
             'residentKey' => 'PASSKEY_RESIDENT_KEY',
+            'buttonDisplay' => 'PASSKEY_BUTTON_DISPLAY',
         ];
 
         $allowedUserVerification = ['preferred', 'required', 'discouraged'];
         $allowedAttestation = ['none', 'indirect', 'direct', 'enterprise'];
         $allowedAttachment = ['', 'platform', 'cross-platform'];
         $allowedResidentKey = ['required', 'preferred', 'discouraged'];
+        $allowedButtonDisplay = ['icon-text', 'icon-left', 'icon-only', 'text-only'];
         $validCoseIds = [-7, -257, -8, -35, -36, -258, -259];
 
         foreach ($fieldMap as $key => $constName) {
@@ -185,6 +188,11 @@ final class PasskeyLoginSettingsController extends AbstractRestController
 
             // Validate residentKey
             if ($key === 'residentKey' && !\in_array($input[$key], $allowedResidentKey, true)) {
+                continue;
+            }
+
+            // Validate buttonDisplay
+            if ($key === 'buttonDisplay' && !\in_array($input[$key], $allowedButtonDisplay, true)) {
                 continue;
             }
 

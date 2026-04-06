@@ -48,6 +48,7 @@ export default function App() {
 		authenticatorAttachment: '',
 		timeout: 60000,
 		residentKey: 'required',
+		buttonDisplay: 'icon-text',
 	} );
 	const [ meta, setMeta ] = useState( {
 		settings: {},
@@ -196,6 +197,30 @@ export default function App() {
 					onChange={ ( val ) => setFormData( ( prev ) => ( { ...prev, rpId: val } ) ) }
 					disabled={ !! s( 'rpId' ).readonly }
 					help={ field.description }
+					__nextHasNoMarginBottom
+				/>
+			),
+		},
+		{
+			id: 'buttonDisplay',
+			label: badgeLabel( __( 'Button Display', 'wppack-passkey-login' ), s( 'buttonDisplay' ).source === 'constant' ),
+			type: 'text',
+			getValue: ( { item } ) => item.buttonDisplay || 'icon-text',
+			Edit: ( { data, field } ) => (
+				<SelectControl
+					id={ field.id }
+					label={ field.label }
+					value={ data.buttonDisplay || 'icon-text' }
+					onChange={ ( val ) => setFormData( ( prev ) => ( { ...prev, buttonDisplay: val } ) ) }
+					disabled={ !! s( 'buttonDisplay' ).readonly }
+					options={ [
+						{ label: __( 'Icon + Text', 'wppack-passkey-login' ), value: 'icon-text' },
+						{ label: __( 'Icon Left + Text', 'wppack-passkey-login' ), value: 'icon-left' },
+						{ label: __( 'Icon Only', 'wppack-passkey-login' ), value: 'icon-only' },
+						{ label: __( 'Text Only', 'wppack-passkey-login' ), value: 'text-only' },
+					] }
+					help={ __( 'Controls how the passkey login button is displayed.', 'wppack-passkey-login' ) }
+					className="wpp-passkey-small-select"
 					__nextHasNoMarginBottom
 				/>
 			),
