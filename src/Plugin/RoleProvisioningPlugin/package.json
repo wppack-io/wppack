@@ -1,0 +1,19 @@
+{
+  "name": "@wppack/role-provisioning-plugin",
+  "version": "1.0.0",
+  "private": true,
+  "author": "WpPack",
+  "scripts": {
+    "build": "wp-scripts build",
+    "start": "wp-scripts start",
+    "make-pot": "makepot . languages --domain=plugin --slug=wppack-role-provisioning --headers=email:dev@wppack.io",
+    "make-json": "makejson js/build languages --slug=wppack-role-provisioning"
+  },
+  "dependencies": {
+    "@wordpress/admin-ui": "^1.11.0"
+  },
+  "devDependencies": {
+    "@wordpress/scripts": "^31.8.0",
+    "@wp-blocks/make-pot": "^1.6.0"
+  }
+}

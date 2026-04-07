@@ -36,6 +36,7 @@ final class RedirectHandler
     private ?array $pendingRedirect = null;
 
     private bool $shutdownRegistered = false;
+    private bool $errorOccurred = false;
 
     private ?\Closure $callback = null;
 
@@ -64,6 +65,16 @@ final class RedirectHandler
         $this->callback = $this->onRedirect(...);
         add_filter('wp_redirect', $this->callback, \PHP_INT_MAX, 2);
         $GLOBALS['_wppack_redirect_handler'] = $this;
+    }
+
+    /**
+     * Signal that an error/exception page has been rendered.
+     * Prevents the redirect page from also rendering on shutdown.
+     */
+    public function cancelPendingRedirect(): void
+    {
+        $this->errorOccurred = true;
+        $this->pendingRedirect = null;
     }
 
     public function unregister(): void
@@ -127,7 +138,7 @@ final class RedirectHandler
 
     private function renderRedirectPage(): void
     {
-        if ($this->pendingRedirect === null) {
+        if ($this->pendingRedirect === null || $this->errorOccurred) {
             return;
         }
 

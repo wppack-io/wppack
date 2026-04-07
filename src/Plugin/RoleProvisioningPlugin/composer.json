@@ -1,0 +1,29 @@
+{
+    "name": "wppack/role-provisioning-plugin",
+    "description": "WordPress plugin for rule-based role provisioning via user_register hook and SSO event listeners",
+    "type": "wordpress-plugin",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "wppack/admin": "^1.0",
+        "wppack/dependency-injection": "^1.0",
+        "wppack/hook": "^1.0",
+        "wppack/kernel": "^1.0",
+        "wppack/rest": "^1.0",
+        "wppack/role": "^1.0",
+        "wppack/site": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpPack\\Plugin\\RoleProvisioningPlugin\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Plugin\\RoleProvisioningPlugin\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "installer-name": "wppack-role-provisioning"
+    }
+}

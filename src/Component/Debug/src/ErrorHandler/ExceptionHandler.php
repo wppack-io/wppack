@@ -61,6 +61,11 @@ final class ExceptionHandler
             }
         }
 
+        // Cancel pending redirect — error page takes priority
+        if (isset($GLOBALS['_wppack_redirect_handler']) && $GLOBALS['_wppack_redirect_handler'] instanceof RedirectHandler) {
+            $GLOBALS['_wppack_redirect_handler']->cancelPendingRedirect();
+        }
+
         $flat = FlattenException::createFromThrowable($e);
 
         if (!headers_sent()) {

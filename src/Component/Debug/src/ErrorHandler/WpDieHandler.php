@@ -105,6 +105,11 @@ final class WpDieHandler
             return;
         }
 
+        // Cancel pending redirect — error page takes priority
+        if (isset($GLOBALS['_wppack_redirect_handler']) && $GLOBALS['_wppack_redirect_handler'] instanceof RedirectHandler) {
+            $GLOBALS['_wppack_redirect_handler']->cancelPendingRedirect();
+        }
+
         $exception = $this->createException($message, $title, $args);
 
         // Set HTTP status before rendering — rendering may trigger PHP

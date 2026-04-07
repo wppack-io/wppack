@@ -145,6 +145,7 @@
             "WpPack\\Plugin\\MonitoringPlugin\\": "src/Plugin/MonitoringPlugin/src/",
             "WpPack\\Component\\Security\\Bridge\\Passkey\\": "src/Component/Security/Bridge/Passkey/src/",
             "WpPack\\Plugin\\PasskeyLoginPlugin\\": "src/Plugin/PasskeyLoginPlugin/src/",
+            "WpPack\\Plugin\\RoleProvisioningPlugin\\": "src/Plugin/RoleProvisioningPlugin/src/",
             "WpPack\\MuPlugin\\MultisiteUrlFixer\\": "src/MuPlugin/MultisiteUrlFixer/src/"
         }
     },
@@ -323,6 +324,7 @@
         "wppack/monitoring-plugin": "self.version",
         "wppack/passkey-security": "self.version",
         "wppack/passkey-login-plugin": "self.version",
+        "wppack/role-provisioning-plugin": "self.version",
         "wppack/multisite-url-fixer-plugin": "self.version",
         "wppack/lambda-plugin": "self.version",
         "wppack/theme-directory-plugin": "self.version"

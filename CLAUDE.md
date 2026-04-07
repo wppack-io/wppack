@@ -144,6 +144,7 @@ Distributed as WordPress plugins. Built on top of Components.
 | MonitoringPlugin | wppack/monitoring-plugin | Infrastructure monitoring dashboard plugin |
 | OAuthLoginPlugin | wppack/oauth-login-plugin | OAuth 2.0 / OpenID Connect login plugin |
 | PasskeyLoginPlugin | wppack/passkey-login-plugin | WebAuthn/Passkey passwordless login plugin |
+| RoleProvisioningPlugin | wppack/role-provisioning-plugin | Rule-based role provisioning and blog membership plugin |
 
 ## Key Dependencies
 
@@ -616,7 +617,7 @@ Submenu `position` is grouped by category in increments of 100. Each plugin with
 |----------|----------|---------|
 | 101–103 | Infrastructure (Cache, Storage, Mail) | RedisCachePlugin (101), S3StoragePlugin (102), AmazonMailerPlugin (103) |
 | 201–203 | Authentication (SSO, OAuth, Passkey) | SamlLoginPlugin (201), OAuthLoginPlugin (202), PasskeyLoginPlugin (203) |
-| 300 | Provisioning | ScimPlugin (300) |
+| 300–301 | Provisioning | ScimPlugin (300), RoleProvisioningPlugin (301) |
 
 MonitoringPlugin uses a top-level menu (not under Settings) with `position: 90` in the WordPress admin sidebar.
 
