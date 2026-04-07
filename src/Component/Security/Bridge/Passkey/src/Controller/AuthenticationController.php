@@ -146,17 +146,6 @@ final class AuthenticationController extends AbstractRestController
                 return $this->json(['error' => 'User not found.'], 400);
             }
 
-            // Multisite: ensure the user is a member of the current blog
-            if ($this->blogContext !== null && $this->blogContext->isMultisite()) {
-                if (!is_user_member_of_blog($user->ID)) {
-                    add_user_to_blog(
-                        $this->blogContext->getCurrentBlogId(),
-                        $user->ID,
-                        get_option('default_role', 'subscriber'),
-                    );
-                }
-            }
-
             $this->authenticationSession->login($user->ID, secure: is_ssl());
 
             return $this->json([

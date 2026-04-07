@@ -55,7 +55,7 @@ final class PasskeyActivationController extends AbstractRestController
     {
         $params = $request->get_json_params();
         $token = $params['activationToken'] ?? '';
-        $userId = $this->activationPrompt->consumeToken($token);
+        $userId = $this->activationPrompt->validateToken($token);
 
         if ($userId === null) {
             return $this->json(['error' => 'Invalid or expired activation token.'], 400);
@@ -83,6 +83,13 @@ final class PasskeyActivationController extends AbstractRestController
     {
         $params = $request->get_json_params();
 
+        // Consume activation token (one-time use)
+        $token = $params['activationToken'] ?? '';
+        $tokenUserId = $this->activationPrompt->consumeToken($token);
+        if ($tokenUserId === null) {
+            return $this->json(['error' => 'Invalid or expired activation token.'], 400);
+        }
+
         $challengeKey = $params['challengeKey'] ?? '';
         $challengeData = $this->ceremony->consumeChallenge($challengeKey);
         if ($challengeData === null || $challengeData['type'] !== 'registration') {
@@ -90,8 +97,8 @@ final class PasskeyActivationController extends AbstractRestController
         }
 
         $userId = $challengeData['userId'] ?? null;
-        if ($userId === null) {
-            return $this->json(['error' => 'Invalid challenge data.'], 400);
+        if ($userId === null || $userId !== $tokenUserId) {
+            return $this->json(['error' => 'Token and challenge user mismatch.'], 400);
         }
 
         /** @var \Webauthn\PublicKeyCredentialCreationOptions $creationOptions */

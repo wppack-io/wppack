@@ -52,6 +52,16 @@ final class PasskeyActivationPrompt
     }
 
     /**
+     * Validate an activation token without consuming it.
+     */
+    public function validateToken(string $token): ?int
+    {
+        $userId = $this->transients->get(self::TOKEN_PREFIX . $token);
+
+        return \is_int($userId) ? $userId : null;
+    }
+
+    /**
      * Consume an activation token and return the user ID if valid.
      */
     public function consumeToken(string $token): ?int
