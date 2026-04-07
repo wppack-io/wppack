@@ -86,6 +86,10 @@ final class AmazonMailerPluginTest extends TestCase
 
         $symfonyContainer = new \Symfony\Component\DependencyInjection\Container();
         $symfonyContainer->set(Mailer::class, $mailer);
+        $symfonyContainer->set(AdminPageRegistry::class, new AdminPageRegistry());
+        $symfonyContainer->set(AmazonMailerSettingsPage::class, new AmazonMailerSettingsPage());
+        $symfonyContainer->set(RestRegistry::class, new RestRegistry(new Request()));
+        $symfonyContainer->set(AmazonMailerSettingsController::class, new AmazonMailerSettingsController());
         $container = new \WpPack\Component\DependencyInjection\Container($symfonyContainer);
 
         $this->plugin->boot($container);
@@ -142,6 +146,10 @@ final class AmazonMailerPluginTest extends TestCase
         Mailer::reset();
 
         $symfonyContainer = new \Symfony\Component\DependencyInjection\Container();
+        $symfonyContainer->set(AdminPageRegistry::class, new AdminPageRegistry());
+        $symfonyContainer->set(AmazonMailerSettingsPage::class, new AmazonMailerSettingsPage());
+        $symfonyContainer->set(RestRegistry::class, new RestRegistry(new Request()));
+        $symfonyContainer->set(AmazonMailerSettingsController::class, new AmazonMailerSettingsController());
         $container = new Container($symfonyContainer);
 
         // boot() without Mailer in container should not throw
