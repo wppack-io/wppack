@@ -18,13 +18,13 @@ use WpPack\Component\Rest\AbstractRestController;
 use WpPack\Component\Rest\Attribute\RestRoute;
 use WpPack\Component\Rest\HttpMethod;
 use WpPack\Component\Security\AuthenticationSession;
+use WpPack\Component\Rest\Attribute\Permission;
 use WpPack\Component\Security\Bridge\Passkey\Storage\CredentialRepositoryInterface;
 use WpPack\Component\Security\Bridge\Passkey\Storage\PasskeyCredential;
 
 /**
  * REST endpoints for managing the current user's passkey credentials.
  */
-use WpPack\Component\Rest\Attribute\Permission;
 
 #[RestRoute(namespace: 'wppack/v1/passkey')]
 #[Permission(callback: 'isLoggedIn')]
