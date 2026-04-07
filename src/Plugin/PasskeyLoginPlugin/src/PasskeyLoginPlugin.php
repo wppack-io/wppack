@@ -21,6 +21,8 @@ use WpPack\Component\Kernel\AbstractPlugin;
 use WpPack\Component\Kernel\Attribute\TextDomain;
 use WpPack\Component\Rest\RestRegistry;
 use WpPack\Component\Security\Bridge\Passkey\Controller\AuthenticationController;
+use WpPack\Plugin\PasskeyLoginPlugin\Activation\PasskeyActivationController;
+use WpPack\Plugin\PasskeyLoginPlugin\Activation\PasskeyActivationPrompt;
 use WpPack\Component\Security\Bridge\Passkey\Controller\CredentialController;
 use WpPack\Component\Security\Bridge\Passkey\Controller\RegistrationController;
 use WpPack\Plugin\PasskeyLoginPlugin\Admin\PasskeyLoginSettingsController;
@@ -104,6 +106,15 @@ final class PasskeyLoginPlugin extends AbstractPlugin
         /** @var PasskeyLoginForm $loginForm */
         $loginForm = $container->get(PasskeyLoginForm::class);
         $loginForm->register();
+
+        // Activation prompt (wp-activate.php passkey setup)
+        if ($config->allowSignup) {
+            /** @var PasskeyActivationPrompt $activationPrompt */
+            $activationPrompt = $container->get(PasskeyActivationPrompt::class);
+            $activationPrompt->register();
+
+            $restRegistry->register($container->get(PasskeyActivationController::class));
+        }
     }
 
     public function onActivate(): void

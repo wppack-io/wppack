@@ -114,8 +114,8 @@ msgid "Allow Signup"
 msgstr "新規登録を許可"
 
 #: js/src/settings/App.js
-msgid "Allow new users to register via passkey."
-msgstr "パスキーによる新規ユーザー登録を許可します。"
+msgid "Prompt new users to set up a passkey during account activation."
+msgstr "アカウント有効化時にパスキーの設定を促します。"
 
 #: js/src/settings/App.js
 msgid "User Verification"
@@ -256,6 +256,30 @@ msgstr "ユーザーが登録できるパスキーの最大数（1〜20）。"
 #: js/src/profile/App.js
 msgid "Show more details"
 msgstr "詳細を追加表示"
+
+#: src/Activation/PasskeyActivationPrompt.php
+msgid "Passkey registered! You can now log in with your passkey."
+msgstr "パスキーを登録しました！パスキーでログインできます。"
+
+#: src/Activation/PasskeyActivationPrompt.php
+msgid "Passkey registration failed. You can add a passkey later from your profile."
+msgstr "パスキーの登録に失敗しました。プロフィールから後で追加できます。"
+
+#: src/Activation/PasskeyActivationPrompt.php
+msgid "You can add a passkey later from your profile."
+msgstr "プロフィールから後でパスキーを追加できます。"
+
+#: src/Activation/PasskeyActivationPrompt.php
+msgid "Skip"
+msgstr "スキップ"
+
+#: src/Activation/PasskeyActivationPrompt.php
+msgid "Log in"
+msgstr "ログイン"
+
+#: src/Activation/PasskeyActivationPrompt.php
+msgid "Add a passkey to sign in quickly and securely next time."
+msgstr "次回から素早く安全にログインするために、パスキーを追加しましょう。"
 
 #: js/src/settings/App.js
 msgid "Button Display"

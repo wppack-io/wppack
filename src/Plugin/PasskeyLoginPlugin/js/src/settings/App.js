@@ -239,7 +239,7 @@ export default function App() {
 			Edit: ( { data, field } ) => (
 				<ToggleControl
 					label={ field.label }
-					help={ __( 'Allow new users to register via passkey.', 'wppack-passkey-login' ) }
+					help={ __( 'Prompt new users to set up a passkey during account activation.', 'wppack-passkey-login' ) }
 					checked={ !! data.allowSignup }
 					onChange={ ( val ) => setFormData( ( prev ) => ( { ...prev, allowSignup: val } ) ) }
 					disabled={ !! s( 'allowSignup' ).readonly }

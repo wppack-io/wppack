@@ -17,7 +17,6 @@ use WpPack\Component\HttpFoundation\JsonResponse;
 use WpPack\Component\Rest\AbstractRestController;
 use WpPack\Component\Rest\Attribute\RestRoute;
 use WpPack\Component\Rest\HttpMethod;
-use WpPack\Component\Role\Attribute\IsGranted;
 use WpPack\Component\Security\AuthenticationSession;
 use WpPack\Component\Security\Bridge\Passkey\Storage\CredentialRepositoryInterface;
 use WpPack\Component\Security\Bridge\Passkey\Storage\PasskeyCredential;
@@ -25,14 +24,21 @@ use WpPack\Component\Security\Bridge\Passkey\Storage\PasskeyCredential;
 /**
  * REST endpoints for managing the current user's passkey credentials.
  */
+use WpPack\Component\Rest\Attribute\Permission;
+
 #[RestRoute(namespace: 'wppack/v1/passkey')]
-#[IsGranted('read')]
+#[Permission(callback: 'isLoggedIn')]
 final class CredentialController extends AbstractRestController
 {
     public function __construct(
         private readonly CredentialRepositoryInterface $repository,
         private readonly AuthenticationSession $authenticationSession,
     ) {}
+
+    public function isLoggedIn(\WP_REST_Request $request): bool
+    {
+        return is_user_logged_in();
+    }
 
     /**
      * List all passkey credentials for the current user.

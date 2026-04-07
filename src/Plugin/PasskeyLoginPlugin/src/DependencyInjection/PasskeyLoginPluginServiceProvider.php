@@ -37,6 +37,8 @@ use WpPack\Component\Transient\TransientManager;
 use WpPack\Plugin\PasskeyLoginPlugin\Admin\PasskeyLoginSettingsController;
 use WpPack\Plugin\PasskeyLoginPlugin\Admin\PasskeyLoginSettingsPage;
 use WpPack\Plugin\PasskeyLoginPlugin\Configuration\PasskeyLoginConfiguration;
+use WpPack\Plugin\PasskeyLoginPlugin\Activation\PasskeyActivationController;
+use WpPack\Plugin\PasskeyLoginPlugin\Activation\PasskeyActivationPrompt;
 use WpPack\Plugin\PasskeyLoginPlugin\LoginForm\PasskeyLoginForm;
 use WpPack\Plugin\PasskeyLoginPlugin\Migration\PasskeyCredentialTable;
 use WpPack\Plugin\PasskeyLoginPlugin\Profile\PasskeyProfileSection;
@@ -153,6 +155,18 @@ final class PasskeyLoginPluginServiceProvider implements ServiceProviderInterfac
             ->addArgument(new Reference(AuthenticationSession::class))
             ->addArgument(new Reference(Request::class))
             ->addArgument(new Reference(PasskeyLoginConfiguration::class));
+
+        // Activation Prompt + Controller
+        $builder->register(PasskeyActivationPrompt::class)
+            ->addArgument(new Reference(TransientManager::class));
+
+        $builder->register(PasskeyActivationController::class)
+            ->addArgument(new Reference(CeremonyManager::class))
+            ->addArgument(new Reference(CredentialRepositoryInterface::class))
+            ->addArgument(new Reference(PasskeyConfiguration::class))
+            ->addArgument(new Reference(PasskeyActivationPrompt::class))
+            ->addArgument(new Reference(LoggerInterface::class))
+            ->addArgument(new Reference(BlogContextInterface::class));
 
         // DB Migration Table
         $builder->register(PasskeyCredentialTable::class);

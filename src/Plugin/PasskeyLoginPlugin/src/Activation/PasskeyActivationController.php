@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Security\Bridge\Passkey\Controller;
+namespace WpPack\Plugin\PasskeyLoginPlugin\Activation;
 
 use Psr\Log\LoggerInterface;
 use Webauthn\AttestationStatement\AttestationStatementSupportManager;
@@ -25,7 +25,6 @@ use WpPack\Component\Rest\AbstractRestController;
 use WpPack\Component\Rest\Attribute\Permission;
 use WpPack\Component\Rest\Attribute\RestRoute;
 use WpPack\Component\Rest\HttpMethod;
-use WpPack\Component\Security\AuthenticationSession;
 use WpPack\Component\Security\Bridge\Passkey\Ceremony\CeremonyManager;
 use WpPack\Component\Security\Bridge\Passkey\Configuration\PasskeyConfiguration;
 use WpPack\Component\Security\Bridge\Passkey\Storage\AaguidResolver;
@@ -34,34 +33,37 @@ use WpPack\Component\Security\Bridge\Passkey\Storage\PasskeyCredential;
 use WpPack\Component\Site\BlogContextInterface;
 
 /**
- * REST endpoints for passkey registration (attestation ceremony).
+ * Public REST endpoints for passkey registration during account activation.
  *
- * Requires a logged-in user: passkeys are registered against an existing account.
+ * Authenticated by a one-time activation token instead of login session.
  */
 #[RestRoute(namespace: 'wppack/v1/passkey')]
-#[Permission(callback: 'isLoggedIn')]
-final class RegistrationController extends AbstractRestController
+#[Permission(public: true)]
+final class PasskeyActivationController extends AbstractRestController
 {
     public function __construct(
         private readonly CeremonyManager $ceremony,
         private readonly CredentialRepositoryInterface $repository,
         private readonly PasskeyConfiguration $config,
-        private readonly AuthenticationSession $authenticationSession,
+        private readonly PasskeyActivationPrompt $activationPrompt,
         private readonly LoggerInterface $logger,
         private readonly ?BlogContextInterface $blogContext = null,
     ) {}
 
-    /**
-     * Generate registration options (challenge) for the current user.
-     */
-    #[RestRoute(route: '/register/options', methods: HttpMethod::POST)]
+    #[RestRoute(route: '/activate/options', methods: HttpMethod::POST)]
     public function options(\WP_REST_Request $request): JsonResponse
     {
-        $user = $this->authenticationSession->getCurrentUser();
+        $params = $request->get_json_params();
+        $token = $params['activationToken'] ?? '';
+        $userId = $this->activationPrompt->consumeToken($token);
 
-        $existing = $this->repository->findByUserId($user->ID);
-        if (\count($existing) >= $this->config->maxCredentialsPerUser) {
-            return $this->json(['error' => 'Maximum number of passkeys reached.'], 400);
+        if ($userId === null) {
+            return $this->json(['error' => 'Invalid or expired activation token.'], 400);
+        }
+
+        $user = get_user_by('ID', $userId);
+        if (!$user instanceof \WP_User) {
+            return $this->json(['error' => 'User not found.'], 400);
         }
 
         $result = $this->ceremony->createRegistrationOptions($user);
@@ -76,19 +78,20 @@ final class RegistrationController extends AbstractRestController
         return $this->json($decoded);
     }
 
-    /**
-     * Verify attestation response and save the new credential.
-     */
-    #[RestRoute(route: '/register/verify', methods: HttpMethod::POST)]
+    #[RestRoute(route: '/activate/verify', methods: HttpMethod::POST)]
     public function verify(\WP_REST_Request $request): JsonResponse
     {
-        $user = $this->authenticationSession->getCurrentUser();
         $params = $request->get_json_params();
 
         $challengeKey = $params['challengeKey'] ?? '';
         $challengeData = $this->ceremony->consumeChallenge($challengeKey);
         if ($challengeData === null || $challengeData['type'] !== 'registration') {
             return $this->json(['error' => 'Invalid or expired challenge.'], 400);
+        }
+
+        $userId = $challengeData['userId'] ?? null;
+        if ($userId === null) {
+            return $this->json(['error' => 'Invalid challenge data.'], 400);
         }
 
         /** @var \Webauthn\PublicKeyCredentialCreationOptions $creationOptions */
@@ -124,19 +127,17 @@ final class RegistrationController extends AbstractRestController
 
             $credentialId = rtrim(strtr(base64_encode($source->publicKeyCredentialId), '+/', '-_'), '=');
 
-            // Prevent duplicate registration of the same credential
             if ($this->repository->findByCredentialId($credentialId) !== null) {
                 return $this->json(['error' => 'This credential is already registered.'], 409);
             }
 
             $aaguid = $source->aaguid->toString();
             $backupEligible = $response->attestationObject->authData->isBackupEligible();
-            $rawDeviceName = trim((string) ($params['deviceName'] ?? ''));
-            $deviceName = $rawDeviceName !== '' ? mb_substr($rawDeviceName, 0, 255) : AaguidResolver::resolve($aaguid);
+            $deviceName = AaguidResolver::resolve($aaguid);
 
             $passkeyCredential = new PasskeyCredential(
                 id: 0,
-                userId: $user->ID,
+                userId: $userId,
                 credentialId: $credentialId,
                 publicKey: base64_encode($source->credentialPublicKey),
                 counter: $source->counter,
@@ -150,25 +151,15 @@ final class RegistrationController extends AbstractRestController
 
             $this->repository->save($passkeyCredential);
 
-            return $this->created([
-                'success' => true,
-                'credentialId' => $credentialId,
-                'deviceName' => $deviceName,
-                'backupEligible' => $backupEligible,
-            ]);
+            return $this->created(['success' => true]);
         } catch (\Throwable $e) {
-            $this->logger->error('Passkey registration failed.', [
-                'userId' => $user->ID,
+            $this->logger->error('Passkey activation registration failed.', [
+                'userId' => $userId,
                 'exception' => $e,
             ]);
 
             return $this->json(['error' => 'Passkey registration failed.'], 400);
         }
-    }
-
-    public function isLoggedIn(\WP_REST_Request $request): bool
-    {
-        return is_user_logged_in();
     }
 
     private function resolveRpId(): string
@@ -186,8 +177,6 @@ final class RegistrationController extends AbstractRestController
 
     private function createSerializer(): \Symfony\Component\Serializer\SerializerInterface
     {
-        $factory = new WebauthnSerializerFactory(AttestationStatementSupportManager::create());
-
-        return $factory->create();
+        return (new WebauthnSerializerFactory(AttestationStatementSupportManager::create()))->create();
     }
 }
