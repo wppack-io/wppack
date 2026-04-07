@@ -172,6 +172,15 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
             }
         }
 
+        // Store SSO attributes via meta_input (available before user_register fires)
+        $claimsMetaKey = '_wppack_oauth_claims_' . $this->providerName;
+        $userdata['meta_input'] = [
+            $this->getSubjectMetaKey() => $subject,
+            '_wppack_sso_source' => 'oauth',
+            '_wppack_sso_provider' => $this->providerName,
+            $claimsMetaKey => json_encode($claims, \JSON_UNESCAPED_UNICODE),
+        ];
+
         try {
             $userId = $this->userRepository->insert($userdata);
         } catch (UserException $e) {
@@ -189,7 +198,7 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
             throw new AuthenticationException(\sprintf('Failed to retrieve provisioned user "%s".', $subject));
         }
 
-        $this->bindSubject($user, $subject);
+        // Subject binding and SSO meta already stored via meta_input
 
         $this->dispatcher?->dispatch(new OAuthUserProvisionedEvent($user, $subject, $claims));
 
@@ -245,6 +254,14 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
 
         if ($needsUpdate) {
             $this->userRepository->update($userdata);
+        }
+
+        // Always update SSO claims and provider on every login
+        $claimsMetaKey = '_wppack_oauth_claims_' . $this->providerName;
+        $this->userRepository->updateMeta($user->ID, $claimsMetaKey, json_encode($claims, \JSON_UNESCAPED_UNICODE));
+        $this->userRepository->updateMeta($user->ID, '_wppack_sso_provider', $this->providerName);
+
+        if ($needsUpdate) {
             $this->dispatcher?->dispatch(new OAuthUserUpdatedEvent($user, $claims));
         }
     }

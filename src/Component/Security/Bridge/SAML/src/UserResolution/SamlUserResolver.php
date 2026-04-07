@@ -157,6 +157,13 @@ final class SamlUserResolver implements SamlUserResolverInterface
             $userMeta = $event->getUserMeta();
         }
 
+        // Store SSO attributes + custom mappings via meta_input (available before user_register fires)
+        $userdata['meta_input'] = array_merge($userMeta, [
+            self::SAML_NAMEID_META_KEY => $nameId,
+            '_wppack_sso_source' => 'saml',
+            '_wppack_saml_attributes' => json_encode($attributes, \JSON_UNESCAPED_UNICODE),
+        ]);
+
         try {
             $userId = $this->userRepository->insert($userdata);
         } catch (\Throwable $e) {
@@ -173,11 +180,7 @@ final class SamlUserResolver implements SamlUserResolverInterface
         }
         // @codeCoverageIgnoreEnd
 
-        foreach ($userMeta as $key => $value) {
-            $this->userRepository->updateMeta($userId, $key, $value);
-        }
-
-        $this->bindNameId($user, $nameId);
+        // NameID binding and custom mappings already stored via meta_input
 
         $this->dispatcher?->dispatch(new SamlUserProvisionedEvent($user, $nameId, $attributes));
 
@@ -265,6 +268,9 @@ final class SamlUserResolver implements SamlUserResolverInterface
         foreach ($userMeta as $key => $value) {
             $this->userRepository->updateMeta($user->ID, $key, $value);
         }
+
+        // Always update SSO attributes on every login
+        $this->userRepository->updateMeta($user->ID, '_wppack_saml_attributes', json_encode($attributes, \JSON_UNESCAPED_UNICODE));
 
         if ($needsUpdate || $userMeta !== []) {
             $this->dispatcher?->dispatch(new SamlUserUpdatedEvent($user, $attributes));
