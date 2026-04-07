@@ -61,20 +61,18 @@ final class MonitoringPlugin extends AbstractPlugin
 
     public function boot(Container $container): void
     {
-        if (is_admin() || is_network_admin()) {
-            /** @var AdminPageRegistry $pageRegistry */
-            $pageRegistry = $container->get(AdminPageRegistry::class);
-            /** @var MonitoringDashboardPage $dashboardPage */
-            $dashboardPage = $container->get(MonitoringDashboardPage::class);
-            $dashboardPage->setPluginFile($this->getFile());
-            /** @var MonitoringCollector $collector */
-            $collector = $container->get(MonitoringCollector::class);
-            $dashboardPage->setCollector($collector);
-            $pageRegistry->register($dashboardPage, $this->isNetworkActivated());
+        /** @var AdminPageRegistry $pageRegistry */
+        $pageRegistry = $container->get(AdminPageRegistry::class);
+        /** @var MonitoringDashboardPage $dashboardPage */
+        $dashboardPage = $container->get(MonitoringDashboardPage::class);
+        $dashboardPage->setPluginFile($this->getFile());
+        /** @var MonitoringCollector $collector */
+        $collector = $container->get(MonitoringCollector::class);
+        $dashboardPage->setCollector($collector);
+        $pageRegistry->register($dashboardPage, $this->isNetworkActivated());
 
-            /** @var RestRegistry $restRegistry */
-            $restRegistry = $container->get(RestRegistry::class);
-            $restRegistry->register($container->get(MonitoringController::class));
-        }
+        /** @var RestRegistry $restRegistry */
+        $restRegistry = $container->get(RestRegistry::class);
+        $restRegistry->register($container->get(MonitoringController::class));
     }
 }

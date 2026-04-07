@@ -65,18 +65,16 @@ final class AmazonMailerPlugin extends AbstractPlugin
 
     public function boot(Container $container): void
     {
-        if (is_admin() || is_network_admin()) {
-            /** @var AdminPageRegistry $pageRegistry */
-            $pageRegistry = $container->get(AdminPageRegistry::class);
-            /** @var AmazonMailerSettingsPage $settingsPage */
-            $settingsPage = $container->get(AmazonMailerSettingsPage::class);
-            $settingsPage->setPluginFile($this->getFile());
-            $pageRegistry->register($settingsPage, $this->isNetworkActivated());
+        /** @var AdminPageRegistry $pageRegistry */
+        $pageRegistry = $container->get(AdminPageRegistry::class);
+        /** @var AmazonMailerSettingsPage $settingsPage */
+        $settingsPage = $container->get(AmazonMailerSettingsPage::class);
+        $settingsPage->setPluginFile($this->getFile());
+        $pageRegistry->register($settingsPage, $this->isNetworkActivated());
 
-            /** @var RestRegistry $restRegistry */
-            $restRegistry = $container->get(RestRegistry::class);
-            $restRegistry->register($container->get(AmazonMailerSettingsController::class));
-        }
+        /** @var RestRegistry $restRegistry */
+        $restRegistry = $container->get(RestRegistry::class);
+        $restRegistry->register($container->get(AmazonMailerSettingsController::class));
 
         if (!$container->has(Mailer::class)) {
             return;

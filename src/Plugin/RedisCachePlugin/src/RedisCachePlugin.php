@@ -64,18 +64,16 @@ final class RedisCachePlugin extends AbstractPlugin
 
     public function boot(Container $container): void
     {
-        if (is_admin() || is_network_admin()) {
-            /** @var AdminPageRegistry $pageRegistry */
-            $pageRegistry = $container->get(AdminPageRegistry::class);
-            /** @var RedisCacheSettingsPage $settingsPage */
-            $settingsPage = $container->get(RedisCacheSettingsPage::class);
-            $settingsPage->setPluginFile($this->getFile());
-            $pageRegistry->register($settingsPage, $this->isNetworkActivated());
+        /** @var AdminPageRegistry $pageRegistry */
+        $pageRegistry = $container->get(AdminPageRegistry::class);
+        /** @var RedisCacheSettingsPage $settingsPage */
+        $settingsPage = $container->get(RedisCacheSettingsPage::class);
+        $settingsPage->setPluginFile($this->getFile());
+        $pageRegistry->register($settingsPage, $this->isNetworkActivated());
 
-            /** @var RestRegistry $restRegistry */
-            $restRegistry = $container->get(RestRegistry::class);
-            $restRegistry->register($container->get(RedisCacheSettingsController::class));
-        }
+        /** @var RestRegistry $restRegistry */
+        $restRegistry = $container->get(RestRegistry::class);
+        $restRegistry->register($container->get(RedisCacheSettingsController::class));
     }
 
     public function onActivate(): void

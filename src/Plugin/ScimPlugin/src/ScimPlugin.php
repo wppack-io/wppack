@@ -84,19 +84,16 @@ final class ScimPlugin extends AbstractPlugin
             return;
         }
 
-        // Admin settings page
-        if (is_admin() || is_network_admin()) {
-            /** @var AdminPageRegistry $pageRegistry */
-            $pageRegistry = $container->get(AdminPageRegistry::class);
-            /** @var ScimSettingsPage $settingsPage */
-            $settingsPage = $container->get(ScimSettingsPage::class);
-            $settingsPage->setPluginFile($this->getFile());
-            $pageRegistry->register($settingsPage, $this->isNetworkActivated());
+        /** @var AdminPageRegistry $pageRegistry */
+        $pageRegistry = $container->get(AdminPageRegistry::class);
+        /** @var ScimSettingsPage $settingsPage */
+        $settingsPage = $container->get(ScimSettingsPage::class);
+        $settingsPage->setPluginFile($this->getFile());
+        $pageRegistry->register($settingsPage, $this->isNetworkActivated());
 
-            /** @var RestRegistry $restRegistry */
-            $restRegistry = $container->get(RestRegistry::class);
-            $restRegistry->register($container->get(ScimSettingsController::class));
-        }
+        /** @var RestRegistry $restRegistry */
+        $restRegistry = $container->get(RestRegistry::class);
+        $restRegistry->register($container->get(ScimSettingsController::class));
 
         // SCIM services (only when token is configured)
         if (!$container->has(AuthenticationManager::class)) {

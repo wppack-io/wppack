@@ -64,17 +64,15 @@ final class S3StoragePlugin extends AbstractPlugin
 
     public function boot(Container $container): void
     {
-        if (is_admin() || is_network_admin()) {
-            /** @var AdminPageRegistry $pageRegistry */
-            $pageRegistry = $container->get(AdminPageRegistry::class);
-            /** @var S3StorageSettingsPage $settingsPage */
-            $settingsPage = $container->get(S3StorageSettingsPage::class);
-            $settingsPage->setPluginFile($this->getFile());
-            $pageRegistry->register($settingsPage, $this->isNetworkActivated());
+        /** @var AdminPageRegistry $pageRegistry */
+        $pageRegistry = $container->get(AdminPageRegistry::class);
+        /** @var S3StorageSettingsPage $settingsPage */
+        $settingsPage = $container->get(S3StorageSettingsPage::class);
+        $settingsPage->setPluginFile($this->getFile());
+        $pageRegistry->register($settingsPage, $this->isNetworkActivated());
 
-            /** @var RestRegistry $restRegistry */
-            $restRegistry = $container->get(RestRegistry::class);
-            $restRegistry->register($container->get(S3StorageSettingsController::class));
-        }
+        /** @var RestRegistry $restRegistry */
+        $restRegistry = $container->get(RestRegistry::class);
+        $restRegistry->register($container->get(S3StorageSettingsController::class));
     }
 }

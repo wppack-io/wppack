@@ -68,25 +68,22 @@ final class PasskeyLoginPlugin extends AbstractPlugin
             update_site_option(self::SCHEMA_VERSION_OPTION, self::SCHEMA_VERSION);
         }
 
-        // Admin settings page (always available)
-        if (is_admin() || is_network_admin()) {
-            /** @var AdminPageRegistry $pageRegistry */
-            $pageRegistry = $container->get(AdminPageRegistry::class);
-            /** @var PasskeyLoginSettingsPage $settingsPage */
-            $settingsPage = $container->get(PasskeyLoginSettingsPage::class);
-            $settingsPage->setPluginFile($this->getFile());
-            $pageRegistry->register($settingsPage, $this->isNetworkActivated());
+        /** @var AdminPageRegistry $pageRegistry */
+        $pageRegistry = $container->get(AdminPageRegistry::class);
+        /** @var PasskeyLoginSettingsPage $settingsPage */
+        $settingsPage = $container->get(PasskeyLoginSettingsPage::class);
+        $settingsPage->setPluginFile($this->getFile());
+        $pageRegistry->register($settingsPage, $this->isNetworkActivated());
 
-            /** @var RestRegistry $restRegistry */
-            $restRegistry = $container->get(RestRegistry::class);
-            $restRegistry->register($container->get(PasskeyLoginSettingsController::class));
+        /** @var RestRegistry $restRegistry */
+        $restRegistry = $container->get(RestRegistry::class);
+        $restRegistry->register($container->get(PasskeyLoginSettingsController::class));
 
-            // Profile passkey management section
-            /** @var PasskeyProfileSection $profileSection */
-            $profileSection = $container->get(PasskeyProfileSection::class);
-            $profileSection->setPluginFile($this->getFile());
-            $profileSection->register();
-        }
+        // Profile passkey management section
+        /** @var PasskeyProfileSection $profileSection */
+        $profileSection = $container->get(PasskeyProfileSection::class);
+        $profileSection->setPluginFile($this->getFile());
+        $profileSection->register();
 
         /** @var PasskeyLoginConfiguration $config */
         $config = $container->get(PasskeyLoginConfiguration::class);
