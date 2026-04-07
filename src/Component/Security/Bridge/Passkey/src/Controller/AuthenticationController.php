@@ -86,7 +86,10 @@ final class AuthenticationController extends AbstractRestController
         }
 
         /** @var \Webauthn\PublicKeyCredentialRequestOptions $requestOptions */
-        $requestOptions = unserialize($challengeData['options']);
+        $requestOptions = $this->ceremony->deserializeOptions(
+            $challengeData['options'],
+            $challengeData['optionsClass'],
+        );
 
         try {
             $serializer = $this->createSerializer();
@@ -146,8 +149,11 @@ final class AuthenticationController extends AbstractRestController
             // Multisite: ensure the user is a member of the current blog
             if ($this->blogContext !== null && $this->blogContext->isMultisite()) {
                 if (!is_user_member_of_blog($user->ID)) {
-                    $role = !empty($user->roles) ? $user->roles[0] : 'subscriber';
-                    add_user_to_blog($this->blogContext->getCurrentBlogId(), $user->ID, $role);
+                    add_user_to_blog(
+                        $this->blogContext->getCurrentBlogId(),
+                        $user->ID,
+                        get_option('default_role', 'subscriber'),
+                    );
                 }
             }
 
@@ -155,15 +161,13 @@ final class AuthenticationController extends AbstractRestController
 
             return $this->json([
                 'success' => true,
-                'redirectUrl' => admin_url(),
-                'userId' => $user->ID,
             ]);
         } catch (\Throwable $e) {
             $this->logger->error('Passkey authentication failed.', [
                 'exception' => $e,
             ]);
 
-            return $this->json(['error' => 'Authentication failed: ' . $e->getMessage()], 400);
+            return $this->json(['error' => 'Passkey authentication failed.'], 400);
         }
     }
 

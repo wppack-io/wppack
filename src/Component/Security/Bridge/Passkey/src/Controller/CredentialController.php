@@ -60,10 +60,13 @@ final class CredentialController extends AbstractRestController
         }
 
         $params = $request->get_json_params();
-        $deviceName = $params['deviceName'] ?? null;
+        $rawName = $params['deviceName'] ?? null;
 
-        if (\is_string($deviceName) && $deviceName !== '') {
-            $this->repository->updateDeviceName($id, $deviceName);
+        if (\is_string($rawName)) {
+            $deviceName = trim($rawName);
+            if ($deviceName !== '') {
+                $this->repository->updateDeviceName($id, mb_substr($deviceName, 0, 255));
+            }
         }
 
         return $this->json(['success' => true]);

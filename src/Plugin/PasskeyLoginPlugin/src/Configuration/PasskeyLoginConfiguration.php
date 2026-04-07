@@ -34,6 +34,7 @@ final readonly class PasskeyLoginConfiguration
         'timeout' => 'PASSKEY_TIMEOUT',
         'residentKey' => 'PASSKEY_RESIDENT_KEY',
         'buttonDisplay' => 'PASSKEY_BUTTON_DISPLAY',
+        'maxCredentialsPerUser' => 'PASSKEY_MAX_CREDENTIALS_PER_USER',
     ];
 
     /**
@@ -51,6 +52,7 @@ final readonly class PasskeyLoginConfiguration
         public int $timeout = 60000,
         public string $residentKey = 'required',
         public string $buttonDisplay = 'icon-text',
+        public int $maxCredentialsPerUser = 3,
     ) {}
 
     /**
@@ -75,6 +77,7 @@ final readonly class PasskeyLoginConfiguration
             timeout: self::resolveInt('PASSKEY_TIMEOUT', $options, 60000),
             residentKey: self::resolveString('PASSKEY_RESIDENT_KEY', $options, 'required'),
             buttonDisplay: self::resolveString('PASSKEY_BUTTON_DISPLAY', $options, 'icon-text'),
+            maxCredentialsPerUser: self::resolveInt('PASSKEY_MAX_CREDENTIALS_PER_USER', $options, 3),
         );
     }
 

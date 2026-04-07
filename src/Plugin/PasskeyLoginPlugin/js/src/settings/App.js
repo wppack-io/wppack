@@ -49,6 +49,7 @@ export default function App() {
 		timeout: 60000,
 		residentKey: 'required',
 		buttonDisplay: 'icon-text',
+		maxCredentialsPerUser: 3,
 	} );
 	const [ meta, setMeta ] = useState( {
 		settings: {},
@@ -261,6 +262,26 @@ export default function App() {
 					options={ userVerificationOptions }
 					help={ __( 'Controls whether biometric/PIN verification is required.', 'wppack-passkey-login' ) }
 					className="wpp-passkey-small-select"
+					__nextHasNoMarginBottom
+				/>
+			),
+		},
+		{
+			id: 'maxCredentialsPerUser',
+			label: badgeLabel( __( 'Max Passkeys per User', 'wppack-passkey-login' ), s( 'maxCredentialsPerUser' ).source === 'constant' ),
+			type: 'text',
+			getValue: ( { item } ) => item.maxCredentialsPerUser || 3,
+			Edit: ( { data, field } ) => (
+				<NumberControl
+					className="wpp-passkey-narrow-sm"
+					id={ field.id }
+					label={ field.label }
+					value={ data.maxCredentialsPerUser || 3 }
+					onChange={ ( val ) => setFormData( ( prev ) => ( { ...prev, maxCredentialsPerUser: Number( val ) } ) ) }
+					disabled={ !! s( 'maxCredentialsPerUser' ).readonly }
+					min={ 1 }
+					max={ 20 }
+					help={ __( 'Maximum number of passkeys a user can register (1–20).', 'wppack-passkey-login' ) }
 					__nextHasNoMarginBottom
 				/>
 			),

@@ -69,17 +69,19 @@ final class PasskeyLoginForm
 
     public function renderButton(): void
     {
-        $restUrl = esc_url(rest_url('wppack/v1/passkey'));
         $redirectTo = $this->request->query->getString('redirect_to');
-        $returnTo = esc_js($redirectTo !== '' ? wp_validate_redirect($redirectTo, admin_url()) : admin_url());
         $label = esc_html(__('Log in with Passkey', 'wppack-passkey-login'));
         $or = esc_html(__('or', 'wppack-passkey-login'));
-        $nonce = esc_js(wp_create_nonce('wp_rest'));
         $display = $this->config->buttonDisplay;
 
-        // Translatable error messages for inline JS
-        $errCancelled = esc_js(__('Passkey authentication was cancelled.', 'wppack-passkey-login'));
-        $errFailed = esc_js(__('Passkey authentication failed.', 'wppack-passkey-login'));
+        // Pass all JS config as JSON to prevent inline script injection
+        $jsConfig = wp_json_encode([
+            'api' => rest_url('wppack/v1/passkey'),
+            'redirect' => $redirectTo !== '' ? wp_validate_redirect($redirectTo, admin_url()) : admin_url(),
+            'nonce' => wp_create_nonce('wp_rest'),
+            'errCancelled' => __('Passkey authentication was cancelled.', 'wppack-passkey-login'),
+            'errFailed' => __('Passkey authentication failed.', 'wppack-passkey-login'),
+        ]);
 
         // Build button — same structure as OAuthLoginForm (wpl-btn/wpl-icon/wpl-text/wpl-icon-left/wpl-icon-only)
         $iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></svg>';
@@ -119,11 +121,12 @@ final class PasskeyLoginForm
         </div>
         <script>
         (function(){
-            var API='{$restUrl}';
-            var REDIRECT='{$returnTo}';
-            var NONCE='{$nonce}';
-            var ERR_CANCELLED='{$errCancelled}';
-            var ERR_FAILED='{$errFailed}';
+            var C={$jsConfig};
+            var API=C.api;
+            var REDIRECT=C.redirect;
+            var NONCE=C.nonce;
+            var ERR_CANCELLED=C.errCancelled;
+            var ERR_FAILED=C.errFailed;
             var ssoBox=document.getElementById('wppack-passkey-login');
             var loginForm=document.getElementById('loginform');
             if(ssoBox&&loginForm){
@@ -203,7 +206,7 @@ final class PasskeyLoginForm
                     return verifyAssertion(cred,challengeKey);
                 }).then(function(result){
                     if(result.success){
-                        window.location.href=result.redirectUrl||REDIRECT;
+                        window.location.href=REDIRECT;
                     }else{
                         showError(result.error||ERR_FAILED);
                     }

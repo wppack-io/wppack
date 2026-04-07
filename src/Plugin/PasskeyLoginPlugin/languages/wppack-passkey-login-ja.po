@@ -245,6 +245,14 @@ msgstr "取消"
 msgid "Edit Passkey Name"
 msgstr "パスキー名を編集"
 
+#: js/src/settings/App.js
+msgid "Max Passkeys per User"
+msgstr "ユーザーあたりの最大パスキー数"
+
+#: js/src/settings/App.js
+msgid "Maximum number of passkeys a user can register (1–20)."
+msgstr "ユーザーが登録できるパスキーの最大数（1〜20）。"
+
 #: js/src/profile/App.js
 msgid "Show more details"
 msgstr "詳細を追加表示"

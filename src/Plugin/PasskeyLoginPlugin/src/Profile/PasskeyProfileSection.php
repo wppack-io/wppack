@@ -13,9 +13,15 @@ declare(strict_types=1);
 
 namespace WpPack\Plugin\PasskeyLoginPlugin\Profile;
 
+use WpPack\Plugin\PasskeyLoginPlugin\Configuration\PasskeyLoginConfiguration;
+
 final class PasskeyProfileSection
 {
     private string $pluginFile;
+
+    public function __construct(
+        private readonly PasskeyLoginConfiguration $config,
+    ) {}
 
     public function setPluginFile(string $pluginFile): void
     {
@@ -80,6 +86,7 @@ final class PasskeyProfileSection
             'restUrl' => rest_url('wppack/v1/passkey'),
             'nonce' => wp_create_nonce('wp_rest'),
             'userId' => $user->ID,
+            'maxCredentials' => $this->config->maxCredentialsPerUser,
         ]);
 
         // Output inside the form; JS will relocate after the form within #wpbody-content

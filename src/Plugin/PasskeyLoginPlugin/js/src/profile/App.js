@@ -254,7 +254,7 @@ export default function App() {
 					type="button"
 					className="button button-secondary"
 					onClick={ handleRegister }
-					disabled={ registering }
+					disabled={ registering || credentials.length >= ( window.wppPasskeyProfile?.maxCredentials || 3 ) }
 				>
 					{ registering ? __( 'Registering…', 'wppack-passkey-login' ) : __( 'Add Passkey', 'wppack-passkey-login' ) }
 				</button>

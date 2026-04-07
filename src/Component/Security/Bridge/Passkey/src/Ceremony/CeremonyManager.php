@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Security\Bridge\Passkey\Ceremony;
 
+use Webauthn\AttestationStatement\AttestationStatementSupportManager;
 use Webauthn\AuthenticatorSelectionCriteria;
+use Webauthn\Denormalizer\WebauthnSerializerFactory;
 use Webauthn\PublicKeyCredentialCreationOptions;
 use Webauthn\PublicKeyCredentialDescriptor;
 use Webauthn\PublicKeyCredentialParameters;
@@ -91,9 +93,11 @@ final class CeremonyManager
             timeout: $this->config->timeout,
         );
 
+        $serializer = $this->createSerializer();
         $challengeKey = self::CHALLENGE_PREFIX . bin2hex(random_bytes(16));
         $this->transients->set($challengeKey, [
-            'options' => serialize($options),
+            'options' => $serializer->serialize($options, 'json'),
+            'optionsClass' => PublicKeyCredentialCreationOptions::class,
             'userId' => $user->ID,
             'type' => 'registration',
         ], self::CHALLENGE_TTL);
@@ -115,9 +119,11 @@ final class CeremonyManager
             timeout: $this->config->timeout,
         );
 
+        $serializer = $this->createSerializer();
         $challengeKey = self::CHALLENGE_PREFIX . bin2hex(random_bytes(16));
         $this->transients->set($challengeKey, [
-            'options' => serialize($options),
+            'options' => $serializer->serialize($options, 'json'),
+            'optionsClass' => PublicKeyCredentialRequestOptions::class,
             'type' => 'authentication',
         ], self::CHALLENGE_TTL);
 
@@ -127,7 +133,7 @@ final class CeremonyManager
     /**
      * Retrieve and consume stored ceremony data by key.
      *
-     * @return array{options: string, userId?: int, type: string}|null
+     * @return array{options: string, optionsClass: class-string, userId?: int, type: string}|null
      */
     public function consumeChallenge(string $challengeKey): ?array
     {
@@ -139,6 +145,19 @@ final class CeremonyManager
         $this->transients->delete($challengeKey);
 
         return $data;
+    }
+
+    /**
+     * Deserialize stored ceremony options from JSON.
+     */
+    public function deserializeOptions(string $json, string $class): object
+    {
+        return $this->createSerializer()->deserialize($json, $class, 'json');
+    }
+
+    private function createSerializer(): \Symfony\Component\Serializer\SerializerInterface
+    {
+        return (new WebauthnSerializerFactory(AttestationStatementSupportManager::create()))->create();
     }
 
     private function extractDomain(): string

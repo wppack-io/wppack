@@ -28,5 +28,6 @@ final readonly class PasskeyConfiguration
         public string $residentKey = 'required',
         public array $algorithms = [-7, -257],
         public string $authenticatorAttachment = '',
+        public int $maxCredentialsPerUser = 3,
     ) {}
 }

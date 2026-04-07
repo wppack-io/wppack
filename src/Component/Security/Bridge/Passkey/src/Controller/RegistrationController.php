@@ -58,6 +58,12 @@ final class RegistrationController extends AbstractRestController
     public function options(\WP_REST_Request $request): JsonResponse
     {
         $user = $this->authenticationSession->getCurrentUser();
+
+        $existing = $this->repository->findByUserId($user->ID);
+        if (\count($existing) >= $this->config->maxCredentialsPerUser) {
+            return $this->json(['error' => 'Maximum number of passkeys reached.'], 400);
+        }
+
         $result = $this->ceremony->createRegistrationOptions($user);
 
         $serializer = $this->createSerializer();
@@ -86,7 +92,10 @@ final class RegistrationController extends AbstractRestController
         }
 
         /** @var \Webauthn\PublicKeyCredentialCreationOptions $creationOptions */
-        $creationOptions = unserialize($challengeData['options']);
+        $creationOptions = $this->ceremony->deserializeOptions(
+            $challengeData['options'],
+            $challengeData['optionsClass'],
+        );
 
         try {
             $serializer = $this->createSerializer();
@@ -114,9 +123,16 @@ final class RegistrationController extends AbstractRestController
             );
 
             $credentialId = rtrim(strtr(base64_encode($source->publicKeyCredentialId), '+/', '-_'), '=');
+
+            // Prevent duplicate registration of the same credential
+            if ($this->repository->findByCredentialId($credentialId) !== null) {
+                return $this->json(['error' => 'This credential is already registered.'], 409);
+            }
+
             $aaguid = $source->aaguid->toString();
             $backupEligible = $response->attestationObject->authData->isBackupEligible();
-            $deviceName = $params['deviceName'] ?? AaguidResolver::resolve($aaguid);
+            $rawDeviceName = trim((string) ($params['deviceName'] ?? ''));
+            $deviceName = $rawDeviceName !== '' ? mb_substr($rawDeviceName, 0, 255) : AaguidResolver::resolve($aaguid);
 
             $passkeyCredential = new PasskeyCredential(
                 id: 0,
@@ -146,7 +162,7 @@ final class RegistrationController extends AbstractRestController
                 'exception' => $e,
             ]);
 
-            return $this->json(['error' => 'Registration failed: ' . $e->getMessage()], 400);
+            return $this->json(['error' => 'Passkey registration failed.'], 400);
         }
     }
 

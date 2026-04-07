@@ -61,7 +61,8 @@ final class PasskeyLoginPluginServiceProvider implements ServiceProviderInterfac
 
         $builder->register(PasskeyLoginSettingsController::class);
 
-        $builder->register(PasskeyProfileSection::class);
+        $builder->register(PasskeyProfileSection::class)
+            ->addArgument(new Reference(PasskeyLoginConfiguration::class));
     }
 
     public function register(ContainerBuilder $builder): void
@@ -173,6 +174,7 @@ final class PasskeyLoginPluginServiceProvider implements ServiceProviderInterfac
             residentKey: $config->residentKey,
             algorithms: $config->algorithms,
             authenticatorAttachment: $config->authenticatorAttachment,
+            maxCredentialsPerUser: $config->maxCredentialsPerUser,
         );
     }
 }
