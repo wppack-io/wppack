@@ -25,20 +25,16 @@ use WpPack\Component\User\UserRepositoryInterface;
 final class SamlUserResolver implements SamlUserResolverInterface
 {
     /**
-     * @param array<string, string>|null  $roleMapping    SAML group value => WordPress role name
-     * @param list<SamlAttributeMapping>  $customMappings Custom SAML attribute → user meta mappings
+     * @param list<SamlAttributeMapping> $customMappings Custom SAML attribute → user meta mappings
      */
     public function __construct(
         private readonly UserRepositoryInterface $userRepository,
         private readonly Sanitizer $sanitizer,
         private readonly bool $autoProvision = false,
-        private readonly string $defaultRole = 'subscriber',
         private readonly string $emailAttribute = 'email',
         private readonly ?string $firstNameAttribute = 'firstName',
         private readonly ?string $lastNameAttribute = 'lastName',
         private readonly ?string $displayNameAttribute = 'displayName',
-        private readonly ?array $roleMapping = null,
-        private readonly ?string $roleAttribute = null,
         private readonly array $customMappings = [],
         private readonly ?EventDispatcherInterface $dispatcher = null,
     ) {}
@@ -70,7 +66,6 @@ final class SamlUserResolver implements SamlUserResolverInterface
 
         if ($user instanceof \WP_User) {
             $this->syncUserAttributes($user, $sanitizedNameId, $attributes, $email);
-            $this->mapUserRole($user, $attributes);
 
             return $user;
         }
@@ -84,7 +79,6 @@ final class SamlUserResolver implements SamlUserResolverInterface
                 }
 
                 $this->syncUserAttributes($user, $sanitizedNameId, $attributes, $email);
-                $this->mapUserRole($user, $attributes);
 
                 return $user;
             }
@@ -95,7 +89,6 @@ final class SamlUserResolver implements SamlUserResolverInterface
         if ($user instanceof \WP_User) {
             $this->bindNameId($user, $sanitizedNameId);
             $this->syncUserAttributes($user, $sanitizedNameId, $attributes, $email);
-            $this->mapUserRole($user, $attributes);
 
             return $user;
         }
@@ -119,7 +112,6 @@ final class SamlUserResolver implements SamlUserResolverInterface
             'user_login' => $nameId,
             'user_email' => $email ?? $nameId,
             'user_pass' => wp_generate_password(32, true, true),
-            'role' => $this->defaultRole,
         ];
 
         if ($this->firstNameAttribute !== null) {
@@ -186,7 +178,6 @@ final class SamlUserResolver implements SamlUserResolverInterface
         }
 
         $this->bindNameId($user, $nameId);
-        $this->mapUserRole($user, $attributes);
 
         $this->dispatcher?->dispatch(new SamlUserProvisionedEvent($user, $nameId, $attributes));
 
@@ -277,26 +268,6 @@ final class SamlUserResolver implements SamlUserResolverInterface
 
         if ($needsUpdate || $userMeta !== []) {
             $this->dispatcher?->dispatch(new SamlUserUpdatedEvent($user, $attributes));
-        }
-    }
-
-    /**
-     * @param array<string, list<string>> $attributes
-     */
-    private function mapUserRole(\WP_User $user, array $attributes): void
-    {
-        if ($this->roleMapping === null || $this->roleAttribute === null) {
-            return;
-        }
-
-        $roleValues = $attributes[$this->roleAttribute] ?? [];
-
-        foreach ($roleValues as $samlRole) {
-            if (isset($this->roleMapping[$samlRole])) {
-                $user->set_role($this->roleMapping[$samlRole]);
-
-                return;
-            }
         }
     }
 

@@ -103,7 +103,6 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
         $builder->register(SamlLoginSettingsController::class)
             ->addArgument(new Reference(SamlLoginConfiguration::class))
             ->addArgument(new Reference(Sanitizer::class))
-            ->addArgument(new Reference(\WpPack\Component\Role\RoleProvider::class))
             ->addArgument(new Reference(SpMetadataExporter::class));
 
         // Role Provider
@@ -252,13 +251,10 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
             userRepository: $userRepository,
             sanitizer: $sanitizer,
             autoProvision: $config->autoProvision,
-            defaultRole: $config->defaultRole,
             emailAttribute: $config->emailAttribute,
             firstNameAttribute: $config->firstNameAttribute,
             lastNameAttribute: $config->lastNameAttribute,
             displayNameAttribute: $config->displayNameAttribute,
-            roleMapping: $config->roleMapping,
-            roleAttribute: $config->roleAttribute,
             dispatcher: $dispatcher,
         );
     }
@@ -285,7 +281,6 @@ final class SamlLoginPluginServiceProvider implements ServiceProviderInterface
             acsPath: $config->acsPath,
             crossSiteRedirector: $crossSiteRedirector,
             transientManager: $transientManager,
-            addUserToBlog: $config->addUserToBlog,
         );
     }
 }

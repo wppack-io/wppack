@@ -19,7 +19,6 @@ use WpPack\Component\Rest\AbstractRestController;
 use WpPack\Component\Rest\Attribute\RestRoute;
 use WpPack\Component\Rest\HttpMethod;
 use WpPack\Component\Role\Attribute\IsGranted;
-use WpPack\Component\Role\RoleProvider;
 use WpPack\Component\Sanitizer\Sanitizer;
 use WpPack\Component\Security\Bridge\SAML\Configuration\SpMetadataExporter;
 use WpPack\Plugin\SamlLoginPlugin\Configuration\SamlLoginConfiguration;
@@ -42,7 +41,6 @@ final class SamlLoginSettingsController extends AbstractRestController
     public function __construct(
         private readonly SamlLoginConfiguration $configuration,
         private readonly Sanitizer $sanitizer,
-        private readonly RoleProvider $roleProvider,
         private readonly ?SpMetadataExporter $metadataExporter = null,
     ) {}
 
@@ -54,7 +52,6 @@ final class SamlLoginSettingsController extends AbstractRestController
         return $this->json([
             'siteUrl' => get_home_url($blogId),
             'fields' => $this->buildDisplayArray(),
-            'roles' => $this->roleProvider->getNames(),
         ]);
     }
 
@@ -79,10 +76,7 @@ final class SamlLoginSettingsController extends AbstractRestController
         /** @var array<string, mixed> $params */
         $params = $request->get_json_params();
 
-        $error = $this->persistOptions($params);
-        if ($error !== null) {
-            return $error;
-        }
+        $this->persistOptions($params);
 
         delete_option('rewrite_rules');
 
@@ -92,7 +86,6 @@ final class SamlLoginSettingsController extends AbstractRestController
         return $this->json([
             'siteUrl' => get_home_url($blogId),
             'fields' => $this->buildDisplayArrayFrom($updated),
-            'roles' => $this->roleProvider->getNames(),
         ]);
     }
 
@@ -132,9 +125,6 @@ final class SamlLoginSettingsController extends AbstractRestController
             if (\in_array($name, self::SENSITIVE_FIELDS, true) && $value !== null && $value !== '') {
                 $value = self::MASKED_VALUE;
             }
-            if ($name === 'roleMapping' && \is_array($value)) {
-                $value = json_encode($value, \JSON_UNESCAPED_UNICODE);
-            }
 
             $result[$name] = [
                 'value' => $value,
@@ -149,7 +139,7 @@ final class SamlLoginSettingsController extends AbstractRestController
     /**
      * @param array<string, mixed> $input
      */
-    private function persistOptions(array $input): ?JsonResponse
+    private function persistOptions(array $input): void
     {
         $raw = get_option(self::OPTION_NAME, []);
         $options = \is_array($raw) ? $raw : [];
@@ -187,29 +177,10 @@ final class SamlLoginSettingsController extends AbstractRestController
                 }
             }
 
-            if ($name === 'defaultRole' && \is_string($value) && $value !== '') {
-                $roles = $this->roleProvider->getNames();
-                if (!isset($roles[$value])) {
-                    continue;
-                }
-            }
-
-            if ($name === 'roleMapping' && \is_array($value)) {
-                // Validate all values are strings
-                foreach ($value as $k => $v) {
-                    if (!\is_string($k) || !\is_string($v)) {
-                        return $this->json(['error' => 'Role mapping must be an object with string keys and values.'], 400);
-                    }
-                }
-                $value = json_encode($value, \JSON_UNESCAPED_UNICODE);
-            }
-
             $options[$name] = $value;
         }
 
         update_option(self::OPTION_NAME, $options);
-
-        return null;
     }
 
     private function getEnvValue(string $name): ?string

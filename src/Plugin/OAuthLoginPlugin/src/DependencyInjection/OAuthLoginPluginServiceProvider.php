@@ -140,8 +140,7 @@ final class OAuthLoginPluginServiceProvider implements ServiceProviderInterface
         // REST API Settings Controller
         $builder->register(OAuthLoginSettingsController::class)
             ->addArgument(new Reference(OAuthLoginConfiguration::class))
-            ->addArgument(new Reference(Sanitizer::class))
-            ->addArgument(new Reference(RoleProvider::class));
+            ->addArgument(new Reference(Sanitizer::class));
 
         // Skip OAuth service registration if no providers configured
         if ($config->providers === []) {
@@ -361,9 +360,6 @@ final class OAuthLoginPluginServiceProvider implements ServiceProviderInterface
             userRepository: $userRepository,
             sanitizer: $sanitizer,
             autoProvision: $providerConfig->autoProvision,
-            defaultRole: $providerConfig->defaultRole,
-            roleMapping: $providerConfig->roleMapping,
-            roleClaim: $providerConfig->roleClaim,
             dispatcher: $dispatcher,
         );
     }

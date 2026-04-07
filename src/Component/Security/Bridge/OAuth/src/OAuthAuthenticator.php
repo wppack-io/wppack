@@ -54,7 +54,6 @@ final class OAuthAuthenticator implements AuthenticatorInterface
         private readonly ?JwksProvider $jwksProvider = null,
         private readonly ?CrossSiteRedirector $crossSiteRedirector = null,
         private readonly ?HttpClient $httpClient = null,
-        private readonly bool $addUserToBlog = true,
         private readonly string $verifyPath = '/oauth/verify',
     ) {}
 
@@ -116,13 +115,6 @@ final class OAuthAuthenticator implements AuthenticatorInterface
     public function onAuthenticationSuccess(Request $request, TokenInterface $token): Response
     {
         $user = $token->getUser();
-
-        if ($this->addUserToBlog && $this->blogContext->isMultisite()) {
-            if (!is_user_member_of_blog($user->ID)) {
-                $role = !empty($user->roles) ? $user->roles[0] : 'subscriber';
-                add_user_to_blog($this->blogContext->getCurrentBlogId(), $user->ID, $role);
-            }
-        }
 
         // For cross-site: use returnTo from POST
         $returnTo = $request->post->getString('returnTo');

@@ -18,7 +18,6 @@ use WpPack\Component\Rest\AbstractRestController;
 use WpPack\Component\Rest\Attribute\RestRoute;
 use WpPack\Component\Rest\HttpMethod;
 use WpPack\Component\Role\Attribute\IsGranted;
-use WpPack\Component\Role\RoleProvider;
 use WpPack\Component\Sanitizer\Sanitizer;
 use WpPack\Component\Security\Bridge\OAuth\Assets\ProviderIcons;
 use WpPack\Component\Security\Bridge\OAuth\Provider\ProviderRegistry;
@@ -36,7 +35,6 @@ final class OAuthLoginSettingsController extends AbstractRestController
     public function __construct(
         private readonly OAuthLoginConfiguration $configuration,
         private readonly Sanitizer $sanitizer,
-        private readonly RoleProvider $roleProvider,
     ) {}
 
     #[RestRoute(route: '/settings', methods: HttpMethod::GET)]
@@ -53,10 +51,7 @@ final class OAuthLoginSettingsController extends AbstractRestController
         /** @var array<string, mixed> $params */
         $params = $request->get_json_params();
 
-        $error = $this->persistOptions($params);
-        if ($error !== null) {
-            return $error;
-        }
+        $this->persistOptions($params);
 
         // Flush rewrite rules so route changes take effect
         delete_option('rewrite_rules');
@@ -65,7 +60,7 @@ final class OAuthLoginSettingsController extends AbstractRestController
         $blogId = is_multisite() ? get_main_site_id() : null;
 
         // Rebuild display from updated config
-        $ctrl = new self($updated, $this->sanitizer, $this->roleProvider);
+        $ctrl = new self($updated, $this->sanitizer);
 
         return $this->json($ctrl->buildResponse($blogId));
     }
@@ -100,7 +95,6 @@ final class OAuthLoginSettingsController extends AbstractRestController
             'icons' => $icons,
             'styles' => $styles,
             'definitions' => $definitions,
-            'roles' => $this->roleProvider->getNames(),
             'global' => $this->buildGlobalDisplay(),
             'providers' => $this->buildProvidersDisplay(),
         ];
@@ -117,7 +111,6 @@ final class OAuthLoginSettingsController extends AbstractRestController
         $fields = [
             'ssoOnly' => ['const' => 'OAUTH_SSO_ONLY', 'value' => $this->configuration->ssoOnly],
             'autoProvision' => ['const' => 'OAUTH_AUTO_PROVISION', 'value' => $this->configuration->autoProvision],
-            'defaultRole' => ['const' => 'OAUTH_DEFAULT_ROLE', 'value' => $this->configuration->defaultRole],
             'authorizePath' => ['const' => 'OAUTH_AUTHORIZE_PATH', 'value' => $this->configuration->authorizePath],
             'callbackPath' => ['const' => 'OAUTH_CALLBACK_PATH', 'value' => $this->configuration->callbackPath],
             'verifyPath' => ['const' => 'OAUTH_VERIFY_PATH', 'value' => $this->configuration->verifyPath],
@@ -183,11 +176,6 @@ final class OAuthLoginSettingsController extends AbstractRestController
             'discovery_url' => $provider->discoveryUrl,
             'scopes' => $provider->scopes !== null ? implode(' ', $provider->scopes) : '',
             'auto_provision' => $provider->autoProvision,
-            'default_role' => $provider->defaultRole,
-            'role_claim' => $provider->roleClaim,
-            'role_mapping' => $provider->roleMapping !== null
-                ? json_encode($provider->roleMapping, \JSON_UNESCAPED_UNICODE)
-                : '',
             'button_style' => $provider->buttonStyle,
         ];
 
@@ -197,7 +185,7 @@ final class OAuthLoginSettingsController extends AbstractRestController
     /**
      * @param array<string, mixed> $input
      */
-    private function persistOptions(array $input): ?JsonResponse
+    private function persistOptions(array $input): void
     {
         $raw = get_option(OAuthLoginConfiguration::OPTION_NAME, []);
         $saved = \is_array($raw) ? $raw : [];
@@ -210,7 +198,6 @@ final class OAuthLoginSettingsController extends AbstractRestController
             $globalFields = [
                 'ssoOnly' => 'OAUTH_SSO_ONLY',
                 'autoProvision' => 'OAUTH_AUTO_PROVISION',
-                'defaultRole' => 'OAUTH_DEFAULT_ROLE',
                 'authorizePath' => 'OAUTH_AUTHORIZE_PATH',
                 'callbackPath' => 'OAUTH_CALLBACK_PATH',
                 'verifyPath' => 'OAUTH_VERIFY_PATH',
@@ -219,13 +206,6 @@ final class OAuthLoginSettingsController extends AbstractRestController
             foreach ($globalFields as $key => $constName) {
                 if (\defined($constName) || !\array_key_exists($key, $globalInput)) {
                     continue;
-                }
-
-                if ($key === 'defaultRole' && \is_string($globalInput[$key]) && $globalInput[$key] !== '') {
-                    $roles = $this->roleProvider->getNames();
-                    if (!isset($roles[$globalInput[$key]])) {
-                        continue;
-                    }
                 }
 
                 if (\in_array($key, ['authorizePath', 'callbackPath', 'verifyPath'], true) && \is_string($globalInput[$key])) {
@@ -274,16 +254,6 @@ final class OAuthLoginSettingsController extends AbstractRestController
                     }
                 }
 
-                // Validate role_mapping JSON schema: must be an object with string keys and values
-                if (isset($providerInput['role_mapping']) && \is_array($providerInput['role_mapping'])) {
-                    foreach ($providerInput['role_mapping'] as $k => $v) {
-                        if (!\is_string($k) || !\is_string($v)) {
-                            return $this->json(['error' => 'Role mapping must be an object with string keys and values.'], 400);
-                        }
-                    }
-                    $providerInput['role_mapping'] = json_encode($providerInput['role_mapping'], \JSON_UNESCAPED_UNICODE);
-                }
-
                 $savedProviders[$name] = $providerInput;
             }
 
@@ -329,6 +299,5 @@ final class OAuthLoginSettingsController extends AbstractRestController
 
         update_option(OAuthLoginConfiguration::OPTION_NAME, $saved);
 
-        return null;
     }
 }

@@ -22,7 +22,6 @@ final readonly class OAuthLoginConfiguration
         public array $providers,
         public bool $ssoOnly = false,
         public bool $autoProvision = false,
-        public string $defaultRole = 'subscriber',
         public string $authorizePath = '/oauth/{provider}/authorize',
         public string $callbackPath = '/oauth/{provider}/callback',
         public string $verifyPath = '/oauth/{provider}/verify',
@@ -66,9 +65,6 @@ final readonly class OAuthLoginConfiguration
         $globalAutoProvision = \defined('OAUTH_AUTO_PROVISION')
             ? (bool) \constant('OAUTH_AUTO_PROVISION')
             : (bool) ($savedConfig['autoProvision'] ?? false);
-        $globalDefaultRole = \defined('OAUTH_DEFAULT_ROLE')
-            ? (string) \constant('OAUTH_DEFAULT_ROLE')
-            : (string) ($savedConfig['defaultRole'] ?? 'subscriber');
         $ssoOnly = \defined('OAUTH_SSO_ONLY')
             ? (bool) \constant('OAUTH_SSO_ONLY')
             : (bool) ($savedConfig['ssoOnly'] ?? false);
@@ -113,9 +109,6 @@ final readonly class OAuthLoginConfiguration
                 discoveryUrl: isset($p['discovery_url']) ? (string) $p['discovery_url'] : null,
                 scopes: isset($p['scopes']) && \is_array($p['scopes']) ? $p['scopes'] : null,
                 autoProvision: (bool) ($p['auto_provision'] ?? $globalAutoProvision),
-                defaultRole: (string) ($p['default_role'] ?? $globalDefaultRole),
-                roleClaim: isset($p['role_claim']) ? (string) $p['role_claim'] : null,
-                roleMapping: isset($p['role_mapping']) && \is_array($p['role_mapping']) ? $p['role_mapping'] : null,
                 buttonStyle: isset($p['button_style']) ? (string) $p['button_style'] : null,
             );
         }
@@ -124,7 +117,6 @@ final readonly class OAuthLoginConfiguration
             providers: $providers,
             ssoOnly: $ssoOnly,
             autoProvision: $globalAutoProvision,
-            defaultRole: $globalDefaultRole,
             authorizePath: $authorizePath,
             callbackPath: $callbackPath,
             verifyPath: $verifyPath,
@@ -167,9 +159,6 @@ final readonly class OAuthLoginConfiguration
                 discoveryUrl: isset($p['discovery_url']) ? (string) $p['discovery_url'] : null,
                 scopes: isset($p['scopes']) && \is_array($p['scopes']) ? $p['scopes'] : null,
                 autoProvision: (bool) ($p['auto_provision'] ?? $globalAutoProvision),
-                defaultRole: (string) ($p['default_role'] ?? $globalDefaultRole),
-                roleClaim: isset($p['role_claim']) ? (string) $p['role_claim'] : null,
-                roleMapping: isset($p['role_mapping']) && \is_array($p['role_mapping']) ? $p['role_mapping'] : null,
                 buttonStyle: isset($p['button_style']) ? (string) $p['button_style'] : null,
             );
         }
@@ -183,7 +172,6 @@ final readonly class OAuthLoginConfiguration
             providers: $providers,
             ssoOnly: $ssoOnly,
             autoProvision: $globalAutoProvision,
-            defaultRole: $globalDefaultRole,
             authorizePath: $authorizePath,
             callbackPath: $callbackPath,
             verifyPath: $verifyPath,

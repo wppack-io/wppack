@@ -20,7 +20,6 @@ final readonly class ProviderConfiguration
 {
     /**
      * @param list<string>|null $scopes
-     * @param array<string, string>|null $roleMapping
      */
     public function __construct(
         public string $name,
@@ -35,9 +34,6 @@ final readonly class ProviderConfiguration
         public ?string $discoveryUrl = null,
         public ?array $scopes = null,
         public bool $autoProvision = false,
-        public string $defaultRole = 'subscriber',
-        public ?string $roleClaim = null,
-        public ?array $roleMapping = null,
         public ?string $buttonStyle = null,
     ) {}
 }

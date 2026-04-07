@@ -22,9 +22,6 @@ final readonly class SamlLoginConfiguration
         'unspecified' => 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified',
     ];
 
-    /**
-     * @param array<string, string>|null $roleMapping
-     */
     public function __construct(
         public string $idpEntityId,
         public string $idpSsoUrl,
@@ -39,14 +36,10 @@ final readonly class SamlLoginConfiguration
         public bool $wantAssertionsSigned = true,
         public bool $allowRepeatAttributeName = false,
         public bool $autoProvision = false,
-        public string $defaultRole = 'subscriber',
         public string $emailAttribute = 'email',
         public ?string $firstNameAttribute = 'firstName',
         public ?string $lastNameAttribute = 'lastName',
         public ?string $displayNameAttribute = 'displayName',
-        public ?string $roleAttribute = null,
-        public ?array $roleMapping = null,
-        public bool $addUserToBlog = true,
         public bool $ssoOnly = false,
         public string $metadataPath = '/saml/metadata',
         public string $acsPath = '/saml/acs',
@@ -73,14 +66,10 @@ final readonly class SamlLoginConfiguration
         'wantAssertionsSigned' => 'SAML_WANT_ASSERTIONS_SIGNED',
         'allowRepeatAttributeName' => 'SAML_ALLOW_REPEAT_ATTRIBUTE_NAME',
         'autoProvision' => 'SAML_AUTO_PROVISION',
-        'defaultRole' => 'SAML_DEFAULT_ROLE',
         'emailAttribute' => 'SAML_EMAIL_ATTRIBUTE',
         'firstNameAttribute' => 'SAML_FIRST_NAME_ATTRIBUTE',
         'lastNameAttribute' => 'SAML_LAST_NAME_ATTRIBUTE',
         'displayNameAttribute' => 'SAML_DISPLAY_NAME_ATTRIBUTE',
-        'roleAttribute' => 'SAML_ROLE_ATTRIBUTE',
-        'roleMapping' => 'SAML_ROLE_MAPPING',
-        'addUserToBlog' => 'SAML_ADD_USER_TO_BLOG',
         'ssoOnly' => 'SAML_SSO_ONLY',
         'metadataPath' => 'SAML_METADATA_PATH',
         'acsPath' => 'SAML_ACS_PATH',
@@ -110,14 +99,10 @@ final readonly class SamlLoginConfiguration
             wantAssertionsSigned: self::resolveBool('SAML_WANT_ASSERTIONS_SIGNED', $options, true),
             allowRepeatAttributeName: self::resolveBool('SAML_ALLOW_REPEAT_ATTRIBUTE_NAME', $options, false),
             autoProvision: self::resolveBool('SAML_AUTO_PROVISION', $options, false),
-            defaultRole: self::resolveString('SAML_DEFAULT_ROLE', $options, 'subscriber'),
             emailAttribute: self::resolveString('SAML_EMAIL_ATTRIBUTE', $options, 'email'),
             firstNameAttribute: self::resolveNullableString('SAML_FIRST_NAME_ATTRIBUTE', $options) ?? 'firstName',
             lastNameAttribute: self::resolveNullableString('SAML_LAST_NAME_ATTRIBUTE', $options) ?? 'lastName',
             displayNameAttribute: self::resolveNullableString('SAML_DISPLAY_NAME_ATTRIBUTE', $options) ?? 'displayName',
-            roleAttribute: self::resolveNullableString('SAML_ROLE_ATTRIBUTE', $options),
-            roleMapping: self::resolveRoleMapping($options),
-            addUserToBlog: self::resolveBool('SAML_ADD_USER_TO_BLOG', $options, true),
             ssoOnly: self::resolveBool('SAML_SSO_ONLY', $options, false),
             metadataPath: self::resolveString('SAML_METADATA_PATH', $options, '/saml/metadata'),
             acsPath: self::resolveString('SAML_ACS_PATH', $options, '/saml/acs'),
@@ -140,14 +125,10 @@ final readonly class SamlLoginConfiguration
             wantAssertionsSigned: self::getBool('SAML_WANT_ASSERTIONS_SIGNED', true),
             allowRepeatAttributeName: self::getBool('SAML_ALLOW_REPEAT_ATTRIBUTE_NAME', false),
             autoProvision: self::getBool('SAML_AUTO_PROVISION', false),
-            defaultRole: self::getEnv('SAML_DEFAULT_ROLE') ?? 'subscriber',
             emailAttribute: self::getEnv('SAML_EMAIL_ATTRIBUTE') ?? 'email',
             firstNameAttribute: self::getEnv('SAML_FIRST_NAME_ATTRIBUTE') ?? 'firstName',
             lastNameAttribute: self::getEnv('SAML_LAST_NAME_ATTRIBUTE') ?? 'lastName',
             displayNameAttribute: self::getEnv('SAML_DISPLAY_NAME_ATTRIBUTE') ?? 'displayName',
-            roleAttribute: self::getEnv('SAML_ROLE_ATTRIBUTE'),
-            roleMapping: self::loadRoleMapping(),
-            addUserToBlog: self::getBool('SAML_ADD_USER_TO_BLOG', true),
             ssoOnly: self::getBool('SAML_SSO_ONLY', false),
             metadataPath: self::getEnv('SAML_METADATA_PATH') ?? '/saml/metadata',
             acsPath: self::getEnv('SAML_ACS_PATH') ?? '/saml/acs',
@@ -183,33 +164,6 @@ final readonly class SamlLoginConfiguration
         $cert = self::requireEnv('SAML_IDP_X509_CERT');
 
         return str_replace('\\n', "\n", $cert);
-    }
-
-    /**
-     * @return array<string, string>|null
-     */
-    private static function loadRoleMapping(): ?array
-    {
-        $json = self::getEnv('SAML_ROLE_MAPPING');
-
-        if ($json === null) {
-            return null;
-        }
-
-        $decoded = json_decode($json, true);
-
-        if (!\is_array($decoded)) {
-            throw new \RuntimeException('SAML_ROLE_MAPPING is not valid JSON.');
-        }
-
-        foreach ($decoded as $key => $value) {
-            if (!\is_string($key) || !\is_string($value)) {
-                throw new \RuntimeException('SAML_ROLE_MAPPING must be a JSON object mapping strings to strings.');
-            }
-        }
-
-        /** @var array<string, string> $decoded */
-        return $decoded;
     }
 
     private static function resolveNameIdFormat(string $format): string
@@ -306,39 +260,6 @@ final readonly class SamlLoginConfiguration
         }
 
         return self::getBool($envName, $default);
-    }
-
-    /**
-     * Resolve role mapping: constant > option > env > null.
-     *
-     * @param array<string, mixed> $options
-     * @return array<string, string>|null
-     */
-    private static function resolveRoleMapping(array $options): ?array
-    {
-        if (\defined('SAML_ROLE_MAPPING')) {
-            $json = \constant('SAML_ROLE_MAPPING');
-            if (\is_string($json)) {
-                $decoded = json_decode($json, true);
-
-                return \is_array($decoded) ? $decoded : null;
-            }
-
-            return null;
-        }
-
-        if (isset($options['roleMapping'])) {
-            if (\is_array($options['roleMapping'])) {
-                return $options['roleMapping'];
-            }
-            if (\is_string($options['roleMapping'])) {
-                $decoded = json_decode($options['roleMapping'], true);
-
-                return \is_array($decoded) ? $decoded : null;
-            }
-        }
-
-        return self::loadRoleMapping();
     }
 
     private static function loadCertificateOrEmpty(): string

@@ -54,7 +54,6 @@ final class SamlAuthenticator implements AuthenticatorInterface
         private readonly ?SamlSessionManager $sessionManager = null,
         private readonly string $acsPath = '/saml/acs',
         private readonly ?CrossSiteRedirector $crossSiteRedirector = null,
-        private readonly bool $addUserToBlog = true,
     ) {}
 
     public function supports(Request $request): bool
@@ -189,13 +188,6 @@ final class SamlAuthenticator implements AuthenticatorInterface
 
         if ($this->sessionManager !== null && $this->lastNameId !== null) {
             $this->sessionManager->save($user->ID, $this->lastNameId, $this->lastSessionIndex);
-        }
-
-        if ($this->addUserToBlog && $this->blogContext->isMultisite()) {
-            if (!is_user_member_of_blog($user->ID)) {
-                $role = !empty($user->roles) ? $user->roles[0] : 'subscriber';
-                add_user_to_blog($this->blogContext->getCurrentBlogId(), $user->ID, $role);
-            }
         }
 
         $relayState = $request->post->get('RelayState');

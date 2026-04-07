@@ -28,27 +28,16 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
 
     /**
      * @param string $providerName Provider name used in meta key (e.g., 'google', 'azure', 'github')
-     * @param bool $autoProvision Enable JIT user provisioning
-     * @param string $defaultRole Default role for new users
-     * @param string $emailClaim Claim name for email
-     * @param string|null $firstNameClaim Claim name for first name
-     * @param string|null $lastNameClaim Claim name for last name
-     * @param string|null $displayNameClaim Claim name for display name
-     * @param array<string, string>|null $roleMapping IdP role value => WordPress role name
-     * @param string|null $roleClaim Claim name containing role information
      */
     public function __construct(
         private readonly string $providerName,
         private readonly UserRepositoryInterface $userRepository,
         private readonly Sanitizer $sanitizer,
         private readonly bool $autoProvision = false,
-        private readonly string $defaultRole = 'subscriber',
         private readonly string $emailClaim = 'email',
         private readonly ?string $firstNameClaim = 'given_name',
         private readonly ?string $lastNameClaim = 'family_name',
         private readonly ?string $displayNameClaim = 'name',
-        private readonly ?array $roleMapping = null,
-        private readonly ?string $roleClaim = null,
         private readonly ?EventDispatcherInterface $dispatcher = null,
     ) {}
 
@@ -65,7 +54,6 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
 
         if ($user !== null) {
             $this->syncUserAttributes($user, $claims);
-            $this->mapUserRole($user, $claims);
 
             return $user;
         }
@@ -91,7 +79,6 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
 
                 $this->bindSubject($user, $sanitizedSubject);
                 $this->syncUserAttributes($user, $claims);
-                $this->mapUserRole($user, $claims);
 
                 return $user;
             }
@@ -103,12 +90,11 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
         if ($user instanceof \WP_User) {
             $this->bindSubject($user, $sanitizedSubject);
             $this->syncUserAttributes($user, $claims);
-            $this->mapUserRole($user, $claims);
 
             return $user;
         }
 
-        // 4. Auto-provision if enabled
+        // 4. Provision if registration is enabled
         if (!$this->autoProvision) {
             throw new AuthenticationException(\sprintf(
                 'User "%s" not found and auto-provisioning is disabled.',
@@ -160,7 +146,6 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
             'user_login' => $subject,
             'user_email' => $email ?? $subject,
             'user_pass' => wp_generate_password(32, true, true),
-            'role' => $this->defaultRole,
         ];
 
         if ($this->firstNameClaim !== null) {
@@ -205,7 +190,6 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
         }
 
         $this->bindSubject($user, $subject);
-        $this->mapUserRole($user, $claims);
 
         $this->dispatcher?->dispatch(new OAuthUserProvisionedEvent($user, $subject, $claims));
 
@@ -262,39 +246,6 @@ final class OAuthUserResolver implements OAuthUserResolverInterface
         if ($needsUpdate) {
             $this->userRepository->update($userdata);
             $this->dispatcher?->dispatch(new OAuthUserUpdatedEvent($user, $claims));
-        }
-    }
-
-    /**
-     * @param array<string, mixed> $claims
-     */
-    private function mapUserRole(\WP_User $user, array $claims): void
-    {
-        if ($this->roleMapping === null || $this->roleClaim === null) {
-            return;
-        }
-
-        $roleValue = $this->getClaimValue($claims, $this->roleClaim);
-
-        if ($roleValue !== null) {
-            if (isset($this->roleMapping[$roleValue])) {
-                $user->set_role($this->roleMapping[$roleValue]);
-            }
-
-            return;
-        }
-
-        // Try array claim
-        $roleValues = $claims[$this->roleClaim] ?? [];
-
-        if (is_array($roleValues)) {
-            foreach ($roleValues as $role) {
-                if (is_string($role) && isset($this->roleMapping[$role])) {
-                    $user->set_role($this->roleMapping[$role]);
-
-                    return;
-                }
-            }
         }
     }
 
