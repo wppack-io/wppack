@@ -4,7 +4,6 @@ import {
 	Button,
 	TextControl,
 	SelectControl,
-	ComboboxControl,
 	ToggleControl,
 	Notice,
 	Spinner,
@@ -53,12 +52,11 @@ function ConditionRow( { condition, onChange, onRemove, canRemove } ) {
 	return (
 		<Flex align="flex-end" gap={ 2 } wrap>
 			<FlexBlock>
-				<ComboboxControl
+				<TextControl
 					label={ __( 'Field', 'wppack-role-provisioning' ) }
 					value={ condition.field }
-					onChange={ ( v ) => onChange( { ...condition, field: v || '' } ) }
-					options={ FIELD_SUGGESTIONS }
-					allowReset={ false }
+					onChange={ ( v ) => onChange( { ...condition, field: v } ) }
+					list="wpp-field-suggestions"
 					__nextHasNoMarginBottom
 				/>
 			</FlexBlock>
@@ -359,7 +357,13 @@ export default function App() {
 					</Notice>
 				) }
 
-				<div className="wpp-role-provisioning-dataform-wrap">
+				<datalist id="wpp-field-suggestions">
+						{ FIELD_SUGGESTIONS.map( ( s ) => (
+							<option key={ s.value } value={ s.value } />
+						) ) }
+					</datalist>
+
+					<div className="wpp-role-provisioning-dataform-wrap">
 					<DataForm
 						data={ formData }
 						fields={ allFields }
