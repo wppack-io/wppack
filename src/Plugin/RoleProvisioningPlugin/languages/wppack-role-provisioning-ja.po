@@ -158,5 +158,13 @@ msgid "Empty = all sites."
 msgstr "空欄 = 全サイト。"
 
 #: js/src/settings/App.js
+msgid "Protected Roles"
+msgstr "保護対象ロール"
+
+#: js/src/settings/App.js
+msgid "These roles will never be changed by provisioning rules."
+msgstr "これらのロールはプロビジョニングルールで変更されません。"
+
+#: js/src/settings/App.js
 msgid "General"
 msgstr "一般"

@@ -16,6 +16,7 @@ namespace WpPack\Plugin\RoleProvisioningPlugin\Provisioning;
 use Psr\Log\LoggerInterface;
 use WpPack\Component\Role\RoleProvider;
 use WpPack\Component\Site\BlogContextInterface;
+use WpPack\Component\User\UserRepositoryInterface;
 use WpPack\Plugin\RoleProvisioningPlugin\Configuration\RoleProvisioningConfiguration;
 
 final class RoleProvisioner
@@ -39,6 +40,7 @@ final class RoleProvisioner
         private readonly RoleProvisioningConfiguration $configuration,
         private readonly RoleProvider $roleProvider,
         private readonly BlogContextInterface $blogContext,
+        private readonly UserRepositoryInterface $userRepository,
         private readonly LoggerInterface $logger,
     ) {}
 
@@ -74,7 +76,7 @@ final class RoleProvisioner
             'metaKey' => $metaKey,
         ]);
 
-        $this->provision($userId);
+        $this->provision($userId, isSync: true);
     }
 
     /**
@@ -82,8 +84,48 @@ final class RoleProvisioner
      *
      * Can be called externally to trigger role re-evaluation.
      */
-    public function provision(int $userId): void
+    public function provision(int $userId, bool $isSync = false): void
     {
+        $user = get_userdata($userId);
+
+        if ($user === false) {
+            return;
+        }
+
+        // Protected roles: never change these
+        $currentRole = $user->roles[0] ?? '';
+        if (\in_array($currentRole, $this->configuration->protectedRoles, true)) {
+            $this->logger->debug('User has protected role, skipping provisioning', [
+                'userId' => $userId,
+                'role' => $currentRole,
+            ]);
+
+            return;
+        }
+
+        // On sync (not initial registration): protect manually changed roles
+        if ($isSync) {
+            $provisionedRole = $this->userRepository->getMeta($userId, '_wppack_provisioned_role', true);
+
+            if ($provisionedRole === '' || $provisionedRole === false) {
+                $this->logger->debug('No provisioned role recorded, skipping sync', [
+                    'userId' => $userId,
+                ]);
+
+                return;
+            }
+
+            if ($currentRole !== $provisionedRole) {
+                $this->logger->debug('Role was manually changed, skipping sync', [
+                    'userId' => $userId,
+                    'currentRole' => $currentRole,
+                    'provisionedRole' => $provisionedRole,
+                ]);
+
+                return;
+            }
+        }
+
         $match = $this->evaluateRules($userId);
 
         if ($match === null) {
@@ -132,16 +174,15 @@ final class RoleProvisioner
                 ]);
             }
         } else {
-            $user = get_userdata($userId);
-
-            if ($user !== false) {
-                $user->set_role($role);
-            }
+            $user->set_role($role);
 
             if ($this->configuration->addUserToBlog && $this->blogContext->isMultisite()) {
                 add_user_to_blog($this->blogContext->getMainSiteId(), $userId, $role);
             }
         }
+
+        // Record the provisioned role for manual-change detection
+        $this->userRepository->updateMeta($userId, '_wppack_provisioned_role', $role);
     }
 
     /**

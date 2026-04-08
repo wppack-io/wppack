@@ -279,6 +279,7 @@ export default function App() {
 		enabled: true,
 		addUserToBlog: false,
 		syncOnLogin: false,
+		protectedRoles: [ 'administrator' ],
 		rules: [],
 	} );
 	const [ roles, setRoles ] = useState( {} );
@@ -296,6 +297,7 @@ export default function App() {
 			enabled: s.enabled?.value ?? true,
 			addUserToBlog: s.addUserToBlog?.value ?? false,
 			syncOnLogin: s.syncOnLogin?.value ?? false,
+			protectedRoles: s.protectedRoles?.value ?? [ 'administrator' ],
 			rules: s.rules?.value ?? [],
 		} );
 		setRoles( data.roles ?? {} );
@@ -387,8 +389,43 @@ export default function App() {
 			),
 		} );
 
+		fields.push( {
+			id: 'protectedRoles',
+			label: __( 'Protected Roles', 'wppack-role-provisioning' ),
+			type: 'text',
+			Edit: ( { data } ) => {
+				const selected = data.protectedRoles || [];
+				return (
+					<div>
+						<div style={ { fontSize: '11px', fontWeight: 500, textTransform: 'uppercase', marginBottom: '4px' } }>
+							{ __( 'Protected Roles', 'wppack-role-provisioning' ) }
+						</div>
+						<p style={ { color: '#757575', fontSize: '12px', margin: '0 0 8px' } }>
+							{ __( 'These roles will never be changed by provisioning rules.', 'wppack-role-provisioning' ) }
+						</p>
+						<div style={ { display: 'flex', flexDirection: 'column', gap: '6px' } }>
+							{ Object.entries( roles ).map( ( [ slug, label ] ) => (
+								<CheckboxControl
+									key={ slug }
+									label={ label }
+									checked={ selected.includes( slug ) }
+									onChange={ ( val ) => {
+										const next = val
+											? [ ...new Set( [ ...selected, slug ] ) ]
+											: selected.filter( ( r ) => r !== slug );
+										setFormData( ( prev ) => ( { ...prev, protectedRoles: next } ) );
+									} }
+									__nextHasNoMarginBottom
+								/>
+							) ) }
+						</div>
+					</div>
+				);
+			},
+		} );
+
 		return fields;
-	}, [ isMultisite ] );
+	}, [ isMultisite, roles ] );
 
 	const rulesField = useMemo( () => [
 		{

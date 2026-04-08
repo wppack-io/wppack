@@ -21,6 +21,7 @@ final readonly class RoleProvisioningConfiguration
      * @param bool   $enabled      Whether role provisioning is active
      * @param bool   $addUserToBlog Auto-add new users to current site (multisite)
      * @param bool   $syncOnLogin  Re-evaluate rules on every SSO login
+     * @param list<string> $protectedRoles Roles that should never be changed by provisioning
      * @param list<array{
      *     conditions: list<array{field: string, operator: string, value: string}>,
      *     role: string,
@@ -31,6 +32,7 @@ final readonly class RoleProvisioningConfiguration
         public bool $enabled = true,
         public bool $addUserToBlog = false,
         public bool $syncOnLogin = false,
+        public array $protectedRoles = ['administrator'],
         public array $rules = [],
     ) {}
 
@@ -46,6 +48,9 @@ final readonly class RoleProvisioningConfiguration
             enabled: isset($saved['enabled']) ? (bool) $saved['enabled'] : true,
             addUserToBlog: isset($saved['addUserToBlog']) ? (bool) $saved['addUserToBlog'] : false,
             syncOnLogin: isset($saved['syncOnLogin']) ? (bool) $saved['syncOnLogin'] : false,
+            protectedRoles: isset($saved['protectedRoles']) && \is_array($saved['protectedRoles'])
+                ? array_values(array_filter($saved['protectedRoles'], '\is_string'))
+                : ['administrator'],
             rules: isset($saved['rules']) && \is_array($saved['rules']) ? self::normalizeRules($saved['rules']) : [],
         );
     }

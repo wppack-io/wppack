@@ -69,6 +69,12 @@ final class RoleProvisioningSettingsController extends AbstractRestController
                     'value' => isset($saved['syncOnLogin']) ? (bool) $saved['syncOnLogin'] : false,
                     'source' => \array_key_exists('syncOnLogin', $saved) ? 'option' : 'default',
                 ],
+                'protectedRoles' => [
+                    'value' => isset($saved['protectedRoles']) && \is_array($saved['protectedRoles'])
+                        ? array_values(array_filter($saved['protectedRoles'], '\is_string'))
+                        : ['administrator'],
+                    'source' => \array_key_exists('protectedRoles', $saved) ? 'option' : 'default',
+                ],
                 'rules' => [
                     'value' => isset($saved['rules']) && \is_array($saved['rules']) ? $saved['rules'] : [],
                     'source' => \array_key_exists('rules', $saved) ? 'option' : 'default',

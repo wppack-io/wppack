@@ -27,6 +27,7 @@ use WpPack\Component\Site\BlogContextInterface;
 use WpPack\Plugin\RoleProvisioningPlugin\Admin\RoleProvisioningSettingsController;
 use WpPack\Plugin\RoleProvisioningPlugin\Admin\RoleProvisioningSettingsPage;
 use WpPack\Plugin\RoleProvisioningPlugin\Configuration\RoleProvisioningConfiguration;
+use WpPack\Component\User\UserRepositoryInterface;
 use WpPack\Plugin\RoleProvisioningPlugin\Provisioning\RoleProvisioner;
 
 final class RoleProvisioningPluginServiceProvider implements ServiceProviderInterface
@@ -77,10 +78,16 @@ final class RoleProvisioningPluginServiceProvider implements ServiceProviderInte
             ->addArgument(new Reference(RoleProvider::class));
 
         // Role Provisioner
+        // User Repository
+        if (!$builder->hasDefinition(UserRepositoryInterface::class)) {
+            $builder->register(UserRepositoryInterface::class, \WpPack\Component\User\UserRepository::class);
+        }
+
         $builder->register(RoleProvisioner::class)
             ->addArgument(new Reference(RoleProvisioningConfiguration::class))
             ->addArgument(new Reference(RoleProvider::class))
             ->addArgument(new Reference(BlogContextInterface::class))
+            ->addArgument(new Reference(UserRepositoryInterface::class))
             ->addArgument(new Reference(LoggerInterface::class));
     }
 }
