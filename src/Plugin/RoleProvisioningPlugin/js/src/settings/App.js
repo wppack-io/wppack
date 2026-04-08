@@ -1,5 +1,5 @@
 import { DataForm } from '@wordpress/dataviews/wp';
-import { useState, useEffect, useMemo, useCallback } from '@wordpress/element';
+import { useState, useEffect, useMemo, useCallback, useRef } from '@wordpress/element';
 import {
 	Button,
 	TextControl,
@@ -128,7 +128,7 @@ function RuleCard( { rule, index, onChange, onRemove } ) {
 				</Flex>
 			</CardHeader>
 			<CardBody>
-				<p style={ { margin: '0 0 8px', fontWeight: 500, fontSize: '12px', textTransform: 'uppercase', color: '#1e1e1e' } }>
+				<p style={ { margin: '0 0 8px', fontSize: '12px', color: '#757575' } }>
 					{ __( 'Conditions (AND)', 'wppack-role-provisioning' ) }
 				</p>
 				{ rule.conditions.map( ( cond, i ) => (
