@@ -1,5 +1,5 @@
 import { DataForm } from '@wordpress/dataviews/wp';
-import { useState, useEffect, useMemo, useCallback } from '@wordpress/element';
+import { useState, useEffect, useMemo, useCallback, useRef } from '@wordpress/element';
 import {
 	Button,
 	TextControl,
@@ -29,16 +29,83 @@ const OPERATORS = [
 ];
 
 const FIELD_SUGGESTIONS = [
-	{ label: 'user.email', value: 'user.email' },
-	{ label: 'user.login', value: 'user.login' },
-	{ label: 'meta._wppack_sso_source', value: 'meta._wppack_sso_source' },
-	{ label: 'meta._wppack_sso_provider', value: 'meta._wppack_sso_provider' },
-	{ label: 'meta._wppack_saml_attributes', value: 'meta._wppack_saml_attributes' },
-	{ label: 'meta._wppack_saml_attributes.groups', value: 'meta._wppack_saml_attributes.groups' },
-	{ label: 'meta._wppack_oauth_claims_google', value: 'meta._wppack_oauth_claims_google' },
-	{ label: 'meta._wppack_oauth_claims_azure', value: 'meta._wppack_oauth_claims_azure' },
-	{ label: 'meta._wppack_oauth_claims_github', value: 'meta._wppack_oauth_claims_github' },
+	'user.email',
+	'user.login',
+	'meta._wppack_sso_source',
+	'meta._wppack_sso_provider',
+	'meta._wppack_saml_attributes',
+	'meta._wppack_saml_attributes.groups',
+	'meta._wppack_oauth_claims_google',
+	'meta._wppack_oauth_claims_azure',
+	'meta._wppack_oauth_claims_github',
 ];
+
+/**
+ * Text input with dropdown suggestions (ComboboxControl-like).
+ * Allows free-text input and does NOT clear value on focus.
+ */
+function SuggestInput( { label, value, onChange, suggestions, help, placeholder, __nextHasNoMarginBottom } ) {
+	const [ open, setOpen ] = useState( false );
+	const [ filter, setFilter ] = useState( '' );
+	const wrapRef = useRef( null );
+
+	const filtered = useMemo( () => {
+		const q = ( filter || value || '' ).toLowerCase();
+		if ( ! q ) {
+			return suggestions;
+		}
+		return suggestions.filter( ( s ) => s.toLowerCase().includes( q ) );
+	}, [ filter, value, suggestions ] );
+
+	useEffect( () => {
+		function onClickOutside( e ) {
+			if ( wrapRef.current && ! wrapRef.current.contains( e.target ) ) {
+				setOpen( false );
+			}
+		}
+		document.addEventListener( 'mousedown', onClickOutside );
+		return () => document.removeEventListener( 'mousedown', onClickOutside );
+	}, [] );
+
+	return (
+		<div ref={ wrapRef } className="wpp-suggest-input">
+			<TextControl
+				label={ label }
+				value={ value }
+				onChange={ ( v ) => {
+					onChange( v );
+					setFilter( v );
+					setOpen( true );
+				} }
+				onFocus={ () => setOpen( true ) }
+				help={ help }
+				placeholder={ placeholder }
+				__nextHasNoMarginBottom={ __nextHasNoMarginBottom }
+				autoComplete="off"
+			/>
+			{ open && filtered.length > 0 && (
+				<ul className="wpp-suggest-input__list">
+					{ filtered.map( ( item ) => (
+						<li key={ item }>
+							<button
+								type="button"
+								className={ `wpp-suggest-input__item${ item === value ? ' is-selected' : '' }` }
+								onMouseDown={ ( e ) => {
+									e.preventDefault();
+									onChange( item );
+									setOpen( false );
+									setFilter( '' );
+								} }
+							>
+								{ item }
+							</button>
+						</li>
+					) ) }
+				</ul>
+			) }
+		</div>
+	);
+}
 
 function emptyCondition() {
 	return { field: '', operator: 'equals', value: '' };
@@ -52,11 +119,11 @@ function ConditionRow( { condition, onChange, onRemove, canRemove } ) {
 	return (
 		<Flex align="flex-end" gap={ 2 } wrap>
 			<FlexBlock>
-				<TextControl
+				<SuggestInput
 					label={ __( 'Field', 'wppack-role-provisioning' ) }
 					value={ condition.field }
 					onChange={ ( v ) => onChange( { ...condition, field: v } ) }
-					list="wpp-field-suggestions"
+					suggestions={ FIELD_SUGGESTIONS }
 					__nextHasNoMarginBottom
 				/>
 			</FlexBlock>
@@ -96,7 +163,7 @@ function ConditionRow( { condition, onChange, onRemove, canRemove } ) {
 	);
 }
 
-function RuleCard( { rule, index, onChange, onRemove } ) {
+function RuleCard( { rule, index, onChange, onRemove, roleSuggestions } ) {
 	const updateCondition = ( i, cond ) => {
 		const next = [ ...rule.conditions ];
 		next[ i ] = cond;
@@ -128,7 +195,7 @@ function RuleCard( { rule, index, onChange, onRemove } ) {
 				</Flex>
 			</CardHeader>
 			<CardBody>
-				<p style={ { margin: '0 0 8px', fontSize: '12px', color: '#757575' } }>
+				<p style={ { margin: '0 0 8px', fontWeight: 500, fontSize: '12px', textTransform: 'uppercase', color: '#1e1e1e' } }>
 					{ __( 'Conditions (AND)', 'wppack-role-provisioning' ) }
 				</p>
 				{ rule.conditions.map( ( cond, i ) => (
@@ -146,13 +213,13 @@ function RuleCard( { rule, index, onChange, onRemove } ) {
 
 				<Flex gap={ 4 } style={ { marginTop: '12px' } } wrap>
 					<FlexBlock>
-						<TextControl
+						<SuggestInput
 							label={ __( 'Role', 'wppack-role-provisioning' ) }
 							value={ rule.role }
 							onChange={ ( v ) => onChange( { ...rule, role: v } ) }
+							suggestions={ roleSuggestions }
 							help={ __( 'Role name or {{meta.<key>.<path>}} template', 'wppack-role-provisioning' ) }
 							placeholder="subscriber"
-							list="wpp-role-suggestions"
 							__nextHasNoMarginBottom
 						/>
 					</FlexBlock>
@@ -189,6 +256,8 @@ export default function App() {
 	const [ loading, setLoading ] = useState( true );
 	const [ saving, setSaving ] = useState( false );
 	const [ notice, setNotice ] = useState( null );
+
+	const roleSuggestions = useMemo( () => Object.keys( roles ), [ roles ] );
 
 	const applyResponse = useCallback( ( data ) => {
 		const s = data.settings || {};
@@ -308,6 +377,7 @@ export default function App() {
 								index={ i }
 								onChange={ ( r ) => updateRule( i, r ) }
 								onRemove={ () => removeRule( i ) }
+								roleSuggestions={ roleSuggestions }
 							/>
 						) ) }
 						<Button variant="secondary" onClick={ addRule }>
@@ -317,7 +387,7 @@ export default function App() {
 				);
 			},
 		},
-	], [] );
+	], [ roleSuggestions ] );
 
 	const allFields = useMemo(
 		() => [ ...generalFields, ...rulesField ],
@@ -358,18 +428,7 @@ export default function App() {
 					</Notice>
 				) }
 
-				<datalist id="wpp-field-suggestions">
-						{ FIELD_SUGGESTIONS.map( ( s ) => (
-							<option key={ s.value } value={ s.value } />
-						) ) }
-					</datalist>
-					<datalist id="wpp-role-suggestions">
-						{ Object.keys( roles ).map( ( slug ) => (
-							<option key={ slug } value={ slug } />
-						) ) }
-					</datalist>
-
-					<div className="wpp-role-provisioning-dataform-wrap">
+				<div className="wpp-role-provisioning-dataform-wrap">
 					<DataForm
 						data={ formData }
 						fields={ allFields }
