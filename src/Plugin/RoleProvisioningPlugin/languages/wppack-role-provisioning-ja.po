@@ -123,11 +123,11 @@ msgstr "設定を保存"
 
 #: js/src/settings/App.js
 msgid "Equals"
-msgstr "一致"
+msgstr "一致する"
 
 #: js/src/settings/App.js
 msgid "Not equals"
-msgstr "不一致"
+msgstr "一致しない"
 
 #: js/src/settings/App.js
 msgid "Contains"
