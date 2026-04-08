@@ -67,8 +67,26 @@ function SuggestInput( { label, value, onChange, suggestions, help, placeholder,
 		return () => document.removeEventListener( 'mousedown', onClickOutside );
 	}, [] );
 
+	const inputRef = useRef( null );
+	const [ listStyle, setListStyle ] = useState( {} );
+
+	useEffect( () => {
+		if ( open && inputRef.current ) {
+			const input = inputRef.current.querySelector( 'input' );
+			if ( input ) {
+				const inputRect = input.getBoundingClientRect();
+				const wrapRect = inputRef.current.getBoundingClientRect();
+				setListStyle( {
+					top: inputRect.bottom - wrapRect.top,
+					left: inputRect.left - wrapRect.left,
+					width: inputRect.width,
+				} );
+			}
+		}
+	}, [ open, value ] );
+
 	return (
-		<div ref={ wrapRef } className="wpp-suggest-input">
+		<div ref={ ( el ) => { wrapRef.current = el; inputRef.current = el; } } className="wpp-suggest-input">
 			<TextControl
 				label={ label }
 				value={ value }
@@ -84,7 +102,7 @@ function SuggestInput( { label, value, onChange, suggestions, help, placeholder,
 				autoComplete="off"
 			/>
 			{ open && filtered.length > 0 && (
-				<ul className="wpp-suggest-input__list">
+				<ul className="wpp-suggest-input__list" style={ listStyle }>
 					{ filtered.map( ( item ) => (
 						<li key={ item }>
 							<button

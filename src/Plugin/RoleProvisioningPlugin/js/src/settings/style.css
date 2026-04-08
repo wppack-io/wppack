@@ -49,10 +49,6 @@
 .wpp-suggest-input__list {
 	position: absolute;
 	z-index: 1000;
-	top: 100%;
-	left: 0;
-	right: 0;
-	margin: -1px 0 0;
 	padding: 0;
 	list-style: none;
 	background: #fff;
