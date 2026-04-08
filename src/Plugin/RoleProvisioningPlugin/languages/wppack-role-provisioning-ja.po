@@ -122,5 +122,33 @@ msgid "Save Settings"
 msgstr "設定を保存"
 
 #: js/src/settings/App.js
+msgid "Equals"
+msgstr "一致"
+
+#: js/src/settings/App.js
+msgid "Not equals"
+msgstr "不一致"
+
+#: js/src/settings/App.js
+msgid "Contains"
+msgstr "含む"
+
+#: js/src/settings/App.js
+msgid "Starts with"
+msgstr "前方一致"
+
+#: js/src/settings/App.js
+msgid "Ends with"
+msgstr "後方一致"
+
+#: js/src/settings/App.js
+msgid "Matches (regex)"
+msgstr "正規表現"
+
+#: js/src/settings/App.js
+msgid "Exists"
+msgstr "存在する"
+
+#: js/src/settings/App.js
 msgid "General"
 msgstr "一般"

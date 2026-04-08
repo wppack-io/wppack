@@ -18,15 +18,17 @@ import { Page } from '@wordpress/admin-ui';
 import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
 
-const OPERATORS = [
-	{ label: 'equals', value: 'equals' },
-	{ label: 'not_equals', value: 'not_equals' },
-	{ label: 'contains', value: 'contains' },
-	{ label: 'starts_with', value: 'starts_with' },
-	{ label: 'ends_with', value: 'ends_with' },
-	{ label: 'matches', value: 'matches' },
-	{ label: 'exists', value: 'exists' },
-];
+function getOperators() {
+	return [
+		{ label: __( 'Equals', 'wppack-role-provisioning' ), value: 'equals' },
+		{ label: __( 'Not equals', 'wppack-role-provisioning' ), value: 'not_equals' },
+		{ label: __( 'Contains', 'wppack-role-provisioning' ), value: 'contains' },
+		{ label: __( 'Starts with', 'wppack-role-provisioning' ), value: 'starts_with' },
+		{ label: __( 'Ends with', 'wppack-role-provisioning' ), value: 'ends_with' },
+		{ label: __( 'Matches (regex)', 'wppack-role-provisioning' ), value: 'matches' },
+		{ label: __( 'Exists', 'wppack-role-provisioning' ), value: 'exists' },
+	];
+}
 
 const FIELD_SUGGESTIONS = [
 	'user.email',
@@ -47,6 +49,7 @@ const FIELD_SUGGESTIONS = [
 function SuggestInput( { label, value, onChange, suggestions, help, placeholder, __nextHasNoMarginBottom } ) {
 	const [ open, setOpen ] = useState( false );
 	const [ filter, setFilter ] = useState( '' );
+	const [ listTop, setListTop ] = useState( 0 );
 	const wrapRef = useRef( null );
 
 	const filtered = useMemo( () => {
@@ -67,6 +70,15 @@ function SuggestInput( { label, value, onChange, suggestions, help, placeholder,
 		return () => document.removeEventListener( 'mousedown', onClickOutside );
 	}, [] );
 
+	const updateListPosition = useCallback( () => {
+		if ( wrapRef.current ) {
+			const input = wrapRef.current.querySelector( 'input' );
+			if ( input ) {
+				setListTop( input.offsetTop + input.offsetHeight + 0.5 );
+			}
+		}
+	}, [] );
+
 	return (
 		<div ref={ wrapRef } className="wpp-suggest-input">
 			<TextControl
@@ -75,16 +87,20 @@ function SuggestInput( { label, value, onChange, suggestions, help, placeholder,
 				onChange={ ( v ) => {
 					onChange( v );
 					setFilter( v );
+					updateListPosition();
 					setOpen( true );
 				} }
-				onFocus={ () => setOpen( true ) }
+				onFocus={ () => {
+					updateListPosition();
+					setOpen( true );
+				} }
 				help={ help }
 				placeholder={ placeholder }
 				__nextHasNoMarginBottom={ __nextHasNoMarginBottom }
 				autoComplete="off"
 			/>
 			{ open && filtered.length > 0 && (
-				<ul className="wpp-suggest-input__list">
+				<ul className="wpp-suggest-input__list" style={ { top: listTop } }>
 					{ filtered.map( ( item ) => (
 						<li key={ item }>
 							<button
@@ -132,7 +148,7 @@ function ConditionRow( { condition, onChange, onRemove, canRemove } ) {
 					label={ __( 'Operator', 'wppack-role-provisioning' ) }
 					value={ condition.operator }
 					onChange={ ( v ) => onChange( { ...condition, operator: v } ) }
-					options={ OPERATORS }
+					options={ getOperators() }
 					__nextHasNoMarginBottom
 				/>
 			</FlexItem>
@@ -198,15 +214,17 @@ function RuleCard( { rule, index, onChange, onRemove, roleSuggestions } ) {
 				<p style={ { margin: '0 0 8px', fontWeight: 500, fontSize: '12px', textTransform: 'uppercase', color: '#1e1e1e' } }>
 					{ __( 'Conditions (AND)', 'wppack-role-provisioning' ) }
 				</p>
-				{ rule.conditions.map( ( cond, i ) => (
-					<ConditionRow
-						key={ i }
-						condition={ cond }
-						onChange={ ( c ) => updateCondition( i, c ) }
-						onRemove={ () => removeCondition( i ) }
-						canRemove={ rule.conditions.length > 1 }
-					/>
-				) ) }
+				<div style={ { display: 'flex', flexDirection: 'column', gap: '8px' } }>
+					{ rule.conditions.map( ( cond, i ) => (
+						<ConditionRow
+							key={ i }
+							condition={ cond }
+							onChange={ ( c ) => updateCondition( i, c ) }
+							onRemove={ () => removeCondition( i ) }
+							canRemove={ rule.conditions.length > 1 }
+						/>
+					) ) }
+				</div>
 				<Button variant="tertiary" size="small" onClick={ addCondition } style={ { marginTop: '4px' } }>
 					+ { __( 'Add Condition', 'wppack-role-provisioning' ) }
 				</Button>
