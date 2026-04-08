@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace WpPack\Plugin\RoleProvisioningPlugin\Admin;
 
 use WpPack\Component\Admin\AbstractAdminPage;
+use WpPack\Component\Admin\Attribute\AdminScope;
 use WpPack\Component\Admin\Attribute\AsAdminPage;
 use WpPack\Component\Role\Attribute\IsGranted;
 
@@ -23,6 +24,7 @@ use WpPack\Component\Role\Attribute\IsGranted;
     menuLabel: 'Role Provisioning',
     parent: 'options-general.php',
     position: 301,
+    scope: AdminScope::Auto,
     textDomain: 'wppack-role-provisioning',
 )]
 #[IsGranted('manage_options')]

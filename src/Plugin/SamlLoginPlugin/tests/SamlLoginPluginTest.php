@@ -21,7 +21,6 @@ use WpPack\Component\DependencyInjection\Container;
 use WpPack\Component\HttpFoundation\Request;
 use WpPack\Component\Option\OptionManager;
 use WpPack\Component\Rest\RestRegistry;
-use WpPack\Component\Role\RoleProvider;
 use WpPack\Component\Routing\RouteRegistry;
 use WpPack\Component\Sanitizer\Sanitizer;
 use WpPack\Plugin\SamlLoginPlugin\Admin\SamlLoginSettingsController;
@@ -106,7 +105,6 @@ final class SamlLoginPluginTest extends TestCase
         $settingsController = new SamlLoginSettingsController(
             $config,
             new Sanitizer(),
-            new RoleProvider(),
         );
         $adminRegistry = new AdminPageRegistry();
         $restRegistry = new RestRegistry(new Request());
@@ -146,7 +144,6 @@ final class SamlLoginPluginTest extends TestCase
         $settingsController = new SamlLoginSettingsController(
             $config,
             new Sanitizer(),
-            new RoleProvider(),
         );
         $adminRegistry = new AdminPageRegistry();
         $restRegistry = new RestRegistry(new Request());

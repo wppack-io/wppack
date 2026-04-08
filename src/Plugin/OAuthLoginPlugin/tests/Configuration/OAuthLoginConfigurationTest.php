@@ -38,7 +38,6 @@ final class OAuthLoginConfigurationTest extends TestCase
             providers: ['google' => $google],
             ssoOnly: true,
             autoProvision: true,
-            defaultRole: 'editor',
             authorizePath: '/sso/{provider}/authorize',
             callbackPath: '/sso/{provider}/callback',
             verifyPath: '/sso/{provider}/verify',
@@ -47,7 +46,6 @@ final class OAuthLoginConfigurationTest extends TestCase
         self::assertSame(['google' => $google], $config->providers);
         self::assertTrue($config->ssoOnly);
         self::assertTrue($config->autoProvision);
-        self::assertSame('editor', $config->defaultRole);
         self::assertSame('/sso/{provider}/authorize', $config->authorizePath);
     }
 
@@ -59,7 +57,6 @@ final class OAuthLoginConfigurationTest extends TestCase
         self::assertSame([], $config->providers);
         self::assertFalse($config->ssoOnly);
         self::assertFalse($config->autoProvision);
-        self::assertSame('subscriber', $config->defaultRole);
         self::assertSame('/oauth/{provider}/authorize', $config->authorizePath);
         self::assertSame('/oauth/{provider}/callback', $config->callbackPath);
         self::assertSame('/oauth/{provider}/verify', $config->verifyPath);
@@ -152,7 +149,6 @@ final class OAuthLoginConfigurationTest extends TestCase
             'google_hosted_domain' => $config->providers['google']->hostedDomain,
             'sso_only' => $config->ssoOnly,
             'auto_provision' => $config->autoProvision,
-            'default_role' => $config->defaultRole,
             'authorize_path' => $config->authorizePath,
         ]);
         PHP;
@@ -178,7 +174,6 @@ final class OAuthLoginConfigurationTest extends TestCase
             self::assertSame('example.com', $result['google_hosted_domain']);
             self::assertFalse($result['sso_only']);
             self::assertFalse($result['auto_provision']);
-            self::assertSame('subscriber', $result['default_role']);
             self::assertSame('/oauth/{provider}/authorize', $result['authorize_path']);
         } finally {
             unlink($tmpFile);
@@ -305,7 +300,6 @@ final class OAuthLoginConfigurationTest extends TestCase
         require_once '%s';
 
         define('OAUTH_AUTO_PROVISION', true);
-        define('OAUTH_DEFAULT_ROLE', 'editor');
         define('OAUTH_PROVIDERS', [
             'google' => [
                 'type' => 'google',
@@ -318,18 +312,14 @@ final class OAuthLoginConfigurationTest extends TestCase
                 'client_secret' => 'asecret',
                 'tenant_id' => 'tid',
                 'auto_provision' => false,
-                'default_role' => 'subscriber',
             ],
         ]);
 
         $config = \WpPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration::fromEnvironment();
         echo json_encode([
             'global_auto_provision' => $config->autoProvision,
-            'global_default_role' => $config->defaultRole,
             'google_auto_provision' => $config->providers['google']->autoProvision,
-            'google_default_role' => $config->providers['google']->defaultRole,
             'azure_auto_provision' => $config->providers['azure']->autoProvision,
-            'azure_default_role' => $config->providers['azure']->defaultRole,
         ]);
         PHP;
 
@@ -349,15 +339,12 @@ final class OAuthLoginConfigurationTest extends TestCase
 
             // Global values
             self::assertTrue($result['global_auto_provision']);
-            self::assertSame('editor', $result['global_default_role']);
 
             // Google inherits global
             self::assertTrue($result['google_auto_provision']);
-            self::assertSame('editor', $result['google_default_role']);
 
             // Azure overrides global
             self::assertFalse($result['azure_auto_provision']);
-            self::assertSame('subscriber', $result['azure_default_role']);
         } finally {
             unlink($tmpFile);
         }
@@ -471,9 +458,6 @@ final class OAuthLoginConfigurationTest extends TestCase
             discoveryUrl: 'https://login.microsoftonline.com/tenant/.well-known/openid-configuration',
             scopes: ['openid', 'email'],
             autoProvision: true,
-            defaultRole: 'editor',
-            roleClaim: 'roles',
-            roleMapping: ['Admin' => 'administrator'],
         );
 
         self::assertSame('azure', $provider->name);
@@ -486,9 +470,6 @@ final class OAuthLoginConfigurationTest extends TestCase
         self::assertSame('https://login.microsoftonline.com/tenant/.well-known/openid-configuration', $provider->discoveryUrl);
         self::assertSame(['openid', 'email'], $provider->scopes);
         self::assertTrue($provider->autoProvision);
-        self::assertSame('editor', $provider->defaultRole);
-        self::assertSame('roles', $provider->roleClaim);
-        self::assertSame(['Admin' => 'administrator'], $provider->roleMapping);
     }
 
     #[Test]
@@ -507,9 +488,6 @@ final class OAuthLoginConfigurationTest extends TestCase
         self::assertNull($provider->discoveryUrl);
         self::assertNull($provider->scopes);
         self::assertFalse($provider->autoProvision);
-        self::assertSame('subscriber', $provider->defaultRole);
-        self::assertNull($provider->roleClaim);
-        self::assertNull($provider->roleMapping);
     }
 
     #[Test]
@@ -547,14 +525,10 @@ final class OAuthLoginConfigurationTest extends TestCase
                     'discovery_url' => 'https://idp.example.com/.well-known',
                     'scopes' => ['openid', 'profile'],
                     'auto_provision' => true,
-                    'default_role' => 'editor',
-                    'role_claim' => 'roles',
-                    'role_mapping' => ['Admin' => 'administrator'],
                     'button_style' => 'brand',
                 ],
             ],
             'autoProvision' => true,
-            'defaultRole' => 'author',
             'buttonDisplay' => 'icon-only',
         ]);
 
@@ -568,12 +542,8 @@ final class OAuthLoginConfigurationTest extends TestCase
         self::assertSame('https://idp.example.com/.well-known', $oidc->discoveryUrl);
         self::assertSame(['openid', 'profile'], $oidc->scopes);
         self::assertTrue($oidc->autoProvision);
-        self::assertSame('editor', $oidc->defaultRole);
-        self::assertSame('roles', $oidc->roleClaim);
-        self::assertSame(['Admin' => 'administrator'], $oidc->roleMapping);
         self::assertSame('brand', $oidc->buttonStyle);
         self::assertTrue($config->autoProvision);
-        self::assertSame('author', $config->defaultRole);
         self::assertSame('icon-only', $config->buttonDisplay);
 
         delete_option(OAuthLoginConfiguration::OPTION_NAME);
@@ -585,7 +555,6 @@ final class OAuthLoginConfigurationTest extends TestCase
         update_option(OAuthLoginConfiguration::OPTION_NAME, [
             'ssoOnly' => true,
             'autoProvision' => true,
-            'defaultRole' => 'editor',
             'authorizePath' => '/sso/{provider}/login',
             'callbackPath' => '/sso/{provider}/return',
             'verifyPath' => '/sso/{provider}/check',
@@ -596,7 +565,6 @@ final class OAuthLoginConfigurationTest extends TestCase
 
         self::assertTrue($config->ssoOnly);
         self::assertTrue($config->autoProvision);
-        self::assertSame('editor', $config->defaultRole);
         self::assertSame('/sso/{provider}/login', $config->authorizePath);
         self::assertSame('/sso/{provider}/return', $config->callbackPath);
         self::assertSame('/sso/{provider}/check', $config->verifyPath);

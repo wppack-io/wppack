@@ -725,9 +725,6 @@ final class OAuthLoginPluginServiceProviderTest extends TestCase
             clientSecret: 'secret',
             label: 'Google',
             autoProvision: true,
-            defaultRole: 'editor',
-            roleClaim: 'roles',
-            roleMapping: ['admin' => 'administrator'],
         );
 
         $resolver = OAuthLoginPluginServiceProvider::createUserResolver(

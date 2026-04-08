@@ -17,7 +17,6 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Rest\AbstractRestController;
-use WpPack\Component\Role\RoleProvider;
 use WpPack\Component\Sanitizer\Sanitizer;
 use WpPack\Plugin\OAuthLoginPlugin\Admin\OAuthLoginSettingsController;
 use WpPack\Plugin\OAuthLoginPlugin\Configuration\OAuthLoginConfiguration;
@@ -36,7 +35,6 @@ final class OAuthLoginSettingsControllerTest extends TestCase
         $this->controller = new OAuthLoginSettingsController(
             $config,
             new Sanitizer(),
-            new RoleProvider(),
         );
     }
 
@@ -102,7 +100,6 @@ final class OAuthLoginSettingsControllerTest extends TestCase
         $controller = new OAuthLoginSettingsController(
             $config,
             new Sanitizer(),
-            new RoleProvider(),
         );
 
         $response = $controller->getSettings();
@@ -128,7 +125,6 @@ final class OAuthLoginSettingsControllerTest extends TestCase
         $controller = new OAuthLoginSettingsController(
             $config,
             new Sanitizer(),
-            new RoleProvider(),
         );
 
         $response = $controller->getSettings();
@@ -183,7 +179,6 @@ final class OAuthLoginSettingsControllerTest extends TestCase
         $controller = new OAuthLoginSettingsController(
             $config,
             new Sanitizer(),
-            new RoleProvider(),
         );
 
         $request = new \WP_REST_Request('POST');
@@ -219,7 +214,6 @@ final class OAuthLoginSettingsControllerTest extends TestCase
         $controller = new OAuthLoginSettingsController(
             $config,
             new Sanitizer(),
-            new RoleProvider(),
         );
 
         $request = new \WP_REST_Request('POST');
@@ -249,7 +243,6 @@ final class OAuthLoginSettingsControllerTest extends TestCase
         $controller = new OAuthLoginSettingsController(
             $config,
             new Sanitizer(),
-            new RoleProvider(),
         );
 
         $request = new \WP_REST_Request('POST');
@@ -280,7 +273,6 @@ final class OAuthLoginSettingsControllerTest extends TestCase
         $controller = new OAuthLoginSettingsController(
             $config,
             new Sanitizer(),
-            new RoleProvider(),
         );
 
         $request = new \WP_REST_Request('POST');
@@ -296,21 +288,6 @@ final class OAuthLoginSettingsControllerTest extends TestCase
         // github first (from order), then google and apple appended
         self::assertSame('github', $keys[0]);
         self::assertCount(3, $keys);
-    }
-
-    #[Test]
-    public function saveSettingsSkipsInvalidRole(): void
-    {
-        $request = new \WP_REST_Request('POST');
-        $request->set_header('Content-Type', 'application/json');
-        $request->set_body(json_encode([
-            'global' => ['defaultRole' => 'nonexistent_role'],
-        ]));
-
-        $this->controller->saveSettings($request);
-
-        $saved = get_option(OAuthLoginConfiguration::OPTION_NAME);
-        self::assertArrayNotHasKey('defaultRole', $saved);
     }
 
     #[Test]
@@ -337,7 +314,6 @@ final class OAuthLoginSettingsControllerTest extends TestCase
             'global' => [
                 'ssoOnly' => true,
                 'autoProvision' => false,
-                'defaultRole' => 'subscriber',
                 'buttonDisplay' => 'icon-only',
             ],
         ]));
@@ -347,7 +323,6 @@ final class OAuthLoginSettingsControllerTest extends TestCase
         $saved = get_option(OAuthLoginConfiguration::OPTION_NAME);
         self::assertTrue($saved['ssoOnly']);
         self::assertFalse($saved['autoProvision']);
-        self::assertSame('subscriber', $saved['defaultRole']);
         self::assertSame('icon-only', $saved['buttonDisplay']);
     }
 
@@ -424,7 +399,6 @@ final class OAuthLoginSettingsControllerTest extends TestCase
         $controller = new OAuthLoginSettingsController(
             $config,
             new Sanitizer(),
-            new RoleProvider(),
         );
 
         $response = $controller->getSettings();
@@ -463,7 +437,7 @@ final class OAuthLoginSettingsControllerTest extends TestCase
     }
 
     #[Test]
-    public function getSettingsReturnsProviderFieldsWithRoleMappingAndScopes(): void
+    public function getSettingsReturnsProviderFieldsWithScopesAndButtonStyle(): void
     {
         $oidc = new ProviderConfiguration(
             name: 'oidc',
@@ -472,8 +446,6 @@ final class OAuthLoginSettingsControllerTest extends TestCase
             clientSecret: 'secret',
             label: 'OIDC',
             scopes: ['openid', 'profile'],
-            roleMapping: ['admin' => 'administrator'],
-            roleClaim: 'roles',
             buttonStyle: 'brand',
         );
 
@@ -481,7 +453,6 @@ final class OAuthLoginSettingsControllerTest extends TestCase
         $controller = new OAuthLoginSettingsController(
             $config,
             new Sanitizer(),
-            new RoleProvider(),
         );
 
         $response = $controller->getSettings();
@@ -491,23 +462,7 @@ final class OAuthLoginSettingsControllerTest extends TestCase
 
         $fields = $data['providers']['oidc']['fields'];
         self::assertSame('openid profile', $fields['scopes']);
-        self::assertSame('{"admin":"administrator"}', $fields['role_mapping']);
-        self::assertSame('roles', $fields['role_claim']);
         self::assertSame('brand', $fields['button_style']);
     }
 
-    #[Test]
-    public function saveSettingsEmptyDefaultRoleAccepted(): void
-    {
-        $request = new \WP_REST_Request('POST');
-        $request->set_header('Content-Type', 'application/json');
-        $request->set_body(json_encode([
-            'global' => ['defaultRole' => ''],
-        ]));
-
-        $this->controller->saveSettings($request);
-
-        $saved = get_option(OAuthLoginConfiguration::OPTION_NAME);
-        self::assertSame('', $saved['defaultRole']);
-    }
 }

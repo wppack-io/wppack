@@ -447,9 +447,6 @@ final class SamlLoginPluginServiceProviderTest extends TestCase
             idpSsoUrl: 'https://idp.example.com/sso',
             idpX509Cert: 'MIICert',
             autoProvision: true,
-            defaultRole: 'editor',
-            roleAttribute: 'groups',
-            roleMapping: ['admins' => 'administrator'],
         );
 
         $resolver = SamlLoginPluginServiceProvider::createUserResolver($config, new EventDispatcher(), new UserRepository(), new Sanitizer());
@@ -464,7 +461,6 @@ final class SamlLoginPluginServiceProviderTest extends TestCase
             idpEntityId: 'https://idp.example.com',
             idpSsoUrl: 'https://idp.example.com/sso',
             idpX509Cert: 'MIICert',
-            addUserToBlog: false,
         );
 
         $idpSettings = SamlLoginPluginServiceProvider::createIdpSettings($config);

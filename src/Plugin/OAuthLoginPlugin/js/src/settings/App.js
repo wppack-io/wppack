@@ -4,7 +4,6 @@ import {
 	Panel,
 	PanelBody,
 	TextControl,
-	TextareaControl,
 	ToggleControl,
 	SelectControl,
 	Button,
@@ -61,7 +60,7 @@ function PathField( { id, label, field, value, onChange, prefix, disabled } ) {
 	);
 }
 
-function ProviderPanel( { name, provider, providerFields, onChange, onDelete, onRename, onMoveUp, onMoveDown, isFirst, isLast, isReadonly, icons, allStyles, buttonDisplay, definitions, roleOptions, initialOpen } ) {
+function ProviderPanel( { name, provider, providerFields, onChange, onDelete, onRename, onMoveUp, onMoveDown, isFirst, isLast, isReadonly, icons, allStyles, buttonDisplay, definitions, initialOpen } ) {
 	const [ editName, setEditName ] = useState( name );
 	const f = providerFields || {};
 	const icon = icons[ f.type ] || icons[ name ] || provider.icon;
@@ -84,9 +83,6 @@ function ProviderPanel( { name, provider, providerFields, onChange, onDelete, on
 		discovery_url: f.discovery_url || '',
 		hosted_domain: f.hosted_domain || '',
 		auto_provision: !! f.auto_provision,
-		default_role: f.default_role || 'subscriber',
-		role_claim: f.role_claim || '',
-		role_mapping: f.role_mapping || '',
 		button_style: selectedStyle,
 	} ), [ f, selectedStyle ] );
 
@@ -272,41 +268,6 @@ function ProviderPanel( { name, provider, providerFields, onChange, onDelete, on
 					/>
 				),
 			},
-			{
-				id: 'role_claim',
-				label: badgeLabel( __( 'Role Claim', 'wppack-oauth-login' ), isReadonly ? 'constant' : undefined ),
-				type: 'text',
-				description: __( 'JWT claim name containing role.', 'wppack-oauth-login' ),
-				Edit: isReadonly
-					? ( { data, field } ) => (
-						<TextControl
-							id={ field.id }
-							label={ field.label }
-							help={ __( 'JWT claim name containing role.', 'wppack-oauth-login' ) }
-							value={ data.role_claim }
-							disabled
-							onChange={ () => {} }
-							__nextHasNoMarginBottom
-						/>
-					)
-					: undefined,
-			},
-			{
-				id: 'role_mapping',
-				label: badgeLabel( __( 'Role Mapping (JSON)', 'wppack-oauth-login' ), isReadonly ? 'constant' : undefined ),
-				type: 'text',
-				Edit: ( { data, field, onChange: onFieldChange } ) => (
-					<TextareaControl
-						label={ field.label }
-						help={ __( 'e.g. {"Admin":"administrator","Member":"subscriber"}', 'wppack-oauth-login' ) }
-						value={ data.role_mapping }
-						onChange={ ( val ) => onFieldChange( { role_mapping: val } ) }
-						disabled={ isReadonly }
-						rows={ 3 }
-						__nextHasNoMarginBottom
-					/>
-				),
-			},
 		);
 
 		result.push( {
@@ -391,7 +352,7 @@ function ProviderPanel( { name, provider, providerFields, onChange, onDelete, on
 		} );
 
 		return result;
-	}, [ reqFields, isReadonly, roleOptions, styleKeys, providerStyles, buttonDisplay, name, icon ] );
+	}, [ reqFields, isReadonly, styleKeys, providerStyles, buttonDisplay, name, icon ] );
 
 	const panelForm = useMemo( () => ( {
 		fields: panelFormFields.map( ( pf ) => pf.id ),
@@ -475,7 +436,6 @@ export default function App() {
 	const [ icons, setIcons ] = useState( {} );
 	const [ styles, setStyles ] = useState( {} );
 	const [ definitions, setDefinitions ] = useState( {} );
-	const [ roles, setRoles ] = useState( {} );
 	const [ siteUrl, setSiteUrl ] = useState( '' );
 	const [ globalForm, setGlobalForm ] = useState( {} );
 	const [ providerForm, setProviderForm ] = useState( {} );
@@ -492,7 +452,6 @@ export default function App() {
 		setIcons( data.icons || {} );
 		setStyles( data.styles || {} );
 		setDefinitions( data.definitions || {} );
-		setRoles( data.roles || {} );
 		setGlobalSettings( data.global );
 		setProviders( data.providers || {} );
 		setProviderOrder( Object.keys( data.providers || {} ) );
@@ -593,7 +552,6 @@ export default function App() {
 			client_secret: '',
 			label: def?.label || name,
 			auto_provision: false,
-			default_role: 'subscriber',
 		};
 
 		setProviders( ( prev ) => ( {
@@ -662,17 +620,9 @@ export default function App() {
 
 	const g = ( key ) => globalSettings?.[ key ] || {};
 
-	const roleOptions = useMemo( () =>
-		Object.entries( roles ).map( ( [ value, label ] ) => ( {
-			label,
-			value,
-		} ) ),
-	[ roles ] );
-
 	const globalData = useMemo( () => ( {
 		ssoOnly: !! globalForm.ssoOnly,
 		autoProvision: !! globalForm.autoProvision,
-		defaultRole: globalForm.defaultRole || 'subscriber',
 		buttonDisplay: globalForm.buttonDisplay || 'icon-text',
 		authorizePath: globalForm.authorizePath || '',
 		callbackPath: globalForm.callbackPath || '',
@@ -709,27 +659,6 @@ export default function App() {
 					__nextHasNoMarginBottom
 				/>
 			),
-		},
-		{
-			id: 'defaultRole',
-			label: badgeLabel( __( 'Default Role', 'wppack-oauth-login' ), g( 'defaultRole' ).source ),
-			type: 'text',
-			elements: roleOptions,
-			Edit: g( 'defaultRole' ).readonly
-				? ( { data, field } ) => {
-					const el = roleOptions.find( ( r ) => r.value === data.defaultRole );
-					return (
-						<TextControl
-							id={ field.id }
-							label={ field.label }
-							value={ el ? el.label : data.defaultRole }
-							disabled
-							onChange={ () => {} }
-							__nextHasNoMarginBottom
-						/>
-					);
-				}
-				: undefined,
 		},
 		{
 			id: 'authorizePath',
@@ -802,7 +731,7 @@ export default function App() {
 				}
 				: undefined,
 		},
-	], [ globalSettings, roleOptions, siteUrl ] );
+	], [ globalSettings, siteUrl ] );
 
 	const globalFormDef = useMemo( () => ( {
 		fields: [ {
@@ -919,7 +848,6 @@ export default function App() {
 									allStyles={ styles }
 									buttonDisplay={ globalForm.buttonDisplay || 'icon-text' }
 									definitions={ definitions }
-									roleOptions={ roleOptions }
 									initialOpen={ name === lastAdded }
 								/>
 							);

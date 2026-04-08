@@ -38,10 +38,6 @@ final class SamlLoginConfigurationTest extends TestCase
         'SAML_WANT_ASSERTIONS_SIGNED',
         'SAML_ALLOW_REPEAT_ATTRIBUTE_NAME',
         'SAML_AUTO_PROVISION',
-        'SAML_DEFAULT_ROLE',
-        'SAML_ROLE_ATTRIBUTE',
-        'SAML_ROLE_MAPPING',
-        'SAML_ADD_USER_TO_BLOG',
         'SAML_SSO_ONLY',
         'SAML_METADATA_PATH',
         'SAML_ACS_PATH',
@@ -72,10 +68,6 @@ final class SamlLoginConfigurationTest extends TestCase
             wantAssertionsSigned: false,
             allowRepeatAttributeName: true,
             autoProvision: true,
-            defaultRole: 'editor',
-            roleAttribute: 'groups',
-            roleMapping: ['admins' => 'administrator'],
-            addUserToBlog: false,
             ssoOnly: false,
             metadataPath: '/sso/metadata',
             acsPath: '/sso/acs',
@@ -94,10 +86,6 @@ final class SamlLoginConfigurationTest extends TestCase
         self::assertFalse($config->wantAssertionsSigned);
         self::assertTrue($config->allowRepeatAttributeName);
         self::assertTrue($config->autoProvision);
-        self::assertSame('editor', $config->defaultRole);
-        self::assertSame('groups', $config->roleAttribute);
-        self::assertSame(['admins' => 'administrator'], $config->roleMapping);
-        self::assertFalse($config->addUserToBlog);
         self::assertFalse($config->ssoOnly);
         self::assertSame('/sso/metadata', $config->metadataPath);
         self::assertSame('/sso/acs', $config->acsPath);
@@ -122,10 +110,6 @@ final class SamlLoginConfigurationTest extends TestCase
         self::assertTrue($config->wantAssertionsSigned);
         self::assertFalse($config->allowRepeatAttributeName);
         self::assertFalse($config->autoProvision);
-        self::assertSame('subscriber', $config->defaultRole);
-        self::assertNull($config->roleAttribute);
-        self::assertNull($config->roleMapping);
-        self::assertTrue($config->addUserToBlog);
         self::assertFalse($config->ssoOnly);
         self::assertSame('/saml/metadata', $config->metadataPath);
         self::assertSame('/saml/acs', $config->acsPath);
@@ -139,7 +123,6 @@ final class SamlLoginConfigurationTest extends TestCase
         putenv('SAML_IDP_SSO_URL=https://idp.example.com/sso');
         putenv('SAML_IDP_X509_CERT=MIICert');
         putenv('SAML_AUTO_PROVISION=true');
-        putenv('SAML_DEFAULT_ROLE=editor');
 
         $config = SamlLoginConfiguration::fromEnvironment();
 
@@ -147,7 +130,6 @@ final class SamlLoginConfigurationTest extends TestCase
         self::assertSame('https://idp.example.com/sso', $config->idpSsoUrl);
         self::assertSame('MIICert', $config->idpX509Cert);
         self::assertTrue($config->autoProvision);
-        self::assertSame('editor', $config->defaultRole);
     }
 
     #[Test]
@@ -288,33 +270,6 @@ final class SamlLoginConfigurationTest extends TestCase
     }
 
     #[Test]
-    public function fromEnvironmentParsesRoleMapping(): void
-    {
-        putenv('SAML_IDP_ENTITY_ID=https://idp.example.com');
-        putenv('SAML_IDP_SSO_URL=https://idp.example.com/sso');
-        putenv('SAML_IDP_X509_CERT=MIICert');
-        putenv('SAML_ROLE_MAPPING={"admins":"administrator","editors":"editor"}');
-
-        $config = SamlLoginConfiguration::fromEnvironment();
-
-        self::assertSame(['admins' => 'administrator', 'editors' => 'editor'], $config->roleMapping);
-    }
-
-    #[Test]
-    public function fromEnvironmentThrowsOnInvalidRoleMappingJson(): void
-    {
-        putenv('SAML_IDP_ENTITY_ID=https://idp.example.com');
-        putenv('SAML_IDP_SSO_URL=https://idp.example.com/sso');
-        putenv('SAML_IDP_X509_CERT=MIICert');
-        putenv('SAML_ROLE_MAPPING={invalid}');
-
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('SAML_ROLE_MAPPING is not valid JSON.');
-
-        SamlLoginConfiguration::fromEnvironment();
-    }
-
-    #[Test]
     public function fromEnvironmentBoolDefaults(): void
     {
         putenv('SAML_IDP_ENTITY_ID=https://idp.example.com');
@@ -328,7 +283,6 @@ final class SamlLoginConfigurationTest extends TestCase
         self::assertTrue($config->wantAssertionsSigned);
         self::assertFalse($config->allowRepeatAttributeName);
         self::assertFalse($config->autoProvision);
-        self::assertTrue($config->addUserToBlog);
         self::assertFalse($config->ssoOnly);
     }
 
@@ -376,7 +330,6 @@ final class SamlLoginConfigurationTest extends TestCase
             'idpSsoUrl' => 'https://idp.example.com/sso',
             'idpX509Cert' => 'MIICertFromOption',
             'autoProvision' => true,
-            'defaultRole' => 'editor',
         ]);
 
         $config = SamlLoginConfiguration::fromEnvironmentOrOptions();
@@ -385,7 +338,6 @@ final class SamlLoginConfigurationTest extends TestCase
         self::assertSame('https://idp.example.com/sso', $config->idpSsoUrl);
         self::assertSame('MIICertFromOption', $config->idpX509Cert);
         self::assertTrue($config->autoProvision);
-        self::assertSame('editor', $config->defaultRole);
 
         delete_option('wppack_saml_login');
     }
@@ -399,48 +351,12 @@ final class SamlLoginConfigurationTest extends TestCase
         putenv('SAML_IDP_SLO_URL=https://idp.example.com/slo');
         putenv('SAML_IDP_CERT_FINGERPRINT=AA:BB:CC');
         putenv('SAML_SP_ENTITY_ID=https://sp.example.com');
-        putenv('SAML_ROLE_ATTRIBUTE=groups');
 
         $config = SamlLoginConfiguration::fromEnvironment();
 
         self::assertSame('https://idp.example.com/slo', $config->idpSloUrl);
         self::assertSame('AA:BB:CC', $config->idpCertFingerprint);
         self::assertSame('https://sp.example.com', $config->spEntityId);
-        self::assertSame('groups', $config->roleAttribute);
-    }
-
-    #[Test]
-    public function fromEnvironmentOrOptionsReadsRoleMappingAsArray(): void
-    {
-        update_option('wppack_saml_login', [
-            'idpEntityId' => 'https://idp.test',
-            'idpSsoUrl' => 'https://idp.test/sso',
-            'idpX509Cert' => 'cert',
-            'roleMapping' => ['admin' => 'administrator', 'user' => 'subscriber'],
-        ]);
-
-        $config = SamlLoginConfiguration::fromEnvironmentOrOptions();
-
-        self::assertSame(['admin' => 'administrator', 'user' => 'subscriber'], $config->roleMapping);
-
-        delete_option('wppack_saml_login');
-    }
-
-    #[Test]
-    public function fromEnvironmentOrOptionsReadsRoleMappingAsJson(): void
-    {
-        update_option('wppack_saml_login', [
-            'idpEntityId' => 'https://idp.test',
-            'idpSsoUrl' => 'https://idp.test/sso',
-            'idpX509Cert' => 'cert',
-            'roleMapping' => '{"admin":"administrator"}',
-        ]);
-
-        $config = SamlLoginConfiguration::fromEnvironmentOrOptions();
-
-        self::assertSame(['admin' => 'administrator'], $config->roleMapping);
-
-        delete_option('wppack_saml_login');
     }
 
     #[Test]
@@ -452,14 +368,12 @@ final class SamlLoginConfigurationTest extends TestCase
             'idpX509Cert' => 'cert',
             'idpSloUrl' => 'https://idp.test/slo',
             'idpCertFingerprint' => 'AA:BB:CC',
-            'roleAttribute' => 'groups',
         ]);
 
         $config = SamlLoginConfiguration::fromEnvironmentOrOptions();
 
         self::assertSame('https://idp.test/slo', $config->idpSloUrl);
         self::assertSame('AA:BB:CC', $config->idpCertFingerprint);
-        self::assertSame('groups', $config->roleAttribute);
 
         delete_option('wppack_saml_login');
     }
@@ -476,7 +390,6 @@ final class SamlLoginConfigurationTest extends TestCase
             'wantAssertionsSigned' => false,
             'allowRepeatAttributeName' => true,
             'autoProvision' => true,
-            'addUserToBlog' => false,
             'ssoOnly' => true,
         ]);
 
@@ -487,7 +400,6 @@ final class SamlLoginConfigurationTest extends TestCase
         self::assertFalse($config->wantAssertionsSigned);
         self::assertTrue($config->allowRepeatAttributeName);
         self::assertTrue($config->autoProvision);
-        self::assertFalse($config->addUserToBlog);
         self::assertTrue($config->ssoOnly);
 
         delete_option('wppack_saml_login');
@@ -535,7 +447,6 @@ final class SamlLoginConfigurationTest extends TestCase
     public function fromEnvironmentOrOptionsEnvFallbackForStrings(): void
     {
         putenv('SAML_EMAIL_ATTRIBUTE=mail');
-        putenv('SAML_DEFAULT_ROLE=author');
         putenv('SAML_FIRST_NAME_ATTRIBUTE=givenName');
         putenv('SAML_LAST_NAME_ATTRIBUTE=sn');
         putenv('SAML_DISPLAY_NAME_ATTRIBUTE=cn');
@@ -544,23 +455,9 @@ final class SamlLoginConfigurationTest extends TestCase
         $config = SamlLoginConfiguration::fromEnvironmentOrOptions();
 
         self::assertSame('mail', $config->emailAttribute);
-        self::assertSame('author', $config->defaultRole);
         self::assertSame('givenName', $config->firstNameAttribute);
         self::assertSame('sn', $config->lastNameAttribute);
         self::assertSame('cn', $config->displayNameAttribute);
-    }
-
-    #[Test]
-    public function fromEnvironmentReadsRoleMappingFromEnv(): void
-    {
-        putenv('SAML_IDP_ENTITY_ID=https://idp.example.com');
-        putenv('SAML_IDP_SSO_URL=https://idp.example.com/sso');
-        putenv('SAML_IDP_X509_CERT=MIICert');
-        putenv('SAML_ROLE_MAPPING={"Admin":"administrator","User":"subscriber"}');
-
-        $config = SamlLoginConfiguration::fromEnvironment();
-
-        self::assertSame(['Admin' => 'administrator', 'User' => 'subscriber'], $config->roleMapping);
     }
 
     #[Test]

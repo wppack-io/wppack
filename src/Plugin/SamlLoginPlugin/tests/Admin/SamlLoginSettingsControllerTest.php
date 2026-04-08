@@ -17,7 +17,6 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Rest\AbstractRestController;
-use WpPack\Component\Role\RoleProvider;
 use WpPack\Component\Sanitizer\Sanitizer;
 use WpPack\Component\Security\Bridge\SAML\Configuration\IdpSettings;
 use WpPack\Component\Security\Bridge\SAML\Configuration\SamlConfiguration;
@@ -43,7 +42,6 @@ final class SamlLoginSettingsControllerTest extends TestCase
         $this->controller = new SamlLoginSettingsController(
             $config,
             new Sanitizer(),
-            new RoleProvider(),
         );
     }
 
@@ -94,7 +92,6 @@ final class SamlLoginSettingsControllerTest extends TestCase
         $controller = new SamlLoginSettingsController(
             $config,
             new Sanitizer(),
-            new RoleProvider(),
         );
 
         $response = $controller->getSettings();
@@ -115,7 +112,6 @@ final class SamlLoginSettingsControllerTest extends TestCase
         $controller = new SamlLoginSettingsController(
             $config,
             new Sanitizer(),
-            new RoleProvider(),
         );
 
         $response = $controller->getSettings();
@@ -163,7 +159,6 @@ final class SamlLoginSettingsControllerTest extends TestCase
         $controller = new SamlLoginSettingsController(
             $config,
             new Sanitizer(),
-            new RoleProvider(),
         );
 
         $request = new \WP_REST_Request('POST');
@@ -176,21 +171,6 @@ final class SamlLoginSettingsControllerTest extends TestCase
 
         $saved = get_option('wppack_saml_login');
         self::assertSame('original-cert', $saved['idpX509Cert']);
-    }
-
-    #[Test]
-    public function saveSettingsSkipsInvalidRole(): void
-    {
-        $request = new \WP_REST_Request('POST');
-        $request->set_header('Content-Type', 'application/json');
-        $request->set_body(json_encode([
-            'defaultRole' => 'nonexistent_role_xyz',
-        ]));
-
-        $this->controller->saveSettings($request);
-
-        $saved = get_option('wppack_saml_login');
-        self::assertArrayNotHasKey('defaultRole', $saved);
     }
 
     #[Test]
@@ -221,46 +201,6 @@ final class SamlLoginSettingsControllerTest extends TestCase
 
         $saved = get_option('wppack_saml_login');
         self::assertSame('/custom/metadata', $saved['metadataPath']);
-    }
-
-    #[Test]
-    public function saveSettingsAcceptsValidRole(): void
-    {
-        $request = new \WP_REST_Request('POST');
-        $request->set_header('Content-Type', 'application/json');
-        $request->set_body(json_encode([
-            'defaultRole' => 'subscriber',
-        ]));
-
-        $this->controller->saveSettings($request);
-
-        $saved = get_option('wppack_saml_login');
-        self::assertSame('subscriber', $saved['defaultRole']);
-    }
-
-    #[Test]
-    public function getSettingsEncodesRoleMappingAsJson(): void
-    {
-        update_option('wppack_saml_login', [
-            'idpEntityId' => 'https://idp.test',
-            'roleMapping' => ['admin' => 'administrator'],
-        ]);
-
-        $config = SamlLoginConfiguration::fromEnvironmentOrOptions();
-        $controller = new SamlLoginSettingsController(
-            $config,
-            new Sanitizer(),
-            new RoleProvider(),
-        );
-
-        $response = $controller->getSettings();
-
-        /** @var array<string, mixed> $data */
-        $data = json_decode($response->content, true);
-
-        // roleMapping should be JSON-encoded string in the response
-        self::assertIsString($data['fields']['roleMapping']['value']);
-        self::assertStringContainsString('administrator', $data['fields']['roleMapping']['value']);
     }
 
     #[Test]
@@ -315,7 +255,6 @@ final class SamlLoginSettingsControllerTest extends TestCase
         $controller = new SamlLoginSettingsController(
             $config,
             new Sanitizer(),
-            new RoleProvider(),
             $exporter,
         );
 
@@ -339,7 +278,6 @@ final class SamlLoginSettingsControllerTest extends TestCase
         $controller = new SamlLoginSettingsController(
             $config,
             new Sanitizer(),
-            new RoleProvider(),
         );
 
         $response = $controller->getSettings();

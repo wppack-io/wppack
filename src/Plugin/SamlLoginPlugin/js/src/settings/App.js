@@ -62,7 +62,6 @@ export default function App() {
 	const [ meta, setMeta ] = useState( {
 		fields: {},
 		siteUrl: '',
-		roles: {},
 	} );
 	const [ saving, setSaving ] = useState( false );
 	const [ notice, setNotice ] = useState( null );
@@ -77,7 +76,6 @@ export default function App() {
 		setMeta( {
 			fields: data.fields,
 			siteUrl: data.siteUrl || '',
-			roles: data.roles || {},
 		} );
 	};
 
@@ -149,15 +147,6 @@ export default function App() {
 	const f = ( key ) => meta.fields[ key ] || {};
 	const isSensitive = ( key ) =>
 		[ 'idpX509Cert', 'idpCertFingerprint' ].includes( key );
-
-	const roleOptions = useMemo(
-		() =>
-			Object.entries( meta.roles ).map( ( [ value, label ] ) => ( {
-				label,
-				value,
-			} ) ),
-		[ meta.roles ]
-	);
 
 	const nameIdOptions = useMemo(
 		() => [
@@ -534,32 +523,6 @@ export default function App() {
 				),
 			},
 			{
-				id: 'defaultRole',
-				label: badgeLabel(
-					__( 'Default Role', 'wppack-saml-login' ),
-					f( 'defaultRole' ).source
-				),
-				type: 'text',
-				elements: roleOptions,
-				Edit: ( { data, field } ) => (
-					<SelectControl
-						className="wpp-saml-narrow"
-						id={ field.id }
-						label={ field.label }
-						value={ data.defaultRole }
-						onChange={ ( val ) =>
-							setFormData( ( prev ) => ( {
-								...prev,
-								defaultRole: val,
-							} ) )
-						}
-						disabled={ f( 'defaultRole' ).readonly }
-						options={ roleOptions }
-						__nextHasNoMarginBottom
-					/>
-				),
-			},
-			{
 				id: 'emailAttribute',
 				label: badgeLabel(
 					__( 'Email Attribute', 'wppack-saml-login' ),
@@ -651,91 +614,8 @@ export default function App() {
 					/>
 				),
 			},
-			{
-				id: 'roleAttribute',
-				label: badgeLabel(
-					__( 'Role Attribute', 'wppack-saml-login' ),
-					f( 'roleAttribute' ).source
-				),
-				type: 'text',
-				Edit: ( { data, field } ) => (
-					<div className="wpp-saml-narrow">
-						<TextControl
-							id={ field.id }
-							label={ field.label }
-							value={ data.roleAttribute || '' }
-							onChange={ ( val ) =>
-								setFormData( ( prev ) => ( {
-									...prev,
-									roleAttribute: val,
-								} ) )
-							}
-							disabled={ f( 'roleAttribute' ).readonly }
-							help={ __(
-								'SAML attribute name for role mapping.',
-								'wppack-saml-login'
-							) }
-							__nextHasNoMarginBottom
-						/>
-					</div>
-				),
-			},
-			{
-				id: 'roleMapping',
-				label: badgeLabel(
-					__( 'Role Mapping (JSON)', 'wppack-saml-login' ),
-					f( 'roleMapping' ).source
-				),
-				type: 'text',
-				Edit: ( { data, field } ) => (
-					<TextareaControl
-						id={ field.id }
-						label={ field.label }
-						help={ __(
-							'JSON object mapping SAML roles to WordPress roles, e.g. {"admin":"administrator","member":"subscriber"}',
-							'wppack-saml-login'
-						) }
-						value={ data.roleMapping || '' }
-						onChange={ ( val ) =>
-							setFormData( ( prev ) => ( {
-								...prev,
-								roleMapping: val,
-							} ) )
-						}
-						disabled={ f( 'roleMapping' ).readonly }
-						rows={ 3 }
-						__nextHasNoMarginBottom
-					/>
-				),
-			},
-			{
-				id: 'addUserToBlog',
-				label: badgeLabel(
-					__( 'Add User to Blog', 'wppack-saml-login' ),
-					f( 'addUserToBlog' ).source
-				),
-				type: 'text',
-				Edit: ( { data, field } ) => (
-					<ToggleControl
-						label={ field.label }
-						checked={ !! data.addUserToBlog }
-						onChange={ ( val ) =>
-							setFormData( ( prev ) => ( {
-								...prev,
-								addUserToBlog: val,
-							} ) )
-						}
-						disabled={ f( 'addUserToBlog' ).readonly }
-						help={ __(
-							'Multisite: add user to the current blog on login.',
-							'wppack-saml-login'
-						) }
-						__nextHasNoMarginBottom
-					/>
-				),
-			},
 		],
-		[ meta.fields, roleOptions ]
+		[ meta.fields ]
 	);
 
 	// ── Advanced fields ──

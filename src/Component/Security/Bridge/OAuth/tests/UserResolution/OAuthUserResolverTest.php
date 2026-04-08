@@ -176,111 +176,6 @@ final class OAuthUserResolverTest extends TestCase
         self::assertSame('John Doe', $user->display_name);
     }
 
-    #[Test]
-    public function autoProvisionWithDefaultRole(): void
-    {
-        $subject = 'provisioned_editor_' . uniqid();
-        $resolver = new OAuthUserResolver(
-            'google',
-            new UserRepository(),
-            new Sanitizer(),
-            autoProvision: true,
-            defaultRole: 'editor',
-        );
-
-        $user = $resolver->resolveUser(
-            $subject,
-            ['email' => 'oauth-editor-' . uniqid() . '@example.com'],
-        );
-
-        self::assertInstanceOf(\WP_User::class, $user);
-        self::assertContains('editor', $user->roles);
-    }
-
-    #[Test]
-    public function mapUserRoleWithStringClaim(): void
-    {
-        $login = 'oauth_role_str_' . uniqid();
-        $userId = wp_insert_user([
-            'user_login' => $login,
-            'user_email' => 'oauth-role-str-' . uniqid() . '@example.com',
-            'user_pass' => wp_generate_password(),
-            'role' => 'subscriber',
-        ]);
-
-        self::assertIsInt($userId);
-
-        $resolver = new OAuthUserResolver(
-            'google',
-            new UserRepository(),
-            new Sanitizer(),
-            roleMapping: ['admin_group' => 'administrator', 'editor_group' => 'editor'],
-            roleClaim: 'role',
-        );
-
-        $user = $resolver->resolveUser(
-            $login,
-            ['role' => 'editor_group'],
-        );
-
-        self::assertContains('editor', $user->roles);
-    }
-
-    #[Test]
-    public function mapUserRoleWithArrayClaim(): void
-    {
-        $login = 'oauth_role_arr_' . uniqid();
-        $userId = wp_insert_user([
-            'user_login' => $login,
-            'user_email' => 'oauth-role-arr-' . uniqid() . '@example.com',
-            'user_pass' => wp_generate_password(),
-            'role' => 'subscriber',
-        ]);
-
-        self::assertIsInt($userId);
-
-        $resolver = new OAuthUserResolver(
-            'google',
-            new UserRepository(),
-            new Sanitizer(),
-            roleMapping: ['admin_group' => 'administrator', 'editor_group' => 'editor'],
-            roleClaim: 'groups',
-        );
-
-        $user = $resolver->resolveUser(
-            $login,
-            ['groups' => ['viewer_group', 'editor_group']],
-        );
-
-        self::assertContains('editor', $user->roles);
-    }
-
-    #[Test]
-    public function mapUserRoleSkippedWhenNoMapping(): void
-    {
-        $login = 'oauth_norole_' . uniqid();
-        $userId = wp_insert_user([
-            'user_login' => $login,
-            'user_email' => 'oauth-norole-' . uniqid() . '@example.com',
-            'user_pass' => wp_generate_password(),
-            'role' => 'subscriber',
-        ]);
-
-        self::assertIsInt($userId);
-
-        // Explicitly set role to ensure it's applied in the test environment
-        $wpUser = get_user_by('id', $userId);
-        $wpUser->set_role('subscriber');
-
-        $resolver = new OAuthUserResolver('google', new UserRepository(), new Sanitizer());
-
-        $user = $resolver->resolveUser(
-            $login,
-            ['role' => 'admin_group'],
-        );
-
-        self::assertContains('subscriber', $user->roles);
-    }
 
     #[Test]
     public function syncUserAttributesUpdatesChangedFields(): void
@@ -392,13 +287,10 @@ final class OAuthUserResolverTest extends TestCase
             new UserRepository(),
             new Sanitizer(),
             autoProvision: true,
-            defaultRole: 'editor',
             emailClaim: 'preferred_email',
             firstNameClaim: 'first',
             lastNameClaim: 'last',
             displayNameClaim: 'full_name',
-            roleMapping: ['admin' => 'administrator'],
-            roleClaim: 'custom_role',
         );
 
         // Just verify it can be instantiated without errors
@@ -500,38 +392,6 @@ final class OAuthUserResolverTest extends TestCase
         self::assertStringNotContainsString('<b>', $refreshed->last_name);
     }
 
-    #[Test]
-    public function roleMapUnmatchedRoleKeepsExisting(): void
-    {
-        $login = 'oauth_unmatched_role_' . uniqid();
-        $userId = wp_insert_user([
-            'user_login' => $login,
-            'user_email' => 'oauth-unmatched-' . uniqid() . '@example.com',
-            'user_pass' => wp_generate_password(),
-            'role' => 'editor',
-        ]);
-
-        self::assertIsInt($userId);
-
-        // Explicitly set role to ensure it's applied in the test environment
-        $wpUser = get_user_by('id', $userId);
-        $wpUser->set_role('editor');
-
-        $resolver = new OAuthUserResolver(
-            'google',
-            new UserRepository(),
-            new Sanitizer(),
-            roleMapping: ['admin_group' => 'administrator'],
-            roleClaim: 'role',
-        );
-
-        $user = $resolver->resolveUser(
-            $login,
-            ['role' => 'unknown_group'],
-        );
-
-        self::assertContains('editor', $user->roles);
-    }
 
     #[Test]
     public function resolveUserByLoginBindsSubject(): void
@@ -724,38 +584,6 @@ final class OAuthUserResolverTest extends TestCase
         self::assertSame('Original', $refreshed->first_name);
     }
 
-    #[Test]
-    public function mapUserRoleWithNonStringArrayElements(): void
-    {
-        $login = 'oauth_role_nonstr_' . uniqid();
-        $userId = wp_insert_user([
-            'user_login' => $login,
-            'user_email' => 'oauth-role-nonstr-' . uniqid() . '@example.com',
-            'user_pass' => wp_generate_password(),
-            'role' => 'subscriber',
-        ]);
-
-        self::assertIsInt($userId);
-
-        $wpUser = get_user_by('id', $userId);
-        $wpUser->set_role('subscriber');
-
-        $resolver = new OAuthUserResolver(
-            'google',
-            new UserRepository(),
-            new Sanitizer(),
-            roleMapping: ['admin_group' => 'administrator'],
-            roleClaim: 'groups',
-        );
-
-        // Non-string array elements should be skipped
-        $user = $resolver->resolveUser(
-            $login,
-            ['groups' => [42, true, null]],
-        );
-
-        self::assertContains('subscriber', $user->roles);
-    }
 
     #[Test]
     public function autoProvisionThrowsWhenWpInsertUserFails(): void

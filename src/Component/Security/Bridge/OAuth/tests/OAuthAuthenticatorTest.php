@@ -97,7 +97,6 @@ final class OAuthAuthenticatorTest extends TestCase
         ?IdTokenValidator $idTokenValidator = null,
         ?JwksProvider $jwksProvider = null,
         ?HttpClient $httpClient = null,
-        bool $addUserToBlog = true,
     ): OAuthAuthenticator {
         return new OAuthAuthenticator(
             $this->provider,
@@ -113,7 +112,6 @@ final class OAuthAuthenticatorTest extends TestCase
             $jwksProvider,
             $crossSiteRedirector,
             $httpClient,
-            $addUserToBlog,
             $verifyPath,
         );
     }

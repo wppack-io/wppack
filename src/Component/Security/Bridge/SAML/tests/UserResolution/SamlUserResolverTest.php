@@ -218,95 +218,6 @@ final class SamlUserResolverTest extends TestCase
     }
 
     #[Test]
-    public function roleMapFirstMatchWins(): void
-    {
-        $login = 'saml_role_first_' . uniqid();
-        $userId = wp_insert_user([
-            'user_login' => $login,
-            'user_email' => 'saml-role-first-' . uniqid() . '@example.com',
-            'user_pass' => wp_generate_password(),
-            'role' => 'subscriber',
-        ]);
-
-        self::assertIsInt($userId);
-
-        $resolver = new SamlUserResolver(
-            new UserRepository(),
-            new Sanitizer(),
-            roleMapping: ['Admin' => 'administrator', 'Editor' => 'editor'],
-            roleAttribute: 'groups',
-        );
-
-        $user = $resolver->resolveUser(
-            $login,
-            ['groups' => ['Editor', 'Admin']],
-        );
-
-        // First match (Editor) should win
-        self::assertContains('editor', $user->roles);
-    }
-
-    #[Test]
-    public function roleMapUnmatchedKeepsExistingRole(): void
-    {
-        $login = 'saml_unmatched_' . uniqid();
-        $userId = wp_insert_user([
-            'user_login' => $login,
-            'user_email' => 'saml-unmatched-' . uniqid() . '@example.com',
-            'user_pass' => wp_generate_password(),
-            'role' => 'editor',
-        ]);
-
-        self::assertIsInt($userId);
-
-        // Explicitly set role to ensure it's applied in the test environment
-        $wpUser = get_user_by('id', $userId);
-        $wpUser->set_role('editor');
-
-        $resolver = new SamlUserResolver(
-            new UserRepository(),
-            new Sanitizer(),
-            roleMapping: ['Admin' => 'administrator'],
-            roleAttribute: 'groups',
-        );
-
-        $user = $resolver->resolveUser(
-            $login,
-            ['groups' => ['UnknownGroup']],
-        );
-
-        // Role should not change when no mapping matches
-        self::assertContains('editor', $user->roles);
-    }
-
-    #[Test]
-    public function roleMapSkippedWhenNoMappingConfigured(): void
-    {
-        $login = 'saml_norole_' . uniqid();
-        $userId = wp_insert_user([
-            'user_login' => $login,
-            'user_email' => 'saml-norole-' . uniqid() . '@example.com',
-            'user_pass' => wp_generate_password(),
-            'role' => 'subscriber',
-        ]);
-
-        self::assertIsInt($userId);
-
-        // Explicitly set role to ensure it's applied in the test environment
-        $wpUser = get_user_by('id', $userId);
-        $wpUser->set_role('subscriber');
-
-        $resolver = new SamlUserResolver(new UserRepository(), new Sanitizer());
-
-        $user = $resolver->resolveUser(
-            $login,
-            ['groups' => ['Admin']],
-        );
-
-        self::assertContains('subscriber', $user->roles);
-    }
-
-    #[Test]
     public function syncUserAttributesUpdatesChanged(): void
     {
         $nameId = 'saml-sync-' . uniqid();
@@ -382,7 +293,6 @@ final class SamlUserResolverTest extends TestCase
             new UserRepository(),
             new Sanitizer(),
             autoProvision: true,
-            defaultRole: 'editor',
         );
 
         $user = $resolver->resolveUser(
@@ -403,7 +313,6 @@ final class SamlUserResolverTest extends TestCase
         self::assertSame('John', $refreshed->first_name);
         self::assertSame('Doe', $refreshed->last_name);
         self::assertSame('John Doe', $refreshed->display_name);
-        self::assertContains('editor', $refreshed->roles);
     }
 
     #[Test]
@@ -495,63 +404,6 @@ final class SamlUserResolverTest extends TestCase
         $resolver->resolveUser($login, []);
 
         self::assertSame($login, get_user_meta($userId, '_wppack_saml_nameid', true));
-    }
-
-    #[Test]
-    public function autoProvisionWithRoleMapping(): void
-    {
-        $nameId = 'provisioned_role_' . uniqid();
-        $resolver = new SamlUserResolver(
-            new UserRepository(),
-            new Sanitizer(),
-            autoProvision: true,
-            defaultRole: 'subscriber',
-            roleMapping: ['Admin' => 'administrator'],
-            roleAttribute: 'groups',
-        );
-
-        $user = $resolver->resolveUser(
-            $nameId,
-            [
-                'email' => ['provision-role-' . uniqid() . '@example.com'],
-                'groups' => ['Admin'],
-            ],
-        );
-
-        self::assertInstanceOf(\WP_User::class, $user);
-        self::assertContains('administrator', $user->roles);
-    }
-
-    #[Test]
-    public function roleMapSkippedWhenRoleAttributeIsNull(): void
-    {
-        $login = 'saml_noroleattr_' . uniqid();
-        $userId = wp_insert_user([
-            'user_login' => $login,
-            'user_email' => 'saml-noroleattr-' . uniqid() . '@example.com',
-            'user_pass' => wp_generate_password(),
-            'role' => 'subscriber',
-        ]);
-
-        self::assertIsInt($userId);
-
-        // Explicitly set role to ensure it's applied in the test environment
-        $wpUser = get_user_by('id', $userId);
-        $wpUser->set_role('subscriber');
-
-        $resolver = new SamlUserResolver(
-            new UserRepository(),
-            new Sanitizer(),
-            roleMapping: ['Admin' => 'administrator'],
-            roleAttribute: null,
-        );
-
-        $user = $resolver->resolveUser(
-            $login,
-            ['groups' => ['Admin']],
-        );
-
-        self::assertContains('subscriber', $user->roles);
     }
 
     #[Test]
@@ -793,39 +645,6 @@ final class SamlUserResolverTest extends TestCase
         $refreshed = get_user_by('id', $user->ID);
         self::assertInstanceOf(\WP_User::class, $refreshed);
         self::assertSame($newEmail, $refreshed->user_email);
-    }
-
-    #[Test]
-    public function roleMapWithEmptyRoleValues(): void
-    {
-        $login = 'saml_empty_roles_' . uniqid();
-        $userId = wp_insert_user([
-            'user_login' => $login,
-            'user_email' => 'saml-empty-roles-' . uniqid() . '@example.com',
-            'user_pass' => wp_generate_password(),
-            'role' => 'subscriber',
-        ]);
-
-        self::assertIsInt($userId);
-
-        // Explicitly set role to ensure it's applied in the test environment
-        $wpUser = get_user_by('id', $userId);
-        $wpUser->set_role('subscriber');
-
-        $resolver = new SamlUserResolver(
-            new UserRepository(),
-            new Sanitizer(),
-            roleMapping: ['Admin' => 'administrator'],
-            roleAttribute: 'groups',
-        );
-
-        // Empty groups array
-        $user = $resolver->resolveUser(
-            $login,
-            ['groups' => []],
-        );
-
-        self::assertContains('subscriber', $user->roles);
     }
 
     #[Test]

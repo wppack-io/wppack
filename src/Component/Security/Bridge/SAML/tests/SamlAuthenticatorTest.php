@@ -615,64 +615,6 @@ final class SamlAuthenticatorTest extends TestCase
     }
 
     #[Test]
-    public function onAuthenticationSuccessWithUserAlreadyMemberOfBlog(): void
-    {
-        $user = $this->createMock(\WP_User::class);
-        $user->ID = 1;
-        $user->roles = ['subscriber'];
-
-        $token = new PostAuthenticationToken($user, ['subscriber']);
-
-        // Use the default authenticator (addUserToBlog = true)
-        $authenticator = new SamlAuthenticator(
-            $this->factory,
-            $this->userResolver,
-            $this->eventDispatcher,
-            blogContext: new BlogContext(),
-            transientManager: new TransientManager(),
-            addUserToBlog: true,
-        );
-
-        $request = new Request(
-            post: [],
-            server: ['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/saml/acs'],
-        );
-
-        $response = $authenticator->onAuthenticationSuccess($request, $token);
-
-        self::assertInstanceOf(RedirectResponse::class, $response);
-    }
-
-    #[Test]
-    public function onAuthenticationSuccessWithAddUserToBlogDisabled(): void
-    {
-        $user = $this->createMock(\WP_User::class);
-        $user->ID = 1;
-        $user->roles = ['subscriber'];
-
-        $token = new PostAuthenticationToken($user, ['subscriber']);
-
-        $authenticator = new SamlAuthenticator(
-            $this->factory,
-            $this->userResolver,
-            $this->eventDispatcher,
-            blogContext: new BlogContext(),
-            transientManager: new TransientManager(),
-            addUserToBlog: false,
-        );
-
-        $request = new Request(
-            post: [],
-            server: ['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/saml/acs'],
-        );
-
-        $response = $authenticator->onAuthenticationSuccess($request, $token);
-
-        self::assertInstanceOf(RedirectResponse::class, $response);
-        self::assertStringContainsString('/wp-admin', $response->url);
-    }
-
-    #[Test]
     public function authenticateWithNullSessionIndex(): void
     {
         $samlResponse = $this->buildSamlResponse(
