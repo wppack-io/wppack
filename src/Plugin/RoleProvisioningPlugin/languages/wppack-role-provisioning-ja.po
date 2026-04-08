@@ -150,5 +150,13 @@ msgid "Exists"
 msgstr "存在する"
 
 #: js/src/settings/App.js
+msgid "Sites"
+msgstr "サイト"
+
+#: js/src/settings/App.js
+msgid "Empty = all sites."
+msgstr "空欄 = 全サイト。"
+
+#: js/src/settings/App.js
 msgid "General"
 msgstr "一般"

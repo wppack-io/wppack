@@ -76,7 +76,29 @@ final class RoleProvisioningSettingsController extends AbstractRestController
             ],
             'roles' => $this->roleProvider->getNames(),
             'isMultisite' => is_multisite(),
+            'sites' => $this->getSites(),
         ];
+    }
+
+    /**
+     * @return array<int, array{id: int, name: string}>
+     */
+    private function getSites(): array
+    {
+        if (!is_multisite() || !function_exists('get_sites')) {
+            return [];
+        }
+
+        $sites = [];
+
+        foreach (get_sites(['number' => 100]) as $site) {
+            $sites[] = [
+                'id' => (int) $site->blog_id,
+                'name' => $site->blogname ?: $site->domain . $site->path,
+            ];
+        }
+
+        return $sites;
     }
 
     /**

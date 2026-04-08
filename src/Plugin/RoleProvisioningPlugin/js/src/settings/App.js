@@ -13,6 +13,7 @@ import {
 	Flex,
 	FlexItem,
 	FlexBlock,
+	FormTokenField,
 } from '@wordpress/components';
 import { Page } from '@wordpress/admin-ui';
 import { __ } from '@wordpress/i18n';
@@ -179,7 +180,7 @@ function ConditionRow( { condition, onChange, onRemove, canRemove } ) {
 	);
 }
 
-function RuleCard( { rule, index, onChange, onRemove, roleSuggestions } ) {
+function RuleCard( { rule, index, onChange, onRemove, roleSuggestions, siteMap } ) {
 	const updateCondition = ( i, cond ) => {
 		const next = [ ...rule.conditions ];
 		next[ i ] = cond;
@@ -193,8 +194,6 @@ function RuleCard( { rule, index, onChange, onRemove, roleSuggestions } ) {
 	const addCondition = () => {
 		onChange( { ...rule, conditions: [ ...rule.conditions, emptyCondition() ] } );
 	};
-
-	const blogIdsStr = rule.blogIds === null ? '' : ( rule.blogIds || [] ).join( ', ' );
 
 	return (
 		<Card size="small" style={ { marginBottom: '12px' } }>
@@ -241,22 +240,31 @@ function RuleCard( { rule, index, onChange, onRemove, roleSuggestions } ) {
 							__nextHasNoMarginBottom
 						/>
 					</FlexBlock>
-					<FlexBlock>
-						<TextControl
-							label={ __( 'Blog IDs', 'wppack-role-provisioning' ) }
-							value={ blogIdsStr }
-							onChange={ ( v ) => {
-								if ( v.trim() === '' ) {
-									onChange( { ...rule, blogIds: null } );
-								} else {
-									const ids = v.split( ',' ).map( ( s ) => parseInt( s.trim(), 10 ) ).filter( ( n ) => ! isNaN( n ) );
-									onChange( { ...rule, blogIds: ids } );
-								}
-							} }
-							help={ __( 'Comma-separated blog IDs. Empty = all sites.', 'wppack-role-provisioning' ) }
-							__nextHasNoMarginBottom
-						/>
-					</FlexBlock>
+					{ Object.keys( siteMap ).length > 0 && (
+						<FlexBlock>
+							<FormTokenField
+								label={ __( 'Sites', 'wppack-role-provisioning' ) }
+								value={ ( rule.blogIds || [] ).map( ( id ) => siteMap[ id ] || `#${ id }` ) }
+								suggestions={ Object.values( siteMap ) }
+								onChange={ ( tokens ) => {
+									if ( tokens.length === 0 ) {
+										onChange( { ...rule, blogIds: null } );
+									} else {
+										const ids = tokens.map( ( t ) => {
+											const entry = Object.entries( siteMap ).find( ( [ , name ] ) => name === t );
+											return entry ? parseInt( entry[ 0 ], 10 ) : null;
+										} ).filter( ( id ) => id !== null );
+										onChange( { ...rule, blogIds: ids.length > 0 ? ids : null } );
+									}
+								} }
+								__experimentalShowHowTo={ false }
+								__nextHasNoMarginBottom
+							/>
+							<p className="components-base-control__help" style={ { marginTop: '4px' } }>
+								{ __( 'Empty = all sites.', 'wppack-role-provisioning' ) }
+							</p>
+						</FlexBlock>
+					) }
 				</Flex>
 			</CardBody>
 		</Card>
@@ -271,12 +279,18 @@ export default function App() {
 		rules: [],
 	} );
 	const [ roles, setRoles ] = useState( {} );
+	const [ sites, setSites ] = useState( [] );
 	const [ isMultisite, setIsMultisite ] = useState( false );
 	const [ loading, setLoading ] = useState( true );
 	const [ saving, setSaving ] = useState( false );
 	const [ notice, setNotice ] = useState( null );
 
 	const roleSuggestions = useMemo( () => Object.keys( roles ), [ roles ] );
+	const siteMap = useMemo( () => {
+		const m = {};
+		sites.forEach( ( s ) => { m[ s.id ] = s.name || `#${ s.id }`; } );
+		return m;
+	}, [ sites ] );
 
 	const applyResponse = useCallback( ( data ) => {
 		const s = data.settings || {};
@@ -287,6 +301,7 @@ export default function App() {
 			rules: s.rules?.value ?? [],
 		} );
 		setRoles( data.roles ?? {} );
+		setSites( data.sites ?? [] );
 		if ( data.isMultisite !== undefined ) {
 			setIsMultisite( data.isMultisite );
 		}
@@ -408,6 +423,7 @@ export default function App() {
 								onChange={ ( r ) => updateRule( i, r ) }
 								onRemove={ () => removeRule( i ) }
 								roleSuggestions={ roleSuggestions }
+								siteMap={ siteMap }
 							/>
 						) ) }
 						<Button variant="secondary" onClick={ addRule }>
