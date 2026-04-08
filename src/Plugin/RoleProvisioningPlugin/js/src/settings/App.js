@@ -4,6 +4,7 @@ import {
 	Button,
 	TextControl,
 	SelectControl,
+	ComboboxControl,
 	ToggleControl,
 	Notice,
 	Spinner,
@@ -28,6 +29,18 @@ const OPERATORS = [
 	{ label: 'exists', value: 'exists' },
 ];
 
+const FIELD_SUGGESTIONS = [
+	{ label: 'user.email', value: 'user.email' },
+	{ label: 'user.login', value: 'user.login' },
+	{ label: 'meta._wppack_sso_source', value: 'meta._wppack_sso_source' },
+	{ label: 'meta._wppack_sso_provider', value: 'meta._wppack_sso_provider' },
+	{ label: 'meta._wppack_saml_attributes', value: 'meta._wppack_saml_attributes' },
+	{ label: 'meta._wppack_saml_attributes.groups', value: 'meta._wppack_saml_attributes.groups' },
+	{ label: 'meta._wppack_oauth_claims_google', value: 'meta._wppack_oauth_claims_google' },
+	{ label: 'meta._wppack_oauth_claims_azure', value: 'meta._wppack_oauth_claims_azure' },
+	{ label: 'meta._wppack_oauth_claims_github', value: 'meta._wppack_oauth_claims_github' },
+];
+
 function emptyCondition() {
 	return { field: '', operator: 'equals', value: '' };
 }
@@ -40,11 +53,12 @@ function ConditionRow( { condition, onChange, onRemove, canRemove } ) {
 	return (
 		<Flex align="flex-end" gap={ 2 } wrap>
 			<FlexBlock>
-				<TextControl
+				<ComboboxControl
 					label={ __( 'Field', 'wppack-role-provisioning' ) }
 					value={ condition.field }
-					onChange={ ( v ) => onChange( { ...condition, field: v } ) }
-					placeholder="user.email, meta._wppack_sso_source"
+					onChange={ ( v ) => onChange( { ...condition, field: v || '' } ) }
+					options={ FIELD_SUGGESTIONS }
+					allowReset={ false }
 					__nextHasNoMarginBottom
 				/>
 			</FlexBlock>
@@ -285,7 +299,7 @@ export default function App() {
 				};
 				return (
 					<div>
-						<p style={ { color: '#757575', fontSize: '13px', marginBottom: '12px' } }>
+						<p style={ { color: '#757575', fontSize: '13px', marginTop: 0, marginBottom: '12px' } }>
 							{ __( 'Rules are evaluated top-down. The first matching rule is applied.', 'wppack-role-provisioning' ) }
 						</p>
 						{ rules.map( ( rule, i ) => (
