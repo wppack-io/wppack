@@ -49,18 +49,19 @@
 .wpp-suggest-input__list {
 	position: absolute;
 	z-index: 1000;
-	top: 100%;
 	left: 0;
 	right: 0;
 	margin: 0;
 	padding: 0;
 	list-style: none;
 	background: #fff;
-	border: 1px solid #949494;
+	border: 1px solid var(--wp-components-color-accent, var(--wp-admin-theme-color, #3858e9));
+	border-top: none;
 	border-radius: 0 0 2px 2px;
 	max-height: 200px;
 	overflow-y: auto;
-	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+	box-shadow: 0 0 0 .5px var(--wp-components-color-accent, var(--wp-admin-theme-color, #3858e9));
+	outline: 2px solid transparent;
 }
 
 .wpp-suggest-input__item {
