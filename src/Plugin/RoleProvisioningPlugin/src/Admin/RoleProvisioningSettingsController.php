@@ -75,6 +75,7 @@ final class RoleProvisioningSettingsController extends AbstractRestController
                 ],
             ],
             'roles' => $this->roleProvider->getNames(),
+            'isMultisite' => is_multisite(),
         ];
     }
 

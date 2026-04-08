@@ -139,7 +139,7 @@ final class RoleProvisioner
             }
 
             if ($this->configuration->addUserToBlog && $this->blogContext->isMultisite()) {
-                add_user_to_blog(get_current_blog_id(), $userId, $role);
+                add_user_to_blog($this->blogContext->getMainSiteId(), $userId, $role);
             }
         }
     }

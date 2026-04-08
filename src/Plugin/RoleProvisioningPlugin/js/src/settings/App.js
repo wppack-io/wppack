@@ -253,6 +253,7 @@ export default function App() {
 		rules: [],
 	} );
 	const [ roles, setRoles ] = useState( {} );
+	const [ isMultisite, setIsMultisite ] = useState( false );
 	const [ loading, setLoading ] = useState( true );
 	const [ saving, setSaving ] = useState( false );
 	const [ notice, setNotice ] = useState( null );
@@ -268,6 +269,9 @@ export default function App() {
 			rules: s.rules?.value ?? [],
 		} );
 		setRoles( data.roles ?? {} );
+		if ( data.isMultisite !== undefined ) {
+			setIsMultisite( data.isMultisite );
+		}
 	}, [] );
 
 	useEffect( () => {
@@ -302,36 +306,42 @@ export default function App() {
 
 	// ── DataForm fields ──
 
-	const generalFields = useMemo( () => [
-		{
-			id: 'enabled',
-			label: __( 'Enabled', 'wppack-role-provisioning' ),
-			type: 'text',
-			Edit: ( { data } ) => (
-				<ToggleControl
-					label={ __( 'Enabled', 'wppack-role-provisioning' ) }
-					help={ __( 'Enable role provisioning rules.', 'wppack-role-provisioning' ) }
-					checked={ !! data.enabled }
-					onChange={ ( v ) => setFormData( ( prev ) => ( { ...prev, enabled: v } ) ) }
-					__nextHasNoMarginBottom
-				/>
-			),
-		},
-		{
-			id: 'addUserToBlog',
-			label: __( 'Add to Blog', 'wppack-role-provisioning' ),
-			type: 'text',
-			Edit: ( { data } ) => (
-				<ToggleControl
-					label={ __( 'Add to Blog', 'wppack-role-provisioning' ) }
-					help={ __( 'Automatically add new users to the current site.', 'wppack-role-provisioning' ) }
-					checked={ !! data.addUserToBlog }
-					onChange={ ( v ) => setFormData( ( prev ) => ( { ...prev, addUserToBlog: v } ) ) }
-					__nextHasNoMarginBottom
-				/>
-			),
-		},
-		{
+	const generalFields = useMemo( () => {
+		const fields = [
+			{
+				id: 'enabled',
+				label: __( 'Enabled', 'wppack-role-provisioning' ),
+				type: 'text',
+				Edit: ( { data } ) => (
+					<ToggleControl
+						label={ __( 'Enabled', 'wppack-role-provisioning' ) }
+						help={ __( 'Enable role provisioning rules.', 'wppack-role-provisioning' ) }
+						checked={ !! data.enabled }
+						onChange={ ( v ) => setFormData( ( prev ) => ( { ...prev, enabled: v } ) ) }
+						__nextHasNoMarginBottom
+					/>
+				),
+			},
+		];
+
+		if ( isMultisite ) {
+			fields.push( {
+				id: 'addUserToBlog',
+				label: __( 'Add to Main Site', 'wppack-role-provisioning' ),
+				type: 'text',
+				Edit: ( { data } ) => (
+					<ToggleControl
+						label={ __( 'Add to Main Site', 'wppack-role-provisioning' ) }
+						help={ __( 'Add new users to the main site with the default role.', 'wppack-role-provisioning' ) }
+						checked={ !! data.addUserToBlog }
+						onChange={ ( v ) => setFormData( ( prev ) => ( { ...prev, addUserToBlog: v } ) ) }
+						__nextHasNoMarginBottom
+					/>
+				),
+			} );
+		}
+
+		fields.push( {
 			id: 'syncOnLogin',
 			label: __( 'Sync on Login', 'wppack-role-provisioning' ),
 			type: 'text',
@@ -344,8 +354,10 @@ export default function App() {
 					__nextHasNoMarginBottom
 				/>
 			),
-		},
-	], [] );
+		} );
+
+		return fields;
+	}, [ isMultisite ] );
 
 	const rulesField = useMemo( () => [
 		{

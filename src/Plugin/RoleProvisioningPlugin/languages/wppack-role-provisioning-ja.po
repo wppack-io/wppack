@@ -86,12 +86,12 @@ msgid "Enable role provisioning rules."
 msgstr "ロールプロビジョニングルールを有効にします。"
 
 #: js/src/settings/App.js
-msgid "Add to Blog"
-msgstr "ブログに追加"
+msgid "Add to Main Site"
+msgstr "メインサイトに追加"
 
 #: js/src/settings/App.js
-msgid "Automatically add new users to the current site."
-msgstr "新規ユーザーを現在のサイトに自動追加します。"
+msgid "Add new users to the main site with the default role."
+msgstr "新規ユーザーをメインサイトにデフォルトロールで追加します。"
 
 #: js/src/settings/App.js
 msgid "Sync on Login"
