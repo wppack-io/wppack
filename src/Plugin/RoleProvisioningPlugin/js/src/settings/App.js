@@ -4,6 +4,7 @@ import {
 	Button,
 	TextControl,
 	SelectControl,
+	CheckboxControl,
 	ToggleControl,
 	Notice,
 	Spinner,
@@ -13,7 +14,6 @@ import {
 	Flex,
 	FlexItem,
 	FlexBlock,
-	FormTokenField,
 } from '@wordpress/components';
 import { Page } from '@wordpress/admin-ui';
 import { __ } from '@wordpress/i18n';
@@ -75,7 +75,9 @@ function SuggestInput( { label, value, onChange, suggestions, help, placeholder,
 		if ( wrapRef.current ) {
 			const input = wrapRef.current.querySelector( 'input' );
 			if ( input ) {
-				setListTop( input.offsetTop + input.offsetHeight + 0.5 );
+				const wrapRect = wrapRef.current.getBoundingClientRect();
+				const inputRect = input.getBoundingClientRect();
+				setListTop( inputRect.bottom - wrapRect.top );
 			}
 		}
 	}, [] );
@@ -180,7 +182,7 @@ function ConditionRow( { condition, onChange, onRemove, canRemove } ) {
 	);
 }
 
-function RuleCard( { rule, index, onChange, onRemove, roleSuggestions, siteMap } ) {
+function RuleCard( { rule, index, onChange, onRemove, roleSuggestions, sites } ) {
 	const updateCondition = ( i, cond ) => {
 		const next = [ ...rule.conditions ];
 		next[ i ] = cond;
@@ -228,7 +230,7 @@ function RuleCard( { rule, index, onChange, onRemove, roleSuggestions, siteMap }
 					+ { __( 'Add Condition', 'wppack-role-provisioning' ) }
 				</Button>
 
-				<Flex gap={ 4 } style={ { marginTop: '12px' } } wrap>
+				<Flex gap={ 4 } align="flex-start" style={ { marginTop: '12px' } } wrap>
 					<FlexBlock>
 						<SuggestInput
 							label={ __( 'Role', 'wppack-role-provisioning' ) }
@@ -240,29 +242,30 @@ function RuleCard( { rule, index, onChange, onRemove, roleSuggestions, siteMap }
 							__nextHasNoMarginBottom
 						/>
 					</FlexBlock>
-					{ Object.keys( siteMap ).length > 0 && (
+					{ sites.length > 0 && (
 						<FlexBlock>
-							<FormTokenField
-								label={ __( 'Sites', 'wppack-role-provisioning' ) }
-								value={ ( rule.blogIds || [] ).map( ( id ) => siteMap[ id ] || `#${ id }` ) }
-								suggestions={ Object.values( siteMap ) }
-								onChange={ ( tokens ) => {
-									if ( tokens.length === 0 ) {
-										onChange( { ...rule, blogIds: null } );
-									} else {
-										const ids = tokens.map( ( t ) => {
-											const entry = Object.entries( siteMap ).find( ( [ , name ] ) => name === t );
-											return entry ? parseInt( entry[ 0 ], 10 ) : null;
-										} ).filter( ( id ) => id !== null );
-										onChange( { ...rule, blogIds: ids.length > 0 ? ids : null } );
-									}
-								} }
-								__experimentalShowHowTo={ false }
-								__nextHasNoMarginBottom
-							/>
-							<p className="components-base-control__help" style={ { marginTop: '4px' } }>
-								{ __( 'Empty = all sites.', 'wppack-role-provisioning' ) }
-							</p>
+							<div style={ { fontSize: '11px', fontWeight: 500, textTransform: 'uppercase', marginBottom: '4px' } }>
+								{ __( 'Sites', 'wppack-role-provisioning' ) }
+							</div>
+							<div style={ { display: 'flex', flexDirection: 'column', gap: '6px' } }>
+							{ sites.map( ( site ) => {
+								const ids = ( rule.blogIds && rule.blogIds.length > 0 ) ? rule.blogIds : [];
+								return (
+									<CheckboxControl
+										key={ site.id }
+										label={ `${ site.name } (#${ site.id })` }
+										checked={ ids.includes( site.id ) }
+										onChange={ ( val ) => {
+											const next = val
+												? [ ...new Set( [ ...ids, site.id ] ) ]
+												: ids.filter( ( id ) => id !== site.id );
+											onChange( { ...rule, blogIds: next } );
+										} }
+										__nextHasNoMarginBottom
+									/>
+								);
+							} ) }
+							</div>
 						</FlexBlock>
 					) }
 				</Flex>
@@ -286,11 +289,6 @@ export default function App() {
 	const [ notice, setNotice ] = useState( null );
 
 	const roleSuggestions = useMemo( () => Object.keys( roles ), [ roles ] );
-	const siteMap = useMemo( () => {
-		const m = {};
-		sites.forEach( ( s ) => { m[ s.id ] = s.name || `#${ s.id }`; } );
-		return m;
-	}, [ sites ] );
 
 	const applyResponse = useCallback( ( data ) => {
 		const s = data.settings || {};
@@ -423,7 +421,7 @@ export default function App() {
 								onChange={ ( r ) => updateRule( i, r ) }
 								onRemove={ () => removeRule( i ) }
 								roleSuggestions={ roleSuggestions }
-								siteMap={ siteMap }
+								sites={ sites }
 							/>
 						) ) }
 						<Button variant="secondary" onClick={ addRule }>
@@ -433,7 +431,7 @@ export default function App() {
 				);
 			},
 		},
-	], [ roleSuggestions ] );
+	], [ roleSuggestions, sites ] );
 
 	const allFields = useMemo(
 		() => [ ...generalFields, ...rulesField ],

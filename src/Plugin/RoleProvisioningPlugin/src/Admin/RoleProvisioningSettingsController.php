@@ -92,9 +92,11 @@ final class RoleProvisioningSettingsController extends AbstractRestController
         $sites = [];
 
         foreach (get_sites(['number' => 100]) as $site) {
+            $blogId = (int) $site->blog_id;
+            $name = get_blog_option($blogId, 'blogname') ?: $site->domain . $site->path;
             $sites[] = [
-                'id' => (int) $site->blog_id,
-                'name' => $site->blogname ?: $site->domain . $site->path,
+                'id' => $blogId,
+                'name' => $name,
             ];
         }
 
