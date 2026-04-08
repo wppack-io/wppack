@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from '@wordpress/element';
+import { DataForm } from '@wordpress/dataviews/wp';
+import { useState, useEffect, useMemo, useCallback } from '@wordpress/element';
 import {
 	Button,
 	TextControl,
@@ -83,7 +84,7 @@ function ConditionRow( { condition, onChange, onRemove, canRemove } ) {
 	);
 }
 
-function RuleCard( { rule, index, onChange, onRemove, roles } ) {
+function RuleCard( { rule, index, onChange, onRemove } ) {
 	const updateCondition = ( i, cond ) => {
 		const next = [ ...rule.conditions ];
 		next[ i ] = cond;
@@ -138,7 +139,7 @@ function RuleCard( { rule, index, onChange, onRemove, roles } ) {
 							value={ rule.role }
 							onChange={ ( v ) => onChange( { ...rule, role: v } ) }
 							help={ __( 'Role name or {{meta.<key>.<path>}} template', 'wppack-role-provisioning' ) }
-							placeholder={ roles?.length ? roles[ 0 ] : 'subscriber' }
+							placeholder="subscriber"
 							__nextHasNoMarginBottom
 						/>
 					</FlexBlock>
@@ -165,7 +166,7 @@ function RuleCard( { rule, index, onChange, onRemove, roles } ) {
 }
 
 export default function App() {
-	const [ settings, setSettings ] = useState( {
+	const [ formData, setFormData ] = useState( {
 		enabled: true,
 		addUserToBlog: false,
 		syncOnLogin: false,
@@ -176,29 +177,28 @@ export default function App() {
 	const [ saving, setSaving ] = useState( false );
 	const [ notice, setNotice ] = useState( null );
 
-	const loadSettings = useCallback( () => {
-		setLoading( true );
+	const applyResponse = useCallback( ( data ) => {
+		const s = data.settings || {};
+		setFormData( {
+			enabled: s.enabled?.value ?? true,
+			addUserToBlog: s.addUserToBlog?.value ?? false,
+			syncOnLogin: s.syncOnLogin?.value ?? false,
+			rules: s.rules?.value ?? [],
+		} );
+		setRoles( data.roles ?? [] );
+	}, [] );
+
+	useEffect( () => {
 		apiFetch( { path: '/wppack/v1/role-provisioning/settings' } )
 			.then( ( data ) => {
-				const s = data.settings || {};
-				setSettings( {
-					enabled: s.enabled?.value ?? true,
-					addUserToBlog: s.addUserToBlog?.value ?? false,
-					syncOnLogin: s.syncOnLogin?.value ?? false,
-					rules: s.rules?.value ?? [],
-				} );
-				setRoles( data.roles ?? [] );
+				applyResponse( data );
 				setLoading( false );
 			} )
 			.catch( () => {
 				setNotice( { type: 'error', message: __( 'Failed to load settings.', 'wppack-role-provisioning' ) } );
 				setLoading( false );
 			} );
-	}, [] );
-
-	useEffect( () => {
-		loadSettings();
-	}, [ loadSettings ] );
+	}, [ applyResponse ] );
 
 	const handleSave = () => {
 		setSaving( true );
@@ -206,16 +206,10 @@ export default function App() {
 		apiFetch( {
 			path: '/wppack/v1/role-provisioning/settings',
 			method: 'POST',
-			data: settings,
+			data: formData,
 		} )
 			.then( ( data ) => {
-				const s = data.settings || {};
-				setSettings( {
-					enabled: s.enabled?.value ?? true,
-					addUserToBlog: s.addUserToBlog?.value ?? false,
-					syncOnLogin: s.syncOnLogin?.value ?? false,
-					rules: s.rules?.value ?? [],
-				} );
+				applyResponse( data );
 				setNotice( { type: 'success', message: __( 'Settings saved.', 'wppack-role-provisioning' ) } );
 			} )
 			.catch( () => {
@@ -224,26 +218,120 @@ export default function App() {
 			.finally( () => setSaving( false ) );
 	};
 
-	const updateRule = ( i, rule ) => {
-		const next = [ ...settings.rules ];
-		next[ i ] = rule;
-		setSettings( { ...settings, rules: next } );
-	};
+	// ── DataForm fields ──
 
-	const removeRule = ( i ) => {
-		setSettings( { ...settings, rules: settings.rules.filter( ( _, j ) => j !== i ) } );
-	};
+	const generalFields = useMemo( () => [
+		{
+			id: 'enabled',
+			label: __( 'Enabled', 'wppack-role-provisioning' ),
+			type: 'text',
+			Edit: ( { data } ) => (
+				<ToggleControl
+					label={ __( 'Enabled', 'wppack-role-provisioning' ) }
+					help={ __( 'Enable role provisioning rules.', 'wppack-role-provisioning' ) }
+					checked={ !! data.enabled }
+					onChange={ ( v ) => setFormData( ( prev ) => ( { ...prev, enabled: v } ) ) }
+					__nextHasNoMarginBottom
+				/>
+			),
+		},
+		{
+			id: 'addUserToBlog',
+			label: __( 'Add to Blog', 'wppack-role-provisioning' ),
+			type: 'text',
+			Edit: ( { data } ) => (
+				<ToggleControl
+					label={ __( 'Add to Blog', 'wppack-role-provisioning' ) }
+					help={ __( 'Automatically add new users to the current site.', 'wppack-role-provisioning' ) }
+					checked={ !! data.addUserToBlog }
+					onChange={ ( v ) => setFormData( ( prev ) => ( { ...prev, addUserToBlog: v } ) ) }
+					__nextHasNoMarginBottom
+				/>
+			),
+		},
+		{
+			id: 'syncOnLogin',
+			label: __( 'Sync on Login', 'wppack-role-provisioning' ),
+			type: 'text',
+			Edit: ( { data } ) => (
+				<ToggleControl
+					label={ __( 'Sync on Login', 'wppack-role-provisioning' ) }
+					help={ __( 'Re-evaluate rules on every SSO login (not just on registration).', 'wppack-role-provisioning' ) }
+					checked={ !! data.syncOnLogin }
+					onChange={ ( v ) => setFormData( ( prev ) => ( { ...prev, syncOnLogin: v } ) ) }
+					__nextHasNoMarginBottom
+				/>
+			),
+		},
+	], [] );
 
-	const addRule = () => {
-		setSettings( { ...settings, rules: [ ...settings.rules, emptyRule() ] } );
-	};
+	const rulesField = useMemo( () => [
+		{
+			id: 'rules',
+			label: __( 'Rules', 'wppack-role-provisioning' ),
+			type: 'text',
+			Edit: ( { data } ) => {
+				const rules = data.rules || [];
+				const updateRule = ( i, rule ) => {
+					const next = [ ...rules ];
+					next[ i ] = rule;
+					setFormData( ( prev ) => ( { ...prev, rules: next } ) );
+				};
+				const removeRule = ( i ) => {
+					setFormData( ( prev ) => ( { ...prev, rules: prev.rules.filter( ( _, j ) => j !== i ) } ) );
+				};
+				const addRule = () => {
+					setFormData( ( prev ) => ( { ...prev, rules: [ ...prev.rules, emptyRule() ] } ) );
+				};
+				return (
+					<div>
+						<p style={ { color: '#757575', fontSize: '13px', marginBottom: '12px' } }>
+							{ __( 'Rules are evaluated top-down. The first matching rule is applied.', 'wppack-role-provisioning' ) }
+						</p>
+						{ rules.map( ( rule, i ) => (
+							<RuleCard
+								key={ i }
+								rule={ rule }
+								index={ i }
+								onChange={ ( r ) => updateRule( i, r ) }
+								onRemove={ () => removeRule( i ) }
+							/>
+						) ) }
+						<Button variant="secondary" onClick={ addRule }>
+							+ { __( 'Add Rule', 'wppack-role-provisioning' ) }
+						</Button>
+					</div>
+				);
+			},
+		},
+	], [] );
+
+	const allFields = useMemo(
+		() => [ ...generalFields, ...rulesField ],
+		[ generalFields, rulesField ]
+	);
+
+	const formLayout = useMemo( () => ( {
+		fields: [
+			{
+				id: 'general-section',
+				label: __( 'General', 'wppack-role-provisioning' ),
+				children: generalFields.map( ( f ) => f.id ),
+				layout: { type: 'regular' },
+			},
+			{
+				id: 'rules-section',
+				label: __( 'Rules', 'wppack-role-provisioning' ),
+				children: [ 'rules' ],
+				layout: { type: 'regular' },
+			},
+		],
+	} ), [ generalFields ] );
 
 	if ( loading ) {
 		return (
 			<Page title={ __( 'Role Provisioning', 'wppack-role-provisioning' ) } hasPadding>
-				<div style={ { display: 'flex', justifyContent: 'center', padding: '48px' } }>
-					<Spinner />
-				</div>
+				<div style={ { display: 'flex', justifyContent: 'center', padding: '48px' } }><Spinner /></div>
 			</Page>
 		);
 	}
@@ -257,51 +345,12 @@ export default function App() {
 					</Notice>
 				) }
 
-				<ToggleControl
-					label={ __( 'Enabled', 'wppack-role-provisioning' ) }
-					help={ __( 'Enable role provisioning rules.', 'wppack-role-provisioning' ) }
-					checked={ settings.enabled }
-					onChange={ ( v ) => setSettings( { ...settings, enabled: v } ) }
-					__nextHasNoMarginBottom
+				<DataForm
+					data={ formData }
+					fields={ allFields }
+					form={ formLayout }
+					onChange={ ( edits ) => setFormData( ( prev ) => ( { ...prev, ...edits } ) ) }
 				/>
-
-				<ToggleControl
-					label={ __( 'Add to Blog', 'wppack-role-provisioning' ) }
-					help={ __( 'Automatically add new users to the current site.', 'wppack-role-provisioning' ) }
-					checked={ settings.addUserToBlog }
-					onChange={ ( v ) => setSettings( { ...settings, addUserToBlog: v } ) }
-					__nextHasNoMarginBottom
-					style={ { marginTop: '12px' } }
-				/>
-
-				<ToggleControl
-					label={ __( 'Sync on Login', 'wppack-role-provisioning' ) }
-					help={ __( 'Re-evaluate rules on every SSO login (not just on registration).', 'wppack-role-provisioning' ) }
-					checked={ settings.syncOnLogin }
-					onChange={ ( v ) => setSettings( { ...settings, syncOnLogin: v } ) }
-					__nextHasNoMarginBottom
-					style={ { marginTop: '12px' } }
-				/>
-
-				<h3 style={ { marginTop: '24px' } }>{ __( 'Rules', 'wppack-role-provisioning' ) }</h3>
-				<p style={ { color: '#757575', fontSize: '13px', marginBottom: '12px' } }>
-					{ __( 'Rules are evaluated top-down. The first matching rule is applied.', 'wppack-role-provisioning' ) }
-				</p>
-
-				{ settings.rules.map( ( rule, i ) => (
-					<RuleCard
-						key={ i }
-						rule={ rule }
-						index={ i }
-						onChange={ ( r ) => updateRule( i, r ) }
-						onRemove={ () => removeRule( i ) }
-						roles={ roles }
-					/>
-				) ) }
-
-				<Button variant="secondary" onClick={ addRule } style={ { marginBottom: '24px' } }>
-					+ { __( 'Add Rule', 'wppack-role-provisioning' ) }
-				</Button>
 
 				<div style={ { marginTop: '16px' } }>
 					<Button variant="primary" onClick={ handleSave } isBusy={ saving } disabled={ saving }>
