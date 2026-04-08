@@ -1,0 +1,122 @@
+# Japanese translation for WpPack Role Provisioning
+msgid ""
+msgstr ""
+"Project-Id-Version: @wppack/role-provisioning-plugin 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugins/wppack-role-provisioning\n"
+"MIME-Version: 1.0\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"PO-Revision-Date: 2026-04-08 00:00+0900\n"
+"Last-Translator: WpPack <dev@wppack.io>\n"
+"Language-Team: WpPack <dev@wppack.io>\n"
+"Language: ja\n"
+"X-Domain: wppack-role-provisioning\n"
+
+#: src/Admin/RoleProvisioningSettingsPage.php
+msgid "Role Provisioning Settings"
+msgstr "ロールプロビジョニング設定"
+
+#: src/Admin/RoleProvisioningSettingsPage.php
+msgid "Role Provisioning"
+msgstr "ロールプロビジョニング"
+
+#: js/src/settings/App.js
+msgid "Field"
+msgstr "フィールド"
+
+#: js/src/settings/App.js
+msgid "Operator"
+msgstr "演算子"
+
+#: js/src/settings/App.js
+msgid "Value"
+msgstr "値"
+
+#: js/src/settings/App.js
+msgid "Rule"
+msgstr "ルール"
+
+#: js/src/settings/App.js
+msgid "Remove"
+msgstr "削除"
+
+#: js/src/settings/App.js
+msgid "Conditions (AND)"
+msgstr "条件（AND）"
+
+#: js/src/settings/App.js
+msgid "Add Condition"
+msgstr "条件を追加"
+
+#: js/src/settings/App.js
+msgid "Role"
+msgstr "ロール"
+
+#: js/src/settings/App.js
+msgid "Role name or {{meta.<key>.<path>}} template"
+msgstr "ロール名または {{meta.<key>.<path>}} テンプレート"
+
+#: js/src/settings/App.js
+msgid "Blog IDs"
+msgstr "ブログ ID"
+
+#: js/src/settings/App.js
+msgid "Comma-separated blog IDs. Empty = all sites."
+msgstr "カンマ区切りのブログ ID。空欄 = 全サイト。"
+
+#: js/src/settings/App.js
+msgid "Failed to load settings."
+msgstr "設定の読み込みに失敗しました。"
+
+#: js/src/settings/App.js
+msgid "Settings saved."
+msgstr "設定を保存しました。"
+
+#: js/src/settings/App.js
+msgid "Failed to save settings."
+msgstr "設定の保存に失敗しました。"
+
+#: js/src/settings/App.js
+msgid "Enabled"
+msgstr "有効"
+
+#: js/src/settings/App.js
+msgid "Enable role provisioning rules."
+msgstr "ロールプロビジョニングルールを有効にします。"
+
+#: js/src/settings/App.js
+msgid "Add to Blog"
+msgstr "ブログに追加"
+
+#: js/src/settings/App.js
+msgid "Automatically add new users to the current site."
+msgstr "新規ユーザーを現在のサイトに自動追加します。"
+
+#: js/src/settings/App.js
+msgid "Sync on Login"
+msgstr "ログイン時に同期"
+
+#: js/src/settings/App.js
+msgid "Re-evaluate rules on every SSO login (not just on registration)."
+msgstr "SSO ログインのたびにルールを再評価します（登録時だけでなく）。"
+
+#: js/src/settings/App.js
+msgid "Rules"
+msgstr "ルール"
+
+#: js/src/settings/App.js
+msgid "Rules are evaluated top-down. The first matching rule is applied."
+msgstr "ルールは上から順に評価されます。最初にマッチしたルールが適用されます。"
+
+#: js/src/settings/App.js
+msgid "Add Rule"
+msgstr "ルールを追加"
+
+#: js/src/settings/App.js
+msgid "Saving…"
+msgstr "保存中…"
+
+#: js/src/settings/App.js
+msgid "Save Settings"
+msgstr "設定を保存"
