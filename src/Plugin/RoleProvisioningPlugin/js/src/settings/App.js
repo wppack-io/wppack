@@ -338,21 +338,23 @@ export default function App() {
 
 	return (
 		<Page title={ __( 'Role Provisioning', 'wppack-role-provisioning' ) } hasPadding>
-			<div style={ { maxWidth: '900px', marginTop: '16px' } }>
+			<div className="wpp-role-provisioning-settings">
 				{ notice && (
 					<Notice status={ notice.type } isDismissible onDismiss={ () => setNotice( null ) } style={ { marginBottom: '16px' } }>
 						{ notice.message }
 					</Notice>
 				) }
 
-				<DataForm
-					data={ formData }
-					fields={ allFields }
-					form={ formLayout }
-					onChange={ ( edits ) => setFormData( ( prev ) => ( { ...prev, ...edits } ) ) }
-				/>
+				<div className="wpp-role-provisioning-dataform-wrap">
+					<DataForm
+						data={ formData }
+						fields={ allFields }
+						form={ formLayout }
+						onChange={ ( edits ) => setFormData( ( prev ) => ( { ...prev, ...edits } ) ) }
+					/>
+				</div>
 
-				<div style={ { marginTop: '16px' } }>
+				<div className="wpp-role-provisioning-actions">
 					<Button variant="primary" onClick={ handleSave } isBusy={ saving } disabled={ saving }>
 						{ saving ? __( 'Saving…', 'wppack-role-provisioning' ) : __( 'Save Settings', 'wppack-role-provisioning' ) }
 					</Button>

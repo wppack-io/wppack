@@ -1,0 +1,51 @@
+/* ── Reset WP admin chrome ─────────────── */
+.settings_page_wppack-role-provisioning #wpcontent {
+	padding-left: 0;
+}
+
+.settings_page_wppack-role-provisioning #wpbody-content {
+	padding-bottom: 0;
+}
+
+.settings_page_wppack-role-provisioning #wpfooter {
+	display: none;
+}
+
+/* ── Admin UI Page overrides ──────────── */
+.admin-ui-page {
+	min-height: calc(100vh - 32px);
+}
+
+.settings_page_wppack-role-provisioning #wpcontent {
+	--wp-admin-theme-color: #3858e9;
+	--wp-admin-theme-color--rgb: 56, 88, 233;
+	--wp-admin-theme-color-darker-10: #2145e6;
+	--wp-admin-theme-color-darker-10--rgb: 33, 69, 230;
+	--wp-admin-theme-color-darker-20: #183ad6;
+	--wp-admin-theme-color-darker-20--rgb: 24, 58, 214;
+	--wp-components-color-accent: #3858e9;
+	--wp-components-color-accent-darker-10: #2145e6;
+	--wp-components-color-accent-darker-20: #183ad6;
+}
+
+.wpp-role-provisioning-settings {
+	max-width: 900px;
+	margin-top: 16px;
+}
+
+.wpp-role-provisioning-settings .components-notice {
+	margin-bottom: 16px;
+}
+
+.wpp-role-provisioning-actions {
+	margin-top: 16px;
+}
+
+/* ── DataForm overrides ──────────── */
+.wpp-role-provisioning-dataform-wrap .components-base-control__field {
+	margin-bottom: 0 !important;
+}
+
+.wpp-role-provisioning-dataform-wrap .components-base-control__label {
+	text-transform: none;
+}

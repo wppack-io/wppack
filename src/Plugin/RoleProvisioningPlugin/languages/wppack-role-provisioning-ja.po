@@ -120,3 +120,7 @@ msgstr "保存中…"
 #: js/src/settings/App.js
 msgid "Save Settings"
 msgstr "設定を保存"
+
+#: js/src/settings/App.js
+msgid "General"
+msgstr "一般"
