@@ -180,11 +180,12 @@ export default function App() {
 		setLoading( true );
 		apiFetch( { path: '/wppack/v1/role-provisioning/settings' } )
 			.then( ( data ) => {
+				const s = data.settings || {};
 				setSettings( {
-					enabled: data.settings?.enabled ?? true,
-					addUserToBlog: data.settings?.addUserToBlog ?? false,
-					syncOnLogin: data.settings?.syncOnLogin ?? false,
-					rules: data.settings?.rules ?? [],
+					enabled: s.enabled?.value ?? true,
+					addUserToBlog: s.addUserToBlog?.value ?? false,
+					syncOnLogin: s.syncOnLogin?.value ?? false,
+					rules: s.rules?.value ?? [],
 				} );
 				setRoles( data.roles ?? [] );
 				setLoading( false );
@@ -208,11 +209,12 @@ export default function App() {
 			data: settings,
 		} )
 			.then( ( data ) => {
+				const s = data.settings || {};
 				setSettings( {
-					enabled: data.settings?.enabled ?? true,
-					addUserToBlog: data.settings?.addUserToBlog ?? false,
-					syncOnLogin: data.settings?.syncOnLogin ?? false,
-					rules: data.settings?.rules ?? [],
+					enabled: s.enabled?.value ?? true,
+					addUserToBlog: s.addUserToBlog?.value ?? false,
+					syncOnLogin: s.syncOnLogin?.value ?? false,
+					rules: s.rules?.value ?? [],
 				} );
 				setNotice( { type: 'success', message: __( 'Settings saved.', 'wppack-role-provisioning' ) } );
 			} )
