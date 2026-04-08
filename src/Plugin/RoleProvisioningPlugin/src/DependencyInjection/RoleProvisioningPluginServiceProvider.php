@@ -13,11 +13,13 @@ declare(strict_types=1);
 
 namespace WpPack\Plugin\RoleProvisioningPlugin\DependencyInjection;
 
+use Psr\Log\LoggerInterface;
 use WpPack\Component\Admin\AdminPageRegistry;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
 use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Logger\DependencyInjection\LoggerServiceProvider;
 use WpPack\Component\Rest\RestRegistry;
 use WpPack\Component\Role\RoleProvider;
 use WpPack\Component\Site\BlogContext;
@@ -58,6 +60,11 @@ final class RoleProvisioningPluginServiceProvider implements ServiceProviderInte
             $builder->register(BlogContextInterface::class, BlogContext::class);
         }
 
+        // Logger
+        if (!$builder->hasDefinition(LoggerInterface::class)) {
+            (new LoggerServiceProvider())->register($builder);
+        }
+
         // Configuration
         $builder->register(RoleProvisioningConfiguration::class)
             ->setFactory([RoleProvisioningConfiguration::class, 'fromOption']);
@@ -73,6 +80,7 @@ final class RoleProvisioningPluginServiceProvider implements ServiceProviderInte
         $builder->register(RoleProvisioner::class)
             ->addArgument(new Reference(RoleProvisioningConfiguration::class))
             ->addArgument(new Reference(RoleProvider::class))
-            ->addArgument(new Reference(BlogContextInterface::class));
+            ->addArgument(new Reference(BlogContextInterface::class))
+            ->addArgument(new Reference(LoggerInterface::class));
     }
 }

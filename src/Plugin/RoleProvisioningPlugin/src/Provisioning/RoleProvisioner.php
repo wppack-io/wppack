@@ -13,18 +13,33 @@ declare(strict_types=1);
 
 namespace WpPack\Plugin\RoleProvisioningPlugin\Provisioning;
 
+use Psr\Log\LoggerInterface;
 use WpPack\Component\Role\RoleProvider;
 use WpPack\Component\Site\BlogContextInterface;
 use WpPack\Plugin\RoleProvisioningPlugin\Configuration\RoleProvisioningConfiguration;
 
 final class RoleProvisioner
 {
-    private const VALID_OPERATORS = ['equals', 'not_equals', 'contains', 'starts_with', 'ends_with', 'matches', 'exists'];
+    /**
+     * Valid comparison operators for rule conditions.
+     *
+     * @var list<string>
+     */
+    public const VALID_OPERATORS = ['equals', 'not_equals', 'contains', 'starts_with', 'ends_with', 'matches', 'exists'];
+
+    /**
+     * SSO meta key prefixes that trigger re-evaluation on login.
+     */
+    private const SSO_META_PREFIXES = [
+        '_wppack_saml_attributes',
+        '_wppack_oauth_claims_',
+    ];
 
     public function __construct(
         private readonly RoleProvisioningConfiguration $configuration,
         private readonly RoleProvider $roleProvider,
         private readonly BlogContextInterface $blogContext,
+        private readonly LoggerInterface $logger,
     ) {}
 
     /**
@@ -37,16 +52,45 @@ final class RoleProvisioner
         }
 
         add_action('user_register', [$this, 'onUserRegister'], 20);
+
+        if ($this->configuration->syncOnLogin) {
+            add_action('updated_user_meta', [$this, 'onMetaUpdated'], 20, 4);
+        }
     }
 
     /**
-     * Handle user_register hook.
+     * Handle updated_user_meta hook for syncOnLogin.
+     *
+     * Triggers re-evaluation when SSO-related meta keys are updated.
      */
-    public function onUserRegister(int $userId): void
+    public function onMetaUpdated(int $metaId, int $userId, string $metaKey, mixed $metaValue): void
+    {
+        if (!$this->isSsoMetaKey($metaKey)) {
+            return;
+        }
+
+        $this->logger->debug('SSO meta updated, re-evaluating provisioning rules', [
+            'userId' => $userId,
+            'metaKey' => $metaKey,
+        ]);
+
+        $this->provision($userId);
+    }
+
+    /**
+     * Provision a user by evaluating rules and applying the matched role.
+     *
+     * Can be called externally to trigger role re-evaluation.
+     */
+    public function provision(int $userId): void
     {
         $match = $this->evaluateRules($userId);
 
         if ($match === null) {
+            $this->logger->debug('No provisioning rule matched for user', [
+                'userId' => $userId,
+            ]);
+
             return;
         }
 
@@ -55,16 +99,39 @@ final class RoleProvisioner
 
         // Validate role exists, fall back to default_role if invalid
         if ($this->roleProvider->find($role) === null) {
+            $this->logger->warning('Matched role does not exist, falling back to default_role', [
+                'userId' => $userId,
+                'requestedRole' => $role,
+            ]);
             $role = get_option('default_role', 'subscriber');
         }
 
+        $this->logger->info('Provisioning rule matched', [
+            'userId' => $userId,
+            'role' => $role,
+            'blogIds' => $blogIds,
+        ]);
+
         if ($blogIds !== null && $this->blogContext->isMultisite()) {
-            // Apply to specific blogs
             foreach ($blogIds as $blogId) {
+                if (!function_exists('get_blog_details') || get_blog_details($blogId) === false) {
+                    $this->logger->warning('Blog does not exist, skipping assignment', [
+                        'userId' => $userId,
+                        'blogId' => $blogId,
+                    ]);
+
+                    continue;
+                }
+
                 add_user_to_blog($blogId, $userId, $role);
+
+                $this->logger->info('Added user to blog', [
+                    'userId' => $userId,
+                    'blogId' => $blogId,
+                    'role' => $role,
+                ]);
             }
         } else {
-            // Apply to current site
             $user = get_userdata($userId);
 
             if ($user !== false) {
@@ -75,6 +142,28 @@ final class RoleProvisioner
                 add_user_to_blog(get_current_blog_id(), $userId, $role);
             }
         }
+    }
+
+    /**
+     * Check whether a meta key is an SSO-related key.
+     */
+    private function isSsoMetaKey(string $metaKey): bool
+    {
+        foreach (self::SSO_META_PREFIXES as $prefix) {
+            if (str_starts_with($metaKey, $prefix)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Handle user_register hook.
+     */
+    public function onUserRegister(int $userId): void
+    {
+        $this->provision($userId);
     }
 
     /**
@@ -91,8 +180,15 @@ final class RoleProvisioner
             return null;
         }
 
-        foreach ($this->configuration->rules as $rule) {
+        foreach ($this->configuration->rules as $index => $rule) {
             if ($this->matchesRule($rule, $user, $userId)) {
+                $this->logger->debug('Provisioning rule matched', [
+                    'userId' => $userId,
+                    'ruleIndex' => $index,
+                    'role' => $rule['role'],
+                    'conditionCount' => \count($rule['conditions']),
+                ]);
+
                 return $rule;
             }
         }
@@ -141,9 +237,28 @@ final class RoleProvisioner
             'contains' => str_contains($fieldValue, $expected),
             'starts_with' => str_starts_with($fieldValue, $expected),
             'ends_with' => str_ends_with($fieldValue, $expected),
-            'matches' => @preg_match($expected, $fieldValue) === 1,
+            'matches' => $this->matchesRegex($expected, $fieldValue),
             'exists' => $fieldValue !== '',
         };
+    }
+
+    /**
+     * Match a value against a regex pattern with proper error handling.
+     */
+    private function matchesRegex(string $pattern, string $subject): bool
+    {
+        $result = preg_match($pattern, $subject);
+
+        if ($result === false) {
+            $this->logger->warning('Invalid regex pattern in provisioning rule', [
+                'pattern' => $pattern,
+                'error' => preg_last_error_msg(),
+            ]);
+
+            return false;
+        }
+
+        return $result === 1;
     }
 
     /**

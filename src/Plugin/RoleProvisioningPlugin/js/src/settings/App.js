@@ -1,5 +1,5 @@
 import { DataForm } from '@wordpress/dataviews/wp';
-import { useState, useEffect, useMemo, useCallback, useRef } from '@wordpress/element';
+import { useState, useEffect, useMemo, useCallback } from '@wordpress/element';
 import {
 	Button,
 	TextControl,
@@ -152,6 +152,7 @@ function RuleCard( { rule, index, onChange, onRemove } ) {
 							onChange={ ( v ) => onChange( { ...rule, role: v } ) }
 							help={ __( 'Role name or {{meta.<key>.<path>}} template', 'wppack-role-provisioning' ) }
 							placeholder="subscriber"
+							list="wpp-role-suggestions"
 							__nextHasNoMarginBottom
 						/>
 					</FlexBlock>
@@ -184,7 +185,7 @@ export default function App() {
 		syncOnLogin: false,
 		rules: [],
 	} );
-	const [ roles, setRoles ] = useState( [] );
+	const [ roles, setRoles ] = useState( {} );
 	const [ loading, setLoading ] = useState( true );
 	const [ saving, setSaving ] = useState( false );
 	const [ notice, setNotice ] = useState( null );
@@ -197,7 +198,7 @@ export default function App() {
 			syncOnLogin: s.syncOnLogin?.value ?? false,
 			rules: s.rules?.value ?? [],
 		} );
-		setRoles( data.roles ?? [] );
+		setRoles( data.roles ?? {} );
 	}, [] );
 
 	useEffect( () => {
@@ -360,6 +361,11 @@ export default function App() {
 				<datalist id="wpp-field-suggestions">
 						{ FIELD_SUGGESTIONS.map( ( s ) => (
 							<option key={ s.value } value={ s.value } />
+						) ) }
+					</datalist>
+					<datalist id="wpp-role-suggestions">
+						{ Object.keys( roles ).map( ( slug ) => (
+							<option key={ slug } value={ slug } />
 						) ) }
 					</datalist>
 

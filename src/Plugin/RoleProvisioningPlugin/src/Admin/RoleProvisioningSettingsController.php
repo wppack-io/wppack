@@ -20,6 +20,7 @@ use WpPack\Component\Rest\HttpMethod;
 use WpPack\Component\Role\Attribute\IsGranted;
 use WpPack\Component\Role\RoleProvider;
 use WpPack\Plugin\RoleProvisioningPlugin\Configuration\RoleProvisioningConfiguration;
+use WpPack\Plugin\RoleProvisioningPlugin\Provisioning\RoleProvisioner;
 
 #[RestRoute(namespace: 'wppack/v1/role-provisioning')]
 #[IsGranted('manage_options')]
@@ -106,7 +107,6 @@ final class RoleProvisioningSettingsController extends AbstractRestController
      */
     private function validateRules(array $rules): array
     {
-        $validOperators = ['equals', 'not_equals', 'contains', 'starts_with', 'ends_with', 'matches', 'exists'];
         $validated = [];
 
         foreach ($rules as $rule) {
@@ -134,7 +134,12 @@ final class RoleProvisioningSettingsController extends AbstractRestController
                         continue;
                     }
 
-                    if (!\in_array($operator, $validOperators, true)) {
+                    if (!\in_array($operator, RoleProvisioner::VALID_OPERATORS, true)) {
+                        continue;
+                    }
+
+                    // Validate regex pattern for matches operator
+                    if ($operator === 'matches' && preg_match($value, '') === false) {
                         continue;
                     }
 
@@ -144,6 +149,11 @@ final class RoleProvisioningSettingsController extends AbstractRestController
                         'value' => $value,
                     ];
                 }
+            }
+
+            // Reject rules with no valid conditions
+            if ($conditions === []) {
+                continue;
             }
 
             $blogIds = null;
