@@ -21,6 +21,14 @@ composer require wppack/role-provisioning-plugin
 
 Settings are available in the WordPress admin under **Settings > Role Provisioning**.
 
+### Sync on Login Protection
+
+When "Sync on Login" is enabled, the following safeguards apply:
+
+- **Protected roles**: Users with protected roles (default: `administrator`) are never changed
+- **Manual change detection**: When a role is set by provisioning, it's recorded in `_wppack_provisioned_role` meta. If an admin manually changes the role, the mismatch prevents re-evaluation on next login
+- **First registration**: Only protected-role check applies; manual-change detection starts after the first provisioning
+
 ### Rule Structure
 
 Rules are evaluated top-down. The first matching rule is applied.

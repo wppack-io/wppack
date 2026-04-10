@@ -58,14 +58,6 @@ msgid "Role name or {{meta.<key>.<path>}} template"
 msgstr "ロール名または {{meta.<key>.<path>}} テンプレート"
 
 #: js/src/settings/App.js
-msgid "Blog IDs"
-msgstr "ブログ ID"
-
-#: js/src/settings/App.js
-msgid "Comma-separated blog IDs. Empty = all sites."
-msgstr "カンマ区切りのブログ ID。空欄 = 全サイト。"
-
-#: js/src/settings/App.js
 msgid "Failed to load settings."
 msgstr "設定の読み込みに失敗しました。"
 
