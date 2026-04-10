@@ -437,6 +437,19 @@ export default function App() {
 					/>
 				),
 			},
+			{
+				id: 'spMetadataDownload',
+				label: __( 'SP Metadata Download', 'wppack-saml-login' ),
+				type: 'text',
+				Edit: () => (
+					<Button
+						variant="secondary"
+						onClick={ handleDownloadMetadata }
+					>
+						{ __( 'Download SP Metadata', 'wppack-saml-login' ) }
+					</Button>
+				),
+			},
 		],
 		[ meta.fields, meta.siteUrl, nameIdOptions ]
 	);
@@ -791,15 +804,6 @@ export default function App() {
 						form={ formConfig }
 						onChange={ handleFormChange }
 					/>
-				</div>
-
-				<div className="wpp-saml-metadata-download">
-					<Button
-						variant="secondary"
-						onClick={ handleDownloadMetadata }
-					>
-						{ __( 'Download SP Metadata', 'wppack-saml-login' ) }
-					</Button>
 				</div>
 
 				<div className="wpp-saml-actions">
