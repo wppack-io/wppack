@@ -23,16 +23,17 @@ final class Header
     public const SIZE = 4377;
 
     private const NAME_SIZE = 255;
-    private const PREFIX_SIZE = 4096;
+    private const PREFIX_SIZE = 4088;
 
-    private const PACK_FORMAT = 'a255a14a12a4096';
-    private const UNPACK_FORMAT = 'a255name/a14size/a12mtime/a4096prefix';
+    private const PACK_FORMAT = 'a255a14a12a4088a8';
+    private const UNPACK_FORMAT = 'a255name/a14size/a12mtime/a4088prefix/a8crc32';
 
     public function __construct(
         public readonly string $name,
         public readonly int $size,
         public readonly int $mtime,
         public readonly string $prefix,
+        public readonly string $crc32 = '',
     ) {}
 
     public static function fromBinary(string $data): self
@@ -52,6 +53,7 @@ final class Header
             size: (int) rtrim($fields['size'], "\0"),
             mtime: (int) rtrim($fields['mtime'], "\0"),
             prefix: rtrim($fields['prefix'], "\0"),
+            crc32: rtrim($fields['crc32'], "\0"),
         );
     }
 
@@ -67,12 +69,19 @@ final class Header
             (string) $this->size,
             (string) $this->mtime,
             $this->prefix,
+            $this->crc32,
         );
     }
 
+    /**
+     * Check if this is an EOF block.
+     *
+     * v1: All fields are empty/zero.
+     * v2: name is empty, mtime is 0, prefix is empty. size may contain archive size, crc32 may contain checksum.
+     */
     public function isEof(): bool
     {
-        return $this->name === '' && $this->size === 0 && $this->mtime === 0 && $this->prefix === '';
+        return $this->name === '' && $this->mtime === 0 && $this->prefix === '';
     }
 
     public function getPath(): string
@@ -84,9 +93,9 @@ final class Header
         return $this->prefix . '/' . $this->name;
     }
 
-    public static function eof(): self
+    public static function eof(int $archiveSize = 0, string $crc32 = ''): self
     {
-        return new self(name: '', size: 0, mtime: 0, prefix: '');
+        return new self(name: '', size: $archiveSize, mtime: 0, prefix: '', crc32: $crc32);
     }
 
     public static function fromPath(string $archivePath, int $size, ?int $mtime = null): self

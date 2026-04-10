@@ -218,11 +218,12 @@ final class HeaderTest extends TestCase
     }
 
     #[Test]
-    public function isEofReturnsFalseWhenOnlySizeIsSet(): void
+    public function isEofReturnsTrueForV2EofWithArchiveSize(): void
     {
-        $header = new Header(name: '', size: 1, mtime: 0, prefix: '');
+        // v2 EOF: name='' mtime=0 prefix='' but size contains archive size and crc32 contains checksum
+        $header = new Header(name: '', size: 12345, mtime: 0, prefix: '', crc32: 'abcd1234');
 
-        self::assertFalse($header->isEof());
+        self::assertTrue($header->isEof());
     }
 
     #[Test]
