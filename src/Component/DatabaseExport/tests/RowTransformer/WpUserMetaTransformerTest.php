@@ -103,6 +103,17 @@ final class WpUserMetaTransformerTest extends TestCase
     }
 
     #[Test]
+    public function passesRowWithoutMetaKeyColumn(): void
+    {
+        $transformer = new WpUserMetaTransformer(new ExportConfiguration());
+
+        $row = ['umeta_id' => 1, 'user_id' => 1, 'meta_value' => 'data'];
+        $result = $transformer->transform($row, $this->schema);
+
+        self::assertSame($row, $result);
+    }
+
+    #[Test]
     public function customExcludeKeys(): void
     {
         $transformer = new WpUserMetaTransformer(new ExportConfiguration(

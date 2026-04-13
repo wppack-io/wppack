@@ -128,6 +128,17 @@ final class WpOptionsTransformerTest extends TestCase
     }
 
     #[Test]
+    public function passesRowWithoutOptionNameColumn(): void
+    {
+        $transformer = new WpOptionsTransformer(new ExportConfiguration(excludeOptionPrefixes: []));
+
+        $row = ['option_id' => 1, 'option_value' => 'data'];
+        $result = $transformer->transform($row, $this->schema);
+
+        self::assertSame($row, $result);
+    }
+
+    #[Test]
     public function defaultConfigExcludesTransients(): void
     {
         $transformer = new WpOptionsTransformer(new ExportConfiguration());
