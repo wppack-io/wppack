@@ -307,16 +307,16 @@ wppack/database
 
 wppack/database
     ↓ requires
-wppack/dsn
+wppack/dsn, psr/log
 
 wppack/sqlite-database
     ↓ requires
-wppack/database
+wppack/database, phpmyadmin/sql-parser
     + ext-pdo_sqlite
 
 wppack/pgsql-database
     ↓ requires
-wppack/database
+wppack/database, phpmyadmin/sql-parser
     + ext-pgsql
 
 wppack/rds-data-api-database
