@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Database;
 
+use Psr\Log\LoggerInterface;
 use WpPack\Component\Database\Driver\DriverInterface;
 use WpPack\Component\Database\Platform\PlatformInterface;
 
@@ -21,11 +22,13 @@ use WpPack\Component\Database\Platform\PlatformInterface;
  *
  * Provides a high-level API for database operations, delegating to a DriverInterface.
  * Uses positional ? placeholders for parameterized queries.
+ * Optionally logs queries via PSR-3 LoggerInterface.
  */
 class Connection
 {
     public function __construct(
         private readonly DriverInterface $driver,
+        private readonly ?LoggerInterface $logger = null,
     ) {}
 
     public function getDriver(): DriverInterface
@@ -45,7 +48,11 @@ class Connection
      */
     public function fetchAllAssociative(string $query, array $params = []): array
     {
-        return $this->driver->executeQuery($query, $params)->fetchAllAssociative();
+        $start = microtime(true);
+        $result = $this->driver->executeQuery($query, $params)->fetchAllAssociative();
+        $this->logQuery($query, $params, $start);
+
+        return $result;
     }
 
     /**
@@ -55,7 +62,11 @@ class Connection
      */
     public function fetchAssociative(string $query, array $params = []): ?array
     {
-        return $this->driver->executeQuery($query, $params)->fetchAssociative();
+        $start = microtime(true);
+        $result = $this->driver->executeQuery($query, $params)->fetchAssociative();
+        $this->logQuery($query, $params, $start);
+
+        return $result;
     }
 
     /**
@@ -63,7 +74,11 @@ class Connection
      */
     public function fetchOne(string $query, array $params = []): mixed
     {
-        return $this->driver->executeQuery($query, $params)->fetchOne();
+        $start = microtime(true);
+        $result = $this->driver->executeQuery($query, $params)->fetchOne();
+        $this->logQuery($query, $params, $start);
+
+        return $result;
     }
 
     /**
@@ -73,7 +88,11 @@ class Connection
      */
     public function fetchFirstColumn(string $query, array $params = []): array
     {
-        return $this->driver->executeQuery($query, $params)->fetchFirstColumn();
+        $start = microtime(true);
+        $result = $this->driver->executeQuery($query, $params)->fetchFirstColumn();
+        $this->logQuery($query, $params, $start);
+
+        return $result;
     }
 
     /**
@@ -81,7 +100,11 @@ class Connection
      */
     public function executeQuery(string $query, array $params = []): Result
     {
-        return $this->driver->executeQuery($query, $params);
+        $start = microtime(true);
+        $result = $this->driver->executeQuery($query, $params);
+        $this->logQuery($query, $params, $start);
+
+        return $result;
     }
 
     /**
@@ -89,7 +112,11 @@ class Connection
      */
     public function executeStatement(string $query, array $params = []): int
     {
-        return $this->driver->executeStatement($query, $params);
+        $start = microtime(true);
+        $result = $this->driver->executeStatement($query, $params);
+        $this->logQuery($query, $params, $start);
+
+        return $result;
     }
 
     public function prepare(string $sql): Statement
@@ -148,5 +175,17 @@ class Connection
     public function quoteIdentifier(string $identifier): string
     {
         return $this->getPlatform()->quoteIdentifier($identifier);
+    }
+
+    /**
+     * @param list<mixed> $params
+     */
+    private function logQuery(string $sql, array $params, float $startTime): void
+    {
+        $this->logger?->debug('Query executed', [
+            'sql' => $sql,
+            'params' => $params,
+            'time_ms' => round((microtime(true) - $startTime) * 1000, 2),
+        ]);
     }
 }

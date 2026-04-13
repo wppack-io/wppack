@@ -15,6 +15,7 @@ namespace WpPack\Component\Database\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use WpPack\Component\Database\Connection;
 use WpPack\Component\Database\Driver\DriverInterface;
 use WpPack\Component\Database\Platform\MysqlPlatform;
@@ -141,5 +142,55 @@ final class ConnectionTest extends TestCase
         $connection = new Connection($driver);
 
         self::assertSame($platform, $connection->getPlatform());
+    }
+
+    // ── Logger ──
+
+    #[Test]
+    public function loggerReceivesDebugOnQuery(): void
+    {
+        $driver = $this->createMock(DriverInterface::class);
+        $driver->method('executeQuery')->willReturn(new Result([['id' => 1]]));
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())->method('debug')
+            ->with('Query executed', self::callback(function (array $context): bool {
+                return $context['sql'] === 'SELECT 1'
+                    && $context['params'] === []
+                    && isset($context['time_ms']);
+            }));
+
+        $connection = new Connection($driver, $logger);
+        $connection->fetchAllAssociative('SELECT 1');
+    }
+
+    #[Test]
+    public function loggerReceivesDebugOnStatement(): void
+    {
+        $driver = $this->createMock(DriverInterface::class);
+        $driver->method('executeStatement')->willReturn(1);
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())->method('debug')
+            ->with('Query executed', self::callback(function (array $context): bool {
+                return $context['sql'] === 'DELETE FROM t WHERE id = ?'
+                    && $context['params'] === [1];
+            }));
+
+        $connection = new Connection($driver, $logger);
+        $connection->executeStatement('DELETE FROM t WHERE id = ?', [1]);
+    }
+
+    #[Test]
+    public function noLoggerDoesNotFail(): void
+    {
+        $driver = $this->createMock(DriverInterface::class);
+        $driver->method('executeQuery')->willReturn(new Result([]));
+
+        // No logger — should not throw
+        $connection = new Connection($driver);
+        $connection->fetchAllAssociative('SELECT 1');
+
+        self::assertTrue(true);
     }
 }

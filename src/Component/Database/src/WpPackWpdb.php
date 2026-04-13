@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Database;
 
+use Psr\Log\LoggerInterface;
 use WpPack\Component\Database\Driver\DriverInterface;
 use WpPack\Component\Database\Translator\QueryTranslatorInterface;
 
@@ -37,16 +38,20 @@ class WpPackWpdb extends \wpdb
     /** @var string|null SQL from the most recent prepare() call (for query() verification) */
     private ?string $preparedSql = null;
 
+    private ?LoggerInterface $logger;
+
     public function __construct(
         DriverInterface $writer,
         QueryTranslatorInterface $translator,
         string $dbname,
         ?DriverInterface $reader = null,
+        ?LoggerInterface $logger = null,
     ) {
         // Do NOT call parent::__construct() — it tries to connect to MySQL.
         $this->writer = $writer;
         $this->reader = $reader;
         $this->translator = $translator;
+        $this->logger = $logger;
 
         $GLOBALS['wpdb'] = $this;
 
@@ -262,6 +267,11 @@ class WpPackWpdb extends \wpdb
         return true;
     }
 
+    public function setLogger(LoggerInterface $logger): void
+    {
+        $this->logger = $logger;
+    }
+
     /**
      * @param \mysqli|null $dbh
      * @param string|null  $charset
@@ -350,6 +360,7 @@ class WpPackWpdb extends \wpdb
      */
     private function executeWithDriver(string $sql, array $params): int|bool
     {
+        $start = microtime(true);
         $driver = $this->selectDriver($sql);
         $translated = $this->translator->translate($sql);
 
@@ -378,6 +389,12 @@ class WpPackWpdb extends \wpdb
                     $this->rows_affected = $affected;
                 }
             } catch (\Throwable $e) {
+                $this->logger?->error('Query failed', [
+                    'sql' => $translatedSql,
+                    'params' => $params,
+                    'error' => $e->getMessage(),
+                ]);
+
                 $this->last_error = $e->getMessage();
                 $this->last_result = [];
                 $this->num_rows = 0;
@@ -388,6 +405,13 @@ class WpPackWpdb extends \wpdb
 
         $this->insert_id = $driver->lastInsertId();
         $this->last_error = '';
+
+        $this->logger?->debug('Query executed', [
+            'sql' => $sql,
+            'params' => $params,
+            'time_ms' => round((microtime(true) - $start) * 1000, 2),
+            'driver' => ($driver === $this->reader) ? 'reader' : 'writer',
+        ]);
 
         return $isSelect ? \count($this->last_result) : $this->rows_affected;
     }

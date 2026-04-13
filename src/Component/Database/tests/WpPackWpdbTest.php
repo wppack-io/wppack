@@ -15,6 +15,7 @@ namespace WpPack\Component\Database\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use WpPack\Component\Database\Bridge\Sqlite\SqliteDriver;
 use WpPack\Component\Database\Driver\DriverInterface;
 use WpPack\Component\Database\Platform\MysqlPlatform;
@@ -420,5 +421,73 @@ final class WpPackWpdbTest extends TestCase
         self::assertStringContainsString('?', $sql);
         self::assertStringNotContainsString('%d', $sql);
         self::assertStringNotContainsString('%s', $sql);
+    }
+
+    // ── Logger ──
+
+    #[Test]
+    public function loggerReceivesDebugOnQuery(): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())->method('debug')
+            ->with('Query executed', self::callback(function (array $context): bool {
+                return isset($context['sql'], $context['time_ms'], $context['driver'])
+                    && $context['driver'] === 'writer';
+            }));
+
+        $driver = new SqliteDriver(':memory:');
+        $driver->connect();
+        $driver->executeStatement('CREATE TABLE t (id INTEGER)');
+
+        $wpdb = new WpPackWpdb(
+            writer: $driver,
+            translator: new NullQueryTranslator(),
+            dbname: 'test',
+            logger: $logger,
+        );
+
+        $wpdb->query('SELECT * FROM t');
+    }
+
+    #[Test]
+    public function loggerReceivesErrorOnFailure(): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())->method('error')
+            ->with('Query failed', self::callback(function (array $context): bool {
+                return isset($context['sql'], $context['error']);
+            }));
+
+        $driver = new SqliteDriver(':memory:');
+
+        $wpdb = new WpPackWpdb(
+            writer: $driver,
+            translator: new NullQueryTranslator(),
+            dbname: 'test',
+            logger: $logger,
+        );
+
+        $wpdb->query('SELECT * FROM nonexistent');
+    }
+
+    #[Test]
+    public function setLoggerInjectsLater(): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())->method('debug');
+
+        $driver = new SqliteDriver(':memory:');
+        $driver->connect();
+        $driver->executeStatement('CREATE TABLE t (id INTEGER)');
+
+        $wpdb = new WpPackWpdb(
+            writer: $driver,
+            translator: new NullQueryTranslator(),
+            dbname: 'test',
+        );
+
+        // Logger injected after construction
+        $wpdb->setLogger($logger);
+        $wpdb->query('SELECT * FROM t');
     }
 }
