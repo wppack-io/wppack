@@ -19,23 +19,29 @@ use WpPack\Component\DatabaseExport\ExportConfiguration;
 /**
  * Transforms wp_options rows during export.
  *
+ * - Skips rows with excluded option name prefixes (transients, sessions)
  * - Resets active_plugins to empty serialized array
  * - Resets template/stylesheet to empty string
- * - Skips rows with excluded option name prefixes
+ * - Replaces table prefix in option_name values when configured
  */
 final class WpOptionsTransformer implements RowTransformerInterface
 {
-    private readonly string $optionsTableSuffix;
+    /**
+     * Reserved option names that start with wp_ but should NOT be prefix-replaced.
+     */
+    private const RESERVED_OPTION_NAMES = [
+        'wp_force_deactivated_plugins',
+        'wp_page_for_privacy_policy',
+    ];
 
     public function __construct(
         private readonly ExportConfiguration $config,
-    ) {
-        $this->optionsTableSuffix = 'options';
-    }
+        private readonly string $dbPrefix = '',
+    ) {}
 
     public function supports(string $tableName): bool
     {
-        return str_ends_with($tableName, '_' . $this->optionsTableSuffix);
+        return str_ends_with($tableName, '_options');
     }
 
     public function transform(array $row, TableSchema $schema): ?array
@@ -61,6 +67,13 @@ final class WpOptionsTransformer implements RowTransformerInterface
         // Reset theme to empty string
         if ($this->config->resetTheme && ($optionName === 'template' || $optionName === 'stylesheet')) {
             $row['option_value'] = '';
+        }
+
+        // Replace table prefix in option_name values (e.g., wp_user_roles → WPPACK_PREFIX_user_roles)
+        if ($this->config->replacePrefixInValues && $this->dbPrefix !== '' && str_starts_with($optionName, $this->dbPrefix)) {
+            if (!\in_array($optionName, self::RESERVED_OPTION_NAMES, true)) {
+                $row['option_name'] = $this->config->tablePrefix . substr($optionName, \strlen($this->dbPrefix));
+            }
         }
 
         return $row;

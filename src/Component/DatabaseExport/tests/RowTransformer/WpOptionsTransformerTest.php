@@ -119,11 +119,62 @@ final class WpOptionsTransformerTest extends TestCase
     #[Test]
     public function passesNormalRowsThrough(): void
     {
-        $transformer = new WpOptionsTransformer(new ExportConfiguration());
+        $transformer = new WpOptionsTransformer(new ExportConfiguration(excludeOptionPrefixes: []));
 
         $row = ['option_id' => 1, 'option_name' => 'blogname', 'option_value' => 'My Blog'];
         $result = $transformer->transform($row, $this->schema);
 
         self::assertSame($row, $result);
+    }
+
+    #[Test]
+    public function defaultConfigExcludesTransients(): void
+    {
+        $transformer = new WpOptionsTransformer(new ExportConfiguration());
+
+        self::assertNull($transformer->transform(
+            ['option_id' => 1, 'option_name' => '_transient_timeout_feed', 'option_value' => '123'],
+            $this->schema,
+        ));
+        self::assertNull($transformer->transform(
+            ['option_id' => 2, 'option_name' => '_site_transient_update_core', 'option_value' => 'data'],
+            $this->schema,
+        ));
+        self::assertNull($transformer->transform(
+            ['option_id' => 3, 'option_name' => '_wc_session_abc123', 'option_value' => 'session'],
+            $this->schema,
+        ));
+    }
+
+    #[Test]
+    public function replacesPrefixInOptionName(): void
+    {
+        $transformer = new WpOptionsTransformer(
+            new ExportConfiguration(tablePrefix: 'WPPACK_PREFIX_', replacePrefixInValues: true),
+            dbPrefix: 'wp_',
+        );
+
+        $row = $transformer->transform(
+            ['option_id' => 1, 'option_name' => 'wp_user_roles', 'option_value' => 'a:5:{...}'],
+            $this->schema,
+        );
+
+        self::assertSame('WPPACK_PREFIX_user_roles', $row['option_name']);
+    }
+
+    #[Test]
+    public function doesNotReplaceReservedOptionNames(): void
+    {
+        $transformer = new WpOptionsTransformer(
+            new ExportConfiguration(tablePrefix: 'WPPACK_PREFIX_', replacePrefixInValues: true),
+            dbPrefix: 'wp_',
+        );
+
+        $row = $transformer->transform(
+            ['option_id' => 1, 'option_name' => 'wp_page_for_privacy_policy', 'option_value' => '3'],
+            $this->schema,
+        );
+
+        self::assertSame('wp_page_for_privacy_policy', $row['option_name']);
     }
 }
