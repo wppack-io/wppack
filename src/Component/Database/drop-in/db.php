@@ -3,18 +3,22 @@
 /**
  * WpPack Database Drop-In.
  *
- * This file replaces the default WordPress database layer with a WpPack driver.
+ * Replaces the default WordPress database layer with WpPack drivers.
+ * All queries use true prepared statements via DriverInterface.
+ * No MySQL connection is created unless the DSN explicitly specifies MySQL.
+ *
  * Copy or symlink this file to wp-content/db.php to activate.
  *
  * Configuration via wp-config.php:
  *
+ *   define('WPPACK_DATABASE_DSN', 'mysql://user:pass@host:3306/dbname');
  *   define('WPPACK_DATABASE_DSN', 'sqlite:///path/to/database.db');
  *   define('WPPACK_DATABASE_DSN', 'pgsql://user:pass@host:5432/dbname');
- *   define('WPPACK_DATABASE_DSN', 'mysql://user:pass@host:3306/dbname');
  *   define('WPPACK_DATABASE_DSN', 'wpdb://default');  // use standard wpdb
  *
- * For wpdb:// scheme or when WPPACK_DATABASE_DSN is not defined,
- * this drop-in does nothing and WordPress uses the default wpdb.
+ * Optional reader (read/write split):
+ *
+ *   define('WPPACK_DATABASE_READER_DSN', 'mysql://user:pass@reader-host:3306/dbname');
  *
  * @package WpPack\Component\Database
  */
@@ -58,7 +62,6 @@ if (str_starts_with($wppackDatabaseDsn, 'wpdb://')) {
         }
     }
 
-    // Cannot find autoloader — fall through to default WordPress wpdb
     trigger_error(
         'WpPack Database: Composer autoloader not found. Falling back to default wpdb.',
         \E_USER_WARNING,
@@ -70,9 +73,9 @@ if (!class_exists(\WpPack\Component\Database\Driver\Driver::class)) {
     return;
 }
 
-// Create driver from DSN
+// Create writer driver from DSN
 try {
-    $wppackDriver = \WpPack\Component\Database\Driver\Driver::fromDsn($wppackDatabaseDsn);
+    $wppackWriter = \WpPack\Component\Database\Driver\Driver::fromDsn($wppackDatabaseDsn);
 } catch (\Throwable $e) {
     trigger_error(
         'WpPack Database: Failed to create driver from DSN: ' . $e->getMessage(),
@@ -82,8 +85,22 @@ try {
     return;
 }
 
-// Get query translator from driver (each driver knows its own translator)
-$wppackTranslator = $wppackDriver->getQueryTranslator();
+// Create optional reader driver for read/write split
+$wppackReader = null;
+
+if (defined('WPPACK_DATABASE_READER_DSN') && WPPACK_DATABASE_READER_DSN !== '') {
+    try {
+        $wppackReader = \WpPack\Component\Database\Driver\Driver::fromDsn(WPPACK_DATABASE_READER_DSN);
+    } catch (\Throwable $e) {
+        trigger_error(
+            'WpPack Database: Failed to create reader driver: ' . $e->getMessage(),
+            \E_USER_WARNING,
+        );
+    }
+}
+
+// Get query translator from writer driver
+$wppackTranslator = $wppackWriter->getQueryTranslator();
 
 // Extract database name from DSN path
 $wppackDsnParsed = \WpPack\Component\Dsn\Dsn::fromString($wppackDatabaseDsn);
@@ -93,12 +110,13 @@ if ($wppackDbName === '' || $wppackDbName === ':memory:') {
     $wppackDbName = 'wordpress';
 }
 
-// Create WpPack wpdb replacement
+// Create WpPack wpdb replacement — this replaces $wpdb globally
 $wpdb = new \WpPack\Component\Database\WpPackWpdb(
-    driver: $wppackDriver,
+    writer: $wppackWriter,
     translator: $wppackTranslator,
     dbname: $wppackDbName,
+    reader: $wppackReader,
 );
 
 // Clean up temporary variables
-unset($wppackDatabaseDsn, $wppackDriver, $wppackTranslator, $wppackDsnParsed, $wppackDbName);
+unset($wppackDatabaseDsn, $wppackWriter, $wppackReader, $wppackTranslator, $wppackDsnParsed, $wppackDbName);
