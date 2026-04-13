@@ -240,4 +240,30 @@ final class DatabaseManagerConnectionTest extends TestCase
 
         $this->db->fetchAllAssociative('SELECT * FROM t WHERE id = ? AND status = %s', ['publish']);
     }
+
+    #[Test]
+    public function floatPlaceholderConverted(): void
+    {
+        $this->mockDriver->expects(self::once())
+            ->method('executeQuery')
+            ->with('SELECT * FROM t WHERE score > ?', [3.14])
+            ->willReturn(new Result([]));
+
+        $this->db->setConnection(new Connection($this->mockDriver));
+
+        $this->db->fetchAllAssociative('SELECT * FROM t WHERE score > %f', [3.14]);
+    }
+
+    #[Test]
+    public function delegatesQueryWithoutParams(): void
+    {
+        $this->mockDriver->expects(self::once())
+            ->method('executeQuery')
+            ->with('SELECT COUNT(*) FROM t', [])
+            ->willReturn(new Result([['cnt' => 5]]));
+
+        $this->db->setConnection(new Connection($this->mockDriver));
+
+        self::assertSame(5, $this->db->fetchOne('SELECT COUNT(*) FROM t'));
+    }
 }

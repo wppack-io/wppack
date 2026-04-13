@@ -337,4 +337,88 @@ final class WpPackWpdbTest extends TestCase
         self::assertFalse($result);
         self::assertNotSame('', $this->wpdb->last_error);
     }
+
+    // ── %i identifier placeholder ──
+
+    #[Test]
+    public function prepareExpandsIdentifierPlaceholder(): void
+    {
+        $sql = $this->wpdb->prepare('SELECT * FROM %i WHERE id = %d', 'wptests_posts', 1);
+
+        // %i should be expanded via quoteIdentifier (SQLite uses double quotes)
+        self::assertStringContainsString('"wptests_posts"', $sql);
+        // %d should be converted to ?
+        self::assertStringContainsString('?', $sql);
+        // %i should NOT be a ? placeholder
+        self::assertStringNotContainsString('%i', $sql);
+    }
+
+    #[Test]
+    public function prepareWithIdentifierAndValueParams(): void
+    {
+        $this->wpdb->query("INSERT INTO wptests_posts (post_title, post_status) VALUES ('Test', 'publish')");
+
+        $sql = $this->wpdb->prepare('SELECT * FROM %i WHERE post_status = %s', 'wptests_posts', 'publish');
+        $this->wpdb->query($sql);
+
+        self::assertSame(1, $this->wpdb->num_rows);
+    }
+
+    // ── Edge cases ──
+
+    #[Test]
+    public function prepareWithEmptyStringParam(): void
+    {
+        $sql = $this->wpdb->prepare('SELECT * FROM wptests_posts WHERE post_title = %s', '');
+
+        self::assertStringContainsString('?', $sql);
+
+        // Execute with empty string param
+        $this->wpdb->query($sql);
+        self::assertSame(0, $this->wpdb->num_rows);
+    }
+
+    #[Test]
+    public function prepareWithNullParam(): void
+    {
+        $sql = $this->wpdb->prepare('SELECT * FROM wptests_posts WHERE post_title = %s', null);
+
+        self::assertStringContainsString('?', $sql);
+    }
+
+    #[Test]
+    public function insertWithEmptyDataReturnsFalse(): void
+    {
+        $result = $this->wpdb->insert('posts', []);
+
+        self::assertFalse($result);
+    }
+
+    #[Test]
+    public function queryReturnsFalseWhenNotReady(): void
+    {
+        $driver = new SqliteDriver(':memory:');
+
+        $wpdb = new WpPackWpdb(
+            writer: $driver,
+            translator: new NullQueryTranslator(),
+            dbname: 'test',
+        );
+
+        // Force not ready
+        $wpdb->ready = false;
+
+        self::assertFalse($wpdb->query('SELECT 1'));
+    }
+
+    #[Test]
+    public function prepareWithLegacyArrayArgs(): void
+    {
+        // WordPress legacy: prepare($query, array_of_args)
+        $sql = $this->wpdb->prepare('SELECT * FROM wptests_posts WHERE id = %d AND status = %s', [1, 'publish']);
+
+        self::assertStringContainsString('?', $sql);
+        self::assertStringNotContainsString('%d', $sql);
+        self::assertStringNotContainsString('%s', $sql);
+    }
 }
