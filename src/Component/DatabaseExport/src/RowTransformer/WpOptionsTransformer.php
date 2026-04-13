@@ -36,7 +36,6 @@ final class WpOptionsTransformer implements RowTransformerInterface
 
     public function __construct(
         private readonly ExportConfiguration $config,
-        private readonly string $dbPrefix = '',
     ) {}
 
     public function supports(string $tableName): bool
@@ -70,9 +69,9 @@ final class WpOptionsTransformer implements RowTransformerInterface
         }
 
         // Replace table prefix in option_name values (e.g., wp_user_roles → WPPACK_PREFIX_user_roles)
-        if ($this->config->replacePrefixInValues && $this->dbPrefix !== '' && str_starts_with($optionName, $this->dbPrefix)) {
+        if ($this->config->replacePrefixInValues && $this->config->dbPrefix !== '' && str_starts_with($optionName, $this->config->dbPrefix)) {
             if (!\in_array($optionName, self::RESERVED_OPTION_NAMES, true)) {
-                $row['option_name'] = $this->config->tablePrefix . substr($optionName, \strlen($this->dbPrefix));
+                $row['option_name'] = $this->config->tablePrefix . substr($optionName, \strlen($this->config->dbPrefix));
             }
         }
 

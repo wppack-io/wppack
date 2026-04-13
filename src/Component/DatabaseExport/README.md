@@ -26,23 +26,38 @@ use WpPack\Component\Database\DatabaseManager;
 use WpPack\Component\Database\SchemaReader\MysqlSchemaReader;
 use WpPack\Component\DatabaseExport\DatabaseExporter;
 use WpPack\Component\DatabaseExport\ExportConfiguration;
+use WpPack\Component\DatabaseExport\RowTransformer\WpOptionsTransformer;
+use WpPack\Component\DatabaseExport\RowTransformer\WpUserMetaTransformer;
 use WpPack\Component\DatabaseExport\TableFilter\PrefixTableFilter;
 use WpPack\Component\DatabaseExport\Writer\WpressSqlWriter;
 
 $db = new DatabaseManager();
-$config = new ExportConfiguration(tablePrefix: 'WPPACK_PREFIX_');
-
-$writer = new WpressSqlWriter();
-$writer->setDatabasePrefix($db->prefix());
+$config = new ExportConfiguration(
+    dbPrefix: $db->prefix(),
+    tablePrefix: 'WPPACK_PREFIX_',
+);
 
 $exporter = new DatabaseExporter(
     db: $db,
     schemaReader: new MysqlSchemaReader(),
-    writer: $writer,
-    tableFilter: new PrefixTableFilter($db->prefix(), $config),
+    writer: new WpressSqlWriter(),
+    tableFilter: new PrefixTableFilter($config),
+    rowTransformers: [
+        new WpOptionsTransformer($config),
+        new WpUserMetaTransformer($config),
+    ],
 );
 
 $sql = $exporter->exportToString($config);
+```
+
+### AI1WM Compatible Export
+
+```php
+$config = new ExportConfiguration(
+    dbPrefix: $db->prefix(),
+    tablePrefix: 'SERVMASK_PREFIX_',
+);
 ```
 
 ## License

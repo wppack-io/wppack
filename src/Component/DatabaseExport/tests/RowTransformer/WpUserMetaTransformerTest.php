@@ -76,8 +76,7 @@ final class WpUserMetaTransformerTest extends TestCase
     public function replacesPrefixInMetaKey(): void
     {
         $transformer = new WpUserMetaTransformer(
-            new ExportConfiguration(tablePrefix: 'WPPACK_PREFIX_', replacePrefixInValues: true),
-            dbPrefix: 'wp_',
+            new ExportConfiguration(dbPrefix: 'wp_', tablePrefix: 'WPPACK_PREFIX_', replacePrefixInValues: true),
         );
 
         $row = $transformer->transform(
@@ -92,8 +91,7 @@ final class WpUserMetaTransformerTest extends TestCase
     public function doesNotReplacePrefixWhenDisabled(): void
     {
         $transformer = new WpUserMetaTransformer(
-            new ExportConfiguration(tablePrefix: 'WPPACK_PREFIX_', replacePrefixInValues: false),
-            dbPrefix: 'wp_',
+            new ExportConfiguration(dbPrefix: 'wp_', tablePrefix: 'WPPACK_PREFIX_', replacePrefixInValues: false),
         );
 
         $row = $transformer->transform(

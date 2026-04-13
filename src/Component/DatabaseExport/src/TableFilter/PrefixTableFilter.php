@@ -37,7 +37,6 @@ final class PrefixTableFilter implements TableFilterInterface
     ];
 
     public function __construct(
-        private readonly string $dbPrefix,
         private readonly ExportConfiguration $config,
     ) {}
 
@@ -97,11 +96,11 @@ final class PrefixTableFilter implements TableFilterInterface
      */
     private function getTableSuffix(string $tableName): ?string
     {
-        if (!str_starts_with($tableName, $this->dbPrefix)) {
+        if (!str_starts_with($tableName, $this->config->dbPrefix)) {
             return null;
         }
 
-        return substr($tableName, \strlen($this->dbPrefix));
+        return substr($tableName, \strlen($this->config->dbPrefix));
     }
 
     /**

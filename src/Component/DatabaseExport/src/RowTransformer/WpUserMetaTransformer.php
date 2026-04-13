@@ -26,7 +26,6 @@ final class WpUserMetaTransformer implements RowTransformerInterface
 {
     public function __construct(
         private readonly ExportConfiguration $config,
-        private readonly string $dbPrefix = '',
     ) {}
 
     public function supports(string $tableName): bool
@@ -48,8 +47,8 @@ final class WpUserMetaTransformer implements RowTransformerInterface
         }
 
         // Replace table prefix in meta_key values (e.g., wp_capabilities → WPPACK_PREFIX_capabilities)
-        if ($this->config->replacePrefixInValues && $this->dbPrefix !== '' && str_starts_with($metaKey, $this->dbPrefix)) {
-            $row['meta_key'] = $this->config->tablePrefix . substr($metaKey, \strlen($this->dbPrefix));
+        if ($this->config->replacePrefixInValues && $this->config->dbPrefix !== '' && str_starts_with($metaKey, $this->config->dbPrefix)) {
+            $row['meta_key'] = $this->config->tablePrefix . substr($metaKey, \strlen($this->config->dbPrefix));
         }
 
         return $row;

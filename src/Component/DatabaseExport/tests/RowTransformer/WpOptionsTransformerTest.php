@@ -150,8 +150,7 @@ final class WpOptionsTransformerTest extends TestCase
     public function replacesPrefixInOptionName(): void
     {
         $transformer = new WpOptionsTransformer(
-            new ExportConfiguration(tablePrefix: 'WPPACK_PREFIX_', replacePrefixInValues: true),
-            dbPrefix: 'wp_',
+            new ExportConfiguration(dbPrefix: 'wp_', tablePrefix: 'WPPACK_PREFIX_', replacePrefixInValues: true),
         );
 
         $row = $transformer->transform(
@@ -166,8 +165,7 @@ final class WpOptionsTransformerTest extends TestCase
     public function doesNotReplaceReservedOptionNames(): void
     {
         $transformer = new WpOptionsTransformer(
-            new ExportConfiguration(tablePrefix: 'WPPACK_PREFIX_', replacePrefixInValues: true),
-            dbPrefix: 'wp_',
+            new ExportConfiguration(dbPrefix: 'wp_', tablePrefix: 'WPPACK_PREFIX_', replacePrefixInValues: true),
         );
 
         $row = $transformer->transform(
