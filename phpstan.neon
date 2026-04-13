@@ -12,6 +12,7 @@ parameters:
         - */js/build/*
         - src/*/vendor/*
         - src/Component/*/templates/*
+        - src/Component/Database/Bridge/RdsDataApi/*
     scanDirectories:
         - web/wp/wp-includes/
         - web/wp-content/plugins/action-scheduler/
