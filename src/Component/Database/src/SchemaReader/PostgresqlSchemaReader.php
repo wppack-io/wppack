@@ -85,11 +85,14 @@ final class PostgresqlSchemaReader implements SchemaReaderInterface
     private function getColumns(DatabaseManager $db, string $tableName): array
     {
         $rows = $db->fetchAllAssociative(
-            "SELECT column_name, data_type, character_maximum_length, numeric_precision, numeric_scale, "
-            . "is_nullable, column_default "
-            . "FROM information_schema.columns "
-            . "WHERE table_schema = 'public' AND table_name = '{$tableName}' "
-            . 'ORDER BY ordinal_position',
+            $db->prepare(
+                'SELECT column_name, data_type, character_maximum_length, numeric_precision, numeric_scale, '
+                . 'is_nullable, column_default '
+                . 'FROM information_schema.columns '
+                . "WHERE table_schema = 'public' AND table_name = %s "
+                . 'ORDER BY ordinal_position',
+                $tableName,
+            ),
         );
 
         $columns = [];
@@ -118,15 +121,18 @@ final class PostgresqlSchemaReader implements SchemaReaderInterface
     private function getPrimaryKey(DatabaseManager $db, string $tableName): ?array
     {
         $rows = $db->fetchAllAssociative(
-            'SELECT kcu.column_name '
-            . 'FROM information_schema.table_constraints tc '
-            . 'JOIN information_schema.key_column_usage kcu '
-            . '  ON tc.constraint_name = kcu.constraint_name '
-            . "  AND tc.table_schema = kcu.table_schema "
-            . "WHERE tc.constraint_type = 'PRIMARY KEY' "
-            . "  AND tc.table_schema = 'public' "
-            . "  AND tc.table_name = '{$tableName}' "
-            . 'ORDER BY kcu.ordinal_position',
+            $db->prepare(
+                'SELECT kcu.column_name '
+                . 'FROM information_schema.table_constraints tc '
+                . 'JOIN information_schema.key_column_usage kcu '
+                . '  ON tc.constraint_name = kcu.constraint_name '
+                . '  AND tc.table_schema = kcu.table_schema '
+                . "WHERE tc.constraint_type = 'PRIMARY KEY' "
+                . "  AND tc.table_schema = 'public' "
+                . '  AND tc.table_name = %s '
+                . 'ORDER BY kcu.ordinal_position',
+                $tableName,
+            ),
         );
 
         if ($rows === []) {

@@ -90,14 +90,30 @@ final class SqliteSchemaReader implements SchemaReaderInterface
 
         $columns = [];
 
+        // Count PK columns to detect single-column PK (required for auto_increment)
+        $pkCount = 0;
+
+        foreach ($rows as $row) {
+            if (($row['pk'] ?? 0) > 0) {
+                ++$pkCount;
+            }
+        }
+
         foreach ($rows as $row) {
             $sourceType = $row['type'] ?? '';
+            $isPk = ($row['pk'] ?? 0) > 0;
+
+            // SQLite only auto-increments a single INTEGER PRIMARY KEY column
+            $isAutoIncrement = $isPk
+                && $pkCount === 1
+                && strtoupper(trim($sourceType)) === 'INTEGER';
+
             $columns[] = new ColumnSchema(
                 name: $row['name'],
                 type: $this->typeMapper->toMysqlType($sourceType),
                 nullable: ($row['notnull'] ?? 1) == 0,
                 default: $row['dflt_value'] ?? null,
-                extra: ($row['pk'] ?? 0) > 0 ? 'auto_increment' : '',
+                extra: $isAutoIncrement ? 'auto_increment' : '',
                 isBinary: $this->typeMapper->isBinary($sourceType),
                 isNumeric: $this->typeMapper->isNumeric($sourceType),
             );
