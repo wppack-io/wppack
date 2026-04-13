@@ -34,6 +34,7 @@ final class WpressSqlWriter implements ExportWriterInterface
     public function begin($stream, ExportConfiguration $config): void
     {
         $this->tablePrefix = $config->tablePrefix;
+        $this->dbPrefix = $config->dbPrefix;
         $this->transactionSize = $config->transactionSize;
 
         fwrite($stream, "-- WpPack Database Export\n");
@@ -87,15 +88,6 @@ final class WpressSqlWriter implements ExportWriterInterface
     }
 
     public function end($stream): void {}
-
-    /**
-     * Set the actual database prefix for replacement.
-     * Must be called before export if the prefix differs from the default.
-     */
-    public function setDatabasePrefix(string $prefix): void
-    {
-        $this->dbPrefix = $prefix;
-    }
 
     private function formatValue(mixed $value, ColumnSchema $column): string
     {

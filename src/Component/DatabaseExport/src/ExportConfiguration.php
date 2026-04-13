@@ -36,6 +36,7 @@ final readonly class ExportConfiguration
     ];
 
     /**
+     * @param string       $dbPrefix                 Actual database table prefix (e.g., 'wp_')
      * @param string       $tablePrefix              Prefix placeholder for table names in the output
      * @param list<string> $excludeTables            Table names (without prefix) to exclude
      * @param list<string> $includeTables            If non-empty, only these tables are exported
@@ -50,6 +51,7 @@ final readonly class ExportConfiguration
      * @param bool         $replacePrefixInValues    Replace table prefix in option_name/meta_key values
      */
     public function __construct(
+        public string $dbPrefix = '',
         public string $tablePrefix = 'WPPACK_PREFIX_',
         public array $excludeTables = [],
         public array $includeTables = [],

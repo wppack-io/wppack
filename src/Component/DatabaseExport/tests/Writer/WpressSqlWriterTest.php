@@ -55,8 +55,7 @@ final class WpressSqlWriterTest extends TestCase
     #[Test]
     public function beginTableWritesDropAndCreate(): void
     {
-        $config = new ExportConfiguration(tablePrefix: 'WPPACK_PREFIX_');
-        $this->writer->setDatabasePrefix('wp_');
+        $config = new ExportConfiguration(dbPrefix: 'wp_', tablePrefix: 'WPPACK_PREFIX_');
         $this->writer->begin($this->stream, $config);
 
         $schema = $this->createTableSchema('wp_posts', 'CREATE TABLE `wp_posts` (id INT)');
@@ -71,8 +70,7 @@ final class WpressSqlWriterTest extends TestCase
     #[Test]
     public function writeRowsFormatsValues(): void
     {
-        $config = new ExportConfiguration(tablePrefix: 'PREFIX_');
-        $this->writer->setDatabasePrefix('wp_');
+        $config = new ExportConfiguration(dbPrefix: 'wp_', tablePrefix: 'PREFIX_');
         $this->writer->begin($this->stream, $config);
 
         $schema = new TableSchema(
@@ -177,8 +175,7 @@ final class WpressSqlWriterTest extends TestCase
     #[Test]
     public function servmaskPrefixCompatibility(): void
     {
-        $config = new ExportConfiguration(tablePrefix: 'SERVMASK_PREFIX_');
-        $this->writer->setDatabasePrefix('wp_');
+        $config = new ExportConfiguration(dbPrefix: 'wp_', tablePrefix: 'SERVMASK_PREFIX_');
         $this->writer->begin($this->stream, $config);
 
         $schema = $this->createTableSchema('wp_options', 'CREATE TABLE `wp_options` (option_id INT)');
@@ -192,8 +189,7 @@ final class WpressSqlWriterTest extends TestCase
     #[Test]
     public function multisitePrefixReplacement(): void
     {
-        $config = new ExportConfiguration(tablePrefix: 'WPPACK_PREFIX_');
-        $this->writer->setDatabasePrefix('wp_');
+        $config = new ExportConfiguration(dbPrefix: 'wp_', tablePrefix: 'WPPACK_PREFIX_');
         $this->writer->begin($this->stream, $config);
 
         $schema = $this->createTableSchema('wp_2_posts', 'CREATE TABLE `wp_2_posts` (id INT)');

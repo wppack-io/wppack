@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace WpPack\Component\DatabaseExport;
 
 use WpPack\Component\Database\DatabaseManager;
+use WpPack\Component\Database\Schema\TableSchema;
 use WpPack\Component\Database\SchemaReader\SchemaReaderInterface;
 use WpPack\Component\DatabaseExport\Exception\ExportException;
 use WpPack\Component\DatabaseExport\RowTransformer\RowTransformerInterface;
@@ -100,7 +101,7 @@ final class DatabaseExporter
      *
      * @return list<array<string, mixed>>
      */
-    private function applyTransformers(array $rows, \WpPack\Component\Database\Schema\TableSchema $schema, string $tableName): array
+    private function applyTransformers(array $rows, TableSchema $schema, string $tableName): array
     {
         $hasTransformers = false;
 

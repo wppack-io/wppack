@@ -17,11 +17,12 @@ final readonly class TableSchema
 {
     /**
      * @param list<ColumnSchema> $columns
+     * @param list<string>|null  $primaryKey Column names forming the primary key (null = no PK)
      */
     public function __construct(
         public string $name,
         public string $createTableSql,
         public array $columns,
-        public ?string $primaryKey = null,
+        public ?array $primaryKey = null,
     ) {}
 }

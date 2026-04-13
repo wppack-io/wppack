@@ -77,16 +77,16 @@ class MysqlSchemaReader implements SchemaReaderInterface
 
         do {
             if ($primaryKey !== null) {
-                $pk = $db->quoteIdentifier($primaryKey);
+                $pkColumns = implode(', ', array_map($db->quoteIdentifier(...), $primaryKey));
                 $query = \sprintf(
                     'SELECT t1.* FROM %s AS t1 JOIN (SELECT %s FROM %s ORDER BY %s LIMIT %d, %d) AS t2 USING (%s)',
                     $quoted,
-                    $pk,
+                    $pkColumns,
                     $quoted,
-                    $pk,
+                    $pkColumns,
                     $offset,
                     $batchSize,
-                    $pk,
+                    $pkColumns,
                 );
             } else {
                 $query = \sprintf(
@@ -145,7 +145,10 @@ class MysqlSchemaReader implements SchemaReaderInterface
         return $columns;
     }
 
-    protected function getPrimaryKey(DatabaseManager $db, string $tableName): ?string
+    /**
+     * @return list<string>|null Column names forming the primary key, ordered by Seq_in_index
+     */
+    protected function getPrimaryKey(DatabaseManager $db, string $tableName): ?array
     {
         $rows = $db->fetchAllAssociative(
             \sprintf("SHOW KEYS FROM %s WHERE Key_name = 'PRIMARY'", $db->quoteIdentifier($tableName)),
@@ -155,7 +158,13 @@ class MysqlSchemaReader implements SchemaReaderInterface
             return null;
         }
 
-        return $rows[0]['Column_name'] ?? null;
+        $columns = [];
+
+        foreach ($rows as $row) {
+            $columns[] = $row['Column_name'];
+        }
+
+        return $columns;
     }
 
     private function isBinaryType(string $type): bool
