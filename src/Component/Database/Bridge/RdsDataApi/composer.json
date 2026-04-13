@@ -1,0 +1,21 @@
+{
+    "name": "wppack/rds-data-api-database",
+    "description": "RDS Data API database driver for WpPack",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "wppack/database": "^1.0",
+        "async-aws/rds-data-service": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpPack\\Component\\Database\\Bridge\\RdsDataApi\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Component\\Database\\Bridge\\RdsDataApi\\Tests\\": "tests/"
+        }
+    }
+}
