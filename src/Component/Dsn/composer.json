@@ -1,0 +1,19 @@
+{
+    "name": "wppack/dsn",
+    "description": "Data Source Name (DSN) parser",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpPack\\Component\\Dsn\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Component\\Dsn\\Tests\\": "tests/"
+        }
+    }
+}
