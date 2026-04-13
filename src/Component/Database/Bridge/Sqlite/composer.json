@@ -6,7 +6,8 @@
     "require": {
         "php": "^8.2",
         "ext-pdo_sqlite": "*",
-        "wppack/database": "^1.0"
+        "wppack/database": "^1.0",
+        "phpmyadmin/sql-parser": "^6.0"
     },
     "autoload": {
         "psr-4": {

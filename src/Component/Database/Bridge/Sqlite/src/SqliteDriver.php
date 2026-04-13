@@ -87,9 +87,46 @@ final class SqliteDriver extends AbstractDriver
             $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
             $this->pdo->exec('PRAGMA journal_mode=WAL');
             $this->pdo->exec('PRAGMA foreign_keys=ON');
+            $this->registerFunctions($this->pdo);
         } catch (\PDOException $e) {
             throw new ConnectionException($e->getMessage(), 0, $e);
         }
+    }
+
+    /**
+     * Register MySQL-compatible user-defined functions for SQLite.
+     */
+    private function registerFunctions(\PDO $pdo): void
+    {
+        $pdo->sqliteCreateFunction('REGEXP', static function (?string $pattern, ?string $value): int {
+            if ($pattern === null || $value === null) {
+                return 0;
+            }
+
+            return @preg_match('/' . str_replace('/', '\\/', $pattern) . '/iu', $value) ? 1 : 0;
+        }, 2);
+
+        $pdo->sqliteCreateFunction('CONCAT', static function (...$args): string {
+            return implode('', array_map(static fn($v) => (string) ($v ?? ''), $args));
+        });
+
+        $pdo->sqliteCreateFunction('CONCAT_WS', static function (string $separator, ...$args): string {
+            return implode($separator, array_filter(array_map(static fn($v) => $v === null ? null : (string) $v, $args), static fn($v) => $v !== null));
+        });
+
+        $pdo->sqliteCreateFunction('CHAR_LENGTH', static function (?string $value): int {
+            return $value === null ? 0 : mb_strlen($value);
+        }, 1);
+
+        $pdo->sqliteCreateFunction('FIELD', static function (mixed $search, ...$values): int {
+            foreach ($values as $i => $val) {
+                if ((string) $val === (string) $search) {
+                    return $i + 1;
+                }
+            }
+
+            return 0;
+        });
     }
 
     protected function doClose(): void

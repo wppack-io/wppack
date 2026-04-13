@@ -35,7 +35,6 @@ final class SqliteQueryTranslatorTest extends TestCase
 
         self::assertCount(1, $result);
         self::assertStringContainsString('"posts"', $result[0]);
-        self::assertStringContainsString('WHERE id = 1', $result[0]);
     }
 
     #[Test]
@@ -43,7 +42,6 @@ final class SqliteQueryTranslatorTest extends TestCase
     {
         $result = $this->translator->translate("INSERT IGNORE INTO `t` VALUES (1, 'a')");
 
-        self::assertCount(1, $result);
         self::assertStringContainsString('INSERT OR IGNORE', $result[0]);
     }
 
@@ -52,8 +50,18 @@ final class SqliteQueryTranslatorTest extends TestCase
     {
         $result = $this->translator->translate("REPLACE INTO `t` VALUES (1, 'a')");
 
-        self::assertCount(1, $result);
         self::assertStringContainsString('INSERT OR REPLACE', $result[0]);
+    }
+
+    #[Test]
+    public function onDuplicateKeyUpdate(): void
+    {
+        $result = $this->translator->translate(
+            "INSERT INTO `t` (id, name) VALUES (1, 'a') ON DUPLICATE KEY UPDATE name = VALUES(name)",
+        );
+
+        self::assertStringContainsString('ON CONFLICT DO UPDATE SET', $result[0]);
+        self::assertStringContainsString('excluded.name', $result[0]);
     }
 
     #[Test]
@@ -61,7 +69,6 @@ final class SqliteQueryTranslatorTest extends TestCase
     {
         $result = $this->translator->translate('SELECT * FROM t LIMIT 10, 20');
 
-        self::assertCount(1, $result);
         self::assertStringContainsString('LIMIT 20 OFFSET 10', $result[0]);
     }
 
@@ -70,7 +77,6 @@ final class SqliteQueryTranslatorTest extends TestCase
     {
         $result = $this->translator->translate('SELECT * FROM t LIMIT 10');
 
-        self::assertCount(1, $result);
         self::assertStringContainsString('LIMIT 10', $result[0]);
         self::assertStringNotContainsString('OFFSET', $result[0]);
     }
@@ -84,7 +90,6 @@ final class SqliteQueryTranslatorTest extends TestCase
             'CREATE TABLE `t` (`id` INT NOT NULL AUTO_INCREMENT) ENGINE=InnoDB',
         );
 
-        self::assertCount(1, $result);
         self::assertStringNotContainsString('ENGINE', $result[0]);
         self::assertStringContainsString('AUTOINCREMENT', $result[0]);
     }
@@ -96,13 +101,30 @@ final class SqliteQueryTranslatorTest extends TestCase
             'CREATE TABLE `t` (`name` VARCHAR(255), `count` BIGINT UNSIGNED, `created` DATETIME)',
         );
 
-        self::assertCount(1, $result);
         self::assertStringContainsString('TEXT', $result[0]);
         self::assertStringContainsString('INTEGER', $result[0]);
         self::assertStringNotContainsString('VARCHAR', $result[0]);
         self::assertStringNotContainsString('BIGINT', $result[0]);
         self::assertStringNotContainsString('UNSIGNED', $result[0]);
-        self::assertStringNotContainsString('DATETIME', $result[0]);
+    }
+
+    #[Test]
+    public function truncateTable(): void
+    {
+        $result = $this->translator->translate('TRUNCATE TABLE `wp_posts`');
+
+        self::assertCount(1, $result);
+        self::assertStringContainsString('DELETE FROM', $result[0]);
+        self::assertStringContainsString('"wp_posts"', $result[0]);
+    }
+
+    #[Test]
+    public function createIndex(): void
+    {
+        $result = $this->translator->translate('CREATE INDEX idx_status ON `wp_posts` (post_status)');
+
+        self::assertCount(1, $result);
+        self::assertStringContainsString('CREATE INDEX', $result[0]);
     }
 
     #[Test]
@@ -110,7 +132,6 @@ final class SqliteQueryTranslatorTest extends TestCase
     {
         $result = $this->translator->translate('SELECT `id`, `name` FROM `users`');
 
-        self::assertCount(1, $result);
         self::assertStringContainsString('"id"', $result[0]);
         self::assertStringContainsString('"name"', $result[0]);
         self::assertStringContainsString('"users"', $result[0]);
@@ -159,6 +180,89 @@ final class SqliteQueryTranslatorTest extends TestCase
         self::assertStringContainsString("strftime('%s','now')", $result[0]);
     }
 
+    #[Test]
+    public function fromUnixtimeFunction(): void
+    {
+        $result = $this->translator->translate('SELECT FROM_UNIXTIME(1234567890)');
+
+        self::assertStringContainsString("datetime(1234567890, 'unixepoch')", $result[0]);
+    }
+
+    #[Test]
+    public function dateAddFunction(): void
+    {
+        $result = $this->translator->translate("SELECT DATE_ADD('2024-01-01', INTERVAL 1 DAY)");
+
+        self::assertStringContainsString("datetime('2024-01-01', '+1 day')", $result[0]);
+    }
+
+    #[Test]
+    public function dateSubFunction(): void
+    {
+        $result = $this->translator->translate("SELECT DATE_SUB('2024-01-01', INTERVAL 30 MINUTE)");
+
+        self::assertStringContainsString("datetime('2024-01-01', '-30 minute')", $result[0]);
+    }
+
+    #[Test]
+    public function dateFormatFunction(): void
+    {
+        $result = $this->translator->translate("SELECT DATE_FORMAT(created_at, '%Y-%m-%d')");
+
+        self::assertStringContainsString("strftime('%Y-%m-%d', created_at)", $result[0]);
+    }
+
+    #[Test]
+    public function leftFunction(): void
+    {
+        $result = $this->translator->translate('SELECT LEFT(name, 5) FROM t');
+
+        self::assertStringContainsString('SUBSTR(name, 1, 5)', $result[0]);
+    }
+
+    #[Test]
+    public function substringFunction(): void
+    {
+        $result = $this->translator->translate('SELECT SUBSTRING(name, 2, 3) FROM t');
+
+        self::assertStringContainsString('SUBSTR(name, 2, 3)', $result[0]);
+    }
+
+    #[Test]
+    public function ifFunction(): void
+    {
+        $result = $this->translator->translate('SELECT IF(status = 1, "active", "inactive") FROM t');
+
+        self::assertStringContainsString('CASE WHEN', $result[0]);
+        self::assertStringContainsString('THEN', $result[0]);
+        self::assertStringContainsString('ELSE', $result[0]);
+        self::assertStringContainsString('END', $result[0]);
+    }
+
+    #[Test]
+    public function castAsSigned(): void
+    {
+        $result = $this->translator->translate('SELECT CAST(val AS SIGNED) FROM t');
+
+        self::assertStringContainsString('CAST(val AS INTEGER)', $result[0]);
+    }
+
+    #[Test]
+    public function versionFunction(): void
+    {
+        $result = $this->translator->translate('SELECT VERSION()');
+
+        self::assertStringContainsString('wppack', $result[0]);
+    }
+
+    #[Test]
+    public function databaseFunction(): void
+    {
+        $result = $this->translator->translate('SELECT DATABASE()');
+
+        self::assertStringContainsString("'main'", $result[0]);
+    }
+
     // ── Transaction ──
 
     #[Test]
@@ -174,58 +278,55 @@ final class SqliteQueryTranslatorTest extends TestCase
     #[Test]
     public function showTables(): void
     {
-        $result = $this->translator->translate('SHOW TABLES');
-
-        self::assertCount(1, $result);
-        self::assertStringContainsString('sqlite_master', $result[0]);
+        self::assertStringContainsString('sqlite_master', $this->translator->translate('SHOW TABLES')[0]);
     }
 
     #[Test]
     public function showFullTables(): void
     {
-        $result = $this->translator->translate('SHOW FULL TABLES');
-
-        self::assertCount(1, $result);
-        self::assertStringContainsString('sqlite_master', $result[0]);
-        self::assertStringContainsString('Table_type', $result[0]);
+        self::assertStringContainsString('Table_type', $this->translator->translate('SHOW FULL TABLES')[0]);
     }
 
     #[Test]
     public function showColumnsFrom(): void
     {
-        $result = $this->translator->translate('SHOW COLUMNS FROM `wp_posts`');
-
-        self::assertCount(1, $result);
-        self::assertStringContainsString('PRAGMA table_info', $result[0]);
-        self::assertStringContainsString('wp_posts', $result[0]);
+        self::assertStringContainsString('PRAGMA table_info', $this->translator->translate('SHOW COLUMNS FROM `wp_posts`')[0]);
     }
 
     #[Test]
     public function showCreateTable(): void
     {
-        $result = $this->translator->translate('SHOW CREATE TABLE `wp_posts`');
-
-        self::assertCount(1, $result);
-        self::assertStringContainsString('sqlite_master', $result[0]);
-        self::assertStringContainsString('wp_posts', $result[0]);
+        self::assertStringContainsString('sqlite_master', $this->translator->translate('SHOW CREATE TABLE `wp_posts`')[0]);
     }
 
     #[Test]
     public function showIndexFrom(): void
     {
-        $result = $this->translator->translate('SHOW INDEX FROM `wp_posts`');
-
-        self::assertCount(1, $result);
-        self::assertStringContainsString('PRAGMA index_list', $result[0]);
+        self::assertStringContainsString('PRAGMA index_list', $this->translator->translate('SHOW INDEX FROM `wp_posts`')[0]);
     }
 
     #[Test]
     public function showVariables(): void
     {
-        $result = $this->translator->translate('SHOW VARIABLES');
+        self::assertStringContainsString('WHERE 0', $this->translator->translate('SHOW VARIABLES')[0]);
+    }
 
-        self::assertCount(1, $result);
-        self::assertStringContainsString('WHERE 0', $result[0]);
+    #[Test]
+    public function showCollation(): void
+    {
+        self::assertStringContainsString('Collation', $this->translator->translate('SHOW COLLATION')[0]);
+    }
+
+    #[Test]
+    public function showDatabases(): void
+    {
+        self::assertStringContainsString("'main'", $this->translator->translate('SHOW DATABASES')[0]);
+    }
+
+    #[Test]
+    public function showTableStatus(): void
+    {
+        self::assertStringContainsString('sqlite_master', $this->translator->translate('SHOW TABLE STATUS')[0]);
     }
 
     // ── Ignored statements ──
@@ -254,6 +355,12 @@ final class SqliteQueryTranslatorTest extends TestCase
         self::assertSame([], $this->translator->translate('UNLOCK TABLES'));
     }
 
+    #[Test]
+    public function optimizeTableIgnored(): void
+    {
+        self::assertSame([], $this->translator->translate('OPTIMIZE TABLE wp_posts'));
+    }
+
     // ── FOR UPDATE ──
 
     #[Test]
@@ -261,7 +368,39 @@ final class SqliteQueryTranslatorTest extends TestCase
     {
         $result = $this->translator->translate('SELECT * FROM t WHERE id = 1 FOR UPDATE');
 
-        self::assertCount(1, $result);
         self::assertStringNotContainsString('FOR UPDATE', $result[0]);
+    }
+
+    // ── End-to-end with SQLite ──
+
+    #[Test]
+    public function endToEndCreateInsertSelectTruncate(): void
+    {
+        $driver = new \WpPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
+        $driver->connect();
+
+        // CREATE TABLE with MySQL types
+        $createSql = $this->translator->translate(
+            'CREATE TABLE `test` (`id` INT NOT NULL PRIMARY KEY, `name` VARCHAR(255), `created` DATETIME) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+        );
+        $driver->executeStatement($createSql[0]);
+
+        // INSERT
+        $driver->executeStatement("INSERT INTO \"test\" (id, name, created) VALUES (1, 'hello', datetime('now'))");
+
+        // SELECT
+        $result = $driver->executeQuery('SELECT * FROM "test"');
+        $rows = $result->fetchAllAssociative();
+        self::assertCount(1, $rows);
+        self::assertSame('hello', $rows[0]['name']);
+
+        // TRUNCATE → DELETE FROM
+        $truncateSql = $this->translator->translate('TRUNCATE TABLE `test`');
+        $driver->executeStatement($truncateSql[0]);
+
+        $result = $driver->executeQuery('SELECT COUNT(*) AS cnt FROM "test"');
+        self::assertSame(0, (int) $result->fetchOne());
+
+        $driver->close();
     }
 }

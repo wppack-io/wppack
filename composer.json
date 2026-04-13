@@ -13,6 +13,7 @@
     "require": {
         "php": "^8.2",
         "litesaml/lightsaml": "^4.0",
+        "phpmyadmin/sql-parser": "^6.0",
         "psr/container": "^2.0",
         "psr/event-dispatcher": "^1.0",
         "psr/http-client": "^1.0",
