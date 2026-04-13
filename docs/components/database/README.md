@@ -531,13 +531,27 @@ $db->fetchAllAssociative(
 
 WordPress は MySQL SQL を生成するため、非 MySQL エンジンではクエリ変換が必要です。各ドライバが `getQueryTranslator()` で適切なトランスレーターを返します。
 
+トランスレーターは `phpmyadmin/sql-parser` による AST パースを使用し、MySQL SQL を完全に解析してターゲットエンジンの SQL に変換します。
+
 | ドライバ | Translator | 動作 |
 |---------|-----------|------|
 | MysqlDriver | NullQueryTranslator | パススルー |
-| SqliteDriver | SqliteQueryTranslator | MySQL → SQLite 変換 |
-| PgsqlDriver | PostgresqlQueryTranslator | MySQL → PostgreSQL 変換 |
+| SqliteDriver | SqliteQueryTranslator | MySQL → SQLite 変換（AST ベース） |
+| PgsqlDriver | PostgresqlQueryTranslator | MySQL → PostgreSQL 変換（AST ベース） |
 | RdsDataApiDriver | NullQueryTranslator | パススルー（Aurora MySQL 互換） |
-| AuroraDsqlDriver | PostgresqlQueryTranslator | MySQL → PostgreSQL 変換 |
+| AuroraDsqlDriver | PostgresqlQueryTranslator | MySQL → PostgreSQL 変換（AST ベース） |
+
+#### 対応する変換
+
+**DDL:** CREATE TABLE, ALTER TABLE (ADD/DROP/MODIFY), CREATE INDEX, DROP INDEX, TRUNCATE TABLE
+
+**DML:** INSERT IGNORE, REPLACE INTO, ON DUPLICATE KEY UPDATE → ON CONFLICT
+
+**関数:** NOW, CURDATE, RAND, UNIX_TIMESTAMP, FROM_UNIXTIME, DATE_ADD, DATE_SUB, DATE_FORMAT, CONCAT, SUBSTRING, LENGTH, CHAR_LENGTH, LEFT, IF, IFNULL, CAST AS SIGNED, LAST_INSERT_ID, VERSION, DATABASE, FOUND_ROWS
+
+**SHOW 文:** SHOW TABLES, SHOW COLUMNS, SHOW CREATE TABLE, SHOW INDEX, SHOW VARIABLES, SHOW COLLATION, SHOW DATABASES, SHOW TABLE STATUS
+
+**無視:** SET SESSION, SET NAMES, LOCK/UNLOCK TABLES, OPTIMIZE/ANALYZE/CHECK/REPAIR TABLE
 
 ### Bridge パッケージ
 
