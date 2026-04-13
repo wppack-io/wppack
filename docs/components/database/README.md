@@ -375,10 +375,114 @@ $schemas = $schemaManager->getSchemas();
 
 → [Hook コンポーネントのドキュメント](../hook/database.md) を参照してください。
 
+## Driver / Platform / Connection 抽象化
+
+Database コンポーネントは Cache コンポーネントと同じ抽象化パターン（Driver / Platform / Factory / Bridge）を提供します。MySQL 以外のデータベースエンジン（SQLite、PostgreSQL、RDS Data API、Aurora DSQL）に対応し、Doctrine DBAL の設計思想を取り入れています。
+
+### アーキテクチャ
+
+```
+DatabaseManager（WordPress $wpdb ラッパー、後方互換）
+    │
+Connection（DBAL スタイル API）
+    │
+DriverInterface（SPI）
+    ├── MysqlDriver（コア）
+    ├── SqliteDriver（Bridge/Sqlite）
+    ├── PgsqlDriver（Bridge/Pgsql）
+    ├── RdsDataApiDriver（Bridge/RdsDataApi）
+    └── AuroraDsqlDriver（Bridge/AuroraDsql）
+```
+
+### Connection
+
+`Connection` は `DriverInterface` を介して、エンジンに依存しない統一 API を提供します。`?` プレースホルダによるパラメータ化クエリに対応しています。
+
+```php
+use WpPack\Component\Database\Connection;
+use WpPack\Component\Database\Driver\Driver;
+
+$driver = Driver::fromDsn('mysql://user:pass@localhost:3306/mydb');
+$connection = new Connection($driver);
+
+$rows = $connection->fetchAllAssociative('SELECT * FROM posts WHERE status = ?', ['publish']);
+$connection->transactional(function (Connection $conn) {
+    $conn->executeStatement('INSERT INTO logs (message) VALUES (?)', ['Hello']);
+});
+```
+
+### DSN フォーマット
+
+`Driver::fromDsn()` で DSN 文字列からドライバを自動生成します。
+
+| スキーム | ドライバ | 例 |
+|---------|--------|-----|
+| `mysql://` | MysqlDriver | `mysql://user:pass@host:3306/dbname` |
+| `mariadb://` | MysqlDriver | `mariadb://user:pass@host:3306/dbname` |
+| `sqlite://` | SqliteDriver | `sqlite:///path/to/db.sqlite` |
+| `pgsql://` | PgsqlDriver | `pgsql://user:pass@host:5432/dbname` |
+| `rds-data://` | RdsDataApiDriver | `rds-data://cluster-arn/dbname?secret_arn=...` |
+| `dsql://` | AuroraDsqlDriver | `dsql://admin:token@id.dsql.us-east-1.on.aws/dbname` |
+| `wpdb://` | MysqlDriver | `wpdb://default`（既存 $wpdb をラップ） |
+
+### Platform
+
+各エンジンの SQL 方言差異（識別子クォート、トランザクション構文、AUTO_INCREMENT キーワード等）を抽象化します。
+
+| Platform | エンジン | 識別子クォート | BEGIN | AUTO_INCREMENT |
+|---------|--------|------------|-------|----------------|
+| `MysqlPlatform` | MySQL | `` ` `` | `START TRANSACTION` | `AUTO_INCREMENT` |
+| `MariadbPlatform` | MariaDB | `` ` `` | `START TRANSACTION` | `AUTO_INCREMENT` |
+| `SqlitePlatform` | SQLite | `"` | `BEGIN` | `AUTOINCREMENT` |
+| `PostgresqlPlatform` | PostgreSQL | `"` | `BEGIN` | `SERIAL` |
+
+### QueryTranslator
+
+WordPress は MySQL SQL を生成するため、非 MySQL エンジンではクエリ変換が必要です。各ドライバが `getQueryTranslator()` で適切なトランスレーターを返します。
+
+| ドライバ | Translator | 動作 |
+|---------|-----------|------|
+| MysqlDriver | NullQueryTranslator | パススルー |
+| SqliteDriver | SqliteQueryTranslator | MySQL → SQLite 変換 |
+| PgsqlDriver | PostgresqlQueryTranslator | MySQL → PostgreSQL 変換 |
+| RdsDataApiDriver | NullQueryTranslator | パススルー（Aurora MySQL 互換） |
+| AuroraDsqlDriver | PostgresqlQueryTranslator | MySQL → PostgreSQL 変換 |
+
+### Bridge パッケージ
+
+エンジン固有の実装は Bridge パッケージとして分離されています。必要なものだけインストールします。
+
+| パッケージ | 説明 | 依存 |
+|----------|------|------|
+| `wppack/sqlite-database` | SQLite ドライバ | ext-pdo_sqlite |
+| `wppack/pgsql-database` | PostgreSQL ドライバ | ext-pgsql |
+| `wppack/rds-data-api-database` | RDS Data API ドライバ | async-aws/rds-data-service |
+| `wppack/aurora-dsql-database` | Aurora DSQL ドライバ | wppack/pgsql-database |
+
+### db.php ドロップイン
+
+`wp-content/db.php` にシンボリックリンクまたはコピーすることで、WordPress のデータベースレイヤーを WpPack ドライバに置き換えられます。
+
+```php
+// wp-config.php
+define('WPPACK_DATABASE_DSN', 'sqlite:///path/to/database.db');
+```
+
+MySQL/MariaDB の場合はドロップイン不要（WordPress 標準の $wpdb がそのまま動作）。
+
+### DatabaseEngine enum
+
+| Case | 値 | 説明 |
+|------|---|------|
+| `MySQL` | `'mysql'` | MySQL |
+| `MariaDB` | `'mariadb'` | MariaDB |
+| `SQLite` | `'sqlite'` | SQLite |
+| `PostgreSQL` | `'pgsql'` | PostgreSQL |
+
 ## 依存関係
 
 ### 必須
-なし — WordPress の `$wpdb` をそのまま利用
+- `wppack/dsn` — DSN パーサー
 
 ### 推奨
 - **Hook コンポーネント** — Attribute ベースのフック登録

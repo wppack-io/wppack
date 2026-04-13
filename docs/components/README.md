@@ -59,7 +59,13 @@ WordPress API やデータアクセスを抽象化し、テスト可能にする
 | [DynamoDbCache](./cache/dynamodb-cache.md) | `wppack/dynamodb-cache` | DynamoDB キャッシュ |
 | [MemcachedCache](./cache/memcached-cache.md) | `wppack/memcached-cache` | Memcached キャッシュ |
 | [ApcuCache](./cache/apcu-cache.md) | `wppack/apcu-cache` | APCu キャッシュ |
-| [Database](./database/) | `wppack/database` | `$wpdb` の型安全ラッパー、マイグレーション |
+| [Database](./database/) | `wppack/database` | `$wpdb` の型安全ラッパー、Driver/Platform/Connection 抽象化 |
+| [SqliteDatabase](./database/) | `wppack/sqlite-database` | SQLite データベースドライバ |
+| [PgsqlDatabase](./database/) | `wppack/pgsql-database` | PostgreSQL データベースドライバ |
+| [RdsDataApiDatabase](./database/) | `wppack/rds-data-api-database` | RDS Data API データベースドライバ |
+| [AuroraDsqlDatabase](./database/) | `wppack/aurora-dsql-database` | Aurora DSQL データベースドライバ |
+| [Dsn](./dsn.md) | `wppack/dsn` | 共通 DSN パーサー |
+| [DatabaseExport](./database-export.md) | `wppack/database-export` | データベースエクスポート（SQL/JSON/CSV） |
 | [Query](./query/) | `wppack/query` | `WP_Query` ビルダー |
 | [Security](./security/) | `wppack/security` | 認証・認可フレームワーク |
 | [SamlSecurity](./security/saml-security.md) | `wppack/saml-security` | SAML 2.0 SP 認証ブリッジ |
