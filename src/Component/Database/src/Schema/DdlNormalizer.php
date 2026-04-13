@@ -69,10 +69,10 @@ final class DdlNormalizer
     private function stripForeignKeys(string $ddl): string
     {
         // CONSTRAINT at the start of a column definition (followed by comma)
-        $ddl = (string) preg_replace('/\s+CONSTRAINT\b.+?REFERENCES\b.+?,/i', ',', $ddl);
+        $ddl = (string) preg_replace('/\s+CONSTRAINT\b.+?REFERENCES\b.+?,/is', ',', $ddl);
 
         // CONSTRAINT at the end of column definitions (preceded by comma)
-        $ddl = (string) preg_replace('/,\s+CONSTRAINT\b.+?REFERENCES\b[^,)]+/i', '', $ddl);
+        $ddl = (string) preg_replace('/,\s+CONSTRAINT\b.+?REFERENCES\b[^,)]+/is', '', $ddl);
 
         return $ddl;
     }
@@ -93,12 +93,14 @@ final class DdlNormalizer
      */
     private function normalizeMariadbColumnTypes(string $ddl): string
     {
+        // Negative lookbehind prevents matching backtick-quoted column names.
+        // Negative lookahead prevents matching function calls like UUID().
         $mappings = [
-            '/\bINET4\b/i' => 'VARCHAR(15)',
-            '/\bINET6\b/i' => 'VARCHAR(45)',
-            '/\bUUID\b/i' => 'CHAR(36)',
-            '/\bXMLTYPE\b/i' => 'LONGTEXT',
-            '/\bVECTOR\s*\(\s*\d+\s*\)/i' => 'BLOB',
+            '/(?<!`)\bINET4\b(?!\s*\()/i' => 'VARCHAR(15)',
+            '/(?<!`)\bINET6\b(?!\s*\()/i' => 'VARCHAR(45)',
+            '/(?<!`)\bUUID\b(?!\s*\()/i' => 'CHAR(36)',
+            '/(?<!`)\bXMLTYPE\b(?!\s*\()/i' => 'LONGTEXT',
+            '/(?<!`)\bVECTOR\s*\(\s*\d+\s*\)/i' => 'BLOB',
         ];
 
         foreach ($mappings as $pattern => $replacement) {

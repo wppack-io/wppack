@@ -560,12 +560,22 @@ Tests for each component are located in `src/Component/{Name}/tests/`.
 
 ### Checklist for Adding Components
 
-When adding a new component or Bridge package, update all of the following files:
+When adding a new component or Bridge package:
 
-1. **Root `composer.json`** — Add to `autoload.psr-4`, `autoload-dev.psr-4`, and `replace`
-2. **`codecov.yml`** — Add `component_id` / `name` / `paths` to `individual_components`
-3. **`CLAUDE.md`** — Add to the component list table and key dependencies
-4. **`docs/`** — Create or update documentation for the component
+1. **Component directory** — Create `src/Component/{Name}/` with:
+   - `src/` — Component source code
+   - `tests/` — Tests
+   - `composer.json` — Package definition
+   - `README.md` — Package README (English)
+   - `LICENSE` — MIT license file
+   - `.gitignore` — `vendor/`, `composer.lock`, `phpunit.xml`
+   - `phpunit.xml.dist` — PHPUnit configuration
+   - `.github/PULL_REQUEST_TEMPLATE.md` — Subtree split PR template
+   - `.github/workflows/close-pull-request.yml` — Auto-close PRs on read-only repo
+2. **Root `composer.json`** — Add to `autoload.psr-4`, `autoload-dev.psr-4`, and `replace`
+3. **`codecov.yml`** — Add `component_id` / `name` / `paths` to `individual_components`
+4. **`CLAUDE.md`** — Add to the component list table and key dependencies
+5. **`docs/`** — Create or update documentation for the component
 
 ### Checklist for Adding Plugins
 

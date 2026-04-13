@@ -27,6 +27,7 @@ final class PrefixTableFilter implements TableFilterInterface
         'users',
         'usermeta',
         'blogs',
+        'blogmeta',
         'blog_versions',
         'site',
         'sitemeta',
