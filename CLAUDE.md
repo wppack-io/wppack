@@ -111,6 +111,7 @@ Distributed as WordPress plugins. Built on top of Components.
 | Ajax | wppack/ajax | Admin Ajax handler |
 | Scim | wppack/scim | SCIM 2.0 provisioning |
 | Wpress | wppack/wpress | .wpress archive format operations |
+| DatabaseExport | wppack/database-export | Database export to SQL/JSON/CSV with multi-engine support |
 
 ### Application Layer
 | Component | Package Name | Description |
@@ -293,6 +294,11 @@ wppack/scim
     ↓ requires
 wppack/rest, wppack/user, wppack/role, wppack/security
 wppack/http-foundation, wppack/event-dispatcher, wppack/sanitizer, wppack/site
+
+wppack/database-export
+    ↓ requires
+wppack/database
+    + wppack/wpress (suggest)
 
 wppack/scim-plugin
     ↓ requires

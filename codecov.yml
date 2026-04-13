@@ -245,6 +245,10 @@ component_management:
       name: Wpress
       paths:
         - src/Component/Wpress/src/**
+    - component_id: database-export
+      name: DatabaseExport
+      paths:
+        - src/Component/DatabaseExport/src/**
 
     # Application Layer
     - component_id: plugin
