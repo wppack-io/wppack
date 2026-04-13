@@ -71,7 +71,12 @@ Distributed as WordPress plugins. Built on top of Components.
 | DynamoDbCache | wppack/dynamodb-cache | DynamoDB cache |
 | MemcachedCache | wppack/memcached-cache | Memcached cache |
 | ApcuCache | wppack/apcu-cache | APCu cache |
-| Database | wppack/database | Type-safe wrapper for $wpdb, migrations |
+| Database | wppack/database | Type-safe wrapper for $wpdb, Driver/Platform/Connection abstraction, migrations |
+| SqliteDatabase | wppack/sqlite-database | SQLite database driver |
+| PgsqlDatabase | wppack/pgsql-database | PostgreSQL database driver |
+| RdsDataApiDatabase | wppack/rds-data-api-database | RDS Data API database driver |
+| AuroraDsqlDatabase | wppack/aurora-dsql-database | Aurora DSQL database driver |
+| Dsn | wppack/dsn | Shared DSN parser |
 | Query | wppack/query | WP_Query builder |
 | Security | wppack/security | Authentication and authorization framework |
 | SamlSecurity | wppack/saml-security | SAML 2.0 SP authentication bridge |
@@ -299,6 +304,30 @@ wppack/database-export
     ↓ requires
 wppack/database
     + wppack/wpress (suggest)
+
+wppack/database
+    ↓ requires
+wppack/dsn
+
+wppack/sqlite-database
+    ↓ requires
+wppack/database
+    + ext-pdo_sqlite
+
+wppack/pgsql-database
+    ↓ requires
+wppack/database
+    + ext-pgsql
+
+wppack/rds-data-api-database
+    ↓ requires
+wppack/database
+    + async-aws/rds-data-service
+
+wppack/aurora-dsql-database
+    ↓ requires
+wppack/database, wppack/pgsql-database
+    + async-aws/core (suggest)
 
 wppack/scim-plugin
     ↓ requires

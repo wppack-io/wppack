@@ -249,6 +249,26 @@ component_management:
       name: DatabaseExport
       paths:
         - src/Component/DatabaseExport/src/**
+    - component_id: dsn
+      name: Dsn
+      paths:
+        - src/Component/Dsn/src/**
+    - component_id: sqlite-database
+      name: SqliteDatabase
+      paths:
+        - src/Component/Database/Bridge/Sqlite/src/**
+    - component_id: pgsql-database
+      name: PgsqlDatabase
+      paths:
+        - src/Component/Database/Bridge/Pgsql/src/**
+    - component_id: rds-data-api-database
+      name: RdsDataApiDatabase
+      paths:
+        - src/Component/Database/Bridge/RdsDataApi/src/**
+    - component_id: aurora-dsql-database
+      name: AuroraDsqlDatabase
+      paths:
+        - src/Component/Database/Bridge/AuroraDsql/src/**
 
     # Application Layer
     - component_id: plugin
