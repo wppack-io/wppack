@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Database;
 
+use WpPack\Component\Database\Exception\DriverException;
 use WpPack\Component\Database\Exception\QueryException;
 
 /**
@@ -33,7 +34,7 @@ final class DatabaseManager
     public readonly string $usermeta;
 
     private \wpdb $wpdb;
-    private ?Connection $connection = null;
+    private Connection $connection;
 
     /**
      * Map of DatabaseManager property names (camelCase) to wpdb property names (snake_case).
@@ -66,6 +67,7 @@ final class DatabaseManager
         };
         $this->users = $wpdb->users;
         $this->usermeta = $wpdb->usermeta;
+        $this->connection = $this->createConnection();
     }
 
     /**
@@ -96,27 +98,17 @@ final class DatabaseManager
      *
      * @throws QueryException
      */
-    public function executeQuery(string $query, array $params = []): int|bool
+    public function executeQuery(string $query, array $params = []): true
     {
-        if ($this->connection !== null) {
-            [$sql, $nativeParams] = $this->toNativePlaceholders($query, $params);
+        [$sql, $nativeParams] = $this->toNativePlaceholders($query, $params);
+
+        try {
             $this->connection->executeQuery($sql, $nativeParams);
-
-            return true;
+        } catch (DriverException $e) {
+            throw new QueryException($sql, $e->getMessage(), $e);
         }
 
-        if ($this->engine === DatabaseEngine::MySQL && $params !== []) {
-            return $this->executePreparedStatement($query, $params);
-        }
-
-        $sql = $this->prepareIfNeeded($query, $params);
-        $result = $this->wpdb->query($sql);
-
-        if ($result === false) {
-            throw new QueryException($sql, $this->wpdb->last_error);
-        }
-
-        return $result;
+        return true;
     }
 
     /**
@@ -128,24 +120,13 @@ final class DatabaseManager
      */
     public function executeStatement(string $query, array $params = []): int
     {
-        if ($this->connection !== null) {
-            [$sql, $nativeParams] = $this->toNativePlaceholders($query, $params);
+        [$sql, $nativeParams] = $this->toNativePlaceholders($query, $params);
 
+        try {
             return $this->connection->executeStatement($sql, $nativeParams);
+        } catch (DriverException $e) {
+            throw new QueryException($sql, $e->getMessage(), $e);
         }
-
-        if ($this->engine === DatabaseEngine::MySQL && $params !== []) {
-            return (int) $this->executePreparedStatement($query, $params);
-        }
-
-        $sql = $this->prepareIfNeeded($query, $params);
-        $result = $this->wpdb->query($sql);
-
-        if ($result === false) {
-            throw new QueryException($sql, $this->wpdb->last_error);
-        }
-
-        return (int) $result;
     }
 
     /**
@@ -159,27 +140,13 @@ final class DatabaseManager
      */
     public function fetchAllAssociative(string $query, array $params = []): array
     {
-        if ($this->connection !== null) {
-            [$sql, $nativeParams] = $this->toNativePlaceholders($query, $params);
+        [$sql, $nativeParams] = $this->toNativePlaceholders($query, $params);
 
+        try {
             return $this->connection->fetchAllAssociative($sql, $nativeParams);
+        } catch (DriverException $e) {
+            throw new QueryException($sql, $e->getMessage(), $e);
         }
-
-        if ($this->engine === DatabaseEngine::MySQL && $params !== []) {
-            return $this->fetchPrepared($query, $params, 'all');
-        }
-
-        $sql = $this->prepareIfNeeded($query, $params);
-        $this->wpdb->suppress_errors(true);
-        $results = $this->wpdb->get_results($sql, ARRAY_A);
-        $this->wpdb->suppress_errors(false);
-
-        if ($results === null) {
-            throw new QueryException($sql, $this->wpdb->last_error);
-        }
-
-        /** @var list<array<string, mixed>> */
-        return $results;
     }
 
     /**
@@ -193,28 +160,13 @@ final class DatabaseManager
      */
     public function fetchAssociative(string $query, array $params = []): ?array
     {
-        if ($this->connection !== null) {
-            [$sql, $nativeParams] = $this->toNativePlaceholders($query, $params);
+        [$sql, $nativeParams] = $this->toNativePlaceholders($query, $params);
 
+        try {
             return $this->connection->fetchAssociative($sql, $nativeParams);
+        } catch (DriverException $e) {
+            throw new QueryException($sql, $e->getMessage(), $e);
         }
-
-        if ($this->engine === DatabaseEngine::MySQL && $params !== []) {
-            $rows = $this->fetchPrepared($query, $params, 'row');
-
-            return $rows === [] ? null : $rows[0];
-        }
-
-        $sql = $this->prepareIfNeeded($query, $params);
-        $this->wpdb->suppress_errors(true);
-        $row = $this->wpdb->get_row($sql, ARRAY_A);
-        $this->wpdb->suppress_errors(false);
-
-        if ($row === null && $this->wpdb->last_error !== '') {
-            throw new QueryException($sql, $this->wpdb->last_error);
-        }
-
-        return $row;
     }
 
     /**
@@ -226,32 +178,13 @@ final class DatabaseManager
      */
     public function fetchOne(string $query, array $params = []): mixed
     {
-        if ($this->connection !== null) {
-            [$sql, $nativeParams] = $this->toNativePlaceholders($query, $params);
+        [$sql, $nativeParams] = $this->toNativePlaceholders($query, $params);
 
+        try {
             return $this->connection->fetchOne($sql, $nativeParams);
+        } catch (DriverException $e) {
+            throw new QueryException($sql, $e->getMessage(), $e);
         }
-
-        if ($this->engine === DatabaseEngine::MySQL && $params !== []) {
-            $rows = $this->fetchPrepared($query, $params, 'row');
-
-            if ($rows === []) {
-                return null;
-            }
-
-            return $rows[0] !== [] ? reset($rows[0]) : null;
-        }
-
-        $sql = $this->prepareIfNeeded($query, $params);
-        $this->wpdb->suppress_errors(true);
-        $value = $this->wpdb->get_var($sql);
-        $this->wpdb->suppress_errors(false);
-
-        if ($value === null && $this->wpdb->last_error !== '') {
-            throw new QueryException($sql, $this->wpdb->last_error);
-        }
-
-        return $value;
     }
 
     /**
@@ -265,28 +198,13 @@ final class DatabaseManager
      */
     public function fetchFirstColumn(string $query, array $params = []): array
     {
-        if ($this->connection !== null) {
-            [$sql, $nativeParams] = $this->toNativePlaceholders($query, $params);
+        [$sql, $nativeParams] = $this->toNativePlaceholders($query, $params);
 
+        try {
             return $this->connection->fetchFirstColumn($sql, $nativeParams);
+        } catch (DriverException $e) {
+            throw new QueryException($sql, $e->getMessage(), $e);
         }
-
-        if ($this->engine === DatabaseEngine::MySQL && $params !== []) {
-            $rows = $this->fetchPrepared($query, $params, 'all');
-
-            return array_map(static fn(array $row): mixed => reset($row), $rows);
-        }
-
-        $sql = $this->prepareIfNeeded($query, $params);
-        $this->wpdb->suppress_errors(true);
-        $results = $this->wpdb->get_col($sql);
-        $this->wpdb->suppress_errors(false);
-
-        if ($results === [] && $this->wpdb->last_error !== '') {
-            throw new QueryException($sql, $this->wpdb->last_error);
-        }
-
-        return $results;
     }
 
     /**
@@ -457,198 +375,33 @@ final class DatabaseManager
         return $this->wpdb;
     }
 
-    /**
-     * Set a Connection for DBAL-style query execution with true ? placeholders.
-     *
-     * When set, parameterized queries (those with ? placeholders in addition
-     * to WordPress %s/%d/%f) can be executed via the Connection's driver,
-     * enabling native prepared statements on all engines.
-     */
-    public function setConnection(Connection $connection): void
-    {
-        $this->connection = $connection;
-    }
-
-    public function getConnection(): ?Connection
+    public function getConnection(): Connection
     {
         return $this->connection;
     }
 
     /**
-     * Execute a native mysqli prepared statement.
+     * Create a Connection from the current wpdb handle.
      *
-     * @param list<mixed> $params
-     *
-     * @throws QueryException
+     * Wraps the existing $wpdb->dbh (mysqli, PDO, PgSql) in a Driver,
+     * enabling native prepared statements for all engines.
      */
-    private function executePreparedStatement(string $query, array $params): int
+    private function createConnection(): Connection
     {
-        [$sql, $types, $values] = $this->convertPlaceholders($query, $params);
-
-        $interpolatedQuery = $this->wpdb->prepare($query, ...$params);
-
-        /** @var string */
-        $filteredQuery = apply_filters('query', $interpolatedQuery);
-
-        $startTime = microtime(true);
-
         /** @phpstan-ignore property.protected */
         $dbh = $this->wpdb->dbh;
 
-        if (!$dbh instanceof \mysqli) {
-            throw new QueryException($sql, 'Database handle is not a mysqli instance.');
-        }
-        $stmt = $dbh->prepare($sql);
-
-        if ($stmt === false) {
-            throw new QueryException($sql, $dbh->error);
+        if ($dbh instanceof \mysqli) {
+            return new Connection(Driver\MysqlDriver::fromMysqli($dbh));
         }
 
-        try {
-            if ($values !== []) {
-                $stmt->bind_param($types, ...$values);
-            }
-
-            if (!$stmt->execute()) {
-                throw new QueryException($sql, $stmt->error);
-            }
-
-            $result = $stmt->affected_rows;
-        } finally {
-            $stmt->close();
-        }
-
-        $this->recordQuery($filteredQuery, $startTime);
-
-        return $result;
-    }
-
-    /**
-     * Execute a native mysqli prepared statement and fetch results.
-     *
-     * @param list<mixed> $params
-     * @param 'all'|'row' $mode
-     *
-     * @return list<array<string, mixed>>
-     *
-     * @throws QueryException
-     */
-    private function fetchPrepared(string $query, array $params, string $mode): array
-    {
-        [$sql, $types, $values] = $this->convertPlaceholders($query, $params);
-
-        $interpolatedQuery = $this->wpdb->prepare($query, ...$params);
-
-        /** @var string */
-        $filteredQuery = apply_filters('query', $interpolatedQuery);
-
-        $startTime = microtime(true);
-
-        /** @phpstan-ignore property.protected */
-        $dbh = $this->wpdb->dbh;
-
-        if (!$dbh instanceof \mysqli) {
-            throw new QueryException($sql, 'Database handle is not a mysqli instance.');
-        }
-        $stmt = $dbh->prepare($sql);
-
-        if ($stmt === false) {
-            throw new QueryException($sql, $dbh->error);
-        }
-
-        try {
-            if ($values !== []) {
-                $stmt->bind_param($types, ...$values);
-            }
-
-            if (!$stmt->execute()) {
-                throw new QueryException($sql, $stmt->error);
-            }
-
-            $mysqliResult = $stmt->get_result();
-
-            if ($mysqliResult === false) {
-                throw new QueryException($sql, $stmt->error);
-            }
-
-            /** @var list<array<string, mixed>> */
-            $rows = $mode === 'row'
-                ? (($row = $mysqliResult->fetch_assoc()) !== null ? [$row] : [])
-                : $mysqliResult->fetch_all(MYSQLI_ASSOC);
-
-            $mysqliResult->free();
-        } finally {
-            $stmt->close();
-        }
-
-        $this->recordQuery($filteredQuery, $startTime);
-
-        /** @var list<array<string, mixed>> */
-        return $rows;
-    }
-
-    /**
-     * Convert wpdb-style placeholders (%s, %d, %f) to native mysqli placeholders (?).
-     *
-     * @param list<mixed> $params
-     *
-     * @return array{string, string, list<mixed>} [$sql, $types, $values]
-     */
-    private function convertPlaceholders(string $query, array $params): array
-    {
-        $types = '';
-        $values = [];
-        $paramIndex = 0;
-
-        $sql = preg_replace_callback(
-            '/%%|%([sdf])/',
-            function (array $matches) use ($params, &$types, &$values, &$paramIndex): string {
-                if ($matches[0] === '%%') {
-                    return '%';
-                }
-
-                $value = $params[$paramIndex] ?? null;
-                ++$paramIndex;
-
-                match ($matches[1]) {
-                    's' => $types .= 's',
-                    'd' => $types .= 'i',
-                    'f' => $types .= 'd',
-                };
-
-                $values[] = $value;
-
-                return '?';
-            },
-            $query,
-        );
-
-        return [$sql, $types, $values];
-    }
-
-    /**
-     * Record the query in $wpdb->queries when SAVEQUERIES is enabled.
-     */
-    private function recordQuery(string $query, float $startTime): void
-    {
-        if (!defined('SAVEQUERIES') || !SAVEQUERIES) {
-            return;
-        }
-
-        $elapsed = (microtime(true) - $startTime) * 1000;
-        $this->wpdb->queries[] = [$query, $elapsed, ''];
-    }
-
-    /**
-     * @param list<mixed> $params
-     */
-    private function prepareIfNeeded(string $query, array $params): string
-    {
-        if ($params === []) {
-            return $query;
-        }
-
-        return $this->wpdb->prepare($query, ...$params);
+        // Fallback: create new connection from WordPress constants
+        return new Connection(new Driver\MysqlDriver(
+            host: \defined('DB_HOST') ? DB_HOST : '127.0.0.1',
+            username: \defined('DB_USER') ? DB_USER : 'root',
+            password: \defined('DB_PASSWORD') ? DB_PASSWORD : '',
+            database: \defined('DB_NAME') ? DB_NAME : '',
+        ));
     }
 
     /**

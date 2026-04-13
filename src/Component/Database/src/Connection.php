@@ -182,10 +182,21 @@ class Connection
      */
     private function logQuery(string $sql, array $params, float $startTime): void
     {
+        $elapsed = round((microtime(true) - $startTime) * 1000, 2);
+
         $this->logger?->debug('Query executed', [
             'sql' => $sql,
             'params' => $params,
-            'time_ms' => round((microtime(true) - $startTime) * 1000, 2),
+            'time_ms' => $elapsed,
         ]);
+
+        // SAVEQUERIES support for WordPress debug bar / Query Monitor
+        if (\defined('SAVEQUERIES') && SAVEQUERIES) {
+            global $wpdb;
+
+            if (isset($wpdb->queries) && \is_array($wpdb->queries)) {
+                $wpdb->queries[] = [$sql, $elapsed / 1000, ''];
+            }
+        }
     }
 }

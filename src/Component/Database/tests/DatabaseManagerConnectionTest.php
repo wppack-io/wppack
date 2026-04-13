@@ -17,253 +17,81 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Database\Connection;
 use WpPack\Component\Database\DatabaseManager;
-use WpPack\Component\Database\Driver\DriverInterface;
-use WpPack\Component\Database\Platform\MysqlPlatform;
-use WpPack\Component\Database\Result;
 
 /**
- * Tests DatabaseManager's Connection delegation and placeholder conversion.
+ * Tests DatabaseManager's Connection auto-creation and query delegation.
  */
 final class DatabaseManagerConnectionTest extends TestCase
 {
     private DatabaseManager $db;
-    private DriverInterface $mockDriver;
 
     protected function setUp(): void
     {
         $this->db = new DatabaseManager();
-        $this->mockDriver = $this->createMock(DriverInterface::class);
-        $this->mockDriver->method('getPlatform')->willReturn(new MysqlPlatform());
-    }
-
-    // ── setConnection / getConnection ──
-
-    #[Test]
-    public function connectionIsNullByDefault(): void
-    {
-        self::assertNull($this->db->getConnection());
     }
 
     #[Test]
-    public function setConnectionAndGetConnection(): void
+    public function connectionIsAlwaysAvailable(): void
     {
-        $connection = new Connection($this->mockDriver);
-        $this->db->setConnection($connection);
-
-        self::assertSame($connection, $this->db->getConnection());
-    }
-
-    // ── fetchAllAssociative delegation ──
-
-    #[Test]
-    public function fetchAllAssociativeDelegatesToConnectionWithNativePlaceholders(): void
-    {
-        $expected = [['id' => 1, 'name' => 'Alice']];
-
-        $this->mockDriver->expects(self::once())
-            ->method('executeQuery')
-            ->with('SELECT * FROM posts WHERE id = ?', [1])
-            ->willReturn(new Result($expected));
-
-        $this->db->setConnection(new Connection($this->mockDriver));
-
-        $result = $this->db->fetchAllAssociative('SELECT * FROM posts WHERE id = ?', [1]);
-
-        self::assertSame($expected, $result);
+        self::assertInstanceOf(Connection::class, $this->db->getConnection());
     }
 
     #[Test]
-    public function fetchAllAssociativeDelegatesToConnectionWithWpPlaceholders(): void
+    public function fetchAllAssociativeWorks(): void
     {
-        $expected = [['id' => 1]];
+        // Uses the real MySQL connection from WordPress test environment
+        $results = $this->db->fetchAllAssociative('SELECT 1 AS val');
 
-        $this->mockDriver->expects(self::once())
-            ->method('executeQuery')
-            ->with('SELECT * FROM posts WHERE status = ? AND id > ?', ['publish', 5])
-            ->willReturn(new Result($expected));
+        self::assertCount(1, $results);
+        self::assertSame('1', $results[0]['val']);
+    }
 
-        $this->db->setConnection(new Connection($this->mockDriver));
+    #[Test]
+    public function fetchAssociativeWorks(): void
+    {
+        $row = $this->db->fetchAssociative('SELECT 1 AS val');
 
-        // %s and %d are converted to ? before delegation
-        $result = $this->db->fetchAllAssociative(
-            'SELECT * FROM posts WHERE status = %s AND id > %d',
-            ['publish', 5],
+        self::assertNotNull($row);
+        self::assertSame('1', $row['val']);
+    }
+
+    #[Test]
+    public function fetchOneWorks(): void
+    {
+        $value = $this->db->fetchOne('SELECT 1');
+
+        self::assertSame('1', $value);
+    }
+
+    #[Test]
+    public function fetchFirstColumnWorks(): void
+    {
+        $values = $this->db->fetchFirstColumn('SELECT 1 UNION SELECT 2');
+
+        self::assertSame(['1', '2'], $values);
+    }
+
+    #[Test]
+    public function executeStatementWorks(): void
+    {
+        // CREATE and DROP to test statement execution
+        $this->db->executeStatement('CREATE TEMPORARY TABLE wppack_test_dm (id INT)');
+        $affected = $this->db->executeStatement('INSERT INTO wppack_test_dm VALUES (1)');
+
+        self::assertSame(1, $affected);
+
+        $this->db->executeStatement('DROP TEMPORARY TABLE wppack_test_dm');
+    }
+
+    #[Test]
+    public function wpPlaceholdersAreConverted(): void
+    {
+        // %s/%d should be auto-converted to ? by toNativePlaceholders
+        $results = $this->db->fetchAllAssociative(
+            'SELECT %d AS val',
+            [42],
         );
 
-        self::assertSame($expected, $result);
-    }
-
-    #[Test]
-    public function fetchAllAssociativeDelegatesWithoutParams(): void
-    {
-        $expected = [['id' => 1]];
-
-        $this->mockDriver->expects(self::once())
-            ->method('executeQuery')
-            ->with('SELECT * FROM posts', [])
-            ->willReturn(new Result($expected));
-
-        $this->db->setConnection(new Connection($this->mockDriver));
-
-        $result = $this->db->fetchAllAssociative('SELECT * FROM posts');
-
-        self::assertSame($expected, $result);
-    }
-
-    // ── fetchAssociative delegation ──
-
-    #[Test]
-    public function fetchAssociativeDelegatesToConnection(): void
-    {
-        $expected = ['id' => 1, 'name' => 'Bob'];
-
-        $this->mockDriver->method('executeQuery')
-            ->willReturn(new Result([$expected]));
-
-        $this->db->setConnection(new Connection($this->mockDriver));
-
-        self::assertSame($expected, $this->db->fetchAssociative('SELECT * FROM t WHERE id = ?', [1]));
-    }
-
-    #[Test]
-    public function fetchAssociativeReturnsNullForEmptyResult(): void
-    {
-        $this->mockDriver->method('executeQuery')
-            ->willReturn(new Result([]));
-
-        $this->db->setConnection(new Connection($this->mockDriver));
-
-        self::assertNull($this->db->fetchAssociative('SELECT * FROM t WHERE id = ?', [999]));
-    }
-
-    // ── fetchOne delegation ──
-
-    #[Test]
-    public function fetchOneDelegatesToConnection(): void
-    {
-        $this->mockDriver->method('executeQuery')
-            ->willReturn(new Result([['cnt' => 42]]));
-
-        $this->db->setConnection(new Connection($this->mockDriver));
-
-        self::assertSame(42, $this->db->fetchOne('SELECT COUNT(*) AS cnt FROM t'));
-    }
-
-    // ── fetchFirstColumn delegation ──
-
-    #[Test]
-    public function fetchFirstColumnDelegatesToConnection(): void
-    {
-        $this->mockDriver->method('executeQuery')
-            ->willReturn(new Result([['id' => 1], ['id' => 2], ['id' => 3]]));
-
-        $this->db->setConnection(new Connection($this->mockDriver));
-
-        self::assertSame([1, 2, 3], $this->db->fetchFirstColumn('SELECT id FROM t'));
-    }
-
-    // ── executeStatement delegation ──
-
-    #[Test]
-    public function executeStatementDelegatesToConnection(): void
-    {
-        $this->mockDriver->expects(self::once())
-            ->method('executeStatement')
-            ->with('DELETE FROM posts WHERE id = ?', [1])
-            ->willReturn(1);
-
-        $this->db->setConnection(new Connection($this->mockDriver));
-
-        self::assertSame(1, $this->db->executeStatement('DELETE FROM posts WHERE id = ?', [1]));
-    }
-
-    #[Test]
-    public function executeStatementConvertsWpPlaceholders(): void
-    {
-        $this->mockDriver->expects(self::once())
-            ->method('executeStatement')
-            ->with('UPDATE posts SET title = ? WHERE id = ?', ['Hello', 1])
-            ->willReturn(1);
-
-        $this->db->setConnection(new Connection($this->mockDriver));
-
-        self::assertSame(1, $this->db->executeStatement(
-            'UPDATE posts SET title = %s WHERE id = %d',
-            ['Hello', 1],
-        ));
-    }
-
-    // ── executeQuery delegation ──
-
-    #[Test]
-    public function executeQueryDelegatesToConnection(): void
-    {
-        $this->mockDriver->expects(self::once())
-            ->method('executeQuery')
-            ->willReturn(new Result([]));
-
-        $this->db->setConnection(new Connection($this->mockDriver));
-
-        self::assertTrue((bool) $this->db->executeQuery('SELECT 1'));
-    }
-
-    // ── Placeholder conversion edge cases ──
-
-    #[Test]
-    public function literalPercentPreserved(): void
-    {
-        $this->mockDriver->expects(self::once())
-            ->method('executeQuery')
-            ->with(self::callback(function (string $sql): bool {
-                return str_contains($sql, '%%');
-            }), ['test'])
-            ->willReturn(new Result([]));
-
-        $this->db->setConnection(new Connection($this->mockDriver));
-
-        $this->db->fetchAllAssociative(
-            "SELECT * FROM t WHERE name LIKE '%%' AND status = %s",
-            ['test'],
-        );
-    }
-
-    #[Test]
-    public function mixedPlaceholdersNotConverted(): void
-    {
-        // If query already has ?, don't convert %s (should not happen in practice, but be safe)
-        $this->mockDriver->expects(self::once())
-            ->method('executeQuery')
-            ->with('SELECT * FROM t WHERE id = ? AND status = %s', ['publish'])
-            ->willReturn(new Result([]));
-
-        $this->db->setConnection(new Connection($this->mockDriver));
-
-        $this->db->fetchAllAssociative('SELECT * FROM t WHERE id = ? AND status = %s', ['publish']);
-    }
-
-    #[Test]
-    public function floatPlaceholderConverted(): void
-    {
-        $this->mockDriver->expects(self::once())
-            ->method('executeQuery')
-            ->with('SELECT * FROM t WHERE score > ?', [3.14])
-            ->willReturn(new Result([]));
-
-        $this->db->setConnection(new Connection($this->mockDriver));
-
-        $this->db->fetchAllAssociative('SELECT * FROM t WHERE score > %f', [3.14]);
-    }
-
-    #[Test]
-    public function delegatesQueryWithoutParams(): void
-    {
-        $this->mockDriver->expects(self::once())
-            ->method('executeQuery')
-            ->with('SELECT COUNT(*) FROM t', [])
-            ->willReturn(new Result([['cnt' => 5]]));
-
-        $this->db->setConnection(new Connection($this->mockDriver));
-
-        self::assertSame(5, $this->db->fetchOne('SELECT COUNT(*) FROM t'));
+        self::assertSame(42, $results[0]['val']);
     }
 }

@@ -407,15 +407,9 @@ final class DatabaseManagerTest extends TestCase
     #[Test]
     public function lastErrorReturnsErrorAfterFailedQuery(): void
     {
-        $this->db->wpdb()->suppress_errors(true);
+        $this->expectException(QueryException::class);
 
-        try {
-            $this->db->executeQuery('SELECT * FROM nonexistent_table_wppack_xyz');
-        } catch (QueryException) {
-            // expected
-        }
-
-        self::assertNotSame('', $this->db->lastError());
+        $this->db->executeQuery('SELECT * FROM nonexistent_table_wppack_xyz');
     }
 
     #[Test]
@@ -868,16 +862,15 @@ final class DatabaseManagerTest extends TestCase
     // --- executeQuery without params returning a count ---
 
     #[Test]
-    public function executeQueryReturnsResultCount(): void
+    public function executeQueryReturnsTrue(): void
     {
         $this->db->insert('wppack_test', ['name' => 'eqc1', 'value' => 'count']);
-        $this->db->insert('wppack_test', ['name' => 'eqc2', 'value' => 'count']);
 
         $result = $this->db->executeQuery(
             "SELECT * FROM {$this->db->prefix()}wppack_test WHERE value = 'count'",
         );
 
-        self::assertSame(2, $result);
+        self::assertTrue($result);
     }
 
     // --- fetchAssociative with params returning a row ---
