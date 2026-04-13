@@ -72,23 +72,54 @@ $this->db->insert('custom_table', [
 
 ### Real Prepared Statements
 
-MySQL 環境（`$wpdb->dbh` が `mysqli` インスタンス）では、パラメータ付きクエリに対して `mysqli_prepare()` による真の prepared statements を使用します。これにより、`$wpdb->prepare()` の sprintf ベースの文字列補間に依存しない、よりセキュアなクエリ実行が可能です。
+パラメータ付きクエリは、すべてのデータベースエンジンでネイティブの prepared statement として実行されます。SQL 文字列にパラメータを文字列結合せず、DB エンジンにパラメータを分離して渡すため、SQL インジェクションを構造的に防止します。
+
+#### Connection 経由（推奨）
+
+`Connection` を `setConnection()` で注入すると、全クエリが Connection 経由で実行されます。`?` プレースホルダと WordPress 標準の `%s/%d/%f` プレースホルダの両方に対応し、内部で自動変換します。
 
 ```php
-// native prepared statement で実行される（MySQL 環境）
+use WpPack\Component\Database\Connection;
+use WpPack\Component\Database\Driver\Driver;
+
+// Connection を注入
+$driver = Driver::fromDsn('mysql://user:pass@localhost:3306/mydb');
+$db->setConnection(new Connection($driver));
+
+// ? プレースホルダ（DBAL スタイル）
+$rows = $db->fetchAllAssociative(
+    'SELECT * FROM orders WHERE status = ? AND total > ?',
+    ['shipped', 100.0],
+);
+
+// %s/%d/%f プレースホルダ（WordPress スタイル）も自動変換されて ? で実行
 $rows = $db->fetchAllAssociative(
     "SELECT * FROM {$db->prefix()}orders WHERE status = %s AND total > %f",
     ['shipped', 100.0],
 );
 ```
 
-**フォールバック動作:**
+#### 各エンジンの prepared statement 実装
+
+| エンジン | ドライバ | 内部実装 | パラメータ形式 |
+|---------|--------|---------|-------------|
+| MySQL | MysqlDriver | `mysqli::prepare()` + `bind_param()` | `?` ネイティブ |
+| MariaDB | MysqlDriver | `mysqli::prepare()` + `bind_param()` | `?` ネイティブ |
+| SQLite | SqliteDriver | `PDO::prepare()` + `execute()` | `?` ネイティブ |
+| PostgreSQL | PgsqlDriver | `pg_query_params()` / `pg_prepare()` + `pg_execute()` | `?` → `$1, $2, ...` 自動変換 |
+| RDS Data API | RdsDataApiDriver | HTTP API `parameters` フィールド | `?` → `:param1, :param2, ...` 自動変換 |
+| Aurora DSQL | AuroraDsqlDriver | PgsqlDriver に委譲 | `?` → `$1, $2, ...` 自動変換 |
+
+すべてのドライバで、パラメータは SQL 文字列とは別にデータベースエンジンに渡されます。文字列結合やエスケープによる疑似的な prepared statement ではありません。
+
+#### Connection なし（従来動作）
+
+`setConnection()` を呼ばない場合の従来動作:
 
 | 環境 | 動作 |
 |------|------|
 | MySQL（`mysqli`） | `mysqli_prepare()` による native prepared statement |
-| SQLite（SQLite Database Integration プラグイン） | `$wpdb->prepare()` フォールバック |
-| PostgreSQL（PG4WP） | `$wpdb->prepare()` フォールバック |
+| SQLite / PostgreSQL | `$wpdb->prepare()` フォールバック（sprintf ベース） |
 
 エンジン種別は `DatabaseEngine` enum と `$engine` プロパティで判定できます:
 
@@ -100,7 +131,7 @@ if ($db->engine === DatabaseEngine::MySQL) {
 }
 ```
 
-**WordPress フック互換性:** native prepared statement 実行時も `apply_filters('query', ...)` の発火と `SAVEQUERIES` への記録を維持します。
+**WordPress フック互換性:** Connection なしの native prepared statement 実行時は `apply_filters('query', ...)` の発火と `SAVEQUERIES` への記録を維持します。
 
 ### クエリ実行（executeQuery / executeStatement）
 
@@ -396,7 +427,9 @@ DriverInterface（SPI）
 
 ### Connection
 
-`Connection` は `DriverInterface` を介して、エンジンに依存しない統一 API を提供します。`?` プレースホルダによるパラメータ化クエリに対応しています。
+`Connection` は `DriverInterface` を介して、エンジンに依存しない統一 API を提供します。`?` プレースホルダによるネイティブ prepared statement でクエリを実行します。
+
+#### Connection を直接使用
 
 ```php
 use WpPack\Component\Database\Connection;
@@ -405,11 +438,40 @@ use WpPack\Component\Database\Driver\Driver;
 $driver = Driver::fromDsn('mysql://user:pass@localhost:3306/mydb');
 $connection = new Connection($driver);
 
+// ? プレースホルダ → 各エンジンのネイティブ prepared statement で実行
 $rows = $connection->fetchAllAssociative('SELECT * FROM posts WHERE status = ?', ['publish']);
 $connection->transactional(function (Connection $conn) {
     $conn->executeStatement('INSERT INTO logs (message) VALUES (?)', ['Hello']);
 });
 ```
+
+#### DatabaseManager と統合
+
+`setConnection()` で Connection を注入すると、DatabaseManager の全クエリが Connection 経由で実行されます。WordPress 標準の `%s/%d/%f` プレースホルダも自動的に `?` に変換されます。
+
+```php
+use WpPack\Component\Database\Connection;
+use WpPack\Component\Database\DatabaseManager;
+use WpPack\Component\Database\Driver\Driver;
+
+$db = new DatabaseManager();
+$driver = Driver::fromDsn('mysql://user:pass@localhost:3306/mydb');
+$db->setConnection(new Connection($driver));
+
+// WordPress スタイル — 内部で %s → ? に変換してネイティブ prepared statement で実行
+$db->fetchAllAssociative(
+    "SELECT * FROM {$db->prefix()}posts WHERE status = %s",
+    ['publish'],
+);
+
+// DBAL スタイル — そのまま ? で実行
+$db->fetchAllAssociative(
+    'SELECT * FROM posts WHERE status = ?',
+    ['publish'],
+);
+```
+
+`setConnection()` なしの場合は従来通り `$wpdb` 経由で実行されます（後方互換）。
 
 ### DSN フォーマット
 
