@@ -33,6 +33,7 @@ final class DatabaseManager
     public readonly string $usermeta;
 
     private \wpdb $wpdb;
+    private ?Connection $connection = null;
 
     /**
      * Map of DatabaseManager property names (camelCase) to wpdb property names (snake_case).
@@ -97,6 +98,13 @@ final class DatabaseManager
      */
     public function executeQuery(string $query, array $params = []): int|bool
     {
+        if ($this->connection !== null) {
+            [$sql, $nativeParams] = $this->toNativePlaceholders($query, $params);
+            $this->connection->executeQuery($sql, $nativeParams);
+
+            return true;
+        }
+
         if ($this->engine === DatabaseEngine::MySQL && $params !== []) {
             return $this->executePreparedStatement($query, $params);
         }
@@ -120,6 +128,12 @@ final class DatabaseManager
      */
     public function executeStatement(string $query, array $params = []): int
     {
+        if ($this->connection !== null) {
+            [$sql, $nativeParams] = $this->toNativePlaceholders($query, $params);
+
+            return $this->connection->executeStatement($sql, $nativeParams);
+        }
+
         if ($this->engine === DatabaseEngine::MySQL && $params !== []) {
             return (int) $this->executePreparedStatement($query, $params);
         }
@@ -145,6 +159,12 @@ final class DatabaseManager
      */
     public function fetchAllAssociative(string $query, array $params = []): array
     {
+        if ($this->connection !== null) {
+            [$sql, $nativeParams] = $this->toNativePlaceholders($query, $params);
+
+            return $this->connection->fetchAllAssociative($sql, $nativeParams);
+        }
+
         if ($this->engine === DatabaseEngine::MySQL && $params !== []) {
             return $this->fetchPrepared($query, $params, 'all');
         }
@@ -173,6 +193,12 @@ final class DatabaseManager
      */
     public function fetchAssociative(string $query, array $params = []): ?array
     {
+        if ($this->connection !== null) {
+            [$sql, $nativeParams] = $this->toNativePlaceholders($query, $params);
+
+            return $this->connection->fetchAssociative($sql, $nativeParams);
+        }
+
         if ($this->engine === DatabaseEngine::MySQL && $params !== []) {
             $rows = $this->fetchPrepared($query, $params, 'row');
 
@@ -200,6 +226,12 @@ final class DatabaseManager
      */
     public function fetchOne(string $query, array $params = []): mixed
     {
+        if ($this->connection !== null) {
+            [$sql, $nativeParams] = $this->toNativePlaceholders($query, $params);
+
+            return $this->connection->fetchOne($sql, $nativeParams);
+        }
+
         if ($this->engine === DatabaseEngine::MySQL && $params !== []) {
             $rows = $this->fetchPrepared($query, $params, 'row');
 
@@ -233,6 +265,12 @@ final class DatabaseManager
      */
     public function fetchFirstColumn(string $query, array $params = []): array
     {
+        if ($this->connection !== null) {
+            [$sql, $nativeParams] = $this->toNativePlaceholders($query, $params);
+
+            return $this->connection->fetchFirstColumn($sql, $nativeParams);
+        }
+
         if ($this->engine === DatabaseEngine::MySQL && $params !== []) {
             $rows = $this->fetchPrepared($query, $params, 'all');
 
@@ -420,6 +458,23 @@ final class DatabaseManager
     }
 
     /**
+     * Set a Connection for DBAL-style query execution with true ? placeholders.
+     *
+     * When set, parameterized queries (those with ? placeholders in addition
+     * to WordPress %s/%d/%f) can be executed via the Connection's driver,
+     * enabling native prepared statements on all engines.
+     */
+    public function setConnection(Connection $connection): void
+    {
+        $this->connection = $connection;
+    }
+
+    public function getConnection(): ?Connection
+    {
+        return $this->connection;
+    }
+
+    /**
      * Execute a native mysqli prepared statement.
      *
      * @param list<mixed> $params
@@ -594,5 +649,31 @@ final class DatabaseManager
         }
 
         return $this->wpdb->prepare($query, ...$params);
+    }
+
+    /**
+     * Convert WordPress-style placeholders (%s, %d, %f) to native ? placeholders.
+     *
+     * If the query already uses ? placeholders, it passes through unchanged.
+     * If the query uses %s/%d/%f, they are converted to ? for Connection-based execution.
+     * Literal %% is preserved.
+     *
+     * @param list<mixed> $params
+     *
+     * @return array{string, list<mixed>}
+     */
+    private function toNativePlaceholders(string $query, array $params): array
+    {
+        // Already uses ? placeholders — pass through
+        if (str_contains($query, '?') || !preg_match('/%[sdf]/', $query)) {
+            return [$query, $params];
+        }
+
+        // Convert %s/%d/%f to ? (same logic as convertPlaceholders but without type string)
+        $sql = (string) preg_replace('/%%/', "\x00LITERAL_PERCENT\x00", $query);
+        $sql = (string) preg_replace('/%[sdf]/', '?', $sql);
+        $sql = str_replace("\x00LITERAL_PERCENT\x00", '%%', $sql);
+
+        return [$sql, $params];
     }
 }

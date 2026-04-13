@@ -38,11 +38,6 @@ if (str_starts_with($wppackDatabaseDsn, 'wpdb://')) {
     return;
 }
 
-// mysql:// or mariadb:// — let WordPress handle MySQL natively for best compatibility
-if (str_starts_with($wppackDatabaseDsn, 'mysql://') || str_starts_with($wppackDatabaseDsn, 'mariadb://')) {
-    return;
-}
-
 // Load Composer autoloader
 (static function (): void {
     $candidates = [
