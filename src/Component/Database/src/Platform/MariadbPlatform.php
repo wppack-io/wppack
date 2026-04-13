@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database;
+namespace WpPack\Component\Database\Platform;
 
-enum DatabaseEngine: string
+use WpPack\Component\Database\DatabaseEngine;
+
+class MariadbPlatform extends MysqlPlatform
 {
-    case MySQL = 'mysql';
-    case MariaDB = 'mariadb';
-    case SQLite = 'sqlite';
-    case PostgreSQL = 'pgsql';
-    case RdsDataApi = 'rds-data-api';
-    case AuroraDsql = 'dsql';
+    public function getEngine(): DatabaseEngine
+    {
+        return DatabaseEngine::MariaDB;
+    }
 }

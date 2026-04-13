@@ -1,0 +1,119 @@
+<?php
+
+/*
+ * This file is part of the WpPack package.
+ *
+ * (c) Tsuyoshi Tsurushima
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
+namespace WpPack\Component\Database\Driver;
+
+use WpPack\Component\Database\Exception\DriverException;
+use WpPack\Component\Database\Platform\PlatformInterface;
+use WpPack\Component\Database\Result;
+use WpPack\Component\Database\Statement;
+
+/**
+ * Template method base class for database drivers.
+ *
+ * Subclasses implement the do* methods. The public methods wrap them
+ * with unified exception handling.
+ */
+abstract class AbstractDriver implements DriverInterface
+{
+    abstract public function getName(): string;
+
+    abstract protected function doConnect(): void;
+
+    abstract protected function doClose(): void;
+
+    /** @param list<mixed> $params */
+    abstract protected function doExecuteQuery(string $sql, array $params = []): Result;
+
+    /** @param list<mixed> $params */
+    abstract protected function doExecuteStatement(string $sql, array $params = []): int;
+
+    abstract protected function doPrepare(string $sql): Statement;
+
+    abstract protected function doLastInsertId(): int;
+
+    abstract protected function doBeginTransaction(): void;
+
+    abstract protected function doCommit(): void;
+
+    abstract protected function doRollBack(): void;
+
+    abstract public function inTransaction(): bool;
+
+    abstract public function isConnected(): bool;
+
+    abstract public function getPlatform(): PlatformInterface;
+
+    abstract public function getNativeConnection(): mixed;
+
+    public function connect(): void
+    {
+        $this->execute(fn () => $this->doConnect());
+    }
+
+    public function close(): void
+    {
+        $this->execute(fn () => $this->doClose());
+    }
+
+    public function executeQuery(string $sql, array $params = []): Result
+    {
+        return $this->execute(fn (): Result => $this->doExecuteQuery($sql, $params));
+    }
+
+    public function executeStatement(string $sql, array $params = []): int
+    {
+        return $this->execute(fn (): int => $this->doExecuteStatement($sql, $params));
+    }
+
+    public function prepare(string $sql): Statement
+    {
+        return $this->execute(fn (): Statement => $this->doPrepare($sql));
+    }
+
+    public function lastInsertId(): int
+    {
+        return $this->execute(fn (): int => $this->doLastInsertId());
+    }
+
+    public function beginTransaction(): void
+    {
+        $this->execute(fn () => $this->doBeginTransaction());
+    }
+
+    public function commit(): void
+    {
+        $this->execute(fn () => $this->doCommit());
+    }
+
+    public function rollBack(): void
+    {
+        $this->execute(fn () => $this->doRollBack());
+    }
+
+    /**
+     * @template T
+     * @param \Closure(): T $operation
+     * @return T
+     */
+    protected function execute(\Closure $operation): mixed
+    {
+        try {
+            return $operation();
+        } catch (DriverException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            throw new DriverException($e->getMessage(), 0, $e);
+        }
+    }
+}
