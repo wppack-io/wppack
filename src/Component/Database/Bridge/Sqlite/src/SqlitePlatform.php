@@ -11,9 +11,10 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Platform;
+namespace WpPack\Component\Database\Bridge\Sqlite;
 
 use WpPack\Component\Database\DatabaseEngine;
+use WpPack\Component\Database\Platform\AbstractPlatform;
 
 final class SqlitePlatform extends AbstractPlatform
 {

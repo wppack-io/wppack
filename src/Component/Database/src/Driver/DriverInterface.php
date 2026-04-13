@@ -59,6 +59,14 @@ interface DriverInterface
     public function getPlatform(): PlatformInterface;
 
     /**
+     * Return the query translator for this driver.
+     *
+     * Used by the db.php drop-in to translate WordPress MySQL queries
+     * to the target engine's dialect. MySQL drivers return NullQueryTranslator.
+     */
+    public function getQueryTranslator(): \WpPack\Component\Database\Translator\QueryTranslatorInterface;
+
+    /**
      * Return the underlying native connection handle.
      *
      * For MySQL: \mysqli, for SQLite: \PDO, for PgSql: \PgSql\Connection.

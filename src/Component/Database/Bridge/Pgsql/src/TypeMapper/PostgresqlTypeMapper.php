@@ -11,7 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\TypeMapper;
+namespace WpPack\Component\Database\Bridge\Pgsql\TypeMapper;
+
+use WpPack\Component\Database\TypeMapper\TypeMapperInterface;
 
 /**
  * Maps PostgreSQL column types to MySQL-compatible equivalents.

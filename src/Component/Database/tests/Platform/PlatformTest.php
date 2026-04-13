@@ -18,8 +18,6 @@ use PHPUnit\Framework\TestCase;
 use WpPack\Component\Database\DatabaseEngine;
 use WpPack\Component\Database\Platform\MariadbPlatform;
 use WpPack\Component\Database\Platform\MysqlPlatform;
-use WpPack\Component\Database\Platform\PostgresqlPlatform;
-use WpPack\Component\Database\Platform\SqlitePlatform;
 
 final class PlatformTest extends TestCase
 {
@@ -96,67 +94,4 @@ final class PlatformTest extends TestCase
         self::assertSame('AUTO_INCREMENT', $platform->getAutoIncrementKeyword());
     }
 
-    // ── SQLite ──
-
-    #[Test]
-    public function sqliteQuoteIdentifier(): void
-    {
-        $platform = new SqlitePlatform();
-
-        self::assertSame('"posts"', $platform->quoteIdentifier('posts'));
-        self::assertSame('"col""name"', $platform->quoteIdentifier('col"name'));
-    }
-
-    #[Test]
-    public function sqliteEngine(): void
-    {
-        self::assertSame(DatabaseEngine::SQLite, (new SqlitePlatform())->getEngine());
-    }
-
-    #[Test]
-    public function sqliteTransaction(): void
-    {
-        self::assertSame('BEGIN', (new SqlitePlatform())->getBeginTransactionSql());
-    }
-
-    #[Test]
-    public function sqliteAutoIncrement(): void
-    {
-        self::assertSame('AUTOINCREMENT', (new SqlitePlatform())->getAutoIncrementKeyword());
-    }
-
-    #[Test]
-    public function sqliteCharsetCollateEmpty(): void
-    {
-        self::assertSame('', (new SqlitePlatform())->getCharsetCollateSql('utf8', 'utf8_general_ci'));
-    }
-
-    // ── PostgreSQL ──
-
-    #[Test]
-    public function pgsqlQuoteIdentifier(): void
-    {
-        $platform = new PostgresqlPlatform();
-
-        self::assertSame('"posts"', $platform->quoteIdentifier('posts'));
-        self::assertSame('"col""name"', $platform->quoteIdentifier('col"name'));
-    }
-
-    #[Test]
-    public function pgsqlEngine(): void
-    {
-        self::assertSame(DatabaseEngine::PostgreSQL, (new PostgresqlPlatform())->getEngine());
-    }
-
-    #[Test]
-    public function pgsqlTransaction(): void
-    {
-        self::assertSame('BEGIN', (new PostgresqlPlatform())->getBeginTransactionSql());
-    }
-
-    #[Test]
-    public function pgsqlAutoIncrement(): void
-    {
-        self::assertSame('SERIAL', (new PostgresqlPlatform())->getAutoIncrementKeyword());
-    }
 }

@@ -11,13 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\SchemaReader;
+namespace WpPack\Component\Database\Bridge\Sqlite\SchemaReader;
 
 use WpPack\Component\Database\DatabaseEngine;
 use WpPack\Component\Database\DatabaseManager;
 use WpPack\Component\Database\Schema\ColumnSchema;
 use WpPack\Component\Database\Schema\TableSchema;
-use WpPack\Component\Database\TypeMapper\SqliteTypeMapper;
+use WpPack\Component\Database\SchemaReader\SchemaReaderInterface;
+use WpPack\Component\Database\Bridge\Sqlite\TypeMapper\SqliteTypeMapper;
 
 /**
  * Schema reader for SQLite databases.

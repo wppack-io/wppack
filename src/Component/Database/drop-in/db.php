@@ -87,14 +87,8 @@ try {
     return;
 }
 
-// Select appropriate query translator based on platform
-$wppackPlatform = $wppackDriver->getPlatform();
-$wppackTranslator = match ($wppackPlatform->getEngine()) {
-    \WpPack\Component\Database\DatabaseEngine::SQLite => new \WpPack\Component\Database\Translator\Sqlite\SqliteQueryTranslator(),
-    \WpPack\Component\Database\DatabaseEngine::PostgreSQL => new \WpPack\Component\Database\Translator\Postgresql\PostgresqlQueryTranslator(),
-    \WpPack\Component\Database\DatabaseEngine::AuroraDsql => new \WpPack\Component\Database\Translator\Postgresql\PostgresqlQueryTranslator(),
-    default => new \WpPack\Component\Database\Translator\NullQueryTranslator(),
-};
+// Get query translator from driver (each driver knows its own translator)
+$wppackTranslator = $wppackDriver->getQueryTranslator();
 
 // Extract database name from DSN path
 $wppackDsnParsed = \WpPack\Component\Dsn\Dsn::fromString($wppackDatabaseDsn);
@@ -112,4 +106,4 @@ $wpdb = new \WpPack\Component\Database\WpPackWpdb(
 );
 
 // Clean up temporary variables
-unset($wppackDatabaseDsn, $wppackDriver, $wppackPlatform, $wppackTranslator, $wppackDsnParsed, $wppackDbName);
+unset($wppackDatabaseDsn, $wppackDriver, $wppackTranslator, $wppackDsnParsed, $wppackDbName);

@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Translator\Postgresql;
+namespace WpPack\Component\Database\Bridge\Pgsql\Translator;
 
 use WpPack\Component\Database\Translator\MysqlLexer;
 use WpPack\Component\Database\Translator\MysqlToken;

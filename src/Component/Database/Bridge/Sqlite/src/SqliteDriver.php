@@ -17,7 +17,7 @@ use WpPack\Component\Database\Driver\AbstractDriver;
 use WpPack\Component\Database\Exception\ConnectionException;
 use WpPack\Component\Database\Exception\DriverException;
 use WpPack\Component\Database\Platform\PlatformInterface;
-use WpPack\Component\Database\Platform\SqlitePlatform;
+use WpPack\Component\Database\Bridge\Sqlite\SqlitePlatform;
 use WpPack\Component\Database\Result;
 use WpPack\Component\Database\Statement;
 
@@ -64,6 +64,11 @@ final class SqliteDriver extends AbstractDriver
     public function getPlatform(): PlatformInterface
     {
         return new SqlitePlatform();
+    }
+
+    public function getQueryTranslator(): \WpPack\Component\Database\Translator\QueryTranslatorInterface
+    {
+        return new \WpPack\Component\Database\Bridge\Sqlite\Translator\SqliteQueryTranslator();
     }
 
     public function getNativeConnection(): ?\PDO

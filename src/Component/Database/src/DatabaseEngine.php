@@ -19,6 +19,4 @@ enum DatabaseEngine: string
     case MariaDB = 'mariadb';
     case SQLite = 'sqlite';
     case PostgreSQL = 'pgsql';
-    case RdsDataApi = 'rds-data-api';
-    case AuroraDsql = 'dsql';
 }

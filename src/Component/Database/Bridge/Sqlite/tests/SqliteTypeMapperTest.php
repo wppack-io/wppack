@@ -11,12 +11,12 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Tests\TypeMapper;
+namespace WpPack\Component\Database\Bridge\Sqlite\Tests;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Database\TypeMapper\SqliteTypeMapper;
+use WpPack\Component\Database\Bridge\Sqlite\TypeMapper\SqliteTypeMapper;
 
 final class SqliteTypeMapperTest extends TestCase
 {

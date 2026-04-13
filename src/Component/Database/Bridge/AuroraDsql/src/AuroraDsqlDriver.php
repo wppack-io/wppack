@@ -18,7 +18,7 @@ use WpPack\Component\Database\DatabaseEngine;
 use WpPack\Component\Database\Driver\AbstractDriver;
 use WpPack\Component\Database\Exception\ConnectionException;
 use WpPack\Component\Database\Platform\PlatformInterface;
-use WpPack\Component\Database\Platform\PostgresqlPlatform;
+use WpPack\Component\Database\Bridge\Pgsql\PostgresqlPlatform;
 use WpPack\Component\Database\Result;
 use WpPack\Component\Database\Statement;
 

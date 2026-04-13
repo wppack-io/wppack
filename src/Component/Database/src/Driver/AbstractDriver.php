@@ -17,6 +17,8 @@ use WpPack\Component\Database\Exception\DriverException;
 use WpPack\Component\Database\Platform\PlatformInterface;
 use WpPack\Component\Database\Result;
 use WpPack\Component\Database\Statement;
+use WpPack\Component\Database\Translator\NullQueryTranslator;
+use WpPack\Component\Database\Translator\QueryTranslatorInterface;
 
 /**
  * Template method base class for database drivers.
@@ -55,6 +57,15 @@ abstract class AbstractDriver implements DriverInterface
     abstract public function getPlatform(): PlatformInterface;
 
     abstract public function getNativeConnection(): mixed;
+
+    /**
+     * Default: NullQueryTranslator (passthrough).
+     * Override in Bridge drivers for non-MySQL engines.
+     */
+    public function getQueryTranslator(): QueryTranslatorInterface
+    {
+        return new NullQueryTranslator();
+    }
 
     public function connect(): void
     {

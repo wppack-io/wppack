@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Tests\Translator;
+namespace WpPack\Component\Database\Bridge\Pgsql\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Database\Translator\Postgresql\PostgresqlQueryTranslator;
+use WpPack\Component\Database\Bridge\Pgsql\Translator\PostgresqlQueryTranslator;
 
 final class PostgresqlQueryTranslatorTest extends TestCase
 {

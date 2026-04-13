@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Translator\Sqlite;
+namespace WpPack\Component\Database\Bridge\Sqlite\Translator;
 
 use WpPack\Component\Database\Translator\MysqlToken;
 use WpPack\Component\Database\Translator\MysqlTokenType;
