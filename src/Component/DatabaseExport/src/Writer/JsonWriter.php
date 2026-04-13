@@ -51,7 +51,7 @@ final class JsonWriter implements ExportWriterInterface
 
         $this->firstTable = false;
 
-        $columnNames = array_map(fn ($col) => $col->name, $schema->columns);
+        $columnNames = array_map(fn($col) => $col->name, $schema->columns);
         $columnsJson = json_encode($columnNames, \JSON_UNESCAPED_UNICODE);
 
         fwrite($stream, json_encode($schema->name, \JSON_UNESCAPED_UNICODE) . ':{"columns":' . $columnsJson . ',"rows":[');

@@ -101,7 +101,7 @@ final class ConnectionTest extends TestCase
 
         $connection = new Connection($driver);
 
-        $result = $connection->transactional(fn () => 'ok');
+        $result = $connection->transactional(fn() => 'ok');
 
         self::assertSame('ok', $result);
     }
@@ -117,7 +117,7 @@ final class ConnectionTest extends TestCase
         $connection = new Connection($driver);
 
         $this->expectException(\RuntimeException::class);
-        $connection->transactional(fn () => throw new \RuntimeException('fail'));
+        $connection->transactional(fn() => throw new \RuntimeException('fail'));
     }
 
     #[Test]

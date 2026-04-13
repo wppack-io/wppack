@@ -42,7 +42,7 @@ final class CsvWriter implements ExportWriterInterface
         fwrite($stream, "--- {$schema->name} ---\n");
 
         // Header row
-        $columnNames = array_map(fn ($col) => $col->name, $schema->columns);
+        $columnNames = array_map(fn($col) => $col->name, $schema->columns);
         fputcsv($stream, $columnNames);
     }
 

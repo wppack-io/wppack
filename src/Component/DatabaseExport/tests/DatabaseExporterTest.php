@@ -173,10 +173,10 @@ final class DatabaseExporterTest extends TestCase
         $schemaReader = $this->createMock(SchemaReaderInterface::class);
         $schemaReader->method('getTableNames')->willReturn(['wp_posts', 'wp_users']);
         $schemaReader->method('readTableSchema')->willReturnCallback(
-            fn (DatabaseManager $db, string $table) => $table === 'wp_posts' ? $postsSchema : $usersSchema,
+            fn(DatabaseManager $db, string $table) => $table === 'wp_posts' ? $postsSchema : $usersSchema,
         );
         $schemaReader->method('readRows')->willReturnCallback(
-            fn () => $this->generateBatches([[['id' => 1]]]),
+            fn() => $this->generateBatches([[['id' => 1]]]),
         );
 
         $tableFilter = $this->createMock(TableFilterInterface::class);

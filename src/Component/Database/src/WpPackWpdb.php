@@ -368,7 +368,7 @@ class WpPackWpdb extends \wpdb
                     $result = $driver->executeQuery($translatedSql, $params);
                     $rows = $result->fetchAllAssociative();
 
-                    $this->last_result = array_map(static fn (array $row) => (object) $row, $rows);
+                    $this->last_result = array_map(static fn(array $row) => (object) $row, $rows);
                     $this->num_rows = \count($rows);
                     $this->rows_affected = 0;
                 } else {

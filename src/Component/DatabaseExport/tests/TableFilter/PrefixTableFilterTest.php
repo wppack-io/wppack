@@ -39,7 +39,7 @@ final class PrefixTableFilterTest extends TestCase
     #[Test]
     public function allTablesWithNoBlogIdFilter(): void
     {
-        $filter = new PrefixTableFilter(new ExportConfiguration(dbPrefix: 'wp_',));
+        $filter = new PrefixTableFilter(new ExportConfiguration(dbPrefix: 'wp_', ));
 
         $result = $filter->filter(self::ALL_TABLES);
 
@@ -54,7 +54,7 @@ final class PrefixTableFilterTest extends TestCase
     #[Test]
     public function mainSiteOnly(): void
     {
-        $filter = new PrefixTableFilter(new ExportConfiguration(dbPrefix: 'wp_',blogIds: [1]));
+        $filter = new PrefixTableFilter(new ExportConfiguration(dbPrefix: 'wp_', blogIds: [1]));
 
         $result = $filter->filter(self::ALL_TABLES);
 
@@ -68,7 +68,7 @@ final class PrefixTableFilterTest extends TestCase
     #[Test]
     public function subsiteOnly(): void
     {
-        $filter = new PrefixTableFilter(new ExportConfiguration(dbPrefix: 'wp_',blogIds: [2]));
+        $filter = new PrefixTableFilter(new ExportConfiguration(dbPrefix: 'wp_', blogIds: [2]));
 
         $result = $filter->filter(self::ALL_TABLES);
 
@@ -83,7 +83,7 @@ final class PrefixTableFilterTest extends TestCase
     #[Test]
     public function multipleBlogIds(): void
     {
-        $filter = new PrefixTableFilter(new ExportConfiguration(dbPrefix: 'wp_',blogIds: [1, 3]));
+        $filter = new PrefixTableFilter(new ExportConfiguration(dbPrefix: 'wp_', blogIds: [1, 3]));
 
         $result = $filter->filter(self::ALL_TABLES);
 
@@ -96,7 +96,8 @@ final class PrefixTableFilterTest extends TestCase
     #[Test]
     public function additionalPrefixes(): void
     {
-        $filter = new PrefixTableFilter(new ExportConfiguration(dbPrefix: 'wp_',
+        $filter = new PrefixTableFilter(new ExportConfiguration(
+            dbPrefix: 'wp_',
             additionalPrefixes: ['wbk_'],
         ));
 
@@ -109,7 +110,8 @@ final class PrefixTableFilterTest extends TestCase
     #[Test]
     public function excludeTables(): void
     {
-        $filter = new PrefixTableFilter(new ExportConfiguration(dbPrefix: 'wp_',
+        $filter = new PrefixTableFilter(new ExportConfiguration(
+            dbPrefix: 'wp_',
             excludeTables: ['postmeta'],
         ));
 
@@ -122,7 +124,8 @@ final class PrefixTableFilterTest extends TestCase
     #[Test]
     public function includeTables(): void
     {
-        $filter = new PrefixTableFilter(new ExportConfiguration(dbPrefix: 'wp_',
+        $filter = new PrefixTableFilter(new ExportConfiguration(
+            dbPrefix: 'wp_',
             includeTables: ['posts', 'options'],
         ));
 

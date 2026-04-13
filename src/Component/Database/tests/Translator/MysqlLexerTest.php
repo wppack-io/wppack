@@ -32,8 +32,8 @@ final class MysqlLexerTest extends TestCase
     {
         $tokens = $this->lexer->tokenize('SELECT * FROM `posts`');
 
-        $types = array_map(fn ($t) => $t->type, $tokens);
-        $values = array_map(fn ($t) => $t->value, $tokens);
+        $types = array_map(fn($t) => $t->type, $tokens);
+        $values = array_map(fn($t) => $t->value, $tokens);
 
         self::assertSame(MysqlTokenType::Keyword, $types[0]);    // SELECT
         self::assertSame(MysqlTokenType::Whitespace, $types[1]);
@@ -79,7 +79,7 @@ final class MysqlLexerTest extends TestCase
     {
         $tokens = $this->lexer->tokenize('42 3.14');
 
-        $numbers = array_filter($tokens, fn ($t) => $t->type === MysqlTokenType::NumberLiteral);
+        $numbers = array_filter($tokens, fn($t) => $t->type === MysqlTokenType::NumberLiteral);
 
         self::assertCount(2, $numbers);
     }
@@ -89,7 +89,7 @@ final class MysqlLexerTest extends TestCase
     {
         $tokens = $this->lexer->tokenize('SELECT * FROM t WHERE id = ? AND name = %s');
 
-        $placeholders = array_values(array_filter($tokens, fn ($t) => $t->type === MysqlTokenType::Placeholder));
+        $placeholders = array_values(array_filter($tokens, fn($t) => $t->type === MysqlTokenType::Placeholder));
 
         self::assertCount(2, $placeholders);
         self::assertSame('?', $placeholders[0]->value);
@@ -101,7 +101,7 @@ final class MysqlLexerTest extends TestCase
     {
         $tokens = $this->lexer->tokenize("SELECT 1 -- comment\nSELECT 2");
 
-        $comments = array_filter($tokens, fn ($t) => $t->type === MysqlTokenType::Comment);
+        $comments = array_filter($tokens, fn($t) => $t->type === MysqlTokenType::Comment);
 
         self::assertCount(1, $comments);
     }
@@ -111,7 +111,7 @@ final class MysqlLexerTest extends TestCase
     {
         $tokens = $this->lexer->tokenize('SELECT /* comment */ 1');
 
-        $comments = array_filter($tokens, fn ($t) => $t->type === MysqlTokenType::Comment);
+        $comments = array_filter($tokens, fn($t) => $t->type === MysqlTokenType::Comment);
 
         self::assertCount(1, $comments);
     }
@@ -121,7 +121,7 @@ final class MysqlLexerTest extends TestCase
     {
         $tokens = $this->lexer->tokenize('(a, b)');
 
-        $puncts = array_values(array_filter($tokens, fn ($t) => $t->type === MysqlTokenType::Punctuation));
+        $puncts = array_values(array_filter($tokens, fn($t) => $t->type === MysqlTokenType::Punctuation));
 
         self::assertCount(3, $puncts);
         self::assertSame('(', $puncts[0]->value);
@@ -134,7 +134,7 @@ final class MysqlLexerTest extends TestCase
     {
         $tokens = $this->lexer->tokenize('a = 1 AND b != 2 AND c >= 3');
 
-        $ops = array_values(array_filter($tokens, fn ($t) => $t->type === MysqlTokenType::Operator));
+        $ops = array_values(array_filter($tokens, fn($t) => $t->type === MysqlTokenType::Operator));
 
         self::assertSame('=', $ops[0]->value);
         self::assertSame('!=', $ops[1]->value);
@@ -157,7 +157,7 @@ final class MysqlLexerTest extends TestCase
     {
         $tokens = $this->lexer->tokenize("INSERT INTO t VALUES ('SELECT * FROM users')");
 
-        $stringTokens = array_filter($tokens, fn ($t) => $t->type === MysqlTokenType::StringLiteral);
+        $stringTokens = array_filter($tokens, fn($t) => $t->type === MysqlTokenType::StringLiteral);
 
         self::assertCount(1, $stringTokens);
         $string = array_values($stringTokens)[0];

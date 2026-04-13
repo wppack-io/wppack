@@ -69,47 +69,47 @@ abstract class AbstractDriver implements DriverInterface
 
     public function connect(): void
     {
-        $this->execute(fn () => $this->doConnect());
+        $this->execute(fn() => $this->doConnect());
     }
 
     public function close(): void
     {
-        $this->execute(fn () => $this->doClose());
+        $this->execute(fn() => $this->doClose());
     }
 
     public function executeQuery(string $sql, array $params = []): Result
     {
-        return $this->execute(fn (): Result => $this->doExecuteQuery($sql, $params));
+        return $this->execute(fn(): Result => $this->doExecuteQuery($sql, $params));
     }
 
     public function executeStatement(string $sql, array $params = []): int
     {
-        return $this->execute(fn (): int => $this->doExecuteStatement($sql, $params));
+        return $this->execute(fn(): int => $this->doExecuteStatement($sql, $params));
     }
 
     public function prepare(string $sql): Statement
     {
-        return $this->execute(fn (): Statement => $this->doPrepare($sql));
+        return $this->execute(fn(): Statement => $this->doPrepare($sql));
     }
 
     public function lastInsertId(): int
     {
-        return $this->execute(fn (): int => $this->doLastInsertId());
+        return $this->execute(fn(): int => $this->doLastInsertId());
     }
 
     public function beginTransaction(): void
     {
-        $this->execute(fn () => $this->doBeginTransaction());
+        $this->execute(fn() => $this->doBeginTransaction());
     }
 
     public function commit(): void
     {
-        $this->execute(fn () => $this->doCommit());
+        $this->execute(fn() => $this->doCommit());
     }
 
     public function rollBack(): void
     {
-        $this->execute(fn () => $this->doRollBack());
+        $this->execute(fn() => $this->doRollBack());
     }
 
     /**

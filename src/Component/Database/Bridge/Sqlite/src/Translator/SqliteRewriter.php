@@ -377,7 +377,7 @@ final class SqliteRewriter
      */
     private function stripUnsigned(array $tokens): array
     {
-        return array_values(array_filter($tokens, fn (MysqlToken $t) => !$t->isKeyword('UNSIGNED')));
+        return array_values(array_filter($tokens, fn(MysqlToken $t) => !$t->isKeyword('UNSIGNED')));
     }
 
     /**
