@@ -19,6 +19,16 @@ services:
       - '3307:3306'
     tmpfs:
       - /var/lib/mysql
+  postgres-test:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: wppack
+      POSTGRES_PASSWORD: wppack
+      POSTGRES_DB: wppack_test
+    ports:
+      - '5433:5432'
+    tmpfs:
+      - /var/lib/postgresql/data
   valkey:
     image: valkey/valkey:8
     ports:
