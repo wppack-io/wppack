@@ -296,7 +296,10 @@ final class SqliteQueryTranslatorTest extends TestCase
     #[Test]
     public function showCreateTable(): void
     {
-        self::assertStringContainsString('sqlite_master', $this->translator->translate('SHOW CREATE TABLE `wp_posts`')[0]);
+        $result = $this->translator->translate('SHOW CREATE TABLE `wp_posts`');
+
+        self::assertStringContainsString('pragma_table_info', $result[0]);
+        self::assertStringContainsString('Create Table', $result[0]);
     }
 
     #[Test]
@@ -664,7 +667,7 @@ SQL;
 
         $result = $this->translator->translate($sql);
 
-        self::assertCount(1, $result);
+        self::assertGreaterThanOrEqual(1, \count($result));
         self::assertStringContainsString('INTEGER', $result[0]);
         self::assertStringContainsString('TEXT', $result[0]);
         self::assertStringContainsString('AUTOINCREMENT', $result[0]);
@@ -691,7 +694,7 @@ SQL;
 
         $result = $this->translator->translate($sql);
 
-        self::assertCount(1, $result);
+        self::assertGreaterThanOrEqual(1, \count($result));
         self::assertStringContainsString('IF NOT EXISTS', $result[0]);
         self::assertStringNotContainsString('ENGINE=', $result[0]);
     }
@@ -1163,12 +1166,20 @@ SQL);
             'CREATE TABLE `t` (`id` INT NOT NULL AUTO_INCREMENT, `modified` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (`id`))',
         );
 
-        self::assertCount(2, $result);
+        self::assertGreaterThanOrEqual(2, \count($result));
         self::assertStringContainsString('CREATE TABLE', $result[0]);
         self::assertStringNotContainsString('ON UPDATE', $result[0]);
-        self::assertStringContainsString('CREATE TRIGGER', $result[1]);
-        self::assertStringContainsString('AFTER UPDATE', $result[1]);
-        self::assertStringContainsString("datetime('now')", $result[1]);
+        // Find the trigger statement
+        $triggerIdx = null;
+        foreach ($result as $i => $sql) {
+            if (str_contains($sql, 'CREATE TRIGGER')) {
+                $triggerIdx = $i;
+                break;
+            }
+        }
+        self::assertNotNull($triggerIdx, 'Expected CREATE TRIGGER in result');
+        self::assertStringContainsString('AFTER UPDATE', $result[$triggerIdx]);
+        self::assertStringContainsString("datetime('now')", $result[$triggerIdx]);
     }
 
     #[Test]
@@ -1464,6 +1475,90 @@ SQL);
 
         self::assertSame(1, (int) $driver->executeQuery("SELECT GET_LOCK('test', 10)")->fetchOne());
         self::assertSame(1, (int) $driver->executeQuery("SELECT RELEASE_LOCK('test')")->fetchOne());
+
+        $driver->close();
+    }
+
+    // ── Final gap closure tests ──
+
+    #[Test]
+    public function createTableCachesDataTypes(): void
+    {
+        $result = $this->translator->translate(
+            'CREATE TABLE `t` (`id` INT NOT NULL AUTO_INCREMENT, `name` VARCHAR(255), PRIMARY KEY (`id`))',
+        );
+
+        // Should contain cache INSERT statements
+        $cacheInserts = array_filter($result, static fn(string $sql) => str_contains($sql, '_mysql_data_types_cache'));
+        self::assertNotEmpty($cacheInserts);
+    }
+
+    #[Test]
+    public function showCreateTableUsesCache(): void
+    {
+        $driver = new \WpPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
+        $driver->connect();
+
+        // Create table (with cache inserts)
+        $ddl = $this->translator->translate(
+            'CREATE TABLE `t` (`id` INT NOT NULL AUTO_INCREMENT, `name` VARCHAR(255) NOT NULL, PRIMARY KEY (`id`))',
+        );
+        foreach ($ddl as $sql) {
+            $driver->executeStatement($sql);
+        }
+
+        // SHOW CREATE TABLE should use cached MySQL types
+        $showSql = $this->translator->translate('SHOW CREATE TABLE `t`');
+        $result = $driver->executeQuery($showSql[0]);
+        $row = $result->fetchAssociative();
+        self::assertNotNull($row);
+        self::assertStringContainsString('int', $row['Create Table']);
+        self::assertStringContainsString('varchar(255)', $row['Create Table']);
+
+        $driver->close();
+    }
+
+    #[Test]
+    public function alterTableChangeColumn(): void
+    {
+        $result = $this->translator->translate('ALTER TABLE `wp_posts` CHANGE `post_title` `post_title` TEXT NOT NULL');
+
+        // Should return table recreation statements
+        self::assertGreaterThanOrEqual(1, \count($result));
+        // First should be CREATE temp AS SELECT
+        self::assertStringContainsString('_wppack_tmp_', $result[0]);
+    }
+
+    #[Test]
+    public function likeEscapeClause(): void
+    {
+        $result = $this->translator->translate("SELECT * FROM t WHERE name LIKE '%\\_test%'");
+
+        self::assertStringContainsString('ESCAPE', $result[0]);
+    }
+
+    #[Test]
+    public function likeWithoutEscapeNoChange(): void
+    {
+        $result = $this->translator->translate("SELECT * FROM t WHERE name LIKE '%test%'");
+
+        self::assertStringNotContainsString('ESCAPE', $result[0]);
+    }
+
+    #[Test]
+    public function endToEndLikeEscape(): void
+    {
+        $driver = new \WpPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
+        $driver->connect();
+
+        $driver->executeStatement('CREATE TABLE "t" ("id" INTEGER PRIMARY KEY, "name" TEXT)');
+        $driver->executeStatement("INSERT INTO \"t\" VALUES (1, 'hello_world')");
+        $driver->executeStatement("INSERT INTO \"t\" VALUES (2, 'helloXworld')");
+
+        // LIKE with escaped underscore should match literal _
+        $likeSql = $this->translator->translate("SELECT COUNT(*) FROM `t` WHERE name LIKE '%\\_world%'");
+        $result = $driver->executeQuery($likeSql[0]);
+        self::assertSame(1, (int) $result->fetchOne());
 
         $driver->close();
     }

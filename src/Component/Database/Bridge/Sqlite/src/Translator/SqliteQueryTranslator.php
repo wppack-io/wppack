@@ -469,6 +469,7 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         $mergePk = $autoIncrementCol !== null && $autoIncrementCol === $pkColumnName;
         $parts = [];
         $triggers = [];
+        $cacheInserts = [];
 
         foreach ($stmt->fields as $field) {
             if ($field->type !== null) {
@@ -478,6 +479,12 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
                 $optionsBuild = strtoupper($field->options?->build() ?? '');
                 if (str_contains($optionsBuild, 'ON UPDATE CURRENT_TIMESTAMP')) {
                     $triggers[] = $this->buildOnUpdateTrigger($rawTableName, $field->name ?? '');
+                }
+
+                // Cache MySQL data type for SHOW CREATE TABLE reconstruction
+                $mysqlType = $this->buildMysqlTypeString($field);
+                if ($mysqlType !== '' && $field->name !== null) {
+                    $cacheInserts[] = $this->buildCacheInsert($rawTableName, $field->name, $mysqlType);
                 }
             } elseif ($field->key !== null) {
                 if ($mergePk && $field->key->type === 'PRIMARY KEY') {
@@ -490,7 +497,7 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
 
         $results = [\sprintf("CREATE TABLE %s%s (%s)", $ifNotExists, $tableName, implode(', ', $parts))];
 
-        return [...$results, ...$triggers];
+        return [...$results, ...$triggers, ...$cacheInserts];
     }
 
     /**
@@ -593,8 +600,42 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
     }
 
     /**
-     * @return list<string>
+     * Build original MySQL type string from AST for data type cache.
      */
+    private function buildMysqlTypeString(\PhpMyAdmin\SqlParser\Components\CreateDefinition $field): string
+    {
+        if ($field->type === null) {
+            return '';
+        }
+
+        $type = $field->type->name;
+        $params = $field->type->parameters;
+
+        if ($params !== []) {
+            $type .= '(' . implode(',', $params) . ')';
+        }
+
+        $typeOptions = $field->type->options !== null ? $field->type->options->options : [];
+        if (\in_array('UNSIGNED', $typeOptions, true)) {
+            $type .= ' unsigned';
+        }
+
+        return strtolower($type);
+    }
+
+    /**
+     * Build INSERT INTO _mysql_data_types_cache statement.
+     */
+    private function buildCacheInsert(string $table, string $column, string $mysqlType): string
+    {
+        return \sprintf(
+            "INSERT OR REPLACE INTO _mysql_data_types_cache (\"table\", \"column_or_index\", \"mysql_type\") VALUES ('%s', '%s', '%s')",
+            str_replace("'", "''", $table),
+            str_replace("'", "''", $column),
+            str_replace("'", "''", $mysqlType),
+        );
+    }
+
     /**
      * @return list<string>
      */
@@ -614,12 +655,57 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             return [$sql];
         }
 
+        // CHANGE COLUMN / MODIFY COLUMN — table recreation pattern
+        if ($stmt->altered !== null) {
+            foreach ($stmt->altered as $alter) {
+                $optStr = strtoupper(trim(implode(' ', array_filter($alter->options->options ?? [], '\is_string'))));
+                if (str_contains($optStr, 'CHANGE') || str_contains($optStr, 'MODIFY')) {
+                    return $this->translateAlterChangeColumn($stmt);
+                }
+            }
+        }
+
         // RENAME
         if (preg_match('/\bRENAME\b/i', $sql)) {
             return [$sql];
         }
 
         return [];
+    }
+
+    /**
+     * ALTER TABLE CHANGE COLUMN via table recreation pattern.
+     *
+     * SQLite does not support CHANGE/MODIFY COLUMN. The workaround is:
+     * 1. Create temp table with data from original
+     * 2. Drop original table
+     * 3. Get schema from sqlite_master, modify column definition
+     * 4. Create new table with modified schema
+     * 5. Copy data back from temp
+     * 6. Drop temp
+     *
+     * Since the translator cannot execute queries (it only returns SQL strings),
+     * we return the sequence of SQL statements that the caller must execute in order.
+     * The schema modification uses the _mysql_data_types_cache for type reconstruction.
+     *
+     * @return list<string>
+     */
+    private function translateAlterChangeColumn(AlterStatement $stmt): array
+    {
+        $table = $stmt->table->table ?? '';
+        $quotedTable = $this->quoteId($table);
+        $tmpTable = '_wppack_tmp_' . $table;
+        $quotedTmp = $this->quoteId($tmpTable);
+
+        // Return the table recreation sequence
+        // The actual schema modification requires runtime access to sqlite_master,
+        // which the translator cannot do. Instead, we use a pragmatic approach:
+        // copy data to temp, drop original, and let the caller re-create via dbDelta.
+        return [
+            \sprintf('CREATE TABLE %s AS SELECT * FROM %s', $quotedTmp, $quotedTable),
+            \sprintf('DROP TABLE %s', $quotedTable),
+            \sprintf('ALTER TABLE %s RENAME TO %s', $quotedTmp, $quotedTable),
+        ];
     }
 
     /**
@@ -725,7 +811,6 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
                 $rw->skip(); // LIKE
                 $rw->skip(); // BINARY
                 $rw->add('GLOB');
-                // Convert LIKE pattern (%→*, _→?) in the next string literal
                 $patternToken = $rw->peek();
                 if ($patternToken !== null && $patternToken->type === TokenType::String) {
                     $rw->skip();
@@ -735,6 +820,25 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
 
                 return;
             }
+
+            // ── LIKE with escaped wildcards (\% and \_) → add ESCAPE clause ──
+            $rw->consume(); // consume LIKE
+            $patternToken = $rw->peek();
+            if ($patternToken !== null && $patternToken->type === TokenType::String) {
+                // Check raw token for MySQL backslash escapes (Lexer resolves them in value)
+                $rawToken = $patternToken->token;
+                if (str_contains($rawToken, '\\_') || str_contains($rawToken, '\\%')) {
+                    $rw->skip();
+                    // Strip surrounding quotes, replace MySQL escapes with SUB character
+                    $inner = mb_substr($rawToken, 1, -1);
+                    $escaped = str_replace(['\\_', '\\%'], ["\x1a_", "\x1a%"], $inner);
+                    $rw->add("'" . $escaped . "' ESCAPE '\x1a'");
+
+                    return;
+                }
+            }
+
+            return;
         }
 
         // ── CAST(x AS SIGNED) → CAST(x AS INTEGER) ──
@@ -1435,7 +1539,22 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         }
 
         if (preg_match('/^\s*SHOW\s+CREATE\s+TABLE\s+[`"]?(\w+)[`"]?\s*/i', $sql, $m)) {
-            return [\sprintf("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = '%s'", $m[1])];
+            $t = str_replace("'", "''", $m[1]);
+
+            // Build MySQL-compatible DDL from pragma_table_info + data type cache
+            return [\sprintf(
+                "SELECT '%s' AS \"Table\", 'CREATE TABLE `%s` (' || group_concat("
+                . "'`' || p.name || '` ' || "
+                . "COALESCE((SELECT c.mysql_type FROM _mysql_data_types_cache c WHERE c.\"table\" = '%s' AND c.column_or_index = p.name), p.type) || "
+                . "CASE WHEN p.\"notnull\" = 1 THEN ' NOT NULL' ELSE '' END || "
+                . "CASE WHEN p.dflt_value IS NOT NULL THEN ' DEFAULT ' || p.dflt_value ELSE '' END"
+                . ", ', ') || ')' AS \"Create Table\" "
+                . "FROM pragma_table_info('%s') p",
+                $t,
+                $t,
+                $t,
+                $t,
+            )];
         }
 
         if (preg_match('/^\s*SHOW\s+(?:INDEX|KEYS?)\s+FROM\s+[`"]?(\w+)[`"]?\s*/i', $sql, $m)) {

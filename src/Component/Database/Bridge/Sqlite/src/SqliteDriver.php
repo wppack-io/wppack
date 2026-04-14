@@ -88,6 +88,11 @@ final class SqliteDriver extends AbstractDriver
             $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
             $this->pdo->exec('PRAGMA journal_mode=WAL');
             $this->pdo->exec('PRAGMA foreign_keys=ON');
+            $this->pdo->exec('CREATE TABLE IF NOT EXISTS _mysql_data_types_cache ('
+                . '"table" TEXT NOT NULL, '
+                . '"column_or_index" TEXT NOT NULL, '
+                . '"mysql_type" TEXT NOT NULL, '
+                . 'PRIMARY KEY("table", "column_or_index"))');
             $this->registerFunctions($this->pdo);
         } catch (\PDOException $e) {
             throw new ConnectionException($e->getMessage(), 0, $e);
