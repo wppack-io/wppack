@@ -303,7 +303,7 @@ SQLite Database Integration プラグインおよび PG4WP (PostgreSQL for WordP
 | `SHOW GRANTS` | ダミー GRANT 文返却 |
 | `SHOW CREATE PROCEDURE` | 空結果 |
 
-### DATE_FORMAT 変換マップ（30仕様対応）
+### DATE_FORMAT 変換マップ（MySQL 全31仕様対応）
 
 | MySQL | 説明 | SQLite (strftime) | PostgreSQL (TO_CHAR) |
 |-------|------|-------------------|---------------------|
@@ -333,6 +333,7 @@ SQLite Database Integration プラグインおよび PG4WP (PostgreSQL for WordP
 | `%V` / `%v` | ISO 週番号 | `%W` | `IW` |
 | `%X` | ISO 年 | `%Y` | `YYYY` |
 | `%x` | ISO 年 (2桁) | `%o` | `YY` |
+| `%f` | マイクロ秒 | `000000`（固定値） | `US` |
 
 ### SQLite UDF 一覧
 

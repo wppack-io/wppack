@@ -1103,15 +1103,19 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             return false;
         }
 
-        $format = str_replace(
-            ['%Y', '%y', '%m', '%c', '%d', '%e', '%H', '%h', '%I', '%i', '%s', '%S',
-             '%j', '%W', '%w', '%p', '%T', '%r', '%a', '%b', '%M',
-             '%D', '%k', '%l', '%U', '%u', '%V', '%v', '%X', '%x'],
-            ['%Y', '%y', '%m', '%n', '%d', '%j', '%H', '%h', '%h', '%M', '%S', '%S',
-             '%z', '%l', '%w', '%A', '%H:%M:%S', '%h:%M:%S %A', '%D', '%M', '%F',
-             '%jS', '%G', '%g', '%W', '%W', '%W', '%W', '%Y', '%o'],
-            (string) $formatToken->value,
-        );
+        // Use strtr() for simultaneous replacement (str_replace cascades:
+        // %i→%M then %M→%F would turn minutes into month name)
+        $format = strtr((string) $formatToken->value, [
+            '%Y' => '%Y', '%y' => '%y', '%m' => '%m', '%c' => '%n',
+            '%d' => '%d', '%e' => '%j', '%H' => '%H', '%h' => '%h',
+            '%I' => '%h', '%i' => '%M', '%s' => '%S', '%S' => '%S',
+            '%j' => '%z', '%W' => '%l', '%w' => '%w', '%p' => '%A',
+            '%T' => '%H:%M:%S', '%r' => '%h:%M:%S %A',
+            '%a' => '%D', '%b' => '%M', '%M' => '%F',
+            '%D' => '%jS', '%k' => '%G', '%l' => '%g',
+            '%U' => '%W', '%u' => '%W', '%V' => '%W', '%v' => '%W',
+            '%X' => '%Y', '%x' => '%o', '%f' => '000000',
+        ]);
 
         $rw->add(\sprintf("strftime('%s', %s)", $format, $dateExpr));
 

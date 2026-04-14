@@ -264,7 +264,7 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 
 | 機能 | 説明 |
 |------|------|
-| **DATE_FORMAT 37仕様** | WpPack は30仕様（残り7仕様は WordPress で未使用） |
+| **DATE_FORMAT** | プラグインは PHP `date()` フォーマットを含む独自マップ。WpPack は MySQL DATE_FORMAT 全31仕様対応 |
 | **WordPress フック統合** | `pre_query_sqlite_db` 等のフック |
 
 ## PG4WP との比較

@@ -1063,15 +1063,18 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             return false;
         }
 
-        $format = str_replace(
-            ['%Y', '%y', '%m', '%c', '%d', '%e', '%H', '%h', '%I', '%i', '%s', '%S',
-             '%j', '%W', '%w', '%p', '%T', '%r', '%a', '%b', '%M',
-             '%D', '%k', '%l', '%U', '%u', '%V', '%v', '%X', '%x'],
-            ['YYYY', 'YY', 'MM', 'FMMM', 'DD', 'FMDD', 'HH24', 'HH12', 'HH12', 'MI', 'SS', 'SS',
-             'DDD', 'Day', 'D', 'AM', 'HH24:MI:SS', 'HH12:MI:SS AM', 'Dy', 'Mon', 'FMMonth',
-             'FMDDth', 'FMHH24', 'FMHH12', 'WW', 'IW', 'IW', 'IW', 'YYYY', 'YY'],
-            (string) $formatToken->value,
-        );
+        // Use strtr() for simultaneous replacement (avoids cascading issues)
+        $format = strtr((string) $formatToken->value, [
+            '%Y' => 'YYYY', '%y' => 'YY', '%m' => 'MM', '%c' => 'FMMM',
+            '%d' => 'DD', '%e' => 'FMDD', '%H' => 'HH24', '%h' => 'HH12',
+            '%I' => 'HH12', '%i' => 'MI', '%s' => 'SS', '%S' => 'SS',
+            '%j' => 'DDD', '%W' => 'Day', '%w' => 'D', '%p' => 'AM',
+            '%T' => 'HH24:MI:SS', '%r' => 'HH12:MI:SS AM',
+            '%a' => 'Dy', '%b' => 'Mon', '%M' => 'FMMonth',
+            '%D' => 'FMDDth', '%k' => 'FMHH24', '%l' => 'FMHH12',
+            '%U' => 'WW', '%u' => 'IW', '%V' => 'IW', '%v' => 'IW',
+            '%X' => 'YYYY', '%x' => 'YY', '%f' => 'US',
+        ]);
 
         $rw->add(\sprintf("TO_CHAR(%s, '%s')", $dateExpr, $format));
 
