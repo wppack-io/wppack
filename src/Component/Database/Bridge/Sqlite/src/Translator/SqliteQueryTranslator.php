@@ -223,18 +223,17 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
                 break;
             }
 
-            // INSERT → INSERT (handle IGNORE later)
+            // INSERT [IGNORE] → INSERT OR IGNORE
             if ($token->type === TokenType::Keyword && $token->keyword === 'INSERT') {
-                $rw->consume();
-
                 if ($hasIgnore) {
-                    // Skip IGNORE keyword
+                    $rw->skip(); // skip INSERT
                     $next = $rw->peek();
                     if ($next !== null && $next->type === TokenType::Keyword && $next->keyword === 'IGNORE') {
-                        $rw->skip();
+                        $rw->skip(); // skip IGNORE
                     }
-                    $rw->dropLast();
                     $rw->add('INSERT OR IGNORE');
+                } else {
+                    $rw->consume();
                 }
 
                 continue;
