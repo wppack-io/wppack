@@ -1742,4 +1742,47 @@ SQL);
 
         $driver->close();
     }
+
+    // ── Final gap closure tests ──
+
+    #[Test]
+    public function iso8601DateNormalization(): void
+    {
+        $result = $this->translator->translate("SELECT * FROM t WHERE created > '2024-01-15T10:30:45Z'");
+
+        self::assertStringContainsString("'2024-01-15 10:30:45'", $result[0]);
+        self::assertStringNotContainsString('T10', $result[0]);
+    }
+
+    #[Test]
+    public function iso8601DateWithoutZ(): void
+    {
+        $result = $this->translator->translate("SELECT * FROM t WHERE created > '2024-01-15T10:30:45'");
+
+        self::assertStringContainsString("'2024-01-15 10:30:45'", $result[0]);
+    }
+
+    #[Test]
+    public function weekWithModeParameter(): void
+    {
+        $result = $this->translator->translate('SELECT WEEK(post_date, 1) FROM t');
+
+        self::assertStringContainsString("strftime('%W'", $result[0]);
+    }
+
+    #[Test]
+    public function dateFormatExtendedKSpecifier(): void
+    {
+        $result = $this->translator->translate("SELECT DATE_FORMAT(post_date, '%k:%i')");
+
+        self::assertStringContainsString('strftime', $result[0]);
+    }
+
+    #[Test]
+    public function dateFormatExtendedUSpecifier(): void
+    {
+        $result = $this->translator->translate("SELECT DATE_FORMAT(post_date, '%U')");
+
+        self::assertStringContainsString('strftime', $result[0]);
+    }
 }

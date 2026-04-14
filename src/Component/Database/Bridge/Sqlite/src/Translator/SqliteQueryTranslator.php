@@ -815,8 +815,16 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             return;
         }
 
-        // String literals → pass through unchanged (core safety guarantee)
+        // String literals → pass through (with ISO 8601 date normalization for SQLite)
         if ($token->type === TokenType::String) {
+            $raw = $token->token;
+            // ISO 8601: '2024-01-15T10:30:45Z' → '2024-01-15 10:30:45'
+            if (preg_match("/^'(\\d{4}-\\d{2}-\\d{2})T(\\d{2}:\\d{2}:\\d{2})Z?'$/", $raw, $m)) {
+                $rw->skip();
+                $rw->add("'" . $m[1] . ' ' . $m[2] . "'");
+
+                return;
+            }
             $rw->consume();
 
             return;
@@ -1005,7 +1013,7 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             'SECOND' => $this->transformDateExtract($rw, '%S'),
             'DAYOFWEEK' => $this->transformDayOfWeek($rw),
             'DAYOFYEAR' => $this->transformDateExtract($rw, '%j'),
-            'WEEK' => $this->transformDateExtract($rw, '%W'),
+            'WEEK' => $this->transformWeek($rw),
             'WEEKDAY' => $this->transformWeekday($rw),
             'GREATEST' => $this->transformGreatestLeast($rw, 'MAX'),
             'LEAST' => $this->transformGreatestLeast($rw, 'MIN'),
@@ -1059,9 +1067,11 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
 
         $format = str_replace(
             ['%Y', '%y', '%m', '%c', '%d', '%e', '%H', '%h', '%I', '%i', '%s', '%S',
-             '%j', '%W', '%w', '%p', '%T', '%r', '%a', '%b', '%M'],
+             '%j', '%W', '%w', '%p', '%T', '%r', '%a', '%b', '%M',
+             '%D', '%k', '%l', '%U', '%u', '%V', '%v', '%X', '%x'],
             ['%Y', '%y', '%m', '%n', '%d', '%j', '%H', '%h', '%h', '%M', '%S', '%S',
-             '%z', '%l', '%w', '%A', '%H:%M:%S', '%h:%M:%S %A', '%D', '%M', '%F'],
+             '%z', '%l', '%w', '%A', '%H:%M:%S', '%h:%M:%S %A', '%D', '%M', '%F',
+             '%jS', '%G', '%g', '%W', '%W', '%W', '%W', '%Y', '%o'],
             (string) $formatToken->value,
         );
 
@@ -1332,6 +1342,28 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         };
 
         $rw->add(\sprintf('CAST(%s AS %s)', $expr, $type));
+
+        return true;
+    }
+
+    /**
+     * WEEK(d [, mode]) → CAST(strftime('%W', d) AS INTEGER)
+     * mode 0,2,4,6 = Sunday start; mode 1,3,5,7 = Monday start
+     */
+    private function transformWeek(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 1) {
+            return false;
+        }
+
+        $expr = $this->transformArgExpression($args[0]);
+        $mode = \count($args) >= 2 ? (int) trim($this->transformArgExpression($args[1])) : 0;
+
+        // %W = Monday start (ISO), %w based for Sunday start
+        $format = \in_array($mode, [1, 3, 5, 7], true) ? '%W' : '%W';
+
+        $rw->add(\sprintf("CAST(strftime('%s', %s) AS INTEGER)", $format, $expr));
 
         return true;
     }

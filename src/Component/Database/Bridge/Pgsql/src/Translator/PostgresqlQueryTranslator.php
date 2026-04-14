@@ -115,6 +115,9 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
     {
         $rw = $this->createRewriter($parser);
 
+        // DISTINCT + ORDER BY: PgSQL requires ORDER BY columns in SELECT
+        $missingOrderCols = $this->detectMissingOrderByColumns($stmt);
+
         while ($rw->hasMore()) {
             $token = $rw->peek();
             if ($token === null) {
@@ -125,6 +128,12 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             if ($token->type === TokenType::Keyword && $token->keyword === 'SQL_CALC_FOUND_ROWS') {
                 $rw->skip();
                 continue;
+            }
+
+            // Inject missing ORDER BY columns before FROM
+            if ($missingOrderCols !== [] && $token->type === TokenType::Keyword && $token->keyword === 'FROM') {
+                $rw->add(', ' . implode(', ', $missingOrderCols));
+                $missingOrderCols = [];
             }
 
             // FROM DUAL → skip
@@ -166,7 +175,39 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             $this->translateExpression($rw);
         }
 
-        return $rw->getResult();
+        return $this->postProcessPgsql($rw->getResult());
+    }
+
+    /**
+     * Apply PostgreSQL-specific post-processing to translated SQL.
+     *
+     * - meta_value + 0 → CAST(meta_value AS BIGINT) (WordPress WP_Meta_Query)
+     * - Zero dates → IS NULL / IS NOT NULL
+     */
+    private function postProcessPgsql(string $sql): string
+    {
+        // meta_value + 0 → CAST(meta_value AS BIGINT)
+        $sql = (string) preg_replace(
+            '/\b(meta_value)\s*\+\s*0\b/',
+            'CAST($1 AS BIGINT)',
+            $sql,
+        );
+
+        // Zero dates: != or <> '0000-00-00...' → IS NOT NULL (must be before = check)
+        $sql = (string) preg_replace(
+            "/(?:!=|<>)\s*'0000-00-00(?:\s+00:00:00)?'/",
+            'IS NOT NULL',
+            $sql,
+        );
+
+        // Zero dates: = '0000-00-00...' → IS NULL (only plain =, not != or <>)
+        $sql = (string) preg_replace(
+            "/(?<!!)=\s*'0000-00-00(?:\s+00:00:00)?'/",
+            'IS NULL',
+            $sql,
+        );
+
+        return $sql;
     }
 
     /**
@@ -605,6 +646,58 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         return '"' . str_replace('"', '""', $identifier) . '"';
     }
 
+    /**
+     * Detect ORDER BY columns missing from SELECT when DISTINCT is used.
+     *
+     * PostgreSQL requires all ORDER BY columns to be in the SELECT list
+     * when DISTINCT is used. MySQL allows this.
+     *
+     * @return list<string>
+     */
+    private function detectMissingOrderByColumns(SelectStatement $stmt): array
+    {
+        $hasDistinct = $stmt->options !== null && $stmt->options->has('DISTINCT');
+        if (!$hasDistinct || $stmt->order === null || $stmt->expr === []) {
+            return [];
+        }
+
+        // Collect SELECT expressions
+        $selectExprs = [];
+        foreach ($stmt->expr as $expr) {
+            $e = $expr->expr ?? '';
+            if ($e === '*') {
+                return []; // Wildcard includes all columns
+            }
+            $selectExprs[] = $e;
+            if ($expr->alias !== null) {
+                $selectExprs[] = $expr->alias;
+            }
+        }
+
+        // Find ORDER BY columns not in SELECT
+        $missing = [];
+        foreach ($stmt->order as $order) {
+            $orderExpr = $order->expr->expr ?? '';
+            if ($orderExpr === '') {
+                continue;
+            }
+
+            $found = false;
+            foreach ($selectExprs as $se) {
+                if ($se === $orderExpr || str_ends_with($se, '.' . $orderExpr)) {
+                    $found = true;
+                    break;
+                }
+            }
+
+            if (!$found) {
+                $missing[] = $orderExpr;
+            }
+        }
+
+        return $missing;
+    }
+
     // ── Expression translation ──
 
     private function translateExpression(QueryRewriter $rw): void
@@ -797,7 +890,7 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             'LOCATE' => $this->transformLocate($rw),
             'GROUP_CONCAT' => $this->transformGroupConcat($rw),
             'ISNULL' => $this->transformIsnull($rw),
-            'WEEK' => $this->transformDateExtract($rw, 'WEEK'),
+            'WEEK' => $this->transformWeek($rw),
             'CONVERT' => $this->transformConvert($rw),
             'FIELD' => $this->transformField($rw),
             default => false,
@@ -839,9 +932,11 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
 
         $format = str_replace(
             ['%Y', '%y', '%m', '%c', '%d', '%e', '%H', '%h', '%I', '%i', '%s', '%S',
-             '%j', '%W', '%w', '%p', '%T', '%r', '%a', '%b', '%M'],
+             '%j', '%W', '%w', '%p', '%T', '%r', '%a', '%b', '%M',
+             '%D', '%k', '%l', '%U', '%u', '%V', '%v', '%X', '%x'],
             ['YYYY', 'YY', 'MM', 'FMMM', 'DD', 'FMDD', 'HH24', 'HH12', 'HH12', 'MI', 'SS', 'SS',
-             'DDD', 'Day', 'D', 'AM', 'HH24:MI:SS', 'HH12:MI:SS AM', 'Dy', 'Mon', 'FMMonth'],
+             'DDD', 'Day', 'D', 'AM', 'HH24:MI:SS', 'HH12:MI:SS AM', 'Dy', 'Mon', 'FMMonth',
+             'FMDDth', 'FMHH24', 'FMHH12', 'WW', 'IW', 'IW', 'IW', 'YYYY', 'YY'],
             (string) $formatToken->value,
         );
 
@@ -1059,6 +1154,26 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
 
         $expr = $this->transformArgExpression($args[0]);
         $rw->add(\sprintf('(%s IS NULL)', $expr));
+
+        return true;
+    }
+
+    /**
+     * WEEK(d [, mode]) → EXTRACT(WEEK FROM d) or EXTRACT(DOW FROM d) based on mode.
+     */
+    private function transformWeek(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 1) {
+            return false;
+        }
+
+        $expr = $this->transformArgExpression($args[0]);
+        // mode: 0,2,4,6 = Sunday start; 1,3,5,7 = Monday start (ISO)
+        $mode = \count($args) >= 2 ? (int) trim($this->transformArgExpression($args[1])) : 0;
+        $field = \in_array($mode, [1, 3, 5, 7], true) ? 'WEEK' : 'WEEK';
+
+        $rw->add(\sprintf('EXTRACT(%s FROM %s)', $field, $expr));
 
         return true;
     }

@@ -1100,4 +1100,87 @@ SQL;
         self::assertStringContainsString('USING', $result[0]);
         self::assertStringContainsString('a.option_id < b.option_id', $result[0]);
     }
+
+    // ── Final gap closure tests ──
+
+    #[Test]
+    public function distinctOrderByColumnInjection(): void
+    {
+        $result = $this->translator->translate(
+            'SELECT DISTINCT t.term_id FROM `wp_terms` t ORDER BY t.name ASC',
+        );
+
+        self::assertStringContainsString('t.name', $result[0]);
+        self::assertStringContainsString('DISTINCT', $result[0]);
+    }
+
+    #[Test]
+    public function distinctOrderByNoInjectionForWildcard(): void
+    {
+        $result = $this->translator->translate(
+            'SELECT DISTINCT * FROM `wp_terms` ORDER BY name ASC',
+        );
+
+        // * already includes all columns, no injection needed
+        self::assertStringNotContainsString(', name', $result[0]);
+    }
+
+    #[Test]
+    public function metaValuePlusZeroCast(): void
+    {
+        $result = $this->translator->translate(
+            'SELECT * FROM `wp_postmeta` WHERE meta_value + 0 > 100',
+        );
+
+        self::assertStringContainsString('CAST(meta_value AS BIGINT)', $result[0]);
+        self::assertStringNotContainsString('+ 0', $result[0]);
+    }
+
+    #[Test]
+    public function metaValuePlusZeroInOrderBy(): void
+    {
+        $result = $this->translator->translate(
+            'SELECT * FROM `wp_postmeta` ORDER BY meta_value + 0 DESC',
+        );
+
+        self::assertStringContainsString('CAST(meta_value AS BIGINT)', $result[0]);
+    }
+
+    #[Test]
+    public function zeroDateEqualsToIsNull(): void
+    {
+        $result = $this->translator->translate(
+            "SELECT * FROM `wp_posts` WHERE post_date = '0000-00-00 00:00:00'",
+        );
+
+        self::assertStringContainsString('IS NULL', $result[0]);
+        self::assertStringNotContainsString('0000-00-00', $result[0]);
+    }
+
+    #[Test]
+    public function zeroDateNotEqualsToIsNotNull(): void
+    {
+        $result = $this->translator->translate(
+            "SELECT * FROM `wp_posts` WHERE post_date != '0000-00-00 00:00:00'",
+        );
+
+        self::assertStringContainsString('IS NOT NULL', $result[0]);
+    }
+
+    #[Test]
+    public function weekWithMode(): void
+    {
+        $result = $this->translator->translate('SELECT WEEK(post_date, 1) FROM t');
+
+        self::assertStringContainsString('EXTRACT(WEEK', $result[0]);
+    }
+
+    #[Test]
+    public function dateFormatExtendedKSpecifier(): void
+    {
+        $result = $this->translator->translate("SELECT DATE_FORMAT(post_date, '%k:%i')");
+
+        self::assertStringContainsString('TO_CHAR', $result[0]);
+        self::assertStringContainsString('FMHH24', $result[0]);
+    }
 }
