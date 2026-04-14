@@ -38,6 +38,9 @@ class WpPackWpdb extends \wpdb
     /** @var string|null SQL from the most recent prepare() call (for query() verification) */
     private ?string $preparedSql = null;
 
+    /** @var int|null Row count from the most recent SQL_CALC_FOUND_ROWS query */
+    private ?int $lastFoundRows = null;
+
     private ?LoggerInterface $logger;
 
     public function __construct(
@@ -157,6 +160,16 @@ class WpPackWpdb extends \wpdb
 
         $this->preparedParams = null;
         $this->preparedSql = null;
+
+        // Intercept SELECT FOUND_ROWS() — return stored count from last SQL_CALC_FOUND_ROWS query
+        if (preg_match('/^\s*SELECT\s+FOUND_ROWS\s*\(\s*\)/i', $query)) {
+            $count = $this->lastFoundRows ?? 0;
+            $this->last_result = [(object) ['FOUND_ROWS()' => $count]];
+            $this->num_rows = 1;
+            $this->last_error = '';
+
+            return 1;
+        }
 
         return $this->executeWithDriver($query, $params);
     }
@@ -379,6 +392,7 @@ class WpPackWpdb extends \wpdb
         }
 
         $isSelect = $this->isSelectQuery($sql);
+        $hasCalcFoundRows = $isSelect && stripos($sql, 'SQL_CALC_FOUND_ROWS') !== false;
 
         foreach ($translated as $translatedSql) {
             try {
@@ -389,6 +403,11 @@ class WpPackWpdb extends \wpdb
                     $this->last_result = array_map(static fn(array $row) => (object) $row, $rows);
                     $this->num_rows = \count($rows);
                     $this->rows_affected = 0;
+
+                    // SQL_CALC_FOUND_ROWS: count total rows without LIMIT
+                    if ($hasCalcFoundRows) {
+                        $this->calculateFoundRows($driver, $translatedSql, $params);
+                    }
                 } else {
                     $affected = $driver->executeStatement($translatedSql, $params);
                     $this->last_result = [];
@@ -421,6 +440,32 @@ class WpPackWpdb extends \wpdb
         ]);
 
         return $isSelect ? \count($this->last_result) : $this->rows_affected;
+    }
+
+    /**
+     * Execute a COUNT(*) query to determine total rows for SQL_CALC_FOUND_ROWS.
+     *
+     * Strips LIMIT/OFFSET from the translated SQL and wraps in COUNT(*).
+     */
+    /**
+     * @param list<mixed> $params
+     */
+    private function calculateFoundRows(DriverInterface $driver, string $translatedSql, array $params): void
+    {
+        try {
+            $countSql = (string) preg_replace(
+                '/\bLIMIT\s+\d+(\s+(OFFSET\s+\d+))?\s*$/i',
+                '',
+                $translatedSql,
+            );
+            $result = $driver->executeQuery(
+                'SELECT COUNT(*) FROM (' . $countSql . ') AS _wppack_found',
+                $params,
+            );
+            $this->lastFoundRows = (int) $result->fetchOne();
+        } catch (\Throwable) {
+            $this->lastFoundRows = 0;
+        }
     }
 
     private function isSelectQuery(string $sql): bool

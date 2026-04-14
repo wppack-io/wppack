@@ -124,9 +124,9 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             $stmt instanceof SelectStatement => [$this->translateSelect($stmt, $parser)],
             $stmt instanceof InsertStatement => $this->translateInsert($stmt, $parser),
             $stmt instanceof ReplaceStatement => [$this->translateReplace($parser)],
-            $stmt instanceof UpdateStatement => [$this->translateUpdate($parser)],
-            $stmt instanceof DeleteStatement => [$this->translateDelete($parser)],
-            $stmt instanceof CreateStatement => [$this->translateCreate($stmt, $parser)],
+            $stmt instanceof UpdateStatement => [$this->translateUpdate($stmt, $parser)],
+            $stmt instanceof DeleteStatement => [$this->translateDelete($stmt, $parser)],
+            $stmt instanceof CreateStatement => $this->translateCreate($stmt, $parser),
             $stmt instanceof AlterStatement => $this->translateAlter($stmt, $parser),
             $stmt instanceof TruncateStatement => $this->translateTruncate($stmt),
             $stmt instanceof SetStatement => [],
@@ -271,14 +271,106 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         return $rw->getResult();
     }
 
-    private function translateUpdate(Parser $parser): string
+    private function translateUpdate(UpdateStatement $stmt, Parser $parser): string
     {
+        // SQLite does not support UPDATE ... LIMIT — wrap with rowid subquery
+        if ($stmt->limit !== null) {
+            return $this->rewriteWithRowidSubquery($stmt, $parser, 'UPDATE');
+        }
+
         return $this->rewriteTokens($parser);
     }
 
-    private function translateDelete(Parser $parser): string
+    private function translateDelete(DeleteStatement $stmt, Parser $parser): string
     {
+        // SQLite does not support DELETE ... LIMIT — wrap with rowid subquery
+        if ($stmt->limit !== null) {
+            return $this->rewriteWithRowidSubquery($stmt, $parser, 'DELETE');
+        }
+
         return $this->rewriteTokens($parser);
+    }
+
+    /**
+     * Rewrite UPDATE/DELETE with LIMIT using rowid subquery.
+     *
+     * MySQL:   UPDATE t SET col = val WHERE cond LIMIT N
+     * SQLite:  UPDATE t SET col = val WHERE rowid IN (SELECT rowid FROM t WHERE cond LIMIT N)
+     *
+     * MySQL:   DELETE FROM t WHERE cond ORDER BY col LIMIT N
+     * SQLite:  DELETE FROM t WHERE rowid IN (SELECT rowid FROM t WHERE cond ORDER BY col LIMIT N)
+     */
+    private function rewriteWithRowidSubquery(UpdateStatement|DeleteStatement $stmt, Parser $parser, string $verb): string
+    {
+        // Extract table name from AST
+        $tableName = match (true) {
+            $stmt instanceof UpdateStatement => $stmt->tables[0]->table ?? null,
+            $stmt instanceof DeleteStatement => $stmt->from[0]->table ?? null,
+        };
+
+        if ($tableName === null) {
+            return $this->rewriteTokens($parser);
+        }
+
+        $quotedTable = $this->quoteId($tableName);
+        $limit = $stmt->limit->rowCount;
+
+        // Build WHERE conditions from AST
+        $whereParts = [];
+        if ($stmt->where !== null) {
+            foreach ($stmt->where as $cond) {
+                $whereParts[] = $cond->expr;
+            }
+        }
+        $whereClause = $whereParts !== [] ? implode(' ', $whereParts) : '1=1';
+
+        // Build ORDER BY from AST
+        $orderParts = [];
+        if ($stmt->order !== null) {
+            foreach ($stmt->order as $order) {
+                $orderParts[] = $order->expr->expr . ' ' . $order->type->value;
+            }
+        }
+        $orderClause = $orderParts !== [] ? ' ORDER BY ' . implode(', ', $orderParts) : '';
+
+        // Build the rowid subquery
+        $subquery = \sprintf(
+            'rowid IN (SELECT rowid FROM %s WHERE %s%s LIMIT %s)',
+            $quotedTable,
+            $whereClause,
+            $orderClause,
+            $limit,
+        );
+
+        // Rewrite the statement, replacing WHERE/ORDER/LIMIT with rowid subquery
+        $rw = $this->createRewriter($parser);
+
+        while ($rw->hasMore()) {
+            $token = $rw->peek();
+            if ($token === null) {
+                break;
+            }
+
+            // Stop at WHERE, ORDER BY, or LIMIT — replace with our subquery
+            if ($token->type === TokenType::Keyword
+                && \in_array($token->keyword, ['WHERE', 'ORDER BY', 'LIMIT'], true)) {
+                // Discard remaining tokens
+                do {
+                    $rw->skip();
+                } while ($rw->peek() !== null);
+
+                $rw->add(' WHERE ' . $subquery);
+
+                return $rw->getResult();
+            }
+
+            $this->translateExpression($rw);
+        }
+
+        // No WHERE/ORDER/LIMIT found — append subquery
+        $rw->add(' WHERE ' . $subquery);
+
+        return $rw->getResult();
     }
 
     // ── DDL handlers ──
@@ -293,11 +385,14 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
      * For CREATE INDEX / CREATE VIEW / other CREATE statements, falls back to
      * token rewriting.
      */
-    private function translateCreate(CreateStatement $stmt, Parser $parser): string
+    /**
+     * @return list<string>
+     */
+    private function translateCreate(CreateStatement $stmt, Parser $parser): array
     {
         // CREATE INDEX, CREATE VIEW, etc. — token rewrite fallback
         if (!$this->isCreateTable($stmt)) {
-            return $this->rewriteTokens($parser);
+            return [$this->rewriteTokens($parser)];
         }
 
         return $this->buildCreateTable($stmt);
@@ -310,10 +405,14 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
 
     /**
      * Build CREATE TABLE SQL directly from AST fields.
+     * Returns multiple statements if ON UPDATE CURRENT_TIMESTAMP triggers are needed.
+     *
+     * @return list<string>
      */
-    private function buildCreateTable(CreateStatement $stmt): string
+    private function buildCreateTable(CreateStatement $stmt): array
     {
-        $tableName = $this->quoteId($stmt->name->table ?? '');
+        $rawTableName = $stmt->name->table ?? '';
+        $tableName = $this->quoteId($rawTableName);
         $ifNotExists = ($stmt->options?->has('IF NOT EXISTS')) ? 'IF NOT EXISTS ' : '';
 
         // Scan AST to find PRIMARY KEY column and AUTO_INCREMENT column
@@ -321,11 +420,9 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         $autoIncrementCol = null;
 
         foreach ($stmt->fields as $field) {
-            // Separate PRIMARY KEY constraint: PRIMARY KEY (`col`)
             if ($field->key !== null && $field->key->type === 'PRIMARY KEY' && isset($field->key->columns[0]['name'])) {
                 $pkColumnName = $field->key->columns[0]['name'];
             }
-            // Inline PRIMARY KEY on column definition
             if ($field->type !== null && $field->options?->has('PRIMARY KEY')) {
                 $pkColumnName = $field->name;
             }
@@ -336,12 +433,18 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
 
         $mergePk = $autoIncrementCol !== null && $autoIncrementCol === $pkColumnName;
         $parts = [];
+        $triggers = [];
 
         foreach ($stmt->fields as $field) {
             if ($field->type !== null) {
                 $parts[] = $this->buildColumnDef($field, $mergePk ? $pkColumnName : null);
+
+                // Detect ON UPDATE CURRENT_TIMESTAMP → generate trigger
+                $optionsBuild = strtoupper($field->options?->build() ?? '');
+                if (str_contains($optionsBuild, 'ON UPDATE CURRENT_TIMESTAMP')) {
+                    $triggers[] = $this->buildOnUpdateTrigger($rawTableName, $field->name ?? '');
+                }
             } elseif ($field->key !== null) {
-                // Skip PRIMARY KEY constraint if merged into column def
                 if ($mergePk && $field->key->type === 'PRIMARY KEY') {
                     continue;
                 }
@@ -350,7 +453,27 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             }
         }
 
-        return \sprintf("CREATE TABLE %s%s (%s)", $ifNotExists, $tableName, implode(', ', $parts));
+        $results = [\sprintf("CREATE TABLE %s%s (%s)", $ifNotExists, $tableName, implode(', ', $parts))];
+
+        return [...$results, ...$triggers];
+    }
+
+    /**
+     * Build a CREATE TRIGGER for ON UPDATE CURRENT_TIMESTAMP emulation.
+     */
+    private function buildOnUpdateTrigger(string $table, string $column): string
+    {
+        $triggerName = $this->quoteId("__{$table}_{$column}_on_update__");
+        $quotedTable = $this->quoteId($table);
+        $quotedColumn = $this->quoteId($column);
+
+        return \sprintf(
+            'CREATE TRIGGER %s AFTER UPDATE ON %s FOR EACH ROW BEGIN UPDATE %s SET %s = datetime(\'now\') WHERE rowid = NEW.rowid; END',
+            $triggerName,
+            $quotedTable,
+            $quotedTable,
+            $quotedColumn,
+        );
     }
 
     /**
