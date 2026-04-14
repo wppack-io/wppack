@@ -305,6 +305,21 @@ class WpPackWpdb extends \wpdb
      * @param string|null  $charset
      * @param string|null  $collate
      */
+    /**
+     * No-op: charset is set at the driver connection level, not via SQL.
+     *
+     * - MySQL: mysqli::set_charset() in MysqlDriver::doConnect()
+     * - PostgreSQL: client_encoding in PgsqlDriver connection string
+     * - SQLite: UTF-8 internally (not configurable)
+     * - RDS Data API: controlled by Aurora instance configuration
+     *
+     * WordPress calls this method after connection, but it is unnecessary
+     * because each driver already sets charset during connect().
+     *
+     * @param \mysqli|null $dbh
+     * @param string|null  $charset
+     * @param string|null  $collate
+     */
     public function set_charset($dbh, $charset = null, $collate = null): void {}
 
     /**

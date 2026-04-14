@@ -89,7 +89,7 @@ final class PgsqlDriver extends AbstractDriver
         }
 
         $connStr = \sprintf(
-            'host=%s port=%d dbname=%s user=%s password=%s',
+            "host=%s port=%d dbname=%s user=%s password=%s client_encoding='UTF8'",
             $this->host,
             $this->port,
             $this->database,

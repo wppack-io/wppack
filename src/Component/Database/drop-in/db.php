@@ -33,16 +33,19 @@ if (defined('DATABASE_DSN') && DATABASE_DSN !== '') {
         [$wppackDbHost, $wppackDbPort] = explode(':', $wppackDbHost, 2);
     }
 
+    $wppackDbCharset = \defined('DB_CHARSET') && DB_CHARSET !== '' ? DB_CHARSET : 'utf8mb4';
+
     $wppackDatabaseDsn = \sprintf(
-        'mysql://%s:%s@%s:%s/%s',
+        'mysql://%s:%s@%s:%s/%s?charset=%s',
         rawurlencode($wppackDbUser),
         rawurlencode($wppackDbPass),
         $wppackDbHost,
         $wppackDbPort,
         DB_NAME,
+        $wppackDbCharset,
     );
 
-    unset($wppackDbUser, $wppackDbPass, $wppackDbHost, $wppackDbPort);
+    unset($wppackDbUser, $wppackDbPass, $wppackDbHost, $wppackDbPort, $wppackDbCharset);
 }
 
 if ($wppackDatabaseDsn === '') {
