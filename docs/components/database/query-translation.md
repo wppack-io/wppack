@@ -137,7 +137,7 @@ SQL → Parser → AST（構造理解）+ TokensList（トークン列）
 
 ### UDF を最小限に留める理由
 
-WpPack は UDF を5個（REGEXP, CONCAT, CONCAT_WS, CHAR_LENGTH, FIELD）に限定している。
+WpPack は UDF を15個に限定し、大半の関数は AST 変換でネイティブ関数に変換している。
 
 | 判断基準 | UDF で実装 | AST で変換 |
 |---------|-----------|-----------|
@@ -204,31 +204,50 @@ SQLite Database Integration プラグインおよび PG4WP (PostgreSQL for WordP
 | `LCASE(s)` / `UCASE(s)` | 文字列 | `lower(s)` / `upper(s)` | 同左 |
 | `GREATEST(a, b)` | 比較 | `MAX(a, b)` | そのまま |
 | `LEAST(a, b)` | 比較 | `MIN(a, b)` | そのまま |
-| `GROUP_CONCAT(col SEP s)` | 集約 | — | `STRING_AGG(col, s)` |
+| `GROUP_CONCAT(col SEP s)` | 集約 | `group_concat(col, s)` | `STRING_AGG(col, s)` |
 | `LAST_INSERT_ID()` | システム | `last_insert_rowid()` | `lastval()` |
 | `VERSION()` | システム | `'10.0.0-wppack'` | `version()` |
 | `DATABASE()` | システム | `'main'` | `CURRENT_DATABASE()` |
-| `FOUND_ROWS()` | システム | `-1` | `-1` |
-| `REGEXP` | 演算子 | そのまま（UDF） | `~*` |
+| `FOUND_ROWS()` | システム | WpPackWpdb でインターセプト | 同左 |
+| `FIELD(val, 'a', 'b')` | 制御 | `CASE WHEN val='a' THEN 1 ... END` | 同左 |
+| `CONVERT(val, type)` | 型 | `CAST(val AS type)` | 同左 |
+| `CAST(x AS CHAR)` | 型 | `CAST(x AS TEXT)` | 同左 |
+| `CAST(x AS BINARY)` | 型 | `CAST(x AS BLOB)` | `CAST(x AS BYTEA)` |
+| `ISNULL(x)` | 比較 | `(x IS NULL)` | 同左 |
+| `WEEK(d [, mode])` | 抽出 | `strftime('%W', d)` | `EXTRACT(WEEK FROM d)` |
+| `LOG(x)` / `LOG(b, x)` | 数学 | UDF | ネイティブ |
+| `MD5(s)` | 暗号 | UDF | ネイティブ |
+| `UNHEX(hex)` | 変換 | UDF (`hex2bin`) | `decode(hex, 'hex')` |
+| `TO_BASE64(s)` / `FROM_BASE64(s)` | 変換 | UDF | `encode/decode(s, 'base64')` |
+| `INET_ATON(ip)` / `INET_NTOA(n)` | ネットワーク | UDF | `inet` 型演算 |
+| `GET_LOCK` / `RELEASE_LOCK` | ロック | UDF（ダミー: 常に1） | ダミー: 常に1 |
+| `LOCALTIME` / `LOCALTIMESTAMP` | 日時 | `datetime('now')` | `NOW()` |
+| `REGEXP` | 演算子 | そのまま（UDF） | `~*`（REGEXP BINARY → `~`） |
 
 ### 文レベル変換
 
 | MySQL | SQLite | PostgreSQL |
 |-------|--------|------------|
 | `INSERT IGNORE INTO` | `INSERT OR IGNORE INTO` | `INSERT ... ON CONFLICT DO NOTHING` |
-| `REPLACE INTO` | `INSERT OR REPLACE INTO` | — |
+| `REPLACE INTO` | `INSERT OR REPLACE INTO` | `INSERT INTO`（トークン書き換え） |
 | `ON DUPLICATE KEY UPDATE` | `ON CONFLICT DO UPDATE SET` | 同左 |
 | `VALUES(col)` (ODKU 内) | `excluded.col` | 同左 |
 | `LIMIT offset, count` | `LIMIT count OFFSET offset` | 同左 |
 | `FOR UPDATE` | 除去 | そのまま |
 | `START TRANSACTION` | `BEGIN` | `BEGIN` |
-| `TRUNCATE TABLE t` | `DELETE FROM t` | そのまま |
-| `SQL_CALC_FOUND_ROWS` | 除去 | 除去 |
+| `TRUNCATE TABLE t` | `DELETE FROM t` + sqlite_sequence リセット | `TRUNCATE ... RESTART IDENTITY` |
+| `SQL_CALC_FOUND_ROWS` | 除去（WpPackWpdb でカウント保存） | 同左 |
+| `UPDATE/DELETE ... LIMIT N` | `rowid IN (SELECT rowid ... LIMIT N)` | `ctid IN (SELECT ctid ... LIMIT N)` |
+| `LOW_PRIORITY` / `DELAYED` | 除去 | 除去 |
+| `ALTER TABLE ADD INDEX` | `CREATE INDEX` | `CREATE INDEX` |
+| `ALTER TABLE DROP INDEX` | `DROP INDEX IF EXISTS` | `DROP INDEX IF EXISTS` |
+| `AS 'alias'` (PgSQL) | そのまま | `AS "alias"` |
+| `COUNT(*) ... ORDER BY` (PgSQL) | そのまま | ORDER BY 除去（パフォーマンス） |
 | `INSERT ... SET col=val` | `INSERT ... VALUES(...)` | 同左 |
 | `DELETE JOIN` | rowid サブクエリ | `USING` 構文 |
 | `CONVERT(val, type)` | `CAST(val AS type)` | 同左 |
 | `COLLATE clause` | 除去 | 除去 |
-| `@@SESSION.sql_mode` 等 | ダミー値 | ダミー値 |
+| `@@SESSION.sql_mode` 等 | 変数名に応じたデフォルト値 | 同左 |
 | `IN ()` (空) | `IN (NULL)` | 同左 |
 | `LIKE` | そのまま | `ILIKE`（大文字小文字区別なし） |
 | `DISTINCT + ORDER BY` | — | ORDER BY 列を SELECT に自動注入 |
@@ -247,8 +266,17 @@ SQLite Database Integration プラグインおよび PG4WP (PostgreSQL for WordP
 | `DATETIME` | `TEXT` | `TIMESTAMP` |
 | `LONGBLOB` | `BLOB` | `BYTEA` |
 | `JSON` | `TEXT` | `JSONB` |
-| `AUTO_INCREMENT` | `AUTOINCREMENT` | `SERIAL` / `BIGSERIAL` |
-| `ENGINE=...` / `CHARSET=...` | 除去 | 除去 |
+| `ENUM(...)` | `TEXT` | `TEXT` |
+| `FLOAT` / `DOUBLE` | `REAL` | `REAL` / `DOUBLE PRECISION` |
+| `DECIMAL(N,M)` | `REAL` | `DECIMAL(N,M)` |
+| `AUTO_INCREMENT` | `AUTOINCREMENT` | `SERIAL` / `BIGSERIAL` / `SMALLSERIAL` |
+| `ON UPDATE CURRENT_TIMESTAMP` | SQLite トリガー生成 | PgSQL トリガー関数 + トリガー生成 |
+| `ENGINE=...` / `CHARSET=...` / `COLLATE=...` | 除去 | 除去 |
+| `PRIMARY KEY (col)` + `AUTOINCREMENT` | 同一行にマージ | N/A |
+| `ALTER TABLE ADD/DROP/CHANGE COLUMN` | 対応（DROP は 3.35.0+ネイティブ） | 対応（CHANGE → `ALTER COLUMN TYPE`） |
+| `ALTER TABLE ADD [UNIQUE] INDEX` | `CREATE [UNIQUE] INDEX` | `CREATE [UNIQUE] INDEX` |
+| `IF NOT EXISTS` | 保持 | 保持 |
+| MySQL データ型キャッシュ | `_mysql_data_types_cache` テーブル | N/A |
 
 ### SHOW 文変換
 
@@ -256,28 +284,55 @@ SQLite Database Integration プラグインおよび PG4WP (PostgreSQL for WordP
 |-------|--------|------------|
 | `SHOW TABLES` | `sqlite_master` | `information_schema.tables` |
 | `SHOW COLUMNS FROM t` | `PRAGMA table_info(t)` | `information_schema.columns` |
-| `SHOW CREATE TABLE t` | `pragma_table_info` + キャッシュ | — |
-| `SHOW INDEX FROM t` | `PRAGMA index_list(t)` | — |
-| `SHOW VARIABLES` | 空結果 | `pg_settings` |
+| `SHOW CREATE TABLE t` | `pragma_table_info` + キャッシュ | `information_schema.columns` |
+| `SHOW INDEX FROM t` | `PRAGMA index_list(t)` | `pg_indexes` |
+| `SHOW TABLE STATUS [LIKE]` | `sqlite_master`（MySQL 互換カラム） | `pg_class`（行数推定付き） |
+| `SHOW VARIABLES` | 変数名別デフォルト値 | `pg_settings` |
 | `SHOW DATABASES` | `'main'` | `pg_database` |
 | `DESCRIBE t` | `PRAGMA table_info(t)` | `information_schema.columns` |
 
 ### 無視する文
 
-`SET NAMES`, `SET SESSION/GLOBAL`, `LOCK/UNLOCK TABLES`, `OPTIMIZE/ANALYZE/CHECK/REPAIR TABLE`, `CREATE/DROP DATABASE`
+| MySQL | 動作 |
+|-------|------|
+| `SET NAMES` / `SET SESSION` / `SET GLOBAL` | 無視（空配列） |
+| `LOCK TABLES` / `UNLOCK TABLES` | 無視 |
+| `OPTIMIZE TABLE` | 無視 |
+| `CHECK TABLE` / `ANALYZE TABLE` / `REPAIR TABLE` | ダミー成功返却（`OK` ステータス） |
+| `CREATE DATABASE` / `DROP DATABASE` | 無視 |
+| `SHOW GRANTS` | ダミー GRANT 文返却 |
+| `SHOW CREATE PROCEDURE` | 空結果 |
 
-### DATE_FORMAT 変換マップ
+### DATE_FORMAT 変換マップ（30仕様対応）
 
-| MySQL | SQLite (strftime) | PostgreSQL (TO_CHAR) |
-|-------|-------------------|---------------------|
-| `%Y` | `%Y` | `YYYY` |
-| `%m` | `%m` | `MM` |
-| `%d` | `%d` | `DD` |
-| `%H` | `%H` | `HH24` |
-| `%i` | `%M` | `MI` |
-| `%s` | `%S` | `SS` |
-| `%j` | `%j` | `DDD` |
-| `%W` | `%w` | `Day` |
+| MySQL | 説明 | SQLite (strftime) | PostgreSQL (TO_CHAR) |
+|-------|------|-------------------|---------------------|
+| `%Y` | 4桁年 | `%Y` | `YYYY` |
+| `%y` | 2桁年 | `%y` | `YY` |
+| `%m` | 月 01-12 | `%m` | `MM` |
+| `%c` | 月 1-12 | `%n` | `FMMM` |
+| `%d` | 日 01-31 | `%d` | `DD` |
+| `%e` | 日 1-31 | `%j` | `FMDD` |
+| `%H` | 時 00-23 | `%H` | `HH24` |
+| `%h` / `%I` | 時 01-12 | `%h` | `HH12` |
+| `%k` | 時 0-23 (パディングなし) | `%G` | `FMHH24` |
+| `%l` | 時 1-12 (パディングなし) | `%g` | `FMHH12` |
+| `%i` | 分 | `%M` | `MI` |
+| `%s` / `%S` | 秒 | `%S` | `SS` |
+| `%j` | 年内日数 | `%z` | `DDD` |
+| `%W` | 曜日名 | `%l` | `Day` |
+| `%w` | 曜日番号 0-6 | `%w` | `D` |
+| `%p` | AM/PM | `%A` | `AM` |
+| `%T` | HH:MM:SS | `%H:%M:%S` | `HH24:MI:SS` |
+| `%r` | 12h HH:MM:SS AM | `%h:%M:%S %A` | `HH12:MI:SS AM` |
+| `%a` | 曜日略称 | `%D` | `Dy` |
+| `%b` | 月略称 | `%M` | `Mon` |
+| `%M` | 月名 | `%F` | `FMMonth` |
+| `%D` | 日+序数 | `%jS` | `FMDDth` |
+| `%U` / `%u` | 週番号 | `%W` | `WW` / `IW` |
+| `%V` / `%v` | ISO 週番号 | `%W` | `IW` |
+| `%X` | ISO 年 | `%Y` | `YYYY` |
+| `%x` | ISO 年 (2桁) | `%o` | `YY` |
 
 ### SQLite UDF 一覧
 
