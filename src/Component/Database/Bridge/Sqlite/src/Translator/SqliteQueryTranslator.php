@@ -61,6 +61,9 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         'CURDATE' => "date('now')",
         'CURTIME' => "time('now')",
         'UNIX_TIMESTAMP' => "strftime('%s','now')",
+        'UTC_TIMESTAMP' => "datetime('now')",
+        'UTC_DATE' => "date('now')",
+        'UTC_TIME' => "time('now')",
         'VERSION' => "'10.0.0-wppack'",
         'DATABASE' => "'main'",
         'FOUND_ROWS' => '-1',
@@ -85,6 +88,11 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         'LAST_INSERT_ID' => 'last_insert_rowid',
         'SUBSTRING' => 'SUBSTR',
         'CHAR_LENGTH' => 'LENGTH',
+        'CHARACTER_LENGTH' => 'LENGTH',
+        'MID' => 'SUBSTR',
+        'LCASE' => 'lower',
+        'UCASE' => 'upper',
+        'LOCATE' => 'INSTR',
     ];
 
     public function translate(string $sql): array
@@ -566,7 +574,22 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             'DATE_FORMAT' => $this->transformDateFormat($rw),
             'FROM_UNIXTIME' => $this->transformFromUnixtime($rw),
             'LEFT' => $this->transformLeftFunc($rw),
+            'RIGHT' => $this->transformRightFunc($rw),
             'IF' => $this->transformIfFunc($rw),
+            'CONCAT' => $this->transformConcat($rw),
+            'CONCAT_WS' => $this->transformConcatWs($rw),
+            'DATEDIFF' => $this->transformDatediff($rw),
+            'MONTH' => $this->transformDateExtract($rw, '%m'),
+            'YEAR' => $this->transformDateExtract($rw, '%Y'),
+            'DAY', 'DAYOFMONTH' => $this->transformDateExtract($rw, '%d'),
+            'HOUR' => $this->transformDateExtract($rw, '%H'),
+            'MINUTE' => $this->transformDateExtract($rw, '%M'),
+            'SECOND' => $this->transformDateExtract($rw, '%S'),
+            'DAYOFWEEK' => $this->transformDayOfWeek($rw),
+            'DAYOFYEAR' => $this->transformDateExtract($rw, '%j'),
+            'WEEKDAY' => $this->transformWeekday($rw),
+            'GREATEST' => $this->transformGreatestLeast($rw, 'MAX'),
+            'LEAST' => $this->transformGreatestLeast($rw, 'MIN'),
             default => false,
         };
     }
@@ -670,6 +693,154 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         $trueVal = $this->transformArgExpression($args[1]);
         $falseVal = $this->transformArgExpression($args[2]);
         $rw->add(\sprintf('CASE WHEN %s THEN %s ELSE %s END', $cond, $trueVal, $falseVal));
+
+        return true;
+    }
+
+    /**
+     * CONCAT(a, b, c) → a || b || c
+     */
+    private function transformConcat(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || $args === []) {
+            return false;
+        }
+
+        $parts = [];
+        foreach ($args as $arg) {
+            $parts[] = $this->transformArgExpression($arg);
+        }
+
+        $rw->add(implode(' || ', $parts));
+
+        return true;
+    }
+
+    /**
+     * CONCAT_WS(sep, a, b) → a || sep || b
+     */
+    private function transformConcatWs(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 2) {
+            return false;
+        }
+
+        $sep = $this->transformArgExpression($args[0]);
+        $parts = [];
+        for ($i = 1, $c = \count($args); $i < $c; $i++) {
+            $parts[] = $this->transformArgExpression($args[$i]);
+        }
+
+        $rw->add(implode(' || ' . $sep . ' || ', $parts));
+
+        return true;
+    }
+
+    /**
+     * RIGHT(s, n) → SUBSTR(s, -n)
+     */
+    private function transformRightFunc(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 2) {
+            return false;
+        }
+
+        $strExpr = $this->transformArgExpression($args[0]);
+        $lenExpr = $this->transformArgExpression($args[1]);
+        $rw->add(\sprintf('SUBSTR(%s, -%s)', $strExpr, $lenExpr));
+
+        return true;
+    }
+
+    /**
+     * DATEDIFF(d1, d2) → CAST(julianday(d1) - julianday(d2) AS INTEGER)
+     */
+    private function transformDatediff(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 2) {
+            return false;
+        }
+
+        $d1 = $this->transformArgExpression($args[0]);
+        $d2 = $this->transformArgExpression($args[1]);
+        $rw->add(\sprintf('CAST(julianday(%s) - julianday(%s) AS INTEGER)', $d1, $d2));
+
+        return true;
+    }
+
+    /**
+     * MONTH(d) → CAST(strftime('%m', d) AS INTEGER)
+     * YEAR(d)  → CAST(strftime('%Y', d) AS INTEGER)
+     * etc.
+     */
+    private function transformDateExtract(QueryRewriter $rw, string $format): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 1) {
+            return false;
+        }
+
+        $expr = $this->transformArgExpression($args[0]);
+        $rw->add(\sprintf("CAST(strftime('%s', %s) AS INTEGER)", $format, $expr));
+
+        return true;
+    }
+
+    /**
+     * DAYOFWEEK(d) → CAST(strftime('%w', d) AS INTEGER) + 1
+     * MySQL DAYOFWEEK: 1=Sunday, 7=Saturday; SQLite %w: 0=Sunday, 6=Saturday
+     */
+    private function transformDayOfWeek(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 1) {
+            return false;
+        }
+
+        $expr = $this->transformArgExpression($args[0]);
+        $rw->add(\sprintf("(CAST(strftime('%%w', %s) AS INTEGER) + 1)", $expr));
+
+        return true;
+    }
+
+    /**
+     * WEEKDAY(d) → (CAST(strftime('%w', d) AS INTEGER) + 6) % 7
+     * MySQL WEEKDAY: 0=Monday, 6=Sunday; SQLite %w: 0=Sunday, 6=Saturday
+     */
+    private function transformWeekday(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 1) {
+            return false;
+        }
+
+        $expr = $this->transformArgExpression($args[0]);
+        $rw->add(\sprintf("((CAST(strftime('%%w', %s) AS INTEGER) + 6) %% 7)", $expr));
+
+        return true;
+    }
+
+    /**
+     * GREATEST(a, b) → MAX(a, b)
+     * LEAST(a, b) → MIN(a, b)
+     */
+    private function transformGreatestLeast(QueryRewriter $rw, string $func): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || $args === []) {
+            return false;
+        }
+
+        $parts = [];
+        foreach ($args as $arg) {
+            $parts[] = $this->transformArgExpression($arg);
+        }
+
+        $rw->add(\sprintf('%s(%s)', $func, implode(', ', $parts)));
 
         return true;
     }

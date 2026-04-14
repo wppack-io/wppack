@@ -53,6 +53,9 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         'CURDATE' => 'CURRENT_DATE',
         'CURTIME' => 'CURRENT_TIME',
         'UNIX_TIMESTAMP' => 'EXTRACT(EPOCH FROM NOW())::INTEGER',
+        'UTC_TIMESTAMP' => "NOW() AT TIME ZONE 'UTC'",
+        'UTC_DATE' => "(NOW() AT TIME ZONE 'UTC')::date",
+        'UTC_TIME' => "(NOW() AT TIME ZONE 'UTC')::time",
         'DATABASE' => 'CURRENT_DATABASE()',
         'FOUND_ROWS' => '-1',
     ];
@@ -63,6 +66,10 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         'IFNULL' => 'COALESCE',
         'LAST_INSERT_ID' => 'lastval',
         'CHAR_LENGTH' => 'LENGTH',
+        'CHARACTER_LENGTH' => 'LENGTH',
+        'MID' => 'SUBSTRING',
+        'LCASE' => 'lower',
+        'UCASE' => 'upper',
     ];
 
     public function translate(string $sql): array
@@ -422,6 +429,20 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             'FROM_UNIXTIME' => $this->transformFromUnixtime($rw),
             'LEFT' => $this->transformLeftFunc($rw),
             'IF' => $this->transformIfFunc($rw),
+            'CONCAT' => $this->transformConcat($rw),
+            'CONCAT_WS' => $this->transformConcatWs($rw),
+            'DATEDIFF' => $this->transformDatediff($rw),
+            'MONTH' => $this->transformDateExtract($rw, 'MONTH'),
+            'YEAR' => $this->transformDateExtract($rw, 'YEAR'),
+            'DAY', 'DAYOFMONTH' => $this->transformDateExtract($rw, 'DAY'),
+            'HOUR' => $this->transformDateExtract($rw, 'HOUR'),
+            'MINUTE' => $this->transformDateExtract($rw, 'MINUTE'),
+            'SECOND' => $this->transformDateExtract($rw, 'SECOND'),
+            'DAYOFWEEK' => $this->transformDayOfWeek($rw),
+            'DAYOFYEAR' => $this->transformDateExtract($rw, 'DOY'),
+            'WEEKDAY' => $this->transformWeekday($rw),
+            'LOCATE' => $this->transformLocate($rw),
+            'GROUP_CONCAT' => $this->transformGroupConcat($rw),
             default => false,
         };
     }
@@ -508,6 +529,161 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         $trueVal = $this->transformArgExpression($args[1]);
         $falseVal = $this->transformArgExpression($args[2]);
         $rw->add(\sprintf('CASE WHEN %s THEN %s ELSE %s END', $cond, $trueVal, $falseVal));
+
+        return true;
+    }
+
+    /**
+     * CONCAT(a, b, c) → PostgreSQL supports CONCAT natively, but pass through.
+     * We handle it here for consistency with the structural transform pattern.
+     */
+    private function transformConcat(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || $args === []) {
+            return false;
+        }
+
+        $parts = [];
+        foreach ($args as $arg) {
+            $parts[] = $this->transformArgExpression($arg);
+        }
+
+        $rw->add('CONCAT(' . implode(', ', $parts) . ')');
+
+        return true;
+    }
+
+    /**
+     * CONCAT_WS(sep, a, b) → PostgreSQL supports CONCAT_WS natively.
+     */
+    private function transformConcatWs(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 2) {
+            return false;
+        }
+
+        $parts = [];
+        foreach ($args as $arg) {
+            $parts[] = $this->transformArgExpression($arg);
+        }
+
+        $rw->add('CONCAT_WS(' . implode(', ', $parts) . ')');
+
+        return true;
+    }
+
+    /**
+     * DATEDIFF(d1, d2) → CAST(DATE_PART('day', d1::timestamp - d2::timestamp) AS INTEGER)
+     */
+    private function transformDatediff(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 2) {
+            return false;
+        }
+
+        $d1 = $this->transformArgExpression($args[0]);
+        $d2 = $this->transformArgExpression($args[1]);
+        $rw->add(\sprintf("CAST(DATE_PART('day', %s::timestamp - %s::timestamp) AS INTEGER)", $d1, $d2));
+
+        return true;
+    }
+
+    /**
+     * MONTH(d) → EXTRACT(MONTH FROM d)
+     * YEAR(d)  → EXTRACT(YEAR FROM d)
+     * etc.
+     */
+    private function transformDateExtract(QueryRewriter $rw, string $field): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 1) {
+            return false;
+        }
+
+        $expr = $this->transformArgExpression($args[0]);
+        $rw->add(\sprintf('EXTRACT(%s FROM %s)', $field, $expr));
+
+        return true;
+    }
+
+    /**
+     * DAYOFWEEK(d) → EXTRACT(DOW FROM d) + 1
+     * MySQL: 1=Sunday, 7=Saturday; PostgreSQL DOW: 0=Sunday, 6=Saturday
+     */
+    private function transformDayOfWeek(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 1) {
+            return false;
+        }
+
+        $expr = $this->transformArgExpression($args[0]);
+        $rw->add(\sprintf('(EXTRACT(DOW FROM %s) + 1)', $expr));
+
+        return true;
+    }
+
+    /**
+     * WEEKDAY(d) → EXTRACT(ISODOW FROM d) - 1
+     * MySQL: 0=Monday, 6=Sunday; PostgreSQL ISODOW: 1=Monday, 7=Sunday
+     */
+    private function transformWeekday(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 1) {
+            return false;
+        }
+
+        $expr = $this->transformArgExpression($args[0]);
+        $rw->add(\sprintf('(EXTRACT(ISODOW FROM %s) - 1)', $expr));
+
+        return true;
+    }
+
+    /**
+     * LOCATE(sub, str) → POSITION(sub IN str)
+     */
+    private function transformLocate(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 2) {
+            return false;
+        }
+
+        $sub = $this->transformArgExpression($args[0]);
+        $str = $this->transformArgExpression($args[1]);
+        $rw->add(\sprintf('POSITION(%s IN %s)', $sub, $str));
+
+        return true;
+    }
+
+    /**
+     * GROUP_CONCAT(col SEPARATOR sep) → STRING_AGG(col, sep)
+     */
+    private function transformGroupConcat(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || $args === []) {
+            return false;
+        }
+
+        // GROUP_CONCAT may have SEPARATOR keyword in its arguments
+        $expr = $this->transformArgExpression($args[0]);
+        $separator = "','";
+
+        // Check for SEPARATOR keyword in remaining args
+        if (\count($args) >= 2) {
+            $sepTokens = $args[\count($args) - 1];
+            $sepStr = $this->findStringToken($sepTokens);
+            if ($sepStr !== null) {
+                $separator = $sepStr->token;
+            }
+        }
+
+        $rw->add(\sprintf('STRING_AGG(%s, %s)', $expr, $separator));
 
         return true;
     }
