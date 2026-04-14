@@ -1562,4 +1562,77 @@ SQL);
 
         $driver->close();
     }
+
+    // ── Final gap closure tests ──
+
+    #[Test]
+    public function weekFunction(): void
+    {
+        $result = $this->translator->translate('SELECT WEEK(created) FROM t');
+
+        self::assertStringContainsString("strftime('%W'", $result[0]);
+    }
+
+    #[Test]
+    public function showTableStatusLike(): void
+    {
+        $result = $this->translator->translate("SHOW TABLE STATUS LIKE 'wp_%'");
+
+        self::assertStringContainsString("LIKE 'wp_%'", $result[0]);
+        self::assertStringContainsString('sqlite_master', $result[0]);
+    }
+
+    #[Test]
+    public function checkTableDummy(): void
+    {
+        $result = $this->translator->translate('CHECK TABLE `wp_posts`');
+
+        self::assertCount(1, $result);
+        self::assertStringContainsString('OK', $result[0]);
+        self::assertStringContainsString('check', $result[0]);
+    }
+
+    #[Test]
+    public function analyzeTableDummy(): void
+    {
+        $result = $this->translator->translate('ANALYZE TABLE `wp_posts`');
+
+        self::assertCount(1, $result);
+        self::assertStringContainsString('OK', $result[0]);
+    }
+
+    #[Test]
+    public function repairTableDummy(): void
+    {
+        $result = $this->translator->translate('REPAIR TABLE `wp_posts`');
+
+        self::assertCount(1, $result);
+        self::assertStringContainsString('OK', $result[0]);
+    }
+
+    #[Test]
+    public function showGrantsDummy(): void
+    {
+        $result = $this->translator->translate('SHOW GRANTS FOR root@localhost');
+
+        self::assertCount(1, $result);
+        self::assertStringContainsString('GRANT', $result[0]);
+    }
+
+    #[Test]
+    public function showCreateProcedureDummy(): void
+    {
+        $result = $this->translator->translate('SHOW CREATE PROCEDURE my_proc');
+
+        self::assertCount(1, $result);
+        self::assertStringContainsString('WHERE 0', $result[0]);
+    }
+
+    #[Test]
+    public function showTablesExcludesCacheTable(): void
+    {
+        $result = $this->translator->translate('SHOW TABLES');
+
+        self::assertStringContainsString("NOT LIKE '_%'", $result[0]);
+    }
 }

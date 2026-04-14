@@ -881,4 +881,110 @@ SQL;
         self::assertStringContainsString('information_schema', $result[0]);
         self::assertStringContainsString("LIKE 'wp_%'", $result[0]);
     }
+
+    // ── Final gap closure tests ──
+
+    #[Test]
+    public function replaceInto(): void
+    {
+        $result = $this->translator->translate("REPLACE INTO `t` (id, name) VALUES (1, 'a')");
+
+        self::assertStringContainsString('INSERT', $result[0]);
+        self::assertStringNotContainsString('REPLACE', $result[0]);
+    }
+
+    #[Test]
+    public function showCreateTable(): void
+    {
+        $result = $this->translator->translate('SHOW CREATE TABLE `wp_posts`');
+
+        self::assertStringContainsString('information_schema.columns', $result[0]);
+        self::assertStringContainsString('Create Table', $result[0]);
+    }
+
+    #[Test]
+    public function showIndexFrom(): void
+    {
+        $result = $this->translator->translate('SHOW INDEX FROM `wp_posts`');
+
+        self::assertStringContainsString('pg_indexes', $result[0]);
+    }
+
+    #[Test]
+    public function versionFunction(): void
+    {
+        $result = $this->translator->translate('SELECT VERSION()');
+
+        self::assertStringContainsString('version()', $result[0]);
+    }
+
+    #[Test]
+    public function weekFunction(): void
+    {
+        $result = $this->translator->translate('SELECT WEEK(created) FROM t');
+
+        self::assertStringContainsString('EXTRACT(WEEK', $result[0]);
+    }
+
+    #[Test]
+    public function showTableStatusLike(): void
+    {
+        $result = $this->translator->translate("SHOW TABLE STATUS LIKE 'wp_%'");
+
+        self::assertStringContainsString("LIKE 'wp_%'", $result[0]);
+    }
+
+    #[Test]
+    public function updateWithLimit(): void
+    {
+        $result = $this->translator->translate(
+            'UPDATE `wp_posts` SET post_status = "trash" WHERE post_status = "draft" LIMIT 5',
+        );
+
+        self::assertStringContainsString('ctid IN (SELECT ctid FROM', $result[0]);
+        self::assertStringContainsString('LIMIT 5', $result[0]);
+    }
+
+    #[Test]
+    public function deleteWithLimit(): void
+    {
+        $result = $this->translator->translate(
+            'DELETE FROM `wp_posts` WHERE post_status = "trash" LIMIT 10',
+        );
+
+        self::assertStringContainsString('ctid IN (SELECT ctid FROM', $result[0]);
+        self::assertStringContainsString('LIMIT 10', $result[0]);
+    }
+
+    #[Test]
+    public function likeEscapeClause(): void
+    {
+        $result = $this->translator->translate("SELECT * FROM t WHERE name LIKE '%\\_test%'");
+
+        self::assertStringContainsString('ESCAPE', $result[0]);
+    }
+
+    #[Test]
+    public function checkTableDummy(): void
+    {
+        $result = $this->translator->translate('CHECK TABLE `wp_posts`');
+
+        self::assertStringContainsString('OK', $result[0]);
+    }
+
+    #[Test]
+    public function showGrantsDummy(): void
+    {
+        $result = $this->translator->translate('SHOW GRANTS FOR root@localhost');
+
+        self::assertStringContainsString('GRANT', $result[0]);
+    }
+
+    #[Test]
+    public function showCreateProcedureDummy(): void
+    {
+        $result = $this->translator->translate('SHOW CREATE PROCEDURE my_proc');
+
+        self::assertStringContainsString('WHERE 0', $result[0]);
+    }
 }

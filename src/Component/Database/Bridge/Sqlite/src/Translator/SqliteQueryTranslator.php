@@ -44,9 +44,6 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         '/^\s*LOCK\s+TABLES?\s+/i',
         '/^\s*UNLOCK\s+TABLES?\s*/i',
         '/^\s*OPTIMIZE\s+TABLE\s+/i',
-        '/^\s*ANALYZE\s+TABLE\s+/i',
-        '/^\s*CHECK\s+TABLE\s+/i',
-        '/^\s*REPAIR\s+TABLE\s+/i',
         '/^\s*CREATE\s+DATABASE\b/i',
         '/^\s*DROP\s+DATABASE\b/i',
     ];
@@ -891,6 +888,7 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             'SECOND' => $this->transformDateExtract($rw, '%S'),
             'DAYOFWEEK' => $this->transformDayOfWeek($rw),
             'DAYOFYEAR' => $this->transformDateExtract($rw, '%j'),
+            'WEEK' => $this->transformDateExtract($rw, '%W'),
             'WEEKDAY' => $this->transformWeekday($rw),
             'GREATEST' => $this->transformGreatestLeast($rw, 'MAX'),
             'LEAST' => $this->transformGreatestLeast($rw, 'MIN'),
@@ -1519,19 +1517,19 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         }
 
         if (preg_match('/^\s*SHOW\s+FULL\s+TABLES\s+LIKE\s+[\'"](.+?)[\'"]\s*$/i', $sql, $m)) {
-            return [\sprintf("SELECT name, 'BASE TABLE' AS Table_type FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%%' AND name LIKE '%s'", str_replace("'", "''", $m[1]))];
+            return [\sprintf("SELECT name, 'BASE TABLE' AS Table_type FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%%' AND name NOT LIKE '_%%' AND name LIKE '%s'", str_replace("'", "''", $m[1]))];
         }
 
         if (preg_match('/^\s*SHOW\s+TABLES\s+LIKE\s+[\'"](.+?)[\'"]\s*$/i', $sql, $m)) {
-            return [\sprintf("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%%' AND name LIKE '%s'", str_replace("'", "''", $m[1]))];
+            return [\sprintf("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%%' AND name NOT LIKE '_%%' AND name LIKE '%s'", str_replace("'", "''", $m[1]))];
         }
 
         if (preg_match('/^\s*SHOW\s+FULL\s+TABLES\s*/i', $sql)) {
-            return ["SELECT name, 'BASE TABLE' AS Table_type FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'"];
+            return ["SELECT name, 'BASE TABLE' AS Table_type FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_%'"];
         }
 
         if (preg_match('/^\s*SHOW\s+TABLES\s*/i', $sql)) {
-            return ["SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'"];
+            return ["SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_%'"];
         }
 
         if (preg_match('/^\s*SHOW\s+(?:FULL\s+)?COLUMNS\s+FROM\s+[`"]?(\w+)[`"]?\s*/i', $sql, $m)) {
@@ -1573,12 +1571,31 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             return ["SELECT 'main' AS `Database`"];
         }
 
+        if (preg_match('/^\s*SHOW\s+TABLE\s+STATUS\s+LIKE\s+[\'"](.+?)[\'"]\s*$/i', $sql, $m)) {
+            return [\sprintf("SELECT name AS Name, 'InnoDB' AS Engine FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%%' AND name NOT LIKE '_%%' AND name LIKE '%s'", str_replace("'", "''", $m[1]))];
+        }
+
         if (preg_match('/^\s*SHOW\s+TABLE\s+STATUS/i', $sql)) {
-            return ["SELECT name AS Name, 'InnoDB' AS Engine FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'"];
+            return ["SELECT name AS Name, 'InnoDB' AS Engine FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_%'"];
         }
 
         if (preg_match('/^\s*DESCRIBE\s+[`"]?(\w+)[`"]?\s*/i', $sql, $m)) {
             return [\sprintf('PRAGMA table_info("%s")', $m[1])];
+        }
+
+        // SHOW GRANTS FOR → dummy
+        if (preg_match('/^\s*SHOW\s+GRANTS\b/i', $sql)) {
+            return ["SELECT 'GRANT ALL PRIVILEGES ON *.* TO ''root''@''localhost''' AS \"Grants for root@localhost\""];
+        }
+
+        // SHOW CREATE PROCEDURE → empty result
+        if (preg_match('/^\s*SHOW\s+CREATE\s+PROCEDURE\b/i', $sql)) {
+            return ["SELECT '' AS Procedure, '' AS Create_Procedure WHERE 0"];
+        }
+
+        // CHECK TABLE / ANALYZE TABLE / REPAIR TABLE → dummy success
+        if (preg_match('/^\s*(CHECK|ANALYZE|REPAIR)\s+TABLE\s+[`"]?(\w+)[`"]?\s*/i', $sql, $m)) {
+            return [\sprintf("SELECT '%s' AS Table, '%s' AS Op, 'status' AS Msg_type, 'OK' AS Msg_text", $m[2], strtolower($m[1]))];
         }
 
         return null;

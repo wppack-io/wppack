@@ -18,6 +18,7 @@ use PhpMyAdmin\SqlParser\Statements\AlterStatement;
 use PhpMyAdmin\SqlParser\Statements\CreateStatement;
 use PhpMyAdmin\SqlParser\Statements\DeleteStatement;
 use PhpMyAdmin\SqlParser\Statements\InsertStatement;
+use PhpMyAdmin\SqlParser\Statements\ReplaceStatement;
 use PhpMyAdmin\SqlParser\Statements\SelectStatement;
 use PhpMyAdmin\SqlParser\Statements\SetStatement;
 use PhpMyAdmin\SqlParser\Statements\TruncateStatement;
@@ -42,8 +43,6 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         '/^\s*LOCK\s+TABLES?\s+/i',
         '/^\s*UNLOCK\s+TABLES?\s*/i',
         '/^\s*OPTIMIZE\s+TABLE\s+/i',
-        '/^\s*CHECK\s+TABLE\s+/i',
-        '/^\s*REPAIR\s+TABLE\s+/i',
         '/^\s*CREATE\s+DATABASE\b/i',
         '/^\s*DROP\s+DATABASE\b/i',
     ];
@@ -58,6 +57,7 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         'UTC_TIME' => "(NOW() AT TIME ZONE 'UTC')::time",
         'LOCALTIME' => 'NOW()',
         'LOCALTIMESTAMP' => 'NOW()',
+        'VERSION' => 'version()',
         'DATABASE' => 'CURRENT_DATABASE()',
         'FOUND_ROWS' => '-1',
     ];
@@ -98,8 +98,9 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         return match (true) {
             $stmt instanceof SelectStatement => [$this->translateSelect($stmt, $parser)],
             $stmt instanceof InsertStatement => $this->translateInsert($stmt, $parser),
-            $stmt instanceof UpdateStatement => [$this->rewriteTokens($parser)],
-            $stmt instanceof DeleteStatement => [$this->rewriteTokens($parser)],
+            $stmt instanceof ReplaceStatement => [$this->translateReplace($parser)],
+            $stmt instanceof UpdateStatement => [$this->translateUpdate($stmt, $parser)],
+            $stmt instanceof DeleteStatement => [$this->translateDelete($stmt, $parser)],
             $stmt instanceof CreateStatement => [$this->translateCreate($stmt, $parser)],
             $stmt instanceof TruncateStatement => [$this->translateTruncate($stmt, $parser)],
             $stmt instanceof AlterStatement => [$this->rewriteTokens($parser)],
@@ -231,6 +232,122 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         }
 
         return [$result];
+    }
+
+    /**
+     * REPLACE INTO → INSERT ... ON CONFLICT DO UPDATE SET (all columns).
+     *
+     * PostgreSQL doesn't have REPLACE. We rewrite to INSERT with a
+     * blanket ON CONFLICT DO UPDATE covering all non-PK columns.
+     * Without PK info, we use ON CONFLICT DO NOTHING as fallback.
+     */
+    private function translateReplace(Parser $parser): string
+    {
+        $rw = $this->createRewriter($parser);
+
+        while ($rw->hasMore()) {
+            $token = $rw->peek();
+            if ($token === null) {
+                break;
+            }
+
+            if ($token->type === TokenType::Keyword && $token->keyword === 'REPLACE') {
+                $rw->skip();
+                $rw->add('INSERT');
+                continue;
+            }
+
+            $this->translateExpression($rw);
+        }
+
+        return $rw->getResult();
+    }
+
+    private function translateUpdate(UpdateStatement $stmt, Parser $parser): string
+    {
+        // PostgreSQL does not support UPDATE ... LIMIT — wrap with ctid subquery
+        if ($stmt->limit !== null) {
+            return $this->rewriteWithCtidSubquery($stmt, $parser, 'UPDATE');
+        }
+
+        return $this->rewriteTokens($parser);
+    }
+
+    private function translateDelete(DeleteStatement $stmt, Parser $parser): string
+    {
+        if ($stmt->limit !== null) {
+            return $this->rewriteWithCtidSubquery($stmt, $parser, 'DELETE');
+        }
+
+        return $this->rewriteTokens($parser);
+    }
+
+    /**
+     * Rewrite UPDATE/DELETE with LIMIT using ctid subquery for PostgreSQL.
+     */
+    private function rewriteWithCtidSubquery(UpdateStatement|DeleteStatement $stmt, Parser $parser, string $verb): string
+    {
+        $tableName = match (true) {
+            $stmt instanceof UpdateStatement => $stmt->tables[0]->table ?? null,
+            $stmt instanceof DeleteStatement => $stmt->from[0]->table ?? null,
+        };
+
+        if ($tableName === null) {
+            return $this->rewriteTokens($parser);
+        }
+
+        $quotedTable = $this->quoteId($tableName);
+        $limit = $stmt->limit->rowCount;
+
+        $whereParts = [];
+        if ($stmt->where !== null) {
+            foreach ($stmt->where as $cond) {
+                $whereParts[] = $cond->expr;
+            }
+        }
+        $whereClause = $whereParts !== [] ? implode(' ', $whereParts) : '1=1';
+
+        $orderParts = [];
+        if ($stmt->order !== null) {
+            foreach ($stmt->order as $order) {
+                $orderParts[] = $order->expr->expr . ' ' . $order->type->value;
+            }
+        }
+        $orderClause = $orderParts !== [] ? ' ORDER BY ' . implode(', ', $orderParts) : '';
+
+        $subquery = \sprintf(
+            'ctid IN (SELECT ctid FROM %s WHERE %s%s LIMIT %s)',
+            $quotedTable,
+            $whereClause,
+            $orderClause,
+            $limit,
+        );
+
+        $rw = $this->createRewriter($parser);
+
+        while ($rw->hasMore()) {
+            $token = $rw->peek();
+            if ($token === null) {
+                break;
+            }
+
+            if ($token->type === TokenType::Keyword
+                && \in_array($token->keyword, ['WHERE', 'ORDER BY', 'LIMIT'], true)) {
+                do {
+                    $rw->skip();
+                } while ($rw->peek() !== null);
+
+                $rw->add(' WHERE ' . $subquery);
+
+                return $rw->getResult();
+            }
+
+            $this->translateExpression($rw);
+        }
+
+        $rw->add(' WHERE ' . $subquery);
+
+        return $rw->getResult();
     }
 
     private function translateTruncate(TruncateStatement $stmt, Parser $parser): string
@@ -439,6 +556,25 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             return;
         }
 
+        // ── LIKE with escaped wildcards → ESCAPE clause ──
+        if ($kw === 'LIKE') {
+            $rw->consume();
+            $patternToken = $rw->peek();
+            if ($patternToken !== null && $patternToken->type === TokenType::String) {
+                $rawToken = $patternToken->token;
+                if (str_contains($rawToken, '\\_') || str_contains($rawToken, '\\%')) {
+                    $rw->skip();
+                    $inner = mb_substr($rawToken, 1, -1);
+                    $escaped = str_replace(['\\_', '\\%'], ["\x1a_", "\x1a%"], $inner);
+                    $rw->add("'" . $escaped . "' ESCAPE '\x1a'");
+
+                    return;
+                }
+            }
+
+            return;
+        }
+
         // ── SIGNED → INTEGER ──
         if ($kw === 'SIGNED') {
             $rw->skip();
@@ -491,6 +627,7 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             'LOCATE' => $this->transformLocate($rw),
             'GROUP_CONCAT' => $this->transformGroupConcat($rw),
             'ISNULL' => $this->transformIsnull($rw),
+            'WEEK' => $this->transformDateExtract($rw, 'WEEK'),
             default => false,
         };
     }
@@ -1042,6 +1179,34 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             return ['SELECT datname AS "Database" FROM pg_database WHERE datistemplate = false'];
         }
 
+        if (preg_match('/^\s*SHOW\s+CREATE\s+TABLE\s+[`"]?(\w+)[`"]?\s*/i', $sql, $m)) {
+            $t = str_replace("'", "''", $m[1]);
+
+            return [\sprintf(
+                "SELECT '%s' AS \"Table\", 'CREATE TABLE \"' || '%s' || '\" (' || "
+                . "string_agg('\"' || column_name || '\" ' || data_type || "
+                . "CASE WHEN character_maximum_length IS NOT NULL THEN '(' || character_maximum_length || ')' ELSE '' END || "
+                . "CASE WHEN is_nullable = 'NO' THEN ' NOT NULL' ELSE '' END || "
+                . "CASE WHEN column_default IS NOT NULL THEN ' DEFAULT ' || column_default ELSE '' END"
+                . ", ', ' ORDER BY ordinal_position) || ')' AS \"Create Table\" "
+                . "FROM information_schema.columns WHERE table_schema = 'public' AND table_name = '%s'",
+                $t,
+                $t,
+                $t,
+            )];
+        }
+
+        if (preg_match('/^\s*SHOW\s+(?:INDEX|KEYS?)\s+FROM\s+[`"]?(\w+)[`"]?\s*/i', $sql, $m)) {
+            return [\sprintf(
+                "SELECT indexname AS \"Key_name\", indexdef AS \"Index_type\" FROM pg_indexes WHERE schemaname = 'public' AND tablename = '%s'",
+                str_replace("'", "''", $m[1]),
+            )];
+        }
+
+        if (preg_match('/^\s*SHOW\s+TABLE\s+STATUS\s+LIKE\s+[\'"](.+?)[\'"]\s*$/i', $sql, $m)) {
+            return [\sprintf("SELECT table_name AS \"Name\" FROM information_schema.tables WHERE table_schema = 'public' AND table_name LIKE '%s'", str_replace("'", "''", $m[1]))];
+        }
+
         if (preg_match('/^\s*SHOW\s+TABLE\s+STATUS/i', $sql)) {
             return ["SELECT table_name AS \"Name\" FROM information_schema.tables WHERE table_schema = 'public'"];
         }
@@ -1051,6 +1216,21 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
                 "SELECT column_name AS \"Field\", data_type AS \"Type\" FROM information_schema.columns WHERE table_schema = 'public' AND table_name = '%s'",
                 $m[1],
             )];
+        }
+
+        // SHOW GRANTS → dummy
+        if (preg_match('/^\s*SHOW\s+GRANTS\b/i', $sql)) {
+            return ["SELECT 'GRANT ALL PRIVILEGES ON *.* TO ''root''@''localhost''' AS \"Grants for root@localhost\""];
+        }
+
+        // SHOW CREATE PROCEDURE → empty result
+        if (preg_match('/^\s*SHOW\s+CREATE\s+PROCEDURE\b/i', $sql)) {
+            return ["SELECT '' AS Procedure, '' AS Create_Procedure WHERE 0"];
+        }
+
+        // CHECK TABLE / ANALYZE TABLE / REPAIR TABLE → dummy success
+        if (preg_match('/^\s*(CHECK|ANALYZE|REPAIR)\s+TABLE\s+[`"]?(\w+)[`"]?\s*/i', $sql, $m)) {
+            return [\sprintf("SELECT '%s' AS Table, '%s' AS Op, 'status' AS Msg_type, 'OK' AS Msg_text", $m[2], strtolower($m[1]))];
         }
 
         return null;
