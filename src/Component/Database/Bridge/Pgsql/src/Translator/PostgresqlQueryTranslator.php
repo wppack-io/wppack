@@ -79,10 +79,8 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
 
     private function translateSelect(SelectStatement $stmt): string
     {
-        if ($stmt->expr !== null) {
-            foreach ($stmt->expr as $expr) {
-                $expr->expr = $this->transformExpression($expr->expr);
-            }
+        foreach ($stmt->expr as $expr) {
+            $expr->expr = $this->transformExpression($expr->expr);
         }
 
         $this->transformConditions($stmt->where ?? []);

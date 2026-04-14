@@ -98,10 +98,8 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
     private function translateSelect(SelectStatement $stmt): string
     {
         // Transform expressions
-        if ($stmt->expr !== null) {
-            foreach ($stmt->expr as $expr) {
-                $expr->expr = $this->transformExpression($expr->expr);
-            }
+        foreach ($stmt->expr as $expr) {
+            $expr->expr = $this->transformExpression($expr->expr);
         }
 
         // Transform WHERE conditions
