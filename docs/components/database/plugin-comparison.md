@@ -13,7 +13,11 @@ WpPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL ク
 
 ## 対応範囲一覧
 
-全4実装の対応状況を一覧で示す。✅ = 対応、⚠️ = 部分的、— = 未対応。
+全4実装の対応状況を一覧で示す。
+
+- ✅ = 対応済
+- N/A = そのエンジンでは対応不要（ネイティブ対応 or 該当なし）
+- — = 未対応
 
 ### 関数
 
@@ -41,17 +45,17 @@ WpPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL ク
 | IFNULL | ✅ ネイティブ | — | ✅ ネイティブ | ✅ AST→COALESCE |
 | ISNULL | ✅ UDF | — | ✅ AST | ✅ AST |
 | GREATEST / LEAST | ✅ UDF | — | ✅ AST | ✅ ネイティブ |
-| FIELD() | ✅ UDF | ✅ | ✅ UDF | ✅ AST→CASE |
+| FIELD() | ✅ UDF | ✅ | ✅ AST→CASE | ✅ AST→CASE |
 | CONVERT() | — | ✅ | ✅ AST | ✅ AST |
 | CAST(AS SIGNED/CHAR/BINARY) | — | ✅ | ✅ AST | ✅ AST |
-| GROUP_CONCAT | — | ✅ | ✅ ネイティブ | ✅ AST→STRING_AGG |
+| GROUP_CONCAT | N/A | ✅ | ✅ AST→group_concat | ✅ AST→STRING_AGG |
 | VERSION / DATABASE | ✅ UDF | — | ✅ AST | ✅ AST |
 | FOUND_ROWS() | ✅ | ✅ | ✅ | ✅ |
 | LAST_INSERT_ID | — | ✅ | ✅ AST | ✅ AST |
 | REGEXP | ✅ UDF | ✅ | ✅ UDF | ✅ AST→~* |
 | MD5 / LOG | ✅ UDF | — | ✅ UDF | ✅ ネイティブ |
-| UNHEX / BASE64 / INET | ✅ UDF | — | ✅ UDF | — |
-| GET_LOCK / RELEASE_LOCK | ✅ UDF | — | ✅ UDF | — |
+| UNHEX / BASE64 / INET | ✅ UDF | N/A | ✅ UDF | ✅ AST (decode/encode) |
+| GET_LOCK / RELEASE_LOCK | ✅ UDF | N/A | ✅ UDF | ✅ ダミー |
 
 ### DML 文
 
@@ -64,11 +68,11 @@ WpPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL ク
 | LIMIT offset, count | ✅ | ✅ | ✅ | ✅ |
 | UPDATE/DELETE LIMIT | ✅ | ⚠️ 除去 | ✅ rowid | ✅ ctid |
 | DELETE JOIN | ✅ | — | ✅ rowid | ✅ USING |
-| FOR UPDATE | — | — | ✅ 除去 | ✅ ネイティブ |
+| FOR UPDATE | N/A | N/A | ✅ 除去 | N/A ネイティブ |
 | SQL_CALC_FOUND_ROWS | ✅ | ✅ | ✅ | ✅ |
 | FROM DUAL | ✅ | — | ✅ | ✅ |
 | INDEX HINTS | ✅ | — | ✅ | ✅ |
-| LIKE → ILIKE (PgSQL) | — | ✅ | — | ✅ |
+| LIKE → ILIKE (PgSQL) | N/A | ✅ | N/A | ✅ |
 | LIKE BINARY → GLOB | ✅ | — | ✅ | ✅ LIKE |
 | LIKE ESCAPE | ✅ | — | ✅ | ✅ |
 | HAVING without GROUP BY | ✅ | ✅ | ✅ | ✅ |
@@ -76,8 +80,8 @@ WpPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL ク
 | COLLATE 除去 | — | — | ✅ | ✅ |
 | @@変数 → ダミー | — | — | ✅ | ✅ |
 | 空 IN () → IN (NULL) | — | — | ✅ | ✅ |
-| DISTINCT + ORDER BY 列注入 | — | ✅ | — | ✅ |
-| meta_value + 0 → CAST | — | ✅ | — | ✅ |
+| DISTINCT + ORDER BY 列注入 | N/A | ✅ | N/A | ✅ |
+| meta_value + 0 → CAST | N/A | ✅ | N/A | ✅ |
 | ゼロ日付処理 | ✅ | — | ✅ text | ✅ → '0001-01-01' |
 | LOW_PRIORITY / DELAYED | ✅ | — | ✅ | ✅ |
 | START TRANSACTION | ✅ | — | ✅ | ✅ |
@@ -88,15 +92,15 @@ WpPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL ク
 | 機能 | SQLite プラグイン | PG4WP | WpPack SQLite | WpPack PgSQL |
 |------|:---:|:---:|:---:|:---:|
 | CREATE TABLE 型変換 | ✅ | ✅ | ✅ AST | ✅ AST |
-| PRIMARY KEY マージ | ✅ | — | ✅ AST | — |
-| AUTO_INCREMENT → SERIAL | — | ✅ | ✅ AUTOINCREMENT | ✅ SERIAL/BIGSERIAL |
-| ON UPDATE CURRENT_TIMESTAMP | ✅ トリガー | — | ✅ トリガー | — |
+| PRIMARY KEY マージ | ✅ | N/A | ✅ AST | N/A |
+| AUTO_INCREMENT → SERIAL | N/A | ✅ | ✅ AUTOINCREMENT | ✅ SERIAL/BIGSERIAL |
+| ON UPDATE CURRENT_TIMESTAMP | ✅ トリガー | N/A | ✅ トリガー | ✅ トリガー |
 | ALTER ADD/DROP/CHANGE | ✅ | ✅ | ✅ | ✅ |
 | ENGINE/CHARSET/COLLATE 除去 | ✅ | ✅ | ✅ AST | ✅ AST |
 | IF NOT EXISTS | ✅ | ✅ | ✅ | ✅ |
-| データ型キャッシュ | ✅ | — | ✅ | — |
-| information_schema 対応 | ✅ | — | ✅ → sqlite_master | ✅ ネイティブ |
-| ISO 8601 日付正規化 | ✅ | — | ✅ | — |
+| データ型キャッシュ | ✅ | N/A | ✅ | N/A |
+| information_schema 対応 | ✅ | N/A | ✅ → sqlite_master | N/A ネイティブ |
+| ISO 8601 日付正規化 | ✅ | N/A | ✅ | N/A PgSQL 互換 |
 
 ### SHOW 文
 
