@@ -100,6 +100,7 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
 
         // LIMIT offset,count → LIMIT count OFFSET offset (post-build)
         $sql = (string) preg_replace('/\bLIMIT\s+(\d+)\s*,\s*(\d+)/i', 'LIMIT $2 OFFSET $1', $sql);
+        $sql = (string) preg_replace('/\s+OFFSET\s+0\b/i', '', $sql);
 
         return $this->quoteIdentifiers($sql);
     }

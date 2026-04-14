@@ -452,4 +452,189 @@ final class PostgresqlQueryTranslatorTest extends TestCase
 
         self::assertStringContainsString('TO_TIMESTAMP(meta_value)', $result[0]);
     }
+
+    // ── Multi-line and schema queries ──
+
+    #[Test]
+    public function multiLineCreateTable(): void
+    {
+        $sql = <<<'SQL'
+CREATE TABLE `wp_posts` (
+  `ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `post_title` text NOT NULL,
+  `post_status` varchar(20) NOT NULL DEFAULT "publish",
+  PRIMARY KEY (`ID`),
+  KEY `post_status` (`post_status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci
+SQL;
+
+        $result = $this->translator->translate($sql);
+
+        self::assertCount(1, $result);
+        self::assertStringContainsString('BIGINT', $result[0]);
+        self::assertStringContainsString('TEXT', $result[0]);
+        self::assertStringContainsString('SERIAL', $result[0]);
+        self::assertStringNotContainsString('ENGINE=', $result[0]);
+        self::assertStringNotContainsString('CHARSET', $result[0]);
+        self::assertStringNotContainsString('`', $result[0]);
+    }
+
+    #[Test]
+    public function createTableIfNotExists(): void
+    {
+        $sql = <<<'SQL'
+CREATE TABLE IF NOT EXISTS `wp_options` (
+  `option_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `option_name` varchar(191) NOT NULL,
+  PRIMARY KEY (`option_id`)
+) ENGINE=InnoDB
+SQL;
+
+        $result = $this->translator->translate($sql);
+
+        self::assertStringContainsString('IF NOT EXISTS', $result[0]);
+        self::assertStringNotContainsString('ENGINE=', $result[0]);
+    }
+
+    #[Test]
+    public function createAndDropIndex(): void
+    {
+        $create = $this->translator->translate('CREATE INDEX `idx_status` ON `wp_posts` (`post_status`)');
+        $drop = $this->translator->translate('DROP INDEX `idx_status` ON `wp_posts`');
+
+        self::assertStringContainsString('CREATE INDEX', $create[0]);
+        self::assertStringContainsString('DROP INDEX', $drop[0]);
+        self::assertStringNotContainsString('`', $create[0]);
+    }
+
+    #[Test]
+    public function dropTableIfExists(): void
+    {
+        $result = $this->translator->translate('DROP TABLE IF EXISTS `wp_posts`');
+
+        self::assertStringContainsString('DROP TABLE IF EXISTS', $result[0]);
+        self::assertStringNotContainsString('`', $result[0]);
+    }
+
+    #[Test]
+    public function limitCountOnly(): void
+    {
+        $result = $this->translator->translate('SELECT * FROM t LIMIT 10');
+
+        self::assertStringContainsString('LIMIT 10', $result[0]);
+        self::assertStringNotContainsString('OFFSET', $result[0]);
+    }
+
+    // ── Additional SHOW ──
+
+    #[Test]
+    public function showVariables(): void
+    {
+        $result = $this->translator->translate('SHOW VARIABLES');
+
+        self::assertStringContainsString('pg_settings', $result[0]);
+    }
+
+    #[Test]
+    public function showCollation(): void
+    {
+        $result = $this->translator->translate('SHOW COLLATION');
+
+        self::assertStringContainsString('pg_collation', $result[0]);
+    }
+
+    #[Test]
+    public function showTableStatus(): void
+    {
+        $result = $this->translator->translate('SHOW TABLE STATUS');
+
+        self::assertStringContainsString('information_schema.tables', $result[0]);
+    }
+
+    // ── Multi-line queries ──
+
+    #[Test]
+    public function multiLineInsert(): void
+    {
+        $sql = <<<'SQL'
+INSERT INTO `wp_posts`
+  (`post_author`, `post_date`, `post_content`, `post_title`)
+VALUES
+  (1, NOW(), "Hello", "Test")
+SQL;
+
+        $result = $this->translator->translate($sql);
+
+        self::assertCount(1, $result);
+        self::assertStringContainsString('NOW()', $result[0]); // PgSQL supports NOW() natively
+        self::assertStringNotContainsString('`', $result[0]);
+    }
+
+    #[Test]
+    public function multiLineUpdateWithFunctions(): void
+    {
+        $sql = <<<'SQL'
+UPDATE `wp_posts`
+SET
+  `post_status` = "trash",
+  `post_modified` = NOW()
+WHERE
+  `post_date` < DATE_SUB(NOW(), INTERVAL 30 DAY)
+  AND `post_status` = "draft"
+SQL;
+
+        $result = $this->translator->translate($sql);
+
+        self::assertCount(1, $result);
+        self::assertStringContainsString("INTERVAL '30 day'", $result[0]);
+        self::assertStringNotContainsString('`', $result[0]);
+    }
+
+    #[Test]
+    public function multiLineSelectWithSubquery(): void
+    {
+        $sql = <<<'SQL'
+SELECT
+  p.ID,
+  (SELECT COUNT(*)
+   FROM `wp_comments` c
+   WHERE c.comment_post_ID = p.ID) AS comment_count
+FROM `wp_posts` p
+WHERE p.post_status = "publish"
+ORDER BY p.post_date DESC
+LIMIT 10, 20
+SQL;
+
+        $result = $this->translator->translate($sql);
+
+        self::assertCount(1, $result);
+        self::assertStringContainsString('(SELECT COUNT', $result[0]);
+        self::assertStringContainsString('LIMIT 20 OFFSET 10', $result[0]);
+        self::assertStringNotContainsString('`', $result[0]);
+    }
+
+    // ── Additional ignored ──
+
+    #[Test]
+    public function dropDatabaseIgnored(): void
+    {
+        self::assertSame([], $this->translator->translate('DROP DATABASE IF EXISTS `wordpress`'));
+    }
+
+    #[Test]
+    public function startTransaction(): void
+    {
+        $result = $this->translator->translate('START TRANSACTION');
+
+        self::assertSame(['BEGIN'], $result);
+    }
+
+    #[Test]
+    public function selectForUpdate(): void
+    {
+        // PostgreSQL supports FOR UPDATE natively — should pass through
+        $result = $this->translator->translate('SELECT * FROM `t` WHERE id = 1 FOR UPDATE');
+
+        self::assertStringNotContainsString('`', $result[0]);
+    }
 }
