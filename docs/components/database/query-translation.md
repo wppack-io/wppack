@@ -291,17 +291,22 @@ SQLite Database Integration プラグインおよび PG4WP (PostgreSQL for WordP
 | `SHOW DATABASES` | `'main'` | `pg_database` |
 | `DESCRIBE t` | `PRAGMA table_info(t)` | `information_schema.columns` |
 
-### 無視する文
+### 無視・ダミー返却する文
 
 | MySQL | 動作 |
 |-------|------|
-| `SET NAMES` / `SET SESSION` / `SET GLOBAL` | 無視（空配列） |
-| `LOCK TABLES` / `UNLOCK TABLES` | 無視 |
-| `OPTIMIZE TABLE` | 無視 |
-| `CHECK TABLE` / `ANALYZE TABLE` / `REPAIR TABLE` | ダミー成功返却（`OK` ステータス） |
-| `CREATE DATABASE` / `DROP DATABASE` | 無視 |
+| `SET NAMES` / `SET SESSION` / `SET GLOBAL` | 無視（空配列返却） |
+| `LOCK TABLES` / `UNLOCK TABLES` | 無視（空配列返却） |
+| `OPTIMIZE TABLE` | 無視（空配列返却） |
+| `CREATE DATABASE` / `DROP DATABASE` | 無視（空配列返却） |
+| `CHECK TABLE t` | ダミー成功返却（`OK` ステータス行） |
+| `ANALYZE TABLE t` | ダミー成功返却（`OK` ステータス行） |
+| `REPAIR TABLE t` | ダミー成功返却（`OK` ステータス行） |
 | `SHOW GRANTS` | ダミー GRANT 文返却 |
-| `SHOW CREATE PROCEDURE` | 空結果 |
+| `SHOW CREATE PROCEDURE` | 空結果返却 |
+| `SELECT @@SESSION.sql_mode` 等 | 変数名に応じた MySQL デフォルト値返却 |
+| `SELECT GET_LOCK(...)` | `SELECT 1` 返却（PgSQL のみ） |
+| `SELECT RELEASE_LOCK(...)` | `SELECT 1` 返却（PgSQL のみ） |
 
 ### DATE_FORMAT 変換マップ（MySQL 全31仕様対応）
 

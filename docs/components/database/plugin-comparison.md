@@ -29,7 +29,7 @@ WpPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL ク
 | FROM_UNIXTIME() | ✅ UDF | — | ✅ AST | ✅ AST |
 | UTC_TIMESTAMP/DATE/TIME | ✅ UDF | — | ✅ AST | ✅ AST |
 | DATE_ADD / DATE_SUB | ✅ トークン | ✅ | ✅ AST | ✅ AST |
-| DATE_FORMAT | ✅ トークン | — | ✅ AST (30仕様) | ✅ AST (30仕様) |
+| DATE_FORMAT | ✅ トークン | — | ✅ AST (全31仕様) | ✅ AST (全31仕様) |
 | MONTH/YEAR/DAY | ✅ UDF | ✅ | ✅ AST | ✅ AST |
 | HOUR/MINUTE/SECOND | ✅ UDF | — | ✅ AST | ✅ AST |
 | DAYOFWEEK/WEEKDAY | ✅ UDF | — | ✅ AST | ✅ AST |
@@ -40,7 +40,7 @@ WpPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL ク
 | LEFT / RIGHT | ✅ トークン | — | ✅ AST | ✅ AST/ネイティブ |
 | SUBSTRING / CHAR_LENGTH | ✅ トークン | — | ✅ AST | ✅ AST |
 | LOCATE | ✅ UDF | — | ✅ AST | ✅ AST |
-| MID / LCASE / UCASE | — | — | ✅ AST | ✅ AST |
+| MID / LCASE / UCASE | ✅ UDF (LCASE/UCASE) | — | ✅ AST | ✅ AST |
 | IF() | ✅ UDF | ✅ | ✅ AST | ✅ AST |
 | IFNULL | ✅ ネイティブ | — | ✅ ネイティブ | ✅ AST→COALESCE |
 | ISNULL | ✅ UDF | — | ✅ AST | ✅ AST |
@@ -78,7 +78,7 @@ WpPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL ク
 | HAVING without GROUP BY | ✅ | ✅ | ✅ | ✅ |
 | CONVERT → CAST | — | ✅ | ✅ | ✅ |
 | COLLATE 除去 | — | — | ✅ | ✅ |
-| @@変数 → ダミー | — | — | ✅ | ✅ |
+| @@変数 → デフォルト値 | — | — | ✅ | ✅ |
 | 空 IN () → IN (NULL) | — | — | ✅ | ✅ |
 | DISTINCT + ORDER BY 列注入 | N/A | ✅ | N/A | ✅ |
 | meta_value + 0 → CAST | N/A | ✅ | N/A | ✅ |
@@ -167,7 +167,7 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 | FROM_UNIXTIME() | UDF | **AST** | WpPack: `datetime(t, 'unixepoch')` |
 | UTC_TIMESTAMP/DATE/TIME | UDF | **AST** | 同上 |
 | DATE_ADD / DATE_SUB | トークン | **AST** | WpPack: 引数を再帰的に変換 |
-| DATE_FORMAT | トークン | **AST** | プラグイン: 37仕様 / WpPack: 21仕様 |
+| DATE_FORMAT | トークン | **AST** | MySQL 全31仕様対応（プラグインは PHP date() フォーマット含む独自マップ） |
 | MONTH / YEAR / DAY | UDF | **AST** | WpPack: `strftime()` → `CAST AS INTEGER` |
 | HOUR / MINUTE / SECOND | UDF | **AST** | 同上 |
 | DAYOFWEEK / WEEKDAY / WEEK | UDF | **AST** | WpPack: `strftime('%w')` 演算 |
@@ -189,7 +189,7 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 | LOG | UDF | **UDF** | WpPack: UDF + 2引数構造変換 |
 | UNHEX / BASE64 / INET | UDF | **UDF** | 同方式 |
 | GET_LOCK / RELEASE_LOCK | UDF (no-op) | **UDF** (no-op) | 同方式 |
-| GROUP_CONCAT | — | **AST** (PgSQL) | WpPack PgSQL: → `STRING_AGG` |
+| GROUP_CONCAT | ✅ ネイティブ | **AST** | SQLite: `group_concat(col, sep)` / PgSQL: `STRING_AGG(col, sep)` |
 
 ### 機能カバレッジ: 文レベル変換
 
@@ -257,15 +257,14 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 | **ネイティブ関数優先** | UDF 15個 vs プラグイン46個。パフォーマンスに直結 |
 | **真の Prepared Statement** | `?` パラメータを Driver に分離。SQL インジェクション構造的防止 |
 | **Reader/Writer Split** | `DATABASE_READER_DSN` で読み書き分離 |
-| **574 ユニットテスト** | プラグインは WordPress e2e テスト依存 |
+| **582 ユニットテスト** | プラグインは WordPress e2e テスト依存 |
 | **文字列リテラル安全性** | `TokenType::String` による構造的保証 |
 
 ### プラグインの優位点
 
 | 機能 | 説明 |
 |------|------|
-| **DATE_FORMAT** | プラグインは PHP `date()` フォーマットを含む独自マップ。WpPack は MySQL DATE_FORMAT 全31仕様対応 |
-| **WordPress フック統合** | `pre_query_sqlite_db` 等のフック |
+| **WordPress フック統合** | `pre_query_sqlite_db` 等のフックでクエリの前後にカスタム処理を挿入可能 |
 
 ## PG4WP との比較
 
@@ -298,7 +297,7 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 | `CURDATE()` / `CURTIME()` | `CURRENT_DATE` / `CURRENT_TIME` | 日時 |
 | `UTC_TIMESTAMP()` / `UTC_DATE()` / `UTC_TIME()` | `NOW() AT TIME ZONE 'UTC'` 等 | 日時 |
 | `LOCALTIME()` / `LOCALTIMESTAMP()` | `NOW()` | 日時 |
-| `DATE_FORMAT(d, fmt)` | `TO_CHAR(d, fmt)` (30仕様対応) | 日時 |
+| `DATE_FORMAT(d, fmt)` | `TO_CHAR(d, fmt)` (全31仕様) | 日時 |
 | `FROM_UNIXTIME(t)` | `TO_TIMESTAMP(t)` | 日時 |
 | `DATEDIFF(d1, d2)` | `DATE_PART('day', d1 - d2)` | 日時 |
 | `HOUR(d)` / `MINUTE(d)` / `SECOND(d)` | `EXTRACT(HOUR/MINUTE/SECOND FROM d)` | 抽出 |
@@ -329,7 +328,7 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 | `LIKE ESCAPE` | `ESCAPE '\x1a'` 句付与 |
 | `CONVERT(val, type)` | `CAST(val AS type)` |
 | `COLLATE utf8mb4_*` | 除去 |
-| `SELECT @@SESSION.sql_mode` | ダミー値返却 |
+| `SELECT @@SESSION.sql_mode` | 変数名別デフォルト値返却 |
 | `IN ()` (空) | `IN (NULL)` |
 | `LOW_PRIORITY` / `DELAYED` | 除去 |
 | `'0000-00-00 00:00:00'` | `'0001-01-01 00:00:00'` |
