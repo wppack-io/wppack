@@ -9,7 +9,111 @@ WpPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL ク
 | リポジトリ | wordpress/sqlite-database-integration | PostgreSQL-For-Wordpress/postgresql-for-wordpress | wppack-io/wppack |
 | エンジン | SQLite | PostgreSQL | SQLite + PostgreSQL + Aurora DSQL |
 | アーキテクチャ | 独自 Lexer + トークン書き換え + UDF 46個 | 正規表現ベース文字列置換 | AST (phpmyadmin/sql-parser) + QueryRewriter + UDF 15個 |
-| テスト | WordPress e2e 依存 | 504 スタブベーステスト | 560 ユニットテスト / 952 アサーション |
+| テスト | WordPress e2e 依存 | 504 スタブベーステスト | 574 ユニットテスト / 972 アサーション |
+
+## 対応範囲一覧
+
+全4実装の対応状況を一覧で示す。✅ = 対応、⚠️ = 部分的、— = 未対応。
+
+### 関数
+
+| MySQL 関数 | SQLite プラグイン | PG4WP | WpPack SQLite | WpPack PgSQL |
+|-----------|:---:|:---:|:---:|:---:|
+| NOW() | ✅ UDF | — | ✅ AST | ✅ ネイティブ |
+| CURDATE() / CURTIME() | ✅ UDF | — | ✅ AST | ✅ AST |
+| UNIX_TIMESTAMP() | ✅ UDF | ✅ | ✅ AST | ✅ AST |
+| FROM_UNIXTIME() | ✅ UDF | — | ✅ AST | ✅ AST |
+| UTC_TIMESTAMP/DATE/TIME | ✅ UDF | — | ✅ AST | ✅ AST |
+| DATE_ADD / DATE_SUB | ✅ トークン | ✅ | ✅ AST | ✅ AST |
+| DATE_FORMAT | ✅ トークン | — | ✅ AST (30仕様) | ✅ AST (30仕様) |
+| MONTH/YEAR/DAY | ✅ UDF | ✅ | ✅ AST | ✅ AST |
+| HOUR/MINUTE/SECOND | ✅ UDF | — | ✅ AST | ✅ AST |
+| DAYOFWEEK/WEEKDAY | ✅ UDF | — | ✅ AST | ✅ AST |
+| WEEK(d, mode) | ✅ UDF | — | ✅ AST | ✅ AST |
+| DATEDIFF | ✅ UDF | — | ✅ AST | ✅ AST |
+| RAND() | ✅ UDF | ✅ | ✅ AST | ✅ AST |
+| CONCAT / CONCAT_WS | ✅ トークン | — | ✅ AST | ✅ ネイティブ |
+| LEFT / RIGHT | ✅ トークン | — | ✅ AST | ✅ AST/ネイティブ |
+| SUBSTRING / CHAR_LENGTH | ✅ トークン | — | ✅ AST | ✅ AST |
+| LOCATE | ✅ UDF | — | ✅ AST | ✅ AST |
+| MID / LCASE / UCASE | — | — | ✅ AST | ✅ AST |
+| IF() | ✅ UDF | ✅ | ✅ AST | ✅ AST |
+| IFNULL | ✅ ネイティブ | — | ✅ ネイティブ | ✅ AST→COALESCE |
+| ISNULL | ✅ UDF | — | ✅ AST | ✅ AST |
+| GREATEST / LEAST | ✅ UDF | — | ✅ AST | ✅ ネイティブ |
+| FIELD() | ✅ UDF | ✅ | ✅ UDF | ✅ AST→CASE |
+| CONVERT() | — | ✅ | ✅ AST | ✅ AST |
+| CAST(AS SIGNED/CHAR/BINARY) | — | ✅ | ✅ AST | ✅ AST |
+| GROUP_CONCAT | — | ✅ | ✅ ネイティブ | ✅ AST→STRING_AGG |
+| VERSION / DATABASE | ✅ UDF | — | ✅ AST | ✅ AST |
+| FOUND_ROWS() | ✅ | ✅ | ✅ | ✅ |
+| LAST_INSERT_ID | — | ✅ | ✅ AST | ✅ AST |
+| REGEXP | ✅ UDF | ✅ | ✅ UDF | ✅ AST→~* |
+| MD5 / LOG | ✅ UDF | — | ✅ UDF | ✅ ネイティブ |
+| UNHEX / BASE64 / INET | ✅ UDF | — | ✅ UDF | — |
+| GET_LOCK / RELEASE_LOCK | ✅ UDF | — | ✅ UDF | — |
+
+### DML 文
+
+| 機能 | SQLite プラグイン | PG4WP | WpPack SQLite | WpPack PgSQL |
+|------|:---:|:---:|:---:|:---:|
+| INSERT IGNORE | ✅ | ✅ | ✅ | ✅ |
+| REPLACE INTO | ✅ | ✅ | ✅ | ✅ |
+| INSERT ... SET | — | — | ✅ | ✅ |
+| ON DUPLICATE KEY UPDATE | ✅ | ✅ | ✅ | ✅ |
+| LIMIT offset, count | ✅ | ✅ | ✅ | ✅ |
+| UPDATE/DELETE LIMIT | ✅ | ⚠️ 除去 | ✅ rowid | ✅ ctid |
+| DELETE JOIN | ✅ | — | ✅ rowid | ✅ USING |
+| FOR UPDATE | — | — | ✅ 除去 | ✅ ネイティブ |
+| SQL_CALC_FOUND_ROWS | ✅ | ✅ | ✅ | ✅ |
+| FROM DUAL | ✅ | — | ✅ | ✅ |
+| INDEX HINTS | ✅ | — | ✅ | ✅ |
+| LIKE → ILIKE (PgSQL) | — | ✅ | — | ✅ |
+| LIKE BINARY → GLOB | ✅ | — | ✅ | ✅ LIKE |
+| LIKE ESCAPE | ✅ | — | ✅ | ✅ |
+| HAVING without GROUP BY | ✅ | ✅ | ✅ | ✅ |
+| CONVERT → CAST | — | ✅ | ✅ | ✅ |
+| COLLATE 除去 | — | — | ✅ | ✅ |
+| @@変数 → ダミー | — | — | ✅ | ✅ |
+| 空 IN () → IN (NULL) | — | — | ✅ | ✅ |
+| DISTINCT + ORDER BY 列注入 | — | ✅ | — | ✅ |
+| meta_value + 0 → CAST | — | ✅ | — | ✅ |
+| ゼロ日付処理 | ✅ | — | ✅ text | ✅ '-infinity' |
+| LOW_PRIORITY / DELAYED | ✅ | — | ✅ | ✅ |
+| START TRANSACTION | ✅ | — | ✅ | ✅ |
+| SAVEPOINT | — | — | ✅ | ✅ |
+
+### DDL
+
+| 機能 | SQLite プラグイン | PG4WP | WpPack SQLite | WpPack PgSQL |
+|------|:---:|:---:|:---:|:---:|
+| CREATE TABLE 型変換 | ✅ | ✅ | ✅ AST | ✅ AST |
+| PRIMARY KEY マージ | ✅ | — | ✅ AST | — |
+| AUTO_INCREMENT → SERIAL | — | ✅ | ✅ AUTOINCREMENT | ✅ SERIAL/BIGSERIAL |
+| ON UPDATE CURRENT_TIMESTAMP | ✅ トリガー | — | ✅ トリガー | — |
+| ALTER ADD/DROP/CHANGE | ✅ | ✅ | ✅ | ✅ |
+| ENGINE/CHARSET/COLLATE 除去 | ✅ | ✅ | ✅ AST | ✅ AST |
+| IF NOT EXISTS | ✅ | ✅ | ✅ | ✅ |
+| データ型キャッシュ | ✅ | — | ✅ | — |
+| information_schema 対応 | ✅ | — | ✅ → sqlite_master | ✅ ネイティブ |
+| ISO 8601 日付正規化 | ✅ | — | ✅ | — |
+
+### SHOW 文
+
+| 機能 | SQLite プラグイン | PG4WP | WpPack SQLite | WpPack PgSQL |
+|------|:---:|:---:|:---:|:---:|
+| SHOW TABLES [LIKE] | ✅ | ✅ | ✅ | ✅ |
+| SHOW FULL TABLES | ✅ | — | ✅ | ✅ |
+| SHOW COLUMNS FROM | ✅ | ✅ | ✅ | ✅ |
+| SHOW CREATE TABLE | ✅ | — | ✅ | ✅ |
+| SHOW INDEX FROM | ✅ | ✅ | ✅ | ✅ |
+| SHOW TABLE STATUS [LIKE] | ✅ | ✅ | ✅ | ✅ |
+| SHOW VARIABLES | ✅ | ✅ | ✅ | ✅ |
+| SHOW DATABASES | — | — | ✅ | ✅ |
+| SHOW COLLATION | — | — | ✅ | ✅ |
+| SHOW GRANTS | ✅ | — | ✅ ダミー | ✅ ダミー |
+| DESCRIBE | — | ✅ | ✅ | ✅ |
+| CHECK/ANALYZE/REPAIR TABLE | ✅ | — | ✅ ダミー | ✅ ダミー |
 
 ## SQLite Database Integration との比較
 
