@@ -255,4 +255,201 @@ final class PostgresqlQueryTranslatorTest extends TestCase
     {
         self::assertSame([], $this->translator->translate('OPTIMIZE TABLE wp_posts'));
     }
+
+    #[Test]
+    public function createDatabaseIgnored(): void
+    {
+        self::assertSame([], $this->translator->translate('CREATE DATABASE IF NOT EXISTS `wordpress`'));
+    }
+
+    #[Test]
+    public function describe(): void
+    {
+        $result = $this->translator->translate('DESCRIBE `wp_posts`');
+
+        self::assertStringContainsString('information_schema.columns', $result[0]);
+    }
+
+    // ── Complex queries and subqueries ──
+
+    #[Test]
+    public function subqueryInWhere(): void
+    {
+        $result = $this->translator->translate(
+            'SELECT * FROM `wp_posts` WHERE post_author IN (SELECT ID FROM `wp_users` WHERE user_login LIKE "%admin%")',
+        );
+
+        self::assertStringContainsString('IN (SELECT', $result[0]);
+        self::assertStringNotContainsString('`', $result[0]);
+    }
+
+    #[Test]
+    public function subqueryInSelect(): void
+    {
+        $result = $this->translator->translate(
+            'SELECT p.ID, (SELECT COUNT(*) FROM `wp_postmeta` m WHERE m.post_id = p.ID) AS meta_count FROM `wp_posts` p',
+        );
+
+        self::assertStringContainsString('(SELECT COUNT', $result[0]);
+    }
+
+    #[Test]
+    public function nestedSubquery(): void
+    {
+        $result = $this->translator->translate(
+            'SELECT * FROM `wp_posts` WHERE ID IN (SELECT post_id FROM `wp_postmeta` WHERE meta_value IN (SELECT ID FROM `wp_posts` WHERE post_type = "attachment"))',
+        );
+
+        self::assertCount(1, $result);
+        self::assertStringNotContainsString('`', $result[0]);
+    }
+
+    #[Test]
+    public function correlatedSubqueryWithFunction(): void
+    {
+        $result = $this->translator->translate(
+            'SELECT p.*, (SELECT MAX(comment_date) FROM `wp_comments` c WHERE c.comment_post_ID = p.ID) AS last_comment FROM `wp_posts` p',
+        );
+
+        self::assertStringContainsString('(SELECT MAX', $result[0]);
+    }
+
+    #[Test]
+    public function complexJoinWithFunctions(): void
+    {
+        $result = $this->translator->translate(
+            'SELECT p.ID, DATE_FORMAT(p.post_date, "%Y-%m-%d") AS d, IF(p.comment_count > 0, "yes", "no") AS c FROM `wp_posts` p INNER JOIN `wp_users` u ON p.post_author = u.ID WHERE p.post_date > DATE_SUB(NOW(), INTERVAL 7 DAY) LIMIT 5, 10',
+        );
+
+        self::assertStringContainsString('TO_CHAR', $result[0]);
+        self::assertStringContainsString('CASE WHEN', $result[0]);
+        self::assertStringContainsString("INTERVAL '7 day'", $result[0]);
+        self::assertStringContainsString('LIMIT 10 OFFSET 5', $result[0]);
+    }
+
+    #[Test]
+    public function multipleJoins(): void
+    {
+        $result = $this->translator->translate(
+            'SELECT p.ID, t.name FROM `wp_posts` p JOIN `wp_term_relationships` tr ON p.ID = tr.object_id JOIN `wp_term_taxonomy` tt ON tr.term_taxonomy_id = tt.term_taxonomy_id JOIN `wp_terms` t ON tt.term_id = t.term_id',
+        );
+
+        self::assertCount(1, $result);
+        self::assertStringNotContainsString('`', $result[0]);
+    }
+
+    #[Test]
+    public function insertWithSubquery(): void
+    {
+        $result = $this->translator->translate(
+            'INSERT INTO `wp_postmeta` (post_id, meta_key) SELECT ID, "_migrated" FROM `wp_posts` WHERE post_type = "post"',
+        );
+
+        self::assertStringContainsString('INSERT INTO', $result[0]);
+        self::assertStringContainsString('SELECT', $result[0]);
+    }
+
+    #[Test]
+    public function updateWithSubqueryInWhere(): void
+    {
+        $result = $this->translator->translate(
+            'UPDATE `wp_posts` SET post_status = "trash" WHERE ID IN (SELECT post_id FROM `wp_postmeta` WHERE meta_key = "_expired")',
+        );
+
+        self::assertStringContainsString('UPDATE', $result[0]);
+        self::assertStringContainsString('IN (SELECT', $result[0]);
+    }
+
+    #[Test]
+    public function deleteWithSubquery(): void
+    {
+        $result = $this->translator->translate(
+            'DELETE FROM `wp_postmeta` WHERE post_id NOT IN (SELECT ID FROM `wp_posts`)',
+        );
+
+        self::assertStringContainsString('NOT IN (SELECT', $result[0]);
+    }
+
+    #[Test]
+    public function groupByHavingOrderLimit(): void
+    {
+        $result = $this->translator->translate(
+            'SELECT post_author, COUNT(*) AS post_count FROM `wp_posts` GROUP BY post_author HAVING post_count > 5 ORDER BY post_count DESC LIMIT 20',
+        );
+
+        self::assertStringContainsString('GROUP BY', $result[0]);
+        self::assertStringContainsString('HAVING', $result[0]);
+        self::assertStringContainsString('LIMIT 20', $result[0]);
+    }
+
+    #[Test]
+    public function unionAll(): void
+    {
+        $result = $this->translator->translate(
+            'SELECT "post" AS type, ID FROM `wp_posts` WHERE post_status = "publish" UNION ALL SELECT "page" AS type, ID FROM `wp_posts` WHERE post_type = "page"',
+        );
+
+        self::assertStringContainsString('UNION ALL', $result[0]);
+    }
+
+    #[Test]
+    public function ifnullAndLeft(): void
+    {
+        $result = $this->translator->translate(
+            'SELECT IFNULL(post_excerpt, LEFT(post_content, 100)) AS excerpt FROM `wp_posts`',
+        );
+
+        self::assertStringContainsString('COALESCE', $result[0]);
+        self::assertStringContainsString('SUBSTRING(', $result[0]);
+    }
+
+    #[Test]
+    public function regexpToTildeInSubquery(): void
+    {
+        $result = $this->translator->translate(
+            'SELECT * FROM `wp_options` WHERE option_name REGEXP "^_transient_"',
+        );
+
+        self::assertStringContainsString('~*', $result[0]);
+    }
+
+    #[Test]
+    public function existsWithCorrelatedSubquery(): void
+    {
+        $result = $this->translator->translate(
+            'SELECT * FROM `wp_posts` p WHERE EXISTS (SELECT 1 FROM `wp_postmeta` m WHERE m.post_id = p.ID AND m.meta_key = "_featured") AND p.post_status = "publish"',
+        );
+
+        self::assertStringContainsString('EXISTS (SELECT', $result[0]);
+    }
+
+    #[Test]
+    public function unixTimestampInSubquery(): void
+    {
+        $result = $this->translator->translate(
+            'UPDATE `wp_posts` SET post_status = "trash" WHERE ID IN (SELECT post_id FROM `wp_postmeta` WHERE meta_value < UNIX_TIMESTAMP())',
+        );
+
+        self::assertStringContainsString('EXTRACT(EPOCH FROM NOW())', $result[0]);
+    }
+
+    #[Test]
+    public function dateAddInWhere(): void
+    {
+        $result = $this->translator->translate(
+            "SELECT * FROM `wp_posts` WHERE post_date > DATE_ADD('2024-01-01', INTERVAL 30 DAY)",
+        );
+
+        self::assertStringContainsString("+ INTERVAL '30 day'", $result[0]);
+    }
+
+    #[Test]
+    public function fromUnixtimeInSelect(): void
+    {
+        $result = $this->translator->translate(
+            'SELECT FROM_UNIXTIME(meta_value) AS date FROM `wp_postmeta` WHERE meta_key = "_timestamp"',
+        );
+
+        self::assertStringContainsString('TO_TIMESTAMP(meta_value)', $result[0]);
+    }
 }

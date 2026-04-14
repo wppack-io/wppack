@@ -345,6 +345,24 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         $sql = (string) preg_replace('/\bAUTO_INCREMENT\b/i', 'AUTOINCREMENT', $sql);
         $sql = (string) preg_replace('/\s*AUTOINCREMENT\s*=\s*\d+/i', '', $sql);
 
+        // SQLite requires AUTOINCREMENT on the same line as INTEGER PRIMARY KEY.
+        // WordPress pattern: `ID` bigint(20) AUTO_INCREMENT ... PRIMARY KEY (`ID`)
+        // After type conversion: `ID` INTEGER AUTOINCREMENT ... PRIMARY KEY (`ID`)
+        // Must merge into: `ID` INTEGER PRIMARY KEY AUTOINCREMENT
+        if (str_contains($sql, 'AUTOINCREMENT') && preg_match('/PRIMARY\s+KEY\s*\(\s*[`"]?(\w+)[`"]?\s*\)/i', $sql, $pkMatch)) {
+            $pkCol = $pkMatch[1];
+
+            // Add PRIMARY KEY before AUTOINCREMENT on the column definition
+            $sql = (string) preg_replace(
+                '/(["`]?' . preg_quote($pkCol, '/') . '["`]?\s+INTEGER\s.*?)\bAUTOINCREMENT\b/i',
+                '$1PRIMARY KEY AUTOINCREMENT',
+                $sql,
+            );
+
+            // Remove the separate PRIMARY KEY line
+            $sql = (string) preg_replace('/,?\s*PRIMARY\s+KEY\s*\([^)]+\)/i', '', $sql);
+        }
+
         return $sql;
     }
 
