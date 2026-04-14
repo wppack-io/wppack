@@ -431,10 +431,12 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 
 | 機能 | 重要度 | 状態 |
 |------|-------|------|
+| PgSQL DISTINCT + ORDER BY 列注入 | 中 | ORDER BY 列が SELECT にない場合、PgSQL はエラー。自動注入が必要 |
+| meta\_value 型キャスト (PgSQL) | 中 | `meta_value+0` → `CAST(... AS BIGINT)` は WP\_Meta\_Query レベルでの対応が適切 |
+| ISO 8601 日付正規化 (SQLite) | 低 | `'2024-01-15T10:30:45Z'` → `'2024-01-15 10:30:45'` |
 | WEEK(d, mode) の mode パラメータ | 低 | WEEK(d) は対応済。mode 指定は未対応 |
 | ゼロ日付 ('0000-00-00') 特殊処理 | 低 | MySQL 互換のゼロ日付ハンドリング |
 | DATE\_FORMAT 残り16仕様 | 低 | 21/37 仕様対応済 |
-| meta\_value 型キャスト (PgSQL) | 中 | `meta_value+0` → `CAST(... AS BIGINT)` は WP\_Meta\_Query レベルでの対応が適切 |
 
 ## 関連ドキュメント
 
