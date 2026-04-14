@@ -275,66 +275,155 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
 
     // ── DDL handlers ──
 
+    /**
+     * Translate CREATE TABLE using AST CreateDefinition[] directly.
+     *
+     * Builds SQLite DDL from the parsed field definitions, type mapping,
+     * and constraint rewriting. Does not use token rewriting for CREATE TABLE —
+     * SQL is constructed entirely from AST components.
+     *
+     * For CREATE INDEX / CREATE VIEW / other CREATE statements, falls back to
+     * token rewriting.
+     */
     private function translateCreate(CreateStatement $stmt, Parser $parser): string
     {
-        $rw = $this->createRewriter($parser);
-
-        while ($rw->hasMore()) {
-            $token = $rw->peek();
-            if ($token === null) {
-                break;
-            }
-
-            // Data type keywords → SQLite type
-            if ($token->type === TokenType::Keyword
-                && ($token->flags & Token::FLAG_KEYWORD_DATA_TYPE) !== 0
-                && $token->keyword !== 'INTERVAL') {
-                $this->rewriteDataType($rw);
-                continue;
-            }
-
-            // UNSIGNED → skip
-            if ($token->type === TokenType::Keyword && $token->keyword === 'UNSIGNED') {
-                $rw->skip();
-                continue;
-            }
-
-            // AUTO_INCREMENT
-            if ($token->type === TokenType::Keyword && $token->keyword === 'AUTO_INCREMENT') {
-                $next = $rw->peekNth(2);
-                if ($next !== null && $next->type === TokenType::Operator && $next->token === '=') {
-                    // Table-level AUTO_INCREMENT=N → skip
-                    $rw->skip(); // AUTO_INCREMENT
-                    $rw->skip(); // =
-                    $rw->skip(); // N
-                } else {
-                    $rw->skip();
-                    $rw->add('AUTOINCREMENT');
-                }
-                continue;
-            }
-
-            // MySQL-specific clauses → skip
-            if ($token->type === TokenType::Keyword
-                && \in_array($token->keyword, ['ENGINE', 'DEFAULT CHARSET', 'COLLATE', 'CHARACTER SET'], true)) {
-                $this->skipMysqlClause($rw);
-                continue;
-            }
-
-            // CHARACTER (might be followed by SET)
-            if ($token->type === TokenType::Keyword && $token->keyword === 'CHARACTER') {
-                $next = $rw->peekNth(2);
-                if ($next !== null && $next->type === TokenType::Keyword && $next->keyword === 'SET') {
-                    $this->skipMysqlClause($rw);
-                    continue;
-                }
-            }
-
-            // String literals, identifiers, etc. → consume as-is
-            $rw->consume();
+        // CREATE INDEX, CREATE VIEW, etc. — token rewrite fallback
+        if (!$this->isCreateTable($stmt)) {
+            return $this->rewriteTokens($parser);
         }
 
-        return $this->mergeAutoincrementPrimaryKey($rw->getResult());
+        return $this->buildCreateTable($stmt);
+    }
+
+    private function isCreateTable(CreateStatement $stmt): bool
+    {
+        return \is_array($stmt->fields) && $stmt->fields !== [];
+    }
+
+    /**
+     * Build CREATE TABLE SQL directly from AST fields.
+     */
+    private function buildCreateTable(CreateStatement $stmt): string
+    {
+        $tableName = $this->quoteId($stmt->name->table ?? '');
+        $ifNotExists = ($stmt->options?->has('IF NOT EXISTS')) ? 'IF NOT EXISTS ' : '';
+
+        // Scan AST to find PRIMARY KEY column and AUTO_INCREMENT column
+        $pkColumnName = null;
+        $autoIncrementCol = null;
+
+        foreach ($stmt->fields as $field) {
+            // Separate PRIMARY KEY constraint: PRIMARY KEY (`col`)
+            if ($field->key !== null && $field->key->type === 'PRIMARY KEY' && isset($field->key->columns[0]['name'])) {
+                $pkColumnName = $field->key->columns[0]['name'];
+            }
+            // Inline PRIMARY KEY on column definition
+            if ($field->type !== null && $field->options?->has('PRIMARY KEY')) {
+                $pkColumnName = $field->name;
+            }
+            if ($field->type !== null && $field->options?->has('AUTO_INCREMENT')) {
+                $autoIncrementCol = $field->name;
+            }
+        }
+
+        $mergePk = $autoIncrementCol !== null && $autoIncrementCol === $pkColumnName;
+        $parts = [];
+
+        foreach ($stmt->fields as $field) {
+            if ($field->type !== null) {
+                $parts[] = $this->buildColumnDef($field, $mergePk ? $pkColumnName : null);
+            } elseif ($field->key !== null) {
+                // Skip PRIMARY KEY constraint if merged into column def
+                if ($mergePk && $field->key->type === 'PRIMARY KEY') {
+                    continue;
+                }
+
+                $parts[] = $this->buildKeyDef($field->key);
+            }
+        }
+
+        return \sprintf("CREATE TABLE %s%s (%s)", $ifNotExists, $tableName, implode(', ', $parts));
+    }
+
+    /**
+     * Build a column definition from AST CreateDefinition.
+     *
+     * @param string|null $mergedPkColumn Column name that should get PRIMARY KEY AUTOINCREMENT
+     */
+    private function buildColumnDef(\PhpMyAdmin\SqlParser\Components\CreateDefinition $field, ?string $mergedPkColumn): string
+    {
+        $name = $this->quoteId($field->name ?? '');
+        $type = $this->mapSqliteType($field->type !== null ? $field->type->name : '');
+
+        $clauses = [$name, $type];
+
+        // NOT NULL
+        if ($field->options?->has('NOT NULL')) {
+            $clauses[] = 'NOT NULL';
+        }
+
+        // PRIMARY KEY AUTOINCREMENT handling:
+        // - mergedPkColumn set: PK was separate constraint, merge into column
+        // - Inline PRIMARY KEY + AUTO_INCREMENT: combine both
+        $hasPk = ($mergedPkColumn !== null && $field->name === $mergedPkColumn)
+            || $field->options?->has('PRIMARY KEY');
+        $hasAi = $field->options?->has('AUTO_INCREMENT') ?? false;
+
+        if ($hasPk && $hasAi) {
+            $clauses[] = 'PRIMARY KEY AUTOINCREMENT';
+        } elseif ($hasPk) {
+            $clauses[] = 'PRIMARY KEY';
+        } elseif ($hasAi) {
+            $clauses[] = 'AUTOINCREMENT';
+        }
+
+        // DEFAULT
+        $defaultExpr = $field->options?->get('DEFAULT', true);
+        if ($defaultExpr instanceof \PhpMyAdmin\SqlParser\Components\Expression && $defaultExpr->expr !== null && $defaultExpr->expr !== '') {
+            $clauses[] = 'DEFAULT ' . $defaultExpr->expr;
+        }
+
+        return implode(' ', $clauses);
+    }
+
+    /**
+     * Build a key/constraint definition from AST Key.
+     */
+    private function buildKeyDef(\PhpMyAdmin\SqlParser\Components\Key $key): string
+    {
+        $columns = [];
+
+        foreach ($key->columns as $col) {
+            if (isset($col['name'])) {
+                $columns[] = $this->quoteId($col['name']);
+            }
+        }
+
+        $colList = implode(', ', $columns);
+
+        return match ($key->type) {
+            'PRIMARY KEY' => 'PRIMARY KEY (' . $colList . ')',
+            'UNIQUE KEY' => 'UNIQUE (' . $colList . ')',
+            default => 'KEY ' . ($key->name !== null ? $this->quoteId($key->name) . ' ' : '') . '(' . $colList . ')',
+        };
+    }
+
+    private function mapSqliteType(string $mysqlType): string
+    {
+        return match (strtoupper($mysqlType)) {
+            'BIGINT', 'INT', 'INTEGER', 'TINYINT', 'SMALLINT', 'MEDIUMINT', 'BOOLEAN' => 'INTEGER',
+            'VARCHAR', 'CHAR', 'TEXT', 'TINYTEXT', 'MEDIUMTEXT', 'LONGTEXT', 'ENUM', 'SET' => 'TEXT',
+            'DATETIME', 'TIMESTAMP', 'DATE', 'TIME' => 'TEXT',
+            'JSON' => 'TEXT',
+            'FLOAT', 'DOUBLE', 'DECIMAL', 'NUMERIC', 'REAL' => 'REAL',
+            'BLOB', 'TINYBLOB', 'MEDIUMBLOB', 'LONGBLOB', 'VARBINARY', 'BINARY' => 'BLOB',
+            default => 'TEXT',
+        };
+    }
+
+    private function quoteId(string $identifier): string
+    {
+        return '"' . str_replace('"', '""', $identifier) . '"';
     }
 
     /**
@@ -671,99 +760,6 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
     }
 
     // ── DDL helpers ──
-
-    private function rewriteDataType(QueryRewriter $rw): void
-    {
-        $token = $rw->peek();
-        if ($token === null) {
-            return;
-        }
-
-        $kw = $token->keyword ?? '';
-
-        // Determine SQLite type
-        $sqliteType = match (true) {
-            \in_array($kw, ['BIGINT', 'INT', 'INTEGER', 'TINYINT', 'SMALLINT', 'MEDIUMINT', 'BOOLEAN'], true) => 'INTEGER',
-            \in_array($kw, ['VARCHAR', 'CHAR', 'TEXT', 'TINYTEXT', 'MEDIUMTEXT', 'LONGTEXT', 'ENUM', 'SET'], true) => 'TEXT',
-            \in_array($kw, ['DATETIME', 'TIMESTAMP', 'DATE', 'TIME'], true) => 'TEXT',
-            $kw === 'JSON' => 'TEXT',
-            \in_array($kw, ['FLOAT', 'DOUBLE', 'DECIMAL', 'NUMERIC', 'REAL'], true) => 'REAL',
-            \in_array($kw, ['BLOB', 'TINYBLOB', 'MEDIUMBLOB', 'LONGBLOB', 'VARBINARY', 'BINARY'], true) => 'BLOB',
-            default => null,
-        };
-
-        if ($sqliteType === null) {
-            $rw->consume();
-
-            return;
-        }
-
-        $rw->skip(); // skip type keyword
-
-        // Skip trailing (N) if present
-        $next = $rw->peek();
-        if ($next !== null && $next->type === TokenType::Operator && $next->token === '(') {
-            // Skip through matching )
-            $depth = 0;
-            while ($rw->hasMore()) {
-                $t = $rw->skip();
-                if ($t === null) {
-                    break;
-                }
-                if ($t->token === '(') {
-                    $depth++;
-                } elseif ($t->token === ')') {
-                    $depth--;
-                    if ($depth === 0) {
-                        break;
-                    }
-                }
-            }
-        }
-
-        $rw->add($sqliteType);
-    }
-
-    private function skipMysqlClause(QueryRewriter $rw): void
-    {
-        $rw->skip(); // keyword (ENGINE, COLLATE, etc.)
-
-        // Check for SET (CHARACTER SET)
-        $next = $rw->peek();
-        if ($next !== null && $next->type === TokenType::Keyword && $next->keyword === 'SET') {
-            $rw->skip();
-        }
-
-        // Check for = value
-        $next = $rw->peek();
-        if ($next !== null && $next->type === TokenType::Operator && $next->token === '=') {
-            $rw->skip(); // =
-            $rw->skip(); // value
-        } elseif ($next !== null
-            && \in_array($next->type, [TokenType::None, TokenType::String, TokenType::Number], true)) {
-            $rw->skip(); // value without =
-        }
-    }
-
-    private function mergeAutoincrementPrimaryKey(string $sql): string
-    {
-        if (!str_contains($sql, 'AUTOINCREMENT')
-            || !preg_match('/PRIMARY\s+KEY\s*\(\s*"?(\w+)"?\s*\)/i', $sql, $pkMatch)) {
-            return $sql;
-        }
-
-        $pkCol = $pkMatch[1];
-
-        $sql = (string) preg_replace(
-            '/("?' . preg_quote($pkCol, '/') . '"?\s+INTEGER\b[^,]*?)\bAUTOINCREMENT\b/i',
-            '$1PRIMARY KEY AUTOINCREMENT',
-            $sql,
-        );
-
-        $sql = (string) preg_replace('/,?\s*PRIMARY\s+KEY\s*\([^)]+\)/i', '', $sql);
-
-        return $sql;
-    }
 
     /**
      * Apply DDL type transformations via regex (for ALTER TABLE ADD COLUMN).

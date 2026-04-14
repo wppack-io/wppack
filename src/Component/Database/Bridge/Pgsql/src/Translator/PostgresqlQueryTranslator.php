@@ -91,7 +91,7 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             $stmt instanceof InsertStatement => $this->translateInsert($stmt, $parser),
             $stmt instanceof UpdateStatement => [$this->rewriteTokens($parser)],
             $stmt instanceof DeleteStatement => [$this->rewriteTokens($parser)],
-            $stmt instanceof CreateStatement => [$this->translateCreate($parser)],
+            $stmt instanceof CreateStatement => [$this->translateCreate($stmt, $parser)],
             $stmt instanceof TruncateStatement => [$this->translateTruncate($stmt, $parser)],
             $stmt instanceof AlterStatement => [$this->rewriteTokens($parser)],
             $stmt instanceof SetStatement => [],
@@ -204,63 +204,133 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
 
     // ── DDL handlers ──
 
-    private function translateCreate(Parser $parser): string
+    /**
+     * Translate CREATE TABLE using AST CreateDefinition[] directly.
+     *
+     * For CREATE INDEX / CREATE VIEW, falls back to token rewriting.
+     */
+    private function translateCreate(CreateStatement $stmt, Parser $parser): string
     {
-        $rw = $this->createRewriter($parser);
-
-        while ($rw->hasMore()) {
-            $token = $rw->peek();
-            if ($token === null) {
-                break;
-            }
-
-            // Data type keywords
-            if ($token->type === TokenType::Keyword
-                && ($token->flags & Token::FLAG_KEYWORD_DATA_TYPE) !== 0
-                && $token->keyword !== 'INTERVAL') {
-                $this->rewriteDataType($rw);
-                continue;
-            }
-
-            // UNSIGNED → skip
-            if ($token->type === TokenType::Keyword && $token->keyword === 'UNSIGNED') {
-                $rw->skip();
-                continue;
-            }
-
-            // AUTO_INCREMENT
-            if ($token->type === TokenType::Keyword && $token->keyword === 'AUTO_INCREMENT') {
-                $next = $rw->peekNth(2);
-                if ($next !== null && $next->type === TokenType::Operator && $next->token === '=') {
-                    $rw->skip(); // AUTO_INCREMENT
-                    $rw->skip(); // =
-                    $rw->skip(); // N
-                } else {
-                    $rw->skip();
-                    $rw->add('SERIAL');
-                }
-                continue;
-            }
-
-            // MySQL clauses → skip
-            if ($token->type === TokenType::Keyword
-                && \in_array($token->keyword, ['ENGINE', 'DEFAULT CHARSET', 'COLLATE', 'CHARACTER SET'], true)) {
-                $this->skipMysqlClause($rw);
-                continue;
-            }
-
-            if ($token->type === TokenType::Keyword && $token->keyword === 'CHARACTER') {
-                $next = $rw->peekNth(2);
-                if ($next !== null && $next->type === TokenType::Keyword && $next->keyword === 'SET') {
-                    $this->skipMysqlClause($rw);
-                    continue;
-                }
-            }
-
-            $rw->consume();
+        if (!\is_array($stmt->fields) || $stmt->fields === []) {
+            return $this->rewriteTokens($parser);
         }
 
-        return $rw->getResult();
+        return $this->buildCreateTable($stmt);
+    }
+
+    private function buildCreateTable(CreateStatement $stmt): string
+    {
+        $tableName = $this->quoteId($stmt->name->table ?? '');
+        $ifNotExists = ($stmt->options?->has('IF NOT EXISTS')) ? 'IF NOT EXISTS ' : '';
+
+        $parts = [];
+
+        foreach ($stmt->fields as $field) {
+            if ($field->type !== null) {
+                $parts[] = $this->buildColumnDef($field);
+            } elseif ($field->key !== null) {
+                $parts[] = $this->buildKeyDef($field->key);
+            }
+        }
+
+        return \sprintf("CREATE TABLE %s%s (%s)", $ifNotExists, $tableName, implode(', ', $parts));
+    }
+
+    private function buildColumnDef(\PhpMyAdmin\SqlParser\Components\CreateDefinition $field): string
+    {
+        $name = $this->quoteId($field->name ?? '');
+        $typeName = $field->type !== null ? strtoupper($field->type->name) : '';
+
+        // Map MySQL type → PostgreSQL type
+        $type = $this->mapPgsqlType($typeName);
+
+        // Preserve (N) for types that support it in PostgreSQL
+        $typeParams = $field->type !== null ? $field->type->parameters : [];
+        if ($typeParams !== [] && \in_array($typeName, ['VARCHAR', 'CHAR', 'DECIMAL', 'NUMERIC'], true)) {
+            $type .= '(' . implode(', ', $typeParams) . ')';
+        }
+
+        $clauses = [$name, $type];
+
+        // NOT NULL
+        if ($field->options?->has('NOT NULL')) {
+            $clauses[] = 'NOT NULL';
+        }
+
+        // AUTO_INCREMENT → SERIAL / BIGSERIAL / SMALLSERIAL
+        if ($field->options?->has('AUTO_INCREMENT')) {
+            $clauses[1] = match ($typeName) {
+                'BIGINT' => 'BIGSERIAL',
+                'SMALLINT', 'TINYINT' => 'SMALLSERIAL',
+                default => 'SERIAL',
+            };
+        }
+
+        // PRIMARY KEY (inline)
+        if ($field->options?->has('PRIMARY KEY')) {
+            $clauses[] = 'PRIMARY KEY';
+        }
+
+        // DEFAULT
+        $defaultExpr = $field->options?->get('DEFAULT', true);
+        if ($defaultExpr instanceof \PhpMyAdmin\SqlParser\Components\Expression && $defaultExpr->expr !== null && $defaultExpr->expr !== '') {
+            $clauses[] = 'DEFAULT ' . $defaultExpr->expr;
+        }
+
+        return implode(' ', $clauses);
+    }
+
+    private function buildKeyDef(\PhpMyAdmin\SqlParser\Components\Key $key): string
+    {
+        $columns = [];
+
+        foreach ($key->columns as $col) {
+            if (isset($col['name'])) {
+                $columns[] = $this->quoteId($col['name']);
+            }
+        }
+
+        $colList = implode(', ', $columns);
+
+        return match ($key->type) {
+            'PRIMARY KEY' => 'PRIMARY KEY (' . $colList . ')',
+            'UNIQUE KEY' => 'UNIQUE (' . $colList . ')',
+            default => 'KEY ' . ($key->name !== null ? $this->quoteId($key->name) . ' ' : '') . '(' . $colList . ')',
+        };
+    }
+
+    private function mapPgsqlType(string $mysqlType): string
+    {
+        return match ($mysqlType) {
+            'TINYINT' => 'SMALLINT',
+            'MEDIUMINT', 'INT' => 'INTEGER',
+            'BIGINT' => 'BIGINT',
+            'INTEGER' => 'INTEGER',
+            'SMALLINT' => 'SMALLINT',
+            'DOUBLE' => 'DOUBLE PRECISION',
+            'FLOAT' => 'REAL',
+            'DATETIME' => 'TIMESTAMP',
+            'TINYTEXT', 'MEDIUMTEXT', 'LONGTEXT', 'TEXT' => 'TEXT',
+            'VARCHAR' => 'VARCHAR',
+            'CHAR' => 'CHAR',
+            'DECIMAL' => 'DECIMAL',
+            'NUMERIC' => 'NUMERIC',
+            'REAL' => 'REAL',
+            'BOOLEAN' => 'BOOLEAN',
+            'TINYBLOB', 'MEDIUMBLOB', 'LONGBLOB', 'BLOB' => 'BYTEA',
+            'VARBINARY', 'BINARY' => 'BYTEA',
+            'ENUM' => 'TEXT',
+            'JSON' => 'JSONB',
+            'DATE' => 'DATE',
+            'TIME' => 'TIME',
+            'TIMESTAMP' => 'TIMESTAMP',
+            default => 'TEXT',
+        };
+    }
+
+    private function quoteId(string $identifier): string
+    {
+        return '"' . str_replace('"', '""', $identifier) . '"';
     }
 
     // ── Expression translation ──
@@ -519,104 +589,6 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
     }
 
     // ── DDL helpers ──
-
-    private function rewriteDataType(QueryRewriter $rw): void
-    {
-        $token = $rw->peek();
-        if ($token === null) {
-            return;
-        }
-
-        $kw = $token->keyword ?? '';
-
-        // Types that PostgreSQL supports natively with (N) — pass through
-        if (\in_array($kw, ['VARCHAR', 'CHAR', 'DECIMAL', 'NUMERIC', 'REAL'], true)) {
-            $rw->consume();
-
-            return;
-        }
-
-        // Types that are valid in PostgreSQL — uppercase, strip (N)
-        if (\in_array($kw, ['TEXT', 'DATE', 'TIME', 'TIMESTAMP', 'BOOLEAN', 'INTEGER', 'SMALLINT', 'BIGINT'], true)) {
-            $rw->skip();
-            // Skip trailing (N)
-            $next = $rw->peek();
-            if ($next !== null && $next->type === TokenType::Operator && $next->token === '(') {
-                $this->skipMatchingParen($rw);
-            }
-            $rw->add($kw);
-
-            return;
-        }
-
-        // Types that need conversion
-        $pgsqlType = match (true) {
-            $kw === 'TINYINT' => 'SMALLINT',
-            \in_array($kw, ['MEDIUMINT', 'INT'], true) => 'INTEGER',
-            $kw === 'DOUBLE' => 'DOUBLE PRECISION',
-            $kw === 'FLOAT' => 'REAL',
-            $kw === 'DATETIME' => 'TIMESTAMP',
-            \in_array($kw, ['TINYTEXT', 'MEDIUMTEXT', 'LONGTEXT'], true) => 'TEXT',
-            \in_array($kw, ['TINYBLOB', 'MEDIUMBLOB', 'LONGBLOB', 'BLOB'], true) => 'BYTEA',
-            \in_array($kw, ['VARBINARY', 'BINARY'], true) => 'BYTEA',
-            $kw === 'ENUM' => 'TEXT',
-            $kw === 'JSON' => 'JSONB',
-            default => null,
-        };
-
-        if ($pgsqlType === null) {
-            $rw->consume();
-
-            return;
-        }
-
-        $rw->skip();
-        // Skip trailing (N) or ENUM(...)
-        $next = $rw->peek();
-        if ($next !== null && $next->type === TokenType::Operator && $next->token === '(') {
-            $this->skipMatchingParen($rw);
-        }
-        $rw->add($pgsqlType);
-    }
-
-    private function skipMysqlClause(QueryRewriter $rw): void
-    {
-        $rw->skip(); // keyword
-
-        $next = $rw->peek();
-        if ($next !== null && $next->type === TokenType::Keyword && $next->keyword === 'SET') {
-            $rw->skip();
-        }
-
-        $next = $rw->peek();
-        if ($next !== null && $next->type === TokenType::Operator && $next->token === '=') {
-            $rw->skip();
-            $rw->skip(); // value
-        } elseif ($next !== null
-            && \in_array($next->type, [TokenType::None, TokenType::String, TokenType::Number], true)) {
-            $rw->skip();
-        }
-    }
-
-    private function skipMatchingParen(QueryRewriter $rw): void
-    {
-        $depth = 0;
-
-        while ($rw->hasMore()) {
-            $t = $rw->skip();
-            if ($t === null) {
-                break;
-            }
-            if ($t->token === '(') {
-                $depth++;
-            } elseif ($t->token === ')') {
-                $depth--;
-                if ($depth === 0) {
-                    break;
-                }
-            }
-        }
-    }
 
     // ── Argument extraction ──
 
