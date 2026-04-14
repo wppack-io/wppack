@@ -9,7 +9,7 @@ WpPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL ク
 | リポジトリ | wordpress/sqlite-database-integration | PostgreSQL-For-Wordpress/postgresql-for-wordpress | wppack-io/wppack |
 | エンジン | SQLite | PostgreSQL | SQLite + PostgreSQL + Aurora DSQL |
 | アーキテクチャ | 独自 Lexer + トークン書き換え + UDF 46個 | 正規表現ベース文字列置換 | AST (phpmyadmin/sql-parser) + QueryRewriter + UDF 14個 |
-| テスト | WordPress e2e 依存 | 504 スタブベーステスト | 582 ユニットテスト / 988 アサーション |
+| テスト | WordPress e2e 依存 | 504 スタブベーステスト | 608 ユニットテスト / 1,024 アサーション |
 
 ## 対応範囲一覧
 
@@ -257,7 +257,7 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 | **ネイティブ関数優先** | UDF 14個 vs プラグイン46個。パフォーマンスに直結 |
 | **真の Prepared Statement** | `?` パラメータを Driver に分離。SQL インジェクション構造的防止 |
 | **Reader/Writer Split** | `DATABASE_READER_DSN` で読み書き分離 |
-| **582 ユニットテスト** | プラグインは WordPress e2e テスト依存 |
+| **608 ユニットテスト** | プラグインは WordPress e2e テスト依存 |
 | **文字列リテラル安全性** | `TokenType::String` による構造的保証 |
 
 ### プラグインの優位点
@@ -360,7 +360,7 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 | **AS 'alias' → AS "alias"** | PgSQL はシングルクォート識別子非対応。プラグイン互換 |
 | **ALTER TABLE ADD/DROP INDEX** | `CREATE INDEX` / `DROP INDEX IF EXISTS` に変換 |
 | **COUNT(*) ORDER BY 除去** | 不要な ORDER BY をパフォーマンス向上のため除去 |
-| **582 ユニットテスト** | PG4WP は504スタブテスト |
+| **608 ユニットテスト** | PG4WP は504スタブテスト |
 
 ### PG4WP のみの機能（WpPack にない）
 
@@ -381,5 +381,5 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 | SHOW 対応 | ★★★ | ★★★ | ★★★★ |
 | 型安全性 | ★★ (文字列結合) | ★★ | ★★★★ (Prepared Statement) |
 | マルチエンジン | ★ (SQLite のみ) | ★ (PgSQL のみ) | ★★★★★ (SQLite + PgSQL + DSQL) |
-| テスト | ★★ (e2e 依存) | ★★★ (504 スタブ) | ★★★★★ (582 ユニットテスト) |
+| テスト | ★★ (e2e 依存) | ★★★ (504 スタブ) | ★★★★★ (608 ユニットテスト) |
 | WP 固有対応 | ★★★★★ | ★★★★ | ★★★★★ |
