@@ -295,7 +295,7 @@ SQLite Database Integration プラグインおよび PG4WP (PostgreSQL for WordP
 
 | MySQL | 動作 |
 |-------|------|
-| `SET NAMES` / `SET SESSION` / `SET GLOBAL` | 無視（空配列返却） |
+| `SET NAMES` / `SET SESSION` / `SET GLOBAL` | 無視（文字コードはドライバ接続 API で設定済み） |
 | `LOCK TABLES` / `UNLOCK TABLES` | 無視（空配列返却） |
 | `OPTIMIZE TABLE` | 無視（空配列返却） |
 | `CREATE DATABASE` / `DROP DATABASE` | 無視（空配列返却） |

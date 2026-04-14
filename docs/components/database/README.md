@@ -587,6 +587,27 @@ define('DATABASE_DSN', 'mysql://user:pass@host:3306/mydb');
 
 `DATABASE_DSN` が未定義の場合、WordPress 標準の `DB_HOST` / `DB_USER` / `DB_PASSWORD` / `DB_NAME` 定数から MySQL DSN を自動構築します。つまり、既存の `wp-config.php` はそのまま使えます。
 
+#### 文字コード設定
+
+文字コードは各ドライバの接続 API で設定されます（SQL の `SET NAMES` には依存しません）。
+
+| エンジン | 方式 | 設定値 |
+|---------|------|--------|
+| MySQL | `mysqli::set_charset()` | DSN `?charset=` または `DB_CHARSET` 定数（デフォルト: `utf8mb4`） |
+| PostgreSQL | `pg_connect()` の `client_encoding` | `UTF8`（固定） |
+| SQLite | 内部 UTF-8 | 設定不要 |
+| RDS Data API | Aurora インスタンス設定 | サーバー側で制御 |
+
+```php
+// MySQL: charset を明示指定する場合
+define('DATABASE_DSN', 'mysql://user:pass@host:3306/mydb?charset=utf8mb4');
+
+// DB_HOST パターンの場合は DB_CHARSET 定数を使用（未定義時は utf8mb4）
+define('DB_CHARSET', 'utf8mb4');
+```
+
+WordPress の `$wpdb->set_charset()` は no-op です。ドライバが接続時に文字コードを設定済みのため、SQL レベルでの再設定は不要です。
+
 ```php
 // SQLite を使う場合
 define('DATABASE_DSN', 'sqlite:///path/to/database.db');
