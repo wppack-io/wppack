@@ -148,6 +148,12 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
                 }
             }
 
+            // HAVING without GROUP BY → inject GROUP BY 1
+            if ($token->type === TokenType::Keyword && $token->keyword === 'HAVING'
+                && $stmt->having !== null && $stmt->group === null) {
+                $rw->add(' GROUP BY 1');
+            }
+
             // LIMIT: rewrite using AST
             if ($token->type === TokenType::Keyword && $token->keyword === 'LIMIT' && $stmt->limit !== null) {
                 $this->rewriteLimit($rw, $stmt->limit->offset, $stmt->limit->rowCount);

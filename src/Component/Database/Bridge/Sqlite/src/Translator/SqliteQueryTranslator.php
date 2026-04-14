@@ -182,6 +182,13 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
                 }
             }
 
+            // HAVING without GROUP BY → inject GROUP BY 1
+            if ($token->type === TokenType::Keyword && $token->keyword === 'HAVING'
+                && $stmt->having !== null && $stmt->group === null) {
+                $rw->add(' GROUP BY 1');
+                // Fall through to consume HAVING normally
+            }
+
             // LIMIT: rewrite using AST info
             if ($token->type === TokenType::Keyword && $token->keyword === 'LIMIT' && $stmt->limit !== null) {
                 $this->rewriteLimit($rw, $stmt->limit->offset, $stmt->limit->rowCount);
@@ -705,6 +712,25 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             $this->rewriteLimitFromTokens($rw);
 
             return;
+        }
+
+        // ── LIKE BINARY → GLOB with pattern conversion ──
+        if ($kw === 'LIKE') {
+            $next = $rw->peekNth(2);
+            if ($next !== null && $next->type === TokenType::Keyword && $next->keyword === 'BINARY') {
+                $rw->skip(); // LIKE
+                $rw->skip(); // BINARY
+                $rw->add('GLOB');
+                // Convert LIKE pattern (%→*, _→?) in the next string literal
+                $patternToken = $rw->peek();
+                if ($patternToken !== null && $patternToken->type === TokenType::String) {
+                    $rw->skip();
+                    $pattern = str_replace(['%', '_'], ['*', '?'], (string) $patternToken->value);
+                    $rw->add("'" . str_replace("'", "''", $pattern) . "'");
+                }
+
+                return;
+            }
         }
 
         // ── CAST(x AS SIGNED) → CAST(x AS INTEGER) ──
