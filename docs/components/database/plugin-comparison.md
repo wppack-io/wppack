@@ -10,7 +10,7 @@ WpPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL ク
 | エンジン | SQLite | PostgreSQL | SQLite + PostgreSQL + Aurora DSQL |
 | アーキテクチャ | 独自 Lexer + トークン書き換え + UDF 46個 | 正規表現ベース文字列置換 | AST (phpmyadmin/sql-parser) + QueryRewriter + UDF 15個 |
 | コード量 | ~5,800行 | ~3,500行 | ~3,200行（両エンジン合計） |
-| テスト | WordPress e2e 依存 | なし | 554 ユニットテスト / 940 アサーション |
+| テスト | WordPress e2e 依存 | 504 スタブベーステスト（rewriteTest + verifyAgainstStubs） | 554 ユニットテスト / 940 アサーション |
 
 ## SQLite Database Integration との比較
 
@@ -135,5 +135,5 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで約1/3のコー
 | SHOW 対応 | ★★★ | ★★★ | ★★★★ |
 | 型安全性 | ★★ (文字列結合) | ★★ | ★★★★ (Prepared Statement) |
 | マルチエンジン | ★ (SQLite のみ) | ★ (PgSQL のみ) | ★★★★★ (SQLite + PgSQL + DSQL) |
-| テスト | ★★ (e2e 依存) | ★ (なし) | ★★★★★ (554 ユニットテスト) |
+| テスト | ★★ (e2e 依存) | ★★★ (504 スタブテスト) | ★★★★★ (554 ユニットテスト) |
 | WP 固有対応 | ★★★★★ | ★★★★ | ★★★ |
