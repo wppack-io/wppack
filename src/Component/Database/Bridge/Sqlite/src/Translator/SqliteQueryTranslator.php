@@ -349,7 +349,59 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             return $this->rewriteWithRowidSubquery($stmt, $parser, 'DELETE');
         }
 
+        // DELETE JOIN: DELETE a FROM t1 a JOIN t2 b ON ... WHERE ...
+        // → DELETE FROM t1 WHERE rowid IN (SELECT t1.rowid FROM t1 JOIN t2 ...)
+        if ($stmt->join !== null && $stmt->join !== []) {
+            return $this->rewriteDeleteJoin($stmt);
+        }
+
         return $this->rewriteTokens($parser);
+    }
+
+    /**
+     * Rewrite DELETE JOIN (MySQL multi-table delete) to SQLite-compatible subquery.
+     *
+     * MySQL:  DELETE a FROM t1 a JOIN t2 b ON ... WHERE ...
+     * SQLite: DELETE FROM t1 WHERE rowid IN (SELECT t1.rowid FROM t1 JOIN t2 ON ... WHERE ...)
+     */
+    private function rewriteDeleteJoin(DeleteStatement $stmt): string
+    {
+        $table = $stmt->from[0]->table ?? '';
+        $alias = $stmt->from[0]->alias ?? $table;
+        $quotedTable = $this->quoteId($table);
+
+        $joinClauses = [];
+        foreach ($stmt->join as $join) {
+            $joinType = $join->type ?? 'JOIN';
+            $joinTable = $join->expr->table ?? $join->expr->expr ?? '';
+            $joinAlias = $join->expr->alias ?? '';
+            $joinRef = $this->quoteId($joinTable) . ($joinAlias !== '' ? ' ' . $joinAlias : '');
+            $onParts = [];
+            if ($join->on !== null) {
+                foreach ($join->on as $cond) {
+                    $onParts[] = $cond->expr;
+                }
+            }
+            $joinClauses[] = $joinType . ' ' . $joinRef . ($onParts !== [] ? ' ON ' . implode(' ', $onParts) : '');
+        }
+
+        $whereParts = [];
+        if ($stmt->where !== null) {
+            foreach ($stmt->where as $cond) {
+                $whereParts[] = $cond->expr;
+            }
+        }
+        $whereClause = $whereParts !== [] ? ' WHERE ' . implode(' ', $whereParts) : '';
+
+        return \sprintf(
+            'DELETE FROM %s WHERE rowid IN (SELECT %s.rowid FROM %s %s %s%s)',
+            $quotedTable,
+            $alias,
+            $quotedTable,
+            $alias,
+            implode(' ', $joinClauses),
+            $whereClause,
+        );
     }
 
     /**
@@ -1604,6 +1656,20 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
     {
         if (preg_match('/^\s*START\s+TRANSACTION\b/i', $sql)) {
             return ['BEGIN'];
+        }
+
+        // MySQL system variables → dummy values
+        if (preg_match('/^\s*SELECT\s+@@/i', $sql)) {
+            return ["SELECT '' AS `@@value`"];
+        }
+
+        // information_schema queries → sqlite_master
+        if (preg_match('/\binformation_schema\.tables\b/i', $sql)) {
+            return ["SELECT name AS table_name, 'BASE TABLE' AS table_type, 'def' AS table_catalog FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_%'"];
+        }
+
+        if (preg_match('/\binformation_schema\.columns\b/i', $sql) && preg_match('/table_name\s*=\s*[\'"](\w+)[\'"]/i', $sql, $m)) {
+            return [\sprintf('PRAGMA table_info("%s")', $m[1])];
         }
 
         if (preg_match('/^\s*SHOW\s+FULL\s+TABLES\s+LIKE\s+[\'"](.+?)[\'"]\s*$/i', $sql, $m)) {

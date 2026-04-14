@@ -1078,4 +1078,26 @@ SQL;
         self::assertStringContainsString('ALTER COLUMN', $result[0]);
         self::assertStringContainsString('TYPE', $result[0]);
     }
+
+    // ── WordPress compatibility tests ──
+
+    #[Test]
+    public function selectSystemVariablesDummy(): void
+    {
+        $result = $this->translator->translate('SELECT @@SESSION.sql_mode');
+
+        self::assertStringContainsString('@@value', $result[0]);
+    }
+
+    #[Test]
+    public function deleteJoinToUsing(): void
+    {
+        $result = $this->translator->translate(
+            'DELETE a FROM `wp_options` a JOIN `wp_options` b ON a.option_name = b.option_name WHERE a.option_id < b.option_id',
+        );
+
+        self::assertStringContainsString('DELETE FROM', $result[0]);
+        self::assertStringContainsString('USING', $result[0]);
+        self::assertStringContainsString('a.option_id < b.option_id', $result[0]);
+    }
 }

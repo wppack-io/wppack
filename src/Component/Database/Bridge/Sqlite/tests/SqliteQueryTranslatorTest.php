@@ -1689,4 +1689,57 @@ SQL);
         self::assertStringNotContainsString('COLLATE', $result[0]);
         self::assertStringNotContainsString('utf8mb4', $result[0]);
     }
+
+    // ── WordPress compatibility tests ──
+
+    #[Test]
+    public function selectSystemVariablesDummy(): void
+    {
+        $result = $this->translator->translate('SELECT @@SESSION.sql_mode');
+
+        self::assertStringContainsString("@@value", $result[0]);
+        self::assertStringNotContainsString('@@SESSION', $result[0]);
+    }
+
+    #[Test]
+    public function informationSchemaTablesRewrite(): void
+    {
+        $result = $this->translator->translate("SELECT * FROM information_schema.tables WHERE table_schema = DATABASE()");
+
+        self::assertStringContainsString('sqlite_master', $result[0]);
+        self::assertStringNotContainsString('information_schema', $result[0]);
+    }
+
+    #[Test]
+    public function deleteJoinToSubquery(): void
+    {
+        $result = $this->translator->translate(
+            'DELETE a FROM `wp_options` a JOIN `wp_options` b ON a.option_name = b.option_name WHERE a.option_id < b.option_id',
+        );
+
+        self::assertStringContainsString('DELETE FROM', $result[0]);
+        self::assertStringContainsString('rowid IN (SELECT', $result[0]);
+        self::assertStringContainsString('JOIN', $result[0]);
+    }
+
+    #[Test]
+    public function deleteJoinEndToEnd(): void
+    {
+        $driver = new \WpPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
+        $driver->connect();
+
+        $driver->executeStatement('CREATE TABLE "wp_options" ("option_id" INTEGER PRIMARY KEY, "option_name" TEXT, "option_value" TEXT)');
+        $driver->executeStatement("INSERT INTO \"wp_options\" VALUES (1, 'test', 'val1')");
+        $driver->executeStatement("INSERT INTO \"wp_options\" VALUES (2, 'test', 'val2')");
+
+        $deleteSql = $this->translator->translate(
+            'DELETE a FROM `wp_options` a JOIN `wp_options` b ON a.option_name = b.option_name WHERE a.option_id < b.option_id',
+        );
+        $driver->executeStatement($deleteSql[0]);
+
+        $result = $driver->executeQuery('SELECT COUNT(*) FROM "wp_options"');
+        self::assertSame(1, (int) $result->fetchOne());
+
+        $driver->close();
+    }
 }

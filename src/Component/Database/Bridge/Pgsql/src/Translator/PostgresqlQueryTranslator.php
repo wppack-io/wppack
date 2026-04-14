@@ -284,7 +284,62 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             return $this->rewriteWithCtidSubquery($stmt, $parser, 'DELETE');
         }
 
+        // DELETE JOIN: DELETE a FROM t1 a JOIN t2 b ON ... → USING syntax
+        if ($stmt->join !== null && $stmt->join !== []) {
+            return $this->rewriteDeleteJoin($stmt);
+        }
+
         return $this->rewriteTokens($parser);
+    }
+
+    /**
+     * Rewrite DELETE JOIN to PostgreSQL USING syntax.
+     *
+     * MySQL:  DELETE a FROM t1 a JOIN t2 b ON a.col = b.col WHERE ...
+     * PgSQL:  DELETE FROM t1 a USING t2 b WHERE a.col = b.col AND ...
+     */
+    private function rewriteDeleteJoin(DeleteStatement $stmt): string
+    {
+        $table = $stmt->from[0]->table ?? '';
+        $alias = $stmt->from[0]->alias ?? '';
+        $quotedTable = $this->quoteId($table);
+        $aliasClause = $alias !== '' ? ' ' . $alias : '';
+
+        $usingParts = [];
+        $onConditions = [];
+
+        foreach ($stmt->join as $join) {
+            $joinTable = $join->expr->table ?? $join->expr->expr ?? '';
+            $joinAlias = $join->expr->alias ?? '';
+            $usingParts[] = $this->quoteId($joinTable) . ($joinAlias !== '' ? ' ' . $joinAlias : '');
+            if ($join->on !== null) {
+                foreach ($join->on as $cond) {
+                    if (!$cond->isOperator) {
+                        $onConditions[] = $cond->expr;
+                    }
+                }
+            }
+        }
+
+        $whereParts = [];
+        if ($stmt->where !== null) {
+            foreach ($stmt->where as $cond) {
+                if (!$cond->isOperator) {
+                    $whereParts[] = $cond->expr;
+                }
+            }
+        }
+
+        $allConditions = [...$onConditions, ...$whereParts];
+        $whereClause = $allConditions !== [] ? ' WHERE ' . implode(' AND ', $allConditions) : '';
+
+        return \sprintf(
+            'DELETE FROM %s%s USING %s%s',
+            $quotedTable,
+            $aliasClause,
+            implode(', ', $usingParts),
+            $whereClause,
+        );
     }
 
     /**
@@ -1329,6 +1384,11 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
     {
         if (preg_match('/^\s*START\s+TRANSACTION\b/i', $sql)) {
             return ['BEGIN'];
+        }
+
+        // MySQL system variables → dummy values
+        if (preg_match('/^\s*SELECT\s+@@/i', $sql)) {
+            return ["SELECT '' AS \"@@value\""];
         }
 
         if (preg_match('/^\s*SHOW\s+FULL\s+TABLES\s+LIKE\s+[\'"](.+?)[\'"]\s*$/i', $sql, $m)) {
