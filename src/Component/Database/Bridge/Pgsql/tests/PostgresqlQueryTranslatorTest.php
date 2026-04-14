@@ -1147,13 +1147,13 @@ SQL;
     }
 
     #[Test]
-    public function zeroDateToInfinity(): void
+    public function zeroDateInWhere(): void
     {
         $result = $this->translator->translate(
             "SELECT * FROM `wp_posts` WHERE post_date = '0000-00-00 00:00:00'",
         );
 
-        self::assertStringContainsString("'-infinity'", $result[0]);
+        self::assertStringContainsString("'0001-01-01 00:00:00'", $result[0]);
         self::assertStringNotContainsString('0000-00-00', $result[0]);
     }
 
@@ -1164,7 +1164,7 @@ SQL;
             "INSERT INTO `wp_posts` (post_title, post_date) VALUES ('test', '0000-00-00 00:00:00')",
         );
 
-        self::assertStringContainsString("'-infinity'", $result[0]);
+        self::assertStringContainsString("'0001-01-01 00:00:00'", $result[0]);
         self::assertStringNotContainsString('0000-00-00', $result[0]);
     }
 
@@ -1175,7 +1175,17 @@ SQL;
             "UPDATE `wp_posts` SET post_date = '0000-00-00 00:00:00' WHERE ID = 1",
         );
 
-        self::assertStringContainsString("'-infinity'", $result[0]);
+        self::assertStringContainsString("'0001-01-01 00:00:00'", $result[0]);
+    }
+
+    #[Test]
+    public function zeroDateShortForm(): void
+    {
+        $result = $this->translator->translate(
+            "SELECT * FROM t WHERE d = '0000-00-00'",
+        );
+
+        self::assertStringContainsString("'0001-01-01'", $result[0]);
     }
 
     #[Test]

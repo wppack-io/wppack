@@ -194,12 +194,19 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             $sql,
         );
 
-        // Zero dates: MySQL '0000-00-00 00:00:00' → PostgreSQL '-infinity'::timestamp
-        // '-infinity' is a valid PgSQL timestamp, works with NOT NULL, and can be compared.
-        // WordPress uses zero dates as "not set" sentinel, so we preserve comparability.
+        // Zero dates: MySQL '0000-00-00 00:00:00' → PostgreSQL '0001-01-01 00:00:00'
+        // PostgreSQL doesn't support year 0000. '0001-01-01' is the earliest valid date.
+        // Unlike '-infinity', EXTRACT(YEAR FROM ...) returns 1 (not -Infinity), so
+        // WordPress's YEAR(post_date) translation works correctly.
+        // NOT NULL constraints are satisfied. All real dates are > '0001-01-01'.
         $sql = (string) preg_replace(
-            '/[\'"]0000-00-00(?:\s+00:00:00)?[\'"]/',
-            "'-infinity'",
+            '/[\'"]0000-00-00\s+00:00:00[\'"]/',
+            "'0001-01-01 00:00:00'",
+            $sql,
+        );
+        $sql = (string) preg_replace(
+            '/[\'"]0000-00-00[\'"]/',
+            "'0001-01-01'",
             $sql,
         );
 
