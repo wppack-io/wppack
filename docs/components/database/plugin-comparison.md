@@ -9,7 +9,7 @@ WpPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL ク
 | リポジトリ | wordpress/sqlite-database-integration | PostgreSQL-For-Wordpress/postgresql-for-wordpress | wppack-io/wppack |
 | エンジン | SQLite | PostgreSQL | SQLite + PostgreSQL + Aurora DSQL |
 | アーキテクチャ | 独自 Lexer + トークン書き換え + UDF 46個 | 正規表現ベース文字列置換 | AST (phpmyadmin/sql-parser) + QueryRewriter + UDF 15個 |
-| テスト | WordPress e2e 依存 | 504 スタブベーステスト | 574 ユニットテスト / 972 アサーション |
+| テスト | WordPress e2e 依存 | 504 スタブベーステスト | 575 ユニットテスト / 974 アサーション |
 
 ## 対応範囲一覧
 
@@ -315,7 +315,7 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 
 | MySQL 構文 | WpPack PgSQL 変換 |
 |-----------|-----------------|
-| `TRUNCATE TABLE t` | ネイティブ |
+| `TRUNCATE TABLE t` | `TRUNCATE ... RESTART IDENTITY` |
 | `START TRANSACTION` | `BEGIN` |
 | `SAVEPOINT / RELEASE / ROLLBACK TO` | ネイティブ |
 | `INSERT ... SET col=val` | `INSERT INTO (col) VALUES (val)` |
@@ -352,15 +352,17 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 | **BLOB → BYTEA** | PG4WP は BLOB 型未対応 |
 | **DISTINCT + ORDER BY 列注入** | ORDER BY 列を SELECT に自動追加 |
 | **meta_value + 0 → CAST** | `CAST(meta_value AS BIGINT)` に自動変換 |
-| **574 ユニットテスト** | PG4WP は504スタブテスト |
+| **SERIAL シーケンス自動同期** | 明示 ID INSERT 後に setval() で次値をリセット |
+| **TRUNCATE RESTART IDENTITY** | TRUNCATE 時にシーケンスを1にリセット（MySQL 互換） |
+| **575 ユニットテスト** | PG4WP は504スタブテスト |
 
 ### PG4WP のみの機能（WpPack にない）
 
-| 機能 | 説明 | WordPress 影響 |
-|------|------|---------------|
-| WordPress プラグイン互換 | Akismet comment_ID 正規化、NextGen Gallery AS 処理 | 中 |
-| wp_options マルチ行 INSERT 分割 | 複数行 INSERT を個別実行 | 低 |
-| シーケンス setval() 管理 | WPMU インストール時 | 低 |
+| 機能 | 説明 | WordPress 影響 | 実装必要性 |
+|------|------|---------------|-----------|
+| Akismet comment_ID 正規化 | 小文字 `comment_id` → 大文字 `comment_ID` | 低 | 不要（Akismet プラグイン固有のバグ。WP コアは常に正しいケースを使用） |
+| NextGen Gallery AS クォート | `AS 'alias'` → `AS "alias"` | 低 | 不要（NextGen Gallery 固有の構文問題） |
+| wp_options マルチ行 INSERT | 複数行 INSERT を個別実行 | なし | 不要（PgSQL はマルチ行 INSERT をネイティブサポート） |
 
 ## 総合評価
 
@@ -372,5 +374,5 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 | SHOW 対応 | ★★★ | ★★★ | ★★★★ |
 | 型安全性 | ★★ (文字列結合) | ★★ | ★★★★ (Prepared Statement) |
 | マルチエンジン | ★ (SQLite のみ) | ★ (PgSQL のみ) | ★★★★★ (SQLite + PgSQL + DSQL) |
-| テスト | ★★ (e2e 依存) | ★★★ (504 スタブ) | ★★★★★ (574 ユニットテスト) |
+| テスト | ★★ (e2e 依存) | ★★★ (504 スタブ) | ★★★★★ (575 ユニットテスト) |
 | WP 固有対応 | ★★★★★ | ★★★★ | ★★★★★ |
