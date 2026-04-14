@@ -1147,24 +1147,35 @@ SQL;
     }
 
     #[Test]
-    public function zeroDateEqualsToIsNull(): void
+    public function zeroDateToInfinity(): void
     {
         $result = $this->translator->translate(
             "SELECT * FROM `wp_posts` WHERE post_date = '0000-00-00 00:00:00'",
         );
 
-        self::assertStringContainsString('IS NULL', $result[0]);
+        self::assertStringContainsString("'-infinity'", $result[0]);
         self::assertStringNotContainsString('0000-00-00', $result[0]);
     }
 
     #[Test]
-    public function zeroDateNotEqualsToIsNotNull(): void
+    public function zeroDateInInsert(): void
     {
         $result = $this->translator->translate(
-            "SELECT * FROM `wp_posts` WHERE post_date != '0000-00-00 00:00:00'",
+            "INSERT INTO `wp_posts` (post_title, post_date) VALUES ('test', '0000-00-00 00:00:00')",
         );
 
-        self::assertStringContainsString('IS NOT NULL', $result[0]);
+        self::assertStringContainsString("'-infinity'", $result[0]);
+        self::assertStringNotContainsString('0000-00-00', $result[0]);
+    }
+
+    #[Test]
+    public function zeroDateInUpdate(): void
+    {
+        $result = $this->translator->translate(
+            "UPDATE `wp_posts` SET post_date = '0000-00-00 00:00:00' WHERE ID = 1",
+        );
+
+        self::assertStringContainsString("'-infinity'", $result[0]);
     }
 
     #[Test]

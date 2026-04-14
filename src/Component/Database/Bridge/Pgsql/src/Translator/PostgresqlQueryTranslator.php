@@ -181,8 +181,9 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
     /**
      * Apply PostgreSQL-specific post-processing to translated SQL.
      *
-     * - meta_value + 0 → CAST(meta_value AS BIGINT) (WordPress WP_Meta_Query)
-     * - Zero dates → IS NULL / IS NOT NULL
+     * - meta_value + 0 → CAST(meta_value AS BIGINT)
+     * - Zero dates in comparisons → IS NULL / IS NOT NULL
+     * - Zero dates in VALUES/SET → NULL
      */
     private function postProcessPgsql(string $sql): string
     {
@@ -193,17 +194,12 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             $sql,
         );
 
-        // Zero dates: != or <> '0000-00-00...' → IS NOT NULL (must be before = check)
+        // Zero dates: MySQL '0000-00-00 00:00:00' → PostgreSQL '-infinity'::timestamp
+        // '-infinity' is a valid PgSQL timestamp, works with NOT NULL, and can be compared.
+        // WordPress uses zero dates as "not set" sentinel, so we preserve comparability.
         $sql = (string) preg_replace(
-            "/(?:!=|<>)\s*'0000-00-00(?:\s+00:00:00)?'/",
-            'IS NOT NULL',
-            $sql,
-        );
-
-        // Zero dates: = '0000-00-00...' → IS NULL (only plain =, not != or <>)
-        $sql = (string) preg_replace(
-            "/(?<!!)=\s*'0000-00-00(?:\s+00:00:00)?'/",
-            'IS NULL',
+            '/[\'"]0000-00-00(?:\s+00:00:00)?[\'"]/',
+            "'-infinity'",
             $sql,
         );
 
@@ -277,7 +273,7 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             $result = rtrim($result, " \t\n\r;") . ' ON CONFLICT DO NOTHING';
         }
 
-        return [$result];
+        return [$this->postProcessPgsql($result)];
     }
 
     /**
@@ -1482,7 +1478,7 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             $this->translateExpression($rw);
         }
 
-        return $rw->getResult();
+        return $this->postProcessPgsql($rw->getResult());
     }
 
     private function createRewriter(Parser $parser): QueryRewriter
