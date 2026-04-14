@@ -113,9 +113,10 @@ final class SqliteQueryTranslatorTest extends TestCase
     {
         $result = $this->translator->translate('TRUNCATE TABLE `wp_posts`');
 
-        self::assertCount(1, $result);
+        self::assertCount(2, $result);
         self::assertStringContainsString('DELETE FROM', $result[0]);
         self::assertStringContainsString('"wp_posts"', $result[0]);
+        self::assertStringContainsString('sqlite_sequence', $result[1]);
     }
 
     #[Test]

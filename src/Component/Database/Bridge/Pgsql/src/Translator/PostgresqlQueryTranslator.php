@@ -280,7 +280,65 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             $result = rtrim($result, " \t\n\r;") . ' ON CONFLICT DO NOTHING';
         }
 
-        return [$this->postProcessPgsql($result)];
+        $results = [$this->postProcessPgsql($result)];
+
+        // Sync sequence after INSERT with explicit ID (PgSQL SERIAL sequences
+        // don't auto-update when IDs are inserted explicitly).
+        // WordPress inserts explicit IDs during installation (term_id=1, post_id=1,2,3).
+        $setvalSql = $this->buildSetvalIfNeeded($stmt);
+        if ($setvalSql !== null) {
+            $results[] = $setvalSql;
+        }
+
+        return $results;
+    }
+
+    /**
+     * Build setval() SQL to sync a SERIAL sequence after explicit ID insertion.
+     *
+     * When INSERT specifies an ID column explicitly (e.g., `INSERT INTO t (id, ...) VALUES (5, ...)`),
+     * the PostgreSQL sequence is not updated. This causes the next auto-generated ID
+     * to conflict. setval() resets the sequence to MAX(id)+1.
+     */
+    private function buildSetvalIfNeeded(InsertStatement $stmt): ?string
+    {
+        if ($stmt->into === null) {
+            return null;
+        }
+
+        $table = $stmt->into->dest->table ?? null;
+        if ($table === null) {
+            return null;
+        }
+
+        // Check if any column looks like a primary key ID (convention-based)
+        $columns = $stmt->into->columns ?? [];
+        $idColumn = null;
+
+        foreach ($columns as $col) {
+            $name = strtolower((string) $col);
+            if ($name === 'id' || str_ends_with($name, '_id') || $name === 'term_id' || $name === 'umeta_id') {
+                $idColumn = $name;
+                break;
+            }
+        }
+
+        if ($idColumn === null) {
+            return null;
+        }
+
+        $quotedTable = $this->quoteId($table);
+        $quotedCol = $this->quoteId($idColumn);
+
+        // Sequence naming convention: {table}_{column}_seq
+        $seqName = $table . '_' . $idColumn . '_seq';
+
+        return \sprintf(
+            "SELECT setval('%s', COALESCE((SELECT MAX(%s) FROM %s), 0) + 1, false)",
+            str_replace("'", "''", $seqName),
+            $quotedCol,
+            $quotedTable,
+        );
     }
 
     /**
@@ -510,12 +568,18 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         return $parts[1] ?? 'TEXT';
     }
 
+    /**
+     * TRUNCATE TABLE → TRUNCATE TABLE ... RESTART IDENTITY.
+     *
+     * MySQL TRUNCATE resets AUTO_INCREMENT to 1. PostgreSQL TRUNCATE
+     * does not reset SERIAL sequences unless RESTART IDENTITY is specified.
+     */
     private function translateTruncate(TruncateStatement $stmt, Parser $parser): string
     {
         $rw = $this->createRewriter($parser);
         $rw->consumeAll();
 
-        return $rw->getResult();
+        return rtrim($rw->getResult()) . ' RESTART IDENTITY';
     }
 
     // ── DDL handlers ──

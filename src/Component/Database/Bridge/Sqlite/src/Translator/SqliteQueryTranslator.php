@@ -789,6 +789,15 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
     /**
      * @return list<string>
      */
+    /**
+     * TRUNCATE TABLE → DELETE FROM + reset AUTOINCREMENT counter.
+     *
+     * MySQL TRUNCATE resets AUTO_INCREMENT to 1. SQLite's DELETE FROM
+     * does not reset the AUTOINCREMENT counter, so we also delete
+     * from sqlite_sequence to achieve MySQL-compatible behavior.
+     *
+     * @return list<string>
+     */
     private function translateTruncate(TruncateStatement $stmt): array
     {
         if ($stmt->table === null) {
@@ -796,8 +805,12 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         }
 
         $name = $stmt->table->table;
+        $quoted = '"' . str_replace('"', '""', $name) . '"';
 
-        return ['DELETE FROM "' . str_replace('"', '""', $name) . '"'];
+        return [
+            'DELETE FROM ' . $quoted,
+            "DELETE FROM sqlite_sequence WHERE name = '" . str_replace("'", "''", $name) . "'",
+        ];
     }
 
     // ── Expression translation ──
