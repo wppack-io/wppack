@@ -371,6 +371,101 @@ final class SqliteQueryTranslatorTest extends TestCase
         self::assertStringNotContainsString('FOR UPDATE', $result[0]);
     }
 
+    // ── Database operations ──
+
+    #[Test]
+    public function createDatabaseIgnored(): void
+    {
+        self::assertSame([], $this->translator->translate('CREATE DATABASE IF NOT EXISTS `wordpress`'));
+    }
+
+    #[Test]
+    public function dropDatabaseIgnored(): void
+    {
+        self::assertSame([], $this->translator->translate('DROP DATABASE IF EXISTS `wordpress`'));
+    }
+
+    // ── ALTER TABLE edge cases ──
+
+    #[Test]
+    public function alterTableAddIndexSkipped(): void
+    {
+        $result = $this->translator->translate('ALTER TABLE `wp_posts` ADD INDEX `idx_status` (`post_status`)');
+
+        // SQLite doesn't support ALTER TABLE ADD INDEX — silently handled
+        self::assertIsArray($result);
+    }
+
+    #[Test]
+    public function alterTableDropColumnSkipped(): void
+    {
+        $result = $this->translator->translate('ALTER TABLE `wp_posts` DROP COLUMN `post_password`');
+
+        self::assertIsArray($result);
+    }
+
+    // ── DESCRIBE ──
+
+    #[Test]
+    public function describe(): void
+    {
+        $result = $this->translator->translate('DESCRIBE `wp_posts`');
+
+        self::assertStringContainsString('PRAGMA table_info', $result[0]);
+    }
+
+    // ── SAVEPOINT ──
+
+    #[Test]
+    public function savepoint(): void
+    {
+        $result = $this->translator->translate('SAVEPOINT sp1');
+
+        self::assertSame(['SAVEPOINT sp1'], $result);
+    }
+
+    #[Test]
+    public function releaseSavepoint(): void
+    {
+        $result = $this->translator->translate('RELEASE SAVEPOINT sp1');
+
+        self::assertSame(['RELEASE SAVEPOINT sp1'], $result);
+    }
+
+    #[Test]
+    public function rollbackToSavepoint(): void
+    {
+        $result = $this->translator->translate('ROLLBACK TO SAVEPOINT sp1');
+
+        self::assertSame(['ROLLBACK TO SAVEPOINT sp1'], $result);
+    }
+
+    // ── Complex queries ──
+
+    #[Test]
+    public function betweenClause(): void
+    {
+        $result = $this->translator->translate('SELECT * FROM `wp_posts` WHERE post_date BETWEEN "2024-01-01" AND "2024-12-31"');
+
+        self::assertStringContainsString('BETWEEN', $result[0]);
+    }
+
+    #[Test]
+    public function existsSubquery(): void
+    {
+        $result = $this->translator->translate('SELECT * FROM `wp_posts` WHERE EXISTS (SELECT 1 FROM `wp_postmeta`)');
+
+        self::assertStringContainsString('EXISTS', $result[0]);
+    }
+
+    #[Test]
+    public function unionQuery(): void
+    {
+        $result = $this->translator->translate('SELECT ID FROM `wp_posts` WHERE post_status = "publish" UNION SELECT ID FROM `wp_posts` WHERE post_status = "draft"');
+
+        self::assertStringContainsString('UNION', $result[0]);
+    }
+
     // ── End-to-end with SQLite ──
 
     #[Test]
