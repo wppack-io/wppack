@@ -63,6 +63,11 @@ final class AuroraDsqlDriver extends AbstractDriver
         return new PostgresqlPlatform();
     }
 
+    public function getQueryTranslator(): \WpPack\Component\Database\Translator\QueryTranslatorInterface
+    {
+        return new \WpPack\Component\Database\Bridge\AuroraDsql\Translator\AuroraDsqlQueryTranslator();
+    }
+
     public function getNativeConnection(): mixed
     {
         return $this->inner?->getNativeConnection();

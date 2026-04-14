@@ -84,4 +84,56 @@ final class AuroraDsqlDriverFactoryTest extends TestCase
         self::assertSame('dsql', $defs[0]->scheme);
         self::assertSame('Aurora DSQL', $defs[0]->label);
     }
+
+    // ── DSQL Translator ──
+
+    #[Test]
+    public function truncateConvertedToDeleteFrom(): void
+    {
+        $translator = new \WpPack\Component\Database\Bridge\AuroraDsql\Translator\AuroraDsqlQueryTranslator();
+
+        $result = $translator->translate('TRUNCATE TABLE `wp_posts`');
+
+        self::assertStringContainsString('DELETE FROM', $result[0]);
+        self::assertStringContainsString('"wp_posts"', $result[0]);
+        self::assertStringNotContainsString('TRUNCATE', $result[0]);
+    }
+
+    #[Test]
+    public function truncateWithoutTableKeyword(): void
+    {
+        $translator = new \WpPack\Component\Database\Bridge\AuroraDsql\Translator\AuroraDsqlQueryTranslator();
+
+        $result = $translator->translate('TRUNCATE `wp_options`');
+
+        self::assertStringContainsString('DELETE FROM', $result[0]);
+    }
+
+    #[Test]
+    public function nonTruncateQueriesDelegateToPostgresql(): void
+    {
+        $translator = new \WpPack\Component\Database\Bridge\AuroraDsql\Translator\AuroraDsqlQueryTranslator();
+
+        // Regular queries go through PostgreSQL translator
+        $result = $translator->translate('SELECT * FROM `wp_posts` WHERE id = 1');
+
+        self::assertStringContainsString('"wp_posts"', $result[0]);
+        self::assertStringNotContainsString('`', $result[0]);
+    }
+
+    #[Test]
+    public function dsqlDriverReturnsCorrectTranslator(): void
+    {
+        if (!\function_exists('pg_connect')) {
+            self::markTestSkipped('ext-pgsql not available.');
+        }
+
+        $factory = new AuroraDsqlDriverFactory();
+        $driver = $factory->create(Dsn::fromString('dsql://admin:token@abc.dsql.us-east-1.on.aws/mydb'));
+
+        self::assertInstanceOf(
+            \WpPack\Component\Database\Bridge\AuroraDsql\Translator\AuroraDsqlQueryTranslator::class,
+            $driver->getQueryTranslator(),
+        );
+    }
 }
