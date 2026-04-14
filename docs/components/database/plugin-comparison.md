@@ -285,14 +285,74 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 
 ### WpPack のみの機能（PG4WP にない）
 
-30+関数と機能が WpPack のみ対応。主要なもの:
+50以上の機能が WpPack のみ対応。
 
-- **日時関数:** DATE_FORMAT→TO_CHAR, FROM_UNIXTIME→TO_TIMESTAMP, DATEDIFF, HOUR/MINUTE/SECOND, DAYOFWEEK/DAYOFYEAR/WEEKDAY/WEEK, CURDATE/CURTIME, UTC_TIMESTAMP/DATE/TIME, LOCALTIME/LOCALTIMESTAMP
-- **文字列関数:** CONCAT/CONCAT_WS, LEFT, LOCATE→POSITION, ISNULL→IS NULL, CHAR_LENGTH→LENGTH, LCASE/UCASE
-- **型:** JSON→JSONB, BLOB→BYTEA, BINARY→BYTEA, CAST AS CHAR→TEXT
-- **文:** TRUNCATE TABLE, START TRANSACTION→BEGIN, LIKE→ILIKE, LIKE ESCAPE, UPDATE/DELETE LIMIT（ctid サブクエリ）, DELETE JOIN（USING 構文）, INSERT ... SET, CONVERT→CAST, COLLATE 除去, @@変数→ダミー, 空 IN→IN(NULL)
-- **SHOW:** CREATE TABLE, DATABASES, COLLATION, GRANTS, CREATE PROCEDURE, CHECK/ANALYZE/REPAIR TABLE
-- **インフラ:** ネイティブ Prepared Statement, Reader/Writer Split, LOW_PRIORITY/DELAYED スキップ
+#### 関数（PG4WP 未対応 → WpPack 対応）
+
+| MySQL | WpPack PgSQL 変換先 | カテゴリ |
+|-------|-------------------|---------|
+| `CURDATE()` / `CURTIME()` | `CURRENT_DATE` / `CURRENT_TIME` | 日時 |
+| `UTC_TIMESTAMP()` / `UTC_DATE()` / `UTC_TIME()` | `NOW() AT TIME ZONE 'UTC'` 等 | 日時 |
+| `LOCALTIME()` / `LOCALTIMESTAMP()` | `NOW()` | 日時 |
+| `DATE_FORMAT(d, fmt)` | `TO_CHAR(d, fmt)` (30仕様対応) | 日時 |
+| `FROM_UNIXTIME(t)` | `TO_TIMESTAMP(t)` | 日時 |
+| `DATEDIFF(d1, d2)` | `DATE_PART('day', d1 - d2)` | 日時 |
+| `HOUR(d)` / `MINUTE(d)` / `SECOND(d)` | `EXTRACT(HOUR/MINUTE/SECOND FROM d)` | 抽出 |
+| `DAYOFWEEK(d)` / `WEEKDAY(d)` / `WEEK(d)` | `EXTRACT(DOW/ISODOW/WEEK FROM d)` | 抽出 |
+| `DAYOFYEAR(d)` | `EXTRACT(DOY FROM d)` | 抽出 |
+| `CONCAT(a, b)` / `CONCAT_WS(sep, a, b)` | ネイティブ（引数変換付き） | 文字列 |
+| `LEFT(s, n)` | `SUBSTRING(s FROM 1 FOR n)` | 文字列 |
+| `LOCATE(sub, str)` | `POSITION(sub IN str)` | 文字列 |
+| `CHAR_LENGTH(s)` / `MID(s, p, n)` | `LENGTH(s)` / `SUBSTRING(s, p, n)` | 文字列 |
+| `LCASE(s)` / `UCASE(s)` | `lower(s)` / `upper(s)` | 文字列 |
+| `ISNULL(x)` | `(x IS NULL)` | 比較 |
+| `IFNULL(a, b)` | `COALESCE(a, b)` | 比較 |
+| `VERSION()` / `DATABASE()` | `version()` / `CURRENT_DATABASE()` | システム |
+| `CONVERT(val, type)` | `CAST(val AS type)` | 型変換 |
+| `CAST(AS CHAR)` | `CAST(AS TEXT)` | 型変換 |
+
+#### DML 文（PG4WP 未対応 → WpPack 対応）
+
+| MySQL 構文 | WpPack PgSQL 変換 |
+|-----------|-----------------|
+| `TRUNCATE TABLE t` | ネイティブ |
+| `START TRANSACTION` | `BEGIN` |
+| `SAVEPOINT / RELEASE / ROLLBACK TO` | ネイティブ |
+| `INSERT ... SET col=val` | `INSERT INTO (col) VALUES (val)` |
+| `DELETE JOIN` | `DELETE ... USING ... WHERE ...` |
+| `UPDATE/DELETE ... LIMIT N` | `ctid IN (SELECT ctid ... LIMIT N)` |
+| `LIKE` | `ILIKE`（大文字小文字区別なし） |
+| `LIKE ESCAPE` | `ESCAPE '\x1a'` 句付与 |
+| `CONVERT(val, type)` | `CAST(val AS type)` |
+| `COLLATE utf8mb4_*` | 除去 |
+| `SELECT @@SESSION.sql_mode` | ダミー値返却 |
+| `IN ()` (空) | `IN (NULL)` |
+| `LOW_PRIORITY` / `DELAYED` | 除去 |
+| `'0000-00-00 00:00:00'` | `'0001-01-01 00:00:00'` |
+
+#### SHOW 文（PG4WP 未対応 → WpPack 対応）
+
+| MySQL SHOW | WpPack PgSQL 変換先 |
+|-----------|-------------------|
+| `SHOW CREATE TABLE t` | `information_schema.columns` から再構築 |
+| `SHOW DATABASES` | `pg_database` クエリ |
+| `SHOW COLLATION` | `pg_collation` クエリ |
+| `SHOW GRANTS` | ダミー GRANT 文 |
+| `SHOW CREATE PROCEDURE` | 空結果 |
+| `CHECK / ANALYZE / REPAIR TABLE` | ダミー OK 結果 |
+
+#### インフラ（PG4WP にない機能）
+
+| 機能 | 説明 |
+|------|------|
+| **ネイティブ Prepared Statement** | `?` パラメータを Driver に分離。PG4WP は文字列結合 |
+| **Reader/Writer Split** | `DATABASE_READER_DSN` で読み書き分離 |
+| **AST ベース解析** | phpmyadmin/sql-parser。PG4WP は正規表現 |
+| **JSON → JSONB** | PG4WP は JSON 型未対応 |
+| **BLOB → BYTEA** | PG4WP は BLOB 型未対応 |
+| **DISTINCT + ORDER BY 列注入** | ORDER BY 列を SELECT に自動追加 |
+| **meta_value + 0 → CAST** | `CAST(meta_value AS BIGINT)` に自動変換 |
+| **574 ユニットテスト** | PG4WP は504スタブテスト |
 
 ### PG4WP のみの機能（WpPack にない）
 
