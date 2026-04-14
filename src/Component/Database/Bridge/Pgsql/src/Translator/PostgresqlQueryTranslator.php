@@ -13,18 +13,26 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Database\Bridge\Pgsql\Translator;
 
-use PhpMyAdmin\SqlParser\Lexer;
+use PhpMyAdmin\SqlParser\Parser;
+use PhpMyAdmin\SqlParser\Statements\AlterStatement;
+use PhpMyAdmin\SqlParser\Statements\CreateStatement;
+use PhpMyAdmin\SqlParser\Statements\DeleteStatement;
+use PhpMyAdmin\SqlParser\Statements\InsertStatement;
+use PhpMyAdmin\SqlParser\Statements\SelectStatement;
+use PhpMyAdmin\SqlParser\Statements\SetStatement;
+use PhpMyAdmin\SqlParser\Statements\TruncateStatement;
+use PhpMyAdmin\SqlParser\Statements\UpdateStatement;
 use PhpMyAdmin\SqlParser\Token;
 use PhpMyAdmin\SqlParser\TokenType;
 use WpPack\Component\Database\Translator\QueryTranslatorInterface;
 
 /**
- * Translates MySQL SQL to PostgreSQL SQL using token-stream walking.
+ * Translates MySQL SQL to PostgreSQL SQL using AST-guided token rewriting.
  *
- * Uses phpmyadmin/sql-parser's Lexer to tokenize the input SQL, then walks
- * the token stream applying transformations. String literals (TokenType::String)
- * are always passed through unchanged, making this approach inherently safe
- * from string-literal corruption.
+ * Uses phpmyadmin/sql-parser's Parser for AST (structural understanding) and
+ * QueryRewriter for token-level manipulation (expression transformation).
+ *
+ * String literals (TokenType::String) are never transformed.
  */
 final class PostgresqlQueryTranslator implements QueryTranslatorInterface
 {
@@ -40,11 +48,7 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         '/^\s*DROP\s+DATABASE\b/i',
     ];
 
-    /**
-     * Zero-argument function replacements.
-     *
-     * @var array<string, string>
-     */
+    /** @var array<string, string> */
     private const ZERO_ARG_MAP = [
         'CURDATE' => 'CURRENT_DATE',
         'CURTIME' => 'CURRENT_TIME',
@@ -53,11 +57,7 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         'FOUND_ROWS' => '-1',
     ];
 
-    /**
-     * Function rename map.
-     *
-     * @var array<string, string>
-     */
+    /** @var array<string, string> */
     private const RENAME_MAP = [
         'RAND' => 'random',
         'IFNULL' => 'COALESCE',
@@ -79,537 +79,478 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             return $result;
         }
 
-        $lexer = new Lexer($sql);
-        /** @var list<Token> $tokens */
-        $tokens = $lexer->list->tokens;
-        $count = $lexer->list->count;
+        $parser = new Parser($sql);
+        $stmt = $parser->statements[0] ?? null;
 
-        $firstKw = $this->findFirstKeyword($tokens, $count);
-
-        if ($firstKw === 'CREATE') {
-            return [$this->transformCreateTokens($tokens, $count)];
+        if ($stmt === null) {
+            return [$this->rewriteTokens($parser)];
         }
 
-        // SET statement (not caught by IGNORED_PATTERNS)
-        if ($firstKw === 'SET') {
-            return [];
+        return match (true) {
+            $stmt instanceof SelectStatement => [$this->translateSelect($stmt, $parser)],
+            $stmt instanceof InsertStatement => $this->translateInsert($stmt, $parser),
+            $stmt instanceof UpdateStatement => [$this->rewriteTokens($parser)],
+            $stmt instanceof DeleteStatement => [$this->rewriteTokens($parser)],
+            $stmt instanceof CreateStatement => [$this->translateCreate($parser)],
+            $stmt instanceof TruncateStatement => [$this->translateTruncate($stmt, $parser)],
+            $stmt instanceof AlterStatement => [$this->rewriteTokens($parser)],
+            $stmt instanceof SetStatement => [],
+            default => [$this->rewriteTokens($parser)],
+        };
+    }
+
+    // ── DML handlers ──
+
+    private function translateSelect(SelectStatement $stmt, Parser $parser): string
+    {
+        $rw = $this->createRewriter($parser);
+
+        while ($rw->hasMore()) {
+            $token = $rw->peek();
+            if ($token === null) {
+                break;
+            }
+
+            // SQL_CALC_FOUND_ROWS → skip
+            if ($token->type === TokenType::Keyword && $token->keyword === 'SQL_CALC_FOUND_ROWS') {
+                $rw->skip();
+                continue;
+            }
+
+            // LIMIT: rewrite using AST
+            if ($token->type === TokenType::Keyword && $token->keyword === 'LIMIT' && $stmt->limit !== null) {
+                $this->rewriteLimit($rw, $stmt->limit->offset, $stmt->limit->rowCount);
+                continue;
+            }
+
+            $this->translateExpression($rw);
         }
 
-        $result = $this->transformRange($tokens, 0, $count);
+        return $rw->getResult();
+    }
 
-        if ($result === '') {
-            return [];
+    /**
+     * @return list<string>
+     */
+    private function translateInsert(InsertStatement $stmt, Parser $parser): array
+    {
+        $rw = $this->createRewriter($parser);
+        $hasIgnore = $stmt->options !== null && $stmt->options->has('IGNORE');
+        $hasOnDuplicate = $stmt->onDuplicateSet !== null && $stmt->onDuplicateSet !== [];
+        $inOnConflictUpdate = false;
+
+        while ($rw->hasMore()) {
+            $token = $rw->peek();
+            if ($token === null) {
+                break;
+            }
+
+            // INSERT IGNORE → INSERT ... ON CONFLICT DO NOTHING
+            if ($token->type === TokenType::Keyword && $token->keyword === 'IGNORE' && $hasIgnore) {
+                $rw->skip(); // skip IGNORE
+                continue;
+            }
+
+            // ON DUPLICATE KEY UPDATE → ON CONFLICT DO UPDATE SET
+            if ($token->type === TokenType::Keyword && $token->keyword === 'ON' && $hasOnDuplicate && !$inOnConflictUpdate) {
+                $next = $rw->peekNth(2);
+                if ($next !== null && $next->keyword === 'DUPLICATE') {
+                    $rw->skip(); // ON
+                    $rw->skip(); // DUPLICATE
+                    $rw->skip(); // KEY
+                    $rw->skip(); // UPDATE
+                    $rw->add('ON CONFLICT DO UPDATE SET');
+                    $inOnConflictUpdate = true;
+                    continue;
+                }
+            }
+
+            // VALUES(col) in ON CONFLICT context → excluded.col
+            if ($inOnConflictUpdate && $token->type === TokenType::Keyword
+                && $token->keyword === 'VALUES'
+                && $rw->peekNth(2)?->token === '(') {
+                $rw->skip(); // VALUES
+                $rw->skip(); // (
+                $inner = $rw->peek();
+                $colName = $inner !== null ? ($inner->type === TokenType::Symbol && ($inner->flags & Token::FLAG_SYMBOL_BACKTICK) !== 0
+                    ? '"' . str_replace('"', '""', (string) $inner->value) . '"'
+                    : $inner->token) : '';
+                $rw->skip(); // column name
+                $rw->skip(); // )
+                $rw->add('excluded.' . $colName);
+                continue;
+            }
+
+            $this->translateExpression($rw);
+        }
+
+        $result = $rw->getResult();
+
+        // For INSERT IGNORE: append ON CONFLICT DO NOTHING
+        if ($hasIgnore && !$hasOnDuplicate) {
+            $result = rtrim($result, " \t\n\r;") . ' ON CONFLICT DO NOTHING';
         }
 
         return [$result];
     }
 
-    // ── Token stream transformation (DML) ──
-
-    /**
-     * @param list<Token> $tokens
-     */
-    private function transformRange(array $tokens, int $start, int $end): string
+    private function translateTruncate(TruncateStatement $stmt, Parser $parser): string
     {
-        $output = '';
-        $i = $start;
-        $inOnConflictUpdate = false;
+        $rw = $this->createRewriter($parser);
+        $rw->consumeAll();
 
-        while ($i < $end) {
-            $token = $tokens[$i];
+        return $rw->getResult();
+    }
 
-            if ($token->type === TokenType::Delimiter) {
-                $i++;
+    // ── DDL handlers ──
+
+    private function translateCreate(Parser $parser): string
+    {
+        $rw = $this->createRewriter($parser);
+
+        while ($rw->hasMore()) {
+            $token = $rw->peek();
+            if ($token === null) {
+                break;
+            }
+
+            // Data type keywords
+            if ($token->type === TokenType::Keyword
+                && ($token->flags & Token::FLAG_KEYWORD_DATA_TYPE) !== 0
+                && $token->keyword !== 'INTERVAL') {
+                $this->rewriteDataType($rw);
                 continue;
             }
 
-            // String literals — pass through unchanged
-            if ($token->type === TokenType::String) {
-                $output .= $token->token;
-                $i++;
+            // UNSIGNED → skip
+            if ($token->type === TokenType::Keyword && $token->keyword === 'UNSIGNED') {
+                $rw->skip();
                 continue;
             }
 
-            // Backtick identifiers → double-quoted
-            if ($token->type === TokenType::Symbol
-                && ($token->flags & Token::FLAG_SYMBOL_BACKTICK) !== 0) {
-                $output .= '"' . str_replace('"', '""', (string) $token->value) . '"';
-                $i++;
+            // AUTO_INCREMENT
+            if ($token->type === TokenType::Keyword && $token->keyword === 'AUTO_INCREMENT') {
+                $next = $rw->peekNth(2);
+                if ($next !== null && $next->type === TokenType::Operator && $next->token === '=') {
+                    $rw->skip(); // AUTO_INCREMENT
+                    $rw->skip(); // =
+                    $rw->skip(); // N
+                } else {
+                    $rw->skip();
+                    $rw->add('SERIAL');
+                }
                 continue;
             }
 
-            if ($token->type === TokenType::Keyword && $token->keyword !== null) {
-                $kw = $token->keyword;
+            // MySQL clauses → skip
+            if ($token->type === TokenType::Keyword
+                && \in_array($token->keyword, ['ENGINE', 'DEFAULT CHARSET', 'COLLATE', 'CHARACTER SET'], true)) {
+                $this->skipMysqlClause($rw);
+                continue;
+            }
 
-                // ── DML transforms ──
-
-                // INSERT ... IGNORE → INSERT INTO ... ON CONFLICT DO NOTHING
-                if ($kw === 'INSERT') {
-                    $nextIdx = $this->findNextNonWhitespace($tokens, $i + 1, $end);
-                    if ($nextIdx !== null
-                        && $tokens[$nextIdx]->type === TokenType::Keyword
-                        && $tokens[$nextIdx]->keyword === 'IGNORE') {
-                        $output .= 'INSERT';
-                        // Skip IGNORE, will be handled at end
-                        $i = $nextIdx + 1;
-                        // Find statement end and append ON CONFLICT DO NOTHING
-                        $rest = $this->transformRange($tokens, $i, $end);
-                        $output .= $rest;
-                        // Append ON CONFLICT DO NOTHING
-                        $output = rtrim($output, " \t\n\r;") . ' ON CONFLICT DO NOTHING';
-
-                        return $output;
-                    }
-                }
-
-                // ON DUPLICATE KEY UPDATE → ON CONFLICT DO UPDATE SET
-                if ($kw === 'ON') {
-                    $lastIdx = $this->matchKeywordSequence($tokens, $i, $end, ['DUPLICATE', 'KEY', 'UPDATE']);
-                    if ($lastIdx !== null) {
-                        $output .= 'ON CONFLICT DO UPDATE SET';
-                        $i = $lastIdx + 1;
-                        $inOnConflictUpdate = true;
-                        continue;
-                    }
-                }
-
-                // VALUES(col) in ON CONFLICT context → excluded.col
-                if ($inOnConflictUpdate && $kw === 'VALUES'
-                    && $this->isFollowedByOpenParen($tokens, $i, $end)) {
-                    $openIdx = $this->findNextNonWhitespace($tokens, $i + 1, $end);
-                    if ($openIdx !== null) {
-                        $closeIdx = $this->findMatchingParen($tokens, $openIdx, $end);
-                        if ($closeIdx !== null) {
-                            $inner = trim($this->buildRawRange($tokens, $openIdx + 1, $closeIdx));
-                            $output .= 'excluded.' . $inner;
-                            $i = $closeIdx + 1;
-                            continue;
-                        }
-                    }
-                }
-
-                // ── Zero-arg functions ──
-                if (isset(self::ZERO_ARG_MAP[$kw])
-                    && $this->isFollowedByEmptyParens($tokens, $i, $end)) {
-                    $output .= self::ZERO_ARG_MAP[$kw];
-                    $i = $this->skipPastParens($tokens, $i + 1, $end);
-                    continue;
-                }
-
-                // ── Function renames ──
-                if (isset(self::RENAME_MAP[$kw])
-                    && $this->isFollowedByOpenParen($tokens, $i, $end)) {
-                    $output .= self::RENAME_MAP[$kw];
-                    $i++;
-                    continue;
-                }
-
-                // ── Structural transforms ──
-                if ($this->isFollowedByOpenParen($tokens, $i, $end)) {
-                    $consumed = $this->tryStructuralTransform($tokens, $i, $end, $replacement);
-                    if ($consumed > 0) {
-                        $output .= $replacement;
-                        $i += $consumed;
-                        continue;
-                    }
-                }
-
-                // ── LIMIT offset,count → LIMIT count OFFSET offset ──
-                if ($kw === 'LIMIT') {
-                    $consumed = 0;
-                    $output .= $this->transformLimit($tokens, $i, $end, $consumed);
-                    $i += $consumed;
-                    continue;
-                }
-
-                // ── REGEXP → ~* ──
-                if ($kw === 'REGEXP') {
-                    $output .= '~*';
-                    $i++;
-                    continue;
-                }
-
-                // ── CAST(x AS SIGNED) → CAST(x AS INTEGER) ──
-                if ($kw === 'SIGNED') {
-                    $output .= 'INTEGER';
-                    $i++;
+            if ($token->type === TokenType::Keyword && $token->keyword === 'CHARACTER') {
+                $next = $rw->peekNth(2);
+                if ($next !== null && $next->type === TokenType::Keyword && $next->keyword === 'SET') {
+                    $this->skipMysqlClause($rw);
                     continue;
                 }
             }
 
-            // Default
-            $output .= $token->token;
-            $i++;
+            $rw->consume();
         }
 
-        return $output;
+        return $rw->getResult();
+    }
+
+    // ── Expression translation ──
+
+    private function translateExpression(QueryRewriter $rw): void
+    {
+        $token = $rw->peek();
+        if ($token === null) {
+            return;
+        }
+
+        // String literals → pass through
+        if ($token->type === TokenType::String) {
+            $rw->consume();
+
+            return;
+        }
+
+        if ($token->type !== TokenType::Keyword || $token->keyword === null) {
+            $rw->consume();
+
+            return;
+        }
+
+        $kw = $token->keyword;
+
+        // ── Zero-arg functions ──
+        if (isset(self::ZERO_ARG_MAP[$kw])
+            && $rw->peekNth(2)?->token === '('
+            && $rw->peekNth(3)?->token === ')') {
+            $rw->skip();
+            $rw->skip();
+            $rw->skip();
+            $rw->add(self::ZERO_ARG_MAP[$kw]);
+
+            return;
+        }
+
+        // ── Function renames ──
+        if (isset(self::RENAME_MAP[$kw])
+            && $rw->peekNth(2)?->token === '(') {
+            $rw->skip();
+            $rw->add(self::RENAME_MAP[$kw]);
+
+            return;
+        }
+
+        // ── Structural transforms ──
+        if ($rw->peekNth(2)?->token === '(') {
+            if ($this->tryStructuralTransform($rw, $kw)) {
+                return;
+            }
+        }
+
+        // ── LIMIT ──
+        if ($kw === 'LIMIT') {
+            $this->rewriteLimitFromTokens($rw);
+
+            return;
+        }
+
+        // ── REGEXP → ~* ──
+        if ($kw === 'REGEXP') {
+            $rw->skip();
+            $rw->add('~*');
+
+            return;
+        }
+
+        // ── SIGNED → INTEGER ──
+        if ($kw === 'SIGNED') {
+            $rw->skip();
+            $rw->add('INTEGER');
+
+            return;
+        }
+
+        $rw->consume();
     }
 
     // ── Structural transforms ──
 
-    /**
-     * @param list<Token> $tokens
-     */
-    private function tryStructuralTransform(array $tokens, int $i, int $end, ?string &$out): int
+    private function tryStructuralTransform(QueryRewriter $rw, string $kw): bool
     {
-        $kw = $tokens[$i]->keyword;
-
         return match ($kw) {
-            'DATE_ADD' => $this->transformDateAddSub($tokens, $i, $end, $out, '+'),
-            'DATE_SUB' => $this->transformDateAddSub($tokens, $i, $end, $out, '-'),
-            'DATE_FORMAT' => $this->transformDateFormat($tokens, $i, $end, $out),
-            'FROM_UNIXTIME' => $this->transformFromUnixtime($tokens, $i, $end, $out),
-            'LEFT' => $this->transformLeftFunc($tokens, $i, $end, $out),
-            'IF' => $this->transformIfFunc($tokens, $i, $end, $out),
-            default => 0,
+            'DATE_ADD' => $this->transformDateAddSub($rw, '+'),
+            'DATE_SUB' => $this->transformDateAddSub($rw, '-'),
+            'DATE_FORMAT' => $this->transformDateFormat($rw),
+            'FROM_UNIXTIME' => $this->transformFromUnixtime($rw),
+            'LEFT' => $this->transformLeftFunc($rw),
+            'IF' => $this->transformIfFunc($rw),
+            default => false,
         };
     }
 
-    /**
-     * DATE_ADD(d, INTERVAL n unit) → d + INTERVAL 'n unit'
-     * DATE_SUB(d, INTERVAL n unit) → d - INTERVAL 'n unit'
-     *
-     * @param list<Token> $tokens
-     */
-    private function transformDateAddSub(array $tokens, int $i, int $end, ?string &$out, string $sign): int
+    private function transformDateAddSub(QueryRewriter $rw, string $sign): bool
     {
-        $openIdx = $this->findNextNonWhitespace($tokens, $i + 1, $end);
-        if ($openIdx === null || $tokens[$openIdx]->token !== '(') {
-            return 0;
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 2) {
+            return false;
         }
 
-        $closeIdx = $this->findMatchingParen($tokens, $openIdx, $end);
-        if ($closeIdx === null) {
-            return 0;
+        $intervalParts = $this->parseIntervalArg($args[1]);
+        if ($intervalParts === null) {
+            return false;
         }
 
-        $args = $this->splitArguments($tokens, $openIdx + 1, $closeIdx);
-        if (\count($args) < 2) {
-            return 0;
-        }
+        [$number, $unit] = $intervalParts;
+        $dateExpr = $this->transformArgExpression($args[0]);
 
-        $dateExpr = trim($this->transformRange($tokens, $args[0][0], $args[0][1] + 1));
-        $interval = $this->extractInterval($tokens, $args[1][0], $args[1][1]);
+        $rw->add(\sprintf("%s %s INTERVAL '%s %s'", $dateExpr, $sign, $number, strtolower($unit)));
 
-        if ($interval === null) {
-            return 0;
-        }
-
-        [$number, $unit] = $interval;
-        $out = \sprintf("%s %s INTERVAL '%s %s'", $dateExpr, $sign, $number, strtolower($unit));
-
-        return $closeIdx - $i + 1;
+        return true;
     }
 
-    /**
-     * DATE_FORMAT(d, 'format') → TO_CHAR(d, 'converted_format')
-     *
-     * @param list<Token> $tokens
-     */
-    private function transformDateFormat(array $tokens, int $i, int $end, ?string &$out): int
+    private function transformDateFormat(QueryRewriter $rw): bool
     {
-        $openIdx = $this->findNextNonWhitespace($tokens, $i + 1, $end);
-        if ($openIdx === null || $tokens[$openIdx]->token !== '(') {
-            return 0;
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 2) {
+            return false;
         }
 
-        $closeIdx = $this->findMatchingParen($tokens, $openIdx, $end);
-        if ($closeIdx === null) {
-            return 0;
-        }
-
-        $args = $this->splitArguments($tokens, $openIdx + 1, $closeIdx);
-        if (\count($args) < 2) {
-            return 0;
-        }
-
-        $dateExpr = trim($this->transformRange($tokens, $args[0][0], $args[0][1] + 1));
-        $formatStr = $this->extractStringLiteral($tokens, $args[1][0], $args[1][1]);
-
-        if ($formatStr === null) {
-            return 0;
+        $dateExpr = $this->transformArgExpression($args[0]);
+        $formatToken = $this->findStringToken($args[1]);
+        if ($formatToken === null) {
+            return false;
         }
 
         $format = str_replace(
             ['%Y', '%m', '%d', '%H', '%i', '%s'],
             ['YYYY', 'MM', 'DD', 'HH24', 'MI', 'SS'],
-            $formatStr,
+            (string) $formatToken->value,
         );
 
-        $out = \sprintf("TO_CHAR(%s, '%s')", $dateExpr, $format);
+        $rw->add(\sprintf("TO_CHAR(%s, '%s')", $dateExpr, $format));
 
-        return $closeIdx - $i + 1;
+        return true;
     }
 
-    /**
-     * FROM_UNIXTIME(t) → TO_TIMESTAMP(t)
-     *
-     * @param list<Token> $tokens
-     */
-    private function transformFromUnixtime(array $tokens, int $i, int $end, ?string &$out): int
+    private function transformFromUnixtime(QueryRewriter $rw): bool
     {
-        $openIdx = $this->findNextNonWhitespace($tokens, $i + 1, $end);
-        if ($openIdx === null || $tokens[$openIdx]->token !== '(') {
-            return 0;
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 1) {
+            return false;
         }
 
-        $closeIdx = $this->findMatchingParen($tokens, $openIdx, $end);
-        if ($closeIdx === null) {
-            return 0;
-        }
+        $expr = $this->transformArgExpression($args[0]);
+        $rw->add(\sprintf('TO_TIMESTAMP(%s)', $expr));
 
-        $inner = trim($this->transformRange($tokens, $openIdx + 1, $closeIdx));
-        $out = \sprintf('TO_TIMESTAMP(%s)', $inner);
-
-        return $closeIdx - $i + 1;
+        return true;
     }
 
-    /**
-     * LEFT(s, n) → SUBSTRING(s FROM 1 FOR n)
-     *
-     * @param list<Token> $tokens
-     */
-    private function transformLeftFunc(array $tokens, int $i, int $end, ?string &$out): int
+    private function transformLeftFunc(QueryRewriter $rw): bool
     {
-        $openIdx = $this->findNextNonWhitespace($tokens, $i + 1, $end);
-        if ($openIdx === null || $tokens[$openIdx]->token !== '(') {
-            return 0;
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 2) {
+            return false;
         }
 
-        $closeIdx = $this->findMatchingParen($tokens, $openIdx, $end);
-        if ($closeIdx === null) {
-            return 0;
-        }
+        $strExpr = $this->transformArgExpression($args[0]);
+        $lenExpr = $this->transformArgExpression($args[1]);
+        $rw->add(\sprintf('SUBSTRING(%s FROM 1 FOR %s)', $strExpr, $lenExpr));
 
-        $args = $this->splitArguments($tokens, $openIdx + 1, $closeIdx);
-        if (\count($args) < 2) {
-            return 0;
-        }
-
-        $strExpr = trim($this->transformRange($tokens, $args[0][0], $args[0][1] + 1));
-        $lenExpr = trim($this->transformRange($tokens, $args[1][0], $args[1][1] + 1));
-
-        $out = \sprintf('SUBSTRING(%s FROM 1 FOR %s)', $strExpr, $lenExpr);
-
-        return $closeIdx - $i + 1;
+        return true;
     }
 
-    /**
-     * IF(cond, t, f) → CASE WHEN cond THEN t ELSE f END
-     *
-     * @param list<Token> $tokens
-     */
-    private function transformIfFunc(array $tokens, int $i, int $end, ?string &$out): int
+    private function transformIfFunc(QueryRewriter $rw): bool
     {
-        $openIdx = $this->findNextNonWhitespace($tokens, $i + 1, $end);
-        if ($openIdx === null || $tokens[$openIdx]->token !== '(') {
-            return 0;
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 3) {
+            return false;
         }
 
-        $closeIdx = $this->findMatchingParen($tokens, $openIdx, $end);
-        if ($closeIdx === null) {
-            return 0;
-        }
+        $cond = $this->transformArgExpression($args[0]);
+        $trueVal = $this->transformArgExpression($args[1]);
+        $falseVal = $this->transformArgExpression($args[2]);
+        $rw->add(\sprintf('CASE WHEN %s THEN %s ELSE %s END', $cond, $trueVal, $falseVal));
 
-        $args = $this->splitArguments($tokens, $openIdx + 1, $closeIdx);
-        if (\count($args) < 3) {
-            return 0;
-        }
-
-        $cond = trim($this->transformRange($tokens, $args[0][0], $args[0][1] + 1));
-        $trueVal = trim($this->transformRange($tokens, $args[1][0], $args[1][1] + 1));
-        $falseVal = trim($this->transformRange($tokens, $args[2][0], $args[2][1] + 1));
-
-        $out = \sprintf('CASE WHEN %s THEN %s ELSE %s END', $cond, $trueVal, $falseVal);
-
-        return $closeIdx - $i + 1;
+        return true;
     }
 
     // ── LIMIT ──
 
     /**
-     * @param list<Token> $tokens
+     * @param int|string $offset
+     * @param int|string $rowCount
      */
-    private function transformLimit(array $tokens, int $i, int $end, int &$consumed): string
+    private function rewriteLimit(QueryRewriter $rw, int|string $offset, int|string $rowCount): void
     {
-        $firstNumIdx = null;
+        $rw->skip(); // LIMIT
 
-        for ($j = $i + 1; $j < $end; $j++) {
-            if ($tokens[$j]->type === TokenType::Number) {
-                $firstNumIdx = $j;
-                break;
-            }
-            if ($tokens[$j]->type !== TokenType::Whitespace) {
-                break;
-            }
+        $next = $rw->peek();
+        if ($next !== null && $next->type === TokenType::Number) {
+            $rw->skip();
         }
 
-        if ($firstNumIdx === null) {
-            $consumed = 1;
-
-            return 'LIMIT';
-        }
-
-        $afterFirst = $this->findNextNonWhitespace($tokens, $firstNumIdx + 1, $end);
-
-        if ($afterFirst !== null
-            && $tokens[$afterFirst]->type === TokenType::Operator
-            && $tokens[$afterFirst]->token === ',') {
-            $secondNumIdx = null;
-
-            for ($j = $afterFirst + 1; $j < $end; $j++) {
-                if ($tokens[$j]->type === TokenType::Number) {
-                    $secondNumIdx = $j;
-                    break;
-                }
-                if ($tokens[$j]->type !== TokenType::Whitespace) {
-                    break;
-                }
-            }
-
-            if ($secondNumIdx !== null) {
-                $offset = $tokens[$firstNumIdx]->token;
-                $limitCount = $tokens[$secondNumIdx]->token;
-                $consumed = $secondNumIdx - $i + 1;
-
-                if ($offset === '0') {
-                    return 'LIMIT ' . $limitCount;
-                }
-
-                return 'LIMIT ' . $limitCount . ' OFFSET ' . $offset;
+        $next = $rw->peek();
+        if ($next !== null && $next->type === TokenType::Operator && $next->token === ',') {
+            $rw->skip();
+            $next = $rw->peek();
+            if ($next !== null && $next->type === TokenType::Number) {
+                $rw->skip();
             }
         }
 
-        $result = '';
-
-        for ($j = $i; $j <= $firstNumIdx; $j++) {
-            $result .= $tokens[$j]->token;
+        $next = $rw->peek();
+        if ($next !== null && $next->type === TokenType::Keyword && $next->keyword === 'OFFSET') {
+            $rw->skip();
+            $next = $rw->peek();
+            if ($next !== null && $next->type === TokenType::Number) {
+                $rw->skip();
+            }
         }
 
-        $consumed = $firstNumIdx - $i + 1;
-
-        return $result;
+        $offsetVal = (int) $offset;
+        if ($offsetVal === 0) {
+            $rw->add('LIMIT ' . $rowCount);
+        } else {
+            $rw->add('LIMIT ' . $rowCount . ' OFFSET ' . $offset);
+        }
     }
 
-    // ── DDL (CREATE TABLE) ──
-
-    /**
-     * @param list<Token> $tokens
-     */
-    private function transformCreateTokens(array $tokens, int $count): string
+    private function rewriteLimitFromTokens(QueryRewriter $rw): void
     {
-        $output = '';
-        $i = 0;
+        $rw->skip();
 
-        while ($i < $count) {
-            $token = $tokens[$i];
+        $first = $rw->peek();
+        if ($first === null || $first->type !== TokenType::Number) {
+            $rw->add('LIMIT');
 
-            if ($token->type === TokenType::Delimiter) {
-                $i++;
-                continue;
-            }
-
-            if ($token->type === TokenType::String) {
-                $output .= $token->token;
-                $i++;
-                continue;
-            }
-
-            if ($token->type === TokenType::Symbol
-                && ($token->flags & Token::FLAG_SYMBOL_BACKTICK) !== 0) {
-                $output .= '"' . str_replace('"', '""', (string) $token->value) . '"';
-                $i++;
-                continue;
-            }
-
-            if ($token->type === TokenType::Keyword && $token->keyword !== null) {
-                $kw = $token->keyword;
-
-                // Data type keywords → PostgreSQL types
-                if (($token->flags & Token::FLAG_KEYWORD_DATA_TYPE) !== 0
-                    && $kw !== 'INTERVAL') {
-                    $consumed = 0;
-                    $output .= $this->transformDataType($tokens, $i, $count, $consumed);
-                    $i += $consumed;
-                    continue;
-                }
-
-                // UNSIGNED → skip
-                if ($kw === 'UNSIGNED') {
-                    $i++;
-                    continue;
-                }
-
-                // AUTO_INCREMENT → SERIAL (column) or skip =N (table)
-                if ($kw === 'AUTO_INCREMENT') {
-                    $next = $this->findNextNonWhitespace($tokens, $i + 1, $count);
-                    if ($next !== null && $tokens[$next]->type === TokenType::Operator && $tokens[$next]->token === '=') {
-                        $i = $this->skipMysqlClause($tokens, $i, $count);
-                    } else {
-                        $output .= 'SERIAL';
-                        $i++;
-                    }
-                    continue;
-                }
-
-                // MySQL-specific clauses → skip
-                if (\in_array($kw, ['ENGINE', 'DEFAULT CHARSET', 'COLLATE', 'CHARACTER SET'], true)) {
-                    $i = $this->skipMysqlClause($tokens, $i, $count);
-                    continue;
-                }
-
-                if ($kw === 'CHARACTER') {
-                    $next = $this->findNextNonWhitespace($tokens, $i + 1, $count);
-                    if ($next !== null && $tokens[$next]->type === TokenType::Keyword
-                        && $tokens[$next]->keyword === 'SET') {
-                        $i = $this->skipMysqlClause($tokens, $i, $count);
-                        continue;
-                    }
-                }
-            }
-
-            $output .= $token->token;
-            $i++;
+            return;
         }
 
-        return $output;
+        $firstNum = $first->token;
+        $rw->skip();
+
+        $next = $rw->peek();
+        if ($next !== null && $next->type === TokenType::Operator && $next->token === ',') {
+            $rw->skip();
+            $second = $rw->peek();
+            if ($second !== null && $second->type === TokenType::Number) {
+                $secondNum = $second->token;
+                $rw->skip();
+
+                if ($firstNum === '0') {
+                    $rw->add('LIMIT ' . $secondNum);
+                } else {
+                    $rw->add('LIMIT ' . $secondNum . ' OFFSET ' . $firstNum);
+                }
+
+                return;
+            }
+        }
+
+        $rw->add('LIMIT ' . $firstNum);
     }
 
-    /**
-     * @param list<Token> $tokens
-     */
-    private function transformDataType(array $tokens, int $i, int $count, int &$consumed): string
-    {
-        $kw = $tokens[$i]->keyword ?? '';
-        $consumed = 1;
+    // ── DDL helpers ──
 
-        // Detect trailing (N) if present
-        $closeIdx = null;
-        $next = $this->findNextNonWhitespace($tokens, $i + 1, $count);
-        if ($next !== null && $tokens[$next]->type === TokenType::Operator && $tokens[$next]->token === '(') {
-            $closeIdx = $this->findMatchingParen($tokens, $next, $count);
+    private function rewriteDataType(QueryRewriter $rw): void
+    {
+        $token = $rw->peek();
+        if ($token === null) {
+            return;
         }
 
-        // Types that PostgreSQL supports natively with (N) — keep as-is, don't consume (N)
+        $kw = $token->keyword ?? '';
+
+        // Types that PostgreSQL supports natively with (N) — pass through
         if (\in_array($kw, ['VARCHAR', 'CHAR', 'DECIMAL', 'NUMERIC', 'REAL'], true)) {
-            return $tokens[$i]->token;
+            $rw->consume();
+
+            return;
         }
 
-        // Types that are valid in PostgreSQL — just uppercase, strip (N) if present
+        // Types that are valid in PostgreSQL — uppercase, strip (N)
         if (\in_array($kw, ['TEXT', 'DATE', 'TIME', 'TIMESTAMP', 'BOOLEAN', 'INTEGER', 'SMALLINT', 'BIGINT'], true)) {
-            if ($closeIdx !== null) {
-                $consumed = $closeIdx - $i + 1;
+            $rw->skip();
+            // Skip trailing (N)
+            $next = $rw->peek();
+            if ($next !== null && $next->type === TokenType::Operator && $next->token === '(') {
+                $this->skipMatchingParen($rw);
             }
+            $rw->add($kw);
 
-            return $kw;
+            return;
         }
 
-        // Types that need conversion — consume (N) first
-        if ($closeIdx !== null) {
-            $consumed = $closeIdx - $i + 1;
-        }
-
-        return match (true) {
+        // Types that need conversion
+        $pgsqlType = match (true) {
             $kw === 'TINYINT' => 'SMALLINT',
             \in_array($kw, ['MEDIUMINT', 'INT'], true) => 'INTEGER',
             $kw === 'DOUBLE' => 'DOUBLE PRECISION',
@@ -620,45 +561,207 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             \in_array($kw, ['VARBINARY', 'BINARY'], true) => 'BYTEA',
             $kw === 'ENUM' => 'TEXT',
             $kw === 'JSON' => 'JSONB',
-            default => $tokens[$i]->token,
+            default => null,
         };
+
+        if ($pgsqlType === null) {
+            $rw->consume();
+
+            return;
+        }
+
+        $rw->skip();
+        // Skip trailing (N) or ENUM(...)
+        $next = $rw->peek();
+        if ($next !== null && $next->type === TokenType::Operator && $next->token === '(') {
+            $this->skipMatchingParen($rw);
+        }
+        $rw->add($pgsqlType);
+    }
+
+    private function skipMysqlClause(QueryRewriter $rw): void
+    {
+        $rw->skip(); // keyword
+
+        $next = $rw->peek();
+        if ($next !== null && $next->type === TokenType::Keyword && $next->keyword === 'SET') {
+            $rw->skip();
+        }
+
+        $next = $rw->peek();
+        if ($next !== null && $next->type === TokenType::Operator && $next->token === '=') {
+            $rw->skip();
+            $rw->skip(); // value
+        } elseif ($next !== null
+            && \in_array($next->type, [TokenType::None, TokenType::String, TokenType::Number], true)) {
+            $rw->skip();
+        }
+    }
+
+    private function skipMatchingParen(QueryRewriter $rw): void
+    {
+        $depth = 0;
+
+        while ($rw->hasMore()) {
+            $t = $rw->skip();
+            if ($t === null) {
+                break;
+            }
+            if ($t->token === '(') {
+                $depth++;
+            } elseif ($t->token === ')') {
+                $depth--;
+                if ($depth === 0) {
+                    break;
+                }
+            }
+        }
+    }
+
+    // ── Argument extraction ──
+
+    /**
+     * @return list<list<Token>>|null
+     */
+    private function extractFunctionArgs(QueryRewriter $rw): ?array
+    {
+        $rw->skip(); // function name
+        $openParen = $rw->peek();
+        if ($openParen === null || $openParen->token !== '(') {
+            return null;
+        }
+        $rw->skip(); // (
+
+        $args = [[]];
+        $depth = 1;
+        $argIndex = 0;
+
+        while ($rw->hasMore()) {
+            $token = $rw->peek();
+            if ($token === null) {
+                break;
+            }
+
+            if ($token->type === TokenType::Operator && $token->token === '(') {
+                $depth++;
+            } elseif ($token->type === TokenType::Operator && $token->token === ')') {
+                $depth--;
+                if ($depth === 0) {
+                    $rw->skip();
+                    break;
+                }
+            } elseif ($token->type === TokenType::Operator && $token->token === ',' && $depth === 1) {
+                $rw->skip();
+                $argIndex++;
+                $args[$argIndex] = [];
+                continue;
+            }
+
+            $args[$argIndex][] = $rw->skip();
+        }
+
+        return $args;
     }
 
     /**
      * @param list<Token> $tokens
      */
-    private function skipMysqlClause(array $tokens, int $i, int $count): int
+    private function transformArgExpression(array $tokens): string
     {
-        $i++;
-
-        while ($i < $count && $tokens[$i]->type === TokenType::Whitespace) {
-            $i++;
+        $semantic = array_filter($tokens, fn(Token $t) => !$this->isSemanticVoid($t));
+        if ($semantic === []) {
+            return '';
         }
 
-        if ($i < $count && $tokens[$i]->type === TokenType::Keyword
-            && $tokens[$i]->keyword === 'SET') {
-            $i++;
-            while ($i < $count && $tokens[$i]->type === TokenType::Whitespace) {
-                $i++;
+        $rw = new QueryRewriter($tokens, \count($tokens));
+
+        while ($rw->hasMore()) {
+            $this->translateExpression($rw);
+        }
+
+        return trim($rw->getResult());
+    }
+
+    /**
+     * @param list<Token> $tokens
+     */
+    private function findStringToken(array $tokens): ?Token
+    {
+        foreach ($tokens as $token) {
+            if ($token->type === TokenType::String) {
+                return $token;
             }
         }
 
-        if ($i < $count && $tokens[$i]->type === TokenType::Operator && $tokens[$i]->token === '=') {
-            $i++;
-            while ($i < $count && $tokens[$i]->type === TokenType::Whitespace) {
-                $i++;
-            }
+        return null;
+    }
 
-            if ($i < $count
-                && \in_array($tokens[$i]->type, [TokenType::None, TokenType::String, TokenType::Number, TokenType::Keyword], true)) {
-                $i++;
+    /**
+     * @param list<Token> $tokens
+     * @return array{string, string}|null
+     */
+    private function parseIntervalArg(array $tokens): ?array
+    {
+        $number = null;
+        $unit = null;
+
+        foreach ($tokens as $token) {
+            if ($this->isSemanticVoid($token)) {
+                continue;
             }
-        } elseif ($i < $count
-            && \in_array($tokens[$i]->type, [TokenType::None, TokenType::String, TokenType::Number], true)) {
-            $i++;
+            if ($token->type === TokenType::Keyword && $token->keyword === 'INTERVAL') {
+                continue;
+            }
+            if ($token->type === TokenType::Number && $number === null) {
+                $number = $token->token;
+                continue;
+            }
+            if ($token->type === TokenType::Keyword && $number !== null) {
+                $unit = $token->token;
+                break;
+            }
         }
 
-        return $i;
+        if ($number === null || $unit === null) {
+            return null;
+        }
+
+        return [$number, $unit];
+    }
+
+    private function isSemanticVoid(Token $token): bool
+    {
+        return $token->type === TokenType::Whitespace
+            || $token->type === TokenType::Comment
+            || $token->type === TokenType::Delimiter;
+    }
+
+    // ── Generic token rewrite ──
+
+    private function rewriteTokens(Parser $parser): string
+    {
+        $rw = $this->createRewriter($parser);
+
+        while ($rw->hasMore()) {
+            $token = $rw->peek();
+            if ($token === null) {
+                break;
+            }
+
+            if ($token->type === TokenType::Keyword && $token->keyword === 'LIMIT') {
+                $this->rewriteLimitFromTokens($rw);
+                continue;
+            }
+
+            $this->translateExpression($rw);
+        }
+
+        return $rw->getResult();
+    }
+
+    private function createRewriter(Parser $parser): QueryRewriter
+    {
+        return new QueryRewriter($parser->list->tokens, $parser->list->count);
     }
 
     // ── Meta commands ──
@@ -709,221 +812,6 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
                 "SELECT column_name AS \"Field\", data_type AS \"Type\" FROM information_schema.columns WHERE table_schema = 'public' AND table_name = '%s'",
                 $m[1],
             )];
-        }
-
-        return null;
-    }
-
-    // ── Token helpers ──
-
-    /**
-     * @param list<Token> $tokens
-     */
-    private function findFirstKeyword(array $tokens, int $count): ?string
-    {
-        for ($i = 0; $i < $count; $i++) {
-            if ($tokens[$i]->type === TokenType::Keyword) {
-                return $tokens[$i]->keyword;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * @param list<Token> $tokens
-     */
-    private function findNextNonWhitespace(array $tokens, int $from, int $end): ?int
-    {
-        for ($i = $from; $i < $end; $i++) {
-            if ($tokens[$i]->type !== TokenType::Whitespace && $tokens[$i]->type !== TokenType::Comment) {
-                return $i;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * @param list<Token> $tokens
-     */
-    private function findMatchingParen(array $tokens, int $openIdx, int $end): ?int
-    {
-        $depth = 1;
-
-        for ($j = $openIdx + 1; $j < $end; $j++) {
-            if ($tokens[$j]->type === TokenType::Operator) {
-                if ($tokens[$j]->token === '(') {
-                    $depth++;
-                } elseif ($tokens[$j]->token === ')') {
-                    $depth--;
-                    if ($depth === 0) {
-                        return $j;
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * @param list<Token> $tokens
-     * @return list<array{int, int}>
-     */
-    private function splitArguments(array $tokens, int $start, int $end): array
-    {
-        $args = [];
-        $argStart = $start;
-        $depth = 0;
-
-        for ($i = $start; $i < $end; $i++) {
-            if ($tokens[$i]->type === TokenType::Operator) {
-                if ($tokens[$i]->token === '(') {
-                    $depth++;
-                } elseif ($tokens[$i]->token === ')') {
-                    $depth--;
-                } elseif ($tokens[$i]->token === ',' && $depth === 0) {
-                    $args[] = [$argStart, $i - 1];
-                    $argStart = $i + 1;
-                }
-            }
-        }
-
-        $args[] = [$argStart, $end - 1];
-
-        return $args;
-    }
-
-    /**
-     * @param list<Token> $tokens
-     */
-    private function buildRawRange(array $tokens, int $start, int $end): string
-    {
-        $output = '';
-
-        for ($i = $start; $i < $end; $i++) {
-            if ($tokens[$i]->type === TokenType::Delimiter) {
-                continue;
-            }
-
-            if ($tokens[$i]->type === TokenType::Symbol
-                && ($tokens[$i]->flags & Token::FLAG_SYMBOL_BACKTICK) !== 0) {
-                $output .= '"' . str_replace('"', '""', (string) $tokens[$i]->value) . '"';
-            } else {
-                $output .= $tokens[$i]->token;
-            }
-        }
-
-        return $output;
-    }
-
-    /**
-     * @param list<Token> $tokens
-     */
-    private function isFollowedByOpenParen(array $tokens, int $i, int $end): bool
-    {
-        $next = $this->findNextNonWhitespace($tokens, $i + 1, $end);
-
-        return $next !== null
-            && $tokens[$next]->type === TokenType::Operator
-            && $tokens[$next]->token === '(';
-    }
-
-    /**
-     * @param list<Token> $tokens
-     */
-    private function isFollowedByEmptyParens(array $tokens, int $i, int $end): bool
-    {
-        $open = $this->findNextNonWhitespace($tokens, $i + 1, $end);
-        if ($open === null || $tokens[$open]->token !== '(') {
-            return false;
-        }
-
-        $close = $this->findNextNonWhitespace($tokens, $open + 1, $end);
-
-        return $close !== null && $tokens[$close]->token === ')';
-    }
-
-    /**
-     * @param list<Token> $tokens
-     */
-    private function skipPastParens(array $tokens, int $from, int $end): int
-    {
-        $open = $this->findNextNonWhitespace($tokens, $from, $end);
-        if ($open === null || $tokens[$open]->token !== '(') {
-            return $from;
-        }
-
-        $close = $this->findMatchingParen($tokens, $open, $end);
-
-        return $close !== null ? $close + 1 : $from;
-    }
-
-    /**
-     * @param list<Token>   $tokens
-     * @param list<string>  $keywords
-     */
-    private function matchKeywordSequence(array $tokens, int $i, int $end, array $keywords): ?int
-    {
-        $pos = $i;
-
-        foreach ($keywords as $expected) {
-            $next = $this->findNextNonWhitespace($tokens, $pos + 1, $end);
-            if ($next === null || $tokens[$next]->type !== TokenType::Keyword || $tokens[$next]->keyword !== $expected) {
-                return null;
-            }
-            $pos = $next;
-        }
-
-        return $pos;
-    }
-
-    /**
-     * @param list<Token> $tokens
-     * @return array{string, string}|null
-     */
-    private function extractInterval(array $tokens, int $start, int $end): ?array
-    {
-        $number = null;
-        $unit = null;
-
-        for ($i = $start; $i <= $end; $i++) {
-            if ($tokens[$i]->type === TokenType::Whitespace || $tokens[$i]->type === TokenType::Delimiter) {
-                continue;
-            }
-
-            if ($tokens[$i]->type === TokenType::Keyword && $tokens[$i]->keyword === 'INTERVAL') {
-                continue;
-            }
-
-            if ($tokens[$i]->type === TokenType::Number && $number === null) {
-                $number = $tokens[$i]->token;
-                continue;
-            }
-
-            if ($tokens[$i]->type === TokenType::Keyword && $number !== null) {
-                $unit = $tokens[$i]->token;
-                break;
-            }
-        }
-
-        if ($number === null || $unit === null) {
-            return null;
-        }
-
-        return [$number, $unit];
-    }
-
-    /**
-     * @param list<Token> $tokens
-     */
-    private function extractStringLiteral(array $tokens, int $start, int $end): ?string
-    {
-        for ($i = $start; $i <= $end; $i++) {
-            if ($tokens[$i]->type === TokenType::String) {
-                return (string) $tokens[$i]->value;
-            }
         }
 
         return null;
