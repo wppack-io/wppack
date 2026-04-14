@@ -723,13 +723,37 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         $rw->consumeAll();
         $sql = $rw->getResult();
 
+        $table = $stmt->table->table ?? '';
+
+        // ADD INDEX / ADD KEY / ADD UNIQUE → CREATE INDEX
+        if (preg_match('/\bADD\s+(UNIQUE\s+)?(INDEX|KEY)\b/i', $sql)) {
+            $unique = preg_match('/\bADD\s+UNIQUE\b/i', $sql) ? 'UNIQUE ' : '';
+            // Extract index name and columns from the SQL
+            if (preg_match('/(?:INDEX|KEY)\s+"?(\w+)"?\s*(\([^)]+\))/i', $sql, $m)) {
+                return [\sprintf(
+                    'CREATE %sINDEX %s ON %s %s',
+                    $unique,
+                    $this->quoteId($m[1]),
+                    $this->quoteId($table),
+                    $m[2],
+                )];
+            }
+
+            return [];
+        }
+
+        // DROP INDEX → DROP INDEX IF EXISTS
+        if (preg_match('/\bDROP\s+(INDEX|KEY)\s+"?(\w+)"?/i', $sql, $m)) {
+            return [\sprintf('DROP INDEX IF EXISTS %s', $this->quoteId($m[2]))];
+        }
+
         // ADD COLUMN (but not ADD INDEX, ADD KEY, etc.)
         if (preg_match('/\bADD\s+(?!INDEX\b|KEY\b|UNIQUE\b|PRIMARY\b|CONSTRAINT\b)/i', $sql)) {
             return [$this->transformDdlTypes($sql)];
         }
 
         // DROP COLUMN — SQLite 3.35.0+ supports this natively
-        if (preg_match('/\bDROP\s+(COLUMN\s+)?/i', $sql)) {
+        if (preg_match('/\bDROP\s+COLUMN\b/i', $sql)) {
             return [$sql];
         }
 

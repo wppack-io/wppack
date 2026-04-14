@@ -210,6 +210,19 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             $sql,
         );
 
+        // AS 'alias' → AS "alias" (PgSQL requires double quotes for identifiers)
+        // Plugins like NextGen Gallery generate AS 'single_quoted'
+        $sql = (string) preg_replace(
+            "/\\bAS\\s+'([^']+)'/",
+            'AS "$1"',
+            $sql,
+        );
+
+        // Remove ORDER BY in COUNT(*) queries (useless, hurts performance)
+        if (preg_match('/^\s*SELECT\s+COUNT\s*\(/i', $sql)) {
+            $sql = (string) preg_replace('/\s+ORDER\s+BY\s+[^)]+$/i', '', $sql);
+        }
+
         return $sql;
     }
 
@@ -515,19 +528,39 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
     /**
      * @return list<string>
      */
+    /**
+     * @return list<string>
+     */
     private function translateAlter(AlterStatement $stmt, Parser $parser): array
     {
-        // CHANGE COLUMN → ALTER COLUMN TYPE + RENAME COLUMN
+        $table = $stmt->table->table ?? '';
+
         if ($stmt->altered !== null) {
             foreach ($stmt->altered as $alter) {
                 $optStr = strtoupper(trim(implode(' ', array_filter($alter->options->options ?? [], '\is_string'))));
+
+                // CHANGE COLUMN → ALTER COLUMN TYPE
                 if (str_contains($optStr, 'CHANGE')) {
                     return $this->translateAlterChange($stmt, $alter);
                 }
             }
         }
 
-        return [$this->rewriteTokens($parser)];
+        // Token-rewrite then post-process for INDEX operations
+        $sql = $this->rewriteTokens($parser);
+        $quotedTable = $this->quoteId($table);
+
+        // ADD [UNIQUE] INDEX name (cols) → CREATE [UNIQUE] INDEX name ON table (cols)
+        if (preg_match('/\bADD\s+(UNIQUE\s+)?(?:INDEX|KEY)\s+("?\w+"?)\s*(\([^)]+\))/i', $sql, $m)) {
+            return [\sprintf('CREATE %sINDEX %s ON %s %s', $m[1], $m[2], $quotedTable, $m[3])];
+        }
+
+        // DROP INDEX name → DROP INDEX IF EXISTS name
+        if (preg_match('/\bDROP\s+(?:INDEX|KEY)\s+("?\w+"?)/i', $sql, $m)) {
+            return [\sprintf('DROP INDEX IF EXISTS %s', $m[1])];
+        }
+
+        return [$sql];
     }
 
     /**

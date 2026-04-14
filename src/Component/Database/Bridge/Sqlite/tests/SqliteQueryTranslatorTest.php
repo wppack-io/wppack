@@ -392,12 +392,30 @@ final class SqliteQueryTranslatorTest extends TestCase
     // ── ALTER TABLE edge cases ──
 
     #[Test]
-    public function alterTableAddIndexSkipped(): void
+    public function alterTableAddIndex(): void
     {
         $result = $this->translator->translate('ALTER TABLE `wp_posts` ADD INDEX `idx_status` (`post_status`)');
 
-        // SQLite doesn't support ALTER TABLE ADD INDEX — silently handled
-        self::assertIsArray($result);
+        self::assertCount(1, $result);
+        self::assertStringContainsString('CREATE INDEX', $result[0]);
+        self::assertStringContainsString('"idx_status"', $result[0]);
+        self::assertStringContainsString('ON', $result[0]);
+    }
+
+    #[Test]
+    public function alterTableAddUniqueIndex(): void
+    {
+        $result = $this->translator->translate('ALTER TABLE `wp_posts` ADD UNIQUE INDEX `slug_idx` (`post_name`)');
+
+        self::assertStringContainsString('CREATE UNIQUE INDEX', $result[0]);
+    }
+
+    #[Test]
+    public function alterTableDropIndex(): void
+    {
+        $result = $this->translator->translate('ALTER TABLE `wp_posts` DROP INDEX `post_date_gmt`');
+
+        self::assertStringContainsString('DROP INDEX IF EXISTS', $result[0]);
     }
 
     #[Test]

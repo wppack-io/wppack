@@ -1204,4 +1204,60 @@ SQL;
         self::assertStringContainsString('TO_CHAR', $result[0]);
         self::assertStringContainsString('FMHH24', $result[0]);
     }
+
+    // ── Plugin compatibility tests ──
+
+    #[Test]
+    public function alterTableAddIndex(): void
+    {
+        $result = $this->translator->translate(
+            'ALTER TABLE `wp_posts` ADD INDEX `post_author_idx` (`post_author`)',
+        );
+
+        self::assertStringContainsString('CREATE INDEX', $result[0]);
+        self::assertStringContainsString('ON', $result[0]);
+        self::assertStringNotContainsString('ALTER TABLE', $result[0]);
+    }
+
+    #[Test]
+    public function alterTableAddUniqueIndex(): void
+    {
+        $result = $this->translator->translate(
+            'ALTER TABLE `wp_posts` ADD UNIQUE INDEX `slug_idx` (`post_name`)',
+        );
+
+        self::assertStringContainsString('CREATE UNIQUE INDEX', $result[0]);
+    }
+
+    #[Test]
+    public function alterTableDropIndex(): void
+    {
+        $result = $this->translator->translate(
+            'ALTER TABLE `wp_posts` DROP INDEX `post_date_gmt`',
+        );
+
+        self::assertStringContainsString('DROP INDEX IF EXISTS', $result[0]);
+    }
+
+    #[Test]
+    public function asSingleQuoteToDoubleQuote(): void
+    {
+        $result = $this->translator->translate(
+            "SELECT option_value AS 'my_alias' FROM `wp_options`",
+        );
+
+        self::assertStringContainsString('AS "my_alias"', $result[0]);
+        self::assertStringNotContainsString("AS 'my_alias'", $result[0]);
+    }
+
+    #[Test]
+    public function countWithOrderByRemoved(): void
+    {
+        $result = $this->translator->translate(
+            'SELECT COUNT(*) FROM `wp_posts` ORDER BY post_date DESC',
+        );
+
+        self::assertStringNotContainsString('ORDER BY', $result[0]);
+        self::assertStringContainsString('COUNT(*)', $result[0]);
+    }
 }
