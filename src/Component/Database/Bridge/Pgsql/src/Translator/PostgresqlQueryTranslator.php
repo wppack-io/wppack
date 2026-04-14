@@ -579,7 +579,8 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             $fieldSql = $alter->field->build();
             // Extract type from field definition
             if ($newName !== null) {
-                $results[] = \sprintf('ALTER TABLE %s ALTER COLUMN %s TYPE %s',
+                $results[] = \sprintf(
+                    'ALTER TABLE %s ALTER COLUMN %s TYPE %s',
                     $table,
                     $this->quoteId($oldName),
                     $this->extractTypeFromField($fieldSql),

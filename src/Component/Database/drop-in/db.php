@@ -33,7 +33,9 @@ if (defined('DATABASE_DSN') && DATABASE_DSN !== '') {
         [$wppackDbHost, $wppackDbPort] = explode(':', $wppackDbHost, 2);
     }
 
-    $wppackDbCharset = \defined('DB_CHARSET') && DB_CHARSET !== '' ? DB_CHARSET : 'utf8mb4';
+    /** @var string $wppackDbCharset */
+    $wppackDbCharset = \defined('DB_CHARSET') ? DB_CHARSET : 'utf8mb4';
+    $wppackDbCharset = $wppackDbCharset !== '' ? $wppackDbCharset : 'utf8mb4';
 
     $wppackDatabaseDsn = \sprintf(
         'mysql://%s:%s@%s:%s/%s?charset=%s',
