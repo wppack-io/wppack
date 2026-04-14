@@ -156,10 +156,8 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 
 | 機能 | 説明 |
 |------|------|
-| **DATE_FORMAT 37仕様** | WpPack は21仕様 |
-| **ゼロ日付処理** | '0000-00-00' の特殊ハンドリング |
+| **DATE_FORMAT 37仕様** | WpPack は30仕様（残り7仕様は WordPress で未使用） |
 | **WordPress フック統合** | `pre_query_sqlite_db` 等のフック |
-| **WEEK(d, mode)** | mode パラメータ対応 |
 
 ## PG4WP との比較
 
@@ -196,8 +194,6 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 
 | 機能 | 説明 | WordPress 影響 |
 |------|------|---------------|
-| meta_value 型キャスト | `meta_value+0` → `CAST(meta_value AS BIGINT)` | 高（WP_Meta_Query 数値比較） |
-| DISTINCT + ORDER BY 列注入 | ORDER BY 列を SELECT に自動追加 | 高（PgSQL 制約） |
 | WordPress プラグイン互換 | Akismet comment_ID 正規化、NextGen Gallery AS 処理 | 中 |
 | wp_options マルチ行 INSERT 分割 | 複数行 INSERT を個別実行 | 低 |
 | シーケンス setval() 管理 | WPMU インストール時 | 低 |
@@ -212,5 +208,5 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 | SHOW 対応 | ★★★ | ★★★ | ★★★★ |
 | 型安全性 | ★★ (文字列結合) | ★★ | ★★★★ (Prepared Statement) |
 | マルチエンジン | ★ (SQLite のみ) | ★ (PgSQL のみ) | ★★★★★ (SQLite + PgSQL + DSQL) |
-| テスト | ★★ (e2e 依存) | ★★★ (504 スタブ) | ★★★★★ (560 ユニットテスト) |
-| WP 固有対応 | ★★★★★ | ★★★★ | ★★★★ |
+| テスト | ★★ (e2e 依存) | ★★★ (504 スタブ) | ★★★★★ (573 ユニットテスト) |
+| WP 固有対応 | ★★★★★ | ★★★★ | ★★★★★ |
