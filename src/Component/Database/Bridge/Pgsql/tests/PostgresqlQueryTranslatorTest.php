@@ -1260,4 +1260,123 @@ SQL;
         self::assertStringNotContainsString('ORDER BY', $result[0]);
         self::assertStringContainsString('COUNT(*)', $result[0]);
     }
+
+    // ── Coverage gap tests ──
+
+    #[Test]
+    public function curtimeFunction(): void
+    {
+        $result = $this->translator->translate('SELECT CURTIME()');
+
+        self::assertStringContainsString('CURRENT_TIME', $result[0]);
+    }
+
+    #[Test]
+    public function charLengthFunction(): void
+    {
+        $result = $this->translator->translate('SELECT CHAR_LENGTH(name) FROM t');
+
+        self::assertStringContainsString('LENGTH(name)', $result[0]);
+    }
+
+    #[Test]
+    public function characterLengthFunction(): void
+    {
+        $result = $this->translator->translate('SELECT CHARACTER_LENGTH(name) FROM t');
+
+        self::assertStringContainsString('LENGTH(name)', $result[0]);
+    }
+
+    #[Test]
+    public function midFunction(): void
+    {
+        $result = $this->translator->translate('SELECT MID(name, 2, 3) FROM t');
+
+        self::assertStringContainsString('SUBSTRING(name, 2, 3)', $result[0]);
+    }
+
+    #[Test]
+    public function dayOfYearFunction(): void
+    {
+        $result = $this->translator->translate('SELECT DAYOFYEAR(created) FROM t');
+
+        self::assertStringContainsString('EXTRACT(DOY', $result[0]);
+    }
+
+    #[Test]
+    public function weekdayFunction(): void
+    {
+        $result = $this->translator->translate('SELECT WEEKDAY(created) FROM t');
+
+        self::assertStringContainsString('EXTRACT(ISODOW', $result[0]);
+        self::assertStringContainsString('- 1)', $result[0]);
+    }
+
+    #[Test]
+    public function groupConcatWithSeparator(): void
+    {
+        $result = $this->translator->translate("SELECT GROUP_CONCAT(name SEPARATOR '|') FROM t GROUP BY id");
+
+        self::assertStringContainsString("STRING_AGG(name::text, '|')", $result[0]);
+    }
+
+    #[Test]
+    public function groupConcatWithoutSeparator(): void
+    {
+        $result = $this->translator->translate('SELECT GROUP_CONCAT(name) FROM t GROUP BY id');
+
+        self::assertStringContainsString("STRING_AGG(name::text, ',')", $result[0]);
+    }
+
+    #[Test]
+    public function unhexFunction(): void
+    {
+        $result = $this->translator->translate("SELECT UNHEX('48656C6C6F')");
+
+        self::assertStringContainsString("decode(", $result[0]);
+        self::assertStringContainsString("'hex'", $result[0]);
+    }
+
+    #[Test]
+    public function toBase64Function(): void
+    {
+        $result = $this->translator->translate("SELECT TO_BASE64('Hello')");
+
+        self::assertStringContainsString("encode(", $result[0]);
+        self::assertStringContainsString("'base64'", $result[0]);
+    }
+
+    #[Test]
+    public function fromBase64Function(): void
+    {
+        $result = $this->translator->translate("SELECT FROM_BASE64('SGVsbG8=')");
+
+        self::assertStringContainsString("decode(", $result[0]);
+        self::assertStringContainsString("'base64'", $result[0]);
+    }
+
+    #[Test]
+    public function inetAtonFunction(): void
+    {
+        $result = $this->translator->translate("SELECT INET_ATON('10.0.0.1')");
+
+        self::assertStringContainsString('::inet', $result[0]);
+    }
+
+    #[Test]
+    public function inetNtoaFunction(): void
+    {
+        $result = $this->translator->translate('SELECT INET_NTOA(167772161)');
+
+        self::assertStringContainsString('::inet', $result[0]);
+        self::assertStringContainsString('::text', $result[0]);
+    }
+
+    #[Test]
+    public function highPrioritySkipped(): void
+    {
+        $result = $this->translator->translate('INSERT HIGH_PRIORITY INTO `t` VALUES (1)');
+
+        self::assertStringNotContainsString('HIGH_PRIORITY', $result[0]);
+    }
 }

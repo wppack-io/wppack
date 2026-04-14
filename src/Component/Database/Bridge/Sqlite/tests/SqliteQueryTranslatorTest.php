@@ -1804,4 +1804,107 @@ SQL);
 
         self::assertStringContainsString('strftime', $result[0]);
     }
+
+    // ── Coverage gap tests ──
+
+    #[Test]
+    public function curtimeFunction(): void
+    {
+        $result = $this->translator->translate('SELECT CURTIME()');
+
+        self::assertStringContainsString("time('now')", $result[0]);
+    }
+
+    #[Test]
+    public function currentTimestampKeyword(): void
+    {
+        $result = $this->translator->translate('SELECT CURRENT_TIMESTAMP');
+
+        self::assertStringContainsString("datetime('now')", $result[0]);
+    }
+
+    #[Test]
+    public function charLengthFunction(): void
+    {
+        $result = $this->translator->translate('SELECT CHAR_LENGTH(name) FROM t');
+
+        self::assertStringContainsString('LENGTH(name)', $result[0]);
+    }
+
+    #[Test]
+    public function characterLengthFunction(): void
+    {
+        $result = $this->translator->translate('SELECT CHARACTER_LENGTH(name) FROM t');
+
+        self::assertStringContainsString('LENGTH(name)', $result[0]);
+    }
+
+    #[Test]
+    public function midFunction(): void
+    {
+        $result = $this->translator->translate('SELECT MID(name, 2, 3) FROM t');
+
+        self::assertStringContainsString('SUBSTR(name, 2, 3)', $result[0]);
+    }
+
+    #[Test]
+    public function locateFunction(): void
+    {
+        $result = $this->translator->translate("SELECT LOCATE('abc', name) FROM t");
+
+        self::assertStringContainsString('INSTR', $result[0]);
+    }
+
+    #[Test]
+    public function dayOfYearFunction(): void
+    {
+        $result = $this->translator->translate('SELECT DAYOFYEAR(created) FROM t');
+
+        self::assertStringContainsString("strftime('%j'", $result[0]);
+    }
+
+    #[Test]
+    public function weekdayFunction(): void
+    {
+        $result = $this->translator->translate('SELECT WEEKDAY(created) FROM t');
+
+        self::assertStringContainsString("strftime('%w'", $result[0]);
+        self::assertStringContainsString('+ 6)', $result[0]);
+    }
+
+    #[Test]
+    public function fieldFunctionSqlite(): void
+    {
+        $result = $this->translator->translate("SELECT FIELD(status, 'publish', 'draft', 'trash') FROM t");
+
+        self::assertStringContainsString('CASE', $result[0]);
+        self::assertStringContainsString('WHEN', $result[0]);
+        self::assertStringContainsString('THEN 1', $result[0]);
+        self::assertStringContainsString('THEN 3', $result[0]);
+    }
+
+    #[Test]
+    public function groupConcatWithSeparator(): void
+    {
+        $result = $this->translator->translate("SELECT GROUP_CONCAT(name SEPARATOR '|') FROM t GROUP BY id");
+
+        self::assertStringContainsString("group_concat(name, '|')", $result[0]);
+    }
+
+    #[Test]
+    public function groupConcatWithoutSeparator(): void
+    {
+        $result = $this->translator->translate('SELECT GROUP_CONCAT(name) FROM t GROUP BY id');
+
+        self::assertStringContainsString("group_concat(name, ',')", $result[0]);
+    }
+
+    #[Test]
+    public function highPrioritySkipped(): void
+    {
+        $result = $this->translator->translate('INSERT HIGH_PRIORITY INTO `t` VALUES (1)');
+
+        self::assertStringNotContainsString('HIGH_PRIORITY', $result[0]);
+        self::assertStringContainsString('INSERT', $result[0]);
+    }
 }
