@@ -23,7 +23,7 @@ WpPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL ク
 
 | MySQL 関数 | SQLite プラグイン | PG4WP | WpPack SQLite | WpPack PgSQL |
 |-----------|:---:|:---:|:---:|:---:|
-| NOW() | ✅ UDF | — | ✅ AST | ✅ ネイティブ |
+| NOW() | ✅ UDF | N/A ネイティブ | ✅ AST | N/A ネイティブ |
 | CURDATE() / CURTIME() | ✅ UDF | — | ✅ AST | ✅ AST |
 | UNIX_TIMESTAMP() | ✅ UDF | ✅ | ✅ AST | ✅ AST |
 | FROM_UNIXTIME() | ✅ UDF | — | ✅ AST | ✅ AST |
@@ -36,24 +36,24 @@ WpPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL ク
 | WEEK(d, mode) | ✅ UDF | — | ✅ AST | ✅ AST |
 | DATEDIFF | ✅ UDF | — | ✅ AST | ✅ AST |
 | RAND() | ✅ UDF | ✅ | ✅ AST | ✅ AST |
-| CONCAT / CONCAT_WS | ✅ トークン | — | ✅ AST | ✅ ネイティブ |
-| LEFT / RIGHT | ✅ トークン | — | ✅ AST | ✅ AST/ネイティブ |
-| SUBSTRING / CHAR_LENGTH | ✅ トークン | — | ✅ AST | ✅ AST |
+| CONCAT / CONCAT_WS | ✅ トークン | N/A ネイティブ | ✅ AST | N/A ネイティブ |
+| LEFT / RIGHT | ✅ トークン | N/A ネイティブ | ✅ AST | ✅ AST/ネイティブ |
+| SUBSTRING / CHAR_LENGTH | ✅ トークン | N/A ネイティブ | ✅ AST | N/A ネイティブ |
 | LOCATE | ✅ UDF | — | ✅ AST | ✅ AST |
 | MID / LCASE / UCASE | ✅ UDF (LCASE/UCASE) | — | ✅ AST | ✅ AST |
 | IF() | ✅ UDF | ✅ | ✅ AST | ✅ AST |
-| IFNULL | ✅ ネイティブ | — | ✅ ネイティブ | ✅ AST→COALESCE |
+| IFNULL | ✅ ネイティブ | N/A COALESCE | ✅ ネイティブ | ✅ AST→COALESCE |
 | ISNULL | ✅ UDF | — | ✅ AST | ✅ AST |
-| GREATEST / LEAST | ✅ UDF | — | ✅ AST | ✅ ネイティブ |
+| GREATEST / LEAST | ✅ UDF | N/A ネイティブ | ✅ AST | N/A ネイティブ |
 | FIELD() | ✅ UDF | ✅ | ✅ AST→CASE | ✅ AST→CASE |
 | CONVERT() | — | ✅ | ✅ AST | ✅ AST |
 | CAST(AS SIGNED/CHAR/BINARY) | — | ✅ | ✅ AST | ✅ AST |
-| GROUP_CONCAT | N/A | ✅ | ✅ AST→group_concat | ✅ AST→STRING_AGG |
-| VERSION / DATABASE | ✅ UDF | — | ✅ AST | ✅ AST |
+| GROUP_CONCAT | ✅ ネイティブ | ✅ | ✅ AST→group_concat | ✅ AST→STRING_AGG |
+| VERSION / DATABASE | ✅ UDF | N/A ネイティブ | ✅ AST | ✅ AST |
 | FOUND_ROWS() | ✅ | ✅ | ✅ | ✅ |
 | LAST_INSERT_ID | — | ✅ | ✅ AST | ✅ AST |
 | REGEXP | ✅ UDF | ✅ | ✅ UDF | ✅ AST→~* |
-| MD5 / LOG | ✅ UDF | — | ✅ UDF | ✅ ネイティブ |
+| MD5 / LOG | ✅ UDF | N/A ネイティブ | ✅ UDF | N/A ネイティブ |
 | UNHEX / BASE64 / INET | ✅ UDF | N/A | ✅ UDF | ✅ AST (decode/encode) |
 | GET_LOCK / RELEASE_LOCK | ✅ UDF | N/A | ✅ UDF | ✅ ダミー |
 
@@ -94,7 +94,7 @@ WpPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL ク
 | CREATE TABLE 型変換 | ✅ | ✅ | ✅ AST | ✅ AST |
 | PRIMARY KEY マージ | ✅ | N/A | ✅ AST | N/A |
 | AUTO_INCREMENT → SERIAL | N/A | ✅ | ✅ AUTOINCREMENT | ✅ SERIAL/BIGSERIAL |
-| ON UPDATE CURRENT_TIMESTAMP | ✅ トリガー | N/A | ✅ トリガー | ✅ トリガー |
+| ON UPDATE CURRENT_TIMESTAMP | ✅ トリガー | — | ✅ トリガー | ✅ トリガー |
 | ALTER ADD/DROP/CHANGE | ✅ | ✅ | ✅ | ✅ |
 | ENGINE/CHARSET/COLLATE 除去 | ✅ | ✅ | ✅ AST | ✅ AST |
 | IF NOT EXISTS | ✅ | ✅ | ✅ | ✅ |
@@ -125,12 +125,12 @@ WpPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL ク
 
 | | SQLite プラグイン | WpPack SQLite | WpPack PgSQL |
 |---|---:|---:|---:|
-| トランスレーター | 4,543行 | 1,500行 | 1,200行 |
+| トランスレーター | 4,543行 | 1,940行 | 1,867行 |
 | QueryRewriter | 343行 | 279行 | 279行 |
-| UDF | 899行（46関数） | 200行（15関数） | — |
-| **合計** | **5,785行** | **~1,980行** | **~1,480行** |
+| UDF / Driver | 899行（46関数） | 342行（15関数） | — |
+| **合計** | **5,785行** | **~2,560行** | **~2,150行** |
 
-WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグインの約1/3のコード量で同等の機能をカバーする。プラグインは独自 Lexer（2,997行）を含むため、パーサー込みの総コスト差はさらに大きい。
+WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグインの約半分のコード量で同等以上の機能をカバーする。プラグインは独自 Lexer（2,997行）を含むため、パーサー込みの総コスト差はさらに大きい。
 
 ### アーキテクチャ
 
@@ -175,7 +175,7 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 | CONCAT | トークン→\|\| | **AST**→\|\| | 同じ出力 |
 | LEFT / RIGHT | トークン | **AST** | WpPack: RIGHT も対応 |
 | SUBSTRING / CHAR_LENGTH | トークン | **AST** | 同等 |
-| MID / LCASE / UCASE | — | **AST** | WpPack のみ対応 |
+| MID / LCASE / UCASE | UDF (LCASE/UCASE) | **AST** | プラグイン: UDF / WpPack: `lower()`/`upper()` ネイティブ |
 | LOCATE | UDF | **AST** | WpPack: `INSTR()` ネイティブ |
 | IF | UDF | **AST** | WpPack: `CASE WHEN ... END` ネイティブ |
 | IFNULL | ネイティブ | ネイティブ | 同等 |
@@ -213,7 +213,7 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 | LIKE ESCAPE | ✅ | ✅ |
 | CONVERT → CAST | — | ✅ |
 | COLLATE 除去 | — | ✅ |
-| @@変数 → ダミー | — | ✅ |
+| @@変数 → デフォルト値 | — | ✅ |
 | 空 IN () → IN (NULL) | — | ✅ |
 | information_schema → sqlite_master | ✅ | ✅ |
 | START TRANSACTION / SAVEPOINT | ✅ / — | ✅ / ✅ |
@@ -272,9 +272,9 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 
 | | PG4WP | WpPack PgSQL |
 |---|---:|---:|
-| トランスレーター | ~2,500行 | 1,200行 |
-| ドライバ/DB層 | ~1,000行 | 279行（QueryRewriter） |
-| **合計** | **~3,500行** | **~1,480行** |
+| トランスレーター/ドライバ | ~4,000行 | 1,867行 |
+| QueryRewriter | — | 279行 |
+| **合計** | **~4,000行** | **~2,150行** |
 
 ### アーキテクチャ
 
