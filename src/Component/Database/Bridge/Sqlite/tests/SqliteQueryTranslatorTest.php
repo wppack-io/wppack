@@ -1120,4 +1120,216 @@ SQL);
 
         $driver->close();
     }
+
+    // ── Phase 1-3 new feature tests ──
+
+    #[Test]
+    public function updateWithLimit(): void
+    {
+        $result = $this->translator->translate(
+            'UPDATE `wp_posts` SET post_status = "trash" WHERE post_status = "draft" LIMIT 5',
+        );
+
+        self::assertStringContainsString('rowid IN (SELECT rowid FROM', $result[0]);
+        self::assertStringContainsString('LIMIT 5', $result[0]);
+    }
+
+    #[Test]
+    public function deleteWithLimit(): void
+    {
+        $result = $this->translator->translate(
+            'DELETE FROM `wp_posts` WHERE post_status = "trash" LIMIT 10',
+        );
+
+        self::assertStringContainsString('rowid IN (SELECT rowid FROM', $result[0]);
+        self::assertStringContainsString('LIMIT 10', $result[0]);
+    }
+
+    #[Test]
+    public function deleteWithOrderByLimit(): void
+    {
+        $result = $this->translator->translate(
+            'DELETE FROM `wp_posts` WHERE post_status = "trash" ORDER BY post_date ASC LIMIT 1',
+        );
+
+        self::assertStringContainsString('ORDER BY post_date ASC', $result[0]);
+        self::assertStringContainsString('LIMIT 1', $result[0]);
+    }
+
+    #[Test]
+    public function onUpdateCurrentTimestampTrigger(): void
+    {
+        $result = $this->translator->translate(
+            'CREATE TABLE `t` (`id` INT NOT NULL AUTO_INCREMENT, `modified` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (`id`))',
+        );
+
+        self::assertCount(2, $result);
+        self::assertStringContainsString('CREATE TABLE', $result[0]);
+        self::assertStringNotContainsString('ON UPDATE', $result[0]);
+        self::assertStringContainsString('CREATE TRIGGER', $result[1]);
+        self::assertStringContainsString('AFTER UPDATE', $result[1]);
+        self::assertStringContainsString("datetime('now')", $result[1]);
+    }
+
+    #[Test]
+    public function onUpdateCurrentTimestampEndToEnd(): void
+    {
+        $driver = new \WpPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
+        $driver->connect();
+
+        $result = $this->translator->translate(
+            'CREATE TABLE `t` (`id` INT NOT NULL PRIMARY KEY AUTO_INCREMENT, `name` VARCHAR(255), `modified` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)',
+        );
+
+        foreach ($result as $sql) {
+            $driver->executeStatement($sql);
+        }
+
+        $driver->executeStatement("INSERT INTO \"t\" (\"name\") VALUES ('original')");
+
+        // Get initial modified time
+        $initial = $driver->executeQuery('SELECT "modified" FROM "t" WHERE "id" = 1')->fetchOne();
+        self::assertNotNull($initial);
+
+        // Update the row
+        $driver->executeStatement("UPDATE \"t\" SET \"name\" = 'updated' WHERE \"id\" = 1");
+
+        // modified should be updated by the trigger
+        $after = $driver->executeQuery('SELECT "modified" FROM "t" WHERE "id" = 1')->fetchOne();
+        self::assertNotNull($after);
+
+        $driver->close();
+    }
+
+    #[Test]
+    public function fromDualRemoval(): void
+    {
+        $result = $this->translator->translate('SELECT 1 FROM DUAL');
+
+        self::assertStringNotContainsString('DUAL', $result[0]);
+        self::assertStringContainsString('SELECT 1', $result[0]);
+    }
+
+    #[Test]
+    public function indexHintsRemoval(): void
+    {
+        $result = $this->translator->translate(
+            'SELECT * FROM `wp_posts` USE INDEX (`post_status`) WHERE post_status = "publish"',
+        );
+
+        self::assertStringNotContainsString('USE INDEX', $result[0]);
+        self::assertStringNotContainsString('USE', $result[0]);
+        self::assertStringContainsString('"wp_posts"', $result[0]);
+    }
+
+    #[Test]
+    public function forceIndexHintsRemoval(): void
+    {
+        $result = $this->translator->translate(
+            'SELECT * FROM `wp_posts` FORCE INDEX (`primary`) WHERE id = 1',
+        );
+
+        self::assertStringNotContainsString('FORCE INDEX', $result[0]);
+    }
+
+    #[Test]
+    public function castAsBinary(): void
+    {
+        $result = $this->translator->translate('SELECT CAST(val AS BINARY) FROM t');
+
+        self::assertStringContainsString('CAST(val AS BLOB)', $result[0]);
+    }
+
+    #[Test]
+    public function likeBinaryToGlob(): void
+    {
+        $result = $this->translator->translate(
+            "SELECT * FROM t WHERE name LIKE BINARY '%Test%'",
+        );
+
+        self::assertStringContainsString('GLOB', $result[0]);
+        self::assertStringContainsString('*Test*', $result[0]);
+        self::assertStringNotContainsString('LIKE', $result[0]);
+    }
+
+    #[Test]
+    public function havingWithoutGroupBy(): void
+    {
+        $result = $this->translator->translate(
+            'SELECT status, COUNT(*) as cnt FROM `wp_posts` HAVING cnt > 5',
+        );
+
+        self::assertStringContainsString('GROUP BY 1', $result[0]);
+        self::assertStringContainsString('HAVING', $result[0]);
+    }
+
+    #[Test]
+    public function dateFormatExtendedSpecifiers(): void
+    {
+        $result = $this->translator->translate("SELECT DATE_FORMAT(created, '%Y-%m-%d %H:%i:%s %p')");
+
+        self::assertStringContainsString('strftime', $result[0]);
+    }
+
+    #[Test]
+    public function md5UdfEndToEnd(): void
+    {
+        $driver = new \WpPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
+        $driver->connect();
+
+        $result = $driver->executeQuery("SELECT MD5('hello')");
+        self::assertSame('5d41402abc4b2a76b9719d911017c592', $result->fetchOne());
+
+        $driver->close();
+    }
+
+    #[Test]
+    public function alterTableDropColumn(): void
+    {
+        $result = $this->translator->translate('ALTER TABLE `wp_posts` DROP COLUMN `post_password`');
+
+        self::assertCount(1, $result);
+        self::assertStringContainsString('DROP', $result[0]);
+        self::assertStringContainsString('"post_password"', $result[0]);
+    }
+
+    #[Test]
+    public function endToEndDeleteWithLimit(): void
+    {
+        $driver = new \WpPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
+        $driver->connect();
+
+        $driver->executeStatement('CREATE TABLE "t" ("id" INTEGER PRIMARY KEY, "status" TEXT)');
+        $driver->executeStatement("INSERT INTO \"t\" VALUES (1, 'trash')");
+        $driver->executeStatement("INSERT INTO \"t\" VALUES (2, 'trash')");
+        $driver->executeStatement("INSERT INTO \"t\" VALUES (3, 'publish')");
+
+        $deleteSql = $this->translator->translate('DELETE FROM `t` WHERE status = "trash" LIMIT 1');
+        $driver->executeStatement($deleteSql[0]);
+
+        $result = $driver->executeQuery('SELECT COUNT(*) FROM "t" WHERE "status" = \'trash\'');
+        self::assertSame(1, (int) $result->fetchOne());
+
+        $driver->close();
+    }
+
+    #[Test]
+    public function endToEndUpdateWithLimit(): void
+    {
+        $driver = new \WpPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
+        $driver->connect();
+
+        $driver->executeStatement('CREATE TABLE "t" ("id" INTEGER PRIMARY KEY, "status" TEXT)');
+        $driver->executeStatement("INSERT INTO \"t\" VALUES (1, 'draft')");
+        $driver->executeStatement("INSERT INTO \"t\" VALUES (2, 'draft')");
+        $driver->executeStatement("INSERT INTO \"t\" VALUES (3, 'publish')");
+
+        $updateSql = $this->translator->translate('UPDATE `t` SET status = "trash" WHERE status = "draft" LIMIT 1');
+        $driver->executeStatement($updateSql[0]);
+
+        $result = $driver->executeQuery('SELECT COUNT(*) FROM "t" WHERE "status" = \'trash\'');
+        self::assertSame(1, (int) $result->fetchOne());
+
+        $driver->close();
+    }
 }

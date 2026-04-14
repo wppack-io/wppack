@@ -288,22 +288,19 @@ SELECT で 10,000 行を返すクエリに `NOW()` がある場合:
 | `CONCAT_WS(sep, a, b, ...)` | 可変 | セパレータ付き連結（NULL フィルタ） |
 | `CHAR_LENGTH(value)` | 1 | `mb_strlen` によるマルチバイト文字数 |
 | `FIELD(search, val1, val2, ...)` | 可変 | 値リスト内の位置（1始まり、0=不一致） |
+| `MD5(value)` | 1 | `md5()` ハッシュ |
 
-## 未対応機能と対応予定
+## 未対応機能
 
 SQLite Database Integration プラグインが対応し WpPack が未対応の機能:
 
-| 機能 | 重要度 | 対応方針 |
-|------|-------|---------|
-| FOUND_ROWS() 実カウント返却 | 高 | SQL\_CALC\_FOUND\_ROWS 検出時にカウント保存 |
-| ON UPDATE CURRENT\_TIMESTAMP | 高 | SQLite: トリガー生成、PgSQL: ネイティブ |
-| UPDATE/DELETE ... LIMIT N | 高 | SQLite: rowid サブクエリラップ |
-| ALTER TABLE DROP/CHANGE COLUMN | 高 | SQLite: テーブル再作成パターン |
-| FROM DUAL 除去 | 中 | AST の from[] から DUAL を除去 |
-| INDEX HINTS 除去 | 中 | USE/FORCE/IGNORE INDEX を skip |
-| LIKE BINARY → GLOB | 中 | トークン走査で変換 |
-| CAST(AS BINARY) → BLOB | 中 | トークン走査で変換 |
-| MD5() UDF | 中 | SqliteDriver に UDF 追加 |
-| DATE\_FORMAT 拡張マップ | 中 | 37仕様 → 現在8仕様 |
+| 機能 | 重要度 | 状態 |
+|------|-------|------|
+| ALTER TABLE CHANGE COLUMN | 中 | テーブル再作成パターンの実装が必要 |
 | MySQL データ型キャッシュ | 低 | SHOW COLUMNS 精度向上用 |
-| HAVING without GROUP BY | 低 | GROUP BY 1 挿入 |
+| SHOW CREATE TABLE MySQL 互換 DDL 再構築 | 低 | 現在は sqlite\_master の SQL をそのまま返却 |
+| LIKE エスケープ文字処理（ESCAPE 句） | 低 | `\%` / `\_` のリテラルエスケープ |
+| SHOW TABLES LIKE 'pattern' | 低 | パターン付き SHOW |
+| UNHEX / FROM\_BASE64 / TO\_BASE64 | 低 | UDF 追加で対応可能 |
+| INET\_ATON / INET\_NTOA | 低 | UDF 追加で対応可能 |
+| GET\_LOCK / RELEASE\_LOCK | 低 | ダミー実装（SQLite プラグインと同じ） |

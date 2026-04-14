@@ -777,4 +777,73 @@ SQL;
         self::assertStringContainsString("NOW()", $result[0]);
         self::assertStringContainsString("+ INTERVAL '1 day'", $result[0]);
     }
+
+    // ── Phase 1-3 new feature tests ──
+
+    #[Test]
+    public function fromDualRemoval(): void
+    {
+        $result = $this->translator->translate('SELECT 1 FROM DUAL');
+
+        self::assertStringNotContainsString('DUAL', $result[0]);
+    }
+
+    #[Test]
+    public function indexHintsRemoval(): void
+    {
+        $result = $this->translator->translate(
+            'SELECT * FROM `wp_posts` USE INDEX (`post_status`) WHERE post_status = "publish"',
+        );
+
+        self::assertStringNotContainsString('USE INDEX', $result[0]);
+    }
+
+    #[Test]
+    public function castAsBinary(): void
+    {
+        $result = $this->translator->translate('SELECT CAST(val AS BINARY) FROM t');
+
+        self::assertStringContainsString('CAST(val AS BYTEA)', $result[0]);
+    }
+
+    #[Test]
+    public function havingWithoutGroupBy(): void
+    {
+        $result = $this->translator->translate(
+            'SELECT status, COUNT(*) as cnt FROM `wp_posts` HAVING cnt > 5',
+        );
+
+        self::assertStringContainsString('GROUP BY 1', $result[0]);
+        self::assertStringContainsString('HAVING', $result[0]);
+    }
+
+    #[Test]
+    public function dateFormatExtendedSpecifiers(): void
+    {
+        $result = $this->translator->translate("SELECT DATE_FORMAT(created, '%Y-%m-%d %H:%i:%s %p')");
+
+        self::assertStringContainsString('TO_CHAR', $result[0]);
+        self::assertStringContainsString('AM', $result[0]);
+    }
+
+    #[Test]
+    public function bigserialForBigintAutoIncrement(): void
+    {
+        $result = $this->translator->translate(
+            'CREATE TABLE `t` (`id` BIGINT NOT NULL AUTO_INCREMENT, PRIMARY KEY (`id`))',
+        );
+
+        self::assertStringContainsString('BIGSERIAL', $result[0]);
+    }
+
+    #[Test]
+    public function serialForIntAutoIncrement(): void
+    {
+        $result = $this->translator->translate(
+            'CREATE TABLE `t` (`id` INT NOT NULL AUTO_INCREMENT, PRIMARY KEY (`id`))',
+        );
+
+        self::assertStringContainsString('SERIAL', $result[0]);
+        self::assertStringNotContainsString('BIGSERIAL', $result[0]);
+    }
 }
