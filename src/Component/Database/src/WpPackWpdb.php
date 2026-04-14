@@ -454,7 +454,7 @@ class WpPackWpdb extends \wpdb
     {
         try {
             $countSql = (string) preg_replace(
-                '/\bLIMIT\s+\d+(\s+(OFFSET\s+\d+))?\s*$/i',
+                '/\bLIMIT\s+\S+(\s+OFFSET\s+\S+)?\s*$/i',
                 '',
                 $translatedSql,
             );

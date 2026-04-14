@@ -8,7 +8,7 @@ WpPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL ク
 |---|---|---|---|
 | リポジトリ | wordpress/sqlite-database-integration | PostgreSQL-For-Wordpress/postgresql-for-wordpress | wppack-io/wppack |
 | エンジン | SQLite | PostgreSQL | SQLite + PostgreSQL + Aurora DSQL |
-| アーキテクチャ | 独自 Lexer + トークン書き換え + UDF 46個 | 正規表現ベース文字列置換 | AST (phpmyadmin/sql-parser) + QueryRewriter + UDF 15個 |
+| アーキテクチャ | 独自 Lexer + トークン書き換え + UDF 46個 | 正規表現ベース文字列置換 | AST (phpmyadmin/sql-parser) + QueryRewriter + UDF 14個 |
 | テスト | WordPress e2e 依存 | 504 スタブベーステスト | 582 ユニットテスト / 988 アサーション |
 
 ## 対応範囲一覧
@@ -137,7 +137,7 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 | | SQLite プラグイン | WpPack |
 |---|---|---|
 | パーサー | 独自 WP_MySQL_Lexer（2,997行） | phpmyadmin/sql-parser v6.0（標準ライブラリ） |
-| 変換方式 | トークンストリーム書き換え + UDF 46個 | AST ルーティング + QueryRewriter + UDF 15個 |
+| 変換方式 | トークンストリーム書き換え + UDF 46個 | AST ルーティング + QueryRewriter + UDF 14個 |
 | DDL 処理 | 独自パーサーで AST → SQL | phpmyadmin AST `CreateDefinition[]` から直接構築 |
 | 関数変換 | 大半を UDF で実行（行単位で PHP 呼び出し） | AST レベルでネイティブ関数に変換（UDF 最小限） |
 | 文字列リテラル保護 | トークン型による判定 | `TokenType::String` で構造的に保証 |
@@ -146,7 +146,7 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 
 ### 関数変換: UDF vs AST
 
-プラグインは46個の UDF を SQLite に登録する方式。WpPack は AST レベルで SQLite ネイティブ関数に変換し、UDF は15個に抑える。
+プラグインは46個の UDF を SQLite に登録する方式。WpPack は AST レベルで SQLite ネイティブ関数に変換し、UDF は14個に抑える。
 
 | 方式 | 利点 | 欠点 |
 |------|------|------|
@@ -254,7 +254,7 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 |------|------|
 | **PostgreSQL + Aurora DSQL** | プラグインは SQLite のみ。WpPack は3エンジン対応 |
 | **AST ベース DDL** | `CreateDefinition[]` から型安全に構築。プラグインはトークン操作 |
-| **ネイティブ関数優先** | UDF 15個 vs プラグイン46個。パフォーマンスに直結 |
+| **ネイティブ関数優先** | UDF 14個 vs プラグイン46個。パフォーマンスに直結 |
 | **真の Prepared Statement** | `?` パラメータを Driver に分離。SQL インジェクション構造的防止 |
 | **Reader/Writer Split** | `DATABASE_READER_DSN` で読み書き分離 |
 | **582 ユニットテスト** | プラグインは WordPress e2e テスト依存 |
@@ -375,7 +375,7 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 
 | 評価軸 | SQLite プラグイン | PG4WP | WpPack |
 |--------|:---:|:---:|:---:|
-| 関数カバレッジ | ★★★ (46 UDF) | ★★ (~20) | ★★★★ (50+ AST変換 + 15 UDF) |
+| 関数カバレッジ | ★★★ (46 UDF) | ★★ (~20) | ★★★★ (50+ AST変換 + 14 UDF) |
 | パフォーマンス | ★★ (UDF オーバーヘッド) | ★★★ | ★★★★ (ネイティブ関数優先) |
 | DDL 対応 | ★★★★ | ★★★ | ★★★★ |
 | SHOW 対応 | ★★★ | ★★★ | ★★★★ |

@@ -1306,7 +1306,11 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
     }
 
     /**
-     * WEEK(d [, mode]) → EXTRACT(WEEK FROM d) or EXTRACT(DOW FROM d) based on mode.
+     * WEEK(d [, mode]) → EXTRACT(WEEK FROM d)
+     *
+     * PostgreSQL's EXTRACT(WEEK) returns the ISO 8601 week number (Monday start).
+     * MySQL's mode parameter (0-7) controls Sunday/Monday start and range,
+     * but PostgreSQL has no direct equivalent. We always use ISO week.
      */
     private function transformWeek(QueryRewriter $rw): bool
     {
@@ -1316,11 +1320,9 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         }
 
         $expr = $this->transformArgExpression($args[0]);
-        // mode: 0,2,4,6 = Sunday start; 1,3,5,7 = Monday start (ISO)
-        $mode = \count($args) >= 2 ? (int) trim($this->transformArgExpression($args[1])) : 0;
-        $field = \in_array($mode, [1, 3, 5, 7], true) ? 'WEEK' : 'WEEK';
+        // mode parameter is consumed but PgSQL only supports ISO week (EXTRACT WEEK)
 
-        $rw->add(\sprintf('EXTRACT(%s FROM %s)', $field, $expr));
+        $rw->add(\sprintf('EXTRACT(WEEK FROM %s)', $expr));
 
         return true;
     }

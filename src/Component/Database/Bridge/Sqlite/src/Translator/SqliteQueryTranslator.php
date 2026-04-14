@@ -1465,7 +1465,10 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
 
     /**
      * WEEK(d [, mode]) → CAST(strftime('%W', d) AS INTEGER)
-     * mode 0,2,4,6 = Sunday start; mode 1,3,5,7 = Monday start
+     *
+     * SQLite's strftime('%W') returns the ISO 8601 week number (Monday start).
+     * MySQL's mode parameter (0-7) controls Sunday/Monday start and range,
+     * but SQLite has no equivalent. We always use ISO week (%W).
      */
     private function transformWeek(QueryRewriter $rw): bool
     {
@@ -1475,12 +1478,9 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         }
 
         $expr = $this->transformArgExpression($args[0]);
-        $mode = \count($args) >= 2 ? (int) trim($this->transformArgExpression($args[1])) : 0;
+        // mode parameter is consumed but SQLite only supports ISO week (%W)
 
-        // %W = Monday start (ISO), %w based for Sunday start
-        $format = \in_array($mode, [1, 3, 5, 7], true) ? '%W' : '%W';
-
-        $rw->add(\sprintf("CAST(strftime('%s', %s) AS INTEGER)", $format, $expr));
+        $rw->add(\sprintf("CAST(strftime('%%W', %s) AS INTEGER)", $expr));
 
         return true;
     }
