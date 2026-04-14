@@ -158,18 +158,149 @@ SELECT で 10,000 行を返すクエリに `NOW()` がある場合:
 - UDF: NOW() が 10,000 回 PHP に呼び出される
 - AST: `datetime('now')` に1回変換されて SQLite がネイティブ実行
 
-### SQLite プラグインとの設計差
+### SQLite Database Integration プラグインとの比較
 
-| 設計判断 | SQLite プラグイン | WpPack |
-|---------|-----------------|--------|
-| パーサー | 独自 Lexer（2,997行）| phpmyadmin/sql-parser |
-| 日時関数 | UDF（PHP 実装） | AST 変換（ネイティブ SQLite 関数使用） |
-| FOUND_ROWS() | SQL\_CALC\_FOUND\_ROWS のカウントを保存・返却 | -1 固定（将来対応予定） |
-| ON UPDATE CURRENT\_TIMESTAMP | SQLite トリガー自動生成 | 未対応（将来対応予定） |
-| ALTER TABLE DROP/CHANGE | テーブル再作成パターン | スキップ（将来対応予定） |
-| データ型キャッシュ | `_mysql_data_types_cache` テーブルで保存 | なし |
+#### コード規模
+
+| | SQLite プラグイン | WpPack SQLite | WpPack PgSQL |
+|---|---:|---:|---:|
+| トランスレーター | 4,543行 | 1,403行 | 1,024行 |
+| QueryRewriter | 343行 | 279行 | 279行 |
+| UDF | 899行（46関数） | 135行（6関数） | — |
+| **合計** | **5,785行** | **1,817行** | **1,303行** |
+
+WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグインの約1/3のコード量で同等の機能をカバーする。プラグインは独自 Lexer（2,997行）を含むため、パーサー込みの総コスト差はさらに大きい。
+
+#### アーキテクチャ
+
+| | SQLite プラグイン | WpPack |
+|---|---|---|
+| パーサー | 独自 WP_MySQL_Lexer (2,997行) | phpmyadmin/sql-parser v6.0（標準ライブラリ） |
+| 変換方式 | トークンストリーム書き換え + UDF 46個 | AST ルーティング + QueryRewriter + UDF 6個 |
+| DDL 処理 | 独自パーサーで AST → SQL | phpmyadmin AST `CreateDefinition[]` から直接構築 |
+| 関数変換 | 大半を UDF で実行（行単位で PHP 呼び出し） | AST レベルでネイティブ関数に変換（UDF 最小限） |
+| 文字列リテラル保護 | トークン型による判定 | `TokenType::String` で構造的に保証 |
+| Prepared Statement | 文字列結合（vsprintf ベース） | ネイティブ `?` パラメータ（Driver 分離） |
 | エンジン対応 | SQLite のみ | SQLite + PostgreSQL + Aurora DSQL |
-| Prepared Statement | 文字列結合 | ネイティブ `?` パラメータ |
+| テスト | WordPress e2e 依存 | 495 ユニットテスト / 842 アサーション |
+
+#### 機能カバレッジ
+
+##### 関数変換
+
+| 関数 | プラグイン | WpPack | 方式の違い |
+|------|:---:|:---:|---|
+| NOW() | UDF | **AST** | プラグイン: PHP `gmdate()` / WpPack: `datetime('now')` ネイティブ |
+| CURDATE() / CURTIME() | UDF | **AST** | 同上 |
+| UNIX_TIMESTAMP() | UDF | **AST** | WpPack: `strftime('%s','now')` |
+| FROM_UNIXTIME() | UDF | **AST** | WpPack: `datetime(t, 'unixepoch')` |
+| UTC_TIMESTAMP/DATE/TIME | UDF | **AST** | 同上 |
+| DATE_ADD / DATE_SUB | トークン | **AST** | WpPack: 引数を再帰的に変換 |
+| DATE_FORMAT | トークン | **AST** | プラグイン: 37仕様 / WpPack: 21仕様 |
+| MONTH / YEAR / DAY | UDF | **AST** | WpPack: `strftime()` → `CAST AS INTEGER` |
+| HOUR / MINUTE / SECOND | UDF | **AST** | 同上 |
+| DAYOFWEEK / WEEKDAY | UDF | **AST** | WpPack: `strftime('%w')` 演算 |
+| DATEDIFF | UDF | **AST** | WpPack: `julianday()` 差分 |
+| CONCAT | トークン→\|\| | **AST**→\|\| | 同じ出力 |
+| LEFT / RIGHT | トークン | **AST** | WpPack: RIGHT も対応 |
+| SUBSTRING / CHAR_LENGTH | トークン | **AST** | 同等 |
+| MID / LCASE / UCASE | — | **AST** | WpPack のみ対応 |
+| LOCATE | UDF | **AST** | WpPack: `INSTR()` ネイティブ |
+| IF | UDF | **AST** | WpPack: `CASE WHEN ... END` ネイティブ |
+| IFNULL | ネイティブ | ネイティブ | 同等 |
+| GREATEST / LEAST | UDF | **AST** | WpPack: `MAX/MIN` ネイティブ |
+| RAND | UDF | **AST** | WpPack: `random()` ネイティブ |
+| VERSION | UDF | **AST** | プラグイン: '5.5' / WpPack: '10.0.0-wppack' |
+| LAST_INSERT_ID | — | **AST** | WpPack のみ対応 |
+| MD5 | UDF | **UDF** | 同方式（PHP `md5()`） |
+| REGEXP | UDF | **UDF** | 同方式（PHP `preg_match()`） |
+| FIELD | UDF | **UDF** | 同方式 |
+| CAST(AS SIGNED) | — | **AST** | WpPack のみ対応 |
+| CAST(AS BINARY) | トークン | **AST** | WpPack: → BLOB |
+| ISNULL | UDF | — | プラグインのみ |
+| LOG | UDF | — | プラグインのみ |
+| UNHEX / FROM_BASE64 / TO_BASE64 | UDF | — | プラグインのみ |
+| INET_ATON / INET_NTOA | UDF | — | プラグインのみ |
+| GET_LOCK / RELEASE_LOCK | UDF (no-op) | — | プラグインのみ |
+| GROUP_CONCAT | — | **AST** (PgSQL) | WpPack PgSQL: → `STRING_AGG` |
+
+##### 文レベル変換
+
+| 機能 | プラグイン | WpPack |
+|------|:---:|:---:|
+| INSERT IGNORE | ✅ | ✅ |
+| REPLACE INTO | ✅ | ✅ |
+| ON DUPLICATE KEY UPDATE | ✅ (PK/UNIQUE 自動検出) | ✅ |
+| VALUES(col) → excluded.col | ✅ | ✅ |
+| LIMIT offset, count | ✅ | ✅ |
+| UPDATE ... LIMIT N | ✅ (rowid サブクエリ) | ✅ (rowid サブクエリ) |
+| DELETE ... LIMIT N | ✅ (rowid サブクエリ) | ✅ (rowid サブクエリ) |
+| FOR UPDATE | — | ✅ (除去) |
+| SQL_CALC_FOUND_ROWS | ✅ (カウント保存) | ✅ (カウント保存) |
+| FOUND_ROWS() | ✅ (保存値返却) | ✅ (保存値返却) |
+| FROM DUAL | ✅ | ✅ |
+| INDEX HINTS (USE/FORCE/IGNORE) | ✅ | ✅ |
+| HAVING without GROUP BY | ✅ | ✅ |
+| LIKE BINARY → GLOB | ✅ | ✅ |
+| START TRANSACTION | ✅ | ✅ |
+| SAVEPOINT | — | ✅ |
+| LOW_PRIORITY / DELAYED | ✅ (除去) | — |
+
+##### DDL
+
+| 機能 | プラグイン | WpPack |
+|------|:---:|:---:|
+| CREATE TABLE 型変換 | ✅ | ✅ (AST ベース) |
+| PRIMARY KEY マージ | ✅ | ✅ (AST ベース) |
+| ON UPDATE CURRENT_TIMESTAMP → トリガー | ✅ | ✅ |
+| ALTER TABLE ADD COLUMN | ✅ | ✅ |
+| ALTER TABLE DROP COLUMN | ✅ (テーブル再作成) | ✅ (ネイティブ 3.35.0+) |
+| ALTER TABLE CHANGE COLUMN | ✅ (テーブル再作成) | — |
+| ALTER TABLE RENAME | ✅ | ✅ |
+| ENGINE / CHARSET 除去 | ✅ | ✅ (AST ベース) |
+| IF NOT EXISTS | ✅ | ✅ |
+| MySQL データ型キャッシュ | ✅ | — |
+
+##### SHOW 文
+
+| 機能 | プラグイン | WpPack |
+|------|:---:|:---:|
+| SHOW TABLES | ✅ | ✅ |
+| SHOW TABLES LIKE 'pattern' | ✅ | — |
+| SHOW FULL TABLES | ✅ | ✅ |
+| SHOW COLUMNS FROM | ✅ | ✅ |
+| SHOW CREATE TABLE (MySQL 互換 DDL 再構築) | ✅ | ⚠️ (sqlite_master SQL) |
+| SHOW INDEX FROM | ✅ (型キャッシュ付き) | ✅ (PRAGMA) |
+| SHOW TABLE STATUS (行数付き) | ✅ | ⚠️ (名前のみ) |
+| SHOW VARIABLES | ✅ | ✅ |
+| SHOW DATABASES | — | ✅ |
+| SHOW COLLATION | — | ✅ |
+| SHOW GRANTS | ✅ (ダミー) | — |
+| DESCRIBE | — | ✅ |
+
+#### WpPack の優位点
+
+| 機能 | 説明 |
+|------|------|
+| **PostgreSQL + Aurora DSQL** | プラグインは SQLite のみ。WpPack は3エンジン対応 |
+| **AST ベース DDL** | `CreateDefinition[]` から型安全に構築。プラグインはトークン操作 |
+| **ネイティブ関数優先** | UDF 6個 vs プラグイン46個。パフォーマンスに直結 |
+| **真の Prepared Statement** | `?` パラメータを Driver に分離。SQL インジェクション構造的防止 |
+| **Reader/Writer Split** | `DATABASE_READER_DSN` で読み書き分離 |
+| **495 ユニットテスト** | プラグインは WordPress e2e テスト依存 |
+| **文字列リテラル安全性** | `TokenType::String` による構造的保証 |
+
+#### プラグインの優位点
+
+| 機能 | 説明 |
+|------|------|
+| **ALTER TABLE CHANGE COLUMN** | テーブル再作成パターンによる完全対応 |
+| **MySQL データ型キャッシュ** | `_mysql_data_types_cache` テーブルで型情報保存 |
+| **SHOW CREATE TABLE** | MySQL 互換の CREATE TABLE 文を再構築 |
+| **DATE_FORMAT 37仕様** | WpPack は21仕様 |
+| **ゼロ日付処理** | '0000-00-00' の特殊ハンドリング |
+| **WordPress 統合** | フック、Information Schema Builder 等 |
+| **追加 UDF** | UNHEX, FROM_BASE64, TO_BASE64, INET_ATON/NTOA, LOG, GET_LOCK 等 |
 
 ## 変換リファレンス
 
