@@ -224,6 +224,17 @@ SQLite Database Integration プラグインおよび PG4WP (PostgreSQL for WordP
 | `START TRANSACTION` | `BEGIN` | `BEGIN` |
 | `TRUNCATE TABLE t` | `DELETE FROM t` | そのまま |
 | `SQL_CALC_FOUND_ROWS` | 除去 | 除去 |
+| `INSERT ... SET col=val` | `INSERT ... VALUES(...)` | 同左 |
+| `DELETE JOIN` | rowid サブクエリ | `USING` 構文 |
+| `CONVERT(val, type)` | `CAST(val AS type)` | 同左 |
+| `COLLATE clause` | 除去 | 除去 |
+| `@@SESSION.sql_mode` 等 | ダミー値 | ダミー値 |
+| `IN ()` (空) | `IN (NULL)` | 同左 |
+| `LIKE` | そのまま | `ILIKE`（大文字小文字区別なし） |
+| `DISTINCT + ORDER BY` | — | ORDER BY 列を SELECT に自動注入 |
+| `meta_value + 0` | そのまま | `CAST(meta_value AS BIGINT)` |
+| `'0000-00-00 00:00:00'` | そのまま（TEXT） | `'0001-01-01 00:00:00'` |
+| `'datetime' ISO 8601` | `'datetime' 正規化` | そのまま |
 
 ### DDL 変換
 

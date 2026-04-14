@@ -78,7 +78,7 @@ WpPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL ク
 | 空 IN () → IN (NULL) | — | — | ✅ | ✅ |
 | DISTINCT + ORDER BY 列注入 | — | ✅ | — | ✅ |
 | meta_value + 0 → CAST | — | ✅ | — | ✅ |
-| ゼロ日付処理 | ✅ | — | ✅ text | ✅ '-infinity' |
+| ゼロ日付処理 | ✅ | — | ✅ text | ✅ → '0001-01-01' |
 | LOW_PRIORITY / DELAYED | ✅ | — | ✅ | ✅ |
 | START TRANSACTION | ✅ | — | ✅ | ✅ |
 | SAVEPOINT | — | — | ✅ | ✅ |
@@ -253,7 +253,7 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 | **ネイティブ関数優先** | UDF 15個 vs プラグイン46個。パフォーマンスに直結 |
 | **真の Prepared Statement** | `?` パラメータを Driver に分離。SQL インジェクション構造的防止 |
 | **Reader/Writer Split** | `DATABASE_READER_DSN` で読み書き分離 |
-| **560 ユニットテスト** | プラグインは WordPress e2e テスト依存 |
+| **574 ユニットテスト** | プラグインは WordPress e2e テスト依存 |
 | **文字列リテラル安全性** | `TokenType::String` による構造的保証 |
 
 ### プラグインの優位点
@@ -312,5 +312,5 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 | SHOW 対応 | ★★★ | ★★★ | ★★★★ |
 | 型安全性 | ★★ (文字列結合) | ★★ | ★★★★ (Prepared Statement) |
 | マルチエンジン | ★ (SQLite のみ) | ★ (PgSQL のみ) | ★★★★★ (SQLite + PgSQL + DSQL) |
-| テスト | ★★ (e2e 依存) | ★★★ (504 スタブ) | ★★★★★ (573 ユニットテスト) |
+| テスト | ★★ (e2e 依存) | ★★★ (504 スタブ) | ★★★★★ (574 ユニットテスト) |
 | WP 固有対応 | ★★★★★ | ★★★★ | ★★★★★ |
