@@ -60,6 +60,16 @@ class WpPackWpdb extends \wpdb
         $this->collate = 'utf8mb4_unicode_ci';
         $this->ready = true;
 
+        // Initialize properties that parent::__construct() would set
+        $this->last_result = [];
+        $this->last_error = '';
+        $this->last_query = '';
+        $this->insert_id = 0;
+        $this->num_rows = 0;
+        $this->rows_affected = 0;
+        $this->func_call = '';
+        $this->queries = [];
+
         if (isset($GLOBALS['table_prefix'])) {
             $this->set_prefix($GLOBALS['table_prefix']);
         }
@@ -194,7 +204,7 @@ class WpPackWpdb extends \wpdb
     {
 
         $platform = $this->writer->getPlatform();
-        $quotedTable = $platform->quoteIdentifier($this->prefix() . $table);
+        $quotedTable = $platform->quoteIdentifier($this->prefix . $table);
 
         $setClauses = [];
         $params = [];
@@ -236,7 +246,7 @@ class WpPackWpdb extends \wpdb
     {
 
         $platform = $this->writer->getPlatform();
-        $quotedTable = $platform->quoteIdentifier($this->prefix() . $table);
+        $quotedTable = $platform->quoteIdentifier($this->prefix . $table);
 
         $whereClauses = [];
         $params = [];
@@ -265,6 +275,11 @@ class WpPackWpdb extends \wpdb
         $this->ready = true;
 
         return true;
+    }
+
+    public function getWriter(): DriverInterface
+    {
+        return $this->writer;
     }
 
     public function setLogger(LoggerInterface $logger): void
@@ -343,14 +358,6 @@ class WpPackWpdb extends \wpdb
     public function db_version(): string
     {
         return '8.0.0';
-    }
-
-    /**
-     * @return string Table prefix
-     */
-    private function prefix(): string
-    {
-        return $this->prefix;
     }
 
     /**
@@ -451,7 +458,7 @@ class WpPackWpdb extends \wpdb
         }
 
         $platform = $this->writer->getPlatform();
-        $quotedTable = $platform->quoteIdentifier($this->prefix() . $table);
+        $quotedTable = $platform->quoteIdentifier($this->prefix . $table);
 
         $columns = [];
         $placeholders = [];

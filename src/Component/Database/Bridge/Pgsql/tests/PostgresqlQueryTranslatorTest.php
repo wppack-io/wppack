@@ -637,4 +637,62 @@ SQL;
 
         self::assertStringNotContainsString('`', $result[0]);
     }
+
+    // ── String literal protection ──
+
+    #[Test]
+    public function stringLiteralNotTransformed(): void
+    {
+        $result = $this->translator->translate(
+            "SELECT * FROM t WHERE name = 'CURDATE()' AND created = CURDATE()",
+        );
+
+        self::assertStringContainsString("'CURDATE()'", $result[0]);
+        self::assertStringContainsString('CURRENT_DATE', $result[0]);
+    }
+
+    #[Test]
+    public function doubleQuotedStringLiteralNotTransformed(): void
+    {
+        $result = $this->translator->translate(
+            'SELECT * FROM t WHERE val = "RAND()" AND r = RAND()',
+        );
+
+        self::assertStringContainsString('"RAND()"', $result[0]);
+        self::assertStringContainsString('random()', $result[0]);
+    }
+
+    #[Test]
+    public function stringLiteralWithEscapedQuote(): void
+    {
+        $result = $this->translator->translate(
+            "SELECT * FROM t WHERE name = 'it''s IFNULL()' AND val = IFNULL(a, b)",
+        );
+
+        self::assertStringContainsString("'it''s IFNULL()'", $result[0]);
+        self::assertStringContainsString('COALESCE', $result[0]);
+    }
+
+    #[Test]
+    public function mixedFunctionsAndStringLiterals(): void
+    {
+        $result = $this->translator->translate(
+            "SELECT DATE_FORMAT(created, '%Y-%m-%d'), 'DATE_FORMAT test' FROM t WHERE status = 'UNIX_TIMESTAMP()'",
+        );
+
+        self::assertStringContainsString('TO_CHAR', $result[0]);
+        self::assertStringContainsString("'UNIX_TIMESTAMP()'", $result[0]);
+        self::assertStringContainsString("'DATE_FORMAT test'", $result[0]);
+    }
+
+    #[Test]
+    public function stringLiteralRegexpNotTransformed(): void
+    {
+        $result = $this->translator->translate(
+            "SELECT * FROM t WHERE name = 'REGEXP test' AND val REGEXP 'pattern'",
+        );
+
+        self::assertStringContainsString("'REGEXP test'", $result[0]);
+        self::assertStringContainsString('~*', $result[0]);
+    }
 }

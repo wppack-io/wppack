@@ -42,6 +42,7 @@ final class SqliteDriver extends AbstractDriver
         $driver = new self(':memory:');
         $driver->pdo = $pdo;
         $driver->ownsConnection = false;
+        $driver->registerFunctions($pdo);
 
         return $driver;
     }

@@ -61,6 +61,7 @@ final class DatabaseManager
 
         $this->wpdb = $wpdb;
         $this->engine = match (true) {
+            $wpdb instanceof WpPackWpdb => $wpdb->getWriter()->getPlatform()->getEngine(),
             $wpdb->dbh instanceof \mysqli => DatabaseEngine::MySQL,
             $wpdb->dbh instanceof \PgSql\Connection => DatabaseEngine::PostgreSQL,
             default => DatabaseEngine::SQLite,
@@ -388,6 +389,11 @@ final class DatabaseManager
      */
     private function createConnection(): Connection
     {
+        // WpPackWpdb already has a Driver — reuse it
+        if ($this->wpdb instanceof WpPackWpdb) {
+            return new Connection($this->wpdb->getWriter());
+        }
+
         /** @phpstan-ignore property.protected */
         $dbh = $this->wpdb->dbh;
 
@@ -417,8 +423,11 @@ final class DatabaseManager
      */
     private function toNativePlaceholders(string $query, array $params): array
     {
+        // Strip string literals before checking for ? to avoid false positives
+        $stripped = (string) preg_replace('/\'(?:[^\'\\\\]|\\\\.)*\'|"(?:[^"\\\\]|\\\\.)*"/', '', $query);
+
         // Already uses ? placeholders — pass through
-        if (str_contains($query, '?') || !preg_match('/%[sdf]/', $query)) {
+        if (str_contains($stripped, '?') || !preg_match('/%[sdf]/', $query)) {
             return [$query, $params];
         }
 

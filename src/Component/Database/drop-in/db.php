@@ -1,27 +1,12 @@
 <?php
 
-/**
- * WpPack Database Drop-In.
+/*
+ * This file is part of the WpPack package.
  *
- * Replaces the default WordPress database layer with WpPack drivers.
- * All queries use true prepared statements via DriverInterface.
+ * (c) Tsuyoshi Tsurushima
  *
- * Copy or symlink this file to wp-content/db.php to activate.
- *
- * Configuration via wp-config.php:
- *
- *   define('DATABASE_DSN', 'mysql://user:pass@host:3306/dbname');
- *   define('DATABASE_DSN', 'sqlite:///path/to/database.db');
- *   define('DATABASE_DSN', 'pgsql://user:pass@host:5432/dbname');
- *
- * Optional reader (read/write split):
- *
- *   define('DATABASE_READER_DSN', 'mysql://user:pass@reader-host:3306/dbname');
- *
- * When DATABASE_DSN is not defined, a DSN is auto-built from DB_HOST/DB_USER/
- * DB_PASSWORD/DB_NAME constants if they exist (standard WordPress config).
- *
- * @package WpPack\Component\Database
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);

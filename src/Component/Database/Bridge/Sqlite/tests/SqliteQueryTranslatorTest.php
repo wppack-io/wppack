@@ -929,4 +929,62 @@ SQL);
 
         $driver->close();
     }
+
+    // ── String literal protection ──
+
+    #[Test]
+    public function stringLiteralNotTransformed(): void
+    {
+        $result = $this->translator->translate(
+            "SELECT * FROM t WHERE name = 'NOW()' AND created = NOW()",
+        );
+
+        self::assertStringContainsString("'NOW()'", $result[0]);
+        self::assertStringContainsString("datetime('now')", $result[0]);
+    }
+
+    #[Test]
+    public function doubleQuotedStringLiteralNotTransformed(): void
+    {
+        $result = $this->translator->translate(
+            'SELECT * FROM t WHERE val = "RAND()" AND r = RAND()',
+        );
+
+        self::assertStringContainsString('"RAND()"', $result[0]);
+        self::assertStringContainsString('random()', $result[0]);
+    }
+
+    #[Test]
+    public function stringLiteralWithEscapedQuote(): void
+    {
+        $result = $this->translator->translate(
+            "SELECT * FROM t WHERE name = 'it''s NOW()' AND created = NOW()",
+        );
+
+        self::assertStringContainsString("'it''s NOW()'", $result[0]);
+        self::assertStringContainsString("datetime('now')", $result[0]);
+    }
+
+    #[Test]
+    public function mixedFunctionsAndStringLiterals(): void
+    {
+        $result = $this->translator->translate(
+            "SELECT DATE_FORMAT(created, '%Y-%m-%d'), 'DATE_FORMAT test' FROM t WHERE status = 'CURDATE()'",
+        );
+
+        self::assertStringContainsString('strftime', $result[0]);
+        self::assertStringContainsString("'CURDATE()'", $result[0]);
+        self::assertStringContainsString("'DATE_FORMAT test'", $result[0]);
+    }
+
+    #[Test]
+    public function stringLiteralRegexpNotTransformed(): void
+    {
+        $result = $this->translator->translate(
+            "SELECT * FROM t WHERE name = 'REGEXP test' AND val REGEXP 'pattern'",
+        );
+
+        self::assertStringContainsString("'REGEXP test'", $result[0]);
+        self::assertStringContainsString("REGEXP 'pattern'", $result[0]);
+    }
 }
