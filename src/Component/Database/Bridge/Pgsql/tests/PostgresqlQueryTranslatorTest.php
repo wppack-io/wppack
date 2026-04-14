@@ -987,4 +987,95 @@ SQL;
 
         self::assertStringContainsString('WHERE 0', $result[0]);
     }
+
+    // ── PG4WP parity tests ──
+
+    #[Test]
+    public function convertFunction(): void
+    {
+        $result = $this->translator->translate('SELECT CONVERT(val, SIGNED) FROM t');
+
+        self::assertStringContainsString('CAST(val AS INTEGER)', $result[0]);
+    }
+
+    #[Test]
+    public function insertSetSyntax(): void
+    {
+        $result = $this->translator->translate('INSERT INTO `t` SET name = "test", status = "active"');
+
+        self::assertStringContainsString('INSERT INTO', $result[0]);
+        self::assertStringContainsString('VALUES', $result[0]);
+    }
+
+    #[Test]
+    public function castAsChar(): void
+    {
+        $result = $this->translator->translate('SELECT CAST(val AS CHAR) FROM t');
+
+        self::assertStringContainsString('CAST(val AS TEXT)', $result[0]);
+    }
+
+    #[Test]
+    public function emptyInClause(): void
+    {
+        $result = $this->translator->translate('SELECT * FROM t WHERE id IN ()');
+
+        self::assertStringContainsString('IN (NULL)', $result[0]);
+    }
+
+    #[Test]
+    public function regexpBinary(): void
+    {
+        $result = $this->translator->translate('SELECT * FROM t WHERE name REGEXP BINARY "pattern"');
+
+        self::assertStringContainsString('~', $result[0]);
+        self::assertStringNotContainsString('~*', $result[0]);
+        self::assertStringNotContainsString('BYTEA', $result[0]);
+    }
+
+    #[Test]
+    public function fieldFunction(): void
+    {
+        $result = $this->translator->translate('SELECT FIELD(status, "publish", "draft") FROM t');
+
+        self::assertStringContainsString('CASE', $result[0]);
+        self::assertStringContainsString('WHEN', $result[0]);
+        self::assertStringContainsString('THEN 1', $result[0]);
+        self::assertStringContainsString('THEN 2', $result[0]);
+    }
+
+    #[Test]
+    public function likeToIlike(): void
+    {
+        $result = $this->translator->translate('SELECT * FROM t WHERE name LIKE "%test%"');
+
+        self::assertStringContainsString('ILIKE', $result[0]);
+        self::assertStringNotContainsString(' LIKE ', $result[0]);
+    }
+
+    #[Test]
+    public function likeBinaryStaysLike(): void
+    {
+        $result = $this->translator->translate('SELECT * FROM t WHERE name LIKE BINARY "%Test%"');
+
+        self::assertStringContainsString('LIKE', $result[0]);
+        self::assertStringNotContainsString('ILIKE', $result[0]);
+    }
+
+    #[Test]
+    public function collateClauseRemoved(): void
+    {
+        $result = $this->translator->translate('SELECT * FROM t WHERE name COLLATE utf8mb4_unicode_ci = "test"');
+
+        self::assertStringNotContainsString('COLLATE', $result[0]);
+    }
+
+    #[Test]
+    public function alterTableChangeColumn(): void
+    {
+        $result = $this->translator->translate('ALTER TABLE `t` CHANGE `post_title` `post_title` TEXT NOT NULL');
+
+        self::assertStringContainsString('ALTER COLUMN', $result[0]);
+        self::assertStringContainsString('TYPE', $result[0]);
+    }
 }

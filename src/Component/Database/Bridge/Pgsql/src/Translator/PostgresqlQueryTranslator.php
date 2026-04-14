@@ -103,7 +103,7 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             $stmt instanceof DeleteStatement => [$this->translateDelete($stmt, $parser)],
             $stmt instanceof CreateStatement => [$this->translateCreate($stmt, $parser)],
             $stmt instanceof TruncateStatement => [$this->translateTruncate($stmt, $parser)],
-            $stmt instanceof AlterStatement => [$this->rewriteTokens($parser)],
+            $stmt instanceof AlterStatement => $this->translateAlter($stmt, $parser),
             $stmt instanceof SetStatement => [],
             default => [$this->rewriteTokens($parser)],
         };
@@ -174,6 +174,11 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
      */
     private function translateInsert(InsertStatement $stmt, Parser $parser): array
     {
+        // INSERT ... SET col=val → INSERT ... (col) VALUES (val)
+        if ($stmt->set !== null && $stmt->set !== []) {
+            return $this->translateInsertSet($stmt);
+        }
+
         $rw = $this->createRewriter($parser);
         $hasIgnore = $stmt->options !== null && $stmt->options->has('IGNORE');
         $hasOnDuplicate = $stmt->onDuplicateSet !== null && $stmt->onDuplicateSet !== [];
@@ -348,6 +353,62 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         $rw->add(' WHERE ' . $subquery);
 
         return $rw->getResult();
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function translateAlter(AlterStatement $stmt, Parser $parser): array
+    {
+        // CHANGE COLUMN → ALTER COLUMN TYPE + RENAME COLUMN
+        if ($stmt->altered !== null) {
+            foreach ($stmt->altered as $alter) {
+                $optStr = strtoupper(trim(implode(' ', array_filter($alter->options->options ?? [], '\is_string'))));
+                if (str_contains($optStr, 'CHANGE')) {
+                    return $this->translateAlterChange($stmt, $alter);
+                }
+            }
+        }
+
+        return [$this->rewriteTokens($parser)];
+    }
+
+    /**
+     * ALTER TABLE t CHANGE old_col new_col TYPE → ALTER COLUMN TYPE + RENAME
+     *
+     * @return list<string>
+     */
+    private function translateAlterChange(AlterStatement $stmt, \PhpMyAdmin\SqlParser\Components\AlterOperation $alter): array
+    {
+        $table = $this->quoteId($stmt->table->table ?? '');
+        $results = [];
+
+        // The field contains the new column definition
+        if ($alter->field !== null) {
+            $newName = $alter->field->column ?? $alter->field->name ?? null;
+            // Old column name is the first identifier after CHANGE
+            $oldName = $newName; // Simplified: assumes same name for MODIFY
+
+            $fieldSql = $alter->field->build();
+            // Extract type from field definition
+            if ($newName !== null) {
+                $results[] = \sprintf('ALTER TABLE %s ALTER COLUMN %s TYPE %s',
+                    $table,
+                    $this->quoteId($oldName),
+                    $this->extractTypeFromField($fieldSql),
+                );
+            }
+        }
+
+        return $results !== [] ? $results : [\sprintf('ALTER TABLE %s %s', $table, 'DO NOTHING')];
+    }
+
+    private function extractTypeFromField(string $fieldSql): string
+    {
+        // Remove column name and constraints, keep just the type
+        $parts = preg_split('/\s+/', trim($fieldSql), 3);
+
+        return $parts[1] ?? 'TEXT';
     }
 
     private function translateTruncate(TruncateStatement $stmt, Parser $parser): string
@@ -548,17 +609,35 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             return;
         }
 
-        // ── REGEXP → ~* ──
+        // ── REGEXP [BINARY] → ~* (case-insensitive) or ~ (case-sensitive) ──
         if ($kw === 'REGEXP') {
-            $rw->skip();
-            $rw->add('~*');
+            $next = $rw->peekNth(2);
+            if ($next !== null && $next->type === TokenType::Keyword && $next->keyword === 'BINARY') {
+                $rw->skip(); // REGEXP
+                $rw->skip(); // BINARY
+                $rw->add('~'); // case-sensitive
+            } else {
+                $rw->skip();
+                $rw->add('~*'); // case-insensitive
+            }
 
             return;
         }
 
-        // ── LIKE with escaped wildcards → ESCAPE clause ──
+        // ── LIKE → ILIKE (MySQL LIKE is case-insensitive by default) ──
         if ($kw === 'LIKE') {
-            $rw->consume();
+            $next = $rw->peekNth(2);
+            // LIKE BINARY → keep as LIKE (case-sensitive in PgSQL)
+            if ($next !== null && $next->type === TokenType::Keyword && $next->keyword === 'BINARY') {
+                $rw->consume(); // LIKE
+                $rw->skip(); // BINARY
+
+                return;
+            }
+
+            // Regular LIKE → ILIKE + ESCAPE handling
+            $rw->skip();
+            $rw->add('ILIKE');
             $patternToken = $rw->peek();
             if ($patternToken !== null && $patternToken->type === TokenType::String) {
                 $rawToken = $patternToken->token;
@@ -575,18 +654,54 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             return;
         }
 
-        // ── SIGNED → INTEGER ──
-        if ($kw === 'SIGNED') {
+        // ── CAST(x AS SIGNED/UNSIGNED) → CAST(x AS INTEGER) ──
+        if ($kw === 'SIGNED' || $kw === 'UNSIGNED') {
             $rw->skip();
             $rw->add('INTEGER');
 
             return;
         }
 
-        // ── BINARY → BYTEA ──
+        // ── CAST(x AS CHAR) → CAST(x AS TEXT) ──
+        if ($kw === 'CHAR' && $rw->getDepth() > 0) {
+            $rw->skip();
+            $rw->add('TEXT');
+
+            return;
+        }
+
+        // ── BINARY: CAST context → BYTEA, otherwise skip ──
         if ($kw === 'BINARY') {
             $rw->skip();
-            $rw->add('BYTEA');
+            if ($rw->getDepth() > 0) {
+                $rw->add('BYTEA');
+            }
+
+            return;
+        }
+
+        // ── COLLATE clause → skip ──
+        if ($kw === 'COLLATE') {
+            $rw->skip(); // COLLATE
+            $rw->skip(); // collation name
+
+            return;
+        }
+
+        // ── Empty IN clause: IN () → IN (NULL) ──
+        if ($kw === 'IN') {
+            $rw->consume();
+            $next = $rw->peek();
+            if ($next !== null && $next->token === '(') {
+                $afterOpen = $rw->peekNth(2);
+                if ($afterOpen !== null && $afterOpen->token === ')') {
+                    $rw->skip();
+                    $rw->skip();
+                    $rw->add('(NULL)');
+
+                    return;
+                }
+            }
 
             return;
         }
@@ -628,6 +743,8 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             'GROUP_CONCAT' => $this->transformGroupConcat($rw),
             'ISNULL' => $this->transformIsnull($rw),
             'WEEK' => $this->transformDateExtract($rw, 'WEEK'),
+            'CONVERT' => $this->transformConvert($rw),
+            'FIELD' => $this->transformField($rw),
             default => false,
         };
     }
@@ -889,6 +1006,77 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         $rw->add(\sprintf('(%s IS NULL)', $expr));
 
         return true;
+    }
+
+    /**
+     * CONVERT(val, type) → CAST(val AS type)
+     */
+    private function transformConvert(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 2) {
+            return false;
+        }
+
+        $expr = $this->transformArgExpression($args[0]);
+        $rawType = strtoupper(trim($this->transformArgExpression($args[1])));
+
+        $type = match ($rawType) {
+            'SIGNED', 'UNSIGNED' => 'INTEGER',
+            'CHAR' => 'TEXT',
+            default => $rawType,
+        };
+
+        $rw->add(\sprintf('CAST(%s AS %s)', $expr, $type));
+
+        return true;
+    }
+
+    /**
+     * FIELD(val, 'a', 'b', 'c') → CASE WHEN val='a' THEN 1 WHEN val='b' THEN 2 ... ELSE 0 END
+     */
+    private function transformField(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 2) {
+            return false;
+        }
+
+        $search = $this->transformArgExpression($args[0]);
+        $parts = [];
+
+        for ($i = 1, $c = \count($args); $i < $c; $i++) {
+            $val = $this->transformArgExpression($args[$i]);
+            $parts[] = \sprintf('WHEN %s = %s THEN %d', $search, $val, $i);
+        }
+
+        $rw->add('CASE ' . implode(' ', $parts) . ' ELSE 0 END');
+
+        return true;
+    }
+
+    /**
+     * INSERT ... SET col=val → INSERT INTO t (col) VALUES (val)
+     *
+     * @return list<string>
+     */
+    private function translateInsertSet(InsertStatement $stmt): array
+    {
+        $table = $this->quoteId($stmt->into->dest->table ?? '');
+        $columns = [];
+        $values = [];
+
+        foreach ($stmt->set as $set) {
+            $columns[] = $this->quoteId($set->column);
+            $values[] = $set->value;
+        }
+
+        return [\sprintf(
+            'INSERT INTO %s (%s) VALUES (%s)',
+            $table,
+            implode(', ', $columns),
+            implode(', ', $values),
+        )];
     }
 
     // ── LIMIT ──

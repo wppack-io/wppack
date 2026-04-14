@@ -1635,4 +1635,58 @@ SQL);
 
         self::assertStringContainsString("NOT LIKE '_%'", $result[0]);
     }
+
+    // ── PG4WP parity tests ──
+
+    #[Test]
+    public function convertFunction(): void
+    {
+        $result = $this->translator->translate('SELECT CONVERT(val, SIGNED) FROM t');
+
+        self::assertStringContainsString('CAST(val AS INTEGER)', $result[0]);
+    }
+
+    #[Test]
+    public function insertSetSyntax(): void
+    {
+        $result = $this->translator->translate('INSERT INTO `t` SET name = "test", status = "active"');
+
+        self::assertStringContainsString('INSERT INTO', $result[0]);
+        self::assertStringContainsString('VALUES', $result[0]);
+        self::assertStringContainsString('"name"', $result[0]);
+    }
+
+    #[Test]
+    public function castAsChar(): void
+    {
+        $result = $this->translator->translate('SELECT CAST(val AS CHAR) FROM t');
+
+        self::assertStringContainsString('CAST(val AS TEXT)', $result[0]);
+    }
+
+    #[Test]
+    public function emptyInClause(): void
+    {
+        $result = $this->translator->translate('SELECT * FROM t WHERE id IN ()');
+
+        self::assertStringContainsString('IN (NULL)', $result[0]);
+    }
+
+    #[Test]
+    public function regexpBinaryKeepsRegexp(): void
+    {
+        $result = $this->translator->translate('SELECT * FROM t WHERE name REGEXP BINARY "pattern"');
+
+        self::assertStringContainsString('REGEXP', $result[0]);
+        self::assertStringNotContainsString('BLOB', $result[0]);
+    }
+
+    #[Test]
+    public function collateClauseRemoved(): void
+    {
+        $result = $this->translator->translate('SELECT * FROM t WHERE name COLLATE utf8mb4_unicode_ci = "test"');
+
+        self::assertStringNotContainsString('COLLATE', $result[0]);
+        self::assertStringNotContainsString('utf8mb4', $result[0]);
+    }
 }

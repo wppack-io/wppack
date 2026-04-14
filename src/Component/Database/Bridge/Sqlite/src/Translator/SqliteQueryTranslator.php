@@ -207,6 +207,11 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
      */
     private function translateInsert(InsertStatement $stmt, Parser $parser): array
     {
+        // INSERT ... SET col=val → INSERT ... (col) VALUES (val)
+        if ($stmt->set !== null && $stmt->set !== []) {
+            return $this->translateInsertSet($stmt);
+        }
+
         $rw = $this->createRewriter($parser);
         $hasIgnore = $stmt->options !== null && $stmt->options->has('IGNORE');
         $hasOnDuplicate = $stmt->onDuplicateSet !== null && $stmt->onDuplicateSet !== [];
@@ -277,6 +282,30 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         }
 
         return [$rw->getResult()];
+    }
+
+    /**
+     * INSERT ... SET col=val, col2=val2 → INSERT INTO t (col, col2) VALUES (val, val2)
+     *
+     * @return list<string>
+     */
+    private function translateInsertSet(InsertStatement $stmt): array
+    {
+        $table = $this->quoteId($stmt->into->dest->table ?? '');
+        $columns = [];
+        $values = [];
+
+        foreach ($stmt->set as $set) {
+            $columns[] = $this->quoteId($set->column);
+            $values[] = $set->value;
+        }
+
+        return [\sprintf(
+            'INSERT INTO %s (%s) VALUES (%s)',
+            $table,
+            implode(', ', $columns),
+            implode(', ', $values),
+        )];
     }
 
     private function translateReplace(Parser $parser): string
@@ -838,25 +867,61 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             return;
         }
 
-        // ── CAST(x AS SIGNED) → CAST(x AS INTEGER) ──
-        if ($kw === 'SIGNED') {
+        // ── CAST(x AS SIGNED/UNSIGNED) → CAST(x AS INTEGER) ──
+        if ($kw === 'SIGNED' || $kw === 'UNSIGNED') {
             $rw->skip();
             $rw->add('INTEGER');
 
             return;
         }
 
-        // ── LOW_PRIORITY / DELAYED / IGNORE (standalone) → skip ──
+        // ── CAST(x AS CHAR) → CAST(x AS TEXT) ──
+        if ($kw === 'CHAR' && $rw->getDepth() > 0) {
+            $rw->skip();
+            $rw->add('TEXT');
+
+            return;
+        }
+
+        // ── LOW_PRIORITY / DELAYED / HIGH_PRIORITY → skip ──
         if (\in_array($kw, ['LOW_PRIORITY', 'DELAYED', 'HIGH_PRIORITY'], true)) {
             $rw->skip();
 
             return;
         }
 
-        // ── CAST(x AS BINARY) → CAST(x AS BLOB) ──
+        // ── BINARY: CAST context → BLOB, otherwise skip (REGEXP BINARY etc.) ──
         if ($kw === 'BINARY') {
             $rw->skip();
-            $rw->add('BLOB');
+            if ($rw->getDepth() > 0) {
+                $rw->add('BLOB');
+            }
+
+            return;
+        }
+
+        // ── COLLATE clause → skip (COLLATE + collation name) ──
+        if ($kw === 'COLLATE') {
+            $rw->skip(); // COLLATE
+            $rw->skip(); // collation name
+
+            return;
+        }
+
+        // ── Empty IN clause: IN () → IN (NULL) ──
+        if ($kw === 'IN') {
+            $rw->consume(); // IN
+            $next = $rw->peek();
+            if ($next !== null && $next->token === '(') {
+                $afterOpen = $rw->peekNth(2);
+                if ($afterOpen !== null && $afterOpen->token === ')') {
+                    $rw->skip(); // (
+                    $rw->skip(); // )
+                    $rw->add('(NULL)');
+
+                    return;
+                }
+            }
 
             return;
         }
@@ -894,6 +959,7 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             'LEAST' => $this->transformGreatestLeast($rw, 'MIN'),
             'ISNULL' => $this->transformIsnull($rw),
             'LOG' => $this->transformLog($rw),
+            'CONVERT' => $this->transformConvert($rw),
             default => false,
         };
     }
@@ -1190,6 +1256,30 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             $x = $this->transformArgExpression($args[1]);
             $rw->add(\sprintf('(LOG(%s) / LOG(%s))', $x, $b));
         }
+
+        return true;
+    }
+
+    /**
+     * CONVERT(val, type) → CAST(val AS type)
+     */
+    private function transformConvert(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 2) {
+            return false;
+        }
+
+        $expr = $this->transformArgExpression($args[0]);
+        $rawType = strtoupper(trim($this->transformArgExpression($args[1])));
+
+        $type = match ($rawType) {
+            'SIGNED', 'UNSIGNED' => 'INTEGER',
+            'CHAR' => 'TEXT',
+            default => $rawType,
+        };
+
+        $rw->add(\sprintf('CAST(%s AS %s)', $expr, $type));
 
         return true;
     }
