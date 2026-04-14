@@ -1057,6 +1057,8 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             'ISNULL' => $this->transformIsnull($rw),
             'LOG' => $this->transformLog($rw),
             'CONVERT' => $this->transformConvert($rw),
+            'FIELD' => $this->transformField($rw),
+            'GROUP_CONCAT' => $this->transformGroupConcat($rw),
             default => false,
         };
     }
@@ -1379,6 +1381,59 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         };
 
         $rw->add(\sprintf('CAST(%s AS %s)', $expr, $type));
+
+        return true;
+    }
+
+    /**
+     * FIELD(val, 'a', 'b', 'c') → CASE WHEN val='a' THEN 1 ... ELSE 0 END
+     */
+    private function transformField(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 2) {
+            return false;
+        }
+
+        $search = $this->transformArgExpression($args[0]);
+        $parts = [];
+
+        for ($i = 1, $c = \count($args); $i < $c; $i++) {
+            $val = $this->transformArgExpression($args[$i]);
+            $parts[] = \sprintf('WHEN %s = %s THEN %d', $search, $val, $i);
+        }
+
+        $rw->add('CASE ' . implode(' ', $parts) . ' ELSE 0 END');
+
+        return true;
+    }
+
+    /**
+     * GROUP_CONCAT(col [SEPARATOR sep]) → group_concat(col, sep)
+     *
+     * SQLite's native group_concat takes separator as second argument.
+     * MySQL uses SEPARATOR keyword instead.
+     */
+    private function transformGroupConcat(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || $args === []) {
+            return false;
+        }
+
+        $expr = $this->transformArgExpression($args[0]);
+        $separator = "','";
+
+        // Check for SEPARATOR keyword in remaining args
+        if (\count($args) >= 2) {
+            $sepTokens = $args[\count($args) - 1];
+            $sepStr = $this->findStringToken($sepTokens);
+            if ($sepStr !== null) {
+                $separator = $sepStr->token;
+            }
+        }
+
+        $rw->add(\sprintf('group_concat(%s, %s)', $expr, $separator));
 
         return true;
     }
@@ -1721,6 +1776,47 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
     /**
      * @return list<string>|null
      */
+    /** @var array<string, string> */
+    private const SYSTEM_VARIABLE_DEFAULTS = [
+        'sql_mode' => '',
+        'character_set_client' => 'utf8mb4',
+        'character_set_connection' => 'utf8mb4',
+        'character_set_results' => 'utf8mb4',
+        'character_set_database' => 'utf8mb4',
+        'character_set_server' => 'utf8mb4',
+        'collation_connection' => 'utf8mb4_unicode_ci',
+        'collation_database' => 'utf8mb4_unicode_ci',
+        'collation_server' => 'utf8mb4_unicode_ci',
+        'max_allowed_packet' => '67108864',
+        'wait_timeout' => '28800',
+        'interactive_timeout' => '28800',
+        'net_read_timeout' => '30',
+        'net_write_timeout' => '60',
+    ];
+
+    /**
+     * Translate SELECT @@variable queries to return appropriate default values.
+     */
+    private function translateSystemVariable(string $sql): string
+    {
+        // Extract all @@variable references and build SELECT with defaults
+        if (preg_match_all('/@@(?:SESSION\.|GLOBAL\.)?(\w+)/i', $sql, $matches)) {
+            $columns = [];
+            foreach ($matches[1] as $i => $varName) {
+                $value = self::SYSTEM_VARIABLE_DEFAULTS[strtolower($varName)] ?? '';
+                $alias = $matches[0][$i];
+                $columns[] = \sprintf("'%s' AS `%s`", str_replace("'", "''", $value), $alias);
+            }
+
+            return 'SELECT ' . implode(', ', $columns);
+        }
+
+        return "SELECT '' AS `@@value`";
+    }
+
+    /**
+     * @return list<string>|null
+     */
     private function translateMetaCommand(string $sql): ?array
     {
         if (preg_match('/^\s*START\s+TRANSACTION\b/i', $sql)) {
@@ -1729,7 +1825,7 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
 
         // MySQL system variables → dummy values
         if (preg_match('/^\s*SELECT\s+@@/i', $sql)) {
-            return ["SELECT '' AS `@@value`"];
+            return [$this->translateSystemVariable($sql)];
         }
 
         // information_schema queries → sqlite_master
@@ -1797,11 +1893,24 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         }
 
         if (preg_match('/^\s*SHOW\s+TABLE\s+STATUS\s+LIKE\s+[\'"](.+?)[\'"]\s*$/i', $sql, $m)) {
-            return [\sprintf("SELECT name AS Name, 'InnoDB' AS Engine FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%%' AND name NOT LIKE '_%%' AND name LIKE '%s'", str_replace("'", "''", $m[1]))];
+            return [\sprintf(
+                "SELECT name AS Name, 'InnoDB' AS Engine, 0 AS Version, 'Dynamic' AS Row_format, "
+                . "0 AS Rows, 0 AS Avg_row_length, 0 AS Data_length, 0 AS Max_data_length, "
+                . "0 AS Index_length, 0 AS Data_free, NULL AS Auto_increment, "
+                . "NULL AS Create_time, NULL AS Update_time, NULL AS Check_time, "
+                . "'utf8mb4_unicode_ci' AS Collation, NULL AS Checksum, '' AS Create_options, '' AS Comment "
+                . "FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%%%%' AND name NOT LIKE '_%%%%' AND name LIKE '%s'",
+                str_replace("'", "''", $m[1]),
+            )];
         }
 
         if (preg_match('/^\s*SHOW\s+TABLE\s+STATUS/i', $sql)) {
-            return ["SELECT name AS Name, 'InnoDB' AS Engine FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_%'"];
+            return ["SELECT name AS Name, 'InnoDB' AS Engine, 0 AS Version, 'Dynamic' AS Row_format, "
+                . "0 AS Rows, 0 AS Avg_row_length, 0 AS Data_length, 0 AS Max_data_length, "
+                . "0 AS Index_length, 0 AS Data_free, NULL AS Auto_increment, "
+                . "NULL AS Create_time, NULL AS Update_time, NULL AS Check_time, "
+                . "'utf8mb4_unicode_ci' AS Collation, NULL AS Checksum, '' AS Create_options, '' AS Comment "
+                . "FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_%'"];
         }
 
         if (preg_match('/^\s*DESCRIBE\s+[`"]?(\w+)[`"]?\s*/i', $sql, $m)) {

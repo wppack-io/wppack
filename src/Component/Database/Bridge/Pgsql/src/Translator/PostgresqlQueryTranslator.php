@@ -101,7 +101,7 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             $stmt instanceof ReplaceStatement => [$this->translateReplace($parser)],
             $stmt instanceof UpdateStatement => [$this->translateUpdate($stmt, $parser)],
             $stmt instanceof DeleteStatement => [$this->translateDelete($stmt, $parser)],
-            $stmt instanceof CreateStatement => [$this->translateCreate($stmt, $parser)],
+            $stmt instanceof CreateStatement => $this->translateCreate($stmt, $parser),
             $stmt instanceof TruncateStatement => [$this->translateTruncate($stmt, $parser)],
             $stmt instanceof AlterStatement => $this->translateAlter($stmt, $parser),
             $stmt instanceof SetStatement => [],
@@ -622,31 +622,59 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
      *
      * For CREATE INDEX / CREATE VIEW, falls back to token rewriting.
      */
-    private function translateCreate(CreateStatement $stmt, Parser $parser): string
+    /**
+     * @return list<string>
+     */
+    private function translateCreate(CreateStatement $stmt, Parser $parser): array
     {
         if (!\is_array($stmt->fields) || $stmt->fields === []) {
-            return $this->rewriteTokens($parser);
+            return [$this->rewriteTokens($parser)];
         }
 
         return $this->buildCreateTable($stmt);
     }
 
-    private function buildCreateTable(CreateStatement $stmt): string
+    /**
+     * @return list<string>
+     */
+    private function buildCreateTable(CreateStatement $stmt): array
     {
-        $tableName = $this->quoteId($stmt->name->table ?? '');
+        $rawTableName = $stmt->name->table ?? '';
+        $tableName = $this->quoteId($rawTableName);
         $ifNotExists = ($stmt->options?->has('IF NOT EXISTS')) ? 'IF NOT EXISTS ' : '';
 
         $parts = [];
+        $triggers = [];
 
         foreach ($stmt->fields as $field) {
             if ($field->type !== null) {
                 $parts[] = $this->buildColumnDef($field);
+
+                // ON UPDATE CURRENT_TIMESTAMP → PgSQL trigger
+                $optionsBuild = strtoupper($field->options?->build() ?? '');
+                if (str_contains($optionsBuild, 'ON UPDATE CURRENT_TIMESTAMP') && $field->name !== null) {
+                    $col = $field->name;
+                    $funcName = "_wppack_{$rawTableName}_{$col}_update";
+                    $triggers[] = \sprintf(
+                        "CREATE OR REPLACE FUNCTION %s() RETURNS TRIGGER AS $$ BEGIN NEW.%s = NOW(); RETURN NEW; END; $$ LANGUAGE plpgsql",
+                        $this->quoteId($funcName),
+                        $this->quoteId($col),
+                    );
+                    $triggers[] = \sprintf(
+                        'CREATE TRIGGER %s BEFORE UPDATE ON %s FOR EACH ROW EXECUTE FUNCTION %s()',
+                        $this->quoteId("__{$rawTableName}_{$col}_on_update__"),
+                        $tableName,
+                        $this->quoteId($funcName),
+                    );
+                }
             } elseif ($field->key !== null) {
                 $parts[] = $this->buildKeyDef($field->key);
             }
         }
 
-        return \sprintf("CREATE TABLE %s%s (%s)", $ifNotExists, $tableName, implode(', ', $parts));
+        $results = [\sprintf("CREATE TABLE %s%s (%s)", $ifNotExists, $tableName, implode(', ', $parts))];
+
+        return [...$results, ...$triggers];
     }
 
     private function buildColumnDef(\PhpMyAdmin\SqlParser\Components\CreateDefinition $field): string
@@ -993,6 +1021,11 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             'WEEK' => $this->transformWeek($rw),
             'CONVERT' => $this->transformConvert($rw),
             'FIELD' => $this->transformField($rw),
+            'UNHEX' => $this->transformUnhex($rw),
+            'TO_BASE64' => $this->transformToBase64($rw),
+            'FROM_BASE64' => $this->transformFromBase64($rw),
+            'INET_ATON' => $this->transformInetAton($rw),
+            'INET_NTOA' => $this->transformInetNtoa($rw),
             default => false,
         };
     }
@@ -1349,6 +1382,81 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         )];
     }
 
+    /**
+     * UNHEX(hex) → decode(hex, 'hex')
+     */
+    private function transformUnhex(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 1) {
+            return false;
+        }
+
+        $rw->add(\sprintf("decode(%s, 'hex')", $this->transformArgExpression($args[0])));
+
+        return true;
+    }
+
+    /**
+     * TO_BASE64(str) → encode(str::bytea, 'base64')
+     */
+    private function transformToBase64(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 1) {
+            return false;
+        }
+
+        $rw->add(\sprintf("encode(%s::bytea, 'base64')", $this->transformArgExpression($args[0])));
+
+        return true;
+    }
+
+    /**
+     * FROM_BASE64(str) → decode(str, 'base64')
+     */
+    private function transformFromBase64(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 1) {
+            return false;
+        }
+
+        $rw->add(\sprintf("decode(%s, 'base64')", $this->transformArgExpression($args[0])));
+
+        return true;
+    }
+
+    /**
+     * INET_ATON(ip) → (ip::inet - '0.0.0.0'::inet)
+     */
+    private function transformInetAton(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 1) {
+            return false;
+        }
+
+        $rw->add(\sprintf("(%s::inet - '0.0.0.0'::inet)", $this->transformArgExpression($args[0])));
+
+        return true;
+    }
+
+    /**
+     * INET_NTOA(num) → ('0.0.0.0'::inet + num)::text
+     */
+    private function transformInetNtoa(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 1) {
+            return false;
+        }
+
+        $rw->add(\sprintf("('0.0.0.0'::inet + %s)::text", $this->transformArgExpression($args[0])));
+
+        return true;
+    }
+
     // ── LIMIT ──
 
     /**
@@ -1595,6 +1703,43 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
     /**
      * @return list<string>|null
      */
+    /** @var array<string, string> */
+    private const SYSTEM_VARIABLE_DEFAULTS = [
+        'sql_mode' => '',
+        'character_set_client' => 'utf8mb4',
+        'character_set_connection' => 'utf8mb4',
+        'character_set_results' => 'utf8mb4',
+        'character_set_database' => 'utf8mb4',
+        'character_set_server' => 'utf8mb4',
+        'collation_connection' => 'utf8mb4_unicode_ci',
+        'collation_database' => 'utf8mb4_unicode_ci',
+        'collation_server' => 'utf8mb4_unicode_ci',
+        'max_allowed_packet' => '67108864',
+        'wait_timeout' => '28800',
+        'interactive_timeout' => '28800',
+        'net_read_timeout' => '30',
+        'net_write_timeout' => '60',
+    ];
+
+    private function translateSystemVariable(string $sql): string
+    {
+        if (preg_match_all('/@@(?:SESSION\.|GLOBAL\.)?(\w+)/i', $sql, $matches)) {
+            $columns = [];
+            foreach ($matches[1] as $i => $varName) {
+                $value = self::SYSTEM_VARIABLE_DEFAULTS[strtolower($varName)] ?? '';
+                $alias = $matches[0][$i];
+                $columns[] = \sprintf("'%s' AS \"%s\"", str_replace("'", "''", $value), $alias);
+            }
+
+            return 'SELECT ' . implode(', ', $columns);
+        }
+
+        return "SELECT '' AS \"@@value\"";
+    }
+
+    /**
+     * @return list<string>|null
+     */
     private function translateMetaCommand(string $sql): ?array
     {
         if (preg_match('/^\s*START\s+TRANSACTION\b/i', $sql)) {
@@ -1603,7 +1748,12 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
 
         // MySQL system variables → dummy values
         if (preg_match('/^\s*SELECT\s+@@/i', $sql)) {
-            return ["SELECT '' AS \"@@value\""];
+            return [$this->translateSystemVariable($sql)];
+        }
+
+        // GET_LOCK / RELEASE_LOCK → dummy success
+        if (preg_match('/\bGET_LOCK\s*\(/i', $sql) || preg_match('/\bRELEASE_LOCK\s*\(/i', $sql)) {
+            return ['SELECT 1'];
         }
 
         if (preg_match('/^\s*SHOW\s+FULL\s+TABLES\s+LIKE\s+[\'"](.+?)[\'"]\s*$/i', $sql, $m)) {
@@ -1667,11 +1817,24 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         }
 
         if (preg_match('/^\s*SHOW\s+TABLE\s+STATUS\s+LIKE\s+[\'"](.+?)[\'"]\s*$/i', $sql, $m)) {
-            return [\sprintf("SELECT table_name AS \"Name\" FROM information_schema.tables WHERE table_schema = 'public' AND table_name LIKE '%s'", str_replace("'", "''", $m[1]))];
+            return [\sprintf(
+                "SELECT t.table_name AS \"Name\", 'InnoDB' AS \"Engine\", 0 AS \"Version\", 'Dynamic' AS \"Row_format\", "
+                . "COALESCE(c.reltuples::bigint, 0) AS \"Rows\", 0 AS \"Avg_row_length\", "
+                . "COALESCE(pg_total_relation_size(c.oid), 0) AS \"Data_length\", "
+                . "0 AS \"Index_length\", '' AS \"Comment\" "
+                . "FROM information_schema.tables t LEFT JOIN pg_class c ON c.relname = t.table_name AND c.relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public') "
+                . "WHERE t.table_schema = 'public' AND t.table_name LIKE '%s'",
+                str_replace("'", "''", $m[1]),
+            )];
         }
 
         if (preg_match('/^\s*SHOW\s+TABLE\s+STATUS/i', $sql)) {
-            return ["SELECT table_name AS \"Name\" FROM information_schema.tables WHERE table_schema = 'public'"];
+            return ["SELECT t.table_name AS \"Name\", 'InnoDB' AS \"Engine\", 0 AS \"Version\", 'Dynamic' AS \"Row_format\", "
+                . "COALESCE(c.reltuples::bigint, 0) AS \"Rows\", 0 AS \"Avg_row_length\", "
+                . "COALESCE(pg_total_relation_size(c.oid), 0) AS \"Data_length\", "
+                . "0 AS \"Index_length\", '' AS \"Comment\" "
+                . "FROM information_schema.tables t LEFT JOIN pg_class c ON c.relname = t.table_name AND c.relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public') "
+                . "WHERE t.table_schema = 'public'"];
         }
 
         if (preg_match('/^\s*DESCRIBE\s+[`"]?(\w+)[`"]?\s*/i', $sql, $m)) {

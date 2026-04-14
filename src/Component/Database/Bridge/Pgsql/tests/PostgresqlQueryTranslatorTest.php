@@ -1086,7 +1086,7 @@ SQL;
     {
         $result = $this->translator->translate('SELECT @@SESSION.sql_mode');
 
-        self::assertStringContainsString('@@value', $result[0]);
+        self::assertStringContainsString('@@SESSION.sql_mode', $result[0]);
     }
 
     #[Test]
