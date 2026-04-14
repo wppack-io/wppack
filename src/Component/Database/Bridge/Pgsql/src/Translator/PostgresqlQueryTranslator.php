@@ -1253,6 +1253,9 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
     /**
      * GROUP_CONCAT(col SEPARATOR sep) → STRING_AGG(col, sep)
      */
+    /**
+     * GROUP_CONCAT(expr [SEPARATOR sep]) → STRING_AGG(expr::text, sep)
+     */
     private function transformGroupConcat(QueryRewriter $rw): bool
     {
         $args = $this->extractFunctionArgs($rw);
@@ -1260,20 +1263,34 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             return false;
         }
 
-        // GROUP_CONCAT may have SEPARATOR keyword in its arguments
-        $expr = $this->transformArgExpression($args[0]);
+        $allTokens = $args[0];
+        $exprTokens = [];
         $separator = "','";
 
-        // Check for SEPARATOR keyword in remaining args
-        if (\count($args) >= 2) {
-            $sepTokens = $args[\count($args) - 1];
-            $sepStr = $this->findStringToken($sepTokens);
+        $foundSep = false;
+        foreach ($allTokens as $token) {
+            if (!$foundSep && $token->type === TokenType::Keyword && $token->keyword === 'SEPARATOR') {
+                $foundSep = true;
+                continue;
+            }
+            if ($foundSep) {
+                if ($token->type === TokenType::String) {
+                    $separator = $token->token;
+                }
+            } else {
+                $exprTokens[] = $token;
+            }
+        }
+
+        if (!$foundSep && \count($args) >= 2) {
+            $sepStr = $this->findStringToken($args[\count($args) - 1]);
             if ($sepStr !== null) {
                 $separator = $sepStr->token;
             }
         }
 
-        $rw->add(\sprintf('STRING_AGG(%s, %s)', $expr, $separator));
+        $expr = $exprTokens !== [] ? $this->transformArgExpression($exprTokens) : $this->transformArgExpression($args[0]);
+        $rw->add(\sprintf('STRING_AGG(%s::text, %s)', $expr, $separator));
 
         return true;
     }

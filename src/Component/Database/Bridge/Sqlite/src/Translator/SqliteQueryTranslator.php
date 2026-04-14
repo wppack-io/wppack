@@ -1417,6 +1417,12 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
      * SQLite's native group_concat takes separator as second argument.
      * MySQL uses SEPARATOR keyword instead.
      */
+    /**
+     * GROUP_CONCAT(expr [SEPARATOR sep]) → group_concat(expr, sep)
+     *
+     * MySQL's SEPARATOR keyword is inside the function args (not comma-separated).
+     * We split the token list at the SEPARATOR keyword.
+     */
     private function transformGroupConcat(QueryRewriter $rw): bool
     {
         $args = $this->extractFunctionArgs($rw);
@@ -1424,18 +1430,37 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             return false;
         }
 
-        $expr = $this->transformArgExpression($args[0]);
+        // All tokens are in args[0] (no commas inside GROUP_CONCAT typically)
+        // Split at SEPARATOR keyword
+        $allTokens = $args[0];
+        $exprTokens = [];
         $separator = "','";
 
-        // Check for SEPARATOR keyword in remaining args
-        if (\count($args) >= 2) {
-            $sepTokens = $args[\count($args) - 1];
-            $sepStr = $this->findStringToken($sepTokens);
+        $foundSep = false;
+        foreach ($allTokens as $token) {
+            if (!$foundSep && $token->type === TokenType::Keyword && $token->keyword === 'SEPARATOR') {
+                $foundSep = true;
+                continue;
+            }
+            if ($foundSep) {
+                if ($token->type === TokenType::String) {
+                    $separator = $token->token;
+                }
+            } else {
+                $exprTokens[] = $token;
+            }
+        }
+
+        // If comma-separated args exist (e.g., GROUP_CONCAT(DISTINCT col ORDER BY col SEPARATOR sep))
+        // fall back to simple approach
+        if (!$foundSep && \count($args) >= 2) {
+            $sepStr = $this->findStringToken($args[\count($args) - 1]);
             if ($sepStr !== null) {
                 $separator = $sepStr->token;
             }
         }
 
+        $expr = $exprTokens !== [] ? $this->transformArgExpression($exprTokens) : $this->transformArgExpression($args[0]);
         $rw->add(\sprintf('group_concat(%s, %s)', $expr, $separator));
 
         return true;
