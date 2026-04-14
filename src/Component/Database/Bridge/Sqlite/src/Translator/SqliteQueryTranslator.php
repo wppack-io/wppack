@@ -810,9 +810,6 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
     }
 
     /**
-     * @return list<string>
-     */
-    /**
      * TRUNCATE TABLE → DELETE FROM + reset AUTOINCREMENT counter.
      *
      * MySQL TRUNCATE resets AUTO_INCREMENT to 1. SQLite's DELETE FROM
@@ -1801,9 +1798,6 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
 
     // ── Meta commands ──
 
-    /**
-     * @return list<string>|null
-     */
     /** @var array<string, string> */
     private const SYSTEM_VARIABLE_DEFAULTS = [
         'sql_mode' => '',

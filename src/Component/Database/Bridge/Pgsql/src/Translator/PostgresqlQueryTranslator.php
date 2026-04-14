@@ -528,9 +528,6 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
     /**
      * @return list<string>
      */
-    /**
-     * @return list<string>
-     */
     private function translateAlter(AlterStatement $stmt, Parser $parser): array
     {
         $table = $stmt->table->table ?? '';
@@ -1251,9 +1248,6 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
     }
 
     /**
-     * GROUP_CONCAT(col SEPARATOR sep) → STRING_AGG(col, sep)
-     */
-    /**
      * GROUP_CONCAT(expr [SEPARATOR sep]) → STRING_AGG(expr::text, sep)
      */
     private function transformGroupConcat(QueryRewriter $rw): bool
@@ -1720,9 +1714,6 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
 
     // ── Meta commands ──
 
-    /**
-     * @return list<string>|null
-     */
     /** @var array<string, string> */
     private const SYSTEM_VARIABLE_DEFAULTS = [
         'sql_mode' => '',
