@@ -128,6 +128,10 @@ final class SqliteDriver extends AbstractDriver
 
             return 0;
         });
+
+        $pdo->sqliteCreateFunction('MD5', static function (?string $value): ?string {
+            return $value === null ? null : md5($value);
+        }, 1);
     }
 
     protected function doClose(): void

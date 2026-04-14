@@ -124,6 +124,30 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
                 continue;
             }
 
+            // FROM DUAL → skip
+            if ($token->type === TokenType::Keyword && $token->keyword === 'FROM') {
+                $next = $rw->peekNth(2);
+                if ($next !== null && $next->type === TokenType::Keyword && $next->keyword === 'DUAL') {
+                    $rw->skip();
+                    $rw->skip();
+                    continue;
+                }
+            }
+
+            // INDEX HINTS: USE/FORCE/IGNORE INDEX (...) → skip
+            if ($token->type === TokenType::Keyword
+                && \in_array($token->keyword, ['USE', 'FORCE', 'IGNORE'], true)) {
+                $next = $rw->peekNth(2);
+                if ($next !== null && ($next->keyword === 'INDEX' || $next->keyword === 'KEY')) {
+                    $rw->skip();
+                    $rw->skip();
+                    if ($rw->peek()?->token === '(') {
+                        $this->skipMatchingParen($rw);
+                    }
+                    continue;
+                }
+            }
+
             // LIMIT: rewrite using AST
             if ($token->type === TokenType::Keyword && $token->keyword === 'LIMIT' && $stmt->limit !== null) {
                 $this->rewriteLimit($rw, $stmt->limit->offset, $stmt->limit->rowCount);
@@ -415,6 +439,14 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             return;
         }
 
+        // ── BINARY → BYTEA ──
+        if ($kw === 'BINARY') {
+            $rw->skip();
+            $rw->add('BYTEA');
+
+            return;
+        }
+
         $rw->consume();
     }
 
@@ -481,8 +513,10 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         }
 
         $format = str_replace(
-            ['%Y', '%m', '%d', '%H', '%i', '%s'],
-            ['YYYY', 'MM', 'DD', 'HH24', 'MI', 'SS'],
+            ['%Y', '%y', '%m', '%c', '%d', '%e', '%H', '%h', '%I', '%i', '%s', '%S',
+             '%j', '%W', '%w', '%p', '%T', '%r', '%a', '%b', '%M'],
+            ['YYYY', 'YY', 'MM', 'FMMM', 'DD', 'FMDD', 'HH24', 'HH12', 'HH12', 'MI', 'SS', 'SS',
+             'DDD', 'Day', 'D', 'AM', 'HH24:MI:SS', 'HH12:MI:SS AM', 'Dy', 'Mon', 'FMMonth'],
             (string) $formatToken->value,
         );
 
@@ -882,6 +916,23 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         return $token->type === TokenType::Whitespace
             || $token->type === TokenType::Comment
             || $token->type === TokenType::Delimiter;
+    }
+
+    private function skipMatchingParen(QueryRewriter $rw): void
+    {
+        $depth = 0;
+
+        do {
+            $t = $rw->skip();
+            if ($t === null) {
+                break;
+            }
+            if ($t->token === '(') {
+                $depth++;
+            } elseif ($t->token === ')') {
+                $depth--;
+            }
+        } while ($depth > 0);
     }
 
     // ── Generic token rewrite ──

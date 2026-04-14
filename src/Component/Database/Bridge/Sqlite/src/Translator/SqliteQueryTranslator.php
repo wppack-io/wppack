@@ -158,6 +158,30 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
                 continue;
             }
 
+            // FROM DUAL → skip (MySQL-ism for "no tables")
+            if ($token->type === TokenType::Keyword && $token->keyword === 'FROM') {
+                $next = $rw->peekNth(2);
+                if ($next !== null && $next->type === TokenType::Keyword && $next->keyword === 'DUAL') {
+                    $rw->skip(); // FROM
+                    $rw->skip(); // DUAL
+                    continue;
+                }
+            }
+
+            // INDEX HINTS: USE/FORCE/IGNORE INDEX (...) → skip
+            if ($token->type === TokenType::Keyword
+                && \in_array($token->keyword, ['USE', 'FORCE', 'IGNORE'], true)) {
+                $next = $rw->peekNth(2);
+                if ($next !== null && ($next->keyword === 'INDEX' || $next->keyword === 'KEY')) {
+                    $rw->skip(); // USE/FORCE/IGNORE
+                    $rw->skip(); // INDEX/KEY
+                    if ($rw->peek()?->token === '(') {
+                        $this->skipMatchingParen($rw);
+                    }
+                    continue;
+                }
+            }
+
             // LIMIT: rewrite using AST info
             if ($token->type === TokenType::Keyword && $token->keyword === 'LIMIT' && $stmt->limit !== null) {
                 $this->rewriteLimit($rw, $stmt->limit->offset, $stmt->limit->rowCount);
@@ -560,6 +584,9 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
     /**
      * @return list<string>
      */
+    /**
+     * @return list<string>
+     */
     private function translateAlter(AlterStatement $stmt, Parser $parser): array
     {
         $rw = $this->createRewriter($parser);
@@ -569,6 +596,11 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         // ADD COLUMN (but not ADD INDEX, ADD KEY, etc.)
         if (preg_match('/\bADD\s+(?!INDEX\b|KEY\b|UNIQUE\b|PRIMARY\b|CONSTRAINT\b)/i', $sql)) {
             return [$this->transformDdlTypes($sql)];
+        }
+
+        // DROP COLUMN — SQLite 3.35.0+ supports this natively
+        if (preg_match('/\bDROP\s+(COLUMN\s+)?/i', $sql)) {
+            return [$sql];
         }
 
         // RENAME
@@ -683,6 +715,14 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             return;
         }
 
+        // ── CAST(x AS BINARY) → CAST(x AS BLOB) ──
+        if ($kw === 'BINARY') {
+            $rw->skip();
+            $rw->add('BLOB');
+
+            return;
+        }
+
         // Default: consume
         $rw->consume();
     }
@@ -759,8 +799,10 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         }
 
         $format = str_replace(
-            ['%Y', '%m', '%d', '%H', '%i', '%s', '%j', '%W'],
-            ['%Y', '%m', '%d', '%H', '%M', '%S', '%j', '%w'],
+            ['%Y', '%y', '%m', '%c', '%d', '%e', '%H', '%h', '%I', '%i', '%s', '%S',
+             '%j', '%W', '%w', '%p', '%T', '%r', '%a', '%b', '%M'],
+            ['%Y', '%y', '%m', '%n', '%d', '%j', '%H', '%h', '%h', '%M', '%S', '%S',
+             '%z', '%l', '%w', '%A', '%H:%M:%S', '%h:%M:%S %A', '%D', '%M', '%F'],
             (string) $formatToken->value,
         );
 
@@ -1224,6 +1266,26 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         return $token->type === TokenType::Whitespace
             || $token->type === TokenType::Comment
             || $token->type === TokenType::Delimiter;
+    }
+
+    /**
+     * Skip tokens through the matching closing parenthesis.
+     */
+    private function skipMatchingParen(QueryRewriter $rw): void
+    {
+        $depth = 0;
+
+        do {
+            $t = $rw->skip();
+            if ($t === null) {
+                break;
+            }
+            if ($t->token === '(') {
+                $depth++;
+            } elseif ($t->token === ')') {
+                $depth--;
+            }
+        } while ($depth > 0);
     }
 
     // ── Generic token rewrite ──
