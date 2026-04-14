@@ -694,4 +694,87 @@ SQL;
         self::assertStringContainsString("'REGEXP test'", $result[0]);
         self::assertStringContainsString('~*', $result[0]);
     }
+
+    // ── Extended function translations ──
+
+    #[Test]
+    public function concatFunction(): void
+    {
+        $result = $this->translator->translate("SELECT CONCAT(first_name, ' ', last_name) FROM t");
+
+        self::assertStringContainsString('CONCAT(', $result[0]);
+    }
+
+    #[Test]
+    public function datediffFunction(): void
+    {
+        $result = $this->translator->translate("SELECT DATEDIFF('2024-12-31', '2024-01-01')");
+
+        self::assertStringContainsString('DATE_PART', $result[0]);
+        self::assertStringContainsString('::timestamp', $result[0]);
+    }
+
+    #[Test]
+    public function monthYearDayFunctions(): void
+    {
+        $result = $this->translator->translate('SELECT MONTH(d), YEAR(d), DAY(d) FROM t');
+
+        self::assertStringContainsString('EXTRACT(MONTH', $result[0]);
+        self::assertStringContainsString('EXTRACT(YEAR', $result[0]);
+        self::assertStringContainsString('EXTRACT(DAY', $result[0]);
+    }
+
+    #[Test]
+    public function hourMinuteSecondFunctions(): void
+    {
+        $result = $this->translator->translate('SELECT HOUR(d), MINUTE(d), SECOND(d) FROM t');
+
+        self::assertStringContainsString('EXTRACT(HOUR', $result[0]);
+        self::assertStringContainsString('EXTRACT(MINUTE', $result[0]);
+        self::assertStringContainsString('EXTRACT(SECOND', $result[0]);
+    }
+
+    #[Test]
+    public function dayOfWeekFunction(): void
+    {
+        $result = $this->translator->translate('SELECT DAYOFWEEK(created) FROM t');
+
+        self::assertStringContainsString('EXTRACT(DOW', $result[0]);
+        self::assertStringContainsString('+ 1)', $result[0]);
+    }
+
+    #[Test]
+    public function locateFunction(): void
+    {
+        $result = $this->translator->translate("SELECT LOCATE('abc', name) FROM t");
+
+        self::assertStringContainsString('POSITION(', $result[0]);
+        self::assertStringContainsString('IN', $result[0]);
+    }
+
+    #[Test]
+    public function lcaseUcaseFunctions(): void
+    {
+        $result = $this->translator->translate('SELECT LCASE(name), UCASE(title) FROM t');
+
+        self::assertStringContainsString('lower(name)', $result[0]);
+        self::assertStringContainsString('upper(title)', $result[0]);
+    }
+
+    #[Test]
+    public function utcTimestampFunction(): void
+    {
+        $result = $this->translator->translate('SELECT UTC_TIMESTAMP()');
+
+        self::assertStringContainsString('AT TIME ZONE', $result[0]);
+    }
+
+    #[Test]
+    public function nestedFunctionInDateAdd(): void
+    {
+        $result = $this->translator->translate("SELECT DATE_ADD(NOW(), INTERVAL 1 DAY)");
+
+        self::assertStringContainsString("NOW()", $result[0]);
+        self::assertStringContainsString("+ INTERVAL '1 day'", $result[0]);
+    }
 }

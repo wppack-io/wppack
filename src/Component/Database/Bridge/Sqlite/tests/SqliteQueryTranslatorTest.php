@@ -987,4 +987,137 @@ SQL);
         self::assertStringContainsString("'REGEXP test'", $result[0]);
         self::assertStringContainsString("REGEXP 'pattern'", $result[0]);
     }
+
+    // ── Extended function translations ──
+
+    #[Test]
+    public function concatFunction(): void
+    {
+        $result = $this->translator->translate("SELECT CONCAT(first_name, ' ', last_name) FROM t");
+
+        self::assertStringContainsString('||', $result[0]);
+        self::assertStringNotContainsString('CONCAT', $result[0]);
+    }
+
+    #[Test]
+    public function concatWsFunction(): void
+    {
+        $result = $this->translator->translate("SELECT CONCAT_WS('-', a, b, c) FROM t");
+
+        self::assertStringContainsString('||', $result[0]);
+    }
+
+    #[Test]
+    public function rightFunction(): void
+    {
+        $result = $this->translator->translate('SELECT RIGHT(name, 3) FROM t');
+
+        self::assertStringContainsString('SUBSTR(name, -3)', $result[0]);
+    }
+
+    #[Test]
+    public function datediffFunction(): void
+    {
+        $result = $this->translator->translate("SELECT DATEDIFF('2024-12-31', '2024-01-01')");
+
+        self::assertStringContainsString('julianday', $result[0]);
+        self::assertStringContainsString('CAST(', $result[0]);
+    }
+
+    #[Test]
+    public function monthYearDayFunctions(): void
+    {
+        $result = $this->translator->translate('SELECT MONTH(d), YEAR(d), DAY(d) FROM t');
+
+        self::assertStringContainsString("strftime('%m'", $result[0]);
+        self::assertStringContainsString("strftime('%Y'", $result[0]);
+        self::assertStringContainsString("strftime('%d'", $result[0]);
+    }
+
+    #[Test]
+    public function hourMinuteSecondFunctions(): void
+    {
+        $result = $this->translator->translate('SELECT HOUR(d), MINUTE(d), SECOND(d) FROM t');
+
+        self::assertStringContainsString("strftime('%H'", $result[0]);
+        self::assertStringContainsString("strftime('%M'", $result[0]);
+        self::assertStringContainsString("strftime('%S'", $result[0]);
+    }
+
+    #[Test]
+    public function dayOfWeekFunction(): void
+    {
+        $result = $this->translator->translate('SELECT DAYOFWEEK(created) FROM t');
+
+        self::assertStringContainsString("strftime('%w'", $result[0]);
+        self::assertStringContainsString('+ 1)', $result[0]);
+    }
+
+    #[Test]
+    public function greatestLeastFunctions(): void
+    {
+        $result = $this->translator->translate('SELECT GREATEST(a, b), LEAST(c, d) FROM t');
+
+        self::assertStringContainsString('MAX(a, b)', $result[0]);
+        self::assertStringContainsString('MIN(c, d)', $result[0]);
+    }
+
+    #[Test]
+    public function lcaseUcaseFunctions(): void
+    {
+        $result = $this->translator->translate('SELECT LCASE(name), UCASE(title) FROM t');
+
+        self::assertStringContainsString('lower(name)', $result[0]);
+        self::assertStringContainsString('upper(title)', $result[0]);
+    }
+
+    #[Test]
+    public function utcTimestampFunction(): void
+    {
+        $result = $this->translator->translate('SELECT UTC_TIMESTAMP()');
+
+        self::assertStringContainsString("datetime('now')", $result[0]);
+    }
+
+    #[Test]
+    public function nestedFunctionInDateAdd(): void
+    {
+        $result = $this->translator->translate("SELECT DATE_ADD(NOW(), INTERVAL 1 DAY)");
+
+        self::assertStringContainsString("datetime(datetime('now')", $result[0]);
+        self::assertStringContainsString("'+1 day'", $result[0]);
+    }
+
+    // ── End-to-end: extended functions on SQLite ──
+
+    #[Test]
+    public function endToEndConcatAndDateFunctions(): void
+    {
+        $driver = new \WpPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
+        $driver->connect();
+
+        $driver->executeStatement('CREATE TABLE "t" ("id" INTEGER PRIMARY KEY, "first" TEXT, "last" TEXT, "created" TEXT)');
+        $driver->executeStatement("INSERT INTO \"t\" VALUES (1, 'John', 'Doe', '2024-06-15 10:30:00')");
+
+        // CONCAT
+        $concatSql = $this->translator->translate("SELECT CONCAT(`first`, ' ', `last`) AS name FROM `t`");
+        $result = $driver->executeQuery($concatSql[0]);
+        self::assertSame('John Doe', $result->fetchOne());
+
+        // MONTH/YEAR
+        $monthSql = $this->translator->translate('SELECT MONTH(`created`) FROM `t`');
+        $result = $driver->executeQuery($monthSql[0]);
+        self::assertSame(6, (int) $result->fetchOne());
+
+        $yearSql = $this->translator->translate('SELECT YEAR(`created`) FROM `t`');
+        $result = $driver->executeQuery($yearSql[0]);
+        self::assertSame(2024, (int) $result->fetchOne());
+
+        // GREATEST/LEAST
+        $greatestSql = $this->translator->translate('SELECT GREATEST(10, 20, 5)');
+        $result = $driver->executeQuery($greatestSql[0]);
+        self::assertSame(20, (int) $result->fetchOne());
+
+        $driver->close();
+    }
 }

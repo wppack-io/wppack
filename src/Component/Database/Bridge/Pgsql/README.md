@@ -35,6 +35,14 @@ $driver = Driver::fromDsn('pgsql://user:pass@localhost:5432/mydb');
 $connection = new Connection($driver);
 ```
 
+## Query Translation
+
+When used with the `db.php` drop-in, WordPress MySQL queries are automatically translated to PostgreSQL via `PostgresqlQueryTranslator`. The translator uses phpmyadmin/sql-parser for AST parsing and a stateful `QueryRewriter` for token-level transformations.
+
+Key translations: `IFNULL()` → `COALESCE()`, `REGEXP` → `~*`, `AUTO_INCREMENT` → `SERIAL`/`BIGSERIAL`, `DATETIME` → `TIMESTAMP`, `BLOB` → `BYTEA`, `JSON` → `JSONB`, `DATE_FORMAT()` → `TO_CHAR()`, `MONTH()`/`YEAR()` → `EXTRACT()`.
+
+String literals are never transformed. See the [Database component documentation](../../../docs/components/database/README.md) for the full conversion reference.
+
 ## License
 
 MIT
