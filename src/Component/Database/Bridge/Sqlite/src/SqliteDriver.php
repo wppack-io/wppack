@@ -132,6 +132,82 @@ final class SqliteDriver extends AbstractDriver
         $pdo->sqliteCreateFunction('MD5', static function (?string $value): ?string {
             return $value === null ? null : md5($value);
         }, 1);
+
+        $pdo->sqliteCreateFunction('LOG', static function (null|int|float|string ...$args): null|float {
+            if ($args === [] || $args[0] === null) {
+                return null;
+            }
+
+            if (\count($args) === 1) {
+                return log((float) $args[0]);
+            }
+
+            // LOG(base, value)
+            $base = (float) $args[0];
+            $value = (float) ($args[1] ?? 0);
+
+            return $base > 0 && $base !== 1.0 && $value > 0
+                ? log($value) / log($base)
+                : null;
+        });
+
+        $pdo->sqliteCreateFunction('UNHEX', static function (?string $hex): ?string {
+            if ($hex === null) {
+                return null;
+            }
+
+            $result = @hex2bin($hex);
+
+            return $result === false ? null : $result;
+        }, 1);
+
+        $pdo->sqliteCreateFunction('FROM_BASE64', static function (?string $str): ?string {
+            if ($str === null) {
+                return null;
+            }
+
+            $result = base64_decode($str, true);
+
+            return $result === false ? null : $result;
+        }, 1);
+
+        $pdo->sqliteCreateFunction('TO_BASE64', static function (?string $str): ?string {
+            return $str === null ? null : base64_encode($str);
+        }, 1);
+
+        $pdo->sqliteCreateFunction('INET_ATON', static function (?string $ip): ?int {
+            if ($ip === null) {
+                return null;
+            }
+
+            $long = ip2long($ip);
+
+            if ($long === false) {
+                return null;
+            }
+
+            // Ensure unsigned result (ip2long returns signed on 32-bit PHP)
+            return $long < 0 ? (int) sprintf('%u', $long) : $long;
+        }, 1);
+
+        $pdo->sqliteCreateFunction('INET_NTOA', static function (null|int|float|string $num): ?string {
+            if ($num === null) {
+                return null;
+            }
+
+            return long2ip((int) $num);
+        }, 1);
+
+        $pdo->sqliteCreateFunction('GET_LOCK', static function (?string $name, ?int $timeout): int {
+            return 1;
+        }, 2);
+
+        $pdo->sqliteCreateFunction('RELEASE_LOCK', static function (?string $name): int {
+            return 1;
+        }, 1);
+
+        // Note: ISNULL is not registered as UDF because SQLite uses ISNULL as a
+        // postfix operator (expr ISNULL). The translator transforms ISNULL(x) → (x IS NULL).
     }
 
     protected function doClose(): void

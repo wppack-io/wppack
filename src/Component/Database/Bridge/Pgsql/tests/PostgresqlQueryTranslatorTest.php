@@ -846,4 +846,39 @@ SQL;
         self::assertStringContainsString('SERIAL', $result[0]);
         self::assertStringNotContainsString('BIGSERIAL', $result[0]);
     }
+
+    // ── Additional gap closure tests ──
+
+    #[Test]
+    public function isnullFunction(): void
+    {
+        $result = $this->translator->translate('SELECT ISNULL(col) FROM t');
+
+        self::assertStringContainsString('IS NULL', $result[0]);
+    }
+
+    #[Test]
+    public function localtimeFunction(): void
+    {
+        $result = $this->translator->translate('SELECT LOCALTIME()');
+
+        self::assertStringContainsString('NOW()', $result[0]);
+    }
+
+    #[Test]
+    public function lowPrioritySkipped(): void
+    {
+        $result = $this->translator->translate('INSERT LOW_PRIORITY INTO `t` VALUES (1)');
+
+        self::assertStringNotContainsString('LOW_PRIORITY', $result[0]);
+    }
+
+    #[Test]
+    public function showTablesLike(): void
+    {
+        $result = $this->translator->translate("SHOW TABLES LIKE 'wp_%'");
+
+        self::assertStringContainsString('information_schema', $result[0]);
+        self::assertStringContainsString("LIKE 'wp_%'", $result[0]);
+    }
 }

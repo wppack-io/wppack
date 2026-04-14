@@ -64,6 +64,8 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         'UTC_TIMESTAMP' => "datetime('now')",
         'UTC_DATE' => "date('now')",
         'UTC_TIME' => "time('now')",
+        'LOCALTIME' => "datetime('now')",
+        'LOCALTIMESTAMP' => "datetime('now')",
         'VERSION' => "'10.0.0-wppack'",
         'DATABASE' => "'main'",
         'FOUND_ROWS' => '-1',
@@ -76,6 +78,8 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
      */
     private const KEYWORD_MAP = [
         'CURRENT_TIMESTAMP' => "datetime('now')",
+        'LOCALTIME' => "datetime('now')",
+        'LOCALTIMESTAMP' => "datetime('now')",
     ];
 
     /**
@@ -741,6 +745,13 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             return;
         }
 
+        // ── LOW_PRIORITY / DELAYED / IGNORE (standalone) → skip ──
+        if (\in_array($kw, ['LOW_PRIORITY', 'DELAYED', 'HIGH_PRIORITY'], true)) {
+            $rw->skip();
+
+            return;
+        }
+
         // ── CAST(x AS BINARY) → CAST(x AS BLOB) ──
         if ($kw === 'BINARY') {
             $rw->skip();
@@ -779,6 +790,8 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             'WEEKDAY' => $this->transformWeekday($rw),
             'GREATEST' => $this->transformGreatestLeast($rw, 'MAX'),
             'LEAST' => $this->transformGreatestLeast($rw, 'MIN'),
+            'ISNULL' => $this->transformIsnull($rw),
+            'LOG' => $this->transformLog($rw),
             default => false,
         };
     }
@@ -1032,6 +1045,49 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         }
 
         $rw->add(\sprintf('%s(%s)', $func, implode(', ', $parts)));
+
+        return true;
+    }
+
+    /**
+     * ISNULL(x) → (x IS NULL)
+     */
+    private function transformIsnull(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 1) {
+            return false;
+        }
+
+        $expr = $this->transformArgExpression($args[0]);
+        $rw->add(\sprintf('(%s IS NULL)', $expr));
+
+        return true;
+    }
+
+    /**
+     * LOG(x) → ln(x)  (natural log — SQLite doesn't have ln, use UDF or math)
+     * LOG(b, x) → (ln(x) / ln(b))
+     *
+     * Note: SQLite doesn't have a native ln() function. This relies on a LOG UDF
+     * being registered, or falls back to keeping LOG as-is for the UDF.
+     */
+    private function transformLog(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || $args === []) {
+            return false;
+        }
+
+        if (\count($args) === 1) {
+            $x = $this->transformArgExpression($args[0]);
+            $rw->add(\sprintf('LOG(%s)', $x));
+        } else {
+            // LOG(b, x) → LOG(x) / LOG(b)
+            $b = $this->transformArgExpression($args[0]);
+            $x = $this->transformArgExpression($args[1]);
+            $rw->add(\sprintf('(LOG(%s) / LOG(%s))', $x, $b));
+        }
 
         return true;
     }
@@ -1358,12 +1414,20 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             return ['BEGIN'];
         }
 
-        if (preg_match('/^\s*SHOW\s+TABLES\s*/i', $sql)) {
-            return ["SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'"];
+        if (preg_match('/^\s*SHOW\s+FULL\s+TABLES\s+LIKE\s+[\'"](.+?)[\'"]\s*$/i', $sql, $m)) {
+            return [\sprintf("SELECT name, 'BASE TABLE' AS Table_type FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%%' AND name LIKE '%s'", str_replace("'", "''", $m[1]))];
+        }
+
+        if (preg_match('/^\s*SHOW\s+TABLES\s+LIKE\s+[\'"](.+?)[\'"]\s*$/i', $sql, $m)) {
+            return [\sprintf("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%%' AND name LIKE '%s'", str_replace("'", "''", $m[1]))];
         }
 
         if (preg_match('/^\s*SHOW\s+FULL\s+TABLES\s*/i', $sql)) {
             return ["SELECT name, 'BASE TABLE' AS Table_type FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'"];
+        }
+
+        if (preg_match('/^\s*SHOW\s+TABLES\s*/i', $sql)) {
+            return ["SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'"];
         }
 
         if (preg_match('/^\s*SHOW\s+(?:FULL\s+)?COLUMNS\s+FROM\s+[`"]?(\w+)[`"]?\s*/i', $sql, $m)) {

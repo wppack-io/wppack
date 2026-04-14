@@ -1332,4 +1332,139 @@ SQL);
 
         $driver->close();
     }
+
+    // ── Additional gap closure tests ──
+
+    #[Test]
+    public function isnullFunction(): void
+    {
+        $result = $this->translator->translate('SELECT ISNULL(col) FROM t');
+
+        self::assertStringContainsString('IS NULL', $result[0]);
+    }
+
+    #[Test]
+    public function logFunction(): void
+    {
+        $result = $this->translator->translate('SELECT LOG(10) FROM t');
+
+        self::assertStringContainsString('LOG(10)', $result[0]);
+    }
+
+    #[Test]
+    public function logWithBaseFunction(): void
+    {
+        $result = $this->translator->translate('SELECT LOG(2, 8) FROM t');
+
+        self::assertStringContainsString('LOG(8)', $result[0]);
+        self::assertStringContainsString('LOG(2)', $result[0]);
+    }
+
+    #[Test]
+    public function localtimeFunction(): void
+    {
+        $result = $this->translator->translate('SELECT LOCALTIME()');
+
+        self::assertStringContainsString("datetime('now')", $result[0]);
+    }
+
+    #[Test]
+    public function lowPrioritySkipped(): void
+    {
+        $result = $this->translator->translate('INSERT LOW_PRIORITY INTO `t` VALUES (1)');
+
+        self::assertStringNotContainsString('LOW_PRIORITY', $result[0]);
+        self::assertStringContainsString('INSERT', $result[0]);
+    }
+
+    #[Test]
+    public function delayedSkipped(): void
+    {
+        $result = $this->translator->translate('INSERT DELAYED INTO `t` VALUES (1)');
+
+        self::assertStringNotContainsString('DELAYED', $result[0]);
+    }
+
+    #[Test]
+    public function showTablesLike(): void
+    {
+        $result = $this->translator->translate("SHOW TABLES LIKE 'wp_%'");
+
+        self::assertStringContainsString('sqlite_master', $result[0]);
+        self::assertStringContainsString("LIKE 'wp_%'", $result[0]);
+    }
+
+    #[Test]
+    public function showFullTablesLike(): void
+    {
+        $result = $this->translator->translate("SHOW FULL TABLES LIKE 'wp_%'");
+
+        self::assertStringContainsString("LIKE 'wp_%'", $result[0]);
+        self::assertStringContainsString('Table_type', $result[0]);
+    }
+
+    // ── UDF end-to-end tests ──
+
+    #[Test]
+    public function endToEndLogUdf(): void
+    {
+        $driver = new \WpPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
+        $driver->connect();
+
+        $result = $driver->executeQuery('SELECT LOG(2, 8)');
+        self::assertEqualsWithDelta(3.0, (float) $result->fetchOne(), 0.001);
+
+        $driver->close();
+    }
+
+    #[Test]
+    public function endToEndUnhexUdf(): void
+    {
+        $driver = new \WpPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
+        $driver->connect();
+
+        $result = $driver->executeQuery("SELECT UNHEX('48656C6C6F')");
+        self::assertSame('Hello', $result->fetchOne());
+
+        $driver->close();
+    }
+
+    #[Test]
+    public function endToEndBase64Udfs(): void
+    {
+        $driver = new \WpPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
+        $driver->connect();
+
+        $result = $driver->executeQuery("SELECT TO_BASE64('Hello')");
+        self::assertSame('SGVsbG8=', $result->fetchOne());
+
+        $result = $driver->executeQuery("SELECT FROM_BASE64('SGVsbG8=')");
+        self::assertSame('Hello', $result->fetchOne());
+
+        $driver->close();
+    }
+
+    #[Test]
+    public function endToEndInetUdfs(): void
+    {
+        $driver = new \WpPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
+        $driver->connect();
+
+        $result = $driver->executeQuery("SELECT INET_NTOA(INET_ATON('10.0.0.1'))");
+        self::assertSame('10.0.0.1', $result->fetchOne());
+
+        $driver->close();
+    }
+
+    #[Test]
+    public function endToEndLockUdfs(): void
+    {
+        $driver = new \WpPack\Component\Database\Bridge\Sqlite\SqliteDriver(':memory:');
+        $driver->connect();
+
+        self::assertSame(1, (int) $driver->executeQuery("SELECT GET_LOCK('test', 10)")->fetchOne());
+        self::assertSame(1, (int) $driver->executeQuery("SELECT RELEASE_LOCK('test')")->fetchOne());
+
+        $driver->close();
+    }
 }

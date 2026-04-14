@@ -56,6 +56,8 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         'UTC_TIMESTAMP' => "NOW() AT TIME ZONE 'UTC'",
         'UTC_DATE' => "(NOW() AT TIME ZONE 'UTC')::date",
         'UTC_TIME' => "(NOW() AT TIME ZONE 'UTC')::time",
+        'LOCALTIME' => 'NOW()',
+        'LOCALTIMESTAMP' => 'NOW()',
         'DATABASE' => 'CURRENT_DATABASE()',
         'FOUND_ROWS' => '-1',
     ];
@@ -453,6 +455,13 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             return;
         }
 
+        // ── LOW_PRIORITY / DELAYED / HIGH_PRIORITY → skip ──
+        if (\in_array($kw, ['LOW_PRIORITY', 'DELAYED', 'HIGH_PRIORITY'], true)) {
+            $rw->skip();
+
+            return;
+        }
+
         $rw->consume();
     }
 
@@ -481,6 +490,7 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             'WEEKDAY' => $this->transformWeekday($rw),
             'LOCATE' => $this->transformLocate($rw),
             'GROUP_CONCAT' => $this->transformGroupConcat($rw),
+            'ISNULL' => $this->transformIsnull($rw),
             default => false,
         };
     }
@@ -724,6 +734,22 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         }
 
         $rw->add(\sprintf('STRING_AGG(%s, %s)', $expr, $separator));
+
+        return true;
+    }
+
+    /**
+     * ISNULL(x) → (x IS NULL)
+     */
+    private function transformIsnull(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 1) {
+            return false;
+        }
+
+        $expr = $this->transformArgExpression($args[0]);
+        $rw->add(\sprintf('(%s IS NULL)', $expr));
 
         return true;
     }
@@ -980,12 +1006,20 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             return ['BEGIN'];
         }
 
-        if (preg_match('/^\s*SHOW\s+TABLES\s*/i', $sql)) {
-            return ["SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE'"];
+        if (preg_match('/^\s*SHOW\s+FULL\s+TABLES\s+LIKE\s+[\'"](.+?)[\'"]\s*$/i', $sql, $m)) {
+            return [\sprintf("SELECT table_name, table_type FROM information_schema.tables WHERE table_schema = 'public' AND table_name LIKE '%s'", str_replace("'", "''", $m[1]))];
+        }
+
+        if (preg_match('/^\s*SHOW\s+TABLES\s+LIKE\s+[\'"](.+?)[\'"]\s*$/i', $sql, $m)) {
+            return [\sprintf("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE' AND table_name LIKE '%s'", str_replace("'", "''", $m[1]))];
         }
 
         if (preg_match('/^\s*SHOW\s+FULL\s+TABLES\s*/i', $sql)) {
             return ["SELECT table_name, table_type FROM information_schema.tables WHERE table_schema = 'public'"];
+        }
+
+        if (preg_match('/^\s*SHOW\s+TABLES\s*/i', $sql)) {
+            return ["SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE'"];
         }
 
         if (preg_match('/^\s*SHOW\s+(?:FULL\s+)?COLUMNS\s+FROM\s+[`"]?(\w+)[`"]?\s*/i', $sql, $m)) {
