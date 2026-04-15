@@ -536,8 +536,8 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             foreach ($stmt->altered as $alter) {
                 $optStr = strtoupper(trim(implode(' ', array_filter($alter->options->options ?? [], '\is_string'))));
 
-                // CHANGE COLUMN → ALTER COLUMN TYPE
-                if (str_contains($optStr, 'CHANGE')) {
+                // CHANGE COLUMN / MODIFY COLUMN → ALTER COLUMN TYPE (+ optional RENAME)
+                if (str_contains($optStr, 'CHANGE') || str_contains($optStr, 'MODIFY')) {
                     return $this->translateAlterChange($stmt, $alter);
                 }
             }
@@ -561,7 +561,7 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
     }
 
     /**
-     * ALTER TABLE t CHANGE old_col new_col TYPE → ALTER COLUMN TYPE + RENAME
+     * ALTER TABLE t CHANGE/MODIFY COLUMN → ALTER COLUMN TYPE + optional RENAME COLUMN.
      *
      * @return list<string>
      */
@@ -570,33 +570,50 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         $table = $this->quoteId($stmt->table->table ?? '');
         $results = [];
 
-        // The field contains the new column definition
-        if ($alter->field !== null) {
-            $newName = $alter->field->column ?? $alter->field->name ?? null;
-            // Old column name is the first identifier after CHANGE
-            $oldName = $newName; // Simplified: assumes same name for MODIFY
+        $optStr = strtoupper(trim(implode(' ', array_filter($alter->options->options ?? [], '\is_string'))));
+        $isChange = str_contains($optStr, 'CHANGE');
 
-            $fieldSql = $alter->field->build();
-            // Extract type from field definition
-            if ($newName !== null) {
-                $results[] = \sprintf(
-                    'ALTER TABLE %s ALTER COLUMN %s TYPE %s',
-                    $table,
-                    $this->quoteId($oldName),
-                    $this->extractTypeFromField($fieldSql),
-                );
-            }
+        $oldName = $alter->field->column ?? $alter->field->name ?? null;
+        $newName = $oldName;
+
+        // CHANGE: first unknown token is the new column name
+        if ($isChange && $alter->unknown !== []) {
+            $newName = $alter->unknown[0]->value ?? $oldName;
         }
 
-        return $results !== [] ? $results : [\sprintf('ALTER TABLE %s %s', $table, 'DO NOTHING')];
-    }
+        // Extract type from unknown tokens (skip new_name for CHANGE)
+        $typeTokens = $alter->unknown ?? [];
+        if ($isChange && $typeTokens !== []) {
+            // Skip the new column name and whitespace
+            array_shift($typeTokens); // new_name
+            while ($typeTokens !== [] && $typeTokens[0]->type === \PhpMyAdmin\SqlParser\TokenType::Whitespace) {
+                array_shift($typeTokens);
+            }
+        }
+        $typeSql = trim(implode('', array_map(static fn($t) => $t->token, $typeTokens)));
 
-    private function extractTypeFromField(string $fieldSql): string
-    {
-        // Remove column name and constraints, keep just the type
-        $parts = preg_split('/\s+/', trim($fieldSql), 3);
+        // ALTER COLUMN TYPE
+        if ($oldName !== null && $typeSql !== '') {
+            $pgsqlType = $this->mapPgsqlType(strtoupper(explode('(', explode(' ', $typeSql)[0])[0]));
+            $results[] = \sprintf(
+                'ALTER TABLE %s ALTER COLUMN %s TYPE %s',
+                $table,
+                $this->quoteId($oldName),
+                $pgsqlType,
+            );
+        }
 
-        return $parts[1] ?? 'TEXT';
+        // RENAME COLUMN (only if names differ)
+        if ($isChange && $oldName !== null && $newName !== null && $oldName !== $newName) {
+            $results[] = \sprintf(
+                'ALTER TABLE %s RENAME COLUMN %s TO %s',
+                $table,
+                $this->quoteId($oldName),
+                $this->quoteId($newName),
+            );
+        }
+
+        return $results !== [] ? $results : [];
     }
 
     /**

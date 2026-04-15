@@ -273,7 +273,11 @@ SQLite Database Integration プラグインおよび PG4WP (PostgreSQL for WordP
 | `ON UPDATE CURRENT_TIMESTAMP` | SQLite トリガー生成 | PgSQL トリガー関数 + トリガー生成 |
 | `ENGINE=...` / `CHARSET=...` / `COLLATE=...` | 除去 | 除去 |
 | `PRIMARY KEY (col)` + `AUTOINCREMENT` | 同一行にマージ | N/A |
-| `ALTER TABLE ADD/DROP/CHANGE COLUMN` | 対応（DROP は 3.35.0+ネイティブ） | 対応（CHANGE → `ALTER COLUMN TYPE`） |
+| `ALTER TABLE ADD COLUMN` | パススルー | パススルー |
+| `ALTER TABLE DROP COLUMN` | パススルー（SQLite 3.35.0+） | パススルー |
+| `ALTER TABLE MODIFY COLUMN` | no-op（動的型付け） | `ALTER COLUMN TYPE` |
+| `ALTER TABLE CHANGE COLUMN`（リネーム）| `RENAME COLUMN`（3.25.0+）| `ALTER COLUMN TYPE` + `RENAME COLUMN` |
+| `ALTER TABLE CHANGE COLUMN`（同名）| no-op（動的型付け） | `ALTER COLUMN TYPE` |
 | `KEY name (col)` (インライン) | `CREATE INDEX IF NOT EXISTS` に分離 | `CREATE INDEX IF NOT EXISTS` に分離 |
 | `ALTER TABLE ADD [UNIQUE] INDEX` | `CREATE [UNIQUE] INDEX` | `CREATE [UNIQUE] INDEX` |
 | `IF NOT EXISTS` | 保持 | 保持 |

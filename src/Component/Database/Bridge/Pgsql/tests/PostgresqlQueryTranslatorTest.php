@@ -1074,12 +1074,38 @@ SQL;
     }
 
     #[Test]
-    public function alterTableChangeColumn(): void
+    public function alterTableChangeColumnSameName(): void
     {
         $result = $this->translator->translate('ALTER TABLE `t` CHANGE `post_title` `post_title` TEXT NOT NULL');
 
+        self::assertCount(1, $result);
         self::assertStringContainsString('ALTER COLUMN', $result[0]);
         self::assertStringContainsString('TYPE', $result[0]);
+        self::assertStringNotContainsString('RENAME', $result[0]);
+    }
+
+    #[Test]
+    public function alterTableChangeColumnRename(): void
+    {
+        $result = $this->translator->translate('ALTER TABLE `t` CHANGE `old_col` `new_col` BIGINT NOT NULL');
+
+        self::assertCount(2, $result);
+        self::assertStringContainsString('ALTER COLUMN', $result[0]);
+        self::assertStringContainsString('TYPE', $result[0]);
+        self::assertStringContainsString('RENAME COLUMN', $result[1]);
+        self::assertStringContainsString('"old_col"', $result[1]);
+        self::assertStringContainsString('"new_col"', $result[1]);
+    }
+
+    #[Test]
+    public function alterTableModifyColumn(): void
+    {
+        $result = $this->translator->translate('ALTER TABLE `t` MODIFY `post_content` LONGTEXT NOT NULL');
+
+        self::assertCount(1, $result);
+        self::assertStringContainsString('ALTER COLUMN', $result[0]);
+        self::assertStringContainsString('TYPE', $result[0]);
+        self::assertStringNotContainsString('RENAME', $result[0]);
     }
 
     // ── WordPress compatibility tests ──

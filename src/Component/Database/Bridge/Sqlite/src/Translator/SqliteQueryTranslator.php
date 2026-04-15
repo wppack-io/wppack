@@ -791,12 +791,12 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             return [$sql];
         }
 
-        // CHANGE COLUMN / MODIFY COLUMN — table recreation pattern
+        // CHANGE COLUMN / MODIFY COLUMN
         if ($stmt->altered !== null) {
             foreach ($stmt->altered as $alter) {
                 $optStr = strtoupper(trim(implode(' ', array_filter($alter->options->options ?? [], '\is_string'))));
                 if (str_contains($optStr, 'CHANGE') || str_contains($optStr, 'MODIFY')) {
-                    return $this->translateAlterChangeColumn($stmt);
+                    return $this->translateAlterChangeColumn($stmt, $alter, str_contains($optStr, 'CHANGE'));
                 }
             }
         }
@@ -810,38 +810,41 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
     }
 
     /**
-     * ALTER TABLE CHANGE COLUMN via table recreation pattern.
+     * ALTER TABLE CHANGE/MODIFY COLUMN for SQLite.
      *
-     * SQLite does not support CHANGE/MODIFY COLUMN. The workaround is:
-     * 1. Create temp table with data from original
-     * 2. Drop original table
-     * 3. Get schema from sqlite_master, modify column definition
-     * 4. Create new table with modified schema
-     * 5. Copy data back from temp
-     * 6. Drop temp
+     * SQLite uses dynamic typing (type affinity), so column type changes have
+     * no effect on stored data. The translator handles this as follows:
      *
-     * Since the translator cannot execute queries (it only returns SQL strings),
-     * we return the sequence of SQL statements that the caller must execute in order.
-     * The schema modification uses the _mysql_data_types_cache for type reconstruction.
+     * - MODIFY COLUMN (same name): no-op — type changes are irrelevant in SQLite
+     * - CHANGE COLUMN (same name): no-op — type changes only
+     * - CHANGE COLUMN (rename): ALTER TABLE RENAME COLUMN (SQLite 3.25.0+)
      *
      * @return list<string>
      */
-    private function translateAlterChangeColumn(AlterStatement $stmt): array
-    {
+    private function translateAlterChangeColumn(
+        AlterStatement $stmt,
+        \PhpMyAdmin\SqlParser\Components\AlterOperation $alter,
+        bool $isChange,
+    ): array {
         $table = $stmt->table->table ?? '';
-        $quotedTable = $this->quoteId($table);
-        $tmpTable = '_wppack_tmp_' . $table;
-        $quotedTmp = $this->quoteId($tmpTable);
+        $oldName = $alter->field->column ?? $alter->field->name ?? '';
 
-        // Return the table recreation sequence
-        // The actual schema modification requires runtime access to sqlite_master,
-        // which the translator cannot do. Instead, we use a pragmatic approach:
-        // copy data to temp, drop original, and let the caller re-create via dbDelta.
-        return [
-            \sprintf('CREATE TABLE %s AS SELECT * FROM %s', $quotedTmp, $quotedTable),
-            \sprintf('DROP TABLE %s', $quotedTable),
-            \sprintf('ALTER TABLE %s RENAME TO %s', $quotedTmp, $quotedTable),
-        ];
+        if ($isChange && $alter->unknown !== []) {
+            // CHANGE: first unknown token is the new column name
+            $newName = $alter->unknown[0]->value ?? '';
+
+            if ($newName !== '' && $newName !== $oldName) {
+                return [\sprintf(
+                    'ALTER TABLE %s RENAME COLUMN %s TO %s',
+                    $this->quoteId($table),
+                    $this->quoteId($oldName),
+                    $this->quoteId($newName),
+                )];
+            }
+        }
+
+        // MODIFY or CHANGE with same name: type change only → no-op in SQLite
+        return [];
     }
 
     /**

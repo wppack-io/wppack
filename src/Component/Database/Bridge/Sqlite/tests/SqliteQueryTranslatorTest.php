@@ -1538,14 +1538,32 @@ SQL);
     }
 
     #[Test]
-    public function alterTableChangeColumn(): void
+    public function changeColumnSameNameIsNoOp(): void
     {
         $result = $this->translator->translate('ALTER TABLE `wp_posts` CHANGE `post_title` `post_title` TEXT NOT NULL');
 
-        // Should return table recreation statements
-        self::assertGreaterThanOrEqual(1, \count($result));
-        // First should be CREATE temp AS SELECT
-        self::assertStringContainsString('_wppack_tmp_', $result[0]);
+        // Same name → type change only → no-op in SQLite (dynamic typing)
+        self::assertSame([], $result);
+    }
+
+    #[Test]
+    public function changeColumnRename(): void
+    {
+        $result = $this->translator->translate('ALTER TABLE `wp_posts` CHANGE `old_col` `new_col` TEXT NOT NULL');
+
+        self::assertCount(1, $result);
+        self::assertStringContainsString('RENAME COLUMN', $result[0]);
+        self::assertStringContainsString('"old_col"', $result[0]);
+        self::assertStringContainsString('"new_col"', $result[0]);
+    }
+
+    #[Test]
+    public function modifyColumnIsNoOp(): void
+    {
+        $result = $this->translator->translate('ALTER TABLE `wp_posts` MODIFY `post_title` VARCHAR(255) NOT NULL');
+
+        // MODIFY = type change only → no-op in SQLite
+        self::assertSame([], $result);
     }
 
     #[Test]
