@@ -62,7 +62,8 @@ WordPress API やデータアクセスを抽象化し、テスト可能にする
 | [Database](./database/) | `wppack/database` | `$wpdb` の型安全ラッパー、Driver/Platform/Connection 抽象化 |
 | [SqliteDatabase](./database/) | `wppack/sqlite-database` | SQLite データベースドライバ |
 | [PgsqlDatabase](./database/) | `wppack/pgsql-database` | PostgreSQL データベースドライバ |
-| [RdsDataApiDatabase](./database/) | `wppack/rds-data-api-database` | RDS Data API データベースドライバ |
+| [MysqlDataApiDatabase](./database/) | `wppack/mysql-data-api-database` | Aurora MySQL Data API ドライバ |
+| [PgsqlDataApiDatabase](./database/) | `wppack/pgsql-data-api-database` | Aurora PostgreSQL Data API ドライバ |
 | [AuroraDsqlDatabase](./database/) | `wppack/aurora-dsql-database` | Aurora DSQL データベースドライバ |
 | [Dsn](./dsn.md) | `wppack/dsn` | 共通 DSN パーサー |
 | [DatabaseExport](./database-export.md) | `wppack/database-export` | データベースエクスポート（SQL/JSON/CSV） |

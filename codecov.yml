@@ -261,10 +261,14 @@ component_management:
       name: PgsqlDatabase
       paths:
         - src/Component/Database/Bridge/Pgsql/src/**
-    - component_id: rds-data-api-database
-      name: RdsDataApiDatabase
+    - component_id: mysql-data-api-database
+      name: MysqlDataApiDatabase
       paths:
-        - src/Component/Database/Bridge/RdsDataApi/src/**
+        - src/Component/Database/Bridge/MysqlDataApi/src/**
+    - component_id: pgsql-data-api-database
+      name: PgsqlDataApiDatabase
+      paths:
+        - src/Component/Database/Bridge/PgsqlDataApi/src/**
     - component_id: aurora-dsql-database
       name: AuroraDsqlDatabase
       paths:

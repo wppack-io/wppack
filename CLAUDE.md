@@ -74,7 +74,8 @@ Distributed as WordPress plugins. Built on top of Components.
 | Database | wppack/database | Type-safe wrapper for $wpdb, Driver/Platform/Connection abstraction, migrations |
 | SqliteDatabase | wppack/sqlite-database | SQLite database driver |
 | PgsqlDatabase | wppack/pgsql-database | PostgreSQL database driver |
-| RdsDataApiDatabase | wppack/rds-data-api-database | RDS Data API database driver |
+| MysqlDataApiDatabase | wppack/mysql-data-api-database | Aurora MySQL Data API driver |
+| PgsqlDataApiDatabase | wppack/pgsql-data-api-database | Aurora PostgreSQL Data API driver |
 | AuroraDsqlDatabase | wppack/aurora-dsql-database | Aurora DSQL database driver |
 | Dsn | wppack/dsn | Shared DSN parser |
 | Query | wppack/query | WP_Query builder |
@@ -319,9 +320,14 @@ wppack/pgsql-database
 wppack/database, phpmyadmin/sql-parser
     + ext-pgsql
 
-wppack/rds-data-api-database
+wppack/mysql-data-api-database
     ↓ requires
 wppack/database
+    + async-aws/rds-data-service
+
+wppack/pgsql-data-api-database
+    ↓ requires
+wppack/database, wppack/pgsql-database
     + async-aws/rds-data-service
 
 wppack/aurora-dsql-database

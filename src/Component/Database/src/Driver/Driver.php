@@ -27,7 +27,8 @@ final class Driver
         MysqlDriverFactory::class,
         'WpPack\Component\Database\Bridge\Sqlite\SqliteDriverFactory',
         'WpPack\Component\Database\Bridge\Pgsql\PgsqlDriverFactory',
-        'WpPack\Component\Database\Bridge\RdsDataApi\RdsDataApiDriverFactory',
+        'WpPack\Component\Database\Bridge\MysqlDataApi\MysqlDataApiDriverFactory',
+        'WpPack\Component\Database\Bridge\PgsqlDataApi\PgsqlDataApiDriverFactory',
         'WpPack\Component\Database\Bridge\AuroraDsql\AuroraDsqlDriverFactory',
     ];
 

@@ -21,22 +21,22 @@ use WpPack\Component\Database\Platform\PlatformInterface;
 use WpPack\Component\Database\Result;
 use WpPack\Component\Database\Statement;
 
-final class MysqlDriver extends AbstractDriver
+class MysqlDriver extends AbstractDriver
 {
-    private ?\mysqli $connection;
-    private bool $inTx = false;
+    protected ?\mysqli $connection;
+    protected bool $inTx = false;
     private ?PlatformInterface $platform = null;
     private bool $ownsConnection;
 
     public function __construct(
-        private readonly string $host,
-        private readonly string $username,
+        protected readonly string $host,
+        protected readonly string $username,
         #[\SensitiveParameter]
-        private readonly string $password,
-        private readonly string $database,
-        private readonly int $port = 3306,
-        private readonly ?string $socket = null,
-        private readonly string $charset = 'utf8mb4',
+        protected readonly string $password,
+        protected readonly string $database,
+        protected readonly int $port = 3306,
+        protected readonly ?string $socket = null,
+        protected readonly string $charset = 'utf8mb4',
     ) {
         $this->connection = null;
         $this->ownsConnection = true;

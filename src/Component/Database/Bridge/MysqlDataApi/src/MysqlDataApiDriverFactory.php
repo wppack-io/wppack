@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Bridge\RdsDataApi;
+namespace WpPack\Component\Database\Bridge\MysqlDataApi;
 
 use AsyncAws\RdsDataService\RdsDataServiceClient;
 use WpPack\Component\Database\Driver\DriverDefinition;
@@ -20,14 +20,19 @@ use WpPack\Component\Database\Driver\DriverField;
 use WpPack\Component\Database\Driver\DriverInterface;
 use WpPack\Component\Dsn\Dsn;
 
-final class RdsDataApiDriverFactory implements DriverFactoryInterface
+/**
+ * Factory for Aurora MySQL Data API connections.
+ *
+ * DSN: mysql+dataapi://cluster-arn/dbname?secret_arn=xxx&region=us-east-1
+ */
+class MysqlDataApiDriverFactory implements DriverFactoryInterface
 {
     public static function definitions(): array
     {
         return [
             new DriverDefinition(
-                scheme: 'rds-data',
-                label: 'RDS Data API (Aurora Serverless)',
+                scheme: 'mysql+dataapi',
+                label: 'Aurora MySQL Data API',
                 fields: [
                     new DriverField('resource_arn', 'Cluster ARN', required: true, dsnPart: 'host'),
                     new DriverField('secret_arn', 'Secret ARN', required: true),
@@ -43,15 +48,13 @@ final class RdsDataApiDriverFactory implements DriverFactoryInterface
         $resourceArn = $dsn->getHost() ?? '';
         $database = ltrim($dsn->getPath() ?? '', '/');
         $secretArn = $dsn->getOption('secret_arn', '') ?? '';
-
-        // Extract region from resource ARN (arn:aws:rds:<region>:...)
-        $region = $options['region'] ?? $this->extractRegionFromArn($resourceArn) ?? 'us-east-1';
+        $region = $options['region'] ?? $dsn->getOption('region') ?? $this->extractRegionFromArn($resourceArn) ?? 'us-east-1';
 
         $client = new RdsDataServiceClient([
             'region' => $region,
         ]);
 
-        return new RdsDataApiDriver(
+        return new MysqlDataApiDriver(
             client: $client,
             resourceArn: $resourceArn,
             secretArn: $secretArn,
@@ -61,13 +64,12 @@ final class RdsDataApiDriverFactory implements DriverFactoryInterface
 
     public function supports(Dsn $dsn): bool
     {
-        return $dsn->getScheme() === 'rds-data'
+        return $dsn->getScheme() === 'mysql+dataapi'
             && class_exists(RdsDataServiceClient::class);
     }
 
     private function extractRegionFromArn(string $arn): ?string
     {
-        // arn:aws:rds:<region>:<account-id>:cluster:<cluster-name>
         if (preg_match('/^arn:aws:rds:([^:]+):/', $arn, $m)) {
             return $m[1];
         }

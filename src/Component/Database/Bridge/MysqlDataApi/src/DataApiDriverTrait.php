@@ -11,9 +11,8 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Bridge\RdsDataApi;
+namespace WpPack\Component\Database\Bridge\MysqlDataApi;
 
-use AsyncAws\RdsDataService\Input\BatchExecuteStatementRequest;
 use AsyncAws\RdsDataService\Input\BeginTransactionRequest;
 use AsyncAws\RdsDataService\Input\CommitTransactionRequest;
 use AsyncAws\RdsDataService\Input\ExecuteStatementRequest;
@@ -21,39 +20,26 @@ use AsyncAws\RdsDataService\Input\RollbackTransactionRequest;
 use AsyncAws\RdsDataService\RdsDataServiceClient;
 use AsyncAws\RdsDataService\ValueObject\Field;
 use AsyncAws\RdsDataService\ValueObject\SqlParameter;
-use WpPack\Component\Database\Driver\AbstractDriver;
 use WpPack\Component\Database\Exception\DriverException;
-use WpPack\Component\Database\Platform\MysqlPlatform;
-use WpPack\Component\Database\Platform\PlatformInterface;
 use WpPack\Component\Database\Result;
 use WpPack\Component\Database\Statement;
 
 /**
- * RDS Data API driver for Aurora MySQL/PostgreSQL Serverless.
+ * Shared RDS Data API logic for MySQL and PostgreSQL Data API drivers.
  *
- * HTTP-based, stateless driver — no persistent connections.
- * Requires async-aws/rds-data-service package.
+ * HTTP-based, stateless — no persistent connections.
  */
-final class RdsDataApiDriver extends AbstractDriver
+trait DataApiDriverTrait
 {
+    private RdsDataServiceClient $dataApiClient;
+    private string $resourceArn;
+    private string $secretArn;
+    private string $dataApiDatabase;
     private ?string $transactionId = null;
-
-    public function __construct(
-        private readonly RdsDataServiceClient $client,
-        private readonly string $resourceArn,
-        #[\SensitiveParameter]
-        private readonly string $secretArn,
-        private readonly string $database,
-    ) {}
-
-    public function getName(): string
-    {
-        return 'rds-data-api';
-    }
 
     public function isConnected(): bool
     {
-        return true;
+        return true; // Stateless HTTP
     }
 
     public function inTransaction(): bool
@@ -61,14 +47,9 @@ final class RdsDataApiDriver extends AbstractDriver
         return $this->transactionId !== null;
     }
 
-    public function getPlatform(): PlatformInterface
-    {
-        return new MysqlPlatform();
-    }
-
     public function getNativeConnection(): RdsDataServiceClient
     {
-        return $this->client;
+        return $this->dataApiClient;
     }
 
     protected function doConnect(): void
@@ -83,10 +64,10 @@ final class RdsDataApiDriver extends AbstractDriver
 
     protected function doExecuteQuery(string $sql, array $params = []): Result
     {
-        $request = $this->buildRequest($sql, $params);
+        $request = $this->buildDataApiRequest($sql, $params);
         $request['includeResultMetadata'] = true;
 
-        $response = $this->client->executeStatement(new ExecuteStatementRequest($request));
+        $response = $this->dataApiClient->executeStatement(new ExecuteStatementRequest($request));
 
         $columnMetadata = $response->getColumnMetadata();
         $records = $response->getRecords();
@@ -115,8 +96,8 @@ final class RdsDataApiDriver extends AbstractDriver
 
     protected function doExecuteStatement(string $sql, array $params = []): int
     {
-        $request = $this->buildRequest($sql, $params);
-        $response = $this->client->executeStatement(new ExecuteStatementRequest($request));
+        $request = $this->buildDataApiRequest($sql, $params);
+        $response = $this->dataApiClient->executeStatement(new ExecuteStatementRequest($request));
 
         return (int) $response->getNumberOfRecordsUpdated();
     }
@@ -125,11 +106,11 @@ final class RdsDataApiDriver extends AbstractDriver
     {
         $driver = $this;
 
-        $executeQuery = function (array $params) use ($driver, $sql): Result {
+        $executeQuery = static function (array $params) use ($driver, $sql): Result {
             return $driver->executeQuery($sql, $params);
         };
 
-        $executeStatement = function (array $params) use ($driver, $sql): int {
+        $executeStatement = static function (array $params) use ($driver, $sql): int {
             return $driver->executeStatement($sql, $params);
         };
 
@@ -148,10 +129,10 @@ final class RdsDataApiDriver extends AbstractDriver
 
     protected function doBeginTransaction(): void
     {
-        $response = $this->client->beginTransaction(new BeginTransactionRequest([
+        $response = $this->dataApiClient->beginTransaction(new BeginTransactionRequest([
             'resourceArn' => $this->resourceArn,
             'secretArn' => $this->secretArn,
-            'database' => $this->database,
+            'database' => $this->dataApiDatabase,
         ]));
 
         $this->transactionId = $response->getTransactionId();
@@ -163,7 +144,7 @@ final class RdsDataApiDriver extends AbstractDriver
             throw new DriverException('No active transaction to commit.');
         }
 
-        $this->client->commitTransaction(new CommitTransactionRequest([
+        $this->dataApiClient->commitTransaction(new CommitTransactionRequest([
             'resourceArn' => $this->resourceArn,
             'secretArn' => $this->secretArn,
             'transactionId' => $this->transactionId,
@@ -178,7 +159,7 @@ final class RdsDataApiDriver extends AbstractDriver
             throw new DriverException('No active transaction to roll back.');
         }
 
-        $this->client->rollbackTransaction(new RollbackTransactionRequest([
+        $this->dataApiClient->rollbackTransaction(new RollbackTransactionRequest([
             'resourceArn' => $this->resourceArn,
             'secretArn' => $this->secretArn,
             'transactionId' => $this->transactionId,
@@ -192,13 +173,13 @@ final class RdsDataApiDriver extends AbstractDriver
      *
      * @return array<string, mixed>
      */
-    private function buildRequest(string $sql, array $params): array
+    private function buildDataApiRequest(string $sql, array $params): array
     {
         $request = [
             'resourceArn' => $this->resourceArn,
             'secretArn' => $this->secretArn,
-            'database' => $this->database,
-            'sql' => $this->convertPlaceholders($sql),
+            'database' => $this->dataApiDatabase,
+            'sql' => $this->convertDataApiPlaceholders($sql),
         ];
 
         if ($this->transactionId !== null) {
@@ -206,16 +187,13 @@ final class RdsDataApiDriver extends AbstractDriver
         }
 
         if ($params !== []) {
-            $request['parameters'] = $this->buildParameters($params);
+            $request['parameters'] = $this->buildDataApiParameters($params);
         }
 
         return $request;
     }
 
-    /**
-     * Convert ? placeholders to :param1, :param2, ... for RDS Data API.
-     */
-    private function convertPlaceholders(string $sql): string
+    private function convertDataApiPlaceholders(string $sql): string
     {
         $index = 0;
 
@@ -229,7 +207,7 @@ final class RdsDataApiDriver extends AbstractDriver
      *
      * @return list<SqlParameter>
      */
-    private function buildParameters(array $params): array
+    private function buildDataApiParameters(array $params): array
     {
         $sqlParams = [];
 

@@ -12,7 +12,8 @@ parameters:
         - */js/build/*
         - src/*/vendor/*
         - src/Component/*/templates/*
-        - src/Component/Database/Bridge/RdsDataApi/*
+        - src/Component/Database/Bridge/MysqlDataApi/*
+        - src/Component/Database/Bridge/PgsqlDataApi/*
     scanDirectories:
         - web/wp/wp-includes/
         - web/wp-content/plugins/action-scheduler/
