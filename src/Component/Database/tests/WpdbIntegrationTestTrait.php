@@ -1853,6 +1853,43 @@ trait WpdbIntegrationTestTrait
     }
 
     #[Test]
+    public function getLockAndReleaseLock(): void
+    {
+        $wpdb = $this->getTestWpdb();
+
+        $acquired = $wpdb->get_var("SELECT GET_LOCK('test_lock_1', 10)");
+        self::assertSame('1', (string) (int) $acquired);
+
+        $released = $wpdb->get_var("SELECT RELEASE_LOCK('test_lock_1')");
+        self::assertSame('1', (string) (int) $released);
+    }
+
+    #[Test]
+    public function getLockIsReentrant(): void
+    {
+        $wpdb = $this->getTestWpdb();
+
+        $first = $wpdb->get_var("SELECT GET_LOCK('test_lock_2', 10)");
+        self::assertSame('1', (string) (int) $first);
+
+        // Re-entrant: same session can acquire same lock again (MySQL 8.0 behaviour)
+        $second = $wpdb->get_var("SELECT GET_LOCK('test_lock_2', 0)");
+        self::assertSame('1', (string) (int) $second);
+
+        // Release
+        $wpdb->get_var("SELECT RELEASE_LOCK('test_lock_2')");
+    }
+
+    #[Test]
+    public function releaseLockFailsWhenNotHeld(): void
+    {
+        $wpdb = $this->getTestWpdb();
+
+        $result = $wpdb->get_var("SELECT RELEASE_LOCK('never_acquired_lock')");
+        self::assertSame('0', (string) (int) $result);
+    }
+
+    #[Test]
     public function regexpOperator(): void
     {
         $wpdb = $this->getTestWpdb();

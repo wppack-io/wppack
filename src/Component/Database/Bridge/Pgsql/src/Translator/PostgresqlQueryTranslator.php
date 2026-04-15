@@ -1151,6 +1151,9 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             'INET_ATON' => $this->transformInetAton($rw),
             'INET_NTOA' => $this->transformInetNtoa($rw),
             'LOG' => $this->transformLog($rw),
+            'GET_LOCK' => $this->transformGetLock($rw),
+            'RELEASE_LOCK' => $this->transformReleaseLock($rw),
+            'IS_FREE_LOCK' => $this->transformIsFreeLock($rw),
             default => false,
         };
     }
@@ -1623,6 +1626,59 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         return true;
     }
 
+    /**
+     * GET_LOCK('name', timeout) → pg_try_advisory_lock(hashtext('name')::bigint)::int
+     */
+    private function transformGetLock(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || $args === []) {
+            return false;
+        }
+
+        $name = $this->transformArgExpression($args[0]);
+        $rw->add(\sprintf('pg_try_advisory_lock(hashtext(%s)::bigint)::int', $name));
+
+        return true;
+    }
+
+    /**
+     * RELEASE_LOCK('name') → pg_advisory_unlock(hashtext('name')::bigint)::int
+     */
+    private function transformReleaseLock(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || $args === []) {
+            return false;
+        }
+
+        $name = $this->transformArgExpression($args[0]);
+        $rw->add(\sprintf('pg_advisory_unlock(hashtext(%s)::bigint)::int', $name));
+
+        return true;
+    }
+
+    /**
+     * IS_FREE_LOCK('name') → check if advisory lock is free.
+     *
+     * Try to acquire + immediately release. Returns 1 if free, 0 if held.
+     */
+    private function transformIsFreeLock(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || $args === []) {
+            return false;
+        }
+
+        $name = $this->transformArgExpression($args[0]);
+        $key = \sprintf('hashtext(%s)::bigint', $name);
+        // Try acquire: if success, immediately release and return 1 (free)
+        // If fail: return 0 (held)
+        $rw->add(\sprintf('(CASE WHEN pg_try_advisory_lock(%s) THEN pg_advisory_unlock(%s)::int ELSE 0 END)', $key, $key));
+
+        return true;
+    }
+
     // ── LIMIT ──
 
     /**
@@ -1912,11 +1968,6 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         // MySQL system variables → dummy values
         if (preg_match('/^\s*SELECT\s+@@/i', $sql)) {
             return [$this->translateSystemVariable($sql)];
-        }
-
-        // GET_LOCK / RELEASE_LOCK → dummy success
-        if (preg_match('/\bGET_LOCK\s*\(/i', $sql) || preg_match('/\bRELEASE_LOCK\s*\(/i', $sql)) {
-            return ['SELECT 1'];
         }
 
         if (preg_match('/^\s*SHOW\s+FULL\s+TABLES\s+LIKE\s+[\'"](.+?)[\'"]\s*$/i', $sql, $m)) {

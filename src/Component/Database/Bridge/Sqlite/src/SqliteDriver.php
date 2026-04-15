@@ -93,6 +93,9 @@ final class SqliteDriver extends AbstractDriver
                 . '"column_or_index" TEXT NOT NULL, '
                 . '"mysql_type" TEXT NOT NULL, '
                 . 'PRIMARY KEY("table", "column_or_index"))');
+            $this->pdo->exec('CREATE TABLE IF NOT EXISTS _wppack_locks ('
+                . 'lock_name TEXT PRIMARY KEY, '
+                . 'lock_time INTEGER NOT NULL)');
             $this->registerFunctions($this->pdo);
         } catch (\PDOException $e) {
             throw new ConnectionException($e->getMessage(), 0, $e);
@@ -203,12 +206,44 @@ final class SqliteDriver extends AbstractDriver
             return long2ip((int) $num);
         }, 1);
 
-        $pdo->sqliteCreateFunction('GET_LOCK', static function (?string $name, ?int $timeout): int {
-            return 1;
+        $pdo->sqliteCreateFunction('GET_LOCK', static function (?string $name, ?int $timeout) use ($pdo): int {
+            if ($name === null) {
+                return 0;
+            }
+
+            // Re-entrant: if already held, return 1 (matches MySQL 8.0 behaviour)
+            $check = $pdo->prepare('SELECT COUNT(*) FROM _wppack_locks WHERE lock_name = ?');
+            $check->execute([$name]);
+            if ($check->fetchColumn()) {
+                return 1;
+            }
+
+            $stmt = $pdo->prepare('INSERT OR IGNORE INTO _wppack_locks (lock_name, lock_time) VALUES (?, strftime(\'%s\', \'now\'))');
+            $stmt->execute([$name]);
+
+            return (int) (bool) $pdo->query('SELECT changes()')->fetchColumn();
         }, 2);
 
-        $pdo->sqliteCreateFunction('RELEASE_LOCK', static function (?string $name): int {
-            return 1;
+        $pdo->sqliteCreateFunction('RELEASE_LOCK', static function (?string $name) use ($pdo): int {
+            if ($name === null) {
+                return 0;
+            }
+
+            $stmt = $pdo->prepare('DELETE FROM _wppack_locks WHERE lock_name = ?');
+            $stmt->execute([$name]);
+
+            return (int) (bool) $pdo->query('SELECT changes()')->fetchColumn();
+        }, 1);
+
+        $pdo->sqliteCreateFunction('IS_FREE_LOCK', static function (?string $name) use ($pdo): int {
+            if ($name === null) {
+                return 1;
+            }
+
+            $stmt = $pdo->prepare('SELECT COUNT(*) FROM _wppack_locks WHERE lock_name = ?');
+            $stmt->execute([$name]);
+
+            return $stmt->fetchColumn() ? 0 : 1;
         }, 1);
 
         // Note: ISNULL is not registered as UDF because SQLite uses ISNULL as a

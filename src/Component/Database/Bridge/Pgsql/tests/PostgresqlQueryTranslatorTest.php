@@ -1136,6 +1136,26 @@ SQL;
         self::assertStringContainsString('ON CONFLICT DO NOTHING', $result[0]);
     }
 
+    // ── Lock functions ──
+
+    #[Test]
+    public function getLockUsesAdvisoryLock(): void
+    {
+        $result = $this->translator->translate("SELECT GET_LOCK('mylock', 10)");
+
+        self::assertStringContainsString('pg_try_advisory_lock', $result[0]);
+        self::assertStringContainsString('hashtext', $result[0]);
+    }
+
+    #[Test]
+    public function releaseLockUsesAdvisoryUnlock(): void
+    {
+        $result = $this->translator->translate("SELECT RELEASE_LOCK('mylock')");
+
+        self::assertStringContainsString('pg_advisory_unlock', $result[0]);
+        self::assertStringContainsString('hashtext', $result[0]);
+    }
+
     // ── WordPress compatibility tests ──
 
     #[Test]

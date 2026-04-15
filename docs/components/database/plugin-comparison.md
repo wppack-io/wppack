@@ -56,7 +56,8 @@ WpPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL ク
 | MD5 | ✅ UDF | N/A ネイティブ | ✅ UDF | N/A ネイティブ |
 | LOG | ✅ UDF | N/A ネイティブ | ✅ UDF | ✅ AST→LN (意味差異修正) |
 | UNHEX / BASE64 / INET | ✅ UDF | N/A | ✅ UDF | ✅ AST (decode/encode) |
-| GET_LOCK / RELEASE_LOCK | ✅ UDF | N/A | ✅ UDF | ✅ ダミー |
+| GET_LOCK / RELEASE_LOCK | ✅ UDF (ダミー: 常に1) | N/A | ✅ UDF (`_wppack_locks` テーブル) | ✅ `pg_advisory_lock` |
+| IS_FREE_LOCK | — | N/A | ✅ UDF (`_wppack_locks` テーブル) | ✅ advisory lock チェック |
 
 ### DML 文
 
