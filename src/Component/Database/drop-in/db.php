@@ -41,10 +41,10 @@ if (defined('DATABASE_DSN') && DATABASE_DSN !== '') {
         'mysql://%s:%s@%s:%s/%s?charset=%s',
         rawurlencode($wppackDbUser),
         rawurlencode($wppackDbPass),
-        $wppackDbHost,
+        rawurlencode($wppackDbHost),
         $wppackDbPort,
-        DB_NAME,
-        $wppackDbCharset,
+        rawurlencode(DB_NAME),
+        rawurlencode($wppackDbCharset),
     );
 
     unset($wppackDbUser, $wppackDbPass, $wppackDbHost, $wppackDbPort, $wppackDbCharset);

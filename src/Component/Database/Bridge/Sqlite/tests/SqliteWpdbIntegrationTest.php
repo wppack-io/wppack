@@ -31,10 +31,12 @@ final class SqliteWpdbIntegrationTest extends TestCase
     private WpPackWpdb $testWpdb;
     private SqliteDriver $driver;
     private ?\wpdb $originalWpdb = null;
+    private ?string $originalTablePrefix = null;
 
     protected function setUp(): void
     {
         $this->originalWpdb = $GLOBALS['wpdb'] ?? null;
+        $this->originalTablePrefix = $GLOBALS['table_prefix'] ?? null;
         $GLOBALS['table_prefix'] = 'wpt_';
 
         $this->driver = new SqliteDriver(':memory:');
@@ -55,6 +57,10 @@ final class SqliteWpdbIntegrationTest extends TestCase
 
         if ($this->originalWpdb !== null) {
             $GLOBALS['wpdb'] = $this->originalWpdb;
+        }
+
+        if ($this->originalTablePrefix !== null) {
+            $GLOBALS['table_prefix'] = $this->originalTablePrefix;
         }
     }
 

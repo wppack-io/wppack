@@ -88,13 +88,18 @@ final class PgsqlDriver extends AbstractDriver
             return;
         }
 
+        // Escape values for libpq connection string: backslash-double and
+        // single-quote-escape, then wrap in single quotes.
+        $esc = static fn(string $v): string => "'" . str_replace(['\\', "'"], ['\\\\', "\\'"], $v) . "'";
+
         $connStr = \sprintf(
-            "host=%s port=%d dbname=%s user=%s password=%s client_encoding='UTF8'",
-            $this->host,
+            'host=%s port=%d dbname=%s user=%s password=%s client_encoding=%s',
+            $esc($this->host),
             $this->port,
-            $this->database,
-            $this->username,
-            $this->password,
+            $esc($this->database),
+            $esc($this->username),
+            $esc($this->password),
+            $esc('UTF8'),
         );
 
         $connection = @pg_connect($connStr);

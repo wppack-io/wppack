@@ -32,6 +32,7 @@ final class PgsqlWpdbIntegrationTest extends TestCase
     private WpPackWpdb $testWpdb;
     private PgsqlDriver $driver;
     private ?\wpdb $originalWpdb = null;
+    private ?string $originalTablePrefix = null;
 
     protected function setUp(): void
     {
@@ -42,6 +43,7 @@ final class PgsqlWpdbIntegrationTest extends TestCase
         }
 
         $this->originalWpdb = $GLOBALS['wpdb'] ?? null;
+        $this->originalTablePrefix = $GLOBALS['table_prefix'] ?? null;
         $GLOBALS['table_prefix'] = 'wpt_';
 
         $this->driver = new PgsqlDriver(
@@ -82,6 +84,10 @@ final class PgsqlWpdbIntegrationTest extends TestCase
 
         if ($this->originalWpdb !== null) {
             $GLOBALS['wpdb'] = $this->originalWpdb;
+        }
+
+        if ($this->originalTablePrefix !== null) {
+            $GLOBALS['table_prefix'] = $this->originalTablePrefix;
         }
     }
 

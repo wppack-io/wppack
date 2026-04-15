@@ -1907,4 +1907,112 @@ trait WpdbIntegrationTestTrait
         self::assertSame('widget_text_1', $results[0]->option_name);
         self::assertSame('widget_text_2', $results[1]->option_name);
     }
+
+    // ── Security Tests ──
+
+    #[Test]
+    public function sqlInjectionInPreparedStatement(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        $malicious = "'; DROP TABLE {$p}options; --";
+
+        // Insert malicious value via prepared statement
+        $wpdb->insert('options', [
+            'option_name' => 'injection_test',
+            'option_value' => $malicious,
+        ]);
+
+        // Value should be stored literally, not executed
+        $value = $wpdb->get_var(
+            $wpdb->prepare("SELECT option_value FROM {$p}options WHERE option_name = %s", 'injection_test'),
+        );
+        self::assertSame($malicious, $value);
+
+        // Options table should still exist
+        $count = $wpdb->get_var("SELECT COUNT(*) FROM {$p}options");
+        self::assertNotNull($count);
+    }
+
+    #[Test]
+    public function sqlInjectionInLikePattern(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        $wpdb->insert('options', ['option_name' => 'safe_option', 'option_value' => 'safe']);
+
+        // Attempt injection via LIKE pattern
+        $malicious = "%' OR '1'='1";
+        $results = $wpdb->get_results(
+            $wpdb->prepare("SELECT option_name FROM {$p}options WHERE option_value LIKE %s", $malicious),
+        );
+
+        // Should return 0 results (not all rows)
+        self::assertCount(0, $results);
+    }
+
+    #[Test]
+    public function uniqueConstraintViolationReturnsFalse(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        $wpdb->insert('options', ['option_name' => 'unique_test', 'option_value' => 'first']);
+
+        // Direct INSERT with duplicate unique key should fail
+        $result = $wpdb->query(
+            $wpdb->prepare(
+                "INSERT INTO {$p}options (option_name, option_value) VALUES (%s, %s)",
+                'unique_test',
+                'second',
+            ),
+        );
+
+        self::assertFalse($result);
+        self::assertNotSame('', $wpdb->last_error);
+    }
+
+    // ── Lock Edge Cases ──
+
+    #[Test]
+    public function getLockWithNullNameReturnsZero(): void
+    {
+        $wpdb = $this->getTestWpdb();
+
+        $result = $wpdb->get_var('SELECT GET_LOCK(NULL, 10)');
+        self::assertSame('0', (string) (int) $result);
+    }
+
+    #[Test]
+    public function multipleDistinctLocks(): void
+    {
+        $wpdb = $this->getTestWpdb();
+
+        $lock1 = $wpdb->get_var("SELECT GET_LOCK('lock_a', 10)");
+        $lock2 = $wpdb->get_var("SELECT GET_LOCK('lock_b', 10)");
+
+        self::assertSame('1', (string) (int) $lock1);
+        self::assertSame('1', (string) (int) $lock2);
+
+        $wpdb->get_var("SELECT RELEASE_LOCK('lock_a')");
+        $wpdb->get_var("SELECT RELEASE_LOCK('lock_b')");
+    }
+
+    // ── Date Function Edge Cases ──
+
+    #[Test]
+    public function datediffNegativeAndZero(): void
+    {
+        $wpdb = $this->getTestWpdb();
+
+        // Negative: earlier - later
+        $neg = $wpdb->get_var("SELECT DATEDIFF('2024-01-10', '2024-01-15')");
+        self::assertSame('-5', (string) (int) $neg);
+
+        // Zero: same date
+        $zero = $wpdb->get_var("SELECT DATEDIFF('2024-01-15', '2024-01-15')");
+        self::assertSame('0', (string) (int) $zero);
+    }
 }
