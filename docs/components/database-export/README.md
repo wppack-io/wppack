@@ -139,3 +139,9 @@ wppack/database-export
 wppack/database
     + wppack/wpress (suggest — wpress アーカイブ操作)
 ```
+
+## 関連ドキュメント
+
+- [Database コンポーネント](../database/README.md) — ドライバ、プラットフォーム、クエリ変換
+- [Query Translation Architecture](../database/query-translation.md) — MySQL → SQLite/PostgreSQL 変換の詳細
+- [プラグイン比較](../database/plugin-comparison.md) — 既存プラグインとの機能比較
