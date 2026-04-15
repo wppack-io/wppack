@@ -706,7 +706,7 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         }
 
         // Extract type from unknown tokens (skip new_name for CHANGE)
-        $typeTokens = $alter->unknown ?? [];
+        $typeTokens = $alter->unknown;
         if ($isChange && $typeTokens !== []) {
             // Skip the new column name and whitespace
             array_shift($typeTokens); // new_name
