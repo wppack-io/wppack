@@ -509,6 +509,44 @@ MySQL の名前付きロック関数を各エンジンで実装:
 | `RELEASE_LOCK(name)` | 1 | `_wppack_locks` テーブルからロック解放 |
 | `IS_FREE_LOCK(name)` | 1 | `_wppack_locks` テーブルでロック空きチェック |
 
+## Aurora DSQL 固有の変換
+
+Aurora DSQL は PostgreSQL 互換だが、以下の制限がある:
+
+| MySQL | Aurora DSQL | 説明 |
+|-------|-----------|------|
+| `TRUNCATE TABLE t` | `DELETE FROM "t"` | DSQL は TRUNCATE 未対応 |
+
+その他の SQL は PostgresqlQueryTranslator と同一の変換を適用。
+
+### DSQL 固有のドライバ機能
+
+| 機能 | 説明 |
+|------|------|
+| IAM トークン認証 | SigV4 presigned URL で自動生成（`async-aws/core`） |
+| SSL verify-full | 接続時に `sslmode=verify-full` を強制 |
+| OCC リトライ | SQLSTATE 40001/OC000/OC001 で指数バックオフ + ジッター |
+| トークン有効期間管理 | 期限 60 秒前に自動再接続 |
+
+### OCC（楽観的同時実行制御）リトライ
+
+Aurora DSQL は OCC ベースのトランザクション管理を使用。コミット時に衝突が検出されると、以下の SQLSTATE コードを返す:
+
+- `40001` — シリアライゼーション失敗
+- `OC000` — DSQL 固有 OCC 衝突
+- `OC001` — DSQL 固有 OCC 衝突
+
+ドライバは `executeQuery`, `executeStatement`, `commit` に対して自動リトライを行う:
+
+```
+初期待機: 100ms
+倍率: 2.0
+上限: 5,000ms
+ジッター: 0〜待機時間のランダム値
+```
+
+DSN で `occMaxRetries=0` を指定するとリトライを無効化。
+
 ## 未対応機能
 
 全ての主要機能を実装済み。未対応項目なし。

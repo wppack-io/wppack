@@ -88,15 +88,21 @@ final class AuroraDsqlDriverFactoryTest extends TestCase
     // ── DSQL Translator ──
 
     #[Test]
-    public function truncateConvertedToDeleteFrom(): void
+    public function truncateConvertedToDeleteFromWithSequenceReset(): void
     {
         $translator = new \WpPack\Component\Database\Bridge\AuroraDsql\Translator\AuroraDsqlQueryTranslator();
 
         $result = $translator->translate('TRUNCATE TABLE `wp_posts`');
 
+        // First statement: DELETE FROM
         self::assertStringContainsString('DELETE FROM', $result[0]);
         self::assertStringContainsString('"wp_posts"', $result[0]);
         self::assertStringNotContainsString('TRUNCATE', $result[0]);
+
+        // Second statement: sequence reset via setval
+        self::assertCount(2, $result);
+        self::assertStringContainsString('setval', $result[1]);
+        self::assertStringContainsString('wp_posts', $result[1]);
     }
 
     #[Test]

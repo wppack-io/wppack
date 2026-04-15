@@ -36,11 +36,25 @@ final class AuroraDsqlQueryTranslator implements QueryTranslatorInterface
 
     public function translate(string $sql): array
     {
-        // TRUNCATE → DELETE FROM (DSQL does not support TRUNCATE)
-        if (preg_match('/^\s*TRUNCATE\s+(?:TABLE\s+)?/i', trim($sql))) {
-            $tableName = preg_replace('/^\s*TRUNCATE\s+(?:TABLE\s+)?[`"]?(\w+)[`"]?\s*;?\s*$/i', '$1', trim($sql));
+        // TRUNCATE → DELETE FROM + sequence reset (DSQL does not support TRUNCATE)
+        // MySQL TRUNCATE resets AUTO_INCREMENT. We replicate this by resetting
+        // the SERIAL sequence after DELETE FROM.
+        if (preg_match('/^\s*TRUNCATE\s+(?:TABLE\s+)?[`"]?(\w+)[`"]?\s*;?\s*$/i', trim($sql), $m)) {
+            $table = str_replace('"', '""', $m[1]);
+            $quotedTable = '"' . $table . '"';
 
-            return ['DELETE FROM "' . str_replace('"', '""', $tableName) . '"'];
+            return [
+                'DELETE FROM ' . $quotedTable,
+                // Reset all SERIAL sequences for this table to 1
+                \sprintf(
+                    "SELECT setval(pg_get_serial_sequence('%s', column_name), 1, false) "
+                    . "FROM information_schema.columns "
+                    . "WHERE table_schema = 'public' AND table_name = '%s' "
+                    . "AND column_default LIKE 'nextval%%'",
+                    str_replace("'", "''", $table),
+                    str_replace("'", "''", $table),
+                ),
+            ];
         }
 
         return $this->pgsql->translate($sql);
