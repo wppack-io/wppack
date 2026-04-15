@@ -37,6 +37,7 @@ final class PgsqlDriver extends AbstractDriver
         private readonly string $password,
         private readonly string $database,
         private readonly int $port = 5432,
+        private readonly ?string $sslmode = null,
     ) {
         $this->ownsConnection = true;
     }
@@ -102,6 +103,10 @@ final class PgsqlDriver extends AbstractDriver
             $esc($this->password),
             $esc('UTF8'),
         );
+
+        if ($this->sslmode !== null) {
+            $connStr .= ' sslmode=' . $esc($this->sslmode);
+        }
 
         $connection = @pg_connect($connStr);
 

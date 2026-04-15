@@ -136,4 +136,132 @@ final class AuroraDsqlDriverFactoryTest extends TestCase
             $driver->getQueryTranslator(),
         );
     }
+
+    #[Test]
+    public function factoryParsesOccMaxRetriesFromDsn(): void
+    {
+        if (!\function_exists('pg_connect')) {
+            self::markTestSkipped('ext-pgsql not available.');
+        }
+
+        $factory = new AuroraDsqlDriverFactory();
+        $driver = $factory->create(
+            Dsn::fromString('dsql://admin:token@abc.dsql.us-east-1.on.aws/mydb?occMaxRetries=5&tokenDurationSecs=600'),
+        );
+
+        self::assertInstanceOf(AuroraDsqlDriver::class, $driver);
+    }
+
+    #[Test]
+    public function factoryParsesRegionFromDsnOption(): void
+    {
+        if (!\function_exists('pg_connect')) {
+            self::markTestSkipped('ext-pgsql not available.');
+        }
+
+        $factory = new AuroraDsqlDriverFactory();
+        $driver = $factory->create(
+            Dsn::fromString('dsql://admin:token@custom-host/mydb?region=eu-west-1'),
+        );
+
+        self::assertInstanceOf(AuroraDsqlDriver::class, $driver);
+    }
+
+    // ── OCC Retry ──
+
+    #[Test]
+    public function occRetryOnConflict(): void
+    {
+        $callCount = 0;
+        $driver = $this->createMockDriver(occMaxRetries: 3);
+
+        // Use reflection to test executeWithOccRetry
+        $method = new \ReflectionMethod($driver, 'executeWithOccRetry');
+
+        $result = $method->invoke($driver, static function () use (&$callCount): string {
+            ++$callCount;
+            if ($callCount < 3) {
+                throw new \WpPack\Component\Database\Exception\DriverException('SQLSTATE[40001]: serialization_failure');
+            }
+
+            return 'success';
+        });
+
+        self::assertSame('success', $result);
+        self::assertSame(3, $callCount);
+    }
+
+    #[Test]
+    public function occMaxRetriesExhausted(): void
+    {
+        $driver = $this->createMockDriver(occMaxRetries: 2);
+        $method = new \ReflectionMethod($driver, 'executeWithOccRetry');
+
+        $this->expectException(\WpPack\Component\Database\Exception\DriverException::class);
+
+        $method->invoke($driver, static function (): never {
+            throw new \WpPack\Component\Database\Exception\DriverException('OC000 conflict');
+        });
+    }
+
+    #[Test]
+    public function occNonOccErrorNotRetried(): void
+    {
+        $callCount = 0;
+        $driver = $this->createMockDriver(occMaxRetries: 3);
+        $method = new \ReflectionMethod($driver, 'executeWithOccRetry');
+
+        try {
+            $method->invoke($driver, static function () use (&$callCount): never {
+                ++$callCount;
+                throw new \WpPack\Component\Database\Exception\DriverException('some other error');
+            });
+        } catch (\WpPack\Component\Database\Exception\DriverException) {
+        }
+
+        // Should not retry — only called once
+        self::assertSame(1, $callCount);
+    }
+
+    #[Test]
+    public function occDisabledWhenZeroRetries(): void
+    {
+        $callCount = 0;
+        $driver = $this->createMockDriver(occMaxRetries: 0);
+        $method = new \ReflectionMethod($driver, 'executeWithOccRetry');
+
+        try {
+            $method->invoke($driver, static function () use (&$callCount): never {
+                ++$callCount;
+                throw new \WpPack\Component\Database\Exception\DriverException('SQLSTATE[40001]');
+            });
+        } catch (\WpPack\Component\Database\Exception\DriverException) {
+        }
+
+        self::assertSame(1, $callCount);
+    }
+
+    #[Test]
+    public function isOccErrorDetection(): void
+    {
+        $method = new \ReflectionMethod(AuroraDsqlDriver::class, 'isOccError');
+
+        self::assertTrue($method->invoke(null, new \RuntimeException('SQLSTATE[40001]: serialization_failure')));
+        self::assertTrue($method->invoke(null, new \RuntimeException('OC000 conflict detected')));
+        self::assertTrue($method->invoke(null, new \RuntimeException('Error OC001')));
+        self::assertFalse($method->invoke(null, new \RuntimeException('connection refused')));
+        self::assertFalse($method->invoke(null, new \RuntimeException('syntax error')));
+    }
+
+    private function createMockDriver(int $occMaxRetries): AuroraDsqlDriver
+    {
+        return new AuroraDsqlDriver(
+            endpoint: 'test.dsql.us-east-1.on.aws',
+            region: 'us-east-1',
+            database: 'test',
+            username: 'admin',
+            token: 'mock-token',
+            occMaxRetries: $occMaxRetries,
+        );
+    }
 }

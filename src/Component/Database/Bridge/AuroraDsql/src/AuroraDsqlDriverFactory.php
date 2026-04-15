@@ -45,7 +45,10 @@ final class AuroraDsqlDriverFactory implements DriverFactoryInterface
     public function create(Dsn $dsn, array $options = []): DriverInterface
     {
         $endpoint = $dsn->getHost() ?? '';
-        $region = $options['region'] ?? $this->extractRegionFromEndpoint($endpoint) ?? 'us-east-1';
+        $region = $options['region'] ?? $dsn->getOption('region') ?? $this->extractRegionFromEndpoint($endpoint) ?? 'us-east-1';
+
+        $occMaxRetries = $dsn->getOption('occMaxRetries');
+        $tokenDurationSecs = $dsn->getOption('tokenDurationSecs');
 
         return new AuroraDsqlDriver(
             endpoint: $endpoint,
@@ -53,6 +56,8 @@ final class AuroraDsqlDriverFactory implements DriverFactoryInterface
             database: ltrim($dsn->getPath() ?? '', '/'),
             username: $dsn->getUser() ?? 'admin',
             token: $dsn->getPassword(),
+            tokenDurationSecs: $tokenDurationSecs !== null ? (int) $tokenDurationSecs : 900,
+            occMaxRetries: $occMaxRetries !== null ? (int) $occMaxRetries : 3,
         );
     }
 
