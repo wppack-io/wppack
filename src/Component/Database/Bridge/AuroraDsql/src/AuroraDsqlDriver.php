@@ -89,6 +89,10 @@ class AuroraDsqlDriver extends PgsqlDriver
      */
     protected function doConnect(): void
     {
+        if ($this->connection !== null) {
+            return;
+        }
+
         // Refresh token if auto-generated and approaching expiry
         if (!$this->hasStaticToken && $this->tokenExpiresAt !== null
             && new \DateTimeImmutable() >= $this->tokenExpiresAt) {
@@ -99,11 +103,6 @@ class AuroraDsqlDriver extends PgsqlDriver
                 $this->tokenDurationSecs,
                 $this->credentialProvider,
             );
-        }
-
-        // Build connection string with current (possibly refreshed) token
-        if ($this->connection !== null) {
-            return;
         }
 
         $esc = static fn(string $v): string => "'" . str_replace(['\\', "'"], ['\\\\', "\\'"], $v) . "'";
