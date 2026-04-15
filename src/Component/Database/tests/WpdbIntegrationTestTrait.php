@@ -2081,6 +2081,46 @@ trait WpdbIntegrationTestTrait
     }
 
     #[Test]
+    public function yearMonthGroupByWithJoin(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        // Create posts with different dates
+        $wpdb->insert('posts', ['post_title' => 'Jan', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_date' => '2024-01-15 10:00:00']);
+        $id1 = $wpdb->insert_id;
+        $wpdb->insert('posts', ['post_title' => 'Jan2', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_date' => '2024-01-20 10:00:00']);
+        $id2 = $wpdb->insert_id;
+        $wpdb->insert('posts', ['post_title' => 'Mar', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_date' => '2024-03-10 10:00:00']);
+        $id3 = $wpdb->insert_id;
+
+        // Create term relationships (simulate taxonomy assignment)
+        $wpdb->insert('term_relationships', ['object_id' => $id1, 'term_taxonomy_id' => 8]);
+        $wpdb->insert('term_relationships', ['object_id' => $id2, 'term_taxonomy_id' => 8]);
+        $wpdb->insert('term_relationships', ['object_id' => $id3, 'term_taxonomy_id' => 8]);
+
+        // WordPress/Polylang archive query pattern: YEAR + MONTH + JOIN + GROUP BY
+        $results = $wpdb->get_results(
+            "SELECT YEAR(post_date) AS `year`, MONTH(post_date) AS `month`, count(ID) as posts
+             FROM {$p}posts
+             INNER JOIN {$p}term_relationships AS pll_tr ON pll_tr.object_id = {$p}posts.ID
+             WHERE post_type = 'post' AND post_status = 'publish' AND pll_tr.term_taxonomy_id = 8
+             GROUP BY `year`, `month`
+             ORDER BY `year` DESC, `month` DESC",
+        );
+
+        self::assertCount(2, $results);
+        // March (1 post)
+        self::assertSame('2024', (string) (int) $results[0]->year);
+        self::assertSame('3', (string) (int) $results[0]->month);
+        self::assertSame('1', (string) (int) $results[0]->posts);
+        // January (2 posts)
+        self::assertSame('2024', (string) (int) $results[1]->year);
+        self::assertSame('1', (string) (int) $results[1]->month);
+        self::assertSame('2', (string) (int) $results[1]->posts);
+    }
+
+    #[Test]
     public function regexpOperator(): void
     {
         $wpdb = $this->getTestWpdb();
