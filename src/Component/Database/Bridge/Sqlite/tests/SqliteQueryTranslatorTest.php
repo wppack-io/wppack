@@ -1671,7 +1671,8 @@ SQL);
     {
         $result = $this->translator->translate('SHOW TABLES');
 
-        self::assertStringContainsString("NOT LIKE '_%'", $result[0]);
+        // Underscore-prefixed tables (like _mysql_data_types_cache) should be excluded
+        self::assertStringContainsString("NOT LIKE '\\_", $result[0]);
     }
 
     // ── PG4WP parity tests ──

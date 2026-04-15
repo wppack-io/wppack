@@ -185,6 +185,35 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
      * - Zero dates in comparisons → IS NULL / IS NOT NULL
      * - Zero dates in VALUES/SET → NULL
      */
+    /**
+     * Infer ON CONFLICT target from INSERT ... ON DUPLICATE KEY UPDATE.
+     *
+     * Heuristic: INSERT columns that are NOT in the ON DUPLICATE KEY UPDATE
+     * SET clause are likely the unique constraint columns. This works for
+     * WordPress core patterns where ODKU updates all non-key columns.
+     */
+    private function inferConflictTarget(InsertStatement $stmt): string
+    {
+        $insertCols = $stmt->into->columns ?? [];
+        if ($insertCols === []) {
+            return '';
+        }
+
+        $updateCols = [];
+        foreach ($stmt->onDuplicateSet ?? [] as $set) {
+            $updateCols[] = $set->column;
+        }
+
+        // Conflict target = INSERT columns not in UPDATE set
+        $conflictCols = array_diff($insertCols, $updateCols);
+
+        if ($conflictCols === []) {
+            return '';
+        }
+
+        return implode(', ', array_map(fn(string $col): string => $this->quoteId($col), $conflictCols));
+    }
+
     private function postProcessPgsql(string $sql): string
     {
         // meta_value + 0 → CAST(meta_value AS BIGINT)
@@ -253,7 +282,7 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
                 continue;
             }
 
-            // ON DUPLICATE KEY UPDATE → ON CONFLICT DO UPDATE SET
+            // ON DUPLICATE KEY UPDATE → ON CONFLICT (cols) DO UPDATE SET
             if ($token->type === TokenType::Keyword && $token->keyword === 'ON' && $hasOnDuplicate && !$inOnConflictUpdate) {
                 $next = $rw->peekNth(2);
                 if ($next !== null && $next->keyword === 'DUPLICATE') {
@@ -261,7 +290,14 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
                     $rw->skip(); // DUPLICATE
                     $rw->skip(); // KEY
                     $rw->skip(); // UPDATE
-                    $rw->add('ON CONFLICT DO UPDATE SET');
+
+                    // Infer conflict target: INSERT columns minus UPDATE columns
+                    $conflictTarget = $this->inferConflictTarget($stmt);
+                    if ($conflictTarget !== '') {
+                        $rw->add('ON CONFLICT (' . $conflictTarget . ') DO UPDATE SET');
+                    } else {
+                        $rw->add('ON CONFLICT DO UPDATE SET');
+                    }
                     $inOnConflictUpdate = true;
                     continue;
                 }
@@ -355,11 +391,12 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
     }
 
     /**
-     * REPLACE INTO → INSERT ... ON CONFLICT DO UPDATE SET (all columns).
+     * REPLACE INTO → INSERT ... ON CONFLICT DO NOTHING.
      *
-     * PostgreSQL doesn't have REPLACE. We rewrite to INSERT with a
-     * blanket ON CONFLICT DO UPDATE covering all non-PK columns.
-     * Without PK info, we use ON CONFLICT DO NOTHING as fallback.
+     * PostgreSQL doesn't have REPLACE. Without knowing the conflict
+     * target (primary key / unique constraint), we cannot generate
+     * ON CONFLICT DO UPDATE SET. We use ON CONFLICT DO NOTHING as
+     * a safe fallback — the row is not inserted if it conflicts.
      */
     private function translateReplace(Parser $parser): string
     {
@@ -380,7 +417,7 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             $this->translateExpression($rw);
         }
 
-        return $rw->getResult();
+        return $rw->getResult() . ' ON CONFLICT DO NOTHING';
     }
 
     private function translateUpdate(UpdateStatement $stmt, Parser $parser): string
@@ -1113,6 +1150,7 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             'FROM_BASE64' => $this->transformFromBase64($rw),
             'INET_ATON' => $this->transformInetAton($rw),
             'INET_NTOA' => $this->transformInetNtoa($rw),
+            'LOG' => $this->transformLog($rw),
             default => false,
         };
     }
@@ -1559,6 +1597,28 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         }
 
         $rw->add(\sprintf("('0.0.0.0'::inet + %s)::text", $this->transformArgExpression($args[0])));
+
+        return true;
+    }
+
+    /**
+     * MySQL LOG(x) = natural log; PostgreSQL LOG(x) = log base 10.
+     * LOG(b, x) has the same meaning in both.
+     */
+    private function transformLog(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || $args === []) {
+            return false;
+        }
+
+        if (\count($args) === 1) {
+            // MySQL LOG(x) = natural log → PostgreSQL LN(x)
+            $rw->add('LN(' . $this->transformArgExpression($args[0]) . ')');
+        } else {
+            // MySQL LOG(b, x) = log base b → PostgreSQL LOG(b, x) — same semantics
+            $rw->add('LOG(' . $this->transformArgExpression($args[0]) . ', ' . $this->transformArgExpression($args[1]) . ')');
+        }
 
         return true;
     }

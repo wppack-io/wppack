@@ -1395,4 +1395,479 @@ trait WpdbIntegrationTestTrait
         self::assertFalse($result);
         self::assertNotSame('', $wpdb->last_error);
     }
+
+    // ── WordPress Core DML Patterns ──
+
+    #[Test]
+    public function insertIgnore(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        $wpdb->query("INSERT INTO {$p}options (option_name, option_value) VALUES ('ign_test', 'first')");
+
+        // INSERT IGNORE with duplicate key should not error
+        $result = $wpdb->query("INSERT IGNORE INTO {$p}options (option_name, option_value) VALUES ('ign_test', 'second')");
+
+        // Should not fail (true or 0, not false)
+        self::assertNotFalse($result);
+
+        // Original value should be unchanged
+        $value = $wpdb->get_var(
+            $wpdb->prepare("SELECT option_value FROM {$p}options WHERE option_name = %s", 'ign_test'),
+        );
+        self::assertSame('first', $value);
+    }
+
+    #[Test]
+    public function onDuplicateKeyUpdate(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        $wpdb->query("INSERT INTO {$p}options (option_name, option_value, autoload) VALUES ('odku_test', 'original', 'yes')");
+
+        // WordPress core pattern: INSERT ... ON DUPLICATE KEY UPDATE
+        $wpdb->query(
+            "INSERT INTO {$p}options (option_name, option_value, autoload) VALUES ('odku_test', 'updated', 'no')
+             ON DUPLICATE KEY UPDATE option_value = VALUES(option_value), autoload = VALUES(autoload)",
+        );
+
+        $row = $wpdb->get_row(
+            $wpdb->prepare("SELECT option_value, autoload FROM {$p}options WHERE option_name = %s", 'odku_test'),
+        );
+        self::assertSame('updated', $row->option_value);
+        self::assertSame('no', $row->autoload);
+    }
+
+    #[Test]
+    public function deleteWithLimit(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        for ($i = 1; $i <= 5; ++$i) {
+            $wpdb->insert('posts', ['post_title' => "DL{$i}", 'post_content' => '', 'post_status' => 'trash', 'post_type' => 'post']);
+        }
+
+        // DELETE ... LIMIT N (WordPress transient cleanup pattern)
+        $wpdb->query("DELETE FROM {$p}posts WHERE post_status = 'trash' LIMIT 3");
+
+        $remaining = $wpdb->get_var("SELECT COUNT(*) FROM {$p}posts WHERE post_status = 'trash'");
+        self::assertSame('2', (string) $remaining);
+    }
+
+    #[Test]
+    public function updateWithLimit(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        for ($i = 1; $i <= 5; ++$i) {
+            $wpdb->insert('posts', ['post_title' => "UL{$i}", 'post_content' => '', 'post_status' => 'draft', 'post_type' => 'post']);
+        }
+
+        $wpdb->query("UPDATE {$p}posts SET post_status = 'publish' WHERE post_status = 'draft' LIMIT 2");
+
+        $published = $wpdb->get_var("SELECT COUNT(*) FROM {$p}posts WHERE post_status = 'publish'");
+        self::assertSame('2', (string) $published);
+
+        $draft = $wpdb->get_var("SELECT COUNT(*) FROM {$p}posts WHERE post_status = 'draft'");
+        self::assertSame('3', (string) $draft);
+    }
+
+    #[Test]
+    public function truncateTable(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        $wpdb->insert('posts', ['post_title' => 'T1', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert('posts', ['post_title' => 'T2', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+
+        $wpdb->query("TRUNCATE TABLE {$p}posts");
+
+        $count = $wpdb->get_var("SELECT COUNT(*) FROM {$p}posts");
+        self::assertSame('0', (string) $count);
+    }
+
+    // ── Date/Time Functions ──
+
+    #[Test]
+    public function nowFunction(): void
+    {
+        $wpdb = $this->getTestWpdb();
+
+        $result = $wpdb->get_var('SELECT NOW()');
+
+        // Should return a valid datetime string
+        self::assertNotNull($result);
+        self::assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}[\sT]\d{2}:\d{2}:\d{2}/', $result);
+    }
+
+    #[Test]
+    public function curdateFunction(): void
+    {
+        $wpdb = $this->getTestWpdb();
+
+        $result = $wpdb->get_var('SELECT CURDATE()');
+
+        self::assertNotNull($result);
+        self::assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}/', $result);
+    }
+
+    #[Test]
+    public function dateAddInterval(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        $wpdb->insert('posts', [
+            'post_title' => 'DateAdd',
+            'post_content' => '',
+            'post_status' => 'publish',
+            'post_type' => 'post',
+            'post_date' => '2024-01-15 10:00:00',
+        ]);
+
+        $result = $wpdb->get_var(
+            "SELECT DATE_ADD(post_date, INTERVAL 1 DAY) FROM {$p}posts WHERE post_title = 'DateAdd'",
+        );
+
+        self::assertNotNull($result);
+        self::assertStringContainsString('2024-01-16', $result);
+    }
+
+    #[Test]
+    public function dateSubInterval(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        $wpdb->insert('posts', [
+            'post_title' => 'DateSub',
+            'post_content' => '',
+            'post_status' => 'publish',
+            'post_type' => 'post',
+            'post_date' => '2024-01-15 10:30:00',
+        ]);
+
+        $result = $wpdb->get_var(
+            "SELECT DATE_SUB(post_date, INTERVAL 30 MINUTE) FROM {$p}posts WHERE post_title = 'DateSub'",
+        );
+
+        self::assertNotNull($result);
+        self::assertStringContainsString('2024-01-15', $result);
+        self::assertStringContainsString('10:00', $result);
+    }
+
+    #[Test]
+    public function monthYearDayExtraction(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        $wpdb->insert('posts', [
+            'post_title' => 'Extract',
+            'post_content' => '',
+            'post_status' => 'publish',
+            'post_type' => 'post',
+            'post_date' => '2024-03-15 14:30:00',
+        ]);
+
+        $month = $wpdb->get_var("SELECT MONTH(post_date) FROM {$p}posts WHERE post_title = 'Extract'");
+        $year = $wpdb->get_var("SELECT YEAR(post_date) FROM {$p}posts WHERE post_title = 'Extract'");
+        $day = $wpdb->get_var("SELECT DAY(post_date) FROM {$p}posts WHERE post_title = 'Extract'");
+
+        self::assertSame('3', (string) (int) $month);
+        self::assertSame('2024', (string) (int) $year);
+        self::assertSame('15', (string) (int) $day);
+    }
+
+    #[Test]
+    public function unixTimestampAndFromUnixtime(): void
+    {
+        $wpdb = $this->getTestWpdb();
+
+        $ts = $wpdb->get_var('SELECT UNIX_TIMESTAMP()');
+        self::assertNotNull($ts);
+        self::assertGreaterThan(1700000000, (int) $ts);
+
+        $dt = $wpdb->get_var("SELECT FROM_UNIXTIME({$ts})");
+        self::assertNotNull($dt);
+        self::assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}/', $dt);
+    }
+
+    #[Test]
+    public function datediffFunction(): void
+    {
+        $wpdb = $this->getTestWpdb();
+
+        $result = $wpdb->get_var("SELECT DATEDIFF('2024-01-15', '2024-01-10')");
+
+        self::assertSame('5', (string) (int) $result);
+    }
+
+    #[Test]
+    public function dateFormatFunction(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        $wpdb->insert('posts', [
+            'post_title' => 'FmtTest',
+            'post_content' => '',
+            'post_status' => 'publish',
+            'post_type' => 'post',
+            'post_date' => '2024-03-15 14:05:09',
+        ]);
+
+        $result = $wpdb->get_var(
+            "SELECT DATE_FORMAT(post_date, '%Y-%m-%d %H:%i') FROM {$p}posts WHERE post_title = 'FmtTest'",
+        );
+
+        self::assertSame('2024-03-15 14:05', $result);
+    }
+
+    // ── String / Comparison Functions ──
+
+    #[Test]
+    public function leftAndRightFunctions(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        $wpdb->insert('options', ['option_name' => 'lr_test', 'option_value' => 'WordPress']);
+
+        $left = $wpdb->get_var("SELECT LEFT(option_value, 4) FROM {$p}options WHERE option_name = 'lr_test'");
+        self::assertSame('Word', $left);
+
+        $right = $wpdb->get_var("SELECT RIGHT(option_value, 5) FROM {$p}options WHERE option_name = 'lr_test'");
+        self::assertSame('Press', $right);
+    }
+
+    #[Test]
+    public function substringFunction(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        $wpdb->insert('options', ['option_name' => 'sub_test', 'option_value' => 'WordPress']);
+
+        $result = $wpdb->get_var("SELECT SUBSTRING(option_value, 5, 5) FROM {$p}options WHERE option_name = 'sub_test'");
+        self::assertSame('Press', $result);
+    }
+
+    #[Test]
+    public function locateFunction(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        $wpdb->insert('options', ['option_name' => 'loc_test', 'option_value' => 'Hello World']);
+
+        $pos = $wpdb->get_var("SELECT LOCATE('World', option_value) FROM {$p}options WHERE option_name = 'loc_test'");
+        self::assertSame('7', (string) (int) $pos);
+    }
+
+    #[Test]
+    public function concatWsFunction(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        $wpdb->insert('users', ['user_login' => 'cws', 'user_email' => 'cws@e.com', 'display_name' => 'CWS']);
+
+        $result = $wpdb->get_var("SELECT CONCAT_WS(', ', user_login, user_email) FROM {$p}users WHERE user_login = 'cws'");
+        self::assertSame('cws, cws@e.com', $result);
+    }
+
+    #[Test]
+    public function ifFunction(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        $wpdb->insert('posts', ['post_title' => 'IfTest', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert('posts', ['post_title' => 'IfDraft', 'post_content' => '', 'post_status' => 'draft', 'post_type' => 'post']);
+
+        $results = $wpdb->get_results(
+            "SELECT post_title, IF(post_status = 'publish', 'yes', 'no') AS is_pub FROM {$p}posts ORDER BY post_title",
+        );
+
+        self::assertCount(2, $results);
+        self::assertSame('IfDraft', $results[0]->post_title);
+        self::assertSame('no', $results[0]->is_pub);
+        self::assertSame('IfTest', $results[1]->post_title);
+        self::assertSame('yes', $results[1]->is_pub);
+    }
+
+    #[Test]
+    public function greatestLeastFunctions(): void
+    {
+        $wpdb = $this->getTestWpdb();
+
+        $g = $wpdb->get_var('SELECT GREATEST(1, 5, 3)');
+        self::assertSame('5', (string) (int) $g);
+
+        $l = $wpdb->get_var('SELECT LEAST(1, 5, 3)');
+        self::assertSame('1', (string) (int) $l);
+    }
+
+    #[Test]
+    public function castAsSigned(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        $wpdb->insert('postmeta', ['post_id' => 1, 'meta_key' => 'num', 'meta_value' => '42']);
+
+        $result = $wpdb->get_var("SELECT CAST(meta_value AS SIGNED) FROM {$p}postmeta WHERE meta_key = 'num'");
+        self::assertSame('42', (string) (int) $result);
+    }
+
+    // ── DDL Operations ──
+
+    #[Test]
+    public function alterTableAddColumn(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        $wpdb->query("ALTER TABLE {$p}posts ADD COLUMN post_views bigint(20) NOT NULL DEFAULT 0");
+
+        // Verify column exists by inserting/selecting
+        $wpdb->insert('posts', ['post_title' => 'Alter', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $postId = $wpdb->insert_id;
+
+        $views = $wpdb->get_var(
+            $wpdb->prepare("SELECT post_views FROM {$p}posts WHERE ID = %d", $postId),
+        );
+        self::assertSame('0', (string) (int) $views);
+    }
+
+    #[Test]
+    public function alterTableDropColumn(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        // First add a column, then drop it
+        $wpdb->query("ALTER TABLE {$p}posts ADD COLUMN temp_col varchar(50) DEFAULT 'tmp'");
+        $wpdb->query("ALTER TABLE {$p}posts DROP COLUMN temp_col");
+
+        // Verify column is gone — SELECT should not include it
+        $wpdb->insert('posts', ['post_title' => 'AfterDrop', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $postId = $wpdb->insert_id;
+
+        $row = $wpdb->get_row(
+            $wpdb->prepare("SELECT * FROM {$p}posts WHERE ID = %d", $postId),
+            ARRAY_A,
+        );
+        self::assertArrayNotHasKey('temp_col', $row);
+    }
+
+    #[Test]
+    public function alterTableAddAndDropIndex(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        // ADD INDEX
+        $wpdb->query("ALTER TABLE {$p}posts ADD INDEX idx_status_type (post_status, post_type)");
+
+        // Verify by inserting and querying (index should not change behavior, just not error)
+        $wpdb->insert('posts', ['post_title' => 'Idx', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+
+        $result = $wpdb->get_results(
+            "SELECT post_title FROM {$p}posts WHERE post_status = 'publish' AND post_type = 'post'",
+        );
+        self::assertCount(1, $result);
+
+        // DROP INDEX
+        $wpdb->query("ALTER TABLE {$p}posts DROP INDEX idx_status_type");
+
+        // Query should still work after index drop
+        $result2 = $wpdb->get_results("SELECT post_title FROM {$p}posts");
+        self::assertCount(1, $result2);
+    }
+
+    #[Test]
+    public function alterTableRenameColumn(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        $wpdb->query("ALTER TABLE {$p}posts ADD COLUMN old_col varchar(50) DEFAULT 'val'");
+        $wpdb->query("ALTER TABLE {$p}posts CHANGE old_col new_col varchar(50) DEFAULT 'val'");
+
+        $wpdb->insert('posts', ['post_title' => 'Renamed', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $postId = $wpdb->insert_id;
+
+        $row = $wpdb->get_row(
+            $wpdb->prepare("SELECT * FROM {$p}posts WHERE ID = %d", $postId),
+            ARRAY_A,
+        );
+        self::assertArrayHasKey('new_col', $row);
+        self::assertArrayNotHasKey('old_col', $row);
+    }
+
+    // ── Metadata / SHOW Commands ──
+
+    #[Test]
+    public function showTables(): void
+    {
+        $wpdb = $this->getTestWpdb();
+
+        $wpdb->query('SHOW TABLES');
+
+        // Extract table names from result (column name varies by engine)
+        $tables = [];
+        foreach ($wpdb->last_result as $row) {
+            $arr = (array) $row;
+            $tables[] = (string) array_shift($arr);
+        }
+
+        self::assertContains($wpdb->prefix . 'options', $tables);
+        self::assertContains($wpdb->prefix . 'posts', $tables);
+    }
+
+    #[Test]
+    public function showColumnsFrom(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        $columns = $wpdb->get_results("SHOW COLUMNS FROM {$p}options");
+
+        self::assertNotEmpty($columns);
+
+        // SQLite PRAGMA table_info uses 'name', PostgreSQL information_schema uses 'column_name'
+        $colNames = [];
+        foreach ($columns as $row) {
+            $arr = (array) $row;
+            $colNames[] = $arr['name'] ?? $arr['column_name'] ?? $arr['Field'] ?? (string) array_shift($arr);
+        }
+        self::assertContains('option_name', $colNames);
+        self::assertContains('option_value', $colNames);
+    }
+
+    #[Test]
+    public function regexpOperator(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        $wpdb->insert('options', ['option_name' => 'widget_text_1', 'option_value' => 'a']);
+        $wpdb->insert('options', ['option_name' => 'widget_text_2', 'option_value' => 'b']);
+        $wpdb->insert('options', ['option_name' => 'sidebar_widgets', 'option_value' => 'c']);
+
+        $results = $wpdb->get_results(
+            "SELECT option_name FROM {$p}options WHERE option_name REGEXP '^widget_text_[0-9]+$' ORDER BY option_name",
+        );
+
+        self::assertCount(2, $results);
+        self::assertSame('widget_text_1', $results[0]->option_name);
+        self::assertSame('widget_text_2', $results[1]->option_name);
+    }
 }

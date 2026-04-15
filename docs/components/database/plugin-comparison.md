@@ -9,7 +9,7 @@ WpPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL ク
 | リポジトリ | wordpress/sqlite-database-integration | PostgreSQL-For-Wordpress/postgresql-for-wordpress | wppack-io/wppack |
 | エンジン | SQLite | PostgreSQL | SQLite + PostgreSQL + Aurora DSQL |
 | アーキテクチャ | 独自 Lexer + トークン書き換え + UDF 46個 | 正規表現ベース文字列置換 | AST (phpmyadmin/sql-parser) + QueryRewriter + UDF 14個 |
-| テスト | WordPress e2e 依存 | 504 スタブベーステスト | 608 ユニットテスト / 1,024 アサーション |
+| テスト | WordPress e2e 依存 | 504 スタブベーステスト | 805 テスト / 1,474 アサーション |
 
 ## 対応範囲一覧
 
@@ -53,7 +53,8 @@ WpPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL ク
 | FOUND_ROWS() | ✅ | ✅ | ✅ | ✅ |
 | LAST_INSERT_ID | — | ✅ | ✅ AST | ✅ AST |
 | REGEXP | ✅ UDF | ✅ | ✅ UDF | ✅ AST→~* |
-| MD5 / LOG | ✅ UDF | N/A ネイティブ | ✅ UDF | N/A ネイティブ |
+| MD5 | ✅ UDF | N/A ネイティブ | ✅ UDF | N/A ネイティブ |
+| LOG | ✅ UDF | N/A ネイティブ | ✅ UDF | ✅ AST→LN (意味差異修正) |
 | UNHEX / BASE64 / INET | ✅ UDF | N/A | ✅ UDF | ✅ AST (decode/encode) |
 | GET_LOCK / RELEASE_LOCK | ✅ UDF | N/A | ✅ UDF | ✅ ダミー |
 
@@ -200,7 +201,7 @@ WpPack は phpmyadmin/sql-parser の AST を活用することで、プラグイ
 |------|:---:|:---:|
 | INSERT IGNORE | ✅ | ✅ |
 | REPLACE INTO | ✅ | ✅ |
-| ON DUPLICATE KEY UPDATE | ✅ (PK/UNIQUE 自動検出) | ✅ |
+| ON DUPLICATE KEY UPDATE | ✅ (PK/UNIQUE 自動検出) | ✅ (conflict target 推定) |
 | VALUES(col) → excluded.col | ✅ | ✅ |
 | INSERT ... SET | — | ✅ |
 | LIMIT offset, count | ✅ | ✅ |

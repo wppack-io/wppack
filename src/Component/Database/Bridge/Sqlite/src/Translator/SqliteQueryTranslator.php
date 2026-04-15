@@ -93,7 +93,7 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         'MID' => 'SUBSTR',
         'LCASE' => 'lower',
         'UCASE' => 'upper',
-        'LOCATE' => 'INSTR',
+        // LOCATE is handled via structural transform (arg swap)
     ];
 
     public function translate(string $sql): array
@@ -1106,6 +1106,7 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             'CONVERT' => $this->transformConvert($rw),
             'FIELD' => $this->transformField($rw),
             'GROUP_CONCAT' => $this->transformGroupConcat($rw),
+            'LOCATE' => $this->transformLocate($rw),
             default => false,
         };
     }
@@ -1465,6 +1466,26 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
      * SQLite's native group_concat takes separator as second argument.
      * MySQL uses SEPARATOR keyword instead.
      */
+    /**
+     * LOCATE(needle, haystack) → INSTR(haystack, needle)
+     *
+     * MySQL LOCATE and SQLite INSTR have reversed argument order.
+     */
+    private function transformLocate(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 2) {
+            return false;
+        }
+
+        $needle = $this->transformArgExpression($args[0]);
+        $haystack = $this->transformArgExpression($args[1]);
+
+        $rw->add("INSTR({$haystack}, {$needle})");
+
+        return true;
+    }
+
     /**
      * GROUP_CONCAT(expr [SEPARATOR sep]) → group_concat(expr, sep)
      *
@@ -1903,7 +1924,7 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
 
         // information_schema queries → sqlite_master
         if (preg_match('/\binformation_schema\.tables\b/i', $sql)) {
-            return ["SELECT name AS table_name, 'BASE TABLE' AS table_type, 'def' AS table_catalog FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_%'"];
+            return ["SELECT name AS table_name, 'BASE TABLE' AS table_type, 'def' AS table_catalog FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '\_%' ESCAPE '\\'"];
         }
 
         if (preg_match('/\binformation_schema\.columns\b/i', $sql) && preg_match('/table_name\s*=\s*[\'"](\w+)[\'"]/i', $sql, $m)) {
@@ -1911,19 +1932,19 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         }
 
         if (preg_match('/^\s*SHOW\s+FULL\s+TABLES\s+LIKE\s+[\'"](.+?)[\'"]\s*$/i', $sql, $m)) {
-            return [\sprintf("SELECT name, 'BASE TABLE' AS Table_type FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%%' AND name NOT LIKE '_%%' AND name LIKE '%s'", str_replace("'", "''", $m[1]))];
+            return [\sprintf("SELECT name, 'BASE TABLE' AS Table_type FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%%' AND name NOT LIKE '\\_%%' ESCAPE '\\' AND name LIKE '%s'", str_replace("'", "''", $m[1]))];
         }
 
         if (preg_match('/^\s*SHOW\s+TABLES\s+LIKE\s+[\'"](.+?)[\'"]\s*$/i', $sql, $m)) {
-            return [\sprintf("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%%' AND name NOT LIKE '_%%' AND name LIKE '%s'", str_replace("'", "''", $m[1]))];
+            return [\sprintf("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%%' AND name NOT LIKE '\\_%%' ESCAPE '\\' AND name LIKE '%s'", str_replace("'", "''", $m[1]))];
         }
 
         if (preg_match('/^\s*SHOW\s+FULL\s+TABLES\s*/i', $sql)) {
-            return ["SELECT name, 'BASE TABLE' AS Table_type FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_%'"];
+            return ["SELECT name, 'BASE TABLE' AS Table_type FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '\_%' ESCAPE '\\'"];
         }
 
         if (preg_match('/^\s*SHOW\s+TABLES\s*/i', $sql)) {
-            return ["SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_%'"];
+            return ["SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '\_%' ESCAPE '\\'"];
         }
 
         if (preg_match('/^\s*SHOW\s+(?:FULL\s+)?COLUMNS\s+FROM\s+[`"]?(\w+)[`"]?\s*/i', $sql, $m)) {
@@ -1972,7 +1993,7 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
                 . "0 AS Index_length, 0 AS Data_free, NULL AS Auto_increment, "
                 . "NULL AS Create_time, NULL AS Update_time, NULL AS Check_time, "
                 . "'utf8mb4_unicode_ci' AS Collation, NULL AS Checksum, '' AS Create_options, '' AS Comment "
-                . "FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%%%%' AND name NOT LIKE '_%%%%' AND name LIKE '%s'",
+                . "FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%%%%' AND name NOT LIKE '\\_%%' ESCAPE '\\' AND name LIKE '%s'",
                 str_replace("'", "''", $m[1]),
             )];
         }
@@ -1983,7 +2004,7 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
                 . "0 AS Index_length, 0 AS Data_free, NULL AS Auto_increment, "
                 . "NULL AS Create_time, NULL AS Update_time, NULL AS Check_time, "
                 . "'utf8mb4_unicode_ci' AS Collation, NULL AS Checksum, '' AS Create_options, '' AS Comment "
-                . "FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_%'"];
+                . "FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '\_%' ESCAPE '\\'"];
         }
 
         if (preg_match('/^\s*DESCRIBE\s+[`"]?(\w+)[`"]?\s*/i', $sql, $m)) {

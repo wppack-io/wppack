@@ -250,6 +250,9 @@ SQLite Database Integration プラグインおよび PG4WP (PostgreSQL for WordP
 | `@@SESSION.sql_mode` 等 | 変数名に応じたデフォルト値 | 同左 |
 | `IN ()` (空) | `IN (NULL)` | 同左 |
 | `LIKE` | `LIKE ... ESCAPE '\'` | `ILIKE ... ESCAPE '\'` |
+| `LOG(x)` | UDF（`log()`） | `LN(x)`（MySQL LOG = 自然対数） |
+| `LOG(b, x)` | UDF（`log(b, x)`） | `LOG(b, x)` そのまま |
+| `ON DUPLICATE KEY UPDATE` | `ON CONFLICT DO UPDATE SET` | `ON CONFLICT (推定カラム) DO UPDATE SET` |
 | `DISTINCT + ORDER BY` | — | ORDER BY 列を SELECT に自動注入 |
 | `meta_value + 0` | そのまま | `CAST(meta_value AS BIGINT)` |
 | `'0000-00-00 00:00:00'` | そのまま（TEXT） | `'0001-01-01 00:00:00'` |
@@ -370,6 +373,40 @@ post_date datetime NOT NULL DEFAULT '0000-00-00 00:00:00'
 ```
 
 DML のゼロ日付変換（文レベル変換の `'0000-00-00 00:00:00'` → `'0001-01-01 00:00:00'`）と一貫性を保つ。
+
+#### PostgreSQL LOG() の意味差異
+
+MySQL と PostgreSQL で `LOG()` の意味が異なる:
+
+| 関数 | MySQL | PostgreSQL |
+|------|-------|-----------|
+| `LOG(x)` | 自然対数 (ln) | 常用対数 (log₁₀) |
+| `LOG(b, x)` | 底 b の対数 | 底 b の対数 |
+
+1引数の `LOG(x)` は `LN(x)` に変換し、2引数の `LOG(b, x)` はそのまま（同じ意味）。SQLite は UDF で MySQL 互換の LOG を提供。
+
+#### ON DUPLICATE KEY UPDATE の conflict target 推定
+
+PostgreSQL の `ON CONFLICT DO UPDATE SET` には明示的な conflict target が必要（MySQL の `ON DUPLICATE KEY UPDATE` は不要）。トランスレータは INSERT カラムから conflict target を推定する:
+
+```
+INSERT カラム − UPDATE カラム = 推定 conflict target（ユニークキーカラム）
+```
+
+```sql
+-- MySQL
+INSERT INTO wp_options (option_name, option_value, autoload) VALUES (...)
+  ON DUPLICATE KEY UPDATE option_value = VALUES(option_value), autoload = VALUES(autoload)
+
+-- PostgreSQL（変換後）
+-- INSERT: option_name, option_value, autoload
+-- UPDATE: option_value, autoload
+-- → conflict = option_name
+INSERT INTO wp_options (option_name, option_value, autoload) VALUES (...)
+  ON CONFLICT ("option_name") DO UPDATE SET option_value = excluded.option_value, autoload = excluded.autoload
+```
+
+WordPress コアの `ON DUPLICATE KEY UPDATE` パターン（options テーブルの upsert、term_relationships の更新等）はこのヒューリスティックで正しく動作する。
 
 ### SHOW 文変換
 

@@ -202,8 +202,11 @@ final class PostgresqlQueryTranslatorTest extends TestCase
             "INSERT INTO `t` (id, name) VALUES (1, 'a') ON DUPLICATE KEY UPDATE name = VALUES(name)",
         );
 
-        self::assertStringContainsString('ON CONFLICT DO UPDATE SET', $result[0]);
+        self::assertStringContainsString('ON CONFLICT', $result[0]);
+        self::assertStringContainsString('DO UPDATE SET', $result[0]);
         self::assertStringContainsString('excluded.name', $result[0]);
+        // Conflict target inferred: INSERT columns (id, name) minus UPDATE (name) = (id)
+        self::assertStringContainsString('"id"', $result[0]);
     }
 
     #[Test]
@@ -1106,6 +1109,31 @@ SQL;
         self::assertStringContainsString('ALTER COLUMN', $result[0]);
         self::assertStringContainsString('TYPE', $result[0]);
         self::assertStringNotContainsString('RENAME', $result[0]);
+    }
+
+    #[Test]
+    public function logSingleArgMapsToLn(): void
+    {
+        $result = $this->translator->translate('SELECT LOG(10)');
+
+        self::assertStringContainsString('LN(10)', $result[0]);
+    }
+
+    #[Test]
+    public function logTwoArgKeepsLog(): void
+    {
+        $result = $this->translator->translate('SELECT LOG(2, 8)');
+
+        self::assertStringContainsString('LOG(2', $result[0]);
+    }
+
+    #[Test]
+    public function replaceIntoAddsOnConflict(): void
+    {
+        $result = $this->translator->translate('REPLACE INTO t (a, b) VALUES (1, 2)');
+
+        self::assertStringContainsString('INSERT', $result[0]);
+        self::assertStringContainsString('ON CONFLICT DO NOTHING', $result[0]);
     }
 
     // ── WordPress compatibility tests ──
