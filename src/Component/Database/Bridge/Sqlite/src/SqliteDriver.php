@@ -206,6 +206,8 @@ final class SqliteDriver extends AbstractDriver
             return long2ip((int) $num);
         }, 1);
 
+        // Note: CHECK → INSERT is not atomic across processes (TOCTOU).
+        // Acceptable for SQLite's typical single-server/dev usage.
         $pdo->sqliteCreateFunction('GET_LOCK', static function (?string $name, ?int $timeout) use ($pdo): int {
             if ($name === null) {
                 return 0;

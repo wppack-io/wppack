@@ -92,6 +92,14 @@ trait WpdbIntegrationTestTrait
             KEY user_id (user_id),
             KEY meta_key (meta_key(191))
         ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+
+        // Table with composite unique key for REPLACE INTO testing
+        $wpdb->query("CREATE TABLE IF NOT EXISTS {$p}term_relationships (
+            object_id bigint(20) unsigned NOT NULL default 0,
+            term_taxonomy_id bigint(20) unsigned NOT NULL default 0,
+            term_order int(11) NOT NULL default 0,
+            PRIMARY KEY (object_id, term_taxonomy_id)
+        ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
     }
 
     // ── Options CRUD ──
@@ -256,6 +264,45 @@ trait WpdbIntegrationTestTrait
             $wpdb->prepare("SELECT option_value FROM {$p}options WHERE option_name = %s", 'raw_replace'),
         );
         self::assertSame('replaced', $value);
+    }
+
+    #[Test]
+    public function replaceIntoWithCompositePrimaryKey(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        // Insert initial row
+        $wpdb->replace('term_relationships', [
+            'object_id' => 1,
+            'term_taxonomy_id' => 10,
+            'term_order' => 0,
+        ]);
+
+        // Replace with same composite key (object_id=1, term_taxonomy_id=10) → update term_order
+        $wpdb->replace('term_relationships', [
+            'object_id' => 1,
+            'term_taxonomy_id' => 10,
+            'term_order' => 5,
+        ]);
+
+        // Should have 1 row, not 2
+        $count = $wpdb->get_var("SELECT COUNT(*) FROM {$p}term_relationships WHERE object_id = 1 AND term_taxonomy_id = 10");
+        self::assertSame('1', (string) $count);
+
+        // term_order should be updated
+        $order = $wpdb->get_var("SELECT term_order FROM {$p}term_relationships WHERE object_id = 1 AND term_taxonomy_id = 10");
+        self::assertSame('5', (string) (int) $order);
+
+        // Different composite key should not conflict
+        $wpdb->replace('term_relationships', [
+            'object_id' => 1,
+            'term_taxonomy_id' => 20,
+            'term_order' => 3,
+        ]);
+
+        $total = $wpdb->get_var("SELECT COUNT(*) FROM {$p}term_relationships WHERE object_id = 1");
+        self::assertSame('2', (string) $total);
     }
 
     #[Test]

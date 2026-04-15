@@ -56,6 +56,7 @@ final class PgsqlWpdbIntegrationTest extends TestCase
         $this->driver->connect();
 
         // Drop tables from previous runs
+        $this->driver->executeStatement('DROP TABLE IF EXISTS wpt_term_relationships');
         $this->driver->executeStatement('DROP TABLE IF EXISTS wpt_postmeta');
         $this->driver->executeStatement('DROP TABLE IF EXISTS wpt_usermeta');
         $this->driver->executeStatement('DROP TABLE IF EXISTS wpt_posts');
@@ -74,6 +75,7 @@ final class PgsqlWpdbIntegrationTest extends TestCase
     protected function tearDown(): void
     {
         if (isset($this->driver) && $this->driver->isConnected()) {
+            $this->driver->executeStatement('DROP TABLE IF EXISTS wpt_term_relationships');
             $this->driver->executeStatement('DROP TABLE IF EXISTS wpt_postmeta');
             $this->driver->executeStatement('DROP TABLE IF EXISTS wpt_usermeta');
             $this->driver->executeStatement('DROP TABLE IF EXISTS wpt_posts');

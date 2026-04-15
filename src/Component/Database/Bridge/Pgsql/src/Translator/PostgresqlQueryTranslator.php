@@ -238,8 +238,9 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         }
 
         try {
-            // Get columns from first matching constraint (UNIQUE preferred over PK
-            // for REPLACE semantics — REPLACE matches on unique violations)
+            // Get ALL columns of the first matching constraint (UNIQUE preferred
+            // over PK). Subquery picks the constraint name, outer query gets all
+            // its columns — important for composite keys like UNIQUE(col1, col2).
             $result = $this->driver->executeQuery(
                 "SELECT kcu.column_name
                  FROM information_schema.table_constraints tc
@@ -248,11 +249,17 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
                    AND tc.table_schema = kcu.table_schema
                  WHERE tc.table_schema = 'public'
                    AND tc.table_name = ?
-                   AND tc.constraint_type IN ('PRIMARY KEY', 'UNIQUE')
-                 ORDER BY CASE tc.constraint_type WHEN 'UNIQUE' THEN 0 ELSE 1 END,
-                   kcu.ordinal_position
-                 LIMIT 1",
-                [$table],
+                   AND tc.constraint_name = (
+                     SELECT tc2.constraint_name
+                     FROM information_schema.table_constraints tc2
+                     WHERE tc2.table_schema = 'public'
+                       AND tc2.table_name = ?
+                       AND tc2.constraint_type IN ('PRIMARY KEY', 'UNIQUE')
+                     ORDER BY CASE tc2.constraint_type WHEN 'UNIQUE' THEN 0 ELSE 1 END
+                     LIMIT 1
+                   )
+                 ORDER BY kcu.ordinal_position",
+                [$table, $table],
             );
 
             $cols = array_column($result->fetchAllAssociative(), 'column_name');

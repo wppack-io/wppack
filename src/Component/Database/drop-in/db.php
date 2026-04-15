@@ -28,8 +28,10 @@ if (defined('DATABASE_DSN') && DATABASE_DSN !== '') {
     $wppackDbHost = DB_HOST;
     $wppackDbPort = '3306';
 
-    // Parse host:port
-    if (str_contains($wppackDbHost, ':')) {
+    // Parse host:port (supports IPv6 bracket notation: [::1]:3306)
+    if (preg_match('/^\[([^\]]+)\]:(\d+)$/', $wppackDbHost, $m)) {
+        [$wppackDbHost, $wppackDbPort] = [$m[1], $m[2]];
+    } elseif (str_contains($wppackDbHost, ':') && !str_contains($wppackDbHost, '[')) {
         [$wppackDbHost, $wppackDbPort] = explode(':', $wppackDbHost, 2);
     }
 
