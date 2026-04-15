@@ -141,11 +141,6 @@ class WpPackWpdb extends \wpdb
      *
      * @return int|bool
      */
-    /**
-     * @param string $query
-     *
-     * @return int|bool
-     */
     public function query($query)
     {
         if (!$this->ready) {
@@ -235,8 +230,12 @@ class WpPackWpdb extends \wpdb
         $whereClauses = [];
 
         foreach ($where as $column => $value) {
-            $whereClauses[] = $platform->quoteIdentifier($column) . ' = ?';
-            $params[] = $value;
+            if ($value === null) {
+                $whereClauses[] = $platform->quoteIdentifier($column) . ' IS NULL';
+            } else {
+                $whereClauses[] = $platform->quoteIdentifier($column) . ' = ?';
+                $params[] = $value;
+            }
         }
 
         $sql = \sprintf(
@@ -270,8 +269,12 @@ class WpPackWpdb extends \wpdb
         $params = [];
 
         foreach ($where as $column => $value) {
-            $whereClauses[] = $platform->quoteIdentifier($column) . ' = ?';
-            $params[] = $value;
+            if ($value === null) {
+                $whereClauses[] = $platform->quoteIdentifier($column) . ' IS NULL';
+            } else {
+                $whereClauses[] = $platform->quoteIdentifier($column) . ' = ?';
+                $params[] = $value;
+            }
         }
 
         $sql = \sprintf(
@@ -305,11 +308,6 @@ class WpPackWpdb extends \wpdb
         $this->logger = $logger;
     }
 
-    /**
-     * @param \mysqli|null $dbh
-     * @param string|null  $charset
-     * @param string|null  $collate
-     */
     /**
      * No-op: charset is set at the driver connection level, not via SQL.
      *
@@ -429,9 +427,13 @@ class WpPackWpdb extends \wpdb
         $hasCalcFoundRows = $isSelect && stripos($sql, 'SQL_CALC_FOUND_ROWS') !== false;
 
         foreach ($translated as $translatedSql) {
+            // Auxiliary SQL (e.g., setval, CREATE INDEX) has no placeholders.
+            // Only pass params when the translated SQL contains ? placeholders.
+            $stmtParams = str_contains($translatedSql, '?') ? $params : [];
+
             try {
                 if ($isSelect) {
-                    $result = $driver->executeQuery($translatedSql, $params);
+                    $result = $driver->executeQuery($translatedSql, $stmtParams);
                     $rows = $result->fetchAllAssociative();
 
                     $this->last_result = array_map(static fn(array $row) => (object) $row, $rows);
@@ -440,10 +442,10 @@ class WpPackWpdb extends \wpdb
 
                     // SQL_CALC_FOUND_ROWS: count total rows without LIMIT
                     if ($hasCalcFoundRows) {
-                        $this->calculateFoundRows($driver, $translatedSql, $params);
+                        $this->calculateFoundRows($driver, $translatedSql, $stmtParams);
                     }
                 } else {
-                    $affected = $driver->executeStatement($translatedSql, $params);
+                    $affected = $driver->executeStatement($translatedSql, $stmtParams);
                     $this->last_result = [];
                     $this->num_rows = 0;
                     $this->rows_affected = $affected;

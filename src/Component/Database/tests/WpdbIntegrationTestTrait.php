@@ -2145,4 +2145,50 @@ trait WpdbIntegrationTestTrait
         $zero = $wpdb->get_var("SELECT DATEDIFF('2024-01-15', '2024-01-15')");
         self::assertSame('0', (string) (int) $zero);
     }
+
+    // ── NULL WHERE Handling ──
+
+    #[Test]
+    public function updateWithNullInWhere(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        $wpdb->insert('postmeta', ['post_id' => 1, 'meta_key' => null, 'meta_value' => 'original']);
+
+        // Update rows WHERE meta_key IS NULL
+        $affected = $wpdb->update(
+            'postmeta',
+            ['meta_value' => 'updated'],
+            ['post_id' => 1, 'meta_key' => null],
+        );
+
+        self::assertSame(1, $affected);
+
+        $value = $wpdb->get_var(
+            $wpdb->prepare("SELECT meta_value FROM {$p}postmeta WHERE post_id = %d AND meta_key IS NULL", 1),
+        );
+        self::assertSame('updated', $value);
+    }
+
+    #[Test]
+    public function deleteWithNullInWhere(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        $wpdb->insert('postmeta', ['post_id' => 2, 'meta_key' => null, 'meta_value' => 'to_delete']);
+        $wpdb->insert('postmeta', ['post_id' => 2, 'meta_key' => 'keep', 'meta_value' => 'kept']);
+
+        // Delete rows WHERE meta_key IS NULL
+        $deleted = $wpdb->delete('postmeta', ['post_id' => 2, 'meta_key' => null]);
+
+        self::assertSame(1, $deleted);
+
+        // Non-null row should still exist
+        $count = $wpdb->get_var(
+            $wpdb->prepare("SELECT COUNT(*) FROM {$p}postmeta WHERE post_id = %d", 2),
+        );
+        self::assertSame('1', (string) $count);
+    }
 }

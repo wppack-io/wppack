@@ -187,13 +187,6 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
     }
 
     /**
-     * Apply PostgreSQL-specific post-processing to translated SQL.
-     *
-     * - meta_value + 0 → CAST(meta_value AS BIGINT)
-     * - Zero dates in comparisons → IS NULL / IS NOT NULL
-     * - Zero dates in VALUES/SET → NULL
-     */
-    /**
      * Infer ON CONFLICT target from INSERT ... ON DUPLICATE KEY UPDATE.
      *
      * Heuristic: INSERT columns that are NOT in the ON DUPLICATE KEY UPDATE
@@ -762,8 +755,7 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
      * Translate CREATE TABLE using AST CreateDefinition[] directly.
      *
      * For CREATE INDEX / CREATE VIEW, falls back to token rewriting.
-     */
-    /**
+     *
      * @return list<string>
      */
     private function translateCreate(CreateStatement $stmt, Parser $parser): array

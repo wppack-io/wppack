@@ -278,14 +278,39 @@ final class PgsqlDriver extends AbstractDriver
     }
 
     /**
-     * Convert ? positional placeholders to PostgreSQL $1, $2, ... format.
+     * Convert ? placeholders to PostgreSQL $1, $2, ... format.
+     *
+     * Skips ? characters inside single-quoted string literals to prevent
+     * data corruption (e.g., 'What?' must not become 'What$1').
      */
     private function convertPlaceholders(string $sql): string
     {
         $index = 0;
+        $result = '';
+        $inQuote = false;
 
-        return (string) preg_replace_callback('/\?/', static function () use (&$index): string {
-            return '$' . (++$index);
-        }, $sql);
+        for ($i = 0, $len = \strlen($sql); $i < $len; ++$i) {
+            $char = $sql[$i];
+
+            if ($char === "'" && !$inQuote) {
+                $inQuote = true;
+            } elseif ($char === "'") {
+                if (($sql[$i + 1] ?? '') === "'") {
+                    $result .= "''";
+                    ++$i;
+
+                    continue;
+                }
+                $inQuote = false;
+            } elseif ($char === '?' && !$inQuote) {
+                $result .= '$' . (++$index);
+
+                continue;
+            }
+
+            $result .= $char;
+        }
+
+        return $result;
     }
 }

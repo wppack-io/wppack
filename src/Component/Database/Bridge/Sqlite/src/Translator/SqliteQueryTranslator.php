@@ -496,8 +496,7 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
      *
      * For CREATE INDEX / CREATE VIEW / other CREATE statements, falls back to
      * token rewriting.
-     */
-    /**
+     *
      * @return list<string>
      */
     private function translateCreate(CreateStatement $stmt, Parser $parser): array
@@ -1460,12 +1459,6 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         return true;
     }
 
-    /**
-     * GROUP_CONCAT(col [SEPARATOR sep]) → group_concat(col, sep)
-     *
-     * SQLite's native group_concat takes separator as second argument.
-     * MySQL uses SEPARATOR keyword instead.
-     */
     /**
      * LOCATE(needle, haystack) → INSTR(haystack, needle)
      *
