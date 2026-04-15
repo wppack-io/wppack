@@ -2070,6 +2070,17 @@ trait WpdbIntegrationTestTrait
     }
 
     #[Test]
+    public function doStatementConnectionPing(): void
+    {
+        $wpdb = $this->getTestWpdb();
+
+        // MySQL DO 1 — used by WordPress for connection alive check
+        $result = $wpdb->query('DO 1');
+
+        self::assertNotFalse($result);
+    }
+
+    #[Test]
     public function regexpOperator(): void
     {
         $wpdb = $this->getTestWpdb();

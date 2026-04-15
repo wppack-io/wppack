@@ -86,6 +86,11 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
     {
         $trimmed = trim($sql);
 
+        // DO expr → SELECT expr (MySQL no-op / connection ping)
+        if (preg_match('/^\s*DO\s+/i', $trimmed)) {
+            return [preg_replace('/^\s*DO\s+/i', 'SELECT ', $trimmed)];
+        }
+
         foreach (self::IGNORED_PATTERNS as $pattern) {
             if (preg_match($pattern, $trimmed)) {
                 return [];
