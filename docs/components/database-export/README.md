@@ -43,10 +43,10 @@ ExportWriter（フォーマット別出力）
 
 | SchemaReader | エンジン | スキーマ取得方法 |
 |-------------|--------|---------------|
-| `MysqlSchemaReader` | MySQL / MariaDB | `SHOW CREATE TABLE` |
-| `MariadbSchemaReader` | MariaDB | `MysqlSchemaReader` 継承 |
-| `SqliteSchemaReader` | SQLite | `PRAGMA table_info` + `_mysql_data_types_cache` |
-| `PostgresqlSchemaReader` | PostgreSQL / DSQL | `information_schema.columns` + `pg_index` |
+| `MysqlSchemaReader` | MySQL / MariaDB | `SHOW CREATE TABLE`（Database コア） |
+| `MariadbSchemaReader` | MariaDB | `MysqlSchemaReader` 継承（Database コア） |
+| `SqliteSchemaReader` | SQLite | `PRAGMA table_info` + `_mysql_data_types_cache`（Bridge/Sqlite） |
+| `PostgresqlSchemaReader` | PostgreSQL / DSQL | `information_schema.columns` + `pg_index`（Bridge/Pgsql） |
 
 ### SQLite → MySQL 型変換
 
@@ -117,7 +117,7 @@ ID,post_title,post_status
 
 ```php
 use WpPack\Component\Database\DatabaseManager;
-use WpPack\Component\Database\SchemaReader\SqliteSchemaReader;
+use WpPack\Component\Database\Bridge\Sqlite\SchemaReader\SqliteSchemaReader;
 use WpPack\Component\DatabaseExport\DatabaseExporter;
 use WpPack\Component\DatabaseExport\ExportConfiguration;
 use WpPack\Component\DatabaseExport\Writer\WpressSqlWriter;
