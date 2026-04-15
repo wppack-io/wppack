@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Database\Bridge\MysqlDataApi;
 
 use AsyncAws\RdsDataService\RdsDataServiceClient;
+use WpPack\Component\Database\Driver\DataApiDriverTrait;
 use WpPack\Component\Database\Driver\MysqlDriver;
 
 /**

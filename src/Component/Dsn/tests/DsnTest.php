@@ -89,12 +89,21 @@ final class DsnTest extends TestCase
     // ── AWS ──
 
     #[Test]
-    public function parseRdsDataApi(): void
+    public function parseMysqlDataApi(): void
     {
-        $dsn = Dsn::fromString('rds-data://arn:aws:rds:us-east-1:123456789:cluster:my-cluster/mydb?secret_arn=arn:aws:secretsmanager:us-east-1:123456789:secret:my-secret');
+        $dsn = Dsn::fromString('mysql+dataapi://arn:aws:rds:us-east-1:123456789:cluster:my-cluster/mydb?secret_arn=arn:aws:secretsmanager:us-east-1:123456789:secret:my-secret');
 
-        self::assertSame('rds-data', $dsn->getScheme());
+        self::assertSame('mysql+dataapi', $dsn->getScheme());
         self::assertStringContainsString('secret', $dsn->getOption('secret_arn'));
+    }
+
+    #[Test]
+    public function parsePgsqlDataApi(): void
+    {
+        $dsn = Dsn::fromString('pgsql+dataapi://arn:aws:rds:us-east-1:123456789:cluster:my-cluster/mydb?secret_arn=arn:aws:secretsmanager:us-east-1:123456789:secret:my-secret&region=us-east-1');
+
+        self::assertSame('pgsql+dataapi', $dsn->getScheme());
+        self::assertSame('us-east-1', $dsn->getOption('region'));
     }
 
     #[Test]

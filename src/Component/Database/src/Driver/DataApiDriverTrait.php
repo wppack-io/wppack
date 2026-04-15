@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Bridge\MysqlDataApi;
+namespace WpPack\Component\Database\Driver;
 
 use AsyncAws\RdsDataService\Input\BeginTransactionRequest;
 use AsyncAws\RdsDataService\Input\CommitTransactionRequest;

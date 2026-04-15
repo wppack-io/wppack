@@ -1,0 +1,21 @@
+{
+    "name": "wppack/mysql-data-api-database",
+    "description": "Aurora MySQL Data API database driver for WpPack",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "wppack/database": "^1.0",
+        "async-aws/rds-data-service": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "WpPack\\Component\\Database\\Bridge\\MysqlDataApi\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WpPack\\Component\\Database\\Bridge\\MysqlDataApi\\Tests\\": "tests/"
+        }
+    }
+}

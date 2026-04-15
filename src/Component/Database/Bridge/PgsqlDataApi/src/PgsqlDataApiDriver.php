@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Database\Bridge\PgsqlDataApi;
 
 use AsyncAws\RdsDataService\RdsDataServiceClient;
-use WpPack\Component\Database\Bridge\MysqlDataApi\DataApiDriverTrait;
+use WpPack\Component\Database\Driver\DataApiDriverTrait;
 use WpPack\Component\Database\Bridge\Pgsql\PgsqlDriver;
 use WpPack\Component\Database\Bridge\Pgsql\Translator\PostgresqlQueryTranslator;
 use WpPack\Component\Database\Translator\QueryTranslatorInterface;
