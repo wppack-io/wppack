@@ -1550,6 +1550,37 @@ trait WpdbIntegrationTestTrait
     }
 
     #[Test]
+    public function insertIgnoreWordPressLockPattern(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        // WordPress core lock pattern (comment.php, revision.php, taxonomy.php)
+        $result = $wpdb->query(
+            "INSERT IGNORE INTO {$p}options (option_name, option_value, autoload) VALUES ('wp_test.lock', '1760097737', 'no') /* LOCK */",
+        );
+
+        self::assertNotFalse($result);
+
+        $value = $wpdb->get_var(
+            $wpdb->prepare("SELECT option_value FROM {$p}options WHERE option_name = %s", 'wp_test.lock'),
+        );
+        self::assertSame('1760097737', $value);
+
+        // Second INSERT IGNORE with same key should be silently ignored
+        $result2 = $wpdb->query(
+            "INSERT IGNORE INTO {$p}options (option_name, option_value, autoload) VALUES ('wp_test.lock', '9999999999', 'no') /* LOCK */",
+        );
+        self::assertNotFalse($result2);
+
+        // Original value unchanged
+        $value2 = $wpdb->get_var(
+            $wpdb->prepare("SELECT option_value FROM {$p}options WHERE option_name = %s", 'wp_test.lock'),
+        );
+        self::assertSame('1760097737', $value2);
+    }
+
+    #[Test]
     public function onDuplicateKeyUpdate(): void
     {
         $wpdb = $this->getTestWpdb();
