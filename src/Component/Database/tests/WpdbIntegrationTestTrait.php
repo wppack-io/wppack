@@ -306,6 +306,28 @@ trait WpdbIntegrationTestTrait
     }
 
     #[Test]
+    public function replaceIntoOnTableWithoutUniqueConstraint(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        // postmeta has PK (meta_id) but no UNIQUE constraint
+        // REPLACE should work as a normal INSERT
+        $result = $wpdb->replace('postmeta', [
+            'post_id' => 99,
+            'meta_key' => 'no_unique_test',
+            'meta_value' => 'value1',
+        ]);
+
+        self::assertNotFalse($result);
+
+        $count = $wpdb->get_var(
+            $wpdb->prepare("SELECT COUNT(*) FROM {$p}postmeta WHERE meta_key = %s", 'no_unique_test'),
+        );
+        self::assertSame('1', (string) $count);
+    }
+
+    #[Test]
     public function getNonExistentOptionReturnsNull(): void
     {
         $wpdb = $this->getTestWpdb();
