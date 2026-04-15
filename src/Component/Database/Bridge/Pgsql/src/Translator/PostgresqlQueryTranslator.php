@@ -25,6 +25,7 @@ use PhpMyAdmin\SqlParser\Statements\TruncateStatement;
 use PhpMyAdmin\SqlParser\Statements\UpdateStatement;
 use PhpMyAdmin\SqlParser\Token;
 use PhpMyAdmin\SqlParser\TokenType;
+use WpPack\Component\Database\Driver\DriverInterface;
 use WpPack\Component\Database\Translator\QueryTranslatorInterface;
 
 /**
@@ -37,6 +38,13 @@ use WpPack\Component\Database\Translator\QueryTranslatorInterface;
  */
 final class PostgresqlQueryTranslator implements QueryTranslatorInterface
 {
+    /** @var array<string, list<string>> */
+    private array $constraintCache = [];
+
+    public function __construct(
+        private readonly ?DriverInterface $driver = null,
+    ) {}
+
     /** @var list<string> */
     private const IGNORED_PATTERNS = [
         '/^\s*SET\s+NAMES\s+/i',
@@ -212,6 +220,49 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         }
 
         return implode(', ', array_map(fn(string $col): string => $this->quoteId($col), $conflictCols));
+    }
+
+    /**
+     * Query information_schema for PRIMARY KEY or UNIQUE constraint columns.
+     *
+     * @return list<string>
+     */
+    private function getConstraintColumns(string $table): array
+    {
+        if ($this->driver === null) {
+            return [];
+        }
+
+        if (isset($this->constraintCache[$table])) {
+            return $this->constraintCache[$table];
+        }
+
+        try {
+            // Get columns from first matching constraint (UNIQUE preferred over PK
+            // for REPLACE semantics — REPLACE matches on unique violations)
+            $result = $this->driver->executeQuery(
+                "SELECT kcu.column_name
+                 FROM information_schema.table_constraints tc
+                 JOIN information_schema.key_column_usage kcu
+                   ON tc.constraint_name = kcu.constraint_name
+                   AND tc.table_schema = kcu.table_schema
+                 WHERE tc.table_schema = 'public'
+                   AND tc.table_name = ?
+                   AND tc.constraint_type IN ('PRIMARY KEY', 'UNIQUE')
+                 ORDER BY CASE tc.constraint_type WHEN 'UNIQUE' THEN 0 ELSE 1 END,
+                   kcu.ordinal_position
+                 LIMIT 1",
+                [$table],
+            );
+
+            $cols = array_column($result->fetchAllAssociative(), 'column_name');
+        } catch (\Throwable) {
+            $cols = [];
+        }
+
+        $this->constraintCache[$table] = $cols;
+
+        return $cols;
     }
 
     private function postProcessPgsql(string $sql): string
@@ -399,9 +450,9 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
      *
      * MySQL REPLACE deletes the existing row and inserts a new one. PostgreSQL
      * has no direct equivalent. We use the first column as the conflict target
-     * (heuristic: first column is typically the primary key or unique key) and
-     * generate DO UPDATE SET for all remaining columns with EXCLUDED references.
-     * If only one column exists, falls back to DO NOTHING.
+     * Queries information_schema for the actual PRIMARY KEY or UNIQUE constraint
+     * columns, then generates ON CONFLICT (...) DO UPDATE SET for all remaining
+     * columns. Falls back to DO NOTHING if no driver or constraint info available.
      */
     private function translateReplace(Parser $parser): string
     {
@@ -424,20 +475,31 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             $this->translateExpression($rw);
         }
 
+        $insertSql = $rw->getResult();
+        $table = $stmt->into->dest->table ?? '';
         $columns = $stmt->into->columns ?? [];
-        if (\count($columns) <= 1) {
-            return $rw->getResult() . ' ON CONFLICT DO NOTHING';
+
+        // Query information_schema for actual constraint columns
+        $constraintCols = $this->getConstraintColumns($table);
+
+        if ($constraintCols === [] || $columns === []) {
+            return $insertSql . ' ON CONFLICT DO NOTHING';
         }
 
-        // First column = conflict target, remaining = update set
-        $conflictCol = $this->quoteId($columns[0]);
-        $updateParts = [];
-        for ($i = 1, $cnt = \count($columns); $i < $cnt; ++$i) {
-            $quoted = $this->quoteId($columns[$i]);
-            $updateParts[] = $quoted . ' = EXCLUDED.' . $quoted;
+        $conflictTarget = implode(', ', array_map(fn(string $c): string => $this->quoteId($c), $constraintCols));
+
+        // Non-constraint columns get DO UPDATE SET; if all are constraint, SET all (no-op UPDATE for affected_rows=1)
+        $updateCols = array_values(array_diff($columns, $constraintCols));
+        if ($updateCols === []) {
+            $updateCols = $columns;
         }
 
-        return $rw->getResult() . ' ON CONFLICT (' . $conflictCol . ') DO UPDATE SET ' . implode(', ', $updateParts);
+        $updateSet = implode(', ', array_map(
+            fn(string $c): string => $this->quoteId($c) . ' = EXCLUDED.' . $this->quoteId($c),
+            $updateCols,
+        ));
+
+        return $insertSql . ' ON CONFLICT (' . $conflictTarget . ') DO UPDATE SET ' . $updateSet;
     }
 
     private function translateUpdate(UpdateStatement $stmt, Parser $parser): string

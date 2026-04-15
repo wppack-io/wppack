@@ -170,31 +170,92 @@ trait WpdbIntegrationTestTrait
     }
 
     #[Test]
-    public function replaceOptionUpsert(): void
+    public function replaceIntoInsertsNewRow(): void
+    {
+        $wpdb = $this->getTestWpdb();
+
+        $result = $wpdb->replace('options', [
+            'option_name' => 'replace_new',
+            'option_value' => 'new_value',
+            'autoload' => 'yes',
+        ]);
+
+        self::assertNotFalse($result);
+
+        $value = $wpdb->get_var(
+            $wpdb->prepare("SELECT option_value FROM {$wpdb->prefix}options WHERE option_name = %s", 'replace_new'),
+        );
+        self::assertSame('new_value', $value);
+    }
+
+    #[Test]
+    public function replaceIntoReplacesExistingByUniqueKey(): void
     {
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->query(
-            $wpdb->prepare(
-                "INSERT INTO {$p}options (option_name, option_value, autoload) VALUES (%s, %s, %s)",
-                'replace_test',
-                'original',
-                'yes',
-            ),
-        );
+        // Insert original
+        $wpdb->insert('options', [
+            'option_name' => 'replace_existing',
+            'option_value' => 'original',
+            'autoload' => 'yes',
+        ]);
 
-        $first = $wpdb->get_var(
-            $wpdb->prepare("SELECT option_value FROM {$p}options WHERE option_name = %s", 'replace_test'),
-        );
-        self::assertSame('original', $first);
+        // REPLACE with same unique key (option_name) → value should be updated
+        $wpdb->replace('options', [
+            'option_name' => 'replace_existing',
+            'option_value' => 'replaced',
+            'autoload' => 'no',
+        ]);
 
-        $wpdb->update('options', ['option_value' => 'updated'], ['option_name' => 'replace_test']);
-
-        $second = $wpdb->get_var(
-            $wpdb->prepare("SELECT option_value FROM {$p}options WHERE option_name = %s", 'replace_test'),
+        $row = $wpdb->get_row(
+            $wpdb->prepare("SELECT option_value, autoload FROM {$p}options WHERE option_name = %s", 'replace_existing'),
         );
-        self::assertSame('updated', $second);
+        self::assertSame('replaced', $row->option_value);
+        self::assertSame('no', $row->autoload);
+    }
+
+    #[Test]
+    public function replaceIntoPreservesNonConflictingRows(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        $wpdb->insert('options', ['option_name' => 'keep_this', 'option_value' => 'preserved']);
+        $wpdb->insert('options', ['option_name' => 'replace_this', 'option_value' => 'old']);
+
+        $wpdb->replace('options', [
+            'option_name' => 'replace_this',
+            'option_value' => 'new',
+        ]);
+
+        // Non-conflicting row untouched
+        $kept = $wpdb->get_var(
+            $wpdb->prepare("SELECT option_value FROM {$p}options WHERE option_name = %s", 'keep_this'),
+        );
+        self::assertSame('preserved', $kept);
+
+        // Conflicting row replaced
+        $replaced = $wpdb->get_var(
+            $wpdb->prepare("SELECT option_value FROM {$p}options WHERE option_name = %s", 'replace_this'),
+        );
+        self::assertSame('new', $replaced);
+    }
+
+    #[Test]
+    public function replaceIntoViaRawQuery(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        $wpdb->query("INSERT INTO {$p}options (option_name, option_value) VALUES ('raw_replace', 'original')");
+
+        $wpdb->query("REPLACE INTO {$p}options (option_name, option_value) VALUES ('raw_replace', 'replaced')");
+
+        $value = $wpdb->get_var(
+            $wpdb->prepare("SELECT option_value FROM {$p}options WHERE option_name = %s", 'raw_replace'),
+        );
+        self::assertSame('replaced', $value);
     }
 
     #[Test]

@@ -892,16 +892,14 @@ SQL;
     // ── Final gap closure tests ──
 
     #[Test]
-    public function replaceInto(): void
+    public function replaceIntoWithoutDriver(): void
     {
+        // Without driver, translator can't query information_schema → falls back to DO NOTHING
         $result = $this->translator->translate("REPLACE INTO `t` (id, name) VALUES (1, 'a')");
 
         self::assertStringContainsString('INSERT', $result[0]);
         self::assertStringNotContainsString('REPLACE', $result[0]);
-        // First column (id) is conflict target, remaining (name) is updated
-        self::assertStringContainsString('ON CONFLICT', $result[0]);
-        self::assertStringContainsString('DO UPDATE SET', $result[0]);
-        self::assertStringContainsString('EXCLUDED', $result[0]);
+        self::assertStringContainsString('ON CONFLICT DO NOTHING', $result[0]);
     }
 
     #[Test]
@@ -1133,14 +1131,13 @@ SQL;
     }
 
     #[Test]
-    public function replaceIntoAddsOnConflictDoUpdate(): void
+    public function replaceIntoWithoutDriverFallsBackToDoNothing(): void
     {
+        // Without driver, no constraint info → DO NOTHING fallback
         $result = $this->translator->translate('REPLACE INTO t (a, b) VALUES (1, 2)');
 
         self::assertStringContainsString('INSERT', $result[0]);
-        // First column (a) is conflict target, second (b) is updated
-        self::assertStringContainsString('ON CONFLICT ("a") DO UPDATE SET', $result[0]);
-        self::assertStringContainsString('EXCLUDED."b"', $result[0]);
+        self::assertStringContainsString('ON CONFLICT DO NOTHING', $result[0]);
     }
 
     // ── Lock functions ──

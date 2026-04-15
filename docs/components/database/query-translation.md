@@ -230,7 +230,7 @@ SQLite Database Integration プラグインおよび PG4WP (PostgreSQL for WordP
 | MySQL | SQLite | PostgreSQL |
 |-------|--------|------------|
 | `INSERT IGNORE INTO` | `INSERT OR IGNORE INTO` | `INSERT ... ON CONFLICT DO NOTHING` |
-| `REPLACE INTO` | `INSERT OR REPLACE INTO` | `INSERT ... ON CONFLICT (first_col) DO UPDATE SET` |
+| `REPLACE INTO` | `INSERT OR REPLACE INTO` | `INSERT ... ON CONFLICT (制約カラム) DO UPDATE SET` |
 | `ON DUPLICATE KEY UPDATE` | `ON CONFLICT DO UPDATE SET` | 同左 |
 | `VALUES(col)` (ODKU 内) | `excluded.col` | 同左 |
 | `LIMIT offset, count` | `LIMIT count OFFSET offset` | 同左 |
