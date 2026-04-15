@@ -909,6 +909,17 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
 
         $kw = $token->keyword;
 
+        // FROM DUAL → skip (MySQL compatibility — SQLite has no DUAL table)
+        if ($kw === 'FROM') {
+            $next = $rw->peekNth(2);
+            if ($next !== null && $next->type === TokenType::Keyword && $next->keyword === 'DUAL') {
+                $rw->skip(); // FROM
+                $rw->skip(); // DUAL
+
+                return;
+            }
+        }
+
         // ── Composed keywords ──
         if ($kw === 'FOR UPDATE') {
             $rw->skip();

@@ -1621,6 +1621,25 @@ trait WpdbIntegrationTestTrait
         self::assertSame('0', (string) $count);
     }
 
+    #[Test]
+    public function insertSelectFromDual(): void
+    {
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        // Action Scheduler pattern: INSERT ... SELECT ... FROM DUAL WHERE NOT EXISTS
+        $wpdb->query(
+            "INSERT INTO {$p}options (option_name, option_value, autoload)
+             SELECT 'dual_test', 'value1', 'yes' FROM DUAL
+             WHERE (SELECT NULL FROM DUAL) IS NULL",
+        );
+
+        $value = $wpdb->get_var(
+            $wpdb->prepare("SELECT option_value FROM {$p}options WHERE option_name = %s", 'dual_test'),
+        );
+        self::assertSame('value1', $value);
+    }
+
     // ── Date/Time Functions ──
 
     #[Test]

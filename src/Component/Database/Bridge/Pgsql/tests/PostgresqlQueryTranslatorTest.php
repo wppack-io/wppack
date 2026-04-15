@@ -796,6 +796,18 @@ SQL;
     }
 
     #[Test]
+    public function fromDualInInsertSelect(): void
+    {
+        $result = $this->translator->translate(
+            "INSERT INTO t (a, b) SELECT 'val', 1 FROM DUAL WHERE (SELECT NULL FROM DUAL) IS NULL",
+        );
+
+        self::assertStringNotContainsString('DUAL', $result[0]);
+        self::assertStringContainsString('INSERT INTO', $result[0]);
+        self::assertStringContainsString("SELECT 'val'", $result[0]);
+    }
+
+    #[Test]
     public function indexHintsRemoval(): void
     {
         $result = $this->translator->translate(

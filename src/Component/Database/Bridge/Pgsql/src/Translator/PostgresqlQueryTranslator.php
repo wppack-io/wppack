@@ -1043,6 +1043,17 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
 
         $kw = $token->keyword;
 
+        // FROM DUAL → skip (MySQL compatibility — PostgreSQL has no DUAL table)
+        if ($kw === 'FROM') {
+            $next = $rw->peekNth(2);
+            if ($next !== null && $next->type === TokenType::Keyword && $next->keyword === 'DUAL') {
+                $rw->skip(); // FROM
+                $rw->skip(); // DUAL
+
+                return;
+            }
+        }
+
         // ── Zero-arg functions ──
         if (isset(self::ZERO_ARG_MAP[$kw])
             && $rw->peekNth(2)?->token === '('
