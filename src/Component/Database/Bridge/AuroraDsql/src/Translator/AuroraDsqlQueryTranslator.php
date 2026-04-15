@@ -45,7 +45,7 @@ final class AuroraDsqlQueryTranslator implements QueryTranslatorInterface
 
             return [
                 'DELETE FROM ' . $quotedTable,
-                // Reset all SERIAL sequences for this table to 1
+                // Reset SERIAL sequences to 1 (MySQL TRUNCATE resets AUTO_INCREMENT)
                 \sprintf(
                     "SELECT setval(pg_get_serial_sequence('%s', column_name), 1, false) "
                     . "FROM information_schema.columns "

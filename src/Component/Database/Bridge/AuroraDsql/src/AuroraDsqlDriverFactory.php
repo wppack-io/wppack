@@ -58,6 +58,8 @@ final class AuroraDsqlDriverFactory implements DriverFactoryInterface
             token: $dsn->getPassword(),
             tokenDurationSecs: $tokenDurationSecs !== null ? (int) $tokenDurationSecs : 900,
             occMaxRetries: $occMaxRetries !== null ? (int) $occMaxRetries : 3,
+            credentialProvider: $options['credentialProvider'] ?? null,
+            logger: $options['logger'] ?? null,
         );
     }
 

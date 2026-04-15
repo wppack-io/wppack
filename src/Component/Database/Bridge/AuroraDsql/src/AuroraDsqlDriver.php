@@ -105,7 +105,13 @@ final class AuroraDsqlDriver extends AbstractDriver
             return;
         }
 
-        $password = $this->token ?? $this->generateToken();
+        if ($this->token !== null) {
+            // Static token: no expiry tracking (user must manage refresh)
+            $password = $this->token;
+        } else {
+            // Auto-generated IAM token with expiry tracking
+            $password = $this->generateToken();
+        }
 
         $this->inner = new PgsqlDriver(
             host: $this->endpoint,
@@ -164,12 +170,15 @@ final class AuroraDsqlDriver extends AbstractDriver
         $this->inner->beginTransaction();
     }
 
+    /**
+     * Commit without OCC retry. If COMMIT fails with OCC conflict, the caller
+     * must retry the entire transaction (not just the COMMIT). Retrying COMMIT
+     * alone risks duplicate writes if the first COMMIT partially succeeded.
+     */
     protected function doCommit(): void
     {
-        $this->executeWithOccRetry(function (): void {
-            $this->ensureConnected();
-            $this->inner->commit();
-        });
+        $this->ensureConnected();
+        $this->inner->commit();
     }
 
     protected function doRollBack(): void
