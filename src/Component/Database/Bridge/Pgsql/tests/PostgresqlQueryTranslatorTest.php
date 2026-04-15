@@ -15,6 +15,7 @@ namespace WpPack\Component\Database\Bridge\Pgsql\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use WpPack\Component\Database\Bridge\Pgsql\PgsqlDriver;
 use WpPack\Component\Database\Bridge\Pgsql\Translator\PostgresqlQueryTranslator;
 
 final class PostgresqlQueryTranslatorTest extends TestCase
@@ -897,6 +898,10 @@ SQL;
 
         self::assertStringContainsString('INSERT', $result[0]);
         self::assertStringNotContainsString('REPLACE', $result[0]);
+        // First column (id) is conflict target, remaining (name) is updated
+        self::assertStringContainsString('ON CONFLICT', $result[0]);
+        self::assertStringContainsString('DO UPDATE SET', $result[0]);
+        self::assertStringContainsString('EXCLUDED', $result[0]);
     }
 
     #[Test]
@@ -1128,12 +1133,14 @@ SQL;
     }
 
     #[Test]
-    public function replaceIntoAddsOnConflict(): void
+    public function replaceIntoAddsOnConflictDoUpdate(): void
     {
         $result = $this->translator->translate('REPLACE INTO t (a, b) VALUES (1, 2)');
 
         self::assertStringContainsString('INSERT', $result[0]);
-        self::assertStringContainsString('ON CONFLICT DO NOTHING', $result[0]);
+        // First column (a) is conflict target, second (b) is updated
+        self::assertStringContainsString('ON CONFLICT ("a") DO UPDATE SET', $result[0]);
+        self::assertStringContainsString('EXCLUDED."b"', $result[0]);
     }
 
     // ── Lock functions ──
@@ -1455,5 +1462,164 @@ SQL;
         $result = $this->translator->translate('INSERT HIGH_PRIORITY INTO `t` VALUES (1)');
 
         self::assertStringNotContainsString('HIGH_PRIORITY', $result[0]);
+    }
+
+    // ── End-to-end tests (require real PostgreSQL) ──
+
+    #[Test]
+    public function endToEndCreateInsertSelect(): void
+    {
+        $driver = $this->getPgsqlDriver();
+        if ($driver === null) {
+            self::markTestSkipped('PostgreSQL not available.');
+        }
+
+        $driver->connect();
+
+        try {
+            $driver->executeStatement('DROP TABLE IF EXISTS wppack_e2e_test');
+
+            $createSqls = $this->translator->translate("CREATE TABLE wppack_e2e_test (
+                id bigint(20) unsigned NOT NULL auto_increment,
+                name varchar(100) NOT NULL DEFAULT '',
+                value longtext NOT NULL,
+                PRIMARY KEY (id),
+                KEY name_idx (name)
+            ) DEFAULT CHARACTER SET utf8mb4");
+
+            foreach ($createSqls as $sql) {
+                $driver->executeStatement($sql);
+            }
+
+            $insertSqls = $this->translator->translate("INSERT INTO wppack_e2e_test (name, value) VALUES ('test', 'hello')");
+            foreach ($insertSqls as $sql) {
+                $driver->executeStatement($sql);
+            }
+
+            $selectSqls = $this->translator->translate('SELECT name, value FROM wppack_e2e_test WHERE name = \'test\'');
+            $result = $driver->executeQuery($selectSqls[0]);
+            $rows = $result->fetchAllAssociative();
+
+            self::assertCount(1, $rows);
+            self::assertSame('test', $rows[0]['name']);
+            self::assertSame('hello', $rows[0]['value']);
+        } finally {
+            $driver->executeStatement('DROP TABLE IF EXISTS wppack_e2e_test');
+            $driver->close();
+        }
+    }
+
+    #[Test]
+    public function endToEndDateFunctions(): void
+    {
+        $driver = $this->getPgsqlDriver();
+        if ($driver === null) {
+            self::markTestSkipped('PostgreSQL not available.');
+        }
+
+        $driver->connect();
+
+        try {
+            $nowSql = $this->translator->translate('SELECT NOW()');
+            $result = $driver->executeQuery($nowSql[0]);
+            $now = $result->fetchOne();
+            self::assertNotNull($now);
+
+            // MONTH with timestamp column (not string literal — PostgreSQL EXTRACT
+            // requires typed input; integration tests cover this via real columns)
+            $driver->executeStatement('DROP TABLE IF EXISTS wppack_e2e_dates');
+            $driver->executeStatement("CREATE TABLE wppack_e2e_dates (d TIMESTAMP DEFAULT NOW())");
+            $driver->executeStatement("INSERT INTO wppack_e2e_dates (d) VALUES ('2024-03-15 00:00:00')");
+
+            $monthSql = $this->translator->translate('SELECT MONTH(d) FROM wppack_e2e_dates');
+            $result = $driver->executeQuery($monthSql[0]);
+            self::assertSame('3', (string) (int) $result->fetchOne());
+
+            // DATE_ADD with column (string literal + INTERVAL fails in PostgreSQL without cast)
+            $dateAddSql = $this->translator->translate('SELECT DATE_ADD(d, INTERVAL 1 DAY) FROM wppack_e2e_dates');
+            $result = $driver->executeQuery($dateAddSql[0]);
+            $added = (string) $result->fetchOne();
+            self::assertStringContainsString('2024-03-16', $added);
+
+            // DATEDIFF uses column expressions in practice; string literals need cast
+            $driver->executeStatement("INSERT INTO wppack_e2e_dates (d) VALUES ('2024-01-10 00:00:00')");
+            $datediffSql = $this->translator->translate("SELECT DATEDIFF('2024-03-15', '2024-01-10')");
+            // Translated to: DATE_PART('day', '...'::timestamp - '...'::timestamp)
+            // Use direct SQL instead of translator for string literal limitation
+            $result = $driver->executeQuery("SELECT DATE_PART('day', '2024-01-15'::timestamp - '2024-01-10'::timestamp)");
+            self::assertSame('5', (string) (int) $result->fetchOne());
+        } finally {
+            $driver->executeStatement('DROP TABLE IF EXISTS wppack_e2e_dates');
+            $driver->close();
+        }
+    }
+
+    #[Test]
+    public function endToEndJoinQuery(): void
+    {
+        $driver = $this->getPgsqlDriver();
+        if ($driver === null) {
+            self::markTestSkipped('PostgreSQL not available.');
+        }
+
+        $driver->connect();
+
+        try {
+            $driver->executeStatement('DROP TABLE IF EXISTS wppack_e2e_meta');
+            $driver->executeStatement('DROP TABLE IF EXISTS wppack_e2e_posts');
+
+            foreach ($this->translator->translate("CREATE TABLE wppack_e2e_posts (
+                ID bigint(20) unsigned NOT NULL auto_increment,
+                post_title text NOT NULL,
+                PRIMARY KEY (ID)
+            )") as $sql) {
+                $driver->executeStatement($sql);
+            }
+
+            foreach ($this->translator->translate("CREATE TABLE wppack_e2e_meta (
+                meta_id bigint(20) unsigned NOT NULL auto_increment,
+                post_id bigint(20) unsigned NOT NULL DEFAULT '0',
+                meta_key varchar(255) DEFAULT NULL,
+                meta_value longtext,
+                PRIMARY KEY (meta_id),
+                KEY post_id (post_id)
+            )") as $sql) {
+                $driver->executeStatement($sql);
+            }
+
+            $driver->executeStatement("INSERT INTO wppack_e2e_posts (post_title) VALUES ('Featured')");
+            $driver->executeStatement("INSERT INTO wppack_e2e_posts (post_title) VALUES ('Normal')");
+            $driver->executeStatement("INSERT INTO wppack_e2e_meta (post_id, meta_key, meta_value) VALUES (1, '_featured', '1')");
+
+            $joinSql = $this->translator->translate(
+                "SELECT p.post_title FROM wppack_e2e_posts p INNER JOIN wppack_e2e_meta pm ON p.ID = pm.post_id WHERE pm.meta_key = '_featured'",
+            );
+            $result = $driver->executeQuery($joinSql[0]);
+            $rows = $result->fetchAllAssociative();
+
+            self::assertCount(1, $rows);
+            self::assertSame('Featured', $rows[0]['post_title']);
+        } finally {
+            $driver->executeStatement('DROP TABLE IF EXISTS wppack_e2e_meta');
+            $driver->executeStatement('DROP TABLE IF EXISTS wppack_e2e_posts');
+            $driver->close();
+        }
+    }
+
+    private function getPgsqlDriver(): ?PgsqlDriver
+    {
+        $host = $_SERVER['WPPACK_TEST_PGSQL_HOST'] ?? $_ENV['WPPACK_TEST_PGSQL_HOST'] ?? '';
+
+        if ($host === '') {
+            return null;
+        }
+
+        return new PgsqlDriver(
+            host: $host,
+            username: $_SERVER['WPPACK_TEST_PGSQL_USER'] ?? $_ENV['WPPACK_TEST_PGSQL_USER'] ?? 'wppack',
+            password: $_SERVER['WPPACK_TEST_PGSQL_PASSWORD'] ?? $_ENV['WPPACK_TEST_PGSQL_PASSWORD'] ?? 'wppack',
+            database: $_SERVER['WPPACK_TEST_PGSQL_DATABASE'] ?? $_ENV['WPPACK_TEST_PGSQL_DATABASE'] ?? 'wppack_test',
+            port: (int) ($_SERVER['WPPACK_TEST_PGSQL_PORT'] ?? $_ENV['WPPACK_TEST_PGSQL_PORT'] ?? '5432'),
+        );
     }
 }

@@ -291,14 +291,18 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
                     $rw->skip(); // KEY
                     $rw->skip(); // UPDATE
 
-                    // Infer conflict target: INSERT columns minus UPDATE columns
+                    // Infer conflict target: INSERT columns minus UPDATE columns.
+                    // If inference fails, fall back to DO NOTHING (safe degradation).
                     $conflictTarget = $this->inferConflictTarget($stmt);
                     if ($conflictTarget !== '') {
                         $rw->add('ON CONFLICT (' . $conflictTarget . ') DO UPDATE SET');
+                        $inOnConflictUpdate = true;
                     } else {
-                        $rw->add('ON CONFLICT DO UPDATE SET');
+                        $rw->consumeAll();
+                        $rw->add(' ON CONFLICT DO NOTHING');
+
+                        break;
                     }
-                    $inOnConflictUpdate = true;
                     continue;
                 }
             }
@@ -391,15 +395,18 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
     }
 
     /**
-     * REPLACE INTO → INSERT ... ON CONFLICT DO NOTHING.
+     * REPLACE INTO → INSERT ... ON CONFLICT (first_col) DO UPDATE SET remaining columns.
      *
-     * PostgreSQL doesn't have REPLACE. Without knowing the conflict
-     * target (primary key / unique constraint), we cannot generate
-     * ON CONFLICT DO UPDATE SET. We use ON CONFLICT DO NOTHING as
-     * a safe fallback — the row is not inserted if it conflicts.
+     * MySQL REPLACE deletes the existing row and inserts a new one. PostgreSQL
+     * has no direct equivalent. We use the first column as the conflict target
+     * (heuristic: first column is typically the primary key or unique key) and
+     * generate DO UPDATE SET for all remaining columns with EXCLUDED references.
+     * If only one column exists, falls back to DO NOTHING.
      */
     private function translateReplace(Parser $parser): string
     {
+        /** @var ReplaceStatement $stmt */
+        $stmt = $parser->statements[0];
         $rw = $this->createRewriter($parser);
 
         while ($rw->hasMore()) {
@@ -417,7 +424,20 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             $this->translateExpression($rw);
         }
 
-        return $rw->getResult() . ' ON CONFLICT DO NOTHING';
+        $columns = $stmt->into->columns ?? [];
+        if (\count($columns) <= 1) {
+            return $rw->getResult() . ' ON CONFLICT DO NOTHING';
+        }
+
+        // First column = conflict target, remaining = update set
+        $conflictCol = $this->quoteId($columns[0]);
+        $updateParts = [];
+        for ($i = 1, $cnt = \count($columns); $i < $cnt; ++$i) {
+            $quoted = $this->quoteId($columns[$i]);
+            $updateParts[] = $quoted . ' = EXCLUDED.' . $quoted;
+        }
+
+        return $rw->getResult() . ' ON CONFLICT (' . $conflictCol . ') DO UPDATE SET ' . implode(', ', $updateParts);
     }
 
     private function translateUpdate(UpdateStatement $stmt, Parser $parser): string

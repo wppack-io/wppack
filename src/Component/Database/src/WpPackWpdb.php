@@ -141,6 +141,11 @@ class WpPackWpdb extends \wpdb
      *
      * @return int|bool
      */
+    /**
+     * @param string $query
+     *
+     * @return int|bool
+     */
     public function query($query)
     {
         if (!$this->ready) {
@@ -397,7 +402,21 @@ class WpPackWpdb extends \wpdb
     {
         $start = microtime(true);
         $driver = $this->selectDriver($sql);
-        $translated = $this->translator->translate($sql);
+
+        try {
+            $translated = $this->translator->translate($sql);
+        } catch (\Throwable $e) {
+            $this->logger?->error('Query translation failed', [
+                'sql' => $sql,
+                'error' => $e->getMessage(),
+            ]);
+
+            $this->last_error = $e->getMessage();
+            $this->last_result = [];
+            $this->num_rows = 0;
+
+            return false;
+        }
 
         if ($translated === []) {
             $this->last_result = [];
@@ -461,8 +480,10 @@ class WpPackWpdb extends \wpdb
      * Execute a COUNT(*) query to determine total rows for SQL_CALC_FOUND_ROWS.
      *
      * Strips LIMIT/OFFSET from the translated SQL and wraps in COUNT(*).
-     */
-    /**
+     * The regex matches the outermost LIMIT clause (anchored to end of string
+     * with $). Subquery LIMIT clauses are not affected because they are not
+     * at the end of the full SQL.
+     *
      * @param list<mixed> $params
      */
     private function calculateFoundRows(DriverInterface $driver, string $translatedSql, array $params): void
