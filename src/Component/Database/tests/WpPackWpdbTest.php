@@ -27,9 +27,12 @@ final class WpPackWpdbTest extends TestCase
 {
     private WpPackWpdb $wpdb;
     private SqliteDriver $driver;
+    private ?\wpdb $originalWpdb = null;
 
     protected function setUp(): void
     {
+        $this->originalWpdb = $GLOBALS['wpdb'] ?? null;
+
         $this->driver = new SqliteDriver(':memory:');
         $this->driver->connect();
         $this->driver->executeStatement(
@@ -48,6 +51,10 @@ final class WpPackWpdbTest extends TestCase
     protected function tearDown(): void
     {
         $this->driver->close();
+
+        if ($this->originalWpdb !== null) {
+            $GLOBALS['wpdb'] = $this->originalWpdb;
+        }
     }
 
     // ── prepare() ──
