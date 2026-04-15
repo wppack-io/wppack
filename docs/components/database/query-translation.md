@@ -249,7 +249,7 @@ SQLite Database Integration プラグインおよび PG4WP (PostgreSQL for WordP
 | `COLLATE clause` | 除去 | 除去 |
 | `@@SESSION.sql_mode` 等 | 変数名に応じたデフォルト値 | 同左 |
 | `IN ()` (空) | `IN (NULL)` | 同左 |
-| `LIKE` | そのまま | `ILIKE`（大文字小文字区別なし） |
+| `LIKE` | `LIKE ... ESCAPE '\'` | `ILIKE ... ESCAPE '\'` |
 | `DISTINCT + ORDER BY` | — | ORDER BY 列を SELECT に自動注入 |
 | `meta_value + 0` | そのまま | `CAST(meta_value AS BIGINT)` |
 | `'0000-00-00 00:00:00'` | そのまま（TEXT） | `'0001-01-01 00:00:00'` |
@@ -274,9 +274,98 @@ SQLite Database Integration プラグインおよび PG4WP (PostgreSQL for WordP
 | `ENGINE=...` / `CHARSET=...` / `COLLATE=...` | 除去 | 除去 |
 | `PRIMARY KEY (col)` + `AUTOINCREMENT` | 同一行にマージ | N/A |
 | `ALTER TABLE ADD/DROP/CHANGE COLUMN` | 対応（DROP は 3.35.0+ネイティブ） | 対応（CHANGE → `ALTER COLUMN TYPE`） |
+| `KEY name (col)` (インライン) | `CREATE INDEX IF NOT EXISTS` に分離 | `CREATE INDEX IF NOT EXISTS` に分離 |
 | `ALTER TABLE ADD [UNIQUE] INDEX` | `CREATE [UNIQUE] INDEX` | `CREATE [UNIQUE] INDEX` |
 | `IF NOT EXISTS` | 保持 | 保持 |
+| `DEFAULT '0000-00-00 ...'` (DDL) | そのまま（TEXT） | `'0001-01-01 00:00:00'` に変換 |
+| 識別子ケース | そのまま | 小文字に正規化 |
 | MySQL データ型キャッシュ | `_mysql_data_types_cache` テーブル | N/A |
+
+### エンジン固有の重要な変換仕様
+
+#### KEY/INDEX の CREATE INDEX 分離
+
+MySQL の `CREATE TABLE` ではインライン `KEY` を使ってインデックスを定義できるが、SQLite と PostgreSQL はこの構文をサポートしない。
+
+```sql
+-- MySQL（元の WordPress DDL）
+CREATE TABLE wp_posts (
+  ID bigint(20) unsigned NOT NULL auto_increment,
+  post_title text NOT NULL,
+  post_status varchar(20) NOT NULL,
+  PRIMARY KEY (ID),
+  KEY post_status (post_status),          -- ← MySQL 固有構文
+  KEY type_status (post_type, post_status)
+);
+
+-- SQLite / PostgreSQL（変換後）
+CREATE TABLE "wp_posts" (..., PRIMARY KEY ("ID"));
+CREATE INDEX IF NOT EXISTS "post_status" ON "wp_posts" ("post_status");
+CREATE INDEX IF NOT EXISTS "type_status" ON "wp_posts" ("post_type", "post_status");
+```
+
+`PRIMARY KEY` と `UNIQUE KEY` はインラインに残し、通常の `KEY`/`INDEX` のみ `CREATE INDEX` 文に分離する。MySQL のプレフィックス長 `(col(191))` は両エンジンで無視される（SQLite と PostgreSQL は部分インデックスの構文が異なるため）。
+
+#### PostgreSQL の識別子ケース正規化
+
+PostgreSQL はクォートなし識別子を**小文字に正規化**する。一方、ダブルクォート付き識別子は大文字小文字を**そのまま保持**する。
+
+```sql
+-- クォートなし: PostgreSQL は id に正規化
+SELECT * FROM wp_posts WHERE ID = 1;  → 内部で id として扱う
+
+-- ダブルクォート: そのまま保持
+SELECT * FROM wp_posts WHERE "ID" = 1;  → 大文字の ID を検索
+```
+
+WordPress は `ID`（大文字）をクォートなしで使用する。DDL で `"ID"` として作成すると、クエリの `ID`（→ `id`）と一致しない。
+
+**解決策:** PostgreSQL の DDL では全識別子を小文字化する。
+
+```sql
+-- ✗ 問題あり
+CREATE TABLE "wp_posts" ("ID" BIGSERIAL NOT NULL, ...);
+-- WordPress: SELECT * FROM wp_posts WHERE ID = 1  → id ≠ "ID"
+
+-- ✓ 正しい変換
+CREATE TABLE "wp_posts" ("id" BIGSERIAL NOT NULL, ...);
+-- WordPress: SELECT * FROM wp_posts WHERE ID = 1  → id = "id" ✓
+```
+
+`PostgresqlPlatform::quoteIdentifier()` は自動的に `strtolower()` を適用し、DDL・DML の両方で一貫したケースを保証する。
+
+#### LIKE ESCAPE の自動付与
+
+MySQL はデフォルトで `\` を LIKE のエスケープ文字として扱うが、SQLite と PostgreSQL はデフォルトではエスケープ文字がない。WordPress の `$wpdb->esc_like()` は `\` でワイルドカードをエスケープするため、変換後の LIKE に `ESCAPE '\'` を自動付与する。
+
+```sql
+-- MySQL（元のクエリ）
+SELECT * FROM wp_posts WHERE post_title LIKE '%100\%%'
+-- \% = リテラル %, MySQL はデフォルトで \ をエスケープと認識
+
+-- SQLite（変換後）
+SELECT * FROM "wp_posts" WHERE "post_title" LIKE '%100\%%' ESCAPE '\'
+-- ESCAPE '\' がないと \ はただの文字として扱われ、意図しない結果になる
+
+-- PostgreSQL（変換後）
+SELECT * FROM wp_posts WHERE post_title ILIKE '%100\%%' ESCAPE '\'
+```
+
+パラメータプレースホルダ `?` を使う場合も同様に `ESCAPE '\'` が付与される。既存の `ESCAPE` 句がある場合は二重付与しない。
+
+#### PostgreSQL DDL のゼロ日付変換
+
+MySQL のゼロ日付 `'0000-00-00 00:00:00'` は PostgreSQL の `TIMESTAMP` 型では無効。DDL の `DEFAULT` 句でゼロ日付が使用されている場合、`'0001-01-01 00:00:00'` に変換する。
+
+```sql
+-- MySQL DDL
+post_date datetime NOT NULL DEFAULT '0000-00-00 00:00:00'
+
+-- PostgreSQL DDL（変換後）
+"post_date" TIMESTAMP NOT NULL DEFAULT '0001-01-01 00:00:00'
+```
+
+DML のゼロ日付変換（文レベル変換の `'0000-00-00 00:00:00'` → `'0001-01-01 00:00:00'`）と一貫性を保つ。
 
 ### SHOW 文変換
 

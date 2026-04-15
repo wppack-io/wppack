@@ -74,7 +74,7 @@ WpPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL ク
 | INDEX HINTS | ✅ | — | ✅ | ✅ |
 | LIKE → ILIKE (PgSQL) | N/A | ✅ | N/A | ✅ |
 | LIKE BINARY → GLOB | ✅ | — | ✅ | ✅ LIKE |
-| LIKE ESCAPE | ✅ | — | ✅ | ✅ |
+| LIKE ESCAPE 自動付与 | ✅ | — | ✅ `ESCAPE '\'` | ✅ `ESCAPE '\'` |
 | HAVING without GROUP BY | ✅ | ✅ | ✅ | ✅ |
 | CONVERT → CAST | — | ✅ | ✅ | ✅ |
 | COLLATE 除去 | — | — | ✅ | ✅ |
@@ -96,8 +96,11 @@ WpPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL ク
 | AUTO_INCREMENT → SERIAL | N/A | ✅ | ✅ AUTOINCREMENT | ✅ SERIAL/BIGSERIAL |
 | ON UPDATE CURRENT_TIMESTAMP | ✅ トリガー | — | ✅ トリガー | ✅ トリガー |
 | ALTER ADD/DROP/CHANGE | ✅ | ✅ | ✅ | ✅ |
+| KEY/INDEX → CREATE INDEX 分離 | ✅ | ✅ | ✅ AST | ✅ AST |
 | ENGINE/CHARSET/COLLATE 除去 | ✅ | ✅ | ✅ AST | ✅ AST |
 | IF NOT EXISTS | ✅ | ✅ | ✅ | ✅ |
+| DDL ゼロ日付 DEFAULT 変換 | — | — | — (TEXT) | ✅ → '0001-01-01' |
+| 識別子ケース正規化 | — | ✅ | — (不要) | ✅ 小文字化 |
 | データ型キャッシュ | ✅ | N/A | ✅ | N/A |
 | information_schema 対応 | ✅ | N/A | ✅ → sqlite_master | N/A ネイティブ |
 | ISO 8601 日付正規化 | ✅ | N/A | ✅ | N/A PgSQL 互換 |
