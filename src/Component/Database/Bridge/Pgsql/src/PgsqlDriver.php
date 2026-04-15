@@ -13,31 +13,29 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Database\Bridge\Pgsql;
 
+use WpPack\Component\Database\Bridge\Pgsql\Translator\PostgresqlQueryTranslator;
 use WpPack\Component\Database\Driver\AbstractDriver;
 use WpPack\Component\Database\Exception\ConnectionException;
 use WpPack\Component\Database\Exception\DriverException;
 use WpPack\Component\Database\Platform\PlatformInterface;
-use WpPack\Component\Database\Bridge\Pgsql\PostgresqlPlatform;
-use WpPack\Component\Database\Bridge\Pgsql\Translator\PostgresqlQueryTranslator;
 use WpPack\Component\Database\Result;
 use WpPack\Component\Database\Statement;
 
-final class PgsqlDriver extends AbstractDriver
+class PgsqlDriver extends AbstractDriver
 {
     /** @var \PgSql\Connection|null */
-    private mixed $connection = null;
-    private bool $inTx = false;
+    protected mixed $connection = null;
+    protected bool $inTx = false;
     private bool $ownsConnection;
     private int $stmtCounter = 0;
 
     public function __construct(
-        private readonly string $host,
-        private readonly string $username,
+        protected readonly string $host,
+        protected readonly string $username,
         #[\SensitiveParameter]
-        private readonly string $password,
-        private readonly string $database,
-        private readonly int $port = 5432,
-        private readonly ?string $sslmode = null,
+        protected readonly string $password,
+        protected readonly string $database,
+        protected readonly int $port = 5432,
     ) {
         $this->ownsConnection = true;
     }
@@ -90,11 +88,25 @@ final class PgsqlDriver extends AbstractDriver
             return;
         }
 
-        // Escape values for libpq connection string: backslash-double and
-        // single-quote-escape, then wrap in single quotes.
+        $connection = @pg_connect($this->buildConnectionString());
+
+        if ($connection === false) {
+            throw new ConnectionException('Failed to connect to PostgreSQL.');
+        }
+
+        $this->connection = $connection;
+    }
+
+    /**
+     * Build the libpq connection string.
+     *
+     * Subclasses (e.g., AuroraDsqlDriver) can override to add SSL, sslnegotiation, etc.
+     */
+    protected function buildConnectionString(): string
+    {
         $esc = static fn(string $v): string => "'" . str_replace(['\\', "'"], ['\\\\', "\\'"], $v) . "'";
 
-        $connStr = \sprintf(
+        return \sprintf(
             'host=%s port=%d dbname=%s user=%s password=%s client_encoding=%s',
             $esc($this->host),
             $this->port,
@@ -103,18 +115,18 @@ final class PgsqlDriver extends AbstractDriver
             $esc($this->password),
             $esc('UTF8'),
         );
+    }
 
-        if ($this->sslmode !== null) {
-            $connStr .= ' sslmode=' . $esc($this->sslmode);
+    /**
+     * Check if libpq supports sslnegotiation=direct (libpq 17+).
+     */
+    protected static function supportsDirectSslNegotiation(): bool
+    {
+        if (\defined('PGSQL_LIBPQ_VERSION')) {
+            return version_compare((string) \PGSQL_LIBPQ_VERSION, '17.0', '>=');
         }
 
-        $connection = @pg_connect($connStr);
-
-        if ($connection === false) {
-            throw new ConnectionException('Failed to connect to PostgreSQL.');
-        }
-
-        $this->connection = $connection;
+        return false;
     }
 
     protected function doClose(): void
@@ -275,7 +287,7 @@ final class PgsqlDriver extends AbstractDriver
         $this->inTx = false;
     }
 
-    private function ensureConnected(): void
+    protected function ensureConnected(): void
     {
         if ($this->connection === null) {
             $this->connect();
@@ -288,7 +300,7 @@ final class PgsqlDriver extends AbstractDriver
      * Skips ? characters inside single-quoted string literals to prevent
      * data corruption (e.g., 'What?' must not become 'What$1').
      */
-    private function convertPlaceholders(string $sql): string
+    protected function convertPlaceholders(string $sql): string
     {
         $index = 0;
         $result = '';

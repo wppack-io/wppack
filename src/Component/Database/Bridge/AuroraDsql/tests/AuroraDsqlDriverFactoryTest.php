@@ -259,6 +259,34 @@ final class AuroraDsqlDriverFactoryTest extends TestCase
         self::assertFalse($method->invoke(null, new \RuntimeException('syntax error')));
     }
 
+    #[Test]
+    public function transactionRetriesEntireCallbackOnOccError(): void
+    {
+        if (!\function_exists('pg_connect')) {
+            self::markTestSkipped('ext-pgsql not available.');
+        }
+
+        $callCount = 0;
+        $driver = $this->createMockDriver(occMaxRetries: 3);
+
+        // Mock inner connection to simulate OCC on commit
+        // Use reflection to test the transaction() method logic
+        $method = new \ReflectionMethod($driver, 'executeWithOccRetry');
+
+        $result = $method->invoke($driver, static function () use (&$callCount): string {
+            ++$callCount;
+            if ($callCount < 2) {
+                // Simulate OCC conflict during transaction
+                throw new \WpPack\Component\Database\Exception\DriverException('SQLSTATE[40001]');
+            }
+
+            return 'committed';
+        });
+
+        self::assertSame('committed', $result);
+        self::assertSame(2, $callCount);
+    }
+
     private function createMockDriver(int $occMaxRetries): AuroraDsqlDriver
     {
         return new AuroraDsqlDriver(

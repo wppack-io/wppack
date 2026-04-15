@@ -23,50 +23,114 @@ use AsyncAws\Core\Stream\StringStream;
 use Psr\Log\LoggerInterface;
 use WpPack\Component\Database\Bridge\AuroraDsql\Translator\AuroraDsqlQueryTranslator;
 use WpPack\Component\Database\Bridge\Pgsql\PgsqlDriver;
-use WpPack\Component\Database\Bridge\Pgsql\PostgresqlPlatform;
-use WpPack\Component\Database\Driver\AbstractDriver;
 use WpPack\Component\Database\Exception\ConnectionException;
 use WpPack\Component\Database\Exception\DriverException;
-use WpPack\Component\Database\Platform\PlatformInterface;
 use WpPack\Component\Database\Result;
-use WpPack\Component\Database\Statement;
 use WpPack\Component\Database\Translator\QueryTranslatorInterface;
 
 /**
- * Aurora DSQL driver with IAM token authentication, SSL, and OCC retry.
+ * Aurora DSQL driver — extends PgsqlDriver with IAM token auth, SSL, and OCC retry.
  *
- * Uses PostgreSQL wire protocol with:
+ * Features (aligned with awslabs/aurora-dsql-php-pdo-pgsql):
  * - SigV4 presigned IAM tokens (auto-generated via async-aws/core)
- * - SSL verify-full (mandatory for DSQL)
- * - Optimistic Concurrency Control retry with exponential backoff + jitter
- * - Automatic token refresh when approaching expiry
+ * - SSL verify-full + sslnegotiation=direct (libpq 17+)
+ * - OCC retry with exponential backoff + jitter (single statements only)
+ * - transaction() for retrying entire transaction blocks on OCC conflict
+ * - Automatic token refresh before expiry
  */
-final class AuroraDsqlDriver extends AbstractDriver
+class AuroraDsqlDriver extends PgsqlDriver
 {
     private const OCC_INITIAL_WAIT_MS = 100;
     private const OCC_MAX_WAIT_MS = 5000;
     private const OCC_MULTIPLIER = 2.0;
-
-    /** Token refresh margin — reconnect 60s before expiry */
     private const TOKEN_REFRESH_MARGIN_SECS = 60;
 
-    private ?PgsqlDriver $inner = null;
     private ?\DateTimeImmutable $tokenExpiresAt = null;
     private ?LoggerInterface $logger;
+    private string $currentToken;
+    private readonly string $region;
+    private readonly int $tokenDurationSecs;
+    private readonly int $occMaxRetries;
+    private readonly ?CredentialProvider $credentialProvider;
+    private readonly bool $hasStaticToken;
 
     public function __construct(
-        private readonly string $endpoint,
-        private readonly string $region,
-        private readonly string $database,
-        private readonly string $username = 'admin',
+        string $endpoint,
+        string $region,
+        string $database,
+        string $username = 'admin',
         #[\SensitiveParameter]
-        private readonly ?string $token = null,
-        private readonly int $tokenDurationSecs = 900,
-        private readonly int $occMaxRetries = 3,
-        private readonly ?CredentialProvider $credentialProvider = null,
+        ?string $token = null,
+        int $tokenDurationSecs = 900,
+        int $occMaxRetries = 3,
+        ?CredentialProvider $credentialProvider = null,
         ?LoggerInterface $logger = null,
     ) {
+        $this->region = $region;
+        $this->tokenDurationSecs = $tokenDurationSecs;
+        $this->occMaxRetries = $occMaxRetries;
+        $this->credentialProvider = $credentialProvider;
         $this->logger = $logger;
+        $this->hasStaticToken = $token !== null;
+
+        $this->currentToken = $token ?? $this->generateToken($endpoint, $region, $username, $tokenDurationSecs, $credentialProvider);
+
+        parent::__construct(
+            host: $endpoint,
+            username: $username,
+            password: $this->currentToken,
+            database: $database,
+            port: 5432,
+        );
+    }
+
+    /**
+     * Override doConnect to refresh token on reconnection if needed.
+     */
+    protected function doConnect(): void
+    {
+        // Refresh token if auto-generated and approaching expiry
+        if (!$this->hasStaticToken && $this->tokenExpiresAt !== null
+            && new \DateTimeImmutable() >= $this->tokenExpiresAt) {
+            $this->currentToken = $this->generateToken(
+                $this->host,
+                $this->region,
+                $this->username,
+                $this->tokenDurationSecs,
+                $this->credentialProvider,
+            );
+        }
+
+        // Build connection string with current (possibly refreshed) token
+        if ($this->connection !== null) {
+            return;
+        }
+
+        $esc = static fn(string $v): string => "'" . str_replace(['\\', "'"], ['\\\\', "\\'"], $v) . "'";
+
+        $connStr = \sprintf(
+            'host=%s port=%d dbname=%s user=%s password=%s client_encoding=%s',
+            $esc($this->host),
+            $this->port,
+            $esc($this->database),
+            $esc($this->username),
+            $esc($this->currentToken),
+            $esc('UTF8'),
+        );
+
+        $connStr .= " sslmode='verify-full'";
+
+        if (static::supportsDirectSslNegotiation()) {
+            $connStr .= " sslnegotiation='direct'";
+        }
+
+        $connection = @pg_connect($connStr);
+
+        if ($connection === false) {
+            throw new ConnectionException('Failed to connect to Aurora DSQL.');
+        }
+
+        $this->connection = $connection;
     }
 
     public function getName(): string
@@ -74,158 +138,114 @@ final class AuroraDsqlDriver extends AbstractDriver
         return 'dsql';
     }
 
-    public function isConnected(): bool
-    {
-        return $this->inner !== null && $this->inner->isConnected();
-    }
-
-    public function inTransaction(): bool
-    {
-        return $this->inner !== null && $this->inner->inTransaction();
-    }
-
-    public function getPlatform(): PlatformInterface
-    {
-        return new PostgresqlPlatform();
-    }
-
     public function getQueryTranslator(): QueryTranslatorInterface
     {
         return new AuroraDsqlQueryTranslator();
     }
 
-    public function getNativeConnection(): mixed
-    {
-        return $this->inner?->getNativeConnection();
-    }
-
-    protected function doConnect(): void
-    {
-        if ($this->inner !== null && $this->inner->isConnected()) {
-            return;
-        }
-
-        if ($this->token !== null) {
-            // Static token: no expiry tracking (user must manage refresh)
-            $password = $this->token;
-        } else {
-            // Auto-generated IAM token with expiry tracking
-            $password = $this->generateToken();
-        }
-
-        $this->inner = new PgsqlDriver(
-            host: $this->endpoint,
-            username: $this->username,
-            password: $password,
-            database: $this->database,
-            port: 5432,
-            sslmode: 'verify-full',
-        );
-
-        $this->inner->connect();
-    }
-
-    protected function doClose(): void
-    {
-        $this->inner?->close();
-        $this->inner = null;
-        $this->tokenExpiresAt = null;
-    }
-
+    /**
+     * Execute query with OCC retry (only outside transactions).
+     *
+     * Inside a transaction, individual statements are not retried — the
+     * entire transaction must be retried via transaction(). This matches
+     * the AWS DsqlPdo::exec() semantics.
+     */
     protected function doExecuteQuery(string $sql, array $params = []): Result
     {
-        return $this->executeWithOccRetry(function () use ($sql, $params): Result {
-            $this->ensureConnected();
+        $this->ensureTokenFresh();
 
-            return $this->inner->executeQuery($sql, $params);
-        });
+        if ($this->occMaxRetries === 0 || $this->inTransaction()) {
+            return parent::doExecuteQuery($sql, $params);
+        }
+
+        return $this->executeWithOccRetry(fn(): Result => parent::doExecuteQuery($sql, $params));
     }
 
     protected function doExecuteStatement(string $sql, array $params = []): int
     {
-        return $this->executeWithOccRetry(function () use ($sql, $params): int {
-            $this->ensureConnected();
+        $this->ensureTokenFresh();
 
-            return $this->inner->executeStatement($sql, $params);
+        if ($this->occMaxRetries === 0 || $this->inTransaction()) {
+            return parent::doExecuteStatement($sql, $params);
+        }
+
+        return $this->executeWithOccRetry(fn(): int => parent::doExecuteStatement($sql, $params));
+    }
+
+    // ── Transaction with OCC retry ──
+
+    /**
+     * Execute a callback inside a transaction with automatic OCC retry.
+     *
+     * On OCC conflict (SQLSTATE 40001, OC000, OC001), the transaction is
+     * rolled back and the entire callback is re-executed with exponential
+     * backoff. This matches the AWS DsqlPdo::transaction() pattern.
+     *
+     * The callback should NOT call beginTransaction() or commit().
+     *
+     * @template T
+     *
+     * @param callable(self): T $callback
+     *
+     * @return T
+     */
+    public function transaction(callable $callback): mixed
+    {
+        return $this->executeWithOccRetry(function () use ($callback): mixed {
+            $this->beginTransaction();
+
+            try {
+                $result = $callback($this);
+                $this->commit();
+
+                return $result;
+            } catch (\Throwable $e) {
+                if ($this->inTransaction()) {
+                    try {
+                        $this->rollBack();
+                    } catch (DriverException $rollbackEx) {
+                        $this->logger?->error(\sprintf(
+                            '[AuroraDsql] rollBack() failed during OCC retry: %s',
+                            $rollbackEx->getMessage(),
+                        ));
+                    }
+                }
+
+                throw $e;
+            }
         });
     }
 
-    protected function doPrepare(string $sql): Statement
-    {
-        $this->ensureConnected();
-
-        return $this->inner->prepare($sql);
-    }
-
-    protected function doLastInsertId(): int
-    {
-        $this->ensureConnected();
-
-        return $this->inner->lastInsertId();
-    }
-
-    protected function doBeginTransaction(): void
-    {
-        $this->ensureConnected();
-        $this->inner->beginTransaction();
-    }
+    // ── Token management ──
 
     /**
-     * Commit without OCC retry. If COMMIT fails with OCC conflict, the caller
-     * must retry the entire transaction (not just the COMMIT). Retrying COMMIT
-     * alone risks duplicate writes if the first COMMIT partially succeeded.
+     * Close connection if token is approaching expiry — doConnect() will regenerate.
      */
-    protected function doCommit(): void
+    private function ensureTokenFresh(): void
     {
-        $this->ensureConnected();
-        $this->inner->commit();
-    }
-
-    protected function doRollBack(): void
-    {
-        $this->ensureConnected();
-        $this->inner->rollBack();
-    }
-
-    /**
-     * Ensure connection is alive and token is not expired.
-     *
-     * Reconnects if the connection is lost or the IAM token is approaching expiry.
-     */
-    private function ensureConnected(): void
-    {
-        if ($this->inner !== null && $this->inner->isConnected() && !$this->isTokenExpiring()) {
+        if ($this->tokenExpiresAt === null || $this->hasStaticToken) {
             return;
         }
 
-        // Close stale connection before reconnecting with fresh token
-        if ($this->inner !== null) {
-            $this->inner->close();
-            $this->inner = null;
+        if (new \DateTimeImmutable() < $this->tokenExpiresAt) {
+            return;
         }
 
-        $this->connect();
+        $this->close();
     }
-
-    private function isTokenExpiring(): bool
-    {
-        if ($this->tokenExpiresAt === null) {
-            return false;
-        }
-
-        return new \DateTimeImmutable() >= $this->tokenExpiresAt;
-    }
-
-    // ── IAM Token Generation ──
 
     /**
      * Generate IAM authentication token via SigV4 presigned URL.
      *
-     * Uses the same pattern as ElastiCacheIamTokenGenerator:
-     * presign a GET request to the DSQL endpoint with Action=DbConnect.
+     * Uses the same pattern as ElastiCacheIamTokenGenerator.
      */
-    private function generateToken(): string
-    {
+    private function generateToken(
+        string $endpoint,
+        string $region,
+        string $username,
+        int $tokenDurationSecs,
+        ?CredentialProvider $credentialProvider,
+    ): string {
         if (!class_exists(Configuration::class)) {
             throw new ConnectionException(
                 'Aurora DSQL requires async-aws/core for IAM token generation. '
@@ -234,33 +254,32 @@ final class AuroraDsqlDriver extends AbstractDriver
             );
         }
 
-        $provider = $this->credentialProvider ?? ChainProvider::createDefaultChain();
+        $provider = $credentialProvider ?? ChainProvider::createDefaultChain();
         $credentials = $provider->getCredentials(
-            Configuration::create(['region' => $this->region]),
+            Configuration::create(['region' => $region]),
         );
 
         if ($credentials === null) {
             throw new ConnectionException(
-                'Unable to resolve AWS credentials for Aurora DSQL. '
-                . 'Ensure AWS credentials are configured (env vars, IAM role, or credentials file).',
+                'Unable to resolve AWS credentials for Aurora DSQL.',
             );
         }
 
-        $action = $this->username === 'admin' ? 'DbConnectAdmin' : 'DbConnect';
+        $action = $username === 'admin' ? 'DbConnectAdmin' : 'DbConnect';
 
         $request = new Request('GET', '/', [], [], StringStream::create(''));
-        $request->setEndpoint(\sprintf('https://%s', $this->endpoint));
+        $request->setEndpoint(\sprintf('https://%s', $endpoint));
         $request->setQueryAttribute('Action', $action);
 
-        $expiresAt = new \DateTimeImmutable(\sprintf('+%d seconds', $this->tokenDurationSecs));
+        $expiresAt = new \DateTimeImmutable(\sprintf('+%d seconds', $tokenDurationSecs));
         $context = new RequestContext([
             'expirationDate' => $expiresAt,
         ]);
 
-        $signer = new SignerV4('dsql', $this->region);
+        $signer = new SignerV4('dsql', $region);
         $signer->presign($request, $credentials, $context);
 
-        // Track token expiry (with refresh margin)
+        // Track token expiry with refresh margin
         $this->tokenExpiresAt = $expiresAt->modify(
             \sprintf('-%d seconds', self::TOKEN_REFRESH_MARGIN_SECS),
         );
@@ -272,10 +291,6 @@ final class AuroraDsqlDriver extends AbstractDriver
 
     /**
      * Execute an operation with OCC retry (exponential backoff + jitter).
-     *
-     * Aurora DSQL uses Optimistic Concurrency Control. On conflict, it returns
-     * SQLSTATE 40001, OC000, or OC001. This method retries the operation with
-     * exponential backoff and random jitter.
      *
      * @template T
      *

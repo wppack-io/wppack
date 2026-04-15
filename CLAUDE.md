@@ -360,18 +360,13 @@ wppack/http-foundation, wppack/rest, wppack/site, wppack/user
 
 ### `final` Keyword Policy
 
-Do **not** add `final` to classes that may be extended or mocked in tests. Follow Symfony's approach — preserve testability (`createMock()`) and library extensibility.
+**Default is no `final`.** Only add `final` when there is a compelling reason (e.g., immutable value objects). Prefer testability and extensibility.
 
 | Class type | `final` | Reason |
 |------------|---------|--------|
-| Core infrastructure (ContainerBuilder, Definition, Request, etc.) | No | Mocked in tests, may be extended by users |
-| Factories (SamlAuthFactory, etc.) | No | Mocked in tests |
-| Event classes | No | Mocked or instantiated directly in tests |
-| Service implementations with interface (Mapper, Repository, Controller, etc.) | `final` | Mockable via interface |
 | Value objects / DTOs | `final readonly` | Immutable, no extension needed |
 | Configuration classes | `final readonly` | Immutable, no extension needed |
-
-**Rule of thumb:** If `createMock(ClassName::class)` is used in tests → no `final`. If the class has an interface for mocking → `final`.
+| All others | No | Preserve testability and extensibility |
 
 ### `#[\SensitiveParameter]` Usage Policy
 
