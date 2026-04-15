@@ -470,11 +470,14 @@ SQL;
 
         $result = $this->translator->translate($sql);
 
-        self::assertCount(1, $result);
+        // CREATE TABLE + CREATE INDEX for KEY post_status
+        self::assertCount(2, $result);
         self::assertStringContainsString('BIGSERIAL', $result[0]);
         self::assertStringContainsString('TEXT', $result[0]);
         self::assertStringNotContainsString('ENGINE=', $result[0]);
         self::assertStringNotContainsString('CHARSET', $result[0]);
+        self::assertStringContainsString('CREATE INDEX', $result[1]);
+        self::assertStringContainsString('post_status', $result[1]);
         self::assertStringNotContainsString('`', $result[0]);
     }
 

@@ -1002,7 +1002,7 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             if (!$hasEscape) {
                 // Consume the pattern token, then append ESCAPE '\'
                 $rw->consume();
-                $rw->add("ESCAPE '\\'");
+                $rw->add(" ESCAPE '\\'");
             }
 
             return;

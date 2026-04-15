@@ -642,6 +642,7 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         $ifNotExists = ($stmt->options?->has('IF NOT EXISTS')) ? 'IF NOT EXISTS ' : '';
 
         $parts = [];
+        $indexStatements = [];
         $triggers = [];
 
         foreach ($stmt->fields as $field) {
@@ -666,18 +667,24 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
                     );
                 }
             } elseif ($field->key !== null) {
-                $parts[] = $this->buildKeyDef($field->key);
+                // PRIMARY KEY and UNIQUE constraints stay inline;
+                // regular KEY/INDEX must be separate CREATE INDEX statements
+                if ($field->key->type === 'PRIMARY KEY' || $field->key->type === 'UNIQUE KEY') {
+                    $parts[] = $this->buildKeyDef($field->key);
+                } else {
+                    $indexStatements[] = $this->buildCreateIndex($rawTableName, $field->key);
+                }
             }
         }
 
         $results = [\sprintf("CREATE TABLE %s%s (%s)", $ifNotExists, $tableName, implode(', ', $parts))];
 
-        return [...$results, ...$triggers];
+        return [...$results, ...$indexStatements, ...$triggers];
     }
 
     private function buildColumnDef(\PhpMyAdmin\SqlParser\Components\CreateDefinition $field): string
     {
-        $name = $this->quoteId($field->name ?? '');
+        $name = $this->quoteIdLower($field->name ?? '');
         $typeName = $field->type !== null ? strtoupper($field->type->name) : '';
 
         // Map MySQL type → PostgreSQL type
@@ -710,22 +717,34 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             $clauses[] = 'PRIMARY KEY';
         }
 
-        // DEFAULT
+        // DEFAULT (convert MySQL zero dates → PostgreSQL sentinel)
         $defaultExpr = $field->options?->get('DEFAULT', true);
         if ($defaultExpr instanceof \PhpMyAdmin\SqlParser\Components\Expression && $defaultExpr->expr !== null && $defaultExpr->expr !== '') {
-            $clauses[] = 'DEFAULT ' . $defaultExpr->expr;
+            $expr = $defaultExpr->expr;
+
+            // MySQL zero dates are invalid in PostgreSQL
+            $expr = str_replace(
+                ["'0000-00-00 00:00:00'", "'0000-00-00'"],
+                ["'0001-01-01 00:00:00'", "'0001-01-01'"],
+                $expr,
+            );
+
+            $clauses[] = 'DEFAULT ' . $expr;
         }
 
         return implode(' ', $clauses);
     }
 
+    /**
+     * Build an inline key/constraint definition (PRIMARY KEY, UNIQUE only).
+     */
     private function buildKeyDef(\PhpMyAdmin\SqlParser\Components\Key $key): string
     {
         $columns = [];
 
         foreach ($key->columns as $col) {
             if (isset($col['name'])) {
-                $columns[] = $this->quoteId($col['name']);
+                $columns[] = $this->quoteIdLower($col['name']);
             }
         }
 
@@ -734,8 +753,36 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         return match ($key->type) {
             'PRIMARY KEY' => 'PRIMARY KEY (' . $colList . ')',
             'UNIQUE KEY' => 'UNIQUE (' . $colList . ')',
-            default => 'KEY ' . ($key->name !== null ? $this->quoteId($key->name) . ' ' : '') . '(' . $colList . ')',
+            default => 'PRIMARY KEY (' . $colList . ')',
         };
+    }
+
+    /**
+     * Build a CREATE INDEX statement for a regular KEY/INDEX.
+     *
+     * PostgreSQL does not support inline KEY definitions in CREATE TABLE.
+     */
+    private function buildCreateIndex(string $table, \PhpMyAdmin\SqlParser\Components\Key $key): string
+    {
+        $columns = [];
+
+        foreach ($key->columns as $col) {
+            if (isset($col['name'])) {
+                $columns[] = $this->quoteIdLower($col['name']);
+            }
+        }
+
+        $indexName = $key->name ?? implode('_', array_map(
+            static fn(array $c): string => $c['name'] ?? '',
+            $key->columns,
+        ));
+
+        return \sprintf(
+            'CREATE INDEX IF NOT EXISTS %s ON %s (%s)',
+            $this->quoteId($indexName),
+            $this->quoteId($table),
+            implode(', ', $columns),
+        );
     }
 
     private function mapPgsqlType(string $mysqlType): string
@@ -770,6 +817,19 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
     private function quoteId(string $identifier): string
     {
         return '"' . str_replace('"', '""', $identifier) . '"';
+    }
+
+    /**
+     * Quote identifier with forced lowercase for DDL.
+     *
+     * PostgreSQL folds unquoted identifiers to lowercase. When WordPress
+     * creates tables with "ID" (uppercase quoted) but queries with unquoted
+     * ID (resolved to lowercase "id"), the names don't match. Forcing
+     * lowercase in DDL ensures compatibility with WordPress query patterns.
+     */
+    private function quoteIdLower(string $identifier): string
+    {
+        return '"' . str_replace('"', '""', strtolower($identifier)) . '"';
     }
 
     /**
@@ -923,6 +983,18 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
 
                     return;
                 }
+            }
+
+            // MySQL treats \ as the default LIKE escape character; PostgreSQL does not.
+            // Add ESCAPE '\' for parameterised patterns (?) and plain string patterns.
+            $afterPattern = $rw->peekNth(2);
+            $hasEscape = $afterPattern !== null
+                && $afterPattern->type === TokenType::Keyword
+                && $afterPattern->keyword === 'ESCAPE';
+
+            if (!$hasEscape) {
+                $rw->consume();
+                $rw->add(" ESCAPE '\\'");
             }
 
             return;
