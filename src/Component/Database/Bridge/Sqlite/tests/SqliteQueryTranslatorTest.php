@@ -1557,11 +1557,12 @@ SQL);
     }
 
     #[Test]
-    public function likeWithoutEscapeNoChange(): void
+    public function likeWithoutEscapeAddsBackslashEscape(): void
     {
         $result = $this->translator->translate("SELECT * FROM t WHERE name LIKE '%test%'");
 
-        self::assertStringNotContainsString('ESCAPE', $result[0]);
+        // All LIKE clauses get ESCAPE '\' to match MySQL's default escape behaviour
+        self::assertStringContainsString("ESCAPE '\\'", $result[0]);
     }
 
     #[Test]

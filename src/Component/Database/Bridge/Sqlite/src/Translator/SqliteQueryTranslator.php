@@ -545,6 +545,7 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
 
         $mergePk = $autoIncrementCol !== null && $autoIncrementCol === $pkColumnName;
         $parts = [];
+        $indexStatements = [];
         $triggers = [];
         $cacheInserts = [];
 
@@ -568,13 +569,19 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
                     continue;
                 }
 
-                $parts[] = $this->buildKeyDef($field->key);
+                // PRIMARY KEY and UNIQUE constraints stay inline;
+                // regular KEY/INDEX must be separate CREATE INDEX statements in SQLite
+                if ($field->key->type === 'PRIMARY KEY' || $field->key->type === 'UNIQUE KEY') {
+                    $parts[] = $this->buildKeyDef($field->key);
+                } else {
+                    $indexStatements[] = $this->buildCreateIndex($rawTableName, $field->key);
+                }
             }
         }
 
         $results = [\sprintf("CREATE TABLE %s%s (%s)", $ifNotExists, $tableName, implode(', ', $parts))];
 
-        return [...$results, ...$triggers, ...$cacheInserts];
+        return [...$results, ...$indexStatements, ...$triggers, ...$cacheInserts];
     }
 
     /**
@@ -637,7 +644,7 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
     }
 
     /**
-     * Build a key/constraint definition from AST Key.
+     * Build an inline key/constraint definition (PRIMARY KEY, UNIQUE only).
      */
     private function buildKeyDef(\PhpMyAdmin\SqlParser\Components\Key $key): string
     {
@@ -654,8 +661,36 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         return match ($key->type) {
             'PRIMARY KEY' => 'PRIMARY KEY (' . $colList . ')',
             'UNIQUE KEY' => 'UNIQUE (' . $colList . ')',
-            default => 'KEY ' . ($key->name !== null ? $this->quoteId($key->name) . ' ' : '') . '(' . $colList . ')',
+            default => 'PRIMARY KEY (' . $colList . ')',
         };
+    }
+
+    /**
+     * Build a CREATE INDEX statement for a regular KEY/INDEX.
+     *
+     * SQLite does not support inline KEY definitions in CREATE TABLE.
+     */
+    private function buildCreateIndex(string $table, \PhpMyAdmin\SqlParser\Components\Key $key): string
+    {
+        $columns = [];
+
+        foreach ($key->columns as $col) {
+            if (isset($col['name'])) {
+                $columns[] = $this->quoteId($col['name']);
+            }
+        }
+
+        $indexName = $key->name ?? implode('_', array_map(
+            static fn(array $c): string => $c['name'] ?? '',
+            $key->columns,
+        ));
+
+        return \sprintf(
+            'CREATE INDEX IF NOT EXISTS %s ON %s (%s)',
+            $this->quoteId($indexName),
+            $this->quoteId($table),
+            implode(', ', $columns),
+        );
     }
 
     private function mapSqliteType(string $mysqlType): string
@@ -940,21 +975,34 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
                 return;
             }
 
-            // ── LIKE with escaped wildcards (\% and \_) → add ESCAPE clause ──
+            // ── LIKE: add ESCAPE '\' so MySQL's default escape behaviour works in SQLite ──
             $rw->consume(); // consume LIKE
             $patternToken = $rw->peek();
+
             if ($patternToken !== null && $patternToken->type === TokenType::String) {
-                // Check raw token for MySQL backslash escapes (Lexer resolves them in value)
                 $rawToken = $patternToken->token;
                 if (str_contains($rawToken, '\\_') || str_contains($rawToken, '\\%')) {
                     $rw->skip();
-                    // Strip surrounding quotes, replace MySQL escapes with SUB character
                     $inner = mb_substr($rawToken, 1, -1);
                     $escaped = str_replace(['\\_', '\\%'], ["\x1a_", "\x1a%"], $inner);
                     $rw->add("'" . $escaped . "' ESCAPE '\x1a'");
 
                     return;
                 }
+            }
+
+            // For parameterised patterns (?) and plain string patterns:
+            // MySQL treats \ as the default LIKE escape character; SQLite does not.
+            // Peek past the pattern token to check for an explicit ESCAPE clause.
+            $afterPattern = $rw->peekNth(2);
+            $hasEscape = $afterPattern !== null
+                && $afterPattern->type === TokenType::Keyword
+                && $afterPattern->keyword === 'ESCAPE';
+
+            if (!$hasEscape) {
+                // Consume the pattern token, then append ESCAPE '\'
+                $rw->consume();
+                $rw->add("ESCAPE '\\'");
             }
 
             return;
