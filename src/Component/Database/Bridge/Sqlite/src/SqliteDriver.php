@@ -81,7 +81,13 @@ final class SqliteDriver extends AbstractDriver
     {
         $this->ensureConnected();
 
-        return (string) $this->pdo->quote($value);
+        $quoted = $this->pdo->quote($value);
+
+        if ($quoted === false) {
+            throw new DriverException('PDO::quote() is not supported by the current SQLite PDO driver');
+        }
+
+        return $quoted;
     }
 
     protected function doConnect(): void
