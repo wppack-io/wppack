@@ -109,7 +109,7 @@ trait WpdbIntegrationTestTrait
     public function insertAndGetOption(): void
     {
         $wpdb = $this->getTestWpdb();
-        $result = $wpdb->insert('options', [
+        $result = $wpdb->insert($wpdb->prefix . 'options', [
             'option_name' => 'site_title',
             'option_value' => 'My WordPress Site',
             'autoload' => 'yes',
@@ -132,14 +132,14 @@ trait WpdbIntegrationTestTrait
     public function updateOption(): void
     {
         $wpdb = $this->getTestWpdb();
-        $wpdb->insert('options', [
+        $wpdb->insert($wpdb->prefix . 'options', [
             'option_name' => 'blogdescription',
             'option_value' => 'Just another WordPress site',
             'autoload' => 'yes',
         ]);
 
         $updated = $wpdb->update(
-            'options',
+            $wpdb->prefix . 'options',
             ['option_value' => 'A much better site'],
             ['option_name' => 'blogdescription'],
         );
@@ -160,12 +160,12 @@ trait WpdbIntegrationTestTrait
     public function deleteOption(): void
     {
         $wpdb = $this->getTestWpdb();
-        $wpdb->insert('options', [
+        $wpdb->insert($wpdb->prefix . 'options', [
             'option_name' => 'temp_option',
             'option_value' => 'delete_me',
         ]);
 
-        $deleted = $wpdb->delete('options', ['option_name' => 'temp_option']);
+        $deleted = $wpdb->delete($wpdb->prefix . 'options', ['option_name' => 'temp_option']);
         self::assertSame(1, $deleted);
 
         $value = $wpdb->get_var(
@@ -183,7 +183,7 @@ trait WpdbIntegrationTestTrait
     {
         $wpdb = $this->getTestWpdb();
 
-        $result = $wpdb->replace('options', [
+        $result = $wpdb->replace($wpdb->prefix . 'options', [
             'option_name' => 'replace_new',
             'option_value' => 'new_value',
             'autoload' => 'yes',
@@ -204,14 +204,14 @@ trait WpdbIntegrationTestTrait
         $p = $wpdb->prefix;
 
         // Insert original
-        $wpdb->insert('options', [
+        $wpdb->insert($wpdb->prefix . 'options', [
             'option_name' => 'replace_existing',
             'option_value' => 'original',
             'autoload' => 'yes',
         ]);
 
         // REPLACE with same unique key (option_name) → value should be updated
-        $wpdb->replace('options', [
+        $wpdb->replace($wpdb->prefix . 'options', [
             'option_name' => 'replace_existing',
             'option_value' => 'replaced',
             'autoload' => 'no',
@@ -230,10 +230,10 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('options', ['option_name' => 'keep_this', 'option_value' => 'preserved']);
-        $wpdb->insert('options', ['option_name' => 'replace_this', 'option_value' => 'old']);
+        $wpdb->insert($wpdb->prefix . 'options', ['option_name' => 'keep_this', 'option_value' => 'preserved']);
+        $wpdb->insert($wpdb->prefix . 'options', ['option_name' => 'replace_this', 'option_value' => 'old']);
 
-        $wpdb->replace('options', [
+        $wpdb->replace($wpdb->prefix . 'options', [
             'option_name' => 'replace_this',
             'option_value' => 'new',
         ]);
@@ -274,14 +274,14 @@ trait WpdbIntegrationTestTrait
         $p = $wpdb->prefix;
 
         // Insert initial row
-        $wpdb->replace('term_relationships', [
+        $wpdb->replace($wpdb->prefix . 'term_relationships', [
             'object_id' => 1,
             'term_taxonomy_id' => 10,
             'term_order' => 0,
         ]);
 
         // Replace with same composite key (object_id=1, term_taxonomy_id=10) → update term_order
-        $wpdb->replace('term_relationships', [
+        $wpdb->replace($wpdb->prefix . 'term_relationships', [
             'object_id' => 1,
             'term_taxonomy_id' => 10,
             'term_order' => 5,
@@ -296,7 +296,7 @@ trait WpdbIntegrationTestTrait
         self::assertSame('5', (string) (int) $order);
 
         // Different composite key should not conflict
-        $wpdb->replace('term_relationships', [
+        $wpdb->replace($wpdb->prefix . 'term_relationships', [
             'object_id' => 1,
             'term_taxonomy_id' => 20,
             'term_order' => 3,
@@ -314,7 +314,7 @@ trait WpdbIntegrationTestTrait
 
         // postmeta has PK (meta_id) but no UNIQUE constraint
         // REPLACE should work as a normal INSERT
-        $result = $wpdb->replace('postmeta', [
+        $result = $wpdb->replace($wpdb->prefix . 'postmeta', [
             'post_id' => 99,
             'meta_key' => 'no_unique_test',
             'meta_value' => 'value1',
@@ -349,7 +349,7 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $data = serialize(['key1' => 'value1', 'key2' => [1, 2, 3]]);
 
-        $wpdb->insert('options', [
+        $wpdb->insert($wpdb->prefix . 'options', [
             'option_name' => 'serialized_option',
             'option_value' => $data,
         ]);
@@ -370,7 +370,7 @@ trait WpdbIntegrationTestTrait
     public function optionWithUnicodeAndEmoji(): void
     {
         $wpdb = $this->getTestWpdb();
-        $wpdb->insert('options', [
+        $wpdb->insert($wpdb->prefix . 'options', [
             'option_name' => 'unicode_option',
             'option_value' => 'Hello 世界 🎉🚀 café résumé',
         ]);
@@ -391,7 +391,7 @@ trait WpdbIntegrationTestTrait
     public function insertAndGetPost(): void
     {
         $wpdb = $this->getTestWpdb();
-        $wpdb->insert('posts', [
+        $wpdb->insert($wpdb->prefix . 'posts', [
             'post_author' => 1,
             'post_date' => '2024-01-15 10:30:00',
             'post_content' => 'This is the post content.',
@@ -417,7 +417,7 @@ trait WpdbIntegrationTestTrait
     public function updatePost(): void
     {
         $wpdb = $this->getTestWpdb();
-        $wpdb->insert('posts', [
+        $wpdb->insert($wpdb->prefix . 'posts', [
             'post_title' => 'Draft Post',
             'post_content' => 'Draft content',
             'post_status' => 'draft',
@@ -426,7 +426,7 @@ trait WpdbIntegrationTestTrait
         $postId = $wpdb->insert_id;
 
         $updated = $wpdb->update(
-            'posts',
+            $wpdb->prefix . 'posts',
             ['post_title' => 'Published Post', 'post_status' => 'publish'],
             ['ID' => $postId],
         );
@@ -445,7 +445,7 @@ trait WpdbIntegrationTestTrait
     public function deletePost(): void
     {
         $wpdb = $this->getTestWpdb();
-        $wpdb->insert('posts', [
+        $wpdb->insert($wpdb->prefix . 'posts', [
             'post_title' => 'To Delete',
             'post_content' => '',
             'post_status' => 'trash',
@@ -453,7 +453,7 @@ trait WpdbIntegrationTestTrait
         ]);
         $postId = $wpdb->insert_id;
 
-        $deleted = $wpdb->delete('posts', ['ID' => $postId]);
+        $deleted = $wpdb->delete($wpdb->prefix . 'posts', ['ID' => $postId]);
         self::assertSame(1, $deleted);
 
         $row = $wpdb->get_row(
@@ -468,9 +468,9 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', ['post_title' => 'Pub 1', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
-        $wpdb->insert('posts', ['post_title' => 'Pub 2', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
-        $wpdb->insert('posts', ['post_title' => 'Draft 1', 'post_content' => '', 'post_status' => 'draft', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Pub 1', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Pub 2', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Draft 1', 'post_content' => '', 'post_status' => 'draft', 'post_type' => 'post']);
 
         $published = $wpdb->get_results(
             $wpdb->prepare("SELECT post_title FROM {$p}posts WHERE post_status = %s ORDER BY post_title", 'publish'),
@@ -488,7 +488,7 @@ trait WpdbIntegrationTestTrait
         $p = $wpdb->prefix;
 
         for ($i = 1; $i <= 5; ++$i) {
-            $wpdb->insert('posts', [
+            $wpdb->insert($wpdb->prefix . 'posts', [
                 'post_title' => "Post {$i}",
                 'post_content' => '',
                 'post_status' => 'publish',
@@ -509,10 +509,10 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', ['post_title' => 'P1', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
-        $wpdb->insert('posts', ['post_title' => 'P2', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'page']);
-        $wpdb->insert('posts', ['post_title' => 'P3', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
-        $wpdb->insert('posts', ['post_title' => 'D1', 'post_content' => '', 'post_status' => 'draft', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'P1', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'P2', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'page']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'P3', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'D1', 'post_content' => '', 'post_status' => 'draft', 'post_type' => 'post']);
 
         $counts = $wpdb->get_results(
             "SELECT post_status, COUNT(*) AS cnt FROM {$p}posts GROUP BY post_status ORDER BY post_status",
@@ -531,9 +531,9 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', ['post_title' => 'WordPress Tutorial', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
-        $wpdb->insert('posts', ['post_title' => 'PHP Guide', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
-        $wpdb->insert('posts', ['post_title' => 'Advanced WordPress', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'WordPress Tutorial', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'PHP Guide', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Advanced WordPress', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
 
         $like = '%' . $wpdb->esc_like('WordPress') . '%';
         $results = $wpdb->get_results(
@@ -552,7 +552,7 @@ trait WpdbIntegrationTestTrait
         $p = $wpdb->prefix;
 
         for ($i = 1; $i <= 10; ++$i) {
-            $wpdb->insert('posts', [
+            $wpdb->insert($wpdb->prefix . 'posts', [
                 'post_title' => "Found Row {$i}",
                 'post_content' => '',
                 'post_status' => 'publish',
@@ -575,10 +575,10 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', ['post_title' => 'Meta Test', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Meta Test', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
         $postId = $wpdb->insert_id;
 
-        $wpdb->insert('postmeta', [
+        $wpdb->insert($wpdb->prefix . 'postmeta', [
             'post_id' => $postId,
             'meta_key' => '_thumbnail_id',
             'meta_value' => '42',
@@ -601,10 +601,10 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', ['post_title' => 'Meta Update', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Meta Update', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
         $postId = $wpdb->insert_id;
 
-        $wpdb->insert('postmeta', ['post_id' => $postId, 'meta_key' => 'color', 'meta_value' => 'red']);
+        $wpdb->insert($wpdb->prefix . 'postmeta', ['post_id' => $postId, 'meta_key' => 'color', 'meta_value' => 'red']);
 
         $wpdb->query(
             $wpdb->prepare(
@@ -632,11 +632,11 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', ['post_title' => 'Meta Del', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Meta Del', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
         $postId = $wpdb->insert_id;
 
-        $wpdb->insert('postmeta', ['post_id' => $postId, 'meta_key' => 'temp', 'meta_value' => 'val']);
-        $wpdb->delete('postmeta', ['post_id' => $postId, 'meta_key' => 'temp']);
+        $wpdb->insert($wpdb->prefix . 'postmeta', ['post_id' => $postId, 'meta_key' => 'temp', 'meta_value' => 'val']);
+        $wpdb->delete($wpdb->prefix . 'postmeta', ['post_id' => $postId, 'meta_key' => 'temp']);
 
         $count = $wpdb->get_var(
             $wpdb->prepare("SELECT COUNT(*) FROM {$p}postmeta WHERE post_id = %d AND meta_key = %s", $postId, 'temp'),
@@ -651,12 +651,12 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', ['post_title' => 'Multi Meta', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Multi Meta', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
         $postId = $wpdb->insert_id;
 
-        $wpdb->insert('postmeta', ['post_id' => $postId, 'meta_key' => 'color', 'meta_value' => 'red']);
-        $wpdb->insert('postmeta', ['post_id' => $postId, 'meta_key' => 'size', 'meta_value' => 'large']);
-        $wpdb->insert('postmeta', ['post_id' => $postId, 'meta_key' => 'weight', 'meta_value' => '100']);
+        $wpdb->insert($wpdb->prefix . 'postmeta', ['post_id' => $postId, 'meta_key' => 'color', 'meta_value' => 'red']);
+        $wpdb->insert($wpdb->prefix . 'postmeta', ['post_id' => $postId, 'meta_key' => 'size', 'meta_value' => 'large']);
+        $wpdb->insert($wpdb->prefix . 'postmeta', ['post_id' => $postId, 'meta_key' => 'weight', 'meta_value' => '100']);
 
         $metas = $wpdb->get_results(
             $wpdb->prepare(
@@ -678,13 +678,13 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', ['post_title' => 'Featured', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Featured', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
         $id1 = $wpdb->insert_id;
-        $wpdb->insert('posts', ['post_title' => 'Normal', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Normal', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
         $id2 = $wpdb->insert_id;
 
-        $wpdb->insert('postmeta', ['post_id' => $id1, 'meta_key' => '_featured', 'meta_value' => '1']);
-        $wpdb->insert('postmeta', ['post_id' => $id2, 'meta_key' => '_featured', 'meta_value' => '0']);
+        $wpdb->insert($wpdb->prefix . 'postmeta', ['post_id' => $id1, 'meta_key' => '_featured', 'meta_value' => '1']);
+        $wpdb->insert($wpdb->prefix . 'postmeta', ['post_id' => $id2, 'meta_key' => '_featured', 'meta_value' => '0']);
 
         $results = $wpdb->get_results(
             "SELECT p.post_title FROM {$p}posts p
@@ -702,10 +702,10 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', ['post_title' => 'Null Meta', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Null Meta', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
         $postId = $wpdb->insert_id;
 
-        $wpdb->insert('postmeta', ['post_id' => $postId, 'meta_key' => 'nullable', 'meta_value' => null]);
+        $wpdb->insert($wpdb->prefix . 'postmeta', ['post_id' => $postId, 'meta_key' => 'nullable', 'meta_value' => null]);
 
         $row = $wpdb->get_row(
             $wpdb->prepare(
@@ -725,7 +725,7 @@ trait WpdbIntegrationTestTrait
     {
         $wpdb = $this->getTestWpdb();
 
-        $wpdb->insert('users', [
+        $wpdb->insert($wpdb->prefix . 'users', [
             'user_login' => 'testuser',
             'user_email' => 'test@example.com',
             'user_registered' => '2024-06-01 12:00:00',
@@ -747,7 +747,7 @@ trait WpdbIntegrationTestTrait
     {
         $wpdb = $this->getTestWpdb();
 
-        $wpdb->insert('users', [
+        $wpdb->insert($wpdb->prefix . 'users', [
             'user_login' => 'updatable',
             'user_email' => 'old@example.com',
             'display_name' => 'Old Name',
@@ -755,7 +755,7 @@ trait WpdbIntegrationTestTrait
         $userId = $wpdb->insert_id;
 
         $wpdb->update(
-            'users',
+            $wpdb->prefix . 'users',
             ['user_email' => 'new@example.com', 'display_name' => 'New Name'],
             ['ID' => $userId],
         );
@@ -774,14 +774,14 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('users', ['user_login' => 'deleteme', 'user_email' => 'del@example.com', 'display_name' => 'Del']);
+        $wpdb->insert($wpdb->prefix . 'users', ['user_login' => 'deleteme', 'user_email' => 'del@example.com', 'display_name' => 'Del']);
         $userId = $wpdb->insert_id;
 
-        $wpdb->insert('usermeta', ['user_id' => $userId, 'meta_key' => 'role', 'meta_value' => 'subscriber']);
-        $wpdb->insert('usermeta', ['user_id' => $userId, 'meta_key' => 'pref', 'meta_value' => 'dark']);
+        $wpdb->insert($wpdb->prefix . 'usermeta', ['user_id' => $userId, 'meta_key' => 'role', 'meta_value' => 'subscriber']);
+        $wpdb->insert($wpdb->prefix . 'usermeta', ['user_id' => $userId, 'meta_key' => 'pref', 'meta_value' => 'dark']);
 
-        $wpdb->delete('usermeta', ['user_id' => $userId]);
-        $wpdb->delete('users', ['ID' => $userId]);
+        $wpdb->delete($wpdb->prefix . 'usermeta', ['user_id' => $userId]);
+        $wpdb->delete($wpdb->prefix . 'users', ['ID' => $userId]);
 
         $metaCount = $wpdb->get_var(
             $wpdb->prepare("SELECT COUNT(*) FROM {$p}usermeta WHERE user_id = %d", $userId),
@@ -800,13 +800,13 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('users', ['user_login' => 'admin1', 'user_email' => 'a@e.com', 'display_name' => 'Admin']);
+        $wpdb->insert($wpdb->prefix . 'users', ['user_login' => 'admin1', 'user_email' => 'a@e.com', 'display_name' => 'Admin']);
         $adminId = $wpdb->insert_id;
-        $wpdb->insert('users', ['user_login' => 'sub1', 'user_email' => 's@e.com', 'display_name' => 'Sub']);
+        $wpdb->insert($wpdb->prefix . 'users', ['user_login' => 'sub1', 'user_email' => 's@e.com', 'display_name' => 'Sub']);
         $subId = $wpdb->insert_id;
 
-        $wpdb->insert('usermeta', ['user_id' => $adminId, 'meta_key' => 'wp_capabilities', 'meta_value' => 'a:1:{s:13:"administrator";b:1;}']);
-        $wpdb->insert('usermeta', ['user_id' => $subId, 'meta_key' => 'wp_capabilities', 'meta_value' => 'a:1:{s:10:"subscriber";b:1;}']);
+        $wpdb->insert($wpdb->prefix . 'usermeta', ['user_id' => $adminId, 'meta_key' => 'wp_capabilities', 'meta_value' => 'a:1:{s:13:"administrator";b:1;}']);
+        $wpdb->insert($wpdb->prefix . 'usermeta', ['user_id' => $subId, 'meta_key' => 'wp_capabilities', 'meta_value' => 'a:1:{s:10:"subscriber";b:1;}']);
 
         $admins = $wpdb->get_results(
             "SELECT u.display_name FROM {$p}users u
@@ -824,7 +824,7 @@ trait WpdbIntegrationTestTrait
     public function getVarReturnsScalar(): void
     {
         $wpdb = $this->getTestWpdb();
-        $wpdb->insert('posts', ['post_title' => 'Scalar', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Scalar', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
 
         $count = $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}posts");
 
@@ -835,7 +835,7 @@ trait WpdbIntegrationTestTrait
     public function getRowReturnsObject(): void
     {
         $wpdb = $this->getTestWpdb();
-        $wpdb->insert('posts', ['post_title' => 'Object Row', 'post_content' => 'body', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Object Row', 'post_content' => 'body', 'post_status' => 'publish', 'post_type' => 'post']);
         $postId = $wpdb->insert_id;
 
         $row = $wpdb->get_row(
@@ -852,7 +852,7 @@ trait WpdbIntegrationTestTrait
     public function getRowReturnsAssociativeArray(): void
     {
         $wpdb = $this->getTestWpdb();
-        $wpdb->insert('posts', ['post_title' => 'Assoc Row', 'post_content' => 'data', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Assoc Row', 'post_content' => 'data', 'post_status' => 'publish', 'post_type' => 'post']);
         $postId = $wpdb->insert_id;
 
         $row = $wpdb->get_row(
@@ -869,7 +869,7 @@ trait WpdbIntegrationTestTrait
     public function getRowReturnsNumericArray(): void
     {
         $wpdb = $this->getTestWpdb();
-        $wpdb->insert('posts', ['post_title' => 'Num Row', 'post_content' => 'nc', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Num Row', 'post_content' => 'nc', 'post_status' => 'publish', 'post_type' => 'post']);
         $postId = $wpdb->insert_id;
 
         $row = $wpdb->get_row(
@@ -888,9 +888,9 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', ['post_title' => 'Col A', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
-        $wpdb->insert('posts', ['post_title' => 'Col B', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
-        $wpdb->insert('posts', ['post_title' => 'Col C', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Col A', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Col B', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Col C', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
 
         $titles = $wpdb->get_col("SELECT post_title FROM {$p}posts ORDER BY post_title");
 
@@ -903,8 +903,8 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', ['post_title' => 'Res 1', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
-        $wpdb->insert('posts', ['post_title' => 'Res 2', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Res 1', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Res 2', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
 
         $results = $wpdb->get_results("SELECT post_title FROM {$p}posts ORDER BY post_title", OBJECT);
 
@@ -919,8 +919,8 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', ['post_title' => 'Arr 1', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
-        $wpdb->insert('posts', ['post_title' => 'Arr 2', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Arr 1', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Arr 2', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
 
         $results = $wpdb->get_results("SELECT post_title FROM {$p}posts ORDER BY post_title", ARRAY_A);
 
@@ -935,7 +935,7 @@ trait WpdbIntegrationTestTrait
     public function prepareWithStringPlaceholder(): void
     {
         $wpdb = $this->getTestWpdb();
-        $wpdb->insert('options', ['option_name' => 'str_test', 'option_value' => 'found']);
+        $wpdb->insert($wpdb->prefix . 'options', ['option_name' => 'str_test', 'option_value' => 'found']);
 
         $value = $wpdb->get_var(
             $wpdb->prepare("SELECT option_value FROM {$wpdb->prefix}options WHERE option_name = %s", 'str_test'),
@@ -948,7 +948,7 @@ trait WpdbIntegrationTestTrait
     public function prepareWithIntPlaceholder(): void
     {
         $wpdb = $this->getTestWpdb();
-        $wpdb->insert('posts', ['post_title' => 'Int Test', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Int Test', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
         $postId = $wpdb->insert_id;
 
         $title = $wpdb->get_var(
@@ -962,7 +962,7 @@ trait WpdbIntegrationTestTrait
     public function prepareWithMixedPlaceholders(): void
     {
         $wpdb = $this->getTestWpdb();
-        $wpdb->insert('posts', ['post_title' => 'Mixed', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_author' => 5]);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Mixed', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_author' => 5]);
         $postId = $wpdb->insert_id;
 
         $title = $wpdb->get_var(
@@ -981,7 +981,7 @@ trait WpdbIntegrationTestTrait
     public function prepareWithIdentifierPlaceholder(): void
     {
         $wpdb = $this->getTestWpdb();
-        $wpdb->insert('posts', ['post_title' => 'Ident', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Ident', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
 
         $value = $wpdb->get_var(
             $wpdb->prepare(
@@ -1000,8 +1000,8 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', ['post_title' => '100% Complete', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
-        $wpdb->insert('posts', ['post_title' => 'Normal Title', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => '100% Complete', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Normal Title', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
 
         $like = '%' . $wpdb->esc_like('100%') . '%';
         $results = $wpdb->get_results(
@@ -1020,9 +1020,9 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', ['post_title' => 'B', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_author' => 2]);
-        $wpdb->insert('posts', ['post_title' => 'A', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_author' => 1]);
-        $wpdb->insert('posts', ['post_title' => 'C', 'post_content' => '', 'post_status' => 'draft', 'post_type' => 'post', 'post_author' => 1]);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'B', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_author' => 2]);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'A', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_author' => 1]);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'C', 'post_content' => '', 'post_status' => 'draft', 'post_type' => 'post', 'post_author' => 1]);
 
         $results = $wpdb->get_results(
             "SELECT post_title FROM {$p}posts ORDER BY post_status DESC, post_title ASC",
@@ -1040,9 +1040,9 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', ['post_title' => 'P1', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_author' => 1]);
-        $wpdb->insert('posts', ['post_title' => 'P2', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_author' => 1]);
-        $wpdb->insert('posts', ['post_title' => 'P3', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_author' => 2]);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'P1', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_author' => 1]);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'P2', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_author' => 1]);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'P3', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_author' => 2]);
 
         $counts = $wpdb->get_results(
             "SELECT post_author, COUNT(*) AS post_count FROM {$p}posts GROUP BY post_author ORDER BY post_author",
@@ -1061,11 +1061,11 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', ['post_title' => 'Has Meta', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Has Meta', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
         $id1 = $wpdb->insert_id;
-        $wpdb->insert('posts', ['post_title' => 'No Meta', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'No Meta', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
 
-        $wpdb->insert('postmeta', ['post_id' => $id1, 'meta_key' => 'special', 'meta_value' => 'yes']);
+        $wpdb->insert($wpdb->prefix . 'postmeta', ['post_id' => $id1, 'meta_key' => 'special', 'meta_value' => 'yes']);
 
         $results = $wpdb->get_results(
             "SELECT post_title FROM {$p}posts WHERE ID IN (
@@ -1083,9 +1083,9 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', ['post_title' => 'Jan', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_date' => '2024-01-15 10:00:00']);
-        $wpdb->insert('posts', ['post_title' => 'Mar', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_date' => '2024-03-15 10:00:00']);
-        $wpdb->insert('posts', ['post_title' => 'Jun', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_date' => '2024-06-15 10:00:00']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Jan', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_date' => '2024-01-15 10:00:00']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Mar', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_date' => '2024-03-15 10:00:00']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Jun', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_date' => '2024-06-15 10:00:00']);
 
         $results = $wpdb->get_results(
             $wpdb->prepare(
@@ -1105,8 +1105,8 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('postmeta', ['post_id' => 1, 'meta_key' => 'key1', 'meta_value' => 'val']);
-        $wpdb->insert('postmeta', ['post_id' => 2, 'meta_key' => null, 'meta_value' => null]);
+        $wpdb->insert($wpdb->prefix . 'postmeta', ['post_id' => 1, 'meta_key' => 'key1', 'meta_value' => 'val']);
+        $wpdb->insert($wpdb->prefix . 'postmeta', ['post_id' => 2, 'meta_key' => null, 'meta_value' => null]);
 
         $withKey = $wpdb->get_results("SELECT post_id FROM {$p}postmeta WHERE meta_key IS NOT NULL");
         self::assertCount(1, $withKey);
@@ -1121,11 +1121,11 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', ['post_title' => 'P1', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'P1', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
         $id1 = $wpdb->insert_id;
-        $wpdb->insert('posts', ['post_title' => 'P2', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'P2', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
         $id2 = $wpdb->insert_id;
-        $wpdb->insert('posts', ['post_title' => 'P3', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'P3', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
 
         $results = $wpdb->get_results(
             $wpdb->prepare(
@@ -1146,9 +1146,9 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', ['post_title' => 'A', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
-        $wpdb->insert('posts', ['post_title' => 'B', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
-        $wpdb->insert('posts', ['post_title' => 'C', 'post_content' => '', 'post_status' => 'draft', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'A', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'B', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'C', 'post_content' => '', 'post_status' => 'draft', 'post_type' => 'post']);
 
         $statuses = $wpdb->get_col("SELECT DISTINCT post_status FROM {$p}posts ORDER BY post_status");
 
@@ -1161,7 +1161,7 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', ['post_title' => 'Alias Test', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Alias Test', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
 
         $row = $wpdb->get_row("SELECT post_title AS title, post_status AS status FROM {$p}posts LIMIT 1");
 
@@ -1178,7 +1178,7 @@ trait WpdbIntegrationTestTrait
         $p = $wpdb->prefix;
 
         $wpdb->query('START TRANSACTION');
-        $wpdb->insert('posts', ['post_title' => 'TX Commit', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'TX Commit', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
         $wpdb->query('COMMIT');
 
         $count = $wpdb->get_var("SELECT COUNT(*) FROM {$p}posts WHERE post_title = 'TX Commit'");
@@ -1191,10 +1191,10 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', ['post_title' => 'Baseline', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Baseline', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
 
         $wpdb->query('START TRANSACTION');
-        $wpdb->insert('posts', ['post_title' => 'TX Rollback', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'TX Rollback', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
         $wpdb->query('ROLLBACK');
 
         $count = $wpdb->get_var("SELECT COUNT(*) FROM {$p}posts WHERE post_title = 'TX Rollback'");
@@ -1210,7 +1210,7 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
 
         $special = "It's a \"test\" with \\ backslash & <html> 'quotes'";
-        $wpdb->insert('options', ['option_name' => 'special_chars', 'option_value' => $special]);
+        $wpdb->insert($wpdb->prefix . 'options', ['option_name' => 'special_chars', 'option_value' => $special]);
 
         $value = $wpdb->get_var(
             $wpdb->prepare("SELECT option_value FROM {$wpdb->prefix}options WHERE option_name = %s", 'special_chars'),
@@ -1225,8 +1225,8 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('postmeta', ['post_id' => 1, 'meta_key' => 'empty', 'meta_value' => '']);
-        $wpdb->insert('postmeta', ['post_id' => 2, 'meta_key' => 'null_val', 'meta_value' => null]);
+        $wpdb->insert($wpdb->prefix . 'postmeta', ['post_id' => 1, 'meta_key' => 'empty', 'meta_value' => '']);
+        $wpdb->insert($wpdb->prefix . 'postmeta', ['post_id' => 2, 'meta_key' => 'null_val', 'meta_value' => null]);
 
         // WordPress get_var() returns null for empty strings (by design).
         // Use get_row() to distinguish empty string from NULL.
@@ -1248,7 +1248,7 @@ trait WpdbIntegrationTestTrait
 
         $largeContent = str_repeat('WordPress content block. ', 10000);
 
-        $wpdb->insert('posts', [
+        $wpdb->insert($wpdb->prefix . 'posts', [
             'post_title' => 'Large Post',
             'post_content' => $largeContent,
             'post_status' => 'publish',
@@ -1270,10 +1270,10 @@ trait WpdbIntegrationTestTrait
     {
         $wpdb = $this->getTestWpdb();
 
-        $wpdb->insert('posts', ['post_title' => 'First', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'First', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
         $id1 = $wpdb->insert_id;
 
-        $wpdb->insert('posts', ['post_title' => 'Second', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Second', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
         $id2 = $wpdb->insert_id;
 
         self::assertGreaterThan(0, $id1);
@@ -1286,9 +1286,9 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', ['post_title' => 'U1', 'post_content' => '', 'post_status' => 'draft', 'post_type' => 'post']);
-        $wpdb->insert('posts', ['post_title' => 'U2', 'post_content' => '', 'post_status' => 'draft', 'post_type' => 'post']);
-        $wpdb->insert('posts', ['post_title' => 'U3', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'U1', 'post_content' => '', 'post_status' => 'draft', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'U2', 'post_content' => '', 'post_status' => 'draft', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'U3', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
 
         $result = $wpdb->query(
             $wpdb->prepare("UPDATE {$p}posts SET post_status = %s WHERE post_status = %s", 'pending', 'draft'),
@@ -1303,9 +1303,9 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', ['post_title' => 'D1', 'post_content' => '', 'post_status' => 'trash', 'post_type' => 'post']);
-        $wpdb->insert('posts', ['post_title' => 'D2', 'post_content' => '', 'post_status' => 'trash', 'post_type' => 'post']);
-        $wpdb->insert('posts', ['post_title' => 'K1', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'D1', 'post_content' => '', 'post_status' => 'trash', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'D2', 'post_content' => '', 'post_status' => 'trash', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'K1', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
 
         $result = $wpdb->query("DELETE FROM {$p}posts WHERE post_status = 'trash'");
 
@@ -1318,15 +1318,15 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('users', ['user_login' => 'author1', 'user_email' => 'a1@e.com', 'display_name' => 'Author One']);
+        $wpdb->insert($wpdb->prefix . 'users', ['user_login' => 'author1', 'user_email' => 'a1@e.com', 'display_name' => 'Author One']);
         $author1 = $wpdb->insert_id;
-        $wpdb->insert('users', ['user_login' => 'author2', 'user_email' => 'a2@e.com', 'display_name' => 'Author Two']);
+        $wpdb->insert($wpdb->prefix . 'users', ['user_login' => 'author2', 'user_email' => 'a2@e.com', 'display_name' => 'Author Two']);
         $author2 = $wpdb->insert_id;
 
-        $wpdb->insert('posts', ['post_title' => 'A1P1', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_author' => $author1]);
-        $wpdb->insert('posts', ['post_title' => 'A1P2', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_author' => $author1]);
-        $wpdb->insert('posts', ['post_title' => 'A1P3', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_author' => $author1]);
-        $wpdb->insert('posts', ['post_title' => 'A2P1', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_author' => $author2]);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'A1P1', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_author' => $author1]);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'A1P2', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_author' => $author1]);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'A1P3', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_author' => $author1]);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'A2P1', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_author' => $author2]);
 
         $results = $wpdb->get_results(
             "SELECT u.display_name, COUNT(p.ID) AS post_count
@@ -1349,11 +1349,11 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', ['post_title' => 'With Meta', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'With Meta', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
         $id1 = $wpdb->insert_id;
-        $wpdb->insert('posts', ['post_title' => 'Without Meta', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Without Meta', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
 
-        $wpdb->insert('postmeta', ['post_id' => $id1, 'meta_key' => 'color', 'meta_value' => 'red']);
+        $wpdb->insert($wpdb->prefix . 'postmeta', ['post_id' => $id1, 'meta_key' => 'color', 'meta_value' => 'red']);
 
         $results = $wpdb->get_results(
             "SELECT p.post_title, pm.meta_value
@@ -1377,8 +1377,8 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', ['post_title' => 'Published', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
-        $wpdb->insert('posts', ['post_title' => 'Drafted', 'post_content' => '', 'post_status' => 'draft', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Published', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Drafted', 'post_content' => '', 'post_status' => 'draft', 'post_type' => 'post']);
 
         $results = $wpdb->get_results(
             "SELECT post_title,
@@ -1403,11 +1403,11 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', ['post_title' => 'Commented', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Commented', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
         $id1 = $wpdb->insert_id;
-        $wpdb->insert('posts', ['post_title' => 'Uncommented', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Uncommented', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
 
-        $wpdb->insert('postmeta', ['post_id' => $id1, 'meta_key' => '_has_comments', 'meta_value' => '1']);
+        $wpdb->insert($wpdb->prefix . 'postmeta', ['post_id' => $id1, 'meta_key' => '_has_comments', 'meta_value' => '1']);
 
         $results = $wpdb->get_results(
             "SELECT post_title FROM {$p}posts p
@@ -1426,15 +1426,15 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('users', ['user_login' => 'prolific', 'user_email' => 'p@e.com', 'display_name' => 'Prolific']);
+        $wpdb->insert($wpdb->prefix . 'users', ['user_login' => 'prolific', 'user_email' => 'p@e.com', 'display_name' => 'Prolific']);
         $u1 = $wpdb->insert_id;
-        $wpdb->insert('users', ['user_login' => 'lazy', 'user_email' => 'l@e.com', 'display_name' => 'Lazy']);
+        $wpdb->insert($wpdb->prefix . 'users', ['user_login' => 'lazy', 'user_email' => 'l@e.com', 'display_name' => 'Lazy']);
         $u2 = $wpdb->insert_id;
 
         for ($i = 0; $i < 5; ++$i) {
-            $wpdb->insert('posts', ['post_title' => "PP{$i}", 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_author' => $u1]);
+            $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => "PP{$i}", 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_author' => $u1]);
         }
-        $wpdb->insert('posts', ['post_title' => 'LP1', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_author' => $u2]);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'LP1', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_author' => $u2]);
 
         $results = $wpdb->get_results(
             "SELECT u.display_name, COUNT(*) AS cnt
@@ -1454,7 +1454,7 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('users', ['user_login' => 'jdoe', 'user_email' => 'j@e.com', 'display_name' => 'John Doe']);
+        $wpdb->insert($wpdb->prefix . 'users', ['user_login' => 'jdoe', 'user_email' => 'j@e.com', 'display_name' => 'John Doe']);
 
         $results = $wpdb->get_results(
             "SELECT CONCAT(user_login, '@', display_name) AS full_ref FROM {$p}users",
@@ -1470,7 +1470,7 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', ['post_title' => 'IFNULL Test', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'IFNULL Test', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
         $id = $wpdb->insert_id;
 
         $result = $wpdb->get_var(
@@ -1488,7 +1488,7 @@ trait WpdbIntegrationTestTrait
     {
         $wpdb = $this->getTestWpdb();
 
-        $wpdb->insert('posts', [
+        $wpdb->insert($wpdb->prefix . 'posts', [
             'post_title' => 'Original',
             'post_content' => 'Original content',
             'post_status' => 'draft',
@@ -1497,7 +1497,7 @@ trait WpdbIntegrationTestTrait
         ]);
         $postId = $wpdb->insert_id;
 
-        $wpdb->update('posts', [
+        $wpdb->update($wpdb->prefix . 'posts', [
             'post_title' => 'Updated',
             'post_content' => 'Updated content',
             'post_status' => 'publish',
@@ -1607,7 +1607,7 @@ trait WpdbIntegrationTestTrait
         $p = $wpdb->prefix;
 
         for ($i = 1; $i <= 5; ++$i) {
-            $wpdb->insert('posts', ['post_title' => "DL{$i}", 'post_content' => '', 'post_status' => 'trash', 'post_type' => 'post']);
+            $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => "DL{$i}", 'post_content' => '', 'post_status' => 'trash', 'post_type' => 'post']);
         }
 
         // DELETE ... LIMIT N (WordPress transient cleanup pattern)
@@ -1624,7 +1624,7 @@ trait WpdbIntegrationTestTrait
         $p = $wpdb->prefix;
 
         for ($i = 1; $i <= 5; ++$i) {
-            $wpdb->insert('posts', ['post_title' => "UL{$i}", 'post_content' => '', 'post_status' => 'draft', 'post_type' => 'post']);
+            $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => "UL{$i}", 'post_content' => '', 'post_status' => 'draft', 'post_type' => 'post']);
         }
 
         $wpdb->query("UPDATE {$p}posts SET post_status = 'publish' WHERE post_status = 'draft' LIMIT 2");
@@ -1642,8 +1642,8 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', ['post_title' => 'T1', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
-        $wpdb->insert('posts', ['post_title' => 'T2', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'T1', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'T2', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
 
         $wpdb->query("TRUNCATE TABLE {$p}posts");
 
@@ -1701,7 +1701,7 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', [
+        $wpdb->insert($wpdb->prefix . 'posts', [
             'post_title' => 'DateAdd',
             'post_content' => '',
             'post_status' => 'publish',
@@ -1723,7 +1723,7 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', [
+        $wpdb->insert($wpdb->prefix . 'posts', [
             'post_title' => 'DateSub',
             'post_content' => '',
             'post_status' => 'publish',
@@ -1746,7 +1746,7 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', [
+        $wpdb->insert($wpdb->prefix . 'posts', [
             'post_title' => 'Extract',
             'post_content' => '',
             'post_status' => 'publish',
@@ -1793,7 +1793,7 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', [
+        $wpdb->insert($wpdb->prefix . 'posts', [
             'post_title' => 'FmtTest',
             'post_content' => '',
             'post_status' => 'publish',
@@ -1816,7 +1816,7 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('options', ['option_name' => 'lr_test', 'option_value' => 'WordPress']);
+        $wpdb->insert($wpdb->prefix . 'options', ['option_name' => 'lr_test', 'option_value' => 'WordPress']);
 
         $left = $wpdb->get_var("SELECT LEFT(option_value, 4) FROM {$p}options WHERE option_name = 'lr_test'");
         self::assertSame('Word', $left);
@@ -1831,7 +1831,7 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('options', ['option_name' => 'sub_test', 'option_value' => 'WordPress']);
+        $wpdb->insert($wpdb->prefix . 'options', ['option_name' => 'sub_test', 'option_value' => 'WordPress']);
 
         $result = $wpdb->get_var("SELECT SUBSTRING(option_value, 5, 5) FROM {$p}options WHERE option_name = 'sub_test'");
         self::assertSame('Press', $result);
@@ -1843,7 +1843,7 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('options', ['option_name' => 'loc_test', 'option_value' => 'Hello World']);
+        $wpdb->insert($wpdb->prefix . 'options', ['option_name' => 'loc_test', 'option_value' => 'Hello World']);
 
         $pos = $wpdb->get_var("SELECT LOCATE('World', option_value) FROM {$p}options WHERE option_name = 'loc_test'");
         self::assertSame('7', (string) (int) $pos);
@@ -1855,7 +1855,7 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('users', ['user_login' => 'cws', 'user_email' => 'cws@e.com', 'display_name' => 'CWS']);
+        $wpdb->insert($wpdb->prefix . 'users', ['user_login' => 'cws', 'user_email' => 'cws@e.com', 'display_name' => 'CWS']);
 
         $result = $wpdb->get_var("SELECT CONCAT_WS(', ', user_login, user_email) FROM {$p}users WHERE user_login = 'cws'");
         self::assertSame('cws, cws@e.com', $result);
@@ -1867,8 +1867,8 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('posts', ['post_title' => 'IfTest', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
-        $wpdb->insert('posts', ['post_title' => 'IfDraft', 'post_content' => '', 'post_status' => 'draft', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'IfTest', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'IfDraft', 'post_content' => '', 'post_status' => 'draft', 'post_type' => 'post']);
 
         $results = $wpdb->get_results(
             "SELECT post_title, IF(post_status = 'publish', 'yes', 'no') AS is_pub FROM {$p}posts ORDER BY post_title",
@@ -1899,7 +1899,7 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('postmeta', ['post_id' => 1, 'meta_key' => 'num', 'meta_value' => '42']);
+        $wpdb->insert($wpdb->prefix . 'postmeta', ['post_id' => 1, 'meta_key' => 'num', 'meta_value' => '42']);
 
         $result = $wpdb->get_var("SELECT CAST(meta_value AS SIGNED) FROM {$p}postmeta WHERE meta_key = 'num'");
         self::assertSame('42', (string) (int) $result);
@@ -1916,7 +1916,7 @@ trait WpdbIntegrationTestTrait
         $wpdb->query("ALTER TABLE {$p}posts ADD COLUMN post_views bigint(20) NOT NULL DEFAULT 0");
 
         // Verify column exists by inserting/selecting
-        $wpdb->insert('posts', ['post_title' => 'Alter', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Alter', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
         $postId = $wpdb->insert_id;
 
         $views = $wpdb->get_var(
@@ -1936,7 +1936,7 @@ trait WpdbIntegrationTestTrait
         $wpdb->query("ALTER TABLE {$p}posts DROP COLUMN temp_col");
 
         // Verify column is gone — SELECT should not include it
-        $wpdb->insert('posts', ['post_title' => 'AfterDrop', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'AfterDrop', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
         $postId = $wpdb->insert_id;
 
         $row = $wpdb->get_row(
@@ -1956,7 +1956,7 @@ trait WpdbIntegrationTestTrait
         $wpdb->query("ALTER TABLE {$p}posts ADD INDEX idx_status_type (post_status, post_type)");
 
         // Verify by inserting and querying (index should not change behavior, just not error)
-        $wpdb->insert('posts', ['post_title' => 'Idx', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Idx', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
 
         $result = $wpdb->get_results(
             "SELECT post_title FROM {$p}posts WHERE post_status = 'publish' AND post_type = 'post'",
@@ -1980,7 +1980,7 @@ trait WpdbIntegrationTestTrait
         $wpdb->query("ALTER TABLE {$p}posts ADD COLUMN old_col varchar(50) DEFAULT 'val'");
         $wpdb->query("ALTER TABLE {$p}posts CHANGE old_col new_col varchar(50) DEFAULT 'val'");
 
-        $wpdb->insert('posts', ['post_title' => 'Renamed', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Renamed', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
         $postId = $wpdb->insert_id;
 
         $row = $wpdb->get_row(
@@ -2086,17 +2086,17 @@ trait WpdbIntegrationTestTrait
         $p = $wpdb->prefix;
 
         // Create posts with different dates
-        $wpdb->insert('posts', ['post_title' => 'Jan', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_date' => '2024-01-15 10:00:00']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Jan', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_date' => '2024-01-15 10:00:00']);
         $id1 = $wpdb->insert_id;
-        $wpdb->insert('posts', ['post_title' => 'Jan2', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_date' => '2024-01-20 10:00:00']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Jan2', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_date' => '2024-01-20 10:00:00']);
         $id2 = $wpdb->insert_id;
-        $wpdb->insert('posts', ['post_title' => 'Mar', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_date' => '2024-03-10 10:00:00']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Mar', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post', 'post_date' => '2024-03-10 10:00:00']);
         $id3 = $wpdb->insert_id;
 
         // Create term relationships (simulate taxonomy assignment)
-        $wpdb->insert('term_relationships', ['object_id' => $id1, 'term_taxonomy_id' => 8]);
-        $wpdb->insert('term_relationships', ['object_id' => $id2, 'term_taxonomy_id' => 8]);
-        $wpdb->insert('term_relationships', ['object_id' => $id3, 'term_taxonomy_id' => 8]);
+        $wpdb->insert($wpdb->prefix . 'term_relationships', ['object_id' => $id1, 'term_taxonomy_id' => 8]);
+        $wpdb->insert($wpdb->prefix . 'term_relationships', ['object_id' => $id2, 'term_taxonomy_id' => 8]);
+        $wpdb->insert($wpdb->prefix . 'term_relationships', ['object_id' => $id3, 'term_taxonomy_id' => 8]);
 
         // WordPress/Polylang archive query pattern: YEAR + MONTH + JOIN + GROUP BY
         $results = $wpdb->get_results(
@@ -2125,9 +2125,9 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('options', ['option_name' => 'widget_text_1', 'option_value' => 'a']);
-        $wpdb->insert('options', ['option_name' => 'widget_text_2', 'option_value' => 'b']);
-        $wpdb->insert('options', ['option_name' => 'sidebar_widgets', 'option_value' => 'c']);
+        $wpdb->insert($wpdb->prefix . 'options', ['option_name' => 'widget_text_1', 'option_value' => 'a']);
+        $wpdb->insert($wpdb->prefix . 'options', ['option_name' => 'widget_text_2', 'option_value' => 'b']);
+        $wpdb->insert($wpdb->prefix . 'options', ['option_name' => 'sidebar_widgets', 'option_value' => 'c']);
 
         $results = $wpdb->get_results(
             "SELECT option_name FROM {$p}options WHERE option_name REGEXP '^widget_text_[0-9]+$' ORDER BY option_name",
@@ -2149,7 +2149,7 @@ trait WpdbIntegrationTestTrait
         $malicious = "'; DROP TABLE {$p}options; --";
 
         // Insert malicious value via prepared statement
-        $wpdb->insert('options', [
+        $wpdb->insert($wpdb->prefix . 'options', [
             'option_name' => 'injection_test',
             'option_value' => $malicious,
         ]);
@@ -2171,7 +2171,7 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('options', ['option_name' => 'safe_option', 'option_value' => 'safe']);
+        $wpdb->insert($wpdb->prefix . 'options', ['option_name' => 'safe_option', 'option_value' => 'safe']);
 
         // Attempt injection via LIKE pattern
         $malicious = "%' OR '1'='1";
@@ -2189,7 +2189,7 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('options', ['option_name' => 'unique_test', 'option_value' => 'first']);
+        $wpdb->insert($wpdb->prefix . 'options', ['option_name' => 'unique_test', 'option_value' => 'first']);
 
         // Direct INSERT with duplicate unique key should fail
         $result = $wpdb->query(
@@ -2254,11 +2254,11 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('postmeta', ['post_id' => 1, 'meta_key' => null, 'meta_value' => 'original']);
+        $wpdb->insert($wpdb->prefix . 'postmeta', ['post_id' => 1, 'meta_key' => null, 'meta_value' => 'original']);
 
         // Update rows WHERE meta_key IS NULL
         $affected = $wpdb->update(
-            'postmeta',
+            $wpdb->prefix . 'postmeta',
             ['meta_value' => 'updated'],
             ['post_id' => 1, 'meta_key' => null],
         );
@@ -2277,11 +2277,11 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
 
-        $wpdb->insert('postmeta', ['post_id' => 2, 'meta_key' => null, 'meta_value' => 'to_delete']);
-        $wpdb->insert('postmeta', ['post_id' => 2, 'meta_key' => 'keep', 'meta_value' => 'kept']);
+        $wpdb->insert($wpdb->prefix . 'postmeta', ['post_id' => 2, 'meta_key' => null, 'meta_value' => 'to_delete']);
+        $wpdb->insert($wpdb->prefix . 'postmeta', ['post_id' => 2, 'meta_key' => 'keep', 'meta_value' => 'kept']);
 
         // Delete rows WHERE meta_key IS NULL
-        $deleted = $wpdb->delete('postmeta', ['post_id' => 2, 'meta_key' => null]);
+        $deleted = $wpdb->delete($wpdb->prefix . 'postmeta', ['post_id' => 2, 'meta_key' => null]);
 
         self::assertSame(1, $deleted);
 
@@ -2300,7 +2300,7 @@ trait WpdbIntegrationTestTrait
         $wpdb = $this->getTestWpdb();
 
         $wpdb->last_error = '';
-        $result = $wpdb->insert('options', ['this_column_does_not_exist' => 'x']);
+        $result = $wpdb->insert($wpdb->prefix . 'options', ['this_column_does_not_exist' => 'x']);
 
         self::assertFalse($result);
         self::assertNotEmpty($wpdb->last_error);
@@ -2313,7 +2313,7 @@ trait WpdbIntegrationTestTrait
 
         $wpdb->last_error = '';
         $result = $wpdb->update(
-            'options',
+            $wpdb->prefix . 'options',
             ['this_column_does_not_exist' => 'x'],
             ['option_name' => 'siteurl'],
         );
@@ -2329,7 +2329,7 @@ trait WpdbIntegrationTestTrait
 
         // Deleting a non-existent row returns 0 (not false)
         $result = $wpdb->delete(
-            'options',
+            $wpdb->prefix . 'options',
             ['option_name' => '__definitely_does_not_exist__'],
         );
 

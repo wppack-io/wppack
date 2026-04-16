@@ -224,7 +224,7 @@ class WpPackWpdb extends \wpdb
     {
 
         $platform = $this->writer->getPlatform();
-        $quotedTable = $platform->quoteIdentifier($this->prefix . $table);
+        $quotedTable = $platform->quoteIdentifier($table);
 
         $setClauses = [];
         $params = [];
@@ -261,7 +261,7 @@ class WpPackWpdb extends \wpdb
     {
 
         $platform = $this->writer->getPlatform();
-        $quotedTable = $platform->quoteIdentifier($this->prefix . $table);
+        $quotedTable = $platform->quoteIdentifier($table);
 
         [$whereClauses, $params] = $this->buildWhereClauses($where, $platform);
 
@@ -564,7 +564,7 @@ class WpPackWpdb extends \wpdb
         }
 
         $platform = $this->writer->getPlatform();
-        $quotedTable = $platform->quoteIdentifier($this->prefix . $table);
+        $quotedTable = $platform->quoteIdentifier($table);
 
         $columns = [];
         $placeholders = [];

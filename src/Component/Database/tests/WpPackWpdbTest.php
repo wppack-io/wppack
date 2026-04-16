@@ -156,7 +156,7 @@ final class WpPackWpdbTest extends TestCase
     #[Test]
     public function insertUsesDirectPreparedStatement(): void
     {
-        $result = $this->wpdb->insert('posts', [
+        $result = $this->wpdb->insert('wptests_posts', [
             'post_title' => 'Inserted',
             'post_status' => 'publish',
         ]);
@@ -174,10 +174,10 @@ final class WpPackWpdbTest extends TestCase
     #[Test]
     public function updateUsesDirectPreparedStatement(): void
     {
-        $this->wpdb->insert('posts', ['post_title' => 'Old', 'post_status' => 'draft']);
+        $this->wpdb->insert('wptests_posts', ['post_title' => 'Old', 'post_status' => 'draft']);
 
         $result = $this->wpdb->update(
-            'posts',
+            'wptests_posts',
             ['post_title' => 'New'],
             ['post_status' => 'draft'],
         );
@@ -192,9 +192,9 @@ final class WpPackWpdbTest extends TestCase
     #[Test]
     public function deleteUsesDirectPreparedStatement(): void
     {
-        $this->wpdb->insert('posts', ['post_title' => 'ToDelete', 'post_status' => 'trash']);
+        $this->wpdb->insert('wptests_posts', ['post_title' => 'ToDelete', 'post_status' => 'trash']);
 
-        $result = $this->wpdb->delete('posts', ['post_status' => 'trash']);
+        $result = $this->wpdb->delete('wptests_posts', ['post_status' => 'trash']);
 
         self::assertSame(1, $result);
 
@@ -324,8 +324,8 @@ final class WpPackWpdbTest extends TestCase
     public function replaceUsesDirectPreparedStatement(): void
     {
         $this->wpdb->query("CREATE TABLE IF NOT EXISTS wptests_options (option_id INTEGER PRIMARY KEY, option_name TEXT UNIQUE, option_value TEXT)");
-        $this->wpdb->replace('options', ['option_name' => 'test', 'option_value' => 'value1']);
-        $this->wpdb->replace('options', ['option_name' => 'test', 'option_value' => 'value2']);
+        $this->wpdb->replace('wptests_options', ['option_name' => 'test', 'option_value' => 'value1']);
+        $this->wpdb->replace('wptests_options', ['option_name' => 'test', 'option_value' => 'value2']);
 
         $sql = $this->wpdb->prepare('SELECT option_value FROM wptests_options WHERE option_name = %s', 'test');
         $this->wpdb->query($sql);
@@ -395,7 +395,7 @@ final class WpPackWpdbTest extends TestCase
     #[Test]
     public function insertWithEmptyDataReturnsFalse(): void
     {
-        $result = $this->wpdb->insert('posts', []);
+        $result = $this->wpdb->insert('wptests_posts', []);
 
         self::assertFalse($result);
     }
