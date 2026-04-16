@@ -15,6 +15,7 @@ namespace WpPack\Component\Database;
 
 use Psr\Log\LoggerInterface;
 use WpPack\Component\Database\Driver\DriverInterface;
+use WpPack\Component\Database\Placeholder\PreparedBank;
 use WpPack\Component\Database\Translator\QueryTranslatorInterface;
 
 /**
@@ -35,6 +36,11 @@ class WpPackWpdb extends \wpdb
     /** @var int|null Row count from the most recent SQL_CALC_FOUND_ROWS query */
     private ?int $lastFoundRows = null;
 
+    private PreparedBank $preparedBank;
+
+    /** @var list<mixed> params that were bound to the most recent query() call */
+    public array $last_params = [];
+
     private ?LoggerInterface $logger;
 
     public function __construct(
@@ -51,6 +57,7 @@ class WpPackWpdb extends \wpdb
         $this->reader = $reader;
         $this->translator = $translator;
         $this->logger = $logger;
+        $this->preparedBank = new PreparedBank();
 
         $GLOBALS['wpdb'] = $this;
 
@@ -75,16 +82,24 @@ class WpPackWpdb extends \wpdb
     }
 
     /**
-     * Interpolate %s / %d / %f / %i placeholders into the SQL string.
+     * Convert %s / %d / %f / %i placeholders to positional '?' markers plus a
+     * single trailing SQL comment that references a per-prepare PreparedBank
+     * entry holding the actual values.
      *
-     * Follows the WordPress wpdb::prepare() contract: returns a complete SQL
-     * string with values escaped and inlined. Callers (WP_Site_Query,
-     * WP_User_Query, etc.) concatenate multiple prepare() results into a
-     * single query and pass the combined string to query(), which is only
-     * possible when prepare() returns fully-formed SQL fragments.
+     * The returned SQL is safe to concatenate with other prepare() results
+     * (WP_Site_Query, WP_Query, ... all do this). query() recovers each
+     * fragment's params from the bank by scanning the SQL for "/*WPP:<id>*\/"
+     * markers in order, so values never travel through the SQL text itself.
+     *
+     * Special cases:
+     * - %i is expanded inline via quoteIdentifier() because identifiers cannot
+     *   be parameterized.
+     * - A placeholder that lands inside a single-quoted string literal (e.g.
+     *   `"LIKE '%%%s%%'"`) is also inlined, because MySQL would otherwise
+     *   interpret the '?' as a literal character rather than a bind position.
      *
      * Accepts args passed as a single array for WordPress legacy compatibility
-     * (e.g., `prepare($sql, [$a, $b])` is equivalent to `prepare($sql, $a, $b)`).
+     * (`prepare($sql, [$a, $b])` === `prepare($sql, $a, $b)`).
      *
      * @param string $query
      * @param mixed  ...$args
@@ -101,32 +116,98 @@ class WpPackWpdb extends \wpdb
             return $query;
         }
 
-        // Temporarily escape literal %%
+        // Temporarily escape literal %% so it cannot be mistaken for a placeholder.
         $sql = str_replace('%%', "\x00WPPACK_PERCENT\x00", $query);
 
+        $boundParams = [];
         $paramIndex = 0;
+        $inSingleQuote = false;
+        $length = \strlen($sql);
+        $out = '';
 
-        $sql = (string) preg_replace_callback('/%([sdfi])/', function (array $m) use ($args, &$paramIndex): string {
-            $value = $args[$paramIndex++] ?? null;
+        for ($i = 0; $i < $length; $i++) {
+            $c = $sql[$i];
 
-            return match ($m[1]) {
-                'i' => $this->writer->getPlatform()->quoteIdentifier((string) $value),
-                'd' => (string) (int) $value,
-                'f' => (string) (float) $value,
-                default => $this->quoteStringLiteral((string) $value),
-            };
-        }, $sql);
+            // Track '...' literal boundaries so placeholders inside them can be
+            // inlined. '' is a doubled-quote escape inside a literal; \' is a
+            // backslash escape (MySQL default) — both keep us inside the literal.
+            if ($c === "'") {
+                if ($inSingleQuote && $i + 1 < $length && $sql[$i + 1] === "'") {
+                    $out .= "''";
+                    $i++;
 
-        return str_replace("\x00WPPACK_PERCENT\x00", '%', $sql);
+                    continue;
+                }
+
+                $inSingleQuote = !$inSingleQuote;
+                $out .= $c;
+
+                continue;
+            }
+
+            if ($c === '\\' && $inSingleQuote && $i + 1 < $length) {
+                $out .= $c . $sql[$i + 1];
+                $i++;
+
+                continue;
+            }
+
+            if ($c === '%' && $i + 1 < $length) {
+                $spec = $sql[$i + 1];
+
+                if ($spec === 'i' || $spec === 's' || $spec === 'd' || $spec === 'f') {
+                    $value = $args[$paramIndex++] ?? null;
+
+                    if ($spec === 'i') {
+                        $out .= $this->writer->getPlatform()->quoteIdentifier((string) $value);
+                    } elseif ($inSingleQuote) {
+                        // Placeholder inside a string literal: inline so the
+                        // resulting SQL is a plain, valid literal.
+                        $out .= match ($spec) {
+                            'd' => (string) (int) $value,
+                            'f' => (string) (float) $value,
+                            default => $this->escapeWithinLiteral((string) $value),
+                        };
+                    } else {
+                        $out .= '?';
+                        $boundParams[] = match ($spec) {
+                            'd' => (int) $value,
+                            'f' => (float) $value,
+                            default => (string) $value,
+                        };
+                    }
+
+                    $i++;
+
+                    continue;
+                }
+            }
+
+            $out .= $c;
+        }
+
+        $out = str_replace("\x00WPPACK_PERCENT\x00", '%', $out);
+
+        if ($boundParams === []) {
+            return $out;
+        }
+
+        $id = $this->preparedBank->idFor($out, $boundParams);
+        $this->preparedBank->store($id, $boundParams);
+
+        return $out . $this->preparedBank->markerFor($id);
     }
 
     /**
-     * Escape a string value and wrap it in single quotes for direct SQL
-     * interpolation. Delegates to the driver's native connection when
-     * available (mysqli::real_escape_string on MySQL, PDO::quote on SQLite,
-     * pg_escape_literal on PostgreSQL) and falls back to addslashes().
+     * Escape a string value to be safely embedded inside a single-quoted SQL
+     * literal (used for the `'%%%s%%'` LIKE-pattern fallback path).
+     *
+     * The returned value is NOT wrapped in outer quotes — it is meant to be
+     * spliced into an existing literal. It uses the driver's native connection
+     * (mysqli::real_escape_string on MySQL, PDO::quote on SQLite,
+     * pg_escape_string on PostgreSQL) and falls back to addslashes().
      */
-    private function quoteStringLiteral(string $value): string
+    private function escapeWithinLiteral(string $value): string
     {
         if (!$this->writer->isConnected()) {
             $this->writer->connect();
@@ -135,22 +216,35 @@ class WpPackWpdb extends \wpdb
         $native = $this->writer->getNativeConnection();
 
         if ($native instanceof \mysqli) {
-            return "'" . $native->real_escape_string($value) . "'";
+            return $native->real_escape_string($value);
         }
 
         if ($native instanceof \PDO) {
-            return $native->quote($value);
-        }
+            $quoted = $native->quote($value);
 
-        if (\is_resource($native) || (\is_object($native) && \function_exists('pg_escape_literal'))) {
-            $escaped = @pg_escape_literal($native, $value);
-
-            if (\is_string($escaped)) {
-                return $escaped;
+            // PDO::quote wraps in quotes; strip the outer pair so we can splice.
+            if (\is_string($quoted) && \strlen($quoted) >= 2 && $quoted[0] === "'") {
+                return substr($quoted, 1, -1);
             }
+
+            return addslashes($value);
         }
 
-        return "'" . addslashes($value) . "'";
+        if (\is_resource($native) || (\is_object($native) && \function_exists('pg_escape_string'))) {
+            return pg_escape_string($native, $value);
+        }
+
+        return addslashes($value);
+    }
+
+    /**
+     * Drop any prepared-bank entries left behind by prepare() calls that were
+     * never followed by a matching query(). Intended for long-running processes
+     * (WP-CLI workers) where the wpdb instance is reused across many requests.
+     */
+    public function resetPreparedBank(): void
+    {
+        $this->preparedBank->reset();
     }
 
     /**
@@ -166,10 +260,15 @@ class WpPackWpdb extends \wpdb
 
         $this->flush();
         $this->func_call = "\$db->query(\"$query\")";
-        $this->last_query = $query;
+
+        // Recover any params stashed by prepare() via /*WPP:id*/ markers.
+        [$cleanQuery, $params] = $this->preparedBank->consume($query);
+
+        $this->last_query = $cleanQuery;
+        $this->last_params = $params;
 
         // Intercept SELECT FOUND_ROWS() — return stored count from last SQL_CALC_FOUND_ROWS query
-        if (preg_match('/^\s*SELECT\s+FOUND_ROWS\s*\(\s*\)/i', $query)) {
+        if (preg_match('/^\s*SELECT\s+FOUND_ROWS\s*\(\s*\)/i', $cleanQuery)) {
             $count = $this->lastFoundRows ?? 0;
             $this->last_result = [(object) ['FOUND_ROWS()' => $count]];
             $this->num_rows = 1;
@@ -178,7 +277,7 @@ class WpPackWpdb extends \wpdb
             return 1;
         }
 
-        return $this->executeWithDriver($query, []);
+        return $this->executeWithDriver($cleanQuery, $params);
     }
 
     /**

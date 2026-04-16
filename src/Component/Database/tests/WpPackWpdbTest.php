@@ -60,11 +60,14 @@ final class WpPackWpdbTest extends TestCase
     // ── prepare() ──
 
     #[Test]
-    public function prepareInterpolatesPlaceholders(): void
+    public function prepareEmitsPlaceholderAndMarker(): void
     {
         $sql = $this->wpdb->prepare('SELECT * FROM posts WHERE id = %d AND status = %s', 1, 'publish');
 
-        self::assertSame("SELECT * FROM posts WHERE id = 1 AND status = 'publish'", $sql);
+        self::assertMatchesRegularExpression(
+            '#^SELECT \* FROM posts WHERE id = \? AND status = \?/\*WPP:[a-f0-9]{12}\*/$#',
+            $sql,
+        );
     }
 
     #[Test]
@@ -72,7 +75,10 @@ final class WpPackWpdbTest extends TestCase
     {
         $sql = $this->wpdb->prepare("SELECT * FROM posts WHERE title LIKE '%%test%%' AND id = %d", 1);
 
-        self::assertSame("SELECT * FROM posts WHERE title LIKE '%test%' AND id = 1", $sql);
+        self::assertMatchesRegularExpression(
+            "#^SELECT \* FROM posts WHERE title LIKE '%test%' AND id = \?/\*WPP:[a-f0-9]{12}\*/$#",
+            $sql,
+        );
     }
 
     #[Test]
@@ -80,7 +86,10 @@ final class WpPackWpdbTest extends TestCase
     {
         $sql = $this->wpdb->prepare('SELECT * FROM posts WHERE score > %f', 3.14);
 
-        self::assertSame('SELECT * FROM posts WHERE score > 3.14', $sql);
+        self::assertMatchesRegularExpression(
+            '#^SELECT \* FROM posts WHERE score > \?/\*WPP:[a-f0-9]{12}\*/$#',
+            $sql,
+        );
     }
 
     // ── prepare() + query() prepared statement ──
@@ -349,10 +358,11 @@ final class WpPackWpdbTest extends TestCase
     {
         $sql = $this->wpdb->prepare('SELECT * FROM %i WHERE id = %d', 'wptests_posts', 1);
 
-        // %i should be expanded via quoteIdentifier (SQLite uses double quotes)
+        // %i is expanded inline via quoteIdentifier (SQLite uses double quotes)
         self::assertStringContainsString('"wptests_posts"', $sql);
-        // %d should be interpolated
-        self::assertStringContainsString('= 1', $sql);
+        // %d becomes a '?' placeholder with a trailing bank marker
+        self::assertStringContainsString('= ?', $sql);
+        self::assertMatchesRegularExpression('#/\*WPP:[a-f0-9]{12}\*/$#', $sql);
         // No raw placeholders should remain
         self::assertStringNotContainsString('%i', $sql);
         self::assertStringNotContainsString('%d', $sql);
@@ -376,11 +386,12 @@ final class WpPackWpdbTest extends TestCase
     {
         $sql = $this->wpdb->prepare('SELECT * FROM wptests_posts WHERE post_title = %s', '');
 
-        self::assertStringContainsString("= ''", $sql);
+        self::assertStringContainsString('= ?', $sql);
 
         // Execute with empty string param
         $this->wpdb->query($sql);
         self::assertSame(0, $this->wpdb->num_rows);
+        self::assertSame([''], $this->wpdb->last_params);
     }
 
     #[Test]
@@ -388,8 +399,10 @@ final class WpPackWpdbTest extends TestCase
     {
         $sql = $this->wpdb->prepare('SELECT * FROM wptests_posts WHERE post_title = %s', null);
 
-        // null coerces to empty string
-        self::assertStringContainsString("= ''", $sql);
+        self::assertStringContainsString('= ?', $sql);
+        // null coerces to empty string at execute time
+        $this->wpdb->query($sql);
+        self::assertSame([''], $this->wpdb->last_params);
     }
 
     #[Test]
@@ -423,7 +436,13 @@ final class WpPackWpdbTest extends TestCase
         // WordPress legacy: prepare($query, array_of_args)
         $sql = $this->wpdb->prepare('SELECT * FROM wptests_posts WHERE id = %d AND status = %s', [1, 'publish']);
 
-        self::assertSame("SELECT * FROM wptests_posts WHERE id = 1 AND status = 'publish'", $sql);
+        self::assertMatchesRegularExpression(
+            '#^SELECT \* FROM wptests_posts WHERE id = \? AND status = \?/\*WPP:[a-f0-9]{12}\*/$#',
+            $sql,
+        );
+
+        $this->wpdb->query($sql);
+        self::assertSame([1, 'publish'], $this->wpdb->last_params);
     }
 
     // ── Logger ──
