@@ -16,7 +16,7 @@ namespace WpPack\Component\Monitoring\Bridge\CloudWatch\Discovery;
 use WpPack\Component\Monitoring\MetricDefinition;
 use WpPack\Component\Monitoring\MonitoringProvider;
 use WpPack\Component\Monitoring\MonitoringProviderInterface;
-use WpPack\Component\Monitoring\AwsProviderSettings;
+use WpPack\Component\Monitoring\Bridge\CloudWatch\AwsProviderSettings;
 use WpPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
 
 final class S3Discovery implements MonitoringProviderInterface

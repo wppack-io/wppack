@@ -26,7 +26,7 @@ use WpPack\Component\Monitoring\MetricResult;
 use WpPack\Component\Monitoring\MetricTimeRange;
 use WpPack\Component\Monitoring\MonitoringProvider;
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Monitoring\AwsProviderSettings;
+use WpPack\Component\Monitoring\Bridge\CloudWatch\AwsProviderSettings;
 
 final class CloudWatchMetricProvider implements MetricProviderInterface
 {
@@ -509,5 +509,10 @@ final class CloudWatchMetricProvider implements MetricProviderInterface
         };
 
         return max($metricPeriod, $minPeriod);
+    }
+
+    public function getSettingsClass(): string
+    {
+        return AwsProviderSettings::class;
     }
 }

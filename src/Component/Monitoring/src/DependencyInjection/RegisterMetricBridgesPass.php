@@ -17,6 +17,7 @@ use WpPack\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\Monitoring\MonitoringCollector;
+use WpPack\Component\Monitoring\MonitoringStore;
 
 final class RegisterMetricBridgesPass implements CompilerPassInterface
 {
@@ -24,11 +25,6 @@ final class RegisterMetricBridgesPass implements CompilerPassInterface
 
     public function process(ContainerBuilder $builder): void
     {
-        if (!$builder->hasDefinition(MonitoringCollector::class)) {
-            return;
-        }
-
-        $collectorDef = $builder->findDefinition(MonitoringCollector::class);
         $bridges = [];
 
         foreach ($builder->findTaggedServiceIds(self::TAG) as $serviceId => $tags) {
@@ -38,8 +34,18 @@ final class RegisterMetricBridgesPass implements CompilerPassInterface
             }
         }
 
-        if ($bridges !== []) {
-            $collectorDef->setArgument(1, $bridges);
+        if ($bridges === []) {
+            return;
+        }
+
+        // Inject bridges into MonitoringCollector
+        if ($builder->hasDefinition(MonitoringCollector::class)) {
+            $builder->findDefinition(MonitoringCollector::class)->setArgument(1, $bridges);
+        }
+
+        // Inject bridges into MonitoringStore (for settings class resolution)
+        if ($builder->hasDefinition(MonitoringStore::class)) {
+            $builder->findDefinition(MonitoringStore::class)->setArgument(1, array_values($bridges));
         }
     }
 }

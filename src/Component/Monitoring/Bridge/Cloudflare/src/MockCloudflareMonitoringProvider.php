@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Monitoring\Bridge\Cloudflare;
 
-use WpPack\Component\Monitoring\CloudflareProviderSettings;
+use WpPack\Component\Monitoring\Bridge\Cloudflare\CloudflareProviderSettings;
 use WpPack\Component\Monitoring\MetricDefinition;
 use WpPack\Component\Monitoring\MonitoringProvider;
 use WpPack\Component\Monitoring\MonitoringProviderInterface;

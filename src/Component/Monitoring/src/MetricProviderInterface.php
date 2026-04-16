@@ -55,4 +55,9 @@ interface MetricProviderInterface
      * @return list<MetricResult>
      */
     public function query(MonitoringProvider $provider, MetricTimeRange $range): array;
+
+    /**
+     * @return class-string<ProviderSettings>
+     */
+    public function getSettingsClass(): string;
 }

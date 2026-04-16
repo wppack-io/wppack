@@ -21,10 +21,21 @@ final class MonitoringStore implements MonitoringProviderInterface
     private const OPTION_NAME = 'wppack_monitoring_providers';
     private const MASKED_VALUE = '********';
 
+    /** @var array<string, MetricProviderInterface> */
+    private array $bridgeMap = [];
+
+    /**
+     * @param iterable<MetricProviderInterface> $bridges
+     */
     public function __construct(
         private readonly OptionManager $options,
+        iterable $bridges = [],
         private readonly ?LoggerInterface $logger = null,
-    ) {}
+    ) {
+        foreach ($bridges as $bridge) {
+            $this->bridgeMap[$bridge->getName()] = $bridge;
+        }
+    }
 
     /**
      * @return list<MonitoringProvider>
@@ -345,13 +356,13 @@ final class MonitoringStore implements MonitoringProviderInterface
     /**
      * @return class-string<ProviderSettings>
      */
-    private static function resolveSettingsClass(string $bridge): string
+    private function resolveSettingsClass(string $bridge): string
     {
-        return match ($bridge) {
-            'cloudwatch', 'mock-aws' => AwsProviderSettings::class,
-            'cloudflare', 'mock-cloudflare' => CloudflareProviderSettings::class,
-            default => AwsProviderSettings::class,
-        };
+        if (isset($this->bridgeMap[$bridge])) {
+            return $this->bridgeMap[$bridge]->getSettingsClass();
+        }
+
+        return ProviderSettings::class;
     }
 
     /**

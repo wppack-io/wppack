@@ -128,4 +128,9 @@ final class MockMetricProvider implements MetricProviderInterface
             default => 1200.0,
         };
     }
+
+    public function getSettingsClass(): string
+    {
+        return ProviderSettings::class;
+    }
 }

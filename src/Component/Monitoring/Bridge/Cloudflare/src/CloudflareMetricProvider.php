@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Monitoring\Bridge\Cloudflare;
 
 use Psr\Log\LoggerInterface;
-use WpPack\Component\Monitoring\CloudflareProviderSettings;
+use WpPack\Component\Monitoring\Bridge\Cloudflare\CloudflareProviderSettings;
 use WpPack\Component\Monitoring\MetricDefinition;
 use WpPack\Component\Monitoring\MetricPoint;
 use WpPack\Component\Monitoring\MetricProviderInterface;
@@ -850,5 +850,10 @@ GRAPHQL;
             })(),
             default => null,
         };
+    }
+
+    public function getSettingsClass(): string
+    {
+        return CloudflareProviderSettings::class;
     }
 }

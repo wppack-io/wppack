@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Monitoring\Bridge\CloudWatch;
 
-use WpPack\Component\Monitoring\AwsProviderSettings;
+use WpPack\Component\Monitoring\Bridge\CloudWatch\AwsProviderSettings;
 use WpPack\Component\Monitoring\MetricDefinition;
 use WpPack\Component\Monitoring\MonitoringProvider;
 use WpPack\Component\Monitoring\MonitoringProviderInterface;

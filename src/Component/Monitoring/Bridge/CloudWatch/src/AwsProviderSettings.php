@@ -11,7 +11,9 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Monitoring;
+namespace WpPack\Component\Monitoring\Bridge\CloudWatch;
+
+use WpPack\Component\Monitoring\ProviderSettings;
 
 final readonly class AwsProviderSettings extends ProviderSettings
 {
