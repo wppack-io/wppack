@@ -52,13 +52,14 @@ class WpPackWpdb extends \wpdb
         ?LoggerInterface $logger = null,
         string $charset = 'utf8mb4',
         string $collate = '',
+        ?PreparedBank $preparedBank = null,
     ) {
         // Do NOT call parent::__construct() — it tries to connect to MySQL.
         $this->writer = $writer;
         $this->reader = $reader;
         $this->translator = $translator;
         $this->logger = $logger;
-        $this->preparedBank = new PreparedBank();
+        $this->preparedBank = $preparedBank ?? new PreparedBank();
 
         $GLOBALS['wpdb'] = $this;
 
