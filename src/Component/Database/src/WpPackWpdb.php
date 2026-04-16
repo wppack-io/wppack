@@ -590,16 +590,140 @@ class WpPackWpdb extends \wpdb
         ]);
 
         if (\defined('SAVEQUERIES') && SAVEQUERIES) {
+            // Store the interpolated form so tools like Debug Bar, which read
+            // $wpdb->queries[0] directly, can show values. Execution itself
+            // still used the '?' + $params native prepared statement path.
             $this->log_query(
-                $sql,
+                $this->interpolateForDisplay($sql, $params),
                 $elapsed,
                 $this->get_caller(),
                 $start,
-                ['params' => $params],
+                ['params' => $params, 'prepared_sql' => $sql],
             );
         }
 
         return $isSelect ? \count($this->last_result) : $this->rows_affected;
+    }
+
+    /**
+     * Build a human-readable version of a prepared SQL statement by
+     * substituting '?' placeholders (outside string literals) with their
+     * bound values. Used only for debug logs / SAVEQUERIES output — the
+     * driver still executes the original parameterized query.
+     *
+     * @param list<mixed> $params
+     */
+    private function interpolateForDisplay(string $sql, array $params): string
+    {
+        if ($params === [] || !str_contains($sql, '?')) {
+            return $sql;
+        }
+
+        $out = '';
+        $inQuote = false;
+        $index = 0;
+        $length = \strlen($sql);
+
+        for ($i = 0; $i < $length; $i++) {
+            $c = $sql[$i];
+
+            if ($c === "'") {
+                if ($inQuote && ($sql[$i + 1] ?? '') === "'") {
+                    $out .= "''";
+                    $i++;
+
+                    continue;
+                }
+
+                $inQuote = !$inQuote;
+                $out .= $c;
+
+                continue;
+            }
+
+            if ($c === '\\' && $inQuote && $i + 1 < $length) {
+                $out .= $c . $sql[$i + 1];
+                $i++;
+
+                continue;
+            }
+
+            if ($c === '?' && !$inQuote && \array_key_exists($index, $params)) {
+                $value = $params[$index++];
+                $out .= match (true) {
+                    $value === null => 'NULL',
+                    \is_bool($value) => $value ? '1' : '0',
+                    \is_int($value), \is_float($value) => (string) $value,
+                    default => $this->quoteStringLiteral((string) $value),
+                };
+
+                continue;
+            }
+
+            $out .= $c;
+        }
+
+        return $out;
+    }
+
+    /**
+     * Escape a string value and wrap it in single quotes, for display-only
+     * interpolation of SAVEQUERIES log entries. Delegates to the driver's
+     * native escape.
+     */
+    private function quoteStringLiteral(string $value): string
+    {
+        if (!$this->writer->isConnected()) {
+            $this->writer->connect();
+        }
+
+        $native = $this->writer->getNativeConnection();
+
+        if ($native instanceof \mysqli) {
+            return "'" . $native->real_escape_string($value) . "'";
+        }
+
+        if ($native instanceof \PDO) {
+            return $native->quote($value);
+        }
+
+        if (\is_resource($native) || (\is_object($native) && \function_exists('pg_escape_literal'))) {
+            return pg_escape_literal($native, $value);
+        }
+
+        return "'" . addslashes($value) . "'";
+    }
+
+    /**
+     * Override the wpdb caller-stack summary so Debug Bar's "Queries by
+     * Caller" panel shows the real plugin/theme caller instead of our
+     * internal WpPackWpdb frames.
+     *
+     * Standard wpdb::get_caller() filters out its own class, but because
+     * WpPackWpdb is a subclass every frame from this class slips past
+     * that filter. We fall back to debug_backtrace() and skip any frame
+     * belonging to wpdb or a subclass.
+     */
+    public function get_caller()
+    {
+        $trace = debug_backtrace(\DEBUG_BACKTRACE_IGNORE_ARGS);
+        $callers = [];
+
+        foreach ($trace as $frame) {
+            $class = $frame['class'] ?? '';
+
+            if ($class === \wpdb::class || $class === self::class || is_subclass_of($class, \wpdb::class)) {
+                continue;
+            }
+
+            if ($class !== '') {
+                $callers[] = "{$class}{$frame['type']}{$frame['function']}";
+            } else {
+                $callers[] = $frame['function'];
+            }
+        }
+
+        return implode(', ', array_reverse($callers));
     }
 
     /**
