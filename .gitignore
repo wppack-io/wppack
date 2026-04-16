@@ -6,20 +6,3 @@ package-lock.json
 .phpunit.cache/
 
 /docs/specifications/
-
-/web/wp/
-/web/wp-content/mu-plugins/*
-!/web/wp-content/mu-plugins/.gitkeep
-!/web/wp-content/mu-plugins/wppack-*
-/web/wp-content/plugins/*
-!/web/wp-content/plugins/.gitkeep
-!/web/wp-content/plugins/wppack-*
-/web/wp-content/themes/*
-!/web/wp-content/themes/.gitkeep
-/web/wp-content/uploads/*
-!/web/wp-content/uploads/.gitkeep
-/web/wp-content/languages/
-/web/wp-content/debug.log
-/web/wp-content/db.php
-/web/wp-content/object-cache.php
-/web/wp-content/fatal-error-handler.php

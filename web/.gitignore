@@ -1,0 +1,16 @@
+/wp/
+/wp-content/mu-plugins/*
+!/wp-content/mu-plugins/.gitkeep
+!/wp-content/mu-plugins/wppack-*
+/wp-content/plugins/*
+!/wp-content/plugins/.gitkeep
+!/wp-content/plugins/wppack-*
+/wp-content/themes/*
+!/wp-content/themes/.gitkeep
+/wp-content/uploads/*
+!/wp-content/uploads/.gitkeep
+/wp-content/languages/
+/wp-content/debug.log
+/wp-content/db.php
+/wp-content/object-cache.php
+/wp-content/fatal-error-handler.php
