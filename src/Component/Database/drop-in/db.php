@@ -122,7 +122,7 @@ $wppackDsnParsed = \WpPack\Component\Dsn\Dsn::fromString($wppackDatabaseDsn);
 $wppackDbName = ltrim($wppackDsnParsed->getPath() ?? '', '/');
 
 if ($wppackDbName === '' || $wppackDbName === ':memory:') {
-    $wppackDbName = defined('DB_NAME') ? DB_NAME : 'wordpress';
+    $wppackDbName = 'wordpress';
 }
 
 // Create WpPack wpdb replacement
