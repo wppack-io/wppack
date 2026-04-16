@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Database\Schema;
 
-
 /**
  * Normalizes CREATE TABLE DDL statements to portable MySQL-compatible SQL.
  *

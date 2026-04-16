@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Database\Platform;
 
-
 class MariadbPlatform extends MysqlPlatform
 {
     public function getEngine(): string
