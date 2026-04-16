@@ -16,12 +16,14 @@ namespace WpPack\Component\Database\Bridge\Pgsql\Tests;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Database\Bridge\Pgsql\PgsqlDriver;
+use WpPack\Component\Dsn\Dsn;
 
 /**
  * Integration tests for PgsqlDriver.
  *
- * Requires a running PostgreSQL instance. Skipped when WPPACK_TEST_PGSQL_HOST
- * is not set (local development without PostgreSQL).
+ * Activates only when DATABASE_DSN points to a PostgreSQL backend
+ * (e.g. pgsql://wppack:wppack@127.0.0.1:5432/wppack_test). Skipped
+ * otherwise so local development without PostgreSQL is unaffected.
  */
 final class PgsqlDriverTest extends TestCase
 {
@@ -29,18 +31,20 @@ final class PgsqlDriverTest extends TestCase
 
     protected function setUp(): void
     {
-        $host = $_SERVER['WPPACK_TEST_PGSQL_HOST'] ?? $_ENV['WPPACK_TEST_PGSQL_HOST'] ?? '';
+        $dsn = $_SERVER['DATABASE_DSN'] ?? $_ENV['DATABASE_DSN'] ?? '';
 
-        if ($host === '') {
-            self::markTestSkipped('PostgreSQL not available (set WPPACK_TEST_PGSQL_HOST).');
+        if (!is_string($dsn) || !str_starts_with($dsn, 'pgsql:')) {
+            self::markTestSkipped('Requires DATABASE_DSN=pgsql:... (got: ' . ($dsn === '' ? '(unset)' : $dsn) . ')');
         }
 
+        $parsed = Dsn::fromString($dsn);
+
         $this->driver = new PgsqlDriver(
-            host: $host,
-            username: $_SERVER['WPPACK_TEST_PGSQL_USER'] ?? $_ENV['WPPACK_TEST_PGSQL_USER'] ?? 'wppack',
-            password: $_SERVER['WPPACK_TEST_PGSQL_PASSWORD'] ?? $_ENV['WPPACK_TEST_PGSQL_PASSWORD'] ?? 'wppack',
-            database: $_SERVER['WPPACK_TEST_PGSQL_DATABASE'] ?? $_ENV['WPPACK_TEST_PGSQL_DATABASE'] ?? 'wppack_test',
-            port: (int) ($_SERVER['WPPACK_TEST_PGSQL_PORT'] ?? $_ENV['WPPACK_TEST_PGSQL_PORT'] ?? '5432'),
+            host: $parsed->getHost() ?? '127.0.0.1',
+            username: $parsed->getUser() ?? 'wppack',
+            password: $parsed->getPassword() ?? '',
+            database: ltrim($parsed->getPath() ?? '', '/') ?: 'wppack_test',
+            port: $parsed->getPort() ?? 5432,
         );
 
         $this->driver->connect();
@@ -168,13 +172,15 @@ final class PgsqlDriverTest extends TestCase
     #[Test]
     public function quoteStringLiteralHandlesBackslash(): void
     {
-        // With standard_conforming_strings=on (PostgreSQL default since 9.1),
-        // a backslash is literal. pg_escape_literal returns a plain single-quoted
-        // literal in that case.
+        // pg_escape_literal returns the E-prefixed escape-string form
+        // (` E'a\\b'`) when the input contains a backslash so the literal
+        // stays valid regardless of standard_conforming_strings. Leading
+        // whitespace is intentional — it separates the literal from an
+        // adjacent identifier when spliced into SQL.
         $quoted = $this->driver->quoteStringLiteral('a\\b');
 
-        self::assertStringStartsWith("'", $quoted);
-        self::assertStringEndsWith("'", $quoted);
+        self::assertMatchesRegularExpression("/^\\s*E?'.*'$/", $quoted);
+        self::assertStringContainsString('a\\', $quoted);
     }
 
     #[Test]
