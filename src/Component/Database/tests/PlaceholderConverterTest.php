@@ -123,4 +123,30 @@ final class PlaceholderConverterTest extends TestCase
         self::assertSame('SELECT 100%% FROM t', $sql);
         self::assertSame([], $params);
     }
+
+    #[Test]
+    public function throwsWhenQueryMixesQuestionMarkAndPercentPlaceholders(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Query contains both ? and %s/%d/%f placeholders');
+
+        PlaceholderConverter::convert(
+            'SELECT * FROM t WHERE id = ? AND name = %s',
+            [1, 'test'],
+        );
+    }
+
+    #[Test]
+    public function doesNotConfuseQuestionMarkInsideLiteralAsMixingStyle(): void
+    {
+        // ? is inside a string literal — should not count as native placeholder
+        // so %s conversion should still happen without raising mixed-style error
+        [$sql, $params] = PlaceholderConverter::convert(
+            "SELECT * FROM t WHERE a = 'a?b' AND b = %s",
+            ['x'],
+        );
+
+        self::assertSame("SELECT * FROM t WHERE a = 'a?b' AND b = ?", $sql);
+        self::assertSame(['x'], $params);
+    }
 }

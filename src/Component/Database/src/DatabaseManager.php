@@ -158,6 +158,10 @@ final class DatabaseManager
     /**
      * Insert a row into a table. The table name is automatically prefixed.
      *
+     * Throws QueryException on failure (unlike raw wpdb::insert() which returns
+     * false). Use wpdb() to access the underlying wpdb if false-return semantics
+     * are required.
+     *
      * @param array<string, mixed>        $data
      * @param array<string>|string|null $format
      *
@@ -182,6 +186,10 @@ final class DatabaseManager
 
     /**
      * Update rows in a table. The table name is automatically prefixed.
+     *
+     * Throws QueryException on failure (unlike raw wpdb::update() which returns
+     * false). Use wpdb() to access the underlying wpdb if false-return semantics
+     * are required.
      *
      * @param array<string, mixed>        $data
      * @param array<string, mixed>        $where
@@ -214,6 +222,10 @@ final class DatabaseManager
 
     /**
      * Delete rows from a table. The table name is automatically prefixed.
+     *
+     * Throws QueryException on failure (unlike raw wpdb::delete() which returns
+     * false). Use wpdb() to access the underlying wpdb if false-return semantics
+     * are required.
      *
      * @param array<string, mixed>        $where
      * @param array<string>|string|null $whereFormat

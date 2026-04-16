@@ -90,6 +90,9 @@ class WpPackWpdb extends \wpdb
      * %i (identifier) placeholders are expanded inline via quoteIdentifier()
      * since they cannot be parameterized.
      *
+     * Accepts args passed as a single array for WordPress legacy compatibility
+     * (e.g., `prepare($sql, [$a, $b])` is equivalent to `prepare($sql, $a, $b)`).
+     *
      * @param string $query
      * @param mixed  ...$args
      *
@@ -392,7 +395,8 @@ class WpPackWpdb extends \wpdb
                 'error' => $e->getMessage(),
             ]);
 
-            $this->last_error = $e->getMessage();
+            // Prefix distinguishes translator failures from driver failures in last_error
+            $this->last_error = '[Translation] ' . $e->getMessage();
             $this->last_result = [];
             $this->num_rows = 0;
 

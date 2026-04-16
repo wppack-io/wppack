@@ -2292,4 +2292,60 @@ trait WpdbIntegrationTestTrait
         );
         self::assertSame('1', (string) $count);
     }
+
+    // ── WpPackWpdb error semantics: return false + last_error (wpdb contract) ──
+
+    #[Test]
+    public function wpdbInsertReturnsFalseOnSchemaError(): void
+    {
+        $wpdb = $this->getTestWpdb();
+
+        $wpdb->last_error = '';
+        $result = $wpdb->insert('options', ['this_column_does_not_exist' => 'x']);
+
+        self::assertFalse($result);
+        self::assertNotEmpty($wpdb->last_error);
+    }
+
+    #[Test]
+    public function wpdbUpdateReturnsFalseOnSchemaError(): void
+    {
+        $wpdb = $this->getTestWpdb();
+
+        $wpdb->last_error = '';
+        $result = $wpdb->update(
+            'options',
+            ['this_column_does_not_exist' => 'x'],
+            ['option_name' => 'siteurl'],
+        );
+
+        self::assertFalse($result);
+        self::assertNotEmpty($wpdb->last_error);
+    }
+
+    #[Test]
+    public function wpdbDeleteReturnsZeroWhenNoMatchingRow(): void
+    {
+        $wpdb = $this->getTestWpdb();
+
+        // Deleting a non-existent row returns 0 (not false)
+        $result = $wpdb->delete(
+            'options',
+            ['option_name' => '__definitely_does_not_exist__'],
+        );
+
+        self::assertSame(0, $result);
+    }
+
+    #[Test]
+    public function wpdbQueryReturnsFalseOnSyntaxError(): void
+    {
+        $wpdb = $this->getTestWpdb();
+
+        $wpdb->last_error = '';
+        $result = $wpdb->query('SELECT * FROM this_table_does_not_exist_12345');
+
+        self::assertFalse($result);
+        self::assertNotEmpty($wpdb->last_error);
+    }
 }

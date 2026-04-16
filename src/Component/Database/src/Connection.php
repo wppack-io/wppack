@@ -22,7 +22,10 @@ use WpPack\Component\Database\Platform\PlatformInterface;
 /**
  * DBAL-style database connection.
  *
- * Accepts both native ? placeholders and WordPress %s/%d/%f placeholders.
+ * Accepts both native `?` placeholders and WordPress `%s/%d/%f` placeholders;
+ * the latter are converted internally via {@see PlaceholderConverter}.
+ * Mixing both styles in a single query throws InvalidArgumentException.
+ *
  * Wraps DriverException into QueryException for consistent error handling.
  * Optionally logs queries via PSR-3 LoggerInterface and QueryLoggerInterface.
  */
