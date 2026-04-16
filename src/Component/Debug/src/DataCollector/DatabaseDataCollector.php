@@ -19,7 +19,6 @@ use WpPack\Component\Debug\Attribute\AsDataCollector;
 final class DatabaseDataCollector extends AbstractDataCollector
 {
     private const SLOW_QUERY_THRESHOLD_MS = 100.0;
-    private const MASKED_VALUE = '********';
 
     /** @var list<array{sql: string, params: list<mixed>, time: float, caller: string, start: float, data: array<string, mixed>}> */
     private array $realtimeQueries = [];
@@ -228,18 +227,6 @@ final class DatabaseDataCollector extends AbstractDataCollector
         // wpdb's '\t\t\t' per-line indentation doesn't push the display off.
         // Line breaks are preserved — multi-line SQL still renders across
         // multiple lines, just flush to the left edge of the panel.
-        $sql = trim((string) preg_replace('/^[ \t]+|[ \t]+$/m', '', $sql));
-
-        // Mask VALUES clauses: VALUES ('...', '...') → VALUES (********)
-        $sql = preg_replace('/VALUES\s*\(.*?\)/is', 'VALUES (' . self::MASKED_VALUE . ')', $sql) ?? $sql;
-
-        // Mask sensitive column assignments: password = '...' → password = ********
-        $sql = preg_replace(
-            "/(password|passwd|pwd|secret|token|api_key|apikey|private_key|access_token|refresh_token)\s*=\s*'[^']*'/i",
-            '$1 = ' . self::MASKED_VALUE,
-            $sql,
-        ) ?? $sql;
-
-        return $sql;
+        return trim((string) preg_replace('/^[ \t]+|[ \t]+$/m', '', $sql));
     }
 }

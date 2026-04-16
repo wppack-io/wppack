@@ -39,24 +39,6 @@ final class SecurityDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function maskEmailShowsOnlyDomain(): void
-    {
-        self::assertSame('***@example.com', $this->collector->maskEmail('user@example.com'));
-    }
-
-    #[Test]
-    public function maskEmailHandlesInvalidEmail(): void
-    {
-        self::assertSame('***', $this->collector->maskEmail('invalid-email'));
-    }
-
-    #[Test]
-    public function maskEmailHandlesSubdomain(): void
-    {
-        self::assertSame('***@mail.example.co.jp', $this->collector->maskEmail('admin@mail.example.co.jp'));
-    }
-
-    #[Test]
     public function resetClearsData(): void
     {
         $this->collector->collect();
@@ -89,7 +71,7 @@ final class SecurityDataCollectorTest extends TestCase
             self::assertSame($userId, $data['user_id']);
             self::assertNotEmpty($data['username']);
             self::assertNotEmpty($data['display_name']);
-            self::assertSame('***@example.com', $data['email']);
+            self::assertSame('security_test@example.com', $data['email']);
             self::assertContains('administrator', $data['roles']);
             self::assertNotEmpty($data['capabilities']);
             self::assertSame('cookie', $data['authentication']);

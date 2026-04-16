@@ -50,7 +50,7 @@ final class SecurityDataCollector extends AbstractDataCollector
             'user_id' => $user->ID,
             'username' => $user->user_login,
             'display_name' => $user->display_name,
-            'email' => $this->maskEmail($user->user_email),
+            'email' => $user->user_email,
             'roles' => array_values($user->roles),
             'capabilities' => $user->allcaps,
             'is_super_admin' => $this->isSuperAdmin(),
@@ -75,17 +75,6 @@ final class SecurityDataCollector extends AbstractDataCollector
         $failures = (int) ($this->data['nonce_verify_failures'] ?? 0);
 
         return $failures > 0 ? 'red' : 'default';
-    }
-
-    public function maskEmail(string $email): string
-    {
-        $parts = explode('@', $email, 2);
-
-        if (count($parts) !== 2) {
-            return '***';
-        }
-
-        return '***@' . $parts[1];
     }
 
     /**

@@ -168,45 +168,6 @@ final class DatabaseDataCollectorTest extends TestCase
     }
 
     #[Test]
-    public function captureQueryDataMasksInsertValues(): void
-    {
-        $sql = "INSERT INTO wp_users (user_login, user_pass) VALUES ('admin', 'hashed_pw')";
-        $this->collector->captureQueryData([], $sql, 0.001, 'TestCaller', 0.0);
-
-        $this->collector->collect();
-        $data = $this->collector->getData();
-
-        self::assertStringContainsString('VALUES (********)', $data['queries'][0]['sql']);
-        self::assertStringNotContainsString('hashed_pw', $data['queries'][0]['sql']);
-    }
-
-    #[Test]
-    public function captureQueryDataMasksSensitiveColumnAssignments(): void
-    {
-        $sql = "UPDATE wp_users SET password = 'new_secret' WHERE user_id = 1";
-        $this->collector->captureQueryData([], $sql, 0.001, 'TestCaller', 0.0);
-
-        $this->collector->collect();
-        $data = $this->collector->getData();
-
-        self::assertStringContainsString('password = ********', $data['queries'][0]['sql']);
-        self::assertStringNotContainsString('new_secret', $data['queries'][0]['sql']);
-    }
-
-    #[Test]
-    public function captureQueryDataMasksTokenColumnAssignment(): void
-    {
-        $sql = "UPDATE wp_users SET token = 'sk-abc123' WHERE user_id = 1";
-        $this->collector->captureQueryData([], $sql, 0.001, 'TestCaller', 0.0);
-
-        $this->collector->collect();
-        $data = $this->collector->getData();
-
-        self::assertStringContainsString('token = ********', $data['queries'][0]['sql']);
-        self::assertStringNotContainsString('sk-abc123', $data['queries'][0]['sql']);
-    }
-
-    #[Test]
     public function captureQueryDataPreservesSelectQueries(): void
     {
         $sql = 'SELECT * FROM wp_posts WHERE post_status = \'publish\' ORDER BY post_date DESC';
@@ -306,24 +267,6 @@ final class DatabaseDataCollectorTest extends TestCase
             } else {
                 unset($wpdb->queries);
             }
-        }
-    }
-
-    #[Test]
-    public function collectMasksMultipleSensitiveColumns(): void
-    {
-        $sensitiveColumns = ['api_key', 'apikey', 'secret', 'private_key', 'access_token', 'refresh_token', 'passwd', 'pwd'];
-
-        foreach ($sensitiveColumns as $column) {
-            $collector = new DatabaseDataCollector();
-            $sql = "UPDATE wp_settings SET {$column} = 'sensitive_value_123' WHERE id = 1";
-            $collector->captureQueryData([], $sql, 0.001, 'TestCaller', 0.0);
-
-            $collector->collect();
-            $data = $collector->getData();
-
-            self::assertStringContainsString("{$column} = ********", $data['queries'][0]['sql'], "Column '{$column}' should be masked");
-            self::assertStringNotContainsString('sensitive_value_123', $data['queries'][0]['sql'], "Sensitive value for '{$column}' should not be visible");
         }
     }
 

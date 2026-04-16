@@ -1,0 +1,5 @@
+/wp-content/uploads/
+/wp-content/plugins/*
+!/wp-content/plugins/.gitkeep
+/wp-content/mu-plugins/*
+!/wp-content/mu-plugins/.gitkeep
