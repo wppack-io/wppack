@@ -52,6 +52,18 @@ trait DataApiDriverTrait
         return $this->dataApiClient;
     }
 
+    /**
+     * Override the parent driver's escape so we never reach for an unset
+     * native MySQL/PgSQL connection — Data API is stateless HTTP with no
+     * live socket. Values always leave this driver via structured
+     * parameter binding (executeQuery($sql, $params)); this method is
+     * only used by WpPackWpdb for debug/log display.
+     */
+    public function quoteStringLiteral(string $value): string
+    {
+        return "'" . addslashes($value) . "'";
+    }
+
     protected function doConnect(): void
     {
         // Stateless HTTP — no connection to establish

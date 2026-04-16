@@ -73,4 +73,13 @@ interface DriverInterface
      * Returns null for HTTP-based drivers (RDS Data API, Aurora DSQL).
      */
     public function getNativeConnection(): mixed;
+
+    /**
+     * Escape $value and wrap it in single quotes so the result is a valid
+     * SQL string literal for this engine (e.g. `'O''Brien'` on MySQL).
+     *
+     * Used by WpPackWpdb for debug/display interpolation of '?' placeholders
+     * — the driver still executes queries with native parameter binding.
+     */
+    public function quoteStringLiteral(string $value): string;
 }

@@ -82,6 +82,13 @@ class PgsqlDriver extends AbstractDriver
         return $this->connection;
     }
 
+    public function quoteStringLiteral(string $value): string
+    {
+        $this->ensureConnected();
+
+        return pg_escape_literal($this->connection, $value);
+    }
+
     protected function doConnect(): void
     {
         if ($this->connection !== null) {

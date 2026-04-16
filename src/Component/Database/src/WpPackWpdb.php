@@ -205,42 +205,20 @@ class WpPackWpdb extends \wpdb
     }
 
     /**
-     * Escape a string value to be safely embedded inside a single-quoted SQL
-     * literal (used for the `'%%%s%%'` LIKE-pattern fallback path).
-     *
-     * The returned value is NOT wrapped in outer quotes — it is meant to be
-     * spliced into an existing literal. It uses the driver's native connection
-     * (mysqli::real_escape_string on MySQL, PDO::quote on SQLite,
-     * pg_escape_string on PostgreSQL) and falls back to addslashes().
+     * Escape $value and strip the outer quotes so the result can be spliced
+     * inside an existing `'...'` literal (the `'%%%s%%'` LIKE-pattern
+     * fallback path in prepare()). Delegates to the Driver's engine-aware
+     * quoteStringLiteral() which returns the fully quoted form.
      */
     private function escapeWithinLiteral(string $value): string
     {
-        if (!$this->writer->isConnected()) {
-            $this->writer->connect();
+        $quoted = $this->writer->quoteStringLiteral($value);
+
+        if (\strlen($quoted) >= 2 && $quoted[0] === "'" && $quoted[\strlen($quoted) - 1] === "'") {
+            return substr($quoted, 1, -1);
         }
 
-        $native = $this->writer->getNativeConnection();
-
-        if ($native instanceof \mysqli) {
-            return $native->real_escape_string($value);
-        }
-
-        if ($native instanceof \PDO) {
-            $quoted = $native->quote($value);
-
-            // PDO::quote wraps in quotes; strip the outer pair so we can splice.
-            if (\is_string($quoted) && \strlen($quoted) >= 2 && $quoted[0] === "'") {
-                return substr($quoted, 1, -1);
-            }
-
-            return addslashes($value);
-        }
-
-        if (\is_resource($native) || (\is_object($native) && \function_exists('pg_escape_string'))) {
-            return pg_escape_string($native, $value);
-        }
-
-        return addslashes($value);
+        return $quoted;
     }
 
     /**
@@ -697,7 +675,7 @@ class WpPackWpdb extends \wpdb
                     $value === null => 'NULL',
                     \is_bool($value) => $value ? '1' : '0',
                     \is_int($value), \is_float($value) => (string) $value,
-                    default => $this->quoteStringLiteral((string) $value),
+                    default => $this->writer->quoteStringLiteral((string) $value),
                 };
 
                 continue;
@@ -707,34 +685,6 @@ class WpPackWpdb extends \wpdb
         }
 
         return $out;
-    }
-
-    /**
-     * Escape a string value and wrap it in single quotes, for display-only
-     * interpolation of SAVEQUERIES log entries. Delegates to the driver's
-     * native escape.
-     */
-    private function quoteStringLiteral(string $value): string
-    {
-        if (!$this->writer->isConnected()) {
-            $this->writer->connect();
-        }
-
-        $native = $this->writer->getNativeConnection();
-
-        if ($native instanceof \mysqli) {
-            return "'" . $native->real_escape_string($value) . "'";
-        }
-
-        if ($native instanceof \PDO) {
-            return $native->quote($value);
-        }
-
-        if (\is_resource($native) || (\is_object($native) && \function_exists('pg_escape_literal'))) {
-            return pg_escape_literal($native, $value);
-        }
-
-        return "'" . addslashes($value) . "'";
     }
 
     /**

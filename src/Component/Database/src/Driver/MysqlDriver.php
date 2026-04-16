@@ -91,6 +91,13 @@ class MysqlDriver extends AbstractDriver
         return $this->connection;
     }
 
+    public function quoteStringLiteral(string $value): string
+    {
+        $this->ensureConnected();
+
+        return "'" . $this->connection->real_escape_string($value) . "'";
+    }
+
     protected function doConnect(): void
     {
         if ($this->connection !== null) {

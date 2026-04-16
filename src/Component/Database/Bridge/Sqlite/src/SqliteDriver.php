@@ -77,6 +77,13 @@ final class SqliteDriver extends AbstractDriver
         return $this->pdo;
     }
 
+    public function quoteStringLiteral(string $value): string
+    {
+        $this->ensureConnected();
+
+        return (string) $this->pdo->quote($value);
+    }
+
     protected function doConnect(): void
     {
         if ($this->pdo !== null) {
