@@ -264,6 +264,23 @@ class WpPackWpdb extends \wpdb
         // Recover any params stashed by prepare() via /*WPP:id*/ markers.
         [$cleanQuery, $params] = $this->preparedBank->consume($query);
 
+        // Standard wpdb exposes a `query` filter allowing plugins to inspect
+        // or rewrite the SQL before execution. Pass the clean version (with
+        // '?' placeholders, no bank markers) so filter consumers see the SQL
+        // that will actually run.
+        if (\function_exists('apply_filters')) {
+            /** @var string|false $filtered */
+            $filtered = apply_filters('query', $cleanQuery);
+
+            if ($filtered === '' || $filtered === false) {
+                $this->insert_id = 0;
+
+                return false;
+            }
+
+            $cleanQuery = (string) $filtered;
+        }
+
         $this->last_query = $cleanQuery;
         $this->last_params = $params;
 
@@ -491,6 +508,8 @@ class WpPackWpdb extends \wpdb
     private function executeWithDriver(string $sql, array $params): int|bool
     {
         $start = microtime(true);
+        $this->time_start = $start;
+        ++$this->num_queries;
         $driver = $this->selectDriver($sql);
 
         try {
@@ -561,12 +580,24 @@ class WpPackWpdb extends \wpdb
         $this->insert_id = $driver->lastInsertId();
         $this->last_error = '';
 
+        $elapsed = microtime(true) - $start;
+
         $this->logger?->debug('Query executed', [
             'sql' => $sql,
             'params' => $params,
-            'time_ms' => round((microtime(true) - $start) * 1000, 2),
+            'time_ms' => round($elapsed * 1000, 2),
             'driver' => ($driver === $this->reader) ? 'reader' : 'writer',
         ]);
+
+        if (\defined('SAVEQUERIES') && SAVEQUERIES) {
+            $this->log_query(
+                $sql,
+                $elapsed,
+                $this->get_caller(),
+                $start,
+                ['params' => $params],
+            );
+        }
 
         return $isSelect ? \count($this->last_result) : $this->rows_affected;
     }
