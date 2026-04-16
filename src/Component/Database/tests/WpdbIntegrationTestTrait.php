@@ -2292,6 +2292,19 @@ trait WpdbIntegrationTestTrait
         self::assertSame('1', (string) $count);
     }
 
+    #[Test]
+    public function deleteRejectsWhereValueExceedingVarcharLength(): void
+    {
+        $wpdb = $this->getTestWpdb();
+
+        // posts.post_type is varchar(20). Passing a longer value in WHERE
+        // must be rejected up-front (wpdb field length validation), NOT
+        // silently truncated into a prefix that happens to match other rows.
+        $result = $wpdb->delete($wpdb->prefix . 'posts', ['post_type' => str_repeat('x', 25)]);
+
+        self::assertFalse($result);
+    }
+
     // ── WpPackWpdb error semantics: return false + last_error (wpdb contract) ──
 
     #[Test]
