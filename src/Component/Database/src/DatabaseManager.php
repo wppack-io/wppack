@@ -55,20 +55,18 @@ final class DatabaseManager
         'termRelationships' => 'term_relationships',
     ];
 
-    public function __construct()
+    /**
+     * @param Connection|null $connection Inject a custom Connection, or null to auto-detect from global $wpdb.
+     */
+    public function __construct(?Connection $connection = null)
     {
         global $wpdb;
 
         $this->wpdb = $wpdb;
-        $this->engine = match (true) {
-            $wpdb instanceof WpPackWpdb => $wpdb->getWriter()->getPlatform()->getEngine(),
-            $wpdb->dbh instanceof \mysqli => 'mysql',
-            $wpdb->dbh instanceof \PgSql\Connection => 'pgsql',
-            default => 'sqlite',
-        };
+        $this->connection = $connection ?? $this->createDefaultConnection($wpdb);
+        $this->engine = $this->connection->getPlatform()->getEngine();
         $this->users = $wpdb->users;
         $this->usermeta = $wpdb->usermeta;
-        $this->connection = $this->createConnection();
     }
 
     /**
@@ -387,21 +385,26 @@ final class DatabaseManager
      * Wraps the existing $wpdb->dbh (mysqli, PDO, PgSql) in a Driver,
      * enabling native prepared statements for all engines.
      */
-    private function createConnection(): Connection
+    /**
+     * Auto-detect the appropriate Connection from the global $wpdb.
+     *
+     * - WpPackWpdb: reuse its Driver (already configured via db.php drop-in)
+     * - Standard wpdb with mysqli: wrap the existing connection
+     * - Fallback: create from WordPress DB_* constants
+     */
+    private function createDefaultConnection(\wpdb $wpdb): Connection
     {
-        // WpPackWpdb already has a Driver — reuse it
-        if ($this->wpdb instanceof WpPackWpdb) {
-            return new Connection($this->wpdb->getWriter());
+        if ($wpdb instanceof WpPackWpdb) {
+            return new Connection($wpdb->getWriter());
         }
 
         /** @phpstan-ignore property.protected */
-        $dbh = $this->wpdb->dbh;
+        $dbh = $wpdb->dbh;
 
         if ($dbh instanceof \mysqli) {
             return new Connection(Driver\MysqlDriver::fromMysqli($dbh));
         }
 
-        // Fallback: create new connection from WordPress constants
         return new Connection(new Driver\MysqlDriver(
             host: \defined('DB_HOST') ? DB_HOST : '127.0.0.1',
             username: \defined('DB_USER') ? DB_USER : 'root',
