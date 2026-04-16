@@ -32,12 +32,6 @@ class WpPackWpdb extends \wpdb
     private readonly ?DriverInterface $reader;
     private readonly QueryTranslatorInterface $translator;
 
-    /** @var list<mixed>|null Parameters from the most recent prepare() call */
-    private ?array $preparedParams = null;
-
-    /** @var string|null SQL from the most recent prepare() call (for query() verification) */
-    private ?string $preparedSql = null;
-
     /** @var int|null Row count from the most recent SQL_CALC_FOUND_ROWS query */
     private ?int $lastFoundRows = null;
 
@@ -81,14 +75,13 @@ class WpPackWpdb extends \wpdb
     }
 
     /**
-     * Override prepare() to keep parameters separate instead of interpolating.
+     * Interpolate %s / %d / %f / %i placeholders into the SQL string.
      *
-     * Converts %s/%d/%f to ? placeholders and stores parameters in $preparedParams.
-     * The returned SQL string contains ? placeholders (not interpolated values).
-     * query() will detect matching SQL and pass stored params to the driver.
-     *
-     * %i (identifier) placeholders are expanded inline via quoteIdentifier()
-     * since they cannot be parameterized.
+     * Follows the WordPress wpdb::prepare() contract: returns a complete SQL
+     * string with values escaped and inlined. Callers (WP_Site_Query,
+     * WP_User_Query, etc.) concatenate multiple prepare() results into a
+     * single query and pass the combined string to query(), which is only
+     * possible when prepare() returns fully-formed SQL fragments.
      *
      * Accepts args passed as a single array for WordPress legacy compatibility
      * (e.g., `prepare($sql, [$a, $b])` is equivalent to `prepare($sql, $a, $b)`).
@@ -96,11 +89,10 @@ class WpPackWpdb extends \wpdb
      * @param string $query
      * @param mixed  ...$args
      *
-     * @return string SQL with ? placeholders
+     * @return string
      */
     public function prepare($query, ...$args)
     {
-        // WordPress may pass args as a single array (legacy support)
         if (\count($args) === 1 && \is_array($args[0])) {
             $args = $args[0];
         }
@@ -109,36 +101,56 @@ class WpPackWpdb extends \wpdb
             return $query;
         }
 
-        $nativeParams = [];
-        $paramIndex = 0;
-
         // Temporarily escape literal %%
         $sql = str_replace('%%', "\x00WPPACK_PERCENT\x00", $query);
 
-        $sql = (string) preg_replace_callback('/%([sdfi])/', function (array $m) use ($args, &$nativeParams, &$paramIndex): string {
+        $paramIndex = 0;
+
+        $sql = (string) preg_replace_callback('/%([sdfi])/', function (array $m) use ($args, &$paramIndex): string {
             $value = $args[$paramIndex++] ?? null;
 
-            if ($m[1] === 'i') {
-                // %i (identifier) cannot be a prepared statement parameter
-                return $this->writer->getPlatform()->quoteIdentifier((string) $value);
-            }
-
-            $nativeParams[] = match ($m[1]) {
-                'd' => (int) $value,
-                'f' => (float) $value,
-                default => (string) $value,
+            return match ($m[1]) {
+                'i' => $this->writer->getPlatform()->quoteIdentifier((string) $value),
+                'd' => (string) (int) $value,
+                'f' => (string) (float) $value,
+                default => $this->quoteStringLiteral((string) $value),
             };
-
-            return '?';
         }, $sql);
 
-        // Restore literal percent
-        $sql = str_replace("\x00WPPACK_PERCENT\x00", '%', $sql);
+        return str_replace("\x00WPPACK_PERCENT\x00", '%', $sql);
+    }
 
-        $this->preparedParams = $nativeParams;
-        $this->preparedSql = $sql;
+    /**
+     * Escape a string value and wrap it in single quotes for direct SQL
+     * interpolation. Delegates to the driver's native connection when
+     * available (mysqli::real_escape_string on MySQL, PDO::quote on SQLite,
+     * pg_escape_literal on PostgreSQL) and falls back to addslashes().
+     */
+    private function quoteStringLiteral(string $value): string
+    {
+        if (!$this->writer->isConnected()) {
+            $this->writer->connect();
+        }
 
-        return $sql;
+        $native = $this->writer->getNativeConnection();
+
+        if ($native instanceof \mysqli) {
+            return "'" . $native->real_escape_string($value) . "'";
+        }
+
+        if ($native instanceof \PDO) {
+            return $native->quote($value);
+        }
+
+        if (\is_resource($native) || (\is_object($native) && \function_exists('pg_escape_literal'))) {
+            $escaped = @pg_escape_literal($native, $value);
+
+            if (\is_string($escaped)) {
+                return $escaped;
+            }
+        }
+
+        return "'" . addslashes($value) . "'";
     }
 
     /**
@@ -156,16 +168,6 @@ class WpPackWpdb extends \wpdb
         $this->func_call = "\$db->query(\"$query\")";
         $this->last_query = $query;
 
-        // Use prepared params only if SQL matches (prevents stale param reuse)
-        $params = [];
-
-        if ($this->preparedParams !== null && $query === $this->preparedSql) {
-            $params = $this->preparedParams;
-        }
-
-        $this->preparedParams = null;
-        $this->preparedSql = null;
-
         // Intercept SELECT FOUND_ROWS() — return stored count from last SQL_CALC_FOUND_ROWS query
         if (preg_match('/^\s*SELECT\s+FOUND_ROWS\s*\(\s*\)/i', $query)) {
             $count = $this->lastFoundRows ?? 0;
@@ -176,7 +178,7 @@ class WpPackWpdb extends \wpdb
             return 1;
         }
 
-        return $this->executeWithDriver($query, $params);
+        return $this->executeWithDriver($query, []);
     }
 
     /**

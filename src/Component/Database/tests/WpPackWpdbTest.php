@@ -60,13 +60,11 @@ final class WpPackWpdbTest extends TestCase
     // ── prepare() ──
 
     #[Test]
-    public function prepareConvertsPlaceholdersToQuestionMarks(): void
+    public function prepareInterpolatesPlaceholders(): void
     {
         $sql = $this->wpdb->prepare('SELECT * FROM posts WHERE id = %d AND status = %s', 1, 'publish');
 
-        self::assertStringContainsString('?', $sql);
-        self::assertStringNotContainsString('%d', $sql);
-        self::assertStringNotContainsString('%s', $sql);
+        self::assertSame("SELECT * FROM posts WHERE id = 1 AND status = 'publish'", $sql);
     }
 
     #[Test]
@@ -74,8 +72,7 @@ final class WpPackWpdbTest extends TestCase
     {
         $sql = $this->wpdb->prepare("SELECT * FROM posts WHERE title LIKE '%%test%%' AND id = %d", 1);
 
-        self::assertStringContainsString('%test%', $sql);
-        self::assertStringContainsString('?', $sql);
+        self::assertSame("SELECT * FROM posts WHERE title LIKE '%test%' AND id = 1", $sql);
     }
 
     #[Test]
@@ -83,8 +80,7 @@ final class WpPackWpdbTest extends TestCase
     {
         $sql = $this->wpdb->prepare('SELECT * FROM posts WHERE score > %f', 3.14);
 
-        self::assertStringContainsString('?', $sql);
-        self::assertStringNotContainsString('%f', $sql);
+        self::assertSame('SELECT * FROM posts WHERE score > 3.14', $sql);
     }
 
     // ── prepare() + query() prepared statement ──
@@ -355,10 +351,11 @@ final class WpPackWpdbTest extends TestCase
 
         // %i should be expanded via quoteIdentifier (SQLite uses double quotes)
         self::assertStringContainsString('"wptests_posts"', $sql);
-        // %d should be converted to ?
-        self::assertStringContainsString('?', $sql);
-        // %i should NOT be a ? placeholder
+        // %d should be interpolated
+        self::assertStringContainsString('= 1', $sql);
+        // No raw placeholders should remain
         self::assertStringNotContainsString('%i', $sql);
+        self::assertStringNotContainsString('%d', $sql);
     }
 
     #[Test]
@@ -379,7 +376,7 @@ final class WpPackWpdbTest extends TestCase
     {
         $sql = $this->wpdb->prepare('SELECT * FROM wptests_posts WHERE post_title = %s', '');
 
-        self::assertStringContainsString('?', $sql);
+        self::assertStringContainsString("= ''", $sql);
 
         // Execute with empty string param
         $this->wpdb->query($sql);
@@ -391,7 +388,8 @@ final class WpPackWpdbTest extends TestCase
     {
         $sql = $this->wpdb->prepare('SELECT * FROM wptests_posts WHERE post_title = %s', null);
 
-        self::assertStringContainsString('?', $sql);
+        // null coerces to empty string
+        self::assertStringContainsString("= ''", $sql);
     }
 
     #[Test]
@@ -425,9 +423,7 @@ final class WpPackWpdbTest extends TestCase
         // WordPress legacy: prepare($query, array_of_args)
         $sql = $this->wpdb->prepare('SELECT * FROM wptests_posts WHERE id = %d AND status = %s', [1, 'publish']);
 
-        self::assertStringContainsString('?', $sql);
-        self::assertStringNotContainsString('%d', $sql);
-        self::assertStringNotContainsString('%s', $sql);
+        self::assertSame("SELECT * FROM wptests_posts WHERE id = 1 AND status = 'publish'", $sql);
     }
 
     // ── Logger ──
