@@ -11,14 +11,14 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\MonitoringPlugin\Discovery;
+namespace WpPack\Component\Monitoring\Bridge\CloudWatch\Discovery;
 
 use WpPack\Component\Monitoring\MetricDefinition;
 use WpPack\Component\Monitoring\MonitoringProvider;
 use WpPack\Component\Monitoring\MonitoringProviderInterface;
 use WpPack\Component\Monitoring\AwsProviderSettings;
 
-final class DatabaseDiscovery implements MonitoringProviderInterface
+final class RdsDiscovery implements MonitoringProviderInterface
 {
     /**
      * Aurora Cluster endpoint pattern:

@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\MonitoringPlugin\Tests\Discovery;
+namespace WpPack\Component\Monitoring\Bridge\CloudWatch\Tests\Discovery;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Plugin\MonitoringPlugin\Discovery\DsqlDiscovery;
+use WpPack\Component\Monitoring\Bridge\CloudWatch\Discovery\DsqlDiscovery;
 
 final class DsqlDiscoveryTest extends TestCase
 {

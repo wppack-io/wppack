@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\MonitoringPlugin\Tests\Discovery;
+namespace WpPack\Component\Monitoring\Bridge\CloudWatch\Tests\Discovery;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Plugin\MonitoringPlugin\Discovery\S3Discovery;
+use WpPack\Component\Monitoring\Bridge\CloudWatch\Discovery\S3Discovery;
 use WpPack\Plugin\S3StoragePlugin\Configuration\S3StorageConfiguration;
 
 final class S3DiscoveryTest extends TestCase

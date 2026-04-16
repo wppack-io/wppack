@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\MonitoringPlugin\Discovery;
+namespace WpPack\Component\Monitoring\Bridge\CloudWatch\Discovery;
 
 use WpPack\Component\Monitoring\AwsProviderSettings;
 use WpPack\Component\Monitoring\MetricDefinition;

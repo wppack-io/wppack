@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Plugin\MonitoringPlugin\Tests\Discovery;
+namespace WpPack\Component\Monitoring\Bridge\CloudWatch\Tests\Discovery;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Plugin\MonitoringPlugin\Discovery\DatabaseDiscovery;
+use WpPack\Component\Monitoring\Bridge\CloudWatch\Discovery\RdsDiscovery;
 
-final class DatabaseDiscoveryTest extends TestCase
+final class RdsDiscoveryTest extends TestCase
 {
     // DB_HOST is defined by WordPress bootstrap pointing to the test MySQL,
     // which is not an RDS endpoint. We verify that non-RDS hosts are ignored.
@@ -25,7 +25,7 @@ final class DatabaseDiscoveryTest extends TestCase
     #[Test]
     public function returnsEmptyWhenHostIsNotRds(): void
     {
-        $discovery = new DatabaseDiscovery();
+        $discovery = new RdsDiscovery();
 
         // Test environment DB_HOST (localhost / docker) is not an RDS endpoint
         self::assertSame([], $discovery->getProviders());
@@ -34,7 +34,7 @@ final class DatabaseDiscoveryTest extends TestCase
     #[Test]
     public function implementsMonitoringProviderInterface(): void
     {
-        $discovery = new DatabaseDiscovery();
+        $discovery = new RdsDiscovery();
 
         self::assertInstanceOf(\WpPack\Component\Monitoring\MonitoringProviderInterface::class, $discovery);
     }

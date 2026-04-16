@@ -18,14 +18,10 @@ use WpPack\Component\DependencyInjection\ContainerBuilder;
 use WpPack\Component\DependencyInjection\Reference;
 use WpPack\Component\DependencyInjection\ServiceProviderInterface;
 use WpPack\Component\HttpFoundation\Request;
+use WpPack\Component\Monitoring\Bridge\CloudWatch\DependencyInjection\CloudWatchServiceProvider;
 use WpPack\Component\Monitoring\DependencyInjection\MonitoringServiceProvider;
 use WpPack\Component\Rest\RestRegistry;
 use WpPack\Plugin\MonitoringPlugin\Admin\MonitoringDashboardPage;
-use WpPack\Plugin\MonitoringPlugin\Discovery\DatabaseDiscovery;
-use WpPack\Plugin\MonitoringPlugin\Discovery\DynamoDbDiscovery;
-use WpPack\Plugin\MonitoringPlugin\Discovery\ElastiCacheDiscovery;
-use WpPack\Plugin\MonitoringPlugin\Discovery\S3Discovery;
-use WpPack\Plugin\MonitoringPlugin\Discovery\SesDiscovery;
 use WpPack\Plugin\MonitoringPlugin\Rest\SyncTemplatesController;
 use WpPack\Plugin\MonitoringPlugin\Template\MetricTemplateRegistry;
 
@@ -52,23 +48,6 @@ final class MonitoringPluginServiceProvider implements ServiceProviderInterface
     public function register(ContainerBuilder $builder): void
     {
         (new MonitoringServiceProvider())->register($builder);
-
-        $builder->register(ElastiCacheDiscovery::class)
-            ->addTag('monitoring.provider');
-
-        $builder->register(SesDiscovery::class)
-            ->addTag('monitoring.provider');
-
-        $builder->register(DatabaseDiscovery::class)
-            ->addTag('monitoring.provider');
-
-        $builder->register(\WpPack\Plugin\MonitoringPlugin\Discovery\DsqlDiscovery::class)
-            ->addTag('monitoring.provider');
-
-        $builder->register(S3Discovery::class)
-            ->addTag('monitoring.provider');
-
-        $builder->register(DynamoDbDiscovery::class)
-            ->addTag('monitoring.provider');
+        (new CloudWatchServiceProvider())->register($builder);
     }
 }
