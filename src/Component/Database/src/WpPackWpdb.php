@@ -308,6 +308,12 @@ class WpPackWpdb extends \wpdb
      */
     public function insert($table, $data, $format = null)
     {
+        $data = $this->validateAndFlatten($table, $data, $format);
+
+        if ($data === false) {
+            return false;
+        }
+
         return $this->executeInsertReplace($table, $data, $format, 'INSERT');
     }
 
@@ -322,6 +328,12 @@ class WpPackWpdb extends \wpdb
      */
     public function replace($table, $data, $format = null)
     {
+        $data = $this->validateAndFlatten($table, $data, $format);
+
+        if ($data === false) {
+            return false;
+        }
+
         return $this->executeInsertReplace($table, $data, $format, 'REPLACE');
     }
 
@@ -338,6 +350,17 @@ class WpPackWpdb extends \wpdb
      */
     public function update($table, $data, $where, $format = null, $where_format = null)
     {
+        $data = $this->validateAndFlatten($table, $data, $format);
+
+        if ($data === false) {
+            return false;
+        }
+
+        $where = $this->validateAndFlatten($table, $where, $where_format);
+
+        if ($where === false) {
+            return false;
+        }
 
         $platform = $this->writer->getPlatform();
         $quotedTable = $platform->quoteIdentifier($table);
@@ -814,6 +837,66 @@ class WpPackWpdb extends \wpdb
      * @param array<string>|string|null $format
      *
      * @return int|false
+     */
+    /**
+     * Run wpdb's field validation (format / charset / length) when the
+     * underlying connection is mysqli — the exact pre-flight checks
+     * wpdb::_insert_replace_helper() would normally apply — and flatten the
+     * resulting tagged structure back to [column => value] for our own
+     * executeInsertReplace() / update() paths.
+     *
+     * Returning false mirrors the standard wpdb behavior: the caller must
+     * abort the statement so wp_insert_post() can report a WP_Error.
+     *
+     * For non-mysqli drivers (SQLite, PostgreSQL, Aurora Data API) the
+     * DESCRIBE / SHOW FULL COLUMNS queries that feed process_fields are not
+     * available, so we skip the validation and trust the driver to surface
+     * an error at execute time.
+     *
+     * @param array<string, mixed>      $data
+     * @param array<string>|string|null $format
+     *
+     * @return array<string, mixed>|false
+     */
+    private function validateAndFlatten(string $table, array $data, array|string|null $format): array|false
+    {
+        // process_fields() runs DESCRIBE / SHOW FULL COLUMNS queries, which
+        // only make sense on MySQL. Skip the pre-flight entirely for other
+        // drivers and let execute-time errors surface through the Driver.
+        if (!($this->writer->getNativeConnection() instanceof \mysqli)) {
+            return $data;
+        }
+
+        // Ensure $this->dbh is populated so wpdb's inherited field validation
+        // (which introspects schema via $this->dbh) has a live connection.
+        if (!($this->dbh instanceof \mysqli)) {
+            $this->dbh = $this->writer->getNativeConnection();
+        }
+
+        // wpdb::get_col_length() / get_col_charset() short-circuit to false
+        // unless is_mysql is true. Parent's constructor sets this flag; we
+        // skip that constructor so flip it on ourselves when the connection
+        // is a real mysqli.
+        $this->is_mysql = true;
+
+        $processed = $this->process_fields($table, $data, $format);
+
+        if ($processed === false) {
+            return false;
+        }
+
+        $flat = [];
+
+        foreach ($processed as $column => $info) {
+            $flat[$column] = \is_array($info) && \array_key_exists('value', $info) ? $info['value'] : $info;
+        }
+
+        return $flat;
+    }
+
+    /**
+     * @param array<string, mixed>      $data
+     * @param array<string>|string|null $format
      */
     private function executeInsertReplace(string $table, array $data, array|string|null $format, string $verb): int|false
     {
