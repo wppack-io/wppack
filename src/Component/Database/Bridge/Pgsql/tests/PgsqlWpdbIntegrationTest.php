@@ -17,13 +17,13 @@ use PHPUnit\Framework\TestCase;
 use WpPack\Component\Database\Bridge\Pgsql\PgsqlDriver;
 use WpPack\Component\Database\Tests\WpdbIntegrationTestTrait;
 use WpPack\Component\Database\WpPackWpdb;
+use WpPack\Component\Dsn\Dsn;
 
 /**
  * WpPackWpdb integration tests with PostgreSQL driver and PostgresqlQueryTranslator.
  *
- * Verifies that WordPress-style MySQL queries are correctly translated to
- * PostgreSQL dialect and executed end-to-end. Requires a running PostgreSQL
- * instance — skipped when WPPACK_TEST_PGSQL_HOST is not set.
+ * Activates only when DATABASE_DSN selects the PostgreSQL engine. Connection
+ * details (host, port, user, password, database) are parsed from the DSN.
  */
 final class PgsqlWpdbIntegrationTest extends TestCase
 {
@@ -36,37 +36,33 @@ final class PgsqlWpdbIntegrationTest extends TestCase
 
     protected function setUp(): void
     {
-        $host = $_SERVER['WPPACK_TEST_PGSQL_HOST'] ?? $_ENV['WPPACK_TEST_PGSQL_HOST'] ?? '';
+        $dsn = $_SERVER['DATABASE_DSN'] ?? $_ENV['DATABASE_DSN'] ?? '';
 
-        if ($host === '') {
-            self::markTestSkipped('PostgreSQL not available (set WPPACK_TEST_PGSQL_HOST).');
+        if (!is_string($dsn) || !str_starts_with($dsn, 'pgsql:')) {
+            self::markTestSkipped('Requires DATABASE_DSN=pgsql:... (got: ' . ($dsn === '' ? '(unset)' : $dsn) . ')');
         }
+
+        $parsed = Dsn::fromString($dsn);
 
         $this->originalWpdb = $GLOBALS['wpdb'] ?? null;
         $this->originalTablePrefix = $GLOBALS['table_prefix'] ?? null;
         $GLOBALS['table_prefix'] = 'wpt_';
 
         $this->driver = new PgsqlDriver(
-            host: $host,
-            username: $_SERVER['WPPACK_TEST_PGSQL_USER'] ?? $_ENV['WPPACK_TEST_PGSQL_USER'] ?? 'wppack',
-            password: $_SERVER['WPPACK_TEST_PGSQL_PASSWORD'] ?? $_ENV['WPPACK_TEST_PGSQL_PASSWORD'] ?? 'wppack',
-            database: $_SERVER['WPPACK_TEST_PGSQL_DATABASE'] ?? $_ENV['WPPACK_TEST_PGSQL_DATABASE'] ?? 'wppack_test',
-            port: (int) ($_SERVER['WPPACK_TEST_PGSQL_PORT'] ?? $_ENV['WPPACK_TEST_PGSQL_PORT'] ?? '5432'),
+            host: $parsed->getHost() ?? '127.0.0.1',
+            username: $parsed->getUser() ?? 'wppack',
+            password: $parsed->getPassword() ?? '',
+            database: ltrim($parsed->getPath() ?? '', '/') ?: 'wppack_test',
+            port: $parsed->getPort() ?? 5432,
         );
         $this->driver->connect();
 
-        // Drop tables from previous runs
-        $this->driver->executeStatement('DROP TABLE IF EXISTS wpt_term_relationships');
-        $this->driver->executeStatement('DROP TABLE IF EXISTS wpt_postmeta');
-        $this->driver->executeStatement('DROP TABLE IF EXISTS wpt_usermeta');
-        $this->driver->executeStatement('DROP TABLE IF EXISTS wpt_posts');
-        $this->driver->executeStatement('DROP TABLE IF EXISTS wpt_users');
-        $this->driver->executeStatement('DROP TABLE IF EXISTS wpt_options');
+        $this->dropTestTables();
 
         $this->testWpdb = new WpPackWpdb(
             writer: $this->driver,
             translator: $this->driver->getQueryTranslator(),
-            dbname: 'wppack_test',
+            dbname: ltrim($parsed->getPath() ?? '', '/') ?: 'wppack_test',
         );
 
         $this->createWordPressTables();
@@ -75,12 +71,7 @@ final class PgsqlWpdbIntegrationTest extends TestCase
     protected function tearDown(): void
     {
         if (isset($this->driver) && $this->driver->isConnected()) {
-            $this->driver->executeStatement('DROP TABLE IF EXISTS wpt_term_relationships');
-            $this->driver->executeStatement('DROP TABLE IF EXISTS wpt_postmeta');
-            $this->driver->executeStatement('DROP TABLE IF EXISTS wpt_usermeta');
-            $this->driver->executeStatement('DROP TABLE IF EXISTS wpt_posts');
-            $this->driver->executeStatement('DROP TABLE IF EXISTS wpt_users');
-            $this->driver->executeStatement('DROP TABLE IF EXISTS wpt_options');
+            $this->dropTestTables();
             $this->driver->close();
         }
 
@@ -96,5 +87,12 @@ final class PgsqlWpdbIntegrationTest extends TestCase
     protected function getTestWpdb(): \wpdb
     {
         return $this->testWpdb;
+    }
+
+    private function dropTestTables(): void
+    {
+        foreach (['wpt_term_relationships', 'wpt_postmeta', 'wpt_usermeta', 'wpt_posts', 'wpt_users', 'wpt_options'] as $table) {
+            $this->driver->executeStatement("DROP TABLE IF EXISTS {$table}");
+        }
     }
 }

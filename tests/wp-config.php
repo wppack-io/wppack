@@ -11,7 +11,13 @@
 
 declare(strict_types=1);
 
+require_once dirname(__DIR__) . '/vendor/autoload.php';
+
 define('ABSPATH', dirname(__DIR__) . '/web/wp/');
+// Test-only wp-content directory that exposes only the Database db.php drop-in,
+// so DATABASE_DSN can route $wpdb through WpPackWpdb without pulling in the dev
+// object-cache drop-in or plugins.
+define('WP_CONTENT_DIR', __DIR__ . '/wp-content');
 
 // DATABASE_DSN drives the db.php drop-in if set (matrix-driven CI testing).
 // When unset, the db.php drop-in falls back to auto-building a MySQL DSN

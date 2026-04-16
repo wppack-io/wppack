@@ -112,6 +112,38 @@ class MysqlDriver extends AbstractDriver
 
         $connection->set_charset($this->charset);
         $this->connection = $connection;
+
+        $this->setCompatibleSqlMode();
+    }
+
+    /**
+     * Remove sql_mode flags incompatible with WordPress-style DDL/DML
+     * (matches the behavior of wpdb::set_sql_mode()).
+     */
+    private function setCompatibleSqlMode(): void
+    {
+        if ($this->connection === null) {
+            return;
+        }
+
+        $result = $this->connection->query('SELECT @@SESSION.sql_mode');
+
+        if (!$result instanceof \mysqli_result) {
+            return;
+        }
+
+        $row = $result->fetch_row();
+        $result->free();
+
+        if ($row === null || !isset($row[0])) {
+            return;
+        }
+
+        $modes = array_filter(array_map('trim', explode(',', (string) $row[0])), static fn(string $m): bool => $m !== '');
+        $incompatible = ['NO_ZERO_DATE', 'ONLY_FULL_GROUP_BY', 'STRICT_TRANS_TABLES', 'STRICT_ALL_TABLES', 'TRADITIONAL', 'ANSI'];
+        $modes = array_values(array_diff($modes, $incompatible));
+
+        $this->connection->query(\sprintf("SET SESSION sql_mode = '%s'", $this->connection->real_escape_string(implode(',', $modes))));
     }
 
     protected function doClose(): void

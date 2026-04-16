@@ -17,12 +17,13 @@ use PHPUnit\Framework\TestCase;
 use WpPack\Component\Database\Bridge\Sqlite\SqliteDriver;
 use WpPack\Component\Database\Tests\WpdbIntegrationTestTrait;
 use WpPack\Component\Database\WpPackWpdb;
+use WpPack\Component\Dsn\Dsn;
 
 /**
  * WpPackWpdb integration tests with SQLite driver and SqliteQueryTranslator.
  *
- * Verifies that WordPress-style MySQL queries are correctly translated to
- * SQLite dialect and executed end-to-end. Uses :memory: database for each test.
+ * Activates only when DATABASE_DSN selects the SQLite engine. The DSN path
+ * determines the SQLite database file (':memory:' is supported).
  */
 final class SqliteWpdbIntegrationTest extends TestCase
 {
@@ -35,11 +36,23 @@ final class SqliteWpdbIntegrationTest extends TestCase
 
     protected function setUp(): void
     {
+        $dsn = $_SERVER['DATABASE_DSN'] ?? $_ENV['DATABASE_DSN'] ?? '';
+
+        if (!is_string($dsn) || !str_starts_with($dsn, 'sqlite:')) {
+            self::markTestSkipped('Requires DATABASE_DSN=sqlite:... (got: ' . ($dsn === '' ? '(unset)' : $dsn) . ')');
+        }
+
+        $parsed = Dsn::fromString($dsn);
+        $path = $parsed->getPath() ?? '';
+        if ($path === '' || $path === ':memory:') {
+            $path = ':memory:';
+        }
+
         $this->originalWpdb = $GLOBALS['wpdb'] ?? null;
         $this->originalTablePrefix = $GLOBALS['table_prefix'] ?? null;
         $GLOBALS['table_prefix'] = 'wpt_';
 
-        $this->driver = new SqliteDriver(':memory:');
+        $this->driver = new SqliteDriver($path);
         $this->driver->connect();
 
         $this->testWpdb = new WpPackWpdb(
@@ -53,7 +66,9 @@ final class SqliteWpdbIntegrationTest extends TestCase
 
     protected function tearDown(): void
     {
-        $this->driver->close();
+        if (isset($this->driver) && $this->driver->isConnected()) {
+            $this->driver->close();
+        }
 
         if ($this->originalWpdb !== null) {
             $GLOBALS['wpdb'] = $this->originalWpdb;

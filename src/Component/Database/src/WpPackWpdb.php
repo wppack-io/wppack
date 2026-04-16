@@ -289,6 +289,11 @@ class WpPackWpdb extends \wpdb
         return $this->writer;
     }
 
+    public function getTranslator(): QueryTranslatorInterface
+    {
+        return $this->translator;
+    }
+
     public function setLogger(LoggerInterface $logger): void
     {
         $this->logger = $logger;
