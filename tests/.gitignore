@@ -3,3 +3,4 @@
 !/wp-content/plugins/.gitkeep
 /wp-content/mu-plugins/*
 !/wp-content/mu-plugins/.gitkeep
+/wp-content/debug.log
