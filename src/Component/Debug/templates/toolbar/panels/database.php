@@ -74,7 +74,8 @@
     $sql = $query['sql'];
     $timeMs = (float) $query['time'];
     $isSlow = $timeMs > 100.0;
-    $isDuplicate = ($sqlCounts[$sql] ?? 0) > 1;
+    $dupKey = \WpPack\Component\Debug\DataCollector\DatabaseDataCollector::dupKey($sql, $query['params'] ?? []);
+    $isDuplicate = ($sqlCounts[$dupKey] ?? 0) > 1;
     $rowClass = $isSlow ? 'wpd-row-slow' : ($isDuplicate ? 'wpd-row-duplicate' : '');
     $startTime = (float) ($query['start'] ?? 0);
     $relTime = $fmt->relativeTime($startTime, $requestTimeFloat);
@@ -82,7 +83,22 @@
 <tr class="<?= $rowClass ?>">
 <td class="wpd-col-num"><?= $view->e((string) ($index + 1)) ?></td>
 <td class="wpd-col-reltime wpd-text-dim"><?= $view->e($relTime) ?></td>
-<td class="wpd-col-sql"><code><?= $view->e($sql) ?></code><?php if ($isSlow): ?><?= $view->include('toolbar/partials/badge', ['label' => 'SLOW', 'color' => 'red']) ?><?php endif; ?><?php if ($isDuplicate): ?><?= $view->include('toolbar/partials/badge', ['label' => 'DUP', 'color' => 'yellow']) ?><?php endif; ?></td>
+<td class="wpd-col-sql">
+<code><?= $view->e($sql) ?></code>
+<?php if ($isSlow): ?><?= $view->include('toolbar/partials/badge', ['label' => 'SLOW', 'color' => 'red']) ?><?php endif; ?>
+<?php if ($isDuplicate): ?><?= $view->include('toolbar/partials/badge', ['label' => 'DUP', 'color' => 'yellow']) ?><?php endif; ?>
+<?php $params = $query['params'] ?? []; if (!empty($params)): ?>
+<table class="wpd-params-table">
+<?php foreach ($params as $pi => $pv): ?>
+<tr>
+<td class="wpd-params-index">#<?= $view->e((string) ($pi + 1)) ?></td>
+<td class="wpd-params-type"><?= $view->e($fmt->paramType($pv)) ?></td>
+<td class="wpd-params-value"><code><?= $view->e($fmt->paramValue($pv)) ?></code></td>
+</tr>
+<?php endforeach; ?>
+</table>
+<?php endif; ?>
+</td>
 <td class="wpd-col-time"><?= $view->e($fmt->ms($timeMs)) ?></td>
 <td class="wpd-col-caller"><span class="wpd-caller"><?= $view->e($query['caller']) ?></span></td>
 </tr>

@@ -556,6 +556,37 @@ final class ToolbarAssets
             white-space: pre-wrap;
             word-break: break-all;
         }
+        #wppack-debug .wpd-params-table {
+            margin: 6px 0 2px 16px;
+            padding: 3px 8px;
+            border-left: 2px solid var(--wpd-gray-200);
+            border-collapse: collapse;
+            font-family: var(--wpd-font-mono);
+            font-size: 10.5px;
+            color: var(--wpd-gray-500);
+        }
+        #wppack-debug .wpd-params-table td {
+            padding: 0 10px 0 0;
+            vertical-align: top;
+            line-height: 1.5;
+        }
+        #wppack-debug .wpd-params-table tr:last-child td { padding-bottom: 0; }
+        #wppack-debug .wpd-params-index {
+            color: var(--wpd-gray-400);
+            white-space: nowrap;
+            width: 22px;
+        }
+        #wppack-debug .wpd-params-type {
+            color: var(--wpd-gray-400);
+            white-space: nowrap;
+            font-style: italic;
+        }
+        #wppack-debug .wpd-params-value code {
+            font-family: var(--wpd-font-mono);
+            font-size: 10.5px;
+            color: var(--wpd-gray-700);
+            word-break: break-all;
+        }
         #wppack-debug .wpd-table .wpd-col-time {
             width: 90px;
             white-space: nowrap;

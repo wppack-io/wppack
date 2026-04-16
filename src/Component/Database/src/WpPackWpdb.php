@@ -590,15 +590,19 @@ class WpPackWpdb extends \wpdb
         ]);
 
         if (\defined('SAVEQUERIES') && SAVEQUERIES) {
-            // Store the interpolated form so tools like Debug Bar, which read
-            // $wpdb->queries[0] directly, can show values. Execution itself
-            // still used the '?' + $params native prepared statement path.
+            // Symfony/Doctrine-style logging: keep the parameterized SQL in
+            // $q[0] (matches what the driver actually executed) and carry the
+            // values in $q[4]['params']. Panels that want a copy-pasteable
+            // string can use $q[4]['interpolated_sql'] instead.
             $this->log_query(
-                $this->interpolateForDisplay($sql, $params),
+                $sql,
                 $elapsed,
                 $this->get_caller(),
                 $start,
-                ['params' => $params, 'prepared_sql' => $sql],
+                [
+                    'params' => $params,
+                    'interpolated_sql' => $this->interpolateForDisplay($sql, $params),
+                ],
             );
         }
 

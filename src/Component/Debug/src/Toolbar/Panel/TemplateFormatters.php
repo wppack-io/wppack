@@ -164,6 +164,71 @@ final class TemplateFormatters
         return $this->esc((string) $value);
     }
 
+    /**
+     * Describe a bound-parameter value's type as a short string suitable for a
+     * debug panel column, e.g. 'int', 'string(7)', 'object:DateTime'.
+     */
+    public function paramType(mixed $value): string
+    {
+        return match (true) {
+            $value === null => 'null',
+            \is_bool($value) => 'bool',
+            \is_int($value) => 'int',
+            \is_float($value) => 'float',
+            \is_string($value) => 'string(' . \strlen($value) . ')',
+            \is_array($value) => 'array(' . \count($value) . ')',
+            \is_object($value) => 'object:' . $value::class,
+            \is_resource($value) => 'resource',
+            default => \gettype($value),
+        };
+    }
+
+    /**
+     * Format a bound-parameter value for display next to its type. Long
+     * strings are truncated with a trailing ellipsis; non-scalars fall back
+     * to a short JSON representation.
+     */
+    public function paramValue(mixed $value, int $maxLength = 80): string
+    {
+        if ($value === null) {
+            return 'NULL';
+        }
+
+        if (\is_bool($value)) {
+            return $value ? 'true' : 'false';
+        }
+
+        if (\is_int($value) || \is_float($value)) {
+            return (string) $value;
+        }
+
+        if (\is_string($value)) {
+            $quoted = "'" . $value . "'";
+
+            if (\strlen($quoted) > $maxLength) {
+                return substr($quoted, 0, $maxLength - 4) . "...'";
+            }
+
+            return $quoted;
+        }
+
+        if (\is_array($value) || \is_object($value)) {
+            $json = json_encode($value, \JSON_UNESCAPED_UNICODE | \JSON_UNESCAPED_SLASHES);
+
+            if (!\is_string($json)) {
+                return \is_object($value) ? $value::class : 'array';
+            }
+
+            if (\strlen($json) > $maxLength) {
+                return substr($json, 0, $maxLength - 3) . '...';
+            }
+
+            return $json;
+        }
+
+        return \gettype($value);
+    }
+
     private function esc(string $value): string
     {
         return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');

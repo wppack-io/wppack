@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Debug\Toolbar\Panel;
 
 use WpPack\Component\Debug\Attribute\AsPanelRenderer;
+use WpPack\Component\Debug\DataCollector\DatabaseDataCollector;
 
 #[AsPanelRenderer(name: 'database')]
 final class DatabasePanelRenderer extends AbstractPanelRenderer implements RendererInterface
@@ -45,11 +46,12 @@ final class DatabasePanelRenderer extends AbstractPanelRenderer implements Rende
             $shortCallers[$caller] = ($parts !== false && count($parts) > 1) ? end($parts) : $caller;
         }
 
-        // SQL duplicate counts
+        // Duplicate counts key on SQL + bound params — the same parameterized
+        // statement executed with different values is not a duplicate.
         $sqlCounts = [];
         foreach ($queries as $query) {
-            $sql = $query['sql'];
-            $sqlCounts[$sql] = ($sqlCounts[$sql] ?? 0) + 1;
+            $key = DatabaseDataCollector::dupKey($query['sql'], $query['params'] ?? []);
+            $sqlCounts[$key] = ($sqlCounts[$key] ?? 0) + 1;
         }
 
         return $this->getPhpRenderer()->render('toolbar/panels/database', [

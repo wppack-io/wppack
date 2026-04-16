@@ -21,7 +21,7 @@ final class DatabaseDataCollector extends AbstractDataCollector
     private const SLOW_QUERY_THRESHOLD_MS = 100.0;
     private const MASKED_VALUE = '********';
 
-    /** @var list<array{sql: string, time: float, caller: string, start: float, data: array<string, mixed>}> */
+    /** @var list<array{sql: string, params: list<mixed>, time: float, caller: string, start: float, data: array<string, mixed>}> */
     private array $realtimeQueries = [];
 
     public function __construct()
@@ -51,11 +51,15 @@ final class DatabaseDataCollector extends AbstractDataCollector
         foreach ($queries as $query) {
             $totalTime += $query['time'];
 
-            $sql = $query['sql'];
-            if (!isset($duplicates[$sql])) {
-                $duplicates[$sql] = 0;
+            // Duplicate detection keys on SQL + bound params so that the same
+            // parameterized statement executed with different values is NOT
+            // flagged as a duplicate.
+            $key = self::dupKey($query['sql'], $query['params']);
+
+            if (!isset($duplicates[$key])) {
+                $duplicates[$key] = 0;
             }
-            $duplicates[$sql]++;
+            $duplicates[$key]++;
 
             if ($query['time'] > self::SLOW_QUERY_THRESHOLD_MS) {
                 $slowCount++;
@@ -137,8 +141,14 @@ final class DatabaseDataCollector extends AbstractDataCollector
      */
     public function captureQueryData(array $queryData, string $sql, float $time, string $caller, float $start): array
     {
+        /** @var list<mixed> $params */
+        $params = (isset($queryData['params']) && \is_array($queryData['params']))
+            ? array_values($queryData['params'])
+            : [];
+
         $this->realtimeQueries[] = [
             'sql' => $this->maskQueryValues($sql),
+            'params' => $params,
             'time' => $time * 1000,
             'caller' => $caller,
             'start' => $start,
@@ -160,7 +170,7 @@ final class DatabaseDataCollector extends AbstractDataCollector
     }
 
     /**
-     * @return list<array{sql: string, time: float, caller: string, start: float, data: array<string, mixed>}>
+     * @return list<array{sql: string, params: list<mixed>, time: float, caller: string, start: float, data: array<string, mixed>}>
      */
     private function collectQueries(): array
     {
@@ -182,16 +192,34 @@ final class DatabaseDataCollector extends AbstractDataCollector
                 continue;
             }
 
+            $data = isset($query[4]) && is_array($query[4]) ? $query[4] : [];
+            /** @var list<mixed> $params */
+            $params = (isset($data['params']) && \is_array($data['params']))
+                ? array_values($data['params'])
+                : [];
+
             $queries[] = [
                 'sql' => $this->maskQueryValues((string) $query[0]),
+                'params' => $params,
                 'time' => (float) $query[1] * 1000,
                 'caller' => (string) $query[2],
                 'start' => isset($query[3]) ? (float) $query[3] : 0.0,
-                'data' => isset($query[4]) && is_array($query[4]) ? $query[4] : [],
+                'data' => $data,
             ];
         }
 
         return $queries;
+    }
+
+    /**
+     * Compute the duplicate-detection key for a (sql, params) pair. Same key
+     * implies identical statement AND identical bound values.
+     *
+     * @param list<mixed> $params
+     */
+    public static function dupKey(string $sql, array $params): string
+    {
+        return $sql . "\x01" . serialize($params);
     }
 
     private function maskQueryValues(string $sql): string
