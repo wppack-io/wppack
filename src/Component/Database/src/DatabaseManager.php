@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Database;
 
-use WpPack\Component\Database\Exception\DriverException;
 use WpPack\Component\Database\Exception\QueryException;
 
 /**
@@ -91,46 +90,26 @@ final class DatabaseManager
     /**
      * Execute a SELECT query and return the result of $wpdb->query().
      *
-     * Use fetch methods to retrieve results after calling this method.
-     *
      * @param list<mixed> $params
      *
      * @throws QueryException
      */
-    public function executeQuery(string $query, array $params = []): true
+    public function executeQuery(string $query, array $params = []): Result
     {
-        [$sql, $nativeParams] = $this->toNativePlaceholders($query, $params);
-
-        try {
-            $this->connection->executeQuery($sql, $nativeParams);
-        } catch (DriverException $e) {
-            throw new QueryException($sql, $e->getMessage(), $e);
-        }
-
-        return true;
+        return $this->connection->executeQuery($query, $params);
     }
 
     /**
-     * Execute an INSERT, UPDATE, or DELETE statement and return the number of affected rows.
-     *
      * @param list<mixed> $params
      *
      * @throws QueryException
      */
     public function executeStatement(string $query, array $params = []): int
     {
-        [$sql, $nativeParams] = $this->toNativePlaceholders($query, $params);
-
-        try {
-            return $this->connection->executeStatement($sql, $nativeParams);
-        } catch (DriverException $e) {
-            throw new QueryException($sql, $e->getMessage(), $e);
-        }
+        return $this->connection->executeStatement($query, $params);
     }
 
     /**
-     * Fetch all rows as an array of associative arrays.
-     *
      * @param list<mixed> $params
      *
      * @return list<array<string, mixed>>
@@ -139,18 +118,10 @@ final class DatabaseManager
      */
     public function fetchAllAssociative(string $query, array $params = []): array
     {
-        [$sql, $nativeParams] = $this->toNativePlaceholders($query, $params);
-
-        try {
-            return $this->connection->fetchAllAssociative($sql, $nativeParams);
-        } catch (DriverException $e) {
-            throw new QueryException($sql, $e->getMessage(), $e);
-        }
+        return $this->connection->fetchAllAssociative($query, $params);
     }
 
     /**
-     * Fetch a single row as an associative array.
-     *
      * @param list<mixed> $params
      *
      * @return array<string, mixed>|null
@@ -159,36 +130,20 @@ final class DatabaseManager
      */
     public function fetchAssociative(string $query, array $params = []): ?array
     {
-        [$sql, $nativeParams] = $this->toNativePlaceholders($query, $params);
-
-        try {
-            return $this->connection->fetchAssociative($sql, $nativeParams);
-        } catch (DriverException $e) {
-            throw new QueryException($sql, $e->getMessage(), $e);
-        }
+        return $this->connection->fetchAssociative($query, $params);
     }
 
     /**
-     * Fetch a single scalar value.
-     *
      * @param list<mixed> $params
      *
      * @throws QueryException
      */
     public function fetchOne(string $query, array $params = []): mixed
     {
-        [$sql, $nativeParams] = $this->toNativePlaceholders($query, $params);
-
-        try {
-            return $this->connection->fetchOne($sql, $nativeParams);
-        } catch (DriverException $e) {
-            throw new QueryException($sql, $e->getMessage(), $e);
-        }
+        return $this->connection->fetchOne($query, $params);
     }
 
     /**
-     * Fetch the first column of all rows.
-     *
      * @param list<mixed> $params
      *
      * @return list<mixed>
@@ -197,13 +152,7 @@ final class DatabaseManager
      */
     public function fetchFirstColumn(string $query, array $params = []): array
     {
-        [$sql, $nativeParams] = $this->toNativePlaceholders($query, $params);
-
-        try {
-            return $this->connection->fetchFirstColumn($sql, $nativeParams);
-        } catch (DriverException $e) {
-            throw new QueryException($sql, $e->getMessage(), $e);
-        }
+        return $this->connection->fetchFirstColumn($query, $params);
     }
 
     /**
@@ -413,32 +362,4 @@ final class DatabaseManager
         ));
     }
 
-    /**
-     * Convert WordPress-style placeholders (%s, %d, %f) to native ? placeholders.
-     *
-     * If the query already uses ? placeholders, it passes through unchanged.
-     * If the query uses %s/%d/%f, they are converted to ? for Connection-based execution.
-     * Literal %% is preserved.
-     *
-     * @param list<mixed> $params
-     *
-     * @return array{string, list<mixed>}
-     */
-    private function toNativePlaceholders(string $query, array $params): array
-    {
-        // Strip string literals before checking for ? to avoid false positives
-        $stripped = (string) preg_replace('/\'(?:[^\'\\\\]|\\\\.)*\'|"(?:[^"\\\\]|\\\\.)*"/', '', $query);
-
-        // Already uses ? placeholders — pass through
-        if (str_contains($stripped, '?') || !preg_match('/%[sdf]/', $query)) {
-            return [$query, $params];
-        }
-
-        // Convert %s/%d/%f to ? (same logic as convertPlaceholders but without type string)
-        $sql = (string) preg_replace('/%%/', "\x00LITERAL_PERCENT\x00", $query);
-        $sql = (string) preg_replace('/%[sdf]/', '?', $sql);
-        $sql = str_replace("\x00LITERAL_PERCENT\x00", '%%', $sql);
-
-        return [$sql, $params];
-    }
 }

@@ -227,16 +227,7 @@ class WpPackWpdb extends \wpdb
             $params[] = $value;
         }
 
-        $whereClauses = [];
-
-        foreach ($where as $column => $value) {
-            if ($value === null) {
-                $whereClauses[] = $platform->quoteIdentifier($column) . ' IS NULL';
-            } else {
-                $whereClauses[] = $platform->quoteIdentifier($column) . ' = ?';
-                $params[] = $value;
-            }
-        }
+        [$whereClauses, $params] = $this->buildWhereClauses($where, $platform, $params);
 
         $sql = \sprintf(
             'UPDATE %s SET %s WHERE %s',
@@ -265,17 +256,7 @@ class WpPackWpdb extends \wpdb
         $platform = $this->writer->getPlatform();
         $quotedTable = $platform->quoteIdentifier($this->prefix . $table);
 
-        $whereClauses = [];
-        $params = [];
-
-        foreach ($where as $column => $value) {
-            if ($value === null) {
-                $whereClauses[] = $platform->quoteIdentifier($column) . ' IS NULL';
-            } else {
-                $whereClauses[] = $platform->quoteIdentifier($column) . ' = ?';
-                $params[] = $value;
-            }
-        }
+        [$whereClauses, $params] = $this->buildWhereClauses($where, $platform);
 
         $sql = \sprintf(
             'DELETE FROM %s WHERE %s',
@@ -526,6 +507,30 @@ class WpPackWpdb extends \wpdb
         }
 
         return $this->writer;
+    }
+
+    /**
+     * Build WHERE clauses with NULL-safe IS NULL handling.
+     *
+     * @param array<string, mixed> $where
+     * @param list<mixed> $params Existing params to append to
+     *
+     * @return array{list<string>, list<mixed>}
+     */
+    private function buildWhereClauses(array $where, Platform\PlatformInterface $platform, array $params = []): array
+    {
+        $clauses = [];
+
+        foreach ($where as $column => $value) {
+            if ($value === null) {
+                $clauses[] = $platform->quoteIdentifier($column) . ' IS NULL';
+            } else {
+                $clauses[] = $platform->quoteIdentifier($column) . ' = ?';
+                $params[] = $value;
+            }
+        }
+
+        return [$clauses, $params];
     }
 
     /**

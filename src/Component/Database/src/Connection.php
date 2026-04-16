@@ -15,20 +15,23 @@ namespace WpPack\Component\Database;
 
 use Psr\Log\LoggerInterface;
 use WpPack\Component\Database\Driver\DriverInterface;
+use WpPack\Component\Database\Exception\DriverException;
+use WpPack\Component\Database\Exception\QueryException;
 use WpPack\Component\Database\Platform\PlatformInterface;
 
 /**
  * DBAL-style database connection.
  *
- * Provides a high-level API for database operations, delegating to a DriverInterface.
- * Uses positional ? placeholders for parameterized queries.
- * Optionally logs queries via PSR-3 LoggerInterface.
+ * Accepts both native ? placeholders and WordPress %s/%d/%f placeholders.
+ * Wraps DriverException into QueryException for consistent error handling.
+ * Optionally logs queries via PSR-3 LoggerInterface and QueryLoggerInterface.
  */
 class Connection
 {
     public function __construct(
         private readonly DriverInterface $driver,
         private readonly ?LoggerInterface $logger = null,
+        private readonly ?QueryLoggerInterface $queryLogger = null,
     ) {}
 
     public function getDriver(): DriverInterface
@@ -45,78 +48,90 @@ class Connection
      * @param list<mixed> $params
      *
      * @return list<array<string, mixed>>
+     *
+     * @throws QueryException
      */
     public function fetchAllAssociative(string $query, array $params = []): array
     {
-        $start = microtime(true);
-        $result = $this->driver->executeQuery($query, $params)->fetchAllAssociative();
-        $this->logQuery($query, $params, $start);
-
-        return $result;
+        return $this->executeWithLogging(
+            $query,
+            $params,
+            fn(string $sql, array $p): array => $this->driver->executeQuery($sql, $p)->fetchAllAssociative(),
+        );
     }
 
     /**
      * @param list<mixed> $params
      *
      * @return array<string, mixed>|null
+     *
+     * @throws QueryException
      */
     public function fetchAssociative(string $query, array $params = []): ?array
     {
-        $start = microtime(true);
-        $result = $this->driver->executeQuery($query, $params)->fetchAssociative();
-        $this->logQuery($query, $params, $start);
-
-        return $result;
+        return $this->executeWithLogging(
+            $query,
+            $params,
+            fn(string $sql, array $p): ?array => $this->driver->executeQuery($sql, $p)->fetchAssociative(),
+        );
     }
 
     /**
      * @param list<mixed> $params
+     *
+     * @throws QueryException
      */
     public function fetchOne(string $query, array $params = []): mixed
     {
-        $start = microtime(true);
-        $result = $this->driver->executeQuery($query, $params)->fetchOne();
-        $this->logQuery($query, $params, $start);
-
-        return $result;
+        return $this->executeWithLogging(
+            $query,
+            $params,
+            fn(string $sql, array $p): mixed => $this->driver->executeQuery($sql, $p)->fetchOne(),
+        );
     }
 
     /**
      * @param list<mixed> $params
      *
      * @return list<mixed>
+     *
+     * @throws QueryException
      */
     public function fetchFirstColumn(string $query, array $params = []): array
     {
-        $start = microtime(true);
-        $result = $this->driver->executeQuery($query, $params)->fetchFirstColumn();
-        $this->logQuery($query, $params, $start);
-
-        return $result;
+        return $this->executeWithLogging(
+            $query,
+            $params,
+            fn(string $sql, array $p): array => $this->driver->executeQuery($sql, $p)->fetchFirstColumn(),
+        );
     }
 
     /**
      * @param list<mixed> $params
+     *
+     * @throws QueryException
      */
     public function executeQuery(string $query, array $params = []): Result
     {
-        $start = microtime(true);
-        $result = $this->driver->executeQuery($query, $params);
-        $this->logQuery($query, $params, $start);
-
-        return $result;
+        return $this->executeWithLogging(
+            $query,
+            $params,
+            fn(string $sql, array $p): Result => $this->driver->executeQuery($sql, $p),
+        );
     }
 
     /**
      * @param list<mixed> $params
+     *
+     * @throws QueryException
      */
     public function executeStatement(string $query, array $params = []): int
     {
-        $start = microtime(true);
-        $result = $this->driver->executeStatement($query, $params);
-        $this->logQuery($query, $params, $start);
-
-        return $result;
+        return $this->executeWithLogging(
+            $query,
+            $params,
+            fn(string $sql, array $p): int => $this->driver->executeStatement($sql, $p),
+        );
     }
 
     public function prepare(string $sql): Statement
@@ -153,7 +168,9 @@ class Connection
      * Execute a callable within a transaction.
      *
      * @template T
+     *
      * @param callable(Connection): T $callback
+     *
      * @return T
      */
     public function transactional(callable $callback): mixed
@@ -178,25 +195,39 @@ class Connection
     }
 
     /**
+     * Execute a query with placeholder conversion, logging, and exception wrapping.
+     *
+     * @template T
+     *
      * @param list<mixed> $params
+     * @param callable(string, list<mixed>): T $operation
+     *
+     * @return T
+     *
+     * @throws QueryException
      */
-    private function logQuery(string $sql, array $params, float $startTime): void
+    private function executeWithLogging(string $query, array $params, callable $operation): mixed
     {
-        $elapsed = round((microtime(true) - $startTime) * 1000, 2);
+        [$sql, $nativeParams] = PlaceholderConverter::convert($query, $params);
+
+        $start = microtime(true);
+
+        try {
+            $result = $operation($sql, $nativeParams);
+        } catch (DriverException $e) {
+            throw new QueryException($sql, $e->getMessage(), $e);
+        }
+
+        $elapsed = round((microtime(true) - $start) * 1000, 2);
 
         $this->logger?->debug('Query executed', [
             'sql' => $sql,
-            'params' => $params,
+            'params' => $nativeParams,
             'time_ms' => $elapsed,
         ]);
 
-        // SAVEQUERIES support for WordPress debug bar / Query Monitor
-        if (\defined('SAVEQUERIES') && SAVEQUERIES) {
-            global $wpdb;
+        $this->queryLogger?->log($sql, $nativeParams, $elapsed);
 
-            if (isset($wpdb->queries) && \is_array($wpdb->queries)) {
-                $wpdb->queries[] = [$sql, $elapsed / 1000, ''];
-            }
-        }
+        return $result;
     }
 }

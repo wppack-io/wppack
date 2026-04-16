@@ -861,7 +861,7 @@ final class DatabaseManagerTest extends TestCase
     // --- executeQuery without params returning a count ---
 
     #[Test]
-    public function executeQueryReturnsTrue(): void
+    public function executeQueryReturnsResult(): void
     {
         $this->db->insert('wppack_test', ['name' => 'eqc1', 'value' => 'count']);
 
@@ -869,7 +869,7 @@ final class DatabaseManagerTest extends TestCase
             "SELECT * FROM {$this->db->prefix()}wppack_test WHERE value = 'count'",
         );
 
-        self::assertTrue($result);
+        self::assertInstanceOf(\WpPack\Component\Database\Result::class, $result);
     }
 
     // --- fetchAssociative with params returning a row ---
