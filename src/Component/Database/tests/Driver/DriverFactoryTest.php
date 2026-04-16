@@ -31,7 +31,7 @@ final class DriverFactoryTest extends TestCase
         self::assertTrue($factory->supports(Dsn::fromString('mysql://host/db')));
         self::assertTrue($factory->supports(Dsn::fromString('mariadb://host/db')));
         self::assertTrue($factory->supports(Dsn::fromString('mysqli://host/db')));
-        self::assertTrue($factory->supports(Dsn::fromString('wpdb://default')));
+        self::assertFalse($factory->supports(Dsn::fromString('wpdb://default')));
         self::assertFalse($factory->supports(Dsn::fromString('sqlite:///path')));
         self::assertFalse($factory->supports(Dsn::fromString('pgsql://host/db')));
     }
@@ -51,9 +51,8 @@ final class DriverFactoryTest extends TestCase
     {
         $definitions = MysqlDriverFactory::definitions();
 
-        self::assertCount(2, $definitions);
+        self::assertCount(1, $definitions);
         self::assertSame('mysql', $definitions[0]->scheme);
-        self::assertSame('wpdb', $definitions[1]->scheme);
     }
 
     #[Test]

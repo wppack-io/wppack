@@ -519,7 +519,7 @@ $db->fetchAllAssociative(
 | `mysql+dataapi://` | MysqlDataApiDriver | `mysql+dataapi://cluster-arn/dbname?secret_arn=...` |
 | `pgsql+dataapi://` | PgsqlDataApiDriver | `pgsql+dataapi://cluster-arn/dbname?secret_arn=...` |
 | `dsql://` | AuroraDsqlDriver | `dsql://admin@id.dsql.us-east-1.on.aws/dbname?occMaxRetries=3` |
-| `wpdb://` | MysqlDriver | `wpdb://default`（既存 $wpdb をラップ） |
+| `wpdb://` | ― | `wpdb://default`（WordPress デフォルト `$wpdb` を使用、ドライバ置き換えなし） |
 
 ### Platform
 
@@ -644,7 +644,7 @@ define('DATABASE_READER_DSN', 'mysql://user:pass@replica:3306/mydb');
 
 Reader DSN が定義されている場合、SELECT/SHOW/DESCRIBE/EXPLAIN は reader ドライバで、INSERT/UPDATE/DELETE/CREATE 等は writer ドライバで実行されます。
 
-`wpdb://default` を指定すると WordPress 標準の `$wpdb` がそのまま使用されます。
+`wpdb://default` を指定すると db.php ドロップインは何もせず、WordPress 標準の `$wpdb`（mysqli 直接接続）がそのまま使用されます。WpPack のドライバ抽象化やクエリ変換は適用されません。
 
 ## 依存関係
 

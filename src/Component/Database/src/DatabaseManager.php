@@ -329,24 +329,20 @@ final class DatabaseManager
     }
 
     /**
-     * Create a Connection from the current wpdb handle.
-     *
-     * Wraps the existing $wpdb->dbh (mysqli, PDO, PgSql) in a Driver,
-     * enabling native prepared statements for all engines.
-     */
-    /**
      * Auto-detect the appropriate Connection from the global $wpdb.
      *
-     * - WpPackWpdb: reuse its Driver (already configured via db.php drop-in)
-     * - Standard wpdb with mysqli: wrap the existing connection
-     * - Fallback: create from WordPress DB_* constants
+     * - WpPackWpdb (db.php drop-in): reuse its Driver
+     * - Standard WordPress wpdb: wrap the existing mysqli connection
+     * - Fallback: create fresh connection from WordPress DB_* constants
      */
     private function createDefaultConnection(\wpdb $wpdb): Connection
     {
+        // WpPack db.php drop-in — Driver already configured
         if ($wpdb instanceof WpPackWpdb) {
             return new Connection($wpdb->getWriter());
         }
 
+        // Standard WordPress — reuse existing mysqli connection
         /** @phpstan-ignore property.protected */
         $dbh = $wpdb->dbh;
 
@@ -354,6 +350,7 @@ final class DatabaseManager
             return new Connection(Driver\MysqlDriver::fromMysqli($dbh));
         }
 
+        // Fallback — create from DB_* constants
         return new Connection(new Driver\MysqlDriver(
             host: \defined('DB_HOST') ? DB_HOST : '127.0.0.1',
             username: \defined('DB_USER') ? DB_USER : 'root',

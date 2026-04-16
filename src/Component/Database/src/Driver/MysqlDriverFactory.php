@@ -17,7 +17,7 @@ use WpPack\Component\Dsn\Dsn;
 
 final class MysqlDriverFactory implements DriverFactoryInterface
 {
-    private const SUPPORTED_SCHEMES = ['mysql', 'mariadb', 'mysqli', 'wpdb'];
+    private const SUPPORTED_SCHEMES = ['mysql', 'mariadb', 'mysqli'];
 
     public static function definitions(): array
     {
@@ -33,25 +33,11 @@ final class MysqlDriverFactory implements DriverFactoryInterface
                     new DriverField('database', 'Database', required: true, dsnPart: 'path'),
                 ],
             ),
-            new DriverDefinition(
-                scheme: 'wpdb',
-                label: 'WordPress Default (wpdb)',
-            ),
         ];
     }
 
     public function create(Dsn $dsn, array $options = []): DriverInterface
     {
-        if ($dsn->getScheme() === 'wpdb') {
-            global $wpdb;
-
-            if (!isset($wpdb->dbh) || !$wpdb->dbh instanceof \mysqli) {
-                throw new \RuntimeException('wpdb:// scheme requires a valid mysqli connection in $wpdb->dbh.');
-            }
-
-            return MysqlDriver::fromMysqli($wpdb->dbh);
-        }
-
         return new MysqlDriver(
             host: $dsn->getHost() ?? '127.0.0.1',
             username: $dsn->getUser() ?? '',
