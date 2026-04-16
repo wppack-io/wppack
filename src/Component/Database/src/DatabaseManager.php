@@ -29,7 +29,7 @@ use WpPack\Component\Database\Exception\QueryException;
  */
 final class DatabaseManager
 {
-    public readonly DatabaseEngine $engine;
+    public readonly string $engine;
     public readonly string $users;
     public readonly string $usermeta;
 
@@ -62,9 +62,9 @@ final class DatabaseManager
         $this->wpdb = $wpdb;
         $this->engine = match (true) {
             $wpdb instanceof WpPackWpdb => $wpdb->getWriter()->getPlatform()->getEngine(),
-            $wpdb->dbh instanceof \mysqli => DatabaseEngine::MySQL,
-            $wpdb->dbh instanceof \PgSql\Connection => DatabaseEngine::PostgreSQL,
-            default => DatabaseEngine::SQLite,
+            $wpdb->dbh instanceof \mysqli => 'mysql',
+            $wpdb->dbh instanceof \PgSql\Connection => 'pgsql',
+            default => 'sqlite',
         };
         $this->users = $wpdb->users;
         $this->usermeta = $wpdb->usermeta;

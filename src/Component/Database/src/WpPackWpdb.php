@@ -383,7 +383,7 @@ class WpPackWpdb extends \wpdb
 
     public function db_server_info(): string
     {
-        return $this->writer->getPlatform()->getEngine()->value;
+        return $this->writer->getPlatform()->getEngine();
     }
 
     public function db_version(): string

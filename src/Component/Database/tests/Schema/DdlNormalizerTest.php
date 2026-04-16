@@ -15,7 +15,6 @@ namespace WpPack\Component\Database\Tests\Schema;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Database\DatabaseEngine;
 use WpPack\Component\Database\Schema\DdlNormalizer;
 
 final class DdlNormalizerTest extends TestCase
@@ -34,7 +33,7 @@ final class DdlNormalizerTest extends TestCase
     {
         $ddl = 'CREATE TABLE `wp_posts` (`ID` bigint(20) unsigned NOT NULL AUTO_INCREMENT, `post_title` text NOT NULL) ENGINE=InnoDB';
 
-        $result = $this->normalizer->normalize($ddl, DatabaseEngine::MySQL);
+        $result = $this->normalizer->normalize($ddl, 'mysql');
 
         self::assertSame($ddl, $result);
     }
@@ -46,7 +45,7 @@ final class DdlNormalizerTest extends TestCase
     {
         $ddl = 'CREATE TABLE "wp_posts" ("ID" INTEGER PRIMARY KEY AUTOINCREMENT)';
 
-        $result = $this->normalizer->normalize($ddl, DatabaseEngine::SQLite);
+        $result = $this->normalizer->normalize($ddl, 'sqlite');
 
         self::assertStringContainsString('`wp_posts`', $result);
         self::assertStringContainsString('`ID`', $result);
@@ -58,7 +57,7 @@ final class DdlNormalizerTest extends TestCase
     {
         $ddl = 'CREATE TABLE "wp_posts" ("ID" INTEGER PRIMARY KEY AUTOINCREMENT)';
 
-        $result = $this->normalizer->normalize($ddl, DatabaseEngine::SQLite);
+        $result = $this->normalizer->normalize($ddl, 'sqlite');
 
         self::assertStringContainsString('AUTO_INCREMENT', $result);
         self::assertStringNotContainsString('AUTOINCREMENT', $result);
@@ -69,7 +68,7 @@ final class DdlNormalizerTest extends TestCase
     {
         $ddl = 'CREATE TABLE "wp_options" ("option_id" INTEGER PRIMARY KEY ON CONFLICT REPLACE, "option_name" TEXT COLLATE NOCASE)';
 
-        $result = $this->normalizer->normalize($ddl, DatabaseEngine::SQLite);
+        $result = $this->normalizer->normalize($ddl, 'sqlite');
 
         self::assertStringNotContainsString('ON CONFLICT REPLACE', $result);
         self::assertStringNotContainsString('COLLATE NOCASE', $result);
@@ -80,7 +79,7 @@ final class DdlNormalizerTest extends TestCase
     {
         $ddl = "CREATE TABLE \"wp_posts\" (\"post_status\" TEXT DEFAULT 'publish', \"comment_count\" INTEGER DEFAULT 0)";
 
-        $result = $this->normalizer->normalize($ddl, DatabaseEngine::SQLite);
+        $result = $this->normalizer->normalize($ddl, 'sqlite');
 
         self::assertStringNotContainsString("DEFAULT 'publish'", $result);
         self::assertStringNotContainsString('DEFAULT 0', $result);
@@ -98,7 +97,7 @@ CREATE TABLE "wp_options" (
 )
 SQL;
 
-        $result = $this->normalizer->normalize($ddl, DatabaseEngine::SQLite);
+        $result = $this->normalizer->normalize($ddl, 'sqlite');
 
         self::assertStringContainsString('`option_id`', $result);
         self::assertStringContainsString('AUTO_INCREMENT', $result);
@@ -116,7 +115,7 @@ SQL;
     {
         $ddl = 'CREATE TABLE `wp_posts` (`ID` bigint(20) /* primary key */ NOT NULL) ENGINE=InnoDB /* comment */';
 
-        $result = $this->normalizer->normalize($ddl, DatabaseEngine::MySQL);
+        $result = $this->normalizer->normalize($ddl, 'mysql');
 
         self::assertStringNotContainsString('/*', $result);
         self::assertStringNotContainsString('primary key', $result);
@@ -128,7 +127,7 @@ SQL;
     {
         $ddl = "CREATE TABLE `t` (`id` INT /* multi\nline\ncomment */ NOT NULL)";
 
-        $result = $this->normalizer->normalize($ddl, DatabaseEngine::MySQL);
+        $result = $this->normalizer->normalize($ddl, 'mysql');
 
         self::assertStringNotContainsString('/*', $result);
         self::assertStringContainsString('`id` INT', $result);
@@ -141,7 +140,7 @@ SQL;
     {
         $ddl = "CREATE TABLE `t` (\n  `id` INT NOT NULL,\n  CONSTRAINT `fk_test` FOREIGN KEY (`parent_id`) REFERENCES `parent` (`id`),\n  `name` VARCHAR(255)\n)";
 
-        $result = $this->normalizer->normalize($ddl, DatabaseEngine::MySQL);
+        $result = $this->normalizer->normalize($ddl, 'mysql');
 
         self::assertStringNotContainsString('CONSTRAINT', $result);
         self::assertStringNotContainsString('REFERENCES', $result);
@@ -154,7 +153,7 @@ SQL;
     {
         $ddl = "CREATE TABLE `t` (\n  `id` INT NOT NULL,\n  `name` VARCHAR(255),\n  CONSTRAINT `fk_test` FOREIGN KEY (`parent_id`) REFERENCES `parent` (`id`)\n)";
 
-        $result = $this->normalizer->normalize($ddl, DatabaseEngine::MySQL);
+        $result = $this->normalizer->normalize($ddl, 'mysql');
 
         self::assertStringNotContainsString('CONSTRAINT', $result);
         self::assertStringNotContainsString('REFERENCES', $result);
@@ -167,7 +166,7 @@ SQL;
     {
         $ddl = 'CREATE TABLE `t` (`ip` INET4 NOT NULL)';
 
-        $result = $this->normalizer->normalize($ddl, DatabaseEngine::MySQL);
+        $result = $this->normalizer->normalize($ddl, 'mysql');
 
         self::assertStringContainsString('VARCHAR(15)', $result);
         self::assertStringNotContainsString('INET4', $result);
@@ -178,7 +177,7 @@ SQL;
     {
         $ddl = 'CREATE TABLE `t` (`ip` INET6 NOT NULL)';
 
-        $result = $this->normalizer->normalize($ddl, DatabaseEngine::MySQL);
+        $result = $this->normalizer->normalize($ddl, 'mysql');
 
         self::assertStringContainsString('VARCHAR(45)', $result);
     }
@@ -188,7 +187,7 @@ SQL;
     {
         $ddl = 'CREATE TABLE `t` (`uuid_col` UUID NOT NULL)';
 
-        $result = $this->normalizer->normalize($ddl, DatabaseEngine::MySQL);
+        $result = $this->normalizer->normalize($ddl, 'mysql');
 
         self::assertStringContainsString('CHAR(36)', $result);
         self::assertStringNotContainsString(' UUID ', $result);
@@ -199,7 +198,7 @@ SQL;
     {
         $ddl = 'CREATE TABLE `t` (`uuid` VARCHAR(36) NOT NULL)';
 
-        $result = $this->normalizer->normalize($ddl, DatabaseEngine::MySQL);
+        $result = $this->normalizer->normalize($ddl, 'mysql');
 
         // Backtick-quoted `uuid` should not be converted
         self::assertStringContainsString('`uuid` VARCHAR(36)', $result);
@@ -210,7 +209,7 @@ SQL;
     {
         $ddl = 'CREATE TABLE `t` (`data` XMLTYPE NOT NULL)';
 
-        $result = $this->normalizer->normalize($ddl, DatabaseEngine::MySQL);
+        $result = $this->normalizer->normalize($ddl, 'mysql');
 
         self::assertStringContainsString('LONGTEXT', $result);
     }
@@ -220,7 +219,7 @@ SQL;
     {
         $ddl = 'CREATE TABLE `t` (`embedding` VECTOR(768) NOT NULL)';
 
-        $result = $this->normalizer->normalize($ddl, DatabaseEngine::MySQL);
+        $result = $this->normalizer->normalize($ddl, 'mysql');
 
         self::assertStringContainsString('BLOB', $result);
         self::assertStringNotContainsString('VECTOR', $result);
@@ -231,7 +230,7 @@ SQL;
     {
         $ddl = "CREATE TABLE `t` (`id` CHAR(36) DEFAULT (UUID()))";
 
-        $result = $this->normalizer->normalize($ddl, DatabaseEngine::MySQL);
+        $result = $this->normalizer->normalize($ddl, 'mysql');
 
         // UUID() function call should not be converted
         self::assertStringContainsString('UUID()', $result);
@@ -244,7 +243,7 @@ SQL;
     {
         $ddl = 'CREATE TABLE `t` (`id` INT) TYPE=InnoDB';
 
-        $result = $this->normalizer->normalize($ddl, DatabaseEngine::MySQL);
+        $result = $this->normalizer->normalize($ddl, 'mysql');
 
         self::assertStringContainsString('ENGINE=InnoDB', $result);
         self::assertStringNotContainsString('TYPE=', $result);
@@ -255,7 +254,7 @@ SQL;
     {
         $ddl = 'CREATE TABLE `t` (`id` INT) ENGINE=Aria';
 
-        $result = $this->normalizer->normalize($ddl, DatabaseEngine::MySQL);
+        $result = $this->normalizer->normalize($ddl, 'mysql');
 
         self::assertStringContainsString('ENGINE=InnoDB', $result);
         self::assertStringNotContainsString('Aria', $result);
@@ -267,7 +266,7 @@ SQL;
         foreach (['S3', 'ColumnStore', 'Spider', 'CONNECT', 'Mroonga'] as $engine) {
             $ddl = "CREATE TABLE `t` (`id` INT) ENGINE={$engine}";
 
-            $result = $this->normalizer->normalize($ddl, DatabaseEngine::MySQL);
+            $result = $this->normalizer->normalize($ddl, 'mysql');
 
             self::assertStringContainsString('ENGINE=InnoDB', $result, "ENGINE={$engine} should be converted");
         }
@@ -278,7 +277,7 @@ SQL;
     {
         $ddl = 'CREATE TABLE `t` (`id` INT) ENGINE=InnoDB TRANSACTIONAL=1 PAGE_CHECKSUM=1 TABLE_CHECKSUM=1 ROW_FORMAT=DYNAMIC';
 
-        $result = $this->normalizer->normalize($ddl, DatabaseEngine::MySQL);
+        $result = $this->normalizer->normalize($ddl, 'mysql');
 
         self::assertStringContainsString('ENGINE=InnoDB', $result);
         self::assertStringNotContainsString('TRANSACTIONAL', $result);
@@ -292,7 +291,7 @@ SQL;
     {
         $ddl = 'CREATE TABLE `t` (`id` INT) ENGINE=InnoDB PAGE_COMPRESSED=1 PAGE_COMPRESSION_LEVEL=9 ENCRYPTED=YES ENCRYPTION_KEY_ID=1';
 
-        $result = $this->normalizer->normalize($ddl, DatabaseEngine::MySQL);
+        $result = $this->normalizer->normalize($ddl, 'mysql');
 
         self::assertStringNotContainsString('PAGE_COMPRESSED', $result);
         self::assertStringNotContainsString('PAGE_COMPRESSION_LEVEL', $result);
@@ -305,7 +304,7 @@ SQL;
     {
         $ddl = 'CREATE TABLE `t` (`id` INT) ENGINE=InnoDB WITH SYSTEM VERSIONING';
 
-        $result = $this->normalizer->normalize($ddl, DatabaseEngine::MySQL);
+        $result = $this->normalizer->normalize($ddl, 'mysql');
 
         self::assertStringNotContainsString('SYSTEM VERSIONING', $result);
     }
@@ -315,7 +314,7 @@ SQL;
     {
         $ddl = 'CREATE TABLE `t` (`id` INT) ENGINE=InnoDB WITHOUT SYSTEM VERSIONING';
 
-        $result = $this->normalizer->normalize($ddl, DatabaseEngine::MySQL);
+        $result = $this->normalizer->normalize($ddl, 'mysql');
 
         self::assertStringNotContainsString('SYSTEM VERSIONING', $result);
     }
@@ -327,7 +326,7 @@ SQL;
     {
         $ddl = "CREATE TABLE `t` (\n  `id` INT NOT NULL,\n  CONSTRAINT `fk` FOREIGN KEY (`pid`) REFERENCES `p` (`id`)\n) /* comment */";
 
-        $result = $this->normalizer->normalize($ddl, DatabaseEngine::PostgreSQL);
+        $result = $this->normalizer->normalize($ddl, 'pgsql');
 
         self::assertStringNotContainsString('CONSTRAINT', $result);
         self::assertStringNotContainsString('/*', $result);

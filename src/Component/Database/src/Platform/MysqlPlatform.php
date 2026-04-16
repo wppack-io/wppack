@@ -13,13 +13,12 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Database\Platform;
 
-use WpPack\Component\Database\DatabaseEngine;
 
 class MysqlPlatform extends AbstractPlatform
 {
-    public function getEngine(): DatabaseEngine
+    public function getEngine(): string
     {
-        return DatabaseEngine::MySQL;
+        return 'mysql';
     }
 
     public function quoteIdentifier(string $identifier): string

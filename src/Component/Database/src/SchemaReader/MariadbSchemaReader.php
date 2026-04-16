@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Database\SchemaReader;
 
-use WpPack\Component\Database\DatabaseEngine;
 use WpPack\Component\Database\DatabaseManager;
 use WpPack\Component\Database\Schema\ColumnSchema;
 use WpPack\Component\Database\TypeMapper\MariadbTypeMapper;
@@ -37,7 +36,7 @@ class MariadbSchemaReader extends MysqlSchemaReader
 
     public function supports(DatabaseManager $db): bool
     {
-        if ($db->engine !== DatabaseEngine::MySQL) {
+        if ($db->engine !== 'mysql') {
             return false;
         }
 

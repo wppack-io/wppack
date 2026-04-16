@@ -13,14 +13,13 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Database\Bridge\Pgsql;
 
-use WpPack\Component\Database\DatabaseEngine;
 use WpPack\Component\Database\Platform\AbstractPlatform;
 
 class PostgresqlPlatform extends AbstractPlatform
 {
-    public function getEngine(): DatabaseEngine
+    public function getEngine(): string
     {
-        return DatabaseEngine::PostgreSQL;
+        return 'pgsql';
     }
 
     public function quoteIdentifier(string $identifier): string

@@ -15,7 +15,6 @@ namespace WpPack\Component\Database\Tests\Platform;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Database\DatabaseEngine;
 use WpPack\Component\Database\Platform\MariadbPlatform;
 use WpPack\Component\Database\Platform\MysqlPlatform;
 
@@ -35,7 +34,7 @@ final class PlatformTest extends TestCase
     #[Test]
     public function mysqlEngine(): void
     {
-        self::assertSame(DatabaseEngine::MySQL, (new MysqlPlatform())->getEngine());
+        self::assertSame('mysql', (new MysqlPlatform())->getEngine());
     }
 
     #[Test]
@@ -81,7 +80,7 @@ final class PlatformTest extends TestCase
     #[Test]
     public function mariadbEngine(): void
     {
-        self::assertSame(DatabaseEngine::MariaDB, (new MariadbPlatform())->getEngine());
+        self::assertSame('mariadb', (new MariadbPlatform())->getEngine());
     }
 
     #[Test]

@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Database\Bridge\Pgsql\SchemaReader;
 
-use WpPack\Component\Database\DatabaseEngine;
 use WpPack\Component\Database\DatabaseManager;
 use WpPack\Component\Database\Schema\ColumnSchema;
 use WpPack\Component\Database\Schema\TableSchema;
@@ -34,7 +33,7 @@ final class PostgresqlSchemaReader implements SchemaReaderInterface
 
     public function supports(DatabaseManager $db): bool
     {
-        return $db->engine === DatabaseEngine::PostgreSQL;
+        return $db->engine === 'pgsql';
     }
 
     public function getTableNames(DatabaseManager $db): array

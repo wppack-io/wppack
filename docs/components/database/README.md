@@ -275,15 +275,17 @@ restore_current_blog();
 // $db->posts は wp_posts に戻る
 ```
 
-### DatabaseEngine enum
+### エンジン識別子
 
-DB エンジン種別を表す enum です。`$db->engine` プロパティで現在のエンジンを取得できます。
+`$db->engine` プロパティで現在のエンジンを文字列で取得できます。各 Platform が独自のエンジン名を定義します。
 
-| Case | 値 | 説明 |
-|------|---|------|
-| `DatabaseEngine::MySQL` | `'mysql'` | MySQL / MariaDB（`$wpdb->dbh` が `mysqli`） |
-| `DatabaseEngine::SQLite` | `'sqlite'` | SQLite（SQLite Database Integration プラグイン） |
-| `DatabaseEngine::PostgreSQL` | `'pgsql'` | PostgreSQL（PG4WP） |
+| エンジン | 値 | Platform | ドライバ |
+|---------|---|----------|---------|
+| MySQL | `'mysql'` | MysqlPlatform | MysqlDriver, MysqlDataApiDriver |
+| MariaDB | `'mariadb'` | MariadbPlatform | MysqlDriver（自動検出） |
+| SQLite | `'sqlite'` | SqlitePlatform | SqliteDriver |
+| PostgreSQL | `'pgsql'` | PostgresqlPlatform | PgsqlDriver, PgsqlDataApiDriver |
+| Aurora DSQL | `'dsql'` | DsqlPlatform | AuroraDsqlDriver |
 
 ### 使用例
 
@@ -643,15 +645,6 @@ define('DATABASE_READER_DSN', 'mysql://user:pass@replica:3306/mydb');
 Reader DSN が定義されている場合、SELECT/SHOW/DESCRIBE/EXPLAIN は reader ドライバで、INSERT/UPDATE/DELETE/CREATE 等は writer ドライバで実行されます。
 
 `wpdb://default` を指定すると WordPress 標準の `$wpdb` がそのまま使用されます。
-
-### DatabaseEngine enum
-
-| Case | 値 | 説明 |
-|------|---|------|
-| `MySQL` | `'mysql'` | MySQL |
-| `MariaDB` | `'mariadb'` | MariaDB |
-| `SQLite` | `'sqlite'` | SQLite |
-| `PostgreSQL` | `'pgsql'` | PostgreSQL |
 
 ## 依存関係
 

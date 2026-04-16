@@ -16,7 +16,6 @@ namespace WpPack\Component\Database\Tests;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Database\DatabaseEngine;
 use WpPack\Component\Database\DatabaseManager;
 use WpPack\Component\Database\Exception\QueryException;
 
@@ -67,8 +66,8 @@ final class DatabaseManagerTest extends TestCase
     #[Test]
     public function enginePropertyIsSet(): void
     {
-        self::assertInstanceOf(DatabaseEngine::class, $this->db->engine);
-        self::assertSame(DatabaseEngine::MySQL, $this->db->engine);
+        self::assertIsString($this->db->engine);
+        self::assertSame('mysql', $this->db->engine);
     }
 
     #[Test]
@@ -1023,7 +1022,7 @@ final class DatabaseManagerTest extends TestCase
 
             $db = new DatabaseManager();
 
-            self::assertSame(DatabaseEngine::SQLite, $db->engine);
+            self::assertSame('sqlite', $db->engine);
         } finally {
             $wpdb->dbh = $originalDbh;
         }
@@ -1044,7 +1043,7 @@ final class DatabaseManagerTest extends TestCase
 
             $db = new DatabaseManager();
 
-            self::assertSame(DatabaseEngine::SQLite, $db->engine);
+            self::assertSame('sqlite', $db->engine);
 
             // Restore dbh so the actual query can execute via wpdb
             $wpdb->dbh = $originalDbh;
@@ -1077,7 +1076,7 @@ final class DatabaseManagerTest extends TestCase
         try {
             $wpdb->dbh = new \stdClass();
             $db = new DatabaseManager();
-            self::assertSame(DatabaseEngine::SQLite, $db->engine);
+            self::assertSame('sqlite', $db->engine);
 
             // Restore dbh for actual query execution
             $wpdb->dbh = $originalDbh;
@@ -1105,7 +1104,7 @@ final class DatabaseManagerTest extends TestCase
         try {
             $wpdb->dbh = new \stdClass();
             $db = new DatabaseManager();
-            self::assertSame(DatabaseEngine::SQLite, $db->engine);
+            self::assertSame('sqlite', $db->engine);
 
             // Restore dbh for actual query execution
             $wpdb->dbh = $originalDbh;
@@ -1133,7 +1132,7 @@ final class DatabaseManagerTest extends TestCase
         try {
             $wpdb->dbh = new \stdClass();
             $db = new DatabaseManager();
-            self::assertSame(DatabaseEngine::SQLite, $db->engine);
+            self::assertSame('sqlite', $db->engine);
 
             $wpdb->dbh = $originalDbh;
 
@@ -1161,7 +1160,7 @@ final class DatabaseManagerTest extends TestCase
         try {
             $wpdb->dbh = new \stdClass();
             $db = new DatabaseManager();
-            self::assertSame(DatabaseEngine::SQLite, $db->engine);
+            self::assertSame('sqlite', $db->engine);
 
             $wpdb->dbh = $originalDbh;
 
@@ -1188,7 +1187,7 @@ final class DatabaseManagerTest extends TestCase
         try {
             $wpdb->dbh = new \stdClass();
             $db = new DatabaseManager();
-            self::assertSame(DatabaseEngine::SQLite, $db->engine);
+            self::assertSame('sqlite', $db->engine);
 
             $wpdb->dbh = $originalDbh;
 

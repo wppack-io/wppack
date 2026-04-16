@@ -16,7 +16,6 @@ namespace WpPack\Component\Database\Bridge\Pgsql\Tests;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Database\Bridge\Pgsql\PostgresqlPlatform;
-use WpPack\Component\Database\DatabaseEngine;
 
 final class PostgresqlPlatformTest extends TestCase
 {
@@ -32,7 +31,7 @@ final class PostgresqlPlatformTest extends TestCase
     #[Test]
     public function engine(): void
     {
-        self::assertSame(DatabaseEngine::PostgreSQL, (new PostgresqlPlatform())->getEngine());
+        self::assertSame('pgsql', (new PostgresqlPlatform())->getEngine());
     }
 
     #[Test]

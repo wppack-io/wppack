@@ -16,7 +16,6 @@ namespace WpPack\Component\Database\Bridge\Pgsql\Tests;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Database\Bridge\Pgsql\PgsqlDriver;
-use WpPack\Component\Database\DatabaseEngine;
 
 /**
  * Integration tests for PgsqlDriver.
@@ -61,7 +60,7 @@ final class PgsqlDriverTest extends TestCase
     public function nameAndPlatform(): void
     {
         self::assertSame('pgsql', $this->driver->getName());
-        self::assertSame(DatabaseEngine::PostgreSQL, $this->driver->getPlatform()->getEngine());
+        self::assertSame('pgsql', $this->driver->getPlatform()->getEngine());
     }
 
     #[Test]

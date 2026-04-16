@@ -84,6 +84,11 @@ class AuroraDsqlDriver extends PgsqlDriver
         );
     }
 
+    public function getPlatform(): \WpPack\Component\Database\Platform\PlatformInterface
+    {
+        return new DsqlPlatform();
+    }
+
     /**
      * Override doConnect to refresh token on reconnection if needed.
      */

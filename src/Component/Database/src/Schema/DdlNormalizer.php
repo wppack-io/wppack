@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Database\Schema;
 
-use WpPack\Component\Database\DatabaseEngine;
 
 /**
  * Normalizes CREATE TABLE DDL statements to portable MySQL-compatible SQL.
@@ -24,22 +23,22 @@ use WpPack\Component\Database\DatabaseEngine;
  */
 final class DdlNormalizer
 {
-    public function normalize(string $ddl, DatabaseEngine $engine): string
+    public function normalize(string $ddl, string $engine): string
     {
-        if ($engine === DatabaseEngine::SQLite) {
+        if ($engine === 'sqlite') {
             $ddl = $this->normalizeQuotes($ddl);
         }
 
         $ddl = $this->stripComments($ddl);
         $ddl = $this->stripForeignKeys($ddl);
 
-        if ($engine === DatabaseEngine::SQLite) {
+        if ($engine === 'sqlite') {
             $ddl = $this->stripConflictClauses($ddl);
         }
 
         $ddl = $this->normalizeMariadbColumnTypes($ddl);
 
-        if ($engine === DatabaseEngine::SQLite) {
+        if ($engine === 'sqlite') {
             $ddl = $this->normalizeColumnOptions($ddl);
             $ddl = $this->stripDefaults($ddl);
         }

@@ -16,7 +16,6 @@ namespace WpPack\Component\Database\Bridge\Sqlite\Tests;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Database\Bridge\Sqlite\SqlitePlatform;
-use WpPack\Component\Database\DatabaseEngine;
 
 final class SqlitePlatformTest extends TestCase
 {
@@ -32,7 +31,7 @@ final class SqlitePlatformTest extends TestCase
     #[Test]
     public function engine(): void
     {
-        self::assertSame(DatabaseEngine::SQLite, (new SqlitePlatform())->getEngine());
+        self::assertSame('sqlite', (new SqlitePlatform())->getEngine());
     }
 
     #[Test]

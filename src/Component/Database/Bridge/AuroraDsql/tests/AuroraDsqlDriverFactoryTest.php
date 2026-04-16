@@ -17,7 +17,6 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Database\Bridge\AuroraDsql\AuroraDsqlDriver;
 use WpPack\Component\Database\Bridge\AuroraDsql\AuroraDsqlDriverFactory;
-use WpPack\Component\Database\DatabaseEngine;
 use WpPack\Component\Dsn\Dsn;
 
 final class AuroraDsqlDriverFactoryTest extends TestCase
@@ -57,7 +56,7 @@ final class AuroraDsqlDriverFactoryTest extends TestCase
 
         self::assertInstanceOf(AuroraDsqlDriver::class, $driver);
         self::assertSame('dsql', $driver->getName());
-        self::assertSame(DatabaseEngine::PostgreSQL, $driver->getPlatform()->getEngine());
+        self::assertSame('dsql', $driver->getPlatform()->getEngine());
     }
 
     #[Test]

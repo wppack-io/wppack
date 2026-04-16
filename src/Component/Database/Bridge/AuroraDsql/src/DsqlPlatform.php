@@ -11,13 +11,17 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Platform;
+namespace WpPack\Component\Database\Bridge\AuroraDsql;
 
+use WpPack\Component\Database\Bridge\Pgsql\PostgresqlPlatform;
 
-class MariadbPlatform extends MysqlPlatform
+/**
+ * Aurora DSQL platform — PostgreSQL compatible with DSQL-specific identity.
+ */
+class DsqlPlatform extends PostgresqlPlatform
 {
     public function getEngine(): string
     {
-        return 'mariadb';
+        return 'dsql';
     }
 }

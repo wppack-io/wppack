@@ -17,7 +17,6 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use WpPack\Component\Database\Bridge\Sqlite\SqliteDriver;
 use WpPack\Component\Database\Bridge\Sqlite\SqliteDriverFactory;
-use WpPack\Component\Database\DatabaseEngine;
 use WpPack\Component\Dsn\Dsn;
 
 final class SqliteDriverTest extends TestCase
@@ -40,7 +39,7 @@ final class SqliteDriverTest extends TestCase
     public function nameAndPlatform(): void
     {
         self::assertSame('sqlite', $this->driver->getName());
-        self::assertSame(DatabaseEngine::SQLite, $this->driver->getPlatform()->getEngine());
+        self::assertSame('sqlite', $this->driver->getPlatform()->getEngine());
     }
 
     #[Test]

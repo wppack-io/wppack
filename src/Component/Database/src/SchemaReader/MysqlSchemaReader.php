@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Database\SchemaReader;
 
-use WpPack\Component\Database\DatabaseEngine;
 use WpPack\Component\Database\DatabaseManager;
 use WpPack\Component\Database\Schema\ColumnSchema;
 use WpPack\Component\Database\Schema\DdlNormalizer;
@@ -30,7 +29,7 @@ class MysqlSchemaReader implements SchemaReaderInterface
 
     public function supports(DatabaseManager $db): bool
     {
-        return $db->engine === DatabaseEngine::MySQL;
+        return $db->engine === 'mysql';
     }
 
     public function getTableNames(DatabaseManager $db): array

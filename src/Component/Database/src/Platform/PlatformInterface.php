@@ -13,11 +13,15 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Database\Platform;
 
-use WpPack\Component\Database\DatabaseEngine;
-
 interface PlatformInterface
 {
-    public function getEngine(): DatabaseEngine;
+    /**
+     * Engine identifier string (e.g., 'mysql', 'mariadb', 'sqlite', 'pgsql', 'dsql').
+     *
+     * Each Platform defines its own engine name. No central enum — Bridges are
+     * free to introduce new engine identifiers without modifying core.
+     */
+    public function getEngine(): string;
 
     public function quoteIdentifier(string $identifier): string;
 
