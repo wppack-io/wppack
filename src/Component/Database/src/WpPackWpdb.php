@@ -16,6 +16,7 @@ namespace WpPack\Component\Database;
 use Psr\Log\LoggerInterface;
 use WpPack\Component\Database\Driver\DriverInterface;
 use WpPack\Component\Database\Placeholder\PreparedBank;
+use WpPack\Component\Database\Sql\PlaceholderScanner;
 use WpPack\Component\Database\Translator\QueryTranslatorInterface;
 
 /**
@@ -640,51 +641,23 @@ class WpPackWpdb extends \wpdb
             return $sql;
         }
 
-        $out = '';
-        $inQuote = false;
-        $index = 0;
-        $length = \strlen($sql);
-
-        for ($i = 0; $i < $length; $i++) {
-            $c = $sql[$i];
-
-            if ($c === "'") {
-                if ($inQuote && ($sql[$i + 1] ?? '') === "'") {
-                    $out .= "''";
-                    $i++;
-
-                    continue;
+        return PlaceholderScanner::replace(
+            $sql,
+            function (int $index) use ($params): string {
+                if (!\array_key_exists($index, $params)) {
+                    return '?';
                 }
 
-                $inQuote = !$inQuote;
-                $out .= $c;
+                $value = $params[$index];
 
-                continue;
-            }
-
-            if ($c === '\\' && $inQuote && $i + 1 < $length) {
-                $out .= $c . $sql[$i + 1];
-                $i++;
-
-                continue;
-            }
-
-            if ($c === '?' && !$inQuote && \array_key_exists($index, $params)) {
-                $value = $params[$index++];
-                $out .= match (true) {
+                return match (true) {
                     $value === null => 'NULL',
                     \is_bool($value) => $value ? '1' : '0',
                     \is_int($value), \is_float($value) => (string) $value,
                     default => $this->writer->quoteStringLiteral((string) $value),
                 };
-
-                continue;
-            }
-
-            $out .= $c;
-        }
-
-        return $out;
+            },
+        );
     }
 
     /**

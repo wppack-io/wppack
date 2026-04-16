@@ -19,6 +19,7 @@ use WpPack\Component\Database\Exception\ConnectionException;
 use WpPack\Component\Database\Exception\DriverException;
 use WpPack\Component\Database\Platform\PlatformInterface;
 use WpPack\Component\Database\Result;
+use WpPack\Component\Database\Sql\PlaceholderScanner;
 use WpPack\Component\Database\Statement;
 
 class PgsqlDriver extends AbstractDriver
@@ -309,32 +310,9 @@ class PgsqlDriver extends AbstractDriver
      */
     protected function convertPlaceholders(string $sql): string
     {
-        $index = 0;
-        $result = '';
-        $inQuote = false;
-
-        for ($i = 0, $len = \strlen($sql); $i < $len; ++$i) {
-            $char = $sql[$i];
-
-            if ($char === "'" && !$inQuote) {
-                $inQuote = true;
-            } elseif ($char === "'") {
-                if (($sql[$i + 1] ?? '') === "'") {
-                    $result .= "''";
-                    ++$i;
-
-                    continue;
-                }
-                $inQuote = false;
-            } elseif ($char === '?' && !$inQuote) {
-                $result .= '$' . (++$index);
-
-                continue;
-            }
-
-            $result .= $char;
-        }
-
-        return $result;
+        return PlaceholderScanner::replace(
+            $sql,
+            static fn(int $index): string => '$' . ($index + 1),
+        );
     }
 }
