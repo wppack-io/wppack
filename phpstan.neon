@@ -27,3 +27,13 @@ parameters:
             identifier: function.resultUnused
             path: src/Component/Scheduler/Bridge/EventBridge/src/Interceptor/*
             reportUnmatched: false
+        # db.php drop-in: DB_CHARSET/DB_COLLATE are resolved from wp-config.php
+        # at analysis time, but at runtime they can be any value
+        -
+            identifiers:
+                - notIdentical.alwaysTrue
+                - notIdentical.alwaysFalse
+                - nullCoalesce.expr
+                - booleanAnd.alwaysFalse
+            path: src/Component/Database/drop-in/db.php
+            reportUnmatched: false

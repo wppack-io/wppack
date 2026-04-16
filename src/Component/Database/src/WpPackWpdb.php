@@ -49,6 +49,8 @@ class WpPackWpdb extends \wpdb
         string $dbname,
         ?DriverInterface $reader = null,
         ?LoggerInterface $logger = null,
+        string $charset = 'utf8mb4',
+        string $collate = '',
     ) {
         // Do NOT call parent::__construct() — it tries to connect to MySQL.
         $this->writer = $writer;
@@ -59,8 +61,8 @@ class WpPackWpdb extends \wpdb
         $GLOBALS['wpdb'] = $this;
 
         $this->dbname = $dbname;
-        $this->charset = 'utf8mb4';
-        $this->collate = 'utf8mb4_unicode_ci';
+        $this->charset = $charset;
+        $this->collate = $collate;
         $this->ready = true;
 
         // Initialize properties that parent::__construct() would set

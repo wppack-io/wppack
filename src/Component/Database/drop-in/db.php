@@ -117,7 +117,7 @@ if (defined('DATABASE_READER_DSN') && DATABASE_READER_DSN !== '') {
     }
 }
 
-// Extract database name from DSN
+// Extract database name, charset, and collate from DSN
 $wppackDsnParsed = \WpPack\Component\Dsn\Dsn::fromString($wppackDatabaseDsn);
 $wppackDbName = ltrim($wppackDsnParsed->getPath() ?? '', '/');
 
@@ -125,12 +125,24 @@ if ($wppackDbName === '' || $wppackDbName === ':memory:') {
     $wppackDbName = 'wordpress';
 }
 
+// charset: DSN → DB_CHARSET → 'utf8mb4'
+$wppackCharset = $wppackDsnParsed->getOption('charset')
+    ?? (\defined('DB_CHARSET') && DB_CHARSET !== '' ? DB_CHARSET : null)
+    ?? 'utf8mb4';
+
+// collate: DSN → DB_COLLATE → ''
+$wppackCollate = $wppackDsnParsed->getOption('collate')
+    ?? (\defined('DB_COLLATE') && DB_COLLATE !== '' ? DB_COLLATE : null)
+    ?? '';
+
 // Create WpPack wpdb replacement
 $wpdb = new \WpPack\Component\Database\WpPackWpdb(
     writer: $wppackWriter,
     translator: $wppackWriter->getQueryTranslator(),
     dbname: $wppackDbName,
     reader: $wppackReader,
+    charset: $wppackCharset,
+    collate: $wppackCollate,
 );
 
-unset($wppackDatabaseDsn, $wppackWriter, $wppackReader, $wppackDsnParsed, $wppackDbName);
+unset($wppackDatabaseDsn, $wppackWriter, $wppackReader, $wppackDsnParsed, $wppackDbName, $wppackCharset, $wppackCollate);
