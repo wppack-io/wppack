@@ -3,4 +3,6 @@
 !/wp-content/plugins/.gitkeep
 /wp-content/mu-plugins/*
 !/wp-content/mu-plugins/.gitkeep
+/wp-content/themes/*
+!/wp-content/themes/.gitkeep
 /wp-content/debug.log
