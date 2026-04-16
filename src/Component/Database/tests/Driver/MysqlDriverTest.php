@@ -23,6 +23,14 @@ use WpPack\Component\Dsn\Dsn;
  *
  * Activates only when DATABASE_DSN points to a MySQL backend. The driver
  * is constructed from the DSN and then exercised against a scratch table.
+ *
+ * The quoteStringLiteral* cases assume MySQL default sql_mode — specifically
+ * that NO_BACKSLASH_ESCAPES is *not* set. MysqlDriver::setCompatibleSqlMode()
+ * does not flip that mode either way, so on a server configured with
+ * NO_BACKSLASH_ESCAPES on, the expected 'O\\'Brien' output becomes
+ * 'O''Brien' and these asserts will fail. That is an acceptable limitation:
+ * real-world WP installs keep the default, and switching the mode at test
+ * boot would divert from the rest of the suite.
  */
 final class MysqlDriverTest extends TestCase
 {
