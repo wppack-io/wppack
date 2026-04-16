@@ -20,5 +20,6 @@ package-lock.json
 !/web/wp-content/uploads/.gitkeep
 /web/wp-content/languages/
 /web/wp-content/debug.log
+/web/wp-content/db.php
 /web/wp-content/object-cache.php
 /web/wp-content/fatal-error-handler.php

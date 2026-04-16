@@ -61,34 +61,33 @@ if (str_starts_with($wppackDatabaseDsn, 'wpdb://')) {
     return;
 }
 
-// Load Composer autoloader
-(static function (): void {
-    $candidates = [
+// Load Composer autoloader (unless the host app already loaded it)
+if (!class_exists(\WpPack\Component\Database\Driver\Driver::class)) {
+    $wppackAutoload = null;
+
+    foreach ([
         ABSPATH . 'vendor/autoload.php',
         \dirname(ABSPATH) . '/vendor/autoload.php',
-        ABSPATH . '../vendor/autoload.php',
-    ];
+        \dirname(ABSPATH, 2) . '/vendor/autoload.php',
+    ] as $candidate) {
+        if (file_exists($candidate)) {
+            $wppackAutoload = $candidate;
 
-    if (\defined('WPPACK_AUTOLOAD_PATH')) {
-        array_unshift($candidates, WPPACK_AUTOLOAD_PATH);
-    }
-
-    foreach ($candidates as $autoload) {
-        if (file_exists($autoload)) {
-            require_once $autoload;
-
-            return;
+            break;
         }
     }
 
-    trigger_error(
-        'WpPack Database: Composer autoloader not found. Falling back to default wpdb.',
-        \E_USER_WARNING,
-    );
-})();
+    if ($wppackAutoload === null) {
+        trigger_error(
+            'WpPack Database: Composer autoloader not found. Falling back to default wpdb.',
+            \E_USER_WARNING,
+        );
 
-if (!class_exists(\WpPack\Component\Database\Driver\Driver::class)) {
-    return;
+        return;
+    }
+
+    require_once $wppackAutoload;
+    unset($wppackAutoload);
 }
 
 // Create writer driver
