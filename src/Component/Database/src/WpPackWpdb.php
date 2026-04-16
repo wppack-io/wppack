@@ -384,6 +384,11 @@ class WpPackWpdb extends \wpdb
      */
     public function delete($table, $where, $where_format = null)
     {
+        $where = $this->validateAndFlatten($table, $where, $where_format);
+
+        if ($where === false) {
+            return false;
+        }
 
         $platform = $this->writer->getPlatform();
         $quotedTable = $platform->quoteIdentifier($table);
