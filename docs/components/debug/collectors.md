@@ -225,14 +225,21 @@ WordPress 環境情報を収集。
 
 #### DatabaseDataCollector（priority: 200）
 
-WordPress クエリログを分析。`SAVEQUERIES` 有効時に動作。
+WordPress クエリログを分析。`SAVEQUERIES` 有効時に動作。**WpPackWpdb 経由 / 標準 `wpdb` 経由いずれも対応**。
 
 - `log_query_custom_data` フィルターでリアルタイム収集
 - `$wpdb->queries` からのフォールバック一括収集
-- 重複クエリ検出（同一 SQL が複数回実行）
+- **params を SQL と分離して保持** (Symfony / Doctrine 流儀):
+  - WpPackWpdb 環境では `$q[0]` に `?` プレースホルダ付き SQL、`$q[4]` に `['params' => [...], 'interpolated_sql' => '...']` が入る
+  - 標準 `wpdb` 環境では `$q[0]` に補間済み SQL、`$q[4]` は空（`params: []` として扱う）
+  - 正規化エントリに top-level `params` フィールドを昇格 (両経路で共通)
+- **param-aware な重複検出**: `DatabaseDataCollector::dupKey(sql, params)` で `(SQL, params)` の複合キー判定。同じ prepared SQL が異なる値で複数回実行されても重複扱いしない
 - スロークエリ検出（>100ms）
 - 最適化サジェスチョン自動生成
+- SQL 整形 (`maskQueryValues`): 各行の leading/trailing 空白を除去し wpdb の `\t\t\t` インデントをフラットに、`VALUES (...)` と `password`/`token` 系カラム値は自動マスク
 - Indicator 色: green（<0.5s）、yellow（<1s）、red（>=1s）
+
+表示側 (`DatabasePanelRenderer` + `database.php` テンプレート) は SQL の下に `PARAMS` ラベル付きの pill ブロックを差し込んで `#1 string(4) 'post'` 形式で並べます。params が空 (標準 wpdb) の場合は pill 自体を出しません。
 
 #### CacheDataCollector（priority: 195）
 

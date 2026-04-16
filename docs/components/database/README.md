@@ -126,19 +126,49 @@ $wpdb->prepare('SELECT * FROM %i WHERE id = %d', 'my_table', 1);
 
 #### db.php ドロップイン経由の prepared statement（WpPackWpdb）
 
-`WpPackWpdb` は WordPress の `wpdb` を完全に置き換え、`prepare()` メソッド自体をオーバーライドします。WordPress 標準の `prepare()` はパラメータを SQL に文字列結合しますが、`WpPackWpdb::prepare()` はパラメータを SQL に埋め込まず、`?` プレースホルダ SQL を返しつつパラメータを内部に保持します。続く `query()` がそのパラメータを Driver に分離して渡し、ネイティブ prepared statement で実行します。
+`WpPackWpdb` は WordPress の `wpdb` を完全に置き換え、`prepare()` メソッド自体をオーバーライドします。WordPress 標準の `prepare()` はパラメータを SQL に文字列結合しますが、`WpPackWpdb::prepare()` はパラメータを SQL に埋め込まず、`?` プレースホルダ SQL と `/*WPP:<id>*/` SQL コメントマーカーを返しつつ、パラメータを instance の **PreparedBank** に保持します。`WP_Site_Query` などが prepare 断片を concat して最終 SQL を作るパターンに対応するため、マーカーは prepare 呼び出し単位で1個だけ付加されます。
 
 ```
 WordPress コア/プラグインの呼び出し:
 $wpdb->query($wpdb->prepare("SELECT ... WHERE id = %d", 1))
 
 WpPackWpdb の内部動作:
-prepare() → "SELECT ... WHERE id = ?" + params=[1] を保持
-query()   → driver->executeQuery("SELECT ... WHERE id = ?", [1])
+prepare() → "SELECT ... WHERE id = ?/*WPP:abc123def456*/"
+             + PreparedBank[abc123def456] = [1]
+query()   → marker を SQL から除去、bank から params を取り出して即 unset
+           → driver->executeQuery("SELECT ... WHERE id = ?", [1])
            → ネイティブ prepared statement で実行
 ```
 
+- **マーカー id** は `substr(sha1($outputSql . "\x01" . serialize($params)), 0, 12)` で決定的。同じ (SQL, params) は常に同じ id → 同じマーカー → `WP_Site_Query::get_site_ids()` 等が使う `md5(serialize($sql_clauses))` キャッシュキーがリクエスト間で安定します。
+- **PreparedBank** はインスタンス配列 (`private array $preparedBank`) で、`query()` が消費したエントリは即 `unset` されます。バルクインポートのような `foreach { prepare() } query($concat)` パターンでも query 実行時に一括クリアされるのでメモリリークしません。`WpPackWpdb::resetPreparedBank()` で orphan を強制クリアも可能。
+- **`$wpdb->last_query`** には `?` 版のクリーン SQL が入り、値は露出しません。`$wpdb->last_params` 新プロパティに実行時の値配列が入ります（debug 用）。SAVEQUERIES ログのマスキング効果あり。
+- `%i`（識別子）は prepared statement にできないので引き続き quoteIdentifier でインライン展開。
+- **エッジケース**: `$wpdb->prepare("LIKE '%%%s%%'", 'foo')` のように `%s` が単一引用符リテラル内に入るケースのみ、prepared にせずインライン補間にフォールバックします（MySQL 側が `'%?%'` を placeholder と認識しないため）。
+
 `insert()` / `update()` / `delete()` / `replace()` は `prepare()` + `query()` を経由せず、直接 Driver にパラメータ分離で投げます。
+
+#### insert/update/delete/replace のテーブル名契約
+
+`WpPackWpdb::insert()` / `update()` / `delete()` / `replace()` は **標準 `wpdb` と同じ契約** で、完全修飾テーブル名（プレフィックス付き）を受け取ります。WpPackWpdb 側ではプレフィックスを自動付与しません。
+
+```php
+// 正しい: $wpdb->posts は "wp_posts" 等の完全修飾名
+$wpdb->insert($wpdb->posts, ['post_title' => 'Hello', ...]);
+
+// 正しい: プレフィックスを明示
+$wpdb->insert($wpdb->prefix . 'analytics', ['name' => 'test']);
+
+// NG: "analytics" のままだと "analytics" テーブルを探してエラー
+$wpdb->insert('analytics', ['name' => 'test']);
+```
+
+`DatabaseManager` レイヤはこの上で **ベアテーブル名を受けて自動でプレフィックスを前置する** API を提供します:
+
+```php
+$db = new DatabaseManager();
+$db->insert('analytics', ['name' => 'test']);  // 内部で $wpdb->insert($wpdb->prefix . 'analytics', ...) を呼ぶ
+```
 
 MySQL 接続は一切行われません。すべてのクエリは WpPack Driver 経由で処理されます。
 
