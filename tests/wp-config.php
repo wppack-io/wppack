@@ -13,6 +13,15 @@ declare(strict_types=1);
 
 define('ABSPATH', dirname(__DIR__) . '/web/wp/');
 
+// DATABASE_DSN drives the db.php drop-in if set (matrix-driven CI testing).
+// When unset, the db.php drop-in falls back to auto-building a MySQL DSN
+// from the DB_* constants below ("wpdb" variant path).
+$wppackTestDatabaseDsn = $_SERVER['DATABASE_DSN'] ?? $_ENV['DATABASE_DSN'] ?? '';
+if ($wppackTestDatabaseDsn !== '') {
+    define('DATABASE_DSN', $wppackTestDatabaseDsn);
+}
+unset($wppackTestDatabaseDsn);
+
 define('DB_NAME', 'wppack_test');
 define('DB_USER', 'root');
 define('DB_PASSWORD', 'root');

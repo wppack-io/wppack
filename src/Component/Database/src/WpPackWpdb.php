@@ -478,11 +478,16 @@ class WpPackWpdb extends \wpdb
     private function calculateFoundRows(DriverInterface $driver, string $translatedSql, array $params): void
     {
         try {
+            // Strip trailing LIMIT/OFFSET
             $countSql = (string) preg_replace(
                 '/\bLIMIT\s+\S+(\s+OFFSET\s+\S+)?\s*$/i',
                 '',
                 $translatedSql,
             );
+            // Strip SQL_CALC_FOUND_ROWS — it is invalid inside a subquery and
+            // the enclosing COUNT(*) replaces it
+            $countSql = (string) preg_replace('/\bSQL_CALC_FOUND_ROWS\b\s*/i', '', $countSql);
+
             $result = $driver->executeQuery(
                 'SELECT COUNT(*) FROM (' . $countSql . ') AS _wppack_found',
                 $params,

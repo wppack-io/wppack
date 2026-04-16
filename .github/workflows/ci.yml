@@ -139,6 +139,32 @@ jobs:
             sleep 1
           done
 
+      # Integration tests against each DB engine. Each integration suite uses
+      # WpPackWpdb with a native driver for its engine and covers the full
+      # WpdbIntegrationTestTrait (~113 cases). Running them as distinct steps
+      # makes per-engine failures visible in the CI UI.
+
+      - name: Integration tests — SQLite
+        run: vendor/bin/phpunit --colors=always --filter SqliteWpdbIntegrationTest
+
+      - name: Integration tests — MySQL
+        run: vendor/bin/phpunit --colors=always --filter MysqlWpdbIntegrationTest
+        env:
+          WPPACK_TEST_DB_PORT: '3306'
+
+      - name: Integration tests — PostgreSQL
+        run: vendor/bin/phpunit --colors=always --filter PgsqlWpdbIntegrationTest
+        env:
+          WPPACK_TEST_DB_PORT: '3306'
+          WPPACK_TEST_PGSQL_HOST: '127.0.0.1'
+          WPPACK_TEST_PGSQL_PORT: '5432'
+          WPPACK_TEST_PGSQL_USER: 'wppack'
+          WPPACK_TEST_PGSQL_PASSWORD: 'wppack'
+          WPPACK_TEST_PGSQL_DATABASE: 'wppack_test'
+
+      # Full suite (covers the "wpdb" path — standard WordPress $wpdb — and
+      # all unit / component tests). Runs with all engine env vars set so any
+      # engine-specific integration tests still execute.
       - name: Run tests
         run: vendor/bin/phpunit --colors=always --coverage-clover coverage.xml --log-junit junit.xml
         env:

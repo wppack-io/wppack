@@ -11,51 +11,63 @@
 
 declare(strict_types=1);
 
-namespace WpPack\Component\Database\Bridge\Pgsql\Tests;
+namespace WpPack\Component\Database\Tests;
 
 use PHPUnit\Framework\TestCase;
-use WpPack\Component\Database\Bridge\Pgsql\PgsqlDriver;
-use WpPack\Component\Database\Tests\WpdbIntegrationTestTrait;
+use WpPack\Component\Database\Driver\MysqlDriver;
+use WpPack\Component\Database\Translator\NullQueryTranslator;
 use WpPack\Component\Database\WpPackWpdb;
 
 /**
- * WpPackWpdb integration tests with PostgreSQL driver and PostgresqlQueryTranslator.
+ * WpPackWpdb integration tests with a native MySQL driver.
  *
- * Verifies that WordPress-style MySQL queries are correctly translated to
- * PostgreSQL dialect and executed end-to-end. Requires a running PostgreSQL
- * instance — skipped when WPPACK_TEST_PGSQL_HOST is not set.
+ * Runs against the MySQL server configured by the test environment (the same
+ * connection used by wp-phpunit). The query translator is a no-op because the
+ * source and target dialects are both MySQL; this exercises the WpPackWpdb +
+ * MysqlDriver + prepared-statement path end-to-end.
  */
-final class PgsqlWpdbIntegrationTest extends TestCase
+final class MysqlWpdbIntegrationTest extends TestCase
 {
     use WpdbIntegrationTestTrait;
 
     private WpPackWpdb $testWpdb;
-    private PgsqlDriver $driver;
+    private MysqlDriver $driver;
     private ?\wpdb $originalWpdb = null;
     private ?string $originalTablePrefix = null;
 
     protected function setUp(): void
     {
-        $host = $_SERVER['WPPACK_TEST_PGSQL_HOST'] ?? $_ENV['WPPACK_TEST_PGSQL_HOST'] ?? '';
-
-        if ($host === '') {
-            self::markTestSkipped('PostgreSQL not available (set WPPACK_TEST_PGSQL_HOST).');
+        if (!\extension_loaded('mysqli')) {
+            self::markTestSkipped('mysqli extension not loaded.');
         }
 
         $this->originalWpdb = $GLOBALS['wpdb'] ?? null;
         $this->originalTablePrefix = $GLOBALS['table_prefix'] ?? null;
         $GLOBALS['table_prefix'] = 'wpt_';
 
-        $this->driver = new PgsqlDriver(
-            host: $host,
-            username: $_SERVER['WPPACK_TEST_PGSQL_USER'] ?? $_ENV['WPPACK_TEST_PGSQL_USER'] ?? 'wppack',
-            password: $_SERVER['WPPACK_TEST_PGSQL_PASSWORD'] ?? $_ENV['WPPACK_TEST_PGSQL_PASSWORD'] ?? 'wppack',
-            database: $_SERVER['WPPACK_TEST_PGSQL_DATABASE'] ?? $_ENV['WPPACK_TEST_PGSQL_DATABASE'] ?? 'wppack_test',
-            port: (int) ($_SERVER['WPPACK_TEST_PGSQL_PORT'] ?? $_ENV['WPPACK_TEST_PGSQL_PORT'] ?? '5432'),
-        );
-        $this->driver->connect();
+        // Reuse the existing wp-phpunit mysqli connection where possible to
+        // avoid opening a second socket to the same MySQL instance.
+        if ($this->originalWpdb !== null && $this->originalWpdb->dbh instanceof \mysqli) {
+            $this->driver = MysqlDriver::fromMysqli($this->originalWpdb->dbh);
+        } else {
+            $host = \DB_HOST;
+            $port = 3306;
 
-        // Drop tables from previous runs
+            if (str_contains($host, ':')) {
+                [$host, $portStr] = explode(':', $host, 2);
+                $port = (int) $portStr;
+            }
+
+            $this->driver = new MysqlDriver(
+                host: $host,
+                username: \DB_USER,
+                password: \DB_PASSWORD,
+                database: \DB_NAME,
+                port: $port,
+            );
+            $this->driver->connect();
+        }
+
         $this->driver->executeStatement('DROP TABLE IF EXISTS wpt_term_relationships');
         $this->driver->executeStatement('DROP TABLE IF EXISTS wpt_postmeta');
         $this->driver->executeStatement('DROP TABLE IF EXISTS wpt_usermeta');
@@ -65,8 +77,8 @@ final class PgsqlWpdbIntegrationTest extends TestCase
 
         $this->testWpdb = new WpPackWpdb(
             writer: $this->driver,
-            translator: $this->driver->getQueryTranslator(),
-            dbname: 'wppack_test',
+            translator: new NullQueryTranslator(),
+            dbname: \DB_NAME,
         );
 
         $this->createWordPressTables();
@@ -81,7 +93,6 @@ final class PgsqlWpdbIntegrationTest extends TestCase
             $this->driver->executeStatement('DROP TABLE IF EXISTS wpt_posts');
             $this->driver->executeStatement('DROP TABLE IF EXISTS wpt_users');
             $this->driver->executeStatement('DROP TABLE IF EXISTS wpt_options');
-            $this->driver->close();
         }
 
         if ($this->originalWpdb !== null) {

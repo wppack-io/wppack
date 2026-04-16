@@ -64,7 +64,7 @@ final class SqliteWpdbIntegrationTest extends TestCase
         }
     }
 
-    protected function getTestWpdb(): WpPackWpdb
+    protected function getTestWpdb(): \wpdb
     {
         return $this->testWpdb;
     }

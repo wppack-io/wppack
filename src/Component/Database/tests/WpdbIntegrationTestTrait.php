@@ -14,18 +14,19 @@ declare(strict_types=1);
 namespace WpPack\Component\Database\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
-use WpPack\Component\Database\WpPackWpdb;
 
 /**
- * Shared integration tests for WpPackWpdb across all database engines.
+ * Shared integration tests for the wpdb contract across all database engines.
  *
- * Each concrete test class provides a WpPackWpdb instance backed by a real
- * driver + query translator. MySQL DDL/DML goes through the full translation
- * pipeline, verifying end-to-end correctness for each engine.
+ * Each concrete test class provides a wpdb-compatible instance, which may be:
+ * - WpPackWpdb backed by a real driver + query translator (SQLite / PostgreSQL / MySQL / DSQL)
+ * - The standard WordPress \wpdb (MySQL via mysqli)
+ *
+ * These tests verify wpdb contract behaviour end-to-end, regardless of backend.
  */
 trait WpdbIntegrationTestTrait
 {
-    abstract protected function getTestWpdb(): WpPackWpdb;
+    abstract protected function getTestWpdb(): \wpdb;
 
     /**
      * Create WordPress-like tables using MySQL DDL syntax.
@@ -1175,11 +1176,10 @@ trait WpdbIntegrationTestTrait
     {
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
-        $driver = $wpdb->getWriter();
 
-        $driver->beginTransaction();
+        $wpdb->query('START TRANSACTION');
         $wpdb->insert('posts', ['post_title' => 'TX Commit', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
-        $driver->commit();
+        $wpdb->query('COMMIT');
 
         $count = $wpdb->get_var("SELECT COUNT(*) FROM {$p}posts WHERE post_title = 'TX Commit'");
         self::assertSame('1', (string) $count);
@@ -1190,13 +1190,12 @@ trait WpdbIntegrationTestTrait
     {
         $wpdb = $this->getTestWpdb();
         $p = $wpdb->prefix;
-        $driver = $wpdb->getWriter();
 
         $wpdb->insert('posts', ['post_title' => 'Baseline', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
 
-        $driver->beginTransaction();
+        $wpdb->query('START TRANSACTION');
         $wpdb->insert('posts', ['post_title' => 'TX Rollback', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
-        $driver->rollBack();
+        $wpdb->query('ROLLBACK');
 
         $count = $wpdb->get_var("SELECT COUNT(*) FROM {$p}posts WHERE post_title = 'TX Rollback'");
         self::assertSame('0', (string) $count);
