@@ -224,11 +224,11 @@ final class DatabaseDataCollector extends AbstractDataCollector
 
     private function maskQueryValues(string $sql): string
     {
-        // Trim only the leading/trailing whitespace of the whole statement.
-        // Interior line breaks and per-line indentation are preserved, so
-        // multi-line SQL keeps its shape — just the empty space at the very
-        // start and end is removed.
-        $sql = trim($sql);
+        // Strip leading/trailing horizontal whitespace from every line so
+        // wpdb's '\t\t\t' per-line indentation doesn't push the display off.
+        // Line breaks are preserved — multi-line SQL still renders across
+        // multiple lines, just flush to the left edge of the panel.
+        $sql = trim((string) preg_replace('/^[ \t]+|[ \t]+$/m', '', $sql));
 
         // Mask VALUES clauses: VALUES ('...', '...') → VALUES (********)
         $sql = preg_replace('/VALUES\s*\(.*?\)/is', 'VALUES (' . self::MASKED_VALUE . ')', $sql) ?? $sql;
