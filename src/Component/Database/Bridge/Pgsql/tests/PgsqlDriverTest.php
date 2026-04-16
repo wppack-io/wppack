@@ -152,6 +152,32 @@ final class PgsqlDriverTest extends TestCase
     }
 
     #[Test]
+    public function quoteStringLiteralWrapsAndEscapes(): void
+    {
+        self::assertSame("'hello'", $this->driver->quoteStringLiteral('hello'));
+        // PostgreSQL pg_escape_literal doubles embedded single quotes.
+        self::assertSame("'O''Brien'", $this->driver->quoteStringLiteral("O'Brien"));
+    }
+
+    #[Test]
+    public function quoteStringLiteralHandlesEmptyString(): void
+    {
+        self::assertSame("''", $this->driver->quoteStringLiteral(''));
+    }
+
+    #[Test]
+    public function quoteStringLiteralHandlesBackslash(): void
+    {
+        // With standard_conforming_strings=on (PostgreSQL default since 9.1),
+        // a backslash is literal. pg_escape_literal returns a plain single-quoted
+        // literal in that case.
+        $quoted = $this->driver->quoteStringLiteral('a\\b');
+
+        self::assertStringStartsWith("'", $quoted);
+        self::assertStringEndsWith("'", $quoted);
+    }
+
+    #[Test]
     public function queryTranslator(): void
     {
         $translator = $this->driver->getQueryTranslator();

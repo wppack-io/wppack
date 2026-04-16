@@ -158,6 +158,30 @@ final class SqliteDriverTest extends TestCase
     }
 
     #[Test]
+    public function quoteStringLiteralWrapsAndEscapes(): void
+    {
+        self::assertSame("'hello'", $this->driver->quoteStringLiteral('hello'));
+        // SQLite uses doubled-quote escaping for embedded single quotes.
+        self::assertSame("'O''Brien'", $this->driver->quoteStringLiteral("O'Brien"));
+    }
+
+    #[Test]
+    public function quoteStringLiteralHandlesEmptyString(): void
+    {
+        self::assertSame("''", $this->driver->quoteStringLiteral(''));
+    }
+
+    #[Test]
+    public function quoteStringLiteralHandlesNullByte(): void
+    {
+        // PDO::quote preserves null bytes inside the quoted literal.
+        $quoted = $this->driver->quoteStringLiteral("a\x00b");
+
+        self::assertStringStartsWith("'", $quoted);
+        self::assertStringEndsWith("'", $quoted);
+    }
+
+    #[Test]
     public function fromPdo(): void
     {
         $pdo = new \PDO('sqlite::memory:');
