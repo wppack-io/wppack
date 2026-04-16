@@ -79,6 +79,12 @@ class WpPackWpdb extends \wpdb
         if (isset($GLOBALS['table_prefix'])) {
             $this->set_prefix($GLOBALS['table_prefix']);
         }
+
+        // Eagerly open the connection so $this->dbh and $this->is_mysql are
+        // ready before any caller runs a query. Standard wpdb's constructor
+        // does the same via parent::__construct(); we skip parent to avoid
+        // its mysqli-only logic, so replicate the connect step here.
+        $this->db_connect();
     }
 
     /**
@@ -420,9 +426,19 @@ class WpPackWpdb extends \wpdb
         $this->writer->connect();
         $this->reader?->connect();
         $this->dbh = $this->writer->getNativeConnection();
+        $this->is_mysql = $this->engineIs('mysql', 'mariadb');
         $this->ready = true;
 
         return true;
+    }
+
+    /**
+     * True when the writer's platform engine matches one of $engines.
+     * Single source of truth for engine branching across this class.
+     */
+    private function engineIs(string ...$engines): bool
+    {
+        return \in_array($this->writer->getPlatform()->getEngine(), $engines, true);
     }
 
     public function getWriter(): DriverInterface
@@ -861,23 +877,12 @@ class WpPackWpdb extends \wpdb
     private function validateAndFlatten(string $table, array $data, array|string|null $format): array|false
     {
         // process_fields() runs DESCRIBE / SHOW FULL COLUMNS queries, which
-        // only make sense on MySQL. Skip the pre-flight entirely for other
-        // drivers and let execute-time errors surface through the Driver.
-        if (!($this->writer->getNativeConnection() instanceof \mysqli)) {
+        // only make sense on MySQL/MariaDB. Skip the pre-flight entirely for
+        // other engines and let execute-time errors surface through the
+        // Driver.
+        if (!$this->engineIs('mysql', 'mariadb')) {
             return $data;
         }
-
-        // Ensure $this->dbh is populated so wpdb's inherited field validation
-        // (which introspects schema via $this->dbh) has a live connection.
-        if (!($this->dbh instanceof \mysqli)) {
-            $this->dbh = $this->writer->getNativeConnection();
-        }
-
-        // wpdb::get_col_length() / get_col_charset() short-circuit to false
-        // unless is_mysql is true. Parent's constructor sets this flag; we
-        // skip that constructor so flip it on ourselves when the connection
-        // is a real mysqli.
-        $this->is_mysql = true;
 
         $processed = $this->process_fields($table, $data, $format);
 
