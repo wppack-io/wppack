@@ -88,15 +88,16 @@
 <?php if ($isSlow): ?><?= $view->include('toolbar/partials/badge', ['label' => 'SLOW', 'color' => 'red']) ?><?php endif; ?>
 <?php if ($isDuplicate): ?><?= $view->include('toolbar/partials/badge', ['label' => 'DUP', 'color' => 'yellow']) ?><?php endif; ?>
 <?php $params = $query['params'] ?? []; if (!empty($params)): ?>
-<table class="wpd-params-table">
+<div class="wpd-params">
+<span class="wpd-params-label">params</span>
 <?php foreach ($params as $pi => $pv): ?>
-<tr>
-<td class="wpd-params-index">#<?= $view->e((string) ($pi + 1)) ?></td>
-<td class="wpd-params-type"><?= $view->e($fmt->paramType($pv)) ?></td>
-<td class="wpd-params-value"><code><?= $view->e($fmt->paramValue($pv)) ?></code></td>
-</tr>
+<span class="wpd-param">
+<span class="wpd-param-index">#<?= $view->e((string) ($pi + 1)) ?></span>
+<span class="wpd-param-type"><?= $view->e($fmt->paramType($pv)) ?></span>
+<code class="wpd-param-value"><?= $view->e($fmt->paramValue($pv)) ?></code>
+</span>
 <?php endforeach; ?>
-</table>
+</div>
 <?php endif; ?>
 </td>
 <td class="wpd-col-time"><?= $view->e($fmt->ms($timeMs)) ?></td>

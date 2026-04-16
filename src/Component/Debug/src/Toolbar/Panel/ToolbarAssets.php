@@ -556,36 +556,46 @@ final class ToolbarAssets
             white-space: pre-wrap;
             word-break: break-all;
         }
-        #wppack-debug .wpd-params-table {
-            margin: 6px 0 2px 16px;
-            padding: 3px 8px;
-            border-left: 2px solid var(--wpd-gray-200);
-            border-collapse: collapse;
+        #wppack-debug .wpd-params {
+            margin-top: 6px;
+            padding: 4px 10px;
+            background: var(--wpd-gray-50);
+            border-radius: 3px;
             font-family: var(--wpd-font-mono);
-            font-size: 10.5px;
+            font-size: 11px;
             color: var(--wpd-gray-500);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2px 16px;
+            align-items: baseline;
+            line-height: 1.6;
         }
-        #wppack-debug .wpd-params-table td {
-            padding: 0 10px 0 0;
-            vertical-align: top;
-            line-height: 1.5;
-        }
-        #wppack-debug .wpd-params-table tr:last-child td { padding-bottom: 0; }
-        #wppack-debug .wpd-params-index {
+        #wppack-debug .wpd-params-label {
             color: var(--wpd-gray-400);
-            white-space: nowrap;
-            width: 22px;
+            font-style: italic;
+            text-transform: uppercase;
+            font-size: 9.5px;
+            letter-spacing: 0.5px;
         }
-        #wppack-debug .wpd-params-type {
-            color: var(--wpd-gray-400);
+        #wppack-debug .wpd-param {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 6px;
             white-space: nowrap;
+        }
+        #wppack-debug .wpd-param-index {
+            color: var(--wpd-gray-400);
+            font-weight: 600;
+        }
+        #wppack-debug .wpd-param-type {
+            color: var(--wpd-gray-400);
             font-style: italic;
         }
-        #wppack-debug .wpd-params-value code {
+        #wppack-debug .wpd-param-value {
             font-family: var(--wpd-font-mono);
-            font-size: 10.5px;
-            color: var(--wpd-gray-700);
+            color: var(--wpd-gray-800);
             word-break: break-all;
+            white-space: normal;
         }
         #wppack-debug .wpd-table .wpd-col-time {
             width: 90px;
