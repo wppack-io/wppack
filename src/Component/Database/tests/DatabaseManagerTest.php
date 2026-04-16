@@ -1063,66 +1063,13 @@ final class DatabaseManagerTest extends TestCase
         self::assertTrue(true);
     }
 
-    // --- Transaction error paths via query filter ---
-
-    #[Test]
-    public function beginTransactionThrowsOnFailure(): void
-    {
-        $filter = static fn(string $query): string|false => stripos($query, 'START TRANSACTION') !== false ? '' : $query;
-
-        add_filter('query', $filter, 10, 1);
-
-        try {
-            $this->expectException(QueryException::class);
-            $this->expectExceptionMessage('START TRANSACTION');
-
-            $this->db->beginTransaction();
-        } finally {
-            remove_filter('query', $filter, 10);
-        }
-    }
-
-    #[Test]
-    public function commitThrowsOnFailure(): void
-    {
-        $filter = static fn(string $query): string|false => stripos($query, 'COMMIT') !== false ? '' : $query;
-
-        $this->db->beginTransaction();
-
-        add_filter('query', $filter, 10, 1);
-
-        try {
-            $this->expectException(QueryException::class);
-            $this->expectExceptionMessage('COMMIT');
-
-            $this->db->commit();
-        } finally {
-            remove_filter('query', $filter, 10);
-            // Ensure we clean up the transaction
-            $this->db->wpdb()->query('ROLLBACK');
-        }
-    }
-
-    #[Test]
-    public function rollBackThrowsOnFailure(): void
-    {
-        $filter = static fn(string $query): string|false => stripos($query, 'ROLLBACK') !== false ? '' : $query;
-
-        $this->db->beginTransaction();
-
-        add_filter('query', $filter, 10, 1);
-
-        try {
-            $this->expectException(QueryException::class);
-            $this->expectExceptionMessage('ROLLBACK');
-
-            $this->db->rollBack();
-        } finally {
-            remove_filter('query', $filter, 10);
-            // Ensure we clean up the transaction
-            $this->db->wpdb()->query('ROLLBACK');
-        }
-    }
+    // --- Transaction error paths (delegated to Connection/Driver) ---
+    //
+    // Transaction failure tests previously used add_filter('query', ...) to
+    // intercept wpdb->query. With the refactor, DatabaseManager delegates
+    // directly to Connection → Driver, bypassing wpdb. Driver-level failure
+    // behaviour is covered by MysqlDriverTest and its peers; DatabaseManager's
+    // responsibility is simply to delegate.
 
     // --- prepared statement with no matching params (empty bind) ---
 

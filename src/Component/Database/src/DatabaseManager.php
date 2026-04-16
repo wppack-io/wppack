@@ -237,40 +237,19 @@ final class DatabaseManager
         return $result;
     }
 
-    /**
-     * @throws QueryException
-     */
     public function beginTransaction(): void
     {
-        $result = $this->wpdb->query('START TRANSACTION');
-
-        if ($result === false) {
-            throw new QueryException('START TRANSACTION', $this->wpdb->last_error);
-        }
+        $this->connection->beginTransaction();
     }
 
-    /**
-     * @throws QueryException
-     */
     public function commit(): void
     {
-        $result = $this->wpdb->query('COMMIT');
-
-        if ($result === false) {
-            throw new QueryException('COMMIT', $this->wpdb->last_error);
-        }
+        $this->connection->commit();
     }
 
-    /**
-     * @throws QueryException
-     */
     public function rollBack(): void
     {
-        $result = $this->wpdb->query('ROLLBACK');
-
-        if ($result === false) {
-            throw new QueryException('ROLLBACK', $this->wpdb->last_error);
-        }
+        $this->connection->rollBack();
     }
 
     public function prepare(string $query, mixed ...$args): string
@@ -279,11 +258,11 @@ final class DatabaseManager
     }
 
     /**
-     * Quote an identifier (table name, column name) with backticks.
+     * Quote an identifier (table name, column name) using the current platform's quoting style.
      */
     public function quoteIdentifier(string $identifier): string
     {
-        return '`' . str_replace('`', '``', $identifier) . '`';
+        return $this->connection->quoteIdentifier($identifier);
     }
 
     public function prefix(): string
@@ -334,12 +313,17 @@ final class DatabaseManager
      * - WpPackWpdb (db.php drop-in): reuse its Driver
      * - Standard WordPress wpdb: wrap the existing mysqli connection
      * - Fallback: create fresh connection from WordPress DB_* constants
+     *
+     * Attaches a WpSaveQueriesLogger so queries executed through the Connection
+     * appear in `$wpdb->queries` when SAVEQUERIES is enabled.
      */
     private function createDefaultConnection(\wpdb $wpdb): Connection
     {
+        $queryLogger = new WpSaveQueriesLogger($wpdb);
+
         // WpPack db.php drop-in — Driver already configured
         if ($wpdb instanceof WpPackWpdb) {
-            return new Connection($wpdb->getWriter());
+            return new Connection($wpdb->getWriter(), null, $queryLogger);
         }
 
         // Standard WordPress — reuse existing mysqli connection
@@ -347,16 +331,19 @@ final class DatabaseManager
         $dbh = $wpdb->dbh;
 
         if ($dbh instanceof \mysqli) {
-            return new Connection(Driver\MysqlDriver::fromMysqli($dbh));
+            return new Connection(Driver\MysqlDriver::fromMysqli($dbh), null, $queryLogger);
         }
 
         // Fallback — create from DB_* constants
-        return new Connection(new Driver\MysqlDriver(
-            host: \defined('DB_HOST') ? DB_HOST : '127.0.0.1',
-            username: \defined('DB_USER') ? DB_USER : 'root',
-            password: \defined('DB_PASSWORD') ? DB_PASSWORD : '',
-            database: \defined('DB_NAME') ? DB_NAME : '',
-        ));
+        return new Connection(
+            new Driver\MysqlDriver(
+                host: \defined('DB_HOST') ? DB_HOST : '127.0.0.1',
+                username: \defined('DB_USER') ? DB_USER : 'root',
+                password: \defined('DB_PASSWORD') ? DB_PASSWORD : '',
+                database: \defined('DB_NAME') ? DB_NAME : '',
+            ),
+            null,
+            $queryLogger,
+        );
     }
-
 }
