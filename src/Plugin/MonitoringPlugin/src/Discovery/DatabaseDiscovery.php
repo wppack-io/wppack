@@ -40,12 +40,19 @@ final class DatabaseDiscovery implements MonitoringProviderInterface
             return [];
         }
 
-        $metrics = $this->buildMetrics($endpoint['type'], $endpoint['dimensions']);
+        $engine = $this->detectEngine();
+        $metrics = $this->buildMetrics($endpoint['type'], $endpoint['dimensions'], $engine);
+
+        $label = match (true) {
+            $endpoint['type'] === 'aurora' && $engine === 'postgres' => 'Aurora PostgreSQL Cluster',
+            $endpoint['type'] === 'aurora' => 'Aurora MySQL Cluster',
+            default => 'RDS Instance',
+        };
 
         return [
             new MonitoringProvider(
                 id: 'rds',
-                label: $endpoint['type'] === 'aurora' ? 'Aurora Cluster' : 'RDS Instance',
+                label: $label,
                 bridge: 'cloudwatch',
                 settings: new AwsProviderSettings(region: $endpoint['region']),
                 metrics: $metrics,
@@ -96,12 +103,31 @@ final class DatabaseDiscovery implements MonitoringProviderInterface
     }
 
     /**
+     * Detect database engine from DATABASE_DSN scheme.
+     *
+     * @return 'mysql'|'postgres'
+     */
+    private function detectEngine(): string
+    {
+        if (\defined('DATABASE_DSN')) {
+            $dsn = (string) \constant('DATABASE_DSN');
+
+            if (str_starts_with($dsn, 'pgsql://') || str_starts_with($dsn, 'pgsql+dataapi://')) {
+                return 'postgres';
+            }
+        }
+
+        return 'mysql';
+    }
+
+    /**
      * @param 'aurora'|'rds' $type
      * @param array<string, string> $dimensions
+     * @param 'mysql'|'postgres' $engine
      *
      * @return list<MetricDefinition>
      */
-    private function buildMetrics(string $type, array $dimensions): array
+    private function buildMetrics(string $type, array $dimensions, string $engine = 'mysql'): array
     {
         $metrics = [
             new MetricDefinition(
@@ -186,6 +212,32 @@ final class DatabaseDiscovery implements MonitoringProviderInterface
                 metricName: 'ACUUtilization',
                 unit: 'Percent',
                 stat: 'Average',
+                dimensions: $dimensions,
+                locked: true,
+            );
+        }
+
+        // Aurora PostgreSQL-specific metrics
+        if ($type === 'aurora' && $engine === 'postgres') {
+            $metrics[] = new MetricDefinition(
+                id: 'rds.aurora_replica_lag',
+                label: 'Replica Lag',
+                description: 'Aurora PostgreSQL replica lag in milliseconds',
+                namespace: 'AWS/RDS',
+                metricName: 'AuroraReplicaLag',
+                unit: 'Milliseconds',
+                stat: 'Average',
+                dimensions: $dimensions,
+                locked: true,
+            );
+            $metrics[] = new MetricDefinition(
+                id: 'rds.maximum_used_transaction_ids',
+                label: 'Max Used Transaction IDs',
+                description: 'Maximum transaction IDs used (TXID wraparound risk)',
+                namespace: 'AWS/RDS',
+                metricName: 'MaximumUsedTransactionIDs',
+                unit: 'Count',
+                stat: 'Maximum',
                 dimensions: $dimensions,
                 locked: true,
             );

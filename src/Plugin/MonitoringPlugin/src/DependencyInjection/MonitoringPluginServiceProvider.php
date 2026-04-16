@@ -62,6 +62,9 @@ final class MonitoringPluginServiceProvider implements ServiceProviderInterface
         $builder->register(DatabaseDiscovery::class)
             ->addTag('monitoring.provider');
 
+        $builder->register(\WpPack\Plugin\MonitoringPlugin\Discovery\DsqlDiscovery::class)
+            ->addTag('monitoring.provider');
+
         $builder->register(S3Discovery::class)
             ->addTag('monitoring.provider');
 
