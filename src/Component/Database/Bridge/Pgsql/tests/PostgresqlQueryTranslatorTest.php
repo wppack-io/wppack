@@ -1498,6 +1498,15 @@ SQL;
     // ── Extra MySQL function mappings ──
 
     #[Test]
+    public function lastDayMapsToDateTruncMath(): void
+    {
+        $result = $this->translator->translate('SELECT LAST_DAY(d) FROM t');
+
+        self::assertStringContainsString("date_trunc('month', (d)::date)", $result[0]);
+        self::assertStringContainsString("interval '1 month - 1 day'", $result[0]);
+    }
+
+    #[Test]
     public function dayNameMapsToToCharFMDay(): void
     {
         $result = $this->translator->translate('SELECT DAYNAME(d) FROM t');

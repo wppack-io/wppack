@@ -1994,6 +1994,14 @@ SQL);
     // ── Extra MySQL function mappings ──
 
     #[Test]
+    public function lastDayUsesDateModifiers(): void
+    {
+        $result = $this->translator->translate('SELECT LAST_DAY(d) FROM t');
+
+        self::assertStringContainsString("date(d, 'start of month', '+1 month', '-1 day')", $result[0]);
+    }
+
+    #[Test]
     public function dayNameReturnsCaseMap(): void
     {
         $result = $this->translator->translate('SELECT DAYNAME(d) FROM t');

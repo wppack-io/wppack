@@ -1235,6 +1235,43 @@ final class WpPackWpdbTest extends TestCase
     }
 
     #[Test]
+    public function failedEventFiresOnTranslationError(): void
+    {
+        // A translator failure never reaches the driver, but APM listeners
+        // should still see a failure event so the trace doesn't silently
+        // drop the query. The error message is [Translation]-prefixed to
+        // distinguish it from a real driver error.
+        $captured = null;
+        $dispatcher = new class($captured) implements \Psr\EventDispatcher\EventDispatcherInterface {
+            public function __construct(public mixed &$captured) {}
+            public function dispatch(object $event): object
+            {
+                $this->captured = $event;
+                return $event;
+            }
+        };
+
+        $driver = new SqliteDriver(':memory:');
+        $driver->connect();
+
+        $translator = $this->createMock(QueryTranslatorInterface::class);
+        $translator->method('translate')
+            ->willThrowException(new \WpPack\Component\Database\Exception\TranslationException('parse failed', 'sqlite'));
+
+        $wpdb = new WpPackWpdb(
+            writer: $driver,
+            translator: $translator,
+            dbname: 'test',
+            eventDispatcher: $dispatcher,
+        );
+
+        $wpdb->query('BAD SQL');
+
+        self::assertInstanceOf(\WpPack\Component\Database\Event\DatabaseQueryFailedEvent::class, $captured);
+        self::assertStringContainsString('[Translation]', $captured->errorMessage);
+    }
+
+    #[Test]
     public function failedEventCarriesErrorMessage(): void
     {
         $captured = null;

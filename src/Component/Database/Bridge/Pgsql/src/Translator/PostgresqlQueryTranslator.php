@@ -1362,6 +1362,7 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             'DAYNAME' => $this->transformDayName($rw),
             'MONTHNAME' => $this->transformMonthName($rw),
             'QUARTER' => $this->transformDateExtract($rw, 'QUARTER'),
+            'LAST_DAY' => $this->transformLastDay($rw),
             'SUBSTRING_INDEX' => $this->transformSubstringIndex($rw),
             'FIND_IN_SET' => $this->transformFindInSet($rw),
             'JSON_EXTRACT' => $this->transformJsonExtract($rw),
@@ -1787,6 +1788,30 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
 
         $expr = $this->transformArgExpression($args[0]);
         $rw->add(\sprintf("to_char((%s)::timestamp, 'FMDay')", $expr));
+
+        return true;
+    }
+
+    /**
+     * LAST_DAY(d) → last day of d's month as a DATE.
+     *
+     * Postgres trick: truncate to month start, add a month, subtract a
+     * day. The final `::date` cast ensures the expression evaluates to a
+     * DATE (not a TIMESTAMP) so downstream comparisons behave like
+     * MySQL's LAST_DAY output.
+     */
+    private function transformLastDay(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 1) {
+            return false;
+        }
+
+        $expr = $this->transformArgExpression($args[0]);
+        $rw->add(\sprintf(
+            "(date_trunc('month', (%s)::date) + interval '1 month - 1 day')::date",
+            $expr,
+        ));
 
         return true;
     }

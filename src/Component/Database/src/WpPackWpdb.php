@@ -726,6 +726,17 @@ class WpPackWpdb extends \wpdb
                 'error' => $e->getMessage(),
             ]));
 
+            // APM listeners get a failure event for translation errors
+            // too — the SQL never reached the driver so driverName is the
+            // writer (where it would have gone) and the error text is
+            // prefixed to distinguish it from driver-side failures.
+            $this->eventDispatcher?->dispatch(new DatabaseQueryFailedEvent(
+                sql: $sql,
+                paramsSummary: $this->paramsSummary($params),
+                errorMessage: '[Translation] ' . $e->getMessage(),
+                driverName: ($driver === $this->reader) ? 'reader' : 'writer',
+            ));
+
             // Prefix distinguishes translator failures from driver failures in last_error
             $this->last_error = '[Translation] ' . $e->getMessage();
             $this->errno = 0; // translation errors are not driver errors

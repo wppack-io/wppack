@@ -1225,6 +1225,7 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             'DAYNAME' => $this->transformDayName($rw),
             'MONTHNAME' => $this->transformMonthName($rw),
             'QUARTER' => $this->transformQuarter($rw),
+            'LAST_DAY' => $this->transformLastDay($rw),
             'LOCATE' => $this->transformLocate($rw),
             default => false,
         };
@@ -1908,6 +1909,30 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             . "WHEN 9 THEN 'September' WHEN 10 THEN 'October' "
             . "WHEN 11 THEN 'November' WHEN 12 THEN 'December' "
             . "END)",
+            $expr,
+        ));
+
+        return true;
+    }
+
+    /**
+     * LAST_DAY(d) → date(d, 'start of month', '+1 month', '-1 day')
+     *
+     * SQLite's date() modifiers chain left-to-right: take d, snap to
+     * the first of the month, add a month, subtract a day = last day
+     * of d's month. Matches MySQL LAST_DAY output as an ISO date
+     * string 'YYYY-MM-DD'.
+     */
+    private function transformLastDay(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 1) {
+            return false;
+        }
+
+        $expr = $this->transformArgExpression($args[0]);
+        $rw->add(\sprintf(
+            "date(%s, 'start of month', '+1 month', '-1 day')",
             $expr,
         ));
 
