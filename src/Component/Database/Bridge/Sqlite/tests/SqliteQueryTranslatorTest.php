@@ -1914,6 +1914,54 @@ SQL);
         self::assertStringContainsString('THEN 3', $result[0]);
     }
 
+    // ── FIND_IN_SET / SUBSTRING_INDEX ──
+
+    #[Test]
+    public function findInSetRewritesToInstrBasedCase(): void
+    {
+        $result = $this->translator->translate("SELECT FIND_IN_SET(role, role_list) FROM t");
+
+        self::assertStringContainsString('instr(', $result[0]);
+        self::assertStringContainsString('CASE', $result[0]);
+    }
+
+    #[Test]
+    public function substringIndexPositiveOneUsesInstrPrefix(): void
+    {
+        $result = $this->translator->translate("SELECT SUBSTRING_INDEX(path, '/', 1) FROM t");
+
+        self::assertStringContainsString("instr(path, '/')", $result[0]);
+        self::assertStringContainsString('substr(path', $result[0]);
+    }
+
+    #[Test]
+    public function substringIndexNegativeCountRaisesTranslationException(): void
+    {
+        $this->expectException(\WpPack\Component\Database\Exception\TranslationException::class);
+        $this->expectExceptionMessageMatches('/SUBSTRING_INDEX.*negative/');
+
+        $this->translator->translate("SELECT SUBSTRING_INDEX(path, '/', -1) FROM t");
+    }
+
+    // ── FULLTEXT explicit rejection ──
+
+    #[Test]
+    public function fulltextMatchAgainstRaisesTranslationException(): void
+    {
+        $this->expectException(\WpPack\Component\Database\Exception\TranslationException::class);
+        $this->expectExceptionMessageMatches('/FULLTEXT/');
+
+        $this->translator->translate("SELECT * FROM posts WHERE MATCH(content) AGAINST('wordpress')");
+    }
+
+    #[Test]
+    public function fulltextMatchAgainstBooleanModeAlsoRejected(): void
+    {
+        $this->expectException(\WpPack\Component\Database\Exception\TranslationException::class);
+
+        $this->translator->translate("SELECT * FROM t WHERE MATCH(col) AGAINST('term' IN BOOLEAN MODE)");
+    }
+
     // ── STR_TO_DATE ──
 
     #[Test]

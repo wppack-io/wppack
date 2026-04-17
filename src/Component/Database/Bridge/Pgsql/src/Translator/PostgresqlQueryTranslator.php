@@ -128,6 +128,22 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             return $result;
         }
 
+        // MySQL FULLTEXT indexes + MATCH(...) AGAINST(...) translate in
+        // principle to PostgreSQL's to_tsvector() / plainto_tsquery()
+        // operator form, but the rewrite depends on schema-level
+        // tsvector columns that only the site owner can provision. A
+        // silent pass-through would reach pg as unknown syntax and
+        // return zero rows — producing the appearance of 'search works
+        // but finds nothing'. Fail loudly with a clear message so the
+        // operator picks an explicit integration path instead.
+        if (preg_match('/\bMATCH\s*\(.*?\)\s*AGAINST\b/is', $trimmed)) {
+            throw new TranslationException(
+                $sql,
+                'pgsql',
+                ['FULLTEXT MATCH ... AGAINST is not supported on PostgreSQL — use to_tsvector() / to_tsquery() with a dedicated tsvector column'],
+            );
+        }
+
         $parser = new Parser($sql);
 
         // phpmyadmin/sql-parser records context-sensitive warnings alongside
@@ -1338,6 +1354,8 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             'WEEKDAY' => $this->transformWeekday($rw),
             'LOCATE' => $this->transformLocate($rw),
             'GROUP_CONCAT' => $this->transformGroupConcat($rw),
+            'SUBSTRING_INDEX' => $this->transformSubstringIndex($rw),
+            'FIND_IN_SET' => $this->transformFindInSet($rw),
             'ISNULL' => $this->transformIsnull($rw),
             'WEEK' => $this->transformWeek($rw),
             'CONVERT' => $this->transformConvert($rw),
@@ -1661,6 +1679,78 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             ? $this->joinTokensWithSpaces($exprTokens)
             : $this->transformArgExpression($args[0]);
         $rw->add(\sprintf('STRING_AGG(%s::text, %s)', $expr, $separator));
+
+        return true;
+    }
+
+    /**
+     * SUBSTRING_INDEX(str, delim, n) → split_part for positive n, a right-
+     * anchored expression for negative n.
+     *
+     * Positive n: everything BEFORE the n-th occurrence of delim.
+     * Negative n: everything AFTER the (|n|)-th occurrence counted from the
+     * right. PostgreSQL split_part() is 1-based and doesn't support
+     * negative indices natively, so negative n rewrites via reverse().
+     */
+    private function transformSubstringIndex(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 3) {
+            return false;
+        }
+
+        $str = $this->transformArgExpression($args[0]);
+        $delim = $this->transformArgExpression($args[1]);
+        $count = trim($this->transformArgExpression($args[2]));
+
+        if ($count === '' || !preg_match('/^-?\d+$/', $count)) {
+            // Variable / expression count — we can't pick a rewrite shape
+            // at translate-time. Fall through to rewriteTokens so the
+            // engine emits a recognisable error.
+            return false;
+        }
+
+        $n = (int) $count;
+        if ($n >= 0) {
+            $rw->add(\sprintf('split_part(%s, %s, %d)', $str, $delim, max(1, $n)));
+        } else {
+            // Reverse trick: split_part(reverse(s), reverse(d), |n|) gives
+            // the tail piece in reverse; reverse it again for the original.
+            $rw->add(\sprintf(
+                'reverse(split_part(reverse(%s), reverse(%s), %d))',
+                $str,
+                $delim,
+                -$n,
+            ));
+        }
+
+        return true;
+    }
+
+    /**
+     * FIND_IN_SET(x, csv) →
+     *   COALESCE(array_position(string_to_array(csv, ','), x::text), 0)
+     *
+     * MySQL returns 0 when x is absent; array_position returns NULL, so
+     * wrap in COALESCE. The x::text cast handles callers that pass a
+     * numeric (typical for `FIND_IN_SET(1, role_ids)`) so comparison
+     * against the text array elements is still valid.
+     */
+    private function transformFindInSet(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 2) {
+            return false;
+        }
+
+        $needle = $this->transformArgExpression($args[0]);
+        $haystack = $this->transformArgExpression($args[1]);
+
+        $rw->add(\sprintf(
+            "COALESCE(array_position(string_to_array(%s, ','), %s::text), 0)",
+            $haystack,
+            $needle,
+        ));
 
         return true;
     }

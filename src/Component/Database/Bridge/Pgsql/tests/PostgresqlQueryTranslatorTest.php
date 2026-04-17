@@ -1405,6 +1405,44 @@ SQL;
         self::assertStringContainsString('- 1)', $result[0]);
     }
 
+    // ── FIND_IN_SET / SUBSTRING_INDEX ──
+
+    #[Test]
+    public function findInSetRewritesToArrayPosition(): void
+    {
+        $result = $this->translator->translate('SELECT FIND_IN_SET(role, role_list) FROM t');
+
+        self::assertStringContainsString('array_position(string_to_array(role_list', $result[0]);
+        self::assertStringContainsString('COALESCE', $result[0]);
+    }
+
+    #[Test]
+    public function substringIndexPositiveUsesSplitPart(): void
+    {
+        $result = $this->translator->translate("SELECT SUBSTRING_INDEX(path, '/', 2) FROM t");
+
+        self::assertStringContainsString("split_part(path, '/', 2)", $result[0]);
+    }
+
+    #[Test]
+    public function substringIndexNegativeUsesReverseSplitPart(): void
+    {
+        $result = $this->translator->translate("SELECT SUBSTRING_INDEX(path, '/', -1) FROM t");
+
+        self::assertStringContainsString('reverse(split_part(reverse(path)', $result[0]);
+    }
+
+    // ── FULLTEXT explicit rejection ──
+
+    #[Test]
+    public function fulltextMatchAgainstRaisesTranslationException(): void
+    {
+        $this->expectException(\WpPack\Component\Database\Exception\TranslationException::class);
+        $this->expectExceptionMessageMatches('/FULLTEXT/');
+
+        $this->translator->translate("SELECT * FROM posts WHERE MATCH(content) AGAINST('wordpress')");
+    }
+
     // ── STR_TO_DATE ──
 
     #[Test]

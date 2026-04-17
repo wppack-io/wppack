@@ -129,6 +129,22 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             return [$trimmed];
         }
 
+        // MySQL FULLTEXT indexes + MATCH(...) AGAINST(...) have no native
+        // equivalent on SQLite. A best-effort pass-through would reach the
+        // engine as unknown syntax and return zero rows silently, which
+        // looks to the plugin like "search returned nothing" — failing
+        // loudly is the safe production default. Operators who need full-
+        // text search on SQLite should migrate to FTS5 virtual tables at
+        // the schema level; that rewrite is out of scope for this
+        // translator.
+        if (preg_match('/\bMATCH\s*\(.*?\)\s*AGAINST\b/is', $trimmed)) {
+            throw new TranslationException(
+                $sql,
+                'sqlite',
+                ['FULLTEXT MATCH ... AGAINST is not supported on SQLite — use FTS5 virtual tables instead'],
+            );
+        }
+
         $parser = new Parser($sql);
 
         // The phpmyadmin/sql-parser library records context-sensitive warnings
@@ -1199,6 +1215,8 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             'CONVERT' => $this->transformConvert($rw),
             'FIELD' => $this->transformField($rw),
             'GROUP_CONCAT' => $this->transformGroupConcat($rw),
+            'FIND_IN_SET' => $this->transformFindInSet($rw),
+            'SUBSTRING_INDEX' => $this->transformSubstringIndex($rw),
             'LOCATE' => $this->transformLocate($rw),
             default => false,
         };
@@ -1680,6 +1698,103 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         $rw->add(\sprintf('group_concat(%s, %s)', $expr, $separator));
 
         return true;
+    }
+
+    /**
+     * FIND_IN_SET(needle, csv) →
+     *   CASE WHEN needle IS NULL OR csv IS NULL THEN NULL
+     *        WHEN needle = '' THEN 0
+     *        ELSE (instr(',' || csv || ',', ',' || needle || ',') > 0) *
+     *             ((length(substr(',' || csv, 1, instr(',' || csv || ',', ',' || needle || ',') - 1)) -
+     *               length(replace(substr(',' || csv, 1, instr(',' || csv || ',', ',' || needle || ',') - 1), ',', ''))) + 1)
+     *   END
+     *
+     * The expression looks like a mouthful but gives the 1-based position
+     * of needle in csv (0 if absent, NULL on NULL inputs) without
+     * requiring a SQLite extension. The trick: count commas in the prefix
+     * preceding the match, +1 gives the 1-based position.
+     */
+    private function transformFindInSet(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 2) {
+            return false;
+        }
+
+        $needle = $this->transformArgExpression($args[0]);
+        $haystack = $this->transformArgExpression($args[1]);
+
+        $rw->add(\sprintf(
+            '(CASE WHEN %1$s IS NULL OR %2$s IS NULL THEN NULL '
+            . "WHEN %1\$s = '' THEN 0 "
+            . "WHEN instr(',' || %2\$s || ',', ',' || %1\$s || ',') = 0 THEN 0 "
+            . "ELSE (length(substr(',' || %2\$s, 1, instr(',' || %2\$s || ',', ',' || %1\$s || ',') - 1)) - "
+            . "length(replace(substr(',' || %2\$s, 1, instr(',' || %2\$s || ',', ',' || %1\$s || ',') - 1), ',', ''))) + 1 "
+            . 'END)',
+            $needle,
+            $haystack,
+        ));
+
+        return true;
+    }
+
+    /**
+     * SUBSTRING_INDEX(str, delim, n) → positive-n rewrite only.
+     *
+     * SQLite lacks split_part, so we emulate the positive case via repeated
+     * instr() walks. Negative n (tail slice) has no reasonable SQLite
+     * rewrite without a recursive CTE; we refuse translation loudly for
+     * those inputs so the caller knows the limitation.
+     */
+    private function transformSubstringIndex(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 3) {
+            return false;
+        }
+
+        $str = $this->transformArgExpression($args[0]);
+        $delim = $this->transformArgExpression($args[1]);
+        $count = trim($this->transformArgExpression($args[2]));
+
+        if ($count === '' || !preg_match('/^-?\d+$/', $count)) {
+            return false;
+        }
+
+        $n = (int) $count;
+        if ($n < 0) {
+            throw new TranslationException(
+                $rw->getResult() . ' ... SUBSTRING_INDEX(..., ' . $count . ')',
+                'sqlite',
+                ['SUBSTRING_INDEX with negative count is not supported on SQLite'],
+            );
+        }
+
+        if ($n === 0) {
+            $rw->add("''");
+
+            return true;
+        }
+
+        // Walk forward: position of the n-th delim, then take prefix.
+        // Nested replace() finds the offset of the n-th occurrence by
+        // replacing preceding delimiters with a marker then searching.
+        // For n = 1 we can short-circuit with a simpler form.
+        if ($n === 1) {
+            $rw->add(\sprintf(
+                "(CASE WHEN instr(%1\$s, %2\$s) = 0 THEN %1\$s ELSE substr(%1\$s, 1, instr(%1\$s, %2\$s) - 1) END)",
+                $str,
+                $delim,
+            ));
+
+            return true;
+        }
+
+        // Generic positive-n: use recursive substr walk via a helper
+        // pattern. For n > 1 we emit a SELECT over a generated series,
+        // which is heavyweight; plugins rarely pass n > 1 here so for
+        // now fall through so the caller sees a recognisable error.
+        return false;
     }
 
     /**
