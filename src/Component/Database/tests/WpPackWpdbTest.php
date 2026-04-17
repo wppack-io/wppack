@@ -232,6 +232,107 @@ final class WpPackWpdbTest extends TestCase
     }
 
     #[Test]
+    public function prepareWithDoubledPercentAtLiteralStart(): void
+    {
+        // `'%%%s'` → `%%` (literal %) + `%s` (placeholder). Inside the
+        // literal the doubled percent must collapse to one % without
+        // consuming an arg or setting the literal-has-placeholder flag.
+        // The %s then folds the whole literal into one '?' bound to `%foo`.
+        $sql = $this->wpdb->prepare("SELECT * FROM t WHERE x = '%%%s'", 'foo');
+
+        self::assertMatchesRegularExpression(
+            '#^SELECT \* FROM t WHERE x = \?/\*WPP:[a-f0-9]{16}\*/$#',
+            $sql,
+        );
+
+        $this->wpdb->query($sql);
+        self::assertSame(['%foo'], $this->wpdb->last_params);
+    }
+
+    #[Test]
+    public function prepareWithUnknownSpecInsideLiteralPassesThrough(): void
+    {
+        // `%x` is not one of %s/%d/%f/%i. The current contract is to pass
+        // both bytes through literally without consuming an arg. We
+        // explicitly verify that property so a future change that starts
+        // interpreting `%x` doesn't silently shift the argument indices of
+        // later placeholders.
+        $sql = $this->wpdb->prepare("SELECT * FROM t WHERE x = '%x is hex' AND id = %d", 5);
+
+        self::assertMatchesRegularExpression(
+            "#^SELECT \* FROM t WHERE x = '%x is hex' AND id = \?/\*WPP:[a-f0-9]{16}\*/$#",
+            $sql,
+        );
+
+        $this->wpdb->query($sql);
+        self::assertSame([5], $this->wpdb->last_params);
+    }
+
+    #[Test]
+    public function prepareWithLegacyArrayArgsRoutesIntoLiteral(): void
+    {
+        // The legacy wpdb contract accepts args as a single array:
+        // prepare($sql, [$a, $b]) === prepare($sql, $a, $b). We pin that the
+        // array form still flows into the literal-wrap path for placeholders
+        // inside string literals.
+        $sql = $this->wpdb->prepare(
+            "SELECT * FROM t WHERE login = 'admin_%s' AND id = %d",
+            ['bob', 7],
+        );
+
+        self::assertMatchesRegularExpression(
+            '#^SELECT \* FROM t WHERE login = \? AND id = \?/\*WPP:[a-f0-9]{16}\*/$#',
+            $sql,
+        );
+
+        $this->wpdb->query($sql);
+        self::assertSame(['admin_bob', 7], $this->wpdb->last_params);
+    }
+
+    #[Test]
+    public function prepareWithFewerArgsThanPlaceholdersBindsNullForMissing(): void
+    {
+        // Permissive behaviour matching standard wpdb: arguments that are
+        // short of the number of placeholders bind `null` for the missing
+        // positions (cast to '' for %s, 0 for %d). A plugin that accidentally
+        // drops an arg gets a deterministic value rather than a fatal — we
+        // document and pin that behaviour.
+        $sql = $this->wpdb->prepare(
+            'SELECT * FROM t WHERE a = %s AND b = %s AND c = %d',
+            'one',
+        );
+
+        self::assertMatchesRegularExpression(
+            '#^SELECT \* FROM t WHERE a = \? AND b = \? AND c = \?/\*WPP:[a-f0-9]{16}\*/$#',
+            $sql,
+        );
+
+        $this->wpdb->query($sql);
+        self::assertSame(['one', '', 0], $this->wpdb->last_params);
+    }
+
+    #[Test]
+    public function prepareWithMoreArgsThanPlaceholdersIgnoresExtras(): void
+    {
+        // Extra args are silently discarded rather than bound to phantom
+        // positions. Matches wpdb's permissive shape.
+        $sql = $this->wpdb->prepare(
+            'SELECT * FROM t WHERE id = %d',
+            42,
+            'ignored',
+            999,
+        );
+
+        self::assertMatchesRegularExpression(
+            '#^SELECT \* FROM t WHERE id = \?/\*WPP:[a-f0-9]{16}\*/$#',
+            $sql,
+        );
+
+        $this->wpdb->query($sql);
+        self::assertSame([42], $this->wpdb->last_params);
+    }
+
+    #[Test]
     public function prepareRejectsUnterminatedLiteral(): void
     {
         // Missing close quote: prepare() must fail fast so the broken
