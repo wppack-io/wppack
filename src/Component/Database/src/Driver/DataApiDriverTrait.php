@@ -53,9 +53,19 @@ trait DataApiDriverTrait
     private string $dataApiDatabase;
     private ?string $transactionId = null;
 
+    /**
+     * RDS Data API is stateless HTTP — there is no persistent socket to
+     * check. A `true` here therefore reports only "this driver is configured
+     * to talk to Data API"; it does NOT validate credential freshness,
+     * network reachability, or cluster availability. Callers that treat
+     * this as a liveness probe will skip legitimate reconnection / token
+     * refresh work and fail opaquely when the next executeStatement hits
+     * AWS. For a real health check, issue `SELECT 1` and handle any
+     * DriverException that comes back.
+     */
     public function isConnected(): bool
     {
-        return true; // Stateless HTTP
+        return true;
     }
 
     public function inTransaction(): bool

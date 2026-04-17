@@ -48,6 +48,26 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         private readonly ?LoggerInterface $logger = null,
     ) {}
 
+    /**
+     * Drop a single table (or every table's) cached constraint columns.
+     *
+     * The translator caches information_schema lookups per-table for the
+     * life of the process. Long-running workers (WP-CLI jobs, queue
+     * consumers) that schema-mutate outside the translator's ALTER path
+     * can call this to guarantee subsequent INSERT ... ON DUPLICATE KEY
+     * translations see the current schema.
+     */
+    public function invalidateConstraintCache(?string $table = null): void
+    {
+        if ($table === null) {
+            $this->constraintCache = [];
+
+            return;
+        }
+
+        unset($this->constraintCache[$table]);
+    }
+
     /** @var list<string> */
     private const IGNORED_PATTERNS = [
         '/^\s*SET\s+NAMES\s+/i',
@@ -686,6 +706,15 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
     private function translateAlter(AlterStatement $stmt, Parser $parser): array
     {
         $table = $stmt->table->table ?? '';
+
+        // Any ALTER TABLE may add, drop, or rename a UNIQUE / PRIMARY KEY
+        // constraint. If we keep serving cached constraint columns for this
+        // table, a later INSERT ... ON DUPLICATE KEY will target the wrong
+        // ON CONFLICT (...) clause. Invalidate eagerly — cost of one more
+        // information_schema lookup on the next REPLACE/INSERT is trivial.
+        if ($table !== '') {
+            unset($this->constraintCache[$table]);
+        }
 
         if ($stmt->altered !== null) {
             foreach ($stmt->altered as $alter) {
