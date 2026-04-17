@@ -803,7 +803,15 @@ class WpPackWpdb extends \wpdb
             }
         }
 
-        $this->insert_id = $driver->lastInsertId();
+        // Only refresh insert_id for INSERT/REPLACE queries. Other queries
+        // don't produce a sequence value, and on PostgreSQL calling
+        // SELECT lastval() after a non-INSERT raises an 'undefined' error
+        // that silently aborts the outer transaction — the classic cause
+        // of 'current transaction is aborted, commands ignored until end
+        // of transaction block' following a bare BEGIN / DDL.
+        if (self::isRowWriter($sql)) {
+            $this->insert_id = $driver->lastInsertId();
+        }
         $this->last_error = '';
         $this->errno = 0;
 
@@ -1125,6 +1133,20 @@ class WpPackWpdb extends \wpdb
         $trimmed = ltrim($sql);
 
         return (bool) preg_match('/^(SELECT|SHOW|DESCRIBE|EXPLAIN|PRAGMA)\b/i', $trimmed);
+    }
+
+    /**
+     * Detect queries that produce a new auto-increment / sequence value,
+     * i.e. the only ones for which lastInsertId() is meaningful. Gating
+     * the post-query lastInsertId() call on this check avoids PostgreSQL's
+     * SELECT lastval() raising 'undefined' — inside a transaction that
+     * error silently aborts everything the caller ran afterwards.
+     */
+    private static function isRowWriter(string $sql): bool
+    {
+        $trimmed = ltrim($sql);
+
+        return (bool) preg_match('/^(INSERT|REPLACE)\b/i', $trimmed);
     }
 
     private function selectDriver(string $sql): DriverInterface
