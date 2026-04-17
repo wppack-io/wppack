@@ -170,7 +170,7 @@ class PgsqlDriver extends AbstractDriver
         }
 
         if ($pgResult === false) {
-            throw new DriverException((string) pg_last_error($this->connection));
+            $this->throwQueryError();
         }
 
         /** @var list<array<string, mixed>> */
@@ -191,13 +191,71 @@ class PgsqlDriver extends AbstractDriver
         }
 
         if ($pgResult === false) {
-            throw new DriverException((string) pg_last_error($this->connection));
+            $this->throwQueryError();
         }
 
         $affected = pg_affected_rows($pgResult);
         pg_free_result($pgResult);
 
         return $affected;
+    }
+
+    /**
+     * Raise a DriverException carrying the current pg error, dropping the
+     * connection handle first when the failure looks like a permanent
+     * server-side disconnect. PostgreSQL reports gone-away as a variety of
+     * strings — 'server closed the connection unexpectedly' (plain exit),
+     * 'SSL SYSCALL error' (TLS read failure), 'terminating connection due
+     * to administrator command' (pg_terminate_backend or failover) — none
+     * of which map to an errno the way MySQL does, so we pattern-match on
+     * the text. A dead connection left in place would fail every
+     * subsequent query until the wpdb instance is rebuilt; nulling it lets
+     * ensureConnected() re-open transparently on the next call.
+     */
+    private function throwQueryError(): never
+    {
+        $message = (string) pg_last_error($this->connection);
+
+        if (self::isConnectionLostError($message) || !self::isConnectionAlive($this->connection)) {
+            if ($this->ownsConnection) {
+                @pg_close($this->connection);
+            }
+
+            $this->connection = null;
+            $this->inTx = false;
+        }
+
+        throw new DriverException($message);
+    }
+
+    private static function isConnectionLostError(string $message): bool
+    {
+        static $needles = [
+            'server closed the connection',
+            'terminating connection',
+            'SSL SYSCALL error',
+            'could not receive data from server',
+            'connection to server was lost',
+        ];
+
+        foreach ($needles as $needle) {
+            if (stripos($message, $needle) !== false) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static function isConnectionAlive(mixed $connection): bool
+    {
+        if ($connection === null) {
+            return false;
+        }
+
+        $status = @pg_connection_status($connection);
+
+        return $status === \PGSQL_CONNECTION_OK;
     }
 
     protected function doPrepare(string $sql): Statement
@@ -210,7 +268,7 @@ class PgsqlDriver extends AbstractDriver
         $result = @pg_prepare($this->connection, $stmtName, $pgSql);
 
         if ($result === false) {
-            throw new DriverException((string) pg_last_error($this->connection));
+            $this->throwQueryError();
         }
 
         $conn = $this->connection;
