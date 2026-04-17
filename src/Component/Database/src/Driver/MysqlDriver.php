@@ -178,7 +178,7 @@ class MysqlDriver extends AbstractDriver
             $result = $this->connection->query($sql);
 
             if ($result === false) {
-                throw new DriverException($this->connection->error);
+                $this->throwQueryError();
             }
 
             if ($result === true) {
@@ -203,7 +203,7 @@ class MysqlDriver extends AbstractDriver
             $result = $this->connection->query($sql);
 
             if ($result === false) {
-                throw new DriverException($this->connection->error);
+                $this->throwQueryError();
             }
 
             return $this->connection->affected_rows;
@@ -214,6 +214,38 @@ class MysqlDriver extends AbstractDriver
         return $preparedResult->rowCount();
     }
 
+    /**
+     * Raise a DriverException with the current mysqli error, dropping the
+     * stale connection handle when the failure indicates the server-side
+     * socket is gone. Code 2006 is "MySQL server has gone away" (typical on
+     * long-idle WP-CLI workers that blow past wait_timeout); 2013 is "Lost
+     * connection during query" (server forcibly killed us). In both cases
+     * the mysqli handle is dead and every subsequent call will fail — we
+     * null it so ensureConnected() opens a fresh socket on the next query.
+     * We deliberately do not auto-retry the failed statement: a partially
+     * applied write cannot be safely replayed without caller knowledge.
+     */
+    private function throwQueryError(): never
+    {
+        // ensureConnected() has already run and never returns with a null
+        // handle, so PHPStan correctly narrows $this->connection. The
+        // defensive reads below are intentional in case a future caller
+        // invokes this before connecting.
+        $errno = $this->connection->errno;
+        $message = $this->connection->error;
+
+        if ($errno === 2006 || $errno === 2013) {
+            if ($this->ownsConnection) {
+                @$this->connection->close();
+            }
+
+            $this->connection = null;
+            $this->inTx = false;
+        }
+
+        throw new DriverException($message);
+    }
+
     protected function doPrepare(string $sql): Statement
     {
         $this->ensureConnected();
@@ -221,7 +253,7 @@ class MysqlDriver extends AbstractDriver
         $stmt = $this->connection->prepare($sql);
 
         if ($stmt === false) {
-            throw new DriverException($this->connection->error);
+            $this->throwQueryError();
         }
 
         $executeQuery = function (array $params) use ($stmt): Result {
@@ -323,7 +355,7 @@ class MysqlDriver extends AbstractDriver
         $stmt = $this->connection->prepare($sql);
 
         if ($stmt === false) {
-            throw new DriverException($this->connection->error);
+            $this->throwQueryError();
         }
 
         try {
