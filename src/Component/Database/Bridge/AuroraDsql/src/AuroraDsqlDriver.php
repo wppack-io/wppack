@@ -43,7 +43,18 @@ class AuroraDsqlDriver extends PgsqlDriver
     private const OCC_INITIAL_WAIT_MS = 100;
     private const OCC_MAX_WAIT_MS = 5000;
     private const OCC_MULTIPLIER = 2.0;
-    private const TOKEN_REFRESH_MARGIN_SECS = 60;
+    /**
+     * We rotate the IAM token this many seconds before the actual expiry
+     * returned by SigV4 presigning. The margin has to cover:
+     *   - SigV4 server-side clock skew (AWS allows ±5 min, we cap at 60s).
+     *   - async-aws/core credential fetch latency (≤ ~2s from IMDSv2,
+     *     much higher from STS AssumeRole on first call).
+     *   - Worst-case pg_connect() round trip on a saturated VPC.
+     * 60s was tight for high-load production — 120s gives real headroom
+     * without shortening the effective token lifetime much (default
+     * duration is 900s).
+     */
+    private const TOKEN_REFRESH_MARGIN_SECS = 120;
 
     private ?\DateTimeImmutable $tokenExpiresAt = null;
     private ?LoggerInterface $logger;
