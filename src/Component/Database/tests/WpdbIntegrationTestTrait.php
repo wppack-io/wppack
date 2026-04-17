@@ -788,6 +788,80 @@ trait WpdbIntegrationTestTrait
     }
 
     #[Test]
+    public function taxQueryUnionStyleSubqueryReturnsCorrectRows(): void
+    {
+        // Matches the SQL shape WP_Query emits for tax_query = [
+        //   'relation' => 'OR',
+        //   ['taxonomy' => 'category', 'terms' => [10, 20]],
+        //   ['taxonomy' => 'post_tag', 'terms' => [30]],
+        // ]
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        $postIds = [];
+        foreach (['A', 'B', 'C'] as $title) {
+            $wpdb->insert($p . 'posts', [
+                'post_title' => "tax-{$title}",
+                'post_content' => '',
+                'post_status' => 'publish',
+                'post_type' => 'post',
+            ]);
+            $postIds[$title] = (int) $wpdb->insert_id;
+        }
+
+        // A in category 10, B in category 20, C in tag 30
+        $wpdb->insert($p . 'term_relationships', ['object_id' => $postIds['A'], 'term_taxonomy_id' => 10]);
+        $wpdb->insert($p . 'term_relationships', ['object_id' => $postIds['B'], 'term_taxonomy_id' => 20]);
+        $wpdb->insert($p . 'term_relationships', ['object_id' => $postIds['C'], 'term_taxonomy_id' => 30]);
+
+        $sql = "SELECT p.post_title FROM {$p}posts p
+            WHERE p.ID IN (
+                SELECT object_id FROM {$p}term_relationships WHERE term_taxonomy_id IN (10, 20)
+            )
+            OR p.ID IN (
+                SELECT object_id FROM {$p}term_relationships WHERE term_taxonomy_id IN (30)
+            )
+            ORDER BY p.post_title";
+
+        $rows = $wpdb->get_results($sql);
+        $got = array_map(static fn($r) => $r->post_title, $rows);
+
+        self::assertSame(['tax-A', 'tax-B', 'tax-C'], $got);
+    }
+
+    #[Test]
+    public function dateQueryRangeFiltersCorrectRows(): void
+    {
+        // WP_Query date_query emits BETWEEN with CAST on the DATE string.
+        // Sanity check across engines that the comparison still works.
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        foreach (['2024-01-15', '2024-03-20', '2024-07-01'] as $d) {
+            $wpdb->insert($p . 'posts', [
+                'post_title' => "d-{$d}",
+                'post_content' => '',
+                'post_status' => 'publish',
+                'post_type' => 'post',
+                'post_date' => "{$d} 12:00:00",
+            ]);
+        }
+
+        $sql = "SELECT post_title FROM {$p}posts
+            WHERE post_date >= '2024-02-01 00:00:00'
+              AND post_date <  '2024-06-01 00:00:00'
+              AND post_title LIKE 'd-%'
+            ORDER BY post_date";
+
+        $titles = array_map(
+            static fn($r) => $r->post_title,
+            $wpdb->get_results($sql),
+        );
+
+        self::assertSame(['d-2024-03-20'], $titles);
+    }
+
+    #[Test]
     public function metaWithNullValue(): void
     {
         $wpdb = $this->getTestWpdb();
