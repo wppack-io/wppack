@@ -224,6 +224,25 @@ SQLite Database Integration プラグインおよび PG4WP (PostgreSQL for WordP
 | `IS_FREE_LOCK` | ロック | UDF（`_wppack_locks` テーブル） | advisory lock 取得試行+即解放 |
 | `LOCALTIME` / `LOCALTIMESTAMP` | 日時 | `datetime('now')` | `NOW()` |
 | `REGEXP` | 演算子 | そのまま（UDF） | `~*`（REGEXP BINARY → `~`） |
+| `STR_TO_DATE(s, fmt)` | 日時 | `date(s)` / `datetime(s)` (ISO) | `to_date(s, fmt)` / `to_timestamp(s, fmt)` |
+| `DAYNAME(d)` | 日時 | `CASE strftime('%w', d) ... END` | `to_char((d)::timestamp, 'FMDay')` |
+| `MONTHNAME(d)` | 日時 | `CASE strftime('%m', d) ... END` | `to_char((d)::timestamp, 'FMMonth')` |
+| `QUARTER(d)` | 日時 | `(strftime('%m', d) - 1) / 3 + 1` | `EXTRACT(QUARTER FROM d)` |
+| `LAST_DAY(d)` | 日時 | `date(d, 'start of month', '+1 month', '-1 day')` | `(date_trunc('month', d::date) + interval '1 month - 1 day')::date` |
+| `MAKEDATE(y, doy)` | 日時 | `date(y \|\| '-01-01', (doy - 1) \|\| ' days')` | `(make_date(y, 1, 1) + (doy - 1) * interval '1 day')::date` |
+| `PERIOD_ADD(p, n)` | 日時 | 整数月演算 | 整数月演算 |
+| `PERIOD_DIFF(p1, p2)` | 日時 | 整数月演算 | 整数月演算 |
+| `TIME_TO_SEC(t)` | 日時 | substring 分解 | `EXTRACT(EPOCH FROM t::interval)::INTEGER` |
+| `SEC_TO_TIME(n)` | 日時 | `printf('%02d:%02d:%02d', ...)` | `to_char(n * interval '1 second', 'HH24:MI:SS')` |
+| `SUBSTRING_INDEX(s, d, n)` | 文字列 | n=1 のみ対応 | `split_part(s, d, n)` / reverse 形式 |
+| `FIND_IN_SET(x, csv)` | 文字列 | `instr` ベース CASE | `COALESCE(array_position(string_to_array(csv, ','), x::text), 0)` |
+| `SPACE(n)` | 文字列 | `replace(hex(zeroblob(n)), '00', ' ')` | `repeat(' ', n)` |
+| `LPAD(s, n, pad)` | 文字列 | zeroblob ベース emulation | そのまま (native `lpad`) |
+| `RPAD(s, n, pad)` | 文字列 | zeroblob ベース emulation | そのまま (native `rpad`) |
+| `CONVERT(x USING charset)` | 文字列 | inner expr のみ (no-op) | `(expr)::text` |
+| `JSON_EXTRACT(col, '$.a.b')` | JSON | pass-through (SQLite json1) | `(col::jsonb #> '{a,b}')` |
+| `FULLTEXT MATCH AGAINST` | 全文 | **UnsupportedFeatureException** | **UnsupportedFeatureException** |
+| `ST_*` / `GeomFromText` 等 | 空間 | **UnsupportedFeatureException** | pass-through (PostGIS が前提) |
 
 ### 文レベル変換
 
@@ -245,7 +264,7 @@ SQLite Database Integration プラグインおよび PG4WP (PostgreSQL for WordP
 | `AS 'alias'` (PgSQL) | そのまま | `AS "alias"` |
 | `COUNT(*) ... ORDER BY` (PgSQL) | そのまま | ORDER BY 除去（パフォーマンス） |
 | `INSERT ... SET col=val` | `INSERT ... VALUES(...)` | 同左 |
-| `DELETE JOIN` | rowid サブクエリ | `USING` 構文 |
+| `DELETE JOIN` | rowid サブクエリ (JOIN keyword + USING 句保全) | `USING` 構文 (OR 保全、`USING(col)` を equality 展開) |
 | `CONVERT(val, type)` | `CAST(val AS type)` | 同左 |
 | `COLLATE clause` | 除去 | 除去 |
 | `@@SESSION.sql_mode` 等 | 変数名に応じたデフォルト値 | 同左 |
