@@ -598,10 +598,9 @@ class WpPackWpdb extends \wpdb
         try {
             $translated = $this->translator->translate($sql);
         } catch (\Throwable $e) {
-            $this->logger?->error('Query translation failed', [
-                'sql' => $sql,
+            $this->logger?->error('Query translation failed', $this->buildLogContext($sql, $params, [
                 'error' => $e->getMessage(),
-            ]);
+            ]));
 
             // Prefix distinguishes translator failures from driver failures in last_error
             $this->last_error = '[Translation] ' . $e->getMessage();
@@ -646,11 +645,9 @@ class WpPackWpdb extends \wpdb
                     $this->rows_affected = $affected;
                 }
             } catch (\Throwable $e) {
-                $this->logger?->error('Query failed', [
-                    'sql' => $translatedSql,
-                    'params' => $params,
+                $this->logger?->error('Query failed', $this->buildLogContext($translatedSql, $params, [
                     'error' => $e->getMessage(),
-                ]);
+                ]));
 
                 $this->last_error = $e->getMessage();
                 $this->last_result = [];
@@ -665,12 +662,10 @@ class WpPackWpdb extends \wpdb
 
         $elapsed = microtime(true) - $start;
 
-        $this->logger?->debug('Query executed', [
-            'sql' => $sql,
-            'params' => $params,
+        $this->logger?->debug('Query executed', $this->buildLogContext($sql, $params, [
             'time_ms' => round($elapsed * 1000, 2),
             'driver' => ($driver === $this->reader) ? 'reader' : 'writer',
-        ]);
+        ]));
 
         if (\defined('SAVEQUERIES') && SAVEQUERIES) {
             // Symfony/Doctrine-style logging: keep the parameterized SQL in
@@ -690,6 +685,72 @@ class WpPackWpdb extends \wpdb
         }
 
         return $isSelect ? \count($this->last_result) : $this->rows_affected;
+    }
+
+    /**
+     * Compose a PSR logger context that never embeds parameter values by
+     * default. Bound values are replaced with a type-and-length summary
+     * (e.g. `#0 => 'string(7)'`), so password hashes, session tokens, PII
+     * etc. don't leak through APM / Elastic ingest.
+     *
+     * Setting the `WPPACK_DB_LOG_VALUES=1` environment variable opts in to
+     * including the raw values (and an interpolated SQL string) for local
+     * debugging only — do not enable this in production.
+     *
+     * @param list<mixed>          $params
+     * @param array<string, mixed> $extra
+     *
+     * @return array<string, mixed>
+     */
+    private function buildLogContext(string $sql, array $params, array $extra = []): array
+    {
+        $context = [
+            'sql' => $sql,
+            'params' => $this->paramsSummary($params),
+        ];
+
+        if ($this->shouldLogRawValues()) {
+            $context['raw_params'] = $params;
+            $context['interpolated_sql'] = $this->interpolateForDisplay($sql, $params);
+        }
+
+        return $context + $extra;
+    }
+
+    /**
+     * Reduce a params list to a type-and-length summary that is safe to send
+     * to external logs. The summary preserves positional keys (`#0`, `#1`, …)
+     * so operators can correlate failures with prepared-statement slots.
+     *
+     * @param list<mixed>             $params
+     *
+     * @return array<string, string>
+     */
+    private function paramsSummary(array $params): array
+    {
+        $summary = [];
+
+        foreach ($params as $index => $value) {
+            $summary['#' . $index] = match (true) {
+                $value === null => 'null',
+                \is_bool($value) => 'bool',
+                \is_int($value) => 'int',
+                \is_float($value) => 'float',
+                \is_string($value) => 'string(' . \strlen($value) . ')',
+                \is_array($value) => 'array(' . \count($value) . ')',
+                \is_object($value) => 'object:' . $value::class,
+                default => \get_debug_type($value),
+            };
+        }
+
+        return $summary;
+    }
+
+    private function shouldLogRawValues(): bool
+    {
+        $flag = $_SERVER['WPPACK_DB_LOG_VALUES'] ?? $_ENV['WPPACK_DB_LOG_VALUES'] ?? getenv('WPPACK_DB_LOG_VALUES');
+
+        return $flag === '1' || $flag === 'true';
     }
 
     /**

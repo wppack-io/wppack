@@ -680,4 +680,42 @@ final class WpPackWpdbTest extends TestCase
         $wpdb->setLogger($logger);
         $wpdb->query('SELECT * FROM t');
     }
+
+    #[Test]
+    public function loggerDoesNotLeakBoundValues(): void
+    {
+        // PII protection: the PSR logger context must never embed raw param
+        // values by default. Only a type/length summary is safe to ship to
+        // external APM / log aggregators.
+        $capturedContext = null;
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())->method('error')
+            ->willReturnCallback(function (string $message, array $context) use (&$capturedContext): void {
+                $capturedContext = $context;
+            });
+
+        $driver = new SqliteDriver(':memory:');
+        $driver->connect();
+
+        $wpdb = new WpPackWpdb(
+            writer: $driver,
+            translator: new NullQueryTranslator(),
+            dbname: 'test',
+            logger: $logger,
+        );
+
+        // Failing query carrying a "password-like" value. We bind via prepare()
+        // so it flows through the normal param pipeline.
+        $sql = $wpdb->prepare('INSERT INTO missing_table (pw) VALUES (%s)', 'super-secret-password');
+        $wpdb->query($sql);
+
+        self::assertIsArray($capturedContext);
+        self::assertArrayHasKey('params', $capturedContext);
+        self::assertSame(['#0' => 'string(21)'], $capturedContext['params']);
+        self::assertArrayNotHasKey('raw_params', $capturedContext);
+        self::assertArrayNotHasKey('interpolated_sql', $capturedContext);
+
+        $serialized = var_export($capturedContext, true);
+        self::assertStringNotContainsString('super-secret-password', $serialized);
+    }
 }
