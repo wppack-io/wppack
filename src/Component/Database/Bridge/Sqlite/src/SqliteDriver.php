@@ -81,7 +81,16 @@ final class SqliteDriver extends AbstractDriver
     {
         $this->ensureConnected();
 
-        $quoted = $this->pdo->quote($value);
+        // PDO::quote historically returned false for unsupported input (most
+        // notably embedded NUL bytes on some SQLite builds). PHP 8.5 changed
+        // the contract so the same cases raise PDOException instead. Treat
+        // both the same way — wrap as DriverException — so callers see a
+        // consistent exception type regardless of the runtime PHP version.
+        try {
+            $quoted = $this->pdo->quote($value);
+        } catch (\PDOException $e) {
+            throw new DriverException($e->getMessage(), 0, $e);
+        }
 
         if ($quoted === false) {
             throw new DriverException('PDO::quote() is not supported by the current SQLite PDO driver');

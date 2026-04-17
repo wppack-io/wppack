@@ -174,11 +174,19 @@ final class SqliteDriverTest extends TestCase
     #[Test]
     public function quoteStringLiteralHandlesNullByte(): void
     {
-        // PDO::quote preserves null bytes inside the quoted literal.
-        $quoted = $this->driver->quoteStringLiteral("a\x00b");
+        // PHP 8.5 changed SQLite PDO::quote semantics: embedded NUL bytes
+        // now raise PDOException instead of returning false. SqliteDriver
+        // normalises both outcomes into DriverException so callers get a
+        // consistent type. Accept either "string with quotes" (older PHP)
+        // or DriverException (PHP 8.5+) as valid behaviour.
+        try {
+            $quoted = $this->driver->quoteStringLiteral("a\x00b");
 
-        self::assertStringStartsWith("'", $quoted);
-        self::assertStringEndsWith("'", $quoted);
+            self::assertStringStartsWith("'", $quoted);
+            self::assertStringEndsWith("'", $quoted);
+        } catch (\WpPack\Component\Database\Exception\DriverException $e) {
+            self::assertStringContainsString('null byte', strtolower($e->getMessage()));
+        }
     }
 
     #[Test]
