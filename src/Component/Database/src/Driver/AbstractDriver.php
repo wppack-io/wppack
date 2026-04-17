@@ -59,15 +59,13 @@ abstract class AbstractDriver implements DriverInterface
     abstract public function getNativeConnection(): mixed;
 
     /**
-     * Default string-literal escape for drivers that do not have a live
-     * native connection (e.g. HTTP-based Aurora Data API drivers).
-     * Subclasses with a real connection override to delegate to the
-     * engine's native escape routine.
+     * Every driver must supply its own string-literal quoting. The previous
+     * addslashes() fallback silently produced MySQL-shaped output on other
+     * engines, which is a footgun for new drivers that forget to override.
+     * Making this abstract surfaces the miss at class-load time instead of
+     * at data-corruption time.
      */
-    public function quoteStringLiteral(string $value): string
-    {
-        return "'" . addslashes($value) . "'";
-    }
+    abstract public function quoteStringLiteral(string $value): string;
 
     /**
      * Default implementation escapes a value for splicing into a single-quoted

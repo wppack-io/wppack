@@ -118,6 +118,12 @@ class WpPackWpdb extends \wpdb
      *   literal is semantic nonsense but still consumes an arg (the quoted-
      *   identifier form is folded into the composite string) so later
      *   placeholders bind to the right values.
+     * - `null` bound via `%s` is coerced to the empty string `''`, matching
+     *   standard wpdb behaviour. To express a real SQL NULL (e.g. `WHERE
+     *   col IS NULL`), use the `WpPackWpdb::insert()/update()/delete()`
+     *   API — those paths treat PHP null specially and emit `IS NULL`
+     *   clauses. Plugin code composing raw SQL through prepare() that needs
+     *   NULL semantics must embed the literal `NULL` keyword itself.
      *
      * Accepts args passed as a single array for WordPress legacy compatibility
      * (`prepare($sql, [$a, $b])` === `prepare($sql, $a, $b)`).
