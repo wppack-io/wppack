@@ -17,13 +17,14 @@ use PHPUnit\Framework\TestCase;
 use WpPack\Component\Database\Bridge\Sqlite\SqliteDriver;
 use WpPack\Component\Database\Tests\WpdbIntegrationTestTrait;
 use WpPack\Component\Database\WpPackWpdb;
-use WpPack\Component\Dsn\Dsn;
 
 /**
  * WpPackWpdb integration tests with SQLite driver and SqliteQueryTranslator.
  *
  * Activates only when DATABASE_DSN selects the SQLite engine. The DSN path
- * determines the SQLite database file (':memory:' is supported).
+ * is ignored — every test runs against a fresh ':memory:' database because
+ * `createWordPressTables()` uses `CREATE TABLE IF NOT EXISTS` (idempotent)
+ * and shared file-backed DBs let data leak across tests.
  */
 final class SqliteWpdbIntegrationTest extends TestCase
 {
@@ -42,17 +43,11 @@ final class SqliteWpdbIntegrationTest extends TestCase
             self::markTestSkipped('Requires DATABASE_DSN=sqlite:... (got: ' . ($dsn === '' ? '(unset)' : $dsn) . ')');
         }
 
-        $parsed = Dsn::fromString($dsn);
-        $path = $parsed->getPath() ?? '';
-        if ($path === '' || $path === ':memory:') {
-            $path = ':memory:';
-        }
-
         $this->originalWpdb = $GLOBALS['wpdb'] ?? null;
         $this->originalTablePrefix = $GLOBALS['table_prefix'] ?? null;
         $GLOBALS['table_prefix'] = 'wpt_';
 
-        $this->driver = new SqliteDriver($path);
+        $this->driver = new SqliteDriver(':memory:');
         $this->driver->connect();
 
         $this->testWpdb = new WpPackWpdb(
