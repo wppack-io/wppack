@@ -1359,6 +1359,9 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             'SPACE' => $this->transformSpace($rw),
             'TIME_TO_SEC' => $this->transformTimeToSec($rw),
             'SEC_TO_TIME' => $this->transformSecToTime($rw),
+            'DAYNAME' => $this->transformDayName($rw),
+            'MONTHNAME' => $this->transformMonthName($rw),
+            'QUARTER' => $this->transformDateExtract($rw, 'QUARTER'),
             'SUBSTRING_INDEX' => $this->transformSubstringIndex($rw),
             'FIND_IN_SET' => $this->transformFindInSet($rw),
             'JSON_EXTRACT' => $this->transformJsonExtract($rw),
@@ -1764,6 +1767,42 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
 
         $expr = $this->transformArgExpression($args[0]);
         $rw->add(\sprintf('EXTRACT(EPOCH FROM (%s)::interval)::INTEGER', $expr));
+
+        return true;
+    }
+
+    /**
+     * DAYNAME(d) → to_char(d::timestamp, 'FMDay')
+     *
+     * MySQL returns the English locale name of the weekday.
+     * `FM` prefix trims trailing spaces so output matches MySQL's
+     * un-padded format (PG's default Day is space-padded to 9 chars).
+     */
+    private function transformDayName(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 1) {
+            return false;
+        }
+
+        $expr = $this->transformArgExpression($args[0]);
+        $rw->add(\sprintf("to_char((%s)::timestamp, 'FMDay')", $expr));
+
+        return true;
+    }
+
+    /**
+     * MONTHNAME(d) → to_char(d::timestamp, 'FMMonth')
+     */
+    private function transformMonthName(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 1) {
+            return false;
+        }
+
+        $expr = $this->transformArgExpression($args[0]);
+        $rw->add(\sprintf("to_char((%s)::timestamp, 'FMMonth')", $expr));
 
         return true;
     }

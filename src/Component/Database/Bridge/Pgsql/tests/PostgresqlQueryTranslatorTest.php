@@ -1498,6 +1498,30 @@ SQL;
     // ── Extra MySQL function mappings ──
 
     #[Test]
+    public function dayNameMapsToToCharFMDay(): void
+    {
+        $result = $this->translator->translate('SELECT DAYNAME(d) FROM t');
+
+        self::assertStringContainsString("to_char((d)::timestamp, 'FMDay')", $result[0]);
+    }
+
+    #[Test]
+    public function monthNameMapsToToCharFMMonth(): void
+    {
+        $result = $this->translator->translate('SELECT MONTHNAME(d) FROM t');
+
+        self::assertStringContainsString("to_char((d)::timestamp, 'FMMonth')", $result[0]);
+    }
+
+    #[Test]
+    public function quarterMapsToExtractQuarter(): void
+    {
+        $result = $this->translator->translate('SELECT QUARTER(d) FROM t');
+
+        self::assertStringContainsString('EXTRACT(QUARTER FROM d', $result[0]);
+    }
+
+    #[Test]
     public function spaceFunctionMapsToRepeat(): void
     {
         $result = $this->translator->translate('SELECT SPACE(5) FROM t');

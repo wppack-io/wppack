@@ -1994,6 +1994,33 @@ SQL);
     // ── Extra MySQL function mappings ──
 
     #[Test]
+    public function dayNameReturnsCaseMap(): void
+    {
+        $result = $this->translator->translate('SELECT DAYNAME(d) FROM t');
+
+        self::assertStringContainsString("strftime('%w', d)", $result[0]);
+        self::assertStringContainsString("'Sunday'", $result[0]);
+        self::assertStringContainsString("'Saturday'", $result[0]);
+    }
+
+    #[Test]
+    public function monthNameReturnsCaseMap(): void
+    {
+        $result = $this->translator->translate('SELECT MONTHNAME(d) FROM t');
+
+        self::assertStringContainsString("'January'", $result[0]);
+        self::assertStringContainsString("'December'", $result[0]);
+    }
+
+    #[Test]
+    public function quarterUsesStrftimeMonthMath(): void
+    {
+        $result = $this->translator->translate('SELECT QUARTER(d) FROM t');
+
+        self::assertStringContainsString("(CAST(strftime('%m', d) AS INTEGER) - 1) / 3 + 1", $result[0]);
+    }
+
+    #[Test]
     public function spaceFunctionUsesZeroblobReplaceTrick(): void
     {
         $result = $this->translator->translate('SELECT SPACE(5) FROM t');
