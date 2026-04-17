@@ -1405,6 +1405,32 @@ SQL;
         self::assertStringContainsString('- 1)', $result[0]);
     }
 
+    // ── JSON_EXTRACT ──
+
+    #[Test]
+    public function jsonExtractSimpleKeyRewritesToJsonbPath(): void
+    {
+        $result = $this->translator->translate("SELECT JSON_EXTRACT(meta, '\$.name') FROM t");
+
+        self::assertStringContainsString("meta::jsonb #> '{name}'", $result[0]);
+    }
+
+    #[Test]
+    public function jsonExtractNestedPathJoinsSegments(): void
+    {
+        $result = $this->translator->translate("SELECT JSON_EXTRACT(meta, '\$.a.b.c') FROM t");
+
+        self::assertStringContainsString("{a,b,c}", $result[0]);
+    }
+
+    #[Test]
+    public function jsonExtractArrayIndexIsPreserved(): void
+    {
+        $result = $this->translator->translate("SELECT JSON_EXTRACT(meta, '\$.items[0]') FROM t");
+
+        self::assertStringContainsString('{items,0}', $result[0]);
+    }
+
     // ── FIND_IN_SET / SUBSTRING_INDEX ──
 
     #[Test]

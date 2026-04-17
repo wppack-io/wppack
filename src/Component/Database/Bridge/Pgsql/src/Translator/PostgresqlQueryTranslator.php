@@ -1356,6 +1356,7 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             'GROUP_CONCAT' => $this->transformGroupConcat($rw),
             'SUBSTRING_INDEX' => $this->transformSubstringIndex($rw),
             'FIND_IN_SET' => $this->transformFindInSet($rw),
+            'JSON_EXTRACT' => $this->transformJsonExtract($rw),
             'ISNULL' => $this->transformIsnull($rw),
             'WEEK' => $this->transformWeek($rw),
             'CONVERT' => $this->transformConvert($rw),
@@ -1723,6 +1724,59 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
                 -$n,
             ));
         }
+
+        return true;
+    }
+
+    /**
+     * JSON_EXTRACT(col, '$.a.b[0].c') → col::jsonb #> '{a,b,0,c}'
+     *
+     * Only simple JSONPath expressions (dotted keys + array indices) are
+     * supported. Wildcards (`$[*]`, `$..foo`), filters (`$[?...]`) and
+     * expressions have no safe pg rewrite without parsing the path
+     * language; those raise TranslationException so the caller picks a
+     * dedicated integration.
+     */
+    private function transformJsonExtract(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 2) {
+            return false;
+        }
+
+        $col = $this->transformArgExpression($args[0]);
+        $pathToken = $this->findStringToken($args[1]);
+        if ($pathToken === null) {
+            return false;
+        }
+
+        $path = (string) $pathToken->value;
+
+        // Strip leading `$` / `$.`
+        if (!str_starts_with($path, '$')) {
+            return false;
+        }
+        $tail = substr($path, 1);
+        $tail = ltrim($tail, '.');
+
+        if (str_contains($tail, '*') || str_contains($tail, '?') || str_contains($tail, '..')) {
+            return false;
+        }
+
+        // Split `a.b[0].c` into ['a', 'b', '0', 'c']
+        $segments = [];
+        foreach (preg_split('/[.\[\]]+/', $tail, -1, \PREG_SPLIT_NO_EMPTY) ?: [] as $seg) {
+            $segments[] = $seg;
+        }
+
+        if ($segments === []) {
+            $rw->add(\sprintf('%s::jsonb', $col));
+
+            return true;
+        }
+
+        $quoted = array_map(static fn(string $s): string => str_replace(['\\', '"'], ['\\\\', '\\"'], $s), $segments);
+        $rw->add(\sprintf("(%s::jsonb #> '{%s}')", $col, implode(',', $quoted)));
 
         return true;
     }
