@@ -1991,6 +1991,88 @@ SQL);
         self::assertStringContainsString('datetime(col)', $result[0]);
     }
 
+    // ── WP_Query meta_query / tax_query shapes ──
+
+    #[Test]
+    public function metaQueryNestedOrAndPreservesBooleanStructure(): void
+    {
+        // Shape that WP_Query emits for a meta_query relation=AND of two
+        // OR groups. The translator must preserve every AND / OR / paren
+        // boundary or the filter semantics silently change.
+        $sql = <<<'SQL'
+SELECT wptests_posts.*
+FROM wptests_posts
+INNER JOIN wptests_postmeta ON wptests_posts.ID = wptests_postmeta.post_id
+INNER JOIN wptests_postmeta AS mt1 ON wptests_posts.ID = mt1.post_id
+WHERE wptests_posts.post_status = 'publish'
+  AND (
+    (wptests_postmeta.meta_key = 'color' AND wptests_postmeta.meta_value IN ('red', 'blue'))
+    OR
+    (mt1.meta_key = 'size' AND mt1.meta_value IN ('L', 'XL'))
+  )
+GROUP BY wptests_posts.ID
+ORDER BY wptests_posts.post_date DESC
+LIMIT 10
+SQL;
+
+        $result = $this->translator->translate($sql);
+        self::assertNotEmpty($result);
+
+        $out = $result[0];
+
+        // Both OR branches must survive.
+        self::assertStringContainsString('wptests_postmeta.meta_key', $out);
+        self::assertStringContainsString('mt1.meta_key', $out);
+
+        // The outer AND joining the two OR groups must survive.
+        self::assertMatchesRegularExpression('/\bAND\b/i', $out);
+        self::assertMatchesRegularExpression('/\bOR\b/i', $out);
+    }
+
+    #[Test]
+    public function taxQueryWithRelationOrPreservesInClauses(): void
+    {
+        $sql = <<<'SQL'
+SELECT wptests_posts.*
+FROM wptests_posts
+WHERE wptests_posts.ID IN (
+  SELECT object_id FROM wptests_term_relationships WHERE term_taxonomy_id IN (1, 2, 3)
+)
+OR wptests_posts.ID IN (
+  SELECT object_id FROM wptests_term_relationships WHERE term_taxonomy_id IN (4, 5)
+)
+SQL;
+
+        $result = $this->translator->translate($sql);
+        self::assertStringContainsString('term_taxonomy_id IN (1, 2, 3)', $result[0]);
+        self::assertStringContainsString('term_taxonomy_id IN (4, 5)', $result[0]);
+    }
+
+    // ── CTE / UNION preservation ──
+
+    #[Test]
+    public function withCteIsPreservedVerbatim(): void
+    {
+        $sql = 'WITH latest AS (SELECT id FROM wptests_posts ORDER BY post_date DESC LIMIT 5) SELECT * FROM wptests_posts WHERE id IN (SELECT id FROM latest)';
+        $result = $this->translator->translate($sql);
+
+        self::assertNotEmpty($result);
+        self::assertStringContainsString('WITH latest', $result[0]);
+        // Inner LIMIT must not be stripped by translator quirks.
+        self::assertStringContainsString('LIMIT 5', $result[0]);
+    }
+
+    #[Test]
+    public function unionPreservesBothBranches(): void
+    {
+        $sql = "SELECT id FROM wptests_posts WHERE post_status = 'publish' UNION SELECT id FROM wptests_posts WHERE post_status = 'draft'";
+        $result = $this->translator->translate($sql);
+
+        self::assertStringContainsString('UNION', $result[0]);
+        self::assertStringContainsString("post_status = 'publish'", $result[0]);
+        self::assertStringContainsString("post_status = 'draft'", $result[0]);
+    }
+
     // ── DELETE JOIN ──
 
     #[Test]

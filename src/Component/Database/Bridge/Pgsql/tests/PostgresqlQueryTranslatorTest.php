@@ -1495,6 +1495,62 @@ SQL;
         self::assertStringContainsString("to_date(col, 'DD/MM/YYYY')", $result[0]);
     }
 
+    // ── WP_Query meta_query / tax_query shapes ──
+
+    #[Test]
+    public function metaQueryNestedOrAndPreservesBooleanStructure(): void
+    {
+        $sql = <<<'SQL'
+SELECT wptests_posts.*
+FROM wptests_posts
+INNER JOIN wptests_postmeta ON wptests_posts.ID = wptests_postmeta.post_id
+INNER JOIN wptests_postmeta AS mt1 ON wptests_posts.ID = mt1.post_id
+WHERE wptests_posts.post_status = 'publish'
+  AND (
+    (wptests_postmeta.meta_key = 'color' AND wptests_postmeta.meta_value IN ('red', 'blue'))
+    OR
+    (mt1.meta_key = 'size' AND mt1.meta_value IN ('L', 'XL'))
+  )
+GROUP BY wptests_posts.ID
+ORDER BY wptests_posts.post_date DESC
+LIMIT 10
+SQL;
+
+        $result = $this->translator->translate($sql);
+        self::assertNotEmpty($result);
+
+        $out = $result[0];
+
+        self::assertStringContainsString('wptests_postmeta.meta_key', $out);
+        self::assertStringContainsString('mt1.meta_key', $out);
+        self::assertMatchesRegularExpression('/\bAND\b/i', $out);
+        self::assertMatchesRegularExpression('/\bOR\b/i', $out);
+    }
+
+    // ── CTE / UNION preservation ──
+
+    #[Test]
+    public function withCteIsPreservedVerbatim(): void
+    {
+        $sql = 'WITH latest AS (SELECT id FROM wptests_posts ORDER BY post_date DESC LIMIT 5) SELECT * FROM wptests_posts WHERE id IN (SELECT id FROM latest)';
+        $result = $this->translator->translate($sql);
+
+        self::assertNotEmpty($result);
+        self::assertStringContainsString('WITH latest', $result[0]);
+        self::assertStringContainsString('LIMIT 5', $result[0]);
+    }
+
+    #[Test]
+    public function unionPreservesBothBranches(): void
+    {
+        $sql = "SELECT id FROM wptests_posts WHERE post_status = 'publish' UNION SELECT id FROM wptests_posts WHERE post_status = 'draft'";
+        $result = $this->translator->translate($sql);
+
+        self::assertStringContainsString('UNION', $result[0]);
+        self::assertStringContainsString("post_status = 'publish'", $result[0]);
+        self::assertStringContainsString("post_status = 'draft'", $result[0]);
+    }
+
     // ── DELETE JOIN ──
 
     #[Test]

@@ -39,6 +39,15 @@ class MysqlDriver extends AbstractDriver
         protected readonly ?string $socket = null,
         protected readonly string $charset = 'utf8mb4',
         protected readonly ?LoggerInterface $logger = null,
+        /**
+         * Persistent connection opt-in. Prefixing the host with `p:` is
+         * mysqli's native idiom; we accept it both as a flag here and as
+         * a literal `p:` in $host so either style works. Default false
+         * to match standard wpdb behaviour (one fresh connection per
+         * request); opt-in is intended for WP-CLI workers and queue
+         * consumers where the TCP handshake cost dominates.
+         */
+        protected readonly bool $persistent = false,
     ) {
         $this->connection = null;
         $this->ownsConnection = true;
@@ -145,8 +154,17 @@ class MysqlDriver extends AbstractDriver
             return;
         }
 
+        // mysqli's native persistent-connection syntax is the `p:` host
+        // prefix. If the caller set persistent=true without also
+        // prefixing, do it for them; if they already set it, leave
+        // alone. Non-persistent path is unchanged.
+        $host = $this->host;
+        if ($this->persistent && !str_starts_with($host, 'p:')) {
+            $host = 'p:' . $host;
+        }
+
         $connection = new \mysqli(
-            $this->host,
+            $host,
             $this->username,
             $this->password,
             $this->database,
