@@ -596,32 +596,67 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         $aliasClause = $alias !== '' ? ' ' . $alias : '';
 
         $usingParts = [];
-        $onConditions = [];
+        $onGroups = [];
+        $fromAlias = $alias !== '' ? $alias : $table;
 
         foreach ($stmt->join as $join) {
             $joinTable = $join->expr->table ?? $join->expr->expr ?? '';
             $joinAlias = $join->expr->alias ?? '';
             $usingParts[] = $this->quoteId($joinTable) . ($joinAlias !== '' ? ' ' . $joinAlias : '');
+
             if ($join->on !== null) {
+                // Include operator conditions (AND / OR / XOR) so user-written
+                // boolean logic survives translation. The old code dropped
+                // $cond->isOperator entries and re-joined with ` AND `, which
+                // silently rewrote `ON (a.x = b.x OR a.y = b.y)` into
+                // `a.x = b.x AND a.y = b.y` — a correctness bug.
+                $parts = [];
                 foreach ($join->on as $cond) {
-                    if (!$cond->isOperator) {
-                        $onConditions[] = $cond->expr;
-                    }
+                    $parts[] = $cond->expr;
+                }
+                if ($parts !== []) {
+                    $onGroups[] = implode(' ', $parts);
+                }
+            } elseif ($join->using !== null) {
+                // MySQL's `JOIN t USING (c1, c2)` is equivalent to
+                // `JOIN t ON a.c1 = b.c1 AND a.c2 = b.c2`. PostgreSQL's
+                // DELETE ... USING <tables> has no per-join USING (cols)
+                // clause, so expand it into explicit equality predicates
+                // that land in the combined WHERE.
+                $rightRef = $joinAlias !== '' ? $joinAlias : $joinTable;
+                $equalities = [];
+                foreach ($join->using->values as $col) {
+                    $qc = $this->quoteId((string) $col);
+                    $equalities[] = \sprintf('%s.%s = %s.%s', $fromAlias, $qc, $rightRef, $qc);
+                }
+                if ($equalities !== []) {
+                    $onGroups[] = implode(' AND ', $equalities);
                 }
             }
         }
 
-        $whereParts = [];
+        $whereGroup = null;
         if ($stmt->where !== null) {
+            $parts = [];
             foreach ($stmt->where as $cond) {
-                if (!$cond->isOperator) {
-                    $whereParts[] = $cond->expr;
-                }
+                $parts[] = $cond->expr;
+            }
+            if ($parts !== []) {
+                $whereGroup = implode(' ', $parts);
             }
         }
 
-        $allConditions = [...$onConditions, ...$whereParts];
-        $whereClause = $allConditions !== [] ? ' WHERE ' . implode(' AND ', $allConditions) : '';
+        // Combine multiple join ON groups and the outer WHERE with AND, each
+        // wrapped in parentheses so internal OR logic is not re-associated.
+        $groups = $onGroups;
+        if ($whereGroup !== null) {
+            $groups[] = $whereGroup;
+        }
+        $whereClause = '';
+        if ($groups !== []) {
+            $wrapped = array_map(static fn(string $g): string => '(' . $g . ')', $groups);
+            $whereClause = ' WHERE ' . implode(' AND ', $wrapped);
+        }
 
         return \sprintf(
             'DELETE FROM %s%s USING %s%s',

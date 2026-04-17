@@ -407,6 +407,31 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
      * MySQL:  DELETE a FROM t1 a JOIN t2 b ON ... WHERE ...
      * SQLite: DELETE FROM t1 WHERE rowid IN (SELECT t1.rowid FROM t1 JOIN t2 ON ... WHERE ...)
      */
+    /**
+     * Render a JoinKeyword::$type back to the original join keyword form.
+     *
+     * phpmyadmin/sql-parser collapses `LEFT JOIN` to just `LEFT` etc. for
+     * the public $type property, which made the old rewrite emit
+     * `LEFT "t2" b` and drop the `JOIN` token.
+     */
+    private static function joinKeywordFromType(string $type): string
+    {
+        return match ($type) {
+            'LEFT'               => 'LEFT JOIN',
+            'RIGHT'              => 'RIGHT JOIN',
+            'INNER'              => 'INNER JOIN',
+            'CROSS'              => 'CROSS JOIN',
+            'FULL'               => 'FULL JOIN',
+            'NATURAL'            => 'NATURAL JOIN',
+            'NATURAL LEFT'       => 'NATURAL LEFT JOIN',
+            'NATURAL RIGHT'      => 'NATURAL RIGHT JOIN',
+            'NATURAL LEFT OUTER' => 'NATURAL LEFT OUTER JOIN',
+            'NATURAL RIGHT OUTER' => 'NATURAL RIGHT OUTER JOIN',
+            'STRAIGHT'           => 'STRAIGHT_JOIN',
+            default              => 'JOIN',
+        };
+    }
+
     private function rewriteDeleteJoin(DeleteStatement $stmt): string
     {
         $table = $stmt->from[0]->table ?? '';
@@ -415,17 +440,26 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
 
         $joinClauses = [];
         foreach ($stmt->join as $join) {
-            $joinType = $join->type ?? 'JOIN';
+            $joinKeyword = self::joinKeywordFromType($join->type ?? 'JOIN');
             $joinTable = $join->expr->table ?? $join->expr->expr ?? '';
             $joinAlias = $join->expr->alias ?? '';
             $joinRef = $this->quoteId($joinTable) . ($joinAlias !== '' ? ' ' . $joinAlias : '');
-            $onParts = [];
+
+            $clauseTail = '';
             if ($join->on !== null) {
+                $onParts = [];
                 foreach ($join->on as $cond) {
                     $onParts[] = $cond->expr;
                 }
+                if ($onParts !== []) {
+                    $clauseTail = ' ON ' . implode(' ', $onParts);
+                }
+            } elseif ($join->using !== null) {
+                // USING (col1, col2) — ArrayObj::build() returns '(c1, c2)'
+                $clauseTail = ' USING ' . $join->using->build();
             }
-            $joinClauses[] = $joinType . ' ' . $joinRef . ($onParts !== [] ? ' ON ' . implode(' ', $onParts) : '');
+
+            $joinClauses[] = $joinKeyword . ' ' . $joinRef . $clauseTail;
         }
 
         $whereParts = [];

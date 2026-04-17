@@ -1914,6 +1914,51 @@ SQL);
         self::assertStringContainsString('THEN 3', $result[0]);
     }
 
+    // ── DELETE JOIN ──
+
+    #[Test]
+    public function deleteJoinPreservesLeftJoinKeyword(): void
+    {
+        $result = $this->translator->translate('DELETE a FROM t1 a LEFT JOIN t2 b ON a.id = b.id WHERE b.id IS NULL');
+
+        self::assertStringContainsString('LEFT JOIN', $result[0]);
+        self::assertStringContainsString('ON a.id = b.id', $result[0]);
+    }
+
+    #[Test]
+    public function deleteJoinPreservesInnerJoinKeyword(): void
+    {
+        $result = $this->translator->translate('DELETE a FROM t1 a INNER JOIN t2 b ON a.id = b.id');
+
+        self::assertStringContainsString('INNER JOIN', $result[0]);
+    }
+
+    #[Test]
+    public function deleteJoinPreservesUsingClause(): void
+    {
+        // USING clause was dropped entirely by the previous implementation,
+        // turning the cross-row filter into an unconditional delete.
+        $result = $this->translator->translate('DELETE a FROM t1 a JOIN t2 b USING (id)');
+
+        self::assertStringContainsString('USING (id)', $result[0]);
+    }
+
+    #[Test]
+    public function deleteJoinPreservesMultiColumnUsing(): void
+    {
+        $result = $this->translator->translate('DELETE a FROM t1 a JOIN t2 b USING (id, name)');
+
+        self::assertStringContainsString('USING (id, name)', $result[0]);
+    }
+
+    #[Test]
+    public function deleteJoinPreservesNestedAndOr(): void
+    {
+        $result = $this->translator->translate('DELETE a FROM t1 a JOIN t2 b ON a.x = b.x AND (a.y = 1 OR a.z = 2)');
+
+        self::assertStringContainsString('a.x = b.x AND (a.y = 1 OR a.z = 2)', $result[0]);
+    }
+
     #[Test]
     public function groupConcatWithSeparator(): void
     {

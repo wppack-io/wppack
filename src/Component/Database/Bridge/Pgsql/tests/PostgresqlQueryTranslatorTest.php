@@ -1405,6 +1405,44 @@ SQL;
         self::assertStringContainsString('- 1)', $result[0]);
     }
 
+    // ── DELETE JOIN ──
+
+    #[Test]
+    public function deleteJoinPreservesNestedOrInOnClause(): void
+    {
+        // Regression: the previous implementation dropped $cond->isOperator
+        // entries and re-joined with ` AND `, silently turning OR into AND.
+        $result = $this->translator->translate('DELETE a FROM t1 a JOIN t2 b ON (a.x = b.x OR a.y = b.y)');
+
+        self::assertStringContainsString('a.x = b.x OR a.y = b.y', $result[0]);
+        self::assertStringNotContainsString('a.x = b.x AND a.y = b.y', $result[0]);
+    }
+
+    #[Test]
+    public function deleteJoinCombinesOnAndWhereWithAndOverGroups(): void
+    {
+        // Each group (ON vs WHERE) gets wrapped in parens so internal OR
+        // logic inside one group doesn't re-associate with AND across the
+        // group boundary.
+        $result = $this->translator->translate(
+            'DELETE a FROM t1 a JOIN t2 b ON a.x = b.x WHERE a.deleted = 0 OR a.id = 1',
+        );
+
+        self::assertStringContainsString('(a.x = b.x) AND (a.deleted = 0 OR a.id = 1)', $result[0]);
+    }
+
+    #[Test]
+    public function deleteJoinExpandsUsingClauseToEqualityPredicates(): void
+    {
+        // PostgreSQL's DELETE ... USING does not support per-join USING(col)
+        // — expand into explicit equality predicates in the combined WHERE
+        // so the row-filter semantics survive.
+        $result = $this->translator->translate('DELETE a FROM t1 a JOIN t2 b USING (id, name)');
+
+        self::assertStringContainsString('a."id" = b."id"', $result[0]);
+        self::assertStringContainsString('a."name" = b."name"', $result[0]);
+    }
+
     #[Test]
     public function groupConcatWithSeparator(): void
     {
