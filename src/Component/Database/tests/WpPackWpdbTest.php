@@ -1041,6 +1041,112 @@ final class WpPackWpdbTest extends TestCase
         self::assertSame(['id' => 1, 'name' => 'alice'], $rows[0]);
     }
 
+    // ── Event dispatcher ──
+
+    #[Test]
+    public function completedEventCarriesElapsedAndRowCount(): void
+    {
+        $captured = null;
+        $dispatcher = new class ($captured) implements \Psr\EventDispatcher\EventDispatcherInterface {
+            /** @param mixed $captured */
+            public function __construct(public mixed &$captured) {}
+            public function dispatch(object $event): object
+            {
+                $this->captured = $event;
+                return $event;
+            }
+        };
+
+        $driver = new SqliteDriver(':memory:');
+        $driver->connect();
+        $driver->executeStatement('CREATE TABLE t (id INTEGER)');
+        $driver->executeStatement('INSERT INTO t VALUES (1)');
+        $driver->executeStatement('INSERT INTO t VALUES (2)');
+
+        $wpdb = new WpPackWpdb(
+            writer: $driver,
+            translator: new NullQueryTranslator(),
+            dbname: 'test',
+            eventDispatcher: $dispatcher,
+        );
+
+        $wpdb->query('SELECT * FROM t');
+
+        self::assertInstanceOf(\WpPack\Component\Database\Event\DatabaseQueryCompletedEvent::class, $captured);
+        self::assertSame('SELECT * FROM t', $captured->sql);
+        self::assertSame(2, $captured->rowCount);
+        self::assertSame('writer', $captured->driverName);
+        self::assertGreaterThanOrEqual(0, $captured->elapsedMs);
+        // paramsSummary never contains raw values — same redaction policy as
+        // the PSR logger context.
+        self::assertSame([], $captured->paramsSummary);
+    }
+
+    #[Test]
+    public function failedEventCarriesErrorMessage(): void
+    {
+        $captured = null;
+        $dispatcher = new class ($captured) implements \Psr\EventDispatcher\EventDispatcherInterface {
+            /** @param mixed $captured */
+            public function __construct(public mixed &$captured) {}
+            public function dispatch(object $event): object
+            {
+                $this->captured = $event;
+                return $event;
+            }
+        };
+
+        $driver = new SqliteDriver(':memory:');
+
+        $wpdb = new WpPackWpdb(
+            writer: $driver,
+            translator: new NullQueryTranslator(),
+            dbname: 'test',
+            eventDispatcher: $dispatcher,
+        );
+
+        $wpdb->query('SELECT * FROM nonexistent_table');
+
+        self::assertInstanceOf(\WpPack\Component\Database\Event\DatabaseQueryFailedEvent::class, $captured);
+        self::assertSame('SELECT * FROM nonexistent_table', $captured->sql);
+        self::assertNotSame('', $captured->errorMessage);
+        self::assertSame('writer', $captured->driverName);
+    }
+
+    #[Test]
+    public function failedEventOnlyReceivesParamsSummary(): void
+    {
+        // Regression guard: the event payload must redact bound values just
+        // like the logger, so listeners that forward to APM don't leak PII.
+        $captured = null;
+        $dispatcher = new class ($captured) implements \Psr\EventDispatcher\EventDispatcherInterface {
+            /** @param mixed $captured */
+            public function __construct(public mixed &$captured) {}
+            public function dispatch(object $event): object
+            {
+                $this->captured = $event;
+                return $event;
+            }
+        };
+
+        $driver = new SqliteDriver(':memory:');
+        $driver->connect();
+
+        $wpdb = new WpPackWpdb(
+            writer: $driver,
+            translator: new NullQueryTranslator(),
+            dbname: 'test',
+            eventDispatcher: $dispatcher,
+        );
+
+        $sql = $wpdb->prepare('INSERT INTO missing (pw) VALUES (%s)', 'super-secret-password');
+        $wpdb->query($sql);
+
+        self::assertInstanceOf(\WpPack\Component\Database\Event\DatabaseQueryFailedEvent::class, $captured);
+        self::assertSame(['#0' => 'string(21)'], $captured->paramsSummary);
+        self::assertStringNotContainsString('super-secret-password', var_export($captured, true));
+    }
+
     #[Test]
     public function loggerDoesNotLeakBoundValues(): void
     {

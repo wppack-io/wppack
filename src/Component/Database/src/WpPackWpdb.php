@@ -13,8 +13,11 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Database;
 
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 use WpPack\Component\Database\Driver\DriverInterface;
+use WpPack\Component\Database\Event\DatabaseQueryCompletedEvent;
+use WpPack\Component\Database\Event\DatabaseQueryFailedEvent;
 use WpPack\Component\Database\Placeholder\PreparedBank;
 use WpPack\Component\Database\Sql\PlaceholderScanner;
 use WpPack\Component\Database\Translator\QueryTranslatorInterface;
@@ -52,6 +55,7 @@ class WpPackWpdb extends \wpdb
     public array $last_params = [];
 
     private ?LoggerInterface $logger;
+    private ?EventDispatcherInterface $eventDispatcher;
 
     public function __construct(
         DriverInterface $writer,
@@ -62,12 +66,14 @@ class WpPackWpdb extends \wpdb
         string $charset = 'utf8mb4',
         string $collate = '',
         ?PreparedBank $preparedBank = null,
+        ?EventDispatcherInterface $eventDispatcher = null,
     ) {
         // Do NOT call parent::__construct() — it tries to connect to MySQL.
         $this->writer = $writer;
         $this->reader = $reader;
         $this->translator = $translator;
         $this->logger = $logger;
+        $this->eventDispatcher = $eventDispatcher;
         $this->preparedBank = $preparedBank ?? new PreparedBank();
 
         $GLOBALS['wpdb'] = $this;
@@ -524,6 +530,11 @@ class WpPackWpdb extends \wpdb
         $this->logger = $logger;
     }
 
+    public function setEventDispatcher(EventDispatcherInterface $dispatcher): void
+    {
+        $this->eventDispatcher = $dispatcher;
+    }
+
     /**
      * No-op: charset is set at the driver connection level, not via SQL.
      *
@@ -686,6 +697,13 @@ class WpPackWpdb extends \wpdb
                     'error' => $e->getMessage(),
                 ]));
 
+                $this->eventDispatcher?->dispatch(new DatabaseQueryFailedEvent(
+                    sql: $translatedSql,
+                    paramsSummary: $this->paramsSummary($params),
+                    errorMessage: $e->getMessage(),
+                    driverName: ($driver === $this->reader) ? 'reader' : 'writer',
+                ));
+
                 $this->last_error = $e->getMessage();
                 $this->last_result = [];
                 $this->num_rows = 0;
@@ -701,10 +719,12 @@ class WpPackWpdb extends \wpdb
         $elapsedMs = round($elapsed * 1000, 2);
         $slowThresholdMs = $this->slowQueryThresholdMs();
 
+        $driverName = ($driver === $this->reader) ? 'reader' : 'writer';
+
         if ($this->logger !== null) {
             $context = $this->buildLogContext($sql, $params, [
                 'time_ms' => $elapsedMs,
-                'driver' => ($driver === $this->reader) ? 'reader' : 'writer',
+                'driver' => $driverName,
             ]);
 
             if ($slowThresholdMs !== null && $elapsedMs >= $slowThresholdMs) {
@@ -717,6 +737,14 @@ class WpPackWpdb extends \wpdb
                 $this->logger->debug('Query executed', $context);
             }
         }
+
+        $this->eventDispatcher?->dispatch(new DatabaseQueryCompletedEvent(
+            sql: $sql,
+            paramsSummary: $this->paramsSummary($params),
+            elapsedMs: $elapsedMs,
+            rowCount: $isSelect ? \count($this->last_result) : $this->rows_affected,
+            driverName: $driverName,
+        ));
 
         if (\defined('SAVEQUERIES') && SAVEQUERIES) {
             // Symfony/Doctrine-style logging: keep the parameterized SQL in
