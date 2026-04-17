@@ -25,7 +25,9 @@ use PhpMyAdmin\SqlParser\Statements\TruncateStatement;
 use PhpMyAdmin\SqlParser\Statements\UpdateStatement;
 use PhpMyAdmin\SqlParser\Token;
 use PhpMyAdmin\SqlParser\TokenType;
+use Psr\Log\LoggerInterface;
 use WpPack\Component\Database\Driver\DriverInterface;
+use WpPack\Component\Database\Exception\TranslationException;
 use WpPack\Component\Database\Translator\QueryTranslatorInterface;
 
 /**
@@ -43,6 +45,7 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
 
     public function __construct(
         private readonly ?DriverInterface $driver = null,
+        private readonly ?LoggerInterface $logger = null,
     ) {}
 
     /** @var list<string> */
@@ -102,9 +105,37 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         }
 
         $parser = new Parser($sql);
+
+        // phpmyadmin/sql-parser records context-sensitive warnings alongside
+        // real parse failures; only treat the combination of "errors AND no
+        // statement produced" as a hard translation failure so that e.g.
+        // stand-alone ROLLBACK/COMMIT, which the library flags with "No
+        // transaction was previously started", still flows through.
+        if ($parser->errors !== []) {
+            $messages = array_map(static fn(\Throwable $e): string => $e->getMessage(), $parser->errors);
+
+            if ($parser->statements === []) {
+                $this->logger?->error('PostgreSQL query translation failed', [
+                    'sql' => $sql,
+                    'errors' => $messages,
+                ]);
+
+                throw new TranslationException($sql, 'pgsql', $messages);
+            }
+
+            $this->logger?->warning('PostgreSQL query translation: parser reported warnings', [
+                'sql' => $sql,
+                'errors' => $messages,
+            ]);
+        }
+
         $stmt = $parser->statements[0] ?? null;
 
         if ($stmt === null) {
+            $this->logger?->warning('PostgreSQL query translation: unrecognised statement, falling back to token rewrite', [
+                'sql' => $sql,
+            ]);
+
             return [$this->rewriteTokens($parser)];
         }
 

@@ -25,6 +25,8 @@ use PhpMyAdmin\SqlParser\Statements\TruncateStatement;
 use PhpMyAdmin\SqlParser\Statements\UpdateStatement;
 use PhpMyAdmin\SqlParser\Token;
 use PhpMyAdmin\SqlParser\TokenType;
+use Psr\Log\LoggerInterface;
+use WpPack\Component\Database\Exception\TranslationException;
 use WpPack\Component\Database\Translator\QueryTranslatorInterface;
 
 /**
@@ -38,6 +40,10 @@ use WpPack\Component\Database\Translator\QueryTranslatorInterface;
  */
 final class SqliteQueryTranslator implements QueryTranslatorInterface
 {
+    public function __construct(
+        private readonly ?LoggerInterface $logger = null,
+    ) {}
+
     /** @var list<string> */
     private const IGNORED_PATTERNS = [
         '/^\s*SET\s+(SESSION\s+|GLOBAL\s+)?/i',
@@ -120,9 +126,42 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         }
 
         $parser = new Parser($sql);
+
+        // The phpmyadmin/sql-parser library records context-sensitive warnings
+        // as $parser->errors even when a statement is produced (e.g. stand-
+        // alone `ROLLBACK` triggers "No transaction was previously started"
+        // despite the SQL itself being valid at runtime). Only treat the
+        // combination of "errors AND no statement produced" as a hard
+        // translation failure: anything else is a hint we log but continue.
+        if ($parser->errors !== []) {
+            $messages = array_map(static fn(\Throwable $e): string => $e->getMessage(), $parser->errors);
+
+            if ($parser->statements === []) {
+                $this->logger?->error('SQLite query translation failed', [
+                    'sql' => $sql,
+                    'errors' => $messages,
+                ]);
+
+                throw new TranslationException($sql, 'sqlite', $messages);
+            }
+
+            $this->logger?->warning('SQLite query translation: parser reported warnings', [
+                'sql' => $sql,
+                'errors' => $messages,
+            ]);
+        }
+
         $stmt = $parser->statements[0] ?? null;
 
         if ($stmt === null) {
+            // Well-formed but unrecognised statement type (SAVEPOINT-like
+            // shapes are handled above). We still rewrite tokens to catch
+            // expression-level fixes, but log a warning so operators can
+            // spot traffic that bypasses structural translation.
+            $this->logger?->warning('SQLite query translation: unrecognised statement, falling back to token rewrite', [
+                'sql' => $sql,
+            ]);
+
             return [$this->rewriteTokens($parser)];
         }
 

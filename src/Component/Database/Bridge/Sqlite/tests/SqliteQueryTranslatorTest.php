@@ -1938,4 +1938,41 @@ SQL);
         self::assertStringNotContainsString('HIGH_PRIORITY', $result[0]);
         self::assertStringContainsString('INSERT', $result[0]);
     }
+
+    // ── Parser failure surface ──
+
+    #[Test]
+    public function unparseableSqlRaisesTranslationException(): void
+    {
+        $this->expectException(\WpPack\Component\Database\Exception\TranslationException::class);
+
+        // A stream of punctuation that phpmyadmin/sql-parser can't produce
+        // any statement for. The translator must refuse to silently hand the
+        // raw bytes to SQLite.
+        $this->translator->translate('!!! @@@ ### $$$ %%%');
+    }
+
+    #[Test]
+    public function standaloneRollbackIsNotFatal(): void
+    {
+        // phpmyadmin/sql-parser flags bare ROLLBACK with a context warning
+        // ("No transaction was previously started") while still producing a
+        // statement. The translator must log-and-continue, not throw —
+        // callers rely on being able to emit ROLLBACK after START TRANSACTION.
+        $result = $this->translator->translate('ROLLBACK');
+
+        self::assertNotEmpty($result);
+        self::assertStringContainsString('ROLLBACK', $result[0]);
+    }
+
+    #[Test]
+    public function parserWarningsAreLoggedWhenLoggerProvided(): void
+    {
+        $logger = $this->createMock(\Psr\Log\LoggerInterface::class);
+        $logger->expects(self::atLeastOnce())->method('warning');
+
+        $translator = new SqliteQueryTranslator($logger);
+
+        $translator->translate('ROLLBACK');
+    }
 }
