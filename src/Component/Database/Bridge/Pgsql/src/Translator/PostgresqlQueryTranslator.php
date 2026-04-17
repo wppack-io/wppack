@@ -28,6 +28,8 @@ use PhpMyAdmin\SqlParser\TokenType;
 use Psr\Log\LoggerInterface;
 use WpPack\Component\Database\Driver\DriverInterface;
 use WpPack\Component\Database\Exception\TranslationException;
+use WpPack\Component\Database\Sql\QueryRewriter;
+use WpPack\Component\Database\Translator\QueryTranslatorHelpersTrait;
 use WpPack\Component\Database\Translator\QueryTranslatorInterface;
 
 /**
@@ -40,6 +42,8 @@ use WpPack\Component\Database\Translator\QueryTranslatorInterface;
  */
 final class PostgresqlQueryTranslator implements QueryTranslatorInterface
 {
+    use QueryTranslatorHelpersTrait;
+
     /** @var array<string, list<string>> */
     private array $constraintCache = [];
 
@@ -1620,27 +1624,6 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
     }
 
     /**
-     * Join semantic tokens with single spaces for fragments where
-     * extractFunctionArgs has discarded the whitespace between adjacent
-     * keywords / identifiers.
-     *
-     * @param list<Token> $tokens
-     */
-    private function joinTokensWithSpaces(array $tokens): string
-    {
-        $parts = [];
-        foreach ($tokens as $token) {
-            $text = (string) $token->token;
-            if ($text === '') {
-                continue;
-            }
-            $parts[] = $text;
-        }
-
-        return implode(' ', $parts);
-    }
-
-    /**
      * ISNULL(x) → (x IS NULL)
      */
     private function transformIsnull(QueryRewriter $rw): bool
@@ -2043,20 +2026,6 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
 
     /**
      * @param list<Token> $tokens
-     */
-    private function findStringToken(array $tokens): ?Token
-    {
-        foreach ($tokens as $token) {
-            if ($token->type === TokenType::String) {
-                return $token;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * @param list<Token> $tokens
      * @return array{string, string}|null
      */
     private function parseIntervalArg(array $tokens): ?array
@@ -2088,30 +2057,6 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         return [$number, $unit];
     }
 
-    private function isSemanticVoid(Token $token): bool
-    {
-        return $token->type === TokenType::Whitespace
-            || $token->type === TokenType::Comment
-            || $token->type === TokenType::Delimiter;
-    }
-
-    private function skipMatchingParen(QueryRewriter $rw): void
-    {
-        $depth = 0;
-
-        do {
-            $t = $rw->skip();
-            if ($t === null) {
-                break;
-            }
-            if ($t->token === '(') {
-                $depth++;
-            } elseif ($t->token === ')') {
-                $depth--;
-            }
-        } while ($depth > 0);
-    }
-
     // ── Generic token rewrite ──
 
     private function rewriteTokens(Parser $parser): string
@@ -2133,11 +2078,6 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         }
 
         return $this->postProcessPgsql($rw->getResult());
-    }
-
-    private function createRewriter(Parser $parser): QueryRewriter
-    {
-        return new QueryRewriter($parser->list->tokens, $parser->list->count);
     }
 
     // ── Meta commands ──

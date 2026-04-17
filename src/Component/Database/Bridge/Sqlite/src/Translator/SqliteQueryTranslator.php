@@ -27,6 +27,8 @@ use PhpMyAdmin\SqlParser\Token;
 use PhpMyAdmin\SqlParser\TokenType;
 use Psr\Log\LoggerInterface;
 use WpPack\Component\Database\Exception\TranslationException;
+use WpPack\Component\Database\Sql\QueryRewriter;
+use WpPack\Component\Database\Translator\QueryTranslatorHelpersTrait;
 use WpPack\Component\Database\Translator\QueryTranslatorInterface;
 
 /**
@@ -40,6 +42,8 @@ use WpPack\Component\Database\Translator\QueryTranslatorInterface;
  */
 final class SqliteQueryTranslator implements QueryTranslatorInterface
 {
+    use QueryTranslatorHelpersTrait;
+
     public function __construct(
         private readonly ?LoggerInterface $logger = null,
     ) {}
@@ -1848,46 +1852,6 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
     }
 
     /**
-     * Join a list of semantic tokens into a single SQL fragment with a
-     * single space between each token's text. extractFunctionArgs()
-     * discards whitespace when it collects argument tokens, so callers
-     * that need to preserve boundaries between adjacent keywords
-     * (`DISTINCT`, `ORDER BY`, column names) reach for this helper to
-     * avoid producing identifiers glued together.
-     *
-     * @param list<Token> $tokens
-     */
-    private function joinTokensWithSpaces(array $tokens): string
-    {
-        $parts = [];
-        foreach ($tokens as $token) {
-            $text = (string) $token->token;
-            if ($text === '') {
-                continue;
-            }
-            $parts[] = $text;
-        }
-
-        return implode(' ', $parts);
-    }
-
-    /**
-     * Find the first string literal token in a token list.
-     *
-     * @param list<Token> $tokens
-     */
-    private function findStringToken(array $tokens): ?Token
-    {
-        foreach ($tokens as $token) {
-            if ($token->type === TokenType::String) {
-                return $token;
-            }
-        }
-
-        return null;
-    }
-
-    /**
      * Parse INTERVAL n unit from argument tokens.
      *
      * @param list<Token> $tokens
@@ -1922,33 +1886,6 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         return [$number, $unit];
     }
 
-    private function isSemanticVoid(Token $token): bool
-    {
-        return $token->type === TokenType::Whitespace
-            || $token->type === TokenType::Comment
-            || $token->type === TokenType::Delimiter;
-    }
-
-    /**
-     * Skip tokens through the matching closing parenthesis.
-     */
-    private function skipMatchingParen(QueryRewriter $rw): void
-    {
-        $depth = 0;
-
-        do {
-            $t = $rw->skip();
-            if ($t === null) {
-                break;
-            }
-            if ($t->token === '(') {
-                $depth++;
-            } elseif ($t->token === ')') {
-                $depth--;
-            }
-        } while ($depth > 0);
-    }
-
     // ── Generic token rewrite ──
 
     /**
@@ -1975,11 +1912,6 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         }
 
         return $rw->getResult();
-    }
-
-    private function createRewriter(Parser $parser): QueryRewriter
-    {
-        return new QueryRewriter($parser->list->tokens, $parser->list->count);
     }
 
     // ── Meta commands ──
