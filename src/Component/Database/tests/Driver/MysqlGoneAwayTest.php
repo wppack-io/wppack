@@ -51,7 +51,7 @@ final class MysqlGoneAwayTest extends TestCase
 
     protected function tearDown(): void
     {
-        if ($this->driver->isConnected()) {
+        if (isset($this->driver) && $this->driver->isConnected()) {
             $this->driver->close();
         }
     }

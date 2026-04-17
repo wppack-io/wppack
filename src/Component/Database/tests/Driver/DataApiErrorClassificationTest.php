@@ -52,14 +52,9 @@ final class DataApiErrorClassificationTest extends TestCase
     #[Test]
     public function throttlingExceptionClassMapsToDriverThrottledException(): void
     {
-        $aws = new class('rate limit') extends \RuntimeException {};
-        // Match via class-name substring 'Throttl'
-        $aws = new class('rate limit') extends \RuntimeException {
-            public function __construct(string $msg) { parent::__construct($msg); }
-            public static function className(): string { return 'ThrottlingException'; }
-        };
-        // We can't easily forge a specific class name; instead check via
-        // message content (also handled by the classifier).
+        // classifyDataApiError matches 'Throttl' in either the class name
+        // or the message; here we exercise the message-content path via a
+        // plain RuntimeException carrying a Throttling-style error.
         $ex = self::invokeClassify('SELECT 1', new \RuntimeException('Rate exceeded'));
 
         self::assertInstanceOf(DriverThrottledException::class, $ex);
