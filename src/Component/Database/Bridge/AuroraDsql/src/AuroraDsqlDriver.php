@@ -196,6 +196,12 @@ class AuroraDsqlDriver extends PgsqlDriver
     public function transaction(callable $callback): mixed
     {
         return $this->executeWithOccRetry(function () use ($callback): mixed {
+            // Refresh the IAM token BEFORE entering the transaction, not
+            // while inside it. ensureTokenFresh() is a no-op during an
+            // active transaction so doExecuteStatement() can't close the
+            // connection mid-commit; the retry loop gives us another pass
+            // here with a fresh token on the next attempt.
+            $this->ensureTokenFresh();
             $this->beginTransaction();
 
             try {
@@ -224,10 +230,22 @@ class AuroraDsqlDriver extends PgsqlDriver
 
     /**
      * Close connection if token is approaching expiry — doConnect() will regenerate.
+     *
+     * Must NOT fire while we are inside a transaction: closing the
+     * connection mid-transaction silently aborts it on the server side,
+     * and the next query would run outside the user's transaction scope.
+     * The caller (transaction() / executeWithOccRetry) checks freshness
+     * at the start of each retry attempt instead, so a long transaction
+     * that crosses the expiry margin surfaces as a failed commit rather
+     * than as a silent loss of ACID boundaries.
      */
     private function ensureTokenFresh(): void
     {
         if ($this->tokenExpiresAt === null || $this->hasStaticToken) {
+            return;
+        }
+
+        if ($this->inTransaction()) {
             return;
         }
 
@@ -310,16 +328,24 @@ class AuroraDsqlDriver extends PgsqlDriver
 
         $waitMs = self::OCC_INITIAL_WAIT_MS;
 
-        for ($attempt = 0; $attempt <= $this->occMaxRetries; ++$attempt) {
+        // Attempts = initial call + up to $occMaxRetries retries. The loop
+        // is bounded by `<` so with occMaxRetries=3 we get exactly 4 total
+        // calls (1 + 3), not 5. Previously `<=` produced one too many.
+        for ($attempt = 0; $attempt < $this->occMaxRetries + 1; ++$attempt) {
             try {
                 return $operation();
             } catch (DriverException $e) {
-                if (!self::isOccError($e) || $attempt === $this->occMaxRetries) {
+                $isLastAttempt = $attempt === $this->occMaxRetries;
+                if (!self::isOccError($e) || $isLastAttempt) {
                     throw $e;
                 }
 
-                $jitter = random_int(0, $waitMs);
-                $sleepMs = $waitMs + $jitter;
+                // Decorrelated jitter between waitMs/2 and waitMs so we
+                // always back off at least half the base wait — the old
+                // `random_int(0, waitMs) + waitMs` form could emit the
+                // same lower bound as the cumulative wait, producing a
+                // retry storm on synchronised client clocks.
+                $sleepMs = random_int((int) ($waitMs / 2), $waitMs);
 
                 $this->logger?->warning(\sprintf(
                     '[AuroraDsql] OCC conflict, retrying (attempt %d/%d, wait %.2fs)',
