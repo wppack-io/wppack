@@ -614,6 +614,12 @@ class WpPackWpdb extends \wpdb
 
     public function close(): bool
     {
+        if (!$this->ready) {
+            // Already closed — avoid double-close which some drivers (RDS
+            // Data API client, PDO under certain configs) throw on.
+            return true;
+        }
+
         $this->writer->close();
         $this->reader?->close();
         $this->ready = false;
@@ -789,6 +795,15 @@ class WpPackWpdb extends \wpdb
                     'interpolated_sql' => $this->interpolateForDisplay($sql, $params),
                 ],
             );
+
+            // Long-running WP-CLI workers with SAVEQUERIES enabled used to
+            // grow $this->queries without bound. Trim to the env-configured
+            // tail so the array stays useful for debugging without eating
+            // unbounded memory.
+            $max = $this->queriesMaxEntries();
+            if ($max > 0 && \count($this->queries) > $max) {
+                $this->queries = \array_slice($this->queries, -$max);
+            }
         }
 
         return $isSelect ? \count($this->last_result) : $this->rows_affected;
@@ -880,6 +895,24 @@ class WpPackWpdb extends \wpdb
         $threshold = (float) $raw;
 
         return $threshold > 0 ? $threshold : null;
+    }
+
+    /**
+     * Cap on the number of SAVEQUERIES entries we retain in
+     * $this->queries. Configurable via `WPPACK_DB_QUERIES_MAX`; 0 /
+     * non-numeric / unset leaves the array unbounded (matching
+     * standard wpdb). Default of 10_000 is large enough for typical
+     * debugging needs without letting a long-running worker blow up.
+     */
+    private function queriesMaxEntries(): int
+    {
+        $raw = $_SERVER['WPPACK_DB_QUERIES_MAX'] ?? $_ENV['WPPACK_DB_QUERIES_MAX'] ?? getenv('WPPACK_DB_QUERIES_MAX');
+
+        if (!is_numeric($raw)) {
+            return 10000;
+        }
+
+        return max(0, (int) $raw);
     }
 
     /**
@@ -980,7 +1013,16 @@ class WpPackWpdb extends \wpdb
                 $params,
             );
             $this->lastFoundRows = (int) $result->fetchOne();
-        } catch (\Throwable) {
+        } catch (\Throwable $e) {
+            // Previous behaviour silently returned 0 here, which makes any
+            // page that reads FOUND_ROWS() display 'no results found' even
+            // when the main SELECT succeeded. Log the failure so operators
+            // can see why pagination went sideways and reset the cached
+            // count (caller reads 0 but at least there's a log trail).
+            $this->logger?->error('SQL_CALC_FOUND_ROWS COUNT(*) subquery failed', [
+                'sql' => $translatedSql,
+                'error' => $e->getMessage(),
+            ]);
             $this->lastFoundRows = 0;
         }
     }

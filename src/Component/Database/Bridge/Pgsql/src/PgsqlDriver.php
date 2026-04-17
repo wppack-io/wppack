@@ -301,7 +301,17 @@ class PgsqlDriver extends AbstractDriver
         };
 
         $close = static function () use ($conn, $stmtName): void {
-            @pg_query($conn, "DEALLOCATE \"{$stmtName}\"");
+            // Skip when the connection is already gone — PG servers clean up
+            // prepared statements on their side when the session ends, so a
+            // best-effort deallocate on a live connection is enough. The
+            // error-suppression `@` used to hide even the 'connection
+            // closed' case; now we gate on pg_connection_status first and
+            // surface any other failure through the normal error channel.
+            if (@pg_connection_status($conn) !== \PGSQL_CONNECTION_OK) {
+                return;
+            }
+
+            pg_query($conn, "DEALLOCATE \"{$stmtName}\"");
         };
 
         return new Statement($executeQuery, $executeStatement, $close);
