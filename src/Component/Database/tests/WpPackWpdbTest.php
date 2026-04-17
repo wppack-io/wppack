@@ -1242,7 +1242,7 @@ final class WpPackWpdbTest extends TestCase
         // drop the query. The error message is [Translation]-prefixed to
         // distinguish it from a real driver error.
         $captured = null;
-        $dispatcher = new class($captured) implements \Psr\EventDispatcher\EventDispatcherInterface {
+        $dispatcher = new class ($captured) implements \Psr\EventDispatcher\EventDispatcherInterface {
             public function __construct(public mixed &$captured) {}
             public function dispatch(object $event): object
             {
