@@ -103,8 +103,9 @@ class WpPackWpdb extends \wpdb
      * - %i is expanded inline via quoteIdentifier() because identifiers cannot
      *   be parameterized.
      * - A placeholder that lands inside a single-quoted string literal (e.g.
-     *   `"LIKE '%%%s%%'"`) is also inlined, because MySQL would otherwise
-     *   interpret the '?' as a literal character rather than a bind position.
+     *   `"LIKE '%%%s%%'"`) folds the entire '...' into a single bound '?' —
+     *   splicing the value would require engine-specific escape forms and
+     *   MySQL would treat a spliced '?' as a literal byte.
      *
      * Accepts args passed as a single array for WordPress legacy compatibility
      * (`prepare($sql, [$a, $b])` === `prepare($sql, $a, $b)`).
