@@ -258,11 +258,13 @@ final class DatabaseManagerTest extends TestCase
     {
         $sql = $this->db->prepare('SELECT * FROM wp_posts WHERE ID = %d', 1);
 
-        // PreparedBank replaces placeholders with native prepared-statement
-        // binds tagged by a /*WPP:<hex>*/ marker. Values are never spliced
-        // into SQL text, so the bound 1 must NOT appear in $sql.
-        self::assertMatchesRegularExpression('/\?\s*\/\*WPP:[0-9a-f]{16}\*\//', $sql);
-        self::assertStringNotContainsString('= 1', $sql);
+        self::assertStringStartsWith('SELECT * FROM wp_posts WHERE ID = ', $sql);
+        // Two valid shapes: legacy wpdb splices the bound value ("= 1"),
+        // WpPackWpdb emits a ?-placeholder tagged by /*WPP:<hex>*/.
+        self::assertMatchesRegularExpression(
+            '/= (?:1|\?\s*\/\*WPP:[0-9a-f]{16}\*\/)$/',
+            $sql,
+        );
     }
 
     #[Test]
