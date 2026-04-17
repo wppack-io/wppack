@@ -1107,6 +1107,27 @@ final class WpPackWpdbTest extends TestCase
     }
 
     #[Test]
+    public function rollbackToSavepointDoesNotDecrementDepth(): void
+    {
+        // Regression: the old depth regex matched `ROLLBACK TO SAVEPOINT sp1`
+        // as a plain ROLLBACK, decrementing the outer transaction depth
+        // erroneously. ROLLBACK TO rewinds to a savepoint but keeps the
+        // outer transaction alive, so depth must stay put.
+        $this->wpdb->query('BEGIN');
+        $this->wpdb->query('SAVEPOINT sp1');
+        self::assertSame(2, $this->wpdb->getTransactionDepth());
+
+        $this->wpdb->query('ROLLBACK TO SAVEPOINT sp1');
+        self::assertSame(2, $this->wpdb->getTransactionDepth(), 'ROLLBACK TO must not end the outer transaction.');
+
+        $this->wpdb->query('RELEASE SAVEPOINT sp1');
+        self::assertSame(1, $this->wpdb->getTransactionDepth());
+
+        $this->wpdb->query('ROLLBACK');
+        self::assertSame(0, $this->wpdb->getTransactionDepth());
+    }
+
+    #[Test]
     public function nestedBeginLogsWarning(): void
     {
         $logger = $this->createMock(LoggerInterface::class);

@@ -2093,6 +2093,19 @@ SQL);
     }
 
     #[Test]
+    public function timeToSecHandlesNegativeSign(): void
+    {
+        // MySQL TIME accepts negative values ('-01:00:05'). The previous
+        // rewrite computed `-1 * 3600 + 0 * 60 + 5` and got -3595 instead
+        // of -3605 because only the hours substring carried the sign.
+        // The fix applies an explicit sign multiplier.
+        $result = $this->translator->translate('SELECT TIME_TO_SEC(t) FROM t');
+
+        self::assertStringContainsString("substr(t, 1, 1) = '-'", $result[0]);
+        self::assertStringContainsString('ABS(CAST(substr(t', $result[0]);
+    }
+
+    #[Test]
     public function secToTimeUsesPrintfFormat(): void
     {
         $result = $this->translator->translate('SELECT SEC_TO_TIME(3605) FROM t');

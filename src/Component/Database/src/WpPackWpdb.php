@@ -1226,7 +1226,12 @@ class WpPackWpdb extends \wpdb
             return;
         }
 
-        if (preg_match('/^(COMMIT|ROLLBACK|RELEASE\s+SAVEPOINT)\b/i', $trimmed)) {
+        // `ROLLBACK TO SAVEPOINT sp1` rewinds to the savepoint but the outer
+        // transaction is still alive — it must NOT decrement depth. Only a
+        // bare COMMIT / ROLLBACK / RELEASE SAVEPOINT ends a nesting level.
+        // Match 'ROLLBACK' only when the next token is not 'TO'.
+        if (preg_match('/^(COMMIT|RELEASE\s+SAVEPOINT)\b/i', $trimmed)
+            || preg_match('/^ROLLBACK\b(?!\s+TO\b)/i', $trimmed)) {
             $this->transactionDepth = max(0, $this->transactionDepth - 1);
         }
     }

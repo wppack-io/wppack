@@ -1881,7 +1881,13 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
      * Accepts the canonical MySQL TIME form. For values over 24h MySQL
      * returns the full seconds count; SQLite's strftime can't parse
      * HH:MM:SS > 23:59:59, so we decompose by substring arithmetic which
-     * also handles the oversized case.
+     * also handles the oversized case (e.g. '90:00:00').
+     *
+     * Negative times ('-01:00:05') are valid in MySQL; the CAST on a
+     * sub-string that starts with '-' parses the negative hour correctly,
+     * but minutes / seconds don't carry the sign. We compute the unsigned
+     * part from the trailing substrings (always positive) and apply the
+     * sign explicitly based on the leading character of the input.
      */
     private function transformTimeToSec(QueryRewriter $rw): bool
     {
@@ -1892,11 +1898,9 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
 
         $expr = $this->transformArgExpression($args[0]);
 
-        // length-based split tolerates both H:MM:SS and HH:MM:SS inputs
-        // (MySQL accepts both).
         $rw->add(\sprintf(
-            '('
-            . "CAST(substr(%1\$s, 1, instr(%1\$s, ':') - 1) AS INTEGER) * 3600 + "
+            '(CASE WHEN substr(%1$s, 1, 1) = \'-\' THEN -1 ELSE 1 END) * ('
+            . "ABS(CAST(substr(%1\$s, 1, instr(%1\$s, ':') - 1) AS INTEGER)) * 3600 + "
             . "CAST(substr(%1\$s, instr(%1\$s, ':') + 1, 2) AS INTEGER) * 60 + "
             . "CAST(substr(%1\$s, -2, 2) AS INTEGER)"
             . ')',

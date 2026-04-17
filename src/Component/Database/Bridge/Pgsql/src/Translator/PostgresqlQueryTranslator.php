@@ -1456,9 +1456,12 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
      * MySQL's format specifiers (%Y, %m, %d ...) map onto PostgreSQL's
      * template patterns (YYYY, MM, DD ...). Date-only formats produce
      * to_date() (returns DATE), formats with time components produce
-     * to_timestamp() (returns TIMESTAMP). Unknown specifiers fall through
-     * with a best-effort mapping; PostgreSQL will surface an error at
-     * execute time rather than returning silently-wrong data.
+     * to_timestamp() (returns TIMESTAMP).
+     *
+     * Unmapped specifiers are refused with TranslationException so the
+     * caller gets a clear signal instead of silently-wrong parsing —
+     * previously unknown specifiers passed through verbatim and PG would
+     * either return NULL or match literally, both surprising.
      */
     private function transformStrToDate(QueryRewriter $rw): bool
     {
@@ -1475,13 +1478,40 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
 
         $rawFormat = (string) $formatToken->value;
 
-        $mapped = strtr($rawFormat, [
+        $map = [
             '%Y' => 'YYYY', '%y' => 'YY', '%m' => 'MM', '%c' => 'FMMM',
             '%d' => 'DD', '%e' => 'FMDD', '%H' => 'HH24', '%h' => 'HH12',
             '%I' => 'HH12', '%i' => 'MI', '%s' => 'SS', '%S' => 'SS',
             '%j' => 'DDD', '%T' => 'HH24:MI:SS', '%r' => 'HH12:MI:SS AM',
             '%p' => 'AM', '%f' => 'US',
-        ]);
+            // Weekday / week-of-year
+            '%W' => 'Day', '%a' => 'Dy', '%w' => 'D', '%U' => 'WW', '%u' => 'IW',
+            // Month name
+            '%M' => 'Month', '%b' => 'Mon',
+            // Day-of-month variants
+            '%D' => 'DDth',
+            // Escape
+            '%%' => '%',
+        ];
+
+        // Detect specifiers we don't map — PG has no equivalent for %z
+        // (timezone offset with sign), %V/%v (ISO/Sunday-based week mix),
+        // %X/%x (ISO year pair). Refuse rather than silently emit broken
+        // format strings.
+        if (preg_match_all('/%(.)/', $rawFormat, $m) > 0) {
+            foreach ($m[1] as $specChar) {
+                $spec = '%' . $specChar;
+                if (!\array_key_exists($spec, $map)) {
+                    throw new UnsupportedFeatureException(
+                        $rw->getResult() . ' ... STR_TO_DATE(?, ' . var_export($rawFormat, true) . ')',
+                        'pgsql',
+                        [\sprintf('STR_TO_DATE format specifier %s has no PostgreSQL equivalent', $spec)],
+                    );
+                }
+            }
+        }
+
+        $mapped = strtr($rawFormat, $map);
 
         $hasTimeComponent = preg_match('/%[HhIisSTpfr]/', $rawFormat) === 1;
         $pgFunc = $hasTimeComponent ? 'to_timestamp' : 'to_date';
@@ -1927,10 +1957,11 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
      * JSON_EXTRACT(col, '$.a.b[0].c') → col::jsonb #> '{a,b,0,c}'
      *
      * Only simple JSONPath expressions (dotted keys + array indices) are
-     * supported. Wildcards (`$[*]`, `$..foo`), filters (`$[?...]`) and
-     * expressions have no safe pg rewrite without parsing the path
-     * language; those raise TranslationException so the caller picks a
-     * dedicated integration.
+     * supported. Wildcards (`$[*]`, `$..foo`), filters (`$[?...]`) are
+     * rejected. Double-quoted keys `$."a.b"` containing path metacharacters
+     * (`.`, `[`, `]`, `,`) have no safe pg rewrite — postgres' jsonb
+     * path-array `{a,b}` treats `,` as a segment separator — so those are
+     * refused via UnsupportedFeatureException rather than silently split.
      */
     private function transformJsonExtract(QueryRewriter $rw): bool
     {
@@ -1958,9 +1989,31 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             return false;
         }
 
-        // Split `a.b[0].c` into ['a', 'b', '0', 'c']
+        // Detect `"..."`-quoted keys. A quoted key whose content contains
+        // `.` / `[` / `]` / `,` can't be round-tripped through the jsonb
+        // `{a,b}` array literal (`,` is the separator) — refuse rather than
+        // silently splitting on the inner comma.
+        if (preg_match_all('/"((?:[^"\\\\]|\\\\.)*)"/', $tail, $qm, \PREG_OFFSET_CAPTURE) > 0) {
+            foreach ($qm[1] as [$content, $_offset]) {
+                if (preg_match('/[.\[\],]/', $content) === 1) {
+                    throw new UnsupportedFeatureException(
+                        $rw->getResult() . ' ... JSON_EXTRACT(?, ' . var_export($path, true) . ')',
+                        'pgsql',
+                        ['JSON_EXTRACT path with a quoted key containing "." / "[" / "]" / "," cannot be mapped to PostgreSQL jsonb path syntax'],
+                    );
+                }
+            }
+        }
+
+        // Split `a.b[0].c` into ['a', 'b', '0', 'c']. With quoted-key
+        // safety-check above, a split on path metacharacters is now safe.
         $segments = [];
         foreach (preg_split('/[.\[\]]+/', $tail, -1, \PREG_SPLIT_NO_EMPTY) ?: [] as $seg) {
+            // Strip enclosing double quotes if present.
+            if (strlen($seg) >= 2 && $seg[0] === '"' && $seg[-1] === '"') {
+                $seg = substr($seg, 1, -1);
+                $seg = stripcslashes($seg);
+            }
             $segments[] = $seg;
         }
 

@@ -1431,6 +1431,38 @@ SQL;
         self::assertStringContainsString('{items,0}', $result[0]);
     }
 
+    #[Test]
+    public function jsonExtractQuotedKeyWithCommaIsRefused(): void
+    {
+        // Path like $."a,b".c contains a comma inside a quoted key. PG's
+        // jsonb path-array '{a,b}' uses comma as a segment separator, so
+        // silently splitting the quoted key would corrupt the lookup. We
+        // refuse via UnsupportedFeatureException instead.
+        $this->expectException(\WpPack\Component\Database\Exception\UnsupportedFeatureException::class);
+
+        $this->translator->translate("SELECT JSON_EXTRACT(meta, '\$.\"a,b\".c') FROM t");
+    }
+
+    #[Test]
+    public function strToDateUnknownSpecifierRaisesException(): void
+    {
+        // Unknown format specifiers used to pass through verbatim and
+        // produce a half-valid PG template string. Refuse so the caller
+        // can't silently receive wrong data.
+        $this->expectException(\WpPack\Component\Database\Exception\UnsupportedFeatureException::class);
+        $this->expectExceptionMessageMatches('/%z/');
+
+        $this->translator->translate("SELECT STR_TO_DATE('2024-01-15 +0900', '%Y-%m-%d %z') FROM t");
+    }
+
+    #[Test]
+    public function strToDateWeekdayNameSpecifierMapped(): void
+    {
+        $result = $this->translator->translate("SELECT STR_TO_DATE('Monday', '%W') FROM t");
+
+        self::assertStringContainsString("to_date('Monday', 'Day')", $result[0]);
+    }
+
     // ── FIND_IN_SET / SUBSTRING_INDEX ──
 
     #[Test]
