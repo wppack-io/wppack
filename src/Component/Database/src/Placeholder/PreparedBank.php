@@ -19,14 +19,20 @@ namespace WpPack\Component\Database\Placeholder;
  * SQL string while still delivering them to the driver at query() execution time
  * as native prepared-statement parameters.
  *
- * id format: 12 lowercase hex characters derived from sha1($sql . "\x01" . serialize($params)).
+ * id format: 16 lowercase hex characters derived from sha1($sql . "\x01" . serialize($params)).
  * Marker format: "/*WPP:<id>*\/" (SQL block comment, ignored by every engine).
+ *
+ * The 16-hex (64-bit) truncation puts the birthday-collision threshold at
+ * roughly 2^32 distinct prepare() calls per process. A long-running WP-CLI
+ * worker doing millions of prepares per hour still sits far below that, so
+ * the dedup-friendly deterministic id keeps working without risking that
+ * two different (sql, params) pairs ever end up sharing an entry.
  */
 final class PreparedBank
 {
     private const MARKER_PREFIX = '/*WPP:';
     private const MARKER_SUFFIX = '*/';
-    public const MARKER_PATTERN = '#/\*WPP:([a-f0-9]{12})\*/#';
+    public const MARKER_PATTERN = '#/\*WPP:([a-f0-9]{16})\*/#';
 
     /** @var array<string, list<mixed>> id → params */
     private array $entries = [];
@@ -38,7 +44,7 @@ final class PreparedBank
      */
     public function idFor(string $sql, array $params): string
     {
-        return substr(sha1($sql . "\x01" . serialize($params)), 0, 12);
+        return substr(sha1($sql . "\x01" . serialize($params)), 0, 16);
     }
 
     /**

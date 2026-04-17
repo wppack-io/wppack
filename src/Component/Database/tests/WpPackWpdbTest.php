@@ -65,7 +65,7 @@ final class WpPackWpdbTest extends TestCase
         $sql = $this->wpdb->prepare('SELECT * FROM posts WHERE id = %d AND status = %s', 1, 'publish');
 
         self::assertMatchesRegularExpression(
-            '#^SELECT \* FROM posts WHERE id = \? AND status = \?/\*WPP:[a-f0-9]{12}\*/$#',
+            '#^SELECT \* FROM posts WHERE id = \? AND status = \?/\*WPP:[a-f0-9]{16}\*/$#',
             $sql,
         );
     }
@@ -76,7 +76,7 @@ final class WpPackWpdbTest extends TestCase
         $sql = $this->wpdb->prepare("SELECT * FROM posts WHERE title LIKE '%%test%%' AND id = %d", 1);
 
         self::assertMatchesRegularExpression(
-            "#^SELECT \* FROM posts WHERE title LIKE '%test%' AND id = \?/\*WPP:[a-f0-9]{12}\*/$#",
+            "#^SELECT \* FROM posts WHERE title LIKE '%test%' AND id = \?/\*WPP:[a-f0-9]{16}\*/$#",
             $sql,
         );
     }
@@ -87,7 +87,7 @@ final class WpPackWpdbTest extends TestCase
         $sql = $this->wpdb->prepare('SELECT * FROM posts WHERE score > %f', 3.14);
 
         self::assertMatchesRegularExpression(
-            '#^SELECT \* FROM posts WHERE score > \?/\*WPP:[a-f0-9]{12}\*/$#',
+            '#^SELECT \* FROM posts WHERE score > \?/\*WPP:[a-f0-9]{16}\*/$#',
             $sql,
         );
     }
@@ -104,7 +104,7 @@ final class WpPackWpdbTest extends TestCase
         $sql = $this->wpdb->prepare("SELECT * FROM posts WHERE title LIKE '%%%s%%'", 'foo');
 
         self::assertMatchesRegularExpression(
-            '#^SELECT \* FROM posts WHERE title LIKE \?/\*WPP:[a-f0-9]{12}\*/$#',
+            '#^SELECT \* FROM posts WHERE title LIKE \?/\*WPP:[a-f0-9]{16}\*/$#',
             $sql,
         );
 
@@ -120,7 +120,7 @@ final class WpPackWpdbTest extends TestCase
         $sql = $this->wpdb->prepare("SELECT * FROM users WHERE login = 'admin_%s'", 'bob');
 
         self::assertMatchesRegularExpression(
-            '#^SELECT \* FROM users WHERE login = \?/\*WPP:[a-f0-9]{12}\*/$#',
+            '#^SELECT \* FROM users WHERE login = \?/\*WPP:[a-f0-9]{16}\*/$#',
             $sql,
         );
 
@@ -137,7 +137,7 @@ final class WpPackWpdbTest extends TestCase
         $sql = $this->wpdb->prepare("SELECT * FROM users WHERE name = 'O''Brien' AND id = %d", 5);
 
         self::assertMatchesRegularExpression(
-            "#^SELECT \* FROM users WHERE name = 'O''Brien' AND id = \?/\*WPP:[a-f0-9]{12}\*/$#",
+            "#^SELECT \* FROM users WHERE name = 'O''Brien' AND id = \?/\*WPP:[a-f0-9]{16}\*/$#",
             $sql,
         );
     }
@@ -153,7 +153,7 @@ final class WpPackWpdbTest extends TestCase
         );
 
         self::assertMatchesRegularExpression(
-            '#^SELECT \* FROM t WHERE x = \? AND y = \?/\*WPP:[a-f0-9]{12}\*/$#',
+            '#^SELECT \* FROM t WHERE x = \? AND y = \?/\*WPP:[a-f0-9]{16}\*/$#',
             $sql,
         );
 
@@ -169,7 +169,7 @@ final class WpPackWpdbTest extends TestCase
         $sql = $this->wpdb->prepare("SELECT '' AS note, %s AS tag", 'foo');
 
         self::assertMatchesRegularExpression(
-            "#^SELECT '' AS note, \? AS tag/\*WPP:[a-f0-9]{12}\*/$#",
+            "#^SELECT '' AS note, \? AS tag/\*WPP:[a-f0-9]{16}\*/$#",
             $sql,
         );
 
@@ -186,7 +186,7 @@ final class WpPackWpdbTest extends TestCase
         $sql = $this->wpdb->prepare("SELECT * FROM t WHERE x = 'a\\'%s'", 'b');
 
         self::assertMatchesRegularExpression(
-            '#^SELECT \* FROM t WHERE x = \?/\*WPP:[a-f0-9]{12}\*/$#',
+            '#^SELECT \* FROM t WHERE x = \?/\*WPP:[a-f0-9]{16}\*/$#',
             $sql,
         );
 
@@ -207,7 +207,7 @@ final class WpPackWpdbTest extends TestCase
         );
 
         self::assertMatchesRegularExpression(
-            '#^SELECT \* FROM t WHERE label = \?/\*WPP:[a-f0-9]{12}\*/$#',
+            '#^SELECT \* FROM t WHERE label = \?/\*WPP:[a-f0-9]{16}\*/$#',
             $sql,
         );
 
@@ -223,7 +223,7 @@ final class WpPackWpdbTest extends TestCase
         $sql = $this->wpdb->prepare("SELECT * FROM t WHERE tag = 'id=%d'", 5);
 
         self::assertMatchesRegularExpression(
-            '#^SELECT \* FROM t WHERE tag = \?/\*WPP:[a-f0-9]{12}\*/$#',
+            '#^SELECT \* FROM t WHERE tag = \?/\*WPP:[a-f0-9]{16}\*/$#',
             $sql,
         );
 
@@ -244,7 +244,7 @@ final class WpPackWpdbTest extends TestCase
         );
 
         self::assertMatchesRegularExpression(
-            '#^SELECT FROM \? WHERE y = \?/\*WPP:[a-f0-9]{12}\*/$#',
+            '#^SELECT FROM \? WHERE y = \?/\*WPP:[a-f0-9]{16}\*/$#',
             $sql,
         );
 
@@ -530,7 +530,7 @@ final class WpPackWpdbTest extends TestCase
         self::assertStringContainsString('"wptests_posts"', $sql);
         // %d becomes a '?' placeholder with a trailing bank marker
         self::assertStringContainsString('= ?', $sql);
-        self::assertMatchesRegularExpression('#/\*WPP:[a-f0-9]{12}\*/$#', $sql);
+        self::assertMatchesRegularExpression('#/\*WPP:[a-f0-9]{16}\*/$#', $sql);
         // No raw placeholders should remain
         self::assertStringNotContainsString('%i', $sql);
         self::assertStringNotContainsString('%d', $sql);
@@ -605,7 +605,7 @@ final class WpPackWpdbTest extends TestCase
         $sql = $this->wpdb->prepare('SELECT * FROM wptests_posts WHERE id = %d AND status = %s', [1, 'publish']);
 
         self::assertMatchesRegularExpression(
-            '#^SELECT \* FROM wptests_posts WHERE id = \? AND status = \?/\*WPP:[a-f0-9]{12}\*/$#',
+            '#^SELECT \* FROM wptests_posts WHERE id = \? AND status = \?/\*WPP:[a-f0-9]{16}\*/$#',
             $sql,
         );
 

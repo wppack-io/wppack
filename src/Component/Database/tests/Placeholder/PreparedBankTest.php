@@ -57,7 +57,7 @@ final class PreparedBankTest extends TestCase
     {
         $bank = new PreparedBank();
 
-        self::assertMatchesRegularExpression('#^[a-f0-9]{12}$#', $bank->idFor('x', ['y']));
+        self::assertMatchesRegularExpression('#^[a-f0-9]{16}$#', $bank->idFor('x', ['y']));
     }
 
     #[Test]
@@ -72,10 +72,10 @@ final class PreparedBankTest extends TestCase
     public function consumeExtractsParamsInAppearanceOrder(): void
     {
         $bank = new PreparedBank();
-        $bank->store('aaaaaaaaaaaa', ['x']);
-        $bank->store('bbbbbbbbbbbb', ['y']);
+        $bank->store('aaaaaaaaaaaaaaaa', ['x']);
+        $bank->store('bbbbbbbbbbbbbbbb', ['y']);
 
-        [$cleanSql, $params] = $bank->consume('a = ?/*WPP:aaaaaaaaaaaa*/ AND b = ?/*WPP:bbbbbbbbbbbb*/');
+        [$cleanSql, $params] = $bank->consume('a = ?/*WPP:aaaaaaaaaaaaaaaa*/ AND b = ?/*WPP:bbbbbbbbbbbbbbbb*/');
 
         self::assertSame('a = ? AND b = ?', $cleanSql);
         self::assertSame(['x', 'y'], $params);
@@ -85,10 +85,10 @@ final class PreparedBankTest extends TestCase
     public function consumeFlattensMultiParamEntries(): void
     {
         $bank = new PreparedBank();
-        $bank->store('aaaaaaaaaaaa', ['x', 'y']);
-        $bank->store('bbbbbbbbbbbb', ['z']);
+        $bank->store('aaaaaaaaaaaaaaaa', ['x', 'y']);
+        $bank->store('bbbbbbbbbbbbbbbb', ['z']);
 
-        [$cleanSql, $params] = $bank->consume('a = ? AND b = ?/*WPP:aaaaaaaaaaaa*/ OR c = ?/*WPP:bbbbbbbbbbbb*/');
+        [$cleanSql, $params] = $bank->consume('a = ? AND b = ?/*WPP:aaaaaaaaaaaaaaaa*/ OR c = ?/*WPP:bbbbbbbbbbbbbbbb*/');
 
         self::assertSame('a = ? AND b = ? OR c = ?', $cleanSql);
         self::assertSame(['x', 'y', 'z'], $params);
@@ -98,10 +98,10 @@ final class PreparedBankTest extends TestCase
     public function consumeRemovesEntryFromBank(): void
     {
         $bank = new PreparedBank();
-        $bank->store('aaaaaaaaaaaa', ['x']);
+        $bank->store('aaaaaaaaaaaaaaaa', ['x']);
         self::assertSame(1, $bank->size());
 
-        $bank->consume('a = ?/*WPP:aaaaaaaaaaaa*/');
+        $bank->consume('a = ?/*WPP:aaaaaaaaaaaaaaaa*/');
         self::assertSame(0, $bank->size());
     }
 
@@ -109,7 +109,7 @@ final class PreparedBankTest extends TestCase
     public function consumeReturnsEmptyParamsWhenSqlHasNoMarker(): void
     {
         $bank = new PreparedBank();
-        $bank->store('aaaaaaaaaaaa', ['x']);
+        $bank->store('aaaaaaaaaaaaaaaa', ['x']);
 
         [$cleanSql, $params] = $bank->consume('SELECT 1');
 
@@ -123,10 +123,10 @@ final class PreparedBankTest extends TestCase
     public function consumeSkipsUnknownIdsWithoutFailing(): void
     {
         $bank = new PreparedBank();
-        $bank->store('aaaaaaaaaaaa', ['x']);
+        $bank->store('aaaaaaaaaaaaaaaa', ['x']);
 
         // Unknown markers are stripped along with known ones; no params are added for them.
-        [$cleanSql, $params] = $bank->consume('a = ?/*WPP:aaaaaaaaaaaa*/ AND b = ?/*WPP:cafebabecafe*/');
+        [$cleanSql, $params] = $bank->consume('a = ?/*WPP:aaaaaaaaaaaaaaaa*/ AND b = ?/*WPP:cafebabecafebabe*/');
 
         self::assertSame('a = ? AND b = ?', $cleanSql);
         self::assertSame(['x'], $params);
@@ -136,8 +136,8 @@ final class PreparedBankTest extends TestCase
     public function resetDropsAllEntries(): void
     {
         $bank = new PreparedBank();
-        $bank->store('aaaaaaaaaaaa', ['x']);
-        $bank->store('bbbbbbbbbbbb', ['y']);
+        $bank->store('aaaaaaaaaaaaaaaa', ['x']);
+        $bank->store('bbbbbbbbbbbbbbbb', ['y']);
 
         $bank->reset();
 
