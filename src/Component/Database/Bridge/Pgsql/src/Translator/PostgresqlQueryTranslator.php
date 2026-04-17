@@ -1571,10 +1571,38 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             }
         }
 
-        $expr = $exprTokens !== [] ? $this->transformArgExpression($exprTokens) : $this->transformArgExpression($args[0]);
+        // extractFunctionArgs strips whitespace between tokens, so
+        // `DISTINCT name ORDER BY id` collapses to `DISTINCTnameORDER BYid`
+        // when fed straight through transformArgExpression. Join token
+        // strings with a single space so PostgreSQL receives a syntactically
+        // valid STRING_AGG argument.
+        $expr = $exprTokens !== []
+            ? $this->joinTokensWithSpaces($exprTokens)
+            : $this->transformArgExpression($args[0]);
         $rw->add(\sprintf('STRING_AGG(%s::text, %s)', $expr, $separator));
 
         return true;
+    }
+
+    /**
+     * Join semantic tokens with single spaces for fragments where
+     * extractFunctionArgs has discarded the whitespace between adjacent
+     * keywords / identifiers.
+     *
+     * @param list<Token> $tokens
+     */
+    private function joinTokensWithSpaces(array $tokens): string
+    {
+        $parts = [];
+        foreach ($tokens as $token) {
+            $text = (string) $token->token;
+            if ($text === '') {
+                continue;
+            }
+            $parts[] = $text;
+        }
+
+        return implode(' ', $parts);
     }
 
     /**

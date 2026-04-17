@@ -1422,6 +1422,36 @@ SQL;
     }
 
     #[Test]
+    public function groupConcatWithDistinct(): void
+    {
+        // PostgreSQL's STRING_AGG supports DISTINCT as a modifier. The
+        // space between DISTINCT and the expression must survive the
+        // translation — otherwise the engine parses `DISTINCTname` as a
+        // bare identifier and the aggregate collapses to a single value.
+        $result = $this->translator->translate("SELECT GROUP_CONCAT(DISTINCT name SEPARATOR '|') FROM t");
+
+        self::assertStringContainsString("STRING_AGG(DISTINCT name::text, '|')", $result[0]);
+    }
+
+    #[Test]
+    public function groupConcatWithOrderByPreservesKeywordSpacing(): void
+    {
+        $result = $this->translator->translate("SELECT GROUP_CONCAT(name ORDER BY id SEPARATOR '|') FROM t");
+
+        self::assertStringContainsString('name ORDER BY id', $result[0]);
+        self::assertStringNotContainsString('nameORDER BYid', $result[0]);
+    }
+
+    #[Test]
+    public function groupConcatWithDistinctAndOrderByAndDescSpacing(): void
+    {
+        $result = $this->translator->translate("SELECT GROUP_CONCAT(DISTINCT name ORDER BY id DESC SEPARATOR '|') FROM t");
+
+        self::assertStringContainsString('DISTINCT name ORDER BY id DESC', $result[0]);
+        self::assertStringNotContainsString('DISTINCTname', $result[0]);
+    }
+
+    #[Test]
     public function unhexFunction(): void
     {
         $result = $this->translator->translate("SELECT UNHEX('48656C6C6F')");

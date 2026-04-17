@@ -1577,7 +1577,15 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             }
         }
 
-        $expr = $exprTokens !== [] ? $this->transformArgExpression($exprTokens) : $this->transformArgExpression($args[0]);
+        // extractFunctionArgs strips whitespace between tokens, so
+        // `DISTINCT name ORDER BY id` comes back as [DISTINCT, name, ORDER BY, id]
+        // and transformArgExpression would concatenate those to
+        // `DISTINCTnameORDER BYid`. Build the expression string directly by
+        // joining the token text with single spaces — the resulting fragment
+        // is then safe to hand to group_concat().
+        $expr = $exprTokens !== []
+            ? $this->joinTokensWithSpaces($exprTokens)
+            : $this->transformArgExpression($args[0]);
         $rw->add(\sprintf('group_concat(%s, %s)', $expr, $separator));
 
         return true;
@@ -1803,6 +1811,30 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         }
 
         return trim($rw->getResult());
+    }
+
+    /**
+     * Join a list of semantic tokens into a single SQL fragment with a
+     * single space between each token's text. extractFunctionArgs()
+     * discards whitespace when it collects argument tokens, so callers
+     * that need to preserve boundaries between adjacent keywords
+     * (`DISTINCT`, `ORDER BY`, column names) reach for this helper to
+     * avoid producing identifiers glued together.
+     *
+     * @param list<Token> $tokens
+     */
+    private function joinTokensWithSpaces(array $tokens): string
+    {
+        $parts = [];
+        foreach ($tokens as $token) {
+            $text = (string) $token->token;
+            if ($text === '') {
+                continue;
+            }
+            $parts[] = $text;
+        }
+
+        return implode(' ', $parts);
     }
 
     /**

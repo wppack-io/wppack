@@ -1931,6 +1931,40 @@ SQL);
     }
 
     #[Test]
+    public function groupConcatWithDistinct(): void
+    {
+        // SQLite's group_concat supports DISTINCT as a modifier; we must
+        // preserve the space between DISTINCT and the column so it remains
+        // a syntactic keyword (rather than collapsing to `DISTINCTname`).
+        $result = $this->translator->translate("SELECT GROUP_CONCAT(DISTINCT name SEPARATOR '|') FROM t");
+
+        self::assertStringContainsString("group_concat(DISTINCT name, '|')", $result[0]);
+    }
+
+    #[Test]
+    public function groupConcatWithOrderByPreservesKeywordSpacing(): void
+    {
+        // SQLite native group_concat does not accept ORDER BY inside the
+        // call; the best we can do is preserve the MySQL-shaped argument so
+        // the engine reports a clear syntax error instead of a malformed
+        // identifier like `nameORDER BYid`. This test pins the spacing
+        // contract regardless of whether SQLite accepts the statement.
+        $result = $this->translator->translate("SELECT GROUP_CONCAT(name ORDER BY id SEPARATOR '|') FROM t");
+
+        self::assertStringContainsString('name ORDER BY id', $result[0]);
+        self::assertStringNotContainsString('nameORDER BYid', $result[0]);
+    }
+
+    #[Test]
+    public function groupConcatWithDistinctAndOrderByAndDescSpacing(): void
+    {
+        $result = $this->translator->translate("SELECT GROUP_CONCAT(DISTINCT name ORDER BY id DESC SEPARATOR '|') FROM t");
+
+        self::assertStringContainsString('DISTINCT name ORDER BY id DESC', $result[0]);
+        self::assertStringNotContainsString('DISTINCTname', $result[0]);
+    }
+
+    #[Test]
     public function highPrioritySkipped(): void
     {
         $result = $this->translator->translate('INSERT HIGH_PRIORITY INTO `t` VALUES (1)');
