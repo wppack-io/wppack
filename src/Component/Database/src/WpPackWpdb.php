@@ -201,15 +201,18 @@ class WpPackWpdb extends \wpdb
                 // %s/%d/%f inside a literal contribute their (type-coerced)
                 // value to the logical string. They do NOT emit a marker
                 // here; the enclosing literal becomes a single parameterized
-                // '?' on close.
+                // '?' on close. %i inside a literal is semantically nonsense
+                // but still consumes an arg so it doesn't shift later binds;
+                // the quoted-identifier form is folded into the literal.
                 if ($c === '%' && $i + 1 < $length) {
                     $spec = $query[$i + 1];
 
-                    if ($spec === 's' || $spec === 'd' || $spec === 'f') {
+                    if ($spec === 's' || $spec === 'd' || $spec === 'f' || $spec === 'i') {
                         $value = $args[$paramIndex++] ?? null;
                         $literalContent .= match ($spec) {
                             'd' => (string) (int) $value,
                             'f' => (string) (float) $value,
+                            'i' => $this->writer->getPlatform()->quoteIdentifier((string) $value),
                             default => (string) $value,
                         };
                         $literalHasPlaceholder = true;
@@ -217,7 +220,6 @@ class WpPackWpdb extends \wpdb
 
                         continue;
                     }
-                    // %i inside a literal is nonsensical — pass through.
                 }
 
                 $literalContent .= $c;
