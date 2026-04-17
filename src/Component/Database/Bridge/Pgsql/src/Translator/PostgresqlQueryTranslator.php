@@ -27,7 +27,9 @@ use PhpMyAdmin\SqlParser\Token;
 use PhpMyAdmin\SqlParser\TokenType;
 use Psr\Log\LoggerInterface;
 use WpPack\Component\Database\Driver\DriverInterface;
+use WpPack\Component\Database\Exception\ParserFailureException;
 use WpPack\Component\Database\Exception\TranslationException;
+use WpPack\Component\Database\Exception\UnsupportedFeatureException;
 use WpPack\Component\Database\Sql\QueryRewriter;
 use WpPack\Component\Database\Translator\QueryTranslatorHelpersTrait;
 use WpPack\Component\Database\Translator\QueryTranslatorInterface;
@@ -137,7 +139,7 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         // but finds nothing'. Fail loudly with a clear message so the
         // operator picks an explicit integration path instead.
         if (preg_match('/\bMATCH\s*\(.*?\)\s*AGAINST\b/is', $trimmed)) {
-            throw new TranslationException(
+            throw new UnsupportedFeatureException(
                 $sql,
                 'pgsql',
                 ['FULLTEXT MATCH ... AGAINST is not supported on PostgreSQL — use to_tsvector() / to_tsquery() with a dedicated tsvector column'],
@@ -160,7 +162,7 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
                     'errors' => $messages,
                 ]);
 
-                throw new TranslationException($sql, 'pgsql', $messages);
+                throw new ParserFailureException($sql, 'pgsql', $messages);
             }
 
             $this->logger?->warning('PostgreSQL query translation: parser reported warnings', [

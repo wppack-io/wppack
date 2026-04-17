@@ -26,7 +26,9 @@ use PhpMyAdmin\SqlParser\Statements\UpdateStatement;
 use PhpMyAdmin\SqlParser\Token;
 use PhpMyAdmin\SqlParser\TokenType;
 use Psr\Log\LoggerInterface;
+use WpPack\Component\Database\Exception\ParserFailureException;
 use WpPack\Component\Database\Exception\TranslationException;
+use WpPack\Component\Database\Exception\UnsupportedFeatureException;
 use WpPack\Component\Database\Sql\QueryRewriter;
 use WpPack\Component\Database\Translator\QueryTranslatorHelpersTrait;
 use WpPack\Component\Database\Translator\QueryTranslatorInterface;
@@ -138,7 +140,7 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         // the schema level; that rewrite is out of scope for this
         // translator.
         if (preg_match('/\bMATCH\s*\(.*?\)\s*AGAINST\b/is', $trimmed)) {
-            throw new TranslationException(
+            throw new UnsupportedFeatureException(
                 $sql,
                 'sqlite',
                 ['FULLTEXT MATCH ... AGAINST is not supported on SQLite — use FTS5 virtual tables instead'],
@@ -162,7 +164,7 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
                     'errors' => $messages,
                 ]);
 
-                throw new TranslationException($sql, 'sqlite', $messages);
+                throw new ParserFailureException($sql, 'sqlite', $messages);
             }
 
             $this->logger?->warning('SQLite query translation: parser reported warnings', [
@@ -1763,7 +1765,7 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
 
         $n = (int) $count;
         if ($n < 0) {
-            throw new TranslationException(
+            throw new UnsupportedFeatureException(
                 $rw->getResult() . ' ... SUBSTRING_INDEX(..., ' . $count . ')',
                 'sqlite',
                 ['SUBSTRING_INDEX with negative count is not supported on SQLite'],

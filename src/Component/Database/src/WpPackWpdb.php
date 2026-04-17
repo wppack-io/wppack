@@ -636,16 +636,46 @@ class WpPackWpdb extends \wpdb
     }
 
     /**
+     * Engine-aware capability probe. Previously returned `false` for any
+     * capability not hard-coded in the match, which meant plugins calling
+     * `$wpdb->has_cap('utf8mb4')` on SQLite saw `false` even though SQLite
+     * natively stores UTF-8. The lookup now consults the writer's platform
+     * engine before answering, so MySQL / MariaDB report the MySQL caps
+     * while SQLite / PostgreSQL report their own truthful set.
+     *
      * @param string $db_cap
      * @param string $table_name
      */
     public function has_cap($db_cap, $table_name = ''): bool
     {
-        return match ($db_cap) {
-            'collation', 'group_concat', 'subqueries' => true,
-            'set_charset' => false,
-            'utf8mb4' => true,
-            'utf8mb4_520' => true,
+        $engine = $this->writer->getPlatform()->getEngine();
+
+        // Capabilities every engine we support honours at runtime.
+        $universal = ['collation', 'group_concat', 'subqueries', 'utf8', 'utf8mb4'];
+
+        if (\in_array($db_cap, $universal, true)) {
+            return true;
+        }
+
+        return match ($engine) {
+            'mysql', 'mariadb' => match ($db_cap) {
+                'set_charset' => true,
+                'utf8mb4_520' => true,
+                default => false,
+            },
+            'pgsql' => match ($db_cap) {
+                'set_charset' => true, // pg is UTF-8 natively via client_encoding
+                'utf8mb4_520' => true,
+                'identifier_placeholders' => true,
+                default => false,
+            },
+            'sqlite' => match ($db_cap) {
+                // pdo_sqlite always stores UTF-8; collation maps to a
+                // single BINARY/NOCASE enum but we don't expose those.
+                'set_charset' => false,
+                'utf8mb4_520' => true,
+                default => false,
+            },
             default => false,
         };
     }

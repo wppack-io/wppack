@@ -23,7 +23,7 @@ namespace WpPack\Component\Database\Exception;
  * catches this and surfaces the failure through $wpdb->last_error so the
  * caller can detect + retry with a simpler query.
  */
-final class TranslationException extends \RuntimeException implements ExceptionInterface
+class TranslationException extends \RuntimeException implements ExceptionInterface
 {
     private const MAX_QUERY_LENGTH = 200;
 
