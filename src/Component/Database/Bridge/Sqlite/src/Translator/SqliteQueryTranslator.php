@@ -1219,6 +1219,9 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             'GROUP_CONCAT' => $this->transformGroupConcat($rw),
             'FIND_IN_SET' => $this->transformFindInSet($rw),
             'SUBSTRING_INDEX' => $this->transformSubstringIndex($rw),
+            'SPACE' => $this->transformSpace($rw),
+            'TIME_TO_SEC' => $this->transformTimeToSec($rw),
+            'SEC_TO_TIME' => $this->transformSecToTime($rw),
             'LOCATE' => $this->transformLocate($rw),
             default => false,
         };
@@ -1797,6 +1800,77 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         // which is heavyweight; plugins rarely pass n > 1 here so for
         // now fall through so the caller sees a recognisable error.
         return false;
+    }
+
+    /**
+     * SPACE(n) → replace(hex(zeroblob(n)), '00', ' ')
+     *
+     * SQLite lacks a native repeat() for single characters, but zeroblob
+     * allocates n NUL bytes cheaply and hex() expands each to '00'; the
+     * replace() swap finishes with an n-char space string. Small hack,
+     * but the alternative is a recursive CTE for every SPACE call.
+     */
+    private function transformSpace(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 1) {
+            return false;
+        }
+
+        $expr = $this->transformArgExpression($args[0]);
+        $rw->add(\sprintf("replace(hex(zeroblob(%s)), '00', ' ')", $expr));
+
+        return true;
+    }
+
+    /**
+     * TIME_TO_SEC('HH:MM:SS') → (hours*3600 + minutes*60 + seconds)
+     *
+     * Accepts the canonical MySQL TIME form. For values over 24h MySQL
+     * returns the full seconds count; SQLite's strftime can't parse
+     * HH:MM:SS > 23:59:59, so we decompose by substring arithmetic which
+     * also handles the oversized case.
+     */
+    private function transformTimeToSec(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 1) {
+            return false;
+        }
+
+        $expr = $this->transformArgExpression($args[0]);
+
+        // length-based split tolerates both H:MM:SS and HH:MM:SS inputs
+        // (MySQL accepts both).
+        $rw->add(\sprintf(
+            '('
+            . "CAST(substr(%1\$s, 1, instr(%1\$s, ':') - 1) AS INTEGER) * 3600 + "
+            . "CAST(substr(%1\$s, instr(%1\$s, ':') + 1, 2) AS INTEGER) * 60 + "
+            . "CAST(substr(%1\$s, -2, 2) AS INTEGER)"
+            . ')',
+            $expr,
+        ));
+
+        return true;
+    }
+
+    /**
+     * SEC_TO_TIME(n) → printf('%02d:%02d:%02d', n / 3600, (n % 3600) / 60, n % 60)
+     */
+    private function transformSecToTime(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 1) {
+            return false;
+        }
+
+        $expr = $this->transformArgExpression($args[0]);
+        $rw->add(\sprintf(
+            "printf('%%02d:%%02d:%%02d', (%1\$s) / 3600, ((%1\$s) %% 3600) / 60, (%1\$s) %% 60)",
+            $expr,
+        ));
+
+        return true;
     }
 
     /**

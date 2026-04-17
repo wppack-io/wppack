@@ -1356,6 +1356,9 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             'WEEKDAY' => $this->transformWeekday($rw),
             'LOCATE' => $this->transformLocate($rw),
             'GROUP_CONCAT' => $this->transformGroupConcat($rw),
+            'SPACE' => $this->transformSpace($rw),
+            'TIME_TO_SEC' => $this->transformTimeToSec($rw),
+            'SEC_TO_TIME' => $this->transformSecToTime($rw),
             'SUBSTRING_INDEX' => $this->transformSubstringIndex($rw),
             'FIND_IN_SET' => $this->transformFindInSet($rw),
             'JSON_EXTRACT' => $this->transformJsonExtract($rw),
@@ -1726,6 +1729,60 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
                 -$n,
             ));
         }
+
+        return true;
+    }
+
+    /**
+     * SPACE(n) → repeat(' ', n)
+     */
+    private function transformSpace(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 1) {
+            return false;
+        }
+
+        $expr = $this->transformArgExpression($args[0]);
+        $rw->add(\sprintf("repeat(' ', %s)", $expr));
+
+        return true;
+    }
+
+    /**
+     * TIME_TO_SEC('01:00:05') → EXTRACT(EPOCH FROM '01:00:05'::interval)::INTEGER
+     *
+     * Accepts the input as a time-like string / interval literal; casts via
+     * ::interval so '90:00:00' (> 24h, legal in MySQL TIME) also works.
+     */
+    private function transformTimeToSec(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 1) {
+            return false;
+        }
+
+        $expr = $this->transformArgExpression($args[0]);
+        $rw->add(\sprintf('EXTRACT(EPOCH FROM (%s)::interval)::INTEGER', $expr));
+
+        return true;
+    }
+
+    /**
+     * SEC_TO_TIME(3605) → to_char((3605 * interval '1 second'), 'HH24:MI:SS')
+     */
+    private function transformSecToTime(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 1) {
+            return false;
+        }
+
+        $expr = $this->transformArgExpression($args[0]);
+        $rw->add(\sprintf(
+            "to_char((%s) * interval '1 second', 'HH24:MI:SS')",
+            $expr,
+        ));
 
         return true;
     }

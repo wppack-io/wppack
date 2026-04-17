@@ -1991,6 +1991,33 @@ SQL);
         self::assertStringContainsString('datetime(col)', $result[0]);
     }
 
+    // ── Extra MySQL function mappings ──
+
+    #[Test]
+    public function spaceFunctionUsesZeroblobReplaceTrick(): void
+    {
+        $result = $this->translator->translate('SELECT SPACE(5) FROM t');
+
+        self::assertStringContainsString("replace(hex(zeroblob(5)), '00', ' ')", $result[0]);
+    }
+
+    #[Test]
+    public function timeToSecDecomposesBySubstring(): void
+    {
+        $result = $this->translator->translate('SELECT TIME_TO_SEC(t) FROM t');
+
+        self::assertStringContainsString("instr(t, ':')", $result[0]);
+        self::assertStringContainsString('3600', $result[0]);
+    }
+
+    #[Test]
+    public function secToTimeUsesPrintfFormat(): void
+    {
+        $result = $this->translator->translate('SELECT SEC_TO_TIME(3605) FROM t');
+
+        self::assertStringContainsString("printf('%02d:%02d:%02d'", $result[0]);
+    }
+
     // ── WP_Query meta_query / tax_query shapes ──
 
     #[Test]
