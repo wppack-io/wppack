@@ -721,6 +721,73 @@ trait WpdbIntegrationTestTrait
     }
 
     #[Test]
+    public function nestedMetaQueryOrOfAndGroupsFiltersCorrectRows(): void
+    {
+        // Reproduces the exact SQL shape WP_Query emits for
+        // meta_query => [
+        //   'relation' => 'AND',
+        //   ['key' => 'color', 'value' => 'red'],
+        //   ['relation' => 'OR',
+        //     ['key' => 'size',  'value' => 'L'],
+        //     ['key' => 'price', 'value' => 100, 'compare' => '>'],
+        //   ],
+        // ]
+        // The translator must preserve the nested AND/OR structure so the
+        // filter predicate yields the expected row set on every engine.
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        // Seed four posts with distinct meta combinations.
+        $posts = [
+            'red-L'        => ['color' => 'red',  'size' => 'L', 'price' => '50'],
+            'red-S-150'    => ['color' => 'red',  'size' => 'S', 'price' => '150'],
+            'blue-L'       => ['color' => 'blue', 'size' => 'L', 'price' => '50'],
+            'red-S-50'     => ['color' => 'red',  'size' => 'S', 'price' => '50'],
+        ];
+        $ids = [];
+        foreach ($posts as $title => $meta) {
+            $wpdb->insert($p . 'posts', [
+                'post_title' => $title,
+                'post_content' => '',
+                'post_status' => 'publish',
+                'post_type' => 'post',
+            ]);
+            $id = $wpdb->insert_id;
+            $ids[$title] = $id;
+            foreach ($meta as $k => $v) {
+                $wpdb->insert($p . 'postmeta', [
+                    'post_id' => $id,
+                    'meta_key' => $k,
+                    'meta_value' => $v,
+                ]);
+            }
+        }
+
+        // Shape: AND [color=red] AND (size=L OR price>100)
+        $sql = "SELECT DISTINCT p.ID, p.post_title FROM {$p}posts p
+            INNER JOIN {$p}postmeta mt1 ON p.ID = mt1.post_id
+            INNER JOIN {$p}postmeta mt2 ON p.ID = mt2.post_id
+            WHERE p.post_status = 'publish'
+              AND (mt1.meta_key = 'color' AND mt1.meta_value = 'red')
+              AND (
+                  (mt2.meta_key = 'size'  AND mt2.meta_value = 'L')
+                  OR
+                  (mt2.meta_key = 'price' AND CAST(mt2.meta_value AS SIGNED) > 100)
+              )
+            ORDER BY p.ID";
+
+        $rows = $wpdb->get_results($sql);
+
+        // Expect: 'red-L' (color=red AND size=L) and 'red-S-150' (color=red
+        // AND price>100). Not 'blue-L' (color mismatch) or 'red-S-50'
+        // (neither branch of the OR satisfied).
+        $titles = array_map(static fn($r) => $r->post_title, $rows);
+        sort($titles);
+
+        self::assertSame(['red-L', 'red-S-150'], $titles, 'Nested AND/OR filter must keep exactly the matching posts.');
+    }
+
+    #[Test]
     public function metaWithNullValue(): void
     {
         $wpdb = $this->getTestWpdb();
