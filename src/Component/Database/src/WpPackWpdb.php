@@ -894,24 +894,29 @@ class WpPackWpdb extends \wpdb
     /**
      * Execute a COUNT(*) query to determine total rows for SQL_CALC_FOUND_ROWS.
      *
-     * Strips LIMIT/OFFSET from the translated SQL and wraps in COUNT(*).
-     * The regex matches the outermost LIMIT clause (anchored to end of string
-     * with $). Subquery LIMIT clauses are not affected because they are not
-     * at the end of the full SQL.
+     * Strips trailing LIMIT/OFFSET and comment / semicolon noise from the
+     * translated SQL before wrapping in COUNT(*). The COUNT(*) subquery
+     * approach means leaving any LIMIT in place would cap the reported total
+     * at the LIMIT value, so robustly normalising the tail is correctness-
+     * critical. We walk the end of the string:
+     *   1. rtrim whitespace + trailing semicolons
+     *   2. peel off `-- ...` single-line comment and `/* ... *\/` block
+     *      comment suffixes (repeat — SQL can end with multiple comments)
+     *   3. drop one trailing LIMIT clause (with optional OFFSET)
+     * ...then the final SQL goes into the COUNT(*) subquery.
+     *
+     * The regex is anchored to `$`, so LIMIT inside a derived table or CTE
+     * is not matched — only the outermost clause.
      *
      * @param list<mixed> $params
      */
     private function calculateFoundRows(DriverInterface $driver, string $translatedSql, array $params): void
     {
         try {
-            // Strip trailing LIMIT/OFFSET
-            $countSql = (string) preg_replace(
-                '/\bLIMIT\s+\S+(\s+OFFSET\s+\S+)?\s*$/i',
-                '',
-                $translatedSql,
-            );
-            // Strip SQL_CALC_FOUND_ROWS — it is invalid inside a subquery and
-            // the enclosing COUNT(*) replaces it
+            $countSql = $this->stripTrailingLimitClause($translatedSql);
+
+            // Strip SQL_CALC_FOUND_ROWS — invalid inside a subquery, and the
+            // enclosing COUNT(*) replaces its semantics.
             $countSql = (string) preg_replace('/\bSQL_CALC_FOUND_ROWS\b\s*/i', '', $countSql);
 
             $result = $driver->executeQuery(
@@ -922,6 +927,41 @@ class WpPackWpdb extends \wpdb
         } catch (\Throwable) {
             $this->lastFoundRows = 0;
         }
+    }
+
+    /**
+     * Peel whitespace, semicolons, trailing comments and a final LIMIT /
+     * OFFSET clause from the tail of a SELECT. Extracted from
+     * calculateFoundRows for readability and for regression tests.
+     */
+    private function stripTrailingLimitClause(string $sql): string
+    {
+        $previous = '';
+        $current = $sql;
+
+        // Repeat until fixed point — a SELECT may end with whitespace,
+        // then a block comment, then a line comment, then LIMIT.
+        while ($current !== $previous) {
+            $previous = $current;
+
+            // Trim trailing whitespace and semicolons
+            $current = rtrim($current, " \t\n\r\0\x0B;");
+
+            // Strip trailing `-- ...` line comment (applies when no newline
+            // follows, i.e. the comment is on the last line)
+            $current = (string) preg_replace('/--[^\n]*$/', '', $current);
+
+            // Strip trailing `/* ... */` block comment
+            $current = (string) preg_replace('/\/\*.*?\*\/\s*$/s', '', $current);
+        }
+
+        // Now drop the outermost trailing LIMIT [OFFSET] clause, tolerating
+        // `LIMIT n`, `LIMIT n,m`, and `LIMIT n OFFSET m` forms.
+        return (string) preg_replace(
+            '/\bLIMIT\s+[^()]+?\s*$/i',
+            '',
+            $current,
+        );
     }
 
     private function isSelectQuery(string $sql): bool

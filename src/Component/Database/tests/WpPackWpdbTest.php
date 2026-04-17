@@ -726,6 +726,45 @@ final class WpPackWpdbTest extends TestCase
         self::assertSame([1, 'publish'], $this->wpdb->last_params);
     }
 
+    // ── SQL_CALC_FOUND_ROWS tail normalisation ──
+
+    #[Test]
+    public function foundRowsStripsTrailingLimitVariants(): void
+    {
+        // stripTrailingLimitClause is private; reach it via reflection so we
+        // can pin the tail-normalisation contract without spinning up a
+        // full query round-trip for each case.
+        $method = new \ReflectionMethod($this->wpdb, 'stripTrailingLimitClause');
+
+        $cases = [
+            'SELECT * FROM t LIMIT 10'                                          => 'SELECT * FROM t',
+            'SELECT * FROM t LIMIT 10 OFFSET 5'                                 => 'SELECT * FROM t',
+            'SELECT * FROM t LIMIT 10, 20'                                      => 'SELECT * FROM t',
+            'SELECT * FROM t LIMIT 10;'                                         => 'SELECT * FROM t',
+            'SELECT * FROM t LIMIT 10 -- trailing comment'                      => 'SELECT * FROM t',
+            'SELECT * FROM t LIMIT 10 /* block */'                              => 'SELECT * FROM t',
+            'SELECT * FROM (SELECT id FROM t LIMIT 5) sub LIMIT 10'             => 'SELECT * FROM (SELECT id FROM t LIMIT 5) sub',
+            'SELECT * FROM t'                                                   => 'SELECT * FROM t',
+        ];
+
+        foreach ($cases as $input => $expected) {
+            self::assertSame($expected, rtrim((string) $method->invoke($this->wpdb, $input)), "Input: {$input}");
+        }
+    }
+
+    #[Test]
+    public function foundRowsPreservesInnerSubqueryLimit(): void
+    {
+        // Critical regression: the previous `\bLIMIT\s+\S+\s*$` regex would
+        // still only strip the trailing LIMIT, but we want to confirm that
+        // LIMIT inside a subquery / derived table is never touched.
+        $method = new \ReflectionMethod($this->wpdb, 'stripTrailingLimitClause');
+
+        $input = 'SELECT * FROM t WHERE id IN (SELECT max_id FROM u LIMIT 3)';
+
+        self::assertSame($input, (string) $method->invoke($this->wpdb, $input));
+    }
+
     // ── Reader/Writer affinity ──
 
     #[Test]
