@@ -1364,6 +1364,8 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             'QUARTER' => $this->transformDateExtract($rw, 'QUARTER'),
             'LAST_DAY' => $this->transformLastDay($rw),
             'MAKEDATE' => $this->transformMakeDate($rw),
+            'PERIOD_ADD' => $this->transformPeriodAdd($rw),
+            'PERIOD_DIFF' => $this->transformPeriodDiff($rw),
             'SUBSTRING_INDEX' => $this->transformSubstringIndex($rw),
             'FIND_IN_SET' => $this->transformFindInSet($rw),
             'JSON_EXTRACT' => $this->transformJsonExtract($rw),
@@ -1789,6 +1791,54 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
 
         $expr = $this->transformArgExpression($args[0]);
         $rw->add(\sprintf("to_char((%s)::timestamp, 'FMDay')", $expr));
+
+        return true;
+    }
+
+    /**
+     * PERIOD_ADD(period, months) → P + months as YYYYMM.
+     *
+     * period is an integer YYYYMM (MySQL accepts YYMM too but we ignore
+     * that legacy path). Convert to months-since-epoch, add, convert back.
+     */
+    private function transformPeriodAdd(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 2) {
+            return false;
+        }
+
+        $p = $this->transformArgExpression($args[0]);
+        $n = $this->transformArgExpression($args[1]);
+
+        $rw->add(\sprintf(
+            '(((%1$s) / 100) * 12 + ((%1$s) %% 100) - 1 + (%2$s)) / 12 * 100'
+            . ' + (((%1$s) / 100) * 12 + ((%1$s) %% 100) - 1 + (%2$s)) %% 12 + 1',
+            $p,
+            $n,
+        ));
+
+        return true;
+    }
+
+    /**
+     * PERIOD_DIFF(p1, p2) → months between two YYYYMM periods.
+     */
+    private function transformPeriodDiff(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 2) {
+            return false;
+        }
+
+        $p1 = $this->transformArgExpression($args[0]);
+        $p2 = $this->transformArgExpression($args[1]);
+
+        $rw->add(\sprintf(
+            '(((%1$s) / 100) * 12 + ((%1$s) %% 100)) - (((%2$s) / 100) * 12 + ((%2$s) %% 100))',
+            $p1,
+            $p2,
+        ));
 
         return true;
     }

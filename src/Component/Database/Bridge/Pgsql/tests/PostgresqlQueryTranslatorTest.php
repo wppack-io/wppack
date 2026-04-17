@@ -1473,6 +1473,26 @@ SQL;
     }
 
     #[Test]
+    public function periodAddUsesIntegerMonthArithmetic(): void
+    {
+        $result = $this->translator->translate('SELECT PERIOD_ADD(202312, 2)');
+
+        // We don't pin every character (complex arithmetic) but require
+        // all the integer-division/modulo operators to be present.
+        self::assertStringContainsString('/ 12 * 100', $result[0]);
+        self::assertStringContainsString('% 12 + 1', $result[0]);
+    }
+
+    #[Test]
+    public function periodDiffReturnsMonthCount(): void
+    {
+        $result = $this->translator->translate('SELECT PERIOD_DIFF(202406, 202312)');
+
+        self::assertStringContainsString('* 12 + ((202406) % 100)', $result[0]);
+        self::assertStringContainsString('* 12 + ((202312) % 100)', $result[0]);
+    }
+
+    #[Test]
     public function makedateConvertsToPgDateMath(): void
     {
         $result = $this->translator->translate('SELECT MAKEDATE(2024, 60) FROM t');

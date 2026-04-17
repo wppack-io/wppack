@@ -1243,6 +1243,8 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             'MAKEDATE' => $this->transformMakeDate($rw),
             'LPAD' => $this->transformLpad($rw),
             'RPAD' => $this->transformRpad($rw),
+            'PERIOD_ADD' => $this->transformPeriodAdd($rw),
+            'PERIOD_DIFF' => $this->transformPeriodDiff($rw),
             'LOCATE' => $this->transformLocate($rw),
             default => false,
         };
@@ -1956,6 +1958,52 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             . "WHEN 11 THEN 'November' WHEN 12 THEN 'December' "
             . "END)",
             $expr,
+        ));
+
+        return true;
+    }
+
+    /**
+     * PERIOD_ADD(period, months) → same month-arithmetic rewrite as pgsql.
+     * Produces the resulting YYYYMM integer.
+     */
+    private function transformPeriodAdd(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 2) {
+            return false;
+        }
+
+        $p = $this->transformArgExpression($args[0]);
+        $n = $this->transformArgExpression($args[1]);
+
+        $rw->add(\sprintf(
+            '(((%1$s) / 100) * 12 + ((%1$s) %% 100) - 1 + (%2$s)) / 12 * 100'
+            . ' + (((%1$s) / 100) * 12 + ((%1$s) %% 100) - 1 + (%2$s)) %% 12 + 1',
+            $p,
+            $n,
+        ));
+
+        return true;
+    }
+
+    /**
+     * PERIOD_DIFF(p1, p2) → months between two YYYYMM periods.
+     */
+    private function transformPeriodDiff(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 2) {
+            return false;
+        }
+
+        $p1 = $this->transformArgExpression($args[0]);
+        $p2 = $this->transformArgExpression($args[1]);
+
+        $rw->add(\sprintf(
+            '(((%1$s) / 100) * 12 + ((%1$s) %% 100)) - (((%2$s) / 100) * 12 + ((%2$s) %% 100))',
+            $p1,
+            $p2,
         ));
 
         return true;
