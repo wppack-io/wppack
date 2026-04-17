@@ -232,6 +232,18 @@ final class WpPackWpdbTest extends TestCase
     }
 
     #[Test]
+    public function prepareRejectsUnterminatedLiteral(): void
+    {
+        // Missing close quote: prepare() must fail fast so the broken
+        // template string is attributed to the caller, not to the driver's
+        // eventual syntax error at execute() time.
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageMatches('/unterminated single-quoted literal/i');
+
+        $this->wpdb->prepare("SELECT * FROM t WHERE x = 'abc AND y = %d", 1);
+    }
+
+    #[Test]
     public function prepareWithIdentifierInsideLiteralConsumesArg(): void
     {
         // %i inside a literal is semantic nonsense but must still consume its

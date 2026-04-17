@@ -281,10 +281,19 @@ class WpPackWpdb extends \wpdb
             $out .= $c;
         }
 
-        // Malformed template (unterminated literal): emit what we have so the
-        // driver reports the syntax error at execute time rather than here.
+        // Malformed template (unterminated literal). Soft-emitting the
+        // partial literal lets a driver-side syntax error surface eventually,
+        // but at the cost of hiding the root cause — by the time the error
+        // reaches the operator the stack trace is pointing at execute() not
+        // at the offending prepare() callsite. Fail fast with a clear
+        // message instead: unterminated SQL literals are always a bug in
+        // the caller's template string, never a legitimate runtime path.
         if ($inLiteral) {
-            $out .= "'" . str_replace("'", "''", $literalContent);
+            throw new \InvalidArgumentException(
+                'WpPackWpdb::prepare(): unterminated single-quoted literal in template. '
+                . 'Check that every opening quote has a matching close quote. '
+                . '[Query: ' . (mb_strlen($query) > 200 ? mb_substr($query, 0, 200) . '...' : $query) . ']',
+            );
         }
 
         if ($boundParams === []) {
@@ -947,7 +956,10 @@ class WpPackWpdb extends \wpdb
             return $this->writer;
         }
 
-        if (preg_match('/^(SELECT|SHOW|DESCRIBE|EXPLAIN)\b/i', $trimmed)) {
+        // Keep this list in sync with isSelectQuery(); PRAGMA is a read-like
+        // SQLite statement whose result shape matches SELECT, so route it to
+        // the reader when available.
+        if (preg_match('/^(SELECT|SHOW|DESCRIBE|EXPLAIN|PRAGMA)\b/i', $trimmed)) {
             return $this->reader;
         }
 

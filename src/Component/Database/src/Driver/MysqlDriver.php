@@ -157,7 +157,10 @@ class MysqlDriver extends AbstractDriver
         $incompatible = ['NO_ZERO_DATE', 'ONLY_FULL_GROUP_BY', 'STRICT_TRANS_TABLES', 'STRICT_ALL_TABLES', 'TRADITIONAL', 'ANSI'];
         $modes = array_values(array_diff($modes, $incompatible));
 
-        $this->connection->query(\sprintf("SET SESSION sql_mode = '%s'", $this->connection->real_escape_string(implode(',', $modes))));
+        // Sql-mode names arrive from @@SESSION.sql_mode, which only ever
+        // returns server-validated identifiers — no user input, no need to
+        // escape. Keep the ' ... ' wrapping for syntax only.
+        $this->connection->query(\sprintf("SET SESSION sql_mode = '%s'", implode(',', $modes)));
     }
 
     protected function doClose(): void
