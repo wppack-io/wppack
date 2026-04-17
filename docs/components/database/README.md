@@ -4,7 +4,7 @@
 **名前空間:** `WpPack\Component\Database\`
 **レイヤー:** Abstraction
 
-WordPress の `$wpdb` を型安全にラップし、例外ベースのエラーハンドリングと `dbDelta()` によるカスタムテーブルのスキーマ管理を提供するコンポーネントです。snicco/better-wpdb（例外ベースエラーハンドリング）と Doctrine DBAL（メソッド命名、トランザクション API）を参考にしています。
+WordPress の `$wpdb` を型安全にラップし、例外ベースのエラーハンドリングと `dbDelta()` によるカスタムテーブルのスキーマ管理を提供するコンポーネントです。
 
 ## Database と Query の違い
 
@@ -196,14 +196,14 @@ if ($db->engine === DatabaseEngine::MySQL) {
 
 ### クエリ実行（executeQuery / executeStatement）
 
-SELECT 用と INSERT/UPDATE/DELETE 用を明確に分離しています（Doctrine DBAL パターン）。
+SELECT 用と INSERT/UPDATE/DELETE 用を明確に分離しています。
 
 | メソッド | 用途 | 戻り値 |
 |---------|------|--------|
 | `executeQuery(string $query, array $params = []): int\|bool` | SELECT 実行 | `$wpdb->query()` の結果 |
 | `executeStatement(string $query, array $params = []): int` | INSERT/UPDATE/DELETE 実行 | 影響行数 |
 
-### フェッチメソッド（Doctrine DBAL 風命名）
+### フェッチメソッド
 
 すべて連想配列で結果を返します。`$params` 配列があれば自動で prepared statement を実行します。
 
@@ -225,8 +225,6 @@ SELECT 用と INSERT/UPDATE/DELETE 用を明確に分離しています（Doctri
 | `delete(string $table, array $where, ...): int` | 行を削除（影響行数） |
 
 ### トランザクション
-
-Doctrine DBAL スタイルのトランザクション API です。
 
 | メソッド | 説明 |
 |---------|------|
@@ -503,7 +501,7 @@ $schemas = $schemaManager->getSchemas();
 
 ## Driver / Platform / Connection 抽象化
 
-Database コンポーネントは Cache コンポーネントと同じ抽象化パターン（Driver / Platform / Factory / Bridge）を提供します。MySQL 以外のデータベースエンジン（SQLite、PostgreSQL、RDS Data API、Aurora DSQL）に対応し、Doctrine DBAL の設計思想を取り入れています。
+Database コンポーネントは Cache コンポーネントと同じ抽象化パターン（Driver / Platform / Factory / Bridge）を提供します。MySQL 以外のデータベースエンジン（SQLite、PostgreSQL、RDS Data API、Aurora DSQL）に対応しています。
 
 ### アーキテクチャ
 
