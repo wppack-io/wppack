@@ -28,9 +28,25 @@ use WpPack\Component\Database\Statement;
  * Shared RDS Data API logic for MySQL and PostgreSQL Data API drivers.
  *
  * HTTP-based, stateless — no persistent connections.
+ *
+ * Response-size limit: the Data API caps each ExecuteStatement response
+ * at ~1 MB (subject to change by AWS). There is no nextPageToken / cursor,
+ * so result sets larger than that are rejected server-side. Callers that
+ * need to stream large result sets must paginate at the SQL level with
+ * LIMIT / OFFSET (or keyset pagination). Result-set handling here loads
+ * every row into memory; for production workloads above a few thousand
+ * rows per call, use server-side pagination or the native engine driver
+ * instead. doExecuteQuery emits a logger warning when the record count
+ * crosses a soft threshold so operators can catch these callsites early.
  */
 trait DataApiDriverTrait
 {
+    /**
+     * Soft threshold for a Data API query response. Above this row count we
+     * emit a PSR logger warning so callers can add LIMIT / keyset pagination
+     * before the 1 MB hard limit starts truncating real traffic.
+     */
+    private const LARGE_RESULT_WARNING_THRESHOLD = 5000;
     private RdsDataServiceClient $dataApiClient;
     private string $resourceArn;
     private string $secretArn;
@@ -79,7 +95,14 @@ trait DataApiDriverTrait
         $request = $this->buildDataApiRequest($sql, $params);
         $request['includeResultMetadata'] = true;
 
-        $response = $this->dataApiClient->executeStatement(new ExecuteStatementRequest($request));
+        try {
+            $response = $this->dataApiClient->executeStatement(new ExecuteStatementRequest($request));
+        } catch (\Throwable $e) {
+            // Surface the 1 MB hard limit with a dedicated message so ops can
+            // correlate production failures with the API-level cap instead of
+            // chasing a generic "server returned 500".
+            throw new DriverException($this->dataApiErrorMessage($sql, $e), 0, $e);
+        }
 
         $columnMetadata = $response->getColumnMetadata();
         $records = $response->getRecords();
@@ -103,15 +126,48 @@ trait DataApiDriverTrait
             $rows[] = $row;
         }
 
+        if (\count($rows) >= self::LARGE_RESULT_WARNING_THRESHOLD
+            && property_exists($this, 'logger')
+            && $this->logger !== null) {
+            $this->logger->warning('RDS Data API query returned a large result set; add LIMIT / keyset pagination before hitting the 1 MB response cap', [
+                'sql' => $sql,
+                'rows' => \count($rows),
+                'threshold' => self::LARGE_RESULT_WARNING_THRESHOLD,
+            ]);
+        }
+
         return new Result($rows, (int) $response->getNumberOfRecordsUpdated());
     }
 
     protected function doExecuteStatement(string $sql, array $params = []): int
     {
         $request = $this->buildDataApiRequest($sql, $params);
-        $response = $this->dataApiClient->executeStatement(new ExecuteStatementRequest($request));
+
+        try {
+            $response = $this->dataApiClient->executeStatement(new ExecuteStatementRequest($request));
+        } catch (\Throwable $e) {
+            throw new DriverException($this->dataApiErrorMessage($sql, $e), 0, $e);
+        }
 
         return (int) $response->getNumberOfRecordsUpdated();
+    }
+
+    /**
+     * Wrap a Data API exception message with context (truncated SQL + the
+     * AWS-side message) so operators can tell the 1 MB response cap apart
+     * from auth / connection / syntax failures without spelunking through
+     * the Throwable chain.
+     */
+    private function dataApiErrorMessage(string $sql, \Throwable $e): string
+    {
+        $maxLen = 200;
+        $truncated = mb_strlen($sql) > $maxLen ? mb_substr($sql, 0, $maxLen) . '...' : $sql;
+
+        return \sprintf(
+            'RDS Data API call failed: %s (responses are capped at ~1 MB — use LIMIT / keyset pagination for large SELECTs) [SQL: %s]',
+            $e->getMessage(),
+            $truncated,
+        );
     }
 
     protected function doPrepare(string $sql): Statement
