@@ -258,7 +258,11 @@ final class DatabaseManagerTest extends TestCase
     {
         $sql = $this->db->prepare('SELECT * FROM wp_posts WHERE ID = %d', 1);
 
-        self::assertStringContainsString('1', $sql);
+        // PreparedBank replaces placeholders with native prepared-statement
+        // binds tagged by a /*WPP:<hex>*/ marker. Values are never spliced
+        // into SQL text, so the bound 1 must NOT appear in $sql.
+        self::assertMatchesRegularExpression('/\?\s*\/\*WPP:[0-9a-f]{16}\*\//', $sql);
+        self::assertStringNotContainsString('= 1', $sql);
     }
 
     #[Test]
