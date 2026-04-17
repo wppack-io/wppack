@@ -143,4 +143,33 @@ final class PreparedBankTest extends TestCase
 
         self::assertSame(0, $bank->size());
     }
+
+    #[Test]
+    public function idsAreStableWithinInstanceAndDivergeBetweenInstances(): void
+    {
+        // Same input → same id within an instance (dedup still works).
+        $a = new PreparedBank();
+        self::assertSame($a->idFor('x = ?', ['q']), $a->idFor('x = ?', ['q']));
+
+        // Different instances generate different ids because each one carries
+        // its own random salt. This makes markers non-forgeable across
+        // WpPackWpdb instances: a marker from a previous request / another
+        // process can't splice into the current bank.
+        $b = new PreparedBank();
+        self::assertNotSame($a->idFor('x = ?', ['q']), $b->idFor('x = ?', ['q']));
+    }
+
+    #[Test]
+    public function explicitSaltProducesReproducibleIds(): void
+    {
+        // Dependency-injectable salt for callers that need stable ids across
+        // instances (tests, deterministic fixtures).
+        $a = new PreparedBank('fixed-salt');
+        $b = new PreparedBank('fixed-salt');
+
+        self::assertSame(
+            $a->idFor('x = ?', ['q']),
+            $b->idFor('x = ?', ['q']),
+        );
+    }
 }

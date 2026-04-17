@@ -246,7 +246,7 @@ class MysqlDriver extends AbstractDriver
             $this->inTx = false;
         }
 
-        throw new DriverException($message);
+        throw new DriverException($message, 0, null, $errno);
     }
 
     protected function doPrepare(string $sql): Statement

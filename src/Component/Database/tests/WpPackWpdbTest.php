@@ -21,6 +21,7 @@ use WpPack\Component\Database\Driver\DriverInterface;
 use WpPack\Component\Database\Platform\MysqlPlatform;
 use WpPack\Component\Database\Result;
 use WpPack\Component\Database\Translator\NullQueryTranslator;
+use WpPack\Component\Database\Translator\QueryTranslatorInterface;
 use WpPack\Component\Database\WpPackWpdb;
 
 final class WpPackWpdbTest extends TestCase
@@ -1039,6 +1040,72 @@ final class WpPackWpdbTest extends TestCase
         self::assertIsArray($rows);
         self::assertCount(2, $rows);
         self::assertSame(['id' => 1, 'name' => 'alice'], $rows[0]);
+    }
+
+    // ── wpdb contract: $errno ──
+
+    #[Test]
+    public function errnoIsZeroOnSuccessfulQuery(): void
+    {
+        $this->wpdb->query("INSERT INTO wptests_posts (post_title, post_status) VALUES ('ok', 'publish')");
+
+        self::assertSame(0, $this->wpdb->errno);
+        self::assertSame('', $this->wpdb->last_error);
+    }
+
+    #[Test]
+    public function errnoCarriesDriverErrorCodeOnFailure(): void
+    {
+        // Hand-craft a DriverException with an explicit driver errno, feed
+        // it through executeWithDriver via a writer mock. This pins the
+        // contract for plugins that check '$wpdb->errno === 2006' to
+        // trigger a reconnect — they now see the real code, not 0.
+        $writer = $this->createMock(DriverInterface::class);
+        $writer->method('getPlatform')->willReturn(new MysqlPlatform());
+        $writer->method('executeQuery')->willThrowException(
+            new \WpPack\Component\Database\Exception\DriverException('server has gone away', 0, null, 2006),
+        );
+        $writer->method('executeStatement')->willThrowException(
+            new \WpPack\Component\Database\Exception\DriverException('server has gone away', 0, null, 2006),
+        );
+        $writer->method('lastInsertId')->willReturn(0);
+
+        $wpdb = new WpPackWpdb(
+            writer: $writer,
+            translator: new NullQueryTranslator(),
+            dbname: 'test',
+        );
+
+        $result = $wpdb->query('UPDATE t SET x = 1');
+
+        self::assertFalse($result);
+        self::assertSame(2006, $wpdb->errno);
+        self::assertStringContainsString('server has gone away', $wpdb->last_error);
+    }
+
+    #[Test]
+    public function errnoIsZeroOnTranslationFailure(): void
+    {
+        // Translation errors are not driver errors — errno stays 0 so
+        // plugins checking for MySQL-specific codes don't misfire on a
+        // parser failure.
+        $driver = new SqliteDriver(':memory:');
+        $driver->connect();
+
+        $translator = $this->createMock(QueryTranslatorInterface::class);
+        $translator->method('translate')
+            ->willThrowException(new \WpPack\Component\Database\Exception\TranslationException('bad', 'sqlite'));
+
+        $wpdb = new WpPackWpdb(
+            writer: $driver,
+            translator: $translator,
+            dbname: 'test',
+        );
+
+        $wpdb->query('BAD SQL');
+
+        self::assertSame(0, $wpdb->errno);
+        self::assertStringContainsString('[Translation]', $wpdb->last_error);
     }
 
     // ── Event dispatcher ──

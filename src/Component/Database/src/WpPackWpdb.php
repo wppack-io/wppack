@@ -54,6 +54,16 @@ class WpPackWpdb extends \wpdb
     /** @var list<mixed> params that were bound to the most recent query() call */
     public array $last_params = [];
 
+    /**
+     * Mirror of the parent wpdb's public `$errno` property. Plugins defending
+     * against specific MySQL error codes (e.g. 2006 'server has gone away',
+     * 1062 duplicate key) read this to decide whether to retry or surface an
+     * error. For non-MySQL engines the driver reports 0 — the underlying
+     * exception carries the engine-specific SQLSTATE / error text via
+     * last_error instead.
+     */
+    public int $errno = 0;
+
     private ?LoggerInterface $logger;
     private ?EventDispatcherInterface $eventDispatcher;
 
@@ -652,6 +662,7 @@ class WpPackWpdb extends \wpdb
 
             // Prefix distinguishes translator failures from driver failures in last_error
             $this->last_error = '[Translation] ' . $e->getMessage();
+            $this->errno = 0; // translation errors are not driver errors
             $this->last_result = [];
             $this->num_rows = 0;
 
@@ -705,6 +716,9 @@ class WpPackWpdb extends \wpdb
                 ));
 
                 $this->last_error = $e->getMessage();
+                $this->errno = $e instanceof \WpPack\Component\Database\Exception\DriverException && $e->driverErrno !== null
+                    ? $e->driverErrno
+                    : 0;
                 $this->last_result = [];
                 $this->num_rows = 0;
 
@@ -714,6 +728,7 @@ class WpPackWpdb extends \wpdb
 
         $this->insert_id = $driver->lastInsertId();
         $this->last_error = '';
+        $this->errno = 0;
 
         $elapsed = microtime(true) - $start;
         $elapsedMs = round($elapsed * 1000, 2);

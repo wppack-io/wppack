@@ -13,4 +13,14 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Database\Exception;
 
-class DriverException extends \RuntimeException implements ExceptionInterface {}
+class DriverException extends \RuntimeException implements ExceptionInterface
+{
+    public function __construct(
+        string $message = '',
+        int $code = 0,
+        ?\Throwable $previous = null,
+        public readonly ?int $driverErrno = null,
+    ) {
+        parent::__construct($message, $code, $previous);
+    }
+}
