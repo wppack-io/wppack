@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace WpPack\Component\Database\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
+use WpPack\Component\Database\WpPackWpdb;
 
 /**
  * Shared integration tests for the wpdb contract across all database engines.
@@ -2319,6 +2320,17 @@ trait WpdbIntegrationTestTrait
     public function deleteRejectsWhereValueExceedingVarcharLength(): void
     {
         $wpdb = $this->getTestWpdb();
+
+        // Length validation rides on wpdb::process_fields(), which introspects
+        // the table via DESCRIBE / SHOW FULL COLUMNS — MySQL/MariaDB-only. On
+        // SQLite/PostgreSQL varchar(N) doesn't enforce N at insert time, so
+        // there is no pre-flight check to exercise here.
+        if ($wpdb instanceof WpPackWpdb) {
+            $engine = $wpdb->getWriter()->getPlatform()->getEngine();
+            if ($engine !== 'mysql' && $engine !== 'mariadb') {
+                self::markTestSkipped('varchar(N) length validation is MySQL-specific (engine: ' . $engine . ')');
+            }
+        }
 
         // posts.post_type is varchar(20). Passing a longer value in WHERE
         // must be rejected up-front (wpdb field length validation), NOT
