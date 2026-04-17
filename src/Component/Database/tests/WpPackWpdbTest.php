@@ -92,6 +92,75 @@ final class WpPackWpdbTest extends TestCase
         );
     }
 
+    // ── prepare(): literal-wrap for '%s' inside '...' ──
+
+    #[Test]
+    public function prepareWrapsLikePatternWithPlaceholderAsSingleParam(): void
+    {
+        // `'%%%s%%'` → '%foo%'. The whole literal is replaced with a single
+        // '?' so the bound value carries the LIKE wildcards. This is the only
+        // engine-neutral way: splicing the value into '%?%' would be
+        // interpreted by MySQL as a literal '?' byte, not a bind position.
+        $sql = $this->wpdb->prepare("SELECT * FROM posts WHERE title LIKE '%%%s%%'", 'foo');
+
+        self::assertMatchesRegularExpression(
+            '#^SELECT \* FROM posts WHERE title LIKE \?/\*WPP:[a-f0-9]{12}\*/$#',
+            $sql,
+        );
+
+        $this->wpdb->query($sql);
+        self::assertSame(['%foo%'], $this->wpdb->last_params);
+    }
+
+    #[Test]
+    public function prepareWrapsLiteralWithMixedContentAndPlaceholder(): void
+    {
+        // The literal has chars BEFORE and AFTER the placeholder.
+        // Expect a single '?' bound to the full composite.
+        $sql = $this->wpdb->prepare("SELECT * FROM users WHERE login = 'admin_%s'", 'bob');
+
+        self::assertMatchesRegularExpression(
+            '#^SELECT \* FROM users WHERE login = \?/\*WPP:[a-f0-9]{12}\*/$#',
+            $sql,
+        );
+
+        $this->wpdb->query($sql);
+        self::assertSame(['admin_bob'], $this->wpdb->last_params);
+    }
+
+    #[Test]
+    public function prepareLeavesLiteralWithoutPlaceholderVerbatim(): void
+    {
+        // O''Brien uses a doubled-quote escape inside a literal. No
+        // placeholder is present, so the literal is re-emitted as SQL
+        // (doubled-quote form).
+        $sql = $this->wpdb->prepare("SELECT * FROM users WHERE name = 'O''Brien' AND id = %d", 5);
+
+        self::assertMatchesRegularExpression(
+            "#^SELECT \* FROM users WHERE name = 'O''Brien' AND id = \?/\*WPP:[a-f0-9]{12}\*/$#",
+            $sql,
+        );
+    }
+
+    #[Test]
+    public function prepareMixesOutsideAndInsideLiteralPlaceholders(): void
+    {
+        // Outside and inside the literal each become their own '?'.
+        $sql = $this->wpdb->prepare(
+            "SELECT * FROM t WHERE x = 'a%s' AND y = %s",
+            'p',
+            'q',
+        );
+
+        self::assertMatchesRegularExpression(
+            '#^SELECT \* FROM t WHERE x = \? AND y = \?/\*WPP:[a-f0-9]{12}\*/$#',
+            $sql,
+        );
+
+        $this->wpdb->query($sql);
+        self::assertSame(['ap', 'q'], $this->wpdb->last_params);
+    }
+
     // ── prepare() + query() prepared statement ──
 
     #[Test]

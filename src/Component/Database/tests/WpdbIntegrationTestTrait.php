@@ -546,6 +546,29 @@ trait WpdbIntegrationTestTrait
     }
 
     #[Test]
+    public function likeWithPlaceholderInsideTemplateLiteral(): void
+    {
+        // "LIKE '%%%s%%'" writes the LIKE wildcards directly in the template
+        // and injects just the search term via %s. WpPackWpdb parameterizes
+        // the whole literal as a single '?' bound to '%WordPress%' — the
+        // engine runs the same match regardless of MySQL/SQLite/PostgreSQL.
+        $wpdb = $this->getTestWpdb();
+        $p = $wpdb->prefix;
+
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'WordPress Tutorial', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'PHP Guide', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+        $wpdb->insert($wpdb->prefix . 'posts', ['post_title' => 'Advanced WordPress', 'post_content' => '', 'post_status' => 'publish', 'post_type' => 'post']);
+
+        $results = $wpdb->get_results(
+            $wpdb->prepare("SELECT post_title FROM {$p}posts WHERE post_title LIKE '%%%s%%' ORDER BY post_title", 'WordPress'),
+        );
+
+        self::assertCount(2, $results);
+        self::assertSame('Advanced WordPress', $results[0]->post_title);
+        self::assertSame('WordPress Tutorial', $results[1]->post_title);
+    }
+
+    #[Test]
     public function sqlCalcFoundRowsPagination(): void
     {
         $wpdb = $this->getTestWpdb();

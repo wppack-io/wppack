@@ -124,58 +124,124 @@ class WpPackWpdb extends \wpdb
             return $query;
         }
 
-        // Temporarily escape literal %% so it cannot be mistaken for a placeholder.
-        $sql = str_replace('%%', "\x00WPPACK_PERCENT\x00", $query);
-
         $boundParams = [];
         $paramIndex = 0;
-        $inSingleQuote = false;
-        $length = \strlen($sql);
+        $length = \strlen($query);
         $out = '';
 
-        for ($i = 0; $i < $length; $i++) {
-            $c = $sql[$i];
+        // Literal buffering state. When we enter a '...' literal we stop
+        // emitting bytes directly and instead build the literal's *logical*
+        // string value here, resolving any %s/%d/%f placeholders the template
+        // embedded inside it. On close, if the literal contained at least one
+        // placeholder we replace the whole '...' with a single '?' bound to
+        // the composite string (MySQL would treat '?' inside a literal as a
+        // literal byte, so splicing the value won't work uniformly across
+        // engines — literal-wrap is the only engine-neutral form). Placeholder-
+        // free literals are re-emitted verbatim (with doubled-quote escape).
+        $inLiteral = false;
+        $literalContent = '';
+        $literalHasPlaceholder = false;
 
-            // Track '...' literal boundaries so placeholders inside them can be
-            // inlined. '' is a doubled-quote escape inside a literal; \' is a
-            // backslash escape (MySQL default) — both keep us inside the literal.
+        for ($i = 0; $i < $length; $i++) {
+            $c = $query[$i];
+
             if ($c === "'") {
-                if ($inSingleQuote && $i + 1 < $length && $sql[$i + 1] === "'") {
-                    $out .= "''";
+                if ($inLiteral) {
+                    // '' inside a literal is a doubled-quote escape for a
+                    // single '. Preserve it as a literal quote character in
+                    // the logical value.
+                    if (($query[$i + 1] ?? '') === "'") {
+                        $literalContent .= "'";
+                        $i++;
+
+                        continue;
+                    }
+
+                    // Closing the literal.
+                    if ($literalHasPlaceholder) {
+                        $out .= '?';
+                        $boundParams[] = $literalContent;
+                    } else {
+                        $out .= "'" . str_replace("'", "''", $literalContent) . "'";
+                    }
+
+                    $inLiteral = false;
+                    $literalContent = '';
+                    $literalHasPlaceholder = false;
+
+                    continue;
+                }
+
+                // Opening the literal.
+                $inLiteral = true;
+
+                continue;
+            }
+
+            if ($inLiteral) {
+                // Backslash escape inside a literal (MySQL default sql_mode).
+                // \' is a single quote, \\ is a backslash; anything else
+                // passes the two bytes through.
+                if ($c === '\\' && $i + 1 < $length) {
+                    $next = $query[$i + 1];
+                    $literalContent .= ($next === "'" || $next === '\\') ? $next : $c . $next;
                     $i++;
 
                     continue;
                 }
 
-                $inSingleQuote = !$inSingleQuote;
-                $out .= $c;
+                // %% inside a literal is a literal % character.
+                if ($c === '%' && ($query[$i + 1] ?? '') === '%') {
+                    $literalContent .= '%';
+                    $i++;
+
+                    continue;
+                }
+
+                // %s/%d/%f inside a literal contribute their (type-coerced)
+                // value to the logical string. They do NOT emit a marker
+                // here; the enclosing literal becomes a single parameterized
+                // '?' on close.
+                if ($c === '%' && $i + 1 < $length) {
+                    $spec = $query[$i + 1];
+
+                    if ($spec === 's' || $spec === 'd' || $spec === 'f') {
+                        $value = $args[$paramIndex++] ?? null;
+                        $literalContent .= match ($spec) {
+                            'd' => (string) (int) $value,
+                            'f' => (string) (float) $value,
+                            default => (string) $value,
+                        };
+                        $literalHasPlaceholder = true;
+                        $i++;
+
+                        continue;
+                    }
+                    // %i inside a literal is nonsensical — pass through.
+                }
+
+                $literalContent .= $c;
 
                 continue;
             }
 
-            if ($c === '\\' && $inSingleQuote && $i + 1 < $length) {
-                $out .= $c . $sql[$i + 1];
+            // Outside any literal.
+
+            if ($c === '%' && ($query[$i + 1] ?? '') === '%') {
+                $out .= '%';
                 $i++;
 
                 continue;
             }
 
             if ($c === '%' && $i + 1 < $length) {
-                $spec = $sql[$i + 1];
+                $spec = $query[$i + 1];
 
                 if ($spec === 'i' || $spec === 's' || $spec === 'd' || $spec === 'f') {
                     $value = $args[$paramIndex++] ?? null;
 
                     if ($spec === 'i') {
                         $out .= $this->writer->getPlatform()->quoteIdentifier((string) $value);
-                    } elseif ($inSingleQuote) {
-                        // Placeholder inside a string literal: inline so the
-                        // resulting SQL is a plain, valid literal.
-                        $out .= match ($spec) {
-                            'd' => (string) (int) $value,
-                            'f' => (string) (float) $value,
-                            default => $this->escapeWithinLiteral((string) $value),
-                        };
                     } else {
                         $out .= '?';
                         $boundParams[] = match ($spec) {
@@ -194,7 +260,11 @@ class WpPackWpdb extends \wpdb
             $out .= $c;
         }
 
-        $out = str_replace("\x00WPPACK_PERCENT\x00", '%', $out);
+        // Malformed template (unterminated literal): emit what we have so the
+        // driver reports the syntax error at execute time rather than here.
+        if ($inLiteral) {
+            $out .= "'" . str_replace("'", "''", $literalContent);
+        }
 
         if ($boundParams === []) {
             return $out;
@@ -204,23 +274,6 @@ class WpPackWpdb extends \wpdb
         $this->preparedBank->store($id, $boundParams);
 
         return $out . $this->preparedBank->markerFor($id);
-    }
-
-    /**
-     * Escape $value and strip the outer quotes so the result can be spliced
-     * inside an existing `'...'` literal (the `'%%%s%%'` LIKE-pattern
-     * fallback path in prepare()). Delegates to the Driver's engine-aware
-     * quoteStringLiteral() which returns the fully quoted form.
-     */
-    private function escapeWithinLiteral(string $value): string
-    {
-        $quoted = $this->writer->quoteStringLiteral($value);
-
-        if (\strlen($quoted) >= 2 && $quoted[0] === "'" && $quoted[\strlen($quoted) - 1] === "'") {
-            return substr($quoted, 1, -1);
-        }
-
-        return $quoted;
     }
 
     /**
