@@ -1042,6 +1042,59 @@ final class WpPackWpdbTest extends TestCase
         self::assertSame(['id' => 1, 'name' => 'alice'], $rows[0]);
     }
 
+    // ── Transaction depth diagnostics ──
+
+    #[Test]
+    public function transactionDepthTracksBeginAndCommit(): void
+    {
+        self::assertSame(0, $this->wpdb->getTransactionDepth());
+
+        $this->wpdb->query('BEGIN');
+        self::assertSame(1, $this->wpdb->getTransactionDepth());
+
+        $this->wpdb->query('SAVEPOINT sp1');
+        self::assertSame(2, $this->wpdb->getTransactionDepth());
+
+        $this->wpdb->query('RELEASE SAVEPOINT sp1');
+        self::assertSame(1, $this->wpdb->getTransactionDepth());
+
+        $this->wpdb->query('COMMIT');
+        self::assertSame(0, $this->wpdb->getTransactionDepth());
+    }
+
+    #[Test]
+    public function transactionDepthClampsAtZero(): void
+    {
+        // Stray COMMIT / ROLLBACK without a matching BEGIN must never drive
+        // the depth negative — otherwise a subsequent nested BEGIN check
+        // could wrap into the warning path incorrectly.
+        $this->wpdb->query('COMMIT');
+        $this->wpdb->query('ROLLBACK');
+
+        self::assertSame(0, $this->wpdb->getTransactionDepth());
+    }
+
+    #[Test]
+    public function nestedBeginLogsWarning(): void
+    {
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::atLeastOnce())->method('warning')
+            ->with(self::stringContains('Nested transaction BEGIN'), self::anything());
+
+        $driver = new SqliteDriver(':memory:');
+        $driver->connect();
+
+        $wpdb = new WpPackWpdb(
+            writer: $driver,
+            translator: new NullQueryTranslator(),
+            dbname: 'test',
+            logger: $logger,
+        );
+
+        $wpdb->query('BEGIN');
+        $wpdb->query('BEGIN'); // nested — should trigger warning
+    }
+
     // ── wpdb contract: $errno ──
 
     #[Test]

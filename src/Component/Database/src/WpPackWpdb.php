@@ -49,6 +49,17 @@ class WpPackWpdb extends \wpdb
      */
     private bool $stickyWriter = false;
 
+    /**
+     * Logical transaction nesting depth. BEGIN / START TRANSACTION /
+     * SAVEPOINT increment, COMMIT / ROLLBACK / RELEASE SAVEPOINT decrement
+     * (clamped to 0). We use this purely for diagnostics (MySQL silently
+     * commits the outer transaction on a nested BEGIN — a classic plugin
+     * footgun — so we log a warning when that happens). stickyWriter is
+     * not affected: read-your-own-writes stays on for the rest of the
+     * request regardless of depth.
+     */
+    private int $transactionDepth = 0;
+
     private PreparedBank $preparedBank;
 
     /** @var list<mixed> params that were bound to the most recent query() call */
@@ -368,6 +379,8 @@ class WpPackWpdb extends \wpdb
 
         $this->last_query = $cleanQuery;
         $this->last_params = $params;
+
+        $this->updateTransactionDepth($cleanQuery);
 
         // Intercept SELECT FOUND_ROWS() — return stored count from last SQL_CALC_FOUND_ROWS query
         if (preg_match('/^\s*SELECT\s+FOUND_ROWS\s*\(\s*\)/i', $cleanQuery)) {
@@ -1063,6 +1076,47 @@ class WpPackWpdb extends \wpdb
     public function resetReaderStickiness(): void
     {
         $this->stickyWriter = false;
+    }
+
+    /**
+     * Track BEGIN / COMMIT / ROLLBACK / SAVEPOINT nesting so we can warn
+     * about classic MySQL footguns — notably that a nested BEGIN silently
+     * commits the outer transaction. Depth is a diagnostic only; sticky
+     * writer affinity stays on for the rest of the request regardless.
+     */
+    private function updateTransactionDepth(string $sql): void
+    {
+        $trimmed = ltrim($sql);
+
+        if (preg_match('/^(BEGIN|START\s+TRANSACTION|SAVEPOINT)\b/i', $trimmed)) {
+            if ($this->transactionDepth > 0) {
+                // On MySQL, issuing BEGIN inside an active transaction
+                // silently commits the previous one. On PostgreSQL it
+                // raises an error. SAVEPOINT is the intended primitive
+                // for nesting; warn so operators can spot the bug.
+                $this->logger?->warning('Nested transaction BEGIN detected — MySQL will auto-commit the outer transaction', [
+                    'sql' => $trimmed,
+                    'previous_depth' => $this->transactionDepth,
+                ]);
+            }
+            $this->transactionDepth++;
+
+            return;
+        }
+
+        if (preg_match('/^(COMMIT|ROLLBACK|RELEASE\s+SAVEPOINT)\b/i', $trimmed)) {
+            $this->transactionDepth = max(0, $this->transactionDepth - 1);
+        }
+    }
+
+    /**
+     * Current transaction nesting depth as tracked by updateTransactionDepth().
+     * Exposed for tests and for callers that want to know whether we are
+     * inside a transaction (e.g. to decide retry policy).
+     */
+    public function getTransactionDepth(): int
+    {
+        return $this->transactionDepth;
     }
 
     /**
