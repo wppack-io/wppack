@@ -107,6 +107,38 @@ class MysqlDriver extends AbstractDriver
         return $this->connection->real_escape_string($value);
     }
 
+    /**
+     * Set the session transaction isolation level. Aurora MySQL clusters
+     * running under high concurrency usually want READ COMMITTED to avoid
+     * gap-lock escalation from the InnoDB default REPEATABLE READ; WP core
+     * does not set this explicitly so the cluster default leaks through.
+     * Callers can opt in via a one-shot call just after connect().
+     *
+     * Values accepted (case-insensitive): READ UNCOMMITTED, READ COMMITTED,
+     * REPEATABLE READ, SERIALIZABLE.
+     */
+    public function setIsolationLevel(string $level): void
+    {
+        $this->ensureConnected();
+
+        $canonical = strtoupper(trim($level));
+        $allowed = [
+            'READ UNCOMMITTED',
+            'READ COMMITTED',
+            'REPEATABLE READ',
+            'SERIALIZABLE',
+        ];
+        if (!\in_array($canonical, $allowed, true)) {
+            throw new DriverException(
+                'Unsupported transaction isolation level: ' . $level,
+            );
+        }
+
+        if (!$this->connection->query("SET SESSION TRANSACTION ISOLATION LEVEL {$canonical}")) {
+            $this->throwQueryError();
+        }
+    }
+
     protected function doConnect(): void
     {
         if ($this->connection !== null) {

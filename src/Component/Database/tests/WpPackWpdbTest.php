@@ -1042,6 +1042,38 @@ final class WpPackWpdbTest extends TestCase
         self::assertSame(['id' => 1, 'name' => 'alice'], $rows[0]);
     }
 
+    // ── Multisite — inherited set_blog_id ──
+
+    #[Test]
+    public function setBlogIdFromParentWpdbIsCallable(): void
+    {
+        // Parent wpdb::set_blog_id mutates $this->blogid, refreshes
+        // $this->prefix via get_blog_prefix(), and remaps table names.
+        // WpPackWpdb doesn't override any of those methods so the
+        // inherited behaviour works for multisite callers. In a single-
+        // site test env is_multisite() is false so the prefix doesn't
+        // change, but we at least verify the call succeeds and blogid
+        // is moved — regression guard for a future override that might
+        // break it entirely.
+        $wpdb = new WpPackWpdb(
+            writer: $this->driver,
+            translator: new NullQueryTranslator(),
+            dbname: 'test',
+        );
+
+        $wpdb->set_prefix('wpt_');
+        self::assertSame('wpt_', $wpdb->prefix);
+
+        $old = $wpdb->set_blog_id(5);
+
+        self::assertIsInt($old);
+        self::assertSame(5, $wpdb->blogid);
+
+        // Switching back preserves the previous blog id.
+        $wpdb->set_blog_id($old);
+        self::assertSame($old, $wpdb->blogid);
+    }
+
     // ── Transaction depth diagnostics ──
 
     #[Test]

@@ -364,6 +364,14 @@ class WpPackWpdb extends \wpdb
         // or rewrite the SQL before execution. Pass the clean version (with
         // '?' placeholders, no bank markers) so filter consumers see the SQL
         // that will actually run.
+        //
+        // IMPORTANT: filter callbacks may append / modify static SQL fragments
+        // (e.g. add a multisite tenant predicate) but must NOT introduce
+        // additional '?' placeholders. Params are already extracted by bank
+        // consume at this point; any '?' added by the filter would lack a
+        // corresponding bound value and the driver would error at execute
+        // time. Plugin authors that need new bound values should use
+        // prepare() themselves to produce a new (marker, param) pair.
         if (\function_exists('apply_filters')) {
             /** @var string|false $filtered */
             $filtered = apply_filters('query', $cleanQuery);
