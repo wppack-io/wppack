@@ -105,7 +105,10 @@ class WpPackWpdb extends \wpdb
      * - A placeholder that lands inside a single-quoted string literal (e.g.
      *   `"LIKE '%%%s%%'"`) folds the entire '...' into a single bound '?' —
      *   splicing the value would require engine-specific escape forms and
-     *   MySQL would treat a spliced '?' as a literal byte.
+     *   MySQL would treat a spliced '?' as a literal byte. %i inside a
+     *   literal is semantic nonsense but still consumes an arg (the quoted-
+     *   identifier form is folded into the composite string) so later
+     *   placeholders bind to the right values.
      *
      * Accepts args passed as a single array for WordPress legacy compatibility
      * (`prepare($sql, [$a, $b])` === `prepare($sql, $a, $b)`).
