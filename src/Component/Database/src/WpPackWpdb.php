@@ -539,8 +539,20 @@ class WpPackWpdb extends \wpdb
     {
         $this->writer->connect();
         $this->reader?->connect();
+
+        // $dbh shape varies by engine: \mysqli on MySQL/MariaDB,
+        // \PgSql\Connection on PostgreSQL, \PDO on SQLite, the
+        // RdsDataServiceClient on Aurora Data API / DSQL. Legacy plugin
+        // code that assumes the mysqli API (e.g. $wpdb->dbh->real_escape_string)
+        // will break on non-MySQL engines; callers that need engine-
+        // agnostic escaping should use $wpdb->_real_escape() which
+        // delegates to Driver::escapeStringContent.
         $this->dbh = $this->writer->getNativeConnection();
         $this->is_mysql = $this->engineIs('mysql', 'mariadb');
+        // Note: parent wpdb's `$use_mysqli` is private so a subclass
+        // cannot set it. Plugins that read it directly will see the
+        // parent's default (false) regardless. Most defensive code uses
+        // the public `$is_mysql` instead, which we do keep current.
         $this->ready = true;
 
         return true;
@@ -645,6 +657,14 @@ class WpPackWpdb extends \wpdb
     }
 
     /**
+     * Readiness flag, NOT a liveness probe.
+     *
+     * Returns true once db_connect() has opened the writer driver; it
+     * does not round-trip to the server to verify the connection is
+     * still alive. Long-running callers that need genuine liveness (e.g.
+     * after a potential pg_terminate_backend or TCP RST) should issue a
+     * cheap `SELECT 1` and catch DriverException instead.
+     *
      * @param bool $allow_bail
      */
     public function check_connection($allow_bail = true): bool
@@ -730,12 +750,16 @@ class WpPackWpdb extends \wpdb
             // too — the SQL never reached the driver so driverName is the
             // writer (where it would have gone) and the error text is
             // prefixed to distinguish it from driver-side failures.
-            $this->eventDispatcher?->dispatch(new DatabaseQueryFailedEvent(
-                sql: $sql,
-                paramsSummary: $this->paramsSummary($params),
-                errorMessage: '[Translation] ' . $e->getMessage(),
-                driverName: ($driver === $this->reader) ? 'reader' : 'writer',
-            ));
+            // Avoid constructing the event object (plus paramsSummary
+            // allocation) when no listener is registered.
+            if ($this->eventDispatcher !== null) {
+                $this->eventDispatcher->dispatch(new DatabaseQueryFailedEvent(
+                    sql: $sql,
+                    paramsSummary: $this->paramsSummary($params),
+                    errorMessage: '[Translation] ' . $e->getMessage(),
+                    driverName: ($driver === $this->reader) ? 'reader' : 'writer',
+                ));
+            }
 
             // Prefix distinguishes translator failures from driver failures in last_error
             $this->last_error = '[Translation] ' . $e->getMessage();
@@ -785,12 +809,14 @@ class WpPackWpdb extends \wpdb
                     'error' => $e->getMessage(),
                 ]));
 
-                $this->eventDispatcher?->dispatch(new DatabaseQueryFailedEvent(
-                    sql: $translatedSql,
-                    paramsSummary: $this->paramsSummary($params),
-                    errorMessage: $e->getMessage(),
-                    driverName: ($driver === $this->reader) ? 'reader' : 'writer',
-                ));
+                if ($this->eventDispatcher !== null) {
+                    $this->eventDispatcher->dispatch(new DatabaseQueryFailedEvent(
+                        sql: $translatedSql,
+                        paramsSummary: $this->paramsSummary($params),
+                        errorMessage: $e->getMessage(),
+                        driverName: ($driver === $this->reader) ? 'reader' : 'writer',
+                    ));
+                }
 
                 $this->last_error = $e->getMessage();
                 $this->errno = $e instanceof \WpPack\Component\Database\Exception\DriverException && $e->driverErrno !== null
@@ -838,13 +864,15 @@ class WpPackWpdb extends \wpdb
             }
         }
 
-        $this->eventDispatcher?->dispatch(new DatabaseQueryCompletedEvent(
-            sql: $sql,
-            paramsSummary: $this->paramsSummary($params),
-            elapsedMs: $elapsedMs,
-            rowCount: $isSelect ? \count($this->last_result) : $this->rows_affected,
-            driverName: $driverName,
-        ));
+        if ($this->eventDispatcher !== null) {
+            $this->eventDispatcher->dispatch(new DatabaseQueryCompletedEvent(
+                sql: $sql,
+                paramsSummary: $this->paramsSummary($params),
+                elapsedMs: $elapsedMs,
+                rowCount: $isSelect ? \count($this->last_result) : $this->rows_affected,
+                driverName: $driverName,
+            ));
+        }
 
         if (\defined('SAVEQUERIES') && SAVEQUERIES) {
             // Symfony/Doctrine-style logging: keep the parameterized SQL in

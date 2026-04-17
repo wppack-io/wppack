@@ -82,11 +82,17 @@ trait DataApiDriverTrait
     }
 
     /**
-     * Override the parent driver's escape so we never reach for an unset
-     * native MySQL/PgSQL connection — Data API is stateless HTTP with no
-     * live socket. Values always leave this driver via structured
-     * parameter binding (executeQuery($sql, $params)); this method is
-     * only used by WpPackWpdb for debug/log display.
+     * Display-only string-literal escape for Data API drivers.
+     *
+     * IMPORTANT: the output is intended for log / debug interpolation
+     * only — it must NEVER be spliced into SQL sent to the server. All
+     * real values leave this driver via structured parameter binding
+     * (executeQuery($sql, $params)) which sends typed fields over HTTP,
+     * bypassing SQL-string escaping entirely. addslashes() here
+     * produces output that looks close enough to MySQL's escape shape
+     * for interpolated SAVEQUERIES logs, but the result is not safe to
+     * execute against PostgreSQL / DSQL where the C-string backslash
+     * convention doesn't apply.
      */
     public function quoteStringLiteral(string $value): string
     {

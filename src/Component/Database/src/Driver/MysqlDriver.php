@@ -269,7 +269,15 @@ class MysqlDriver extends AbstractDriver
         $this->ensureConnected();
 
         if ($params === []) {
-            $result = $this->connection->query($sql);
+            try {
+                $result = $this->connection->query($sql);
+            } catch (\mysqli_sql_exception $e) {
+                // Modern mysqli defaults to exception reporting mode, so
+                // query() never returns false on error — it throws. Route
+                // the exception through our gone-away detection path so
+                // the handle is still dropped for errno 2006 / 2013.
+                $this->throwQueryError($e);
+            }
 
             if ($result === false) {
                 $this->throwQueryError();
@@ -294,7 +302,11 @@ class MysqlDriver extends AbstractDriver
         $this->ensureConnected();
 
         if ($params === []) {
-            $result = $this->connection->query($sql);
+            try {
+                $result = $this->connection->query($sql);
+            } catch (\mysqli_sql_exception $e) {
+                $this->throwQueryError($e);
+            }
 
             if ($result === false) {
                 $this->throwQueryError();
@@ -319,17 +331,22 @@ class MysqlDriver extends AbstractDriver
      * We deliberately do not auto-retry the failed statement: a partially
      * applied write cannot be safely replayed without caller knowledge.
      */
-    private function throwQueryError(): never
+    private function throwQueryError(?\mysqli_sql_exception $exception = null): never
     {
-        // ensureConnected() has already run and never returns with a null
-        // handle, so PHPStan correctly narrows $this->connection. The
-        // defensive reads below are intentional in case a future caller
-        // invokes this before connecting.
-        $errno = $this->connection->errno;
-        $message = $this->connection->error;
+        // Pull the error metadata either from the raised exception (modern
+        // mysqli_report(MYSQLI_REPORT_STRICT) mode) or the handle itself
+        // (legacy false-return mode). Both paths need the same gone-away
+        // cleanup.
+        if ($exception !== null) {
+            $errno = $exception->getCode();
+            $message = $exception->getMessage();
+        } else {
+            $errno = $this->connection->errno;
+            $message = $this->connection->error;
+        }
 
         if ($errno === 2006 || $errno === 2013) {
-            if ($this->ownsConnection) {
+            if ($this->ownsConnection && $this->connection !== null) {
                 @$this->connection->close();
             }
 
@@ -337,7 +354,7 @@ class MysqlDriver extends AbstractDriver
             $this->inTx = false;
         }
 
-        throw new DriverException($message, 0, null, $errno);
+        throw new DriverException($message, 0, $exception, $errno);
     }
 
     protected function doPrepare(string $sql): Statement

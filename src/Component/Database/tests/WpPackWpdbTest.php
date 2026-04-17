@@ -1074,6 +1074,34 @@ final class WpPackWpdbTest extends TestCase
         self::assertSame($old, $wpdb->blogid);
     }
 
+    // ── has_cap engine-aware ──
+
+    #[Test]
+    public function hasCapReportsUtf8Mb4TrueForSqlite(): void
+    {
+        // Regression: before engine-awareness was added, has_cap returned
+        // false for any capability not in the MySQL allowlist, so plugins
+        // checking has_cap('utf8mb4') on SQLite skipped UTF-8 features
+        // even though SQLite stores UTF-8 natively.
+        self::assertTrue($this->wpdb->has_cap('utf8mb4'));
+        self::assertTrue($this->wpdb->has_cap('utf8'));
+        self::assertTrue($this->wpdb->has_cap('collation'));
+    }
+
+    #[Test]
+    public function hasCapReturnsFalseForMysqlOnlyCapsOnSqlite(): void
+    {
+        // set_charset is a MySQL concept (mysqli::set_charset); SQLite
+        // doesn't have it, so we should report false.
+        self::assertFalse($this->wpdb->has_cap('set_charset'));
+    }
+
+    #[Test]
+    public function hasCapReturnsFalseForUnknownCaps(): void
+    {
+        self::assertFalse($this->wpdb->has_cap('this_cap_does_not_exist'));
+    }
+
     // ── Transaction depth diagnostics ──
 
     #[Test]
