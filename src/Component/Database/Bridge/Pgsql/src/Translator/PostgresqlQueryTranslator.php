@@ -1994,12 +1994,35 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
 
     /**
      * CONVERT(val, type) → CAST(val AS type)
+     * CONVERT(val USING charset) → val::text (PostgreSQL uses client
+     * encoding globally; per-expression charset conversion has no
+     * equivalent, so we fold the expression to text).
      */
     private function transformConvert(QueryRewriter $rw): bool
     {
         $args = $this->extractFunctionArgs($rw);
-        if ($args === null || \count($args) < 2) {
+        if ($args === null || \count($args) < 1) {
             return false;
+        }
+
+        // USING form: CONVERT(expr USING charset) — all tokens in args[0].
+        if (\count($args) === 1) {
+            $exprTokens = [];
+            foreach ($args[0] as $token) {
+                if ($token->type === TokenType::Keyword && strtoupper((string) $token->keyword) === 'USING') {
+                    break;
+                }
+                $exprTokens[] = $token;
+            }
+
+            if ($exprTokens === []) {
+                return false;
+            }
+
+            $expr = $this->joinTokensWithSpaces($exprTokens);
+            $rw->add(\sprintf('(%s)::text', $expr));
+
+            return true;
         }
 
         $expr = $this->transformArgExpression($args[0]);

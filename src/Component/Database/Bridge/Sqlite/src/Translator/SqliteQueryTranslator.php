@@ -1604,12 +1604,41 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
 
     /**
      * CONVERT(val, type) → CAST(val AS type)
+     * CONVERT(val USING charset) → val (SQLite stores everything as UTF-8
+     * by default, so the charset conversion is a no-op).
+     *
+     * phpmyadmin/sql-parser puts the USING keyword + charset name into
+     * the same arg0 token list when there's no comma, so we look for
+     * the USING keyword and split ourselves.
      */
     private function transformConvert(QueryRewriter $rw): bool
     {
         $args = $this->extractFunctionArgs($rw);
-        if ($args === null || \count($args) < 2) {
+        if ($args === null || \count($args) < 1) {
             return false;
+        }
+
+        // USING form: CONVERT(expr USING charset). All tokens land in args[0];
+        // we peel the USING ... tail off and treat the rest as the expression.
+        if (\count($args) === 1) {
+            $exprTokens = [];
+            foreach ($args[0] as $token) {
+                if ($token->type === TokenType::Keyword && strtoupper((string) $token->keyword) === 'USING') {
+                    break;
+                }
+                $exprTokens[] = $token;
+            }
+
+            if ($exprTokens === []) {
+                return false;
+            }
+
+            $expr = $this->joinTokensWithSpaces($exprTokens);
+            // SQLite storage is UTF-8 by default; emit the expression
+            // unchanged so CONVERT USING becomes a no-op.
+            $rw->add($expr);
+
+            return true;
         }
 
         $expr = $this->transformArgExpression($args[0]);

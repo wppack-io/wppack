@@ -1973,6 +1973,18 @@ SQL);
     }
 
     #[Test]
+    public function convertUsingCharsetIsStrippedForSqlite(): void
+    {
+        // SQLite stores everything UTF-8 by default, so CONVERT USING is
+        // a semantic no-op — emit the inner expression unchanged.
+        $result = $this->translator->translate('SELECT CONVERT(col USING utf8mb4) FROM t');
+
+        self::assertMatchesRegularExpression('/SELECT\s+col\s+FROM\s+t/i', $result[0]);
+        self::assertStringNotContainsString('CONVERT', $result[0]);
+        self::assertStringNotContainsString('USING', $result[0]);
+    }
+
+    #[Test]
     public function makedateConvertsToDateArithmetic(): void
     {
         $result = $this->translator->translate('SELECT MAKEDATE(2024, 60) FROM t');

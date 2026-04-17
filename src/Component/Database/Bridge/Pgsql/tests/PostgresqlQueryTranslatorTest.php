@@ -1461,6 +1461,18 @@ SQL;
     // ── FULLTEXT explicit rejection ──
 
     #[Test]
+    public function convertUsingCharsetMapsToTextCast(): void
+    {
+        // PG doesn't do per-expression charset conversion (client_encoding
+        // is session-global); fold CONVERT(expr USING ...) to a text cast
+        // so the outer query still has a sensible expression to operate
+        // on.
+        $result = $this->translator->translate('SELECT CONVERT(col USING utf8mb4) FROM t');
+
+        self::assertStringContainsString('(col)::text', $result[0]);
+    }
+
+    #[Test]
     public function makedateConvertsToPgDateMath(): void
     {
         $result = $this->translator->translate('SELECT MAKEDATE(2024, 60) FROM t');
