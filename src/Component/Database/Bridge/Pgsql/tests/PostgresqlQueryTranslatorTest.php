@@ -1461,6 +1461,15 @@ SQL;
     // ── FULLTEXT explicit rejection ──
 
     #[Test]
+    public function makedateConvertsToPgDateMath(): void
+    {
+        $result = $this->translator->translate('SELECT MAKEDATE(2024, 60) FROM t');
+
+        self::assertStringContainsString('make_date((2024)::int, 1, 1)', $result[0]);
+        self::assertStringContainsString("(60)::int - 1", $result[0]);
+    }
+
+    #[Test]
     public function fulltextMatchAgainstRaisesTranslationException(): void
     {
         $this->expectException(\WpPack\Component\Database\Exception\TranslationException::class);

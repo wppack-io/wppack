@@ -1945,6 +1945,41 @@ SQL);
 
     // ── FULLTEXT explicit rejection ──
 
+    // ── Spatial / LPAD / RPAD / MAKEDATE ──
+
+    #[Test]
+    public function spatialFunctionRaisesTranslationException(): void
+    {
+        $this->expectException(\WpPack\Component\Database\Exception\TranslationException::class);
+        $this->expectExceptionMessageMatches('/spatial/i');
+
+        $this->translator->translate("SELECT ST_Distance(pt, ST_GeomFromText('POINT(1 2)')) FROM t");
+    }
+
+    #[Test]
+    public function lpadEmulatesViaZeroblob(): void
+    {
+        $result = $this->translator->translate("SELECT LPAD(code, 5, '0') FROM t");
+
+        self::assertStringContainsString("substr(replace(hex(zeroblob(5)), '00', '0') || code, -(5))", $result[0]);
+    }
+
+    #[Test]
+    public function rpadEmulatesViaZeroblob(): void
+    {
+        $result = $this->translator->translate("SELECT RPAD(code, 10, ' ') FROM t");
+
+        self::assertStringContainsString("substr(code || replace(hex(zeroblob(10)), '00', ' '), 1, 10)", $result[0]);
+    }
+
+    #[Test]
+    public function makedateConvertsToDateArithmetic(): void
+    {
+        $result = $this->translator->translate('SELECT MAKEDATE(2024, 60) FROM t');
+
+        self::assertStringContainsString("date((2024) || '-01-01', ((60) - 1) || ' days')", $result[0]);
+    }
+
     #[Test]
     public function fulltextMatchAgainstRaisesTranslationException(): void
     {

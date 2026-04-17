@@ -147,6 +147,20 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             );
         }
 
+        // GIS / spatial functions (ST_*, POINT(), GeomFromText) have no
+        // native SQLite equivalent without the SpatiaLite extension. Plugins
+        // that genuinely need them (WooCommerce Shipping zones for complex
+        // geo-restrictions) must migrate to SpatiaLite explicitly; until
+        // then, refuse the query so operators see a clear error rather than
+        // a runtime 'no such function' deep inside a storefront query.
+        if (preg_match('/\b(ST_[A-Z_]+|GeomFromText|GeomFromWKB|AsText|AsBinary)\s*\(/i', $trimmed)) {
+            throw new UnsupportedFeatureException(
+                $sql,
+                'sqlite',
+                ['Spatial functions (ST_*, GeomFromText, etc.) are not supported on SQLite without the SpatiaLite extension'],
+            );
+        }
+
         $parser = new Parser($sql);
 
         // The phpmyadmin/sql-parser library records context-sensitive warnings
@@ -1226,6 +1240,9 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             'MONTHNAME' => $this->transformMonthName($rw),
             'QUARTER' => $this->transformQuarter($rw),
             'LAST_DAY' => $this->transformLastDay($rw),
+            'MAKEDATE' => $this->transformMakeDate($rw),
+            'LPAD' => $this->transformLpad($rw),
+            'RPAD' => $this->transformRpad($rw),
             'LOCATE' => $this->transformLocate($rw),
             default => false,
         };
@@ -1910,6 +1927,81 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             . "WHEN 11 THEN 'November' WHEN 12 THEN 'December' "
             . "END)",
             $expr,
+        ));
+
+        return true;
+    }
+
+    /**
+     * MAKEDATE(year, day_of_year) → date(year || '-01-01', '+' || (day-1) || ' days')
+     */
+    private function transformMakeDate(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 2) {
+            return false;
+        }
+
+        $year = $this->transformArgExpression($args[0]);
+        $day = $this->transformArgExpression($args[1]);
+        $rw->add(\sprintf(
+            "date((%s) || '-01-01', ((%s) - 1) || ' days')",
+            $year,
+            $day,
+        ));
+
+        return true;
+    }
+
+    /**
+     * LPAD(str, len, pad) → substr(replace(hex(zeroblob(len)), '00', pad) || str, -len)
+     *
+     * SQLite has no native LPAD. The zeroblob trick generates a pad-filled
+     * prefix of len chars, then substr(-len) clips the right to len total
+     * chars — resulting in the canonical MySQL LPAD output for ASCII-safe
+     * single-byte pads. Multi-byte pads behave as if each byte were its
+     * own char (good enough for the WP use case of padding zeros / spaces).
+     */
+    private function transformLpad(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 3) {
+            return false;
+        }
+
+        $str = $this->transformArgExpression($args[0]);
+        $len = $this->transformArgExpression($args[1]);
+        $pad = $this->transformArgExpression($args[2]);
+        $rw->add(\sprintf(
+            "substr(replace(hex(zeroblob(%s)), '00', %s) || %s, -(%s))",
+            $len,
+            $pad,
+            $str,
+            $len,
+        ));
+
+        return true;
+    }
+
+    /**
+     * RPAD(str, len, pad) → substr(str || replace(hex(zeroblob(len)), '00', pad), 1, len)
+     */
+    private function transformRpad(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 3) {
+            return false;
+        }
+
+        $str = $this->transformArgExpression($args[0]);
+        $len = $this->transformArgExpression($args[1]);
+        $pad = $this->transformArgExpression($args[2]);
+        $rw->add(\sprintf(
+            "substr(%s || replace(hex(zeroblob(%s)), '00', %s), 1, %s)",
+            $str,
+            $len,
+            $pad,
+            $len,
         ));
 
         return true;

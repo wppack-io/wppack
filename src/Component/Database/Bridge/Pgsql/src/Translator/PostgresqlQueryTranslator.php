@@ -1363,6 +1363,7 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             'MONTHNAME' => $this->transformMonthName($rw),
             'QUARTER' => $this->transformDateExtract($rw, 'QUARTER'),
             'LAST_DAY' => $this->transformLastDay($rw),
+            'MAKEDATE' => $this->transformMakeDate($rw),
             'SUBSTRING_INDEX' => $this->transformSubstringIndex($rw),
             'FIND_IN_SET' => $this->transformFindInSet($rw),
             'JSON_EXTRACT' => $this->transformJsonExtract($rw),
@@ -1788,6 +1789,27 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
 
         $expr = $this->transformArgExpression($args[0]);
         $rw->add(\sprintf("to_char((%s)::timestamp, 'FMDay')", $expr));
+
+        return true;
+    }
+
+    /**
+     * MAKEDATE(year, day_of_year) → (DATE 'year-01-01' + (day - 1) days)
+     */
+    private function transformMakeDate(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 2) {
+            return false;
+        }
+
+        $year = $this->transformArgExpression($args[0]);
+        $day = $this->transformArgExpression($args[1]);
+        $rw->add(\sprintf(
+            "(make_date((%s)::int, 1, 1) + ((%s)::int - 1) * interval '1 day')::date",
+            $year,
+            $day,
+        ));
 
         return true;
     }
