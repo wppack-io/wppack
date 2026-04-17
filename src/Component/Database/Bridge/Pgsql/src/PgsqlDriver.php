@@ -37,6 +37,15 @@ class PgsqlDriver extends AbstractDriver
         protected readonly string $password,
         protected readonly string $database,
         protected readonly int $port = 5432,
+        /**
+         * Persistent connection opt-in. When true, doConnect() calls
+         * pg_pconnect() instead of pg_connect(), so the connection is
+         * recycled from php-fpm's pool between requests. Default false
+         * to match wpdb's per-request connection model; opt-in is
+         * intended for WP-CLI workers and queue consumers where the TCP
+         * + TLS handshake cost dominates.
+         */
+        protected readonly bool $persistent = false,
     ) {
         $this->ownsConnection = true;
     }
@@ -108,7 +117,9 @@ class PgsqlDriver extends AbstractDriver
             return;
         }
 
-        $connection = @pg_connect($this->buildConnectionString());
+        $connection = $this->persistent
+            ? @pg_pconnect($this->buildConnectionString())
+            : @pg_connect($this->buildConnectionString());
 
         if ($connection === false) {
             throw new ConnectionException('Failed to connect to PostgreSQL.');
