@@ -161,6 +161,105 @@ final class WpPackWpdbTest extends TestCase
         self::assertSame(['ap', 'q'], $this->wpdb->last_params);
     }
 
+    #[Test]
+    public function prepareWithEmptyLiteral(): void
+    {
+        // An empty '' literal has no placeholder, so it is re-emitted as '';
+        // the only bound '?' comes from the outside %s.
+        $sql = $this->wpdb->prepare("SELECT '' AS note, %s AS tag", 'foo');
+
+        self::assertMatchesRegularExpression(
+            "#^SELECT '' AS note, \? AS tag/\*WPP:[a-f0-9]{12}\*/$#",
+            $sql,
+        );
+
+        $this->wpdb->query($sql);
+        self::assertSame(['foo'], $this->wpdb->last_params);
+    }
+
+    #[Test]
+    public function prepareWithBackslashEscapedQuoteAndPlaceholder(): void
+    {
+        // Backslash-escaped single quote inside the literal is unescaped into
+        // the composite value; the %s inside the same literal triggers
+        // literal-wrap. Expect one '?' bound to "a'b".
+        $sql = $this->wpdb->prepare("SELECT * FROM t WHERE x = 'a\\'%s'", 'b');
+
+        self::assertMatchesRegularExpression(
+            '#^SELECT \* FROM t WHERE x = \?/\*WPP:[a-f0-9]{12}\*/$#',
+            $sql,
+        );
+
+        $this->wpdb->query($sql);
+        self::assertSame(["a'b"], $this->wpdb->last_params);
+    }
+
+    #[Test]
+    public function prepareWithMultiplePlaceholdersInSingleLiteral(): void
+    {
+        // Three placeholders inside the same '...' collapse into one '?'
+        // bound to the full composite string.
+        $sql = $this->wpdb->prepare(
+            "SELECT * FROM t WHERE label = '%s-%s-%s'",
+            'x',
+            'y',
+            'z',
+        );
+
+        self::assertMatchesRegularExpression(
+            '#^SELECT \* FROM t WHERE label = \?/\*WPP:[a-f0-9]{12}\*/$#',
+            $sql,
+        );
+
+        $this->wpdb->query($sql);
+        self::assertSame(['x-y-z'], $this->wpdb->last_params);
+    }
+
+    #[Test]
+    public function prepareWithIntPlaceholderInsideLiteral(): void
+    {
+        // %d inside a literal is cast via (int) and folded into the composite
+        // string — the whole literal still becomes one '?'.
+        $sql = $this->wpdb->prepare("SELECT * FROM t WHERE tag = 'id=%d'", 5);
+
+        self::assertMatchesRegularExpression(
+            '#^SELECT \* FROM t WHERE tag = \?/\*WPP:[a-f0-9]{12}\*/$#',
+            $sql,
+        );
+
+        $this->wpdb->query($sql);
+        self::assertSame(['id=5'], $this->wpdb->last_params);
+    }
+
+    #[Test]
+    public function prepareWithIdentifierInsideLiteralConsumesArg(): void
+    {
+        // %i inside a literal is semantic nonsense but must still consume its
+        // argument — otherwise later placeholders silently shift to the wrong
+        // binds. The identifier is folded into the composite value.
+        $sql = $this->wpdb->prepare(
+            "SELECT FROM '%i' WHERE y = %s",
+            'tbl',
+            'val',
+        );
+
+        self::assertMatchesRegularExpression(
+            '#^SELECT FROM \? WHERE y = \?/\*WPP:[a-f0-9]{12}\*/$#',
+            $sql,
+        );
+
+        $this->wpdb->query($sql);
+        $params = $this->wpdb->last_params;
+
+        self::assertCount(2, $params);
+        self::assertSame('val', $params[1]);
+        // The identifier was quoted by Platform::quoteIdentifier() before
+        // being folded into the literal composite. We only assert it contains
+        // the raw name, because the quoting style is platform-dependent
+        // (backticks on MySQL, double quotes on PostgreSQL/SQLite).
+        self::assertStringContainsString('tbl', $params[0]);
+    }
+
     // ── prepare() + query() prepared statement ──
 
     #[Test]
