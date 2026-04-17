@@ -9,7 +9,7 @@ WpPack Database コンポーネントの MySQL→SQLite / MySQL→PostgreSQL ク
 | リポジトリ | wordpress/sqlite-database-integration | PostgreSQL-For-Wordpress/postgresql-for-wordpress | wppack-io/wppack |
 | エンジン | SQLite | PostgreSQL | SQLite + PostgreSQL + Aurora DSQL |
 | アーキテクチャ | 独自 Lexer + トークン書き換え + UDF 46個 | 正規表現ベース文字列置換 | AST (phpmyadmin/sql-parser) + QueryRewriter + UDF 14個 |
-| テスト | WordPress e2e 依存 | 504 スタブベーステスト | 865 テスト / 1,600 アサーション |
+| テスト | WordPress e2e 依存 | 504 スタブベーステスト | 900+ テスト / 1,800+ アサーション (単体 + 統合、MySQL/SQLite/PostgreSQL 3 engine マトリクスで回帰) |
 
 ## 対応範囲一覧
 

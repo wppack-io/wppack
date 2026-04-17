@@ -641,6 +641,24 @@ When adding a new WordPress plugin package:
 - **When updating documentation**: Verify that link targets in the component list table in `docs/components/README.md` actually exist. When adding new documentation, add a link to the table and ensure path format consistency with existing links (files: `./name.md`, directories: `./name/`)
 - **When updating components**: Ensure that component names, package names, and descriptions are consistent across: the component list table in `CLAUDE.md`, the table in `docs/components/README.md`, `src/Component/{Name}/README.md` (package README), and the implementation under `src/` (namespaces, directory names, `composer.json`)
 
+### Database Component Maintenance Notes
+
+The `wppack/database` component is the project's most feature-rich abstraction (multi-engine driver layer, AST-based query translation, WpPackWpdb replacement for `$wpdb`). A few rules when changing it:
+
+- **AST-first translation.** Engine-specific rewrites live in `Bridge/{Sqlite,Pgsql,AuroraDsql}/src/Translator/*QueryTranslator.php`. Prefer AST-level transforms over string regex; only drop to `QueryRewriter` (token walk) when the shape isn't in phpmyadmin/sql-parser's AST. Silent pass-through is forbidden — unsupported features must raise `UnsupportedFeatureException` so callers see the gap.
+- **Integration CI matrix.** The test suite runs against MySQL, SQLite, PostgreSQL (wpdb variant plus 3 driver variants × 4 PHP versions). Only the `wpdb` variant blocks merge; other variants are `continue-on-error: true` because plugin-layer tests (Query component) still have pre-existing failures unrelated to Database. When adding translator behaviour, verify with all three integration runners locally before commit:
+  ```bash
+  DATABASE_DSN='sqlite:///tmp/wppack_test.db' vendor/bin/phpunit --filter SqliteWpdbIntegrationTest
+  DATABASE_DSN='mysql://root:root@127.0.0.1:3307/wppack_test' vendor/bin/phpunit --filter MysqlWpdbIntegrationTest
+  DATABASE_DSN='pgsql://wppack:wppack@127.0.0.1:5433/wppack_test' vendor/bin/phpunit --filter PgsqlWpdbIntegrationTest
+  ```
+- **PSR-3 logger + PSR-14 events must never leak raw bound values.** Payloads flow through `paramsSummary()` (positional `#0 => 'string(7)'` type/length descriptors). The `WPPACK_DB_LOG_VALUES=1` env flag is for local dev only. Never inline raw `$params` into logger context.
+- **Reader/Writer routing.** `WpPackWpdb::selectDriver()` is the single dispatch point. Changes to which query goes where (SELECT vs write, transaction vs plain) touch replication-lag-sensitive code paths — always add a spy-driver test that seeds distinct data in the two connections.
+- **PreparedBank.** Markers are `/*WPP:<16-hex>*/` computed from a per-instance `random_bytes(8)` salt + sha1(sql + params). Never remove the salt (marker forge protection). When changing the marker format, update `MARKER_PATTERN` in both `PreparedBank.php` and every hardcoded test regex under `tests/`.
+- **Drivers' gone-away handling.** `MysqlDriver::throwQueryError()` and `PgsqlDriver::throwQueryError()` drop `$this->connection = null` on specific error codes so `ensureConnected()` re-opens on the next call. Do not restore a stale handle "just to be nice" — production callers rely on the nulling.
+- **Translator exceptions.** `TranslationException`, `ParserFailureException`, `UnsupportedFeatureException`. Drivers emit `DriverException`, `DriverThrottledException`, `DriverTimeoutException`, `CredentialsExpiredException`, `ConnectionException`. All implement `ExceptionInterface`.
+- **Mocking caveats.** `AuroraDsqlDriver` and the DataApi drivers require optional async-aws packages. Tests that don't need a live connection should use `ReflectionClass::newInstanceWithoutConstructor()` + property injection (see `tests/Bridge/AuroraDsql/tests/OccRetryTest.php`).
+
 ### Plugin Settings Pages (WordPress Components)
 
 For plugin settings pages, use WordPress Components (`@wordpress/components`) with `@wordpress/scripts` for the build pipeline. Follow the modern WordPress admin UI patterns:
