@@ -1914,6 +1914,35 @@ SQL);
         self::assertStringContainsString('THEN 3', $result[0]);
     }
 
+    // ── STR_TO_DATE ──
+
+    #[Test]
+    public function strToDateIsoDateOnlyUsesDateFunction(): void
+    {
+        $result = $this->translator->translate("SELECT STR_TO_DATE(col, '%Y-%m-%d') FROM t");
+
+        self::assertStringContainsString('date(col)', $result[0]);
+    }
+
+    #[Test]
+    public function strToDateIsoDateTimeUsesDatetimeFunction(): void
+    {
+        $result = $this->translator->translate("SELECT STR_TO_DATE(col, '%Y-%m-%d %H:%i:%s') FROM t");
+
+        self::assertStringContainsString('datetime(col)', $result[0]);
+    }
+
+    #[Test]
+    public function strToDateUnknownFormatFallsBackToDatetime(): void
+    {
+        // Non-ISO formats cannot be safely parsed by SQLite. The translator
+        // falls through to datetime() which at least reaches a function that
+        // exists, rather than emitting a strftime inverse that does not.
+        $result = $this->translator->translate("SELECT STR_TO_DATE(col, '%d/%m/%Y') FROM t");
+
+        self::assertStringContainsString('datetime(col)', $result[0]);
+    }
+
     // ── DELETE JOIN ──
 
     #[Test]

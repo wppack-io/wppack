@@ -1405,6 +1405,32 @@ SQL;
         self::assertStringContainsString('- 1)', $result[0]);
     }
 
+    // ── STR_TO_DATE ──
+
+    #[Test]
+    public function strToDateDateOnlyUsesToDate(): void
+    {
+        $result = $this->translator->translate("SELECT STR_TO_DATE(col, '%Y-%m-%d') FROM t");
+
+        self::assertStringContainsString("to_date(col, 'YYYY-MM-DD')", $result[0]);
+    }
+
+    #[Test]
+    public function strToDateWithTimeUsesToTimestamp(): void
+    {
+        $result = $this->translator->translate("SELECT STR_TO_DATE(col, '%Y-%m-%d %H:%i:%s') FROM t");
+
+        self::assertStringContainsString("to_timestamp(col, 'YYYY-MM-DD HH24:MI:SS')", $result[0]);
+    }
+
+    #[Test]
+    public function strToDateSlashSeparatedFormat(): void
+    {
+        $result = $this->translator->translate("SELECT STR_TO_DATE(col, '%d/%m/%Y') FROM t");
+
+        self::assertStringContainsString("to_date(col, 'DD/MM/YYYY')", $result[0]);
+    }
+
     // ── DELETE JOIN ──
 
     #[Test]

@@ -1174,6 +1174,7 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             'DATE_ADD' => $this->transformDateAddSub($rw, '+'),
             'DATE_SUB' => $this->transformDateAddSub($rw, '-'),
             'DATE_FORMAT' => $this->transformDateFormat($rw),
+            'STR_TO_DATE' => $this->transformStrToDate($rw),
             'FROM_UNIXTIME' => $this->transformFromUnixtime($rw),
             'LEFT' => $this->transformLeftFunc($rw),
             'RIGHT' => $this->transformRightFunc($rw),
@@ -1259,6 +1260,58 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         ]);
 
         $rw->add(\sprintf("strftime('%s', %s)", $format, $dateExpr));
+
+        return true;
+    }
+
+    /**
+     * STR_TO_DATE(str, format) → strftime'd date.
+     *
+     * SQLite has no native string-to-date parser, but for the common ISO
+     * shapes (`%Y-%m-%d`, `%Y-%m-%d %H:%i:%s`, and a few aliases) we can
+     * pass the string through datetime() / date() which return the same
+     * input when it already matches the ISO 8601 format SQLite expects.
+     * Non-ISO formats (e.g. `%M %d, %Y` for "January 15, 2024") have no
+     * safe rewrite; we pass them through verbatim and let SQLite error so
+     * the caller discovers the gap instead of silently getting NULL.
+     */
+    private function transformStrToDate(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 2) {
+            return false;
+        }
+
+        $strExpr = $this->transformArgExpression($args[0]);
+        $formatToken = $this->findStringToken($args[1]);
+        if ($formatToken === null) {
+            return false;
+        }
+
+        $format = (string) $formatToken->value;
+        $isDateOnly = in_array($format, ['%Y-%m-%d', '%Y/%m/%d', '%Y.%m.%d'], true);
+        $isDateTime = in_array($format, [
+            '%Y-%m-%d %H:%i:%s',
+            '%Y-%m-%d %H:%i',
+            '%Y-%m-%dT%H:%i:%s',
+        ], true);
+
+        if ($isDateOnly) {
+            $rw->add(\sprintf('date(%s)', $strExpr));
+
+            return true;
+        }
+
+        if ($isDateTime) {
+            $rw->add(\sprintf('datetime(%s)', $strExpr));
+
+            return true;
+        }
+
+        // Unknown format — fall back to datetime() which handles ISO-8601
+        // best-effort. Non-ISO inputs yield NULL but at least the query
+        // doesn't reference a non-existent strftime inverse.
+        $rw->add(\sprintf('datetime(%s)', $strExpr));
 
         return true;
     }

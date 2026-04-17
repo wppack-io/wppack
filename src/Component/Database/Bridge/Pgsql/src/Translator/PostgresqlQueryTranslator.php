@@ -1320,6 +1320,7 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             'DATE_ADD' => $this->transformDateAddSub($rw, '+'),
             'DATE_SUB' => $this->transformDateAddSub($rw, '-'),
             'DATE_FORMAT' => $this->transformDateFormat($rw),
+            'STR_TO_DATE' => $this->transformStrToDate($rw),
             'FROM_UNIXTIME' => $this->transformFromUnixtime($rw),
             'LEFT' => $this->transformLeftFunc($rw),
             'IF' => $this->transformIfFunc($rw),
@@ -1414,6 +1415,47 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
 
         $expr = $this->transformArgExpression($args[0]);
         $rw->add(\sprintf('TO_TIMESTAMP(%s)', $expr));
+
+        return true;
+    }
+
+    /**
+     * STR_TO_DATE(str, format) → to_timestamp(str, fmt) or to_date(str, fmt).
+     *
+     * MySQL's format specifiers (%Y, %m, %d ...) map onto PostgreSQL's
+     * template patterns (YYYY, MM, DD ...). Date-only formats produce
+     * to_date() (returns DATE), formats with time components produce
+     * to_timestamp() (returns TIMESTAMP). Unknown specifiers fall through
+     * with a best-effort mapping; PostgreSQL will surface an error at
+     * execute time rather than returning silently-wrong data.
+     */
+    private function transformStrToDate(QueryRewriter $rw): bool
+    {
+        $args = $this->extractFunctionArgs($rw);
+        if ($args === null || \count($args) < 2) {
+            return false;
+        }
+
+        $strExpr = $this->transformArgExpression($args[0]);
+        $formatToken = $this->findStringToken($args[1]);
+        if ($formatToken === null) {
+            return false;
+        }
+
+        $rawFormat = (string) $formatToken->value;
+
+        $mapped = strtr($rawFormat, [
+            '%Y' => 'YYYY', '%y' => 'YY', '%m' => 'MM', '%c' => 'FMMM',
+            '%d' => 'DD', '%e' => 'FMDD', '%H' => 'HH24', '%h' => 'HH12',
+            '%I' => 'HH12', '%i' => 'MI', '%s' => 'SS', '%S' => 'SS',
+            '%j' => 'DDD', '%T' => 'HH24:MI:SS', '%r' => 'HH12:MI:SS AM',
+            '%p' => 'AM', '%f' => 'US',
+        ]);
+
+        $hasTimeComponent = preg_match('/%[HhIisSTpfr]/', $rawFormat) === 1;
+        $pgFunc = $hasTimeComponent ? 'to_timestamp' : 'to_date';
+
+        $rw->add(\sprintf("%s(%s, '%s')", $pgFunc, $strExpr, $mapped));
 
         return true;
     }
