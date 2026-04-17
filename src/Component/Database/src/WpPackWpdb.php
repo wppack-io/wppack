@@ -689,11 +689,25 @@ class WpPackWpdb extends \wpdb
         $this->last_error = '';
 
         $elapsed = microtime(true) - $start;
+        $elapsedMs = round($elapsed * 1000, 2);
+        $slowThresholdMs = $this->slowQueryThresholdMs();
 
-        $this->logger?->debug('Query executed', $this->buildLogContext($sql, $params, [
-            'time_ms' => round($elapsed * 1000, 2),
-            'driver' => ($driver === $this->reader) ? 'reader' : 'writer',
-        ]));
+        if ($this->logger !== null) {
+            $context = $this->buildLogContext($sql, $params, [
+                'time_ms' => $elapsedMs,
+                'driver' => ($driver === $this->reader) ? 'reader' : 'writer',
+            ]);
+
+            if ($slowThresholdMs !== null && $elapsedMs >= $slowThresholdMs) {
+                // Slow-query events are worth a higher log level so they
+                // land in a default-production log pipeline (which usually
+                // suppresses debug). Keeps the debug-stream quiet for the
+                // p99 of fast queries.
+                $this->logger->warning('Slow database query', $context + ['slow_threshold_ms' => $slowThresholdMs]);
+            } else {
+                $this->logger->debug('Query executed', $context);
+            }
+        }
 
         if (\defined('SAVEQUERIES') && SAVEQUERIES) {
             // Symfony/Doctrine-style logging: keep the parameterized SQL in
@@ -779,6 +793,28 @@ class WpPackWpdb extends \wpdb
         $flag = $_SERVER['WPPACK_DB_LOG_VALUES'] ?? $_ENV['WPPACK_DB_LOG_VALUES'] ?? getenv('WPPACK_DB_LOG_VALUES');
 
         return $flag === '1' || $flag === 'true';
+    }
+
+    /**
+     * Read the slow-query threshold (ms) from WPPACK_DB_SLOW_QUERY_MS.
+     *
+     * When set to a positive number, every query whose wall-clock
+     * execution time meets or exceeds that threshold gets logged at
+     * warning level with an extra `slow_threshold_ms` field so APM
+     * pipelines can page on slow traffic. Unset / 0 / non-numeric
+     * values disable the upgrade (the log stays at debug).
+     */
+    private function slowQueryThresholdMs(): ?float
+    {
+        $raw = $_SERVER['WPPACK_DB_SLOW_QUERY_MS'] ?? $_ENV['WPPACK_DB_SLOW_QUERY_MS'] ?? getenv('WPPACK_DB_SLOW_QUERY_MS');
+
+        if (!is_numeric($raw)) {
+            return null;
+        }
+
+        $threshold = (float) $raw;
+
+        return $threshold > 0 ? $threshold : null;
     }
 
     /**
