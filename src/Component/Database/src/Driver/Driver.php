@@ -19,17 +19,31 @@ use WpPack\Component\Dsn\Dsn;
 final class Driver
 {
     /**
-     * Bridge factory classes are discovered at runtime if their packages are installed.
+     * Explicit scheme → factory-class map for the default (zero-injection)
+     * path used by fromDsn(). Using an exact map instead of iterating through
+     * factories guards against accidental scheme overlap (e.g. a future
+     * factory claiming `mysql` would shadow `mysql+dataapi` if an iteration
+     * happened to hit it first) and keeps routing deterministic regardless
+     * of autoloader / file-system ordering.
      *
-     * @var list<string>
+     * Factories whose composer package is not installed are skipped when the
+     * scheme is looked up — class_exists() short-circuits to the usual
+     * UnsupportedSchemeException rather than crashing on a missing class.
+     *
+     * @var array<string, class-string<DriverFactoryInterface>>
      */
-    private const FACTORY_CLASSES = [
-        MysqlDriverFactory::class,
-        'WpPack\Component\Database\Bridge\Sqlite\SqliteDriverFactory',
-        'WpPack\Component\Database\Bridge\Pgsql\PgsqlDriverFactory',
-        'WpPack\Component\Database\Bridge\MysqlDataApi\MysqlDataApiDriverFactory',
-        'WpPack\Component\Database\Bridge\PgsqlDataApi\PgsqlDataApiDriverFactory',
-        'WpPack\Component\Database\Bridge\AuroraDsql\AuroraDsqlDriverFactory',
+    private const SCHEME_TO_FACTORY = [
+        'mysql'         => MysqlDriverFactory::class,
+        'mariadb'       => MysqlDriverFactory::class,
+        'mysqli'        => MysqlDriverFactory::class,
+        'sqlite'        => 'WpPack\Component\Database\Bridge\Sqlite\SqliteDriverFactory',
+        'sqlite3'       => 'WpPack\Component\Database\Bridge\Sqlite\SqliteDriverFactory',
+        'pgsql'         => 'WpPack\Component\Database\Bridge\Pgsql\PgsqlDriverFactory',
+        'postgresql'    => 'WpPack\Component\Database\Bridge\Pgsql\PgsqlDriverFactory',
+        'postgres'      => 'WpPack\Component\Database\Bridge\Pgsql\PgsqlDriverFactory',
+        'mysql+dataapi' => 'WpPack\Component\Database\Bridge\MysqlDataApi\MysqlDataApiDriverFactory',
+        'pgsql+dataapi' => 'WpPack\Component\Database\Bridge\PgsqlDataApi\PgsqlDataApiDriverFactory',
+        'dsql'          => 'WpPack\Component\Database\Bridge\AuroraDsql\AuroraDsqlDriverFactory',
     ];
 
     /** @param iterable<DriverFactoryInterface> $factories */
@@ -40,7 +54,28 @@ final class Driver
     /** @param array<string, mixed> $options */
     public static function fromDsn(string $dsn, array $options = []): DriverInterface
     {
-        return (new self(self::getDefaultFactories()))->fromString($dsn, $options);
+        $parsed = Dsn::fromString($dsn);
+        $scheme = $parsed->getScheme();
+
+        $factoryClass = self::SCHEME_TO_FACTORY[$scheme] ?? null;
+
+        if ($factoryClass === null || !class_exists($factoryClass)) {
+            throw new UnsupportedSchemeException($parsed);
+        }
+
+        $factory = new $factoryClass();
+
+        // Factories still get the final say via supports() — that's where
+        // extension / class_exists() availability gates live (pdo_sqlite,
+        // pg_connect, RdsDataServiceClient). If the library is installed
+        // but the runtime doesn't actually support it, we surface the same
+        // UnsupportedSchemeException rather than letting the factory
+        // explode later with a cryptic missing-function error.
+        if (!$factory->supports($parsed)) {
+            throw new UnsupportedSchemeException($parsed);
+        }
+
+        return $factory->create($parsed, $options);
     }
 
     /** @param array<string, mixed> $options */
@@ -49,7 +84,14 @@ final class Driver
         return $this->create(Dsn::fromString($dsn), $options);
     }
 
-    /** @param array<string, mixed> $options */
+    /**
+     * Instance-level create() retains the iterate-and-ask-supports() flow
+     * for callers who inject a custom factory set (tests, DI containers
+     * that register extra drivers). The scheme-map shortcut is reserved
+     * for the default static entry point.
+     *
+     * @param array<string, mixed> $options
+     */
     public function create(Dsn $dsn, array $options = []): DriverInterface
     {
         foreach ($this->factories as $factory) {
@@ -59,15 +101,5 @@ final class Driver
         }
 
         throw new UnsupportedSchemeException($dsn);
-    }
-
-    /** @return \Generator<int, DriverFactoryInterface> */
-    private static function getDefaultFactories(): \Generator
-    {
-        foreach (self::FACTORY_CLASSES as $factoryClass) {
-            if (class_exists($factoryClass)) {
-                yield new $factoryClass();
-            }
-        }
     }
 }
