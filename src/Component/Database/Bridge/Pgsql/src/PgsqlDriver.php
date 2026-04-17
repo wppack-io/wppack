@@ -90,6 +90,18 @@ class PgsqlDriver extends AbstractDriver
         return pg_escape_literal($this->connection, $value);
     }
 
+    public function escapeStringContent(string $value): string
+    {
+        $this->ensureConnected();
+
+        // pg_escape_string returns a value suitable for splicing inside a
+        // single-quoted literal, honouring the current connection's
+        // standard_conforming_strings setting. Unlike pg_escape_literal,
+        // it never adds the E'...' prefix, so the caller's own outer
+        // quotes stay valid.
+        return pg_escape_string($this->connection, $value);
+    }
+
     protected function doConnect(): void
     {
         if ($this->connection !== null) {

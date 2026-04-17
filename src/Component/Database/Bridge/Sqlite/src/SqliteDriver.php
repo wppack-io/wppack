@@ -90,6 +90,15 @@ final class SqliteDriver extends AbstractDriver
         return $quoted;
     }
 
+    public function escapeStringContent(string $value): string
+    {
+        // SQLite's canonical escape inside a single-quoted literal is simply
+        // doubling the quote. We don't call PDO::quote() and strip its outer
+        // quotes because doing so would require an open connection just to
+        // do a pure string transform.
+        return str_replace("'", "''", $value);
+    }
+
     protected function doConnect(): void
     {
         if ($this->pdo !== null) {

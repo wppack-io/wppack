@@ -82,4 +82,17 @@ interface DriverInterface
      * — the driver still executes queries with native parameter binding.
      */
     public function quoteStringLiteral(string $value): string;
+
+    /**
+     * Escape $value for splicing inside a single-quoted SQL literal, without
+     * wrapping quotes. Used by wpdb::_real_escape() compatibility so legacy
+     * plugin code that concatenates values into SQL receives engine-correct
+     * escaping (mysqli_real_escape_string on MySQL, pg_escape_string on
+     * PostgreSQL, etc.) rather than a blanket `addslashes()` that produces
+     * mangled output on non-MySQL engines.
+     *
+     * Note: new code should use prepared statements via prepare() — this
+     * method exists purely for legacy plugin compatibility.
+     */
+    public function escapeStringContent(string $value): string;
 }

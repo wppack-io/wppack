@@ -532,13 +532,26 @@ class WpPackWpdb extends \wpdb
     }
 
     /**
-     * @param string $data
+     * Escape a string for splicing into SQL. Mirrors wpdb::_real_escape but
+     * delegates to the writer driver so PostgreSQL / SQLite callers get the
+     * right escape form instead of a MySQL-shaped addslashes() output. The
+     * result is also placeholder-escaped (percent signs) so downstream
+     * prepare() calls don't accidentally interpret embedded `%` as tokens.
+     *
+     * New code should use prepare() with %s/%d placeholders — this path is
+     * retained for legacy plugin compatibility only.
+     *
+     * @param mixed $data
      *
      * @return string
      */
     public function _real_escape($data): string
     {
-        return addslashes($data);
+        if (!\is_string($data)) {
+            return '';
+        }
+
+        return $this->add_placeholder_escape($this->writer->escapeStringContent($data));
     }
 
     public function close(): bool

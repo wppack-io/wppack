@@ -70,6 +70,19 @@ abstract class AbstractDriver implements DriverInterface
     }
 
     /**
+     * Default implementation escapes a value for splicing into a single-quoted
+     * literal by doubling embedded single quotes (SQL-92 conforming form).
+     * This is safe for SQLite, PostgreSQL with standard_conforming_strings=on,
+     * and any other engine that honours doubled-quote escaping. Drivers that
+     * need a different wire escape (MySQL backslash form, pg_escape_string
+     * context-aware) override this method.
+     */
+    public function escapeStringContent(string $value): string
+    {
+        return str_replace("'", "''", $value);
+    }
+
+    /**
      * Default: NullQueryTranslator (passthrough).
      * Override in Bridge drivers for non-MySQL engines.
      */

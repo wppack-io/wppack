@@ -681,6 +681,95 @@ final class WpPackWpdbTest extends TestCase
         $wpdb->query('SELECT * FROM t');
     }
 
+    // ── Legacy wpdb API compat ──
+
+    #[Test]
+    public function realEscapeDoublesEmbeddedQuotesOnSqlite(): void
+    {
+        // wpdb::_real_escape used to return addslashes() output, which is
+        // MySQL-shaped and wrong for SQLite / PostgreSQL. It now delegates
+        // to Driver::escapeStringContent(), so SQLite callers get the SQL-
+        // standard doubled-quote form.
+        $driver = new SqliteDriver(':memory:');
+        $driver->connect();
+
+        $wpdb = new WpPackWpdb(
+            writer: $driver,
+            translator: new NullQueryTranslator(),
+            dbname: 'test',
+        );
+
+        self::assertSame("O''Brien", $wpdb->_real_escape("O'Brien"));
+    }
+
+    #[Test]
+    public function realEscapeReturnsEmptyForNonString(): void
+    {
+        $wpdb = new WpPackWpdb(
+            writer: new SqliteDriver(':memory:'),
+            translator: new NullQueryTranslator(),
+            dbname: 'test',
+        );
+
+        // @phpstan-ignore-next-line argument.type
+        self::assertSame('', $wpdb->_real_escape(42));
+        // @phpstan-ignore-next-line argument.type
+        self::assertSame('', $wpdb->_real_escape(null));
+    }
+
+    #[Test]
+    public function realEscapeProtectsEmbeddedPercentFromLaterPrepare(): void
+    {
+        // add_placeholder_escape must run so a caller doing
+        // "INSERT ... VALUES ('" . $wpdb->_real_escape($x) . "')" and later
+        // feeding that string into prepare() doesn't trip a spurious %s.
+        $driver = new SqliteDriver(':memory:');
+        $driver->connect();
+
+        $wpdb = new WpPackWpdb(
+            writer: $driver,
+            translator: new NullQueryTranslator(),
+            dbname: 'test',
+        );
+
+        $escaped = $wpdb->_real_escape('hello %s world');
+
+        // Should not equal the raw input — placeholder escape must have
+        // rewritten the percent sign. Exact form depends on wpdb internals.
+        self::assertNotSame('hello %s world', $escaped);
+    }
+
+    #[Test]
+    public function getVarAndGetResultsWorkOnSqlite(): void
+    {
+        // Standard wpdb::get_var / get_row / get_results read $last_result.
+        // WpPackWpdb populates last_result as an array of stdClass from
+        // the driver's associative rows, so the inherited helpers should
+        // Just Work. Regression test in case we ever stop.
+        $driver = new SqliteDriver(':memory:');
+        $driver->connect();
+        $driver->executeStatement('CREATE TABLE t (id INTEGER, name TEXT)');
+        $driver->executeStatement("INSERT INTO t (id, name) VALUES (1, 'alice')");
+        $driver->executeStatement("INSERT INTO t (id, name) VALUES (2, 'bob')");
+
+        $wpdb = new WpPackWpdb(
+            writer: $driver,
+            translator: new NullQueryTranslator(),
+            dbname: 'test',
+        );
+
+        self::assertSame('alice', $wpdb->get_var('SELECT name FROM t ORDER BY id'));
+
+        $row = $wpdb->get_row('SELECT id, name FROM t ORDER BY id DESC');
+        self::assertIsObject($row);
+        self::assertSame('bob', $row->name);
+
+        $rows = $wpdb->get_results('SELECT id, name FROM t ORDER BY id', ARRAY_A);
+        self::assertIsArray($rows);
+        self::assertCount(2, $rows);
+        self::assertSame(['id' => 1, 'name' => 'alice'], $rows[0]);
+    }
+
     #[Test]
     public function loggerDoesNotLeakBoundValues(): void
     {
