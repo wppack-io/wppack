@@ -385,6 +385,15 @@ class WpPackWpdb extends \wpdb
             $cleanQuery = (string) $filtered;
         }
 
+        // last_query holds the MySQL-shaped SQL the caller handed us
+        // (with '?' placeholders substituted in where prepare() was used,
+        // bank markers already removed, plugin filter applied). This
+        // matches the shape wpdb-consuming plugins expect — e.g.
+        // Query Monitor parses it as MySQL. The engine-specific
+        // translation happens downstream inside executeWithDriver() and
+        // is only exposed via the logger 'sql' context + SAVEQUERIES
+        // entry; callers that want the translated form must subscribe
+        // to DatabaseQueryCompletedEvent instead.
         $this->last_query = $cleanQuery;
         $this->last_params = $params;
 
