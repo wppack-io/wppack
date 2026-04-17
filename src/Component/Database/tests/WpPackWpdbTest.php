@@ -613,6 +613,125 @@ final class WpPackWpdbTest extends TestCase
         self::assertSame([1, 'publish'], $this->wpdb->last_params);
     }
 
+    // ── Reader/Writer affinity ──
+
+    #[Test]
+    public function readsUseReaderWhenNoWriteHasHappened(): void
+    {
+        // writer and reader point at separate :memory: databases so we can
+        // assert routing by seeding each with different data.
+        $writer = new SqliteDriver(':memory:');
+        $writer->connect();
+        $writer->executeStatement('CREATE TABLE t (tag TEXT)');
+        $writer->executeStatement("INSERT INTO t (tag) VALUES ('writer')");
+
+        $reader = new SqliteDriver(':memory:');
+        $reader->connect();
+        $reader->executeStatement('CREATE TABLE t (tag TEXT)');
+        $reader->executeStatement("INSERT INTO t (tag) VALUES ('reader')");
+
+        $wpdb = new WpPackWpdb(
+            writer: $writer,
+            translator: new NullQueryTranslator(),
+            dbname: 'test',
+            reader: $reader,
+        );
+
+        $value = $wpdb->get_var('SELECT tag FROM t');
+
+        self::assertSame('reader', $value, 'Plain SELECT without a prior write must route to the reader.');
+    }
+
+    #[Test]
+    public function readsStickToWriterAfterTransactionBegin(): void
+    {
+        $writer = new SqliteDriver(':memory:');
+        $writer->connect();
+        $writer->executeStatement('CREATE TABLE t (tag TEXT)');
+        $writer->executeStatement("INSERT INTO t (tag) VALUES ('writer')");
+
+        $reader = new SqliteDriver(':memory:');
+        $reader->connect();
+        $reader->executeStatement('CREATE TABLE t (tag TEXT)');
+        $reader->executeStatement("INSERT INTO t (tag) VALUES ('reader')");
+
+        $wpdb = new WpPackWpdb(
+            writer: $writer,
+            translator: new NullQueryTranslator(),
+            dbname: 'test',
+            reader: $reader,
+        );
+
+        $wpdb->query('BEGIN');
+
+        $value = $wpdb->get_var('SELECT tag FROM t');
+
+        // Inside a transaction the SELECT must hit the writer, even though
+        // the default routing would send it to the reader. Otherwise a
+        // transaction that reads-after-write would observe stale data.
+        self::assertSame('writer', $value);
+
+        $wpdb->query('COMMIT');
+    }
+
+    #[Test]
+    public function readsStickToWriterAfterAnyInsert(): void
+    {
+        $writer = new SqliteDriver(':memory:');
+        $writer->connect();
+        $writer->executeStatement('CREATE TABLE t (tag TEXT)');
+        $writer->executeStatement("INSERT INTO t (tag) VALUES ('writer')");
+
+        $reader = new SqliteDriver(':memory:');
+        $reader->connect();
+        $reader->executeStatement('CREATE TABLE t (tag TEXT)');
+        $reader->executeStatement("INSERT INTO t (tag) VALUES ('reader')");
+
+        $wpdb = new WpPackWpdb(
+            writer: $writer,
+            translator: new NullQueryTranslator(),
+            dbname: 'test',
+            reader: $reader,
+        );
+
+        $wpdb->insert('t', ['tag' => 'fresh']);
+
+        $value = $wpdb->get_var("SELECT tag FROM t WHERE tag = 'fresh'");
+
+        // The fresh row exists only in the writer database. If routing
+        // had leaked to the reader, this would be null.
+        self::assertSame('fresh', $value);
+    }
+
+    #[Test]
+    public function resetReaderStickinessRestoresReaderRouting(): void
+    {
+        $writer = new SqliteDriver(':memory:');
+        $writer->connect();
+        $writer->executeStatement('CREATE TABLE t (tag TEXT)');
+        $writer->executeStatement("INSERT INTO t (tag) VALUES ('writer')");
+
+        $reader = new SqliteDriver(':memory:');
+        $reader->connect();
+        $reader->executeStatement('CREATE TABLE t (tag TEXT)');
+        $reader->executeStatement("INSERT INTO t (tag) VALUES ('reader')");
+
+        $wpdb = new WpPackWpdb(
+            writer: $writer,
+            translator: new NullQueryTranslator(),
+            dbname: 'test',
+            reader: $reader,
+        );
+
+        $wpdb->insert('t', ['tag' => 'fresh']);
+        $wpdb->resetReaderStickiness();
+
+        // After the reset, SELECTs are reader-eligible again.
+        $value = $wpdb->get_var('SELECT tag FROM t LIMIT 1');
+
+        self::assertSame('reader', $value);
+    }
+
     // ── Logger ──
 
     #[Test]

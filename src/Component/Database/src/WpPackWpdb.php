@@ -37,6 +37,15 @@ class WpPackWpdb extends \wpdb
     /** @var int|null Row count from the most recent SQL_CALC_FOUND_ROWS query */
     private ?int $lastFoundRows = null;
 
+    /**
+     * Once a write (INSERT / UPDATE / DELETE / DDL / BEGIN) happens within a
+     * request, every subsequent query is routed to the writer driver, even
+     * SELECTs. This implements read-your-own-writes affinity: replication lag
+     * between writer and reader replicas could otherwise return stale data
+     * moments after we commit to the primary.
+     */
+    private bool $stickyWriter = false;
+
     private PreparedBank $preparedBank;
 
     /** @var list<mixed> params that were bound to the most recent query() call */
@@ -877,13 +886,46 @@ class WpPackWpdb extends \wpdb
             return $this->writer;
         }
 
+        // Read-your-own-writes: once any write / transaction command has
+        // reached the writer in this request, every subsequent query —
+        // including reads — must stay on the writer until the request ends.
+        // Otherwise a SELECT right after an INSERT could hit a replica that
+        // has not yet replayed the commit, returning stale data.
+        if ($this->stickyWriter) {
+            return $this->writer;
+        }
+
         $trimmed = ltrim($sql);
+
+        // Transaction-control statements always belong on the writer and
+        // pin subsequent traffic to the writer too.
+        if (preg_match('/^(BEGIN|START\s+TRANSACTION|SAVEPOINT)\b/i', $trimmed)) {
+            $this->stickyWriter = true;
+
+            return $this->writer;
+        }
 
         if (preg_match('/^(SELECT|SHOW|DESCRIBE|EXPLAIN)\b/i', $trimmed)) {
             return $this->reader;
         }
 
+        // Anything else (INSERT/UPDATE/DELETE/REPLACE/DDL/SET/COMMIT/ROLLBACK)
+        // is a writer-bound query. Pin subsequent SELECTs to the writer too.
+        $this->stickyWriter = true;
+
         return $this->writer;
+    }
+
+    /**
+     * Reset the reader/writer stickiness. Intended for long-running processes
+     * (WP-CLI workers, queue consumers) that want to release the writer after
+     * finishing a unit of work, typically just after a commit or explicit
+     * checkpoint. Production web requests should leave this alone — they want
+     * the sticky state to persist until the request ends.
+     */
+    public function resetReaderStickiness(): void
+    {
+        $this->stickyWriter = false;
     }
 
     /**
