@@ -20,7 +20,10 @@ use AsyncAws\RdsDataService\Input\RollbackTransactionRequest;
 use AsyncAws\RdsDataService\RdsDataServiceClient;
 use AsyncAws\RdsDataService\ValueObject\Field;
 use AsyncAws\RdsDataService\ValueObject\SqlParameter;
+use WpPack\Component\Database\Exception\CredentialsExpiredException;
 use WpPack\Component\Database\Exception\DriverException;
+use WpPack\Component\Database\Exception\DriverThrottledException;
+use WpPack\Component\Database\Exception\DriverTimeoutException;
 use WpPack\Component\Database\Result;
 use WpPack\Component\Database\Statement;
 
@@ -108,10 +111,11 @@ trait DataApiDriverTrait
         try {
             $response = $this->dataApiClient->executeStatement(new ExecuteStatementRequest($request));
         } catch (\Throwable $e) {
-            // Surface the 1 MB hard limit with a dedicated message so ops can
-            // correlate production failures with the API-level cap instead of
-            // chasing a generic "server returned 500".
-            throw new DriverException($this->dataApiErrorMessage($sql, $e), 0, $e);
+            // Classify the failure before surfacing it so callers can make
+            // retry decisions: throttling / timeouts are typically safe to
+            // retry, credential expiry needs a token refresh first, anything
+            // else is a data-level error the caller should propagate.
+            throw $this->classifyDataApiError($sql, $e);
         }
 
         $columnMetadata = $response->getColumnMetadata();
@@ -156,27 +160,86 @@ trait DataApiDriverTrait
         try {
             $response = $this->dataApiClient->executeStatement(new ExecuteStatementRequest($request));
         } catch (\Throwable $e) {
-            throw new DriverException($this->dataApiErrorMessage($sql, $e), 0, $e);
+            throw $this->classifyDataApiError($sql, $e);
         }
 
         return (int) $response->getNumberOfRecordsUpdated();
     }
 
     /**
-     * Wrap a Data API exception message with context (truncated SQL + the
-     * AWS-side message) so operators can tell the 1 MB response cap apart
-     * from auth / connection / syntax failures without spelunking through
-     * the Throwable chain.
+     * Wrap an AWS-side exception in a WpPack driver exception, choosing a
+     * subtype the caller can act on:
+     *
+     *   - DriverThrottledException: service returned 429 / ThrottlingException
+     *     / similar. Safe-to-retry with exponential backoff.
+     *   - DriverTimeoutException: request took longer than the service's
+     *     timeout window. Safe-to-retry when the original query was
+     *     idempotent.
+     *   - CredentialsExpiredException: auth token / secret was rejected.
+     *     Refresh the credential source and retry.
+     *   - DriverException: everything else (syntax errors, schema issues,
+     *     the 1 MB response cap). Caller should surface to the user.
      */
-    private function dataApiErrorMessage(string $sql, \Throwable $e): string
+    private function classifyDataApiError(string $sql, \Throwable $e): DriverException
     {
         $maxLen = 200;
         $truncated = mb_strlen($sql) > $maxLen ? mb_substr($sql, 0, $maxLen) . '...' : $sql;
+        $awsMessage = $e->getMessage();
+        $awsClass = $e::class;
 
-        return \sprintf(
-            'RDS Data API call failed: %s (responses are capped at ~1 MB — use LIMIT / keyset pagination for large SELECTs) [SQL: %s]',
-            $e->getMessage(),
-            $truncated,
+        $messageSuffix = \sprintf(' [SQL: %s]', $truncated);
+
+        // Throttling / rate limit
+        if (
+            stripos($awsClass, 'Throttl') !== false
+            || stripos($awsMessage, 'Rate exceeded') !== false
+            || stripos($awsMessage, 'Throttling') !== false
+            || stripos($awsMessage, ' 429 ') !== false
+        ) {
+            return new DriverThrottledException(
+                'RDS Data API throttled: ' . $awsMessage . $messageSuffix,
+                0,
+                $e,
+            );
+        }
+
+        // Timeouts
+        if (
+            stripos($awsClass, 'Timeout') !== false
+            || stripos($awsMessage, 'timed out') !== false
+            || stripos($awsMessage, ' 504 ') !== false
+        ) {
+            return new DriverTimeoutException(
+                'RDS Data API request timed out: ' . $awsMessage . $messageSuffix,
+                0,
+                $e,
+            );
+        }
+
+        // Expired / invalid credentials
+        if (
+            stripos($awsClass, 'ExpiredToken') !== false
+            || stripos($awsClass, 'InvalidSignature') !== false
+            || stripos($awsClass, 'BadRequestException') !== false && stripos($awsMessage, 'credential') !== false
+            || stripos($awsMessage, 'ExpiredToken') !== false
+            || stripos($awsMessage, 'signature has expired') !== false
+            || stripos($awsMessage, 'secret has been rotated') !== false
+        ) {
+            return new CredentialsExpiredException(
+                'RDS Data API credentials rejected: ' . $awsMessage . $messageSuffix,
+                0,
+                $e,
+            );
+        }
+
+        return new DriverException(
+            \sprintf(
+                'RDS Data API call failed: %s (responses are capped at ~1 MB — use LIMIT / keyset pagination for large SELECTs)%s',
+                $awsMessage,
+                $messageSuffix,
+            ),
+            0,
+            $e,
         );
     }
 

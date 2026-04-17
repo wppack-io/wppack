@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace WpPack\Component\Database\Driver;
 
+use Psr\Log\LoggerInterface;
 use WpPack\Component\Database\Exception\ConnectionException;
 use WpPack\Component\Database\Exception\DriverException;
 use WpPack\Component\Database\Platform\MariadbPlatform;
@@ -37,6 +38,7 @@ class MysqlDriver extends AbstractDriver
         protected readonly int $port = 3306,
         protected readonly ?string $socket = null,
         protected readonly string $charset = 'utf8mb4',
+        protected readonly ?LoggerInterface $logger = null,
     ) {
         $this->connection = null;
         $this->ownsConnection = true;
@@ -128,6 +130,45 @@ class MysqlDriver extends AbstractDriver
         $this->connection = $connection;
 
         $this->setCompatibleSqlMode();
+        $this->verifyCharsetAlignment();
+    }
+
+    /**
+     * Cross-check the charset / collation the server actually gave us
+     * against what the driver asked for. Aurora clusters running a
+     * mix of MySQL 5.7 and 8.0 can hand back `utf8mb4_0900_ai_ci`
+     * (8.0 default) when `utf8mb4_unicode_ci` was requested, and the
+     * sort order differs between the two — a silent collation
+     * mismatch produces wrong-looking WHERE results. Log a warning
+     * when divergence is detected so operators can pin the cluster
+     * parameter group explicitly.
+     */
+    private function verifyCharsetAlignment(): void
+    {
+        if ($this->connection === null) {
+            return;
+        }
+
+        $result = @$this->connection->query("SHOW VARIABLES WHERE Variable_name IN ('character_set_client', 'character_set_connection', 'collation_connection')");
+
+        if (!$result instanceof \mysqli_result) {
+            return;
+        }
+
+        $actual = [];
+        while ($row = $result->fetch_assoc()) {
+            $actual[(string) $row['Variable_name']] = (string) $row['Value'];
+        }
+        $result->free();
+
+        $clientCharset = $actual['character_set_client'] ?? null;
+        if ($clientCharset !== null && $clientCharset !== $this->charset) {
+            $this->logger?->warning('MySQL character set mismatch', [
+                'requested' => $this->charset,
+                'actual' => $clientCharset,
+                'variables' => $actual,
+            ]);
+        }
     }
 
     /**
