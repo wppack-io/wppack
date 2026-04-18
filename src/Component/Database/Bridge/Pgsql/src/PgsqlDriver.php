@@ -46,6 +46,17 @@ class PgsqlDriver extends AbstractDriver
          * + TLS handshake cost dominates.
          */
         protected readonly bool $persistent = false,
+        /**
+         * PostgreSQL search_path to set immediately after connect. Accepts
+         * a single schema name or a comma-separated list (e.g.
+         * 'tenant_42,public'). When null, the server-side default applies
+         * — usually `"$user", public`. Doctrine DBAL doesn't expose this
+         * knob; we do because WordPress multisite frequently wants to
+         * isolate schemas per blog or per tenant.
+         *
+         * @var list<string>|null
+         */
+        protected readonly ?array $searchPath = null,
     ) {
         $this->ownsConnection = true;
     }
@@ -126,6 +137,36 @@ class PgsqlDriver extends AbstractDriver
         }
 
         $this->connection = $connection;
+
+        $this->applySearchPath();
+    }
+
+    /**
+     * Emit `SET search_path TO ...` when a schema list was configured.
+     * Each entry is quoted as an identifier to accommodate names with
+     * uppercase letters, reserved words, or non-ASCII characters.
+     * Nothing runs when searchPath is null — PostgreSQL falls back to its
+     * role / database default (`"$user", public`).
+     */
+    private function applySearchPath(): void
+    {
+        if ($this->searchPath === null || $this->searchPath === [] || $this->connection === null) {
+            return;
+        }
+
+        $parts = array_map(
+            static fn(string $schema): string => '"' . str_replace('"', '""', $schema) . '"',
+            $this->searchPath,
+        );
+
+        $result = @pg_query($this->connection, 'SET search_path TO ' . implode(', ', $parts));
+        if ($result === false) {
+            throw new ConnectionException(\sprintf(
+                'Failed to set search_path to "%s": %s',
+                implode(', ', $this->searchPath),
+                pg_last_error($this->connection) ?: 'unknown error',
+            ));
+        }
     }
 
     /**

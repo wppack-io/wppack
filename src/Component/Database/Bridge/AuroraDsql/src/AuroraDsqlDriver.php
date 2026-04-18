@@ -65,6 +65,9 @@ class AuroraDsqlDriver extends PgsqlDriver
     private readonly ?CredentialProvider $credentialProvider;
     private readonly bool $hasStaticToken;
 
+    /**
+     * @param list<string>|null $searchPath
+     */
     public function __construct(
         string $endpoint,
         string $region,
@@ -76,6 +79,7 @@ class AuroraDsqlDriver extends PgsqlDriver
         int $occMaxRetries = 3,
         ?CredentialProvider $credentialProvider = null,
         ?LoggerInterface $logger = null,
+        ?array $searchPath = null,
     ) {
         $this->region = $region;
         $this->tokenDurationSecs = $tokenDurationSecs;
@@ -92,6 +96,7 @@ class AuroraDsqlDriver extends PgsqlDriver
             password: $this->currentToken,
             database: $database,
             port: 5432,
+            searchPath: $searchPath,
         );
     }
 

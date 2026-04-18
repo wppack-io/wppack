@@ -59,4 +59,52 @@ final class PgsqlDriverFactoryTest extends TestCase
         self::assertCount(1, $defs);
         self::assertSame('pgsql', $defs[0]->scheme);
     }
+
+    #[Test]
+    public function parsesSearchPathOption(): void
+    {
+        if (!\function_exists('pg_connect')) {
+            self::markTestSkipped('ext-pgsql not available.');
+        }
+
+        $factory = new PgsqlDriverFactory();
+        $driver = $factory->create(Dsn::fromString('pgsql://user:pass@localhost:5432/mydb?search_path=tenant_42,public'));
+
+        self::assertSame(['tenant_42', 'public'], self::readSearchPath($driver));
+    }
+
+    #[Test]
+    public function schemaOptionIsSingleEntrySearchPathAlias(): void
+    {
+        if (!\function_exists('pg_connect')) {
+            self::markTestSkipped('ext-pgsql not available.');
+        }
+
+        $factory = new PgsqlDriverFactory();
+        $driver = $factory->create(Dsn::fromString('pgsql://user:pass@localhost:5432/mydb?schema=myschema'));
+
+        self::assertSame(['myschema'], self::readSearchPath($driver));
+    }
+
+    #[Test]
+    public function absentSearchPathIsNull(): void
+    {
+        if (!\function_exists('pg_connect')) {
+            self::markTestSkipped('ext-pgsql not available.');
+        }
+
+        $factory = new PgsqlDriverFactory();
+        $driver = $factory->create(Dsn::fromString('pgsql://user:pass@localhost:5432/mydb'));
+
+        self::assertNull(self::readSearchPath($driver));
+    }
+
+    /** @return list<string>|null */
+    private static function readSearchPath(object $driver): ?array
+    {
+        $reflection = new \ReflectionClass(PgsqlDriver::class);
+        $property = $reflection->getProperty('searchPath');
+
+        return $property->getValue($driver);
+    }
 }

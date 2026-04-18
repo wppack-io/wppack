@@ -324,12 +324,12 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
                  JOIN information_schema.key_column_usage kcu
                    ON tc.constraint_name = kcu.constraint_name
                    AND tc.table_schema = kcu.table_schema
-                 WHERE tc.table_schema = 'public'
+                 WHERE tc.table_schema = current_schema()
                    AND tc.table_name = ?
                    AND tc.constraint_name = (
                      SELECT tc2.constraint_name
                      FROM information_schema.table_constraints tc2
-                     WHERE tc2.table_schema = 'public'
+                     WHERE tc2.table_schema = current_schema()
                        AND tc2.table_name = ?
                        AND tc2.constraint_type IN ('PRIMARY KEY', 'UNIQUE')
                      ORDER BY CASE tc2.constraint_type WHEN 'UNIQUE' THEN 0 ELSE 1 END
@@ -2597,25 +2597,25 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
         }
 
         if (preg_match('/^\s*SHOW\s+FULL\s+TABLES\s+LIKE\s+[\'"](.+?)[\'"]\s*$/i', $sql, $m)) {
-            return [\sprintf("SELECT table_name, table_type FROM information_schema.tables WHERE table_schema = 'public' AND table_name LIKE '%s'", str_replace("'", "''", $m[1]))];
+            return [\sprintf("SELECT table_name, table_type FROM information_schema.tables WHERE table_schema = current_schema() AND table_name LIKE '%s'", str_replace("'", "''", $m[1]))];
         }
 
         if (preg_match('/^\s*SHOW\s+TABLES\s+LIKE\s+[\'"](.+?)[\'"]\s*$/i', $sql, $m)) {
-            return [\sprintf("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE' AND table_name LIKE '%s'", str_replace("'", "''", $m[1]))];
+            return [\sprintf("SELECT table_name FROM information_schema.tables WHERE table_schema = current_schema() AND table_type = 'BASE TABLE' AND table_name LIKE '%s'", str_replace("'", "''", $m[1]))];
         }
 
         if (preg_match('/^\s*SHOW\s+FULL\s+TABLES\s*/i', $sql)) {
-            return ["SELECT table_name, table_type FROM information_schema.tables WHERE table_schema = 'public'"];
+            return ["SELECT table_name, table_type FROM information_schema.tables WHERE table_schema = current_schema()"];
         }
 
         if (preg_match('/^\s*SHOW\s+TABLES\s*/i', $sql)) {
-            return ["SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE'"];
+            return ["SELECT table_name FROM information_schema.tables WHERE table_schema = current_schema() AND table_type = 'BASE TABLE'"];
         }
 
         if (preg_match('/^\s*SHOW\s+(?:FULL\s+)?COLUMNS\s+FROM\s+[`"]?(\w+)[`"]?\s*/i', $sql, $m)) {
             return [\sprintf(
                 "SELECT column_name AS \"Field\", data_type AS \"Type\", is_nullable AS \"Null\", column_default AS \"Default\" "
-                . "FROM information_schema.columns WHERE table_schema = 'public' AND table_name = '%s' ORDER BY ordinal_position",
+                . "FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = '%s' ORDER BY ordinal_position",
                 $m[1],
             )];
         }
@@ -2642,7 +2642,7 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
                 . "CASE WHEN is_nullable = 'NO' THEN ' NOT NULL' ELSE '' END || "
                 . "CASE WHEN column_default IS NOT NULL THEN ' DEFAULT ' || column_default ELSE '' END"
                 . ", ', ' ORDER BY ordinal_position) || ')' AS \"Create Table\" "
-                . "FROM information_schema.columns WHERE table_schema = 'public' AND table_name = '%s'",
+                . "FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = '%s'",
                 $t,
                 $t,
                 $t,
@@ -2651,7 +2651,7 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
 
         if (preg_match('/^\s*SHOW\s+(?:INDEX|KEYS?)\s+FROM\s+[`"]?(\w+)[`"]?\s*/i', $sql, $m)) {
             return [\sprintf(
-                "SELECT indexname AS \"Key_name\", indexdef AS \"Index_type\" FROM pg_indexes WHERE schemaname = 'public' AND tablename = '%s'",
+                "SELECT indexname AS \"Key_name\", indexdef AS \"Index_type\" FROM pg_indexes WHERE schemaname = current_schema() AND tablename = '%s'",
                 str_replace("'", "''", $m[1]),
             )];
         }
@@ -2662,8 +2662,8 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
                 . "COALESCE(c.reltuples::bigint, 0) AS \"Rows\", 0 AS \"Avg_row_length\", "
                 . "COALESCE(pg_total_relation_size(c.oid), 0) AS \"Data_length\", "
                 . "0 AS \"Index_length\", '' AS \"Comment\" "
-                . "FROM information_schema.tables t LEFT JOIN pg_class c ON c.relname = t.table_name AND c.relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public') "
-                . "WHERE t.table_schema = 'public' AND t.table_name LIKE '%s'",
+                . "FROM information_schema.tables t LEFT JOIN pg_class c ON c.relname = t.table_name AND c.relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = current_schema()) "
+                . "WHERE t.table_schema = current_schema() AND t.table_name LIKE '%s'",
                 str_replace("'", "''", $m[1]),
             )];
         }
@@ -2673,13 +2673,13 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
                 . "COALESCE(c.reltuples::bigint, 0) AS \"Rows\", 0 AS \"Avg_row_length\", "
                 . "COALESCE(pg_total_relation_size(c.oid), 0) AS \"Data_length\", "
                 . "0 AS \"Index_length\", '' AS \"Comment\" "
-                . "FROM information_schema.tables t LEFT JOIN pg_class c ON c.relname = t.table_name AND c.relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public') "
-                . "WHERE t.table_schema = 'public'"];
+                . "FROM information_schema.tables t LEFT JOIN pg_class c ON c.relname = t.table_name AND c.relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = current_schema()) "
+                . "WHERE t.table_schema = current_schema()"];
         }
 
         if (preg_match('/^\s*DESCRIBE\s+[`"]?(\w+)[`"]?\s*/i', $sql, $m)) {
             return [\sprintf(
-                "SELECT column_name AS \"Field\", data_type AS \"Type\" FROM information_schema.columns WHERE table_schema = 'public' AND table_name = '%s'",
+                "SELECT column_name AS \"Field\", data_type AS \"Type\" FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = '%s'",
                 $m[1],
             )];
         }

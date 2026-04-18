@@ -48,7 +48,30 @@ final class PgsqlDriverFactory implements DriverFactoryInterface
             password: $dsn->getPassword() ?? '',
             database: ltrim($dsn->getPath() ?? '', '/'),
             port: $dsn->getPort() ?? 5432,
+            searchPath: self::parseSearchPath($dsn),
         );
+    }
+
+    /**
+     * Read `?search_path=a,b,c` (preferred) or `?schema=foo` (ergonomic
+     * single-schema alias) from the DSN query string. Returns null when
+     * neither is set, so the server-side default applies.
+     *
+     * @return list<string>|null
+     */
+    private static function parseSearchPath(Dsn $dsn): ?array
+    {
+        $raw = $dsn->getOption('search_path') ?? $dsn->getOption('schema');
+        if ($raw === null || $raw === '') {
+            return null;
+        }
+
+        $parts = array_values(array_filter(
+            array_map('trim', explode(',', $raw)),
+            static fn(string $s): bool => $s !== '',
+        ));
+
+        return $parts === [] ? null : $parts;
     }
 
     public function supports(Dsn $dsn): bool

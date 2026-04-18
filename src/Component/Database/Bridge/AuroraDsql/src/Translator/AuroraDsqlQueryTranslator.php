@@ -60,7 +60,7 @@ final class AuroraDsqlQueryTranslator implements QueryTranslatorInterface
                 \sprintf(
                     'SELECT setval(pg_get_serial_sequence(%s, column_name), 1, false) '
                     . 'FROM information_schema.columns '
-                    . "WHERE table_schema = 'public' AND table_name = %s "
+                    . 'WHERE table_schema = current_schema() AND table_name = %s '
                     . "AND column_default LIKE 'nextval%%'",
                     $tableLiteral,
                     $tableLiteral,
