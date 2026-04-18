@@ -67,7 +67,7 @@ final class DatabaseManagerTest extends TestCase
     public function enginePropertyIsSet(): void
     {
         self::assertIsString($this->db->engine);
-        self::assertSame('mysql', $this->db->engine);
+        self::assertContains($this->db->engine, ['mysql', 'mariadb', 'sqlite', 'pgsql']);
     }
 
     #[Test]
@@ -243,8 +243,17 @@ final class DatabaseManagerTest extends TestCase
     #[Test]
     public function quoteIdentifier(): void
     {
-        self::assertSame('`my_table`', $this->db->quoteIdentifier('my_table'));
-        self::assertSame('`col``name`', $this->db->quoteIdentifier('col`name'));
+        // Quoting style is platform-specific: MySQL uses backticks,
+        // SQLite/PostgreSQL use double quotes. Verify the identifier is
+        // wrapped and that embedded quote characters are escaped.
+        $quoted = $this->db->quoteIdentifier('my_table');
+        self::assertMatchesRegularExpression('/^[`"]my_table[`"]$/', $quoted);
+
+        $platform = $this->db->getConnection()->getPlatform();
+        $q = $platform->getEngine() === 'mysql' || $platform->getEngine() === 'mariadb' ? '`' : '"';
+        $probe = 'col' . $q . 'name';
+        $escaped = $this->db->quoteIdentifier($probe);
+        self::assertSame($q . 'col' . $q . $q . 'name' . $q, $escaped);
     }
 
     #[Test]

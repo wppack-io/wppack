@@ -117,6 +117,12 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
             return [preg_replace('/^\s*DO\s+/i', 'SELECT ', $trimmed)];
         }
 
+        // DROP TEMPORARY TABLE → DROP TABLE — SQLite has no TEMPORARY
+        // keyword on DROP (temp tables just use plain DROP TABLE).
+        if (preg_match('/^\s*DROP\s+TEMPORARY\s+TABLE\b/i', $trimmed)) {
+            return [(string) preg_replace('/^\s*DROP\s+TEMPORARY\s+TABLE\b/i', 'DROP TABLE', $trimmed)];
+        }
+
         foreach (self::IGNORED_PATTERNS as $pattern) {
             if (preg_match($pattern, $trimmed)) {
                 return [];
@@ -2182,12 +2188,23 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
      */
     private function rewriteLimit(QueryRewriter $rw, int|string $offset, int|string $rowCount): void
     {
-        // Skip all LIMIT-related tokens
+        // Skip all LIMIT-related tokens. Accept either literal Number tokens
+        // or `?` placeholder tokens — when WordPress builds a LIMIT with
+        // $wpdb->prepare('... LIMIT %d, %d', …) the values land as ? after
+        // PlaceholderConverter, not numeric literals.
         $rw->skip(); // LIMIT keyword
 
-        // Skip number
-        $next = $rw->peek();
-        if ($next !== null && $next->type === TokenType::Number) {
+        $isLimitValue = static function (?object $t): bool {
+            if ($t === null) {
+                return false;
+            }
+
+            return $t->type === TokenType::Number
+                || ($t->type === TokenType::Symbol && $t->token === '?');
+        };
+
+        // Skip number or ?
+        if ($isLimitValue($rw->peek())) {
             $rw->skip();
         }
 
@@ -2195,9 +2212,8 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         $next = $rw->peek();
         if ($next !== null && $next->type === TokenType::Operator && $next->token === ',') {
             $rw->skip(); // comma
-            $next = $rw->peek();
-            if ($next !== null && $next->type === TokenType::Number) {
-                $rw->skip(); // second number
+            if ($isLimitValue($rw->peek())) {
+                $rw->skip(); // second number / ?
             }
         }
 
@@ -2205,10 +2221,19 @@ final class SqliteQueryTranslator implements QueryTranslatorInterface
         $next = $rw->peek();
         if ($next !== null && $next->type === TokenType::Keyword && $next->keyword === 'OFFSET') {
             $rw->skip(); // OFFSET
-            $next = $rw->peek();
-            if ($next !== null && $next->type === TokenType::Number) {
-                $rw->skip(); // offset number
+            if ($isLimitValue($rw->peek())) {
+                $rw->skip(); // offset number / ?
             }
+        }
+
+        // Placeholders can't be reordered: LIMIT ?, ? means (offset, count)
+        // and first ? binds offset, second ? binds count. SQLite accepts the
+        // same `LIMIT offset, count` shape as MySQL, so pass it through
+        // unchanged to keep the bind order stable.
+        if ($offset === '?' || $rowCount === '?') {
+            $rw->add('LIMIT ' . $offset . ', ' . $rowCount);
+
+            return;
         }
 
         $offsetVal = (int) $offset;

@@ -120,6 +120,12 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
             return [preg_replace('/^\s*DO\s+/i', 'SELECT ', $trimmed)];
         }
 
+        // DROP TEMPORARY TABLE → DROP TABLE — PostgreSQL has no TEMPORARY
+        // keyword on DROP (temp tables just use plain DROP TABLE).
+        if (preg_match('/^\s*DROP\s+TEMPORARY\s+TABLE\b/i', $trimmed)) {
+            return [(string) preg_replace('/^\s*DROP\s+TEMPORARY\s+TABLE\b/i', 'DROP TABLE', $trimmed)];
+        }
+
         foreach (self::IGNORED_PATTERNS as $pattern) {
             if (preg_match($pattern, $trimmed)) {
                 return [];
@@ -1262,7 +1268,10 @@ final class PostgresqlQueryTranslator implements QueryTranslatorInterface
 
             if (!$hasEscape) {
                 $rw->consume();
-                $rw->add(" ESCAPE '\\'");
+                // Use E'\\' (explicit escape-string syntax) rather than '\' — the
+                // latter has an odd number of backslashes, which trips
+                // PlaceholderScanner's quote tracker when rewriting ? → $N.
+                $rw->add(" ESCAPE E'\\\\'");
             }
 
             return;

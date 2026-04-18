@@ -1102,9 +1102,19 @@ class WpPackWpdb extends \wpdb
             // enclosing COUNT(*) replaces its semantics.
             $countSql = (string) preg_replace('/\bSQL_CALC_FOUND_ROWS\b\s*/i', '', $countSql);
 
+            // LIMIT clauses are positional and always sit at the tail of the
+            // statement, so any ? placeholders that were stripped correspond
+            // to the last N entries in $params. Drop them from the param
+            // list so the COUNT(*) subquery binds exactly what it has.
+            $placeholdersBefore = substr_count($translatedSql, '?');
+            $placeholdersAfter = substr_count($countSql, '?');
+            $countParams = ($placeholdersAfter < $placeholdersBefore)
+                ? \array_slice($params, 0, $placeholdersAfter)
+                : $params;
+
             $result = $driver->executeQuery(
                 'SELECT COUNT(*) FROM (' . $countSql . ') AS _wppack_found',
-                $params,
+                $countParams,
             );
             $this->lastFoundRows = (int) $result->fetchOne();
         } catch (\Throwable $e) {

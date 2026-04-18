@@ -18,6 +18,7 @@ use WpPack\Component\Database\Driver\DriverInterface;
 use WpPack\Component\Database\Exception\DriverException;
 use WpPack\Component\Database\Exception\QueryException;
 use WpPack\Component\Database\Platform\PlatformInterface;
+use WpPack\Component\Database\Translator\QueryTranslatorInterface;
 
 /**
  * DBAL-style database connection.
@@ -35,6 +36,7 @@ class Connection
         private readonly DriverInterface $driver,
         private readonly ?LoggerInterface $logger = null,
         private readonly ?QueryLoggerInterface $queryLogger = null,
+        private readonly ?QueryTranslatorInterface $translator = null,
     ) {}
 
     public function getDriver(): DriverInterface
@@ -216,7 +218,7 @@ class Connection
         $start = microtime(true);
 
         try {
-            $result = $operation($sql, $nativeParams);
+            $result = $this->executeTranslated($sql, $nativeParams, $operation);
         } catch (DriverException $e) {
             throw new QueryException($sql, $e->getMessage(), $e);
         }
@@ -232,5 +234,37 @@ class Connection
         $this->queryLogger?->log($sql, $nativeParams, $elapsed);
 
         return $result;
+    }
+
+    /**
+     * Run the operation, applying the translator if one is configured. When a
+     * translator expands one MySQL statement to multiple native statements
+     * (e.g. AUTO_INCREMENT → CREATE SEQUENCE + CREATE TABLE), the auxiliary
+     * statements are executed first and the main statement's result is
+     * returned. Statements whose translation strips placeholders receive a
+     * trimmed param list (LIMIT clauses dropped by CREATE SEQUENCE etc.).
+     *
+     * @param list<mixed> $params
+     * @param callable(string, list<mixed>): mixed $operation
+     */
+    private function executeTranslated(string $sql, array $params, callable $operation): mixed
+    {
+        if ($this->translator === null) {
+            return $operation($sql, $params);
+        }
+
+        $translated = $this->translator->translate($sql);
+
+        if ($translated === []) {
+            return 0;
+        }
+
+        $last = null;
+        foreach ($translated as $stmt) {
+            $stmtParams = str_contains($stmt, '?') ? $params : [];
+            $last = $operation($stmt, $stmtParams);
+        }
+
+        return $last;
     }
 }

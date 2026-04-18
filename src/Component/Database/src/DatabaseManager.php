@@ -333,9 +333,13 @@ final class DatabaseManager
     {
         $queryLogger = new WpSaveQueriesLogger($wpdb);
 
-        // WpPack db.php drop-in — Driver already configured
+        // WpPack db.php drop-in — Driver already configured. Reuse the
+        // driver's own translator so DatabaseManager writes pass through
+        // the same MySQL-dialect rewrites as $wpdb queries.
         if ($wpdb instanceof WpPackWpdb) {
-            return new Connection($wpdb->getWriter(), null, $queryLogger);
+            $writer = $wpdb->getWriter();
+
+            return new Connection($writer, null, $queryLogger, $writer->getQueryTranslator());
         }
 
         // Standard WordPress — reuse existing mysqli connection
@@ -343,19 +347,19 @@ final class DatabaseManager
         $dbh = $wpdb->dbh;
 
         if ($dbh instanceof \mysqli) {
-            return new Connection(Driver\MysqlDriver::fromMysqli($dbh), null, $queryLogger);
+            $driver = Driver\MysqlDriver::fromMysqli($dbh);
+
+            return new Connection($driver, null, $queryLogger, $driver->getQueryTranslator());
         }
 
         // Fallback — create from DB_* constants
-        return new Connection(
-            new Driver\MysqlDriver(
-                host: \defined('DB_HOST') ? DB_HOST : '127.0.0.1',
-                username: \defined('DB_USER') ? DB_USER : 'root',
-                password: \defined('DB_PASSWORD') ? DB_PASSWORD : '',
-                database: \defined('DB_NAME') ? DB_NAME : '',
-            ),
-            null,
-            $queryLogger,
+        $driver = new Driver\MysqlDriver(
+            host: \defined('DB_HOST') ? DB_HOST : '127.0.0.1',
+            username: \defined('DB_USER') ? DB_USER : 'root',
+            password: \defined('DB_PASSWORD') ? DB_PASSWORD : '',
+            database: \defined('DB_NAME') ? DB_NAME : '',
         );
+
+        return new Connection($driver, null, $queryLogger, $driver->getQueryTranslator());
     }
 }

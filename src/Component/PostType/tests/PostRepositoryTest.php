@@ -81,6 +81,17 @@ final class PostRepositoryTest extends TestCase
     #[Test]
     public function insertThrowsOnInvalidData(): void
     {
+        // wp_insert_post() only returns WP_Error when the DB rejects the
+        // write. The post_type column is varchar(20) and strict-mode MySQL
+        // refuses the overlong value below; SQLite stores strings
+        // unbounded, and PostgreSQL truncates via a compat trigger, so
+        // neither surfaces the error. Gate the expectation on the engine.
+        global $wpdb;
+        $dbh = $wpdb->dbh;
+        if (!($dbh instanceof \mysqli)) {
+            self::markTestSkipped('wp_insert_post failure path requires MySQL strict mode.');
+        }
+
         $this->expectException(PostException::class);
 
         $this->repository->insert(['post_type' => 'nonexistent_post_type_' . uniqid()]);

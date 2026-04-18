@@ -39,11 +39,13 @@ final class DatabaseManagerConnectionTest extends TestCase
     #[Test]
     public function fetchAllAssociativeWorks(): void
     {
-        // Uses the real MySQL connection from WordPress test environment
+        // The MySQL driver surfaces integers as strings (historical wpdb
+        // contract); native PDO/pgsql preserve the native int type. Accept
+        // either shape so the test passes across all engines.
         $results = $this->db->fetchAllAssociative('SELECT 1 AS val');
 
         self::assertCount(1, $results);
-        self::assertSame('1', $results[0]['val']);
+        self::assertEquals(1, $results[0]['val']);
     }
 
     #[Test]
@@ -52,7 +54,7 @@ final class DatabaseManagerConnectionTest extends TestCase
         $row = $this->db->fetchAssociative('SELECT 1 AS val');
 
         self::assertNotNull($row);
-        self::assertSame('1', $row['val']);
+        self::assertEquals(1, $row['val']);
     }
 
     #[Test]
@@ -60,7 +62,7 @@ final class DatabaseManagerConnectionTest extends TestCase
     {
         $value = $this->db->fetchOne('SELECT 1');
 
-        self::assertSame('1', $value);
+        self::assertEquals(1, $value);
     }
 
     #[Test]
@@ -68,7 +70,7 @@ final class DatabaseManagerConnectionTest extends TestCase
     {
         $values = $this->db->fetchFirstColumn('SELECT 1 UNION SELECT 2');
 
-        self::assertSame(['1', '2'], $values);
+        self::assertEquals([1, 2], $values);
     }
 
     #[Test]
@@ -92,6 +94,6 @@ final class DatabaseManagerConnectionTest extends TestCase
             [42],
         );
 
-        self::assertSame(42, $results[0]['val']);
+        self::assertEquals(42, $results[0]['val']);
     }
 }
